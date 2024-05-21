@@ -1,7 +1,6 @@
-import Image from "next/image";
 import { WalletReadyState } from "@solana/wallet-adapter-base";
 
-import { OnrampScreenProps, cn, socialProviders, walletIcons } from "~/utils";
+import { OnrampScreenProps, socialProviders } from "~/utils";
 import { useAvailableWallets, walletInstallMap } from "~/hooks/useAvailableWallets";
 
 import {
@@ -10,6 +9,7 @@ import {
   WalletAuthButton,
   WalletAuthEmailForm,
   WalletSeperator,
+  WalletAuthWrapper,
 } from "../../sharedComponents";
 
 interface props extends OnrampScreenProps {}
@@ -57,31 +57,20 @@ export const CreateEthAccount: React.FC<props> = ({
         ))}
       </ul>
       <WalletSeperator description="or connect with" />
-      <ul className={cn("flex flex-wrap items-start justify-center gap-4 overflow-auto", wallets.length > 6 && "pb-1")}>
-        {wallets.map((wallet, i) => {
-          const img = walletIcons[wallet.adapter.name] || (
-            <Image src={wallet.adapter.icon} width={28} height={28} alt={wallet.adapter.name} />
-          );
-
-          return (
-            <li key={i} className="space-y-2">
-              <WalletAuthButton
-                name={wallet.adapter.name}
-                image={img}
-                loading={isLoading && isActiveLoading === wallet.adapter.name}
-                active={!isLoading || (isLoading && isActiveLoading === wallet.adapter.name)}
-                onClick={() => {
-                  if (wallet.readyState !== WalletReadyState.Installed) {
-                    setInstallingWallet(wallet.adapter.name);
-                    window.open(walletInstallMap[wallet.adapter.name], "_blank");
-                  } else {
-                    select(wallet.adapter.name);
-                  }
-                }}
-              />
-            </li>
-          );
-        })}
+      <ul className="flex flex-wrap items-start justify-center gap-4 overflow-auto">
+        <WalletAuthWrapper
+          isLoading={isLoading}
+          isActiveLoading={isActiveLoading}
+          wallets={wallets}
+          onClick={(wallet) => {
+            if (wallet.readyState !== WalletReadyState.Installed) {
+              setInstallingWallet(wallet.adapter.name);
+              window.open(walletInstallMap[wallet.adapter.name], "_blank");
+            } else {
+              select(wallet.adapter.name);
+            }
+          }}
+        />
       </ul>
     </ScreenWrapper>
   );

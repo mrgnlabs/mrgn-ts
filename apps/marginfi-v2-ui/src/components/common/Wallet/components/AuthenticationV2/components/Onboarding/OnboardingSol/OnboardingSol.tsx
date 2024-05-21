@@ -1,10 +1,10 @@
+import React from "react";
+import { useWallet } from "@solana/wallet-adapter-react";
+
 import { DialogContent } from "~/components/ui/dialog";
 import { AuthScreenProps, OnrampScreenProps, cn } from "~/utils";
-import { OnboardHeader, WalletAuthButton, WalletAuthEmailForm } from "../../sharedComponents";
-import { Button } from "~/components/ui/button";
-import { useWallet } from "@solana/wallet-adapter-react";
-import React from "react";
-import { WalletSeperator } from "../../sharedComponents/WalletSeperator";
+
+import { OnboardHeader } from "../../sharedComponents";
 import { ethOnrampFlow } from "./onboardingSolUtils";
 
 interface props extends AuthScreenProps {}

@@ -19,11 +19,7 @@ export const OnboardingMain = ({ update }: props) => {
       />
 
       <div className="w-full space-y-6 mt-8">
-        <div
-          className={cn(
-            "relative bg-muted text-muted-foreground transition-all duration-300 w-full p-6 pt-5 rounded-lg overflow-hidden"
-          )}
-        >
+        <div className="relative bg-muted text-muted-foreground transition-all duration-300 w-full p-6 pt-5 rounded-lg overflow-hidden">
           <div>
             <h2 className="font-semibold text-2xl text-white">I&apos;m new to crypto</h2>
             <p className="mt-2 text-sm sm:text-base">Help get up and running</p>
@@ -36,9 +32,7 @@ export const OnboardingMain = ({ update }: props) => {
           </div>
         </div>
         <div
-          className={cn(
-            "relative bg-muted text-muted-foreground transition-all duration-300 w-full p-6 pt-5 rounded-lg overflow-hidden cursor-pointer"
-          )}
+          className="relative bg-muted text-muted-foreground transition-all duration-300 w-full p-6 pt-5 rounded-lg overflow-hidden cursor-pointer"
           onClick={() => update("ONBOARD_SOL")}
         >
           <div>
@@ -49,9 +43,7 @@ export const OnboardingMain = ({ update }: props) => {
           </div>
         </div>
         <div
-          className={cn(
-            "relative bg-muted text-muted-foreground transition-all duration-300 w-full p-6 pt-5 rounded-lg overflow-hidden cursor-pointer"
-          )}
+          className="relative bg-muted text-muted-foreground transition-all duration-300 w-full p-6 pt-5 rounded-lg overflow-hidden cursor-pointer"
           onClick={() => update("ONBOARD_ETH")}
         >
           <div>

@@ -2,7 +2,7 @@ import React from "react";
 import { useRouter } from "next/router";
 import Image from "next/image";
 
-import { OnrampScreenProps, cn } from "~/utils";
+import { OnrampScreenProps } from "~/utils";
 import { useAvailableWallets } from "~/hooks/useAvailableWallets";
 import { Button } from "~/components/ui/button";
 
