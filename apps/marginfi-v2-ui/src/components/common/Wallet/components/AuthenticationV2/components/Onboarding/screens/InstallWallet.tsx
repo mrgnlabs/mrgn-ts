@@ -24,7 +24,7 @@ export const InstallWallet: React.FC<props> = ({ installingWallet }: props) => {
   }
 
   const onPageRefresh = () => {
-    push(`/?onramp=${installingWallet?.wallet}?flow=${installingWallet?.flow}`).then(() => {
+    push(`/?onramp=${installingWallet?.wallet}&flow=${installingWallet?.flow}`).then(() => {
       reload();
     });
   };

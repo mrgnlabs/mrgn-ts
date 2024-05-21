@@ -23,9 +23,14 @@ export const OnboardingEth = ({
   const [installingWallet, setInstallingWallet] = React.useState<InstallingWallet>();
 
   const screen = React.useMemo(() => {
-    if (installingWallet) return installWallet;
-    else if (ethOnrampFlow.length < screenIndex) onClose();
-    return ethOnrampFlow[screenIndex];
+    if (installingWallet) {
+      return installWallet;
+    } else if (ethOnrampFlow.length <= screenIndex) {
+      onClose();
+      return ethOnrampFlow[0];
+    } else {
+      return ethOnrampFlow[screenIndex];
+    }
   }, [installingWallet, screenIndex, onClose]);
 
   React.useEffect(() => {
