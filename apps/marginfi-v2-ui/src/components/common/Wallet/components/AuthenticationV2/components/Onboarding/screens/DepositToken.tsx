@@ -8,11 +8,11 @@ import { ScreenWrapper, WalletSeperator } from "../../sharedComponents";
 
 interface props extends OnrampScreenProps {}
 
-export const DepositToken = ({ onClose }: props) => {
+export const DepositToken = ({ onNext }: props) => {
   return (
     <ScreenWrapper>
-      <ActionBox requestedAction={ActionType.Deposit} isDialog={true} />
-      <WalletSeperator description="skip for now" onClick={() => onClose()} />
+      <ActionBox requestedAction={ActionType.Deposit} />
+      <WalletSeperator description="skip for now" onClick={() => onNext()} />
     </ScreenWrapper>
   );
 };

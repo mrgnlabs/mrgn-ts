@@ -1,11 +1,11 @@
 import React from "react";
+import { useWallet } from "@solana/wallet-adapter-react";
 
 import { DialogContent } from "~/components/ui/dialog";
-import { AuthScreenProps, OnrampScreenProps, cn } from "~/utils";
+import { AuthScreenProps, InstallingWallet, OnrampScreenProps, cn } from "~/utils";
 
-import { OnboardHeader, WalletAuthButton, WalletAuthEmailForm, WalletSeperator } from "../../sharedComponents";
-import { installWallet, socialOnrampFlow, SocialOnrampScreen } from "./onboardingSocialUtils";
-import { Wallet, useWallet } from "@solana/wallet-adapter-react";
+import { OnboardHeader } from "../../sharedComponents";
+import { installWallet, socialOnrampFlow } from "./onboardingSocialUtils";
 
 interface props extends AuthScreenProps {}
 
@@ -19,12 +19,13 @@ export const OnboardingSocial: React.FC<props> = ({
 }: props) => {
   const { select, connected } = useWallet();
   const [screenIndex, setScreenIndex] = React.useState<number>(0);
-  const [installingWallet, setInstallingWallet] = React.useState<string>();
+  const [installingWallet, setInstallingWallet] = React.useState<InstallingWallet>();
 
   const screen = React.useMemo(() => {
     if (installingWallet) return installWallet;
-    else return socialOnrampFlow[screenIndex];
-  }, [screenIndex, installingWallet]);
+    else if (socialOnrampFlow.length < screenIndex) onClose();
+    return socialOnrampFlow[screenIndex];
+  }, [installingWallet, screenIndex, onClose]);
 
   React.useEffect(() => {
     if (connected) setScreenIndex(1);

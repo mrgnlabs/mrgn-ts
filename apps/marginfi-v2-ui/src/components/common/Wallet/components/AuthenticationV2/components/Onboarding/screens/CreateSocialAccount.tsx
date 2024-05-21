@@ -59,7 +59,7 @@ export const CreateSocialAccount: React.FC<props> = ({
           wallets={wallets}
           onClick={(wallet) => {
             if (wallet.readyState !== WalletReadyState.Installed) {
-              setInstallingWallet(wallet.adapter.name);
+              setInstallingWallet({ flow: "onramp", wallet: wallet.adapter.name });
               window.open(walletInstallMap[wallet.adapter.name], "_blank");
             } else {
               select(wallet.adapter.name);

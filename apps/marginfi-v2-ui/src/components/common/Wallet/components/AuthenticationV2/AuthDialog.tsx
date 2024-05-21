@@ -31,13 +31,21 @@ export const AuthDialog = () => {
     // check if user is new
     if (query.onramp) {
       const selectedWallet = query.onramp as string;
-      setFlow("ONBOARD_SOCIAL");
+      const flow = query.flow as string;
+
+      if (flow === "eth") {
+        setFlow("ONBOARD_ETH");
+      } else {
+        setFlow("ONBOARD_SOCIAL");
+      }
+
       setIsLoading(true);
       setIsActiveLoading(selectedWallet);
       select(selectedWallet as any);
 
       const newQuery = { ...query };
       delete newQuery.onramp;
+      delete newQuery.flow;
       replace(
         {
           pathname: pathname,
@@ -48,10 +56,6 @@ export const AuthDialog = () => {
       );
     }
   }, [pathname, query, query.onramp, replace, select]);
-
-  // React.useEffect(() => {
-  //   setFlow("ONBOARD_MAIN");
-  // }, []);
 
   React.useEffect(() => {
     if (!isWalletAuthDialogOpen) {

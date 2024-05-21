@@ -13,9 +13,7 @@ export const OnboardingMain = ({ update }: props) => {
     <DialogContent className={cn("md:block overflow-hidden p-4 pt-8 md:pt-4 justify-start md:max-w-xl")}>
       <OnboardHeader
         title={"Welcome to marginfi"}
-        description={
-          "Sign in to get started with marginfi,. If you&apos;re new to crypto, let us guide you the process."
-        }
+        description={"Sign in to get started with marginfi. If you're new to crypto, let us guide you the process."}
       />
 
       <div className="w-full space-y-6 mt-8">

@@ -250,9 +250,10 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
       const newUrl = asPath.split("#")[0];
       replace(newUrl);
     }
+    setIsWalletAuthDialogOpen(false);
     setIsLoading(false);
     setPfp("");
-  }, [walletContextState, web3Auth, asPath, replace]);
+  }, [web3Auth, asPath, setIsWalletAuthDialogOpen, walletContextState, replace]);
 
   // called when user requests private key
   // stores short lived cookie and forces login

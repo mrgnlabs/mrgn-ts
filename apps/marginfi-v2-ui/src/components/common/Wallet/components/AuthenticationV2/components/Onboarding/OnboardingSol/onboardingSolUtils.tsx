@@ -1,13 +1,13 @@
 import * as screens from "../screens";
 
-export type EthOnrampScreen = {
+export type SolOnrampScreen = {
   comp: React.FC<any>;
   title: string;
   description: string;
   titleSize: "lg" | "sm";
 };
 
-export const ethOnrampFlow: EthOnrampScreen[] = [
+export const solOnrampFlow: SolOnrampScreen[] = [
   {
     comp: screens.CreateSolanaAccount,
     title: "Welcome to marginfi",

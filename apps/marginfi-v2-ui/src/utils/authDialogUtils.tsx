@@ -22,11 +22,12 @@ import {
   OnboardingSol,
 } from "~/components/common/Wallet/components/AuthenticationV2/components";
 
+export type InstallingWallet = { wallet: string; flow: "eth" | "onramp" };
 export interface OnrampScreenProps extends AuthScreenProps {
-  installingWallet?: string;
+  installingWallet?: InstallingWallet;
   onPrev: () => void;
   onNext: () => void;
-  setInstallingWallet: (wallet: string) => void;
+  setInstallingWallet: (wallet: InstallingWallet) => void;
 }
 
 export interface AuthScreenProps {

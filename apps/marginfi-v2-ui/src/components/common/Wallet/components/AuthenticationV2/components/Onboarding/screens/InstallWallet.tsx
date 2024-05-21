@@ -11,11 +11,11 @@ import { ScreenWrapper } from "../../sharedComponents";
 interface props extends OnrampScreenProps {}
 
 export const InstallWallet: React.FC<props> = ({ installingWallet }: props) => {
-  const wallets = useAvailableWallets("social");
+  const wallets = useAvailableWallets();
   const { push, reload } = useRouter();
 
   const selectedWallet = React.useMemo(
-    () => wallets.find((wallet) => wallet.adapter.name === installingWallet),
+    () => wallets.find((wallet) => wallet.adapter.name === installingWallet?.wallet),
     [wallets, installingWallet]
   );
 
@@ -24,7 +24,7 @@ export const InstallWallet: React.FC<props> = ({ installingWallet }: props) => {
   }
 
   const onPageRefresh = () => {
-    push(`/?onramp=${installingWallet}`).then(() => {
+    push(`/?onramp=${installingWallet?.wallet}?flow=${installingWallet?.flow}`).then(() => {
       reload();
     });
   };
@@ -35,7 +35,7 @@ export const InstallWallet: React.FC<props> = ({ installingWallet }: props) => {
         <Image src={selectedWallet.adapter.icon} width={32} height={32} alt={selectedWallet.adapter.name} />
       </div>
       <p className="flex justify-center gap-2 text-center">
-        Installing {installingWallet} wallet. <br />
+        Installing {installingWallet?.wallet} wallet. <br />
         Press refresh when you&apos;ve completed the installation setup.
       </p>
       <div className="mx-auto">

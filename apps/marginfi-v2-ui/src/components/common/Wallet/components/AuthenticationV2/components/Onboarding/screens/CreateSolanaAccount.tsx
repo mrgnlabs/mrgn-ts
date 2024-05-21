@@ -27,7 +27,7 @@ export const CreateSolanaAccount: React.FC<props> = ({
   loginWeb3Auth,
   select,
 }: props) => {
-  const wallets = useAvailableWallets("eth");
+  const wallets = useAvailableWallets();
 
   const { isAndroid, isIOS } = useOs();
 
