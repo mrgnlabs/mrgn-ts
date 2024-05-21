@@ -21,13 +21,18 @@ export const OnboardingSol = ({
   const [screenIndex, setScreenIndex] = React.useState<number>(0);
 
   const screen = React.useMemo(() => {
-    if (solOnrampFlow.length < screenIndex || screenIndex === 1) onClose();
-    return solOnrampFlow[screenIndex];
+    if (solOnrampFlow.length <= screenIndex) {
+      onClose();
+      return solOnrampFlow[0];
+    } else {
+      return solOnrampFlow[screenIndex];
+    }
   }, [onClose, screenIndex]);
 
-  // React.useEffect(() => {
-  //   if (connected) setScreenIndex(1);
-  // }, [connected]);
+  React.useEffect(() => {
+    if (connected) onClose();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [connected]);
 
   const onSelectWallet = (selectedWallet: string | null) => {
     if (!selectedWallet) return;
@@ -43,7 +48,7 @@ export const OnboardingSol = ({
       {React.createElement(screen.comp, {
         isLoading: isLoading,
         isActiveLoading: isActiveLoading,
-        onNext: () => setScreenIndex(screenIndex + 1),
+        onNext: () => onClose(),
         setIsLoading: setIsLoading,
         setIsActiveLoading: setIsActiveLoading,
         loginWeb3Auth: loginWeb3Auth,

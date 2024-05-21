@@ -22,9 +22,14 @@ export const OnboardingSocial: React.FC<props> = ({
   const [installingWallet, setInstallingWallet] = React.useState<InstallingWallet>();
 
   const screen = React.useMemo(() => {
-    if (installingWallet) return installWallet;
-    else if (socialOnrampFlow.length < screenIndex) onClose();
-    return socialOnrampFlow[screenIndex];
+    if (installingWallet) {
+      return installWallet;
+    } else if (socialOnrampFlow.length <= screenIndex) {
+      onClose();
+      return socialOnrampFlow[0];
+    } else {
+      return socialOnrampFlow[screenIndex];
+    }
   }, [installingWallet, screenIndex, onClose]);
 
   React.useEffect(() => {
