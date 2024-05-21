@@ -1,7 +1,7 @@
 import React from "react";
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { OnrampScreenProps, cn } from "~/utils";
+import { OnrampScreenProps } from "~/utils";
 import { ActionBox } from "~/components/common/ActionBox";
 
 import { ScreenWrapper, WalletSeperator } from "../../sharedComponents";
