@@ -16,8 +16,8 @@ export const ethOnrampFlow: EthOnrampScreen[] = [
   },
   {
     comp: screens.BridgeToken,
-    title: "Step 1. Buy some crypto",
-    description: "and here's what we bring:",
+    title: "Step 1. Bridge your assets",
+    description: "Bridge your assets from Ethereum to Solana, you can swap tokens on the next screen.",
     titleSize: "sm",
   },
   {
@@ -33,3 +33,10 @@ export const ethOnrampFlow: EthOnrampScreen[] = [
     titleSize: "sm",
   },
 ];
+
+export const installWallet: EthOnrampScreen = {
+  comp: screens.InstallWallet,
+  title: "Installing wallet",
+  description: "Refresh if installed",
+  titleSize: "lg",
+};

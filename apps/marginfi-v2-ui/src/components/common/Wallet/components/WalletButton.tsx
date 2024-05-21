@@ -27,7 +27,7 @@ const web3AuthIconMap: { [key in Web3AuthProvider]: { icon: JSX.Element } } = {
 
 export const WalletButton = () => {
   const { select } = useWallet();
-  const { connected, connecting, isLoading, loginWeb3Auth } = useWalletContext();
+  const { connected, isLoading, loginWeb3Auth } = useWalletContext();
   const [setIsWalletAuthDialogOpen] = useUiStore((state) => [state.setIsWalletAuthDialogOpen]);
 
   const walletInfo = useMemo(() => JSON.parse(localStorage.getItem("walletInfo") ?? "null") as WalletInfo, []);
