@@ -20,7 +20,7 @@ function TradingViewWidget() {
           "theme": "dark",
           "style": "1",
           "locale": "en",
-          "backgroundColor": "rgb(10, 11, 11)",
+          "backgroundColor": "rgb(13, 16, 18)",
           "hide_top_toolbar": true,
           "allow_symbol_change": false,
           "save_image": false,
