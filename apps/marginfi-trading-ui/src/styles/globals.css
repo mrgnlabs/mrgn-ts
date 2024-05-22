@@ -5,24 +5,24 @@
 @layer base {
   :root {
     --background: 0 0% 100%;
-    --foreground: 0 0% 3.9%;
+    --foreground: 180 5% 4%;
 
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 3.9%;
+    --card-foreground: 180 5% 4%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3.9%;
+    --popover-foreground: 180 5% 4%;
 
     --primary: 0 0% 9%;
     --primary-foreground: 0 0% 98%;
 
-    --secondary: 0 0% 96.1%;
+    --secondary: 204 13% 8%;
     --secondary-foreground: 0 0% 9%;
 
-    --muted: 0 0% 96.1%;
+    --muted: 204 13% 8%;
     --muted-foreground: 0 0% 45.1%;
 
-    --accent: 0 0% 96.1%;
+    --accent: 204 13% 8%;
     --accent-foreground: 0 0% 9%;
 
     --destructive: 0 84.2% 60.2%;
@@ -30,7 +30,7 @@
 
     --border: 0 0% 89.8%;
     --input: 0 0% 89.8%;
-    --ring: 0 0% 3.9%;
+    --ring: 180 5% 4%;
 
     --radius: 0.5rem;
 
@@ -38,16 +38,17 @@
     --mrgn-chartreuse: 66 75% 64%;
     --mrgn-gold: 33 16% 67%;
     --mrgn-slate: 72 3% 32%;
+    --mrgn-gray: 204 17% 6%;
   }
 
   .dark {
-    --background: 0 0% 3.9%;
+    --background: 180 5% 4%;
     --foreground: 0 0% 98%;
 
-    --card: 0 0% 3.9%;
+    --card: 180 5% 4%;
     --card-foreground: 0 0% 98%;
 
-    --popover: 0 0% 3.9%;
+    --popover: 180 5% 4%;
     --popover-foreground: 0 0% 98%;
 
     --primary: 0 0% 98%;
@@ -77,5 +78,32 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  *::-webkit-scrollbar {
+    width: 20px; /* width of the entire scrollbar */
+  }
+
+  *::-webkit-scrollbar-track {
+    background: hsl(var(--background)); /* color of the tracking area */
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--accent)); /* color of the scroll thumb */
+    border-radius: 20px; /* roundness of the scroll thumb */
+    border: 6px solid hsl(var(--background)); /* creates padding around scroll thumb */
+  }
+
+  input::-webkit-outer-spin-button,
+  input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  input[type="number"] {
+    -moz-appearance: textfield;
+    appearance: textfield;
   }
 }

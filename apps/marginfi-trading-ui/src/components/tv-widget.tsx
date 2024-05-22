@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useEffect, useRef, memo } from "react";
+import React from "react";
 
 function TradingViewWidget() {
-  const container = useRef();
+  const container = React.useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
+  React.useEffect(() => {
+    if (!container.current) return;
     const script = document.createElement("script");
     script.src = "https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js";
     script.type = "text/javascript";
@@ -14,11 +15,13 @@ function TradingViewWidget() {
         {
           "autosize": true,
           "symbol": "CRYPTO:SOLUSD",
-          "interval": "D",
+          "interval": "5",
           "timezone": "Etc/UTC",
           "theme": "dark",
           "style": "1",
           "locale": "en",
+          "backgroundColor": "rgb(10, 11, 11)",
+          "hide_top_toolbar": true,
           "allow_symbol_change": false,
           "save_image": false,
           "calendar": false,
@@ -27,18 +30,19 @@ function TradingViewWidget() {
     container.current.appendChild(script);
 
     return () => {
+      if (!container.current) return;
       container.current.removeChild(script);
     };
-  }, []);
+  }, [container]);
 
   return (
     <div className="tradingview-widget-container" ref={container} style={{ height: "100%", width: "100%" }}>
       <div
         className="tradingview-widget-container__widget"
-        style={{ height: "calc(100% - 32px)", width: "100%" }}
+        style={{ height: "calc(100% - 32px)", width: "120%" }}
       ></div>
     </div>
   );
 }
 
-export default memo(TradingViewWidget);
+export default React.memo(TradingViewWidget);
