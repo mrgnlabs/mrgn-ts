@@ -21,7 +21,7 @@ export const TokenCombobox = ({ selected, setSelected }: TokenComboboxProps) => 
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button variant="outline" size="lg" className="w-full justify-start pr-4 pl-3 py-3">
+        <Button variant="secondary" size="lg" className="w-full justify-start pr-4 pl-3 py-3">
           {selected !== null ? (
             <>
               <Image
@@ -48,7 +48,7 @@ export const TokenCombobox = ({ selected, setSelected }: TokenComboboxProps) => 
               {[...new Array(25)].map((_, index) => (
                 <CommandItem
                   key={index}
-                  className="gap-3 py-2"
+                  className="gap-3 py-2 cursor-pointer rounded-md"
                   value={index.toString()}
                   onSelect={(value) => {
                     setSelected(Number(value));
