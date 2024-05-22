@@ -14,7 +14,7 @@ import { Logo } from "~/components/ui/logo";
 const navItems = [
   { label: "trending", icon: <IconTrendingUp />, href: "/pools?sort=trending" },
   { label: "pools", icon: <IconCoins />, href: "/pools" },
-  { label: "trade", icon: <IconChartLine />, href: "/trade" },
+  { label: "trade", icon: <IconChartLine />, href: "/trade/123" },
   { label: "portfolio", icon: <IconChartPie />, href: "/portfolio" },
 ];
 
@@ -41,7 +41,7 @@ export const Header = () => {
               <Link href={item.href}>
                 <Button
                   variant="ghost"
-                  className={cn("text-muted-foreground", item.href === fullPath && "bg-accent text-primary")}
+                  className={cn("text-muted-foreground", fullPath.includes(item.href) && "bg-accent text-primary")}
                 >
                   {React.cloneElement(item.icon, { size: 18 })}
                   {item.label}
