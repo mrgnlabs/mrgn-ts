@@ -5,13 +5,13 @@
 @layer base {
   :root {
     --background: 0 0% 100%;
-    --foreground: 180 5% 4%;
+    --foreground: 204 17% 6%;
 
     --card: 0 0% 100%;
-    --card-foreground: 180 5% 4%;
+    --card-foreground: 204 17% 6%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 180 5% 4%;
+    --popover-foreground: 204 17% 6%;
 
     --primary: 0 0% 9%;
     --primary-foreground: 0 0% 98%;
@@ -30,7 +30,7 @@
 
     --border: 0 0% 89.8%;
     --input: 0 0% 89.8%;
-    --ring: 180 5% 4%;
+    --ring: 204 17% 6%;
 
     --radius: 0.5rem;
 
@@ -38,17 +38,16 @@
     --mrgn-chartreuse: 66 75% 64%;
     --mrgn-gold: 33 16% 67%;
     --mrgn-slate: 72 3% 32%;
-    --mrgn-gray: 204 17% 6%;
   }
 
   .dark {
-    --background: 180 5% 4%;
+    --background: 204 17% 6%;
     --foreground: 0 0% 98%;
 
-    --card: 180 5% 4%;
+    --card: 204 17% 6%;
     --card-foreground: 0 0% 98%;
 
-    --popover: 180 5% 4%;
+    --popover: 204 17% 6%;
     --popover-foreground: 0 0% 98%;
 
     --primary: 0 0% 98%;
@@ -78,6 +77,8 @@
   }
   body {
     @apply bg-background text-foreground;
+    background: #090a0a;
+    background: radial-gradient(50% 50% at 50% 50%, #101212 10%, #090a0a 80%);
   }
 }
 
