@@ -30,7 +30,7 @@ export const Trade = () => {
   }, [amount, leverage]);
 
   return (
-    <Card className="bg-mrgn-gray border-none">
+    <Card className="bg-background border-none">
       <CardContent className="pt-6">
         <div className="space-y-4">
           <ToggleGroup
