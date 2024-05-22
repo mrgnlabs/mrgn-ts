@@ -53,6 +53,7 @@ export interface AuthScreenProps {
     }>,
     cb?: () => void
   ) => void;
+  onPrev: () => void;
   onClose: () => void;
   select(walletName: WalletName | null): void;
 }

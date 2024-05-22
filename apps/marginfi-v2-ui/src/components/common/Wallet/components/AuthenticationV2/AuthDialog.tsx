@@ -6,6 +6,7 @@ import { useWalletContext } from "~/hooks/useWalletContext";
 import { AUTO_FLOW_MAP, AuthFlowType, AuthScreenProps } from "~/utils";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useUiStore } from "~/store";
+import { set } from "superstruct";
 
 export const AuthDialog = () => {
   const [isWalletAuthDialogOpen, setIsWalletAuthDialogOpen] = useUiStore((state) => [
@@ -84,6 +85,7 @@ export const AuthDialog = () => {
         React.createElement(AUTO_FLOW_MAP[flow].comp, {
           update: (newScreen) => setFlow(newScreen),
           onClose: () => handleClose(),
+          onPrev: () => setFlow("ONBOARD_MAIN"),
           isLoading: isLoading,
           isActiveLoading: isActiveLoading,
           setIsLoading: setIsLoading,
