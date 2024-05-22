@@ -30,7 +30,7 @@ export const Header = () => {
 
   console.log(fullPath);
   return (
-    <header className="flex items-center justify-between gap-8 p-4 lg:py-6 xl:px-8">
+    <header className="flex items-center justify-between gap-8 p-4 lg:p-8">
       <Link href="/">
         <Logo size={32} />
       </Link>
