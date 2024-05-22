@@ -1,6 +1,6 @@
 import { MarginfiAccount, MarginfiClient, MarginfiConfig } from "@mrgnlabs/marginfi-client-v2";
 import { NotificationStatus, NotificationTypes } from "./health-notifier";
-import { Wallet, chunkedGetRawMultipleAccountInfos } from "@mrgnlabs/mrgn-common";
+import { Wallet } from "@mrgnlabs/mrgn-common";
 import { Connection, PublicKey } from "@solana/web3.js";
 import { logger } from "./logger";
 
@@ -14,25 +14,11 @@ export interface AccountState {
 
 export class AccountStore {
   accounts: { [accountPk: string]: AccountState } = {};
+  //@ts-ignore
+  mfiClient: MarginfiClient;
 
-  async init(subscriberWallets: string[], mfiConfig: MarginfiConfig, rpcClient: Connection): Promise<void> {
-    const mfiClient = await MarginfiClient.fetch(mfiConfig, {} as Wallet, rpcClient, { readOnly: true });
-
-    let retryCount = 0;
-    let success = false;
-    while (retryCount < 3 && !success) {
-      try {
-        await this.loadAllMarginfiAccounts(subscriberWallets, mfiClient);
-        success = true;
-      } catch (error) {
-        logger.error(`Error loading marginfi accounts: ${error}`);
-        retryCount++;
-      }
-    }
-
-    if (!success) {
-      throw new Error("Failed to load marginfi accounts after 3 retries");
-    }
+  async init(mfiConfig: MarginfiConfig, rpcClient: Connection): Promise<void> {
+    this.mfiClient = await MarginfiClient.fetch(mfiConfig, {} as Wallet, rpcClient, { readOnly: true });
   }
 
   upsert(accountPk: string, account: MarginfiAccount): void {
@@ -68,19 +54,17 @@ export class AccountStore {
     this.accounts[accountPk].notificationStatuses[notificationType] = status;
   }
 
-  private async loadAllMarginfiAccounts(subscribers: string[], mfiClient: MarginfiClient): Promise<void> {
-    logger.info(`Loading initial accounts for ${subscribers.length} subscriber wallets`);
-    
+  private async loadAllMarginfiAccountsInternal(subscribers: string[], mfiClient: MarginfiClient): Promise<void> {
     const mfiAccounts = (
       await Promise.all(subscribers.map((sub) => mfiClient.getMarginfiAccountsForAuthority(new PublicKey(sub))))
     )
       .flat()
       .map((a) => a.pureAccount);
 
-      for (const account of mfiAccounts) {
-        this.upsert(account.address.toBase58(), account);
-      }
-  
+    for (const account of mfiAccounts) {
+      this.upsert(account.address.toBase58(), account);
+    }
+
     // const allAccountKeys = await mfiClient.getAllMarginfiAccountAddresses();
     // const [_, allAccountInfos] = await chunkedGetRawMultipleAccountInfos(
     //   mfiClient.provider.connection,
@@ -100,6 +84,28 @@ export class AccountStore {
     //   this.upsert(account.address.toBase58(), account);
     // }
 
-    logger.info(`Loaded ${Object.keys(this.accounts).length} subscriber accounts`);
+    if (mfiAccounts.length > 0) {
+      logger.info(`Loaded ${mfiAccounts.length} subscriber marginfi accounts`);
+    }
+  }
+
+  async loadAllMarginfiAccounts(subscribers: string[], maxRetries: number = 5): Promise<void> {
+    logger.info(`Loading marginfi accounts for ${subscribers.length} new subscribers`);
+
+    let retryCount = 0;
+    let success = false;
+    while (retryCount < maxRetries && !success) {
+      try {
+        await this.loadAllMarginfiAccountsInternal(subscribers, this.mfiClient);
+        success = true;
+      } catch (error) {
+        logger.error(`Error loading marginfi accounts: ${error}`);
+        retryCount++;
+      }
+    }
+
+    if (!success) {
+      throw new Error(`Failed to load marginfi accounts after ${maxRetries} retries`);
+    }
   }
 }

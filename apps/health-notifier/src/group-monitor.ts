@@ -8,6 +8,10 @@ export class GroupMonitor {
 
   constructor(readonly mfiClient: MarginfiClient) {}
 
+  async init(): Promise<void> {
+    await this.update();
+  }
+
   async update(): Promise<void> {
     await this.mfiClient.reload();
     this.banks = this.mfiClient.banks;
