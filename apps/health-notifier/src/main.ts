@@ -1,11 +1,8 @@
-import {  Dialect, IllegalStateError } from "@dialectlabs/sdk";
+import { Dialect, IllegalStateError } from "@dialectlabs/sdk";
 import { NodeDialectSolanaWalletAdapter, SolanaSdkFactory } from "@dialectlabs/blockchain-sdk-solana";
 import { envConfig } from "./env-config";
 import { Connection } from "@solana/web3.js";
-import {
-  MarginfiClient,
-  getConfig,
-} from "@mrgnlabs/marginfi-client-v2";
+import { MarginfiClient, getConfig } from "@mrgnlabs/marginfi-client-v2";
 import { Wallet } from "@mrgnlabs/mrgn-common";
 import { GroupMonitor } from "./group-monitor";
 import { HealthNotifier } from "./health-notifier";
@@ -31,17 +28,18 @@ async function main() {
   const groupMonitor = new GroupMonitor(mfiClient);
   const healthNotifier = new HealthNotifier(sdk, dapp, rpcClient, mfiConfig, groupMonitor);
 
+  await Promise.all([await groupMonitor.init(), await healthNotifier.init()]);
   await Promise.all([healthNotifier.run(), groupMonitor.run()]);
 }
 
 main().catch(console.error);
 
-process.on('unhandledRejection', (reason, promise) => {
-  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("Unhandled Rejection at:", promise, "reason:", reason);
   process.exit(1);
 });
 
-process.on('uncaughtException', (error) => {
-  console.error('Uncaught Exception:', error);
+process.on("uncaughtException", (error) => {
+  console.error("Uncaught Exception:", error);
   process.exit(1);
 });

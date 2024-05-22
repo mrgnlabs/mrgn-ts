@@ -56,15 +56,34 @@ export class HealthNotifier {
   }
 
   async init(): Promise<void> {
+    // await this.dapp.messages.send({
+    //   // notificationTypeId: notification.type,
+    //   title: "ayayay",
+    //   message: `(${shortenAddress(await PublicKey.createWithSeed(this.mfiConfig.programId, "hahah", this.mfiConfig.programId))}) \(${shortenAddress(await PublicKey.createWithSeed(this.mfiConfig.programId, "hahah", this.mfiConfig.programId))}\)`,
+    // });
+
+    await this.accountStore.init(this.mfiConfig, this.rpcClient);
+    await this.refreshSubscribers();
+  }
+
+  async refreshSubscribers(): Promise<void> {
     const subscriberRaw = await this.dapp.dappAddresses.findAll();
-    this.subscribers = reduceSubscribers(subscriberRaw);
-    const subscriberWallets = Object.keys(this.subscribers);
-    logger.info(`Subscribers: ${subscriberWallets.length} wallets`);
-    await this.accountStore.init(subscriberWallets, this.mfiConfig, this.rpcClient);
+    const updatedSubscribers = reduceSubscribers(subscriberRaw);
+
+    const subscriberWallets = Object.keys(updatedSubscribers);
+    const newSubscribers = subscriberWallets.filter((wallet) => !this.subscribers[wallet]);
+
+    this.subscribers = updatedSubscribers;
+
+    if (newSubscribers.length > 0) {
+      await this.accountStore.loadAllMarginfiAccounts(newSubscribers);
+    }
   }
 
   async run(): Promise<void> {
-    await this.init();
+    setInterval(async () => {
+      await this.refreshSubscribers();
+    }, 60_000);
 
     const accountFilters = [
       {
@@ -130,15 +149,15 @@ export class HealthNotifier {
       switch (notification.type) {
         case "dangerous_health":
           title = `health alert 🚨`;
-          message = `your marginfi account (${shortenAddress(
+          message = `your marginfi account \(${shortenAddress(
             notification.account
-          )}) health factor is now ${percentFormatterDyn.format(notification.health)}.`;
+          )}\) health factor is now ${percentFormatterDyn.format(notification.health)}.`;
           break;
         case "liquidatable":
           title = `health alert 🚨`;
-          message = `your marginfi account (${shortenAddress(
+          message = `your marginfi account \(${shortenAddress(
             notification.account
-          )}) health factor is now 0% - you are open to partial liquidations`;
+          )}\) health factor is now 0% - you are open to partial liquidations`;
           break;
         default:
           throw new Error(`This should not be possible!`);
