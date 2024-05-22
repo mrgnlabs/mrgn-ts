@@ -16,6 +16,7 @@ export const OnboardingSocial: React.FC<props> = ({
   setIsActiveLoading,
   loginWeb3Auth,
   onClose,
+  onPrev,
 }: props) => {
   const { select, connected } = useWallet();
   const [screenIndex, setScreenIndex] = React.useState<number>(0);
@@ -30,10 +31,13 @@ export const OnboardingSocial: React.FC<props> = ({
     } else if (socialOnrampFlow.length <= screenIndex) {
       onClose();
       return socialOnrampFlow[0];
+    } else if (screenIndex < 0) {
+      onPrev();
+      return socialOnrampFlow[0];
     } else {
       return socialOnrampFlow[screenIndex];
     }
-  }, [successProps, installingWallet, screenIndex, onClose]);
+  }, [installingWallet, successProps, screenIndex, onClose, onPrev]);
 
   React.useEffect(() => {
     if (connected) setScreenIndex(1);
@@ -48,8 +52,16 @@ export const OnboardingSocial: React.FC<props> = ({
   };
 
   return (
-    <DialogContent className={cn("md:block overflow-hidden p-4 pt-8 md:pt-4 justify-start md:max-w-xl")}>
-      <OnboardHeader title={screen.title} description={screen.description} size={screen.titleSize} />
+    <DialogContent
+      onInteractOutside={(e) => e.preventDefault()}
+      className={cn("md:block overflow-hidden p-4 pt-8 md:pt-4 justify-start md:max-w-xl")}
+    >
+      <OnboardHeader
+        title={screen.title}
+        description={screen.description}
+        size={screen.titleSize}
+        onPrev={() => setScreenIndex((prev) => prev - 1)}
+      />
 
       {React.createElement(screen.comp, {
         isLoading: isLoading,
