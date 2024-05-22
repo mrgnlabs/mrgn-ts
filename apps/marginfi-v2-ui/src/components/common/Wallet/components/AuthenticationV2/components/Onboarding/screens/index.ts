@@ -6,3 +6,4 @@ export * from "./CreateEthAccount";
 export * from "./CreateSolanaAccount";
 export * from "./InstallWallet";
 export * from "./BridgeToken";
+export * from "./SuccessScreen";

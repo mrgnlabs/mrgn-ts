@@ -7,7 +7,7 @@ import { IconBackpackWallet } from "~/components/ui/icons";
 
 type WalletPreset = "eth" | "sol" | "social";
 
-const ETH_PRESET = ["Backpack", "Phantom", "WalletConnect", "MetaMask"];
+const ETH_PRESET = ["Backpack", "Phantom", "WalletConnect", "MetaMask", "Ethereum Wallet"];
 const SOL_PRESET = ["Backpack", "Phantom", "Solflare"];
 const SOCIAL_PRESET = ["Backpack", "Phantom", "Solflare"];
 

@@ -11,7 +11,7 @@ interface Window {
     setSwapRefundListener(callback: (swap: import("./types").MayanSwapInfo) => void): void;
     removeSwapRefundListener(): void;
   };
-  Jupiter: any;
+  Jupiter: import("./types").JupiterTerminal;
   MoonPayWebSdk: any;
   deBridge: any;
 }

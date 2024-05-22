@@ -1,25 +1,31 @@
 "use client";
-
 import React from "react";
-
 import { useRouter } from "next/router";
 import Script from "next/script";
 
+import { WSOL_MINT, LST_MINT } from "@mrgnlabs/mrgn-common";
 import { PublicKey } from "@solana/web3.js";
+import { QuoteResponseMeta, SwapResult } from "@jup-ag/react-hook";
 
 import config from "~/config";
 import { capture } from "~/utils";
-
-import { WSOL_MINT, LST_MINT } from "@mrgnlabs/mrgn-common";
-
 import { useWalletContext } from "~/hooks/useWalletContext";
 
 type SwapProps = {
   onLoad?: () => void;
+  onSuccess?: ({
+    txid,
+    swapResult,
+    quoteResponseMeta,
+  }: {
+    txid: string;
+    swapResult: SwapResult;
+    quoteResponseMeta: QuoteResponseMeta | null;
+  }) => void;
   initialInputMint?: PublicKey;
 };
 
-export const Swap = ({ onLoad, initialInputMint }: SwapProps) => {
+export const Swap = ({ onLoad, onSuccess, initialInputMint }: SwapProps) => {
   const { walletContextState } = useWalletContext();
   const [loadTimestamp, setLoadTimestamp] = React.useState(0);
   const router = useRouter();
@@ -33,8 +39,12 @@ export const Swap = ({ onLoad, initialInputMint }: SwapProps) => {
       pk = undefined;
     }
 
+    if (!pk && initialInputMint) {
+      pk = initialInputMint;
+    }
+
     return pk;
-  }, [router.query]);
+  }, [router.query, initialInputMint]);
 
   const handleOnReady = React.useCallback(() => {
     if (!window.Jupiter) return;
@@ -43,19 +53,16 @@ export const Swap = ({ onLoad, initialInputMint }: SwapProps) => {
       displayMode: "integrated",
       integratedTargetId: "integrated-terminal",
       endpoint: config.rpcEndpoint,
-      passThroughWallet: walletContextState.wallet,
-      onSuccess: ({ txid }: { txid: string }) => {
+      enableWalletPassthrough: true,
+      onSuccess: ({ txid, ...props }) => {
         capture("user_swap", {
           txn: txid,
         });
+        onSuccess && onSuccess({ txid, ...props });
       },
       formProps: {
-        initialInputMint: initialInputMint
-          ? initialInputMint.toBase58()
-          : initialMint
-          ? initialMint.toBase58()
-          : undefined,
-        initialOutputMint: initialInputMint?.equals(WSOL_MINT) ? LST_MINT.toBase58() : WSOL_MINT.toBase58(),
+        initialInputMint: initialMint ? initialMint.toBase58() : undefined,
+        initialOutputMint: initialMint?.equals(WSOL_MINT) ? LST_MINT.toBase58() : WSOL_MINT.toBase58(),
       },
     });
     const currentTime = Date.now();
@@ -64,15 +71,13 @@ export const Swap = ({ onLoad, initialInputMint }: SwapProps) => {
     setTimeout(() => {
       onLoad && onLoad();
     }, delay);
-  }, [initialInputMint, loadTimestamp, onLoad, walletContextState.wallet, initialMint]);
+  }, [initialMint, loadTimestamp, onSuccess, onLoad]);
 
   React.useEffect(() => {
-    if (!initialInputMint) {
-      return;
-    }
-
-    handleOnReady();
-  }, [initialInputMint, handleOnReady]);
+    if (!window.Jupiter?.syncProps) return;
+    window.Jupiter.syncProps({ passthroughWalletContextState: walletContextState });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [window.Jupiter, walletContextState]);
 
   if (loadTimestamp === 0) {
     setLoadTimestamp(Date.now());
