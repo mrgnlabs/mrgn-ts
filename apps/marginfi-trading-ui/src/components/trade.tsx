@@ -20,8 +20,8 @@ type TradeSide = "long" | "short";
 
 export const Trade = () => {
   const [tradeState, setTradeState] = React.useState<TradeSide>("long");
-  const [selectedPool, setSelectedPool] = React.useState<number | null>(0);
-  const [amount, setAmount] = React.useState<number | null>(null);
+  const [selectedPool, setSelectedPool] = React.useState<number>(0);
+  const [amount, setAmount] = React.useState<number>(0);
   const [leverage, setLeverage] = React.useState(1);
 
   const fullAmount = React.useMemo(() => {
@@ -30,7 +30,7 @@ export const Trade = () => {
   }, [amount, leverage]);
 
   return (
-    <Card className="bg-mrgn-gray">
+    <Card className="bg-mrgn-gray border-none">
       <CardContent className="pt-6">
         <div className="space-y-4">
           <ToggleGroup
@@ -40,43 +40,38 @@ export const Trade = () => {
             onValueChange={(value) => setTradeState(value as TradeSide)}
           >
             <ToggleGroupItem
-              className="w-full border border-border hover:bg-accent hover:text-primary data-[state=on]:bg-accent"
+              className="w-full border border-border hover:bg-accent hover:text-primary data-[state=on]:bg-accent data-[state=on]:border-transparent"
               value="long"
               aria-label="Toggle long"
             >
               Long
             </ToggleGroupItem>
             <ToggleGroupItem
-              className="w-full border border-border hover:bg-accent hover:text-primary data-[state=on]:bg-accent"
+              className="w-full border border-border hover:bg-accent hover:text-primary data-[state=on]:bg-accent data-[state=on]:border-transparent"
               value="short"
               aria-label="Toggle short"
             >
               Short
             </ToggleGroupItem>
           </ToggleGroup>
-          <TokenCombobox selected={selectedPool} setSelected={setSelectedPool} />
-          <div className="space-y-1">
+          <div>
             <div className="flex items-center justify-between">
               <Label>Amount</Label>
-              <Button size="sm" variant="ghost">
+              <Button size="sm" variant="link" className="no-underline hover:underline">
                 Max
               </Button>
             </div>
-            <div className="relative">
+            <div className="relative flex gap-4 items-center border border-border p-2 rounded-lg">
+              <TokenCombobox selected={selectedPool} setSelected={setSelectedPool} />
               <Input
                 type="number"
-                value={amount || ""}
-                onChange={(e) => (e.currentTarget ? setAmount(Number(e.currentTarget.value)) : setAmount(null))}
-                className="appearance-none"
+                value={amount}
+                onChange={(e) => (e.currentTarget ? setAmount(Number(e.currentTarget.value)) : setAmount(0))}
+                className="appearance-none border-none text-right focus-visible:ring-0 focus-visible:outline-none"
               />
-              {selectedPool !== null && (
-                <span className="absolute inset-y-0 right-3 flex items-center text-xs text-muted-foreground">
-                  $POOL{selectedPool + 1}
-                </span>
-              )}
             </div>
           </div>
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <Label>Size of {tradeState}</Label>
             <div className="relative">
               <Input type="number" value={fullAmount || ""} disabled className="disabled:opacity-100" />
@@ -103,7 +98,7 @@ export const Trade = () => {
           </div>
         </div>
       </CardContent>
-      <CardFooter className="flex-col gap-6">
+      <CardFooter className="flex-col gap-8">
         <div className="space-y-1 w-full">
           <Button
             className={cn(
@@ -124,8 +119,8 @@ export const Trade = () => {
           <dt>Liquidation Price</dt>
           <dd className="text-primary text-right">$166.67</dd>
           <dt>Oracle</dt>
-          <dd className="text-primary text-right">
-            <IconPyth size={14} className="ml-auto" />
+          <dd className="text-primary flex items-center gap-1 ml-auto">
+            Pyth <IconPyth size={14} />
           </dd>
           <dt>Available Liquidity</dt>
           <dd className="text-primary text-right">$1,000,000</dd>
