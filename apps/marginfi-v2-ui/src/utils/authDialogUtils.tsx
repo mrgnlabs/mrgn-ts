@@ -21,12 +21,22 @@ import {
   OnboardingSocial,
   OnboardingSol,
 } from "~/components/common/Wallet/components/AuthenticationV2/components";
+import { QuoteResponseMeta, SwapResult } from "@jup-ag/react-hook";
 
 export type InstallingWallet = { wallet: string; flow: "eth" | "onramp" };
+export type SuccessProps = {
+  jupiterSuccess?: {
+    txid: string;
+    swapResult: SwapResult;
+    quoteResponseMeta: QuoteResponseMeta | null;
+  };
+};
 export interface OnrampScreenProps extends AuthScreenProps {
   installingWallet?: InstallingWallet;
+  successProps?: SuccessProps;
   onPrev: () => void;
   onNext: () => void;
+  setSuccessProps: (props: SuccessProps) => void;
   setInstallingWallet: (wallet: InstallingWallet) => void;
 }
 

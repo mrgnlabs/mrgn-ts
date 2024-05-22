@@ -34,6 +34,13 @@ export const socialOnrampFlow: SocialOnrampScreen[] = [
   },
 ];
 
+export const successSwap: SocialOnrampScreen = {
+  comp: screens.SuccessScreen,
+  title: "Swap complete",
+  description: "Jupiter swap successful",
+  titleSize: "sm",
+};
+
 export const installWallet: SocialOnrampScreen = {
   comp: screens.InstallWallet,
   title: "Installing wallet",

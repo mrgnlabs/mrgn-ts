@@ -2,10 +2,10 @@ import React from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 
 import { DialogContent } from "~/components/ui/dialog";
-import { AuthScreenProps, InstallingWallet, OnrampScreenProps, cn } from "~/utils";
+import { AuthScreenProps, InstallingWallet, OnrampScreenProps, SuccessProps, cn } from "~/utils";
 
 import { OnboardHeader } from "../../sharedComponents";
-import { installWallet, socialOnrampFlow } from "./onboardingSocialUtils";
+import { installWallet, socialOnrampFlow, successSwap } from "./onboardingSocialUtils";
 
 interface props extends AuthScreenProps {}
 
@@ -20,17 +20,20 @@ export const OnboardingSocial: React.FC<props> = ({
   const { select, connected } = useWallet();
   const [screenIndex, setScreenIndex] = React.useState<number>(0);
   const [installingWallet, setInstallingWallet] = React.useState<InstallingWallet>();
+  const [successProps, setSuccessProps] = React.useState<SuccessProps>();
 
   const screen = React.useMemo(() => {
     if (installingWallet) {
       return installWallet;
+    } else if (successProps) {
+      return successSwap;
     } else if (socialOnrampFlow.length <= screenIndex) {
       onClose();
       return socialOnrampFlow[0];
     } else {
       return socialOnrampFlow[screenIndex];
     }
-  }, [installingWallet, screenIndex, onClose]);
+  }, [successProps, installingWallet, screenIndex, onClose]);
 
   React.useEffect(() => {
     if (connected) setScreenIndex(1);
@@ -52,12 +55,14 @@ export const OnboardingSocial: React.FC<props> = ({
         isLoading: isLoading,
         isActiveLoading: isActiveLoading,
         installingWallet: installingWallet,
+        successProps: successProps,
         onNext: () => setScreenIndex(screenIndex + 1),
         onClose: onClose,
         setIsLoading: setIsLoading,
         select: (walletName) => onSelectWallet(walletName),
         setIsActiveLoading: setIsActiveLoading,
         setInstallingWallet: setInstallingWallet,
+        setSuccessProps: setSuccessProps,
         loginWeb3Auth: loginWeb3Auth,
       } as OnrampScreenProps)}
     </DialogContent>
