@@ -58,7 +58,6 @@ const config = {
           chartreuse: "hsl(var(--mrgn-chartreuse))",
           gold: "hsl(var(--mrgn-gold))",
           slate: "hsl(var(--mrgn-slate))",
-          gray: "hsl(var(--mrgn-gray))",
           success: "#75ba80",
           warning: "#daa204",
           error: "#e07d6f",

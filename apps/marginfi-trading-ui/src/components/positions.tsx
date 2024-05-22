@@ -36,7 +36,7 @@ const MOCK_POSITIONS = [
 
 export const Positions = () => {
   return (
-    <div className="bg-mrgn-gray rounded-xl p-4">
+    <div className="bg-background rounded-xl p-4">
       <Table>
         <TableHeader>
           <TableRow className="hover:bg-transparent">
