@@ -88,7 +88,7 @@ export const Hero = () => {
     <>
       <div ref={containerRef} className="min-h-[110vh] lg:min-h-[125vh]">
         <div className="w-screen min-h-screen relative flex flex-col items-center justify-center">
-          <div className="container relative pt-28 pb-16 px-4 space-y-16 z-20  md:-translate-y-4 lg:pt-16 md:px-8">
+          <div className="container relative pt-28 pb-16 px-4 space-y-8 z-20 -translate-y-4 tall:-translate-y-20 sm:space-y-16 tallWide:-translate-y-4 lg:pt-16 md:px-8">
             <motion.h1
               initial="hidden"
               animate={isInView ? "visible" : "hidden"}
@@ -131,7 +131,7 @@ export const Hero = () => {
           <ScrollTo to="stats">
             <motion.button
               ref={targetRef}
-              className="fixed bottom-10 left-1/2 w-16 z-20 -translate-x-1/2 md:block"
+              className="fixed bottom-10 left-1/2 w-16 z-20 -translate-x-1/2 hidden tall:flex"
               style={{ opacity: scrollIconOpacity }}
             >
               <Lottie animationData={scrollIconAnimation} />

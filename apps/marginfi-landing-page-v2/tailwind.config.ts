@@ -22,6 +22,8 @@ const config = {
       lg: "1024px",
       xl: "1280px",
       "2xl": "1440px",
+      tall: { raw: "(min-height: 700px)" },
+      tallWide: { raw: "(min-height: 700px) and (min-width: 768px)" },
     },
     extend: {
       fontFamily: {
