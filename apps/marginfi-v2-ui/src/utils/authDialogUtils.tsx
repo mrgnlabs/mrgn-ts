@@ -20,6 +20,7 @@ import {
   OnboardingMain,
   OnboardingSocial,
   OnboardingSol,
+  PwaInstalation,
 } from "~/components/common/Wallet/components/AuthenticationV2/components";
 import { QuoteResponseMeta, SwapResult } from "@jup-ag/react-hook";
 
@@ -58,7 +59,7 @@ export interface AuthScreenProps {
   select(walletName: WalletName | null): void;
 }
 
-type OnboardingType = "ONBOARD_MAIN" | "ONBOARD_ETH" | "ONBOARD_SOL" | "ONBOARD_SOCIAL";
+type OnboardingType = "ONBOARD_MAIN" | "ONBOARD_ETH" | "ONBOARD_SOL" | "ONBOARD_SOCIAL" | "PWA_INSTALL";
 
 type ReturningType = "RETURNING";
 
@@ -85,6 +86,9 @@ export const AUTO_FLOW_MAP: AuthFlowMap = {
   },
   ONBOARD_SOCIAL: {
     comp: OnboardingSocial,
+  },
+  PWA_INSTALL: {
+    comp: PwaInstalation,
   },
 };
 
