@@ -16,7 +16,6 @@ export const BridgeToken: React.FC<props> = ({ onNext }: props) => {
 
   React.useEffect(() => {
     if (window.deBridge && isMounted) {
-      console.log({ ethereum: window.ethereum });
       loadDeBridgeWidger();
     }
   }, [isMounted]);

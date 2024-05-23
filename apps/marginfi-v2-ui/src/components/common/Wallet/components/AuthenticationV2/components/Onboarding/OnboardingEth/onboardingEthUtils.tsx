@@ -40,3 +40,10 @@ export const installWallet: EthOnrampScreen = {
   description: "Refresh if installed",
   titleSize: "lg",
 };
+
+export const successBridge: EthOnrampScreen = {
+  comp: screens.SuccessScreen,
+  title: "Bridge complete",
+  description: "DeBridge bridging successful",
+  titleSize: "sm",
+};
