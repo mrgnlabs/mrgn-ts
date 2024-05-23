@@ -330,24 +330,33 @@ class MarginfiAccountWrapper {
   async makeSetupIx(banks: PublicKey[]) {
     this._marginfiAccount.authority;
 
-    const ixs: TransactionInstruction[] = [];
-    if (this.client.bankMetadataMap) {
-      for (const bankAddress of banks) {
-        const bank = this.client.bankMetadataMap[bankAddress.toBase58()];
-        const userAta = getAssociatedTokenAddressSync(new PublicKey(bank.tokenAddress), this.authority, true); // We allow off curve addresses here to support Fuse.
-        const userAtaInfo = await this._program.provider.connection.getAccountInfo(userAta);
+    if (this.client.bankMetadataMap === undefined) {
+      return [];
+    }
 
-        if (!userAtaInfo) {
-          const createAtaIdempotentIx = createAssociatedTokenAccountIdempotentInstruction(
+    const userAtas = banks.map((bankAddress) => {
+      const bank = this.client.bankMetadataMap![bankAddress.toBase58()];
+      return getAssociatedTokenAddressSync(new PublicKey(bank.tokenAddress), this.authority, true);
+    });
+
+    let ixs = [];
+    const userAtaAis = await this._program.provider.connection.getMultipleAccountsInfo(userAtas);
+
+    for (const [i, userAta] of userAtaAis.entries()) {
+      if (userAta === null) {
+        const bankAddress = banks[i];
+        const bank = this.client.bankMetadataMap![bankAddress.toBase58()];
+        ixs.push(
+          createAssociatedTokenAccountIdempotentInstruction(
             this.authority,
-            userAta,
+            userAtas[i],
             this.authority,
             new PublicKey(bank.tokenAddress)
-          );
-          ixs.push(createAtaIdempotentIx);
-        }
+          )
+        );
       }
     }
+
     return ixs;
   }
 
