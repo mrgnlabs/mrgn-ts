@@ -161,7 +161,8 @@ export const WalletAuthDialog = () => {
               className={cn(
                 "relative bg-muted text-muted-foreground transition-all duration-300 w-full p-6 pt-5 rounded-lg overflow-hidden",
                 state === WalletAuthDialogState.SOCIAL && "max-h-none",
-                state !== WalletAuthDialogState.SOCIAL && "max-h-[100px] cursor-pointer hover:bg-muted-highlight"
+                state !== WalletAuthDialogState.SOCIAL &&
+                  "max-h-[120px] cursor-pointer hover:bg-muted-highlight sm:max-h-[100px]"
               )}
               onClick={() => {
                 if (state === WalletAuthDialogState.SOCIAL) return;
@@ -187,7 +188,9 @@ export const WalletAuthDialog = () => {
                 />
 
                 <h2 className="font-semibold text-2xl text-white">Mobile friendly account</h2>
-                <p className="mt-2 text-sm sm:text-base">Sign in with email & download marginfi&apos;s PWA.</p>
+                <p className="mt-2 text-[15px] sm:text-base">
+                  Sign in with email to download marginfi&apos;s app directly from the web.
+                </p>
               </header>
 
               <div className="mt-4">
