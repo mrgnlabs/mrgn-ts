@@ -672,14 +672,14 @@ class MarginfiClient {
         return signature;
       }
     } catch (error: any) {
-      if (error instanceof SendTransactionError) {
-        if (error.logs) {
-          console.log("------ Logs 👇 ------");
-          console.log(error.logs.join("\n"));
-          const errorParsed = parseErrorFromLogs(error.logs, this.config.programId);
+      if (error.logs) {
+        console.log("------ Logs 👇 ------");
+        console.log(error.logs.join("\n"));
+        const errorParsed = parseErrorFromLogs(error.logs, this.config.programId);
+        if (errorParsed) {
           console.log("Parsed:", errorParsed);
           throw new ProcessTransactionError(
-            errorParsed?.description ?? error.message,
+            errorParsed.description,
             ProcessTransactionErrorType.SimulationError,
             error.logs
           );
@@ -719,18 +719,37 @@ class MarginfiClient {
       throw new ProcessTransactionError(error.message, ProcessTransactionErrorType.TransactionBuildingError);
     }
 
+    let response;
     try {
-      const response = await connection.simulateTransaction(versionedTransaction, {
+      response = await connection.simulateTransaction(versionedTransaction, {
         sigVerify: false,
         accounts: { encoding: "base64", addresses: accountsToInspect.map((a) => a.toBase58()) },
       });
-      if (response.value.err) throw new Error(JSON.stringify(response.value.err));
-      return response.value.accounts?.map((a) => (a ? Buffer.from(a.data[0], "base64") : null)) ?? [];
+      if (response.value.err === null) {
+        return response.value.accounts?.map((a) => (a ? Buffer.from(a.data[0], "base64") : null)) ?? [];
+      }
     } catch (error: any) {
-      console.log(error);
-      throw new Error(error);
-      throw new Error("Failed to simulate transaction");
+      console.log("fallthrough error", error);
+      throw new ProcessTransactionError("Something went wrong", ProcessTransactionErrorType.FallthroughError);
     }
+
+    const error = response.value;
+    if (error.logs) {
+      console.log("------ Logs 👇 ------");
+      console.log(error.logs.join("\n"));
+      const errorParsed = parseErrorFromLogs(error.logs, this.config.programId);
+      if (errorParsed) {
+        console.log("Parsed:", errorParsed);
+        throw new ProcessTransactionError(
+          errorParsed.description,
+          ProcessTransactionErrorType.SimulationError,
+          error.logs,
+          errorParsed.programId
+        );
+      }
+    }
+    console.log("fallthrough error", error);
+    throw new ProcessTransactionError("Something went wrong", ProcessTransactionErrorType.FallthroughError);
   }
 }
 

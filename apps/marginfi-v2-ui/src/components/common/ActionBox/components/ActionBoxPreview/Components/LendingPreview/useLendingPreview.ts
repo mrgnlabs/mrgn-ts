@@ -1,6 +1,11 @@
 import React from "react";
 import { ActionType, AccountSummary, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { MarginfiAccountWrapper, MarginfiClient, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
+import {
+  MarginfiAccountWrapper,
+  MarginfiClient,
+  ProcessTransactionError,
+  SimulationResult,
+} from "@mrgnlabs/marginfi-client-v2";
 
 import {
   ActionPreview,
@@ -13,6 +18,7 @@ import {
 } from "./LendingPreview.utils";
 import { ActionMethod, RepayWithCollatOptions, usePrevious } from "~/utils";
 import { useAmountDebounce } from "~/hooks/useAmountDebounce";
+import { JUPITER_PROGRAM_V6_ID } from "@jup-ag/react-hook";
 
 interface UseLendingPreviewProps {
   marginfiClient: MarginfiClient | null;
@@ -85,7 +91,21 @@ export function useLendingPreview({
       setSimulationResult(await simulateAction(props));
       setActionMethod(undefined);
     } catch (error: any) {
-      if (typeof error === "string") {
+      if (error instanceof ProcessTransactionError && error.programId) {
+        if (error.programId === JUPITER_PROGRAM_V6_ID.toBase58() && error.message === "Slippage tolerance exceeded") {
+          setActionMethod({
+            isEnabled: true,
+            actionMethod: "WARNING",
+            description: error.message,
+          } as ActionMethod);
+        } else {
+          setActionMethod({
+            isEnabled: true,
+            actionMethod: "WARNING",
+            description: `Simulating health/liquidation impact failed.`,
+          } as ActionMethod);
+        }
+      } else if (typeof error === "string") {
         setActionMethod({
           isEnabled: true,
           actionMethod: "WARNING",
