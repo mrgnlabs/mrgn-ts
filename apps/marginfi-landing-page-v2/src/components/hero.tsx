@@ -141,7 +141,7 @@ export const Hero = () => {
       </div>
       <motion.video
         ref={videoRef}
-        className="fixed top-0 -left-[125vw] z-0 w-[250vw] md:-left-[100vw] md:w-[200vw] lg:left-0 lg:w-screen h-screen object-cover"
+        className="fixed top-0 z-0 md:-left-[100vw] md:w-[200vw] lg:left-0 lg:w-screen h-screen object-cover"
         autoPlay={false}
         loop={false}
         muted
