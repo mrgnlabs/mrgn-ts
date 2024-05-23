@@ -49,6 +49,26 @@
     @apply bg-background text-foreground;
     overflow-x: hidden;
   }
+
+  *::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  /* Track */
+  *::-webkit-scrollbar-track {
+    background: #131719;
+  }
+
+  /* Handle */
+  *::-webkit-scrollbar-thumb {
+    background: #2a2f33;
+    border-radius: 5px;
+  }
+
+  /* Handle on hover */
+  *::-webkit-scrollbar-thumb:hover {
+    background: #131719;
+  }
 }
 
 @layer components {
