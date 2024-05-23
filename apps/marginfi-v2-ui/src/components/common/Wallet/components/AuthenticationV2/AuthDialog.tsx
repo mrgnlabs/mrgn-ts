@@ -2,17 +2,26 @@ import React from "react";
 import { useRouter } from "next/router";
 
 import { Dialog } from "~/components/ui/dialog";
+import { useOs } from "~/hooks/useOs";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { AUTO_FLOW_MAP, AuthFlowType, AuthScreenProps } from "~/utils";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useUiStore } from "~/store";
-import { set } from "superstruct";
 
 export const AuthDialog = () => {
   const [isWalletAuthDialogOpen, setIsWalletAuthDialogOpen] = useUiStore((state) => [
     state.isWalletAuthDialogOpen,
     state.setIsWalletAuthDialogOpen,
   ]);
+
+  const { isAndroid, isIOS, isPWA } = useOs();
+  const isInAppPhantom = window.localStorage.walletName === "Phantom";
+  const isInAppBackpack = window?.backpack?.isBackpack;
+
+  const showPWAInstallScreen = React.useMemo(
+    () => (isAndroid || isIOS) && !(isPWA || isInAppBackpack || isInAppPhantom),
+    [isAndroid, isIOS, isInAppBackpack, isInAppPhantom, isPWA]
+  );
 
   const [flow, setFlow] = React.useState<AuthFlowType>("ONBOARD_MAIN");
   const [isLoading, setIsLoading] = React.useState<boolean>(false);

@@ -37,6 +37,7 @@ type ActionBoxProps = {
   requestedAction?: ActionType;
   requestedBank?: ExtendedBankInfo;
   isDialog?: boolean;
+  isMini?: boolean;
   handleCloseDialog?: () => void;
 };
 
@@ -46,7 +47,13 @@ type BlackListRoutesMap = {
   };
 };
 
-export const ActionBox = ({ requestedAction, requestedBank, isDialog, handleCloseDialog }: ActionBoxProps) => {
+export const ActionBox = ({
+  requestedAction,
+  requestedBank,
+  isDialog,
+  isMini = false,
+  handleCloseDialog,
+}: ActionBoxProps) => {
   const [
     mfiClient,
     nativeSolBalance,
@@ -662,8 +669,7 @@ export const ActionBox = ({ requestedAction, requestedBank, isDialog, handleClos
                 actionMode={actionMode}
                 amount={amount}
                 slippageBps={slippageBps}
-                // isEnabled={hasPreviewShown}
-                isEnabled={true}
+                isEnabled={!isMini}
                 repayWithCollatOptions={
                   repayCollatQuote && repayAmount && selectedRepayBank
                     ? {

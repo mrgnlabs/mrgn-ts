@@ -314,6 +314,19 @@ input::-webkit-inner-spin-button {
   }
 }
 
+/* Debridge Overrides */
+
+.widget-mode-body::-webkit-scrollbar-thumb {
+  background: yellow !important;
+  opacity: 0.8;
+  border-radius: 10px;
+}
+
+.widget-mode-body::-webkit-scrollbar-thumb:hover {
+  background: yellow !important;
+  opacity: 1;
+}
+
 /* Mayan Bridge Overrides */
 #MAYAN_SWAP_PV_ROOT {
   padding-left: 0px;

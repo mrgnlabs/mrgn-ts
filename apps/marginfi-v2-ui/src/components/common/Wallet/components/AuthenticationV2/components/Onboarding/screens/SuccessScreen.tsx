@@ -37,11 +37,7 @@ interface jupiterScreenProps {
 }
 
 const JupiterSuccessScreen = ({ txid, swapResult, quoteResponseMeta }: jupiterScreenProps) => {
-  const isError = "error" in swapResult;
-
-  if ("error" in swapResult) {
-    return <></>;
-  } else if ("inputAmount" in swapResult) {
+  if ("inputAmount" in swapResult) {
     return (
       <div>
         <dl className="grid grid-cols-2 w-full text-muted-foreground gap-x-8 gap-y-2">
@@ -51,7 +47,7 @@ const JupiterSuccessScreen = ({ txid, swapResult, quoteResponseMeta }: jupiterSc
           <dd className="text-right">{swapResult.outputAmount}</dd>
           <dt>Price Impact</dt>
           <dd className="text-right">
-            {quoteResponseMeta && percentFormatter.format(Number(quoteResponseMeta.quoteResponse.priceImpactPct))}
+            {quoteResponseMeta && percentFormatter.format(Number(quoteResponseMeta.quoteResponse.priceImpactPct) * 100)}
           </dd>
           <dt>Transaction</dt>
           <dd className="text-right">

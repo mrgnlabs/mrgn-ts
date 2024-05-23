@@ -11,7 +11,7 @@ interface props extends OnrampScreenProps {}
 export const DepositToken = ({ onNext }: props) => {
   return (
     <ScreenWrapper>
-      <ActionBox requestedAction={ActionType.Deposit} />
+      <ActionBox requestedAction={ActionType.Deposit} isMini={true} />
       <WalletSeperator description="skip for now" onClick={() => onNext()} />
     </ScreenWrapper>
   );
