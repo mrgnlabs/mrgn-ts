@@ -79,6 +79,7 @@
     @apply bg-background text-foreground;
     background: #090a0a;
     background: radial-gradient(50% 50% at 50% 50%, #101212 10%, #090a0a 80%);
+    min-height: 100vh;
   }
 }
 
