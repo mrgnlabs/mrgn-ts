@@ -9,6 +9,7 @@ import { Investors } from "~/components/investors";
 import { GettingStarted } from "~/components/getting-started";
 import { FAQ } from "~/components/faq";
 import { Footer } from "~/components/footer";
+import { LaunchButton } from "~/components/launch-button";
 
 export default function Home() {
   return (
@@ -24,6 +25,7 @@ export default function Home() {
       <GettingStarted />
       <FAQ />
       <Footer />
+      <LaunchButton />
     </main>
   );
 }
