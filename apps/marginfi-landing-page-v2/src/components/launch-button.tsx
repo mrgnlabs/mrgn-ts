@@ -12,6 +12,7 @@ import {
   IconExternalLink,
   IconX,
 } from "@tabler/icons-react";
+import { useWindowScroll } from "@uidotdev/usehooks";
 
 import { cn } from "~/lib/utils";
 
@@ -27,19 +28,25 @@ const launchLinks = [
 
 export const LaunchButton = () => {
   const [open, setOpen] = React.useState(false);
+  const [showButton, setShowButton] = React.useState(false);
+  const [{ y }] = useWindowScroll();
 
   React.useEffect(() => {
-    const handleScroll = () => {
-      setOpen(false);
-    };
-
-    window.addEventListener("scroll", handleScroll);
-
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [setOpen]);
+    setOpen(false);
+    if (y && y > window.innerHeight * 0.25) {
+      setShowButton(true);
+    } else {
+      setShowButton(false);
+    }
+  }, [y]);
 
   return (
-    <div className="flex fixed bottom-0 left-0 w-full items-center justify-center p-8 z-30 md:hidden">
+    <div
+      className={cn(
+        "flex fixed bottom-0 left-0 w-full items-center justify-center p-6 z-30 pointer-events-none opacity-0 translate-y-16 transition-all md:hidden",
+        showButton && "pointer-events-auto opacity-100 translate-y-0"
+      )}
+    >
       <Popover open={open} onOpenChange={(open) => setOpen(open)}>
         <PopoverTrigger asChild>
           <Button className={cn("p-0 h-auto bg-opacity-50 font-medium bg-transparent hover:bg-transparent")}>
@@ -66,7 +73,7 @@ export const LaunchButton = () => {
           style={{
             width: "var(--radix-popper-anchor-width)",
           }}
-          className="bg-secondary px-0 py-3"
+          className="bg-secondary px-0 py-3 rounded-lg"
           side="top"
           sideOffset={10}
         >
@@ -74,7 +81,7 @@ export const LaunchButton = () => {
             <ul>
               {launchLinks.map((link) => (
                 <li key={link.label}>
-                  <Link href={link.href} className="w-full">
+                  <Link href={link.href} target="_blank" rel="noreferrer" className="w-full">
                     <Button variant="ghost" className="gap-2 px-5 py-3 h-auto w-full justify-start">
                       <link.icon size={20} />
                       <span>{link.label}</span>
