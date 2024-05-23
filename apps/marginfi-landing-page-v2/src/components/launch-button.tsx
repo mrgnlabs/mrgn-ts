@@ -4,7 +4,14 @@ import React from "react";
 
 import Link from "next/link";
 
-import { IconChevronUp, IconBuildingBank, IconBox, IconArrowsLeftRight, IconExternalLink } from "@tabler/icons-react";
+import {
+  IconChevronUp,
+  IconBuildingBank,
+  IconBox,
+  IconArrowsLeftRight,
+  IconExternalLink,
+  IconX,
+} from "@tabler/icons-react";
 
 import { cn } from "~/lib/utils";
 
@@ -35,15 +42,24 @@ export const LaunchButton = () => {
     <div className="flex fixed bottom-0 left-0 w-full items-center justify-center p-8 z-30 md:hidden">
       <Popover open={open} onOpenChange={(open) => setOpen(open)}>
         <PopoverTrigger asChild>
-          <Button
-            variant="chartreuse"
-            className="gap-3 py-2.5 pl-8 pr-6 h-auto bg-opacity-50 font-medium"
-            style={{
-              background:
-                "radial-gradient(63.36% 100% at 49.78% 100%, rgba(251,255,208,0.75) 0%, #DCE85D 53.73%, #EEFF37 100%)",
-            }}
-          >
-            Launch App <IconChevronUp size={18} className={cn("transition-transform", open && "rotate-180")} />
+          <Button className={cn("p-0 h-auto bg-opacity-50 font-medium bg-transparent hover:bg-transparent")}>
+            <div className={cn("rounded-lg", open && "p-1 bg-gradient-to-r from-mrgn-gold to-mrgn-chartreuse")}>
+              <div
+                className={cn(
+                  "flex items-center gap-3 bg-mrgn-chartreuse py-2.5 pl-8 pr-6 rounded-md transition-colors",
+                  open && "text-primary"
+                )}
+                style={{
+                  background: open
+                    ? "black"
+                    : "radial-gradient(63.36% 100% at 49.78% 100%, rgba(251,255,208,0.75) 0%, #DCE85D 53.73%, #EEFF37 100%)",
+                }}
+              >
+                Launch App
+                {!open && <IconChevronUp size={18} />}
+                {open && <IconX size={16} />}
+              </div>
+            </div>
           </Button>
         </PopoverTrigger>
         <PopoverContent
