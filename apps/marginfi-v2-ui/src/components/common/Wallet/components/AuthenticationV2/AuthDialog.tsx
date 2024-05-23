@@ -31,6 +31,12 @@ export const AuthDialog = () => {
   const { query, replace, pathname } = useRouter();
 
   React.useEffect(() => {
+    if (showPWAInstallScreen) {
+      setFlow("PWA_INSTALL");
+    }
+  }, [showPWAInstallScreen]);
+
+  React.useEffect(() => {
     if (!connecting) {
       setIsLoading(false);
       setIsActiveLoading("");
