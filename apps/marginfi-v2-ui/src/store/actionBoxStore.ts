@@ -463,7 +463,6 @@ async function calculateMaxCollat(bank: ExtendedBankInfo, repayBank: ExtendedBan
           outputMint: bank.info.state.mint.toBase58(), // JITO
           slippageBps: slippageBps,
           swapMode: "ExactOut",
-          platformFeeBps: 25, // TODO: add better fees
         } as QuoteGetRequest;
 
         const swapQuoteOutput = await getSwapQuoteWithRetry(quoteParams);

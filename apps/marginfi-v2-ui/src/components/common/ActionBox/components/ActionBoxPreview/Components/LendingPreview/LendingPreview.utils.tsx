@@ -264,7 +264,7 @@ export function generateStats(
 ) {
   const stats = [];
 
-  if (isRepayWithCollat) stats.push(getJupFeeStat());
+  stats.push(getAmountStat(preview.currentPositionAmount, bank, preview.simulationPreview?.positionAmount));
   if (preview.priceImpactPct) stats.push(getPriceImpactStat(preview.priceImpactPct));
   if (preview.slippageBps) stats.push(getSlippageStat(preview.slippageBps));
 

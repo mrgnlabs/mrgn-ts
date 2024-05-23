@@ -404,7 +404,7 @@ export async function repayWithCollatBuilder({
   const jupiterQuoteApi = createJupiterApiClient();
 
   // get fee account for original borrow mint
-  const feeAccount = await getFeeAccount(bank.info.state.mint);
+  //const feeAccount = await getFeeAccount(bank.info.state.mint);
 
   const {
     setupInstructions,
@@ -417,7 +417,6 @@ export async function repayWithCollatBuilder({
       quoteResponse: options.repayCollatQuote,
       userPublicKey: marginfiAccount.authority.toBase58(),
       programAuthorityId: LUT_PROGRAM_AUTHORITY_INDEX,
-      feeAccount,
     },
   });
 
