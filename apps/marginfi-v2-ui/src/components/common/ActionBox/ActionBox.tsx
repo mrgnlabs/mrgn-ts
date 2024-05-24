@@ -76,6 +76,7 @@ export const ActionBox = ({ requestedAction, requestedBank, isDialog, handleClos
     selectedRepayBank,
     selectedStakingAccount,
     repayCollatQuote,
+    repayCollatTxn,
     isLoading,
     errorMessage,
 
@@ -97,6 +98,7 @@ export const ActionBox = ({ requestedAction, requestedBank, isDialog, handleClos
     state.selectedRepayBank,
     state.selectedStakingAccount,
     state.repayCollatQuote,
+    state.repayCollatTxn,
     state.isLoading,
     state.errorMessage,
 
@@ -521,10 +523,10 @@ export const ActionBox = ({ requestedAction, requestedBank, isDialog, handleClos
       if (repayCollatQuote && repayAmount && selectedRepayBank && connection && wallet) {
         params.repayWithCollatOptions = {
           repayCollatQuote,
+          repayCollatTxn,
           repayAmount: repayAmount,
           repayBank: selectedRepayBank,
           connection,
-          wallet,
         };
       }
 
@@ -665,10 +667,10 @@ export const ActionBox = ({ requestedAction, requestedBank, isDialog, handleClos
                   repayCollatQuote && repayAmount && selectedRepayBank
                     ? {
                         repayCollatQuote,
+                        repayCollatTxn,
                         repayAmount,
                         repayBank: selectedRepayBank,
                         connection,
-                        wallet,
                       }
                     : undefined
                 }

@@ -4,10 +4,12 @@ import { createJupiterApiClient } from "@jup-ag/api";
 import { AddressLookupTableAccount } from "@solana/web3.js";
 
 import { ExtendedBankInfo, ActionType, AccountSummary } from "@mrgnlabs/marginfi-v2-ui-state";
-import { nativeToUi, numeralFormatter, percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
+import { Wallet, nativeToUi, numeralFormatter, percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 import {
+  Bank,
   MarginRequirementType,
   MarginfiAccountWrapper,
+  MarginfiClient,
   SimulationResult,
   getPriceWithConfidence,
 } from "@mrgnlabs/marginfi-client-v2";
@@ -27,6 +29,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/comp
 import { REDUCE_ONLY_BANKS } from "~/components/desktop/AssetList/utils";
 
 export interface SimulateActionProps {
+  marginfiClient: MarginfiClient;
   actionMode: ActionType;
   account: MarginfiAccountWrapper;
   bank: ExtendedBankInfo;
@@ -144,6 +147,7 @@ export function calculatePreview({
 }
 
 export async function simulateAction({
+  marginfiClient,
   actionMode,
   account,
   bank,
@@ -168,37 +172,66 @@ export async function simulateAction({
       break;
     case ActionType.Repay:
       if (repayWithCollatOptions) {
-        const jupiterQuoteApi = createJupiterApiClient();
-
-        const { setupInstructions, swapInstruction, addressLookupTableAddresses, cleanupInstruction } =
-          await jupiterQuoteApi.swapInstructionsPost({
-            swapRequest: {
-              quoteResponse: repayWithCollatOptions.repayCollatQuote,
-              userPublicKey: repayWithCollatOptions.wallet.publicKey.toBase58(),
-            },
-          });
-
-        const setupIxs = setupInstructions.length > 0 ? setupInstructions.map(deserializeInstruction) : [];
-        const swapIx = deserializeInstruction(swapInstruction);
-        const swapcleanupIx = cleanupInstruction ? [deserializeInstruction(cleanupInstruction)] : [];
-
-        const addressLookupTableAccounts: AddressLookupTableAccount[] = [];
-        addressLookupTableAccounts.push(
-          ...(await getAdressLookupTableAccounts(repayWithCollatOptions.connection, addressLookupTableAddresses))
-        );
-
-        try {
-          simulationResult = await account.simulateRepayWithCollat(
-            amount,
-            repayWithCollatOptions.repayAmount,
-            bank.address,
-            repayWithCollatOptions.repayBank.address,
-            bank.isActive && isWholePosition(bank, amount),
-            [...setupIxs, swapIx, ...swapcleanupIx],
-            addressLookupTableAccounts
+        if (repayWithCollatOptions.repayCollatTxn && marginfiClient) {
+          const [mfiAccountData, bankData] = await marginfiClient.simulateTransaction(
+            repayWithCollatOptions.repayCollatTxn,
+            [account.address, bank.address]
           );
-        } catch (error) {
-          throw error;
+          if (!mfiAccountData || !bankData) throw new Error("Failed to simulate repay w/ collat");
+          const previewBanks = marginfiClient.banks;
+          previewBanks.set(bank.address.toBase58(), Bank.fromBuffer(bank.address, bankData));
+          const previewClient = new MarginfiClient(
+            marginfiClient.config,
+            marginfiClient.program,
+            {} as Wallet,
+            true,
+            marginfiClient.group,
+            marginfiClient.banks,
+            marginfiClient.oraclePrices
+          );
+          const previewMarginfiAccount = MarginfiAccountWrapper.fromAccountDataRaw(
+            account.address,
+            previewClient,
+            mfiAccountData
+          );
+
+          simulationResult = {
+            banks: previewBanks,
+            marginfiAccount: previewMarginfiAccount,
+          };
+        } else {
+          const jupiterQuoteApi = createJupiterApiClient();
+
+          const { setupInstructions, swapInstruction, addressLookupTableAddresses, cleanupInstruction } =
+            await jupiterQuoteApi.swapInstructionsPost({
+              swapRequest: {
+                quoteResponse: repayWithCollatOptions.repayCollatQuote,
+                userPublicKey: account.authority.toBase58(),
+              },
+            });
+
+          const setupIxs = setupInstructions.length > 0 ? setupInstructions.map(deserializeInstruction) : [];
+          const swapIx = deserializeInstruction(swapInstruction);
+          const swapcleanupIx = cleanupInstruction ? [deserializeInstruction(cleanupInstruction)] : [];
+
+          const addressLookupTableAccounts: AddressLookupTableAccount[] = [];
+          addressLookupTableAccounts.push(
+            ...(await getAdressLookupTableAccounts(repayWithCollatOptions.connection, addressLookupTableAddresses))
+          );
+
+          try {
+            simulationResult = await account.simulateRepayWithCollat(
+              amount,
+              repayWithCollatOptions.repayAmount,
+              bank.address,
+              repayWithCollatOptions.repayBank.address,
+              bank.isActive && isWholePosition(bank, amount),
+              [...setupIxs, swapIx, ...swapcleanupIx],
+              addressLookupTableAccounts
+            );
+          } catch (error) {
+            throw error;
+          }
         }
       } else {
         simulationResult = await account.simulateRepay(
@@ -222,26 +255,36 @@ export interface PreviewStat {
   value: () => React.JSX.Element;
 }
 
-export function generateStats(preview: ActionPreview, bank: ExtendedBankInfo, isLending: boolean, isLoading: boolean) {
+export function generateStats(
+  preview: ActionPreview,
+  bank: ExtendedBankInfo,
+  isLending: boolean,
+  isLoading: boolean,
+  isRepayWithCollat: boolean
+) {
   const stats = [];
 
   stats.push(getAmountStat(preview.currentPositionAmount, bank, preview.simulationPreview?.positionAmount));
-  if (preview.priceImpactPct) {
-    stats.push(getPriceImpactStat(preview.priceImpactPct));
-  }
-  if (preview.slippageBps) {
-    stats.push(getSlippageStat(preview.slippageBps));
-  }
+  if (preview.priceImpactPct) stats.push(getPriceImpactStat(preview.priceImpactPct));
+  if (preview.slippageBps) stats.push(getSlippageStat(preview.slippageBps));
+
   stats.push(getHealthStat(preview.healthFactor, isLoading, preview.simulationPreview?.health));
-  if (preview.simulationPreview?.liquidationPrice) {
+
+  if (preview.simulationPreview?.liquidationPrice)
     stats.push(getLiquidationStat(bank, isLoading, preview.simulationPreview?.liquidationPrice));
-  }
 
   stats.push(getPoolSizeStat(preview.bankCap, bank, isLending));
   stats.push(getBankTypeStat(bank));
   stats.push(getOracleStat(bank));
 
   return stats;
+}
+
+function getJupFeeStat(): PreviewStat {
+  return {
+    label: "Platform fee",
+    value: () => <>0.25%</>,
+  };
 }
 
 function getAmountStat(currentAmount: number, bank: ExtendedBankInfo, simulatedAmount?: number): PreviewStat {

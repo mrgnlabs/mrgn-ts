@@ -4,7 +4,7 @@ import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { RepayType, YbxType } from "~/utils";
 import { useActionBoxStore } from "~/hooks/useActionBoxStore";
-import { useUiStore } from "~/store";
+import { useMrgnlendStore, useUiStore } from "~/store";
 
 import { Input } from "~/components/ui/input";
 import { ActionBoxTokens } from "~/components/common/ActionBox/components";
@@ -64,6 +64,7 @@ export const ActionBoxInput = ({ walletAmount, maxAmount, showCloseBalance, isDi
     state.setYbxMode,
     state.setActionMode,
   ]);
+  const [selectedAccount] = useMrgnlendStore((state) => [state.selectedAccount]);
   const { connection } = useConnection();
 
   const amountInputRef = React.useRef<HTMLInputElement>(null);
@@ -129,12 +130,21 @@ export const ActionBoxInput = ({ walletAmount, maxAmount, showCloseBalance, isDi
   const handleInputChange = React.useCallback(
     (newAmount: string) => {
       if (isRepayWithCollat) {
-        setRepayAmountRaw(formatAmount(newAmount, selectedRepayBank), connection);
+        if (selectedAccount) setRepayAmountRaw(selectedAccount, formatAmount(newAmount, selectedRepayBank), connection);
       } else {
         setAmountRaw(formatAmount(newAmount, selectedBank));
       }
     },
-    [isRepayWithCollat, selectedRepayBank, connection, selectedBank, setAmountRaw, setRepayAmountRaw, formatAmount]
+    [
+      isRepayWithCollat,
+      selectedAccount,
+      selectedRepayBank,
+      connection,
+      selectedBank,
+      setAmountRaw,
+      setRepayAmountRaw,
+      formatAmount,
+    ]
   );
 
   return (

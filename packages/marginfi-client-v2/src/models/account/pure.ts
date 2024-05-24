@@ -657,24 +657,30 @@ class MarginfiAccount {
     banks: Map<string, Bank>,
     amount: Amount,
     bankAddress: PublicKey,
-    repayAll: boolean = false
+    repayAll: boolean = false,
+    opt: { wrapAndUnwrapSol?: boolean; createAtas?: boolean } = {}
   ): Promise<InstructionsWrapper> {
     const bank = banks.get(bankAddress.toBase58());
     if (!bank) throw Error(`Bank ${bankAddress.toBase58()} not found`);
+
+    const wrapAndUnwrapSol = opt.wrapAndUnwrapSol ?? true;
+    const createAtas = opt.createAtas ?? true;
 
     let ixs = [];
 
     // Add emissions-related instructions if necessary
     if (repayAll && !bank.emissionsMint.equals(PublicKey.default)) {
-      const userAta = getAssociatedTokenAddressSync(bank.emissionsMint, this.authority, true); // We allow off curve addresses here to support Fuse.
-      const createAtaIdempotentIx = createAssociatedTokenAccountIdempotentInstruction(
-        this.authority,
-        userAta,
-        this.authority,
-        bank.emissionsMint
-      );
+      if (createAtas) {
+        const userAta = getAssociatedTokenAddressSync(bank.emissionsMint, this.authority, true); // We allow off curve addresses here to support Fuse.
+        const createAtaIdempotentIx = createAssociatedTokenAccountIdempotentInstruction(
+          this.authority,
+          userAta,
+          this.authority,
+          bank.emissionsMint
+        );
 
-      ixs.push(createAtaIdempotentIx);
+        ixs.push(createAtaIdempotentIx);
+      }
       ixs.push(...(await this.makeWithdrawEmissionsIx(program, banks, bankAddress)).instructions);
     }
 
@@ -693,7 +699,7 @@ class MarginfiAccount {
       { amount: uiToNative(amount, bank.mintDecimals), repayAll }
     );
 
-    const repayIxs = bank.mint.equals(NATIVE_MINT) ? this.wrapInstructionForWSol(ix, amount) : [ix];
+    const repayIxs = bank.mint.equals(NATIVE_MINT) && wrapAndUnwrapSol ? this.wrapInstructionForWSol(ix, amount) : [ix];
     ixs.push(...repayIxs);
 
     return {
@@ -708,39 +714,46 @@ class MarginfiAccount {
     amount: Amount,
     bankAddress: PublicKey,
     withdrawAll: boolean = false,
-    opt?: { observationBanksOverride?: PublicKey[] } | undefined
+    opt: { observationBanksOverride?: PublicKey[]; wrapAndUnwrapSol?: boolean; createAtas?: boolean } = {}
   ): Promise<InstructionsWrapper> {
     const bank = banks.get(bankAddress.toBase58());
     if (!bank) throw Error(`Bank ${bankAddress.toBase58()} not found`);
+
+    const wrapAndUnwrapSol = opt.wrapAndUnwrapSol ?? true;
+    const createAtas = opt.createAtas ?? true;
 
     let ixs = [];
 
     // Add emissions-related instructions if necessary
     if (withdrawAll && !bank.emissionsMint.equals(PublicKey.default)) {
-      const userAta = getAssociatedTokenAddressSync(bank.emissionsMint, this.authority, true); // We allow off curve addresses here to support Fuse.
-      const createAtaIdempotentIx = createAssociatedTokenAccountIdempotentInstruction(
-        this.authority,
-        userAta,
-        this.authority,
-        bank.emissionsMint
-      );
+      if (createAtas) {
+        const userAta = getAssociatedTokenAddressSync(bank.emissionsMint, this.authority, true); // We allow off curve addresses here to support Fuse.
+        const createAtaIdempotentIx = createAssociatedTokenAccountIdempotentInstruction(
+          this.authority,
+          userAta,
+          this.authority,
+          bank.emissionsMint
+        );
+        ixs.push(createAtaIdempotentIx);
+      }
 
-      ixs.push(createAtaIdempotentIx);
       ixs.push(...(await this.makeWithdrawEmissionsIx(program, banks, bankAddress)).instructions);
     }
 
     const userAta = getAssociatedTokenAddressSync(bank.mint, this.authority, true);
-    const createAtaIdempotentIx = createAssociatedTokenAccountIdempotentInstruction(
-      this.authority,
-      userAta,
-      this.authority,
-      bank.mint
-    );
-    ixs.push(createAtaIdempotentIx);
+    if (createAtas) {
+      const createAtaIdempotentIx = createAssociatedTokenAccountIdempotentInstruction(
+        this.authority,
+        userAta,
+        this.authority,
+        bank.mint
+      );
+      ixs.push(createAtaIdempotentIx);
+    }
 
     // Add withdraw-related instructions
     let remainingAccounts;
-    if (opt?.observationBanksOverride !== undefined) {
+    if (opt.observationBanksOverride !== undefined) {
       remainingAccounts = makeHealthAccountMetas(banks, opt.observationBanksOverride);
     } else {
       remainingAccounts = withdrawAll
@@ -760,7 +773,7 @@ class MarginfiAccount {
       { amount: uiToNative(amount, bank.mintDecimals), withdrawAll },
       remainingAccounts
     );
-    const withdrawIxs = bank.mint.equals(NATIVE_MINT) ? this.wrapInstructionForWSol(ix) : [ix];
+    const withdrawIxs = bank.mint.equals(NATIVE_MINT) && wrapAndUnwrapSol ? this.wrapInstructionForWSol(ix) : [ix];
     ixs.push(...withdrawIxs);
 
     return {
@@ -979,7 +992,8 @@ class MarginfiAccount {
           const targetBalance = projectedBalances.find((b) => b.bankPk.equals(targetBank));
           if (!targetBalance) {
             throw Error(
-              `Balance for bank ${targetBank.toBase58()} should be projected active at this point (ix ${index}: ${decoded.name
+              `Balance for bank ${targetBank.toBase58()} should be projected active at this point (ix ${index}: ${
+                decoded.name
               }))`
             );
           }
@@ -1004,7 +1018,11 @@ class MarginfiAccount {
 
   public describe(banks: BankMap, oraclePrices: OraclePriceMap): string {
     const { assets, liabilities } = this.computeHealthComponents(banks, oraclePrices, MarginRequirementType.Equity);
-    const { assets: assetsMaint, liabilities: liabilitiesMaint } = this.computeHealthComponents(banks, oraclePrices, MarginRequirementType.Maintenance);
+    const { assets: assetsMaint, liabilities: liabilitiesMaint } = this.computeHealthComponents(
+      banks,
+      oraclePrices,
+      MarginRequirementType.Maintenance
+    );
     let description = `
 - Marginfi account: ${this.address}
 - Authority: ${this.authority}

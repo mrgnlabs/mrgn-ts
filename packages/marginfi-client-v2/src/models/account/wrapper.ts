@@ -1,4 +1,12 @@
-import { Amount, DEFAULT_COMMITMENT, InstructionsWrapper, Wallet, shortenAddress } from "@mrgnlabs/mrgn-common";
+import {
+  Amount,
+  DEFAULT_COMMITMENT,
+  InstructionsWrapper,
+  Wallet,
+  createAssociatedTokenAccountIdempotentInstruction,
+  getAssociatedTokenAddressSync,
+  shortenAddress,
+} from "@mrgnlabs/mrgn-common";
 import { Address, BorshCoder, translateAddress } from "@coral-xyz/anchor";
 import {
   AccountMeta,
@@ -20,7 +28,6 @@ import { AccountType, MarginfiConfig, MarginfiProgram } from "../../types";
 import { MarginfiAccount, MarginRequirementType, MarginfiAccountRaw } from "./pure";
 import { Bank } from "../bank";
 import { Balance } from "../balance";
-import debug from "debug";
 
 export interface SimulationResult {
   banks: Map<string, Bank>;
@@ -146,7 +153,12 @@ class MarginfiAccountWrapper {
       MarginRequirementType.Maintenance
     );
 
-    debugLogger("Account %s, maint assets: %s, maint liabilities: %s, maint healt: %s", this.address, assets, liabilities)
+    debugLogger(
+      "Account %s, maint assets: %s, maint liabilities: %s, maint healt: %s",
+      this.address,
+      assets,
+      liabilities
+    );
 
     return assets.lt(liabilities);
   }
@@ -315,6 +327,39 @@ class MarginfiAccountWrapper {
     };
   }
 
+  async makeSetupIx(banks: PublicKey[]) {
+    this._marginfiAccount.authority;
+
+    if (this.client.bankMetadataMap === undefined) {
+      return [];
+    }
+
+    const userAtas = banks.map((bankAddress) => {
+      const bank = this.client.bankMetadataMap![bankAddress.toBase58()];
+      return getAssociatedTokenAddressSync(new PublicKey(bank.tokenAddress), this.authority, true);
+    });
+
+    let ixs = [];
+    const userAtaAis = await this._program.provider.connection.getMultipleAccountsInfo(userAtas);
+
+    for (const [i, userAta] of userAtaAis.entries()) {
+      if (userAta === null) {
+        const bankAddress = banks[i];
+        const bank = this.client.bankMetadataMap![bankAddress.toBase58()];
+        ixs.push(
+          createAssociatedTokenAccountIdempotentInstruction(
+            this.authority,
+            userAtas[i],
+            this.authority,
+            new PublicKey(bank.tokenAddress)
+          )
+        );
+      }
+    }
+
+    return ixs;
+  }
+
   async repayWithCollat(
     amount: Amount,
     repayAmount: Amount,
@@ -323,25 +368,53 @@ class MarginfiAccountWrapper {
     withdrawAll: boolean = false,
     repayAll: boolean = false,
     swapIxs: TransactionInstruction[],
-    addressLookupTableAccounts: AddressLookupTableAccount[],
-    priorityFeeUi?: number
-  ): Promise<string> {
+    swapLookupTables: AddressLookupTableAccount[],
+    priorityFeeUi?: number,
+    executeTx: boolean = false
+  ): Promise<string | { flashloanTx: VersionedTransaction; addressLookupTableAccounts: AddressLookupTableAccount[] }> {
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:repay`);
     debug("Repaying %s into marginfi account (bank: %s), repay all: %s", amount, bankAddress, repayAll);
+    const setupIxs = await this.makeSetupIx([bankAddress, repayBankAddress]);
     const cuRequestIxs = this.makeComputeBudgetIx();
     const priorityFeeIx = this.makePriorityFeeIx(priorityFeeUi);
-    const withdrawIxs = await this.makeWithdrawIx(repayAmount, repayBankAddress, withdrawAll);
-    const depositIxs = await this.makeRepayIx(amount, bankAddress, repayAll);
+    const withdrawIxs = await this.makeWithdrawIx(repayAmount, repayBankAddress, withdrawAll, {
+      createAtas: false,
+      wrapAndUnwrapSol: false,
+    });
+    const depositIxs = await this.makeRepayIx(amount, bankAddress, repayAll, {
+      createAtas: false,
+      wrapAndUnwrapSol: false,
+    });
     const lookupTables = this.client.addressLookupTables;
+    const addressLookupTableAccounts = [...lookupTables, ...swapLookupTables];
     const flashloanTx = await this.buildFlashLoanTx({
-      ixs: [...priorityFeeIx, ...cuRequestIxs, ...withdrawIxs.instructions, ...swapIxs, ...depositIxs.instructions],
-      addressLookupTableAccounts: [...lookupTables, ...addressLookupTableAccounts],
+      ixs: [
+        ...priorityFeeIx,
+        ...cuRequestIxs,
+        ...setupIxs,
+        ...withdrawIxs.instructions,
+        ...swapIxs,
+        ...depositIxs.instructions,
+      ],
+      addressLookupTableAccounts,
     });
 
-    const sig = await this.client.processTransaction(flashloanTx, []);
-    debug("Repay with collateral successful %s", sig);
+    // add to debug
+    // const signaturesEncoded = encodeURIComponent(JSON.stringify(flashloanTx.signatures.map((s) => bs58.encode(s))));
+    // const messageEncoded = encodeURIComponent(Buffer.from(flashloanTx.message.serialize()).toString("base64"));
+    // const urlEscaped = `https://explorer.solana.com/tx/inspector?cluster=mainnet-beta&signatures=${signaturesEncoded}&message=${messageEncoded}`;
 
-    return sig;
+    // console.log("------ Inspect :point_down: ------");
+    // console.log(urlEscaped);
+
+    if (executeTx) {
+      return { flashloanTx, addressLookupTableAccounts };
+    } else {
+      const sig = await this.client.processTransaction(flashloanTx, []);
+      debug("Repay with collateral successful %s", sig);
+
+      return sig;
+    }
   }
 
   async simulateRepayWithCollat(
@@ -353,15 +426,30 @@ class MarginfiAccountWrapper {
     swapIxs: TransactionInstruction[],
     addressLookupTableAccounts: AddressLookupTableAccount[]
   ): Promise<SimulationResult> {
+    const setupIxs = await this.makeSetupIx([bankAddress, repayBankAddress]);
     const cuRequestIxs = this.makeComputeBudgetIx();
-    const withdrawIxs = await this.makeWithdrawIx(repayAmount, repayBankAddress);
-    const depositIxs = await this.makeRepayIx(amount, bankAddress, repayAll);
+    //const priorityFeeIx = this.makePriorityFeeIx(priorityFeeUi);
+    const withdrawIxs = await this.makeWithdrawIx(repayAmount, repayBankAddress, false, {
+      createAtas: false,
+      wrapAndUnwrapSol: false,
+    });
+    const depositIxs = await this.makeRepayIx(amount, bankAddress, repayAll, {
+      createAtas: false,
+      wrapAndUnwrapSol: false,
+    });
     const lookupTables = this.client.addressLookupTables;
-    const tx = await this.buildFlashLoanTx({
-      ixs: [...cuRequestIxs, ...withdrawIxs.instructions, ...swapIxs, ...depositIxs.instructions],
+    const flashloanTx = await this.buildFlashLoanTx({
+      ixs: [
+        //...priorityFeeIx,
+        ...cuRequestIxs,
+        ...setupIxs,
+        ...withdrawIxs.instructions,
+        ...swapIxs,
+        ...depositIxs.instructions,
+      ],
       addressLookupTableAccounts: [...lookupTables, ...addressLookupTableAccounts],
     });
-    const [mfiAccountData, bankData] = await this.client.simulateTransaction(tx, [this.address, bankAddress]);
+    const [mfiAccountData, bankData] = await this.client.simulateTransaction(flashloanTx, [this.address, bankAddress]);
     if (!mfiAccountData || !bankData) throw new Error("Failed to simulate repay w/ collat");
     const previewBanks = this.client.banks;
     previewBanks.set(bankAddress.toBase58(), Bank.fromBuffer(bankAddress, bankData));
@@ -385,8 +473,13 @@ class MarginfiAccountWrapper {
     };
   }
 
-  async makeRepayIx(amount: Amount, bankAddress: PublicKey, repayAll: boolean = false): Promise<InstructionsWrapper> {
-    return this._marginfiAccount.makeRepayIx(this._program, this.client.banks, amount, bankAddress, repayAll);
+  async makeRepayIx(
+    amount: Amount,
+    bankAddress: PublicKey,
+    repayAll: boolean = false,
+    opt: { wrapAndUnwrapSol?: boolean; createAtas?: boolean } = {}
+  ): Promise<InstructionsWrapper> {
+    return this._marginfiAccount.makeRepayIx(this._program, this.client.banks, amount, bankAddress, repayAll, opt);
   }
 
   async repay(
@@ -437,7 +530,7 @@ class MarginfiAccountWrapper {
     amount: Amount,
     bankAddress: PublicKey,
     withdrawAll: boolean = false,
-    opt?: { observationBanksOverride?: PublicKey[] } | undefined
+    opt: { observationBanksOverride?: PublicKey[]; wrapAndUnwrapSol?: boolean; createAtas?: boolean } = {}
   ): Promise<InstructionsWrapper> {
     return this._marginfiAccount.makeWithdrawIx(
       this._program,

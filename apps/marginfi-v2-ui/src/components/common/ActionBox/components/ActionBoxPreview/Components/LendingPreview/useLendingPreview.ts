@@ -1,6 +1,11 @@
 import React from "react";
 import { ActionType, AccountSummary, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { MarginfiAccountWrapper, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
+import {
+  MarginfiAccountWrapper,
+  MarginfiClient,
+  ProcessTransactionError,
+  SimulationResult,
+} from "@mrgnlabs/marginfi-client-v2";
 
 import {
   ActionPreview,
@@ -12,10 +17,11 @@ import {
   simulateAction,
 } from "./LendingPreview.utils";
 import { ActionMethod, RepayWithCollatOptions, usePrevious } from "~/utils";
-import { useDebounce } from "~/hooks/useDebounce";
 import { useAmountDebounce } from "~/hooks/useAmountDebounce";
+import { JUPITER_PROGRAM_V6_ID } from "@jup-ag/react-hook";
 
 interface UseLendingPreviewProps {
+  marginfiClient: MarginfiClient | null;
   accountSummary: AccountSummary;
   actionMode: ActionType;
   account: MarginfiAccountWrapper | null;
@@ -25,6 +31,7 @@ interface UseLendingPreviewProps {
 }
 
 export function useLendingPreview({
+  marginfiClient,
   accountSummary,
   actionMode,
   account,
@@ -48,8 +55,15 @@ export function useLendingPreview({
   React.useEffect(() => {
     const isBankChanged = bank ? !bankPrev?.address.equals(bank.address) : false;
 
-    if (account && bank && debouncedAmount && !isBankChanged && amount !== 0) {
-      getSimulationResult({ actionMode, account, bank, amount: debouncedAmount, repayWithCollatOptions });
+    if (account && marginfiClient && bank && debouncedAmount && !isBankChanged && amount !== 0) {
+      getSimulationResult({
+        marginfiClient,
+        actionMode,
+        account,
+        bank,
+        amount: debouncedAmount,
+        repayWithCollatOptions,
+      });
     } else {
       setSimulationResult(undefined);
       setActionMethod(undefined);
@@ -66,9 +80,10 @@ export function useLendingPreview({
 
   const getPreviewStats = (props: CalculatePreviewProps) => {
     const isLending = props.actionMode === ActionType.Deposit || props.actionMode === ActionType.Withdraw;
+    const isRepayWithCollat = !!props.repayWithCollatOptions;
     const preview = calculatePreview(props);
     setPreview(preview);
-    setPreviewStats(generateStats(preview, props.bank, isLending, props.isLoading));
+    setPreviewStats(generateStats(preview, props.bank, isLending, props.isLoading, isRepayWithCollat));
   };
 
   const getSimulationResult = async (props: SimulateActionProps) => {
@@ -76,7 +91,21 @@ export function useLendingPreview({
       setSimulationResult(await simulateAction(props));
       setActionMethod(undefined);
     } catch (error: any) {
-      if (typeof error === "string") {
+      if (error instanceof ProcessTransactionError && error.programId) {
+        if (error.programId === JUPITER_PROGRAM_V6_ID.toBase58() && error.message === "Slippage tolerance exceeded") {
+          setActionMethod({
+            isEnabled: true,
+            actionMethod: "WARNING",
+            description: error.message,
+          } as ActionMethod);
+        } else {
+          setActionMethod({
+            isEnabled: true,
+            actionMethod: "WARNING",
+            description: `Simulating health/liquidation impact failed.`,
+          } as ActionMethod);
+        }
+      } else if (typeof error === "string") {
         setActionMethod({
           isEnabled: true,
           actionMethod: "WARNING",
