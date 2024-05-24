@@ -64,11 +64,11 @@ export const TokenCombobox = ({ selected, setSelected }: TokenComboboxProps) => 
                   />
                   <span>Pool {index + 1}</span>
                   {random(0, 1) ? (
-                    <div className="ml-auto flex items-center gap-1 text-xs text-mrgn-success">
+                    <div className="ml-auto flex items-center gap-1 text-xs text-success">
                       +{random(0, 100)}% <IconTrendingUp size={16} />
                     </div>
                   ) : (
-                    <div className="ml-auto flex items-center gap-1 text-xs text-mrgn-error">
+                    <div className="ml-auto flex items-center gap-1 text-xs text-error">
                       -{random(0, 100)}% <IconTrendingDown size={16} />
                     </div>
                   )}
