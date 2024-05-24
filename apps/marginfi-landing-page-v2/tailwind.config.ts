@@ -65,6 +65,9 @@ const config = {
           chartreuse: "hsl(var(--mrgn-chartreuse))",
           gold: "hsl(var(--mrgn-gold))",
           slate: "hsl(var(--mrgn-slate))",
+          success: "#75ba80",
+          warning: "#daa204",
+          error: "#e07d6f",
         },
       },
       borderRadius: {
@@ -85,6 +88,7 @@ const config = {
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "spin-slow": "spin 3s linear infinite",
       },
     },
   },
