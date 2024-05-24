@@ -6,7 +6,14 @@ import random from "lodash/random";
 import { useMrgnlendStore } from "~/store";
 
 import { PageHeading } from "~/components/common/PageHeading";
-import { IconSearch, IconSortDescending, IconFilter, IconTrendingUp, IconTrendingDown } from "~/components/ui/icons";
+import {
+  IconSearch,
+  IconSortDescending,
+  IconFilter,
+  IconTrendingUp,
+  IconTrendingDown,
+  IconPlus,
+} from "~/components/ui/icons";
 import { Popover, PopoverTrigger, PopoverContent } from "~/components/ui/popover";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "~/components/ui/card";
 import { Loader } from "~/components/ui/loader";
@@ -25,6 +32,13 @@ export default function TradePage() {
               heading={<h1>mrgntrade</h1>}
               body={<p>Create permissionless pools, provide liquidity, and trade with mrgntrade.</p>}
               links={[]}
+              button={
+                <Link href="/trade/pool/create">
+                  <Button>
+                    <IconPlus size={18} /> Create a pool
+                  </Button>
+                </Link>
+              }
             />
           </div>
 
@@ -93,12 +107,12 @@ export default function TradePage() {
                   </CardContent>
                   <CardFooter>
                     <div className="flex items-center gap-3 w-full">
-                      <Link href="/trade/123" className="w-full">
+                      <Link href="/trade/pool/123" className="w-full">
                         <Button variant="secondary" className="w-full">
                           Long
                         </Button>
                       </Link>
-                      <Link href="/trade/123" className="w-full">
+                      <Link href="/trade/pool/123" className="w-full">
                         <Button variant="secondary" className="w-full">
                           Short
                         </Button>

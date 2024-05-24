@@ -21,7 +21,7 @@ export default function TradePage() {
       {!initialized && <Loader label="Loading mrgntrade..." className="mt-8" />}
       {initialized && (
         <div className="flex flex-col items-start gap-8 pb-16 w-full">
-          <Link href="/pools">
+          <Link href="/trade">
             {" "}
             <Button variant="outline">
               <IconChevronsLeft size={20} /> Back to pools
