@@ -1,10 +1,12 @@
+import { submitConvertKit } from "~/actions/submitConvertKit";
+
 import { Hero } from "~/components/hero";
 import { Stats } from "~/components/stats";
 import { Products } from "~/components/products";
 import { Features } from "~/components/features";
 import { Highlights } from "~/components/highlights";
 import { Ecosystem } from "~/components/ecosystem";
-import { Callout } from "~/components/callout";
+import { Grants } from "~/components/grants";
 import { Investors } from "~/components/investors";
 import { GettingStarted } from "~/components/getting-started";
 import { FAQ } from "~/components/faq";
@@ -19,7 +21,7 @@ export default function Home() {
       <Products />
       <Features />
       <Highlights />
-      <Callout />
+      <Grants onSubmit={submitConvertKit} />
       <Ecosystem />
       <Investors />
       <GettingStarted />
