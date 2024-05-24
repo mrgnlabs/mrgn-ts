@@ -69,6 +69,9 @@ import {
   IconDeviceMobileShare,
   IconCirclePlus,
   IconDeviceMobilePlus,
+  IconTrendingUp,
+  IconTrendingDown,
+  IconChevronsLeft,
 } from "@tabler/icons-react";
 import { cn } from "~/utils/themeUtils";
 
@@ -961,4 +964,7 @@ export {
   IconUsd,
   IconWorld,
   IconMeso,
+  IconTrendingUp,
+  IconTrendingDown,
+  IconChevronsLeft,
 };

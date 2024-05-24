@@ -4,9 +4,9 @@ import React from "react";
 
 import capitalize from "lodash/capitalize";
 
-import { cn } from "~/lib/utils";
+import { cn } from "~/utils/themeUtils";
 
-import { TokenCombobox } from "~/components/token-combobox";
+import { TokenCombobox } from "../TokenCombobox/TokenCombobox";
 
 import { Card, CardContent, CardFooter } from "~/components/ui/card";
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
@@ -18,7 +18,7 @@ import { Label } from "~/components/ui/label";
 
 type TradeSide = "long" | "short";
 
-export const Trade = () => {
+export const TradingBox = () => {
   const [tradeState, setTradeState] = React.useState<TradeSide>("long");
   const [selectedPool, setSelectedPool] = React.useState<number>(0);
   const [amount, setAmount] = React.useState<number>(0);
@@ -93,7 +93,7 @@ export const Trade = () => {
               max={10}
               step={1}
               value={[leverage]}
-              onValueChange={(value) => setLeverage(value[0])}
+              onValueChange={(value: number[]) => setLeverage(value[0])}
             />
           </div>
         </div>
