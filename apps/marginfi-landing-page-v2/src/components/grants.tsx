@@ -128,79 +128,67 @@ export const Grants = ({ onSubmit }: GrantsProps) => {
                   className={cn("space-y-2 mt-4", state === GrantState.LOADING && "pointer-events-none animate-pulse")}
                   onSubmit={form.handleSubmit(submit)}
                 >
-                  <div className="grid md:grid-cols-2 md:gap-8">
-                    <div className="space-y-4 py-4">
-                      <FormField
-                        control={form.control}
-                        name="name"
-                        render={({ field }) => (
-                          <FormItem className="space-y-1">
-                            <FormLabel htmlFor="name">Your Name</FormLabel>
-                            <FormControl>
-                              <Input id="name" className="col-span-3" placeholder="Your name" tabIndex={0} {...field} />
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="projectName"
-                        render={({ field }) => (
-                          <FormItem className="space-y-1">
-                            <FormLabel htmlFor="projectName">Project Name</FormLabel>
-                            <FormControl>
-                              <Input
-                                id="projectName"
-                                className="col-span-3"
-                                placeholder="Project Name"
-                                tabIndex={2}
-                                {...field}
-                              />
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                    <div className="space-y-4 py-4">
-                      <FormField
-                        control={form.control}
-                        name="email"
-                        render={({ field }) => (
-                          <FormItem className="space-y-1">
-                            <FormLabel htmlFor="email">Your Email</FormLabel>
-                            <FormControl>
-                              <Input
-                                id="email"
-                                type="email"
-                                className="col-span-3"
-                                placeholder="example@example.com"
-                                tabIndex={1}
-                                {...field}
-                              />
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="projectLink"
-                        render={({ field }) => (
-                          <FormItem className="space-y-1">
-                            <FormLabel htmlFor="projectLink">Project Link</FormLabel>
-                            <FormControl>
-                              <Input
-                                id="projectLink"
-                                type="url"
-                                className="col-span-3"
-                                placeholder="https://www.yourwebsite.com/"
-                                tabIndex={3}
-                                {...field}
-                              />
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
-                    </div>
+                  <div className="grid md:grid-cols-2 gap-4 md:gap-8 mb-8">
+                    <FormField
+                      control={form.control}
+                      name="name"
+                      render={({ field }) => (
+                        <FormItem className="space-y-1">
+                          <FormLabel htmlFor="name">Your Name</FormLabel>
+                          <FormControl>
+                            <Input id="name" className="col-span-3" placeholder="Your name" {...field} />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="email"
+                      render={({ field }) => (
+                        <FormItem className="space-y-1">
+                          <FormLabel htmlFor="email">Your Email</FormLabel>
+                          <FormControl>
+                            <Input
+                              id="email"
+                              type="email"
+                              className="col-span-3"
+                              placeholder="example@example.com"
+                              {...field}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="projectName"
+                      render={({ field }) => (
+                        <FormItem className="space-y-1">
+                          <FormLabel htmlFor="projectName">Project Name</FormLabel>
+                          <FormControl>
+                            <Input id="projectName" className="col-span-3" placeholder="Project Name" {...field} />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="projectLink"
+                      render={({ field }) => (
+                        <FormItem className="space-y-1">
+                          <FormLabel htmlFor="projectLink">Project Link</FormLabel>
+                          <FormControl>
+                            <Input
+                              id="projectLink"
+                              type="url"
+                              className="col-span-3"
+                              placeholder="https://www.yourwebsite.com/"
+                              {...field}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
                   </div>
                   <FormField
                     control={form.control}
@@ -214,7 +202,6 @@ export const Grants = ({ onSubmit }: GrantsProps) => {
                             className="col-span-3"
                             rows={4}
                             placeholder="Tell us about your project..."
-                            tabIndex={4}
                             {...field}
                           />
                         </FormControl>
