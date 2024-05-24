@@ -67,7 +67,7 @@ export const Positions = () => {
               <TableCell>{position.size}</TableCell>
               <TableCell>${position.entryPrice}</TableCell>
               <TableCell>${position.markPrice}</TableCell>
-              <TableCell className={cn(position.pl > 0 && "text-mrgn-success", position.pl <= 0 && "text-mrgn-error")}>
+              <TableCell className={cn(position.pl > 0 && "text-success", position.pl <= 0 && "text-error")}>
                 {position.pl}%
               </TableCell>
               <TableCell>${position.liquidationPrice}</TableCell>

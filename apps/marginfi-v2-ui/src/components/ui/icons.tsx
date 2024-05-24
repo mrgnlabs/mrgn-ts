@@ -72,6 +72,7 @@ import {
   IconTrendingUp,
   IconTrendingDown,
   IconChevronsLeft,
+  IconPlus,
 } from "@tabler/icons-react";
 import { cn } from "~/utils/themeUtils";
 
@@ -967,4 +968,5 @@ export {
   IconTrendingUp,
   IconTrendingDown,
   IconChevronsLeft,
+  IconPlus,
 };
