@@ -1,4 +1,4 @@
-import { CreatePool } from "~/components/create-pool";
+import { CreatePool } from "../../../../create-pool";
 
 export default function Component() {
   return (

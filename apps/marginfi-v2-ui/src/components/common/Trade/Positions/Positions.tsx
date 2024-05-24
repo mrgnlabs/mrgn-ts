@@ -2,7 +2,7 @@ import Image from "next/image";
 
 import random from "lodash/random";
 
-import { cn } from "~/lib/utils";
+import { cn } from "~/utils/themeUtils";
 
 import { Table, TableBody, TableHead, TableCell, TableHeader, TableRow } from "~/components/ui/table";
 import { Button } from "~/components/ui/button";
@@ -36,7 +36,7 @@ const MOCK_POSITIONS = [
 
 export const Positions = () => {
   return (
-    <div className="bg-background rounded-xl p-4">
+    <div className="bg-background rounded-xl">
       <Table>
         <TableHeader>
           <TableRow className="hover:bg-transparent">

@@ -2,9 +2,9 @@ import Link from "next/link";
 
 import { IconChevronsLeft } from "@tabler/icons-react";
 
-import TradingViewWidget from "~/components/tv-widget";
-import { Trade } from "~/components/trade";
-import { Positions } from "~/components/positions";
+import TradingViewWidget from "../../../../tv-widget";
+import { Trade } from "../../../../trade";
+import { Positions } from "../../../../positions";
 import { Button } from "~/components/ui/button";
 
 type TradePageProps = {
