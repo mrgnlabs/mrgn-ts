@@ -73,6 +73,8 @@ import {
   IconTrendingDown,
   IconChevronsLeft,
   IconPlus,
+  IconChartLine,
+  IconChartPie,
 } from "@tabler/icons-react";
 import { cn } from "~/utils/themeUtils";
 
@@ -969,4 +971,6 @@ export {
   IconTrendingDown,
   IconChevronsLeft,
   IconPlus,
+  IconChartLine,
+  IconChartPie,
 };

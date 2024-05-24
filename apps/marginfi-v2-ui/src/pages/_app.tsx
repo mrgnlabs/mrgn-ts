@@ -67,7 +67,7 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
     state.isRefreshingStore,
   ]);
 
-  const { query, isReady } = useRouter();
+  const { query, isReady, asPath } = useRouter();
 
   // enable matomo heartbeat
   React.useEffect(() => {
@@ -111,7 +111,9 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
 
                     <Desktop>
                       <WalletModalProvider>
-                        <div className={cn("w-full flex flex-col justify-center items-center", isOraclesStale && 'pt-10')}>
+                        <div
+                          className={cn("w-full flex flex-col justify-center items-center", isOraclesStale && "pt-10")}
+                        >
                           <Component {...pageProps} />
                         </div>
                         <Footer />
@@ -120,7 +122,9 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
 
                     <Mobile>
                       <MobileNavbar />
-                      <div className={cn("w-full flex flex-col justify-center items-center", isOraclesStale && 'pt-16')}>
+                      <div
+                        className={cn("w-full flex flex-col justify-center items-center", isOraclesStale && "pt-16")}
+                      >
                         <Component {...pageProps} />
                       </div>
                     </Mobile>
