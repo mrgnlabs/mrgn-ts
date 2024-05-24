@@ -36,7 +36,7 @@ const MOCK_POSITIONS = [
 
 export const Positions = () => {
   return (
-    <div className="bg-background rounded-xl">
+    <div className="rounded-xl">
       <Table>
         <TableHeader>
           <TableRow className="hover:bg-transparent">
@@ -51,7 +51,7 @@ export const Positions = () => {
         </TableHeader>
         <TableBody>
           {MOCK_POSITIONS.map((position, index) => (
-            <TableRow key={index} className="hover:bg-inherit hover:even:bg-muted/30">
+            <TableRow key={index} className="even:bg-background-gray hover:even:bg-background-gray">
               <TableCell>
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <Image
