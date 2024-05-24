@@ -45,7 +45,9 @@ export const LendingPreview = ({
 
   React.useEffect(() => {
     addAdditionalsPopup(actionMethod ? [actionMethod] : []);
-  }, [actionMethod, addAdditionalsPopup]);
+    // DO NOT REMOVE THIS, inifite bug if you do
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [actionMethod]);
 
   return (
     <div className="flex flex-col gap-4">
