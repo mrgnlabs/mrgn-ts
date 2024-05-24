@@ -1,5 +1,4 @@
 import Link from "next/link";
-import React from "react";
 
 interface PageHeadingProps {
   heading: JSX.Element;
@@ -8,9 +7,10 @@ interface PageHeadingProps {
     href: string;
     icon: JSX.Element;
   }[];
+  button?: JSX.Element;
 }
 
-export const PageHeading = ({ heading, body, links }: PageHeadingProps) => {
+export const PageHeading = ({ heading, body, links, button }: PageHeadingProps) => {
   return (
     <div className="text-muted-foreground text-base md:text-lg text-center px-2 pt-4 pb-12 md:pt-0 md:px-0 space-y-3">
       <h1 className="text-4xl font-medium text-primary">{heading}</h1>
@@ -32,6 +32,8 @@ export const PageHeading = ({ heading, body, links }: PageHeadingProps) => {
           ))}
         </ul>
       )}
+
+      {button && <div className="flex justify-center pt-4">{button}</div>}
     </div>
   );
 };
