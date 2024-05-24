@@ -66,7 +66,7 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
     state.isRefreshingStore,
   ]);
 
-  const { query, isReady } = useRouter();
+  const { query, isReady, asPath } = useRouter();
 
   // enable matomo heartbeat
   React.useEffect(() => {
