@@ -9,17 +9,17 @@ const CONTENT = {
       question: "Is there a “How to start on marginfi” quick guide?",
       answer: (
         <>
-          Yes, you can find a guide on{" "}
+          Yes, you can find the{" "}
           <Link
-            href="https://medium.com/marginfi/exploring-mrgnlend-a-guide-to-decentralized-lending-and-borrowing-1e05a422a505"
+            href="https://docs.marginfi.com/concepts/mrgnlend-user-guide"
             className="mrgn-link"
             target="_blank"
             rel="noreferrer"
           >
-            how to get started here
-          </Link>
-          . We are currently working on overhauling our documentation so expect this to be improved soon. Any further
-          questions please{" "}
+            mrgnlend user guide
+          </Link>{" "}
+          on GitHub. . We are currently working on overhauling our documentation so expect this to be improved soon. Any
+          further questions please{" "}
           <Link href="https://discord.gg/mrgn" className="mrgn-link" target="_blank" rel="noreferrer">
             join our Discord server
           </Link>
