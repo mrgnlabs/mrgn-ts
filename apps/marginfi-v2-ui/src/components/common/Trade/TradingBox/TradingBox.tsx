@@ -30,24 +30,24 @@ export const TradingBox = () => {
   }, [amount, leverage]);
 
   return (
-    <Card className="bg-background border-none">
+    <Card className="bg-background-gray border-none">
       <CardContent className="pt-6">
         <div className="space-y-4">
           <ToggleGroup
             type="single"
-            className="w-full gap-4"
+            className="w-full gap-4 bg-transparent"
             defaultValue="long"
             onValueChange={(value) => setTradeState(value as TradeSide)}
           >
             <ToggleGroupItem
-              className="w-full border border-border hover:bg-accent hover:text-primary data-[state=on]:bg-accent data-[state=on]:border-transparent"
+              className="w-full border border-accent hover:bg-accent hover:text-primary data-[state=on]:bg-accent data-[state=on]:border-transparent"
               value="long"
               aria-label="Toggle long"
             >
               Long
             </ToggleGroupItem>
             <ToggleGroupItem
-              className="w-full border border-border hover:bg-accent hover:text-primary data-[state=on]:bg-accent data-[state=on]:border-transparent"
+              className="w-full border border-accent hover:bg-accent hover:text-primary data-[state=on]:bg-accent data-[state=on]:border-transparent"
               value="short"
               aria-label="Toggle short"
             >
@@ -61,7 +61,7 @@ export const TradingBox = () => {
                 Max
               </Button>
             </div>
-            <div className="relative flex gap-4 items-center border border-border p-2 rounded-lg">
+            <div className="relative flex gap-4 items-center border border-accent p-2 rounded-lg">
               <TokenCombobox selected={selectedPool} setSelected={setSelectedPool} />
               <Input
                 type="number"
@@ -74,7 +74,7 @@ export const TradingBox = () => {
           <div className="space-y-1.5">
             <Label>Size of {tradeState}</Label>
             <div className="relative">
-              <Input type="number" value={fullAmount || ""} disabled className="disabled:opacity-100" />
+              <Input type="number" value={fullAmount || ""} disabled className="disabled:opacity-100 border-accent" />
               {selectedPool !== null && (
                 <span className="absolute inset-y-0 right-3 flex items-center text-xs text-muted-foreground">
                   $POOL{selectedPool + 1}
@@ -99,17 +99,11 @@ export const TradingBox = () => {
         </div>
       </CardContent>
       <CardFooter className="flex-col gap-8">
-        <div className="space-y-1 w-full">
-          <Button
-            className={cn(
-              "w-full",
-              tradeState === "long" && "bg-mrgn-success",
-              tradeState === "short" && "bg-mrgn-error"
-            )}
-          >
+        <div className="gap-1 w-full flex flex-col items-center">
+          <Button className={cn("w-full", tradeState === "long" && "bg-success", tradeState === "short" && "bg-error")}>
             {capitalize(tradeState)} {selectedPool !== null ? `Pool ${selectedPool + 1}` : "Pool"}
           </Button>
-          <Button variant="link" size="sm" className="w-full">
+          <Button variant="link" size="sm" className="font-normal text-muted-foreground underline hover:no-underline">
             Desposit Collateral
           </Button>
         </div>
