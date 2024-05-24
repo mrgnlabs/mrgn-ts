@@ -2,7 +2,7 @@
 
 import React from "react";
 
-function TradingViewWidget() {
+export const TVWidget = () => {
   const container = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
@@ -43,6 +43,4 @@ function TradingViewWidget() {
       ></div>
     </div>
   );
-}
-
-export default React.memo(TradingViewWidget);
+};

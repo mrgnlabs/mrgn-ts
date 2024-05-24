@@ -173,6 +173,12 @@ let config = withBundleAnalyzer({
         port: "",
         pathname: "/Hivemapper_HONEY_token.png",
       },
+      {
+        protocol: "https",
+        hostname: "picsum.photos",
+        port: "",
+        pathname: "/*",
+      },
     ],
   },
 });
