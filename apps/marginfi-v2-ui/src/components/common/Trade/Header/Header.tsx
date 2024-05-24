@@ -3,57 +3,51 @@
 import React from "react";
 
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
-import { IconTrendingUp, IconCoins, IconChartLine, IconChartPie } from "@tabler/icons-react";
+import { useRouter } from "next/router";
 
-import { cn } from "~/lib/utils";
+import { cn } from "~/utils/themeUtils";
 
+import { WalletButton } from "~/components/common/Wallet";
 import { Button } from "~/components/ui/button";
-import { Logo } from "~/components/ui/logo";
+import { IconMrgn, IconTrendingUp, IconCoins, IconChartLine, IconChartPie } from "~/components/ui/icons";
 
 const navItems = [
-  { label: "trending", icon: <IconTrendingUp />, href: "/pools?sort=trending" },
-  { label: "pools", icon: <IconCoins />, href: "/pools" },
-  { label: "trade", icon: <IconChartLine />, href: "/trade/123" },
-  { label: "portfolio", icon: <IconChartPie />, href: "/portfolio" },
+  { label: "trending", icon: <IconTrendingUp />, href: "/trade" },
+  { label: "pools", icon: <IconCoins />, href: "/trade/pools" },
+  { label: "trade", icon: <IconChartLine />, href: "/trade/pools/123" },
+  { label: "portfolio", icon: <IconChartPie />, href: "/trade/portfolio" },
 ];
 
 export const Header = () => {
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const { asPath, isReady } = useRouter();
 
-  const fullPath = React.useMemo(() => {
-    const search = new URLSearchParams(searchParams);
-    const searchStr = search.toString();
-    return `${pathname}${searchStr ? `?${searchStr}` : ""}`;
-  }, [pathname, searchParams]);
+  console.log(asPath);
 
-  console.log(fullPath);
   return (
-    <header className="flex items-center justify-between gap-8 p-4 lg:p-8">
-      <Link href="/">
-        <Logo size={32} />
-      </Link>
-      <nav className="ml-auto hidden lg:block">
-        <ul className="flex items-center gap-6">
-          {navItems.map((item) => (
-            <li key={item.label}>
-              <Link href={item.href}>
-                <Button
-                  variant="ghost"
-                  className={cn("text-muted-foreground", fullPath.includes(item.href) && "bg-accent text-primary")}
-                >
-                  {React.cloneElement(item.icon, { size: 18 })}
-                  {item.label}
-                </Button>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </nav>
-      <Button variant="secondary" className="gap-3 px-6">
-        <Logo size={16} wordmark={false} /> Sign In
-      </Button>
-    </header>
+    <div className="relative h-[64px] mb-4 md:mb-8 lg:mb-14">
+      <header className="fixed w-full flex items-center justify-between gap-8 py-3.5 px-4 bg-background z-50">
+        <Link href="/">
+          <IconMrgn size={31} />
+        </Link>
+        <nav className="mr-auto hidden lg:block">
+          <ul className="flex items-center gap-6">
+            {navItems.map((item) => (
+              <li key={item.label}>
+                <Link href={item.href}>
+                  <Button
+                    variant="ghost"
+                    className={cn("text-muted-foreground", asPath === item.href && "bg-accent text-primary")}
+                  >
+                    {React.cloneElement(item.icon, { size: 18 })}
+                    {item.label}
+                  </Button>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
+        <WalletButton />
+      </header>
+    </div>
   );
 };
