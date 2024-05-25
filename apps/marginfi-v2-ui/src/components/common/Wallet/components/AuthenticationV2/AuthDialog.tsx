@@ -1,22 +1,19 @@
 import React from "react";
 import { useRouter } from "next/router";
+import { useWallet } from "@solana/wallet-adapter-react";
 
 import { Dialog } from "~/components/ui/dialog";
 import { useOs } from "~/hooks/useOs";
 import { useWalletContext } from "~/hooks/useWalletContext";
-import { AUTO_FLOW_MAP, AuthFlowType, AuthScreenProps } from "~/utils";
-import { useWallet } from "@solana/wallet-adapter-react";
-import { useUiStore } from "~/store";
 import { useBrowser } from "~/hooks/useBrowser";
-import { useHasMrgnAcct } from "~/hooks/useHasMrgnAcct";
+import { AUTO_FLOW_MAP, AuthFlowType, AuthScreenProps } from "~/utils";
+import { useMrgnlendStore, useUiStore } from "~/store";
 
 export const AuthDialog = () => {
   const [isWalletAuthDialogOpen, setIsWalletAuthDialogOpen] = useUiStore((state) => [
     state.isWalletAuthDialogOpen,
     state.setIsWalletAuthDialogOpen,
   ]);
-
-  const test = useHasMrgnAcct();
 
   const { isAndroid, isIOS, isPWA } = useOs();
   const browser = useBrowser();
