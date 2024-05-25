@@ -7,6 +7,8 @@ import { useWalletContext } from "~/hooks/useWalletContext";
 import { AUTO_FLOW_MAP, AuthFlowType, AuthScreenProps } from "~/utils";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useUiStore } from "~/store";
+import { useBrowser } from "~/hooks/useBrowser";
+import { useHasMrgnAcct } from "~/hooks/useHasMrgnAcct";
 
 export const AuthDialog = () => {
   const [isWalletAuthDialogOpen, setIsWalletAuthDialogOpen] = useUiStore((state) => [
@@ -14,13 +16,14 @@ export const AuthDialog = () => {
     state.setIsWalletAuthDialogOpen,
   ]);
 
+  const test = useHasMrgnAcct();
+
   const { isAndroid, isIOS, isPWA } = useOs();
-  const isInAppPhantom = window.localStorage.walletName === "Phantom";
-  const isInAppBackpack = window?.backpack?.isBackpack;
+  const browser = useBrowser();
 
   const showPWAInstallScreen = React.useMemo(
-    () => (isAndroid || isIOS) && !(isPWA || isInAppBackpack || isInAppPhantom),
-    [isAndroid, isIOS, isInAppBackpack, isInAppPhantom, isPWA]
+    () => (isAndroid || isIOS) && !(isPWA || browser === "Backpack" || browser === "Phantom"),
+    [isAndroid, isIOS, browser, isPWA]
   );
 
   const [flow, setFlow] = React.useState<AuthFlowType>("ONBOARD_MAIN");
@@ -29,6 +32,12 @@ export const AuthDialog = () => {
   const { select, connecting } = useWallet();
   const { loginWeb3Auth } = useWalletContext();
   const { query, replace, pathname } = useRouter();
+
+  React.useEffect(() => {
+    if (isPWA) {
+      setFlow("ONBOARD_SOCIAL");
+    }
+  }, [isPWA]);
 
   React.useEffect(() => {
     if (showPWAInstallScreen) {

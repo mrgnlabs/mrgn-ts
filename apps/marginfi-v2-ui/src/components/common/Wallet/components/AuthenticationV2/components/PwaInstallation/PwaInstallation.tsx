@@ -5,7 +5,7 @@ import { DialogContent } from "~/components/ui/dialog";
 import { AuthScreenProps, OnrampScreenProps, cn } from "~/utils";
 
 import { OnboardHeader } from "../sharedComponents";
-import { pwaFlow } from "./pwaInstallationUtils";
+import { pwaFlow } from "./PwaInstallationUtils";
 
 interface props extends AuthScreenProps {}
 

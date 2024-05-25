@@ -16,7 +16,7 @@ export const OnboardingMain = ({ update }: props) => {
         description={"Sign in to get started with marginfi. If you're new to crypto, let us guide you the process."}
       />
 
-      <div className="w-full space-y-6 mt-8">
+      <div className="w-full space-y-6 mt-2">
         <div className="relative bg-muted text-muted-foreground transition-all duration-300 w-full p-6 pt-5 rounded-lg overflow-hidden">
           <div>
             <h2 className="font-semibold text-2xl text-white">I&apos;m new to crypto</h2>

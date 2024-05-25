@@ -61,6 +61,10 @@ import {
   IconBell,
   IconLink,
   IconPlus,
+  IconSquarePlus,
+  IconApps,
+  IconMenu2,
+  IconUpload,
 } from "@tabler/icons-react";
 import { cn } from "~/utils/themeUtils";
 
@@ -902,6 +906,10 @@ export {
   IconBox,
   IconBell,
   IconLink,
+  IconSquarePlus,
+  IconApps,
+  IconMenu2,
+  IconUpload,
 
   // customed icons
   IconBrandGoogle,
