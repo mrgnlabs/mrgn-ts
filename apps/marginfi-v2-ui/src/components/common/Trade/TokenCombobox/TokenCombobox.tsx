@@ -55,9 +55,9 @@ export const TokenCombobox = ({ selected, setSelected }: TokenComboboxProps) => 
                 <CommandItem
                   key={index}
                   className="gap-3 py-2 cursor-pointer rounded-md aria-selected:text-primary"
-                  value={bank.address.toBase58()}
+                  value={bank.meta.tokenSymbol}
                   onSelect={(value) => {
-                    const selBank = extendedBankInfos.find((bank) => bank.address.toBase58().toLowerCase() === value);
+                    const selBank = extendedBankInfos.find((bank) => bank.meta.tokenSymbol.toLowerCase() === value);
                     if (!selBank) return;
                     setSelected(selBank);
                     setOpen(false);
