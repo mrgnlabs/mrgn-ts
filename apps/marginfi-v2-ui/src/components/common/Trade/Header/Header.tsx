@@ -9,19 +9,16 @@ import { cn } from "~/utils/themeUtils";
 
 import { WalletButton } from "~/components/common/Wallet";
 import { Button } from "~/components/ui/button";
-import { IconMrgn, IconTrendingUp, IconCoins, IconChartLine, IconChartPie } from "~/components/ui/icons";
+import { IconMrgn, IconTrendingUp, IconCoins, IconChartPie } from "~/components/ui/icons";
 
 const navItems = [
-  { label: "trending", icon: <IconTrendingUp />, href: "/trade" },
+  { label: "trade", icon: <IconTrendingUp />, href: "/trade" },
   { label: "pools", icon: <IconCoins />, href: "/trade/pools" },
-  { label: "trade", icon: <IconChartLine />, href: "/trade/pools/123" },
   { label: "portfolio", icon: <IconChartPie />, href: "/trade/portfolio" },
 ];
 
 export const Header = () => {
   const { asPath, isReady } = useRouter();
-
-  console.log(asPath);
 
   return (
     <div className="relative h-[64px] mb-4 md:mb-8 lg:mb-14">
