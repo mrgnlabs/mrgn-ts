@@ -11,11 +11,9 @@ import { IconChevronsLeft } from "~/components/ui/icons";
 import { Loader } from "~/components/ui/loader";
 import { Button } from "~/components/ui/button";
 
-export default function TradePage() {
+export default function TradeSymbolPage() {
   const router = useRouter();
   const [initialized] = useMrgnlendStore((state) => [state.initialized]);
-
-  console.log(router.query.symbol);
   return (
     <div className="w-full max-w-8xl mx-auto px-4 md:px-8 pb-28 z-10">
       {!initialized && <Loader label="Loading mrgntrade..." className="mt-8" />}
