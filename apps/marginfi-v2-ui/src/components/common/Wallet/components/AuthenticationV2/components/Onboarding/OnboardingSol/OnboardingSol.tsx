@@ -16,6 +16,7 @@ export const OnboardingSol = ({
   setIsActiveLoading,
   loginWeb3Auth,
   onClose,
+  onPrev,
 }: props) => {
   const { select, connected } = useWallet();
   const [screenIndex, setScreenIndex] = React.useState<number>(0);
@@ -23,6 +24,9 @@ export const OnboardingSol = ({
   const screen = React.useMemo(() => {
     if (solOnrampFlow.length <= screenIndex) {
       onClose();
+      return solOnrampFlow[0];
+    } else if (screenIndex < 0) {
+      onPrev();
       return solOnrampFlow[0];
     } else {
       return solOnrampFlow[screenIndex];
@@ -43,7 +47,12 @@ export const OnboardingSol = ({
 
   return (
     <DialogContent className={cn("md:block overflow-hidden p-4 pt-8 md:pt-4 justify-start md:max-w-xl")}>
-      <OnboardHeader title={screen.title} description={screen.description} size={screen.titleSize} />
+      <OnboardHeader
+        title={screen.title}
+        description={screen.description}
+        size={screen.titleSize}
+        onPrev={() => setScreenIndex((prev) => prev - 1)}
+      />
 
       {React.createElement(screen.comp, {
         isLoading: isLoading,

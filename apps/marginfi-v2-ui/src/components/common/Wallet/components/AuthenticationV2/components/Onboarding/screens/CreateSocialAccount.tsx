@@ -1,6 +1,7 @@
 import { WalletReadyState } from "@solana/wallet-adapter-base";
 
 import { useAvailableWallets, walletInstallMap } from "~/hooks/useAvailableWallets";
+import { useOs } from "~/hooks/useOs";
 import { OnrampScreenProps, socialProviders } from "~/utils";
 
 import {
@@ -23,6 +24,8 @@ export const CreateSocialAccount: React.FC<props> = ({
   select,
 }: props) => {
   const wallets = useAvailableWallets("social");
+  const { isPWA } = useOs();
+
   return (
     <ScreenWrapper>
       <WalletAuthEmailForm
@@ -51,22 +54,26 @@ export const CreateSocialAccount: React.FC<props> = ({
           </li>
         ))}
       </ul>
-      <WalletSeperator description="or connect with" />
-      <ul className="flex flex-wrap items-start justify-center gap-4 overflow-auto">
-        <WalletAuthWrapper
-          isLoading={isLoading}
-          isActiveLoading={isActiveLoading}
-          wallets={wallets}
-          onClick={(wallet) => {
-            if (wallet.readyState !== WalletReadyState.Installed) {
-              setInstallingWallet({ flow: "onramp", wallet: wallet.adapter.name });
-              window.open(walletInstallMap[wallet.adapter.name], "_blank");
-            } else {
-              select(wallet.adapter.name);
-            }
-          }}
-        />
-      </ul>
+      {!isPWA && (
+        <>
+          <WalletSeperator description="or connect with" />
+          <ul className="flex flex-wrap items-start justify-center gap-4 overflow-auto">
+            <WalletAuthWrapper
+              isLoading={isLoading}
+              isActiveLoading={isActiveLoading}
+              wallets={wallets}
+              onClick={(wallet) => {
+                if (wallet.readyState !== WalletReadyState.Installed) {
+                  setInstallingWallet({ flow: "onramp", wallet: wallet.adapter.name });
+                  window.open(walletInstallMap[wallet.adapter.name], "_blank");
+                } else {
+                  select(wallet.adapter.name);
+                }
+              }}
+            />
+          </ul>
+        </>
+      )}
     </ScreenWrapper>
   );
 };
