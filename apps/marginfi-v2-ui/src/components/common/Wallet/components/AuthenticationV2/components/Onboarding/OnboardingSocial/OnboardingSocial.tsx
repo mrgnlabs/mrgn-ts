@@ -2,6 +2,7 @@ import React from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 
 import { DialogContent } from "~/components/ui/dialog";
+import { useMrgnlendStore } from "~/store";
 import { AuthScreenProps, InstallingWallet, OnrampScreenProps, SuccessProps, cn } from "~/utils";
 
 import { OnboardHeader } from "../../sharedComponents";
@@ -19,9 +20,13 @@ export const OnboardingSocial: React.FC<props> = ({
   onPrev,
 }: props) => {
   const { select, connected } = useWallet();
+  const [marginfiAccounts] = useMrgnlendStore((state) => [state.marginfiAccounts]);
+
   const [screenIndex, setScreenIndex] = React.useState<number>(0);
   const [installingWallet, setInstallingWallet] = React.useState<InstallingWallet>();
   const [successProps, setSuccessProps] = React.useState<SuccessProps>();
+
+  const userHasAcct = React.useMemo(() => marginfiAccounts.length > 0, [marginfiAccounts]);
 
   const screen = React.useMemo(() => {
     if (installingWallet) {
@@ -34,10 +39,13 @@ export const OnboardingSocial: React.FC<props> = ({
     } else if (screenIndex < 0) {
       onPrev();
       return socialOnrampFlow[0];
+    } else if (userHasAcct && screenIndex > 0) {
+      onClose();
+      return socialOnrampFlow[0];
     } else {
       return socialOnrampFlow[screenIndex];
     }
-  }, [installingWallet, successProps, screenIndex, onClose, onPrev]);
+  }, [installingWallet, userHasAcct, successProps, screenIndex, onClose, onPrev]);
 
   React.useEffect(() => {
     if (connected) setScreenIndex(1);

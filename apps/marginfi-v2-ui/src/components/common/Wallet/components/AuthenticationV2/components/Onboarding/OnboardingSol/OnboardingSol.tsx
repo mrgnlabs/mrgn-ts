@@ -31,7 +31,7 @@ export const OnboardingSol = ({
     } else {
       return solOnrampFlow[screenIndex];
     }
-  }, [onClose, screenIndex]);
+  }, [onClose, onPrev, screenIndex]);
 
   React.useEffect(() => {
     if (connected) onClose();
