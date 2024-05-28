@@ -1,5 +1,4 @@
 import React from "react";
-import Confetti from "react-confetti";
 import { useWindowSize } from "@uidotdev/usehooks";
 import { QuoteResponseMeta, SwapResult } from "@jup-ag/react-hook";
 import Link from "next/link";
@@ -18,7 +17,6 @@ export const SuccessScreen = ({ onNext, successProps }: props) => {
 
   return (
     <ScreenWrapper>
-      <Confetti width={width!} height={height! * 2} recycle={false} opacity={0.4} className="z-[80]" />
       {successProps?.jupiterSuccess && <JupiterSuccessScreen {...successProps?.jupiterSuccess} />}
 
       <div className="w-full">

@@ -8,6 +8,7 @@ import { useWalletContext } from "~/hooks/useWalletContext";
 import { useBrowser } from "~/hooks/useBrowser";
 import { AUTO_FLOW_MAP, AuthFlowType, AuthScreenProps, cn } from "~/utils";
 import { useMrgnlendStore, useUiStore } from "~/store";
+import { Progress } from "~/components/ui/progress";
 
 export const AuthDialog = () => {
   const [isWalletAuthDialogOpen, setIsWalletAuthDialogOpen] = useUiStore((state) => [
@@ -45,7 +46,7 @@ export const AuthDialog = () => {
   }, [showPWAInstallScreen]);
 
   React.useEffect(() => {
-    if (!connecting) {
+    if (!connecting && flow !== "ONBOARD_SOCIAL") {
       setIsLoading(false);
       setIsActiveLoading("");
     }
@@ -99,32 +100,38 @@ export const AuthDialog = () => {
   };
 
   return (
-    <Dialog
-      open={isWalletAuthDialogOpen}
-      onOpenChange={(open) => {
-        if (!open) handleClose();
-        else setIsWalletAuthDialogOpen(open);
-      }}
-    >
-      <DialogContent
-        isBgGlass={true}
-        onInteractOutside={(e) => e.preventDefault()}
-        className={cn(
-          "md:block overflow-hidden p-4 pt-8 md:pt-4 justify-start md:max-w-xl",
-          flow === "ONBOARD_MAIN" && "lg:max-w-6xl"
-        )}
+    <div>
+      <Progress value={30} className="fixed top-0 z-[999] h-1 rounded-none" />
+      <Dialog
+        open={isWalletAuthDialogOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            handleClose();
+          } else setIsWalletAuthDialogOpen(open);
+        }}
       >
-        {React.createElement(AUTO_FLOW_MAP[flow].comp, {
-          update: (newScreen) => setFlow(newScreen),
-          onClose: () => handleClose(),
-          onPrev: () => setFlow("ONBOARD_MAIN"),
-          isLoading: isLoading,
-          isActiveLoading: isActiveLoading,
-          setIsLoading: setIsLoading,
-          setIsActiveLoading: setIsActiveLoading,
-          loginWeb3Auth: loginWeb3Auth,
-        } as AuthScreenProps)}
-      </DialogContent>
-    </Dialog>
+        <DialogContent
+          isBgGlass={true}
+          onInteractOutside={(e) => e.preventDefault()}
+          className={cn(
+            "md:block overflow-hidden p-4 pt-8 md:pt-4 justify-start md:max-w-xl",
+            flow === "ONBOARD_MAIN" && "lg:max-w-6xl"
+          )}
+        >
+          {React.createElement(AUTO_FLOW_MAP[flow].comp, {
+            update: (newScreen) => setFlow(newScreen),
+            onClose: () => {
+              handleClose();
+            },
+            onPrev: () => setFlow("ONBOARD_MAIN"),
+            isLoading: isLoading,
+            isActiveLoading: isActiveLoading,
+            setIsLoading: setIsLoading,
+            setIsActiveLoading: setIsActiveLoading,
+            loginWeb3Auth: loginWeb3Auth,
+          } as AuthScreenProps)}
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 };

@@ -7,3 +7,4 @@ export * from "./CreateSolanaAccount";
 export * from "./InstallWallet";
 export * from "./BridgeToken";
 export * from "./SuccessScreen";
+export * from "./OnrampAlreadyExists";

@@ -54,12 +54,13 @@ const DialogContent = React.forwardRef<
       size = "xl",
       closeClassName,
       children,
+      isBgGlass,
       ...props
     },
     ref
   ) => (
     <DialogPortal>
-      <DialogOverlay isBgGlass />
+      <DialogOverlay isBgGlass={isBgGlass} />
       <DialogPrimitive.Content
         ref={ref}
         className={cn(
