@@ -12,7 +12,7 @@ import { Button } from "~/components/ui/button";
 import { IconMrgn, IconTrendingUp, IconCoins, IconChartPie } from "~/components/ui/icons";
 
 const navItems = [
-  { label: "trade", icon: <IconTrendingUp />, href: "/trade" },
+  { label: "trade", icon: <IconTrendingUp />, href: "/trade/DeyH7QxWvnbbaVB4zFrf4hoq7Q8z1ZT14co42BGwGtfM" },
   { label: "pools", icon: <IconCoins />, href: "/trade/pools" },
   { label: "portfolio", icon: <IconChartPie />, href: "/trade/portfolio" },
 ];
