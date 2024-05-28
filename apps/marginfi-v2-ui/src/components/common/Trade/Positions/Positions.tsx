@@ -1,9 +1,13 @@
 import Image from "next/image";
 
+import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import random from "lodash/random";
+import { PublicKey } from "@solana/web3.js";
 
 import { cn } from "~/utils/themeUtils";
+import { useMrgnlendStore } from "~/store";
 
+import { ActionBoxDialog } from "~/components/common/ActionBox";
 import { Table, TableBody, TableHead, TableCell, TableHeader, TableRow } from "~/components/ui/table";
 import { Button } from "~/components/ui/button";
 
@@ -35,6 +39,7 @@ const MOCK_POSITIONS = [
 ];
 
 export const Positions = () => {
+  const [extendedBankInfos] = useMrgnlendStore((state) => [state.extendedBankInfos]);
   return (
     <div className="rounded-xl">
       <Table>
@@ -46,7 +51,7 @@ export const Positions = () => {
             <TableHead className="w-[14%]">Mark Price</TableHead>
             <TableHead className="w-[14%]">P&L</TableHead>
             <TableHead className="w-[14%]">Liquidation price</TableHead>
-            <TableHead className="w-[14%]"></TableHead>
+            <TableHead></TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -72,9 +77,16 @@ export const Positions = () => {
               </TableCell>
               <TableCell>${position.liquidationPrice}</TableCell>
               <TableCell className="text-right">
-                <Button variant="destructive" size="sm">
-                  Close
-                </Button>
+                <div className="flex gap-2">
+                  <ActionBoxDialog requestedAction={ActionType.Deposit} requestedBank={extendedBankInfos[0]}>
+                    <Button variant="secondary" size="sm">
+                      Add collateral
+                    </Button>
+                  </ActionBoxDialog>
+                  <Button variant="destructive" size="sm">
+                    Close position
+                  </Button>
+                </div>
               </TableCell>
             </TableRow>
           ))}
