@@ -2,11 +2,11 @@ import React from "react";
 import { useRouter } from "next/router";
 import { useWallet } from "@solana/wallet-adapter-react";
 
-import { Dialog } from "~/components/ui/dialog";
+import { Dialog, DialogContent } from "~/components/ui/dialog";
 import { useOs } from "~/hooks/useOs";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { useBrowser } from "~/hooks/useBrowser";
-import { AUTO_FLOW_MAP, AuthFlowType, AuthScreenProps } from "~/utils";
+import { AUTO_FLOW_MAP, AuthFlowType, AuthScreenProps, cn } from "~/utils";
 import { useMrgnlendStore, useUiStore } from "~/store";
 
 export const AuthDialog = () => {
@@ -30,12 +30,14 @@ export const AuthDialog = () => {
   const { loginWeb3Auth } = useWalletContext();
   const { query, replace, pathname } = useRouter();
 
+  // if user has PWA force social login
   React.useEffect(() => {
     if (isPWA) {
       setFlow("ONBOARD_SOCIAL");
     }
   }, [isPWA]);
 
+  // if user is using mobile browser force PWA install screen
   React.useEffect(() => {
     if (showPWAInstallScreen) {
       setFlow("PWA_INSTALL");
@@ -49,6 +51,7 @@ export const AuthDialog = () => {
     }
   }, [connecting]);
 
+  // if user is onramping redirect to correct flow
   React.useEffect(() => {
     // check if user is new
     if (query.onramp) {
@@ -79,6 +82,7 @@ export const AuthDialog = () => {
     }
   }, [pathname, query, query.onramp, replace, select]);
 
+  // reset on force close
   React.useEffect(() => {
     if (!isWalletAuthDialogOpen) {
       setIsLoading(false);
@@ -102,8 +106,15 @@ export const AuthDialog = () => {
         else setIsWalletAuthDialogOpen(open);
       }}
     >
-      {flow &&
-        React.createElement(AUTO_FLOW_MAP[flow].comp, {
+      <DialogContent
+        isBgGlass={true}
+        onInteractOutside={(e) => e.preventDefault()}
+        className={cn(
+          "md:block overflow-hidden p-4 pt-8 md:pt-4 justify-start md:max-w-xl",
+          flow === "ONBOARD_MAIN" && "lg:max-w-6xl"
+        )}
+      >
+        {React.createElement(AUTO_FLOW_MAP[flow].comp, {
           update: (newScreen) => setFlow(newScreen),
           onClose: () => handleClose(),
           onPrev: () => setFlow("ONBOARD_MAIN"),
@@ -113,6 +124,7 @@ export const AuthDialog = () => {
           setIsActiveLoading: setIsActiveLoading,
           loginWeb3Auth: loginWeb3Auth,
         } as AuthScreenProps)}
+      </DialogContent>
     </Dialog>
   );
 };

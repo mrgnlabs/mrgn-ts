@@ -59,7 +59,7 @@ export const OnboardingEth = ({
   };
 
   return (
-    <DialogContent className={cn("md:block overflow-hidden p-4 pt-8 md:pt-4 justify-start md:max-w-xl")}>
+    <>
       <OnboardHeader
         title={screen.title}
         description={screen.description}
@@ -79,6 +79,6 @@ export const OnboardingEth = ({
       } as OnrampScreenProps)}
 
       <Script src="https://app.debridge.finance/assets/scripts/widget.js" />
-    </DialogContent>
+    </>
   );
 };

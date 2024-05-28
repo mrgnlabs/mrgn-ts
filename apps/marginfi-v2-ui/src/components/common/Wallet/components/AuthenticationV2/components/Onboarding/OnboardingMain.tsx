@@ -13,7 +13,7 @@ export const OnboardingMain = ({ update }: props) => {
   const isMobile = useIsMobile();
 
   return (
-    <DialogContent className="md:block overflow-hidden p-4 pt-8 md:pt-4 justify-start md:max-w-xl lg:max-w-6xl">
+    <>
       <OnboardHeader
         title={"Welcome to marginfi"}
         description={"Sign in to get started with marginfi. If you're new to crypto, let us guide you the process."}
@@ -21,7 +21,10 @@ export const OnboardingMain = ({ update }: props) => {
 
       <div className="flex lg:flex-row flex-col gap-4 mt-10">
         <div
-          className="relative bg-muted hover:bg-muted-highlight text-muted-foreground transition-all duration-300 w-full p-6 pt-5 rounded-lg overflow-hidden cursor-pointer lg:cursor-normal"
+          className={cn(
+            "relative bg-muted hover:bg-muted-highlight text-muted-foreground transition-all duration-300 w-full p-6 pt-5 rounded-lg overflow-hidden",
+            isMobile && "cursor-pointer"
+          )}
           onClick={() => isMobile && update("ONBOARD_SOCIAL")}
         >
           <div className="flex flex-col gap-3">
@@ -36,7 +39,10 @@ export const OnboardingMain = ({ update }: props) => {
           </div>
         </div>
         <div
-          className="relative bg-muted hover:bg-muted-highlight text-muted-foreground transition-all duration-300 w-full p-6 pt-5 rounded-lg overflow-hidden cursor-pointer"
+          className={cn(
+            "relative bg-muted hover:bg-muted-highlight text-muted-foreground transition-all duration-300 w-full p-6 pt-5 rounded-lg overflow-hidden",
+            isMobile && "cursor-pointer"
+          )}
           onClick={() => isMobile && update("ONBOARD_SOL")}
         >
           <div className="flex flex-col gap-3">
@@ -44,13 +50,13 @@ export const OnboardingMain = ({ update }: props) => {
             <p className="text-sm leading-none sm:text-base">
               Sign in with email or socials to use the marginfi mobile web app, or connect your existing Solana wallet.
             </p>
-            <Button className="w-fit hidden lg:block" onClick={() => isMobile && update("ONBOARD_SOL")}>
+            <Button className="w-fit hidden lg:block" onClick={() => update("ONBOARD_SOL")}>
               Sign in
             </Button>
           </div>
         </div>
         <div
-          className="relative bg-muted hover:bg-muted-highlight text-muted-foreground transition-all duration-300 w-full p-6 pt-5 rounded-lg overflow-hidden cursor-pointer"
+          className="relative bg-muted hover:bg-muted-highlight text-muted-foreground transition-all duration-300 w-full p-6 pt-5 rounded-lg overflow-hidden cursor-pointer lg:cursor-normal"
           onClick={() => isMobile && update("ONBOARD_ETH")}
         >
           <div className="flex flex-col gap-3">
@@ -65,6 +71,6 @@ export const OnboardingMain = ({ update }: props) => {
           </div>
         </div>
       </div>
-    </DialogContent>
+    </>
   );
 };
