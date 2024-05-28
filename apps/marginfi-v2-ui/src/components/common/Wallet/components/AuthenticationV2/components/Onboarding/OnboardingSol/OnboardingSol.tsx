@@ -46,7 +46,7 @@ export const OnboardingSol = ({
   };
 
   return (
-    <DialogContent className={cn("md:block overflow-hidden p-4 pt-8 md:pt-4 justify-start md:max-w-xl")}>
+    <>
       <OnboardHeader
         title={screen.title}
         description={screen.description}
@@ -63,6 +63,6 @@ export const OnboardingSol = ({
         loginWeb3Auth: loginWeb3Auth,
         select: onSelectWallet,
       } as OnrampScreenProps)}
-    </DialogContent>
+    </>
   );
 };

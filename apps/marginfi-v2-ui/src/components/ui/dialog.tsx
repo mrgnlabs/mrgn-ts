@@ -12,14 +12,19 @@ const DialogPortal = DialogPrimitive.Portal;
 
 const DialogClose = DialogPrimitive.Close;
 
+type DialogOverlayProps = {
+  isBgGlass?: boolean;
+};
+
 const DialogOverlay = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Overlay>,
-  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Overlay>
->(({ className, ...props }, ref) => (
+  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Overlay> & DialogOverlayProps
+>(({ className, isBgGlass = false, ...props }, ref) => (
   <DialogPrimitive.Overlay
     ref={ref}
     className={cn(
-      "fixed inset-0 h-screen z-50 bg-background/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+      "fixed inset-0 h-screen z-50 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+      isBgGlass ? "backdrop-blur" : "bg-background/80",
       className
     )}
     {...props}
@@ -33,6 +38,7 @@ type DialogContentProps = {
   position?: "top" | "bottom" | "center";
   size?: "xl" | "lg" | "md" | "sm";
   hidePadding?: boolean;
+  isBgGlass?: boolean;
 };
 
 const DialogContent = React.forwardRef<
@@ -53,7 +59,7 @@ const DialogContent = React.forwardRef<
     ref
   ) => (
     <DialogPortal>
-      <DialogOverlay />
+      <DialogOverlay isBgGlass />
       <DialogPrimitive.Content
         ref={ref}
         className={cn(
