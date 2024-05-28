@@ -6,7 +6,7 @@ import { useMrgnlendStore } from "~/store";
 import { AuthScreenProps, InstallingWallet, OnrampScreenProps, SuccessProps, cn } from "~/utils";
 
 import { OnboardHeader } from "../../sharedComponents";
-import { installWallet, socialOnrampFlow, successSwap } from "./onboardingSocialUtils";
+import { alreadyOnboarded, installWallet, socialOnrampFlow, successSwap } from "./onboardingSocialUtils";
 
 interface props extends AuthScreenProps {}
 
@@ -31,6 +31,8 @@ export const OnboardingSocial: React.FC<props> = ({
   const screen = React.useMemo(() => {
     if (installingWallet) {
       return installWallet;
+    } else if (marginfiAccounts.length > 0) {
+      return alreadyOnboarded;
     } else if (successProps) {
       return successSwap;
     } else if (socialOnrampFlow.length <= screenIndex) {
@@ -45,11 +47,15 @@ export const OnboardingSocial: React.FC<props> = ({
     } else {
       return socialOnrampFlow[screenIndex];
     }
-  }, [installingWallet, userHasAcct, successProps, screenIndex, onClose, onPrev]);
+  }, [installingWallet, marginfiAccounts, userHasAcct, successProps, screenIndex, onClose, onPrev]);
 
   React.useEffect(() => {
-    if (connected) setScreenIndex(1);
-  }, [connected]);
+    if (connected && marginfiAccounts) {
+      setIsActiveLoading("");
+      setIsLoading(false);
+      setScreenIndex(1);
+    }
+  }, [marginfiAccounts, connected]);
 
   const onSelectWallet = (selectedWallet: string | null) => {
     if (!selectedWallet) return;
