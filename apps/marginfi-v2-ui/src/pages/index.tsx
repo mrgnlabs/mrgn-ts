@@ -40,9 +40,10 @@ export default function HomePage() {
 
   const annoucements = React.useMemo(() => {
     const drift = extendedBankInfos.find((bank) => bank.meta.tokenSymbol === "DRIFT");
+    const tnsr = extendedBankInfos.find((bank) => bank.meta.tokenSymbol === "TNSR");
     return [
+      { bank: tnsr, text: "now available in global pool" },
       { bank: drift },
-
       {
         image: <IconBackpackWallet size={22} />,
         text: "5% points boost for Backpack users!",
