@@ -8,20 +8,33 @@ import { OnrampScreenProps } from "~/utils";
 import { IconExternalLink } from "~/components/ui/icons";
 import { Button } from "~/components/ui/button";
 
-import { ScreenWrapper } from "../../sharedComponents";
+import { ScreenWrapper, WalletSeperator } from "../../sharedComponents";
 import { Loader } from "~/components/ui/loader";
+import { useRouter } from "next/router";
 
 interface props extends OnrampScreenProps {}
 
-export const OnrampAlreadyExists = ({ onNext, successProps }: props) => {
+export const OnrampAlreadyExists = ({ onNext, onClose, successProps }: props) => {
+  const router = useRouter();
+
   return (
     <ScreenWrapper>
-      <div className="w-full flex justify-center items-center">
-        <div className="font-semibold text-2xl text-white leading-none">Margin account exists</div>
+      <div className="w-full flex flex-col gap-4">
+        <div className="text-xl text-white leading-none">Marginfi account exists</div>
         <p className="text-sm leading-none sm:text-base">
-          It looks like you&apos;ve already created a marginfi account. Click the button below to view your positions or
-          skip to continue the onramp process.
+          It appears you already have a marginfi account. Click the button below to view your positions or skip to
+          continue the onramp process.
         </p>
+        <Button
+          className="w-fit"
+          onClick={() => {
+            onClose();
+            router.push("/portfolio");
+          }}
+        >
+          View positions
+        </Button>
+        <WalletSeperator description="continue onramp" onClick={() => onNext()} />
       </div>
     </ScreenWrapper>
   );

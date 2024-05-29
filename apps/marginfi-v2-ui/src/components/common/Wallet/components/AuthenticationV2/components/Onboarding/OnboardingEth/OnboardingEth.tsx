@@ -15,6 +15,8 @@ export const OnboardingEth = ({
   isLoading,
   isActiveLoading,
   setIsLoading,
+  setProgress,
+  setIsOnboarded,
   setIsActiveLoading,
   loginWeb3Auth,
   onClose,
@@ -48,8 +50,18 @@ export const OnboardingEth = ({
   }, [installingWallet, successProps, screenIndex, userHasAcct, onClose, onPrev]);
 
   React.useEffect(() => {
-    if (connected) setScreenIndex(1);
+    if (connected) {
+      setIsOnboarded(true);
+      setScreenIndex(1);
+    }
   }, [connected]);
+
+  React.useEffect(() => {
+    const total = ethOnrampFlow.length;
+
+    const percentage = ((screenIndex + 1) / (total + 1)) * 100;
+    setProgress(percentage);
+  }, [screenIndex]);
 
   const onSelectWallet = (selectedWallet: string | null) => {
     if (!selectedWallet) return;

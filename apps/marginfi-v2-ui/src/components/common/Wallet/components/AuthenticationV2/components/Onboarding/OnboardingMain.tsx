@@ -3,7 +3,6 @@ import React from "react";
 import { AuthScreenProps, cn } from "~/utils";
 import { useIsMobile } from "~/hooks/useIsMobile";
 
-import { DialogContent } from "~/components/ui/dialog";
 import { Button } from "~/components/ui/button";
 import { OnboardHeader } from "../sharedComponents";
 

@@ -24,9 +24,10 @@ export const AuthDialog = () => {
     [isAndroid, isIOS, browser, isPWA]
   );
 
-  const [flow, setFlow] = React.useState<AuthFlowType>("ONBOARD_MAIN");
+  const [flow, setFlow] = React.useState<AuthFlowType>("PWA_INSTALL");
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const [isActiveLoading, setIsActiveLoading] = React.useState<string>("");
+  const [progress, setProgress] = React.useState<number>(0);
   const { select, connecting } = useWallet();
   const { loginWeb3Auth } = useWalletContext();
   const { query, replace, pathname } = useRouter();
@@ -89,19 +90,19 @@ export const AuthDialog = () => {
       setIsLoading(false);
       setIsActiveLoading("");
       setFlow("ONBOARD_MAIN");
+      setProgress(0);
     }
   }, [isWalletAuthDialogOpen]);
 
   const handleClose = () => {
-    setIsLoading(false);
-    setIsActiveLoading("");
-    setFlow("ONBOARD_MAIN");
     setIsWalletAuthDialogOpen(false);
   };
 
   return (
     <div>
-      <Progress value={30} className="fixed top-0 z-[999] h-1 rounded-none" />
+      {progress !== 0 && progress !== 100 && (
+        <Progress value={progress} className="fixed top-0 z-[999] h-1 rounded-none" />
+      )}
       <Dialog
         open={isWalletAuthDialogOpen}
         onOpenChange={(open) => {
@@ -127,6 +128,8 @@ export const AuthDialog = () => {
             isLoading: isLoading,
             isActiveLoading: isActiveLoading,
             setIsLoading: setIsLoading,
+            setIsOnboarded: (isOnboarded: boolean) => localStorage.setItem("isOnboarded", JSON.stringify(isOnboarded)),
+            setProgress: setProgress,
             setIsActiveLoading: setIsActiveLoading,
             loginWeb3Auth: loginWeb3Auth,
           } as AuthScreenProps)}
