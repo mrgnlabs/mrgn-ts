@@ -13,6 +13,8 @@ export const OnboardingSol = ({
   isLoading,
   isActiveLoading,
   setIsLoading,
+  setProgress,
+  setIsOnboarded,
   setIsActiveLoading,
   loginWeb3Auth,
   onClose,
@@ -34,7 +36,10 @@ export const OnboardingSol = ({
   }, [onClose, onPrev, screenIndex]);
 
   React.useEffect(() => {
-    if (connected) onClose();
+    if (connected) {
+      setIsOnboarded(true);
+      onClose();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [connected]);
 

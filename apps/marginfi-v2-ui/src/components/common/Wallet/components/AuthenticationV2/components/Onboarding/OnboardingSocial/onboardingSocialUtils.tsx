@@ -50,7 +50,7 @@ export const installWallet: SocialOnrampScreen = {
 
 export const alreadyOnboarded: SocialOnrampScreen = {
   comp: screens.OnrampAlreadyExists,
-  title: "Installing wallet",
-  description: "Refresh if installed",
+  title: "Existing account detected",
+  description: "View Your Positions or Continue the Onramp Process",
   titleSize: "lg",
 };

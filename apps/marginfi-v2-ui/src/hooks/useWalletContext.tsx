@@ -123,7 +123,13 @@ const WalletContext = React.createContext<WalletContextProps | undefined>(undefi
 const WalletProvider = ({ children }: { children: React.ReactNode }) => {
   const { query, asPath, replace } = useRouter();
   const [web3AuthPkCookie, setWeb3AuthPkCookie] = useCookies(["mrgnPrivateKeyRequested"]);
-  const [setIsWalletAuthDialogOpen] = useUiStore((state) => [state.setIsWalletAuthDialogOpen]);
+  const [isMenuDrawerOpen, setIsWalletAuthDialogOpen, setIsWalletOpen] = useUiStore((state) => [
+    state.isMenuDrawerOpen,
+    state.setIsWalletAuthDialogOpen,
+    state.setIsWalletOpen,
+  ]);
+
+  //const [isWalletOpen, setIsWalletOpen] = useUiStore((state) => [state.isWalletOpen, state.setIsWalletOpen]);
 
   // default wallet adapter context, overwritten when web3auth is connected
   let walletContextStateDefault = useWallet();
@@ -250,7 +256,8 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
       const newUrl = asPath.split("#")[0];
       replace(newUrl);
     }
-    setIsWalletAuthDialogOpen(false);
+
+    setIsWalletOpen(false);
     setIsLoading(false);
     setPfp("");
   }, [web3Auth, asPath, setIsWalletAuthDialogOpen, walletContextState, replace]);

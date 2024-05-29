@@ -21,6 +21,8 @@ import {
   OnboardingSocial,
   OnboardingSol,
   PwaInstalation,
+  PwaSignIn,
+  ReturningUser,
 } from "~/components/common/Wallet/components/AuthenticationV2/components";
 import { QuoteResponseMeta, SwapResult } from "@jup-ag/react-hook";
 
@@ -47,6 +49,8 @@ export interface AuthScreenProps {
   isActiveLoading: string;
   setIsActiveLoading: (isActiveLoading: string) => void;
   setIsLoading: (isLoading: boolean) => void;
+  setIsOnboarded: (isOnboarded: boolean) => void;
+  setProgress: (progress: number) => void;
   loginWeb3Auth: (
     provider: string,
     extraLoginOptions?: Partial<{
@@ -61,7 +65,7 @@ export interface AuthScreenProps {
 
 type OnboardingType = "ONBOARD_MAIN" | "ONBOARD_ETH" | "ONBOARD_SOL" | "ONBOARD_SOCIAL" | "PWA_INSTALL";
 
-type ReturningType = "RETURNING";
+type ReturningType = "RETURNING_USER" | "RETURNING_PWA";
 
 export type AuthFlowType = OnboardingType | ReturningType;
 
@@ -75,9 +79,6 @@ export const AUTO_FLOW_MAP: AuthFlowMap = {
   ONBOARD_MAIN: {
     comp: OnboardingMain,
   },
-  RETURNING: {
-    comp: OnboardingMain,
-  },
   ONBOARD_ETH: {
     comp: OnboardingEth,
   },
@@ -89,6 +90,12 @@ export const AUTO_FLOW_MAP: AuthFlowMap = {
   },
   PWA_INSTALL: {
     comp: PwaInstalation,
+  },
+  RETURNING_USER: {
+    comp: ReturningUser,
+  },
+  RETURNING_PWA: {
+    comp: PwaSignIn,
   },
 };
 

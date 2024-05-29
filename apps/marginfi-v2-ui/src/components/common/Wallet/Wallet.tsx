@@ -68,10 +68,10 @@ export const Wallet = () => {
     state.initialized,
   ]);
   const [isWalletOpen, setIsWalletOpen] = useUiStore((state) => [state.isWalletOpen, state.setIsWalletOpen]);
+
   const [userPointsData] = useUserProfileStore((state) => [state.userPointsData, state.fetchPoints]);
 
-  const { wallet, logout, pfp, requestPrivateKey, web3AuthPk, web3AuthConncected, walletContextState } =
-    useWalletContext();
+  const { wallet, connected, logout, pfp, requestPrivateKey, web3AuthPk, web3AuthConncected } = useWalletContext();
 
   const [isFetchingWalletData, setIsFetchingWalletData] = React.useState(false);
   const [isWalletAddressCopied, setisWalletAddressCopied] = React.useState(false);

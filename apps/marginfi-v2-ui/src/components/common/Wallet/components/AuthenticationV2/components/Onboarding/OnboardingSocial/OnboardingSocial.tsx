@@ -14,25 +14,31 @@ export const OnboardingSocial: React.FC<props> = ({
   isLoading,
   isActiveLoading,
   setIsLoading,
+  setProgress,
+  setIsOnboarded,
   setIsActiveLoading,
   loginWeb3Auth,
   onClose,
   onPrev,
 }: props) => {
   const { select, connected } = useWallet();
-  const [marginfiAccounts] = useMrgnlendStore((state) => [state.marginfiAccounts]);
+  const [userDataFetched, marginfiAccounts] = useMrgnlendStore((state) => [
+    state.userDataFetched,
+    state.marginfiAccounts,
+  ]);
 
   const [screenIndex, setScreenIndex] = React.useState<number>(0);
   const [installingWallet, setInstallingWallet] = React.useState<InstallingWallet>();
   const [successProps, setSuccessProps] = React.useState<SuccessProps>();
 
-  const userHasAcct = React.useMemo(() => marginfiAccounts.length > 0, [marginfiAccounts]);
+  const userHasAcct = React.useMemo(
+    () => userDataFetched && marginfiAccounts.length > 0,
+    [marginfiAccounts, userDataFetched]
+  );
 
   const screen = React.useMemo(() => {
     if (installingWallet) {
       return installWallet;
-    } else if (marginfiAccounts.length > 0) {
-      return alreadyOnboarded;
     } else if (successProps) {
       return successSwap;
     } else if (socialOnrampFlow.length <= screenIndex) {
@@ -41,21 +47,31 @@ export const OnboardingSocial: React.FC<props> = ({
     } else if (screenIndex < 0) {
       onPrev();
       return socialOnrampFlow[0];
-    } else if (userHasAcct && screenIndex > 0) {
-      onClose();
-      return socialOnrampFlow[0];
+    } else if (userHasAcct && screenIndex == 0) {
+      return alreadyOnboarded;
     } else {
       return socialOnrampFlow[screenIndex];
     }
-  }, [installingWallet, marginfiAccounts, userHasAcct, successProps, screenIndex, onClose, onPrev]);
+  }, [installingWallet, userHasAcct, successProps, screenIndex]);
 
   React.useEffect(() => {
-    if (connected && marginfiAccounts) {
+    const total = socialOnrampFlow.length;
+
+    const percentage = ((screenIndex + 1) / (total + 1)) * 100;
+    setProgress(percentage);
+  }, [screenIndex]);
+
+  React.useEffect(() => {
+    if (connected && userDataFetched) {
       setIsActiveLoading("");
       setIsLoading(false);
-      setScreenIndex(1);
+      setIsOnboarded(true);
+
+      if (userHasAcct) {
+        setScreenIndex((prev) => prev++);
+      }
     }
-  }, [marginfiAccounts, connected]);
+  }, [userDataFetched, userHasAcct, connected]);
 
   const onSelectWallet = (selectedWallet: string | null) => {
     if (!selectedWallet) return;

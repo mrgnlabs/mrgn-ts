@@ -15,12 +15,6 @@ export const solOnrampFlow: SolOnrampScreen[] = [
     titleSize: "lg",
   },
   {
-    comp: screens.BridgeToken,
-    title: "Step 1. Buy some crypto",
-    description: "and here's what we bring:",
-    titleSize: "sm",
-  },
-  {
     comp: screens.JupiterSwap,
     title: "Step 2. Swap some tokens",
     description: "Swap your SOL for some USDC, LST, or another token you're interested in.",
