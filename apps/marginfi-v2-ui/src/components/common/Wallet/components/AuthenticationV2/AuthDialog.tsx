@@ -24,7 +24,7 @@ export const AuthDialog = () => {
     [isAndroid, isIOS, browser, isPWA]
   );
 
-  const [flow, setFlow] = React.useState<AuthFlowType>("PWA_INSTALL");
+  const [flow, setFlow] = React.useState<AuthFlowType>("ONBOARD_MAIN");
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const [isActiveLoading, setIsActiveLoading] = React.useState<string>("");
   const [progress, setProgress] = React.useState<number>(0);
