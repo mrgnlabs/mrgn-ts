@@ -1,18 +1,22 @@
 import { FC, useEffect, useMemo, useState } from "react";
+
 import Link from "next/link";
+import { useRouter } from "next/router";
+
+import { PublicKey } from "@solana/web3.js";
+import LipAccount from "@mrgnlabs/lip-client/src/account";
+
 import { useMrgnlendStore } from "~/store";
 import { useLipClient } from "~/context";
-import { useRouter } from "next/router";
+import { collectRewardsBatch } from "~/utils";
 import { useFirebaseAccount } from "~/hooks/useFirebaseAccount";
 import { useWalletContext } from "~/hooks/useWalletContext";
-import { PublicKey } from "@solana/web3.js";
 import { useConnection } from "~/hooks/useConnection";
-import { collectRewardsBatch } from "~/utils";
-import { IconMrgn } from "~/components/ui/icons";
+
 import { WalletButton } from "~/components/common/Wallet";
-import LipAccount from "@mrgnlabs/lip-client/src/account";
 import { EMISSION_MINT_INFO_MAP } from "~/components/desktop/AssetList/components";
-import { DialectNotification } from "../Notifications";
+import { DialectNotification } from "~/components/common/Notifications";
+import { IconMrgn } from "~/components/ui/icons";
 
 // @todo implement second pretty navbar row
 export const Navbar: FC = () => {
