@@ -1,3 +1,5 @@
+import { submitConvertKit } from "~/actions/submitConvertKit";
+
 import { ContactForm } from "~/components/contact-form";
 
 export default function ContactPage() {
@@ -10,7 +12,7 @@ export default function ContactPage() {
           nulla in velit. Qui tempor sit ut velit ea culpa eu cillum.
         </p>
       </div>
-      <ContactForm />
+      <ContactForm onSubmit={submitConvertKit} formId="6643760" />
     </div>
   );
 }
