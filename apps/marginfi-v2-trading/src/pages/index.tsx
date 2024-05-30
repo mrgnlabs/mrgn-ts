@@ -23,7 +23,7 @@ export default function HomePage() {
               body={<p>Create permissionless pools, provide liquidity, and trade with mrgntrade.</p>}
               links={[]}
               button={
-                <Link href="/trade/pools/create">
+                <Link href="/pools/create">
                   <Button>
                     <IconPlus size={18} /> Create a pool
                   </Button>

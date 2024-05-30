@@ -20,7 +20,7 @@ export default function PortfolioPage() {
               body={<p>Manage your mrgntrade positions.</p>}
               links={[]}
               button={
-                <Link href="/trade/pools/create">
+                <Link href="/pools/create">
                   <Button>
                     <IconPlus size={18} /> Create a pool
                   </Button>
