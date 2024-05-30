@@ -24,8 +24,11 @@ import {
   DialogDescription,
 } from "~/components/ui/dialog";
 
+import type { submitConvertKitProps } from "~/actions/submitConvertKit";
+
 type GrantsProps = {
-  onSubmit: (data: z.infer<typeof formSchema>) => Promise<{
+  formId: string;
+  onSubmit: (data: submitConvertKitProps) => Promise<{
     success: boolean;
     message?: string;
   }>;
@@ -55,12 +58,12 @@ const CONTENT = {
 const formSchema = z.object({
   name: z.string(),
   email: z.string().email(),
-  projectName: z.string(),
-  projectLink: z.string().url(),
-  projectDesc: z.string(),
+  project_name: z.string(),
+  project_link: z.string().url(),
+  project_description: z.string(),
 });
 
-export const Grants = ({ onSubmit }: GrantsProps) => {
+export const Grants = ({ onSubmit, formId }: GrantsProps) => {
   const [state, setState] = React.useState<GrantState>(GrantState.DEFAULT);
   const [open, setOpen] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
@@ -74,7 +77,10 @@ export const Grants = ({ onSubmit }: GrantsProps) => {
   const submit = React.useCallback(async (values: z.infer<typeof formSchema>) => {
     setState(GrantState.LOADING);
     console.log("client side submit", values);
-    const result = await onSubmit(values);
+    const result = await onSubmit({
+      formId,
+      ...values,
+    });
     if (result.success) {
       setState(GrantState.SUCCESS);
     } else {
@@ -161,25 +167,25 @@ export const Grants = ({ onSubmit }: GrantsProps) => {
                     />
                     <FormField
                       control={form.control}
-                      name="projectName"
+                      name="project_name"
                       render={({ field }) => (
                         <FormItem className="space-y-1">
-                          <FormLabel htmlFor="projectName">Project Name</FormLabel>
+                          <FormLabel htmlFor="project_name">Project Name</FormLabel>
                           <FormControl>
-                            <Input id="projectName" className="col-span-3" placeholder="Project Name" {...field} />
+                            <Input id="project_name" className="col-span-3" placeholder="Project Name" {...field} />
                           </FormControl>
                         </FormItem>
                       )}
                     />
                     <FormField
                       control={form.control}
-                      name="projectLink"
+                      name="project_link"
                       render={({ field }) => (
                         <FormItem className="space-y-1">
-                          <FormLabel htmlFor="projectLink">Project Link</FormLabel>
+                          <FormLabel htmlFor="project_link">Project Link</FormLabel>
                           <FormControl>
                             <Input
-                              id="projectLink"
+                              id="project_link"
                               type="url"
                               className="col-span-3"
                               placeholder="https://www.yourwebsite.com/"
@@ -192,13 +198,13 @@ export const Grants = ({ onSubmit }: GrantsProps) => {
                   </div>
                   <FormField
                     control={form.control}
-                    name="projectDesc"
+                    name="project_description"
                     render={({ field }) => (
                       <FormItem className="space-y-1">
-                        <FormLabel htmlFor="projectDesc">Project Description</FormLabel>
+                        <FormLabel htmlFor="project_description">Project Description</FormLabel>
                         <FormControl>
                           <Textarea
-                            id="projectDesc"
+                            id="project_description"
                             className="col-span-3"
                             rows={4}
                             placeholder="Tell us about your project..."
