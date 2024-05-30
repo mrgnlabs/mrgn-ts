@@ -5,12 +5,9 @@ import { ContactForm } from "~/components/contact-form";
 export default function ContactPage() {
   return (
     <div className="container pt-32">
-      <div className="space-y-6 text-center max-w-2xl mx-auto text-muted-foreground text-lg leading-relaxed">
+      <div className="space-y-6 text-center max-w-md mx-auto text-muted-foreground text-lg leading-relaxed">
         <h1 className="text-5xl font-medium text-primary">Contact Us</h1>
-        <p>
-          Id consectetur cillum id veniam. Ad labore cillum nisi sit consequat cillum elit sint veniam Lorem incididunt
-          nulla in velit. Qui tempor sit ut velit ea culpa eu cillum.
-        </p>
+        <p>Send us a message using the form below and we'll get back to you as soon as possible.</p>
       </div>
       <ContactForm onSubmit={submitConvertKit} formId="6643760" />
     </div>
