@@ -1,4 +1,4 @@
-import { Contact } from "~/components/contact";
+import { ContactForm } from "~/components/contact-form";
 
 export default function ContactPage() {
   return (
@@ -10,7 +10,7 @@ export default function ContactPage() {
           nulla in velit. Qui tempor sit ut velit ea culpa eu cillum.
         </p>
       </div>
-      <Contact />
+      <ContactForm />
     </div>
   );
 }
