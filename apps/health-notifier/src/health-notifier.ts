@@ -167,7 +167,7 @@ export class HealthNotifier {
 
       await this.dapp.messages.send({
         recipient: notification.wallet,
-        // notificationTypeId: notification.type,
+        notificationTypeId: notification.type,
         title,
         message,
         actionsV2: {
