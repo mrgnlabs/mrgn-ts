@@ -1287,7 +1287,7 @@
   resolved "https://registry.yarnpkg.com/@babel/regjsgen/-/regjsgen-0.8.0.tgz#f0ba69b075e1f05fb2825b7fad991e7adbb18310"
   integrity sha512-x/rqGMdzj+fWZvCOYForTghzbtqPDZ5gPwaoNGHdgDfF2QA/XZbCBp4Moo5scrkAMPhB7z26XM/AaHuIJdgauA==
 
-"@babel/runtime@^7.0.0", "@babel/runtime@^7.1.2", "@babel/runtime@^7.10.5", "@babel/runtime@^7.11.2", "@babel/runtime@^7.12.5", "@babel/runtime@^7.13.10", "@babel/runtime@^7.17.8", "@babel/runtime@^7.18.3", "@babel/runtime@^7.18.6", "@babel/runtime@^7.19.4", "@babel/runtime@^7.20.0", "@babel/runtime@^7.20.1", "@babel/runtime@^7.20.6", "@babel/runtime@^7.21.0", "@babel/runtime@^7.22.10", "@babel/runtime@^7.23.2", "@babel/runtime@^7.23.9", "@babel/runtime@^7.24.0", "@babel/runtime@^7.24.1", "@babel/runtime@^7.24.6", "@babel/runtime@^7.5.5", "@babel/runtime@^7.8.4", "@babel/runtime@^7.8.7":
+"@babel/runtime@^7.0.0", "@babel/runtime@^7.1.2", "@babel/runtime@^7.10.5", "@babel/runtime@^7.11.2", "@babel/runtime@^7.12.5", "@babel/runtime@^7.13.10", "@babel/runtime@^7.17.8", "@babel/runtime@^7.18.3", "@babel/runtime@^7.18.6", "@babel/runtime@^7.19.4", "@babel/runtime@^7.20.0", "@babel/runtime@^7.20.1", "@babel/runtime@^7.20.6", "@babel/runtime@^7.21.0", "@babel/runtime@^7.22.10", "@babel/runtime@^7.23.2", "@babel/runtime@^7.23.9", "@babel/runtime@^7.24.0", "@babel/runtime@^7.24.6", "@babel/runtime@^7.5.5", "@babel/runtime@^7.8.4", "@babel/runtime@^7.8.7":
   version "7.24.7"
   resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.24.7.tgz#f4f0d5530e8dbdf59b3451b9b3e594b6ba082e12"
   integrity sha512-UwgBRMjJP+xv857DCngvqXI3Iq6J4v0wXmwc6sapg+zyhbwmQX67LUEFrkK5tbyJ30jGuG3ZvWpBiB9LCy1kWw==
@@ -5389,6 +5389,13 @@
     "@mongodb-js/zstd-linux-x64-musl" "1.2.0"
     "@mongodb-js/zstd-win32-x64-msvc" "1.2.0"
 
+"@moongate/moongate-adapter@^0.1.2":
+  version "0.1.5"
+  resolved "https://registry.yarnpkg.com/@moongate/moongate-adapter/-/moongate-adapter-0.1.5.tgz#bd4167a59eb8f1ca8103d03a7283b24578bc6149"
+  integrity sha512-3v6Z9acDigo3KzzPgOnprgiSZ+dafV4EUNRgjp5SoTxNl9lOUqqWJBXXSSUGZP6p08nRI7GKDJ0w7n1ZTpR0tg==
+  dependencies:
+    "@moongate/solana-wallet-sdk" "^2.0.8"
+
 "@moongate/moongate-adapter@^0.4.2":
   version "0.4.4"
   resolved "https://registry.yarnpkg.com/@moongate/moongate-adapter/-/moongate-adapter-0.4.4.tgz#351eb850a51e98aadc631750082d73e68c5d03b4"
@@ -5400,6 +5407,17 @@
     "@wallet-standard/app" "^1.0.1"
     "@wallet-standard/wallet" "^1.0.1"
     bs58 "^5.0.0"
+
+"@moongate/solana-wallet-sdk@^2.0.8":
+  version "2.0.8"
+  resolved "https://registry.yarnpkg.com/@moongate/solana-wallet-sdk/-/solana-wallet-sdk-2.0.8.tgz#9ae8d6ee865c910b562c8b3781b91de9df37dc8b"
+  integrity sha512-CbaYzsNVrsElzKVDej+Hvbu2gscLDou8cyK4Yvb/Uce4IPEtbI1uiI77OS9pXVt5fbBzBqECCKMpUyVBgmD5gw==
+  dependencies:
+    "@wagmi/connectors" "^4.1.6"
+    "@wagmi/core" "^2.3.1"
+    "@web3modal/ethereum" "^2.7.1"
+    "@web3modal/standalone" "^2.4.3"
+    viem "^2.4.0"
 
 "@moongate/solana-wallet-sdk@^3.1.0":
   version "3.1.0"
@@ -5854,13 +5872,6 @@
   version "14.2.4"
   resolved "https://registry.yarnpkg.com/@next/eslint-plugin-next/-/eslint-plugin-next-14.2.4.tgz#c7f965cb76f0b454e726ef0f69157c4fb4e28f53"
   integrity sha512-svSFxW9f3xDaZA3idQmlFw7SusOuWTpDTAeBlO3AEPDltrraV+lqs7mAc6A27YdnpQVVIA3sODqUAAHdWhVWsA==
-  dependencies:
-    glob "10.3.10"
-
-"@next/eslint-plugin-next@14.2.3":
-  version "14.2.3"
-  resolved "https://registry.yarnpkg.com/@next/eslint-plugin-next/-/eslint-plugin-next-14.2.3.tgz#287ad8620e7061ba01e8d3313d464db6d217b6df"
-  integrity sha512-L3oDricIIjgj1AVnRdRor21gI7mShlSwU/1ZGHmqM3LzHhXXhdkrfeNY5zif25Bi5Dd7fiJHsbhoZCHfXYvlAw==
   dependencies:
     glob "10.3.10"
 
@@ -6778,7 +6789,7 @@
     aria-hidden "^1.1.1"
     react-remove-scroll "2.5.4"
 
-"@radix-ui/react-dialog@1.0.5", "@radix-ui/react-dialog@^1.0.4", "@radix-ui/react-dialog@^1.0.5":
+"@radix-ui/react-dialog@^1.0.4", "@radix-ui/react-dialog@^1.0.5":
   version "1.0.5"
   resolved "https://registry.yarnpkg.com/@radix-ui/react-dialog/-/react-dialog-1.0.5.tgz#71657b1b116de6c7a0b03242d7d43e01062c7300"
   integrity sha512-GjWJX/AUpB703eEBanuBnIWdIXg6NvJFCXcNlSZk4xdszCdhrJgBoUd1cGk67vFO+WdA2pfI/plOpqz/5GUP6Q==
@@ -9208,13 +9219,6 @@
   dependencies:
     "@tabler/icons" "3.5.0"
 
-"@tabler/icons-react@^3.4.0":
-  version "3.4.0"
-  resolved "https://registry.yarnpkg.com/@tabler/icons-react/-/icons-react-3.4.0.tgz#6f4783f0cfd42ab6bd47b6c14758c97e70d9025b"
-  integrity sha512-hwRXZ//7B3d8FSb2loMj67s8UZeneCsOCs+Acv0KllWXS15brpFjdi6ROf/Vq5+vr1brFf+xmSTiQkKlEF1Yaw==
-  dependencies:
-    "@tabler/icons" "3.4.0"
-
 "@tabler/icons@2.47.0":
   version "2.47.0"
   resolved "https://registry.yarnpkg.com/@tabler/icons/-/icons-2.47.0.tgz#c41c680d1947e3ab2d60af3febc4132287c60596"
@@ -9224,11 +9228,6 @@
   version "3.5.0"
   resolved "https://registry.yarnpkg.com/@tabler/icons/-/icons-3.5.0.tgz#29d0dbf100c8cb392dd64f1fe8efdcfcd1f57e44"
   integrity sha512-I53dC3ZSHQ2MZFGvDYJelfXm91L2bTTixS4w5jTAulLhHbCZso5Bih4Rk/NYZxlngLQMKHvEYwZQ+6w/WluKiA==
-
-"@tabler/icons@3.4.0":
-  version "3.4.0"
-  resolved "https://registry.yarnpkg.com/@tabler/icons/-/icons-3.4.0.tgz#9e043543920a37d75fbcfd4ed7d3746ca8049aec"
-  integrity sha512-6gYHXG0xAJgt2KPcTYDqhe3xYoJMTgz/ZfYup4EUHsxzYsz6rBlt8WgavHsGaWckaqH7ApR/epYslfXZjK27yw==
 
 "@tailwindcss/typography@^0.5.10":
   version "0.5.13"
@@ -10238,7 +10237,7 @@
   dependencies:
     "@types/node" "*"
 
-"@types/node@*", "@types/node@>=12.12.47", "@types/node@>=13.7.0", "@types/node@^20", "@types/node@^20.3.1":
+"@types/node@*", "@types/node@>=12.12.47", "@types/node@>=13.7.0", "@types/node@^20.10.8", "@types/node@^20.3.1":
   version "20.14.2"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-20.14.2.tgz#a5f4d2bcb4b6a87bffcaa717718c5a0f208f4a18"
   integrity sha512-xyu6WAMVwv6AKFLB+e/7ySZVr/0zLCzOa7rSpq6jNwpqOrUbcACDWC+53d4n2QHOnDou0fbIsg8wZu/sxrnI4Q==
@@ -10311,7 +10310,7 @@
   dependencies:
     "@types/react" "*"
 
-"@types/react-dom@^18", "@types/react-dom@^18.2.19":
+"@types/react-dom@^18.2.18", "@types/react-dom@^18.2.19":
   version "18.3.0"
   resolved "https://registry.yarnpkg.com/@types/react-dom/-/react-dom-18.3.0.tgz#0cbc818755d87066ab6ca74fbedb2547d74a82b0"
   integrity sha512-EhwApuTmMBmXuFOikhQLIBUn6uFg81SwLMOAUgodJF14SOBOCMdU04gDoYi0WOJJHD144TL32z4yDqCW3dnkQg==
@@ -10347,7 +10346,7 @@
   dependencies:
     "@types/react" "*"
 
-"@types/react@*", "@types/react@^18", "@types/react@^18.2.61":
+"@types/react@*", "@types/react@^18.2.47", "@types/react@^18.2.61":
   version "18.3.3"
   resolved "https://registry.yarnpkg.com/@types/react/-/react-18.3.3.tgz#9679020895318b0915d7a3ab004d92d33375c45f"
   integrity sha512-hti/R0pS0q1/xx+TsI73XIqk26eBsISZ2R0wUijXIngRK9R/e7Xw/cXVxQK7R5JjW+SV4zGcn5hXjudkN/pLIw==
@@ -13574,7 +13573,7 @@ clsx@^1.1.1, clsx@^1.2.1:
   resolved "https://registry.yarnpkg.com/clsx/-/clsx-1.2.1.tgz#0ddc4a20a549b59c93a4116bb26f5294ca17dc12"
   integrity sha512-EcR6r5a8bj6pu3ycsa/E/cKVGuTgZJZdsyUYHOksG/UHIiKfjxzRxYJpyVBwYaQeOvghal9fcc4PidlgzugAQg==
 
-clsx@^2.0.0, clsx@^2.1.0, clsx@^2.1.1:
+clsx@^2.0.0, clsx@^2.1.0:
   version "2.1.1"
   resolved "https://registry.yarnpkg.com/clsx/-/clsx-2.1.1.tgz#eed397c9fd8bd882bfb18deab7102049a2f32999"
   integrity sha512-eYm0QWBtUrBWZWG0d386OGAw16Z995PiOVo2B7bjWSbHedGl5e0ZWaq65kOGgUSNesEIDkB9ISbTg/JK9dhCZA==
@@ -13590,14 +13589,6 @@ cmdk@^0.2.0:
   integrity sha512-U6//9lQ6JvT47+6OF6Gi8BvkxYQ8SCRRSKIJkthIMsFsLZRG0cKvTtuTaefyIKMQb8rvvXy0wGdpTNq/jPtm+g==
   dependencies:
     "@radix-ui/react-dialog" "1.0.0"
-
-cmdk@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/cmdk/-/cmdk-1.0.0.tgz#0a095fdafca3dfabed82d1db78a6262fb163ded9"
-  integrity sha512-gDzVf0a09TvoJ5jnuPvygTB77+XdOSwEmJ88L6XPFPlv7T3RxbP9jgenfylrAMD0+Le1aO0nVjQUzl2g+vjz5Q==
-  dependencies:
-    "@radix-ui/react-dialog" "1.0.5"
-    "@radix-ui/react-primitive" "1.0.3"
 
 co@^4.6.0:
   version "4.6.0"
@@ -15483,21 +15474,6 @@ escodegen@^1.13.0:
   optionalDependencies:
     source-map "~0.6.1"
 
-eslint-config-next@14.2.3:
-  version "14.2.3"
-  resolved "https://registry.yarnpkg.com/eslint-config-next/-/eslint-config-next-14.2.3.tgz#2fb0f7c4eccda530a4b5054438162b2303786d4f"
-  integrity sha512-ZkNztm3Q7hjqvB1rRlOX8P9E/cXRL9ajRcs8jufEtwMfTVYRqnmtnaSu57QqHyBlovMuiB8LEzfLBkh5RYV6Fg==
-  dependencies:
-    "@next/eslint-plugin-next" "14.2.3"
-    "@rushstack/eslint-patch" "^1.3.3"
-    "@typescript-eslint/parser" "^5.4.2 || ^6.0.0 || 7.0.0 - 7.2.0"
-    eslint-import-resolver-node "^0.3.6"
-    eslint-import-resolver-typescript "^3.5.2"
-    eslint-plugin-import "^2.28.1"
-    eslint-plugin-jsx-a11y "^6.7.1"
-    eslint-plugin-react "^7.33.2"
-    eslint-plugin-react-hooks "^4.5.0 || 5.0.0-canary-7118f5dd7-20230705"
-
 eslint-config-next@^12.0.8:
   version "12.3.4"
   resolved "https://registry.yarnpkg.com/eslint-config-next/-/eslint-config-next-12.3.4.tgz#3d4d9e74b919b879c4cc79c61bdc388fb2b964ee"
@@ -15835,7 +15811,7 @@ eslint@^7.23.0, eslint@^7.32.0:
     text-table "^0.2.0"
     v8-compile-cache "^2.0.3"
 
-eslint@^8, eslint@^8.42.0:
+eslint@^8.42.0, eslint@^8.56.0:
   version "8.57.0"
   resolved "https://registry.yarnpkg.com/eslint/-/eslint-8.57.0.tgz#c786a6fd0e0b68941aaf624596fb987089195668"
   integrity sha512-dZ6+mexnaTIbSBZWgou51U6OmzIhYM2VcNdtiTtI7qPNZm35Akpr0f6vtw3w1Kmn5PYo+tZVfh13WrhpS6oLqQ==
@@ -26580,13 +26556,6 @@ tailwind-merge@^1.14.0:
   version "1.14.0"
   resolved "https://registry.yarnpkg.com/tailwind-merge/-/tailwind-merge-1.14.0.tgz#e677f55d864edc6794562c63f5001f45093cdb8b"
   integrity sha512-3mFKyCo/MBcgyOTlrY8T7odzZFx+w+qKSMAmdFzRvqBfLlSigU6TZnlFHK0lkMwj9Bj8OYU+9yW9lmGuS0QEnQ==
-
-tailwind-merge@^2.3.0:
-  version "2.3.0"
-  resolved "https://registry.yarnpkg.com/tailwind-merge/-/tailwind-merge-2.3.0.tgz#27d2134fd00a1f77eca22bcaafdd67055917d286"
-  integrity sha512-vkYrLpIP+lgR0tQCG6AP7zZXCTLc1Lnv/CCRT3BqJ9CZ3ui2++GPaGb1x/ILsINIMSYqqvrpqjUFsMNLlW99EA==
-  dependencies:
-    "@babel/runtime" "^7.24.1"
 
 tailwindcss-animate@^1.0.6, tailwindcss-animate@^1.0.7:
   version "1.0.7"
