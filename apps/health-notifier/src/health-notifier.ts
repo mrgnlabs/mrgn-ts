@@ -17,6 +17,12 @@ export interface Subscriber {
 
 export type NotificationTypes = "dangerous_health" | "liquidatable";
 
+export type NotificationIdMap = { [type in NotificationTypes]: string };
+
+const notificationIdMap: NotificationIdMap = {
+  dangerous_health: "9b60ea88-7699-4f14-802e-8e8556478bab",
+  liquidatable: "5083aa1d-137e-42b4-885b-a3824e5f7db1",
+};
 interface NotificationBase {
   type: NotificationTypes;
   account: string;
@@ -167,7 +173,7 @@ export class HealthNotifier {
 
       await this.dapp.messages.send({
         recipient: notification.wallet,
-        notificationTypeId: notification.type,
+        notificationTypeId: notificationIdMap[notification.type],
         title,
         message,
         actionsV2: {
