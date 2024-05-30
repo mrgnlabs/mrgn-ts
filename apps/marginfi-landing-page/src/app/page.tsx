@@ -21,7 +21,7 @@ export default function Home() {
       <Products />
       <Features />
       <Highlights />
-      <Grants onSubmit={submitConvertKit} />
+      <Grants onSubmit={submitConvertKit} formId="6578595" />
       <Ecosystem />
       <Investors />
       <GettingStarted />

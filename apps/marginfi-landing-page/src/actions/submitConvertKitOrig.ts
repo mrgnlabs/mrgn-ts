@@ -1,12 +1,13 @@
-export type submitConvertKitProps = {
-  formId: string;
-  name: string;
+export type ConvertKitProps = {
   email: string;
-  [key: string]: string;
+  name: string;
+  projectName: string;
+  projectLink: string;
+  projectDesc: string;
 };
 
 export const submitConvertKit = async (
-  data: submitConvertKitProps
+  data: ConvertKitProps
 ): Promise<{
   success: boolean;
   message?: string;
@@ -14,8 +15,9 @@ export const submitConvertKit = async (
   "use server";
 
   const apiKey = process.env.CONVERTKIT_API_KEY;
+  const formId = process.env.CONVERTKIT_FORM_ID;
 
-  if (!apiKey || !data.formId) {
+  if (!apiKey || !formId) {
     console.error("ConvertKit API key and / or form ID is missing.");
     return {
       success: false,
@@ -23,19 +25,8 @@ export const submitConvertKit = async (
     };
   }
 
-  if (!data.name || !data.email) {
-    console.error("Name and / or email is missing.");
-    return {
-      success: false,
-      message: "Name and / or email is missing.",
-    };
-  }
-
-  const customFields = Object.entries(data).filter(([key]) => !["formId", "name", "email"].includes(key));
-  console.log("customFields", customFields);
-
   try {
-    const response = await fetch(`https://api.convertkit.com/v3/forms/${data.formId}/subscribe`, {
+    const response = await fetch(`https://api.convertkit.com/v3/forms/${formId}/subscribe`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json; charset=utf-8",
@@ -45,7 +36,9 @@ export const submitConvertKit = async (
         email: data.email,
         fields: {
           name: data.name,
-          ...Object.fromEntries(customFields),
+          project_name: data.projectName,
+          project_link: data.projectLink,
+          project_description: data.projectDesc,
         },
       }),
     });
