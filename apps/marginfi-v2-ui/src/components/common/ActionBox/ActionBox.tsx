@@ -39,6 +39,8 @@ type ActionBoxProps = {
   isDialog?: boolean;
   isMini?: boolean;
   handleCloseDialog?: () => void;
+  onComplete?: () => void;
+  onError?: () => void;
 };
 
 type BlackListRoutesMap = {
@@ -53,6 +55,8 @@ export const ActionBox = ({
   isDialog,
   isMini = false,
   handleCloseDialog,
+  onComplete,
+  onError,
 }: ActionBoxProps) => {
   const [
     mfiClient,
@@ -319,6 +323,10 @@ export const ActionBox = ({
           txn: txnSig!,
           priorityFee,
         });
+
+        onComplete && onComplete();
+      } else {
+        onError && onError();
       }
 
       // -------- Refresh state

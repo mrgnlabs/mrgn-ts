@@ -19,7 +19,7 @@ import { IconConfetti, IconExternalLink, IconArrowDown, IconArrowUp } from "~/co
 import { Button } from "~/components/ui/button";
 
 export const ActionComplete = () => {
-  const [extendedBankInfos] = useMrgnlendStore((state) => [state.extendedBankInfos]);
+  const [extendedBankInfos, mfiAccount] = useMrgnlendStore((state) => [state.extendedBankInfos, state.selectedAccount]);
   const [isActionComplete, setIsActionComplete, previousTxn] = useUiStore((state) => [
     state.isActionComplete,
     state.setIsActionComplete,
@@ -48,6 +48,11 @@ export const ActionComplete = () => {
     return "";
   }, [previousTxn?.type]);
 
+  const isFirstDeposit = React.useMemo(() => {
+    const activeBalances = mfiAccount?.balances.filter((balance) => balance.active);
+    return activeBalances && activeBalances.length <= 1 && previousTxn?.type === ActionType.Deposit;
+  }, [mfiAccount?.balances]);
+
   if (!isActionComplete || !previousTxn) return null;
 
   return (
@@ -61,7 +66,7 @@ export const ActionComplete = () => {
       />
       <Dialog open={isActionComplete} onOpenChange={(open) => setIsActionComplete(open)}>
         <DialogContent className="z-[70]">
-          <div className="space-y-12 w-full">
+          <div className={cn("space-y-12 w-full", isFirstDeposit && "space-y-8")}>
             <header className="space-y-4 text-center flex flex-col items-center justify-center">
               <IconConfetti size={48} />
               <h2 className="font-medium text-xl">
@@ -73,6 +78,23 @@ export const ActionComplete = () => {
               </h2>
             </header>
 
+            {isFirstDeposit && (
+              <div className="text-center text-muted-foreground">
+                <p>
+                  Congratulations on your first deposit with marginfi!
+                  <br className="hidden md:block" />{" "}
+                  <Link
+                    href="https://docs.marginfi.com/"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="border-b border-muted-foreground transition-colors hover:border-transparent"
+                  >
+                    Check out our docs
+                  </Link>{" "}
+                  for more info on lending, borrowing, and staking.
+                </p>
+              </div>
+            )}
             {!previousTxn.lstQuote && (
               <>
                 <div className="flex flex-col items-center gap-2 border-b border-border pb-10">
