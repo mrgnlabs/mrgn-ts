@@ -1,12 +1,19 @@
-import { Transaction } from "@solana/web3.js";
-import { ActionType, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActionType, ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { QuoteResponseMeta } from "@jup-ag/react-hook";
 
 // ----------------------------------------------------------------------------
 // Mayan types
 // ----------------------------------------------------------------------------
 
-export type MayanWidgetChainName = "solana" | "ethereum" | "bsc" | "polygon" | "avalanche" | "arbitrum" | "optimism" | "base";
+export type MayanWidgetChainName =
+  | "solana"
+  | "ethereum"
+  | "bsc"
+  | "polygon"
+  | "avalanche"
+  | "arbitrum"
+  | "optimism"
+  | "base";
 
 // visit the Figma link below to see the color palette
 // https://www.figma.com/community/file/1236300242311853150/Mayan-Widget
@@ -120,4 +127,15 @@ export type PreviousTxn = {
   amount: number;
   txn: string;
   lstQuote?: QuoteResponseMeta;
+};
+
+export type Position = {
+  bank: ExtendedBankInfo;
+  type: "long" | "short";
+  size: number;
+  leverage: number;
+  entryPrice: number;
+  markPrice: number;
+  liquidationPrice: number;
+  pnl: number;
 };
