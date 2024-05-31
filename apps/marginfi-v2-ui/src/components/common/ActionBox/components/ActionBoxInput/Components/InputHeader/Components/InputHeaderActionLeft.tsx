@@ -12,6 +12,7 @@ interface InputHeaderActionProps {
   actionType: ActionType;
   bank: ExtendedBankInfo | null;
   isDialog?: boolean;
+  isMini?: boolean;
   repayType: RepayType;
   lstType: LstType;
   ybxType: YbxType;
@@ -32,6 +33,7 @@ export const InputHeaderActionLeft = ({
   bank,
   lstType,
   isDialog,
+  isMini = false,
   repayType,
   ybxType,
   changeYbxType,
@@ -57,7 +59,7 @@ export const InputHeaderActionLeft = ({
   }, [actionType, isSolBank]);
 
   const toggleObject = React.useMemo(() => {
-    if (!isDialog && (actionType === ActionType.Borrow || actionType === ActionType.Deposit)) {
+    if (!isDialog && !isMini && (actionType === ActionType.Borrow || actionType === ActionType.Deposit)) {
       return {
         toggles: [
           { value: ActionType.Deposit, text: LendingModes.LEND },
@@ -119,6 +121,7 @@ export const InputHeaderActionLeft = ({
     return titleText;
   }, [
     isDialog,
+    isMini,
     actionType,
     stakeAccounts.length,
     ybxType,

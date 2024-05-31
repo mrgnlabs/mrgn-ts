@@ -620,6 +620,7 @@ export const ActionBox = ({
           ) : (
             <>
               <ActionBoxInput
+                isMini={isMini}
                 walletAmount={walletAmount}
                 amountRaw={amountRaw}
                 maxAmount={maxAmount}

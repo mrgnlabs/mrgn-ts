@@ -8,13 +8,21 @@ import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
 type props = {
   isDialog?: boolean;
+  isMini?: boolean;
   changeLstType: (lstType: LstType) => void;
   changeYbxType: (lstType: YbxType) => void;
   changeRepayType: (repayType: RepayType) => void;
   changeActionType: (actionType: ActionType) => void;
 };
 
-export const InputHeader = ({ isDialog, changeRepayType, changeLstType, changeYbxType, changeActionType }: props) => {
+export const InputHeader = ({
+  isDialog,
+  isMini = false,
+  changeRepayType,
+  changeLstType,
+  changeYbxType,
+  changeActionType,
+}: props) => {
   const [actionMode, selectedBank, ybxMode, lstMode, repayMode] = useActionBoxStore(isDialog)((state) => [
     state.actionMode,
     state.selectedBank,
@@ -36,6 +44,7 @@ export const InputHeader = ({ isDialog, changeRepayType, changeLstType, changeYb
           ybxType={ybxMode}
           lstType={lstMode}
           isDialog={isDialog}
+          isMini={isMini}
           changeYbxType={(value) => changeYbxType(value)}
           changeRepayType={(value) => changeRepayType(value)}
           changeLstType={(value) => changeLstType(value)}

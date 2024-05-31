@@ -16,6 +16,7 @@ import { ScreenWrapper, WalletSeperator } from "../../sharedComponents";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
+import { IconArrowLeft } from "~/components/ui/icons";
 
 interface props extends OnrampScreenProps {}
 
@@ -93,6 +94,11 @@ export const Onramp = ({ onNext }: props) => {
   return (
     <ScreenWrapper>
       <div className="py-4 space-y-4">
+        {showMeso && (
+          <div className="absolute left-4 opacity-70 text-sm cursor-pointer flex gap-2" onClick={() => removeMeso()}>
+            <IconArrowLeft width={18} height={18} /> enter amount
+          </div>
+        )}
         {!showMeso && (
           <>
             <p className="text-muted-foreground">Select how much USD to onramp</p>
@@ -137,7 +143,7 @@ export const Onramp = ({ onNext }: props) => {
           </>
         )}
         <div className={cn(showMeso ? "block" : "hidden", "relative")}>
-          <div id="outlet" ref={divRef}></div>
+          <div id="outlet" className="h-[350px]" ref={divRef}></div>
         </div>
       </div>
 

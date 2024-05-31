@@ -5,13 +5,25 @@ import { OnrampScreenProps } from "~/utils";
 import { ActionBox } from "~/components/common/ActionBox";
 
 import { ScreenWrapper, WalletSeperator } from "../../sharedComponents";
+import { useMrgnlendStore } from "~/store";
+import { SOL_MINT } from "~/store/lstStore";
 
 interface props extends OnrampScreenProps {}
 
-export const DepositToken = ({ onNext }: props) => {
+export const DepositToken = ({ successProps, onNext }: props) => {
+  const [extendedBankInfos] = useMrgnlendStore((state) => [state.extendedBankInfos]);
+
+  const requestedBank = React.useMemo(() => {
+    const mint = successProps?.jupiterSuccess?.quoteResponseMeta?.quoteResponse.outputMint;
+    if (mint) {
+      const bank = extendedBankInfos.filter((bank) => bank.info.state.mint.equals(mint));
+      if (bank.length !== 0) return bank[0];
+    }
+  }, [successProps?.jupiterSuccess, extendedBankInfos]);
+
   return (
     <ScreenWrapper>
-      <ActionBox requestedAction={ActionType.Deposit} isMini={true} />
+      <ActionBox requestedAction={ActionType.Deposit} requestedBank={requestedBank} isMini={true} />
       <WalletSeperator description="skip for now" onClick={() => onNext()} />
     </ScreenWrapper>
   );

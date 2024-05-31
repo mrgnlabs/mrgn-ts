@@ -47,7 +47,7 @@ export const OnboardingEth = ({
     } else {
       return ethOnrampFlow[screenIndex];
     }
-  }, [installingWallet, successProps, screenIndex, userHasAcct, onClose, onPrev]);
+  }, [installingWallet, successProps, screenIndex, userHasAcct]);
 
   React.useEffect(() => {
     if (connected) {

@@ -4,15 +4,13 @@ import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { RepayType, YbxType } from "~/utils";
 import { useActionBoxStore } from "~/hooks/useActionBoxStore";
+import { useConnection } from "~/hooks/useConnection";
 import { useMrgnlendStore, useUiStore } from "~/store";
 
 import { Input } from "~/components/ui/input";
 import { ActionBoxTokens } from "~/components/common/ActionBox/components";
 
-import { InputHeader } from "./Components";
-import { InputAction } from "./Components/InputAction";
-import { useConnection } from "~/hooks/useConnection";
-import { YbxInput } from "./Components/YbxInput";
+import { InputHeader, YbxInput, InputAction } from "./Components";
 
 type ActionBoxInputProps = {
   walletAmount: number | undefined;
@@ -20,9 +18,16 @@ type ActionBoxInputProps = {
   maxAmount: number;
   showCloseBalance?: boolean;
   isDialog?: boolean;
+  isMini?: boolean;
 };
 
-export const ActionBoxInput = ({ walletAmount, maxAmount, showCloseBalance, isDialog }: ActionBoxInputProps) => {
+export const ActionBoxInput = ({
+  walletAmount,
+  maxAmount,
+  showCloseBalance,
+  isDialog,
+  isMini = false,
+}: ActionBoxInputProps) => {
   const [isActionBoxInputFocussed, setIsActionBoxInputFocussed] = useUiStore((state) => [
     state.isActionBoxInputFocussed,
     state.setIsActionBoxInputFocussed,
@@ -152,6 +157,7 @@ export const ActionBoxInput = ({ walletAmount, maxAmount, showCloseBalance, isDi
       {/* Contains 'max' button and input title */}
       <InputHeader
         isDialog={isDialog}
+        isMini={isMini}
         changeRepayType={(type) => setRepayMode(type)}
         changeLstType={(type) => setLstMode(type)}
         changeYbxType={(type) => setYbxMode(type)}

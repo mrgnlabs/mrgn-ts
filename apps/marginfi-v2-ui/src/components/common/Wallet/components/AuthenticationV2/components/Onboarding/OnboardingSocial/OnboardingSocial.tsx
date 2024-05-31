@@ -1,7 +1,6 @@
 import React from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 
-import { DialogContent } from "~/components/ui/dialog";
 import { useMrgnlendStore } from "~/store";
 import { AuthScreenProps, InstallingWallet, OnrampScreenProps, SuccessProps, cn } from "~/utils";
 
@@ -39,7 +38,7 @@ export const OnboardingSocial: React.FC<props> = ({
   const screen = React.useMemo(() => {
     if (installingWallet) {
       return installWallet;
-    } else if (successProps) {
+    } else if (successProps?.jupiterSuccess && socialOnrampFlow[screenIndex].tag === "swap") {
       return successSwap;
     } else if (socialOnrampFlow.length <= screenIndex) {
       onClose();

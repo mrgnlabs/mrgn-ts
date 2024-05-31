@@ -7,7 +7,7 @@ import { useOs } from "~/hooks/useOs";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { useBrowser } from "~/hooks/useBrowser";
 import { AUTO_FLOW_MAP, AuthFlowType, AuthScreenProps, cn } from "~/utils";
-import { useMrgnlendStore, useUiStore } from "~/store";
+import { useUiStore } from "~/store";
 import { Progress } from "~/components/ui/progress";
 
 export const AuthDialog = () => {
@@ -24,7 +24,9 @@ export const AuthDialog = () => {
     [isAndroid, isIOS, browser, isPWA]
   );
 
-  const [flow, setFlow] = React.useState<AuthFlowType>("ONBOARD_MAIN");
+  const mainFlow: AuthFlowType = localStorage.getItem("walletInfo") ?? null ? "RETURNING_USER" : "ONBOARD_MAIN";
+
+  const [flow, setFlow] = React.useState<AuthFlowType>(mainFlow);
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const [isActiveLoading, setIsActiveLoading] = React.useState<string>("");
   const [progress, setProgress] = React.useState<number>(0);
@@ -89,7 +91,7 @@ export const AuthDialog = () => {
     if (!isWalletAuthDialogOpen) {
       setIsLoading(false);
       setIsActiveLoading("");
-      setFlow("ONBOARD_MAIN");
+      setFlow(mainFlow);
       setProgress(0);
     }
   }, [isWalletAuthDialogOpen]);
