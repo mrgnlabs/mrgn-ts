@@ -22,7 +22,7 @@ export const DepositToken = ({ successProps, onNext }: props) => {
   }, [successProps?.jupiterSuccess, extendedBankInfos]);
 
   return (
-    <ScreenWrapper>
+    <ScreenWrapper noBackground={true}>
       <ActionBox requestedAction={ActionType.Deposit} requestedBank={requestedBank} isMini={true} />
       <WalletSeperator description="skip for now" onClick={() => onNext()} />
     </ScreenWrapper>
