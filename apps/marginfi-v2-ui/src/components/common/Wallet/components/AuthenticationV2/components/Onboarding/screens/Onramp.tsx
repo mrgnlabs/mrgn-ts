@@ -23,7 +23,7 @@ interface props extends OnrampScreenProps {}
 export const Onramp = ({ onNext }: props) => {
   const { wallet } = useWalletContext();
   const divRef = React.useRef<HTMLDivElement>(null);
-  const [amountRaw, setAmountRaw] = React.useState<string>("");
+  const [amountRaw, setAmountRaw] = React.useState<string>("100.00");
   const [isCustomMode, setIsCustomMode] = React.useState<boolean>(false);
   const [showMeso, setIsShowMeso] = React.useState<boolean>(false);
 
@@ -93,54 +93,56 @@ export const Onramp = ({ onNext }: props) => {
 
   return (
     <ScreenWrapper>
-      <div className="py-4 space-y-4">
+      <div className="p-2 space-y-2">
         {showMeso && (
           <div className="absolute left-4 opacity-70 text-sm cursor-pointer flex gap-2" onClick={() => removeMeso()}>
             <IconArrowLeft width={18} height={18} /> enter amount
           </div>
         )}
         {!showMeso && (
-          <>
-            <p className="text-muted-foreground">Select how much USD to onramp</p>
-            <div className="flex justify-between items-center w-full">
-              <ul className="grid grid-cols-4 gap-2">
-                {amountOptions.map((option, idx) => (
-                  <li key={idx}>
-                    <Button
-                      className={cn(
-                        "gap-0.5 h-auto w-full font-light border border-transparent bg-background/50 transition-colors hover:bg-background-gray-hover",
-                        amount === option.value && "bg-background-gray-hover border-chartreuse"
-                      )}
-                      variant="secondary"
-                      onClick={() => {
-                        setAmountRaw(numberFormater.format(option.value));
-                        setIsCustomMode(false);
-                      }}
-                    >
-                      {option.label}
-                    </Button>
-                  </li>
-                ))}
-              </ul>
-              <Input
-                type="text"
-                inputMode="decimal"
-                value={amount}
-                onChange={(e) => setAmountRaw(e.target.value)}
-                onFocus={() => setIsCustomMode(true)}
-                onBlur={() => setIsCustomMode(false)}
-                placeholder="0"
-                className={cn(
-                  "h-aut max-w-[120px] bg-background/50 py-3 px-4 border border-muted-foreground text-white transition-colors focus-visible:ring-0",
-                  !amountOptions.find((value) => value.value === amount) && "border-chartreuse"
-                )}
-              />
+          <div className="space-y-8">
+            <div className="space-y-2">
+              <p className="text-muted-foreground">Select how much USD to onramp</p>
+              <div className="flex justify-between items-center w-full">
+                <ul className="grid grid-cols-4 gap-2">
+                  {amountOptions.map((option, idx) => (
+                    <li key={idx}>
+                      <Button
+                        className={cn(
+                          "gap-0.5 h-auto w-full font-light border border-transparent bg-background/50 transition-colors hover:bg-background-gray-hover",
+                          amount === option.value && "bg-background-gray-hover border-chartreuse"
+                        )}
+                        variant="secondary"
+                        onClick={() => {
+                          setAmountRaw(numberFormater.format(option.value));
+                          setIsCustomMode(false);
+                        }}
+                      >
+                        {option.label}
+                      </Button>
+                    </li>
+                  ))}
+                </ul>
+                <Input
+                  type="text"
+                  inputMode="decimal"
+                  value={amount}
+                  onChange={(e) => setAmountRaw(e.target.value)}
+                  onFocus={() => setIsCustomMode(true)}
+                  onBlur={() => setIsCustomMode(false)}
+                  placeholder="Custom amount"
+                  className={cn(
+                    "h-aut max-w-[120px] bg-background/50 py-3 px-4 border border-muted-foreground text-white transition-colors focus-visible:ring-0",
+                    !amountOptions.find((value) => value.value === amount) && "border-chartreuse"
+                  )}
+                />
+              </div>
             </div>
             {error && <div className="text-destructive-foreground text-sm">{error}</div>}
-            <Button disabled={!!error || amount <= 0} onClick={() => initializeMeso()}>
+            <Button disabled={!!error || amount <= 0} onClick={() => initializeMeso()} className="w-full mt-8">
               Buy crypto
             </Button>
-          </>
+          </div>
         )}
         <div className={cn(showMeso ? "block" : "hidden", "relative")}>
           <div id="outlet" className="h-[350px]" ref={divRef}></div>
