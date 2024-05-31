@@ -50,14 +50,15 @@ export const BridgeToken: React.FC<props> = ({ onNext }: props) => {
       isHideLogo: false,
       logo: "",
     });
+    console.log({ widget });
 
-    widget.on("order", (event: any, params: any) => {
-      console.log({ params, event });
-    });
+    // widget.on("order", (event: any, params: any) => {
+    //   console.log({ params, event });
+    // });
 
-    widget.on("singleChainSwap", (event: any, params: any) => {
-      console.log({ params, event });
-    });
+    // widget.on("singleChainSwap", (event: any, params: any) => {
+    //   console.log({ params, event });
+    // });
   };
 
   return (

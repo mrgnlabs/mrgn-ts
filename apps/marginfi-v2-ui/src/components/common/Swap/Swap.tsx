@@ -23,9 +23,10 @@ type SwapProps = {
     quoteResponseMeta: QuoteResponseMeta | null;
   }) => void;
   initialInputMint?: PublicKey;
+  initialOutputMint?: PublicKey;
 };
 
-export const Swap = ({ onLoad, onSuccess, initialInputMint }: SwapProps) => {
+export const Swap = ({ onLoad, onSuccess, initialInputMint, initialOutputMint }: SwapProps) => {
   const { walletContextState } = useWalletContext();
   const [loadTimestamp, setLoadTimestamp] = React.useState(0);
   const router = useRouter();
@@ -54,6 +55,7 @@ export const Swap = ({ onLoad, onSuccess, initialInputMint }: SwapProps) => {
       integratedTargetId: "integrated-terminal",
       endpoint: config.rpcEndpoint,
       enableWalletPassthrough: true,
+      initialOutputMint,
       onSuccess: ({ txid, ...props }) => {
         capture("user_swap", {
           txn: txid,
