@@ -55,12 +55,11 @@ export const Swap = ({ onLoad, onSuccess, initialInputMint, initialOutputMint }:
       integratedTargetId: "integrated-terminal",
       endpoint: config.rpcEndpoint,
       enableWalletPassthrough: true,
-      initialOutputMint,
-      onSuccess: ({ txid, ...props }) => {
+      onSuccess: ({ ...props }) => {
         capture("user_swap", {
-          txn: txid,
+          txn: props.txid,
         });
-        onSuccess && onSuccess({ txid, ...props });
+        onSuccess && onSuccess({ ...props } as any);
       },
       formProps: {
         initialInputMint: initialMint ? initialMint.toBase58() : undefined,
