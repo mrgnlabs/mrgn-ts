@@ -1,7 +1,6 @@
 import React from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 
-import { DialogContent } from "~/components/ui/dialog";
 import { AuthScreenProps, OnrampScreenProps, cn } from "~/utils";
 
 import { OnboardHeader } from "../sharedComponents";
