@@ -1,13 +1,21 @@
 import React from "react";
 
+import { cn } from "~/utils";
+
 interface props {
   children: React.ReactNode;
+  noBackground?: boolean;
 }
 
-export const ScreenWrapper = ({ children }: props) => {
+export const ScreenWrapper = ({ children, noBackground = false }: props) => {
   return (
     <div className="w-full overflow-scroll space-y-6">
-      <div className="flex flex-col gap-6 relative bg-muted text-muted-foreground transition-all duration-300 w-full p-4 rounded-lg max-h-none">
+      <div
+        className={cn(
+          "flex flex-col gap-6 relative text-muted-foreground transition-all duration-300 w-full p-4 rounded-lg max-h-none",
+          !noBackground && "bg-muted"
+        )}
+      >
         {children}
       </div>
     </div>
