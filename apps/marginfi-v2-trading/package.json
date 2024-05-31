@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "clean": "rimraf dist node_modules",
-    "dev": "next dev --port 3005",
+    "dev": "next dev --port 3006",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
