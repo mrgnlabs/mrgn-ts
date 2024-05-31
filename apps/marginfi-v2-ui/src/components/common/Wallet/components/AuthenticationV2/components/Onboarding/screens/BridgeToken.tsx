@@ -9,13 +9,30 @@ import { ScreenWrapper, WalletSeperator } from "../../sharedComponents";
 interface props extends OnrampScreenProps {}
 
 export const BridgeToken: React.FC<props> = ({ onNext }: props) => {
+  const divRef = React.useRef<HTMLDivElement>(null);
   const [isMounted, setIsMounted] = React.useState(false);
+  const [widget, setWidget] = React.useState<any>();
+
   React.useEffect(() => {
     setIsMounted(true);
   }, []);
 
   React.useEffect(() => {
-    if (window.deBridge && isMounted) {
+    if (widget) {
+      widget.then((widget: any) => {
+        widget.on("order", (event: any, params: any) => {
+          console.log("order params", params);
+        });
+
+        widget.on("singleChainSwap", (event: any, params: any) => {
+          console.log("singleChainSwap params", params);
+        });
+      });
+    }
+  }, [widget, window.deBridge]);
+
+  React.useEffect(() => {
+    if (window.deBridge && isMounted && !(divRef.current && divRef.current.innerHTML)) {
       loadDeBridgeWidget();
     }
   }, [isMounted]);
@@ -50,15 +67,7 @@ export const BridgeToken: React.FC<props> = ({ onNext }: props) => {
       isHideLogo: false,
       logo: "",
     });
-    console.log({ widget });
-
-    // widget.on("order", (event: any, params: any) => {
-    //   console.log({ params, event });
-    // });
-
-    // widget.on("singleChainSwap", (event: any, params: any) => {
-    //   console.log({ params, event });
-    // });
+    setWidget(widget);
   };
 
   return (
