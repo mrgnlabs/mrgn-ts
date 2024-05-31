@@ -1,19 +1,33 @@
+import React from "react";
+
 import Image from "next/image";
+import Link from "next/link";
 
 import { IconTrendingUp, IconTrendingDown } from "@tabler/icons-react";
+import { usdFormatter } from "@mrgnlabs/mrgn-common";
+import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { cn, getTokenImageURL } from "~/utils";
+import { useMrgnlendStore } from "~/store";
+
+import { ActionBoxDialog } from "~/components/common/ActionBox";
+import { Button } from "~/components/ui/button";
 
 import type { Position } from "~/types";
-import { usdFormatter } from "@mrgnlabs/mrgn-common";
-import { Button } from "~/components/ui/button";
 
 type PositionCardProps = {
   position: Position;
 };
 
 export const PositionCard = ({ position }: PositionCardProps) => {
+  const [extendedBankInfos] = useMrgnlendStore((state) => [state.extendedBankInfos]);
   const pnlPositive = position.pnl > 0;
+
+  const usdc = React.useMemo(() => {
+    const bank = extendedBankInfos.find((bank) => bank.meta.tokenSymbol === "USDC");
+    return bank || null;
+  }, [extendedBankInfos]);
+
   return (
     <div className="bg-background-gray p-4 rounded-2xl space-y-4">
       <div className="flex items-center gap-4 justify-between">
@@ -60,11 +74,17 @@ export const PositionCard = ({ position }: PositionCardProps) => {
         </dl>
       </div>
       <div className="flex items-center justify-between gap-4">
-        <Button variant="secondary">Adjust position</Button>
-        <Button variant="secondary">Add collateral</Button>
-        <Button variant="destructive" className="ml-auto">
-          Close
-        </Button>
+        <Link href={`/trade/${position.bank.address.toBase58()}`}>
+          <Button variant="secondary">View position</Button>
+        </Link>
+        <ActionBoxDialog requestedBank={usdc} requestedAction={ActionType.Deposit}>
+          <Button variant="secondary">Add collateral</Button>
+        </ActionBoxDialog>
+        <ActionBoxDialog requestedBank={position.bank} requestedAction={ActionType.Repay}>
+          <Button variant="destructive" className="ml-auto">
+            Close
+          </Button>
+        </ActionBoxDialog>
       </div>
     </div>
   );
