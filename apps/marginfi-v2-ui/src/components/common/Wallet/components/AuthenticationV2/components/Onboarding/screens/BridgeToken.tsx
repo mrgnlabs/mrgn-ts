@@ -21,7 +21,7 @@ export const BridgeToken: React.FC<props> = ({ onNext }: props) => {
   }, [isMounted]);
 
   const loadDeBridgeWidger = () => {
-    window.deBridge.widget({
+    const widget = window.deBridge.widget({
       v: "1",
       element: "debridgeWidget",
       title: "",
@@ -49,6 +49,14 @@ export const BridgeToken: React.FC<props> = ({ onNext }: props) => {
       theme: "dark",
       isHideLogo: false,
       logo: "",
+    });
+
+    widget.on("order", (event: any, params: any) => {
+      console.log({ params, event });
+    });
+
+    widget.on("singleChainSwap", (event: any, params: any) => {
+      console.log({ params, event });
     });
   };
 

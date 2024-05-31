@@ -1,11 +1,10 @@
 import React from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 
-import { DialogContent } from "~/components/ui/dialog";
-import { AuthScreenProps, OnrampScreenProps, cn } from "~/utils";
+import { AuthScreenProps, OnrampScreenProps, SuccessProps, cn } from "~/utils";
 
 import { OnboardHeader } from "../../sharedComponents";
-import { solOnrampFlow } from "./onboardingSolUtils";
+import { solOnrampFlow, successSwap } from "./onboardingSolUtils";
 
 interface props extends AuthScreenProps {}
 
@@ -22,9 +21,12 @@ export const OnboardingSol = ({
 }: props) => {
   const { select, connected } = useWallet();
   const [screenIndex, setScreenIndex] = React.useState<number>(0);
+  const [successProps, setSuccessProps] = React.useState<SuccessProps>();
 
   const screen = React.useMemo(() => {
-    if (solOnrampFlow.length <= screenIndex) {
+    if (successProps?.jupiterSuccess && solOnrampFlow[screenIndex].tag === "swap") {
+      return successSwap;
+    } else if (solOnrampFlow.length <= screenIndex) {
       onClose();
       return solOnrampFlow[0];
     } else if (screenIndex < 0) {
@@ -37,8 +39,10 @@ export const OnboardingSol = ({
 
   React.useEffect(() => {
     if (connected) {
+      setIsActiveLoading("");
+      setIsLoading(false);
       setIsOnboarded(true);
-      onClose();
+      setScreenIndex((prev) => prev++);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [connected]);
@@ -62,10 +66,12 @@ export const OnboardingSol = ({
       {React.createElement(screen.comp, {
         isLoading: isLoading,
         isActiveLoading: isActiveLoading,
+        successProps: successProps,
         onNext: () => onClose(),
         setIsLoading: setIsLoading,
         setIsActiveLoading: setIsActiveLoading,
         loginWeb3Auth: loginWeb3Auth,
+        setSuccessProps: setSuccessProps,
         select: onSelectWallet,
       } as OnrampScreenProps)}
     </>

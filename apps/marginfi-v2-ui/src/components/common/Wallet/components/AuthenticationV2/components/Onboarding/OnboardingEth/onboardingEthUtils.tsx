@@ -11,7 +11,8 @@ export const ethOnrampFlow: EthOnrampScreen[] = [
   {
     comp: screens.CreateEthAccount,
     title: "Welcome to marginfi",
-    description: "and here's what we bring:",
+    description:
+      "Sign in with email or social and we'll create a Solana wallet for you, or connect an existing Solana wallet and bridge your funds.",
     titleSize: "lg",
   },
   {

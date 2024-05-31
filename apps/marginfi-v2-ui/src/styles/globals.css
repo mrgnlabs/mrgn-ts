@@ -438,3 +438,8 @@ input::-webkit-inner-spin-button {
 .dialect[data-theme="dark"] button.dt-group:hover {
   color: #fff;
 }
+
+/* MESO overrides */
+[data-testid="hero"] {
+  height: 80px !important;
+}

@@ -5,13 +5,15 @@ export type SocialOnrampScreen = {
   title: string;
   description: string;
   titleSize: "lg" | "sm";
+  tag?: string;
 };
 
 export const socialOnrampFlow: SocialOnrampScreen[] = [
   {
     comp: screens.CreateSocialAccount,
     title: "Step 1: Create account",
-    description: "and here's what we bring:",
+    description:
+      "Sign in with email or social and we'll create a Solana wallet for you, or connect your existing Solana wallet.",
     titleSize: "lg",
   },
   {
@@ -25,6 +27,7 @@ export const socialOnrampFlow: SocialOnrampScreen[] = [
     title: "Step 3: Swap some tokens",
     description: "Swap your SOL for some USDC, LST, or another token you're interested in.",
     titleSize: "sm",
+    tag: "swap",
   },
   {
     comp: screens.DepositToken,
