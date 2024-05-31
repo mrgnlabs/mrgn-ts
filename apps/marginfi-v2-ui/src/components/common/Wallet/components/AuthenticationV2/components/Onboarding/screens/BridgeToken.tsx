@@ -16,11 +16,11 @@ export const BridgeToken: React.FC<props> = ({ onNext }: props) => {
 
   React.useEffect(() => {
     if (window.deBridge && isMounted) {
-      loadDeBridgeWidger();
+      loadDeBridgeWidget();
     }
   }, [isMounted]);
 
-  const loadDeBridgeWidger = () => {
+  const loadDeBridgeWidget = () => {
     const widget = window.deBridge.widget({
       v: "1",
       element: "debridgeWidget",

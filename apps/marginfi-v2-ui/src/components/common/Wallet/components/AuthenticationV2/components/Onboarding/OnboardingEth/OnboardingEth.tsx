@@ -41,10 +41,11 @@ export const OnboardingEth = ({
     } else if (screenIndex < 0) {
       onPrev();
       return ethOnrampFlow[0];
-    } else if (userHasAcct && screenIndex > 0) {
-      onClose();
-      return ethOnrampFlow[0];
-    } else {
+    }
+    // else if (userHasAcct && screenIndex > 0) {
+    // onClose();
+    // return ethOnrampFlow[0];  }
+    else {
       return ethOnrampFlow[screenIndex];
     }
   }, [installingWallet, successProps, screenIndex, userHasAcct]);
