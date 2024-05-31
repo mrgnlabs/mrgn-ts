@@ -6,10 +6,12 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 
 import { cn } from "~/utils/themeUtils";
+import { useWalletContext } from "~/hooks/useWalletContext";
 
 import { WalletButton } from "~/components/common/Wallet";
+import { CreatePoolDialog } from "~/components/common/Pool/CreatePoolDialog";
 import { Button } from "~/components/ui/button";
-import { IconMrgn, IconTrendingUp, IconCoins, IconChartPie } from "~/components/ui/icons";
+import { IconMrgn, IconTrendingUp, IconCoins, IconChartPie, IconPlus } from "~/components/ui/icons";
 
 const navItems = [
   { label: "trade", icon: <IconTrendingUp />, href: "/trade/DeyH7QxWvnbbaVB4zFrf4hoq7Q8z1ZT14co42BGwGtfM" },
@@ -19,6 +21,7 @@ const navItems = [
 
 export const Header = () => {
   const { asPath, isReady } = useRouter();
+  const { connected } = useWalletContext();
 
   return (
     <div className="relative h-[64px] mb-4 md:mb-8 lg:mb-14">
@@ -43,7 +46,18 @@ export const Header = () => {
             ))}
           </ul>
         </nav>
-        <WalletButton />
+        <div className="flex items-center gap-4">
+          {connected && (
+            <CreatePoolDialog
+              trigger={
+                <Button variant="secondary">
+                  <IconPlus size={18} /> Create Pool
+                </Button>
+              }
+            />
+          )}
+          <WalletButton />
+        </div>
       </header>
     </div>
   );
