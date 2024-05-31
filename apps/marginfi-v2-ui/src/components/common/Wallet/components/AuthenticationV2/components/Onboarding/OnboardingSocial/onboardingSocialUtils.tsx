@@ -22,6 +22,7 @@ export const socialOnrampFlow: SocialOnrampScreen[] = [
     description:
       "Buy SOL with cash. You'll need this to deposit into marginfi, swap for other tokens, and pay transaction fees. ",
     titleSize: "sm",
+    tag: "onramp",
   },
   {
     comp: screens.JupiterSwap,
@@ -37,6 +38,13 @@ export const socialOnrampFlow: SocialOnrampScreen[] = [
     titleSize: "sm",
   },
 ];
+
+export const successOnramp: SocialOnrampScreen = {
+  comp: screens.SuccessScreen,
+  title: "Onramp complete",
+  description: "Meso onramp successful",
+  titleSize: "sm",
+};
 
 export const successSwap: SocialOnrampScreen = {
   comp: screens.SuccessScreen,

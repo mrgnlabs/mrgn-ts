@@ -1,8 +1,6 @@
 import React from "react";
-import Script from "next/script";
 
 import { OnrampScreenProps } from "~/utils";
-import { Bridge } from "~/components/common/Bridge";
 
 import { ScreenWrapper, WalletSeperator } from "../../sharedComponents";
 
@@ -53,7 +51,7 @@ export const BridgeToken: React.FC<props> = ({ onNext }: props) => {
       inputCurrency: "",
       outputCurrency: "",
       address: "",
-      showSwapTransfer: false,
+      showSwapTransfer: true,
       amount: "",
       outputAmount: "",
       isAmountFromNotModifiable: false,

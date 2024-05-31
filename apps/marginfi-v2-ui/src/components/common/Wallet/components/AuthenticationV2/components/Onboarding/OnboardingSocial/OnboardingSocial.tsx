@@ -5,7 +5,7 @@ import { useMrgnlendStore } from "~/store";
 import { AuthScreenProps, InstallingWallet, OnrampScreenProps, SuccessProps, cn } from "~/utils";
 
 import { OnboardHeader } from "../../sharedComponents";
-import { alreadyOnboarded, installWallet, socialOnrampFlow, successSwap } from "./onboardingSocialUtils";
+import { alreadyOnboarded, installWallet, socialOnrampFlow, successOnramp, successSwap } from "./onboardingSocialUtils";
 
 interface props extends AuthScreenProps {}
 
@@ -40,12 +40,12 @@ export const OnboardingSocial: React.FC<props> = ({
       return installWallet;
     } else if (successProps?.jupiterSuccess && socialOnrampFlow[screenIndex].tag === "swap") {
       return successSwap;
+    } else if (successProps?.mesoSuccess && socialOnrampFlow[screenIndex].tag === "onramp") {
+      return successOnramp;
     } else if (socialOnrampFlow.length <= screenIndex) {
       onClose();
-      return socialOnrampFlow[0];
     } else if (screenIndex < 0) {
       onPrev();
-      return socialOnrampFlow[0];
     } else if (userHasAcct && screenIndex == 0) {
       return alreadyOnboarded;
     } else {
@@ -79,6 +79,8 @@ export const OnboardingSocial: React.FC<props> = ({
     setIsActiveLoading(selectedWallet);
     select(selectedWallet as any);
   };
+
+  if (!screen) return <></>;
 
   return (
     <>

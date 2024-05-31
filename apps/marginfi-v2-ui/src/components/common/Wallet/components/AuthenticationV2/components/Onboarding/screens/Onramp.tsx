@@ -21,7 +21,7 @@ import { Label } from "~/components/ui/label";
 
 interface props extends OnrampScreenProps {}
 
-export const Onramp = ({ onNext }: props) => {
+export const Onramp = ({ successProps, onNext, setSuccessProps }: props) => {
   const { wallet } = useWalletContext();
   const divRef = React.useRef<HTMLDivElement>(null);
   const [amountRaw, setAmountRaw] = React.useState<string>("100.00");
@@ -62,7 +62,7 @@ export const Onramp = ({ onNext }: props) => {
         // A callback to handle events throughout the integration lifecycle
         onEvent({ kind, payload }: MesoEvent) {
           if (kind === EventKind.TRANSFER_COMPLETE) {
-            console.log("Transfer complete", payload);
+            setSuccessProps({ ...successProps, mesoSuccess: payload });
           }
         },
 

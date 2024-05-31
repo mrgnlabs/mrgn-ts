@@ -28,10 +28,8 @@ export const OnboardingSol = ({
       return successSwap;
     } else if (solOnrampFlow.length <= screenIndex) {
       onClose();
-      return solOnrampFlow[0];
     } else if (screenIndex < 0) {
       onPrev();
-      return solOnrampFlow[0];
     } else {
       return solOnrampFlow[screenIndex];
     }
@@ -39,10 +37,8 @@ export const OnboardingSol = ({
 
   React.useEffect(() => {
     if (connected) {
-      setIsActiveLoading("");
-      setIsLoading(false);
       setIsOnboarded(true);
-      setScreenIndex((prev) => prev++);
+      setScreenIndex(1);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [connected]);
@@ -53,6 +49,8 @@ export const OnboardingSol = ({
     setIsActiveLoading(selectedWallet);
     select(selectedWallet as any);
   };
+
+  if (!screen) return <></>;
 
   return (
     <>

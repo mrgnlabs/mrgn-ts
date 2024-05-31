@@ -1,3 +1,6 @@
+import { QuoteResponseMeta, SwapResult } from "@jup-ag/react-hook";
+import { TransferCompletePayload } from "@meso-network/meso-js";
+
 import { Web3AuthSocialProvider } from "~/hooks/useWalletContext";
 import {
   IconMrgn,
@@ -24,15 +27,18 @@ import {
   PwaSignIn,
   ReturningUser,
 } from "~/components/common/Wallet/components/AuthenticationV2/components";
-import { QuoteResponseMeta, SwapResult } from "@jup-ag/react-hook";
 
 export type InstallingWallet = { wallet: string; flow: "eth" | "onramp" };
+
+export interface JupiterScreenProps {
+  txid: string;
+  swapResult: SwapResult;
+  quoteResponseMeta: QuoteResponseMeta | null;
+}
+
 export type SuccessProps = {
-  jupiterSuccess?: {
-    txid: string;
-    swapResult: SwapResult;
-    quoteResponseMeta: QuoteResponseMeta | null;
-  };
+  jupiterSuccess?: JupiterScreenProps;
+  mesoSuccess?: TransferCompletePayload;
 };
 export interface OnrampScreenProps extends AuthScreenProps {
   installingWallet?: InstallingWallet;
