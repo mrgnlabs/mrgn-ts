@@ -19,14 +19,14 @@ export const OnrampAlreadyExists = ({ onNext, onClose, successProps }: props) =>
 
   return (
     <ScreenWrapper>
-      <div className="w-full flex flex-col gap-4">
+      <div className="w-full flex flex-col gap-4 p-4">
         <div className="text-xl text-white leading-none">Marginfi account exists</div>
         <p className="text-sm leading-none sm:text-base">
           It appears you already have a marginfi account. Click the button below to view your positions or skip to
           continue the onramp process.
         </p>
         <Button
-          className="w-fit"
+          className="mb-4 w-full"
           onClick={() => {
             onClose();
             router.push("/portfolio");
