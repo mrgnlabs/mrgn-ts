@@ -17,6 +17,7 @@ import { useWalletContext } from "~/hooks/useWalletContext";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { IconArrowLeft } from "~/components/ui/icons";
+import { Label } from "~/components/ui/label";
 
 interface props extends OnrampScreenProps {}
 
@@ -97,21 +98,24 @@ export const Onramp = ({ onNext }: props) => {
     <ScreenWrapper>
       <div className="p-2 space-y-2">
         {showMeso && (
-          <div className="absolute left-4 opacity-70 text-sm cursor-pointer flex gap-2" onClick={() => removeMeso()}>
+          <div
+            className="absolute z-20 top-3 left-4 opacity-70 text-sm cursor-pointer flex items-center gap-2"
+            onClick={() => removeMeso()}
+          >
             <IconArrowLeft width={18} height={18} /> enter amount
           </div>
         )}
         {!showMeso && (
           <div className="space-y-8">
-            <div className="space-y-2">
-              <p className="text-muted-foreground">Select how much USD to onramp</p>
-              <div className="flex justify-between items-center w-full">
-                <ul className="grid grid-cols-4 gap-2">
+            <div className="space-y-2 text-muted-foreground">
+              <p>How much SOL would you like to purchase?</p>
+              <div className="flex flex-col w-full gap-4">
+                <ul className="grid grid-cols-3 gap-3 w-full">
                   {amountOptions.map((option, idx) => (
                     <li key={idx}>
                       <Button
                         className={cn(
-                          "gap-0.5 h-auto w-full font-light border border-transparent bg-background/50 transition-colors hover:bg-background-gray-hover",
+                          "gap-0.5 h-auto py-4 w-full font-light border border-transparent bg-background/50 transition-colors hover:bg-background-gray-hover",
                           amount === option.value && "bg-background-gray-hover border-chartreuse"
                         )}
                         variant="secondary"
@@ -125,19 +129,22 @@ export const Onramp = ({ onNext }: props) => {
                     </li>
                   ))}
                 </ul>
-                <Input
-                  type="text"
-                  inputMode="decimal"
-                  value={amount}
-                  onChange={(e) => setAmountRaw(e.target.value)}
-                  onFocus={() => setIsCustomMode(true)}
-                  onBlur={() => setIsCustomMode(false)}
-                  placeholder="Custom amount"
-                  className={cn(
-                    "h-aut max-w-[120px] bg-background/50 py-3 px-4 border border-muted-foreground text-white transition-colors focus-visible:ring-0",
-                    !amountOptions.find((value) => value.value === amount) && "border-chartreuse"
-                  )}
-                />
+                <div className="space-y-1">
+                  <Label className="text-sm text-muted-foreground font-light">Custom amount</Label>
+                  <Input
+                    type="text"
+                    inputMode="decimal"
+                    value={amount}
+                    onChange={(e) => setAmountRaw(e.target.value)}
+                    onFocus={() => setIsCustomMode(true)}
+                    onBlur={() => setIsCustomMode(false)}
+                    placeholder="Custom amount"
+                    className={cn(
+                      "h-auto bg-background/50 py-3 px-4 border-0 w-full text-white transition-colors focus-visible:ring-0",
+                      !amountOptions.find((value) => value.value === amount) && "border-chartreuse"
+                    )}
+                  />
+                </div>
               </div>
             </div>
             {error && <div className="text-destructive-foreground text-sm">{error}</div>}
