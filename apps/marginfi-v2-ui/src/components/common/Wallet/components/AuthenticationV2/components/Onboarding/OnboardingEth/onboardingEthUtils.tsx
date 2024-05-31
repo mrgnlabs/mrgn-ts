@@ -19,7 +19,7 @@ export const ethOnrampFlow: EthOnrampScreen[] = [
     comp: screens.BridgeToken,
     title: "Step 1. Bridge your assets",
     description:
-      "Bridge your assets to Solana. You'll need SOL for transaction fees and can swap for other tokens on the next step.",
+      "Bridge your assets to Solana. You'll need SOL for transaction fees and can swap for other tokens next.",
     titleSize: "sm",
   },
   {
