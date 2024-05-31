@@ -10,7 +10,7 @@ import { SOL_MINT } from "~/store/lstStore";
 
 interface props extends OnrampScreenProps {}
 
-export const DepositToken = ({ successProps, onNext }: props) => {
+export const DepositToken = ({ successProps, onNext, onClose }: props) => {
   const [extendedBankInfos] = useMrgnlendStore((state) => [state.extendedBankInfos]);
 
   const requestedBank = React.useMemo(() => {
@@ -23,7 +23,14 @@ export const DepositToken = ({ successProps, onNext }: props) => {
 
   return (
     <ScreenWrapper noBackground={true}>
-      <ActionBox requestedAction={ActionType.Deposit} requestedBank={requestedBank} isMini={true} />
+      <ActionBox
+        requestedAction={ActionType.Deposit}
+        requestedBank={requestedBank}
+        isMini={true}
+        onComplete={() => {
+          onClose();
+        }}
+      />
       <WalletSeperator description="skip for now" onClick={() => onNext()} />
     </ScreenWrapper>
   );
