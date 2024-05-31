@@ -60,7 +60,9 @@ export const Onramp = ({ onNext }: props) => {
 
         // A callback to handle events throughout the integration lifecycle
         onEvent({ kind, payload }: MesoEvent) {
-          console.log(kind, payload);
+          if (kind === EventKind.TRANSFER_COMPLETE) {
+            console.log("Transfer complete", payload);
+          }
         },
 
         // A callback to handle having the user verify their wallet ownership by signing a message
