@@ -443,3 +443,7 @@ input::-webkit-inner-spin-button {
 [data-testid="hero"] {
   height: 80px !important;
 }
+
+iframe {
+  pointer-events: all;
+}
