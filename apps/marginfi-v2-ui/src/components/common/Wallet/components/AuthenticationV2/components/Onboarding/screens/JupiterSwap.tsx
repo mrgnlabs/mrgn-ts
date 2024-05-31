@@ -6,6 +6,7 @@ import { OnrampScreenProps, cn } from "~/utils";
 
 import { ScreenWrapper, WalletSeperator } from "../../sharedComponents";
 import { Loader } from "~/components/ui/loader";
+import { USDC_MINT } from "@bonfida/spl-name-service";
 
 interface props extends OnrampScreenProps {}
 
@@ -17,6 +18,7 @@ export const JupiterSwap = ({ onNext, setSuccessProps }: props) => {
       <div className="flex justify-center">
         <Swap
           initialInputMint={WSOL_MINT}
+          initialOutputMint={USDC_MINT}
           onLoad={() => {
             setIsLoaded(true);
           }}

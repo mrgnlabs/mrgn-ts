@@ -1,27 +1,34 @@
 import React from "react";
-import { useWindowSize } from "@uidotdev/usehooks";
-import { QuoteResponseMeta, SwapResult } from "@jup-ag/react-hook";
 import Link from "next/link";
-import { percentFormatter, shortenAddress } from "@mrgnlabs/mrgn-common";
+import { shortenAddress } from "@mrgnlabs/mrgn-common";
 
-import { OnrampScreenProps } from "~/utils";
+import { JupiterScreenProps, OnrampScreenProps } from "~/utils";
+import { useMrgnlendStore } from "~/store";
 import { IconCheck, IconExternalLink } from "~/components/ui/icons";
 import { Button } from "~/components/ui/button";
 
 import { ScreenWrapper } from "../../sharedComponents";
-import { useMrgnlendStore } from "~/store";
+import { TransferCompletePayload } from "@meso-network/meso-js";
 
 interface props extends OnrampScreenProps {}
 
-export const SuccessScreen = ({ onNext, successProps }: props) => {
-  const { width, height } = useWindowSize();
-
+export const SuccessScreen = ({ onNext, setSuccessProps, successProps }: props) => {
   return (
     <ScreenWrapper>
-      {!successProps?.jupiterSuccess && <JupiterSuccessScreen {...(successProps?.jupiterSuccess as any)} />}
+      {successProps?.mesoSuccess ? (
+        <MesoSuccessScreen {...successProps?.mesoSuccess} />
+      ) : (
+        successProps?.jupiterSuccess && <JupiterSuccessScreen {...successProps?.jupiterSuccess} />
+      )}
 
       <div className="w-full">
-        <Button className="w-full" onClick={() => onNext()}>
+        <Button
+          className="w-full"
+          onClick={() => {
+            setSuccessProps({ jupiterSuccess: successProps?.jupiterSuccess });
+            onNext();
+          }}
+        >
           Next
         </Button>
       </div>
@@ -29,13 +36,39 @@ export const SuccessScreen = ({ onNext, successProps }: props) => {
   );
 };
 
-interface jupiterScreenProps {
-  txid: string;
-  swapResult: SwapResult;
-  quoteResponseMeta: QuoteResponseMeta | null;
-}
+const MesoSuccessScreen = ({ transfer }: TransferCompletePayload) => {
+  return (
+    <div>
+      <div className="rounded-full p-2 bg-background-gray w-fit h-fit mx-auto">
+        <IconCheck width={42} height={42} />
+      </div>
+      <p className="text-center">
+        You&apos;ve successfully bought SOL!
+        <br /> Press next to make your first swap.
+      </p>
 
-const JupiterSuccessScreen = ({ txid, swapResult, quoteResponseMeta }: jupiterScreenProps) => {
+      <dl className="flex justify-center mt-4 ">
+        {transfer?.networkTransactionId ? (
+          <>
+            <Link
+              href={`https://solscan.io/tx/${transfer.networkTransactionId}`}
+              className="flex items-center gap-1.5 text-chartreuse text-sm"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {shortenAddress(transfer.networkTransactionId || "")}{" "}
+              <IconExternalLink size={15} className="-translate-y-[1px]" />
+            </Link>
+          </>
+        ) : (
+          <></>
+        )}
+      </dl>
+    </div>
+  );
+};
+
+const JupiterSuccessScreen = ({ txid, swapResult, quoteResponseMeta }: JupiterScreenProps) => {
   const [extendedBankInfos] = useMrgnlendStore((state) => [state.extendedBankInfos]);
 
   const requestedBank = React.useMemo(() => {

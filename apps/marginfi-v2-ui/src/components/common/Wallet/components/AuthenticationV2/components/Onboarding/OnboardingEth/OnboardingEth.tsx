@@ -2,7 +2,6 @@ import React from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import Script from "next/script";
 
-import { DialogContent } from "~/components/ui/dialog";
 import { useMrgnlendStore } from "~/store";
 import { AuthScreenProps, InstallingWallet, OnrampScreenProps, SuccessProps, cn } from "~/utils";
 
@@ -37,10 +36,8 @@ export const OnboardingEth = ({
       return successBridge;
     } else if (ethOnrampFlow.length <= screenIndex) {
       onClose();
-      return ethOnrampFlow[0];
     } else if (screenIndex < 0) {
       onPrev();
-      return ethOnrampFlow[0];
     }
     // else if (userHasAcct && screenIndex > 0) {
     // onClose();
@@ -70,6 +67,8 @@ export const OnboardingEth = ({
     setIsActiveLoading(selectedWallet);
     select(selectedWallet as any);
   };
+
+  if (!screen) return <></>;
 
   return (
     <>
