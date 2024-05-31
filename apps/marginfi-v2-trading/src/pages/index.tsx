@@ -4,6 +4,7 @@ import { useMrgnlendStore } from "~/store";
 
 import { PageHeading } from "~/components/common/PageHeading";
 import { PoolCard } from "~/components/common/Pool/PoolCard";
+import { CreatePoolDialog } from "~/components/common/Pool/CreatePoolDialog";
 import { IconSearch, IconSortDescending, IconFilter, IconPlus } from "~/components/ui/icons";
 import { Popover, PopoverTrigger, PopoverContent } from "~/components/ui/popover";
 import { Loader } from "~/components/ui/loader";
@@ -22,13 +23,7 @@ export default function HomePage() {
               heading={<h1>mrgntrade</h1>}
               body={<p>Create permissionless pools, provide liquidity, and trade with mrgntrade.</p>}
               links={[]}
-              button={
-                <Link href="/pools/create">
-                  <Button>
-                    <IconPlus size={18} /> Create a pool
-                  </Button>
-                </Link>
-              }
+              button={<CreatePoolDialog />}
             />
           </div>
 
