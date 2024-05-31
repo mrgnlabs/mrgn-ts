@@ -82,11 +82,7 @@ export const ReturningUser = ({
           className="relative bg-muted hover:bg-muted-highlight text-muted-foreground transition-all duration-300 w-full px-6 py-4 rounded-lg overflow-hidden"
           value="social"
         >
-          <AccordionTrigger
-            variant="wallet"
-            className="text-left hover:bg-muted-highlight rounded-lg"
-            onClick={() => isMobile && update("ONBOARD_SOCIAL")}
-          >
+          <AccordionTrigger variant="wallet" className="text-left hover:bg-muted-highlight rounded-lg">
             <div className="flex flex-col gap-3">
               <h2 className="font-semibold text-2xl text-white leading-none">Mobile friendly account</h2>
               <p className="text-sm font-light leading-none sm:text-base">
@@ -128,11 +124,7 @@ export const ReturningUser = ({
           className="relative bg-muted hover:bg-muted-highlight text-muted-foreground transition-all duration-300 w-full px-6 py-4 rounded-lg overflow-hidden"
           value="wallet"
         >
-          <AccordionTrigger
-            variant="wallet"
-            className={cn("text-left hover:bg-muted-highlight rounded-lg")}
-            onClick={() => isMobile && update("ONBOARD_SOL")}
-          >
+          <AccordionTrigger variant="wallet" className={cn("text-left hover:bg-muted-highlight rounded-lg")}>
             <div className="flex flex-col gap-3">
               <h2 className="font-semibold text-2xl text-white leading-none">Use a wallet</h2>
               <p className="text-sm font-light leading-none sm:text-base">If you're a pro, connect your wallet.</p>
@@ -165,6 +157,7 @@ export const ReturningUser = ({
                 )}
               </ul>
             )}
+
             <div className="flex items-center gap-1 justify-center text-sm">
               <IconStarFilled className="text-yellow-400" size={16} /> 5% points boost for{" "}
               <IconBackpackWallet size={16} /> <strong className="text-white font-medium">Backpack</strong> users
