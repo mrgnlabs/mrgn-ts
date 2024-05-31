@@ -9,7 +9,6 @@ import { useOs } from "~/hooks/useOs";
 
 import {
   ScreenWrapper,
-  ScreenHeader,
   WalletAuthButton,
   WalletAuthEmailForm,
   WalletSeperator,
@@ -58,10 +57,6 @@ export const CreateSolanaAccount: React.FC<props> = ({
 
   return (
     <ScreenWrapper>
-      <ScreenHeader
-        title="For Solana users"
-        description="Sign in with email or socials and bridge your funds to marginfi. Or connect your wallet below."
-      />
       <WalletAuthEmailForm
         loading={isLoading && isActiveLoading === "email"}
         active={!isLoading || (isLoading && isActiveLoading === "email")}

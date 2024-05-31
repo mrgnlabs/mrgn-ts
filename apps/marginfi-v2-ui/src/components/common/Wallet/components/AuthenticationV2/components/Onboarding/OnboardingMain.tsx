@@ -18,7 +18,7 @@ export const OnboardingMain = ({ update }: props) => {
         description={"Sign in to get started with marginfi. If you're new to crypto, let us guide you the process."}
       />
 
-      <div className="flex lg:flex-row flex-col gap-4 mt-10">
+      <div className="flex lg:flex-row flex-col gap-6 mt-10">
         <div
           className="cursor-pointer relative bg-muted hover:bg-muted-highlight text-muted-foreground transition-all duration-300 w-full p-6 pt-5 rounded-lg overflow-hidden"
           onClick={() => update("ONBOARD_SOCIAL")}

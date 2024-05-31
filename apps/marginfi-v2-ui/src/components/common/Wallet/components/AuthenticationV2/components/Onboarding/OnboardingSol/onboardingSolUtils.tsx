@@ -18,14 +18,14 @@ export const solOnrampFlow: SolOnrampScreen[] = [
   {
     comp: screens.JupiterSwap,
     title: "Step 2. Swap some tokens",
-    description: "Swap your SOL for some USDC, LST, or another token you're interested in.",
+    description: "Swap for USDC and start earning XXX% APY today. Make sure you keep some SOL for transaction fees.",
     titleSize: "sm",
     tag: "swap",
   },
   {
     comp: screens.DepositToken,
     title: "Step 3. Make a deposit!",
-    description: "Make your first deposit and start earning interest in marginfi.",
+    description: "Make your first deposit into marginfi and start earning XXX% APY permissionless yield today.",
     titleSize: "sm",
   },
 ];

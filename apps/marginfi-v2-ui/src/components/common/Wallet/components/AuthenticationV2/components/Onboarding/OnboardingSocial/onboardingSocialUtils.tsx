@@ -19,20 +19,21 @@ export const socialOnrampFlow: SocialOnrampScreen[] = [
   {
     comp: screens.Onramp,
     title: "Step 2: Buy some crypto",
-    description: "Buy SOL with cash, you'll need this to transact on the Solana blockchain",
+    description:
+      "Buy SOL with cash. You'll need this to deposit into marginfi, swap for other tokens, and pay transaction fees. ",
     titleSize: "sm",
   },
   {
     comp: screens.JupiterSwap,
     title: "Step 3: Swap some tokens",
-    description: "Swap your SOL for some USDC, LST, or another token you're interested in.",
+    description: "Swap for USDC and start earning XXX% APY today. Make sure you keep some SOL for transaction fees.",
     titleSize: "sm",
     tag: "swap",
   },
   {
     comp: screens.DepositToken,
     title: "Step 4: Make a deposit!",
-    description: "Make your first deposit and start earning interest in marginfi.",
+    description: "Make your first deposit into marginfi and start earning XXX% APY permissionless yield today.",
     titleSize: "sm",
   },
 ];

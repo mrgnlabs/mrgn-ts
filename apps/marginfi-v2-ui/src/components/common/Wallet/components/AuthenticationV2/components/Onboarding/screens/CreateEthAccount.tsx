@@ -5,7 +5,6 @@ import { useAvailableWallets, walletInstallMap } from "~/hooks/useAvailableWalle
 
 import {
   ScreenWrapper,
-  ScreenHeader,
   WalletAuthButton,
   WalletAuthEmailForm,
   WalletSeperator,
@@ -26,10 +25,6 @@ export const CreateEthAccount: React.FC<props> = ({
   const wallets = useAvailableWallets("eth");
   return (
     <ScreenWrapper>
-      <ScreenHeader
-        title="For Ethereum users"
-        description="Sign in with email or socials and bridge your funds to marginfi. Or connect your wallet below."
-      />
       <WalletAuthEmailForm
         loading={isLoading && isActiveLoading === "email"}
         active={!isLoading || (isLoading && isActiveLoading === "email")}

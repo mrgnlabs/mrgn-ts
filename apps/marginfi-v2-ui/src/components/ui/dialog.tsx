@@ -74,7 +74,7 @@ const DialogContent = React.forwardRef<
           size === "md" && `md:max-w-md`,
           size === "xl" && `md:max-w-xl`,
           size === "lg" && `md:max-w-lg`,
-
+          isBgGlass && "bg-background/95",
           className
         )}
         onOpenAutoFocus={(e) => e.preventDefault()}
