@@ -12,25 +12,26 @@ export const ethOnrampFlow: EthOnrampScreen[] = [
     comp: screens.CreateEthAccount,
     title: "Welcome to marginfi",
     description:
-      "Sign in with email or social and we'll create a Solana wallet for you, or connect an existing Solana wallet and bridge your funds.",
+      "Sign in with email or social and we'll create a Solana wallet for you, or connect an existing wallet and bridge your funds.",
     titleSize: "lg",
   },
   {
     comp: screens.BridgeToken,
     title: "Step 1. Bridge your assets",
-    description: "Bridge your assets from Ethereum to Solana, you can swap tokens on the next screen.",
+    description:
+      "Bridge your assets to Solana. You'll need SOL for transaction fees and can swap for other tokens on the next step.",
     titleSize: "sm",
   },
   {
     comp: screens.JupiterSwap,
     title: "Step 2. Swap some tokens",
-    description: "Swap your SOL for some USDC, LST, or another token you're interested in.",
+    description: "Swap for USDC and start earning XXX% APY today. Make sure you keep some SOL for transaction fees.",
     titleSize: "sm",
   },
   {
     comp: screens.DepositToken,
     title: "Step 3. Make a deposit!",
-    description: "Make your first deposit and start earning interest in marginfi.",
+    description: "Make your first deposit into marginfi and start earning XXX% APY permissionless yield today.",
     titleSize: "sm",
   },
 ];

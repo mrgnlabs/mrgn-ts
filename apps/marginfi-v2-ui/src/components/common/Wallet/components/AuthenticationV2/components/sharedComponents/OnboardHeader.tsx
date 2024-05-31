@@ -11,7 +11,7 @@ interface props {
 
 export const OnboardHeader = ({ onPrev, title, description, size = "lg" }: props) => {
   return (
-    <DialogHeader>
+    <DialogHeader className="mb-8 px-8">
       {onPrev && (
         <div className="absolute left-4 opacity-70 cursor-pointer" onClick={() => onPrev()}>
           <IconArrowLeft />

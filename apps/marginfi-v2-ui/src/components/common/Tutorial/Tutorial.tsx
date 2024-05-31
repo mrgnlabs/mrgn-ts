@@ -132,7 +132,7 @@ export const Tutorial = () => {
           if (!open) handleDialogClose();
         }}
       >
-        <DialogContent className="p-4 md:py-8 md:max-w-4xl">
+        <DialogContent className="p-4 md:py-8 md:max-w-4xl" isBgGlass={true}>
           <div className="max-w-3xl">
             <Swiper modules={[Pagination]} slidesPerView={1} navigation pagination={{ clickable: true }}>
               <SwiperSlide className="h-full">
