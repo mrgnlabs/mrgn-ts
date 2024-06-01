@@ -233,7 +233,7 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
           web3Auth: true,
           email: extraLoginOptions.login_hint,
         };
-        // localStorage.setItem("walletInfo", JSON.stringify(walletInfo));
+        localStorage.setItem("walletInfo", JSON.stringify(walletInfo));
       } catch (error) {
         setIsWalletAuthDialogOpen(true);
         console.error(error);

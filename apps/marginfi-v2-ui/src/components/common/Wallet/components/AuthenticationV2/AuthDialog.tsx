@@ -9,7 +9,6 @@ import { useBrowser } from "~/hooks/useBrowser";
 import { AUTO_FLOW_MAP, AuthFlowType, AuthScreenProps, cn } from "~/utils";
 import { useUiStore } from "~/store";
 import { Progress } from "~/components/ui/progress";
-import { Loader } from "~/components/ui/loader";
 
 export const AuthDialog = () => {
   const [isWalletAuthDialogOpen, setIsWalletAuthDialogOpen] = useUiStore((state) => [
@@ -158,8 +157,12 @@ export const AuthDialog = () => {
             setProgress: setProgress,
             setIsActiveLoading: setIsActiveLoading,
             loginWeb3Auth: (props) => {
-              localStorage.setItem("onboardingFlow", flow);
               loginWeb3Auth(props);
+              if (flow !== "RETURNING_PWA" && flow !== "RETURNING_USER") {
+                localStorage.setItem("onboardingFlow", flow);
+              } else {
+                setIsWalletAuthDialogOpen(false);
+              }
             },
           } as AuthScreenProps)}
         </DialogContent>
