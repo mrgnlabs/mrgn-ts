@@ -3,7 +3,7 @@ import * as screens from "../screens";
 export type SocialOnrampScreen = {
   comp: React.FC<any>;
   title: string;
-  description: string;
+  description?: string;
   titleSize: "lg" | "sm";
   tag?: string;
 };
@@ -20,7 +20,7 @@ export const socialOnrampFlow: SocialOnrampScreen[] = [
     comp: screens.Onramp,
     title: "Step 2: Buy some crypto",
     description:
-      "Buy SOL with cash. You'll need this to deposit into marginfi, swap for other tokens, and pay transaction fees. ",
+      "Buy SOL with cash. You'll need this to deposit into marginfi, swap for tokens, and pay transaction fees. ",
     titleSize: "sm",
     tag: "onramp",
   },
@@ -63,6 +63,5 @@ export const installWallet: SocialOnrampScreen = {
 export const alreadyOnboarded: SocialOnrampScreen = {
   comp: screens.OnrampAlreadyExists,
   title: "Existing account detected",
-  description: "View Your Positions or Continue the Onramp Process",
   titleSize: "lg",
 };

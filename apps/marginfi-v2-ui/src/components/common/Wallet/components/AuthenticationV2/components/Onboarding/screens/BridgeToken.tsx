@@ -41,17 +41,17 @@ export const BridgeToken: React.FC<props> = ({ onNext }: props) => {
       element: "debridgeWidget",
       title: "",
       description: "",
-      width: "400",
+      width: "460",
       height: "450",
-      r: 16890,
+      r: null,
       supportedChains:
-        '{"inputChains":{"1":"all","10":"all","56":"all","137":"all","8453":"all","42161":"all","43114":"all","59144":"all","7565164":"all","245022934":"all"},"outputChains":{"1":"all","10":"all","56":"all","137":"all","8453":"all","42161":"all","43114":"all","59144":"all","7565164":"all","245022934":"all"}}',
+        '{"inputChains":{"1":"all","10":"all","56":"all","137":"all","8453":"all","42161":"all","43114":"all","59144":"all","7565164":"all","245022934":"all"},"outputChains":{"7565164":[""]}}',
       inputChain: 1,
       outputChain: 7565164,
       inputCurrency: "",
       outputCurrency: "",
       address: "",
-      showSwapTransfer: true,
+      showSwapTransfer: false,
       amount: "",
       outputAmount: "",
       isAmountFromNotModifiable: false,
@@ -60,11 +60,12 @@ export const BridgeToken: React.FC<props> = ({ onNext }: props) => {
       mode: "deswap",
       isEnableCalldata: false,
       styles:
-        "eyJhcHBCYWNrZ3JvdW5kIjoicmdiYSgyNTUsMjU1LDI1NSwwKSIsImFwcEFjY2VudEJnIjoicmdiYSgyNTUsMjU1LDI1NSwwKSIsImJhZGdlIjoicmdiYSgyNTUsMjU1LDI1NSwwKSIsImJvcmRlclJhZGl1cyI6OCwicHJpbWFyeSI6IiNmZmZmZmYiLCJzdWNjZXNzIjoiIzc1YmE4MCIsImVycm9yIjoiI2UwN2Q2ZiIsIndhcm5pbmciOiIjZGFhMjA0IiwiaWNvbkNvbG9yIjoiI2ZmZmZmZiIsImZvbnRGYW1pbHkiOiIiLCJwcmltYXJ5QnRuQmciOiIjYzFjM2I3Iiwic2Vjb25kYXJ5QnRuQmciOiIiLCJsaWdodEJ0bkJnIjoiIn0=",
+        "eyJhcHBCYWNrZ3JvdW5kIjoiIzEyMTQxNiIsImFwcEFjY2VudEJnIjoiIzEyMTQxNiIsImNoYXJ0QmciOiIjMTIxNDE2IiwiYmFkZ2UiOiIjMTIxNDE2IiwiYm9yZGVyUmFkaXVzIjo4LCJ0b29sdGlwQmciOiIjMDAwMDAwIiwiZm9ybUNvbnRyb2xCZyI6IiMxZDIxMjUiLCJwcmltYXJ5IjoiI2ZmZmZmZiIsInNlY29uZGFyeSI6IiMwYTBiMGIiLCJpY29uQ29sb3IiOiIjZmZmZmZmIiwiZm9udENvbG9yQWNjZW50IjoiIzM2NDE0OCIsImZvbnRGYW1pbHkiOiIiLCJwcmltYXJ5QnRuQmciOiIjZmZmZmZmIiwic2Vjb25kYXJ5QnRuQmciOiIjMjIyNjJhIiwibGlnaHRCdG5CZyI6IiJ9",
       theme: "dark",
-      isHideLogo: false,
+      isHideLogo: true,
       logo: "",
     });
+
     setWidget(widget);
   };
 

@@ -115,7 +115,7 @@ export const Onramp = ({ successProps, onNext, setSuccessProps }: props) => {
                     <li key={idx}>
                       <Button
                         className={cn(
-                          "gap-0.5 h-auto py-4 w-full font-light border border-transparent bg-background/50 transition-colors hover:bg-background-gray-hover",
+                          "gap-0.5 h-auto py-4 w-full border border-transparent bg-background transition-colors hover:bg-background-gray-hover",
                           amount === option.value && "bg-background-gray-hover border-chartreuse"
                         )}
                         variant="secondary"
@@ -130,7 +130,7 @@ export const Onramp = ({ successProps, onNext, setSuccessProps }: props) => {
                   ))}
                 </ul>
                 <div className="space-y-1">
-                  <Label className="text-sm text-muted-foreground font-light">Custom amount</Label>
+                  <Label className="text-sm text-muted-foreground">Custom amount</Label>
                   <Input
                     type="text"
                     inputMode="decimal"
@@ -140,7 +140,7 @@ export const Onramp = ({ successProps, onNext, setSuccessProps }: props) => {
                     onBlur={() => setIsCustomMode(false)}
                     placeholder="Custom amount"
                     className={cn(
-                      "h-auto bg-background/50 py-3 px-4 border-0 w-full text-white transition-colors focus-visible:ring-0",
+                      "h-auto bg-background py-3 px-4 border-0 w-full text-white transition-colors focus-visible:ring-0",
                       !amountOptions.find((value) => value.value === amount) && "border-chartreuse"
                     )}
                   />

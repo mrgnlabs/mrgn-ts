@@ -26,12 +26,9 @@ export const JupiterSwap = ({ onNext, setSuccessProps }: props) => {
             setSuccessProps({ jupiterSuccess: props });
           }}
         />
-        <div className="h-full flex flex-col justify-start items-center content-start gap-8 w-4/5">
+        <div className="h-full flex flex-col justify-start items-center content-start gap-8">
           {!isLoaded && <Loader label="Loading Jupiter swap..." className="mt-8" />}
-          <div
-            className={cn("max-w-[420px] px-3 transition-opacity", !isLoaded && "opacity-0")}
-            id="integrated-terminal"
-          />
+          <div className={cn("w-full transition-opacity", !isLoaded && "opacity-0")} id="integrated-terminal" />
         </div>
       </div>
       <WalletSeperator description="skip for now" onClick={() => onNext()} />

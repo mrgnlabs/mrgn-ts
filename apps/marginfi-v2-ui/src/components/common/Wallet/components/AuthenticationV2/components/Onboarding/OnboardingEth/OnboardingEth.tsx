@@ -71,7 +71,7 @@ export const OnboardingEth = ({
   if (!screen) return <></>;
 
   return (
-    <>
+    <div className="pt-6 font-normal">
       <OnboardHeader
         title={screen.title}
         description={screen.description}
@@ -91,6 +91,6 @@ export const OnboardingEth = ({
       } as OnrampScreenProps)}
 
       <Script src="https://app.debridge.finance/assets/scripts/widget.js" />
-    </>
+    </div>
   );
 };

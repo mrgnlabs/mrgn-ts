@@ -4,22 +4,22 @@ import { cn } from "~/utils";
 
 interface props {
   title: string;
-  description: string;
+  description?: string;
   onPrev?: () => void;
   size?: "lg" | "sm";
 }
 
 export const OnboardHeader = ({ onPrev, title, description, size = "lg" }: props) => {
   return (
-    <DialogHeader className="mb-8 px-8">
+    <DialogHeader className="mb-8 px-2 md:px-8">
       {onPrev && (
-        <div className="absolute left-4 opacity-70 cursor-pointer" onClick={() => onPrev()}>
+        <div className="absolute left-4 top-4 opacity-70 cursor-pointer" onClick={() => onPrev()}>
           <IconArrowLeft />
         </div>
       )}
       <IconMrgn size={48} />
-      <DialogTitle className={cn(size === "lg" ? "text-3xl" : "text-2xl", "pt-4")}>{title}</DialogTitle>
-      <DialogDescription>{description}</DialogDescription>
+      <DialogTitle className={cn(size === "lg" ? "text-3xl" : "text-2xl", "pt-2")}>{title}</DialogTitle>
+      {description && <DialogDescription>{description}</DialogDescription>}
     </DialogHeader>
   );
 };

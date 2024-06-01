@@ -13,7 +13,8 @@ export const ScreenWrapper = ({ children, noBackground = false }: props) => {
       <div
         className={cn(
           "flex flex-col gap-6 relative text-muted-foreground transition-all duration-300 w-full p-4 rounded-lg max-h-none",
-          !noBackground && "bg-muted"
+          !noBackground && "bg-background-gray",
+          noBackground && "bg-background-gray"
         )}
       >
         {children}

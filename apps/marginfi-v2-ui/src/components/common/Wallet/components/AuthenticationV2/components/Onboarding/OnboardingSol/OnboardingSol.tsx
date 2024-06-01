@@ -53,7 +53,7 @@ export const OnboardingSol = ({
   if (!screen) return <></>;
 
   return (
-    <>
+    <div className="pt-6 font-normal">
       <OnboardHeader
         title={screen.title}
         description={screen.description}
@@ -72,6 +72,6 @@ export const OnboardingSol = ({
         setSuccessProps: setSuccessProps,
         select: onSelectWallet,
       } as OnrampScreenProps)}
-    </>
+    </div>
   );
 };

@@ -83,7 +83,7 @@ export const OnboardingSocial: React.FC<props> = ({
   if (!screen) return <></>;
 
   return (
-    <>
+    <div className="pt-6 font-normal">
       <OnboardHeader
         title={screen.title}
         description={screen.description}
@@ -105,6 +105,6 @@ export const OnboardingSocial: React.FC<props> = ({
         setSuccessProps: setSuccessProps,
         loginWeb3Auth: loginWeb3Auth,
       } as OnrampScreenProps)}
-    </>
+    </div>
   );
 };
