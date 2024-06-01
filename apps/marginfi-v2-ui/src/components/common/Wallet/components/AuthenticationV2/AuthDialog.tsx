@@ -121,20 +121,6 @@ export const AuthDialog = () => {
     }
   }, [isWalletAuthDialogOpen]);
 
-  const handleLoginWeb3Auth = React.useCallback(
-    (provider: string, extraLoginOptions: any = {}, cb?: () => void) => {
-      try {
-        localStorage.setItem("onboardingFlow", flow);
-        loginWeb3Auth(provider, extraLoginOptions, cb);
-      } catch (error) {
-        setIsLoading(false);
-        setIsActiveLoading("");
-        localStorage.removeItem("onboardingFlow");
-      }
-    },
-    [flow]
-  );
-
   const handleClose = () => {
     setIsWalletAuthDialogOpen(false);
   };
@@ -171,7 +157,10 @@ export const AuthDialog = () => {
             setIsLoading: setIsLoading,
             setProgress: setProgress,
             setIsActiveLoading: setIsActiveLoading,
-            loginWeb3Auth: handleLoginWeb3Auth,
+            loginWeb3Auth: (props) => {
+              localStorage.setItem("onboardingFlow", flow);
+              loginWeb3Auth(props);
+            },
           } as AuthScreenProps)}
         </DialogContent>
       </Dialog>
