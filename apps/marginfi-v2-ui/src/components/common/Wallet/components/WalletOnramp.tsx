@@ -3,10 +3,7 @@ import React from "react";
 import { loadMoonPay } from "@moonpay/moonpay-js";
 
 import { useUiStore } from "~/store";
-
 import { useWalletContext } from "~/hooks/useWalletContext";
-
-import { Button } from "~/components/ui/button";
 import { IconX } from "~/components/ui/icons";
 
 export const WalletOnramp = () => {

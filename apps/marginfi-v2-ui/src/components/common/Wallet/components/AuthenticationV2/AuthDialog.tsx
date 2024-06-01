@@ -21,7 +21,10 @@ export const AuthDialog = () => {
   const browser = useBrowser();
 
   const showPWAInstallScreen = React.useMemo(
-    () => (isAndroid || isIOS) && !(isPWA || browser === "Backpack" || browser === "Phantom"),
+    () =>
+      (isAndroid || isIOS) &&
+      !(isPWA || browser === "Backpack" || browser === "Phantom") &&
+      !localStorage.getItem("walletInfo"),
     [isAndroid, isIOS, browser, isPWA]
   );
 
@@ -49,7 +52,11 @@ export const AuthDialog = () => {
   // if user has PWA force social login
   React.useEffect(() => {
     if (isPWA) {
-      setFlow("ONBOARD_SOCIAL");
+      if (localStorage.getItem("walletInfo")) {
+        setFlow("RETURNING_PWA");
+      } else {
+        setFlow("ONBOARD_SOCIAL");
+      }
     }
   }, [isPWA]);
 

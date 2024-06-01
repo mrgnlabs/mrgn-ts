@@ -1,21 +1,9 @@
 import React from "react";
 
 import { AuthScreenProps, cn, socialProviders } from "~/utils";
-import { useIsMobile } from "~/hooks/useIsMobile";
 
-import { Button } from "~/components/ui/button";
-import {
-  OnboardHeader,
-  WalletAuthButton,
-  WalletAuthEmailForm,
-  WalletAuthWrapper,
-  WalletSeperator,
-} from "../sharedComponents";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "~/components/ui/accordion";
-import { useAvailableWallets } from "~/hooks/useAvailableWallets";
-import { useOs } from "~/hooks/useOs";
-import { IconBackpackWallet, IconPhantomWallet, IconStarFilled } from "~/components/ui/icons";
-import { useWallet } from "@solana/wallet-adapter-react";
+import { OnboardHeader, WalletAuthButton, WalletAuthEmailForm, WalletSeperator } from "../sharedComponents";
+import { useWalletContext } from "~/hooks/useWalletContext";
 
 interface props extends AuthScreenProps {}
 
@@ -28,11 +16,7 @@ export const PwaSignIn = ({
   update,
   onClose,
 }: props) => {
-  const isMobile = useIsMobile();
-  const wallets = useAvailableWallets();
-  const { select, connected } = useWallet();
-
-  const { isAndroid, isIOS } = useOs();
+  const { connected } = useWalletContext();
 
   React.useEffect(() => {
     if (connected) {

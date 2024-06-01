@@ -8,6 +8,7 @@ import { OnboardHeader } from "../../sharedComponents";
 import { alreadyOnboarded, installWallet, socialOnrampFlow, successOnramp, successSwap } from "./onboardingSocialUtils";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { Loader } from "~/components/ui/loader";
+import { useOs } from "~/hooks/useOs";
 
 interface props extends AuthScreenProps {}
 
@@ -23,6 +24,12 @@ export const OnboardingSocial: React.FC<props> = ({
 }: props) => {
   const { select } = useWallet();
   const { connected, logout } = useWalletContext();
+  const { isAndroid, isIOS, isPWA } = useOs();
+
+  const isMobile = React.useMemo(() => {
+    if (isAndroid || isIOS || isPWA) return true;
+    else return false;
+  }, [isAndroid, isIOS, isPWA]);
 
   const [userDataFetched, marginfiAccounts] = useMrgnlendStore((state) => [
     state.userDataFetched,
@@ -107,7 +114,7 @@ export const OnboardingSocial: React.FC<props> = ({
         title={screen.title}
         description={screen.description}
         size={screen.titleSize}
-        onPrev={() => onPrevScreen()}
+        onPrev={isMobile ? undefined : () => onPrevScreen()}
       />
 
       {isSocialAuthLoading ? (
