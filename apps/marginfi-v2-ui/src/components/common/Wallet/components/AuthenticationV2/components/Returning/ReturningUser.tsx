@@ -165,6 +165,9 @@ export const ReturningUser = ({
           </AccordionContent>
         </AccordionItem>
       </Accordion>
+      <div>
+        New to marginfi? Click <a onClick={() => update("ONBOARD_MAIN")}>here</a> to be guided.
+      </div>
     </>
   );
 };

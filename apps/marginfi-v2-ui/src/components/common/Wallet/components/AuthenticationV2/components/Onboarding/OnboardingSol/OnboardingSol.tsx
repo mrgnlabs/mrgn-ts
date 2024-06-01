@@ -1,6 +1,7 @@
 import React from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 
+import { useWalletContext } from "~/hooks/useWalletContext";
 import { AuthScreenProps, OnrampScreenProps, SuccessProps, cn } from "~/utils";
 
 import { OnboardHeader } from "../../sharedComponents";
@@ -12,14 +13,13 @@ export const OnboardingSol = ({
   isLoading,
   isActiveLoading,
   setIsLoading,
-  setProgress,
-  setIsOnboarded,
   setIsActiveLoading,
   loginWeb3Auth,
   onClose,
   onPrev,
 }: props) => {
-  const { select, connected } = useWallet();
+  const { select } = useWallet();
+  const { connected, logout } = useWalletContext();
   const [screenIndex, setScreenIndex] = React.useState<number>(0);
   const [successProps, setSuccessProps] = React.useState<SuccessProps>();
 
@@ -36,12 +36,11 @@ export const OnboardingSol = ({
   }, [onClose, onPrev, screenIndex]);
 
   React.useEffect(() => {
-    if (connected) {
-      setIsOnboarded(true);
+    if (connected && screenIndex === 0) {
       setScreenIndex(1);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [connected]);
+  }, [connected, screenIndex]);
 
   const onSelectWallet = (selectedWallet: string | null) => {
     if (!selectedWallet) return;
@@ -49,6 +48,18 @@ export const OnboardingSol = ({
     setIsActiveLoading(selectedWallet);
     select(selectedWallet as any);
   };
+
+  const onPrevScreen = React.useCallback(() => {
+    setScreenIndex((prev) => {
+      if (prev - 1 === 0 && connected) {
+        setIsLoading(false);
+        setIsActiveLoading("");
+        logout();
+        return prev - 2;
+      }
+      return prev - 1;
+    });
+  }, [connected]);
 
   if (!screen) return <></>;
 
@@ -58,7 +69,7 @@ export const OnboardingSol = ({
         title={screen.title}
         description={screen.description}
         size={screen.titleSize}
-        onPrev={() => setScreenIndex((prev) => prev - 1)}
+        onPrev={() => onPrevScreen()}
       />
 
       {React.createElement(screen.comp, {

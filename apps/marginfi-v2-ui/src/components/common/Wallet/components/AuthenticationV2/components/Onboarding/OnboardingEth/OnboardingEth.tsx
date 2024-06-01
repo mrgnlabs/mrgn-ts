@@ -7,6 +7,7 @@ import { AuthScreenProps, InstallingWallet, OnrampScreenProps, SuccessProps, cn 
 
 import { OnboardHeader } from "../../sharedComponents";
 import { ethOnrampFlow, installWallet, successBridge } from "./onboardingEthUtils";
+import { useWalletContext } from "~/hooks/useWalletContext";
 
 interface props extends AuthScreenProps {}
 
@@ -15,14 +16,14 @@ export const OnboardingEth = ({
   isActiveLoading,
   setIsLoading,
   setProgress,
-  setIsOnboarded,
   setIsActiveLoading,
   loginWeb3Auth,
   onClose,
   onPrev,
 }: props) => {
   const [marginfiAccounts] = useMrgnlendStore((state) => [state.marginfiAccounts]);
-  const { select, connected } = useWallet();
+  const { select } = useWallet();
+  const { connected, logout } = useWalletContext();
 
   const [screenIndex, setScreenIndex] = React.useState<number>(0);
   const [installingWallet, setInstallingWallet] = React.useState<InstallingWallet>();
@@ -48,11 +49,10 @@ export const OnboardingEth = ({
   }, [installingWallet, successProps, screenIndex, userHasAcct]);
 
   React.useEffect(() => {
-    if (connected) {
-      setIsOnboarded(true);
+    if (connected && screenIndex === 0) {
       setScreenIndex(1);
     }
-  }, [connected]);
+  }, [connected, screenIndex]);
 
   React.useEffect(() => {
     const total = ethOnrampFlow.length;
@@ -68,6 +68,18 @@ export const OnboardingEth = ({
     select(selectedWallet as any);
   };
 
+  const onPrevScreen = React.useCallback(() => {
+    setScreenIndex((prev) => {
+      if (prev - 1 == 0 && connected) {
+        setIsLoading(false);
+        setIsActiveLoading("");
+        logout();
+        return prev - 2;
+      }
+      return prev - 1;
+    });
+  }, [connected]);
+
   if (!screen) return <></>;
 
   return (
@@ -76,7 +88,7 @@ export const OnboardingEth = ({
         title={screen.title}
         description={screen.description}
         size={screen.titleSize}
-        onPrev={() => setScreenIndex((prev) => prev - 1)}
+        onPrev={() => onPrevScreen()}
       />
 
       {React.createElement(screen.comp, {

@@ -55,7 +55,6 @@ export interface AuthScreenProps {
   isActiveLoading: string;
   setIsActiveLoading: (isActiveLoading: string) => void;
   setIsLoading: (isLoading: boolean) => void;
-  setIsOnboarded: (isOnboarded: boolean) => void;
   setProgress: (progress: number) => void;
   loginWeb3Auth: (
     provider: string,

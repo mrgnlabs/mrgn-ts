@@ -6,6 +6,8 @@ import { AuthScreenProps, InstallingWallet, OnrampScreenProps, SuccessProps, cn 
 
 import { OnboardHeader } from "../../sharedComponents";
 import { alreadyOnboarded, installWallet, socialOnrampFlow, successOnramp, successSwap } from "./onboardingSocialUtils";
+import { useWalletContext } from "~/hooks/useWalletContext";
+import { Loader } from "~/components/ui/loader";
 
 interface props extends AuthScreenProps {}
 
@@ -14,21 +16,22 @@ export const OnboardingSocial: React.FC<props> = ({
   isActiveLoading,
   setIsLoading,
   setProgress,
-  setIsOnboarded,
   setIsActiveLoading,
   loginWeb3Auth,
   onClose,
   onPrev,
 }: props) => {
-  const { select, connected } = useWallet();
+  const { select } = useWallet();
+  const { connected, logout } = useWalletContext();
+
   const [userDataFetched, marginfiAccounts] = useMrgnlendStore((state) => [
     state.userDataFetched,
     state.marginfiAccounts,
   ]);
-
   const [screenIndex, setScreenIndex] = React.useState<number>(0);
   const [installingWallet, setInstallingWallet] = React.useState<InstallingWallet>();
   const [successProps, setSuccessProps] = React.useState<SuccessProps>();
+  const [isSocialAuthLoading, setIsSocialAuthLoading] = React.useState<boolean>(false);
 
   const userHasAcct = React.useMemo(
     () => userDataFetched && marginfiAccounts.length > 0,
@@ -47,6 +50,7 @@ export const OnboardingSocial: React.FC<props> = ({
     } else if (screenIndex < 0) {
       onPrev();
     } else if (userHasAcct && screenIndex == 0) {
+      console.log({ userHasAcct });
       return alreadyOnboarded;
     } else {
       return socialOnrampFlow[screenIndex];
@@ -61,16 +65,19 @@ export const OnboardingSocial: React.FC<props> = ({
   }, [screenIndex]);
 
   React.useEffect(() => {
-    if (connected && userDataFetched) {
+    if (connected && userDataFetched && screenIndex === 0) {
       setIsActiveLoading("");
       setIsLoading(false);
-      setIsOnboarded(true);
+      setIsSocialAuthLoading(false);
+      setScreenIndex(1);
 
       if (userHasAcct) {
         setScreenIndex((prev) => prev++);
       }
+    } else if (connected && !userDataFetched && screenIndex === 0) {
+      setIsSocialAuthLoading(true);
     }
-  }, [userDataFetched, userHasAcct, connected]);
+  }, [userDataFetched, userHasAcct, connected, screenIndex]);
 
   const onSelectWallet = (selectedWallet: string | null) => {
     if (!selectedWallet) return;
@@ -80,6 +87,18 @@ export const OnboardingSocial: React.FC<props> = ({
     select(selectedWallet as any);
   };
 
+  const onPrevScreen = React.useCallback(() => {
+    setScreenIndex((prev) => {
+      if (prev - 1 == 0 && connected) {
+        setIsLoading(false);
+        setIsActiveLoading("");
+        logout();
+        return prev - 2;
+      }
+      return prev - 1;
+    });
+  }, [connected]);
+
   if (!screen) return <></>;
 
   return (
@@ -88,23 +107,27 @@ export const OnboardingSocial: React.FC<props> = ({
         title={screen.title}
         description={screen.description}
         size={screen.titleSize}
-        onPrev={() => setScreenIndex((prev) => prev - 1)}
+        onPrev={() => onPrevScreen()}
       />
 
-      {React.createElement(screen.comp, {
-        isLoading: isLoading,
-        isActiveLoading: isActiveLoading,
-        installingWallet: installingWallet,
-        successProps: successProps,
-        onNext: () => setScreenIndex(screenIndex + 1),
-        onClose: onClose,
-        setIsLoading: setIsLoading,
-        select: (walletName) => onSelectWallet(walletName),
-        setIsActiveLoading: setIsActiveLoading,
-        setInstallingWallet: setInstallingWallet,
-        setSuccessProps: setSuccessProps,
-        loginWeb3Auth: loginWeb3Auth,
-      } as OnrampScreenProps)}
+      {isSocialAuthLoading ? (
+        <Loader />
+      ) : (
+        React.createElement(screen.comp, {
+          isLoading: isLoading,
+          isActiveLoading: isActiveLoading,
+          installingWallet: installingWallet,
+          successProps: successProps,
+          onNext: () => setScreenIndex(screenIndex + 1),
+          onClose: onClose,
+          setIsLoading: setIsLoading,
+          select: (walletName) => onSelectWallet(walletName),
+          setIsActiveLoading: setIsActiveLoading,
+          setInstallingWallet: setInstallingWallet,
+          setSuccessProps: setSuccessProps,
+          loginWeb3Auth: loginWeb3Auth,
+        } as OnrampScreenProps)
+      )}
     </div>
   );
 };
