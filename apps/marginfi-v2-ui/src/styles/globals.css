@@ -356,7 +356,7 @@ input::-webkit-inner-spin-button {
 }
 
 #jupiter-terminal .bg-\[\#212128\] {
-  background: #111416 !important;
+  background: hsl(var(--background)) !important;
 }
 
 #jupiter-terminal .bg-jupiter-bg {
