@@ -9,6 +9,7 @@ import { useBrowser } from "~/hooks/useBrowser";
 import { AUTO_FLOW_MAP, AuthFlowType, AuthScreenProps, cn } from "~/utils";
 import { useUiStore } from "~/store";
 import { Progress } from "~/components/ui/progress";
+import { Loader } from "~/components/ui/loader";
 
 export const AuthDialog = () => {
   const [isWalletAuthDialogOpen, setIsWalletAuthDialogOpen] = useUiStore((state) => [
@@ -24,14 +25,25 @@ export const AuthDialog = () => {
     [isAndroid, isIOS, browser, isPWA]
   );
 
-  const mainFlow: AuthFlowType = localStorage.getItem("walletInfo") ?? null ? "RETURNING_USER" : "ONBOARD_MAIN";
+  const mainFlow = React.useMemo(() => {
+    const walletInfo = localStorage.getItem("walletInfo");
+    const onboardingFlow = localStorage.getItem("onboardingFlow");
+
+    if (onboardingFlow) {
+      return onboardingFlow as AuthFlowType;
+    }
+
+    return walletInfo !== null ? "RETURNING_USER" : "ONBOARD_MAIN";
+  }, []);
+
+  //const mainFlow: AuthFlowType = localStorage.getItem("walletInfo") ?? null ? "RETURNING_USER" : "ONBOARD_MAIN";
 
   const [flow, setFlow] = React.useState<AuthFlowType>(mainFlow);
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const [isActiveLoading, setIsActiveLoading] = React.useState<string>("");
   const [progress, setProgress] = React.useState<number>(0);
-  const { select, connecting } = useWallet();
-  const { loginWeb3Auth } = useWalletContext();
+  const { select } = useWallet();
+  const { loginWeb3Auth, connecting, connected } = useWalletContext();
   const { query, replace, pathname } = useRouter();
 
   // if user has PWA force social login
@@ -49,11 +61,17 @@ export const AuthDialog = () => {
   }, [showPWAInstallScreen]);
 
   React.useEffect(() => {
-    if (!connecting && flow !== "ONBOARD_SOCIAL") {
+    if (!connecting) {
       setIsLoading(false);
       setIsActiveLoading("");
     }
   }, [connecting]);
+
+  React.useEffect(() => {
+    if (connected) {
+      localStorage.removeItem("onboardingFlow");
+    }
+  }, [connected]);
 
   // if user is onramping redirect to correct flow
   React.useEffect(() => {
@@ -96,6 +114,20 @@ export const AuthDialog = () => {
     }
   }, [isWalletAuthDialogOpen]);
 
+  const handleLoginWeb3Auth = React.useCallback(
+    (provider: string, extraLoginOptions: any = {}, cb?: () => void) => {
+      try {
+        localStorage.setItem("onboardingFlow", flow);
+        loginWeb3Auth(provider, extraLoginOptions, cb);
+      } catch (error) {
+        setIsLoading(false);
+        setIsActiveLoading("");
+        localStorage.removeItem("onboardingFlow");
+      }
+    },
+    [flow]
+  );
+
   const handleClose = () => {
     setIsWalletAuthDialogOpen(false);
   };
@@ -130,10 +162,9 @@ export const AuthDialog = () => {
             isLoading: isLoading,
             isActiveLoading: isActiveLoading,
             setIsLoading: setIsLoading,
-            setIsOnboarded: (isOnboarded: boolean) => localStorage.setItem("isOnboarded", JSON.stringify(isOnboarded)),
             setProgress: setProgress,
             setIsActiveLoading: setIsActiveLoading,
-            loginWeb3Auth: loginWeb3Auth,
+            loginWeb3Auth: handleLoginWeb3Auth,
           } as AuthScreenProps)}
         </DialogContent>
       </Dialog>
