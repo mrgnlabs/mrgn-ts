@@ -5,6 +5,7 @@ import { BrowserTypes, useBrowser } from "~/hooks/useBrowser";
 import { useOs } from "~/hooks/useOs";
 import { ScreenWrapper, WalletSeperator } from "../../sharedComponents";
 import { useIOSVersion } from "~/hooks/useIOSVersion";
+import { AuthScreenProps } from "~/utils";
 
 type PwaBrowserMap = {
   [browser in BrowserTypes]: StepCardProps[];
@@ -141,7 +142,9 @@ export const PwaBrowserMap: PwaBrowserMap = {
 
 const iosPwaBrowsers: BrowserTypes[] = ["Safari", "Chrome", "Edge", "Firefox"];
 
-export const InstallPWA = () => {
+interface props extends AuthScreenProps {}
+
+export const InstallPWA = ({ update }: props) => {
   const iosVersion = useIOSVersion();
 
   const isIOS16_3OrEarlier = React.useMemo(
@@ -193,7 +196,7 @@ export const InstallPWA = () => {
           PwaBrowserMap[browser].map((step, idx) => (
             <StepCard key={idx} icon={step.icon} title={step.title} description={step.description} />
           ))}
-        <WalletSeperator description="skip for now" onClick={() => undefined} />
+        <WalletSeperator description="skip for now" onClick={() => update("ONBOARD_SOCIAL")} />
       </div>
     </ScreenWrapper>
   );

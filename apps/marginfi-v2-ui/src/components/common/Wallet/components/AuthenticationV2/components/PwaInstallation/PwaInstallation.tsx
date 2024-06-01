@@ -14,7 +14,7 @@ export const PwaInstalation = ({
   setIsLoading,
   setIsActiveLoading,
   loginWeb3Auth,
-  onClose,
+  update,
   onPrev,
 }: props) => {
   const { select, connected } = useWallet();
@@ -42,17 +42,13 @@ export const PwaInstalation = ({
 
   return (
     <>
-      <OnboardHeader
-        title={screen.title}
-        description={screen.description}
-        size={screen.titleSize}
-        onPrev={() => setScreenIndex((prev) => prev - 1)}
-      />
+      <OnboardHeader title={screen.title} description={screen.description} size={screen.titleSize} />
 
       {React.createElement(screen.comp, {
         isLoading: isLoading,
         isActiveLoading: isActiveLoading,
         onNext: () => setScreenIndex(screenIndex + 1),
+        update: update,
         setIsLoading: setIsLoading,
         setIsActiveLoading: setIsActiveLoading,
         loginWeb3Auth: loginWeb3Auth,

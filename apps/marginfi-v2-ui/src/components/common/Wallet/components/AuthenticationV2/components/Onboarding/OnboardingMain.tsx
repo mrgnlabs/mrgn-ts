@@ -12,7 +12,7 @@ export const OnboardingMain = ({ update }: props) => {
   const isMobile = useIsMobile();
 
   return (
-    <div className="pt-8 font-normal">
+    <div className="pt-8 font-normal overflow-scroll">
       <OnboardHeader
         title={"Welcome to marginfi"}
         description={"Sign in to get started with marginfi. If you're new to crypto, let us guide you the process."}
@@ -20,7 +20,7 @@ export const OnboardingMain = ({ update }: props) => {
 
       <div className="flex lg:flex-row flex-col gap-6 mt-10">
         <div
-          className="cursor-pointer relative bg-muted hover:bg-muted-highlight text-muted-foreground transition-all duration-300 w-full p-6 pt-5 rounded-lg overflow-hidden"
+          className="cursor-pointer relative bg-muted hover:bg-muted-highlight text-muted-foreground transition-all duration-300 w-full p-6 pt-5 rounded-lg"
           onClick={() => update("ONBOARD_SOCIAL")}
         >
           <div className="flex flex-col justify-between h-full gap-6">
@@ -37,7 +37,7 @@ export const OnboardingMain = ({ update }: props) => {
           </div>
         </div>
         <div
-          className="cursor-pointer relative bg-muted hover:bg-muted-highlight text-muted-foreground transition-all duration-300 w-full p-6 pt-5 rounded-lg overflow-hidden"
+          className="cursor-pointer relative bg-muted hover:bg-muted-highlight text-muted-foreground transition-all duration-300 w-full p-6 pt-5 rounded-lg"
           onClick={() => update("ONBOARD_SOL")}
         >
           <div className="flex flex-col justify-between h-full gap-6">
@@ -51,7 +51,7 @@ export const OnboardingMain = ({ update }: props) => {
           </div>
         </div>
         <div
-          className="cursor-pointer relative bg-muted hover:bg-muted-highlight text-muted-foreground transition-all duration-300 w-full p-6 pt-5 rounded-lg overflow-hidden lg:cursor-normal"
+          className="cursor-pointer relative bg-muted hover:bg-muted-highlight text-muted-foreground transition-all duration-300 w-full p-6 pt-5 rounded-lg lg:cursor-normal"
           onClick={() => update("ONBOARD_ETH")}
         >
           <div className="flex flex-col justify-between h-full gap-6">
