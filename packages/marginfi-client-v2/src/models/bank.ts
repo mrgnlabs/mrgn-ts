@@ -819,6 +819,22 @@ function serializeOracleSetup(oracleSetup: OracleSetup): { none: {} } | { pythEm
   }
 }
 
+function computeMaxLeverage(
+  depositBank: Bank,
+  borrowBank: Bank,
+): { maxLeverage: number, ltv: number } {
+  const assetWeightInit = depositBank.config.assetWeightInit;
+  const liabilityWeightInit = borrowBank.config.liabilityWeightInit;
+  
+  const ltv = assetWeightInit.div(liabilityWeightInit).toNumber();
+  const maxLeverage = 1 / (1 - ltv);
+
+  return {
+    maxLeverage,
+    ltv,
+  };
+}
+
 export type { InterestRateConfig, BankConfigOpt, BankConfigOptRaw };
 export {
   Bank,
@@ -829,6 +845,7 @@ export {
   parseRiskTier,
   parseOracleSetup,
   serializeBankConfigOpt,
+  computeMaxLeverage,
 };
 
 // ----------------------------------------------------------------------------

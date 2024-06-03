@@ -226,6 +226,7 @@ export async function simulateAction({
               bank.address,
               repayWithCollatOptions.repayBank.address,
               bank.isActive && isWholePosition(bank, amount),
+              repayWithCollatOptions.repayBank.isActive && isWholePosition(repayWithCollatOptions.repayBank, repayWithCollatOptions.repayAmount),
               [...setupIxs, swapIx, ...swapcleanupIx],
               addressLookupTableAccounts
             );
