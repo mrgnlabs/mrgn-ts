@@ -57,13 +57,6 @@ export interface AuthScreenProps {
   setIsActiveLoading: (isActiveLoading: string) => void;
   setIsLoading: (isLoading: boolean) => void;
   setProgress: (progress: number) => void;
-  loginWeb3Auth: (
-    provider: string,
-    extraLoginOptions?: Partial<{
-      login_hint: string;
-    }>,
-    cb?: () => void
-  ) => void;
   onPrev: () => void;
   onClose: () => void;
   select(walletName: WalletName | null): void;
