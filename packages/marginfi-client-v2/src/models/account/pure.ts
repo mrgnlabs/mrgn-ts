@@ -6,6 +6,7 @@ import {
   createAssociatedTokenAccountIdempotentInstruction,
   getAssociatedTokenAddressSync,
   shortenAddress,
+  toBigNumber,
   uiToNative,
 } from "@mrgnlabs/mrgn-common";
 import { AccountMeta, ComputeBudgetProgram, PublicKey, TransactionInstruction } from "@solana/web3.js";
@@ -25,6 +26,7 @@ import {
   OraclePriceMap,
   RiskTier,
   TRANSFER_ACCOUNT_AUTHORITY_FLAG,
+  computeMaxLeverage,
 } from "../..";
 import BN from "bn.js";
 import { Address, BorshCoder, BorshInstructionCoder, translateAddress } from "@coral-xyz/anchor";
@@ -619,6 +621,30 @@ class MarginfiAccount {
     return makeHealthAccountMetas(banks, projectedActiveBanks);
   }
 
+  computeLoopingParams(
+    principal: Amount,
+    targetLeverage: number,
+    depositBank: Bank,
+    borrowBank: Bank,
+    depositOracleInfo: OraclePrice,
+    borrowOracleInfo: OraclePrice
+  ): { borrowAmount: BigNumber; depositAmount: BigNumber } {
+    const _initialCollateral = toBigNumber(principal);
+    const { maxLeverage, ltv } = computeMaxLeverage(depositBank, borrowBank);
+
+    if (targetLeverage > maxLeverage) {
+      throw Error(`Target leverage ${targetLeverage} exceeds max leverage for banks ${maxLeverage}`);
+    }
+
+    const depositAmount = _initialCollateral.times(new BigNumber(targetLeverage));
+    const borrowAmount = depositAmount
+      .times(ltv)
+      .times(depositOracleInfo.priceWeighted.lowestPrice)
+      .div(borrowOracleInfo.priceWeighted.highestPrice);
+
+    return { borrowAmount, depositAmount };
+  }
+
   // ----------------------------------------------------------------------------
   // Actions
   // ----------------------------------------------------------------------------
@@ -627,10 +653,13 @@ class MarginfiAccount {
     program: MarginfiProgram,
     banks: Map<string, Bank>,
     amount: Amount,
-    bankAddress: PublicKey
+    bankAddress: PublicKey,
+    opt: { wrapAndUnwrapSol?: boolean } = {}
   ): Promise<InstructionsWrapper> {
     const bank = banks.get(bankAddress.toBase58());
     if (!bank) throw Error(`Bank ${bankAddress.toBase58()} not found`);
+
+    const wrapAndUnwrapSol = opt.wrapAndUnwrapSol ?? true;
 
     const userTokenAtaPk = getAssociatedTokenAddressSync(bank.mint, this.authority, true); // We allow off curve addresses here to support Fuse.
     const ix = await instructions.makeDepositIx(
@@ -644,7 +673,7 @@ class MarginfiAccount {
       },
       { amount: uiToNative(amount, bank.mintDecimals) }
     );
-    const depositIxs = bank.mint.equals(NATIVE_MINT) ? this.wrapInstructionForWSol(ix, amount) : [ix];
+    const depositIxs = bank.mint.equals(NATIVE_MINT) && wrapAndUnwrapSol ? this.wrapInstructionForWSol(ix, amount) : [ix];
 
     return {
       instructions: depositIxs,
@@ -787,23 +816,27 @@ class MarginfiAccount {
     banks: Map<string, Bank>,
     amount: Amount,
     bankAddress: PublicKey,
-    opt?: { observationBanksOverride?: PublicKey[] } | undefined
+    opt: { observationBanksOverride?: PublicKey[]; wrapAndUnwrapSol?: boolean; createAtas?: boolean } = {}
   ): Promise<InstructionsWrapper> {
     const bank = banks.get(bankAddress.toBase58());
     if (!bank) throw Error(`Bank ${bankAddress.toBase58()} not found`);
+
+    const wrapAndUnwrapSol = opt.wrapAndUnwrapSol ?? true;
+    const createAtas = opt.createAtas ?? true;
 
     let ixs = [];
 
     const userAta = getAssociatedTokenAddressSync(bank.mint, this.authority, true); // We allow off curve addresses here to support Fuse.
 
-    // Add borrow-related instructions
-    const createAtaIdempotentIx = createAssociatedTokenAccountIdempotentInstruction(
-      this.authority,
-      userAta,
-      this.authority,
-      bank.mint
-    );
-    ixs.push(createAtaIdempotentIx);
+    if (createAtas) {
+      const createAtaIdempotentIx = createAssociatedTokenAccountIdempotentInstruction(
+        this.authority,
+        userAta,
+        this.authority,
+        bank.mint
+      );
+      ixs.push(createAtaIdempotentIx);
+    }
 
     let remainingAccounts;
     if (opt?.observationBanksOverride !== undefined) {
@@ -824,7 +857,7 @@ class MarginfiAccount {
       { amount: uiToNative(amount, bank.mintDecimals) },
       remainingAccounts
     );
-    const borrowIxs = bank.mint.equals(NATIVE_MINT) ? this.wrapInstructionForWSol(ix) : [ix];
+    const borrowIxs = bank.mint.equals(NATIVE_MINT) && wrapAndUnwrapSol ? this.wrapInstructionForWSol(ix) : [ix];
     ixs.push(...borrowIxs);
 
     return {
@@ -992,8 +1025,7 @@ class MarginfiAccount {
           const targetBalance = projectedBalances.find((b) => b.bankPk.equals(targetBank));
           if (!targetBalance) {
             throw Error(
-              `Balance for bank ${targetBank.toBase58()} should be projected active at this point (ix ${index}: ${
-                decoded.name
+              `Balance for bank ${targetBank.toBase58()} should be projected active at this point (ix ${index}: ${decoded.name
               }))`
             );
           }
@@ -1023,13 +1055,19 @@ class MarginfiAccount {
       oraclePrices,
       MarginRequirementType.Maintenance
     );
+    const { assets: assetsInit, liabilities: liabilitiesInit } = this.computeHealthComponents(
+      banks,
+      oraclePrices,
+      MarginRequirementType.Initial
+    );
     let description = `
 - Marginfi account: ${this.address}
 - Authority: ${this.authority}
 - Total deposits: $${assets.toFixed(6)}
 - Total liabilities: $${liabilities.toFixed(6)}
 - Equity: $${assets.minus(liabilities).toFixed(6)}
-- Health: ${assetsMaint.minus(liabilitiesMaint).div(assetsMaint).times(100).toFixed(2)}%
+- Health maint: ${assetsMaint.minus(liabilitiesMaint).div(assetsMaint).times(100).toFixed(2)}%
+- Health init: ${assetsInit.minus(liabilitiesInit).div(assetsInit).times(100).toFixed(2)}%
 - Balances:\n`;
 
     for (const balance of this.activeBalances) {
