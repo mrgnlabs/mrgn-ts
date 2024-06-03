@@ -22,36 +22,15 @@ initFirebaseIfNeeded();
 export interface SignupRequest {
   walletAddress: string;
   payload: firebaseApi.SignupPayload;
+  walletId?: string;
 }
 
 export default async function handler(req: NextApiRequest<SignupRequest>, res: any) {
-  const { walletAddress, payload } = req.body;
+  const { walletAddress, payload, walletId } = req.body;
 
   Sentry.setContext("signup_args", {
     walletAddress,
   });
-
-  /* signing logic
-   try {
-    const signupData = validateAndUnpackSignupData(signedAuthDataRaw, method);
-    signer = signupData.signer.toBase58();
-    payload = signupData.payload;
-  } catch (error: any) {
-    Sentry.captureException(error);
-    let status;
-    switch (error.message) {
-      case "Invalid signup tx":
-      case "Invalid signup payload":
-        status = STATUS_BAD_REQUEST;
-        break;
-      case "Invalid signature":
-        status = STATUS_UNAUTHORIZED;
-        break;
-      default:
-        status = STATUS_INTERNAL_ERROR;
-    }
-    return res.status(status).json({ error: error.message });
-  }*/
 
   try {
     const user = await getFirebaseUserByWallet(walletAddress);
@@ -72,10 +51,11 @@ export default async function handler(req: NextApiRequest<SignupRequest>, res: a
     return res.status(STATUS_INTERNAL_ERROR).json({ error: createUserError.message });
   }
 
-  await logSignupAttempt(walletAddress, payload.uuid, "", true);
+  await logSignupAttempt(walletAddress, payload.uuid, "", true, walletId);
   capture("user_login", {
     publicKey: walletAddress,
     uuid: payload.uuid,
+    walletId,
   });
   identify(payload.uuid, {
     publicKey: walletAddress,

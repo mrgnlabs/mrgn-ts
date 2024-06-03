@@ -128,23 +128,15 @@ function makeBankInfo(bank: Bank, oraclePrice: OraclePrice, emissionTokenData?: 
   };
 }
 
-const BIRDEYE_API = "https://public-api.birdeye.so";
 export async function fetchBirdeyePrices(mints: PublicKey[], apiKey?: string): Promise<BigNumber[]> {
   const mintList = mints.map((mint) => mint.toBase58()).join(",");
 
-  // use abort controller to restrict fetch to 10 seconds
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => {
-    controller.abort();
-  }, 5000);
-  const response = await fetch(`${BIRDEYE_API}/public/multi_price?list_address=${mintList}`, {
+  const response = await fetch(`/api/birdeye?mintList=${mintList}`, {
+    method: "GET",
     headers: {
-      Accept: "application/json",
-      "X-Api-Key": process.env.NEXT_PUBLIC_BIRDEYE_API_KEY || apiKey || "",
+      "Content-Type": "application/json",
     },
-    signal: controller.signal,
   });
-  clearTimeout(timeoutId);
 
   const responseBody = await response.json();
   if (responseBody.success) {
@@ -172,6 +164,7 @@ export async function makeExtendedBankEmission(
   let birdeyePrices: null | BigNumber[] = emissionsMints.map(() => new BigNumber(0));
 
   try {
+    console.log("calling function");
     birdeyePrices = await fetchBirdeyePrices(emissionsMints, apiKey);
   } catch (err) {
     console.log("Failed to fetch emissions prices from Birdeye", err);
@@ -629,6 +622,9 @@ enum ActionType {
   Borrow = "Borrow",
   Repay = "Repay",
   Withdraw = "Withdraw",
+  MintLST = "Mint LST",
+  UnstakeLST = "Unstake LST",
+  MintYBX = "Mint YBX",
 }
 
 export { Emissions, ActionType };

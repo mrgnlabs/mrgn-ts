@@ -214,6 +214,202 @@
       ]
     },
     {
+      "name": "lendingPoolAddBankWithSeed",
+      "docs": [
+        "A copy of lending_pool_add_bank with an additional bank seed.",
+        "This seed is used to create a PDA for the bank's signature.",
+        "lending_pool_add_bank is preserved for backwards compatibility."
+      ],
+      "accounts": [
+        {
+          "name": "marginfiGroup",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "admin",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "feePayer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "bankMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "bank",
+          "isMut": true,
+          "isSigner": false,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "type": "publicKey",
+                "path": "marginfi_group"
+              },
+              {
+                "kind": "account",
+                "type": "publicKey",
+                "account": "Mint",
+                "path": "bank_mint"
+              },
+              {
+                "kind": "arg",
+                "type": "u64",
+                "path": "bank_seed"
+              }
+            ]
+          }
+        },
+        {
+          "name": "liquidityVaultAuthority",
+          "isMut": false,
+          "isSigner": false,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "type": "string",
+                "value": "liquidity_vault_auth"
+              },
+              {
+                "kind": "account",
+                "type": "publicKey",
+                "path": "bank"
+              }
+            ]
+          }
+        },
+        {
+          "name": "liquidityVault",
+          "isMut": true,
+          "isSigner": false,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "type": "string",
+                "value": "liquidity_vault"
+              },
+              {
+                "kind": "account",
+                "type": "publicKey",
+                "path": "bank"
+              }
+            ]
+          }
+        },
+        {
+          "name": "insuranceVaultAuthority",
+          "isMut": false,
+          "isSigner": false,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "type": "string",
+                "value": "insurance_vault_auth"
+              },
+              {
+                "kind": "account",
+                "type": "publicKey",
+                "path": "bank"
+              }
+            ]
+          }
+        },
+        {
+          "name": "insuranceVault",
+          "isMut": true,
+          "isSigner": false,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "type": "string",
+                "value": "insurance_vault"
+              },
+              {
+                "kind": "account",
+                "type": "publicKey",
+                "path": "bank"
+              }
+            ]
+          }
+        },
+        {
+          "name": "feeVaultAuthority",
+          "isMut": false,
+          "isSigner": false,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "type": "string",
+                "value": "fee_vault_auth"
+              },
+              {
+                "kind": "account",
+                "type": "publicKey",
+                "path": "bank"
+              }
+            ]
+          }
+        },
+        {
+          "name": "feeVault",
+          "isMut": true,
+          "isSigner": false,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "type": "string",
+                "value": "fee_vault"
+              },
+              {
+                "kind": "account",
+                "type": "publicKey",
+                "path": "bank"
+              }
+            ]
+          }
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "bankConfig",
+          "type": {
+            "defined": "BankConfigCompact"
+          }
+        },
+        {
+          "name": "bankSeed",
+          "type": "u64"
+        }
+      ]
+    },
+    {
       "name": "lendingPoolConfigureBank",
       "accounts": [
         {
@@ -1281,6 +1477,37 @@
           "type": "u64"
         }
       ]
+    },
+    {
+      "name": "setNewAccountAuthority",
+      "accounts": [
+        {
+          "name": "marginfiAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "marginfiGroup",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "signer",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "newAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "feePayer",
+          "isMut": true,
+          "isSigner": true
+        }
+      ],
+      "args": []
     }
   ],
   "accounts": [
@@ -1306,7 +1533,7 @@
           {
             "name": "accountFlags",
             "docs": [
-              "The flas that indicates the state of the account.",
+              "The flags that indicate the state of the account.",
               "This is u64 bitfield, where each bit represents a flag.",
               "",
               "Flags:",
@@ -1891,10 +2118,8 @@
             }
           },
           {
-            "name": "oracleKeys",
-            "type": {
-              "array": ["publicKey", 5]
-            }
+            "name": "oracleKey",
+            "type": "publicKey"
           },
           {
             "name": "auto_padding_0",
@@ -2736,6 +2961,28 @@
           "index": false
         }
       ]
+    },
+    {
+      "name": "MarginfiAccountTransferAccountAuthorityEvent",
+      "fields": [
+        {
+          "name": "header",
+          "type": {
+            "defined": "AccountEventHeader"
+          },
+          "index": false
+        },
+        {
+          "name": "oldAccountAuthority",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "newAccountAuthority",
+          "type": "publicKey",
+          "index": false
+        }
+      ]
     }
   ],
   "errors": [
@@ -2953,6 +3200,11 @@
       "code": 6042,
       "name": "IllegalBalanceState",
       "msg": "Illegal balance state"
+    },
+    {
+      "code": 6043,
+      "name": "IllegalAccountAuthorityTransfer",
+      "msg": "Illegal account authority transfer"
     }
   ]
 }

@@ -1,41 +1,36 @@
-<div align="center">
-  <img height="170" src="./images/logo.png" />
+This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
-  <h1>marginfi landing page</h1>
-  
-  <p>
-    <!-- Discord -->
-    <a href="https://discord.com/channels/882369954916212737"><img alt="Discord Chat" src="https://img.shields.io/discord/882369954916212737?color=blueviolet&style=flat-square"/></a>
-    <!-- License -->
-    <a href="http://www.apache.org/licenses/LICENSE-2.0"><img alt="License" src="https://img.shields.io/github/license/mrgnlabs/mrgn-ts?style=flat-square&color=ffff00"/></a>
-  </p>
+## Getting Started
 
-  <h4>
-    <a href="https://www.marginfi.com/">marginfi.com</a>
-  </h4>
-</div>
+First, run the development server:
 
-Landing page for <a href="https://www.marginfi.com/">marginfi.com</a>.
+```bash
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
+```
 
-## Features
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-A clean and modern design with [Tailwind CSS](https://tailwindcss.com/), a utility-first CSS framework for rapidly building custom designs.
-Built with [Material UI](https://material-ui.com/), a popular React UI library that implements Google's Material Design guidelines.
-Leverages a number of other `@mrgnlabs` TypeScript packages, all available in the same [monorepo](https://github.com/mrgnlabs/mrgn-ts).
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-## Developing
+This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
 
-To get started with the marginfi landing page, follow these steps:
+## Learn More
 
-1. Clone the monorepo and navigate to the `apps/marginfi-landing-page` directory.
-2. Install the dependencies by running `yarn install`.
-3. Start the development server by running `yarn dev`.
-4. Access the frontend in your web browser at http://localhost:3002.
+To learn more about Next.js, take a look at the following resources:
 
-## Contributing
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-We welcome contributions to the marginfi landing page. If you're interested in helping, check out our [contributing guidelines](https://github.com/mrgnlabs/mrgn-ts/blob/main/CONTRIBUTING.md) and join the [mrgn community](https://t.me/mrgncommunity) on Telegram.
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
 
-## License
+## Deploy on Vercel
 
-`mrgn-ts` is open source software licensed under the Apache 2.0 license.
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.

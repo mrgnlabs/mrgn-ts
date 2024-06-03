@@ -4,9 +4,7 @@
   <h1>marginfi v2 UI (mrgnlend frontend)</h1>
   
   <p>
-    <!-- Discord -->
     <a href="https://discord.com/channels/882369954916212737"><img alt="Discord Chat" src="https://img.shields.io/discord/882369954916212737?color=blueviolet&style=flat-square"/></a>
-    <!-- License -->
     <a href="http://www.apache.org/licenses/LICENSE-2.0"><img alt="License" src="https://img.shields.io/github/license/mrgnlabs/mrgn-ts?style=flat-square&color=ffff00"/></a>
   </p>
 

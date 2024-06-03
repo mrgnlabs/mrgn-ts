@@ -22,10 +22,11 @@ initFirebaseIfNeeded();
 
 export interface LoginRequest {
   walletAddress: string;
+  walletId: string;
 }
 
 export default async function handler(req: NextApiRequest<LoginRequest>, res: any) {
-  const { walletAddress } = req.body;
+  const { walletAddress, walletId } = req.body;
 
   /* signing logic
   let signer;
@@ -52,14 +53,15 @@ export default async function handler(req: NextApiRequest<LoginRequest>, res: an
   try {
     const userResult = await getFirebaseUserByWallet(walletAddress);
     if (userResult === undefined) {
-      await logLoginAttempt(walletAddress, null, "", false);
+      await logLoginAttempt(walletAddress, null, "", false, walletId);
       Sentry.captureException({ message: "User not found" });
       return res.status(STATUS_NOT_FOUND).json({ error: "User not found" });
     } else {
-      await logLoginAttempt(walletAddress, userResult.uid, "", true);
+      await logLoginAttempt(walletAddress, userResult.uid, "", true, walletId);
 
       capture("user_login", {
         publicKey: walletAddress,
+        walletId: walletId,
         uuid: userResult.uid,
       });
       identify(userResult.uid, {

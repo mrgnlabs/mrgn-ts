@@ -6,17 +6,23 @@ export const logSignupAttempt = async (
   publicKey: string,
   uuid: string | null,
   signature: string,
-  successful: boolean
+  successful: boolean,
+  walletId: string = ""
 ) => {
   try {
     const db = admin.firestore();
     const loginsCollection = db.collection("logins");
+    const usersCollection = db.collection("users");
     await loginsCollection.add({
       publicKey,
       uuid,
       signature,
       successful,
+      walletId,
       timestamp: admin.firestore.FieldValue.serverTimestamp(),
+    });
+    await usersCollection.doc(publicKey).update({
+      lastUsedWalletId: walletId,
     });
   } catch (error: any) {
     console.error("Error logging sign-up attempt:", error);
@@ -27,17 +33,23 @@ export const logLoginAttempt = async (
   publicKey: string,
   uuid: string | null,
   signature: string,
-  successful: boolean
+  successful: boolean,
+  walletId: string = ""
 ) => {
   try {
     const db = admin.firestore();
     const loginsCollection = db.collection("logins");
+    const usersCollection = db.collection("users");
     await loginsCollection.add({
       publicKey,
       uuid,
       signature,
       successful,
+      walletId,
       timestamp: admin.firestore.FieldValue.serverTimestamp(),
+    });
+    await usersCollection.doc(publicKey).update({
+      lastUsedWalletId: walletId,
     });
   } catch (error: any) {
     console.error("Error logging log-in attempt:", error);
@@ -108,4 +120,16 @@ export async function createFirebaseUser(walletAddress: string, referralCode?: s
     referredBy,
     referralCode: uuidv4(),
   });
+}
+
+export async function getLastUsedWallet(wallet: string) {
+  const db = admin.firestore();
+  const user = await db.collection("users").doc(wallet).get();
+
+  if (!user.exists) {
+    return "";
+  }
+
+  const userData = user.data();
+  return userData?.lastUsedWalletId;
 }

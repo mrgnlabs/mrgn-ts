@@ -296,6 +296,7 @@ const getPointsDataForUser = async (wallet: string | undefined): Promise<UserPoi
   if (!pointsData) {
     return {
       ...DEFAULT_USER_POINTS_DATA,
+      referralLink: userReferralCode,
       owner: wallet,
     };
   }

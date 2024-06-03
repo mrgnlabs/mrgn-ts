@@ -32,14 +32,55 @@ interface UserData {
   id: string;
 }
 
-async function loginOrSignup(walletAddress: string, referralCode?: string) {
+const LoginPayloadStruct = object({
+  uuid: string(),
+});
+type LoginPayload = Infer<typeof LoginPayloadStruct>;
+
+const SignupPayloadStruct = object({
+  uuid: string(),
+  referralCode: optional(string()),
+});
+type SignupPayload = Infer<typeof SignupPayloadStruct>;
+
+const MigratePayloadStruct = object({
+  fromWalletAddress: string(),
+  toWalletAddress: string(),
+});
+type MigratePayload = Infer<typeof MigratePayloadStruct>;
+
+const AccountLabelPayloadStruct = object({
+  account: string(),
+  label: string(),
+});
+type AccountLabelPayload = Infer<typeof AccountLabelPayloadStruct>;
+
+async function loginOrSignup(walletAddress: string, walletId?: string, referralCode?: string) {
   const user = await getUser(walletAddress);
 
   if (user) {
-    await login(walletAddress);
+    await login(walletAddress, walletId);
   } else {
-    await signup(walletAddress, referralCode);
+    await signup(walletAddress, walletId, referralCode);
   }
+}
+
+async function login(walletAddress: string, walletId?: string) {
+  await loginWithAddress(walletAddress, walletId);
+}
+
+async function signup(walletAddress: string, walletId?: string, referralCode?: string) {
+  if (referralCode !== undefined && typeof referralCode !== "string") {
+    throw new Error("Invalid referral code provided.");
+  }
+
+  const uuid = uuidv4();
+  const authData: SignupPayload = {
+    uuid,
+    referralCode,
+  };
+
+  await signupWithAddress(walletAddress, authData, walletId);
 }
 
 async function getUser(walletAddress: string): Promise<UserData | undefined> {
@@ -65,49 +106,77 @@ async function getUser(walletAddress: string): Promise<UserData | undefined> {
   }
 }
 
-const LoginPayloadStruct = object({
-  uuid: string(),
-});
-type LoginPayload = Infer<typeof LoginPayloadStruct>;
-
-async function login(walletAddress: string) {
-  await loginWithAddress(walletAddress);
-}
-
-const SignupPayloadStruct = object({
-  uuid: string(),
-  referralCode: optional(string()),
-});
-type SignupPayload = Infer<typeof SignupPayloadStruct>;
-
-async function signup(walletAddress: string, referralCode?: string) {
-  if (referralCode !== undefined && typeof referralCode !== "string") {
-    throw new Error("Invalid referral code provided.");
-  }
-
-  const uuid = uuidv4();
-  const authData: SignupPayload = {
-    uuid,
-    referralCode,
+async function migratePoints(
+  signingMethod: SigningMethod,
+  blockhash: BlockhashWithExpiryBlockHeight,
+  wallet: Wallet,
+  toWalletAddress: string
+) {
+  const authData: MigratePayload = {
+    fromWalletAddress: wallet.publicKey!.toBase58(),
+    toWalletAddress,
   };
+  const signedDataRaw =
+    signingMethod === "tx" ? await signMigrateTx(wallet, authData, blockhash) : await signMigrateMemo(wallet, authData);
 
-  await signupWithAddress(walletAddress, authData);
+  const response = await fetch("/api/user/migrate-points", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ method: signingMethod, signedDataRaw }),
+  });
+  const data = await response.json();
+
+  return data;
 }
 
-export { getUser, loginOrSignup, signup, login, SignupPayloadStruct, LoginPayloadStruct };
-export type { UserData, SignupPayload };
+async function setAccountLabel(
+  signingMethod: SigningMethod,
+  blockhash: BlockhashWithExpiryBlockHeight,
+  wallet: Wallet,
+  account: string,
+  label: string
+) {
+  const signedDataRaw =
+    signingMethod === "tx"
+      ? await signAccountLabelTx(wallet, account, label, blockhash)
+      : await signAccountLabelMemo(wallet, account, label);
 
-// ----------------------------------------------------------------------------
-// Helpers
-// ----------------------------------------------------------------------------
+  if (!signedDataRaw) return false;
 
-async function signupWithAddress(walletAddress: string, payload: SignupPayload) {
+  const response = await fetch("/api/user/account-label", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ method: signingMethod, signedDataRaw, account, label }),
+  });
+
+  return response.ok;
+}
+
+export {
+  getUser,
+  loginOrSignup,
+  signup,
+  login,
+  migratePoints,
+  setAccountLabel,
+  LoginPayloadStruct,
+  SignupPayloadStruct,
+  MigratePayloadStruct,
+  AccountLabelPayloadStruct,
+};
+export type { UserData, LoginPayload, SignupPayload, MigratePayload, AccountLabelPayload };
+
+async function signupWithAddress(walletAddress: string, payload: SignupPayload, walletId?: string) {
   const response = await fetch("/api/user/signup", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ walletAddress, payload }),
+    body: JSON.stringify({ walletAddress, payload, walletId }),
   });
   const data = await response.json();
 
@@ -125,13 +194,13 @@ async function signupWithAddress(walletAddress: string, payload: SignupPayload) 
   await signinFirebaseAuth(data.token);
 }
 
-async function loginWithAddress(walletAddress: string) {
+async function loginWithAddress(walletAddress: string, walletId?: string) {
   const response = await fetch("/api/user/login", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ walletAddress }),
+    body: JSON.stringify({ walletAddress, walletId }),
   });
   const data = await response.json();
 
@@ -139,146 +208,100 @@ async function loginWithAddress(walletAddress: string) {
   await signinFirebaseAuth(data.token);
 }
 
-/**
- * @deprecated
- * Signing functionality
- */
-async function signupWithAuthData(signingMethod: SigningMethod, signedAuthDataRaw: string) {
-  const response = await fetch("/api/user/signup", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ method: signingMethod, signedAuthDataRaw }),
-  });
-  const data = await response.json();
+async function signMigrateMemo(wallet: Wallet, migrateData: MigratePayload): Promise<string> {
+  if (!wallet.publicKey) {
+    throw new Error("Wallet not connected!");
+  }
+  if (!wallet.signMessage) {
+    throw new Error("Current wallet does not support required action: `signMessage`");
+  }
 
-  switch (response.status) {
-    case STATUS_BAD_REQUEST:
-      throw new Error(data.error);
-    case STATUS_UNAUTHORIZED:
-    case STATUS_INTERNAL_ERROR:
-      throw new Error("Something went wrong during sign-up");
-    default: {
+  const encodedMessage = new TextEncoder().encode(JSON.stringify(migrateData));
+  const signature = await wallet.signMessage(encodedMessage);
+  const signedData = JSON.stringify({
+    data: migrateData,
+    signature: base58.encode(signature as Uint8Array),
+    signer: wallet.publicKey.toBase58(),
+  });
+
+  return signedData;
+}
+
+async function signMigrateTx(
+  wallet: Wallet,
+  migrateData: MigratePayload,
+  blockhash: BlockhashWithExpiryBlockHeight
+): Promise<string> {
+  const walletAddress = wallet.publicKey!;
+  const authDummyTx = new Transaction().add(createMemoInstruction(JSON.stringify(migrateData), [walletAddress]));
+
+  authDummyTx.feePayer = walletAddress;
+  authDummyTx.recentBlockhash = blockhash.blockhash;
+  authDummyTx.lastValidBlockHeight = blockhash.lastValidBlockHeight;
+
+  if (!wallet.signTransaction) {
+    throw new Error("Current wallet does not support required action: `signTransaction`");
+  }
+
+  const signedAuthDummyTx = await wallet.signTransaction(authDummyTx);
+  let signedData = signedAuthDummyTx.serialize().toString("base64");
+
+  return signedData;
+}
+
+async function signAccountLabelMemo(wallet: Wallet, account: string, label: string): Promise<string | boolean> {
+  if (!wallet.publicKey || !wallet.signMessage) return false;
+
+  try {
+    const encodedMessage = new TextEncoder().encode(JSON.stringify({ account, label }));
+    const signature = await wallet.signMessage(encodedMessage);
+
+    if (!signature) return false;
+
+    const signedData = JSON.stringify({
+      data: { account, label },
+      signature: base58.encode(signature as Uint8Array),
+      signer: wallet.publicKey.toBase58(),
+    });
+
+    return signedData;
+  } catch (error) {
+    console.error("Error signing account label memo: ", error);
+    return false;
+  }
+}
+
+async function signAccountLabelTx(
+  wallet: Wallet,
+  account: string,
+  label: string,
+  blockhash: BlockhashWithExpiryBlockHeight
+): Promise<string | boolean> {
+  try {
+    const walletAddress = wallet.publicKey!;
+    const authDummyTx = new Transaction().add(
+      createMemoInstruction(JSON.stringify({ account, label }), [walletAddress])
+    );
+
+    authDummyTx.feePayer = walletAddress;
+    authDummyTx.recentBlockhash = blockhash.blockhash;
+    authDummyTx.lastValidBlockHeight = blockhash.lastValidBlockHeight;
+
+    if (!wallet.signTransaction) {
+      return false;
     }
+
+    const signedAuthDummyTx = await wallet.signTransaction(authDummyTx);
+
+    if (!signedAuthDummyTx) return false;
+
+    let signedData = signedAuthDummyTx.serialize().toString("base64");
+
+    return signedData;
+  } catch (error) {
+    console.error("Error signing account label tx: ", error);
+    return false;
   }
-
-  if (!data.token) throw new Error("Something went wrong during sign-up");
-  await signinFirebaseAuth(data.token);
-}
-
-/**
- * @deprecated
- * Signing functionality
- */
-async function loginWithAuthData(signingMethod: SigningMethod, signedAuthDataRaw: string) {
-  const response = await fetch("/api/user/login", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ method: signingMethod, signedAuthDataRaw }),
-  });
-  const data = await response.json();
-
-  if (!data.token) throw new Error("Something went wrong during sign-in");
-  await signinFirebaseAuth(data.token);
-}
-
-/**
- * @deprecated
- * Signing functionality
- */
-async function signSignupMemo(wallet: Wallet, authData: SignupPayload): Promise<string> {
-  if (!wallet.publicKey) {
-    throw new Error("Wallet not connected!");
-  }
-  if (!wallet.signMessage) {
-    throw new Error("Current wallet does not support required action: `signMessage`");
-  }
-
-  const encodedMessage = new TextEncoder().encode(JSON.stringify(authData));
-  const signature = await wallet.signMessage(encodedMessage);
-  const signedData = JSON.stringify({
-    data: authData,
-    signature: base58.encode(signature as Uint8Array),
-    signer: wallet.publicKey.toBase58(),
-  });
-
-  return signedData;
-}
-
-/**
- * @deprecated
- * Signing functionality
- */
-async function signSignupTx(
-  wallet: Wallet,
-  authData: SignupPayload,
-  blockhash: BlockhashWithExpiryBlockHeight
-): Promise<string> {
-  const walletAddress = wallet.publicKey!;
-  const authDummyTx = new Transaction().add(createMemoInstruction(JSON.stringify(authData), [walletAddress]));
-  authDummyTx.feePayer = walletAddress;
-  authDummyTx.recentBlockhash = blockhash.blockhash;
-  authDummyTx.lastValidBlockHeight = blockhash.lastValidBlockHeight;
-
-  if (!wallet.signTransaction) {
-    throw new Error("Current wallet does not support required action: `signTransaction`");
-  }
-
-  const signedAuthDummyTx = await wallet.signTransaction(authDummyTx);
-  let signedData = signedAuthDummyTx.serialize().toString("base64");
-
-  return signedData;
-}
-
-/**
- * @deprecated
- * Signing functionality
- */
-async function signLoginMemo(wallet: Wallet, authData: LoginPayload): Promise<string> {
-  if (!wallet.publicKey) {
-    throw new Error("Wallet not connected!");
-  }
-  if (!wallet.signMessage) {
-    throw new Error("Current wallet does not support required action: `signMessage`");
-  }
-
-  const encodedMessage = new TextEncoder().encode(JSON.stringify(authData));
-  const signature = await wallet.signMessage(encodedMessage);
-  const signedData = JSON.stringify({
-    data: authData,
-    signature: base58.encode(signature as Uint8Array),
-    signer: wallet.publicKey.toBase58(),
-  });
-
-  return signedData;
-}
-
-/**
- * @deprecated
- * Signing functionality
- */
-async function signLoginTx(
-  wallet: Wallet,
-  authData: LoginPayload,
-  blockhash: BlockhashWithExpiryBlockHeight
-): Promise<string> {
-  const walletAddress = wallet.publicKey!;
-  const authDummyTx = new Transaction().add(createMemoInstruction(JSON.stringify(authData), [walletAddress]));
-  authDummyTx.feePayer = walletAddress;
-  authDummyTx.recentBlockhash = blockhash.blockhash;
-  authDummyTx.lastValidBlockHeight = blockhash.lastValidBlockHeight;
-
-  if (!wallet.signTransaction) {
-    throw new Error("Current wallet does not support required action: `signTransaction`");
-  }
-
-  const signedAuthDummyTx = await wallet.signTransaction(authDummyTx);
-  let signedData = signedAuthDummyTx.serialize().toString("base64");
-
-  return signedData;
 }
 
 async function signinFirebaseAuth(token: string) {

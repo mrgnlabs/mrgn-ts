@@ -1,11 +1,36 @@
-import { MarginfiAccountWrapper, MarginfiClient, ProcessTransactionError } from "@mrgnlabs/marginfi-client-v2";
-import { ExtendedBankInfo, FEE_MARGIN, ActionType, clearAccountCache } from "@mrgnlabs/marginfi-v2-ui-state";
-import { isWholePosition } from "./mrgnUtils";
-import { Connection, PublicKey, Transaction } from "@solana/web3.js";
-import { Wallet, processTransaction } from "@mrgnlabs/mrgn-common";
+import { QuoteResponse, SwapRequest, createJupiterApiClient } from "@jup-ag/api";
+import * as Sentry from "@sentry/nextjs";
+import {
+  AddressLookupTableAccount,
+  Connection,
+  LAMPORTS_PER_SOL,
+  PublicKey,
+  Transaction,
+  TransactionInstruction,
+  TransactionMessage,
+  VersionedTransaction,
+} from "@solana/web3.js";
+import { QuoteResponseMeta } from "@jup-ag/react-hook";
 import { WalletContextState } from "@solana/wallet-adapter-react";
+
+import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
+import { LUT_PROGRAM_AUTHORITY_INDEX, Wallet, processTransaction, uiToNative } from "@mrgnlabs/mrgn-common";
+import { ExtendedBankInfo, FEE_MARGIN, ActionType, clearAccountCache } from "@mrgnlabs/marginfi-v2-ui-state";
+
 import { WalletContextStateOverride } from "~/hooks/useWalletContext";
+import { LstData, SOL_MINT } from "~/store/lstStore";
+
 import { MultiStepToastHandle, showErrorToast } from "./toastUtils";
+import { isWholePosition, extractErrorString } from "./mrgnUtils";
+import { StakeData, makeDepositSolToStakePoolIx, makeDepositStakeToStakePoolIx } from "./lstUtils";
+
+export type RepayWithCollatOptions = {
+  repayCollatQuote: QuoteResponse;
+  repayCollatTxn: VersionedTransaction | null;
+  repayAmount: number;
+  repayBank: ExtendedBankInfo;
+  connection: Connection;
+};
 
 export type MarginfiActionParams = {
   mfiClient: MarginfiClient | null;
@@ -14,7 +39,22 @@ export type MarginfiActionParams = {
   amount: number;
   nativeSolBalance: number;
   marginfiAccount: MarginfiAccountWrapper | null;
+  repayWithCollatOptions?: RepayWithCollatOptions;
   walletContextState?: WalletContextState | WalletContextStateOverride;
+  priorityFee?: number;
+};
+
+export type LstActionParams = {
+  actionMode: ActionType;
+  marginfiClient: MarginfiClient;
+  amount: number;
+  nativeSolBalance: number;
+  connection: Connection;
+  wallet: Wallet;
+  lstData: LstData;
+  bank: ExtendedBankInfo | null;
+  selectedStakingAccount: StakeData | null;
+  quoteResponseMeta: QuoteResponseMeta | null;
   priorityFee?: number;
 };
 
@@ -27,6 +67,7 @@ export async function executeLendingAction({
   marginfiAccount,
   walletContextState,
   priorityFee,
+  repayWithCollatOptions,
 }: MarginfiActionParams) {
   let txnSig: string | undefined;
 
@@ -58,16 +99,99 @@ export async function executeLendingAction({
   }
 
   if (actionType === ActionType.Repay) {
-    txnSig = await repay({ marginfiAccount, bank, amount, priorityFee });
+    if (repayWithCollatOptions) {
+      console.log({ amount, repay: repayWithCollatOptions.repayAmount });
+      txnSig = await repayWithCollat({
+        marginfiClient: mfiClient,
+        marginfiAccount,
+        bank,
+        amount,
+        priorityFee,
+        options: repayWithCollatOptions,
+      });
+    } else {
+      txnSig = await repay({ marginfiAccount, bank, amount, priorityFee });
+    }
   }
 
   return txnSig;
 }
 
+export async function executeLstAction({
+  actionMode,
+  marginfiClient,
+  amount,
+  connection,
+  wallet,
+  lstData,
+  bank,
+  nativeSolBalance,
+  selectedStakingAccount,
+  quoteResponseMeta,
+  priorityFee,
+}: LstActionParams) {
+  let txnSig: string | undefined;
+
+  if (nativeSolBalance < FEE_MARGIN) {
+    showErrorToast("Not enough sol for fee.");
+    return;
+  }
+
+  if (!wallet.publicKey) {
+    showErrorToast("Wallet not connected.");
+    return;
+  }
+
+  if (!selectedStakingAccount && !bank) {
+    showErrorToast("No token selected.");
+    return;
+  }
+
+  if (actionMode === ActionType.MintLST) {
+    // Stake account selected
+    if (selectedStakingAccount) {
+      txnSig = await mintLstStakeToStake({
+        marginfiClient,
+        priorityFee,
+        connection,
+        selectedStakingAccount,
+        wallet,
+        lstData,
+      });
+    }
+
+    if (bank) {
+      if (bank.info.state.mint.equals(SOL_MINT)) {
+        // SOL selected
+        txnSig = await mintLstNative({ marginfiClient, bank, amount, priorityFee, connection, wallet, lstData });
+      } else {
+        // token selected
+        txnSig = await mintLstToken({ bank, amount, priorityFee, connection, wallet, quoteResponseMeta });
+      }
+    }
+    return txnSig;
+  } else if (actionMode === ActionType.UnstakeLST) {
+    if (bank) {
+      txnSig = await mintLstToken({
+        bank,
+        amount,
+        priorityFee,
+        connection,
+        wallet,
+        quoteResponseMeta,
+        isUnstake: true,
+      });
+      return txnSig;
+    }
+  } else {
+    throw new Error("Action not implemented");
+    Sentry.captureException({ message: "Action not implemented" });
+  }
+}
+
 // ------------------------------------------------------------------//
 // Individual action flows - non-throwing - for use in UI components //
 // ------------------------------------------------------------------//
-
 async function createAccountAndDeposit({
   mfiClient,
   bank,
@@ -102,6 +226,7 @@ async function createAccountAndDeposit({
     multiStepToast.setSuccessAndNext();
   } catch (error: any) {
     const msg = extractErrorString(error);
+    Sentry.captureException({ message: error });
     multiStepToast.setFailed(msg);
     console.log(`Error while depositing: ${msg}`);
     console.log(error);
@@ -114,6 +239,7 @@ async function createAccountAndDeposit({
     return txnSig;
   } catch (error: any) {
     const msg = extractErrorString(error);
+    Sentry.captureException({ message: error });
     multiStepToast.setFailed(msg);
     console.log(`Error while depositing: ${msg}`);
     console.log(error);
@@ -143,6 +269,7 @@ export async function deposit({
     return txnSig;
   } catch (error: any) {
     const msg = extractErrorString(error);
+    Sentry.captureException({ message: error });
     multiStepToast.setFailed(msg);
     console.log(`Error while depositing: ${msg}`);
     console.log(error);
@@ -172,6 +299,7 @@ export async function borrow({
     return txnSig;
   } catch (error: any) {
     const msg = extractErrorString(error);
+    Sentry.captureException({ message: error });
     multiStepToast.setFailed(msg);
     console.log(`Error while borrowing: ${msg}`);
     console.log(error);
@@ -206,6 +334,7 @@ export async function withdraw({
     return txnSig;
   } catch (error: any) {
     const msg = extractErrorString(error);
+    Sentry.captureException({ message: error });
     multiStepToast.setFailed(msg);
     console.log(`Error while withdrawing: ${msg}`);
     console.log(error);
@@ -240,6 +369,122 @@ export async function repay({
     return txnSig;
   } catch (error: any) {
     const msg = extractErrorString(error);
+    Sentry.captureException({ message: error });
+    multiStepToast.setFailed(msg);
+    console.log(`Error while repaying: ${msg}`);
+    console.log(error);
+    return;
+  }
+}
+
+const getFeeAccount = async (mint: PublicKey) => {
+  const referralProgramPubkey = new PublicKey("REFER4ZgmyYx9c6He5XfaTMiGfdLwRnkV4RPp9t9iF3");
+  const referralAccountPubkey = new PublicKey("Mm7HcujSK2JzPW4eX7g4oqTXbWYDuFxapNMHXe8yp1B");
+
+  const [feeAccount] = await PublicKey.findProgramAddressSync(
+    [Buffer.from("referral_ata"), referralAccountPubkey.toBuffer(), mint.toBuffer()],
+    referralProgramPubkey
+  );
+  return feeAccount.toBase58();
+};
+
+export async function repayWithCollatBuilder({
+  marginfiAccount,
+  bank,
+  amount,
+  options,
+  priorityFee,
+}: {
+  marginfiAccount: MarginfiAccountWrapper;
+  bank: ExtendedBankInfo;
+  amount: number;
+  options: RepayWithCollatOptions;
+  priorityFee?: number;
+}) {
+  const jupiterQuoteApi = createJupiterApiClient();
+
+  // get fee account for original borrow mint
+  //const feeAccount = await getFeeAccount(bank.info.state.mint);
+
+  const {
+    setupInstructions,
+    swapInstruction,
+    addressLookupTableAddresses,
+    cleanupInstruction,
+    tokenLedgerInstruction,
+  } = await jupiterQuoteApi.swapInstructionsPost({
+    swapRequest: {
+      quoteResponse: options.repayCollatQuote,
+      userPublicKey: marginfiAccount.authority.toBase58(),
+      programAuthorityId: LUT_PROGRAM_AUTHORITY_INDEX,
+    },
+  });
+
+  // const setupIxs = setupInstructions.length > 0 ? setupInstructions.map(deserializeInstruction) : []; //**not optional but man0s smart**
+  const swapIx = deserializeInstruction(swapInstruction);
+  // const swapcleanupIx = cleanupInstruction ? [deserializeInstruction(cleanupInstruction)] : []; **optional**
+  // tokenLedgerInstruction **also optional**
+
+  const addressLookupTableAccounts: AddressLookupTableAccount[] = [];
+  addressLookupTableAccounts.push(
+    ...(await getAdressLookupTableAccounts(options.connection, addressLookupTableAddresses))
+  );
+
+  const repayWithCollat = (await marginfiAccount.repayWithCollat(
+    amount,
+    options.repayAmount,
+    bank.address,
+    options.repayBank.address,
+    options.repayBank.isActive && isWholePosition(options.repayBank, options.repayAmount),
+    bank.isActive && isWholePosition(bank, amount),
+    [swapIx],
+    addressLookupTableAccounts,
+    priorityFee,
+    true
+  )) as {
+    flashloanTx: VersionedTransaction;
+    addressLookupTableAccounts: AddressLookupTableAccount[];
+  };
+
+  return { txn: repayWithCollat.flashloanTx, addressLookupTableAccounts: repayWithCollat.addressLookupTableAccounts };
+}
+
+export async function repayWithCollat({
+  marginfiClient,
+  marginfiAccount,
+  bank,
+  amount,
+  options,
+  priorityFee,
+}: {
+  marginfiClient: MarginfiClient | null;
+  marginfiAccount: MarginfiAccountWrapper;
+  bank: ExtendedBankInfo;
+  amount: number;
+  options: RepayWithCollatOptions;
+  priorityFee?: number;
+}) {
+  if (marginfiClient === null) {
+    showErrorToast("Marginfi client not ready");
+    return;
+  }
+
+  const multiStepToast = new MultiStepToastHandle("Repayment", [{ label: `Executing flashloan repayment` }]);
+  multiStepToast.start();
+
+  try {
+    let txn;
+    if (options.repayCollatTxn) {
+      txn = options.repayCollatTxn;
+    } else {
+      txn = (await repayWithCollatBuilder({ marginfiAccount, bank, amount, options, priorityFee })).txn;
+    }
+    const sig = await marginfiClient.processTransaction(txn);
+    multiStepToast.setSuccessAndNext();
+    return sig;
+  } catch (error: any) {
+    const msg = extractErrorString(error);
+    Sentry.captureException({ message: error });
     multiStepToast.setFailed(msg);
     console.log(`Error while repaying: ${msg}`);
     console.log(error);
@@ -271,6 +516,7 @@ export async function collectRewardsBatch(
     multiStepToast.setSuccessAndNext();
   } catch (error: any) {
     const msg = extractErrorString(error);
+    Sentry.captureException({ message: error });
     multiStepToast.setFailed(msg);
     console.log(`Error while collecting rewards: ${msg}`);
     console.log(error);
@@ -312,26 +558,213 @@ export const closeBalance = async ({
     return txnSig;
   } catch (error: any) {
     const msg = extractErrorString(error);
+    Sentry.captureException({ message: error });
     multiStepToast.setFailed(msg);
     console.log(`Error while closing balance`);
     console.log(error);
   }
 };
 
-function extractErrorString(error: any, fallback?: string): string {
-  if (error instanceof ProcessTransactionError) {
-    if (error.message === "Bank deposit capacity exceeded") return "We've reached maximum capacity for this asset";
-    return error.message;
-  }
+export async function mintLstStakeToStake({
+  marginfiClient,
+  priorityFee,
+  connection,
+  wallet,
+  lstData,
+  selectedStakingAccount,
+}: {
+  marginfiClient: MarginfiClient;
+  priorityFee?: number;
+  connection: Connection;
+  wallet: Wallet;
+  lstData: LstData;
+  selectedStakingAccount: StakeData | null;
+}) {
+  const multiStepToast = new MultiStepToastHandle("Mint LST", [{ label: `Minting LST` }]);
+  multiStepToast.start();
 
-  if (typeof error === "string") {
-    return error;
-  }
+  try {
+    const {
+      value: { blockhash },
+    } = await connection.getLatestBlockhashAndContext();
 
-  return fallback ?? "Unrecognized error";
+    if (!selectedStakingAccount) {
+      multiStepToast.setFailed("Route not calculated yet");
+      return;
+    }
+
+    const { instructions, signers } = await makeDepositStakeToStakePoolIx(
+      lstData.accountData,
+      lstData.poolAddress,
+      wallet.publicKey,
+      selectedStakingAccount.validatorVoteAddress,
+      selectedStakingAccount.address,
+      priorityFee
+    );
+
+    const depositMessage = new TransactionMessage({
+      instructions: instructions,
+      payerKey: wallet.publicKey,
+      recentBlockhash: blockhash,
+    });
+
+    const depositTransaction = new VersionedTransaction(depositMessage.compileToV0Message([]));
+    depositTransaction.sign(signers);
+
+    const txnSig = await marginfiClient.processTransaction(depositTransaction);
+    multiStepToast.setSuccessAndNext();
+    return txnSig;
+  } catch (error: any) {
+    const msg = extractErrorString(error);
+    Sentry.captureException({ message: error });
+    multiStepToast.setFailed(msg);
+    console.log(`Error while minting lst: ${msg}`);
+    console.log(error);
+    return;
+  }
 }
 
-async function getMaybeSquadsOptions(walletContextState?: WalletContextState | WalletContextStateOverride) {
+export async function mintLstNative({
+  marginfiClient,
+  bank,
+  amount,
+  priorityFee,
+  connection,
+  wallet,
+  lstData,
+}: {
+  marginfiClient: MarginfiClient;
+  bank: ExtendedBankInfo;
+  amount: number;
+  priorityFee?: number;
+  connection: Connection;
+  wallet: Wallet;
+  lstData: LstData;
+}) {
+  const multiStepToast = new MultiStepToastHandle("Mint LST", [
+    { label: `Staking ${amount} ${bank.meta.tokenSymbol}` },
+  ]);
+  multiStepToast.start();
+
+  try {
+    const {
+      value: { blockhash },
+    } = await connection.getLatestBlockhashAndContext();
+
+    const bnAmount = uiToNative(amount, bank.info.state.mintDecimals);
+
+    const { instructions, signers } = await makeDepositSolToStakePoolIx(
+      lstData.accountData,
+      lstData.poolAddress,
+      wallet.publicKey,
+      bnAmount,
+      undefined,
+      undefined,
+      undefined,
+      priorityFee
+    );
+
+    const depositMessage = new TransactionMessage({
+      instructions: instructions,
+      payerKey: wallet.publicKey,
+      recentBlockhash: blockhash,
+    });
+
+    const depositTransaction = new VersionedTransaction(depositMessage.compileToV0Message([]));
+    depositTransaction.sign(signers);
+
+    const txnSig = await marginfiClient.processTransaction(depositTransaction);
+    multiStepToast.setSuccessAndNext();
+    return txnSig;
+  } catch (error: any) {
+    const msg = extractErrorString(error);
+    Sentry.captureException({ message: error });
+    multiStepToast.setFailed(msg);
+    console.log(`Error while minting lst: ${msg}`);
+    console.log(error);
+    return;
+  }
+}
+
+export async function mintLstToken({
+  bank,
+  amount,
+  priorityFee,
+  connection,
+  wallet,
+  quoteResponseMeta,
+  isUnstake = false,
+}: {
+  bank: ExtendedBankInfo;
+  amount: number;
+  priorityFee?: number;
+  connection: Connection;
+  wallet: Wallet;
+  quoteResponseMeta: QuoteResponseMeta | null;
+  isUnstake?: boolean;
+}) {
+  const jupiterApiClient = createJupiterApiClient();
+
+  const multiStepToast = isUnstake
+    ? new MultiStepToastHandle("Unstake LST", [{ label: `Swapping ${amount} ${bank.meta.tokenSymbol} for SOL` }])
+    : new MultiStepToastHandle("Mint LST", [{ label: `Swapping ${amount} ${bank.meta.tokenSymbol} for LST` }]);
+  multiStepToast.start();
+
+  try {
+    const {
+      value: { blockhash },
+    } = await connection.getLatestBlockhashAndContext();
+
+    const quote = quoteResponseMeta?.original;
+    if (!quote) {
+      multiStepToast.setFailed("Route not calculated yet");
+      return;
+    }
+
+    const swapRequest = {
+      quoteResponse: quote,
+      userPublicKey: wallet.publicKey.toBase58(),
+      wrapAndUnwrapSol: false,
+    } as SwapRequest;
+
+    if (priorityFee) {
+      swapRequest.prioritizationFeeLamports = priorityFee * LAMPORTS_PER_SOL;
+    }
+
+    const { swapTransaction: swapTransactionEncoded, lastValidBlockHeight } = await jupiterApiClient.swapPost({
+      swapRequest: swapRequest,
+    });
+    const swapTransactionBuffer = Buffer.from(swapTransactionEncoded, "base64");
+    const swapTransaction = VersionedTransaction.deserialize(swapTransactionBuffer);
+
+    const signedSwapTransaction = await wallet.signTransaction(swapTransaction);
+    const swapSig = await connection.sendTransaction(signedSwapTransaction);
+    await connection.confirmTransaction(
+      {
+        blockhash,
+        lastValidBlockHeight,
+        signature: swapSig,
+      },
+      "confirmed"
+    );
+
+    multiStepToast.setSuccessAndNext();
+    return swapSig;
+  } catch (error: any) {
+    const msg = extractErrorString(error);
+    Sentry.captureException({ message: error });
+    multiStepToast.setFailed(msg);
+    console.log(`Error while minting lst: ${msg}`);
+    console.log(error);
+    return;
+  }
+}
+
+// ------------------------------------------------------------------//
+// Helpers //
+// ------------------------------------------------------------------//
+
+export async function getMaybeSquadsOptions(walletContextState?: WalletContextState | WalletContextStateOverride) {
   // If the connected wallet is SquadsX, use the ephemeral signer address provided by the wallet to create the marginfi account.
   const adapter = walletContextState?.wallet?.adapter;
   const ephemeralSignerAddress =
@@ -343,4 +776,38 @@ async function getMaybeSquadsOptions(walletContextState?: WalletContextState | W
   const ephemeralSignerPubkey = ephemeralSignerAddress ? new PublicKey(ephemeralSignerAddress) : undefined;
 
   return ephemeralSignerPubkey ? { newAccountKey: ephemeralSignerPubkey } : undefined;
+}
+
+export function deserializeInstruction(instruction: any) {
+  return new TransactionInstruction({
+    programId: new PublicKey(instruction.programId),
+    keys: instruction.accounts.map((key: any) => ({
+      pubkey: new PublicKey(key.pubkey),
+      isSigner: key.isSigner,
+      isWritable: key.isWritable,
+    })),
+    data: Buffer.from(instruction.data, "base64"),
+  });
+}
+
+export async function getAdressLookupTableAccounts(
+  connection: Connection,
+  keys: string[]
+): Promise<AddressLookupTableAccount[]> {
+  const addressLookupTableAccountInfos = await connection.getMultipleAccountsInfo(
+    keys.map((key) => new PublicKey(key))
+  );
+
+  return addressLookupTableAccountInfos.reduce((acc, accountInfo, index) => {
+    const addressLookupTableAddress = keys[index];
+    if (accountInfo) {
+      const addressLookupTableAccount = new AddressLookupTableAccount({
+        key: new PublicKey(addressLookupTableAddress),
+        state: AddressLookupTableAccount.deserialize(accountInfo.data),
+      });
+      acc.push(addressLookupTableAccount);
+    }
+
+    return acc;
+  }, new Array<AddressLookupTableAccount>());
 }

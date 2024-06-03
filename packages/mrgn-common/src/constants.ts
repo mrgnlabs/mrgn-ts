@@ -16,4 +16,10 @@ export const USDC_DECIMALS = 6;
 
 export const WSOL_MINT = new PublicKey("So11111111111111111111111111111111111111112");
 
+export const LST_MINT = new PublicKey("LSTxxxnJzKDFSLr4dUkPcmCf5VyryEqzPLz5j4bpxFp");
+
 export const HOURS_PER_YEAR = 365.25 * 24;
+
+export const LUT_PROGRAM_AUTHORITY_INDEX = 5;
+
+export const JUPITER_V6_PROGRAM = new PublicKey("JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4");

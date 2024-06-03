@@ -90,7 +90,7 @@ export const Portfolio = () => {
   }
 
   return (
-    <div className="bg-background-gray-dark p-4 md:p-6 rounded-xl space-y-3 w-full mb-10">
+    <div className="p-4 md:p-6 rounded-xl space-y-3 w-full mb-10">
       <h2 className="font-medium text-2xl md:text-3xl">Portfolio</h2>
       <div className="text-muted-foreground">
         <dl className="flex justify-between items-center gap-2">
@@ -152,7 +152,12 @@ export const Portfolio = () => {
             lendingBanks.length > 0 ? (
               <div className="flex flex-col gap-4">
                 {lendingBanks.map((bank) => (
-                  <PortfolioAssetCard key={bank.meta.tokenSymbol} bank={bank} isInLendingMode={true} />
+                  <PortfolioAssetCard
+                    key={bank.meta.tokenSymbol}
+                    bank={bank}
+                    isInLendingMode={true}
+                    isBorrower={borrowingBanks.length > 0}
+                  />
                 ))}
               </div>
             ) : (
@@ -173,7 +178,12 @@ export const Portfolio = () => {
             borrowingBanks.length > 0 ? (
               <div className="flex flex-col gap-4">
                 {borrowingBanks.map((bank) => (
-                  <PortfolioAssetCard key={bank.meta.tokenSymbol} bank={bank} isInLendingMode={false} />
+                  <PortfolioAssetCard
+                    key={bank.meta.tokenSymbol}
+                    bank={bank}
+                    isInLendingMode={false}
+                    isBorrower={borrowingBanks.length > 0}
+                  />
                 ))}
               </div>
             ) : (

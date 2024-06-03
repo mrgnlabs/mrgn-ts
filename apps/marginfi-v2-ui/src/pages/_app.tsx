@@ -3,9 +3,11 @@ import React from "react";
 import App, { AppContext, AppInitialProps, AppProps } from "next/app";
 import Head from "next/head";
 import dynamic from "next/dynamic";
+import { useRouter } from "next/router";
 
 import { WalletProvider } from "@solana/wallet-adapter-react";
 import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
+import { TipLinkWalletAutoConnect } from "@tiplink/wallet-adapter-react-ui";
 import { init, push } from "@socialgouv/matomo-next";
 import { ToastContainer } from "react-toastify";
 import { Analytics } from "@vercel/analytics/react";
@@ -14,7 +16,7 @@ import config from "~/config";
 import { MrgnlendProvider, LipClientProvider } from "~/context";
 import { WALLET_ADAPTERS } from "~/config/wallets";
 import { useMrgnlendStore, useUiStore } from "~/store";
-import { useLstStore } from "./stake";
+import { useLstStore } from "~/store";
 import { Desktop, Mobile } from "~/mediaQueries";
 import { WalletProvider as MrgnWalletProvider } from "~/hooks/useWalletContext";
 import { ConnectionProvider } from "~/hooks/useConnection";
@@ -35,7 +37,7 @@ require("~/styles/globals.css");
 require("~/styles/fonts.css");
 require("~/styles/asset-borders.css");
 
-const DesktopNavbar = dynamic(async () => (await import("~/components/desktop/DesktopNavbar")).DesktopNavbar, {
+const Navbar = dynamic(async () => (await import("~/components/common/Navbar")).Navbar, {
   ssr: false,
 });
 
@@ -56,6 +58,8 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
     state.initialized,
     state.isRefreshingStore,
   ]);
+
+  const { query, isReady } = useRouter();
 
   // enable matomo heartbeat
   React.useEffect(() => {
@@ -89,34 +93,37 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
       <Meta path={path} />
       {ready && (
         <ConnectionProvider endpoint={config.rpcEndpoint}>
-          <WalletProvider wallets={WALLET_ADAPTERS} autoConnect={true}>
-            <MrgnWalletProvider>
-              <MrgnlendProvider>
-                <LipClientProvider>
-                  <Desktop>
-                    <WalletModalProvider>
-                      <DesktopNavbar />
-                      <div className="w-full flex flex-col justify-center items-center pt-[64px]">
+          <TipLinkWalletAutoConnect isReady={isReady} query={query}>
+            <WalletProvider wallets={WALLET_ADAPTERS} autoConnect={true}>
+              <MrgnWalletProvider>
+                <MrgnlendProvider>
+                  <LipClientProvider>
+                    <Navbar />
+
+                    <Desktop>
+                      <WalletModalProvider>
+                        <div className="w-full flex flex-col justify-center items-center">
+                          <Component {...pageProps} />
+                        </div>
+                        <Footer />
+                      </WalletModalProvider>
+                    </Desktop>
+
+                    <Mobile>
+                      <MobileNavbar />
+                      <div className="w-full flex flex-col justify-center items-center">
                         <Component {...pageProps} />
                       </div>
-                      <Footer />
-                    </WalletModalProvider>
-                  </Desktop>
-
-                  <Mobile>
-                    <MobileNavbar />
-                    <div className="w-full flex flex-col justify-center items-center sm:pt-[24px]">
-                      <Component {...pageProps} />
-                    </div>
-                  </Mobile>
-                  <Analytics />
-                  <Tutorial />
-                  <WalletAuthDialog />
-                  <ToastContainer position="bottom-left" theme="dark" />
-                </LipClientProvider>
-              </MrgnlendProvider>
-            </MrgnWalletProvider>
-          </WalletProvider>
+                    </Mobile>
+                    <Analytics />
+                    <Tutorial />
+                    <WalletAuthDialog />
+                    <ToastContainer position="bottom-left" theme="dark" />
+                  </LipClientProvider>
+                </MrgnlendProvider>
+              </MrgnWalletProvider>
+            </WalletProvider>
+          </TipLinkWalletAutoConnect>
         </ConnectionProvider>
       )}
     </>

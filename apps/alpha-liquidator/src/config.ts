@@ -66,6 +66,7 @@ let envSchema = z.object({
       return pkArrayStr.split(",").map((pkStr) => new PublicKey(pkStr));
     })
     .optional(),
+  MAX_LIQUIDATION_AMOUNT_USD: z.string().optional().transform((s) => s ? new BigNumber(s) : new BigNumber(Number.MAX_SAFE_INTEGER)),
   MAX_SLIPPAGE_BPS: z
     .string()
     .optional()

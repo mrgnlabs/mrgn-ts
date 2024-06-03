@@ -43,10 +43,10 @@ module.exports = {
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
-        "background-gray": "#1C2125",
+        "background-gray": "#111416",
         "background-gray-hover": "#292F34",
-        "background-gray-light": "#303030",
-        "background-gray-dark": "#131618",
+        "background-gray-light": "#1B2022",
+        "background-gray-dark": "#0C0F11",
         foreground: "hsl(var(--foreground))",
         chartreuse: "#DCE85D",
         primary: {
@@ -60,6 +60,10 @@ module.exports = {
         alert: {
           DEFAULT: "hsl(35 14% 17%)",
           foreground: "hsl(33 96% 61%)",
+        },
+        info: {
+          DEFAULT: "hsl(218 27% 12%)",
+          foreground: "hsl(220 95% 75%)",
         },
         destructive: {
           DEFAULT: "var(--destructive)",
@@ -156,5 +160,6 @@ module.exports = {
       });
     }),
     require("tailwindcss-animate"),
+    require("@tailwindcss/typography"),
   ],
 };

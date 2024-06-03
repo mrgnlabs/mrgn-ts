@@ -11,7 +11,7 @@ async function start() {
   const wallet = new NodeWallet(env_config.WALLET_KEYPAIR);
 
   const config = getConfig(env_config.MRGN_ENV);
-  const client = await MarginfiClient.fetch(config, wallet, connection);
+  const client = await MarginfiClient.fetch(config, wallet, connection, { spamSendTx: true, skipPreflightInSpam: true });
 
   const liquidatorAccount = await MarginfiAccountWrapper.fetch(env_config.LIQUIDATOR_PK, client);
   const liquidator = new Liquidator(

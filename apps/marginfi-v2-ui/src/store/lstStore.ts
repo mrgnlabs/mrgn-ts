@@ -3,15 +3,25 @@ import { ACCOUNT_SIZE, TOKEN_PROGRAM_ID, Wallet, aprToApy, uiToNative } from "@m
 import { Connection, PublicKey } from "@solana/web3.js";
 import { create, StateCreator } from "zustand";
 import * as solanaStakePool from "@solana/spl-stake-pool";
-import { EPOCHS_PER_YEAR, StakeData, fetchStakeAccounts } from "~/utils";
+import {
+  PERIOD,
+  StakeData,
+  calcYield,
+  fetchAndParsePricesCsv,
+  fetchStakeAccounts,
+  getPriceRangeFromPeriod,
+} from "~/utils";
 import { TokenAccount, TokenAccountMap, fetchBirdeyePrices } from "@mrgnlabs/marginfi-v2-ui-state";
 import { persist } from "zustand/middleware";
 import BN from "bn.js";
 
 import type { TokenInfo, TokenInfoMap } from "@solana/spl-token-registry";
+import { QuoteResponseMeta } from "@jup-ag/react-hook";
 
 const STAKEVIEW_APP_URL = "https://stakeview.app/apy/prev3.json";
 const BASELINE_VALIDATOR_ID = "mrgn28BhocwdAUEenen3Sw2MR9cPKDpLkDvzDdR7DBD";
+const SOLANA_COMPASS_PRICES_URL =
+  "https://raw.githubusercontent.com/glitchful-dev/sol-stake-pool-apy/master/db/lst.csv";
 
 export const SOL_MINT = new PublicKey("So11111111111111111111111111111111111111112");
 export const LST_MINT = new PublicKey("LSTxxxnJzKDFSLr4dUkPcmCf5VyryEqzPLz5j4bpxFp");
@@ -43,17 +53,20 @@ interface LstState {
   connection: Connection | null;
   wallet: Wallet | null;
   lstData: LstData | null;
+  feesAndRent: number;
   availableLamports: BN | null;
   tokenDataMap: TokenDataMap | null;
   stakeAccounts: StakeData[];
   solUsdValue: number | null;
   slippagePct: SupportedSlippagePercent;
+  quoteResponseMeta: QuoteResponseMeta | null;
 
   // Actions
   fetchLstState: (args?: { connection?: Connection; wallet?: Wallet; isOverride?: boolean }) => Promise<void>;
   setIsRefreshingStore: (isRefreshingStore: boolean) => void;
   resetUserData: () => void;
   setSlippagePct: (slippagePct: SupportedSlippagePercent) => void;
+  setQuoteResponseMeta: (quoteResponseMeta: QuoteResponseMeta | null) => void;
 }
 
 function createLstStore() {
@@ -87,12 +100,14 @@ const stateCreator: StateCreator<LstState, [], []> = (set, get) => ({
   connection: null,
   wallet: null,
   lstData: null,
+  feesAndRent: 0,
   availableLamports: null,
   tokenDataMap: null,
   stakeAccounts: [],
   solUsdValue: null,
   slippagePct: 1,
   stakePoolProxyProgram: null,
+  quoteResponseMeta: null,
 
   // Actions
   fetchLstState: async (args?: { connection?: Connection; wallet?: Wallet }) => {
@@ -108,57 +123,59 @@ const stateCreator: StateCreator<LstState, [], []> = (set, get) => ({
       let tokenDataMap: TokenDataMap | null = null;
       let solUsdValue: number | null = null;
       let stakeAccounts: StakeData[] = [];
+      console.log("Fetching LST data");
       const lstData = await fetchLstData(connection);
-      const jupiterTokenInfo = await fetchJupiterTokenInfo();
+      // const minimumRentExemption = await connection.getMinimumBalanceForRentExemption(ACCOUNT_SIZE);
+      // const jupiterTokenInfo = await fetchJupiterTokenInfo();
 
       if (wallet?.publicKey) {
-        const [accountsAiList, minimumRentExemption, userTokenAccounts, _stakeAccounts] = await Promise.all([
-          connection.getMultipleAccountsInfo([wallet.publicKey, SOL_USD_PYTH_ORACLE]),
-          connection.getMinimumBalanceForRentExemption(ACCOUNT_SIZE),
-          fetchUserTokenAccounts(connection, wallet.publicKey),
-          fetchStakeAccounts(connection, wallet.publicKey),
-        ]);
+        // const [accountsAiList, minimumRentExemption, userTokenAccounts, _stakeAccounts] = await Promise.all([
+        //   connection.getMultipleAccountsInfo([wallet.publicKey, SOL_USD_PYTH_ORACLE]),
+        //   connection.getMinimumBalanceForRentExemption(ACCOUNT_SIZE),
+        //   fetchUserTokenAccounts(connection, wallet.publicKey),
+        //   fetchStakeAccounts(connection, wallet.publicKey),
+        // ]);
 
-        const [walletAi, solUsdPythFeedAi] = accountsAiList;
-        const nativeSolBalance = walletAi?.lamports ? walletAi.lamports : 0;
-        availableLamports = new BN(nativeSolBalance - minimumRentExemption - NETWORK_FEE_LAMPORTS);
-        solUsdValue = vendor.parsePriceData(solUsdPythFeedAi!.data).emaPrice.value;
-        stakeAccounts = _stakeAccounts.filter(
-          (stakeAccount) =>
-            stakeAccount.isActive && lstData.validatorList.find((v) => v.equals(stakeAccount.validatorVoteAddress))
-        );
+        // const [walletAi, solUsdPythFeedAi] = accountsAiList;
+        // const nativeSolBalance = walletAi?.lamports ? walletAi.lamports : 0;
+        // availableLamports = new BN(nativeSolBalance - minimumRentExemption - NETWORK_FEE_LAMPORTS);
+        // solUsdValue = vendor.parsePriceData(solUsdPythFeedAi!.data).emaPrice.value;
+        // stakeAccounts = _stakeAccounts.filter(
+        //   (stakeAccount) =>
+        //     stakeAccount.isActive && lstData.validatorList.find((v) => v.equals(stakeAccount.validatorVoteAddress))
+        // );
 
-        tokenDataMap = new Map(
-          [...jupiterTokenInfo.entries()].map(([tokenMint, tokenInfo]) => {
-            const { logoURI, ..._tokenInfo } = tokenInfo;
+        // tokenDataMap = new Map(
+        //   [...jupiterTokenInfo.entries()].map(([tokenMint, tokenInfo]) => {
+        //     const { logoURI, ..._tokenInfo } = tokenInfo;
 
-            let walletBalance: BN = new BN(0);
-            const tokenAccount = userTokenAccounts?.get(tokenMint);
-            walletBalance = uiToNative(tokenAccount?.balance ?? 0, tokenInfo.decimals);
+        //     let walletBalance: BN = new BN(0);
+        //     const tokenAccount = userTokenAccounts?.get(tokenMint);
+        //     walletBalance = uiToNative(tokenAccount?.balance ?? 0, tokenInfo.decimals);
 
-            return [
-              tokenMint,
-              { ..._tokenInfo, iconUrl: logoURI ?? "/info_icon.png", price: 0, balance: walletBalance },
-            ];
-          })
-        );
+        //     return [
+        //       tokenMint,
+        //       { ..._tokenInfo, iconUrl: logoURI ?? "/info_icon.png", price: 0, balance: walletBalance },
+        //     ];
+        //   })
+        // );
 
         userDataFetched = true;
       } else {
-        tokenDataMap = new Map(
-          [...jupiterTokenInfo.entries()].map(([tokenMint, tokenInfo]) => {
-            const { logoURI, ..._tokenInfo } = tokenInfo;
-            return [tokenMint, { ..._tokenInfo, iconUrl: logoURI ?? "/info_icon.png", price: 0, balance: new BN(0) }];
-          })
-        );
-
-        const accountsAiList = await connection.getMultipleAccountsInfo([SOL_USD_PYTH_ORACLE]);
-        const [solUsdPythFeedAi] = accountsAiList;
-        solUsdValue = vendor.parsePriceData(solUsdPythFeedAi!.data).emaPrice.value;
+        // tokenDataMap = new Map(
+        //   [...jupiterTokenInfo.entries()].map(([tokenMint, tokenInfo]) => {
+        //     const { logoURI, ..._tokenInfo } = tokenInfo;
+        //     return [tokenMint, { ..._tokenInfo, iconUrl: logoURI ?? "/info_icon.png", price: 0, balance: new BN(0) }];
+        //   })
+        // );
+        // const accountsAiList = await connection.getMultipleAccountsInfo([SOL_USD_PYTH_ORACLE]);
+        // const [solUsdPythFeedAi] = accountsAiList;
+        // solUsdValue = vendor.parsePriceData(solUsdPythFeedAi!.data).emaPrice.value;
       }
 
       set({
         initialized: true,
+        feesAndRent: 0 + NETWORK_FEE_LAMPORTS,
         userDataFetched,
         isRefreshingStore: false,
         connection,
@@ -170,14 +187,14 @@ const stateCreator: StateCreator<LstState, [], []> = (set, get) => ({
         solUsdValue,
       });
 
-      const tokenPrices = await fetchTokenPrices(
-        [...jupiterTokenInfo.values()].map((tokenInfo) => new PublicKey(tokenInfo.address))
-      );
+      // const tokenPrices = await fetchTokenPrices(
+      //   [...jupiterTokenInfo.values()].map((tokenInfo) => new PublicKey(tokenInfo.address))
+      // );
 
-      tokenDataMap.forEach((value, key, map) => {
-        const price = tokenPrices.get(value.address);
-        value.price = price ?? 0;
-      });
+      // tokenDataMap.forEach((value, key, map) => {
+      //   const price = tokenPrices.get(value.address);
+      //   value.price = price ?? 0;
+      // });
 
       set({
         tokenDataMap,
@@ -200,13 +217,15 @@ const stateCreator: StateCreator<LstState, [], []> = (set, get) => ({
     set({ userDataFetched: false, tokenDataMap });
   },
   setSlippagePct: (slippagePct: SupportedSlippagePercent) => set({ slippagePct }),
+  setQuoteResponseMeta: (quoteResponseMeta: QuoteResponseMeta | null) => set({ quoteResponseMeta }),
 });
 
 async function fetchLstData(connection: Connection): Promise<LstData> {
-  const [stakePoolInfo, stakePoolAccount, apyData] = await Promise.all([
+  const [stakePoolInfo, stakePoolAccount, apyData, solanaCompassPrices] = await Promise.all([
     solanaStakePool.stakePoolInfo(connection, STAKE_POOL_ID),
     solanaStakePool.getStakePoolAccount(connection, STAKE_POOL_ID),
     fetch(STAKEVIEW_APP_URL).then((res) => res.json()),
+    fetchAndParsePricesCsv(SOLANA_COMPASS_PRICES_URL),
   ]);
   const stakePool = stakePoolAccount.account.data;
 
@@ -225,10 +244,11 @@ async function fetchLstData(connection: Connection): Promise<LstData> {
   if (lastTotalLamports === 0 || lastPoolTokenSupply === 0) {
     projectedApy = 0.08;
   } else {
-    const lastLstSolValue = lastPoolTokenSupply > 0 ? lastTotalLamports / lastPoolTokenSupply : 1;
-    const epochRate = lstSolValue / lastLstSolValue - 1;
-    const apr = epochRate * EPOCHS_PER_YEAR;
-    projectedApy = aprToApy(apr, EPOCHS_PER_YEAR);
+    const priceRange = getPriceRangeFromPeriod(solanaCompassPrices, PERIOD.DAYS_7);
+    if (!priceRange) {
+      throw new Error("No price data found for the specified period!");
+    }
+    projectedApy = calcYield(priceRange).apy;
   }
 
   if (projectedApy < 0.08) {

@@ -221,8 +221,8 @@ const CampaignWizard: FC<CampaignWizardProps> = () => {
   };
 
   return (
-    <div className="flex flex-col justify-center p-5 bg-transparent z-20 text-2xl leading-10 min-w-[700px] max-w-7xl gap-4">
-      <div className="text-4xl flex justify-center mt-12 mb-4">Create an LIP campaign</div>
+    <div className="flex flex-col justify-center p-5 pt-0 bg-transparent z-20 leading-10 min-w-[700px] max-w-7xl gap-4">
+      <div className="text-4xl flex justify-center mb-4 font-medium">Create an LIP campaign</div>
       <div className="flex justify-between text-[rgb(227, 227, 227)]">
         <div>Campaign asset:</div>
         <Select

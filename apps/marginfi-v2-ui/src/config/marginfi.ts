@@ -79,3 +79,9 @@ const config = {
 
 export default config;
 export const WALLET_BALANCE_MARGIN_SOL = 0.1;
+
+// FEES
+const HIGH_PRIO_FEE = 0.00005;
+const MAMA_PRIO_FEE = 0.005;
+
+export { HIGH_PRIO_FEE, MAMA_PRIO_FEE };

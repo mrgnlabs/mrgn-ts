@@ -1,11 +1,12 @@
 import { Transaction } from "@solana/web3.js";
 import { ActionType, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { QuoteResponseMeta } from "@jup-ag/react-hook";
 
 // ----------------------------------------------------------------------------
 // Mayan types
 // ----------------------------------------------------------------------------
 
-export type MayanWidgetChainName = "solana" | "ethereum" | "bsc" | "polygon" | "avalanche" | "arbitrum" | "aptos";
+export type MayanWidgetChainName = "solana" | "ethereum" | "bsc" | "polygon" | "avalanche" | "arbitrum" | "optimism" | "base";
 
 // visit the Figma link below to see the color palette
 // https://www.figma.com/community/file/1236300242311853150/Mayan-Widget
@@ -41,12 +42,21 @@ export type MayanWidgetColors = {
   toastBgGreen?: string;
 };
 export type MayanWidgetConfigType = {
+  // Constants
+  enableSolanaPassThrough?: boolean;
   appIdentity: {
     uri: string;
     icon: string; //should be relative
     name: string;
   }; //use for  Wallet Adapter
+  setDefaultToken?: boolean;
+
+  // Init override
   rpcs?: { [index in MayanWidgetChainName]?: string };
+  solanaExtraRpcs?: string[];
+  defaultGasDrop?: { [index in MayanWidgetChainName]?: number };
+
+  // Deeplink
   sourceChains?: MayanWidgetChainName[];
   destinationChains?: MayanWidgetChainName[];
   tokens?: {
@@ -54,21 +64,13 @@ export type MayanWidgetConfigType = {
     to?: { [index in MayanWidgetChainName]?: string[] };
     featured?: { [index in MayanWidgetChainName]?: string[] };
   };
-  defaultGasDrop?: { [index in MayanWidgetChainName]?: number };
-  referrerAddress?: string;
+  solanaReferrerAddress?: string;
+  evmReferrerAddress?: string;
+  referrerBps?: number;
+
+  // Theme
+  isNarrow?: boolean;
   colors?: MayanWidgetColors;
-};
-
-export type TransactionSigner = (transaction: Transaction) => Promise<Transaction> | null | undefined;
-export type SolanaWalletData = {
-  publicKey?: string | null;
-  signTransaction?: TransactionSigner | null;
-  onClickOnConnect: () => void;
-  onClickOnDisconnect: () => void;
-};
-
-export type MayanWidgetSolanaConfigType = MayanWidgetConfigType & {
-  solanaWallet: SolanaWalletData;
 };
 
 export type MayanSwapInfo = {
@@ -112,14 +114,10 @@ export enum SortType {
   TVL_DESC = "TVL_DESC",
 }
 
-export enum UserMode {
-  LITE = "lite",
-  PRO = "pro",
-}
-
 export type PreviousTxn = {
   type: ActionType;
   bank: ActiveBankInfo;
   amount: number;
   txn: string;
+  lstQuote?: QuoteResponseMeta;
 };

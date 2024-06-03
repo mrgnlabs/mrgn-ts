@@ -370,34 +370,12 @@ class Bank {
   getAssetWeight(
     marginRequirementType: MarginRequirementType,
     oraclePrice: OraclePrice,
-    ignoreSoftLimits: boolean = false
+    ignoreSoftLimits: boolean = false,
   ): BigNumber {
     switch (marginRequirementType) {
       case MarginRequirementType.Initial:
-        if (ignoreSoftLimits) return this.config.assetWeightInit;
-        const totalBankCollateralValue = this.computeAssetUsdValue(
-          oraclePrice,
-          this.totalAssetShares,
-          MarginRequirementType.Equity,
-          PriceBias.Lowest
-        );
-        if (totalBankCollateralValue.isGreaterThan(this.config.totalAssetValueInitLimit)) {
-          return this.config.totalAssetValueInitLimit.div(totalBankCollateralValue).times(this.config.assetWeightInit);
-        } else {
-          return this.config.assetWeightInit;
-        }
-      case MarginRequirementType.Maintenance:
-        return this.config.assetWeightMaint;
-      case MarginRequirementType.Equity:
-        return new BigNumber(1);
-      default:
-        throw new Error("Invalid margin requirement type");
-    }
-  }
-
-  getEffectiveAssetWeight(marginRequirementType: MarginRequirementType, oraclePrice: OraclePrice): BigNumber {
-    switch (marginRequirementType) {
-      case MarginRequirementType.Initial:
+        const isSoftLimitDisabled = this.config.totalAssetValueInitLimit.isZero();
+        if (ignoreSoftLimits || isSoftLimitDisabled) return this.config.assetWeightInit;
         const totalBankCollateralValue = this.computeAssetUsdValue(
           oraclePrice,
           this.totalAssetShares,
@@ -453,14 +431,14 @@ class Bank {
   } {
     const { insuranceFeeFixedApr, insuranceIrFee, protocolFixedFeeApr, protocolIrFee } = this.config.interestRateConfig;
 
-    const rateFee = insuranceFeeFixedApr.plus(protocolFixedFeeApr);
-    const fixedFee = insuranceIrFee.plus(protocolIrFee);
+    const fixedFee = insuranceFeeFixedApr.plus(protocolFixedFeeApr);
+    const rateFee = insuranceIrFee.plus(protocolIrFee);
 
     const baseInterestRate = this.computeBaseInterestRate();
     const utilizationRate = this.computeUtilizationRate();
 
     const lendingRate = baseInterestRate.times(utilizationRate);
-    const borrowingRate = baseInterestRate.times(new BigNumber(1).plus(rateFee)).plus(fixedFee);
+    const borrowingRate = baseInterestRate.times(new BigNumber(1).plus(rateFee)).plus(fixedFee)
 
     return { lendingRate, borrowingRate };
   }

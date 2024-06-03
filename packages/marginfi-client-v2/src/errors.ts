@@ -1,5 +1,5 @@
 import { LangErrorMessage } from "@coral-xyz/anchor";
-import { TOKEN_PROGRAM_ID } from "@mrgnlabs/mrgn-common";
+import { JUPITER_V6_PROGRAM, TOKEN_PROGRAM_ID } from "@mrgnlabs/mrgn-common";
 import { IDL } from "./idl/marginfi-types";
 import { PublicKey } from "@solana/web3.js";
 
@@ -7,14 +7,17 @@ export enum ProcessTransactionErrorType {
   TransactionBuildingError,
   SimulationError,
   FallthroughError,
+  TimeoutError,
 }
 
 export class ProcessTransactionError extends Error {
   logs?: string[];
   type: ProcessTransactionErrorType;
+  programId?: string;
 
-  constructor(message: string, type: ProcessTransactionErrorType, logs?: string[]) {
+  constructor(message: string, type: ProcessTransactionErrorType, logs?: string[], programId?: string) {
     super(message);
+    this.programId = programId;
     this.type = type;
     this.logs = logs;
   }
@@ -118,4 +121,52 @@ const TokenErrorCodeMap: Map<number, string> = new Map([
   [TokenErrorCode.NonNativeNotSupported, "Instruction does not support non-native tokens"],
 ]);
 
-const ERROR_CODE_MAPS: Map<string, Map<number, string>> = new Map([[TOKEN_PROGRAM_ID.toBase58(), TokenErrorCodeMap]]);
+enum JupiterErrorCode {
+  EmptyRoute = 6000,
+  SlippageToleranceExceeded = 6001,
+  InvalidCalculation = 6002,
+  MissingPlatformFeeAccount = 6003,
+  InvalidSlippage = 6004,
+  NotEnoughPercent = 6005,
+  InvalidInputIndex = 6006,
+  InvalidOutputIndex = 6007,
+  NotEnoughAccountKeys = 6008,
+  NonZeroMinimumOutAmountNotSupported = 6009,
+  InvalidRoutePlan = 6010,
+  InvalidReferralAuthority = 6011,
+  LedgerTokenAccountDoesNotMatch = 6012,
+  InvalidTokenLedger = 6013,
+  IncorrectTokenProgramID = 6014,
+  TokenProgramNotProvided = 6015,
+  SwapNotSupported = 6016,
+  ExactOutAmountNotMatched = 6017,
+  SourceAndDestinationMintCannotBeTheSame = 6018,
+}
+
+const JupiterErrorCodeMap: Map<number, string> = new Map([
+  [JupiterErrorCode.EmptyRoute, "Empty route"],
+  [JupiterErrorCode.SlippageToleranceExceeded, "Slippage tolerance exceeded"],
+  [JupiterErrorCode.InvalidCalculation, "Invalid calculation"],
+  [JupiterErrorCode.MissingPlatformFeeAccount, "Missing platform fee account"],
+  [JupiterErrorCode.InvalidSlippage, "Invalid slippage"],
+  [JupiterErrorCode.NotEnoughPercent, "Not enough percent to 100"],
+  [JupiterErrorCode.InvalidInputIndex, "Token input index is invalid"],
+  [JupiterErrorCode.InvalidOutputIndex, "Token output index is invalid"],
+  [JupiterErrorCode.NotEnoughAccountKeys, "Not Enough Account keys"],
+  [JupiterErrorCode.NonZeroMinimumOutAmountNotSupported, "Non zero minimum out amount not supported"],
+  [JupiterErrorCode.InvalidRoutePlan, "Invalid route plan"],
+  [JupiterErrorCode.InvalidReferralAuthority, "Invalid referral authority"],
+  [JupiterErrorCode.LedgerTokenAccountDoesNotMatch, "Token account doesn't match the ledger"],
+  [JupiterErrorCode.InvalidTokenLedger, "Invalid token ledger"],
+  [JupiterErrorCode.IncorrectTokenProgramID, "Token program ID is invalid"],
+  [JupiterErrorCode.TokenProgramNotProvided, "Token program not provided"],
+  [JupiterErrorCode.SwapNotSupported, "Swap not supported"],
+  [JupiterErrorCode.ExactOutAmountNotMatched, "Exact out amount doesn't match"],
+  [JupiterErrorCode.SourceAndDestinationMintCannotBeTheSame, "Source mint and destination mint cannot the same"],
+]);
+
+
+const ERROR_CODE_MAPS: Map<string, Map<number, string>> = new Map([
+  [TOKEN_PROGRAM_ID.toBase58(), TokenErrorCodeMap],
+  [JUPITER_V6_PROGRAM.toBase58(), JupiterErrorCodeMap],
+]);

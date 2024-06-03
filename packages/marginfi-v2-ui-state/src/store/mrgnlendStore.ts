@@ -47,6 +47,9 @@ interface MrgnlendState {
   accountSummary: AccountSummary;
   emissionTokenMap: TokenPriceMap | null;
   birdEyeApiKey: string;
+  sendEndpoint: string | null;
+  spamSendTx: boolean;
+  skipPreflightInSpam: boolean;
 
   // Actions
   fetchMrgnlendState: (args?: {
@@ -55,6 +58,9 @@ interface MrgnlendState {
     wallet?: Wallet;
     isOverride?: boolean;
     birdEyeApiKey?: string;
+    sendEndpoint?: string;
+    spamSendTx?: boolean;
+    skipPreflightInSpam?: boolean;
   }) => Promise<void>;
   setIsRefreshingStore: (isRefreshingStore: boolean) => void;
   resetUserData: () => void;
@@ -113,7 +119,7 @@ export function clearAccountCache(authority: PublicKey) {
     if (error instanceof Error) {
       throw new Error(`Error clearing account cache.`);
     } else {
-      throw new Error('An unknown error occurred while clearing account cache.');
+      throw new Error("An unknown error occurred while clearing account cache.");
     }
   }
 }
@@ -141,6 +147,9 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
   accountSummary: DEFAULT_ACCOUNT_SUMMARY,
   birdEyeApiKey: "",
   emissionTokenMap: {},
+  sendEndpoint: null,
+  spamSendTx: false,
+  skipPreflightInSpam: false,
 
   // Actions
   fetchMrgnlendState: async (args?: {
@@ -149,6 +158,9 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
     wallet?: Wallet;
     isOverride?: boolean;
     birdEyeApiKey?: string;
+    sendEndpoint?: string;
+    spamSendTx?: boolean;
+    skipPreflightInSpam?: boolean;
   }) => {
     try {
       const { MarginfiClient } = await import("@mrgnlabs/marginfi-client-v2");
@@ -165,16 +177,19 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
       if (!marginfiConfig) throw new Error("Marginfi config must be provided at least once");
 
       const isReadOnly = args?.isOverride !== undefined ? args.isOverride : get().marginfiClient?.isReadOnly ?? false;
+      const sendEndpoint = args?.sendEndpoint ?? get().sendEndpoint ?? undefined;
+      const spamSendTx = args?.spamSendTx ?? get().spamSendTx ?? false;
+      const skipPreflightInSpam = args?.skipPreflightInSpam ?? get().skipPreflightInSpam ?? false;
+
       const [bankMetadataMap, tokenMetadataMap] = await Promise.all([loadBankMetadatas(), loadTokenMetadatas()]);
       const bankAddresses = Object.keys(bankMetadataMap).map((address) => new PublicKey(address));
-      const marginfiClient = await MarginfiClient.fetch(
-        marginfiConfig,
-        wallet ?? ({} as any),
-        connection,
-        undefined,
-        isReadOnly,
-        { preloadedBankAddresses: bankAddresses }
-      );
+      const marginfiClient = await MarginfiClient.fetch(marginfiConfig, wallet ?? ({} as any), connection, {
+        preloadedBankAddresses: bankAddresses,
+        readOnly: isReadOnly,
+        sendEndpoint: sendEndpoint,
+        spamSendTx: spamSendTx,
+        skipPreflightInSpam,
+      });
       const banks = [...marginfiClient.banks.values()];
 
       const birdEyeApiKey = args?.birdEyeApiKey ?? get().birdEyeApiKey;
@@ -323,6 +338,9 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
         nativeSolBalance,
         accountSummary,
         birdEyeApiKey,
+        sendEndpoint,
+        spamSendTx,
+        skipPreflightInSpam,
       });
 
       const pointSummary = await getPointsSummary();

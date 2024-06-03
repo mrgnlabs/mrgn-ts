@@ -58,6 +58,7 @@ type WalletContextProps = {
   requestPrivateKey: () => void;
   pfp: string;
   web3AuthPk: string;
+  sendEndpoint?: string;
 };
 
 type Web3AuthSocialProvider = "google" | "twitter" | "apple";
@@ -403,6 +404,7 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
         requestPrivateKey,
         pfp,
         web3AuthPk,
+        sendEndpoint: process.env.NEXT_PUBLIC_MARGINFI_SEND_RPC_ENDPOINT_OVERRIDE,
       }}
     >
       {children}

@@ -1,43 +1,29 @@
 import React from "react";
 
-import Link from "next/link";
+import { useMrgnlendStore, useUiStore } from "~/store";
 
-import { useMrgnlendStore, useUserProfileStore } from "~/store";
-import { useWalletContext } from "~/hooks/useWalletContext";
-
-import { PageHeader } from "~/components/common/PageHeader";
-import { PointsConnectWallet, PointsOverview } from "~/components/common/Points";
-import { EmissionsBanner } from "~/components/mobile/EmissionsBanner";
-import { Portfolio } from "~/components/common/Portfolio";
+import { LendingPortfolio } from "~/components/common/Portfolio";
+import { ActionComplete } from "~/components/common/ActionComplete";
 import { Loader } from "~/components/ui/loader";
+import { PortfolioHeader } from "~/components/common/Portfolio/PortfolioHeader";
 
 export default function PortfolioPage() {
-  const { connected } = useWalletContext();
   const [initialized] = useMrgnlendStore((state) => [state.initialized]);
-  const [userPointsData] = useUserProfileStore((state) => [state.userPointsData]);
+  const [previousTxn] = useUiStore((state) => [state.previousTxn]);
 
   return (
     <>
-      <PageHeader>portfolio</PageHeader>
-      <div className="flex flex-col w-full h-full justify-start items-center px-4 gap-6 mb-20">
-        {!initialized && <Loader label="Loading marginfi points..." className="mt-16" />}
-
+      {!initialized && <Loader label="Loading marginfi portfolio..." className="mt-16" />}
+      <div className="flex flex-col max-w-7xl mx-auto w-full h-full justify-start items-center px-4 gap-4 mb-20">
         {initialized && (
           <>
-            <EmissionsBanner />
-            {!connected ? <PointsConnectWallet /> : <PointsOverview userPointsData={userPointsData} />}
-            <div className="text-center text-[#868E95] text-xs flex justify-center gap-1">
-              <div>We reserve the right to update point calculations at any time.</div>
-              <div>
-                <Link href="/terms/points" style={{ textDecoration: "underline" }}>
-                  Terms.
-                </Link>
-              </div>
-            </div>
-            <Portfolio />
+            <PortfolioHeader />
+            <LendingPortfolio />
+            {/* <Portfolio /> */}
           </>
         )}
       </div>
+      {initialized && previousTxn && <ActionComplete />}
     </>
   );
 }

@@ -16,10 +16,29 @@ let config = withBundleAnalyzer({
   publicRuntimeConfig: {
     NODE_ENV: process.env.NODE_ENV,
   },
+  // rewrites: async () => {
+  //   return [
+  //     {
+  //       source: "/rpc",
+  //       destination: process.env.NEXT_PUBLIC_MARGINFI_RPC_ENDPOINT_OVERRIDE_REROUTE || "https://mrgn.rpcpool.com/",
+  //     },
+  //     {
+  //       source: "/rpc-send",
+  //       destination: process.env.NEXT_PUBLIC_MARGINFI_SEND_RPC_ENDPOINT_OVERRIDE_REROUTE || "https://mrgn.rpcpool.com/",
+  //     },
+  //   ];
+  // },
   transpilePackages: ["@mrgnlabs/marginfi-client-v2", "@mrgnlabs/mrgn-common", "@mrgnlabs/lip-client"],
   reactStrictMode: true,
   webpack: (config) => {
-    config.resolve.fallback = { fs: false, path: false, net: false, tls: false, child_process: false, request: false };
+    config.resolve.fallback = {
+      fs: false,
+      path: false,
+      net: false,
+      tls: false,
+      child_process: false,
+      request: false,
+    };
     return config;
   },
   images: {
@@ -59,6 +78,16 @@ let config = withBundleAnalyzer({
         hostname: "storage.googleapis.com",
         port: "",
         pathname: "/static-marginfi/**",
+      },
+      {
+        protocol: "https",
+        hostname: "storage.googleapis.com",
+        pathname: "/mrgn-public/mrgn-token-icons/**",
+      },
+      {
+        protocol: "https",
+        hostname: "pbs.twimg.com",
+        pathname: "/profile_images/**",
       },
       {
         protocol: "https",
@@ -122,9 +151,27 @@ let config = withBundleAnalyzer({
       },
       {
         protocol: "https",
+        hostname: "static.jup.ag",
+        port: "",
+        pathname: "/jup/**",
+      },
+      {
+        protocol: "https",
         hostname: "bafkreibk3covs5ltyqxa272uodhculbr6kea6betidfwy3ajsav2vjzyum.ipfs.nftstorage.link",
         port: "",
         pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "static.jup.ag",
+        port: "",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "hivemapper-marketing-public.s3.us-west-2.amazonaws.com",
+        port: "",
+        pathname: "/Hivemapper_HONEY_token.png",
       },
     ],
   },
