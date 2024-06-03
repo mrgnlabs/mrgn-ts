@@ -23,9 +23,9 @@ export const useBrowser = () => {
 
     if (isPWA) {
       setBrowser("PWA");
-    } else if (isInAppPhantom) {
+    } else if (isInAppPhantom && (isIOS || isAndroid)) {
       setBrowser("Phantom");
-    } else if (isInAppBackpack) {
+    } else if (isInAppBackpack && (isIOS || isAndroid)) {
       setBrowser("Backpack");
     } else if (isAndroid) {
       setBrowser(getAndroidBrowser(userAgent));

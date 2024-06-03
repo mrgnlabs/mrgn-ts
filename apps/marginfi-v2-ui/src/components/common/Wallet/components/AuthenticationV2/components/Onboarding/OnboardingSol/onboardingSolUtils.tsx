@@ -30,6 +30,13 @@ export const solOnrampFlow: SolOnrampScreen[] = [
   },
 ];
 
+export const installWallet: SolOnrampScreen = {
+  comp: screens.InstallWallet,
+  title: "Installing wallet",
+  description: "Refresh if installed",
+  titleSize: "lg",
+};
+
 export const successSwap: SolOnrampScreen = {
   comp: screens.SuccessScreen,
   title: "Swap complete",

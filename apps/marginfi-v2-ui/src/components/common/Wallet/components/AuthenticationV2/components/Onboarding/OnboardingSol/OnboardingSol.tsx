@@ -2,10 +2,10 @@ import React from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 
 import { useWalletContext } from "~/hooks/useWalletContext";
-import { AuthScreenProps, OnrampScreenProps, SuccessProps, cn } from "~/utils";
+import { AuthScreenProps, InstallingWallet, OnrampScreenProps, SuccessProps, cn } from "~/utils";
 
 import { OnboardHeader } from "../../sharedComponents";
-import { solOnrampFlow, successSwap } from "./onboardingSolUtils";
+import { installWallet, solOnrampFlow, successSwap } from "./onboardingSolUtils";
 
 interface props extends AuthScreenProps {}
 
@@ -20,11 +20,15 @@ export const OnboardingSol = ({
 }: props) => {
   const { select } = useWallet();
   const { connected, logout } = useWalletContext();
+
+  const [installingWallet, setInstallingWallet] = React.useState<InstallingWallet>();
   const [screenIndex, setScreenIndex] = React.useState<number>(0);
   const [successProps, setSuccessProps] = React.useState<SuccessProps>();
 
   const screen = React.useMemo(() => {
-    if (successProps?.jupiterSuccess && solOnrampFlow[screenIndex].tag === "swap") {
+    if (installingWallet) {
+      return installWallet;
+    } else if (successProps?.jupiterSuccess && solOnrampFlow[screenIndex].tag === "swap") {
       return successSwap;
     } else if (solOnrampFlow.length <= screenIndex) {
       onClose();
@@ -33,7 +37,7 @@ export const OnboardingSol = ({
     } else {
       return solOnrampFlow[screenIndex];
     }
-  }, [onClose, onPrev, screenIndex]);
+  }, [onClose, onPrev, screenIndex, installingWallet]);
 
   React.useEffect(() => {
     if (connected && screenIndex === 0) {
@@ -44,6 +48,7 @@ export const OnboardingSol = ({
 
   const onSelectWallet = (selectedWallet: string | null) => {
     if (!selectedWallet) return;
+    if (installingWallet) setInstallingWallet(undefined);
     setIsLoading(true);
     setIsActiveLoading(selectedWallet);
     select(selectedWallet as any);
@@ -79,6 +84,7 @@ export const OnboardingSol = ({
         onNext: () => onClose(),
         setIsLoading: setIsLoading,
         setIsActiveLoading: setIsActiveLoading,
+        setInstallingWallet: setInstallingWallet,
         loginWeb3Auth: loginWeb3Auth,
         setSuccessProps: setSuccessProps,
         select: onSelectWallet,

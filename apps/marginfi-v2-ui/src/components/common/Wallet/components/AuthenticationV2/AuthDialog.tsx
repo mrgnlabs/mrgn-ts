@@ -27,6 +27,8 @@ export const AuthDialog = () => {
     [isAndroid, isIOS, browser, isPWA]
   );
 
+  const showInAppBrowser = React.useMemo(() => browser === "Backpack" || browser === "Phantom", [browser]);
+
   const mainFlow = React.useMemo(() => {
     const walletInfo = localStorage.getItem("walletInfo");
     const onboardingFlow = localStorage.getItem("onboardingFlow");
@@ -61,12 +63,15 @@ export const AuthDialog = () => {
 
   // if user is using mobile browser force PWA install screen
   React.useEffect(() => {
-    if (showPWAInstallScreen) {
+    if (showInAppBrowser) {
+      setFlow("INAPP_MOBILE");
+    } else if (showPWAInstallScreen) {
       setFlow("PWA_INSTALL");
     }
-  }, [showPWAInstallScreen]);
+  }, [showPWAInstallScreen, showInAppBrowser]);
 
   React.useEffect(() => {
+    console.log({ connecting });
     if (!connecting) {
       setIsLoading(false);
       setIsActiveLoading("");
@@ -124,6 +129,13 @@ export const AuthDialog = () => {
     setIsWalletAuthDialogOpen(false);
   };
 
+  const onSelectWallet = (selectedWallet: string | null) => {
+    if (!selectedWallet) return;
+    setIsLoading(true);
+    setIsActiveLoading(selectedWallet);
+    select(selectedWallet as any);
+  };
+
   return (
     <div>
       {progress !== 0 && progress !== 100 && (
@@ -155,6 +167,7 @@ export const AuthDialog = () => {
             isActiveLoading: isActiveLoading,
             setIsLoading: setIsLoading,
             setProgress: setProgress,
+            select: onSelectWallet,
             setIsActiveLoading: setIsActiveLoading,
             loginWeb3Auth: (props) => {
               loginWeb3Auth(props);

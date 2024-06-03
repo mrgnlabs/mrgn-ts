@@ -19,13 +19,14 @@ import {
 } from "~/components/ui/icons";
 import { WalletName } from "@solana/wallet-adapter-base";
 import {
+  InAppSignIn,
   OnboardingEth,
   OnboardingMain,
   OnboardingSocial,
   OnboardingSol,
   PwaInstalation,
-  PwaSignIn,
   ReturningUser,
+  PwaSignIn,
 } from "~/components/common/Wallet/components/AuthenticationV2/components";
 
 export type InstallingWallet = { wallet: string; flow: "eth" | "onramp" };
@@ -68,11 +69,13 @@ export interface AuthScreenProps {
   select(walletName: WalletName | null): void;
 }
 
-type OnboardingType = "ONBOARD_MAIN" | "ONBOARD_ETH" | "ONBOARD_SOL" | "ONBOARD_SOCIAL" | "PWA_INSTALL";
+type OnboardingType = "ONBOARD_MAIN" | "ONBOARD_ETH" | "ONBOARD_SOL" | "ONBOARD_SOCIAL";
 
 type ReturningType = "RETURNING_USER" | "RETURNING_PWA";
 
-export type AuthFlowType = OnboardingType | ReturningType;
+type MobileType = "INAPP_MOBILE" | "PWA_INSTALL";
+
+export type AuthFlowType = OnboardingType | ReturningType | MobileType;
 
 export type AuthFlowMap = {
   [key in AuthFlowType]: {
@@ -101,6 +104,9 @@ export const AUTO_FLOW_MAP: AuthFlowMap = {
   },
   RETURNING_PWA: {
     comp: PwaSignIn,
+  },
+  INAPP_MOBILE: {
+    comp: InAppSignIn,
   },
 };
 

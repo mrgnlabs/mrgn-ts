@@ -45,16 +45,6 @@ export const CreateSolanaAccount: React.FC<props> = ({
     return filtered;
   }, [wallets, isIOS]);
 
-  // check if phantom is loadable, we will overwrite with a deep link on iOS
-  // this improves the PWA UX on iOS by allowing users to open the app directly
-  const isPhantomInstalled = React.useMemo(() => {
-    return wallets.some((wallet) => {
-      return (
-        wallet.adapter.name === "Phantom" && (wallet.readyState === "Loadable" || wallet.readyState === "Installed")
-      );
-    });
-  }, [wallets]);
-
   return (
     <ScreenWrapper>
       <WalletAuthEmailForm
@@ -91,23 +81,16 @@ export const CreateSolanaAccount: React.FC<props> = ({
             isActiveLoading={isActiveLoading}
             wallets={filteredWallets}
             onClick={(wallet) => {
-              select(wallet.adapter.name);
+              if (wallet.installLink) {
+                setInstallingWallet({ flow: "onramp", wallet: wallet.adapter.name });
+                window.open(wallet.installLink, "_blank");
+              } else if (wallet.deeplink) {
+                window.open(wallet.deeplink);
+              } else {
+                select(wallet.adapter.name);
+              }
             }}
           />
-          {(isAndroid || isIOS) && !isPhantomInstalled && (
-            <li>
-              <WalletAuthButton
-                name="phantom"
-                image={<IconPhantomWallet />}
-                loading={false}
-                active={true}
-                onClick={() => {
-                  window.location.href =
-                    "https://phantom.app/ul/browse/https://app.marginfi.com?ref=https://app.marginfi.com";
-                }}
-              />
-            </li>
-          )}
         </ul>
       )}
       <div className="flex items-center gap-1 justify-center text-sm">
