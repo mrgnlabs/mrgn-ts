@@ -29,29 +29,17 @@ export function useAvailableWallets(preset?: WalletPreset): ExtendedWallet[] {
   const isMobile = React.useMemo(() => isAndroid || isIOS, [isAndroid, isIOS]);
 
   const isBackpackInstalled = React.useMemo(
-    () =>
-      !!wallets.find(
-        (wallet) =>
-          wallet.adapter.name === "Backpack" && (wallet.readyState === "Loadable" || wallet.readyState === "Installed")
-      ),
+    () => !!wallets.find((wallet) => wallet.adapter.name === "Backpack" && wallet.readyState === "Installed"),
     [wallets]
   );
 
   const isPhantomInstalled = React.useMemo(
-    () =>
-      !!wallets.find(
-        (wallet) =>
-          wallet.adapter.name === "Phantom" && (wallet.readyState === "Loadable" || wallet.readyState === "Installed")
-      ),
+    () => !!wallets.find((wallet) => wallet.adapter.name === "Phantom" && wallet.readyState === "Installed"),
     [wallets]
   );
 
   const isSolflareInstalled = React.useMemo(
-    () =>
-      !!wallets.find(
-        (wallet) =>
-          wallet.adapter.name === "Solflare" && (wallet.readyState === "Loadable" || wallet.readyState === "Installed")
-      ),
+    () => !!wallets.find((wallet) => wallet.adapter.name === "Solflare" && wallet.readyState === "Installed"),
     [wallets]
   );
 
@@ -63,10 +51,7 @@ export function useAvailableWallets(preset?: WalletPreset): ExtendedWallet[] {
   );
 
   // filter on installed
-  const installedFilter = React.useCallback(
-    (wallet: Wallet) => wallet.readyState === "Installed" || wallet.readyState === "Loadable",
-    []
-  );
+  const installedFilter = React.useCallback((wallet: Wallet) => wallet.readyState === "Installed", []);
 
   // sorting on backpack
   const backpackSort = React.useCallback((a: Wallet, b: Wallet) => {
@@ -82,7 +67,7 @@ export function useAvailableWallets(preset?: WalletPreset): ExtendedWallet[] {
     let formattedWallets: ExtendedWallet[] = wallets;
     if (selectedPreset) formattedWallets = formattedWallets.filter(presetFilter);
 
-    if (preset !== "social") formattedWallets = formattedWallets.filter(installedFilter);
+    formattedWallets = formattedWallets.filter(installedFilter);
 
     if (!isBackpackInstalled) {
       formattedWallets = [
