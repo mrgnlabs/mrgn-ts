@@ -1,8 +1,8 @@
 import React from "react";
-import { useWallet } from "@solana/wallet-adapter-react";
 
 import { AuthScreenProps, cn, socialProviders } from "~/utils";
 import { useIsMobile } from "~/hooks/useIsMobile";
+import { useWalletContext } from "~/hooks/useWalletContext";
 import { useAvailableWallets } from "~/hooks/useAvailableWallets";
 import { useOs } from "~/hooks/useOs";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "~/components/ui/accordion";
@@ -23,14 +23,13 @@ export const ReturningUser = ({
   isActiveLoading,
   setIsActiveLoading,
   setIsLoading,
-  loginWeb3Auth,
   update,
   select,
   onClose,
 }: props) => {
   const isMobile = useIsMobile();
   const wallets = useAvailableWallets();
-  const { connected } = useWallet();
+  const { connected, loginWeb3Auth } = useWalletContext();
 
   const { isAndroid, isIOS } = useOs();
 

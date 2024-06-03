@@ -216,7 +216,13 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
 
   // login to web3auth with specified social provider
   const loginWeb3Auth = React.useCallback(
-    async (provider: string, extraLoginOptions: any = {}, cb?: () => void) => {
+    async (
+      provider: string,
+      extraLoginOptions?: Partial<{
+        login_hint: string;
+      }>,
+      cb?: () => void
+    ) => {
       try {
         if (!web3Auth) {
           showErrorToast("marginfi account not ready.");
@@ -231,7 +237,7 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
         const walletInfo: WalletInfo = {
           name: provider!,
           web3Auth: true,
-          email: extraLoginOptions.login_hint,
+          email: extraLoginOptions && extraLoginOptions.login_hint,
         };
         localStorage.setItem("walletInfo", JSON.stringify(walletInfo));
       } catch (error) {

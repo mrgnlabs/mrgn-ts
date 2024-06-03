@@ -3,6 +3,7 @@ import { WalletReadyState } from "@solana/wallet-adapter-base";
 import { useAvailableWallets, walletInstallMap } from "~/hooks/useAvailableWallets";
 import { useOs } from "~/hooks/useOs";
 import { OnrampScreenProps, socialProviders } from "~/utils";
+import { useWalletContext } from "~/hooks/useWalletContext";
 
 import {
   ScreenWrapper,
@@ -20,11 +21,11 @@ export const CreateSocialAccount: React.FC<props> = ({
   setIsLoading,
   setIsActiveLoading,
   setInstallingWallet,
-  loginWeb3Auth,
   select,
 }: props) => {
   const wallets = useAvailableWallets("social");
   const { isPWA } = useOs();
+  const { loginWeb3Auth } = useWalletContext();
 
   return (
     <ScreenWrapper>
