@@ -51,7 +51,7 @@ export const Onramp = ({ successProps, onNext, setSuccessProps }: props) => {
       const transfer = inlineTransfer({
         container: "#outlet",
         partnerId: "marginfi",
-        environment: Environment.SANDBOX,
+        environment: Environment.PRODUCTION,
         sourceAmount: amount.toString() as any,
         sourceAsset: "USD",
         authenticationStrategy: AuthenticationStrategy.BYPASS_WALLET_VERIFICATION,
