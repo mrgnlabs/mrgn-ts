@@ -1,9 +1,13 @@
 import React from "react";
+import { useWallet } from "@solana/wallet-adapter-react";
 
 import { AuthScreenProps, cn, socialProviders } from "~/utils";
 import { useIsMobile } from "~/hooks/useIsMobile";
+import { useAvailableWallets } from "~/hooks/useAvailableWallets";
+import { useOs } from "~/hooks/useOs";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "~/components/ui/accordion";
+import { IconBackpackWallet, IconPhantomWallet, IconStarFilled } from "~/components/ui/icons";
 
-import { Button } from "~/components/ui/button";
 import {
   OnboardHeader,
   WalletAuthButton,
@@ -11,11 +15,6 @@ import {
   WalletAuthWrapper,
   WalletSeperator,
 } from "../sharedComponents";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "~/components/ui/accordion";
-import { useAvailableWallets } from "~/hooks/useAvailableWallets";
-import { useOs } from "~/hooks/useOs";
-import { IconBackpackWallet, IconPhantomWallet, IconStarFilled } from "~/components/ui/icons";
-import { useWallet } from "@solana/wallet-adapter-react";
 
 interface props extends AuthScreenProps {}
 
@@ -26,18 +25,19 @@ export const ReturningUser = ({
   setIsLoading,
   loginWeb3Auth,
   update,
+  select,
   onClose,
 }: props) => {
   const isMobile = useIsMobile();
   const wallets = useAvailableWallets();
-  const { select, connected } = useWallet();
+  const { connected } = useWallet();
 
   const { isAndroid, isIOS } = useOs();
 
   const filteredWallets = React.useMemo(() => {
     const filtered = wallets.filter((wallet) => {
       if (wallet.adapter.name === "Mobile Wallet Adapter" && isIOS) return false;
-      return wallet.readyState === "Installed" || wallet.readyState === "Loadable";
+      return true;
     });
 
     // reorder filtered so item with wallet.adapter.name === "Backpack" is first
@@ -49,29 +49,12 @@ export const ReturningUser = ({
     return filtered;
   }, [wallets, isIOS]);
 
-  // check if phantom is loadable, we will overwrite with a deep link on iOS
-  // this improves the PWA UX on iOS by allowing users to open the app directly
-  const isPhantomInstalled = React.useMemo(() => {
-    return wallets.some((wallet) => {
-      return (
-        wallet.adapter.name === "Phantom" && (wallet.readyState === "Loadable" || wallet.readyState === "Installed")
-      );
-    });
-  }, [wallets]);
-
   React.useEffect(() => {
     if (connected) {
       onClose();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [connected]);
-
-  const onSelectWallet = (selectedWallet: string | null) => {
-    if (!selectedWallet) return;
-    setIsLoading(true);
-    setIsActiveLoading(selectedWallet);
-    select(selectedWallet as any);
-  };
 
   return (
     <>
@@ -139,23 +122,9 @@ export const ReturningUser = ({
                   isActiveLoading={isActiveLoading}
                   wallets={filteredWallets}
                   onClick={(wallet) => {
-                    onSelectWallet(wallet.adapter.name);
+                    select(wallet.adapter.name);
                   }}
                 />
-                {(isAndroid || isIOS) && !isPhantomInstalled && (
-                  <li>
-                    <WalletAuthButton
-                      name="phantom"
-                      image={<IconPhantomWallet />}
-                      loading={false}
-                      active={true}
-                      onClick={() => {
-                        window.location.href =
-                          "https://phantom.app/ul/browse/https://app.marginfi.com?ref=https://app.marginfi.com";
-                      }}
-                    />
-                  </li>
-                )}
               </ul>
             )}
 

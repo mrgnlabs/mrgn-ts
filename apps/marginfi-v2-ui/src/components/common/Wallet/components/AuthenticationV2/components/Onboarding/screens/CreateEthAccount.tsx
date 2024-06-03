@@ -58,9 +58,11 @@ export const CreateEthAccount: React.FC<props> = ({
           isActiveLoading={isActiveLoading}
           wallets={wallets}
           onClick={(wallet) => {
-            if (wallet.readyState !== WalletReadyState.Installed) {
+            if (wallet.installLink) {
               setInstallingWallet({ flow: "eth", wallet: wallet.adapter.name });
-              window.open(walletInstallMap[wallet.adapter.name], "_blank");
+              window.open(wallet.installLink, "_blank");
+            } else if (wallet.deeplink) {
+              window.open(wallet.deeplink);
             } else {
               select(wallet.adapter.name);
             }

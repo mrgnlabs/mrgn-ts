@@ -4,15 +4,17 @@ import { Wallet } from "@solana/wallet-adapter-react";
 
 import { walletIcons } from "~/utils";
 
-import { WalletAuthButton } from "./WalletAuthButton";
 import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
-import { IconPlus, IconUsersPlus } from "~/components/ui/icons";
+import { IconPlus } from "~/components/ui/icons";
+import { ExtendedWallet } from "~/hooks/useAvailableWallets";
+
+import { WalletAuthButton } from "./WalletAuthButton";
 
 interface props {
   isLoading: boolean;
   isActiveLoading: string;
-  wallets: Wallet[];
-  onClick: (wallet: Wallet) => void;
+  wallets: ExtendedWallet[];
+  onClick: (wallet: ExtendedWallet) => void;
 }
 
 export const WalletAuthWrapper = ({ isLoading, isActiveLoading, wallets, onClick }: props) => {

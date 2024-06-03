@@ -1,9 +1,9 @@
 import React from "react";
 
-import { AuthScreenProps, cn, socialProviders } from "~/utils";
+import { AuthScreenProps, socialProviders } from "~/utils";
+import { useWalletContext } from "~/hooks/useWalletContext";
 
 import { OnboardHeader, WalletAuthButton, WalletAuthEmailForm, WalletSeperator } from "../sharedComponents";
-import { useWalletContext } from "~/hooks/useWalletContext";
 
 interface props extends AuthScreenProps {}
 
