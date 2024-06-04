@@ -111,6 +111,7 @@ export function useAvailableWallets(preset?: WalletPreset): ExtendedWallet[] {
     presetFilter,
     selectedPreset,
     wallets,
+    isMobile,
     isBackpackInstalled,
     isPhantomInstalled,
   ]);

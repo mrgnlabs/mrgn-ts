@@ -153,7 +153,7 @@ export const AuthDialog = () => {
           isBgGlass={true}
           onInteractOutside={(e) => e.preventDefault()}
           className={cn(
-            "md:block overflow-hidden p-4 pt-8 md:pt-4 justify-start md:max-w-xl",
+            "md:block overflow-scroll p-4 pt-8 md:pt-4 justify-start md:max-w-xl",
             flow === "ONBOARD_MAIN" && "lg:max-w-6xl"
           )}
         >
