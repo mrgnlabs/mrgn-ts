@@ -43,7 +43,7 @@ export const BridgeToken: React.FC<props> = ({ onNext }: props) => {
       element: "debridgeWidget",
       title: "",
       description: "",
-      width: isMobile ? "430" : "460",
+      width: isMobile ? "400" : "460",
       height: "500",
       r: 16890,
       supportedChains:
