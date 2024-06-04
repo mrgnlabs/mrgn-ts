@@ -49,16 +49,16 @@ export const InAppSignIn = ({ isLoading, select, update, onClose }: props) => {
 
   return (
     <div className="pt-6 font-normal">
-      <OnboardHeader title={"Sign in to marginfi"} description={"Sign in to lend & earn interest in marginfi."} />
+      <OnboardHeader title={"Sign in to marginfi"} description={"Earn yield, permissionlessly."} />
       <ScreenWrapper>
-        <div className="flex items-center gap-3 text-xl text-primary">
+        <div className="flex flex-col items-center justify-center gap-3 text-xl text-primary">
           <span className="rounded-full bg-background-gray-light p-2">{inAppWallet.icon}</span>
           {inAppWallet.description}
         </div>
         <Button disabled={isLoading} onClick={inAppWallet.connect}>
           {isLoading ? <IconLoader /> : "Sign in"}
         </Button>
-        <WalletSeperator description={"or sign in another way"} onClick={() => update("RETURNING_USER")} />
+        <WalletSeperator description={"more sign in options"} onClick={() => update("RETURNING_USER")} />
       </ScreenWrapper>
     </div>
   );
