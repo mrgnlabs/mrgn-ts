@@ -9,6 +9,8 @@ import { cn } from "~/utils";
 import { Wallet } from "~/components/common/Wallet";
 import { IconChevronDown, IconBrandGoogle, IconBrandX, IconBrandApple, IconMrgn } from "~/components/ui/icons";
 import { Button } from "~/components/ui/button";
+import { useOs } from "~/hooks/useOs";
+import { walletDeepLinkMap } from "~/hooks/useAvailableWallets";
 
 const web3AuthIconMap: { [key in Web3AuthProvider]: { icon: JSX.Element } } = {
   google: {
@@ -26,6 +28,7 @@ const web3AuthIconMap: { [key in Web3AuthProvider]: { icon: JSX.Element } } = {
 };
 
 export const WalletButton = () => {
+  const { isAndroid, isIOS } = useOs();
   const { select } = useWallet();
   const { connected, isLoading, loginWeb3Auth } = useWalletContext();
   const [setIsWalletAuthDialogOpen] = useUiStore((state) => [state.setIsWalletAuthDialogOpen]);
@@ -61,12 +64,16 @@ export const WalletButton = () => {
           loginWeb3Auth(walletInfo.name);
         }
       } else {
-        select(walletInfo.name as any);
+        if ((isIOS || isAndroid) && walletDeepLinkMap[walletInfo.name]) {
+          window.open(walletDeepLinkMap[walletInfo.name]);
+        } else {
+          select(walletInfo.name as any);
+        }
       }
     } catch (error) {
       setIsWalletAuthDialogOpen(true);
     }
-  }, [walletInfo, setIsWalletAuthDialogOpen, select, loginWeb3Auth]);
+  }, [walletInfo, isAndroid, isIOS, setIsWalletAuthDialogOpen, select, loginWeb3Auth]);
 
   return (
     <>

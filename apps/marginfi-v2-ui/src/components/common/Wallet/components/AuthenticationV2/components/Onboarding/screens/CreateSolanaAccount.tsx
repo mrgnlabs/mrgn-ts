@@ -29,21 +29,6 @@ export const CreateSolanaAccount: React.FC<props> = ({
 
   const { isAndroid, isIOS } = useOs();
 
-  const filteredWallets = React.useMemo(() => {
-    const filtered = wallets.filter((wallet) => {
-      if (wallet.adapter.name === "Mobile Wallet Adapter" && isIOS) return false;
-      return wallet.readyState === "Installed" || wallet.readyState === "Loadable";
-    });
-
-    // reorder filtered so item with wallet.adapter.name === "Backpack" is first
-    const backpackWallet = filtered.find((wallet) => wallet.adapter.name === "Backpack");
-    if (backpackWallet) {
-      return [backpackWallet, ...filtered.filter((wallet) => wallet.adapter.name !== "Backpack")];
-    }
-
-    return filtered;
-  }, [wallets, isIOS]);
-
   return (
     <ScreenWrapper>
       <WalletAuthEmailForm
@@ -73,12 +58,12 @@ export const CreateSolanaAccount: React.FC<props> = ({
         ))}
       </ul>
       <WalletSeperator description="or connect with" />
-      {(filteredWallets.length > 0 || isAndroid || isIOS) && (
+      {(wallets.length > 0 || isAndroid || isIOS) && (
         <ul className="flex flex-wrap items-start justify-center gap-4 overflow-auto">
           <WalletAuthWrapper
             isLoading={isLoading}
             isActiveLoading={isActiveLoading}
-            wallets={filteredWallets}
+            wallets={wallets}
             onClick={(wallet) => {
               if (wallet.installLink) {
                 setInstallingWallet({ flow: "onramp", wallet: wallet.adapter.name });
