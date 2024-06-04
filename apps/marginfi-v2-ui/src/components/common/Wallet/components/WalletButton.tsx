@@ -37,7 +37,10 @@ export const WalletButton = () => {
 
   const walletInfo = useMemo(() => JSON.parse(localStorage.getItem("walletInfo") ?? "null") as WalletInfo, []);
 
-  const walletObject = React.useMemo(() => wallets.find((value) => value.adapter.name === walletInfo.name), [wallets]);
+  const walletObject = React.useMemo(
+    () => wallets.find((value) => value?.adapter?.name === walletInfo?.name),
+    [wallets, walletInfo]
+  );
 
   const isMoongate = useMemo(() => walletInfo?.name === "Ethereum Wallet", [walletInfo]);
 
