@@ -1,12 +1,11 @@
 import React from "react";
 
 import { AuthScreenProps, cn, socialProviders } from "~/utils";
-import { useIsMobile } from "~/hooks/useIsMobile";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { useAvailableWallets } from "~/hooks/useAvailableWallets";
 import { useOs } from "~/hooks/useOs";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "~/components/ui/accordion";
-import { IconBackpackWallet, IconPhantomWallet, IconStarFilled } from "~/components/ui/icons";
+import { IconBackpackWallet, IconStarFilled } from "~/components/ui/icons";
 
 import {
   OnboardHeader,
@@ -27,26 +26,10 @@ export const ReturningUser = ({
   select,
   onClose,
 }: props) => {
-  const isMobile = useIsMobile();
   const wallets = useAvailableWallets();
   const { connected, loginWeb3Auth } = useWalletContext();
 
   const { isAndroid, isIOS } = useOs();
-
-  const filteredWallets = React.useMemo(() => {
-    const filtered = wallets.filter((wallet) => {
-      if (wallet.adapter.name === "Mobile Wallet Adapter" && isIOS) return false;
-      return true;
-    });
-
-    // reorder filtered so item with wallet.adapter.name === "Backpack" is first
-    const backpackWallet = filtered.find((wallet) => wallet.adapter.name === "Backpack");
-    if (backpackWallet) {
-      return [backpackWallet, ...filtered.filter((wallet) => wallet.adapter.name !== "Backpack")];
-    }
-
-    return filtered;
-  }, [wallets, isIOS]);
 
   React.useEffect(() => {
     if (connected) {
@@ -114,14 +97,18 @@ export const ReturningUser = ({
             </div>
           </AccordionTrigger>
           <AccordionContent className="flex flex-col gap-6">
-            {(filteredWallets.length > 0 || isAndroid || isIOS) && (
+            {(wallets.length > 0 || isAndroid || isIOS) && (
               <ul className="flex flex-wrap items-start justify-center gap-4 overflow-auto">
                 <WalletAuthWrapper
                   isLoading={isLoading}
                   isActiveLoading={isActiveLoading}
-                  wallets={filteredWallets}
+                  wallets={wallets}
                   onClick={(wallet) => {
-                    select(wallet.adapter.name);
+                    if (wallet.deeplink) {
+                      window.open(wallet.deeplink);
+                    } else {
+                      select(wallet.adapter.name);
+                    }
                   }}
                 />
               </ul>
