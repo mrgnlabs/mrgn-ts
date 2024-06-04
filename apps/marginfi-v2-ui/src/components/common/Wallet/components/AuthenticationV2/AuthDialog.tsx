@@ -136,9 +136,7 @@ export const AuthDialog = () => {
 
   return (
     <div>
-      {progress !== 0 && progress !== 100 && (
-        <Progress value={progress} className="fixed top-0 z-[999] h-1 rounded-none" />
-      )}
+      <Progress value={progress} className="fixed top-0 z-[999] h-1 rounded-none" />
 
       <Dialog
         open={isWalletAuthDialogOpen}
