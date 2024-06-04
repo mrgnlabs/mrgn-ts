@@ -241,6 +241,10 @@ export const pwaBrowserMap: PwaBrowserMap = {
   Phantom: { android: [], ios: [] },
   Backpack: { android: [], ios: [] },
   PWA: { android: [], ios: [] },
+  Solflare: {
+    android: [],
+    ios: [],
+  },
 };
 
 const iosPwaBrowsers: BrowserTypes[] = ["Safari", "Chrome", "Edge", "Firefox"];

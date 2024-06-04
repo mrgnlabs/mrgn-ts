@@ -22,7 +22,7 @@ export const AuthDialog = () => {
   const showPWAInstallScreen = React.useMemo(
     () =>
       (isAndroid || isIOS) &&
-      !(isPWA || browser === "Backpack" || browser === "Phantom") &&
+      !(isPWA || browser === "Backpack" || browser === "Phantom" || browser === "Solflare") &&
       !localStorage.getItem("walletInfo"),
     [isAndroid, isIOS, browser, isPWA]
   );
@@ -119,7 +119,6 @@ export const AuthDialog = () => {
     if (!isWalletAuthDialogOpen) {
       setIsLoading(false);
       setIsActiveLoading("");
-      setFlow(mainFlow);
       setProgress(0);
     }
   }, [isWalletAuthDialogOpen]);
