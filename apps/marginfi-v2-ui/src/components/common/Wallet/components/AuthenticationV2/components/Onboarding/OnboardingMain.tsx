@@ -47,7 +47,7 @@ export const OnboardingMain = ({ update }: props) => {
                 Sign in with email or social to use the marginfi mobile web app, or connect your existing Solana wallet.
               </p>
             </div>
-            <Button className="w-full md:w-fit mt-auto">Create account</Button>
+            <Button className="w-full md:w-fit mt-auto">Sign in</Button>
           </div>
         </div>
         <div
@@ -61,7 +61,7 @@ export const OnboardingMain = ({ update }: props) => {
                 Sign in with email or social, or connect your existing wallet and we&apos;ll onboard you to Solana defi.
               </p>
             </div>
-            <Button className="w-full md:w-fit mt-auto">Create account</Button>
+            <Button className="w-full md:w-fit mt-auto">Sign in</Button>
           </div>
         </div>
       </div>

@@ -26,15 +26,16 @@ export const socialOnrampFlow: SocialOnrampScreen[] = [
   },
   {
     comp: screens.JupiterSwap,
-    title: "Step 3: Swap some tokens",
-    description: "Swap for USDC and start earning XXX% APY today. Make sure you keep some SOL for transaction fees.",
+    title: "Step 3: Swap your tokens",
+    description:
+      "Swap your tokens and start earning permissionless yield today. Make sure you keep some SOL for transaction fees.",
     titleSize: "sm",
     tag: "swap",
   },
   {
     comp: screens.DepositToken,
     title: "Step 4: Make a deposit!",
-    description: "Make your first deposit into marginfi and start earning XXX% APY permissionless yield today.",
+    description: "Make your first deposit into marginfi and start earning permissionless yield today.",
     titleSize: "sm",
   },
 ];

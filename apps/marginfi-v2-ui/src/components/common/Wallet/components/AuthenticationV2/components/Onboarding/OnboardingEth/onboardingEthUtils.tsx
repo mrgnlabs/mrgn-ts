@@ -10,9 +10,9 @@ export type EthOnrampScreen = {
 export const ethOnrampFlow: EthOnrampScreen[] = [
   {
     comp: screens.CreateEthAccount,
-    title: "Welcome to marginfi",
+    title: "Step 1: Sign in",
     description:
-      "Sign in with email or social and we'll create a Solana wallet for you, or connect an existing wallet and bridge your funds.",
+      "Sign in with email or social and we'll create a Solana wallet for you, or connect your wallet and bridge funds.",
     titleSize: "lg",
   },
   {
@@ -24,14 +24,15 @@ export const ethOnrampFlow: EthOnrampScreen[] = [
   },
   {
     comp: screens.JupiterSwap,
-    title: "Step 2. Swap some tokens",
-    description: "Swap for USDC and start earning XXX% APY today. Make sure you keep some SOL for transaction fees.",
+    title: "Step 2. Swap your tokens",
+    description:
+      "Swap your tokens and start earning permissionless yield today. Make sure you keep some SOL for transaction fees.",
     titleSize: "sm",
   },
   {
     comp: screens.DepositToken,
     title: "Step 3. Make a deposit!",
-    description: "Make your first deposit into marginfi and start earning XXX% APY permissionless yield today.",
+    description: "Make your first deposit into marginfi and start earning permissionless yield today.",
     titleSize: "sm",
   },
 ];
