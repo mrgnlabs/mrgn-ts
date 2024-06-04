@@ -3,11 +3,11 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import Script from "next/script";
 
 import { useMrgnlendStore } from "~/store";
-import { AuthScreenProps, InstallingWallet, OnrampScreenProps, SuccessProps, cn } from "~/utils";
+import { useWalletContext } from "~/hooks/useWalletContext";
+import { AuthScreenProps, InstallingWallet, OnrampScreenProps, SuccessProps } from "~/utils";
 
 import { OnboardHeader } from "../../sharedComponents";
 import { ethOnrampFlow, installWallet, successBridge } from "./onboardingEthUtils";
-import { useWalletContext } from "~/hooks/useWalletContext";
 
 interface props extends AuthScreenProps {}
 
@@ -17,7 +17,7 @@ export const OnboardingEth = ({
   setIsLoading,
   setProgress,
   setIsActiveLoading,
-  loginWeb3Auth,
+
   onClose,
   onPrev,
 }: props) => {
@@ -97,7 +97,6 @@ export const OnboardingEth = ({
         onNext: () => setScreenIndex(screenIndex + 1),
         setIsLoading: setIsLoading,
         setIsActiveLoading: setIsActiveLoading,
-        loginWeb3Auth: loginWeb3Auth,
         setInstallingWallet: setInstallingWallet,
         select: onSelectWallet,
       } as OnrampScreenProps)}

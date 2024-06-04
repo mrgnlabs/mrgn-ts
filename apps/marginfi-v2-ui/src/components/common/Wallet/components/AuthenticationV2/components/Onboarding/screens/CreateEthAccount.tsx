@@ -1,7 +1,5 @@
-import { WalletReadyState } from "@solana/wallet-adapter-base";
-
 import { OnrampScreenProps, socialProviders } from "~/utils";
-import { useAvailableWallets, walletInstallMap } from "~/hooks/useAvailableWallets";
+import { useAvailableWallets } from "~/hooks/useAvailableWallets";
 
 import {
   ScreenWrapper,
@@ -10,6 +8,7 @@ import {
   WalletSeperator,
   WalletAuthWrapper,
 } from "../../sharedComponents";
+import { useWalletContext } from "~/hooks/useWalletContext";
 
 interface props extends OnrampScreenProps {}
 
@@ -19,10 +18,11 @@ export const CreateEthAccount: React.FC<props> = ({
   setIsLoading,
   setIsActiveLoading,
   setInstallingWallet,
-  loginWeb3Auth,
   select,
 }: props) => {
   const wallets = useAvailableWallets("eth");
+  const { loginWeb3Auth } = useWalletContext();
+
   return (
     <ScreenWrapper>
       <WalletAuthEmailForm

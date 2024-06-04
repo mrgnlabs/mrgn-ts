@@ -2,13 +2,13 @@ import React from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 
 import { useMrgnlendStore } from "~/store";
-import { AuthScreenProps, InstallingWallet, OnrampScreenProps, SuccessProps, cn } from "~/utils";
-
-import { OnboardHeader } from "../../sharedComponents";
-import { alreadyOnboarded, installWallet, socialOnrampFlow, successOnramp, successSwap } from "./onboardingSocialUtils";
+import { AuthScreenProps, InstallingWallet, OnrampScreenProps, SuccessProps } from "~/utils";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { Loader } from "~/components/ui/loader";
 import { useOs } from "~/hooks/useOs";
+
+import { OnboardHeader } from "../../sharedComponents";
+import { alreadyOnboarded, installWallet, socialOnrampFlow, successOnramp, successSwap } from "./onboardingSocialUtils";
 
 interface props extends AuthScreenProps {}
 
@@ -18,7 +18,6 @@ export const OnboardingSocial: React.FC<props> = ({
   setIsLoading,
   setProgress,
   setIsActiveLoading,
-  loginWeb3Auth,
   onClose,
   onPrev,
 }: props) => {
@@ -132,7 +131,6 @@ export const OnboardingSocial: React.FC<props> = ({
           setIsActiveLoading: setIsActiveLoading,
           setInstallingWallet: setInstallingWallet,
           setSuccessProps: setSuccessProps,
-          loginWeb3Auth: loginWeb3Auth,
         } as OnrampScreenProps)
       )}
     </div>

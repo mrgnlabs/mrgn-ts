@@ -1,6 +1,4 @@
-import { WalletReadyState } from "@solana/wallet-adapter-base";
-
-import { useAvailableWallets, walletInstallMap } from "~/hooks/useAvailableWallets";
+import { useAvailableWallets } from "~/hooks/useAvailableWallets";
 import { useOs } from "~/hooks/useOs";
 import { OnrampScreenProps, socialProviders } from "~/utils";
 import { useWalletContext } from "~/hooks/useWalletContext";

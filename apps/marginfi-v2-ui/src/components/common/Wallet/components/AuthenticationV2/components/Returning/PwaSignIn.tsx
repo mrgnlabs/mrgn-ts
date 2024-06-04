@@ -7,16 +7,8 @@ import { OnboardHeader, WalletAuthButton, WalletAuthEmailForm, WalletSeperator }
 
 interface props extends AuthScreenProps {}
 
-export const PwaSignIn = ({
-  isLoading,
-  isActiveLoading,
-  setIsActiveLoading,
-  setIsLoading,
-  loginWeb3Auth,
-  update,
-  onClose,
-}: props) => {
-  const { connected } = useWalletContext();
+export const PwaSignIn = ({ isLoading, isActiveLoading, setIsActiveLoading, setIsLoading, update, onClose }: props) => {
+  const { connected, loginWeb3Auth } = useWalletContext();
 
   React.useEffect(() => {
     if (connected) {

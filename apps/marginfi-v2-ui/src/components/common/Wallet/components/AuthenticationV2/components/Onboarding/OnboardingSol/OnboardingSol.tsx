@@ -14,7 +14,6 @@ export const OnboardingSol = ({
   isActiveLoading,
   setIsLoading,
   setIsActiveLoading,
-  loginWeb3Auth,
   onClose,
   onPrev,
 }: props) => {
@@ -85,7 +84,6 @@ export const OnboardingSol = ({
         setIsLoading: setIsLoading,
         setIsActiveLoading: setIsActiveLoading,
         setInstallingWallet: setInstallingWallet,
-        loginWeb3Auth: loginWeb3Auth,
         setSuccessProps: setSuccessProps,
         select: onSelectWallet,
       } as OnrampScreenProps)}

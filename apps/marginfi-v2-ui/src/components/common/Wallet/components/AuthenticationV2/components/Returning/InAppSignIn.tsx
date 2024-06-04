@@ -10,16 +10,7 @@ import { OnboardHeader, ScreenWrapper, WalletSeperator } from "../sharedComponen
 
 interface props extends AuthScreenProps {}
 
-export const InAppSignIn = ({
-  isLoading,
-  isActiveLoading,
-  setIsActiveLoading,
-  setIsLoading,
-  loginWeb3Auth,
-  select,
-  update,
-  onClose,
-}: props) => {
+export const InAppSignIn = ({ isLoading, select, update, onClose }: props) => {
   const { connected } = useWalletContext();
   const browser = useBrowser();
 

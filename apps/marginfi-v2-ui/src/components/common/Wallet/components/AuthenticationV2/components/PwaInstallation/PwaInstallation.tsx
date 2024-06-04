@@ -13,7 +13,6 @@ export const PwaInstalation = ({
   isActiveLoading,
   setIsLoading,
   setIsActiveLoading,
-  loginWeb3Auth,
   update,
   onPrev,
 }: props) => {
@@ -51,7 +50,6 @@ export const PwaInstalation = ({
         update: update,
         setIsLoading: setIsLoading,
         setIsActiveLoading: setIsActiveLoading,
-        loginWeb3Auth: loginWeb3Auth,
         select: onSelectWallet,
       } as OnrampScreenProps)}
     </>

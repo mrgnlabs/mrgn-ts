@@ -169,7 +169,7 @@ export const AuthDialog = () => {
             setProgress: setProgress,
             select: onSelectWallet,
             setIsActiveLoading: setIsActiveLoading,
-            loginWeb3Auth: (props) => {
+            loginWeb3Auth: (props: any) => {
               loginWeb3Auth(props);
               if (flow !== "RETURNING_PWA" && flow !== "RETURNING_USER") {
                 localStorage.setItem("onboardingFlow", flow);
