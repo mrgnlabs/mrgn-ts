@@ -47,32 +47,31 @@ export const Onramp = ({ successProps, onNext, setSuccessProps }: props) => {
   }, [divRef, setIsShowMeso]);
 
   const initializeMeso = React.useCallback(() => {
-    if (divRef.current && !(divRef.current as any)?.innerHTML) {
-      const transfer = inlineTransfer({
-        container: "#outlet",
-        partnerId: "marginfi",
-        environment: Environment.SANDBOX,
-        sourceAmount: amount.toString() as any,
-        sourceAsset: "USD",
-        authenticationStrategy: AuthenticationStrategy.BYPASS_WALLET_VERIFICATION,
-        destinationAsset: Asset.SOL,
-        network: Network.SOLANA_MAINNET,
-        walletAddress: wallet.publicKey.toBase58(),
+    if (!divRef.current) return;
+    const transfer = inlineTransfer({
+      container: "#outlet",
+      partnerId: "marginfi",
+      environment: Environment.SANDBOX,
+      sourceAmount: amount.toString() as any,
+      sourceAsset: "USD",
+      authenticationStrategy: AuthenticationStrategy.BYPASS_WALLET_VERIFICATION,
+      destinationAsset: Asset.SOL,
+      network: Network.SOLANA_MAINNET,
+      walletAddress: wallet.publicKey.toBase58(),
 
-        // A callback to handle events throughout the integration lifecycle
-        onEvent({ kind, payload }: MesoEvent) {
-          if (kind === EventKind.TRANSFER_COMPLETE) {
-            setSuccessProps({ ...successProps, mesoSuccess: payload });
-          }
-        },
+      // A callback to handle events throughout the integration lifecycle
+      onEvent({ kind, payload }: MesoEvent) {
+        if (kind === EventKind.TRANSFER_COMPLETE) {
+          setSuccessProps({ ...successProps, mesoSuccess: payload });
+        }
+      },
 
-        // A callback to handle having the user verify their wallet ownership by signing a message
-        async onSignMessageRequest(message: string) {
-          return "";
-        },
-      });
-      setIsShowMeso(true);
-    }
+      // A callback to handle having the user verify their wallet ownership by signing a message
+      async onSignMessageRequest(message: string) {
+        return "";
+      },
+    });
+    setIsShowMeso(true);
   }, [divRef, wallet, amount, setIsShowMeso]);
 
   const amountOptions = [
