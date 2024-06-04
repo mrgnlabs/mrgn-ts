@@ -1,146 +1,250 @@
 import React from "react";
 
-import { IconApps, IconLoader, IconMenu2, IconShare2, IconSquarePlus, IconUpload } from "~/components/ui/icons";
+import {
+  IconApps,
+  IconLoader,
+  IconMenu2,
+  IconShare2,
+  IconSquarePlus,
+  IconUpload,
+  IconDotsVertical,
+  IconDeviceMobileShare,
+  IconCirclePlus,
+  IconDeviceMobilePlus,
+} from "~/components/ui/icons";
 import { BrowserTypes, useBrowser } from "~/hooks/useBrowser";
 import { useOs } from "~/hooks/useOs";
 import { ScreenWrapper, WalletSeperator } from "../../sharedComponents";
 import { useIOSVersion } from "~/hooks/useIOSVersion";
 import { AuthScreenProps } from "~/utils";
+import { Button } from "~/components/ui/button";
 
 type PwaBrowserMap = {
-  [browser in BrowserTypes]: StepCardProps[];
+  [browser in BrowserTypes]: { android: StepCardProps[]; ios: StepCardProps[] };
 };
 
-export const PwaBrowserMap: PwaBrowserMap = {
-  Safari: [
-    {
-      icon: <IconShare2 />,
-      title: "Step 1: Tap the Share Button",
-      description: "At the bottom of the Safari screen, tap the share icon.",
-    },
-    {
-      icon: <IconSquarePlus />,
-      title: "Step 2: Select 'Add to Home Screen'",
-      description:
-        "Scroll through the list of options in the share menu until you find 'Add to Home Screen.' Tap on it.",
-    },
-    {
-      icon: <IconApps />,
-      title: "Step 3: Edit the Name (Optional)",
-      description: "You will see a screen where you can edit the name of the PWA. Change the name if desired.",
-    },
-  ],
-  Chrome: [
-    {
-      icon: <IconShare2 />,
-      title: "Step 1: Tap the Share Button",
-      description: "At the top right of the Chrome screen, tap the share icon.",
-    },
-    {
-      icon: <IconSquarePlus />,
-      title: "Step 2: Select 'Add to Home Screen'",
-      description: "Scroll through the list of options in the menu until you find 'Add to Home Screen.' Tap on it.",
-    },
-    {
-      icon: <IconApps />,
-      title: "Step 3: Confirm the Name",
-      description:
-        "You will see a screen where you can edit the name of the PWA. Change the name if desired and tap 'Add' to confirm.",
-    },
-  ],
-  Opera: [
-    {
-      icon: <IconMenu2 />,
-      title: "Step 1: Tap the Menu Button",
-      description: "At the bottom right of the Opera screen, tap the menu icon.",
-    },
-    {
-      icon: <IconShare2 />,
-      title: "Step 2: Tap the Share Button",
-      description: "At the bottom right in the drawer, tap the share icon.",
-    },
-    {
-      icon: <IconSquarePlus />,
-      title: "Step 3: Select 'Add to Home Screen'",
-      description: "In the menu that appears, select 'Add to Home Screen.'",
-    },
-    {
-      icon: <IconApps />,
-      title: "Step 3: Confirm the Name",
-      description:
-        "You will see a screen where you can edit the name of the PWA. Change the name if desired and tap 'Add' to confirm.",
-    },
-  ],
-  Firefox: [
-    {
-      icon: <IconMenu2 />,
-      title: "Step 1: Tap the Menu Button",
-      description: "At the bottom right of the Firefox screen, tap the menu icon.",
-    },
-    {
-      icon: <IconUpload />,
-      title: "Step 2: Select 'Share'",
-      description: "Scroll through the list of options in the menu until you find 'Share' Tap on it.",
-    },
-    {
-      icon: <IconSquarePlus />,
-      title: "Step 3: Select 'Add to Home Screen'",
-      description: "Scroll through the list of options in the menu until you find 'Add to Home Screen.' Tap on it.",
-    },
-    {
-      icon: <IconApps />,
-      title: "Step 4: Confirm the Name",
-      description:
-        "You will see a screen where you can edit the name of the PWA. Change the name if desired and tap 'Add' to confirm.",
-    },
-  ],
-  Edge: [
-    {
-      icon: <IconMenu2 />,
-      title: "Step 1: Tap the Menu Button",
-      description: "At the bottom right of the Edge screen, tap the menu icon.",
-    },
-    {
-      icon: <IconShare2 />,
-      title: "Step 2: Select 'Share'",
-      description: "Scroll through the list of options in the menu until you find 'Share' Tap on it.",
-    },
-    {
-      icon: <IconSquarePlus />,
-      title: "Step 3: Select 'Add to Home Screen'",
-      description: "Scroll through the list of options in the menu until you find 'Add to Home Screen.' Tap on it.",
-    },
-    {
-      icon: <IconApps />,
-      title: "Step 4: Confirm the Name",
-      description:
-        "You will see a screen where you can edit the name of the PWA. Change the name if desired and tap 'Add' to confirm.",
-    },
-  ],
-  Brave: [
-    // {
-    //   icon: <IconDots />,
-    //   title: "Step 1: Tap the Menu Button",
-    //   description: "At the top right of the Brave screen, tap the three dots menu icon.",
-    // },
-    // {
-    //   icon: <IconSquarePlus />,
-    //   title: "Step 2: Select 'Add to Home Screen'",
-    //   description: "Scroll through the list of options in the menu until you find 'Add to Home Screen.' Tap on it.",
-    // },
-    // {
-    //   icon: <IconApps />,
-    //   title: "Step 3: Confirm the Name",
-    //   description:
-    //     "You will see a screen where you can edit the name of the PWA. Change the name if desired and tap 'Add' to confirm.",
-    // },
-  ],
-  Phantom: [],
-  Backpack: [],
-  PWA: [],
+export const pwaBrowserMap: PwaBrowserMap = {
+  Safari: {
+    android: [],
+    ios: [
+      {
+        icon: <IconShare2 />,
+        title: "Step 1: Tap the Share Button",
+        description: "At the bottom of the Safari screen, tap the share icon.",
+      },
+      {
+        icon: <IconSquarePlus />,
+        title: "Step 2: Select 'Add to Home Screen'",
+        description:
+          "Scroll through the list of options in the share menu until you find 'Add to Home Screen.' Tap on it.",
+      },
+      {
+        icon: <IconApps />,
+        title: "Step 3: Edit the Name (Optional)",
+        description: "You will see a screen where you can edit the name of the PWA. Change the name if desired.",
+      },
+    ],
+  },
+  Chrome: {
+    android: [
+      {
+        icon: <IconDotsVertical />,
+        title: "Step 1: Tap the Settings Button",
+        description: "At the top right of the Chrome screen, tap the settings icon.",
+      },
+      {
+        icon: <IconDeviceMobileShare />,
+        title: "Step 2: Select 'Add to Home Screen'",
+        description: "Scroll through the list of options in the menu until you find 'Add to Home Screen.' Tap on it.",
+      },
+      {
+        icon: <IconApps />,
+        title: "Step 3: Create Shortcut",
+        description:
+          "You will see a screen where you can edit the name of the PWA. Change the name if desired and tap 'Add' to confirm.",
+      },
+    ],
+    ios: [
+      {
+        icon: <IconShare2 />,
+        title: "Step 1: Tap the Share Button",
+        description: "At the top right of the Chrome screen, tap the share icon.",
+      },
+      {
+        icon: <IconSquarePlus />,
+        title: "Step 2: Select 'Add to Home Screen'",
+        description: "Scroll through the list of options in the menu until you find 'Add to Home Screen.' Tap on it.",
+      },
+      {
+        icon: <IconApps />,
+        title: "Step 3: Confirm the Name",
+        description:
+          "You will see a screen where you can edit the name of the PWA. Change the name if desired and tap 'Add' to confirm.",
+      },
+    ],
+  },
+  Opera: {
+    android: [
+      {
+        icon: <IconDotsVertical />,
+        title: "Step 1: Tap the Settings Button",
+        description: "At the top right of the Opera screen, tap the settings icon.",
+      },
+      {
+        icon: <IconCirclePlus />,
+        title: "Step 2: Select 'Add to...'",
+        description: "Scroll through the list of options in the menu until you find 'Add to...' Tap on it.",
+      },
+      {
+        icon: <IconSquarePlus />,
+        title: "Step 3: Select 'Home Screen'",
+        description: "In the menu that appears, select 'Home Screen.'",
+      },
+      {
+        icon: <IconApps />,
+        title: "Step 4: Add to Home Screen",
+        description:
+          "You will see a screen where you can edit the name of the PWA. Change the name if desired and tap 'Add' to confirm.",
+      },
+    ],
+    ios: [
+      {
+        icon: <IconMenu2 />,
+        title: "Step 1: Tap the Menu Button",
+        description: "At the bottom right of the Opera screen, tap the menu icon.",
+      },
+      {
+        icon: <IconShare2 />,
+        title: "Step 2: Tap the Share Button",
+        description: "At the bottom right in the drawer, tap the share icon.",
+      },
+      {
+        icon: <IconSquarePlus />,
+        title: "Step 3: Select 'Add to Home Screen'",
+        description: "In the menu that appears, select 'Add to Home Screen.'",
+      },
+      {
+        icon: <IconApps />,
+        title: "Step 3: Confirm the Name",
+        description:
+          "You will see a screen where you can edit the name of the PWA. Change the name if desired and tap 'Add' to confirm.",
+      },
+    ],
+  },
+  Firefox: {
+    android: [
+      {
+        icon: <IconDotsVertical />,
+        title: "Step 1: Tap the Settings Button",
+        description: "At the top right of the Firefox screen, tap the settings icon.",
+      },
+      {
+        icon: <IconDeviceMobileShare />,
+        title: "Step 2: Select 'Add to Home Screen'",
+        description: "Scroll through the list of options in the menu until you find 'Add to Home Screen.' Tap on it.",
+      },
+      {
+        icon: <IconApps />,
+        title: "Step 3: Create Shortcut",
+        description:
+          "You will see a screen where you can touch & hold the widget to move it around. Press 'Add to home screen' to confirm.",
+      },
+    ],
+    ios: [
+      {
+        icon: <IconMenu2 />,
+        title: "Step 1: Tap the Menu Button",
+        description: "At the bottom right of the Firefox screen, tap the menu icon.",
+      },
+      {
+        icon: <IconUpload />,
+        title: "Step 2: Select 'Share'",
+        description: "Scroll through the list of options in the menu until you find 'Share' Tap on it.",
+      },
+      {
+        icon: <IconSquarePlus />,
+        title: "Step 3: Select 'Add to Home Screen'",
+        description: "Scroll through the list of options in the menu until you find 'Add to Home Screen.' Tap on it.",
+      },
+      {
+        icon: <IconApps />,
+        title: "Step 4: Confirm the Name",
+        description:
+          "You will see a screen where you can edit the name of the PWA. Change the name if desired and tap 'Add' to confirm.",
+      },
+    ],
+  },
+  Edge: {
+    android: [
+      {
+        icon: <IconMenu2 />,
+        title: "Step 1: Tap the Menu Button",
+        description: "At the bottom right of the Edge screen, tap the menu icon.",
+      },
+      {
+        icon: <IconDeviceMobilePlus />,
+        title: "Step 2: Select 'Add to phone'",
+        description: "Scroll through the list of options in the menu until you find 'Add to phone' Tap on it.",
+      },
+      {
+        icon: <IconApps />,
+        title: "Step 3: Create Shortcut",
+        description:
+          "You will see a screen where you can edit the name of the PWA. Change the name if desired and tap 'Add' to confirm.",
+      },
+    ],
+    ios: [
+      {
+        icon: <IconMenu2 />,
+        title: "Step 1: Tap the Menu Button",
+        description: "At the bottom right of the Edge screen, tap the menu icon.",
+      },
+      {
+        icon: <IconShare2 />,
+        title: "Step 2: Select 'Share'",
+        description: "Scroll through the list of options in the menu until you find 'Share' Tap on it.",
+      },
+      {
+        icon: <IconSquarePlus />,
+        title: "Step 3: Select 'Add to Home Screen'",
+        description: "Scroll through the list of options in the menu until you find 'Add to Home Screen.' Tap on it.",
+      },
+      {
+        icon: <IconApps />,
+        title: "Step 4: Confirm the Name",
+        description:
+          "You will see a screen where you can edit the name of the PWA. Change the name if desired and tap 'Add' to confirm.",
+      },
+    ],
+  },
+  Brave: {
+    android: [
+      {
+        icon: <IconDotsVertical />,
+        title: "Step 1: Tap the Settings Button",
+        description: "At the bottom right of the Brave screen, tap the three dots settings icon.",
+      },
+      {
+        icon: <IconSquarePlus />,
+        title: "Step 2: Select 'Add to Home Screen'",
+        description: "Scroll through the list of options in the menu until you find 'Add to Home Screen.' Tap on it.",
+      },
+      {
+        icon: <IconApps />,
+        title: "Step 3: Create shortcut",
+        description:
+          "You will see a screen where you can edit the name of the PWA. Change the name if desired and tap 'Add' to confirm.",
+      },
+    ],
+    ios: [],
+  },
+  Phantom: { android: [], ios: [] },
+  Backpack: { android: [], ios: [] },
+  PWA: { android: [], ios: [] },
 };
 
 const iosPwaBrowsers: BrowserTypes[] = ["Safari", "Chrome", "Edge", "Firefox"];
+const androidPwaBrowsers: BrowserTypes[] = ["Chrome", "Opera", "Edge", "Firefox", "Brave"];
 
 interface props extends AuthScreenProps {}
 
@@ -167,13 +271,21 @@ export const InstallPWA = ({ update }: props) => {
       else if (!isIOS16_3OrEarlier && iosPwaBrowsers.includes(browser)) return true;
       else return false;
     } else if (isAndroid) {
-      return true;
+      if (androidPwaBrowsers.includes(browser)) return true;
+      else return false;
     } else {
       return false;
     }
   }, [isIOS, isAndroid, isIOS16_3OrEarlier, browser]);
 
-  if (!browser) {
+  const pwaBrowser = React.useMemo(() => {
+    if (!browser) return false;
+
+    if (isIOS) return pwaBrowserMap[browser].ios;
+    else return pwaBrowserMap[browser].android;
+  }, [browser, isAndroid, isAndroid]);
+
+  if (!browser || !pwaBrowser) {
     return (
       <ScreenWrapper>
         <div className="m-auto">
@@ -189,14 +301,18 @@ export const InstallPWA = ({ update }: props) => {
         {!isPwaAvailable && (
           <>
             <div className="text-lg text-primary">PWA is not supported on the current browser.</div>
-            <p>For the best experience, please open our app in Safari and follow the instructions.</p>
+            <p>
+              For the best experience, please open our app in {isIOS ? "Safari" : "Chrome"} and follow the instructions.
+            </p>
           </>
         )}
         {isPwaAvailable &&
-          PwaBrowserMap[browser].map((step, idx) => (
+          pwaBrowser.map((step, idx) => (
             <StepCard key={idx} icon={step.icon} title={step.title} description={step.description} />
           ))}
-        <WalletSeperator description="skip for now" onClick={() => update("ONBOARD_SOCIAL")} />
+        <Button className="w-full" size={"sm"} onClick={() => update("ONBOARD_SOCIAL")}>
+          Skip for now
+        </Button>
       </div>
     </ScreenWrapper>
   );

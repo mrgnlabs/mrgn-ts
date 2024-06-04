@@ -71,7 +71,6 @@ export const AuthDialog = () => {
   }, [showPWAInstallScreen, showInAppBrowser]);
 
   React.useEffect(() => {
-    console.log({ connecting });
     if (!connecting) {
       setIsLoading(false);
       setIsActiveLoading("");
@@ -136,11 +135,22 @@ export const AuthDialog = () => {
     select(selectedWallet as any);
   };
 
+  const getWindowProperties = () => {
+    const properties = {} as any;
+    for (let key in window) {
+      if (window.hasOwnProperty(key) && typeof window[key] !== "object") {
+        properties[key] = window[key];
+      }
+    }
+    return properties;
+  };
+
   return (
     <div>
       {progress !== 0 && progress !== 100 && (
         <Progress value={progress} className="fixed top-0 z-[999] h-1 rounded-none" />
       )}
+
       <Dialog
         open={isWalletAuthDialogOpen}
         onOpenChange={(open) => {
@@ -157,6 +167,9 @@ export const AuthDialog = () => {
             flow === "ONBOARD_MAIN" && "lg:max-w-6xl"
           )}
         >
+          <div>
+            Debug <pre>{window && JSON.stringify(getWindowProperties(), undefined, 2)}</pre>
+          </div>
           {React.createElement(AUTO_FLOW_MAP[flow].comp, {
             update: (newScreen) => setFlow(newScreen),
             onClose: () => {
