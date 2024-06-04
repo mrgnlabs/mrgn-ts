@@ -46,6 +46,7 @@ import {
   IconMoonPay,
   IconX,
   IconArrowsExchange,
+  IconMeso,
 } from "~/components/ui/icons";
 
 enum WalletState {
@@ -54,6 +55,7 @@ enum WalletState {
   SEND = "send",
   SELECT = "select",
   SWAP = "swap",
+  BUY = "bug",
   BRIDGE = "bridge",
   POINTS = "points",
   NOTIS = "notis",
@@ -453,6 +455,7 @@ export const Wallet = () => {
                         </div>
                       </div>
                     )}
+                    {walletTokenState === WalletState.BUY && <WalletOnramp />}
                     {walletTokenState === WalletState.SELECT && (
                       <div className="relative pt-12">
                         <button
@@ -618,7 +621,6 @@ export const Wallet = () => {
           ) : (
             <p>Loading...</p>
           )}
-          <WalletOnramp />
         </SheetContent>
       </Sheet>
 
@@ -714,13 +716,13 @@ function TokenOptions({ walletAddress, setState, setToken, web3AuthConnected = f
         <button
           className="flex flex-col gap-1 text-sm font-medium items-center"
           onClick={() => {
-            setIsOnrampActive(true);
+            setState(WalletState.BUY);
           }}
         >
           <div className="rounded-full flex items-center justify-center h-12 w-12 bg-background-gray transition-colors hover:bg-background-gray-hover">
-            <IconMoonPay size={20} />
+            <IconMeso size={20} />
           </div>
-          On ramp
+          Buy
         </button>
       )}
     </div>
