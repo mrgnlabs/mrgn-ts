@@ -6,7 +6,6 @@ import { ActionBox } from "~/components/common/ActionBox";
 
 import { ScreenWrapper, WalletSeperator } from "../../sharedComponents";
 import { useMrgnlendStore } from "~/store";
-import { SOL_MINT } from "~/store/lstStore";
 
 interface props extends OnrampScreenProps {}
 
