@@ -315,6 +315,9 @@ input::-webkit-inner-spin-button {
 }
 
 /* Debridge Overrides */
+body.widget-mode-body .__mode-header {
+  padding: 0 1rem;
+}
 
 .widget-mode-body::-webkit-scrollbar-thumb {
   background: yellow !important;
