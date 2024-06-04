@@ -135,16 +135,6 @@ export const AuthDialog = () => {
     select(selectedWallet as any);
   };
 
-  const getWindowProperties = () => {
-    const properties = {} as any;
-    for (let key in window) {
-      if (window.hasOwnProperty(key) && typeof window[key] !== "object") {
-        properties[key] = window[key];
-      }
-    }
-    return properties;
-  };
-
   return (
     <div>
       {progress !== 0 && progress !== 100 && (
@@ -167,9 +157,6 @@ export const AuthDialog = () => {
             flow === "ONBOARD_MAIN" && "lg:max-w-6xl"
           )}
         >
-          <div>
-            Debug <pre>{window && JSON.stringify(getWindowProperties(), undefined, 2)}</pre>
-          </div>
           {React.createElement(AUTO_FLOW_MAP[flow].comp, {
             update: (newScreen) => setFlow(newScreen),
             onClose: () => {
