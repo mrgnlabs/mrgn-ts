@@ -25,10 +25,8 @@ export const PwaSignIn = ({ isLoading, isActiveLoading, setIsActiveLoading, setI
         <div className="relative bg-muted hover:bg-muted-highlight text-muted-foreground transition-all duration-300 w-full px-6 py-4 rounded-lg overflow-hidden">
           <div>
             <div className="flex flex-col gap-3">
-              <h2 className="font-semibold text-2xl text-white leading-none">Mobile friendly account</h2>
-              <p className="text-sm font-light leading-none sm:text-base">
-                Sign in with email to download marginfi&apos;s app directly from the web
-              </p>
+              <h2 className="font-medium text-2xl text-white leading-none">Mobile friendly account</h2>
+              <p className="font-normal">Sign in with email to download marginfi&apos;s app directly from the web</p>
             </div>
           </div>
           <div className="flex flex-col gap-6">

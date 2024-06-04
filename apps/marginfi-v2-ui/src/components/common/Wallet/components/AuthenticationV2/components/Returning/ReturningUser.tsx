@@ -49,11 +49,13 @@ export const ReturningUser = ({
         >
           <AccordionTrigger variant="wallet" className="text-left hover:bg-muted-highlight rounded-lg items-start">
             <div className="flex flex-col gap-3 w-4/5">
-              <h2 className="font-semibold text-2xl text-white leading-none">Mobile friendly account</h2>
-              <p>Sign in with email to download marginfi&apos;s mobile app directly from the web.</p>
+              <h2 className="font-medium text-2xl text-white leading-none">Mobile friendly account</h2>
+              <p className="font-normal">
+                Sign in with email to download marginfi&apos;s mobile app directly from the web.
+              </p>
             </div>
           </AccordionTrigger>
-          <AccordionContent className="flex flex-col gap-6">
+          <AccordionContent className="flex flex-col gap-6 mt-4">
             <WalletAuthEmailForm
               loading={isLoading && isActiveLoading === "email"}
               active={!isLoading || (isLoading && isActiveLoading === "email")}
@@ -92,11 +94,11 @@ export const ReturningUser = ({
             className={cn("text-left hover:bg-muted-highlight rounded-lg items-start")}
           >
             <div className="flex flex-col gap-3 w-3/4">
-              <h2 className="font-semibold text-2xl text-white leading-none">Use a wallet</h2>
-              <p>If you're a pro, connect your wallet.</p>
+              <h2 className="font-medium text-2xl text-white leading-none">Use a wallet</h2>
+              <p className="font-normal">If you're a pro, connect your wallet.</p>
             </div>
           </AccordionTrigger>
-          <AccordionContent className="flex flex-col gap-6">
+          <AccordionContent className="flex flex-col gap-6 mt-4">
             {(wallets.length > 0 || isAndroid || isIOS) && (
               <ul className="flex flex-wrap items-start justify-center gap-4 overflow-auto">
                 <WalletAuthWrapper
