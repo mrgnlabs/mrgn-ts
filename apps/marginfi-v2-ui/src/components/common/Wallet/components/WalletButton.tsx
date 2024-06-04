@@ -10,7 +10,8 @@ import { Wallet } from "~/components/common/Wallet";
 import { IconChevronDown, IconBrandGoogle, IconBrandX, IconBrandApple, IconMrgn } from "~/components/ui/icons";
 import { Button } from "~/components/ui/button";
 import { useOs } from "~/hooks/useOs";
-import { walletDeepLinkMap } from "~/hooks/useAvailableWallets";
+import { useAvailableWallets, walletDeepLinkMap } from "~/hooks/useAvailableWallets";
+import { useBrowser } from "~/hooks/useBrowser";
 
 const web3AuthIconMap: { [key in Web3AuthProvider]: { icon: JSX.Element } } = {
   google: {
@@ -29,11 +30,14 @@ const web3AuthIconMap: { [key in Web3AuthProvider]: { icon: JSX.Element } } = {
 
 export const WalletButton = () => {
   const { isAndroid, isIOS } = useOs();
+  const wallets = useAvailableWallets();
   const { select } = useWallet();
   const { connected, isLoading, loginWeb3Auth } = useWalletContext();
   const [setIsWalletAuthDialogOpen] = useUiStore((state) => [state.setIsWalletAuthDialogOpen]);
 
   const walletInfo = useMemo(() => JSON.parse(localStorage.getItem("walletInfo") ?? "null") as WalletInfo, []);
+
+  const walletObject = React.useMemo(() => wallets.find((value) => value.adapter.name === walletInfo.name), [wallets]);
 
   const isMoongate = useMemo(() => walletInfo?.name === "Ethereum Wallet", [walletInfo]);
 
@@ -64,8 +68,8 @@ export const WalletButton = () => {
           loginWeb3Auth(walletInfo.name);
         }
       } else {
-        if ((isIOS || isAndroid) && walletDeepLinkMap[walletInfo.name]) {
-          window.open(walletDeepLinkMap[walletInfo.name]);
+        if (walletObject?.deeplink) {
+          window.open(walletObject.deeplink);
         } else {
           select(walletInfo.name as any);
         }

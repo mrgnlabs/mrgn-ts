@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { useOs } from "./useOs";
 
 export type BrowserTypes =
@@ -10,21 +10,25 @@ export type BrowserTypes =
   | "Brave"
   | "Phantom"
   | "Backpack"
+  | "Solflare"
   | "PWA";
 
 export const useBrowser = () => {
-  const [browser, setBrowser] = useState<BrowserTypes>();
+  const [browser, setBrowser] = React.useState<BrowserTypes>();
   const { isAndroid, isIOS, isPWA } = useOs();
-  const isInAppPhantom = window.localStorage.walletName === "Phantom";
+  const isInAppPhantom = localStorage.getItem("walletName")?.includes("Phantom");
+  const isInAppSolflare = localStorage.getItem("walletName")?.includes("Solflare");
   const isInAppBackpack = window?.backpack?.isBackpack;
 
-  useEffect(() => {
+  React.useEffect(() => {
     const userAgent = navigator.userAgent;
 
     if (isPWA) {
       setBrowser("PWA");
     } else if (isInAppPhantom && (isIOS || isAndroid)) {
       setBrowser("Phantom");
+    } else if (isInAppSolflare && (isIOS || isAndroid)) {
+      setBrowser("Solflare");
     } else if (isInAppBackpack && (isIOS || isAndroid)) {
       setBrowser("Backpack");
     } else if (isAndroid) {
