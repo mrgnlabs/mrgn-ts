@@ -16,6 +16,7 @@ interface props extends OnrampScreenProps {}
 export const CreateSocialAccount: React.FC<props> = ({
   isLoading,
   isActiveLoading,
+  flow,
   setIsLoading,
   setIsActiveLoading,
   setInstallingWallet,
@@ -34,6 +35,7 @@ export const CreateSocialAccount: React.FC<props> = ({
           setIsLoading(true);
           setIsActiveLoading("email");
           loginWeb3Auth("email_passwordless", { login_hint: email });
+          localStorage.setItem("onboardingFlow", flow);
         }}
       />
       <ul className="flex items-center justify-center gap-4 w-full">
@@ -48,6 +50,7 @@ export const CreateSocialAccount: React.FC<props> = ({
                 setIsLoading(true);
                 setIsActiveLoading(provider.name);
                 loginWeb3Auth(provider.name);
+                localStorage.setItem("onboardingFlow", flow);
               }}
             />
           </li>

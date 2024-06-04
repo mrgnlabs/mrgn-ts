@@ -13,6 +13,7 @@ import { alreadyOnboarded, installWallet, socialOnrampFlow, successOnramp, succe
 interface props extends AuthScreenProps {}
 
 export const OnboardingSocial: React.FC<props> = ({
+  flow,
   isLoading,
   isActiveLoading,
   setIsLoading,
@@ -124,6 +125,7 @@ export const OnboardingSocial: React.FC<props> = ({
           isActiveLoading: isActiveLoading,
           installingWallet: installingWallet,
           successProps: successProps,
+          flow: flow,
           onNext: () => setScreenIndex(screenIndex + 1),
           onClose: onClose,
           setIsLoading: setIsLoading,

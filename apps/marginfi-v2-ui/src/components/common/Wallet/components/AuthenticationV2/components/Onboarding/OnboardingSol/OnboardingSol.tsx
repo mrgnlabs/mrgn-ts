@@ -10,6 +10,7 @@ import { installWallet, solOnrampFlow, successSwap } from "./onboardingSolUtils"
 interface props extends AuthScreenProps {}
 
 export const OnboardingSol = ({
+  flow,
   isLoading,
   isActiveLoading,
   setIsLoading,
@@ -77,6 +78,7 @@ export const OnboardingSol = ({
       />
 
       {React.createElement(screen.comp, {
+        flow: flow,
         isLoading: isLoading,
         isActiveLoading: isActiveLoading,
         successProps: successProps,
