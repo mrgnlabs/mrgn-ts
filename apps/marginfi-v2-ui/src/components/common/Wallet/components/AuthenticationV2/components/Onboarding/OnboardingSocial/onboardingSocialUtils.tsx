@@ -18,7 +18,7 @@ export const socialOnrampFlow: SocialOnrampScreen[] = [
   },
   {
     comp: screens.Onramp,
-    title: "Step 2: Buy some crypto",
+    title: "Step 2: Buy crypto",
     description:
       "Buy SOL with cash. You'll need this to deposit into marginfi, swap for tokens, and pay transaction fees. ",
     titleSize: "sm",
