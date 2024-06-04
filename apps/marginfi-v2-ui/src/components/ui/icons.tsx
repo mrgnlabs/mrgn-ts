@@ -65,6 +65,10 @@ import {
   IconApps,
   IconMenu2,
   IconUpload,
+  IconDotsVertical,
+  IconDeviceMobileShare,
+  IconCirclePlus,
+  IconDeviceMobilePlus,
 } from "@tabler/icons-react";
 import { cn } from "~/utils/themeUtils";
 
@@ -910,6 +914,10 @@ export {
   IconApps,
   IconMenu2,
   IconUpload,
+  IconDotsVertical,
+  IconDeviceMobileShare,
+  IconCirclePlus,
+  IconDeviceMobilePlus,
 
   // customed icons
   IconBrandGoogle,
