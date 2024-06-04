@@ -13,11 +13,11 @@ interface props extends AuthScreenProps {}
 
 export const OnboardingEth = ({
   isLoading,
+  flow,
   isActiveLoading,
   setIsLoading,
   setProgress,
   setIsActiveLoading,
-
   onClose,
   onPrev,
 }: props) => {
@@ -93,6 +93,7 @@ export const OnboardingEth = ({
 
       {React.createElement(screen.comp, {
         isLoading: isLoading,
+        flow: flow,
         isActiveLoading: isActiveLoading,
         onNext: () => setScreenIndex(screenIndex + 1),
         setIsLoading: setIsLoading,

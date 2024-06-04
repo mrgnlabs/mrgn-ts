@@ -53,6 +53,7 @@ export interface OnrampScreenProps extends AuthScreenProps {
 export interface AuthScreenProps {
   update: (screen: AuthFlowType) => void;
   isLoading: boolean;
+  flow: AuthFlowType;
   isActiveLoading: string;
   setIsActiveLoading: (isActiveLoading: string) => void;
   setIsLoading: (isLoading: boolean) => void;

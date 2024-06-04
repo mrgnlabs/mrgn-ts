@@ -161,6 +161,7 @@ export const AuthDialog = () => {
             },
             onPrev: () => setFlow("ONBOARD_MAIN"),
             isLoading: isLoading,
+            flow: flow,
             isActiveLoading: isActiveLoading,
             setIsLoading: setIsLoading,
             setProgress: setProgress,
