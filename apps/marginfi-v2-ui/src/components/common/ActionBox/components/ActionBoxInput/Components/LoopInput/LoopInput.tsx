@@ -27,43 +27,35 @@ type LoopInputProps = {
 
 export const LoopInput = ({ walletAmount, maxAmount, handleInputChange, handleInputFocus }: LoopInputProps) => {
   const amountInputRef = React.useRef<HTMLInputElement>(null);
-  const [
-    setSelectedBank,
-    setRepayBank,
-    setSelectedStakingAccount,
-    setSelectedLoopBank,
-    selectedBank,
-    selectedLoopBank,
-    amountRaw,
-  ] = useActionBoxGeneralStore((state) => [
-    state.setSelectedBank,
-    state.setRepayBank,
-    state.setSelectedStakingAccount,
-    state.setSelectedLoopBank,
-    state.selectedBank,
-    state.selectedLoopBank,
-    state.amountRaw,
-  ]);
+  const [setSelectedBank, setRepayBank, setSelectedStakingAccount, selectedBank, selectedRepayBank, amountRaw] =
+    useActionBoxGeneralStore((state) => [
+      state.setSelectedBank,
+      state.setRepayBank,
+      state.setSelectedStakingAccount,
+      state.selectedBank,
+      state.selectedRepayBank,
+      state.amountRaw,
+    ]);
 
   const [leveragedAmount, setLeveragedAmount] = React.useState(0);
   const [netApyRaw, setNetApyRaw] = React.useState(0);
 
   const netApy = React.useMemo(() => {
-    if (!selectedBank || !selectedLoopBank) return 0;
+    if (!selectedBank || !selectedRepayBank) return 0;
     const depositTokenApy = computeBankRateRaw(selectedBank, LendingModes.LEND);
-    const borrowTokenApy = computeBankRateRaw(selectedLoopBank, LendingModes.BORROW);
+    const borrowTokenApy = computeBankRateRaw(selectedRepayBank, LendingModes.BORROW);
     const netApy = depositTokenApy - borrowTokenApy;
 
     setNetApyRaw(netApy);
     return percentFormatter.format(Math.abs(netApy));
-  }, [selectedBank, selectedLoopBank]);
+  }, [selectedBank, selectedRepayBank]);
 
-  const bothBanksSelected = selectedBank && selectedLoopBank;
+  const bothBanksSelected = selectedBank && selectedRepayBank;
 
   const maxLeverage = React.useMemo(() => {
-    if (!selectedBank || !selectedLoopBank) return 10;
+    if (!selectedBank || !selectedRepayBank) return 10;
     return Math.floor(Math.random() * 10) + 1;
-  }, [selectedBank, selectedLoopBank]);
+  }, [selectedBank, selectedRepayBank]);
 
   return (
     <div>
@@ -76,8 +68,8 @@ export const LoopInput = ({ walletAmount, maxAmount, handleInputChange, handleIn
                 setRepayBank(tokenBank);
               }}
               setTokenBank={(tokenBank) => {
-                if (selectedLoopBank) {
-                  setSelectedLoopBank(null);
+                if (selectedRepayBank) {
+                  setRepayBank(null);
                   setLeveragedAmount(0);
                 }
                 setSelectedBank(tokenBank);
@@ -86,7 +78,7 @@ export const LoopInput = ({ walletAmount, maxAmount, handleInputChange, handleIn
                 setSelectedStakingAccount(account);
               }}
               setLoopBank={(account) => {
-                setSelectedLoopBank(account);
+                setRepayBank(account);
               }}
             />
           </div>
@@ -127,7 +119,7 @@ export const LoopInput = ({ walletAmount, maxAmount, handleInputChange, handleIn
                   setSelectedStakingAccount(account);
                 }}
                 setLoopBank={(account) => {
-                  setSelectedLoopBank(account);
+                  setRepayBank(account);
                 }}
               />
             </div>
@@ -167,7 +159,7 @@ export const LoopInput = ({ walletAmount, maxAmount, handleInputChange, handleIn
             <PopoverContent align="center" className="w-auto">
               {bothBanksSelected && (
                 <ul className="space-y-2.5">
-                  {[selectedBank, selectedLoopBank].map((bank, index) => {
+                  {[selectedBank, selectedRepayBank].map((bank, index) => {
                     const isDepositBank = index === 0;
                     return (
                       <li key={bank.meta.tokenSymbol} className="flex items-center gap-8 justify-between text-sm">
