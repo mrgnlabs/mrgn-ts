@@ -45,7 +45,7 @@ const CONTENT = {
   heading: "Grant Gateway: Fueling the mrgn. ecosystem",
   body: (
     <p>
-      Create a grant proposal to build something iconic with marginfi&apos;s liquidity,
+      Create a grant proposal to build something iconic with marginfi&apos;s liquidity,{" "}
       <br className="hidden lg:block" />
       userbase, and tooling. <strong className="text-primary">There&apos;s support waiting for you!</strong>
     </p>
