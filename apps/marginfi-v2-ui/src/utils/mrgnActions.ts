@@ -12,6 +12,7 @@ import {
 } from "@solana/web3.js";
 import { QuoteResponseMeta } from "@jup-ag/react-hook";
 import { WalletContextState } from "@solana/wallet-adapter-react";
+import BigNumber from "bignumber.js";
 
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { LUT_PROGRAM_AUTHORITY_INDEX, Wallet, processTransaction, uiToNative } from "@mrgnlabs/mrgn-common";
@@ -29,6 +30,14 @@ export type RepayWithCollatOptions = {
   repayCollatTxn: VersionedTransaction | null;
   repayAmount: number;
   repayBank: ExtendedBankInfo;
+  connection: Connection;
+};
+
+export type LoopingOptions = {
+  loopingQuote: QuoteResponse;
+  loopingTxn: VersionedTransaction | null;
+  borrowAmount: BigNumber;
+  loopingBank: ExtendedBankInfo;
   connection: Connection;
 };
 
@@ -388,6 +397,53 @@ const getFeeAccount = async (mint: PublicKey) => {
   return feeAccount.toBase58();
 };
 
+export async function loopingBuilder({
+  marginfiAccount,
+  bank,
+  depositAmount,
+  options,
+  priorityFee,
+}: {
+  marginfiAccount: MarginfiAccountWrapper;
+  bank: ExtendedBankInfo;
+  depositAmount: number;
+  options: LoopingOptions;
+  priorityFee?: number;
+}) {
+  const jupiterQuoteApi = createJupiterApiClient();
+
+  // get fee account for original borrow mint
+  //const feeAccount = await getFeeAccount(bank.info.state.mint);
+
+  const { swapInstruction, addressLookupTableAddresses } = await jupiterQuoteApi.swapInstructionsPost({
+    swapRequest: {
+      quoteResponse: options.loopingQuote,
+      userPublicKey: marginfiAccount.authority.toBase58(),
+      programAuthorityId: LUT_PROGRAM_AUTHORITY_INDEX,
+    },
+  });
+
+  // const setupIxs = setupInstructions.length > 0 ? setupInstructions.map(deserializeInstruction) : []; //**not optional but man0s smart**
+  const swapIx = deserializeInstruction(swapInstruction);
+  // const swapcleanupIx = cleanupInstruction ? [deserializeInstruction(cleanupInstruction)] : []; **optional**
+  // tokenLedgerInstruction **also optional**
+
+  const swapLUTs: AddressLookupTableAccount[] = [];
+  swapLUTs.push(...(await getAdressLookupTableAccounts(options.connection, addressLookupTableAddresses)));
+
+  const { transaction, addressLookupTableAccounts } = await marginfiAccount.makeLoopTx(
+    depositAmount,
+    options.borrowAmount,
+    bank.address,
+    options.loopingBank.address,
+    [swapIx],
+    swapLUTs,
+    priorityFee
+  );
+
+  return { txn: transaction, addressLookupTableAccounts };
+}
+
 export async function repayWithCollatBuilder({
   marginfiAccount,
   bank,
@@ -426,9 +482,7 @@ export async function repayWithCollatBuilder({
   // tokenLedgerInstruction **also optional**
 
   const swapLUTs: AddressLookupTableAccount[] = [];
-  swapLUTs.push(
-    ...(await getAdressLookupTableAccounts(options.connection, addressLookupTableAddresses))
-  );
+  swapLUTs.push(...(await getAdressLookupTableAccounts(options.connection, addressLookupTableAddresses)));
 
   const { transaction, addressLookupTableAccounts } = await marginfiAccount.makeRepayWithCollatTx(
     amount,
@@ -439,7 +493,7 @@ export async function repayWithCollatBuilder({
     bank.isActive && isWholePosition(bank, amount),
     [swapIx],
     swapLUTs,
-    priorityFee,
+    priorityFee
   );
 
   return { txn: transaction, addressLookupTableAccounts };

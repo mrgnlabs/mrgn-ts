@@ -7,7 +7,7 @@ import * as solanaStakePool from "@solana/spl-stake-pool";
 
 import { nativeToUi, uiToNative } from "@mrgnlabs/mrgn-common";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
+import { computeMaxLeverage, MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 
 import {
   LstType,
@@ -17,7 +17,8 @@ import {
   capture,
   debounceFn,
   getSwapQuoteWithRetry,
-  verifyJupTxSize,
+  verifyJupTxSizeCollat,
+  verifyJupTxSizeLooping,
 } from "~/utils";
 
 interface ActionBoxState {
@@ -27,6 +28,9 @@ interface ActionBoxState {
   repayAmountRaw: string;
   maxAmountCollat: number;
 
+  leverage: number;
+  maxLeverage: number;
+
   actionMode: ActionType;
   repayMode: RepayType;
   lstMode: LstType;
@@ -35,7 +39,6 @@ interface ActionBoxState {
   selectedBank: ExtendedBankInfo | null;
   selectedRepayBank: ExtendedBankInfo | null;
   selectedStakingAccount: StakeData | null;
-  selectedLoopBank: ExtendedBankInfo | null;
   repayCollatQuote: QuoteResponse | null;
   repayCollatTxn: VersionedTransaction | null;
 
@@ -52,15 +55,28 @@ interface ActionBoxState {
   setLstMode: (lstMode: LstType) => void;
   setYbxMode: (ybxMode: YbxType) => void;
   setAmountRaw: (amountRaw: string, maxAmount?: number) => void;
+  setLoopingAmountRaw: (
+    marginfiAccount: MarginfiAccountWrapper,
+    amountRaw: string,
+    connection: Connection,
+    maxAmount?: number
+  ) => void;
   setRepayAmountRaw: (marginfiAccount: MarginfiAccountWrapper, repayAmountRaw: string, connection: Connection) => void;
   setSelectedBank: (bank: ExtendedBankInfo | null) => void;
   setRepayBank: (bank: ExtendedBankInfo | null) => void;
   setSelectedStakingAccount: (account: StakeData) => void;
-  setSelectedLoopBank: (account: ExtendedBankInfo | null) => void;
   setRepayCollateral: (
     marginfiAccount: MarginfiAccountWrapper,
     selectedBank: ExtendedBankInfo,
     selectedRepayBank: ExtendedBankInfo,
+    amount: number,
+    slippageBps: number,
+    connection: Connection
+  ) => void;
+  setLooping: (
+    marginfiAccount: MarginfiAccountWrapper,
+    selectedBank: ExtendedBankInfo,
+    selectedLoopingBank: ExtendedBankInfo,
     amount: number,
     slippageBps: number,
     connection: Connection
@@ -98,6 +114,9 @@ const initialState = {
   maxAmountCollat: 0,
   errorMessage: "",
 
+  leverage: 0,
+  maxLeverage: 0,
+
   actionMode: ActionType.Deposit,
   repayMode: RepayType.RepayRaw,
   lstMode: LstType.Token,
@@ -106,7 +125,6 @@ const initialState = {
   selectedBank: null,
   selectedRepayBank: null,
   selectedStakingAccount: null,
-  selectedLoopBank: null,
 
   repayCollatQuote: null,
   repayCollatTxn: null,
@@ -175,6 +193,31 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
     }
   },
 
+  setLoopingAmountRaw(marginfiAccount, amountRaw, connection, maxAmount) {
+    if (!maxAmount) {
+      set({ amountRaw });
+    } else {
+      const strippedAmount = amountRaw.replace(/,/g, "");
+      const amount = isNaN(Number.parseFloat(strippedAmount)) ? 0 : Number.parseFloat(strippedAmount);
+      const numberFormater = new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 });
+
+      const selectedBank = get().selectedBank;
+      const selectedRepayBank = get().selectedRepayBank;
+      const slippageBps = get().slippageBps;
+
+      if (amount && amount > maxAmount) {
+        set({ amountRaw: numberFormater.format(maxAmount) });
+      } else {
+        set({ amountRaw: numberFormater.format(amount) });
+      }
+
+      if (selectedBank && selectedRepayBank) {
+        const setLooping = debounceFn(get().setLooping, 500);
+        setLooping(marginfiAccount, selectedBank, selectedRepayBank, amount, slippageBps, connection);
+      }
+    }
+  },
+
   setRepayAmountRaw(marginfiAccount, amountRaw, connection) {
     const strippedAmount = amountRaw.replace(/,/g, "");
     const amount = isNaN(Number.parseFloat(strippedAmount)) ? 0 : Number.parseFloat(strippedAmount);
@@ -189,6 +232,34 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
       const setCollat = debounceFn(get().setRepayCollateral, 500);
       setCollat(marginfiAccount, selectedBank, selectedRepayBank, amount, slippageBps, connection);
     }
+  },
+
+  async setLooping(marginfiAccount, selectedBank, selectedLoopingBank, amount, slippageBps, connection) {
+    set({ isLoading: true });
+    const leverage = get().leverage;
+
+    const repayCollat = await calculateLooping(
+      marginfiAccount,
+      selectedBank,
+      selectedLoopingBank,
+      leverage,
+      amount,
+      slippageBps,
+      connection
+    );
+
+    if (repayCollat) {
+      set({
+        repayCollatTxn: repayCollat.repayTxn,
+        repayCollatQuote: repayCollat.quote,
+        amountRaw: repayCollat.amount.toString(),
+      });
+    } else {
+      set({
+        errorMessage: "Unable to retrieve data. Please choose a different collateral option or refresh the page.",
+      });
+    }
+    set({ isLoading: false });
   },
 
   async setRepayCollateral(marginfiAccount, selectedBank, selectedRepayBank, amount, slippageBps, connection) {
@@ -257,28 +328,45 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
     const selectedRepayBank = get().selectedRepayBank;
     const hasBankChanged =
       !repayTokenBank || !selectedRepayBank || !repayTokenBank.address.equals(selectedRepayBank.address);
+    const action = get().actionMode;
 
-    if (hasBankChanged) {
-      set({ selectedRepayBank: repayTokenBank, amountRaw: "", repayAmountRaw: "" });
+    if (action === ActionType.Repay) {
+      if (hasBankChanged) {
+        set({ selectedRepayBank: repayTokenBank, amountRaw: "", repayAmountRaw: "" });
 
-      const repayMode = get().repayMode;
-      const prevTokenBank = get().selectedBank;
-      const slippageBps = get().slippageBps;
+        const repayMode = get().repayMode;
+        const prevTokenBank = get().selectedBank;
+        const slippageBps = get().slippageBps;
 
-      if (repayMode === RepayType.RepayCollat && repayTokenBank && prevTokenBank) {
-        set({ isLoading: true });
-        const maxAmount = await calculateMaxCollat(prevTokenBank, repayTokenBank, slippageBps);
-        if (maxAmount) {
-          set({ maxAmountCollat: maxAmount, repayAmountRaw: "" });
-        } else {
-          set({
-            errorMessage: `Unable to repay using ${repayTokenBank.meta.tokenSymbol}, please select another collateral.`,
-          });
+        if (repayMode === RepayType.RepayCollat && repayTokenBank && prevTokenBank) {
+          set({ isLoading: true });
+          const maxAmount = await calculateMaxCollat(prevTokenBank, repayTokenBank, slippageBps);
+          if (maxAmount) {
+            set({ maxAmountCollat: maxAmount, repayAmountRaw: "" });
+          } else {
+            set({
+              errorMessage: `Unable to repay using ${repayTokenBank.meta.tokenSymbol}, please select another collateral.`,
+            });
+          }
+          set({ isLoading: false });
         }
-        set({ isLoading: false });
+      } else {
+        set({ selectedRepayBank: repayTokenBank });
       }
-    } else {
-      set({ selectedRepayBank: repayTokenBank });
+    } else if (action === ActionType.Loop) {
+      if (hasBankChanged) {
+        set({ selectedRepayBank: repayTokenBank, amountRaw: "", repayAmountRaw: "" });
+
+        const prevTokenBank = get().selectedBank;
+        if (prevTokenBank && repayTokenBank) {
+          set({ isLoading: true });
+          const { maxLeverage, ltv } = computeMaxLeverage(prevTokenBank.info.rawBank, repayTokenBank.info.rawBank);
+          set({ maxLeverage });
+          set({ isLoading: false });
+        }
+      } else {
+        set({ selectedRepayBank: repayTokenBank });
+      }
     }
   },
 
@@ -288,10 +376,6 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
 
   setSelectedStakingAccount(account) {
     set({ selectedStakingAccount: account });
-  },
-
-  async setSelectedLoopBank(account) {
-    set({ selectedLoopBank: account });
   },
 
   async setSlippageBps(slippageBps) {
@@ -370,6 +454,91 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
   },
 });
 
+async function calculateLooping(
+  marginfiAccount: MarginfiAccountWrapper,
+  bank: ExtendedBankInfo, // deposit
+  loopBank: ExtendedBankInfo, // borrow
+  targetLeverage: number,
+  amount: number,
+  slippageBps: number,
+  connection: Connection
+): Promise<{ repayTxn: VersionedTransaction; quote: QuoteResponse; amount: number } | null> {
+  const principalBufferAmountUi = (amount * targetLeverage * slippageBps) / 10000;
+  const adjustedPrincipalAmountUi = amount - principalBufferAmountUi;
+  console.log("principalBufferAmountUi:", principalBufferAmountUi);
+  console.log("adjustedPrincipalAmountUi:", adjustedPrincipalAmountUi);
+
+  const { borrowAmount, depositAmount } = marginfiAccount.computeLoopingParams(
+    adjustedPrincipalAmountUi,
+    targetLeverage,
+    bank.address,
+    loopBank.address
+  );
+
+  const borrowAmountNative = uiToNative(borrowAmount, loopBank.info.state.mintDecimals).toNumber();
+
+  const maxLoopAmount = bank.isActive ? bank?.position.amount : 0;
+
+  const maxAccountsArr = [undefined, 50, 40, 30];
+
+  let firstQuote;
+
+  for (const maxAccounts of maxAccountsArr) {
+    const quoteParams = {
+      amount: uiToNative(borrowAmountNative, loopBank.info.state.mintDecimals).toNumber(),
+      inputMint: loopBank.info.state.mint.toBase58(), // borrow
+      outputMint: bank.info.state.mint.toBase58(), // deposit
+      slippageBps: slippageBps,
+      maxAccounts: maxAccounts,
+      swapMode: "ExactIn",
+    } as QuoteGetRequest;
+    try {
+      const swapQuote = await getSwapQuoteWithRetry(quoteParams);
+
+      if (!maxAccounts) {
+        firstQuote = swapQuote;
+      }
+
+      if (swapQuote) {
+        const minSwapAmountOutUi = nativeToUi(swapQuote.otherAmountThreshold, bank.info.state.mintDecimals);
+        const actualDepositAmountUi = minSwapAmountOutUi + amount;
+
+        const txn = await verifyJupTxSizeLooping(
+          marginfiAccount,
+          bank,
+          loopBank,
+          actualDepositAmountUi,
+          borrowAmount,
+          swapQuote,
+          connection
+        );
+        // if (txn) {
+        //   capture("repay_with_collat", {
+        //     amountIn: uiToNative(amount, repayBank.info.state.mintDecimals).toNumber(),
+        //     firstQuote,
+        //     bestQuote: swapQuote,
+        //     inputMint: repayBank.info.state.mint.toBase58(),
+        //     outputMint: bank.info.state.mint.toBase58(),
+        //   });
+        //   return { repayTxn: txn, quote: swapQuote, amount: amountToRepay };
+        // }
+      } else {
+        throw new Error("Swap quote failed");
+      }
+    } catch (error) {
+      console.error(error);
+      // capture("repay_with_collat", {
+      //   amountIn: uiToNative(amount, repayBank.info.state.mintDecimals).toNumber(),
+      //   firstQuote,
+      //   inputMint: repayBank.info.state.mint.toBase58(),
+      //   outputMint: bank.info.state.mint.toBase58(),
+      // });
+      return null;
+    }
+  }
+  return null;
+}
+
 async function calculateRepayCollateral(
   marginfiAccount: MarginfiAccountWrapper,
   bank: ExtendedBankInfo,
@@ -406,7 +575,7 @@ async function calculateRepayCollateral(
 
         const amountToRepay = outAmount > maxRepayAmount ? maxRepayAmount : outAmountThreshold;
 
-        const txn = await verifyJupTxSize(
+        const txn = await verifyJupTxSizeCollat(
           marginfiAccount,
           bank,
           repayBank,
@@ -441,7 +610,6 @@ async function calculateRepayCollateral(
   }
   return null;
 }
-
 async function calculateMaxCollat(bank: ExtendedBankInfo, repayBank: ExtendedBankInfo, slippageBps: number) {
   const amount = repayBank.isActive && repayBank.position.isLending ? repayBank.position.amount : 0;
   const maxRepayAmount = bank.isActive ? bank?.position.amount : 0;
