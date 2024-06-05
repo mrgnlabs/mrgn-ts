@@ -45,7 +45,6 @@ export const ActionBoxInput = ({
     setAmountRaw,
     setRepayAmountRaw,
     setSelectedBank,
-    setSelectedLoopBank,
     setRepayBank,
     setSelectedStakingAccount,
     setRepayMode,
@@ -64,7 +63,6 @@ export const ActionBoxInput = ({
     state.setAmountRaw,
     state.setRepayAmountRaw,
     state.setSelectedBank,
-    state.setSelectedLoopBank,
     state.setRepayBank,
     state.setSelectedStakingAccount,
     state.setRepayMode,
@@ -196,8 +194,8 @@ export const ActionBoxInput = ({
                 setStakingAccount={(account) => {
                   setSelectedStakingAccount(account);
                 }}
-                setLoopBank={(account) => {
-                  setSelectedLoopBank(account);
+                setLoopBank={(tokenBank) => {
+                  setRepayBank(tokenBank);
                 }}
               />
             </div>

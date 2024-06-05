@@ -8,9 +8,10 @@ import {
 } from "@mrgnlabs/marginfi-client-v2";
 import { QuoteResponseMeta } from "@jup-ag/react-hook";
 import { createJupiterApiClient, QuoteGetRequest, QuoteResponse } from "@jup-ag/api";
-import { Connection, PublicKey } from "@solana/web3.js";
+import { AddressLookupTableAccount, Connection, PublicKey, VersionedTransaction } from "@solana/web3.js";
 
-import { StakeData, isBankOracleStale, repayWithCollatBuilder } from "~/utils";
+import { StakeData, isBankOracleStale, loopingBuilder, repayWithCollatBuilder } from "~/utils";
+import BigNumber from "bignumber.js";
 
 export enum RepayType {
   RepayRaw = "Repay",
@@ -524,7 +525,36 @@ export async function getSwapQuoteWithRetry(quoteParams: QuoteGetRequest, maxRet
   }
 }
 
-export async function verifyJupTxSize(
+export async function verifyJupTxSizeLooping(
+  marginfiAccount: MarginfiAccountWrapper,
+  bank: ExtendedBankInfo,
+  repayBank: ExtendedBankInfo,
+  depositAmount: number,
+  borrowAmount: BigNumber,
+  quoteResponse: QuoteResponse,
+  connection: Connection
+) {
+  try {
+    const builder = await loopingBuilder({
+      marginfiAccount,
+      bank,
+      depositAmount,
+      options: {
+        loopingQuote: quoteResponse,
+        borrowAmount,
+        loopingBank: repayBank,
+        connection,
+        loopingTxn: null,
+      },
+    });
+
+    return checkTxSize(builder);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+export async function verifyJupTxSizeCollat(
   marginfiAccount: MarginfiAccountWrapper,
   bank: ExtendedBankInfo,
   repayBank: ExtendedBankInfo,
@@ -547,20 +577,27 @@ export async function verifyJupTxSize(
       },
     });
 
-    const totalSize = builder.txn.message.serialize().length;
-    const totalKeys = builder.txn.message.getAccountKeys({
-      addressLookupTableAccounts: builder.addressLookupTableAccounts,
-    }).length;
-
-    if (totalSize > 1232 || totalKeys >= 64) {
-      // too big
-    } else {
-      return builder.txn;
-    }
+    return checkTxSize(builder);
   } catch (error) {
     console.error(error);
   }
 }
+
+const checkTxSize = (builder: {
+  txn: VersionedTransaction;
+  addressLookupTableAccounts: AddressLookupTableAccount[];
+}) => {
+  const totalSize = builder.txn.message.serialize().length;
+  const totalKeys = builder.txn.message.getAccountKeys({
+    addressLookupTableAccounts: builder.addressLookupTableAccounts,
+  }).length;
+
+  if (totalSize > 1232 || totalKeys >= 64) {
+    // too big
+  } else {
+    return builder.txn;
+  }
+};
 
 export const debounceFn = (fn: Function, ms = 300) => {
   let timeoutId: ReturnType<typeof setTimeout>;
