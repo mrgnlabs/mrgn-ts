@@ -597,7 +597,13 @@ class MarginfiClient {
         console.log(urlEscaped);
 
         if (response.value.err)
-          throw new SendTransactionError(JSON.stringify(response.value.err), response.value.logs ?? []);
+          throw new SendTransactionError({
+            action: "simulate",
+            signature: "",
+            transactionMessage: JSON.stringify(response.value.err),
+            logs: response.value.logs ?? [],
+          });
+        // throw new SendTransactionError(JSON.stringify(response.value.err), response.value.logs ?? []);
 
         return versionedTransaction.signatures[0].toString();
       } else {
@@ -619,7 +625,13 @@ class MarginfiClient {
               opts ?? { minContextSlot, sigVerify: false }
             );
             if (response.value.err)
-              throw new SendTransactionError(JSON.stringify(response.value.err), response.value.logs ?? []);
+              throw new SendTransactionError({
+                action: "simulate",
+                signature: "",
+                transactionMessage: JSON.stringify(response.value.err),
+                logs: response.value.logs ?? [],
+              });
+            // throw new SendTransactionError(JSON.stringify(response.value.err), response.value.logs ?? []);
           }
 
           while (true) {
