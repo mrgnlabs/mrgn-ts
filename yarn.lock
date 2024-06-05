@@ -18539,9 +18539,9 @@ jimp-compact@0.16.1:
   integrity sha512-dZ6Ra7u1G8c4Letq/B5EzAxj4tLFHL+cGtdpR+PVm4yzPDj+lCk+AbivWt1eOM+ikzkowtyV7qSqX6qr3t71Ww==
 
 jiti@^1.21.0:
-  version "1.21.2"
-  resolved "https://registry.yarnpkg.com/jiti/-/jiti-1.21.2.tgz#262ea386ac29b6d9e74ed0329ed6880845e1d25e"
-  integrity sha512-UQEooyi4HPsFoxcsJ0uV4qDVBDpPWVI7D0JOaeCUnhcEpjWFQIeSu8Ecpu2mAZS6ee3QGtFewR3UOp60YiveZQ==
+  version "1.21.3"
+  resolved "https://registry.yarnpkg.com/jiti/-/jiti-1.21.3.tgz#b2adb07489d7629b344d59082bbedb8c21c5f755"
+  integrity sha512-uy2bNX5zQ+tESe+TiC7ilGRz8AtRGmnJH55NC5S0nSUjvvvM2hJHmefHErugGXN4pNv4Qx7vLsnNw9qJ9mtIsw==
 
 joi@^17.2.1, joi@^17.7.0:
   version "17.13.1"
@@ -20329,13 +20329,13 @@ mkdirp@^1.0.3, mkdirp@^1.0.4:
   integrity sha512-vVqVZQyf3WLx2Shd0qJ9xuvqgAyKPLAiqITEtqW0oIUjzo3PePDd6fW9iFz30ef7Ysp/oiWqbhszeGWW2T6Gzw==
 
 mlly@^1.6.1, mlly@^1.7.0:
-  version "1.7.0"
-  resolved "https://registry.yarnpkg.com/mlly/-/mlly-1.7.0.tgz#587383ae40dda23cadb11c3c3cc972b277724271"
-  integrity sha512-U9SDaXGEREBYQgfejV97coK0UL1r+qnF2SyO9A3qcI8MzKnsIFKHNVEkrDyNncQTKQQumsasmeq84eNMdBfsNQ==
+  version "1.7.1"
+  resolved "https://registry.yarnpkg.com/mlly/-/mlly-1.7.1.tgz#e0336429bb0731b6a8e887b438cbdae522c8f32f"
+  integrity sha512-rrVRZRELyQzrIUAVMHxP97kv+G786pHmOKzuFII8zDYahFBS7qnHh2AlYSl1GAHhaMPCz6/oHjVMcfFYgFYHgA==
   dependencies:
     acorn "^8.11.3"
     pathe "^1.1.2"
-    pkg-types "^1.1.0"
+    pkg-types "^1.1.1"
     ufo "^1.5.3"
 
 motion@10.16.2:
@@ -21656,7 +21656,7 @@ pkg-dir@^7.0.0:
   dependencies:
     find-up "^6.3.0"
 
-pkg-types@^1.1.0:
+pkg-types@^1.1.1:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/pkg-types/-/pkg-types-1.1.1.tgz#07b626880749beb607b0c817af63aac1845a73f2"
   integrity sha512-ko14TjmDuQJ14zsotODv7dBlwxKhUKQEhuhmbqo1uCi9BB0Z2alo/wAXg6q1dTR5TyuqYyWhjtfe/Tsh+X28jQ==
@@ -22019,9 +22019,9 @@ postcss@^8, postcss@^8.3.5, postcss@^8.4.20, postcss@^8.4.23, postcss@^8.4.33, p
     source-map-js "^1.2.0"
 
 posthog-js@^1.104.4:
-  version "1.136.7"
-  resolved "https://registry.yarnpkg.com/posthog-js/-/posthog-js-1.136.7.tgz#8d74aad3159235e57630c3f475e4c0425d409a6f"
-  integrity sha512-vu/oZ9JlISinghw416Gm7KnrsH8KKVGqWCCpGsxwgvrBnYofJ4VbmlKnz/0gPy5/QOo/z/H4PzobDX79dyyU7A==
+  version "1.136.8"
+  resolved "https://registry.yarnpkg.com/posthog-js/-/posthog-js-1.136.8.tgz#4baef2abd3c697cc18a9f936d0a2aa8d7553b3d6"
+  integrity sha512-R3NtFXoBv5bbm0nRNbjdKfCVS9UCHJf/EbBbDVcfqj4DaS1ovVSZ7wmx4Uj6SSQFwDBSRh6xePSVq8XW3AVPOw==
   dependencies:
     fflate "^0.4.8"
     preact "^10.19.3"
