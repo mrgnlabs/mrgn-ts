@@ -6,9 +6,9 @@ import { useRouter } from "next/router";
 import { PublicKey } from "@solana/web3.js";
 import LipAccount from "@mrgnlabs/lip-client/src/account";
 
-import { useMrgnlendStore } from "~/store";
+import { useMrgnlendStore, useUiStore } from "~/store";
 import { useLipClient } from "~/context";
-import { collectRewardsBatch } from "~/utils";
+import { cn, collectRewardsBatch } from "~/utils";
 import { useFirebaseAccount } from "~/hooks/useFirebaseAccount";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { useConnection } from "~/hooks/useConnection";
@@ -35,6 +35,8 @@ export const Navbar: FC = () => {
       state.userDataFetched,
       state.resetUserData,
     ]);
+
+  const [isOraclesStale] = useUiStore((state) => [state.isOraclesStale]);
 
   const [lipAccount, setLipAccount] = useState<LipAccount | null>(null);
 
@@ -64,7 +66,7 @@ export const Navbar: FC = () => {
 
   return (
     <header className="h-[64px] mb-4 md:mb-8 lg:mb-14">
-      <nav className="fixed w-full top-0 h-[64px] z-50 bg-background">
+      <nav className={cn("fixed w-full top-0 h-[64px] z-50 bg-background", isOraclesStale && "top-10")}>
         <div className="w-full top-0 flex justify-between items-center h-16 text-sm font-[500] text-[#868E95] z-10 border-b-[0.5px] border-[#1C2125] px-4">
           <div className="h-full w-1/2 z-10 flex items-center gap-8">
             <Link
