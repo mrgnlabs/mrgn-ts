@@ -15,7 +15,9 @@ export const OnboardingMain = ({ update }: props) => {
     <div className="pt-8 font-normal overflow-scroll">
       <OnboardHeader
         title={"Welcome to marginfi"}
-        description={"Sign in to get started with marginfi. If you're new to crypto, let us guide you the process."}
+        description={
+          "Sign in to get started with marginfi. If you're new to crypto, we'll guide you through the process below."
+        }
       />
 
       <div className="flex lg:flex-row flex-col gap-6 mt-10">
@@ -27,8 +29,7 @@ export const OnboardingMain = ({ update }: props) => {
             <div className="space-y-3">
               <h2 className="font-medium text-2xl text-white leading-none">I&apos;m new to crypto</h2>
               <p className="text-sm md:text-base">
-                Sign up with email or social and we&apos;ll guide you through buying, swapping, and earning yield with
-                crypto.
+                Sign up to earn over-collateralized, transparent, real yield (with no middlemen).
               </p>
             </div>
             <Button className="w-full md:w-fit mt-auto" onClick={() => update("ONBOARD_SOCIAL")}>
@@ -44,7 +45,7 @@ export const OnboardingMain = ({ update }: props) => {
             <div className="space-y-3">
               <h2 className="font-medium text-2xl text-white leading-none">I&apos;m a Solana user</h2>
               <p className="text-sm md:text-base">
-                Sign in with email or social to use the marginfi mobile web app, or connect your existing Solana wallet.
+                Sign in to download marginfi's mobile web app, or connect your existing wallet.
               </p>
             </div>
             <Button className="w-full md:w-fit mt-auto">Sign in</Button>
@@ -58,7 +59,7 @@ export const OnboardingMain = ({ update }: props) => {
             <div className="space-y-3">
               <h2 className="font-medium text-2xl text-white leading-none">I&apos;m an Ethereum user</h2>
               <p className="text-sm md:text-base">
-                Sign in with email or social, or connect your existing wallet and we&apos;ll onboard you to Solana defi.
+                Sign in to download marginfi's mobile web app, or connect your wallet. We'll help you transfer funds.
               </p>
             </div>
             <Button className="w-full md:w-fit mt-auto">Sign in</Button>
