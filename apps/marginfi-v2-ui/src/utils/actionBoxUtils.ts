@@ -245,16 +245,6 @@ function canBeRepaid(targetBankInfo: ExtendedBankInfo): ActionMethod[] {
     });
   }
 
-  if (targetBankInfo && isBankOracleStale(targetBankInfo)) {
-    checks.push({
-      description:
-        "Repays to this bank may fail due to network congestion preventing oracles from updating price data.",
-      isEnabled: true,
-      link: "https://forum.marginfi.community/t/work-were-doing-to-improve-oracle-robustness-during-chain-congestion/283",
-      linkText: "Learn more about marginfi's decentralized oracles.",
-    });
-  }
-
   return checks;
 }
 
@@ -486,16 +476,6 @@ function canBeLent(targetBankInfo: ExtendedBankInfo, nativeSolBalance: number): 
 
   if (walletBalance === 0) {
     checks.push({ description: `Insufficient ${targetBankInfo.meta.tokenSymbol} in wallet.`, isEnabled: false });
-  }
-
-  if (targetBankInfo && isBankOracleStale(targetBankInfo)) {
-    checks.push({
-      description:
-        "Deposits to this bank may fail due to network congestion preventing oracles from updating price data.",
-      isEnabled: true,
-      link: "https://forum.marginfi.community/t/work-were-doing-to-improve-oracle-robustness-during-chain-congestion/283",
-      linkText: "Learn more about marginfi's decentralized oracles.",
-    });
   }
 
   return checks;
