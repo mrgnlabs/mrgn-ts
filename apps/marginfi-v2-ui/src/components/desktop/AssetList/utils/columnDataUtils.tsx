@@ -43,6 +43,7 @@ export interface AssetPriceData {
   symbol: string;
   oracle: string;
   isOracleStale: boolean;
+  isInLendingMode?: boolean;
 }
 
 export interface AssetWeightData {

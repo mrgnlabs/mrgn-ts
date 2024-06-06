@@ -135,7 +135,5 @@ export function getTokenImageURL(tokenSymbol: string): string {
 }
 
 export function isBankOracleStale(bank: ExtendedBankInfo) {
-  // NOTE: Hot fix to temporary remove oracle stale warnings.
-  // return bank.info.rawBank.lastUpdate + 60 > Math.round(Date.now() / 1000);
-  return false;
+  return bank.info.rawBank.lastUpdate + 60 > Math.round(Date.now() / 1000);
 }
