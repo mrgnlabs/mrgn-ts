@@ -23,24 +23,22 @@ export const AuthDialog = () => {
     () =>
       (isAndroid || isIOS) &&
       !(isPWA || browser === "Backpack" || browser === "Phantom" || browser === "Solflare") &&
-      !localStorage.getItem("walletInfo"),
+      !localStorage.getItem("isOnboarded"),
     [isAndroid, isIOS, browser, isPWA]
   );
 
   const showInAppBrowser = React.useMemo(() => browser === "Backpack" || browser === "Phantom", [browser]);
 
   const mainFlow = React.useMemo(() => {
-    const walletInfo = localStorage.getItem("walletInfo");
+    const isOnboarded = localStorage.getItem("isOnboarded");
     const onboardingFlow = localStorage.getItem("onboardingFlow");
 
     if (onboardingFlow) {
       return onboardingFlow as AuthFlowType;
     }
 
-    return walletInfo !== null ? "RETURNING_USER" : "ONBOARD_MAIN";
+    return isOnboarded !== null ? "RETURNING_USER" : "ONBOARD_MAIN";
   }, []);
-
-  //const mainFlow: AuthFlowType = localStorage.getItem("walletInfo") ?? null ? "RETURNING_USER" : "ONBOARD_MAIN";
 
   const [flow, setFlow] = React.useState<AuthFlowType>(mainFlow);
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
@@ -53,7 +51,7 @@ export const AuthDialog = () => {
   // if user has PWA force social login
   React.useEffect(() => {
     if (isPWA) {
-      if (localStorage.getItem("walletInfo")) {
+      if (localStorage.getItem("isOnboarded")) {
         setFlow("RETURNING_PWA");
       } else {
         setFlow("ONBOARD_SOCIAL");
@@ -92,6 +90,8 @@ export const AuthDialog = () => {
 
       if (flow === "eth") {
         setFlow("ONBOARD_ETH");
+      } else if (flow === "sol") {
+        setFlow("ONBOARD_SOL");
       } else {
         setFlow("ONBOARD_SOCIAL");
       }
@@ -132,6 +132,7 @@ export const AuthDialog = () => {
     setIsLoading(true);
     setIsActiveLoading(selectedWallet);
     select(selectedWallet as any);
+    localStorage.setItem("isOnboarded", "true");
   };
 
   return (

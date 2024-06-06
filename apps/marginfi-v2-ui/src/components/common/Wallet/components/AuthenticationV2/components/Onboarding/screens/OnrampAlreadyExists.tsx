@@ -1,16 +1,10 @@
 import React from "react";
-import { useWindowSize } from "@uidotdev/usehooks";
-import { QuoteResponseMeta, SwapResult } from "@jup-ag/react-hook";
-import Link from "next/link";
-import { percentFormatter, shortenAddress } from "@mrgnlabs/mrgn-common";
+import { useRouter } from "next/router";
 
 import { OnrampScreenProps } from "~/utils";
-import { IconExternalLink } from "~/components/ui/icons";
 import { Button } from "~/components/ui/button";
 
 import { ScreenWrapper, WalletSeperator } from "../../sharedComponents";
-import { Loader } from "~/components/ui/loader";
-import { useRouter } from "next/router";
 
 interface props extends OnrampScreenProps {}
 

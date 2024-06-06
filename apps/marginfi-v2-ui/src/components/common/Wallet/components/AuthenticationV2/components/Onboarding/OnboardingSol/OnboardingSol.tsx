@@ -1,8 +1,10 @@
 import React from "react";
-import { useWallet } from "@solana/wallet-adapter-react";
 
 import { useWalletContext } from "~/hooks/useWalletContext";
-import { AuthScreenProps, InstallingWallet, OnrampScreenProps, SuccessProps, cn } from "~/utils";
+import { AuthScreenProps, InstallingWallet, OnrampScreenProps, SuccessProps, getWalletConnectionMethod } from "~/utils";
+import { useOs } from "~/hooks/useOs";
+import { useBrowser } from "~/hooks/useBrowser";
+import { ExtendedWallet } from "~/hooks/useAvailableWallets";
 
 import { OnboardHeader } from "../../sharedComponents";
 import { installWallet, solOnrampFlow, successSwap } from "./onboardingSolUtils";
@@ -13,13 +15,15 @@ export const OnboardingSol = ({
   flow,
   isLoading,
   isActiveLoading,
+  select,
   setIsLoading,
   setIsActiveLoading,
   onClose,
   onPrev,
 }: props) => {
-  const { select } = useWallet();
   const { connected, logout } = useWalletContext();
+  const { isPhone, isPWA } = useOs();
+  const browser = useBrowser();
 
   const [installingWallet, setInstallingWallet] = React.useState<InstallingWallet>();
   const [screenIndex, setScreenIndex] = React.useState<number>(0);
@@ -37,7 +41,7 @@ export const OnboardingSol = ({
     } else {
       return solOnrampFlow[screenIndex];
     }
-  }, [onClose, onPrev, screenIndex, installingWallet]);
+  }, [installingWallet, successProps, screenIndex]);
 
   React.useEffect(() => {
     if (connected && screenIndex === 0) {
@@ -46,25 +50,40 @@ export const OnboardingSol = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [connected, screenIndex]);
 
-  const onSelectWallet = (selectedWallet: string | null) => {
-    if (!selectedWallet) return;
-    if (installingWallet) setInstallingWallet(undefined);
-    setIsLoading(true);
-    setIsActiveLoading(selectedWallet);
-    select(selectedWallet as any);
-  };
+  const onSelectWallet = React.useCallback(
+    (selectedWallet: ExtendedWallet) => {
+      if (!selectedWallet) return;
+      //if (installingWallet) setInstallingWallet(undefined);
+
+      const connectionMethod = getWalletConnectionMethod(selectedWallet, { isPWA, isPhone, browser });
+
+      if (connectionMethod === "INSTALL") {
+        setInstallingWallet({ flow: "sol", wallet: selectedWallet.adapter.name });
+        window.open(selectedWallet.installLink, "_blank");
+      } else if (connectionMethod === "DEEPLINK") {
+        window.open(selectedWallet.deeplink);
+      } else {
+        select(selectedWallet.adapter.name);
+      }
+    },
+    [isPWA, isPhone, browser]
+  );
 
   const onPrevScreen = React.useCallback(() => {
-    setScreenIndex((prev) => {
-      if (prev - 1 === 0 && connected) {
-        setIsLoading(false);
-        setIsActiveLoading("");
-        logout();
-        return prev - 2;
-      }
-      return prev - 1;
-    });
-  }, [connected]);
+    if (installingWallet) {
+      setInstallingWallet(undefined);
+    } else {
+      setScreenIndex((prev) => {
+        if (prev - 1 == 0 && connected) {
+          setIsLoading(false);
+          setIsActiveLoading("");
+          logout();
+          return prev - 2;
+        }
+        return prev - 1;
+      });
+    }
+  }, [installingWallet, connected]);
 
   if (!screen) return <></>;
 
@@ -82,12 +101,13 @@ export const OnboardingSol = ({
         isLoading: isLoading,
         isActiveLoading: isActiveLoading,
         successProps: successProps,
-        onNext: () => onClose(),
+        installingWallet: installingWallet,
+        onNext: () => setScreenIndex(screenIndex + 1),
         setIsLoading: setIsLoading,
         setIsActiveLoading: setIsActiveLoading,
         setInstallingWallet: setInstallingWallet,
         setSuccessProps: setSuccessProps,
-        select: onSelectWallet,
+        selectWallet: (wallet) => onSelectWallet(wallet),
       } as OnrampScreenProps)}
     </div>
   );

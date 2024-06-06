@@ -1,15 +1,20 @@
 import React from "react";
 import { useWallet, Wallet } from "@solana/wallet-adapter-react";
-import { Adapter, WalletName, WalletAdapter, WalletReadyState } from "@solana/wallet-adapter-base";
+import { WalletName, WalletReadyState } from "@solana/wallet-adapter-base";
 
 import { useOs } from "~/hooks/useOs";
-import { IconBackpackWallet } from "~/components/ui/icons";
 
 type WalletPreset = "eth" | "sol" | "social";
 
 const ETH_PRESET = ["Backpack", "Phantom", "WalletConnect", "MetaMask", "Ethereum Wallet"];
 const SOL_PRESET = ["Backpack", "Phantom", "Solflare"];
 const SOCIAL_PRESET = ["Backpack", "Phantom", "Solflare"];
+
+const BackpackWalletName = "Backpack" as WalletName<"Backpack">;
+
+const PhantomWalletName = "Phantom" as WalletName<"Phantom">;
+
+const SolflareWalletName = "Solflare" as WalletName<"Solflare">;
 
 export interface ExtendedWallet extends Wallet {
   deeplink?: string;
@@ -63,46 +68,74 @@ export function useAvailableWallets(preset?: WalletPreset): ExtendedWallet[] {
     return 0;
   }, []);
 
+  // updating wallets
+  const addAbsentWallets = (allWallets: Wallet[]) => {
+    const walletNames = allWallets.map((wallet) => wallet.adapter.name);
+    let newWallets = allWallets;
+
+    if (!walletNames.includes(PhantomWalletName)) {
+      newWallets.push(phantomAdapter);
+    }
+
+    if (!walletNames.includes(SolflareWalletName)) {
+      newWallets.push(solflareAdapter);
+    }
+
+    if (!walletNames.includes(BackpackWalletName)) {
+      newWallets.push(backpackAdapter);
+    }
+
+    return newWallets;
+  };
+
+  const updateWallets = React.useCallback(
+    (wallet: Wallet): ExtendedWallet => {
+      const adapterName = wallet.adapter.name;
+      let adapter: ExtendedWallet;
+      if (adapterName === "Backpack") {
+        adapter = {
+          ...(isBackpackInstalled ? wallet : backpackAdapter),
+        };
+      } else if (adapterName === "Phantom") {
+        adapter = {
+          ...(isPhantomInstalled ? wallet : phantomAdapter),
+        };
+      } else if (adapterName === "Solflare") {
+        adapter = {
+          ...(isSolflareInstalled ? wallet : solflareAdapter),
+        };
+      } else {
+        adapter = {
+          ...wallet,
+        };
+      }
+
+      return {
+        ...adapter,
+        deeplink: walletDeepLinkMap[wallet.adapter.name],
+        installLink: walletInstallMap[wallet.adapter.name],
+      };
+    },
+    [isBackpackInstalled, isPhantomInstalled, isSolflareInstalled]
+  );
+
   const filteredWallets = React.useMemo(() => {
     let formattedWallets: ExtendedWallet[] = wallets;
     if (selectedPreset) formattedWallets = formattedWallets.filter(presetFilter);
+    console.log({ one: formattedWallets });
 
     formattedWallets = formattedWallets.filter(installedFilter);
+    console.log({ two: formattedWallets });
 
-    if (!isBackpackInstalled) {
-      formattedWallets = [
-        ...formattedWallets,
-        {
-          ...backpackAdapter,
-          deeplink: isMobile ? walletDeepLinkMap[backpackAdapter.adapter.name] : undefined,
-          installLink: !isMobile ? walletInstallMap[backpackAdapter.adapter.name] : undefined,
-        },
-      ];
-    }
-
-    if (!isPhantomInstalled) {
-      formattedWallets = [
-        ...formattedWallets,
-        {
-          ...phantomAdapter,
-          deeplink: isMobile ? walletDeepLinkMap[phantomAdapter.adapter.name] : undefined,
-          installLink: !isMobile ? walletInstallMap[phantomAdapter.adapter.name] : undefined,
-        },
-      ];
-    }
-
-    if (!isSolflareInstalled) {
-      formattedWallets = [
-        ...formattedWallets,
-        {
-          ...solflareAdapter,
-          deeplink: isMobile ? walletDeepLinkMap[solflareAdapter.adapter.name] : undefined,
-          installLink: !isMobile ? walletInstallMap[solflareAdapter.adapter.name] : undefined,
-        },
-      ];
-    }
+    formattedWallets = addAbsentWallets(formattedWallets);
+    console.log({ tree: formattedWallets });
 
     formattedWallets = formattedWallets.sort(backpackSort);
+    console.log({ four: formattedWallets });
+
+    formattedWallets = formattedWallets.map(updateWallets);
+    console.log({ five: formattedWallets });
+
     return formattedWallets;
   }, [
     backpackSort,
@@ -132,12 +165,6 @@ export const walletInstallMap: WalletLinkMap = {
   Backpack: "https://backpack.app/download",
   Solflare: "https://gamma.solflare.com/download#extension",
 };
-
-const BackpackWalletName = "Backpack" as WalletName<"Backpack">;
-
-const PhantomWalletName = "Phantom" as WalletName<"Phantom">;
-
-const SolflareWalletName = "Solflare" as WalletName<"Solflare">;
 
 const backpackAdapter: Wallet = {
   adapter: {

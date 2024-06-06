@@ -1,11 +1,12 @@
 import React from "react";
-import { useWallet } from "@solana/wallet-adapter-react";
 
 import { useMrgnlendStore } from "~/store";
-import { AuthScreenProps, InstallingWallet, OnrampScreenProps, SuccessProps } from "~/utils";
+import { AuthScreenProps, InstallingWallet, OnrampScreenProps, SuccessProps, getWalletConnectionMethod } from "~/utils";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { Loader } from "~/components/ui/loader";
 import { useOs } from "~/hooks/useOs";
+import { useBrowser } from "~/hooks/useBrowser";
+import { ExtendedWallet } from "~/hooks/useAvailableWallets";
 
 import { OnboardHeader } from "../../sharedComponents";
 import { alreadyOnboarded, installWallet, socialOnrampFlow, successOnramp, successSwap } from "./onboardingSocialUtils";
@@ -21,15 +22,11 @@ export const OnboardingSocial: React.FC<props> = ({
   setIsActiveLoading,
   onClose,
   onPrev,
+  select,
 }: props) => {
-  const { select } = useWallet();
   const { connected, logout } = useWalletContext();
-  const { isAndroid, isIOS, isPWA } = useOs();
-
-  const isMobile = React.useMemo(() => {
-    if (isAndroid || isIOS || isPWA) return true;
-    else return false;
-  }, [isAndroid, isIOS, isPWA]);
+  const { isPhone, isPWA } = useOs();
+  const browser = useBrowser();
 
   const [userDataFetched, marginfiAccounts] = useMrgnlendStore((state) => [
     state.userDataFetched,
@@ -57,7 +54,6 @@ export const OnboardingSocial: React.FC<props> = ({
     } else if (screenIndex < 0) {
       onPrev();
     } else if (userHasAcct && screenIndex == 0) {
-      console.log({ userHasAcct });
       return alreadyOnboarded;
     } else {
       return socialOnrampFlow[screenIndex];
@@ -86,25 +82,40 @@ export const OnboardingSocial: React.FC<props> = ({
     }
   }, [userDataFetched, userHasAcct, connected, screenIndex]);
 
-  const onSelectWallet = (selectedWallet: string | null) => {
-    if (!selectedWallet) return;
-    if (installingWallet) setInstallingWallet(undefined);
-    setIsLoading(true);
-    setIsActiveLoading(selectedWallet);
-    select(selectedWallet as any);
-  };
+  const onSelectWallet = React.useCallback(
+    (selectedWallet: ExtendedWallet) => {
+      if (!selectedWallet) return;
+      //if (installingWallet) setInstallingWallet(undefined);
+
+      const connectionMethod = getWalletConnectionMethod(selectedWallet, { isPWA, isPhone, browser });
+
+      if (connectionMethod === "INSTALL") {
+        setInstallingWallet({ flow: "onramp", wallet: selectedWallet.adapter.name });
+        window.open(selectedWallet.installLink, "_blank");
+      } else if (connectionMethod === "DEEPLINK") {
+        window.open(selectedWallet.deeplink);
+      } else {
+        select(selectedWallet.adapter.name);
+      }
+    },
+    [isPWA, isPhone, browser]
+  );
 
   const onPrevScreen = React.useCallback(() => {
-    setScreenIndex((prev) => {
-      if (prev - 1 == 0 && connected) {
-        setIsLoading(false);
-        setIsActiveLoading("");
-        logout();
-        return prev - 2;
-      }
-      return prev - 1;
-    });
-  }, [connected]);
+    if (installingWallet) {
+      setInstallingWallet(undefined);
+    } else {
+      setScreenIndex((prev) => {
+        if (prev - 1 == 0 && connected) {
+          setIsLoading(false);
+          setIsActiveLoading("");
+          logout();
+          return prev - 2;
+        }
+        return prev - 1;
+      });
+    }
+  }, [installingWallet, connected]);
 
   if (!screen) return <></>;
 
@@ -114,7 +125,7 @@ export const OnboardingSocial: React.FC<props> = ({
         title={screen.title}
         description={screen.description}
         size={screen.titleSize}
-        onPrev={isMobile ? undefined : () => onPrevScreen()}
+        onPrev={isPhone ? undefined : () => onPrevScreen()}
       />
 
       {isSocialAuthLoading ? (
@@ -129,7 +140,7 @@ export const OnboardingSocial: React.FC<props> = ({
           onNext: () => setScreenIndex(screenIndex + 1),
           onClose: onClose,
           setIsLoading: setIsLoading,
-          select: (walletName) => onSelectWallet(walletName),
+          selectWallet: (wallet) => onSelectWallet(wallet),
           setIsActiveLoading: setIsActiveLoading,
           setInstallingWallet: setInstallingWallet,
           setSuccessProps: setSuccessProps,

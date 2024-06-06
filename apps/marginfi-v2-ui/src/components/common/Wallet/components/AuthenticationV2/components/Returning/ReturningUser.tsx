@@ -1,8 +1,8 @@
 import React from "react";
 
-import { AuthScreenProps, cn, socialProviders } from "~/utils";
+import { AuthScreenProps, cn, getWalletConnectionMethod, socialProviders } from "~/utils";
 import { useWalletContext } from "~/hooks/useWalletContext";
-import { useAvailableWallets } from "~/hooks/useAvailableWallets";
+import { ExtendedWallet, useAvailableWallets } from "~/hooks/useAvailableWallets";
 import { useOs } from "~/hooks/useOs";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "~/components/ui/accordion";
 import { IconBackpackWallet, IconStarFilled } from "~/components/ui/icons";
@@ -14,6 +14,7 @@ import {
   WalletAuthWrapper,
   WalletSeperator,
 } from "../sharedComponents";
+import { useBrowser } from "~/hooks/useBrowser";
 
 interface props extends AuthScreenProps {}
 
@@ -22,14 +23,13 @@ export const ReturningUser = ({
   isActiveLoading,
   setIsActiveLoading,
   setIsLoading,
-  update,
   select,
   onClose,
 }: props) => {
   const wallets = useAvailableWallets();
   const { connected, loginWeb3Auth } = useWalletContext();
-
-  const { isAndroid, isIOS } = useOs();
+  const { isAndroid, isIOS, isPWA, isPhone } = useOs();
+  const browser = useBrowser();
 
   React.useEffect(() => {
     if (connected) {
@@ -37,6 +37,22 @@ export const ReturningUser = ({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [connected]);
+
+  const onSelectWallet = React.useCallback(
+    (selectedWallet: ExtendedWallet) => {
+      if (!selectedWallet) return;
+      const connectionMethod = getWalletConnectionMethod(selectedWallet, { isPWA, isPhone, browser });
+
+      if (connectionMethod === "INSTALL") {
+        window.open(selectedWallet.installLink, "_blank");
+      } else if (connectionMethod === "DEEPLINK") {
+        window.open(selectedWallet.deeplink);
+      } else {
+        select(selectedWallet.adapter.name);
+      }
+    },
+    [isPWA, isPhone, browser]
+  );
 
   return (
     <>
@@ -105,13 +121,7 @@ export const ReturningUser = ({
                   isLoading={isLoading}
                   isActiveLoading={isActiveLoading}
                   wallets={wallets}
-                  onClick={(wallet) => {
-                    if (wallet.deeplink) {
-                      window.open(wallet.deeplink);
-                    } else {
-                      select(wallet.adapter.name);
-                    }
-                  }}
+                  onClick={(wallet) => onSelectWallet(wallet)}
                 />
               </ul>
             )}

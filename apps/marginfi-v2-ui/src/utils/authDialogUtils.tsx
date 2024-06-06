@@ -28,8 +28,9 @@ import {
   ReturningUser,
   PwaSignIn,
 } from "~/components/common/Wallet/components/AuthenticationV2/components";
+import { ExtendedWallet } from "~/hooks/useAvailableWallets";
 
-export type InstallingWallet = { wallet: string; flow: "eth" | "onramp" };
+export type InstallingWallet = { wallet: string; flow: "eth" | "onramp" | "sol" };
 
 export interface JupiterScreenProps {
   txid: string;
@@ -46,6 +47,7 @@ export interface OnrampScreenProps extends AuthScreenProps {
   successProps?: SuccessProps;
   onPrev: () => void;
   onNext: () => void;
+  selectWallet: (wallet: ExtendedWallet) => void;
   setSuccessProps: (props: SuccessProps) => void;
   setInstallingWallet: (wallet: InstallingWallet) => void;
 }

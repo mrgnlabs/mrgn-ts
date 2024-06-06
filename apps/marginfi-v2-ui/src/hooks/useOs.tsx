@@ -11,6 +11,7 @@ export const useOs = () => {
     setIsIOS(!!userAgent.match(/iPhone|iPad|iPod/i));
     setIsPWA(isPWA);
   }, []);
+  const isPhone = React.useMemo(() => isIOS || isAndroid || isPWA, [isIOS, isAndroid, isPWA]);
 
-  return { isAndroid, isIOS, isPWA };
+  return { isAndroid, isIOS, isPWA, isPhone };
 };
