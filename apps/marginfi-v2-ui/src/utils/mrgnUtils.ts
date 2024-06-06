@@ -134,6 +134,31 @@ export function getTokenImageURL(tokenSymbol: string): string {
   return `https://storage.googleapis.com/mrgn-public/mrgn-token-icons/${tokenSymbol}.png`;
 }
 
+const oraclesWithMaxAgeOverMin = [
+  {
+    address: 'LSTxxxnJzKDFSLr4dUkPcmCf5VyryEqzPLz5j4bpxFp',
+    maxAge: 180
+  },
+  {
+    address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+    maxAge: 3600
+  },
+  {
+    address: 'J1toso1uCk3RLmjorhTtrVwY9HJ7X8V9yYac6Y7kGCPn',
+    maxAge: 180
+  },
+  {
+    address: 'So11111111111111111111111111111111111111112',
+    maxAge: 180
+  },
+  {
+    address: 'mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So',
+    maxAge: 180
+  }
+];
+
 export function isBankOracleStale(bank: ExtendedBankInfo) {
-  return bank.info.rawBank.lastUpdate + 60 > Math.round(Date.now() / 1000);
+  const oracle = oraclesWithMaxAgeOverMin.find(oracle => oracle.address === bank.info.rawBank.mint.toBase58());
+  const maxAge = oracle ? oracle.maxAge : 60;
+  return bank.info.rawBank.lastUpdate + maxAge > Math.round(Date.now() / 1000);
 }

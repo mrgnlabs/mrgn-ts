@@ -8,7 +8,7 @@ import { IconAlertTriangle, IconX } from "~/components/ui/icons";
 import { Button } from "~/components/ui/button";
 import { isBankOracleStale } from "~/utils";
 
-export const CONGESTION_THRESHOLD = 1;
+export const CONGESTION_THRESHOLD = 5;
 
 export const CongestionBanner = () => {
   const [extendedBankInfos] = useMrgnlendStore((state) => [state.extendedBankInfos]);
