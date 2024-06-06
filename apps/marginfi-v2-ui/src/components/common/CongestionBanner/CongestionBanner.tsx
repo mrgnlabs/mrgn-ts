@@ -34,7 +34,7 @@ export const CongestionBanner = () => {
       href="https://forum.marginfi.community/t/work-were-doing-to-improve-oracle-robustness-during-chain-congestion/283"
       target="_blank"
       rel="noreferrer"
-      className="group fixed top-0 w-full h-14 p-4 pr-16 z-50 flex items-center justify-center leading-tight bg-background-gray-light text-xs font-normal text-muted-foreground md:text-sm md:h-10"
+      className="group fixed top-0 w-full h-16 p-4 pr-16 z-50 flex items-center justify-center leading-tight bg-background-gray-light text-xs font-normal text-muted-foreground md:text-sm md:h-10"
     >
       <div>
         <IconAlertTriangle size={16} className="inline mr-1.5 -translate-y-[1px]" />
