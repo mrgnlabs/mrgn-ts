@@ -10,23 +10,24 @@ export type SolOnrampScreen = {
 
 export const solOnrampFlow: SolOnrampScreen[] = [
   {
-    comp: screens.CreateSolanaAccount,
-    title: "Step 1: Sign in",
-    description: "Sign in with email or social to use the marginfi mobile web app, or connect your existing wallet.",
+    comp: screens.CreateSocialAccount,
+    title: "Create marginfi account",
+    description: "Sign in to download marginfi's mobile web app, or connect your existing wallet.",
     titleSize: "lg",
   },
   {
     comp: screens.JupiterSwap,
-    title: "Step 2. Swap your tokens",
+    title: "Diversify your holdings",
     description:
-      "Swap your tokens and start earning permissionless yield today. Make sure you keep some SOL for transaction fees.",
+      "Swap excess SOL for x (yield), y (yield), or a different token you want to hold. This lets you maximize your portfolio to earn diversified, decentralized, over-collateralized yield on marginfi. Always keep some SOL for network fees.",
     titleSize: "sm",
     tag: "swap",
   },
   {
     comp: screens.DepositToken,
-    title: "Step 3. Make a deposit!",
-    description: "Make your first deposit into marginfi and start earning permissionless yield today.",
+    title: "Make a deposit!",
+    description:
+      "Deposit your portfolio in marginfi to earn permissionless yield, without any middlemen, on any asset you hold. Get paid directly by borrowers, and establish collateral for your future borrowing needs.",
     titleSize: "sm",
   },
 ];

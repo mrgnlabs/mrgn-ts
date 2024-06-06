@@ -10,28 +10,27 @@ export type EthOnrampScreen = {
 export const ethOnrampFlow: EthOnrampScreen[] = [
   {
     comp: screens.CreateEthAccount,
-    title: "Step 1: Sign in",
-    description:
-      "Sign in with email or social and we'll create a Solana wallet for you, or connect your wallet and bridge funds.",
+    title: "Create marginfi account",
+    description: "Sign in to download marginfi's mobile web app, or connect your existing wallet.",
     titleSize: "lg",
   },
   {
     comp: screens.BridgeToken,
-    title: "Step 1. Bridge your assets",
+    title: "Bridge your assets",
     description:
-      "Bridge your assets to Solana. You'll need SOL for transaction fees and can swap for other tokens next.",
+      "Move in to SOL tokens with good liquidity. Make sure you keep SOL for network fees. You can swap for other Solana assets next.",
     titleSize: "sm",
   },
   {
     comp: screens.JupiterSwap,
-    title: "Step 2. Swap your tokens",
+    title: "Diversify your holdings",
     description:
-      "Swap your tokens and start earning permissionless yield today. Make sure you keep some SOL for transaction fees.",
+      "Swap excess SOL for x (yield), y (yield), or a different token you want to hold. This lets you maximize your portfolio to earn diversified, decentralized, over-collateralized yield on marginfi. Always keep some SOL for network fees.",
     titleSize: "sm",
   },
   {
     comp: screens.DepositToken,
-    title: "Step 3. Make a deposit!",
+    title: "Make a deposit!",
     description: "Make your first deposit into marginfi and start earning permissionless yield today.",
     titleSize: "sm",
   },
