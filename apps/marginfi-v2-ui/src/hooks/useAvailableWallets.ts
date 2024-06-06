@@ -152,7 +152,9 @@ type WalletLinkMap = { [wallet: string]: string };
 export const walletDeepLinkMap: WalletLinkMap = {
   Phantom: "https://phantom.app/ul/browse/https://app.marginfi.com?ref=https://app.marginfi.com",
   Backpack: "https://backpack.app/ul/browse/https://app.marginfi.com?ref=https://app.marginfi.com",
-  Solflare: "https://solflare.com/ul/browse/https://app.marginfi.com?ref=https://app.marginfi.com",
+  Solflare: `https://solflare.com/ul/v1/browse/${encodeURIComponent(
+    "https://app.marginfi.com"
+  )}?ref=https://app.marginfi.com`,
 };
 
 export const walletInstallMap: WalletLinkMap = {
