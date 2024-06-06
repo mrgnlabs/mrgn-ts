@@ -105,8 +105,8 @@ export const getAssetPriceCell = ({
           </TooltipTrigger>
           <TooltipContent className="space-y-3 max-w-[17rem]">
             <p>
-              {isInLendingMode ? "Deposits to" : "Borrows from"} this bank may fail due to network congestion preventing
-              oracles from updating price data.
+              {isInLendingMode ? "Withdrawals from" : "Borrows from"} this bank may fail due to network congestion
+              preventing oracles from updating price data.
             </p>
             <p>
               <Link

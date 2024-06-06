@@ -204,7 +204,7 @@ function canBeWithdrawn(
   if (targetBankInfo && isBankOracleStale(targetBankInfo)) {
     checks.push({
       description:
-        "Withdraws from this bank may fail due to network congestion preventing oracles from updating price data.",
+        "Withdrawals from this bank may fail due to network congestion preventing oracles from updating price data.",
       isEnabled: true,
       link: "https://forum.marginfi.community/t/work-were-doing-to-improve-oracle-robustness-during-chain-congestion/283",
       linkText: "Learn more about marginfi's decentralized oracles.",
