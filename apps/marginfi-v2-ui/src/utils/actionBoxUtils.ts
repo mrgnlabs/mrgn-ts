@@ -35,6 +35,7 @@ export interface ActionMethod {
   actionMethod?: ActionMethodType;
   description?: string;
   link?: string;
+  linkText?: string;
 }
 
 export function getColorForActionMethodType(type?: ActionMethodType) {
@@ -202,9 +203,11 @@ function canBeWithdrawn(
 
   if (targetBankInfo && isBankOracleStale(targetBankInfo)) {
     checks.push({
-      description: "The oracle data for this bank is stale",
+      description:
+        "Withdraws from this bank may fail due to network congestion preventing oracles from updating price data.",
       isEnabled: true,
       link: "https://forum.marginfi.community/t/work-were-doing-to-improve-oracle-robustness-during-chain-congestion/283",
+      linkText: "Learn more about marginfi's decentralized oracles.",
     });
   }
 
@@ -244,9 +247,11 @@ function canBeRepaid(targetBankInfo: ExtendedBankInfo): ActionMethod[] {
 
   if (targetBankInfo && isBankOracleStale(targetBankInfo)) {
     checks.push({
-      description: "The oracle data for this bank is stale",
+      description:
+        "Repays to this bank may fail due to network congestion preventing oracles from updating price data.",
       isEnabled: true,
       link: "https://forum.marginfi.community/t/work-were-doing-to-improve-oracle-robustness-during-chain-congestion/283",
+      linkText: "Learn more about marginfi's decentralized oracles.",
     });
   }
 
@@ -305,9 +310,11 @@ function canBeRepaidCollat(
 
   if ((repayBankInfo && isBankOracleStale(repayBankInfo)) || (targetBankInfo && isBankOracleStale(targetBankInfo))) {
     checks.push({
-      description: "The oracle data for this bank is stale",
+      description:
+        "Repays to this bank may fail due to network congestion preventing oracles from updating price data.",
       isEnabled: true,
       link: "https://forum.marginfi.community/t/work-were-doing-to-improve-oracle-robustness-during-chain-congestion/283",
+      linkText: "Learn more about marginfi's decentralized oracles.",
     });
   }
 
@@ -409,9 +416,11 @@ function canBeBorrowed(
 
   if (targetBankInfo && isBankOracleStale(targetBankInfo)) {
     checks.push({
-      description: "The oracle data for this bank is stale",
+      description:
+        "Borrows from this bank may fail due to network congestion preventing oracles from updating price data.",
       isEnabled: true,
       link: "https://forum.marginfi.community/t/work-were-doing-to-improve-oracle-robustness-during-chain-congestion/283",
+      linkText: "Learn more about marginfi's decentralized oracles.",
     });
   }
 
@@ -481,9 +490,11 @@ function canBeLent(targetBankInfo: ExtendedBankInfo, nativeSolBalance: number): 
 
   if (targetBankInfo && isBankOracleStale(targetBankInfo)) {
     checks.push({
-      description: "The oracle data for this bank is stale",
+      description:
+        "Deposits to this bank may fail due to network congestion preventing oracles from updating price data.",
       isEnabled: true,
       link: "https://forum.marginfi.community/t/work-were-doing-to-improve-oracle-robustness-during-chain-congestion/283",
+      linkText: "Learn more about marginfi's decentralized oracles.",
     });
   }
 

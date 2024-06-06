@@ -23,7 +23,7 @@ import { SOL_MINT } from "~/store/lstStore";
 
 import { LSTDialog, LSTDialogVariants } from "~/components/common/AssetList";
 import { ActionMethod, checkActionAvailable, RepayType } from "~/utils/actionBoxUtils";
-import { IconAlertTriangle, IconSettings } from "~/components/ui/icons";
+import { IconAlertTriangle, IconExternalLink, IconSettings } from "~/components/ui/icons";
 import { showErrorToast } from "~/utils/toastUtils";
 
 import {
@@ -634,7 +634,7 @@ export const ActionBox = ({ requestedAction, requestedBank, isDialog, handleClos
                         )}
                       >
                         <IconAlertTriangle className="shrink-0 translate-y-0.5" size={16} />
-                        <div className="space-y-1">
+                        <div className="space-y-2.5">
                           <p>{actionMethod.description}</p>
                           {actionMethod.link && (
                             <p>
@@ -643,9 +643,10 @@ export const ActionBox = ({ requestedAction, requestedBank, isDialog, handleClos
                                 href={actionMethod.link}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="underline hover:no-underline"
+                                className="border-b border-warning/50 hover:border-transparent transition-colors"
                               >
-                                Read more
+                                <IconExternalLink size={14} className="inline -translate-y-[1px]" />{" "}
+                                {actionMethod.linkText || "Read more"}
                               </Link>
                             </p>
                           )}

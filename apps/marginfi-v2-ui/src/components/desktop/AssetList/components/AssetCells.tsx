@@ -5,8 +5,9 @@ import Link from "next/link";
 import { numeralFormatter, percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 
 import { cn, getTokenImageURL } from "~/utils";
+import { useUiStore } from "~/store";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
-import { IconAlertTriangle, IconPyth, IconSwitchboard } from "~/components/ui/icons";
+import { IconAlertTriangle, IconExternalLink, IconPyth, IconSwitchboard } from "~/components/ui/icons";
 
 import {
   AssetData,
@@ -56,6 +57,7 @@ export const getAssetPriceCell = ({
   symbol,
   price,
   isOracleStale,
+  isInLendingMode = true,
 }: AssetPriceData) => (
   <div className="relative flex items-center justify-end gap-1.5">
     <div className="relative">
@@ -101,16 +103,22 @@ export const getAssetPriceCell = ({
           <TooltipTrigger asChild>
             <IconAlertTriangle size={14} className="text-warning shrink-0" />
           </TooltipTrigger>
-          <TooltipContent>
-            Oracle data is stale for this bank.{" "}
-            <Link
-              href="https://forum.marginfi.community/t/work-were-doing-to-improve-oracle-robustness-during-chain-congestion/283"
-              target="_blank"
-              rel="noreferrer"
-              className="underline hover:no-underline"
-            >
-              read more
-            </Link>
+          <TooltipContent className="space-y-3 max-w-[17rem]">
+            <p>
+              {isInLendingMode ? "Deposits to" : "Borrows from"} this bank may fail due to network congestion preventing
+              oracles from updating price data.
+            </p>
+            <p>
+              <Link
+                href="https://forum.marginfi.community/t/work-were-doing-to-improve-oracle-robustness-during-chain-congestion/283"
+                target="_blank"
+                rel="noreferrer"
+                className="border-b leading-normal border-primary/50 hover:border-transparent transition-colors"
+              >
+                <IconExternalLink size={12} className="inline mr-1 -translate-y-[1px]" />
+                Learn more about marginfi's decentralized oracle strategy.
+              </Link>
+            </p>
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>

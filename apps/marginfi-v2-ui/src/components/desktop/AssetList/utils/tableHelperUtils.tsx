@@ -68,7 +68,10 @@ export const generateColumns = (isInLendingMode: boolean) => {
       id: "price",
       enableResizing: false,
       size: 170,
-      cell: (props) => getAssetPriceCell(props.getValue()),
+      cell: (props) => getAssetPriceCell({
+        ...props.getValue(),
+        isInLendingMode,
+    }),
       header: (header) => (
         <HeaderWrapper
           header={header}
