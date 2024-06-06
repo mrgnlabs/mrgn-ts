@@ -21,6 +21,7 @@ import { Desktop, Mobile } from "~/mediaQueries";
 import { WalletProvider as MrgnWalletProvider } from "~/hooks/useWalletContext";
 import { ConnectionProvider } from "~/hooks/useConnection";
 import { init as initAnalytics } from "~/utils/analytics";
+import { cn } from "~/utils";
 
 import { Meta } from "~/components/common/Meta";
 import { MobileNavbar } from "~/components/mobile/MobileNavbar";
@@ -49,7 +50,7 @@ const MATOMO_URL = "https://mrgn.matomo.cloud";
 type MrgnAppProps = { path: string };
 
 export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnAppProps) {
-  const [setIsFetchingData] = useUiStore((state) => [state.setIsFetchingData]);
+  const [setIsFetchingData, isOraclesStale] = useUiStore((state) => [state.setIsFetchingData, state.isOraclesStale]);
   const [isMrgnlendStoreInitialized, isRefreshingMrgnlendStore, fetchMrgnlendState] = useMrgnlendStore((state) => [
     state.initialized,
     state.isRefreshingStore,
@@ -104,7 +105,7 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
 
                     <Desktop>
                       <WalletModalProvider>
-                        <div className="w-full flex flex-col justify-center items-center">
+                        <div className={cn("w-full flex flex-col justify-center items-center", isOraclesStale && 'pt-10')}>
                           <Component {...pageProps} />
                         </div>
                         <Footer />
@@ -113,7 +114,7 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
 
                     <Mobile>
                       <MobileNavbar />
-                      <div className="w-full flex flex-col justify-center items-center">
+                      <div className={cn("w-full flex flex-col justify-center items-center", isOraclesStale && 'pt-16')}>
                         <Component {...pageProps} />
                       </div>
                     </Mobile>
