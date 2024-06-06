@@ -8,7 +8,9 @@ export const useOs = () => {
     const userAgent = navigator.userAgent || navigator.vendor;
     const isPWA = window.matchMedia("(display-mode: standalone)").matches;
     setIsAndroid(userAgent.indexOf("Android") > -1);
-    setIsIOS(!!userAgent.match(/iPhone|iPad|iPod/i));
+    setIsIOS(
+      !!/iPad|iPhone|iPod/.test(userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)
+    );
     setIsPWA(isPWA);
   }, []);
   const isPhone = React.useMemo(() => isIOS || isAndroid || isPWA, [isIOS, isAndroid, isPWA]);
