@@ -11,13 +11,13 @@ export type SocialOnrampScreen = {
 export const socialOnrampFlow: SocialOnrampScreen[] = [
   {
     comp: screens.CreateSocialAccount,
-    title: "Step 1: Create account",
+    title: "Create marginfi account",
     description: "Sign in to download marginfi's mobile web app, or connect your existing wallet.",
     titleSize: "lg",
   },
   {
     comp: screens.Onramp,
-    title: "Step 2: Buy crypto",
+    title: "Use marginfi's decentralized network",
     description:
       "You'll need SOL to pay network validators to include your transactions. Network fees are less than a penny, but we recommend buying the amount value in SOL you want to deposit in marginfi. You can convert surplus SOL into tokens, like USDT (a stablecoin), in the next step.",
     titleSize: "sm",
@@ -25,16 +25,17 @@ export const socialOnrampFlow: SocialOnrampScreen[] = [
   },
   {
     comp: screens.JupiterSwap,
-    title: "Step 3: Swap your tokens",
+    title: "Diversify your holdings",
     description:
-      "Swap your tokens and start earning permissionless yield today. Make sure you keep some SOL for transaction fees.",
+      "Swap excess SOL for x (yield), y (yield), or a different token you want to hold. This lets you maximize your portfolio to earn diversified, decentralized, over-collateralized yield on marginfi. Always keep some SOL for network fees.",
     titleSize: "sm",
     tag: "swap",
   },
   {
     comp: screens.DepositToken,
-    title: "Step 4: Make a deposit!",
-    description: "Make your first deposit into marginfi and start earning permissionless yield today.",
+    title: "Make a deposit!",
+    description:
+      "Deposit your portfolio in marginfi to earn permissionless yield, without any middlemen, on any asset you hold. Get paid directly by borrowers, and establish collateral for your future borrowing needs.",
     titleSize: "sm",
   },
 ];
