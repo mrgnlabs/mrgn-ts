@@ -16,7 +16,7 @@ export const PwaInstalation = ({
   update,
   onPrev,
 }: props) => {
-  const { select, connected } = useWallet();
+  const { connected } = useWallet();
   const [screenIndex, setScreenIndex] = React.useState<number>(0);
 
   const screen = React.useMemo(() => {
@@ -32,13 +32,6 @@ export const PwaInstalation = ({
     if (connected) setScreenIndex(1);
   }, [connected]);
 
-  const onSelectWallet = (selectedWallet: string | null) => {
-    if (!selectedWallet) return;
-    setIsLoading(true);
-    setIsActiveLoading(selectedWallet);
-    select(selectedWallet as any);
-  };
-
   return (
     <>
       <OnboardHeader title={screen.title} description={screen.description} size={screen.titleSize} />
@@ -50,7 +43,6 @@ export const PwaInstalation = ({
         update: update,
         setIsLoading: setIsLoading,
         setIsActiveLoading: setIsActiveLoading,
-        select: onSelectWallet,
       } as OnrampScreenProps)}
     </>
   );

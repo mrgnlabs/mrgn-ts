@@ -22,8 +22,7 @@ export const CreateSolanaAccount: React.FC<props> = ({
   flow,
   setIsLoading,
   setIsActiveLoading,
-  setInstallingWallet,
-  select,
+  selectWallet,
 }: props) => {
   const { loginWeb3Auth } = useWalletContext();
   const wallets = useAvailableWallets();
@@ -67,16 +66,7 @@ export const CreateSolanaAccount: React.FC<props> = ({
             isLoading={isLoading}
             isActiveLoading={isActiveLoading}
             wallets={wallets}
-            onClick={(wallet) => {
-              if (wallet.installLink) {
-                setInstallingWallet({ flow: "onramp", wallet: wallet.adapter.name });
-                window.open(wallet.installLink, "_blank");
-              } else if (wallet.deeplink) {
-                window.open(wallet.deeplink);
-              } else {
-                select(wallet.adapter.name);
-              }
-            }}
+            onClick={(wallet) => selectWallet(wallet)}
           />
         </ul>
       )}

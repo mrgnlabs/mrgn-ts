@@ -1,13 +1,15 @@
 import React from "react";
-import { useWallet } from "@solana/wallet-adapter-react";
 import Script from "next/script";
 
 import { useMrgnlendStore } from "~/store";
 import { useWalletContext } from "~/hooks/useWalletContext";
-import { AuthScreenProps, InstallingWallet, OnrampScreenProps, SuccessProps } from "~/utils";
+import { AuthScreenProps, InstallingWallet, OnrampScreenProps, SuccessProps, getWalletConnectionMethod } from "~/utils";
+import { useOs } from "~/hooks/useOs";
+import { useBrowser } from "~/hooks/useBrowser";
+import { ExtendedWallet } from "~/hooks/useAvailableWallets";
 
-import { OnboardHeader } from "../../sharedComponents";
 import { ethOnrampFlow, installWallet, successBridge } from "./onboardingEthUtils";
+import { OnboardHeader } from "../../sharedComponents";
 
 interface props extends AuthScreenProps {}
 
@@ -18,12 +20,14 @@ export const OnboardingEth = ({
   setIsLoading,
   setProgress,
   setIsActiveLoading,
+  select,
   onClose,
   onPrev,
 }: props) => {
   const [marginfiAccounts] = useMrgnlendStore((state) => [state.marginfiAccounts]);
-  const { select } = useWallet();
   const { connected, logout } = useWalletContext();
+  const { isPWA, isPhone } = useOs();
+  const browser = useBrowser();
 
   const [screenIndex, setScreenIndex] = React.useState<number>(0);
   const [installingWallet, setInstallingWallet] = React.useState<InstallingWallet>();
@@ -61,24 +65,40 @@ export const OnboardingEth = ({
     setProgress(percentage);
   }, [screenIndex]);
 
-  const onSelectWallet = (selectedWallet: string | null) => {
-    if (!selectedWallet) return;
-    setIsLoading(true);
-    setIsActiveLoading(selectedWallet);
-    select(selectedWallet as any);
-  };
+  const onSelectWallet = React.useCallback(
+    (selectedWallet: ExtendedWallet) => {
+      if (!selectedWallet) return;
+      //if (installingWallet) setInstallingWallet(undefined);
+
+      const connectionMethod = getWalletConnectionMethod(selectedWallet, { isPWA, isPhone, browser });
+
+      if (connectionMethod === "INSTALL") {
+        setInstallingWallet({ flow: "eth", wallet: selectedWallet.adapter.name });
+        window.open(selectedWallet.installLink, "_blank");
+      } else if (connectionMethod === "DEEPLINK") {
+        window.open(selectedWallet.deeplink);
+      } else {
+        select(selectedWallet.adapter.name);
+      }
+    },
+    [isPWA, isPhone, browser]
+  );
 
   const onPrevScreen = React.useCallback(() => {
-    setScreenIndex((prev) => {
-      if (prev - 1 == 0 && connected) {
-        setIsLoading(false);
-        setIsActiveLoading("");
-        logout();
-        return prev - 2;
-      }
-      return prev - 1;
-    });
-  }, [connected]);
+    if (installingWallet) {
+      setInstallingWallet(undefined);
+    } else {
+      setScreenIndex((prev) => {
+        if (prev - 1 == 0 && connected) {
+          setIsLoading(false);
+          setIsActiveLoading("");
+          logout();
+          return prev - 2;
+        }
+        return prev - 1;
+      });
+    }
+  }, [installingWallet, connected]);
 
   if (!screen) return <></>;
 
@@ -99,7 +119,7 @@ export const OnboardingEth = ({
         setIsLoading: setIsLoading,
         setIsActiveLoading: setIsActiveLoading,
         setInstallingWallet: setInstallingWallet,
-        select: onSelectWallet,
+        selectWallet: (wallet) => onSelectWallet(wallet),
       } as OnrampScreenProps)}
 
       <Script src="https://app.debridge.finance/assets/scripts/widget.js" />

@@ -19,8 +19,7 @@ export const CreateSocialAccount: React.FC<props> = ({
   flow,
   setIsLoading,
   setIsActiveLoading,
-  setInstallingWallet,
-  select,
+  selectWallet,
 }: props) => {
   const wallets = useAvailableWallets("social");
   const { isPWA } = useOs();
@@ -64,16 +63,7 @@ export const CreateSocialAccount: React.FC<props> = ({
               isLoading={isLoading}
               isActiveLoading={isActiveLoading}
               wallets={wallets}
-              onClick={(wallet) => {
-                if (wallet.installLink) {
-                  setInstallingWallet({ flow: "onramp", wallet: wallet.adapter.name });
-                  window.open(wallet.installLink, "_blank");
-                } else if (wallet.deeplink) {
-                  window.open(wallet.deeplink);
-                } else {
-                  select(wallet.adapter.name);
-                }
-              }}
+              onClick={(wallet) => selectWallet(wallet)}
             />
           </ul>
         </>

@@ -4,7 +4,7 @@ import { useWallet } from "@solana/wallet-adapter-react";
 
 import { useUiStore } from "~/store";
 import { WalletInfo, Web3AuthProvider, useWalletContext } from "~/hooks/useWalletContext";
-import { cn } from "~/utils";
+import { cn, getWalletConnectionMethod } from "~/utils";
 
 import { Wallet } from "~/components/common/Wallet";
 import { IconChevronDown, IconBrandGoogle, IconBrandX, IconBrandApple, IconMrgn } from "~/components/ui/icons";
@@ -29,7 +29,8 @@ const web3AuthIconMap: { [key in Web3AuthProvider]: { icon: JSX.Element } } = {
 };
 
 export const WalletButton = () => {
-  const { isAndroid, isIOS } = useOs();
+  const { isPhone, isPWA } = useOs();
+  const browser = useBrowser();
   const wallets = useAvailableWallets();
   const { select } = useWallet();
   const { connected, isLoading, loginWeb3Auth } = useWalletContext();
@@ -71,8 +72,15 @@ export const WalletButton = () => {
           loginWeb3Auth(walletInfo.name);
         }
       } else {
-        if (walletObject?.deeplink) {
-          window.open(walletObject.deeplink);
+        if (walletObject) {
+          const connectionMethod = getWalletConnectionMethod(walletObject, { isPWA, isPhone, browser });
+          if (connectionMethod === "INSTALL") {
+            window.open(walletObject.installLink, "_blank");
+          } else if (connectionMethod === "DEEPLINK") {
+            window.open(walletObject.deeplink);
+          } else if (connectionMethod === "CONNECT") {
+            select(walletObject.adapter.name as any);
+          }
         } else {
           select(walletInfo.name as any);
         }
@@ -80,7 +88,7 @@ export const WalletButton = () => {
     } catch (error) {
       setIsWalletAuthDialogOpen(true);
     }
-  }, [walletInfo, isAndroid, isIOS, setIsWalletAuthDialogOpen, select, loginWeb3Auth]);
+  }, [walletInfo, walletObject, isPWA, isPhone, browser, setIsWalletAuthDialogOpen, select, loginWeb3Auth]);
 
   return (
     <>

@@ -240,6 +240,7 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
           email: extraLoginOptions && extraLoginOptions.login_hint,
         };
         localStorage.setItem("walletInfo", JSON.stringify(walletInfo));
+        localStorage.setItem("isOnboarded", "true");
       } catch (error) {
         setIsWalletAuthDialogOpen(true);
         console.error(error);
