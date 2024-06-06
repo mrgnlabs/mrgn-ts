@@ -42,6 +42,7 @@ interface UiState {
   isWalletOpen: boolean;
   isWalletOnrampActive: boolean;
   isFilteredUserPositions: boolean;
+  isOraclesStale: boolean;
   lendingMode: LendingModes;
   poolFilter: PoolTypes;
   sortOption: SortAssetOption;
@@ -58,6 +59,7 @@ interface UiState {
   setIsWalletOpen: (isOpen: boolean) => void;
   setIsOnrampActive: (isOnrampActive: boolean) => void;
   setIsFilteredUserPositions: (isFilteredUserPositions: boolean) => void;
+  setIsOraclesStale: (isOraclesStale: boolean) => void;
   setLendingMode: (lendingMode: LendingModes) => void;
   setPoolFilter: (poolType: PoolTypes) => void;
   setSortOption: (sortOption: SortAssetOption) => void;
@@ -96,6 +98,7 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
   isWalletOpen: false,
   isWalletOnrampActive: false,
   isFilteredUserPositions: false,
+  isOraclesStale: false,
   lendingMode: LendingModes.LEND,
   actionMode: ActionType.Deposit,
   poolFilter: PoolTypes.ALL,
@@ -119,6 +122,7 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
     set({
       lendingMode: lendingMode,
     }),
+  setIsOraclesStale: (isOraclesStale: boolean) => set({ isOraclesStale: isOraclesStale }),
   setPoolFilter: (poolType: PoolTypes) => set({ poolFilter: poolType }),
   setSortOption: (sortOption: SortAssetOption) => set({ sortOption: sortOption }),
   setPriorityFee: (priorityFee: number) => set({ priorityFee: priorityFee }),

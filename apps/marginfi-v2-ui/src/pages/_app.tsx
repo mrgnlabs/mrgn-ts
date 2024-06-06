@@ -26,6 +26,7 @@ import { Meta } from "~/components/common/Meta";
 import { MobileNavbar } from "~/components/mobile/MobileNavbar";
 import { Tutorial } from "~/components/common/Tutorial";
 import { WalletAuthDialog } from "~/components/common/Wallet";
+import { CongestionBanner } from "~/components/common/CongestionBanner";
 
 import "swiper/css";
 import "swiper/css/pagination";
@@ -98,6 +99,7 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
               <MrgnWalletProvider>
                 <MrgnlendProvider>
                   <LipClientProvider>
+                    <CongestionBanner />
                     <Navbar />
 
                     <Desktop>
