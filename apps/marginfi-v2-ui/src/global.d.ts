@@ -14,5 +14,6 @@ interface Window {
   Jupiter: import("./types").JupiterTerminal;
   MoonPayWebSdk: any;
   deBridge: any;
+  phantom: any;
   backpack?: any;
 }

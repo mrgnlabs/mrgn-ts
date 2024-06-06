@@ -16,7 +16,7 @@ export type BrowserTypes =
 export const useBrowser = () => {
   const [browser, setBrowser] = React.useState<BrowserTypes>();
   const { isAndroid, isIOS, isPWA } = useOs();
-  const isInAppPhantom = localStorage.getItem("walletName")?.includes("Phantom");
+  const isInAppPhantom = localStorage.getItem("walletName")?.includes("Phantom") || window?.phantom?.solana?.isPhantom;
   const isInAppSolflare = localStorage.getItem("walletName")?.includes("Solflare");
   const isInAppBackpack = window?.backpack?.isBackpack;
 
