@@ -12,15 +12,14 @@ export const socialOnrampFlow: SocialOnrampScreen[] = [
   {
     comp: screens.CreateSocialAccount,
     title: "Step 1: Create account",
-    description:
-      "Sign in with email or social and we'll create a Solana wallet for you, or connect your existing Solana wallet.",
+    description: "Sign in to download marginfi's mobile web app, or connect your existing wallet.",
     titleSize: "lg",
   },
   {
     comp: screens.Onramp,
     title: "Step 2: Buy crypto",
     description:
-      "Buy SOL with cash. You'll need this to deposit into marginfi, swap for tokens, and pay transaction fees. ",
+      "You'll need SOL to pay network validators to include your transactions. Network fees are less than a penny, but we recommend buying the amount value in SOL you want to deposit in marginfi. You can convert surplus SOL into tokens, like USDT (a stablecoin), in the next step.",
     titleSize: "sm",
     tag: "onramp",
   },
