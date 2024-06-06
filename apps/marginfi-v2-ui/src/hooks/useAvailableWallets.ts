@@ -92,23 +92,23 @@ export function useAvailableWallets(preset?: WalletPreset): ExtendedWallet[] {
     (wallet: Wallet): ExtendedWallet => {
       const adapterName = wallet.adapter.name;
       let adapter: ExtendedWallet;
-      if (adapterName === "Backpack") {
-        adapter = {
-          ...(isBackpackInstalled ? wallet : backpackAdapter),
-        };
-      } else if (adapterName === "Phantom") {
-        adapter = {
-          ...(isPhantomInstalled ? wallet : phantomAdapter),
-        };
-      } else if (adapterName === "Solflare") {
-        adapter = {
-          ...(isSolflareInstalled ? wallet : solflareAdapter),
-        };
-      } else {
-        adapter = {
-          ...wallet,
-        };
-      }
+      // if (adapterName === "Backpack") {
+      //   adapter = {
+      //     ...(isBackpackInstalled ? wallet : backpackAdapter),
+      //   };
+      // } else if (adapterName === "Phantom") {
+      //   adapter = {
+      //     ...(isPhantomInstalled ? wallet : phantomAdapter),
+      //   };
+      // } else if (adapterName === "Solflare") {
+      //   adapter = {
+      //     ...(isSolflareInstalled ? wallet : solflareAdapter),
+      //   };
+      // } else {
+      adapter = {
+        ...wallet,
+      };
+      // }
 
       return {
         ...adapter,
@@ -122,19 +122,14 @@ export function useAvailableWallets(preset?: WalletPreset): ExtendedWallet[] {
   const filteredWallets = React.useMemo(() => {
     let formattedWallets: ExtendedWallet[] = wallets;
     if (selectedPreset) formattedWallets = formattedWallets.filter(presetFilter);
-    console.log({ one: formattedWallets });
 
-    formattedWallets = formattedWallets.filter(installedFilter);
-    console.log({ two: formattedWallets });
+    //formattedWallets = formattedWallets.filter(installedFilter);
 
     formattedWallets = addAbsentWallets(formattedWallets);
-    console.log({ tree: formattedWallets });
 
     formattedWallets = formattedWallets.sort(backpackSort);
-    console.log({ four: formattedWallets });
 
     formattedWallets = formattedWallets.map(updateWallets);
-    console.log({ five: formattedWallets });
 
     return formattedWallets;
   }, [
