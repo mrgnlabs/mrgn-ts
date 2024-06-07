@@ -17,6 +17,7 @@ export function getWalletConnectionMethod(wallet: Wallet, osInfo: OsInfo): Walle
   const isWalletInstalled = wallet.readyState === WalletReadyState.Installed;
 
   if (isPWA || isInAppBrowser) return "CONNECT";
+  if (isWalletInstalled && isPhone) return "CONNECT";
   if (isPhone) return "DEEPLINK";
   if (isWalletInstalled) return "CONNECT";
   return "INSTALL";
