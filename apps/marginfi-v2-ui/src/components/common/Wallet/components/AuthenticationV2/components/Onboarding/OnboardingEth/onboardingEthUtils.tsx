@@ -25,7 +25,7 @@ export const ethOnrampFlow: EthOnrampScreen[] = [
     comp: screens.JupiterSwap,
     title: "Diversify your holdings",
     description:
-      "Swap excess SOL for x (yield), y (yield), or a different token you want to hold. This lets you maximize your portfolio to earn diversified, decentralized, over-collateralized yield on marginfi. Always keep some SOL for network fees.",
+      "Swap excess SOL for other tokens you want to hold. This lets you maximize your portfolio to earn diversified, decentralized, over-collateralized yield on marginfi. Always keep some SOL for network fees.",
     titleSize: "sm",
   },
   {
