@@ -53,7 +53,8 @@ export const AuthDialog = () => {
 
   // if user has PWA force social login
   React.useEffect(() => {
-    if (isPWA) {
+    const isOnboarding = localStorage.getItem("onboardingFlow");
+    if (isPWA && !isOnboarding) {
       if (localStorage.getItem("isOnboarded")) {
         setFlow("RETURNING_PWA");
       } else {
