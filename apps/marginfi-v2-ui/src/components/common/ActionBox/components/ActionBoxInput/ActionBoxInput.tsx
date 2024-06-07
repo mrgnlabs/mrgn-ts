@@ -44,6 +44,7 @@ export const ActionBoxInput = ({
     selectedStakingAccount,
     setAmountRaw,
     setRepayAmountRaw,
+    setLoopingAmountRaw,
     setSelectedBank,
     setRepayBank,
     setSelectedStakingAccount,
@@ -62,6 +63,7 @@ export const ActionBoxInput = ({
     state.selectedStakingAccount,
     state.setAmountRaw,
     state.setRepayAmountRaw,
+    state.setLoopingAmountRaw,
     state.setSelectedBank,
     state.setRepayBank,
     state.setSelectedStakingAccount,
@@ -137,7 +139,10 @@ export const ActionBoxInput = ({
 
   const handleInputChange = React.useCallback(
     (newAmount: string) => {
-      if (isRepayWithCollat) {
+      if (actionMode === ActionType.Loop) {
+        if (selectedAccount)
+          setLoopingAmountRaw(selectedAccount, formatAmount(newAmount, selectedRepayBank), connection);
+      } else if (isRepayWithCollat) {
         if (selectedAccount) setRepayAmountRaw(selectedAccount, formatAmount(newAmount, selectedRepayBank), connection);
       } else {
         setAmountRaw(formatAmount(newAmount, selectedBank));
@@ -145,6 +150,7 @@ export const ActionBoxInput = ({
     },
     [
       isRepayWithCollat,
+      actionMode,
       selectedAccount,
       selectedRepayBank,
       connection,
@@ -174,6 +180,7 @@ export const ActionBoxInput = ({
         />
       ) : isLoopMode ? (
         <LoopInput
+          isDialog={isDialog}
           walletAmount={walletAmount}
           maxAmount={maxAmount}
           handleInputChange={handleInputChange}

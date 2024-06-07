@@ -5,7 +5,7 @@ import Image from "next/image";
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { percentFormatter } from "@mrgnlabs/mrgn-common";
 
-import { useActionBoxGeneralStore } from "~/store";
+import { useActionBoxStore } from "~/hooks/useActionBoxStore";
 import { computeBankRateRaw, getMaintHealthColor, getTokenImageURL } from "~/utils";
 
 import { ActionBoxTokens } from "~/components/common/ActionBox/components";
@@ -23,21 +23,39 @@ type LoopInputProps = {
   maxAmount: number;
   handleInputChange: (value: string) => void;
   handleInputFocus: (focus: boolean) => void;
+  isDialog?: boolean;
 };
 
-export const LoopInput = ({ walletAmount, maxAmount, handleInputChange, handleInputFocus }: LoopInputProps) => {
+export const LoopInput = ({
+  walletAmount,
+  maxAmount,
+  isDialog,
+  handleInputChange,
+  handleInputFocus,
+}: LoopInputProps) => {
   const amountInputRef = React.useRef<HTMLInputElement>(null);
-  const [setSelectedBank, setRepayBank, setSelectedStakingAccount, selectedBank, selectedRepayBank, amountRaw] =
-    useActionBoxGeneralStore((state) => [
-      state.setSelectedBank,
-      state.setRepayBank,
-      state.setSelectedStakingAccount,
-      state.selectedBank,
-      state.selectedRepayBank,
-      state.amountRaw,
-    ]);
+  const [
+    setSelectedBank,
+    setRepayBank,
+    setSelectedStakingAccount,
+    setLeverage,
+    leverage,
+    maxLeverage,
+    selectedBank,
+    selectedRepayBank,
+    amountRaw,
+  ] = useActionBoxStore(isDialog)((state) => [
+    state.setSelectedBank,
+    state.setRepayBank,
+    state.setSelectedStakingAccount,
+    state.setLeverage,
+    state.leverage,
+    state.maxLeverage,
+    state.selectedBank,
+    state.selectedRepayBank,
+    state.amountRaw,
+  ]);
 
-  const [leveragedAmount, setLeveragedAmount] = React.useState(0);
   const [netApyRaw, setNetApyRaw] = React.useState(0);
 
   const netApy = React.useMemo(() => {
@@ -52,11 +70,6 @@ export const LoopInput = ({ walletAmount, maxAmount, handleInputChange, handleIn
 
   const bothBanksSelected = selectedBank && selectedRepayBank;
 
-  const maxLeverage = React.useMemo(() => {
-    if (!selectedBank || !selectedRepayBank) return 10;
-    return Math.floor(Math.random() * 10) + 1;
-  }, [selectedBank, selectedRepayBank]);
-
   return (
     <div>
       <div className="bg-background rounded-lg p-2.5 mb-6">
@@ -70,7 +83,7 @@ export const LoopInput = ({ walletAmount, maxAmount, handleInputChange, handleIn
               setTokenBank={(tokenBank) => {
                 if (selectedRepayBank) {
                   setRepayBank(null);
-                  setLeveragedAmount(0);
+                  setLeverage(0);
                 }
                 setSelectedBank(tokenBank);
               }}
@@ -131,9 +144,9 @@ export const LoopInput = ({ walletAmount, maxAmount, handleInputChange, handleIn
           <div className="flex items-center justify-between">
             <p className="text-sm font-normal text-muted-foreground">Loop ➰</p>
             <span className="flex items-center gap-1">
-              {leveragedAmount > 1 && (
+              {leverage > 1 && (
                 <span className="text-muted-foreground text-sm">
-                  {leveragedAmount}x leverage{leveragedAmount === maxLeverage && " (max)"}
+                  {leverage}x leverage{leverage === maxLeverage && " (max)"}
                 </span>
               )}
             </span>
@@ -143,10 +156,10 @@ export const LoopInput = ({ walletAmount, maxAmount, handleInputChange, handleIn
             max={10}
             min={1}
             step={1}
-            value={[leveragedAmount]}
+            value={[leverage]}
             onValueChange={(value) => {
               if (value[0] > maxLeverage) return;
-              setLeveragedAmount(value[0]);
+              setLeverage(value[0]);
             }}
             disabled={!bothBanksSelected}
           />
