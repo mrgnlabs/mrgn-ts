@@ -25,7 +25,7 @@ export const CongestionBanner = () => {
 
     if ((thresholdMet && isOraclesStale) || isCongestionBannerDismissed) return;
     setIsOraclesStale(thresholdMet);
-  }, [banksWithStaleOracles]);
+  }, [banksWithStaleOracles, isOraclesStale, isCongestionBannerDismissed, setIsOraclesStale]);
 
   if (!isOraclesStale || isCongestionBannerDismissed) return null;
 
@@ -41,7 +41,7 @@ export const CongestionBanner = () => {
         <p className="inline">
           Solana network congestion may be preventing oracles from updating price data.{" "}
           <span className="border-b border-primary/40 transition-colors group-hover:border-transparent">
-            Learn more about marginfi's decentralized oracle strategy
+            Learn more about marginfi&apos;s decentralized oracle strategy
           </span>
           .
         </p>

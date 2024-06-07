@@ -116,7 +116,7 @@ export const getAssetPriceCell = ({
                 className="border-b leading-normal border-primary/50 hover:border-transparent transition-colors"
               >
                 <IconExternalLink size={12} className="inline mr-1 -translate-y-[1px]" />
-                Learn more about marginfi's decentralized oracle strategy.
+                Learn more about marginfi&apos;s decentralized oracle strategy.
               </Link>
             </p>
           </TooltipContent>
