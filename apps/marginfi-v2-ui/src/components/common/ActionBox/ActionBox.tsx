@@ -32,6 +32,7 @@ import {
   ActionBoxActions,
   ActionBoxInput,
 } from "~/components/common/ActionBox/components";
+import BigNumber from "bignumber.js";
 
 type ActionBoxProps = {
   requestedAction?: ActionType;
@@ -79,6 +80,7 @@ export const ActionBox = ({
   const [
     slippageBps,
     amountRaw,
+    loopingAmount,
     repayAmountRaw,
     maxAmountCollat,
     actionMode,
@@ -86,8 +88,8 @@ export const ActionBox = ({
     selectedBank,
     selectedRepayBank,
     selectedStakingAccount,
-    repayCollatQuote,
-    repayCollatTxn,
+    actionQuote,
+    actionTxn,
     isLoading,
     errorMessage,
 
@@ -101,6 +103,7 @@ export const ActionBox = ({
   ] = useActionBoxStore(isDialog)((state) => [
     state.slippageBps,
     state.amountRaw,
+    state.loopingAmount,
     state.repayAmountRaw,
     state.maxAmountCollat,
     state.actionMode,
@@ -108,8 +111,8 @@ export const ActionBox = ({
     state.selectedBank,
     state.selectedRepayBank,
     state.selectedStakingAccount,
-    state.repayCollatQuote,
-    state.repayCollatTxn,
+    state.actionQuote,
+    state.actionTxn,
     state.isLoading,
     state.errorMessage,
 
@@ -252,7 +255,7 @@ export const ActionBox = ({
         actionMode,
         blacklistRoutes: null,
         repayMode,
-        repayCollatQuote: repayCollatQuote ?? null,
+        repayCollatQuote: actionQuote ?? null,
         lstQuoteMeta: lstQuoteMeta,
       }),
     [
@@ -268,7 +271,7 @@ export const ActionBox = ({
       nativeSolBalance,
       actionMode,
       repayMode,
-      repayCollatQuote,
+      actionQuote,
       lstQuoteMeta,
     ]
   );
@@ -411,11 +414,78 @@ export const ActionBox = ({
     if (actionMode === ActionType.MintLST || actionMode === ActionType.UnstakeLST) {
       await handleLstAction();
     } else if (actionMode === ActionType.Loop) {
-      alert("Handle loop action");
+      await handleLoopingAction();
     } else {
       await handleLendingAction();
     }
   };
+
+  const handleLoopingAction = React.useCallback(async () => {
+    if (!actionMode || !selectedBank || (!amount && !repayAmount)) {
+      return;
+    }
+
+    const action = async () => {
+      const params = {
+        mfiClient,
+        actionType: actionMode,
+        bank: selectedBank,
+        amount,
+        nativeSolBalance,
+        marginfiAccount: selectedAccount,
+        walletContextState,
+      } as MarginfiActionParams;
+
+      console.log({ actionQuote, loopingAmount, selectedRepayBank, connection, wallet });
+      if (actionQuote && loopingAmount && selectedRepayBank && connection && wallet) {
+        params.loopingOptions = {
+          loopingQuote: actionQuote,
+          loopingTxn: actionTxn,
+          borrowAmount: loopingAmount,
+          loopingBank: selectedRepayBank,
+          connection,
+        };
+      }
+
+      const txnSig = await executeLendingAction({
+        ...params,
+      });
+
+      setIsLoading(false);
+      handleCloseDialog && handleCloseDialog();
+      setAmountRaw("");
+
+      if (txnSig) {
+        setIsActionComplete(true);
+        setPreviousTxn({
+          type: ActionType.MintLST,
+          bank: selectedBank as ActiveBankInfo,
+          amount: amount,
+          lstQuote: lstQuoteMeta || undefined,
+          txn: txnSig!,
+        });
+      }
+
+      executeLendingActionCb(params);
+    };
+
+    await action();
+  }, [
+    actionMode,
+    selectedBank,
+    selectedAccount,
+    amount,
+    hasLSTDialogShown,
+    executeLendingActionCb,
+    mfiClient,
+    nativeSolBalance,
+    walletContextState,
+    actionQuote,
+    repayAmount,
+    selectedRepayBank,
+    connection,
+    wallet,
+  ]);
 
   const handleLstAction = React.useCallback(async () => {
     if ((!selectedBank && !selectedStakingAccount) || !mfiClient || !lstData) {
@@ -539,10 +609,10 @@ export const ActionBox = ({
         walletContextState,
       } as MarginfiActionParams;
 
-      if (repayCollatQuote && repayAmount && selectedRepayBank && connection && wallet) {
+      if (actionQuote && repayAmount && selectedRepayBank && connection && wallet) {
         params.repayWithCollatOptions = {
-          repayCollatQuote,
-          repayCollatTxn,
+          repayCollatQuote: actionQuote,
+          repayCollatTxn: actionTxn,
           repayAmount: repayAmount,
           repayBank: selectedRepayBank,
           connection,
@@ -586,7 +656,7 @@ export const ActionBox = ({
     mfiClient,
     nativeSolBalance,
     walletContextState,
-    repayCollatQuote,
+    actionQuote,
     repayAmount,
     selectedRepayBank,
     connection,
@@ -684,10 +754,10 @@ export const ActionBox = ({
                 slippageBps={slippageBps}
                 isEnabled={!isMini}
                 repayWithCollatOptions={
-                  repayCollatQuote && repayAmount && selectedRepayBank
+                  actionQuote && repayAmount && selectedRepayBank
                     ? {
-                        repayCollatQuote,
-                        repayCollatTxn,
+                        repayCollatQuote: actionQuote,
+                        repayCollatTxn: actionTxn,
                         repayAmount,
                         repayBank: selectedRepayBank,
                         connection,

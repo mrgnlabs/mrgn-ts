@@ -49,6 +49,7 @@ export type MarginfiActionParams = {
   nativeSolBalance: number;
   marginfiAccount: MarginfiAccountWrapper | null;
   repayWithCollatOptions?: RepayWithCollatOptions;
+  loopingOptions?: LoopingOptions;
   walletContextState?: WalletContextState | WalletContextStateOverride;
   priorityFee?: number;
 };
@@ -109,7 +110,6 @@ export async function executeLendingAction({
 
   if (actionType === ActionType.Repay) {
     if (repayWithCollatOptions) {
-      console.log({ amount, repay: repayWithCollatOptions.repayAmount });
       txnSig = await repayWithCollat({
         marginfiClient: mfiClient,
         marginfiAccount,
@@ -120,6 +120,38 @@ export async function executeLendingAction({
       });
     } else {
       txnSig = await repay({ marginfiAccount, bank, amount, priorityFee });
+    }
+  }
+
+  return txnSig;
+}
+
+export async function executeLoopingAction({
+  mfiClient,
+  actionType,
+  bank,
+  amount,
+  marginfiAccount,
+  priorityFee,
+  loopingOptions,
+}: MarginfiActionParams) {
+  let txnSig: string | undefined;
+
+  if (!marginfiAccount) {
+    showErrorToast("Marginfi account not ready.");
+    return;
+  }
+
+  if (actionType === ActionType.Loop) {
+    if (loopingOptions) {
+      txnSig = await looping({
+        marginfiClient: mfiClient,
+        marginfiAccount,
+        bank,
+        depositAmount: amount,
+        priorityFee,
+        options: loopingOptions,
+      });
     }
   }
 
@@ -444,6 +476,49 @@ export async function loopingBuilder({
   return { txn: transaction, addressLookupTableAccounts };
 }
 
+export async function looping({
+  marginfiClient,
+  marginfiAccount,
+  bank,
+  depositAmount,
+  options,
+  priorityFee,
+}: {
+  marginfiClient: MarginfiClient | null;
+  marginfiAccount: MarginfiAccountWrapper;
+  bank: ExtendedBankInfo;
+  depositAmount: number;
+  options: LoopingOptions;
+  priorityFee?: number;
+}) {
+  if (marginfiClient === null) {
+    showErrorToast("Marginfi client not ready");
+    return;
+  }
+
+  const multiStepToast = new MultiStepToastHandle("Repayment", [{ label: `Executing flashloan repayment` }]);
+  multiStepToast.start();
+
+  try {
+    let txn: VersionedTransaction;
+    if (options.loopingTxn) {
+      txn = options.loopingTxn;
+    } else {
+      txn = (await loopingBuilder({ marginfiAccount, bank, depositAmount, options, priorityFee })).txn;
+    }
+    const sig = await marginfiClient.processTransaction(txn);
+    multiStepToast.setSuccessAndNext();
+    return sig;
+  } catch (error: any) {
+    const msg = extractErrorString(error);
+    Sentry.captureException({ message: error });
+    multiStepToast.setFailed(msg);
+    console.log(`Error while repaying: ${msg}`);
+    console.log(error);
+    return;
+  }
+}
+
 export async function repayWithCollatBuilder({
   marginfiAccount,
   bank,
@@ -523,7 +598,7 @@ export async function repayWithCollat({
   multiStepToast.start();
 
   try {
-    let txn;
+    let txn: VersionedTransaction;
     if (options.repayCollatTxn) {
       txn = options.repayCollatTxn;
     } else {
