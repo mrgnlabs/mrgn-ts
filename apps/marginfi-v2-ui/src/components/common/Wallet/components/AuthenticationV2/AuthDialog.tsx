@@ -27,7 +27,10 @@ export const AuthDialog = () => {
     [isAndroid, isIOS, browser, isPWA]
   );
 
-  const showInAppBrowser = React.useMemo(() => browser === "Backpack" || browser === "Phantom", [browser]);
+  const showInAppBrowser = React.useMemo(
+    () => browser === "Backpack" || browser === "Phantom" || browser === "Solflare",
+    [browser]
+  );
 
   const mainFlow = React.useMemo(() => {
     const isOnboarded = localStorage.getItem("isOnboarded");

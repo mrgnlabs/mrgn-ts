@@ -1,7 +1,7 @@
 import React from "react";
 
 import { AuthScreenProps, socialProviders } from "~/utils";
-import { IconBackpackWallet, IconLoader, IconPhantomWallet } from "~/components/ui/icons";
+import { IconBackpackWallet, IconLoader, IconPhantomWallet, IconSolflareWallet } from "~/components/ui/icons";
 import { Button } from "~/components/ui/button";
 import { useBrowser } from "~/hooks/useBrowser";
 import { useWalletContext } from "~/hooks/useWalletContext";
@@ -27,11 +27,11 @@ export const InAppSignIn = ({ isLoading, select, update, onClose }: props) => {
         description: "Sign in with Backpack",
         connect: () => select("Backpack" as any),
       };
-    } else {
+    } else if (browser === "Solflare") {
       return {
-        icon: <IconPhantomWallet size={24} />,
-        description: "Sign in with Phantom",
-        connect: () => select("Phantom" as any),
+        icon: <IconSolflareWallet size={24} />,
+        description: "Sign in with Solflare",
+        connect: () => select("Solflare" as any),
       };
     }
   }, [select, browser]);

@@ -1,5 +1,6 @@
 import React from "react";
 import { useOs } from "./useOs";
+import { useAvailableWallets } from "./useAvailableWallets";
 
 export type BrowserTypes =
   | "Chrome"
@@ -15,10 +16,18 @@ export type BrowserTypes =
 
 export const useBrowser = () => {
   const [browser, setBrowser] = React.useState<BrowserTypes>();
+  const wallets = useAvailableWallets();
   const { isAndroid, isIOS, isPWA } = useOs();
   const isInAppPhantom = localStorage.getItem("walletName")?.includes("Phantom") || window?.phantom?.solana?.isPhantom;
-  const isInAppSolflare = localStorage.getItem("walletName")?.includes("Solflare");
+  //const isInAppSolflare = localStorage.getItem("walletName")?.includes("Solflare");
   const isInAppBackpack = window?.backpack?.isBackpack;
+
+  const isInAppSolflare = React.useMemo(
+    () =>
+      localStorage.getItem("walletName")?.includes("Solflare") ||
+      wallets.find((wallet) => wallet.adapter.name === "Solflare")?.readyState === "Installed",
+    [wallets]
+  );
 
   React.useEffect(() => {
     const userAgent = navigator.userAgent;
@@ -38,7 +47,7 @@ export const useBrowser = () => {
     } else {
       setBrowser("Chrome");
     }
-  }, [isAndroid, isIOS, isInAppBackpack, isInAppPhantom, isPWA]);
+  }, [isAndroid, isIOS, isInAppBackpack, isInAppPhantom, isInAppSolflare, isPWA]);
 
   return browser;
 };
