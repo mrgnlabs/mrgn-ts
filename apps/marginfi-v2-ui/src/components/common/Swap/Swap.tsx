@@ -63,7 +63,7 @@ export const Swap = ({ onLoad, onSuccess, initialInputMint, initialOutputMint }:
       },
       formProps: {
         initialInputMint: initialMint ? initialMint.toBase58() : undefined,
-        initialOutputMint: initialMint?.equals(WSOL_MINT) ? LST_MINT.toBase58() : WSOL_MINT.toBase58(),
+        initialOutputMint: initialOutputMint ? initialOutputMint.toBase58() : undefined,
       },
     });
     const currentTime = Date.now();
