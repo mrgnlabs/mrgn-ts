@@ -7,7 +7,7 @@ export default function ContactPage() {
     <div className="container pt-32">
       <div className="space-y-6 text-center max-w-md mx-auto text-muted-foreground text-lg leading-relaxed">
         <h1 className="text-5xl font-medium text-primary">Contact Us</h1>
-        <p>Send us a message using the form below and we'll get back to you as soon as possible.</p>
+        <p>Send us a message using the form below and we&apos;ll get back to you as soon as possible.</p>
       </div>
       <ContactForm onSubmit={submitConvertKit} formId="6643760" />
     </div>
