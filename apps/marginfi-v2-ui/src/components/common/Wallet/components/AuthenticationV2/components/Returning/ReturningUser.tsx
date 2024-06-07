@@ -111,7 +111,7 @@ export const ReturningUser = ({
           >
             <div className="flex flex-col gap-3 w-3/4">
               <h2 className="font-medium text-2xl text-white leading-none">Use a wallet</h2>
-              <p className="font-normal">If you're a pro, connect your wallet.</p>
+              <p className="font-normal">If you&apos;re a pro, connect your wallet.</p>
             </div>
           </AccordionTrigger>
           <AccordionContent className="flex flex-col gap-6 mt-4">

@@ -45,7 +45,7 @@ export const OnboardingMain = ({ update }: props) => {
             <div className="space-y-3">
               <h2 className="font-medium text-2xl text-white leading-none">I&apos;m a Solana user</h2>
               <p className="text-sm md:text-base">
-                Sign in to download marginfi's mobile web app, or connect your existing wallet.
+                Sign in to download marginfi&apos;s mobile web app, or connect your existing wallet.
               </p>
             </div>
             <Button className="w-full md:w-fit mt-auto">Sign in</Button>
@@ -59,7 +59,8 @@ export const OnboardingMain = ({ update }: props) => {
             <div className="space-y-3">
               <h2 className="font-medium text-2xl text-white leading-none">I&apos;m an Ethereum user</h2>
               <p className="text-sm md:text-base">
-                Sign in to download marginfi's mobile web app, or connect your wallet. We'll help you transfer funds.
+                Sign in to download marginfi&apos;s mobile web app, or connect your wallet. We&apos;ll help you transfer
+                funds.
               </p>
             </div>
             <Button className="w-full md:w-fit mt-auto">Sign in</Button>
