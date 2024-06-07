@@ -15,31 +15,7 @@ export const BridgeToken: React.FC<props> = ({ onNext }: props) => {
   const [widget, setWidget] = React.useState<any>();
   const isMobile = useIsMobile();
 
-  React.useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  React.useEffect(() => {
-    if (widget) {
-      widget.then((widget: any) => {
-        widget.on("order", (event: any, params: any) => {
-          console.log("order params", params);
-        });
-
-        widget.on("singleChainSwap", (event: any, params: any) => {
-          console.log("singleChainSwap params", params);
-        });
-      });
-    }
-  }, [widget, window.deBridge]);
-
-  React.useEffect(() => {
-    if (window.deBridge && isMounted && !(divRef.current && divRef.current.innerHTML)) {
-      loadDeBridgeWidget();
-    }
-  }, [isMounted]);
-
-  const loadDeBridgeWidget = () => {
+  const loadDeBridgeWidget = React.useCallback(() => {
     const widget = window.deBridge.widget({
       v: "1",
       element: "debridgeWidget",
@@ -71,7 +47,31 @@ export const BridgeToken: React.FC<props> = ({ onNext }: props) => {
     });
 
     setWidget(widget);
-  };
+  }, [isMobile, wallet.publicKey]);
+
+  React.useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  React.useEffect(() => {
+    if (widget) {
+      widget.then((widget: any) => {
+        widget.on("order", (event: any, params: any) => {
+          console.log("order params", params);
+        });
+
+        widget.on("singleChainSwap", (event: any, params: any) => {
+          console.log("singleChainSwap params", params);
+        });
+      });
+    }
+  }, [widget]);
+
+  React.useEffect(() => {
+    if (window.deBridge && isMounted && !(divRef.current && divRef.current.innerHTML)) {
+      loadDeBridgeWidget();
+    }
+  }, [isMounted, loadDeBridgeWidget]);
 
   return (
     <ScreenWrapper>
