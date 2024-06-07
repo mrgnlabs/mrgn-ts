@@ -301,7 +301,7 @@ export const InstallPWA = ({ update }: props) => {
 
   return (
     <ScreenWrapper>
-      <div className="space-y-4">
+      <div className="space-y-6 py-2">
         {!isPwaAvailable && (
           <>
             <div className="text-lg text-primary">PWA is not supported on the current browser.</div>
@@ -314,10 +314,10 @@ export const InstallPWA = ({ update }: props) => {
           pwaBrowser.map((step, idx) => (
             <StepCard key={idx} icon={step.icon} title={step.title} description={step.description} />
           ))}
-        <Button className="w-full" size={"sm"} onClick={() => update("ONBOARD_SOCIAL")}>
-          Skip for now
-        </Button>
       </div>
+      <Button className="w-full" variant="outline" size={"sm"} onClick={() => update("ONBOARD_SOCIAL")}>
+        Skip for now
+      </Button>
     </ScreenWrapper>
   );
 };

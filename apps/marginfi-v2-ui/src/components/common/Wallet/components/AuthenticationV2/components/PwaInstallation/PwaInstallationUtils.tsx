@@ -10,8 +10,8 @@ export type PwaScreen = {
 export const pwaFlow: PwaScreen[] = [
   {
     comp: screens.InstallPWA,
-    title: "Install PWA",
-    description: "to get the best experience on mobile...",
+    title: "Download mobile app",
+    description: "Download the marginfi mobile web app and sign in with email or social to get the best experience.",
     titleSize: "lg",
   },
 ];
