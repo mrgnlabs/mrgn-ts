@@ -521,6 +521,51 @@ class MarginfiClient {
       : MarginfiAccountWrapper.fetch(newAccountKey, this, opts?.commitment);
   }
 
+  /**
+   * Create transaction instruction to initialize a new group.
+   *
+   * @returns transaction instruction
+   */
+  async makeCreateMarginfiGroupIx(marginfiGroupPk: PublicKey): Promise<InstructionsWrapper> {
+    const dbg = require("debug")("mfi:client");
+
+    dbg("Generating group init ix");
+
+    const initGroupIx = await instructions.makeGroupInitIx(this.program, {
+      marginfiGroupPk: marginfiGroupPk,
+      adminPk: this.provider.wallet.publicKey,
+    });
+
+    const ixs = [initGroupIx];
+
+    return {
+      instructions: ixs,
+      keys: [],
+    };
+  }
+
+  /**
+   * Create a new marginfi group under the authority of the user.
+   *
+   * @returns MarginfiGroup instance
+   */
+  async createMarginfiGroup(opts?: TransactionOptions): Promise<PublicKey> {
+    const dbg = require("debug")("mfi:client");
+
+    console.log("Creating marginfi group");
+
+    const accountKeypair = Keypair.generate();
+
+    const ixs = await this.makeCreateMarginfiGroupIx(accountKeypair.publicKey);
+    const signers = [...ixs.keys];
+    signers.push(accountKeypair);
+    const tx = new Transaction().add(...ixs.instructions);
+    const sig = await this.processTransaction(tx, signers, opts);
+    dbg("Created Marginfi group %s", sig);
+
+    return Promise.resolve(accountKeypair.publicKey);
+  }
+
   // --------------------------------------------------------------------------
   // Helpers
   // --------------------------------------------------------------------------
@@ -546,6 +591,8 @@ class MarginfiClient {
 
     try {
       const getLatestBlockhashAndContext = await connection.getLatestBlockhashAndContext();
+
+      console.log("getLatestBlockhashAndContext", getLatestBlockhashAndContext);
 
       minContextSlot = getLatestBlockhashAndContext.context.slot - 4;
       blockhash = getLatestBlockhashAndContext.value.blockhash;

@@ -292,7 +292,7 @@ async function makeAccountAuthorityTransferIx(
     signerPk: PublicKey;
     newAuthorityPk: PublicKey;
     feePayerPk: PublicKey;
-  },
+  }
 ) {
   return mfProgram.methods
     .setNewAccountAuthority()
@@ -302,6 +302,23 @@ async function makeAccountAuthorityTransferIx(
       signer: accounts.signerPk,
       newAuthority: accounts.newAuthorityPk,
       feePayer: accounts.feePayerPk,
+    })
+    .instruction();
+}
+
+async function makeGroupInitIx(
+  mfProgram: MarginfiProgram,
+  accounts: {
+    marginfiGroupPk: PublicKey;
+    adminPk: PublicKey;
+  }
+) {
+  return mfProgram.methods
+    .marginfiGroupInitialize()
+    .accounts({
+      marginfiGroup: accounts.marginfiGroupPk,
+      admin: accounts.adminPk,
+      systemProgram: SystemProgram.programId,
     })
     .instruction();
 }
@@ -320,6 +337,7 @@ const instructions = {
   makeBeginFlashLoanIx,
   makeEndFlashLoanIx,
   makeAccountAuthorityTransferIx,
+  makeGroupInitIx,
 };
 
 export default instructions;
