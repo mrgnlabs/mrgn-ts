@@ -136,24 +136,28 @@ export function getTokenImageURL(tokenSymbol: string): string {
 
 const oraclesWithMaxAgeOverMin = [
   {
-    address: 'LSTxxxnJzKDFSLr4dUkPcmCf5VyryEqzPLz5j4bpxFp',
-    maxAge: 180
-  },
-  {
     address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
     maxAge: 3600
+  },
+  {
+    address: 'HZ1JovNiVvGrGNiiYvEozEVgZ58xaU3RKwX8eACQBCt3',
+    maxAge: 120
   },
   {
     address: 'J1toso1uCk3RLmjorhTtrVwY9HJ7X8V9yYac6Y7kGCPn',
     maxAge: 180
   },
   {
-    address: 'So11111111111111111111111111111111111111112',
+    address: 'mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So',
     maxAge: 180
   },
   {
-    address: 'mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So',
+    address: 'LSTxxxnJzKDFSLr4dUkPcmCf5VyryEqzPLz5j4bpxFp',
     maxAge: 180
+  },
+  {
+    address: 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB',
+    maxAge: 600
   }
 ];
 
