@@ -18,7 +18,7 @@ export const ethOnrampFlow: EthOnrampScreen[] = [
     comp: screens.BridgeToken,
     title: "Bridge your assets",
     description:
-      "Move in to SOL tokens with good liquidity. Make sure you keep SOL for network fees. You can swap for other Solana assets next.",
+      "Move in to SOL tokens with good liquidity. Make sure you keep SOL for network fees. We have prefilled your new Solana wallett address below.",
     titleSize: "sm",
   },
   {
