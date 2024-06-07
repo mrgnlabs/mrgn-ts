@@ -20,6 +20,7 @@ import {
   verifyJupTxSizeCollat,
   verifyJupTxSizeLooping,
 } from "~/utils";
+import BigNumber from "bignumber.js";
 
 interface ActionBoxState {
   // State
@@ -27,6 +28,7 @@ interface ActionBoxState {
   amountRaw: string;
   repayAmountRaw: string;
   maxAmountCollat: number;
+  loopingAmount: BigNumber;
 
   leverage: number;
   maxLeverage: number;
@@ -39,8 +41,9 @@ interface ActionBoxState {
   selectedBank: ExtendedBankInfo | null;
   selectedRepayBank: ExtendedBankInfo | null;
   selectedStakingAccount: StakeData | null;
-  repayCollatQuote: QuoteResponse | null;
-  repayCollatTxn: VersionedTransaction | null;
+
+  actionQuote: QuoteResponse | null;
+  actionTxn: VersionedTransaction | null;
 
   errorMessage: string;
   isLoading: boolean;
@@ -55,6 +58,7 @@ interface ActionBoxState {
   setLstMode: (lstMode: LstType) => void;
   setYbxMode: (ybxMode: YbxType) => void;
   setAmountRaw: (amountRaw: string, maxAmount?: number) => void;
+  setLeverage: (leverage: number) => void;
   setLoopingAmountRaw: (
     marginfiAccount: MarginfiAccountWrapper,
     amountRaw: string,
@@ -116,6 +120,7 @@ const initialState = {
 
   leverage: 0,
   maxLeverage: 0,
+  loopingAmount: new BigNumber(0),
 
   actionMode: ActionType.Deposit,
   repayMode: RepayType.RepayRaw,
@@ -126,8 +131,8 @@ const initialState = {
   selectedRepayBank: null,
   selectedStakingAccount: null,
 
-  repayCollatQuote: null,
-  repayCollatTxn: null,
+  actionQuote: null,
+  actionTxn: null,
 
   isLoading: false,
 };
@@ -175,6 +180,18 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
     if (needRefresh) set({ ...initialState, actionMode: requestedAction, selectedBank: requestedBank, slippageBps });
   },
 
+  setLeverage(leverage) {
+    const maxLeverage = get().maxLeverage;
+
+    if (maxLeverage) {
+      if (leverage > maxLeverage) {
+        set({ leverage: maxLeverage });
+      } else {
+        set({ leverage: leverage });
+      }
+    }
+  },
+
   setAmountRaw(amountRaw, maxAmount) {
     const repayMode = get().repayMode;
 
@@ -194,28 +211,29 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
   },
 
   setLoopingAmountRaw(marginfiAccount, amountRaw, connection, maxAmount) {
-    if (!maxAmount) {
-      set({ amountRaw });
-    } else {
-      const strippedAmount = amountRaw.replace(/,/g, "");
-      const amount = isNaN(Number.parseFloat(strippedAmount)) ? 0 : Number.parseFloat(strippedAmount);
-      const numberFormater = new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 });
+    // if (!maxAmount) {
+    //   set({ amountRaw });
+    // } else {
+    set({ amountRaw });
+    const strippedAmount = amountRaw.replace(/,/g, "");
+    const amount = isNaN(Number.parseFloat(strippedAmount)) ? 0 : Number.parseFloat(strippedAmount);
+    const numberFormater = new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 });
 
-      const selectedBank = get().selectedBank;
-      const selectedRepayBank = get().selectedRepayBank;
-      const slippageBps = get().slippageBps;
+    const selectedBank = get().selectedBank;
+    const selectedRepayBank = get().selectedRepayBank;
+    const slippageBps = get().slippageBps;
 
-      if (amount && amount > maxAmount) {
-        set({ amountRaw: numberFormater.format(maxAmount) });
-      } else {
-        set({ amountRaw: numberFormater.format(amount) });
-      }
+    // if (amount && amount > maxAmount) {
+    //   set({ amountRaw: numberFormater.format(maxAmount) });
+    // } else {
+    //   set({ amountRaw: numberFormater.format(amount) });
+    // }
 
-      if (selectedBank && selectedRepayBank) {
-        const setLooping = debounceFn(get().setLooping, 500);
-        setLooping(marginfiAccount, selectedBank, selectedRepayBank, amount, slippageBps, connection);
-      }
+    if (selectedBank && selectedRepayBank) {
+      const setLooping = debounceFn(get().setLooping, 500);
+      setLooping(marginfiAccount, selectedBank, selectedRepayBank, amount, slippageBps, connection);
     }
+    // }
   },
 
   setRepayAmountRaw(marginfiAccount, amountRaw, connection) {
@@ -238,7 +256,7 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
     set({ isLoading: true });
     const leverage = get().leverage;
 
-    const repayCollat = await calculateLooping(
+    const loopingObject = await calculateLooping(
       marginfiAccount,
       selectedBank,
       selectedLoopingBank,
@@ -248,11 +266,11 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
       connection
     );
 
-    if (repayCollat) {
+    if (loopingObject) {
       set({
-        repayCollatTxn: repayCollat.repayTxn,
-        repayCollatQuote: repayCollat.quote,
-        amountRaw: repayCollat.amount.toString(),
+        actionTxn: loopingObject.loopingTxn,
+        actionQuote: loopingObject.quote,
+        loopingAmount: loopingObject.amount,
       });
     } else {
       set({
@@ -275,8 +293,8 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
 
     if (repayCollat) {
       set({
-        repayCollatTxn: repayCollat.repayTxn,
-        repayCollatQuote: repayCollat.quote,
+        actionTxn: repayCollat.repayTxn,
+        actionQuote: repayCollat.quote,
         amountRaw: repayCollat.amount.toString(),
       });
     } else {
@@ -408,7 +426,7 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
     const repayModeChanged = repayMode !== newRepayMode;
 
     if (repayModeChanged) {
-      set({ repayAmountRaw: "", repayCollatQuote: null, repayMode: newRepayMode });
+      set({ repayAmountRaw: "", actionQuote: null, repayMode: newRepayMode });
     }
 
     if (newRepayMode === RepayType.RepayCollat) {
@@ -462,7 +480,7 @@ async function calculateLooping(
   amount: number,
   slippageBps: number,
   connection: Connection
-): Promise<{ repayTxn: VersionedTransaction; quote: QuoteResponse; amount: number } | null> {
+): Promise<{ loopingTxn: VersionedTransaction; quote: QuoteResponse; amount: BigNumber } | null> {
   const principalBufferAmountUi = (amount * targetLeverage * slippageBps) / 10000;
   const adjustedPrincipalAmountUi = amount - principalBufferAmountUi;
   console.log("principalBufferAmountUi:", principalBufferAmountUi);
@@ -512,16 +530,16 @@ async function calculateLooping(
           swapQuote,
           connection
         );
-        // if (txn) {
-        //   capture("repay_with_collat", {
-        //     amountIn: uiToNative(amount, repayBank.info.state.mintDecimals).toNumber(),
-        //     firstQuote,
-        //     bestQuote: swapQuote,
-        //     inputMint: repayBank.info.state.mint.toBase58(),
-        //     outputMint: bank.info.state.mint.toBase58(),
-        //   });
-        //   return { repayTxn: txn, quote: swapQuote, amount: amountToRepay };
-        // }
+        if (txn) {
+          // capture("repay_with_collat", {
+          //   amountIn: uiToNative(amount, repayBank.info.state.mintDecimals).toNumber(),
+          //   firstQuote,
+          //   bestQuote: swapQuote,
+          //   inputMint: repayBank.info.state.mint.toBase58(),
+          //   outputMint: bank.info.state.mint.toBase58(),
+          // });
+          return { loopingTxn: txn, quote: swapQuote, amount: borrowAmount };
+        }
       } else {
         throw new Error("Swap quote failed");
       }
