@@ -2,12 +2,14 @@ import React from "react";
 
 import { OnrampScreenProps } from "~/utils";
 import { useIsMobile } from "~/hooks/useIsMobile";
+import { useWalletContext } from "~/hooks/useWalletContext";
 
 import { ScreenWrapper, WalletSeperator } from "../../sharedComponents";
 
 interface props extends OnrampScreenProps {}
 
 export const BridgeToken: React.FC<props> = ({ onNext }: props) => {
+  const { wallet } = useWalletContext();
   const divRef = React.useRef<HTMLDivElement>(null);
   const [isMounted, setIsMounted] = React.useState(false);
   const [widget, setWidget] = React.useState<any>();
@@ -52,7 +54,7 @@ export const BridgeToken: React.FC<props> = ({ onNext }: props) => {
       outputChain: 7565164,
       inputCurrency: "ETH",
       outputCurrency: "SOL",
-      address: "",
+      address: wallet.publicKey.toBase58(),
       showSwapTransfer: true,
       amount: "",
       outputAmount: "",
