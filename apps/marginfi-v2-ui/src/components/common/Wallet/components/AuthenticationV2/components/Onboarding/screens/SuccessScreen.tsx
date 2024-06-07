@@ -85,8 +85,8 @@ const JupiterSuccessScreen = ({ txid, swapResult, quoteResponseMeta }: JupiterSc
         <IconCheck width={42} height={42} />
       </div>
       <p className="text-center">
-        You&apos;ve successfully swapped{requestedBank && ` ${requestedBank?.meta.tokenSymbol}`}.<br /> Press next to do
-        your first deposit.
+        Your swap for {requestedBank && ` ${requestedBank?.meta.tokenSymbol}`} was successfull!.
+        <br /> Now deposit your portfolio in marginfi to earn permissionless yield.
       </p>
 
       <dl className="flex justify-center mt-4 ">
