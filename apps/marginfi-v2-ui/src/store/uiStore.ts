@@ -80,6 +80,11 @@ function createUiStore() {
           state?.setPriorityFee(Number(process.env.NEXT_PUBLIC_INIT_PRIO_FEE));
         }
 
+        // remove this in the future
+        if (!localStorage.getItem("isOnboarded")) {
+          state?.setIsWalletAuthDialogOpen(true);
+        }
+
         // overwrite wallet on mobile
         // covers private key export modal when open
         if (window.innerWidth < 768) {
