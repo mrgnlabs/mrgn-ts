@@ -40,7 +40,7 @@ export const BridgeToken: React.FC<props> = ({ onNext }: props) => {
       mode: "deswap",
       isEnableCalldata: false,
       styles:
-        "eyJhcHBCYWNrZ3JvdW5kIjoiIzExMTQxNiIsImFwcEFjY2VudEJnIjoiIzExMTQxNiIsImNoYXJ0QmciOiIjMWMyMTI1IiwiYmFkZ2UiOiIjMWQyMTI1IiwiYm9yZGVyUmFkaXVzIjo4LCJ0b29sdGlwQmciOiIjMDAwMDAwIiwiZm9ybUNvbnRyb2xCZyI6IiMxODFkMjAiLCJkcm9wZG93bkJnIjoiIzE4MWQyMCIsInByaW1hcnkiOiIjZmZmZmZmIiwic2Vjb25kYXJ5IjoiIzIyMjYyYSIsImljb25Db2xvciI6IiNmZmZmZmYiLCJmb250Q29sb3JBY2NlbnQiOiIjMzY0MTQ4IiwiZm9udEZhbWlseSI6IiIsInByaW1hcnlCdG5CZyI6IiNmZmZmZmYiLCJzZWNvbmRhcnlCdG5CZyI6IiMyMjI2MmEiLCJsaWdodEJ0bkJnIjoiIn0=",
+        "eyJhcHBCYWNrZ3JvdW5kIjoicmdiYSgxOCwyMCwyMiwwKSIsImFwcEFjY2VudEJnIjoicmdiYSgyNTUsMjU1LDI1NSwwKSIsImNoYXJ0QmciOiJyZ2JhKDE4LDIwLDIyLDApIiwiYmFkZ2UiOiIjZGNlODVkIiwiYm9yZGVyUmFkaXVzIjo4LCJmb250RmFtaWx5IjoiIiwicHJpbWFyeUJ0bkJnIjoiI2ZmZmZmZiIsInNlY29uZGFyeUJ0bkJnIjoiI0RDRTg1RCIsImxpZ2h0QnRuQmciOiIiLCJpc05vUGFkZGluZ0Zvcm0iOnRydWUsImJ0blBhZGRpbmciOnsidG9wIjoxMiwicmlnaHQiOm51bGwsImJvdHRvbSI6MTIsImxlZnQiOm51bGx9LCJidG5Gb250U2l6ZSI6bnVsbCwiYnRuRm9udFdlaWdodCI6NDAwfQ==",
       theme: "dark",
       isHideLogo: false,
       logo: "",
