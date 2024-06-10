@@ -25,8 +25,6 @@ export function useAvailableWallets(preset?: WalletPreset): ExtendedWallet[] {
   const { wallets } = useWallet();
   const { isAndroid, isIOS } = useOs();
 
-  console.log({ wallets });
-
   const selectedPreset = React.useMemo(() => {
     if (preset === "eth") return ETH_PRESET;
     else if (preset === "sol") return SOL_PRESET;
