@@ -1,0 +1,636 @@
+export const metadata = {
+  title: 'marginfi v2 Program Documentation',
+  description:
+    'On this page, we’ll explore all the details of the marginfi-v2 protocol.',
+}
+
+# marginfi v2 Protocol Documentation
+
+On this page, we’ll explore all the details of the <Button href="https://github.com/mrgnlabs/marginfi-v2/tree/main/programs/marginfi" variant="text"><>marginfi-v2 protocol</></Button>. he marginfi-v2 Protocol is a full open-sourced, overcollateralized lending protocol on Solana. {{ className: 'lead' }} 
+
+The marginfi-v2 program is deployed on mainnet-beta, and can be referenced by this address: <Button href="https://solscan.io/account/MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA" variant="text"><>MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA</></Button>. {{ className: 'lead' }}
+
+---
+
+## Instructions {{ tag: '', label: '' }}
+
+### `lending_account_borrow`
+
+- Definition: This endpoint allows a user to borrow a specified amount from a lending account, transferring funds from the bank's liquidity vault to the user's token account, while ensuring the account remains in a healthy state and emitting a borrow event.
+- Parameters:
+    - `ctx: Context<LendingAccountBorrow>`: A context struct containing various accounts required for the operation
+        - `marginfi_account`: The user's MarginfiAccount, which must belong to the specified MarginfiGroup
+        - `marginfi_group`: The MarginfiGroup account
+        - `signer`: The signer account, which must match the authority of the marginfi_account
+        - `bank`: The Bank account, which must belong to the specified MarginfiGroup
+        - `destination_token_account`: The user's token account to receive the borrowed funds
+        - `bank_liquidity_vault_authority`: The authority account for the bank's liquidity vault
+        - `bank_liquidity_vault`: The bank's liquidity vault token account
+        - `token_program`: The SPL Token program account
+    - `amount: u64`: The amount to be borrowed
+
+### `lending_account_close_balance`
+
+- Definition: This endpoint allows a user to close the balance of their lending account by accruing interest on the bank account, finding the user's bank account, and closing the balance.
+- Parameters:
+    - `ctx: Context<LendingAccountCloseBalance>`: A context struct containing various accounts required for the operation
+        - `marginfi_group`: The MarginfiGroup account
+        - `marginfi_account`: The user's MarginfiAccount, which must belong to the specified MarginfiGroup
+        - `signer`: The signer account, which must match the authority of the marginfi_account
+        - `bank`: The Bank account, which must belong to the specified MarginfiGroup
+
+### `lending_account_deposit`
+
+- Definition: This endpoint allows a user to deposit a specified amount into their lending account, transferring funds from the user's token account to the bank's liquidity vault, while ensuring the account remains in a healthy state and emitting a deposit event.
+- Parameters:
+    - `ctx: Context<LendingAccountDeposit>`: A context struct containing various accounts required for the operation
+        - `marginfi_group`: The MarginfiGroup account
+        - `marginfi_account`: The user's MarginfiAccount, which must belong to the specified MarginfiGroup
+        - `signer`: The signer account, which must match the authority of the marginfi_account
+        - `bank`: The Bank account, which must belong to the specified MarginfiGroup
+        - `signer_token_account`: The user's token account to transfer funds from
+        - `bank_liquidity_vault`: The bank's liquidity vault token account
+        - `token_program`: The SPL Token program account
+    - `amount: u64`: The amount to be deposited
+
+### `lending_account_withdraw_emissions`
+
+- Definition: This endpoint allows a user to withdraw their settled emissions from their lending account by transferring the emissions tokens from the bank's emissions vault to the user's specified token account.
+- Parameters:
+    - `ctx: Context<LendingAccountWithdrawEmissions>`: A context struct containing various accounts required for the operation
+        - `marginfi_group`: The MarginfiGroup account
+        - `marginfi_account`: The user's MarginfiAccount, which must belong to the specified MarginfiGroup
+        - `signer`: The signer account, which must match the authority of the marginfi_account
+        - `bank`: The Bank account, which must belong to the specified MarginfiGroup
+        - `emissions_mint`: The mint account for the emissions token
+        - `emissions_auth`: The authority account for the emissions vault, derived from a PDA seed
+        - `emissions_vault`: The emissions vault token account, derived from a PDA seed
+        - `destination_account`: The user's token account to receive the withdrawn emissions
+        - `token_program`: The SPL Token program account
+
+### `lending_account_settle_emissions`
+
+- Definition: This endpoint allows a user to permissionlessly settle their unclaimed emissions by finding their bank account balance and claiming the emissions.
+- Parameters:
+    - `ctx: Context<LendingAccountSettleEmissions>`: A context struct containing two accounts
+        - `marginfi_account`: The user's MarginfiAccount, which must belong to the same group as the Bank
+        - `bank`: The Bank account
+
+### `lending_account_start_flashloan`
+
+- Definition: This function starts a flashloan by checking if the flashloan can be initiated based on various conditions, and if so, sets the `IN_FLASHLOAN_FLAG` on the user's MarginfiAccount.
+- Parameters:
+    - `ctx: Context<LendingAccountStartFlashloan>`: A context struct containing the following accounts:
+        - `marginfi_account`: The user's MarginfiAccount account
+        - `signer`: The signer account, which must match the authority of the marginfi_account
+        - `ixs_sysvar`: The instructions sysvar account
+    - `end_index: u64`: The index of the instruction where the flashloan should end
+
+### `check_flashloan_can_start`
+
+- Definition: This function checks if a flashloan can be initiated by verifying various conditions, such as the account not being disabled, the end_flashloan instruction existing and being valid, and the account not already being in a flashloan.
+- Parameters:
+    - `marginfi_account: &AccountLoader<MarginfiAccount>`: A reference to the user's MarginfiAccount account
+    - `sysvar_ixs: &AccountInfo`: A reference to the instructions sysvar account
+    - `end_fl_idx: usize`: The index of the instruction where the flashloan should end
+
+### `lending_account_end_flashloan`
+
+- Definition: This function ends a flashloan by checking that the instruction is not in a CPI, unsets the `IN_FLASHLOAN_FLAG` on the user's MarginfiAccount, and verifies the account's health after the flashloan.
+- Parameters:
+    - `ctx: Context<LendingAccountEndFlashloan>`: A context struct containing the following accounts:
+        - `marginfi_account`: The user's MarginfiAccount account
+        - `signer`: The signer account, which must match the authority of the marginfi_account
+
+### `initialize_account`
+
+- Definition: This endpoint initializes a new MarginfiAccount for the specified authority and MarginfiGroup, emitting a MarginfiAccountCreateEvent with details about the new account.
+- Parameters:
+    - `ctx: Context<MarginfiAccountInitialize>`: A context struct containing various accounts required for the operation
+        - `marginfi_group`: The MarginfiGroup account
+        - `marginfi_account`: The new MarginfiAccount account to be initialized
+        - `authority`: The signer account, which will be set as the authority of the new MarginfiAccount
+        - `fee_payer`: The fee payer account, which must be a signer and will pay for the account creation
+        - `system_program`: The System program account
+
+### `lending_account_liquidate`
+
+- Definition: This endpoint allows a liquidator to liquidate an unhealthy position owned by a margin account. The liquidator purchases discounted collateral from the unhealthy account in exchange for paying off its debt. The function handles the transfer of assets and liabilities between the accounts, charges liquidation and insurance fees, and verifies that the liquidated account's health has improved and the liquidator's account remains healthy after the operation. It also emits a LendingAccountLiquidateEvent with details about the liquidation.
+- Parameters:
+    - `ctx: Context<LendingAccountLiquidate>`: A context struct containing various accounts required for the operation
+        - `marginfi_group`: The MarginfiGroup account
+        - `asset_bank`: The Bank account for the asset token being liquidated
+        - `liab_bank`: The Bank account for the liability token
+        - `liquidator_marginfi_account`: The MarginfiAccount of the liquidator
+        - `signer`: The signer account, which must match the authority of the liquidator_marginfi_account
+        - `liquidatee_marginfi_account`: The MarginfiAccount of the account being liquidated
+        - `bank_liquidity_vault_authority`: The authority account for the bank's liquidity vault (derived from a PDA seed)
+        - `bank_liquidity_vault`: The bank's liquidity vault token account (derived from a PDA seed)
+        - `bank_insurance_vault`: The bank's insurance vault token account (derived from a PDA seed)
+        - `token_program`: The SPL Token program account
+    - `asset_amount: u64`: The amount of the asset token to be liquidated
+
+### `lending_account_repay`
+
+- Definition: This endpoint allows a user to repay a specified amount or the entire liability of their lending account by transferring funds from the user's token account to the bank's liquidity vault, updating the liability balance in the user's bank account, accruing interest on the bank account, and emitting a LendingAccountRepayEvent with details about the repayment.
+- Parameters:
+    - `ctx: Context<LendingAccountRepay>`: A context struct containing various accounts required for the operation
+        - `marginfi_group`: The MarginfiGroup account
+        - `marginfi_account`: The user's MarginfiAccount, which must belong to the specified MarginfiGroup
+        - `signer`: The signer account, which must match the authority of the marginfi_account
+        - `bank`: The Bank account, which must belong to the specified MarginfiGroup
+        - `signer_token_account`: The user's token account to transfer funds from
+        - `bank_liquidity_vault`: The bank's liquidity vault token account (derived from a PDA seed)
+        - `token_program`: The SPL Token program account
+    - `amount: u64`: The amount to be repaid
+    - `repay_all: Option<bool>`: A flag to indicate if the entire liability should be repaid
+
+### `set_account_transfer_authority`
+
+- Definition: This endpoint allows the current authority of a MarginfiAccount to set a new authority for that account. It loads the marginfi_account, verifies that the signer is the current authority, and calls the `set_new_account_authority_checked` method on the marginfi_account to set the new authority. Note that it currently does not emit any events due to memory constraints.
+- Parameters:
+    - `ctx: Context<MarginfiAccountSetAccountAuthority>`: A context struct containing various accounts required for the operation
+        - `marginfi_account`: The user's MarginfiAccount account
+        - `marginfi_group`: The MarginfiGroup account, which is verified by the address stored in the marginfi_account
+        - `signer`: The signer account, which must match the current authority of the marginfi_account
+        - `new_authority`: The account that will be set as the new authority for the marginfi_account
+        - `fee_payer`: The fee payer account, which must be a signer
+
+### `lending_account_withdraw`
+
+- Definition: This endpoint allows a user to withdraw a specified amount or the entire asset from their lending account by transferring funds from the bank's liquidity vault to the user's token account, updating the asset balance in the user's bank account, accruing interest on the bank account, and emitting a LendingAccountWithdrawEvent with details about the withdrawal. It also verifies that the user's account remains in a healthy state after the withdrawal.
+- Parameters:
+    - `ctx: Context<LendingAccountWithdraw>`: A context struct containing various accounts required for the operation
+        - `marginfi_group`: The MarginfiGroup account
+        - `marginfi_account`: The user's MarginfiAccount, which must belong to the specified MarginfiGroup
+        - `signer`: The signer account, which must match the authority of the marginfi_account
+        - `bank`: The Bank account, which must belong to the specified MarginfiGroup
+        - `destination_token_account`: The user's token account to receive the withdrawn funds
+        - `bank_liquidity_vault_authority`: The authority account for the bank's liquidity vault (derived from a PDA seed)
+        - `bank_liquidity_vault`: The bank's liquidity vault token account (derived from a PDA seed)
+        - `token_program`: The SPL Token program account
+    - `amount: u64`: The amount to be withdrawn
+    - `withdraw_all: Option<bool>`: A flag to indicate if the entire asset should be withdrawn
+
+### `lending_pool_accrue_bank_interest`
+
+- Definition: This endpoint allows accruing interest on a specific Bank account by loading the Bank account, getting the current timestamp from the Clock sysvar, and calling the `accrue_interest` method on the Bank account. This function is likely used to update the interest rates and balances of the Bank account based on the elapsed time since the last interest accrual.
+- Parameters:
+    - `ctx: Context<LendingPoolAccrueBankInterest>`: A context struct containing two accounts
+        - `marginfi_group`: The MarginfiGroup account
+        - `bank`: The Bank account, which must belong to the specified MarginfiGroup
+
+### `lending_pool_add_bank`
+
+- Definition: Adds a new bank to the lending pool. This function can only be called by the admin.
+- Parameters:
+    - `ctx: Context<LendingPoolAddBank>`: The context struct containing the accounts required for the operation.
+        - `marginfi_group: AccountLoader<'info, MarginfiGroup>`: The MarginfiGroup account.
+        - `admin: Signer<'info>`: The admin account authorized to perform this operation.
+        - `fee_payer: Signer<'info>`: The account responsible for paying the transaction fees.
+        - `bank_mint: Box<Account<'info, Mint>>`: The mint account for the bank's token.
+        - `bank: AccountLoader<'info, Bank>`: The account loader for the new Bank account being initialized.
+        - `liquidity_vault_authority: AccountInfo<'info>`: The authority account for the liquidity vault.
+        - `liquidity_vault: Box<Account<'info, TokenAccount>>`: The token account for the liquidity vault.
+        - `insurance_vault_authority: AccountInfo<'info>`: The authority account for the insurance vault.
+        - `insurance_vault: Box<Account<'info, TokenAccount>>`: The token account for the insurance vault.
+        - `fee_vault_authority: AccountInfo<'info>`: The authority account for the fee vault.
+        - `fee_vault: Box<Account<'info, TokenAccount>>`: The token account for the fee vault.
+        - `rent: Sysvar<'info, Rent>`: The Rent sysvar account.
+        - `token_program: Program<'info, Token>`: The Token program account.
+        - `system_program: Program<'info, System>`: The System program account.
+    - `bank_config: BankConfig`: The configuration settings for the new bank.
+
+### `lending_pool_add_bank_with_seed`
+
+- Definition: Similar to `lending_pool_add_bank`, but includes an additional seed parameter that is used to generate a Program Derived Address (PDA) for the new Bank account. This PDA can be used to securely sign transactions related to the new bank.
+- Parameters:
+    - `ctx: Context<LendingPoolAddBankWithSeed>`: The context struct containing the accounts required for the operation (similar to `LendingPoolAddBank`).
+        - `marginfi_group: AccountLoader<'info, MarginfiGroup>`: The MarginfiGroup account.
+        - `admin: Signer<'info>`: The admin account authorized to perform this operation.
+        - `fee_payer: Signer<'info>`: The account responsible for paying the transaction fees.
+        - `bank_mint: Box<Account<'info, Mint>>`: The mint account for the bank's token.
+        - `bank: AccountLoader<'info, Bank>`: The account loader for the new Bank account being initialized (as a PDA).
+        - `liquidity_vault_authority: AccountInfo<'info>`: The authority account for the liquidity vault.
+        - `liquidity_vault: Box<Account<'info, TokenAccount>>`: The token account for the liquidity vault.
+        - `insurance_vault_authority: AccountInfo<'info>`: The authority account for the insurance vault.
+        - `insurance_vault: Box<Account<'info, TokenAccount>>`: The token account for the insurance vault.
+        - `fee_vault_authority: AccountInfo<'info>`: The authority account for the fee vault.
+        - `fee_vault: Box<Account<'info, TokenAccount>>`: The token account for the fee vault.
+        - `rent: Sysvar<'info, Rent>`: The Rent sysvar account.
+        - `token_program: Program<'info, Token>`: The Token program account.
+        - `system_program: Program<'info, System>`: The System program account.
+    - `bank_config: BankConfig`: The configuration settings for the new bank.
+    - `bank_seed: u64`: The seed value used to generate the PDA for the new Bank account.
+
+### `lending_pool_collect_bank_fees`
+
+- Definition: Collects the outstanding insurance and group fees from the liquidity vault of a bank and transfers them to the insurance and fee vaults, respectively.
+- Parameters:
+    - `ctx: Context<LendingPoolCollectBankFees>`: The context struct containing the accounts required for the operation.
+        - `marginfi_group: AccountLoader<'info, MarginfiGroup>`: The MarginfiGroup account.
+        - `bank: AccountLoader<'info, Bank>`: The Bank account from which to collect fees.
+        - `liquidity_vault_authority: AccountInfo<'info>`: The authority account for the liquidity vault.
+        - `liquidity_vault: Account<'info, TokenAccount>`: The token account for the liquidity vault.
+        - `insurance_vault: AccountInfo<'info>`: The token account for the insurance vault.
+        - `fee_vault: AccountInfo<'info>`: The token account for the fee vault.
+        - `token_program: Program<'info, Token>`: The Token program account.
+
+### `lending_pool_withdraw_fees`
+
+- Definition: Withdraws a specified amount of tokens from the fee vault of a bank to a destination token account.
+- Parameters:
+    - `ctx: Context<LendingPoolWithdrawFees>`: The context struct containing the accounts required for the operation.
+        - `marginfi_group: AccountLoader<'info, MarginfiGroup>`: The MarginfiGroup account.
+        - `bank: AccountLoader<'info, Bank>`: The Bank account from which to withdraw fees.
+        - `admin: Signer<'info>`: The admin account authorized to perform this operation.
+        - `fee_vault: AccountInfo<'info>`: The token account for the fee vault.
+        - `fee_vault_authority: AccountInfo<'info>`: The authority account for the fee vault.
+        - `dst_token_account: AccountInfo<'info>`: The destination token account to receive the withdrawn tokens.
+        - `token_program: Program<'info, Token>`: The Token program account.
+    - `amount: u64`: The amount of tokens to withdraw from the fee vault.
+
+### `lending_pool_withdraw_insurance`
+
+- Definition: Withdraws a specified amount of tokens from the insurance vault of a bank to a destination token account.
+- Parameters:
+    - `ctx: Context<LendingPoolWithdrawInsurance>`: The context struct containing the accounts required for the operation.
+        - `marginfi_group: AccountLoader<'info, MarginfiGroup>`: The MarginfiGroup account.
+        - `bank: AccountLoader<'info, Bank>`: The Bank account from which to withdraw insurance funds.
+        - `admin: Signer<'info>`: The admin account authorized to perform this operation.
+        - `insurance_vault: AccountInfo<'info>`: The token account for the insurance vault.
+        - `insurance_vault_authority: AccountInfo<'info>`: The authority account for the insurance vault.
+        - `dst_token_account: AccountInfo<'info>`: The destination token account to receive the withdrawn tokens.
+        - `token_program: Program<'info, Token>`: The Token program account.
+    - `amount: u64`: The amount of tokens to withdraw from the insurance vault.
+
+### `lending_pool_update_emissions_parameters`
+
+- Definition: Updates the emissions parameters for a Bank, including setting up the initial emissions configuration, updating the emissions flags and rate, and funding additional emissions tokens.
+- Parameters:
+    - `ctx: Context<LendingPoolUpdateEmissionsParameters>`: The context struct containing the accounts required for the operation.
+        - `marginfi_group: AccountLoader<'info, MarginfiGroup>`: The MarginfiGroup account that contains the Bank.
+        - `admin: Signer<'info>`: The admin account authorized to perform this operation.
+        - `bank: AccountLoader<'info, Bank>`: The Bank account for which to update emissions parameters.
+        - `emissions_mint: Account<'info, Mint>`: The mint account for the emissions token.
+        - `emissions_token_account: Box<Account<'info, TokenAccount>>`: The token account holding the emissions tokens.
+        - `emissions_funding_account: AccountInfo<'info>`: The account used to fund additional emissions tokens.
+        - `token_program: Program<'info, Token>`: The Token program account.
+    - `emissions_flags: Option<u64>`: The new flags to set for the emissions configuration (if provided).
+    - `emissions_rate: Option<u64>`: The new rate at which emissions should be distributed (if provided).
+    - `additional_emissions: Option<u64>`: The additional amount of emissions tokens to be funded (if provided).
+
+### `lending_pool_handle_bankruptcy`
+
+- Definition: Handles the bankruptcy of a MarginfiAccount by covering the bad debt using the insurance fund and socializing any remaining loss among depositors.
+- Parameters:
+    - `ctx: Context<LendingPoolHandleBankruptcy>`: The context struct containing the accounts required for the operation.
+        - `marginfi_group: AccountLoader<'info, MarginfiGroup>`: The MarginfiGroup account.
+        - `signer: Signer<'info>`: The account authorized to initiate the bankruptcy process (either the admin or a special flag is enabled for permissionless operation).
+        - `bank: AccountLoader<'info, Bank>`: The Bank account associated with the bankrupt MarginfiAccount.
+        - `marginfi_account: AccountLoader<'info, MarginfiAccount>`: The bankrupt MarginfiAccount.
+        - `liquidity_vault: AccountInfo<'info>`: The token account representing the liquidity vault, from which bad debt can be covered.
+        - `insurance_vault: Box<Account<'info, TokenAccount>>`: The token account representing the insurance vault, which holds funds to cover bad debt.
+        - `insurance_vault_authority: AccountInfo<'info>`: The authority account for the insurance vault.
+        - `token_program: Program<'info, Token>`: The Token program account.
+
+### `initialize_group`
+
+- Definition: Initializes a new MarginfiGroup and sets its initial configuration, including the admin account. Finally, it emits an event to indicate the successful creation of the MarginfiGroup.
+- Parameters:
+    - `ctx: Context<MarginfiGroupInitialize>`: The context struct containing the accounts required for the operation.
+        - `marginfi_group: AccountLoader<'info, MarginfiGroup>`: The MarginfiGroup account to be initialized.
+        - `admin: Signer<'info>`: The admin account responsible for initializing the MarginfiGroup.
+        - `system_program: Program<'info, System>`: The System program account.
+
+---
+
+## Errors {{ tag: '', label: '' }}
+
+<Properties>
+  <Property name="MathError" type="6000">
+    **An error occurred during a mathematical operation**. Double-check the inputs and operations being performed, and ensure that there are no overflows or underflows.
+  </Property>
+
+  <Property name="BankNotFound" type="6001">
+    **The specified bank index is invalid or does not exist**. Verify that the bank index being used is correct and that the bank has been properly initialized.
+  </Property>
+
+  <Property name="LendingAccountBalanceNotFound" type="6002">
+    **The lending account balance was not found**. Ensure that the lending account balance has been properly initialized and that the account data is correct.
+  </Property>
+
+  <Property name="BankAssetCapacityExceeded" type="6003">
+    **The deposit exceeds the bank's asset capacity**. Check the bank's asset capacity and ensure that the deposit amount does not exceed it.
+  </Property>
+
+  <Property name="InvalidTransfer" type="6004">
+    **The transfer operation is invalid**. Verify the transfer parameters and ensure that the accounts involved have the correct ownership and balances.
+  </Property>
+
+  <Property name="MissingPythOrBankAccount" type="6005">
+    **Either the Pyth or Bank account is missing**. Ensure that both the Pyth and Bank accounts are properly provided and initialized.
+  </Property>
+
+  <Property name="MissingPythAccount" type="6006">
+    **The Pyth account is missing**. Provide a valid Pyth account.
+  </Property>
+
+  <Property name="InvalidOracleAccount" type="6007">
+    **The provided oracle account is invalid**. Verify that the oracle account is correct and properly initialized.
+  </Property>
+
+  <Property name="MissingBankAccount" type="6008">
+    **The Bank account is missing**. Provide a valid Bank account.
+  </Property>
+
+  <Property name="InvalidBankAccount" type="6009">
+    **The provided Bank account is invalid**. Verify that the Bank account is correct and properly initialized.
+  </Property>
+
+  <Property name="BadAccountHealth" type="6010">
+    **The account's health is bad**. Check the account's balances and ensure that it is not bankrupt or in an unhealthy state.
+  </Property>
+
+  <Property name="LendingAccountBalanceSlotsFull" type="6011">
+    **The lending account balance slots are full**. Close or manage existing lending account balances to free up slots.
+  </Property>
+
+  <Property name="BankAlreadyExists" type="6012">
+    **The bank already exists**. Use an existing bank or create a new one with a different name or identifier.
+  </Property>
+
+  <Property name="IllegalLiquidation" type="6013">
+    **The liquidation operation is illegal**. Verify that the account meets the criteria for liquidation and that the liquidation parameters are correct.
+  </Property>
+
+  <Property name="AccountNotBankrupt" type="6014">
+    **The account is not bankrupt**. Check the account's balances and ensure that it meets the criteria for bankruptcy before attempting any bankruptcy-related operations.
+  </Property>
+
+  <Property name="BalanceNotBadDebt" type="6015">
+    **The account balance is not considered bad debt**. Verify that the account balance meets the criteria for bad debt before attempting any bad debt-related operations.
+  </Property>
+
+  <Property name="InvalidConfig" type="6016">
+    **The group configuration is invalid**. Check the group configuration parameters and ensure that they are correct and valid.
+  </Property>
+
+  <Property name="StaleOracle" type="6017">
+    **The oracle data is stale or outdated**. Update the oracle data or wait for fresh data to become available.
+  </Property>
+
+  <Property name="BankPaused" type="6018">
+    **The bank is currently paused**. Wait for the bank to be unpaused or check the pause status before attempting any operations.
+  </Property>
+
+  <Property name="BankReduceOnly" type="6019">
+    **The bank is in reduce-only mode**. Only perform operations that reduce the bank's exposure or wait for the mode to change.
+  </Property>
+
+  <Property name="BankAccoutNotFound" type="6020">
+    **The bank account was not found**. Verify that the bank account exists and is properly initialized.
+  </Property>
+
+  <Property name="OperationDepositOnly" type="6021">
+    **The operation is deposit-only**. Ensure that the operation being performed is a deposit operation.
+  </Property>
+
+  <Property name="OperationWithdrawOnly" type="6022">
+    **The operation is withdraw-only**. Ensure that the operation being performed is a withdrawal operation.
+  </Property>
+
+  <Property name="OperationBorrowOnly" type="6023">
+    **The operation is borrow-only**. Ensure that the operation being performed is a borrow operation.
+  </Property>
+
+  <Property name="OperationRepayOnly" type="6024">
+    **The operation is repay-only**. Ensure that the operation being performed is a repayment operation.
+  </Property>
+
+  <Property name="NoAssetFound" type="6025">
+    **No asset was found**. Verify that the asset being referenced exists and is properly initialized.
+  </Property>
+
+  <Property name="NoLiabilityFound" type="6026">
+    **No liability was found**. Verify that the liability being referenced exists and is properly initialized.
+  </Property>
+
+  <Property name="InvalidOracleSetup" type="6027">
+    **The oracle setup is invalid**. Check the oracle setup parameters and ensure that they are correct and valid.
+  </Property>
+
+  <Property name="IllegalUtilizationRatio" type="6028">
+    **The bank utilization ratio is illegal**. Verify that the utilization ratio is within the allowed range and adjust the parameters if necessary.
+  </Property>
+
+  <Property name="BankLiabilityCapacityExceeded" type="6029">
+    **The bank's liability capacity has been exceeded**. Check the bank's liability capacity and ensure that the borrow amount does not exceed it.
+  </Property>
+
+  <Property name="InvalidPrice" type="6030">
+    **The price provided is invalid**. Verify that the price data is correct and within valid ranges.
+  </Property>
+
+  <Property name="IsolatedAccountIllegalState" type="6031">
+    **The isolated account is in an illegal state (e.g., having more than one liability)**. Ensure that the isolated account follows the correct state rules.
+  </Property>
+
+  <Property name="EmissionsAlreadySetup" type="6032">
+    **Emissions have already been set up**. Check if emissions have been set up before attempting to set them up again.
+  </Property>
+
+  <Property name="OracleNotSetup" type="6033">
+    **The oracle has not been set up**. Set up the oracle before attempting operations that require it.
+  </Property>
+
+  <Property name="InvalidSwitchboardDecimalConversion" type="6034">
+    **The Switchboard decimal conversion is invalid**. Verify the Switchboard decimal conversion parameters and ensure that they are correct.
+  </Property>
+
+  <Property name="CannotCloseOutstandingEmissions" type="6035">
+    **Cannot close a balance with outstanding emissions**. Settle or clear any outstanding emissions before attempting to close the balance.
+  </Property>
+
+  <Property name="EmissionsUpdateError" type="6036">
+    **An error occurred during emissions update**. Check the emissions update parameters and ensure that they are correct.
+  </Property>
+
+  <Property name="AccountDisabled" type="6037">
+    **The account is currently disabled**. Enable the account before attempting any operations.
+  </Property>
+
+  <Property name="AccountTempActiveBalanceLimitExceeded" type="6038">
+    **The temporary active balance limit for the account has been exceeded**. Close an existing balance before attempting to open a new one.
+  </Property>
+
+  <Property name="AccountInFlashloan" type="6039">
+    **The account is currently in a flashloan state**. Wait for the flashloan to complete or ensure that the operation is permitted during a flashloan.
+  </Property>
+
+  <Property name="IllegalFlashloan" type="6040">
+    **The flashloan operation is illegal**. Verify that the flashloan parameters and conditions are correct.
+  </Property>
+
+  <Property name="IllegalFlag" type="6041">
+    **The provided flag is illegal**. Check the flag value and ensure that it is valid and permitted.
+  </Property>
+
+  <Property name="IllegalBalanceState" type="6043">
+    **The balance state is illegal**. Verify that the balance state is valid and permitted for the intended operation.
+  </Property>
+
+  <Property name="IllegalAccountAuthorityTransfer" type="6044">
+    **The account authority transfer is illegal**. Check the account authority transfer parameters and ensure that the transfer is permitted.
+  </Property>
+
+  <Property name="Unauthorized" type="6045">
+    **The operation is unauthorized**. Verify that the account or authority has the necessary permissions to perform the intended operation.
+  </Property>
+</Properties>
+
+---
+
+## Constants {{ tag: '', label: '' }}
+
+<Properties>
+  <Property name="LIQUIDITY_VAULT_AUTHORITY_SEED" type="&str">
+    Seed used to derive the authority for the liquidity vault.
+  </Property>
+
+  <Property name="INSURANCE_VAULT_AUTHORITY_SEED" type="&str">
+    Seed used to derive the authority for the insurance vault.
+  </Property>
+
+  <Property name="FEE_VAULT_AUTHORITY_SEED" type="&str">
+    Seed used to derive the authority for the fee vault.
+  </Property>
+
+  <Property name="LIQUIDITY_VAULT_SEED" type="&str">
+    Seed used to derive the address of the liquidity vault.
+  </Property>
+
+  <Property name="INSURANCE_VAULT_SEED" type="&str">
+    Seed used to derive the address of the insurance vault.
+  </Property>
+
+  <Property name="FEE_VAULT_SEED" type="&str">
+    Seed used to derive the address of the fee vault.
+  </Property>
+
+  <Property name="EMISSIONS_AUTH_SEED" type="&str">
+    Seed used to derive the authority for emissions.
+  </Property>
+
+  <Property name="EMISSIONS_TOKEN_ACCOUNT_SEED" type="&str">
+    Seed used to derive the address of the emissions token account.
+  </Property>
+
+  <Property name="PYTH_ID" type="Pubkey">
+    The public key of the Pyth program ID, used for price feeds.
+  </Property>
+
+  <Property name="LIQUIDATION_LIQUIDATOR_FEE" type="I80F48">
+    The fee charged to the liquidator during a liquidation event.
+  </Property>
+
+  <Property name="LIQUIDATION_INSURANCE_FEE" type="I80F48">
+    The fee charged to the insurance fund during a liquidation event.
+  </Property>
+
+  <Property name="SECONDS_PER_YEAR" type="I80F48">
+    The number of seconds in a year (used for interest rate calculations).
+  </Property>
+
+  <Property name="MAX_PRICE_AGE_SEC" type="u64">
+    The maximum age (in seconds) allowed for a price feed before it is considered stale.
+  </Property>
+
+  <Property name="CONF_INTERVAL_MULTIPLE" type="I80F48">
+    A multiplier used to calculate the confidence interval for price feeds.
+  </Property>
+
+  <Property name="STD_DEV_MULTIPLE" type="I80F48">
+    A multiplier used to calculate the standard deviation for price feeds.
+  </Property>
+
+  <Property name="MAX_CONF_INTERVAL" type="I80F48">
+    The maximum allowed confidence interval for price feeds.
+  </Property>
+
+  <Property name="USDC_EXPONENT" type="i32">
+    The exponent used for USDC (as it has 6 decimal places).
+  </Property>
+
+  <Property name="MAX_ORACLE_KEYS" type="usize">
+    The maximum number of oracle keys allowed.
+  </Property>
+
+  <Property name="EMPTY_BALANCE_THRESHOLD" type="I80F48">
+    The threshold below which a balance is considered empty (to account for arithmetic artifacts).
+  </Property>
+
+  <Property name="BANKRUPT_THRESHOLD" type="I80F48">
+    The threshold below which an account is considered bankrupt (in USD).
+  </Property>
+
+  <Property name="ZERO_AMOUNT_THRESHOLD" type="I80F48">
+    A threshold used to account for arithmetic artifacts when comparing amounts.
+  </Property>
+
+  <Property name="EMISSIONS_FLAG_BORROW_ACTIVE" type="u64">
+    A flag indicating that borrowing is active for emissions.
+  </Property>
+
+  <Property name="EMISSIONS_FLAG_LENDING_ACTIVE" type="u64">
+    A flag indicating that lending is active for emissions.
+  </Property>
+
+  <Property name="PERMISSIONLESS_BAD_DEBT_SETTLEMENT_FLAG" type="u64">
+    A flag indicating that permissionless bad debt settlement is enabled.
+  </Property>
+
+  <Property name="EMISSION_FLAGS" type="u64">
+    A combination of emission flags (borrowing and lending).
+  </Property>
+
+  <Property name="GROUP_FLAGS" type="u64">
+    A combination of group flags (permissionless bad debt settlement).
+  </Property>
+
+  <Property name="MIN_EMISSIONS_START_TIME" type="u64">
+    The minimum timestamp used for calculating emissions (any balance updates before this time are ignored).
+  </Property>
+
+  <Property name="MAX_EXP_10_I80F48" type="usize">
+    The maximum exponent for the `EXP_10_I80F48` array.
+  </Property>
+
+  <Property name="EXP_10_I80F48" type="[I80F48; MAX_EXP_10_I80F48]">
+    An array of `I80F48` values representing powers of 10 (up to 10^23).
+  </Property>
+
+  <Property name="MAX_EXP_10" type="usize">
+    The maximum exponent for the `EXP_10` array.
+  </Property>
+
+  <Property name="EXP_10" type="[i128; MAX_EXP_10]">
+    An array of `i128` values representing powers of 10 (up to 10^20).
+  </Property>
+
+  <Property name="TOTAL_ASSET_VALUE_INIT_LIMIT_INACTIVE" type="u64">
+    The value at which the total asset value initialization limit is considered inactive.
+  </Property>
+</Properties>
+
+---
+
+## Security {{ tag: '', label: '' }}
+
+### Audits
+
+marginfi v2 has been rigorously audited both internally and by <Button href="https://osec.io/" variant="text"><>Ottersec</></Button>. Audits can be found <Button href="https://github.com/mrgnlabs/marginfi-v2/tree/main/audits" variant="text"><>here</></Button>.
+
+### Fuzz Tests
+
+marginfi v2 fuzz tests are open source and can be found <Button href="https://github.com/mrgnlabs/marginfi-v2/tree/main/programs/marginfi/fuzz" variant="text"><>here</></Button>.

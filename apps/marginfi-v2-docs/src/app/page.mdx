@@ -1,0 +1,47 @@
+import { Guides } from '@/components/Guides'
+import { Resources } from '@/components/Resources'
+import { HeroPattern } from '@/components/HeroPattern'
+
+export const metadata = {
+  title: 'marginfi Documentation',
+  description:
+    "Learn everything there is to know about the marginfi protocol and how to integrate marginfi's liquidity layer into your product.",
+}
+
+export const sections = [
+  { title: 'Features', id: 'features' },
+  { title: 'Resources', id: 'resources' },
+]
+
+<HeroPattern />
+
+# Welcome to marginfi
+
+marginfi is a fully-decentralized borrowing and lending protocol built on Solana. With marginfi, you can access native yield, embedded risk systems, and off-chain data plug-ins all in one place. Use marginfi to access the margin you need, when you need it.
+
+<div className="not-prose mb-16 mt-6 flex gap-3">
+  <Button href="/introduction" arrow="right">
+    <>Get Started</>
+  </Button>
+  <Button href="/sdks" variant="outline">
+    <>Explore SDKs</>
+  </Button>
+</div>
+
+## Features {{ anchor: false }}
+
+<b>Global Borrowing and Lending</b>: The protocol enables borrowing and lending of margin under a unified global context, streamlining the process for traders. {{ className: 'lead' }}
+
+<b>Leverage Trading</b>: marginfi supports trading with leverage, empowering traders to maximize their market participation. {{ className: 'lead' }}
+
+<b>Comprehensive Market Access</b>: Traders can optimize their financial exposure across over 100 DeFi projects on Solana, including spot, futures, and options markets. {{ className: 'lead' }}
+
+<div className="not-prose">
+  <Button href="/sdks" variant="text" arrow="right">
+    <>Start using our SDK</>
+  </Button>
+</div>
+
+<Guides />
+
+<Resources />

@@ -1,0 +1,71 @@
+import { ImageComponent } from '@/components/ImageComponent'
+import { Math } from '@/components/Math'
+
+import EMAFormula from '@/images/docs/ema-formula.png'
+import LendingEquation from '@/images/docs/lending-equation.png'
+
+export const metadata = {
+  title: 'marginfi Protocol Design',
+  description:
+    'On this page, we’ll walk you through the marginfi protocol design, such as oracle usage, the interest mechanism, and our risk management features.',
+}
+
+# Protocol Design
+
+On this page, we’ll walk you through the marginfi protocol design, such as oracle usage, the interest mechanism, and our risk management features. {{ className: 'lead' }}
+
+## Oracle Usage {{ tag: '', label: '' }}
+
+marginfi primarily relies on Pyth oracle price feeds for token market prices, leveraging Pyth’s extensive safety features for a more secure understanding of token price activity and risk management. However, for assets that Pyth does not support, the protocol employs Switchboard oracles with a similar set of best practices.
+
+marginfi protects for price accuracy with a few key components:
+- **Price staleness checks**: Price staleness is a situation when an oracle provides price data that is out of date. To mitigate this risk, the marginfi protocol applies stricter staleness checks than both Pyth and Switchboard, defining its own maximum valid price staleness of 60 seconds.
+- **Confidence intervals**: Pyth and Switchboard publish confidence intervals with each price feed, representing possibly different prices for each asset by giving users a probability distribution over price. marginfi takes a conservative approach when calculating token prices for both assets and liabilities. For both assets and liabilities, the 95% confidence interval range is used. For assets, the lower bound of the confidence interval range is used. For liabilities, the higher bound of the confidence interval range is used.
+- **Moving average application**: To mitigate the effect of high price volatility, marginfi uses the exponential moving average price that Pyth provides. The EMA is a type of moving average that gives more weight to recent prices. In Pyth’s case, it uses a slot-weighted, inverse confidence-weighted EMA. It considers a window of 5921 slots (approximately 1 hour on Solana mainnet) and gives more weight to recent slots. Additionally, it is inverse confidence-weighted, meaning samples with tighter confidence intervals are given more weight. The formula can be expressed as:
+
+<ImageComponent 
+    src={EMAFormula}
+    width={700}
+    height={700}
+    alt="EMA Formula"
+/>
+
+Where <Math>price_i</Math>, <Math>slot_i</Math>, and <Math>confidence_i</Math> represent the price, slot number, and confidence interval at each <Math>i</Math>th slot within the considered window.
+
+Switchboard does not natively provide EMA pricing. Live prices are used for assets powered by switchboard oracles. As mentioned above, the same confidence interval approach is applied to Switcboard assets.
+
+The combination of these features enables the marginfi protocol to estimate token prices conservatively, protect against volatility and price manipulation, and provide a safer and smoother lending experience for users.
+
+## Interest Rate Mechanism {{ tag: '', label: '' }}
+
+mrgnlend’s interest rate mechanism uses a 2-piece piecewise function that is configured per asset. It can be expressed as the following:
+
+<ImageComponent 
+    src={LendingEquation}
+    width={700}
+    height={700}
+    alt="Lending Equation"
+/>
+
+Let’s break this equation down to simpler terms:
+- **Utilization (<Math>x</Math>):** This represents the current usage of the available funds in the lending pool. It is calculated as the ratio of borrowed funds to the total available funds (borrowed + unborrowed). For example, if 70% of the pool’s funds are currently lent out, the utilization is 70%.
+- **Optimal Utilization (<Math>o</Math>):** This is the target utilization level that the protocol aims to achieve. It’s the point where the interest rates are balanced to encourage both borrowing and lending. If the current utilization matches the optimal utilization, the system is working as intended.
+- **Borrower Rate at Optimal Utilization (<Math>pl</Math>):** This is the interest rate that borrowers pay when the utilization of the pool is at the optimal level. It’s set to be attractive enough to encourage borrowing without being too high, ensuring that the pool maintains its optimal utilization.
+- **Maximum Borrower Rate (<Math>pm</Math>):** This is the highest possible interest rate that borrowers will pay if the utilization goes beyond the optimal level. As more funds are borrowed and the utilization increases, the interest rate moves towards this maximum rate to manage the demand and incentivize repayments, ensuring the stability of the pool.
+​
+## Risk Management {{ tag: '', label: '' }}
+
+### Risk Tiers
+
+mrgnlend has a concept of Asset Risk Tiers. This unique design allows for safe support of a larger array of assets, with a particular focus of supporting long-tail tokens with unpredictable liquidity. mrgnlend has three risk tiers:
+- **Collateral Tier**: This is the standard asset risk tier, similar to traditional lending protocols. Assets in this tier can be deposited, borrowed, and used as collateral within the protocol’s established limits. This tier is reserved for assets with higher liquidity.
+- **Borrow-only Tier**: This tier is reserved for assets that have a deposit weight of 0. In other words, they may be borrowed, but cannot be borrowed against.
+- **Isolated Tier**: This tier accommodates higher-risk assets. If an asset is classified under the Isolated Tier, traders can only borrow this asset (it is not supported as collateral), and when borrowed, no other assets may be borrowed in the trader’s portfolio. When borrowed, these assets are borrowed against assets in the collateral tier.
+
+### Risk Engine
+
+mrgnlend’s risk engine estimates three main components to determine acceptable risk constraints:
+- **Liquidator execution capacity**: The risk engine estimates how fast liquidators can execute liquidations. This speed, or execution capacity, is primarily determined by constraints that originate from the liquidator side.
+- **Market depth**: The risk engine conservatively assumes liquidators will only continue liquidations under profitable circumstances. Price impact data is used to understand the maximum capacity liquidators are capable of offlaying into the market while remaining profitable relative to mrgnlend’s liquidator discount, which is fixed at 2.5%.
+- **Market depth recovery time**: Given a market depth and a significant buy from / sell into the market, market depth will imbalance and need time to recover to typical levels. The risk engine conservatively estimates the amount of time it takes for market depth to recover.
+

@@ -1,0 +1,158 @@
+export const metadata = {
+  title: 'marginfi Liquid Incentive Program Documentation',
+  description:
+    "On this page, we’ll explore all the details of marginfi's liquid incentive program.",
+}
+
+# marginfi Liquid Incentive Program Documentation
+
+The Liquidity Incentive Program is a <Button href="https://github.com/mrgnlabs/marginfi-v2/tree/main/programs/liquidity-incentive-program" variant="text"><>fully open-sourced proxy program</></Button> for marginfi-v2. It allows anyone to create campaigns and incentivize other users to deposit into and lock their funds in marginfi-v2 by offering guaranteed yields. {{ className: 'lead' }}
+
+The official LIP program address on Solana mainnet-beta is <Button href="https://solscan.io/account/LipsxuAkFkwa4RKNzn51wAsW7Dedzt1RNHMkTkDEZUW" variant="text"><>LipsxuAkFkwa4RKNzn51wAsW7Dedzt1RNHMkTkDEZUW</></Button>. {{ className: 'lead' }}
+
+---
+
+## Features {{ tag: '', label: '' }}
+
+### Permissionless campaign creation
+
+Anyone can create a new incentive campaign without needing special permissions or approvals. This allows for a decentralized and open system where anyone can contribute to boosting liquidity in the protocol.
+
+### Arbitrary asset support
+
+The program supports incentivizing deposits for any asset listed on the marginfi-v2 protocol. This flexibility enables campaigns to target specific assets or a range of assets based on the organizer's goals.
+
+### Configurable lock-up periods
+
+When creating a campaign, the organizer can specify the duration for which deposited assets must remain locked in the protocol to qualify for the incentives. This allows tailoring campaigns to suit different liquidity needs and user preferences.
+
+---
+
+## How It Works {{ tag: '', label: '' }}
+
+`liquidity-incentive-program` primarily works off of the `Campaign` concept.
+
+Think of a `Campaign` as a marketing campaign:
+
+1. Each campaign has a creator, who becomes the `admin` of that campaign.
+2. The creator selects:
+    - the type of asset to incentivize deposits for (e.g. $SOL)
+    - the lockup period that depositors' funds will be locked up for
+    - the maximum amount of user deposits allowed
+    - The maximum rewards to be paid out to users (together with the maximum amount of deposits allowed, this calculates the guaranteed fixed yield).
+
+<Note>
+LIP works off of the concept of a minimum guaranteed yield, but depositors may earn higher yield if marginfi's native lender yield for the related asset exceeds the yield guaranteed by the Campaign. This is a win-win for depositors.
+</Note>
+
+1. As a proof of reward reserves, campaign creators **lock up maximum rewards to be paid out upon campaign creation**, making it easy for campaign depositors to know the source of yield.
+2. In product UIs, each `Campaign` typically highlights a fixed `APY`, but there is no compounding involved in the guaranteed yield. Since `APY` accounts for compounding effects even if there are none, measuring yield in `APY` gives depositors the correct impression that they should expect the yield they see. In the smart contract, yield is specified via the `max_rewards` parameter of each `Campaign`.
+3. When users deposit funds into an LIP `Campaign`, funds are stored directly in `marginfi`. Funds earn `marginfi` lender yield. When lockups expire, depositors are paid `max(guarenteed yield, earned lender yield)` for the assets they deposited. As earned lender yield grows above `0%`, it subsidizes the expense that campaign creators pay out of the rewards they've escrowed. **This is a win-win for campaign creators**.
+
+---
+
+## Instructions {{ tag: '', label: '' }}
+
+### `create_campaign`
+    - Definition: This instruction allows a user to create a new campaign to incentivize deposits into the marginfi-v2 protocol for a specific asset. The campaign creator must provide the necessary parameters and lock up the maximum rewards upfront.
+    - Parameters:
+        - `ctx: Context<CreateCampaign>`: A context struct containing various accounts required for the operation
+            - `campaign`: The newly created Campaign account
+            - `campaign_reward_vault`: The token account to hold the locked rewards for the campaign
+            - `campaign_reward_vault_authority`: The authority account for the campaign reward vault
+            - `asset_mint`: The mint account for the asset being incentivized
+            - `marginfi_bank`: The Bank account for the target asset in the marginfi-v2 protocol
+            - `admin`: The signer account, representing the campaign creator
+            - `funding_account`: The token account from which the locked rewards will be transferred
+            - `rent`: The Rent sysvar
+            - `token_program`: The SPL Token program account
+            - `system_program`: The System program account
+        - `lockup_period: u64`: The duration for which deposited funds will be locked up
+        - `max_deposits: u64`: The maximum amount of deposits allowed for the campaign
+        - `max_rewards: u64`: The maximum amount of rewards to be paid out to depositors
+
+### `create_deposit`
+    - Definition: Creates a new deposit in an active liquidity incentive campaign (LIP).
+    - Parameters:
+        - `ctx: Context<CreateDeposit>`: A context struct containing the relevant accounts for the new deposit
+            - `campaign`: The mutable Campaign account
+            - `signer`: The mutable signer account (user)
+            - `deposit`: The newly initialized Deposit account
+            - `mfi_pda_signer`: A derived Program-Derived Address (PDA) used as the authority for the MarginFi account
+            - `funding_account`: The user's token account to transfer the deposit amount from
+            - `temp_token_account`: A temporary token account to hold the deposit amount during the transaction
+            - `asset_mint`: The mint account for the asset being deposited
+            - `marginfi_group`: The MarginFi group account associated with the deposit
+            - `marginfi_bank`: The MarginFi bank account for the deposited asset
+            - `marginfi_account`: The newly initialized MarginFi account for the deposit
+            - `marginfi_bank_vault`: The MarginFi bank's liquidity vault account where the deposited tokens are stored
+            - `marginfi_program`: The MarginFi program account
+            - `token_program`: The SPL Token program account
+            - `rent`: The Rent sysvar account
+            - `system_program`: The System program account
+        - `amount: u64`: The amount of tokens to be deposited
+
+### `end_deposit`
+    - Definition: After a lockup period has ended, closes a deposit and returns the initial deposit + earned rewards from a liquidity incentive campaign back to the liquidity depositor.
+    - Parameters:
+        - `ctx: Context<EndDeposit>`: A context struct containing the relevant accounts for ending the deposit
+            - `campaign`: The Campaign account associated with the deposit
+            - `campaign_reward_vault`: The token account holding the locked rewards for the campaign
+            - `campaign_reward_vault_authority`: The authority account for the campaign reward vault
+            - `signer`: The signer account (user) who made the deposit
+            - `deposit`: The Deposit account to be closed
+            - `mfi_pda_signer`: The PDA used as the authority for the MarginFi account
+            - `temp_token_account`: A temporary token account used for token transfers
+            - `temp_token_account_authority`: The authority account for the temporary token account
+            - `destination_account`: The user's token account to receive the deposit and rewards
+            - `asset_mint`: The mint account for the deposited asset
+            - `marginfi_account`: The MarginFi account associated with the deposit
+            - `marginfi_group`: The MarginFi group account associated with the deposit
+            - `marginfi_bank`: The MarginFi bank account for the deposited asset
+            - `marginfi_bank_vault`: The MarginFi bank's liquidity vault account
+            - `marginfi_bank_vault_authority`: The authority account for the MarginFi bank's liquidity vault
+            - `marginfi_program`: The MarginFi program account
+            - `token_program`: The SPL Token program account
+            - `system_program`: The System program account
+
+---
+
+## Errors {{ tag: '', label: '' }}
+
+<Properties>
+  <Property name="CampaignNotActive" type="300">
+    **The liquidity incentive campaign is not currently active**. This error occurs when attempting to interact with a campaign that is not in an active state.
+  </Property>
+  <Property name="DepositAmountTooLarge" type="301">
+    **The specified deposit amount exceeds the remaining capacity of the campaign**. This error is raised when the user tries to deposit an amount that is larger than the remaining deposit capacity allowed for the campaign.
+  </Property>
+  <Property name="DepositNotMature" type="302">
+    **The deposit has not reached its maturity date yet**. This error indicates that the lockup period for the deposit has not been fulfilled, and the deposit cannot be withdrawn or claimed until the maturity date.
+  </Property>
+</Properties>
+
+---
+
+## Constants {{ tag: '', label: '' }}
+
+<Properties>
+  <Property name="CAMPAIGN_SEED" type="&str">
+    Seed used to derive the campaign address.
+  </Property>
+
+  <Property name="CAMPAIGN_AUTH_SEED" type="&str">
+    Seed used to derive the authority for the campaign.
+  </Property>
+
+  <Property name="DEPOSIT_MFI_AUTH_SIGNER_SEED" type="&str">
+    Seed used to derive the authority for the deposit MFI signer.
+  </Property>
+
+  <Property name="TEMP_TOKEN_ACCOUNT_AUTH_SEED" type="&str">
+    Seed used to derive the authority for the ephemeral token account.
+  </Property>
+
+  <Property name="MARGINFI_ACCOUNT_SEED" type="&str">
+    Seed used to derive the address of the marginfi account.
+  </Property>
+</Properties>
