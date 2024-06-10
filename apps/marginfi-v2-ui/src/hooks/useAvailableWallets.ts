@@ -6,7 +6,7 @@ import { useOs } from "~/hooks/useOs";
 
 type WalletPreset = "eth" | "sol" | "social";
 
-const ETH_PRESET = ["Backpack", "Phantom", "WalletConnect", "MetaMask", "Ethereum Wallet"];
+const ETH_PRESET = ["Backpack", "Phantom", "WalletConnect", "MetaMask", "Ethereum Wallet", "Sign in with Google"];
 const SOL_PRESET = ["Backpack", "Phantom", "Solflare"];
 const SOCIAL_PRESET = ["Backpack", "Phantom", "Solflare"];
 
@@ -24,6 +24,8 @@ export interface ExtendedWallet extends Wallet {
 export function useAvailableWallets(preset?: WalletPreset): ExtendedWallet[] {
   const { wallets } = useWallet();
   const { isAndroid, isIOS } = useOs();
+
+  console.log({ wallets });
 
   const selectedPreset = React.useMemo(() => {
     if (preset === "eth") return ETH_PRESET;
