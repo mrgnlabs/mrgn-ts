@@ -6,11 +6,11 @@ import { usePathname } from 'next/navigation'
 import clsx from 'clsx'
 import { AnimatePresence, motion, useIsPresent } from 'framer-motion'
 
-import { Button } from '@/components/Button'
-import { useIsInsideMobileNavigation } from '@/components/MobileNavigation'
-import { useSectionStore } from '@/components/SectionProvider'
-import { Tag } from '@/components/Tag'
-import { remToPx } from '@/lib/remToPx'
+import { Button } from '~/components/Button'
+import { useIsInsideMobileNavigation } from '~/components/MobileNavigation'
+import { useSectionStore } from '~/components/SectionProvider'
+import { Tag } from '~/components/Tag'
+import { remToPx } from '~/lib/remToPx'
 
 interface NavGroup {
   title: string
@@ -136,7 +136,7 @@ function ActivePageMarker({
   return (
     <motion.div
       layout
-      className="absolute left-2 h-6 w-px bg-mrgn-yellow"
+      className="bg-mrgn-yellow absolute left-2 h-6 w-px"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1, transition: { delay: 0.2 } }}
       exit={{ opacity: 0 }}
@@ -278,7 +278,7 @@ export function Navigation(props: React.ComponentPropsWithoutRef<'nav'>) {
             className={groupIndex === 0 ? 'md:mt-0' : ''}
           />
         ))}
-        
+
         <li className="sticky bottom-0 z-10 mt-6 min-[416px]:hidden">
           <Button href="#" className="w-full">
             Launch App

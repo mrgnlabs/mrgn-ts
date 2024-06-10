@@ -3,15 +3,15 @@ import Link from 'next/link'
 import clsx from 'clsx'
 import { motion, useScroll, useTransform } from 'framer-motion'
 
-import { Button } from '@/components/Button'
-import { Logo } from '@/components/Logo'
+import { Button } from '~/components/Button'
+import { Logo } from '~/components/Logo'
 import {
   MobileNavigation,
   useIsInsideMobileNavigation,
-} from '@/components/MobileNavigation'
-import { useMobileNavigationStore } from '@/components/MobileNavigation'
-import { MobileSearch, Search } from '@/components/Search'
-import { ThemeToggle } from '@/components/ThemeToggle'
+} from '~/components/MobileNavigation'
+import { useMobileNavigationStore } from '~/components/MobileNavigation'
+import { MobileSearch, Search } from '~/components/Search'
+import { ThemeToggle } from '~/components/ThemeToggle'
 
 function TopLevelNavItem({
   href,
@@ -93,15 +93,15 @@ export const Header = forwardRef<
         </div> */}
 
         <div className="hidden min-[416px]:contents">
-          <Button 
-            variant='outline'
+          <Button
+            variant="outline"
             rel="noreferrer"
             target="_blank"
             href="https://www.marginfi.com/"
           >
             Learn More
           </Button>
-          <Button 
+          <Button
             rel="noreferrer"
             target="_blank"
             href="https://app.marginfi.com/"

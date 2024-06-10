@@ -1,7 +1,7 @@
-import { ImageComponent } from '@/components/ImageComponent'
-import { Math } from '@/components/Math'
+import { ImageComponent } from '~/components/ImageComponent'
+import { Math } from '~/components/Math'
 
-import AssetsAndLiabilities from '@/images/docs/a-n-l.png'
+import AssetsAndLiabilities from '~/images/docs/a-n-l.png'
 
 export const metadata = {
   title: 'Introduction',
@@ -17,9 +17,9 @@ Learn about the core concepts of decentralized borrowing and lending on marginfi
 
 ## Lending and Borrowing {{ tag: '', label: '' }}
 
-The marginfi protocol allows you to do two things with your Solana crypto tokens: **lend them and borrow them**. You lend your tokens to earn yield on them, and borrow tokens using the tokens you've lent as collateral. This feature suite is packaged into a user-friendly application called <Button href="https://app.marginfi.com/" variant="text"><>mrgnlend</></Button>. 
+The marginfi protocol allows you to do two things with your Solana crypto tokens: **lend them and borrow them**. You lend your tokens to earn yield on them, and borrow tokens using the tokens you've lent as collateral. This feature suite is packaged into a user-friendly application called <Button href="https://app.marginfi.com/" variant="text"><>mrgnlend</></Button>.
 
-Remember: In order to borrow tokens through marginfi, you must first supply tokens to any of marginfi's supported asset pools. This is because marginfi is an **overcollateralized** borrowing-lending protocol, meaning that you need to provide collateral worth more than the amount you intend to borrow. 
+Remember: In order to borrow tokens through marginfi, you must first supply tokens to any of marginfi's supported asset pools. This is because marginfi is an **overcollateralized** borrowing-lending protocol, meaning that you need to provide collateral worth more than the amount you intend to borrow.
 
 This ensures the security and stability of the protocol by mitigating the risk of default. When you supply tokens, you are effectively contributing to the liquidity pool, making it possible for others to borrow and for you to earn yield on your supplied assets.
 
@@ -29,7 +29,7 @@ This ensures the security and stability of the protocol by mitigating the risk o
 
 ### Lending Interest
 
-marginfi allows users to deposit supported tokens into the protocol and earn yield on them. This is made possible by lenders on the platform who borrow these tokens and pay interest on them. 
+marginfi allows users to deposit supported tokens into the protocol and earn yield on them. This is made possible by lenders on the platform who borrow these tokens and pay interest on them.
 
 The deposit yield on marginfi is typically expressed in terms of APY (Annual Percentage Yield). Yield farming has become increasingly popular in DeFi, and marginfi is one of the lending protocols that allows users to earn yield on their deposited assets.
 
@@ -60,6 +60,7 @@ When borrowed positions fall below requirements and are liquidated, liquidated b
 Currently, liquidation penalties, liquidator fees, and insurance fund fees are fixed. However, liquidation penalties, liquidator fees, and insurance fund fees can be configured for each asset pool.
 
 Today, fees for pools are set as follows (unless specified otherwise):
+
 - **Liquidatee penalty**: 5% of the liquidatee's position collateral at time of liquidation
 - **Liquidator fee**: The liquidator earns
   - 2.5% of the liquidatee's liquidated collateral, or
@@ -75,10 +76,12 @@ The marginfi protocol charges 10bps on LST withdrawals, and no other fees beside
 ### Insurance Fund Fees
 
 <Note>
-Currently, insurance pool fees charged to borrowers are 0% for all pools except for the $BONK pool.
+  Currently, insurance pool fees charged to borrowers are 0% for all pools
+  except for the $BONK pool.
 </Note>
 
 marginfi has asset-specific insurance funds. They're filled up in two ways:
+
 - When users borrow from marginfi, part of the fee they pay goes to insurance pools.
 - When user positions are liquidated, the collateral asset insurance fund collects 2.5% of the liquidatee's liquidated collateral.
 
@@ -90,40 +93,45 @@ Every account's health is represented as a `health factor`. Your account health 
 
 Account health is calculated with the following formula:
 
-<ImageComponent 
-    src={AssetsAndLiabilities}
-    width={700}
-    height={700}
-    alt="Assets And Liabilities"
+<ImageComponent
+  src={AssetsAndLiabilities}
+  width={700}
+  height={700}
+  alt="Assets And Liabilities"
 />
 
 Account health is typically between 0% and 100%, but can technically go as low as -∞. **When your account health reaches 0% or below, you are exposed to liquidation**.
 
 <Note>
-Weighted assets and liabilities are used in account health calculations. They're explained below.
+  Weighted assets and liabilities are used in account health calculations.
+  They're explained below.
 </Note>
 
 ### Assets as Collateral
 
 When you lend an asset on marginfi, there are a few values to keep in mind when pricing the value of your collateral:
+
 - Every asset has a **market USD price**, as determined by its oracle.
 - Every asset has a **confidence band-adjusted market USD price**, as determined by the bottom limit of the price oracle's 95% confidence band.
 - Every asset has a **weighted price**, which is the confidence band-adjusted market USD price multiplied by the asset's deposit weight.
 
 Here's an example:
+
 - Let's say a price oracle supplies a market USD price for SOL of $25.
 - The price oracle's 95% confidence band is +/- $1, i.e. $24-26. The bottom limit of this confidence band is $24, so the confidence band-adjusted market USD price is $24.
-- Let's say the SOL asset weight on marginfi is 90%. We multiply the confidence band-adjusted market USD price by the asset weight, or $24 * 90%.
-- **After all adjustments, SOL is priced  at $21.60 as collateral**.
+- Let's say the SOL asset weight on marginfi is 90%. We multiply the confidence band-adjusted market USD price by the asset weight, or $24 \* 90%.
+- **After all adjustments, SOL is priced at $21.60 as collateral**.
 
 ### Liabilities as Borrows
 
 Similarly to assets, liabilities on marginfi are adjusted:
+
 - Every liability has a **market USD price**, as determined by its oracle. This market USD price is the same market USD price as a given token would have when being lent.
 - Every liability has a **confidence band-adjusted market USD price**, as determined by the top limit of the price oracle's 95% confidence band.
 - Every liability has a **weighted price**, which is the confidence band-adjusted market USD price multiplied by the liability's borrow weight.
 
 Here's an example:
+
 - Let's say a price oracle supplies a market USD price for SOL of $25.
 - The price oracle's 95% confidence band is +/- $1, i.e. $24-26. The top limit of this confidence band is $26, so the confidence band-adjusted market USD price is $26.
 - Let's say the SOL LTV on marginfi is 80%. We multiply the confidence band-adjusted market USD price by <Math>1/LTV</Math>. In this case, <Math>1/0.80 = 1.25</Math>.
