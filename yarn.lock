@@ -5390,21 +5390,21 @@
     "@mongodb-js/zstd-win32-x64-msvc" "1.2.0"
 
 "@moongate/moongate-adapter@^0.4.2":
-  version "0.4.2"
-  resolved "https://registry.yarnpkg.com/@moongate/moongate-adapter/-/moongate-adapter-0.4.2.tgz#e245a494c34764c1a0922f8574827411853e1578"
-  integrity sha512-yvj0vkOi59elyjhAWQIp2ygNiRtufQWi1+pLSueXV0vH35MXvdKBwVR7DydV2lzswyxJBiaMt54DK/8WSB+lwQ==
+  version "0.4.4"
+  resolved "https://registry.yarnpkg.com/@moongate/moongate-adapter/-/moongate-adapter-0.4.4.tgz#351eb850a51e98aadc631750082d73e68c5d03b4"
+  integrity sha512-YWwe8Y0y+CjZ7qrcuoiXmbeEVu9HuYqAePOFSTOVhrcjbvd5TU/RxRpUGFazYbdRGJZ8V8FaLePJ/FW/VfAqoA==
   dependencies:
-    "@moongate/solana-wallet-sdk" "^3.0.8"
+    "@moongate/solana-wallet-sdk" "^3.1.0"
     "@solana/wallet-standard-chains" "^1.1.0"
     "@solana/wallet-standard-util" "^1.1.1"
     "@wallet-standard/app" "^1.0.1"
     "@wallet-standard/wallet" "^1.0.1"
     bs58 "^5.0.0"
 
-"@moongate/solana-wallet-sdk@^3.0.8":
-  version "3.0.8"
-  resolved "https://registry.yarnpkg.com/@moongate/solana-wallet-sdk/-/solana-wallet-sdk-3.0.8.tgz#e7d3801816481accd75f702334d71dc5a28ef30d"
-  integrity sha512-2vIftubXuN6Lipyyp2xqYFbxG6t/Gwef+Wl+LRvoB0NalRDoBBwPVIuiazOaTszaTRKpdWKfX6dm/BisSK48Sw==
+"@moongate/solana-wallet-sdk@^3.1.0":
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/@moongate/solana-wallet-sdk/-/solana-wallet-sdk-3.1.0.tgz#7450a2aef6ab62c4ce9f3fc4f09fa4a279c8f666"
+  integrity sha512-Os37HhV53Pvu9Wt8atCBvNyCLhQDG2i6GCSOwqx5MApY0FJbXiFzOzavRaNVnIbR6ElyCpE+jJW6hR21A0XF4A==
   dependencies:
     "@types/google-one-tap" "^1.2.6"
     "@wagmi/connectors" "^4.1.6"
