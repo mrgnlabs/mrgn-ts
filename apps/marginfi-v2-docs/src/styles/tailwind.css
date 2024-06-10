@@ -1,0 +1,92 @@
+@layer base {
+  :root {
+    --shiki-color-text: theme('colors.white');
+    --shiki-token-constant: theme('colors.emerald.300');
+    --shiki-token-string: theme('colors.emerald.300');
+    --shiki-token-comment: theme('colors.zinc.500');
+    --shiki-token-keyword: theme('colors.sky.300');
+    --shiki-token-parameter: theme('colors.pink.300');
+    --shiki-token-function: theme('colors.violet.300');
+    --shiki-token-string-expression: theme('colors.emerald.300');
+    --shiki-token-punctuation: theme('colors.zinc.200');
+
+    -background: 180 3% 6%;
+    --foreground: 0 0% 98%;
+
+    --card: 180 3% 6%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 180 3% 6%;
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 9%;
+
+    --secondary: 197 11% 12%;
+    --secondary-foreground: 0 0% 98%;
+
+    --muted: 197 11% 12%;
+    --muted-foreground: 0 0% 63.9%;
+
+    --accent: 207 12% 18%;
+    --accent-foreground: 0 0% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 197 11% 15%;
+    --input: 197 11% 12%;
+    --ring: 0 0% 83.1%;
+
+    --radius: 0.5rem;
+
+    /* brand vars */
+    --mrgn-chartreuse: 66 75% 64%;
+    --mrgn-gold: 33 16% 67%;
+    --mrgn-slate: 72 3% 32%;
+  }
+
+  [inert] ::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    overflow-x: hidden;
+  }
+
+  *::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  /* Track */
+  *::-webkit-scrollbar-track {
+    background: #131719;
+  }
+
+  /* Handle */
+  *::-webkit-scrollbar-thumb {
+    background: #2a2f33;
+    border-radius: 5px;
+  }
+
+  /* Handle on hover */
+  *::-webkit-scrollbar-thumb:hover {
+    background: #131719;
+  }
+}
+
+@layer components {
+  .mrgn-link {
+    @apply text-mrgn-chartreuse border-b border-transparent transition-colors hover:border-mrgn-chartreuse;
+  }
+}

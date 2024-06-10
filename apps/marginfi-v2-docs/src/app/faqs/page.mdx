@@ -1,0 +1,62 @@
+export const metadata = {
+  title: 'FAQs',
+  description:
+    'In this guide, we will answer commonly asked questions regarding the marginfi protocol.',
+}
+
+# Frequently Asked Questions
+
+In this guide, we will answer commonly asked questions regarding the marginfi protocol. {{ className: 'lead' }}
+
+<Note>
+  If you do not see an answer to your question on this page, please contact marginfi support by joining
+  our [Discord server](https://discord.com/invite/mrgn).
+</Note>
+
+---
+
+## What are fees? {{ tag: '', label: '' }}
+Fees include borrowing interest, liquidation penalties (5%), and insurance fund fees (2.5%).
+
+## What are marginfi points? {{ tag: '', label: '' }}
+Marginfi points are earned by lending, borrowing, and referring new users, they quantify your contribution to the marginfi ecosystem.
+
+## How do health factors work? {{ tag: '', label: '' }}
+Health factors indicate how well-collateralized your account is. A value below 0% exposes you to liquidation.
+
+## What does the “Simulating health / liquidation impact failed” error mean? {{ tag: '', label: '' }}
+This error is related to stale oracles, which occur due to network congestion on Solana.  When the network is congested, oracles update less frequently. Stale oracles are not the fault of marginfi. To prevent price manipulation, marginfi restricts certain actions when oracles are out-of-date.
+
+## What does the "stale oracles" error mean?
+
+marginfi has chosen to use decentralized, trustless oracles. These oracles are managed by providers, like Pyth. During periods of blockchain congestion, oracle providers may struggle sending pricing data. If pricing data is stale during a user interaction, marginfi does not enable users to perform oracle-dependent actions. This is to prevent manipulation based on incorrect oracle prices. marginfi is working directly with Pyth, Switchboard, and Solana Labs on correcting these issues on behalf of the user.
+
+## How many points for borrowing / lending? {{ tag: '', label: '' }} 
+4 points for borrowing while 1 point for lending.
+
+## Can I lend and borrow the same assets? {{ tag: '', label: '' }}
+No. Lending and borrowing the same assets can create a feedback loop that distorts the true supply and demand, leading to potential instability in the protocol. Additionally, it can be used to manipulate interest rates and fees, undermining the integrity of the system.
+
+## What’s the implications of health factor? {{ tag: '', label: '' }}
+If value of your borrowed assets exceeds the value of your lent assets, you may be liquidated.
+
+## Can I get points for staking SOL for LST? {{ tag: '', label: '' }}
+No, you may only earn points by borrowing and lending on marginfi.
+
+## Can I borrow against my assets in isolated pools? {{ tag: '', label: '' }}
+No, you can't borrow against assets in isolated pools; it can't serve as collateral.
+
+## Can I earn points for deposit in isolated pools? {{ tag: '', label: '' }}
+All lend and borrow assets counts for marginfi points.
+
+## How much time does it take for project to move from isolated to global pool? {{ tag: '', label: '' }}
+Only when the asset satisfies all necessary safety requirements, will it be upgraded to the main pool.
+
+## How do I unstake my LST? {{ tag: '', label: '' }}
+Visit <Button href="https://unstake.it" variant="text"><>unstake.it</></Button> or <Button href="https://app.sanctum.so/swap" variant="text"><>sanctum.so</></Button> and swap LST for SOL.
+
+## What are social points? {{ tag: '', label: '' }}
+Social points is for social campaigns in collaboration with other ecosystem projects.
+
+## How long can i borrow and lend? {{ tag: '', label: '' }}
+As long as your health factor stays above 0%.

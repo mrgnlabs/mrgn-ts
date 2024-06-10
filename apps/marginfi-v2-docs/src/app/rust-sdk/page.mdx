@@ -1,0 +1,384 @@
+export const metadata = {
+  title: 'marginfi Rust (CLI) SDK',
+  description:
+    'On this page, we’ll learn how to get started with the marginfi Rust CLI.',
+}
+
+# The marginfi Rust CLI
+
+With the marginfi <Button href="https://github.com/mrgnlabs/marginfi-v2/tree/main/clients/rust/marginfi-cli" variant="text"><>CLI tool</></Button>, you can interact with the marginfi protocol directly from your terminal, taking advantage of its borrowing and lending services. Built in Rust, this command-line interface simplifies the process of managing your marginfi activities. Whether you want to create a new bank, make deposits to existing banks, or perform other operations, the marginfi CLI provides a streamlined experience. {{ className: 'lead' }}
+
+---
+
+## Installation {{ tag: '', label: '' }}
+
+To get started, install the latest stable Rust toolchain and set it to default:
+
+```bash
+rustup default stable-x86_64-apple-darwin
+rustc --version
+```
+
+Then, download the CLI tool, navigate inside the folder, and execute the build with the `--all-features` flag and target `x86_64`:
+
+```bash
+git clone https://github.com/mrgnlabs/marginfi-v2.git
+cd marginfi-v2/clients/rust/marginfi-cli
+cargo install --path . --target x86_64-apple-darwin --all-features
+```
+
+You can then test if the CLI has been installed correctly by running `mfi`. You should see output like so:
+
+```bash
+mfi
+marginfi-v2-cli 0.1.0
+
+USAGE:
+    mfi [OPTIONS] <SUBCOMMAND>
+
+OPTIONS:
+        --dry-run              Dry run for any transactions involved
+    -h, --help                 Print help information
+    -V, --version              Print version information
+    -y, --skip-confirmation
+
+SUBCOMMANDS:
+    account
+    bank
+    group
+    help                        Print this message or the help of the given subcommand(s)
+    inspect-padding
+    inspect-size
+    inspect-switchboard-feed
+    lip
+    profile
+```
+
+---
+
+## Getting Started {{ tag: '', label: '' }}
+
+### Step 1: Create a Profile
+
+First, we must create a profile which we will use to interact with the marginfi protocol. To create a profile, use the `profile` subcommand:
+
+```bash
+mfi profile create --name <NAME> --cluster <CLUSTER> --keypair-path <KEYPAIR_PATH> --rpc-url <RPC_URL>
+```
+
+For example:
+
+```bash
+mfi profile create --name masterzorgon --cluster mainnet --keypair-path /Users/MasterZorgon/Documents/Keypairs/UPX866A3Lrdghw1BUdxBkCUMpVEZaokZqFxLskUTiMV.json --rpc-url https://api.mainnet-beta.solana.com
+```
+
+<Note>
+    If you don’t already have a file system wallet, [create one using `solana-keygen`](https://docs.solanalabs.com/cli/wallets/file-system).
+</Note>
+
+Confirm that you’ve successfully created a profile like so:
+
+```bash
+mfi profile show
+```
+
+The output should look like the following:
+
+```bash
+Profile:
+    Name: masterzorgon
+    Program: MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA
+    Marginfi Group: None
+    Marginfi Account: None
+    Cluster: mainnet
+    Rpc URL: https://api.mainnet-beta.solana.com
+    Fee Payer: UPX866A3Lrdghw1BUdxBkCUMpVEZaokZqFxLskUTiMV
+    Authority: UPX866A3Lrdghw1BUdxBkCUMpVEZaokZqFxLskUTiMV
+    Keypair: /Users/MasterZorgon/Documents/Keypairs/UPX866A3Lrdghw1BUdxBkCUMpVEZaokZqFxLskUTiMV.json
+    Multisig: None
+```
+
+### Step 2: Create a Group
+
+<Note>
+    This step will require a transaction fee denominated in SOL. Your file system wallet must be funded with enough mainnet-beta SOL to cover the transaction fee of creating an account on-chain.
+</Note>
+
+A group represents a lending pool with a set of rules and configurations. It acts as a container for multiple lending banks, each with its own settings. The group defines the overall parameters for the lending and borrowing activities within its scope.
+
+You can create a group using the `group` subcommand:
+
+```bash
+mfi group create
+```
+
+You will then be shown the profile you recently created. Type the name of your profile to continue:
+
+```bash
+Command: Create
+
+Profile:
+    Name: masterzorgon
+    Program: MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA
+    Marginfi Group: None
+    Marginfi Account: None
+    Cluster: mainnet
+    Rpc URL: https://api.mainnet-beta.solana.com
+    Fee Payer: UPX866A3Lrdghw1BUdxBkCUMpVEZaokZqFxLskUTiMV
+    Authority: UPX866A3Lrdghw1BUdxBkCUMpVEZaokZqFxLskUTiMV
+    Keypair: /Users/MasterZorgon/Documents/Keypairs/UPX866A3Lrdghw1BUdxBkCUMpVEZaokZqFxLskUTiMV.json
+    Multisig: None
+        
+Type the name of the profile [masterzorgon] to continue  
+```
+
+### Step 3: Create an Account
+
+<Note>
+    This step will require a transaction fee denominated in SOL. Your file system wallet must be funded with enough mainnet-beta SOL to cover the transaction fee of creating an account on-chain.
+</Note>
+
+An account represents an individual user's position within a group. Each user has their own account, which manages their deposits, borrows, and collateral levels. Accounts interact with the lending banks within a group to perform actions like depositing funds, borrowing assets, or repaying loans.
+
+Before you can start borrowing and lending via the CLI, you must set an account and link it to your profile:
+
+```bash
+mfi account create
+```
+
+You will then be shown the profile you recently created. Type the name of your profile to continue:
+
+```bash
+Command: Create
+
+Profile:
+    Name: masterzorgon
+    Program: MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA
+    Marginfi Group: None
+    Marginfi Account: None
+    Cluster: mainnet
+    Rpc URL: https://api.mainnet-beta.solana.com
+    Fee Payer: UPX866A3Lrdghw1BUdxBkCUMpVEZaokZqFxLskUTiMV
+    Authority: UPX866A3Lrdghw1BUdxBkCUMpVEZaokZqFxLskUTiMV
+    Keypair: /Users/MasterZorgon/Documents/Keypairs/UPX866A3Lrdghw1BUdxBkCUMpVEZaokZqFxLskUTiMV.json
+    Multisig: None
+        
+Type the name of the profile [masterzorgon] to continue
+```
+
+### Step 4: Deposit to a Bank
+
+Now that you’ve created your account, you can interact with the marginfi protocol. Let’s start with lending to a marginfi bank. In this example, we’re going to deposit 1 USDC into the USDC pool `3uxNepDbmkDNq6JhRja5Z8QwbTrfmkKP8AKZV5chYDGG`:
+
+```bash
+mfi account deposit 3uxNepDbmkDNq6JhRja5Z8QwbTrfmkKP8AKZV5chYDGG 1
+```
+
+You will then be shown your profile and asked to confirm the profile you want to interact with by typing the profile name:
+
+```bash
+Command: Deposit {
+    bank: 3uxNepDbmkDNq6JhRja5Z8QwbTrfmkKP8AKZV5chYDGG,
+    ui_amount: 1.0,
+}
+
+Profile:
+    Name: masterzorgon
+    Program: MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA
+    Marginfi Group: None
+    Marginfi Account: None
+    Cluster: mainnet
+    Rpc URL: https://api.mainnet-beta.solana.com
+    Fee Payer: UPX866A3Lrdghw1BUdxBkCUMpVEZaokZqFxLskUTiMV
+    Authority: UPX866A3Lrdghw1BUdxBkCUMpVEZaokZqFxLskUTiMV
+    Keypair: /Users/MasterZorgon/Documents/Keypairs/UPX866A3Lrdghw1BUdxBkCUMpVEZaokZqFxLskUTiMV.json
+    Multisig: None
+        
+Type the name of the profile [masterzorgon] to continue
+```
+
+---
+
+## Subcommands {{ tag: '', label: '' }}
+
+### Group
+
+Manages lending groups in the marginlend protocol.
+
+<Properties>
+  <Property name="add-bank" type="">
+    Adds a new lending bank to the marginfi group. (Enabled with `admin` feature)
+  </Property>
+
+  <Property name="create" type="">
+    Creates a new marginfi group. (Enabled with `admin` feature)
+  </Property>
+
+  <Property name="get" type="">
+    Retrieves information about the specified marginfi group.
+  </Property>
+
+  <Property name="get-all" type="">
+    Retrieves information about all marginfi groups.
+  </Property>
+
+  <Property name="handle-bankruptcy" type="">
+    Handles bankruptcy for the specified marginfi accounts in the group. (Enabled with `admin` feature)
+  </Property>
+
+  <Property name="update" type="">
+    Updates an existing marginfi group. (Enabled with `admin` feature)
+  </Property>
+
+  <Property name="update-lookup-table" type="">
+    Updates the token lookup table for the marginfi group. (Enabled with `admin` feature)
+  </Property>
+</Properties>
+
+### Bank 
+
+Handles operations related to lending banks within groups.
+
+<Properties>
+  <Property name="collect-fees" type="">
+    Collects fees from a lending bank. (Enabled with `admin` feature)
+  </Property>
+
+  <Property name="get" type="">
+    Retrieves information about the specified lending bank.
+  </Property>
+
+  <Property name="get-all" type="">
+    Retrieves information about all lending banks in the specified marginfi group.
+  </Property>
+
+  <Property name="inspect-price-oracle" type="">
+    Inspects the price oracle for a lending bank.
+  </Property>
+
+  <Property name="settle-all-emissions" type="">
+    Settles all pending emissions (rewards) for a lending bank. (Enabled with `admin` feature)
+  </Property>
+
+  <Property name="setup-emissions" type="">
+    Sets up emissions (rewards) for a lending bank.
+  </Property>
+
+  <Property name="update" type="">
+    Updates the configuration of a lending bank. (Enabled with `admin` feature)
+  </Property>
+
+  <Property name="update-emissions" type="">
+    Updates the emissions (rewards) parameters for a lending bank. (Enabled with `admin` feature)
+  </Property>
+
+  <Property name="withdraw-fees" type="">
+    Withdraws fees from a lending bank. (Enabled with `admin` feature)
+  </Property>
+
+  <Property name="withdraw-insurance" type="">
+    Withdraws insurance funds from a lending bank. (Enabled with `admin` feature)
+  </Property>
+</Properties>
+
+### Profile
+
+Manages user profiles or configurations.
+
+<Properties>
+  <Property name="create" type="">
+    Creates a new profile configuration.
+  </Property>
+
+  <Property name="list" type="">
+    Lists all available profile configurations.
+  </Property>
+
+  <Property name="set" type="">
+    Sets the current profile configuration.
+  </Property>
+
+  <Property name="show" type="">
+    Shows the current profile configuration.
+  </Property>
+
+  <Property name="update" type="">
+    Updates an existing profile configuration.
+  </Property>
+</Properties>
+
+### InspectPadding
+
+The `inspect-padding` subcommand, which is compiled only when the `dev` feature is enabled,  is used to inspect the padding or memory layout-related information for development or debugging purposes. 
+
+### PatchIdl
+
+The `patch-idl` subcommand, which is compiled only when the `dev` feature is enabled, is used to modify the JSON Interface Definition Library (IDL) file for the MarginFi program.
+
+### InspectSize 
+
+The `inspect-size` subcommand, which is compiled only when the `dev` feature is enabled, is used to print the size (in bytes) of various data structures used in the application.
+
+### Account
+
+Manages user accounts within the marginlend protocol.
+
+<Properties>
+  <Property name="borrow" type="">
+    Borrows funds from a lending bank.
+  </Property>
+
+  <Property name="create" type="">
+    Creates a new marginfi account.
+  </Property>
+
+  <Property name="deposit" type="">
+    Deposits funds into a lending bank.
+  </Property>
+
+  <Property name="get" type="">
+    Retrieves information about the specified marginfi account or the currently active account.
+  </Property>
+
+  <Property name="liquidate" type="">
+    Liquidates a marginfi account by repaying its debt and seizing collateral.
+  </Property>
+
+  <Property name="list" type="">
+    Lists all available marginfi accounts.
+  </Property>
+
+  <Property name="set-flag" type="">
+    Sets a flag on a marginfi account.
+  </Property>
+
+  <Property name="use" type="">
+    Sets the currently active marginfi account.
+  </Property>
+
+  <Property name="withdraw" type="">
+    Withdraws funds from a lending bank.
+  </Property>
+</Properties>
+
+### Lip
+
+The `lip` subcommand is related to managing LIP (Liquidity Incentive Program) campaigns and deposits.
+
+<Properties>
+  <Property name="list-campaigns" type="">
+    Lists all LIP campaigns.
+  </Property>
+
+  <Property name="list-deposits" type="">
+    Lists all deposits made to LIP campaigns.
+  </Property>
+</Properties>
+
+### InspectSwitchboardFeed
+
+The `inspect-switchboard-feed` subcommand, which is compiled only when the `dev` feature is enabled, inspects Switchboard oracle feeds, used for obtaining price data on listings.
+
+### ShowOracleAges
+
+Displays information about the ages or staleness of oracle data sources, with an option to filter for only stale oracles.
