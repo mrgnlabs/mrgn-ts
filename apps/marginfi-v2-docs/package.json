@@ -1,12 +1,14 @@
 {
-  "name": "marginfi-v2-docs",
+  "name": "@mrgnlabs/marginfi-v2-docs",
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "clean": "rimraf dist node_modules",
+    "dev": "next dev --port 3007",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "lint-fix": "yarn lint --fix"
   },
   "browserslist": "defaults, not ie <= 11",
   "dependencies": {
