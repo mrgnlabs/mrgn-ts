@@ -4,6 +4,7 @@ import Image from "next/image";
 
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { percentFormatter } from "@mrgnlabs/mrgn-common";
+import { useConnection } from "@solana/wallet-adapter-react";
 
 import { useActionBoxStore } from "~/hooks/useActionBoxStore";
 import { computeBankRateRaw, getMaintHealthColor, getTokenImageURL } from "~/utils";
@@ -17,6 +18,7 @@ import { IconChevronDown } from "~/components/ui/icons";
 import { cn } from "~/utils";
 
 import { LendingModes } from "~/types";
+import { useMrgnlendStore } from "~/store";
 
 type LoopInputProps = {
   walletAmount: number | undefined;
@@ -34,6 +36,9 @@ export const LoopInput = ({
   handleInputFocus,
 }: LoopInputProps) => {
   const amountInputRef = React.useRef<HTMLInputElement>(null);
+
+  const [selectedAccount] = useMrgnlendStore((state) => [state.selectedAccount]);
+  const { connection } = useConnection();
   const [
     setSelectedBank,
     setRepayBank,
@@ -83,7 +88,7 @@ export const LoopInput = ({
               setTokenBank={(tokenBank) => {
                 if (selectedRepayBank) {
                   setRepayBank(null);
-                  setLeverage(0);
+                  setLeverage(0, selectedAccount, connection);
                 }
                 setSelectedBank(tokenBank);
               }}
@@ -159,7 +164,7 @@ export const LoopInput = ({
             value={[leverage]}
             onValueChange={(value) => {
               if (value[0] > maxLeverage) return;
-              setLeverage(value[0]);
+              setLeverage(value[0], selectedAccount, connection);
             }}
             disabled={!bothBanksSelected}
           />
