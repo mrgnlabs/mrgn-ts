@@ -15,6 +15,7 @@ import {
   capture,
   executeLstAction,
   getBlockedActions,
+  executeLoopingAction,
 } from "~/utils";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { useConnection } from "~/hooks/useConnection";
@@ -447,7 +448,7 @@ export const ActionBox = ({
         };
       }
 
-      const txnSig = await executeLendingAction({
+      const txnSig = await executeLoopingAction({
         ...params,
       });
 

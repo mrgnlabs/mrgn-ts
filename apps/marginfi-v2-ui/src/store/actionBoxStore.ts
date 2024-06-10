@@ -58,7 +58,7 @@ interface ActionBoxState {
   setLstMode: (lstMode: LstType) => void;
   setYbxMode: (ybxMode: YbxType) => void;
   setAmountRaw: (amountRaw: string, maxAmount?: number) => void;
-  setLeverage: (leverage: number) => void;
+  setLeverage: (leverage: number, marginfiAccount: MarginfiAccountWrapper | null, connection: Connection) => void;
   setLoopingAmountRaw: (
     marginfiAccount: MarginfiAccountWrapper,
     amountRaw: string,
@@ -83,7 +83,8 @@ interface ActionBoxState {
     selectedLoopingBank: ExtendedBankInfo,
     amount: number,
     slippageBps: number,
-    connection: Connection
+    connection: Connection,
+    leverage?: number
   ) => void;
   setIsLoading: (isLoading: boolean) => void;
 }
@@ -180,14 +181,25 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
     if (needRefresh) set({ ...initialState, actionMode: requestedAction, selectedBank: requestedBank, slippageBps });
   },
 
-  setLeverage(leverage) {
+  setLeverage(leverage, marginfiAccount, connection) {
     const maxLeverage = get().maxLeverage;
+
+    let newLeverage = leverage;
 
     if (maxLeverage) {
       if (leverage > maxLeverage) {
+        newLeverage = maxLeverage;
         set({ leverage: maxLeverage });
       } else {
         set({ leverage: leverage });
+      }
+
+      const { selectedBank, selectedRepayBank, amountRaw, slippageBps, setLooping } = get();
+      const strippedAmount = amountRaw.replace(/,/g, "");
+      const amount = isNaN(Number.parseFloat(strippedAmount)) ? 0 : Number.parseFloat(strippedAmount);
+
+      if (selectedBank && selectedRepayBank && marginfiAccount) {
+        setLooping(marginfiAccount, selectedBank, selectedRepayBank, amount, slippageBps, connection, newLeverage);
       }
     }
   },
@@ -252,9 +264,22 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
     }
   },
 
-  async setLooping(marginfiAccount, selectedBank, selectedLoopingBank, amount, slippageBps, connection) {
+  async setLooping(
+    marginfiAccount,
+    selectedBank,
+    selectedLoopingBank,
+    amount,
+    slippageBps,
+    connection,
+    selectedLeverage
+  ) {
+    const leverage = selectedLeverage ?? get().leverage;
+
+    if (leverage === 0) {
+      return;
+    }
+
     set({ isLoading: true });
-    const leverage = get().leverage;
 
     const loopingObject = await calculateLooping(
       marginfiAccount,
@@ -478,10 +503,12 @@ async function calculateLooping(
   loopBank: ExtendedBankInfo, // borrow
   targetLeverage: number,
   amount: number,
-  slippageBps: number,
+  slippageBpsa: number,
   connection: Connection
 ): Promise<{ loopingTxn: VersionedTransaction; quote: QuoteResponse; amount: BigNumber } | null> {
-  const principalBufferAmountUi = (amount * targetLeverage * slippageBps) / 10000;
+  const slippageBps = 0.01 * 10000;
+  console.log({ amount, targetLeverage, slippageBps: slippageBps / 10000 });
+  const principalBufferAmountUi = amount * targetLeverage * 0.01; //(slippageBps / 10000);
   const adjustedPrincipalAmountUi = amount - principalBufferAmountUi;
   console.log("principalBufferAmountUi:", principalBufferAmountUi);
   console.log("adjustedPrincipalAmountUi:", adjustedPrincipalAmountUi);
@@ -503,7 +530,7 @@ async function calculateLooping(
 
   for (const maxAccounts of maxAccountsArr) {
     const quoteParams = {
-      amount: uiToNative(borrowAmountNative, loopBank.info.state.mintDecimals).toNumber(),
+      amount: borrowAmountNative,
       inputMint: loopBank.info.state.mint.toBase58(), // borrow
       outputMint: bank.info.state.mint.toBase58(), // deposit
       slippageBps: slippageBps,
