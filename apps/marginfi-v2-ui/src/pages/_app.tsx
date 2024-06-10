@@ -34,6 +34,11 @@ import "swiper/css/pagination";
 import "react-toastify/dist/ReactToastify.min.css";
 import { AuthDialog } from "~/components/common/Wallet/components/AuthenticationV2";
 
+import { registerMoonGateWallet } from "@moongate/moongate-adapter";
+
+registerMoonGateWallet({ authMode: "Google", position: "bottom-right" });
+registerMoonGateWallet({ authMode: "Ethereum", position: "bottom-right" });
+
 // Use require instead of import since order matters
 require("@solana/wallet-adapter-react-ui/styles.css");
 require("~/styles/globals.css");
