@@ -501,6 +501,7 @@ export async function looping({
 
   try {
     let txn: VersionedTransaction;
+
     if (options.loopingTxn) {
       txn = options.loopingTxn;
     } else {
