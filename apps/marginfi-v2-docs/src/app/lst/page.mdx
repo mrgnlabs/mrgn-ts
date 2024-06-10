@@ -1,8 +1,8 @@
-import { ImageComponent } from '@/components/ImageComponent'
+import { ImageComponent } from '~/components/ImageComponent'
 
-import MintPage from '@/images/docs/mint-page.png'
-import MintLSTHighlight from '@/images/docs/mint-lst-highlight.png'
-import MintActionBox from '@/images/docs/mint-action-box.png'
+import MintPage from '~/images/docs/mint-page.png'
+import MintLSTHighlight from '~/images/docs/mint-lst-highlight.png'
+import MintActionBox from '~/images/docs/mint-action-box.png'
 
 export const metadata = {
   title: 'LST User Guide',
@@ -21,6 +21,7 @@ Liquid staking allows you to stake your SOL and receive a tokenized version of y
 ## The Benefits of Liquid Staking with marginfi {{ tag: '', label: '' }}
 
 By using <Button href="https://stakewiz.com/validator/mrgn2vsZ5EJ8YEfAMNPXmRux7th9cNfBasQ1JJvVwPn" variant="text"><>mrgn's sophisticated validator set</></Button>, and get in touch with the team via our <Button href="https://discord.com/invite/mrgn" variant="text"><>Discord</></Button>, you benefit from **zero fees, enhanced yield, and greater utility** from your staked SOL than any other platform. This setup ensures maximum liquidity through Sanctum, optimal MEV rewards via Jito, extensive utility with marginfi, and unparalleled flexibility within the Solana DeFi ecosystem. The benefits of staking with marginfi are:
+
 - **Zero Fees.** Enjoy staking your SOL without any commission or protocol fees, ensuring **you keep all of your earned rewards**.
 - **Enhanced Yield.** Leverage a superior validator set that maximizes your staking rewards, delivering higher returns on your staked assets with marginfi's **true APY of 8.53%** (at the time of writing).
 - **Maximum Liquidity.** Sanctum provides instant liquidity for your staked SOL, allowing you to move and use your assets seamlessly.
@@ -34,29 +35,27 @@ With a liquidity pool consisting of 468,375 SOL (at the time of writing), margin
 
 **Step 1**. Navigate to the <Button href="https://app.marginfi.com/mint" variant="text"><>mint page</></Button> on <Button href="http://app.marginfi.com" variant="text"><>app.marginfi.com</></Button> and click “Mint LST” in the LST box:
 
-<ImageComponent 
-    src={MintPage}
-    alt="Mint Page"
-/>
+<ImageComponent src={MintPage} alt="Mint Page" />
 
 **Step 2**. Click the “Select token” dropdown and choose which token you want to swap for LST:
 
-<ImageComponent 
-    src={MintLSTHighlight}
-    alt="Mint LST Highlight"
-/>
+<ImageComponent src={MintLSTHighlight} alt="Mint LST Highlight" />
 
 **Step 3**. Enter the amount of token you want to swap for LST and click “Mint LST” to execute the swap transaction:
 
 <Note>
-    During times of network congestion, it might be useful to adjust the slippage and/or [priority fee](https://www.helius.dev/blog/priority-fees-understanding-solanas-transaction-fee-mechanics) associated with your swap transaction. You can adjust these parameters by clicking the “Settings” button on the Action Box.
+  During times of network congestion, it might be useful to adjust the slippage
+  and/or [priority
+  fee](https://www.helius.dev/blog/priority-fees-understanding-solanas-transaction-fee-mechanics)
+  associated with your swap transaction. You can adjust these parameters by
+  clicking the “Settings” button on the Action Box.
 </Note>
 
-<ImageComponent 
-    src={MintActionBox}
-    width={600}
-    height={600}
-    alt="Mint Action Box"
+<ImageComponent
+  src={MintActionBox}
+  width={600}
+  height={600}
+  alt="Mint Action Box"
 />
 
 ## Welcome to the Arena {{ tag: '', label: '' }}
