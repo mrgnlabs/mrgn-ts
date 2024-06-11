@@ -55,6 +55,7 @@ export const OnboardingEth = ({
   React.useEffect(() => {
     if (connected && screenIndex === 0) {
       setScreenIndex(1);
+      localStorage.setItem("isOnboarded", "true");
     }
   }, [connected, screenIndex]);
 

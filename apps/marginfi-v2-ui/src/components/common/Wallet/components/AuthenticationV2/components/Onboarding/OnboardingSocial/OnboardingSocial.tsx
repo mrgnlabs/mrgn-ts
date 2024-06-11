@@ -73,6 +73,7 @@ export const OnboardingSocial: React.FC<props> = ({
       setIsLoading(false);
       setIsSocialAuthLoading(false);
       setScreenIndex(1);
+      localStorage.setItem("isOnboarded", "true");
 
       if (userHasAcct) {
         setScreenIndex((prev) => prev++);

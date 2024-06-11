@@ -45,6 +45,7 @@ export const OnboardingSol = ({
 
   React.useEffect(() => {
     if (connected && screenIndex === 0) {
+      localStorage.setItem("isOnboarded", "true");
       setScreenIndex(1);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
