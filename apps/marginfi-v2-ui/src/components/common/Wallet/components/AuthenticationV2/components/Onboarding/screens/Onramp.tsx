@@ -1,4 +1,5 @@
 import React from "react";
+import { useRouter } from "next/router";
 import {
   Asset,
   AuthenticationStrategy,
@@ -51,7 +52,7 @@ export const Onramp = ({ successProps, onNext, setSuccessProps }: props) => {
     const transfer = inlineTransfer({
       container: "#outlet",
       partnerId: "marginfi",
-      environment: Environment.PRODUCTION,
+      environment: process.env.NEXT_PUBLIC_MESO_SANDBOX === "true" ? Environment.SANDBOX : Environment.PRODUCTION,
       sourceAmount: amount.toString() as any,
       sourceAsset: "USD",
       authenticationStrategy: AuthenticationStrategy.BYPASS_WALLET_VERIFICATION,
