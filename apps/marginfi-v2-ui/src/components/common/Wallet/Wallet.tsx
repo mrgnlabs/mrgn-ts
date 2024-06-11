@@ -73,6 +73,7 @@ export const Wallet = () => {
   const { wallet, logout, pfp, requestPrivateKey, web3AuthPk, web3AuthConncected, walletContextState } =
     useWalletContext();
 
+  const debounceId = React.useRef<NodeJS.Timeout | null>(null);
   const [isFetchingWalletData, setIsFetchingWalletData] = React.useState(false);
   const [isWalletAddressCopied, setisWalletAddressCopied] = React.useState(false);
   const [walletData, setWalletData] = React.useState<{
@@ -109,93 +110,118 @@ export const Wallet = () => {
 
     setIsFetchingWalletData(true);
 
-    const userBanks = extendedBankInfos.filter(
-      (bank) => bank.userInfo.tokenAccount.balance !== 0 || bank.meta.tokenSymbol === "SOL"
-    );
+    try {
+      const userBanks = extendedBankInfos.filter(
+        (bank) => bank.userInfo.tokenAccount.balance !== 0 || bank.meta.tokenSymbol === "SOL"
+      );
 
-    const prioritizedSymbols = ["SOL", "LST"];
+      const prioritizedSymbols = ["SOL", "LST"];
 
-    const userTokens = userBanks
-      .map((bank) => {
-        const isSolBank = bank.meta.tokenSymbol === "SOL";
-        const value = isSolBank
-          ? nativeSolBalance + bank.userInfo.tokenAccount.balance
-          : bank.userInfo.tokenAccount.balance;
-        const valueUSD =
-          (isSolBank ? nativeSolBalance + bank.userInfo.tokenAccount.balance : bank.userInfo.tokenAccount.balance) *
-          bank.info.state.price;
+      const userTokens = userBanks
+        .map((bank) => {
+          const isSolBank = bank.meta.tokenSymbol === "SOL";
+          const value = isSolBank
+            ? nativeSolBalance + bank.userInfo.tokenAccount.balance
+            : bank.userInfo.tokenAccount.balance;
+          const valueUSD =
+            (isSolBank ? nativeSolBalance + bank.userInfo.tokenAccount.balance : bank.userInfo.tokenAccount.balance) *
+            bank.info.state.price;
 
-        return {
-          address: bank.address,
-          name: isSolBank ? "Solana" : bank.meta.tokenName,
-          image: getTokenImageURL(bank.meta.tokenSymbol),
-          symbol: bank.meta.tokenSymbol,
-          value: value,
-          valueUSD: valueUSD,
-          formattedValue: value < 0.01 ? `< 0.01` : numeralFormatter(value),
-          formattedValueUSD: usdFormatter.format(valueUSD),
-        };
-      })
-      .sort((a, b) => {
-        return (
-          (prioritizedSymbols.includes(b.symbol) ? 1 : 0) - (prioritizedSymbols.includes(a.symbol) ? 1 : 0) ||
-          b.valueUSD - a.valueUSD
-        );
+          return {
+            address: bank.address,
+            name: isSolBank ? "Solana" : bank.meta.tokenName,
+            image: getTokenImageURL(bank.meta.tokenSymbol),
+            symbol: bank.meta.tokenSymbol,
+            value: value,
+            valueUSD: valueUSD,
+            formattedValue: value < 0.01 ? `< 0.01` : numeralFormatter(value),
+            formattedValueUSD: usdFormatter.format(valueUSD),
+          };
+        })
+        .sort((a, b) => {
+          return (
+            (prioritizedSymbols.includes(b.symbol) ? 1 : 0) - (prioritizedSymbols.includes(a.symbol) ? 1 : 0) ||
+            b.valueUSD - a.valueUSD
+          );
+        });
+
+      // attempt to fetch cached totalBalanceData
+      const cacheKey = `marginfi_totalBalanceData-${wallet?.publicKey.toString()}`;
+      const cachedData = localStorage.getItem(cacheKey);
+      let totalBalance = 0;
+      let totalBalanceStr = "";
+
+      if (cachedData) {
+        const parsedData = JSON.parse(cachedData);
+        const now = new Date();
+        // 5 minute expiration time on cache
+        if (now.getTime() - parsedData.timestamp < 5 * 60 * 1000) {
+          totalBalance = parsedData.totalValue;
+          totalBalanceStr = usdFormatter.format(totalBalance);
+        }
+      }
+
+      if (!totalBalanceStr) {
+        const totalBalanceRes = await fetch(`/api/user/wallet?wallet=${wallet?.publicKey}`);
+        if (totalBalanceRes.ok) {
+          const totalBalanceData = await totalBalanceRes.json();
+          totalBalance = totalBalanceData.totalValue;
+          totalBalanceStr = usdFormatter.format(totalBalance);
+          // update cache
+          localStorage.setItem(cacheKey, JSON.stringify({ totalValue: totalBalance, timestamp: new Date().getTime() }));
+        } else {
+          throw new Error("Failed to fetch wallet balance");
+        }
+      }
+
+      // show error toast
+      if (!totalBalanceStr) {
+        throw new Error("Failed to fetch wallet balance");
+      }
+
+      setWalletData({
+        address: wallet?.publicKey.toString(),
+        shortAddress: shortenAddress(wallet?.publicKey.toString()),
+        balanceUSD: usdFormatter.format(totalBalance),
+        tokens: (userTokens || []) as TokenType[],
       });
-
-    // attempt to fetch cached totalBalanceData
-    const cacheKey = `marginfi_totalBalanceData-${wallet?.publicKey.toString()}`;
-    const cachedData = localStorage.getItem(cacheKey);
-    let totalBalance = 0;
-    let totalBalanceStr = "";
-
-    if (cachedData) {
-      const parsedData = JSON.parse(cachedData);
-      const now = new Date();
-      // 5 minute expiration time on cache
-      if (now.getTime() - parsedData.timestamp < 5 * 60 * 1000) {
-        totalBalance = parsedData.totalValue;
-        totalBalanceStr = usdFormatter.format(totalBalance);
-      }
-    }
-
-    if (!totalBalanceStr) {
-      const totalBalanceRes = await fetch(`/api/user/wallet?wallet=${wallet?.publicKey}`);
-      if (totalBalanceRes.ok) {
-        const totalBalanceData = await totalBalanceRes.json();
-        totalBalance = totalBalanceData.totalValue;
-        totalBalanceStr = usdFormatter.format(totalBalance);
-        // update cache
-        localStorage.setItem(cacheKey, JSON.stringify({ totalValue: totalBalance, timestamp: new Date().getTime() }));
-      }
-    }
-
-    // show error toast
-    if (!totalBalanceStr) {
+    } catch (error) {
       showErrorToast("Error fetching wallet balance");
+      setWalletData({
+        address: wallet?.publicKey.toString(),
+        shortAddress: shortenAddress(wallet?.publicKey.toString()),
+        balanceUSD: usdFormatter.format(0),
+        tokens: [],
+      });
+    } finally {
+      setIsFetchingWalletData(false);
     }
-
-    setWalletData({
-      address: wallet?.publicKey.toString(),
-      shortAddress: shortenAddress(wallet?.publicKey.toString()),
-      balanceUSD: usdFormatter.format(totalBalance),
-      tokens: (userTokens || []) as TokenType[],
-    });
-
-    setIsFetchingWalletData(false);
   }, [wallet?.publicKey, extendedBankInfos, nativeSolBalance, isFetchingWalletData]);
 
-  // fetch wallet data on mount and every 20 seconds
   React.useEffect(() => {
-    getWalletData();
-    const intervalId = setInterval(() => {
+    if (debounceId.current) {
+      clearTimeout(debounceId.current);
+    }
+
+    debounceId.current = setTimeout(() => {
       getWalletData();
-    }, 20000);
+
+      const id = setInterval(() => {
+        getWalletData().catch(console.error);
+      }, 20_000);
+
+      return () => {
+        clearInterval(id);
+        clearTimeout(debounceId.current!);
+      };
+    }, 1000);
 
     return () => {
-      clearInterval(intervalId);
+      if (debounceId.current) {
+        clearTimeout(debounceId.current);
+      }
     };
-  }, [getWalletData]);
+  }, []);
 
   return (
     <>
