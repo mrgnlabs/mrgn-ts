@@ -236,6 +236,7 @@ export const navigation: Array<NavGroup> = [
       { title: 'Introduction', href: '/introduction' }, // lending and borrowing, fees and yield, account health
       { title: 'Protocol Design', href: '/protocol-design' }, // oracle usage, interest rate mechanism, risk management
       { title: 'Listing Criteria', href: '/listing-criteria' },
+      { title: 'Use Cases', href: '/use-cases' }, // INCLUDE STALE ORACLE ISSUE
       { title: 'FAQs', href: '/faqs' }, // INCLUDE STALE ORACLE ISSUE
     ],
   },
