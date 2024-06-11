@@ -20,6 +20,7 @@ async function fetchAssets(
   nativeBalance: any = null
 ): Promise<{ items: any[]; nativeBalance: any }> {
   const url = `https://mainnet.helius-rpc.com/?api-key=${process.env.HELIUS_API_KEY!}`;
+
   const response = await fetch(url, {
     method: "POST",
     headers: {
@@ -40,6 +41,10 @@ async function fetchAssets(
       },
     }),
   });
+
+  if (!response.ok) {
+    throw new Error("Network response was not ok");
+  }
 
   const { result } = await response.json();
   allItems.push(...result.items);
@@ -66,39 +71,44 @@ export default async function handler(req: NextApiRequest<WalletRequest>, res: N
   const ownerAddress = ownerAddressParam;
   const tokenList = tokenListParam ? Boolean(tokenListParam) : false;
 
-  const { items, nativeBalance } = await fetchAssets(ownerAddress);
+  try {
+    const { items, nativeBalance } = await fetchAssets(ownerAddress);
 
-  const tokens: Token[] = items
-    .filter((item: any) => item.token_info?.price_info?.total_price)
-    .map((item: any) => {
-      return {
-        name: item.content.metadata.name,
-        symbol: item.content.metadata.symbol,
-        price: item.token_info.price_info.price_per_token,
-        total: item.token_info.price_info.total_price,
-      };
-    })
-    .sort((a: any, b: any) => b.total - a.total);
+    const tokens: Token[] = items
+      .filter((item: any) => item.token_info?.price_info?.total_price)
+      .map((item: any) => {
+        return {
+          name: item.content.metadata.name,
+          symbol: item.content.metadata.symbol,
+          price: item.token_info.price_info.price_per_token,
+          total: item.token_info.price_info.total_price,
+        };
+      })
+      .sort((a: any, b: any) => b.total - a.total);
 
-  tokens.unshift({
-    name: "SOL",
-    symbol: "SOL",
-    price: nativeBalance.price_per_sol,
-    total: nativeBalance.total_price,
-  });
+    tokens.unshift({
+      name: "SOL",
+      symbol: "SOL",
+      price: nativeBalance.price_per_sol,
+      total: nativeBalance.total_price,
+    });
 
-  const totalValue = tokens.reduce((acc: number, item: Token) => acc + item.total, 0);
+    const totalValue = tokens.reduce((acc: number, item: Token) => acc + item.total, 0);
 
-  const data: {
-    totalValue: number;
-    tokens?: Token[];
-  } = {
-    totalValue,
-  };
+    const data: {
+      totalValue: number;
+      tokens?: Token[];
+    } = {
+      totalValue,
+    };
 
-  if (tokenList) {
-    data.tokens = tokens;
+    if (tokenList) {
+      data.tokens = tokens;
+    }
+
+    return res.status(STATUS_OK).json(data);
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ error: "Error fetching data" });
   }
-
-  return res.status(STATUS_OK).json(data);
 }
