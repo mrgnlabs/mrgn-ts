@@ -1,7 +1,7 @@
 import { AccountMeta, PublicKey, SYSVAR_INSTRUCTIONS_PUBKEY, SystemProgram } from "@solana/web3.js";
 import BN from "bn.js";
 import { MarginfiProgram } from "./types";
-import { BankConfigOptRaw } from "./models/bank";
+import { BankConfigOptRaw, BankConfigCompactRaw } from "./models/bank";
 
 async function makeInitMarginfiAccountIx(
   mfProgram: MarginfiProgram,
@@ -319,6 +319,39 @@ async function makeGroupInitIx(
       marginfiGroup: accounts.marginfiGroupPk,
       admin: accounts.adminPk,
       systemProgram: SystemProgram.programId,
+    })
+    .instruction();
+}
+
+async function makeLendindingPoolAddBankIx(
+  mfProgram: MarginfiProgram,
+  accounts: {
+    marginfiGroupPk: PublicKey;
+    adminPk: PublicKey;
+    feePayerPk: PublicKey;
+    bankMintPk: PublicKey;
+    bankPk: PublicKey;
+    liquidityVaultAuthorityPk: PublicKey;
+    liquidityVaultPk: PublicKey;
+    insuranceVaultAuthorityPk: PublicKey;
+    insuranceVaultPk: PublicKey;
+    feeVaultAuthorityPk: PublicKey;
+    feeVaultPk: PublicKey;
+    rentPk: PublicKey;
+    tokenProgramPk: PublicKey;
+    systemProgramPk: PublicKey;
+  },
+  args: {
+    bankConfig: BankConfigCompactRaw;
+    seed: BN;
+  }
+) {
+  return mfProgram.methods
+    .lendingPoolAddBankWithSeed(args.bankConfig, args.seed)
+    .accounts({
+      marginfiGroup: accounts.marginfiGroupPk,
+      admin: accounts.adminPk,
+      bank: accounts.bankPk,
     })
     .instruction();
 }

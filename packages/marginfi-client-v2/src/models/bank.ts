@@ -70,6 +70,12 @@ interface BankConfigRaw {
   oracleKeys: PublicKey[];
 }
 
+interface BankConfigCompactRaw extends Omit<BankConfigRaw, "oracleKeys"> {
+  oracleKey: PublicKey;
+  auto_padding_0: number;
+  auto_padding_1: number;
+}
+
 type RiskTierRaw = { collateral: {} } | { isolated: {} };
 
 type OperationalStateRaw = number;
@@ -89,7 +95,7 @@ interface InterestRateConfigRaw {
 
 type OracleSetupRaw = number;
 
-export type { BankRaw, BankConfigRaw, RiskTierRaw, InterestRateConfigRaw, OracleSetupRaw };
+export type { BankRaw, BankConfigRaw, BankConfigCompactRaw, RiskTierRaw, InterestRateConfigRaw, OracleSetupRaw };
 
 // ----------------------------------------------------------------------------
 // Client types
@@ -370,7 +376,7 @@ class Bank {
   getAssetWeight(
     marginRequirementType: MarginRequirementType,
     oraclePrice: OraclePrice,
-    ignoreSoftLimits: boolean = false,
+    ignoreSoftLimits: boolean = false
   ): BigNumber {
     switch (marginRequirementType) {
       case MarginRequirementType.Initial:
@@ -438,7 +444,7 @@ class Bank {
     const utilizationRate = this.computeUtilizationRate();
 
     const lendingRate = baseInterestRate.times(utilizationRate);
-    const borrowingRate = baseInterestRate.times(new BigNumber(1).plus(rateFee)).plus(fixedFee)
+    const borrowingRate = baseInterestRate.times(new BigNumber(1).plus(rateFee)).plus(fixedFee);
 
     return { lendingRate, borrowingRate };
   }
@@ -819,13 +825,10 @@ function serializeOracleSetup(oracleSetup: OracleSetup): { none: {} } | { pythEm
   }
 }
 
-function computeMaxLeverage(
-  depositBank: Bank,
-  borrowBank: Bank,
-): { maxLeverage: number, ltv: number } {
+function computeMaxLeverage(depositBank: Bank, borrowBank: Bank): { maxLeverage: number; ltv: number } {
   const assetWeightInit = depositBank.config.assetWeightInit;
   const liabilityWeightInit = borrowBank.config.liabilityWeightInit;
-  
+
   const ltv = assetWeightInit.div(liabilityWeightInit).toNumber();
   const maxLeverage = 1 / (1 - ltv);
 

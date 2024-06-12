@@ -552,8 +552,6 @@ class MarginfiClient {
   async createMarginfiGroup(opts?: TransactionOptions): Promise<PublicKey> {
     const dbg = require("debug")("mfi:client");
 
-    console.log("Creating marginfi group");
-
     const accountKeypair = Keypair.generate();
 
     const ixs = await this.makeCreateMarginfiGroupIx(accountKeypair.publicKey);
@@ -591,8 +589,6 @@ class MarginfiClient {
 
     try {
       const getLatestBlockhashAndContext = await connection.getLatestBlockhashAndContext();
-
-      console.log("getLatestBlockhashAndContext", getLatestBlockhashAndContext);
 
       minContextSlot = getLatestBlockhashAndContext.context.slot - 4;
       blockhash = getLatestBlockhashAndContext.value.blockhash;
