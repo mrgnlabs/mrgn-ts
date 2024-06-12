@@ -21,11 +21,14 @@ async function main() {
 
   // Inputs
 
-  const depositToken = "LST"
-  const borrowToken = "SOL"
-  const targetLeverage = 2.06;
-  const principalAmountUi = 2.22;
+  const depositToken = "USDC"
+  const borrowToken = "USDT"
+  const targetLeverage = 2;
+  const principalAmountUi = 2;
   const maxSlippage = 0.01;
+
+  console.log("targetLeverage:", targetLeverage);
+  console.log("principalAmountUi:", principalAmountUi);
 
   const depositBank = client.getBankByTokenSymbol(depositToken);
   if (!depositBank) throw Error(`${depositToken} bank not found`);
@@ -41,6 +44,7 @@ async function main() {
 
   console.log("maxLeverage:", maxLeverage);
   console.log("ltv:", ltv);
+  console.log("max slippage:", maxSlippage);
 
   // Action
 
@@ -49,7 +53,7 @@ async function main() {
   console.log("principalBufferAmountUi:", principalBufferAmountUi);
   console.log("adjustedPrincipalAmountUi:", adjustedPrincipalAmountUi);
 
-  const { borrowAmount, depositAmount } = marginfiAccount.computeLoopingParams(
+  const { borrowAmount, totalDepositAmount } = marginfiAccount.computeLoopingParams(
     adjustedPrincipalAmountUi,
     targetLeverage,
     depositBank.address,
@@ -60,7 +64,7 @@ async function main() {
 
   console.log("targetLeverage:", targetLeverage);
   console.log("borrowAmount:", borrowAmount.toNumber());
-  console.log("depositAmount:", depositAmount.toNumber());
+  console.log("totalDepositAmount:", totalDepositAmount.toNumber());
 
   const quoteParams = {
     amount: borrowAmountNative,
@@ -95,20 +99,9 @@ async function main() {
   );
 
   const actualDepositAmountUi = minSwapAmountOutUi + principalAmountUi;
+  console.log("actualDepositAmountUi:", actualDepositAmountUi);
 
-  // const { marginfiAccount: simMfiAccount } = await marginfiAccount.simulateLoop(
-  //   actualDepositAmountUi,
-  //   borrowAmount,
-  //   depositBank.address,
-  //   borrowBank.address,
-  //   [swapIx],
-  //   swapLUTs,
-  // );
-
-  // console.log("pre:", marginfiAccount.describe());
-  // console.log("sim:", simMfiAccount.describe());
-
-  const sig = await marginfiAccount.loop(
+  const { marginfiAccount: simMfiAccount } = await marginfiAccount.simulateLoop(
     actualDepositAmountUi,
     borrowAmount,
     depositBank.address,
@@ -117,7 +110,19 @@ async function main() {
     swapLUTs,
   );
 
-  console.log("sig:", sig);
+  console.log("pre:", marginfiAccount.describe());
+  console.log("sim:", simMfiAccount.describe());
+
+  // const sig = await marginfiAccount.loop(
+  //   actualDepositAmountUi,
+  //   borrowAmount,
+  //   depositBank.address,
+  //   borrowBank.address,
+  //   [swapIx],
+  //   swapLUTs,
+  // );
+
+  // console.log("sig:", sig);
 }
 
 main().catch((e) => console.log(e));

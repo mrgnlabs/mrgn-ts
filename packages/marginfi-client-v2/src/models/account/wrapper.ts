@@ -259,7 +259,7 @@ class MarginfiAccountWrapper {
     targetLeverage: number,
     depositBankAddress: PublicKey,
     borrowBankAddress: PublicKey,
-  ): { borrowAmount: BigNumber; depositAmount: BigNumber } {
+  ): { borrowAmount: BigNumber; totalDepositAmount: BigNumber } {
     const depositBank = this.client.banks.get(depositBankAddress.toBase58());
     if (!depositBank) throw Error(`Bank ${depositBankAddress.toBase58()} not found`);
     const depositPriceInfo = this.client.oraclePrices.get(depositBankAddress.toBase58());
