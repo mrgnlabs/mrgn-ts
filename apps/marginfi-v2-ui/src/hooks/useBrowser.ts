@@ -18,9 +18,14 @@ export const useBrowser = () => {
   const [browser, setBrowser] = React.useState<BrowserTypes>();
   const wallets = useAvailableWallets();
   const { isAndroid, isIOS, isPWA } = useOs();
-  const isInAppPhantom = localStorage.getItem("walletName")?.includes("Phantom") || window?.phantom?.solana?.isPhantom;
-  //const isInAppSolflare = localStorage.getItem("walletName")?.includes("Solflare");
-  const isInAppBackpack = window?.backpack?.isBackpack;
+  const isInAppPhantom = React.useMemo(
+    () =>
+      (localStorage.getItem("walletName")?.includes("Solflare") || window?.phantom?.solana?.isPhantom) &&
+      (isIOS || isAndroid),
+    [isAndroid, isIOS]
+  );
+
+  const isInAppBackpack = React.useMemo(() => window?.backpack?.isBackpack && (isIOS || isAndroid), [isAndroid, isIOS]);
 
   const isInAppSolflare = React.useMemo(
     () =>
@@ -31,7 +36,6 @@ export const useBrowser = () => {
 
   React.useEffect(() => {
     const userAgent = navigator.userAgent;
-
     if (isPWA) {
       setBrowser("PWA");
     } else if (isInAppPhantom && (isIOS || isAndroid)) {
