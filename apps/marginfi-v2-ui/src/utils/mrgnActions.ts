@@ -463,6 +463,7 @@ export async function loopingBuilder({
   const swapLUTs: AddressLookupTableAccount[] = [];
   swapLUTs.push(...(await getAdressLookupTableAccounts(options.connection, addressLookupTableAddresses)));
 
+  console.log({ borrowAmount: options.borrowAmount, depositAmount });
   const { transaction, addressLookupTableAccounts } = await marginfiAccount.makeLoopTx(
     depositAmount,
     options.borrowAmount,
