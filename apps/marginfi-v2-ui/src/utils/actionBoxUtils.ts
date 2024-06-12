@@ -521,7 +521,6 @@ export async function getSwapQuoteWithRetry(quoteParams: QuoteGetRequest, maxRet
         throw new Error(`Failed to get to quote after ${maxRetries} attempts`);
       }
       await new Promise((resolve) => setTimeout(resolve, timeout));
-      continue;
     }
   }
 }
