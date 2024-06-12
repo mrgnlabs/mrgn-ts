@@ -72,10 +72,17 @@ export const Header = forwardRef<
       {/* <Search /> */}
       <div className="flex items-center gap-5 lg:hidden">
         <MobileNavigation />
-        <Link href="/" aria-label="Home">
-          <Logo className="h-6" />
+        <Link href="/" aria-label="Home" className="flex items-center gap-4 text-3xl">
+          <Logo size={32} wordmark={false} />
+          <motion.span
+            // className={cn(logoHoverState && "transition-opacity delay-200")}
+            // style={{ opacity: logoHoverState ? 1 : wordmarkOpacity }}
+          >
+            marginfi
+          </motion.span>
         </Link>
       </div>
+      
       <div className="flex items-center gap-5">
         {/* <nav className="hidden md:block">
           <ul role="list" className="flex items-center gap-8">
