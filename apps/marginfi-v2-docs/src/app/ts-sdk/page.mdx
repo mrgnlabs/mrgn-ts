@@ -129,6 +129,17 @@ You’re now a mrgn mama! For more details on the marginfi SDK and use cases, re
 
 ## Classes {{ tag: '', label: '' }}
 
+### `MarginfiClient`
+
+The `MarginfiClient` instance is the entry point to interact with the marginfi protocol. You can setup your `MarginfiClient` like so:
+
+```javascript {{ title: 'Example' }}
+const connection = new Connection(CLUSTER_CONNECTION, "confirmed");
+const wallet = NodeWallet.local()
+const config = getConfig("dev");
+const client = await MarginfiClient.fetch(config, wallet, connection);
+```
+
 ### `Bank`
 
 The Bank class represents a bank account on the Marginfi protocol. It encapsulates all the properties and methods related to a specific bank, such as token details, vault addresses, share values, configuration settings, and computations for asset/liability quantities, interest rates, and remaining capacities. It serves as a central point for interacting with and managing a bank within the Marginfi ecosystem.
@@ -271,17 +282,6 @@ The Bank class represents a bank account on the Marginfi protocol. It encapsulat
 | `computeUtilizationRate`                       | None                                                                                       | `BigNumber`                                            | Computes the utilization rate of the bank.                                                |
 | `computeRemainingCapacity`                     | None                                                                                       | `{ depositCapacity: BigNumber; borrowCapacity: BigNumber }` | Computes the remaining deposit and borrow capacity of the bank.                           |
 | `describe`                                     | `oraclePrice: OraclePrice`                                                                 | `string`                                               | Returns a string describing the bank and its configuration based on the provided oracle price. |
-
-### `MarginfiClient`
-
-The `MarginfiClient` instance is the entry point to interact with the marginfi protocol. You can setup your `MarginfiClient` like so:
-
-```javascript {{ title: 'Example' }}
-const connection = new Connection(CLUSTER_CONNECTION, "confirmed");
-const wallet = NodeWallet.local()
-const config = getConfig("dev");
-const client = await MarginfiClient.fetch(config, wallet, connection);
-```
 
 ### `NodeWallet`
 
