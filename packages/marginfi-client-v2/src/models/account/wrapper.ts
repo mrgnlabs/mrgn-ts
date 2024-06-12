@@ -261,8 +261,13 @@ class MarginfiAccountWrapper {
     let microLamports: number = 1;
 
     if (priorityFeeUi) {
-      const priorityFeeMicroLamports = priorityFeeUi * LAMPORTS_PER_SOL * 1_000_000;
-      microLamports = Math.round(priorityFeeMicroLamports / limitCU);
+      // if priority fee is above 0.2 SOL discard it for safety reasons
+      const isAbsurdPriorityFee = priorityFeeUi > 0.2;
+
+      if (!isAbsurdPriorityFee) {
+        const priorityFeeMicroLamports = priorityFeeUi * LAMPORTS_PER_SOL * 1_000_000;
+        microLamports = Math.round(priorityFeeMicroLamports / limitCU);
+      }
     }
 
     priorityFeeIx.push(
