@@ -4,11 +4,19 @@ import { WalletName, WalletReadyState } from "@solana/wallet-adapter-base";
 
 import { useOs } from "~/hooks/useOs";
 
-type WalletPreset = "eth" | "sol" | "social";
+type WalletPreset = "eth" | "sol" | "social" | "pwa";
 
-const ETH_PRESET = ["Backpack", "Phantom", "WalletConnect", "MetaMask", "Ethereum Wallet", "Sign in with Google"];
+const ETH_PRESET = [
+  "Backpack",
+  "WalletConnect",
+  "Google via TipLink",
+  "MetaMask",
+  "Ethereum Wallet",
+  "Sign in with Google",
+];
 const SOL_PRESET = ["Backpack", "Phantom", "Solflare"];
-const SOCIAL_PRESET = ["Backpack", "Phantom", "Solflare"];
+const SOCIAL_PRESET = ["Backpack", "Phantom", "Solflare", "Google via TipLink"];
+const PWA_PRESET = ["Phantom", "Mobile Wallet Adapter", "Google via TipLink"];
 
 const BackpackWalletName = "Backpack" as WalletName<"Backpack">;
 
@@ -29,6 +37,9 @@ export function useAvailableWallets(preset?: WalletPreset): ExtendedWallet[] {
     if (preset === "eth") return ETH_PRESET;
     else if (preset === "sol") return SOL_PRESET;
     else if (preset === "social") return SOCIAL_PRESET;
+    else if (preset === "pwa") {
+      return PWA_PRESET;
+    }
   }, [preset]);
 
   const isMobile = React.useMemo(() => isAndroid || isIOS, [isAndroid, isIOS]);
@@ -88,42 +99,38 @@ export function useAvailableWallets(preset?: WalletPreset): ExtendedWallet[] {
     return newWallets;
   };
 
-  const updateWallets = React.useCallback(
-    (wallet: Wallet): ExtendedWallet => {
-      const adapterName = wallet.adapter.name;
-      let adapter: ExtendedWallet;
-      // if (adapterName === "Backpack") {
-      //   adapter = {
-      //     ...(isBackpackInstalled ? wallet : backpackAdapter),
-      //   };
-      // } else if (adapterName === "Phantom") {
-      //   adapter = {
-      //     ...(isPhantomInstalled ? wallet : phantomAdapter),
-      //   };
-      // } else if (adapterName === "Solflare") {
-      //   adapter = {
-      //     ...(isSolflareInstalled ? wallet : solflareAdapter),
-      //   };
-      // } else {
-      adapter = {
-        ...wallet,
-      };
-      // }
+  const updateWallets = React.useCallback((wallet: Wallet): ExtendedWallet => {
+    const adapterName = wallet.adapter.name;
+    let adapter: ExtendedWallet;
+    // if (adapterName === "Backpack") {
+    //   adapter = {
+    //     ...(isBackpackInstalled ? wallet : backpackAdapter),
+    //   };
+    // } else if (adapterName === "Phantom") {
+    //   adapter = {
+    //     ...(isPhantomInstalled ? wallet : phantomAdapter),
+    //   };
+    // } else if (adapterName === "Solflare") {
+    //   adapter = {
+    //     ...(isSolflareInstalled ? wallet : solflareAdapter),
+    //   };
+    // } else {
+    adapter = {
+      ...wallet,
+    };
+    // }
 
-      return {
-        ...adapter,
-        deeplink: walletDeepLinkMap[wallet.adapter.name],
-        installLink: walletInstallMap[wallet.adapter.name],
-      };
-    },
-    [isBackpackInstalled, isPhantomInstalled, isSolflareInstalled]
-  );
+    return {
+      ...adapter,
+      deeplink: walletDeepLinkMap[wallet.adapter.name],
+      installLink: walletInstallMap[wallet.adapter.name],
+    };
+  }, []);
 
   const filteredWallets = React.useMemo(() => {
     let formattedWallets: ExtendedWallet[] = wallets;
-    if (selectedPreset) formattedWallets = formattedWallets.filter(presetFilter);
 
-    //formattedWallets = formattedWallets.filter(installedFilter);
+    if (selectedPreset) formattedWallets = formattedWallets.filter(presetFilter);
 
     formattedWallets = addAbsentWallets(formattedWallets);
 
@@ -132,17 +139,7 @@ export function useAvailableWallets(preset?: WalletPreset): ExtendedWallet[] {
     formattedWallets = formattedWallets.map(updateWallets);
 
     return formattedWallets;
-  }, [
-    backpackSort,
-    installedFilter,
-    preset,
-    presetFilter,
-    selectedPreset,
-    wallets,
-    isMobile,
-    isBackpackInstalled,
-    isPhantomInstalled,
-  ]);
+  }, [wallets, selectedPreset, presetFilter, backpackSort, updateWallets]);
 
   return filteredWallets;
 }
