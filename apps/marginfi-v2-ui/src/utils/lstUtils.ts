@@ -246,8 +246,12 @@ function makePriorityFeeIx(priorityFeeUi?: number): TransactionInstruction[] {
   let microLamports: number = 1;
 
   if (priorityFeeUi) {
-    const priorityFeeMicroLamports = priorityFeeUi * LAMPORTS_PER_SOL * 1_000_000;
-    microLamports = Math.round(priorityFeeMicroLamports / limitCU);
+    const isAbsurdPriorityFee = priorityFeeUi > 0.2;
+
+    if (!isAbsurdPriorityFee) {
+      const priorityFeeMicroLamports = priorityFeeUi * LAMPORTS_PER_SOL * 1_000_000;
+      microLamports = Math.round(priorityFeeMicroLamports / limitCU);
+    }
   }
 
   priorityFeeIx.push(
