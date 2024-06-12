@@ -507,7 +507,7 @@ function canBeLstStaked(lstQuoteMeta: QuoteResponseMeta | null): ActionMethod[] 
   return checks;
 }
 
-export async function getSwapQuoteWithRetry(quoteParams: QuoteGetRequest, maxRetries = 5, timeout = 1000) {
+export async function getSwapQuoteWithRetry(quoteParams: QuoteGetRequest, maxRetries = 5, timeout = 1500) {
   const jupiterQuoteApi = createJupiterApiClient();
   let attempt = 0;
   while (attempt < maxRetries) {
@@ -515,12 +515,13 @@ export async function getSwapQuoteWithRetry(quoteParams: QuoteGetRequest, maxRet
       const swapQuote = await jupiterQuoteApi.quoteGet(quoteParams);
       return swapQuote; // Success, return the result
     } catch (error) {
-      console.error(`Attempt ${attempt + 1} failed:`, error);
+      console.error(`Attempt ${attempt + 1} failed`);
       attempt++;
       if (attempt === maxRetries) {
         throw new Error(`Failed to get to quote after ${maxRetries} attempts`);
       }
       await new Promise((resolve) => setTimeout(resolve, timeout));
+      continue;
     }
   }
 }
@@ -528,7 +529,7 @@ export async function getSwapQuoteWithRetry(quoteParams: QuoteGetRequest, maxRet
 export async function verifyJupTxSizeLooping(
   marginfiAccount: MarginfiAccountWrapper,
   bank: ExtendedBankInfo,
-  repayBank: ExtendedBankInfo,
+  loopingBank: ExtendedBankInfo,
   depositAmount: number,
   borrowAmount: BigNumber,
   quoteResponse: QuoteResponse,
@@ -542,7 +543,7 @@ export async function verifyJupTxSizeLooping(
       options: {
         loopingQuote: quoteResponse,
         borrowAmount,
-        loopingBank: repayBank,
+        loopingBank,
         connection,
         loopingTxn: null,
       },
@@ -594,6 +595,7 @@ const checkTxSize = (builder: {
 
   if (totalSize > 1232 || totalKeys >= 64) {
     // too big
+    console.log(`tx size: ${totalSize}, tx keys: ${totalKeys}`);
   } else {
     return builder.txn;
   }

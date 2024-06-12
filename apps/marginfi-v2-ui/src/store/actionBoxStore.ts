@@ -183,22 +183,24 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
 
   setLeverage(leverage, marginfiAccount, connection) {
     const maxLeverage = get().maxLeverage;
+    const prevLeverage = get().leverage;
 
     let newLeverage = leverage;
 
-    if (maxLeverage) {
+    const isLeverageChanged = prevLeverage !== newLeverage;
+
+    if (maxLeverage && isLeverageChanged) {
       if (leverage > maxLeverage) {
         newLeverage = maxLeverage;
-        set({ leverage: maxLeverage });
-      } else {
-        set({ leverage: leverage });
       }
+
+      set({ leverage: newLeverage });
 
       const { selectedBank, selectedRepayBank, amountRaw, slippageBps, setLooping } = get();
       const strippedAmount = amountRaw.replace(/,/g, "");
       const amount = isNaN(Number.parseFloat(strippedAmount)) ? 0 : Number.parseFloat(strippedAmount);
 
-      if (selectedBank && selectedRepayBank && marginfiAccount) {
+      if (selectedBank && selectedRepayBank && marginfiAccount && connection) {
         setLooping(marginfiAccount, selectedBank, selectedRepayBank, amount, slippageBps, connection, newLeverage);
       }
     }
@@ -226,26 +228,23 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
     // if (!maxAmount) {
     //   set({ amountRaw });
     // } else {
-    set({ amountRaw });
-    const strippedAmount = amountRaw.replace(/,/g, "");
-    const amount = isNaN(Number.parseFloat(strippedAmount)) ? 0 : Number.parseFloat(strippedAmount);
-    const numberFormater = new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 });
+    const prevAmountRaw = get().amountRaw;
+    const isAmountChanged = amountRaw !== prevAmountRaw;
 
-    const selectedBank = get().selectedBank;
-    const selectedRepayBank = get().selectedRepayBank;
-    const slippageBps = get().slippageBps;
+    if (isAmountChanged) {
+      set({ amountRaw });
+      const strippedAmount = amountRaw.replace(/,/g, "");
+      const amount = isNaN(Number.parseFloat(strippedAmount)) ? 0 : Number.parseFloat(strippedAmount);
+      const numberFormater = new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 });
 
-    // if (amount && amount > maxAmount) {
-    //   set({ amountRaw: numberFormater.format(maxAmount) });
-    // } else {
-    //   set({ amountRaw: numberFormater.format(amount) });
-    // }
+      const selectedBank = get().selectedBank;
+      const selectedRepayBank = get().selectedRepayBank;
+      const slippageBps = get().slippageBps;
 
-    if (selectedBank && selectedRepayBank) {
-      const setLooping = debounceFn(get().setLooping, 500);
-      setLooping(marginfiAccount, selectedBank, selectedRepayBank, amount, slippageBps, connection);
+      if (selectedBank && selectedRepayBank && amount !== 0) {
+        get().setLooping(marginfiAccount, selectedBank, selectedRepayBank, amount, slippageBps, connection);
+      }
     }
-    // }
   },
 
   setRepayAmountRaw(marginfiAccount, amountRaw, connection) {
@@ -258,7 +257,7 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
 
     set({ repayAmountRaw: amountRaw });
 
-    if (selectedBank && selectedRepayBank) {
+    if (selectedBank && selectedRepayBank && connection) {
       const setCollat = debounceFn(get().setRepayCollateral, 500);
       setCollat(marginfiAccount, selectedBank, selectedRepayBank, amount, slippageBps, connection);
     }
@@ -275,11 +274,13 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
   ) {
     const leverage = selectedLeverage ?? get().leverage;
 
-    if (leverage === 0) {
+    if (leverage === 0 || amount === 0) {
       return;
     }
 
     set({ isLoading: true });
+
+    console.log("entering calc");
 
     const loopingObject = await calculateLooping(
       marginfiAccount,
@@ -503,15 +504,18 @@ async function calculateLooping(
   loopBank: ExtendedBankInfo, // borrow
   targetLeverage: number,
   amount: number,
-  slippageBpsa: number,
+  slippageBps: number,
   connection: Connection
 ): Promise<{ loopingTxn: VersionedTransaction; quote: QuoteResponse; amount: BigNumber } | null> {
-  const slippageBps = 0.01 * 10000;
-  console.log({ amount, targetLeverage, slippageBps: slippageBps / 10000 });
-  const principalBufferAmountUi = amount * targetLeverage * 0.01; //(slippageBps / 10000);
+  //const slippageBps = 0.01 * 10000;
+
+  console.log("bank A: " + bank.meta.tokenSymbol);
+  console.log("bank B: " + loopBank.meta.tokenSymbol);
+  console.log("leverage: " + targetLeverage);
+  console.log("amount " + amount);
+
+  const principalBufferAmountUi = amount * targetLeverage * (slippageBps / 10000);
   const adjustedPrincipalAmountUi = amount - principalBufferAmountUi;
-  console.log("principalBufferAmountUi:", principalBufferAmountUi);
-  console.log("adjustedPrincipalAmountUi:", adjustedPrincipalAmountUi);
 
   const { borrowAmount, depositAmount } = marginfiAccount.computeLoopingParams(
     adjustedPrincipalAmountUi,
@@ -520,6 +524,8 @@ async function calculateLooping(
     loopBank.address
   );
 
+  console.log({ borrowAmount: borrowAmount.toString(), depositAmount: depositAmount.toString() });
+
   const borrowAmountNative = uiToNative(borrowAmount, loopBank.info.state.mintDecimals).toNumber();
 
   const maxLoopAmount = bank.isActive ? bank?.position.amount : 0;
@@ -527,6 +533,8 @@ async function calculateLooping(
   const maxAccountsArr = [undefined, 50, 40, 30];
 
   let firstQuote;
+
+  console.log("entering loop");
 
   for (const maxAccounts of maxAccountsArr) {
     const quoteParams = {
@@ -538,6 +546,7 @@ async function calculateLooping(
       swapMode: "ExactIn",
     } as QuoteGetRequest;
     try {
+      console.log("trying " + maxAccounts);
       const swapQuote = await getSwapQuoteWithRetry(quoteParams);
 
       if (!maxAccounts) {
@@ -547,6 +556,9 @@ async function calculateLooping(
       if (swapQuote) {
         const minSwapAmountOutUi = nativeToUi(swapQuote.otherAmountThreshold, bank.info.state.mintDecimals);
         const actualDepositAmountUi = minSwapAmountOutUi + amount;
+
+        console.log({ actualDepositAmountUi });
+        console.log({ borrowAmount: borrowAmount.toString() });
 
         const txn = await verifyJupTxSizeLooping(
           marginfiAccount,

@@ -4,7 +4,6 @@ import Image from "next/image";
 
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { percentFormatter } from "@mrgnlabs/mrgn-common";
-import { useConnection } from "@solana/wallet-adapter-react";
 
 import { useActionBoxStore } from "~/hooks/useActionBoxStore";
 import { computeBankRateRaw, getMaintHealthColor, getTokenImageURL } from "~/utils";
@@ -12,6 +11,7 @@ import { computeBankRateRaw, getMaintHealthColor, getTokenImageURL } from "~/uti
 import { ActionBoxTokens } from "~/components/common/ActionBox/components";
 import { InputAction } from "~/components/common/ActionBox/components/ActionBoxInput/Components/InputAction";
 import { Input } from "~/components/ui/input";
+import { useConnection } from "~/hooks/useConnection";
 import { Slider } from "~/components/ui/slider";
 import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
 import { IconChevronDown } from "~/components/ui/icons";
@@ -19,6 +19,7 @@ import { cn } from "~/utils";
 
 import { LendingModes } from "~/types";
 import { useMrgnlendStore } from "~/store";
+import { useDebounce } from "~/hooks/useDebounce";
 
 type LoopInputProps = {
   walletAmount: number | undefined;
@@ -36,7 +37,6 @@ export const LoopInput = ({
   handleInputFocus,
 }: LoopInputProps) => {
   const amountInputRef = React.useRef<HTMLInputElement>(null);
-
   const [selectedAccount] = useMrgnlendStore((state) => [state.selectedAccount]);
   const { connection } = useConnection();
   const [
@@ -49,6 +49,7 @@ export const LoopInput = ({
     selectedBank,
     selectedRepayBank,
     amountRaw,
+    isLoading,
   ] = useActionBoxStore(isDialog)((state) => [
     state.setSelectedBank,
     state.setRepayBank,
@@ -59,9 +60,23 @@ export const LoopInput = ({
     state.selectedBank,
     state.selectedRepayBank,
     state.amountRaw,
+    state.isLoading,
   ]);
+  const [inputAmount, setInputAmount] = React.useState<string>("");
+  const [leverageAmount, setLeverageAmount] = React.useState<number>(0);
+  const debouncedAmount = useDebounce(inputAmount, 1000);
+  const debouncedLeverage = useDebounce(leverageAmount, 1000);
 
   const [netApyRaw, setNetApyRaw] = React.useState(0);
+
+  React.useEffect(() => handleInputChange(debouncedAmount), [debouncedAmount]);
+  React.useEffect(
+    () => setLeverage(debouncedLeverage, selectedAccount, connection),
+    [debouncedLeverage, selectedAccount, connection]
+  );
+
+  React.useEffect(() => setLeverageAmount(leverage), [leverage]);
+  React.useEffect(() => setInputAmount(amountRaw), [amountRaw]);
 
   const netApy = React.useMemo(() => {
     if (!selectedBank || !selectedRepayBank) return 0;
@@ -88,7 +103,7 @@ export const LoopInput = ({
               setTokenBank={(tokenBank) => {
                 if (selectedRepayBank) {
                   setRepayBank(null);
-                  setLeverage(0, selectedAccount, connection);
+                  setLeverageAmount(0);
                 }
                 setSelectedBank(tokenBank);
               }}
@@ -105,10 +120,11 @@ export const LoopInput = ({
               type="text"
               ref={amountInputRef}
               inputMode="decimal"
-              value={amountRaw}
-              onChange={(e) => handleInputChange(e.target.value)}
+              value={inputAmount}
+              onChange={(e) => setInputAmount(e.target.value)}
               onFocus={() => handleInputFocus(true)}
               onBlur={() => handleInputFocus(false)}
+              disabled={isLoading || !bothBanksSelected}
               placeholder="0"
               className="bg-transparent min-w-[130px] text-right outline-none focus-visible:outline-none focus-visible:ring-0 border-none text-base font-medium"
             />
@@ -149,9 +165,9 @@ export const LoopInput = ({
           <div className="flex items-center justify-between">
             <p className="text-sm font-normal text-muted-foreground">Loop ➰</p>
             <span className="flex items-center gap-1">
-              {leverage > 1 && (
+              {leverageAmount > 1 && (
                 <span className="text-muted-foreground text-sm">
-                  {leverage}x leverage{leverage === maxLeverage && " (max)"}
+                  {leverageAmount}x leverage{leverageAmount === maxLeverage && " (max)"}
                 </span>
               )}
             </span>
@@ -160,11 +176,11 @@ export const LoopInput = ({
             defaultValue={[1]}
             max={10}
             min={1}
-            step={1}
-            value={[leverage]}
+            step={0.01}
+            value={[leverageAmount]}
             onValueChange={(value) => {
               if (value[0] > maxLeverage) return;
-              setLeverage(value[0], selectedAccount, connection);
+              setLeverageAmount(value[0]);
             }}
             disabled={!bothBanksSelected}
           />
