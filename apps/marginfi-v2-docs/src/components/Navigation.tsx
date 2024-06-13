@@ -44,93 +44,38 @@ function TopLevelNavItem({
   )
 }
 
-// function NavLink({
-//   href,
-//   children,
-//   tag,
-//   active = false,
-//   isAnchorLink = false,
-// }: {
-//   href: string
-//   children: React.ReactNode
-//   tag?: string
-//   active?: boolean
-//   isAnchorLink?: boolean
-// }) {
-//   return (
-//     <Link
-//       href={href}
-//       aria-current={active ? 'page' : undefined}
-//       className={clsx(
-//         'flex justify-between gap-2 py-1 pr-3 text-sm transition',
-//         isAnchorLink ? 'pl-7' : 'pl-4',
-//         active
-//           ? 'text-zinc-900 dark:text-white'
-//           : 'text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white',
-//       )}
-//     >
-//       <span className="truncate">{children}</span>
-//       {tag && (
-//         <Tag variant="small" color="zinc">
-//           {tag}
-//         </Tag>
-//       )}
-//     </Link>
-//   )
-// }
-
 function NavLink({
   href,
   children,
   tag,
   active = false,
   isAnchorLink = false,
-  childLinks = [],
 }: {
   href: string
   children: React.ReactNode
   tag?: string
   active?: boolean
   isAnchorLink?: boolean
-  childLinks?: { href: string; title: string }[]
 }) {
   return (
-    <div>
-      <Link
-        href={href}
-        aria-current={active ? 'page' : undefined}
-        className={clsx(
-          'flex justify-between gap-2 py-1 pr-3 text-sm transition',
-          isAnchorLink ? 'pl-7' : 'pl-4',
-          active
-            ? 'text-zinc-900 dark:text-white'
-            : 'text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white',
-        )}
-      >
-        <span className="truncate">{children}</span>
-        {tag && (
-          <Tag variant="small" color="zinc">
-            {tag}
-          </Tag>
-        )}
-      </Link>
-      
-      {childLinks.length > 0 && (
-        <ul className="ml-8">
-          {childLinks.map((childLink) => (
-            <li key={childLink.href}>
-              <NavLink
-                href={childLink.href}
-                // active={childLink.href === pathname}
-                isAnchorLink
-              >
-                {childLink.title}
-              </NavLink>
-            </li>
-          ))}
-        </ul>
+    <Link
+      href={href}
+      aria-current={active ? 'page' : undefined}
+      className={clsx(
+        'flex justify-between gap-2 py-1 pr-3 text-sm transition',
+        isAnchorLink ? 'pl-7' : 'pl-4',
+        active
+          ? 'text-zinc-900 dark:text-white'
+          : 'text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white',
       )}
-    </div>
+    >
+      <span className="truncate">{children}</span>
+      {tag && (
+        <Tag variant="small" color="zinc">
+          {tag}
+        </Tag>
+      )}
+    </Link>
   )
 }
 
