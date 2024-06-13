@@ -45,6 +45,9 @@ export const LoopInput = ({
     setRepayBank,
     setSelectedStakingAccount,
     setLeverage,
+    setLooping,
+    actionTxn,
+
     loopingAmounts,
     leverage,
     maxLeverage,
@@ -57,6 +60,8 @@ export const LoopInput = ({
     state.setRepayBank,
     state.setSelectedStakingAccount,
     state.setLeverage,
+    state.setLooping,
+    state.actionTxn,
     state.loopingAmounts,
     state.leverage,
     state.maxLeverage,
@@ -72,15 +77,36 @@ export const LoopInput = ({
 
   const [netApyRaw, setNetApyRaw] = React.useState(0);
 
-  React.useEffect(() => handleInputChange(debouncedAmount), [debouncedAmount]);
+  React.useEffect(() => handleInputChange(debouncedAmount), [debouncedAmount, handleInputChange]);
   React.useEffect(
     () => setLeverage(debouncedLeverage, selectedAccount, connection),
-    [debouncedLeverage, selectedAccount, connection]
+    [debouncedLeverage, selectedAccount, connection, setLeverage]
   );
 
   React.useEffect(() => setLeverageAmount(leverage), [leverage]);
   React.useEffect(() => setInputAmount(amountRaw), [amountRaw]);
 
+  const refreshTxn = React.useCallback(() => {
+    if (selectedAccount) setLooping({ marginfiAccount: selectedAccount, connection: connection });
+  }, [connection, selectedAccount, setLooping]);
+
+  React.useEffect(() => {
+    const blockhash = actionTxn?.message.recentBlockhash;
+
+    const checkBlockhashValidity = () => {
+      if (blockhash) {
+        connection.isBlockhashValid(blockhash).then((value) => {
+          if (!value) refreshTxn();
+        });
+      }
+    };
+
+    checkBlockhashValidity();
+
+    const interval = setInterval(checkBlockhashValidity, 10000);
+
+    return () => clearInterval(interval);
+  }, [refreshTxn, actionTxn, connection]);
   const netApy = React.useMemo(() => {
     if (!selectedBank || !selectedRepayBank) return 0;
     const depositTokenApy = computeBankRateRaw(selectedBank, LendingModes.LEND);
@@ -180,19 +206,27 @@ export const LoopInput = ({
             <span className="flex items-center gap-1">
               {leverageAmount > 1 && (
                 <span className="text-muted-foreground text-sm">
-                  {leverageAmount}x leverage{leverageAmount === maxLeverage && " (max)"}
+                  {leverageAmount}x leverage
+                  {maxLeverage && (
+                    <button
+                      className="ml-1 text-sm cursor-pointer text-chartreuse border-b border-transparent transition hover:border-chartreuse"
+                      onClick={() => setLeverageAmount(Number(maxLeverage.toFixed(2)))}
+                    >
+                      MAX
+                    </button>
+                  )}
                 </span>
               )}
             </span>
           </div>
           <Slider
             defaultValue={[1]}
-            max={10}
+            max={maxLeverage}
             min={1}
             step={0.01}
             value={[leverageAmount]}
             onValueChange={(value) => {
-              if (value[0] > maxLeverage) return;
+              if (value[0] >= maxLeverage) return;
               setLeverageAmount(value[0]);
             }}
             disabled={!bothBanksSelected}

@@ -497,7 +497,9 @@ export async function looping({
     return;
   }
 
-  const multiStepToast = new MultiStepToastHandle("Repayment", [{ label: `Executing flashloan repayment` }]);
+  const multiStepToast = new MultiStepToastHandle("Looping", [
+    { label: `Executing looping ${bank.meta.tokenSymbol} with ${options.loopingBank.meta.tokenSymbol}` },
+  ]);
   multiStepToast.start();
 
   try {
@@ -515,7 +517,7 @@ export async function looping({
     const msg = extractErrorString(error);
     Sentry.captureException({ message: error });
     multiStepToast.setFailed(msg);
-    console.log(`Error while repaying: ${msg}`);
+    console.log(`Error while looping: ${msg}`);
     console.log(error);
     return;
   }
