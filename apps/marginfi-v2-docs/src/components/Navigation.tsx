@@ -44,38 +44,93 @@ function TopLevelNavItem({
   )
 }
 
+// function NavLink({
+//   href,
+//   children,
+//   tag,
+//   active = false,
+//   isAnchorLink = false,
+// }: {
+//   href: string
+//   children: React.ReactNode
+//   tag?: string
+//   active?: boolean
+//   isAnchorLink?: boolean
+// }) {
+//   return (
+//     <Link
+//       href={href}
+//       aria-current={active ? 'page' : undefined}
+//       className={clsx(
+//         'flex justify-between gap-2 py-1 pr-3 text-sm transition',
+//         isAnchorLink ? 'pl-7' : 'pl-4',
+//         active
+//           ? 'text-zinc-900 dark:text-white'
+//           : 'text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white',
+//       )}
+//     >
+//       <span className="truncate">{children}</span>
+//       {tag && (
+//         <Tag variant="small" color="zinc">
+//           {tag}
+//         </Tag>
+//       )}
+//     </Link>
+//   )
+// }
+
 function NavLink({
   href,
   children,
   tag,
   active = false,
   isAnchorLink = false,
+  childLinks = [],
 }: {
   href: string
   children: React.ReactNode
   tag?: string
   active?: boolean
   isAnchorLink?: boolean
+  childLinks?: { href: string; title: string }[]
 }) {
   return (
-    <Link
-      href={href}
-      aria-current={active ? 'page' : undefined}
-      className={clsx(
-        'flex justify-between gap-2 py-1 pr-3 text-sm transition',
-        isAnchorLink ? 'pl-7' : 'pl-4',
-        active
-          ? 'text-zinc-900 dark:text-white'
-          : 'text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white',
+    <div>
+      <Link
+        href={href}
+        aria-current={active ? 'page' : undefined}
+        className={clsx(
+          'flex justify-between gap-2 py-1 pr-3 text-sm transition',
+          isAnchorLink ? 'pl-7' : 'pl-4',
+          active
+            ? 'text-zinc-900 dark:text-white'
+            : 'text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white',
+        )}
+      >
+        <span className="truncate">{children}</span>
+        {tag && (
+          <Tag variant="small" color="zinc">
+            {tag}
+          </Tag>
+        )}
+      </Link>
+      
+      {childLinks.length > 0 && (
+        <ul className="ml-8">
+          {childLinks.map((childLink) => (
+            <li key={childLink.href}>
+              <NavLink
+                href={childLink.href}
+                // active={childLink.href === pathname}
+                isAnchorLink
+              >
+                {childLink.title}
+              </NavLink>
+            </li>
+          ))}
+        </ul>
       )}
-    >
-      <span className="truncate">{children}</span>
-      {tag && (
-        <Tag variant="small" color="zinc">
-          {tag}
-        </Tag>
-      )}
-    </Link>
+    </div>
   )
 }
 
@@ -170,8 +225,9 @@ function NavigationGroup({
         layout="position"
         className="text-xs font-semibold text-zinc-900 dark:text-white"
       >
-        {group.title}
+        {group.title} {/* Main Section */}
       </motion.h2>
+
       <div className="relative mt-3 pl-2">
         <AnimatePresence initial={!isInsideMobileNavigation}>
           {isActiveGroup && (
@@ -187,12 +243,14 @@ function NavigationGroup({
             <ActivePageMarker group={group} pathname={pathname} />
           )}
         </AnimatePresence>
+
         <ul role="list" className="border-l border-transparent">
           {group.links.map((link) => (
             <motion.li key={link.href} layout="position" className="relative">
               <NavLink href={link.href} active={link.href === pathname}>
-                {link.title}
+                {link.title} {/* Sub section */}
               </NavLink>
+
               <AnimatePresence mode="popLayout" initial={false}>
                 {link.href === pathname && sections.length > 0 && (
                   <motion.ul
@@ -214,13 +272,14 @@ function NavigationGroup({
                           tag={section.tag}
                           isAnchorLink
                         >
-                          {section.title}
+                          {section.title} {/* Topic within sub section */}
                         </NavLink>
                       </li>
                     ))}
                   </motion.ul>
                 )}
               </AnimatePresence>
+
             </motion.li>
           ))}
         </ul>
