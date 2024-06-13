@@ -45,7 +45,8 @@ export const ActionBoxSettings = ({
     () =>
       (actionMode === ActionType.Repay && repayMode === RepayType.RepayCollat) ||
       actionMode === ActionType.MintLST ||
-      actionMode === ActionType.UnstakeLST,
+      actionMode === ActionType.UnstakeLST ||
+      actionMode === ActionType.Loop,
     [actionMode, repayMode]
   );
 

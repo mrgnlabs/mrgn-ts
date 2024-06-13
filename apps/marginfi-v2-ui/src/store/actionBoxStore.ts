@@ -28,7 +28,10 @@ interface ActionBoxState {
   amountRaw: string;
   repayAmountRaw: string;
   maxAmountCollat: number;
-  loopingAmount: BigNumber;
+  loopingAmounts: {
+    actualDepositAmount: number;
+    borrowAmount: BigNumber;
+  };
 
   leverage: number;
   maxLeverage: number;
@@ -121,7 +124,10 @@ const initialState = {
 
   leverage: 0,
   maxLeverage: 0,
-  loopingAmount: new BigNumber(0),
+  loopingAmounts: {
+    actualDepositAmount: 0,
+    borrowAmount: new BigNumber(0),
+  },
 
   actionMode: ActionType.Deposit,
   repayMode: RepayType.RepayRaw,
@@ -296,7 +302,10 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
       set({
         actionTxn: loopingObject.loopingTxn,
         actionQuote: loopingObject.quote,
-        loopingAmount: loopingObject.amount,
+        loopingAmounts: {
+          borrowAmount: loopingObject.borrowAmount,
+          actualDepositAmount: loopingObject.actualDepositAmount,
+        },
       });
     } else {
       set({
@@ -506,7 +515,12 @@ async function calculateLooping(
   amount: number,
   slippageBps: number,
   connection: Connection
-): Promise<{ loopingTxn: VersionedTransaction; quote: QuoteResponse; amount: BigNumber } | null> {
+): Promise<{
+  loopingTxn: VersionedTransaction;
+  quote: QuoteResponse;
+  borrowAmount: BigNumber;
+  actualDepositAmount: number;
+} | null> {
   //const slippageBps = 0.01 * 10000;
 
   console.log("bank A: " + bank.meta.tokenSymbol);
@@ -577,7 +591,12 @@ async function calculateLooping(
           //   inputMint: repayBank.info.state.mint.toBase58(),
           //   outputMint: bank.info.state.mint.toBase58(),
           // });
-          return { loopingTxn: txn, quote: swapQuote, amount: borrowAmount };
+          return {
+            loopingTxn: txn,
+            quote: swapQuote,
+            borrowAmount: borrowAmount,
+            actualDepositAmount: actualDepositAmountUi,
+          };
         }
       } else {
         throw new Error("Swap quote failed");
