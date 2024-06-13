@@ -96,6 +96,15 @@ export const Navbar: FC = () => {
               </Link>
 
               <Link
+                href={"/looper"}
+                className={
+                  router.pathname === "/looper" ? "text-primary hover-underline-static" : "hover-underline-animation"
+                }
+              >
+                looper
+              </Link>
+
+              <Link
                 href={"/portfolio"}
                 className={`${
                   router.pathname === "/portfolio" ? "text-primary hover-underline-static" : "hover-underline-animation"
