@@ -170,7 +170,7 @@ export const InputAction = ({ maxAmount, walletAmount, isDialog, onSetAmountRaw 
               <strong>Leveraged deposit:</strong>
 
               <div className="flex space-x-1.5 items-center">{`${
-                loopingAmounts?.actualDepositAmount.toFixed(4) ?? "-"
+                Number(loopingAmounts?.actualDepositAmount.toFixed(4)) ?? "-"
               } ${selectedBank.meta.tokenSymbol}`}</div>
             </li>
           )}

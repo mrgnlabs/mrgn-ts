@@ -206,7 +206,7 @@ export const LoopInput = ({
           </div>
           <Slider
             defaultValue={[1]}
-            max={maxLeverage}
+            max={maxLeverage === 0 ? 1 : maxLeverage}
             min={1}
             step={0.01}
             value={[leverageAmount]}
@@ -219,19 +219,16 @@ export const LoopInput = ({
           <div className="flex items-center justify-between">
             <p className="text-sm font-normal text-muted-foreground">{leverageAmount.toFixed(2)}x leverage</p>
             <span className="flex items-center gap-1">
-              {maxLeverage && (
-                <span className="text-muted-foreground text-sm">
-                  {maxLeverage.toFixed(2)}x
-                  {maxLeverage && (
-                    <button
-                      className="ml-1 text-sm cursor-pointer text-chartreuse border-b border-transparent transition hover:border-chartreuse"
-                      onClick={() => setLeverageAmount(Number(maxLeverage.toFixed(2)))}
-                    >
-                      MAX
-                    </button>
-                  )}
-                </span>
-              )}
+              <span className="text-muted-foreground text-sm">
+                {maxLeverage.toFixed(2)}x
+                <button
+                  disabled={!!!maxLeverage}
+                  className="ml-1 text-sm cursor-pointer text-chartreuse border-b border-transparent transition hover:border-chartreuse"
+                  onClick={() => setLeverageAmount(Number(maxLeverage.toFixed(2)))}
+                >
+                  MAX
+                </button>
+              </span>
             </span>
           </div>
         </div>

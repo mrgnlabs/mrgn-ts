@@ -460,7 +460,7 @@ export const ActionBox = ({
       if (txnSig) {
         setIsActionComplete(true);
         setPreviousTxn({
-          type: ActionType.MintLST,
+          type: ActionType.Loop,
           bank: selectedBank as ActiveBankInfo,
           amount: amount,
           lstQuote: lstQuoteMeta || undefined,
