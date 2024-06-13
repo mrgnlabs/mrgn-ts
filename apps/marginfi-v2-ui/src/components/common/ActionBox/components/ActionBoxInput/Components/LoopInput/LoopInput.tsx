@@ -1,5 +1,6 @@
 import React from "react";
 
+import BigNumber from "bignumber.js";
 import Image from "next/image";
 
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
@@ -44,6 +45,7 @@ export const LoopInput = ({
     setRepayBank,
     setSelectedStakingAccount,
     setLeverage,
+    loopingAmounts,
     leverage,
     maxLeverage,
     selectedBank,
@@ -55,6 +57,7 @@ export const LoopInput = ({
     state.setRepayBank,
     state.setSelectedStakingAccount,
     state.setLeverage,
+    state.loopingAmounts,
     state.leverage,
     state.maxLeverage,
     state.selectedBank,
@@ -155,6 +158,16 @@ export const LoopInput = ({
                 setLoopBank={(account) => {
                   setRepayBank(account);
                 }}
+              />
+            </div>
+            <div className="flex-auto">
+              <Input
+                type="text"
+                inputMode="decimal"
+                disabled={true}
+                value={loopingAmounts.borrowAmount.decimalPlaces(4, BigNumber.ROUND_DOWN).toString()}
+                placeholder="0"
+                className="bg-transparent min-w-[130px] text-right outline-none focus-visible:outline-none focus-visible:ring-0 border-none text-base font-medium"
               />
             </div>
           </div>
