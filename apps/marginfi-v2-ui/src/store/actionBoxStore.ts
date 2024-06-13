@@ -517,7 +517,7 @@ async function calculateLooping(
   const principalBufferAmountUi = amount * targetLeverage * (slippageBps / 10000);
   const adjustedPrincipalAmountUi = amount - principalBufferAmountUi;
 
-  const { borrowAmount, depositAmount } = marginfiAccount.computeLoopingParams(
+  const { borrowAmount, totalDepositAmount: depositAmount } = marginfiAccount.computeLoopingParams(
     adjustedPrincipalAmountUi,
     targetLeverage,
     bank.address,
