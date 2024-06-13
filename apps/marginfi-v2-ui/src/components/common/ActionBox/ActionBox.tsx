@@ -81,7 +81,7 @@ export const ActionBox = ({
   const [
     slippageBps,
     amountRaw,
-    loopingAmount,
+    loopingAmounts,
     repayAmountRaw,
     maxAmountCollat,
     actionMode,
@@ -104,7 +104,7 @@ export const ActionBox = ({
   ] = useActionBoxStore(isDialog)((state) => [
     state.slippageBps,
     state.amountRaw,
-    state.loopingAmount,
+    state.loopingAmounts,
     state.repayAmountRaw,
     state.maxAmountCollat,
     state.actionMode,
@@ -437,12 +437,11 @@ export const ActionBox = ({
         walletContextState,
       } as MarginfiActionParams;
 
-      console.log({ actionQuote, loopingAmount, selectedRepayBank, connection, wallet });
-      if (actionQuote && loopingAmount && selectedRepayBank && connection && wallet) {
+      if (actionQuote && loopingAmounts.borrowAmount && selectedRepayBank && connection && wallet) {
         params.loopingOptions = {
           loopingQuote: actionQuote,
           loopingTxn: actionTxn,
-          borrowAmount: loopingAmount,
+          borrowAmount: loopingAmounts.borrowAmount,
           loopingBank: selectedRepayBank,
           connection,
         };

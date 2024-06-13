@@ -17,16 +17,25 @@ type props = {
 };
 
 export const InputAction = ({ maxAmount, walletAmount, isDialog, onSetAmountRaw }: props) => {
-  const [amountRaw, repayAmountRaw, actionMode, selectedBank, selectedRepayBank, selectedStakingAccount, repayMode] =
-    useActionBoxStore(isDialog)((state) => [
-      state.amountRaw,
-      state.repayAmountRaw,
-      state.actionMode,
-      state.selectedBank,
-      state.selectedRepayBank,
-      state.selectedStakingAccount,
-      state.repayMode,
-    ]);
+  const [
+    amountRaw,
+    repayAmountRaw,
+    actionMode,
+    selectedBank,
+    selectedRepayBank,
+    selectedStakingAccount,
+    repayMode,
+    loopingAmounts,
+  ] = useActionBoxStore(isDialog)((state) => [
+    state.amountRaw,
+    state.repayAmountRaw,
+    state.actionMode,
+    state.selectedBank,
+    state.selectedRepayBank,
+    state.selectedStakingAccount,
+    state.repayMode,
+    state.loopingAmounts,
+  ]);
 
   const numberFormater = React.useMemo(() => new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 }), []);
 
@@ -124,6 +133,14 @@ export const InputAction = ({ maxAmount, walletAmount, isDialog, onSetAmountRaw 
 
   const isUnchanged = React.useMemo(() => repayAmount === 0, [repayAmount]);
 
+  const isMaxButtonVisible = React.useMemo(
+    () =>
+      repayMode === RepayType.RepayRaw ||
+      actionMode === ActionType.Loop ||
+      (repayMode === RepayType.RepayCollat && selectedRepayBank),
+    [actionMode, repayMode, selectedRepayBank]
+  );
+
   // Section above the input
   return (
     <>
@@ -137,10 +154,10 @@ export const InputAction = ({ maxAmount, walletAmount, isDialog, onSetAmountRaw 
               )}
               {selectedBank?.isActive && !isUnchanged && <IconArrowRight width={12} height={12} />}
               <div>{maxLabel.amount}</div>
-              {(repayMode === RepayType.RepayRaw || (repayMode === RepayType.RepayCollat && selectedRepayBank)) && (
+              {isMaxButtonVisible && (
                 <button
                   className="cursor-pointer text-chartreuse border-b border-transparent transition hover:border-chartreuse"
-                  disabled={maxAmount === 0}
+                  disabled={maxAmount === 0 || (actionMode === ActionType.Loop && !selectedRepayBank)}
                   onClick={() => onSetAmountRaw(numberFormater.format(maxAmount))}
                 >
                   MAX
@@ -148,6 +165,15 @@ export const InputAction = ({ maxAmount, walletAmount, isDialog, onSetAmountRaw 
               )}
             </div>
           </li>
+          {actionMode === ActionType.Loop && (
+            <li className="flex justify-between items-center gap-1.5">
+              <strong>Leveraged deposit:</strong>
+
+              <div className="flex space-x-1.5 items-center">{`${
+                loopingAmounts?.actualDepositAmount.toFixed(4) ?? "-"
+              } ${selectedBank.meta.tokenSymbol}`}</div>
+            </li>
+          )}
           {repayMode === RepayType.RepayCollat && (
             <li className="flex justify-between items-center gap-1.5">
               <strong>Deposited:</strong>
