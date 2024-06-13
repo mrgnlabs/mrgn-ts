@@ -2,9 +2,9 @@ import React from "react";
 
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { ActionMethod, RepayWithCollatOptions, StakeData } from "~/utils";
+import { ActionMethod, LoopingOptions, RepayWithCollatOptions, StakeData } from "~/utils";
 
-import { LendingPreview, LstPreview, YbxPreview } from "./Components";
+import { LendingPreview, LstPreview, YbxPreview, LoopPreview } from "./Components";
 
 interface ActionBoxPreviewProps {
   selectedBank: ExtendedBankInfo | null;
@@ -14,6 +14,7 @@ interface ActionBoxPreviewProps {
   slippageBps: number;
   isEnabled: boolean;
   repayWithCollatOptions?: RepayWithCollatOptions;
+  loopOptions?: LoopingOptions;
   addAdditionalsPopup: (actions: ActionMethod[]) => void;
   children: React.ReactNode;
 }
@@ -26,6 +27,7 @@ export const ActionBoxPreview = ({
   slippageBps,
   isEnabled,
   repayWithCollatOptions,
+  loopOptions,
   addAdditionalsPopup,
   children,
 }: ActionBoxPreviewProps) => {
@@ -34,8 +36,7 @@ export const ActionBoxPreview = ({
       actionMode === ActionType.Borrow ||
       actionMode === ActionType.Deposit ||
       actionMode === ActionType.Repay ||
-      actionMode === ActionType.Withdraw ||
-      actionMode === ActionType.Loop,
+      actionMode === ActionType.Withdraw,
     [actionMode]
   );
 
@@ -71,6 +72,19 @@ export const ActionBoxPreview = ({
         <YbxPreview selectedBank={selectedBank} isEnabled={isEnabled} amount={amount}>
           {children}
         </YbxPreview>
+      )}
+
+      {actionMode === ActionType.Loop && (
+        <LoopPreview
+          selectedBank={selectedBank}
+          actionMode={actionMode}
+          isEnabled={isEnabled}
+          amount={amount}
+          loopOptions={loopOptions}
+          addAdditionalsPopup={addAdditionalsPopup}
+        >
+          {children}
+        </LoopPreview>
       )}
     </>
   );

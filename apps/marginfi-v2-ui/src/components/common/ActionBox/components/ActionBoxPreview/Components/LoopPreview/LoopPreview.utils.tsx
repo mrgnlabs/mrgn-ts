@@ -203,7 +203,6 @@ export interface PreviewStat {
 export function generateStats(preview: ActionPreview, bank: ExtendedBankInfo, isLoading: boolean) {
   const stats = [];
 
-  stats.push(getAmountStat(preview.currentPositionAmount, bank, preview.simulationPreview?.positionAmount));
   if (preview.priceImpactPct) stats.push(getPriceImpactStat(preview.priceImpactPct));
   if (preview.slippageBps) stats.push(getSlippageStat(preview.slippageBps));
 

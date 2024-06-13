@@ -351,6 +351,8 @@ export const ActionBox = ({
       setAmountRaw,
       setIsActionComplete,
       setPreviousTxn,
+      onComplete,
+      onError,
       setIsRefreshingStore,
       fetchMrgnlendState,
     ]
@@ -473,18 +475,25 @@ export const ActionBox = ({
   }, [
     actionMode,
     selectedBank,
-    selectedAccount,
     amount,
-    hasLSTDialogShown,
-    executeLendingActionCb,
+    repayAmount,
     mfiClient,
     nativeSolBalance,
+    selectedAccount,
     walletContextState,
     actionQuote,
-    repayAmount,
+    loopingAmounts.borrowAmount,
     selectedRepayBank,
     connection,
     wallet,
+    setIsLoading,
+    handleCloseDialog,
+    setAmountRaw,
+    executeLendingActionCb,
+    actionTxn,
+    setIsActionComplete,
+    setPreviousTxn,
+    lstQuoteMeta,
   ]);
 
   const handleLstAction = React.useCallback(async () => {
@@ -649,18 +658,19 @@ export const ActionBox = ({
   }, [
     actionMode,
     selectedBank,
-    selectedAccount,
     amount,
+    repayAmount,
     hasLSTDialogShown,
-    executeLendingActionCb,
     mfiClient,
     nativeSolBalance,
+    selectedAccount,
     walletContextState,
     actionQuote,
-    repayAmount,
     selectedRepayBank,
     connection,
     wallet,
+    executeLendingActionCb,
+    actionTxn,
   ]);
 
   if (!isInitialized) {
@@ -753,6 +763,17 @@ export const ActionBox = ({
                 amount={amount}
                 slippageBps={slippageBps}
                 isEnabled={!isMini}
+                loopOptions={
+                  actionQuote && loopingAmounts && selectedRepayBank
+                    ? {
+                        loopingQuote: actionQuote,
+                        loopingBank: selectedRepayBank,
+                        loopingTxn: actionTxn,
+                        borrowAmount: loopingAmounts.borrowAmount,
+                        connection,
+                      }
+                    : undefined
+                }
                 repayWithCollatOptions={
                   actionQuote && repayAmount && selectedRepayBank
                     ? {
