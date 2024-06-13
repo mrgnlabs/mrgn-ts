@@ -14,7 +14,7 @@ export default function LooperPage() {
       {!initialized && <Loader label="Loading mrgnloop..." className="mt-16" />}
 
       {initialized && (
-        <div className="w-full max-w-7xl mx-auto mb-12">
+        <div className="w-full max-w-7xl mx-auto mb-20 px-5">
           <PageHeading
             heading={<h1>mrgnloop ➰</h1>}
             body={<p>Loop your deposits &amp; borrows with flashloans to maximize yield.</p>}

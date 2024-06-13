@@ -511,6 +511,8 @@ export async function looping({
       txn = (await loopingBuilder({ marginfiAccount, bank, depositAmount, options, priorityFee })).txn;
     }
     const sig = await marginfiClient.processTransaction(txn);
+    console.log("SIGGG");
+    console.log({ sig });
     multiStepToast.setSuccessAndNext();
     return sig;
   } catch (error: any) {

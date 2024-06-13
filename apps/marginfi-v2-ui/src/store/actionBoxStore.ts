@@ -157,7 +157,8 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
   ...initialState,
 
   refreshState() {
-    set({ ...initialState, slippageBps: get().slippageBps });
+    const actionMode = get().actionMode;
+    set({ ...initialState, actionMode: actionMode, slippageBps: get().slippageBps });
   },
 
   fetchActionBoxState(args) {
@@ -172,7 +173,7 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
       requestedAction = actionMode;
     }
 
-    if (requestedBank === ActionType.Repay) {
+    if (requestedAction === ActionType.Repay || requestedAction === ActionType.Loop) {
       slippageBps = 100;
     } else {
       slippageBps = 30;
@@ -553,10 +554,10 @@ async function calculateLooping(
 } | null> {
   //const slippageBps = 0.01 * 10000;
 
-  console.log("bank A: " + bank.meta.tokenSymbol);
-  console.log("bank B: " + loopBank.meta.tokenSymbol);
-  console.log("leverage: " + targetLeverage);
-  console.log("amount " + amount);
+  // console.log("bank A: " + bank.meta.tokenSymbol);
+  // console.log("bank B: " + loopBank.meta.tokenSymbol);
+  // console.log("leverage: " + targetLeverage);
+  // console.log("amount " + amount);
 
   const principalBufferAmountUi = amount * targetLeverage * (slippageBps / 10000);
   const adjustedPrincipalAmountUi = amount - principalBufferAmountUi;
@@ -568,8 +569,6 @@ async function calculateLooping(
     loopBank.address
   );
 
-  console.log({ borrowAmount: borrowAmount.toString(), depositAmount: depositAmount.toString() });
-
   const borrowAmountNative = uiToNative(borrowAmount, loopBank.info.state.mintDecimals).toNumber();
 
   const maxLoopAmount = bank.isActive ? bank?.position.amount : 0;
@@ -577,8 +576,6 @@ async function calculateLooping(
   const maxAccountsArr = [undefined, 50, 40, 30];
 
   let firstQuote;
-
-  console.log("entering loop");
 
   for (const maxAccounts of maxAccountsArr) {
     const quoteParams = {
@@ -590,7 +587,6 @@ async function calculateLooping(
       swapMode: "ExactIn",
     } as QuoteGetRequest;
     try {
-      console.log("trying " + maxAccounts);
       const swapQuote = await getSwapQuoteWithRetry(quoteParams);
 
       if (!maxAccounts) {
@@ -600,9 +596,6 @@ async function calculateLooping(
       if (swapQuote) {
         const minSwapAmountOutUi = nativeToUi(swapQuote.otherAmountThreshold, bank.info.state.mintDecimals);
         const actualDepositAmountUi = minSwapAmountOutUi + amount;
-
-        console.log({ actualDepositAmountUi });
-        console.log({ borrowAmount: borrowAmount.toString() });
 
         const txn = await verifyJupTxSizeLooping(
           marginfiAccount,

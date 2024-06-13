@@ -453,25 +453,27 @@ export const ActionBox = ({
         ...params,
       });
 
-      setIsLoading(false);
-      handleCloseDialog && handleCloseDialog();
-      setAmountRaw("");
-
-      if (txnSig) {
-        setIsActionComplete(true);
-        setPreviousTxn({
-          type: ActionType.Loop,
-          bank: selectedBank as ActiveBankInfo,
-          amount: amount,
-          lstQuote: lstQuoteMeta || undefined,
-          txn: txnSig!,
-        });
-      }
-
-      executeLendingActionCb(params);
+      return txnSig;
     };
 
-    await action();
+    const txnSig = await action();
+
+    console.log({ txnSig });
+
+    setIsLoading(false);
+    handleCloseDialog && handleCloseDialog();
+    setAmountRaw("");
+
+    if (txnSig) {
+      setIsActionComplete(true);
+      setPreviousTxn({
+        type: ActionType.Loop,
+        bank: selectedBank as ActiveBankInfo,
+        amount: amount,
+        lstQuote: lstQuoteMeta || undefined,
+        txn: txnSig!,
+      });
+    }
   }, [
     actionMode,
     selectedBank,
@@ -489,7 +491,6 @@ export const ActionBox = ({
     setIsLoading,
     handleCloseDialog,
     setAmountRaw,
-    executeLendingActionCb,
     actionTxn,
     setIsActionComplete,
     setPreviousTxn,
