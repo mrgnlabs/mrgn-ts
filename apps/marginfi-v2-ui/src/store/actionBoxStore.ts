@@ -80,15 +80,23 @@ interface ActionBoxState {
     slippageBps: number,
     connection: Connection
   ) => void;
-  setLooping: (
-    marginfiAccount: MarginfiAccountWrapper,
-    selectedBank: ExtendedBankInfo,
-    selectedLoopingBank: ExtendedBankInfo,
-    amount: number,
-    slippageBps: number,
-    connection: Connection,
-    leverage?: number
-  ) => void;
+  setLooping: ({
+    marginfiAccount,
+    selectedBank,
+    selectedLoopingBank,
+    amount,
+    slippageBps,
+    connection,
+    leverage,
+  }: {
+    marginfiAccount: MarginfiAccountWrapper;
+    selectedBank?: ExtendedBankInfo;
+    selectedLoopingBank?: ExtendedBankInfo;
+    amount?: number;
+    slippageBps?: number;
+    connection?: Connection;
+    leverage?: number;
+  }) => void;
   setIsLoading: (isLoading: boolean) => void;
 }
 
@@ -202,12 +210,8 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
 
       set({ leverage: newLeverage });
 
-      const { selectedBank, selectedRepayBank, amountRaw, slippageBps, setLooping } = get();
-      const strippedAmount = amountRaw.replace(/,/g, "");
-      const amount = isNaN(Number.parseFloat(strippedAmount)) ? 0 : Number.parseFloat(strippedAmount);
-
-      if (selectedBank && selectedRepayBank && marginfiAccount && connection) {
-        setLooping(marginfiAccount, selectedBank, selectedRepayBank, amount, slippageBps, connection, newLeverage);
+      if (marginfiAccount && connection) {
+        get().setLooping({ marginfiAccount, connection, leverage: newLeverage });
       }
     }
   },
@@ -231,9 +235,6 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
   },
 
   setLoopingAmountRaw(marginfiAccount, amountRaw, connection, maxAmount) {
-    // if (!maxAmount) {
-    //   set({ amountRaw });
-    // } else {
     const prevAmountRaw = get().amountRaw;
     const isAmountChanged = amountRaw !== prevAmountRaw;
 
@@ -241,14 +242,9 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
       set({ amountRaw });
       const strippedAmount = amountRaw.replace(/,/g, "");
       const amount = isNaN(Number.parseFloat(strippedAmount)) ? 0 : Number.parseFloat(strippedAmount);
-      const numberFormater = new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 });
 
-      const selectedBank = get().selectedBank;
-      const selectedRepayBank = get().selectedRepayBank;
-      const slippageBps = get().slippageBps;
-
-      if (selectedBank && selectedRepayBank && amount !== 0) {
-        get().setLooping(marginfiAccount, selectedBank, selectedRepayBank, amount, slippageBps, connection);
+      if (amount !== 0) {
+        get().setLooping({ marginfiAccount, amount, connection });
       }
     }
   },
@@ -269,24 +265,36 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
     }
   },
 
-  async setLooping(
+  async setLooping({
     marginfiAccount,
-    selectedBank,
-    selectedLoopingBank,
-    amount,
-    slippageBps,
+    selectedBank: selectedBankParam,
+    selectedLoopingBank: selectedLoopingBankParam,
+    amount: amountParam,
+    slippageBps: slippageBpsParam,
     connection,
-    selectedLeverage
-  ) {
-    const leverage = selectedLeverage ?? get().leverage;
+    leverage: selectedLeverageParam,
+  }) {
+    const {
+      selectedBank: selectedBankStore,
+      selectedRepayBank: selectedLoopingBankStore,
+      amountRaw,
+      slippageBps: slippageBpsStore,
+      leverage: leverageStore,
+    } = get();
+    const strippedAmount = amountRaw.replace(/,/g, "");
+    const amountStore = isNaN(Number.parseFloat(strippedAmount)) ? 0 : Number.parseFloat(strippedAmount);
 
-    if (leverage === 0 || amount === 0) {
+    const leverage = selectedLeverageParam ?? leverageStore;
+    const selectedBank = selectedBankParam ?? selectedBankStore;
+    const selectedLoopingBank = selectedLoopingBankParam ?? selectedLoopingBankStore;
+    const amount = amountParam ?? amountStore;
+    const slippageBps = slippageBpsParam ?? slippageBpsStore;
+
+    if (leverage === 0 || amount === 0 || !selectedBank || !selectedLoopingBank || !connection) {
       return;
     }
 
     set({ isLoading: true });
-
-    console.log("entering calc");
 
     const loopingObject = await calculateLooping(
       marginfiAccount,
@@ -364,7 +372,16 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
     const hasBankChanged = !tokenBank || !selectedBank || !tokenBank.address.equals(selectedBank.address);
 
     if (hasBankChanged) {
-      set({ selectedBank: tokenBank, amountRaw: "", repayAmountRaw: "" });
+      set({
+        selectedBank: tokenBank,
+        amountRaw: "",
+        repayAmountRaw: "",
+        loopingAmounts: initialState.loopingAmounts,
+        selectedRepayBank: null,
+        leverage: 0,
+        actionTxn: undefined,
+        actionQuote: undefined,
+      });
 
       const repayMode = get().repayMode;
       const repayBank = get().selectedRepayBank;
@@ -408,7 +425,15 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
       }
     } else if (action === ActionType.Loop) {
       if (hasBankChanged) {
-        set({ selectedRepayBank: repayTokenBank, amountRaw: "", repayAmountRaw: "" });
+        set({
+          selectedRepayBank: repayTokenBank,
+          amountRaw: "",
+          repayAmountRaw: "",
+          loopingAmounts: initialState.loopingAmounts,
+          leverage: 0,
+          actionTxn: undefined,
+          actionQuote: undefined,
+        });
 
         const prevTokenBank = get().selectedBank;
         if (prevTokenBank && repayTokenBank) {
@@ -433,6 +458,7 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
 
   async setSlippageBps(slippageBps) {
     const repayMode = get().repayMode;
+    const actionMode = get().actionMode;
     const tokenBank = get().selectedBank;
     const repayTokenBank = get().selectedRepayBank;
 
@@ -447,6 +473,10 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
         });
       }
       set({ isLoading: false });
+    }
+
+    if (actionMode === ActionType.Loop) {
+      set({ actionQuote: undefined, actionTxn: undefined, loopingAmounts: initialState.loopingAmounts, leverage: 0 });
     }
 
     set({ slippageBps });
