@@ -72,13 +72,13 @@ interface BankConfigRaw {
 
 interface BankConfigCompactRaw extends Omit<BankConfigRaw, "oracleKeys"> {
   oracleKey: PublicKey;
-  auto_padding_0: number;
-  auto_padding_1: number;
+  auto_padding_0: number[];
+  auto_padding_1: number[];
 }
 
 type RiskTierRaw = { collateral: {} } | { isolated: {} };
 
-type OperationalStateRaw = number;
+type OperationalStateRaw = { paused: {} } | { operational: {} } | { reduceOnly: {} };
 
 interface InterestRateConfigRaw {
   // Curve Params
@@ -93,7 +93,7 @@ interface InterestRateConfigRaw {
   protocolIrFee: WrappedI80F48;
 }
 
-type OracleSetupRaw = number;
+type OracleSetupRaw = { none: {} } | { pythEma: {} } | { switchboardV2: {} };
 
 export type { BankRaw, BankConfigRaw, BankConfigCompactRaw, RiskTierRaw, InterestRateConfigRaw, OracleSetupRaw };
 
