@@ -12,6 +12,7 @@ import { Button } from "~/components/ui/button";
 import { useOs } from "~/hooks/useOs";
 import { useAvailableWallets, walletDeepLinkMap } from "~/hooks/useAvailableWallets";
 import { useBrowser } from "~/hooks/useBrowser";
+import Script from "next/script";
 
 const web3AuthIconMap: { [key in Web3AuthProvider]: { icon: JSX.Element } } = {
   google: {
@@ -120,6 +121,7 @@ export const WalletButton = () => {
       {connected && (
         <div className={cn(isMoongate && "pr-12")}>
           <Wallet />
+          <Script src="https://app.debridge.finance/assets/scripts/widget.js" />
         </div>
       )}
     </>

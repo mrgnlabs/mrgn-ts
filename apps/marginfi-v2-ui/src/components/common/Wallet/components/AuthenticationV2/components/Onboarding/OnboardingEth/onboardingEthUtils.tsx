@@ -46,6 +46,6 @@ export const installWallet: EthOnrampScreen = {
 export const successBridge: EthOnrampScreen = {
   comp: screens.SuccessScreen,
   title: "Bridge complete",
-  description: "DeBridge bridging successful",
+  description: "deBridge bridging successful",
   titleSize: "sm",
 };

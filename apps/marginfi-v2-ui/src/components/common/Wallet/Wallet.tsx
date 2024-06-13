@@ -48,7 +48,6 @@ import {
   IconArrowsExchange,
   IconMeso,
 } from "~/components/ui/icons";
-import Script from "next/script";
 
 enum WalletState {
   DEFAULT = "default",
@@ -559,7 +558,7 @@ export const Wallet = () => {
                             value="debridge"
                             aria-label="borrow"
                             className={cn(
-                              "w-1/2 text-xs gap-1.5 capitalize",
+                              "w-1/2 text-xs gap-1.5",
                               bridgeType === "debridge" && "data-[state=on]:bg-background-gray-light"
                             )}
                           >
@@ -582,7 +581,6 @@ export const Wallet = () => {
                           )}
                           id="swap_widget"
                         />
-                        <Script src="https://app.debridge.finance/assets/scripts/widget.js" />
                         <div className={cn("hidden", bridgeType === "debridge" && "block")}>
                           <Debridge />
                         </div>
@@ -762,6 +760,7 @@ export const Debridge = () => {
   const isMobile = useIsMobile();
 
   const loadDeBridgeWidget = React.useCallback(() => {
+    console.log("debdrige");
     const widget = window.deBridge.widget({
       v: "1",
       element: "debridgeWidget",

@@ -133,7 +133,7 @@ export const Bridge = ({ onLoad }: BridgeProps) => {
         crossOrigin="anonymous"
         onReady={handleLoadMayanWidget}
       />
-      <Script
+      {/* <Script
         onLoad={() => {
           window.deBridge.widget({
             v: "1",
@@ -166,7 +166,7 @@ export const Bridge = ({ onLoad }: BridgeProps) => {
           });
         }}
         src="https://app.debridge.finance/assets/scripts/widget.js"
-      />
+      /> */}
     </div>
   );
 };
