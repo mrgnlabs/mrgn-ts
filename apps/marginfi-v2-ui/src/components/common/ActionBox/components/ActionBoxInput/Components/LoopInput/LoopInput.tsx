@@ -203,21 +203,6 @@ export const LoopInput = ({
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <p className="text-sm font-normal text-muted-foreground">Loop ➰</p>
-            <span className="flex items-center gap-1">
-              {leverageAmount > 1 && (
-                <span className="text-muted-foreground text-sm">
-                  {leverageAmount}x leverage
-                  {maxLeverage && (
-                    <button
-                      className="ml-1 text-sm cursor-pointer text-chartreuse border-b border-transparent transition hover:border-chartreuse"
-                      onClick={() => setLeverageAmount(Number(maxLeverage.toFixed(2)))}
-                    >
-                      MAX
-                    </button>
-                  )}
-                </span>
-              )}
-            </span>
           </div>
           <Slider
             defaultValue={[1]}
@@ -231,6 +216,24 @@ export const LoopInput = ({
             }}
             disabled={!bothBanksSelected}
           />
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-normal text-muted-foreground">{leverageAmount.toFixed(2)}x leverage</p>
+            <span className="flex items-center gap-1">
+              {maxLeverage && (
+                <span className="text-muted-foreground text-sm">
+                  {maxLeverage.toFixed(2)}x
+                  {maxLeverage && (
+                    <button
+                      className="ml-1 text-sm cursor-pointer text-chartreuse border-b border-transparent transition hover:border-chartreuse"
+                      onClick={() => setLeverageAmount(Number(maxLeverage.toFixed(2)))}
+                    >
+                      MAX
+                    </button>
+                  )}
+                </span>
+              )}
+            </span>
+          </div>
         </div>
         <div className="flex items-center justify-between">
           <Popover>
