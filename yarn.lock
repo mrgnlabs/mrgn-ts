@@ -4267,7 +4267,7 @@
   resolved "https://registry.yarnpkg.com/@jup-ag/api/-/api-6.0.20.tgz#5ea6ec0961719b14fd46fb5395d386cc7ffff6c3"
   integrity sha512-HaPWYpbcQiCkoq1fTKspFIismFI8Rw9ZzgC47PMNY+ZLN0IEDtSYcm3rVEyxO+E3StRxj9uKrNbok32SRCXWvQ==
 
-"@jup-ag/api@^6.0.22", "@jup-ag/api@^6.0.23", "@jup-ag/api@^6.0.6":
+"@jup-ag/api@^6.0.23", "@jup-ag/api@^6.0.6":
   version "6.0.23"
   resolved "https://registry.yarnpkg.com/@jup-ag/api/-/api-6.0.23.tgz#ccf546b1d2d7b2344c4e61ae4f56daa30e2c7eb0"
   integrity sha512-GjLXWHKNOhe9MtO0FuTqSg9xl2uXOYfY7BXRGSPZUjDmqLrisgRuxfb661u16caOF0FHJkQ1ZUQPATKjwh3AOQ==
