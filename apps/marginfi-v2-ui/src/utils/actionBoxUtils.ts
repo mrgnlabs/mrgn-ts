@@ -594,7 +594,6 @@ const checkTxSize = (builder: {
 
   if (totalSize > 1232 || totalKeys >= 64) {
     // too big
-    console.log(`tx size: ${totalSize}, tx keys: ${totalKeys}`);
   } else {
     return builder.txn;
   }

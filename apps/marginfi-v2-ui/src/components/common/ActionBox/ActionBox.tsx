@@ -428,37 +428,31 @@ export const ActionBox = ({
       return;
     }
 
-    const action = async () => {
-      const params = {
-        mfiClient,
-        actionType: actionMode,
-        bank: selectedBank,
-        amount,
-        nativeSolBalance,
-        marginfiAccount: selectedAccount,
-        walletContextState,
-      } as MarginfiActionParams;
+    if (!(actionQuote && loopingAmounts.borrowAmount && selectedRepayBank && connection && wallet)) {
+      return;
+    }
+    setIsLoading(true);
 
-      if (actionQuote && loopingAmounts.borrowAmount && selectedRepayBank && connection && wallet) {
-        params.loopingOptions = {
-          loopingQuote: actionQuote,
-          loopingTxn: actionTxn,
-          borrowAmount: loopingAmounts.borrowAmount,
-          loopingBank: selectedRepayBank,
-          connection,
-        };
-      }
+    const params = {
+      mfiClient,
+      actionType: actionMode,
+      bank: selectedBank,
+      amount,
+      nativeSolBalance,
+      marginfiAccount: selectedAccount,
+      walletContextState,
+      loopingOptions: {
+        loopingQuote: actionQuote,
+        loopingTxn: actionTxn,
+        borrowAmount: loopingAmounts.borrowAmount,
+        loopingBank: selectedRepayBank,
+        connection,
+      },
+    } as MarginfiActionParams;
 
-      const txnSig = await executeLoopingAction({
-        ...params,
-      });
-
-      return txnSig;
-    };
-
-    const txnSig = await action();
-
-    console.log({ txnSig });
+    const txnSig = await executeLoopingAction({
+      ...params,
+    });
 
     setIsLoading(false);
     handleCloseDialog && handleCloseDialog();
@@ -539,6 +533,8 @@ export const ActionBox = ({
       quoteResponseMeta: lstQuoteMeta,
       priorityFee,
     });
+
+    console.log("executer loop action");
 
     setIsLoading(false);
     handleCloseDialog && handleCloseDialog();
