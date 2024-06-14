@@ -27,7 +27,7 @@ This ensures the security and stability of the protocol by mitigating the risk o
 
 ## Fees and Yield {{ tag: '', label: '' }}
 
-### Lending Interest
+### Lending Yield
 
 marginfi allows users to deposit supported tokens into the protocol and earn yield on them. This is made possible by lenders on the platform who borrow these tokens and pay interest on them.
 
@@ -43,11 +43,11 @@ LIP lockup timelines cannot be adjusted after campaigns are created by anyone, i
 
 It's important to note that LIP deposits cannot be used as collateral for borrowing.
 
-### Borrowing interest
+### Borrow Fees
 
-Borrowing on marginfi incurs a fee. Fees are specific to each asset that marginfi supports, usually expressed in terms of APR (Annual Percentage Rate).
+Borrowing on marginfi incurs a fee. Fees are denominated in each asset that marginfi supports, and usually expressed in terms of APY (Annual Percentage Yield).
 
-The APRs for borrowing each asset are typically exposed in marginfi web interfaces, and can be found in protocol configuration.
+The rate is dictated by bank-specific parameters, and partially variable according to the bank's utilization rate. Parameters can be found in protocol configuration accounts (banks), and live rates are exposed through the marginfi web app.
 
 ### Liquidation Fees
 
@@ -55,35 +55,9 @@ When borrowed trader positions fall below configured margin requirements, they a
 
 Liquidations are executed by third-party liquidators who provide this service for a return, and marginfi awards a fee for successful liquidations.
 
-When borrowed positions fall below requirements and are liquidated, liquidated borrowers (or, liquidatees) pay a fee as a penalty.
-
-Currently, liquidation penalties, liquidator fees, and insurance fund fees are fixed. However, liquidation penalties, liquidator fees, and insurance fund fees can be configured for each asset pool.
-
-Today, fees for pools are set as follows (unless specified otherwise):
-
-- **Liquidatee penalty**: 5% of the liquidatee's position collateral at time of liquidation
-- **Liquidator fee**: The liquidator earns
-  - 2.5% of the liquidatee's liquidated collateral, or
-  - 50% of the liquidatee fee
-- **Insurance fund fee**: The collateral asset-specific insurance fund collects
-  - 2.5% of the liquidatee's liquidated collateral, or
-  - 50% of the liquidatee fee
-
-### Protocol Fees
-
-The marginfi protocol charges 10bps on LST withdrawals, and no other fees besides this.
-
-### Insurance Fund Fees
-
-<Note>
-  Currently, insurance pool fees charged to borrowers are 0% for all pools
-  except for the $BONK pool.
-</Note>
-
-marginfi has asset-specific insurance funds. They're filled up in two ways:
-
-- When users borrow from marginfi, part of the fee they pay goes to insurance pools.
-- When user positions are liquidated, the collateral asset insurance fund collects 2.5% of the liquidatee's liquidated collateral.
+When borrowed positions fall below requirements and are liquidated, liquidated borrowers (a.k.a. liquidatees) are penalized through a liquidation fee. This fee amounts to 5% of the liquidated assets, and is equally distributed among:
+  * the liquidator
+  * the insurance fund of the bank for the liquidated token 
 
 ---
 
