@@ -634,3 +634,24 @@ marginfi v2 has been rigorously audited both internally and by <Button href="htt
 ### Fuzz Tests
 
 marginfi v2 fuzz tests are open source and can be found <Button href="https://github.com/mrgnlabs/marginfi-v2/tree/main/programs/marginfi/fuzz" variant="text"><>here</></Button>.
+
+### Verification
+
+Anyone can assert that a specific commit is currently deployed to the marginfi-v2 program, using the <a href="https://crates.io/crates/solana-verify" variant="text">solana-verify</a>.
+
+<Note>
+  Prerequisites:
+  * Git
+  * Docker
+  * <a href="https://www.rust-lang.org/learn/get-started" target="_blank" rel="noreferrer">Rust</a>
+  * <a href="https://docs.solanalabs.com/cli/install" target="_blank" rel="noreferrer">Solana CLI</a>
+  * <a href="https://crates.io/crates/solana-verify" target="_blank" rel="noreferrer">solana-verify</a>
+</Note>
+
+1. Identify the commit you want to check
+1. Clone the <a href="https://github.com/mrgnlabs/marginfi-v2" target="_blank" rel="noreferrer">marginfi-v2</a> repo locally
+1. Checkout that commit
+1. Generate the verifiable program binary: `solana-verify build --library-name marginfi -- --features mainnet-beta`
+1. Compute the hash of the program binary generated at the previous step: `solana-verify get-executable-hash target/deploy/marginfi.so`
+1. Compute the hash of the program binary currently deployed on-chain: `solana-verify get-program-hash MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA`, or alternatively compute the hash of the buffer you are checking `solana-verify get-buffer-hash <buffer address>`
+1. Ensure they match
