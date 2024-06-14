@@ -425,12 +425,10 @@ export async function repayWithCollatBuilder({
   // const swapcleanupIx = cleanupInstruction ? [deserializeInstruction(cleanupInstruction)] : []; **optional**
   // tokenLedgerInstruction **also optional**
 
-  const addressLookupTableAccounts: AddressLookupTableAccount[] = [];
-  addressLookupTableAccounts.push(
-    ...(await getAdressLookupTableAccounts(options.connection, addressLookupTableAddresses))
-  );
+  const swapLUTs: AddressLookupTableAccount[] = [];
+  swapLUTs.push(...(await getAdressLookupTableAccounts(options.connection, addressLookupTableAddresses)));
 
-  const repayWithCollat = (await marginfiAccount.repayWithCollat(
+  const { transaction, addressLookupTableAccounts } = await marginfiAccount.makeRepayWithCollatTx(
     amount,
     options.repayAmount,
     bank.address,
@@ -438,15 +436,11 @@ export async function repayWithCollatBuilder({
     options.repayBank.isActive && isWholePosition(options.repayBank, options.repayAmount),
     bank.isActive && isWholePosition(bank, amount),
     [swapIx],
-    addressLookupTableAccounts,
-    priorityFee,
-    true
-  )) as {
-    flashloanTx: VersionedTransaction;
-    addressLookupTableAccounts: AddressLookupTableAccount[];
-  };
+    swapLUTs,
+    priorityFee
+  );
 
-  return { txn: repayWithCollat.flashloanTx, addressLookupTableAccounts: repayWithCollat.addressLookupTableAccounts };
+  return { txn: transaction, addressLookupTableAccounts };
 }
 
 export async function repayWithCollat({
