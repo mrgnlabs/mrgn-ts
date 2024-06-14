@@ -20,7 +20,11 @@ import { Label } from "~/components/ui/label";
 import { Input } from "~/components/ui/input";
 import { cn } from "~/utils";
 
-export const WalletOnramp = () => {
+type WalletOnrampProps = {
+  showAmountBackButton?: boolean;
+};
+
+export const WalletOnramp = ({ showAmountBackButton = true }: WalletOnrampProps) => {
   const divRef = React.useRef<HTMLDivElement>(null);
   const [amountRaw, setAmountRaw] = React.useState<string>("100.00");
   const [showMeso, setIsShowMeso] = React.useState<boolean>(false);
@@ -91,7 +95,7 @@ export const WalletOnramp = () => {
 
   return (
     <div className="relative p-2 space-y-2">
-      {showMeso && (
+      {showMeso && showAmountBackButton && (
         <div
           className="absolute z-20 top-3 left-4 opacity-70 text-sm cursor-pointer flex items-center gap-2"
           onClick={() => removeMeso()}
@@ -100,7 +104,7 @@ export const WalletOnramp = () => {
         </div>
       )}
       {!showMeso && (
-        <div className="space-y-8">
+        <div className={cn("space-y-8", !showAmountBackButton && "pt-4")}>
           <div className="space-y-2 text-muted-foreground">
             <p>How much SOL would you like to purchase?</p>
             <div className="flex flex-col w-full gap-4">
@@ -144,7 +148,7 @@ export const WalletOnramp = () => {
           </Button>
         </div>
       )}
-      <div className={cn(showMeso ? "block" : "hidden", "relative")}>
+      <div className={cn(showMeso ? "block" : "hidden", "relative", !showAmountBackButton && "-translate-y-4")}>
         <div id="outlet" className="h-[350px]" ref={divRef}></div>
       </div>
     </div>
