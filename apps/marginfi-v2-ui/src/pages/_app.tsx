@@ -26,7 +26,6 @@ import { cn } from "~/utils";
 import { Meta } from "~/components/common/Meta";
 import { MobileNavbar } from "~/components/mobile/MobileNavbar";
 import { Tutorial } from "~/components/common/Tutorial";
-import { WalletAuthDialog } from "~/components/common/Wallet";
 import { CongestionBanner } from "~/components/common/CongestionBanner";
 
 import "swiper/css";
@@ -111,7 +110,9 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
 
                     <Desktop>
                       <WalletModalProvider>
-                        <div className={cn("w-full flex flex-col justify-center items-center", isOraclesStale && 'pt-10')}>
+                        <div
+                          className={cn("w-full flex flex-col justify-center items-center", isOraclesStale && "pt-10")}
+                        >
                           <Component {...pageProps} />
                         </div>
                         <Footer />
@@ -120,14 +121,15 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
 
                     <Mobile>
                       <MobileNavbar />
-                      <div className={cn("w-full flex flex-col justify-center items-center", isOraclesStale && 'pt-16')}>
+                      <div
+                        className={cn("w-full flex flex-col justify-center items-center", isOraclesStale && "pt-16")}
+                      >
                         <Component {...pageProps} />
                       </div>
                     </Mobile>
                     <Analytics />
                     <Tutorial />
                     <AuthDialog />
-                    <WalletAuthDialog />
                     <ToastContainer position="bottom-left" theme="dark" />
                   </LipClientProvider>
                 </MrgnlendProvider>

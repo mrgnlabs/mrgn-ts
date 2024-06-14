@@ -90,7 +90,7 @@ export const WalletOnramp = () => {
   ];
 
   return (
-    <div className="relative mt-5 p-2 space-y-2">
+    <div className="relative p-2 space-y-2">
       {showMeso && (
         <div
           className="absolute z-20 top-3 left-4 opacity-70 text-sm cursor-pointer flex items-center gap-2"
