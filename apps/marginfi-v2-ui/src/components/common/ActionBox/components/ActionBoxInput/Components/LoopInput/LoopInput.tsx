@@ -107,6 +107,7 @@ export const LoopInput = ({
 
     return () => clearInterval(interval);
   }, [refreshTxn, actionTxn, connection]);
+
   const netApy = React.useMemo(() => {
     if (!selectedBank || !selectedRepayBank) return 0;
     const depositTokenApy = computeBankRateRaw(selectedBank, LendingModes.LEND);
