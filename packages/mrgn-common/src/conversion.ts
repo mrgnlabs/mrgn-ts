@@ -51,6 +51,26 @@ export function bigNumberToWrappedI80F48(value: Amount): WrappedI80F48 {
   return { value: wrappedValue };
 }
 
+export function bigNumberToWrappedI80F48(value: BigNumber, scaleDecimal: number = 0): { value: BN } {
+  if (!value) return { value: new BN(0) };
+
+  // Adjust the value by the scaleDecimal
+  let adjustedValue = value.multipliedBy(10 ** scaleDecimal);
+
+  // Multiply by 2^48 to match the precision
+  let preciseValue = adjustedValue.multipliedBy(new BigNumber(2).pow(48));
+
+  // Convert the precise value to a BN
+  let bnValue = new BN(preciseValue.toFixed(0));
+
+  // Adjust the sign
+  if (value.isNegative()) {
+    bnValue = bnValue.neg();
+  }
+
+  return { value: bnValue };
+}
+
 /**
  * Converts a ui representation of a token amount into its native value as `BN`, given the specified mint decimal amount (default to 6 for USDC).
  */
