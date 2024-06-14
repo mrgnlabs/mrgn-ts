@@ -16,8 +16,7 @@ import {
   generateStats,
   simulateLooping,
 } from "./LoopPreview.utils";
-import { ActionMethod, LoopingOptions, RepayWithCollatOptions, usePrevious } from "~/utils";
-import { useAmountDebounce } from "~/hooks/useAmountDebounce";
+import { ActionMethod, LoopingOptions, usePrevious } from "~/utils";
 import { JUPITER_PROGRAM_V6_ID } from "@jup-ag/react-hook";
 import { VersionedTransaction } from "@solana/web3.js";
 
