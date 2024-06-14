@@ -3,26 +3,50 @@ import { getMarginfiClient } from "./utils";
 import { getConfig } from "../src";
 import { env_config } from "./config";
 import { PublicKey } from "@solana/web3.js";
-import { BankConfigOptRaw } from "../src/models/bank";
+import {
+  BankConfigCompactRaw,
+  BankConfigOpt,
+  BankConfigOptRaw,
+  OperationalState,
+  OracleSetup,
+  RiskTier,
+  serializeBankConfigOpt,
+} from "../src/models/bank";
+import { BigNumber } from "bignumber.js";
 
 const marginfiGroupPk = new PublicKey("J9VZnaMGTELGCPsqMxk8aoyEGYcVzhorj48HvtDdEtc8");
 
-const bank: BankConfigOptRaw = {
-  assetWeightInit: null,
-  assetWeightMaint: null,
+const bankMint = new PublicKey("LSTxxxnJzKDFSLr4dUkPcmCf5VyryEqzPLz5j4bpxFp");
+const bank: BankConfigOpt = {
+  assetWeightInit: new BigNumber(0.649999976158142),
+  assetWeightMaint: new BigNumber(0.649999976158142),
 
-  liabilityWeightInit: null,
-  liabilityWeightMaint: null,
+  liabilityWeightInit: new BigNumber(0.649999976158142),
+  liabilityWeightMaint: new BigNumber(0.649999976158142),
 
-  depositLimit: null,
-  borrowLimit: null,
-  riskTier: null,
-  totalAssetValueInitLimit: null,
+  depositLimit: new BigNumber(0.649999976158142),
+  borrowLimit: new BigNumber(0.649999976158142),
+  riskTier: RiskTier.Collateral,
 
-  interestRateConfig: null,
-  operationalState: null,
+  totalAssetValueInitLimit: new BigNumber(0.649999976158142),
+  interestRateConfig: {
+    // Curve Params
+    optimalUtilizationRate: new BigNumber(0.649999976158142),
+    plateauInterestRate: new BigNumber(0.649999976158142),
+    maxInterestRate: new BigNumber(0.649999976158142),
 
-  oracle: null,
+    // Fees
+    insuranceFeeFixedApr: new BigNumber(0.649999976158142),
+    insuranceIrFee: new BigNumber(0.649999976158142),
+    protocolFixedFeeApr: new BigNumber(0.649999976158142),
+    protocolIrFee: new BigNumber(0.649999976158142),
+  },
+  operationalState: OperationalState.Operational,
+
+  oracle: {
+    setup: OracleSetup.PythEma,
+    keys: [new PublicKey("2H6gWKxJuoFjBS4REqNm4XRa7uVFf9n9yKEowpwh7LML")],
+  },
 };
 
 async function main() {
@@ -37,6 +61,9 @@ async function main() {
 
   console.log("Creating banks in group:", client.groupAddress.toBase58());
   console.log("Creating banks with authority:", client.wallet.publicKey.toBase58());
+
+  const result = await client.createLendingPool(bankMint, bank);
+  console.log(result);
 }
 
 main().catch((e) => console.log(e));

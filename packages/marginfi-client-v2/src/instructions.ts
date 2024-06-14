@@ -7,10 +7,10 @@ import { TOKEN_PROGRAM_ID } from "@mrgnlabs/mrgn-common";
 async function makeInitMarginfiAccountIx(
   mfProgram: MarginfiProgram,
   accounts: {
-    marginfiGroupPk: PublicKey;
-    marginfiAccountPk: PublicKey;
-    authorityPk: PublicKey;
-    feePayerPk: PublicKey;
+    marginfiGroup: PublicKey;
+    marginfiAccount: PublicKey;
+    authority: PublicKey;
+    feePayer: PublicKey;
   }
 ) {
   return mfProgram.methods
@@ -19,6 +19,7 @@ async function makeInitMarginfiAccountIx(
       marginfiGroup: accounts.marginfiGroupPk,
       marginfiAccount: accounts.marginfiAccountPk,
       authority: accounts.authorityPk,
+      systemProgram: SystemProgram.programId,
       feePayer: accounts.feePayerPk,
     })
     .instruction();
@@ -324,37 +325,37 @@ async function makeAccountAuthorityTransferIx(
 async function makeGroupInitIx(
   mfProgram: MarginfiProgram,
   accounts: {
-    marginfiGroupPk: PublicKey;
-    adminPk: PublicKey;
+    marginfiGroup: PublicKey;
+    admin: PublicKey;
   }
 ) {
   return mfProgram.methods
     .marginfiGroupInitialize()
     .accounts({
-      marginfiGroup: accounts.marginfiGroupPk,
-      admin: accounts.adminPk,
+      marginfiGroup: accounts.marginfiGroup,
+      admin: accounts.admin,
       systemProgram: SystemProgram.programId,
     })
     .instruction();
 }
 
-async function makeLendindingPoolAddBankIx(
+async function makePoolAddBankIx(
   mfProgram: MarginfiProgram,
   accounts: {
-    marginfiGroupPk: PublicKey;
-    adminPk: PublicKey;
-    feePayerPk: PublicKey;
-    bankMintPk: PublicKey;
-    bankPk: PublicKey;
-    liquidityVaultAuthorityPk: PublicKey;
-    liquidityVaultPk: PublicKey;
-    insuranceVaultAuthorityPk: PublicKey;
-    insuranceVaultPk: PublicKey;
-    feeVaultAuthorityPk: PublicKey;
-    feeVaultPk: PublicKey;
-    rentPk: PublicKey;
-    tokenProgramPk: PublicKey;
-    systemProgramPk: PublicKey;
+    marginfiGroup: PublicKey;
+    admin: PublicKey;
+    feePayer: PublicKey;
+    bankMint: PublicKey;
+    bank: PublicKey;
+    liquidityVaultAuthority: PublicKey;
+    liquidityVault: PublicKey;
+    insuranceVaultAuthority: PublicKey;
+    insuranceVault: PublicKey;
+    feeVaultAuthority: PublicKey;
+    feeVault: PublicKey;
+    rent: PublicKey;
+    tokenProgram: PublicKey;
+    systemProgram: PublicKey;
   },
   args: {
     bankConfig: BankConfigCompactRaw;
@@ -364,9 +365,20 @@ async function makeLendindingPoolAddBankIx(
   return mfProgram.methods
     .lendingPoolAddBankWithSeed(args.bankConfig, args.seed)
     .accounts({
-      marginfiGroup: accounts.marginfiGroupPk,
-      admin: accounts.adminPk,
-      bank: accounts.bankPk,
+      marginfiGroup: accounts.marginfiGroup,
+      admin: accounts.admin,
+      feePayer: accounts.feePayer,
+      bankMint: accounts.bankMint,
+      bank: accounts.bank,
+      liquidityVaultAuthority: accounts.liquidityVaultAuthority,
+      liquidityVault: accounts.liquidityVault,
+      insuranceVaultAuthority: accounts.insuranceVaultAuthority,
+      insuranceVault: accounts.insuranceVault,
+      feeVaultAuthority: accounts.feeVaultAuthority,
+      feeVault: accounts.feeVault,
+      rent: accounts.rent,
+      tokenProgram: accounts.tokenProgram,
+      systemProgram: accounts.systemProgram,
     })
     .instruction();
 }
@@ -381,6 +393,7 @@ const instructions = {
   makelendingAccountWithdrawEmissionIx,
   makeSetAccountFlagIx,
   makeUnsetAccountFlagIx,
+  makePoolAddBankIx,
   makePoolConfigureBankIx,
   makeBeginFlashLoanIx,
   makeEndFlashLoanIx,

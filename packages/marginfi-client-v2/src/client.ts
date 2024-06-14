@@ -42,6 +42,7 @@ import {
   MarginfiAccountRaw,
   MARGINFI_IDL,
   MarginfiIdlType,
+  BankConfigOpt,
 } from ".";
 import { MarginfiAccountWrapper } from "./models/account/wrapper";
 import { ProcessTransactionError, ProcessTransactionErrorType, parseErrorFromLogs } from "./errors";
@@ -508,16 +509,16 @@ class MarginfiClient {
    *
    * @returns transaction instruction
    */
-  async makeCreateMarginfiAccountIx(marginfiAccountPk: PublicKey): Promise<InstructionsWrapper> {
+  async makeCreateMarginfiAccountIx(marginfiAccount: PublicKey): Promise<InstructionsWrapper> {
     const dbg = require("debug")("mfi:client");
 
-    dbg("Generating marginfi account ix for %s", marginfiAccountPk);
+    dbg("Generating marginfi account ix for %s", marginfiAccount);
 
     const initMarginfiAccountIx = await instructions.makeInitMarginfiAccountIx(this.program, {
-      marginfiGroupPk: this.groupAddress,
-      marginfiAccountPk,
-      authorityPk: this.provider.wallet.publicKey,
-      feePayerPk: this.provider.wallet.publicKey,
+      marginfiGroup: this.groupAddress,
+      marginfiAccount,
+      authority: this.provider.wallet.publicKey,
+      feePayer: this.provider.wallet.publicKey,
     });
 
     const ixs = [initMarginfiAccountIx];
@@ -562,14 +563,14 @@ class MarginfiClient {
    *
    * @returns transaction instruction
    */
-  async makeCreateMarginfiGroupIx(marginfiGroupPk: PublicKey): Promise<InstructionsWrapper> {
+  async makeCreateMarginfiGroupIx(marginfiGroup: PublicKey): Promise<InstructionsWrapper> {
     const dbg = require("debug")("mfi:client");
 
     dbg("Generating group init ix");
 
     const initGroupIx = await instructions.makeGroupInitIx(this.program, {
-      marginfiGroupPk: marginfiGroupPk,
-      adminPk: this.provider.wallet.publicKey,
+      marginfiGroup: marginfiGroup,
+      admin: this.provider.wallet.publicKey,
     });
 
     const ixs = [initGroupIx];
@@ -598,6 +599,24 @@ class MarginfiClient {
     dbg("Created Marginfi group %s", sig);
 
     return Promise.resolve(accountKeypair.publicKey);
+  }
+
+  /**
+   * Create a new lending pool.
+   *
+   * @returns MarginfiGroup instance
+   */
+  async createLendingPool(bankMint: PublicKey, bankConfig: BankConfigOpt, opts?: TransactionOptions): Promise<string> {
+    const dbg = require("debug")("mfi:client");
+
+    const ixs = await this.group.makePoolAddBankIx(this.program, this.provider.connection, bankMint, bankConfig);
+    const signers = [...ixs.keys];
+
+    const tx = new Transaction().add(...ixs.instructions);
+    const sig = await this.processTransaction(tx, signers, opts);
+    dbg("Created new lending pool %s", sig);
+
+    return Promise.resolve(sig);
   }
 
   // --------------------------------------------------------------------------
