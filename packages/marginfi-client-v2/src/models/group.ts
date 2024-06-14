@@ -187,12 +187,13 @@ class MarginfiGroup {
   ): Promise<InstructionsWrapper> {
     let bankPda: PublicKey = PublicKey.default;
     let bankSeed: number = 0;
+    const groupKey = this.address;
 
     for (let i = 1; i < Number.MAX_SAFE_INTEGER; i++) {
       console.log("Seed option enabled -- generating a PDA account");
 
       const iBytes = new Uint8Array(new BigUint64Array([BigInt(i)]).buffer);
-      const seeds = [this.address.toBuffer(), bankMint.toBuffer(), iBytes];
+      const seeds = [groupKey.toBuffer(), bankMint.toBuffer(), iBytes];
 
       const [pda] = await PublicKey.findProgramAddressSync(seeds, program.programId);
 
