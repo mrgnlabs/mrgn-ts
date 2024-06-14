@@ -7,7 +7,7 @@ import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { percentFormatter } from "@mrgnlabs/mrgn-common";
 
 import { useActionBoxStore } from "~/hooks/useActionBoxStore";
-import { computeBankRateRaw, getMaintHealthColor, getTokenImageURL } from "~/utils";
+import { computeBankRateRaw, getTokenImageURL } from "~/utils";
 
 import { ActionBoxTokens } from "~/components/common/ActionBox/components";
 import { InputAction } from "~/components/common/ActionBox/components/ActionBoxInput/Components/InputAction";

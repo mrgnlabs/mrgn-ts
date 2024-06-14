@@ -1,10 +1,9 @@
 import React from "react";
 import Image from "next/image";
-import { createJupiterApiClient } from "@jup-ag/api";
-import { AddressLookupTableAccount, VersionedTransaction } from "@solana/web3.js";
+import { VersionedTransaction } from "@solana/web3.js";
 
-import { ExtendedBankInfo, ActionType, AccountSummary } from "@mrgnlabs/marginfi-v2-ui-state";
-import { Wallet, nativeToUi, numeralFormatter, percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
+import { ExtendedBankInfo, AccountSummary } from "@mrgnlabs/marginfi-v2-ui-state";
+import { Wallet, percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 import {
   Bank,
   MarginRequirementType,
@@ -16,10 +15,9 @@ import {
 
 import { LoopingOptions, clampedNumeralFormatter } from "~/utils";
 
-import { IconAlertTriangle, IconArrowRight, IconPyth, IconSwitchboard } from "~/components/ui/icons";
+import { IconArrowRight, IconPyth, IconSwitchboard } from "~/components/ui/icons";
 import { Skeleton } from "~/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
-import { REDUCE_ONLY_BANKS } from "~/components/desktop/AssetList/utils";
 
 export interface SimulateLoopingActionProps {
   marginfiClient: MarginfiClient;
