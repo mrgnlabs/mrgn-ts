@@ -11,7 +11,7 @@ import {
   ActionPreview,
   CalculatePreviewProps,
   PreviewStat,
-  SimulateActionProps,
+  SimulateLoopingActionProps,
   calculatePreview,
   generateStats,
   simulateLooping,
@@ -19,6 +19,7 @@ import {
 import { ActionMethod, LoopingOptions, RepayWithCollatOptions, usePrevious } from "~/utils";
 import { useAmountDebounce } from "~/hooks/useAmountDebounce";
 import { JUPITER_PROGRAM_V6_ID } from "@jup-ag/react-hook";
+import { VersionedTransaction } from "@solana/web3.js";
 
 interface UseLoopingPreviewProps {
   marginfiClient: MarginfiClient | null;
@@ -41,7 +42,7 @@ export function useLoopingPreview({
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const [actionMethod, setActionMethod] = React.useState<ActionMethod>();
 
-  const bankPrev = usePrevious(bank);
+  const txnPrev = usePrevious(loopOptions?.loopingTxn);
 
   React.useEffect(() => {
     if (bank) {
@@ -56,13 +57,13 @@ export function useLoopingPreview({
   };
 
   const getSimulationResult = React.useCallback(
-    async (loopOptions: LoopingOptions) => {
+    async (loopingTxn: VersionedTransaction | null) => {
       const props = {
         marginfiClient,
         account,
         bank,
-        loopOptions,
-      } as SimulateActionProps;
+        loopingTxn,
+      } as SimulateLoopingActionProps;
 
       try {
         setSimulationResult(await simulateLooping(props));
@@ -117,19 +118,38 @@ export function useLoopingPreview({
   );
 
   React.useEffect(() => {
-    const isBankChanged = bank ? !bankPrev?.address.equals(bank.address) : false;
+    const prevSerializedTxn = txnPrev?.serialize();
+    const serializedTxn = loopOptions?.loopingTxn?.serialize();
 
-    console.log({ bank, prev: bankPrev?.address, getSimulationResult, loopOptions });
+    const isUnchanged = compareSerializedArrays(prevSerializedTxn, serializedTxn);
 
-    if (loopOptions && !isBankChanged) {
-      console.log("hit");
-      getSimulationResult(loopOptions);
+    if (isUnchanged) return;
+
+    if (loopOptions?.loopingTxn) {
+      console.log("to much");
+      getSimulationResult(loopOptions?.loopingTxn);
     } else {
       setSimulationResult(undefined);
       setActionMethod(undefined);
       setIsLoading(false);
     }
-  }, [loopOptions]);
+  }, [getSimulationResult, loopOptions?.loopingTxn, txnPrev]);
 
   return { preview, previewStats, isLoading, actionMethod };
+}
+
+function compareSerializedArrays(arr1: Uint8Array | undefined, arr2: Uint8Array | undefined): boolean {
+  if (arr1 === undefined && arr2 === undefined) return true;
+
+  if (arr1 === undefined || arr2 === undefined) return false;
+
+  if (arr1.length !== arr2.length) return false;
+
+  for (let i = 0; i < arr1.length; i++) {
+    if (arr1[i] !== arr2[i]) {
+      return false;
+    }
+  }
+
+  return true;
 }
