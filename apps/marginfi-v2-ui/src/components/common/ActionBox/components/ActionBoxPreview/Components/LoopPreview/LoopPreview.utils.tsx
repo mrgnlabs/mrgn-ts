@@ -31,10 +31,8 @@ import { REDUCE_ONLY_BANKS } from "~/components/desktop/AssetList/utils";
 
 export interface SimulateActionProps {
   marginfiClient: MarginfiClient;
-  actionMode: ActionType;
   account: MarginfiAccountWrapper;
   bank: ExtendedBankInfo;
-  amount: number;
   loopOptions?: LoopingOptions;
 }
 
@@ -62,7 +60,6 @@ export interface ActionPreviewSimulation {
 }
 
 export interface CalculatePreviewProps {
-  actionMode: ActionType;
   simulationResult?: SimulationResult;
   bank: ExtendedBankInfo;
   loopOptions?: LoopingOptions;
@@ -73,7 +70,6 @@ export interface CalculatePreviewProps {
 export function calculatePreview({
   simulationResult,
   bank,
-  actionMode,
   loopOptions,
   accountSummary,
 }: CalculatePreviewProps): ActionPreview {
@@ -115,7 +111,6 @@ export function calculatePreview({
     };
   }
 
-  const isLending = actionMode === ActionType.Deposit || actionMode === ActionType.Withdraw;
   const currentPositionAmount = bank?.isActive ? bank.position.amount : 0;
   const healthFactor = !accountSummary.balance || !accountSummary.healthFactor ? 1 : accountSummary.healthFactor;
   const liquidationPrice =
@@ -123,74 +118,46 @@ export function calculatePreview({
       ? bank.position.liquidationPrice
       : undefined;
 
-  const poolSize = isLending
-    ? bank.info.state.totalDeposits
-    : Math.max(
-        0,
-        Math.min(bank.info.state.totalDeposits, bank.info.rawBank.config.borrowLimit.toNumber()) -
-          bank.info.state.totalBorrows
-      );
-  const bankCap = nativeToUi(
-    isLending ? bank.info.rawBank.config.depositLimit : bank.info.rawBank.config.borrowLimit,
-    bank.info.state.mintDecimals
-  );
-
   return {
     currentPositionAmount,
     healthFactor,
     liquidationPrice,
-    poolSize,
-    bankCap,
     priceImpactPct: loopOptions?.loopingQuote?.priceImpactPct,
     slippageBps: loopOptions?.loopingQuote?.slippageBps,
     simulationPreview,
   } as ActionPreview;
 }
 
-export async function simulateLooping({
-  marginfiClient,
-  actionMode,
-  account,
-  bank,
-  amount,
-  loopOptions,
-}: SimulateActionProps) {
+export async function simulateLooping({ marginfiClient, account, bank, loopOptions }: SimulateActionProps) {
   let simulationResult: SimulationResult;
 
-  switch (actionMode) {
-    case ActionType.Loop:
-      if (loopOptions?.loopingTxn && marginfiClient) {
-        const [mfiAccountData, bankData] = await marginfiClient.simulateTransaction(loopOptions.loopingTxn, [
-          account.address,
-          bank.address,
-        ]);
-        if (!mfiAccountData || !bankData) throw new Error("Failed to simulate looping");
-        const previewBanks = marginfiClient.banks;
-        previewBanks.set(bank.address.toBase58(), Bank.fromBuffer(bank.address, bankData));
-        const previewClient = new MarginfiClient(
-          marginfiClient.config,
-          marginfiClient.program,
-          {} as Wallet,
-          true,
-          marginfiClient.group,
-          marginfiClient.banks,
-          marginfiClient.oraclePrices
-        );
-        const previewMarginfiAccount = MarginfiAccountWrapper.fromAccountDataRaw(
-          account.address,
-          previewClient,
-          mfiAccountData
-        );
+  if (loopOptions?.loopingTxn && marginfiClient) {
+    const [mfiAccountData, bankData] = await marginfiClient.simulateTransaction(loopOptions.loopingTxn, [
+      account.address,
+      bank.address,
+    ]);
+    if (!mfiAccountData || !bankData) throw new Error("Failed to simulate looping");
+    const previewBanks = marginfiClient.banks;
+    previewBanks.set(bank.address.toBase58(), Bank.fromBuffer(bank.address, bankData));
+    const previewClient = new MarginfiClient(
+      marginfiClient.config,
+      marginfiClient.program,
+      {} as Wallet,
+      true,
+      marginfiClient.group,
+      marginfiClient.banks,
+      marginfiClient.oraclePrices
+    );
+    const previewMarginfiAccount = MarginfiAccountWrapper.fromAccountDataRaw(
+      account.address,
+      previewClient,
+      mfiAccountData
+    );
 
-        return (simulationResult = {
-          banks: previewBanks,
-          marginfiAccount: previewMarginfiAccount,
-        });
-      }
-      break;
-
-    default:
-      throw new Error("Unknown action mode");
+    return (simulationResult = {
+      banks: previewBanks,
+      marginfiAccount: previewMarginfiAccount,
+    });
   }
 }
 
@@ -211,7 +178,6 @@ export function generateStats(preview: ActionPreview, bank: ExtendedBankInfo, is
   if (preview.simulationPreview?.liquidationPrice)
     stats.push(getLiquidationStat(bank, isLoading, preview.simulationPreview?.liquidationPrice));
 
-  //stats.push(getPoolSizeStat(preview.bankCap, bank));
   stats.push(getBankTypeStat(bank));
   stats.push(getOracleStat(bank));
 
