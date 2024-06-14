@@ -1,7 +1,7 @@
 import React from "react";
 import Image from "next/image";
 import { createJupiterApiClient } from "@jup-ag/api";
-import { AddressLookupTableAccount } from "@solana/web3.js";
+import { AddressLookupTableAccount, VersionedTransaction } from "@solana/web3.js";
 
 import { ExtendedBankInfo, ActionType, AccountSummary } from "@mrgnlabs/marginfi-v2-ui-state";
 import { Wallet, nativeToUi, numeralFormatter, percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
@@ -14,26 +14,18 @@ import {
   getPriceWithConfidence,
 } from "@mrgnlabs/marginfi-client-v2";
 
-import {
-  LoopingOptions,
-  RepayWithCollatOptions,
-  clampedNumeralFormatter,
-  cn,
-  deserializeInstruction,
-  getAdressLookupTableAccounts,
-  isWholePosition,
-} from "~/utils";
+import { LoopingOptions, clampedNumeralFormatter } from "~/utils";
 
 import { IconAlertTriangle, IconArrowRight, IconPyth, IconSwitchboard } from "~/components/ui/icons";
 import { Skeleton } from "~/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { REDUCE_ONLY_BANKS } from "~/components/desktop/AssetList/utils";
 
-export interface SimulateActionProps {
+export interface SimulateLoopingActionProps {
   marginfiClient: MarginfiClient;
   account: MarginfiAccountWrapper;
   bank: ExtendedBankInfo;
-  loopOptions?: LoopingOptions;
+  loopingTxn: VersionedTransaction | null;
 }
 
 export interface ActionPreview {
@@ -128,11 +120,11 @@ export function calculatePreview({
   } as ActionPreview;
 }
 
-export async function simulateLooping({ marginfiClient, account, bank, loopOptions }: SimulateActionProps) {
+export async function simulateLooping({ marginfiClient, account, bank, loopingTxn }: SimulateLoopingActionProps) {
   let simulationResult: SimulationResult;
 
-  if (loopOptions?.loopingTxn && marginfiClient) {
-    const [mfiAccountData, bankData] = await marginfiClient.simulateTransaction(loopOptions.loopingTxn, [
+  if (loopingTxn && marginfiClient) {
+    const [mfiAccountData, bankData] = await marginfiClient.simulateTransaction(loopingTxn, [
       account.address,
       bank.address,
     ]);
