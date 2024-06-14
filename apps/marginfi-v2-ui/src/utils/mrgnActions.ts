@@ -463,7 +463,6 @@ export async function loopingBuilder({
   const swapLUTs: AddressLookupTableAccount[] = [];
   swapLUTs.push(...(await getAdressLookupTableAccounts(options.connection, addressLookupTableAddresses)));
 
-  console.log({ borrowAmount: options.borrowAmount, depositAmount });
   const { transaction, addressLookupTableAccounts } = await marginfiAccount.makeLoopTx(
     depositAmount,
     options.borrowAmount,
@@ -511,8 +510,6 @@ export async function looping({
       txn = (await loopingBuilder({ marginfiAccount, bank, depositAmount, options, priorityFee })).txn;
     }
     const sig = await marginfiClient.processTransaction(txn);
-    console.log("SIGGG");
-    console.log({ sig });
     multiStepToast.setSuccessAndNext();
     return sig;
   } catch (error: any) {
