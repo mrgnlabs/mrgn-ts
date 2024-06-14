@@ -32,21 +32,21 @@ import { Button } from "~/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
 import {
-  IconCheck,
   IconChevronDown,
   IconCopy,
   IconLogout,
-  IconArrowDown,
   IconArrowUp,
   IconRefresh,
   IconBell,
   IconArrowLeft,
   IconTrophy,
   IconKey,
-  IconMoonPay,
   IconX,
   IconArrowsExchange,
-  IconMeso,
+  IconCreditCardPay,
+  IconBuildingBank,
+  IconArrowDown,
+  IconCheck,
 } from "~/components/ui/icons";
 
 enum WalletState {
@@ -77,7 +77,7 @@ export const Wallet = () => {
 
   const debounceId = React.useRef<NodeJS.Timeout | null>(null);
   const [isFetchingWalletData, setIsFetchingWalletData] = React.useState(false);
-  const [isWalletAddressCopied, setisWalletAddressCopied] = React.useState(false);
+  const [isWalletAddressCopied, setIsWalletAddressCopied] = React.useState(false);
   const [walletData, setWalletData] = React.useState<{
     address: string;
     shortAddress: string;
@@ -401,6 +401,41 @@ export const Wallet = () => {
                           setState={setWalletTokenState}
                           web3AuthConnected={web3AuthConncected}
                         />
+                        <div className="">
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div>
+                                  <CopyToClipboard
+                                    text={walletData.address}
+                                    onCopy={() => {
+                                      setIsWalletAddressCopied(true);
+                                      setTimeout(() => {
+                                        setIsWalletAddressCopied(false);
+                                      }, 2000);
+                                    }}
+                                  >
+                                    <button className="flex w-full gap-1 font-medium items-center justify-center text-center text-xs text-muted-foreground">
+                                      {!isWalletAddressCopied ? (
+                                        <>
+                                          <IconCopy size={16} /> Copy wallet address
+                                        </>
+                                      ) : (
+                                        <>
+                                          <IconCheck size={16} />
+                                          Copied! ({shortenAddress(walletData.address)})
+                                        </>
+                                      )}
+                                    </button>
+                                  </CopyToClipboard>
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>{shortenAddress(walletData.address)}</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </div>
                         <WalletTokens
                           className="h-[calc(100vh-325px)] pb-16"
                           tokens={walletData.tokens}
@@ -413,6 +448,34 @@ export const Wallet = () => {
                     )}
 
                     {walletTokenState === WalletState.TOKEN && activeToken && (
+                      <TabWrapper resetWalletState={resetWalletState}>
+                        <div className="gap-2 text-center flex flex-col items-center">
+                          <Image
+                            src={getTokenImageURL(activeToken.symbol)}
+                            alt={activeToken.symbol}
+                            width={60}
+                            height={60}
+                            className="rounded-full"
+                          />
+                          <div className="space-y-0">
+                            <h2 className="font-medium text-3xl">
+                              {activeToken.value < 0.01
+                                ? "< 0.01"
+                                : numeralFormatter(activeToken.value) + " " + activeToken.symbol}
+                            </h2>
+                            <p className="text-muted-foreground">{usdFormatter.format(activeToken.valueUSD)}</p>
+                          </div>
+                        </div>
+                        <div className="mt-6">
+                          <TokenOptions
+                            walletAddress={walletData.address}
+                            setState={setWalletTokenState}
+                            setToken={() => {
+                              setActiveToken(activeToken);
+                            }}
+                          />
+                        </div>
+                      </TabWrapper>
                       <TabWrapper resetWalletState={resetWalletState}>
                         <div className="gap-2 text-center flex flex-col items-center">
                           <Image
@@ -467,9 +530,12 @@ export const Wallet = () => {
                     )}
                     {walletTokenState === WalletState.BUY && (
                       <TabWrapper resetWalletState={resetWalletState}>
-                        <WalletOnramp />
+                        <div className="px-4">
+                          <WalletOnramp showAmountBackButton={false} />
+                        </div>
                       </TabWrapper>
                     )}
+                    {walletTokenState === WalletState.BUY && <WalletOnramp />}
                     {walletTokenState === WalletState.SELECT && (
                       <TabWrapper resetWalletState={resetWalletState}>
                         <WalletTokens
@@ -655,33 +721,6 @@ function TokenOptions({ walletAddress, setState, setToken, web3AuthConnected = f
   const [isWalletAddressCopied, setIsWalletAddressCopied] = React.useState(false);
   return (
     <div className="flex items-center justify-center gap-4">
-      <CopyToClipboard
-        text={walletAddress}
-        onCopy={() => {
-          setIsWalletAddressCopied(true);
-          setTimeout(() => {
-            setIsWalletAddressCopied(false);
-          }, 2000);
-        }}
-      >
-        <button className="flex flex-col gap-1 text-sm font-medium items-center">
-          {!isWalletAddressCopied ? (
-            <>
-              <div className="rounded-full flex items-center justify-center h-12 w-12 bg-background-gray transition-colors hover:bg-background-gray-hover">
-                <IconArrowDown size={20} />
-              </div>
-              Receive
-            </>
-          ) : (
-            <>
-              <div className="rounded-full flex items-center justify-center h-12 w-12 bg-background-gray transition-colors hover:bg-background-gray-hover">
-                <IconCheck size={20} />
-              </div>
-              Copied!
-            </>
-          )}
-        </button>
-      </CopyToClipboard>
       <button
         className="flex flex-col gap-1 text-sm font-medium items-center"
         onClick={() => {
@@ -721,17 +760,19 @@ function TokenOptions({ walletAddress, setState, setToken, web3AuthConnected = f
         </div>
         Bridge
       </button>
-      <button
-        className="flex flex-col gap-1 text-sm font-medium items-center"
-        onClick={() => {
-          setState(WalletState.BUY);
-        }}
-      >
-        <div className="rounded-full flex items-center justify-center h-12 w-12 bg-background-gray transition-colors hover:bg-background-gray-hover">
-          <IconMeso size={20} />
-        </div>
-        Buy
-      </button>
+      {web3AuthConnected && (
+        <button
+          className="flex flex-col gap-1 text-sm font-medium items-center"
+          onClick={() => {
+            setState(WalletState.BUY);
+          }}
+        >
+          <div className="rounded-full flex items-center justify-center h-12 w-12 bg-background-gray transition-colors hover:bg-background-gray-hover">
+            <IconMeso size={20} />
+          </div>
+          Buy
+        </button>
+      )}
     </div>
   );
 }
