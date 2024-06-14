@@ -607,13 +607,13 @@ async function calculateLooping(
           connection
         );
         if (txn) {
-          // capture("repay_with_collat", {
-          //   amountIn: uiToNative(amount, repayBank.info.state.mintDecimals).toNumber(),
-          //   firstQuote,
-          //   bestQuote: swapQuote,
-          //   inputMint: repayBank.info.state.mint.toBase58(),
-          //   outputMint: bank.info.state.mint.toBase58(),
-          // });
+          capture("looper", {
+            amountIn: uiToNative(amount, loopBank.info.state.mintDecimals).toNumber(),
+            firstQuote,
+            bestQuote: swapQuote,
+            inputMint: loopBank.info.state.mint.toBase58(),
+            outputMint: bank.info.state.mint.toBase58(),
+          });
           return {
             loopingTxn: txn,
             quote: swapQuote,
@@ -626,12 +626,12 @@ async function calculateLooping(
       }
     } catch (error) {
       console.error(error);
-      // capture("repay_with_collat", {
-      //   amountIn: uiToNative(amount, repayBank.info.state.mintDecimals).toNumber(),
-      //   firstQuote,
-      //   inputMint: repayBank.info.state.mint.toBase58(),
-      //   outputMint: bank.info.state.mint.toBase58(),
-      // });
+      capture("looper", {
+        amountIn: uiToNative(amount, loopBank.info.state.mintDecimals).toNumber(),
+        firstQuote,
+        inputMint: loopBank.info.state.mint.toBase58(),
+        outputMint: bank.info.state.mint.toBase58(),
+      });
       return null;
     }
   }
