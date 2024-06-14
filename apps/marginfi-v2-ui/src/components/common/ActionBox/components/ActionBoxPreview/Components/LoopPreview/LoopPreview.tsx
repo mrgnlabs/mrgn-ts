@@ -35,10 +35,8 @@ export const LoopPreview = ({
   const { preview, previewStats, isLoading, actionMethod } = useLoopingPreview({
     marginfiClient,
     accountSummary,
-    actionMode,
     account: selectedAccount,
     bank: selectedBank,
-    amount,
     loopOptions,
   });
 
