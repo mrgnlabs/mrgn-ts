@@ -35,6 +35,7 @@ import { AccountType, MarginfiConfig, MarginfiProgram } from "../../types";
 import { MarginfiAccount, MarginRequirementType, MarginfiAccountRaw } from "./pure";
 import { Bank } from "../bank";
 import { Balance } from "../balance";
+import { makePriorityFeeIx } from "../../utils";
 
 export interface SimulationResult {
   banks: Map<string, Bank>;
@@ -290,31 +291,6 @@ class MarginfiAccountWrapper {
       depositPriceInfo,
       borrowPriceInfo
     );
-  }
-
-  makePriorityFeeIx(priorityFeeUi?: number): TransactionInstruction[] {
-    const priorityFeeIx: TransactionInstruction[] = [];
-    const limitCU = 1_400_000;
-
-    let microLamports: number = 1;
-
-    if (priorityFeeUi) {
-      // if priority fee is above 0.2 SOL discard it for safety reasons
-      const isAbsurdPriorityFee = priorityFeeUi > 0.2;
-
-      if (!isAbsurdPriorityFee) {
-        const priorityFeeMicroLamports = priorityFeeUi * LAMPORTS_PER_SOL * 1_000_000;
-        microLamports = Math.round(priorityFeeMicroLamports / limitCU);
-      }
-    }
-
-    priorityFeeIx.push(
-      ComputeBudgetProgram.setComputeUnitPrice({
-        microLamports,
-      })
-    );
-
-    return priorityFeeIx;
   }
 
   makeComputeBudgetIx(): TransactionInstruction[] {
@@ -597,7 +573,7 @@ class MarginfiAccountWrapper {
 
     const setupIxs = await this.makeSetupIx([depositBankAddress, borrowBankAddress]);
     const cuRequestIxs = this.makeComputeBudgetIx();
-    const priorityFeeIx = this.makePriorityFeeIx(priorityFeeUi);
+    const priorityFeeIx = makePriorityFeeIx(priorityFeeUi);
     const borrowIxs = await this.makeBorrowIx(borrowAmount, borrowBankAddress, {
       createAtas: false,
       wrapAndUnwrapSol: false,
