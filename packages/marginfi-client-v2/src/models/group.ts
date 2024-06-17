@@ -166,19 +166,6 @@ class MarginfiGroup {
     };
   }
 
-  getVaultSeed(vaultType: string, bankPk: PublicKey): Uint8Array {
-    return Buffer.concat([Buffer.from(vaultType), bankPk.toBuffer()]);
-  }
-
-  getVaultAuthoritySeed(vaultType: string, bankPk: PublicKey): Uint8Array {
-    return Buffer.concat([Buffer.from(`${vaultType}_auth`), bankPk.toBuffer()]);
-  }
-
-  async hashSeed(seed: Uint8Array): Promise<Uint8Array> {
-    const hash = await sha256(seed);
-    return new Uint8Array(Buffer.from(hash, "hex"));
-  }
-
   public async makePoolAddBankIx(
     program: MarginfiProgram,
     connection: Connection,
@@ -192,7 +179,7 @@ class MarginfiGroup {
     for (let i = 1; i < Number.MAX_SAFE_INTEGER; i++) {
       console.log("Seed option enabled -- generating a PDA account");
 
-      const iBytes = new Uint8Array(new BigUint64Array([BigInt(i)]).buffer);
+      const iBytes = new BN(i).toArrayLike(Buffer, "le", 8);
       const seeds = [groupKey.toBuffer(), bankMint.toBuffer(), iBytes];
 
       const [pda] = await PublicKey.findProgramAddressSync(seeds, program.programId);
@@ -200,7 +187,6 @@ class MarginfiGroup {
       const accountInfo = await connection.getAccountInfo(pda, "confirmed");
 
       if (!accountInfo) {
-        // Bank address is free
         console.log("Successfully generated a PDA account");
         bankPda = pda;
         bankSeed = i;
@@ -208,35 +194,23 @@ class MarginfiGroup {
       }
     }
 
-    const liquidityVaultSeed = await this.hashSeed(Buffer.concat([Buffer.from("liquidity_vault"), bankPda.toBuffer()]));
-    const liquidityVaultAuthoritySeed = await this.hashSeed(
-      Buffer.concat([Buffer.from("liquidity_vault_auth"), bankPda.toBuffer()])
-    );
+    const liquidityVaultSeed = [Buffer.from("liquidity_vault"), bankPda.toBuffer()];
+    const liquidityVaultAuthoritySeed = [Buffer.from("liquidity_vault_auth"), bankPda.toBuffer()];
 
-    const insuranceVaultSeed = await this.hashSeed(Buffer.concat([Buffer.from("insurance_vault"), bankPda.toBuffer()]));
-    const insuranceVaultAuthoritySeed = await this.hashSeed(
-      Buffer.concat([Buffer.from("insurance_vault_auth"), bankPda.toBuffer()])
-    );
+    const insuranceVaultSeed = [Buffer.from("insurance_vault"), bankPda.toBuffer()];
+    const insuranceVaultAuthoritySeed = [Buffer.from("insurance_vault_auth"), bankPda.toBuffer()];
 
-    const feeVaultSeed = await this.hashSeed(Buffer.concat([Buffer.from("fee_vault"), bankPda.toBuffer()]));
-    const feeVaultAuthoritySeed = await this.hashSeed(
-      Buffer.concat([Buffer.from("fee_vault_auth"), bankPda.toBuffer()])
-    );
+    const feeVaultSeed = [Buffer.from("fee_vault"), bankPda.toBuffer()];
+    const feeVaultAuthoritySeed = [Buffer.from("fee_vault_auth"), bankPda.toBuffer()];
 
-    const [liquidityVault] = PublicKey.findProgramAddressSync([liquidityVaultSeed], program.programId);
-    const [liquidityVaultAuthority] = PublicKey.findProgramAddressSync(
-      [liquidityVaultAuthoritySeed],
-      program.programId
-    );
+    const [liquidityVault] = PublicKey.findProgramAddressSync(liquidityVaultSeed, program.programId);
+    const [liquidityVaultAuthority] = PublicKey.findProgramAddressSync(liquidityVaultAuthoritySeed, program.programId);
 
-    const [insuranceVault] = PublicKey.findProgramAddressSync([insuranceVaultSeed], program.programId);
-    const [insuranceVaultAuthority] = PublicKey.findProgramAddressSync(
-      [insuranceVaultAuthoritySeed],
-      program.programId
-    );
+    const [insuranceVault] = PublicKey.findProgramAddressSync(insuranceVaultSeed, program.programId);
+    const [insuranceVaultAuthority] = PublicKey.findProgramAddressSync(insuranceVaultAuthoritySeed, program.programId);
 
-    const [feeVault] = PublicKey.findProgramAddressSync([feeVaultSeed], program.programId);
-    const [feeVaultAuthority] = PublicKey.findProgramAddressSync([feeVaultAuthoritySeed], program.programId);
+    const [feeVault] = PublicKey.findProgramAddressSync(feeVaultSeed, program.programId);
+    const [feeVaultAuthority] = PublicKey.findProgramAddressSync(feeVaultAuthoritySeed, program.programId);
 
     let rawBankConfig = serializeBankConfigOpt(bankConfig);
 
@@ -247,8 +221,6 @@ class MarginfiGroup {
       auto_padding_0: [0],
       auto_padding_1: [0],
     } as BankConfigCompactRaw;
-
-    delete rawBankConfigCompact.oracle;
 
     const ix = await instructions.makePoolAddBankIx(
       program,
@@ -267,6 +239,7 @@ class MarginfiGroup {
         rent: SYSVAR_RENT_PUBKEY,
         tokenProgram: TOKEN_PROGRAM_ID,
         systemProgram: SystemProgram.programId,
+        oracleKey: rawBankConfigCompact.oracleKey,
       },
       {
         bankConfig: rawBankConfigCompact,

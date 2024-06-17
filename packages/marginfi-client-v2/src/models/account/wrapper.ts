@@ -28,6 +28,7 @@ import { AccountType, MarginfiConfig, MarginfiProgram } from "../../types";
 import { MarginfiAccount, MarginRequirementType, MarginfiAccountRaw } from "./pure";
 import { Bank } from "../bank";
 import { Balance } from "../balance";
+import { makePriorityFeeIx } from "../../utils";
 
 export interface SimulationResult {
   banks: Map<string, Bank>;
@@ -258,7 +259,7 @@ class MarginfiAccountWrapper {
     principal: Amount,
     targetLeverage: number,
     depositBankAddress: PublicKey,
-    borrowBankAddress: PublicKey,
+    borrowBankAddress: PublicKey
   ): { borrowAmount: BigNumber; depositAmount: BigNumber } {
     const depositBank = this.client.banks.get(depositBankAddress.toBase58());
     if (!depositBank) throw Error(`Bank ${depositBankAddress.toBase58()} not found`);
@@ -278,31 +279,6 @@ class MarginfiAccountWrapper {
       depositPriceInfo,
       borrowPriceInfo
     );
-  }
-
-  makePriorityFeeIx(priorityFeeUi?: number): TransactionInstruction[] {
-    const priorityFeeIx: TransactionInstruction[] = [];
-    const limitCU = 1_400_000;
-
-    let microLamports: number = 1;
-
-    if (priorityFeeUi) {
-      // if priority fee is above 0.2 SOL discard it for safety reasons
-      const isAbsurdPriorityFee = priorityFeeUi > 0.2;
-
-      if (!isAbsurdPriorityFee) {
-        const priorityFeeMicroLamports = priorityFeeUi * LAMPORTS_PER_SOL * 1_000_000;
-        microLamports = Math.round(priorityFeeMicroLamports / limitCU);
-      }
-    }
-
-    priorityFeeIx.push(
-      ComputeBudgetProgram.setComputeUnitPrice({
-        microLamports,
-      })
-    );
-
-    return priorityFeeIx;
   }
 
   makeComputeBudgetIx(): TransactionInstruction[] {
@@ -362,7 +338,7 @@ class MarginfiAccountWrapper {
     repayAll: boolean = false,
     swapIxs: TransactionInstruction[],
     swapLookupTables: AddressLookupTableAccount[],
-    priorityFeeUi?: number,
+    priorityFeeUi?: number
   ): Promise<string> {
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:repay`);
     debug("Repaying %s into marginfi account (bank: %s), repay all: %s", withdrawAmount, withdrawBankAddress, repayAll);
@@ -376,7 +352,7 @@ class MarginfiAccountWrapper {
       repayAll,
       swapIxs,
       swapLookupTables,
-      priorityFeeUi,
+      priorityFeeUi
     );
 
     const sig = await this.client.processTransaction(transaction, []);
@@ -406,7 +382,10 @@ class MarginfiAccountWrapper {
       addressLookupTableAccounts
     );
 
-    const [mfiAccountData, bankData] = await this.client.simulateTransaction(transaction, [this.address, withdrawBankAddress]);
+    const [mfiAccountData, bankData] = await this.client.simulateTransaction(transaction, [
+      this.address,
+      withdrawBankAddress,
+    ]);
     if (!mfiAccountData || !bankData) throw new Error("Failed to simulate repay w/ collat");
     const previewBanks = this.client.banks;
     previewBanks.set(withdrawBankAddress.toBase58(), Bank.fromBuffer(withdrawBankAddress, bankData));
@@ -439,11 +418,11 @@ class MarginfiAccountWrapper {
     repayAll: boolean = false,
     swapIxs: TransactionInstruction[],
     swapLookupTables: AddressLookupTableAccount[],
-    priorityFeeUi?: number,
+    priorityFeeUi?: number
   ): Promise<{ transaction: VersionedTransaction; addressLookupTableAccounts: AddressLookupTableAccount[] }> {
     const setupIxs = await this.makeSetupIx([withdrawBankAddress, repayBankAddress]);
     const cuRequestIxs = this.makeComputeBudgetIx();
-    const priorityFeeIx = this.makePriorityFeeIx(priorityFeeUi);
+    const priorityFeeIx = makePriorityFeeIx(priorityFeeUi);
     const withdrawIxs = await this.makeWithdrawIx(repayAmount, repayBankAddress, withdrawAll, {
       createAtas: false,
       wrapAndUnwrapSol: false,
@@ -476,7 +455,7 @@ class MarginfiAccountWrapper {
     borrowBankAddress: PublicKey,
     swapIxs: TransactionInstruction[],
     swapLookupTables: AddressLookupTableAccount[],
-    priorityFeeUi?: number,
+    priorityFeeUi?: number
   ): Promise<string | { flashloanTx: VersionedTransaction; addressLookupTableAccounts: AddressLookupTableAccount[] }> {
     const depositBank = this.client.banks.get(depositBankAddress.toBase58());
     if (!depositBank) throw Error("Deposit bank not found");
@@ -484,9 +463,21 @@ class MarginfiAccountWrapper {
     if (!borrowBank) throw Error("Borrow bank not found");
 
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:repay`);
-    debug(`Looping ${depositAmount} ${depositBank.tokenSymbol} against ${borrowAmount} ${borrowBank.tokenSymbol} into marginfi account (banks: ${depositBankAddress.toBase58()} / ${borrowBankAddress.toBase58()})`);
+    debug(
+      `Looping ${depositAmount} ${depositBank.tokenSymbol} against ${borrowAmount} ${
+        borrowBank.tokenSymbol
+      } into marginfi account (banks: ${depositBankAddress.toBase58()} / ${borrowBankAddress.toBase58()})`
+    );
 
-    const { transaction } = await this.makeLoopTx(depositAmount, borrowAmount, depositBankAddress, borrowBankAddress, swapIxs, swapLookupTables, priorityFeeUi);
+    const { transaction } = await this.makeLoopTx(
+      depositAmount,
+      borrowAmount,
+      depositBankAddress,
+      borrowBankAddress,
+      swapIxs,
+      swapLookupTables,
+      priorityFeeUi
+    );
 
     const sig = await this.client.processTransaction(transaction, []);
     debug("Repay with collateral successful %s", sig);
@@ -501,11 +492,23 @@ class MarginfiAccountWrapper {
     borrowBankAddress: PublicKey,
     swapIxs: TransactionInstruction[],
     swapLookupTables: AddressLookupTableAccount[],
-    priorityFeeUi?: number,
+    priorityFeeUi?: number
   ): Promise<SimulationResult> {
-    const { transaction } = await this.makeLoopTx(depositAmount, borrowAmount, depositBankAddress, borrowBankAddress, swapIxs, swapLookupTables, priorityFeeUi);
+    const { transaction } = await this.makeLoopTx(
+      depositAmount,
+      borrowAmount,
+      depositBankAddress,
+      borrowBankAddress,
+      swapIxs,
+      swapLookupTables,
+      priorityFeeUi
+    );
 
-    const [mfiAccountData, depositBankData, borrowBankData] = await this.client.simulateTransaction(transaction, [this.address, depositBankAddress, borrowBankAddress]);
+    const [mfiAccountData, depositBankData, borrowBankData] = await this.client.simulateTransaction(transaction, [
+      this.address,
+      depositBankAddress,
+      borrowBankAddress,
+    ]);
     if (!mfiAccountData || !depositBankData || !borrowBankData) throw new Error("Failed to simulate repay w/ collat");
     const previewBanks = this.client.banks;
     previewBanks.set(depositBankAddress.toBase58(), Bank.fromBuffer(depositBankAddress, depositBankData));
@@ -539,7 +542,7 @@ class MarginfiAccountWrapper {
     borrowBankAddress: PublicKey,
     swapIxs: TransactionInstruction[],
     swapLookupTables: AddressLookupTableAccount[],
-    priorityFeeUi?: number,
+    priorityFeeUi?: number
   ): Promise<{ transaction: VersionedTransaction; addressLookupTableAccounts: AddressLookupTableAccount[] }> {
     const depositBank = this.client.banks.get(depositBankAddress.toBase58());
     if (!depositBank) throw Error("Deposit bank not found");
@@ -548,7 +551,7 @@ class MarginfiAccountWrapper {
 
     const setupIxs = await this.makeSetupIx([borrowBankAddress]);
     const cuRequestIxs = this.makeComputeBudgetIx();
-    const priorityFeeIx = this.makePriorityFeeIx(priorityFeeUi);
+    const priorityFeeIx = makePriorityFeeIx(priorityFeeUi);
     const borrowIxs = await this.makeBorrowIx(borrowAmount, borrowBankAddress, {
       createAtas: false,
       wrapAndUnwrapSol: false,
@@ -573,16 +576,23 @@ class MarginfiAccountWrapper {
     return { transaction, addressLookupTableAccounts };
   }
 
-  async makeDepositIx(amount: Amount, bankAddress: PublicKey,
+  async makeDepositIx(
+    amount: Amount,
+    bankAddress: PublicKey,
     opt: { wrapAndUnwrapSol?: boolean } = {}
   ): Promise<InstructionsWrapper> {
     return this._marginfiAccount.makeDepositIx(this._program, this.client.banks, amount, bankAddress, opt);
   }
 
-  async deposit(amount: Amount, bankAddress: PublicKey, priorityFeeUi?: number, opt: { wrapAndUnwrapSol?: boolean } = {}): Promise<string> {
+  async deposit(
+    amount: Amount,
+    bankAddress: PublicKey,
+    priorityFeeUi?: number,
+    opt: { wrapAndUnwrapSol?: boolean } = {}
+  ): Promise<string> {
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:deposit`);
     debug("Depositing %s into marginfi account (bank: %s)", amount, shortenAddress(bankAddress));
-    const priorityFeeIx = this.makePriorityFeeIx(priorityFeeUi);
+    const priorityFeeIx = makePriorityFeeIx(priorityFeeUi);
     const ixs = await this.makeDepositIx(amount, bankAddress, opt);
     const tx = new Transaction().add(...priorityFeeIx, ...ixs.instructions);
     const sig = await this.client.processTransaction(tx, []);
@@ -634,7 +644,7 @@ class MarginfiAccountWrapper {
   ): Promise<string> {
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:repay`);
     debug("Repaying %s into marginfi account (bank: %s), repay all: %s", amount, bankAddress, repayAll);
-    const priorityFeeIx = this.makePriorityFeeIx(priorityFeeUi);
+    const priorityFeeIx = makePriorityFeeIx(priorityFeeUi);
     const ixs = await this.makeRepayIx(amount, bankAddress, repayAll);
     const tx = new Transaction().add(...priorityFeeIx, ...ixs.instructions);
     const sig = await this.client.processTransaction(tx, []);
@@ -694,7 +704,7 @@ class MarginfiAccountWrapper {
   ): Promise<string> {
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:withdraw`);
     debug("Withdrawing %s from marginfi account", amount);
-    const priorityFeeIx = this.makePriorityFeeIx(priorityFeeUi);
+    const priorityFeeIx = makePriorityFeeIx(priorityFeeUi);
     const cuRequestIxs = this.makeComputeBudgetIx();
     const ixs = await this.makeWithdrawIx(amount, bankAddress, withdrawAll);
     const tx = new Transaction().add(...priorityFeeIx, ...cuRequestIxs, ...ixs.instructions);
@@ -746,7 +756,7 @@ class MarginfiAccountWrapper {
   async borrow(amount: Amount, bankAddress: PublicKey, priorityFeeUi?: number): Promise<string> {
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:borrow`);
     debug("Borrowing %s from marginfi account", amount);
-    const priorityFeeIx = this.makePriorityFeeIx(priorityFeeUi);
+    const priorityFeeIx = makePriorityFeeIx(priorityFeeUi);
     const cuRequestIxs = this.makeComputeBudgetIx();
     const ixs = await this.makeBorrowIx(amount, bankAddress);
     const tx = new Transaction().add(...priorityFeeIx, ...cuRequestIxs, ...ixs.instructions);

@@ -44,6 +44,7 @@ import {
 } from ".";
 import { MarginfiAccountWrapper } from "./models/account/wrapper";
 import { ProcessTransactionError, ProcessTransactionErrorType, parseErrorFromLogs } from "./errors";
+import { makePriorityFeeIx } from "./utils";
 
 export type BankMap = Map<string, Bank>;
 export type OraclePriceMap = Map<string, OraclePrice>;
@@ -575,8 +576,9 @@ class MarginfiClient {
 
     const ixs = await this.group.makePoolAddBankIx(this.program, this.provider.connection, bankMint, bankConfig);
     const signers = [...ixs.keys];
+    const priorityFeeIx = makePriorityFeeIx(0.001);
 
-    const tx = new Transaction().add(...ixs.instructions);
+    const tx = new Transaction().add(...priorityFeeIx, ...ixs.instructions);
     const sig = await this.processTransaction(tx, signers, opts);
     dbg("Created new lending pool %s", sig);
 
@@ -598,6 +600,8 @@ class MarginfiClient {
     opts?: TransactionOptions
   ): Promise<TransactionSignature> {
     let signature: TransactionSignature = "";
+
+    console.log(this.provider.connection.rpcEndpoint);
 
     let versionedTransaction: VersionedTransaction;
     const connection = new Connection(this.provider.connection.rpcEndpoint, this.provider.opts);
