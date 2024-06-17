@@ -1,6 +1,8 @@
 import {
   AddressLookupTableAccount,
   Blockhash,
+  ComputeBudgetProgram,
+  LAMPORTS_PER_SOL,
   PublicKey,
   SystemProgram,
   Transaction,
@@ -101,4 +103,29 @@ export async function makeVersionedTransaction(
     : message.compileToLegacyMessage();
 
   return new VersionedTransaction(versionedMessage);
+}
+
+export function makePriorityFeeIx(priorityFeeUi?: number): TransactionInstruction[] {
+  const priorityFeeIx: TransactionInstruction[] = [];
+  const limitCU = 1_400_000;
+
+  let microLamports: number = 1;
+
+  if (priorityFeeUi) {
+    // if priority fee is above 0.2 SOL discard it for safety reasons
+    const isAbsurdPriorityFee = priorityFeeUi > 0.2;
+
+    if (!isAbsurdPriorityFee) {
+      const priorityFeeMicroLamports = priorityFeeUi * LAMPORTS_PER_SOL * 1_000_000;
+      microLamports = Math.round(priorityFeeMicroLamports / limitCU);
+    }
+  }
+
+  priorityFeeIx.push(
+    ComputeBudgetProgram.setComputeUnitPrice({
+      microLamports,
+    })
+  );
+
+  return priorityFeeIx;
 }
