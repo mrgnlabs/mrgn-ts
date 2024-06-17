@@ -8,25 +8,71 @@ export const TVWidget = () => {
   React.useEffect(() => {
     if (!container.current) return;
     const script = document.createElement("script");
-    script.src = "https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js";
+    script.src = "/tradingview/charting_library/charting_library.js";
     script.type = "text/javascript";
     script.async = true;
-    script.innerHTML = `
-        {
-          "autosize": true,
-          "symbol": "CRYPTO:SOLUSD",
-          "interval": "5",
-          "timezone": "Etc/UTC",
-          "theme": "dark",
-          "style": "1",
-          "locale": "en",
-          "backgroundColor": "rgb(13, 16, 18)",
-          "hide_top_toolbar": true,
-          "allow_symbol_change": false,
-          "save_image": false,
-          "calendar": false,
-          "support_host": "https://www.tradingview.com"
-        }`;
+    script.onload = () => {
+      new window.TradingView.widget({
+        container_id: "tv_chart_container",
+        datafeed: {
+          onReady: (callback) => {
+            fetch("/api/datafeed?action=config")
+              .then((response) => response.json())
+              .then((data) => callback(data));
+          },
+          searchSymbols: (userInput, exchange, symbolType, onResultReadyCallback) => {
+            fetch(`/api/datafeed?action=search&query=${userInput}`)
+              .then((response) => response.json())
+              .then((data) => onResultReadyCallback(data));
+          },
+          resolveSymbol: (symbolName, onSymbolResolvedCallback, onResolveErrorCallback) => {
+            fetch(`/api/datafeed?action=resolve&symbol=${symbolName}`)
+              .then((response) => response.json())
+              .then((data) => onSymbolResolvedCallback(data))
+              .catch((err) => onResolveErrorCallback(err));
+          },
+          getBars: (symbolInfo, resolution, periodParams, onResult, onError) => {
+            fetch(
+              `/api/datafeed?action=history&symbol=${symbolInfo.name}&resolution=${resolution}&from=${
+                periodParams.from
+              }&to=${periodParams.to}&address=${(symbolInfo as any)?.address}&firstDataRequest=${
+                periodParams.firstDataRequest
+              }`
+            )
+              .then((response) => response.json())
+              .then((data) => {
+                if (data?.noData || !data?.length) {
+                  onResult([], { noData: true });
+                } else if (data.length) {
+                  onResult(data, { noData: false });
+                }
+              })
+              .catch((err) => onError(err));
+          },
+          subscribeBars: (symbolInfo, resolution, onRealtimeCallback, subscriberUID, onResetCacheNeededCallback) => {
+            const msg = {
+              type: "SUBSCRIBE_PRICE",
+              data: {
+                resolution,
+                lastBar: symbolInfo.lastBar,
+                address: symbolInfo.address,
+              },
+            };
+
+            ws.current?.send(JSON.stringify(msg));
+          },
+          unsubscribeBars: (subscriberUID) => {
+            const msg = {
+              type: "UNSUBSCRIBE_PRICE",
+            };
+
+            ws.current?.send(JSON.stringify(msg));
+          },
+        },
+        library_path: "/charting_library/",
+        // Add your configuration options here
+      });
+    };
     container.current.appendChild(script);
 
     return () => {
