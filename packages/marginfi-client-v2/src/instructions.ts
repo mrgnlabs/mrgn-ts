@@ -356,6 +356,7 @@ async function makePoolAddBankIx(
     rent: PublicKey;
     tokenProgram: PublicKey;
     systemProgram: PublicKey;
+    oracleKey: PublicKey;
   },
   args: {
     bankConfig: BankConfigCompactRaw;
@@ -363,7 +364,7 @@ async function makePoolAddBankIx(
   }
 ) {
   return mfProgram.methods
-    .lendingPoolAddBankWithSeed(args.bankConfig, args.seed)
+    .lendingPoolAddBank(args.bankConfig)
     .accounts({
       marginfiGroup: accounts.marginfiGroup,
       admin: accounts.admin,
@@ -380,6 +381,13 @@ async function makePoolAddBankIx(
       tokenProgram: accounts.tokenProgram,
       systemProgram: accounts.systemProgram,
     })
+    .remainingAccounts([
+      {
+        pubkey: accounts.oracleKey,
+        isSigner: false,
+        isWritable: false,
+      },
+    ])
     .instruction();
 }
 
