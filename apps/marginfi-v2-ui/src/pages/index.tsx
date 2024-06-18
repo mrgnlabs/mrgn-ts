@@ -44,7 +44,7 @@ export default function HomePage() {
 
     return [
       { bank: mother, text: "now available in global pool" },
-      { bank: hSOL, text: "now available in global pool" },
+      { bank: hSOL },
       {
         image: <IconBook size={22} />,
         text: "New documentaiton available now!",
