@@ -1,34 +1,11 @@
 // pages/api/websocket.ts
 import { NextApiRequest, NextApiResponse } from "next";
 import { Server } from "ws";
-import { parseResolution } from ".";
+import { getNextBarTime, parseResolution } from "~/utils/tradingViewUtils";
 
 type SocketServer = {
   wss: Server;
 };
-
-export function getNextBarTime(lastBar: any, resolution = "1D" as any) {
-  if (!lastBar) return;
-
-  const lastCharacter = resolution.slice(-1);
-  let nextBarTime;
-
-  switch (true) {
-    case lastCharacter === "W":
-      nextBarTime = 7 * 24 * 60 * 60 * 1000 + lastBar.time;
-      break;
-
-    case lastCharacter === "D":
-      nextBarTime = 1 * 24 * 60 * 60 * 1000 + lastBar.time;
-      break;
-
-    default:
-      nextBarTime = resolution * 60 * 1000 + lastBar.time;
-      break;
-  }
-
-  return nextBarTime;
-}
 
 // Create WebSocket server
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
