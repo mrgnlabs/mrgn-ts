@@ -20,7 +20,7 @@ import {
 } from "~/components/common/Announcements";
 
 import { OverlaySpinner } from "~/components/ui/overlay-spinner";
-import { IconBackpackWallet, IconTrophy, IconYBX } from "~/components/ui/icons";
+import { IconBackpackWallet, IconBook, IconYBX } from "~/components/ui/icons";
 import { Loader } from "~/components/ui/loader";
 
 const AssetsList = dynamic(async () => (await import("~/components/desktop/AssetList")).AssetsList, {
@@ -42,19 +42,20 @@ export default function HomePage() {
     const drift = extendedBankInfos.find((bank) => bank.meta.tokenSymbol === "DRIFT");
     const tnsr = extendedBankInfos.find((bank) => bank.meta.tokenSymbol === "TNSR");
     const mother = extendedBankInfos.find((bank) => bank.meta.tokenSymbol === "MOTHER");
+    
     return [
       { bank: mother, text: "now available in global pool" },
+      {
+        image: <IconBook size={22} />,
+        text: "New documentaiton available now!",
+        onClick: () => window.open("https://docs.marginfi.com/"),
+      },
       { bank: tnsr, text: "now available in global pool" },
       { bank: drift },
       {
         image: <IconBackpackWallet size={22} />,
         text: "5% points boost for Backpack users!",
         onClick: () => router.push("/points"),
-      },
-      {
-        image: <IconYBX size={22} />,
-        text: "Read the YBX announcement!",
-        onClick: () => window.open("https://twitter.com/marginfi/status/1762865889035317679"),
       },
     ] as (AnnouncementBankItem | AnnouncementCustomItem)[];
   }, [extendedBankInfos, router]);
