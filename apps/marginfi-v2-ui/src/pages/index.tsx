@@ -41,7 +41,9 @@ export default function HomePage() {
   const annoucements = React.useMemo(() => {
     const drift = extendedBankInfos.find((bank) => bank.meta.tokenSymbol === "DRIFT");
     const tnsr = extendedBankInfos.find((bank) => bank.meta.tokenSymbol === "TNSR");
+    const mother = extendedBankInfos.find((bank) => bank.meta.tokenSymbol === "MOTHER");
     return [
+      { bank: mother, text: "now available in global pool" },
       { bank: tnsr, text: "now available in global pool" },
       { bank: drift },
       {
