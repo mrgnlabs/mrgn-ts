@@ -1,6 +1,10 @@
+import React from "react";
+
 import Link from "next/link";
 
-import { useMrgnlendStore } from "~/store";
+import { useTradeStore } from "~/store";
+import { useWalletContext } from "~/hooks/useWalletContext";
+import { useConnection } from "~/hooks/useConnection";
 
 import { PageHeading } from "~/components/common/PageHeading";
 import { PoolCard } from "~/components/common/Pool/PoolCard";
@@ -12,7 +16,21 @@ import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
 
 export default function HomePage() {
-  const [initialized, extendedBankInfos] = useMrgnlendStore((state) => [state.initialized, state.extendedBankInfos]);
+  const { wallet } = useWalletContext();
+  const { connection } = useConnection();
+  const [initialized, fetchTradeState, banks] = useTradeStore((state) => [
+    state.initialized,
+    state.fetchTradeState,
+    state.banks,
+  ]);
+
+  React.useEffect(() => {
+    fetchTradeState({
+      wallet,
+      connection,
+    });
+  }, []);
+
   return (
     <div className="w-full max-w-8xl mx-auto px-4 md:px-8 pb-28">
       {!initialized && <Loader label="Loading mrgntrade..." className="mt-8" />}
@@ -53,9 +71,7 @@ export default function HomePage() {
               </div>
             </div>
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
-              {extendedBankInfos.map((bank, i) => (
-                <PoolCard key={i} bank={bank} />
-              ))}
+              {banks.length > 0 && banks.map((bank, i) => <PoolCard key={i} bank={bank} />)}
             </div>
           </div>
         </>
