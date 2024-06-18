@@ -593,8 +593,7 @@ class MarginfiClient {
     const accountKeypair = Keypair.generate();
 
     const ixs = await this.makeCreateMarginfiGroupIx(accountKeypair.publicKey);
-    const signers = [...ixs.keys];
-    signers.push(accountKeypair);
+    const signers = [...ixs.keys, accountKeypair];
     const tx = new Transaction().add(...ixs.instructions);
     const sig = await this.processTransaction(tx, signers, opts);
     dbg("Created Marginfi group %s", sig);
@@ -607,18 +606,36 @@ class MarginfiClient {
    *
    * @returns MarginfiGroup instance
    */
-  async createLendingPool(bankMint: PublicKey, bankConfig: BankConfigOpt, opts?: TransactionOptions): Promise<string> {
+  async createLendingPool(
+    bankMint: PublicKey,
+    bankConfig: BankConfigOpt,
+    opts?: TransactionOptions
+  ): Promise<{
+    bankAddress: PublicKey;
+    signature: TransactionSignature;
+  }> {
     const dbg = require("debug")("mfi:client");
 
-    const ixs = await this.group.makePoolAddBankIx(this.program, this.provider.connection, bankMint, bankConfig);
-    const signers = [...ixs.keys];
+    const bankKeypair = Keypair.generate();
+
+    const ixs = await this.group.makePoolAddBankIx(
+      this.program,
+      this.provider.connection,
+      bankKeypair.publicKey,
+      bankMint,
+      bankConfig
+    );
+    const signers = [...ixs.keys, bankKeypair];
     const priorityFeeIx = makePriorityFeeIx(0.001);
 
     const tx = new Transaction().add(...priorityFeeIx, ...ixs.instructions);
     const sig = await this.processTransaction(tx, signers, opts);
     dbg("Created new lending pool %s", sig);
 
-    return Promise.resolve(sig);
+    return Promise.resolve({
+      bankAddress: bankKeypair.publicKey,
+      signature: sig,
+    });
   }
 
   // --------------------------------------------------------------------------
