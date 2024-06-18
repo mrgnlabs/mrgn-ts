@@ -604,7 +604,7 @@ class MarginfiClient {
   /**
    * Create a new lending pool.
    *
-   * @returns MarginfiGroup instance
+   * @returns bank address and transaction signature
    */
   async createLendingPool(
     bankMint: PublicKey,
