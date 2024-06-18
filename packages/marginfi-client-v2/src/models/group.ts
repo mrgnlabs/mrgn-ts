@@ -3,7 +3,7 @@ import { PublicKey, Keypair, Connection, SystemProgram, SYSVAR_RENT_PUBKEY } fro
 import BN from "bn.js";
 import { MARGINFI_IDL } from "../idl";
 import { AccountType, BankVaultType, MarginfiProgram } from "../types";
-import { InstructionsWrapper, TOKEN_PROGRAM_ID } from "@mrgnlabs/mrgn-common";
+import { InstructionsWrapper, TOKEN_PROGRAM_ID, getMint } from "@mrgnlabs/mrgn-common";
 import instructions from "../instructions";
 import { FLASHLOAN_ENABLED_FLAG, TRANSFER_ACCOUNT_AUTHORITY_FLAG } from "../constants";
 import { BankConfigCompactRaw, BankConfigOpt, BankConfigOptRaw, serializeBankConfigOpt } from "./bank";
@@ -169,39 +169,18 @@ class MarginfiGroup {
   public async makePoolAddBankIx(
     program: MarginfiProgram,
     connection: Connection,
+    bankPubkey: PublicKey,
     bankMint: PublicKey,
     bankConfig: BankConfigOpt
   ): Promise<InstructionsWrapper> {
-    let bankPda: PublicKey = PublicKey.default;
-    let bankSeed: number = 0;
-    const groupKey = this.address;
+    const liquidityVaultSeed = [Buffer.from("liquidity_vault"), bankPubkey.toBuffer()];
+    const liquidityVaultAuthoritySeed = [Buffer.from("liquidity_vault_auth"), bankPubkey.toBuffer()];
 
-    for (let i = 1; i < Number.MAX_SAFE_INTEGER; i++) {
-      console.log("Seed option enabled -- generating a PDA account");
+    const insuranceVaultSeed = [Buffer.from("insurance_vault"), bankPubkey.toBuffer()];
+    const insuranceVaultAuthoritySeed = [Buffer.from("insurance_vault_auth"), bankPubkey.toBuffer()];
 
-      const iBytes = new BN(i).toArrayLike(Buffer, "le", 8);
-      const seeds = [groupKey.toBuffer(), bankMint.toBuffer(), iBytes];
-
-      const [pda] = await PublicKey.findProgramAddressSync(seeds, program.programId);
-
-      const accountInfo = await connection.getAccountInfo(pda, "confirmed");
-
-      if (!accountInfo) {
-        console.log("Successfully generated a PDA account");
-        bankPda = pda;
-        bankSeed = i;
-        break;
-      }
-    }
-
-    const liquidityVaultSeed = [Buffer.from("liquidity_vault"), bankPda.toBuffer()];
-    const liquidityVaultAuthoritySeed = [Buffer.from("liquidity_vault_auth"), bankPda.toBuffer()];
-
-    const insuranceVaultSeed = [Buffer.from("insurance_vault"), bankPda.toBuffer()];
-    const insuranceVaultAuthoritySeed = [Buffer.from("insurance_vault_auth"), bankPda.toBuffer()];
-
-    const feeVaultSeed = [Buffer.from("fee_vault"), bankPda.toBuffer()];
-    const feeVaultAuthoritySeed = [Buffer.from("fee_vault_auth"), bankPda.toBuffer()];
+    const feeVaultSeed = [Buffer.from("fee_vault"), bankPubkey.toBuffer()];
+    const feeVaultAuthoritySeed = [Buffer.from("fee_vault_auth"), bankPubkey.toBuffer()];
 
     const [liquidityVault] = PublicKey.findProgramAddressSync(liquidityVaultSeed, program.programId);
     const [liquidityVaultAuthority] = PublicKey.findProgramAddressSync(liquidityVaultAuthoritySeed, program.programId);
@@ -211,6 +190,9 @@ class MarginfiGroup {
 
     const [feeVault] = PublicKey.findProgramAddressSync(feeVaultSeed, program.programId);
     const [feeVaultAuthority] = PublicKey.findProgramAddressSync(feeVaultAuthoritySeed, program.programId);
+
+    // TODO: convert depositLimit and borrowLimit based on mint decimals
+    // const mint = getMint(connection, bankMint);
 
     let rawBankConfig = serializeBankConfigOpt(bankConfig);
 
@@ -229,7 +211,7 @@ class MarginfiGroup {
         admin: this.admin,
         feePayer: this.admin,
         bankMint: bankMint,
-        bank: bankPda,
+        bank: bankPubkey,
         liquidityVaultAuthority: liquidityVaultAuthority,
         liquidityVault: liquidityVault,
         insuranceVaultAuthority: insuranceVaultAuthority,
@@ -243,11 +225,8 @@ class MarginfiGroup {
       },
       {
         bankConfig: rawBankConfigCompact,
-        seed: new BN(bankSeed),
       }
     );
-
-    console.log("Generated add bank ix", ix);
 
     return {
       instructions: [ix],
