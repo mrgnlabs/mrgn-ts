@@ -63,7 +63,7 @@ async function main() {
   console.log("Creating banks with authority:", client.wallet.publicKey.toBase58());
 
   const result = await client.createLendingPool(bankMint, bank, {
-    dryRun: false,
+    dryRun: true,
   });
   console.log(result);
 }
