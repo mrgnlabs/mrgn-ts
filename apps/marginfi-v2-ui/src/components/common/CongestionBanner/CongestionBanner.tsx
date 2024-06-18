@@ -31,7 +31,7 @@ export const CongestionBanner = () => {
 
   return (
     <Link
-      href="https://forum.marginfi.community/t/work-were-doing-to-improve-oracle-robustness-during-chain-congestion/283"
+      href="https://docs.marginfi.com/faqs#what-does-the-simulating-health-liquidation-impact-failed-error-mean"
       target="_blank"
       rel="noreferrer"
       className="group fixed top-0 w-full h-16 p-4 pr-16 z-50 flex items-center justify-center leading-tight bg-background-gray-light text-xs font-normal text-muted-foreground md:text-sm md:h-10"
