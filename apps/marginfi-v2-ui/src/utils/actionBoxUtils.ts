@@ -606,3 +606,38 @@ export const debounceFn = (fn: Function, ms = 300) => {
     timeoutId = setTimeout(() => fn.apply(this, args), ms);
   };
 };
+
+export const formatAmount = (
+  newAmount: string,
+  maxAmount: number,
+  bank: ExtendedBankInfo | null,
+  numberFormater: Intl.NumberFormat
+) => {
+  let formattedAmount: string, amount: number;
+  // Remove commas from the formatted string
+  const newAmountWithoutCommas = newAmount.replace(/,/g, "");
+  let decimalPart = newAmountWithoutCommas.split(".")[1];
+  const mintDecimals = bank?.info.state.mintDecimals ?? 9;
+
+  if (
+    (newAmount.endsWith(",") || newAmount.endsWith(".")) &&
+    !newAmount.substring(0, newAmount.length - 1).includes(".")
+  ) {
+    amount = isNaN(Number.parseFloat(newAmountWithoutCommas)) ? 0 : Number.parseFloat(newAmountWithoutCommas);
+    formattedAmount = numberFormater.format(amount).concat(".");
+  } else {
+    const isDecimalPartInvalid = isNaN(Number.parseFloat(decimalPart));
+    if (!isDecimalPartInvalid) decimalPart = decimalPart.substring(0, mintDecimals);
+    decimalPart = isDecimalPartInvalid
+      ? ""
+      : ".".concat(Number.parseFloat("1".concat(decimalPart)).toString().substring(1));
+    amount = isNaN(Number.parseFloat(newAmountWithoutCommas)) ? 0 : Number.parseFloat(newAmountWithoutCommas);
+    formattedAmount = numberFormater.format(amount).split(".")[0].concat(decimalPart);
+  }
+
+  if (amount > maxAmount) {
+    return numberFormater.format(maxAmount);
+  } else {
+    return formattedAmount;
+  }
+};
