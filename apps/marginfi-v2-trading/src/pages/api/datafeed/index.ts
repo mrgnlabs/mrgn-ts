@@ -70,8 +70,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     case "resolve":
       const { symbol } = req.query;
       try {
-        const response = await makeApiRequest(`public/tokenlist?sort_by=v24hUSD&sort_type=desc&offset=0&limit=-1`);
-
+        const response = await makeApiRequest(`defi/tokenlist?sort_by=v24hUSD&sort_type=desc&offset=0&limit=-1`);
         const symbols = response.data.tokens;
         const symbolItem = symbols.find((item: any) => item.address === symbol);
 
@@ -120,13 +119,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         time_to: to,
       };
 
+      console.log({ urlParameters });
+
       const birdeyeQuery = Object.keys(urlParameters)
         .map((name) => `${name}=${encodeURIComponent((urlParameters as any)[name])}`)
         .join("&");
 
       try {
+        console.log("hehe");
         const data = await makeApiRequest(`defi/ohlcv?${birdeyeQuery}`);
+        console.log({ data });
         if (!data.success || data.data.items.length === 0) {
+          console.log("hit");
           // "noData" should be set if there is no data in the requested period.
           return res.status(200).json({ noData: true });
         }
@@ -150,8 +154,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           lastBarsCache.set(historyAddress, {
             ...bars[bars.length - 1],
           });
-          return res.status(200);
+          return res.status(200).json({ bars });
         }
+        return res.status(200).json({ bars });
 
         return res.status(200).json({ noData: true });
       } catch (error) {}
