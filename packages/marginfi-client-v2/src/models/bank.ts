@@ -79,7 +79,6 @@ interface BankConfigRaw {
 interface BankConfigCompactRaw extends Omit<BankConfigRaw, "oracleKeys"> {
   oracle?: { setup: OracleSetupRaw; keys: PublicKey[] };
   oracleKey: PublicKey;
-  oracleMaxAge: BN;
   auto_padding_0: number[];
   auto_padding_1: number[];
 }
