@@ -52,8 +52,6 @@ export default function HomePage() {
         text: "New documentaiton available now!",
         onClick: () => window.open("https://docs.marginfi.com/"),
       },
-      { bank: tnsr, text: "now available in global pool" },
-      { bank: drift },
       {
         image: <IconBackpackWallet size={22} />,
         text: "5% points boost for Backpack users!",
