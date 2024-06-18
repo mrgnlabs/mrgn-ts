@@ -20,7 +20,7 @@ import {
 } from "~/components/common/Announcements";
 
 import { OverlaySpinner } from "~/components/ui/overlay-spinner";
-import { IconBackpackWallet, IconBook, IconYBX } from "~/components/ui/icons";
+import { IconBackpackWallet, IconBook } from "~/components/ui/icons";
 import { Loader } from "~/components/ui/loader";
 
 const AssetsList = dynamic(async () => (await import("~/components/desktop/AssetList")).AssetsList, {
@@ -42,9 +42,11 @@ export default function HomePage() {
     const drift = extendedBankInfos.find((bank) => bank.meta.tokenSymbol === "DRIFT");
     const tnsr = extendedBankInfos.find((bank) => bank.meta.tokenSymbol === "TNSR");
     const mother = extendedBankInfos.find((bank) => bank.meta.tokenSymbol === "MOTHER");
-    
+    const hSOL = extendedBankInfos.find((bank) => bank.meta.tokenSymbol === "hSOL");
+
     return [
       { bank: mother, text: "now available in global pool" },
+      { bank: hSOL, text: "now available in global pool" },
       {
         image: <IconBook size={22} />,
         text: "New documentaiton available now!",
