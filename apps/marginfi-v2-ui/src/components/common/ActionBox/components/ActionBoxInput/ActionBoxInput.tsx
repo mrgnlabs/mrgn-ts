@@ -2,7 +2,7 @@ import React from "react";
 
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { RepayType, YbxType } from "~/utils";
+import { RepayType, YbxType, formatAmount } from "~/utils";
 import { useActionBoxStore } from "~/hooks/useActionBoxStore";
 import { useConnection } from "~/hooks/useConnection";
 import { useMrgnlendStore, useUiStore } from "~/store";
@@ -104,35 +104,9 @@ export const ActionBoxInput = ({
     }
   }, [repayAmountRaw, amountRaw, isRepayWithCollat]);
 
-  const formatAmount = React.useCallback(
+  const formatAmountCb = React.useCallback(
     (newAmount: string, bank: ExtendedBankInfo | null) => {
-      let formattedAmount: string, amount: number;
-      // Remove commas from the formatted string
-      const newAmountWithoutCommas = newAmount.replace(/,/g, "");
-      let decimalPart = newAmountWithoutCommas.split(".")[1];
-      const mintDecimals = bank?.info.state.mintDecimals ?? 9;
-
-      if (
-        (newAmount.endsWith(",") || newAmount.endsWith(".")) &&
-        !newAmount.substring(0, newAmount.length - 1).includes(".")
-      ) {
-        amount = isNaN(Number.parseFloat(newAmountWithoutCommas)) ? 0 : Number.parseFloat(newAmountWithoutCommas);
-        formattedAmount = numberFormater.format(amount).concat(".");
-      } else {
-        const isDecimalPartInvalid = isNaN(Number.parseFloat(decimalPart));
-        if (!isDecimalPartInvalid) decimalPart = decimalPart.substring(0, mintDecimals);
-        decimalPart = isDecimalPartInvalid
-          ? ""
-          : ".".concat(Number.parseFloat("1".concat(decimalPart)).toString().substring(1));
-        amount = isNaN(Number.parseFloat(newAmountWithoutCommas)) ? 0 : Number.parseFloat(newAmountWithoutCommas);
-        formattedAmount = numberFormater.format(amount).split(".")[0].concat(decimalPart);
-      }
-
-      if (amount > maxAmount) {
-        return numberFormater.format(maxAmount);
-      } else {
-        return formattedAmount;
-      }
+      return formatAmount(newAmount, maxAmount, bank, numberFormater);
     },
     [maxAmount, numberFormater]
   );
@@ -141,23 +115,25 @@ export const ActionBoxInput = ({
     (newAmount: string) => {
       if (actionMode === ActionType.Loop) {
         if (selectedAccount)
-          setLoopingAmountRaw(selectedAccount, formatAmount(newAmount, selectedRepayBank), connection);
+          setLoopingAmountRaw(selectedAccount, formatAmountCb(newAmount, selectedRepayBank), connection);
       } else if (isRepayWithCollat) {
-        if (selectedAccount) setRepayAmountRaw(selectedAccount, formatAmount(newAmount, selectedRepayBank), connection);
+        if (selectedAccount)
+          setRepayAmountRaw(selectedAccount, formatAmountCb(newAmount, selectedRepayBank), connection);
       } else {
-        setAmountRaw(formatAmount(newAmount, selectedBank));
+        setAmountRaw(formatAmountCb(newAmount, selectedBank));
       }
     },
     [
-      isRepayWithCollat,
       actionMode,
+      isRepayWithCollat,
       selectedAccount,
+      setLoopingAmountRaw,
+      formatAmountCb,
       selectedRepayBank,
       connection,
-      selectedBank,
-      setAmountRaw,
       setRepayAmountRaw,
-      formatAmount,
+      setAmountRaw,
+      selectedBank,
     ]
   );
 
@@ -176,7 +152,7 @@ export const ActionBoxInput = ({
         <YbxInput
           isDialog={isDialog}
           maxAmount={maxAmount}
-          setAmountRaw={(amount) => setAmountRaw(formatAmount(amount, selectedBank))}
+          setAmountRaw={(amount) => setAmountRaw(formatAmountCb(amount, selectedBank))}
         />
       ) : isLoopMode ? (
         <LoopInput

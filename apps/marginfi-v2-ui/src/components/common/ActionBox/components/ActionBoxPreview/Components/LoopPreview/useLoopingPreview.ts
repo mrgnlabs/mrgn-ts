@@ -125,7 +125,6 @@ export function useLoopingPreview({
     if (isUnchanged) return;
 
     if (loopOptions?.loopingTxn) {
-      console.log("to much");
       getSimulationResult(loopOptions?.loopingTxn);
     } else {
       setSimulationResult(undefined);

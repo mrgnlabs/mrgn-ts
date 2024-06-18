@@ -20,6 +20,7 @@ import {
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { useConnection } from "~/hooks/useConnection";
 import { useActionBoxStore } from "~/hooks/useActionBoxStore";
+import { useUnmount } from "~/hooks/useUnmount";
 import { SOL_MINT } from "~/store/lstStore";
 
 import { LSTDialog, LSTDialogVariants } from "~/components/common/AssetList";
@@ -33,7 +34,6 @@ import {
   ActionBoxActions,
   ActionBoxInput,
 } from "~/components/common/ActionBox/components";
-import BigNumber from "bignumber.js";
 
 type ActionBoxProps = {
   requestedAction?: ActionType;
@@ -141,10 +141,16 @@ export const ActionBox = ({
   const { walletContextState, connected, wallet } = useWalletContext();
   const { connection } = useConnection();
 
-  // Cleanup the store when the component unmounts or wallet disconnects
+  // Cleanup the store when the wallet disconnects
   React.useEffect(() => {
-    return () => refreshState();
-  }, [refreshState, connected]);
+    if (!connected) {
+      refreshState(actionMode);
+    }
+  }, [refreshState, connected, actionMode]);
+
+  useUnmount(() => {
+    refreshState();
+  });
 
   const [isSettingsMode, setIsSettingsMode] = React.useState<boolean>(false);
   const [isLSTDialogOpen, setIsLSTDialogOpen] = React.useState(false);

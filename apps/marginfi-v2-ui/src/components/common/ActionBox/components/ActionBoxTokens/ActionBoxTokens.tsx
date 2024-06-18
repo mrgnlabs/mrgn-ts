@@ -78,6 +78,7 @@ export const ActionBoxTokens = ({
 
       {isLoopMode && (
         <LoopingTokens
+          isDialog={isDialog}
           selectedBank={actionModeOverride === ActionType.Borrow ? selectedRepayBank : selectedBank}
           actionType={actionModeOverride || actionMode}
           setSelectedBank={actionModeOverride === ActionType.Borrow ? setLoopBank : setTokenBank}

@@ -52,7 +52,7 @@ interface ActionBoxState {
   isLoading: boolean;
 
   // Actions
-  refreshState: () => void;
+  refreshState: (actionMode?: ActionType) => void;
   refreshSelectedBanks: (banks: ExtendedBankInfo[]) => void;
   fetchActionBoxState: (args: { requestedAction?: ActionType; requestedBank?: ExtendedBankInfo }) => void;
   setSlippageBps: (slippageBps: number) => void;
@@ -156,27 +156,23 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
   // State
   ...initialState,
 
-  refreshState() {
-    const actionMode = get().actionMode;
-    set({ ...initialState, actionMode: actionMode, slippageBps: get().slippageBps });
+  refreshState(actionMode?: ActionType) {
+    if (actionMode) {
+      set({ ...initialState, actionMode, slippageBps: get().slippageBps });
+    } else {
+      set({ ...initialState, slippageBps: get().slippageBps });
+    }
   },
 
   fetchActionBoxState(args) {
     let requestedAction: ActionType;
     let requestedBank: ExtendedBankInfo | null = null;
-    let slippageBps = get().slippageBps;
     const actionMode = get().actionMode;
 
     if (args.requestedAction) {
       requestedAction = args.requestedAction;
     } else {
       requestedAction = actionMode;
-    }
-
-    if (requestedAction === ActionType.Repay || requestedAction === ActionType.Loop) {
-      slippageBps = 100;
-    } else {
-      slippageBps = 30;
     }
 
     if (args.requestedBank) {
@@ -193,7 +189,7 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
       actionMode !== requestedAction ||
       (requestedBank && !requestedBank.address.equals(selectedBank.address));
 
-    if (needRefresh) set({ ...initialState, actionMode: requestedAction, selectedBank: requestedBank, slippageBps });
+    if (needRefresh) set({ ...initialState, actionMode: requestedAction, selectedBank: requestedBank });
   },
 
   setLeverage(leverage, marginfiAccount, connection) {
