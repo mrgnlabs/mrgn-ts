@@ -1,17 +1,8 @@
-import { shortenAddress, NodeWallet } from "@mrgnlabs/mrgn-common";
 import { getMarginfiClient } from "./utils";
 import { getConfig } from "../src";
 import { env_config } from "./config";
 import { PublicKey } from "@solana/web3.js";
-import {
-  BankConfigCompactRaw,
-  BankConfigOpt,
-  BankConfigOptRaw,
-  OperationalState,
-  OracleSetup,
-  RiskTier,
-  serializeBankConfigOpt,
-} from "../src/models/bank";
+import { BankConfigOpt, OperationalState, OracleSetup, RiskTier } from "../src/models/bank";
 import { BigNumber } from "bignumber.js";
 
 const marginfiGroupPk = new PublicKey("J9VZnaMGTELGCPsqMxk8aoyEGYcVzhorj48HvtDdEtc8");
@@ -65,7 +56,9 @@ async function main() {
   const result = await client.createLendingPool(bankMint, bank, {
     dryRun: true,
   });
-  console.log(result);
+
+  console.log("Created bank:", result.bankAddress.toBase58());
+  console.log("Signature:", result.signature);
 }
 
 main().catch((e) => console.log(e));

@@ -344,7 +344,6 @@ async function makePoolAddBankIx(
   },
   args: {
     bankConfig: BankConfigCompactRaw;
-    seed: BN;
   }
 ) {
   return mfProgram.methods
