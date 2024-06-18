@@ -6,9 +6,11 @@ import { ActionBox } from "~/components/common/ActionBox";
 import { PageHeading } from "~/components/common/PageHeading";
 
 import { Loader } from "~/components/ui/loader";
+import { useUnmount } from "~/hooks/useUnmount";
 
 export default function LooperPage() {
   const [initialized] = useMrgnlendStore((state) => [state.initialized]);
+
   return (
     <>
       {!initialized && <Loader label="Loading mrgnloop..." className="mt-16" />}

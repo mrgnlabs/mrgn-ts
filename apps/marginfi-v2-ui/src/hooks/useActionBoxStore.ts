@@ -2,8 +2,6 @@ import { ActionBoxState, useActionBoxDialogStore, useActionBoxGeneralStore } fro
 import { StoreApi, UseBoundStore } from "zustand";
 
 export const useActionBoxStore = (isDialog?: boolean): UseBoundStore<StoreApi<ActionBoxState>> => {
-  useActionBoxGeneralStore;
-
   if (!isDialog) {
     return useActionBoxGeneralStore;
   } else {

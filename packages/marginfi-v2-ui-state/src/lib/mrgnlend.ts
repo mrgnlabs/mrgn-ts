@@ -164,7 +164,6 @@ export async function makeExtendedBankEmission(
   let birdeyePrices: null | BigNumber[] = emissionsMints.map(() => new BigNumber(0));
 
   try {
-    console.log("calling function");
     birdeyePrices = await fetchBirdeyePrices(emissionsMints, apiKey);
   } catch (err) {
     console.log("Failed to fetch emissions prices from Birdeye", err);

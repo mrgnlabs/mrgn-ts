@@ -3,7 +3,7 @@ import React from "react";
 import { ExtendedBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { cn, computeBankRate } from "~/utils";
-import { useMrgnlendStore, useActionBoxGeneralStore } from "~/store";
+import { useMrgnlendStore } from "~/store";
 
 import { TokenListWrapper, TokenListCommand, SelectedBankItem } from "../SharedComponents";
 import { ActionBoxItem } from "~/components/common/ActionBox/components";
@@ -12,20 +12,22 @@ import { Button } from "~/components/ui/button";
 import { IconChevronDown } from "~/components/ui/icons";
 
 import { LendingModes } from "~/types";
+import { useActionBoxStore } from "~/hooks/useActionBoxStore";
 
 type LoopingTokensProps = {
   actionType: ActionType;
   selectedBank: ExtendedBankInfo | null;
   setSelectedBank: (selectedBank: ExtendedBankInfo | null) => void;
+  isDialog?: boolean;
 };
 
-export const LoopingTokens = ({ selectedBank, setSelectedBank, actionType }: LoopingTokensProps) => {
+export const LoopingTokens = ({ selectedBank, setSelectedBank, actionType, isDialog }: LoopingTokensProps) => {
   const [extendedBankInfos, nativeSolBalance] = useMrgnlendStore((state) => [
     state.extendedBankInfos,
     state.nativeSolBalance,
   ]);
 
-  const [selectedBankStore] = useActionBoxGeneralStore((state) => [state.selectedBank]);
+  const [selectedBankStore] = useActionBoxStore(isDialog)((state) => [state.selectedBank]);
 
   const [isOpen, setIsOpen] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState("");
@@ -161,7 +163,9 @@ export const LoopingTokens = ({ selectedBank, setSelectedBank, actionType }: Loo
                       }}
                       className="cursor-pointer h-[55px] px-3 font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white"
                       disabled={
-                        bank.userInfo.tokenAccount.balance === 0 || selectedBankStore?.address.equals(bank.address)
+                        actionType === ActionType.Borrow
+                          ? selectedBankStore?.address.equals(bank.address)
+                          : bank.userInfo.tokenAccount.balance === 0
                       }
                     >
                       <ActionBoxItem
@@ -194,7 +198,9 @@ export const LoopingTokens = ({ selectedBank, setSelectedBank, actionType }: Loo
                       }}
                       className="cursor-pointer h-[55px] px-3 font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white"
                       disabled={
-                        bank.userInfo.tokenAccount.balance === 0 || selectedBankStore?.address.equals(bank.address)
+                        actionType === ActionType.Borrow
+                          ? selectedBankStore?.address.equals(bank.address)
+                          : bank.userInfo.tokenAccount.balance === 0
                       }
                     >
                       <ActionBoxItem

@@ -3,11 +3,11 @@ import React from "react";
 import BigNumber from "bignumber.js";
 import Image from "next/image";
 
-import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { percentFormatter } from "@mrgnlabs/mrgn-common";
 
 import { useActionBoxStore } from "~/hooks/useActionBoxStore";
-import { computeBankRateRaw, getTokenImageURL } from "~/utils";
+import { computeBankRateRaw, formatAmount, getTokenImageURL } from "~/utils";
 
 import { ActionBoxTokens } from "~/components/common/ActionBox/components";
 import { InputAction } from "~/components/common/ActionBox/components/ActionBoxInput/Components/InputAction";
@@ -73,6 +73,7 @@ export const LoopInput = ({
   const [inputAmount, setInputAmount] = React.useState<string>("");
   const [leverageAmount, setLeverageAmount] = React.useState<number>(0);
   const debouncedAmount = useDebounce(inputAmount, 1000);
+
   const debouncedLeverage = useDebounce(leverageAmount, 1000);
 
   const [netApyRaw, setNetApyRaw] = React.useState(0);
@@ -84,7 +85,9 @@ export const LoopInput = ({
   );
 
   React.useEffect(() => setLeverageAmount(leverage), [leverage]);
-  React.useEffect(() => setInputAmount(amountRaw), [amountRaw]);
+  React.useEffect(() => {
+    setInputAmount(amountRaw);
+  }, [amountRaw]);
 
   const refreshTxn = React.useCallback(() => {
     if (selectedAccount) setLooping({ marginfiAccount: selectedAccount, connection: connection });
@@ -108,6 +111,8 @@ export const LoopInput = ({
     return () => clearInterval(interval);
   }, [refreshTxn, actionTxn, connection]);
 
+  const numberFormater = React.useMemo(() => new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 }), []);
+
   const netApy = React.useMemo(() => {
     if (!selectedBank || !selectedRepayBank) return 0;
     const depositTokenApy = computeBankRateRaw(selectedBank, LendingModes.LEND);
@@ -117,6 +122,13 @@ export const LoopInput = ({
     setNetApyRaw(netApy);
     return percentFormatter.format(Math.abs(netApy));
   }, [selectedBank, selectedRepayBank]);
+
+  const formatAmountCb = React.useCallback(
+    (newAmount: string, bank: ExtendedBankInfo | null) => {
+      setInputAmount(formatAmount(newAmount, maxAmount, bank, numberFormater));
+    },
+    [maxAmount, numberFormater]
+  );
 
   const bothBanksSelected = selectedBank && selectedRepayBank;
 
@@ -131,6 +143,7 @@ export const LoopInput = ({
                 setRepayBank(tokenBank);
               }}
               setTokenBank={(tokenBank) => {
+                setInputAmount("0");
                 if (selectedRepayBank) {
                   setRepayBank(null);
                   setLeverageAmount(0);
@@ -151,7 +164,7 @@ export const LoopInput = ({
               ref={amountInputRef}
               inputMode="decimal"
               value={inputAmount}
-              onChange={(e) => setInputAmount(e.target.value)}
+              onChange={(e) => formatAmountCb(e.target.value, selectedBank)}
               onFocus={() => handleInputFocus(true)}
               onBlur={() => handleInputFocus(false)}
               disabled={isLoading || !bothBanksSelected}
@@ -212,7 +225,7 @@ export const LoopInput = ({
             step={0.01}
             value={[leverageAmount]}
             onValueChange={(value) => {
-              if (value[0] >= maxLeverage) return;
+              if (value[0] > maxLeverage) return;
               setLeverageAmount(value[0]);
             }}
             disabled={!bothBanksSelected}
@@ -225,7 +238,7 @@ export const LoopInput = ({
                 <button
                   disabled={!!!maxLeverage}
                   className="ml-1 text-sm cursor-pointer text-chartreuse border-b border-transparent transition hover:border-chartreuse"
-                  onClick={() => setLeverageAmount(Number(maxLeverage.toFixed(2)))}
+                  onClick={() => setLeverageAmount(Number(Math.floor(maxLeverage).toFixed(2)))}
                 >
                   MAX
                 </button>
