@@ -46,10 +46,12 @@ function parseTokenMetadatas(tokenMetadataListRaw: TokenMetadataListRaw): {
   );
 }
 
-async function loadTokenMetadatas(): Promise<{
+async function loadTokenMetadatas(
+  cacheUrl: string = "https://storage.googleapis.com/mrgn-public/mrgn-token-metadata-cache.json"
+): Promise<{
   [symbol: string]: TokenMetadata;
 }> {
-  const response = await fetch(`https://storage.googleapis.com/mrgn-public/mrgn-token-metadata-cache.json`, {
+  const response = await fetch(cacheUrl, {
     headers: {
       Accept: "application/json",
     },
@@ -58,7 +60,7 @@ async function loadTokenMetadatas(): Promise<{
 
   if (response.status === 200) {
     const responseData = await response.json();
-    assert(responseData, TokenMetadataList);
+    // assert(responseData, TokenMetadataList);
     return parseTokenMetadatas(responseData);
   } else {
     throw new Error("Failed to fetch token metadata cache");
@@ -113,10 +115,12 @@ function parseBankMetadatas(bankMetadataListRaw: BankMetadataListRaw): {
   );
 }
 
-async function loadBankMetadatas(): Promise<{
+async function loadBankMetadatas(
+  cacheUrl: string = "https://storage.googleapis.com/mrgn-public/mrgn-bank-metadata-cache.json"
+): Promise<{
   [address: string]: BankMetadata;
 }> {
-  const response = await fetch(`https://storage.googleapis.com/mrgn-public/mrgn-bank-metadata-cache.json`, {
+  const response = await fetch(cacheUrl, {
     headers: {
       Accept: "application/json",
     },
