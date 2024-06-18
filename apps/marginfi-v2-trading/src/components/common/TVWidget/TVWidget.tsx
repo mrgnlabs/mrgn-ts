@@ -1,9 +1,11 @@
 "use client";
 
 import React from "react";
+import { useWebSocket } from "./useWebSocket";
 
 export const TVWidget = () => {
   const container = React.useRef<HTMLDivElement>(null);
+  const { socket, subscribeOnStream, unsubscribeFromStream } = useWebSocket();
 
   React.useEffect(() => {
     if (!container.current) return;
