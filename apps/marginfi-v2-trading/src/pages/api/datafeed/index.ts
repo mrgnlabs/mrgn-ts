@@ -1,35 +1,12 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import NodeCache from "node-cache";
 
+import { RESOLUTION_MAPPING, configurationData, parseResolution } from "~/utils/tradingViewUtils";
+
 const myCache = new NodeCache({ stdTTL: 240 }); // Cache for 1 hour
 const BIRDEYE_API = "https://public-api.birdeye.so";
 
 const lastBarsCache = new Map();
-
-const configurationData = {
-  supported_resolutions: ["1", "3", "5", "15", "30", "60", "120", "240", "1D", "1W"],
-  intraday_multipliers: ["1", "3", "5", "15", "30", "60", "120", "240"],
-  exchanges: [],
-};
-
-const RESOLUTION_MAPPING: { [key: string]: string } = {
-  1: "1m",
-  3: "3m",
-  5: "5m",
-  15: "15m",
-  30: "30m",
-  60: "1H",
-  120: "2H",
-  240: "4H",
-  "1D": "1D",
-  "1W": "1W",
-};
-
-export function parseResolution(resolution: number | string): string {
-  if (!resolution || !RESOLUTION_MAPPING[resolution]) return RESOLUTION_MAPPING[0];
-
-  return RESOLUTION_MAPPING[resolution];
-}
 
 // Make requests to Birdeye API
 async function makeApiRequest(path: string) {
@@ -118,8 +95,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         time_from: from,
         time_to: to,
       };
-
-      console.log({ urlParameters });
 
       const birdeyeQuery = Object.keys(urlParameters)
         .map((name) => `${name}=${encodeURIComponent((urlParameters as any)[name])}`)
