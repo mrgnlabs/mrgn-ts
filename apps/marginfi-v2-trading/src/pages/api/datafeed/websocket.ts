@@ -3,8 +3,9 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { Server } from "ws";
 import { parseResolution } from ".";
 
-let wsServer: any;
-let subscriptionItem: any = {};
+type SocketServer = {
+  wss: Server;
+};
 
 export function getNextBarTime(lastBar: any, resolution = "1D" as any) {
   if (!lastBar) return;
@@ -31,15 +32,15 @@ export function getNextBarTime(lastBar: any, resolution = "1D" as any) {
 
 // Create WebSocket server
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (!wsServer && (res.socket as any)?.server) {
-    wsServer = createWebSocketServer((res.socket as any)?.server);
+  if (!(res.socket as any).server.wss) {
+    createWebSocketServer();
   }
 
   res.end();
 }
 
-const createWebSocketServer = (server: any) => {
-  const wsServer = new Server({ server });
+const createWebSocketServer = () => {
+  const wsServer = new Server({ noServer: true });
 
   wsServer.on("connection", (ws) => {
     const socket = new WebSocket(
@@ -52,13 +53,13 @@ const createWebSocketServer = (server: any) => {
     });
 
     socket.addEventListener("message", (msg) => {
-      const data = JSON.parse(msg.data);
+      const data = JSON.parse(msg.data).data;
 
       if (data.type !== "PRICE_DATA") return console.log(data);
 
-      const currTime = data.data.unixTime * 1000;
-      const lastBar = subscriptionItem.lastBar;
-      const resolution = subscriptionItem.resolution;
+      const currTime = data.unixTime * 1000;
+      const lastBar = data.lastBar;
+      const resolution = data.resolution;
       const nextBarTime = getNextBarTime(lastBar, resolution);
 
       let bar;
@@ -84,8 +85,8 @@ const createWebSocketServer = (server: any) => {
         console.log("[socket] Update the latest bar by price");
       }
 
-      subscriptionItem.lastBar = bar;
-      subscriptionItem.callback(bar);
+      data.lastBar = bar;
+      data.callback(bar);
 
       // Forward message to client
       ws.send(JSON.stringify(bar));
