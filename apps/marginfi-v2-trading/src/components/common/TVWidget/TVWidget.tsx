@@ -13,7 +13,10 @@ export const TVWidget = () => {
     script.async = true;
     script.onload = () => {
       new window.TradingView.widget({
-        container_id: "tv_chart_container",
+        symbol: "", // default symbol
+        interval: "1D" as any, // default interval
+        container: "tv_chart_container",
+        locale: "en",
         datafeed: {
           onReady: (callback) => {
             fetch("/api/datafeed?action=config")
@@ -31,62 +34,84 @@ export const TVWidget = () => {
               .then((data) => onSymbolResolvedCallback(data))
               .catch((err) => onResolveErrorCallback(err));
           },
-          getBars: (symbolInfo, resolution, periodParams, onResult, onError) => {
-            fetch(
-              `/api/datafeed?action=history&symbol=${symbolInfo.name}&resolution=${resolution}&from=${
-                periodParams.from
-              }&to=${periodParams.to}&address=${(symbolInfo as any)?.address}&firstDataRequest=${
-                periodParams.firstDataRequest
-              }`
-            )
-              .then((response) => response.json())
-              .then((data) => {
-                if (data?.noData || !data?.length) {
-                  onResult([], { noData: true });
-                } else if (data.length) {
-                  onResult(data, { noData: false });
-                }
-              })
-              .catch((err) => onError(err));
+          getBars: async (symbolInfo, resolution, periodParams, onResult, onError) => {
+            try {
+              console.log({ symbolInfo });
+
+              const response = await fetch(
+                `/api/datafeed?action=history&symbol=${symbolInfo.name}&resolution=${resolution}&from=${
+                  periodParams.from
+                }&to=${periodParams.to}&address=${(symbolInfo as any)?.address}&firstDataRequest=${
+                  periodParams.firstDataRequest
+                }`
+              );
+
+              console.log("exit");
+
+              const data = await response.json();
+
+              console.log({ data });
+              if (data?.noData) {
+                onResult([], { noData: true });
+              } else {
+                onResult(data.bars, { noData: false });
+              }
+            } catch (err: any) {
+              onError(err);
+            }
+
+            // .then((response) => {
+            //   console.log("hihi");
+            //   console.log({ data: response.json() });
+            //   return response.json();
+            // })
+            // .then((data) => {
+            //   console.log({ data });
+            //   if (data?.noData || !data?.length) {
+            //     onResult([], { noData: true });
+            //   } else if (data.length) {
+            //     onResult(data, { noData: false });
+            //   }
+            // })
+            // .catch((err) => onError(err));
           },
           subscribeBars: (symbolInfo, resolution, onRealtimeCallback, subscriberUID, onResetCacheNeededCallback) => {
-            const msg = {
-              type: "SUBSCRIBE_PRICE",
-              data: {
-                resolution,
-                lastBar: symbolInfo.lastBar,
-                address: symbolInfo.address,
-              },
-            };
-
-            ws.current?.send(JSON.stringify(msg));
+            // const msg = {
+            //   type: "SUBSCRIBE_PRICE",
+            //   data: {
+            //     resolution,
+            //     lastBar: symbolInfo.lastBar,
+            //     address: symbolInfo.address,
+            //   },
+            // };
+            // ws.current?.send(JSON.stringify(msg));
           },
           unsubscribeBars: (subscriberUID) => {
             const msg = {
               type: "UNSUBSCRIBE_PRICE",
             };
 
-            ws.current?.send(JSON.stringify(msg));
+            // ws.current?.send(JSON.stringify(msg));
           },
         },
-        library_path: "/charting_library/",
-        // Add your configuration options here
+        library_path: "/tradingview/charting_library/",
       });
     };
     container.current.appendChild(script);
 
-    return () => {
-      if (!container.current) return;
-      container.current.removeChild(script);
-    };
+    // return () => {
+    //   if (!container.current) return;
+    //   container.current.removeChild(script);
+    // };
   }, [container]);
 
   return (
-    <div className="tradingview-widget-container" ref={container} style={{ height: "100%", width: "100%" }}>
-      <div
-        className="tradingview-widget-container__widget"
-        style={{ height: "calc(100% - 32px)", width: "120%" }}
-      ></div>
-    </div>
+    <div id="tv_chart_container" ref={container} style={{ height: "100%", width: "100%" }}></div>
+    // <div className="tradingview-widget-container" >
+    //   <div
+    //     className="tradingview-widget-container__widget"
+    //     style={{ height: "calc(100% - 32px)", width: "120%" }}
+    //   ></div>
+    // </div>
   );
 };
