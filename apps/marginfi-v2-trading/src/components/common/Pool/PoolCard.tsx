@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import random from "lodash/random";
 import { shortenAddress, usdFormatter } from "@mrgnlabs/mrgn-common";
+import { PublicKey } from "@solana/web3.js";
 import { getTokenImageURL } from "~/utils";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "~/components/ui/card";
@@ -13,6 +14,7 @@ type PoolCardProps = {
 };
 
 export const PoolCard = ({ bank }: PoolCardProps) => {
+  const bankPk = new PublicKey(bank.address);
   return (
     <Card>
       <CardHeader>
@@ -42,12 +44,12 @@ export const PoolCard = ({ bank }: PoolCardProps) => {
           <li className="grid grid-cols-2">
             <strong className="font-medium text-primary">Address</strong>{" "}
             <Link
-              href={`https://solscan.io/address/${bank.address.toBase58()}`}
+              href={`https://solscan.io/address/${bankPk.toBase58()}`}
               target="_blank"
               rel="noreferrer"
               className="text-chartreuse"
             >
-              {shortenAddress(bank.address.toBase58())}
+              {shortenAddress(bankPk.toBase58())}
             </Link>
           </li>
           <li className="grid grid-cols-2">
@@ -62,12 +64,12 @@ export const PoolCard = ({ bank }: PoolCardProps) => {
       </CardContent>
       <CardFooter>
         <div className="flex items-center gap-3 w-full">
-          <Link href={`/trade/pools/${bank.address.toBase58()}`} className="w-full">
+          <Link href={`/trade/pools/${bankPk.toBase58()}`} className="w-full">
             <Button variant="secondary" className="w-full">
               View
             </Button>
           </Link>
-          <Link href={`/trade/${bank.address.toBase58()}?poolsLink=true`} className="w-full">
+          <Link href={`/trade/${bankPk.toBase58()}?poolsLink=true`} className="w-full">
             <Button variant="secondary" className="w-full">
               Trade
             </Button>
