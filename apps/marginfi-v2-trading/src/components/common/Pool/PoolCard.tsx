@@ -1,24 +1,34 @@
+import React from "react";
+
 import Image from "next/image";
 import Link from "next/link";
 
 import { shortenAddress, usdFormatter } from "@mrgnlabs/mrgn-common";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { PublicKey } from "@solana/web3.js";
-import random from "lodash/random";
 
 import { getTokenImageURL } from "~/utils";
 import { useTradeStore } from "~/store";
 
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "~/components/ui/card";
-import { IconTrendingDown, IconTrendingUp } from "~/components/ui/icons";
 
 type PoolCardProps = {
   bank: ExtendedBankInfo;
 };
 
 export const PoolCard = ({ bank }: PoolCardProps) => {
-  const [setActiveBank] = useTradeStore((state) => [state.setActiveBank]);
+  const [collateralBanks] = useTradeStore((state) => [state.collateralBanks]);
+
+  const totalDeposits = React.useMemo(() => {
+    const collateralBank = collateralBanks[bank.address.toBase58()];
+    const collateralDeposits = collateralBank
+      ? collateralBank.info.state.totalDeposits * collateralBank.info.state.price
+      : 0;
+    const tokenDeposits = bank.info.state.totalDeposits * bank.info.state.price;
+
+    return tokenDeposits + collateralDeposits;
+  }, [collateralBanks, bank]);
+
   return (
     <Card>
       <CardHeader>
@@ -35,11 +45,6 @@ export const PoolCard = ({ bank }: PoolCardProps) => {
               <span>{bank.meta.tokenName}</span>
               <span className="text-muted-foreground text-sm">{bank.meta.tokenSymbol}</span>
             </div>
-            {random(0, 1) ? (
-              <IconTrendingUp className="text-success self-start ml-auto" />
-            ) : (
-              <IconTrendingDown className="text-error self-start ml-auto" />
-            )}
           </div>
         </CardTitle>
       </CardHeader>
@@ -57,8 +62,7 @@ export const PoolCard = ({ bank }: PoolCardProps) => {
             </Link>
           </li>
           <li className="grid grid-cols-2">
-            <strong className="font-medium text-primary">Deposits</strong>{" "}
-            {usdFormatter.format(bank.info.state.totalDeposits)}
+            <strong className="font-medium text-primary">Deposits</strong> {usdFormatter.format(totalDeposits)}
           </li>
           <li className="grid grid-cols-2">
             <strong className="font-medium text-primary">Borrows</strong>{" "}
