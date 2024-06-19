@@ -48,10 +48,10 @@ export default function TradeSymbolPage() {
   // }, [accountSummary.healthFactor]);
 
   React.useEffect(() => {
-    if (!router.query.symbol) return;
+    if (!router.query.symbol || !wallet || !connection || !initialized || activeGroup) return;
     const symbol = router.query.symbol as string;
     setActiveBank({ bankPk: new PublicKey(symbol), connection, wallet });
-  }, [router.query.symbol]);
+  }, [router.query.symbol, wallet, connection, activeGroup, initialized]);
 
   return (
     <div className="w-full max-w-8xl mx-auto px-4 md:px-8 pb-28 z-10">

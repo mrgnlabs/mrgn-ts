@@ -13,7 +13,7 @@ import { ToastContainer } from "react-toastify";
 import { Analytics } from "@vercel/analytics/react";
 
 import config from "~/config";
-import { MrgnlendProvider, LipClientProvider } from "~/context";
+import { MrgnlendProvider, LipClientProvider, TradePovider } from "~/context";
 import { WALLET_ADAPTERS } from "~/config/wallets";
 import { useMrgnlendStore, useUiStore } from "~/store";
 import { useLstStore } from "~/store";
@@ -94,30 +94,32 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
             <WalletProvider wallets={WALLET_ADAPTERS} autoConnect={true}>
               <MrgnWalletProvider>
                 <MrgnlendProvider>
-                  <LipClientProvider>
-                    <Header />
+                  <TradePovider>
+                    <LipClientProvider>
+                      <Header />
 
-                    <Desktop>
-                      <WalletModalProvider>
+                      <Desktop>
+                        <WalletModalProvider>
+                          <div className="w-full flex flex-col justify-center items-center">
+                            <Component {...pageProps} />
+                          </div>
+                          <Footer />
+                        </WalletModalProvider>
+                      </Desktop>
+
+                      <Mobile>
+                        <MobileNavbar />
                         <div className="w-full flex flex-col justify-center items-center">
                           <Component {...pageProps} />
                         </div>
-                        <Footer />
-                      </WalletModalProvider>
-                    </Desktop>
-
-                    <Mobile>
-                      <MobileNavbar />
-                      <div className="w-full flex flex-col justify-center items-center">
-                        <Component {...pageProps} />
-                      </div>
-                    </Mobile>
-                    <Analytics />
-                    <Tutorial />
-                    <WalletAuthDialog />
-                    <ToastContainer position="bottom-left" theme="dark" />
-                    <ActiveGroup />
-                  </LipClientProvider>
+                      </Mobile>
+                      <Analytics />
+                      <Tutorial />
+                      <WalletAuthDialog />
+                      <ToastContainer position="bottom-left" theme="dark" />
+                      <ActiveGroup />
+                    </LipClientProvider>
+                  </TradePovider>
                 </MrgnlendProvider>
               </MrgnWalletProvider>
             </WalletProvider>
