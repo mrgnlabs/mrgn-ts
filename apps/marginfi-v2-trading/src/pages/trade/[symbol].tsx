@@ -36,12 +36,12 @@ export default function TradeSymbolPage() {
 
   return (
     <div className="w-full max-w-8xl mx-auto px-4 md:px-8 pb-28 z-10">
-      {!activeGroup && <Loader label="Loading mrgntrade..." className="mt-8" />}
-      {activeGroup && (
+      {(!initialized || !activeGroup) && <Loader label="Loading mrgntrade..." className="mt-8" />}
+      {initialized && activeGroup && (
         <div className="flex flex-col items-start gap-8 pb-16 w-full">
           <div className="grid grid-cols-12 gap-4 w-full h-full lg:gap-8">
             <div className="col-span-9 space-y-8 h-[60vh]">
-              <TVWidget symbol={activeBank?.info.state.mint.toString() as string} />
+              <TVWidget symbol={activeGroup.token.info.rawBank.mint.toString()} />
             </div>
             <aside className="col-span-3">
               <TradingBox activeBank={activeGroup.token} />
