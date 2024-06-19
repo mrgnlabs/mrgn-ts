@@ -18,10 +18,11 @@ import { Button } from "~/components/ui/button";
 export default function HomePage() {
   const { wallet } = useWalletContext();
   const { connection } = useConnection();
-  const [initialized, fetchTradeState, banks] = useTradeStore((state) => [
+  const [initialized, fetchTradeState, banks, resetActiveGroup] = useTradeStore((state) => [
     state.initialized,
     state.fetchTradeState,
     state.banks,
+    state.resetActiveGroup,
   ]);
 
   React.useEffect(() => {
@@ -29,6 +30,7 @@ export default function HomePage() {
       wallet,
       connection,
     });
+    resetActiveGroup();
   }, []);
 
   return (
@@ -71,7 +73,14 @@ export default function HomePage() {
               </div>
             </div>
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
-              {banks.length > 0 && banks.map((bank, i) => <PoolCard key={i} bank={bank} />)}
+              {banks.length > 0 &&
+                banks
+                  .sort(
+                    (a, b) =>
+                      b.info.oraclePrice.priceRealtime.price.toNumber() -
+                      a.info.oraclePrice.priceRealtime.price.toNumber()
+                  )
+                  .map((bank, i) => <PoolCard key={i} bank={bank} />)}
             </div>
           </div>
         </>
