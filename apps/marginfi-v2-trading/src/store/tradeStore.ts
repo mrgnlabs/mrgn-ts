@@ -173,7 +173,7 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
       let marginfiAccounts: MarginfiAccountWrapper[] = [];
       let selectedAccount: MarginfiAccountWrapper | null = null;
 
-      if (wallet) {
+      if (wallet.publicKey) {
         marginfiAccounts = await marginfiClient.getMarginfiAccountsForAuthority(wallet.publicKey);
         selectedAccount = marginfiAccounts[0];
       }
