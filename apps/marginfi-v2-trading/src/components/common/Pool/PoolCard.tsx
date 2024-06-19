@@ -1,13 +1,17 @@
 import Image from "next/image";
 import Link from "next/link";
-import random from "lodash/random";
+
 import { shortenAddress, usdFormatter } from "@mrgnlabs/mrgn-common";
+import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { PublicKey } from "@solana/web3.js";
+import random from "lodash/random";
+
 import { getTokenImageURL } from "~/utils";
+import { useTradeStore } from "~/store";
+
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "~/components/ui/card";
 import { IconTrendingDown, IconTrendingUp } from "~/components/ui/icons";
-import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 type PoolCardProps = {
   bank: ExtendedBankInfo;
@@ -15,6 +19,7 @@ type PoolCardProps = {
 
 export const PoolCard = ({ bank }: PoolCardProps) => {
   const bankPk = new PublicKey(bank.address);
+  const [setActiveBank] = useTradeStore((state) => [state.setActiveBank]);
   return (
     <Card>
       <CardHeader>
@@ -69,7 +74,7 @@ export const PoolCard = ({ bank }: PoolCardProps) => {
               View
             </Button>
           </Link>
-          <Link href={`/${bankPk.toBase58()}?poolsLink=true`} className="w-full">
+          <Link href={`/trade/${bankPk.toBase58()}?poolsLink=true`} className="w-full">
             <Button variant="secondary" className="w-full">
               Trade
             </Button>
