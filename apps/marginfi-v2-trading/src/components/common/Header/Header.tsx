@@ -14,8 +14,8 @@ import { Button } from "~/components/ui/button";
 import { IconMrgn, IconTrendingUp, IconCoins, IconChartPie, IconPlus } from "~/components/ui/icons";
 
 const navItems = [
-  { label: "trade", icon: <IconTrendingUp />, href: "/trade/DeyH7QxWvnbbaVB4zFrf4hoq7Q8z1ZT14co42BGwGtfM" },
-  { label: "pools", icon: <IconCoins />, href: "/pools" },
+  { label: "pools", icon: <IconCoins />, href: "/" },
+  { label: "trade", icon: <IconTrendingUp />, href: "/trade/59yr2vuW1qv3UVQx9HC6Q8mxns5S6g7fjS8YWgRgaLA7" },
   { label: "portfolio", icon: <IconChartPie />, href: "/portfolio" },
 ];
 
