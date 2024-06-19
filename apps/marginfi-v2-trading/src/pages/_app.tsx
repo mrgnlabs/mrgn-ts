@@ -28,6 +28,7 @@ import { Tutorial } from "~/components/common/Tutorial";
 import { WalletAuthDialog } from "~/components/common/Wallet";
 import { Header } from "~/components/common/Header";
 import { Footer } from "~/components/desktop/Footer";
+import { ActiveGroup } from "~/components/common/ActiveGroup";
 
 import "swiper/css";
 import "swiper/css/pagination";
@@ -115,6 +116,7 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
                     <Tutorial />
                     <WalletAuthDialog />
                     <ToastContainer position="bottom-left" theme="dark" />
+                    <ActiveGroup />
                   </LipClientProvider>
                 </MrgnlendProvider>
               </MrgnWalletProvider>
