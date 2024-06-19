@@ -13,7 +13,7 @@ interface SubscriptionItem {
   callback: (bar: Bar) => void;
 }
 
-let subscriptionItem: SubscriptionItem = {
+const subscriptionItemDefault: SubscriptionItem = {
   resolution: "",
   lastBar: { time: 0, open: 0, high: 0, low: 0, close: 0, volume: 0 },
   callback: () => {},
@@ -21,11 +21,12 @@ let subscriptionItem: SubscriptionItem = {
 
 export const useWebSocket = () => {
   const socketRef = React.useRef<WebSocket | null>(null);
+  const [subscriptionItem, setSubscriptionItem] = React.useState<SubscriptionItem | null>(subscriptionItemDefault);
 
   useEffect(() => {
     // Create WebSocket connection.
     const socket = new WebSocket(
-      `wss://public-api.birdeye.so/socket?x-api-key=${process.env.BIRDEYE_API_KEY}`,
+      `wss://public-api.birdeye.so/socket/solana?x-api-key=${process.env.BIRDEYE_API_KEY}`,
       "echo-protocol"
     );
     socketRef.current = socket;
@@ -40,6 +41,8 @@ export const useWebSocket = () => {
       const data = JSON.parse(msg.data);
 
       if (data.type !== "PRICE_DATA") return console.log(data);
+
+      if (!subscriptionItem) return;
 
       const currTime = data.data.unixTime * 1000;
       const lastBar = subscriptionItem.lastBar;
@@ -69,8 +72,16 @@ export const useWebSocket = () => {
         console.log("[socket] Update the latest bar by price");
       }
 
-      subscriptionItem.lastBar = bar;
+      setSubscriptionItem((prev) => (prev ? { ...prev, lastBar: bar } : null));
       subscriptionItem.callback(bar);
+    });
+
+    socket.addEventListener("close", () => {
+      console.log("[socket] Closed");
+    });
+
+    socket.addEventListener("error", (error) => {
+      console.error("[socket] Error:", error);
     });
 
     return () => {
@@ -84,11 +95,13 @@ export const useWebSocket = () => {
     onRealtimeCallback: (bar: Bar) => void,
     lastBar: Bar
   ) => {
-    subscriptionItem = {
+    const item = {
       resolution,
       lastBar,
       callback: onRealtimeCallback,
     };
+
+    setSubscriptionItem(item);
 
     const msg = {
       type: "SUBSCRIBE_PRICE",

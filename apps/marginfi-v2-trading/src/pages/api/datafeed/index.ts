@@ -101,13 +101,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         .join("&");
 
       try {
-        console.log("hehe");
         const data = await makeApiRequest(`defi/ohlcv?${birdeyeQuery}`);
-        console.log({ data });
+
         if (!data.success || data.data.items.length === 0) {
-          console.log("hit");
           // "noData" should be set if there is no data in the requested period.
-          return res.status(200).json({ noData: true });
+          return res.status(200).json({ noData: true, success: true });
         }
         let bars: any[] = [];
         data.data.items.forEach((bar: any) => {
@@ -129,12 +127,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           lastBarsCache.set(historyAddress, {
             ...bars[bars.length - 1],
           });
-          return res.status(200).json({ bars });
         }
-        return res.status(200).json({ bars });
 
-        return res.status(200).json({ noData: true });
-      } catch (error) {}
+        return res.status(200).json({ bars, success: true });
+      } catch (error) {
+        return res.status(200).json({ success: false });
+      }
+
+    case "cache":
+      const lastBarsCacheArray = Array.from(lastBarsCache.entries());
+
+      return res.status(200).json({ lastBarsCacheArray });
     default:
       return res.status(404).json({ error: "Invalid action" });
   }
