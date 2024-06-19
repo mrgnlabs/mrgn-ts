@@ -8,6 +8,7 @@ import {
   makeExtendedBankInfo,
   makeExtendedBankMetadata,
   fetchTokenAccounts,
+  TokenAccountMap,
 } from "@mrgnlabs/marginfi-v2-ui-state";
 import { MarginfiClient, getConfig, BankMap, Bank, OraclePrice } from "@mrgnlabs/marginfi-client-v2";
 import {
@@ -147,9 +148,36 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
             }
           });
 
+          let nativeSolBalance: number = 0;
+          let tokenAccountMap: TokenAccountMap;
+          if (wallet?.publicKey) {
+            const [tokenData] = await Promise.all([
+              fetchTokenAccounts(
+                connection,
+                wallet.publicKey,
+                banksIncludingUSDC.map((bank) => ({ mint: bank.mint, mintDecimals: bank.mintDecimals }))
+              ),
+            ]);
+
+            nativeSolBalance = tokenData.nativeSolBalance;
+            tokenAccountMap = tokenData.tokenAccountMap;
+          }
+
           const [extendedBankInfos, extendedBankMetadatas] = banksWithPriceAndToken.reduce(
             (acc, { bank, oraclePrice, tokenMetadata }) => {
-              acc[0].push(makeExtendedBankInfo(tokenMetadata, bank, oraclePrice));
+              let userData;
+              if (wallet?.publicKey) {
+                const tokenAccount = tokenAccountMap!.get(bank.mint.toBase58());
+                if (!tokenAccount) {
+                  return acc;
+                }
+                userData = {
+                  nativeSolBalance,
+                  tokenAccount,
+                  marginfiAccount: null,
+                };
+              }
+              acc[0].push(makeExtendedBankInfo(tokenMetadata, bank, oraclePrice, undefined, userData));
               acc[1].push(makeExtendedBankMetadata(new PublicKey(bank.address), tokenMetadata));
 
               return acc;
