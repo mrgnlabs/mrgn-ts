@@ -3,12 +3,15 @@ import React from "react";
 import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { numeralFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 import { PublicKey } from "@solana/web3.js";
+import BigNumber from "bignumber.js";
 
 import Image from "next/image";
 import { useRouter } from "next/router";
 
-import { useMrgnlendStore } from "~/store";
+import { useTradeStore } from "~/store";
 import { getTokenImageURL } from "~/utils";
+import { useWalletContext } from "~/hooks/useWalletContext";
+import { useConnection } from "~/hooks/useConnection";
 
 import { BankCard } from "~/components/common/Pool";
 import { Loader } from "~/components/ui/loader";
@@ -19,58 +22,56 @@ const USDC_BANK_PK = new PublicKey("2s37akK2eyBbp8DZgCm7RtsaEz8eJP3Nxd4urLHQv7yB
 
 export default function TradeSymbolPage() {
   const router = useRouter();
-  const [initialized, extendedBankInfos, accountSummary] = useMrgnlendStore((state) => [
+  const { connection } = useConnection();
+  const { wallet } = useWalletContext();
+  const [initialized, activeGroup, setActiveBank, marginfiClient] = useTradeStore((state) => [
     state.initialized,
-    state.extendedBankInfos,
-    state.accountSummary,
+    state.activeGroup,
+    state.setActiveBank,
+    state.marginfiClient,
   ]);
 
-  const activeBank = React.useMemo(() => {
-    if (!router.query.symbol) return null;
-    const activeBankPk = new PublicKey(router.query.symbol as string);
-    return extendedBankInfos.find((bank) => bank.address.equals(activeBankPk)) as ActiveBankInfo;
-  }, [extendedBankInfos, router.query.symbol]);
+  // const healthColor = React.useMemo(() => {
+  //   if (accountSummary.healthFactor) {
+  //     let color: string;
 
-  const usdcBank = React.useMemo(() => {
-    return extendedBankInfos.find((bank) => bank.address.equals(USDC_BANK_PK)) as ActiveBankInfo;
-  }, [activeBank]);
+  //     if (accountSummary.healthFactor >= 0.5) {
+  //       color = "#75BA80"; // green color " : "#",
+  //     } else if (accountSummary.healthFactor >= 0.25) {
+  //       color = "#B8B45F"; // yellow color
+  //     } else {
+  //       color = "#CF6F6F"; // red color
+  //     }
 
-  const healthColor = React.useMemo(() => {
-    if (accountSummary.healthFactor) {
-      let color: string;
+  //     return color;
+  //   } else {
+  //     return "#fff";
+  //   }
+  // }, [accountSummary.healthFactor]);
 
-      if (accountSummary.healthFactor >= 0.5) {
-        color = "#75BA80"; // green color " : "#",
-      } else if (accountSummary.healthFactor >= 0.25) {
-        color = "#B8B45F"; // yellow color
-      } else {
-        color = "#CF6F6F"; // red color
-      }
-
-      return color;
-    } else {
-      return "#fff";
-    }
-  }, [accountSummary.healthFactor]);
-
-  if (!activeBank) return null;
+  React.useEffect(() => {
+    if (!router.query.symbol) return;
+    console.log("hi");
+    const symbol = router.query.symbol as string;
+    setActiveBank({ bankPk: new PublicKey(symbol), connection, wallet });
+  }, [router.query.symbol]);
 
   return (
     <div className="w-full max-w-8xl mx-auto px-4 md:px-8 pb-28 z-10">
-      {!initialized && <Loader label="Loading mrgntrade..." className="mt-8" />}
-      {initialized && (
+      {!activeGroup && <Loader label="Loading mrgntrade..." className="mt-8" />}
+      {activeGroup && (
         <div className="flex flex-col items-start gap-8 pb-16 w-full">
           <header className="flex flex-col gap-4 justify-center items-center w-full">
             <Image
-              src={getTokenImageURL(activeBank.meta.tokenSymbol)}
+              src={getTokenImageURL(activeGroup.token.meta.tokenSymbol)}
               width={64}
               height={64}
               className="rounded-full"
-              alt={activeBank.meta.tokenName}
+              alt={activeGroup.token.meta.tokenName}
             />
             <div className="text-center space-y-2">
-              <h1 className="text-3xl font-medium">{activeBank?.meta.tokenName}</h1>
-              <h2 className="text-lg text-muted-foreground">{activeBank?.meta.tokenSymbol}</h2>
+              <h1 className="text-3xl font-medium">{activeGroup.token?.meta.tokenName}</h1>
+              <h2 className="text-lg text-muted-foreground">{activeGroup.token?.meta.tokenSymbol}</h2>
             </div>
           </header>
           <div className="bg-background-gray-dark p-6 rounded-xl w-full max-w-7xl mx-auto">
@@ -93,39 +94,42 @@ export default function TradeSymbolPage() {
                         <p>The formula is:</p>
                         <p className="text-sm italic text-center">{"(assets - liabilities) / (assets)"}</p>
                         <p>Your math is:</p>
-                        <p className="text-sm italic text-center">{`(${usdFormatter.format(
+                        {/* <p className="text-sm italic text-center">{`(${usdFormatter.format(
                           accountSummary.lendingAmountWithBiasAndWeighted
                         )} - ${usdFormatter.format(
                           accountSummary.borrowingAmountWithBiasAndWeighted
-                        )}) / (${usdFormatter.format(accountSummary.lendingAmountWithBiasAndWeighted)})`}</p>
+                        )}) / (${usdFormatter.format(accountSummary.lendingAmountWithBiasAndWeighted)})`}</p> */}
                       </div>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
               </dt>
-              <dd className="text-xl md:text-2xl font-medium" style={{ color: healthColor }}>
+              {/* <dd className="text-xl md:text-2xl font-medium" style={{ color: healthColor }}>
                 {numeralFormatter(accountSummary.healthFactor * 100)}%
-              </dd>
+              </dd> */}
             </dl>
             <div className="h-2 bg-background-gray-light rounded-full">
-              <div
+              {/* <div
                 className="h-2 rounded-full"
                 style={{
                   backgroundColor: healthColor,
                   width: `${accountSummary.healthFactor * 100}%`,
                 }}
-              />
+              /> */}
             </div>
             <div className="flex justify-between flex-wrap mt-5 mb-10 gap-y-4">
-              <Stat label="Current Price" value={usdFormatter.format(activeBank.info.state.price)} />
+              <Stat label="Current Price" value={usdFormatter.format(activeGroup.token.info.state.price)} />
               <Stat
                 label="Total Deposits"
-                value={`${numeralFormatter(activeBank.info.state.totalDeposits)} ${activeBank.meta.tokenSymbol}`}
+                value={`${numeralFormatter(activeGroup.token.info.state.totalDeposits)} ${
+                  activeGroup.token.meta.tokenSymbol
+                }`}
               />
               <Stat
                 label="Total Deposits (USD)"
                 value={usdFormatter.format(
-                  activeBank.info.state.totalDeposits * activeBank.info.oraclePrice.priceRealtime.price.toNumber()
+                  activeGroup.token.info.state.totalDeposits *
+                    new BigNumber(activeGroup.token.info.oraclePrice.priceRealtime.price).toNumber()
                 )}
               />
               <Stat
@@ -138,8 +142,8 @@ export default function TradeSymbolPage() {
               />
             </div>
             <div className="grid grid-cols-2 gap-8 w-full mx-auto">
-              <BankCard bank={activeBank} />
-              <BankCard bank={usdcBank} />
+              <BankCard bank={activeGroup.token} />
+              <BankCard bank={activeGroup.usdc} />
             </div>
           </div>
         </div>

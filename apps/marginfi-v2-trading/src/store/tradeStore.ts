@@ -2,10 +2,12 @@ import { create, StateCreator } from "zustand";
 import { persist } from "zustand/middleware";
 import { Connection, PublicKey } from "@solana/web3.js";
 import {
+  ActiveBankInfo,
   ExtendedBankInfo,
   ExtendedBankMetadata,
   makeExtendedBankInfo,
   makeExtendedBankMetadata,
+  fetchTokenAccounts,
 } from "@mrgnlabs/marginfi-v2-ui-state";
 import { MarginfiClient, getConfig, BankMap, Bank, OraclePrice } from "@mrgnlabs/marginfi-client-v2";
 import {
@@ -23,11 +25,14 @@ type TradeGroupsCache = {
 type TradeStoreState = {
   initialized: boolean;
 
+  groupsCache: TradeGroupsCache;
+
   // array of marginfi groups
   groups: PublicKey[];
 
   // array of extended bank objects (excluding USDC)
   banks: ExtendedBankInfo[];
+  banksIncludingUSDC: ExtendedBankInfo[];
 
   // marginfi client, initialized when viewing an active group
   marginfiClient: MarginfiClient | null;
@@ -42,7 +47,15 @@ type TradeStoreState = {
   fetchTradeState: ({ connection, wallet }: { connection: Connection; wallet: Wallet }) => void;
 
   // set active banks and initialize marginfi client
-  setActiveBank: (bank: ExtendedBankInfo) => void;
+  setActiveBank: ({
+    bankPk,
+    connection,
+    wallet,
+  }: {
+    bankPk: PublicKey;
+    connection: Connection;
+    wallet: Wallet;
+  }) => void;
 };
 
 const { programId } = getConfig();
@@ -50,23 +63,20 @@ const { programId } = getConfig();
 const USDC_MINT = new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
 
 function createTradeStore() {
-  return create<TradeStoreState>()(
-    persist(stateCreator, {
-      name: "tradeStore",
-    })
-  );
+  return create<TradeStoreState>(stateCreator);
 }
 
 const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
   initialized: false,
+  groupsCache: {},
   groups: [],
   banks: [],
+  banksIncludingUSDC: [],
   marginfiClient: null,
   activeGroup: null,
 
   fetchTradeState: async ({ connection, wallet }) => {
     try {
-      console.log("hi");
       // fetch groups
       const tradeGroups: TradeGroupsCache = await fetch(
         "https://storage.googleapis.com/mrgn-public/mfi-trade-groups.json"
@@ -86,13 +96,10 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
       );
 
       const groups = Object.keys(tradeGroups).map((group) => new PublicKey(group));
-      const banks: ExtendedBankInfo[] = [];
-
-      console.log(groups);
+      const allBanks: ExtendedBankInfo[] = [];
 
       await Promise.all(
         groups.map(async (group) => {
-          console.log("here11");
           const bankKeys = tradeGroups[group.toBase58()].map((bank) => new PublicKey(bank));
           const marginfiClient = await MarginfiClient.fetch(
             {
@@ -107,10 +114,7 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
               preloadedBankAddresses: bankKeys,
             }
           );
-          console.log(Array.from(marginfiClient.banks.values()));
-          const banksUSDCFiltered = Array.from(marginfiClient.banks.values()).filter(
-            (bank) => bank.mint.equals(USDC_MINT) === false
-          );
+          const banksIncludingUSDC = Array.from(marginfiClient.banks.values());
 
           const banksWithPriceAndToken: {
             bank: Bank;
@@ -118,10 +122,7 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
             tokenMetadata: TokenMetadata;
           }[] = [];
 
-          console.log(banksUSDCFiltered);
-
-          banksUSDCFiltered.forEach((bank) => {
-            console.log("bank", bank);
+          banksIncludingUSDC.forEach((bank) => {
             const oraclePrice = marginfiClient.getOraclePriceByBank(bank.address);
             if (!oraclePrice) {
               return;
@@ -138,14 +139,11 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
                 return;
               }
 
-              console.log("hiii");
               banksWithPriceAndToken.push({ bank, oraclePrice, tokenMetadata });
             } catch (err) {
               console.error("error fetching token metadata: ", err);
             }
           });
-
-          console.log("banksWithPriceAndToken", banksWithPriceAndToken);
 
           const [extendedBankInfos, extendedBankMetadatas] = banksWithPriceAndToken.reduce(
             (acc, { bank, oraclePrice, tokenMetadata }) => {
@@ -157,24 +155,20 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
             [[], []] as [ExtendedBankInfo[], ExtendedBankMetadata[]]
           );
 
-          console.log(extendedBankInfos);
-
-          banks.push(...extendedBankInfos);
-
-          console.log(banks);
+          allBanks.push(...extendedBankInfos);
 
           return;
         })
       );
 
-      console.log(banks);
-
       set((state) => {
         return {
           ...state,
           initialized: true,
+          groupsCache: tradeGroups,
           groups,
-          banks,
+          banks: allBanks.filter((bank) => !bank.info.rawBank.mint.equals(USDC_MINT)),
+          banksIncludingUSDC: allBanks,
         };
       });
     } catch (error) {
@@ -182,11 +176,39 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
     }
   },
 
-  setActiveBank: (bank: ExtendedBankInfo) => {
+  setActiveBank: async ({ bankPk, wallet, connection }) => {
+    const bpk = new PublicKey(bankPk);
+    const bank = get().banksIncludingUSDC.find((bank) => new PublicKey(bank.address).equals(bpk));
+    if (!bank) return;
+
+    const group = new PublicKey(bank.info.rawBank.group);
+    const bankKeys = get().groupsCache[group.toBase58()].map((bank) => new PublicKey(bank));
+    const marginfiClient = await MarginfiClient.fetch(
+      {
+        environment: "production",
+        cluster: "mainnet",
+        programId,
+        groupPk: group,
+      },
+      wallet,
+      connection,
+      {
+        preloadedBankAddresses: bankKeys,
+      }
+    );
+    const groupsBanksKeys = get().groupsCache[group.toBase58()];
+    const groupsBanks = get().banksIncludingUSDC.filter((bank) =>
+      groupsBanksKeys.includes(new PublicKey(bank.address).toBase58())
+    );
+
     set((state) => {
       return {
         ...state,
-        activeBank: bank,
+        marginfiClient,
+        activeGroup: {
+          token: groupsBanks[1],
+          usdc: groupsBanks[0],
+        },
       };
     });
   },
