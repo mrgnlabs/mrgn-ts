@@ -101,6 +101,7 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
           groups: result.groups,
           banks: result.tokenBanks,
           banksIncludingUSDC: result.allBanks,
+          collateralBanks: result.collateralBanks,
           nativeSolBalance: result.nativeSolBalance,
         };
       });
@@ -127,6 +128,7 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
             groups: result.groups,
             banks: result.tokenBanks,
             banksIncludingUSDC: result.allBanks,
+            collateralBanks: result.collateralBanks,
             nativeSolBalance: result.nativeSolBalance,
           };
         });
@@ -293,9 +295,20 @@ const fetchBanksAndTradeGroups = async (wallet: Wallet, connection: Connection) 
 
   allBanks.push(...extendedBankInfos);
 
+  const collateralBanks: {
+    [group: string]: ExtendedBankInfo;
+  } = {};
+
+  for (let i = 0; i < allBanks.length - 1; i++) {
+    collateralBanks[allBanks[i + 1].info.rawBank.address.toBase58()] = allBanks[i];
+  }
+
+  const tokenBanks = allBanks.filter((bank) => !bank.info.rawBank.mint.equals(USDC_MINT));
+
   return {
     allBanks,
-    tokenBanks: allBanks.filter((bank) => !bank.info.rawBank.mint.equals(USDC_MINT)),
+    tokenBanks,
+    collateralBanks,
     tradeGroups,
     groups,
     nativeSolBalance,
