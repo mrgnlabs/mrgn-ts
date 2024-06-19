@@ -3,7 +3,11 @@
 import React from "react";
 import { useWebSocket } from "./useWebSocket";
 
-export const TVWidget = () => {
+interface props {
+  symbol: string;
+}
+
+export const TVWidget = ({ symbol }: props) => {
   const container = React.useRef<HTMLDivElement>(null);
   const { socket, subscribeOnStream, unsubscribeFromStream } = useWebSocket();
 
@@ -15,10 +19,11 @@ export const TVWidget = () => {
     script.async = true;
     script.onload = () => {
       new window.TradingView.widget({
-        symbol: "", // default symbol
+        symbol: symbol, // default symbol
         interval: "1D" as any, // default interval
         container: "tv_chart_container",
         locale: "en",
+        theme: "dark",
         datafeed: {
           onReady: (callback) => {
             fetch("/api/datafeed?action=config")
@@ -38,8 +43,6 @@ export const TVWidget = () => {
           },
           getBars: async (symbolInfo, resolution, periodParams, onResult, onError) => {
             try {
-              console.log({ symbolInfo });
-
               const response = await fetch(
                 `/api/datafeed?action=history&symbol=${symbolInfo.name}&resolution=${resolution}&from=${
                   periodParams.from
@@ -48,11 +51,10 @@ export const TVWidget = () => {
                 }`
               );
 
-              console.log("exit");
-
               const data = await response.json();
 
-              console.log({ data });
+              if (!data.success) throw new Error("Error fetching history");
+
               if (data?.noData) {
                 onResult([], { noData: true });
               } else {
@@ -61,32 +63,25 @@ export const TVWidget = () => {
             } catch (err: any) {
               onError(err);
             }
-
-            // .then((response) => {
-            //   console.log("hihi");
-            //   console.log({ data: response.json() });
-            //   return response.json();
-            // })
-            // .then((data) => {
-            //   console.log({ data });
-            //   if (data?.noData || !data?.length) {
-            //     onResult([], { noData: true });
-            //   } else if (data.length) {
-            //     onResult(data, { noData: false });
-            //   }
-            // })
-            // .catch((err) => onError(err));
           },
-          subscribeBars: (symbolInfo, resolution, onRealtimeCallback, subscriberUID, onResetCacheNeededCallback) => {
-            // const msg = {
-            //   type: "SUBSCRIBE_PRICE",
-            //   data: {
-            //     resolution,
-            //     lastBar: symbolInfo.lastBar,
-            //     address: symbolInfo.address,
-            //   },
-            // };
-            // ws.current?.send(JSON.stringify(msg));
+          subscribeBars: async (
+            symbolInfo,
+            resolution,
+            onRealtimeCallback,
+            subscriberUID,
+            onResetCacheNeededCallback
+          ) => {
+            const response = await fetch(`/api/datafeed?action=cache`);
+            const data = await response.json();
+
+            const lastBarsCacheMap = new Map(data.lastBarsCacheArray);
+
+            subscribeOnStream(
+              symbolInfo as any,
+              resolution,
+              onRealtimeCallback,
+              lastBarsCacheMap.get((symbolInfo as any).address) as any
+            );
           },
           unsubscribeBars: (subscriberUID) => {
             const msg = {
@@ -105,7 +100,7 @@ export const TVWidget = () => {
     //   if (!container.current) return;
     //   container.current.removeChild(script);
     // };
-  }, [container]);
+  }, [container, symbol]);
 
   return (
     <div id="tv_chart_container" ref={container} style={{ height: "100%", width: "100%" }}></div>
