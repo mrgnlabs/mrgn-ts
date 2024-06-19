@@ -64,12 +64,12 @@ export const PoolCard = ({ bank }: PoolCardProps) => {
       </CardContent>
       <CardFooter>
         <div className="flex items-center gap-3 w-full">
-          <Link href={`/trade/pools/${bankPk.toBase58()}`} className="w-full">
+          <Link href={`/pools/${bankPk.toBase58()}`} className="w-full">
             <Button variant="secondary" className="w-full">
               View
             </Button>
           </Link>
-          <Link href={`/trade/${bankPk.toBase58()}?poolsLink=true`} className="w-full">
+          <Link href={`/${bankPk.toBase58()}?poolsLink=true`} className="w-full">
             <Button variant="secondary" className="w-full">
               Trade
             </Button>
