@@ -10,7 +10,14 @@ import {
   fetchTokenAccounts,
   TokenAccountMap,
 } from "@mrgnlabs/marginfi-v2-ui-state";
-import { MarginfiClient, getConfig, BankMap, Bank, OraclePrice } from "@mrgnlabs/marginfi-client-v2";
+import {
+  MarginfiClient,
+  getConfig,
+  BankMap,
+  Bank,
+  OraclePrice,
+  MarginfiAccountWrapper,
+} from "@mrgnlabs/marginfi-client-v2";
 import {
   Wallet,
   TokenMetadata,
@@ -46,6 +53,9 @@ type TradeStoreState = {
     token: ExtendedBankInfo;
     usdc: ExtendedBankInfo;
   } | null;
+
+  marginfiAccounts: MarginfiAccountWrapper[];
+  selectedAccount: MarginfiAccountWrapper | null;
 
   nativeSolBalance: number;
 
@@ -83,6 +93,8 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
   collateralBanks: {},
   marginfiClient: null,
   activeGroup: null,
+  marginfiAccounts: [],
+  selectedAccount: null,
   nativeSolBalance: 0,
 
   fetchTradeState: async ({ connection, wallet }) => {
@@ -158,10 +170,15 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
         groupsBanksKeys.includes(new PublicKey(bank.address).toBase58())
       );
 
+      const marginfiAccounts = await marginfiClient.getMarginfiAccountsForAuthority(wallet.publicKey);
+      const selectedAccount = marginfiAccounts[0];
+
       set((state) => {
         return {
           ...state,
           marginfiClient,
+          marginfiAccounts,
+          selectedAccount,
           activeGroup: {
             token: groupsBanks[1],
             usdc: groupsBanks[0],

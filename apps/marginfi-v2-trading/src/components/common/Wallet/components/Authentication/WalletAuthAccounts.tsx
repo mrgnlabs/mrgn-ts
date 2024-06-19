@@ -3,7 +3,7 @@ import React from "react";
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 import { clearAccountCache, firebaseApi } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { useMrgnlendStore } from "~/store";
+import { useMrgnlendStore, useTradeStore } from "~/store";
 
 import { cn } from "~/utils/themeUtils";
 import { MultiStepToastHandle } from "~/utils/toastUtils";
@@ -46,22 +46,29 @@ export const WalletAuthAccounts = () => {
   const newAccountNameRef = React.useRef<HTMLInputElement>(null);
   const editAccountNameRef = React.useRef<HTMLInputElement>(null);
 
-  const [initialized, mfiClient, marginfiAccounts, selectedAccount, fetchMrgnlendState] = useMrgnlendStore((state) => [
-    state.initialized,
-    state.marginfiClient,
-    state.marginfiAccounts,
-    state.selectedAccount,
-    state.fetchMrgnlendState,
-  ]);
+  const [initialized, mfiClient, marginfiAccounts, selectedAccount, activeGroup, setActiveBank] = useTradeStore(
+    (state) => [
+      state.initialized,
+      state.marginfiClient,
+      state.marginfiAccounts,
+      state.selectedAccount,
+      state.activeGroup,
+      state.setActiveBank,
+    ]
+  );
 
   const activateAccount = React.useCallback(
     async (account: MarginfiAccountWrapper, index: number) => {
-      if (selectedAccount && selectedAccount.address.equals(account.address)) return;
+      if (!activeGroup || (selectedAccount && selectedAccount.address.equals(account.address))) return;
       setIsActivatingAccount(index);
       const switchingLabelTimer = setTimeout(() => setIsActivatingAccountDelay(index), 500);
 
       localStorage.setItem("mfiAccount", account.address.toBase58());
-      await fetchMrgnlendState();
+      setActiveBank({
+        bankPk: activeGroup.token.address,
+        connection,
+        wallet,
+      });
 
       clearTimeout(switchingLabelTimer);
       setIsActivatingAccount(null);
@@ -70,7 +77,7 @@ export const WalletAuthAccounts = () => {
 
       return () => clearTimeout(switchingLabelTimer);
     },
-    [fetchMrgnlendState, selectedAccount]
+    [setActiveBank, selectedAccount, activeGroup]
   );
 
   const fetchAccountLabels = React.useCallback(async () => {
