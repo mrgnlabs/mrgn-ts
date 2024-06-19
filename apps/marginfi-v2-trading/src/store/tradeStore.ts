@@ -170,8 +170,13 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
         groupsBanksKeys.includes(new PublicKey(bank.address).toBase58())
       );
 
-      const marginfiAccounts = await marginfiClient.getMarginfiAccountsForAuthority(wallet.publicKey);
-      const selectedAccount = marginfiAccounts[0];
+      let marginfiAccounts: MarginfiAccountWrapper[] = [];
+      let selectedAccount: MarginfiAccountWrapper | null = null;
+
+      if (wallet) {
+        marginfiAccounts = await marginfiClient.getMarginfiAccountsForAuthority(wallet.publicKey);
+        selectedAccount = marginfiAccounts[0];
+      }
 
       set((state) => {
         return {
