@@ -35,7 +35,7 @@ type TradeStoreState = {
   banks: ExtendedBankInfo[];
   banksIncludingUSDC: ExtendedBankInfo[];
   collateralBanks: {
-    [group: string]: ExtendedBankInfo;
+    [token: string]: ExtendedBankInfo;
   };
 
   // marginfi client, initialized when viewing an active group
