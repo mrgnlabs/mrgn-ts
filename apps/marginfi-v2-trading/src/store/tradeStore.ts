@@ -44,6 +44,8 @@ type TradeStoreState = {
     usdc: ExtendedBankInfo;
   } | null;
 
+  nativeSolBalance: number;
+
   // fetch groups / banks
   fetchTradeState: ({ connection, wallet }: { connection: Connection; wallet: Wallet }) => void;
 
@@ -77,6 +79,7 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
   banksIncludingUSDC: [],
   marginfiClient: null,
   activeGroup: null,
+  nativeSolBalance: 0,
 
   fetchTradeState: async ({ connection, wallet }) => {
     try {
@@ -100,6 +103,11 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
 
       const groups = Object.keys(tradeGroups).map((group) => new PublicKey(group));
       const allBanks: ExtendedBankInfo[] = [];
+      const banksWithPriceAndToken: {
+        bank: Bank;
+        oraclePrice: OraclePrice;
+        tokenMetadata: TokenMetadata;
+      }[] = [];
 
       await Promise.all(
         groups.map(async (group) => {
@@ -118,12 +126,6 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
             }
           );
           const banksIncludingUSDC = Array.from(marginfiClient.banks.values());
-
-          const banksWithPriceAndToken: {
-            bank: Bank;
-            oraclePrice: OraclePrice;
-            tokenMetadata: TokenMetadata;
-          }[] = [];
 
           banksIncludingUSDC.forEach((bank) => {
             const oraclePrice = marginfiClient.getOraclePriceByBank(bank.address);
@@ -147,49 +149,47 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
               console.error("error fetching token metadata: ", err);
             }
           });
-
-          let nativeSolBalance: number = 0;
-          let tokenAccountMap: TokenAccountMap;
-          if (wallet?.publicKey) {
-            const [tokenData] = await Promise.all([
-              fetchTokenAccounts(
-                connection,
-                wallet.publicKey,
-                banksIncludingUSDC.map((bank) => ({ mint: bank.mint, mintDecimals: bank.mintDecimals }))
-              ),
-            ]);
-
-            nativeSolBalance = tokenData.nativeSolBalance;
-            tokenAccountMap = tokenData.tokenAccountMap;
-          }
-
-          const [extendedBankInfos, extendedBankMetadatas] = banksWithPriceAndToken.reduce(
-            (acc, { bank, oraclePrice, tokenMetadata }) => {
-              let userData;
-              if (wallet?.publicKey) {
-                const tokenAccount = tokenAccountMap!.get(bank.mint.toBase58());
-                if (!tokenAccount) {
-                  return acc;
-                }
-                userData = {
-                  nativeSolBalance,
-                  tokenAccount,
-                  marginfiAccount: null,
-                };
-              }
-              acc[0].push(makeExtendedBankInfo(tokenMetadata, bank, oraclePrice, undefined, userData));
-              acc[1].push(makeExtendedBankMetadata(new PublicKey(bank.address), tokenMetadata));
-
-              return acc;
-            },
-            [[], []] as [ExtendedBankInfo[], ExtendedBankMetadata[]]
-          );
-
-          allBanks.push(...extendedBankInfos);
-
-          return;
         })
       );
+
+      let nativeSolBalance = 0;
+      let tokenAccountMap: TokenAccountMap | null = null;
+      if (wallet?.publicKey) {
+        const [tokenData] = await Promise.all([
+          fetchTokenAccounts(
+            connection,
+            wallet.publicKey,
+            banksWithPriceAndToken.map((bank) => ({ mint: bank.bank.mint, mintDecimals: bank.bank.mintDecimals }))
+          ),
+        ]);
+
+        nativeSolBalance = tokenData.nativeSolBalance;
+        tokenAccountMap = tokenData.tokenAccountMap;
+      }
+
+      const [extendedBankInfos, extendedBankMetadatas] = banksWithPriceAndToken.reduce(
+        (acc, { bank, oraclePrice, tokenMetadata }) => {
+          let userData;
+          if (wallet?.publicKey) {
+            const tokenAccount = tokenAccountMap!.get(bank.mint.toBase58());
+            if (!tokenAccount) {
+              return acc;
+            }
+            userData = {
+              nativeSolBalance,
+              tokenAccount,
+              marginfiAccount: null,
+            };
+          }
+          acc[0].push(makeExtendedBankInfo(tokenMetadata, bank, oraclePrice, undefined, userData));
+          acc[1].push(makeExtendedBankMetadata(new PublicKey(bank.address), tokenMetadata));
+
+          return acc;
+        },
+        [[], []] as [ExtendedBankInfo[], ExtendedBankMetadata[]]
+      );
+
+      allBanks.push(...extendedBankInfos);
 
       set((state) => {
         return {
@@ -199,6 +199,7 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
           groups,
           banks: allBanks.filter((bank) => !bank.info.rawBank.mint.equals(USDC_MINT)),
           banksIncludingUSDC: allBanks,
+          nativeSolBalance,
         };
       });
     } catch (error) {
