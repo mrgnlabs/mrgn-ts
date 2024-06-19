@@ -34,6 +34,9 @@ type TradeStoreState = {
   // array of extended bank objects (excluding USDC)
   banks: ExtendedBankInfo[];
   banksIncludingUSDC: ExtendedBankInfo[];
+  collateralBanks: {
+    [group: string]: ExtendedBankInfo;
+  };
 
   // marginfi client, initialized when viewing an active group
   marginfiClient: MarginfiClient | null;
@@ -77,6 +80,7 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
   groups: [],
   banks: [],
   banksIncludingUSDC: [],
+  collateralBanks: {},
   marginfiClient: null,
   activeGroup: null,
   nativeSolBalance: 0,
@@ -95,7 +99,7 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
           initialized: true,
           groupsCache: result.tradeGroups,
           groups: result.groups,
-          banks: result.allBanks.filter((bank) => !bank.info.rawBank.mint.equals(USDC_MINT)),
+          banks: result.tokenBanks,
           banksIncludingUSDC: result.allBanks,
           nativeSolBalance: result.nativeSolBalance,
         };
@@ -121,7 +125,7 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
             initialized: true,
             groupsCache: result.tradeGroups,
             groups: result.groups,
-            banks: result.allBanks.filter((bank) => !bank.info.rawBank.mint.equals(USDC_MINT)),
+            banks: result.tokenBanks,
             banksIncludingUSDC: result.allBanks,
             nativeSolBalance: result.nativeSolBalance,
           };
@@ -291,6 +295,7 @@ const fetchBanksAndTradeGroups = async (wallet: Wallet, connection: Connection) 
 
   return {
     allBanks,
+    tokenBanks: allBanks.filter((bank) => !bank.info.rawBank.mint.equals(USDC_MINT)),
     tradeGroups,
     groups,
     nativeSolBalance,
