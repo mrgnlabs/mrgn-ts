@@ -32,6 +32,7 @@ type TradeGroupsCache = {
 
 type TradeStoreState = {
   initialized: boolean;
+  isRefreshingStore: boolean;
 
   groupsCache: TradeGroupsCache;
 
@@ -58,6 +59,8 @@ type TradeStoreState = {
   selectedAccount: MarginfiAccountWrapper | null;
 
   nativeSolBalance: number;
+
+  setIsRefreshingStore: (isRefreshing: boolean) => void;
 
   // fetch groups / banks
   fetchTradeState: ({ connection, wallet }: { connection: Connection; wallet: Wallet }) => void;
@@ -86,6 +89,7 @@ function createTradeStore() {
 
 const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
   initialized: false,
+  isRefreshingStore: false,
   groupsCache: {},
   groups: [],
   banks: [],
@@ -96,6 +100,15 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
   marginfiAccounts: [],
   selectedAccount: null,
   nativeSolBalance: 0,
+
+  setIsRefreshingStore: (isRefreshing) => {
+    set((state) => {
+      return {
+        ...state,
+        isRefreshingStore: isRefreshing,
+      };
+    });
+  },
 
   fetchTradeState: async ({ connection, wallet }) => {
     try {
@@ -127,7 +140,7 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
       const bpk = new PublicKey(bankPk);
       let bank = get().banksIncludingUSDC.find((bank) => new PublicKey(bank.address).equals(bpk));
       if (!bank) {
-        console.log("iets working");
+        console.log("iets working", bankPk.toBase58(), wallet.publicKey);
         const result = await fetchBanksAndTradeGroups(wallet, connection);
 
         if (!result) throw new Error("Error fetching banks & groups");

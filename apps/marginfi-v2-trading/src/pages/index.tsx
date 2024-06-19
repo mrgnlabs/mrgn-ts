@@ -26,10 +26,6 @@ export default function HomePage() {
   ]);
 
   React.useEffect(() => {
-    fetchTradeState({
-      wallet,
-      connection,
-    });
     resetActiveGroup();
   }, []);
 
