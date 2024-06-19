@@ -51,7 +51,6 @@ export default function TradeSymbolPage() {
 
   React.useEffect(() => {
     if (!router.query.symbol) return;
-    console.log("hi");
     const symbol = router.query.symbol as string;
     setActiveBank({ bankPk: new PublicKey(symbol), connection, wallet });
   }, [router.query.symbol]);
