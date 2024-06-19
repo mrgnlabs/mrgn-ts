@@ -29,6 +29,16 @@ export const PoolCard = ({ bank }: PoolCardProps) => {
     return tokenDeposits + collateralDeposits;
   }, [collateralBanks, bank]);
 
+  const totalBorrows = React.useMemo(() => {
+    const collateralBank = collateralBanks[bank.address.toBase58()];
+    const collateralBorrows = collateralBank
+      ? collateralBank.info.state.totalBorrows * collateralBank.info.state.price
+      : 0;
+    const tokenBorrows = bank.info.state.totalBorrows * bank.info.state.price;
+
+    return tokenBorrows + collateralBorrows;
+  }, [collateralBanks, bank]);
+
   return (
     <Card>
       <CardHeader>
@@ -65,8 +75,7 @@ export const PoolCard = ({ bank }: PoolCardProps) => {
             <strong className="font-medium text-primary">Deposits</strong> {usdFormatter.format(totalDeposits)}
           </li>
           <li className="grid grid-cols-2">
-            <strong className="font-medium text-primary">Borrows</strong>{" "}
-            {usdFormatter.format(bank.info.state.totalBorrows)}
+            <strong className="font-medium text-primary">Borrows</strong> {usdFormatter.format(totalBorrows)}
           </li>
         </ul>
       </CardContent>
