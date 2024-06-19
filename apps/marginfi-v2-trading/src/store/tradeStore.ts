@@ -56,6 +56,8 @@ type TradeStoreState = {
     connection: Connection;
     wallet: Wallet;
   }) => void;
+
+  resetActiveGroup: () => void;
 };
 
 const { programId } = getConfig();
@@ -209,6 +211,16 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
           token: groupsBanks[1],
           usdc: groupsBanks[0],
         },
+      };
+    });
+  },
+
+  resetActiveGroup: () => {
+    set((state) => {
+      return {
+        ...state,
+        marginfiClient: null,
+        activeGroup: null,
       };
     });
   },
