@@ -18,8 +18,6 @@ import { Loader } from "~/components/ui/loader";
 import { IconClockHour4, IconInfoCircle } from "~/components/ui/icons";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 
-const USDC_BANK_PK = new PublicKey("2s37akK2eyBbp8DZgCm7RtsaEz8eJP3Nxd4urLHQv7yB");
-
 export default function TradeSymbolPage() {
   const router = useRouter();
   const { connection } = useConnection();
@@ -57,8 +55,8 @@ export default function TradeSymbolPage() {
 
   return (
     <div className="w-full max-w-8xl mx-auto px-4 md:px-8 pb-28 z-10">
-      {!activeGroup && <Loader label="Loading mrgntrade..." className="mt-8" />}
-      {activeGroup && (
+      {(!initialized || !activeGroup) && <Loader label="Loading mrgntrade..." className="mt-8" />}
+      {initialized && activeGroup && (
         <div className="flex flex-col items-start gap-8 pb-16 w-full">
           <header className="flex flex-col gap-4 justify-center items-center w-full">
             <Image
@@ -69,8 +67,8 @@ export default function TradeSymbolPage() {
               alt={activeGroup.token.meta.tokenName}
             />
             <div className="text-center space-y-2">
-              <h1 className="text-3xl font-medium">{activeGroup.token?.meta.tokenName}</h1>
-              <h2 className="text-lg text-muted-foreground">{activeGroup.token?.meta.tokenSymbol}</h2>
+              <h1 className="text-3xl font-medium">{activeGroup.token.meta.tokenName}</h1>
+              <h2 className="text-lg text-muted-foreground">{activeGroup.token.meta.tokenSymbol}</h2>
             </div>
           </header>
           <div className="bg-background-gray-dark p-6 rounded-xl w-full max-w-7xl mx-auto">
