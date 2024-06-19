@@ -41,7 +41,7 @@ export default function TradeSymbolPage() {
         <div className="flex flex-col items-start gap-8 pb-16 w-full">
           <div className="grid grid-cols-12 gap-4 w-full h-full lg:gap-8">
             <div className="col-span-9 space-y-8 h-[60vh]">
-              <TVWidget />
+              <TVWidget symbol={activeBank?.info.state.mint.toString() as string} />
             </div>
             <aside className="col-span-3">
               <TradingBox activeBank={activeGroup.token} />
