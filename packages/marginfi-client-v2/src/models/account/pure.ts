@@ -628,23 +628,26 @@ class MarginfiAccount {
     borrowBank: Bank,
     depositOracleInfo: OraclePrice,
     borrowOracleInfo: OraclePrice
-  ): { borrowAmount: BigNumber; depositAmount: BigNumber } {
-    const _initialCollateral = toBigNumber(principal);
-    const { maxLeverage, ltv } = computeMaxLeverage(depositBank, borrowBank);
+  ): { borrowAmount: BigNumber; totalDepositAmount: BigNumber } {
+    const initialCollateral = toBigNumber(principal);
+    const { maxLeverage } = computeMaxLeverage(depositBank, borrowBank);
+
+    if (targetLeverage < 1) {
+      throw Error(`Target leverage ${targetLeverage} needs to be greater than 1`);
+    }
 
     if (targetLeverage > maxLeverage) {
       throw Error(`Target leverage ${targetLeverage} exceeds max leverage for banks ${maxLeverage}`);
     }
 
-    const depositAmount = _initialCollateral.times(new BigNumber(targetLeverage));
-    const borrowAmount = depositAmount
-      .times(ltv)
+    const totalDepositAmount = initialCollateral.times(new BigNumber(targetLeverage));
+    const additionalDepositAmount = totalDepositAmount.minus(initialCollateral);
+    const borrowAmount = additionalDepositAmount
       .times(depositOracleInfo.priceWeighted.lowestPrice)
       .div(borrowOracleInfo.priceWeighted.highestPrice);
 
-    return { borrowAmount, depositAmount };
+    return { borrowAmount, totalDepositAmount };
   }
-
   // ----------------------------------------------------------------------------
   // Actions
   // ----------------------------------------------------------------------------
@@ -673,7 +676,8 @@ class MarginfiAccount {
       },
       { amount: uiToNative(amount, bank.mintDecimals) }
     );
-    const depositIxs = bank.mint.equals(NATIVE_MINT) && wrapAndUnwrapSol ? this.wrapInstructionForWSol(ix, amount) : [ix];
+    const depositIxs =
+      bank.mint.equals(NATIVE_MINT) && wrapAndUnwrapSol ? this.wrapInstructionForWSol(ix, amount) : [ix];
 
     return {
       instructions: depositIxs,
@@ -1025,7 +1029,8 @@ class MarginfiAccount {
           const targetBalance = projectedBalances.find((b) => b.bankPk.equals(targetBank));
           if (!targetBalance) {
             throw Error(
-              `Balance for bank ${targetBank.toBase58()} should be projected active at this point (ix ${index}: ${decoded.name
+              `Balance for bank ${targetBank.toBase58()} should be projected active at this point (ix ${index}: ${
+                decoded.name
               }))`
             );
           }
