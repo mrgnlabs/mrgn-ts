@@ -9,7 +9,7 @@ import { PublicKey } from "@solana/web3.js";
 import capitalize from "lodash/capitalize";
 
 import { cn } from "~/utils/themeUtils";
-import { useMrgnlendStore } from "~/store";
+import { useTradeStore } from "~/store";
 
 import { TokenCombobox } from "../TokenCombobox/TokenCombobox";
 import { ActionBoxDialog } from "~/components/common/ActionBox";
@@ -36,22 +36,19 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
   const [amount, setAmount] = React.useState<number>(0);
   const [leverage, setLeverage] = React.useState(1);
 
-  const [extendedBankInfos] = useMrgnlendStore((state) => [state.extendedBankInfos]);
-
-  const usdcBank = React.useMemo(() => {
-    const usdc = extendedBankInfos.find((bank) => bank.address.equals(USDC_BANK_PK)) as ActiveBankInfo;
-    return usdc || null;
-  }, [extendedBankInfos]);
+  const [activeGroup] = useTradeStore((state) => [state.activeGroup]);
 
   const fullAmount = React.useMemo(() => {
     if (amount === null) return null;
     return amount * leverage;
   }, [amount, leverage]);
 
+  if (!activeGroup) return null;
+
   return (
     <Card className="bg-background-gray border-none">
       <CardContent className="pt-6">
-        {usdcBank.isActive && usdcBank.position.isLending ? (
+        {activeGroup.usdc.isActive && activeGroup.usdc.position.isLending ? (
           <div className="space-y-4">
             <ToggleGroup
               type="single"
@@ -137,7 +134,7 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
         )}
       </CardContent>
       <CardFooter className="flex-col gap-8">
-        {usdcBank && usdcBank.isActive && usdcBank.position.isLending ? (
+        {activeGroup.usdc && activeGroup.usdc.isActive && activeGroup.usdc.position.isLending ? (
           <>
             <div className="gap-1 w-full flex flex-col items-center">
               <Button
@@ -145,7 +142,7 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
               >
                 {capitalize(tradeState)} {selectedPool !== null ? selectedPool.meta.tokenSymbol : "Pool"}
               </Button>
-              <ActionBoxDialog requestedAction={ActionType.Deposit} requestedBank={usdcBank}>
+              <ActionBoxDialog requestedAction={ActionType.Deposit} requestedBank={activeGroup.usdc}>
                 <Button
                   variant="link"
                   size="sm"
@@ -169,7 +166,7 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
             </dl>
           </>
         ) : (
-          <ActionBoxDialog requestedAction={ActionType.Deposit} requestedBank={usdcBank}>
+          <ActionBoxDialog requestedAction={ActionType.Deposit} requestedBank={activeGroup.usdc}>
             <Button className="w-full">Deposit Collateral</Button>
           </ActionBoxDialog>
         )}
