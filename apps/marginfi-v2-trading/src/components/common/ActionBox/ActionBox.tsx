@@ -6,7 +6,7 @@ import { v4 as uuidv4 } from "uuid";
 import { WSOL_MINT, nativeToUi } from "@mrgnlabs/mrgn-common";
 import { ActionType, ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { useLstStore, useMrgnlendStore, useUiStore } from "~/store";
+import { useLstStore, useMrgnlendStore, useUiStore, useTradeStore } from "~/store";
 import {
   MarginfiActionParams,
   closeBalance,
@@ -47,23 +47,18 @@ type BlackListRoutesMap = {
 };
 
 export const ActionBox = ({ requestedAction, requestedBank, isDialog, handleCloseDialog }: ActionBoxProps) => {
-  const [
-    mfiClient,
-    nativeSolBalance,
-    setIsRefreshingStore,
-    fetchMrgnlendState,
-    selectedAccount,
-    extendedBankInfos,
-    isInitialized,
-  ] = useMrgnlendStore((state) => [
-    state.marginfiClient,
-    state.nativeSolBalance,
+  const [setIsRefreshingStore, fetchMrgnlendState, extendedBankInfos] = useMrgnlendStore((state) => [
     state.setIsRefreshingStore,
     state.fetchMrgnlendState,
-    state.selectedAccount,
     state.extendedBankInfos,
-    state.initialized,
   ]);
+
+  const [isInitialized, mfiClient, nativeSolBalance] = useTradeStore((state) => [
+    state.initialized,
+    state.marginfiClient,
+    state.nativeSolBalance,
+  ]);
+  const selectedAccount = null;
 
   const [
     slippageBps,
