@@ -348,8 +348,8 @@ The marginfi-v2 program is deployed on mainnet-beta, and can be referenced by th
     **The provided Bank account is invalid**. Verify that the Bank account is correct and properly initialized.
   </Property>
 
-  <Property name="BadAccountHealth" type="6010">
-    **The account's health is bad**. Check the account's balances and ensure that it is not bankrupt or in an unhealthy state.
+  <Property name="RiskEngineInitRejected" type="6010">
+    **The account's health is bad or the oracles are stale**. Check the account's balances and ensure that it is not bankrupt or in an unhealthy state. Also, ensure that the oracle data is fresh.
   </Property>
 
   <Property name="LendingAccountBalanceSlotsFull" type="6011">
