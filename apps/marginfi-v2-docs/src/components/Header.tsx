@@ -11,7 +11,6 @@ import {
 } from '~/components/MobileNavigation'
 import { useMobileNavigationStore } from '~/components/MobileNavigation'
 import { MobileSearch, Search } from '~/components/Search'
-import { ThemeToggle } from '~/components/ThemeToggle'
 
 function TopLevelNavItem({
   href,
@@ -69,15 +68,12 @@ export const Header = forwardRef<
             'bg-zinc-900/7.5 dark:bg-white/7.5',
         )}
       />
-      {/* <Search /> */}
+      <Search />
       <div className="flex items-center gap-5 lg:hidden">
         <MobileNavigation />
         <Link href="/" aria-label="Home" className="flex items-center gap-4 text-3xl">
           <Logo size={32} wordmark={false} />
-          <motion.span
-            // className={cn(logoHoverState && "transition-opacity delay-200")}
-            // style={{ opacity: logoHoverState ? 1 : wordmarkOpacity }}
-          >
+          <motion.span>
             marginfi
           </motion.span>
         </Link>
@@ -92,12 +88,11 @@ export const Header = forwardRef<
           </ul>
         </nav> */}
 
-        {/* <div className="hidden md:block md:h-5 md:w-px md:bg-zinc-900/10 md:dark:bg-white/15" /> */}
-
-        {/* <div className="flex gap-4">
+        <div className="flex gap-4">
           <MobileSearch />
-          <ThemeToggle />
-        </div> */}
+        </div>
+
+        <div className="block lg:hidden h-5 w-px bg-zinc-900/10 dark:bg-white/15" />
 
         <div className="hidden min-[416px]:contents">
           <Button
