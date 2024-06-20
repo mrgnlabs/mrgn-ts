@@ -157,7 +157,7 @@ function LoadingIcon(props: React.ComponentPropsWithoutRef<'svg'>) {
 function HighlightQuery({ text, query }: { text: string; query: string }) {
   return (
     <Highlighter
-      highlightClassName="underline bg-transparent text-emerald-500"
+      highlightClassName="underline bg-transparent text-mrgn-chartreuse"
       searchWords={[query]}
       autoEscape={true}
       textToHighlight={text}
@@ -190,7 +190,7 @@ function SearchResult({
   return (
     <li
       className={clsx(
-        'group block cursor-default px-4 py-3 aria-selected:bg-zinc-50 dark:aria-selected:bg-zinc-800/50',
+        'group block cursor-default px-4 py-3 aria-selected:bg-zinc-50 dark:aria-selected:bg-zinc-800/50 cursor-pointer',
         resultIndex > 0 && 'border-t border-zinc-100 dark:border-zinc-800',
       )}
       aria-labelledby={`${id}-hierarchy ${id}-title`}
@@ -202,7 +202,7 @@ function SearchResult({
       <div
         id={`${id}-title`}
         aria-hidden="true"
-        className="text-sm font-medium text-zinc-900 group-aria-selected:text-emerald-500 dark:text-white"
+        className="text-sm font-medium text-zinc-900 group-aria-selected:text-mrgn-accent dark:text-white"
       >
         <HighlightQuery text={result.title} query={query} />
       </div>
@@ -313,7 +313,7 @@ const SearchInput = forwardRef<
       />
       {autocompleteState.status === 'stalled' && (
         <div className="absolute inset-y-0 right-3 flex items-center">
-          <LoadingIcon className="h-5 w-5 animate-spin stroke-zinc-200 text-zinc-900 dark:stroke-zinc-800 dark:text-emerald-400" />
+          <LoadingIcon className="h-5 w-5 animate-spin stroke-zinc-200 text-zinc-900 dark:stroke-zinc-800 dark:text-mrgn-gold" />
         </div>
       )}
     </div>
