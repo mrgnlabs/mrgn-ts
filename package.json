@@ -42,7 +42,6 @@
   },
   "packageManager": "yarn@1.22.19",
   "resolutions": {
-    "@trezor/connect-web": "9.1.6",
-    "rpc-websockets": "7.11.0"
+    "@trezor/connect-web": "9.1.6"
   }
 }
