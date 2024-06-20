@@ -13,6 +13,7 @@ import { IconChevronDown } from "~/components/ui/icons";
 
 import { LendingModes } from "~/types";
 import { useActionBoxStore } from "~/hooks/useActionBoxStore";
+import { WSOL_MINT } from "@mrgnlabs/mrgn-common";
 
 type LoopingTokensProps = {
   actionType: ActionType;
@@ -95,21 +96,21 @@ export const LoopingTokens = ({ selectedBank, setSelectedBank, actionType, isDia
     return ALLOWED_LOOP_LST_BANKS.includes(selectedBankStore.meta.tokenSymbol);
   }, [selectedBankStore, ALLOWED_LOOP_LST_BANKS]);
 
-  const shouldRenderStableBanks = React.useMemo(() => {
-    const hasStables = stableBanks.length > 0;
-    if (!hasStables) return false;
-    if (actionType === ActionType.Borrow) return selectedBankIsStable;
+  // const shouldRenderStableBanks = React.useMemo(() => {
+  //   const hasStables = stableBanks.length > 0;
+  //   if (!hasStables) return false;
+  //   if (actionType === ActionType.Borrow) return selectedBankIsStable;
 
-    return true;
-  }, [actionType, selectedBankIsStable, stableBanks]);
+  //   return true;
+  // }, [actionType, selectedBankIsStable, stableBanks]);
 
-  const shouldRenderLstBanks = React.useMemo(() => {
-    const hasLsts = lstBanks.length > 0;
-    if (!hasLsts) return false;
-    if (actionType === ActionType.Borrow) return selectedBankIsLst;
+  // const shouldRenderLstBanks = React.useMemo(() => {
+  //   const hasLsts = lstBanks.length > 0;
+  //   if (!hasLsts) return false;
+  //   if (actionType === ActionType.Borrow) return selectedBankIsLst;
 
-    return true;
-  }, [actionType, selectedBankIsLst, lstBanks]);
+  //   return true;
+  // }, [actionType, selectedBankIsLst, lstBanks]);
 
   React.useEffect(() => {
     if (!isOpen) {
@@ -146,75 +147,85 @@ export const LoopingTokens = ({ selectedBank, setSelectedBank, actionType, isDia
           >
             <CommandEmpty>No tokens found.</CommandEmpty>
 
-            {shouldRenderStableBanks && (
-              <CommandGroup heading="Stablecoins">
-                {stableBanks.map((bank, index) => {
-                  return (
-                    <CommandItem
-                      key={index}
-                      value={bank?.address?.toString().toLowerCase()}
-                      onSelect={(currentValue) => {
-                        setSelectedBank(
-                          extendedBankInfos.find(
-                            (bankInfo) => bankInfo.address.toString().toLowerCase() === currentValue
-                          ) ?? null
-                        );
-                        setIsOpen(false);
-                      }}
-                      className="cursor-pointer h-[55px] px-3 font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white"
-                      disabled={
-                        actionType === ActionType.Borrow
-                          ? selectedBankStore?.address.equals(bank.address)
-                          : bank.userInfo.tokenAccount.balance === 0
+            {/* {shouldRenderStableBanks && ( */}
+            <CommandGroup heading="Stablecoins">
+              {stableBanks.map((bank, index) => {
+                return (
+                  <CommandItem
+                    key={index}
+                    value={bank?.address?.toString().toLowerCase()}
+                    onSelect={(currentValue) => {
+                      setSelectedBank(
+                        extendedBankInfos.find(
+                          (bankInfo) => bankInfo.address.toString().toLowerCase() === currentValue
+                        ) ?? null
+                      );
+                      setIsOpen(false);
+                    }}
+                    className="cursor-pointer h-[55px] px-3 font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white"
+                    disabled={
+                      actionType === ActionType.Borrow
+                        ? selectedBankStore?.address.equals(bank.address)
+                        : bank.userInfo.tokenAccount.balance === 0
+                    }
+                  >
+                    <ActionBoxItem
+                      rate={calculateRate(bank)}
+                      lendingMode={lendingMode}
+                      bank={bank}
+                      showBalanceOverride={
+                        bank.info.state.mint.equals(WSOL_MINT)
+                          ? nativeSolBalance > 0
+                          : bank.userInfo.tokenAccount.balance > 0
                       }
-                    >
-                      <ActionBoxItem
-                        rate={calculateRate(bank)}
-                        lendingMode={lendingMode}
-                        bank={bank}
-                        showBalanceOverride={bank.userInfo.tokenAccount.balance > 0}
-                        nativeSolBalance={nativeSolBalance}
-                      />
-                    </CommandItem>
-                  );
-                })}
-              </CommandGroup>
-            )}
+                      nativeSolBalance={nativeSolBalance}
+                    />
+                  </CommandItem>
+                );
+              })}
+            </CommandGroup>
+            {/* )} */}
 
-            {shouldRenderLstBanks && (
-              <CommandGroup heading="Liquid staking tokens">
-                {lstBanks.map((bank, index) => {
-                  return (
-                    <CommandItem
-                      key={index}
-                      value={bank?.address?.toString().toLowerCase()}
-                      onSelect={(currentValue) => {
-                        setSelectedBank(
-                          extendedBankInfos.find(
-                            (bankInfo) => bankInfo.address.toString().toLowerCase() === currentValue
-                          ) ?? null
-                        );
-                        setIsOpen(false);
-                      }}
-                      className="cursor-pointer h-[55px] px-3 font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white"
-                      disabled={
-                        actionType === ActionType.Borrow
-                          ? selectedBankStore?.address.equals(bank.address)
-                          : bank.userInfo.tokenAccount.balance === 0
+            {/* {shouldRenderLstBanks && ( */}
+            <CommandGroup heading="Liquid staking tokens">
+              {lstBanks.map((bank, index) => {
+                return (
+                  <CommandItem
+                    key={index}
+                    value={bank?.address?.toString().toLowerCase()}
+                    onSelect={(currentValue) => {
+                      setSelectedBank(
+                        extendedBankInfos.find(
+                          (bankInfo) => bankInfo.address.toString().toLowerCase() === currentValue
+                        ) ?? null
+                      );
+                      setIsOpen(false);
+                    }}
+                    className="cursor-pointer h-[55px] px-3 font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white"
+                    disabled={
+                      actionType === ActionType.Borrow
+                        ? selectedBankStore?.address.equals(bank.address)
+                        : !(bank.info.state.mint.equals(WSOL_MINT)
+                            ? nativeSolBalance > 0
+                            : bank.userInfo.tokenAccount.balance > 0)
+                    }
+                  >
+                    <ActionBoxItem
+                      rate={calculateRate(bank)}
+                      lendingMode={lendingMode}
+                      bank={bank}
+                      showBalanceOverride={
+                        bank.info.state.mint.equals(WSOL_MINT)
+                          ? nativeSolBalance > 0
+                          : bank.userInfo.tokenAccount.balance > 0
                       }
-                    >
-                      <ActionBoxItem
-                        rate={calculateRate(bank)}
-                        lendingMode={lendingMode}
-                        bank={bank}
-                        showBalanceOverride={bank.userInfo.tokenAccount.balance > 0}
-                        nativeSolBalance={nativeSolBalance}
-                      />
-                    </CommandItem>
-                  );
-                })}
-              </CommandGroup>
-            )}
+                      nativeSolBalance={nativeSolBalance}
+                    />
+                  </CommandItem>
+                );
+              })}
+            </CommandGroup>
+            {/* )} */}
           </TokenListCommand>
         }
       />
