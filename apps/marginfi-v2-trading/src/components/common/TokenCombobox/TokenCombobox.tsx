@@ -8,7 +8,7 @@ import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { IconChevronDown, IconTrendingUp, IconTrendingDown } from "@tabler/icons-react";
 import random from "lodash/random";
 
-import { useMrgnlendStore } from "~/store";
+import { useTradeStore } from "~/store";
 
 import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "~/components/ui/command";
@@ -22,7 +22,7 @@ type TokenComboboxProps = {
 
 export const TokenCombobox = ({ selected, setSelected }: TokenComboboxProps) => {
   const [open, setOpen] = React.useState(false);
-  const [extendedBankInfos] = useMrgnlendStore((state) => [state.extendedBankInfos]);
+  const [extendedBankInfos] = useTradeStore((state) => [state.banks]);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>

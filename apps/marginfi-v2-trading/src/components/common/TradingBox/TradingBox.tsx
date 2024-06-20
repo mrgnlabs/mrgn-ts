@@ -9,7 +9,7 @@ import { PublicKey } from "@solana/web3.js";
 import capitalize from "lodash/capitalize";
 
 import { cn } from "~/utils/themeUtils";
-import { useTradeStore } from "~/store";
+import { useMrgnlendStore, useTradeStore } from "~/store";
 
 import { TokenCombobox } from "../TokenCombobox/TokenCombobox";
 import { ActionBoxDialog } from "~/components/common/ActionBox";
@@ -20,6 +20,11 @@ import { Slider } from "~/components/ui/slider";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
+import { useWalletContext } from "~/hooks/useWalletContext";
+import { useConnection } from "~/hooks/useConnection";
+import { computeMaxLeverage } from "@mrgnlabs/marginfi-client-v2";
+import { calculateLooping } from "./tradingBox.utils";
+import { useDebounce } from "~/hooks/useDebounce";
 
 type TradeSide = "long" | "short";
 
@@ -31,24 +36,117 @@ type TradingBoxProps = {
 
 export const TradingBox = ({ activeBank }: TradingBoxProps) => {
   const router = useRouter();
+  const { wallet } = useWalletContext();
+  const { connection } = useConnection();
+  const [collateralBanks] = useTradeStore((state) => [state]);
   const [tradeState, setTradeState] = React.useState<TradeSide>("long");
-  const [selectedPool, setSelectedPool] = React.useState<ExtendedBankInfo | null>(activeBank || null);
-  const [amount, setAmount] = React.useState<number>(0);
+  // const [selectedPool, setSelectedPool] = React.useState<ExtendedBankInfo | null>(activeBank || null);
+  const [amount, setAmount] = React.useState<string>("");
+  const [borrowAmount, setBorrowAmount] = React.useState<string>("");
   const [leverage, setLeverage] = React.useState(1);
+  const [loading, setLoading] = React.useState<boolean>(false);
 
-  const [activeGroup] = useTradeStore((state) => [state.activeGroup]);
+  const debouncedLeverage = useDebounce(leverage, 1000);
+  const debouncedAmount = useDebounce(amount, 1000);
 
-  const fullAmount = React.useMemo(() => {
-    if (amount === null) return null;
-    return amount * leverage;
-  }, [amount, leverage]);
+  const [setActiveBank, marginfiAccounts] = useTradeStore((state) => [
+    //activeGroup,
+    // state.activeGroup,
+    state.setActiveBank,
+    state.marginfiAccounts,
+  ]);
+  const [selectedAccount, extendedBankInfos] = useMrgnlendStore((state) => [
+    state.selectedAccount,
+    state.extendedBankInfos,
+  ]);
+
+  const numberFormater = React.useMemo(() => new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 }), []);
+
+  const tempUsdcDepositBank = React.useMemo(
+    () => extendedBankInfos.find((value) => value.meta.tokenSymbol.includes("USDC")),
+    [extendedBankInfos]
+  );
+
+  const tempBorrowBank = React.useMemo(
+    () => extendedBankInfos.find((value) => value.meta.tokenSymbol.includes("WIF")),
+    [extendedBankInfos]
+  );
+
+  const activeGroup = React.useMemo(
+    () => (tempBorrowBank && tempUsdcDepositBank ? { token: tempBorrowBank, usdc: tempUsdcDepositBank } : null),
+    [tempUsdcDepositBank, tempBorrowBank]
+  );
+
+  // const calculateLooping
+
+  const isActiveWithCollat = true;
+
+  const maxLeverage = React.useMemo(() => {
+    if (activeGroup) {
+      const { maxLeverage, ltv } = computeMaxLeverage(activeGroup.usdc.info.rawBank, activeGroup.token.info.rawBank);
+      return maxLeverage;
+    }
+    return 0;
+  }, [activeGroup]);
+
+  const maxAmount = React.useMemo(() => {
+    if (activeGroup && activeGroup?.usdc?.isActive) {
+      const usdcBank = activeGroup.usdc;
+
+      const totalDeposited = usdcBank.position.amount;
+      const usdValue = usdcBank.position.usdValue;
+
+      return { maxAmount: totalDeposited, maxUsdValue: usdValue };
+    }
+    return { maxAmount: 0, maxUsdValue: 0 };
+  }, [activeGroup]);
+
+  const loadLoopingVariables = React.useCallback(async () => {
+    if (selectedAccount && activeGroup) {
+      const slippageBps = 400;
+      const woppa = await calculateLooping(
+        selectedAccount,
+        activeGroup?.usdc,
+        activeGroup?.token,
+        leverage,
+        Number(amount),
+        slippageBps,
+        connection
+      );
+
+      console.log({ test: woppa?.actualDepositAmount, maxAmount, woppa: borrowAmount.toString(), leverage, amount });
+
+      if (woppa) setBorrowAmount(woppa?.borrowAmount.toString());
+    }
+  }, [amount, selectedAccount, activeGroup]);
+
+  const handleAmountChange = React.useCallback(
+    (amountRaw: string) => {
+      const amount = formatAmount(amountRaw, maxAmount.maxUsdValue, activeGroup?.usdc ?? null, numberFormater);
+      setAmount(amount);
+    },
+    [maxAmount, activeGroup, numberFormater]
+  );
+
+  const handleMaxAmount = React.useCallback(() => {
+    if (activeGroup) {
+      handleAmountChange(maxAmount.maxUsdValue.toString());
+    }
+  }, [activeGroup, maxAmount, handleAmountChange]);
+
+  React.useEffect(() => {
+    if (debouncedAmount && debouncedLeverage) {
+      console.log("help");
+      loadLoopingVariables();
+    }
+  }, [debouncedLeverage, debouncedAmount]);
 
   if (!activeGroup) return null;
 
   return (
     <Card className="bg-background-gray border-none">
       <CardContent className="pt-6">
-        {activeGroup.usdc.isActive && activeGroup.usdc.position.isLending ? (
+        {isActiveWithCollat ? (
           <div className="space-y-4">
             <ToggleGroup
               type="single"
@@ -78,50 +176,57 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
                   size="sm"
                   variant="link"
                   className="no-underline hover:underline"
-                  onClick={() => setAmount(100)}
+                  onClick={() => handleMaxAmount()}
                 >
                   Max
                 </Button>
               </div>
-              <div className="relative flex gap-4 items-center border border-accent p-2 rounded-lg">
-                <TokenCombobox
-                  selected={selectedPool}
-                  setSelected={(bank) => {
-                    router.push(`/trade/${bank.address.toBase58()}`);
-                    setSelectedPool(bank);
-                  }}
-                />
+              <div className="relative">
                 <Input
-                  type="number"
+                  type="text"
+                  inputMode="decimal"
                   value={amount}
-                  onChange={(e) => (e.currentTarget ? setAmount(Number(e.currentTarget.value)) : setAmount(0))}
-                  className="appearance-none border-none text-right focus-visible:ring-0 focus-visible:outline-none"
+                  onChange={(e) => handleAmountChange(e.target.value)}
+                  className=""
                 />
+                <span className="absolute inset-y-0 right-3 flex items-center text-xs text-muted-foreground">USD</span>
               </div>
             </div>
             <div className="space-y-1.5">
               <Label>Size of {tradeState}</Label>
-              <div className="relative">
-                <Input type="number" value={fullAmount || ""} disabled className="disabled:opacity-100 border-accent" />
-                {selectedPool !== null && (
-                  <span className="absolute inset-y-0 right-3 flex items-center text-xs text-muted-foreground">
-                    {selectedPool.meta.tokenSymbol}
-                  </span>
-                )}
+              <div className="relative flex gap-4 items-center border border-accent p-2 rounded-lg">
+                <TokenCombobox
+                  selected={activeGroup.token}
+                  setSelected={(bank) => {
+                    router.push(`/trade/${bank.address.toBase58()}`);
+                    setActiveBank({ bankPk: bank.address, connection, wallet });
+                  }}
+                />
+                <Input
+                  type="text"
+                  inputMode="decimal"
+                  value={borrowAmount}
+                  disabled
+                  className="appearance-none border-none text-right focus-visible:ring-0 focus-visible:outline-none disabled:opacity-100 border-accent"
+                />
               </div>
             </div>
             <div className="space-y-2">
               <div className="flex justify-between">
                 <Label>Leverage</Label>
-                <span className="text-sm font-medium text-muted-foreground">{leverage}x</span>
+                <span className="text-sm font-medium text-muted-foreground">{leverage.toFixed(2)}x</span>
               </div>
               <Slider
                 className="w-full"
+                defaultValue={[1]}
                 min={1}
-                max={10}
-                step={1}
+                step={0.01}
+                max={maxLeverage === 0 ? 1 : maxLeverage}
                 value={[leverage]}
-                onValueChange={(value: number[]) => setLeverage(value[0])}
+                onValueChange={(value) => {
+                  if (value[0] > maxLeverage) return;
+                  setLeverage(value[0]);
+                }}
               />
             </div>
           </div>
@@ -134,13 +239,13 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
         )}
       </CardContent>
       <CardFooter className="flex-col gap-8">
-        {activeGroup.usdc && activeGroup.usdc.isActive && activeGroup.usdc.position.isLending ? (
+        {isActiveWithCollat ? (
           <>
             <div className="gap-1 w-full flex flex-col items-center">
               <Button
                 className={cn("w-full", tradeState === "long" && "bg-success", tradeState === "short" && "bg-error")}
               >
-                {capitalize(tradeState)} {selectedPool !== null ? selectedPool.meta.tokenSymbol : "Pool"}
+                {capitalize(tradeState)} {activeGroup.token.meta.tokenSymbol}
               </Button>
               <ActionBoxDialog requestedAction={ActionType.Deposit} requestedBank={activeGroup.usdc}>
                 <Button
@@ -173,4 +278,40 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
       </CardFooter>
     </Card>
   );
+};
+
+// remove function once rebased with looper
+export const formatAmount = (
+  newAmount: string,
+  maxAmount: number,
+  bank: ExtendedBankInfo | null,
+  numberFormater: Intl.NumberFormat
+) => {
+  let formattedAmount: string, amount: number;
+  // Remove commas from the formatted string
+  const newAmountWithoutCommas = newAmount.replace(/,/g, "");
+  let decimalPart = newAmountWithoutCommas.split(".")[1];
+  const mintDecimals = bank?.info.state.mintDecimals ?? 9;
+
+  if (
+    (newAmount.endsWith(",") || newAmount.endsWith(".")) &&
+    !newAmount.substring(0, newAmount.length - 1).includes(".")
+  ) {
+    amount = isNaN(Number.parseFloat(newAmountWithoutCommas)) ? 0 : Number.parseFloat(newAmountWithoutCommas);
+    formattedAmount = numberFormater.format(amount).concat(".");
+  } else {
+    const isDecimalPartInvalid = isNaN(Number.parseFloat(decimalPart));
+    if (!isDecimalPartInvalid) decimalPart = decimalPart.substring(0, mintDecimals);
+    decimalPart = isDecimalPartInvalid
+      ? ""
+      : ".".concat(Number.parseFloat("1".concat(decimalPart)).toString().substring(1));
+    amount = isNaN(Number.parseFloat(newAmountWithoutCommas)) ? 0 : Number.parseFloat(newAmountWithoutCommas);
+    formattedAmount = numberFormater.format(amount).split(".")[0].concat(decimalPart);
+  }
+
+  if (amount > maxAmount) {
+    return numberFormater.format(maxAmount);
+  } else {
+    return formattedAmount;
+  }
 };
