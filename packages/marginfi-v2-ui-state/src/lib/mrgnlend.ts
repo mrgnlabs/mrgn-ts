@@ -384,7 +384,7 @@ function makeExtendedBankInfo(
   };
 }
 
-function makeLendingPosition(
+export function makeLendingPosition(
   balance: Balance,
   bank: Bank,
   bankInfo: BankState,
@@ -639,4 +639,5 @@ export type {
   ActiveBankInfo,
   InactiveBankInfo,
   ExtendedBankInfo,
+  BankState,
 };
