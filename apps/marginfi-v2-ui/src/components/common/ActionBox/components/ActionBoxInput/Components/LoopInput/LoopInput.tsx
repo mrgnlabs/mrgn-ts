@@ -231,13 +231,15 @@ export const LoopInput = ({
             disabled={!bothBanksSelected}
           />
           <div className="flex items-center justify-between">
-            <p className="text-sm font-normal text-muted-foreground">{leverageAmount.toFixed(2)}x leverage</p>
+            <p className="text-sm font-normal text-muted-foreground">
+              {leverageAmount > 1 && `${leverageAmount.toFixed(2)}x leverage`}
+            </p>
             <span className="flex items-center gap-1">
               <span className="text-muted-foreground text-sm">
                 {maxLeverage.toFixed(2)}x
                 <button
                   disabled={!!!maxLeverage}
-                  className="ml-1 text-sm cursor-pointer text-chartreuse border-b border-transparent transition hover:border-chartreuse"
+                  className="ml-1 text-xs cursor-pointer text-chartreuse border-b border-transparent transition hover:border-chartreuse"
                   onClick={() => setLeverageAmount(Number(Math.floor(maxLeverage).toFixed(2)))}
                 >
                   MAX
@@ -248,21 +250,21 @@ export const LoopInput = ({
         </div>
         <div className="flex items-center justify-between">
           <Popover>
-            <PopoverTrigger className="flex items-center gap-1 text-sm font-normal text-muted-foreground">
+            <PopoverTrigger className="flex items-center gap-1 text-xs font-normal text-muted-foreground">
               Net APY <IconChevronDown size={16} />
             </PopoverTrigger>
             <PopoverContent align="center" className="w-auto">
               {bothBanksSelected && (
-                <ul className="space-y-2.5">
+                <ul className="space-y-2.5 text-xs">
                   {[selectedBank, selectedRepayBank].map((bank, index) => {
                     const isDepositBank = index === 0;
                     return (
-                      <li key={bank.meta.tokenSymbol} className="flex items-center gap-8 justify-between text-sm">
+                      <li key={bank.meta.tokenSymbol} className="flex items-center gap-8 justify-between text-xs">
                         <div className="flex items-center gap-2">
                           <Image
                             src={getTokenImageURL(bank.meta.tokenSymbol)}
-                            width={20}
-                            height={20}
+                            width={16}
+                            height={16}
                             alt={bank.meta.tokenName}
                             className="rounded-full"
                           />
