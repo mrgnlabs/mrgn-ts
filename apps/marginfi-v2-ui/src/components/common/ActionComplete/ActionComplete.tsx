@@ -7,7 +7,7 @@ import Confetti from "react-confetti";
 import { useWindowSize } from "@uidotdev/usehooks";
 import { PublicKey } from "@solana/web3.js";
 import { ActionType, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { percentFormatterDyn, shortenAddress } from "@mrgnlabs/mrgn-common";
+import { percentFormatterDyn, shortenAddress, percentFormatter } from "@mrgnlabs/mrgn-common";
 
 import { cn, getTokenImageURL } from "~/utils";
 import { useUiStore, useLstStore, useMrgnlendStore } from "~/store";
@@ -29,6 +29,14 @@ export const ActionComplete = () => {
   const { rateAP } = useAssetItemData({
     bank: previousTxn?.bank!,
     isInLendingMode: previousTxn?.type === ActionType.Deposit,
+  });
+  const { rateAPY: loopDepositAP } = useAssetItemData({
+    bank: previousTxn?.loopingOptions?.depositBank!,
+    isInLendingMode: true,
+  });
+  const { rateAPY: loopBorrowAP } = useAssetItemData({
+    bank: previousTxn?.loopingOptions?.borrowBank!,
+    isInLendingMode: false,
   });
   const { width, height } = useWindowSize();
   const isMobile = useIsMobile();
@@ -95,7 +103,7 @@ export const ActionComplete = () => {
                 </p>
               </div>
             )}
-            {!previousTxn.lstQuote && (
+            {!previousTxn.lstQuote && !previousTxn.loopingOptions && (
               <>
                 <div className="flex flex-col items-center gap-2 border-b border-border pb-10">
                   <div className="flex items-center justify-center gap-2">
@@ -121,7 +129,13 @@ export const ActionComplete = () => {
                     </>
                   )}
                   <dt>APY</dt>
-                  <dd className={cn("text-right", actionTextColor)}>{rateAP}</dd>
+                  {previousTxn.type === ActionType.Loop ? (
+                    <dd className={cn("text-right", actionTextColor)}>
+                      {percentFormatter.format(loopDepositAP - loopBorrowAP)}
+                    </dd>
+                  ) : (
+                    <dd className={cn("text-right", actionTextColor)}>{rateAP}</dd>
+                  )}
                   <dt>Transaction</dt>
                   <dd className="text-right">
                     <Link
@@ -138,37 +152,108 @@ export const ActionComplete = () => {
               </>
             )}
 
-            {previousTxn.lstQuote && previousTxn.lstQuote.quoteResponse.outAmount && lstData && lstBank && (
+            {previousTxn.lstQuote &&
+              previousTxn.lstQuote.quoteResponse.outAmount &&
+              lstData &&
+              lstBank &&
+              !previousTxn.loopingOptions && (
+                <>
+                  <div className="flex flex-col items-center gap-2 border-b border-border pb-10">
+                    <div className="flex items-center justify-center gap-2">
+                      <h3 className="text-4xl font-medium">
+                        {Number(previousTxn.lstQuote.quoteResponse.outAmount.toString()) / 10 ** 9} LST
+                      </h3>
+                      <Image
+                        className="rounded-full w-9 h-9"
+                        src={getTokenImageURL(lstBank.meta.tokenSymbol)}
+                        alt={(lstBank.meta.tokenSymbol || "Token") + "  logo"}
+                        width={36}
+                        height={36}
+                      />
+                    </div>
+                  </div>
+                  <dl className="grid grid-cols-2 w-full text-muted-foreground gap-x-8 gap-y-2">
+                    <dt>Staked</dt>
+                    <dd className="text-right">
+                      {previousTxn.amount} {previousTxn.bank.meta.tokenSymbol}
+                    </dd>
+                    {lstBank && (
+                      <>
+                        <dt>Total {lstBank.meta.tokenSymbol}</dt>
+                        <dd className="text-right">
+                          {lstBank.userInfo.tokenAccount.balance} {lstBank.meta.tokenSymbol}
+                        </dd>
+                      </>
+                    )}
+                    <dt>APY</dt>
+                    <dd className="text-right text-success">{percentFormatterDyn.format(lstData.projectedApy)}</dd>
+                    <dt>Transaction</dt>
+                    <dd className="text-right">
+                      <Link
+                        href={`https://solscan.io/tx/${previousTxn?.txn}`}
+                        className="flex items-center justify-end gap-1.5 text-chartreuse text-sm"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {shortenAddress(previousTxn?.txn || "")}{" "}
+                        <IconExternalLink size={15} className="-translate-y-[1px]" />
+                      </Link>
+                    </dd>
+                  </dl>
+                </>
+              )}
+
+            {previousTxn.loopingOptions && (
               <>
-                <div className="flex flex-col items-center gap-2 border-b border-border pb-10">
-                  <div className="flex items-center justify-center gap-2">
-                    <h3 className="text-4xl font-medium">
-                      {Number(previousTxn.lstQuote.quoteResponse.outAmount.toString()) / 10 ** 9} LST
-                    </h3>
-                    <Image
-                      className="rounded-full w-9 h-9"
-                      src={getTokenImageURL(lstBank.meta.tokenSymbol)}
-                      alt={(lstBank.meta.tokenSymbol || "Token") + "  logo"}
-                      width={36}
-                      height={36}
-                    />
+                <div className="flex flex-col items-center justify-center text-center border-b border-border pb-16">
+                  <div className="space-y-2">
+                    <h4 className="text-base">Final deposit</h4>
+                    <div className="flex items-center justify-center gap-2">
+                      <h3 className="text-3xl font-medium">
+                        {previousTxn.loopingOptions.depositAmount.toFixed(4).replace(/\.?0+$/, "")}{" "}
+                        {previousTxn.loopingOptions.depositBank.meta.tokenSymbol}
+                      </h3>
+                      <Image
+                        className="rounded-full w-7 h-7"
+                        src={getTokenImageURL(previousTxn.loopingOptions.depositBank.meta.tokenSymbol)}
+                        alt={(previousTxn.loopingOptions.depositBank.meta.tokenSymbol || "Token") + "  logo"}
+                        width={28}
+                        height={28}
+                      />
+                    </div>
+                  </div>
+                  <div className="text-4xl my-4">➰</div>
+                  <div className="space-y-2">
+                    <h4 className="text-base">Final borrow</h4>
+                    <div className="flex items-center justify-center gap-2">
+                      <h3 className="text-3xl font-medium">
+                        {previousTxn.loopingOptions.borrowAmount.toFixed(4).replace(/\.?0+$/, "")}{" "}
+                        {previousTxn.loopingOptions.borrowBank.meta.tokenSymbol}
+                      </h3>
+                      <Image
+                        className="rounded-full w-7 h-7"
+                        src={getTokenImageURL(previousTxn.loopingOptions.borrowBank.meta.tokenSymbol)}
+                        alt={(previousTxn.loopingOptions.borrowBank.meta.tokenSymbol || "Token") + "  logo"}
+                        width={28}
+                        height={28}
+                      />
+                    </div>
                   </div>
                 </div>
                 <dl className="grid grid-cols-2 w-full text-muted-foreground gap-x-8 gap-y-2">
-                  <dt>Staked</dt>
-                  <dd className="text-right">
-                    {previousTxn.amount} {previousTxn.bank.meta.tokenSymbol}
+                  <dt>Net APY</dt>
+                  <dd className={cn("text-right")}>
+                    {percentFormatter.format(Math.abs(loopDepositAP - loopBorrowAP))}
                   </dd>
-                  {lstBank && (
-                    <>
-                      <dt>Total {lstBank.meta.tokenSymbol}</dt>
-                      <dd className="text-right">
-                        {lstBank.userInfo.tokenAccount.balance} {lstBank.meta.tokenSymbol}
-                      </dd>
-                    </>
-                  )}
-                  <dt>APY</dt>
-                  <dd className="text-right text-success">{percentFormatterDyn.format(lstData.projectedApy)}</dd>
+                  <dt className="text-sm opacity-75">{previousTxn.loopingOptions.depositBank.meta.tokenSymbol}</dt>
+                  <dd className="text-sm opacity-75 text-right text-success">
+                    {percentFormatter.format(loopDepositAP)}
+                  </dd>
+                  <dt className="text-sm opacity-75">{previousTxn.loopingOptions.borrowBank.meta.tokenSymbol}</dt>
+                  <dd className="text-sm opacity-75 text-right text-warning">
+                    {percentFormatter.format(loopBorrowAP)}
+                  </dd>
+
                   <dt>Transaction</dt>
                   <dd className="text-right">
                     <Link

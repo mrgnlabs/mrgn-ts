@@ -294,4 +294,10 @@ export type PreviousTxn = {
   amount: number;
   txn: string;
   lstQuote?: QuoteResponseMeta;
+  loopingOptions?: {
+    depositAmount: number;
+    depositBank: ActiveBankInfo;
+    borrowAmount: number;
+    borrowBank: ActiveBankInfo;
+  };
 };

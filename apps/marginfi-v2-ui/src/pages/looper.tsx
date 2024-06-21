@@ -1,15 +1,17 @@
-import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
+import React from "react";
 
-import { useMrgnlendStore } from "~/store";
+import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
+import { useMrgnlendStore, useUiStore } from "~/store";
 
 import { ActionBox } from "~/components/common/ActionBox";
+import { ActionComplete } from "~/components/common/ActionComplete";
 import { PageHeading } from "~/components/common/PageHeading";
 
 import { Loader } from "~/components/ui/loader";
-import { useUnmount } from "~/hooks/useUnmount";
 
 export default function LooperPage() {
-  const [initialized] = useMrgnlendStore((state) => [state.initialized]);
+  const [initialized] = useMrgnlendStore((state) => [state.initialized, state.extendedBankInfos]);
+  const [previousTxn] = useUiStore((state) => [state.previousTxn]);
 
   return (
     <>
@@ -25,6 +27,8 @@ export default function LooperPage() {
           <ActionBox requestedAction={ActionType.Loop} />
         </div>
       )}
+
+      {initialized && previousTxn && <ActionComplete />}
     </>
   );
 }
