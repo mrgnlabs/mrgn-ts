@@ -47,18 +47,23 @@ type BlackListRoutesMap = {
 };
 
 export const ActionBox = ({ requestedAction, requestedBank, isDialog, handleCloseDialog }: ActionBoxProps) => {
-  const [setIsRefreshingStore, fetchMrgnlendState, extendedBankInfos] = useMrgnlendStore((state) => [
-    state.setIsRefreshingStore,
-    state.fetchMrgnlendState,
-    state.extendedBankInfos,
-  ]);
-
-  const [isInitialized, mfiClient, nativeSolBalance] = useTradeStore((state) => [
+  const [
+    isInitialized,
+    setIsRefreshingStore,
+    extendedBankInfos,
+    mfiClient,
+    selectedAccount,
+    nativeSolBalance,
+    fetchTradeState,
+  ] = useTradeStore((state) => [
     state.initialized,
+    state.setIsRefreshingStore,
+    state.banksIncludingUSDC,
     state.marginfiClient,
+    state.selectedAccount,
     state.nativeSolBalance,
+    state.fetchTradeState,
   ]);
-  const selectedAccount = null;
 
   const [
     slippageBps,
@@ -312,7 +317,10 @@ export const ActionBox = ({ requestedAction, requestedBank, isDialog, handleClos
       // -------- Refresh state
       try {
         setIsRefreshingStore(true);
-        await fetchMrgnlendState();
+        await fetchTradeState({
+          connection,
+          wallet,
+        });
       } catch (error: any) {
         console.log("Error while reloading state");
         console.log(error);
@@ -326,7 +334,9 @@ export const ActionBox = ({ requestedAction, requestedBank, isDialog, handleClos
       setIsActionComplete,
       setPreviousTxn,
       setIsRefreshingStore,
-      fetchMrgnlendState,
+      fetchTradeState,
+      connection,
+      wallet,
     ]
   );
 
@@ -368,7 +378,10 @@ export const ActionBox = ({ requestedAction, requestedBank, isDialog, handleClos
 
     try {
       setIsRefreshingStore(true);
-      await fetchMrgnlendState();
+      await fetchTradeState({
+        connection,
+        wallet,
+      });
     } catch (error: any) {
       console.log("Error while reloading state");
       console.log(error);
@@ -382,7 +395,9 @@ export const ActionBox = ({ requestedAction, requestedBank, isDialog, handleClos
     handleCloseDialog,
     setPreviousTxn,
     setIsRefreshingStore,
-    fetchMrgnlendState,
+    fetchTradeState,
+    connection,
+    wallet,
   ]);
 
   const handleAction = async () => {
@@ -473,7 +488,10 @@ export const ActionBox = ({ requestedAction, requestedBank, isDialog, handleClos
     // -------- Refresh state
     try {
       setIsRefreshingStore(true);
-      await fetchMrgnlendState();
+      await fetchTradeState({
+        connection,
+        wallet,
+      });
     } catch (error: any) {
       console.log("Error while reloading state");
       console.log(error);
@@ -496,7 +514,7 @@ export const ActionBox = ({ requestedAction, requestedBank, isDialog, handleClos
     setIsActionComplete,
     setPreviousTxn,
     setIsRefreshingStore,
-    fetchMrgnlendState,
+    fetchTradeState,
   ]);
 
   const handleLendingAction = React.useCallback(async () => {
