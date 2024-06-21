@@ -107,6 +107,10 @@ export function checkActionAvailable({
         const borrowChecks = canBeBorrowed(selectedBank, extendedBankInfos, marginfiAccount);
         if (borrowChecks.length) checks.push(...borrowChecks);
         break;
+      case ActionType.Loop:
+        const loopChecks = canBeLooped(selectedBank, selectedRepayBank, repayCollatQuote);
+        if (loopChecks.length) checks.push(...loopChecks);
+        break;
       case ActionType.Repay:
         let repayChecks;
         if (repayMode === RepayType.RepayRaw) {
@@ -314,6 +318,55 @@ function canBeRepaidCollat(
       description: `You have ${targetBankInfo.meta.tokenSymbol} in your wallet and can repay without using collateral.`,
       isEnabled: true,
       actionMethod: "INFO",
+    });
+  }
+
+  return checks;
+}
+
+function canBeLooped(
+  targetBankInfo: ExtendedBankInfo,
+  repayBankInfo: ExtendedBankInfo | null,
+  swapQuote: QuoteResponse | null
+): ActionMethod[] {
+  let checks: ActionMethod[] = [];
+  const isPaused = targetBankInfo.info.rawBank.config.operationalState === OperationalState.Paused;
+
+  if (isPaused) {
+    checks.push({
+      description: `The ${targetBankInfo.info.rawBank.tokenSymbol} bank is paused at this time.`,
+      isEnabled: false,
+    });
+  }
+
+  if (!swapQuote) {
+    checks.push({
+      isEnabled: false,
+    });
+  }
+
+  if (swapQuote?.priceImpactPct && Number(swapQuote.priceImpactPct) > 0.01) {
+    //invert
+    if (swapQuote?.priceImpactPct && Number(swapQuote.priceImpactPct) > 0.05) {
+      checks.push({
+        description: `Price impact is ${percentFormatter.format(Number(swapQuote.priceImpactPct))}.`,
+        actionMethod: "ERROR",
+        isEnabled: true,
+      });
+    } else {
+      checks.push({
+        description: `Price impact is ${percentFormatter.format(Number(swapQuote.priceImpactPct))}.`,
+        isEnabled: true,
+      });
+    }
+  }
+
+  if ((repayBankInfo && isBankOracleStale(repayBankInfo)) || (targetBankInfo && isBankOracleStale(targetBankInfo))) {
+    checks.push({
+      description: "Looping may fail due to network congestion preventing oracles from updating price data.",
+      isEnabled: true,
+      link: "https://forum.marginfi.community/t/work-were-doing-to-improve-oracle-robustness-during-chain-congestion/283",
+      linkText: "Learn more about marginfi's decentralized oracles.",
     });
   }
 

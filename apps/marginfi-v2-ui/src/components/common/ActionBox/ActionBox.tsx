@@ -434,7 +434,16 @@ export const ActionBox = ({
       return;
     }
 
-    if (!(actionQuote && loopingAmounts.borrowAmount && selectedRepayBank && connection && wallet)) {
+    if (
+      !(
+        actionQuote &&
+        loopingAmounts?.borrowAmount &&
+        loopingAmounts?.actualDepositAmount &&
+        selectedRepayBank &&
+        connection &&
+        wallet
+      )
+    ) {
       return;
     }
     setIsLoading(true);
@@ -450,7 +459,7 @@ export const ActionBox = ({
       loopingOptions: {
         loopingQuote: actionQuote,
         loopingTxn: actionTxn,
-        borrowAmount: loopingAmounts.borrowAmount,
+        borrowAmount: loopingAmounts?.borrowAmount,
         loopingBank: selectedRepayBank,
         connection,
       },
@@ -473,9 +482,9 @@ export const ActionBox = ({
         lstQuote: lstQuoteMeta || undefined,
         txn: txnSig!,
         loopingOptions: {
-          depositAmount: loopingAmounts.actualDepositAmount,
+          depositAmount: loopingAmounts?.actualDepositAmount,
           depositBank: selectedBank as ActiveBankInfo,
-          borrowAmount: loopingAmounts.borrowAmount.toNumber(),
+          borrowAmount: loopingAmounts?.borrowAmount.toNumber(),
           borrowBank: selectedRepayBank as ActiveBankInfo,
         },
       });
@@ -485,19 +494,20 @@ export const ActionBox = ({
     selectedBank,
     amount,
     repayAmount,
-    mfiClient,
-    nativeSolBalance,
-    selectedAccount,
-    walletContextState,
     actionQuote,
-    loopingAmounts.borrowAmount,
+    loopingAmounts?.borrowAmount,
+    loopingAmounts?.actualDepositAmount,
     selectedRepayBank,
     connection,
     wallet,
     setIsLoading,
+    mfiClient,
+    nativeSolBalance,
+    selectedAccount,
+    walletContextState,
+    actionTxn,
     handleCloseDialog,
     setAmountRaw,
-    actionTxn,
     setIsActionComplete,
     setPreviousTxn,
     lstQuoteMeta,
@@ -778,7 +788,7 @@ export const ActionBox = ({
                         loopingQuote: actionQuote,
                         loopingBank: selectedRepayBank,
                         loopingTxn: actionTxn,
-                        borrowAmount: loopingAmounts.borrowAmount,
+                        borrowAmount: loopingAmounts?.borrowAmount,
                         connection,
                       }
                     : undefined

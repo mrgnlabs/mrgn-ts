@@ -214,8 +214,6 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
   },
 
   setAmountRaw(amountRaw, maxAmount) {
-    const repayMode = get().repayMode;
-
     if (!maxAmount) {
       set({ amountRaw });
     } else {
@@ -236,13 +234,7 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
     const isAmountChanged = amountRaw !== prevAmountRaw;
 
     if (isAmountChanged) {
-      set({ amountRaw });
-      const strippedAmount = amountRaw.replace(/,/g, "");
-      const amount = isNaN(Number.parseFloat(strippedAmount)) ? 0 : Number.parseFloat(strippedAmount);
-
-      if (amount !== 0) {
-        get().setLooping({ marginfiAccount, amount, connection });
-      }
+      set({ amountRaw, actionTxn: null, actionQuote: null, loopingAmounts: undefined });
     }
   },
 
