@@ -163,7 +163,7 @@ export const LoopInput = ({
               type="text"
               ref={amountInputRef}
               inputMode="decimal"
-              value={inputAmount}
+              value={Number(inputAmount) > 0 ? inputAmount : undefined}
               onChange={(e) => formatAmountCb(e.target.value, selectedBank)}
               onFocus={() => handleInputFocus(true)}
               onBlur={() => handleInputFocus(false)}
