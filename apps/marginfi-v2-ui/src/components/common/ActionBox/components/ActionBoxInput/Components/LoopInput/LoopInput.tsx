@@ -240,7 +240,7 @@ export const LoopInput = ({
                 <button
                   disabled={!!!maxLeverage}
                   className="ml-1 text-xs cursor-pointer text-chartreuse border-b border-transparent transition hover:border-chartreuse"
-                  onClick={() => setLeverageAmount(Number(Math.floor(maxLeverage).toFixed(2)))}
+                  onClick={() => setLeverageAmount(Number(maxLeverage))}
                 >
                   MAX
                 </button>
