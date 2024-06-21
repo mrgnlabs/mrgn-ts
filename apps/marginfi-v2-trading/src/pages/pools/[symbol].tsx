@@ -117,10 +117,8 @@ export default function TradeSymbolPage() {
             <div className="flex justify-between flex-wrap mt-5 mb-10 gap-y-4">
               <Stat label="Current Price" value={usdFormatter.format(activeGroup.token.info.state.price)} />
               <Stat
-                label="Total Deposits"
-                value={`${numeralFormatter(activeGroup.token.info.state.totalDeposits)} ${
-                  activeGroup.token.meta.tokenSymbol
-                }`}
+                label={`Total Deposits (${activeGroup.token.meta.tokenSymbol})`}
+                value={usdFormatter.format(activeGroup.token.info.state.totalDeposits)}
               />
               <Stat
                 label="Total Deposits (USD)"
