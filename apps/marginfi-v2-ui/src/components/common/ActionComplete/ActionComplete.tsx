@@ -14,7 +14,7 @@ import { useUiStore, useLstStore, useMrgnlendStore } from "~/store";
 import { useAssetItemData } from "~/hooks/useAssetItemData";
 import { useIsMobile } from "~/hooks/useIsMobile";
 
-import { Dialog, DialogContent } from "~/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "~/components/ui/dialog";
 import { IconConfetti, IconExternalLink, IconArrowDown, IconArrowUp } from "~/components/ui/icons";
 import { Button } from "~/components/ui/button";
 
@@ -75,16 +75,18 @@ export const ActionComplete = () => {
       <Dialog open={isActionComplete} onOpenChange={(open) => setIsActionComplete(open)}>
         <DialogContent className="z-[70]">
           <div className={cn("space-y-12 w-full", isFirstDeposit && "space-y-8")}>
-            <header className="space-y-4 text-center flex flex-col items-center justify-center">
-              <IconConfetti size={48} />
-              <h2 className="font-medium text-xl">
-                {previousTxn?.type === ActionType.Deposit && "Deposit Completed!"}
-                {previousTxn?.type === ActionType.MintLST && "LST Minted!"}
-                {previousTxn?.type !== ActionType.Deposit &&
-                  previousTxn?.type !== ActionType.MintLST &&
-                  previousTxn?.type + " Completed!"}
-              </h2>
-            </header>
+            <DialogHeader>
+              <DialogTitle className="space-y-4 text-center flex flex-col items-center justify-center">
+                <IconConfetti size={48} />
+                <h2 className="font-medium text-xl">
+                  {previousTxn?.type === ActionType.Deposit && "Deposit Completed!"}
+                  {previousTxn?.type === ActionType.MintLST && "LST Minted!"}
+                  {previousTxn?.type !== ActionType.Deposit &&
+                    previousTxn?.type !== ActionType.MintLST &&
+                    previousTxn?.type + " Completed!"}
+                </h2>{" "}
+              </DialogTitle>
+            </DialogHeader>
 
             {isFirstDeposit && (
               <div className="text-center text-muted-foreground">
