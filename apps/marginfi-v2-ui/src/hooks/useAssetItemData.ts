@@ -63,5 +63,5 @@ export function useAssetItemData({ bank, isInLendingMode }: { bank: ExtendedBank
     return (isInLendingMode ? bank.info.state.totalDeposits : bank.info.state.totalBorrows) >= bankCap * 0.9;
   }, [bankCap, isInLendingMode, bank?.info?.state]);
 
-  return { rateAP, assetWeight, bankCap, isBankFilled, isBankHigh };
+  return { rateAP, rateAPY, assetWeight, bankCap, isBankFilled, isBankHigh };
 }

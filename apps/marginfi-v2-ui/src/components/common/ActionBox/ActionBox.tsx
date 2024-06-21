@@ -472,6 +472,12 @@ export const ActionBox = ({
         amount: amount,
         lstQuote: lstQuoteMeta || undefined,
         txn: txnSig!,
+        loopingOptions: {
+          depositAmount: loopingAmounts.actualDepositAmount,
+          depositBank: selectedBank as ActiveBankInfo,
+          borrowAmount: loopingAmounts.borrowAmount.toNumber(),
+          borrowBank: selectedRepayBank as ActiveBankInfo,
+        },
       });
     }
   }, [
