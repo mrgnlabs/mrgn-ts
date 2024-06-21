@@ -2,7 +2,6 @@ import {
   PhantomWalletAdapter,
   SolflareWalletAdapter,
   TrustWalletAdapter,
-  WalletConnectWalletAdapter,
   CoinbaseWalletAdapter,
 } from "@solana/wallet-adapter-wallets";
 import {
@@ -12,6 +11,7 @@ import {
   SolanaMobileWalletAdapter,
 } from "@solana-mobile/wallet-adapter-mobile";
 import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
+import { WalletConnectWalletAdapter } from '@solana/wallet-adapter-walletconnect';
 import { TipLinkWalletAdapter } from "@tiplink/wallet-adapter";
 
 export const WALLET_ADAPTERS = [
