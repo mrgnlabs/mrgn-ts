@@ -70,28 +70,25 @@ export const LoopInput = ({
     state.amountRaw,
     state.isLoading,
   ]);
-  const [inputAmount, setInputAmount] = React.useState<string>("");
+
+  // const [inputAmount, setInputAmount] = React.useState<string>("");
   const [leverageAmount, setLeverageAmount] = React.useState<number>(0);
-  const debouncedAmount = useDebounce(inputAmount, 1000);
+  const debouncedAmount = useDebounce(amountRaw, 1000);
 
   const debouncedLeverage = useDebounce(leverageAmount, 1000);
 
   const [netApyRaw, setNetApyRaw] = React.useState(0);
 
-  React.useEffect(() => handleInputChange(debouncedAmount), [debouncedAmount, handleInputChange]);
   React.useEffect(
     () => setLeverage(debouncedLeverage, selectedAccount, connection),
     [debouncedLeverage, selectedAccount, connection, setLeverage]
   );
 
   React.useEffect(() => setLeverageAmount(leverage), [leverage]);
-  React.useEffect(() => {
-    setInputAmount(amountRaw);
-  }, [amountRaw]);
 
   const refreshTxn = React.useCallback(() => {
-    if (selectedAccount) setLooping({ marginfiAccount: selectedAccount, connection: connection });
-  }, [connection, selectedAccount, setLooping]);
+    if (selectedAccount && debouncedAmount) setLooping({ marginfiAccount: selectedAccount, connection: connection });
+  }, [connection, debouncedAmount, selectedAccount, setLooping]);
 
   React.useEffect(() => {
     const blockhash = actionTxn?.message.recentBlockhash;
@@ -125,9 +122,9 @@ export const LoopInput = ({
 
   const formatAmountCb = React.useCallback(
     (newAmount: string, bank: ExtendedBankInfo | null) => {
-      setInputAmount(formatAmount(newAmount, maxAmount, bank, numberFormater));
+      handleInputChange(formatAmount(newAmount, maxAmount, bank, numberFormater));
     },
-    [maxAmount, numberFormater]
+    [handleInputChange, maxAmount, numberFormater]
   );
 
   const bothBanksSelected = selectedBank && selectedRepayBank;
@@ -143,7 +140,7 @@ export const LoopInput = ({
                 setRepayBank(tokenBank);
               }}
               setTokenBank={(tokenBank) => {
-                setInputAmount("0");
+                handleInputChange("0");
                 if (selectedRepayBank) {
                   setRepayBank(null);
                   setLeverageAmount(0);
@@ -163,7 +160,7 @@ export const LoopInput = ({
               type="text"
               ref={amountInputRef}
               inputMode="decimal"
-              value={Number(inputAmount) > 0 ? inputAmount : undefined}
+              value={amountRaw}
               onChange={(e) => formatAmountCb(e.target.value, selectedBank)}
               onFocus={() => handleInputFocus(true)}
               onBlur={() => handleInputFocus(false)}
@@ -205,7 +202,7 @@ export const LoopInput = ({
                 type="text"
                 inputMode="decimal"
                 disabled={true}
-                value={loopingAmounts.borrowAmount.decimalPlaces(4, BigNumber.ROUND_DOWN).toString()}
+                value={loopingAmounts?.borrowAmount.decimalPlaces(4, BigNumber.ROUND_DOWN).toString()}
                 placeholder="0"
                 className="bg-transparent min-w-[130px] text-right outline-none focus-visible:outline-none focus-visible:ring-0 border-none text-base font-medium"
               />
