@@ -125,8 +125,8 @@ export default function TradeSymbolPage() {
               <Stat
                 label="Total Deposits (USD)"
                 value={usdFormatter.format(
-                  activeGroup.token.info.state.totalDeposits *
-                    new BigNumber(activeGroup.token.info.oraclePrice.priceRealtime.price).toNumber()
+                  activeGroup.usdc.info.state.totalDeposits *
+                    new BigNumber(activeGroup.usdc.info.oraclePrice.priceRealtime.price).toNumber()
                 )}
               />
               <Stat
