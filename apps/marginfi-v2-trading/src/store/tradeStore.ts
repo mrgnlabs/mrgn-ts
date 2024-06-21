@@ -9,6 +9,10 @@ import {
   makeExtendedBankMetadata,
   fetchTokenAccounts,
   TokenAccountMap,
+  LendingPosition,
+  BankState,
+  makeBankInfo,
+  makeLendingPosition,
 } from "@mrgnlabs/marginfi-v2-ui-state";
 import {
   MarginfiClient,
@@ -17,6 +21,7 @@ import {
   Bank,
   OraclePrice,
   MarginfiAccountWrapper,
+  Balance,
 } from "@mrgnlabs/marginfi-client-v2";
 import {
   Wallet,
@@ -24,27 +29,39 @@ import {
   loadTokenMetadatas,
   loadBankMetadatas,
   getValueInsensitive,
+  nativeToUi,
+  uiToNative,
 } from "@mrgnlabs/mrgn-common";
+import BigNumber from "bignumber.js";
 
 type TradeGroupsCache = {
   [group: string]: [string, string];
 };
 
 type TradeStoreState = {
+  // keep track of store state
   initialized: boolean;
   isRefreshingStore: boolean;
 
+  // cache groups json store
   groupsCache: TradeGroupsCache;
+
+  // user token account map
+  tokenAccountMap: TokenAccountMap | null;
 
   // array of marginfi groups
   groups: PublicKey[];
 
-  // array of extended bank objects (excluding USDC)
+  // array of extended token bank objects
   banks: ExtendedBankInfo[];
-  banksIncludingUSDC: ExtendedBankInfo[];
+
+  // array of collateral usdc banks
   collateralBanks: {
     [token: string]: ExtendedBankInfo;
   };
+
+  // array of all banks including collateral usdc banks
+  banksIncludingUSDC: ExtendedBankInfo[];
 
   // marginfi client, initialized when viewing an active group
   marginfiClient: MarginfiClient | null;
@@ -55,13 +72,15 @@ type TradeStoreState = {
     usdc: ExtendedBankInfo;
   } | null;
 
+  // array of marginfi accounts
   marginfiAccounts: MarginfiAccountWrapper[];
+  // currently selected marginfi account
   selectedAccount: MarginfiAccountWrapper | null;
 
+  // user native sol balance
   nativeSolBalance: number;
 
-  setIsRefreshingStore: (isRefreshing: boolean) => void;
-
+  /* Actions */
   // fetch groups / banks
   fetchTradeState: ({ connection, wallet }: { connection: Connection; wallet: Wallet }) => void;
 
@@ -76,6 +95,7 @@ type TradeStoreState = {
     wallet: Wallet;
   }) => void;
 
+  setIsRefreshingStore: (isRefreshing: boolean) => void;
   resetActiveGroup: () => void;
 };
 
@@ -100,6 +120,7 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
   marginfiAccounts: [],
   selectedAccount: null,
   nativeSolBalance: 0,
+  tokenAccountMap: null,
 
   setIsRefreshingStore: (isRefreshing) => {
     set((state) => {
@@ -128,6 +149,7 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
           banksIncludingUSDC: result.allBanks,
           collateralBanks: result.collateralBanks,
           nativeSolBalance: result.nativeSolBalance,
+          tokenAccountMap: result.tokenAccountMap,
         };
       });
     } catch (error) {
@@ -155,6 +177,7 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
             banksIncludingUSDC: result.allBanks,
             collateralBanks: result.collateralBanks,
             nativeSolBalance: result.nativeSolBalance,
+            tokenAccountMap: result.tokenAccountMap,
           };
         });
 
@@ -178,17 +201,69 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
           preloadedBankAddresses: bankKeys,
         }
       );
-      const groupsBanksKeys = get().groupsCache[group.toBase58()];
-      const groupsBanks = get().banksIncludingUSDC.filter((bank) =>
-        groupsBanksKeys.includes(new PublicKey(bank.address).toBase58())
-      );
 
       let marginfiAccounts: MarginfiAccountWrapper[] = [];
       let selectedAccount: MarginfiAccountWrapper | null = null;
+      let updatedTokenBank: ExtendedBankInfo;
+      let updatedCollateralBank: ExtendedBankInfo;
 
       if (wallet.publicKey) {
         marginfiAccounts = await marginfiClient.getMarginfiAccountsForAuthority(wallet.publicKey);
         selectedAccount = marginfiAccounts[0];
+
+        // fetch user positions and add to banks
+        if (selectedAccount) {
+          // token bank
+          const positionRaw = selectedAccount.activeBalances.find((balance) => balance.bankPk.equals(bank.address));
+
+          if (!positionRaw) {
+            updatedTokenBank = {
+              ...bank,
+              isActive: false,
+            };
+          } else {
+            const position = makeLendingPosition(
+              positionRaw,
+              bank.info.rawBank,
+              makeBankInfo(bank.info.rawBank, bank.info.oraclePrice),
+              bank.info.oraclePrice,
+              selectedAccount
+            );
+
+            updatedTokenBank = {
+              ...bank,
+              position,
+              isActive: true,
+            };
+          }
+
+          // collateral bank
+          const collateralBank = get().collateralBanks[bank.info.rawBank.address.toBase58()];
+          const collateralPositionRaw = selectedAccount.activeBalances.find((balance) =>
+            balance.bankPk.equals(collateralBank.info.rawBank.address)
+          );
+
+          if (!collateralPositionRaw) {
+            updatedCollateralBank = {
+              ...collateralBank,
+              isActive: false,
+            };
+          } else {
+            const collateralPosition = makeLendingPosition(
+              collateralPositionRaw,
+              collateralBank.info.rawBank,
+              makeBankInfo(collateralBank.info.rawBank, collateralBank.info.oraclePrice),
+              collateralBank.info.oraclePrice,
+              selectedAccount
+            );
+
+            updatedCollateralBank = {
+              ...collateralBank,
+              position: collateralPosition,
+              isActive: true,
+            };
+          }
+        }
       }
 
       set((state) => {
@@ -198,8 +273,8 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
           marginfiAccounts,
           selectedAccount,
           activeGroup: {
-            token: groupsBanks[1],
-            usdc: groupsBanks[0],
+            token: updatedTokenBank,
+            usdc: updatedCollateralBank,
           },
         };
       });
@@ -347,5 +422,6 @@ const fetchBanksAndTradeGroups = async (wallet: Wallet, connection: Connection) 
     tradeGroups,
     groups,
     nativeSolBalance,
+    tokenAccountMap,
   };
 };
