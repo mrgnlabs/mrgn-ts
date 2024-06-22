@@ -20,7 +20,10 @@ export function getWalletConnectionMethod(wallet: Wallet, osInfo: OsInfo): Walle
   if (isWalletInstalled && isPhone) return "CONNECT";
   if (isPhone) return "DEEPLINK";
   if (isWalletInstalled) return "CONNECT";
-  if (wallet.adapter.name === "WalletConnect") return "CONNECT";
-
+  /*
+    BUG: 
+    WalletConnect "INSTALL" link is broken. 
+    the WalletConnect options works when you switch it to "CONNECT"
+  */
   return "INSTALL";
 }

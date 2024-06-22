@@ -158,7 +158,7 @@ export const walletInstallMap: WalletLinkMap = {
   Phantom: "https://phantom.app/download",
   Backpack: "https://backpack.app/download",
   Solflare: "https://gamma.solflare.com/download#extension",
-  WalletConnect: "https://cloud.walletconnect.com/sign-in",
+  WalletConnect: "https://cloud.walletconnect.com/sign-in", // BUG: test link
 };
 
 const backpackAdapter: Wallet = {
