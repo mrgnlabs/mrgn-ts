@@ -55,7 +55,6 @@
     "@solana/wallet-adapter-material-ui": "^0.16.33",
     "@solana/wallet-adapter-react": "^0.15.35",
     "@solana/wallet-adapter-react-ui": "^0.9.34",
-    "@solana/wallet-adapter-walletconnect": "^0.1.16",
     "@solana/wallet-adapter-wallets": "^0.19.10",
     "@solana/web3.js": "^1.91.3",
     "@tabler/icons-react": "^2.40.0",

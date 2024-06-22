@@ -14,7 +14,8 @@ import { Analytics } from "@vercel/analytics/react";
 
 import config from "~/config";
 import { MrgnlendProvider, LipClientProvider } from "~/context";
-import { WALLET_ADAPTERS } from "~/config/wallets";
+// import { WALLET_ADAPTERS } from "~/config/wallets";
+import { WalletProviderComponent } from "~/config/wallets";
 import { useMrgnlendStore, useUiStore } from "~/store";
 import { useLstStore } from "~/store";
 import { Desktop, Mobile } from "~/mediaQueries";
@@ -101,7 +102,7 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
       {ready && (
         <ConnectionProvider endpoint={config.rpcEndpoint}>
           <TipLinkWalletAutoConnect isReady={isReady} query={query}>
-            <WalletProvider wallets={WALLET_ADAPTERS} autoConnect={true}>
+            <WalletProviderComponent>
               <MrgnWalletProvider>
                 <MrgnlendProvider>
                   <LipClientProvider>
@@ -134,7 +135,7 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
                   </LipClientProvider>
                 </MrgnlendProvider>
               </MrgnWalletProvider>
-            </WalletProvider>
+            </WalletProviderComponent>
           </TipLinkWalletAutoConnect>
         </ConnectionProvider>
       )}
