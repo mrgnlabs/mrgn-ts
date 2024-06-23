@@ -45,18 +45,17 @@ export const ActionBoxDialog = ({
   return (
     <Dialog open={isDialogOpen} modal={!isMobile} onOpenChange={(open) => setIsDialogOpen(open)}>
       <Mobile>
-        {isDialogOpen && <div className="fixed inset-0 h-screen z-40 md:z-50 bg-background md:bg-background/80" />}
         <DialogTrigger asChild>{children}</DialogTrigger>
         <DialogContent
           hideClose={true}
-          className="mt-20 justify-start flex md:max-w-[520px] md:py-3 md:px-5 p-0 sm:rounded-2xl bg-transparent border-none z-40 md:z-50"
+          className="mt-20 justify-start flex md:max-w-[520px] md:py-3 md:px-5 p-0 sm:rounded-2xl border-none z-50"
         >
           <div>
             <div
               className="flex gap-2 items-center capitalize pl-2 cursor-pointer hover:underline"
               onClick={() => setIsDialogOpen(false)}
             >
-              <IconArrowLeft /> {`${titleText}`}
+              <IconArrowLeft /> {titleText}
             </div>
             <div className="p-4 h-screen mb-8">
               <ActionBox
