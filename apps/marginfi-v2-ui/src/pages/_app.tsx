@@ -119,18 +119,23 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
                       </WalletModalProvider>
                     </Desktop>
 
-                    <Mobile>
+                    {/* <Mobile>
                       <MobileNavbar />
                       <div
-                        className={cn("w-full flex flex-col justify-center items-center", isOraclesStale && "pt-16")}
+                        className={cn("w-full flex flex-col justify-center items-center border-2 border-red-500", isOraclesStale && "pt-16")}
                       >
                         <Component {...pageProps} />
                       </div>
-                    </Mobile>
-                    <Analytics />
-                    <Tutorial />
+                    </Mobile> */}
+
+                    {/* <Analytics /> */}
+
+                    {/* <Tutorial /> */}
+
                     <AuthDialog />
+
                     <ToastContainer position="bottom-left" theme="dark" />
+
                   </LipClientProvider>
                 </MrgnlendProvider>
               </MrgnWalletProvider>
