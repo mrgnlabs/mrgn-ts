@@ -124,7 +124,7 @@ export const MintCardWrapper: React.FC<MintCardWrapperProps> = ({ mintCard, ...p
           >
             <div className="flex items-center gap-2">
               <Button variant="secondary" size="lg" className="mt-4">
-                Mint
+                Stake
               </Button>
             </div>
           </ActionBoxDialog>
