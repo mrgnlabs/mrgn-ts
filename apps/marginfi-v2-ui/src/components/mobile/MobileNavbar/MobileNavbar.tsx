@@ -68,7 +68,7 @@ const MobileNavbar = () => {
 
   return (
     <footer>
-      <nav className="fixed w-full bottom-0 z-50 bg-[#0F1111] border-2 border-blue-500">
+      <nav className="fixed w-full bottom-0 z-50 bg-[#0F1111]">
         <div className="h-full w-full text-xs font-normal text-[#868E95] z-50 flex justify-around relative lg:gap-8">
           {mobileLinks.map((linkInfo, index) => {
             const isActive = activeLink === `link${index}`;
