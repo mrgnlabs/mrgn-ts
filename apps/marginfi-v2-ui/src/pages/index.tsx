@@ -96,6 +96,7 @@ export default function HomePage() {
           </>
         )}
       </Mobile>
+      
       {isStoreInitialized && previousTxn && <ActionComplete />}
     </>
   );
