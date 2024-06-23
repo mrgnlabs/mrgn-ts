@@ -87,7 +87,7 @@ export const MintCardWrapper: React.FC<MintCardWrapperProps> = ({ mintCard, ...p
                   setRequestedAction(ActionType.MintLST);
                 }}
               >
-                Mint {mintCard.title}
+                Stake {mintCard.title}
               </Button>
               <Button
                 variant="outline"

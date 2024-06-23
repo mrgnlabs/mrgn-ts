@@ -87,12 +87,12 @@ export const Navbar: FC = () => {
               </Link>
 
               <Link
-                href={"/mint"}
+                href={"/stake"}
                 className={
-                  router.pathname === "/mint" ? "text-primary hover-underline-static" : "hover-underline-animation"
+                  router.pathname === "/stake" ? "text-primary hover-underline-static" : "hover-underline-animation"
                 }
               >
-                mint
+                stake
               </Link>
 
               <Link
