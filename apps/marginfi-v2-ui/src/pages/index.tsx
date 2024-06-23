@@ -43,7 +43,7 @@ export default function HomePage() {
     const hSOL = extendedBankInfos.find((bank) => bank.meta.tokenSymbol === "hSOL");
 
     return [
-      { bank: mother, text: "now available in global pool" },
+      { bank: mother },
       { bank: hSOL },
       {
         image: <IconBook size={22} />,
