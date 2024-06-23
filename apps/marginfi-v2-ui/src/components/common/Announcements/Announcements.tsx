@@ -99,7 +99,7 @@ export const Announcements = ({ items }: AnnouncementsProps) => {
                     : "cursor-default"
                 )}
                 onClick={() => {
-                  if (!isBankItem(item) && item.onClick && (item.requireAuth || connected)) {
+                  if (!isBankItem(item) && item.onClick && (!item.requireAuth || connected)) {
                     item.onClick();
                   }
                 }}
