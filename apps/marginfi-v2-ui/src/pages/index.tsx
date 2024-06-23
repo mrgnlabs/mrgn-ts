@@ -48,7 +48,7 @@ export default function HomePage() {
       {
         image: <IconBook size={22} />,
         text: "New documentation now available!",
-        onClick: () => router.push("https://docs.marginfi.com/"),
+        onClick: () => window.open("https://docs.marginfi.com/"),
       },
       {
         image: <IconBackpackWallet size={22} />,
