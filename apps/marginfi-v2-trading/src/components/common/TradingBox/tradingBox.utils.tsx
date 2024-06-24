@@ -1,7 +1,13 @@
 import { QuoteGetRequest, QuoteResponse, createJupiterApiClient } from "@jup-ag/api";
-import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
+import {
+  Bank,
+  MarginRequirementType,
+  MarginfiAccountWrapper,
+  MarginfiClient,
+  SimulationResult,
+} from "@mrgnlabs/marginfi-client-v2";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { LUT_PROGRAM_AUTHORITY_INDEX, nativeToUi, uiToNative } from "@mrgnlabs/mrgn-common";
+import { LUT_PROGRAM_AUTHORITY_INDEX, Wallet, nativeToUi, uiToNative } from "@mrgnlabs/mrgn-common";
 import { AddressLookupTableAccount, Connection, VersionedTransaction } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 import {
@@ -12,26 +18,29 @@ import {
 } from "~/utils";
 import { MultiStepToastHandle, showErrorToast } from "~/utils/toastUtils";
 
+export interface LoopingObject {
+  loopingTxn: VersionedTransaction;
+  quote: QuoteResponse;
+  borrowAmount: BigNumber;
+  actualDepositAmount: number;
+}
+
 export async function calculateLooping(
   marginfiAccount: MarginfiAccountWrapper,
   depositBank: ExtendedBankInfo, // deposit
   borrowBank: ExtendedBankInfo, // borrow
   targetLeverage: number,
   amount: number,
-  slippageBps: number,
+  slippageBpsa: number,
   connection: Connection
-): Promise<{
-  loopingTxn: VersionedTransaction;
-  quote: QuoteResponse;
-  borrowAmount: BigNumber;
-  actualDepositAmount: number;
-} | null> {
-  //const slippageBps = 0.01 * 10000;
+): Promise<LoopingObject | null> {
+  const slippageBps = 0.1 * 1000;
 
-  // console.log("bank A: " + bank.meta.tokenSymbol);
-  // console.log("bank B: " + loopBank.meta.tokenSymbol);
-  // console.log("leverage: " + targetLeverage);
-  // console.log("amount " + amount);
+  console.log("bank A: " + depositBank.meta.tokenSymbol);
+  console.log("bank B: " + borrowBank.meta.tokenSymbol);
+  console.log("leverage: " + targetLeverage);
+  console.log("amount: " + amount);
+  console.log("slippageBps: " + slippageBps);
 
   const principalBufferAmountUi = amount * targetLeverage * (slippageBps / 10000);
   const adjustedPrincipalAmountUi = amount - principalBufferAmountUi;
@@ -42,6 +51,8 @@ export async function calculateLooping(
     depositBank.address,
     borrowBank.address
   );
+
+  console.log("borrowAmount: " + borrowAmount.toString());
 
   const borrowAmountNative = uiToNative(borrowAmount, borrowBank.info.state.mintDecimals).toNumber();
 
@@ -70,6 +81,8 @@ export async function calculateLooping(
       if (swapQuote) {
         const minSwapAmountOutUi = nativeToUi(swapQuote.otherAmountThreshold, depositBank.info.state.mintDecimals);
         const actualDepositAmountUi = minSwapAmountOutUi + amount;
+
+        console.log({ actualDepositAmountUi });
 
         const txn = await verifyJupTxSizeLooping(
           marginfiAccount,
@@ -257,3 +270,93 @@ export async function looping({
     return;
   }
 }
+
+export interface SimulateLoopingActionProps {
+  marginfiClient: MarginfiClient;
+  account: MarginfiAccountWrapper;
+  bank: ExtendedBankInfo;
+  loopingTxn: VersionedTransaction | null;
+}
+
+export async function simulateLooping({ marginfiClient, account, bank, loopingTxn }: SimulateLoopingActionProps) {
+  let simulationResult: SimulationResult;
+
+  if (loopingTxn && marginfiClient) {
+    const [mfiAccountData, bankData] = await marginfiClient.simulateTransaction(loopingTxn, [
+      account.address,
+      bank.address,
+    ]);
+    if (!mfiAccountData || !bankData) throw new Error("Failed to simulate looping");
+    const previewBanks = marginfiClient.banks;
+    previewBanks.set(bank.address.toBase58(), Bank.fromBuffer(bank.address, bankData));
+    const previewClient = new MarginfiClient(
+      marginfiClient.config,
+      marginfiClient.program,
+      {} as Wallet,
+      true,
+      marginfiClient.group,
+      marginfiClient.banks,
+      marginfiClient.oraclePrices
+    );
+    const previewMarginfiAccount = MarginfiAccountWrapper.fromAccountDataRaw(
+      account.address,
+      previewClient,
+      mfiAccountData
+    );
+
+    return (simulationResult = {
+      banks: previewBanks,
+      marginfiAccount: previewMarginfiAccount,
+    });
+  }
+}
+
+export async function calculatePreview(simulationResult: SimulationResult, bank: ExtendedBankInfo) {
+  let simulationPreview: any | undefined = undefined;
+
+  const { assets, liabilities } = simulationResult.marginfiAccount.computeHealthComponents(
+    MarginRequirementType.Maintenance
+  );
+  const { assets: assetsInit } = simulationResult.marginfiAccount.computeHealthComponents(
+    MarginRequirementType.Initial
+  );
+
+  const health = assets.minus(liabilities).dividedBy(assets).toNumber();
+  const liquidationPrice = simulationResult.marginfiAccount.computeLiquidationPriceForBank(bank.address);
+  const { lendingRate, borrowingRate } = simulationResult.banks.get(bank.address.toBase58())!.computeInterestRates();
+
+  const position = simulationResult.marginfiAccount.activeBalances.find(
+    (b) => b.active && b.bankPk.equals(bank.address)
+  );
+  let positionAmount = 0;
+  if (position && position.liabilityShares.gt(0)) {
+    positionAmount = position.computeQuantityUi(bank.info.rawBank).liabilities.toNumber();
+  } else if (position && position.assetShares.gt(0)) {
+    positionAmount = position.computeQuantityUi(bank.info.rawBank).assets.toNumber();
+  }
+  const availableCollateral = simulationResult.marginfiAccount.computeFreeCollateral().toNumber();
+
+  simulationPreview = {
+    health,
+    liquidationPrice,
+    depositRate: lendingRate.toNumber(),
+    borrowRate: borrowingRate.toNumber(),
+    positionAmount,
+    availableCollateral: {
+      amount: availableCollateral,
+      ratio: availableCollateral / assetsInit.toNumber(),
+    },
+  };
+}
+
+// const currentPositionAmount = bank?.isActive ? bank.position.amount : 0;
+// const healthFactor = !accountSummary.balance || !accountSummary.healthFactor ? 1 : accountSummary.healthFactor;
+// const liquidationPrice =
+//   bank.isActive && bank.position.liquidationPrice && bank.position.liquidationPrice > 0.01
+//     ? bank.position.liquidationPrice
+//     : undefined;
+
+//   return (
+
+//   )
+// }
