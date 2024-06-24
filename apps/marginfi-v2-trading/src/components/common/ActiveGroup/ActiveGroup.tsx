@@ -7,8 +7,8 @@ export const ActiveGroup = () => {
 
   return (
     <div className="fixed bottom-14 left-6 bg-secondary/90 max-w-fit p-4 rounded-xl text-sm z-50">
-      {(!activeGroup || !marginfiClient) && <p>No active group</p>}
-      {activeGroup && marginfiClient && (
+      {(!activeGroup || !activeGroup.token || !marginfiClient) && <p>No active group</p>}
+      {activeGroup && activeGroup.token && marginfiClient && (
         <ul className="space-y-1">
           <li>
             <strong className="font-medium">Active token</strong>:{" "}
