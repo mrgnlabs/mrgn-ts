@@ -1,38 +1,26 @@
 import { create, StateCreator } from "zustand";
-import { persist } from "zustand/middleware";
 import { Connection, PublicKey } from "@solana/web3.js";
 import {
-  ActiveBankInfo,
   ExtendedBankInfo,
   ExtendedBankMetadata,
   makeExtendedBankInfo,
   makeExtendedBankMetadata,
   fetchTokenAccounts,
   TokenAccountMap,
-  LendingPosition,
-  BankState,
   makeBankInfo,
   makeLendingPosition,
+  computeAccountSummary,
+  DEFAULT_ACCOUNT_SUMMARY,
+  AccountSummary,
 } from "@mrgnlabs/marginfi-v2-ui-state";
-import {
-  MarginfiClient,
-  getConfig,
-  BankMap,
-  Bank,
-  OraclePrice,
-  MarginfiAccountWrapper,
-  Balance,
-} from "@mrgnlabs/marginfi-client-v2";
+import { MarginfiClient, getConfig, Bank, OraclePrice, MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 import {
   Wallet,
   TokenMetadata,
   loadTokenMetadatas,
   loadBankMetadatas,
   getValueInsensitive,
-  nativeToUi,
-  uiToNative,
 } from "@mrgnlabs/mrgn-common";
-import BigNumber from "bignumber.js";
 
 type TradeGroupsCache = {
   [group: string]: [string, string];
@@ -74,8 +62,11 @@ type TradeStoreState = {
 
   // array of marginfi accounts
   marginfiAccounts: MarginfiAccountWrapper[];
+
   // currently selected marginfi account
   selectedAccount: MarginfiAccountWrapper | null;
+
+  accountSummary: AccountSummary;
 
   // user native sol balance
   nativeSolBalance: number;
@@ -119,6 +110,7 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
   activeGroup: null,
   marginfiAccounts: [],
   selectedAccount: null,
+  accountSummary: DEFAULT_ACCOUNT_SUMMARY,
   nativeSolBalance: 0,
   tokenAccountMap: null,
 
@@ -203,6 +195,7 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
 
       let marginfiAccounts: MarginfiAccountWrapper[] = [];
       let selectedAccount: MarginfiAccountWrapper | null = null;
+      let accountSummary: AccountSummary = DEFAULT_ACCOUNT_SUMMARY;
       let updatedTokenBank: ExtendedBankInfo;
       let updatedCollateralBank: ExtendedBankInfo;
 
@@ -262,6 +255,10 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
             isActive: true,
           };
         }
+
+        if (selectedAccount) {
+          accountSummary = computeAccountSummary(selectedAccount, [updatedTokenBank, updatedCollateralBank]);
+        }
       }
 
       set((state) => {
@@ -270,6 +267,7 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
           marginfiClient,
           marginfiAccounts,
           selectedAccount,
+          accountSummary,
           activeGroup: {
             token: updatedTokenBank,
             usdc: updatedCollateralBank,
