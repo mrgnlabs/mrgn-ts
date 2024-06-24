@@ -162,7 +162,6 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
       const bpk = new PublicKey(bankPk);
       let bank = get().banksIncludingUSDC.find((bank) => new PublicKey(bank.address).equals(bpk));
       if (!bank) {
-        console.log("iets working", bankPk.toBase58(), wallet.publicKey);
         const result = await fetchBanksAndTradeGroups(wallet, connection);
 
         if (!result) throw new Error("Error fetching banks & groups");
@@ -211,58 +210,57 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
         marginfiAccounts = await marginfiClient.getMarginfiAccountsForAuthority(wallet.publicKey);
         selectedAccount = marginfiAccounts[0];
 
-        // fetch user positions and add to banks
-        if (selectedAccount) {
-          // token bank
-          const positionRaw = selectedAccount.activeBalances.find((balance) => balance.bankPk.equals(bank.address));
+        // token bank
+        const positionRaw = selectedAccount
+          ? selectedAccount.activeBalances.find((balance) => balance.bankPk.equals(bank.address))
+          : false;
 
-          if (!positionRaw) {
-            updatedTokenBank = {
-              ...bank,
-              isActive: false,
-            };
-          } else {
-            const position = makeLendingPosition(
-              positionRaw,
-              bank.info.rawBank,
-              makeBankInfo(bank.info.rawBank, bank.info.oraclePrice),
-              bank.info.oraclePrice,
-              selectedAccount
-            );
-
-            updatedTokenBank = {
-              ...bank,
-              position,
-              isActive: true,
-            };
-          }
-
-          // collateral bank
-          const collateralBank = get().collateralBanks[bank.info.rawBank.address.toBase58()];
-          const collateralPositionRaw = selectedAccount.activeBalances.find((balance) =>
-            balance.bankPk.equals(collateralBank.info.rawBank.address)
+        if (!positionRaw) {
+          updatedTokenBank = {
+            ...bank,
+            isActive: false,
+          };
+        } else {
+          const position = makeLendingPosition(
+            positionRaw,
+            bank.info.rawBank,
+            makeBankInfo(bank.info.rawBank, bank.info.oraclePrice),
+            bank.info.oraclePrice,
+            selectedAccount
           );
 
-          if (!collateralPositionRaw) {
-            updatedCollateralBank = {
-              ...collateralBank,
-              isActive: false,
-            };
-          } else {
-            const collateralPosition = makeLendingPosition(
-              collateralPositionRaw,
-              collateralBank.info.rawBank,
-              makeBankInfo(collateralBank.info.rawBank, collateralBank.info.oraclePrice),
-              collateralBank.info.oraclePrice,
-              selectedAccount
-            );
+          updatedTokenBank = {
+            ...bank,
+            position,
+            isActive: true,
+          };
+        }
 
-            updatedCollateralBank = {
-              ...collateralBank,
-              position: collateralPosition,
-              isActive: true,
-            };
-          }
+        // collateral bank
+        const collateralBank = get().collateralBanks[bank.info.rawBank.address.toBase58()];
+        const collateralPositionRaw = selectedAccount
+          ? selectedAccount.activeBalances.find((balance) => balance.bankPk.equals(collateralBank.info.rawBank.address))
+          : false;
+
+        if (!collateralPositionRaw) {
+          updatedCollateralBank = {
+            ...collateralBank,
+            isActive: false,
+          };
+        } else {
+          const collateralPosition = makeLendingPosition(
+            collateralPositionRaw,
+            collateralBank.info.rawBank,
+            makeBankInfo(collateralBank.info.rawBank, collateralBank.info.oraclePrice),
+            collateralBank.info.oraclePrice,
+            selectedAccount
+          );
+
+          updatedCollateralBank = {
+            ...collateralBank,
+            position: collateralPosition,
+            isActive: true,
+          };
         }
       }
 
