@@ -20,5 +20,6 @@ export function getWalletConnectionMethod(wallet: Wallet, osInfo: OsInfo): Walle
   if (isWalletInstalled && isPhone) return "CONNECT";
   if (isPhone) return "DEEPLINK";
   if (isWalletInstalled) return "CONNECT";
+  if (wallet.adapter.name === "WalletConnect") return "CONNECT";
   return "INSTALL";
 }
