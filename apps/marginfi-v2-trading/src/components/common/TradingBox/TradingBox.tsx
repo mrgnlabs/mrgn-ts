@@ -5,7 +5,7 @@ import React from "react";
 import { useRouter } from "next/router";
 
 import { ActionType, ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { PublicKey } from "@solana/web3.js";
+import { PublicKey, VersionedTransaction } from "@solana/web3.js";
 import capitalize from "lodash/capitalize";
 
 import { cn } from "~/utils/themeUtils";
@@ -15,15 +15,15 @@ import { TokenCombobox } from "../TokenCombobox/TokenCombobox";
 import { ActionBoxDialog } from "~/components/common/ActionBox";
 import { Card, CardContent, CardFooter } from "~/components/ui/card";
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
-import { IconPyth } from "~/components/ui/icons";
+import { IconLoader, IconPyth } from "~/components/ui/icons";
 import { Slider } from "~/components/ui/slider";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { useConnection } from "~/hooks/useConnection";
-import { computeMaxLeverage } from "@mrgnlabs/marginfi-client-v2";
-import { calculateLooping } from "./tradingBox.utils";
+import { MarginfiAccountWrapper, computeMaxLeverage } from "@mrgnlabs/marginfi-client-v2";
+import { LoopingObject, calculateLooping, simulateLooping } from "./tradingBox.utils";
 import { useDebounce } from "~/hooks/useDebounce";
 
 type TradeSide = "long" | "short";
@@ -42,18 +42,21 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
   const [tradeState, setTradeState] = React.useState<TradeSide>("long");
   // const [selectedPool, setSelectedPool] = React.useState<ExtendedBankInfo | null>(activeBank || null);
   const [amount, setAmount] = React.useState<string>("");
-  const [borrowAmount, setBorrowAmount] = React.useState<string>("");
-  const [leverage, setLeverage] = React.useState(1);
-  const [loading, setLoading] = React.useState<boolean>(false);
+  const [loopingObject, setLoopingObject] = React.useState<LoopingObject | null>(null);
+  const [leverage, setLeverage] = React.useState(0);
+  const [isLoading, setIsLoading] = React.useState<boolean>(false);
 
   const debouncedLeverage = useDebounce(leverage, 1000);
   const debouncedAmount = useDebounce(amount, 1000);
 
-  const [setActiveBank, marginfiAccounts] = useTradeStore((state) => [
+  const borrowAmount = React.useMemo(() => loopingObject?.borrowAmount.toString(), [loopingObject]);
+
+  const [setActiveBank, marginfiAccounts, marginfiClient] = useTradeStore((state) => [
     //activeGroup,
     // state.activeGroup,
     state.setActiveBank,
     state.marginfiAccounts,
+    state.marginfiClient,
   ]);
   const [selectedAccount, extendedBankInfos] = useMrgnlendStore((state) => [
     state.selectedAccount,
@@ -68,7 +71,7 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
   );
 
   const tempBorrowBank = React.useMemo(
-    () => extendedBankInfos.find((value) => value.meta.tokenSymbol.includes("WIF")),
+    () => extendedBankInfos.find((value) => value.meta.tokenSymbol.toLowerCase().includes("jitosol")),
     [extendedBankInfos]
   );
 
@@ -103,22 +106,61 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
 
   const loadLoopingVariables = React.useCallback(async () => {
     if (selectedAccount && activeGroup) {
-      const slippageBps = 400;
-      const woppa = await calculateLooping(
-        selectedAccount,
-        activeGroup?.usdc,
-        activeGroup?.token,
-        leverage,
-        Number(amount),
-        slippageBps,
-        connection
-      );
+      try {
+        if (Number(amount) === 0 || leverage <= 1) {
+          throw new Error("Amount is 0");
+        }
+        setIsLoading(true);
+        const slippageBps = 400;
+        const looping = await calculateLooping(
+          selectedAccount,
+          activeGroup?.usdc,
+          activeGroup?.token,
+          leverage,
+          Number(amount),
+          slippageBps,
+          connection
+        );
 
-      console.log({ test: woppa?.actualDepositAmount, maxAmount, woppa: borrowAmount.toString(), leverage, amount });
+        if (looping) {
+          // const simulation = await simulateLooping({
+          //   marginfiClient,
+          //   account: selectedAccount,
+          //   bank: activeGroup.token,
+          //   loopingTxn: looping.loopingTxn,
+          // });
+        }
 
-      if (woppa) setBorrowAmount(woppa?.borrowAmount.toString());
+        setLoopingObject(looping);
+      } catch (error) {
+        setLoopingObject(null);
+      } finally {
+        setIsLoading(false);
+      }
     }
-  }, [amount, selectedAccount, activeGroup]);
+  }, [leverage, amount, selectedAccount, activeGroup, marginfiClient]);
+
+  const handleSimulation = React.useCallback(
+    async (loopingTxn: VersionedTransaction, bank: ExtendedBankInfo, selectedAccount: MarginfiAccountWrapper) => {
+      if (!marginfiClient) {
+        return;
+      }
+      const simulationResult = await simulateLooping({
+        marginfiClient,
+        account: selectedAccount,
+        bank: bank,
+        loopingTxn: loopingTxn,
+      });
+    },
+    [marginfiClient]
+  );
+
+  const handleShorting = React.useCallback(async () => {
+    if (loopingObject?.loopingTxn && marginfiClient) {
+      const sig = await marginfiClient.processTransaction(loopingObject?.loopingTxn);
+      console.log({ sig });
+    }
+  }, [loopingObject, marginfiClient]);
 
   const handleAmountChange = React.useCallback(
     (amountRaw: string) => {
@@ -136,7 +178,6 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
 
   React.useEffect(() => {
     if (debouncedAmount && debouncedLeverage) {
-      console.log("help");
       loadLoopingVariables();
     }
   }, [debouncedLeverage, debouncedAmount]);
@@ -194,7 +235,7 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
             </div>
             <div className="space-y-1.5">
               <Label>Size of {tradeState}</Label>
-              <div className="relative flex gap-4 items-center border border-accent p-2 rounded-lg">
+              <div className="relative flex gap-2 items-center border border-accent p-2 rounded-lg">
                 <TokenCombobox
                   selected={activeGroup.token}
                   setSelected={(bank) => {
@@ -243,9 +284,16 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
           <>
             <div className="gap-1 w-full flex flex-col items-center">
               <Button
+                onClick={() => handleShorting()}
                 className={cn("w-full", tradeState === "long" && "bg-success", tradeState === "short" && "bg-error")}
               >
-                {capitalize(tradeState)} {activeGroup.token.meta.tokenSymbol}
+                {isLoading ? (
+                  <IconLoader />
+                ) : (
+                  <>
+                    {capitalize(tradeState)} {activeGroup.token.meta.tokenSymbol}
+                  </>
+                )}
               </Button>
               <ActionBoxDialog requestedAction={ActionType.Deposit} requestedBank={activeGroup.usdc}>
                 <Button
