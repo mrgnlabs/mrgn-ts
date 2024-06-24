@@ -50,7 +50,7 @@ export const ActionBox = ({ requestedAction, requestedBank, isDialog, handleClos
   const [
     isInitialized,
     setIsRefreshingStore,
-    extendedBankInfos,
+    activeGroup,
     mfiClient,
     selectedAccount,
     nativeSolBalance,
@@ -58,7 +58,7 @@ export const ActionBox = ({ requestedAction, requestedBank, isDialog, handleClos
   ] = useTradeStore((state) => [
     state.initialized,
     state.setIsRefreshingStore,
-    state.banksIncludingUSDC,
+    state.activeGroup,
     state.marginfiClient,
     state.selectedAccount,
     state.nativeSolBalance,
@@ -137,6 +137,10 @@ export const ActionBox = ({ requestedAction, requestedBank, isDialog, handleClos
   const [hasLSTDialogShown, setHasLSTDialogShown] = React.useState<LSTDialogVariants[]>([]);
   const [lstDialogCallback, setLSTDialogCallback] = React.useState<(() => void) | null>(null);
   const [additionalActionMethods, setAdditionalActionMethods] = React.useState<ActionMethod[]>([]);
+
+  const extendedBankInfos = React.useMemo(() => {
+    return activeGroup ? [activeGroup.token, activeGroup.usdc] : [];
+  }, [activeGroup]);
 
   React.useEffect(() => {
     fetchActionBoxState({ requestedAction, requestedBank });
