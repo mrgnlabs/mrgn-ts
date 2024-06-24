@@ -22,30 +22,30 @@ export default function TradeSymbolPage() {
   const router = useRouter();
   const { connection } = useConnection();
   const { wallet } = useWalletContext();
-  const [initialized, activeGroup, setActiveBank, marginfiClient] = useTradeStore((state) => [
+  const [initialized, activeGroup, setActiveBank, accountSummary] = useTradeStore((state) => [
     state.initialized,
     state.activeGroup,
     state.setActiveBank,
-    state.marginfiClient,
+    state.accountSummary,
   ]);
 
-  // const healthColor = React.useMemo(() => {
-  //   if (accountSummary.healthFactor) {
-  //     let color: string;
+  const healthColor = React.useMemo(() => {
+    if (accountSummary.healthFactor) {
+      let color: string;
 
-  //     if (accountSummary.healthFactor >= 0.5) {
-  //       color = "#75BA80"; // green color " : "#",
-  //     } else if (accountSummary.healthFactor >= 0.25) {
-  //       color = "#B8B45F"; // yellow color
-  //     } else {
-  //       color = "#CF6F6F"; // red color
-  //     }
+      if (accountSummary.healthFactor >= 0.5) {
+        color = "#75BA80"; // green color " : "#",
+      } else if (accountSummary.healthFactor >= 0.25) {
+        color = "#B8B45F"; // yellow color
+      } else {
+        color = "#CF6F6F"; // red color
+      }
 
-  //     return color;
-  //   } else {
-  //     return "#fff";
-  //   }
-  // }, [accountSummary.healthFactor]);
+      return color;
+    } else {
+      return "#fff";
+    }
+  }, [accountSummary.healthFactor]);
 
   React.useEffect(() => {
     if (!router.query.symbol || !wallet || !connection || !initialized || activeGroup) return;
@@ -91,37 +91,40 @@ export default function TradeSymbolPage() {
                         <p>The formula is:</p>
                         <p className="text-sm italic text-center">{"(assets - liabilities) / (assets)"}</p>
                         <p>Your math is:</p>
-                        {/* <p className="text-sm italic text-center">{`(${usdFormatter.format(
+                        <p className="text-sm italic text-center">{`(${usdFormatter.format(
                           accountSummary.lendingAmountWithBiasAndWeighted
                         )} - ${usdFormatter.format(
                           accountSummary.borrowingAmountWithBiasAndWeighted
-                        )}) / (${usdFormatter.format(accountSummary.lendingAmountWithBiasAndWeighted)})`}</p> */}
+                        )}) / (${usdFormatter.format(accountSummary.lendingAmountWithBiasAndWeighted)})`}</p>
                       </div>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
               </dt>
-              {/* <dd className="text-xl md:text-2xl font-medium" style={{ color: healthColor }}>
+              <dd className="text-xl md:text-2xl font-medium" style={{ color: healthColor }}>
                 {numeralFormatter(accountSummary.healthFactor * 100)}%
-              </dd> */}
+              </dd>
             </dl>
             <div className="h-2 bg-background-gray-light rounded-full">
-              {/* <div
+              <div
                 className="h-2 rounded-full"
                 style={{
                   backgroundColor: healthColor,
                   width: `${accountSummary.healthFactor * 100}%`,
                 }}
-              /> */}
+              />
             </div>
             <div className="flex justify-between flex-wrap mt-5 mb-10 gap-y-4">
               <Stat label="Current Price" value={usdFormatter.format(activeGroup.token.info.state.price)} />
               <Stat
                 label={`Total Deposits (${activeGroup.token.meta.tokenSymbol})`}
-                value={usdFormatter.format(activeGroup.token.info.state.totalDeposits)}
+                value={usdFormatter.format(
+                  activeGroup.token.info.state.totalDeposits *
+                    new BigNumber(activeGroup.token.info.oraclePrice.priceRealtime.price).toNumber()
+                )}
               />
               <Stat
-                label="Total Deposits (USD)"
+                label="Total Deposits (USDC)"
                 value={usdFormatter.format(
                   activeGroup.usdc.info.state.totalDeposits *
                     new BigNumber(activeGroup.usdc.info.oraclePrice.priceRealtime.price).toNumber()
