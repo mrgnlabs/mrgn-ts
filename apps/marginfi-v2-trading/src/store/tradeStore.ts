@@ -329,6 +329,9 @@ const fetchBanksAndTradeGroups = async (wallet: Wallet, connection: Connection) 
     oraclePrice: OraclePrice;
     tokenMetadata: TokenMetadata;
   }[] = [];
+  const marginfiAccounts: {
+    [group: string]: MarginfiAccountWrapper;
+  } = {};
 
   await Promise.all(
     groups.map(async (group) => {
@@ -346,6 +349,7 @@ const fetchBanksAndTradeGroups = async (wallet: Wallet, connection: Connection) 
           preloadedBankAddresses: bankKeys,
         }
       );
+
       const banksIncludingUSDC = Array.from(marginfiClient.banks.values());
 
       banksIncludingUSDC.forEach((bank) => {
@@ -370,6 +374,13 @@ const fetchBanksAndTradeGroups = async (wallet: Wallet, connection: Connection) 
           console.error("error fetching token metadata: ", err);
         }
       });
+
+      const mfiAccounts = await marginfiClient.getMarginfiAccountsForAuthority(wallet.publicKey);
+      const mfiAccount = mfiAccounts[0];
+
+      if (mfiAccount) {
+        marginfiAccounts[group.toBase58()] = mfiAccount;
+      }
     })
   );
 
@@ -388,27 +399,12 @@ const fetchBanksAndTradeGroups = async (wallet: Wallet, connection: Connection) 
     tokenAccountMap = tokenData.tokenAccountMap;
   }
 
-  const [extendedBankInfos, extendedBankMetadatas] = await banksWithPriceAndToken.reduce(
+  const [extendedBankInfos] = await banksWithPriceAndToken.reduce(
     async (accPromise, { bank, oraclePrice, tokenMetadata }) => {
       const acc = await accPromise;
       let userData;
       if (wallet?.publicKey) {
-        const bankKeys = tradeGroups[bank.group.toBase58()].map((bank) => new PublicKey(bank));
-        const marginfiClient = await MarginfiClient.fetch(
-          {
-            environment: "production",
-            cluster: "mainnet",
-            programId,
-            groupPk: bank.group,
-          },
-          wallet,
-          connection,
-          {
-            preloadedBankAddresses: bankKeys,
-          }
-        );
-        const marginfiAccounts = await marginfiClient.getMarginfiAccountsForAuthority(wallet.publicKey);
-        const marginfiAccount = marginfiAccounts[0];
+        const marginfiAccount = marginfiAccounts[bank.group.toBase58()];
         const tokenAccount = tokenAccountMap!.get(bank.mint.toBase58());
         if (!tokenAccount) {
           return acc;
@@ -420,11 +416,9 @@ const fetchBanksAndTradeGroups = async (wallet: Wallet, connection: Connection) 
         };
       }
       acc[0].push(makeExtendedBankInfo(tokenMetadata, bank, oraclePrice, undefined, userData));
-      acc[1].push(makeExtendedBankMetadata(new PublicKey(bank.address), tokenMetadata));
-
       return acc;
     },
-    Promise.resolve([[], []] as [ExtendedBankInfo[], ExtendedBankMetadata[]])
+    Promise.resolve([[]] as [ExtendedBankInfo[]])
   );
 
   allBanks.push(...extendedBankInfos);
