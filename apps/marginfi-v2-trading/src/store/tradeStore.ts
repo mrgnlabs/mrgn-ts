@@ -138,6 +138,16 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
 
       if (!result) throw new Error("Error fetching banks & groups");
 
+      const activeGroup = get().activeGroup;
+
+      if (activeGroup) {
+        get().setActiveBank({
+          bankPk: activeGroup.token.info.rawBank.address,
+          connection,
+          wallet,
+        });
+      }
+
       set((state) => {
         return {
           ...state,
