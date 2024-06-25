@@ -68,14 +68,16 @@ export const BankCard = ({ bank }: BankCardProps) => {
           <p className="text-muted-foreground">No current position.</p>
         </div>
       )}
-      <div className="flex w-full gap-4 mt-auto">
-        <ActionBoxDialog requestedAction={ActionType.Withdraw} requestedBank={bank}>
-          <Button className="flex-1 h-12" variant="outline">
-            Withdraw
-          </Button>
-        </ActionBoxDialog>
+      <div className="flex justify-between w-full gap-4 mt-auto">
+        {bank.isActive && (
+          <ActionBoxDialog requestedAction={ActionType.Withdraw} requestedBank={bank}>
+            <Button className="h-12 w-1/2" variant="outline">
+              Withdraw
+            </Button>
+          </ActionBoxDialog>
+        )}
         <ActionBoxDialog requestedAction={ActionType.Deposit} requestedBank={bank}>
-          <Button className="flex-1 h-12" variant="default">
+          <Button className="h-12 w-1/2 ml-auto" variant="default">
             Supply {bank.isActive && "more"}
           </Button>
         </ActionBoxDialog>
