@@ -16,11 +16,9 @@ export const metadata = {
 $YBX is a decentralized stable asset soft-pegged to the $USD that accrues its holders blockchain staking yield, so that they can naturally capture base layer monetary policy and protect themselves from blockchain-based inflation risk. {{ className: 'lead' }}
 
 <Note>
-    The $YBX product is double-audited and production-ready. However, the marginfi team has decided to postpone the launch of $YBX in light of Solana congestion issues. 
-    The marginfi put a lot of consideration into this decision, and we are working deligently to improve core Solana infrastructure to make $YBX a reality for all Solana DeFi users.
+    The $YBX product is double-audited and production-ready. However, the marginfi team has decided to postpone the launch of $YBX until certain Solana scalability issues are solved. 
+    The marginfi has put a lot of consideration into this decision, and we are working deligently to improve core Solana infrastructure to make $YBX a reality for all Solana DeFi users.
 </Note>
-
-With the marginfi <Button href="https://github.com/mrgnlabs/marginfi-v2/tree/main/clients/rust/marginfi-cli" variant="text"><>CLI tool</></Button>, you can interact with the marginfi protocol directly from your terminal, taking advantage of its borrowing and lending services. Built in Rust, this command-line interface simplifies the process of managing your marginfi activities. Whether you want to create a new bank, make deposits to existing banks, or perform other operations, the marginfi CLI provides a streamlined experience. {{ className: 'lead' }}
 
 ---
 
@@ -53,8 +51,8 @@ High-yield bank accounts available to the general US public have had similar use
 In the digital asset realm, protocols like Maker and Frax Finance have looked to provide on- chain stable asset holders similar protection from (in this case) US inflation, with Real World Assets (RWAs) integrating into on-chain protocol systems to provide holders with direct exposure to sovereign treasury bonds and alike. However, blockchain economies deal with an inflation vector that is more present, higher risk, and easier to protect against than sovereign currency inflation: **native blockchain token inflation**.
 
 LSTs are already a case study for this: relative to holding native $SOL, which continues to increase in supply under Solana’s inflationary monetary policy, $SOL-based LSTs provide users with exposure to naturally accruing inflationary blockchain yield, so that users are protected from the blockchain inflation risk they’d otherwise be exposed to if holding $SOL. At hundreds of basis points for the foreseeable future, native blockchain yield continues to be important for holders to capture. While helpful, LSTs continue to expose users to SOL-based delta exposure relative to $USD - pegged to $SOL, LSTs are not stable assets. Historically, holders have been forced to choose between protecting against:
-• Inflationary risk by capturing staking yield with LSTs, or
-• Token price volatility with traditional stablecoins
+* Inflationary risk by capturing staking yield with LSTs, or
+* Token price volatility with traditional stablecoins
 
 <Note>
     $YBX is a stable asset soft-pegged to the $USD that accrues its holders blockchain staking yield, so that they can naturally capture base layer monetary policy and protect themselves from blockchain-based inflation risk.
@@ -73,10 +71,10 @@ Expanded upon below, it’s worth noting that $YBX is a non-rebasing, yield-bear
 ### Support Collateral
 
 $YBX is an overcollateralized asset, meaning it is backed by more value in collateral than the amount of $YBX issued. This collateralization is crucial for maintaining stability and trust in the $YBX system. The minting process for $YBX involves the use of Solana-based Liquid Staking Tokens (LSTs) as collateral. To start, the following Solana LSTs are accepted:
-• $LST
-• $jitoSOL
-• $mSOL
-• $bSOL
+* $LST
+* $jitoSOL
+* $mSOL
+* $bSOL
 
 Over time, support for additional LSTs with adequate liquidity should be considered.
 
@@ -117,8 +115,8 @@ A fundamental aspect of $YBX’s design is its stability mechanism, which ensure
 ### Arbitrage Resolution
 
 The $YBX protocol includes mechanisms for minting $YBX by depositing collateral and redeeming collateral by burning $YBX, similar to stablecoin implementations. This minting and burning process is nominally pegged at 1 $YBX to (1+Y) $USD, where Y is the divergence from accumulated yield, enabling arbitrage opportunities when the market price of $YBX diverges from the $(1+Y) USD benchmark:
-• **If 1 $YBX > (1 + Y) $USD**: Arbitrageurs can mint new $YBX by depositing collateral into the $YBX smart contract and selling the minted $YBX on the open market. This action increases the supply of $YBX, applying downward pressure on its price to realign it with the peg.
-• **If 1 $YBX < (1 + Y) $USD**: In this scenario, arbitrageurs can purchase $YBX below its nominal value and redeem it at (1 + Y ) $USD worth of collateral from the $YBX smart contract, thereby reducing the circulating supply of $YBX and pushing its market price back toward the peg.
+* **If 1 $YBX > (1 + Y) $USD**: Arbitrageurs can mint new $YBX by depositing collateral into the $YBX smart contract and selling the minted $YBX on the open market. This action increases the supply of $YBX, applying downward pressure on its price to realign it with the peg.
+* **If 1 $YBX < (1 + Y) $USD**: In this scenario, arbitrageurs can purchase $YBX below its nominal value and redeem it at (1 + Y ) $USD worth of collateral from the $YBX smart contract, thereby reducing the circulating supply of $YBX and pushing its market price back toward the peg.
 
 ### Liquidation of Weakening Collateral
 
@@ -132,12 +130,12 @@ The $YBX ecosystem operates on an overcollateralized basis, incorporating a liqu
 />
 
 where:
-• <Math>pliq</Math> is the liquidation threshold price per token, e.g 1.15.
-• <Math>qi</Math> is the quantity of the ith collateral asset.
-• <Math>pi(t)</Math> is the market price of the ith asset at time t.
-• <Math>wi</Math> represents the weight of the ith asset in the collateral basket.
-• <Math>n</Math> is the total number of collateral assets.
-• <Math>L</Math> is the total value of $YBX minted against the collateral, according to the internal peg.
+* <Math>pliq</Math> is the liquidation threshold price per token, e.g 1.15.
+* <Math>qi</Math> is the quantity of the ith collateral asset.
+* <Math>pi(t)</Math> is the market price of the ith asset at time t.
+* <Math>wi</Math> represents the weight of the ith asset in the collateral basket.
+* <Math>n</Math> is the total number of collateral assets.
+* <Math>L</Math> is the total value of $YBX minted against the collateral, according to the internal peg.
 
 Upon triggering the liquidation process, the collateral is sold, and $YBX is bought back from the market and subsequently burned. This action directly reduces the circulating supply of $YBX, aiding in the re-establishment of its value relative to the USD.
 
@@ -148,11 +146,9 @@ Dynamic collateral management is pivotal in maintaining the solvency and stabili
 ### Last-Resort Bad Debt Backstops
 
 The aforementioned stability mechanisms are robust, but it’s worth considering scenarios in which they fail for maximum mechanism resiliency. In the event of bad debt or insolvency within the $YBX ecosystem that is not mitigated preemptively by the above stability mechanisms, there is an opportunity for a mechanism akin to MakerDAO’s $MKR token backstop; a governance and utility token for the $YBX protocol that is minted and sold into the market to ensure the solvency of the $YBX stable asset and protect its soft peg to the $USD under the most adverse conditions.
-
-
-• **Mechanism Activation**: Should the $YBX protocol face a shortfall in collateral value due to market downturns or unexpected liquidations, resulting in bad debt that cannot be covered by the existing collateral, the protocol may activate an emergency response mechanism.
-• **Minting the protocol governance token**: To address the insolvency, additional gover- nance tokens are minted and sold on the open market. The proceeds from this sale are used to cover the bad debt, thereby restoring the collateral balance and ensuring the stability and integrity of $YBX.
-• **Market Dynamics**: The introduction of new protocol governance tokens to the market may impact the token’s price due to the increase in supply. However, this action is considered a last resort and is taken to safeguard the $YBX ecosystem and its users.
-• **Governance and Transparency**: The decision to mint and sell protocol governance tokens would most properly be governed by a DAO overseeing the $YBX protocol, ensuring that such measures are taken with transparency and align with the interests of the stakeholders. This governance process allows governance token holders to participate in critical decisions affecting the protocol’s financial health and stability.
+* **Mechanism Activation**: Should the $YBX protocol face a shortfall in collateral value due to market downturns or unexpected liquidations, resulting in bad debt that cannot be covered by the existing collateral, the protocol may activate an emergency response mechanism.
+* **Minting the protocol governance token**: To address the insolvency, additional gover- nance tokens are minted and sold on the open market. The proceeds from this sale are used to cover the bad debt, thereby restoring the collateral balance and ensuring the stability and integrity of $YBX.
+* **Market Dynamics**: The introduction of new protocol governance tokens to the market may impact the token’s price due to the increase in supply. However, this action is considered a last resort and is taken to safeguard the $YBX ecosystem and its users.
+* **Governance and Transparency**: The decision to mint and sell protocol governance tokens would most properly be governed by a DAO overseeing the $YBX protocol, ensuring that such measures are taken with transparency and align with the interests of the stakeholders. This governance process allows governance token holders to participate in critical decisions affecting the protocol’s financial health and stability.
 
 This governance token intervention mechanism underscores the protocol’s resilience and adapt- ability, providing a robust safety net that enhances the trust and reliability of $YBX. By drawing inspiration from established protocols like MakerDAO, $YBX can leverage proven strategies to mitigate risk and maintain stability, demonstrating a commitment to the long-term viability and success of the ecosystem.
