@@ -184,6 +184,8 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
         if (!bank) return;
       }
 
+      const collateralBank = get().collateralBanks[bank.info.rawBank.address.toBase58()];
+
       const group = new PublicKey(bank.info.rawBank.group);
       const bankKeys = get().groupsCache[group.toBase58()].map((bank) => new PublicKey(bank));
       const marginfiClient = await MarginfiClient.fetch(
@@ -203,8 +205,14 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
       let marginfiAccounts: MarginfiAccountWrapper[] = [];
       let selectedAccount: MarginfiAccountWrapper | null = null;
       let accountSummary: AccountSummary = DEFAULT_ACCOUNT_SUMMARY;
-      let updatedTokenBank: ExtendedBankInfo;
-      let updatedCollateralBank: ExtendedBankInfo;
+      let updatedTokenBank: ExtendedBankInfo = {
+        ...bank,
+        isActive: false,
+      };
+      let updatedCollateralBank: ExtendedBankInfo = {
+        ...collateralBank,
+        isActive: false,
+      };
 
       if (wallet.publicKey) {
         marginfiAccounts = await marginfiClient.getMarginfiAccountsForAuthority(wallet.publicKey);
@@ -215,12 +223,7 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
           ? selectedAccount.activeBalances.find((balance) => balance.bankPk.equals(bank.address))
           : false;
 
-        if (!positionRaw) {
-          updatedTokenBank = {
-            ...bank,
-            isActive: false,
-          };
-        } else {
+        if (positionRaw) {
           const position = makeLendingPosition(
             positionRaw,
             bank.info.rawBank,
@@ -236,18 +239,11 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
           };
         }
 
-        // collateral bank
-        const collateralBank = get().collateralBanks[bank.info.rawBank.address.toBase58()];
         const collateralPositionRaw = selectedAccount
           ? selectedAccount.activeBalances.find((balance) => balance.bankPk.equals(collateralBank.info.rawBank.address))
           : false;
 
-        if (!collateralPositionRaw) {
-          updatedCollateralBank = {
-            ...collateralBank,
-            isActive: false,
-          };
-        } else {
+        if (collateralPositionRaw) {
           const collateralPosition = makeLendingPosition(
             collateralPositionRaw,
             collateralBank.info.rawBank,
@@ -265,10 +261,6 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
 
         if (selectedAccount) {
           accountSummary = computeAccountSummary(selectedAccount, [updatedTokenBank, updatedCollateralBank]);
-          const { assets, liabilities } = selectedAccount.computeHealthComponents(MarginRequirementType.Initial);
-          console.log("assets", assets.toNumber());
-          console.log("liabilities", liabilities.toNumber());
-          console.log("active balances", selectedAccount.activeBalances);
         }
       }
 
@@ -375,11 +367,13 @@ const fetchBanksAndTradeGroups = async (wallet: Wallet, connection: Connection) 
         }
       });
 
-      const mfiAccounts = await marginfiClient.getMarginfiAccountsForAuthority(wallet.publicKey);
-      const mfiAccount = mfiAccounts[0];
+      if (wallet.publicKey) {
+        const mfiAccounts = await marginfiClient.getMarginfiAccountsForAuthority(wallet.publicKey);
+        const mfiAccount = mfiAccounts[0];
 
-      if (mfiAccount) {
-        marginfiAccounts[group.toBase58()] = mfiAccount;
+        if (mfiAccount) {
+          marginfiAccounts[group.toBase58()] = mfiAccount;
+        }
       }
     })
   );
