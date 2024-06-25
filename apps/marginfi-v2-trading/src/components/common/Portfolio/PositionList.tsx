@@ -25,7 +25,6 @@ export const PositionList = () => {
     return banks.filter((bank) => bank.isActive) as ActiveBankInfo[];
   }, [banks]);
 
-  if (!initialized || !selectedAccount || portfolio.length === 0) return null;
   return (
     <div className="rounded-xl">
       <Table>
@@ -41,6 +40,16 @@ export const PositionList = () => {
           </TableRow>
         </TableHeader>
         <TableBody>
+          {portfolio.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={7} className="flex justify-center w-full">
+                No positions found
+              </TableCell>
+            </TableRow>
+          ) : (
+            <></>
+          )}
+
           {portfolio.map((bank, index) => {
             const collateralBank = banksIncludingUSDC.find((bank, i) => {
               if (!bank || i === banksIncludingUSDC.length - 1) return false;

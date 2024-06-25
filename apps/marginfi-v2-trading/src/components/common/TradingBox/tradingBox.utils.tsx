@@ -6,10 +6,11 @@ import {
   MarginfiClient,
   SimulationResult,
 } from "@mrgnlabs/marginfi-client-v2";
-import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { LUT_PROGRAM_AUTHORITY_INDEX, Wallet, nativeToUi, uiToNative } from "@mrgnlabs/mrgn-common";
+import { AccountSummary, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { LUT_PROGRAM_AUTHORITY_INDEX, Wallet, nativeToUi, uiToNative, usdFormatter } from "@mrgnlabs/mrgn-common";
 import { AddressLookupTableAccount, Connection, VersionedTransaction } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
+import { IconArrowRight, IconPyth, IconSwitchboard } from "~/components/ui/icons";
 import {
   deserializeInstruction,
   extractErrorString,
@@ -45,83 +46,88 @@ export async function calculateLooping(
   const principalBufferAmountUi = amount * targetLeverage * (slippageBps / 10000);
   const adjustedPrincipalAmountUi = amount - principalBufferAmountUi;
 
-  const { borrowAmount, totalDepositAmount: depositAmount } = marginfiAccount.computeLoopingParams(
-    adjustedPrincipalAmountUi,
-    targetLeverage,
-    depositBank.address,
-    borrowBank.address
-  );
+  try {
+    const { borrowAmount, totalDepositAmount: depositAmount } = marginfiAccount.computeLoopingParams(
+      adjustedPrincipalAmountUi,
+      targetLeverage,
+      depositBank.address,
+      borrowBank.address
+    );
 
-  console.log("borrowAmount: " + borrowAmount.toString());
+    console.log("borrowAmount: " + borrowAmount.toString());
 
-  const borrowAmountNative = uiToNative(borrowAmount, borrowBank.info.state.mintDecimals).toNumber();
+    const borrowAmountNative = uiToNative(borrowAmount, borrowBank.info.state.mintDecimals).toNumber();
 
-  const maxLoopAmount = depositBank.isActive ? depositBank?.position.amount : 0;
+    const maxLoopAmount = depositBank.isActive ? depositBank?.position.amount : 0;
 
-  const maxAccountsArr = [undefined, 50, 40, 30];
+    const maxAccountsArr = [undefined, 50, 40, 30];
 
-  let firstQuote;
+    let firstQuote;
 
-  for (const maxAccounts of maxAccountsArr) {
-    const quoteParams = {
-      amount: borrowAmountNative,
-      inputMint: borrowBank.info.state.mint.toBase58(), // borrow
-      outputMint: depositBank.info.state.mint.toBase58(), // deposit
-      slippageBps: slippageBps,
-      maxAccounts: maxAccounts,
-      swapMode: "ExactIn",
-    } as QuoteGetRequest;
-    try {
-      const swapQuote = await getSwapQuoteWithRetry(quoteParams);
+    for (const maxAccounts of maxAccountsArr) {
+      const quoteParams = {
+        amount: borrowAmountNative,
+        inputMint: borrowBank.info.state.mint.toBase58(), // borrow
+        outputMint: depositBank.info.state.mint.toBase58(), // deposit
+        slippageBps: slippageBps,
+        maxAccounts: maxAccounts,
+        swapMode: "ExactIn",
+      } as QuoteGetRequest;
+      try {
+        const swapQuote = await getSwapQuoteWithRetry(quoteParams);
 
-      if (!maxAccounts) {
-        firstQuote = swapQuote;
-      }
-
-      if (swapQuote) {
-        const minSwapAmountOutUi = nativeToUi(swapQuote.otherAmountThreshold, depositBank.info.state.mintDecimals);
-        const actualDepositAmountUi = minSwapAmountOutUi + amount;
-
-        console.log({ actualDepositAmountUi });
-
-        const txn = await verifyJupTxSizeLooping(
-          marginfiAccount,
-          depositBank,
-          borrowBank,
-          actualDepositAmountUi,
-          borrowAmount,
-          swapQuote,
-          connection
-        );
-        if (txn) {
-          // capture("looper", {
-          //   amountIn: uiToNative(amount, borrowBank.info.state.mintDecimals).toNumber(),
-          //   firstQuote,
-          //   bestQuote: swapQuote,
-          //   inputMint: borrowBank.info.state.mint.toBase58(),
-          //   outputMint: bank.info.state.mint.toBase58(),
-          // });
-          return {
-            loopingTxn: txn,
-            quote: swapQuote,
-            borrowAmount: borrowAmount,
-            actualDepositAmount: actualDepositAmountUi,
-          };
+        if (!maxAccounts) {
+          firstQuote = swapQuote;
         }
-      } else {
-        throw new Error("Swap quote failed");
+
+        if (swapQuote) {
+          const minSwapAmountOutUi = nativeToUi(swapQuote.otherAmountThreshold, depositBank.info.state.mintDecimals);
+          const actualDepositAmountUi = minSwapAmountOutUi + amount;
+
+          console.log({ actualDepositAmountUi });
+
+          const txn = await verifyJupTxSizeLooping(
+            marginfiAccount,
+            depositBank,
+            borrowBank,
+            actualDepositAmountUi,
+            borrowAmount,
+            swapQuote,
+            connection
+          );
+          if (txn) {
+            // capture("looper", {
+            //   amountIn: uiToNative(amount, borrowBank.info.state.mintDecimals).toNumber(),
+            //   firstQuote,
+            //   bestQuote: swapQuote,
+            //   inputMint: borrowBank.info.state.mint.toBase58(),
+            //   outputMint: bank.info.state.mint.toBase58(),
+            // });
+            return {
+              loopingTxn: txn,
+              quote: swapQuote,
+              borrowAmount: borrowAmount,
+              actualDepositAmount: actualDepositAmountUi,
+            };
+          }
+        } else {
+          throw new Error("Swap quote failed");
+        }
+      } catch (error) {
+        console.error(error);
+        // capture("looper", {
+        //   amountIn: uiToNative(amount, borrowBank.info.state.mintDecimals).toNumber(),
+        //   firstQuote,
+        //   inputMint: borrowBank.info.state.mint.toBase58(),
+        //   outputMint: bank.info.state.mint.toBase58(),
+        // });
+        return null;
       }
-    } catch (error) {
-      console.error(error);
-      // capture("looper", {
-      //   amountIn: uiToNative(amount, borrowBank.info.state.mintDecimals).toNumber(),
-      //   firstQuote,
-      //   inputMint: borrowBank.info.state.mint.toBase58(),
-      //   outputMint: bank.info.state.mint.toBase58(),
-      // });
-      return null;
     }
+  } catch (error) {
+    console.error(error);
   }
+
   return null;
 }
 
@@ -158,15 +164,21 @@ const checkTxSize = (builder: {
   txn: VersionedTransaction;
   addressLookupTableAccounts: AddressLookupTableAccount[];
 }) => {
-  const totalSize = builder.txn.message.serialize().length;
-  const totalKeys = builder.txn.message.getAccountKeys({
-    addressLookupTableAccounts: builder.addressLookupTableAccounts,
-  }).length;
+  try {
+    const totalSize = builder.txn.message.serialize().length;
+    const totalKeys = builder.txn.message.getAccountKeys({
+      addressLookupTableAccounts: builder.addressLookupTableAccounts,
+    }).length;
 
-  if (totalSize > 1232 || totalKeys >= 64) {
+    console.log({ totalSize });
+
+    if (totalSize > 1158 || totalKeys >= 64) {
+      throw new Error("TX doesn't fit");
+    } else {
+      return builder.txn;
+    }
+  } catch (error) {
     // too big
-  } else {
-    return builder.txn;
   }
 };
 
@@ -211,7 +223,8 @@ export async function loopingBuilder({
     options.loopingBank.address,
     [swapIx],
     swapLUTs,
-    priorityFee
+    priorityFee,
+    false
   );
 
   return { txn: transaction, addressLookupTableAccounts };
@@ -278,7 +291,12 @@ export interface SimulateLoopingActionProps {
   loopingTxn: VersionedTransaction | null;
 }
 
-export async function simulateLooping({ marginfiClient, account, bank, loopingTxn }: SimulateLoopingActionProps) {
+export async function simulateLooping({
+  marginfiClient,
+  account,
+  bank,
+  loopingTxn,
+}: SimulateLoopingActionProps): Promise<SimulationResult | null> {
   let simulationResult: SimulationResult;
 
   if (loopingTxn && marginfiClient) {
@@ -304,14 +322,83 @@ export async function simulateLooping({ marginfiClient, account, bank, loopingTx
       mfiAccountData
     );
 
-    return (simulationResult = {
+    return {
       banks: previewBanks,
       marginfiAccount: previewMarginfiAccount,
-    });
+    };
   }
+  return null;
 }
 
-export async function calculatePreview(simulationResult: SimulationResult, bank: ExtendedBankInfo) {
+export function generateStats(
+  accountSummary: AccountSummary,
+  tokenBank: ExtendedBankInfo,
+  usdcBank: ExtendedBankInfo,
+  simulationResult: SimulationResult | null
+) {
+  let simStats: StatResult | null = null;
+
+  if (simulationResult) {
+    simStats = getSimulationStats(simulationResult, tokenBank, usdcBank);
+  }
+
+  const currentStats = getCurrentStats(accountSummary, tokenBank, usdcBank);
+
+  const currentLiqPrice = currentStats.liquidationPrice ? usdFormatter.format(currentStats.liquidationPrice) : null;
+  const simulatedLiqPrice = simStats?.liquidationPrice ? usdFormatter.format(simStats?.liquidationPrice) : null;
+  const showLiqComparison = currentLiqPrice && simulatedLiqPrice;
+
+  let oracle = "";
+  switch (tokenBank?.info.rawBank.config.oracleSetup) {
+    case "PythEma":
+      oracle = "Pyth";
+      break;
+    case "SwitchboardV2":
+      oracle = "Switchboard";
+      break;
+  }
+
+  return (
+    <dl className="w-full grid grid-cols-2 gap-1.5 text-xs text-muted-foreground">
+      <dt>Entry Price</dt>
+      <dd className="text-primary text-right">{usdFormatter.format(tokenBank.info.state.price)}</dd>
+      <dt>Liquidation Price</dt>
+      <dd className="text-primary text-right flex flex-row gap-2">
+        {currentLiqPrice && <span>{currentLiqPrice}</span>}
+        {showLiqComparison && <IconArrowRight width={12} height={12} />}
+        {simulatedLiqPrice && <span>{simulatedLiqPrice}</span>}
+      </dd>
+      <dt>Oracle</dt>
+      <dd className="text-primary flex items-center gap-1 ml-auto">
+        {oracle}
+        {oracle === "Pyth" ? <IconPyth size={14} /> : <IconSwitchboard size={14} />}
+      </dd>
+      <dt>Total Longed</dt>
+      <dd className="text-primary text-right">
+        {tokenBank.info.state.totalDeposits.toFixed(2)} {tokenBank.meta.tokenSymbol}
+      </dd>
+      <dt>Total Shorted</dt>
+      <dd className="text-primary text-right">
+        {tokenBank.info.state.totalBorrows.toFixed(2)} {tokenBank.meta.tokenSymbol}
+      </dd>
+    </dl>
+  );
+
+  // health comparison
+}
+
+interface StatResult {
+  tokenPositionAmount: number;
+  usdcPositionAmount: number;
+  healthFactor: number;
+  liquidationPrice: number | null;
+}
+
+export function getSimulationStats(
+  simulationResult: SimulationResult,
+  tokenBank: ExtendedBankInfo,
+  usdcBank: ExtendedBankInfo
+): StatResult {
   let simulationPreview: any | undefined = undefined;
 
   const { assets, liabilities } = simulationResult.marginfiAccount.computeHealthComponents(
@@ -321,31 +408,80 @@ export async function calculatePreview(simulationResult: SimulationResult, bank:
     MarginRequirementType.Initial
   );
 
-  const health = assets.minus(liabilities).dividedBy(assets).toNumber();
-  const liquidationPrice = simulationResult.marginfiAccount.computeLiquidationPriceForBank(bank.address);
-  const { lendingRate, borrowingRate } = simulationResult.banks.get(bank.address.toBase58())!.computeInterestRates();
+  const healthFactor = assets.minus(liabilities).dividedBy(assets).toNumber();
+  const liquidationPrice = simulationResult.marginfiAccount.computeLiquidationPriceForBank(tokenBank.address);
+  // const { lendingRate, borrowingRate } = simulationResult.banks.get(bank.address.toBase58())!.computeInterestRates();
 
-  const position = simulationResult.marginfiAccount.activeBalances.find(
-    (b) => b.active && b.bankPk.equals(bank.address)
+  // Token position
+  const tokenPosition = simulationResult.marginfiAccount.activeBalances.find(
+    (b) => b.active && b.bankPk.equals(tokenBank.address)
   );
-  let positionAmount = 0;
-  if (position && position.liabilityShares.gt(0)) {
-    positionAmount = position.computeQuantityUi(bank.info.rawBank).liabilities.toNumber();
-  } else if (position && position.assetShares.gt(0)) {
-    positionAmount = position.computeQuantityUi(bank.info.rawBank).assets.toNumber();
+  let tokenPositionAmount = 0;
+  if (tokenPosition && tokenPosition.liabilityShares.gt(0)) {
+    tokenPositionAmount = tokenPosition.computeQuantityUi(tokenBank.info.rawBank).liabilities.toNumber();
+  } else if (tokenPosition && tokenPosition.assetShares.gt(0)) {
+    tokenPositionAmount = tokenPosition.computeQuantityUi(tokenBank.info.rawBank).assets.toNumber();
   }
+
+  // usdc position
+  const usdcPosition = simulationResult.marginfiAccount.activeBalances.find(
+    (b) => b.active && b.bankPk.equals(usdcBank.address)
+  );
+  let usdcPositionAmount = 0;
+  if (usdcPosition && usdcPosition.liabilityShares.gt(0)) {
+    usdcPositionAmount = usdcPosition.computeQuantityUi(usdcBank.info.rawBank).liabilities.toNumber();
+  } else if (usdcPosition && usdcPosition.assetShares.gt(0)) {
+    usdcPositionAmount = usdcPosition.computeQuantityUi(usdcBank.info.rawBank).assets.toNumber();
+  }
+
   const availableCollateral = simulationResult.marginfiAccount.computeFreeCollateral().toNumber();
 
-  simulationPreview = {
-    health,
+  return {
+    tokenPositionAmount,
+    usdcPositionAmount,
+    healthFactor,
     liquidationPrice,
-    depositRate: lendingRate.toNumber(),
-    borrowRate: borrowingRate.toNumber(),
-    positionAmount,
-    availableCollateral: {
-      amount: availableCollateral,
-      ratio: availableCollateral / assetsInit.toNumber(),
-    },
+    // depositRate: lendingRate.toNumber(),
+    // borrowRate: borrowingRate.toNumber(),
+    // availableCollateral: {
+    //   amount: availableCollateral,
+    //   ratio: availableCollateral / assetsInit.toNumber(),
+    // },
+  };
+}
+
+export function getCurrentStats(
+  accountSummary: AccountSummary,
+  tokenBank: ExtendedBankInfo,
+  usdcBank: ExtendedBankInfo
+): StatResult {
+  const tokenPositionAmount = tokenBank?.isActive ? tokenBank.position.amount : 0;
+  const usdcPositionAmount = usdcBank?.isActive ? usdcBank.position.amount : 0;
+  const healthFactor = !accountSummary.balance || !accountSummary.healthFactor ? 1 : accountSummary.healthFactor;
+
+  // always token asset liq price
+  const liquidationPrice =
+    tokenBank.isActive && tokenBank.position.liquidationPrice && tokenBank.position.liquidationPrice > 0.01
+      ? tokenBank.position.liquidationPrice
+      : null;
+
+  // const poolSize = isLending
+  //   ? bank.info.state.totalDeposits
+  //   : Math.max(
+  //       0,
+  //       Math.min(bank.info.state.totalDeposits, bank.info.rawBank.config.borrowLimit.toNumber()) -
+  //         bank.info.state.totalBorrows
+  //     );
+  // const bankCap = nativeToUi(
+  //   isLending ? bank.info.rawBank.config.depositLimit : bank.info.rawBank.config.borrowLimit,
+  //   bank.info.state.mintDecimals
+  // );
+
+  return {
+    tokenPositionAmount,
+    usdcPositionAmount,
+    healthFactor,
+    liquidationPrice,
   };
 }
 
