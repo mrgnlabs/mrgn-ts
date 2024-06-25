@@ -2,7 +2,7 @@ import React from "react";
 
 import Image from "next/image";
 
-import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActionType, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { numeralFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 
 import { getTokenImageURL } from "~/utils";
@@ -21,7 +21,11 @@ export const PositionList = () => {
     state.banksIncludingUSDC,
   ]);
 
-  if (!initialized || !selectedAccount) return null;
+  const portfolio = React.useMemo(() => {
+    return banks.filter((bank) => bank.isActive) as ActiveBankInfo[];
+  }, [banks]);
+
+  if (!initialized || !selectedAccount || portfolio.length === 0) return null;
   return (
     <div className="rounded-xl">
       <Table>
@@ -37,9 +41,7 @@ export const PositionList = () => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {banks.map((bank, index) => {
-            if (!bank.isActive) return null;
-
+          {portfolio.map((bank, index) => {
             const collateralBank = banksIncludingUSDC.find((bank, i) => {
               if (!bank || i === banksIncludingUSDC.length - 1) return false;
               return bank.address.equals(bank.address);
