@@ -22,8 +22,8 @@ import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { useConnection } from "~/hooks/useConnection";
-import { MarginfiAccountWrapper, computeMaxLeverage } from "@mrgnlabs/marginfi-client-v2";
-import { LoopingObject, calculateLooping, simulateLooping } from "./tradingBox.utils";
+import { MarginfiAccountWrapper, SimulationResult, computeMaxLeverage } from "@mrgnlabs/marginfi-client-v2";
+import { LoopingObject, calculateLooping, generateStats, simulateLooping } from "./tradingBox.utils";
 import { useDebounce } from "~/hooks/useDebounce";
 import { usePrevious } from "~/utils";
 
@@ -41,11 +41,11 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
   const { connection } = useConnection();
   const [tradeState, setTradeState] = React.useState<TradeSide>("long");
   const prevTradeState = usePrevious(tradeState);
-  // const [selectedPool, setSelectedPool] = React.useState<ExtendedBankInfo | null>(activeBank || null);
   const [amount, setAmount] = React.useState<string>("");
   const [loopingObject, setLoopingObject] = React.useState<LoopingObject | null>(null);
   const [leverage, setLeverage] = React.useState(0);
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
+  const [Stats, setStats] = React.useState<React.JSX.Element>(<></>);
 
   const debouncedLeverage = useDebounce(leverage, 1000);
   const debouncedAmount = useDebounce(amount, 1000);
@@ -59,16 +59,17 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
     }
   }, [tradeState, loopingObject]);
 
-  const [activeGroup, setActiveBank, marginfiAccounts, marginfiClient] = useTradeStore((state) => [
-    state.activeGroup,
-    state.setActiveBank,
-    state.marginfiAccounts,
-    state.marginfiClient,
-  ]);
-  const [selectedAccount, extendedBankInfos] = useMrgnlendStore((state) => [
-    state.selectedAccount,
-    state.extendedBankInfos,
-  ]);
+  const [selectedAccount, activeGroup, accountSummary, setActiveBank, marginfiAccounts, marginfiClient] = useTradeStore(
+    (state) => [
+      state.selectedAccount,
+      state.activeGroup,
+      state.accountSummary,
+      state.setActiveBank,
+      state.marginfiAccounts,
+      state.marginfiClient,
+    ]
+  );
+  const [_, extendedBankInfos] = useMrgnlendStore((state) => [state.selectedAccount, state.extendedBankInfos]);
 
   React.useEffect(() => {
     if (tradeState !== prevTradeState) {
@@ -86,7 +87,7 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
   );
 
   const tempBorrowBank = React.useMemo(
-    () => extendedBankInfos.find((value) => value.meta.tokenSymbol.toLowerCase().includes("jitosol")),
+    () => extendedBankInfos.find((value) => value.meta.tokenSymbol.toLowerCase().includes("sol")) as any,
     [extendedBankInfos]
   );
 
@@ -99,11 +100,14 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
 
   const maxLeverage = React.useMemo(() => {
     if (activeGroup) {
-      const { maxLeverage, ltv } = computeMaxLeverage(activeGroup.usdc.info.rawBank, activeGroup.token.info.rawBank);
+      const deposit = tradeState === "long" ? activeGroup.token.info.rawBank : activeGroup.usdc.info.rawBank;
+      const borrow = tradeState === "long" ? activeGroup.usdc.info.rawBank : activeGroup.token.info.rawBank;
+
+      const { maxLeverage, ltv } = computeMaxLeverage(deposit, borrow);
       return maxLeverage;
     }
     return 0;
-  }, [activeGroup]);
+  }, [activeGroup, tradeState]);
 
   const collateralBank = React.useMemo(() => {
     if (activeGroup) {
@@ -152,6 +156,7 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
         );
 
         if (looping) {
+          await handleSimulation(looping.loopingTxn, activeGroup.token, selectedAccount);
           // const simulation = await simulateLooping({
           //   marginfiClient,
           //   account: selectedAccount,
@@ -174,14 +179,37 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
       if (!marginfiClient) {
         return;
       }
-      const simulationResult = await simulateLooping({
-        marginfiClient,
-        account: selectedAccount,
-        bank: bank,
-        loopingTxn: loopingTxn,
-      });
+
+      let simulationResult = null;
+      try {
+        simulationResult = await simulateLooping({
+          marginfiClient,
+          account: selectedAccount,
+          bank: bank,
+          loopingTxn: loopingTxn,
+        });
+      } catch (error) {
+      } finally {
+        loadStats(simulationResult);
+      }
     },
     [marginfiClient]
+  );
+
+  React.useEffect(() => {
+    if (activeGroup) {
+      setStats(generateStats(accountSummary, activeGroup.token, activeGroup.usdc, null));
+    }
+  }, [accountSummary, activeGroup?.token, activeGroup?.usdc]);
+
+  const loadStats = React.useCallback(
+    async (simulationResult: SimulationResult | null) => {
+      if (!marginfiClient || !activeGroup) {
+        return;
+      }
+      setStats(generateStats(accountSummary, activeGroup.token, activeGroup.usdc, simulationResult));
+    },
+    [accountSummary, activeGroup, marginfiClient]
   );
 
   const handleShorting = React.useCallback(async () => {
@@ -336,7 +364,8 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
                 </Button>
               </ActionBoxDialog>
             </div>
-            <dl className="w-full grid grid-cols-2 gap-1.5 text-xs text-muted-foreground">
+            {Stats}
+            {/* <dl className="w-full grid grid-cols-2 gap-1.5 text-xs text-muted-foreground">
               <dt>Entry Price</dt>
               <dd className="text-primary text-right">$177.78</dd>
               <dt>Liquidation Price</dt>
@@ -347,7 +376,7 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
               </dd>
               <dt>Available Liquidity</dt>
               <dd className="text-primary text-right">$1,000,000</dd>
-            </dl>
+            </dl> */}
           </>
         ) : (
           <ActionBoxDialog requestedAction={ActionType.Deposit} requestedBank={activeGroup.usdc}>
