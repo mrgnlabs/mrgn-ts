@@ -1,90 +1,78 @@
 import React from "react";
 
 import Image from "next/image";
-import Link from "next/link";
 
-import { IconTrendingUp, IconTrendingDown } from "@tabler/icons-react";
-import { usdFormatter } from "@mrgnlabs/mrgn-common";
-import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
+import { numeralFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
+import { ActionType, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { cn, getTokenImageURL } from "~/utils";
-import { useMrgnlendStore } from "~/store";
+import { getTokenImageURL } from "~/utils";
+import { useTradeStore } from "~/store";
 
 import { ActionBoxDialog } from "~/components/common/ActionBox";
 import { Button } from "~/components/ui/button";
 
-import type { Position } from "~/types";
-
 type PositionCardProps = {
-  position: Position;
+  bank: ActiveBankInfo;
 };
 
-export const PositionCard = ({ position }: PositionCardProps) => {
-  const [extendedBankInfos] = useMrgnlendStore((state) => [state.extendedBankInfos]);
-  const pnlPositive = position.pnl > 0;
+export const PositionCard = ({ bank }: PositionCardProps) => {
+  const [banksIncludingUSDC] = useTradeStore((state) => [state.banksIncludingUSDC]);
 
-  const usdc = React.useMemo(() => {
-    const bank = extendedBankInfos.find((bank) => bank.meta.tokenSymbol === "USDC");
-    return bank || null;
-  }, [extendedBankInfos]);
+  const collateralBank = React.useMemo(
+    () =>
+      banksIncludingUSDC.find((bank, i) => {
+        if (!bank || i === banksIncludingUSDC.length - 1) return false;
+        return bank.address.equals(bank.address);
+      }),
+    [banksIncludingUSDC, bank]
+  );
 
   return (
     <div className="bg-background-gray p-4 rounded-2xl space-y-4">
       <div className="flex items-center gap-4 justify-between">
         <div className="flex items-center gap-4 font-medium text-muted-foreground">
           <Image
-            src={getTokenImageURL(position.bank.meta.tokenSymbol)}
-            alt={position.bank.meta.tokenSymbol}
+            src={getTokenImageURL(bank.meta.tokenSymbol)}
+            alt={bank.meta.tokenSymbol}
             width={56}
             height={56}
             className="rounded-full"
           />
           <div className="leading-none space-y-0.5">
-            <h2 className="text-lg text-primary">{position.bank.meta.tokenName}</h2>
-            <h3>{position.bank.meta.tokenSymbol}</h3>
+            <h2 className="text-lg text-primary">{bank.meta.tokenName}</h2>
+            <h3>{bank.meta.tokenSymbol}</h3>
           </div>
-        </div>
-        <div className={cn("flex items-center gap-2 text-lg font-medium", pnlPositive ? "text-success" : "text-error")}>
-          <p>
-            {pnlPositive && "+"}
-            {position.pnl}%
-          </p>
-          {pnlPositive ? <IconTrendingUp size={18} /> : <IconTrendingDown size={18} />}
         </div>
       </div>
       <div className="bg-background rounded-xl p-4">
         <dl className="w-full grid grid-cols-2 text-sm text-muted-foreground gap-1">
           <dt>Size</dt>
           <dd className="text-right text-primary">
-            {position.size} {position.bank.meta.tokenSymbol}
+            {numeralFormatter(bank.position.amount)} {bank.meta.tokenSymbol}
           </dd>
-          <dt>Leverage</dt>
-          <dd className="text-right text-primary">{position.leverage}x</dd>
-          <dt>Entry Price</dt>
-          <dd className="text-right text-primary">{usdFormatter.format(position.entryPrice)}</dd>
-          <dt>Mark Price</dt>
-          <dd className="text-right text-primary">{usdFormatter.format(position.markPrice)}</dd>
-          <dt>Liquidation Price</dt>
-          <dd className="text-right text-primary">{usdFormatter.format(position.liquidationPrice)}</dd>
-          <dt>PnL</dt>
-          <dd className={cn("text-right", pnlPositive ? "text-success" : "text-error")}>
-            {position.pnl > 0 && "+"}
-            {position.pnl}%
+          <dt>USD Value</dt>
+          <dd className="text-right text-primary">{usdFormatter.format(bank.position.usdValue)}</dd>
+          <dt>Price</dt>
+          <dd className="text-right text-primary">
+            {usdFormatter.format(bank.info.oraclePrice.priceRealtime.price.toNumber())}
           </dd>
+          {bank.position.liquidationPrice && (
+            <>
+              <dt>Liquidation Price</dt>
+              <dd className="text-right text-primary">{usdFormatter.format(bank.position.liquidationPrice)}</dd>
+            </>
+          )}
         </dl>
       </div>
       <div className="flex items-center justify-between gap-4">
-        <Link href={`/trade/${position.bank.address.toBase58()}`}>
-          <Button variant="secondary">View position</Button>
-        </Link>
-        <ActionBoxDialog requestedBank={usdc} requestedAction={ActionType.Deposit}>
-          <Button variant="secondary">Add collateral</Button>
+        <ActionBoxDialog requestedBank={bank} requestedAction={ActionType.Withdraw}>
+          <Button variant="secondary">Withdraw</Button>
         </ActionBoxDialog>
-        <ActionBoxDialog requestedBank={position.bank} requestedAction={ActionType.Repay}>
-          <Button variant="destructive" className="ml-auto">
-            Close
-          </Button>
-        </ActionBoxDialog>
+        {collateralBank && (
+          <ActionBoxDialog requestedBank={collateralBank} requestedAction={ActionType.Deposit}>
+            <Button variant="secondary">Add collateral</Button>
+          </ActionBoxDialog>
+        )}
       </div>
     </div>
   );

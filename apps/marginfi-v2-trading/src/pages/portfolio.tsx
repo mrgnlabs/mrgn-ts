@@ -1,70 +1,33 @@
 import React from "react";
 
-import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-
-import { useMrgnlendStore } from "~/store";
+import { useTradeStore } from "~/store";
 
 import { PageHeading } from "~/components/common/PageHeading";
 import { PositionCard } from "~/components/common/Portfolio/PositionCard";
 import { Loader } from "~/components/ui/loader";
 
-import type { Position } from "~/types";
-
-type Portfolio = {
-  long: Position[];
-  short: Position[];
-} | null;
+import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 export default function PortfolioPage() {
-  const [initialized, extendedBankInfos] = useMrgnlendStore((state) => [state.initialized, state.extendedBankInfos]);
+  const [initialized, selectedAccount, banks, banksIncludingUSDC] = useTradeStore((state) => [
+    state.initialized,
+    state.selectedAccount,
+    state.banks,
+    state.banksIncludingUSDC,
+  ]);
 
-  const portfolio: Portfolio = React.useMemo(() => {
-    const bonk = extendedBankInfos?.find((bank) => bank.meta.tokenSymbol === "Bonk");
-    const wif = extendedBankInfos?.find((bank) => bank.meta.tokenSymbol === "$WIF");
-    const boden = extendedBankInfos?.find((bank) => bank.meta.tokenSymbol === "BODEN");
+  const portfolio = React.useMemo(() => {
+    const activeBanks = banks.filter((bank) => bank.isActive);
+    const longBanks = activeBanks.filter((bank) => bank.isActive && bank.position.isLending);
+    const shortBanks = activeBanks.filter((bank) => bank.isActive && !bank.position.isLending);
 
-    if (!bonk || !wif || !boden) {
-      return null;
-    }
+    if (!longBanks.length && !shortBanks.length) return null;
 
     return {
-      long: [
-        {
-          bank: bonk,
-          type: "long",
-          size: 100,
-          leverage: 5,
-          entryPrice: 100,
-          markPrice: 110,
-          liquidationPrice: 90,
-          pnl: +10,
-        },
-
-        {
-          bank: boden,
-          type: "long",
-          size: 100,
-          leverage: 5,
-          entryPrice: 100,
-          markPrice: 100,
-          liquidationPrice: 90,
-          pnl: +15,
-        },
-      ],
-      short: [
-        {
-          bank: wif,
-          type: "short",
-          size: 100,
-          leverage: 5,
-          entryPrice: 100,
-          markPrice: 90,
-          liquidationPrice: 110,
-          pnl: -5,
-        },
-      ],
+      long: longBanks as ActiveBankInfo[],
+      short: shortBanks as ActiveBankInfo[],
     };
-  }, [extendedBankInfos]);
+  }, [banks]);
 
   return (
     <div className="w-full max-w-8xl mx-auto px-4 md:px-8 pb-28">
@@ -82,16 +45,16 @@ export default function PortfolioPage() {
                 <div className="space-y-6">
                   <h2 className="text-2xl font-medium">Long positions</h2>
                   <div className="space-y-8">
-                    {portfolio.long.map((position, index) => (
-                      <PositionCard key={index} position={position} />
+                    {portfolio.long.map((bank, index) => (
+                      <PositionCard key={index} bank={bank} />
                     ))}
                   </div>
                 </div>
                 <div className="space-y-6">
                   <h2 className="text-2xl font-medium">Short positions</h2>
                   <div className="space-y-8">
-                    {portfolio.short.map((position, index) => (
-                      <PositionCard key={index} position={position} />
+                    {portfolio.short.map((bank, index) => (
+                      <PositionCard key={index} bank={bank} />
                     ))}
                   </div>
                 </div>
