@@ -128,14 +128,3 @@ export type PreviousTxn = {
   txn: string;
   lstQuote?: QuoteResponseMeta;
 };
-
-export type Position = {
-  bank: ExtendedBankInfo;
-  type: "long" | "short";
-  size: number;
-  leverage: number;
-  entryPrice: number;
-  markPrice: number;
-  liquidationPrice: number;
-  pnl: number;
-};
