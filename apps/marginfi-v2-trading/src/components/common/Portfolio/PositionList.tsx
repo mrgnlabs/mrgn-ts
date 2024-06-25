@@ -27,13 +27,13 @@ export const PositionList = () => {
       <Table>
         <TableHeader>
           <TableRow className="hover:bg-transparent">
-            <TableHead>Position</TableHead>
-            <TableHead>Token</TableHead>
-            <TableHead>Size</TableHead>
-            <TableHead>USD Value</TableHead>
-            <TableHead>Price</TableHead>
-            <TableHead>Liquidation price</TableHead>
-            <TableHead></TableHead>
+            <TableHead className="w-[14%]">Position</TableHead>
+            <TableHead className="w-[14%]">Token</TableHead>
+            <TableHead className="w-[14%]">Size</TableHead>
+            <TableHead className="w-[14%]">USD Value</TableHead>
+            <TableHead className="w-[14%]">Price</TableHead>
+            <TableHead className="w-[14%]">Liquidation price</TableHead>
+            <TableHead className="w-[14%]"></TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -81,7 +81,7 @@ export const PositionList = () => {
                   )}
                 </TableCell>
                 <TableCell className="text-right">
-                  <div className="flex gap-2">
+                  <div className="flex gap-3 justify-end">
                     {collateralBank && (
                       <ActionBoxDialog requestedAction={ActionType.Deposit} requestedBank={collateralBank}>
                         <Button variant="secondary" size="sm">
