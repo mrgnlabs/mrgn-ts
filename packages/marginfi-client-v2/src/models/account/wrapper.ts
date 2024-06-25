@@ -28,7 +28,6 @@ import { AccountType, MarginfiConfig, MarginfiProgram } from "../../types";
 import { MarginfiAccount, MarginRequirementType, MarginfiAccountRaw } from "./pure";
 import { Bank } from "../bank";
 import { Balance } from "../balance";
-import { makePriorityFeeIx } from "../../utils";
 
 export interface SimulationResult {
   banks: Map<string, Bank>;
@@ -281,6 +280,31 @@ class MarginfiAccountWrapper {
     );
   }
 
+  makePriorityFeeIx(priorityFeeUi?: number): TransactionInstruction[] {
+    const priorityFeeIx: TransactionInstruction[] = [];
+    const limitCU = 1_400_000;
+
+    let microLamports: number = 1;
+
+    if (priorityFeeUi) {
+      // if priority fee is above 0.2 SOL discard it for safety reasons
+      const isAbsurdPriorityFee = priorityFeeUi > 0.2;
+
+      if (!isAbsurdPriorityFee) {
+        const priorityFeeMicroLamports = priorityFeeUi * LAMPORTS_PER_SOL * 1_000_000;
+        microLamports = Math.round(priorityFeeMicroLamports / limitCU);
+      }
+    }
+
+    priorityFeeIx.push(
+      ComputeBudgetProgram.setComputeUnitPrice({
+        microLamports,
+      })
+    );
+
+    return priorityFeeIx;
+  }
+
   makeComputeBudgetIx(): TransactionInstruction[] {
     // Add additional CU request if necessary
     let cuRequestIxs: TransactionInstruction[] = [];
@@ -422,7 +446,7 @@ class MarginfiAccountWrapper {
   ): Promise<{ transaction: VersionedTransaction; addressLookupTableAccounts: AddressLookupTableAccount[] }> {
     const setupIxs = await this.makeSetupIx([withdrawBankAddress, repayBankAddress]);
     const cuRequestIxs = this.makeComputeBudgetIx();
-    const priorityFeeIx = makePriorityFeeIx(priorityFeeUi);
+    const priorityFeeIx = this.makePriorityFeeIx(priorityFeeUi);
     const withdrawIxs = await this.makeWithdrawIx(repayAmount, repayBankAddress, withdrawAll, {
       createAtas: false,
       wrapAndUnwrapSol: false,
@@ -549,15 +573,15 @@ class MarginfiAccountWrapper {
     const borrowBank = this.client.banks.get(borrowBankAddress.toBase58());
     if (!borrowBank) throw Error("Borrow bank not found");
 
-    const setupIxs = await this.makeSetupIx([borrowBankAddress]);
+    const setupIxs = await this.makeSetupIx([depositBankAddress, borrowBankAddress]);
     const cuRequestIxs = this.makeComputeBudgetIx();
-    const priorityFeeIx = makePriorityFeeIx(priorityFeeUi);
+    const priorityFeeIx = this.makePriorityFeeIx(priorityFeeUi);
     const borrowIxs = await this.makeBorrowIx(borrowAmount, borrowBankAddress, {
       createAtas: false,
       wrapAndUnwrapSol: false,
     });
     const depositIxs = await this.makeDepositIx(depositAmount, depositBankAddress, {
-      wrapAndUnwrapSol: false,
+      wrapAndUnwrapSol: true,
     });
     const lookupTables = this.client.addressLookupTables;
     const addressLookupTableAccounts = [...lookupTables, ...swapLookupTables];
@@ -592,7 +616,7 @@ class MarginfiAccountWrapper {
   ): Promise<string> {
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:deposit`);
     debug("Depositing %s into marginfi account (bank: %s)", amount, shortenAddress(bankAddress));
-    const priorityFeeIx = makePriorityFeeIx(priorityFeeUi);
+    const priorityFeeIx = this.makePriorityFeeIx(priorityFeeUi);
     const ixs = await this.makeDepositIx(amount, bankAddress, opt);
     const tx = new Transaction().add(...priorityFeeIx, ...ixs.instructions);
     const sig = await this.client.processTransaction(tx, []);
@@ -644,7 +668,7 @@ class MarginfiAccountWrapper {
   ): Promise<string> {
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:repay`);
     debug("Repaying %s into marginfi account (bank: %s), repay all: %s", amount, bankAddress, repayAll);
-    const priorityFeeIx = makePriorityFeeIx(priorityFeeUi);
+    const priorityFeeIx = this.makePriorityFeeIx(priorityFeeUi);
     const ixs = await this.makeRepayIx(amount, bankAddress, repayAll);
     const tx = new Transaction().add(...priorityFeeIx, ...ixs.instructions);
     const sig = await this.client.processTransaction(tx, []);
@@ -704,7 +728,7 @@ class MarginfiAccountWrapper {
   ): Promise<string> {
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:withdraw`);
     debug("Withdrawing %s from marginfi account", amount);
-    const priorityFeeIx = makePriorityFeeIx(priorityFeeUi);
+    const priorityFeeIx = this.makePriorityFeeIx(priorityFeeUi);
     const cuRequestIxs = this.makeComputeBudgetIx();
     const ixs = await this.makeWithdrawIx(amount, bankAddress, withdrawAll);
     const tx = new Transaction().add(...priorityFeeIx, ...cuRequestIxs, ...ixs.instructions);
@@ -756,7 +780,7 @@ class MarginfiAccountWrapper {
   async borrow(amount: Amount, bankAddress: PublicKey, priorityFeeUi?: number): Promise<string> {
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:borrow`);
     debug("Borrowing %s from marginfi account", amount);
-    const priorityFeeIx = makePriorityFeeIx(priorityFeeUi);
+    const priorityFeeIx = this.makePriorityFeeIx(priorityFeeUi);
     const cuRequestIxs = this.makeComputeBudgetIx();
     const ixs = await this.makeBorrowIx(amount, bankAddress);
     const tx = new Transaction().add(...priorityFeeIx, ...cuRequestIxs, ...ixs.instructions);
