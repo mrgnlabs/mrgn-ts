@@ -25,6 +25,7 @@ import { useConnection } from "~/hooks/useConnection";
 import { MarginfiAccountWrapper, computeMaxLeverage } from "@mrgnlabs/marginfi-client-v2";
 import { LoopingObject, calculateLooping, simulateLooping } from "./tradingBox.utils";
 import { useDebounce } from "~/hooks/useDebounce";
+import { usePrevious } from "~/utils";
 
 type TradeSide = "long" | "short";
 
@@ -38,8 +39,8 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
   const router = useRouter();
   const { wallet } = useWalletContext();
   const { connection } = useConnection();
-  const [collateralBanks] = useTradeStore((state) => [state]);
   const [tradeState, setTradeState] = React.useState<TradeSide>("long");
+  const prevTradeState = usePrevious(tradeState);
   // const [selectedPool, setSelectedPool] = React.useState<ExtendedBankInfo | null>(activeBank || null);
   const [amount, setAmount] = React.useState<string>("");
   const [loopingObject, setLoopingObject] = React.useState<LoopingObject | null>(null);
@@ -49,11 +50,17 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
   const debouncedLeverage = useDebounce(leverage, 1000);
   const debouncedAmount = useDebounce(amount, 1000);
 
-  const borrowAmount = React.useMemo(() => loopingObject?.borrowAmount.toString(), [loopingObject]);
+  // const borrowAmount = React.useMemo(() => loopingObject?.borrowAmount.toNumber(), [loopingObject]);
+  const leveragedAmount = React.useMemo(() => {
+    if (tradeState === "long") {
+      return loopingObject?.actualDepositAmount;
+    } else {
+      return loopingObject?.borrowAmount.toNumber();
+    }
+  }, [tradeState, loopingObject]);
 
-  const [setActiveBank, marginfiAccounts, marginfiClient] = useTradeStore((state) => [
-    //activeGroup,
-    // state.activeGroup,
+  const [activeGroup, setActiveBank, marginfiAccounts, marginfiClient] = useTradeStore((state) => [
+    state.activeGroup,
     state.setActiveBank,
     state.marginfiAccounts,
     state.marginfiClient,
@@ -62,6 +69,14 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
     state.selectedAccount,
     state.extendedBankInfos,
   ]);
+
+  React.useEffect(() => {
+    if (tradeState !== prevTradeState) {
+      setAmount("");
+      setLoopingObject(null);
+      setLeverage(1);
+    }
+  }, [tradeState, prevTradeState]);
 
   const numberFormater = React.useMemo(() => new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 }), []);
 
@@ -75,12 +90,10 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
     [extendedBankInfos]
   );
 
-  const activeGroup = React.useMemo(
-    () => (tempBorrowBank && tempUsdcDepositBank ? { token: tempBorrowBank, usdc: tempUsdcDepositBank } : null),
-    [tempUsdcDepositBank, tempBorrowBank]
-  );
-
-  // const calculateLooping
+  // const activeGroup = React.useMemo(
+  //   () => (tempBorrowBank && tempUsdcDepositBank ? { token: tempBorrowBank, usdc: tempUsdcDepositBank } : null),
+  //   [tempUsdcDepositBank, tempBorrowBank]
+  // );
 
   const isActiveWithCollat = true;
 
@@ -92,17 +105,22 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
     return 0;
   }, [activeGroup]);
 
-  const maxAmount = React.useMemo(() => {
-    if (activeGroup && activeGroup?.usdc?.isActive) {
-      const usdcBank = activeGroup.usdc;
-
-      const totalDeposited = usdcBank.position.amount;
-      const usdValue = usdcBank.position.usdValue;
-
-      return { maxAmount: totalDeposited, maxUsdValue: usdValue };
+  const collateralBank = React.useMemo(() => {
+    if (activeGroup) {
+      if (tradeState === "short") {
+        return activeGroup.usdc;
+      } else {
+        return activeGroup.token;
+      }
     }
-    return { maxAmount: 0, maxUsdValue: 0 };
-  }, [activeGroup]);
+  }, [activeGroup, tradeState]);
+
+  const maxAmount = React.useMemo(() => {
+    if (collateralBank) {
+      return collateralBank.userInfo.maxDeposit;
+    }
+    return 0;
+  }, [collateralBank]);
 
   const loadLoopingVariables = React.useCallback(async () => {
     if (selectedAccount && activeGroup) {
@@ -112,10 +130,21 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
         }
         setIsLoading(true);
         const slippageBps = 400;
+
+        let borrowBank, depositBank;
+
+        if (tradeState === "long") {
+          depositBank = activeGroup.token;
+          borrowBank = activeGroup.usdc;
+        } else {
+          depositBank = activeGroup.usdc;
+          borrowBank = activeGroup.token;
+        }
+
         const looping = await calculateLooping(
           selectedAccount,
-          activeGroup?.usdc,
-          activeGroup?.token,
+          depositBank,
+          borrowBank,
           leverage,
           Number(amount),
           slippageBps,
@@ -138,7 +167,7 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
         setIsLoading(false);
       }
     }
-  }, [leverage, amount, selectedAccount, activeGroup, marginfiClient]);
+  }, [leverage, tradeState, amount, selectedAccount, activeGroup, marginfiClient]);
 
   const handleSimulation = React.useCallback(
     async (loopingTxn: VersionedTransaction, bank: ExtendedBankInfo, selectedAccount: MarginfiAccountWrapper) => {
@@ -164,15 +193,15 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
 
   const handleAmountChange = React.useCallback(
     (amountRaw: string) => {
-      const amount = formatAmount(amountRaw, maxAmount.maxUsdValue, activeGroup?.usdc ?? null, numberFormater);
+      const amount = formatAmount(amountRaw, maxAmount, collateralBank ?? null, numberFormater);
       setAmount(amount);
     },
-    [maxAmount, activeGroup, numberFormater]
+    [maxAmount, collateralBank, numberFormater]
   );
 
   const handleMaxAmount = React.useCallback(() => {
     if (activeGroup) {
-      handleAmountChange(maxAmount.maxUsdValue.toString());
+      handleAmountChange(maxAmount.toString());
     }
   }, [activeGroup, maxAmount, handleAmountChange]);
 
@@ -230,7 +259,9 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
                   onChange={(e) => handleAmountChange(e.target.value)}
                   className=""
                 />
-                <span className="absolute inset-y-0 right-3 flex items-center text-xs text-muted-foreground">USD</span>
+                <span className="absolute inset-y-0 right-3 flex items-center text-xs text-muted-foreground">
+                  {collateralBank?.meta.tokenSymbol}
+                </span>
               </div>
             </div>
             <div className="space-y-1.5">
@@ -246,7 +277,7 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
                 <Input
                   type="text"
                   inputMode="decimal"
-                  value={borrowAmount}
+                  value={leveragedAmount ? leveragedAmount.toFixed(activeGroup.token.info.state.mintDecimals) : 0}
                   disabled
                   className="appearance-none border-none text-right focus-visible:ring-0 focus-visible:outline-none disabled:opacity-100 border-accent"
                 />
