@@ -13,7 +13,14 @@ import {
   DEFAULT_ACCOUNT_SUMMARY,
   AccountSummary,
 } from "@mrgnlabs/marginfi-v2-ui-state";
-import { MarginfiClient, getConfig, Bank, OraclePrice, MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
+import {
+  MarginfiClient,
+  getConfig,
+  Bank,
+  OraclePrice,
+  MarginfiAccountWrapper,
+  MarginRequirementType,
+} from "@mrgnlabs/marginfi-client-v2";
 import {
   Wallet,
   TokenMetadata,
@@ -258,6 +265,10 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
 
         if (selectedAccount) {
           accountSummary = computeAccountSummary(selectedAccount, [updatedTokenBank, updatedCollateralBank]);
+          const { assets, liabilities } = selectedAccount.computeHealthComponents(MarginRequirementType.Initial);
+          console.log("assets", assets.toNumber());
+          console.log("liabilities", liabilities.toNumber());
+          console.log("active balances", selectedAccount.activeBalances);
         }
       }
 
@@ -377,10 +388,27 @@ const fetchBanksAndTradeGroups = async (wallet: Wallet, connection: Connection) 
     tokenAccountMap = tokenData.tokenAccountMap;
   }
 
-  const [extendedBankInfos, extendedBankMetadatas] = banksWithPriceAndToken.reduce(
-    (acc, { bank, oraclePrice, tokenMetadata }) => {
+  const [extendedBankInfos, extendedBankMetadatas] = await banksWithPriceAndToken.reduce(
+    async (accPromise, { bank, oraclePrice, tokenMetadata }) => {
+      const acc = await accPromise;
       let userData;
       if (wallet?.publicKey) {
+        const bankKeys = tradeGroups[bank.group.toBase58()].map((bank) => new PublicKey(bank));
+        const marginfiClient = await MarginfiClient.fetch(
+          {
+            environment: "production",
+            cluster: "mainnet",
+            programId,
+            groupPk: bank.group,
+          },
+          wallet,
+          connection,
+          {
+            preloadedBankAddresses: bankKeys,
+          }
+        );
+        const marginfiAccounts = await marginfiClient.getMarginfiAccountsForAuthority(wallet.publicKey);
+        const marginfiAccount = marginfiAccounts[0];
         const tokenAccount = tokenAccountMap!.get(bank.mint.toBase58());
         if (!tokenAccount) {
           return acc;
@@ -388,7 +416,7 @@ const fetchBanksAndTradeGroups = async (wallet: Wallet, connection: Connection) 
         userData = {
           nativeSolBalance,
           tokenAccount,
-          marginfiAccount: null,
+          marginfiAccount,
         };
       }
       acc[0].push(makeExtendedBankInfo(tokenMetadata, bank, oraclePrice, undefined, userData));
@@ -396,7 +424,7 @@ const fetchBanksAndTradeGroups = async (wallet: Wallet, connection: Connection) 
 
       return acc;
     },
-    [[], []] as [ExtendedBankInfo[], ExtendedBankMetadata[]]
+    Promise.resolve([[], []] as [ExtendedBankInfo[], ExtendedBankMetadata[]])
   );
 
   allBanks.push(...extendedBankInfos);
