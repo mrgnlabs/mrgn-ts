@@ -22,7 +22,7 @@ const CONTENT = {
       description: "Solana's inflation protected, decentralized stable-asset",
     },
     {
-      url: "https://docs.marginfi.com/contracts/usdybx",
+      url: "https://docs.marginfi.com/ybx",
       image: `/images/articles/ybx-whitepaper.jpg`,
       title: "$YBX v1 - Whitepaper",
       description: "A stable-asset to capture blockchain monetary policy",
