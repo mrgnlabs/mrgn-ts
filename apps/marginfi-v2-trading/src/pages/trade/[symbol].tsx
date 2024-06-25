@@ -12,7 +12,7 @@ import { useWalletContext } from "~/hooks/useWalletContext";
 
 import { TVWidget } from "~/components/common/TVWidget";
 import { TradingBox } from "~/components/common/TradingBox";
-import { Positions } from "~/components/common/Positions";
+import { PositionList } from "~/components/common/Portfolio";
 import { Loader } from "~/components/ui/loader";
 
 export default function TradeSymbolPage() {
@@ -45,7 +45,7 @@ export default function TradeSymbolPage() {
               <TradingBox activeBank={activeGroup.token} />
             </aside>
             <div className="col-span-12 space-y-8">
-              <Positions />
+              <PositionList />
             </div>
           </div>
         </div>
