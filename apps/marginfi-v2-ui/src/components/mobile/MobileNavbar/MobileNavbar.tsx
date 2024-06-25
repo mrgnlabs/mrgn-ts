@@ -28,7 +28,7 @@ export const mobileLinks: NavLinkInfo[] = [
   },
   {
     href: "/stake",
-    alt: "mint icon",
+    alt: "stake icon",
     label: "stake",
     Icon: IconBox,
   },
