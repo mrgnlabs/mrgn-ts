@@ -18,9 +18,6 @@ type BankCardProps = {
 
 export const BankCard = ({ bank }: BankCardProps) => {
   const { rateAP } = useAssetItemData({ bank, isInLendingMode: true });
-  const hasPosition = (bank: ExtendedBankInfo): bank is ActiveBankInfo => {
-    return bank.isActive;
-  };
 
   // const isUserPositionPoorHealth = React.useMemo(() => {
   //   if (!bank || !bank?.position?.liquidationPrice) {
@@ -54,7 +51,7 @@ export const BankCard = ({ bank }: BankCardProps) => {
           </dl>
         </div>
       </div>
-      {hasPosition(bank) && bank.position && (
+      {bank.isActive && bank.position && (
         <div className="bg-background/60 py-3 px-4 rounded-lg text-sm">
           <dl className="grid grid-cols-2 gap-y-0.5">
             <dt className="text-muted-foreground">USD value</dt>
@@ -66,7 +63,7 @@ export const BankCard = ({ bank }: BankCardProps) => {
           </dl>
         </div>
       )}
-      {!hasPosition(bank) && (
+      {!bank.isActive && (
         <div className="bg-background/60 py-6 px-4 rounded-lg text-sm">
           <p className="text-muted-foreground">No current position.</p>
         </div>
@@ -79,7 +76,7 @@ export const BankCard = ({ bank }: BankCardProps) => {
         </ActionBoxDialog>
         <ActionBoxDialog requestedAction={ActionType.Deposit} requestedBank={bank}>
           <Button className="flex-1 h-12" variant="default">
-            Supply {hasPosition(bank) && "more"}
+            Supply {bank.isActive && "more"}
           </Button>
         </ActionBoxDialog>
       </div>
