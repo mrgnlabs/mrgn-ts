@@ -2,28 +2,64 @@
 
 import React from "react";
 import { useWebSocket } from "./useWebSocket";
+import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { usePrevious } from "~/utils";
 
 interface props {
-  symbol: string;
+  token: ExtendedBankInfo;
 }
 
-export const TVWidget = ({ symbol }: props) => {
+export const TVWidget = ({ token }: props) => {
   const container = React.useRef<HTMLDivElement>(null);
   const { socket, subscribeOnStream, unsubscribeFromStream } = useWebSocket();
+  const prevToken = usePrevious(token);
 
   React.useEffect(() => {
-    if (!container.current) return;
+    const isChanged = !prevToken?.address.equals(token.address);
+    if (!container.current || !isChanged) return;
     const script = document.createElement("script");
     script.src = "/tradingview/charting_library/charting_library.js";
     script.type = "text/javascript";
     script.async = true;
     script.onload = () => {
       new window.TradingView.widget({
-        symbol: symbol, // default symbol
-        interval: "1D" as any, // default interval
+        symbol: token.info.rawBank.mint.toString(), // default symbol
+        interval: "30" as any, // default interval
         container: "tv_chart_container",
+
         locale: "en",
         theme: "dark",
+        height: 600,
+        width: 900,
+        // fullscreen: true,
+        custom_formatters: {
+          priceFormatterFactory: (symbolInfo, minTick) => {
+            if (symbolInfo === null) {
+              return null;
+            }
+
+            return {
+              format: (price, signPositive) => {
+                console.log({ price });
+                if (price >= 1000000000) {
+                  return `${(price / 1000000000).toFixed(3)}B`;
+                }
+
+                if (price >= 1000000) {
+                  return `${(price / 1000000).toFixed(3)}M`;
+                }
+
+                if (price >= 1000) {
+                  return `${(price / 1000).toFixed(3)}K`;
+                }
+
+                return price.toFixed(2);
+              },
+              // };
+            };
+            return null; // The default formatter will be used.
+          },
+        },
         datafeed: {
           onReady: (callback) => {
             fetch("/api/datafeed?action=config")
@@ -100,10 +136,10 @@ export const TVWidget = ({ symbol }: props) => {
     //   if (!container.current) return;
     //   container.current.removeChild(script);
     // };
-  }, [container, symbol]);
+  }, [container, token, prevToken]);
 
   return (
-    <div id="tv_chart_container" ref={container} style={{ height: "100%", width: "100%" }}></div>
+    <div id="tv_chart_container" ref={container} className=" relative"></div>
     // <div className="tradingview-widget-container" >
     //   <div
     //     className="tradingview-widget-container__widget"
