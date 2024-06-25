@@ -141,10 +141,10 @@ class MarginfiAccount {
     const [assets, liabilities] = filteredBalances
       .map((accountBalance) => {
         const bank = banks.get(accountBalance.bankPk.toBase58());
-        if (!bank) throw Error(`Bank ${shortenAddress(accountBalance.bankPk)} not found`);
+        if (!bank) throw Error(`1Bank ${shortenAddress(accountBalance.bankPk)} not found`);
 
         const priceInfo = oraclePrices.get(accountBalance.bankPk.toBase58());
-        if (!priceInfo) throw Error(`Bank ${shortenAddress(accountBalance.bankPk)} not found`);
+        if (!priceInfo) throw Error(`2Bank ${shortenAddress(accountBalance.bankPk)} not found`);
 
         const { assets, liabilities } = accountBalance.getUsdValueWithPriceBias(bank, priceInfo, marginReqType);
         return [assets, liabilities];
