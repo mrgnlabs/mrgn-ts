@@ -152,9 +152,6 @@ function NavigationGroup({
   group: NavGroup
   className?: string
 }) {
-  // If this is the mobile navigation then we always render the initial
-  // state, so that the state does not change during the close animation.
-  // The state will still update when we re-open (re-render) the navigation.
   let isInsideMobileNavigation = useIsInsideMobileNavigation()
   let [pathname, sections] = useInitialValue(
     [usePathname(), useSectionStore((s) => s.sections)],
@@ -265,6 +262,12 @@ export const navigation: Array<NavGroup> = [
       { title: 'mrgnlend', href: '/mrgnlend' },
       { title: 'Liquid Staking Token', href: '/lst' },
       { title: 'Progressive Web App', href: '/pwa' },
+    ],
+  },
+  {
+    title: 'White Papers',
+    links: [
+      { title: '$YBX', href: '/ybx' },
     ],
   },
 ]
