@@ -588,14 +588,15 @@ class MarginfiAccountWrapper {
     borrowBankAddress: PublicKey,
     swapIxs: TransactionInstruction[],
     swapLookupTables: AddressLookupTableAccount[],
-    priorityFeeUi?: number
+    priorityFeeUi?: number,
+    createAtas?: boolean
   ): Promise<{ transaction: VersionedTransaction; addressLookupTableAccounts: AddressLookupTableAccount[] }> {
     const depositBank = this.client.banks.get(depositBankAddress.toBase58());
     if (!depositBank) throw Error("Deposit bank not found");
     const borrowBank = this.client.banks.get(borrowBankAddress.toBase58());
     if (!borrowBank) throw Error("Borrow bank not found");
 
-    const setupIxs = await this.makeSetupIx([depositBankAddress, borrowBankAddress]);
+    const setupIxs = createAtas ? await this.makeSetupIx([depositBankAddress, borrowBankAddress]) : [];
     const cuRequestIxs = this.makeComputeBudgetIx();
     const priorityFeeIx = this.makePriorityFeeIx(priorityFeeUi);
     const borrowIxs = await this.makeBorrowIx(borrowAmount, borrowBankAddress, {

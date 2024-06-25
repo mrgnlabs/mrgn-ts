@@ -37,18 +37,24 @@ export default function TradeSymbolPage() {
       <div className="w-full max-w-8xl mx-auto px-4 md:px-8 pb-28 z-10">
         {(!initialized || !activeGroup) && <Loader label="Loading mrgntrade..." className="mt-8" />}
         {initialized && activeGroup && activeGroup.token && (
-          <div className="flex flex-col items-start gap-8 pb-16 w-full">
-            <div className="grid grid-cols-12 gap-4 w-full h-full lg:gap-8">
-              <div className="col-span-9 space-y-8 h-[60vh]">
-                <TVWidget symbol={activeGroup.token.info.rawBank.mint.toString()} />
-              </div>
-              <aside className="col-span-3">
-                <TradingBox activeBank={activeGroup.token} />
-              </aside>
-              <div className="col-span-12 space-y-8">
-                <PositionList />
+          <div className="space-y-10">
+            <div>
+              <div>
+                <dt>Oracle price</dt>
+                <dd>{activeGroup?.token?.info?.oraclePrice.priceRealtime.price.toString()}</dd>
+              </div>{" "}
+            </div>
+            <div className="relative h-[600px] w-full bg-background-gray ">
+              <div className="flex flex-row w-full">
+                <div className="w-full flex-4 h-[600px]">
+                  <TVWidget token={activeGroup.token} />
+                </div>
+                <div className="max-w-[380px] px-10">
+                  <TradingBox activeBank={activeGroup.token} />{" "}
+                </div>
               </div>
             </div>
+            <PositionList />
           </div>
         )}
       </div>
