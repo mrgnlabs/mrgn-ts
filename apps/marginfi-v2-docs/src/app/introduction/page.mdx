@@ -59,22 +59,6 @@ When borrowed positions fall below requirements and are liquidated, liquidated b
   * the liquidator
   * the insurance fund of the bank for the liquidated token 
 
-### Protocol Fees
-
-The marginfi protocol charges a 1% fixed rate on every borrow transaction and a 5% rate fee on borrow transactions when they cross a threshold. For example: if rate is 10% we would charge 0.5%.
-
-### Insurance Fund Fees
-
-<Note>
-  Currently, insurance pool fees charged to borrowers are 0% for all pools
-  except for the $BONK pool.
-</Note>
-
-marginfi has asset-specific insurance funds. They're filled up in two ways:
-
-- When users borrow from marginfi, part of the fee they pay goes to insurance pools.
-- When user positions are liquidated, the collateral asset insurance fund collects 2.5% of the liquidatee's liquidated collateral.
-
 ---
 
 ## Account Health {{ tag: '', label: '' }}
