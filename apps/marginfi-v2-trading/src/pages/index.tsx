@@ -3,6 +3,7 @@ import React from "react";
 import Link from "next/link";
 
 import { useTradeStore, useUiStore } from "~/store";
+import { cn } from "~/utils";
 
 import { PageHeading } from "~/components/common/PageHeading";
 import { PoolCard } from "~/components/common/Pool/PoolCard";
@@ -23,6 +24,9 @@ export default function HomePage() {
 
   const [previousTxn] = useUiStore((state) => [state.previousTxn]);
 
+  const searchInputRef = React.useRef<HTMLInputElement>(null);
+  const [searchQuery, setSearchQuery] = React.useState("");
+
   React.useEffect(() => {
     resetActiveGroup();
   }, []);
@@ -35,38 +39,38 @@ export default function HomePage() {
           <>
             <div className="w-full max-w-4xl mx-auto px-4 md:px-0">
               <PageHeading
-                heading={<h1>mrgntrade</h1>}
-                body={<p>Create permissionless pools, provide liquidity, and trade with mrgntrade.</p>}
-                links={[]}
-                button={<CreatePoolDialog />}
+                size="lg"
+                heading="mrgntrade"
+                body={
+                  <>
+                    <p>Permissionless leverage trading, built on marginfi.</p>
+                    <p>Search for tokens or create a new pool.</p>
+                  </>
+                }
               />
-            </div>
-
-            <div className="w-full space-y-8 px-4 lg:px-8 pt-8 pb-16">
               <div className="flex items-center gap-4">
                 <div className="relative w-full">
-                  <IconSearch size={18} className="absolute inset-y-0 left-4 h-full" />
-                  <Input placeholder="Search token names / symbols" className="py-2 pr-3 pl-12 h-10 rounded-lg" />
-                </div>
-                <div className="flex items-center gap-4 ml-auto">
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button variant="outline" size="lg" className="py-2 h-10">
-                        <IconSortDescending size={20} /> Sort
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-80"></PopoverContent>
-                  </Popover>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button variant="outline" size="lg" className="py-2 h-10">
-                        <IconFilter size={20} /> Filter
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-80"></PopoverContent>
-                  </Popover>
+                  <IconSearch
+                    size={20}
+                    className={cn(
+                      "absolute inset-y-0 left-6 h-full text-muted-foreground transition-colors",
+                      searchQuery.length && "text-primary"
+                    )}
+                  />
+                  <div className="bg-gradient-to-r from-mrgn-gold/80 to-mrgn-chartreuse/80 rounded-full p-0.5 transition-colors">
+                    <Input
+                      ref={searchInputRef}
+                      placeholder="Search tokens by name, symbol, or mint address..."
+                      className="py-3 pr-3 pl-14 h-auto text-xl rounded-full bg-background outline-none focus-visible:ring-primary/75"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                  </div>
                 </div>
               </div>
+            </div>
+
+            <div className="w-full space-y-8 px-4 lg:px-8 pt-24 pb-12">
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
                 {banks.length > 0 &&
                   banks
