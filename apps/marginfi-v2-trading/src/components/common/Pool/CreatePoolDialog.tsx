@@ -1,6 +1,7 @@
 import React from "react";
 
 import Link from "next/link";
+import { useRouter } from "next/router";
 
 import { usdFormatter } from "@mrgnlabs/mrgn-common";
 import { IconUpload, IconPlus, IconSearch } from "@tabler/icons-react";
@@ -28,12 +29,14 @@ enum CreatePoolState {
 }
 
 export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
-  const [banks, filteredBanks, resetFilteredBanks, searchBanks] = useTradeStore((state) => [
-    state.banks,
+  const router = useRouter();
+  const [filteredBanks, resetFilteredBanks, searchBanks, resetActiveGroup] = useTradeStore((state) => [
     state.filteredBanks,
     state.resetFilteredBanks,
     state.searchBanks,
+    state.resetActiveGroup,
   ]);
+  const [isOpen, setIsOpen] = React.useState(false);
   const [createPoolState, setCreatePoolState] = React.useState<CreatePoolState>(CreatePoolState.SEARCH);
   const [searchQuery, setSearchQuery] = React.useState("");
   const searchInputRef = React.useRef<HTMLInputElement>(null);
@@ -48,7 +51,7 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
   }, [debouncedSearchQuery]);
 
   return (
-    <Dialog>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         {trigger ? (
           trigger
@@ -99,9 +102,13 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
                 {filteredBanks.length > 0 && (
                   <div className="space-y-3">
                     {filteredBanks.slice(0, 5).map((bank, index) => (
-                      <Link
-                        href={`/pools/${bank.address.toBase58()}`}
-                        className="flex items-center justify-between gap-4 even:bg-background-gray px-4 py-3 rounded-lg cursor-pointer hover:bg-background-gray-light/50"
+                      <button
+                        onClick={() => {
+                          resetActiveGroup();
+                          router.push(`/pools/${bank.address.toBase58()}`);
+                          setIsOpen(false);
+                        }}
+                        className="flex flex-col items-center w-full gap-4 even:bg-background-gray px-4 py-3 rounded-lg cursor-pointer hover:bg-background-gray-light/50 md:flex-row md:justify-between"
                       >
                         <div className="flex items-center gap-4">
                           <Image
@@ -115,7 +122,7 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
                             {bank.meta.tokenName} ({bank.meta.tokenSymbol})
                           </h3>
                         </div>
-                        <div className="flex items-center gap-12 ml-auto text-sm text-right">
+                        <div className="flex items-center gap-12 text-sm md:ml-auto md:text-right">
                           <p className="space-x-1.5">
                             <strong className="font-medium">Price:</strong>{" "}
                             <span className="font-mono text-sm text-muted-foreground">
@@ -131,7 +138,7 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
                             </span>
                           </p>
                         </div>
-                      </Link>
+                      </button>
                     ))}
                   </div>
                 )}
