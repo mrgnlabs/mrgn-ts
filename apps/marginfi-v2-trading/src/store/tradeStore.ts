@@ -316,10 +316,6 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
     const search = searchQuery.toLowerCase();
     const banks = get().banks;
 
-    if (!searchQuery) {
-      return;
-    }
-
     const filteredBanks = banks.filter((bank) => {
       if (bank.meta.tokenName.toLowerCase().includes(search) || bank.meta.tokenSymbol.toLowerCase().includes(search)) {
         return true;
