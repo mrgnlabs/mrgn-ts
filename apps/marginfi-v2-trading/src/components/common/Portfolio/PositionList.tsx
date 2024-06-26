@@ -42,8 +42,8 @@ export const PositionList = () => {
         <TableBody>
           {portfolio.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={7} className="flex justify-center w-full">
-                No positions found
+              <TableCell colSpan={7}>
+                <p className="text-sm text-muted-foreground pt-2">No positions found</p>
               </TableCell>
             </TableRow>
           ) : (
