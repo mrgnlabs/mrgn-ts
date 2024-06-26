@@ -10,7 +10,7 @@ import { useWalletContext } from "~/hooks/useWalletContext";
 import { useOs } from "~/hooks/useOs";
 import { cn } from "~/utils/themeUtils";
 
-import { IconBuildingBank, IconBox, IconMoneybag, IconWorld } from "~/components/ui/icons";
+import { IconBuildingBank, IconBox, IconMoneybag, IconWorld, IconRefresh } from "~/components/ui/icons";
 
 export interface NavLinkInfo {
   href: string;
@@ -32,7 +32,12 @@ export const mobileLinks: NavLinkInfo[] = [
     label: "mint",
     Icon: IconBox,
   },
-
+  {
+    href: "/looper",
+    alt: "loop icon",
+    label: "looper",
+    Icon: IconRefresh,
+  },
   {
     href: "/portfolio",
     alt: "portfolio icon",
