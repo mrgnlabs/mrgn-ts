@@ -35,6 +35,16 @@ type TradingBoxProps = {
   activeBank?: ExtendedBankInfo | null;
 };
 
+type StatusType = {
+  type: "simulation" | "bank";
+  msg: string;
+};
+
+interface LoopingStatus {
+  errors: StatusType[];
+  warnings: StatusType[];
+}
+
 export const TradingBox = ({ activeBank }: TradingBoxProps) => {
   const router = useRouter();
   const { wallet } = useWalletContext();
@@ -46,6 +56,7 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
   const [leverage, setLeverage] = React.useState(0);
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const [Stats, setStats] = React.useState<React.JSX.Element>(<></>);
+  const [status, setStatus] = React.useState<LoopingStatus>({ errors: [], warnings: [] });
 
   const debouncedLeverage = useDebounce(leverage, 1000);
   const debouncedAmount = useDebounce(amount, 1000);
@@ -180,7 +191,7 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
         return;
       }
 
-      let simulationResult = null;
+      let simulationResult: SimulationResult | null = null;
       try {
         simulationResult = await simulateLooping({
           marginfiClient,
@@ -189,7 +200,12 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
           loopingTxn: loopingTxn,
         });
       } catch (error) {
+        console.error(error);
+        let message;
+        if ((error as any).msg) message = (error as any).msg;
+        addStatus({ type: "simulation", msg: message ?? "Simulating transaction failed" }, "warning");
       } finally {
+        if (simulationResult) removeStatus("simulation");
         loadStats(simulationResult);
       }
     },
@@ -239,6 +255,29 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
     }
   }, [debouncedLeverage, debouncedAmount]);
 
+  const addStatus = (statusItem: StatusType, statusType: "error" | "warning") => {
+    setStatus((prevState) => {
+      if (statusType === "error") {
+        return {
+          ...prevState,
+          errors: [...prevState.errors, statusItem],
+        };
+      } else {
+        return {
+          ...prevState,
+          warnings: [...prevState.warnings, statusItem],
+        };
+      }
+    });
+  };
+
+  const removeStatus = (type: "simulation" | "bank") => {
+    setStatus((prevState) => ({
+      ...prevState,
+      errors: prevState.errors.filter((error) => error.type !== type),
+      warnings: prevState.warnings.filter((warning) => warning.type !== type),
+    }));
+  };
   if (!activeGroup) return null;
 
   return (
