@@ -41,7 +41,7 @@ const formSchema = z
       message: "Decimals must be a number",
     }),
     oracle: z.string(),
-    imageUpload: z.instanceof(File).optional(),
+    imageUpload: typeof window !== "undefined" ? z.instanceof(File).optional() : z.any().optional(),
     imageDownload: z.string().optional(),
   })
   .refine((data) => data.imageUpload || data.imageDownload, {
@@ -302,6 +302,12 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
                   value={mintAddress}
                   onChange={(e) => setMintAddress(e.target.value)}
                 />
+              </div>
+              <div className="flex flex-col justify-center items-center gap-4 text-sm text-muted-foreground">
+                <p>Couldn't find token details, please enter manually.</p>
+                <Button variant="secondary" onClick={() => setCreatePoolState(CreatePoolState.FORM)}>
+                  Continue
+                </Button>
               </div>
               {isTokenFetchingError ? (
                 <div className="flex flex-col justify-center items-center gap-4 text-sm text-muted-foreground">
