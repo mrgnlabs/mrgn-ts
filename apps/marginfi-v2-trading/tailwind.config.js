@@ -87,6 +87,14 @@ module.exports = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        mrgn: {
+          chartreuse: "hsl(var(--mrgn-chartreuse))",
+          gold: "hsl(var(--mrgn-gold))",
+          slate: "hsl(var(--mrgn-slate))",
+          success: "#75ba80",
+          warning: "#daa204",
+          error: "#e07d6f",
+        },
       },
       screens: {
         xs: "25rem",
