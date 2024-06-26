@@ -1,31 +1,22 @@
 import React from "react";
 
-import Link from "next/link";
-
 import { useTradeStore, useUiStore } from "~/store";
 import { cn } from "~/utils";
 
 import { PageHeading } from "~/components/common/PageHeading";
 import { PoolCard } from "~/components/common/Pool/PoolCard";
-import { CreatePoolDialog } from "~/components/common/Pool/CreatePoolDialog";
 import { ActionComplete } from "~/components/common/ActionComplete";
-import { IconSearch, IconSortDescending, IconFilter, IconPlus } from "~/components/ui/icons";
-import { Popover, PopoverTrigger, PopoverContent } from "~/components/ui/popover";
+import { PoolSearch } from "~/components/common/Pool";
 import { Loader } from "~/components/ui/loader";
-import { Input } from "~/components/ui/input";
-import { Button } from "~/components/ui/button";
 
 export default function HomePage() {
-  const [initialized, banks, resetActiveGroup] = useTradeStore((state) => [
+  const [initialized, filteredBanks, resetActiveGroup] = useTradeStore((state) => [
     state.initialized,
-    state.banks,
+    state.filteredBanks,
     state.resetActiveGroup,
   ]);
 
   const [previousTxn] = useUiStore((state) => [state.previousTxn]);
-
-  const searchInputRef = React.useRef<HTMLInputElement>(null);
-  const [searchQuery, setSearchQuery] = React.useState("");
 
   React.useEffect(() => {
     resetActiveGroup();
@@ -49,31 +40,14 @@ export default function HomePage() {
                 }
               />
               <div className="flex items-center gap-4">
-                <div className="relative w-full">
-                  <IconSearch
-                    size={20}
-                    className={cn(
-                      "absolute inset-y-0 left-5 h-full text-muted-foreground transition-colors md:left-6",
-                      searchQuery.length && "text-primary"
-                    )}
-                  />
-                  <div className="bg-gradient-to-r from-mrgn-gold/80 to-mrgn-chartreuse/80 rounded-full p-0.5 transition-colors">
-                    <Input
-                      ref={searchInputRef}
-                      placeholder="Search tokens by name, symbol, or mint address..."
-                      className="py-2 pr-3 pl-12 h-auto text-lg rounded-full bg-background outline-none focus-visible:ring-primary/75 md:text-xl md:py-3 md:pl-14"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                    />
-                  </div>
-                </div>
+                <PoolSearch />
               </div>
             </div>
 
             <div className="w-full space-y-8 px-4 lg:px-8 pt-24 pb-12">
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                {banks.length > 0 &&
-                  banks
+                {filteredBanks.length > 0 &&
+                  filteredBanks
                     .sort(
                       (a, b) =>
                         b.info.oraclePrice.priceRealtime.price.toNumber() -
