@@ -102,7 +102,7 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
               <div>
                 {debouncedSearchQuery.length > 1 && filteredBanks.length === 0 && (
                   <div className="text-center text-muted-foreground w-full space-y-4">
-                    <p>No results found for "{debouncedSearchQuery}"</p>
+                    <p>No results found for &quot;{debouncedSearchQuery}&quot;</p>
                   </div>
                 )}
 
