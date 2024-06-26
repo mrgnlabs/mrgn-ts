@@ -40,7 +40,8 @@ const formSchema = z.object({
     message: "Decimals must be a number",
   }),
   oracle: z.string(),
-  image: z.instanceof(File),
+  imageUpload: z.instanceof(File).optional(),
+  imageDownload: z.string().optional(),
 });
 
 export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
@@ -85,7 +86,7 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
         const reader = new FileReader();
         reader.onloadend = () => {
           setPreviewImage(reader.result as string);
-          form.setValue("image", file);
+          form.setValue("imageUpload", file);
         };
         reader.readAsDataURL(file);
       }
@@ -104,7 +105,7 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
         const reader = new FileReader();
         reader.onloadend = () => {
           setPreviewImage(reader.result as string);
-          form.setValue("image", file);
+          form.setValue("imageUpload", file);
         };
         reader.readAsDataURL(file);
       }
@@ -128,12 +129,15 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
         throw new Error("Invalid token mint address");
       }
 
-      console.log(tokenInfo);
+      const image =
+        tokenInfo.content.files && tokenInfo.content.files.length ? tokenInfo.content.files[0].cdn_uri || "" : null;
 
       form.setValue("mint", mint.toBase58());
-      form.setValue("name", tokenInfo.content.metadata.name);
-      form.setValue("symbol", tokenInfo.content.metadata.symbol);
-      form.setValue("decimals", tokenInfo.token_info.decimals.toString());
+      form.setValue("name", tokenInfo.content.metadata.name || "");
+      form.setValue("symbol", tokenInfo.content.metadata.symbol || "");
+      form.setValue("decimals", tokenInfo.token_info.decimals ? tokenInfo.token_info.decimals.toString() : "");
+      form.setValue("imageDownload", image || "");
+      setPreviewImage(image || "");
 
       setIsSearchingDasApi(false);
       setCreatePoolState(CreatePoolState.FORM);
@@ -142,7 +146,7 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
       setIsTokenFetchingError(true);
       setIsSearchingDasApi(false);
     }
-  }, [setCreatePoolState, form, mintAddress, setIsSearchingDasApi]);
+  }, [setCreatePoolState, form, mintAddress, setIsSearchingDasApi, setIsTokenFetchingError, setPreviewImage]);
 
   React.useEffect(() => {
     if (!searchQuery.length) {
@@ -321,8 +325,14 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
         {createPoolState === CreatePoolState.FORM && (
           <>
             <div className="text-center space-y-2 max-w-md mx-auto">
-              <h2 className="text-3xl font-medium">Confirm token details</h2>
-              <p className="text-muted-foreground">Please review and confirm or modify the token details.</p>
+              <h2 className="text-3xl font-medium">
+                {isTokenFetchingError ? "Token details" : "Confirm token details"}
+              </h2>
+              <p className="text-muted-foreground">
+                {isTokenFetchingError
+                  ? "Please provide details about the token."
+                  : "Please review and modify the token details if needed."}
+              </p>
             </div>
 
             <Form {...form}>
@@ -335,7 +345,7 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
                     onDragOver={handleDragOver}
                   >
                     {previewImage ? (
-                      <img src={previewImage} alt="Preview" className="max-w-full max-h-48" />
+                      <img src={previewImage} alt="Preview" className="max-w-full max-h-48 rounded-full" />
                     ) : (
                       <>
                         <IconUpload />
