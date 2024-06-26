@@ -7,7 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { usdFormatter } from "@mrgnlabs/mrgn-common";
-import { IconUpload, IconPlus, IconSearch, IconArrowRight, IconLoader2 } from "@tabler/icons-react";
+import { IconUpload, IconPlus, IconSearch, IconArrowRight, IconLoader2, IconChevronLeft } from "@tabler/icons-react";
 import { useDebounce } from "@uidotdev/usehooks";
 import { PublicKey } from "@solana/web3.js";
 
@@ -161,16 +161,20 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
     searchBanks(debouncedSearchQuery);
   }, [debouncedSearchQuery]);
 
-  React.useEffect(() => {
-    setCreatePoolState(CreatePoolState.SEARCH);
-    setSearchQuery("");
+  const reset = React.useCallback(() => {
     setPreviewImage("");
-    setMintAddress("");
     setIsSearchingDasApi(false);
     setIsTokenFetchingError(false);
     resetActiveGroup();
     form.reset();
-  }, [isOpen, resetActiveGroup, setCreatePoolState, setSearchQuery, setIsTokenFetchingError, form]);
+  }, [resetActiveGroup, setCreatePoolState, setIsTokenFetchingError, form]);
+
+  React.useEffect(() => {
+    reset();
+    setSearchQuery("");
+    setMintAddress("");
+    setCreatePoolState(CreatePoolState.MINT);
+  }, [isOpen, reset, setSearchQuery, setMintAddress, setCreatePoolState]);
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -192,7 +196,7 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
                 First search for an existing pool, before creating a new one.
               </p>
             </div>
-            <div className="space-y-12">
+            <div className="space-y-8">
               <div className="relative w-full max-w-2xl mx-auto">
                 <IconSearch
                   size={18}
@@ -277,6 +281,17 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
         )}
         {createPoolState === CreatePoolState.MINT && (
           <>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="gap-1 absolute top-2 left-1.5 text-muted-foreground"
+              onClick={() => {
+                setCreatePoolState(CreatePoolState.SEARCH);
+                reset();
+              }}
+            >
+              <IconChevronLeft size={18} /> Back
+            </Button>
             <div className="text-center space-y-2 max-w-lg mx-auto">
               <h2 className="text-3xl font-medium">Token mint address</h2>
               <p className="text-lg text-muted-foreground">
@@ -285,7 +300,7 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
             </div>
             <form
               className={cn(
-                "space-y-12 w-full flex flex-col items-center",
+                "space-y-8 w-full flex flex-col items-center",
                 isSearchingDasApi && "pointer-events-none animate-pulsate"
               )}
               onSubmit={(e) => {
@@ -303,38 +318,56 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
                   onChange={(e) => setMintAddress(e.target.value)}
                 />
               </div>
-              <div className="flex flex-col justify-center items-center gap-4 text-sm text-muted-foreground">
-                <p>Couldn't find token details, please enter manually.</p>
-                <Button variant="secondary" onClick={() => setCreatePoolState(CreatePoolState.FORM)}>
-                  Continue
-                </Button>
-              </div>
+
               {isTokenFetchingError ? (
                 <div className="flex flex-col justify-center items-center gap-4 text-sm text-muted-foreground">
-                  <p>Couldn't find token details, please enter manually.</p>
+                  <p>Could not find token details, please enter manually.</p>
                   <Button variant="secondary" onClick={() => setCreatePoolState(CreatePoolState.FORM)}>
                     Continue
                   </Button>
                 </div>
               ) : (
-                <Button disabled={isSearchingDasApi || !mintAddress.length} type="submit" variant="secondary">
-                  {!isSearchingDasApi && (
-                    <>
-                      Fetch token info <IconArrowRight size={18} />
-                    </>
-                  )}
-                  {isSearchingDasApi && (
-                    <>
-                      <IconLoader2 size={18} className="animate-spin" /> Fetching token info...
-                    </>
-                  )}
-                </Button>
+                <div className="flex flex-col gap-4">
+                  <Button disabled={isSearchingDasApi || !mintAddress.length} type="submit" variant="secondary">
+                    {!isSearchingDasApi && (
+                      <>
+                        Fetch token info <IconArrowRight size={18} />
+                      </>
+                    )}
+                    {isSearchingDasApi && (
+                      <>
+                        <IconLoader2 size={18} className="animate-spin" /> Fetching token info...
+                      </>
+                    )}
+                  </Button>
+                  <Button
+                    variant="link"
+                    className="font-normal text-xs text-muted-foreground underline opacity-75 transition-opacity hover:opacity-100"
+                    onClick={() => {
+                      setCreatePoolState(CreatePoolState.FORM);
+                      setIsTokenFetchingError(true);
+                    }}
+                  >
+                    Skip and add details manually
+                  </Button>
+                </div>
               )}
             </form>
           </>
         )}
         {createPoolState === CreatePoolState.FORM && (
           <>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="gap-1 absolute top-2 left-1.5 text-muted-foreground"
+              onClick={() => {
+                setCreatePoolState(CreatePoolState.MINT);
+                reset();
+              }}
+            >
+              <IconChevronLeft size={18} /> Back
+            </Button>
             <div className="text-center space-y-2 max-w-md mx-auto">
               <h2 className="text-3xl font-medium">
                 {isTokenFetchingError ? "Token details" : "Confirm token details"}
