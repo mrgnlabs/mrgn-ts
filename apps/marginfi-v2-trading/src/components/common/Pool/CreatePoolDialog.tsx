@@ -100,14 +100,12 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
               </div>
 
               <div>
-                {debouncedSearchQuery.length > 3 && filteredBanks.length === 0 && (
+                {debouncedSearchQuery.length > 1 && filteredBanks.length === 0 && (
                   <div className="text-center text-muted-foreground w-full space-y-4">
                     <p>No results found for "{debouncedSearchQuery}"</p>
-                    <Button onClick={() => setCreatePoolState(CreatePoolState.FORM)} variant="secondary">
-                      <IconPlus size={18} /> Create new pool
-                    </Button>
                   </div>
                 )}
+
                 {filteredBanks.length > 0 && (
                   <div className="space-y-3">
                     {filteredBanks.slice(0, 5).map((bank, index) => (
@@ -149,6 +147,14 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
                         </div>
                       </button>
                     ))}
+                  </div>
+                )}
+
+                {debouncedSearchQuery.length > 1 && (
+                  <div className="flex justify-center pt-8">
+                    <Button onClick={() => setCreatePoolState(CreatePoolState.FORM)} variant="secondary">
+                      <IconPlus size={18} /> Create new pool
+                    </Button>
                   </div>
                 )}
               </div>
