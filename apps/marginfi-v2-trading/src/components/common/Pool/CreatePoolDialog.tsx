@@ -3,6 +3,10 @@ import React from "react";
 import Link from "next/link";
 
 import { IconUpload, IconPlus, IconSearch } from "@tabler/icons-react";
+import { useDebounce } from "@uidotdev/usehooks";
+
+import { useTradeStore } from "~/store";
+import { cn, getTokenImageURL } from "~/utils";
 
 import { Dialog, DialogContent, DialogTrigger } from "~/components/ui/dialog";
 import { Label } from "~/components/ui/label";
@@ -23,7 +27,24 @@ enum CreatePoolState {
 }
 
 export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
+  const [banks, filteredBanks, resetFilteredBanks, searchBanks] = useTradeStore((state) => [
+    state.banks,
+    state.filteredBanks,
+    state.resetFilteredBanks,
+    state.searchBanks,
+  ]);
   const [createPoolState, setCreatePoolState] = React.useState<CreatePoolState>(CreatePoolState.SEARCH);
+  const [searchQuery, setSearchQuery] = React.useState("");
+  const searchInputRef = React.useRef<HTMLInputElement>(null);
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
+
+  React.useEffect(() => {
+    if (!searchQuery.length) {
+      resetFilteredBanks();
+      return;
+    }
+    searchBanks(debouncedSearchQuery);
+  }, [debouncedSearchQuery]);
 
   return (
     <Dialog>
@@ -36,29 +57,56 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="w-full space-y-8 sm:max-w-4xl md:max-w-4xl">
+      <DialogContent className="w-full space-y-4 sm:max-w-4xl md:max-w-4xl">
         {createPoolState === CreatePoolState.SEARCH && (
           <>
-            <div className="text-center space-y-2 max-w-md mx-auto">
-              <h2 className="text-3xl font-medium">Search for a pool</h2>
-              <p className="text-muted-foreground">Search for an existing pool before creating a new one.</p>
+            <div className="text-center space-y-2 max-w-lg mx-auto">
+              <h2 className="text-3xl font-medium">Create a pool</h2>
+              <p className="text-lg text-muted-foreground">
+                First search for an existing pool, before creating a new one.
+              </p>
             </div>
-            <div className="space-y-6">
-              <div className="relative">
-                <IconSearch size={18} className="absolute inset-4 text-muted-foreground" />
-                <Input
-                  className="w-full text-xl h-auto py-2.5 pr-4 pl-11"
-                  placeholder="Search token name, symbol, mint address..."
+            <div className="space-y-12">
+              <div className="relative w-full max-w-2xl mx-auto">
+                <IconSearch
+                  size={18}
+                  className={cn(
+                    "absolute inset-y-0 left-5 h-full text-muted-foreground transition-colors md:left-6",
+                    searchQuery.length && "text-primary"
+                  )}
                 />
-              </div>
-              {/* <div>
-                <p className="text-sm text-muted-foreground">No results found for "USDC".</p>
-              </div> */}
-              <div>
-                <div className="flex items-center gap-4 py-2">
-                  <div className="w-12 h-12 rounded-full bg-red-400" />
-                  <h3>Token Name (SYMBOL)</h3>
+                <div className="bg-gradient-to-r from-mrgn-gold/80 to-mrgn-chartreuse/80 rounded-full p-0.5 transition-colors">
+                  <Input
+                    ref={searchInputRef}
+                    placeholder="Search tokens by name, symbol, or mint address..."
+                    className="py-2 pr-3 pl-12 h-auto text-lg rounded-full bg-background outline-none focus-visible:ring-primary/75"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
                 </div>
+              </div>
+
+              <div>
+                {searchQuery.length > 3 && filteredBanks.length === 0 && (
+                  <div className="text-lg text-center text-muted-foreground w-full">
+                    <p>No results found for "{searchQuery}"</p>
+                  </div>
+                )}
+                {banks.length > 0 &&
+                  banks.slice(0, 5).map((bank, index) => (
+                    <div className="flex items-center gap-4 even:bg-background-gray p-4 rounded-lg cursor-pointer hover:bg-background-gray-light/50">
+                      <Image
+                        src={getTokenImageURL(bank.meta.tokenSymbol)}
+                        width={32}
+                        height={32}
+                        alt={bank.meta.tokenSymbol}
+                        className="rounded-full"
+                      />
+                      <h3>
+                        {bank.meta.tokenName} ({bank.meta.tokenSymbol})
+                      </h3>
+                    </div>
+                  ))}
               </div>
             </div>
           </>
