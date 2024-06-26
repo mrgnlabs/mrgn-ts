@@ -128,9 +128,12 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
         throw new Error("Invalid token mint address");
       }
 
+      console.log(tokenInfo);
+
       form.setValue("mint", mint.toBase58());
       form.setValue("name", tokenInfo.content.metadata.name);
       form.setValue("symbol", tokenInfo.content.metadata.symbol);
+      form.setValue("decimals", tokenInfo.token_info.decimals.toString());
 
       setIsSearchingDasApi(false);
       setCreatePoolState(CreatePoolState.FORM);
