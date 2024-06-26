@@ -1,11 +1,14 @@
 import React from "react";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/router";
 
+import { z } from "zod";
 import { usdFormatter } from "@mrgnlabs/mrgn-common";
-import { IconUpload, IconPlus, IconSearch } from "@tabler/icons-react";
+import { IconUpload, IconPlus, IconSearch, IconArrowRight, IconLoader2 } from "@tabler/icons-react";
 import { useDebounce } from "@uidotdev/usehooks";
+import { PublicKey } from "@solana/web3.js";
 
 import { useTradeStore } from "~/store";
 import { cn, getTokenImageURL } from "~/utils";
@@ -14,7 +17,6 @@ import { Dialog, DialogContent, DialogTrigger } from "~/components/ui/dialog";
 import { Label } from "~/components/ui/label";
 import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
-import Image from "next/image";
 
 type CreatePoolDialogProps = {
   trigger?: React.ReactNode;
@@ -22,11 +24,19 @@ type CreatePoolDialogProps = {
 
 enum CreatePoolState {
   SEARCH = "initial",
+  MINT = "mint",
   FORM = "form",
   LOADING = "loading",
   SUCCESS = "success",
   ERROR = "error",
 }
+
+const formSchema = z.object({
+  mint: z.instanceof(PublicKey),
+  name: z.string().min(3),
+  symbol: z.string(),
+  oracle: z.instanceof(PublicKey),
+});
 
 export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
   const router = useRouter();
@@ -38,9 +48,44 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
   ]);
   const [isOpen, setIsOpen] = React.useState(false);
   const [createPoolState, setCreatePoolState] = React.useState<CreatePoolState>(CreatePoolState.SEARCH);
+  const [isSearchingDasApi, setIsSearchingDasApi] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState("");
   const searchInputRef = React.useRef<HTMLInputElement>(null);
+  const mintAddressRef = React.useRef<HTMLInputElement>(null);
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
+
+  const fetchTokenInfo = React.useCallback(async () => {
+    if (!mintAddressRef.current) return;
+    setIsSearchingDasApi(true);
+
+    const mintAddress = mintAddressRef.current.value;
+
+    try {
+      const mint = new PublicKey(mintAddress);
+      const fetchTokenReq = await fetch(`/api/asset-search?address=${mint.toBase58()}`);
+
+      if (!fetchTokenReq.ok) {
+        throw new Error("Failed to fetch token info");
+      }
+
+      const tokenInfo = await fetchTokenReq.json();
+
+      if (!tokenInfo || tokenInfo.interface !== "FungibleToken") {
+        throw new Error("Invalid token mint address");
+      }
+
+      console.log("mint", mint.toBase58());
+      console.log("name", tokenInfo.content.metadata.name);
+      console.log("supply", tokenInfo.content.metadata.symbol);
+      console.log("image", tokenInfo.content.files[0].cdn_uri);
+      console.log("decimals", tokenInfo.token_info.decimals);
+
+      setIsSearchingDasApi(false);
+    } catch (e) {
+      console.error(e);
+      setIsSearchingDasApi(false);
+    }
+  }, [setCreatePoolState, mintAddressRef]);
 
   React.useEffect(() => {
     if (!searchQuery.length) {
@@ -73,7 +118,7 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
         {createPoolState === CreatePoolState.SEARCH && (
           <>
             <div className="text-center space-y-2 max-w-lg mx-auto">
-              <h2 className="text-3xl font-medium">Create a pool</h2>
+              <h2 className="text-3xl font-medium">Search pools</h2>
               <p className="text-lg text-muted-foreground">
                 First search for an existing pool, before creating a new one.
               </p>
@@ -91,7 +136,7 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
                   <Input
                     ref={searchInputRef}
                     placeholder="Search tokens by name, symbol, or mint address..."
-                    className="py-2 pr-3 pl-12 h-auto text-lg rounded-full bg-background outline-none focus-visible:ring-primary/75"
+                    className="py-2 pr-6 pl-12 h-auto text-lg rounded-full bg-background outline-none focus-visible:ring-primary/75"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     autoFocus
@@ -152,13 +197,56 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
 
                 {debouncedSearchQuery.length > 1 && (
                   <div className="flex justify-center pt-8">
-                    <Button onClick={() => setCreatePoolState(CreatePoolState.FORM)} variant="secondary">
+                    <Button onClick={() => setCreatePoolState(CreatePoolState.MINT)} variant="secondary">
                       <IconPlus size={18} /> Create new pool
                     </Button>
                   </div>
                 )}
               </div>
             </div>
+          </>
+        )}
+        {createPoolState === CreatePoolState.MINT && (
+          <>
+            <div className="text-center space-y-2 max-w-lg mx-auto">
+              <h2 className="text-3xl font-medium">Token mint address</h2>
+              <p className="text-lg text-muted-foreground">
+                Enter the mint address of the token you'd like to create a pool for.
+              </p>
+            </div>
+            <form
+              className={cn(
+                "space-y-12 w-full flex flex-col items-center",
+                isSearchingDasApi && "pointer-events-none animate-pulsate"
+              )}
+              onSubmit={(e) => {
+                e.preventDefault();
+                fetchTokenInfo();
+              }}
+            >
+              <div className="w-full bg-gradient-to-r from-mrgn-gold/80 to-mrgn-chartreuse/80 rounded-full p-0.5 transition-colors">
+                <Input
+                  disabled={isSearchingDasApi}
+                  ref={mintAddressRef}
+                  placeholder="Token mint address..."
+                  className="py-2 px-6 h-auto text-lg rounded-full bg-background outline-none focus-visible:ring-primary/75 disabled:opacity-100"
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  autoFocus
+                />
+              </div>
+              <Button disabled={isSearchingDasApi} type="submit" variant="secondary">
+                {!isSearchingDasApi && (
+                  <>
+                    Continue <IconArrowRight size={18} />
+                  </>
+                )}
+                {isSearchingDasApi && (
+                  <>
+                    <IconLoader2 size={18} className="animate-spin" /> Fetching token info...
+                  </>
+                )}
+              </Button>
+            </form>
           </>
         )}
         {createPoolState === CreatePoolState.FORM && (
