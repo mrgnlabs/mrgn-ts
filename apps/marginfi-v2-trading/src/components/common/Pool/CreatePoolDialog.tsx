@@ -162,15 +162,15 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
   }, [debouncedSearchQuery]);
 
   React.useEffect(() => {
-    if (isOpen) {
-      setCreatePoolState(CreatePoolState.SEARCH);
-      setSearchQuery("");
-      setPreviewImage("");
-      setIsTokenFetchingError(false);
-      resetActiveGroup();
-      form.reset();
-    }
-  }, [isOpen, resetActiveGroup, setCreatePoolState, setSearchQuery, setIsTokenFetchingError]);
+    setCreatePoolState(CreatePoolState.SEARCH);
+    setSearchQuery("");
+    setPreviewImage("");
+    setMintAddress("");
+    setIsSearchingDasApi(false);
+    setIsTokenFetchingError(false);
+    resetActiveGroup();
+    form.reset();
+  }, [isOpen, resetActiveGroup, setCreatePoolState, setSearchQuery, setIsTokenFetchingError, form]);
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
