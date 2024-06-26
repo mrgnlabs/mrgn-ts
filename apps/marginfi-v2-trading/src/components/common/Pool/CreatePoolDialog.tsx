@@ -36,8 +36,11 @@ const formSchema = z.object({
   mint: z.string(),
   name: z.string(),
   symbol: z.string(),
-  decimals: z.number(),
+  decimals: z.string().refine((value) => !isNaN(Number(value)), {
+    message: "Decimals must be a number",
+  }),
   oracle: z.string(),
+  image: z.instanceof(File),
 });
 
 export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
@@ -54,7 +57,10 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
   const [isTokenFetchingError, setIsTokenFetchingError] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState("");
   const [mintAddress, setMintAddress] = React.useState("");
+  const [previewImage, setPreviewImage] = React.useState<string | null>(null);
   const searchInputRef = React.useRef<HTMLInputElement>(null);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -65,6 +71,44 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
     // Do something with the form values.
     // ✅ This will be type-safe and validated.
     console.log(values);
+  };
+
+  const handleFileClick = React.useCallback(() => {
+    fileInputRef.current?.click();
+  }, [fileInputRef]);
+
+  const handleFileDrop = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    if (event.dataTransfer.files && event.dataTransfer.files.length > 0) {
+      const file = event.dataTransfer.files[0];
+      if (file.type.startsWith("image/")) {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setPreviewImage(reader.result as string);
+          form.setValue("image", file);
+        };
+        reader.readAsDataURL(file);
+      }
+      event.dataTransfer.clearData();
+    }
+  };
+
+  const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files && event.target.files.length > 0) {
+      const file = event.target.files[0];
+      if (file.type.startsWith("image/")) {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setPreviewImage(reader.result as string);
+          form.setValue("image", file);
+        };
+        reader.readAsDataURL(file);
+      }
+    }
   };
 
   const fetchTokenInfo = React.useCallback(async () => {
@@ -109,8 +153,10 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
     if (isOpen) {
       setCreatePoolState(CreatePoolState.SEARCH);
       setSearchQuery("");
+      setPreviewImage("");
       setIsTokenFetchingError(false);
       resetActiveGroup();
+      form.reset();
     }
   }, [isOpen, resetActiveGroup, setCreatePoolState, setSearchQuery, setIsTokenFetchingError]);
 
@@ -279,10 +325,27 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
             <Form {...form}>
               <form className="space-y-6" onSubmit={form.handleSubmit(onSubmit)}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div className="flex flex-col gap-2 items-center justify-center cursor-pointer border-2 border-dashed border-border rounded-lg py-8 px-12 text-muted-foreground hover:bg-secondary/20">
-                    <IconUpload />
-                    <p className="text-sm text-center">Drag and drop your image here or click to select a file</p>
-                    <input className="hidden" type="file" />
+                  <div
+                    className="flex flex-col gap-2 items-center justify-center cursor-pointer border-2 border-dashed border-border rounded-lg py-8 px-12 text-muted-foreground hover:bg-secondary/20"
+                    onClick={handleFileClick}
+                    onDrop={handleFileDrop}
+                    onDragOver={handleDragOver}
+                  >
+                    {previewImage ? (
+                      <img src={previewImage} alt="Preview" className="max-w-full max-h-48" />
+                    ) : (
+                      <>
+                        <IconUpload />
+                        <p className="text-sm text-center">Drag and drop your image here or click to select a file</p>
+                      </>
+                    )}
+                    <input
+                      ref={fileInputRef}
+                      className="hidden"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileChange}
+                    />
                   </div>
                   <div className="space-y-4">
                     <FormField
