@@ -29,6 +29,8 @@ import {
   getValueInsensitive,
 } from "@mrgnlabs/mrgn-common";
 
+import { TRADE_GROUPS_MAP, TOKEN_METADATA_MAP, BANK_METADATA_MAP } from "~/config/trade";
+
 type TradeGroupsCache = {
   [group: string]: [string, string];
 };
@@ -307,22 +309,16 @@ export { createTradeStore };
 export type { TradeStoreState };
 
 const fetchBanksAndTradeGroups = async (wallet: Wallet, connection: Connection) => {
-  const tradeGroups: TradeGroupsCache = await fetch(
-    "https://storage.googleapis.com/mrgn-public/mfi-trade-groups.json"
-  ).then((res) => res.json());
+  const tradeGroups: TradeGroupsCache = await fetch(TRADE_GROUPS_MAP).then((res) => res.json());
 
   if (!tradeGroups) {
     console.error("Failed to fetch trade groups");
     return;
   }
 
-  const tokenMetadataMap = await loadTokenMetadatas(
-    "https://storage.googleapis.com/mrgn-public/mfi-trade-metadata-cache.json"
-  );
+  const tokenMetadataMap = await loadTokenMetadatas(TOKEN_METADATA_MAP);
 
-  const bankMetadataMap = await loadBankMetadatas(
-    "https://storage.googleapis.com/mrgn-public/mfi-bank-metadata-cache.json"
-  );
+  const bankMetadataMap = await loadBankMetadatas(BANK_METADATA_MAP);
 
   const groups = Object.keys(tradeGroups).map((group) => new PublicKey(group));
   const allBanks: ExtendedBankInfo[] = [];
