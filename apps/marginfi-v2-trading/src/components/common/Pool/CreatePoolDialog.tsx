@@ -50,6 +50,14 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
     searchBanks(debouncedSearchQuery);
   }, [debouncedSearchQuery]);
 
+  React.useEffect(() => {
+    if (isOpen) {
+      setCreatePoolState(CreatePoolState.SEARCH);
+      setSearchQuery("");
+      resetActiveGroup();
+    }
+  }, [isOpen, resetActiveGroup, setCreatePoolState, setSearchQuery]);
+
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
@@ -86,6 +94,7 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
                     className="py-2 pr-3 pl-12 h-auto text-lg rounded-full bg-background outline-none focus-visible:ring-primary/75"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
+                    autoFocus
                   />
                 </div>
               </div>
