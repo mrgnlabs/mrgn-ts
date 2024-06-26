@@ -25,10 +25,7 @@ export const useWebSocket = () => {
 
   useEffect(() => {
     // Create WebSocket connection.
-    const socket = new WebSocket(
-      `wss://public-api.birdeye.so/socket/solana?x-api-key=${process.env.BIRDEYE_API_KEY}`,
-      "echo-protocol"
-    );
+    const socket = new WebSocket(`ws://${window.location.host}/api/datafeed/websocket`);
     socketRef.current = socket;
 
     // Connection opened
@@ -39,41 +36,9 @@ export const useWebSocket = () => {
     // Listen for messages
     socket.addEventListener("message", (msg) => {
       const data = JSON.parse(msg.data);
-
-      if (data.type !== "PRICE_DATA") return console.log(data);
-
-      if (!subscriptionItem) return;
-
-      const currTime = data.data.unixTime * 1000;
-      const lastBar = subscriptionItem.lastBar;
-      const resolution = subscriptionItem.resolution;
-      const nextBarTime = getNextBarTime(lastBar, resolution);
-
-      let bar: Bar;
-
-      if (currTime >= nextBarTime) {
-        bar = {
-          time: nextBarTime,
-          open: data.data.o,
-          high: data.data.h,
-          low: data.data.l,
-          close: data.data.c,
-          volume: data.data.v,
-        };
-        console.log("[socket] Generate new bar");
-      } else {
-        bar = {
-          ...lastBar,
-          high: Math.max(lastBar.high, data.data.h),
-          low: Math.min(lastBar.low, data.data.l),
-          close: data.data.c,
-          volume: data.data.v,
-        };
-        console.log("[socket] Update the latest bar by price");
-      }
-
-      setSubscriptionItem((prev) => (prev ? { ...prev, lastBar: bar } : null));
-      subscriptionItem.callback(bar);
+      console.log({ data });
+      // setSubscriptionItem((prev) => (prev ? { ...prev, lastBar: bar } : null));
+      // subscriptionItem.callback(bar);
     });
 
     socket.addEventListener("close", () => {
@@ -110,6 +75,7 @@ export const useWebSocket = () => {
         address: symbolInfo.address,
         currency: "usd",
       },
+      subscriptionItem: item,
     };
 
     socketRef.current?.send(JSON.stringify(msg));

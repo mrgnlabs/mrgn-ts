@@ -42,7 +42,6 @@ export const TVWidget = ({ token }: props) => {
 
             return {
               format: (price, signPositive) => {
-                console.log({ price });
                 if (price >= 1000000000) {
                   return `${(price / 1000000000).toFixed(3)}B`;
                 }
