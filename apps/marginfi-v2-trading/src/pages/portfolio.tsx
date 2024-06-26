@@ -35,7 +35,7 @@ export default function PortfolioPage() {
       {initialized && (
         <div className="space-y-4">
           <div className="w-full max-w-4xl mx-auto px-4 md:px-0">
-            <PageHeading heading={<h1>Portfolio</h1>} body={<p>Manage your mrgntrade positions.</p>} links={[]} />
+            <PageHeading heading="Portfolio" body={<p>Manage your mrgntrade positions.</p>} links={[]} />
           </div>
           <div className="bg-background-gray-dark p-4 rounded-2xl w-full max-w-6xl mx-auto md:p-8">
             {!portfolio ? (
