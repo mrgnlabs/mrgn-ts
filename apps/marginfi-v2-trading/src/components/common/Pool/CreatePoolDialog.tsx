@@ -383,7 +383,13 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
               <form className="space-y-6" onSubmit={form.handleSubmit(onSubmit)}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div
-                    className="flex flex-col gap-2 items-center justify-center cursor-pointer border-2 border-dashed border-border rounded-lg py-8 px-12 text-muted-foreground hover:bg-secondary/20"
+                    className={cn(
+                      "flex flex-col gap-2 items-center justify-center cursor-pointer border-2 border-dashed border-border rounded-lg py-8 px-12 text-muted-foreground hover:bg-secondary/20",
+                      form.formState.isSubmitted &&
+                        !form.getValues().imageUpload &&
+                        !form.getValues().imageDownload &&
+                        "border-destructive bg-destructive hover:bg-destructive"
+                    )}
                     onClick={handleFileClick}
                     onDrop={handleFileDrop}
                     onDragOver={handleDragOver}
@@ -414,14 +420,20 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
                     <FormField
                       control={form.control}
                       name="mint"
-                      render={({ field }) => (
+                      render={({ field, formState }) => (
                         <FormItem>
                           <div className="space-y-2 text-sm">
-                            <FormLabel className="font-medium">Mint address</FormLabel>
+                            <FormLabel className="font-medium">{formState.errors.mint && "*"}Mint address</FormLabel>
                             <FormControl>
-                              <Input placeholder="Enter token address" {...field} />
+                              <Input
+                                placeholder="Enter token address"
+                                className={cn(
+                                  formState.errors.mint &&
+                                    "bg-destructive border-destructive text-destructive-foreground"
+                                )}
+                                {...field}
+                              />
                             </FormControl>
-                            <FormMessage />
                           </div>
                         </FormItem>
                       )}
@@ -429,14 +441,20 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
                     <FormField
                       control={form.control}
                       name="name"
-                      render={({ field }) => (
+                      render={({ field, formState }) => (
                         <FormItem>
                           <div className="space-y-2 text-sm">
-                            <FormLabel className="font-medium">Token name</FormLabel>
+                            <FormLabel className="font-medium">{formState.errors.name && "*"}Token name</FormLabel>
                             <FormControl>
-                              <Input placeholder="Enter token name" {...field} />
+                              <Input
+                                placeholder="Enter token name"
+                                className={cn(
+                                  formState.errors.name &&
+                                    "bg-destructive border-destructive text-destructive-foreground"
+                                )}
+                                {...field}
+                              />
                             </FormControl>
-                            <FormMessage />
                           </div>
                         </FormItem>
                       )}
@@ -444,14 +462,20 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
                     <FormField
                       control={form.control}
                       name="symbol"
-                      render={({ field }) => (
+                      render={({ field, formState }) => (
                         <FormItem>
                           <div className="space-y-2 text-sm">
-                            <FormLabel className="font-medium">Token symbol</FormLabel>
+                            <FormLabel className="font-medium">{formState.errors.symbol && "*"}Token symbol</FormLabel>
                             <FormControl>
-                              <Input placeholder="Enter token symbol" {...field} />
+                              <Input
+                                placeholder="Enter token symbol"
+                                className={cn(
+                                  formState.errors.symbol &&
+                                    "bg-destructive border-destructive text-destructive-foreground"
+                                )}
+                                {...field}
+                              />
                             </FormControl>
-                            <FormMessage />
                           </div>
                         </FormItem>
                       )}
@@ -459,14 +483,23 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
                     <FormField
                       control={form.control}
                       name="decimals"
-                      render={({ field }) => (
+                      render={({ field, formState }) => (
                         <FormItem>
                           <div className="space-y-2 text-sm">
-                            <FormLabel className="font-medium">Token decimals</FormLabel>
+                            <FormLabel className="font-medium">
+                              {formState.errors.decimals && "*"}Token decimals
+                            </FormLabel>
                             <FormControl>
-                              <Input type="number" placeholder="Enter token symbol" {...field} />
+                              <Input
+                                type="number"
+                                placeholder="Enter token decimals"
+                                className={cn(
+                                  formState.errors.decimals &&
+                                    "bg-destructive border-destructive text-destructive-foreground"
+                                )}
+                                {...field}
+                              />
                             </FormControl>
-                            <FormMessage />
                           </div>
                         </FormItem>
                       )}
@@ -474,14 +507,22 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
                     <FormField
                       control={form.control}
                       name="oracle"
-                      render={({ field }) => (
+                      render={({ field, formState }) => (
                         <FormItem>
                           <div className="space-y-2 text-sm">
-                            <FormLabel className="font-medium">Oracle address</FormLabel>
+                            <FormLabel className="font-medium">
+                              {formState.errors.oracle && "*"}Oracle address
+                            </FormLabel>
                             <FormControl>
-                              <Input placeholder="Enter oracle address" {...field} />
+                              <Input
+                                placeholder="Enter oracle address"
+                                className={cn(
+                                  formState.errors.oracle &&
+                                    "bg-destructive border-destructive text-destructive-foreground"
+                                )}
+                                {...field}
+                              />
                             </FormControl>
-                            <FormMessage />
                           </div>
                         </FormItem>
                       )}
