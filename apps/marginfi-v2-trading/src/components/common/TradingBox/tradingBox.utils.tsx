@@ -4,20 +4,32 @@ import {
   MarginRequirementType,
   MarginfiAccountWrapper,
   MarginfiClient,
+  OperationalState,
   SimulationResult,
 } from "@mrgnlabs/marginfi-client-v2";
 import { AccountSummary, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { LUT_PROGRAM_AUTHORITY_INDEX, Wallet, nativeToUi, uiToNative, usdFormatter } from "@mrgnlabs/mrgn-common";
+import {
+  LUT_PROGRAM_AUTHORITY_INDEX,
+  Wallet,
+  nativeToUi,
+  percentFormatter,
+  uiToNative,
+  usdFormatter,
+} from "@mrgnlabs/mrgn-common";
 import { AddressLookupTableAccount, Connection, VersionedTransaction } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 import { IconArrowRight, IconPyth, IconSwitchboard } from "~/components/ui/icons";
 import {
+  ActionMethodType,
   deserializeInstruction,
   extractErrorString,
   getAdressLookupTableAccounts,
   getSwapQuoteWithRetry,
+  isBankOracleStale,
 } from "~/utils";
 import { MultiStepToastHandle, showErrorToast } from "~/utils/toastUtils";
+
+export type TradeSide = "long" | "short";
 
 export interface LoopingObject {
   loopingTxn: VersionedTransaction;
@@ -496,3 +508,183 @@ export function getCurrentStats(
 
 //   )
 // }
+
+export interface ActionMethod {
+  isEnabled: boolean;
+  actionMethod?: ActionMethodType;
+  description?: string;
+  link?: string;
+}
+
+interface ActiveGroup {
+  token: ExtendedBankInfo;
+  usdc: ExtendedBankInfo;
+}
+
+interface CheckActionAvailableProps {
+  amount: string;
+  connected: boolean;
+  activeGroup: ActiveGroup | null;
+  loopingObject: LoopingObject | null;
+  tradeSide: TradeSide;
+}
+
+export function checkLoopingActionAvailable({
+  amount,
+  connected,
+  activeGroup,
+  loopingObject,
+  tradeSide,
+}: CheckActionAvailableProps): ActionMethod[] {
+  let checks: ActionMethod[] = [];
+
+  const requiredCheck = getRequiredCheck(connected, activeGroup, loopingObject);
+  if (requiredCheck) return [requiredCheck];
+
+  const generalChecks = getGeneralChecks(amount);
+  if (generalChecks) checks.push(...generalChecks);
+
+  // allert checks
+  if (activeGroup && loopingObject) {
+    const lentChecks = canBeLooped(activeGroup, loopingObject, tradeSide);
+    if (lentChecks.length) checks.push(...lentChecks);
+
+    // case ActionType.MintYBX:
+    //   if (check) checks.push(check);
+    //   break;
+  }
+
+  if (checks.length === 0)
+    checks.push({
+      isEnabled: true,
+    });
+
+  return checks;
+}
+
+function getRequiredCheck(
+  connected: boolean,
+  activeGroup: ActiveGroup | null,
+  loopingObject: LoopingObject | null
+): ActionMethod | null {
+  if (!connected) {
+    return { isEnabled: false };
+  }
+  if (!activeGroup) {
+    return { isEnabled: false };
+  }
+  if (!loopingObject) {
+    return { isEnabled: false };
+  }
+
+  return null;
+}
+
+function getGeneralChecks(amount: string): ActionMethod[] {
+  let checks: ActionMethod[] = [];
+
+  try {
+    if (Number(amount) === 0) {
+      checks.push({ isEnabled: false });
+    }
+    return checks;
+  } catch {
+    checks.push({ isEnabled: false });
+    return checks;
+  }
+}
+
+function canBeLooped(activeGroup: ActiveGroup, loopingObject: LoopingObject, tradeSide: TradeSide): ActionMethod[] {
+  let checks: ActionMethod[] = [];
+  const isUsdcBankPaused = activeGroup.usdc.info.rawBank.config.operationalState === OperationalState.Paused;
+  const isTokenBankPaused = activeGroup.token.info.rawBank.config.operationalState === OperationalState.Paused;
+
+  let hasUsdcSupplied,
+    hasUsdcBorrowed = false;
+  let hasTokenSupplied,
+    hasTokenBorrowed = false;
+
+  if (activeGroup.usdc.isActive) {
+    hasUsdcSupplied = activeGroup.usdc.position.isLending;
+    hasUsdcBorrowed = activeGroup.usdc.position.isLending;
+  }
+
+  if (activeGroup.token.isActive) {
+    hasTokenSupplied = activeGroup.token.position.isLending;
+    hasTokenBorrowed = activeGroup.token.position.isLending;
+  }
+
+  const wrongPositionActive =
+    tradeSide === "long" ? hasUsdcSupplied || hasTokenBorrowed : hasUsdcBorrowed || hasTokenSupplied;
+
+  if (isUsdcBankPaused) {
+    checks.push({
+      description: `The ${activeGroup.usdc.info.rawBank.tokenSymbol} bank is paused at this time.`,
+      isEnabled: false,
+    });
+  }
+
+  if (isTokenBankPaused) {
+    checks.push({
+      description: `The ${activeGroup.token.info.rawBank.tokenSymbol} bank is paused at this time.`,
+      isEnabled: false,
+    });
+  }
+
+  if (wrongPositionActive) {
+    const wrongSupplied = tradeSide === "long" ? hasUsdcSupplied : hasTokenSupplied;
+    const wrongBorrowed = tradeSide === "long" ? hasTokenBorrowed : hasUsdcBorrowed;
+
+    if (wrongSupplied && wrongBorrowed) {
+      checks.push({
+        description: `You are already ${tradeSide === "long" ? "shorting" : "longing"} this asset.`,
+        isEnabled: false,
+      });
+    } else if (wrongSupplied) {
+      checks.push({
+        description: `Before you can ${tradeSide} this asset, you'll need to withdraw your supplied ${
+          tradeSide === "long" ? "USDC" : activeGroup.token.meta.tokenSymbol
+        }.`,
+        isEnabled: false,
+      });
+    } else if (wrongBorrowed) {
+      checks.push({
+        description: `Before you can ${tradeSide} this asset, you'll need to repay your borrowed ${
+          tradeSide === "long" ? activeGroup.token.meta.tokenSymbol : "USDC"
+        }.`,
+        isEnabled: false,
+      });
+    }
+  }
+
+  const priceImpactPct = loopingObject.quote.priceImpactPct;
+
+  if (priceImpactPct && Number(priceImpactPct) > 0.01) {
+    //invert
+    if (priceImpactPct && Number(priceImpactPct) > 0.05) {
+      checks.push({
+        description: `Price impact is ${percentFormatter.format(Number(priceImpactPct))}.`,
+        actionMethod: "ERROR",
+        isEnabled: true,
+      });
+    } else {
+      checks.push({
+        description: `Price impact is ${percentFormatter.format(Number(priceImpactPct))}.`,
+        isEnabled: true,
+      });
+    }
+  }
+
+  if (
+    (activeGroup.token && isBankOracleStale(activeGroup.token)) ||
+    (activeGroup.usdc && isBankOracleStale(activeGroup.usdc))
+  ) {
+    checks.push({
+      description: "The oracle data for this bank is stale",
+      isEnabled: true,
+      link: "https://forum.marginfi.community/t/work-were-doing-to-improve-oracle-robustness-during-chain-congestion/283",
+    });
+  }
+
+  return checks;
+}
