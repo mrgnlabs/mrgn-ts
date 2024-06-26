@@ -52,6 +52,9 @@ type TradeStoreState = {
   // array of extended token bank objects
   banks: ExtendedBankInfo[];
 
+  // array of banks filtered by search query
+  filteredBanks: ExtendedBankInfo[];
+
   // array of collateral usdc banks
   collateralBanks: {
     [token: string]: ExtendedBankInfo;
@@ -97,6 +100,7 @@ type TradeStoreState = {
 
   setIsRefreshingStore: (isRefreshing: boolean) => void;
   resetActiveGroup: () => void;
+  searchBanks: (searchQuery: string) => void;
 };
 
 const { programId } = getConfig();
@@ -113,6 +117,7 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
   groupsCache: {},
   groups: [],
   banks: [],
+  filteredBanks: [],
   banksIncludingUSDC: [],
   collateralBanks: {},
   marginfiClient: null,
@@ -157,6 +162,7 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
           groupsCache: result.tradeGroups,
           groups: result.groups,
           banks: result.tokenBanks,
+          filteredBanks: result.tokenBanks,
           banksIncludingUSDC: result.allBanks,
           collateralBanks: result.collateralBanks,
           nativeSolBalance: result.nativeSolBalance,
@@ -184,6 +190,7 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
             groupsCache: result.tradeGroups,
             groups: result.groups,
             banks: result.tokenBanks,
+            filteredBanks: result.tokenBanks,
             banksIncludingUSDC: result.allBanks,
             collateralBanks: result.collateralBanks,
             nativeSolBalance: result.nativeSolBalance,
@@ -300,6 +307,38 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
         ...state,
         marginfiClient: null,
         activeGroup: null,
+      };
+    });
+  },
+
+  searchBanks: (searchQuery: string) => {
+    const search = searchQuery.toLowerCase();
+    const banks = get().banks;
+
+    if (!searchQuery) {
+      set((state) => {
+        return {
+          ...state,
+          filteredBanks: banks,
+        };
+      });
+      return;
+    }
+
+    const filteredBanks = banks.filter((bank) => {
+      if (bank.meta.tokenName.toLowerCase().includes(search) || bank.meta.tokenSymbol.toLowerCase().includes(search)) {
+        return true;
+      }
+      if (search.length >= 4 && bank.address.toBase58().toLowerCase().includes(search)) {
+        return true;
+      }
+      return false;
+    });
+
+    set((state) => {
+      return {
+        ...state,
+        filteredBanks,
       };
     });
   },
