@@ -1,9 +1,10 @@
 import React from "react";
 
-import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/router";
 
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { usdFormatter } from "@mrgnlabs/mrgn-common";
 import { IconUpload, IconPlus, IconSearch, IconArrowRight, IconLoader2 } from "@tabler/icons-react";
@@ -14,9 +15,9 @@ import { useTradeStore } from "~/store";
 import { cn, getTokenImageURL } from "~/utils";
 
 import { Dialog, DialogContent, DialogTrigger } from "~/components/ui/dialog";
-import { Label } from "~/components/ui/label";
 import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "~/components/ui/form";
 
 type CreatePoolDialogProps = {
   trigger?: React.ReactNode;
@@ -32,10 +33,11 @@ enum CreatePoolState {
 }
 
 const formSchema = z.object({
-  mint: z.instanceof(PublicKey),
-  name: z.string().min(3),
+  mint: z.string(),
+  name: z.string(),
   symbol: z.string(),
-  oracle: z.instanceof(PublicKey),
+  decimals: z.number(),
+  oracle: z.string(),
 });
 
 export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
@@ -49,16 +51,24 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
   const [isOpen, setIsOpen] = React.useState(false);
   const [createPoolState, setCreatePoolState] = React.useState<CreatePoolState>(CreatePoolState.SEARCH);
   const [isSearchingDasApi, setIsSearchingDasApi] = React.useState(false);
+  const [isTokenFetchingError, setIsTokenFetchingError] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState("");
+  const [mintAddress, setMintAddress] = React.useState("");
   const searchInputRef = React.useRef<HTMLInputElement>(null);
-  const mintAddressRef = React.useRef<HTMLInputElement>(null);
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
-  const fetchTokenInfo = React.useCallback(async () => {
-    if (!mintAddressRef.current) return;
-    setIsSearchingDasApi(true);
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+  });
 
-    const mintAddress = mintAddressRef.current.value;
+  const onSubmit = (values: z.infer<typeof formSchema>) => {
+    // Do something with the form values.
+    // ✅ This will be type-safe and validated.
+    console.log(values);
+  };
+
+  const fetchTokenInfo = React.useCallback(async () => {
+    setIsSearchingDasApi(true);
 
     try {
       const mint = new PublicKey(mintAddress);
@@ -74,18 +84,18 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
         throw new Error("Invalid token mint address");
       }
 
-      console.log("mint", mint.toBase58());
-      console.log("name", tokenInfo.content.metadata.name);
-      console.log("supply", tokenInfo.content.metadata.symbol);
-      console.log("image", tokenInfo.content.files[0].cdn_uri);
-      console.log("decimals", tokenInfo.token_info.decimals);
+      form.setValue("mint", mint.toBase58());
+      form.setValue("name", tokenInfo.content.metadata.name);
+      form.setValue("symbol", tokenInfo.content.metadata.symbol);
 
       setIsSearchingDasApi(false);
+      setCreatePoolState(CreatePoolState.FORM);
     } catch (e) {
       console.error(e);
+      setIsTokenFetchingError(true);
       setIsSearchingDasApi(false);
     }
-  }, [setCreatePoolState, mintAddressRef]);
+  }, [setCreatePoolState, form, mintAddress, setIsSearchingDasApi]);
 
   React.useEffect(() => {
     if (!searchQuery.length) {
@@ -99,9 +109,10 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
     if (isOpen) {
       setCreatePoolState(CreatePoolState.SEARCH);
       setSearchQuery("");
+      setIsTokenFetchingError(false);
       resetActiveGroup();
     }
-  }, [isOpen, resetActiveGroup, setCreatePoolState, setSearchQuery]);
+  }, [isOpen, resetActiveGroup, setCreatePoolState, setSearchQuery, setIsTokenFetchingError]);
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -146,7 +157,7 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
 
               <div>
                 {debouncedSearchQuery.length > 1 && filteredBanks.length === 0 && (
-                  <div className="text-center text-muted-foreground w-full space-y-4">
+                  <div className="text-center text-muted-foreground w-full">
                     <p>No results found for &quot;{debouncedSearchQuery}&quot;</p>
                   </div>
                 )}
@@ -196,7 +207,7 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
                 )}
 
                 {debouncedSearchQuery.length > 1 && (
-                  <div className="flex justify-center pt-8">
+                  <div className="flex justify-center pt-4">
                     <Button onClick={() => setCreatePoolState(CreatePoolState.MINT)} variant="secondary">
                       <IconPlus size={18} /> Create new pool
                     </Button>
@@ -227,33 +238,42 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
               <div className="w-full bg-gradient-to-r from-mrgn-gold/80 to-mrgn-chartreuse/80 rounded-full p-0.5 transition-colors">
                 <Input
                   disabled={isSearchingDasApi}
-                  ref={mintAddressRef}
                   placeholder="Token mint address..."
                   className="py-2 px-6 h-auto text-lg rounded-full bg-background outline-none focus-visible:ring-primary/75 disabled:opacity-100"
-                  onChange={(e) => setSearchQuery(e.target.value)}
                   autoFocus
+                  value={mintAddress}
+                  onChange={(e) => setMintAddress(e.target.value)}
                 />
               </div>
-              <Button disabled={isSearchingDasApi} type="submit" variant="secondary">
-                {!isSearchingDasApi && (
-                  <>
-                    Continue <IconArrowRight size={18} />
-                  </>
-                )}
-                {isSearchingDasApi && (
-                  <>
-                    <IconLoader2 size={18} className="animate-spin" /> Fetching token info...
-                  </>
-                )}
-              </Button>
+              {isTokenFetchingError ? (
+                <div className="flex flex-col justify-center items-center gap-4 text-sm text-muted-foreground">
+                  <p>Couldn't find token details, please enter manually.</p>
+                  <Button variant="secondary" onClick={() => setCreatePoolState(CreatePoolState.FORM)}>
+                    Continue
+                  </Button>
+                </div>
+              ) : (
+                <Button disabled={isSearchingDasApi || !mintAddress.length} type="submit" variant="secondary">
+                  {!isSearchingDasApi && (
+                    <>
+                      Fetch token info <IconArrowRight size={18} />
+                    </>
+                  )}
+                  {isSearchingDasApi && (
+                    <>
+                      <IconLoader2 size={18} className="animate-spin" /> Fetching token info...
+                    </>
+                  )}
+                </Button>
+              )}
             </form>
           </>
         )}
         {createPoolState === CreatePoolState.FORM && (
           <>
             <div className="text-center space-y-2 max-w-md mx-auto">
-              <h2 className="text-3xl font-medium">Create a Pool</h2>
-              <p className="text-muted-foreground">Create a permissionless pool with marginfi.</p>
+              <h2 className="text-3xl font-medium">Confirm token details</h2>
+              <p className="text-muted-foreground">Please review and confirm or modify the token details.</p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="flex flex-col gap-2 items-center justify-center cursor-pointer border-2 border-dashed border-border rounded-lg py-8 px-12 text-muted-foreground hover:bg-secondary/20">
@@ -261,44 +281,90 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
                 <p className="text-sm text-center">Drag and drop your image here or click to select a file</p>
                 <input className="hidden" type="file" />
               </div>
-              <form className="space-y-6">
-                <div className="space-y-4">
-                  <div className="space-y-2 text-sm">
-                    <Label className="font-medium" htmlFor="address">
-                      Token Address
-                    </Label>
-                    <Input id="address" placeholder="Enter token address" required type="text" />
+              <Form {...form}>
+                <form className="space-y-6" onSubmit={form.handleSubmit(onSubmit)}>
+                  <div className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="mint"
+                      render={({ field }) => (
+                        <FormItem>
+                          <div className="space-y-2 text-sm">
+                            <FormLabel className="font-medium">Mint address</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Enter token address" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </div>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <div className="space-y-2 text-sm">
+                            <FormLabel className="font-medium">Token name</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Enter token name" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </div>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="symbol"
+                      render={({ field }) => (
+                        <FormItem>
+                          <div className="space-y-2 text-sm">
+                            <FormLabel className="font-medium">Token symbol</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Enter token symbol" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </div>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="decimals"
+                      render={({ field }) => (
+                        <FormItem>
+                          <div className="space-y-2 text-sm">
+                            <FormLabel className="font-medium">Token decimals</FormLabel>
+                            <FormControl>
+                              <Input type="number" placeholder="Enter token symbol" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </div>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="oracle"
+                      render={({ field }) => (
+                        <FormItem>
+                          <div className="space-y-2 text-sm">
+                            <FormLabel className="font-medium">Oracle address</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Enter oracle address" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </div>
+                        </FormItem>
+                      )}
+                    />
                   </div>
-                  <div className="space-y-2 text-sm">
-                    <Label className="font-medium" htmlFor="name">
-                      Name
-                    </Label>
-                    <Input id="name" placeholder="Enter token name" required type="text" />
-                  </div>
-                  <div className="space-y-2 text-sm">
-                    <Label className="font-medium" htmlFor="symbol">
-                      Symbol
-                    </Label>
-                    <Input id="symbol" placeholder="Enter token symbol" required type="text" />
-                  </div>
-                  <div className="text-sm">
-                    <div className="flex items-center justify-between gap-2">
-                      <Label className="font-medium" htmlFor="symbol">
-                        Oracle
-                      </Label>
-                      <Link href="#" target="_blank" rel="noreferrer">
-                        <Button variant="link" size="sm" className="px-0 py-1">
-                          More info
-                        </Button>
-                      </Link>
-                    </div>
-                    <Input id="symbol" placeholder="Enter oracle symbol" required type="text" />
-                  </div>
-                </div>
-                <Button className="w-full" type="submit">
-                  Create Pool
-                </Button>
-              </form>
+                  <Button className="w-full" type="submit">
+                    Create Pool
+                  </Button>
+                </form>
+              </Form>
             </div>
           </>
         )}
