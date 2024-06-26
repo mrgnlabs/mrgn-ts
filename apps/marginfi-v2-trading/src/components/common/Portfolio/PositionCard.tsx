@@ -16,13 +16,11 @@ type PositionCardProps = {
 };
 
 export const PositionCard = ({ bank }: PositionCardProps) => {
-  const [banksIncludingUSDC] = useTradeStore((state) => [state.banksIncludingUSDC]);
+  const [collateralBanks] = useTradeStore((state) => [state.collateralBanks]);
 
   const collateralBank = React.useMemo(() => {
-    const bankIndex = banksIncludingUSDC.findIndex((b) => b.address.equals(bank.address));
-    if (bankIndex === -1 || bankIndex === banksIncludingUSDC.length - 1) return null;
-    return banksIncludingUSDC[bankIndex + 1];
-  }, [banksIncludingUSDC, bank]);
+    return collateralBanks[bank.address.toBase58()] || null;
+  }, [collateralBanks, bank]);
 
   return (
     <div className="bg-background-gray p-4 rounded-2xl space-y-4">
