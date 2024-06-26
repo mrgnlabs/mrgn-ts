@@ -179,6 +179,12 @@ let config = withBundleAnalyzer({
         port: "",
         pathname: "/*",
       },
+      {
+        protocol: "https",
+        hostname: "cdn.helius-rpc.com",
+        port: "",
+        pathname: "/cdn-cgi/image/**",
+      },
     ],
   },
 });

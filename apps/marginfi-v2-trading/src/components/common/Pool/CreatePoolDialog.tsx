@@ -159,7 +159,7 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
       return;
     }
     searchBanks(debouncedSearchQuery);
-  }, [debouncedSearchQuery]);
+  }, [debouncedSearchQuery, searchBanks, resetFilteredBanks, searchQuery]);
 
   const reset = React.useCallback(() => {
     setPreviewImage("");
@@ -167,7 +167,7 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
     setIsTokenFetchingError(false);
     resetActiveGroup();
     form.reset();
-  }, [resetActiveGroup, setCreatePoolState, setIsTokenFetchingError, form]);
+  }, [resetActiveGroup, setIsTokenFetchingError, form]);
 
   React.useEffect(() => {
     reset();
@@ -295,7 +295,7 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
             <div className="text-center space-y-2 max-w-lg mx-auto">
               <h2 className="text-3xl font-medium">Token mint address</h2>
               <p className="text-lg text-muted-foreground">
-                Enter the mint address of the token you'd like to create a pool for.
+                Enter the mint address of the token you&apos;d like to create a pool for.
               </p>
             </div>
             <form
@@ -389,7 +389,13 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
                     onDragOver={handleDragOver}
                   >
                     {previewImage ? (
-                      <img src={previewImage} alt="Preview" className="max-w-full max-h-48 rounded-full" />
+                      <Image
+                        src={previewImage}
+                        alt="Preview"
+                        className="max-w-full max-h-48 rounded-full"
+                        height={192}
+                        width={192}
+                      />
                     ) : (
                       <>
                         <IconUpload />
