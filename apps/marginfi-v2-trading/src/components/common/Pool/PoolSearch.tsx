@@ -9,12 +9,16 @@ import { cn } from "~/utils";
 import { Input } from "~/components/ui/input";
 
 export const PoolSearch = () => {
-  const [searchBanks] = useTradeStore((state) => [state.searchBanks]);
+  const [searchBanks, resetFilteredBanks] = useTradeStore((state) => [state.searchBanks, state.resetFilteredBanks]);
   const searchInputRef = React.useRef<HTMLInputElement>(null);
   const [searchQuery, setSearchQuery] = React.useState("");
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
   React.useEffect(() => {
+    if (!debouncedSearchQuery.length) {
+      resetFilteredBanks();
+      return;
+    }
     searchBanks(debouncedSearchQuery);
   }, [debouncedSearchQuery]);
 
