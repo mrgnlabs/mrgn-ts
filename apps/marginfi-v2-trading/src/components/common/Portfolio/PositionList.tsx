@@ -51,10 +51,9 @@ export const PositionList = () => {
           )}
 
           {portfolio.map((bank, index) => {
-            const collateralBank = banksIncludingUSDC.find((bank, i) => {
-              if (!bank || i === banksIncludingUSDC.length - 1) return false;
-              return bank.address.equals(bank.address);
-            });
+            const bankIndex = banksIncludingUSDC.findIndex((b) => b.address.equals(bank.address));
+            if (bankIndex === -1 || bankIndex === banksIncludingUSDC.length - 1) return null;
+            const collateralBank = banksIncludingUSDC[bankIndex + 1];
 
             return (
               <TableRow key={index} className="even:bg-background-gray hover:even:bg-background-gray">
