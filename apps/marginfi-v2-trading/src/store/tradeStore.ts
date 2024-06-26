@@ -101,6 +101,7 @@ type TradeStoreState = {
   setIsRefreshingStore: (isRefreshing: boolean) => void;
   resetActiveGroup: () => void;
   searchBanks: (searchQuery: string) => void;
+  resetFilteredBanks: () => void;
 };
 
 const { programId } = getConfig();
@@ -162,7 +163,7 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
           groupsCache: result.tradeGroups,
           groups: result.groups,
           banks: result.tokenBanks,
-          filteredBanks: result.tokenBanks,
+          filteredBanks: [],
           banksIncludingUSDC: result.allBanks,
           collateralBanks: result.collateralBanks,
           nativeSolBalance: result.nativeSolBalance,
@@ -190,7 +191,7 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
             groupsCache: result.tradeGroups,
             groups: result.groups,
             banks: result.tokenBanks,
-            filteredBanks: result.tokenBanks,
+            filteredBanks: [],
             banksIncludingUSDC: result.allBanks,
             collateralBanks: result.collateralBanks,
             nativeSolBalance: result.nativeSolBalance,
@@ -316,12 +317,6 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
     const banks = get().banks;
 
     if (!searchQuery) {
-      set((state) => {
-        return {
-          ...state,
-          filteredBanks: banks,
-        };
-      });
       return;
     }
 
@@ -339,6 +334,15 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
       return {
         ...state,
         filteredBanks,
+      };
+    });
+  },
+
+  resetFilteredBanks: () => {
+    set((state) => {
+      return {
+        ...state,
+        filteredBanks: [],
       };
     });
   },
