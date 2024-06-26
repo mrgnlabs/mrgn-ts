@@ -14,11 +14,11 @@ import { Button } from "~/components/ui/button";
 import { Badge } from "~/components/ui/badge";
 
 export const PositionList = () => {
-  const [initialized, selectedAccount, banks, banksIncludingUSDC] = useTradeStore((state) => [
+  const [initialized, selectedAccount, banks, collateralBanks] = useTradeStore((state) => [
     state.initialized,
     state.selectedAccount,
     state.banks,
-    state.banksIncludingUSDC,
+    state.collateralBanks,
   ]);
 
   const portfolio = React.useMemo(() => {
@@ -51,9 +51,7 @@ export const PositionList = () => {
           )}
 
           {portfolio.map((bank, index) => {
-            const bankIndex = banksIncludingUSDC.findIndex((b) => b.address.equals(bank.address));
-            if (bankIndex === -1 || bankIndex === banksIncludingUSDC.length - 1) return null;
-            const collateralBank = banksIncludingUSDC[bankIndex + 1];
+            const collateralBank = collateralBanks[bank.address.toBase58()] || null;
 
             return (
               <TableRow key={index} className="even:bg-background-gray hover:even:bg-background-gray">
