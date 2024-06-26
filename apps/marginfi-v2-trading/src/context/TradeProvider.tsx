@@ -39,6 +39,11 @@ export const TradePovider: React.FC<{
       fetchData();
 
       const id = setInterval(() => {
+        if (router.pathname !== "/trade") {
+          clearInterval(id);
+          clearTimeout(debounceId.current!);
+          return;
+        }
         setIsRefreshingStore(true);
         fetchTradeState({
           connection,
