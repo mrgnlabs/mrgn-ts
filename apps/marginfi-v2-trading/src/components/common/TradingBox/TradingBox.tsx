@@ -15,7 +15,7 @@ import { TokenCombobox } from "../TokenCombobox/TokenCombobox";
 import { ActionBoxDialog } from "~/components/common/ActionBox";
 import { Card, CardContent, CardFooter } from "~/components/ui/card";
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
-import { IconLoader, IconPyth } from "~/components/ui/icons";
+import { IconAlertTriangle, IconLoader, IconPyth } from "~/components/ui/icons";
 import { Slider } from "~/components/ui/slider";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -23,11 +23,17 @@ import { Label } from "~/components/ui/label";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { useConnection } from "~/hooks/useConnection";
 import { MarginfiAccountWrapper, SimulationResult, computeMaxLeverage } from "@mrgnlabs/marginfi-client-v2";
-import { LoopingObject, calculateLooping, generateStats, simulateLooping } from "./tradingBox.utils";
+import {
+  LoopingObject,
+  TradeSide,
+  calculateLooping,
+  checkLoopingActionAvailable,
+  generateStats,
+  simulateLooping,
+} from "./tradingBox.utils";
 import { useDebounce } from "~/hooks/useDebounce";
 import { usePrevious } from "~/utils";
-
-type TradeSide = "long" | "short";
+import Link from "next/link";
 
 const USDC_BANK_PK = new PublicKey("2s37akK2eyBbp8DZgCm7RtsaEz8eJP3Nxd4urLHQv7yB");
 
@@ -47,7 +53,7 @@ interface LoopingStatus {
 
 export const TradingBox = ({ activeBank }: TradingBoxProps) => {
   const router = useRouter();
-  const { wallet } = useWalletContext();
+  const { wallet, connected } = useWalletContext();
   const { connection } = useConnection();
   const [tradeState, setTradeState] = React.useState<TradeSide>("long");
   const prevTradeState = usePrevious(tradeState);
@@ -136,6 +142,18 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
     }
     return 0;
   }, [collateralBank]);
+
+  const actionMethods = React.useMemo(
+    () =>
+      checkLoopingActionAvailable({
+        amount,
+        connected,
+        activeGroup,
+        loopingObject,
+        tradeSide: tradeState,
+      }),
+    [amount, connected, activeGroup, loopingObject, tradeState]
+  );
 
   const loadLoopingVariables = React.useCallback(async () => {
     if (selectedAccount && activeGroup) {
@@ -231,7 +249,6 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
   const handleShorting = React.useCallback(async () => {
     if (loopingObject?.loopingTxn && marginfiClient) {
       const sig = await marginfiClient.processTransaction(loopingObject?.loopingTxn);
-      console.log({ sig });
     }
   }, [loopingObject, marginfiClient]);
 
@@ -381,8 +398,44 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
         {isActiveWithCollat ? (
           <>
             <div className="gap-1 w-full flex flex-col items-center">
+              {actionMethods.map(
+                (actionMethod, idx) =>
+                  actionMethod.description && (
+                    <div className="pb-6" key={idx}>
+                      <div
+                        className={cn(
+                          "flex space-x-2 py-2.5 px-3.5 rounded-lg gap-1 text-sm",
+                          actionMethod.actionMethod === "INFO" && "bg-info text-info-foreground",
+                          (!actionMethod.actionMethod || actionMethod.actionMethod === "WARNING") &&
+                            "bg-alert text-alert-foreground",
+                          actionMethod.actionMethod === "ERROR" && "bg-[#990000] text-primary"
+                        )}
+                      >
+                        <IconAlertTriangle className="shrink-0 translate-y-0.5" size={16} />
+                        <div className="space-y-1">
+                          <p>{actionMethod.description}</p>
+                          {actionMethod.link && (
+                            <p>
+                              {/* <span className="hidden md:inline">-</span>{" "} */}
+                              <Link
+                                href={actionMethod.link}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="underline hover:no-underline"
+                              >
+                                Read more
+                              </Link>
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )
+              )}
+
               <Button
                 onClick={() => handleShorting()}
+                disabled={!!actionMethods.filter((value) => value.isEnabled === false).length}
                 className={cn("w-full", tradeState === "long" && "bg-success", tradeState === "short" && "bg-error")}
               >
                 {isLoading ? (
