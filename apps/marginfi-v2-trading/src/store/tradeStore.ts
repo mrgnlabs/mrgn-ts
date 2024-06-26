@@ -163,7 +163,6 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
           groupsCache: result.tradeGroups,
           groups: result.groups,
           banks: result.tokenBanks,
-          filteredBanks: [],
           banksIncludingUSDC: result.allBanks,
           collateralBanks: result.collateralBanks,
           nativeSolBalance: result.nativeSolBalance,
