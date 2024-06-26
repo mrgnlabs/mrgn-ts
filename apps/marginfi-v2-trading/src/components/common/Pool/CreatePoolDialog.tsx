@@ -1,5 +1,6 @@
 import React from "react";
 
+import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/router";
 
@@ -7,7 +8,15 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { usdFormatter } from "@mrgnlabs/mrgn-common";
-import { IconUpload, IconPlus, IconSearch, IconArrowRight, IconLoader2, IconChevronLeft } from "@tabler/icons-react";
+import {
+  IconUpload,
+  IconPlus,
+  IconSearch,
+  IconArrowRight,
+  IconLoader2,
+  IconChevronLeft,
+  IconInfoCircle,
+} from "@tabler/icons-react";
 import { useDebounce } from "@uidotdev/usehooks";
 import { PublicKey } from "@solana/web3.js";
 
@@ -510,8 +519,19 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
                       render={({ field, formState }) => (
                         <FormItem>
                           <div className="space-y-2 text-sm">
-                            <FormLabel className="font-medium">
+                            <FormLabel className="font-medium flex items-center justify-between gap-2">
                               {formState.errors.oracle && "*"}Oracle address
+                              <Link
+                                href="#"
+                                target="_blank"
+                                rel="noreferrer"
+                                className="group flex items-center gap-1 font-normal text-xs text-muted-foreground"
+                              >
+                                <IconInfoCircle size={16} />{" "}
+                                <span className="border-b border-transparent transition-colors group-hover:border-muted-foreground/75">
+                                  more info
+                                </span>
+                              </Link>
                             </FormLabel>
                             <FormControl>
                               <Input
