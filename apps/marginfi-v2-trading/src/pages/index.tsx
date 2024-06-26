@@ -10,13 +10,18 @@ import { PoolSearch } from "~/components/common/Pool";
 import { Loader } from "~/components/ui/loader";
 
 export default function HomePage() {
-  const [initialized, filteredBanks, resetActiveGroup] = useTradeStore((state) => [
+  const [initialized, banks, filteredBanks, resetActiveGroup] = useTradeStore((state) => [
     state.initialized,
+    state.banks,
     state.filteredBanks,
     state.resetActiveGroup,
   ]);
 
   const [previousTxn] = useUiStore((state) => [state.previousTxn]);
+
+  const bankList = React.useMemo(() => {
+    return filteredBanks.length > 0 ? filteredBanks : banks;
+  }, [banks, filteredBanks]);
 
   React.useEffect(() => {
     resetActiveGroup();
@@ -46,8 +51,8 @@ export default function HomePage() {
 
             <div className="w-full space-y-8 px-4 lg:px-8 pt-24 pb-12">
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                {filteredBanks.length > 0 &&
-                  filteredBanks
+                {bankList.length > 0 &&
+                  bankList
                     .sort(
                       (a, b) =>
                         b.info.oraclePrice.priceRealtime.price.toNumber() -
