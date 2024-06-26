@@ -2,6 +2,7 @@ import React from "react";
 
 import Link from "next/link";
 
+import { usdFormatter } from "@mrgnlabs/mrgn-common";
 import { IconUpload, IconPlus, IconSearch } from "@tabler/icons-react";
 import { useDebounce } from "@uidotdev/usehooks";
 
@@ -87,26 +88,53 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
               </div>
 
               <div>
-                {searchQuery.length > 3 && filteredBanks.length === 0 && (
-                  <div className="text-lg text-center text-muted-foreground w-full">
-                    <p>No results found for "{searchQuery}"</p>
+                {debouncedSearchQuery.length > 3 && filteredBanks.length === 0 && (
+                  <div className="text-center text-muted-foreground w-full space-y-4">
+                    <p>No results found for "{debouncedSearchQuery}"</p>
+                    <Button onClick={() => setCreatePoolState(CreatePoolState.FORM)} variant="secondary">
+                      <IconPlus size={18} /> Create new pool
+                    </Button>
                   </div>
                 )}
-                {banks.length > 0 &&
-                  banks.slice(0, 5).map((bank, index) => (
-                    <div className="flex items-center gap-4 even:bg-background-gray p-4 rounded-lg cursor-pointer hover:bg-background-gray-light/50">
-                      <Image
-                        src={getTokenImageURL(bank.meta.tokenSymbol)}
-                        width={32}
-                        height={32}
-                        alt={bank.meta.tokenSymbol}
-                        className="rounded-full"
-                      />
-                      <h3>
-                        {bank.meta.tokenName} ({bank.meta.tokenSymbol})
-                      </h3>
-                    </div>
-                  ))}
+                {filteredBanks.length > 0 && (
+                  <div className="space-y-3">
+                    {filteredBanks.slice(0, 5).map((bank, index) => (
+                      <Link
+                        href={`/pools/${bank.address.toBase58()}`}
+                        className="flex items-center justify-between gap-4 even:bg-background-gray px-4 py-3 rounded-lg cursor-pointer hover:bg-background-gray-light/50"
+                      >
+                        <div className="flex items-center gap-4">
+                          <Image
+                            src={getTokenImageURL(bank.meta.tokenSymbol)}
+                            width={32}
+                            height={32}
+                            alt={bank.meta.tokenSymbol}
+                            className="rounded-full"
+                          />
+                          <h3>
+                            {bank.meta.tokenName} ({bank.meta.tokenSymbol})
+                          </h3>
+                        </div>
+                        <div className="flex items-center gap-12 ml-auto text-sm text-right">
+                          <p className="space-x-1.5">
+                            <strong className="font-medium">Price:</strong>{" "}
+                            <span className="font-mono text-sm text-muted-foreground">
+                              {usdFormatter.format(bank.info.oraclePrice.priceRealtime.price.toNumber())}
+                            </span>
+                          </p>
+                          <p className="space-x-1.5">
+                            <strong className="font-medium">Deposits:</strong>{" "}
+                            <span className="font-mono text-sm text-muted-foreground">
+                              {usdFormatter.format(
+                                bank.info.state.totalDeposits * bank.info.oraclePrice.priceRealtime.price.toNumber()
+                              )}
+                            </span>
+                          </p>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </>
