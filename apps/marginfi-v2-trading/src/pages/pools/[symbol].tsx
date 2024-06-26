@@ -56,7 +56,7 @@ export default function TradeSymbolPage() {
 
   return (
     <>
-      <div className="w-full max-w-8xl mx-auto px-4 md:px-8 pb-28 z-10">
+      <div className="w-full max-w-8xl mx-auto px-4 md:px-8 pb-28 pt-12 z-10">
         {(!initialized || !activeGroup) && <Loader label="Loading mrgntrade..." className="mt-8" />}
         {initialized && activeGroup && activeGroup.token && (
           <div className="flex flex-col items-start gap-8 pb-16 w-full">

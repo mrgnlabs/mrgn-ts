@@ -26,12 +26,14 @@ export const TVWidget = ({ token }: props) => {
         symbol: token.info.rawBank.mint.toString(), // default symbol
         interval: "30" as any, // default interval
         container: "tv_chart_container",
-
         locale: "en",
         theme: "dark",
         height: 600,
         width: 900,
-        // fullscreen: true,
+        autosize: false,
+        custom_css_url: "/tradingview/custom.css",
+        header_widget_buttons_mode: "compact",
+        disabled_features: ["header_symbol_search", "header_quick_search", "header_compare"],
         custom_formatters: {
           priceFormatterFactory: (symbolInfo, minTick) => {
             if (symbolInfo === null) {
@@ -139,7 +141,7 @@ export const TVWidget = ({ token }: props) => {
   }, [container, token, prevToken]);
 
   return (
-    <div id="tv_chart_container" ref={container} className=" relative"></div>
+    <div id="tv_chart_container" ref={container} className="relative"></div>
     // <div className="tradingview-widget-container" >
     //   <div
     //     className="tradingview-widget-container__widget"
