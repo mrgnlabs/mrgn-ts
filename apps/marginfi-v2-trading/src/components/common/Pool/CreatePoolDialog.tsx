@@ -191,11 +191,10 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
     setPreviewImage("");
     setIsSearchingDasApi(false);
     setIsTokenFetchingError(false);
-    resetActiveGroup();
     setPoolCreatedData(null);
     setIsSubmitting(false);
     form.reset();
-  }, [resetActiveGroup, setIsTokenFetchingError, form]);
+  }, [setIsTokenFetchingError, form]);
 
   React.useEffect(() => {
     reset();
