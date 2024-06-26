@@ -24,7 +24,7 @@ export const Header = () => {
   const { connected } = useWalletContext();
 
   return (
-    <div className="relative h-[64px] mb-4 md:mb-8 lg:mb-14">
+    <div className="relative h-[64px]">
       <header className="fixed w-full flex items-center justify-between gap-8 py-3.5 px-4 bg-background z-50">
         <Link href="/">
           <IconMrgn size={31} />
