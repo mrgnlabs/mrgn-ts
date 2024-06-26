@@ -32,17 +32,22 @@ enum CreatePoolState {
   ERROR = "error",
 }
 
-const formSchema = z.object({
-  mint: z.string(),
-  name: z.string(),
-  symbol: z.string(),
-  decimals: z.string().refine((value) => !isNaN(Number(value)), {
-    message: "Decimals must be a number",
-  }),
-  oracle: z.string(),
-  imageUpload: z.instanceof(File).optional(),
-  imageDownload: z.string().optional(),
-});
+const formSchema = z
+  .object({
+    mint: z.string(),
+    name: z.string(),
+    symbol: z.string(),
+    decimals: z.string().refine((value) => !isNaN(Number(value)), {
+      message: "Decimals must be a number",
+    }),
+    oracle: z.string(),
+    imageUpload: z.instanceof(File).optional(),
+    imageDownload: z.string().optional(),
+  })
+  .refine((data) => data.imageUpload || data.imageDownload, {
+    message: "Token image must be provided",
+    path: ["imageUpload", "imageDownload"],
+  });
 
 export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
   const router = useRouter();
