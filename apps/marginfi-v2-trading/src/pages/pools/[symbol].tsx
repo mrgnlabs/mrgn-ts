@@ -49,7 +49,7 @@ export default function TradeSymbolPage() {
   }, [accountSummary.healthFactor]);
 
   React.useEffect(() => {
-    if (!router.query.symbol || !wallet || !connection || !initialized || activeGroup) return;
+    if (!router.query.symbol || !wallet || !connection || !initialized) return;
     const symbol = router.query.symbol as string;
     setActiveBank({ bankPk: new PublicKey(symbol), connection, wallet });
   }, [router.query.symbol, wallet, connection, activeGroup, initialized]);
