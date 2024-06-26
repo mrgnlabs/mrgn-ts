@@ -275,14 +275,15 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
               <h2 className="text-3xl font-medium">Confirm token details</h2>
               <p className="text-muted-foreground">Please review and confirm or modify the token details.</p>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="flex flex-col gap-2 items-center justify-center cursor-pointer border-2 border-dashed border-border rounded-lg py-8 px-12 text-muted-foreground hover:bg-secondary/20">
-                <IconUpload />
-                <p className="text-sm text-center">Drag and drop your image here or click to select a file</p>
-                <input className="hidden" type="file" />
-              </div>
-              <Form {...form}>
-                <form className="space-y-6" onSubmit={form.handleSubmit(onSubmit)}>
+
+            <Form {...form}>
+              <form className="space-y-6" onSubmit={form.handleSubmit(onSubmit)}>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="flex flex-col gap-2 items-center justify-center cursor-pointer border-2 border-dashed border-border rounded-lg py-8 px-12 text-muted-foreground hover:bg-secondary/20">
+                    <IconUpload />
+                    <p className="text-sm text-center">Drag and drop your image here or click to select a file</p>
+                    <input className="hidden" type="file" />
+                  </div>
                   <div className="space-y-4">
                     <FormField
                       control={form.control}
@@ -359,13 +360,13 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
                         </FormItem>
                       )}
                     />
+                    <Button className="w-full" type="submit">
+                      Create Pool
+                    </Button>
                   </div>
-                  <Button className="w-full" type="submit">
-                    Create Pool
-                  </Button>
-                </form>
-              </Form>
-            </div>
+                </div>
+              </form>
+            </Form>
           </>
         )}
       </DialogContent>
