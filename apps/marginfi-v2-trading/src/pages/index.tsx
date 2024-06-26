@@ -53,7 +53,7 @@ export default function HomePage() {
                   <IconSearch
                     size={20}
                     className={cn(
-                      "absolute inset-y-0 left-6 h-full text-muted-foreground transition-colors",
+                      "absolute inset-y-0 left-5 h-full text-muted-foreground transition-colors md:left-6",
                       searchQuery.length && "text-primary"
                     )}
                   />
@@ -61,7 +61,7 @@ export default function HomePage() {
                     <Input
                       ref={searchInputRef}
                       placeholder="Search tokens by name, symbol, or mint address..."
-                      className="py-3 pr-3 pl-14 h-auto text-xl rounded-full bg-background outline-none focus-visible:ring-primary/75"
+                      className="py-2 pr-3 pl-12 h-auto text-lg rounded-full bg-background outline-none focus-visible:ring-primary/75 md:text-xl md:py-3 md:pl-14"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                     />

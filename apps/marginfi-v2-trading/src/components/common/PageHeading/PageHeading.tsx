@@ -21,7 +21,7 @@ export const PageHeading = ({ heading, body, links, button, size = "md" }: PageH
         size === "lg" && "space-y-6"
       )}
     >
-      <h1 className={cn("text-4xl font-medium text-primary", size === "lg" && "text-6xl")}>{heading}</h1>
+      <h1 className={cn("text-4xl font-medium text-primary", size === "lg" && "text-5xl md:text-6xl")}>{heading}</h1>
       <div className="max-w-2xl w-full mx-auto">{body}</div>
 
       {links && links.length > 0 && (
