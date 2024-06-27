@@ -480,7 +480,7 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
 
               <Button
                 onClick={() => handleLeverageAction()}
-                disabled={!!actionMethods.filter((value) => value.isEnabled === false).length}
+                disabled={!!actionMethods.filter((value) => value.isEnabled === false).length || isLoading}
                 className={cn("w-full", tradeState === "long" && "bg-success", tradeState === "short" && "bg-error")}
               >
                 {isLoading ? (
