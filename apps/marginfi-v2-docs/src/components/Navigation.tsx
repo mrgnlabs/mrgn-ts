@@ -261,6 +261,7 @@ export const navigation: Array<NavGroup> = [
   {
     title: 'Guides',
     links: [
+      { title: 'Looper', href: '/looper' },
       { title: 'mrgnlend', href: '/mrgnlend' },
       { title: 'Liquid Staking Token', href: '/lst' },
       { title: 'Progressive Web App', href: '/pwa' },

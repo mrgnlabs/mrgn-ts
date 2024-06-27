@@ -1,0 +1,110 @@
+import { ImageComponent } from '~/components/ImageComponent'
+
+import MobileSigninCrypto from '~/images/docs/mobile-signin-crypto.png'
+import Looper1 from '~/images/docs/looper-1.png'
+import Looper2 from '~/images/docs/looper-2.png'
+import Looper3 from '~/images/docs/looper-3.png'
+import Looper4 from '~/images/docs/looper-4.png'
+import Looper5 from '~/images/docs/looper-5.png'
+import Looper6 from '~/images/docs/looper-6.png'
+
+export const metadata = {
+  title: 'Looper User Guide',
+  description: 'A guide to accessing leverage with Looper',
+}
+
+# Looper: A User Guide to Borrowing with Leverage
+
+Looper allows you to open long and short positions using marginfi flashloans. Use Looper to access greater liquidity and **trade on your favorite longtail assets** (e.g., memecoins). 
+Soon, you will be able to create marginfi listings for any longtail asset **without requiring approval**. {{ className: 'lead' }}
+
+---
+
+## How Does Looper Work? {{ tag: '', label: '' }}
+
+Looper uses marginfi flashloans to make accessing leverage more user friendly than ever. This is because marginfi-v2 flashloans allow Looper to bundle multiple borrow and lend instructions within a single transaction. Flashloans allow marginfi accounts to borrow and outsized position relative to their lend position by circumventing the health checks that are typically performed when a user withdraws liquidity from marginfi.
+
+For example, if a user wanted to open a long position on SOL relative to USDC, marginfi flashloans would handle the process in the follwing order:
+1. The flashloan first borrows all the USDC the user needs.
+2. The flashloan swaps the USDC for SOL.
+3. The flashloan deposit the SOL from the swap and the principal lent amount into the user's marginfi account. At this point, the flashloan has ended.
+4. The health check is performed once the flashloan has completed. 
+
+Flashloans allow the user to be in bad health during the borrow-lend process without throwing an error, as long as the user is in good health at the end of the transaction. 
+
+<Note>
+    When you have a starting amount to deposit, like 10 SOL, and decide which tokens you want to borrow against and their respective weights, this will determine your Loan-to-Value (LTV) ratio and maximum leverage. LTV is the ratio of your loan amount to the value of your deposited assets. With this information, you can calculate how much you can increase your investment through leverage.
+</Note>
+
+By using flashloans, Looper ensures that users can access liquidity without the typical constraints of traditional borrowing and lending processes. With Looper, you can maximize your capital efficiency by leveraging their assets, meaning **you can control larger positions with a smaller initial investment**. 
+
+Looper uses flashloans to create a secure and flexible method for optimizing capital and **enabling both long and short strategies**, all within a secure and user-friendly platform.
+
+---
+
+## Gettting Started with Looper {{ tag: '', label: '' }}
+
+**Step 1**. Go to the <Button href="https://app.marginfi.com/" variant="text"><>marginfi app</></Button> and connect your Solana wallet:
+
+<ImageComponent
+  src={MobileSigninCrypto}
+  isBig={false}
+  alt="Looper photo"
+/>
+
+**Step 2**. Navigate to the <Button href="https://app.marginfi.com/looper" variant="text"><>Looper page</></Button> in the navigation menu:
+
+<ImageComponent
+  src={Looper1}
+  alt="Looper photo"
+/>
+
+**Step 3**. Open a long position on a token of your choice by clicking the "Select token" dropdown under "You deposit" in the Action Box:
+
+<ImageComponent
+  src={Looper2}
+  alt="Looper photo"
+/>
+
+<Note>
+    In this scenario, if you lent SOL and borrowed USDT, you are effectively opening a long position on SOL and shorting USDT.
+    This is because lending SOL means you are confident that SOL's value will increase. Borrowing USDT, on the other hand, implies that you expect the value of USDT to decrease relative to SOL. Essentially, you are betting that SOL will perform better than USDT in the future.
+</Note>
+
+**Step 4**. Before specifying how much you want to deposit, click the "Select token" dropdown under "You borrow" in the Action Box:
+
+<ImageComponent
+  src={Looper3}
+  alt="Looper photo"
+/>
+
+**Step 5**. Proceed to enter the amount you want to deposit:
+
+<ImageComponent
+  src={Looper4}
+  alt="Looper photo"
+/>
+
+**Step 5**. Finally, dial in how much leverage you want to take on your position using the slider:
+
+<ImageComponent
+  src={Looper5}
+  alt="Looper photo"
+/>
+
+<Note>
+    As you dial in how much leverage you want to take on, your account health and other relevant metrics will adjust in real-time. Note that the flashloan will transaction will only execute if your account health is in good standing by the end of the transaction.
+</Note>
+
+<ImageComponent
+  src={Looper6}
+  alt="Looper photo"
+/>
+
+---
+
+## Welcome to the Arena
+
+This user guide has outlined the fundamental aspects of leveraged borrowing and lending with Looper. By understanding and utilizing the features of Looper, you can effectively optimize and leverage your capital, while also mitigating risks through overcollateralization and robust risk management strategies. Embrace the future of DeFi with Looper and explore the endless possibilities that decentralized borrowing and lending have to offer.
+
+Stay in touch with marginfi’s latest news by following us on <Button href="https://x.com/marginfi" variant="text"><>X</></Button>, and get in touch with the team via our <Button href="https://discord.com/invite/mrgn" variant="text"><>Discord</></Button>. See you in the arena!
