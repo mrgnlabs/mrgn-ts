@@ -1,6 +1,7 @@
 import React from "react";
 
 import Image from "next/image";
+import Link from "next/link";
 
 import { numeralFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 import { ActionType, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
@@ -10,6 +11,7 @@ import { useTradeStore } from "~/store";
 
 import { ActionBoxDialog } from "~/components/common/ActionBox";
 import { Button } from "~/components/ui/button";
+import { IconExternalLink } from "@tabler/icons-react";
 
 type PositionCardProps = {
   bank: ActiveBankInfo;
@@ -25,7 +27,10 @@ export const PositionCard = ({ bank }: PositionCardProps) => {
   return (
     <div className="bg-background-gray p-4 rounded-2xl space-y-4">
       <div className="flex items-center gap-4 justify-between">
-        <div className="flex items-center gap-4 font-medium text-muted-foreground">
+        <Link
+          href={`/pools/${bank.address.toBase58()}`}
+          className="flex items-center gap-4 font-medium text-muted-foreground"
+        >
           <Image
             src={getTokenImageURL(bank.meta.tokenSymbol)}
             alt={bank.meta.tokenSymbol}
@@ -37,7 +42,7 @@ export const PositionCard = ({ bank }: PositionCardProps) => {
             <h2 className="text-lg text-primary">{bank.meta.tokenName}</h2>
             <h3>{bank.meta.tokenSymbol}</h3>
           </div>
-        </div>
+        </Link>
       </div>
       <div className="bg-background rounded-xl p-4">
         <dl className="w-full grid grid-cols-2 text-sm text-muted-foreground gap-1">
@@ -68,6 +73,11 @@ export const PositionCard = ({ bank }: PositionCardProps) => {
             <Button variant="secondary">Add collateral</Button>
           </ActionBoxDialog>
         )}
+        <Link href={`/trade/${bank.address.toBase58()}`} className="ml-auto">
+          <Button variant="secondary">
+            Manage position <IconExternalLink size={16} />
+          </Button>
+        </Link>
       </div>
     </div>
   );
