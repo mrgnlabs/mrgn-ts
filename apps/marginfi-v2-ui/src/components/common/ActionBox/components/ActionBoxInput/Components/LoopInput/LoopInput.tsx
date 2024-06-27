@@ -225,7 +225,7 @@ export const LoopInput = ({
               if (value[0] > maxLeverage) return;
               setLeverageAmount(value[0]);
             }}
-            disabled={!bothBanksSelected}
+            disabled={!bothBanksSelected || !amountRaw}
           />
           <div className="flex items-center justify-between">
             <p className="text-sm font-normal text-muted-foreground">
