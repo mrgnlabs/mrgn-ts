@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import { useWebSocket } from "./useWebSocket";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { usePrevious } from "~/utils";
 
@@ -11,7 +10,6 @@ interface props {
 
 export const TVWidget = ({ token }: props) => {
   const container = React.useRef<HTMLDivElement>(null);
-  const { socket, subscribeOnStream, unsubscribeFromStream } = useWebSocket();
   const prevToken = usePrevious(token);
 
   React.useEffect(() => {
@@ -73,7 +71,9 @@ export const TVWidget = ({ token }: props) => {
               .then((data) => onResultReadyCallback(data));
           },
           resolveSymbol: (symbolName, onSymbolResolvedCallback, onResolveErrorCallback) => {
-            fetch(`/api/datafeed?action=resolve&symbol=${symbolName}`)
+            fetch(
+              `/api/datafeed?action=resolve&requested=${symbolName}&symbol=${token.meta.tokenSymbol}&address=${token.info.state.mint}`
+            )
               .then((response) => response.json())
               .then((data) => onSymbolResolvedCallback(data))
               .catch((err) => onResolveErrorCallback(err));
@@ -113,12 +113,12 @@ export const TVWidget = ({ token }: props) => {
 
             const lastBarsCacheMap = new Map(data.lastBarsCacheArray);
 
-            subscribeOnStream(
-              symbolInfo as any,
-              resolution,
-              onRealtimeCallback,
-              lastBarsCacheMap.get((symbolInfo as any).address) as any
-            );
+            // subscribeOnStream(
+            //   symbolInfo as any,
+            //   resolution,
+            //   onRealtimeCallback,
+            //   lastBarsCacheMap.get((symbolInfo as any).address) as any
+            // );
           },
           unsubscribeBars: (subscriberUID) => {
             const msg = {
