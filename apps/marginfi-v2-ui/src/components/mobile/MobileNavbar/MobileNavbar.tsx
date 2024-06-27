@@ -32,12 +32,12 @@ export const mobileLinks: NavLinkInfo[] = [
     label: "mint",
     Icon: IconBox,
   },
-  {
-    href: "/looper",
-    alt: "loop icon",
-    label: "looper",
-    Icon: IconRefresh,
-  },
+  // {
+  //   href: "/looper",
+  //   alt: "loop icon",
+  //   label: "looper",
+  //   Icon: IconRefresh,
+  // },
   {
     href: "/portfolio",
     alt: "portfolio icon",

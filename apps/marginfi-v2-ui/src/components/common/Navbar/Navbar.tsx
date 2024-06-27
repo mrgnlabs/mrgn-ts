@@ -95,14 +95,14 @@ export const Navbar: FC = () => {
                 mint
               </Link>
 
-              <Link
+              {/* <Link
                 href={"/looper"}
                 className={
                   router.pathname === "/looper" ? "text-primary hover-underline-static" : "hover-underline-animation"
                 }
               >
                 looper
-              </Link>
+              </Link> */}
 
               <Link
                 href={"/portfolio"}
