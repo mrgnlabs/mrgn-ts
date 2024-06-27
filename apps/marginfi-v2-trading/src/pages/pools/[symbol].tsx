@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/router";
 
-import { IconChevronRight, IconClockHour4, IconInfoCircle } from "@tabler/icons-react";
+import { IconClockHour4, IconExternalLink, IconInfoCircle } from "@tabler/icons-react";
 import { numeralFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 import { PublicKey } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
@@ -77,7 +77,7 @@ export default function TradeSymbolPage() {
               <Link href={`/trade/${activeGroup.token.address.toBase58()}`}>
                 <Button variant="secondary" size="sm">
                   Trade {activeGroup.token.meta.tokenSymbol}
-                  <IconChevronRight size={16} />
+                  <IconExternalLink size={16} />
                 </Button>
               </Link>
             </header>
