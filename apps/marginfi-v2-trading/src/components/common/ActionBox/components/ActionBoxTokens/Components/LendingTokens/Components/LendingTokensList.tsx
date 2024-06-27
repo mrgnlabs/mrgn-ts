@@ -4,7 +4,7 @@ import { WSOL_MINT } from "@mrgnlabs/mrgn-common";
 import { ExtendedBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { LendingModes } from "~/types";
-import { useMrgnlendStore } from "~/store";
+import { useMrgnlendStore, useTradeStore } from "~/store";
 import { cn, computeBankRate } from "~/utils";
 import { useWalletContext } from "~/hooks/useWalletContext";
 
@@ -30,14 +30,18 @@ export const LendingTokensList = ({
   isOpen,
   onClose,
 }: LendingTokensListProps) => {
-  const [extendedBankInfos, nativeSolBalance] = useMrgnlendStore((state) => [
-    state.extendedBankInfos,
-    state.nativeSolBalance,
-  ]);
+  const [activeGroup] = useTradeStore((state) => [state.activeGroup]);
+  const [nativeSolBalance] = useMrgnlendStore((state) => [state.nativeSolBalance]);
 
   const lendingMode = React.useMemo(
-    () => (actionMode === ActionType.Deposit ? LendingModes.LEND : LendingModes.BORROW),
+    () =>
+      actionMode === ActionType.Deposit || actionMode === ActionType.Withdraw ? LendingModes.LEND : LendingModes.BORROW,
     [actionMode]
+  );
+
+  const extendedBankInfos = React.useMemo(
+    () => (activeGroup ? [activeGroup.usdc, activeGroup.token] : []),
+    [activeGroup]
   );
 
   const [searchQuery, setSearchQuery] = React.useState("");
@@ -143,37 +147,42 @@ export const LendingTokensList = ({
         <CommandEmpty>No tokens found.</CommandEmpty>
 
         {/* LENDING */}
-        {lendingMode === LendingModes.LEND && connected && filteredBanksUserOwns.length > 0 && onSetSelectedBank && (
-          <CommandGroup heading="Available in your wallet">
-            {filteredBanksUserOwns
-              .slice(0, searchQuery.length === 0 ? filteredBanksUserOwns.length : 3)
-              .map((bank, index) => {
-                return (
-                  <CommandItem
-                    key={index}
-                    value={bank?.address?.toString().toLowerCase()}
-                    onSelect={(currentValue) => {
-                      onSetSelectedBank(
-                        extendedBankInfos.find(
-                          (bankInfo) => bankInfo.address.toString().toLowerCase() === currentValue
-                        ) ?? null
-                      );
-                      onClose();
-                    }}
-                    className="cursor-pointer h-[55px] px-3 font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white"
-                  >
-                    <ActionBoxItem
-                      rate={calculateRate(bank)}
-                      lendingMode={lendingMode}
-                      bank={bank}
-                      showBalanceOverride={true}
-                      nativeSolBalance={nativeSolBalance}
-                    />
-                  </CommandItem>
-                );
-              })}
-          </CommandGroup>
-        )}
+        {lendingMode === LendingModes.LEND &&
+          actionMode !== ActionType.Repay &&
+          actionMode !== ActionType.Withdraw &&
+          connected &&
+          filteredBanksUserOwns.length > 0 &&
+          onSetSelectedBank && (
+            <CommandGroup heading="Available in your wallet">
+              {filteredBanksUserOwns
+                .slice(0, searchQuery.length === 0 ? filteredBanksUserOwns.length : 3)
+                .map((bank, index) => {
+                  return (
+                    <CommandItem
+                      key={index}
+                      value={bank?.address?.toString().toLowerCase()}
+                      onSelect={(currentValue) => {
+                        onSetSelectedBank(
+                          extendedBankInfos.find(
+                            (bankInfo) => bankInfo.address.toString().toLowerCase() === currentValue
+                          ) ?? null
+                        );
+                        onClose();
+                      }}
+                      className="cursor-pointer h-[55px] px-3 font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white"
+                    >
+                      <ActionBoxItem
+                        rate={calculateRate(bank)}
+                        lendingMode={lendingMode}
+                        bank={bank}
+                        showBalanceOverride={true}
+                        nativeSolBalance={nativeSolBalance}
+                      />
+                    </CommandItem>
+                  );
+                })}
+            </CommandGroup>
+          )}
         {lendingMode === LendingModes.LEND && filteredBanksActive.length > 0 && onSetSelectedBank && (
           <CommandGroup heading="Currently supplying">
             {filteredBanksActive.map((bank, index) => (
@@ -235,7 +244,7 @@ export const LendingTokensList = ({
         )}
 
         {/* GLOBAL & ISOLATED */}
-        {globalBanks.length > 0 && onSetSelectedBank && (
+        {actionMode !== ActionType.Withdraw && globalBanks.length > 0 && onSetSelectedBank && (
           <CommandGroup heading="Global pools">
             {globalBanks.map((bank, index) => {
               return (
@@ -268,7 +277,7 @@ export const LendingTokensList = ({
             })}
           </CommandGroup>
         )}
-        {isolatedBanks.length > 0 && onSetSelectedBank && (
+        {actionMode !== ActionType.Repay && isolatedBanks.length > 0 && onSetSelectedBank && (
           <CommandGroup heading="Isolated pools">
             {isolatedBanks.map((bank, index) => {
               return (
