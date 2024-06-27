@@ -9,7 +9,7 @@ import { PublicKey, VersionedTransaction } from "@solana/web3.js";
 import capitalize from "lodash/capitalize";
 
 import { cn } from "~/utils/themeUtils";
-import { useMrgnlendStore, useTradeStore } from "~/store";
+import { useMrgnlendStore, useTradeStore, useUiStore } from "~/store";
 
 import { TokenCombobox } from "../TokenCombobox/TokenCombobox";
 import { ActionBoxDialog } from "~/components/common/ActionBox";
@@ -32,8 +32,9 @@ import {
   simulateLooping,
 } from "./tradingBox.utils";
 import { useDebounce } from "~/hooks/useDebounce";
-import { usePrevious } from "~/utils";
+import { extractErrorString, usePrevious } from "~/utils";
 import Link from "next/link";
+import { MultiStepToastHandle } from "~/utils/toastUtils";
 
 const USDC_BANK_PK = new PublicKey("2s37akK2eyBbp8DZgCm7RtsaEz8eJP3Nxd4urLHQv7yB");
 
@@ -86,6 +87,12 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
       state.marginfiClient,
     ]
   );
+  const [priorityFee, setPriorityFee, setIsActionComplete, setPreviousTxn] = useUiStore((state) => [
+    state.priorityFee,
+    state.setPriorityFee,
+    state.setIsActionComplete,
+    state.setPreviousTxn,
+  ]);
   const [_, extendedBankInfos] = useMrgnlendStore((state) => [state.selectedAccount, state.extendedBankInfos]);
 
   React.useEffect(() => {
@@ -156,6 +163,7 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
   );
 
   const loadLoopingVariables = React.useCallback(async () => {
+    console.log({ selectedAccount, activeGroup });
     if (selectedAccount && activeGroup) {
       try {
         if (Number(amount) === 0 || leverage <= 1) {
@@ -246,11 +254,38 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
     [accountSummary, activeGroup, marginfiClient]
   );
 
-  const handleShorting = React.useCallback(async () => {
-    if (loopingObject?.loopingTxn && marginfiClient) {
-      const sig = await marginfiClient.processTransaction(loopingObject?.loopingTxn);
+  const handleLeverageAction = React.useCallback(async () => {
+    if (loopingObject?.loopingTxn && marginfiClient && collateralBank) {
+      const multiStepToast = new MultiStepToastHandle("Long", [
+        { label: `Longing ${amount} ${collateralBank.meta.tokenSymbol}` },
+      ]);
+      multiStepToast.start();
+
+      try {
+        const sig = await marginfiClient.processTransaction(loopingObject?.loopingTxn);
+        multiStepToast.setSuccessAndNext();
+
+        if (sig) {
+          setIsActionComplete(true);
+          // setPreviousTxn({
+          //   type: ActionType.Borrow ,
+          //   bank: bank as ActiveBankInfo,
+          //   amount: borrowOrLendAmount,
+          //   txn: txnSig!,
+          // });
+        }
+
+        return sig;
+      } catch (error: any) {
+        const msg = extractErrorString(error);
+        //Sentry.captureException({ message: error });
+        multiStepToast.setFailed(msg);
+        console.log(`Error while longing: ${msg}`);
+        console.log(error);
+        return;
+      }
     }
-  }, [loopingObject, marginfiClient]);
+  }, [collateralBank, loopingObject, marginfiClient]);
 
   const handleAmountChange = React.useCallback(
     (amountRaw: string) => {
@@ -306,7 +341,7 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
               type="single"
               className="w-full gap-4 bg-transparent"
               defaultValue="long"
-              onValueChange={(value) => setTradeState(value as TradeSide)}
+              onValueChange={(value) => value && setTradeState(value as TradeSide)}
             >
               <ToggleGroupItem
                 className="w-full border border-accent hover:bg-accent hover:text-primary data-[state=on]:bg-accent data-[state=on]:border-transparent"
@@ -414,6 +449,16 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
                         <IconAlertTriangle className="shrink-0 translate-y-0.5" size={16} />
                         <div className="space-y-1">
                           <p>{actionMethod.description}</p>
+                          {actionMethod.action && (
+                            <ActionBoxDialog
+                              requestedAction={actionMethod.action.type}
+                              requestedBank={actionMethod.action.bank}
+                            >
+                              <p className="underline hover:no-underline cursor-pointer">
+                                {actionMethod.action.type} {actionMethod.action.bank.meta.tokenSymbol}
+                              </p>
+                            </ActionBoxDialog>
+                          )}
                           {actionMethod.link && (
                             <p>
                               {/* <span className="hidden md:inline">-</span>{" "} */}
@@ -434,7 +479,7 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
               )}
 
               <Button
-                onClick={() => handleShorting()}
+                onClick={() => handleLeverageAction()}
                 disabled={!!actionMethods.filter((value) => value.isEnabled === false).length}
                 className={cn("w-full", tradeState === "long" && "bg-success", tradeState === "short" && "bg-error")}
               >

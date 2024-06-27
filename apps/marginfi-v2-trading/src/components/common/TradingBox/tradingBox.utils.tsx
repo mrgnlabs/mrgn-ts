@@ -7,7 +7,7 @@ import {
   OperationalState,
   SimulationResult,
 } from "@mrgnlabs/marginfi-client-v2";
-import { AccountSummary, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { AccountSummary, ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import {
   LUT_PROGRAM_AUTHORITY_INDEX,
   Wallet,
@@ -96,7 +96,7 @@ export async function calculateLooping(
           const minSwapAmountOutUi = nativeToUi(swapQuote.otherAmountThreshold, depositBank.info.state.mintDecimals);
           const actualDepositAmountUi = minSwapAmountOutUi + amount;
 
-          console.log({ actualDepositAmountUi });
+          console.log({ borrowBank });
 
           const txn = await verifyJupTxSizeLooping(
             marginfiAccount,
@@ -514,6 +514,10 @@ export interface ActionMethod {
   actionMethod?: ActionMethodType;
   description?: string;
   link?: string;
+  action?: {
+    bank: ExtendedBankInfo;
+    type: ActionType;
+  };
 }
 
 interface ActiveGroup {
@@ -599,23 +603,19 @@ function canBeLooped(activeGroup: ActiveGroup, loopingObject: LoopingObject, tra
   const isUsdcBankPaused = activeGroup.usdc.info.rawBank.config.operationalState === OperationalState.Paused;
   const isTokenBankPaused = activeGroup.token.info.rawBank.config.operationalState === OperationalState.Paused;
 
-  let hasUsdcSupplied,
-    hasUsdcBorrowed = false;
   let hasTokenSupplied,
-    hasTokenBorrowed = false;
+    hasUsdcSupplied = false;
 
   if (activeGroup.usdc.isActive) {
     hasUsdcSupplied = activeGroup.usdc.position.isLending;
-    hasUsdcBorrowed = activeGroup.usdc.position.isLending;
   }
 
   if (activeGroup.token.isActive) {
     hasTokenSupplied = activeGroup.token.position.isLending;
-    hasTokenBorrowed = activeGroup.token.position.isLending;
   }
 
   const wrongPositionActive =
-    tradeSide === "long" ? hasUsdcSupplied || hasTokenBorrowed : hasUsdcBorrowed || hasTokenSupplied;
+    tradeSide === "long" ? hasUsdcSupplied || !hasTokenSupplied : !hasUsdcSupplied || hasTokenSupplied;
 
   if (isUsdcBankPaused) {
     checks.push({
@@ -633,26 +633,40 @@ function canBeLooped(activeGroup: ActiveGroup, loopingObject: LoopingObject, tra
 
   if (wrongPositionActive) {
     const wrongSupplied = tradeSide === "long" ? hasUsdcSupplied : hasTokenSupplied;
-    const wrongBorrowed = tradeSide === "long" ? hasTokenBorrowed : hasUsdcBorrowed;
+    const wrongBorrowed = tradeSide === "long" ? !hasTokenSupplied : !hasUsdcSupplied;
 
     if (wrongSupplied && wrongBorrowed) {
       checks.push({
-        description: `You are already ${tradeSide === "long" ? "shorting" : "longing"} this asset.`,
+        description: `You are already ${
+          tradeSide === "long" ? "shorting" : "longing"
+        } this asset, you need to close that position first to start ${tradeSide === "long" ? "longing" : "shorting"}.`,
         isEnabled: false,
+        action: {
+          type: ActionType.Repay,
+          bank: tradeSide === "long" ? activeGroup.usdc : activeGroup.token,
+        },
       });
     } else if (wrongSupplied) {
       checks.push({
         description: `Before you can ${tradeSide} this asset, you'll need to withdraw your supplied ${
-          tradeSide === "long" ? "USDC" : activeGroup.token.meta.tokenSymbol
+          tradeSide === "long" ? activeGroup.usdc.meta.tokenSymbol : activeGroup.token.meta.tokenSymbol
         }.`,
-        isEnabled: false,
+        isEnabled: true,
+        action: {
+          type: ActionType.Withdraw,
+          bank: tradeSide === "long" ? activeGroup.usdc : activeGroup.token,
+        },
       });
     } else if (wrongBorrowed) {
       checks.push({
         description: `Before you can ${tradeSide} this asset, you'll need to repay your borrowed ${
-          tradeSide === "long" ? activeGroup.token.meta.tokenSymbol : "USDC"
+          tradeSide === "long" ? activeGroup.token.meta.tokenSymbol : activeGroup.usdc.meta.tokenSymbol
         }.`,
         isEnabled: false,
+        action: {
+          type: ActionType.Repay,
+          bank: tradeSide === "long" ? activeGroup.token : activeGroup.usdc,
+        },
       });
     }
   }
