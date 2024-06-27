@@ -222,7 +222,7 @@ export const LoopInput = ({
             step={0.01}
             value={[leverageAmount]}
             onValueChange={(value) => {
-              if (value[0] > maxLeverage) return;
+              if (value[0] > maxLeverage || value[0] <= 1) return;
               setLeverageAmount(value[0]);
             }}
             disabled={!bothBanksSelected || !amountRaw}
