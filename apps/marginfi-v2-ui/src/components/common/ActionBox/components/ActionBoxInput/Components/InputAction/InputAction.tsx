@@ -165,13 +165,13 @@ export const InputAction = ({ maxAmount, walletAmount, isDialog, onSetAmountRaw 
               )}
             </div>
           </li>
-          {actionMode === ActionType.Loop && (
+          {actionMode === ActionType.Loop && loopingAmounts?.actualDepositAmount > 0 && (
             <li className="flex justify-between items-center gap-1.5">
               <strong>Leveraged deposit:</strong>
 
-              <div className="flex space-x-1.5 items-center">{`${
-                Number(loopingAmounts?.actualDepositAmount.toFixed(4)) ?? "-"
-              } ${selectedBank.meta.tokenSymbol}`}</div>
+              <div className="flex space-x-1.5 items-center">
+                {`${Number(loopingAmounts?.actualDepositAmount.toFixed(4)) ?? "-"} ${selectedBank.meta.tokenSymbol}`}
+              </div>
             </li>
           )}
           {repayMode === RepayType.RepayCollat && (
