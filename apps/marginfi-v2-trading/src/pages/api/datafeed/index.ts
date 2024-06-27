@@ -3,8 +3,7 @@ import NodeCache from "node-cache";
 
 import { RESOLUTION_MAPPING, configurationData, parseResolution } from "~/utils/tradingViewUtils";
 
-const myCache = new NodeCache({ stdTTL: 240 }); // Cache for 1 hour
-const BIRDEYE_API = "https://public-api.birdeye.so";
+const resolveCache = new NodeCache({ stdTTL: 300 }); // Cache for 5 min
 
 const lastBarsCache = new Map();
 
@@ -45,23 +44,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(200).json([]);
 
     case "resolve":
-      const { symbol } = req.query;
+      const { symbol, address, requested } = req.query;
       try {
-        const response = await makeApiRequest(`defi/tokenlist?sort_by=v24hUSD&sort_type=desc&offset=0&limit=-1`);
-        const symbols = response.data.tokens;
-        const symbolItem = symbols.find((item: any) => item.address === symbol);
-
-        if (!symbolItem) {
+        if (address !== requested) {
           throw new Error("Cannot resolve symbol");
         }
+        // if (symbols) {
+        //   const response = await makeApiRequest(`defi/tokenlist?sort_by=v24hUSD&sort_type=desc&offset=0&limit=-1`);
+        //   symbols = response.data.tokens;
+        // }
+
+        // const symbolItem = symbols.find((item: any) => item.address === symbol);
+
+        // if (!symbolItem) {
+        //   throw new Error("Cannot resolve symbol");
+        // }
 
         // Implement resolve logic here
         return res.status(200).json({
-          address: symbolItem.address,
-          ticker: symbolItem.address,
-          name: symbolItem.symbol,
-          description: symbolItem.symbol + "/USD",
-          type: symbolItem.type,
+          address: address,
+          ticker: address,
+          name: symbol,
+          description: symbol + "/USD",
+          type: undefined,
           session: "24x7",
           timezone: "Etc/UTC",
           minmov: 1,
@@ -102,6 +107,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       try {
         const data = await makeApiRequest(`defi/ohlcv?${birdeyeQuery}`);
+        console.log({ data });
 
         if (!data.success || data.data.items.length === 0) {
           // "noData" should be set if there is no data in the requested period.
@@ -133,6 +139,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       } catch (error) {
         return res.status(200).json({ success: false });
       }
+    case "fetchData":
 
     case "cache":
       const lastBarsCacheArray = Array.from(lastBarsCache.entries());

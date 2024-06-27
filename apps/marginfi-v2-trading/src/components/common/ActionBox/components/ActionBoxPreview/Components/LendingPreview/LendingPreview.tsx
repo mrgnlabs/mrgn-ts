@@ -2,7 +2,7 @@ import React from "react";
 
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { useMrgnlendStore } from "~/store";
+import { useMrgnlendStore, useTradeStore } from "~/store";
 import { ActionMethod, cn, RepayWithCollatOptions } from "~/utils";
 
 import { AvailableCollateral } from "./AvailableCollateral";
@@ -27,7 +27,13 @@ export const LendingPreview = ({
   addAdditionalsPopup,
   children,
 }: ActionBoxPreviewProps) => {
-  const [marginfiClient, selectedAccount, accountSummary] = useMrgnlendStore((state) => [
+  // const [marginfiClient, selectedAccount, accountSummary] = useMrgnlendStore((state) => [
+  //   state.marginfiClient,
+  //   state.selectedAccount,
+  //   state.accountSummary,
+  // ]);
+
+  const [marginfiClient, selectedAccount, accountSummary] = useTradeStore((state) => [
     state.marginfiClient,
     state.selectedAccount,
     state.accountSummary,
