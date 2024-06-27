@@ -9,6 +9,7 @@ import { RepayType, computeBankRate } from "~/utils";
 
 import { SelectedBankItem, TokenListWrapper } from "../SharedComponents";
 import { LendingTokensList, RepayCollatTokensList, LendingTokensTrigger } from "./Components";
+import { useTradeStore } from "~/store";
 
 type LendingTokensProps = {
   selectedBank: ExtendedBankInfo | null;
@@ -33,9 +34,33 @@ export const LendingTokens = ({
   setSelectedRepayBank,
   setSelectedBank,
 }: LendingTokensProps) => {
+  const [activeGroup] = useTradeStore((state) => [state.activeGroup]);
+
+  const isOtherBankActive = React.useMemo(() => {
+    if (!selectedBank || !activeGroup) return false;
+    const isToken = activeGroup?.token.address.equals(selectedBank.address);
+    if (actionType === ActionType.Withdraw) {
+      if (isToken && activeGroup.usdc.isActive && activeGroup.usdc.position.isLending) {
+        return true;
+      } else if (!isToken && activeGroup.token.isActive && activeGroup.token.position.isLending) {
+        return true;
+      }
+    } else if (actionType === ActionType.Repay) {
+      if (isToken && activeGroup.usdc.isActive && !activeGroup.usdc.position.isLending) {
+        return true;
+      } else if (!isToken && activeGroup.token.isActive && !activeGroup.token.position.isLending) {
+        return true;
+      }
+    }
+    return false;
+  }, [actionType, activeGroup, selectedBank]);
+
   const [isOpen, setIsOpen] = React.useState(false);
 
-  const isSelectable = React.useMemo(() => !isDialog || repayType === RepayType.RepayCollat, [isDialog, repayType]);
+  const isSelectable = React.useMemo(
+    () => !isDialog || repayType === RepayType.RepayCollat || isOtherBankActive,
+    [isDialog, isOtherBankActive, repayType]
+  );
 
   const lendingMode = React.useMemo(
     () => (actionType === ActionType.Deposit ? LendingModes.LEND : LendingModes.BORROW),

@@ -46,7 +46,7 @@ export default function PortfolioPage() {
                   <h2 className="text-2xl font-medium">Long positions</h2>
                   <div className="space-y-8">
                     {portfolio.long.map((bank, index) => (
-                      <PositionCard key={index} bank={bank} />
+                      <PositionCard key={index} bank={bank} isLong={true} />
                     ))}
                   </div>
                 </div>
@@ -54,7 +54,7 @@ export default function PortfolioPage() {
                   <h2 className="text-2xl font-medium">Short positions</h2>
                   <div className="space-y-8">
                     {portfolio.short.map((bank, index) => (
-                      <PositionCard key={index} bank={bank} />
+                      <PositionCard key={index} bank={bank} isLong={false} />
                     ))}
                   </div>
                 </div>

@@ -143,8 +143,10 @@ export const ActionBox = ({ requestedAction, requestedBank, isDialog, handleClos
   }, [activeGroup]);
 
   React.useEffect(() => {
-    fetchActionBoxState({ requestedAction, requestedBank });
-  }, [requestedAction, requestedBank, fetchActionBoxState]);
+    if (!selectedBank) {
+      fetchActionBoxState({ requestedAction, requestedBank });
+    }
+  }, [requestedAction, selectedBank, requestedBank, fetchActionBoxState]);
 
   React.useEffect(() => {
     refreshSelectedBanks(extendedBankInfos);

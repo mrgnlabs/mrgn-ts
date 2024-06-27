@@ -15,9 +15,10 @@ import { IconExternalLink } from "@tabler/icons-react";
 
 type PositionCardProps = {
   bank: ActiveBankInfo;
+  isLong: boolean;
 };
 
-export const PositionCard = ({ bank }: PositionCardProps) => {
+export const PositionCard = ({ bank, isLong }: PositionCardProps) => {
   const [collateralBanks] = useTradeStore((state) => [state.collateralBanks]);
 
   const collateralBank = React.useMemo(() => {
@@ -65,19 +66,28 @@ export const PositionCard = ({ bank }: PositionCardProps) => {
         </dl>
       </div>
       <div className="flex items-center justify-between gap-4">
-        <ActionBoxDialog requestedBank={bank} requestedAction={ActionType.Withdraw}>
-          <Button variant="secondary">Withdraw</Button>
+        <ActionBoxDialog
+          requestedBank={isLong ? bank : collateralBank}
+          requestedAction={isLong ? ActionType.Deposit : ActionType.Withdraw}
+        >
+          <Button variant="secondary">Add</Button>
         </ActionBoxDialog>
         {collateralBank && (
-          <ActionBoxDialog requestedBank={collateralBank} requestedAction={ActionType.Deposit}>
-            <Button variant="secondary">Add collateral</Button>
+          <ActionBoxDialog
+            requestedBank={isLong ? bank : collateralBank}
+            requestedAction={isLong ? ActionType.Withdraw : ActionType.Deposit}
+          >
+            <Button variant="secondary">Reduce</Button>
           </ActionBoxDialog>
         )}
-        <Link href={`/trade/${bank.address.toBase58()}`} className="ml-auto">
+        <Button variant="destructive" className="ml-auto">
+          Close position
+        </Button>
+        {/* <Link href={`/trade/${bank.address.toBase58()}`} className="ml-auto">
           <Button variant="secondary">
             Manage position <IconExternalLink size={16} />
           </Button>
-        </Link>
+        </Link> */}
       </div>
     </div>
   );
