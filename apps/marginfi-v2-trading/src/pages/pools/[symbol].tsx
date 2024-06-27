@@ -1,11 +1,13 @@
 import React from "react";
 
+import Link from "next/link";
+import Image from "next/image";
+import { useRouter } from "next/router";
+
+import { IconChevronRight, IconClockHour4, IconInfoCircle } from "@tabler/icons-react";
 import { numeralFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 import { PublicKey } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
-
-import Image from "next/image";
-import { useRouter } from "next/router";
 
 import { useTradeStore, useUiStore } from "~/store";
 import { getTokenImageURL } from "~/utils";
@@ -15,7 +17,7 @@ import { useConnection } from "~/hooks/useConnection";
 import { BankCard } from "~/components/common/Pool";
 import { ActionComplete } from "~/components/common/ActionComplete";
 import { Loader } from "~/components/ui/loader";
-import { IconClockHour4, IconInfoCircle } from "~/components/ui/icons";
+import { Button } from "~/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 
 export default function TradeSymbolPage() {
@@ -52,7 +54,7 @@ export default function TradeSymbolPage() {
     if (!router.query.symbol || !wallet || !connection || !initialized) return;
     const symbol = router.query.symbol as string;
     setActiveBank({ bankPk: new PublicKey(symbol), connection, wallet });
-  }, [router.query.symbol, wallet, connection, activeGroup, initialized]);
+  }, [router.query.symbol, wallet, connection, activeGroup, initialized, setActiveBank]);
 
   return (
     <>
@@ -72,6 +74,12 @@ export default function TradeSymbolPage() {
                 <h1 className="text-3xl font-medium">{activeGroup.token.meta.tokenName}</h1>
                 <h2 className="text-lg text-muted-foreground">{activeGroup.token.meta.tokenSymbol}</h2>
               </div>
+              <Link href={`/trade/${activeGroup.token.address.toBase58()}`}>
+                <Button variant="secondary" size="sm">
+                  Trade {activeGroup.token.meta.tokenSymbol}
+                  <IconChevronRight size={16} />
+                </Button>
+              </Link>
             </header>
             <div className="bg-background-gray-dark p-6 rounded-xl w-full max-w-7xl mx-auto">
               <dl className="flex justify-between items-center gap-2">
