@@ -16,7 +16,7 @@
   ],
   "dependencies": {
     "@coral-xyz/anchor": "^0.28.1-beta.2",
-    "@mrgnlabs/mrgn-common": "*",
+    "@mrgnlabs/mrgn-common": "^1.5.0",
     "@solana/wallet-adapter-base": "^0.9.20",
     "@solana/web3.js": "^1.91.3",
     "bignumber.js": "^9.1.1",
