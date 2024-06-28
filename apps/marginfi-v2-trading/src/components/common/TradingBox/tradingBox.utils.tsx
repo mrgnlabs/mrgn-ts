@@ -6,6 +6,7 @@ import {
   MarginfiClient,
   OperationalState,
   SimulationResult,
+  computeLoopingParams,
 } from "@mrgnlabs/marginfi-client-v2";
 import { AccountSummary, ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import {
@@ -32,14 +33,15 @@ import { MultiStepToastHandle, showErrorToast } from "~/utils/toastUtils";
 export type TradeSide = "long" | "short";
 
 export interface LoopingObject {
-  loopingTxn: VersionedTransaction;
+  loopingTxn: VersionedTransaction | null;
   quote: QuoteResponse;
   borrowAmount: BigNumber;
   actualDepositAmount: number;
 }
 
 export async function calculateLooping(
-  marginfiAccount: MarginfiAccountWrapper,
+  marginfiClient: MarginfiClient,
+  marginfiAccount: MarginfiAccountWrapper | null,
   depositBank: ExtendedBankInfo, // deposit
   borrowBank: ExtendedBankInfo, // borrow
   targetLeverage: number,
@@ -59,11 +61,19 @@ export async function calculateLooping(
   const adjustedPrincipalAmountUi = amount - principalBufferAmountUi;
 
   try {
-    const { borrowAmount, totalDepositAmount: depositAmount } = marginfiAccount.computeLoopingParams(
+    const depositPriceInfo = marginfiClient.oraclePrices.get(depositBank.address.toBase58());
+    const borrowPriceInfo = marginfiClient.oraclePrices.get(borrowBank.address.toBase58());
+
+    if (!depositPriceInfo) throw Error(`Price info for ${depositBank.address.toBase58()} not found`);
+    if (!borrowPriceInfo) throw Error(`Price info for ${borrowBank.address.toBase58()} not found`);
+
+    const { borrowAmount, totalDepositAmount: depositAmount } = computeLoopingParams(
       adjustedPrincipalAmountUi,
       targetLeverage,
-      depositBank.address,
-      borrowBank.address
+      depositBank.info.rawBank,
+      borrowBank.info.rawBank,
+      depositPriceInfo,
+      borrowPriceInfo
     );
 
     console.log("borrowAmount: " + borrowAmount.toString());
@@ -96,18 +106,21 @@ export async function calculateLooping(
           const minSwapAmountOutUi = nativeToUi(swapQuote.otherAmountThreshold, depositBank.info.state.mintDecimals);
           const actualDepositAmountUi = minSwapAmountOutUi + amount;
 
-          console.log({ borrowBank });
+          let txn: VersionedTransaction | undefined;
 
-          const txn = await verifyJupTxSizeLooping(
-            marginfiAccount,
-            depositBank,
-            borrowBank,
-            actualDepositAmountUi,
-            borrowAmount,
-            swapQuote,
-            connection
-          );
-          if (txn) {
+          if (marginfiAccount) {
+            txn = await verifyJupTxSizeLooping(
+              marginfiAccount,
+              depositBank,
+              borrowBank,
+              actualDepositAmountUi,
+              borrowAmount,
+              swapQuote,
+              connection
+            );
+          }
+
+          if (txn || !marginfiAccount) {
             // capture("looper", {
             //   amountIn: uiToNative(amount, borrowBank.info.state.mintDecimals).toNumber(),
             //   firstQuote,
@@ -116,7 +129,7 @@ export async function calculateLooping(
             //   outputMint: bank.info.state.mint.toBase58(),
             // });
             return {
-              loopingTxn: txn,
+              loopingTxn: txn ?? null,
               quote: swapQuote,
               borrowAmount: borrowAmount,
               actualDepositAmount: actualDepositAmountUi,
@@ -633,7 +646,7 @@ function canBeLooped(activeGroup: ActiveGroup, loopingObject: LoopingObject, tra
     });
   }
 
-  if (wrongPositionActive) {
+  if (wrongPositionActive && loopingObject.loopingTxn) {
     const wrongSupplied = tradeSide === "long" ? hasUsdcSupplied : hasTokenSupplied;
     const wrongBorrowed = tradeSide === "long" ? !hasTokenSupplied : !hasUsdcSupplied;
 
