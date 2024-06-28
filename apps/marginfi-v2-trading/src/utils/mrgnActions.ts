@@ -234,7 +234,7 @@ async function createAccountAndDeposit({
   }
 
   try {
-    const txnSig = await marginfiAccount.deposit(amount, bank.address, priorityFee);
+    const txnSig = await marginfiAccount.deposit(amount, bank.address, { priorityFeeUi: priorityFee });
     multiStepToast.setSuccessAndNext();
     return txnSig;
   } catch (error: any) {
@@ -264,7 +264,7 @@ export async function deposit({
   multiStepToast.start();
 
   try {
-    const txnSig = await marginfiAccount.deposit(amount, bank.address, priorityFee);
+    const txnSig = await marginfiAccount.deposit(amount, bank.address, { priorityFeeUi: priorityFee });
     multiStepToast.setSuccessAndNext();
     return txnSig;
   } catch (error: any) {
@@ -294,7 +294,7 @@ export async function borrow({
 
   multiStepToast.start();
   try {
-    const txnSig = await marginfiAccount.borrow(amount, bank.address, priorityFee);
+    const txnSig = await marginfiAccount.borrow(amount, bank.address, { priorityFeeUi: priorityFee });
     multiStepToast.setSuccessAndNext();
     return txnSig;
   } catch (error: any) {
@@ -328,7 +328,7 @@ export async function withdraw({
       amount,
       bank.address,
       bank.isActive && isWholePosition(bank, amount),
-      priorityFee
+      { priorityFeeUi: priorityFee }
     );
     multiStepToast.setSuccessAndNext();
     return txnSig;
@@ -359,12 +359,9 @@ export async function repay({
   multiStepToast.start();
 
   try {
-    const txnSig = await marginfiAccount.repay(
-      amount,
-      bank.address,
-      bank.isActive && isWholePosition(bank, amount),
-      priorityFee
-    );
+    const txnSig = await marginfiAccount.repay(amount, bank.address, bank.isActive && isWholePosition(bank, amount), {
+      priorityFeeUi: priorityFee,
+    });
     multiStepToast.setSuccessAndNext();
     return txnSig;
   } catch (error: any) {
@@ -544,9 +541,9 @@ export const closeBalance = async ({
   try {
     let txnSig = "";
     if (bank.position.isLending) {
-      txnSig = await marginfiAccount.withdraw(0, bank.address, true, priorityFee);
+      txnSig = await marginfiAccount.withdraw(0, bank.address, true, { priorityFeeUi: priorityFee });
     } else {
-      txnSig = await marginfiAccount.repay(0, bank.address, true, priorityFee);
+      txnSig = await marginfiAccount.repay(0, bank.address, true, { priorityFeeUi: priorityFee });
     }
     multiStepToast.setSuccessAndNext();
     return txnSig;
