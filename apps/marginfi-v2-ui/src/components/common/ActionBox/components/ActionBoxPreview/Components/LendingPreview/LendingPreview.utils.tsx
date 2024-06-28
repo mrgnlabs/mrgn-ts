@@ -190,7 +190,8 @@ export async function simulateAction({
             true,
             marginfiClient.group,
             marginfiClient.banks,
-            marginfiClient.oraclePrices
+            marginfiClient.oraclePrices,
+            marginfiClient.tokenDatas
           );
           const previewMarginfiAccount = MarginfiAccountWrapper.fromAccountDataRaw(
             account.address,
