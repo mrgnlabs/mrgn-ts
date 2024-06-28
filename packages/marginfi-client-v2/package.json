@@ -15,30 +15,30 @@
     "src"
   ],
   "dependencies": {
-    "@coral-xyz/anchor": "^0.28.1-beta.2",
+    "@coral-xyz/anchor": "^0.30.1",
     "@mrgnlabs/mrgn-common": "*",
-    "@solana/wallet-adapter-base": "^0.9.20",
-    "@solana/web3.js": "^1.91.3",
-    "bignumber.js": "^9.1.1",
-    "bs58": "^5.0.0",
+    "@solana/wallet-adapter-base": "^0.9.23",
+    "@solana/web3.js": "^1.93.2",
+    "bignumber.js": "^9.1.2",
+    "bs58": "^6.0.0",
     "decimal.js": "^10.4.3",
-    "superstruct": "^1.0.3"
+    "superstruct": "^1.0.4"
   },
   "devDependencies": {
     "@jup-ag/api": "^6.0.23",
     "@mrgnlabs/eslint-config-custom": "*",
     "@mrgnlabs/tsconfig": "*",
     "@types/big.js": "^6.2.2",
-    "@types/bn.js": "^5.1.1",
+    "@types/bn.js": "^5.1.5",
     "@types/debug": "^4.1.12",
     "@types/inquirer": "^9.0.7",
     "big.js": "^6.2.1",
-    "eslint": "^7.32.0",
-    "inquirer": "^8.0.0",
-    "ts-node": "^10.9.1",
-    "typedoc": "^0.23.26",
-    "typescript": "^4.5.2",
-    "zod": "^3.22.4"
+    "eslint": "^9.5.0",
+    "inquirer": "^9.2.23",
+    "ts-node": "^10.9.2",
+    "typedoc": "^0.26.2",
+    "typescript": "^5.5.2",
+    "zod": "^3.23.8"
   },
   "publishConfig": {
     "access": "public"

@@ -6,7 +6,7 @@ import { isWeightedPrice, MarginRequirementType } from "./account";
 import { PriceBias, OraclePrice, getPriceWithConfidence } from "./price";
 import { BorshCoder } from "@coral-xyz/anchor";
 import { AccountType } from "../types";
-import { MARGINFI_IDL } from "../idl";
+import { MARGINFI_IDL, MarginfiIdlType } from "../idl";
 
 const SECONDS_PER_DAY = 24 * 60 * 60;
 const SECONDS_PER_YEAR = SECONDS_PER_DAY * 365.25;
@@ -45,7 +45,7 @@ interface BankRaw {
 
   config: BankConfigRaw;
 
-  emissionsFlags: BN;
+  flags: BN;
   emissionsRate: BN;
   emissionsMint: PublicKey;
   emissionsRemaining: WrappedI80F48;
@@ -200,18 +200,18 @@ class Bank {
     this.emissionsRemaining = emissionsRemaining;
   }
 
-  static decodeBankRaw(encoded: Buffer): BankRaw {
-    const coder = new BorshCoder(MARGINFI_IDL);
+  static decodeBankRaw(encoded: Buffer, idl: MarginfiIdlType): BankRaw {
+    const coder = new BorshCoder(idl);
     return coder.accounts.decode(AccountType.Bank, encoded);
   }
 
-  static fromBuffer(address: PublicKey, buffer: Buffer): Bank {
-    const accountParsed = Bank.decodeBankRaw(buffer);
+  static fromBuffer(address: PublicKey, buffer: Buffer, idl: MarginfiIdlType): Bank {
+    const accountParsed = Bank.decodeBankRaw(buffer, idl);
     return Bank.fromAccountParsed(address, accountParsed);
   }
 
   static fromAccountParsed(address: PublicKey, accountParsed: BankRaw, bankMetadata?: BankMetadata): Bank {
-    const emissionsFlags = accountParsed.emissionsFlags.toNumber();
+    const flags = accountParsed.flags.toNumber();
 
     const mint = accountParsed.mint;
     const mintDecimals = accountParsed.mintDecimals;
@@ -241,8 +241,8 @@ class Bank {
     const totalAssetShares = wrappedI80F48toBigNumber(accountParsed.totalAssetShares);
     const totalLiabilityShares = wrappedI80F48toBigNumber(accountParsed.totalLiabilityShares);
 
-    const emissionsActiveBorrowing = (emissionsFlags & 1) > 0;
-    const emissionsActiveLending = (emissionsFlags & 2) > 0;
+    const emissionsActiveBorrowing = (flags & 1) > 0;
+    const emissionsActiveLending = (flags & 2) > 0;
 
     // @todo existence checks here should be temporary - remove once all banks have emission configs
     const emissionsRate = accountParsed.emissionsRate.toNumber();
@@ -674,6 +674,9 @@ interface BankConfigOpt {
     setup: OracleSetup;
     keys: PublicKey[];
   } | null;
+
+  oracleMaxAge: number | null;
+  permissionlessBadDebtSettlement: boolean | null;
 }
 
 interface BankConfigOptRaw {
@@ -695,18 +698,21 @@ interface BankConfigOptRaw {
     setup: { none: {} } | { pythEma: {} } | { switchboardV2: {} };
     keys: PublicKey[];
   } | null;
+
+  oracleMaxAge: number | null;
+  permissionlessBadDebtSettlement: boolean | null;
 }
 
 function serializeBankConfigOpt(bankConfigOpt: BankConfigOpt): BankConfigOptRaw {
-  const assetWeightInit = bankConfigOpt.assetWeightInit && { value: new BN(bankConfigOpt.assetWeightInit.toString()) };
+  const assetWeightInit = bankConfigOpt.assetWeightInit && { value: [...(new BN(bankConfigOpt.assetWeightInit.toString()).toBuffer())] };
   const assetWeightMaint = bankConfigOpt.assetWeightMaint && {
-    value: new BN(bankConfigOpt.assetWeightMaint.toString()),
+    value: [...(new BN(bankConfigOpt.assetWeightMaint.toString()).toBuffer())],
   };
   const liabilityWeightInit = bankConfigOpt.liabilityWeightInit && {
-    value: new BN(bankConfigOpt.liabilityWeightInit.toString()),
+    value: [...(new BN(bankConfigOpt.liabilityWeightInit.toString()).toBuffer())],
   };
   const liabilityWeightMaint = bankConfigOpt.liabilityWeightMaint && {
-    value: new BN(bankConfigOpt.liabilityWeightMaint.toString()),
+    value: [...(new BN(bankConfigOpt.liabilityWeightMaint.toString()).toBuffer())],
   };
   const depositLimit = bankConfigOpt.depositLimit && new BN(bankConfigOpt.depositLimit.toString());
   const borrowLimit = bankConfigOpt.borrowLimit && new BN(bankConfigOpt.borrowLimit.toString());
@@ -719,14 +725,16 @@ function serializeBankConfigOpt(bankConfigOpt: BankConfigOpt): BankConfigOptRaw 
     keys: bankConfigOpt.oracle.keys,
   };
   const interestRateConfig = bankConfigOpt.interestRateConfig && {
-    insuranceFeeFixedApr: { value: new BN(bankConfigOpt.interestRateConfig.insuranceFeeFixedApr.toString()) },
-    maxInterestRate: { value: new BN(bankConfigOpt.interestRateConfig.maxInterestRate.toString()) },
-    insuranceIrFee: { value: new BN(bankConfigOpt.interestRateConfig.insuranceIrFee.toString()) },
-    optimalUtilizationRate: { value: new BN(bankConfigOpt.interestRateConfig.optimalUtilizationRate.toString()) },
-    plateauInterestRate: { value: new BN(bankConfigOpt.interestRateConfig.plateauInterestRate.toString()) },
-    protocolFixedFeeApr: { value: new BN(bankConfigOpt.interestRateConfig.protocolFixedFeeApr.toString()) },
-    protocolIrFee: { value: new BN(bankConfigOpt.interestRateConfig.protocolIrFee.toString()) },
+    insuranceFeeFixedApr: { value: [...(new BN(bankConfigOpt.interestRateConfig.insuranceFeeFixedApr.toString())).toBuffer()] },
+    maxInterestRate: { value: [...(new BN(bankConfigOpt.interestRateConfig.maxInterestRate.toString())).toBuffer()] },
+    insuranceIrFee: { value: [...(new BN(bankConfigOpt.interestRateConfig.insuranceIrFee.toString())).toBuffer()] },
+    optimalUtilizationRate: { value: [...(new BN(bankConfigOpt.interestRateConfig.optimalUtilizationRate.toString())).toBuffer()] },
+    plateauInterestRate: { value: [...(new BN(bankConfigOpt.interestRateConfig.plateauInterestRate.toString())).toBuffer()] },
+    protocolFixedFeeApr: { value: [...(new BN(bankConfigOpt.interestRateConfig.protocolFixedFeeApr.toString())).toBuffer()] },
+    protocolIrFee: { value: [...(new BN(bankConfigOpt.interestRateConfig.protocolIrFee.toString())).toBuffer()] },
   };
+  const oracleMaxAge = bankConfigOpt.oracleMaxAge;
+  const permissionlessBadDebtSettlement = bankConfigOpt.permissionlessBadDebtSettlement;
 
   return {
     assetWeightInit,
@@ -740,6 +748,8 @@ function serializeBankConfigOpt(bankConfigOpt: BankConfigOpt): BankConfigOptRaw 
     totalAssetValueInitLimit,
     oracle,
     interestRateConfig,
+    oracleMaxAge,
+    permissionlessBadDebtSettlement,
   };
 }
 

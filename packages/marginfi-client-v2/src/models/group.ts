@@ -1,7 +1,7 @@
 import { BorshCoder } from "@coral-xyz/anchor";
 import { PublicKey } from "@solana/web3.js";
 import BN from "bn.js";
-import { MARGINFI_IDL } from "../idl";
+import { MARGINFI_IDL, MarginfiIdlType } from "../idl";
 import { AccountType, MarginfiProgram } from "../types";
 import { InstructionsWrapper } from "@mrgnlabs/mrgn-common";
 import instructions from "../instructions";
@@ -44,18 +44,18 @@ class MarginfiGroup {
     return new MarginfiGroup(marginfiGroup.admin, address);
   }
 
-  static fromBuffer(address: PublicKey, rawData: Buffer) {
-    const data = MarginfiGroup.decode(rawData);
+  static fromBuffer(address: PublicKey, rawData: Buffer, idl: MarginfiIdlType) {
+    const data = MarginfiGroup.decode(rawData, idl);
     return MarginfiGroup.fromAccountParsed(address, data);
   }
 
-  static decode(encoded: Buffer): MarginfiGroupRaw {
-    const coder = new BorshCoder(MARGINFI_IDL);
+  static decode(encoded: Buffer, idl: MarginfiIdlType): MarginfiGroupRaw {
+    const coder = new BorshCoder(idl);
     return coder.accounts.decode(AccountType.MarginfiGroup, encoded);
   }
 
-  static async encode(decoded: MarginfiGroupRaw): Promise<Buffer> {
-    const coder = new BorshCoder(MARGINFI_IDL);
+  static async encode(decoded: MarginfiGroupRaw, idl: MarginfiIdlType): Promise<Buffer> {
+    const coder = new BorshCoder(idl);
     return await coder.accounts.encode(AccountType.MarginfiGroup, decoded);
   }
 

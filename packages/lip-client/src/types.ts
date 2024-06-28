@@ -1,10 +1,10 @@
 import { PublicKey } from "@solana/web3.js";
-import { Lip } from "./idl";
+import { LipIdlType } from "./idl";
 import { Program, ProgramReadonly } from "@mrgnlabs/mrgn-common";
 import { Environment } from "@mrgnlabs/marginfi-client-v2";
 
-export type LipProgram = Program<Lip>;
-export type LipProgramReadonly = ProgramReadonly<Lip>;
+export type LipProgram = Program<LipIdlType>;
+export type LipProgramReadonly = ProgramReadonly<LipIdlType>;
 
 export interface LipConfig {
   environment: Environment;

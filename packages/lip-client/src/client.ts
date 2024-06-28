@@ -15,7 +15,7 @@ import { LipConfig, LipProgram } from "./types";
 import { LIP_IDL } from "./idl";
 import instructions from "./instructions";
 import { DEPOSIT_MFI_AUTH_SIGNER_SEED, MARGINFI_ACCOUNT_SEED } from "./constants";
-import { Bank, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
+import { Bank, MarginfiClient, MarginfiIdlType } from "@mrgnlabs/marginfi-client-v2";
 import { Campaign, DepositData } from "./account";
 import {
   Amount,
@@ -69,7 +69,7 @@ class LipClient {
       commitment: marginfiClient.provider.connection.commitment ?? AnchorProvider.defaultOptions().commitment,
       ...opts,
     });
-    const program = new Program(LIP_IDL, config.programId, provider) as any as LipProgram;
+    const program = new Program(LIP_IDL as unknown as MarginfiIdlType, provider) as any as LipProgram;
     const campaigns = await LipClient._fetchAccountData(program, marginfiClient);
 
     return new LipClient(config, program, marginfiClient.wallet, marginfiClient, campaigns);
