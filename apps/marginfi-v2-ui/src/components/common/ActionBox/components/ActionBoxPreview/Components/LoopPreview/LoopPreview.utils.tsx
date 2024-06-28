@@ -128,7 +128,7 @@ export async function simulateLooping({ marginfiClient, account, bank, loopingTx
     ]);
     if (!mfiAccountData || !bankData) throw new Error("Failed to simulate looping");
     const previewBanks = marginfiClient.banks;
-    previewBanks.set(bank.address.toBase58(), Bank.fromBuffer(bank.address, bankData));
+    previewBanks.set(bank.address.toBase58(), Bank.fromBuffer(bank.address, bankData, marginfiClient.program.idl));
     const previewClient = new MarginfiClient(
       marginfiClient.config,
       marginfiClient.program,
@@ -141,7 +141,8 @@ export async function simulateLooping({ marginfiClient, account, bank, loopingTx
     const previewMarginfiAccount = MarginfiAccountWrapper.fromAccountDataRaw(
       account.address,
       previewClient,
-      mfiAccountData
+      mfiAccountData,
+      marginfiClient.program.idl
     );
 
     return (simulationResult = {
