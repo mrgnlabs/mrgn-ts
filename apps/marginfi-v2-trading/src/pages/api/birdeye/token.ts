@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import NodeCache from "node-cache";
 
-type TokenData = {
+export type TokenData = {
   address: string;
   name: string;
   symbol: string;
@@ -12,7 +12,7 @@ type TokenData = {
   marketCap?: number;
 };
 
-const tokenCache = new NodeCache({ stdTTL: 60 }); // Cache for 4 min
+const tokenCache = new NodeCache({ stdTTL: 60 }); // Cache for 1 min
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { address } = req.query;
