@@ -182,7 +182,10 @@ export async function simulateAction({
           );
           if (!mfiAccountData || !bankData) throw new Error("Failed to simulate repay w/ collat");
           const previewBanks = marginfiClient.banks;
-          previewBanks.set(bank.address.toBase58(), Bank.fromBuffer(bank.address, bankData, marginfiClient.program.idl));
+          previewBanks.set(
+            bank.address.toBase58(),
+            Bank.fromBuffer(bank.address, bankData, marginfiClient.program.idl)
+          );
           const previewClient = new MarginfiClient(
             marginfiClient.config,
             marginfiClient.program,
@@ -207,33 +210,32 @@ export async function simulateAction({
         } else {
           const jupiterQuoteApi = createJupiterApiClient();
 
-          const { setupInstructions, swapInstruction, addressLookupTableAddresses, cleanupInstruction } =
-            await jupiterQuoteApi.swapInstructionsPost({
-              swapRequest: {
-                quoteResponse: repayWithCollatOptions.repayCollatQuote,
-                userPublicKey: account.authority.toBase58(),
-              },
-            });
+          const { swapInstruction, addressLookupTableAddresses } = await jupiterQuoteApi.swapInstructionsPost({
+            swapRequest: {
+              quoteResponse: repayWithCollatOptions.repayCollatQuote,
+              userPublicKey: account.authority.toBase58(),
+            },
+          });
 
-          const setupIxs = setupInstructions.length > 0 ? setupInstructions.map(deserializeInstruction) : [];
           const swapIx = deserializeInstruction(swapInstruction);
-          const swapcleanupIx = cleanupInstruction ? [deserializeInstruction(cleanupInstruction)] : [];
 
-          const addressLookupTableAccounts: AddressLookupTableAccount[] = [];
-          addressLookupTableAccounts.push(
+          const swapLUTs: AddressLookupTableAccount[] = [];
+          swapLUTs.push(
             ...(await getAdressLookupTableAccounts(repayWithCollatOptions.connection, addressLookupTableAddresses))
           );
 
           try {
             simulationResult = await account.simulateRepayWithCollat(
               amount,
-              repayWithCollatOptions.repayAmount,
+              repayWithCollatOptions.withdrawAmount,
               bank.address,
-              repayWithCollatOptions.repayBank.address,
+              repayWithCollatOptions.depositBank.address,
+              repayWithCollatOptions.depositBank.isActive &&
+                isWholePosition(repayWithCollatOptions.depositBank, repayWithCollatOptions.withdrawAmount),
               bank.isActive && isWholePosition(bank, amount),
-              repayWithCollatOptions.repayBank.isActive && isWholePosition(repayWithCollatOptions.repayBank, repayWithCollatOptions.repayAmount),
-              [...setupIxs, swapIx, ...swapcleanupIx],
-              addressLookupTableAccounts
+              [swapIx],
+              swapLUTs
+              // priorityFee
             );
           } catch (error) {
             throw error;

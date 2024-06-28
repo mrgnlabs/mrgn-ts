@@ -641,8 +641,8 @@ export const ActionBox = ({
         params.repayWithCollatOptions = {
           repayCollatQuote: actionQuote,
           repayCollatTxn: actionTxn,
-          repayAmount: repayAmount,
-          repayBank: selectedRepayBank,
+          withdrawAmount: repayAmount,
+          depositBank: selectedRepayBank,
           connection,
         };
       }
@@ -798,8 +798,8 @@ export const ActionBox = ({
                     ? {
                         repayCollatQuote: actionQuote,
                         repayCollatTxn: actionTxn,
-                        repayAmount,
-                        repayBank: selectedRepayBank,
+                        withdrawAmount: repayAmount,
+                        depositBank: selectedRepayBank,
                         connection,
                       }
                     : undefined
