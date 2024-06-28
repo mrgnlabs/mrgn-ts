@@ -5,8 +5,7 @@ import React from "react";
 import Image from "next/image";
 
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { IconChevronDown, IconTrendingUp, IconTrendingDown } from "@tabler/icons-react";
-import random from "lodash/random";
+import { IconChevronDown } from "@tabler/icons-react";
 
 import { useTradeStore } from "~/store";
 
@@ -71,15 +70,6 @@ export const TokenCombobox = ({ selected, setSelected }: TokenComboboxProps) => 
                     className="rounded-full"
                   />
                   <span>{bank.meta.tokenSymbol}</span>
-                  {random(0, 1) ? (
-                    <div className="ml-auto flex items-center gap-1 text-xs text-success">
-                      +{random(0, 100)}% <IconTrendingUp size={16} />
-                    </div>
-                  ) : (
-                    <div className="ml-auto flex items-center gap-1 text-xs text-error">
-                      -{random(0, 100)}% <IconTrendingDown size={16} />
-                    </div>
-                  )}
                 </CommandItem>
               ))}
             </CommandGroup>
