@@ -610,9 +610,9 @@ export async function verifyJupTxSizeLooping(
 export async function verifyJupTxSizeCollat(
   marginfiAccount: MarginfiAccountWrapper,
   bank: ExtendedBankInfo,
-  repayBank: ExtendedBankInfo,
+  depositBank: ExtendedBankInfo,
   amount: number,
-  repayAmount: number,
+  withdrawAmount: number,
   quoteResponse: QuoteResponse,
   connection: Connection
 ) {
@@ -623,8 +623,8 @@ export async function verifyJupTxSizeCollat(
       amount,
       options: {
         repayCollatQuote: quoteResponse,
-        repayAmount,
-        repayBank: repayBank,
+        withdrawAmount,
+        depositBank,
         connection,
         repayCollatTxn: null,
       },
