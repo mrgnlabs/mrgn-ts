@@ -22,7 +22,7 @@ import {
   VersionedTransaction,
 } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
-import { MarginfiClient, MarginfiGroup, MarginfiIdlType } from "../..";
+import { MakeBorrowIxOpts, MakeDepositIxOpts, MakeRepayIxOpts, MakeWithdrawIxOpts, MarginfiClient, MarginfiGroup, MarginfiIdlType } from "../..";
 import { AccountType, MarginfiConfig, MarginfiProgram } from "../../types";
 import { MarginfiAccount, MarginRequirementType, MarginfiAccountRaw } from "./pure";
 import { Bank } from "../bank";
@@ -419,7 +419,8 @@ class MarginfiAccountWrapper {
       true,
       this.client.group,
       this.client.banks,
-      this.client.oraclePrices
+      this.client.oraclePrices,
+      this.client.tokenDatas
     );
     const previewMarginfiAccount = MarginfiAccountWrapper.fromAccountDataRaw(
       this.address,
@@ -488,8 +489,7 @@ class MarginfiAccountWrapper {
 
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:repay`);
     debug(
-      `Looping ${depositAmount} ${depositBank.tokenSymbol} against ${borrowAmount} ${
-        borrowBank.tokenSymbol
+      `Looping ${depositAmount} ${depositBank.tokenSymbol} against ${borrowAmount} ${borrowBank.tokenSymbol
       } into marginfi account (banks: ${depositBankAddress.toBase58()} / ${borrowBankAddress.toBase58()})`
     );
 
@@ -545,7 +545,8 @@ class MarginfiAccountWrapper {
       true,
       this.client.group,
       this.client.banks,
-      this.client.oraclePrices
+      this.client.oraclePrices,
+      this.client.tokenDatas
     );
     const previewMarginfiAccount = MarginfiAccountWrapper.fromAccountDataRaw(
       this.address,
@@ -604,20 +605,22 @@ class MarginfiAccountWrapper {
   async makeDepositIx(
     amount: Amount,
     bankAddress: PublicKey,
-    opt: { wrapAndUnwrapSol?: boolean } = {}
+    opt: MakeDepositIxOpts = {}
   ): Promise<InstructionsWrapper> {
-    return this._marginfiAccount.makeDepositIx(this._program, this.client.banks, amount, bankAddress, opt);
+    const tokenProgramAddress = this.client.tokenDatas.get(bankAddress.toBase58())?.tokenProgram;
+    if (!tokenProgramAddress) throw Error("Deposit mint not found");
+
+    return this._marginfiAccount.makeDepositIx(this._program, this.client.banks, amount, bankAddress, tokenProgramAddress, opt);
   }
 
   async deposit(
     amount: Amount,
     bankAddress: PublicKey,
-    priorityFeeUi?: number,
-    opt: { wrapAndUnwrapSol?: boolean } = {}
+    opt: MakeDepositIxOpts = {}
   ): Promise<string> {
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:deposit`);
     debug("Depositing %s into marginfi account (bank: %s)", amount, shortenAddress(bankAddress));
-    const priorityFeeIx = this.makePriorityFeeIx(priorityFeeUi);
+    const priorityFeeIx = this.makePriorityFeeIx(opt.priorityFeeUi);
     const ixs = await this.makeDepositIx(amount, bankAddress, opt);
     const tx = new Transaction().add(...priorityFeeIx, ...ixs.instructions);
     const sig = await this.client.processTransaction(tx, []);
@@ -639,7 +642,8 @@ class MarginfiAccountWrapper {
       true,
       this.client.group,
       this.client.banks,
-      this.client.oraclePrices
+      this.client.oraclePrices,
+      this.client.tokenDatas
     );
     const previewMarginfiAccount = MarginfiAccountWrapper.fromAccountDataRaw(
       this.address,
@@ -657,21 +661,24 @@ class MarginfiAccountWrapper {
     amount: Amount,
     bankAddress: PublicKey,
     repayAll: boolean = false,
-    opt: { wrapAndUnwrapSol?: boolean; createAtas?: boolean } = {}
+    opt: MakeRepayIxOpts = {}
   ): Promise<InstructionsWrapper> {
-    return this._marginfiAccount.makeRepayIx(this._program, this.client.banks, amount, bankAddress, repayAll, opt);
+    const tokenProgramAddress = this.client.tokenDatas.get(bankAddress.toBase58())?.tokenProgram;
+    if (!tokenProgramAddress) throw Error("Repay mint not found");
+
+    return this._marginfiAccount.makeRepayIx(this._program, this.client.banks, amount, bankAddress, tokenProgramAddress, repayAll, opt);
   }
 
   async repay(
     amount: Amount,
     bankAddress: PublicKey,
     repayAll: boolean = false,
-    priorityFeeUi?: number
+    opt: MakeRepayIxOpts = {}
   ): Promise<string> {
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:repay`);
     debug("Repaying %s into marginfi account (bank: %s), repay all: %s", amount, bankAddress, repayAll);
-    const priorityFeeIx = this.makePriorityFeeIx(priorityFeeUi);
-    const ixs = await this.makeRepayIx(amount, bankAddress, repayAll);
+    const priorityFeeIx = this.makePriorityFeeIx(opt.priorityFeeUi);
+    const ixs = await this.makeRepayIx(amount, bankAddress, repayAll, opt);
     const tx = new Transaction().add(...priorityFeeIx, ...ixs.instructions);
     const sig = await this.client.processTransaction(tx, []);
     debug("Depositing successful %s", sig);
@@ -679,7 +686,11 @@ class MarginfiAccountWrapper {
     return sig;
   }
 
-  async simulateRepay(amount: Amount, bankAddress: PublicKey, repayAll: boolean = false): Promise<SimulationResult> {
+  async simulateRepay(
+    amount: Amount,
+    bankAddress: PublicKey, 
+    repayAll: boolean = false
+  ): Promise<SimulationResult> {
     const ixs = await this.makeRepayIx(amount, bankAddress, repayAll);
     const tx = new Transaction().add(...ixs.instructions);
     const [mfiAccountData, bankData] = await this.client.simulateTransaction(tx, [this.address, bankAddress]);
@@ -693,7 +704,8 @@ class MarginfiAccountWrapper {
       true,
       this.client.group,
       this.client.banks,
-      this.client.oraclePrices
+      this.client.oraclePrices,
+      this.client.tokenDatas
     );
     const previewMarginfiAccount = MarginfiAccountWrapper.fromAccountDataRaw(
       this.address,
@@ -711,14 +723,18 @@ class MarginfiAccountWrapper {
     amount: Amount,
     bankAddress: PublicKey,
     withdrawAll: boolean = false,
-    opt: { observationBanksOverride?: PublicKey[]; wrapAndUnwrapSol?: boolean; createAtas?: boolean } = {}
+    opt: MakeWithdrawIxOpts = {}
   ): Promise<InstructionsWrapper> {
+    const tokenProgramAddress = this.client.tokenDatas.get(bankAddress.toBase58())?.tokenProgram;
+    if (!tokenProgramAddress) throw Error("Withdraw mint not found");
+
     return this._marginfiAccount.makeWithdrawIx(
       this._program,
       this.client.banks,
       amount,
       bankAddress,
       withdrawAll,
+      tokenProgramAddress,
       opt
     );
   }
@@ -727,13 +743,13 @@ class MarginfiAccountWrapper {
     amount: Amount,
     bankAddress: PublicKey,
     withdrawAll: boolean = false,
-    priorityFeeUi?: number
+    opt: MakeWithdrawIxOpts = {}
   ): Promise<string> {
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:withdraw`);
     debug("Withdrawing %s from marginfi account", amount);
-    const priorityFeeIx = this.makePriorityFeeIx(priorityFeeUi);
+    const priorityFeeIx = this.makePriorityFeeIx(opt.priorityFeeUi);
     const cuRequestIxs = this.makeComputeBudgetIx();
-    const ixs = await this.makeWithdrawIx(amount, bankAddress, withdrawAll);
+    const ixs = await this.makeWithdrawIx(amount, bankAddress, withdrawAll, opt);
     const tx = new Transaction().add(...priorityFeeIx, ...cuRequestIxs, ...ixs.instructions);
     const sig = await this.client.processTransaction(tx, []);
     debug("Withdrawing successful %s", sig);
@@ -743,7 +759,7 @@ class MarginfiAccountWrapper {
   async simulateWithdraw(
     amount: Amount,
     bankAddress: PublicKey,
-    withdrawAll: boolean = false
+    withdrawAll: boolean = false,
   ): Promise<SimulationResult> {
     const cuRequestIxs = this.makeComputeBudgetIx();
     const ixs = await this.makeWithdrawIx(amount, bankAddress, withdrawAll);
@@ -759,7 +775,8 @@ class MarginfiAccountWrapper {
       true,
       this.client.group,
       this.client.banks,
-      this.client.oraclePrices
+      this.client.oraclePrices,
+      this.client.tokenDatas
     );
     const previewMarginfiAccount = MarginfiAccountWrapper.fromAccountDataRaw(
       this.address,
@@ -776,24 +793,34 @@ class MarginfiAccountWrapper {
   async makeBorrowIx(
     amount: Amount,
     bankAddress: PublicKey,
-    opt?: { observationBanksOverride?: PublicKey[]; wrapAndUnwrapSol?: boolean; createAtas?: boolean } | undefined
+    opt: MakeBorrowIxOpts = {}
   ): Promise<InstructionsWrapper> {
-    return this._marginfiAccount.makeBorrowIx(this._program, this.client.banks, amount, bankAddress, opt);
+    const tokenProgramAddress = this.client.tokenDatas.get(bankAddress.toBase58())?.tokenProgram;
+    if (!tokenProgramAddress) throw Error("Borrow mint not found");
+
+    return this._marginfiAccount.makeBorrowIx(this._program, this.client.banks, amount, bankAddress, tokenProgramAddress, opt);
   }
 
-  async borrow(amount: Amount, bankAddress: PublicKey, priorityFeeUi?: number): Promise<string> {
+  async borrow(
+    amount: Amount,
+    bankAddress: PublicKey,
+    opt: MakeBorrowIxOpts = {}
+  ): Promise<string> {
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:borrow`);
     debug("Borrowing %s from marginfi account", amount);
-    const priorityFeeIx = this.makePriorityFeeIx(priorityFeeUi);
+    const priorityFeeIx = this.makePriorityFeeIx(opt.priorityFeeUi);
     const cuRequestIxs = this.makeComputeBudgetIx();
-    const ixs = await this.makeBorrowIx(amount, bankAddress);
+    const ixs = await this.makeBorrowIx(amount, bankAddress, opt);
     const tx = new Transaction().add(...priorityFeeIx, ...cuRequestIxs, ...ixs.instructions);
     const sig = await this.client.processTransaction(tx, []);
     debug("Borrowing successful %s", sig);
     return sig;
   }
 
-  async simulateBorrow(amount: Amount, bankAddress: PublicKey): Promise<SimulationResult> {
+  async simulateBorrow(
+    amount: Amount,
+    bankAddress: PublicKey,
+  ): Promise<SimulationResult> {
     const cuRequestIxs = this.makeComputeBudgetIx();
     const ixs = await this.makeBorrowIx(amount, bankAddress);
     const tx = new Transaction().add(...cuRequestIxs, ...ixs.instructions);
@@ -808,7 +835,8 @@ class MarginfiAccountWrapper {
       true,
       this.client.group,
       this.client.banks,
-      this.client.oraclePrices
+      this.client.oraclePrices,
+      this.client.tokenDatas
     );
     const previewMarginfiAccount = MarginfiAccountWrapper.fromAccountDataRaw(
       this.address,
@@ -840,15 +868,19 @@ class MarginfiAccountWrapper {
     liquidateeMarginfiAccount: MarginfiAccount,
     assetBankAddress: PublicKey,
     assetQuantityUi: Amount,
-    liabBankAddress: PublicKey
+    liabBankAddress: PublicKey,
   ): Promise<InstructionsWrapper> {
+    const liabTokenProgramAddress = this.client.tokenDatas.get(liabBankAddress.toBase58())?.tokenProgram;
+    if (!liabTokenProgramAddress) throw Error("Liability mint not found");
+
     return this._marginfiAccount.makeLendingAccountLiquidateIx(
       liquidateeMarginfiAccount,
       this._program,
       this.client.banks,
       assetBankAddress,
       assetQuantityUi,
-      liabBankAddress
+      liabBankAddress,
+      liabTokenProgramAddress,
     );
   }
 
@@ -856,7 +888,7 @@ class MarginfiAccountWrapper {
     liquidateeMarginfiAccount: MarginfiAccount,
     assetBankAddress: PublicKey,
     assetQuantityUi: Amount,
-    liabBankAddress: PublicKey
+    liabBankAddress: PublicKey,
   ): Promise<string> {
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:liquidation`);
     debug("Liquidating marginfi account %s", liquidateeMarginfiAccount.address.toBase58());
@@ -864,7 +896,7 @@ class MarginfiAccountWrapper {
       liquidateeMarginfiAccount,
       assetBankAddress,
       assetQuantityUi,
-      liabBankAddress
+      liabBankAddress,
     );
     const tx = new Transaction().add(...ixw.instructions);
     const sig = await this.client.processTransaction(tx, []);
