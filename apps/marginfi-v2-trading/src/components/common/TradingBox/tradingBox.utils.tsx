@@ -326,7 +326,8 @@ export async function simulateLooping({
       true,
       marginfiClient.group,
       marginfiClient.banks,
-      marginfiClient.oraclePrices
+      marginfiClient.oraclePrices,
+      marginfiClient.mintDatas
     );
     const previewMarginfiAccount = MarginfiAccountWrapper.fromAccountDataRaw(
       account.address,
