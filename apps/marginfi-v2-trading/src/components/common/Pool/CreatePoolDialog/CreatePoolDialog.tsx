@@ -196,7 +196,13 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
         </DialogTrigger>
         <DialogContent className="w-full space-y-4 sm:max-w-4xl md:max-w-4xl z-[70]">
           {createPoolState === CreatePoolState.SEARCH && (
-            <CreatePoolSearch setIsOpen={setIsOpen} setCreatePoolState={setCreatePoolState} />
+            <CreatePoolSearch
+              setIsOpen={setIsOpen}
+              setCreatePoolState={setCreatePoolState}
+              searchQuery={searchQuery}
+              debouncedSearchQuery={debouncedSearchQuery}
+              setSearchQuery={setSearchQuery}
+            />
           )}
           {createPoolState === CreatePoolState.MINT && (
             <CreatePoolMint
