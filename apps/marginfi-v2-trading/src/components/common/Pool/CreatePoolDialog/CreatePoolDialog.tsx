@@ -25,6 +25,7 @@ import {
 } from "~/components/common/Pool/CreatePoolDialog/";
 import { Dialog, DialogContent, DialogTrigger } from "~/components/ui/dialog";
 import { Button } from "~/components/ui/button";
+import { TokenData } from "~/pages/api/birdeye/token";
 
 type CreatePoolDialogProps = {
   trigger?: React.ReactNode;
@@ -116,27 +117,24 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
 
     try {
       const mint = new PublicKey(mintAddress);
-      const fetchTokenReq = await fetch(`/api/asset-search?address=${mint.toBase58()}`);
+      const fetchTokenReq = await fetch(`/api/birdeye/token?address=${mint.toBase58()}`);
 
       if (!fetchTokenReq.ok) {
         throw new Error("Failed to fetch token info");
       }
 
-      const tokenInfo = await fetchTokenReq.json();
+      const tokenInfo = (await fetchTokenReq.json()) as TokenData;
 
-      if (!tokenInfo || tokenInfo.interface !== "FungibleToken") {
-        throw new Error("Invalid token mint address");
+      if (!tokenInfo) {
+        throw new Error("Could not find token info");
       }
 
-      const image =
-        tokenInfo.content.files && tokenInfo.content.files.length ? tokenInfo.content.files[0].cdn_uri || "" : null;
-
-      form.setValue("mint", mint.toBase58());
-      form.setValue("name", tokenInfo.content.metadata.name || "");
-      form.setValue("symbol", tokenInfo.content.metadata.symbol || "");
-      form.setValue("decimals", tokenInfo.token_info.decimals ? tokenInfo.token_info.decimals.toString() : "");
-      form.setValue("imageDownload", image || "");
-      setPreviewImage(image || "");
+      form.setValue("mint", tokenInfo.address);
+      form.setValue("name", tokenInfo.name);
+      form.setValue("symbol", tokenInfo.symbol);
+      form.setValue("decimals", tokenInfo.decimals.toString());
+      form.setValue("imageDownload", tokenInfo.imageUrl);
+      setPreviewImage(tokenInfo.imageUrl);
 
       setIsSearchingDasApi(false);
       setCreatePoolState(CreatePoolState.FORM);

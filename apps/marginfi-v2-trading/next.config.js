@@ -185,6 +185,12 @@ let config = withBundleAnalyzer({
         port: "",
         pathname: "/cdn-cgi/image/**",
       },
+      {
+        protocol: "https",
+        hostname: "img.fotofolio.xyz",
+        port: "",
+        pathname: "/**",
+      },
     ],
   },
 });
