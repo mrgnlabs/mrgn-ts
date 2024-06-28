@@ -4,6 +4,7 @@ import { useRouter } from "next/router";
 
 import { PublicKey } from "@solana/web3.js";
 import { percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
+import { IconTrendingDown, IconTrendingUp } from "@tabler/icons-react";
 
 import { useTradeStore, useUiStore } from "~/store";
 import { cn } from "~/utils";
@@ -16,8 +17,7 @@ import { TradingBox } from "~/components/common/TradingBox";
 import { PositionList } from "~/components/common/Portfolio";
 import { Loader } from "~/components/ui/loader";
 
-import type { TokenData } from "../api/birdeye/token";
-import { IconTrendingDown, IconTrendingUp } from "@tabler/icons-react";
+import type { TokenData } from "~/types";
 
 export default function TradeSymbolPage() {
   const router = useRouter();
@@ -86,7 +86,7 @@ export default function TradeSymbolPage() {
               )}
               {tokenData?.priceChange24h && (
                 <>
-                  <dt className="ml-4 text-muted-foreground border-l border-muted-foreground/25 pl-4">24hr %</dt>
+                  <dt className="ml-4 text-muted-foreground border-l border-muted-foreground/25 pl-4">24hr price</dt>
                   <dd
                     className={cn(
                       "flex items-center gap-1",
@@ -95,6 +95,21 @@ export default function TradeSymbolPage() {
                   >
                     {tokenData?.priceChange24h > 1 ? <IconTrendingUp size={16} /> : <IconTrendingDown size={16} />}
                     {percentFormatter.format(tokenData?.priceChange24h / 100)}
+                  </dd>
+                </>
+              )}
+
+              {tokenData?.volumeChange24h && (
+                <>
+                  <dt className="ml-4 text-muted-foreground border-l border-muted-foreground/25 pl-4">24hr vol</dt>
+                  <dd
+                    className={cn(
+                      "flex items-center gap-1",
+                      tokenData?.volumeChange24h > 1 ? "text-mrgn-success" : "text-mrgn-error"
+                    )}
+                  >
+                    {tokenData?.volumeChange24h > 1 ? <IconTrendingUp size={16} /> : <IconTrendingDown size={16} />}
+                    {percentFormatter.format(tokenData?.volumeChange24h / 100)}
                   </dd>
                 </>
               )}
