@@ -36,7 +36,8 @@ async function makeDepositIx(
   },
   args: {
     amount: BN;
-  }
+  },
+  remainingAccounts: AccountMeta[] = []
 ) {
   return mfProgram.methods
     .lendingAccountDeposit(args.amount)
@@ -48,6 +49,7 @@ async function makeDepositIx(
       bank: accounts.bankPk,
       tokenProgram: accounts.tokenProgramPk,
     })
+    .remainingAccounts(remainingAccounts)
     .instruction();
 }
 
@@ -64,7 +66,8 @@ async function makeRepayIx(
   args: {
     amount: BN;
     repayAll?: boolean;
-  }
+  },
+  remainingAccounts: AccountMeta[] = []
 ) {
   return mfProgram.methods
     .lendingAccountRepay(args.amount, args.repayAll ?? null)
@@ -76,6 +79,7 @@ async function makeRepayIx(
       bank: accounts.bankPk,
       tokenProgram: accounts.tokenProgramPk,
     })
+    .remainingAccounts(remainingAccounts)
     .instruction();
 }
 
