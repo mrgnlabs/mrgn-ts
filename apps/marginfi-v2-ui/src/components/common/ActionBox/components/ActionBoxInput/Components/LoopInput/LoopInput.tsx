@@ -7,12 +7,14 @@ import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { percentFormatter } from "@mrgnlabs/mrgn-common";
 
 import { useActionBoxStore } from "~/hooks/useActionBoxStore";
+import { useConnection } from "~/hooks/useConnection";
+import { useWalletContext } from "~/hooks/useWalletContext";
+import { useLstStore, LST_MINT } from "~/store";
 import { computeBankRateRaw, formatAmount, getTokenImageURL } from "~/utils";
 
 import { ActionBoxTokens } from "~/components/common/ActionBox/components";
 import { InputAction } from "~/components/common/ActionBox/components/ActionBoxInput/Components/InputAction";
 import { Input } from "~/components/ui/input";
-import { useConnection } from "~/hooks/useConnection";
 import { Slider } from "~/components/ui/slider";
 import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
 import { IconChevronDown } from "~/components/ui/icons";
@@ -38,8 +40,9 @@ export const LoopInput = ({
   handleInputFocus,
 }: LoopInputProps) => {
   const amountInputRef = React.useRef<HTMLInputElement>(null);
-  const [selectedAccount] = useMrgnlendStore((state) => [state.selectedAccount]);
   const { connection } = useConnection();
+  const { wallet } = useWalletContext();
+  const [selectedAccount] = useMrgnlendStore((state) => [state.selectedAccount]);
   const [
     setSelectedBank,
     setRepayBank,
@@ -71,6 +74,8 @@ export const LoopInput = ({
     state.isLoading,
   ]);
 
+  const [fetchLstState, lstData] = useLstStore((state) => [state.fetchLstState, state.lstData]);
+
   // const [inputAmount, setInputAmount] = React.useState<string>("");
   const [leverageAmount, setLeverageAmount] = React.useState<number>(0);
   const debouncedAmount = useDebounce(amountRaw, 1000);
@@ -79,16 +84,50 @@ export const LoopInput = ({
 
   const [netApyRaw, setNetApyRaw] = React.useState(0);
 
+  const numberFormater = React.useMemo(() => new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 }), []);
+
+  const bothBanksSelected = React.useMemo(
+    () => Boolean(selectedBank && selectedRepayBank),
+    [selectedBank, selectedRepayBank]
+  );
+
+  const isDepositingLST = React.useMemo(
+    () => selectedBank && selectedBank.info.state.mint.equals(LST_MINT),
+    [selectedBank]
+  );
+
+  const netApy = React.useMemo(() => {
+    if (!selectedBank || !selectedRepayBank) return 0;
+    let depositTokenApy = computeBankRateRaw(selectedBank, LendingModes.LEND);
+    const borrowTokenApy = computeBankRateRaw(selectedRepayBank, LendingModes.BORROW);
+
+    if (isDepositingLST && lstData) {
+      depositTokenApy += lstData.projectedApy;
+    }
+
+    const netApy = depositTokenApy - borrowTokenApy;
+
+    setNetApyRaw(netApy);
+    return percentFormatter.format(Math.abs(netApy));
+  }, [selectedBank, selectedRepayBank, isDepositingLST, lstData]);
+
+  const refreshTxn = React.useCallback(() => {
+    if (selectedAccount && debouncedAmount) setLooping({ marginfiAccount: selectedAccount, connection: connection });
+  }, [connection, debouncedAmount, selectedAccount, setLooping]);
+
+  const formatAmountCb = React.useCallback(
+    (newAmount: string, bank: ExtendedBankInfo | null) => {
+      handleInputChange(formatAmount(newAmount, maxAmount, bank, numberFormater));
+    },
+    [handleInputChange, maxAmount, numberFormater]
+  );
+
   React.useEffect(
     () => setLeverage(debouncedLeverage, selectedAccount, connection),
     [debouncedLeverage, selectedAccount, connection, setLeverage]
   );
 
   React.useEffect(() => setLeverageAmount(leverage), [leverage]);
-
-  const refreshTxn = React.useCallback(() => {
-    if (selectedAccount && debouncedAmount) setLooping({ marginfiAccount: selectedAccount, connection: connection });
-  }, [connection, debouncedAmount, selectedAccount, setLooping]);
 
   React.useEffect(() => {
     const blockhash = actionTxn?.message.recentBlockhash;
@@ -108,26 +147,13 @@ export const LoopInput = ({
     return () => clearInterval(interval);
   }, [refreshTxn, actionTxn, connection]);
 
-  const numberFormater = React.useMemo(() => new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 }), []);
-
-  const netApy = React.useMemo(() => {
-    if (!selectedBank || !selectedRepayBank) return 0;
-    const depositTokenApy = computeBankRateRaw(selectedBank, LendingModes.LEND);
-    const borrowTokenApy = computeBankRateRaw(selectedRepayBank, LendingModes.BORROW);
-    const netApy = depositTokenApy - borrowTokenApy;
-
-    setNetApyRaw(netApy);
-    return percentFormatter.format(Math.abs(netApy));
-  }, [selectedBank, selectedRepayBank]);
-
-  const formatAmountCb = React.useCallback(
-    (newAmount: string, bank: ExtendedBankInfo | null) => {
-      handleInputChange(formatAmount(newAmount, maxAmount, bank, numberFormater));
-    },
-    [handleInputChange, maxAmount, numberFormater]
-  );
-
-  const bothBanksSelected = selectedBank && selectedRepayBank;
+  React.useEffect(() => {
+    fetchLstState({
+      connection,
+      wallet,
+    });
+    /* eslint-disable-next-line react-hooks/exhaustive-deps */
+  }, [fetchLstState, wallet]);
 
   return (
     <div>
@@ -251,31 +277,37 @@ export const LoopInput = ({
               Net APY <IconChevronDown size={16} />
             </PopoverTrigger>
             <PopoverContent align="center" className="w-auto">
-              {bothBanksSelected && (
-                <ul className="space-y-2.5 text-xs">
-                  {[selectedBank, selectedRepayBank].map((bank, index) => {
-                    const isDepositBank = index === 0;
-                    return (
-                      <li key={bank.meta.tokenSymbol} className="flex items-center gap-8 justify-between text-xs">
-                        <div className="flex items-center gap-2">
-                          <Image
-                            src={getTokenImageURL(bank.meta.tokenSymbol)}
-                            width={16}
-                            height={16}
-                            alt={bank.meta.tokenName}
-                            className="rounded-full"
-                          />
-                          <strong className="font-medium">{bank.meta.tokenSymbol}</strong>
-                        </div>
-                        <span className={cn("ml-auto", isDepositBank ? "text-success" : "text-warning")}>
-                          {percentFormatter.format(
-                            computeBankRateRaw(bank, isDepositBank ? LendingModes.LEND : LendingModes.BORROW)
-                          )}
-                        </span>
-                      </li>
-                    );
-                  })}
-                </ul>
+              {bothBanksSelected && selectedBank && selectedRepayBank && (
+                <>
+                  {selectedBank.info.state.mint.equals(LST_MINT) && lstData && (
+                    <p className="text-xs text-muted-foreground mb-4">*includes LST yield</p>
+                  )}
+                  <ul className="space-y-2.5 text-xs">
+                    {[selectedBank, selectedRepayBank].map((bank, index) => {
+                      const isDepositBank = index === 0;
+                      return (
+                        <li key={bank.meta.tokenSymbol} className="flex items-center gap-8 justify-between text-xs">
+                          <div className="flex items-center gap-2">
+                            <Image
+                              src={getTokenImageURL(bank.meta.tokenSymbol)}
+                              width={16}
+                              height={16}
+                              alt={bank.meta.tokenName}
+                              className="rounded-full"
+                            />
+                            <strong className="font-medium">{bank.meta.tokenSymbol}</strong>
+                          </div>
+                          <span className={cn("ml-auto", isDepositBank ? "text-success" : "text-warning")}>
+                            {percentFormatter.format(
+                              computeBankRateRaw(bank, isDepositBank ? LendingModes.LEND : LendingModes.BORROW) +
+                                (isDepositingLST && lstData && isDepositBank ? lstData?.projectedApy : 0)
+                            )}
+                          </span>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </>
               )}
             </PopoverContent>
           </Popover>
