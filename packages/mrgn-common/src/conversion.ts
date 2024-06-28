@@ -23,14 +23,14 @@ export function wrappedI80F48toBigNumber(wrapped: WrappedI80F48): BigNumber {
     bytesBE = bytesBE.map((v) => ~v & 0xff);
   }
 
-  let hex = signChar+"0x"+bytesBE.map((v) => v.toString(16).padStart(2, "0")).join("");
-  let decoded = new Decimal(hex).dividedBy(I80F48_DIVISOR)
+  let hex = signChar + "0x" + bytesBE.map((v) => v.toString(16).padStart(2, "0")).join("");
+  let decoded = new Decimal(hex).dividedBy(I80F48_DIVISOR);
 
   return new BigNumber(decoded.toString());
 }
 
 export function bigNumberToWrappedI80F48(value: Amount): WrappedI80F48 {
-  let decimalValue = new Decimal(value.toString())
+  let decimalValue = new Decimal(value.toString());
   const isNegative = decimalValue.isNegative();
 
   decimalValue = decimalValue.times(I80F48_DIVISOR);
@@ -49,26 +49,6 @@ export function bigNumberToWrappedI80F48(value: Amount): WrappedI80F48 {
   wrappedValue.reverse();
 
   return { value: wrappedValue };
-}
-
-export function bigNumberToWrappedI80F48(value: BigNumber, scaleDecimal: number = 0): { value: BN } {
-  if (!value) return { value: new BN(0) };
-
-  // Adjust the value by the scaleDecimal
-  let adjustedValue = value.multipliedBy(10 ** scaleDecimal);
-
-  // Multiply by 2^48 to match the precision
-  let preciseValue = adjustedValue.multipliedBy(new BigNumber(2).pow(48));
-
-  // Convert the precise value to a BN
-  let bnValue = new BN(preciseValue.toFixed(0));
-
-  // Adjust the sign
-  if (value.isNegative()) {
-    bnValue = bnValue.neg();
-  }
-
-  return { value: bnValue };
 }
 
 /**
