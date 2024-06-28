@@ -48,9 +48,9 @@ import { ProcessTransactionError, ProcessTransactionErrorType, parseErrorFromLog
 
 export type BankMap = Map<string, Bank>;
 export type OraclePriceMap = Map<string, OraclePrice>;
-export type TokenDataMap = Map<string, TokenData>;
+export type TokenDataMap = Map<string, MintData>;
 
-export type TokenData = {
+export type MintData = {
   mint: PublicKey;
   tokenProgram: PublicKey;
   feeBps: number; // TODO: Handle this in calcs
@@ -72,7 +72,7 @@ class MarginfiClient {
   public group: MarginfiGroup;
   public banks: BankMap;
   public oraclePrices: OraclePriceMap;
-  public tokenDatas: TokenDataMap;
+  public mintDatas: TokenDataMap;
   public addressLookupTables: AddressLookupTableAccount[];
   private preloadedBankAddresses?: PublicKey[];
   private sendEndpoint?: string;
@@ -91,7 +91,7 @@ class MarginfiClient {
     group: MarginfiGroup,
     banks: BankMap,
     priceInfos: OraclePriceMap,
-    tokenDatas: TokenDataMap,
+    mintDatas: TokenDataMap,
     addressLookupTables?: AddressLookupTableAccount[],
     preloadedBankAddresses?: PublicKey[],
     readonly bankMetadataMap?: BankMetadataMap,
@@ -102,7 +102,7 @@ class MarginfiClient {
     this.group = group;
     this.banks = banks;
     this.oraclePrices = priceInfos;
-    this.tokenDatas = tokenDatas;
+    this.mintDatas = mintDatas;
     this.addressLookupTables = addressLookupTables ?? [];
     this.preloadedBankAddresses = preloadedBankAddresses;
     this.sendEndpoint = sendEndpoint;
@@ -245,7 +245,7 @@ class MarginfiClient {
     marginfiGroup: MarginfiGroup;
     banks: Map<string, Bank>;
     priceInfos: Map<string, OraclePrice>;
-    tokenDatas: Map<string, TokenData>;
+    tokenDatas: Map<string, MintData>;
   }> {
     const debug = require("debug")("mfi:client");
     // Fetch & shape all accounts of Bank type (~ bank discovery)
