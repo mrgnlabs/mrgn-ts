@@ -26,7 +26,7 @@ async function main() {
   const mfiClient = await MarginfiClient.fetch(mfiConfig, {} as Wallet, rpcClient, { readOnly: true });
 
   const groupMonitor = new GroupMonitor(mfiClient);
-  const healthNotifier = new HealthNotifier(sdk, dapp, rpcClient, mfiConfig, groupMonitor);
+  const healthNotifier = new HealthNotifier(sdk, dapp, rpcClient, mfiConfig, groupMonitor, mfiClient.program.idl);
 
   await Promise.all([await groupMonitor.init(), await healthNotifier.init()]);
   await Promise.all([healthNotifier.run(), groupMonitor.run()]);

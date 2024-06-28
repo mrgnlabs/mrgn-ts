@@ -25,7 +25,7 @@ async function makeCreateDepositIx(
 ) {
   return lipProgram.methods
     .createDeposit(args.amount)
-    .accounts({
+    .accountsPartial({
       campaign: accounts.campaign,
       signer: accounts.signer,
       fundingAccount: accounts.fundingAccount,

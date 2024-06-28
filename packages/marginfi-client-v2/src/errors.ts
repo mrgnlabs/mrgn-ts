@@ -1,6 +1,6 @@
 import { LangErrorMessage } from "@coral-xyz/anchor";
 import { JUPITER_V6_PROGRAM, TOKEN_PROGRAM_ID } from "@mrgnlabs/mrgn-common";
-import { IDL } from "./idl/marginfi-types";
+import { MARGINFI_IDL } from "./idl";
 import { PublicKey } from "@solana/web3.js";
 
 export enum ProcessTransactionErrorType {
@@ -32,7 +32,7 @@ export interface ProgramErrorWithDescription extends ProgramError {
   description: string;
 }
 
-const MFI_ERROR_CODE_MAP: Map<number, string> = new Map(IDL.errors.map((error) => [error.code, error.msg]));
+const MFI_ERROR_CODE_MAP: Map<number, string> = new Map(MARGINFI_IDL.errors.map((error) => [error.code, error.msg]));
 
 export function parseErrorFromLogs(logs: string[], mfiProgramId: PublicKey): ProgramErrorWithDescription | null {
   const error = parseCustomProgramError(logs);

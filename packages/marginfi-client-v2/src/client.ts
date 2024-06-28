@@ -15,7 +15,6 @@ import {
   VersionedTransaction,
 } from "@solana/web3.js";
 import { AccountType, Environment, MarginfiConfig, MarginfiProgram } from "./types";
-import { MARGINFI_IDL } from "./idl";
 import { getConfig } from "./config";
 import instructions from "./instructions";
 import { MarginRequirementType } from "./models/account";
@@ -40,6 +39,8 @@ import {
   OraclePrice,
   ADDRESS_LOOKUP_TABLE_FOR_GROUP,
   MarginfiAccountRaw,
+  MARGINFI_IDL,
+  MarginfiIdlType,
 } from ".";
 import { MarginfiAccountWrapper } from "./models/account/wrapper";
 import { ProcessTransactionError, ProcessTransactionErrorType, parseErrorFromLogs } from "./errors";
@@ -135,7 +136,7 @@ class MarginfiClient {
       commitment: connection.commitment ?? AnchorProvider.defaultOptions().commitment,
       ...confirmOpts,
     });
-    const program = new Program(MARGINFI_IDL, config.programId, provider) as any as MarginfiProgram;
+    const program = new Program(MARGINFI_IDL as unknown as MarginfiIdlType, provider) as any as MarginfiProgram;
 
     let bankMetadataMap: BankMetadataMap | undefined = undefined;
     try {
@@ -261,16 +262,22 @@ class MarginfiClient {
 
     // Unpack raw data for group and oracles, and build the `Bank`s map
     if (!groupAi) throw new Error("Failed to fetch the on-chain group data");
-    const marginfiGroup = MarginfiGroup.fromBuffer(groupAddress, groupAi.data);
+    const marginfiGroup = MarginfiGroup.fromBuffer(groupAddress, groupAi.data, program.idl);
 
     debug("Decoding bank data");
     const banks = new Map(
       bankDatasKeyed.map(({ address, data }) => {
         const bankMetadata = bankMetadataMap ? bankMetadataMap[address.toBase58()] : undefined;
-        return [address.toBase58(), Bank.fromAccountParsed(address, data, bankMetadata)];
+        const bank = Bank.fromAccountParsed(address, data, bankMetadata)
+
+        return [address.toBase58(), bank];
       })
     );
     debug("Decoded banks");
+
+    const usdcBank = banks.get("2s37akK2eyBbp8DZgCm7RtsaEz8eJP3Nxd4urLHQv7yB");
+    console.log("deposit cap", usdcBank?.config.depositLimit.toString());
+    console.log("deposit amount", usdcBank?.getAssetQuantity(usdcBank.totalAssetShares).toString());
 
     const priceInfos = new Map(
       bankDatasKeyed.map(({ address: bankAddress, data: bankData }, index) => {
@@ -375,7 +382,7 @@ class MarginfiClient {
           {
             memcmp: {
               offset: 0,
-              bytes: bs58.encode(BorshAccountsCoder.accountDiscriminator(AccountType.MarginfiAccount)),
+              bytes: bs58.encode(new BorshAccountsCoder(this.program.idl).accountDiscriminator(AccountType.MarginfiAccount)),
             },
           },
         ],
@@ -436,7 +443,7 @@ class MarginfiClient {
           {
             memcmp: {
               offset: 0,
-              bytes: bs58.encode(BorshAccountsCoder.accountDiscriminator(type)),
+              bytes: bs58.encode(new BorshAccountsCoder(this.program.idl).accountDiscriminator(AccountType.MarginfiAccount)),
             },
           },
         ],

@@ -26,5 +26,5 @@ export interface InstructionsWrapper {
 }
 
 export interface WrappedI80F48 {
-  value: BN;
+  value: number[];
 }

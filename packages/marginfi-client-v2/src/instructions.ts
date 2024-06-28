@@ -14,11 +14,10 @@ async function makeInitMarginfiAccountIx(
 ) {
   return mfProgram.methods
     .marginfiAccountInitialize()
-    .accounts({
+    .accountsPartial({
       marginfiGroup: accounts.marginfiGroupPk,
       marginfiAccount: accounts.marginfiAccountPk,
       authority: accounts.authorityPk,
-      systemProgram: SystemProgram.programId,
       feePayer: accounts.feePayerPk,
     })
     .instruction();
@@ -39,7 +38,7 @@ async function makeDepositIx(
 ) {
   return mfProgram.methods
     .lendingAccountDeposit(args.amount)
-    .accounts({
+    .accountsPartial({
       marginfiGroup: accounts.marginfiGroupPk,
       marginfiAccount: accounts.marginfiAccountPk,
       signer: accounts.authorityPk,
@@ -65,7 +64,7 @@ async function makeRepayIx(
 ) {
   return mfProgram.methods
     .lendingAccountRepay(args.amount, args.repayAll ?? null)
-    .accounts({
+    .accountsPartial({
       marginfiGroup: accounts.marginfiGroupPk,
       marginfiAccount: accounts.marginfiAccountPk,
       signer: accounts.authorityPk,
@@ -92,7 +91,7 @@ async function makeWithdrawIx(
 ) {
   return mfProgram.methods
     .lendingAccountWithdraw(args.amount, args.withdrawAll ?? null)
-    .accounts({
+    .accountsPartial({
       marginfiGroup: accounts.marginfiGroupPk,
       marginfiAccount: accounts.marginfiAccountPk,
       signer: accounts.signerPk,
@@ -119,7 +118,7 @@ async function makeBorrowIx(
 ) {
   return mfProgram.methods
     .lendingAccountBorrow(args.amount)
-    .accounts({
+    .accountsPartial({
       marginfiGroup: accounts.marginfiGroupPk,
       marginfiAccount: accounts.marginfiAccountPk,
       signer: accounts.signerPk,
@@ -147,7 +146,7 @@ function makeLendingAccountLiquidateIx(
 ) {
   return mfiProgram.methods
     .lendingAccountLiquidate(args.assetAmount)
-    .accounts({
+    .accountsPartial({
       marginfiGroup: accounts.marginfiGroup,
       signer: accounts.signer,
       assetBank: accounts.assetBank,
@@ -172,7 +171,7 @@ function makelendingAccountWithdrawEmissionIx(
 ) {
   return mfiProgram.methods
     .lendingAccountWithdrawEmissions()
-    .accounts({
+    .accountsPartial({
       marginfiGroup: accounts.marginfiGroup,
       marginfiAccount: accounts.marginfiAccount,
       signer: accounts.signer,

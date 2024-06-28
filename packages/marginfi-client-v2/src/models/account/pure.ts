@@ -21,8 +21,8 @@ import {
   BankMap,
   DISABLED_FLAG,
   FLASHLOAN_ENABLED_FLAG,
-  MARGINFI_IDL,
   MarginfiClient,
+  MarginfiIdlType,
   OraclePriceMap,
   RiskTier,
   TRANSFER_ACCOUNT_AUTHORITY_FLAG,
@@ -74,8 +74,8 @@ class MarginfiAccount {
     return new MarginfiAccount(address, data);
   }
 
-  static decode(encoded: Buffer): MarginfiAccountRaw {
-    const coder = new BorshCoder(MARGINFI_IDL);
+  static decode(encoded: Buffer, idl: MarginfiIdlType): MarginfiAccountRaw {
+    const coder = new BorshCoder(idl);
     return coder.accounts.decode(AccountType.MarginfiAccount, encoded);
   }
 
@@ -83,8 +83,8 @@ class MarginfiAccount {
     const _marginfiAccountPk = translateAddress(marginfiAccountPk);
     return new MarginfiAccount(_marginfiAccountPk, accountData);
   }
-  static fromAccountDataRaw(marginfiAccountPk: PublicKey, marginfiAccountRawData: Buffer) {
-    const marginfiAccountData = MarginfiAccount.decode(marginfiAccountRawData);
+  static fromAccountDataRaw(marginfiAccountPk: PublicKey, marginfiAccountRawData: Buffer, idl: MarginfiIdlType) {
+    const marginfiAccountData = MarginfiAccount.decode(marginfiAccountRawData, idl);
     return MarginfiAccount.fromAccountParsed(marginfiAccountPk, marginfiAccountData);
   }
   // ----------------------------------------------------------------------------

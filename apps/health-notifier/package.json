@@ -13,7 +13,7 @@
     "start": "ts-node src/main.ts"
   },
   "dependencies": {
-    "@coral-xyz/anchor": "^0.28.1-beta.2",
+    "@coral-xyz/anchor": "^0.30.1",
     "@dialectlabs/blockchain-sdk-solana": "^1.2.0",
     "@dialectlabs/monitor": "^3.4.2",
     "@dialectlabs/sdk": "^1.9.1",

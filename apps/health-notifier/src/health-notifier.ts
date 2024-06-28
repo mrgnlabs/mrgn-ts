@@ -1,7 +1,7 @@
 import { AddressType, Dapp, DappMessageActionType, Dialect } from "@dialectlabs/sdk";
 import { envConfig } from "./env-config";
 import { Connection, Context, KeyedAccountInfo, PublicKey } from "@solana/web3.js";
-import { AccountType, MarginRequirementType, MarginfiAccount, MarginfiConfig } from "@mrgnlabs/marginfi-client-v2";
+import { AccountType, MarginRequirementType, MarginfiAccount, MarginfiConfig, MarginfiIdlType, MarginfiProgram } from "@mrgnlabs/marginfi-client-v2";
 import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
 import { BorshAccountsCoder } from "@coral-xyz/anchor";
 import { percentFormatterDyn, shortenAddress, sleep } from "@mrgnlabs/mrgn-common";
@@ -56,7 +56,8 @@ export class HealthNotifier {
     readonly dapp: Dapp,
     readonly rpcClient: Connection,
     readonly mfiConfig: MarginfiConfig,
-    readonly groupMonitor: GroupMonitor
+    readonly groupMonitor: GroupMonitor,
+    readonly marginfiIdl: MarginfiIdlType
   ) {
     logger.info(`Dapp:\n- Address: ${this.dapp.address}\n- Description: ${this.dapp.description}`);
   }
@@ -101,7 +102,7 @@ export class HealthNotifier {
       {
         memcmp: {
           offset: 0,
-          bytes: bs58.encode(BorshAccountsCoder.accountDiscriminator(AccountType.MarginfiAccount)),
+          bytes: bs58.encode(new BorshAccountsCoder(this.marginfiIdl).accountDiscriminator(AccountType.MarginfiAccount)),
         },
       },
     ];
@@ -142,7 +143,8 @@ export class HealthNotifier {
 
     const mfiAccount = MarginfiAccount.fromAccountDataRaw(
       keyedAccountInfo.accountId,
-      keyedAccountInfo.accountInfo.data
+      keyedAccountInfo.accountInfo.data,
+      this.marginfiIdl
     );
 
     this.accountStore.upsert(keyedAccountInfo.accountId.toBase58(), mfiAccount);

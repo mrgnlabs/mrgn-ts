@@ -182,7 +182,7 @@ export async function simulateAction({
           );
           if (!mfiAccountData || !bankData) throw new Error("Failed to simulate repay w/ collat");
           const previewBanks = marginfiClient.banks;
-          previewBanks.set(bank.address.toBase58(), Bank.fromBuffer(bank.address, bankData));
+          previewBanks.set(bank.address.toBase58(), Bank.fromBuffer(bank.address, bankData, marginfiClient.program.idl));
           const previewClient = new MarginfiClient(
             marginfiClient.config,
             marginfiClient.program,
@@ -195,7 +195,8 @@ export async function simulateAction({
           const previewMarginfiAccount = MarginfiAccountWrapper.fromAccountDataRaw(
             account.address,
             previewClient,
-            mfiAccountData
+            mfiAccountData,
+            marginfiClient.program.idl
           );
 
           simulationResult = {
