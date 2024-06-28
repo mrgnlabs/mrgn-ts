@@ -33,7 +33,7 @@ import {
 } from "../..";
 import { AccountType, MarginfiConfig, MarginfiProgram } from "../../types";
 import { MarginfiAccount, MarginRequirementType, MarginfiAccountRaw } from "./pure";
-import { Bank } from "../bank";
+import { Bank, computeLoopingParams } from "../bank";
 import { Balance } from "../balance";
 
 export interface SimulationResult {
@@ -282,14 +282,7 @@ class MarginfiAccountWrapper {
     const borrowPriceInfo = this.client.oraclePrices.get(borrowBankAddress.toBase58());
     if (!borrowPriceInfo) throw Error(`Price info for ${borrowBankAddress.toBase58()} not found`);
 
-    return this._marginfiAccount.computeLoopingParams(
-      principal,
-      targetLeverage,
-      depositBank,
-      borrowBank,
-      depositPriceInfo,
-      borrowPriceInfo
-    );
+    return computeLoopingParams(principal, targetLeverage, depositBank, borrowBank, depositPriceInfo, borrowPriceInfo);
   }
 
   makePriorityFeeIx(priorityFeeUi?: number): TransactionInstruction[] {
@@ -628,7 +621,14 @@ class MarginfiAccountWrapper {
     bankAddress: PublicKey,
     opt: MakeDepositIxOpts = {}
   ): Promise<InstructionsWrapper> {
-    return this._marginfiAccount.makeDepositIx(this._program, this.client.banks, this.client.mintDatas, amount, bankAddress, opt);
+    return this._marginfiAccount.makeDepositIx(
+      this._program,
+      this.client.banks,
+      this.client.mintDatas,
+      amount,
+      bankAddress,
+      opt
+    );
   }
 
   async deposit(amount: Amount, bankAddress: PublicKey, opt: MakeDepositIxOpts = {}): Promise<string> {
@@ -680,7 +680,15 @@ class MarginfiAccountWrapper {
     const tokenProgramAddress = this.client.mintDatas.get(bankAddress.toBase58())?.tokenProgram;
     if (!tokenProgramAddress) throw Error("Repay mint not found");
 
-    return this._marginfiAccount.makeRepayIx(this._program, this.client.banks, this.client.mintDatas, amount, bankAddress, repayAll, opt);
+    return this._marginfiAccount.makeRepayIx(
+      this._program,
+      this.client.banks,
+      this.client.mintDatas,
+      amount,
+      bankAddress,
+      repayAll,
+      opt
+    );
   }
 
   async repay(
@@ -800,15 +808,18 @@ class MarginfiAccountWrapper {
     };
   }
 
-  async makeBorrowIx(
-    amount: Amount,
-    bankAddress: PublicKey,
-    opt: MakeBorrowIxOpts = {}
-  ): Promise<InstructionsWrapper> {
+  async makeBorrowIx(amount: Amount, bankAddress: PublicKey, opt: MakeBorrowIxOpts = {}): Promise<InstructionsWrapper> {
     const tokenProgramAddress = this.client.mintDatas.get(bankAddress.toBase58())?.tokenProgram;
     if (!tokenProgramAddress) throw Error("Borrow mint not found");
 
-    return this._marginfiAccount.makeBorrowIx(this._program, this.client.banks, this.client.mintDatas, amount, bankAddress, opt);
+    return this._marginfiAccount.makeBorrowIx(
+      this._program,
+      this.client.banks,
+      this.client.mintDatas,
+      amount,
+      bankAddress,
+      opt
+    );
   }
 
   async borrow(amount: Amount, bankAddress: PublicKey, opt: MakeBorrowIxOpts = {}): Promise<string> {
@@ -883,7 +894,7 @@ class MarginfiAccountWrapper {
       this.client.mintDatas,
       assetBankAddress,
       assetQuantityUi,
-      liabBankAddress,
+      liabBankAddress
     );
   }
 

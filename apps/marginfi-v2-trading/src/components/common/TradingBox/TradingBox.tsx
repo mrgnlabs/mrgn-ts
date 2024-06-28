@@ -47,11 +47,6 @@ type StatusType = {
   msg: string;
 };
 
-interface LoopingStatus {
-  errors: StatusType[];
-  warnings: StatusType[];
-}
-
 export const TradingBox = ({ activeBank }: TradingBoxProps) => {
   const router = useRouter();
   const { wallet, connected } = useWalletContext();
@@ -63,7 +58,6 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
   const [leverage, setLeverage] = React.useState(0);
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const [Stats, setStats] = React.useState<React.JSX.Element>(<></>);
-  const [status, setStatus] = React.useState<LoopingStatus>({ errors: [], warnings: [] });
 
   const debouncedLeverage = useDebounce(leverage, 1000);
   const debouncedAmount = useDebounce(amount, 1000);
@@ -164,8 +158,8 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
   );
 
   const loadLoopingVariables = React.useCallback(async () => {
-    console.log({ selectedAccount, activeGroup });
-    if (selectedAccount && activeGroup) {
+    console.log({ selectedAccount, activeGroup, marginfiClient });
+    if (marginfiClient && activeGroup) {
       try {
         if (Number(amount) === 0 || leverage <= 1) {
           throw new Error("Amount is 0");
@@ -184,6 +178,7 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
         }
 
         const looping = await calculateLooping(
+          marginfiClient,
           selectedAccount,
           depositBank,
           borrowBank,
@@ -193,7 +188,7 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
           connection
         );
 
-        if (looping) {
+        if (looping && looping?.loopingTxn && selectedAccount) {
           await handleSimulation(looping.loopingTxn, activeGroup.token, selectedAccount);
           // const simulation = await simulateLooping({
           //   marginfiClient,
@@ -230,9 +225,9 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
         console.error(error);
         let message;
         if ((error as any).msg) message = (error as any).msg;
-        addStatus({ type: "simulation", msg: message ?? "Simulating transaction failed" }, "warning");
+        // addStatus({ type: "simulation", msg: message ?? "Simulating transaction failed" }, "warning");
       } finally {
-        if (simulationResult) removeStatus("simulation");
+        // if (simulationResult) removeStatus("simulation");
         loadStats(simulationResult);
       }
     },
@@ -308,29 +303,6 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
     }
   }, [debouncedLeverage, debouncedAmount]);
 
-  const addStatus = (statusItem: StatusType, statusType: "error" | "warning") => {
-    setStatus((prevState) => {
-      if (statusType === "error") {
-        return {
-          ...prevState,
-          errors: [...prevState.errors, statusItem],
-        };
-      } else {
-        return {
-          ...prevState,
-          warnings: [...prevState.warnings, statusItem],
-        };
-      }
-    });
-  };
-
-  const removeStatus = (type: "simulation" | "bank") => {
-    setStatus((prevState) => ({
-      ...prevState,
-      errors: prevState.errors.filter((error) => error.type !== type),
-      warnings: prevState.warnings.filter((warning) => warning.type !== type),
-    }));
-  };
   if (!activeGroup) return null;
 
   return (
@@ -492,7 +464,7 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
                   </>
                 )}
               </Button>
-              <ActionBoxDialog requestedAction={ActionType.Deposit} requestedBank={activeGroup.usdc}>
+              {/* <ActionBoxDialog requestedAction={ActionType.Deposit} requestedBank={activeGroup.usdc}>
                 <Button
                   variant="link"
                   size="sm"
@@ -500,7 +472,7 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
                 >
                   Desposit Collateral
                 </Button>
-              </ActionBoxDialog>
+              </ActionBoxDialog> */}
             </div>
             {Stats}
             {/* <dl className="w-full grid grid-cols-2 gap-1.5 text-xs text-muted-foreground">
