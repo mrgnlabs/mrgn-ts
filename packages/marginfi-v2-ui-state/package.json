@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@bonfida/spl-name-service": "^1.1.1",
-    "@coral-xyz/anchor": "^0.28.1-beta.2",
+    "@coral-xyz/anchor": "^0.30.1",
     "@mrgnlabs/marginfi-client-v2": "*",
     "@solana/buffer-layout-utils": "^0.2.0",
     "@solana/wallet-adapter-base": "^0.9.20",

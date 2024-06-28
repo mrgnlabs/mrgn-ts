@@ -2,6 +2,7 @@ import { AccountMeta, PublicKey, SYSVAR_INSTRUCTIONS_PUBKEY, SystemProgram } fro
 import BN from "bn.js";
 import { MarginfiProgram } from "./types";
 import { BankConfigOptRaw } from "./models/bank";
+import { TOKEN_PROGRAM_ID } from "@mrgnlabs/mrgn-common";
 
 async function makeInitMarginfiAccountIx(
   mfProgram: MarginfiProgram,
@@ -18,7 +19,6 @@ async function makeInitMarginfiAccountIx(
       marginfiGroup: accounts.marginfiGroupPk,
       marginfiAccount: accounts.marginfiAccountPk,
       authority: accounts.authorityPk,
-      systemProgram: SystemProgram.programId,
       feePayer: accounts.feePayerPk,
     })
     .instruction();
@@ -45,6 +45,7 @@ async function makeDepositIx(
       signer: accounts.authorityPk,
       signerTokenAccount: accounts.signerTokenAccountPk,
       bank: accounts.bankPk,
+      tokenProgram: TOKEN_PROGRAM_ID,
     })
     .instruction();
 }
@@ -71,6 +72,7 @@ async function makeRepayIx(
       signer: accounts.authorityPk,
       signerTokenAccount: accounts.signerTokenAccountPk,
       bank: accounts.bankPk,
+      tokenProgram: TOKEN_PROGRAM_ID
     })
     .instruction();
 }
@@ -98,6 +100,7 @@ async function makeWithdrawIx(
       signer: accounts.signerPk,
       destinationTokenAccount: accounts.destinationTokenAccountPk,
       bank: accounts.bankPk,
+      tokenProgram: TOKEN_PROGRAM_ID
     })
     .remainingAccounts(remainingAccounts)
     .instruction();
@@ -125,6 +128,7 @@ async function makeBorrowIx(
       signer: accounts.signerPk,
       destinationTokenAccount: accounts.destinationTokenAccountPk,
       bank: accounts.bankPk,
+      tokenProgram: TOKEN_PROGRAM_ID
     })
     .remainingAccounts(remainingAccounts)
     .instruction();
@@ -154,6 +158,7 @@ function makeLendingAccountLiquidateIx(
       liabBank: accounts.liabBank,
       liquidatorMarginfiAccount: accounts.liquidatorMarginfiAccount,
       liquidateeMarginfiAccount: accounts.liquidateeMarginfiAccount,
+      tokenProgram: TOKEN_PROGRAM_ID
     })
     .remainingAccounts(remainingAccounts)
     .instruction();
@@ -179,6 +184,7 @@ function makelendingAccountWithdrawEmissionIx(
       destinationAccount: accounts.destinationTokenAccount,
       bank: accounts.bank,
       emissionsMint: accounts.emissionsMint,
+      tokenProgram: TOKEN_PROGRAM_ID
     })
     .instruction();
 }

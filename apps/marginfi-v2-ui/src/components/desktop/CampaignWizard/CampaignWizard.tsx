@@ -11,6 +11,7 @@ import {
   createSyncNativeInstruction,
   NATIVE_MINT,
   getAssociatedTokenAddressSync,
+  TOKEN_PROGRAM_ID,
 } from "@mrgnlabs/mrgn-common";
 import { useLipClient } from "~/context";
 import { MenuItem, Select, TextField } from "@mui/material";
@@ -163,6 +164,7 @@ const CampaignWizard: FC<CampaignWizardProps> = () => {
           fundingAccount: userTokenAtaPk,
           marginfiBank: campaignBank.address,
           assetMint: campaignBank.mint,
+          tokenProgram: TOKEN_PROGRAM_ID,
         })
         .instruction()
     );

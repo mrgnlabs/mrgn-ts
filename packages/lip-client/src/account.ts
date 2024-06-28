@@ -9,6 +9,7 @@ import {
   PriceBias,
   OraclePrice,
   getBankVaultAuthority,
+  MarginfiIdlType,
 } from "@mrgnlabs/marginfi-client-v2";
 import {
   InstructionsWrapper,
@@ -132,8 +133,8 @@ class LipAccount {
    * @param encoded Raw data buffer
    * @returns Decoded marginfi account data struct
    */
-  static decode(encoded: Buffer): DepositData {
-    const coder = new BorshCoder(LIP_IDL);
+  static decode(encoded: Buffer, idl: MarginfiIdlType): DepositData {
+    const coder = new BorshCoder(idl);
     return coder.accounts.decode(AccountType.Deposit, encoded);
   }
 

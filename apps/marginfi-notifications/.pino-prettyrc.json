@@ -1,6 +1,0 @@
-{
-    "colorize": false,
-    "translateTime": "UTC:yyyy-mm-dd HH:MM:ss.l o",
-    "singleLine": true,
-    "ignore": "pid,hostname"
-}

@@ -1,15 +1,54 @@
 import { Address, BN } from "@coral-xyz/anchor";
 import BigNumber from "bignumber.js";
 import { Decimal } from "decimal.js";
-import { Amount } from "./types";
+import { Amount, WrappedI80F48 } from "./types";
 
-export function wrappedI80F48toBigNumber({ value }: { value: BN }, scaleDecimal: number = 0): BigNumber {
-  if (!value) return new BigNumber(0);
+const I80F48_FRACTIONAL_BYTES = 6;
+const I80F48_TOTAL_BYTES = 16;
+const I80F48_DIVISOR = new Decimal(2).pow(8 * I80F48_FRACTIONAL_BYTES);
 
-  let numbers = new Decimal(`${value.isNeg() ? "-" : ""}0b${value.abs().toString(2)}p-48`).dividedBy(
-    10 ** scaleDecimal
-  );
-  return new BigNumber(numbers.toString());
+export function wrappedI80F48toBigNumber(wrapped: WrappedI80F48): BigNumber {
+  let bytesLE = wrapped.value;
+  if (bytesLE.length !== I80F48_TOTAL_BYTES) {
+    throw new Error(`Expected a ${I80F48_TOTAL_BYTES}-byte buffer`);
+  }
+
+  let bytesBE = bytesLE.slice();
+  bytesBE.reverse();
+
+  let signChar = "";
+  const msb = bytesBE[0];
+  if (msb & 0x80) {
+    signChar = "-";
+    bytesBE = bytesBE.map((v) => ~v & 0xff);
+  }
+
+  let hex = signChar+"0x"+bytesBE.map((v) => v.toString(16).padStart(2, "0")).join("");
+  let decoded = new Decimal(hex).dividedBy(I80F48_DIVISOR)
+
+  return new BigNumber(decoded.toString());
+}
+
+export function bigNumberToWrappedI80F48(value: Amount): WrappedI80F48 {
+  let decimalValue = new Decimal(value.toString())
+  const isNegative = decimalValue.isNegative();
+
+  decimalValue = decimalValue.times(I80F48_DIVISOR);
+  let wrappedValue = new BN(decimalValue.round().toFixed()).toArray();
+
+  if (wrappedValue.length < I80F48_TOTAL_BYTES) {
+    const padding = Array(I80F48_TOTAL_BYTES - wrappedValue.length).fill(0);
+    wrappedValue.unshift(...padding);
+  }
+
+  if (isNegative) {
+    wrappedValue[wrappedValue.length - 1] |= 0x80;
+    wrappedValue = wrappedValue.map((v) => ~v & 0xff);
+  }
+
+  wrappedValue.reverse();
+
+  return { value: wrappedValue };
 }
 
 /**

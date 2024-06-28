@@ -1,240 +1,291 @@
 {
-  "version": "0.1.0",
-  "name": "liquidity_incentive_program",
-  "constants": [
-    {
-      "name": "CAMPAIGN_SEED",
-      "type": "string",
-      "value": "\"campaign\""
-    },
-    {
-      "name": "CAMPAIGN_AUTH_SEED",
-      "type": "string",
-      "value": "\"campaign_auth\""
-    },
-    {
-      "name": "DEPOSIT_MFI_AUTH_SIGNER_SEED",
-      "type": "string",
-      "value": "\"deposit_mfi_auth\""
-    },
-    {
-      "name": "TEMP_TOKEN_ACCOUNT_AUTH_SEED",
-      "type": "string",
-      "value": "\"ephemeral_token_account_auth\""
-    },
-    {
-      "name": "MARGINFI_ACCOUNT_SEED",
-      "type": "string",
-      "value": "\"marginfi_account\""
-    }
-  ],
+  "address": "Lip1111111111111111111111111111111111111111",
+  "metadata": {
+    "name": "liquidity_incentive_program",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Created with Anchor"
+  },
   "instructions": [
     {
-      "name": "createCampaign",
+      "name": "create_campaign",
+      "docs": [
+        "Creates a new liquidity incentive campaign (LIP).",
+        "",
+        "# Arguments",
+        "* `ctx`: Context struct containing the relevant accounts for the campaign.",
+        "* `lockup_period`: The length of time (in seconds) that a deposit must be locked up for in order to earn the full reward.",
+        "* `max_deposits`: The maximum number of tokens that can be deposited into the campaign by liquidity providers.",
+        "* `max_rewards`: The maximum amount of rewards that will be distributed to depositors, and also the amount of token rewards transferred into the vault by the campaign creator.",
+        "",
+        "# Returns",
+        "* `Ok(())` if the campaign was successfully created, or an error otherwise."
+      ],
+      "discriminator": [
+        111,
+        131,
+        187,
+        98,
+        160,
+        193,
+        114,
+        244
+      ],
       "accounts": [
         {
           "name": "campaign",
-          "isMut": true,
-          "isSigner": true
+          "writable": true,
+          "signer": true
         },
         {
-          "name": "campaignRewardVault",
-          "isMut": true,
-          "isSigner": false,
+          "name": "campaign_reward_vault",
+          "writable": true,
           "pda": {
             "seeds": [
               {
                 "kind": "const",
-                "type": "string",
-                "value": "campaign"
+                "value": [
+                  99,
+                  97,
+                  109,
+                  112,
+                  97,
+                  105,
+                  103,
+                  110
+                ]
               },
               {
                 "kind": "account",
-                "type": "publicKey",
-                "account": "Campaign",
                 "path": "campaign"
               }
             ]
           }
         },
         {
-          "name": "campaignRewardVaultAuthority",
-          "isMut": false,
-          "isSigner": false,
+          "name": "campaign_reward_vault_authority",
           "pda": {
             "seeds": [
               {
                 "kind": "const",
-                "type": "string",
-                "value": "campaign_auth"
+                "value": [
+                  99,
+                  97,
+                  109,
+                  112,
+                  97,
+                  105,
+                  103,
+                  110,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104
+                ]
               },
               {
                 "kind": "account",
-                "type": "publicKey",
-                "account": "Campaign",
                 "path": "campaign"
               }
             ]
           }
         },
         {
-          "name": "assetMint",
-          "isMut": false,
-          "isSigner": false
+          "name": "asset_mint",
+          "docs": [
+            "asserted by comparing the mint of the marginfi bank"
+          ]
         },
         {
-          "name": "marginfiBank",
-          "isMut": false,
-          "isSigner": false
+          "name": "marginfi_bank"
         },
         {
           "name": "admin",
-          "isMut": true,
-          "isSigner": true
+          "writable": true,
+          "signer": true
         },
         {
-          "name": "fundingAccount",
-          "isMut": true,
-          "isSigner": false
+          "name": "funding_account",
+          "writable": true
         },
         {
           "name": "rent",
-          "isMut": false,
-          "isSigner": false
+          "address": "SysvarRent111111111111111111111111111111111"
         },
         {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
+          "name": "token_program"
         },
         {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
         }
       ],
       "args": [
         {
-          "name": "lockupPeriod",
+          "name": "lockup_period",
           "type": "u64"
         },
         {
-          "name": "maxDeposits",
+          "name": "max_deposits",
           "type": "u64"
         },
         {
-          "name": "maxRewards",
+          "name": "max_rewards",
           "type": "u64"
         }
       ]
     },
     {
-      "name": "createDeposit",
+      "name": "create_deposit",
+      "docs": [
+        "Creates a new deposit in an active liquidity incentive campaign (LIP).",
+        "",
+        "# Arguments",
+        "* `ctx`: Context struct containing the relevant accounts for the new deposit",
+        "* `amount`: The amount of tokens to be deposited.",
+        "",
+        "# Returns",
+        "* `Ok(())` if the deposit was successfully made, or an error otherwise.",
+        "",
+        "# Errors",
+        "* `LIPError::CampaignNotActive` if the relevant campaign is not active.",
+        "* `LIPError::DepositAmountTooLarge` is the deposit amount exceeds the amount of remaining deposits that can be made into the campaign."
+      ],
+      "discriminator": [
+        157,
+        30,
+        11,
+        129,
+        16,
+        166,
+        115,
+        75
+      ],
       "accounts": [
         {
           "name": "campaign",
-          "isMut": true,
-          "isSigner": false
+          "writable": true
         },
         {
           "name": "signer",
-          "isMut": true,
-          "isSigner": true
+          "writable": true,
+          "signer": true
         },
         {
           "name": "deposit",
-          "isMut": true,
-          "isSigner": true
+          "writable": true,
+          "signer": true
         },
         {
-          "name": "mfiPdaSigner",
-          "isMut": false,
-          "isSigner": false,
+          "name": "mfi_pda_signer",
           "pda": {
             "seeds": [
               {
                 "kind": "const",
-                "type": "string",
-                "value": "deposit_mfi_auth"
+                "value": [
+                  100,
+                  101,
+                  112,
+                  111,
+                  115,
+                  105,
+                  116,
+                  95,
+                  109,
+                  102,
+                  105,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104
+                ]
               },
               {
                 "kind": "account",
-                "type": "publicKey",
-                "account": "Deposit",
                 "path": "deposit"
               }
             ]
           }
         },
         {
-          "name": "fundingAccount",
-          "isMut": true,
-          "isSigner": false
+          "name": "funding_account",
+          "writable": true
         },
         {
-          "name": "tempTokenAccount",
-          "isMut": true,
-          "isSigner": true
+          "name": "temp_token_account",
+          "writable": true,
+          "signer": true
         },
         {
-          "name": "assetMint",
-          "isMut": false,
-          "isSigner": false
+          "name": "asset_mint"
         },
         {
-          "name": "marginfiGroup",
-          "isMut": false,
-          "isSigner": false
+          "name": "marginfi_group",
+          "docs": [
+            "marginfi_bank is tied to a specific marginfi_group"
+          ]
         },
         {
-          "name": "marginfiBank",
-          "isMut": true,
-          "isSigner": false
+          "name": "marginfi_bank",
+          "writable": true
         },
         {
-          "name": "marginfiAccount",
-          "isMut": true,
-          "isSigner": false,
+          "name": "marginfi_account",
+          "writable": true,
           "pda": {
             "seeds": [
               {
                 "kind": "const",
-                "type": "string",
-                "value": "marginfi_account"
+                "value": [
+                  109,
+                  97,
+                  114,
+                  103,
+                  105,
+                  110,
+                  102,
+                  105,
+                  95,
+                  97,
+                  99,
+                  99,
+                  111,
+                  117,
+                  110,
+                  116
+                ]
               },
               {
                 "kind": "account",
-                "type": "publicKey",
-                "account": "Deposit",
                 "path": "deposit"
               }
             ]
           }
         },
         {
-          "name": "marginfiBankVault",
-          "isMut": true,
-          "isSigner": false
+          "name": "marginfi_bank_vault",
+          "docs": [
+            "marginfi_bank_vault is tied to a specific marginfi_bank,",
+            "passing in an incorrect vault will fail the CPI call"
+          ],
+          "writable": true
         },
         {
-          "name": "marginfiProgram",
-          "isMut": false,
-          "isSigner": false
+          "name": "marginfi_program",
+          "address": "Mfi1111111111111111111111111111111111111111"
         },
         {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
+          "name": "token_program"
         },
         {
           "name": "rent",
-          "isMut": false,
-          "isSigner": false
+          "address": "SysvarRent111111111111111111111111111111111"
         },
         {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
         }
       ],
       "args": [
@@ -245,48 +296,88 @@
       ]
     },
     {
-      "name": "endDeposit",
+      "name": "end_deposit",
+      "docs": [
+        "After a lockup period has ended, closes a deposit and returns the initial deposit + earned rewards from a liquidity incentive campaign back to the liquidity depositor.",
+        "",
+        "# Arguments",
+        "* ctx: Context of the deposit to be closed",
+        "",
+        "# Returns",
+        "* A Result object which is Ok(()) if the deposit is closed and tokens are transferred successfully.",
+        "",
+        "# Errors",
+        "Returns an error if:",
+        "",
+        "* Solana clock timestamp is less than the deposit start time plus the lockup period (i.e. the lockup has not been reached)",
+        "* Bank redeem shares operation fails",
+        "* Reloading ephemeral token account fails",
+        "* Transferring additional reward to ephemeral token account fails",
+        "* Reloading ephemeral token account after transfer fails"
+      ],
+      "discriminator": [
+        32,
+        254,
+        86,
+        205,
+        117,
+        110,
+        9,
+        2
+      ],
       "accounts": [
         {
-          "name": "campaign",
-          "isMut": false,
-          "isSigner": false
+          "name": "campaign"
         },
         {
-          "name": "campaignRewardVault",
-          "isMut": true,
-          "isSigner": false,
+          "name": "campaign_reward_vault",
+          "writable": true,
           "pda": {
             "seeds": [
               {
                 "kind": "const",
-                "type": "string",
-                "value": "campaign"
+                "value": [
+                  99,
+                  97,
+                  109,
+                  112,
+                  97,
+                  105,
+                  103,
+                  110
+                ]
               },
               {
                 "kind": "account",
-                "type": "publicKey",
-                "account": "Campaign",
                 "path": "campaign"
               }
             ]
           }
         },
         {
-          "name": "campaignRewardVaultAuthority",
-          "isMut": false,
-          "isSigner": false,
+          "name": "campaign_reward_vault_authority",
           "pda": {
             "seeds": [
               {
                 "kind": "const",
-                "type": "string",
-                "value": "campaign_auth"
+                "value": [
+                  99,
+                  97,
+                  109,
+                  112,
+                  97,
+                  105,
+                  103,
+                  110,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104
+                ]
               },
               {
                 "kind": "account",
-                "type": "publicKey",
-                "account": "Campaign",
                 "path": "campaign"
               }
             ]
@@ -294,123 +385,159 @@
         },
         {
           "name": "signer",
-          "isMut": true,
-          "isSigner": true
+          "writable": true,
+          "signer": true
         },
         {
           "name": "deposit",
-          "isMut": true,
-          "isSigner": false
+          "writable": true
         },
         {
-          "name": "mfiPdaSigner",
-          "isMut": false,
-          "isSigner": false,
+          "name": "mfi_pda_signer",
           "pda": {
             "seeds": [
               {
                 "kind": "const",
-                "type": "string",
-                "value": "deposit_mfi_auth"
+                "value": [
+                  100,
+                  101,
+                  112,
+                  111,
+                  115,
+                  105,
+                  116,
+                  95,
+                  109,
+                  102,
+                  105,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104
+                ]
               },
               {
                 "kind": "account",
-                "type": "publicKey",
-                "account": "Deposit",
                 "path": "deposit"
               }
             ]
           }
         },
         {
-          "name": "tempTokenAccount",
-          "isMut": true,
-          "isSigner": true
+          "name": "temp_token_account",
+          "writable": true,
+          "signer": true
         },
         {
-          "name": "tempTokenAccountAuthority",
-          "isMut": false,
-          "isSigner": false,
+          "name": "temp_token_account_authority",
           "pda": {
             "seeds": [
               {
                 "kind": "const",
-                "type": "string",
-                "value": "ephemeral_token_account_auth"
+                "value": [
+                  101,
+                  112,
+                  104,
+                  101,
+                  109,
+                  101,
+                  114,
+                  97,
+                  108,
+                  95,
+                  116,
+                  111,
+                  107,
+                  101,
+                  110,
+                  95,
+                  97,
+                  99,
+                  99,
+                  111,
+                  117,
+                  110,
+                  116,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104
+                ]
               },
               {
                 "kind": "account",
-                "type": "publicKey",
-                "account": "Deposit",
                 "path": "deposit"
               }
             ]
           }
         },
         {
-          "name": "destinationAccount",
-          "isMut": true,
-          "isSigner": false
+          "name": "destination_account",
+          "writable": true
         },
         {
-          "name": "assetMint",
-          "isMut": false,
-          "isSigner": false
+          "name": "asset_mint"
         },
         {
-          "name": "marginfiAccount",
-          "isMut": true,
-          "isSigner": false,
+          "name": "marginfi_account",
+          "writable": true,
           "pda": {
             "seeds": [
               {
                 "kind": "const",
-                "type": "string",
-                "value": "marginfi_account"
+                "value": [
+                  109,
+                  97,
+                  114,
+                  103,
+                  105,
+                  110,
+                  102,
+                  105,
+                  95,
+                  97,
+                  99,
+                  99,
+                  111,
+                  117,
+                  110,
+                  116
+                ]
               },
               {
                 "kind": "account",
-                "type": "publicKey",
-                "account": "Deposit",
                 "path": "deposit"
               }
             ]
           }
         },
         {
-          "name": "marginfiGroup",
-          "isMut": false,
-          "isSigner": false
+          "name": "marginfi_group"
         },
         {
-          "name": "marginfiBank",
-          "isMut": true,
-          "isSigner": false
+          "name": "marginfi_bank",
+          "writable": true
         },
         {
-          "name": "marginfiBankVault",
-          "isMut": true,
-          "isSigner": false
+          "name": "marginfi_bank_vault",
+          "writable": true
         },
         {
-          "name": "marginfiBankVaultAuthority",
-          "isMut": true,
-          "isSigner": false
+          "name": "marginfi_bank_vault_authority",
+          "writable": true
         },
         {
-          "name": "marginfiProgram",
-          "isMut": false,
-          "isSigner": false
+          "name": "marginfi_program",
+          "address": "Mfi1111111111111111111111111111111111111111"
         },
         {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
+          "name": "token_program"
         },
         {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
         }
       ],
       "args": []
@@ -418,76 +545,43 @@
   ],
   "accounts": [
     {
+      "name": "Bank",
+      "discriminator": [
+        142,
+        49,
+        166,
+        242,
+        50,
+        66,
+        97,
+        188
+      ]
+    },
+    {
       "name": "Campaign",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "admin",
-            "type": "publicKey"
-          },
-          {
-            "name": "lockupPeriod",
-            "type": "u64"
-          },
-          {
-            "name": "active",
-            "type": "bool"
-          },
-          {
-            "name": "maxDeposits",
-            "type": "u64"
-          },
-          {
-            "name": "remainingCapacity",
-            "type": "u64"
-          },
-          {
-            "name": "maxRewards",
-            "type": "u64"
-          },
-          {
-            "name": "marginfiBankPk",
-            "type": "publicKey"
-          },
-          {
-            "name": "padding",
-            "type": {
-              "array": ["u64", 16]
-            }
-          }
-        ]
-      }
+      "discriminator": [
+        50,
+        40,
+        49,
+        11,
+        157,
+        220,
+        229,
+        192
+      ]
     },
     {
       "name": "Deposit",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "owner",
-            "type": "publicKey"
-          },
-          {
-            "name": "amount",
-            "type": "u64"
-          },
-          {
-            "name": "startTime",
-            "type": "i64"
-          },
-          {
-            "name": "campaign",
-            "type": "publicKey"
-          },
-          {
-            "name": "padding",
-            "type": {
-              "array": ["u64", 16]
-            }
-          }
-        ]
-      }
+      "discriminator": [
+        148,
+        146,
+        121,
+        66,
+        207,
+        173,
+        21,
+        227
+      ]
     }
   ],
   "errors": [
@@ -505,6 +599,580 @@
       "code": 6002,
       "name": "DepositNotMature",
       "msg": "Deposit hasn't matured yet"
+    }
+  ],
+  "types": [
+    {
+      "name": "Bank",
+      "serialization": "bytemuckunsafe",
+      "repr": {
+        "kind": "c"
+      },
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "mint_decimals",
+            "type": "u8"
+          },
+          {
+            "name": "group",
+            "type": "pubkey"
+          },
+          {
+            "name": "asset_share_value",
+            "type": {
+              "defined": {
+                "name": "WrappedI80F48"
+              }
+            }
+          },
+          {
+            "name": "liability_share_value",
+            "type": {
+              "defined": {
+                "name": "WrappedI80F48"
+              }
+            }
+          },
+          {
+            "name": "liquidity_vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "liquidity_vault_bump",
+            "type": "u8"
+          },
+          {
+            "name": "liquidity_vault_authority_bump",
+            "type": "u8"
+          },
+          {
+            "name": "insurance_vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "insurance_vault_bump",
+            "type": "u8"
+          },
+          {
+            "name": "insurance_vault_authority_bump",
+            "type": "u8"
+          },
+          {
+            "name": "collected_insurance_fees_outstanding",
+            "type": {
+              "defined": {
+                "name": "WrappedI80F48"
+              }
+            }
+          },
+          {
+            "name": "fee_vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "fee_vault_bump",
+            "type": "u8"
+          },
+          {
+            "name": "fee_vault_authority_bump",
+            "type": "u8"
+          },
+          {
+            "name": "collected_group_fees_outstanding",
+            "type": {
+              "defined": {
+                "name": "WrappedI80F48"
+              }
+            }
+          },
+          {
+            "name": "total_liability_shares",
+            "type": {
+              "defined": {
+                "name": "WrappedI80F48"
+              }
+            }
+          },
+          {
+            "name": "total_asset_shares",
+            "type": {
+              "defined": {
+                "name": "WrappedI80F48"
+              }
+            }
+          },
+          {
+            "name": "last_update",
+            "type": "i64"
+          },
+          {
+            "name": "config",
+            "type": {
+              "defined": {
+                "name": "BankConfig"
+              }
+            }
+          },
+          {
+            "name": "flags",
+            "docs": [
+              "Bank Config Flags",
+              "",
+              "- EMISSIONS_FLAG_BORROW_ACTIVE: 1",
+              "- EMISSIONS_FLAG_LENDING_ACTIVE: 2",
+              "- PERMISSIONLESS_BAD_DEBT_SETTLEMENT: 4",
+              ""
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "emissions_rate",
+            "docs": [
+              "Emissions APR.",
+              "Number of emitted tokens (emissions_mint) per 1e(bank.mint_decimal) tokens (bank mint) (native amount) per 1 YEAR."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "emissions_remaining",
+            "type": {
+              "defined": {
+                "name": "WrappedI80F48"
+              }
+            }
+          },
+          {
+            "name": "emissions_mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "_padding_0",
+            "type": {
+              "array": [
+                {
+                  "array": [
+                    "u64",
+                    2
+                  ]
+                },
+                28
+              ]
+            }
+          },
+          {
+            "name": "_padding_1",
+            "type": {
+              "array": [
+                {
+                  "array": [
+                    "u64",
+                    2
+                  ]
+                },
+                32
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "BankConfig",
+      "docs": [
+        "TODO: Convert weights to (u64, u64) to avoid precision loss (maybe?)"
+      ],
+      "serialization": "bytemuckunsafe",
+      "repr": {
+        "kind": "c"
+      },
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "asset_weight_init",
+            "type": {
+              "defined": {
+                "name": "WrappedI80F48"
+              }
+            }
+          },
+          {
+            "name": "asset_weight_maint",
+            "type": {
+              "defined": {
+                "name": "WrappedI80F48"
+              }
+            }
+          },
+          {
+            "name": "liability_weight_init",
+            "type": {
+              "defined": {
+                "name": "WrappedI80F48"
+              }
+            }
+          },
+          {
+            "name": "liability_weight_maint",
+            "type": {
+              "defined": {
+                "name": "WrappedI80F48"
+              }
+            }
+          },
+          {
+            "name": "deposit_limit",
+            "type": "u64"
+          },
+          {
+            "name": "interest_rate_config",
+            "type": {
+              "defined": {
+                "name": "InterestRateConfig"
+              }
+            }
+          },
+          {
+            "name": "operational_state",
+            "type": {
+              "defined": {
+                "name": "BankOperationalState"
+              }
+            }
+          },
+          {
+            "name": "oracle_setup",
+            "type": {
+              "defined": {
+                "name": "OracleSetup"
+              }
+            }
+          },
+          {
+            "name": "oracle_keys",
+            "type": {
+              "array": [
+                "pubkey",
+                5
+              ]
+            }
+          },
+          {
+            "name": "borrow_limit",
+            "type": "u64"
+          },
+          {
+            "name": "risk_tier",
+            "type": {
+              "defined": {
+                "name": "RiskTier"
+              }
+            }
+          },
+          {
+            "name": "total_asset_value_init_limit",
+            "docs": [
+              "USD denominated limit for calculating asset value for initialization margin requirements.",
+              "Example, if total SOL deposits are equal to $1M and the limit it set to $500K,",
+              "then SOL assets will be discounted by 50%.",
+              "",
+              "In other words the max value of liabilities that can be backed by the asset is $500K.",
+              "This is useful for limiting the damage of orcale attacks.",
+              "",
+              "Value is UI USD value, for example value 100 -> $100"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "oracle_max_age",
+            "docs": [
+              "Time window in seconds for the oracle price feed to be considered live."
+            ],
+            "type": "u16"
+          },
+          {
+            "name": "_padding",
+            "type": {
+              "array": [
+                "u16",
+                19
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "BankOperationalState",
+      "repr": {
+        "kind": "rust"
+      },
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Paused"
+          },
+          {
+            "name": "Operational"
+          },
+          {
+            "name": "ReduceOnly"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Campaign",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "admin",
+            "type": "pubkey"
+          },
+          {
+            "name": "lockup_period",
+            "type": "u64"
+          },
+          {
+            "name": "active",
+            "type": "bool"
+          },
+          {
+            "name": "max_deposits",
+            "type": "u64"
+          },
+          {
+            "name": "remaining_capacity",
+            "type": "u64"
+          },
+          {
+            "name": "max_rewards",
+            "type": "u64"
+          },
+          {
+            "name": "marginfi_bank_pk",
+            "type": "pubkey"
+          },
+          {
+            "name": "_padding",
+            "type": {
+              "array": [
+                "u64",
+                16
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "Deposit",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "start_time",
+            "type": "i64"
+          },
+          {
+            "name": "campaign",
+            "type": "pubkey"
+          },
+          {
+            "name": "_padding",
+            "type": {
+              "array": [
+                "u64",
+                16
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "InterestRateConfig",
+      "serialization": "bytemuck",
+      "repr": {
+        "kind": "c"
+      },
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "optimal_utilization_rate",
+            "type": {
+              "defined": {
+                "name": "WrappedI80F48"
+              }
+            }
+          },
+          {
+            "name": "plateau_interest_rate",
+            "type": {
+              "defined": {
+                "name": "WrappedI80F48"
+              }
+            }
+          },
+          {
+            "name": "max_interest_rate",
+            "type": {
+              "defined": {
+                "name": "WrappedI80F48"
+              }
+            }
+          },
+          {
+            "name": "insurance_fee_fixed_apr",
+            "type": {
+              "defined": {
+                "name": "WrappedI80F48"
+              }
+            }
+          },
+          {
+            "name": "insurance_ir_fee",
+            "type": {
+              "defined": {
+                "name": "WrappedI80F48"
+              }
+            }
+          },
+          {
+            "name": "protocol_fixed_fee_apr",
+            "type": {
+              "defined": {
+                "name": "WrappedI80F48"
+              }
+            }
+          },
+          {
+            "name": "protocol_ir_fee",
+            "type": {
+              "defined": {
+                "name": "WrappedI80F48"
+              }
+            }
+          },
+          {
+            "name": "_padding",
+            "type": {
+              "array": [
+                {
+                  "array": [
+                    "u64",
+                    2
+                  ]
+                },
+                8
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "OracleSetup",
+      "repr": {
+        "kind": "rust"
+      },
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "None"
+          },
+          {
+            "name": "PythEma"
+          },
+          {
+            "name": "SwitchboardV2"
+          }
+        ]
+      }
+    },
+    {
+      "name": "RiskTier",
+      "repr": {
+        "kind": "rust"
+      },
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Collateral"
+          },
+          {
+            "name": "Isolated"
+          }
+        ]
+      }
+    },
+    {
+      "name": "WrappedI80F48",
+      "serialization": "bytemuck",
+      "repr": {
+        "kind": "c",
+        "align": 8
+      },
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "value",
+            "type": {
+              "array": [
+                "u8",
+                16
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "constants": [
+    {
+      "name": "CAMPAIGN_AUTH_SEED",
+      "type": "string",
+      "value": "\"campaign_auth\""
+    },
+    {
+      "name": "CAMPAIGN_SEED",
+      "type": "string",
+      "value": "\"campaign\""
+    },
+    {
+      "name": "DEPOSIT_MFI_AUTH_SIGNER_SEED",
+      "type": "string",
+      "value": "\"deposit_mfi_auth\""
+    },
+    {
+      "name": "MARGINFI_ACCOUNT_SEED",
+      "type": "string",
+      "value": "\"marginfi_account\""
+    },
+    {
+      "name": "TEMP_TOKEN_ACCOUNT_AUTH_SEED",
+      "type": "string",
+      "value": "\"ephemeral_token_account_auth\""
     }
   ]
 }
