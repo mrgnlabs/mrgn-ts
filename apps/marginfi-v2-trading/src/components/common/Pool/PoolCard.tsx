@@ -3,14 +3,17 @@ import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 
-import { shortenAddress, usdFormatter } from "@mrgnlabs/mrgn-common";
+import { shortenAddress, usdFormatter, percentFormatter } from "@mrgnlabs/mrgn-common";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { IconTrendingDown, IconTrendingUp } from "@tabler/icons-react";
 
-import { getTokenImageURL } from "~/utils";
+import { getTokenImageURL, cn } from "~/utils";
 import { useTradeStore } from "~/store";
 
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "~/components/ui/card";
+
+import type { TokenData } from "~/pages/api/birdeye/token";
 
 type PoolCardProps = {
   bank: ExtendedBankInfo;
@@ -18,6 +21,7 @@ type PoolCardProps = {
 
 export const PoolCard = ({ bank }: PoolCardProps) => {
   const [collateralBanks] = useTradeStore((state) => [state.collateralBanks]);
+  const [tokenData, setTokenData] = React.useState<TokenData | null>(null);
 
   const totalDeposits = React.useMemo(() => {
     const collateralBank = collateralBanks[bank.address.toBase58()];
@@ -39,37 +43,67 @@ export const PoolCard = ({ bank }: PoolCardProps) => {
     return tokenBorrows + collateralBorrows;
   }, [collateralBanks, bank]);
 
+  React.useEffect(() => {
+    if (!bank) return;
+
+    const fetchTokenData = async () => {
+      const tokenResponse = await fetch(`/api/birdeye/token?address=${bank.info.state.mint.toBase58()}`);
+
+      if (!tokenResponse.ok) {
+        console.error("Failed to fetch token data");
+        return;
+      }
+
+      const tokenData = await tokenResponse.json();
+
+      if (!tokenData) {
+        console.error("Failed to parse token data");
+        return;
+      }
+
+      setTokenData(tokenData);
+    };
+
+    fetchTokenData();
+  }, [bank]);
+
   return (
     <Card>
       <CardHeader>
         <CardTitle>
-          <div className="flex items-center gap-3">
-            <Image
-              src={getTokenImageURL(bank.meta.tokenSymbol)}
-              width={48}
-              height={48}
-              alt={bank.meta.tokenName}
-              className="rounded-full"
-            />{" "}
-            <div className="flex flex-col space-y-1">
-              <span>{bank.meta.tokenName}</span>
-              <span className="text-muted-foreground text-sm">{bank.meta.tokenSymbol}</span>
+          <div className="flex items-center gap-2 justify-between">
+            <div className="flex items-center gap-3">
+              <Image
+                src={getTokenImageURL(bank.meta.tokenSymbol)}
+                width={48}
+                height={48}
+                alt={bank.meta.tokenName}
+                className="rounded-full"
+              />{" "}
+              <div className="flex flex-col space-y-1">
+                <span>{bank.meta.tokenName}</span>
+                <span className="text-muted-foreground text-sm">{bank.meta.tokenSymbol}</span>
+              </div>
             </div>
+            {tokenData?.priceChange24h && (
+              <div
+                className={cn(
+                  "flex items-center gap-1 text-sm",
+                  tokenData?.priceChange24h > 1 ? "text-mrgn-success" : "text-mrgn-error"
+                )}
+              >
+                {percentFormatter.format(tokenData?.priceChange24h / 100)}
+                {tokenData?.priceChange24h > 1 ? <IconTrendingUp size={16} /> : <IconTrendingDown size={16} />}
+              </div>
+            )}
           </div>
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <ul className="space-y-2 text-sm text-muted-foreground w-2/5">
+        <ul className="space-y-2 text-sm text-muted-foreground w-1/2">
           <li className="grid grid-cols-2">
-            <strong className="font-medium text-primary">Address</strong>{" "}
-            <Link
-              href={`https://solscan.io/address/${bank.address.toBase58()}`}
-              target="_blank"
-              rel="noreferrer"
-              className="text-chartreuse"
-            >
-              {shortenAddress(bank.address.toBase58())}
-            </Link>
+            <strong className="font-medium text-primary">Price</strong>{" "}
+            {usdFormatter.format(bank.info.oraclePrice.priceRealtime.price.toNumber())}
           </li>
           <li className="grid grid-cols-2">
             <strong className="font-medium text-primary">Deposits</strong> {usdFormatter.format(totalDeposits)}
