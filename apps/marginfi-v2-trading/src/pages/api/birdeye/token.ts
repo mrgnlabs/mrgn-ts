@@ -15,11 +15,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // Check cache
   const cachedData = tokenCache.get(cacheKey);
-  if (cachedData) {
-    console.log("using cache");
-    res.status(200).json(cachedData);
-    return;
-  }
+  // if (cachedData) {
+  //   console.log("using cache");
+  //   res.status(200).json(cachedData);
+  //   return;
+  // }
 
   // use abort controller to restrict fetch to 10 seconds
   const controller = new AbortController();
@@ -58,7 +58,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       price: data.price,
       priceChange24h: data.priceChange24hPercent,
       marketCap: data.mc,
-      volume: data.volume,
+      volume24h: data.v24h,
       volumeChange24h: data.v24hChangePercent,
     };
 

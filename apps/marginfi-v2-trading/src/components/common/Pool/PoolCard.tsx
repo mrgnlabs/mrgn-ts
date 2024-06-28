@@ -3,7 +3,7 @@ import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 
-import { shortenAddress, usdFormatter, percentFormatter } from "@mrgnlabs/mrgn-common";
+import { shortenAddress, usdFormatter, percentFormatter, numeralFormatter } from "@mrgnlabs/mrgn-common";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { IconTrendingDown, IconTrendingUp } from "@tabler/icons-react";
 
@@ -13,7 +13,7 @@ import { useTradeStore } from "~/store";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "~/components/ui/card";
 
-import type { TokenData } from "~/pages/api/birdeye/token";
+import type { TokenData } from "~/types";
 
 type PoolCardProps = {
   bank: ExtendedBankInfo;
@@ -81,37 +81,51 @@ export const PoolCard = ({ bank }: PoolCardProps) => {
                 className="rounded-full"
               />{" "}
               <div className="flex flex-col space-y-1">
-                <span>{bank.meta.tokenName}</span>
+                <h2>{bank.meta.tokenName}</h2>
                 <span className="text-muted-foreground text-sm">{bank.meta.tokenSymbol}</span>
               </div>
             </div>
-            {tokenData?.priceChange24h && (
-              <div
-                className={cn(
-                  "flex items-center gap-1 text-sm",
-                  tokenData?.priceChange24h > 1 ? "text-mrgn-success" : "text-mrgn-error"
-                )}
-              >
-                {percentFormatter.format(tokenData?.priceChange24h / 100)}
-                {tokenData?.priceChange24h > 1 ? <IconTrendingUp size={16} /> : <IconTrendingDown size={16} />}
-              </div>
-            )}
           </div>
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <ul className="space-y-2 text-sm text-muted-foreground w-1/2">
-          <li className="grid grid-cols-2">
-            <strong className="font-medium text-primary">Price</strong>{" "}
+        <dl className="grid grid-cols-2 gap-2.5 text-sm text-muted-foreground w-full mt-2">
+          <dt className="">Price</dt>
+          <dd className="text-right text-primary tracking-wide">
             {usdFormatter.format(bank.info.oraclePrice.priceRealtime.price.toNumber())}
-          </li>
-          <li className="grid grid-cols-2">
-            <strong className="font-medium text-primary">Deposits</strong> {usdFormatter.format(totalDeposits)}
-          </li>
-          <li className="grid grid-cols-2">
-            <strong className="font-medium text-primary">Borrows</strong> {usdFormatter.format(totalBorrows)}
-          </li>
-        </ul>
+            {tokenData?.priceChange24h && (
+              <span
+                className={cn("text-xs ml-2", tokenData.priceChange24h > 0 ? "text-mrgn-success" : "text-mrgn-error")}
+              >
+                ({tokenData.priceChange24h > 0 && "+"}
+                {percentFormatter.format(tokenData.priceChange24h / 100)})
+              </span>
+            )}
+          </dd>
+          {tokenData?.volume24h && (
+            <>
+              <dt className="">24hr vol</dt>
+              <dd className="text-right text-primary tracking-wide">
+                {numeralFormatter(tokenData.volume24h)}
+                {tokenData?.volumeChange24h && (
+                  <span
+                    className={cn(
+                      "text-xs ml-2",
+                      tokenData.volumeChange24h > 0 ? "text-mrgn-success" : "text-mrgn-error"
+                    )}
+                  >
+                    ({tokenData.volumeChange24h > 0 && "+"}
+                    {percentFormatter.format(tokenData.volumeChange24h / 100)})
+                  </span>
+                )}
+              </dd>
+            </>
+          )}
+          <dt className="">Open long</dt>
+          <dd className="text-right text-primary tracking-wide">{usdFormatter.format(totalDeposits)}</dd>
+          <dt className="">Open short</dt>
+          <dd className="text-right text-primary tracking-wide">{usdFormatter.format(totalBorrows)}</dd>
+        </dl>
       </CardContent>
       <CardFooter>
         <div className="flex items-center gap-3 w-full">

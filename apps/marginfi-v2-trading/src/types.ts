@@ -137,7 +137,7 @@ export type TokenData = {
   decimals: number;
   price: number;
   priceChange24h: number;
-  volume: number;
+  volume24h: number;
   volumeChange24h: number;
   marketCap?: number;
 };
