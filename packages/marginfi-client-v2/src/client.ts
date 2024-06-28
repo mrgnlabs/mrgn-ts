@@ -275,10 +275,6 @@ class MarginfiClient {
     );
     debug("Decoded banks");
 
-    const usdcBank = banks.get("2s37akK2eyBbp8DZgCm7RtsaEz8eJP3Nxd4urLHQv7yB");
-    console.log("deposit cap", usdcBank?.config.depositLimit.toString());
-    console.log("deposit amount", usdcBank?.getAssetQuantity(usdcBank.totalAssetShares).toString());
-
     const priceInfos = new Map(
       bankDatasKeyed.map(({ address: bankAddress, data: bankData }, index) => {
         const priceDataRaw = priceFeedAis[index];

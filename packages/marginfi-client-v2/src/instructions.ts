@@ -2,6 +2,7 @@ import { AccountMeta, PublicKey, SYSVAR_INSTRUCTIONS_PUBKEY, SystemProgram } fro
 import BN from "bn.js";
 import { MarginfiProgram } from "./types";
 import { BankConfigOptRaw } from "./models/bank";
+import { TOKEN_PROGRAM_ID } from "@mrgnlabs/mrgn-common";
 
 async function makeInitMarginfiAccountIx(
   mfProgram: MarginfiProgram,
@@ -14,7 +15,7 @@ async function makeInitMarginfiAccountIx(
 ) {
   return mfProgram.methods
     .marginfiAccountInitialize()
-    .accountsPartial({
+    .accounts({
       marginfiGroup: accounts.marginfiGroupPk,
       marginfiAccount: accounts.marginfiAccountPk,
       authority: accounts.authorityPk,
@@ -38,12 +39,13 @@ async function makeDepositIx(
 ) {
   return mfProgram.methods
     .lendingAccountDeposit(args.amount)
-    .accountsPartial({
+    .accounts({
       marginfiGroup: accounts.marginfiGroupPk,
       marginfiAccount: accounts.marginfiAccountPk,
       signer: accounts.authorityPk,
       signerTokenAccount: accounts.signerTokenAccountPk,
       bank: accounts.bankPk,
+      tokenProgram: TOKEN_PROGRAM_ID,
     })
     .instruction();
 }
@@ -64,12 +66,13 @@ async function makeRepayIx(
 ) {
   return mfProgram.methods
     .lendingAccountRepay(args.amount, args.repayAll ?? null)
-    .accountsPartial({
+    .accounts({
       marginfiGroup: accounts.marginfiGroupPk,
       marginfiAccount: accounts.marginfiAccountPk,
       signer: accounts.authorityPk,
       signerTokenAccount: accounts.signerTokenAccountPk,
       bank: accounts.bankPk,
+      tokenProgram: TOKEN_PROGRAM_ID
     })
     .instruction();
 }
@@ -91,12 +94,13 @@ async function makeWithdrawIx(
 ) {
   return mfProgram.methods
     .lendingAccountWithdraw(args.amount, args.withdrawAll ?? null)
-    .accountsPartial({
+    .accounts({
       marginfiGroup: accounts.marginfiGroupPk,
       marginfiAccount: accounts.marginfiAccountPk,
       signer: accounts.signerPk,
       destinationTokenAccount: accounts.destinationTokenAccountPk,
       bank: accounts.bankPk,
+      tokenProgram: TOKEN_PROGRAM_ID
     })
     .remainingAccounts(remainingAccounts)
     .instruction();
@@ -118,12 +122,13 @@ async function makeBorrowIx(
 ) {
   return mfProgram.methods
     .lendingAccountBorrow(args.amount)
-    .accountsPartial({
+    .accounts({
       marginfiGroup: accounts.marginfiGroupPk,
       marginfiAccount: accounts.marginfiAccountPk,
       signer: accounts.signerPk,
       destinationTokenAccount: accounts.destinationTokenAccountPk,
       bank: accounts.bankPk,
+      tokenProgram: TOKEN_PROGRAM_ID
     })
     .remainingAccounts(remainingAccounts)
     .instruction();
@@ -146,13 +151,14 @@ function makeLendingAccountLiquidateIx(
 ) {
   return mfiProgram.methods
     .lendingAccountLiquidate(args.assetAmount)
-    .accountsPartial({
+    .accounts({
       marginfiGroup: accounts.marginfiGroup,
       signer: accounts.signer,
       assetBank: accounts.assetBank,
       liabBank: accounts.liabBank,
       liquidatorMarginfiAccount: accounts.liquidatorMarginfiAccount,
       liquidateeMarginfiAccount: accounts.liquidateeMarginfiAccount,
+      tokenProgram: TOKEN_PROGRAM_ID
     })
     .remainingAccounts(remainingAccounts)
     .instruction();
@@ -171,13 +177,14 @@ function makelendingAccountWithdrawEmissionIx(
 ) {
   return mfiProgram.methods
     .lendingAccountWithdrawEmissions()
-    .accountsPartial({
+    .accounts({
       marginfiGroup: accounts.marginfiGroup,
       marginfiAccount: accounts.marginfiAccount,
       signer: accounts.signer,
       destinationAccount: accounts.destinationTokenAccount,
       bank: accounts.bank,
       emissionsMint: accounts.emissionsMint,
+      tokenProgram: TOKEN_PROGRAM_ID
     })
     .instruction();
 }
