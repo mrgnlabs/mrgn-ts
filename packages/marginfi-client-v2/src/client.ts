@@ -292,7 +292,7 @@ class MarginfiClient {
     const banks = new Map(
       bankDatasKeyed.map(({ address, data }) => {
         const bankMetadata = bankMetadataMap ? bankMetadataMap[address.toBase58()] : undefined;
-        const bank = Bank.fromAccountParsed(address, data, bankMetadata)
+        const bank = Bank.fromAccountParsed(address, data, bankMetadata);
 
         return [address.toBase58(), bank];
       })
@@ -413,7 +413,9 @@ class MarginfiClient {
           {
             memcmp: {
               offset: 0,
-              bytes: bs58.encode(new BorshAccountsCoder(this.program.idl).accountDiscriminator(AccountType.MarginfiAccount)),
+              bytes: bs58.encode(
+                new BorshAccountsCoder(this.program.idl).accountDiscriminator(AccountType.MarginfiAccount)
+              ),
             },
           },
         ],
@@ -474,7 +476,9 @@ class MarginfiClient {
           {
             memcmp: {
               offset: 0,
-              bytes: bs58.encode(new BorshAccountsCoder(this.program.idl).accountDiscriminator(AccountType.MarginfiAccount)),
+              bytes: bs58.encode(
+                new BorshAccountsCoder(this.program.idl).accountDiscriminator(AccountType.MarginfiAccount)
+              ),
             },
           },
         ],
@@ -510,16 +514,16 @@ class MarginfiClient {
    *
    * @returns transaction instruction
    */
-  async makeCreateMarginfiAccountIx(marginfiAccount: PublicKey): Promise<InstructionsWrapper> {
+  async makeCreateMarginfiAccountIx(marginfiAccountPk: PublicKey): Promise<InstructionsWrapper> {
     const dbg = require("debug")("mfi:client");
 
-    dbg("Generating marginfi account ix for %s", marginfiAccount);
+    dbg("Generating marginfi account ix for %s", marginfiAccountPk);
 
     const initMarginfiAccountIx = await instructions.makeInitMarginfiAccountIx(this.program, {
-      marginfiGroup: this.groupAddress,
-      marginfiAccount,
-      authority: this.provider.wallet.publicKey,
-      feePayer: this.provider.wallet.publicKey,
+      marginfiGroupPk: this.groupAddress,
+      marginfiAccountPk,
+      authorityPk: this.provider.wallet.publicKey,
+      feePayerPk: this.provider.wallet.publicKey,
     });
 
     const ixs = [initMarginfiAccountIx];

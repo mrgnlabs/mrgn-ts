@@ -717,31 +717,44 @@ interface BankConfigOptRaw {
 }
 
 function serializeBankConfigOpt(bankConfigOpt: BankConfigOpt): BankConfigOptRaw {
-  const assetWeightInit = bankConfigOpt.assetWeightInit && bigNumberToWrappedI80F48(bankConfigOpt.assetWeightInit);
-  const assetWeightMaint = bankConfigOpt.assetWeightMaint && bigNumberToWrappedI80F48(bankConfigOpt.assetWeightMaint);
-  const liabilityWeightInit =
-    bankConfigOpt.liabilityWeightInit && bigNumberToWrappedI80F48(bankConfigOpt.liabilityWeightInit);
-
-  const liabilityWeightMaint =
-    bankConfigOpt.liabilityWeightMaint && bigNumberToWrappedI80F48(bankConfigOpt.liabilityWeightMaint);
-  const depositLimit = bankConfigOpt.depositLimit && bigNumberToWrappedI80F48(bankConfigOpt.depositLimit).value;
-  const borrowLimit = bankConfigOpt.borrowLimit && bigNumberToWrappedI80F48(bankConfigOpt.borrowLimit).value;
+  const assetWeightInit = bankConfigOpt.assetWeightInit && {
+    value: [...new BN(bankConfigOpt.assetWeightInit.toString()).toBuffer()],
+  };
+  const assetWeightMaint = bankConfigOpt.assetWeightMaint && {
+    value: [...new BN(bankConfigOpt.assetWeightMaint.toString()).toBuffer()],
+  };
+  const liabilityWeightInit = bankConfigOpt.liabilityWeightInit && {
+    value: [...new BN(bankConfigOpt.liabilityWeightInit.toString()).toBuffer()],
+  };
+  const liabilityWeightMaint = bankConfigOpt.liabilityWeightMaint && {
+    value: [...new BN(bankConfigOpt.liabilityWeightMaint.toString()).toBuffer()],
+  };
+  const depositLimit = bankConfigOpt.depositLimit && new BN(bankConfigOpt.depositLimit.toString());
+  const borrowLimit = bankConfigOpt.borrowLimit && new BN(bankConfigOpt.borrowLimit.toString());
   const riskTier = bankConfigOpt.riskTier && serializeRiskTier(bankConfigOpt.riskTier); // parseRiskTier(bankConfigRaw.riskTier);
   const operationalState = bankConfigOpt.operationalState && serializeOperationalState(bankConfigOpt.operationalState);
   const totalAssetValueInitLimit =
-    bankConfigOpt.totalAssetValueInitLimit && bigNumberToWrappedI80F48(bankConfigOpt.totalAssetValueInitLimit).value;
+    bankConfigOpt.totalAssetValueInitLimit && new BN(bankConfigOpt.totalAssetValueInitLimit.toString());
   const oracle = bankConfigOpt.oracle && {
     setup: serializeOracleSetup(bankConfigOpt.oracle.setup),
     keys: bankConfigOpt.oracle.keys,
   };
   const interestRateConfig = bankConfigOpt.interestRateConfig && {
-    insuranceFeeFixedApr: bigNumberToWrappedI80F48(bankConfigOpt.interestRateConfig.insuranceFeeFixedApr),
-    maxInterestRate: bigNumberToWrappedI80F48(bankConfigOpt.interestRateConfig.maxInterestRate),
-    insuranceIrFee: bigNumberToWrappedI80F48(bankConfigOpt.interestRateConfig.insuranceIrFee),
-    optimalUtilizationRate: bigNumberToWrappedI80F48(bankConfigOpt.interestRateConfig.optimalUtilizationRate),
-    plateauInterestRate: bigNumberToWrappedI80F48(bankConfigOpt.interestRateConfig.plateauInterestRate),
-    protocolFixedFeeApr: bigNumberToWrappedI80F48(bankConfigOpt.interestRateConfig.protocolFixedFeeApr),
-    protocolIrFee: bigNumberToWrappedI80F48(bankConfigOpt.interestRateConfig.protocolIrFee),
+    insuranceFeeFixedApr: {
+      value: [...new BN(bankConfigOpt.interestRateConfig.insuranceFeeFixedApr.toString()).toBuffer()],
+    },
+    maxInterestRate: { value: [...new BN(bankConfigOpt.interestRateConfig.maxInterestRate.toString()).toBuffer()] },
+    insuranceIrFee: { value: [...new BN(bankConfigOpt.interestRateConfig.insuranceIrFee.toString()).toBuffer()] },
+    optimalUtilizationRate: {
+      value: [...new BN(bankConfigOpt.interestRateConfig.optimalUtilizationRate.toString()).toBuffer()],
+    },
+    plateauInterestRate: {
+      value: [...new BN(bankConfigOpt.interestRateConfig.plateauInterestRate.toString()).toBuffer()],
+    },
+    protocolFixedFeeApr: {
+      value: [...new BN(bankConfigOpt.interestRateConfig.protocolFixedFeeApr.toString()).toBuffer()],
+    },
+    protocolIrFee: { value: [...new BN(bankConfigOpt.interestRateConfig.protocolIrFee.toString()).toBuffer()] },
   };
   const oracleMaxAge = bankConfigOpt.oracleMaxAge;
   const permissionlessBadDebtSettlement = bankConfigOpt.permissionlessBadDebtSettlement;
