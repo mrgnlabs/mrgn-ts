@@ -20,6 +20,7 @@ import instructions from "./instructions";
 import { MarginRequirementType } from "./models/account";
 import {
   BankMetadataMap,
+  chunkedGetRawMultipleAccountInfoOrdered,
   DEFAULT_COMMITMENT,
   DEFAULT_CONFIRM_OPTS,
   InstructionsWrapper,
@@ -47,6 +48,13 @@ import { ProcessTransactionError, ProcessTransactionErrorType, parseErrorFromLog
 
 export type BankMap = Map<string, Bank>;
 export type OraclePriceMap = Map<string, OraclePrice>;
+export type TokenDataMap = Map<string, MintData>;
+
+export type MintData = {
+  mint: PublicKey;
+  tokenProgram: PublicKey;
+  feeBps: number; // TODO: Handle this in calcs
+};
 
 export type MarginfiClientOptions = {
   confirmOpts?: ConfirmOptions;
@@ -64,6 +72,7 @@ class MarginfiClient {
   public group: MarginfiGroup;
   public banks: BankMap;
   public oraclePrices: OraclePriceMap;
+  public mintDatas: TokenDataMap;
   public addressLookupTables: AddressLookupTableAccount[];
   private preloadedBankAddresses?: PublicKey[];
   private sendEndpoint?: string;
@@ -82,6 +91,7 @@ class MarginfiClient {
     group: MarginfiGroup,
     banks: BankMap,
     priceInfos: OraclePriceMap,
+    mintDatas: TokenDataMap,
     addressLookupTables?: AddressLookupTableAccount[],
     preloadedBankAddresses?: PublicKey[],
     readonly bankMetadataMap?: BankMetadataMap,
@@ -92,6 +102,7 @@ class MarginfiClient {
     this.group = group;
     this.banks = banks;
     this.oraclePrices = priceInfos;
+    this.mintDatas = mintDatas;
     this.addressLookupTables = addressLookupTables ?? [];
     this.preloadedBankAddresses = preloadedBankAddresses;
     this.sendEndpoint = sendEndpoint;
@@ -145,7 +156,7 @@ class MarginfiClient {
       console.error("Failed to load bank metadatas. Convenience getter by symbol will not be available", error);
     }
 
-    const { marginfiGroup, banks, priceInfos } = await MarginfiClient.fetchGroupData(
+    const { marginfiGroup, banks, priceInfos, tokenDatas } = await MarginfiClient.fetchGroupData(
       program,
       config.groupPk,
       connection.commitment,
@@ -169,6 +180,7 @@ class MarginfiClient {
       marginfiGroup,
       banks,
       priceInfos,
+      tokenDatas,
       addressLookupTables,
       preloadedBankAddresses,
       bankMetadataMap,
@@ -229,7 +241,12 @@ class MarginfiClient {
     commitment?: Commitment,
     bankAddresses?: PublicKey[],
     bankMetadataMap?: BankMetadataMap
-  ): Promise<{ marginfiGroup: MarginfiGroup; banks: Map<string, Bank>; priceInfos: Map<string, OraclePrice> }> {
+  ): Promise<{
+    marginfiGroup: MarginfiGroup;
+    banks: Map<string, Bank>;
+    priceInfos: Map<string, OraclePrice>;
+    tokenDatas: Map<string, MintData>;
+  }> {
     const debug = require("debug")("mfi:client");
     // Fetch & shape all accounts of Bank type (~ bank discovery)
     let bankDatasKeyed: { address: PublicKey; data: BankRaw }[] = [];
@@ -254,17 +271,22 @@ class MarginfiClient {
       }));
     }
 
+    const oracleKeys = bankDatasKeyed.map((b) => b.data.config.oracleKeys[0]);
+    const mintKeys = bankDatasKeyed.map((b) => b.data.mint);
+
     // Batch-fetch the group account and all the oracle accounts as per the banks retrieved above
-    const [groupAi, ...priceFeedAis] = await program.provider.connection.getMultipleAccountsInfo(
-      [groupAddress, ...bankDatasKeyed.map((b) => b.data.config.oracleKeys[0])],
-      commitment
+    const allAis = await chunkedGetRawMultipleAccountInfoOrdered(program.provider.connection,
+      [groupAddress.toBase58(), ...oracleKeys.map((pk) => pk.toBase58()), ...mintKeys.map((pk) => pk.toBase58())],
     ); // NOTE: This will break if/when we start having more than 1 oracle key per bank
+
+    const groupAi = allAis.shift();
+    const priceFeedAis = allAis.splice(0, bankDatasKeyed.length);
+    const mintAis = allAis.slice(0, bankDatasKeyed.length);
 
     // Unpack raw data for group and oracles, and build the `Bank`s map
     if (!groupAi) throw new Error("Failed to fetch the on-chain group data");
     const marginfiGroup = MarginfiGroup.fromBuffer(groupAddress, groupAi.data, program.idl);
 
-    debug("Decoding bank data");
     const banks = new Map(
       bankDatasKeyed.map(({ address, data }) => {
         const bankMetadata = bankMetadataMap ? bankMetadataMap[address.toBase58()] : undefined;
@@ -273,7 +295,17 @@ class MarginfiClient {
         return [address.toBase58(), bank];
       })
     );
-    debug("Decoded banks");
+
+    const tokenDatas = new Map(
+      bankDatasKeyed.map(({ address: bankAddress }, index) => {
+        const mintAddress = mintKeys[index];
+        const mintDataRaw = mintAis[index];
+        if (!mintDataRaw) throw new Error(`Failed to fetch mint account for bank ${bankAddress.toBase58()}`);
+        // TODO: parse extension data to see if there is a fee
+        return [bankAddress.toBase58(), { mint: mintAddress, tokenProgram: mintDataRaw.owner, feeBps: 0 }];
+      })
+    );
+    console.log(tokenDatas)
 
     const priceInfos = new Map(
       bankDatasKeyed.map(({ address: bankAddress, data: bankData }, index) => {
@@ -290,6 +322,7 @@ class MarginfiClient {
       marginfiGroup,
       banks,
       priceInfos,
+      tokenDatas,
     };
   }
 

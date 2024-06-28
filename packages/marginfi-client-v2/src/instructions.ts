@@ -32,10 +32,12 @@ async function makeDepositIx(
     authorityPk: PublicKey;
     signerTokenAccountPk: PublicKey;
     bankPk: PublicKey;
+    tokenProgramPk: PublicKey;
   },
   args: {
     amount: BN;
-  }
+  },
+  remainingAccounts: AccountMeta[] = []
 ) {
   return mfProgram.methods
     .lendingAccountDeposit(args.amount)
@@ -45,8 +47,9 @@ async function makeDepositIx(
       signer: accounts.authorityPk,
       signerTokenAccount: accounts.signerTokenAccountPk,
       bank: accounts.bankPk,
-      tokenProgram: TOKEN_PROGRAM_ID,
+      tokenProgram: accounts.tokenProgramPk,
     })
+    .remainingAccounts(remainingAccounts)
     .instruction();
 }
 
@@ -58,11 +61,13 @@ async function makeRepayIx(
     authorityPk: PublicKey;
     signerTokenAccountPk: PublicKey;
     bankPk: PublicKey;
+    tokenProgramPk: PublicKey;
   },
   args: {
     amount: BN;
     repayAll?: boolean;
-  }
+  },
+  remainingAccounts: AccountMeta[] = []
 ) {
   return mfProgram.methods
     .lendingAccountRepay(args.amount, args.repayAll ?? null)
@@ -72,8 +77,9 @@ async function makeRepayIx(
       signer: accounts.authorityPk,
       signerTokenAccount: accounts.signerTokenAccountPk,
       bank: accounts.bankPk,
-      tokenProgram: TOKEN_PROGRAM_ID
+      tokenProgram: accounts.tokenProgramPk,
     })
+    .remainingAccounts(remainingAccounts)
     .instruction();
 }
 
@@ -85,6 +91,7 @@ async function makeWithdrawIx(
     signerPk: PublicKey;
     bankPk: PublicKey;
     destinationTokenAccountPk: PublicKey;
+    tokenProgramPk: PublicKey;
   },
   args: {
     amount: BN;
@@ -100,7 +107,7 @@ async function makeWithdrawIx(
       signer: accounts.signerPk,
       destinationTokenAccount: accounts.destinationTokenAccountPk,
       bank: accounts.bankPk,
-      tokenProgram: TOKEN_PROGRAM_ID
+      tokenProgram: accounts.tokenProgramPk,
     })
     .remainingAccounts(remainingAccounts)
     .instruction();
@@ -114,6 +121,7 @@ async function makeBorrowIx(
     signerPk: PublicKey;
     bankPk: PublicKey;
     destinationTokenAccountPk: PublicKey;
+    tokenProgramPk: PublicKey;
   },
   args: {
     amount: BN;
@@ -128,7 +136,7 @@ async function makeBorrowIx(
       signer: accounts.signerPk,
       destinationTokenAccount: accounts.destinationTokenAccountPk,
       bank: accounts.bankPk,
-      tokenProgram: TOKEN_PROGRAM_ID
+      tokenProgram: accounts.tokenProgramPk,
     })
     .remainingAccounts(remainingAccounts)
     .instruction();
@@ -143,6 +151,7 @@ function makeLendingAccountLiquidateIx(
     liabBank: PublicKey;
     liquidatorMarginfiAccount: PublicKey;
     liquidateeMarginfiAccount: PublicKey;
+    tokenProgramPk: PublicKey;
   },
   args: {
     assetAmount: BN;
@@ -158,7 +167,7 @@ function makeLendingAccountLiquidateIx(
       liabBank: accounts.liabBank,
       liquidatorMarginfiAccount: accounts.liquidatorMarginfiAccount,
       liquidateeMarginfiAccount: accounts.liquidateeMarginfiAccount,
-      tokenProgram: TOKEN_PROGRAM_ID
+      tokenProgram: accounts.tokenProgramPk,
     })
     .remainingAccounts(remainingAccounts)
     .instruction();

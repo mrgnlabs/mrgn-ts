@@ -2,6 +2,7 @@ import {
   Amount,
   InstructionsWrapper,
   NATIVE_MINT,
+  TOKEN_2022_PROGRAM_ID,
   aprToApy,
   createAssociatedTokenAccountIdempotentInstruction,
   getAssociatedTokenAddressSync,
@@ -26,6 +27,7 @@ import {
   OraclePriceMap,
   RiskTier,
   TRANSFER_ACCOUNT_AUTHORITY_FLAG,
+  MintData,
   computeMaxLeverage,
 } from "../..";
 import BN from "bn.js";
@@ -656,16 +658,22 @@ class MarginfiAccount {
   async makeDepositIx(
     program: MarginfiProgram,
     banks: Map<string, Bank>,
+    mintDatas: Map<string, MintData>,
     amount: Amount,
     bankAddress: PublicKey,
-    opt: { wrapAndUnwrapSol?: boolean } = {}
+    opt: MakeDepositIxOpts = {}
   ): Promise<InstructionsWrapper> {
     const bank = banks.get(bankAddress.toBase58());
     if (!bank) throw Error(`Bank ${bankAddress.toBase58()} not found`);
+    const mintData = mintDatas.get(bankAddress.toBase58());
+    if (!mintData) throw Error(`Mint for bank ${bankAddress.toBase58()} not found`);
 
     const wrapAndUnwrapSol = opt.wrapAndUnwrapSol ?? true;
 
     const userTokenAtaPk = getAssociatedTokenAddressSync(bank.mint, this.authority, true); // We allow off curve addresses here to support Fuse.
+
+    const remainingAccounts = mintData.tokenProgram === TOKEN_2022_PROGRAM_ID ? [{ pubkey: mintData.mint, isSigner: false, isWritable: false }] : [];
+
     const ix = await instructions.makeDepositIx(
       program,
       {
@@ -674,9 +682,12 @@ class MarginfiAccount {
         authorityPk: this.authority,
         signerTokenAccountPk: userTokenAtaPk,
         bankPk: bank.address,
+        tokenProgramPk: mintData.tokenProgram,
       },
-      { amount: uiToNative(amount, bank.mintDecimals) }
+      { amount: uiToNative(amount, bank.mintDecimals) },
+      remainingAccounts
     );
+
     const depositIxs = bank.mint.equals(NATIVE_MINT) && wrapAndUnwrapSol ? this.wrapInstructionForWSol(ix, amount) : [ix];
 
     return {
@@ -688,13 +699,17 @@ class MarginfiAccount {
   async makeRepayIx(
     program: MarginfiProgram,
     banks: Map<string, Bank>,
+    mintDatas: Map<string, MintData>,
     amount: Amount,
     bankAddress: PublicKey,
     repayAll: boolean = false,
-    opt: { wrapAndUnwrapSol?: boolean; createAtas?: boolean } = {}
+    opt: MakeRepayIxOpts = {}
   ): Promise<InstructionsWrapper> {
     const bank = banks.get(bankAddress.toBase58());
     if (!bank) throw Error(`Bank ${bankAddress.toBase58()} not found`);
+    const mintData = mintDatas.get(bankAddress.toBase58());
+    if (!mintData) throw Error(`Mint data for bank ${bankAddress.toBase58()} not found`);
+
 
     const wrapAndUnwrapSol = opt.wrapAndUnwrapSol ?? true;
     const createAtas = opt.createAtas ?? true;
@@ -720,6 +735,8 @@ class MarginfiAccount {
     // Add repay-related instructions
     const userAta = getAssociatedTokenAddressSync(bank.mint, this.authority, true); // We allow off curve addresses here to support Fuse.
 
+    const remainingAccounts = mintData.tokenProgram === TOKEN_2022_PROGRAM_ID ? [{ pubkey: mintData.mint, isSigner: false, isWritable: false }] : [];
+
     const ix = await instructions.makeRepayIx(
       program,
       {
@@ -728,8 +745,10 @@ class MarginfiAccount {
         authorityPk: this.authority,
         signerTokenAccountPk: userAta,
         bankPk: bankAddress,
+        tokenProgramPk: mintData.tokenProgram,
       },
-      { amount: uiToNative(amount, bank.mintDecimals), repayAll }
+      { amount: uiToNative(amount, bank.mintDecimals), repayAll },
+      remainingAccounts
     );
 
     const repayIxs = bank.mint.equals(NATIVE_MINT) && wrapAndUnwrapSol ? this.wrapInstructionForWSol(ix, amount) : [ix];
@@ -744,13 +763,17 @@ class MarginfiAccount {
   async makeWithdrawIx(
     program: MarginfiProgram,
     banks: Map<string, Bank>,
+    mintDatas: Map<string, MintData>,
     amount: Amount,
     bankAddress: PublicKey,
     withdrawAll: boolean = false,
-    opt: { observationBanksOverride?: PublicKey[]; wrapAndUnwrapSol?: boolean; createAtas?: boolean } = {}
+    opt: MakeWithdrawIxOpts = {}
   ): Promise<InstructionsWrapper> {
     const bank = banks.get(bankAddress.toBase58());
     if (!bank) throw Error(`Bank ${bankAddress.toBase58()} not found`);
+    const mintData = mintDatas.get(bankAddress.toBase58());
+    if (!mintData) throw Error(`Mint data for bank ${bankAddress.toBase58()} not found`);
+
 
     const wrapAndUnwrapSol = opt.wrapAndUnwrapSol ?? true;
     const createAtas = opt.createAtas ?? true;
@@ -785,13 +808,16 @@ class MarginfiAccount {
     }
 
     // Add withdraw-related instructions
-    let remainingAccounts;
+    let remainingAccounts = [];
+    if (mintData.tokenProgram === TOKEN_2022_PROGRAM_ID) {
+      remainingAccounts.push({ pubkey: mintData.mint, isSigner: false, isWritable: false });
+    }
     if (opt.observationBanksOverride !== undefined) {
-      remainingAccounts = makeHealthAccountMetas(banks, opt.observationBanksOverride);
+      remainingAccounts.push(...makeHealthAccountMetas(banks, opt.observationBanksOverride));
     } else {
-      remainingAccounts = withdrawAll
+      remainingAccounts.push(...(withdrawAll
         ? this.getHealthCheckAccounts(banks, [], [bank])
-        : this.getHealthCheckAccounts(banks, [bank], []);
+        : this.getHealthCheckAccounts(banks, [bank], [])));
     }
 
     const ix = await instructions.makeWithdrawIx(
@@ -802,6 +828,7 @@ class MarginfiAccount {
         signerPk: this.authority,
         bankPk: bank.address,
         destinationTokenAccountPk: userAta,
+        tokenProgramPk: mintData.tokenProgram,
       },
       { amount: uiToNative(amount, bank.mintDecimals), withdrawAll },
       remainingAccounts
@@ -818,12 +845,15 @@ class MarginfiAccount {
   async makeBorrowIx(
     program: MarginfiProgram,
     banks: Map<string, Bank>,
+    mintDatas: Map<string, MintData>,
     amount: Amount,
     bankAddress: PublicKey,
-    opt: { observationBanksOverride?: PublicKey[]; wrapAndUnwrapSol?: boolean; createAtas?: boolean } = {}
+    opt: MakeBorrowIxOpts = {}
   ): Promise<InstructionsWrapper> {
     const bank = banks.get(bankAddress.toBase58());
     if (!bank) throw Error(`Bank ${bankAddress.toBase58()} not found`);
+    const mintData = mintDatas.get(bankAddress.toBase58());
+    if (!mintData) throw Error(`Mint data for bank ${bankAddress.toBase58()} not found`);
 
     const wrapAndUnwrapSol = opt.wrapAndUnwrapSol ?? true;
     const createAtas = opt.createAtas ?? true;
@@ -842,11 +872,14 @@ class MarginfiAccount {
       ixs.push(createAtaIdempotentIx);
     }
 
-    let remainingAccounts;
+    let remainingAccounts = [];
+    if (mintData.tokenProgram === TOKEN_2022_PROGRAM_ID) {
+      remainingAccounts.push({ pubkey: mintData.mint, isSigner: false, isWritable: false });
+    }
     if (opt?.observationBanksOverride !== undefined) {
-      remainingAccounts = makeHealthAccountMetas(banks, opt.observationBanksOverride);
+      remainingAccounts.push(...makeHealthAccountMetas(banks, opt.observationBanksOverride));
     } else {
-      remainingAccounts = this.getHealthCheckAccounts(banks, [bank]);
+      remainingAccounts.push(...this.getHealthCheckAccounts(banks, [bank]));
     }
 
     const ix = await instructions.makeBorrowIx(
@@ -857,6 +890,7 @@ class MarginfiAccount {
         signerPk: this.authority,
         bankPk: bank.address,
         destinationTokenAccountPk: userAta,
+        tokenProgramPk: mintData.tokenProgram,
       },
       { amount: uiToNative(amount, bank.mintDecimals) },
       remainingAccounts
@@ -906,16 +940,37 @@ class MarginfiAccount {
     liquidateeMarginfiAccount: MarginfiAccount,
     program: MarginfiProgram,
     banks: Map<string, Bank>,
+    mintDatas: Map<string, MintData>,
     assetBankAddress: PublicKey,
     assetQuantityUi: Amount,
-    liabilityBankAddress: PublicKey
+    liabilityBankAddress: PublicKey,
   ): Promise<InstructionsWrapper> {
     const assetBank = banks.get(assetBankAddress.toBase58());
     if (!assetBank) throw Error(`Asset bank ${assetBankAddress.toBase58()} not found`);
     const liabilityBank = banks.get(liabilityBankAddress.toBase58());
     if (!liabilityBank) throw Error(`Liability bank ${liabilityBankAddress.toBase58()} not found`);
+    const liabilityMintData = mintDatas.get(liabilityBankAddress.toBase58());
+    if (!liabilityMintData) throw Error(`Mint data for bank ${liabilityBankAddress.toBase58()} not found`);
 
     let ixs = [];
+
+    let remainingAccounts = [];
+    if (liabilityMintData.tokenProgram === TOKEN_2022_PROGRAM_ID) {
+      remainingAccounts.push({ pubkey: liabilityMintData.mint, isSigner: false, isWritable: false });
+    }
+    remainingAccounts.push(...[{
+        pubkey: assetBank.config.oracleKeys[0],
+        isSigner: false,
+        isWritable: false,
+      },
+      {
+        pubkey: liabilityBank.config.oracleKeys[0],
+        isSigner: false,
+        isWritable: false,
+      },
+      ...this.getHealthCheckAccounts(banks, [liabilityBank, assetBank]),
+      ...liquidateeMarginfiAccount.getHealthCheckAccounts(banks)
+    ]);
 
     ixs.push(ComputeBudgetProgram.setComputeUnitLimit({ units: 1_400_000 }));
     const liquidateIx = await instructions.makeLendingAccountLiquidateIx(
@@ -927,22 +982,10 @@ class MarginfiAccount {
         liabBank: liabilityBankAddress,
         liquidatorMarginfiAccount: this.address,
         liquidateeMarginfiAccount: liquidateeMarginfiAccount.address,
+        tokenProgramPk: liabilityMintData.tokenProgram,
       },
       { assetAmount: uiToNative(assetQuantityUi, assetBank.mintDecimals) },
-      [
-        {
-          pubkey: assetBank.config.oracleKeys[0],
-          isSigner: false,
-          isWritable: false,
-        },
-        {
-          pubkey: liabilityBank.config.oracleKeys[0],
-          isSigner: false,
-          isWritable: false,
-        },
-        ...this.getHealthCheckAccounts(banks, [liabilityBank, assetBank]),
-        ...liquidateeMarginfiAccount.getHealthCheckAccounts(banks),
-      ]
+      remainingAccounts
     );
     ixs.push(liquidateIx);
 
@@ -1087,6 +1130,31 @@ enum MarginRequirementType {
   Initial = 0,
   Maintenance = 1,
   Equity = 2,
+}
+
+export interface MakeDepositIxOpts {
+  wrapAndUnwrapSol?: boolean;
+  priorityFeeUi?: number,
+}
+
+export interface MakeRepayIxOpts {
+  wrapAndUnwrapSol?: boolean;
+  createAtas?: boolean;
+  priorityFeeUi?: number,
+}
+
+export interface MakeWithdrawIxOpts {
+  observationBanksOverride?: PublicKey[];
+  wrapAndUnwrapSol?: boolean;
+  createAtas?: boolean;
+  priorityFeeUi?: number,
+}
+
+export interface MakeBorrowIxOpts {
+  observationBanksOverride?: PublicKey[];
+  wrapAndUnwrapSol?: boolean;
+  createAtas?: boolean;
+  priorityFeeUi?: number;
 }
 
 export function isWeightedPrice(reqType: MarginRequirementType): boolean {
