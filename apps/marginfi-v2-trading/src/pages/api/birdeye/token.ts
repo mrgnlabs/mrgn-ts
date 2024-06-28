@@ -1,16 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import NodeCache from "node-cache";
 
-export type TokenData = {
-  address: string;
-  name: string;
-  symbol: string;
-  imageUrl: string;
-  decimals: number;
-  price: number;
-  priceChange24h: number;
-  marketCap?: number;
-};
+import type { TokenData } from "~/types";
 
 const tokenCache = new NodeCache({ stdTTL: 60 }); // Cache for 1 min
 
@@ -67,6 +58,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       price: data.price,
       priceChange24h: data.priceChange24hPercent,
       marketCap: data.mc,
+      volume: data.volume,
+      volumeChange24h: data.v24hChangePercent,
     };
 
     // Store in cache

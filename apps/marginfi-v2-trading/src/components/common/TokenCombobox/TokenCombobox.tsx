@@ -5,23 +5,44 @@ import React from "react";
 import Image from "next/image";
 
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { IconChevronDown } from "@tabler/icons-react";
+import { percentFormatter } from "@mrgnlabs/mrgn-common";
+import { IconChevronDown, IconTrendingUp, IconTrendingDown } from "@tabler/icons-react";
 
 import { useTradeStore } from "~/store";
+import { getTokenImageURL, cn } from "~/utils";
 
 import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "~/components/ui/command";
 import { Button } from "~/components/ui/button";
-import { getTokenImageURL } from "~/utils";
+
+import type { TokenData } from "~/types";
 
 type TokenComboboxProps = {
   selected: ExtendedBankInfo | null;
   setSelected: (bank: ExtendedBankInfo) => void;
 };
 
+type BankWithTokenData = ExtendedBankInfo & {
+  tokenData: TokenData;
+};
+
 export const TokenCombobox = ({ selected, setSelected }: TokenComboboxProps) => {
   const [open, setOpen] = React.useState(false);
   const [extendedBankInfos] = useTradeStore((state) => [state.banks]);
+
+  const getBankTokenData = async (bank: ExtendedBankInfo): Promise<TokenData | undefined> => {
+    const tokenResponse = await fetch(`/api/birdeye/token?address=${bank.info.state.mint.toBase58()}`);
+    if (!tokenResponse.ok) {
+      console.error("Failed to fetch token data");
+      return;
+    }
+    const tokenData = await tokenResponse.json();
+    if (!tokenData) {
+      console.error("Failed to parse token data");
+      return;
+    }
+    return tokenData;
+  };
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -70,6 +91,7 @@ export const TokenCombobox = ({ selected, setSelected }: TokenComboboxProps) => 
                     className="rounded-full"
                   />
                   <span>{bank.meta.tokenSymbol}</span>
+                  <TokenTrending bank={bank} />
                 </CommandItem>
               ))}
             </CommandGroup>
@@ -77,5 +99,37 @@ export const TokenCombobox = ({ selected, setSelected }: TokenComboboxProps) => 
         </Command>
       </PopoverContent>
     </Popover>
+  );
+};
+
+const TokenTrending = ({ bank }: { bank: ExtendedBankInfo }) => {
+  const [tokenData, setTokenData] = React.useState<TokenData | null>(null);
+
+  React.useEffect(() => {
+    const fetchTokenData = async () => {
+      const response = await fetch(`/api/birdeye/token?address=${bank.info.state.mint.toBase58()}`);
+
+      if (!response.ok) return;
+
+      const tokenData = await response.json();
+
+      setTokenData(tokenData);
+    };
+
+    fetchTokenData();
+  }, [bank]);
+
+  if (!tokenData) return null;
+
+  return (
+    <div
+      className={cn(
+        "flex items-center gap-1 ml-auto",
+        tokenData?.priceChange24h > 1 ? "text-mrgn-success" : "text-mrgn-error"
+      )}
+    >
+      {percentFormatter.format(tokenData?.priceChange24h / 100)}
+      {tokenData?.priceChange24h > 1 ? <IconTrendingUp size={16} /> : <IconTrendingDown size={16} />}
+    </div>
   );
 };

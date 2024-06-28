@@ -128,3 +128,16 @@ export type PreviousTxn = {
   txn: string;
   lstQuote?: QuoteResponseMeta;
 };
+
+export type TokenData = {
+  address: string;
+  name: string;
+  symbol: string;
+  imageUrl: string;
+  decimals: number;
+  price: number;
+  priceChange24h: number;
+  volume: number;
+  volumeChange24h: number;
+  marketCap?: number;
+};
