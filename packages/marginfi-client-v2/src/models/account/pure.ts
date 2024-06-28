@@ -623,34 +623,6 @@ class MarginfiAccount {
     return makeHealthAccountMetas(banks, projectedActiveBanks);
   }
 
-  computeLoopingParams(
-    principal: Amount,
-    targetLeverage: number,
-    depositBank: Bank,
-    borrowBank: Bank,
-    depositOracleInfo: OraclePrice,
-    borrowOracleInfo: OraclePrice
-  ): { borrowAmount: BigNumber; totalDepositAmount: BigNumber } {
-    const initialCollateral = toBigNumber(principal);
-    const { maxLeverage } = computeMaxLeverage(depositBank, borrowBank);
-
-    if (targetLeverage < 1) {
-      throw Error(`Target leverage ${targetLeverage} needs to be greater than 1`);
-    }
-
-    if (targetLeverage > maxLeverage) {
-      throw Error(`Target leverage ${targetLeverage} exceeds max leverage for banks ${maxLeverage}`);
-    }
-
-    const totalDepositAmount = initialCollateral.times(new BigNumber(targetLeverage));
-    const additionalDepositAmount = totalDepositAmount.minus(initialCollateral);
-    const borrowAmount = additionalDepositAmount
-      .times(depositOracleInfo.priceWeighted.lowestPrice)
-      .div(borrowOracleInfo.priceWeighted.highestPrice);
-
-    return { borrowAmount, totalDepositAmount };
-  }
-
   // ----------------------------------------------------------------------------
   // Actions
   // ----------------------------------------------------------------------------
@@ -672,7 +644,10 @@ class MarginfiAccount {
 
     const userTokenAtaPk = getAssociatedTokenAddressSync(bank.mint, this.authority, true); // We allow off curve addresses here to support Fuse.
 
-    const remainingAccounts = mintData.tokenProgram === TOKEN_2022_PROGRAM_ID ? [{ pubkey: mintData.mint, isSigner: false, isWritable: false }] : [];
+    const remainingAccounts =
+      mintData.tokenProgram === TOKEN_2022_PROGRAM_ID
+        ? [{ pubkey: mintData.mint, isSigner: false, isWritable: false }]
+        : [];
 
     const ix = await instructions.makeDepositIx(
       program,
@@ -688,7 +663,8 @@ class MarginfiAccount {
       remainingAccounts
     );
 
-    const depositIxs = bank.mint.equals(NATIVE_MINT) && wrapAndUnwrapSol ? this.wrapInstructionForWSol(ix, amount) : [ix];
+    const depositIxs =
+      bank.mint.equals(NATIVE_MINT) && wrapAndUnwrapSol ? this.wrapInstructionForWSol(ix, amount) : [ix];
 
     return {
       instructions: depositIxs,
@@ -709,7 +685,6 @@ class MarginfiAccount {
     if (!bank) throw Error(`Bank ${bankAddress.toBase58()} not found`);
     const mintData = mintDatas.get(bankAddress.toBase58());
     if (!mintData) throw Error(`Mint data for bank ${bankAddress.toBase58()} not found`);
-
 
     const wrapAndUnwrapSol = opt.wrapAndUnwrapSol ?? true;
     const createAtas = opt.createAtas ?? true;
@@ -735,7 +710,10 @@ class MarginfiAccount {
     // Add repay-related instructions
     const userAta = getAssociatedTokenAddressSync(bank.mint, this.authority, true); // We allow off curve addresses here to support Fuse.
 
-    const remainingAccounts = mintData.tokenProgram === TOKEN_2022_PROGRAM_ID ? [{ pubkey: mintData.mint, isSigner: false, isWritable: false }] : [];
+    const remainingAccounts =
+      mintData.tokenProgram === TOKEN_2022_PROGRAM_ID
+        ? [{ pubkey: mintData.mint, isSigner: false, isWritable: false }]
+        : [];
 
     const ix = await instructions.makeRepayIx(
       program,
@@ -773,7 +751,6 @@ class MarginfiAccount {
     if (!bank) throw Error(`Bank ${bankAddress.toBase58()} not found`);
     const mintData = mintDatas.get(bankAddress.toBase58());
     if (!mintData) throw Error(`Mint data for bank ${bankAddress.toBase58()} not found`);
-
 
     const wrapAndUnwrapSol = opt.wrapAndUnwrapSol ?? true;
     const createAtas = opt.createAtas ?? true;
@@ -815,9 +792,11 @@ class MarginfiAccount {
     if (opt.observationBanksOverride !== undefined) {
       remainingAccounts.push(...makeHealthAccountMetas(banks, opt.observationBanksOverride));
     } else {
-      remainingAccounts.push(...(withdrawAll
-        ? this.getHealthCheckAccounts(banks, [], [bank])
-        : this.getHealthCheckAccounts(banks, [bank], [])));
+      remainingAccounts.push(
+        ...(withdrawAll
+          ? this.getHealthCheckAccounts(banks, [], [bank])
+          : this.getHealthCheckAccounts(banks, [bank], []))
+      );
     }
 
     const ix = await instructions.makeWithdrawIx(
@@ -943,7 +922,7 @@ class MarginfiAccount {
     mintDatas: Map<string, MintData>,
     assetBankAddress: PublicKey,
     assetQuantityUi: Amount,
-    liabilityBankAddress: PublicKey,
+    liabilityBankAddress: PublicKey
   ): Promise<InstructionsWrapper> {
     const assetBank = banks.get(assetBankAddress.toBase58());
     if (!assetBank) throw Error(`Asset bank ${assetBankAddress.toBase58()} not found`);
@@ -958,19 +937,22 @@ class MarginfiAccount {
     if (liabilityMintData.tokenProgram === TOKEN_2022_PROGRAM_ID) {
       remainingAccounts.push({ pubkey: liabilityMintData.mint, isSigner: false, isWritable: false });
     }
-    remainingAccounts.push(...[{
-        pubkey: assetBank.config.oracleKeys[0],
-        isSigner: false,
-        isWritable: false,
-      },
-      {
-        pubkey: liabilityBank.config.oracleKeys[0],
-        isSigner: false,
-        isWritable: false,
-      },
-      ...this.getHealthCheckAccounts(banks, [liabilityBank, assetBank]),
-      ...liquidateeMarginfiAccount.getHealthCheckAccounts(banks)
-    ]);
+    remainingAccounts.push(
+      ...[
+        {
+          pubkey: assetBank.config.oracleKeys[0],
+          isSigner: false,
+          isWritable: false,
+        },
+        {
+          pubkey: liabilityBank.config.oracleKeys[0],
+          isSigner: false,
+          isWritable: false,
+        },
+        ...this.getHealthCheckAccounts(banks, [liabilityBank, assetBank]),
+        ...liquidateeMarginfiAccount.getHealthCheckAccounts(banks),
+      ]
+    );
 
     ixs.push(ComputeBudgetProgram.setComputeUnitLimit({ units: 1_400_000 }));
     const liquidateIx = await instructions.makeLendingAccountLiquidateIx(
@@ -1135,20 +1117,20 @@ enum MarginRequirementType {
 
 export interface MakeDepositIxOpts {
   wrapAndUnwrapSol?: boolean;
-  priorityFeeUi?: number,
+  priorityFeeUi?: number;
 }
 
 export interface MakeRepayIxOpts {
   wrapAndUnwrapSol?: boolean;
   createAtas?: boolean;
-  priorityFeeUi?: number,
+  priorityFeeUi?: number;
 }
 
 export interface MakeWithdrawIxOpts {
   observationBanksOverride?: PublicKey[];
   wrapAndUnwrapSol?: boolean;
   createAtas?: boolean;
-  priorityFeeUi?: number,
+  priorityFeeUi?: number;
 }
 
 export interface MakeBorrowIxOpts {
