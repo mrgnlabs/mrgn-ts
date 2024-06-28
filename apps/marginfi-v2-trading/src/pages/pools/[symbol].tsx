@@ -129,25 +129,28 @@ export default function TradeSymbolPage() {
                 <Stat label="Current Price" value={usdFormatter.format(activeGroup.token.info.state.price)} />
                 <Stat
                   label={`Total Deposits (${activeGroup.token.meta.tokenSymbol})`}
-                  value={usdFormatter.format(
+                  value={numeralFormatter(activeGroup.token.info.state.totalDeposits)}
+                  subValue={usdFormatter.format(
                     activeGroup.token.info.state.totalDeposits *
-                      new BigNumber(activeGroup.token.info.oraclePrice.priceRealtime.price).toNumber()
+                      activeGroup.token.info.oraclePrice.priceRealtime.price.toNumber()
                   )}
                 />
                 <Stat
                   label="Total Deposits (USDC)"
-                  value={usdFormatter.format(
+                  value={numeralFormatter(activeGroup.usdc.info.state.totalDeposits)}
+                  subValue={usdFormatter.format(
                     activeGroup.usdc.info.state.totalDeposits *
-                      new BigNumber(activeGroup.usdc.info.oraclePrice.priceRealtime.price).toNumber()
+                      activeGroup.usdc.info.oraclePrice.priceRealtime.price.toNumber()
                   )}
                 />
                 <Stat
-                  label="Interest earned"
-                  value={
-                    <span className="text-xs font-light flex w-full gap-1.5 items-center mt-1">
-                      <IconClockHour4 size={14} /> Coming soon
-                    </span>
-                  }
+                  label="Total Liquidity"
+                  value={usdFormatter.format(
+                    activeGroup.usdc.info.state.totalDeposits *
+                      activeGroup.usdc.info.oraclePrice.priceRealtime.price.toNumber() +
+                      activeGroup.token.info.state.totalDeposits *
+                        activeGroup.token.info.oraclePrice.priceRealtime.price.toNumber()
+                  )}
                 />
               </div>
               <div className="grid grid-cols-2 gap-8 w-full mx-auto">
@@ -163,9 +166,19 @@ export default function TradeSymbolPage() {
   );
 }
 
-const Stat = ({ label, value }: { label: string; value: JSX.Element | string }) => (
+const Stat = ({
+  label,
+  value,
+  subValue,
+}: {
+  label: string;
+  value: JSX.Element | string;
+  subValue?: JSX.Element | string;
+}) => (
   <dl className="w-1/2 md:w-auto">
     <dt className="text-sm text-muted-foreground">{label}</dt>
-    <dd className="text-xl font-medium text-primary">{value}</dd>
+    <dd className="text-xl font-medium text-primary">
+      {value} {subValue && <span className="text-sm text-muted-foreground">({subValue})</span>}
+    </dd>
   </dl>
 );
