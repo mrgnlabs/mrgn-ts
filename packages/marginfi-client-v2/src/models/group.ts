@@ -1,7 +1,7 @@
 import { BorshCoder } from "@coral-xyz/anchor";
 import { PublicKey, Keypair, Connection, SystemProgram, SYSVAR_RENT_PUBKEY } from "@solana/web3.js";
 import BN from "bn.js";
-import { MARGINFI_IDL } from "../idl";
+import { MARGINFI_IDL, MarginfiIdlType } from "../idl";
 import { AccountType, BankVaultType, MarginfiProgram } from "../types";
 import { InstructionsWrapper, TOKEN_PROGRAM_ID, getMint } from "@mrgnlabs/mrgn-common";
 import instructions from "../instructions";
@@ -204,32 +204,32 @@ class MarginfiGroup {
       auto_padding_1: [0],
     } as BankConfigCompactRaw;
 
-    const ix = await instructions.makePoolAddBankIx(
-      program,
-      {
-        marginfiGroup: this.address,
-        admin: this.admin,
-        feePayer: this.admin,
-        bankMint: bankMint,
-        bank: bankPubkey,
-        liquidityVaultAuthority: liquidityVaultAuthority,
-        liquidityVault: liquidityVault,
-        insuranceVaultAuthority: insuranceVaultAuthority,
-        insuranceVault: insuranceVault,
-        feeVaultAuthority: feeVaultAuthority,
-        feeVault: feeVault,
-        rent: SYSVAR_RENT_PUBKEY,
-        tokenProgram: TOKEN_PROGRAM_ID,
-        systemProgram: SystemProgram.programId,
-        oracleKey: rawBankConfigCompact.oracleKey,
-      },
-      {
-        bankConfig: rawBankConfigCompact,
-      }
-    );
+    // const ix = await instructions.makePoolAddBankIx(
+    //   program,
+    //   {
+    //     marginfiGroup: this.address,
+    //     admin: this.admin,
+    //     feePayer: this.admin,
+    //     bankMint: bankMint,
+    //     bank: bankPubkey,
+    //     liquidityVaultAuthority: liquidityVaultAuthority,
+    //     liquidityVault: liquidityVault,
+    //     insuranceVaultAuthority: insuranceVaultAuthority,
+    //     insuranceVault: insuranceVault,
+    //     feeVaultAuthority: feeVaultAuthority,
+    //     feeVault: feeVault,
+    //     rent: SYSVAR_RENT_PUBKEY,
+    //     tokenProgram: TOKEN_PROGRAM_ID,
+    //     systemProgram: SystemProgram.programId,
+    //     oracleKey: rawBankConfigCompact.oracleKey,
+    //   },
+    //   {
+    //     bankConfig: rawBankConfigCompact,
+    //   }
+    // );
 
     return {
-      instructions: [ix],
+      instructions: [], //ix
       keys: [],
     };
   }

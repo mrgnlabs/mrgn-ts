@@ -69,6 +69,7 @@ import {
   IconCirclePlus,
   IconDeviceMobilePlus,
   IconCreditCardPay,
+  IconPlus,
 } from "@tabler/icons-react";
 import { cn } from "~/utils/themeUtils";
 
@@ -951,6 +952,7 @@ export {
   IconDeviceMobileShare,
   IconCirclePlus,
   IconDeviceMobilePlus,
+  IconPlus,
 
   // customed icons
   IconBrandGoogle,

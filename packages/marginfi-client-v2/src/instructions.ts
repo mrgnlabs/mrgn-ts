@@ -7,10 +7,10 @@ import { TOKEN_PROGRAM_ID } from "@mrgnlabs/mrgn-common";
 async function makeInitMarginfiAccountIx(
   mfProgram: MarginfiProgram,
   accounts: {
-    marginfiGroup: PublicKey;
-    marginfiAccount: PublicKey;
-    authority: PublicKey;
-    feePayer: PublicKey;
+    marginfiGroupPk: PublicKey;
+    marginfiAccountPk: PublicKey;
+    authorityPk: PublicKey;
+    feePayerPk: PublicKey;
   }
 ) {
   return mfProgram.methods
@@ -19,7 +19,6 @@ async function makeInitMarginfiAccountIx(
       marginfiGroup: accounts.marginfiGroupPk,
       marginfiAccount: accounts.marginfiAccountPk,
       authority: accounts.authorityPk,
-      systemProgram: SystemProgram.programId,
       feePayer: accounts.feePayerPk,
     })
     .instruction();
@@ -194,7 +193,7 @@ function makelendingAccountWithdrawEmissionIx(
       destinationAccount: accounts.destinationTokenAccount,
       bank: accounts.bank,
       emissionsMint: accounts.emissionsMint,
-      tokenProgram: TOKEN_PROGRAM_ID
+      tokenProgram: TOKEN_PROGRAM_ID,
     })
     .instruction();
 }
@@ -334,61 +333,60 @@ async function makeGroupInitIx(
     .accounts({
       marginfiGroup: accounts.marginfiGroup,
       admin: accounts.admin,
-      systemProgram: SystemProgram.programId,
     })
     .instruction();
 }
 
-async function makePoolAddBankIx(
-  mfProgram: MarginfiProgram,
-  accounts: {
-    marginfiGroup: PublicKey;
-    admin: PublicKey;
-    feePayer: PublicKey;
-    bankMint: PublicKey;
-    bank: PublicKey;
-    liquidityVaultAuthority: PublicKey;
-    liquidityVault: PublicKey;
-    insuranceVaultAuthority: PublicKey;
-    insuranceVault: PublicKey;
-    feeVaultAuthority: PublicKey;
-    feeVault: PublicKey;
-    rent: PublicKey;
-    tokenProgram: PublicKey;
-    systemProgram: PublicKey;
-    oracleKey: PublicKey;
-  },
-  args: {
-    bankConfig: BankConfigCompactRaw;
-  }
-) {
-  return mfProgram.methods
-    .lendingPoolAddBank(args.bankConfig)
-    .accounts({
-      marginfiGroup: accounts.marginfiGroup,
-      admin: accounts.admin,
-      feePayer: accounts.feePayer,
-      bankMint: accounts.bankMint,
-      bank: accounts.bank,
-      liquidityVaultAuthority: accounts.liquidityVaultAuthority,
-      liquidityVault: accounts.liquidityVault,
-      insuranceVaultAuthority: accounts.insuranceVaultAuthority,
-      insuranceVault: accounts.insuranceVault,
-      feeVaultAuthority: accounts.feeVaultAuthority,
-      feeVault: accounts.feeVault,
-      rent: accounts.rent,
-      tokenProgram: accounts.tokenProgram,
-      systemProgram: accounts.systemProgram,
-    })
-    .remainingAccounts([
-      {
-        pubkey: accounts.oracleKey,
-        isSigner: false,
-        isWritable: false,
-      },
-    ])
-    .instruction();
-}
+// async function makePoolAddBankIx(
+//   mfProgram: MarginfiProgram,
+//   accounts: {
+//     marginfiGroup: PublicKey;
+//     admin: PublicKey;
+//     feePayer: PublicKey;
+//     bankMint: PublicKey;
+//     bank: PublicKey;
+//     liquidityVaultAuthority: PublicKey;
+//     liquidityVault: PublicKey;
+//     insuranceVaultAuthority: PublicKey;
+//     insuranceVault: PublicKey;
+//     feeVaultAuthority: PublicKey;
+//     feeVault: PublicKey;
+//     rent: PublicKey;
+//     tokenProgram: PublicKey;
+//     systemProgram: PublicKey;
+//     oracleKey: PublicKey;
+//   },
+//   args: {
+//     bankConfig: BankConfigCompactRaw;
+//   }
+// ) {
+//   return mfProgram.methods
+//     .lendingPoolAddBank(args.bankConfig)
+//     .accounts({
+//       marginfiGroup: accounts.marginfiGroup,
+//       admin: accounts.admin,
+//       feePayer: accounts.feePayer,
+//       bankMint: accounts.bankMint,
+//       bank: accounts.bank,
+//       liquidityVaultAuthority: accounts.liquidityVaultAuthority,
+//       liquidityVault: accounts.liquidityVault,
+//       insuranceVaultAuthority: accounts.insuranceVaultAuthority,
+//       insuranceVault: accounts.insuranceVault,
+//       feeVaultAuthority: accounts.feeVaultAuthority,
+//       feeVault: accounts.feeVault,
+//       rent: accounts.rent,
+//       tokenProgram: accounts.tokenProgram,
+//       systemProgram: accounts.systemProgram,
+//     })
+//     .remainingAccounts([
+//       {
+//         pubkey: accounts.oracleKey,
+//         isSigner: false,
+//         isWritable: false,
+//       },
+//     ])
+//     .instruction();
+// }
 
 const instructions = {
   makeDepositIx,
@@ -400,7 +398,7 @@ const instructions = {
   makelendingAccountWithdrawEmissionIx,
   makeSetAccountFlagIx,
   makeUnsetAccountFlagIx,
-  makePoolAddBankIx,
+  // makePoolAddBankIx,
   makePoolConfigureBankIx,
   makeBeginFlashLoanIx,
   makeEndFlashLoanIx,
