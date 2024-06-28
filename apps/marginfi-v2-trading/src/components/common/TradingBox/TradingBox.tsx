@@ -87,6 +87,7 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
       state.marginfiClient,
     ]
   );
+
   const [priorityFee, setPriorityFee, setIsActionComplete, setPreviousTxn] = useUiStore((state) => [
     state.priorityFee,
     state.setPriorityFee,
