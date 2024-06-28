@@ -25,6 +25,11 @@ export const PositionCard = ({ bank, isLong }: PositionCardProps) => {
     return collateralBanks[bank.address.toBase58()] || null;
   }, [collateralBanks, bank]);
 
+  const isBorrowing = React.useMemo(() => {
+    const borrowBank = isLong ? collateralBank : bank;
+    return borrowBank.isActive && !borrowBank.position.isLending;
+  }, [collateralBanks, bank, isLong]);
+
   return (
     <div className="bg-background-gray p-4 rounded-2xl space-y-4">
       <div className="flex items-center gap-4 justify-between">
@@ -66,18 +71,17 @@ export const PositionCard = ({ bank, isLong }: PositionCardProps) => {
         </dl>
       </div>
       <div className="flex items-center justify-between gap-4">
-        <ActionBoxDialog
-          requestedBank={isLong ? bank : collateralBank}
-          requestedAction={isLong ? ActionType.Deposit : ActionType.Withdraw}
-        >
+        <ActionBoxDialog requestedBank={isLong ? bank : collateralBank} requestedAction={ActionType.Deposit}>
           <Button variant="secondary">Add</Button>
         </ActionBoxDialog>
-        {collateralBank && (
-          <ActionBoxDialog
-            requestedBank={isLong ? bank : collateralBank}
-            requestedAction={isLong ? ActionType.Withdraw : ActionType.Deposit}
-          >
+        {collateralBank && isBorrowing && (
+          <ActionBoxDialog requestedBank={isLong ? collateralBank : bank} requestedAction={ActionType.Repay}>
             <Button variant="secondary">Reduce</Button>
+          </ActionBoxDialog>
+        )}
+        {!isBorrowing && (
+          <ActionBoxDialog requestedBank={isLong ? collateralBank : bank} requestedAction={ActionType.Withdraw}>
+            <Button variant="secondary">Withdraw</Button>
           </ActionBoxDialog>
         )}
         <Button variant="destructive" className="ml-auto">
