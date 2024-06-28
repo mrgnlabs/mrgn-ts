@@ -28,8 +28,8 @@ import { StakeData, makeDepositSolToStakePoolIx, makeDepositStakeToStakePoolIx }
 export type RepayWithCollatOptions = {
   repayCollatQuote: QuoteResponse;
   repayCollatTxn: VersionedTransaction | null;
-  repayAmount: number;
-  repayBank: ExtendedBankInfo;
+  withdrawAmount: number;
+  depositBank: ExtendedBankInfo;
   connection: Connection;
 };
 
@@ -400,12 +400,9 @@ export async function repay({
   multiStepToast.start();
 
   try {
-    const txnSig = await marginfiAccount.repay(
-      amount,
-      bank.address,
-      bank.isActive && isWholePosition(bank, amount),
-      { priorityFeeUi: priorityFee }
-    );
+    const txnSig = await marginfiAccount.repay(amount, bank.address, bank.isActive && isWholePosition(bank, amount), {
+      priorityFeeUi: priorityFee,
+    });
     multiStepToast.setSuccessAndNext();
     return txnSig;
   } catch (error: any) {
@@ -540,31 +537,24 @@ export async function repayWithCollatBuilder({
   // get fee account for original borrow mint
   //const feeAccount = await getFeeAccount(bank.info.state.mint);
 
-  const {
-    swapInstruction,
-    addressLookupTableAddresses,
-  } = await jupiterQuoteApi.swapInstructionsPost({
+  const { swapInstruction, addressLookupTableAddresses } = await jupiterQuoteApi.swapInstructionsPost({
     swapRequest: {
       quoteResponse: options.repayCollatQuote,
       userPublicKey: marginfiAccount.authority.toBase58(),
       programAuthorityId: LUT_PROGRAM_AUTHORITY_INDEX,
     },
   });
-
-  // const setupIxs = setupInstructions.length > 0 ? setupInstructions.map(deserializeInstruction) : []; //**not optional but man0s smart**
   const swapIx = deserializeInstruction(swapInstruction);
-  // const swapcleanupIx = cleanupInstruction ? [deserializeInstruction(cleanupInstruction)] : []; **optional**
-  // tokenLedgerInstruction **also optional**
 
   const swapLUTs: AddressLookupTableAccount[] = [];
   swapLUTs.push(...(await getAdressLookupTableAccounts(options.connection, addressLookupTableAddresses)));
 
   const { transaction, addressLookupTableAccounts } = await marginfiAccount.makeRepayWithCollatTx(
-    amount,
-    options.repayAmount,
-    bank.address,
-    options.repayBank.address,
-    options.repayBank.isActive && isWholePosition(options.repayBank, options.repayAmount),
+    amount, // 3.02 amount to repay repayAmount
+    options.withdrawAmount, //2 Deposit amount to withdraw withdrawAmount
+    bank.address, // WIF borrowBank
+    options.depositBank.address, // NOS depositBank
+    options.depositBank.isActive && isWholePosition(options.depositBank, options.withdrawAmount),
     bank.isActive && isWholePosition(bank, amount),
     [swapIx],
     swapLUTs,
