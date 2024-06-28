@@ -658,7 +658,8 @@ class MarginfiAccount {
     banks: Map<string, Bank>,
     amount: Amount,
     bankAddress: PublicKey,
-    opt: { wrapAndUnwrapSol?: boolean } = {}
+    tokenProgramAddress: PublicKey,
+    opt: MakeDepositIxOpts = {}
   ): Promise<InstructionsWrapper> {
     const bank = banks.get(bankAddress.toBase58());
     if (!bank) throw Error(`Bank ${bankAddress.toBase58()} not found`);
@@ -674,6 +675,7 @@ class MarginfiAccount {
         authorityPk: this.authority,
         signerTokenAccountPk: userTokenAtaPk,
         bankPk: bank.address,
+        tokenProgramPk: tokenProgramAddress,
       },
       { amount: uiToNative(amount, bank.mintDecimals) }
     );
@@ -690,8 +692,9 @@ class MarginfiAccount {
     banks: Map<string, Bank>,
     amount: Amount,
     bankAddress: PublicKey,
+    tokenProgramAddress: PublicKey,
     repayAll: boolean = false,
-    opt: { wrapAndUnwrapSol?: boolean; createAtas?: boolean } = {}
+    opt: MakeRepayIxOpts = {}
   ): Promise<InstructionsWrapper> {
     const bank = banks.get(bankAddress.toBase58());
     if (!bank) throw Error(`Bank ${bankAddress.toBase58()} not found`);
@@ -728,6 +731,7 @@ class MarginfiAccount {
         authorityPk: this.authority,
         signerTokenAccountPk: userAta,
         bankPk: bankAddress,
+        tokenProgramPk: tokenProgramAddress,
       },
       { amount: uiToNative(amount, bank.mintDecimals), repayAll }
     );
@@ -747,7 +751,8 @@ class MarginfiAccount {
     amount: Amount,
     bankAddress: PublicKey,
     withdrawAll: boolean = false,
-    opt: { observationBanksOverride?: PublicKey[]; wrapAndUnwrapSol?: boolean; createAtas?: boolean } = {}
+    tokenProgramAddress: PublicKey,
+    opt: MakeWithdrawIxOpts = {}
   ): Promise<InstructionsWrapper> {
     const bank = banks.get(bankAddress.toBase58());
     if (!bank) throw Error(`Bank ${bankAddress.toBase58()} not found`);
@@ -802,6 +807,7 @@ class MarginfiAccount {
         signerPk: this.authority,
         bankPk: bank.address,
         destinationTokenAccountPk: userAta,
+        tokenProgramPk: tokenProgramAddress,
       },
       { amount: uiToNative(amount, bank.mintDecimals), withdrawAll },
       remainingAccounts
@@ -820,7 +826,8 @@ class MarginfiAccount {
     banks: Map<string, Bank>,
     amount: Amount,
     bankAddress: PublicKey,
-    opt: { observationBanksOverride?: PublicKey[]; wrapAndUnwrapSol?: boolean; createAtas?: boolean } = {}
+    tokenProgramAddress: PublicKey,
+    opt: MakeBorrowIxOpts = {}
   ): Promise<InstructionsWrapper> {
     const bank = banks.get(bankAddress.toBase58());
     if (!bank) throw Error(`Bank ${bankAddress.toBase58()} not found`);
@@ -857,6 +864,7 @@ class MarginfiAccount {
         signerPk: this.authority,
         bankPk: bank.address,
         destinationTokenAccountPk: userAta,
+        tokenProgramPk: tokenProgramAddress,
       },
       { amount: uiToNative(amount, bank.mintDecimals) },
       remainingAccounts
@@ -908,7 +916,8 @@ class MarginfiAccount {
     banks: Map<string, Bank>,
     assetBankAddress: PublicKey,
     assetQuantityUi: Amount,
-    liabilityBankAddress: PublicKey
+    liabilityBankAddress: PublicKey,
+    liabilityTokenProgramAddress: PublicKey
   ): Promise<InstructionsWrapper> {
     const assetBank = banks.get(assetBankAddress.toBase58());
     if (!assetBank) throw Error(`Asset bank ${assetBankAddress.toBase58()} not found`);
@@ -927,6 +936,7 @@ class MarginfiAccount {
         liabBank: liabilityBankAddress,
         liquidatorMarginfiAccount: this.address,
         liquidateeMarginfiAccount: liquidateeMarginfiAccount.address,
+        tokenProgramPk: liabilityTokenProgramAddress,
       },
       { assetAmount: uiToNative(assetQuantityUi, assetBank.mintDecimals) },
       [
@@ -1087,6 +1097,31 @@ enum MarginRequirementType {
   Initial = 0,
   Maintenance = 1,
   Equity = 2,
+}
+
+export interface MakeDepositIxOpts {
+  wrapAndUnwrapSol?: boolean;
+  priorityFeeUi?: number,
+}
+
+export interface MakeRepayIxOpts {
+  wrapAndUnwrapSol?: boolean;
+  createAtas?: boolean;
+  priorityFeeUi?: number,
+}
+
+export interface MakeWithdrawIxOpts {
+  observationBanksOverride?: PublicKey[];
+  wrapAndUnwrapSol?: boolean;
+  createAtas?: boolean;
+  priorityFeeUi?: number,
+}
+
+export interface MakeBorrowIxOpts {
+  observationBanksOverride?: PublicKey[];
+  wrapAndUnwrapSol?: boolean;
+  createAtas?: boolean;
+  priorityFeeUi?: number;
 }
 
 export function isWeightedPrice(reqType: MarginRequirementType): boolean {
