@@ -4,7 +4,6 @@ import Image from "next/image";
 import { useRouter } from "next/router";
 
 import { IconSearch, IconPlus } from "@tabler/icons-react";
-import { useDebounce } from "@uidotdev/usehooks";
 import { usdFormatter } from "@mrgnlabs/mrgn-common";
 
 import { useTradeStore } from "~/store";
@@ -18,21 +17,25 @@ import { CreatePoolState } from "~/components/common/Pool/CreatePoolDialog";
 type CreatePoolSearchProps = {
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setCreatePoolState: React.Dispatch<React.SetStateAction<CreatePoolState>>;
+  searchQuery: string;
+  setSearchQuery: React.Dispatch<React.SetStateAction<string>>;
+  debouncedSearchQuery: string;
 };
 
-export const CreatePoolSearch = ({ setIsOpen, setCreatePoolState }: CreatePoolSearchProps) => {
-  const { filteredBanks, resetActiveGroup, searchBanks } = useTradeStore((state) => ({
+export const CreatePoolSearch = ({
+  setIsOpen,
+  setCreatePoolState,
+  searchQuery,
+  setSearchQuery,
+  debouncedSearchQuery,
+}: CreatePoolSearchProps) => {
+  const { filteredBanks, resetActiveGroup } = useTradeStore((state) => ({
     filteredBanks: state.filteredBanks,
     resetActiveGroup: state.resetActiveGroup,
-    searchBanks: state.searchBanks,
   }));
 
   const router = useRouter();
-
-  const [searchQuery, setSearchQuery] = React.useState("");
-
   const searchInputRef = React.useRef<HTMLInputElement>(null);
-  const debouncedSearchQuery = useDebounce(searchQuery, 500);
 
   return (
     <>
@@ -62,13 +65,13 @@ export const CreatePoolSearch = ({ setIsOpen, setCreatePoolState }: CreatePoolSe
         </div>
 
         <div>
-          {debouncedSearchQuery.length > 1 && filteredBanks.length === 0 && (
+          {debouncedSearchQuery.length > 1 && searchQuery.length > 1 && filteredBanks.length === 0 && (
             <div className="text-center text-muted-foreground w-full">
-              <p>No results found for &quot;{debouncedSearchQuery}&quot;</p>
+              <p>No results found for &quot;{searchQuery}&quot;</p>
             </div>
           )}
 
-          {filteredBanks.length > 0 && (
+          {debouncedSearchQuery.length > 0 && filteredBanks.length > 0 && (
             <div className="space-y-3">
               {filteredBanks.slice(0, 5).map((bank, index) => (
                 <button
@@ -112,7 +115,7 @@ export const CreatePoolSearch = ({ setIsOpen, setCreatePoolState }: CreatePoolSe
             </div>
           )}
 
-          {debouncedSearchQuery.length > 1 && (
+          {searchQuery.length > 0 && filteredBanks.length === 0 && (
             <div className="flex justify-center pt-4">
               <Button onClick={() => setCreatePoolState(CreatePoolState.MINT)} variant="secondary">
                 <IconPlus size={18} /> Create new pool
