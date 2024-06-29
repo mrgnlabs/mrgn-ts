@@ -15,10 +15,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // Check cache
   const cachedData = tokenCache.get(cacheKey);
-  // if (cachedData) {
-  //   res.status(200).json(cachedData);
-  //   return;
-  // }
+  if (cachedData) {
+    res.status(200).json(cachedData);
+    return;
+  }
 
   // Fetch from API and update cache
   try {
