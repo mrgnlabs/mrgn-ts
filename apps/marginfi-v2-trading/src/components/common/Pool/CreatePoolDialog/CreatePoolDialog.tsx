@@ -25,7 +25,7 @@ import {
 } from "~/components/common/Pool/CreatePoolDialog/";
 import { Dialog, DialogContent, DialogTrigger } from "~/components/ui/dialog";
 import { Button } from "~/components/ui/button";
-import { TokenData } from "~/pages/api/birdeye/token";
+import { TokenData } from "~/types";
 
 type CreatePoolDialogProps = {
   trigger?: React.ReactNode;
