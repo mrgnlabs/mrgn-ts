@@ -106,7 +106,7 @@ export const PoolCard = ({ bank }: PoolCardProps) => {
             <>
               <dt className="">24hr vol</dt>
               <dd className="text-right text-primary tracking-wide">
-                {numeralFormatter(tokenData.volume24h)}
+                ${numeralFormatter(tokenData.volume24h)}
                 {tokenData?.volumeChange24h && (
                   <span
                     className={cn(
