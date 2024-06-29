@@ -93,14 +93,14 @@ export default function TradeSymbolPage() {
             <header className="flex flex-col gap-4 justify-center items-center w-full pb-4">
               <Image
                 src={getTokenImageURL(activeGroup.token.meta.tokenSymbol)}
-                width={96}
-                height={96}
+                width={64}
+                height={64}
                 className="rounded-full"
                 alt={activeGroup.token.meta.tokenName}
               />
               <div className="text-center space-y-1.5">
-                <h1 className="text-4xl font-medium">{activeGroup.token.meta.tokenName}</h1>
-                <h2 className="text-2xl text-muted-foreground">{activeGroup.token.meta.tokenSymbol}</h2>
+                <h1 className="text-3xl font-medium">{activeGroup.token.meta.tokenName}</h1>
+                <h2 className="text-lg text-muted-foreground">{activeGroup.token.meta.tokenSymbol}</h2>
               </div>
             </header>
             {tokenData && (
@@ -261,7 +261,7 @@ type StatProps = {
 
 const StatBlock = ({ label, value, subValue }: StatProps) => (
   <Card className="bg-background-gray-dark border-none">
-    <CardHeader className="pb-4">
+    <CardHeader className="pb-2">
       <CardTitle className="text-sm text-muted-foreground font-normal">{label}</CardTitle>
     </CardHeader>
     <CardContent>
