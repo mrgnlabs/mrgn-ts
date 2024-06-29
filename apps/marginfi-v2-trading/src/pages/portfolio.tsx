@@ -9,12 +9,7 @@ import { Loader } from "~/components/ui/loader";
 import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 export default function PortfolioPage() {
-  const [initialized, selectedAccount, banks, banksIncludingUSDC] = useTradeStore((state) => [
-    state.initialized,
-    state.selectedAccount,
-    state.banks,
-    state.banksIncludingUSDC,
-  ]);
+  const [initialized, banks] = useTradeStore((state) => [state.initialized, state.banks]);
 
   const portfolio = React.useMemo(() => {
     const activeBanks = banks.filter((bank) => bank.isActive);

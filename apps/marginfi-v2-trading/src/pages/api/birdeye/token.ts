@@ -16,7 +16,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // Check cache
   const cachedData = tokenCache.get(cacheKey);
   // if (cachedData) {
-  //   console.log("using cache");
   //   res.status(200).json(cachedData);
   //   return;
   // }
@@ -58,13 +57,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       price: data.price,
       priceChange24h: data.priceChange24hPercent,
       marketCap: data.mc,
-      volume24h: data.v24h,
+      volume24h: data.v24hUSD,
       volumeChange24h: data.v24hChangePercent,
     };
 
     // Store in cache
     tokenCache.set(cacheKey, tokenData);
-    console.log("new data");
     res.status(200).json(tokenData);
   } catch (error) {
     console.error("Error:", error);
