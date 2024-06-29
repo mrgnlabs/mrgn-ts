@@ -20,12 +20,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   //   return;
   // }
 
-  // use abort controller to restrict fetch to 10 seconds
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => {
-    controller.abort();
-  }, 5000);
-
   // Fetch from API and update cache
   try {
     const response = await fetch(`https://public-api.birdeye.so/defi/token_overview?address=${address}`, {
@@ -34,9 +28,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         "x-chain": "solana",
         "X-Api-Key": process.env.BIRDEYE_API_KEY || "",
       },
-      signal: controller.signal,
     });
-    clearTimeout(timeoutId);
 
     if (!response.ok) {
       throw new Error("Network response was not ok");
