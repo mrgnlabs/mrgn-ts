@@ -119,7 +119,9 @@ export const PositionList = () => {
                     )}
                     {!isBorrowing && (
                       <ActionBoxDialog
-                        requestedBank={bank.position.isLending ? collateralBank : bank}
+                        requestedBank={
+                          bank.position.isLending ? (collateralBank.isActive ? collateralBank : bank) : bank
+                        }
                         requestedAction={ActionType.Withdraw}
                       >
                         <Button variant="secondary" size="sm" className="gap-1 min-w-16">
