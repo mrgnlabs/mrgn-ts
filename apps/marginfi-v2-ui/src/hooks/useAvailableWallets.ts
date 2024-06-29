@@ -19,6 +19,7 @@ import {
   IconTrustWallet,
   IconEthereum,
 } from "~/components/ui/icons";
+import { WalletInfo } from "./useWalletContext";
 
 type WalletPreset = "eth" | "sol" | "social" | "pwa";
 
