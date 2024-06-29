@@ -72,7 +72,7 @@ export const PoolCard = ({ bank }: PoolCardProps) => {
       <CardHeader>
         <CardTitle>
           <div className="flex items-center gap-2 justify-between">
-            <div className="flex items-center gap-3">
+            <Link href={`/pools/${bank.address.toBase58()}`} className="flex items-center gap-3">
               <Image
                 src={getTokenImageURL(bank.meta.tokenSymbol)}
                 width={48}
@@ -84,7 +84,7 @@ export const PoolCard = ({ bank }: PoolCardProps) => {
                 <h2>{bank.meta.tokenName}</h2>
                 <span className="text-muted-foreground text-sm">{bank.meta.tokenSymbol}</span>
               </div>
-            </div>
+            </Link>
           </div>
         </CardTitle>
       </CardHeader>

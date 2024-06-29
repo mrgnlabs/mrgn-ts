@@ -19,19 +19,6 @@ type BankCardProps = {
 export const BankCard = ({ bank }: BankCardProps) => {
   const { rateAP } = useAssetItemData({ bank, isInLendingMode: true });
 
-  // const isUserPositionPoorHealth = React.useMemo(() => {
-  //   if (!bank || !bank?.position?.liquidationPrice) {
-  //     return false;
-  //   }
-
-  //   const alertRange = 0.05;
-
-  //   if (bank.position.isLending) {
-  //     return bank.info.state.price < bank.position.liquidationPrice + bank.position.liquidationPrice * alertRange;
-  //   } else {
-  //     return bank.info.state.price > bank.position.liquidationPrice - bank.position.liquidationPrice * alertRange;
-  //   }
-  // }, [bank]);
   return (
     <div className="bg-background-gray p-4 rounded-lg space-y-4 flex flex-col justify-between">
       <div className="flex justify-between items-center w-full gap-2">
