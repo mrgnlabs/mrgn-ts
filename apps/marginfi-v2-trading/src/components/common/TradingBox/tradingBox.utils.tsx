@@ -47,6 +47,7 @@ export async function calculateLooping(
   targetLeverage: number,
   amount: number,
   slippageBpsa: number,
+  priorityFee: number,
   connection: Connection
 ): Promise<LoopingObject | null> {
   const slippageBps = 0.1 * 1000;
@@ -80,79 +81,138 @@ export async function calculateLooping(
 
     const borrowAmountNative = uiToNative(borrowAmount, borrowBank.info.state.mintDecimals).toNumber();
 
-    const maxLoopAmount = depositBank.isActive ? depositBank?.position.amount : 0;
-
-    const maxAccountsArr = [undefined, 50, 40, 30];
-
-    let firstQuote;
-
-    for (const maxAccounts of maxAccountsArr) {
-      const quoteParams = {
-        amount: borrowAmountNative,
-        inputMint: borrowBank.info.state.mint.toBase58(), // borrow
-        outputMint: depositBank.info.state.mint.toBase58(), // deposit
-        slippageBps: slippageBps,
-        maxAccounts: maxAccounts,
-        swapMode: "ExactIn",
-      } as QuoteGetRequest;
-      try {
-        const swapQuote = await getSwapQuoteWithRetry(quoteParams);
-
-        if (!maxAccounts) {
-          firstQuote = swapQuote;
-        }
-
-        if (swapQuote) {
-          const minSwapAmountOutUi = nativeToUi(swapQuote.otherAmountThreshold, depositBank.info.state.mintDecimals);
-          const actualDepositAmountUi = minSwapAmountOutUi + amount;
-
-          let txn: VersionedTransaction | undefined;
-
-          if (marginfiAccount) {
-            txn = await verifyJupTxSizeLooping(
-              marginfiAccount,
-              depositBank,
-              borrowBank,
-              actualDepositAmountUi,
-              borrowAmount,
-              swapQuote,
-              connection
-            );
-          }
-
-          if (txn || !marginfiAccount) {
-            // capture("looper", {
-            //   amountIn: uiToNative(amount, borrowBank.info.state.mintDecimals).toNumber(),
-            //   firstQuote,
-            //   bestQuote: swapQuote,
-            //   inputMint: borrowBank.info.state.mint.toBase58(),
-            //   outputMint: bank.info.state.mint.toBase58(),
-            // });
-            return {
-              loopingTxn: txn ?? null,
-              quote: swapQuote,
-              borrowAmount: borrowAmount,
-              actualDepositAmount: actualDepositAmountUi,
-            };
-          }
-        } else {
-          throw new Error("Swap quote failed");
-        }
-      } catch (error) {
-        console.error(error);
-        // capture("looper", {
-        //   amountIn: uiToNative(amount, borrowBank.info.state.mintDecimals).toNumber(),
-        //   firstQuote,
-        //   inputMint: borrowBank.info.state.mint.toBase58(),
-        //   outputMint: bank.info.state.mint.toBase58(),
-        // });
-        return null;
-      }
-    }
+    return await getLoopingTransaction({
+      marginfiAccount,
+      borrowAmountNative,
+      borrowBank,
+      depositBank,
+      amount,
+      borrowAmount,
+      slippageBps,
+      connection,
+      priorityFee,
+    });
   } catch (error) {
     console.error(error);
   }
 
+  return null;
+}
+
+export async function getLoopingTransaction({
+  marginfiAccount,
+  borrowAmountNative,
+  borrowBank,
+  depositBank,
+  amount,
+  borrowAmount,
+  slippageBps,
+  connection,
+  priorityFee,
+  loopObject,
+}: {
+  marginfiAccount: MarginfiAccountWrapper | null;
+  borrowAmountNative: number;
+  borrowBank: ExtendedBankInfo;
+  depositBank: ExtendedBankInfo;
+  amount: number;
+  borrowAmount: BigNumber;
+  slippageBps: number;
+  connection: Connection;
+  priorityFee?: number;
+  loopObject?: LoopingObject;
+}) {
+  let firstQuote;
+  const maxAccountsArr = [undefined, 50, 40, 30];
+
+  if (loopObject?.loopingTxn && marginfiAccount) {
+    const txn = await verifyJupTxSizeLooping(
+      marginfiAccount,
+      depositBank,
+      borrowBank,
+      loopObject.actualDepositAmount,
+      loopObject.borrowAmount,
+      loopObject.quote,
+      connection,
+      priorityFee
+    );
+
+    if (!txn) {
+      throw new Error("Transaction expired, please try again.");
+    } else {
+      return {
+        loopingTxn: txn ?? null,
+        quote: loopObject.quote,
+        borrowAmount: loopObject.borrowAmount,
+        actualDepositAmount: loopObject.actualDepositAmount,
+      };
+    }
+  }
+
+  for (const maxAccounts of maxAccountsArr) {
+    const quoteParams = {
+      amount: borrowAmountNative,
+      inputMint: borrowBank.info.state.mint.toBase58(), // borrow
+      outputMint: depositBank.info.state.mint.toBase58(), // deposit
+      slippageBps: slippageBps,
+      maxAccounts: maxAccounts,
+      swapMode: "ExactIn",
+    } as QuoteGetRequest;
+    try {
+      const swapQuote = await getSwapQuoteWithRetry(quoteParams);
+
+      if (!maxAccounts) {
+        firstQuote = swapQuote;
+      }
+
+      if (swapQuote) {
+        const minSwapAmountOutUi = nativeToUi(swapQuote.otherAmountThreshold, depositBank.info.state.mintDecimals);
+        const actualDepositAmountUi = minSwapAmountOutUi + amount;
+
+        let txn: VersionedTransaction | undefined;
+
+        if (marginfiAccount) {
+          txn = await verifyJupTxSizeLooping(
+            marginfiAccount,
+            depositBank,
+            borrowBank,
+            actualDepositAmountUi,
+            borrowAmount,
+            swapQuote,
+            connection,
+            priorityFee
+          );
+        }
+
+        if (txn || !marginfiAccount) {
+          // capture("looper", {
+          //   amountIn: uiToNative(amount, borrowBank.info.state.mintDecimals).toNumber(),
+          //   firstQuote,
+          //   bestQuote: swapQuote,
+          //   inputMint: borrowBank.info.state.mint.toBase58(),
+          //   outputMint: bank.info.state.mint.toBase58(),
+          // });
+          return {
+            loopingTxn: txn ?? null,
+            quote: swapQuote,
+            borrowAmount: borrowAmount,
+            actualDepositAmount: actualDepositAmountUi,
+          };
+        }
+      } else {
+        throw new Error("Swap quote failed");
+      }
+    } catch (error) {
+      console.error(error);
+      // capture("looper", {
+      //   amountIn: uiToNative(amount, borrowBank.info.state.mintDecimals).toNumber(),
+      //   firstQuote,
+      //   inputMint: borrowBank.info.state.mint.toBase58(),
+      //   outputMint: bank.info.state.mint.toBase58(),
+      // });
+      return null;
+    }
+  }
   return null;
 }
 
@@ -163,7 +223,8 @@ export async function verifyJupTxSizeLooping(
   depositAmount: number,
   borrowAmount: BigNumber,
   quoteResponse: QuoteResponse,
-  connection: Connection
+  connection: Connection,
+  priorityFee?: number
 ) {
   try {
     const builder = await loopingBuilder({
@@ -177,6 +238,7 @@ export async function verifyJupTxSizeLooping(
         connection,
         loopingTxn: null,
       },
+      priorityFee,
     });
 
     return checkTxSize(builder);
