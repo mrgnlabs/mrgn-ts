@@ -3,7 +3,7 @@ import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 
-import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActionType, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { numeralFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 
 import { getTokenImageURL } from "~/utils";
@@ -13,6 +13,7 @@ import { Table, TableBody, TableHead, TableCell, TableHeader, TableRow } from "~
 import { Button } from "~/components/ui/button";
 import { Badge } from "~/components/ui/badge";
 import { IconMinus, IconPlus, IconX } from "@tabler/icons-react";
+import { ActionBoxDialog } from "../ActionBox";
 
 export const PositionList = () => {
   const [initialized, selectedAccount, banks, collateralBanks] = useTradeStore((state) => [
@@ -53,6 +54,8 @@ export const PositionList = () => {
 
           {portfolio.map((bank, index) => {
             const collateralBank = collateralBanks[bank.address.toBase58()] || null;
+            const borrowBank = bank.position.isLending ? collateralBank : bank;
+            const isBorrowing = borrowBank.isActive && !borrowBank.position.isLending;
 
             return (
               <TableRow key={index} className="even:bg-background-gray hover:even:bg-background-gray">
@@ -94,14 +97,37 @@ export const PositionList = () => {
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex gap-3 justify-end">
-                    <Button variant="secondary" size="sm" className="gap-1 min-w-16">
-                      <IconPlus size={14} />
-                      Add
-                    </Button>
-                    <Button variant="secondary" size="sm" className="gap-1 min-w-16">
-                      <IconMinus size={14} />
-                      Reduce
-                    </Button>
+                    <ActionBoxDialog
+                      requestedBank={bank.position.isLending ? bank : collateralBank}
+                      requestedAction={ActionType.Deposit}
+                    >
+                      <Button variant="secondary" size="sm" className="gap-1 min-w-16">
+                        <IconPlus size={14} />
+                        Add
+                      </Button>
+                    </ActionBoxDialog>
+                    {collateralBank && isBorrowing && (
+                      <ActionBoxDialog
+                        requestedBank={bank.position.isLending ? collateralBank : bank}
+                        requestedAction={ActionType.Repay}
+                      >
+                        <Button variant="secondary" size="sm" className="gap-1 min-w-16">
+                          <IconMinus size={14} />
+                          Reduce
+                        </Button>
+                      </ActionBoxDialog>
+                    )}
+                    {!isBorrowing && (
+                      <ActionBoxDialog
+                        requestedBank={bank.position.isLending ? collateralBank : bank}
+                        requestedAction={ActionType.Withdraw}
+                      >
+                        <Button variant="secondary" size="sm" className="gap-1 min-w-16">
+                          <IconMinus size={14} />
+                          Withdraw
+                        </Button>
+                      </ActionBoxDialog>
+                    )}
                     <Button variant="destructive" size="sm" className="gap-1 min-w-16">
                       <IconX size={14} />
                       Close
