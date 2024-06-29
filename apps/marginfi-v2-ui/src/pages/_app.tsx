@@ -32,6 +32,7 @@ import "swiper/css";
 import "swiper/css/pagination";
 import "react-toastify/dist/ReactToastify.min.css";
 import { AuthDialog } from "~/components/common/Wallet/components/AuthenticationV2";
+import { FrontChat } from "~/components/ui/front";
 
 import { registerMoonGateWallet } from "@moongate/moongate-adapter";
 
@@ -135,6 +136,8 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
                     <AuthDialog />
 
                     <ToastContainer position="bottom-left" theme="dark" />
+
+                    <FrontChat />
 
                   </LipClientProvider>
                 </MrgnlendProvider>
