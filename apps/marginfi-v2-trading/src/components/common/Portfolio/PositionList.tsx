@@ -1,17 +1,18 @@
 import React from "react";
 
 import Image from "next/image";
+import Link from "next/link";
 
-import { ActionType, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { numeralFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 
 import { getTokenImageURL } from "~/utils";
 import { useTradeStore } from "~/store";
 
-import { ActionBoxDialog } from "~/components/common/ActionBox";
 import { Table, TableBody, TableHead, TableCell, TableHeader, TableRow } from "~/components/ui/table";
 import { Button } from "~/components/ui/button";
 import { Badge } from "~/components/ui/badge";
+import { IconMinus, IconPlus, IconX } from "@tabler/icons-react";
 
 export const PositionList = () => {
   const [initialized, selectedAccount, banks, collateralBanks] = useTradeStore((state) => [
@@ -63,16 +64,19 @@ export const PositionList = () => {
                   )}
                 </TableCell>
                 <TableCell>
-                  <div className="flex items-center gap-2 text-muted-foreground">
+                  <Link
+                    href={`/pools/${bank.address.toBase58()}`}
+                    className="flex items-center gap-3 text-muted-foreground transition-colors hover:text-primary"
+                  >
                     <Image
                       src={getTokenImageURL(bank.meta.tokenSymbol)}
                       width={24}
                       height={24}
                       alt={bank.meta.tokenSymbol}
-                      className="rounded-full"
+                      className="rounded-full shrink-0"
                     />{" "}
                     {bank.meta.tokenSymbol}
-                  </div>
+                  </Link>
                 </TableCell>
                 <TableCell>{bank.position.amount < 0.01 ? "0.01" : numeralFormatter(bank.position.amount)}</TableCell>
                 <TableCell>{usdFormatter.format(bank.position.usdValue)}</TableCell>
@@ -90,15 +94,17 @@ export const PositionList = () => {
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex gap-3 justify-end">
-                    {collateralBank && (
-                      <ActionBoxDialog requestedAction={ActionType.Deposit} requestedBank={collateralBank}>
-                        <Button variant="secondary" size="sm">
-                          Add collateral
-                        </Button>
-                      </ActionBoxDialog>
-                    )}
-                    <Button variant="destructive" size="sm">
-                      Close position
+                    <Button variant="secondary" size="sm" className="gap-1 min-w-16">
+                      <IconPlus size={14} />
+                      Add
+                    </Button>
+                    <Button variant="secondary" size="sm" className="gap-1 min-w-16">
+                      <IconMinus size={14} />
+                      Reduce
+                    </Button>
+                    <Button variant="destructive" size="sm" className="gap-1 min-w-16">
+                      <IconX size={14} />
+                      Close
                     </Button>
                   </div>
                 </TableCell>
