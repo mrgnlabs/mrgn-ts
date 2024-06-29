@@ -4,6 +4,22 @@ import { WalletName, WalletReadyState } from "@solana/wallet-adapter-base";
 
 import { useOs } from "~/hooks/useOs";
 
+import {
+  IconMrgn,
+  IconBrandX,
+  IconBrandApple,
+  IconBrandGoogle,
+  IconBraveWallet,
+  IconCoinbaseWallet,
+  IconPhantomWallet,
+  IconBackpackWallet,
+  IconSolflareWallet,
+  IconWalletConnectWallet,
+  IconGlowWallet,
+  IconTrustWallet,
+  IconEthereum,
+} from "~/components/ui/icons";
+
 type WalletPreset = "eth" | "sol" | "social" | "pwa";
 
 const ETH_PRESET = [
@@ -14,15 +30,31 @@ const ETH_PRESET = [
   "Ethereum Wallet",
   "Sign in with Google",
 ];
-const SOL_PRESET = ["Backpack", "Phantom", "Solflare"];
-const SOCIAL_PRESET = ["Backpack", "Phantom", "Solflare", "Google via TipLink"];
-const PWA_PRESET = ["Phantom", "Mobile Wallet Adapter", "Google via TipLink"];
+
+const SOL_PRESET = [
+  "Backpack", 
+  "Phantom", 
+  "Solflare",
+];
+
+const SOCIAL_PRESET = [
+  "Backpack", 
+  "Phantom", 
+  "Solflare", 
+  "Google via TipLink"
+];
+
+const PWA_PRESET = [
+  "Phantom", 
+  "Mobile Wallet Adapter", 
+  "Google via TipLink"
+];
 
 const BackpackWalletName = "Backpack" as WalletName<"Backpack">;
-
 const PhantomWalletName = "Phantom" as WalletName<"Phantom">;
-
 const SolflareWalletName = "Solflare" as WalletName<"Solflare">;
+const CoinbaseWalletName = "Coinbase" as WalletName<"Coinbase">;
+const SquadsXWalletName = "SquadsX" as WalletName<"SquadsX">;
 
 export interface ExtendedWallet extends Wallet {
   deeplink?: string;
@@ -96,6 +128,14 @@ export function useAvailableWallets(preset?: WalletPreset): ExtendedWallet[] {
       newWallets.push(backpackAdapter);
     }
 
+    if (!walletNames.includes(CoinbaseWalletName)) {
+      newWallets.push(coinbaseAdapter);
+    }
+
+    if (!walletNames.includes(SquadsXWalletName)) {
+      newWallets.push(squadsXWalletAdapter);
+    }
+
     return newWallets;
   };
 
@@ -158,6 +198,8 @@ export const walletInstallMap: WalletLinkMap = {
   Phantom: "https://phantom.app/download",
   Backpack: "https://backpack.app/download",
   Solflare: "https://gamma.solflare.com/download#extension",
+  Coinbase: "https://www.coinbase.com/wallet/articles/getting-started-extension",
+  SquadsX: "https://squads.so/extension"
 };
 
 const backpackAdapter: Wallet = {
@@ -185,4 +227,22 @@ const solflareAdapter: Wallet = {
     readyState: WalletReadyState.NotDetected,
   } as any,
   readyState: WalletReadyState.NotDetected,
+};
+
+const coinbaseAdapter: Wallet = {
+  adapter: {
+    name: CoinbaseWalletName,
+    icon: "",
+    readyState: WalletReadyState.NotDetected,
+  } as any,
+  readyState: WalletReadyState.NotDetected
+};
+
+const squadsXWalletAdapter: Wallet = {
+  adapter: {
+    name: SquadsXWalletName,
+    icon: "",
+    readyState: WalletReadyState.NotDetected,
+  } as any,
+  readyState: WalletReadyState.NotDetected
 };

@@ -43,7 +43,7 @@ export const AuthDialog = () => {
     return isOnboarded !== null ? "RETURNING_USER" : "ONBOARD_MAIN";
   }, []);
 
-  const [flow, setFlow] = React.useState<AuthFlowType>(mainFlow);
+  const [flow, setFlow] = React.useState<AuthFlowType>("ONBOARD_ETH");
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const [isActiveLoading, setIsActiveLoading] = React.useState<string>("");
   const [progress, setProgress] = React.useState<number>(0);
