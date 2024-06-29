@@ -932,6 +932,7 @@ export async function mintLstToken({
 // Helpers //
 // ------------------------------------------------------------------//
 
+// PDA not being able to create a bank?
 export async function getMaybeSquadsOptions(walletContextState?: WalletContextState | WalletContextStateOverride) {
   // If the connected wallet is SquadsX, use the ephemeral signer address provided by the wallet to create the marginfi account.
   const adapter = walletContextState?.wallet?.adapter;
