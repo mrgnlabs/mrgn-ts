@@ -32,7 +32,7 @@ import {
   simulateLooping,
 } from "./tradingBox.utils";
 import { useDebounce } from "~/hooks/useDebounce";
-import { extractErrorString, usePrevious } from "~/utils";
+import { executeLeverageAction, extractErrorString, usePrevious } from "~/utils";
 import Link from "next/link";
 import { MultiStepToastHandle } from "~/utils/toastUtils";
 
@@ -49,7 +49,7 @@ type StatusType = {
 
 export const TradingBox = ({ activeBank }: TradingBoxProps) => {
   const router = useRouter();
-  const { wallet, connected } = useWalletContext();
+  const { walletContextState, wallet, connected } = useWalletContext();
   const { connection } = useConnection();
   const [tradeState, setTradeState] = React.useState<TradeSide>("long");
   const prevTradeState = usePrevious(tradeState);
@@ -185,6 +185,7 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
           leverage,
           Number(amount),
           slippageBps,
+          priorityFee,
           connection
         );
 
@@ -250,16 +251,48 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
     [accountSummary, activeGroup, marginfiClient]
   );
 
-  const handleLeverageAction = React.useCallback(async () => {
-    if (loopingObject?.loopingTxn && marginfiClient && collateralBank) {
-      const multiStepToast = new MultiStepToastHandle("Long", [
-        { label: `Longing ${amount} ${collateralBank.meta.tokenSymbol}` },
-      ]);
-      multiStepToast.start();
+  const leverageActionCb = React.useCallback(
+    async (depositBank: ExtendedBankInfo, borrowBank: ExtendedBankInfo) => {
+      const sig = await executeLeverageAction({
+        marginfiClient,
+        marginfiAccount: selectedAccount,
+        depositBank,
+        borrowBank,
+        walletContextState,
+        depositAmount: Number(amount),
+        tradeState,
+        loopingObject,
+        priorityFee,
+        slippageBps: 0.1 * 1000,
+        connection,
+      });
 
+      return sig;
+    },
+    [amount, connection, loopingObject, marginfiClient, priorityFee, selectedAccount, tradeState, walletContextState]
+  );
+
+  const handleLeverageAction = React.useCallback(async () => {
+    if (loopingObject && marginfiClient && collateralBank) {
       try {
-        const sig = await marginfiClient.processTransaction(loopingObject?.loopingTxn);
-        multiStepToast.setSuccessAndNext();
+        // const params =
+
+        // const sig = await marginfiClient.processTransaction(loopingObject?.loopingTxn);
+        // multiStepToast.setSuccessAndNext();
+
+        let depositBank: ExtendedBankInfo, borrowBank: ExtendedBankInfo;
+        let sig: undefined | string;
+
+        if (activeGroup) {
+          if (tradeState === "short") {
+            depositBank = activeGroup.usdc;
+            borrowBank = activeGroup.token;
+          } else {
+            depositBank = activeGroup.token;
+            borrowBank = activeGroup.usdc;
+          }
+          sig = await leverageActionCb(depositBank, borrowBank);
+        }
 
         if (sig) {
           setIsActionComplete(true);
@@ -275,13 +308,13 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
       } catch (error: any) {
         const msg = extractErrorString(error);
         //Sentry.captureException({ message: error });
-        multiStepToast.setFailed(msg);
+        // multiStepToast.setFailed(msg);
         console.log(`Error while longing: ${msg}`);
         console.log(error);
         return;
       }
     }
-  }, [collateralBank, loopingObject, marginfiClient]);
+  }, [activeGroup, collateralBank, leverageActionCb, loopingObject, marginfiClient, setIsActionComplete, tradeState]);
 
   const handleAmountChange = React.useCallback(
     (amountRaw: string) => {
