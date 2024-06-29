@@ -90,7 +90,7 @@ export const PositionCard = ({ bank, isLong }: PositionCardProps) => {
             {usdFormatter.format(bank.info.oraclePrice.priceRealtime.price.toNumber())}
             {tokenData && (
               <span className={cn("ml-1", tokenData.priceChange24h ? "text-mrgn-success" : "text-mrgn-error")}>
-                ({percentFormatter.format(tokenData.priceChange24h / 100)})
+                {percentFormatter.format(tokenData.priceChange24h / 100)}
               </span>
             )}
           </dd>
