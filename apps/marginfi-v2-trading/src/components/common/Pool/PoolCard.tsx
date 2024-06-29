@@ -97,8 +97,8 @@ export const PoolCard = ({ bank }: PoolCardProps) => {
               <span
                 className={cn("text-xs ml-2", tokenData.priceChange24h > 0 ? "text-mrgn-success" : "text-mrgn-error")}
               >
-                ({tokenData.priceChange24h > 0 && "+"}
-                {percentFormatter.format(tokenData.priceChange24h / 100)})
+                {tokenData.priceChange24h > 0 && "+"}
+                {percentFormatter.format(tokenData.priceChange24h / 100)}
               </span>
             )}
           </dd>
@@ -114,8 +114,8 @@ export const PoolCard = ({ bank }: PoolCardProps) => {
                       tokenData.volumeChange24h > 0 ? "text-mrgn-success" : "text-mrgn-error"
                     )}
                   >
-                    ({tokenData.volumeChange24h > 0 && "+"}
-                    {percentFormatter.format(tokenData.volumeChange24h / 100)})
+                    {tokenData.volumeChange24h > 0 && "+"}
+                    {percentFormatter.format(tokenData.volumeChange24h / 100)}
                   </span>
                 )}
               </dd>
