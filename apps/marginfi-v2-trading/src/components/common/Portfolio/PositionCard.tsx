@@ -116,7 +116,10 @@ export const PositionCard = ({ bank, isLong }: PositionCardProps) => {
           </ActionBoxDialog>
         )}
         {!isBorrowing && (
-          <ActionBoxDialog requestedBank={isLong ? collateralBank : bank} requestedAction={ActionType.Withdraw}>
+          <ActionBoxDialog
+            requestedBank={isLong ? (collateralBank.isActive ? collateralBank : bank) : bank}
+            requestedAction={ActionType.Withdraw}
+          >
             <Button variant="secondary" size="sm">
               <IconMinus size={14} /> Withdraw
             </Button>
