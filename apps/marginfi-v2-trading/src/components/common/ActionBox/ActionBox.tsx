@@ -656,6 +656,7 @@ export const ActionBox = ({
                 amountRaw={amountRaw}
                 maxAmount={maxAmount}
                 showCloseBalance={showCloseBalance}
+                selectedAccount={selectedAccount}
                 isDialog={isDialog}
                 tokensOverride={
                   requestedCollateralBank && requestedBank ? [requestedBank, requestedCollateralBank] : undefined
