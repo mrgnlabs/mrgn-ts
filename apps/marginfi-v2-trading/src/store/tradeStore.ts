@@ -306,6 +306,7 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
       return {
         ...state,
         marginfiClient: null,
+        selectedAccount: null,
         activeGroup: null,
       };
     });
