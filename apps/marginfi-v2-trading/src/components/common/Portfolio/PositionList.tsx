@@ -5,15 +5,16 @@ import Link from "next/link";
 
 import { ActionType, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { numeralFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
+import { IconMinus, IconPlus, IconX } from "@tabler/icons-react";
 
 import { getTokenImageURL } from "~/utils";
 import { useTradeStore } from "~/store";
 
+import { ActionBoxDialog } from "~/components/common/ActionBox";
+import { PositionActionButtons } from "~/components/common/Portfolio";
 import { Table, TableBody, TableHead, TableCell, TableHeader, TableRow } from "~/components/ui/table";
 import { Button } from "~/components/ui/button";
 import { Badge } from "~/components/ui/badge";
-import { IconMinus, IconPlus, IconX } from "@tabler/icons-react";
-import { ActionBoxDialog } from "../ActionBox";
 
 export const PositionList = () => {
   const [banks, collateralBanks, marginfiAccounts] = useTradeStore((state) => [
@@ -97,51 +98,12 @@ export const PositionList = () => {
                 </TableCell>
                 <TableCell className="text-right">
                   {marginfiAccounts && (
-                    <div className="flex gap-3 justify-end">
-                      <ActionBoxDialog
-                        requestedBank={bank.position.isLending ? bank : collateralBank}
-                        requestedAction={ActionType.Deposit}
-                        requestedAccount={marginfiAccount}
-                      >
-                        <Button variant="secondary" size="sm" className="gap-1 min-w-16">
-                          <IconPlus size={14} />
-                          Add
-                        </Button>
-                      </ActionBoxDialog>
-                      {collateralBank && isBorrowing && (
-                        <ActionBoxDialog
-                          requestedBank={bank.position.isLending ? collateralBank : bank}
-                          requestedAction={ActionType.Repay}
-                          requestedAccount={marginfiAccount}
-                        >
-                          <Button variant="secondary" size="sm" className="gap-1 min-w-16">
-                            <IconMinus size={14} />
-                            Reduce
-                          </Button>
-                        </ActionBoxDialog>
-                      )}
-                      {!isBorrowing && (
-                        <ActionBoxDialog
-                          requestedBank={
-                            bank.position.isLending ? (collateralBank.isActive ? collateralBank : bank) : bank
-                          }
-                          requestedAction={ActionType.Withdraw}
-                          requestedAccount={marginfiAccount}
-                          requestedCollateralBank={
-                            bank.position.isLending ? (collateralBank.isActive ? bank : collateralBank) : collateralBank
-                          }
-                        >
-                          <Button variant="secondary" size="sm" className="gap-1 min-w-16">
-                            <IconMinus size={14} />
-                            Withdraw
-                          </Button>
-                        </ActionBoxDialog>
-                      )}
-                      <Button variant="destructive" size="sm" className="gap-1 min-w-16">
-                        <IconX size={14} />
-                        Close
-                      </Button>
-                    </div>
+                    <PositionActionButtons
+                      marginfiAccount={marginfiAccount}
+                      isBorrowing={isBorrowing}
+                      bank={bank}
+                      collateralBank={collateralBank}
+                    />
                   )}
                 </TableCell>
               </TableRow>
