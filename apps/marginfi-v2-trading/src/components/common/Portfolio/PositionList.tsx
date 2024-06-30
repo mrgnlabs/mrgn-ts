@@ -85,7 +85,11 @@ export const PositionList = () => {
                 </TableCell>
                 <TableCell>{bank.position.amount < 0.01 ? "0.01" : numeralFormatter(bank.position.amount)}</TableCell>
                 <TableCell>{usdFormatter.format(bank.position.usdValue)}</TableCell>
-                <TableCell>{usdFormatter.format(bank.info.oraclePrice.priceRealtime.price.toNumber())}</TableCell>
+                <TableCell>
+                  {bank.info.oraclePrice.priceRealtime.price.toNumber()
+                    ? usdFormatter.format(bank.info.oraclePrice.priceRealtime.price.toNumber())
+                    : `$${bank.info.oraclePrice.priceRealtime.price.toExponential(2)}`}
+                </TableCell>
                 <TableCell>
                   {bank.position.liquidationPrice ? (
                     <>

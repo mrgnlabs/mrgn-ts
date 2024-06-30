@@ -20,7 +20,7 @@ export const TVWidgetTopBar = ({ tokenData, activeGroup }: TVWidgetTopBarProps) 
         <>
           <dt className="text-muted-foreground">Market price</dt>
           <dd className="flex items-center gap-1">
-            {usdFormatter.format(tokenData?.price)}
+            {tokenData.price > 0.01 ? usdFormatter.format(tokenData?.price) : `$${tokenData?.price.toExponential(2)}`}
             {tokenData?.priceChange24h && (
               <span
                 className={cn(
