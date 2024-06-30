@@ -27,6 +27,7 @@ import {
   LoopingObject,
   TradeSide,
   calculateLooping,
+  checkAdditionalActionAvailable,
   checkLoopingActionAvailable,
   generateStats,
   simulateLooping,
@@ -158,7 +159,6 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
   );
 
   const loadLoopingVariables = React.useCallback(async () => {
-    console.log({ selectedAccount, activeGroup, marginfiClient });
     if (marginfiClient && activeGroup) {
       try {
         if (Number(amount) === 0 || leverage <= 1) {
@@ -223,7 +223,10 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
           loopingTxn: loopingTxn,
         });
       } catch (error) {
-        console.error(error);
+        console.log({ error });
+        const additionChecks = checkAdditionalActionAvailable(error);
+
+        console.log(additionChecks);
         let message;
         if ((error as any).msg) message = (error as any).msg;
         // addStatus({ type: "simulation", msg: message ?? "Simulating transaction failed" }, "warning");
