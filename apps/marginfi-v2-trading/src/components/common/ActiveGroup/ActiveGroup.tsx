@@ -67,7 +67,7 @@ export const ActiveGroup = () => {
                 rel="noreferrer"
                 className="text-chartreuse"
               >
-                {shortenAddress(selectedAccount.address.toBase58())}
+                {shortenAddress(activeGroup.usdc.address.toBase58())}
               </Link>
             </li>
           )}
