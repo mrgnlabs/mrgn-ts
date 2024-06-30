@@ -13,14 +13,14 @@ export default function PortfolioPage() {
 
   const portfolio = React.useMemo(() => {
     const activeBanks = banks.filter((bank) => bank.isActive);
-    const longBanks = activeBanks.filter((bank) => bank.isActive && bank.position.isLending);
-    const shortBanks = activeBanks.filter((bank) => bank.isActive && !bank.position.isLending);
+    const longBanks = activeBanks.filter((bank) => bank.isActive && bank.position.isLending) as ActiveBankInfo[];
+    const shortBanks = activeBanks.filter((bank) => bank.isActive && !bank.position.isLending) as ActiveBankInfo[];
 
     if (!longBanks.length && !shortBanks.length) return null;
 
     return {
-      long: longBanks as ActiveBankInfo[],
-      short: shortBanks as ActiveBankInfo[],
+      long: longBanks.sort((a, b) => a.position.usdValue - b.position.usdValue),
+      short: shortBanks.sort((a, b) => a.position.usdValue - b.position.usdValue),
     };
   }, [banks]);
 
