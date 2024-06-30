@@ -104,7 +104,7 @@ class MarginfiClient {
     readonly bankMetadataMap?: BankMetadataMap,
     sendEndpoint?: string,
     spamSendTx: boolean = true,
-    skipPreflightInSpam: boolean = true,
+    skipPreflightInSpam: boolean = true
   ) {
     this.group = group;
     this.banks = banks;
@@ -281,16 +281,24 @@ class MarginfiClient {
       }));
     }
 
-    const feedIdMap = await buildFeedIdMap(bankDatasKeyed.map((b) => b.data.config), program.provider.connection);
+    const feedIdMap = await buildFeedIdMap(
+      bankDatasKeyed.map((b) => b.data.config),
+      program.provider.connection
+    );
 
     // const oracleKeys = bankDatasKeyed.map((b) => b.data.config.oracleKeys[0]);
     const mintKeys = bankDatasKeyed.map((b) => b.data.mint);
-    const emissionMintKeys = bankDatasKeyed.map((b) => b.data.emissionsMint).filter((pk) => !pk.equals(PublicKey.default)) as PublicKey[];
+    const emissionMintKeys = bankDatasKeyed
+      .map((b) => b.data.emissionsMint)
+      .filter((pk) => !pk.equals(PublicKey.default)) as PublicKey[];
     const oracleKeys = bankDatasKeyed.map((b) => findOracleKey(BankConfig.fromAccountParsed(b.data.config), feedIdMap));
     // Batch-fetch the group account and all the oracle accounts as per the banks retrieved above
-    const allAis = await chunkedGetRawMultipleAccountInfoOrdered(program.provider.connection,
-      [groupAddress.toBase58(), ...oracleKeys.map((pk) => pk.toBase58()), ...mintKeys.map((pk) => pk.toBase58()), ...emissionMintKeys.map((pk) => pk.toBase58())],
-    ); // NOTE: This will break if/when we start having more than 1 oracle key per bank
+    const allAis = await chunkedGetRawMultipleAccountInfoOrdered(program.provider.connection, [
+      groupAddress.toBase58(),
+      ...oracleKeys.map((pk) => pk.toBase58()),
+      ...mintKeys.map((pk) => pk.toBase58()),
+      ...emissionMintKeys.map((pk) => pk.toBase58()),
+    ]); // NOTE: This will break if/when we start having more than 1 oracle key per bank
 
     const groupAi = allAis.shift();
     const oracleAis = allAis.splice(0, oracleKeys.length);
@@ -321,7 +329,10 @@ class MarginfiClient {
           emissionTokenProgram = emissionMintDataRawIndex >= 0 ? emissionMintAis[emissionMintDataRawIndex].owner : null;
         }
         // TODO: parse extension data to see if there is a fee
-        return [bankAddress.toBase58(), { mint: mintAddress, tokenProgram: mintDataRaw.owner, feeBps: 0, emissionTokenProgram }];
+        return [
+          bankAddress.toBase58(),
+          { mint: mintAddress, tokenProgram: mintDataRaw.owner, feeBps: 0, emissionTokenProgram },
+        ];
       })
     );
 
@@ -674,8 +685,6 @@ class MarginfiClient {
     opts?: TransactionOptions
   ): Promise<TransactionSignature> {
     let signature: TransactionSignature = "";
-
-    console.log(this.provider.connection.rpcEndpoint);
 
     let versionedTransaction: VersionedTransaction;
     const connection = new Connection(this.provider.connection.rpcEndpoint, this.provider.opts);
