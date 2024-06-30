@@ -277,9 +277,11 @@ class MarginfiClient {
     const mintKeys = bankDatasKeyed.map((b) => b.data.mint);
 
     // Batch-fetch the group account and all the oracle accounts as per the banks retrieved above
-    const allAis = await chunkedGetRawMultipleAccountInfoOrdered(program.provider.connection,
-      [groupAddress.toBase58(), ...oracleKeys.map((pk) => pk.toBase58()), ...mintKeys.map((pk) => pk.toBase58())],
-    ); // NOTE: This will break if/when we start having more than 1 oracle key per bank
+    const allAis = await chunkedGetRawMultipleAccountInfoOrdered(program.provider.connection, [
+      groupAddress.toBase58(),
+      ...oracleKeys.map((pk) => pk.toBase58()),
+      ...mintKeys.map((pk) => pk.toBase58()),
+    ]); // NOTE: This will break if/when we start having more than 1 oracle key per bank
 
     const groupAi = allAis.shift();
     const priceFeedAis = allAis.splice(0, bankDatasKeyed.length);
@@ -656,8 +658,6 @@ class MarginfiClient {
     opts?: TransactionOptions
   ): Promise<TransactionSignature> {
     let signature: TransactionSignature = "";
-
-    console.log(this.provider.connection.rpcEndpoint);
 
     let versionedTransaction: VersionedTransaction;
     const connection = new Connection(this.provider.connection.rpcEndpoint, this.provider.opts);
