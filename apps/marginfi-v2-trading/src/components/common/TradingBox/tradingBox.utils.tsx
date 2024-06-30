@@ -687,19 +687,21 @@ function canBeLooped(activeGroup: ActiveGroup, loopingObject: LoopingObject, tra
   const isUsdcBankPaused = activeGroup.usdc.info.rawBank.config.operationalState === OperationalState.Paused;
   const isTokenBankPaused = activeGroup.token.info.rawBank.config.operationalState === OperationalState.Paused;
 
-  let hasTokenSupplied,
-    hasUsdcSupplied = false;
+  let tokenPosition,
+    usdcPosition: "inactive" | "lending" | "borrowing" = "inactive";
 
   if (activeGroup.usdc.isActive) {
-    hasUsdcSupplied = activeGroup.usdc.position.isLending;
+    usdcPosition = activeGroup.usdc.position.isLending ? "lending" : "borrowing";
   }
 
   if (activeGroup.token.isActive) {
-    hasTokenSupplied = activeGroup.token.position.isLending;
+    tokenPosition = activeGroup.token.position.isLending ? "lending" : "borrowing";
   }
 
   const wrongPositionActive =
-    tradeSide === "long" ? hasUsdcSupplied || !hasTokenSupplied : !hasUsdcSupplied || hasTokenSupplied;
+    tradeSide === "long"
+      ? usdcPosition === "lending" || tokenPosition === "borrowing"
+      : usdcPosition === "borrowing" || tokenPosition === "lending";
 
   if (isUsdcBankPaused) {
     checks.push({
@@ -716,8 +718,8 @@ function canBeLooped(activeGroup: ActiveGroup, loopingObject: LoopingObject, tra
   }
 
   if (wrongPositionActive && loopingObject.loopingTxn) {
-    const wrongSupplied = tradeSide === "long" ? hasUsdcSupplied : hasTokenSupplied;
-    const wrongBorrowed = tradeSide === "long" ? !hasTokenSupplied : !hasUsdcSupplied;
+    const wrongSupplied = tradeSide === "long" ? usdcPosition === "lending" : tokenPosition === "lending";
+    const wrongBorrowed = tradeSide === "long" ? tokenPosition === "borrowing" : usdcPosition === "borrowing";
 
     if (wrongSupplied && wrongBorrowed) {
       checks.push({
@@ -792,7 +794,7 @@ export const checkAdditionalActionAvailable = (error: any) => {
       actionMethod: "WARNING",
       description: error.message,
     } as ActionMethod;
-  } else if (error?.message && error?.message.includes("6017") && error?.includes("stale")) {
+  } else if (error?.message && (error?.message.includes("6017") || error?.message.includes("stale"))) {
     return {
       description: "Trading may fail due to network congestion preventing oracles from updating price data.",
       isEnabled: true,
