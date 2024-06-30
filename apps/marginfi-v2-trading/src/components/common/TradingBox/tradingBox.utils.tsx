@@ -1,10 +1,12 @@
 import { QuoteGetRequest, QuoteResponse, createJupiterApiClient } from "@jup-ag/api";
+import { JUPITER_PROGRAM_V6_ID } from "@jup-ag/react-hook";
 import {
   Bank,
   MarginRequirementType,
   MarginfiAccountWrapper,
   MarginfiClient,
   OperationalState,
+  ProcessTransactionError,
   SimulationResult,
   computeLoopingParams,
 } from "@mrgnlabs/marginfi-client-v2";
@@ -591,6 +593,7 @@ export interface ActionMethod {
   actionMethod?: ActionMethodType;
   description?: string;
   link?: string;
+  linkText?: string;
   action?: {
     bank: ExtendedBankInfo;
     type: ActionType;
@@ -771,11 +774,42 @@ function canBeLooped(activeGroup: ActiveGroup, loopingObject: LoopingObject, tra
     (activeGroup.usdc && isBankOracleStale(activeGroup.usdc))
   ) {
     checks.push({
-      description: "The oracle data for this bank is stale",
+      description: "Trading may fail due to network congestion preventing oracles from updating price data.",
       isEnabled: true,
       link: "https://forum.marginfi.community/t/work-were-doing-to-improve-oracle-robustness-during-chain-congestion/283",
+      linkText: "Learn more about marginfi's decentralized oracles.",
     });
   }
 
   return checks;
 }
+
+export const checkAdditionalActionAvailable = (error: any) => {
+  if (error?.programId === JUPITER_PROGRAM_V6_ID.toBase58() && error?.message === "Slippage tolerance exceeded") {
+    return {
+      isEnabled: true,
+      actionMethod: "WARNING",
+      description: error.message,
+    } as ActionMethod;
+  } else if (error?.message && error?.message.includes("6017") && error?.includes("stale")) {
+    return {
+      description: "Trading may fail due to network congestion preventing oracles from updating price data.",
+      isEnabled: true,
+      link: "https://forum.marginfi.community/t/work-were-doing-to-improve-oracle-robustness-during-chain-congestion/283",
+      linkText: "Learn more about marginfi's decentralized oracles.",
+    } as ActionMethod;
+  } else if (error?.message && (error?.message.includes("RangeError") || error?.message.includes("too large"))) {
+    return {
+      isEnabled: false,
+      actionMethod: "WARNING",
+      description:
+        "This swap causes the transaction to fail due to size restrictions. Please try again or pick another token.",
+    } as ActionMethod;
+  } else {
+    return {
+      isEnabled: true,
+      actionMethod: "WARNING",
+      description: "Simulating health/liquidation impact failed.",
+    } as ActionMethod;
+  }
+};

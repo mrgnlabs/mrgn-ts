@@ -55,8 +55,6 @@ export default function TradeSymbolPage() {
         return;
       }
 
-      console.log(tokenData);
-
       setTokenData(tokenData);
     };
 

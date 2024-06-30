@@ -105,8 +105,8 @@ export const LendingTokens = ({
                 isOpen={isOpen}
                 onClose={() => setIsOpen(false)}
                 onSetSelectedRepayBank={setSelectedRepayBank}
-                blacklistRepayTokens={blacklistRepayTokens}
                 selectedRepayBank={null}
+                tokensOverride={tokensOverride}
               />
             ) : (
               <LendingTokensList
