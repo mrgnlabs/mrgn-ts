@@ -24,6 +24,7 @@ import { useWalletContext } from "~/hooks/useWalletContext";
 import { useConnection } from "~/hooks/useConnection";
 import { MarginfiAccountWrapper, SimulationResult, computeMaxLeverage } from "@mrgnlabs/marginfi-client-v2";
 import {
+  ActionMethod,
   LoopingObject,
   TradeSide,
   calculateLooping,
@@ -35,7 +36,6 @@ import {
 import { useDebounce } from "~/hooks/useDebounce";
 import { executeLeverageAction, extractErrorString, usePrevious } from "~/utils";
 import Link from "next/link";
-import { MultiStepToastHandle } from "~/utils/toastUtils";
 
 const USDC_BANK_PK = new PublicKey("2s37akK2eyBbp8DZgCm7RtsaEz8eJP3Nxd4urLHQv7yB");
 
@@ -59,6 +59,7 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
   const [leverage, setLeverage] = React.useState(0);
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const [Stats, setStats] = React.useState<React.JSX.Element>(<></>);
+  const [additionalChecks, setAdditionalChecks] = React.useState<ActionMethod>();
 
   const debouncedLeverage = useDebounce(leverage, 1000);
   const debouncedAmount = useDebounce(amount, 1000);
@@ -223,10 +224,9 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
           loopingTxn: loopingTxn,
         });
       } catch (error) {
-        console.log({ error });
         const additionChecks = checkAdditionalActionAvailable(error);
+        setAdditionalChecks(additionChecks);
 
-        console.log(additionChecks);
         let message;
         if ((error as any).msg) message = (error as any).msg;
         // addStatus({ type: "simulation", msg: message ?? "Simulating transaction failed" }, "warning");
@@ -442,7 +442,7 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
         {isActiveWithCollat ? (
           <>
             <div className="gap-1 w-full flex flex-col items-center">
-              {actionMethods.map(
+              {actionMethods.concat(additionalChecks ?? []).map(
                 (actionMethod, idx) =>
                   actionMethod.description && (
                     <div className="pb-6" key={idx}>
