@@ -3,7 +3,11 @@ import { shortenAddress } from "@mrgnlabs/mrgn-common";
 import { useTradeStore } from "~/store";
 
 export const ActiveGroup = () => {
-  const [activeGroup, marginfiClient] = useTradeStore((state) => [state.activeGroup, state.marginfiClient]);
+  const [activeGroup, selectedAccount, marginfiClient] = useTradeStore((state) => [
+    state.activeGroup,
+    state.selectedAccount,
+    state.marginfiClient,
+  ]);
 
   return (
     <div className="fixed bottom-14 left-6 bg-secondary/90 max-w-fit p-4 rounded-xl text-sm z-50">
@@ -54,6 +58,19 @@ export const ActiveGroup = () => {
               {shortenAddress(activeGroup.usdc.address.toBase58())}
             </Link>
           </li>
+          {selectedAccount && (
+            <li>
+              <strong className="font-medium">Selected account</strong>:{" "}
+              <Link
+                href={`https://solana.fm/address/${selectedAccount.address.toBase58()}`}
+                target="_blank"
+                rel="noreferrer"
+                className="text-chartreuse"
+              >
+                {shortenAddress(selectedAccount.address.toBase58())}
+              </Link>
+            </li>
+          )}
         </ul>
       )}
     </div>
