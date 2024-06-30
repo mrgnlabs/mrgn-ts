@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from "uuid";
 
 import { WSOL_MINT, nativeToUi } from "@mrgnlabs/mrgn-common";
 import { ActionType, ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 
 import { useLstStore, useMrgnlendStore, useUiStore, useTradeStore } from "~/store";
 import {
@@ -36,6 +37,7 @@ import {
 type ActionBoxProps = {
   requestedAction?: ActionType;
   requestedBank?: ExtendedBankInfo;
+  requestedAccount?: MarginfiAccountWrapper;
   isDialog?: boolean;
   handleCloseDialog?: () => void;
 };
@@ -46,13 +48,19 @@ type BlackListRoutesMap = {
   };
 };
 
-export const ActionBox = ({ requestedAction, requestedBank, isDialog, handleCloseDialog }: ActionBoxProps) => {
+export const ActionBox = ({
+  requestedAction,
+  requestedBank,
+  requestedAccount,
+  isDialog,
+  handleCloseDialog,
+}: ActionBoxProps) => {
   const [
     isInitialized,
     setIsRefreshingStore,
     activeGroup,
     mfiClient,
-    selectedAccount,
+    activeAccount,
     nativeSolBalance,
     fetchTradeState,
   ] = useTradeStore((state) => [
@@ -137,6 +145,16 @@ export const ActionBox = ({ requestedAction, requestedBank, isDialog, handleClos
   const [hasLSTDialogShown, setHasLSTDialogShown] = React.useState<LSTDialogVariants[]>([]);
   const [lstDialogCallback, setLSTDialogCallback] = React.useState<(() => void) | null>(null);
   const [additionalActionMethods, setAdditionalActionMethods] = React.useState<ActionMethod[]>([]);
+
+  const selectedAccount = React.useMemo(() => {
+    if (requestedAccount) {
+      return requestedAccount;
+    } else if (activeAccount) {
+      return activeAccount;
+    } else {
+      return null;
+    }
+  }, [requestedAccount, activeAccount]);
 
   const extendedBankInfos = React.useMemo(() => {
     return activeGroup ? [activeGroup.token, activeGroup.usdc] : [];

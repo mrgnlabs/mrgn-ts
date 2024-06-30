@@ -71,7 +71,9 @@ type TradeStoreState = {
   } | null;
 
   // array of marginfi accounts
-  marginfiAccounts: MarginfiAccountWrapper[];
+  marginfiAccounts: {
+    [group: string]: MarginfiAccountWrapper;
+  } | null;
 
   // currently selected marginfi account
   selectedAccount: MarginfiAccountWrapper | null;
@@ -121,7 +123,7 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
   collateralBanks: {},
   marginfiClient: null,
   activeGroup: null,
-  marginfiAccounts: [],
+  marginfiAccounts: null,
   selectedAccount: null,
   accountSummary: DEFAULT_ACCOUNT_SUMMARY,
   nativeSolBalance: 0,
@@ -165,6 +167,7 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
           collateralBanks: result.collateralBanks,
           nativeSolBalance: result.nativeSolBalance,
           tokenAccountMap: result.tokenAccountMap,
+          marginfiAccounts: result.marginfiAccounts,
         };
       });
     } catch (error) {
@@ -285,7 +288,6 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
         return {
           ...state,
           marginfiClient,
-          marginfiAccounts,
           selectedAccount,
           accountSummary,
           activeGroup: {
@@ -483,5 +485,6 @@ const fetchBanksAndTradeGroups = async (wallet: Wallet, connection: Connection) 
     groups,
     nativeSolBalance,
     tokenAccountMap,
+    marginfiAccounts,
   };
 };
