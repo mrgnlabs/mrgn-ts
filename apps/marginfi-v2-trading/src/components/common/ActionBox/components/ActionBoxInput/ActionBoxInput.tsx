@@ -20,9 +20,16 @@ type ActionBoxInputProps = {
   maxAmount: number;
   showCloseBalance?: boolean;
   isDialog?: boolean;
+  tokensOverride?: ExtendedBankInfo[];
 };
 
-export const ActionBoxInput = ({ walletAmount, maxAmount, showCloseBalance, isDialog }: ActionBoxInputProps) => {
+export const ActionBoxInput = ({
+  walletAmount,
+  maxAmount,
+  showCloseBalance,
+  isDialog,
+  tokensOverride,
+}: ActionBoxInputProps) => {
   const [isActionBoxInputFocussed, setIsActionBoxInputFocussed] = useUiStore((state) => [
     state.isActionBoxInputFocussed,
     state.setIsActionBoxInputFocussed,
@@ -178,6 +185,7 @@ export const ActionBoxInput = ({ walletAmount, maxAmount, showCloseBalance, isDi
                 setStakingAccount={(account) => {
                   setSelectedStakingAccount(account);
                 }}
+                tokensOverride={tokensOverride}
               />
             </div>
             <div className="flex-auto">
