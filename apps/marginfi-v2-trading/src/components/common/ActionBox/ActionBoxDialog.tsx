@@ -14,6 +14,7 @@ import { useMrgnlendStore } from "~/store";
 type ActionBoxDialogProps = {
   requestedAction?: ActionType;
   requestedBank: ExtendedBankInfo | null;
+  requestedCollateralBank?: ExtendedBankInfo;
   requestedAccount?: MarginfiAccountWrapper;
   children: React.ReactNode;
   isActionBoxTriggered?: boolean;
@@ -22,6 +23,7 @@ type ActionBoxDialogProps = {
 export const ActionBoxDialog = ({
   requestedAction,
   requestedBank,
+  requestedCollateralBank,
   requestedAccount,
   children,
   isActionBoxTriggered = false,
@@ -86,6 +88,7 @@ export const ActionBoxDialog = ({
               requestedAction={requestedAction}
               requestedBank={requestedBank ?? undefined}
               requestedAccount={requestedAccount}
+              requestedCollateralBank={requestedCollateralBank}
             />
           </div>
         </DialogContent>

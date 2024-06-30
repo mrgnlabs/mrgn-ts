@@ -37,6 +37,7 @@ import {
 type ActionBoxProps = {
   requestedAction?: ActionType;
   requestedBank?: ExtendedBankInfo;
+  requestedCollateralBank?: ExtendedBankInfo;
   requestedAccount?: MarginfiAccountWrapper;
   isDialog?: boolean;
   handleCloseDialog?: () => void;
@@ -52,6 +53,7 @@ export const ActionBox = ({
   requestedAction,
   requestedBank,
   requestedAccount,
+  requestedCollateralBank,
   isDialog,
   handleCloseDialog,
 }: ActionBoxProps) => {
@@ -655,6 +657,9 @@ export const ActionBox = ({
                 maxAmount={maxAmount}
                 showCloseBalance={showCloseBalance}
                 isDialog={isDialog}
+                tokensOverride={
+                  requestedCollateralBank && requestedBank ? [requestedBank, requestedCollateralBank] : undefined
+                }
               />
 
               {additionalActionMethods.concat(actionMethods).map(
