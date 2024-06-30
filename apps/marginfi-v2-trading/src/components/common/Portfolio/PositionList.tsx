@@ -24,7 +24,8 @@ export const PositionList = () => {
   ]);
 
   const portfolio = React.useMemo(() => {
-    return banks.filter((bank) => bank.isActive) as ActiveBankInfo[];
+    const filteredBanks = banks.filter((bank) => bank.isActive) as ActiveBankInfo[];
+    return filteredBanks.sort((a, b) => a.position.usdValue - b.position.usdValue);
   }, [banks]);
 
   return (
