@@ -1,6 +1,7 @@
 import React from "react";
 
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 import { PublicKey } from "@solana/web3.js";
 
 import { useIsMobile } from "~/hooks/useIsMobile";
@@ -13,6 +14,7 @@ import { useMrgnlendStore } from "~/store";
 type ActionBoxDialogProps = {
   requestedAction?: ActionType;
   requestedBank: ExtendedBankInfo | null;
+  requestedAccount?: MarginfiAccountWrapper;
   children: React.ReactNode;
   isActionBoxTriggered?: boolean;
 };
@@ -20,6 +22,7 @@ type ActionBoxDialogProps = {
 export const ActionBoxDialog = ({
   requestedAction,
   requestedBank,
+  requestedAccount,
   children,
   isActionBoxTriggered = false,
 }: ActionBoxDialogProps) => {
@@ -82,6 +85,7 @@ export const ActionBoxDialog = ({
               handleCloseDialog={() => setIsDialogOpen(false)}
               requestedAction={requestedAction}
               requestedBank={requestedBank ?? undefined}
+              requestedAccount={requestedAccount}
             />
           </div>
         </DialogContent>
