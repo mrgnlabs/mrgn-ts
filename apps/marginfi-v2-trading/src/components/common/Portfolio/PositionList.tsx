@@ -53,6 +53,7 @@ export const PositionList = () => {
 
           {portfolio.map((bank, index) => {
             const collateralBank = collateralBanks[bank.address.toBase58()] || null;
+            const marginfiAccount = marginfiAccounts ? marginfiAccounts[bank.info.rawBank.group.toBase58()] : undefined;
             const borrowBank = bank.position.isLending ? collateralBank : bank;
             const isBorrowing = borrowBank.isActive && !borrowBank.position.isLending;
 
@@ -100,7 +101,7 @@ export const PositionList = () => {
                       <ActionBoxDialog
                         requestedBank={bank.position.isLending ? bank : collateralBank}
                         requestedAction={ActionType.Deposit}
-                        requestedAccount={marginfiAccounts[bank.info.rawBank.group.toBase58()]}
+                        requestedAccount={marginfiAccount}
                       >
                         <Button variant="secondary" size="sm" className="gap-1 min-w-16">
                           <IconPlus size={14} />
@@ -111,7 +112,7 @@ export const PositionList = () => {
                         <ActionBoxDialog
                           requestedBank={bank.position.isLending ? collateralBank : bank}
                           requestedAction={ActionType.Repay}
-                          requestedAccount={marginfiAccounts[bank.info.rawBank.group.toBase58()]}
+                          requestedAccount={marginfiAccount}
                         >
                           <Button variant="secondary" size="sm" className="gap-1 min-w-16">
                             <IconMinus size={14} />
@@ -125,7 +126,10 @@ export const PositionList = () => {
                             bank.position.isLending ? (collateralBank.isActive ? collateralBank : bank) : bank
                           }
                           requestedAction={ActionType.Withdraw}
-                          requestedAccount={marginfiAccounts[bank.info.rawBank.group.toBase58()]}
+                          requestedAccount={marginfiAccount}
+                          requestedCollateralBank={
+                            bank.position.isLending ? (collateralBank.isActive ? bank : collateralBank) : collateralBank
+                          }
                         >
                           <Button variant="secondary" size="sm" className="gap-1 min-w-16">
                             <IconMinus size={14} />
