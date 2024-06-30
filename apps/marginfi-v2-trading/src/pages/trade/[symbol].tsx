@@ -3,7 +3,7 @@ import React from "react";
 import { useRouter } from "next/router";
 
 import { PublicKey } from "@solana/web3.js";
-import { percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
+import { numeralFormatter, percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 import { IconTrendingDown, IconTrendingUp } from "@tabler/icons-react";
 
 import { useTradeStore, useUiStore } from "~/store";
@@ -12,7 +12,7 @@ import { useConnection } from "~/hooks/useConnection";
 import { useWalletContext } from "~/hooks/useWalletContext";
 
 import { ActionComplete } from "~/components/common/ActionComplete";
-import { TVWidget } from "~/components/common/TVWidget";
+import { TVWidget, TVWidgetTopBar } from "~/components/common/TVWidget";
 import { TradingBox } from "~/components/common/TradingBox";
 import { PositionList } from "~/components/common/Portfolio";
 import { Loader } from "~/components/ui/loader";
@@ -69,51 +69,7 @@ export default function TradeSymbolPage() {
         {(!initialized || !activeGroup) && <Loader label="Loading mrgntrade..." className="mt-8" />}
         {initialized && activeGroup && activeGroup.token && (
           <div className="bg-background-gray-dark p-6 rounded-xl space-y-4">
-            <dl className="flex items-center gap-2 text-sm">
-              {tokenData?.price && (
-                <>
-                  <dt className="text-muted-foreground">Market price</dt>
-                  <dd>{usdFormatter.format(tokenData?.price)}</dd>
-                </>
-              )}
-              <dt className="ml-4 text-muted-foreground border-l border-muted-foreground/25 pl-4">Oracle price</dt>
-              <dd>{usdFormatter.format(activeGroup?.token?.info?.oraclePrice.priceRealtime.price.toNumber())}</dd>
-              {tokenData?.marketCap && (
-                <>
-                  <dt className="ml-4 text-muted-foreground border-l border-muted-foreground/25 pl-4">Market cap</dt>
-                  <dd>{usdFormatter.format(tokenData?.marketCap)}</dd>
-                </>
-              )}
-              {tokenData?.priceChange24h && (
-                <>
-                  <dt className="ml-4 text-muted-foreground border-l border-muted-foreground/25 pl-4">24hr price</dt>
-                  <dd
-                    className={cn(
-                      "flex items-center gap-1",
-                      tokenData?.priceChange24h > 1 ? "text-mrgn-success" : "text-mrgn-error"
-                    )}
-                  >
-                    {tokenData?.priceChange24h > 1 ? <IconTrendingUp size={16} /> : <IconTrendingDown size={16} />}
-                    {percentFormatter.format(tokenData?.priceChange24h / 100)}
-                  </dd>
-                </>
-              )}
-
-              {tokenData?.volumeChange24h && (
-                <>
-                  <dt className="ml-4 text-muted-foreground border-l border-muted-foreground/25 pl-4">24hr vol</dt>
-                  <dd
-                    className={cn(
-                      "flex items-center gap-1",
-                      tokenData?.volumeChange24h > 1 ? "text-mrgn-success" : "text-mrgn-error"
-                    )}
-                  >
-                    {tokenData?.volumeChange24h > 1 ? <IconTrendingUp size={16} /> : <IconTrendingDown size={16} />}
-                    {percentFormatter.format(tokenData?.volumeChange24h / 100)}
-                  </dd>
-                </>
-              )}
-            </dl>
+            <TVWidgetTopBar tokenData={tokenData} activeGroup={activeGroup} />
             <div className="flex relative w-full">
               <div className="flex flex-row w-full">
                 <div className="flex-4 border border-background-gray-light">
