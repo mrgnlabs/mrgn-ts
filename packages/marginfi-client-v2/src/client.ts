@@ -307,7 +307,6 @@ class MarginfiClient {
         return [bankAddress.toBase58(), { mint: mintAddress, tokenProgram: mintDataRaw.owner, feeBps: 0 }];
       })
     );
-    console.log(tokenDatas)
 
     const priceInfos = new Map(
       bankDatasKeyed.map(({ address: bankAddress, data: bankData }, index) => {
