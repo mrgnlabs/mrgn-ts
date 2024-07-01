@@ -6,6 +6,10 @@ import { cn } from "~/utils";
 
 import { ActionBoxDialog } from "~/components/common/ActionBox";
 import { Button } from "~/components/ui/button";
+import { getCloseTransaction } from "../TradingBox/tradingBox.utils";
+import React from "react";
+import { useConnection } from "~/hooks/useConnection";
+import { useUiStore } from "~/store";
 
 type PositionActionButtonsProps = {
   marginfiAccount?: MarginfiAccountWrapper;
@@ -22,6 +26,21 @@ export const PositionActionButtons = ({
   collateralBank = null,
   rightAlignFinalButton = false,
 }: PositionActionButtonsProps) => {
+  const { connection } = useConnection();
+  const [slippageBps, priorityFee] = useUiStore((state) => [state.slippageBps, state.priorityFee]);
+
+  const closeTransaction = React.useCallback(async () => {
+    if (!marginfiAccount || !collateralBank) return;
+    await getCloseTransaction({
+      marginfiAccount,
+      borrowBank: isBorrowing ? collateralBank : bank,
+      depositBank: isBorrowing ? bank : collateralBank,
+      slippageBps,
+      connection: connection,
+      priorityFee,
+    });
+  }, [marginfiAccount, collateralBank, bank, collateralBank, isBorrowing, slippageBps, connection, priorityFee]);
+
   return (
     <div className="flex gap-3 w-full">
       <ActionBoxDialog
@@ -67,7 +86,12 @@ export const PositionActionButtons = ({
           </Button>
         </ActionBoxDialog>
       )}
-      <Button variant="destructive" size="sm" className={cn("gap-1 min-w-16", rightAlignFinalButton && "ml-auto")}>
+      <Button
+        onClick={() => closeTransaction()}
+        variant="destructive"
+        size="sm"
+        className={cn("gap-1 min-w-16", rightAlignFinalButton && "ml-auto")}
+      >
         <IconX size={14} />
         Close
       </Button>
