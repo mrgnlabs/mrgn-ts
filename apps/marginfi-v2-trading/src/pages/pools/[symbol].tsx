@@ -90,116 +90,123 @@ export default function TradeSymbolPage() {
         {(!initialized || !activeGroup) && <Loader label="Loading mrgntrade..." className="mt-8" />}
         {initialized && activeGroup && activeGroup.token && (
           <div className="flex flex-col items-start gap-8 pb-16 w-full">
-            <header className="flex flex-col gap-4 justify-center items-center w-full pb-4">
-              <Image
-                src={getTokenImageURL(activeGroup.token.meta.tokenSymbol)}
-                width={64}
-                height={64}
-                className="rounded-full"
-                alt={activeGroup.token.meta.tokenName}
-              />
-              <div className="text-center space-y-1.5">
-                <h1 className="text-3xl font-medium">{activeGroup.token.meta.tokenName}</h1>
-                <h2 className="text-lg text-muted-foreground">{activeGroup.token.meta.tokenSymbol}</h2>
+            <div className="grid grid-cols-8 w-full max-w-6xl mx-auto">
+              <div className="col-span-3">
+                <div className="flex items-center gap-6">
+                  <Image
+                    src={getTokenImageURL(activeGroup.token.meta.tokenSymbol)}
+                    width={82}
+                    height={82}
+                    className="rounded-full"
+                    alt={activeGroup.token.meta.tokenName}
+                  />
+                  <div className="space-y-1.5">
+                    <h1 className="text-4xl font-medium">{activeGroup.token.meta.tokenName}</h1>
+                    <h2 className="text-2xl text-muted-foreground">{activeGroup.token.meta.tokenSymbol}</h2>
+                  </div>
+                </div>
               </div>
-            </header>
-            {tokenData && (
-              <div className="grid grid-cols-3 w-full max-w-6xl mx-auto gap-8">
-                <StatBlock
-                  label="Current Price"
-                  value={
-                    activeGroup.token.info.state.price > 0.01
-                      ? usdFormatter.format(activeGroup.token.info.state.price)
-                      : `$${activeGroup.token.info.state.price.toExponential(2)}`
-                  }
-                  subValue={
-                    <span className={cn(tokenData.priceChange24h > 0 ? "text-mrgn-success" : "text-mrgn-error")}>
-                      {tokenData.priceChange24h > 0 && "+"}
-                      {percentFormatter.format(tokenData.priceChange24h / 100)}
-                    </span>
-                  }
-                />
-                <StatBlock label="Market cap" value={`$${numeralFormatter(tokenData.marketCap)}`} />
-                <StatBlock
-                  label="24hr vol"
-                  value={`$${numeralFormatter(tokenData.volume24h)}`}
-                  subValue={
-                    <span className={cn(tokenData.volumeChange24h > 0 ? "text-mrgn-success" : "text-mrgn-error")}>
-                      {tokenData.volumeChange24h > 0 && "+"}
-                      {percentFormatter.format(tokenData.volumeChange24h / 100)}
-                    </span>
-                  }
-                />
-                <StatBlock
-                  label={
-                    <div className="flex items-center gap-2">
-                      <Image
-                        src={getTokenImageURL(activeGroup.token.meta.tokenSymbol)}
-                        alt={activeGroup.token.meta.tokenName}
-                        width={24}
-                        height={24}
-                        className="rounded-full"
-                      />
-                      Total Deposits (${activeGroup.token.meta.tokenSymbol})
-                    </div>
-                  }
-                  value={numeralFormatter(activeGroup.token.info.state.totalDeposits)}
-                  subValue={usdFormatter.format(
-                    activeGroup.token.info.state.totalDeposits *
-                      activeGroup.token.info.oraclePrice.priceRealtime.price.toNumber()
-                  )}
-                />
-                <StatBlock
-                  label={
-                    <div className="flex items-center gap-2">
-                      <Image
-                        src={getTokenImageURL(activeGroup.usdc.meta.tokenSymbol)}
-                        alt={activeGroup.usdc.meta.tokenName}
-                        width={24}
-                        height={24}
-                        className="rounded-full"
-                      />
-                      Total Deposits (USDC)
-                    </div>
-                  }
-                  value={numeralFormatter(activeGroup.usdc.info.state.totalDeposits)}
-                  subValue={usdFormatter.format(
-                    activeGroup.usdc.info.state.totalDeposits *
-                      activeGroup.usdc.info.oraclePrice.priceRealtime.price.toNumber()
-                  )}
-                />
-                <StatBlock
-                  label={
-                    <div className="flex items-center">
-                      <div className="flex items-center">
-                        <Image
-                          src={getTokenImageURL(activeGroup.token.meta.tokenSymbol)}
-                          alt={activeGroup.token.meta.tokenName}
-                          width={24}
-                          height={24}
-                          className="rounded-full z-20"
-                        />
-                        <Image
-                          src={getTokenImageURL(activeGroup.usdc.meta.tokenSymbol)}
-                          alt={activeGroup.token.meta.tokenName}
-                          width={24}
-                          height={24}
-                          className="rounded-full -translate-x-2.5 z-10"
-                        />
-                      </div>
-                      Total Liquidity
-                    </div>
-                  }
-                  value={usdFormatter.format(
-                    activeGroup.usdc.info.state.totalDeposits *
-                      activeGroup.usdc.info.oraclePrice.priceRealtime.price.toNumber() +
-                      activeGroup.token.info.state.totalDeposits *
-                        activeGroup.token.info.oraclePrice.priceRealtime.price.toNumber()
-                  )}
-                />
+              <div className="col-span-5">
+                {tokenData && (
+                  <div className="grid grid-cols-3 w-full max-w-6xl mx-auto gap-8">
+                    <StatBlock
+                      label="Current Price"
+                      value={
+                        activeGroup.token.info.state.price > 0.01
+                          ? usdFormatter.format(activeGroup.token.info.state.price)
+                          : `$${activeGroup.token.info.state.price.toExponential(2)}`
+                      }
+                      subValue={
+                        <span className={cn(tokenData.priceChange24h > 0 ? "text-mrgn-success" : "text-mrgn-error")}>
+                          {tokenData.priceChange24h > 0 && "+"}
+                          {percentFormatter.format(tokenData.priceChange24h / 100)}
+                        </span>
+                      }
+                    />
+                    <StatBlock label="Market cap" value={`$${numeralFormatter(tokenData.marketCap)}`} />
+                    <StatBlock
+                      label="24hr vol"
+                      value={`$${numeralFormatter(tokenData.volume24h)}`}
+                      subValue={
+                        <span className={cn(tokenData.volumeChange24h > 0 ? "text-mrgn-success" : "text-mrgn-error")}>
+                          {tokenData.volumeChange24h > 0 && "+"}
+                          {percentFormatter.format(tokenData.volumeChange24h / 100)}
+                        </span>
+                      }
+                    />
+                    <StatBlock
+                      label={
+                        <div className="flex items-center gap-2">
+                          <Image
+                            src={getTokenImageURL(activeGroup.token.meta.tokenSymbol)}
+                            alt={activeGroup.token.meta.tokenName}
+                            width={24}
+                            height={24}
+                            className="rounded-full"
+                          />
+                          Total Deposits (${activeGroup.token.meta.tokenSymbol})
+                        </div>
+                      }
+                      value={numeralFormatter(activeGroup.token.info.state.totalDeposits)}
+                      subValue={usdFormatter.format(
+                        activeGroup.token.info.state.totalDeposits *
+                          activeGroup.token.info.oraclePrice.priceRealtime.price.toNumber()
+                      )}
+                    />
+                    <StatBlock
+                      label={
+                        <div className="flex items-center gap-2">
+                          <Image
+                            src={getTokenImageURL(activeGroup.usdc.meta.tokenSymbol)}
+                            alt={activeGroup.usdc.meta.tokenName}
+                            width={24}
+                            height={24}
+                            className="rounded-full"
+                          />
+                          Total Deposits (USDC)
+                        </div>
+                      }
+                      value={numeralFormatter(activeGroup.usdc.info.state.totalDeposits)}
+                      subValue={usdFormatter.format(
+                        activeGroup.usdc.info.state.totalDeposits *
+                          activeGroup.usdc.info.oraclePrice.priceRealtime.price.toNumber()
+                      )}
+                    />
+                    <StatBlock
+                      label={
+                        <div className="flex items-center">
+                          <div className="flex items-center">
+                            <Image
+                              src={getTokenImageURL(activeGroup.token.meta.tokenSymbol)}
+                              alt={activeGroup.token.meta.tokenName}
+                              width={24}
+                              height={24}
+                              className="rounded-full z-20"
+                            />
+                            <Image
+                              src={getTokenImageURL(activeGroup.usdc.meta.tokenSymbol)}
+                              alt={activeGroup.token.meta.tokenName}
+                              width={24}
+                              height={24}
+                              className="rounded-full -translate-x-2.5 z-10"
+                            />
+                          </div>
+                          Total Liquidity
+                        </div>
+                      }
+                      value={usdFormatter.format(
+                        activeGroup.usdc.info.state.totalDeposits *
+                          activeGroup.usdc.info.oraclePrice.priceRealtime.price.toNumber() +
+                          activeGroup.token.info.state.totalDeposits *
+                            activeGroup.token.info.oraclePrice.priceRealtime.price.toNumber()
+                      )}
+                    />
+                  </div>
+                )}
               </div>
-            )}
+            </div>
             <div className="bg-background-gray-dark p-6 rounded-xl w-full max-w-6xl mx-auto">
+              <h2 className="font-medium text-2xl mb-4">Your position</h2>
               <dl className="flex justify-between items-center gap-2">
                 <dt className="flex items-center gap-1.5 text-sm">
                   Lend/borrow health factor
