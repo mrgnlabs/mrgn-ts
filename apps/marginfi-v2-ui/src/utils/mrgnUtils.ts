@@ -142,7 +142,7 @@ export function getTokenImageURL(tokenSymbol: string): string {
 const oraclesWithMaxAgeOverMin = [
   {
     address: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-    maxAge: 3600,
+    maxAge: 300,
   },
   {
     address: "HZ1JovNiVvGrGNiiYvEozEVgZ58xaU3RKwX8eACQBCt3",
