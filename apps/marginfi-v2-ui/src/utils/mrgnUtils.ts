@@ -177,18 +177,5 @@ export function isBankOracleStale(bank: ExtendedBankInfo) {
   );
   const isStale = currentTime - oracleTime > maxAge;
 
-  console.log(
-    "bank oracle info: ",
-    bank.meta.tokenSymbol,
-    "oracle timestamp: ",
-    oracleTime,
-    "current time: ",
-    currentTime,
-    "diff: ",
-    currentTime - oracleTime,
-    "max age: ",
-    maxAge
-  );
-
   return isStale;
 }
