@@ -46,6 +46,7 @@ interface UiState {
   poolFilter: PoolTypes;
   sortOption: SortAssetOption;
   priorityFee: number;
+  slippageBps: number;
   isActionComplete: boolean;
   previousTxn: PreviousTxn | null;
   isActionBoxInputFocussed: boolean;
@@ -62,6 +63,7 @@ interface UiState {
   setPoolFilter: (poolType: PoolTypes) => void;
   setSortOption: (sortOption: SortAssetOption) => void;
   setPriorityFee: (priorityFee: number) => void;
+  setSlippageBps: (slippageBps: number) => void;
   setIsActionComplete: (isActionSuccess: boolean) => void;
   setPreviousTxn: (previousTxn: PreviousTxn) => void;
   setIsActionBoxInputFocussed: (isFocussed: boolean) => void;
@@ -90,6 +92,7 @@ function createUiStore() {
 
 const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
   // State
+  slippageBps: 100,
   isMenuDrawerOpen: false,
   isFetchingData: false,
   isWalletAuthDialogOpen: false,
@@ -122,6 +125,7 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
   setPoolFilter: (poolType: PoolTypes) => set({ poolFilter: poolType }),
   setSortOption: (sortOption: SortAssetOption) => set({ sortOption: sortOption }),
   setPriorityFee: (priorityFee: number) => set({ priorityFee: priorityFee }),
+  setSlippageBps: (slippageBps: number) => set({ slippageBps: slippageBps }),
   setIsActionComplete: (isActionComplete: boolean) => set({ isActionComplete: isActionComplete }),
   setPreviousTxn: (previousTxn: PreviousTxn) => set({ previousTxn: previousTxn }),
   setIsActionBoxInputFocussed: (isFocussed: boolean) => set({ isActionBoxInputFocussed: isFocussed }),
