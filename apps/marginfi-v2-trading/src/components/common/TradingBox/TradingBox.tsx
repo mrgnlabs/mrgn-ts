@@ -15,7 +15,7 @@ import { TokenCombobox } from "../TokenCombobox/TokenCombobox";
 import { ActionBoxDialog } from "~/components/common/ActionBox";
 import { Card, CardContent, CardFooter } from "~/components/ui/card";
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
-import { IconAlertTriangle, IconLoader, IconPyth } from "~/components/ui/icons";
+import { IconAlertTriangle, IconLoader, IconPyth, IconSettings } from "~/components/ui/icons";
 import { Slider } from "~/components/ui/slider";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -36,6 +36,7 @@ import {
 import { useDebounce } from "~/hooks/useDebounce";
 import { executeLeverageAction, extractErrorString, usePrevious } from "~/utils";
 import Link from "next/link";
+import { TradingBoxSettingsDialog } from "./components/TradingBoxSettings/TradingBoxSettingsDialog";
 
 const USDC_BANK_PK = new PublicKey("2s37akK2eyBbp8DZgCm7RtsaEz8eJP3Nxd4urLHQv7yB");
 
@@ -60,6 +61,7 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const [Stats, setStats] = React.useState<React.JSX.Element>(<></>);
   const [additionalChecks, setAdditionalChecks] = React.useState<ActionMethod>();
+  const [showSettings, setShowSettings] = React.useState<boolean>(false);
 
   const debouncedLeverage = useDebounce(leverage, 1000);
   const debouncedAmount = useDebounce(amount, 1000);
@@ -84,12 +86,16 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
     ]
   );
 
-  const [priorityFee, setPriorityFee, setIsActionComplete, setPreviousTxn] = useUiStore((state) => [
-    state.priorityFee,
-    state.setPriorityFee,
-    state.setIsActionComplete,
-    state.setPreviousTxn,
-  ]);
+  const [slippageBps, priorityFee, setSlippageBps, setPriorityFee, setIsActionComplete, setPreviousTxn] = useUiStore(
+    (state) => [
+      state.slippageBps,
+      state.priorityFee,
+      state.setSlippageBps,
+      state.setPriorityFee,
+      state.setIsActionComplete,
+      state.setPreviousTxn,
+    ]
+  );
   const [_, extendedBankInfos] = useMrgnlendStore((state) => [state.selectedAccount, state.extendedBankInfos]);
 
   React.useEffect(() => {
@@ -166,7 +172,6 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
           throw new Error("Amount is 0");
         }
         setIsLoading(true);
-        const slippageBps = 400;
 
         let borrowBank, depositBank;
 
@@ -207,7 +212,7 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
         setIsLoading(false);
       }
     }
-  }, [leverage, tradeState, amount, selectedAccount, activeGroup, marginfiClient]);
+  }, [leverage, tradeState, slippageBps, amount, selectedAccount, activeGroup, marginfiClient]);
 
   const handleSimulation = React.useCallback(
     async (loopingTxn: VersionedTransaction, bank: ExtendedBankInfo, selectedAccount: MarginfiAccountWrapper) => {
@@ -266,13 +271,23 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
         tradeState,
         loopingObject,
         priorityFee,
-        slippageBps: 0.1 * 1000,
+        slippageBps: slippageBps,
         connection,
       });
 
       return sig;
     },
-    [amount, connection, loopingObject, marginfiClient, priorityFee, selectedAccount, tradeState, walletContextState]
+    [
+      amount,
+      connection,
+      loopingObject,
+      marginfiClient,
+      priorityFee,
+      selectedAccount,
+      slippageBps,
+      tradeState,
+      walletContextState,
+    ]
   );
 
   const handleLeverageAction = React.useCallback(async () => {
@@ -342,165 +357,175 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
   if (!activeGroup) return null;
 
   return (
-    <Card className="bg-background-gray border-none">
-      <CardContent className="pt-6">
-        {isActiveWithCollat ? (
-          <div className="space-y-4">
-            <ToggleGroup
-              type="single"
-              className="w-full gap-4 bg-transparent"
-              defaultValue="long"
-              onValueChange={(value) => value && setTradeState(value as TradeSide)}
-            >
-              <ToggleGroupItem
-                className="w-full border border-accent hover:bg-accent hover:text-primary data-[state=on]:bg-accent data-[state=on]:border-transparent"
-                value="long"
-                aria-label="Toggle long"
+    <>
+      <Card className="bg-background-gray border-none">
+        <CardContent className="pt-6">
+          {isActiveWithCollat ? (
+            <div className="space-y-4">
+              <ToggleGroup
+                type="single"
+                className="w-full gap-4 bg-transparent"
+                defaultValue="long"
+                onValueChange={(value) => value && setTradeState(value as TradeSide)}
               >
-                Long
-              </ToggleGroupItem>
-              <ToggleGroupItem
-                className="w-full border border-accent hover:bg-accent hover:text-primary data-[state=on]:bg-accent data-[state=on]:border-transparent"
-                value="short"
-                aria-label="Toggle short"
-              >
-                Short
-              </ToggleGroupItem>
-            </ToggleGroup>
-            <div>
-              <div className="flex items-center justify-between">
-                <Label>Amount</Label>
-                <Button
-                  size="sm"
-                  variant="link"
-                  className="no-underline hover:underline"
-                  onClick={() => handleMaxAmount()}
+                <ToggleGroupItem
+                  className="w-full border border-accent hover:bg-accent hover:text-primary data-[state=on]:bg-accent data-[state=on]:border-transparent"
+                  value="long"
+                  aria-label="Toggle long"
                 >
-                  Max
-                </Button>
+                  Long
+                </ToggleGroupItem>
+                <ToggleGroupItem
+                  className="w-full border border-accent hover:bg-accent hover:text-primary data-[state=on]:bg-accent data-[state=on]:border-transparent"
+                  value="short"
+                  aria-label="Toggle short"
+                >
+                  Short
+                </ToggleGroupItem>
+              </ToggleGroup>
+              <div>
+                <div className="flex items-center justify-between">
+                  <Label>Amount</Label>
+                  <Button
+                    size="sm"
+                    variant="link"
+                    className="no-underline hover:underline"
+                    onClick={() => handleMaxAmount()}
+                  >
+                    Max
+                  </Button>
+                </div>
+                <div className="relative">
+                  <Input
+                    type="text"
+                    inputMode="decimal"
+                    value={amount}
+                    onChange={(e) => handleAmountChange(e.target.value)}
+                    className=""
+                  />
+                  <span className="absolute inset-y-0 right-3 flex items-center text-xs text-muted-foreground">
+                    {collateralBank?.meta.tokenSymbol}
+                  </span>
+                </div>
               </div>
-              <div className="relative">
-                <Input
-                  type="text"
-                  inputMode="decimal"
-                  value={amount}
-                  onChange={(e) => handleAmountChange(e.target.value)}
-                  className=""
-                />
-                <span className="absolute inset-y-0 right-3 flex items-center text-xs text-muted-foreground">
-                  {collateralBank?.meta.tokenSymbol}
-                </span>
+              <div className="space-y-1.5">
+                <Label>Size of {tradeState}</Label>
+                <div className="relative flex gap-2 items-center border border-accent p-2 rounded-lg">
+                  <TokenCombobox
+                    selected={activeGroup.token}
+                    setSelected={(bank) => {
+                      router.push(`/trade/${bank.address.toBase58()}`);
+                      setActiveBank({ bankPk: bank.address, connection, wallet });
+                    }}
+                  />
+                  <Input
+                    type="text"
+                    inputMode="decimal"
+                    value={leveragedAmount ? leveragedAmount.toFixed(activeGroup.token.info.state.mintDecimals) : 0}
+                    disabled
+                    className="appearance-none border-none text-right focus-visible:ring-0 focus-visible:outline-none disabled:opacity-100 border-accent"
+                  />
+                </div>
               </div>
-            </div>
-            <div className="space-y-1.5">
-              <Label>Size of {tradeState}</Label>
-              <div className="relative flex gap-2 items-center border border-accent p-2 rounded-lg">
-                <TokenCombobox
-                  selected={activeGroup.token}
-                  setSelected={(bank) => {
-                    router.push(`/trade/${bank.address.toBase58()}`);
-                    setActiveBank({ bankPk: bank.address, connection, wallet });
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <Label>Leverage</Label>
+                  <span className="text-sm font-medium text-muted-foreground">{leverage.toFixed(2)}x</span>
+                </div>
+                <Slider
+                  className="w-full"
+                  defaultValue={[1]}
+                  min={1}
+                  step={0.01}
+                  max={maxLeverage === 0 ? 1 : maxLeverage}
+                  value={[leverage]}
+                  onValueChange={(value) => {
+                    if (value[0] > maxLeverage) return;
+                    setLeverage(value[0]);
                   }}
                 />
-                <Input
-                  type="text"
-                  inputMode="decimal"
-                  value={leveragedAmount ? leveragedAmount.toFixed(activeGroup.token.info.state.mintDecimals) : 0}
-                  disabled
-                  className="appearance-none border-none text-right focus-visible:ring-0 focus-visible:outline-none disabled:opacity-100 border-accent"
-                />
               </div>
             </div>
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <Label>Leverage</Label>
-                <span className="text-sm font-medium text-muted-foreground">{leverage.toFixed(2)}x</span>
-              </div>
-              <Slider
-                className="w-full"
-                defaultValue={[1]}
-                min={1}
-                step={0.01}
-                max={maxLeverage === 0 ? 1 : maxLeverage}
-                value={[leverage]}
-                onValueChange={(value) => {
-                  if (value[0] > maxLeverage) return;
-                  setLeverage(value[0]);
-                }}
-              />
+          ) : (
+            <div className="flex items-center justify-center text-center">
+              <p className="text-muted-foreground">
+                You need to deposit collateral (USDC) in this pool before you can trade.
+              </p>
             </div>
-          </div>
-        ) : (
-          <div className="flex items-center justify-center text-center">
-            <p className="text-muted-foreground">
-              You need to deposit collateral (USDC) in this pool before you can trade.
-            </p>
-          </div>
-        )}
-      </CardContent>
-      <CardFooter className="flex-col gap-8">
-        {isActiveWithCollat ? (
-          <>
-            <div className="gap-1 w-full flex flex-col items-center">
-              {actionMethods.concat(additionalChecks ?? []).map(
-                (actionMethod, idx) =>
-                  actionMethod.description && (
-                    <div className="pb-6" key={idx}>
-                      <div
-                        className={cn(
-                          "flex space-x-2 py-2.5 px-3.5 rounded-lg gap-1 text-sm",
-                          actionMethod.actionMethod === "INFO" && "bg-info text-info-foreground",
-                          (!actionMethod.actionMethod || actionMethod.actionMethod === "WARNING") &&
-                            "bg-alert text-alert-foreground",
-                          actionMethod.actionMethod === "ERROR" && "bg-[#990000] text-primary"
-                        )}
-                      >
-                        <IconAlertTriangle className="shrink-0 translate-y-0.5" size={16} />
-                        <div className="space-y-1">
-                          <p>{actionMethod.description}</p>
-                          {actionMethod.action && (
-                            <ActionBoxDialog
-                              requestedAction={actionMethod.action.type}
-                              requestedBank={actionMethod.action.bank}
-                            >
-                              <p className="underline hover:no-underline cursor-pointer">
-                                {actionMethod.action.type} {actionMethod.action.bank.meta.tokenSymbol}
-                              </p>
-                            </ActionBoxDialog>
+          )}
+        </CardContent>
+        <CardFooter className="flex-col gap-5">
+          {isActiveWithCollat ? (
+            <>
+              <div className="gap-1 w-full flex flex-col items-center">
+                {actionMethods.concat(additionalChecks ?? []).map(
+                  (actionMethod, idx) =>
+                    actionMethod.description && (
+                      <div className="pb-6" key={idx}>
+                        <div
+                          className={cn(
+                            "flex space-x-2 py-2.5 px-3.5 rounded-lg gap-1 text-sm",
+                            actionMethod.actionMethod === "INFO" && "bg-info text-info-foreground",
+                            (!actionMethod.actionMethod || actionMethod.actionMethod === "WARNING") &&
+                              "bg-alert text-alert-foreground",
+                            actionMethod.actionMethod === "ERROR" && "bg-[#990000] text-primary"
                           )}
-                          {actionMethod.link && (
-                            <p>
-                              {/* <span className="hidden md:inline">-</span>{" "} */}
-                              <Link
-                                href={actionMethod.link}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="underline hover:no-underline"
+                        >
+                          <IconAlertTriangle className="shrink-0 translate-y-0.5" size={16} />
+                          <div className="space-y-1">
+                            <p>{actionMethod.description}</p>
+                            {actionMethod.action && (
+                              <ActionBoxDialog
+                                requestedAction={actionMethod.action.type}
+                                requestedBank={actionMethod.action.bank}
                               >
-                                Read more
-                              </Link>
-                            </p>
-                          )}
+                                <p className="underline hover:no-underline cursor-pointer">
+                                  {actionMethod.action.type} {actionMethod.action.bank.meta.tokenSymbol}
+                                </p>
+                              </ActionBoxDialog>
+                            )}
+                            {actionMethod.link && (
+                              <p>
+                                {/* <span className="hidden md:inline">-</span>{" "} */}
+                                <Link
+                                  href={actionMethod.link}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="underline hover:no-underline"
+                                >
+                                  Read more
+                                </Link>
+                              </p>
+                            )}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  )
-              )}
-
-              <Button
-                onClick={() => handleLeverageAction()}
-                disabled={!!actionMethods.filter((value) => value.isEnabled === false).length || isLoading}
-                className={cn("w-full", tradeState === "long" && "bg-success", tradeState === "short" && "bg-error")}
-              >
-                {isLoading ? (
-                  <IconLoader />
-                ) : (
-                  <>
-                    {capitalize(tradeState)} {activeGroup.token.meta.tokenSymbol}
-                  </>
+                    )
                 )}
-              </Button>
-              {/* <ActionBoxDialog requestedAction={ActionType.Deposit} requestedBank={activeGroup.usdc}>
+                <Button
+                  onClick={() => handleLeverageAction()}
+                  disabled={!!actionMethods.filter((value) => value.isEnabled === false).length || isLoading}
+                  className={cn("w-full", tradeState === "long" && "bg-success", tradeState === "short" && "bg-error")}
+                >
+                  {isLoading ? (
+                    <IconLoader />
+                  ) : (
+                    <>
+                      {capitalize(tradeState)} {activeGroup.token.meta.tokenSymbol}
+                    </>
+                  )}
+                </Button>
+                <TradingBoxSettingsDialog
+                  setSlippageBps={(value) => setSlippageBps(value * 100)}
+                  slippageBps={slippageBps / 100}
+                >
+                  <div className="flex justify-end gap-2 mt-2 ml-auto">
+                    <button className="text-xs gap-1 h-6 px-2 flex items-center rounded-full border border-background-gray-light bg-transparent hover:bg-background-gray-light text-muted-foreground">
+                      Settings <IconSettings size={16} />
+                    </button>
+                  </div>
+                </TradingBoxSettingsDialog>
+                {/* <ActionBoxDialog requestedAction={ActionType.Deposit} requestedBank={activeGroup.usdc}>
                 <Button
                   variant="link"
                   size="sm"
@@ -509,9 +534,9 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
                   Desposit Collateral
                 </Button>
               </ActionBoxDialog> */}
-            </div>
-            {Stats}
-            {/* <dl className="w-full grid grid-cols-2 gap-1.5 text-xs text-muted-foreground">
+              </div>
+              {Stats}
+              {/* <dl className="w-full grid grid-cols-2 gap-1.5 text-xs text-muted-foreground">
               <dt>Entry Price</dt>
               <dd className="text-primary text-right">$177.78</dd>
               <dt>Liquidation Price</dt>
@@ -523,14 +548,15 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
               <dt>Available Liquidity</dt>
               <dd className="text-primary text-right">$1,000,000</dd>
             </dl> */}
-          </>
-        ) : (
-          <ActionBoxDialog requestedAction={ActionType.Deposit} requestedBank={activeGroup.usdc}>
-            <Button className="w-full">Deposit Collateral</Button>
-          </ActionBoxDialog>
-        )}
-      </CardFooter>
-    </Card>
+            </>
+          ) : (
+            <ActionBoxDialog requestedAction={ActionType.Deposit} requestedBank={activeGroup.usdc}>
+              <Button className="w-full">Deposit Collateral</Button>
+            </ActionBoxDialog>
+          )}
+        </CardFooter>
+      </Card>
+    </>
   );
 };
 

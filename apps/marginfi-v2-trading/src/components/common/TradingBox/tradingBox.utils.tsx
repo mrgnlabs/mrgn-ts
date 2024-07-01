@@ -48,12 +48,10 @@ export async function calculateLooping(
   borrowBank: ExtendedBankInfo, // borrow
   targetLeverage: number,
   amount: number,
-  slippageBpsa: number,
+  slippageBps: number,
   priorityFee: number,
   connection: Connection
 ): Promise<LoopingObject | null> {
-  const slippageBps = 0.1 * 1000;
-
   console.log("bank A: " + depositBank.meta.tokenSymbol);
   console.log("bank B: " + borrowBank.meta.tokenSymbol);
   console.log("leverage: " + targetLeverage);
