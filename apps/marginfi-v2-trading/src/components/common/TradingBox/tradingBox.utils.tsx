@@ -10,7 +10,7 @@ import {
   SimulationResult,
   computeLoopingParams,
 } from "@mrgnlabs/marginfi-client-v2";
-import { AccountSummary, ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { AccountSummary, ActionType, ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import {
   LUT_PROGRAM_AUTHORITY_INDEX,
   Wallet,
@@ -104,7 +104,6 @@ export async function getCloseTransaction({
   borrowBank,
   depositBank,
   amount,
-  borrowAmount,
   slippageBps,
   connection,
   priorityFee,
@@ -113,7 +112,6 @@ export async function getCloseTransaction({
   borrowBank: ExtendedBankInfo;
   depositBank: ExtendedBankInfo;
   amount: number;
-  borrowAmount: BigNumber;
   slippageBps: number;
   connection: Connection;
   priorityFee?: number;
@@ -121,14 +119,16 @@ export async function getCloseTransaction({
   let firstQuote;
   const maxAccountsArr = [undefined, 50, 40, 30];
 
+  if (!borrowBank.isActive) throw new Error("not active");
+
   for (const maxAccounts of maxAccountsArr) {
     const quoteParams = {
-      amount: uiToNative(amount, depositBank.info.state.mintDecimals).toNumber(),
+      amount: uiToNative(borrowBank.position.amount, borrowBank.info.state.mintDecimals).toNumber(),
       inputMint: depositBank.info.state.mint.toBase58(),
       outputMint: borrowBank.info.state.mint.toBase58(),
       slippageBps: slippageBps,
       maxAccounts: maxAccounts,
-      swapMode: "ExactIn",
+      swapMode: "ExactOut",
     } as QuoteGetRequest;
     try {
       const swapQuote = await getSwapQuoteWithRetry(quoteParams);
@@ -144,12 +144,10 @@ export async function getCloseTransaction({
         let txn: VersionedTransaction | undefined;
 
         if (marginfiAccount) {
-          txn = await verifyJupTxSizeLooping(
+          txn = await verifyJupTxSizeClosePosition(
             marginfiAccount,
             depositBank,
             borrowBank,
-            actualDepositAmountUi,
-            borrowAmount,
             swapQuote,
             connection,
             priorityFee
@@ -164,12 +162,7 @@ export async function getCloseTransaction({
           //   inputMint: borrowBank.info.state.mint.toBase58(),
           //   outputMint: bank.info.state.mint.toBase58(),
           // });
-          return {
-            loopingTxn: txn ?? null,
-            quote: swapQuote,
-            borrowAmount: borrowAmount,
-            actualDepositAmount: actualDepositAmountUi,
-          };
+          return txn;
         }
       } else {
         throw new Error("Swap quote failed");
@@ -307,26 +300,22 @@ export async function getLoopingTransaction({
 
 export async function verifyJupTxSizeClosePosition(
   marginfiAccount: MarginfiAccountWrapper,
-  bank: ExtendedBankInfo,
-  loopingBank: ExtendedBankInfo,
-  depositAmount: number,
-  borrowAmount: BigNumber,
+  depositBank: ExtendedBankInfo,
+  borrowBank: ExtendedBankInfo,
   quoteResponse: QuoteResponse,
   connection: Connection,
   priorityFee?: number
 ) {
   try {
-    const builder = await loopingBuilder({
+    if (!depositBank.isActive || !borrowBank.isActive) {
+      throw new Error("Position not active");
+    }
+    const builder = await closePositionBuilder({
       marginfiAccount,
-      bank,
-      depositAmount,
-      options: {
-        loopingQuote: quoteResponse,
-        borrowAmount,
-        loopingBank,
-        connection,
-        loopingTxn: null,
-      },
+      depositBank,
+      borrowBank,
+      quote: quoteResponse,
+      connection,
       priorityFee,
     });
 
@@ -386,6 +375,57 @@ const checkTxSize = (builder: {
     // too big
   }
 };
+
+export async function closePositionBuilder({
+  marginfiAccount,
+  depositBank,
+  borrowBank,
+  quote,
+  connection,
+  priorityFee,
+}: {
+  marginfiAccount: MarginfiAccountWrapper;
+  depositBank: ActiveBankInfo;
+  borrowBank: ActiveBankInfo;
+  quote: QuoteResponse;
+  connection: Connection;
+  priorityFee?: number;
+}) {
+  const jupiterQuoteApi = createJupiterApiClient();
+
+  // get fee account for original borrow mint
+  //const feeAccount = await getFeeAccount(bank.info.state.mint);
+
+  const { swapInstruction, addressLookupTableAddresses } = await jupiterQuoteApi.swapInstructionsPost({
+    swapRequest: {
+      quoteResponse: quote,
+      userPublicKey: marginfiAccount.authority.toBase58(),
+      programAuthorityId: LUT_PROGRAM_AUTHORITY_INDEX,
+    },
+  });
+
+  // const setupIxs = setupInstructions.length > 0 ? setupInstructions.map(deserializeInstruction) : []; //**not optional but man0s smart**
+  const swapIx = deserializeInstruction(swapInstruction);
+  // const swapcleanupIx = cleanupInstruction ? [deserializeInstruction(cleanupInstruction)] : []; **optional**
+  // tokenLedgerInstruction **also optional**
+
+  const swapLUTs: AddressLookupTableAccount[] = [];
+  swapLUTs.push(...(await getAdressLookupTableAccounts(connection, addressLookupTableAddresses)));
+
+  const { transaction, addressLookupTableAccounts } = await marginfiAccount.makeRepayWithCollatTx(
+    borrowBank.position.amount,
+    depositBank.position.amount,
+    borrowBank.address,
+    depositBank.address,
+    true,
+    true,
+    [swapIx],
+    swapLUTs,
+    priorityFee
+  );
+
+  return { txn: transaction, addressLookupTableAccounts };
+}
 
 export async function loopingBuilder({
   marginfiAccount,
