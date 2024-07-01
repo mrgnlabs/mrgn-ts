@@ -167,10 +167,28 @@ const oraclesWithMaxAgeOverMin = [
 ];
 
 export function isBankOracleStale(bank: ExtendedBankInfo) {
-  const oracle = oraclesWithMaxAgeOverMin.find((oracle) => oracle.address === bank.info.rawBank.mint.toBase58());
+  const oracle = oraclesWithMaxAgeOverMin.find(
+    (oracle) => oracle.address.toLowerCase() === bank.info.rawBank.mint.toBase58().toLowerCase()
+  );
   const maxAge = oracle ? oracle.maxAge : 60;
   const currentTime = Math.round(Date.now() / 1000);
-  const isStale = currentTime - bank.info.rawBank.lastUpdate > maxAge;
+  const oracleTime = Math.round(
+    bank.info.oraclePrice.timestamp ? bank.info.oraclePrice.timestamp.toNumber() : new Date().getTime()
+  );
+  const isStale = currentTime - oracleTime > maxAge;
+
+  console.log(
+    "bank oracle info: ",
+    bank.meta.tokenSymbol,
+    "oracle timestamp: ",
+    oracleTime,
+    "current time: ",
+    currentTime,
+    "diff: ",
+    currentTime - oracleTime,
+    "max age: ",
+    maxAge
+  );
 
   return isStale;
 }
