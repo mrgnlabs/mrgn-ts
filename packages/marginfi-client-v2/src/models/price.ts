@@ -14,6 +14,7 @@ interface PriceWithConfidence {
 interface OraclePrice {
   priceRealtime: PriceWithConfidence;
   priceWeighted: PriceWithConfidence;
+  timestamp?: BigNumber;
 }
 
 enum PriceBias {
@@ -67,13 +68,16 @@ function parseOraclePriceData(oracleSetup: OracleSetup, rawData: Buffer): Oracle
           lowestPrice: pythLowestPrice,
           highestPrice: pythHighestPrice,
         },
+        timestamp: new BigNumber(Number(pythPriceData.timestamp)),
       };
 
     case OracleSetup.SwitchboardV2:
       const aggData = AggregatorAccountData.decode(rawData);
 
       const swbPrice = new BigNumber(AggregatorAccount.decodeLatestValue(aggData)!.toString());
-      const swbConfidence = new BigNumber(aggData.latestConfirmedRound.stdDeviation.toBig().toString()).times(SWB_PRICE_CONF_INTERVALS);
+      const swbConfidence = new BigNumber(aggData.latestConfirmedRound.stdDeviation.toBig().toString()).times(
+        SWB_PRICE_CONF_INTERVALS
+      );
       const maxSwbConfidence = swbPrice.times(MAX_CONFIDENCE_INTERVAL_RATIO);
       const swbConfidenceCapped = BigNumber.min(swbConfidence, maxSwbConfidence);
       const swbLowestPrice = swbPrice.minus(swbConfidenceCapped);
@@ -94,6 +98,7 @@ function parseOraclePriceData(oracleSetup: OracleSetup, rawData: Buffer): Oracle
           lowestPrice: swbLowestPrice,
           highestPrice: swbHighestPrice,
         },
+        timestamp: new BigNumber(aggData.latestConfirmedRound.roundOpenTimestamp),
       };
 
     default:
