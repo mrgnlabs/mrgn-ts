@@ -141,33 +141,36 @@ export function getTokenImageURL(tokenSymbol: string): string {
 
 const oraclesWithMaxAgeOverMin = [
   {
-    address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
-    maxAge: 3600
+    address: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    maxAge: 3600,
   },
   {
-    address: 'HZ1JovNiVvGrGNiiYvEozEVgZ58xaU3RKwX8eACQBCt3',
-    maxAge: 120
+    address: "HZ1JovNiVvGrGNiiYvEozEVgZ58xaU3RKwX8eACQBCt3",
+    maxAge: 120,
   },
   {
-    address: 'J1toso1uCk3RLmjorhTtrVwY9HJ7X8V9yYac6Y7kGCPn',
-    maxAge: 180
+    address: "J1toso1uCk3RLmjorhTtrVwY9HJ7X8V9yYac6Y7kGCPn",
+    maxAge: 180,
   },
   {
-    address: 'mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So',
-    maxAge: 180
+    address: "mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So",
+    maxAge: 180,
   },
   {
-    address: 'LSTxxxnJzKDFSLr4dUkPcmCf5VyryEqzPLz5j4bpxFp',
-    maxAge: 180
+    address: "LSTxxxnJzKDFSLr4dUkPcmCf5VyryEqzPLz5j4bpxFp",
+    maxAge: 180,
   },
   {
-    address: 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB',
-    maxAge: 600
-  }
+    address: "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+    maxAge: 600,
+  },
 ];
 
 export function isBankOracleStale(bank: ExtendedBankInfo) {
-  const oracle = oraclesWithMaxAgeOverMin.find(oracle => oracle.address === bank.info.rawBank.mint.toBase58());
+  const oracle = oraclesWithMaxAgeOverMin.find((oracle) => oracle.address === bank.info.rawBank.mint.toBase58());
   const maxAge = oracle ? oracle.maxAge : 60;
-  return bank.info.rawBank.lastUpdate + maxAge > Math.round(Date.now() / 1000);
+  const currentTime = Math.round(Date.now() / 1000);
+  const isStale = currentTime - bank.info.rawBank.lastUpdate > maxAge;
+
+  return isStale;
 }

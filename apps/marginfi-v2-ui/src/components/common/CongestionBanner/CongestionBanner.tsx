@@ -15,10 +15,13 @@ export const CongestionBanner = () => {
   const [isOraclesStale, setIsOraclesStale] = useUiStore((state) => [state.isOraclesStale, state.setIsOraclesStale]);
   const [isCongestionBannerDismissed, setIsCongestionBannerDismissed] = React.useState(false);
 
-  const banksWithStaleOracles = React.useMemo(
-    () => extendedBankInfos.filter((bank) => isBankOracleStale(bank)),
-    [extendedBankInfos]
-  );
+  const banksWithStaleOracles = React.useMemo(() => {
+    const staleBanks = extendedBankInfos.filter((bank) => {
+      return isBankOracleStale(bank);
+    });
+
+    return staleBanks;
+  }, [extendedBankInfos]);
 
   React.useEffect(() => {
     const thresholdMet = banksWithStaleOracles.length >= CONGESTION_THRESHOLD;
