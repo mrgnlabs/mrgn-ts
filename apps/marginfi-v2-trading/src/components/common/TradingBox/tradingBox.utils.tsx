@@ -103,7 +103,6 @@ export async function getCloseTransaction({
   marginfiAccount,
   borrowBank,
   depositBank,
-  amount,
   slippageBps,
   connection,
   priorityFee,
@@ -111,7 +110,6 @@ export async function getCloseTransaction({
   marginfiAccount: MarginfiAccountWrapper | null;
   borrowBank: ExtendedBankInfo;
   depositBank: ExtendedBankInfo;
-  amount: number;
   slippageBps: number;
   connection: Connection;
   priorityFee?: number;
@@ -121,14 +119,20 @@ export async function getCloseTransaction({
 
   if (!borrowBank.isActive) throw new Error("not active");
 
+  const maxAmount = await calculateMaxCollat(borrowBank, depositBank, slippageBps);
+
+  console.log(maxAmount);
+
+  if (!maxAmount) return;
+
   for (const maxAccounts of maxAccountsArr) {
     const quoteParams = {
-      amount: uiToNative(borrowBank.position.amount, borrowBank.info.state.mintDecimals).toNumber(),
+      amount: uiToNative(maxAmount, depositBank.info.state.mintDecimals).toNumber(),
       inputMint: depositBank.info.state.mint.toBase58(),
       outputMint: borrowBank.info.state.mint.toBase58(),
       slippageBps: slippageBps,
       maxAccounts: maxAccounts,
-      swapMode: "ExactOut",
+      swapMode: "ExactIn",
     } as QuoteGetRequest;
     try {
       const swapQuote = await getSwapQuoteWithRetry(quoteParams);
@@ -139,12 +143,11 @@ export async function getCloseTransaction({
 
       if (swapQuote) {
         const minSwapAmountOutUi = nativeToUi(swapQuote.otherAmountThreshold, depositBank.info.state.mintDecimals);
-        const actualDepositAmountUi = minSwapAmountOutUi + amount;
 
-        let txn: VersionedTransaction | undefined;
+        let sig: string | undefined;
 
         if (marginfiAccount) {
-          txn = await verifyJupTxSizeClosePosition(
+          sig = await verifyJupTxSizeClosePosition(
             marginfiAccount,
             depositBank,
             borrowBank,
@@ -154,7 +157,7 @@ export async function getCloseTransaction({
           );
         }
 
-        if (txn || !marginfiAccount) {
+        if (sig || !marginfiAccount) {
           // capture("looper", {
           //   amountIn: uiToNative(amount, borrowBank.info.state.mintDecimals).toNumber(),
           //   firstQuote,
@@ -162,7 +165,7 @@ export async function getCloseTransaction({
           //   inputMint: borrowBank.info.state.mint.toBase58(),
           //   outputMint: bank.info.state.mint.toBase58(),
           // });
-          return txn;
+          return sig;
         }
       } else {
         throw new Error("Swap quote failed");
@@ -310,7 +313,7 @@ export async function verifyJupTxSizeClosePosition(
     if (!depositBank.isActive || !borrowBank.isActive) {
       throw new Error("Position not active");
     }
-    const builder = await closePositionBuilder({
+    const sig = await closePosition({
       marginfiAccount,
       depositBank,
       borrowBank,
@@ -319,7 +322,7 @@ export async function verifyJupTxSizeClosePosition(
       priorityFee,
     });
 
-    return checkTxSize(builder);
+    return sig;
   } catch (error) {
     console.error(error);
   }
@@ -376,7 +379,7 @@ const checkTxSize = (builder: {
   }
 };
 
-export async function closePositionBuilder({
+export async function closePosition({
   marginfiAccount,
   depositBank,
   borrowBank,
@@ -412,7 +415,7 @@ export async function closePositionBuilder({
   const swapLUTs: AddressLookupTableAccount[] = [];
   swapLUTs.push(...(await getAdressLookupTableAccounts(connection, addressLookupTableAddresses)));
 
-  const { transaction, addressLookupTableAccounts } = await marginfiAccount.makeRepayWithCollatTx(
+  const sig = await marginfiAccount.repayWithCollat(
     borrowBank.position.amount,
     depositBank.position.amount,
     borrowBank.address,
@@ -424,7 +427,54 @@ export async function closePositionBuilder({
     priorityFee
   );
 
-  return { txn: transaction, addressLookupTableAccounts };
+  return sig;
+}
+
+async function calculateMaxCollat(bank: ExtendedBankInfo, repayBank: ExtendedBankInfo, slippageBps: number) {
+  const amount = repayBank.isActive && repayBank.position.isLending ? repayBank.position.amount : 0;
+  const maxRepayAmount = bank.isActive ? bank?.position.amount : 0;
+
+  console.log({ bank, repayBank, amount, maxRepayAmount });
+
+  if (amount !== 0) {
+    const quoteParams = {
+      amount: uiToNative(amount, repayBank.info.state.mintDecimals).toNumber(),
+      inputMint: repayBank.info.state.mint.toBase58(),
+      outputMint: bank.info.state.mint.toBase58(),
+      slippageBps: slippageBps,
+      maxAccounts: 40,
+      swapMode: "ExactIn",
+    } as QuoteGetRequest;
+
+    try {
+      const swapQuoteInput = await getSwapQuoteWithRetry(quoteParams);
+
+      if (!swapQuoteInput) throw new Error();
+
+      const inputInOtherAmount = nativeToUi(swapQuoteInput.otherAmountThreshold, bank.info.state.mintDecimals);
+
+      if (inputInOtherAmount > maxRepayAmount) {
+        const quoteParams = {
+          amount: uiToNative(maxRepayAmount, bank.info.state.mintDecimals).toNumber(),
+          inputMint: repayBank.info.state.mint.toBase58(), // USDC
+          outputMint: bank.info.state.mint.toBase58(), // JITO
+          slippageBps: slippageBps,
+          swapMode: "ExactOut",
+        } as QuoteGetRequest;
+
+        const swapQuoteOutput = await getSwapQuoteWithRetry(quoteParams);
+        if (!swapQuoteOutput) throw new Error();
+
+        const inputOutOtherAmount =
+          nativeToUi(swapQuoteOutput.otherAmountThreshold, repayBank.info.state.mintDecimals) * 1.01; // add this if dust appears: "* 1.01"
+        return inputOutOtherAmount;
+      } else {
+        return amount;
+      }
+    } catch {
+      return 0;
+    }
+  }
 }
 
 export async function loopingBuilder({
