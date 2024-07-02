@@ -85,8 +85,6 @@ export const PositionCard = ({ bank, isLong }: PositionCardProps) => {
           <dd className="text-right text-primary">
             {numeralFormatter(bank.position.amount)} {bank.meta.tokenSymbol}
           </dd>
-          <dt>USD Value</dt>
-          <dd className="text-right text-primary">{usdFormatter.format(bank.position.usdValue)} USD</dd>
           <dt>Price</dt>
           <dd className="text-right text-primary">
             {bank.info.oraclePrice.priceRealtime.price.toNumber() > 0.01
@@ -98,6 +96,8 @@ export const PositionCard = ({ bank, isLong }: PositionCardProps) => {
               </span>
             )}
           </dd>
+          <dt>USD Value</dt>
+          <dd className="text-right text-primary">{usdFormatter.format(bank.position.usdValue)} USD</dd>
           {bank.position.liquidationPrice && (
             <>
               <dt>Liquidation Price</dt>
