@@ -143,7 +143,6 @@ export async function executeLeverageAction({
       if (!loopingObject?.loopingTxn) {
         throw new Error("Something went wrong, please try again.");
       } else {
-        marginfiAccount;
         multiStepToast.setSuccessAndNext();
       }
     } catch (error) {

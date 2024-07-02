@@ -104,6 +104,7 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
       setAmount("");
       setLoopingObject(null);
       setLeverage(1);
+      setAdditionalChecks(undefined);
     }
   }, [tradeState, prevTradeState]);
 
@@ -172,6 +173,46 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
     return bank?.userInfo.tokenAccount.balance;
   }, [tradeState, activeGroup]);
 
+  const loadStats = React.useCallback(
+    async (simulationResult: SimulationResult | null) => {
+      if (!marginfiClient || !activeGroup) {
+        return;
+      }
+      setStats(generateStats(accountSummary, activeGroup.token, activeGroup.usdc, simulationResult));
+    },
+    [accountSummary, activeGroup, marginfiClient]
+  );
+
+  const handleSimulation = React.useCallback(
+    async (loopingTxn: VersionedTransaction, bank: ExtendedBankInfo, selectedAccount: MarginfiAccountWrapper) => {
+      if (!marginfiClient) {
+        return;
+      }
+
+      let simulationResult: SimulationResult | null = null;
+      try {
+        simulationResult = await simulateLooping({
+          marginfiClient,
+          account: selectedAccount,
+          bank: bank,
+          loopingTxn: loopingTxn,
+        });
+        setAdditionalChecks(undefined);
+      } catch (error) {
+        const additionChecks = checkAdditionalActionAvailable(error);
+        setAdditionalChecks(additionChecks);
+
+        let message;
+        if ((error as any).msg) message = (error as any).msg;
+        // addStatus({ type: "simulation", msg: message ?? "Simulating transaction failed" }, "warning");
+      } finally {
+        // if (simulationResult) removeStatus("simulation");
+        loadStats(simulationResult);
+      }
+    },
+    [loadStats, marginfiClient]
+  );
+
   const loadLoopingVariables = React.useCallback(async () => {
     if (marginfiClient && activeGroup) {
       try {
@@ -202,6 +243,8 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
           connection
         );
 
+        console.log({ looping });
+
         if (looping && looping?.loopingTxn && selectedAccount) {
           await handleSimulation(looping.loopingTxn, activeGroup.token, selectedAccount);
           // const simulation = await simulateLooping({
@@ -219,52 +262,24 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
         setIsLoading(false);
       }
     }
-  }, [leverage, tradeState, slippageBps, amount, selectedAccount, activeGroup, marginfiClient]);
-
-  const handleSimulation = React.useCallback(
-    async (loopingTxn: VersionedTransaction, bank: ExtendedBankInfo, selectedAccount: MarginfiAccountWrapper) => {
-      if (!marginfiClient) {
-        return;
-      }
-
-      let simulationResult: SimulationResult | null = null;
-      try {
-        simulationResult = await simulateLooping({
-          marginfiClient,
-          account: selectedAccount,
-          bank: bank,
-          loopingTxn: loopingTxn,
-        });
-      } catch (error) {
-        const additionChecks = checkAdditionalActionAvailable(error);
-        setAdditionalChecks(additionChecks);
-
-        let message;
-        if ((error as any).msg) message = (error as any).msg;
-        // addStatus({ type: "simulation", msg: message ?? "Simulating transaction failed" }, "warning");
-      } finally {
-        // if (simulationResult) removeStatus("simulation");
-        loadStats(simulationResult);
-      }
-    },
-    [marginfiClient]
-  );
+  }, [
+    marginfiClient,
+    activeGroup,
+    amount,
+    leverage,
+    tradeState,
+    selectedAccount,
+    slippageBps,
+    priorityFee,
+    connection,
+    handleSimulation,
+  ]);
 
   React.useEffect(() => {
     if (activeGroup) {
       setStats(generateStats(accountSummary, activeGroup.token, activeGroup.usdc, null));
     }
-  }, [accountSummary, activeGroup?.token, activeGroup?.usdc]);
-
-  const loadStats = React.useCallback(
-    async (simulationResult: SimulationResult | null) => {
-      if (!marginfiClient || !activeGroup) {
-        return;
-      }
-      setStats(generateStats(accountSummary, activeGroup.token, activeGroup.usdc, simulationResult));
-    },
-    [accountSummary, activeGroup, marginfiClient]
-  );
+  }, [accountSummary, activeGroup, activeGroup?.token, activeGroup?.usdc]);
 
   const leverageActionCb = React.useCallback(
     async (depositBank: ExtendedBankInfo, borrowBank: ExtendedBankInfo) => {
@@ -300,11 +315,6 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
   const handleLeverageAction = React.useCallback(async () => {
     if (loopingObject && marginfiClient && collateralBank) {
       try {
-        // const params =
-
-        // const sig = await marginfiClient.processTransaction(loopingObject?.loopingTxn);
-        // multiStepToast.setSuccessAndNext();
-
         let depositBank: ExtendedBankInfo, borrowBank: ExtendedBankInfo;
         let sig: undefined | string;
 

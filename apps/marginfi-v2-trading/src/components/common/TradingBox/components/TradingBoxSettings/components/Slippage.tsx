@@ -85,7 +85,10 @@ export const Slippage = ({ slippageBps, setSlippageBps, toggleSettings }: Slippa
               <FormItem className="space-y-3">
                 <FormControl>
                   <RadioGroup
-                    onValueChange={(value) => field.onChange(Number(value))}
+                    onValueChange={(value) => {
+                      console.log({ value });
+                      field.onChange(Number(value));
+                    }}
                     defaultValue={field.value.toString()}
                     className="flex justify-between"
                   >
@@ -99,14 +102,13 @@ export const Slippage = ({ slippageBps, setSlippageBps, toggleSettings }: Slippa
                       >
                         <RadioGroupItem
                           value={option.value.toString()}
-                          id={option.value.toString()}
+                          id={option.label.toString()}
                           className="hidden"
                         />
                         <Label
                           className={"flex flex-col gap-2 h-auto w-full text-center"}
-                          htmlFor={option.value.toString()}
+                          htmlFor={option.label.toString()}
                         >
-                          {" "}
                           {option.label} <strong className="font-medium">{option.value} %</strong>
                         </Label>
                       </div>
