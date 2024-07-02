@@ -325,10 +325,13 @@ export const ActionBox = ({
       if (txnSig) {
         setIsActionComplete(true);
         setPreviousTxn({
-          type: currentAction,
-          bank: bank as ActiveBankInfo,
-          amount: borrowOrLendAmount,
+          txnType: "LEND",
           txn: txnSig!,
+          lendingOptions: {
+            type: currentAction,
+            bank: bank as ActiveBankInfo,
+            amount: borrowOrLendAmount,
+          },
         });
         capture(`user_${currentAction.toLowerCase()}`, {
           uuid: attemptUuid,
@@ -384,11 +387,15 @@ export const ActionBox = ({
     setIsLoading(false);
     if (txnSig) {
       setPreviousTxn({
-        type: ActionType.Withdraw,
-        bank: selectedBank as ActiveBankInfo,
-        amount: 0,
+        txnType: "LEND",
         txn: txnSig!,
+        lendingOptions: {
+          type: ActionType.Withdraw,
+          bank: selectedBank as ActiveBankInfo,
+          amount: 0,
+        },
       });
+
       capture(`user_close_balance`, {
         uuid: attemptUuid,
         tokenSymbol: selectedBank.meta.tokenSymbol,
@@ -483,12 +490,16 @@ export const ActionBox = ({
 
     if (txnSig) {
       setIsActionComplete(true);
+
       setPreviousTxn({
-        type: ActionType.MintLST,
-        bank: selectedBank as ActiveBankInfo,
-        amount: amount,
-        lstQuote: lstQuoteMeta || undefined,
         txn: txnSig!,
+        txnType: "LST",
+        lstOptions: {
+          type: ActionType.MintLST,
+          bank: selectedBank as ActiveBankInfo,
+          amount: amount,
+          quote: lstQuoteMeta || undefined,
+        },
       });
       if (selectedBank) {
         capture(`user_${actionMode.toLowerCase()}`, {
