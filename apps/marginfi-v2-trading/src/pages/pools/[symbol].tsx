@@ -90,7 +90,7 @@ export default function TradeSymbolPage() {
         {(!initialized || !activeGroup) && <Loader label="Loading mrgntrade..." className="mt-8" />}
         {initialized && activeGroup && activeGroup.token && (
           <div className="flex flex-col items-start gap-8 pb-16 w-full">
-            <div className="grid grid-cols-8 w-full max-w-6xl mx-auto">
+            <div className="grid grid-cols-9 w-full max-w-6xl mx-auto">
               <div className="col-span-3">
                 <div className="h-full flex flex-col justify-center text-center items-center gap-6">
                   <Image
@@ -106,7 +106,7 @@ export default function TradeSymbolPage() {
                   </div>
                 </div>
               </div>
-              <div className="col-span-5">
+              <div className="col-span-6">
                 {tokenData && (
                   <div className="grid grid-cols-3 w-full max-w-6xl mx-auto gap-8">
                     <StatBlock
@@ -279,7 +279,7 @@ const StatBlock = ({ label, value, subValue }: StatProps) => (
     <CardHeader className="pb-2">
       <CardTitle className="text-sm text-muted-foreground font-normal">{label}</CardTitle>
     </CardHeader>
-    <CardContent>
+    <CardContent className="px-4">
       <p className="text-3xl">
         {value} {subValue && <span className="text-lg text-muted-foreground">{subValue}</span>}
       </p>
