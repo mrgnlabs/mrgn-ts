@@ -90,17 +90,17 @@ export default function TradeSymbolPage() {
           <div className="flex flex-col items-start gap-8 pb-16 w-full">
             <div className="grid grid-cols-9 w-full max-w-6xl mx-auto">
               <div className="col-span-3">
-                <div className="h-full flex flex-col justify-center text-center items-center gap-6">
+                <div className="h-full flex flex-col justify-center text-center items-center gap-3">
                   <Image
                     src={getTokenImageURL(activeGroup.token.meta.tokenSymbol)}
-                    width={86}
-                    height={86}
+                    width={72}
+                    height={72}
                     className="rounded-full"
                     alt={activeGroup.token.meta.tokenName}
                   />
-                  <div className="space-y-1">
-                    <h1 className="text-3xl font-medium">{activeGroup.token.meta.tokenName}</h1>
-                    <h2 className="text-2xl text-muted-foreground">{activeGroup.token.meta.tokenSymbol}</h2>
+                  <div className="space-y-0.5">
+                    <h1 className="text-2xl font-medium">{activeGroup.token.meta.tokenName}</h1>
+                    <h2 className="text-xl text-muted-foreground">{activeGroup.token.meta.tokenSymbol}</h2>
                   </div>
                 </div>
               </div>
