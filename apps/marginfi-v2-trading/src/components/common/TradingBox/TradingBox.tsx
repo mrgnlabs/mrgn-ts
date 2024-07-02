@@ -76,23 +76,16 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
     }
   }, [tradeState, loopingObject]);
 
-  const [
-    selectedAccount,
-    activeGroup,
-    accountSummary,
-    setActiveBank,
-    marginfiAccounts,
-    marginfiClient,
-    nativeSolBalance,
-  ] = useTradeStore((state) => [
-    state.selectedAccount,
-    state.activeGroup,
-    state.accountSummary,
-    state.setActiveBank,
-    state.marginfiAccounts,
-    state.marginfiClient,
-    state.nativeSolBalance,
-  ]);
+  const [selectedAccount, activeGroup, accountSummary, setActiveBank, marginfiAccounts, marginfiClient] = useTradeStore(
+    (state) => [
+      state.selectedAccount,
+      state.activeGroup,
+      state.accountSummary,
+      state.setActiveBank,
+      state.marginfiAccounts,
+      state.marginfiClient,
+    ]
+  );
 
   const [slippageBps, priorityFee, setSlippageBps, setPriorityFee, setIsActionComplete, setPreviousTxn] = useUiStore(
     (state) => [
@@ -175,10 +168,9 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
 
   const walletAmount = React.useMemo(() => {
     if (!activeGroup) return 0;
-    return activeGroup.token.info.state.mint?.equals && activeGroup.token.info.state.mint?.equals(WSOL_MINT)
-      ? activeGroup.token?.userInfo.tokenAccount.balance + nativeSolBalance
-      : activeGroup.token?.userInfo.tokenAccount.balance;
-  }, [nativeSolBalance, activeGroup]);
+    const bank = tradeState === "long" ? activeGroup.token : activeGroup.usdc;
+    return bank?.userInfo.tokenAccount.balance;
+  }, [tradeState, activeGroup]);
 
   const loadLoopingVariables = React.useCallback(async () => {
     if (marginfiClient && activeGroup) {
