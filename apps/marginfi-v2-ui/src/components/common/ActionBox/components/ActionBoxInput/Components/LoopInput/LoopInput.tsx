@@ -149,14 +149,14 @@ export const LoopInput = ({
       const borrowTokenApy = computeBankRateRaw(selectedRepayBank, LendingModes.BORROW);
       const depositLstApy = isDepositingLst ? await getLstYield(selectedBank) : 0;
 
-      const netApy = depositTokenApy + depositLstApy - borrowTokenApy;
+      const netApy = depositTokenApy * leverage + depositLstApy * leverage - borrowTokenApy * leverage;
 
       setNetApyRaw(netApy);
       setLstApy(depositLstApy);
     };
 
     updateNetApy();
-  }, [selectedBank, selectedRepayBank, isDepositingLst, getLstYield]);
+  }, [selectedBank, leverage, selectedRepayBank, isDepositingLst, getLstYield]);
 
   const netApy = React.useMemo(() => {
     if (!netApyRaw) {
