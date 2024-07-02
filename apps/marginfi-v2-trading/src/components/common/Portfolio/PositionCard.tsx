@@ -3,15 +3,13 @@ import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 
-import { IconMinus, IconPlus, IconX } from "@tabler/icons-react";
 import { numeralFormatter, percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
-import { ActionType, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { getTokenImageURL, cn } from "~/utils";
 import { useTradeStore } from "~/store";
 
-import { ActionBoxDialog } from "~/components/common/ActionBox";
-import { Button } from "~/components/ui/button";
+import { PositionActionButtons } from "~/components/common/Portfolio";
 
 import type { TokenData } from "~/types";
 
@@ -21,7 +19,7 @@ type PositionCardProps = {
 };
 
 export const PositionCard = ({ bank, isLong }: PositionCardProps) => {
-  const [collateralBanks] = useTradeStore((state) => [state.collateralBanks]);
+  const [collateralBanks, marginfiAccounts] = useTradeStore((state) => [state.collateralBanks, state.marginfiAccounts]);
   const [tokenData, setTokenData] = React.useState<TokenData | null>(null);
 
   const collateralBank = React.useMemo(() => {
@@ -32,6 +30,10 @@ export const PositionCard = ({ bank, isLong }: PositionCardProps) => {
     const borrowBank = isLong ? collateralBank : bank;
     return borrowBank.isActive && !borrowBank.position.isLending;
   }, [bank, isLong, collateralBank]);
+
+  const marginfiAccount = React.useMemo(() => {
+    return marginfiAccounts ? marginfiAccounts[bank.info.rawBank.group.toBase58()] : undefined;
+  }, [marginfiAccounts, bank]);
 
   React.useEffect(() => {
     if (!bank) return;
@@ -83,17 +85,19 @@ export const PositionCard = ({ bank, isLong }: PositionCardProps) => {
           <dd className="text-right text-primary">
             {numeralFormatter(bank.position.amount)} {bank.meta.tokenSymbol}
           </dd>
-          <dt>USD Value</dt>
-          <dd className="text-right text-primary">{usdFormatter.format(bank.position.usdValue)} USD</dd>
           <dt>Price</dt>
           <dd className="text-right text-primary">
-            {usdFormatter.format(bank.info.oraclePrice.priceRealtime.price.toNumber())}
+            {bank.info.oraclePrice.priceRealtime.price.toNumber() > 0.01
+              ? usdFormatter.format(bank.info.oraclePrice.priceRealtime.price.toNumber())
+              : `$${bank.info.oraclePrice.priceRealtime.price.toNumber().toExponential(2)}`}
             {tokenData && (
               <span className={cn("ml-1", tokenData.priceChange24h ? "text-mrgn-success" : "text-mrgn-error")}>
-                ({percentFormatter.format(tokenData.priceChange24h / 100)})
+                {percentFormatter.format(tokenData.priceChange24h / 100)}
               </span>
             )}
           </dd>
+          <dt>USD Value</dt>
+          <dd className="text-right text-primary">{usdFormatter.format(bank.position.usdValue)} USD</dd>
           {bank.position.liquidationPrice && (
             <>
               <dt>Liquidation Price</dt>
@@ -103,29 +107,13 @@ export const PositionCard = ({ bank, isLong }: PositionCardProps) => {
         </dl>
       </div>
       <div className="flex items-center justify-between gap-4">
-        <ActionBoxDialog requestedBank={isLong ? bank : collateralBank} requestedAction={ActionType.Deposit}>
-          <Button variant="secondary" size="sm">
-            <IconPlus size={14} /> Add
-          </Button>
-        </ActionBoxDialog>
-        {collateralBank && isBorrowing && (
-          <ActionBoxDialog requestedBank={isLong ? collateralBank : bank} requestedAction={ActionType.Repay}>
-            <Button variant="secondary" size="sm">
-              <IconMinus size={14} /> Reduce
-            </Button>
-          </ActionBoxDialog>
-        )}
-        {!isBorrowing && (
-          <ActionBoxDialog requestedBank={isLong ? collateralBank : bank} requestedAction={ActionType.Withdraw}>
-            <Button variant="secondary" size="sm">
-              <IconMinus size={14} /> Withdraw
-            </Button>
-          </ActionBoxDialog>
-        )}
-        <Button variant="destructive" size="sm" className="ml-auto">
-          <IconX size={14} />
-          Close
-        </Button>
+        <PositionActionButtons
+          marginfiAccount={marginfiAccount}
+          isBorrowing={isBorrowing}
+          bank={bank}
+          collateralBank={collateralBank}
+          rightAlignFinalButton={true}
+        />
       </div>
     </div>
   );

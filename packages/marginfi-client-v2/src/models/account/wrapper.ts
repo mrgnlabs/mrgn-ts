@@ -332,30 +332,34 @@ class MarginfiAccountWrapper {
       return [];
     }
 
-    const userAtas = banks.map((bankAddress) => {
-      const bank = this.client.bankMetadataMap![bankAddress.toBase58()];
-      return getAssociatedTokenAddressSync(new PublicKey(bank.tokenAddress), this.authority, true);
-    });
-
-    let ixs = [];
-    const userAtaAis = await this._program.provider.connection.getMultipleAccountsInfo(userAtas);
-
-    for (const [i, userAta] of userAtaAis.entries()) {
-      if (userAta === null) {
-        const bankAddress = banks[i];
+    try {
+      const userAtas = banks.map((bankAddress) => {
         const bank = this.client.bankMetadataMap![bankAddress.toBase58()];
-        ixs.push(
-          createAssociatedTokenAccountIdempotentInstruction(
-            this.authority,
-            userAtas[i],
-            this.authority,
-            new PublicKey(bank.tokenAddress)
-          )
-        );
-      }
-    }
+        return getAssociatedTokenAddressSync(new PublicKey(bank.tokenAddress), this.authority, true);
+      });
 
-    return ixs;
+      let ixs = [];
+      const userAtaAis = await this._program.provider.connection.getMultipleAccountsInfo(userAtas);
+
+      for (const [i, userAta] of userAtaAis.entries()) {
+        if (userAta === null) {
+          const bankAddress = banks[i];
+          const bank = this.client.bankMetadataMap![bankAddress.toBase58()];
+          ixs.push(
+            createAssociatedTokenAccountIdempotentInstruction(
+              this.authority,
+              userAtas[i],
+              this.authority,
+              new PublicKey(bank.tokenAddress)
+            )
+          );
+        }
+      }
+
+      return ixs;
+    } catch {
+      return [];
+    }
   }
 
   async repayWithCollat(

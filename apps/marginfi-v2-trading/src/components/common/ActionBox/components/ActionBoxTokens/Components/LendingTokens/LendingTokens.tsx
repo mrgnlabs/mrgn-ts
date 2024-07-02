@@ -18,6 +18,7 @@ type LendingTokensProps = {
   isDialog?: boolean;
   repayType?: RepayType;
   blacklistRepayTokens?: PublicKey[];
+  tokensOverride?: ExtendedBankInfo[];
 
   setSelectedRepayBank: (selectedBank: ExtendedBankInfo | null) => void;
   setSelectedBank: (selectedBank: ExtendedBankInfo | null) => void;
@@ -30,6 +31,7 @@ export const LendingTokens = ({
   isDialog,
   repayType,
   blacklistRepayTokens = [],
+  tokensOverride,
 
   setSelectedRepayBank,
   setSelectedBank,
@@ -103,8 +105,8 @@ export const LendingTokens = ({
                 isOpen={isOpen}
                 onClose={() => setIsOpen(false)}
                 onSetSelectedRepayBank={setSelectedRepayBank}
-                blacklistRepayTokens={blacklistRepayTokens}
                 selectedRepayBank={null}
+                tokensOverride={tokensOverride}
               />
             ) : (
               <LendingTokensList
@@ -114,6 +116,7 @@ export const LendingTokens = ({
                 onSetSelectedBank={setSelectedBank}
                 isDialog={isDialog}
                 actionMode={actionType}
+                tokensOverride={tokensOverride}
               />
             )
           }

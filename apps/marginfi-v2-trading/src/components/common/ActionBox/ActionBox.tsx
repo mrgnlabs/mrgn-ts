@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from "uuid";
 
 import { WSOL_MINT, nativeToUi } from "@mrgnlabs/mrgn-common";
 import { ActionType, ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 
 import { useLstStore, useMrgnlendStore, useUiStore, useTradeStore } from "~/store";
 import {
@@ -36,6 +37,8 @@ import {
 type ActionBoxProps = {
   requestedAction?: ActionType;
   requestedBank?: ExtendedBankInfo;
+  requestedCollateralBank?: ExtendedBankInfo;
+  requestedAccount?: MarginfiAccountWrapper;
   isDialog?: boolean;
   handleCloseDialog?: () => void;
 };
@@ -46,13 +49,20 @@ type BlackListRoutesMap = {
   };
 };
 
-export const ActionBox = ({ requestedAction, requestedBank, isDialog, handleCloseDialog }: ActionBoxProps) => {
+export const ActionBox = ({
+  requestedAction,
+  requestedBank,
+  requestedAccount,
+  requestedCollateralBank,
+  isDialog,
+  handleCloseDialog,
+}: ActionBoxProps) => {
   const [
     isInitialized,
     setIsRefreshingStore,
     activeGroup,
     mfiClient,
-    selectedAccount,
+    activeAccount,
     nativeSolBalance,
     fetchTradeState,
   ] = useTradeStore((state) => [
@@ -137,6 +147,16 @@ export const ActionBox = ({ requestedAction, requestedBank, isDialog, handleClos
   const [hasLSTDialogShown, setHasLSTDialogShown] = React.useState<LSTDialogVariants[]>([]);
   const [lstDialogCallback, setLSTDialogCallback] = React.useState<(() => void) | null>(null);
   const [additionalActionMethods, setAdditionalActionMethods] = React.useState<ActionMethod[]>([]);
+
+  const selectedAccount = React.useMemo(() => {
+    if (requestedAccount) {
+      return requestedAccount;
+    } else if (activeAccount) {
+      return activeAccount;
+    } else {
+      return null;
+    }
+  }, [requestedAccount, activeAccount]);
 
   const extendedBankInfos = React.useMemo(() => {
     return activeGroup ? [activeGroup.token, activeGroup.usdc] : [];
@@ -305,10 +325,13 @@ export const ActionBox = ({ requestedAction, requestedBank, isDialog, handleClos
       if (txnSig) {
         setIsActionComplete(true);
         setPreviousTxn({
-          type: currentAction,
-          bank: bank as ActiveBankInfo,
-          amount: borrowOrLendAmount,
+          txnType: "LEND",
           txn: txnSig!,
+          lendingOptions: {
+            type: currentAction,
+            bank: bank as ActiveBankInfo,
+            amount: borrowOrLendAmount,
+          },
         });
         capture(`user_${currentAction.toLowerCase()}`, {
           uuid: attemptUuid,
@@ -364,11 +387,15 @@ export const ActionBox = ({ requestedAction, requestedBank, isDialog, handleClos
     setIsLoading(false);
     if (txnSig) {
       setPreviousTxn({
-        type: ActionType.Withdraw,
-        bank: selectedBank as ActiveBankInfo,
-        amount: 0,
+        txnType: "LEND",
         txn: txnSig!,
+        lendingOptions: {
+          type: ActionType.Withdraw,
+          bank: selectedBank as ActiveBankInfo,
+          amount: 0,
+        },
       });
+
       capture(`user_close_balance`, {
         uuid: attemptUuid,
         tokenSymbol: selectedBank.meta.tokenSymbol,
@@ -463,12 +490,16 @@ export const ActionBox = ({ requestedAction, requestedBank, isDialog, handleClos
 
     if (txnSig) {
       setIsActionComplete(true);
+
       setPreviousTxn({
-        type: ActionType.MintLST,
-        bank: selectedBank as ActiveBankInfo,
-        amount: amount,
-        lstQuote: lstQuoteMeta || undefined,
         txn: txnSig!,
+        txnType: "LST",
+        lstOptions: {
+          type: ActionType.MintLST,
+          bank: selectedBank as ActiveBankInfo,
+          amount: amount,
+          quote: lstQuoteMeta || undefined,
+        },
       });
       if (selectedBank) {
         capture(`user_${actionMode.toLowerCase()}`, {
@@ -636,7 +667,11 @@ export const ActionBox = ({ requestedAction, requestedBank, isDialog, handleClos
                 amountRaw={amountRaw}
                 maxAmount={maxAmount}
                 showCloseBalance={showCloseBalance}
+                selectedAccount={selectedAccount}
                 isDialog={isDialog}
+                tokensOverride={
+                  requestedCollateralBank && requestedBank ? [requestedBank, requestedCollateralBank] : undefined
+                }
               />
 
               {additionalActionMethods.concat(actionMethods).map(

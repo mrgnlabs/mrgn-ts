@@ -8,6 +8,7 @@ import { LendingTokens, YbxTokens, LstTokens } from "./Components";
 
 interface ActionBoxPreviewProps {
   isDialog?: boolean;
+  tokensOverride?: ExtendedBankInfo[];
   setTokenBank: (selectedTokenBank: ExtendedBankInfo | null) => void;
   setRepayTokenBank: (selectedTokenBank: ExtendedBankInfo | null) => void;
   setStakingAccount: (account: StakeData) => void;
@@ -15,6 +16,7 @@ interface ActionBoxPreviewProps {
 
 export const ActionBoxTokens = ({
   isDialog,
+  tokensOverride,
   setRepayTokenBank,
   setTokenBank,
   setStakingAccount,
@@ -55,6 +57,7 @@ export const ActionBoxTokens = ({
           repayType={repayMode}
           isDialog={isDialog}
           actionType={actionMode}
+          tokensOverride={tokensOverride}
         />
       )}
 

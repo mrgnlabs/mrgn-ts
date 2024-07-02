@@ -23,6 +23,13 @@ import { LstData, SOL_MINT } from "~/store/lstStore";
 import { MultiStepToastHandle, showErrorToast } from "./toastUtils";
 import { isWholePosition, extractErrorString } from "./mrgnUtils";
 import { StakeData, makeDepositSolToStakePoolIx, makeDepositStakeToStakePoolIx } from "./lstUtils";
+import {
+  LoopingObject,
+  LoopingOptions,
+  TradeSide,
+  getLoopingTransaction,
+} from "~/components/common/TradingBox/tradingBox.utils";
+import { ToastStep } from "~/components/common/Toast";
 
 export type RepayWithCollatOptions = {
   repayCollatQuote: QuoteResponse;

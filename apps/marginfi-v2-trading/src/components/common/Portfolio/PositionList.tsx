@@ -3,27 +3,29 @@ import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 
-import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActionType, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { numeralFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
+import { IconMinus, IconPlus, IconX } from "@tabler/icons-react";
 
 import { getTokenImageURL } from "~/utils";
 import { useTradeStore } from "~/store";
 
+import { ActionBoxDialog } from "~/components/common/ActionBox";
+import { PositionActionButtons } from "~/components/common/Portfolio";
 import { Table, TableBody, TableHead, TableCell, TableHeader, TableRow } from "~/components/ui/table";
 import { Button } from "~/components/ui/button";
 import { Badge } from "~/components/ui/badge";
-import { IconMinus, IconPlus, IconX } from "@tabler/icons-react";
 
 export const PositionList = () => {
-  const [initialized, selectedAccount, banks, collateralBanks] = useTradeStore((state) => [
-    state.initialized,
-    state.selectedAccount,
+  const [banks, collateralBanks, marginfiAccounts] = useTradeStore((state) => [
     state.banks,
     state.collateralBanks,
+    state.marginfiAccounts,
   ]);
 
   const portfolio = React.useMemo(() => {
-    return banks.filter((bank) => bank.isActive) as ActiveBankInfo[];
+    const filteredBanks = banks.filter((bank) => bank.isActive) as ActiveBankInfo[];
+    return filteredBanks.sort((a, b) => a.position.usdValue - b.position.usdValue);
   }, [banks]);
 
   return (
@@ -53,6 +55,9 @@ export const PositionList = () => {
 
           {portfolio.map((bank, index) => {
             const collateralBank = collateralBanks[bank.address.toBase58()] || null;
+            const marginfiAccount = marginfiAccounts ? marginfiAccounts[bank.info.rawBank.group.toBase58()] : undefined;
+            const borrowBank = bank.position.isLending ? collateralBank : bank;
+            const isBorrowing = borrowBank.isActive && !borrowBank.position.isLending;
 
             return (
               <TableRow key={index} className="even:bg-background-gray hover:even:bg-background-gray">
@@ -80,7 +85,11 @@ export const PositionList = () => {
                 </TableCell>
                 <TableCell>{bank.position.amount < 0.01 ? "0.01" : numeralFormatter(bank.position.amount)}</TableCell>
                 <TableCell>{usdFormatter.format(bank.position.usdValue)}</TableCell>
-                <TableCell>{usdFormatter.format(bank.info.oraclePrice.priceRealtime.price.toNumber())}</TableCell>
+                <TableCell>
+                  {bank.info.oraclePrice.priceRealtime.price.toNumber()
+                    ? usdFormatter.format(bank.info.oraclePrice.priceRealtime.price.toNumber())
+                    : `$${bank.info.oraclePrice.priceRealtime.price.toExponential(2)}`}
+                </TableCell>
                 <TableCell>
                   {bank.position.liquidationPrice ? (
                     <>
@@ -93,20 +102,14 @@ export const PositionList = () => {
                   )}
                 </TableCell>
                 <TableCell className="text-right">
-                  <div className="flex gap-3 justify-end">
-                    <Button variant="secondary" size="sm" className="gap-1 min-w-16">
-                      <IconPlus size={14} />
-                      Add
-                    </Button>
-                    <Button variant="secondary" size="sm" className="gap-1 min-w-16">
-                      <IconMinus size={14} />
-                      Reduce
-                    </Button>
-                    <Button variant="destructive" size="sm" className="gap-1 min-w-16">
-                      <IconX size={14} />
-                      Close
-                    </Button>
-                  </div>
+                  {marginfiAccounts && (
+                    <PositionActionButtons
+                      marginfiAccount={marginfiAccount}
+                      isBorrowing={isBorrowing}
+                      bank={bank}
+                      collateralBank={collateralBank}
+                    />
+                  )}
                 </TableCell>
               </TableRow>
             );

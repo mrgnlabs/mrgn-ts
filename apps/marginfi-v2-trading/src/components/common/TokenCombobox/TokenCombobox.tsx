@@ -1,5 +1,3 @@
-"use client";
-
 import React from "react";
 
 import Image from "next/image";
@@ -22,27 +20,15 @@ type TokenComboboxProps = {
   setSelected: (bank: ExtendedBankInfo) => void;
 };
 
-type BankWithTokenData = ExtendedBankInfo & {
-  tokenData: TokenData;
-};
-
 export const TokenCombobox = ({ selected, setSelected }: TokenComboboxProps) => {
   const [open, setOpen] = React.useState(false);
   const [extendedBankInfos] = useTradeStore((state) => [state.banks]);
 
-  const getBankTokenData = async (bank: ExtendedBankInfo): Promise<TokenData | undefined> => {
-    const tokenResponse = await fetch(`/api/birdeye/token?address=${bank.info.state.mint.toBase58()}`);
-    if (!tokenResponse.ok) {
-      console.error("Failed to fetch token data");
-      return;
-    }
-    const tokenData = await tokenResponse.json();
-    if (!tokenData) {
-      console.error("Failed to parse token data");
-      return;
-    }
-    return tokenData;
-  };
+  const banks = React.useMemo(() => {
+    return extendedBankInfos.sort(
+      (a, b) => b.info.oraclePrice.priceRealtime.price.toNumber() - a.info.oraclePrice.priceRealtime.price.toNumber()
+    );
+  }, [extendedBankInfos]);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -71,7 +57,7 @@ export const TokenCombobox = ({ selected, setSelected }: TokenComboboxProps) => 
           <CommandList className="max-h-[390px]">
             <CommandEmpty>No results found.</CommandEmpty>
             <CommandGroup>
-              {extendedBankInfos.map((bank, index) => (
+              {banks.map((bank, index) => (
                 <CommandItem
                   key={index}
                   className="gap-3 py-2 cursor-pointer rounded-md aria-selected:text-primary"

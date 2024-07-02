@@ -5,22 +5,16 @@ type MrgnProps = {
 };
 
 export const Meta = ({ path }: MrgnProps) => {
-  const title = `marginfi ${path !== "/" ? ` - ${path.substring(1)}` : ""}`;
+  const title = `mrgntrade ${path !== "/" ? ` - ${path.substring(1)}` : ""}`;
   return (
     <Head>
       <title>{title}</title>
 
       {path === "/" && (
         <>
-          <meta name="description" content="marginfi is a decentralized lending and borrowing protocol on Solana." />
-          <meta
-            property="og:description"
-            content="marginfi is a decentralized lending and borrowing protocol on Solana."
-          />
-          <meta
-            name="twitter:description"
-            content="marginfi is a decentralized lending and borrowing protocol on Solana."
-          />
+          <meta name="description" content="Permissionless leverage trading, built on marginfi." />
+          <meta property="og:description" content="Permissionless leverage trading, built on marginfi." />
+          <meta name="twitter:description" content="Permissionless leverage trading, built on marginfi." />
         </>
       )}
       <meta property="og:title" content={title} />

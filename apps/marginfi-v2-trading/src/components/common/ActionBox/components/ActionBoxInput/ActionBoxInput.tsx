@@ -1,6 +1,7 @@
 import React from "react";
 
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 
 import { RepayType, YbxType } from "~/utils";
 import { useActionBoxStore } from "~/hooks/useActionBoxStore";
@@ -18,11 +19,20 @@ type ActionBoxInputProps = {
   walletAmount: number | undefined;
   amountRaw: string;
   maxAmount: number;
+  selectedAccount: MarginfiAccountWrapper | null;
   showCloseBalance?: boolean;
   isDialog?: boolean;
+  tokensOverride?: ExtendedBankInfo[];
 };
 
-export const ActionBoxInput = ({ walletAmount, maxAmount, showCloseBalance, isDialog }: ActionBoxInputProps) => {
+export const ActionBoxInput = ({
+  walletAmount,
+  maxAmount,
+  showCloseBalance,
+  selectedAccount,
+  isDialog,
+  tokensOverride,
+}: ActionBoxInputProps) => {
   const [isActionBoxInputFocussed, setIsActionBoxInputFocussed] = useUiStore((state) => [
     state.isActionBoxInputFocussed,
     state.setIsActionBoxInputFocussed,
@@ -64,7 +74,7 @@ export const ActionBoxInput = ({ walletAmount, maxAmount, showCloseBalance, isDi
     state.setYbxMode,
     state.setActionMode,
   ]);
-  const [selectedAccount] = useMrgnlendStore((state) => [state.selectedAccount]);
+
   const { connection } = useConnection();
 
   const amountInputRef = React.useRef<HTMLInputElement>(null);
@@ -178,6 +188,7 @@ export const ActionBoxInput = ({ walletAmount, maxAmount, showCloseBalance, isDi
                 setStakingAccount={(account) => {
                   setSelectedStakingAccount(account);
                 }}
+                tokensOverride={tokensOverride}
               />
             </div>
             <div className="flex-auto">

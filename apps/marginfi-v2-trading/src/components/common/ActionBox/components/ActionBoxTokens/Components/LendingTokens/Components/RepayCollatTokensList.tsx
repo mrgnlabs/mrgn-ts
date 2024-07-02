@@ -4,7 +4,7 @@ import { PublicKey } from "@solana/web3.js";
 
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { useMrgnlendStore, useUiStore } from "~/store";
+import { useMrgnlendStore, useTradeStore, useUiStore } from "~/store";
 import { cn } from "~/utils";
 
 import { CommandEmpty, CommandGroup, CommandItem } from "~/components/ui/command";
@@ -15,31 +15,27 @@ import { TokenListCommand } from "../../SharedComponents";
 type RepayCollatTokensListProps = {
   selectedRepayBank: ExtendedBankInfo | null;
   onSetSelectedRepayBank: (selectedTokenBank: ExtendedBankInfo | null) => void;
-  blacklistRepayTokens?: PublicKey[];
   isOpen: boolean;
   onClose: () => void;
+  tokensOverride?: ExtendedBankInfo[];
 };
 
 export const RepayCollatTokensList = ({
   selectedRepayBank,
   onSetSelectedRepayBank,
-  blacklistRepayTokens = [],
   isOpen,
   onClose,
+  tokensOverride,
 }: RepayCollatTokensListProps) => {
-  const [extendedBankInfos, nativeSolBalance] = useMrgnlendStore((state) => [
-    state.extendedBankInfos,
-    state.nativeSolBalance,
-  ]);
+  const [activeGroup] = useTradeStore((state) => [state.activeGroup]);
+  const [nativeSolBalance] = useMrgnlendStore((state) => [state.nativeSolBalance]);
+
   //const [lendingMode] = useUiStore((state) => [state.lendingMode, state.setIsWalletOpen]);
   const [searchQuery, setSearchQuery] = React.useState("");
 
-  const hasTokens = React.useMemo(() => {
-    const hasBankTokens = !!extendedBankInfos.filter(
-      (bank) => bank.userInfo.tokenAccount.balance !== 0 || bank.meta.tokenSymbol === "SOL"
-    );
-    return hasBankTokens;
-  }, [extendedBankInfos]);
+  const extendedBankInfos = React.useMemo(() => {
+    return tokensOverride ? tokensOverride : activeGroup ? [activeGroup.usdc, activeGroup.token] : [];
+  }, [activeGroup, tokensOverride]);
 
   /////// FILTERS
   // filter on search
@@ -74,18 +70,15 @@ export const RepayCollatTokensList = ({
   return (
     <>
       <TokenListCommand selectedBank={selectedRepayBank} onClose={onClose} onSetSearchQuery={setSearchQuery}>
-        {!hasTokens && <BuyWithMoonpay />}
         <CommandEmpty>No tokens found.</CommandEmpty>
         {/* REPAYING */}
         {filteredBanksActive.length > 0 && onSetSelectedRepayBank && (
           <CommandGroup heading="Currently supplying">
             {filteredBanksActive.map((bank, index) => {
-              const isRouteEnabled = blacklistRepayTokens.find((v) => v.equals(bank.info.state.mint)) ? false : true;
               return (
                 <CommandItem
                   key={index}
                   value={bank.address?.toString().toLowerCase()}
-                  disabled={!isRouteEnabled}
                   onSelect={(currentValue) => {
                     onSetSelectedRepayBank(
                       extendedBankInfos.find(
@@ -95,8 +88,7 @@ export const RepayCollatTokensList = ({
                     onClose();
                   }}
                   className={cn(
-                    "cursor-pointer font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white py-2",
-                    isRouteEnabled ? "opacity-100" : "opacity-50 pointer-events-none"
+                    "cursor-pointer font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white py-2"
                   )}
                 >
                   <ActionBoxItem
@@ -105,7 +97,6 @@ export const RepayCollatTokensList = ({
                     showBalanceOverride={false}
                     nativeSolBalance={nativeSolBalance}
                     isRepay={true}
-                    available={isRouteEnabled}
                   />
                 </CommandItem>
               );

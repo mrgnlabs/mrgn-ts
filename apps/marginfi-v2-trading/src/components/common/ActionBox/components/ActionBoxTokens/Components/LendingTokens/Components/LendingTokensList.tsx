@@ -18,6 +18,7 @@ type LendingTokensListProps = {
   isOpen: boolean;
   actionMode: ActionType;
   isDialog?: boolean;
+  tokensOverride?: ExtendedBankInfo[];
 
   onSetSelectedBank: (selectedTokenBank: ExtendedBankInfo | null) => void;
   onClose: () => void;
@@ -29,6 +30,7 @@ export const LendingTokensList = ({
   onSetSelectedBank,
   isOpen,
   onClose,
+  tokensOverride,
 }: LendingTokensListProps) => {
   const [activeGroup] = useTradeStore((state) => [state.activeGroup]);
   const [nativeSolBalance] = useMrgnlendStore((state) => [state.nativeSolBalance]);
@@ -39,10 +41,9 @@ export const LendingTokensList = ({
     [actionMode]
   );
 
-  const extendedBankInfos = React.useMemo(
-    () => (activeGroup ? [activeGroup.usdc, activeGroup.token] : []),
-    [activeGroup]
-  );
+  const extendedBankInfos = React.useMemo(() => {
+    return tokensOverride ? tokensOverride : activeGroup ? [activeGroup.usdc, activeGroup.token] : [];
+  }, [activeGroup, tokensOverride]);
 
   const [searchQuery, setSearchQuery] = React.useState("");
   const { connected } = useWalletContext();

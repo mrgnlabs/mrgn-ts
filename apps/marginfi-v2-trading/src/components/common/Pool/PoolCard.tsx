@@ -92,13 +92,15 @@ export const PoolCard = ({ bank }: PoolCardProps) => {
         <dl className="grid grid-cols-2 gap-2.5 text-sm text-muted-foreground w-full mt-2">
           <dt className="">Price</dt>
           <dd className="text-right text-primary tracking-wide">
-            {usdFormatter.format(bank.info.oraclePrice.priceRealtime.price.toNumber())}
+            {bank.info.oraclePrice.priceRealtime.price.toNumber() > 0.01
+              ? usdFormatter.format(bank.info.oraclePrice.priceRealtime.price.toNumber())
+              : `$${bank.info.oraclePrice.priceRealtime.price.toNumber().toExponential(2)}`}
             {tokenData?.priceChange24h && (
               <span
                 className={cn("text-xs ml-2", tokenData.priceChange24h > 0 ? "text-mrgn-success" : "text-mrgn-error")}
               >
-                ({tokenData.priceChange24h > 0 && "+"}
-                {percentFormatter.format(tokenData.priceChange24h / 100)})
+                {tokenData.priceChange24h > 0 && "+"}
+                {percentFormatter.format(tokenData.priceChange24h / 100)}
               </span>
             )}
           </dd>
@@ -114,8 +116,8 @@ export const PoolCard = ({ bank }: PoolCardProps) => {
                       tokenData.volumeChange24h > 0 ? "text-mrgn-success" : "text-mrgn-error"
                     )}
                   >
-                    ({tokenData.volumeChange24h > 0 && "+"}
-                    {percentFormatter.format(tokenData.volumeChange24h / 100)})
+                    {tokenData.volumeChange24h > 0 && "+"}
+                    {percentFormatter.format(tokenData.volumeChange24h / 100)}
                   </span>
                 )}
               </dd>
