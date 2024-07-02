@@ -355,7 +355,7 @@ export const LoopInput = ({
               )}
             </PopoverContent>
           </Popover>
-          {bothBanksSelected && (
+          {bothBanksSelected && netApy && (
             <span className={cn("text-xs", netApyRaw < 0 ? "text-warning" : "text-success")}>{netApy} APY</span>
           )}
         </div>
