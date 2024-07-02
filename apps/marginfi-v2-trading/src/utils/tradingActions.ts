@@ -91,12 +91,16 @@ export async function executeLeverageAction({
   }
 
   if (!_loopingObject.loopingTxn) {
-    toastSteps.push(...[{ label: `Generating ${tradeActionLabel.toLowerCase()} transaction` }]);
+    toastSteps.push(...[{ label: `Generating transaction` }]);
   }
 
-  toastSteps.push({ label: `Executing ${tradeState === "long" ? "Longing" : "Shorting"}` });
+  toastSteps.push({ label: `Executing ${tradeState.slice(0, 1).toUpperCase() + tradeState.slice(1)} position` });
 
-  const multiStepToast = new MultiStepToastHandle(tradeState === "long" ? "Longing" : "Shorting", toastSteps);
+  const multiStepToast = new MultiStepToastHandle(
+    `${tradeState.slice(0, 1).toUpperCase() + tradeState.slice(1)} 
+      ${tradeState === "long" ? depositBank.meta.tokenSymbol : borrowBank.meta.tokenSymbol}`,
+    toastSteps
+  );
   multiStepToast.start();
 
   let marginfiAccount: MarginfiAccountWrapper | null = _marginfiAccount;
