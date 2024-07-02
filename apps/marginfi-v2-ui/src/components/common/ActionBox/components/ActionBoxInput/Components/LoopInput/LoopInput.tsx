@@ -10,7 +10,15 @@ import { useActionBoxStore } from "~/hooks/useActionBoxStore";
 import { useConnection } from "~/hooks/useConnection";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { useLstStore, LST_MINT } from "~/store";
-import { computeBankRateRaw, formatAmount, getTokenImageURL } from "~/utils";
+import {
+  computeBankRateRaw,
+  formatAmount,
+  getTokenImageURL,
+  calcYield,
+  getPriceRangeFromPeriod,
+  fetchAndParsePricesCsv,
+  PERIOD,
+} from "~/utils";
 
 import { ActionBoxTokens } from "~/components/common/ActionBox/components";
 import { InputAction } from "~/components/common/ActionBox/components/ActionBoxInput/Components/InputAction";
@@ -30,6 +38,15 @@ type LoopInputProps = {
   handleInputChange: (value: string) => void;
   handleInputFocus: (focus: boolean) => void;
   isDialog?: boolean;
+};
+
+const LSTS_SOLANA_COMPASS_MAP: {
+  [key: string]: string;
+} = {
+  LST: "lst",
+  bSOL: "solblaze",
+  mSOL: "marinade",
+  JitoSOL: "jito",
 };
 
 export const LoopInput = ({
@@ -83,6 +100,7 @@ export const LoopInput = ({
   const debouncedLeverage = useDebounce(leverageAmount, 1000);
 
   const [netApyRaw, setNetApyRaw] = React.useState(0);
+  const [lstApy, setLstApy] = React.useState(0);
 
   const numberFormater = React.useMemo(() => new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 }), []);
 
@@ -91,25 +109,23 @@ export const LoopInput = ({
     [selectedBank, selectedRepayBank]
   );
 
-  const isDepositingLST = React.useMemo(
-    () => selectedBank && selectedBank.info.state.mint.equals(LST_MINT),
-    [selectedBank]
-  );
+  const isDepositingLst = React.useMemo(() => {
+    const lstsArr = Object.keys(LSTS_SOLANA_COMPASS_MAP);
+    return selectedBank && lstsArr.includes(selectedBank.meta.tokenSymbol);
+  }, [selectedBank]);
 
-  const netApy = React.useMemo(() => {
-    if (!selectedBank || !selectedRepayBank) return 0;
-    let depositTokenApy = computeBankRateRaw(selectedBank, LendingModes.LEND);
-    const borrowTokenApy = computeBankRateRaw(selectedRepayBank, LendingModes.BORROW);
+  const getLstYield = React.useCallback(async (bank: ExtendedBankInfo) => {
+    const solanaCompassKey = LSTS_SOLANA_COMPASS_MAP[bank.meta.tokenSymbol];
+    if (!solanaCompassKey) return 0;
 
-    if (isDepositingLST && lstData) {
-      depositTokenApy += lstData.projectedApy;
+    const SOLANA_COMPASS_PRICES_URL = `https://raw.githubusercontent.com/glitchful-dev/sol-stake-pool-apy/master/db/${solanaCompassKey}.csv`;
+    const solanaCompassPrices = await fetchAndParsePricesCsv(SOLANA_COMPASS_PRICES_URL);
+    const priceRange = getPriceRangeFromPeriod(solanaCompassPrices, PERIOD.DAYS_7);
+    if (!priceRange) {
+      return 0;
     }
-
-    const netApy = depositTokenApy - borrowTokenApy;
-
-    setNetApyRaw(netApy);
-    return percentFormatter.format(Math.abs(netApy));
-  }, [selectedBank, selectedRepayBank, isDepositingLST, lstData]);
+    return calcYield(priceRange).apy;
+  }, []);
 
   const refreshTxn = React.useCallback(() => {
     if (selectedAccount && debouncedAmount) setLooping({ marginfiAccount: selectedAccount, connection: connection });
@@ -121,6 +137,34 @@ export const LoopInput = ({
     },
     [handleInputChange, maxAmount, numberFormater]
   );
+
+  React.useEffect(() => {
+    if (!selectedBank || !selectedRepayBank) {
+      setNetApyRaw(0);
+      return;
+    }
+
+    const updateNetApy = async () => {
+      let depositTokenApy = computeBankRateRaw(selectedBank, LendingModes.LEND);
+      const borrowTokenApy = computeBankRateRaw(selectedRepayBank, LendingModes.BORROW);
+      const depositLstApy = isDepositingLst ? await getLstYield(selectedBank) : 0;
+
+      const netApy = depositTokenApy + depositLstApy - borrowTokenApy;
+
+      setNetApyRaw(netApy);
+      setLstApy(depositLstApy);
+    };
+
+    updateNetApy();
+  }, [selectedBank, selectedRepayBank, isDepositingLst, getLstYield]);
+
+  const netApy = React.useMemo(() => {
+    if (!netApyRaw) {
+      return;
+    }
+
+    return percentFormatter.format(Math.abs(netApyRaw));
+  }, [netApyRaw]);
 
   React.useEffect(
     () => setLeverage(debouncedLeverage, selectedAccount, connection),
@@ -279,8 +323,8 @@ export const LoopInput = ({
             <PopoverContent align="center" className="w-auto">
               {bothBanksSelected && selectedBank && selectedRepayBank && (
                 <>
-                  {selectedBank.info.state.mint.equals(LST_MINT) && lstData && (
-                    <p className="text-xs text-muted-foreground mb-4">*includes LST yield</p>
+                  {isDepositingLst && (
+                    <p className="text-xs text-muted-foreground mb-4">Includes {selectedBank.meta.tokenSymbol} yield</p>
                   )}
                   <ul className="space-y-2.5 text-xs">
                     {[selectedBank, selectedRepayBank].map((bank, index) => {
@@ -300,7 +344,7 @@ export const LoopInput = ({
                           <span className={cn("ml-auto", isDepositBank ? "text-success" : "text-warning")}>
                             {percentFormatter.format(
                               computeBankRateRaw(bank, isDepositBank ? LendingModes.LEND : LendingModes.BORROW) +
-                                (isDepositingLST && lstData && isDepositBank ? lstData?.projectedApy : 0)
+                                (isDepositBank ? lstApy : 0)
                             )}
                           </span>
                         </li>
