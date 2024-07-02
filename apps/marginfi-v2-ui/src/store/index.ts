@@ -6,7 +6,7 @@ import {
 } from "@mrgnlabs/marginfi-v2-ui-state";
 import { UseBoundStore, StoreApi } from "zustand";
 import { UiState, createUiStore, SORT_OPTIONS_MAP } from "./uiStore";
-import { LstState, createLstStore } from "./lstStore";
+import { LstState, createLstStore, LST_MINT } from "./lstStore";
 import { ActionBoxState, createActionBoxStore } from "./actionBoxStore";
 
 const useUiStore: UseBoundStore<StoreApi<UiState>> = createUiStore();
@@ -25,5 +25,6 @@ export {
   useUserProfileStore,
   SORT_OPTIONS_MAP,
   createActionBoxStore,
+  LST_MINT,
 };
 export type { ActionBoxState };
