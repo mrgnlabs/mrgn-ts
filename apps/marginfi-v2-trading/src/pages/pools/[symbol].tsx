@@ -4,10 +4,9 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/router";
 
-import { IconClockHour4, IconExternalLink, IconInfoCircle } from "@tabler/icons-react";
+import { IconInfoCircle } from "@tabler/icons-react";
 import { numeralFormatter, percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 import { PublicKey } from "@solana/web3.js";
-import BigNumber from "bignumber.js";
 
 import { useTradeStore, useUiStore } from "~/store";
 import { getTokenImageURL, cn } from "~/utils";
@@ -17,9 +16,8 @@ import { useConnection } from "~/hooks/useConnection";
 import { BankCard } from "~/components/common/Pool";
 import { ActionComplete } from "~/components/common/ActionComplete";
 import { Loader } from "~/components/ui/loader";
-import { Button } from "~/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "~/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 
 import type { TokenData } from "~/types";
 
