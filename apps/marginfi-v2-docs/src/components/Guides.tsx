@@ -3,6 +3,11 @@ import { Heading } from '~/components/Heading'
 
 const guides = [
   {
+    href: '/mrgnloop',
+    name: 'mrgnloop User Guide',
+    description: 'Learn about trading with leverage using mrgnloop.',
+  },
+  {
     href: '/mrgnlend',
     name: 'mrgnlend User Guide',
     description: 'Learn about borrowing and lending on the margnlend protocol.',
@@ -10,7 +15,7 @@ const guides = [
   {
     href: '/lst',
     name: 'LST User Guide',
-    description: 'Learn about what LST is and how to get it.',
+    description: "Learn about marginfi's Liquid Staking Token and how to get it.",
   },
   {
     href: '/pwa',
