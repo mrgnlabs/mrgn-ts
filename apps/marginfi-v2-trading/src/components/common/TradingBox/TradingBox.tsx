@@ -175,7 +175,6 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
 
   const walletAmount = React.useMemo(() => {
     if (!activeGroup) return 0;
-    console.log(activeGroup);
     return activeGroup.token.info.state.mint?.equals && activeGroup.token.info.state.mint?.equals(WSOL_MINT)
       ? activeGroup.token?.userInfo.tokenAccount.balance + nativeSolBalance
       : activeGroup.token?.userInfo.tokenAccount.balance;
@@ -326,10 +325,26 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
             borrowBank = activeGroup.usdc;
           }
           sig = await leverageActionCb(depositBank, borrowBank);
-        }
 
-        if (sig) {
-          setIsActionComplete(true);
+          if (sig) {
+            setIsActionComplete(true);
+            setPreviousTxn({
+              txnType: "TRADING",
+              txn: sig!,
+              tradingOptions: {
+                depositBank: depositBank as ActiveBankInfo,
+                borrowBank: borrowBank as ActiveBankInfo,
+                initDepositAmount: amount,
+                entryPrice: activeGroup.token.info.oraclePrice.priceRealtime.price.toNumber(),
+                depositAmount: loopingObject.actualDepositAmount,
+                borrowAmount: loopingObject.borrowAmount.toNumber(),
+                leverage: leverage,
+                type: tradeState,
+                quote: loopingObject.quote,
+              },
+            });
+          }
+
           // setPreviousTxn({
           //   type: ActionType.Borrow ,
           //   bank: bank as ActiveBankInfo,
@@ -348,7 +363,18 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
         return;
       }
     }
-  }, [activeGroup, collateralBank, leverageActionCb, loopingObject, marginfiClient, setIsActionComplete, tradeState]);
+  }, [
+    activeGroup,
+    amount,
+    collateralBank,
+    leverage,
+    leverageActionCb,
+    loopingObject,
+    marginfiClient,
+    setIsActionComplete,
+    setPreviousTxn,
+    tradeState,
+  ]);
 
   const handleAmountChange = React.useCallback(
     (amountRaw: string) => {
