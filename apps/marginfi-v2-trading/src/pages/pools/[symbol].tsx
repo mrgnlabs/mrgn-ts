@@ -110,9 +110,9 @@ export default function TradeSymbolPage() {
                     <StatBlock
                       label="Current Price"
                       value={
-                        activeGroup.token.info.state.price > 0.01
-                          ? usdFormatter.format(activeGroup.token.info.state.price)
-                          : `$${activeGroup.token.info.state.price.toExponential(2)}`
+                        tokenData.price > 0.01
+                          ? usdFormatter.format(tokenData.price)
+                          : `$${tokenData.price.toExponential(2)}`
                       }
                       subValue={
                         <span className={cn(tokenData.priceChange24h > 0 ? "text-mrgn-success" : "text-mrgn-error")}>
