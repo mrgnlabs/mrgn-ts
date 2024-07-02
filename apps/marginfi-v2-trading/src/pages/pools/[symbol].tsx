@@ -92,16 +92,16 @@ export default function TradeSymbolPage() {
           <div className="flex flex-col items-start gap-8 pb-16 w-full">
             <div className="grid grid-cols-8 w-full max-w-6xl mx-auto">
               <div className="col-span-3">
-                <div className="flex items-center gap-6">
+                <div className="h-full flex flex-col justify-center text-center items-center gap-6">
                   <Image
                     src={getTokenImageURL(activeGroup.token.meta.tokenSymbol)}
-                    width={82}
-                    height={82}
+                    width={86}
+                    height={86}
                     className="rounded-full"
                     alt={activeGroup.token.meta.tokenName}
                   />
-                  <div className="space-y-1.5">
-                    <h1 className="text-4xl font-medium">{activeGroup.token.meta.tokenName}</h1>
+                  <div className="space-y-1">
+                    <h1 className="text-3xl font-medium">{activeGroup.token.meta.tokenName}</h1>
                     <h2 className="text-2xl text-muted-foreground">{activeGroup.token.meta.tokenSymbol}</h2>
                   </div>
                 </div>
@@ -144,7 +144,8 @@ export default function TradeSymbolPage() {
                             height={24}
                             className="rounded-full"
                           />
-                          Total Deposits (${activeGroup.token.meta.tokenSymbol})
+                          Total Deposits
+                          <br />({activeGroup.token.meta.tokenSymbol})
                         </div>
                       }
                       value={numeralFormatter(activeGroup.token.info.state.totalDeposits)}
@@ -163,7 +164,9 @@ export default function TradeSymbolPage() {
                             height={24}
                             className="rounded-full"
                           />
-                          Total Deposits (USDC)
+                          Total Deposits
+                          <br />
+                          (USDC)
                         </div>
                       }
                       value={numeralFormatter(activeGroup.usdc.info.state.totalDeposits)}
@@ -192,6 +195,7 @@ export default function TradeSymbolPage() {
                             />
                           </div>
                           Total Liquidity
+                          <br />({activeGroup.token.meta.tokenSymbol} + USDC)
                         </div>
                       }
                       value={usdFormatter.format(
