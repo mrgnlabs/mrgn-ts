@@ -63,9 +63,9 @@ export const PositionList = () => {
               <TableRow key={index} className="even:bg-background-gray hover:even:bg-background-gray">
                 <TableCell>
                   {bank.position.isLending ? (
-                    <Badge className="bg-success uppercase font-medium">long</Badge>
+                    <Badge className="w-14 bg-success uppercase font-medium justify-center">long</Badge>
                   ) : (
-                    <Badge>short</Badge>
+                    <Badge className="w-14 bg-error uppercase font-medium justify-center">short</Badge>
                   )}
                 </TableCell>
                 <TableCell>
