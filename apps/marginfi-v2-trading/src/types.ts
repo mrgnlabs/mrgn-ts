@@ -1,5 +1,6 @@
 import { ActionType, ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { QuoteResponseMeta } from "@jup-ag/react-hook";
+import { QuoteResponse } from "@jup-ag/api";
 
 // ----------------------------------------------------------------------------
 // Mayan types
@@ -121,13 +122,44 @@ export enum SortType {
   TVL_DESC = "TVL_DESC",
 }
 
-export type PreviousTxn = {
-  type: ActionType;
-  bank: ActiveBankInfo;
-  amount: number;
+interface PreviousTxnLending {
   txn: string;
-  lstQuote?: QuoteResponseMeta;
-};
+  txnType: "LEND";
+  lendingOptions: {
+    amount: number;
+    type: ActionType;
+    bank: ActiveBankInfo;
+  };
+}
+
+interface PreviousTxnLst {
+  txn: string;
+  txnType: "LST";
+  lstOptions: {
+    amount: number;
+    type: ActionType;
+    bank: ActiveBankInfo;
+    quote?: QuoteResponseMeta;
+  };
+}
+
+interface PreviousTxnTrading {
+  txn: string;
+  txnType: "TRADING";
+  tradingOptions: {
+    initDepositAmount: string;
+    depositAmount: number;
+    depositBank: ActiveBankInfo;
+    borrowAmount: number;
+    borrowBank: ActiveBankInfo;
+    leverage: number;
+    quote: QuoteResponse;
+    entryPrice: number;
+    type: "long" | "short";
+  };
+}
+
+export type PreviousTxn = PreviousTxnLending | PreviousTxnTrading | PreviousTxnLst;
 
 export type TokenData = {
   address: string;
