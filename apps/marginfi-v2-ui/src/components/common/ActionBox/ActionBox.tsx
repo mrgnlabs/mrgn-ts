@@ -16,6 +16,7 @@ import {
   executeLstAction,
   getBlockedActions,
   executeLoopingAction,
+  createAccountAction,
 } from "~/utils";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { useConnection } from "~/hooks/useConnection";
@@ -34,6 +35,7 @@ import {
   ActionBoxActions,
   ActionBoxInput,
 } from "~/components/common/ActionBox/components";
+import { Button } from "~/components/ui/button";
 
 type ActionBoxProps = {
   requestedAction?: ActionType;
@@ -172,6 +174,11 @@ export const ActionBox = ({
       showErrorToast(errorMessage);
     }
   }, [errorMessage]);
+
+  const showCreateAccount = React.useMemo(() => {
+    if (actionMode === ActionType.Loop && selectedAccount === null && connected) return true;
+    return false;
+  }, [actionMode, selectedAccount, connected]);
 
   // Either a staking account is selected or a bank
   const isActionDisabled = React.useMemo(() => {
@@ -621,6 +628,10 @@ export const ActionBox = ({
     fetchMrgnlendState,
   ]);
 
+  const handleCreateAccountAction = React.useCallback(async () => {
+    const account = await createAccountAction({ marginfiClient: mfiClient, walletContextState, nativeSolBalance });
+  }, [mfiClient, walletContextState, nativeSolBalance]);
+
   const handleLendingAction = React.useCallback(async () => {
     if (!actionMode || !selectedBank || (!amount && !repayAmount)) {
       return;
@@ -720,7 +731,15 @@ export const ActionBox = ({
             isDialog && "py-5 border border-background-gray-light/50"
           )}
         >
-          {isSettingsMode ? (
+          {showCreateAccount ? (
+            <>
+              <div className="flex flex-col gap-8 p-2 items-center justify-center text-center">
+                <p className="text-muted-foreground">You need to create a marginfi account before you can loop.</p>
+
+                <Button onClick={() => handleCreateAccountAction()}>Create account</Button>
+              </div>
+            </>
+          ) : isSettingsMode ? (
             <ActionBoxSettings
               repayMode={repayMode}
               actionMode={actionMode}
