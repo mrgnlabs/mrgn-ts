@@ -7,6 +7,7 @@ import { useRouter } from "next/router";
 import { ActionType, ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { PublicKey, VersionedTransaction } from "@solana/web3.js";
 import capitalize from "lodash/capitalize";
+import { WSOL_MINT, numeralFormatter } from "@mrgnlabs/mrgn-common";
 
 import { cn } from "~/utils/themeUtils";
 import { useMrgnlendStore, useTradeStore, useUiStore } from "~/store";
@@ -15,7 +16,7 @@ import { TokenCombobox } from "../TokenCombobox/TokenCombobox";
 import { ActionBoxDialog } from "~/components/common/ActionBox";
 import { Card, CardContent, CardFooter } from "~/components/ui/card";
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
-import { IconAlertTriangle, IconLoader, IconPyth, IconSettings } from "~/components/ui/icons";
+import { IconAlertTriangle, IconLoader, IconPyth, IconSettings, IconWallet } from "~/components/ui/icons";
 import { Slider } from "~/components/ui/slider";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -75,16 +76,23 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
     }
   }, [tradeState, loopingObject]);
 
-  const [selectedAccount, activeGroup, accountSummary, setActiveBank, marginfiAccounts, marginfiClient] = useTradeStore(
-    (state) => [
-      state.selectedAccount,
-      state.activeGroup,
-      state.accountSummary,
-      state.setActiveBank,
-      state.marginfiAccounts,
-      state.marginfiClient,
-    ]
-  );
+  const [
+    selectedAccount,
+    activeGroup,
+    accountSummary,
+    setActiveBank,
+    marginfiAccounts,
+    marginfiClient,
+    nativeSolBalance,
+  ] = useTradeStore((state) => [
+    state.selectedAccount,
+    state.activeGroup,
+    state.accountSummary,
+    state.setActiveBank,
+    state.marginfiAccounts,
+    state.marginfiClient,
+    state.nativeSolBalance,
+  ]);
 
   const [slippageBps, priorityFee, setSlippageBps, setPriorityFee, setIsActionComplete, setPreviousTxn] = useUiStore(
     (state) => [
@@ -164,6 +172,14 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
       }),
     [amount, connected, activeGroup, loopingObject, tradeState]
   );
+
+  const walletAmount = React.useMemo(() => {
+    if (!activeGroup) return 0;
+    console.log(activeGroup);
+    return activeGroup.token.info.state.mint?.equals && activeGroup.token.info.state.mint?.equals(WSOL_MINT)
+      ? activeGroup.token?.userInfo.tokenAccount.balance + nativeSolBalance
+      : activeGroup.token?.userInfo.tokenAccount.balance;
+  }, [nativeSolBalance, activeGroup]);
 
   const loadLoopingVariables = React.useCallback(async () => {
     if (marginfiClient && activeGroup) {
@@ -386,10 +402,20 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
               <div>
                 <div className="flex items-center justify-between">
                   <Label>Amount</Label>
+                  {walletAmount > 0 && (
+                    <Button
+                      size="sm"
+                      variant="link"
+                      className="flex items-center gap-1 ml-auto text-xs cursor-pointer transition-colors hover:text-mrgn-chartreuse hover:no-underline"
+                      onClick={() => handleMaxAmount()}
+                    >
+                      <IconWallet size={14} /> {numeralFormatter(walletAmount)}
+                    </Button>
+                  )}
                   <Button
                     size="sm"
                     variant="link"
-                    className="no-underline hover:underline"
+                    className="no-underline transition-colors hover:text-mrgn-chartreuse hover:no-underline"
                     onClick={() => handleMaxAmount()}
                   >
                     Max
