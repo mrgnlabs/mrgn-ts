@@ -6,16 +6,18 @@ import Link from "next/link";
 import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { groupedNumberFormatterDyn, usdFormatter } from "@mrgnlabs/mrgn-common";
 
-import { useTradeStore } from "~/store";
+import { useTradeStore, useUiStore } from "~/store";
 
 import { PageHeading } from "~/components/common/PageHeading";
 import { PositionCard } from "~/components/common/Portfolio/PositionCard";
+import { ActionComplete } from "~/components/common/ActionComplete";
 import { Loader } from "~/components/ui/loader";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { getTokenImageURL } from "~/utils";
 
 export default function PortfolioPage() {
   const [initialized, banks] = useTradeStore((state) => [state.initialized, state.banks]);
+  const [previousTxn] = useUiStore((state) => [state.previousTxn]);
 
   const portfolio = React.useMemo(() => {
     const activeBanks = banks.filter((bank) => bank.isActive);
@@ -45,80 +47,83 @@ export default function PortfolioPage() {
   }, [portfolio]);
 
   return (
-    <div className="w-full max-w-8xl mx-auto px-4 md:px-8 pb-28 pt-12">
-      {!initialized && <Loader label="Loading mrgntrade..." className="mt-8" />}
-      {initialized && (
-        <div className="space-y-4">
-          <div className="w-full max-w-4xl mx-auto px-4 md:px-0">
-            <PageHeading heading="Portfolio" body={<p>Manage your mrgntrade positions.</p>} links={[]} />
-          </div>
-          {!portfolio || !portfolioCombined ? (
-            <p className="text-center mt-4">
-              You do not have any open positions.{" "}
-              <Link
-                href="/pools"
-                className="text-mrgn-chartreuse border-b border-transparent transition-colors hover:border-mrgn-chartreuse"
-              >
-                Explore the pools
-              </Link>{" "}
-              and start trading!
-            </p>
-          ) : (
-            <div className="max-w-6xl mx-auto space-y-8">
-              <div className="grid grid-cols-2 gap-8 w-full md:grid-cols-3">
-                <StatBlock label="Total long (USD)" value={usdFormatter.format(totalLong)} />
-                <StatBlock label="Total short (USD)" value={usdFormatter.format(totalShort)} />
-                <div className="col-span-2 md:col-span-1">
-                  <StatBlock
-                    label="Active pools"
-                    value={
-                      <div className="flex items-center gap-4">
-                        {groupedNumberFormatterDyn.format(portfolio.long.length + portfolio.short.length)}
-                        <ul className="flex items-center -space-x-2">
-                          {portfolioCombined.slice(0, 5).map((bank, index) => (
-                            <Image
-                              src={getTokenImageURL(bank.meta.tokenSymbol)}
-                              alt={bank.meta.tokenSymbol}
-                              width={24}
-                              height={24}
-                              key={index}
-                              className="rounded-full ring-1 ring-primary"
-                            />
-                          ))}
-                        </ul>
-                        {portfolioCombined?.length - 5 > 0 && (
-                          <p className="text-sm text-muted-foreground">+{portfolioCombined?.length - 5} more</p>
-                        )}
-                      </div>
-                    }
-                  />
-                </div>
-              </div>
-              <div className="bg-background-gray-dark p-4 rounded-2xl w-full md:p-8">
-                <div className="grid grid-cols-1 gap-12 w-full md:grid-cols-2">
-                  <div className="space-y-6">
-                    <h2 className="text-2xl font-medium">Long positions</h2>
-                    <div className="space-y-8">
-                      {portfolio.long.map((bank, index) => (
-                        <PositionCard key={index} bank={bank} isLong={true} />
-                      ))}
-                    </div>
-                  </div>
-                  <div className="space-y-6">
-                    <h2 className="text-2xl font-medium">Short positions</h2>
-                    <div className="space-y-8">
-                      {portfolio.short.map((bank, index) => (
-                        <PositionCard key={index} bank={bank} isLong={false} />
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
+    <>
+      <div className="w-full max-w-8xl mx-auto px-4 md:px-8 pb-28 pt-12">
+        {!initialized && <Loader label="Loading mrgntrade..." className="mt-8" />}
+        {initialized && (
+          <div className="space-y-4">
+            <div className="w-full max-w-4xl mx-auto px-4 md:px-0">
+              <PageHeading heading="Portfolio" body={<p>Manage your mrgntrade positions.</p>} links={[]} />
             </div>
-          )}
-        </div>
-      )}
-    </div>
+            {!portfolio || !portfolioCombined ? (
+              <p className="text-center mt-4">
+                You do not have any open positions.{" "}
+                <Link
+                  href="/pools"
+                  className="text-mrgn-chartreuse border-b border-transparent transition-colors hover:border-mrgn-chartreuse"
+                >
+                  Explore the pools
+                </Link>{" "}
+                and start trading!
+              </p>
+            ) : (
+              <div className="max-w-6xl mx-auto space-y-8">
+                <div className="grid grid-cols-2 gap-8 w-full md:grid-cols-3">
+                  <StatBlock label="Total long (USD)" value={usdFormatter.format(totalLong)} />
+                  <StatBlock label="Total short (USD)" value={usdFormatter.format(totalShort)} />
+                  <div className="col-span-2 md:col-span-1">
+                    <StatBlock
+                      label="Active pools"
+                      value={
+                        <div className="flex items-center gap-4">
+                          {groupedNumberFormatterDyn.format(portfolio.long.length + portfolio.short.length)}
+                          <ul className="flex items-center -space-x-2">
+                            {portfolioCombined.slice(0, 5).map((bank, index) => (
+                              <Image
+                                src={getTokenImageURL(bank.meta.tokenSymbol)}
+                                alt={bank.meta.tokenSymbol}
+                                width={24}
+                                height={24}
+                                key={index}
+                                className="rounded-full ring-1 ring-primary"
+                              />
+                            ))}
+                          </ul>
+                          {portfolioCombined?.length - 5 > 0 && (
+                            <p className="text-sm text-muted-foreground">+{portfolioCombined?.length - 5} more</p>
+                          )}
+                        </div>
+                      }
+                    />
+                  </div>
+                </div>
+                <div className="bg-background-gray-dark p-4 rounded-2xl w-full md:p-8">
+                  <div className="grid grid-cols-1 gap-12 w-full md:grid-cols-2">
+                    <div className="space-y-6">
+                      <h2 className="text-2xl font-medium">Long positions</h2>
+                      <div className="space-y-8">
+                        {portfolio.long.map((bank, index) => (
+                          <PositionCard key={index} bank={bank} isLong={true} />
+                        ))}
+                      </div>
+                    </div>
+                    <div className="space-y-6">
+                      <h2 className="text-2xl font-medium">Short positions</h2>
+                      <div className="space-y-8">
+                        {portfolio.short.map((bank, index) => (
+                          <PositionCard key={index} bank={bank} isLong={false} />
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+      {initialized && previousTxn && <ActionComplete />}
+    </>
   );
 }
 
