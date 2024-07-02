@@ -101,6 +101,8 @@ export const LoopInput = ({
 
   const [netApyRaw, setNetApyRaw] = React.useState(0);
   const [lstApy, setLstApy] = React.useState(0);
+  const [depositTokenApy, setDepositTokenApy] = React.useState(0);
+  const [borrowTokenApy, setBorrowTokenApy] = React.useState(0);
 
   const numberFormater = React.useMemo(() => new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 }), []);
 
@@ -140,30 +142,55 @@ export const LoopInput = ({
 
   React.useEffect(() => {
     if (!selectedBank || !selectedRepayBank) {
+      return;
+    }
+
+    const updateLstApy = async () => {
+      const lstApy = await getLstYield(selectedBank);
+      setLstApy(lstApy * 100);
+    };
+
+    if (isDepositingLst) {
+      updateLstApy();
+    }
+  }, [selectedBank, selectedRepayBank, isDepositingLst, getLstYield]);
+
+  React.useEffect(() => {
+    if (!selectedBank || !selectedRepayBank) {
       setNetApyRaw(0);
       return;
     }
 
     const updateNetApy = async () => {
-      let depositTokenApy = computeBankRateRaw(selectedBank, LendingModes.LEND);
-      const borrowTokenApy = computeBankRateRaw(selectedRepayBank, LendingModes.BORROW);
-      const depositLstApy = isDepositingLst ? await getLstYield(selectedBank) : 0;
-
-      const netApy = depositTokenApy * leverage + depositLstApy * leverage - borrowTokenApy * leverage;
+      const depositApy = computeBankRateRaw(selectedBank, LendingModes.LEND);
+      const borrowApy = computeBankRateRaw(selectedRepayBank, LendingModes.BORROW);
+      const depositLstApy = isDepositingLst ? lstApy : 0;
+      const finalDepositApy = depositApy * leverageAmount + depositLstApy * leverageAmount;
+      const netApy = finalDepositApy - borrowApy * leverageAmount;
 
       setNetApyRaw(netApy);
-      setLstApy(depositLstApy);
+      setDepositTokenApy(finalDepositApy / 100);
+      setBorrowTokenApy(borrowApy * leverageAmount);
     };
 
     updateNetApy();
-  }, [selectedBank, leverage, selectedRepayBank, isDepositingLst, getLstYield]);
+  }, [
+    lstApy,
+    depositTokenApy,
+    borrowTokenApy,
+    selectedBank,
+    leverageAmount,
+    selectedRepayBank,
+    isDepositingLst,
+    getLstYield,
+  ]);
 
   const netApy = React.useMemo(() => {
     if (!netApyRaw) {
       return;
     }
 
-    return percentFormatter.format(Math.abs(netApyRaw));
+    return percentFormatter.format(Math.abs(netApyRaw / 100));
   }, [netApyRaw]);
 
   React.useEffect(
@@ -342,10 +369,7 @@ export const LoopInput = ({
                             <strong className="font-medium">{bank.meta.tokenSymbol}</strong>
                           </div>
                           <span className={cn("ml-auto", isDepositBank ? "text-success" : "text-warning")}>
-                            {percentFormatter.format(
-                              computeBankRateRaw(bank, isDepositBank ? LendingModes.LEND : LendingModes.BORROW) +
-                                (isDepositBank ? lstApy : 0)
-                            )}
+                            {percentFormatter.format(isDepositBank ? depositTokenApy : borrowTokenApy)}
                           </span>
                         </li>
                       );
