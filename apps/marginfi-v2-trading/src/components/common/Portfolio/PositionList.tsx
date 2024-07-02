@@ -71,7 +71,7 @@ export const PositionList = () => {
                 <TableCell>
                   <Link
                     href={`/pools/${bank.address.toBase58()}`}
-                    className="flex items-center gap-3 text-muted-foreground transition-colors hover:text-primary"
+                    className="flex items-center gap-3 transition-colors hover:text-mrgn-chartreuse"
                   >
                     <Image
                       src={getTokenImageURL(bank.meta.tokenSymbol)}
