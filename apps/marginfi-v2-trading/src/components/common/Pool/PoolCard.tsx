@@ -89,7 +89,7 @@ export const PoolCard = ({ bank }: PoolCardProps) => {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <dl className="grid grid-cols-2 gap-2.5 text-sm text-muted-foreground w-full mt-2">
+        <dl className="grid grid-cols-2 gap-1.5 text-sm text-muted-foreground w-full mt-2">
           {tokenData?.price && (
             <>
               <dt className="">Price</dt>
@@ -128,9 +128,9 @@ export const PoolCard = ({ bank }: PoolCardProps) => {
               </dd>
             </>
           )}
-          <dt className="">Open long</dt>
+          <dt>Open long</dt>
           <dd className="text-right text-primary tracking-wide">{usdFormatter.format(totalDeposits)}</dd>
-          <dt className="">Open short</dt>
+          <dt>Open short</dt>
           <dd className="text-right text-primary tracking-wide">{usdFormatter.format(totalBorrows)}</dd>
         </dl>
       </CardContent>
