@@ -48,11 +48,17 @@ export const BankCard = ({ bank }: BankCardProps) => {
         <div className="bg-background/60 py-3 px-4 rounded-lg text-sm">
           <dl className="grid grid-cols-2 gap-y-0.5">
             <dt className="text-muted-foreground">Current price</dt>
-            <dd className="text-right text-white">{usdFormatter.format(bank.info.state.price)}</dd>
+            <dd className="text-right text-primary">{usdFormatter.format(bank.info.state.price)}</dd>
             <dt className="text-muted-foreground">USD value</dt>
-            <dd className="text-right text-white">
+            <dd className="text-right text-primary">
               {bank.position.usdValue < 0.01 ? "< $0.01" : usdFormatter.format(bank.position.usdValue)}
             </dd>
+            {bank.position.liquidationPrice && (
+              <>
+                <dt className="text-muted-foreground">Liquidation Price</dt>
+                <dd className="text-right text-primary">{usdFormatter.format(bank.position.liquidationPrice)}</dd>
+              </>
+            )}
           </dl>
         </div>
       )}
