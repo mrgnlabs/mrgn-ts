@@ -57,13 +57,13 @@ export const TradingScreen = ({
         <dt>Position Type</dt>
         <dd className="text-right capitalize">{type}</dd>
         <dt>Token</dt>
-        <dd className={cn(type === "long" ? "text-success" : "text-warning")}>
+        <dd className={cn("text-right", type === "long" ? "text-success" : "text-warning")}>
           {type === "long"
             ? `${depositBank.meta.tokenName} (${depositBank.meta.tokenSymbol})`
             : `${borrowBank.meta.tokenName} (${borrowBank.meta.tokenSymbol})`}
         </dd>
         <dt>Leverage</dt>
-        <dd>{`${leverage}x`}</dd>
+        <dd className="text-right">{`${leverage}x`}</dd>
         {/* <dt>Token</dt>
         <dd className={cn("text-right", actionTextColor)}>{rateAP}</dd> */}
         <dt>Transaction</dt>

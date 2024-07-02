@@ -375,6 +375,7 @@ const checkTxSize = (builder: {
       return builder.txn;
     }
   } catch (error) {
+    console.error(error);
     // too big
   }
 };
@@ -503,10 +504,7 @@ export async function loopingBuilder({
     },
   });
 
-  // const setupIxs = setupInstructions.length > 0 ? setupInstructions.map(deserializeInstruction) : []; //**not optional but man0s smart**
   const swapIx = deserializeInstruction(swapInstruction);
-  // const swapcleanupIx = cleanupInstruction ? [deserializeInstruction(cleanupInstruction)] : []; **optional**
-  // tokenLedgerInstruction **also optional**
 
   const swapLUTs: AddressLookupTableAccount[] = [];
   swapLUTs.push(...(await getAdressLookupTableAccounts(options.connection, addressLookupTableAddresses)));
@@ -660,7 +658,7 @@ export function generateStats(
       <dt>Entry Price</dt>
       <dd className="text-primary text-right">{usdFormatter.format(tokenBank.info.state.price)}</dd>
       <dt>Liquidation Price</dt>
-      <dd className="text-primary text-right flex flex-row gap-2">
+      <dd className="text-primary text-right flex flex-row justify-end gap-2">
         {currentLiqPrice && <span>{currentLiqPrice}</span>}
         {showLiqComparison && <IconArrowRight width={12} height={12} />}
         {simulatedLiqPrice && <span>{simulatedLiqPrice}</span>}
@@ -999,12 +997,21 @@ export const checkAdditionalActionAvailable = (error: any) => {
       actionMethod: "WARNING",
       description: error.message,
     } as ActionMethod;
-  } else if (error?.message && (error?.message.includes("6017") || error?.message.includes("stale"))) {
+  } else if (
+    error?.includes("stale") ||
+    (error?.message && (error?.message.includes("6017") || error?.message.includes("stale")))
+  ) {
     return {
       description: "Trading may fail due to network congestion preventing oracles from updating price data.",
       isEnabled: true,
       link: "https://forum.marginfi.community/t/work-were-doing-to-improve-oracle-robustness-during-chain-congestion/283",
       linkText: "Learn more about marginfi's decentralized oracles.",
+    } as ActionMethod;
+  } else if (error?.message && (error?.message.includes("6029") || error?.message.includes("borrow cap exceeded"))) {
+    return {
+      isEnabled: false,
+      actionMethod: "WARNING",
+      description: "Borrow cap is exceeded.",
     } as ActionMethod;
   } else if (error?.message && (error?.message.includes("RangeError") || error?.message.includes("too large"))) {
     return {
@@ -1014,6 +1021,7 @@ export const checkAdditionalActionAvailable = (error: any) => {
         "This swap causes the transaction to fail due to size restrictions. Please try again or pick another token.",
     } as ActionMethod;
   } else {
+    console.log({ error });
     return {
       isEnabled: true,
       actionMethod: "WARNING",
