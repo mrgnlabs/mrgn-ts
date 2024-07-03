@@ -102,9 +102,10 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
   React.useEffect(() => {
     if (tradeState !== prevTradeState) {
       setAmount("");
+      console.log("hi");
       setLoopingObject(null);
       setLeverage(1);
-      setAdditionalChecks(undefined);
+      // setAdditionalChecks(undefined);
     }
   }, [tradeState, prevTradeState]);
 
@@ -243,7 +244,7 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
           connection
         );
 
-        console.log({ looping });
+        setLoopingObject(looping);
 
         if (looping && looping?.loopingTxn && selectedAccount) {
           await handleSimulation(looping.loopingTxn, activeGroup.token, selectedAccount);
@@ -254,8 +255,6 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
           //   loopingTxn: looping.loopingTxn,
           // });
         }
-
-        setLoopingObject(looping);
       } catch (error) {
         setLoopingObject(null);
       } finally {
