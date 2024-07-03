@@ -42,7 +42,7 @@ export const TradingScreen = ({
       <div className="flex flex-col items-center gap-2 border-b border-border pb-10">
         <div className="flex items-center justify-center gap-2">
           <h3 className="text-4xl font-medium">
-            {`${type === "long" ? depositAmount : borrowAmount}`} {tokenBank.meta.tokenSymbol}
+            {`${(type === "long" ? depositAmount : borrowAmount).toFixed(2)}`} {tokenBank.meta.tokenSymbol}
           </h3>
           <Image
             className="rounded-full w-9 h-9"
