@@ -1018,7 +1018,7 @@ export const checkAdditionalActionAvailable = (error: any) => {
       } as ActionMethod;
     } else if (error?.programId && error?.programId === "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA") {
       return {
-        isEnabled: false,
+        isEnabled: true,
         actionMethod: "WARNING",
         description: error?.message,
       } as ActionMethod;
