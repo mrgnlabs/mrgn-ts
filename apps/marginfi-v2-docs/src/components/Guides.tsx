@@ -3,6 +3,11 @@ import { Heading } from '~/components/Heading'
 
 const guides = [
   {
+    href: '/mrgnloop',
+    name: 'mrgnloop User Guide',
+    description: 'Learn about trading with leverage using mrgnloop.',
+  },
+  {
     href: '/mrgnlend',
     name: 'mrgnlend User Guide',
     description: 'Learn about borrowing and lending on the margnlend protocol.',
