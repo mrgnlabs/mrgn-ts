@@ -375,7 +375,7 @@ const checkTxSize = (builder: {
       return builder.txn;
     }
   } catch (error) {
-    console.error(error);
+    console.log("tx to large, trying again");
     // too big
   }
 };
