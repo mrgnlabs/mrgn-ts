@@ -39,6 +39,20 @@ export const PositionCard = ({ bank, isLong }: PositionCardProps) => {
     return marginfiAccounts ? marginfiAccounts[bank.info.rawBank.group.toBase58()] : undefined;
   }, [marginfiAccounts, bank]);
 
+  const leverage = React.useMemo(() => {
+    const borrowBank = bank.position.isLending ? collateralBank : bank;
+    const depositBank = bank.address.equals(borrowBank.address) ? collateralBank : bank;
+
+    let leverage = 1;
+    if (borrowBank.isActive && depositBank.isActive) {
+      const borrowUsd = borrowBank.position.usdValue;
+      const depositUsd = depositBank.position.usdValue;
+
+      leverage = Math.round((borrowUsd / depositUsd + Number.EPSILON) * 100) / 100 + 1;
+    }
+    return leverage;
+  }, [bank, collateralBank]);
+
   React.useEffect(() => {
     if (!bank) return;
 
@@ -89,6 +103,8 @@ export const PositionCard = ({ bank, isLong }: PositionCardProps) => {
           <dd className="text-right text-primary">
             {numeralFormatter(bank.position.amount)} {bank.meta.tokenSymbol}
           </dd>
+          <dt>Leverage</dt>
+          <dd className="text-right text-primary">{`${leverage}x`}</dd>
           <dt>Price</dt>
           <dd className="text-right text-primary">
             {bank.info.oraclePrice.priceRealtime.price.toNumber() > 0.01
