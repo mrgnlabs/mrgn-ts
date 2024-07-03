@@ -234,6 +234,7 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
           depositBank = activeGroup.usdc;
           borrowBank = activeGroup.token;
         }
+        setAdditionalChecks(undefined);
 
         const looping = await calculateLooping(
           marginfiClient,
@@ -257,6 +258,14 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
           //   bank: activeGroup.token,
           //   loopingTxn: looping.loopingTxn,
           // });
+        } else if (!looping) {
+          setAdditionalChecks({
+            isEnabled: false,
+            actionMethod: "WARNING",
+            description:
+              "This swap causes the transaction to fail due to size restrictions. Please try again or pick another token.",
+            link: "https://forum.marginfi.community/t/work-were-doing-to-improve-collateral-repay/333",
+          });
         }
       } catch (error) {
         setLoopingObject(null);
