@@ -173,22 +173,22 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
             };
           });
         }
+      } else {
+        set((state) => {
+          return {
+            ...state,
+            initialized: true,
+            groupsCache: result.tradeGroups,
+            groups: result.groups,
+            banks: result.tokenBanks,
+            banksIncludingUSDC: result.allBanks,
+            collateralBanks: result.collateralBanks,
+            nativeSolBalance: result.nativeSolBalance,
+            tokenAccountMap: result.tokenAccountMap,
+            marginfiAccounts: result.marginfiAccounts,
+          };
+        });
       }
-
-      set((state) => {
-        return {
-          ...state,
-          initialized: true,
-          groupsCache: result.tradeGroups,
-          groups: result.groups,
-          banks: result.tokenBanks,
-          banksIncludingUSDC: result.allBanks,
-          collateralBanks: result.collateralBanks,
-          nativeSolBalance: result.nativeSolBalance,
-          tokenAccountMap: result.tokenAccountMap,
-          marginfiAccounts: result.marginfiAccounts,
-        };
-      });
     } catch (error) {
       console.error(error);
     }
@@ -198,6 +198,7 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
     try {
       const bpk = new PublicKey(bankPk);
       let bank = get().banksIncludingUSDC.find((bank) => new PublicKey(bank.address).equals(bpk));
+
       if (!bank) {
         const result = await fetchBanksAndTradeGroups(wallet, connection);
 
