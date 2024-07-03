@@ -32,22 +32,6 @@ import {
 import { ToastStep } from "~/components/common/Toast";
 import { getMaybeSquadsOptions } from "./mrgnActions";
 
-export async function closePosition({
-  marginfiAccount,
-  depositBank,
-  borrowBank,
-  priorityFee,
-  slippageBps,
-}: {
-  marginfiAccount: MarginfiAccountWrapper;
-  depositBank: ExtendedBankInfo;
-  borrowBank: ExtendedBankInfo;
-  priorityFee: number;
-  slippageBps: number;
-}) {
-  const jupiterQuoteApi = createJupiterApiClient();
-}
-
 export async function executeLeverageAction({
   marginfiClient,
   marginfiAccount: _marginfiAccount,

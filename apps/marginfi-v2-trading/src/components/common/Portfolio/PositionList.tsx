@@ -17,7 +17,8 @@ import { Button } from "~/components/ui/button";
 import { Badge } from "~/components/ui/badge";
 
 export const PositionList = () => {
-  const [banks, collateralBanks, marginfiAccounts] = useTradeStore((state) => [
+  const [marginfiClient, banks, collateralBanks, marginfiAccounts] = useTradeStore((state) => [
+    state.marginfiClient,
     state.banks,
     state.collateralBanks,
     state.marginfiAccounts,
@@ -104,6 +105,7 @@ export const PositionList = () => {
                 <TableCell className="text-right">
                   {marginfiAccounts && (
                     <PositionActionButtons
+                      marginfiClient={marginfiClient}
                       marginfiAccount={marginfiAccount}
                       isBorrowing={isBorrowing}
                       bank={bank}
