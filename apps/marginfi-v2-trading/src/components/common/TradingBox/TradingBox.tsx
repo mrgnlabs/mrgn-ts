@@ -101,13 +101,16 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
 
   React.useEffect(() => {
     if (tradeState !== prevTradeState) {
-      setAmount("");
-      console.log("hi");
-      setLoopingObject(null);
-      setLeverage(1);
-      // setAdditionalChecks(undefined);
+      clearStates();
     }
   }, [tradeState, prevTradeState]);
+
+  const clearStates = () => {
+    setAmount("");
+    setLoopingObject(null);
+    setLeverage(1);
+    setAdditionalChecks(undefined);
+  };
 
   const numberFormater = React.useMemo(() => new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 }), []);
 
@@ -469,6 +472,7 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
                     setSelected={(bank) => {
                       router.push(`/trade/${bank.address.toBase58()}`);
                       setActiveBank({ bankPk: bank.address, connection, wallet });
+                      clearStates();
                     }}
                   />
                   <Input
