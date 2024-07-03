@@ -2,14 +2,14 @@ import React from "react";
 
 import Image from "next/image";
 
-import { ActionType, ExtendedBankInfo, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { numeralFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 
-import { cn, getTokenImageURL } from "~/utils";
+import { getTokenImageURL } from "~/utils";
+import { useTradeStore } from "~/store";
 import { useAssetItemData } from "~/hooks/useAssetItemData";
 
 import { ActionBoxDialog } from "~/components/common/ActionBox";
-import { IconAlertTriangle } from "~/components/ui/icons";
 import { Button } from "~/components/ui/button";
 
 type BankCardProps = {
@@ -18,6 +18,27 @@ type BankCardProps = {
 
 export const BankCard = ({ bank }: BankCardProps) => {
   const { rateAP } = useAssetItemData({ bank, isInLendingMode: true });
+  const [collateralBanks] = useTradeStore((state) => [state.collateralBanks]);
+
+  const leverage = React.useMemo(() => {
+    if (!bank.isActive) return 1;
+
+    const collateralBank = collateralBanks[bank.address.toBase58()];
+    const borrowBank = bank.position.isLending ? collateralBank : bank;
+
+    if (!borrowBank) return 1;
+
+    const depositBank = bank.address.equals(borrowBank.address) ? collateralBank : bank;
+
+    let leverage = 1;
+    if (borrowBank.isActive && depositBank.isActive) {
+      const borrowUsd = borrowBank.position.usdValue;
+      const depositUsd = depositBank.position.usdValue;
+
+      leverage = Math.round((borrowUsd / depositUsd + Number.EPSILON) * 100) / 100 + 1;
+    }
+    return leverage;
+  }, [bank, collateralBanks]);
 
   return (
     <div className="bg-background-gray p-4 rounded-lg space-y-4 flex flex-col justify-between">
@@ -46,16 +67,22 @@ export const BankCard = ({ bank }: BankCardProps) => {
       </div>
       {bank.isActive && bank.position && (
         <div className="bg-background/60 py-3 px-4 rounded-lg text-sm">
-          <dl className="grid grid-cols-2 gap-y-0.5">
-            <dt className="text-muted-foreground">Current price</dt>
+          <dl className="grid grid-cols-2 gap-y-0.5 text-muted-foreground">
+            <dt>Current price</dt>
             <dd className="text-right text-primary">{usdFormatter.format(bank.info.state.price)}</dd>
-            <dt className="text-muted-foreground">USD value</dt>
+            <dt>USD value</dt>
             <dd className="text-right text-primary">
               {bank.position.usdValue < 0.01 ? "< $0.01" : usdFormatter.format(bank.position.usdValue)}
             </dd>
+            {leverage && (
+              <>
+                <dt>Leverage</dt>
+                <dd className="text-right text-primary">{`${leverage}x`}</dd>
+              </>
+            )}
             {bank.position.liquidationPrice && (
               <>
-                <dt className="text-muted-foreground">Liquidation Price</dt>
+                <dt>Liquidation Price</dt>
                 <dd className="text-right text-primary">{usdFormatter.format(bank.position.liquidationPrice)}</dd>
               </>
             )}
@@ -63,8 +90,8 @@ export const BankCard = ({ bank }: BankCardProps) => {
         </div>
       )}
       {!bank.isActive && (
-        <div className="bg-background/60 py-6 px-4 rounded-lg text-sm">
-          <p className="text-muted-foreground">No current position.</p>
+        <div className="bg-background/60 py-6 px-4 rounded-lg text-sm text-muted-foreground">
+          <p>No current position.</p>
         </div>
       )}
       <div className="flex justify-between w-full gap-4 mt-auto">
