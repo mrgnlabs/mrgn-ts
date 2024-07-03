@@ -37,6 +37,7 @@ export const PositionList = () => {
             <TableHead className="w-[14%]">Position</TableHead>
             <TableHead className="w-[14%]">Token</TableHead>
             <TableHead className="w-[14%]">Size</TableHead>
+            <TableHead className="w-[14%]">Leverage</TableHead>
             <TableHead className="w-[14%]">USD Value</TableHead>
             <TableHead className="w-[14%]">Price</TableHead>
             <TableHead className="w-[14%]">Liquidation price</TableHead>
@@ -58,7 +59,16 @@ export const PositionList = () => {
             const collateralBank = collateralBanks[bank.address.toBase58()] || null;
             const marginfiAccount = marginfiAccounts ? marginfiAccounts[bank.info.rawBank.group.toBase58()] : undefined;
             const borrowBank = bank.position.isLending ? collateralBank : bank;
+            const depositBank = bank.address.equals(borrowBank.address) ? collateralBank : bank;
             const isBorrowing = borrowBank.isActive && !borrowBank.position.isLending;
+
+            let leverage = 1;
+            if (borrowBank.isActive && depositBank.isActive) {
+              const borrowUsd = borrowBank.position.usdValue;
+              const depositUsd = depositBank.position.usdValue;
+
+              leverage = Math.round((borrowUsd / depositUsd + Number.EPSILON) * 100) / 100 + 1;
+            }
 
             return (
               <TableRow key={index} className="even:bg-background-gray hover:even:bg-background-gray">
@@ -85,6 +95,7 @@ export const PositionList = () => {
                   </Link>
                 </TableCell>
                 <TableCell>{bank.position.amount < 0.01 ? "0.01" : numeralFormatter(bank.position.amount)}</TableCell>
+                <TableCell>{`${leverage}x`}</TableCell>
                 <TableCell>{usdFormatter.format(bank.position.usdValue)}</TableCell>
                 <TableCell>
                   {bank.info.oraclePrice.priceRealtime.price.toNumber()
