@@ -156,6 +156,23 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
           connection,
           wallet,
         });
+
+        const tokenBank = result.allBanks.find((bank) => bank.address.equals(activeGroup.token.info.rawBank.address));
+        const collateralBank = result.allBanks.find((bank) =>
+          bank.address.equals(activeGroup.usdc.info.rawBank.address)
+        );
+
+        if (tokenBank && collateralBank) {
+          set((state) => {
+            return {
+              ...state,
+              activeGroup: {
+                token: tokenBank,
+                usdc: collateralBank,
+              },
+            };
+          });
+        }
       }
 
       set((state) => {
