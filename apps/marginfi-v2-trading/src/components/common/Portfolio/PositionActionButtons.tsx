@@ -1,8 +1,8 @@
-import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
+import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { ActiveBankInfo, ExtendedBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { IconMinus, IconX, IconPlus } from "@tabler/icons-react";
 
-import { cn } from "~/utils";
+import { cn, extractErrorString } from "~/utils";
 
 import { ActionBoxDialog } from "~/components/common/ActionBox";
 import { Button } from "~/components/ui/button";
@@ -10,8 +10,10 @@ import { getCloseTransaction } from "../TradingBox/tradingBox.utils";
 import React from "react";
 import { useConnection } from "~/hooks/useConnection";
 import { useUiStore } from "~/store";
+import { MultiStepToastHandle } from "~/utils/toastUtils";
 
 type PositionActionButtonsProps = {
+  marginfiClient: MarginfiClient | null;
   marginfiAccount?: MarginfiAccountWrapper;
   isBorrowing: boolean;
   bank: ActiveBankInfo;
@@ -20,6 +22,7 @@ type PositionActionButtonsProps = {
 };
 
 export const PositionActionButtons = ({
+  marginfiClient,
   marginfiAccount,
   isBorrowing,
   bank,
@@ -30,16 +33,39 @@ export const PositionActionButtons = ({
   const [slippageBps, priorityFee] = useUiStore((state) => [state.slippageBps, state.priorityFee]);
 
   const closeTransaction = React.useCallback(async () => {
-    if (!marginfiAccount || !collateralBank) return;
-    await getCloseTransaction({
-      marginfiAccount,
-      borrowBank: isBorrowing ? collateralBank : bank,
-      depositBank: isBorrowing ? bank : collateralBank,
-      slippageBps,
-      connection: connection,
-      priorityFee,
-    });
-  }, [marginfiAccount, collateralBank, bank, collateralBank, isBorrowing, slippageBps, connection, priorityFee]);
+    if (!marginfiAccount || !collateralBank || !marginfiClient) return;
+
+    const multiStepToast = new MultiStepToastHandle("Closing position", [
+      { label: `Closing ${isBorrowing ? bank.meta.tokenSymbol : collateralBank.meta.tokenSymbol} position.` },
+    ]);
+
+    multiStepToast.start();
+
+    try {
+      const txn = await getCloseTransaction({
+        marginfiAccount,
+        borrowBank: isBorrowing ? collateralBank : bank,
+        depositBank: isBorrowing ? bank : collateralBank,
+        slippageBps,
+        connection: connection,
+        priorityFee,
+      });
+      if (!txn) {
+        throw new Error("Something went wrong.");
+      }
+
+      const txnSig = await marginfiClient.processTransaction(txn);
+      multiStepToast.setSuccessAndNext();
+      return txnSig;
+    } catch (error: any) {
+      const msg = extractErrorString(error);
+
+      multiStepToast.setFailed(msg);
+      console.log(`Error while borrowing: ${msg}`);
+      console.log(error);
+      return;
+    }
+  }, [marginfiAccount, collateralBank, isBorrowing, bank, slippageBps, connection, priorityFee, marginfiClient]);
 
   return (
     <div className="flex gap-3 w-full">

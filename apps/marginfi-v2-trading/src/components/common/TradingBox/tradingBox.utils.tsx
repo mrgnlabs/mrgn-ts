@@ -121,8 +121,6 @@ export async function getCloseTransaction({
 
   const maxAmount = await calculateMaxCollat(borrowBank, depositBank, slippageBps);
 
-  console.log(maxAmount);
-
   if (!maxAmount) return;
 
   for (const maxAccounts of maxAccountsArr) {
@@ -144,10 +142,10 @@ export async function getCloseTransaction({
       if (swapQuote) {
         const minSwapAmountOutUi = nativeToUi(swapQuote.otherAmountThreshold, depositBank.info.state.mintDecimals);
 
-        let sig: string | undefined;
+        let txn: VersionedTransaction | undefined;
 
         if (marginfiAccount) {
-          sig = await verifyJupTxSizeClosePosition(
+          txn = await verifyJupTxSizeClosePosition(
             marginfiAccount,
             depositBank,
             borrowBank,
@@ -157,7 +155,7 @@ export async function getCloseTransaction({
           );
         }
 
-        if (sig || !marginfiAccount) {
+        if (txn || !marginfiAccount) {
           // capture("looper", {
           //   amountIn: uiToNative(amount, borrowBank.info.state.mintDecimals).toNumber(),
           //   firstQuote,
@@ -165,7 +163,7 @@ export async function getCloseTransaction({
           //   inputMint: borrowBank.info.state.mint.toBase58(),
           //   outputMint: bank.info.state.mint.toBase58(),
           // });
-          return sig;
+          return txn ?? null;
         }
       } else {
         throw new Error("Swap quote failed");
@@ -313,7 +311,7 @@ export async function verifyJupTxSizeClosePosition(
     if (!depositBank.isActive || !borrowBank.isActive) {
       throw new Error("Position not active");
     }
-    const sig = await closePosition({
+    const builder = await closePositionBuilder({
       marginfiAccount,
       depositBank,
       borrowBank,
@@ -322,7 +320,7 @@ export async function verifyJupTxSizeClosePosition(
       priorityFee,
     });
 
-    return sig;
+    return checkTxSize(builder);
   } catch (error) {
     console.error(error);
   }
@@ -380,7 +378,7 @@ const checkTxSize = (builder: {
   }
 };
 
-export async function closePosition({
+export async function closePositionBuilder({
   marginfiAccount,
   depositBank,
   borrowBank,
@@ -416,7 +414,7 @@ export async function closePosition({
   const swapLUTs: AddressLookupTableAccount[] = [];
   swapLUTs.push(...(await getAdressLookupTableAccounts(connection, addressLookupTableAddresses)));
 
-  const sig = await marginfiAccount.repayWithCollat(
+  const { transaction, addressLookupTableAccounts } = await marginfiAccount.makeRepayWithCollatTx(
     borrowBank.position.amount,
     depositBank.position.amount,
     borrowBank.address,
@@ -428,7 +426,7 @@ export async function closePosition({
     priorityFee
   );
 
-  return sig;
+  return { txn: transaction, addressLookupTableAccounts };
 }
 
 async function calculateMaxCollat(bank: ExtendedBankInfo, repayBank: ExtendedBankInfo, slippageBps: number) {
