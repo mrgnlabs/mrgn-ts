@@ -19,7 +19,11 @@ type PositionCardProps = {
 };
 
 export const PositionCard = ({ bank, isLong }: PositionCardProps) => {
-  const [collateralBanks, marginfiAccounts] = useTradeStore((state) => [state.collateralBanks, state.marginfiAccounts]);
+  const [marginfiClient, collateralBanks, marginfiAccounts] = useTradeStore((state) => [
+    state.marginfiClient,
+    state.collateralBanks,
+    state.marginfiAccounts,
+  ]);
   const [tokenData, setTokenData] = React.useState<TokenData | null>(null);
 
   const collateralBank = React.useMemo(() => {
@@ -108,6 +112,7 @@ export const PositionCard = ({ bank, isLong }: PositionCardProps) => {
       </div>
       <div className="flex items-center justify-between gap-4">
         <PositionActionButtons
+          marginfiClient={marginfiClient}
           marginfiAccount={marginfiAccount}
           isBorrowing={isBorrowing}
           bank={bank}
