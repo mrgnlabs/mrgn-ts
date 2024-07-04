@@ -407,7 +407,7 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
     if (debouncedAmount && debouncedLeverage) {
       loadLoopingVariables();
     }
-  }, [debouncedLeverage, debouncedAmount]);
+  }, [debouncedLeverage, debouncedAmount, loadLoopingVariables]);
 
   if (!activeGroup) return null;
 
