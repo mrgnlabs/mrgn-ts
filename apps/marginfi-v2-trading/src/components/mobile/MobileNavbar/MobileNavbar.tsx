@@ -87,7 +87,6 @@ const MobileNavbar = () => {
                   variant="ghost"
                   className={cn("text-muted-foreground", asPath === linkInfo.href && "bg-accent text-primary")}
                 >
-                  {/* {React.cloneElement(item.icon, { size: 18 })} */}
                   <linkInfo.Icon />
                   {linkInfo.label}
                 </Button>
