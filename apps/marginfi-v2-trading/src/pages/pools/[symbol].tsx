@@ -53,12 +53,6 @@ export default function TradeSymbolPage() {
   }, [accountSummary.healthFactor]);
 
   React.useEffect(() => {
-    if (!router.query.symbol || !wallet || !connection || !initialized || activeGroup) return;
-    const symbol = router.query.symbol as string;
-    setActiveBank({ bankPk: new PublicKey(symbol), connection, wallet });
-  }, [router.query.symbol, connection, wallet, activeGroup, initialized, setActiveBank]);
-
-  React.useEffect(() => {
     if (!activeGroup) return;
 
     const fetchTokenData = async () => {

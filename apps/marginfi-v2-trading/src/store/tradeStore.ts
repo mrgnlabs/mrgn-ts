@@ -36,6 +36,7 @@ type TradeGroupsCache = {
 type TradeStoreState = {
   // keep track of store state
   initialized: boolean;
+  userDataFetched: boolean;
   isRefreshingStore: boolean;
 
   // cache groups json store
@@ -83,9 +84,13 @@ type TradeStoreState = {
   // user native sol balance
   nativeSolBalance: number;
 
+  // wallet state
+  wallet: Wallet | null;
+  connection: Connection | null;
+
   /* Actions */
   // fetch groups / banks
-  fetchTradeState: ({ connection, wallet }: { connection: Connection; wallet: Wallet }) => void;
+  fetchTradeState: ({ connection, wallet }: { connection?: Connection; wallet?: Wallet }) => void;
 
   // set active banks and initialize marginfi client
   setActiveBank: ({
@@ -94,8 +99,8 @@ type TradeStoreState = {
     wallet,
   }: {
     bankPk: PublicKey;
-    connection: Connection;
-    wallet: Wallet;
+    connection?: Connection;
+    wallet?: Wallet;
   }) => void;
 
   setIsRefreshingStore: (isRefreshing: boolean) => void;
@@ -114,6 +119,7 @@ function createTradeStore() {
 
 const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
   initialized: false,
+  userDataFetched: false,
   isRefreshingStore: false,
   groupsCache: {},
   groups: [],
@@ -128,6 +134,8 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
   accountSummary: DEFAULT_ACCOUNT_SUMMARY,
   nativeSolBalance: 0,
   tokenAccountMap: null,
+  connection: null,
+  wallet: null,
 
   setIsRefreshingStore: (isRefreshing) => {
     set((state) => {
@@ -138,89 +146,52 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
     });
   },
 
-  fetchTradeState: async ({ connection, wallet }) => {
+  fetchTradeState: async (args) => {
     try {
       // fetch groups
+
+      let userDataFetched = false;
+      const connection = args.connection ?? get().connection;
+      const wallet = args?.wallet ?? get().wallet;
+      if (!connection) throw new Error("Connection not found");
+      if (!wallet) throw new Error("Wallet not found");
+      if (wallet.publicKey) userDataFetched = true;
 
       const result = await fetchBanksAndTradeGroups(wallet, connection);
 
       if (!result) throw new Error("Error fetching banks & groups");
 
-      const activeGroup = get().activeGroup;
-
-      if (activeGroup) {
-        get().setActiveBank({
-          bankPk: activeGroup.token.info.rawBank.address,
-          connection,
-          wallet,
-        });
-
-        const tokenBank = result.allBanks.find((bank) => bank.address.equals(activeGroup.token.info.rawBank.address));
-        const collateralBank = result.allBanks.find((bank) =>
-          bank.address.equals(activeGroup.usdc.info.rawBank.address)
-        );
-
-        if (tokenBank && collateralBank) {
-          set((state) => {
-            return {
-              ...state,
-              activeGroup: {
-                token: tokenBank,
-                usdc: collateralBank,
-              },
-            };
-          });
-        }
-      } else {
-        set((state) => {
-          return {
-            ...state,
-            initialized: true,
-            groupsCache: result.tradeGroups,
-            groups: result.groups,
-            banks: result.tokenBanks,
-            banksIncludingUSDC: result.allBanks,
-            collateralBanks: result.collateralBanks,
-            nativeSolBalance: result.nativeSolBalance,
-            tokenAccountMap: result.tokenAccountMap,
-            marginfiAccounts: result.marginfiAccounts,
-          };
-        });
-      }
+      set({
+        initialized: true,
+        groupsCache: result.tradeGroups,
+        groups: result.groups,
+        banks: result.tokenBanks,
+        banksIncludingUSDC: result.allBanks,
+        collateralBanks: result.collateralBanks,
+        nativeSolBalance: result.nativeSolBalance,
+        tokenAccountMap: result.tokenAccountMap,
+        marginfiAccounts: result.marginfiAccounts,
+        wallet: wallet,
+        connection: connection,
+        userDataFetched: userDataFetched,
+      });
     } catch (error) {
       console.error(error);
     }
   },
 
-  setActiveBank: async ({ bankPk, wallet, connection }) => {
+  setActiveBank: async (args) => {
     try {
-      const bpk = new PublicKey(bankPk);
-      let bank = get().banksIncludingUSDC.find((bank) => new PublicKey(bank.address).equals(bpk));
+      const connection = args.connection ?? get().connection;
+      const wallet = args?.wallet ?? get().wallet;
 
-      if (!bank) {
-        const result = await fetchBanksAndTradeGroups(wallet, connection);
+      if (!connection) throw new Error("Connection not found");
+      if (!wallet) throw new Error("Wallet not found");
 
-        if (!result) throw new Error("Error fetching banks & groups");
+      const bankPk = new PublicKey(args.bankPk);
+      let bank = get().banksIncludingUSDC.find((bank) => new PublicKey(bank.address).equals(bankPk));
 
-        set((state) => {
-          return {
-            ...state,
-            initialized: true,
-            groupsCache: result.tradeGroups,
-            groups: result.groups,
-            banks: result.tokenBanks,
-            filteredBanks: [],
-            banksIncludingUSDC: result.allBanks,
-            collateralBanks: result.collateralBanks,
-            nativeSolBalance: result.nativeSolBalance,
-            tokenAccountMap: result.tokenAccountMap,
-          };
-        });
-
-        bank = result.allBanks.find((bank) => new PublicKey(bank.address).equals(bpk));
-
-        if (!bank) return;
-      }
+      if (!bank) return;
 
       const collateralBank = get().collateralBanks[bank.info.rawBank.address.toBase58()];
 
@@ -302,17 +273,14 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
         }
       }
 
-      set((state) => {
-        return {
-          ...state,
-          marginfiClient,
-          selectedAccount,
-          accountSummary,
-          activeGroup: {
-            token: updatedTokenBank,
-            usdc: updatedCollateralBank,
-          },
-        };
+      set({
+        marginfiClient,
+        selectedAccount,
+        accountSummary,
+        activeGroup: {
+          token: updatedTokenBank,
+          usdc: updatedCollateralBank,
+        },
       });
     } catch (error) {
       console.error(error);
@@ -366,6 +334,8 @@ export { createTradeStore };
 export type { TradeStoreState };
 
 const fetchBanksAndTradeGroups = async (wallet: Wallet, connection: Connection) => {
+  if (!connection) throw new Error("Connection not found");
+  if (!wallet) throw new Error("Wallet not found");
   const tradeGroups: TradeGroupsCache = await fetch(TRADE_GROUPS_MAP).then((res) => res.json());
 
   if (!tradeGroups) {

@@ -32,12 +32,6 @@ export default function TradeSymbolPage() {
   const [tokenData, setTokenData] = React.useState<TokenData | null>(null);
 
   React.useEffect(() => {
-    if (!router.query.symbol || !wallet || !connection || activeGroup) return;
-    const symbol = router.query.symbol as string;
-    setActiveBank({ bankPk: new PublicKey(symbol), connection, wallet });
-  }, [router.query.symbol, wallet, connection, activeGroup, setActiveBank]);
-
-  React.useEffect(() => {
     if (!activeGroup?.token) return;
 
     const fetchTokenData = async () => {
