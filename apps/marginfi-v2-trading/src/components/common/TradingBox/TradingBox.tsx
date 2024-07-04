@@ -178,17 +178,17 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
   }, [tradeState, activeGroup]);
 
   const loadStats = React.useCallback(
-    async (simulationResult: SimulationResult | null) => {
+    async (simulationResult: SimulationResult | null, looping: LoopingObject) => {
       if (!marginfiClient || !activeGroup) {
         return;
       }
-      setStats(generateStats(accountSummary, activeGroup.token, activeGroup.usdc, simulationResult));
+      setStats(generateStats(accountSummary, activeGroup.token, activeGroup.usdc, simulationResult, looping));
     },
     [accountSummary, activeGroup, marginfiClient]
   );
 
   const handleSimulation = React.useCallback(
-    async (loopingTxn: VersionedTransaction, bank: ExtendedBankInfo, selectedAccount: MarginfiAccountWrapper) => {
+    async (looping: LoopingObject, bank: ExtendedBankInfo, selectedAccount: MarginfiAccountWrapper) => {
       if (!marginfiClient) {
         return;
       }
@@ -199,7 +199,7 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
           marginfiClient,
           account: selectedAccount,
           bank: bank,
-          loopingTxn: loopingTxn,
+          loopingTxn: looping.loopingTxn,
         });
         setAdditionalChecks(undefined);
       } catch (error) {
@@ -211,7 +211,7 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
         // addStatus({ type: "simulation", msg: message ?? "Simulating transaction failed" }, "warning");
       } finally {
         // if (simulationResult) removeStatus("simulation");
-        loadStats(simulationResult);
+        loadStats(simulationResult, looping);
       }
     },
     [loadStats, marginfiClient]
@@ -251,7 +251,7 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
         setLoopingObject(looping);
 
         if (looping && looping?.loopingTxn && selectedAccount) {
-          await handleSimulation(looping.loopingTxn, activeGroup.token, selectedAccount);
+          await handleSimulation(looping, activeGroup.token, selectedAccount);
           // const simulation = await simulateLooping({
           //   marginfiClient,
           //   account: selectedAccount,
@@ -288,7 +288,7 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
 
   React.useEffect(() => {
     if (activeGroup) {
-      setStats(generateStats(accountSummary, activeGroup.token, activeGroup.usdc, null));
+      setStats(generateStats(accountSummary, activeGroup.token, activeGroup.usdc, null, null));
     }
   }, [accountSummary, activeGroup, activeGroup?.token, activeGroup?.usdc]);
 
@@ -407,7 +407,8 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
     if (debouncedAmount && debouncedLeverage) {
       loadLoopingVariables();
     }
-  }, [debouncedLeverage, debouncedAmount, loadLoopingVariables]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedLeverage, debouncedAmount]);
 
   if (!activeGroup) return null;
 
