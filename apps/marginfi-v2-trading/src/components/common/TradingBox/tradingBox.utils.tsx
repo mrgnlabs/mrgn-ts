@@ -24,6 +24,7 @@ import BigNumber from "bignumber.js";
 import { IconArrowRight, IconPyth, IconSwitchboard } from "~/components/ui/icons";
 import {
   ActionMethodType,
+  cn,
   deserializeInstruction,
   extractErrorString,
   getAdressLookupTableAccounts,
@@ -627,7 +628,8 @@ export function generateStats(
   accountSummary: AccountSummary,
   tokenBank: ExtendedBankInfo,
   usdcBank: ExtendedBankInfo,
-  simulationResult: SimulationResult | null
+  simulationResult: SimulationResult | null,
+  looping: LoopingObject | null
 ) {
   let simStats: StatResult | null = null;
 
@@ -636,6 +638,9 @@ export function generateStats(
   }
 
   const currentStats = getCurrentStats(accountSummary, tokenBank, usdcBank);
+
+  const priceImpactPct = looping ? Number(looping.quote.priceImpactPct) : undefined;
+  const slippageBps = looping ? Number(looping.quote.slippageBps) : undefined;
 
   const currentLiqPrice = currentStats.liquidationPrice ? usdFormatter.format(currentStats.liquidationPrice) : null;
   const simulatedLiqPrice = simStats?.liquidationPrice ? usdFormatter.format(simStats?.liquidationPrice) : null;
@@ -661,6 +666,31 @@ export function generateStats(
         {showLiqComparison && <IconArrowRight width={12} height={12} />}
         {simulatedLiqPrice && <span>{simulatedLiqPrice}</span>}
       </dd>
+      {slippageBps !== undefined ? (
+        <>
+          <dt>Slippage</dt>
+          <dd className={cn(slippageBps > 500 && "text-alert-foreground", "text-right")}>
+            {percentFormatter.format(slippageBps / 10000)}
+          </dd>
+        </>
+      ) : (
+        <></>
+      )}
+      {priceImpactPct !== undefined ? (
+        <>
+          <dt>Price impact</dt>
+          <dd
+            className={cn(
+              priceImpactPct > 0.01 && priceImpactPct > 0.05 ? "text-destructive-foreground" : "text-alert-foreground",
+              "text-right"
+            )}
+          >
+            {percentFormatter.format(priceImpactPct)}
+          </dd>
+        </>
+      ) : (
+        <></>
+      )}
       <dt>Oracle</dt>
       <dd className="text-primary flex items-center gap-1 ml-auto">
         {oracle}
