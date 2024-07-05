@@ -91,8 +91,6 @@ export const LoopInput = ({
     state.isLoading,
   ]);
 
-  const [fetchLstState, lstData] = useLstStore((state) => [state.fetchLstState, state.lstData]);
-
   // const [inputAmount, setInputAmount] = React.useState<string>("");
   const [leverageAmount, setLeverageAmount] = React.useState<number>(0);
   const debouncedAmount = useDebounce(amountRaw, 1000);
@@ -237,14 +235,6 @@ export const LoopInput = ({
 
     return () => clearInterval(interval);
   }, [refreshTxn, actionTxn, connection]);
-
-  React.useEffect(() => {
-    fetchLstState({
-      connection,
-      wallet,
-    });
-    /* eslint-disable-next-line react-hooks/exhaustive-deps */
-  }, [fetchLstState, wallet]);
 
   return (
     <div>
