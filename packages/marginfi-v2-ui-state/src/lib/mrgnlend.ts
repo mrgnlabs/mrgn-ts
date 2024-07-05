@@ -4,6 +4,7 @@ import {
   getPriceWithConfidence,
   MarginfiAccountWrapper,
   MarginRequirementType,
+  MintData,
   OraclePrice,
   PriceBias,
   RiskTier,
@@ -19,6 +20,7 @@ import {
   WSOL_MINT,
   TokenMetadata,
   TOKEN_PROGRAM_ID,
+  TOKEN_2022_PROGRAM_ID,
 } from "@mrgnlabs/mrgn-common";
 import BigNumber from "bignumber.js";
 import { Connection, PublicKey, SystemProgram } from "@solana/web3.js";
@@ -66,9 +68,9 @@ function computeAccountSummary(marginfiAccount: MarginfiAccountWrapper, banks: E
   const healthFactor = maintenanceComponentsWithBiasAndWeighted.assets.isZero()
     ? 1
     : maintenanceComponentsWithBiasAndWeighted.assets
-        .minus(maintenanceComponentsWithBiasAndWeighted.liabilities)
-        .dividedBy(maintenanceComponentsWithBiasAndWeighted.assets)
-        .toNumber();
+      .minus(maintenanceComponentsWithBiasAndWeighted.liabilities)
+      .dividedBy(maintenanceComponentsWithBiasAndWeighted.assets)
+      .toNumber();
 
   return {
     healthFactor,
@@ -416,7 +418,8 @@ export function makeLendingPosition(
 async function fetchTokenAccounts(
   connection: Connection,
   walletAddress: PublicKey,
-  bankInfos: { mint: PublicKey; mintDecimals: number }[]
+  bankInfos: { mint: PublicKey; mintDecimals: number; bankAddress: PublicKey }[],
+  mintDatas: Map<string, MintData>
 ): Promise<{
   nativeSolBalance: number;
   tokenAccountMap: TokenAccountMap;
@@ -425,6 +428,7 @@ async function fetchTokenAccounts(
   const mintList = bankInfos.map((bank) => ({
     address: bank.mint,
     decimals: bank.mintDecimals,
+    bankAddress: bank.bankAddress,
   }));
 
   if (walletAddress === null) {
@@ -445,7 +449,13 @@ async function fetchTokenAccounts(
     };
   }
 
-  const ataAddresses = mintList.map((mint) => getAssociatedTokenAddressSync(mint.address, walletAddress!, true)); // We allow off curve addresses here to support Fuse.
+  const ataAddresses = mintList.map((mint) => {
+    const mintData = mintDatas.get(mint.bankAddress.toBase58());
+    if (!mintData) {
+      throw new Error(`Failed to find mint data for ${mint.bankAddress.toBase58()}`);
+    }
+    return getAssociatedTokenAddressSync(mint.address, walletAddress!, true, mintData.tokenProgram)
+  }); // We allow off curve addresses here to support Fuse.
 
   // Fetch relevant accounts
   const accountsAiList = await connection.getMultipleAccountsInfo([walletAddress, ...ataAddresses]);
@@ -455,19 +465,26 @@ async function fetchTokenAccounts(
   const nativeSolBalance = walletAi?.lamports ? walletAi.lamports / 1e9 : 0;
 
   const ataList: TokenAccount[] = ataAiList.map((ai, index) => {
+    const mint = mintList[index];
+
     if (
       !ai ||
       (!ai?.owner?.equals(TOKEN_PROGRAM_ID) &&
-        !ai?.owner?.equals(new PublicKey("TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb")))
+        !ai?.owner?.equals(TOKEN_2022_PROGRAM_ID))
     ) {
       return {
         created: false,
-        mint: mintList[index].address,
+        mint: mint.address,
         balance: 0,
       };
     }
 
-    const decoded = unpackAccount(ataAddresses[index], ai);
+    const mintData = mintDatas.get(mint.bankAddress.toBase58());
+    if (!mintData) {
+      throw new Error(`Failed to find mint data for ${mint.bankAddress.toBase58()}`);
+    }
+
+    const decoded = unpackAccount(ataAddresses[index], ai, mintData.tokenProgram);
     return {
       created: true,
       mint: decoded.mint,

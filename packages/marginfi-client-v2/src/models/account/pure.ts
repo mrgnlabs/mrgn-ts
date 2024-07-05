@@ -7,7 +7,6 @@ import {
   createAssociatedTokenAccountIdempotentInstruction,
   getAssociatedTokenAddressSync,
   shortenAddress,
-  toBigNumber,
   uiToNative,
 } from "@mrgnlabs/mrgn-common";
 import { AccountMeta, ComputeBudgetProgram, PublicKey, TransactionInstruction } from "@solana/web3.js";
@@ -642,10 +641,10 @@ class MarginfiAccount {
 
     const wrapAndUnwrapSol = opt.wrapAndUnwrapSol ?? true;
 
-    const userTokenAtaPk = getAssociatedTokenAddressSync(bank.mint, this.authority, true); // We allow off curve addresses here to support Fuse.
+    const userTokenAtaPk = getAssociatedTokenAddressSync(bank.mint, this.authority, true, mintData.tokenProgram); // We allow off curve addresses here to support Fuse.
 
     const remainingAccounts =
-      mintData.tokenProgram === TOKEN_2022_PROGRAM_ID
+      mintData.tokenProgram.equals(TOKEN_2022_PROGRAM_ID)
         ? [{ pubkey: mintData.mint, isSigner: false, isWritable: false }]
         : [];
 
@@ -694,24 +693,25 @@ class MarginfiAccount {
     // Add emissions-related instructions if necessary
     if (repayAll && !bank.emissionsMint.equals(PublicKey.default)) {
       if (createAtas) {
-        const userAta = getAssociatedTokenAddressSync(bank.emissionsMint, this.authority, true); // We allow off curve addresses here to support Fuse.
+        const userAta = getAssociatedTokenAddressSync(bank.emissionsMint, this.authority, true, mintData.tokenProgram); // We allow off curve addresses here to support Fuse.
         const createAtaIdempotentIx = createAssociatedTokenAccountIdempotentInstruction(
           this.authority,
           userAta,
           this.authority,
-          bank.emissionsMint
+          bank.emissionsMint,
+          mintData.tokenProgram,
         );
 
         ixs.push(createAtaIdempotentIx);
       }
-      ixs.push(...(await this.makeWithdrawEmissionsIx(program, banks, bankAddress)).instructions);
+      ixs.push(...(await this.makeWithdrawEmissionsIx(program, banks, mintDatas, bankAddress)).instructions);
     }
 
     // Add repay-related instructions
-    const userAta = getAssociatedTokenAddressSync(bank.mint, this.authority, true); // We allow off curve addresses here to support Fuse.
+    const userAta = getAssociatedTokenAddressSync(bank.mint, this.authority, true, mintData.tokenProgram); // We allow off curve addresses here to support Fuse.
 
     const remainingAccounts =
-      mintData.tokenProgram === TOKEN_2022_PROGRAM_ID
+      mintData.tokenProgram.equals(TOKEN_2022_PROGRAM_ID)
         ? [{ pubkey: mintData.mint, isSigner: false, isWritable: false }]
         : [];
 
@@ -758,35 +758,37 @@ class MarginfiAccount {
     let ixs = [];
 
     // Add emissions-related instructions if necessary
-    if (withdrawAll && !bank.emissionsMint.equals(PublicKey.default)) {
+    if (withdrawAll && !bank.emissionsMint.equals(PublicKey.default) && mintData.emissionTokenProgram) {
       if (createAtas) {
-        const userAta = getAssociatedTokenAddressSync(bank.emissionsMint, this.authority, true); // We allow off curve addresses here to support Fuse.
+        const userAta = getAssociatedTokenAddressSync(bank.emissionsMint, this.authority, true, mintData.emissionTokenProgram); // We allow off curve addresses here to support Fuse.
         const createAtaIdempotentIx = createAssociatedTokenAccountIdempotentInstruction(
           this.authority,
           userAta,
           this.authority,
-          bank.emissionsMint
+          bank.emissionsMint,
+          mintData.emissionTokenProgram,
         );
         ixs.push(createAtaIdempotentIx);
       }
 
-      ixs.push(...(await this.makeWithdrawEmissionsIx(program, banks, bankAddress)).instructions);
+      ixs.push(...(await this.makeWithdrawEmissionsIx(program, banks, mintDatas, bankAddress)).instructions);
     }
 
-    const userAta = getAssociatedTokenAddressSync(bank.mint, this.authority, true);
+    const userAta = getAssociatedTokenAddressSync(bank.mint, this.authority, true, mintData.tokenProgram);
     if (createAtas) {
       const createAtaIdempotentIx = createAssociatedTokenAccountIdempotentInstruction(
         this.authority,
         userAta,
         this.authority,
-        bank.mint
+        bank.mint,
+        mintData.tokenProgram,
       );
       ixs.push(createAtaIdempotentIx);
     }
 
     // Add withdraw-related instructions
     let remainingAccounts = [];
-    if (mintData.tokenProgram === TOKEN_2022_PROGRAM_ID) {
+    if (mintData.tokenProgram.equals(TOKEN_2022_PROGRAM_ID)) {
       remainingAccounts.push({ pubkey: mintData.mint, isSigner: false, isWritable: false });
     }
     if (opt.observationBanksOverride !== undefined) {
@@ -839,20 +841,21 @@ class MarginfiAccount {
 
     let ixs = [];
 
-    const userAta = getAssociatedTokenAddressSync(bank.mint, this.authority, true); // We allow off curve addresses here to support Fuse.
+    const userAta = getAssociatedTokenAddressSync(bank.mint, this.authority, true, mintData.tokenProgram); // We allow off curve addresses here to support Fuse.
 
     if (createAtas) {
       const createAtaIdempotentIx = createAssociatedTokenAccountIdempotentInstruction(
         this.authority,
         userAta,
         this.authority,
-        bank.mint
+        bank.mint,
+        mintData.tokenProgram,
       );
       ixs.push(createAtaIdempotentIx);
     }
 
     let remainingAccounts = [];
-    if (mintData.tokenProgram === TOKEN_2022_PROGRAM_ID) {
+    if (mintData.tokenProgram.equals(TOKEN_2022_PROGRAM_ID)) {
       remainingAccounts.push({ pubkey: mintData.mint, isSigner: false, isWritable: false });
     }
     if (opt?.observationBanksOverride !== undefined) {
@@ -886,19 +889,23 @@ class MarginfiAccount {
   async makeWithdrawEmissionsIx(
     program: MarginfiProgram,
     banks: Map<string, Bank>,
+    mintDatas: Map<string, MintData>,
     bankAddress: PublicKey
   ): Promise<InstructionsWrapper> {
     const bank = banks.get(bankAddress.toBase58());
     if (!bank) throw Error(`Bank ${bankAddress.toBase58()} not found`);
+    const mintData = mintDatas.get(bankAddress.toBase58());
+    if (!mintData) throw Error(`Mint data for bank ${bankAddress.toBase58()} not found`);
 
     let ixs = [];
 
-    const userAta = getAssociatedTokenAddressSync(bank.emissionsMint, this.authority, true); // We allow off curve addresses here to support Fuse.
+    const userAta = getAssociatedTokenAddressSync(bank.emissionsMint, this.authority, true, mintData.tokenProgram); // We allow off curve addresses here to support Fuse.
     const createAtaIdempotentIx = createAssociatedTokenAccountIdempotentInstruction(
       this.authority,
       userAta,
       this.authority,
-      bank.emissionsMint
+      bank.emissionsMint,
+      mintData.tokenProgram,
     );
     ixs.push(createAtaIdempotentIx);
 
@@ -934,7 +941,7 @@ class MarginfiAccount {
     let ixs = [];
 
     let remainingAccounts = [];
-    if (liabilityMintData.tokenProgram === TOKEN_2022_PROGRAM_ID) {
+    if (liabilityMintData.tokenProgram.equals(TOKEN_2022_PROGRAM_ID)) {
       remainingAccounts.push({ pubkey: liabilityMintData.mint, isSigner: false, isWritable: false });
     }
     remainingAccounts.push(
@@ -1054,8 +1061,7 @@ class MarginfiAccount {
           const targetBalance = projectedBalances.find((b) => b.bankPk.equals(targetBank));
           if (!targetBalance) {
             throw Error(
-              `Balance for bank ${targetBank.toBase58()} should be projected active at this point (ix ${index}: ${
-                decoded.name
+              `Balance for bank ${targetBank.toBase58()} should be projected active at this point (ix ${index}: ${decoded.name
               }))`
             );
           }
