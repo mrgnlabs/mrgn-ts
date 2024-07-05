@@ -43,7 +43,7 @@ export const AuthDialog = () => {
     return isOnboarded !== null ? "RETURNING_USER" : "ONBOARD_MAIN";
   }, []);
 
-  const [flow, setFlow] = React.useState<AuthFlowType>("ONBOARD_ETH");
+  const [flow, setFlow] = React.useState<AuthFlowType>(mainFlow);
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const [isActiveLoading, setIsActiveLoading] = React.useState<string>("");
   const [progress, setProgress] = React.useState<number>(0);
@@ -141,10 +141,7 @@ export const AuthDialog = () => {
 
   return (
     <div>
-      {
-        isWalletAuthDialogOpen &&
-        <Progress value={progress} className="fixed top-0 h-1 rounded-none z-[999]" />
-      }
+      {isWalletAuthDialogOpen && <Progress value={progress} className="fixed top-0 h-1 rounded-none z-[999]" />}
 
       <Dialog
         open={isWalletAuthDialogOpen}
