@@ -56,6 +56,7 @@ export type MintData = {
   mint: PublicKey;
   tokenProgram: PublicKey;
   feeBps: number; // TODO: Handle this in calcs
+  emissionTokenProgram: PublicKey | null;
 };
 
 export type MarginfiClientOptions = {
@@ -275,15 +276,17 @@ class MarginfiClient {
 
     const oracleKeys = bankDatasKeyed.map((b) => b.data.config.oracleKeys[0]);
     const mintKeys = bankDatasKeyed.map((b) => b.data.mint);
+    const emissionMintKeys = bankDatasKeyed.map((b) => b.data.emissionsMint).filter((pk) => !pk.equals(PublicKey.default)) as PublicKey[];
 
     // Batch-fetch the group account and all the oracle accounts as per the banks retrieved above
     const allAis = await chunkedGetRawMultipleAccountInfoOrdered(program.provider.connection,
-      [groupAddress.toBase58(), ...oracleKeys.map((pk) => pk.toBase58()), ...mintKeys.map((pk) => pk.toBase58())],
+      [groupAddress.toBase58(), ...oracleKeys.map((pk) => pk.toBase58()), ...mintKeys.map((pk) => pk.toBase58()), ...emissionMintKeys.map((pk) => pk.toBase58())],
     ); // NOTE: This will break if/when we start having more than 1 oracle key per bank
 
     const groupAi = allAis.shift();
     const priceFeedAis = allAis.splice(0, bankDatasKeyed.length);
-    const mintAis = allAis.slice(0, bankDatasKeyed.length);
+    const mintAis = allAis.splice(0, bankDatasKeyed.length);
+    const emissionMintAis = allAis.splice(0);
 
     // Unpack raw data for group and oracles, and build the `Bank`s map
     if (!groupAi) throw new Error("Failed to fetch the on-chain group data");
@@ -299,12 +302,17 @@ class MarginfiClient {
     );
 
     const tokenDatas = new Map(
-      bankDatasKeyed.map(({ address: bankAddress }, index) => {
+      bankDatasKeyed.map(({ address: bankAddress, data: bankData }, index) => {
         const mintAddress = mintKeys[index];
         const mintDataRaw = mintAis[index];
         if (!mintDataRaw) throw new Error(`Failed to fetch mint account for bank ${bankAddress.toBase58()}`);
+        let emissionTokenProgram: PublicKey | null = null;
+        if (!bankData.emissionsMint.equals(PublicKey.default)) {
+          const emissionMintDataRawIndex = emissionMintKeys.findIndex((pk) => pk.equals(bankData.emissionsMint));
+          emissionTokenProgram = emissionMintDataRawIndex >= 0 ? emissionMintAis[emissionMintDataRawIndex].owner : null;
+        }
         // TODO: parse extension data to see if there is a fee
-        return [bankAddress.toBase58(), { mint: mintAddress, tokenProgram: mintDataRaw.owner, feeBps: 0 }];
+        return [bankAddress.toBase58(), { mint: mintAddress, tokenProgram: mintDataRaw.owner, feeBps: 0, emissionTokenProgram }];
       })
     );
 
