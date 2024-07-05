@@ -2,52 +2,52 @@ import React from "react";
 
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { TablerIconsProps } from "@tabler/icons-react";
 
 import { useMrgnlendStore, useUiStore, useUserProfileStore } from "~/store";
 import { useFirebaseAccount } from "~/hooks/useFirebaseAccount";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { useOs } from "~/hooks/useOs";
 import { cn } from "~/utils/themeUtils";
+import { Button } from "~/components/ui/button";
 
-import { IconBuildingBank, IconBox, IconMoneybag, IconWorld } from "~/components/ui/icons";
+import {
+  IconCoins,
+  IconProps,
+  IconTrendingUp,
+  IconChartPie,
+} from "~/components/ui/icons";
 
 export interface NavLinkInfo {
   href: string;
   alt: string;
   label: string;
-  Icon: (props: TablerIconsProps) => JSX.Element;
+  Icon: (props: IconProps) => JSX.Element;
 }
 
 export const mobileLinks: NavLinkInfo[] = [
   {
     href: "/",
-    alt: "bank icon",
-    label: "lend",
-    Icon: IconBuildingBank,
+    alt: "pools icon",
+    label: "pools",
+    Icon: IconCoins,
   },
   {
-    href: "/mint",
-    alt: "mint icon",
-    label: "mint",
-    Icon: IconBox,
+    href: "/trade/59yr2vuW1qv3UVQx9HC6Q8mxns5S6g7fjS8YWgRgaLA7",
+    alt: "trade icon",
+    label: "trade",
+    Icon: IconTrendingUp,
   },
 
   {
     href: "/portfolio",
     alt: "portfolio icon",
     label: "portfolio",
-    Icon: IconMoneybag,
-  },
-  {
-    href: "/ecosystem",
-    alt: "world icon",
-    label: "ecosystem",
-    Icon: IconWorld,
+    Icon: IconChartPie,
   },
 ];
 
 const MobileNavbar = () => {
+  const { asPath, isReady } = useRouter();
   useFirebaseAccount();
 
   const router = useRouter();
@@ -83,10 +83,15 @@ const MobileNavbar = () => {
                   isActive ? "text-chartreuse" : "text-[#999]"
                 )}
               >
-                <linkInfo.Icon />
-                <div className={`font-aeonik ${isActive ? "text-[#DCE85D]" : "text-[#999]"}`}>{linkInfo.label}</div>
+                <Button
+                  variant="ghost"
+                  className={cn("text-muted-foreground", asPath === linkInfo.href && "bg-accent text-primary")}
+                >
+                  <linkInfo.Icon />
+                  {linkInfo.label}
+                </Button>
               </Link>
-            );
+            )
           })}
         </div>
       </nav>
