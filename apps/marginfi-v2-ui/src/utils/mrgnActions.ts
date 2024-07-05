@@ -519,7 +519,8 @@ export async function loopingBuilder({
     options.loopingBank.address,
     [swapIx],
     swapLUTs,
-    priorityFee
+    priorityFee,
+    true
   );
 
   return { txn: transaction, addressLookupTableAccounts };
