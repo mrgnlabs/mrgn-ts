@@ -20,8 +20,8 @@
   {
     "label": "staging",
     "cluster": "mainnet",
-    "program": "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
-    "group": "4qp6Fx6tnZkY5Wropq9wUYgtFxXKwE6viZxFHg3rdAG8"
+    "program": "stag8sTKds2h4KzjUw3zKTsxbqvT4XKHdaR9X9E6Rct",
+    "group": "42Q5U5J5qY6vAoZke4D2XtqxapiHFGGgxxCsLm4MSHj8"
   },
   {
     "label": "dev.1",

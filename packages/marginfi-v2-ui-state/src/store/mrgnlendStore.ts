@@ -205,7 +205,8 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
           fetchTokenAccounts(
             connection,
             wallet.publicKey,
-            banks.map((bank) => ({ mint: bank.mint, mintDecimals: bank.mintDecimals }))
+            banks.map((bank) => ({ mint: bank.mint, mintDecimals: bank.mintDecimals, bankAddress: bank.address })),
+            marginfiClient.mintDatas
           ),
           getCachedMarginfiAccountsForAuthority(wallet.publicKey, marginfiClient),
         ]);
