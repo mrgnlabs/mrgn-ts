@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 
 import Link from "next/link";
 import { v4 as uuidv4 } from "uuid";
@@ -17,6 +17,7 @@ import {
   getBlockedActions,
   executeLoopingAction,
   createAccountAction,
+  usePrevious,
 } from "~/utils";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { useConnection } from "~/hooks/useConnection";
@@ -149,10 +150,6 @@ export const ActionBox = ({
       refreshState(actionMode);
     }
   }, [refreshState, connected, actionMode]);
-
-  useUnmount(() => {
-    refreshState();
-  });
 
   const [isSettingsMode, setIsSettingsMode] = React.useState<boolean>(false);
   const [isLSTDialogOpen, setIsLSTDialogOpen] = React.useState(false);
