@@ -100,7 +100,8 @@ export const LoopInput = ({
   const debouncedLeverage = useDebounce(leverageAmount, 1000);
 
   const [netApyRaw, setNetApyRaw] = React.useState(0);
-  const [lstApy, setLstApy] = React.useState(0);
+  const [lstDepositApy, setLstDepositApy] = React.useState(0);
+  const [lstBorrowApy, setLstBorrowApy] = React.useState(0);
   const [depositTokenApy, setDepositTokenApy] = React.useState(0);
   const [borrowTokenApy, setBorrowTokenApy] = React.useState(0);
 
@@ -115,6 +116,11 @@ export const LoopInput = ({
     const lstsArr = Object.keys(LSTS_SOLANA_COMPASS_MAP);
     return selectedBank && lstsArr.includes(selectedBank.meta.tokenSymbol);
   }, [selectedBank]);
+
+  const isBorrowingLst = React.useMemo(() => {
+    const lstsArr = Object.keys(LSTS_SOLANA_COMPASS_MAP);
+    return selectedRepayBank && lstsArr.includes(selectedRepayBank.meta.tokenSymbol);
+  }, [selectedRepayBank]);
 
   const getLstYield = React.useCallback(async (bank: ExtendedBankInfo) => {
     const solanaCompassKey = LSTS_SOLANA_COMPASS_MAP[bank.meta.tokenSymbol];
@@ -145,15 +151,19 @@ export const LoopInput = ({
       return;
     }
 
-    const updateLstApy = async () => {
-      const lstApy = await getLstYield(selectedBank);
-      setLstApy(lstApy * 100);
+    const updateLstApy = async (bank: ExtendedBankInfo) => {
+      const apy = await getLstYield(bank);
+      return apy;
     };
 
     if (isDepositingLst) {
-      updateLstApy();
+      updateLstApy(selectedBank).then((apy) => setLstDepositApy(apy));
     }
-  }, [selectedBank, selectedRepayBank, isDepositingLst, getLstYield]);
+
+    if (isBorrowingLst) {
+      updateLstApy(selectedRepayBank).then((apy) => setLstBorrowApy(apy));
+    }
+  }, [selectedBank, selectedRepayBank, isDepositingLst, isBorrowingLst, getLstYield]);
 
   React.useEffect(() => {
     if (!selectedBank || !selectedRepayBank) {
@@ -164,18 +174,25 @@ export const LoopInput = ({
     const updateNetApy = async () => {
       const depositApy = computeBankRateRaw(selectedBank, LendingModes.LEND);
       const borrowApy = computeBankRateRaw(selectedRepayBank, LendingModes.BORROW);
-      const depositLstApy = isDepositingLst ? lstApy : 0;
-      const finalDepositApy = depositApy * leverageAmount + depositLstApy * leverageAmount;
-      const netApy = finalDepositApy - borrowApy * leverageAmount;
+
+      const depositLstApy = isDepositingLst ? lstDepositApy : 0;
+      const borrowLstApy = isBorrowingLst ? lstBorrowApy : 0;
+
+      const totalDepositApy = depositApy + depositLstApy;
+      const totalBorrowApy = borrowApy + borrowLstApy;
+
+      const finalDepositApy = totalDepositApy * leverageAmount;
+      const finalBorrowApy = totalBorrowApy * leverageAmount;
+
+      const netApy = finalDepositApy - finalBorrowApy;
 
       setNetApyRaw(netApy);
-      setDepositTokenApy(finalDepositApy / 100);
-      setBorrowTokenApy(borrowApy * leverageAmount);
+      setDepositTokenApy(finalDepositApy);
+      setBorrowTokenApy(finalBorrowApy);
     };
 
     updateNetApy();
   }, [
-    lstApy,
     depositTokenApy,
     borrowTokenApy,
     selectedBank,
@@ -183,6 +200,9 @@ export const LoopInput = ({
     selectedRepayBank,
     isDepositingLst,
     getLstYield,
+    isBorrowingLst,
+    lstDepositApy,
+    lstBorrowApy,
   ]);
 
   const netApy = React.useMemo(() => {
@@ -190,7 +210,7 @@ export const LoopInput = ({
       return;
     }
 
-    return percentFormatter.format(Math.abs(netApyRaw / 100));
+    return percentFormatter.format(Math.abs(netApyRaw));
   }, [netApyRaw]);
 
   React.useEffect(
@@ -350,8 +370,14 @@ export const LoopInput = ({
             <PopoverContent align="center" className="w-auto">
               {bothBanksSelected && selectedBank && selectedRepayBank && (
                 <>
-                  {isDepositingLst && (
-                    <p className="text-xs text-muted-foreground mb-4">Includes {selectedBank.meta.tokenSymbol} yield</p>
+                  {(isDepositingLst || isBorrowingLst) && (
+                    <p className="text-xs text-muted-foreground mb-4">
+                      Includes
+                      {` ${isDepositingLst ? selectedBank.meta.tokenSymbol : ""}${
+                        isDepositingLst && isBorrowingLst ? " and " : ""
+                      }${isBorrowingLst ? selectedRepayBank.meta.tokenSymbol : ""} `}
+                      yield
+                    </p>
                   )}
                   <ul className="space-y-2.5 text-xs">
                     {[selectedBank, selectedRepayBank].map((bank, index) => {
