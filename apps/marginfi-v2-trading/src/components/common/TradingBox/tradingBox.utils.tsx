@@ -249,7 +249,7 @@ export async function loopingBuilder({
     [swapIx],
     swapLUTs,
     priorityFee,
-    false
+    true
   );
 
   return { txn: transaction, addressLookupTableAccounts };
