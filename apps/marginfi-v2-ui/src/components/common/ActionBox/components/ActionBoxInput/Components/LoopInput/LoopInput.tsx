@@ -102,6 +102,8 @@ export const LoopInput = ({
   const [lstBorrowApy, setLstBorrowApy] = React.useState(0);
   const [depositTokenApy, setDepositTokenApy] = React.useState(0);
   const [borrowTokenApy, setBorrowTokenApy] = React.useState(0);
+  const [depositTokenApyRaw, setDepositTokenApyRaw] = React.useState(0);
+  const [borrowTokenApyRaw, setBorrowTokenApyRaw] = React.useState(0);
 
   const numberFormater = React.useMemo(() => new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 }), []);
 
@@ -185,7 +187,9 @@ export const LoopInput = ({
       const netApy = finalDepositApy - finalBorrowApy;
 
       setNetApyRaw(netApy);
+      setDepositTokenApyRaw(depositApy);
       setDepositTokenApy(finalDepositApy);
+      setBorrowTokenApyRaw(borrowApy);
       setBorrowTokenApy(finalBorrowApy);
     };
 
@@ -317,7 +321,12 @@ export const LoopInput = ({
           </div>
         </div>
       </div>
-      <div className={cn("space-y-6 py-4 px-1", !bothBanksSelected && "pointer-events-none cursor-default opacity-50")}>
+      <div
+        className={cn(
+          "space-y-6 py-4 px-1",
+          (!bothBanksSelected || !amountRaw) && "pointer-events-none cursor-default opacity-50"
+        )}
+      >
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <p className="text-sm font-normal text-muted-foreground">Loop ➰</p>
@@ -352,53 +361,84 @@ export const LoopInput = ({
             </span>
           </div>
         </div>
-        <div className="flex items-center justify-between">
-          <Popover>
-            <PopoverTrigger className="flex items-center gap-1 text-xs font-normal text-muted-foreground">
-              Net APY <IconChevronDown size={16} />
-            </PopoverTrigger>
-            <PopoverContent align="center" className="w-auto">
-              {bothBanksSelected && selectedBank && selectedRepayBank && (
-                <>
-                  {(isDepositingLst || isBorrowingLst) && (
-                    <p className="text-xs text-muted-foreground mb-4">
-                      Includes
-                      {` ${isDepositingLst ? selectedBank.meta.tokenSymbol : ""}${
-                        isDepositingLst && isBorrowingLst ? " and " : ""
-                      }${isBorrowingLst ? selectedRepayBank.meta.tokenSymbol : ""} `}
-                      yield
-                    </p>
-                  )}
-                  <ul className="space-y-2.5 text-xs">
-                    {[selectedBank, selectedRepayBank].map((bank, index) => {
-                      const isDepositBank = index === 0;
-                      return (
-                        <li key={bank.meta.tokenSymbol} className="flex items-center gap-8 justify-between text-xs">
-                          <div className="flex items-center gap-2">
-                            <Image
-                              src={getTokenImageURL(bank.meta.tokenSymbol)}
-                              width={16}
-                              height={16}
-                              alt={bank.meta.tokenName}
-                              className="rounded-full"
-                            />
-                            <strong className="font-medium">{bank.meta.tokenSymbol}</strong>
-                          </div>
-                          <span className={cn("ml-auto", isDepositBank ? "text-success" : "text-warning")}>
-                            {percentFormatter.format(isDepositBank ? depositTokenApy : borrowTokenApy)}
-                          </span>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </>
-              )}
-            </PopoverContent>
-          </Popover>
-          {bothBanksSelected && netApy && (
+        {bothBanksSelected && netApy && (
+          <div className="flex items-center justify-between">
+            <Popover>
+              <PopoverTrigger className="flex items-center gap-1 text-xs font-normal text-muted-foreground">
+                Net APY <IconChevronDown size={16} />
+              </PopoverTrigger>
+              <PopoverContent align="center" className="w-auto min-w-52">
+                {bothBanksSelected && selectedBank && selectedRepayBank && (
+                  <>
+                    <ul className="text-xs space-y-2.5">
+                      {[selectedBank, selectedRepayBank].map((bank, index) => {
+                        const isDepositBank = index === 0;
+                        return (
+                          <>
+                            <li key={bank.meta.tokenSymbol} className="flex items-center gap-8 justify-between text-xs">
+                              <div className="flex items-center gap-2">
+                                <Image
+                                  src={getTokenImageURL(bank.meta.tokenSymbol)}
+                                  width={16}
+                                  height={16}
+                                  alt={bank.meta.tokenName}
+                                  className="rounded-full"
+                                />
+                                <strong className="font-medium">{bank.meta.tokenSymbol}</strong>
+                              </div>
+                              <span className={cn("ml-auto", isDepositBank ? "text-success" : "text-warning")}>
+                                {percentFormatter.format(isDepositBank ? depositTokenApyRaw : borrowTokenApyRaw)}
+                              </span>
+                            </li>
+
+                            {isDepositBank && isDepositingLst && (
+                              <li className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  <Image
+                                    src={getTokenImageURL(bank.meta.tokenSymbol)}
+                                    width={16}
+                                    height={16}
+                                    alt={bank.meta.tokenName}
+                                    className="rounded-full"
+                                  />
+                                  <div>
+                                    <strong className="font-medium">{bank.meta.tokenSymbol}</strong> stake yield
+                                  </div>
+                                </div>
+                                <span className="text-success text-right">
+                                  {percentFormatter.format(lstDepositApy)}
+                                </span>
+                              </li>
+                            )}
+
+                            {!isDepositBank && isBorrowingLst && (
+                              <li className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  <Image
+                                    src={getTokenImageURL(bank.meta.tokenSymbol)}
+                                    width={16}
+                                    height={16}
+                                    alt={bank.meta.tokenName}
+                                    className="rounded-full"
+                                  />
+                                  <div>
+                                    <strong className="font-medium">{bank.meta.tokenSymbol}</strong> stake yield
+                                  </div>
+                                </div>
+                                <span className="text-warning text-right">{percentFormatter.format(lstBorrowApy)}</span>
+                              </li>
+                            )}
+                          </>
+                        );
+                      })}
+                    </ul>
+                  </>
+                )}
+              </PopoverContent>
+            </Popover>
             <span className={cn("text-xs", netApyRaw < 0 ? "text-warning" : "text-success")}>{netApy} APY</span>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );
