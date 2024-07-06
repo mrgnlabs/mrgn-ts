@@ -128,7 +128,7 @@ export const LoopInput = ({
 
     const SOLANA_COMPASS_PRICES_URL = `https://raw.githubusercontent.com/glitchful-dev/sol-stake-pool-apy/master/db/${solanaCompassKey}.csv`;
     const solanaCompassPrices = await fetchAndParsePricesCsv(SOLANA_COMPASS_PRICES_URL);
-    const priceRange = getPriceRangeFromPeriod(solanaCompassPrices, PERIOD.DAYS_7);
+    const priceRange = getPriceRangeFromPeriod(solanaCompassPrices, PERIOD.DAYS_30);
     if (!priceRange) {
       return 0;
     }
