@@ -13,11 +13,11 @@ Use mrgntrade to open long and short positions on your favourite longtail assets
 
 Want to take leverage on any longtail asset? Want to short $BODEN and long $TREMP? You've found what you've been looking for. Enter mrgntrade: 
 
-## Trading with Leverage
+## Trading with Leverage {{ tag: '', label: '' }}
 
 ---
 
-## Creating Permissionless Banks
+## Creating Permissionless Banks {{ tag: '', label: '' }}
 
 With marginfi permissionless banks, you can create your own isolated bank for any token you want backed by any collateral you want. What's more is that you don't need to be a developer to get started! Using <Button href="https://docs.marginfi.com/rust-sdk" variant="text"><>the marginfi CLI</></Button>, you can create your own permissionless bank today!
 
@@ -27,11 +27,49 @@ With marginfi permissionless banks, you can create your own isolated bank for an
 
 Before you begin, ensure that you have the marginfi CLI installed. If you haven't installed it yet, you can find the installation instructions in the <Button href="https://docs.marginfi.com/rust-sdk" variant="text"><>CLI documentation</></Button>.
 
-**Step 2**. Use the Bank Creation Command
+**Step 2**. Assign your CLI profile to a group
+
+Every bank belongs to a group, which acts as a container for banks, setting their configuration and administrative rules.
+
+To create a bank within a group, your CLI profile must be assigned to that group.
+
+<Note>
+  If you have not already setup your CLI profile, refer to <Button href="https://docs.marginfi.com/rust-sdk" variant="text"><>the CLI docs</></Button> for guidance. **If you have already setup your CLI profile with a group, you can skip this step**.
+</Note>
+
+To get started, query your currency profile configuration and confirm that the `Marginfi Group` field is empty:
+
+```bash
+Profile:
+    Name: nathan
+    Program: MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA
+    Marginfi Group: None
+    Marginfi Account: None
+    Cluster: mainnet
+    Rpc URL: <YOUR-RPC-URL>
+    Fee Payer: UPX866A3Lrdghw1BUdxBkCUMpVEZaokZqFxLskUTiMV
+    Authority: UPX866A3Lrdghw1BUdxBkCUMpVEZaokZqFxLskUTiMV
+    Keypair: <PATH-TO-LOCAL-KEYPAIR>>
+    Multisig: None
+```
+
+If the `Marginfi Group` field is empty, update the field with a group pubkey like so:
+
+```bash
+mfi profile show update <PROFILE-NAME> --group <GROUP-PUBKEY>
+```
+
+For example:
+
+```bash
+mfi profile update nathan --group 4qp6Fx6tnZkY5Wropq9wUYgtFxXKwE6viZxFHg3rdAG8
+```
+
+**Step 3**. Use the bank creation command
 
 Using the CLI, type the command `mfi group add-bank`. This command initializes the process of creating a new bank within your group. You will be prompted to provide several arguments to set up your bank correctly.
 
-A group represents a lending pool with a set of rules and configurations. It acts as a container for multiple lending banks, each with its own settings. The group defines the overall parameters for the lending and borrowing activities within its scope.
+A group represents a container that sets configuration and admin rules for banks. It acts as a container for multiple lending banks, each with its own settings. The group defines the overall parameters for the lending and borrowing activities within its scope.
 
 We create a bank using the `add-bank` subcommand under `group` because the group serves as the overarching structure that manages and coordinates the individual banks.
 
@@ -118,7 +156,7 @@ Here is an explanation for each argument:
   </Property>
 </Properties>
 
-**Step 3**. Now Provide the Necessary Arguments
+**Step 4**. Provide the required arguments
 
 Using the CLI, type the command `mfi group add-bank` and provide the required arguments using double-dashes. 
 
@@ -129,25 +167,25 @@ In this example, I will create a permissionless pool for the $BODEN token.
 </Note>
 
 ```bash
-mfi group add-bank 
-    --mint 3psH1Mj1f7yUfaD5gh6Zj7epE8hhrMkMETgv5TshQA4o 
-    --asset-weight-init 0.5 
-    --asset-weight-maint 0.4 
-    --liability-weight-init 1.5 
-    --liability-weight-maint 1.6 
-    --deposit-limit-ui 1000000 
-    --borrow-limit-ui 500000 
-    --pyth-oracle KsyUf9f91p7S6oVn8rJFAUZBoYo1Uqf4XmZUP1yzJ1Qr5DQfpyCgqCGtHUtT1AEzfrNPsDBC8t7NBUAtH8ou4wvCYV 
-    --optimal-utilization-rate 0.7 
-    --plateau-interest-rate 0.08 
-    --insurance-fee-fixed-apr 0.02 
-    --insurance-ir-fee 0.05 
-    --protocol-fixed-fee-apr 0.02 
-    --protocol-ir-fee 0.05 
-    --risk-tier 1 
-    --oracle-type pyth 
-    --max-interest-rate 0.25 
-    --oracle-max-age 30
+mfi group add-bank  
+  --mint 3psH1Mj1f7yUfaD5gh6Zj7epE8hhrMkMETgv5TshQA4o 
+  --asset-weight-init 0.5 
+  --asset-weight-maint 0.4 
+  --liability-weight-init 1.5 
+  --liability-weight-maint 1.6 
+  --deposit-limit-ui 1000000 
+  --borrow-limit-ui 500000 
+  --pyth-oracle HdmQWanpTqq6eKASuBKe1ejrHkgSiaAfjZ4qEJEKM9jj 
+  --optimal-utilization-rate 0.7 
+  --plateau-interest-rate 0.08 
+  --insurance-fee-fixed-apr 0.02 
+  --insurance-ir-fee 0.05 
+  --protocol-fixed-fee-apr 0.02 
+  --protocol-ir-fee 0.05 
+  --risk-tier 'isolated' 
+  --oracle-type 'switchboard' 
+  --max-interest-rate 0.25 
+  --oracle-max-age 30
 ```
 
 Here are explanations for each argument:
@@ -228,6 +266,6 @@ Here are explanations for each argument:
 
 ---
 
-## Welcome to the Arena
+## Welcome to the Arena {{ tag: '', label: '' }}
 
 It's called the "arena" for a reason. 
