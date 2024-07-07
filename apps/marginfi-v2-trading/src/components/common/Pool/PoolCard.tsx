@@ -23,26 +23,6 @@ export const PoolCard = ({ bank }: PoolCardProps) => {
   const [collateralBanks] = useTradeStore((state) => [state.collateralBanks]);
   const [tokenData, setTokenData] = React.useState<TokenData | null>(null);
 
-  const totalDeposits = React.useMemo(() => {
-    const collateralBank = collateralBanks[bank.address.toBase58()];
-    const collateralDeposits = collateralBank
-      ? collateralBank.info.state.totalDeposits * collateralBank.info.state.price
-      : 0;
-    const tokenDeposits = bank.info.state.totalDeposits * bank.info.state.price;
-
-    return tokenDeposits + collateralDeposits;
-  }, [collateralBanks, bank]);
-
-  const totalBorrows = React.useMemo(() => {
-    const collateralBank = collateralBanks[bank.address.toBase58()];
-    const collateralBorrows = collateralBank
-      ? collateralBank.info.state.totalBorrows * collateralBank.info.state.price
-      : 0;
-    const tokenBorrows = bank.info.state.totalBorrows * bank.info.state.price;
-
-    return tokenBorrows + collateralBorrows;
-  }, [collateralBanks, bank]);
-
   React.useEffect(() => {
     if (!bank) return;
 
@@ -129,9 +109,13 @@ export const PoolCard = ({ bank }: PoolCardProps) => {
             </>
           )}
           <dt>Open long</dt>
-          <dd className="text-right text-primary tracking-wide">{usdFormatter.format(totalDeposits)}</dd>
+          <dd className="text-right text-primary tracking-wide">
+            {usdFormatter.format(bank.info.state.totalDeposits * bank.info.state.price)}
+          </dd>
           <dt>Open short</dt>
-          <dd className="text-right text-primary tracking-wide">{usdFormatter.format(totalBorrows)}</dd>
+          <dd className="text-right text-primary tracking-wide">
+            {usdFormatter.format(bank.info.state.totalBorrows * bank.info.state.price)}
+          </dd>
         </dl>
       </CardContent>
       <CardFooter>
