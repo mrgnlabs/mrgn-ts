@@ -1,6 +1,6 @@
 import React from "react";
 
-import { IconSortDescending } from "@tabler/icons-react";
+import { IconSortAscending, IconSortDescending } from "@tabler/icons-react";
 
 import { useTradeStore, useUiStore } from "~/store";
 import { TradePoolFilterStates } from "~/store/tradeStore";
@@ -22,9 +22,13 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 
-const sortOptions = [
+const sortOptions: {
+  value: TradePoolFilterStates;
+  label: string;
+  dir?: "asc" | "desc";
+}[] = [
   { value: TradePoolFilterStates.TIMESTAMP, label: "Recently created" },
-  { value: TradePoolFilterStates.PRICE_ASC, label: "Price Asc" },
+  { value: TradePoolFilterStates.PRICE_ASC, label: "Price Asc", dir: "asc" },
   { value: TradePoolFilterStates.PRICE_DESC, label: "Price Desc" },
   { value: TradePoolFilterStates.LONG, label: "Open long" },
   { value: TradePoolFilterStates.SHORT, label: "Open short" },
@@ -54,6 +58,11 @@ export default function HomePage() {
   ]);
 
   const [previousTxn] = useUiStore((state) => [state.previousTxn]);
+
+  const dir = React.useMemo(() => {
+    const option = sortOptions.find((option) => option.value === sortBy);
+    return option?.dir || "desc";
+  }, [sortBy]);
 
   React.useEffect(() => {
     resetActiveGroup();
@@ -85,7 +94,8 @@ export default function HomePage() {
               <div className="flex items-center justify-end">
                 <Select value={sortBy} onValueChange={(value) => setSortBy(value as TradePoolFilterStates)}>
                   <SelectTrigger className="w-[180px] justify-start gap-2">
-                    <IconSortDescending size={16} />
+                    {dir === "desc" && <IconSortDescending size={16} />}
+                    {dir === "asc" && <IconSortAscending size={16} />}
                     <SelectValue placeholder="Sort pools" />
                   </SelectTrigger>
                   <SelectContent>
