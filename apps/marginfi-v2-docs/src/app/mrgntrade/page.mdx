@@ -107,10 +107,10 @@ Here is an explanation for each argument:
   <Property name="--protocol-ir-fee" type="f64">
     Interest rate component of the protocol fee.
   </Property>
-  <Property name="--risk-tier" type="RiskTierArg">
+  <Property name="--risk-tier" type="RiskTierArg: Collateral (0), Isolated (1)">
     The risk tier classification of the asset.
   </Property>
-  <Property name="--oracle-type" type="OracleTypeArg">
+  <Property name="--oracle-type" type="OracleTypeArg: PythEma (0), Switchboard (1)">
     The type of oracle used for price feeds.
   </Property>
   <Property name="--oracle-max-age" type="u16">
@@ -120,12 +120,111 @@ Here is an explanation for each argument:
 
 **Step 3**. Now Provide the Necessary Arguments
 
-Using the CLI, type the command `mfi group add-bank` and provide the required arguments using double-dashes.
+Using the CLI, type the command `mfi group add-bank` and provide the required arguments using double-dashes. 
+
+In this example, I will create a permissionless pool for the $BODEN token. 
+
+<Note>
+  This demonstration is not an advertisement of any token, nor a soliciation to purchase any token or conduct financial activity with any token. This demonstration is purely for educational purposes.
+</Note>
 
 ```bash
-
+mfi group add-bank 
+    --mint 3psH1Mj1f7yUfaD5gh6Zj7epE8hhrMkMETgv5TshQA4o 
+    --asset-weight-init 0.5 
+    --asset-weight-maint 0.4 
+    --liability-weight-init 1.5 
+    --liability-weight-maint 1.6 
+    --deposit-limit-ui 1000000 
+    --borrow-limit-ui 500000 
+    --pyth-oracle KsyUf9f91p7S6oVn8rJFAUZBoYo1Uqf4XmZUP1yzJ1Qr5DQfpyCgqCGtHUtT1AEzfrNPsDBC8t7NBUAtH8ou4wvCYV 
+    --optimal-utilization-rate 0.7 
+    --plateau-interest-rate 0.08 
+    --insurance-fee-fixed-apr 0.02 
+    --insurance-ir-fee 0.05 
+    --protocol-fixed-fee-apr 0.02 
+    --protocol-ir-fee 0.05 
+    --risk-tier 1 
+    --oracle-type pyth 
+    --max-interest-rate 0.25 
+    --oracle-max-age 30
 ```
 
+Here are explanations for each argument:
+
+<Properties>
+  <Property name="--mint" type="Pubkey: 3psH1Mj1f7yUfaD5gh6Zj7epE8hhrMkMETgv5TshQA4o">
+    This is the unique address of the token being added to the bank. It remains unchanged as it's specific to the asset.
+  </Property>
+
+  <Property name="--asset-weight-init" type="f64: 0.5">
+    For risk calculations, only 50% of the asset's value is considered initially, reflecting its high volatility.
+  </Property>
+
+  <Property name="--asset-weight-maint" type="f64: 0.4">
+    For ongoing risk maintenance, only 40% of the asset's value is considered, providing an extra safety margin.
+  </Property>
+
+  <Property name="--liability-weight-init" type="f64: 1.5">
+    Borrowed amounts are treated as 150% of their value for initial risk calculations, accounting for higher volatility risk.
+  </Property>
+
+  <Property name="--liability-weight-maint" type="f64: 1.6">
+    For ongoing risk maintenance, borrowed amounts are treated as 160% of their value, providing an extra safety buffer.
+  </Property>
+
+  <Property name="--deposit-limit-ui" type="u64: 1000000">
+    Allows for larger deposits, assuming this is a cryptocurrency with lower individual token value.
+  </Property>
+
+  <Property name="--borrow-limit-ui" type="u64: 500000">
+    Borrowing limit is set lower than the deposit limit to maintain a safety buffer for this volatile asset.
+  </Property>
+
+  <Property name="--pyth-oracle" type="Pubkey: KsyUf9f91p7S6oVn8rJFAUZBoYo1Uqf4XmZUP1yzJ1Qr5DQfpyCgqCGtHUtT1AEzfrNPsDBC8t7NBUAtH8ou4wvCYV">
+    This remains unchanged as it's the specific address for the Pyth oracle providing price information for this asset.
+  </Property>
+
+  <Property name="--optimal-utilization-rate" type="f64: 0.7">
+    The bank aims to have 70% of its assets in use, slightly lower than before to maintain more liquidity for a volatile asset.
+  </Property>
+
+  <Property name="--plateau-interest-rate" type="f64: 0.08">
+    The interest rate is 8% when utilization is at the optimal rate, increased to reflect the higher risk of the volatile asset.
+  </Property>
+
+  <Property name="--insurance-fee-fixed-apr" type="f64: 0.02">
+    A fixed 2% annual fee for insurance, doubled from the previous value due to higher risk.
+  </Property>
+
+  <Property name="--insurance-ir-fee" type="f64: 0.05">
+    An additional 5% of the interest rate goes to insurance, increased to cover potential rapid value changes.
+  </Property>
+
+  <Property name="--protocol-fixed-fee-apr" type="f64: 0.02">
+    A fixed 2% annual fee for the protocol, doubled to compensate for higher operational risks.
+  </Property>
+
+  <Property name="--protocol-ir-fee" type="f64: 0.05">
+    An additional 5% of the interest rate goes to the protocol, increased due to higher risk.
+  </Property>
+
+  <Property name="--risk-tier" type="RiskTierArg: Isolated (1)">
+    The asset remains classified as "Isolated" risk, appropriate for a highly volatile asset.
+  </Property>
+
+  <Property name="--oracle-type" type="OracleTypeArg: PythEma (0)">
+    The bank continues to use Pyth as its oracle for price information.
+  </Property>
+
+  <Property name="--max-interest-rate" type="f64: 0.25">
+    The highest possible interest rate is now 25%, significantly increased to account for the asset's volatility.
+  </Property>
+
+  <Property name="--oracle-max-age" type="u16: 30">
+    New parameter added to ensure price updates occur at least every 30 seconds, providing more up-to-date information for this volatile asset.
+  </Property>
+</Properties>
 
 ---
 
