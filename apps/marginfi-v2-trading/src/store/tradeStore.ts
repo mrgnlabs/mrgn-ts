@@ -29,7 +29,7 @@ import {
   getValueInsensitive,
 } from "@mrgnlabs/mrgn-common";
 
-import { TRADE_GROUPS_MAP, TOKEN_METADATA_MAP, BANK_METADATA_MAP } from "~/config/trade";
+import { TRADE_GROUPS_MAP, TOKEN_METADATA_MAP, BANK_METADATA_MAP, POOLS_PER_PAGE } from "~/config/trade";
 
 type TradeGroupsCache = {
   [group: string]: [string, string];
@@ -63,6 +63,10 @@ type TradeStoreState = {
 
   // array of all banks including collateral usdc banks
   banksIncludingUSDC: ExtendedBankInfo[];
+
+  currentPage: number;
+
+  totalPages: number;
 
   // marginfi client, initialized when viewing an active group
   marginfiClient: MarginfiClient | null;
@@ -109,6 +113,7 @@ type TradeStoreState = {
   resetActiveGroup: () => void;
   searchBanks: (searchQuery: string) => void;
   resetFilteredBanks: () => void;
+  setCurrentPage: (page: number) => void;
 };
 
 const { programId } = getConfig();
@@ -129,6 +134,8 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
   filteredBanks: [],
   banksIncludingUSDC: [],
   collateralBanks: {},
+  currentPage: 1,
+  totalPages: 0,
   marginfiClient: null,
   activeGroup: null,
   marginfiAccounts: null,
@@ -163,6 +170,9 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
 
       if (!result) throw new Error("Error fetching banks & groups");
 
+      const totalPages = Math.ceil(result.tokenBanks.length / POOLS_PER_PAGE);
+      const currentPage = get().currentPage || 1;
+
       set({
         initialized: true,
         groupsCache: result.tradeGroups,
@@ -170,6 +180,8 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
         banks: result.tokenBanks,
         banksIncludingUSDC: result.allBanks,
         collateralBanks: result.collateralBanks,
+        totalPages,
+        currentPage,
         nativeSolBalance: result.nativeSolBalance,
         tokenAccountMap: result.tokenAccountMap,
         marginfiAccounts: result.marginfiAccounts,
@@ -330,6 +342,15 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
       };
     });
   },
+
+  setCurrentPage: (page: number) => {
+    set((state) => {
+      return {
+        ...state,
+        currentPage: page,
+      };
+    });
+  },
 });
 
 export { createTradeStore };
@@ -461,6 +482,10 @@ const fetchBanksAndTradeGroups = async (wallet: Wallet, connection: Connection) 
   }
 
   const tokenBanks = [
+    ...allBanks.filter((bank) => !bank.info.rawBank.mint.equals(USDC_MINT)),
+    ...allBanks.filter((bank) => !bank.info.rawBank.mint.equals(USDC_MINT)),
+    ...allBanks.filter((bank) => !bank.info.rawBank.mint.equals(USDC_MINT)),
+    ...allBanks.filter((bank) => !bank.info.rawBank.mint.equals(USDC_MINT)),
     ...allBanks.filter((bank) => !bank.info.rawBank.mint.equals(USDC_MINT)),
     ...allBanks.filter((bank) => !bank.info.rawBank.mint.equals(USDC_MINT)),
     ...allBanks.filter((bank) => !bank.info.rawBank.mint.equals(USDC_MINT)),
