@@ -3,6 +3,7 @@ import React from "react";
 import { IconSortDescending } from "@tabler/icons-react";
 
 import { useTradeStore, useUiStore } from "~/store";
+import { POOLS_PER_PAGE } from "~/config/trade";
 
 import { PageHeading } from "~/components/common/PageHeading";
 import { PoolCard } from "~/components/common/Pool/PoolCard";
@@ -21,12 +22,17 @@ import {
 } from "~/components/ui/select";
 
 export default function HomePage() {
-  const [initialized, banks, filteredBanks, resetActiveGroup] = useTradeStore((state) => [
-    state.initialized,
-    state.banks,
-    state.filteredBanks,
-    state.resetActiveGroup,
-  ]);
+  const [initialized, banks, filteredBanks, resetActiveGroup, currentPage, totalPages, setCurrentPage] = useTradeStore(
+    (state) => [
+      state.initialized,
+      state.banks,
+      state.filteredBanks,
+      state.resetActiveGroup,
+      state.currentPage,
+      state.totalPages,
+      state.setCurrentPage,
+    ]
+  );
 
   const [previousTxn] = useUiStore((state) => [state.previousTxn]);
 
@@ -36,7 +42,7 @@ export default function HomePage() {
 
   React.useEffect(() => {
     resetActiveGroup();
-  }, []);
+  }, [resetActiveGroup]);
 
   return (
     <>
@@ -84,14 +90,23 @@ export default function HomePage() {
                         b.info.oraclePrice.priceRealtime.price.toNumber() -
                         a.info.oraclePrice.priceRealtime.price.toNumber()
                     )
-                    .slice(0, 12)
+                    .slice(0, currentPage * POOLS_PER_PAGE)
                     .map((bank, i) => <PoolCard key={i} bank={bank} />)}
               </div>
-              <div className="py-8 flex justify-center">
-                <Button variant="secondary" size="lg">
-                  Load more pools
-                </Button>
-              </div>
+              {currentPage < totalPages && (
+                <div className="py-8 flex justify-center">
+                  <Button
+                    variant="secondary"
+                    size="lg"
+                    onClick={() => {
+                      if (currentPage >= totalPages) return;
+                      setCurrentPage(currentPage + 1);
+                    }}
+                  >
+                    Load more pools
+                  </Button>
+                </div>
+              )}
             </div>
           </>
         )}
