@@ -3,6 +3,7 @@ import React from "react";
 import { IconSortDescending } from "@tabler/icons-react";
 
 import { useTradeStore, useUiStore } from "~/store";
+import { TradePoolFilterStates } from "~/store/tradeStore";
 import { POOLS_PER_PAGE } from "~/config/trade";
 
 import { PageHeading } from "~/components/common/PageHeading";
@@ -21,24 +22,38 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 
+const sortOptions = [
+  { value: TradePoolFilterStates.TIMESTAMP, label: "Recently created" },
+  { value: TradePoolFilterStates.PRICE_ASC, label: "Price Asc" },
+  { value: TradePoolFilterStates.PRICE_DESC, label: "Price Desc" },
+  { value: TradePoolFilterStates.LONG, label: "Open long" },
+  { value: TradePoolFilterStates.SHORT, label: "Open short" },
+];
+
 export default function HomePage() {
-  const [initialized, banks, filteredBanks, resetActiveGroup, currentPage, totalPages, setCurrentPage] = useTradeStore(
-    (state) => [
-      state.initialized,
-      state.banks,
-      state.filteredBanks,
-      state.resetActiveGroup,
-      state.currentPage,
-      state.totalPages,
-      state.setCurrentPage,
-    ]
-  );
+  const [
+    initialized,
+    banks,
+    filteredBanks,
+    resetActiveGroup,
+    currentPage,
+    totalPages,
+    setCurrentPage,
+    sortBy,
+    setSortBy,
+  ] = useTradeStore((state) => [
+    state.initialized,
+    state.banks,
+    state.filteredBanks,
+    state.resetActiveGroup,
+    state.currentPage,
+    state.totalPages,
+    state.setCurrentPage,
+    state.sortBy,
+    state.setSortBy,
+  ]);
 
   const [previousTxn] = useUiStore((state) => [state.previousTxn]);
-
-  const bankList = React.useMemo(() => {
-    return filteredBanks.length > 0 ? filteredBanks : banks;
-  }, [banks, filteredBanks]);
 
   React.useEffect(() => {
     resetActiveGroup();
@@ -68,30 +83,23 @@ export default function HomePage() {
 
             <div className="w-full space-y-8 px-4 lg:px-8 pt-24 pb-12">
               <div className="flex items-center justify-end">
-                <Select>
+                <Select value={sortBy} onValueChange={(value) => setSortBy(value as TradePoolFilterStates)}>
                   <SelectTrigger className="w-[180px] justify-start gap-2">
                     <IconSortDescending size={16} />
                     <SelectValue placeholder="Sort pools" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="timestamp">Recently created</SelectItem>
-                    <SelectItem value="price">Price (24hr)</SelectItem>
-                    <SelectItem value="volume">Volume (24hr)</SelectItem>
-                    <SelectItem value="long">Open long</SelectItem>
-                    <SelectItem value="short">Open short</SelectItem>
+                    {sortOptions.map((option, i) => (
+                      <SelectItem key={i} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                {bankList.length > 0 &&
-                  bankList
-                    .sort(
-                      (a, b) =>
-                        b.info.oraclePrice.priceRealtime.price.toNumber() -
-                        a.info.oraclePrice.priceRealtime.price.toNumber()
-                    )
-                    .slice(0, currentPage * POOLS_PER_PAGE)
-                    .map((bank, i) => <PoolCard key={i} bank={bank} />)}
+                {banks.length > 0 &&
+                  banks.slice(0, currentPage * POOLS_PER_PAGE).map((bank, i) => <PoolCard key={i} bank={bank} />)}
               </div>
               {currentPage < totalPages && (
                 <div className="py-8 flex justify-center">
