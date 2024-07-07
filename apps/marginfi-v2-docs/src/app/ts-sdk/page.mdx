@@ -535,6 +535,54 @@ Represents the balance of a user's assets and liabilities within a specific bank
 
 Kickstart your development journey with a collection of insightful examples. Explore additional helpful examples within the <Button href="https://github.com/mrgnlabs/mrgn-ts/tree/main/packages/marginfi-client-v2/examples" variant="text"><>marginfi monorepo</></Button>. {{ className: 'lead' }}
 
+### Fetching All Banks Owned by the marginfi-v2 Program
+
+```javascript {{ title: 'Example' }}
+import { Connection, PublicKey } from "@solana/web3.js";
+import { MarginfiClient, getConfig, AccountType, Bank } from '@mrgnlabs/marginfi-client-v2';
+import { NodeWallet } from "@mrgnlabs/mrgn-common";
+
+const RPC_ENDPOINT = "<RPC-URL>";
+
+async function main() {
+    const connection = new Connection(RPC_ENDPOINT, "confirmed");
+    const wallet = NodeWallet.local();
+    const config = getConfig("production");
+    const client = await MarginfiClient.fetch(config, wallet, connection);
+
+    // Fetch all public keys of banks owned by the mfi program
+    const bankPubKeys = await client.getAllProgramAccountAddresses(AccountType.Bank);
+
+    const banks = await Promise.all(
+        bankPubKeys.map(async (bankPubKey) => {
+            try {
+                // Fetch account data for each bank
+                const accountInfo = await connection.getAccountInfo(bankPubKey);
+                if (accountInfo === null) {
+                    console.error(`Failed to fetch account info for ${bankPubKey.toString()}`);
+                    return null;
+                }
+
+                // Parse account data using Bank.fromBuffer
+                const bank = Bank.fromBuffer(bankPubKey, accountInfo.data);
+                return bank;
+            } catch (error) {
+                console.error(`Error processing bank ${bankPubKey.toString()}:`, error);
+                return null;
+            }
+        })
+    );
+
+    // Filter out any null values (failed fetches/parses)
+    const validBanks = banks.filter(bank => bank !== null);
+    validBanks.forEach((bank, index) => {
+        console.log(`Bank ${index + 1}:`, bank);
+    });
+}
+
+main().catch((e) => console.log(e));
+```
+
 ### Fetching and Exporting Depositors for a Specific Bank
 
 Using the marginfi SDK, fetch all Marginfi accounts that have an active deposit in a specific bank token (e.g., SOL). Then export the wallet address, user account address, and deposit amount for those accounts into a CSV file.
