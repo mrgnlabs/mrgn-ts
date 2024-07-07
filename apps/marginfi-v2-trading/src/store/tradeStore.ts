@@ -560,6 +560,8 @@ const sortBanks = (banks: ExtendedBankInfo[], sortBy: TradePoolFilterStates): Ex
       const bTotalBorrows = b.info.state.totalBorrows * bPrice;
       return bTotalBorrows - aTotalBorrows;
     });
+  } else if (sortBy === TradePoolFilterStates.TIMESTAMP) {
+    return banks.sort((a, b) => b.info.rawBank.lastUpdate - a.info.rawBank.lastUpdate);
   }
   return banks;
 };
