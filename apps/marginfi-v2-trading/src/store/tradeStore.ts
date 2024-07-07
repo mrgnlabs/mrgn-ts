@@ -512,16 +512,17 @@ const fetchBanksAndTradeGroups = async (wallet: Wallet, connection: Connection) 
     collateralBanks[allBanks[i + 1].info.rawBank.address.toBase58()] = allBanks[i];
   }
 
-  const tokenBanks = [
-    ...allBanks.filter((bank) => !bank.info.rawBank.mint.equals(USDC_MINT)),
-    ...allBanks.filter((bank) => !bank.info.rawBank.mint.equals(USDC_MINT)),
-    ...allBanks.filter((bank) => !bank.info.rawBank.mint.equals(USDC_MINT)),
-    ...allBanks.filter((bank) => !bank.info.rawBank.mint.equals(USDC_MINT)),
-    ...allBanks.filter((bank) => !bank.info.rawBank.mint.equals(USDC_MINT)),
-    ...allBanks.filter((bank) => !bank.info.rawBank.mint.equals(USDC_MINT)),
-    ...allBanks.filter((bank) => !bank.info.rawBank.mint.equals(USDC_MINT)),
-    ...allBanks.filter((bank) => !bank.info.rawBank.mint.equals(USDC_MINT)),
-  ];
+  const tokenBanks = allBanks.filter((bank) => !bank.info.rawBank.mint.equals(USDC_MINT));
+  // const tokenBanks = [
+  //   ...allBanks.filter((bank) => !bank.info.rawBank.mint.equals(USDC_MINT)),
+  //   ...allBanks.filter((bank) => !bank.info.rawBank.mint.equals(USDC_MINT)),
+  //   ...allBanks.filter((bank) => !bank.info.rawBank.mint.equals(USDC_MINT)),
+  //   ...allBanks.filter((bank) => !bank.info.rawBank.mint.equals(USDC_MINT)),
+  //   ...allBanks.filter((bank) => !bank.info.rawBank.mint.equals(USDC_MINT)),
+  //   ...allBanks.filter((bank) => !bank.info.rawBank.mint.equals(USDC_MINT)),
+  //   ...allBanks.filter((bank) => !bank.info.rawBank.mint.equals(USDC_MINT)),
+  //   ...allBanks.filter((bank) => !bank.info.rawBank.mint.equals(USDC_MINT)),
+  // ];
 
   return {
     allBanks,
