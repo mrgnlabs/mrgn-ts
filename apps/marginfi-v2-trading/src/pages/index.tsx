@@ -1,13 +1,24 @@
 import React from "react";
 
+import { IconSortDescending } from "@tabler/icons-react";
+
 import { useTradeStore, useUiStore } from "~/store";
-import { cn } from "~/utils";
 
 import { PageHeading } from "~/components/common/PageHeading";
 import { PoolCard } from "~/components/common/Pool/PoolCard";
 import { ActionComplete } from "~/components/common/ActionComplete";
 import { PoolSearch } from "~/components/common/Pool";
+import { Button } from "~/components/ui/button";
 import { Loader } from "~/components/ui/loader";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
 
 export default function HomePage() {
   const [initialized, banks, filteredBanks, resetActiveGroup] = useTradeStore((state) => [
@@ -50,6 +61,21 @@ export default function HomePage() {
             </div>
 
             <div className="w-full space-y-8 px-4 lg:px-8 pt-24 pb-12">
+              <div className="flex items-center justify-end">
+                <Select>
+                  <SelectTrigger className="w-[180px] justify-start gap-2">
+                    <IconSortDescending size={16} />
+                    <SelectValue placeholder="Sort pools" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="timestamp">Recently created</SelectItem>
+                    <SelectItem value="price">Price (24hr)</SelectItem>
+                    <SelectItem value="volume">Volume (24hr)</SelectItem>
+                    <SelectItem value="long">Open long</SelectItem>
+                    <SelectItem value="short">Open short</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
                 {bankList.length > 0 &&
                   bankList
@@ -58,7 +84,13 @@ export default function HomePage() {
                         b.info.oraclePrice.priceRealtime.price.toNumber() -
                         a.info.oraclePrice.priceRealtime.price.toNumber()
                     )
+                    .slice(0, 12)
                     .map((bank, i) => <PoolCard key={i} bank={bank} />)}
+              </div>
+              <div className="py-8 flex justify-center">
+                <Button variant="secondary" size="lg">
+                  Load more pools
+                </Button>
               </div>
             </div>
           </>
