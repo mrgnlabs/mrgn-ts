@@ -35,6 +35,14 @@ type TradeGroupsCache = {
   [group: string]: [string, string];
 };
 
+export enum TradePoolFilterStates {
+  TIMESTAMP = "timestamp",
+  PRICE_ASC = "price-asc",
+  PRICE_DESC = "price-desc",
+  LONG = "long",
+  SHORT = "short",
+}
+
 type TradeStoreState = {
   // keep track of store state
   initialized: boolean;
@@ -67,6 +75,8 @@ type TradeStoreState = {
   currentPage: number;
 
   totalPages: number;
+
+  sortBy: TradePoolFilterStates;
 
   // marginfi client, initialized when viewing an active group
   marginfiClient: MarginfiClient | null;
@@ -114,6 +124,7 @@ type TradeStoreState = {
   searchBanks: (searchQuery: string) => void;
   resetFilteredBanks: () => void;
   setCurrentPage: (page: number) => void;
+  setSortBy: (sortBy: TradePoolFilterStates) => void;
 };
 
 const { programId } = getConfig();
@@ -136,6 +147,7 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
   collateralBanks: {},
   currentPage: 1,
   totalPages: 0,
+  sortBy: TradePoolFilterStates.TIMESTAMP,
   marginfiClient: null,
   activeGroup: null,
   marginfiAccounts: null,
@@ -173,11 +185,15 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
       const totalPages = Math.ceil(result.tokenBanks.length / POOLS_PER_PAGE);
       const currentPage = get().currentPage || 1;
 
+      // sort banks according to sortBy
+      const sortBy = get().sortBy;
+      const sortedBanks = sortBanks(result.tokenBanks, sortBy);
+
       set({
         initialized: true,
         groupsCache: result.tradeGroups,
         groups: result.groups,
-        banks: result.tokenBanks,
+        banks: sortedBanks,
         banksIncludingUSDC: result.allBanks,
         collateralBanks: result.collateralBanks,
         totalPages,
@@ -351,6 +367,17 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
       };
     });
   },
+
+  setSortBy: (sortBy: TradePoolFilterStates) => {
+    set((state) => {
+      const sortedBanks = sortBanks(state.banks, sortBy);
+      return {
+        ...state,
+        sortBy,
+        banks: sortedBanks,
+      };
+    });
+  },
 });
 
 export { createTradeStore };
@@ -502,4 +529,33 @@ const fetchBanksAndTradeGroups = async (wallet: Wallet, connection: Connection) 
     tokenAccountMap,
     marginfiAccounts,
   };
+};
+
+const sortBanks = (banks: ExtendedBankInfo[], sortBy: TradePoolFilterStates): ExtendedBankInfo[] => {
+  if (sortBy === TradePoolFilterStates.PRICE_DESC) {
+    return banks.sort(
+      (a, b) => b.info.oraclePrice.priceRealtime.price.toNumber() - a.info.oraclePrice.priceRealtime.price.toNumber()
+    );
+  } else if (sortBy === TradePoolFilterStates.PRICE_ASC) {
+    return banks.sort(
+      (a, b) => a.info.oraclePrice.priceRealtime.price.toNumber() - b.info.oraclePrice.priceRealtime.price.toNumber()
+    );
+  } else if (sortBy === TradePoolFilterStates.LONG) {
+    return banks.sort((a, b) => {
+      const aPrice = a.info.state.price;
+      const bPrice = b.info.state.price;
+      const aTotalDeposits = a.info.state.totalDeposits * aPrice;
+      const bTotalDeposits = b.info.state.totalDeposits * bPrice;
+      return bTotalDeposits - aTotalDeposits;
+    });
+  } else if (sortBy === TradePoolFilterStates.SHORT) {
+    return banks.sort((a, b) => {
+      const aPrice = a.info.state.price;
+      const bPrice = b.info.state.price;
+      const aTotalBorrows = a.info.state.totalBorrows * aPrice;
+      const bTotalBorrows = b.info.state.totalBorrows * bPrice;
+      return bTotalBorrows - aTotalBorrows;
+    });
+  }
+  return banks;
 };
