@@ -17,7 +17,115 @@ Want to take leverage on any longtail asset? Want to short $BODEN and long $TREM
 
 ---
 
-## Creating Permissionless Pools
+## Creating Permissionless Banks
+
+With marginfi permissionless banks, you can create your own isolated bank for any token you want backed by any collateral you want. What's more is that you don't need to be a developer to get started! Using <Button href="https://docs.marginfi.com/rust-sdk" variant="text"><>the marginfi CLI</></Button>, you can create your own permissionless bank today!
+
+### Step-by-Step Guide to Creating a Permissionless Bank with No Code
+
+**Step 1**. Install the CLI
+
+Before you begin, ensure that you have the marginfi CLI installed. If you haven't installed it yet, you can find the installation instructions in the <Button href="https://docs.marginfi.com/rust-sdk" variant="text"><>CLI documentation</></Button>.
+
+**Step 2**. Use the Bank Creation Command
+
+Using the CLI, type the command `mfi group add-bank`. This command initializes the process of creating a new bank within your group. You will be prompted to provide several arguments to set up your bank correctly.
+
+A group represents a lending pool with a set of rules and configurations. It acts as a container for multiple lending banks, each with its own settings. The group defines the overall parameters for the lending and borrowing activities within its scope.
+
+We create a bank using the `add-bank` subcommand under `group` because the group serves as the overarching structure that manages and coordinates the individual banks.
+
+```bash
+error: The following required arguments were not provided:
+    --mint <MINT>
+    --asset-weight-init <ASSET_WEIGHT_INIT>
+    --asset-weight-maint <ASSET_WEIGHT_MAINT>
+    --liability-weight-init <LIABILITY_WEIGHT_INIT>
+    --liability-weight-maint <LIABILITY_WEIGHT_MAINT>
+    --deposit-limit-ui <DEPOSIT_LIMIT_UI>
+    --borrow-limit-ui <BORROW_LIMIT_UI>
+    --pyth-oracle <PYTH_ORACLE>
+    --optimal-utilization-rate <OPTIMAL_UTILIZATION_RATE>
+    --plateau-interest-rate <PLATEAU_INTEREST_RATE>
+    --max-interest-rate <MAX_INTEREST_RATE>
+    --insurance-fee-fixed-apr <INSURANCE_FEE_FIXED_APR>
+    --insurance-ir-fee <INSURANCE_IR_FEE>
+    --protocol-fixed-fee-apr <PROTOCOL_FIXED_FEE_APR>
+    --protocol-ir-fee <PROTOCOL_IR_FEE>
+    --risk-tier <RISK_TIER>
+    --oracle-type <ORACLE_TYPE>
+```
+
+Here is an explanation for each argument:
+
+<Properties>
+  <Property name="--mint" type="Pubkey">
+    The token mint address.
+  </Property>
+  <Property name="--seed" type="bool">
+    Generates a PDA for the bank key.
+  </Property>
+  <Property name="--asset-weight-init" type="f64">
+    Initial weight of the asset for risk calculations.
+  </Property>
+  <Property name="--asset-weight-maint" type="f64">
+    Maintenance weight of the asset for risk calculations.
+  </Property>
+  <Property name="--liability-weight-init" type="f64">
+    Initial weight of the liability for risk calculations.
+  </Property>
+  <Property name="--liability-weight-maint" type="f64">
+    Maintenance weight of the liability for risk calculations.
+  </Property>
+  <Property name="--deposit-limit-ui" type="u64">
+    User interface limit for deposits.
+  </Property>
+  <Property name="--borrow-limit-ui" type="u64">
+    User interface limit for borrowing.
+  </Property>
+  <Property name="--pyth-oracle" type="Pubkey">
+    Pyth oracle for price feeds.
+  </Property>
+  <Property name="--optimal-utilization-rate" type="f64">
+    Optimal rate at which the asset is utilized.
+  </Property>
+  <Property name="--plateau-interest-rate" type="f64">
+    Interest rate at the optimal utilization rate.
+  </Property>
+  <Property name="--max-interest-rate" type="f64">
+    Maximum possible interest rate.
+  </Property>
+  <Property name="--insurance-fee-fixed-apr" type="f64">
+    Fixed annual insurance fee rate.
+  </Property>
+  <Property name="--insurance-ir-fee" type="f64">
+    Interest rate component of the insurance fee.
+  </Property>
+  <Property name="--protocol-fixed-fee-apr" type="f64">
+    Fixed annual protocol fee rate.
+  </Property>
+  <Property name="--protocol-ir-fee" type="f64">
+    Interest rate component of the protocol fee.
+  </Property>
+  <Property name="--risk-tier" type="RiskTierArg">
+    The risk tier classification of the asset.
+  </Property>
+  <Property name="--oracle-type" type="OracleTypeArg">
+    The type of oracle used for price feeds.
+  </Property>
+  <Property name="--oracle-max-age" type="u16">
+    Max oracle age in seconds, 0 for default (60s).
+  </Property>
+</Properties>
+
+**Step 3**. Now Provide the Necessary Arguments
+
+Using the CLI, type the command `mfi group add-bank` and provide the required arguments using double-dashes.
+
+```bash
+
+```
+
 
 ---
 
