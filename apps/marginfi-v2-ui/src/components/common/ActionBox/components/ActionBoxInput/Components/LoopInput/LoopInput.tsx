@@ -100,10 +100,14 @@ export const LoopInput = ({
   const [netApyRaw, setNetApyRaw] = React.useState(0);
   const [lstDepositApy, setLstDepositApy] = React.useState(0);
   const [lstBorrowApy, setLstBorrowApy] = React.useState(0);
-  const [depositTokenApy, setDepositTokenApy] = React.useState(0);
-  const [borrowTokenApy, setBorrowTokenApy] = React.useState(0);
-  const [depositTokenApyRaw, setDepositTokenApyRaw] = React.useState(0);
-  const [borrowTokenApyRaw, setBorrowTokenApyRaw] = React.useState(0);
+  const [depositTokenApy, setDepositTokenApy] = React.useState<{ tokenApy: number; lstApy: number }>({
+    tokenApy: 0,
+    lstApy: 0,
+  });
+  const [borrowTokenApy, setBorrowTokenApy] = React.useState<{ tokenApy: number; lstApy: number }>({
+    tokenApy: 0,
+    lstApy: 0,
+  });
 
   const numberFormater = React.useMemo(() => new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 }), []);
 
@@ -175,22 +179,20 @@ export const LoopInput = ({
       const depositApy = computeBankRateRaw(selectedBank, LendingModes.LEND);
       const borrowApy = computeBankRateRaw(selectedRepayBank, LendingModes.BORROW);
 
-      const depositLstApy = isDepositingLst ? lstDepositApy : 0;
-      const borrowLstApy = isBorrowingLst ? lstBorrowApy : 0;
+      const depositLstApy = (isDepositingLst ? lstDepositApy : 0) * leverageAmount;
+      const borrowLstApy = (isBorrowingLst ? lstBorrowApy : 0) * leverageAmount;
 
-      const totalDepositApy = depositApy + depositLstApy;
-      const totalBorrowApy = borrowApy + borrowLstApy;
+      const totalDepositApy = depositApy * leverageAmount;
+      const totalBorrowApy = borrowApy * leverageAmount;
 
-      const finalDepositApy = totalDepositApy * leverageAmount;
-      const finalBorrowApy = totalBorrowApy * leverageAmount;
+      const finalDepositApy = depositLstApy + totalDepositApy;
+      const finalBorrowApy = borrowLstApy + totalBorrowApy;
 
       const netApy = finalDepositApy - finalBorrowApy;
 
       setNetApyRaw(netApy);
-      setDepositTokenApyRaw(depositApy);
-      setDepositTokenApy(finalDepositApy);
-      setBorrowTokenApyRaw(borrowApy);
-      setBorrowTokenApy(finalBorrowApy);
+      setDepositTokenApy({ tokenApy: totalDepositApy, lstApy: depositLstApy });
+      setBorrowTokenApy({ tokenApy: totalBorrowApy, lstApy: borrowLstApy });
     };
 
     updateNetApy();
@@ -387,7 +389,9 @@ export const LoopInput = ({
                                 <strong className="font-medium">{bank.meta.tokenSymbol}</strong>
                               </div>
                               <span className={cn("ml-auto", isDepositBank ? "text-success" : "text-warning")}>
-                                {percentFormatter.format(isDepositBank ? depositTokenApyRaw : borrowTokenApyRaw)}
+                                {percentFormatter.format(
+                                  isDepositBank ? depositTokenApy.tokenApy : borrowTokenApy.tokenApy
+                                )}
                               </span>
                             </li>
 
@@ -406,7 +410,7 @@ export const LoopInput = ({
                                   </div>
                                 </div>
                                 <span className="text-success text-right">
-                                  {percentFormatter.format(lstDepositApy)}
+                                  {percentFormatter.format(depositTokenApy.lstApy)}
                                 </span>
                               </li>
                             )}
@@ -425,7 +429,9 @@ export const LoopInput = ({
                                     <strong className="font-medium">{bank.meta.tokenSymbol}</strong> stake yield
                                   </div>
                                 </div>
-                                <span className="text-warning text-right">{percentFormatter.format(lstBorrowApy)}</span>
+                                <span className="text-warning text-right">
+                                  {percentFormatter.format(borrowTokenApy.lstApy)}
+                                </span>
                               </li>
                             )}
                           </>
