@@ -36,7 +36,10 @@ export const Header = () => {
                 <Link href={item.href}>
                   <Button
                     variant="ghost"
-                    className={cn("text-muted-foreground", asPath === item.href && "bg-accent text-primary")}
+                    className={cn(
+                      asPath === item.href &&
+                        "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground"
+                    )}
                   >
                     {React.cloneElement(item.icon, { size: 18 })}
                     {item.label}
@@ -50,7 +53,7 @@ export const Header = () => {
           {connected && (
             <CreatePoolDialog
               trigger={
-                <Button variant="secondary">
+                <Button>
                   <IconPlus size={18} /> Create Pool
                 </Button>
               }
