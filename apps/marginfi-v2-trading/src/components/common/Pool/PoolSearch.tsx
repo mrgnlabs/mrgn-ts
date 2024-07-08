@@ -20,7 +20,7 @@ export const PoolSearch = () => {
       return;
     }
     searchBanks(debouncedSearchQuery);
-  }, [debouncedSearchQuery]);
+  }, [debouncedSearchQuery, searchBanks, resetFilteredBanks]);
 
   return (
     <div className="relative w-full">
@@ -31,15 +31,13 @@ export const PoolSearch = () => {
           searchQuery.length && "text-primary"
         )}
       />
-      <div className="bg-gradient-to-r from-mrgn-gold/80 to-mrgn-chartreuse/80 rounded-full p-0.5 transition-colors">
-        <Input
-          ref={searchInputRef}
-          placeholder="Search tokens by name, symbol, or mint address..."
-          className="py-2 pr-3 pl-12 h-auto text-lg rounded-full bg-background outline-none focus-visible:ring-primary/75 md:text-xl md:py-3 md:pl-14"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-        />
-      </div>
+      <Input
+        ref={searchInputRef}
+        placeholder="Search tokens by name, symbol, or mint address..."
+        className="py-2 pr-3 pl-12 h-auto text-lg rounded-full bg-background outline-none border-[#4E5156] focus-visible:ring-0 md:text-xl md:py-3 md:pl-14"
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+      />
     </div>
   );
 };
