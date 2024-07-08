@@ -139,6 +139,7 @@ module.exports = {
       },
     },
     fontFamily: {
+      orbitron: ['"Orbitron"'],
       aeonik: ['"Aeonik Pro"'],
       mono: [
         "ui-monospace",

@@ -77,7 +77,11 @@ export default function HomePage() {
             <div className="w-full max-w-4xl mx-auto px-4 md:px-0">
               <PageHeading
                 size="lg"
-                heading="mrgntrade"
+                heading={
+                  <>
+                    arena trade <span className="text-lg">by mrgn</span>
+                  </>
+                }
                 body={
                   <>
                     <p>Permissionless leverage trading, built on marginfi.</p>

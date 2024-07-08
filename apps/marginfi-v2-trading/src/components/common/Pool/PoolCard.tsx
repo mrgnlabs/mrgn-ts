@@ -58,7 +58,7 @@ export const PoolCard = ({ bank }: PoolCardProps) => {
                 width={48}
                 height={48}
                 alt={bank.meta.tokenName}
-                className="rounded-full"
+                className="rounded-full border"
               />{" "}
               <div className="flex flex-col space-y-1">
                 <h2>{bank.meta.tokenName}</h2>
@@ -121,14 +121,12 @@ export const PoolCard = ({ bank }: PoolCardProps) => {
       <CardFooter>
         <div className="flex items-center gap-3 w-full">
           <Link href={`/pools/${bank.address.toBase58()}`} className="w-full">
-            <Button variant="secondary" className="w-full">
+            <Button variant="outline" className="w-full">
               View
             </Button>
           </Link>
           <Link href={`/trade/${bank.address.toBase58()}?poolsLink=true`} className="w-full">
-            <Button variant="secondary" className="w-full">
-              Trade
-            </Button>
+            <Button className="w-full">Trade</Button>
           </Link>
         </div>
       </CardFooter>
