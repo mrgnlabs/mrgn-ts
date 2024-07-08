@@ -45,7 +45,7 @@ const footerLinks = [
 
 export const Footer = () => {
   return (
-    <footer className="bg-background-gray text-muted-foreground fixed bottom-0 w-full px-4 py-2 z-30">
+    <footer className="bg-background fixed bottom-0 w-full px-4 py-2 z-30">
       <nav>
         <ul className="flex items-center gap-3.5 justify-end">
           {footerLinks.map((link, index) => (
