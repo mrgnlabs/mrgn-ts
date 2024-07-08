@@ -180,10 +180,10 @@ export const LoopInput = ({
       const borrowApy = computeBankRateRaw(selectedRepayBank, LendingModes.BORROW);
 
       const depositLstApy = (isDepositingLst ? lstDepositApy : 0) * leverageAmount;
-      const borrowLstApy = (isBorrowingLst ? lstBorrowApy : 0) * leverageAmount;
+      const borrowLstApy = (isBorrowingLst ? lstBorrowApy : 0) * (leverageAmount - 1);
 
       const totalDepositApy = depositApy * leverageAmount;
-      const totalBorrowApy = borrowApy * leverageAmount;
+      const totalBorrowApy = borrowApy * (leverageAmount - 1);
 
       const finalDepositApy = depositLstApy + totalDepositApy;
       const finalBorrowApy = borrowLstApy + totalBorrowApy;
