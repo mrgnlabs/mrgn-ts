@@ -28,13 +28,7 @@ export const TokenListWrapper = ({
           <DialogTrigger asChild>
             <div>{Trigger}</div>
           </DialogTrigger>
-          <DialogContent
-            className="p-4 bg-background-gray m-0"
-            hideClose={true}
-            hidePadding={true}
-            size="sm"
-            position="top"
-          >
+          <DialogContent className="p-4 bg-background m-0" hideClose={true} hidePadding={true} size="sm" position="top">
             <div className="h-[500px] relative overflow-auto">{Content}</div>
           </DialogContent>
         </Dialog>
@@ -45,7 +39,7 @@ export const TokenListWrapper = ({
             <div>{Trigger}</div>
           </DrawerTrigger>
           <DrawerContent className="h-full z-[55] mt-0" hideTopTrigger={true}>
-            <div className="pt-7 px-2 bg-background-gray h-full">
+            <div className="pt-7 px-2 bg-background h-full">
               <h3 className="text-2xl pl-3 mb-4 font-semibold">{label}</h3>
               {Content}
             </div>
