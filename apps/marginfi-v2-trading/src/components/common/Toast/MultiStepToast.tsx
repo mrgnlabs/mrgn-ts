@@ -20,15 +20,15 @@ export interface ToastStepWithStatus extends ToastStep {
 
 export const MultiStepToast = ({ title, steps }: MultiStepToastProps) => {
   return (
-    <div className="w-full h-full bg-background rounded-xl shadow-lg z-50">
-      <h2 className="text-xl font-medium">{title}</h2>
+    <div className="w-full h-full rounded-xl text-primary z-50">
+      <h2 className="text-lg font-medium">{title}</h2>
       <div className="pb-3 pt-6 space-y-2">
         {steps.map((step, index) => {
           return (
             <div
               className={cn(
-                "text-muted-foreground",
-                (step.status === "todo" || step.status === "canceled") && "text-muted-foreground/50",
+                "text-primary",
+                (step.status === "todo" || step.status === "canceled") && "text-muted-foreground",
                 step.status === "canceled" && "line-through"
               )}
               key={index}
