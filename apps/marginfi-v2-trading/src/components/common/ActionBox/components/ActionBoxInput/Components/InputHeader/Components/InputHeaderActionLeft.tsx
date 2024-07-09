@@ -137,19 +137,13 @@ export const InputHeaderActionLeft = ({
       {typeof toggleObject !== "string" ? (
         <div>
           <ToggleGroup
-            variant="actionBox"
             type="single"
             className="bg-background"
             value={toggleObject.value}
             onValueChange={toggleObject.action}
           >
             {toggleObject.toggles.map((toggle, idx) => (
-              <ToggleGroupItem
-                key={idx}
-                value={toggle.value}
-                aria-label={toggle.value}
-                className="data-[state=on]:bg-background-gray-light hover:bg-background-gray-light/25 capitalize h-[1.65rem]"
-              >
+              <ToggleGroupItem key={idx} value={toggle.value} aria-label={toggle.value} className="capitalize">
                 {toggle.text}
               </ToggleGroupItem>
             ))}

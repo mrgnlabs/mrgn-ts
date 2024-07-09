@@ -170,7 +170,7 @@ export const LendingTokensList = ({
                         );
                         onClose();
                       }}
-                      className="cursor-pointer h-[55px] px-3 font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white"
+                      className="cursor-pointer h-[55px] px-3 font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-accent"
                     >
                       <ActionBoxItem
                         rate={calculateRate(bank)}
@@ -199,7 +199,7 @@ export const LendingTokensList = ({
                   onClose();
                 }}
                 className={cn(
-                  "cursor-pointer font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white py-2"
+                  "cursor-pointer font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-accent py-2"
                 )}
               >
                 <ActionBoxItem
@@ -229,7 +229,7 @@ export const LendingTokensList = ({
                   onClose();
                 }}
                 className={cn(
-                  "cursor-pointer font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white"
+                  "cursor-pointer font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-accent"
                 )}
               >
                 <ActionBoxItem
@@ -261,7 +261,7 @@ export const LendingTokensList = ({
                     onClose();
                   }}
                   className={cn(
-                    "cursor-pointer font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white",
+                    "cursor-pointer font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-accent",
                     lendingMode === LendingModes.LEND && "py-2",
                     lendingMode === LendingModes.BORROW && "h-[60px]"
                   )}
@@ -294,7 +294,7 @@ export const LendingTokensList = ({
                     onClose();
                   }}
                   className={cn(
-                    "cursor-pointer font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white",
+                    "cursor-pointer font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-accent",
                     lendingMode === LendingModes.LEND && "py-2",
                     lendingMode === LendingModes.BORROW && "h-[60px]"
                   )}
