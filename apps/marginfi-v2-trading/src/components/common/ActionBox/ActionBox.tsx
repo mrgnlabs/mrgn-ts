@@ -7,7 +7,7 @@ import { WSOL_MINT, nativeToUi } from "@mrgnlabs/mrgn-common";
 import { ActionType, ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 
-import { useLstStore, useMrgnlendStore, useUiStore, useTradeStore } from "~/store";
+import { useLstStore, useUiStore, useTradeStore } from "~/store";
 import {
   MarginfiActionParams,
   closeBalance,
@@ -22,7 +22,6 @@ import { useConnection } from "~/hooks/useConnection";
 import { useActionBoxStore } from "~/hooks/useActionBoxStore";
 import { SOL_MINT } from "~/store/lstStore";
 
-import { LSTDialog, LSTDialogVariants } from "~/components/common/AssetList";
 import { ActionMethod, checkActionAvailable, RepayType } from "~/utils/actionBoxUtils";
 import { IconAlertTriangle, IconSettings } from "~/components/ui/icons";
 import { showErrorToast } from "~/utils/toastUtils";
@@ -142,10 +141,6 @@ export const ActionBox = ({
   }, [refreshState, connected]);
 
   const [isSettingsMode, setIsSettingsMode] = React.useState<boolean>(false);
-  const [isLSTDialogOpen, setIsLSTDialogOpen] = React.useState(false);
-  const [lstDialogVariant, setLSTDialogVariant] = React.useState<LSTDialogVariants | null>(null);
-  const [hasLSTDialogShown, setHasLSTDialogShown] = React.useState<LSTDialogVariants[]>([]);
-  const [lstDialogCallback, setLSTDialogCallback] = React.useState<(() => void) | null>(null);
   const [additionalActionMethods, setAdditionalActionMethods] = React.useState<ActionMethod[]>([]);
 
   const selectedAccount = React.useMemo(() => {
@@ -583,36 +578,12 @@ export const ActionBox = ({
       executeLendingActionCb(params);
     };
 
-    if (
-      actionMode === ActionType.Deposit &&
-      (selectedBank.meta.tokenSymbol === "SOL" || selectedBank.meta.tokenSymbol === "stSOL") &&
-      !hasLSTDialogShown.includes(selectedBank.meta.tokenSymbol as LSTDialogVariants)
-    ) {
-      setHasLSTDialogShown((prev) => [...prev, selectedBank.meta.tokenSymbol as LSTDialogVariants]);
-      setLSTDialogVariant(selectedBank.meta.tokenSymbol as LSTDialogVariants);
-      setIsLSTDialogOpen(true);
-      setLSTDialogCallback(() => action);
-
-      return;
-    }
-
     await action();
-
-    if (
-      actionMode === ActionType.Withdraw &&
-      (selectedBank.meta.tokenSymbol === "SOL" || selectedBank.meta.tokenSymbol === "stSOL") &&
-      !hasLSTDialogShown.includes(selectedBank.meta.tokenSymbol as LSTDialogVariants)
-    ) {
-      setHasLSTDialogShown((prev) => [...prev, selectedBank.meta.tokenSymbol as LSTDialogVariants]);
-      setLSTDialogVariant(selectedBank.meta.tokenSymbol as LSTDialogVariants);
-      return;
-    }
   }, [
     actionMode,
     selectedBank,
     selectedAccount,
     amount,
-    hasLSTDialogShown,
     executeLendingActionCb,
     mfiClient,
     nativeSolBalance,
@@ -622,6 +593,7 @@ export const ActionBox = ({
     selectedRepayBank,
     connection,
     wallet,
+    repayCollatTxn,
   ]);
 
   if (!isInitialized) {
@@ -633,7 +605,7 @@ export const ActionBox = ({
       <div className="flex flex-col items-center">
         <div
           className={cn(
-            "p-4 md:p-6 bg-background-gray text-white w-full max-w-[480px] rounded-lg relative",
+            "p-4 md:p-6 bg-background w-full max-w-[480px] rounded-lg relative",
             isDialog && "py-5 border border-background-gray-light/50"
           )}
         >
@@ -646,12 +618,7 @@ export const ActionBox = ({
   return (
     <>
       <div className="flex flex-col items-center">
-        <div
-          className={cn(
-            "p-2 md:p-3 bg-background-gray text-white w-full max-w-[480px] rounded-lg relative",
-            isDialog && "py-5 border border-background-gray-light/50"
-          )}
-        >
+        <div className={cn("p-2 md:p-3 bg-background w-full max-w-[480px] rounded-lg relative", isDialog && "py-5")}>
           {isSettingsMode ? (
             <ActionBoxSettings
               repayMode={repayMode}
@@ -681,9 +648,9 @@ export const ActionBox = ({
                       <div
                         className={cn(
                           "flex space-x-2 py-2.5 px-3.5 rounded-lg gap-1 text-sm",
-                          actionMethod.actionMethod === "INFO" && "bg-info text-info-foreground",
+                          actionMethod.actionMethod === "INFO" && "bg-accent text-info-foreground",
                           (!actionMethod.actionMethod || actionMethod.actionMethod === "WARNING") &&
-                            "bg-alert text-alert-foreground",
+                            "bg-accent text-alert-foreground",
                           actionMethod.actionMethod === "ERROR" && "bg-[#990000] text-primary"
                         )}
                       >
@@ -767,7 +734,7 @@ export const ActionBox = ({
                   <div className="flex justify-end gap-2 ml-auto">
                     <button
                       onClick={() => setIsSettingsMode(true)}
-                      className="text-xs gap-1 h-6 px-2 flex items-center rounded-full border border-background-gray-light bg-transparent hover:bg-background-gray-light text-muted-foreground"
+                      className="text-xs gap-1 h-6 px-2 flex items-center rounded-full border transition-colors text-muted-foreground hover:bg-accent"
                     >
                       Settings <IconSettings size={16} />
                     </button>
@@ -778,18 +745,6 @@ export const ActionBox = ({
           )}
         </div>
       </div>
-      <LSTDialog
-        variant={lstDialogVariant}
-        open={isLSTDialogOpen}
-        onClose={() => {
-          setIsLSTDialogOpen(false);
-          setLSTDialogVariant(null);
-          if (lstDialogCallback) {
-            lstDialogCallback();
-            setLSTDialogCallback(null);
-          }
-        }}
-      />
     </>
   );
 };
