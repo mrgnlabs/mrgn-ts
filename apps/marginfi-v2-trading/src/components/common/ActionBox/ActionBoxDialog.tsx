@@ -78,8 +78,8 @@ export const ActionBoxDialog = ({
       <Desktop>
         <DialogTrigger asChild>{children}</DialogTrigger>
         <DialogContent
-          className="md:flex md:max-w-[520px] md:py-3 md:px-5 p-0 sm:rounded-2xl bg-transparent border-none"
-          closeClassName="top-2 right-2"
+          className="md:flex md:max-w-[480px] md:py-3 md:px-2 p-0 sm:rounded-2xl"
+          closeClassName="top-4 right-4"
         >
           <div className="p-4">
             <ActionBox
