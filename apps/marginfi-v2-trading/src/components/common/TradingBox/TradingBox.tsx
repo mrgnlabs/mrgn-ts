@@ -414,28 +414,20 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
 
   return (
     <>
-      <Card className="bg-background-gray border-none">
+      <Card className="shadow-none border-border w-full">
         <CardContent className="pt-6">
           {isActiveWithCollat ? (
             <div className="space-y-4">
               <ToggleGroup
                 type="single"
-                className="w-full gap-4 bg-transparent"
+                className="w-full gap-4"
                 defaultValue="long"
                 onValueChange={(value) => value && setTradeState(value as TradeSide)}
               >
-                <ToggleGroupItem
-                  className="w-full border border-accent hover:bg-accent hover:text-primary data-[state=on]:bg-accent data-[state=on]:border-transparent"
-                  value="long"
-                  aria-label="Toggle long"
-                >
+                <ToggleGroupItem className="w-full border" value="long" aria-label="Toggle long">
                   Long
                 </ToggleGroupItem>
-                <ToggleGroupItem
-                  className="w-full border border-accent hover:bg-accent hover:text-primary data-[state=on]:bg-accent data-[state=on]:border-transparent"
-                  value="short"
-                  aria-label="Toggle short"
-                >
+                <ToggleGroupItem className="w-full border" value="short" aria-label="Toggle short">
                   Short
                 </ToggleGroupItem>
               </ToggleGroup>
@@ -446,7 +438,7 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
                     <Button
                       size="sm"
                       variant="link"
-                      className="flex items-center gap-1 ml-auto text-xs cursor-pointer transition-colors hover:text-mrgn-chartreuse hover:no-underline"
+                      className="flex items-center gap-1 ml-auto text-xs no-underline hover:underline"
                       onClick={() => handleMaxAmount()}
                     >
                       <IconWallet size={14} /> {numeralFormatter(walletAmount)}
@@ -455,8 +447,8 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
                   <Button
                     size="sm"
                     variant="link"
-                    className="no-underline transition-colors hover:text-mrgn-chartreuse hover:no-underline"
                     onClick={() => handleMaxAmount()}
+                    className="no-underline hover:underline"
                   >
                     Max
                   </Button>
@@ -467,7 +459,6 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
                     inputMode="decimal"
                     value={amount}
                     onChange={(e) => handleAmountChange(e.target.value)}
-                    className=""
                   />
                   <span className="absolute inset-y-0 right-3 flex items-center text-xs text-muted-foreground">
                     {collateralBank?.meta.tokenSymbol}
@@ -490,7 +481,7 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
                     inputMode="decimal"
                     value={leveragedAmount ? leveragedAmount.toFixed(activeGroup.token.info.state.mintDecimals) : 0}
                     disabled
-                    className="appearance-none border-none text-right focus-visible:ring-0 focus-visible:outline-none disabled:opacity-100 border-accent"
+                    className="appearance-none border-none text-right focus-visible:ring-0 focus-visible:outline-none disabled:opacity-100 bg-background shadow-none border-accent"
                   />
                 </div>
               </div>
@@ -587,7 +578,7 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
                   slippageBps={slippageBps / 100}
                 >
                   <div className="flex justify-end gap-2 mt-2 ml-auto">
-                    <button className="text-xs gap-1 h-6 px-2 flex items-center rounded-full border border-background-gray-light bg-transparent hover:bg-background-gray-light text-muted-foreground">
+                    <button className="text-xs gap-1 h-6 px-2 flex items-center rounded-full border bg-transparent hover:bg-accent text-muted-foreground">
                       Settings <IconSettings size={16} />
                     </button>
                   </div>
