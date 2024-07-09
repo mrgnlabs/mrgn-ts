@@ -41,7 +41,7 @@ export const BankCard = ({ bank }: BankCardProps) => {
   }, [bank, collateralBanks]);
 
   return (
-    <div className="bg-background-gray p-4 rounded-lg space-y-4 flex flex-col justify-between">
+    <div className="bg-background border p-4 rounded-lg space-y-4 flex flex-col justify-between">
       <div className="flex justify-between items-center w-full gap-2">
         <div className="flex text-left gap-3">
           <div className="flex items-center">
@@ -66,7 +66,7 @@ export const BankCard = ({ bank }: BankCardProps) => {
         )}
       </div>
       {bank.isActive && bank.position && (
-        <div className="bg-background/60 py-3 px-4 rounded-lg text-sm">
+        <div className="bg-accent/50 py-3 px-4 rounded-lg text-sm">
           <dl className="grid grid-cols-2 gap-y-0.5 text-muted-foreground">
             <dt>Current price</dt>
             <dd className="text-right text-primary">{usdFormatter.format(bank.info.state.price)}</dd>

@@ -4,10 +4,10 @@ import { cva, type VariantProps } from "class-variance-authority";
 
 import { cn } from "~/utils/themeUtils";
 
-const cardVariants = cva("rounded-xl shadow", {
+const cardVariants = cva("rounded-xl shadow-sm", {
   variants: {
     variant: {
-      default: "bg-background border border-muted-foreground/10",
+      default: "bg-background/80 backdrop-blur-sm border",
       secondary: "bg-primary text-primary-foreground",
       gradient: "bg-card text-card-foreground",
     },
