@@ -201,7 +201,7 @@ export default function TradeSymbolPage() {
                 )}
               </div>
             </div>
-            <div className="bg-background-gray-dark p-6 rounded-xl w-full max-w-6xl mx-auto">
+            <div className="bg-background/80 backdrop-blur-sm border shadow-sm p-6 rounded-xl w-full max-w-6xl mx-auto">
               <h2 className="font-medium text-2xl mb-4">Your position</h2>
               <dl className="flex justify-between items-center gap-2">
                 <dt className="flex items-center gap-1.5 text-sm">
@@ -267,9 +267,9 @@ type StatProps = {
 };
 
 const StatBlock = ({ label, value, subValue }: StatProps) => (
-  <Card className="bg-background-gray-dark border-none">
-    <CardHeader className="pb-2">
-      <CardTitle className="text-sm text-muted-foreground font-normal">{label}</CardTitle>
+  <Card>
+    <CardHeader className="pb-2 px-4">
+      <CardTitle className="text-sm">{label}</CardTitle>
     </CardHeader>
     <CardContent className="px-4">
       <p className="text-3xl">

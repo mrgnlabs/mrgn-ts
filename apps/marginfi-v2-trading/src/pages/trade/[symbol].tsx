@@ -60,7 +60,7 @@ export default function TradeSymbolPage() {
       <div className="w-full max-w-8xl mx-auto px-4 md:px-8 pt-8 pb-12">
         {(!initialized || !activeGroup) && <Loader label="Loading mrgntrade..." className="mt-8" />}
         {initialized && activeGroup && activeGroup.token && (
-          <div className="bg-accent p-6 rounded-xl space-y-4">
+          <div className="bg-accent/50 p-6 rounded-xl space-y-4">
             <TVWidgetTopBar tokenData={tokenData} activeGroup={activeGroup} />
             <div className="flex relative w-full">
               <div className="flex flex-row w-full">
