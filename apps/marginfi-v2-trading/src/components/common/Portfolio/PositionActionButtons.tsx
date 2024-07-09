@@ -74,7 +74,7 @@ export const PositionActionButtons = ({
         requestedAction={ActionType.Deposit}
         requestedAccount={marginfiAccount}
       >
-        <Button variant="secondary" size="sm" className="gap-1 min-w-16">
+        <Button size="sm" className="gap-1 min-w-16">
           <IconPlus size={14} />
           Add
         </Button>
@@ -85,7 +85,7 @@ export const PositionActionButtons = ({
           requestedAction={ActionType.Repay}
           requestedAccount={marginfiAccount}
         >
-          <Button variant="secondary" size="sm" className="gap-1 min-w-16">
+          <Button size="sm" className="gap-1 min-w-16">
             <IconMinus size={14} />
             Reduce
           </Button>
@@ -106,7 +106,7 @@ export const PositionActionButtons = ({
               : collateralBank || undefined
           }
         >
-          <Button variant="secondary" size="sm" className="gap-1 min-w-16">
+          <Button size="sm" className="gap-1 min-w-16">
             <IconMinus size={14} />
             Withdraw
           </Button>

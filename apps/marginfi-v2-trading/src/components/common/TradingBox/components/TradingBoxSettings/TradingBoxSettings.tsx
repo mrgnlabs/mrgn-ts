@@ -24,16 +24,16 @@ export const TradingBoxSettings = ({ toggleSettings, slippageBps, setSlippageBps
 
   return (
     <div className="space-y-6">
+      <button className="flex items-center gap-1.5 text-sm" onClick={() => toggleSettings(false)}>
+        <IconArrowLeft size={18} /> Back to trading
+      </button>
       <div className="space-y-3">
-        <button className="flex items-center gap-1.5 text-sm" onClick={() => toggleSettings(false)}>
-          <IconArrowLeft size={18} /> Back to trading
-        </button>
         <ToggleGroup
           value={settingsMode}
           onValueChange={(value: SettingsState) => setSettingsMode(value as SettingsState)}
           type="single"
-          variant="actionBox"
           size="lg"
+          className="gap-4"
         >
           <ToggleGroupItem value="slippage" className="w-1/2 text-xs">
             Slippage
