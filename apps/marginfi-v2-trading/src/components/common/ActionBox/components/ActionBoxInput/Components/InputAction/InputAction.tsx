@@ -133,7 +133,7 @@ export const InputAction = ({ maxAmount, walletAmount, isDialog, onSetAmountRaw 
               <div>{maxLabel.amount}</div>
               {(repayMode === RepayType.RepayRaw || (repayMode === RepayType.RepayCollat && selectedRepayBank)) && (
                 <button
-                  className="cursor-pointer text-chartreuse border-b border-transparent transition hover:border-chartreuse"
+                  className="cursor-pointer border-b border-primary transition-colors hover:border-transparent"
                   disabled={maxAmount === 0}
                   onClick={() => onSetAmountRaw(numberFormater.format(maxAmount))}
                 >
