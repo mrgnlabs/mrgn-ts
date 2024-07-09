@@ -202,18 +202,18 @@ export const Wallet = () => {
       <Sheet open={isWalletOpen} onOpenChange={(open) => setIsWalletOpen(open)}>
         <SheetTrigger asChild>
           {walletData.address && initialized && (
-            <button className="font-normal flex items-center gap-2 hover:bg-muted transition-colors rounded-full py-0.5 pr-2 pl-1 text-sm text-muted-foreground">
+            <button className="font-normal flex items-center gap-2 hover:bg-primary hover:text-primary-foreground transition-colors rounded-full py-0.5 pr-2 pl-0.5 text-sm text-muted-foreground">
               <WalletAvatar pfp={pfp} address={walletData.address} size="sm" />
               {walletData.shortAddress}
               <IconChevronDown size={16} />
             </button>
           )}
         </SheetTrigger>
-        <SheetContent className="outline-none z-[50] px-4 bg-background border-0">
+        <SheetContent className="outline-none z-[50] px-4 border-0">
           {walletData.address ? (
             <div className="max-h-full">
               <header className="flex items-center gap-2">
-                <WalletAvatar pfp={pfp} address={walletData.address} size="md" className="absolute left-2" />
+                <WalletAvatar pfp={pfp} address={walletData.address} size="md" className="absolute left-2 top-2" />
                 <div className="mx-auto">
                   <WalletAuthAccounts />
                 </div>
@@ -307,40 +307,9 @@ export const Wallet = () => {
 
               {walletTokenState !== WalletState.NOTIS && (
                 <Tabs defaultValue="tokens" className="py-8">
-                  <TabsList className="flex items-center gap-4 bg-transparent px-16 mx-auto">
-                    <TabsTrigger
-                      value="tokens"
-                      className="group w-1/3 bg-transparent data-[state=active]:bg-transparent"
-                      onClick={() => resetWalletState()}
-                    >
-                      <span className="group-data-[state=active]:bg-background-gray-light hover:bg-background-gray-light/75 py-1.5 px-3 rounded-md">
-                        Tokens
-                      </span>
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="points"
-                      className="group w-1/3 bg-transparent data-[state=active]:bg-transparent"
-                    >
-                      <span className="group-data-[state=active]:bg-background-gray-light hover:bg-background-gray-light/75 py-1.5 px-3 rounded-md">
-                        Points
-                      </span>
-                    </TabsTrigger>
-                    <div className="cursor-help w-1/3 inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow">
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <span className="py-1.5 px-3 rounded-md opacity-50">Activity</span>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Coming soon</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </div>
-                  </TabsList>
                   <TabsContent value="tokens">
                     {walletTokenState === WalletState.DEFAULT && (
-                      <div className="space-y-6 py-8">
+                      <div className="space-y-6 pb-8 pt-4">
                         <h2 className="text-4xl font-medium text-center">{walletData.balanceUSD}</h2>
                         <TokenOptions
                           walletAddress={walletData.address}
@@ -362,7 +331,7 @@ export const Wallet = () => {
                       <div className="py-4">
                         <div className="relative flex flex-col pt-6 gap-2">
                           <button
-                            className="absolute top-0 left-12 flex items-center gap-1 text-sm text-muted-foreground"
+                            className="absolute top-0 left-12 flex items-center gap-1 text-sm"
                             onClick={() => resetWalletState()}
                           >
                             <IconArrowLeft size={16} /> back
@@ -401,7 +370,7 @@ export const Wallet = () => {
                       <div className="py-4">
                         <div className="relative flex flex-col pt-6 gap-2">
                           <button
-                            className="absolute top-0 left-12 flex items-center gap-1 text-sm text-muted-foreground"
+                            className="absolute top-0 left-12 flex items-center gap-1 text-sm"
                             onClick={() => resetWalletState()}
                           >
                             <IconArrowLeft size={16} /> back
@@ -430,7 +399,7 @@ export const Wallet = () => {
                     {walletTokenState === WalletState.SELECT && (
                       <div className="relative pt-12">
                         <button
-                          className="absolute top-4 left-2 flex items-center gap-1 text-sm text-muted-foreground"
+                          className="absolute top-4 left-2 flex items-center gap-1 text-sm"
                           onClick={() => resetWalletState()}
                         >
                           <IconArrowLeft size={16} /> back
@@ -631,14 +600,14 @@ function TokenOptions({ walletAddress, setState, setToken, web3AuthConnected = f
         <button className="flex flex-col gap-1 text-sm font-medium items-center">
           {!isWalletAddressCopied ? (
             <>
-              <div className="rounded-full flex items-center justify-center h-12 w-12 bg-background-gray transition-colors hover:bg-background-gray-hover">
+              <div className="rounded-full flex items-center justify-center h-12 w-12 bg-background border transition-colors hover:bg-accent">
                 <IconArrowDown size={20} />
               </div>
               Receive
             </>
           ) : (
             <>
-              <div className="rounded-full flex items-center justify-center h-12 w-12 bg-background-gray transition-colors hover:bg-background-gray-hover">
+              <div className="rounded-full flex items-center justify-center h-12 w-12 bg-background transition-colors hover:bg-accent">
                 <IconCheck size={20} />
               </div>
               Copied!
@@ -658,7 +627,7 @@ function TokenOptions({ walletAddress, setState, setToken, web3AuthConnected = f
           setState(WalletState.SEND);
         }}
       >
-        <div className="rounded-full flex items-center justify-center h-12 w-12 bg-background-gray transition-colors hover:bg-background-gray-hover">
+        <div className="rounded-full flex items-center justify-center h-12 w-12 bg-background border transition-colors hover:bg-accent">
           <IconArrowUp size={20} />
         </div>
         Send
@@ -669,7 +638,7 @@ function TokenOptions({ walletAddress, setState, setToken, web3AuthConnected = f
           setState(WalletState.SWAP);
         }}
       >
-        <div className="rounded-full flex items-center justify-center h-12 w-12 bg-background-gray transition-colors hover:bg-background-gray-hover">
+        <div className="rounded-full flex items-center justify-center h-12 w-12 bg-background border transition-colors hover:bg-accent">
           <IconRefresh size={20} />
         </div>
         Swap
@@ -680,7 +649,7 @@ function TokenOptions({ walletAddress, setState, setToken, web3AuthConnected = f
           setState(WalletState.BRIDGE);
         }}
       >
-        <div className="rounded-full flex items-center justify-center h-12 w-12 bg-background-gray transition-colors hover:bg-background-gray-hover">
+        <div className="rounded-full flex items-center justify-center h-12 w-12 bg-background border transition-colors hover:bg-accent">
           <IconArrowsExchange size={20} />
         </div>
         Bridge
@@ -692,7 +661,7 @@ function TokenOptions({ walletAddress, setState, setToken, web3AuthConnected = f
             setIsOnrampActive(true);
           }}
         >
-          <div className="rounded-full flex items-center justify-center h-12 w-12 bg-background-gray transition-colors hover:bg-background-gray-hover">
+          <div className="rounded-full flex items-center justify-center h-12 w-12 bg-background border transition-colors hover:bg-accent">
             <IconMoonPay size={20} />
           </div>
           On ramp
