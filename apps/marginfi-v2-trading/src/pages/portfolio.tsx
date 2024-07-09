@@ -58,16 +58,13 @@ export default function PortfolioPage() {
             {!portfolio || !portfolioCombined ? (
               <p className="text-center mt-4">
                 You do not have any open positions.{" "}
-                <Link
-                  href="/pools"
-                  className="text-mrgn-chartreuse border-b border-transparent transition-colors hover:border-mrgn-chartreuse"
-                >
+                <Link href="/pools" className="border-b border-primary transition-colors hover:border-transparent">
                   Explore the pools
                 </Link>{" "}
                 and start trading!
               </p>
             ) : (
-              <div className="max-w-6xl mx-auto space-y-8">
+              <div className="max-w-6xl mx-auto space-y-12">
                 <div className="grid grid-cols-2 gap-8 w-full md:grid-cols-3">
                   <StatBlock label="Total long (USD)" value={usdFormatter.format(totalLong)} />
                   <StatBlock label="Total short (USD)" value={usdFormatter.format(totalShort)} />
@@ -97,23 +94,21 @@ export default function PortfolioPage() {
                     />
                   </div>
                 </div>
-                <div className="bg-background-gray-dark p-4 rounded-2xl w-full md:p-8">
-                  <div className="grid grid-cols-1 gap-12 w-full md:grid-cols-2">
-                    <div className="space-y-6">
-                      <h2 className="text-2xl font-medium">Long positions</h2>
-                      <div className="space-y-8">
-                        {portfolio.long.map((bank, index) => (
-                          <PositionCard key={index} bank={bank} isLong={true} />
-                        ))}
-                      </div>
+                <div className="grid grid-cols-1 gap-12 w-full md:grid-cols-2">
+                  <div className="space-y-6">
+                    <h2 className="text-2xl font-medium">Long positions</h2>
+                    <div className="space-y-8">
+                      {portfolio.long.map((bank, index) => (
+                        <PositionCard key={index} bank={bank} isLong={true} />
+                      ))}
                     </div>
-                    <div className="space-y-6">
-                      <h2 className="text-2xl font-medium">Short positions</h2>
-                      <div className="space-y-8">
-                        {portfolio.short.map((bank, index) => (
-                          <PositionCard key={index} bank={bank} isLong={false} />
-                        ))}
-                      </div>
+                  </div>
+                  <div className="space-y-6">
+                    <h2 className="text-2xl font-medium">Short positions</h2>
+                    <div className="space-y-8">
+                      {portfolio.short.map((bank, index) => (
+                        <PositionCard key={index} bank={bank} isLong={false} />
+                      ))}
                     </div>
                   </div>
                 </div>
@@ -134,9 +129,9 @@ type StatProps = {
 };
 
 const StatBlock = ({ label, value, subValue }: StatProps) => (
-  <Card className="bg-background-gray-dark border-none">
+  <Card>
     <CardHeader className="pb-2">
-      <CardTitle className="text-sm text-muted-foreground font-normal">{label}</CardTitle>
+      <CardTitle className="text-base text-muted-foreground font-normal">{label}</CardTitle>
     </CardHeader>
     <CardContent>
       <p className="text-3xl">
