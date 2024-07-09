@@ -168,68 +168,40 @@ class MarginfiGroup {
 
   public async makePoolAddBankIx(
     program: MarginfiProgram,
-    connection: Connection,
     bankPubkey: PublicKey,
     bankMint: PublicKey,
-    bankConfig: BankConfigOpt
+    bankConfig: BankConfigOpt,
+    overrideOpt: { admin?: PublicKey; groupAddress?: PublicKey }
   ): Promise<InstructionsWrapper> {
-    const liquidityVaultSeed = [Buffer.from("liquidity_vault"), bankPubkey.toBuffer()];
-    const liquidityVaultAuthoritySeed = [Buffer.from("liquidity_vault_auth"), bankPubkey.toBuffer()];
-
-    const insuranceVaultSeed = [Buffer.from("insurance_vault"), bankPubkey.toBuffer()];
-    const insuranceVaultAuthoritySeed = [Buffer.from("insurance_vault_auth"), bankPubkey.toBuffer()];
-
-    const feeVaultSeed = [Buffer.from("fee_vault"), bankPubkey.toBuffer()];
-    const feeVaultAuthoritySeed = [Buffer.from("fee_vault_auth"), bankPubkey.toBuffer()];
-
-    const [liquidityVault] = PublicKey.findProgramAddressSync(liquidityVaultSeed, program.programId);
-    const [liquidityVaultAuthority] = PublicKey.findProgramAddressSync(liquidityVaultAuthoritySeed, program.programId);
-
-    const [insuranceVault] = PublicKey.findProgramAddressSync(insuranceVaultSeed, program.programId);
-    const [insuranceVaultAuthority] = PublicKey.findProgramAddressSync(insuranceVaultAuthoritySeed, program.programId);
-
-    const [feeVault] = PublicKey.findProgramAddressSync(feeVaultSeed, program.programId);
-    const [feeVaultAuthority] = PublicKey.findProgramAddressSync(feeVaultAuthoritySeed, program.programId);
-
-    // TODO: convert depositLimit and borrowLimit based on mint decimals
-    // const mint = getMint(connection, bankMint);
-
     let rawBankConfig = serializeBankConfigOpt(bankConfig);
 
     const rawBankConfigCompact = {
       ...rawBankConfig,
       oracleKey: rawBankConfig.oracle?.keys[0],
       oracleSetup: rawBankConfig.oracle?.setup,
+      oracleMaxAge: 120,
       auto_padding_0: [0],
       auto_padding_1: [0],
     } as BankConfigCompactRaw;
 
-    // const ix = await instructions.makePoolAddBankIx(
-    //   program,
-    //   {
-    //     marginfiGroup: this.address,
-    //     admin: this.admin,
-    //     feePayer: this.admin,
-    //     bankMint: bankMint,
-    //     bank: bankPubkey,
-    //     liquidityVaultAuthority: liquidityVaultAuthority,
-    //     liquidityVault: liquidityVault,
-    //     insuranceVaultAuthority: insuranceVaultAuthority,
-    //     insuranceVault: insuranceVault,
-    //     feeVaultAuthority: feeVaultAuthority,
-    //     feeVault: feeVault,
-    //     rent: SYSVAR_RENT_PUBKEY,
-    //     tokenProgram: TOKEN_PROGRAM_ID,
-    //     systemProgram: SystemProgram.programId,
-    //     oracleKey: rawBankConfigCompact.oracleKey,
-    //   },
-    //   {
-    //     bankConfig: rawBankConfigCompact,
-    //   }
-    // );
+    const ix = await instructions.makePoolAddBankIx(
+      program,
+      {
+        marginfiGroup: overrideOpt.groupAddress ?? this.address,
+        admin: overrideOpt.admin ?? this.admin,
+        feePayer: overrideOpt.admin ?? this.admin,
+        bankMint: bankMint,
+        bank: bankPubkey,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        oracleKey: rawBankConfigCompact.oracleKey,
+      },
+      {
+        bankConfig: rawBankConfigCompact,
+      }
+    );
 
     return {
-      instructions: [], //ix
+      instructions: [ix], //ix
       keys: [],
     };
   }

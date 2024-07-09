@@ -337,56 +337,62 @@ async function makeGroupInitIx(
     .instruction();
 }
 
-// async function makePoolAddBankIx(
-//   mfProgram: MarginfiProgram,
-//   accounts: {
-//     marginfiGroup: PublicKey;
-//     admin: PublicKey;
-//     feePayer: PublicKey;
-//     bankMint: PublicKey;
-//     bank: PublicKey;
-//     liquidityVaultAuthority: PublicKey;
-//     liquidityVault: PublicKey;
-//     insuranceVaultAuthority: PublicKey;
-//     insuranceVault: PublicKey;
-//     feeVaultAuthority: PublicKey;
-//     feeVault: PublicKey;
-//     rent: PublicKey;
-//     tokenProgram: PublicKey;
-//     systemProgram: PublicKey;
-//     oracleKey: PublicKey;
-//   },
-//   args: {
-//     bankConfig: BankConfigCompactRaw;
-//   }
-// ) {
-//   return mfProgram.methods
-//     .lendingPoolAddBank(args.bankConfig)
-//     .accounts({
-//       marginfiGroup: accounts.marginfiGroup,
-//       admin: accounts.admin,
-//       feePayer: accounts.feePayer,
-//       bankMint: accounts.bankMint,
-//       bank: accounts.bank,
-//       liquidityVaultAuthority: accounts.liquidityVaultAuthority,
-//       liquidityVault: accounts.liquidityVault,
-//       insuranceVaultAuthority: accounts.insuranceVaultAuthority,
-//       insuranceVault: accounts.insuranceVault,
-//       feeVaultAuthority: accounts.feeVaultAuthority,
-//       feeVault: accounts.feeVault,
-//       rent: accounts.rent,
-//       tokenProgram: accounts.tokenProgram,
-//       systemProgram: accounts.systemProgram,
-//     })
-//     .remainingAccounts([
-//       {
-//         pubkey: accounts.oracleKey,
-//         isSigner: false,
-//         isWritable: false,
-//       },
-//     ])
-//     .instruction();
-// }
+async function makePoolAddBankIx(
+  mfProgram: MarginfiProgram,
+  accounts: {
+    marginfiGroup: PublicKey;
+    admin: PublicKey;
+    feePayer: PublicKey;
+    bankMint: PublicKey;
+    bank: PublicKey;
+    tokenProgram: PublicKey;
+    oracleKey: PublicKey;
+  },
+  args: {
+    bankConfig: BankConfigCompactRaw;
+  }
+) {
+  return mfProgram.methods
+    .lendingPoolAddBank({
+      assetWeightInit: args.bankConfig.assetWeightInit,
+      assetWeightMaint: args.bankConfig.assetWeightMaint,
+      liabilityWeightInit: args.bankConfig.liabilityWeightInit,
+      liabilityWeightMaint: args.bankConfig.liabilityWeightMaint,
+      depositLimit: args.bankConfig.depositLimit,
+      interestRateConfig: args.bankConfig.interestRateConfig,
+      operationalState: args.bankConfig.operationalState,
+      oracleSetup: args.bankConfig.oracleSetup,
+      oracleKey: args.bankConfig.oracleKey,
+      borrowLimit: args.bankConfig.borrowLimit,
+      riskTier: args.bankConfig.riskTier,
+      totalAssetValueInitLimit: args.bankConfig.totalAssetValueInitLimit,
+      oracleMaxAge: 0,
+    })
+    .accounts({
+      marginfiGroup: accounts.marginfiGroup,
+      admin: accounts.admin,
+      feePayer: accounts.feePayer,
+      bankMint: accounts.bankMint,
+      bank: accounts.bank,
+      // liquidityVaultAuthority: {pda: {seeds: accounts.feeVaultAuthoritySeed, bank: accounts.insuranceVault}} as any,
+      // liquidityVault: accounts.liquidityVault,
+      // insuranceVaultAuthority: accounts.insuranceVaultAuthority,
+      // insuranceVault: accounts.insuranceVault,
+      // feeVaultAuthority: accounts.feeVaultAuthority,
+      // feeVault: accounts.feeVault,
+      // rent: accounts.rent,
+      tokenProgram: accounts.tokenProgram,
+      // systemProgram: accounts.systemProgram,
+    })
+    .remainingAccounts([
+      {
+        pubkey: accounts.oracleKey,
+        isSigner: false,
+        isWritable: false,
+      },
+    ])
+    .instruction();
+}
 
 const instructions = {
   makeDepositIx,
@@ -398,7 +404,7 @@ const instructions = {
   makelendingAccountWithdrawEmissionIx,
   makeSetAccountFlagIx,
   makeUnsetAccountFlagIx,
-  // makePoolAddBankIx,
+  makePoolAddBankIx,
   makePoolConfigureBankIx,
   makeBeginFlashLoanIx,
   makeEndFlashLoanIx,
