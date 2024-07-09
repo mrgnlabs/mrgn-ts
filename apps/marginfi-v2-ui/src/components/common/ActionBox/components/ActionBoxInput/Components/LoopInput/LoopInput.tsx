@@ -197,8 +197,6 @@ export const LoopInput = ({
 
     updateNetApy();
   }, [
-    depositTokenApy,
-    borrowTokenApy,
     selectedBank,
     leverageAmount,
     selectedRepayBank,
