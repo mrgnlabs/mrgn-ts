@@ -17,6 +17,7 @@ import { CreatePoolState, FormValues } from "~/components/common/Pool/CreatePool
 type CreatePoolFormProps = {
   isTokenFetchingError: boolean;
   isSubmitting: boolean;
+  isReadOnlyMode: boolean;
   previewImage: string | null;
 
   setCreatePoolState: React.Dispatch<React.SetStateAction<CreatePoolState>>;
@@ -34,6 +35,7 @@ type CreatePoolFormProps = {
 export const CreatePoolForm = ({
   isTokenFetchingError,
   isSubmitting,
+  isReadOnlyMode,
   previewImage,
   setCreatePoolState,
   setPreviewImage,
@@ -77,7 +79,7 @@ export const CreatePoolForm = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div
               className={cn(
-                "flex flex-col gap-2 items-center justify-center cursor-pointer border-2 border-dashed border-border rounded-lg py-8 px-12 text-muted-foreground hover:bg-secondary/20",
+                "flex flex-col gap-2 items-center justify-center border-2 border-dashed border-border rounded-lg py-8 px-12 text-muted-foreground hover:bg-secondary/20",
                 form.formState.isSubmitted &&
                   !form.getValues().imageUpload &&
                   !form.getValues().imageDownload &&
@@ -98,7 +100,8 @@ export const CreatePoolForm = ({
               ) : (
                 <>
                   <IconUpload />
-                  <p className="text-sm text-center">Drag and drop your image here or click to select a file</p>
+                  <p className="text-sm text-center">Image uploading not available</p>
+                  {/* <p className="text-sm text-center">Drag and drop your image here or click to select a file</p> */}
                 </>
               )}
               <input ref={fileInputRef} className="hidden" type="file" accept="image/*" onChange={handleFileChange} />
@@ -113,6 +116,7 @@ export const CreatePoolForm = ({
                       <FormLabel className="font-medium">{formState.errors.mint && "*"}Mint address</FormLabel>
                       <FormControl>
                         <Input
+                          disabled={isReadOnlyMode}
                           placeholder="Enter token address"
                           className={cn(
                             formState.errors.mint && "bg-destructive border-destructive text-destructive-foreground"
@@ -133,6 +137,7 @@ export const CreatePoolForm = ({
                       <FormLabel className="font-medium">{formState.errors.name && "*"}Token name</FormLabel>
                       <FormControl>
                         <Input
+                          disabled={isReadOnlyMode}
                           placeholder="Enter token name"
                           className={cn(
                             formState.errors.name && "bg-destructive border-destructive text-destructive-foreground"
@@ -153,6 +158,7 @@ export const CreatePoolForm = ({
                       <FormLabel className="font-medium">{formState.errors.symbol && "*"}Token symbol</FormLabel>
                       <FormControl>
                         <Input
+                          disabled={isReadOnlyMode}
                           placeholder="Enter token symbol"
                           className={cn(
                             formState.errors.symbol && "bg-destructive border-destructive text-destructive-foreground"
@@ -175,6 +181,7 @@ export const CreatePoolForm = ({
                         <Input
                           type="number"
                           placeholder="Enter token decimals"
+                          disabled={isReadOnlyMode}
                           className={cn(
                             formState.errors.decimals && "bg-destructive border-destructive text-destructive-foreground"
                           )}
