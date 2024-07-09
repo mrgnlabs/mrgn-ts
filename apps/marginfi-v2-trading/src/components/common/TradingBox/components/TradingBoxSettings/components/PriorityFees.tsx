@@ -55,15 +55,13 @@ export const PriorityFees = ({ toggleSettings }: PriorityFeesProps) => {
           </Tooltip>
         </TooltipProvider>
       </h2>
-      <ul className="grid grid-cols-3 gap-2 mb-6">
+      <ul className="grid grid-cols-3 gap-4 mb-6">
         {priorityFeeOptions.map((option) => (
           <li key={option.value}>
             <Button
               className={cn(
-                "flex flex-col gap-0.5 h-auto w-full font-light border border-transparent bg-background/50 transition-colors hover:bg-background-gray-hover",
-                selectedPriorityFee === option.value &&
-                  customPriorityFee === null &&
-                  "bg-background-gray-hover border-chartreuse"
+                "flex flex-col gap-1 h-auto w-full border transition-colors bg-transparent",
+                selectedPriorityFee === option.value && customPriorityFee === null && "bg-accent"
               )}
               variant="secondary"
               onClick={() => {
@@ -83,11 +81,8 @@ export const PriorityFees = ({ toggleSettings }: PriorityFeesProps) => {
           ref={priorityFeeRef}
           type="number"
           className={cn(
-            "h-auto bg-background/50 py-3 px-4 border border-transparent text-white transition-colors focus-visible:ring-0",
-            selectedPriorityFee !== 0.005 &&
-              selectedPriorityFee !== 0.00005 &&
-              selectedPriorityFee !== 0 &&
-              "border-chartreuse"
+            "h-auto py-3 px-4 border",
+            selectedPriorityFee !== 0.005 && selectedPriorityFee !== 0.00005 && selectedPriorityFee !== 0 && "bg-accent"
           )}
           value={customPriorityFee && !isCustomPriorityFeeMode ? customPriorityFee?.toString() : undefined}
           min={0}

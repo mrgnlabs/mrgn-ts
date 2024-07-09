@@ -90,14 +90,14 @@ export const Slippage = ({ slippageBps, setSlippageBps, toggleSettings }: Slippa
                       field.onChange(Number(value));
                     }}
                     defaultValue={field.value.toString()}
-                    className="flex justify-between"
+                    className="flex gap-4 justify-between"
                   >
                     {slippageOptions.map((option) => (
                       <div
                         key={option.label}
                         className={cn(
-                          "w-full font-light border border-transparent rounded p-3 bg-background/50 transition-colors hover:bg-background-gray-hover",
-                          field.value === option.value && "bg-background-gray-hover border-chartreuse"
+                          "w-full rounded p-3 border transition-colors hover:bg-accent",
+                          field.value === option.value && "bg-accent"
                         )}
                       >
                         <RadioGroupItem
@@ -106,7 +106,7 @@ export const Slippage = ({ slippageBps, setSlippageBps, toggleSettings }: Slippa
                           className="hidden"
                         />
                         <Label
-                          className={"flex flex-col gap-2 h-auto w-full text-center"}
+                          className={"flex flex-col gap-2 h-auto cursor-pointer w-full text-center"}
                           htmlFor={option.label.toString()}
                         >
                           {option.label} <strong className="font-medium">{option.value} %</strong>
@@ -134,10 +134,7 @@ export const Slippage = ({ slippageBps, setSlippageBps, toggleSettings }: Slippa
                       value={isCustomSlippage ? field.value : undefined}
                       placeholder={isCustomSlippage ? field.value.toString() : "0"}
                       onChange={(e) => field.onChange(e)}
-                      className={cn(
-                        "h-auto bg-background/50 py-3 px-4 border border-transparent text-white transition-colors focus-visible:ring-0",
-                        isCustomSlippage && "border-chartreuse"
-                      )}
+                      className={cn("h-auto py-3 px-4 border", isCustomSlippage && "bg-accent")}
                     />
                     <span className="absolute inset-y-0 right-3 text-sm flex items-center">%</span>
                   </div>

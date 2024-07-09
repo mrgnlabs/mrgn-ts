@@ -202,7 +202,7 @@ export const Wallet = () => {
       <Sheet open={isWalletOpen} onOpenChange={(open) => setIsWalletOpen(open)}>
         <SheetTrigger asChild>
           {walletData.address && initialized && (
-            <button className="font-normal flex items-center gap-2 hover:bg-primary hover:text-primary-foreground transition-colors rounded-full py-0.5 pr-2 pl-0.5 text-sm text-muted-foreground">
+            <button className="font-normal flex items-center gap-2 transition-colors rounded-full py-0.5 pr-2 pl-0.5 text-sm text-muted-foreground hover:bg-accent">
               <WalletAvatar pfp={pfp} address={walletData.address} size="sm" />
               {walletData.shortAddress}
               <IconChevronDown size={16} />
