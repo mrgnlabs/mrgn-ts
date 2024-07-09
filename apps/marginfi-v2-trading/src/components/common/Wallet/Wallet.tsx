@@ -214,9 +214,9 @@ export const Wallet = () => {
             <div className="max-h-full">
               <header className="flex items-center gap-2">
                 <WalletAvatar pfp={pfp} address={walletData.address} size="md" className="absolute left-2 top-2" />
-                <div className="mx-auto">
+                {/* <div className="mx-auto">
                   <WalletAuthAccounts />
-                </div>
+                </div> */}
                 <div className="absolute right-2 flex items-center md:gap-1">
                   {web3AuthConncected && (
                     <TooltipProvider>
