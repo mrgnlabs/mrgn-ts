@@ -1,23 +1,23 @@
-import inquirer from "inquirer";
+// import inquirer from "inquirer";
 import { MarginfiClient, MarginfiConfig, getConfig } from "../src";
 import { env_config } from "./config";
 import { Connection, PublicKey } from "@solana/web3.js";
 import { NodeWallet } from "@mrgnlabs/mrgn-common";
 
-export async function confirmOrAbort(prompt: string) {
-  const answer = await inquirer.prompt([
-    {
-      type: "confirm",
-      name: "confirm",
-      message: prompt,
-      default: false,
-    },
-  ]);
-  if (!answer.confirm) {
-    console.log("Aborting");
-    process.exit(1);
-  }
-}
+// export async function confirmOrAbort(prompt: string) {
+//   const answer = await inquirer.prompt([
+//     {
+//       type: "confirm",
+//       name: "confirm",
+//       message: prompt,
+//       default: false,
+//     },
+//   ]);
+//   if (!answer.confirm) {
+//     console.log("Aborting");
+//     process.exit(1);
+//   }
+// }
 
 export async function getMarginfiClient({
   readonly,

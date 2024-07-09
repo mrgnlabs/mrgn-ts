@@ -26,6 +26,7 @@ import {
 import { Dialog, DialogContent, DialogTrigger } from "~/components/ui/dialog";
 import { Button } from "~/components/ui/button";
 import { TokenData } from "~/types";
+import { CreatePoolLoading } from "./components/CreatePoolLoading";
 
 type CreatePoolDialogProps = {
   trigger?: React.ReactNode;
@@ -34,7 +35,8 @@ type CreatePoolDialogProps = {
 export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
   const [resetFilteredBanks, searchBanks] = useTradeStore((state) => [state.resetFilteredBanks, state.searchBanks]);
   const [isOpen, setIsOpen] = React.useState(false);
-  const [createPoolState, setCreatePoolState] = React.useState<CreatePoolState>(CreatePoolState.SEARCH);
+  const [isReadOnlyMode, setIsReadOnlyMode] = React.useState<boolean>(false);
+  const [createPoolState, setCreatePoolState] = React.useState<CreatePoolState>(CreatePoolState.LOADING);
   const [isSearchingDasApi, setIsSearchingDasApi] = React.useState(false);
   const [isTokenFetchingError, setIsTokenFetchingError] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState("");
@@ -50,6 +52,7 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
+    mode: "onChange",
   });
 
   const onSubmit = React.useCallback(
@@ -129,17 +132,20 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
         throw new Error("Could not find token info");
       }
 
-      form.setValue("mint", tokenInfo.address);
-      form.setValue("name", tokenInfo.name);
-      form.setValue("symbol", tokenInfo.symbol);
-      form.setValue("decimals", tokenInfo.decimals.toString());
-      form.setValue("imageDownload", tokenInfo.imageUrl);
+      form.setValue("mint", tokenInfo.address, { shouldValidate: true });
+      form.setValue("name", tokenInfo.name, { shouldValidate: true });
+      form.setValue("symbol", tokenInfo.symbol, { shouldValidate: true });
+      form.setValue("decimals", tokenInfo.decimals.toString(), { shouldValidate: true });
+      form.setValue("imageDownload", tokenInfo.imageUrl, { shouldValidate: true });
       setPreviewImage(tokenInfo.imageUrl);
+      setIsReadOnlyMode(true);
 
       setIsSearchingDasApi(false);
       setCreatePoolState(CreatePoolState.FORM);
     } catch (e) {
       console.error(e);
+      form.reset();
+      setIsReadOnlyMode(false);
       setIsTokenFetchingError(true);
       setIsSearchingDasApi(false);
     }
@@ -166,7 +172,7 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
     reset();
     setSearchQuery("");
     setMintAddress("");
-    setCreatePoolState(CreatePoolState.SEARCH);
+    setCreatePoolState(CreatePoolState.LOADING);
   }, [isOpen, reset, setSearchQuery, setMintAddress, setCreatePoolState]);
 
   return (
@@ -208,7 +214,10 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
               isTokenFetchingError={isTokenFetchingError}
               isSearchingDasApi={isSearchingDasApi}
               setMintAddress={setMintAddress}
-              setIsTokenFetchingError={setIsTokenFetchingError}
+              setIsTokenFetchingError={(value) => {
+                setIsReadOnlyMode(false);
+                setIsTokenFetchingError(value);
+              }}
               setCreatePoolState={setCreatePoolState}
               fetchTokenInfo={fetchTokenInfo}
               reset={reset}
@@ -216,6 +225,7 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
           )}
           {createPoolState === CreatePoolState.FORM && (
             <CreatePoolForm
+              isReadOnlyMode={isReadOnlyMode}
               isTokenFetchingError={isTokenFetchingError}
               isSubmitting={isSubmitting}
               previewImage={previewImage}
@@ -229,6 +239,10 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
               onSubmit={onSubmit}
               reset={reset}
             />
+          )}
+
+          {createPoolState === CreatePoolState.LOADING && (
+            <CreatePoolLoading poolCreatedData={poolCreatedData} setIsOpen={setIsOpen} />
           )}
 
           {createPoolState === CreatePoolState.SUCCESS && (
