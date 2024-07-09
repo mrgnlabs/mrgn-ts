@@ -61,10 +61,8 @@ export const ActionBoxPriorityFees = ({ mode, toggleSettings }: ActionBoxPriorit
           <li key={option.value}>
             <Button
               className={cn(
-                "flex flex-col gap-0.5 h-auto w-full font-light border border-transparent bg-background/50 transition-colors hover:bg-background-gray-hover",
-                selectedPriorityFee === option.value &&
-                  customPriorityFee === null &&
-                  "bg-background-gray-hover border-chartreuse"
+                "flex flex-col font-normal gap-1 h-auto w-full border border-transparent bg-background transition-colors hover:bg-accent",
+                selectedPriorityFee === option.value && customPriorityFee === null && "bg-accent"
               )}
               variant="secondary"
               onClick={() => {
@@ -84,11 +82,8 @@ export const ActionBoxPriorityFees = ({ mode, toggleSettings }: ActionBoxPriorit
           ref={priorityFeeRef}
           type="number"
           className={cn(
-            "h-auto bg-background/50 py-3 px-4 border border-transparent text-white transition-colors focus-visible:ring-0",
-            selectedPriorityFee !== 0.005 &&
-              selectedPriorityFee !== 0.00005 &&
-              selectedPriorityFee !== 0 &&
-              "border-chartreuse"
+            "h-auto bg-background py-3 px-4 border transition-colors",
+            selectedPriorityFee !== 0.005 && selectedPriorityFee !== 0.00005 && selectedPriorityFee !== 0 && "bg-accent"
           )}
           value={customPriorityFee && !isCustomPriorityFeeMode ? customPriorityFee?.toString() : undefined}
           min={0}
