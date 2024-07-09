@@ -94,10 +94,10 @@ export default function HomePage() {
               </div>
             </div>
 
-            <div className="w-full space-y-8 px-4 lg:px-8 pt-24 pb-12">
+            <div className="w-full space-y-6 px-4 lg:px-8 pt-16 pb-12">
               <div className="flex items-center justify-end">
                 <Select value={sortBy} onValueChange={(value) => setSortBy(value as TradePoolFilterStates)}>
-                  <SelectTrigger className="w-[180px] justify-start gap-2">
+                  <SelectTrigger className="w-[190px] justify-start gap-2">
                     {dir === "desc" && <IconSortDescending size={16} />}
                     {dir === "asc" && <IconSortAscending size={16} />}
                     <SelectValue placeholder="Sort pools" />
