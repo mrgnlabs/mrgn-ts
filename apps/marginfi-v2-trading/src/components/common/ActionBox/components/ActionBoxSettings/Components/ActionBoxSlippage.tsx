@@ -94,8 +94,8 @@ export const ActionBoxSlippage = ({ mode, slippageBps, setSlippageBps, toggleSet
                       <div
                         key={option.label}
                         className={cn(
-                          "w-full font-light border border-transparent rounded p-3 bg-background/50 transition-colors hover:bg-background-gray-hover",
-                          field.value === option.value && "bg-background-gray-hover border-chartreuse"
+                          "w-full border rounded p-3 bg-background transition-colors hover:bg-accent",
+                          field.value === option.value && "bg-accent"
                         )}
                       >
                         <RadioGroupItem
@@ -104,7 +104,7 @@ export const ActionBoxSlippage = ({ mode, slippageBps, setSlippageBps, toggleSet
                           className="hidden"
                         />
                         <Label
-                          className={"flex flex-col gap-2 h-auto w-full text-center"}
+                          className={"flex text-primary flex-col gap-2 h-auto w-full text-center"}
                           htmlFor={option.value.toString()}
                         >
                           {" "}
@@ -134,8 +134,8 @@ export const ActionBoxSlippage = ({ mode, slippageBps, setSlippageBps, toggleSet
                       placeholder={isCustomSlippage ? field.value.toString() : "0"}
                       onChange={(e) => field.onChange(e)}
                       className={cn(
-                        "h-auto bg-background/50 py-3 px-4 border border-transparent text-white transition-colors focus-visible:ring-0",
-                        isCustomSlippage && "border-chartreuse"
+                        "h-auto bg-background py-3 px-4 border transition-colors",
+                        isCustomSlippage && "bg-accent"
                       )}
                     />
                     <span className="absolute inset-y-0 right-3 text-sm flex items-center">%</span>
