@@ -79,7 +79,7 @@ export default function HomePage() {
                 size="lg"
                 heading={
                   <>
-                    arena trade <span className="text-lg">by mrgn</span>
+                    the arena <span className="text-lg">by mrgn</span>
                   </>
                 }
                 body={
