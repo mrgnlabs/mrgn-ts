@@ -69,7 +69,7 @@ export const LendingPreview = ({
         {children}
 
         {isEnabled && selectedBank && (
-          <dl className={cn("grid grid-cols-2 gap-y-2 pt-6 text-xs text-white")}>
+          <dl className={cn("grid grid-cols-2 gap-y-2 pt-6 text-xs")}>
             {previewStats.map((stat, idx) => (
               <Stat
                 key={idx}

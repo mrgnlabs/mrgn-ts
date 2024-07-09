@@ -58,15 +58,15 @@ export const AvailableCollateral = ({
             </Tooltip>
           </TooltipProvider>
         </dt>
-        <dd className="text-sm font-medium text-white">
+        <dd className="text-sm font-medium">
           {isLoading ? (
-            <Skeleton className="h-4 w-[45px] bg-[#373F45]" />
+            <Skeleton className="h-4 w-[45px] bg-accent" />
           ) : (
             usdFormatterDyn.format(availableCollateral?.amount ?? availableAmount)
           )}
         </dd>
       </dl>
-      <div className="h-1.5 mb-2 bg-background-gray-dark rounded-full">
+      <div className="h-1.5 mb-2 bg-background rounded-full">
         <div
           className="h-1.5 rounded-full"
           style={{
