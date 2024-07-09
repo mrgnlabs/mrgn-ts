@@ -36,11 +36,11 @@ export const TradingBoxSettingsDialog = ({
   return (
     <Dialog open={isDialogOpen} modal={!isMobile} onOpenChange={(open) => setIsDialogOpen(open)}>
       <Mobile>
-        {isDialogOpen && <div className="fixed inset-0 h-screen z-40 md:z-50 bg-background md:bg-background/80" />}
+        {isDialogOpen && <div className="fixed inset-0 h-screen z-40 md:z-50 backdrop-blur-sm" />}
         <DialogTrigger asChild>{children}</DialogTrigger>
         <DialogContent
           hideClose={true}
-          className="mt-20 justify-start flex md:max-w-[520px] md:py-3 md:px-5 p-0 sm:rounded-2xl bg-background-gray border-none z-40 md:z-50"
+          className="mt-20 justify-start flex md:max-w-[520px] md:py-3 md:px-5 p-0 sm:rounded-2xl z-40 md:z-50"
         >
           <TradingBoxSettings
             toggleSettings={(mode) => setIsDialogOpen(mode)}
@@ -51,10 +51,7 @@ export const TradingBoxSettingsDialog = ({
       </Mobile>
       <Desktop>
         <DialogTrigger asChild>{children}</DialogTrigger>
-        <DialogContent
-          className="md:flex md:max-w-[520px] md:py-3 md:px-5 p-0 bg-background-gray sm:rounded-2xl border-none"
-          closeClassName="top-2 right-2"
-        >
+        <DialogContent className="md:flex md:max-w-[520px] md:py-3 md:px-5 p-0 sm:rounded-2xl">
           <div className="p-4">
             <TradingBoxSettings
               toggleSettings={(mode) => setIsDialogOpen(mode)}

@@ -35,17 +35,17 @@ export const TVWidgetTopBar = ({ tokenData, activeGroup }: TVWidgetTopBarProps) 
           </dd>
         </>
       )}
-      <dt className="ml-4 text-muted-foreground border-l border-muted-foreground/25 pl-4">Oracle price</dt>
+      <dt className="ml-4 border-l border-primary/50 pl-4 text-muted-foreground">Oracle price</dt>
       <dd>{usdFormatter.format(activeGroup?.token?.info?.oraclePrice.priceRealtime.price.toNumber())}</dd>
       {tokenData?.marketCap && (
         <>
-          <dt className="ml-4 text-muted-foreground border-l border-muted-foreground/25 pl-4">Market cap</dt>
+          <dt className="ml-4 border-l border-primary/50 pl-4 text-muted-foreground">Market cap</dt>
           <dd>${numeralFormatter(tokenData?.marketCap)}</dd>
         </>
       )}
       {tokenData?.volume24h && (
         <>
-          <dt className="ml-4 text-muted-foreground border-l border-muted-foreground/25 pl-4">Vol 24hr</dt>
+          <dt className="ml-4 border-l border-primary/50 pl-4 text-muted-foreground">Vol 24hr</dt>
           <dd className="flex items-center gap-1">
             ${numeralFormatter(tokenData?.volume24h)}
             {tokenData?.volumeChange24h && (

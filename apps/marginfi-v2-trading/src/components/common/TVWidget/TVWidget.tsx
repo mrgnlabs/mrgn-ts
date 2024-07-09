@@ -25,11 +25,14 @@ export const TVWidget = ({ token }: props) => {
         interval: "30" as any, // default interval
         container: "tv_chart_container",
         locale: "en",
-        theme: "dark",
+        theme: "light",
+        overrides: {
+          "paneProperties.background": "#0000ff",
+          "paneProperties.backgroundType": "solid",
+        },
         height: 600,
         width: 900,
         autosize: false,
-        custom_css_url: "/tradingview/custom.css",
         header_widget_buttons_mode: "compact",
         disabled_features: ["header_symbol_search", "header_quick_search", "header_compare"],
         custom_formatters: {
