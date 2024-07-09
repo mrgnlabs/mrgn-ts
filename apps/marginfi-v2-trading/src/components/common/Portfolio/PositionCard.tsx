@@ -78,7 +78,7 @@ export const PositionCard = ({ bank, isLong }: PositionCardProps) => {
   }, [bank]);
 
   return (
-    <div className="bg-background-gray p-4 rounded-2xl space-y-4">
+    <div className="bg-background border p-4 rounded-2xl space-y-4">
       <div className="flex items-center gap-4 justify-between">
         <Link
           href={`/pools/${bank.address.toBase58()}`}
@@ -97,7 +97,7 @@ export const PositionCard = ({ bank, isLong }: PositionCardProps) => {
           </div>
         </Link>
       </div>
-      <div className="bg-background rounded-xl p-4">
+      <div className="bg-accent/50 rounded-xl p-4">
         <dl className="w-full grid grid-cols-2 text-sm text-muted-foreground gap-1">
           <dt>Size</dt>
           <dd className="text-right text-primary">
