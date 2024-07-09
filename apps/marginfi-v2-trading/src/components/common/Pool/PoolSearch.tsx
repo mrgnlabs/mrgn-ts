@@ -34,7 +34,7 @@ export const PoolSearch = () => {
       <Input
         ref={searchInputRef}
         placeholder="Search tokens by name, symbol, or mint address..."
-        className="py-2 pr-3 pl-12 h-auto text-lg rounded-full bg-background outline-none border-[#4E5156] focus-visible:ring-0 md:text-xl md:py-3 md:pl-14"
+        className="py-2 pr-3 pl-12 h-auto text-lg rounded-full bg-transparent outline-none border-[#4E5156] focus-visible:ring-0 md:text-xl md:py-3 md:pl-14"
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
       />

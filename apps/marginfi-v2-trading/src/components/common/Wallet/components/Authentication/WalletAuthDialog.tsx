@@ -159,10 +159,10 @@ export const WalletAuthDialog = () => {
           <div className="w-full space-y-6 mt-8">
             <div
               className={cn(
-                "relative bg-muted text-muted-foreground transition-all duration-300 w-full p-6 pt-5 rounded-lg overflow-hidden",
+                "relative bg-secondary transition-all duration-300 w-full p-6 pt-5 rounded-lg overflow-hidden",
                 state === WalletAuthDialogState.SOCIAL && "max-h-none",
                 state !== WalletAuthDialogState.SOCIAL &&
-                  "max-h-[120px] cursor-pointer hover:bg-muted-highlight sm:max-h-[100px]"
+                  "max-h-[120px] cursor-pointer hover:bg-secondary/80 sm:max-h-[100px]"
               )}
               onClick={() => {
                 if (state === WalletAuthDialogState.SOCIAL) return;
@@ -187,7 +187,7 @@ export const WalletAuthDialog = () => {
                   }}
                 />
 
-                <h2 className="font-semibold text-2xl text-white">Mobile friendly account</h2>
+                <h2 className="font-semibold text-2xl">Mobile friendly account</h2>
                 <p className="mt-2 text-[15px] sm:text-base">
                   Sign in with email to download marginfi&apos;s app directly from the web.
                 </p>
@@ -231,8 +231,8 @@ export const WalletAuthDialog = () => {
             </div>
             <div
               className={cn(
-                "relative bg-muted text-muted-foreground transition-all duration-300 w-full p-6 pt-5 rounded-lg overflow-hidden ",
-                state !== WalletAuthDialogState.WALLET && "max-h-[106px] cursor-pointer hover:bg-muted-highlight",
+                "relative bg-secondary transition-all duration-300 w-full p-6 pt-5 rounded-lg overflow-hidden ",
+                state !== WalletAuthDialogState.WALLET && "max-h-[106px] cursor-pointer hover:bg-secondary/80",
                 state === WalletAuthDialogState.WALLET && "max-h-none lg:max-h-none"
               )}
               onClick={() => {
@@ -258,7 +258,7 @@ export const WalletAuthDialog = () => {
                   }}
                 />
 
-                <h2 className="font-semibold text-2xl text-white">Use a wallet</h2>
+                <h2 className="font-semibold text-2xl">Use a wallet</h2>
                 <p className="mt-2 text-[15px] sm:text-base">If you&apos;re a pro, connect your wallet.</p>
               </header>
 
@@ -308,7 +308,7 @@ export const WalletAuthDialog = () => {
               )}
               <div className="flex items-center gap-1 justify-center mt-8 text-sm">
                 <IconStarFilled className="text-yellow-400" size={16} /> 5% points boost for{" "}
-                <IconBackpackWallet size={16} /> <strong className="text-white font-medium">Backpack</strong> users
+                <IconBackpackWallet size={16} /> <strong className="font-medium">Backpack</strong> users
               </div>
             </div>
           </div>
