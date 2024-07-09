@@ -214,33 +214,7 @@ export const Wallet = () => {
             <div className="max-h-full">
               <header className="flex items-center gap-2">
                 <WalletAvatar pfp={pfp} address={walletData.address} size="md" className="absolute left-2" />
-
                 <div className="mx-auto">
-                  {/* {marginfiAccounts.length > 1 ? (
-                    <WalletAuthAccounts />
-                  ) : (
-                    <CopyToClipboard
-                      text={walletData.address}
-                      onCopy={() => {
-                        setisWalletAddressCopied(true);
-                        setTimeout(() => {
-                          setisWalletAddressCopied(false);
-                        }, 2000);
-                      }}
-                    >
-                      <Button variant="secondary" size="sm" className="text-sm">
-                        {!isWalletAddressCopied ? (
-                          <>
-                            {walletData.shortAddress} <IconCopy size={16} />
-                          </>
-                        ) : (
-                          <>
-                            Copied! <IconCheck size={16} />
-                          </>
-                        )}
-                      </Button>
-                    </CopyToClipboard>
-                  )} */}
                   <WalletAuthAccounts />
                 </div>
                 <div className="absolute right-2 flex items-center md:gap-1">
