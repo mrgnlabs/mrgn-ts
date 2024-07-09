@@ -11,6 +11,7 @@ import {
   SendTransactionError,
   Signer,
   Transaction,
+  TransactionInstruction,
   TransactionMessage,
   TransactionSignature,
   VersionedTransaction,
@@ -642,25 +643,17 @@ class MarginfiClient {
     bankMint: PublicKey,
     bankConfig: BankConfigOpt,
     opts?: TransactionOptions
-  ): Promise<{
-    bankAddress: PublicKey;
-    signature: TransactionSignature;
-  }> {
+  ): Promise<{ bankAddress: PublicKey; signature: TransactionSignature }> {
     const dbg = require("debug")("mfi:client");
 
     const bankKeypair = Keypair.generate();
 
-    const ixs = await this.group.makePoolAddBankIx(
-      this.program,
-      this.provider.connection,
-      bankKeypair.publicKey,
-      bankMint,
-      bankConfig
-    );
+    const ixs = await this.group.makePoolAddBankIx(this.program, bankKeypair.publicKey, bankMint, bankConfig, {});
     const signers = [...ixs.keys, bankKeypair];
     const priorityFeeIx = makePriorityFeeIx(0.001);
 
     const tx = new Transaction().add(...priorityFeeIx, ...ixs.instructions);
+
     const sig = await this.processTransaction(tx, signers, opts);
     dbg("Created new lending pool %s", sig);
 
