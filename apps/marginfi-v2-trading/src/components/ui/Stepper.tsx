@@ -309,7 +309,7 @@ export const StepperItem = React.forwardRef<
         </Button>
         <div className={cn("w-max mt-4 text-start", isVerticalLabel && !isVertical && "text-left")}>
           <p className="text-sm text-slate-500 dark:text-slate-400 text-slate-100 text-sm">{steps[step]?.label}</p>
-          {steps[step]?.description && <p className="text-slate-100">{steps[step]?.description}</p>}
+          {steps[step]?.description && <p className="text-slate-800">{steps[step]?.description}</p>}
           {isActive && status === "error" ? <div className="mt-2">{action}</div> : <></>}
         </div>
       </div>
