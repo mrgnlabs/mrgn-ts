@@ -68,6 +68,25 @@ export type LstActionParams = {
   priorityFee?: number;
 };
 
+export async function createAccountAction({
+  marginfiClient,
+  nativeSolBalance,
+  walletContextState,
+}: {
+  marginfiClient: MarginfiClient | null;
+  nativeSolBalance: number;
+  walletContextState?: WalletContextState | WalletContextStateOverride;
+}) {
+  if (nativeSolBalance < FEE_MARGIN) {
+    showErrorToast("Not enough sol for fee.");
+    return;
+  }
+
+  const txnSig = await createAccount({ mfiClient: marginfiClient, walletContextState });
+
+  return txnSig;
+}
+
 export async function executeLendingAction({
   mfiClient,
   actionType,
@@ -233,6 +252,39 @@ export async function executeLstAction({
 // ------------------------------------------------------------------//
 // Individual action flows - non-throwing - for use in UI components //
 // ------------------------------------------------------------------//
+async function createAccount({
+  mfiClient,
+  walletContextState,
+}: {
+  mfiClient: MarginfiClient | null;
+  walletContextState?: WalletContextState | WalletContextStateOverride;
+}) {
+  if (mfiClient === null) {
+    showErrorToast("Marginfi client not ready");
+    return;
+  }
+
+  const multiStepToast = new MultiStepToastHandle("Creating account", [{ label: "Creating account" }]);
+  multiStepToast.start();
+
+  let marginfiAccount: MarginfiAccountWrapper;
+  try {
+    const squadsOptions = await getMaybeSquadsOptions(walletContextState);
+    marginfiAccount = await mfiClient.createMarginfiAccount(undefined, squadsOptions);
+
+    clearAccountCache(mfiClient.provider.publicKey);
+
+    multiStepToast.setSuccessAndNext();
+  } catch (error: any) {
+    const msg = extractErrorString(error);
+    Sentry.captureException({ message: error });
+    multiStepToast.setFailed(msg);
+    console.log(`Error while depositing: ${msg}`);
+    console.log(error);
+    return;
+  }
+}
+
 async function createAccountAndDeposit({
   mfiClient,
   bank,
@@ -467,7 +519,8 @@ export async function loopingBuilder({
     options.loopingBank.address,
     [swapIx],
     swapLUTs,
-    priorityFee
+    priorityFee,
+    true
   );
 
   return { txn: transaction, addressLookupTableAccounts };

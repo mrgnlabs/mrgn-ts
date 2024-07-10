@@ -172,7 +172,7 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
     if (args.requestedAction) {
       requestedAction = args.requestedAction;
     } else {
-      requestedAction = actionMode;
+      requestedAction = initialState.actionMode;
     }
 
     if (args.requestedBank) {
