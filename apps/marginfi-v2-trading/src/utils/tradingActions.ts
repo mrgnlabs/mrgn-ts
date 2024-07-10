@@ -13,7 +13,7 @@ import {
 import { QuoteResponseMeta } from "@jup-ag/react-hook";
 import { WalletContextState } from "@solana/wallet-adapter-react";
 
-import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
+import { BankConfigOpt, MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { LUT_PROGRAM_AUTHORITY_INDEX, Wallet, processTransaction, uiToNative } from "@mrgnlabs/mrgn-common";
 import { ExtendedBankInfo, FEE_MARGIN, ActionType, clearAccountCache } from "@mrgnlabs/marginfi-v2-ui-state";
 
@@ -31,6 +31,47 @@ import {
 } from "~/components/common/TradingBox/tradingBox.utils";
 import { ToastStep } from "~/components/common/Toast";
 import { getMaybeSquadsOptions } from "./mrgnActions";
+
+export async function createPermissionlessPool({
+  marginfiClient,
+  tokenMint,
+  stableMint,
+  tokenBankConfig,
+  stableBankConfig,
+  admin,
+  priorityFee,
+}: {
+  marginfiClient: MarginfiClient;
+  tokenMint: PublicKey;
+  stableMint: PublicKey;
+  tokenBankConfig: BankConfigOpt;
+  stableBankConfig: BankConfigOpt;
+  admin: PublicKey;
+  priorityFee?: number;
+}) {
+  const multiStepToast = new MultiStepToastHandle("Pool Creation", [{ label: `Creating pool` }]);
+  multiStepToast.start();
+
+  try {
+    const txnSig = await marginfiClient.createPermissionlessPool({
+      tokenMint,
+      stableMint,
+      tokenBankConfig,
+      stableBankConfig,
+      admin,
+      priorityFee,
+    });
+    multiStepToast.setSuccessAndNext();
+    return txnSig;
+  } catch (error: any) {
+    const msg = extractErrorString(error);
+    Sentry.captureException({ message: error });
+    multiStepToast.setFailed(msg);
+    console.log(`Error while withdrawing: ${msg}`);
+    console.log(error);
+    return;
+  }
+}
 
 export async function executeLeverageAction({
   marginfiClient,
