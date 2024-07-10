@@ -478,7 +478,7 @@ class MarginfiClient {
             memcmp: {
               offset: 0,
               bytes: bs58.encode(
-                new BorshAccountsCoder(this.program.idl).accountDiscriminator(AccountType.MarginfiAccount)
+                new BorshAccountsCoder(this.program.idl).accountDiscriminator(type)
               ),
             },
           },
