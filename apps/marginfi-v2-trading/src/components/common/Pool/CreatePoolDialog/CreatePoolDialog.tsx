@@ -27,6 +27,7 @@ import { Dialog, DialogContent, DialogTrigger } from "~/components/ui/dialog";
 import { Button } from "~/components/ui/button";
 import { TokenData } from "~/types";
 import { CreatePoolLoading } from "./components/CreatePoolLoading";
+import { StepperWrapper } from "~/components/ui/Stepper";
 
 type CreatePoolDialogProps = {
   trigger?: React.ReactNode;
@@ -64,7 +65,7 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
       setPoolCreatedData(values);
 
       setTimeout(() => {
-        setCreatePoolState(CreatePoolState.SUCCESS);
+        setCreatePoolState(CreatePoolState.LOADING);
         setIsSubmitting(false);
       }, 2000);
     },
@@ -242,7 +243,11 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
           )}
 
           {createPoolState === CreatePoolState.LOADING && (
-            <CreatePoolLoading poolCreatedData={poolCreatedData} setIsOpen={setIsOpen} />
+            <CreatePoolLoading
+              poolCreatedData={poolCreatedData}
+              setIsOpen={setIsOpen}
+              setIsCompleted={() => setCreatePoolState(CreatePoolState.SUCCESS)}
+            />
           )}
 
           {createPoolState === CreatePoolState.SUCCESS && (

@@ -218,13 +218,18 @@ const icons = {
   default: null,
 } as const;
 
+interface StepperItemProps {
+  action: React.ReactNode;
+}
+
 export const StepperItem = React.forwardRef<
   HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement> & {
-    onStepperItemClick?: (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
-  }
+  StepperItemProps &
+    React.HTMLAttributes<HTMLDivElement> & {
+      onStepperItemClick?: (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
+    }
   // @ts-ignore - step is a prop that is added from the Stepper through React.Children.
->(({ step, children, className, onStepperItemClick, ...props }, ref) => {
+>(({ step, children, action, className, onStepperItemClick, ...props }, ref) => {
   const { activeStep, setStep, steps, orientation, labelOrientation, scrollTracking, variant, status, isClickable } =
     useStepper();
 
@@ -305,6 +310,7 @@ export const StepperItem = React.forwardRef<
         <div className={cn("w-max mt-4 text-start", isVerticalLabel && !isVertical && "text-left")}>
           <p className="text-sm text-slate-500 dark:text-slate-400 text-slate-100 text-sm">{steps[step]?.label}</p>
           {steps[step]?.description && <p className="text-slate-100">{steps[step]?.description}</p>}
+          {isActive && status === "error" ? <div className="mt-2">{action}</div> : <></>}
         </div>
       </div>
       <div className="flex relative top-5 self-start w-full gap-8">
