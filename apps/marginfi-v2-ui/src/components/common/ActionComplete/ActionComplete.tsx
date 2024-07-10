@@ -6,10 +6,10 @@ import Image from "next/image";
 import Confetti from "react-confetti";
 import { useWindowSize } from "@uidotdev/usehooks";
 import { PublicKey } from "@solana/web3.js";
-import { ActionType, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActionType, ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { percentFormatterDyn, shortenAddress, percentFormatter } from "@mrgnlabs/mrgn-common";
 
-import { cn, getTokenImageURL } from "~/utils";
+import { LSTS_SOLANA_COMPASS_MAP, calcLstYield, calcNetLoopingApy, cn, getTokenImageURL } from "~/utils";
 import { useUiStore, useLstStore, useMrgnlendStore } from "~/store";
 import { useAssetItemData } from "~/hooks/useAssetItemData";
 import { useIsMobile } from "~/hooks/useIsMobile";
@@ -19,6 +19,11 @@ import { IconConfetti, IconExternalLink, IconArrowDown, IconArrowUp } from "~/co
 import { Button } from "~/components/ui/button";
 
 export const ActionComplete = () => {
+  const [loopApy, setLoopApy] = React.useState<{ netApy: number; totalDepositApy: number; totalBorrowApy: number }>({
+    netApy: 0,
+    totalDepositApy: 0,
+    totalBorrowApy: 0,
+  });
   const [extendedBankInfos, mfiAccount] = useMrgnlendStore((state) => [state.extendedBankInfos, state.selectedAccount]);
   const [isActionComplete, setIsActionComplete, previousTxn] = useUiStore((state) => [
     state.isActionComplete,
@@ -30,14 +35,38 @@ export const ActionComplete = () => {
     bank: previousTxn?.bank!,
     isInLendingMode: previousTxn?.type === ActionType.Deposit,
   });
-  const { rateAPY: loopDepositAP } = useAssetItemData({
-    bank: previousTxn?.loopingOptions?.depositBank!,
-    isInLendingMode: true,
-  });
-  const { rateAPY: loopBorrowAP } = useAssetItemData({
-    bank: previousTxn?.loopingOptions?.borrowBank!,
-    isInLendingMode: false,
-  });
+
+  const getLstYield = React.useCallback(async (bank: ExtendedBankInfo) => {
+    const solanaCompassKey = LSTS_SOLANA_COMPASS_MAP[bank.meta.tokenSymbol];
+    if (!solanaCompassKey) return 0;
+
+    const response = await fetch(`/api/solana-compass?solanaCompassKey=${solanaCompassKey}`);
+    if (!response.ok) return 0;
+
+    const solanaCompassPrices = await response.json();
+    return calcLstYield(solanaCompassPrices);
+  }, []);
+
+  const calculateLoopingRate = React.useCallback(async () => {
+    const lstDepositApy = await getLstYield(previousTxn?.loopingOptions?.depositBank!);
+    const lstBorrowApy = await getLstYield(previousTxn?.loopingOptions?.borrowBank!);
+
+    const { netApy, totalDepositApy, totalBorrowApy } = calcNetLoopingApy(
+      previousTxn?.loopingOptions?.depositBank!,
+      previousTxn?.loopingOptions?.borrowBank!,
+      lstDepositApy,
+      lstBorrowApy,
+      previousTxn?.loopingOptions?.leverage!
+    );
+    setLoopApy({ netApy, totalDepositApy, totalBorrowApy });
+  }, [previousTxn]);
+
+  React.useEffect(() => {
+    if (previousTxn?.type === ActionType.Loop) {
+      calculateLoopingRate();
+    }
+  }, [previousTxn]);
+
   const { width, height } = useWindowSize();
   const isMobile = useIsMobile();
 
@@ -132,9 +161,7 @@ export const ActionComplete = () => {
                   )}
                   <dt>APY</dt>
                   {previousTxn.type === ActionType.Loop ? (
-                    <dd className={cn("text-right", actionTextColor)}>
-                      {percentFormatter.format(loopDepositAP - loopBorrowAP)}
-                    </dd>
+                    <dd className={cn("text-right", actionTextColor)}>{percentFormatter.format(loopApy.netApy)}</dd>
                   ) : (
                     <dd className={cn("text-right", actionTextColor)}>{rateAP}</dd>
                   )}
@@ -244,16 +271,14 @@ export const ActionComplete = () => {
                 </div>
                 <dl className="grid grid-cols-2 w-full text-muted-foreground gap-x-8 gap-y-2">
                   <dt>Net APY</dt>
-                  <dd className={cn("text-right")}>
-                    {percentFormatter.format(Math.abs(loopDepositAP - loopBorrowAP))}
-                  </dd>
+                  <dd className={cn("text-right")}>{percentFormatter.format(Math.abs(loopApy.netApy))}</dd>
                   <dt className="text-sm opacity-75">{previousTxn.loopingOptions.depositBank.meta.tokenSymbol}</dt>
                   <dd className="text-sm opacity-75 text-right text-success">
-                    {percentFormatter.format(loopDepositAP)}
+                    {percentFormatter.format(loopApy.totalDepositApy)}
                   </dd>
                   <dt className="text-sm opacity-75">{previousTxn.loopingOptions.borrowBank.meta.tokenSymbol}</dt>
                   <dd className="text-sm opacity-75 text-right text-warning">
-                    {percentFormatter.format(loopBorrowAP)}
+                    {percentFormatter.format(loopApy.totalBorrowApy)}
                   </dd>
 
                   <dt>Transaction</dt>
