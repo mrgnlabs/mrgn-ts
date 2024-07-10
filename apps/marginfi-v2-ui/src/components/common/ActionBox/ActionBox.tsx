@@ -95,6 +95,7 @@ export const ActionBox = ({
     actionQuote,
     actionTxn,
     isLoading,
+    leverage,
     errorMessage,
 
     refreshState,
@@ -118,6 +119,7 @@ export const ActionBox = ({
     state.actionQuote,
     state.actionTxn,
     state.isLoading,
+    state.leverage,
     state.errorMessage,
 
     state.refreshState,
@@ -490,6 +492,7 @@ export const ActionBox = ({
           depositBank: selectedBank as ActiveBankInfo,
           borrowAmount: loopingAmounts?.borrowAmount.toNumber(),
           borrowBank: selectedRepayBank as ActiveBankInfo,
+          leverage: leverage,
         },
       });
     }
