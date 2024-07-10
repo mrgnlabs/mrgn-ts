@@ -2,9 +2,7 @@ import { create, StateCreator } from "zustand";
 import { Connection, PublicKey } from "@solana/web3.js";
 import {
   ExtendedBankInfo,
-  ExtendedBankMetadata,
   makeExtendedBankInfo,
-  makeExtendedBankMetadata,
   fetchTokenAccounts,
   TokenAccountMap,
   makeBankInfo,
@@ -19,7 +17,7 @@ import {
   Bank,
   OraclePrice,
   MarginfiAccountWrapper,
-  MarginRequirementType,
+  MintData,
 } from "@mrgnlabs/marginfi-client-v2";
 import {
   Wallet,
@@ -368,6 +366,7 @@ const fetchBanksAndTradeGroups = async (wallet: Wallet, connection: Connection) 
   const marginfiAccounts: {
     [group: string]: MarginfiAccountWrapper;
   } = {};
+  const mintDatas: Map<string, MintData> = new Map();
 
   await Promise.all(
     groups.map(async (group) => {
@@ -385,6 +384,10 @@ const fetchBanksAndTradeGroups = async (wallet: Wallet, connection: Connection) 
           preloadedBankAddresses: bankKeys,
         }
       );
+
+      for (const [k, v] of marginfiClient.mintDatas) {
+        mintDatas.set(k, v);
+      }
 
       const banksIncludingUSDC = Array.from(marginfiClient.banks.values());
 
@@ -429,7 +432,8 @@ const fetchBanksAndTradeGroups = async (wallet: Wallet, connection: Connection) 
       fetchTokenAccounts(
         connection,
         wallet.publicKey,
-        banksWithPriceAndToken.map((bank) => ({ mint: bank.bank.mint, mintDecimals: bank.bank.mintDecimals }))
+        banksWithPriceAndToken.map((bank) => ({ mint: bank.bank.mint, mintDecimals: bank.bank.mintDecimals, bankAddress: bank.bank.address })),
+        mintDatas
       ),
     ]);
 
