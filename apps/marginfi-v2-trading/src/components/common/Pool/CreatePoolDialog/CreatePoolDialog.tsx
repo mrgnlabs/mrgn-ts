@@ -37,7 +37,7 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
   const [resetFilteredBanks, searchBanks] = useTradeStore((state) => [state.resetFilteredBanks, state.searchBanks]);
   const [isOpen, setIsOpen] = React.useState(false);
   const [isReadOnlyMode, setIsReadOnlyMode] = React.useState<boolean>(false);
-  const [createPoolState, setCreatePoolState] = React.useState<CreatePoolState>(CreatePoolState.LOADING);
+  const [createPoolState, setCreatePoolState] = React.useState<CreatePoolState>(CreatePoolState.SEARCH);
   const [isSearchingDasApi, setIsSearchingDasApi] = React.useState(false);
   const [isTokenFetchingError, setIsTokenFetchingError] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState("");
@@ -173,7 +173,7 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
     reset();
     setSearchQuery("");
     setMintAddress("");
-    setCreatePoolState(CreatePoolState.LOADING);
+    setCreatePoolState(CreatePoolState.SEARCH);
   }, [isOpen, reset, setSearchQuery, setMintAddress, setCreatePoolState]);
 
   return (
