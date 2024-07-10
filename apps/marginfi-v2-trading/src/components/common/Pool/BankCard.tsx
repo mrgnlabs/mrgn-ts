@@ -21,7 +21,7 @@ export const BankCard = ({ bank }: BankCardProps) => {
   const [collateralBanks] = useTradeStore((state) => [state.collateralBanks]);
 
   const leverage = React.useMemo(() => {
-    if (!bank.isActive) return 1;
+    if (!bank || !bank.isActive) return 1;
 
     const collateralBank = collateralBanks[bank.address.toBase58()];
     const borrowBank = bank.position.isLending ? collateralBank : bank;
