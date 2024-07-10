@@ -2,7 +2,7 @@ import React from "react";
 
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { TablerIconsProps } from "@tabler/icons-react";
+import { IconCurlyLoop, TablerIconsProps } from "@tabler/icons-react";
 
 import { useMrgnlendStore, useUiStore, useUserProfileStore } from "~/store";
 import { useFirebaseAccount } from "~/hooks/useFirebaseAccount";
@@ -32,12 +32,12 @@ export const mobileLinks: NavLinkInfo[] = [
     label: "stake",
     Icon: IconBox,
   },
-  // {
-  //   href: "/looper",
-  //   alt: "loop icon",
-  //   label: "looper",
-  //   Icon: IconRefresh,
-  // },
+  {
+    href: "/looper",
+    alt: "looper icon",
+    label: "looper",
+    Icon: IconCurlyLoop,
+  },
   {
     href: "/portfolio",
     alt: "portfolio icon",
