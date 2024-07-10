@@ -82,7 +82,7 @@ export default function TradeSymbolPage() {
         {(!initialized || !activeGroup) && <Loader label="Loading mrgntrade..." className="mt-8" />}
         {initialized && activeGroup && activeGroup.token && (
           <div className="flex flex-col items-start gap-8 pb-16 w-full">
-            <div className="grid grid-cols-9 w-full max-w-6xl mx-auto">
+            <div className="space-y-8 grid-cols-9 w-full max-w-6xl mx-auto md:grid md:space-y-0">
               <div className="col-span-3">
                 <div className="h-full flex flex-col justify-center text-center items-center gap-3">
                   <Image
@@ -100,7 +100,7 @@ export default function TradeSymbolPage() {
               </div>
               <div className="col-span-6">
                 {tokenData && (
-                  <div className="grid grid-cols-3 w-full max-w-6xl mx-auto gap-8">
+                  <div className="grid grid-cols-2 w-full max-w-6xl mx-auto gap-4 md:gap-8 md:grid-cols-3">
                     <StatBlock
                       label="Current Price"
                       value={
@@ -247,7 +247,7 @@ export default function TradeSymbolPage() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-8 w-full mx-auto mt-8">
+              <div className="grid grid-cols-1 gap-4 w-full mx-auto mt-8 md:grid-cols-2 md:gap-8">
                 <BankCard bank={activeGroup.token} />
                 <BankCard bank={activeGroup.usdc} />
               </div>
