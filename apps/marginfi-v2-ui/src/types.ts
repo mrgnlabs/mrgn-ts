@@ -299,5 +299,6 @@ export type PreviousTxn = {
     depositBank: ActiveBankInfo;
     borrowAmount: number;
     borrowBank: ActiveBankInfo;
+    leverage: number;
   };
 };

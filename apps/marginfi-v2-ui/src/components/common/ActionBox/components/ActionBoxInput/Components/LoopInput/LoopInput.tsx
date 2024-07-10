@@ -10,15 +10,7 @@ import { useActionBoxStore } from "~/hooks/useActionBoxStore";
 import { useConnection } from "~/hooks/useConnection";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { useLstStore, LST_MINT } from "~/store";
-import {
-  computeBankRateRaw,
-  formatAmount,
-  getTokenImageURL,
-  calcYield,
-  getPriceRangeFromPeriod,
-  fetchAndParsePricesCsv,
-  PERIOD,
-} from "~/utils";
+import { formatAmount, getTokenImageURL, calcLstYield, LSTS_SOLANA_COMPASS_MAP, calcNetLoopingApy } from "~/utils";
 
 import { ActionBoxTokens } from "~/components/common/ActionBox/components";
 import { InputAction } from "~/components/common/ActionBox/components/ActionBoxInput/Components/InputAction";
@@ -38,15 +30,6 @@ type LoopInputProps = {
   handleInputChange: (value: string) => void;
   handleInputFocus: (focus: boolean) => void;
   isDialog?: boolean;
-};
-
-const LSTS_SOLANA_COMPASS_MAP: {
-  [key: string]: string;
-} = {
-  LST: "lst",
-  bSOL: "solblaze",
-  mSOL: "marinade",
-  JitoSOL: "jito",
 };
 
 export const LoopInput = ({
@@ -130,13 +113,11 @@ export const LoopInput = ({
     const solanaCompassKey = LSTS_SOLANA_COMPASS_MAP[bank.meta.tokenSymbol];
     if (!solanaCompassKey) return 0;
 
-    const SOLANA_COMPASS_PRICES_URL = `https://raw.githubusercontent.com/glitchful-dev/sol-stake-pool-apy/master/db/${solanaCompassKey}.csv`;
-    const solanaCompassPrices = await fetchAndParsePricesCsv(SOLANA_COMPASS_PRICES_URL);
-    const priceRange = getPriceRangeFromPeriod(solanaCompassPrices, PERIOD.DAYS_30);
-    if (!priceRange) {
-      return 0;
-    }
-    return calcYield(priceRange).apy;
+    const response = await fetch(`/api/lst?solanaCompassKey=${solanaCompassKey}`);
+    if (!response.ok) return 0;
+
+    const solanaCompassPrices = await response.json();
+    return calcLstYield(solanaCompassPrices);
   }, []);
 
   const refreshTxn = React.useCallback(() => {
@@ -162,10 +143,14 @@ export const LoopInput = ({
 
     if (isDepositingLst) {
       updateLstApy(selectedBank).then((apy) => setLstDepositApy(apy));
+    } else {
+      setLstDepositApy(0);
     }
 
     if (isBorrowingLst) {
       updateLstApy(selectedRepayBank).then((apy) => setLstBorrowApy(apy));
+    } else {
+      setLstBorrowApy(0);
     }
   }, [selectedBank, selectedRepayBank, isDepositingLst, isBorrowingLst, getLstYield]);
 
@@ -176,19 +161,13 @@ export const LoopInput = ({
     }
 
     const updateNetApy = async () => {
-      const depositApy = computeBankRateRaw(selectedBank, LendingModes.LEND);
-      const borrowApy = computeBankRateRaw(selectedRepayBank, LendingModes.BORROW);
-
-      const depositLstApy = (isDepositingLst ? lstDepositApy : 0) * leverageAmount;
-      const borrowLstApy = (isBorrowingLst ? lstBorrowApy : 0) * (leverageAmount - 1);
-
-      const totalDepositApy = depositApy * leverageAmount;
-      const totalBorrowApy = borrowApy * (leverageAmount - 1);
-
-      const finalDepositApy = depositLstApy + totalDepositApy;
-      const finalBorrowApy = borrowLstApy + totalBorrowApy;
-
-      const netApy = finalDepositApy - finalBorrowApy;
+      const { totalDepositApy, totalBorrowApy, depositLstApy, borrowLstApy, netApy } = calcNetLoopingApy(
+        selectedBank,
+        selectedRepayBank,
+        isDepositingLst ? lstDepositApy : 0,
+        isBorrowingLst ? lstBorrowApy : 0,
+        leverageAmount
+      );
 
       setNetApyRaw(netApy);
       setDepositTokenApy({ tokenApy: totalDepositApy, lstApy: depositLstApy });

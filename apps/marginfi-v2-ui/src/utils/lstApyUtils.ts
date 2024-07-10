@@ -1,5 +1,17 @@
-import { Readable } from 'stream';
-import { parse } from 'csv-parse';
+import { Readable } from "stream";
+import { parse } from "csv-parse";
+import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { computeBankRateRaw } from "./mrgnUtils";
+import { LendingModes } from "~/types";
+
+export const LSTS_SOLANA_COMPASS_MAP: {
+  [key: string]: string;
+} = {
+  LST: "lst",
+  bSOL: "solblaze",
+  mSOL: "marinade",
+  JitoSOL: "jito",
+};
 
 export type PriceRecord = {
   timestamp: number;
@@ -14,10 +26,8 @@ export type ApyCalcResult = {
   apy: number;
 };
 
-export const parsePriceRecordsFromCSV = async (
-  csv: Readable
-): Promise<PriceRecord[]> => {
-  const csvParser = parse({ delimiter: ',', columns: true });
+export const parsePriceRecordsFromCSV = async (csv: Readable): Promise<PriceRecord[]> => {
+  const csvParser = parse({ delimiter: ",", columns: true });
   const records: PriceRecord[] = [];
   for await (const row of csv.pipe(csvParser)) {
     const { timestamp, epoch, price } = row;
@@ -30,13 +40,13 @@ export const parsePriceRecordsFromCSV = async (
       price: Number(price),
     };
     if (isNaN(record.timestamp)) {
-      throw new Error('Timestamp must be a... timestamp!');
+      throw new Error("Timestamp must be a... timestamp!");
     }
     if (isNaN(record.epoch)) {
-      throw new Error('Epoch must be a number!');
+      throw new Error("Epoch must be a number!");
     }
     if (isNaN(record.price)) {
-      throw new Error('Price must be a number!');
+      throw new Error("Price must be a number!");
     }
 
     records.push(record);
@@ -54,7 +64,7 @@ export const fetchAndParsePricesCsv = async (url: string) => {
 
 const enum SECONDS_PER {
   DAY = 24 * 3600,
-  YEAR = 365.25 * 24 * 3600
+  YEAR = 365.25 * 24 * 3600,
 }
 
 export enum PERIOD {
@@ -66,15 +76,19 @@ export enum PERIOD {
 }
 
 type PriceRange = {
-  startPrice: number
-  endPrice: number
-  startTimestamp: number
-  endTimestamp: number
-  startEpoch: number
-  endEpoch: number
-}
+  startPrice: number;
+  endPrice: number;
+  startTimestamp: number;
+  endTimestamp: number;
+  startEpoch: number;
+  endEpoch: number;
+};
 
-export const getPriceRange = (priceRecords: PriceRecord[], startTimestamp: number, endTimestamp: number): PriceRange | null => {
+export const getPriceRange = (
+  priceRecords: PriceRecord[],
+  startTimestamp: number,
+  endTimestamp: number
+): PriceRange | null => {
   priceRecords.sort((a, b) => b.timestamp - a.timestamp);
 
   let earliestRecord: PriceRecord | null = null;
@@ -88,16 +102,16 @@ export const getPriceRange = (priceRecords: PriceRecord[], startTimestamp: numbe
       latestRecord = record;
     }
     if (record.timestamp < startTimestamp) {
-      break
+      break;
     }
   }
 
   if (!earliestRecord || !latestRecord) {
-    return null
+    return null;
   }
 
   if (earliestRecord.timestamp >= latestRecord.timestamp) {
-    return null
+    return null;
   }
 
   return {
@@ -107,41 +121,85 @@ export const getPriceRange = (priceRecords: PriceRecord[], startTimestamp: numbe
     endTimestamp: latestRecord.timestamp,
     startEpoch: earliestRecord.epoch,
     endEpoch: latestRecord.epoch,
+  };
+};
+
+export const getPriceRangeFromDates = (priceRecords: PriceRecord[], start: Date, end: Date) =>
+  getPriceRange(priceRecords, Math.round(start.getTime() / 1e3), Math.round(end.getTime() / 1e3));
+
+export const getPriceRangeFromPeriod = (
+  priceRecords: PriceRecord[],
+  periodSeconds = PERIOD.DAYS_30,
+  end = new Date()
+) => getPriceRangeFromDates(priceRecords, new Date(end.getTime() - periodSeconds * 1e3), end);
+
+export type Yield = { apy: number; apr: number };
+
+export const calcNetLoopingApy = (
+  bank: ExtendedBankInfo,
+  repayBank: ExtendedBankInfo,
+  lstDepositApy: number,
+  lstBorrowApy: number,
+  leverageAmount: number
+) => {
+  const depositApy = computeBankRateRaw(bank, LendingModes.LEND);
+  const borrowApy = computeBankRateRaw(repayBank, LendingModes.BORROW);
+
+  const depositLstApy = lstDepositApy * leverageAmount;
+  const borrowLstApy = lstBorrowApy * (leverageAmount - 1);
+
+  const totalDepositApy = depositApy * leverageAmount;
+  const totalBorrowApy = borrowApy * (leverageAmount - 1);
+
+  const finalDepositApy = depositLstApy + totalDepositApy;
+  const finalBorrowApy = borrowLstApy + totalBorrowApy;
+
+  const netApy = finalDepositApy - finalBorrowApy;
+
+  return {
+    totalDepositApy,
+    totalBorrowApy,
+    depositLstApy,
+    borrowLstApy,
+    netApy,
+  };
+};
+
+export const calcLstYield = (solanaCompassPrices: PriceRecord[]) => {
+  const priceRange = getPriceRangeFromPeriod(solanaCompassPrices, PERIOD.DAYS_30);
+  if (!priceRange) {
+    return 0;
   }
-}
+  return calcYield(priceRange).apy;
+};
 
-export const getPriceRangeFromDates = (priceRecords: PriceRecord[], start: Date, end: Date) => getPriceRange(priceRecords, Math.round(start.getTime() / 1e3), Math.round(end.getTime() / 1e3))
-
-export const getPriceRangeFromPeriod = (priceRecords: PriceRecord[], periodSeconds = PERIOD.DAYS_30, end = new Date()) => getPriceRangeFromDates(priceRecords, new Date(end.getTime() - periodSeconds * 1e3), end)
-
-export type Yield = { apy: number; apr: number }
 export const calcYield = (priceRange: PriceRange): Yield => {
   if (priceRange.startPrice <= 0 || priceRange.endPrice <= 0) {
-    throw new Error('Prices must be positive numbers!')
+    throw new Error("Prices must be positive numbers!");
   }
 
-  const deltaSeconds = priceRange.endTimestamp - priceRange.startTimestamp
+  const deltaSeconds = priceRange.endTimestamp - priceRange.startTimestamp;
   if (deltaSeconds <= 0) {
-    throw new Error('Start timestamp must be before end timestamp!')
+    throw new Error("Start timestamp must be before end timestamp!");
   }
 
-  const periodYield = priceRange.endPrice / priceRange.startPrice
-  const epochsPerPeriod = priceRange.endEpoch - priceRange.startEpoch
+  const periodYield = priceRange.endPrice / priceRange.startPrice;
+  const epochsPerPeriod = priceRange.endEpoch - priceRange.startEpoch;
   if (deltaSeconds <= 0) {
-    throw new Error('At least 1 epoch must be in the range!')
+    throw new Error("At least 1 epoch must be in the range!");
   }
 
-  const averageEpochDuration = deltaSeconds / epochsPerPeriod
-  const epochsPerYear = SECONDS_PER.YEAR / averageEpochDuration
-  const periodsPerYear = SECONDS_PER.YEAR / deltaSeconds
+  const averageEpochDuration = deltaSeconds / epochsPerPeriod;
+  const epochsPerYear = SECONDS_PER.YEAR / averageEpochDuration;
+  const periodsPerYear = SECONDS_PER.YEAR / deltaSeconds;
 
-  const averageEpochRate = periodYield ** (1 / epochsPerPeriod) - 1
+  const averageEpochRate = periodYield ** (1 / epochsPerPeriod) - 1;
 
-  const apy = (periodYield ** periodsPerYear) - 1
-  const apr = averageEpochRate * epochsPerYear
+  const apy = periodYield ** periodsPerYear - 1;
+  const apr = averageEpochRate * epochsPerYear;
 
   return {
     apy,
     apr,
-  }
-}
+  };
+};
