@@ -113,6 +113,8 @@ export const LoopingTokens = ({ selectedBank, setSelectedBank, actionType, isDia
                   disabled={
                     actionType === ActionType.Borrow
                       ? selectedBankStore?.address.equals(bank.address)
+                      : bank.info.state.mint.equals(WSOL_MINT)
+                      ? nativeSolBalance === 0
                       : bank.userInfo.tokenAccount.balance === 0
                   }
                 >
