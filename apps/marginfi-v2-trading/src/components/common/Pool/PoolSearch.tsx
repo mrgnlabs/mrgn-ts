@@ -5,6 +5,7 @@ import { useDebounce } from "@uidotdev/usehooks";
 
 import { useTradeStore } from "~/store";
 import { cn } from "~/utils";
+import { useIsMobile } from "~/hooks/useIsMobile";
 
 import { Input } from "~/components/ui/input";
 
@@ -13,6 +14,7 @@ export const PoolSearch = () => {
   const searchInputRef = React.useRef<HTMLInputElement>(null);
   const [searchQuery, setSearchQuery] = React.useState("");
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
+  const isMobile = useIsMobile();
 
   React.useEffect(() => {
     if (!debouncedSearchQuery.length) {
@@ -33,8 +35,8 @@ export const PoolSearch = () => {
       />
       <Input
         ref={searchInputRef}
-        placeholder="Search tokens by name, symbol, or mint address..."
-        className="py-2 pr-3 pl-12 h-auto text-lg rounded-full bg-transparent outline-none border-[#4E5156] focus-visible:ring-0 md:text-xl md:py-3 md:pl-14"
+        placeholder={isMobile ? "Search tokens..." : "Search tokens by name, symbol, or mint address..."}
+        className="py-1.5 pr-3 pl-12 h-auto text-lg rounded-full bg-transparent outline-none border-[#4E5156] focus-visible:ring-0 md:text-xl md:py-3 md:pl-14"
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
       />
