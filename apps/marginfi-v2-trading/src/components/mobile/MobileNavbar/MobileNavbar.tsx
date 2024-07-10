@@ -37,7 +37,7 @@ export const mobileLinks: NavLinkInfo[] = [
     Icon: IconChartPie,
   },
   {
-    href: "/portfolio",
+    href: "/pools/create",
     alt: "portfolio icon",
     label: "create pool",
     Icon: IconPlus,
@@ -56,8 +56,14 @@ const MobileNavbar = () => {
   const { isIOS, isPWA } = useOs();
 
   const activeLink = React.useMemo(() => {
-    const activeLinkIndex = mobileLinks.findIndex((link) => link.href === router.pathname);
-    return activeLinkIndex >= 0 ? `link${activeLinkIndex}` : "linknone";
+    const fullLink = mobileLinks.findIndex((link) => link.href === router.pathname);
+    if (fullLink > -1) return `link${fullLink}`;
+
+    const firstSegment = router.pathname.split("/")[1];
+    const firstSegmentLink = mobileLinks.findIndex((link) => link.href.includes(firstSegment));
+    if (firstSegmentLink) return `link${firstSegmentLink}`;
+
+    return "linknone";
   }, [router.pathname]);
 
   if (isActionBoxInputFocussed) return null;
@@ -74,9 +80,9 @@ const MobileNavbar = () => {
                 onClick={() => linkInfo.label === "more" && setIsMenuModalOpen(true)}
                 href={linkInfo.href}
                 className={cn(
-                  "w-1/4 py-2.5 flex flex-col gap-1 items-center border-t border-border",
+                  "w-1/4 py-2.5 flex flex-col gap-1 items-center border-t border-solid border-transparent transition-colors",
                   isIOS && isPWA && "pb-8",
-                  isActive ? "text-primary" : "text-muted-foreground"
+                  isActive ? "text-primary border-primary" : "text-muted-foreground"
                 )}
               >
                 <linkInfo.Icon />
