@@ -37,8 +37,8 @@ export const mobileLinks: NavLinkInfo[] = [
     Icon: IconChartPie,
   },
   {
-    href: "/pools/create",
-    alt: "portfolio icon",
+    href: "#",
+    alt: "create pool icon",
     label: "create pool",
     Icon: IconPlus,
   },
