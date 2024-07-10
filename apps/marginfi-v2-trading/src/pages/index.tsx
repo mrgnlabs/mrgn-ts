@@ -70,23 +70,24 @@ export default function HomePage() {
 
   return (
     <>
-      <div className="w-full max-w-8xl mx-auto px-4 md:px-8 pb-28 pt-12">
+      <div className="w-full max-w-8xl mx-auto px-4 pb-16 pt-8 md:pt-12">
         {!initialized && <Loader label="Loading mrgntrade..." className="mt-8" />}
         {initialized && (
           <>
-            <div className="w-full max-w-4xl mx-auto px-4 md:px-0">
+            <div className="w-full max-w-4xl mx-auto">
               <PageHeading
                 size="lg"
                 heading={
-                  <>
+                  <div className="flex flex-col gap-2 md:inline">
                     the arena <span className="text-lg">by mrgn</span>
-                  </>
+                  </div>
                 }
                 body={
-                  <>
-                    <p>Permissionless leverage trading, built on marginfi.</p>
-                    <p>Search for tokens or create a new pool.</p>
-                  </>
+                  <p>
+                    Permissionless leverage trading, built on marginfi.
+                    <br className="hidden md:block" />
+                    Search for tokens or create a new pool.
+                  </p>
                 }
               />
               <div className="flex items-center gap-4">
@@ -94,7 +95,7 @@ export default function HomePage() {
               </div>
             </div>
 
-            <div className="w-full space-y-6 px-4 lg:px-8 pt-16 pb-12">
+            <div className="w-full space-y-6 py-12 md:pt-16">
               <div className="flex items-center justify-end">
                 <Select value={sortBy} onValueChange={(value) => setSortBy(value as TradePoolFilterStates)}>
                   <SelectTrigger className="w-[190px] justify-start gap-2">
