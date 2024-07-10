@@ -51,13 +51,15 @@ export const Header = () => {
         </nav>
         <div className="flex items-center gap-6">
           {connected && (
-            <CreatePoolDialog
-              trigger={
-                <Button>
-                  <IconPlus size={18} /> Create Pool
-                </Button>
-              }
-            />
+            <div className="hidden md:flex">
+              <CreatePoolDialog
+                trigger={
+                  <Button>
+                    <IconPlus size={18} /> Create Pool
+                  </Button>
+                }
+              />
+            </div>
           )}
           <WalletButton />
         </div>
