@@ -616,72 +616,46 @@ class MarginfiClient {
   }
 
   /**
-   * Create a new marginfi pool under the authority of the user.
+   * Create a new marginfi bank under the authority of the user.
    *
-   * @returns MarginfiGroup instance
+   * @returns String signature
    */
-  async createPermissionlessPool({
-    tokenMint,
-    stableMint,
-    tokenBankConfig,
-    stableBankConfig,
+  async createPermissionlessBank({
+    mint,
+    bankConfig,
+    group,
     admin,
     priorityFee,
     opts,
   }: {
-    tokenMint: PublicKey;
-    stableMint: PublicKey;
-    tokenBankConfig: BankConfigOpt;
-    stableBankConfig: BankConfigOpt;
+    mint: PublicKey;
+    bankConfig: BankConfigOpt;
+    group: PublicKey;
     admin: PublicKey;
     priorityFee?: number;
     opts?: TransactionOptions;
   }) {
     const dbg = require("debug")("mfi:client");
 
-    const groupKeypair = Keypair.generate();
-    const tokenBankKeypair = Keypair.generate();
-    const stableBankKeypair = Keypair.generate();
+    const keypair = Keypair.generate();
 
     const priorityFeeIx = priorityFee ? makePriorityFeeIx(priorityFee) : [];
-    const groupIxs = await this.makeCreateMarginfiGroupIx(groupKeypair.publicKey);
-    const tokenBankIxs = await this.group.makePoolAddBankIx(
-      this.program,
-      tokenBankKeypair.publicKey,
-      tokenMint,
-      tokenBankConfig,
-      { admin, groupAddress: groupKeypair.publicKey }
-    );
 
-    const stableBankIxs = await this.group.makePoolAddBankIx(
-      this.program,
-      stableBankKeypair.publicKey,
-      stableMint,
-      stableBankConfig,
-      { admin, groupAddress: groupKeypair.publicKey }
-    );
+    const bankIxs = await this.group.makePoolAddBankIx(this.program, keypair.publicKey, mint, bankConfig, {
+      admin,
+      groupAddress: group,
+    });
 
-    const signers = [
-      ...groupIxs.keys,
-      ...tokenBankIxs.keys,
-      ...stableBankIxs.keys,
-      groupKeypair,
-      tokenBankKeypair,
-      stableBankKeypair,
-    ];
+    const signers = [...bankIxs.keys, keypair];
 
-    const tx = new Transaction().add(
-      ...priorityFeeIx,
-      ...groupIxs.instructions,
-      ...tokenBankIxs.instructions,
-      ...stableBankIxs.instructions
-    );
+    const tx = new Transaction().add(...priorityFeeIx, ...bankIxs.instructions);
 
     const sig = await this.processTransaction(tx, signers, opts);
     dbg("Created Marginfi group %s", sig);
 
     return sig;
   }
+
   /**
    * Create a new marginfi group under the authority of the user.
    *

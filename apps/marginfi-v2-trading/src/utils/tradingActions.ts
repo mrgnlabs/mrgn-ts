@@ -32,32 +32,47 @@ import {
 import { ToastStep } from "~/components/common/Toast";
 import { getMaybeSquadsOptions } from "./mrgnActions";
 
-export async function createPermissionlessPool({
+export async function createMarginfiGroup({ marginfiClient }: { marginfiClient: MarginfiClient }) {
+  const multiStepToast = new MultiStepToastHandle("Group Creation", [{ label: `Creating group` }]);
+  multiStepToast.start();
+
+  try {
+    const marginfiGroup = await marginfiClient.createMarginfiGroup({});
+    multiStepToast.setSuccessAndNext();
+    return marginfiGroup;
+  } catch (error: any) {
+    const msg = extractErrorString(error);
+    Sentry.captureException({ message: error });
+    multiStepToast.setFailed(msg);
+    console.log(`Error while withdrawing: ${msg}`);
+    console.log(error);
+    return;
+  }
+}
+
+export async function createPermissionlessBank({
   marginfiClient,
-  tokenMint,
-  stableMint,
-  tokenBankConfig,
-  stableBankConfig,
+  mint,
+  group,
+  bankConfig,
   admin,
   priorityFee,
 }: {
   marginfiClient: MarginfiClient;
-  tokenMint: PublicKey;
-  stableMint: PublicKey;
-  tokenBankConfig: BankConfigOpt;
-  stableBankConfig: BankConfigOpt;
+  mint: PublicKey;
+  group: PublicKey;
+  bankConfig: BankConfigOpt;
   admin: PublicKey;
   priorityFee?: number;
 }) {
-  const multiStepToast = new MultiStepToastHandle("Pool Creation", [{ label: `Creating pool` }]);
+  const multiStepToast = new MultiStepToastHandle("Bank Creation", [{ label: `Creating permissionless bank` }]);
   multiStepToast.start();
 
   try {
-    const txnSig = await marginfiClient.createPermissionlessPool({
-      tokenMint,
-      stableMint,
-      tokenBankConfig,
-      stableBankConfig,
+    const txnSig = await marginfiClient.createPermissionlessBank({
+      mint,
+      bankConfig,
+      group,
       admin,
       priorityFee,
     });
@@ -67,7 +82,7 @@ export async function createPermissionlessPool({
     const msg = extractErrorString(error);
     Sentry.captureException({ message: error });
     multiStepToast.setFailed(msg);
-    console.log(`Error while withdrawing: ${msg}`);
+    console.log(`Error while creating bank: ${msg}`);
     console.log(error);
     return;
   }
