@@ -495,8 +495,7 @@ class MarginfiAccountWrapper {
 
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:repay`);
     debug(
-      `Looping ${depositAmount} ${depositBank.tokenSymbol} against ${borrowAmount} ${
-        borrowBank.tokenSymbol
+      `Looping ${depositAmount} ${depositBank.tokenSymbol} against ${borrowAmount} ${borrowBank.tokenSymbol
       } into marginfi account (banks: ${depositBankAddress.toBase58()} / ${borrowBankAddress.toBase58()})`
     );
 
@@ -865,7 +864,7 @@ class MarginfiAccountWrapper {
   }
 
   async makeWithdrawEmissionsIx(bankAddress: PublicKey): Promise<InstructionsWrapper> {
-    return this._marginfiAccount.makeWithdrawEmissionsIx(this._program, this.client.banks, bankAddress);
+    return this._marginfiAccount.makeWithdrawEmissionsIx(this._program, this.client.banks, this.client.mintDatas, bankAddress);
   }
 
   async withdrawEmissions(bankAddress: PublicKey): Promise<string> {

@@ -50,7 +50,7 @@ import { makePriorityFeeIx } from "./utils";
 
 export type BankMap = Map<string, Bank>;
 export type OraclePriceMap = Map<string, OraclePrice>;
-export type TokenDataMap = Map<string, MintData>;
+export type MintDataMap = Map<string, MintData>;
 
 export type MintData = {
   mint: PublicKey;
@@ -75,7 +75,7 @@ class MarginfiClient {
   public group: MarginfiGroup;
   public banks: BankMap;
   public oraclePrices: OraclePriceMap;
-  public mintDatas: TokenDataMap;
+  public mintDatas: MintDataMap;
   public addressLookupTables: AddressLookupTableAccount[];
   private preloadedBankAddresses?: PublicKey[];
   private sendEndpoint?: string;
@@ -94,7 +94,7 @@ class MarginfiClient {
     group: MarginfiGroup,
     banks: BankMap,
     priceInfos: OraclePriceMap,
-    mintDatas: TokenDataMap,
+    mintDatas: MintDataMap,
     addressLookupTables?: AddressLookupTableAccount[],
     preloadedBankAddresses?: PublicKey[],
     readonly bankMetadataMap?: BankMetadataMap,
