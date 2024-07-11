@@ -21,6 +21,7 @@ type PoolSearchProps = {
   additionalContent?: React.ReactNode;
   additionalContentQueryMin?: number;
   onBankSelect?: () => void;
+  showNoResults?: boolean;
 };
 
 export const PoolSearch = ({
@@ -29,6 +30,7 @@ export const PoolSearch = ({
   additionalContent,
   additionalContentQueryMin = 3,
   onBankSelect,
+  showNoResults = true,
 }: PoolSearchProps) => {
   const router = useRouter();
   const [banks, searchBanks, searchResults, resetActiveGroup, resetSearchResults] = useTradeStore((state) => [
@@ -105,88 +107,95 @@ export const PoolSearch = ({
             onValueChange={(value) => setSearchQuery(value)}
           />
         </div>
-        {searchResults.length > 0 && (
-          <CommandGroup className={cn(size === "lg" && "md:w-4/5 md:mx-auto")}>
-            {searchResults.slice(0, maxResults).map((result) => {
-              const address = result.info.rawBank.mint.toBase58();
-              const tokenInfo = tokenData ? tokenData[address] : null;
+        <div className={cn(size === "lg" && "absolute top-10 w-full z-20 md:top-14")}>
+          {searchResults.length > 0 && (
+            <CommandGroup className={cn("shadow-lg", size === "lg" && "md:w-4/5 md:mx-auto")}>
+              {searchResults.slice(0, maxResults).map((result) => {
+                const address = result.info.rawBank.mint.toBase58();
+                const tokenInfo = tokenData ? tokenData[address] : null;
 
-              return (
-                <CommandItem
-                  key={address}
-                  value={result.address.toBase58()}
-                  className={cn(size === "sm" ? "text-sm" : "py-4")}
-                  onSelect={(value) => {
-                    resetActiveGroup();
-                    const bank = banks.find((bank) => bank.address.toBase58().toLowerCase() === value);
+                return (
+                  <CommandItem
+                    key={address}
+                    value={result.address.toBase58()}
+                    className={cn(size === "sm" ? "text-sm" : "py-4")}
+                    onSelect={(value) => {
+                      resetActiveGroup();
+                      const bank = banks.find((bank) => bank.address.toBase58().toLowerCase() === value);
 
-                    if (!bank) return;
-                    router.push(`/pools/${bank.address.toBase58()}`);
-                    if (onBankSelect) onBankSelect();
-                  }}
-                >
-                  <div className="flex items-center gap-4">
-                    <Image
-                      src={getTokenImageURL(result.meta.tokenSymbol)}
-                      width={size === "sm" ? 28 : 32}
-                      height={size === "sm" ? 28 : 32}
-                      alt={result.meta.tokenSymbol}
-                      className="rounded-full"
-                    />
-                    <h3>
-                      {result.meta.tokenName} ({result.meta.tokenSymbol})
-                    </h3>
-                  </div>
-                  {tokenInfo && (
-                    <dl className={cn("flex items-center gap-2 text-sm md:ml-auto", size === "sm" && "text-xs")}>
-                      <div className="w-[130px]">
-                        <dt className="text-muted-foreground">Price:</dt>
-                        <dd className="space-x-2">
-                          <span>
-                            {tokenInfo.price > 0.01
-                              ? usdFormatter.format(tokenInfo.price)
-                              : `$${tokenInfo.price.toExponential(2)}`}
-                          </span>
+                      if (!bank) return;
+                      router.push(`/pools/${bank.address.toBase58()}`);
+                      if (onBankSelect) onBankSelect();
+                    }}
+                  >
+                    <div className="flex items-center gap-4">
+                      <Image
+                        src={getTokenImageURL(result.meta.tokenSymbol)}
+                        width={size === "sm" ? 28 : 32}
+                        height={size === "sm" ? 28 : 32}
+                        alt={result.meta.tokenSymbol}
+                        className="rounded-full"
+                      />
+                      <h3>
+                        {result.meta.tokenName} ({result.meta.tokenSymbol})
+                      </h3>
+                    </div>
+                    {tokenInfo && (
+                      <dl
+                        className={cn(
+                          "flex items-center gap-2 text-xs ml-auto md:text-sm",
+                          size === "sm" && "md:text-xs"
+                        )}
+                      >
+                        <div className="w-[110px] md:w-[130px]">
+                          <dt className="text-muted-foreground">Price:</dt>
+                          <dd className="space-x-2">
+                            <span>
+                              {tokenInfo.price > 0.01
+                                ? usdFormatter.format(tokenInfo.price)
+                                : `$${tokenInfo.price.toExponential(2)}`}
+                            </span>
 
-                          <span
-                            className={cn(
-                              "text-xs",
-                              tokenInfo.volumeChange24h > 0 ? "text-mrgn-success" : "text-mrgn-error"
-                            )}
-                          >
-                            {tokenInfo.priceChange24h > 0 && "+"}
-                            {percentFormatter.format(tokenInfo.priceChange24h / 100)}
-                          </span>
-                        </dd>
-                      </div>
-                      <div className="w-[130px]">
-                        <dt className="text-muted-foreground">Vol 24hr:</dt>
-                        <dd className="space-x-2">
-                          <span>${numeralFormatter(tokenInfo.volume24h)}</span>
-                          <span
-                            className={cn(
-                              "text-xs",
-                              tokenInfo.volumeChange24h > 0 ? "text-mrgn-success" : "text-mrgn-error"
-                            )}
-                          >
-                            {tokenInfo.volumeChange24h > 0 && "+"}
-                            {percentFormatter.format(tokenInfo.volumeChange24h / 100)}
-                          </span>
-                        </dd>
-                      </div>
-                    </dl>
-                  )}
-                </CommandItem>
-              );
-            })}
-          </CommandGroup>
-        )}
-        {searchQuery.length > 0 && searchResults.length === 0 && (
-          <CommandEmpty className="text-center mt-8 text-muted-foreground">No results found</CommandEmpty>
-        )}
-        {additionalContent && searchQuery.length >= additionalContentQueryMin && (
-          <div className="flex justify-center w-full mt-8">{additionalContent}</div>
-        )}
+                            <span
+                              className={cn(
+                                "text-xs",
+                                tokenInfo.volumeChange24h > 0 ? "text-mrgn-success" : "text-mrgn-error"
+                              )}
+                            >
+                              {tokenInfo.priceChange24h > 0 && "+"}
+                              {percentFormatter.format(tokenInfo.priceChange24h / 100)}
+                            </span>
+                          </dd>
+                        </div>
+                        <div className="hidden w-[130px] md:block">
+                          <dt className="text-muted-foreground">Vol 24hr:</dt>
+                          <dd className="space-x-2">
+                            <span>${numeralFormatter(tokenInfo.volume24h)}</span>
+                            <span
+                              className={cn(
+                                "text-xs",
+                                tokenInfo.volumeChange24h > 0 ? "text-mrgn-success" : "text-mrgn-error"
+                              )}
+                            >
+                              {tokenInfo.volumeChange24h > 0 && "+"}
+                              {percentFormatter.format(tokenInfo.volumeChange24h / 100)}
+                            </span>
+                          </dd>
+                        </div>
+                      </dl>
+                    )}
+                  </CommandItem>
+                );
+              })}
+            </CommandGroup>
+          )}
+          {searchQuery.length > 0 && searchResults.length === 0 && showNoResults && (
+            <CommandEmpty className="text-center mt-8 text-muted-foreground">No results found</CommandEmpty>
+          )}
+          {additionalContent && searchQuery.length >= additionalContentQueryMin && (
+            <div className="flex justify-center w-full mt-8">{additionalContent}</div>
+          )}
+        </div>
       </Command>
     </div>
   );
