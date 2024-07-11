@@ -664,14 +664,18 @@ class MarginfiClient {
    *
    * @returns MarginfiGroup instance
    */
-  async createMarginfiGroup(seed?: Keypair, opts?: TransactionOptions): Promise<PublicKey> {
+  async createMarginfiGroup(
+    seed?: Keypair,
+    additionalIxs?: TransactionInstruction[],
+    opts?: TransactionOptions
+  ): Promise<PublicKey> {
     const dbg = require("debug")("mfi:client");
 
     const accountKeypair = seed ?? Keypair.generate();
 
     const ixs = await this.makeCreateMarginfiGroupIx(accountKeypair.publicKey);
     const signers = [...ixs.keys, accountKeypair];
-    const tx = new Transaction().add(...ixs.instructions);
+    const tx = new Transaction().add(...ixs.instructions, ...(additionalIxs ?? []));
     const sig = await this.processTransaction(tx, signers, opts);
     dbg("Created Marginfi group %s", sig);
 
