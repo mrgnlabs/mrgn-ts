@@ -1,6 +1,7 @@
 import React from "react";
 
 import Image from "next/image";
+import { useRouter } from "next/router";
 
 import { useDebounce } from "@uidotdev/usehooks";
 import { usdFormatter, percentFormatter, numeralFormatter } from "@mrgnlabs/mrgn-common";
@@ -12,11 +13,29 @@ import { useIsMobile } from "~/hooks/useIsMobile";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "~/components/ui/command";
 
 import type { TokenData } from "~/types";
+import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
-export const PoolSearch = () => {
-  const [searchBanks, searchResults, resetSearchResults] = useTradeStore((state) => [
+type PoolSearchProps = {
+  size?: "sm" | "lg";
+  maxResults?: number;
+  additionalContent?: React.ReactNode;
+  additionalContentQueryMin?: number;
+  onBankSelect?: () => void;
+};
+
+export const PoolSearch = ({
+  size = "lg",
+  maxResults = 5,
+  additionalContent,
+  additionalContentQueryMin = 3,
+  onBankSelect,
+}: PoolSearchProps) => {
+  const router = useRouter();
+  const [banks, searchBanks, searchResults, resetActiveGroup, resetSearchResults] = useTradeStore((state) => [
+    state.banks,
     state.searchBanks,
     state.searchResults,
+    state.resetActiveGroup,
     state.resetSearchResults,
   ]);
   const [tokenData, setTokenData] = React.useState<{
@@ -78,29 +97,39 @@ export const PoolSearch = () => {
           <CommandInput
             ref={searchInputRef}
             placeholder={isMobile ? "Search tokens..." : "Search tokens by name, symbol, or mint address..."}
-            className="py-1.5 h-auto text-lg bg-transparent outline-none focus-visible:ring-0 md:text-xl md:py-3"
+            className={cn(
+              "py-1.5 h-auto text-lg bg-transparent outline-none focus-visible:ring-0 md:text-xl md:py-3",
+              size === "sm" && "text-base md:text-lg md:py-2.5"
+            )}
             value={searchQuery}
             onValueChange={(value) => setSearchQuery(value)}
           />
         </div>
         {searchResults.length > 0 && (
-          <CommandGroup>
-            {searchResults.map((result) => {
+          <CommandGroup className={cn(size === "lg" && "md:w-4/5 md:mx-auto")}>
+            {searchResults.slice(0, maxResults).map((result) => {
               const address = result.info.rawBank.mint.toBase58();
               const tokenInfo = tokenData ? tokenData[address] : null;
 
               return (
                 <CommandItem
                   key={address}
-                  onClick={() => {
-                    console.log("clicked", result);
+                  value={result.address.toBase58()}
+                  className={cn(size === "sm" ? "text-sm" : "py-4")}
+                  onSelect={(value) => {
+                    resetActiveGroup();
+                    const bank = banks.find((bank) => bank.address.toBase58().toLowerCase() === value);
+
+                    if (!bank) return;
+                    router.push(`/pools/${bank.address.toBase58()}`);
+                    if (onBankSelect) onBankSelect();
                   }}
                 >
                   <div className="flex items-center gap-4">
                     <Image
                       src={getTokenImageURL(result.meta.tokenSymbol)}
-                      width={32}
-                      height={32}
+                      width={size === "sm" ? 28 : 32}
+                      height={size === "sm" ? 28 : 32}
                       alt={result.meta.tokenSymbol}
                       className="rounded-full"
                     />
@@ -109,13 +138,15 @@ export const PoolSearch = () => {
                     </h3>
                   </div>
                   {tokenInfo && (
-                    <dl className="flex items-center gap-2 text-sm md:ml-auto">
-                      <div className="space-y-0.5 w-[130px]">
+                    <dl className={cn("flex items-center gap-2 text-sm md:ml-auto", size === "sm" && "text-xs")}>
+                      <div className="w-[130px]">
                         <dt className="text-muted-foreground">Price:</dt>
-                        <dd>
-                          {tokenInfo.price > 0.01
-                            ? usdFormatter.format(tokenInfo.price)
-                            : `$${tokenInfo.price.toExponential(2)}`}
+                        <dd className="space-x-2">
+                          <span>
+                            {tokenInfo.price > 0.01
+                              ? usdFormatter.format(tokenInfo.price)
+                              : `$${tokenInfo.price.toExponential(2)}`}
+                          </span>
 
                           <span
                             className={cn(
@@ -128,10 +159,10 @@ export const PoolSearch = () => {
                           </span>
                         </dd>
                       </div>
-                      <div className="space-y-0.5 w-[130px]">
+                      <div className="w-[130px]">
                         <dt className="text-muted-foreground">Vol 24hr:</dt>
-                        <dd>
-                          ${numeralFormatter(tokenInfo.volume24h)}
+                        <dd className="space-x-2">
+                          <span>${numeralFormatter(tokenInfo.volume24h)}</span>
                           <span
                             className={cn(
                               "text-xs",
@@ -150,7 +181,12 @@ export const PoolSearch = () => {
             })}
           </CommandGroup>
         )}
-        {searchQuery.length > 0 && searchResults.length === 0 && <CommandEmpty>No results found</CommandEmpty>}
+        {searchQuery.length > 0 && searchResults.length === 0 && (
+          <CommandEmpty className="text-center mt-8 text-muted-foreground">No results found</CommandEmpty>
+        )}
+        {additionalContent && searchQuery.length >= additionalContentQueryMin && (
+          <div className="flex justify-center w-full mt-8">{additionalContent}</div>
+        )}
       </Command>
     </div>
   );

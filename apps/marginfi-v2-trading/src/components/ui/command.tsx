@@ -45,7 +45,7 @@ const CommandInput = React.forwardRef<
     <CommandPrimitive.Input
       ref={ref}
       className={cn(
-        "flex h-10 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50",
+        "flex h-10 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground/75 disabled:cursor-not-allowed disabled:opacity-50",
         className
       )}
       {...props}
@@ -78,7 +78,7 @@ const CommandGroup = React.forwardRef<
   <CommandPrimitive.Group
     ref={ref}
     className={cn(
-      "overflow-hidden mt-4 w-3/4 mx-auto rounded-lg [&_[cmdk-group-heading]]:py-1 [&_[cmdk-group-heading]]:text-sm [&_[cmdk-group-heading]]:pt-1 [&_[cmdk-group-heading]]:pb-3",
+      "overflow-hidden mt-4 w-full rounded-lg [&_[cmdk-group-heading]]:py-1 [&_[cmdk-group-heading]]:text-sm [&_[cmdk-group-heading]]:pt-1 [&_[cmdk-group-heading]]:pb-3",
       className
     )}
     {...props}
@@ -102,7 +102,7 @@ const CommandItem = React.forwardRef<
   <CommandPrimitive.Item
     ref={ref}
     className={cn(
-      "relative flex cursor-default select-none items-center px-4 py-4 text-sm gap-3 outline-none bg-background transition-colors aria-selected:bg-accent data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+      "relative flex cursor-default select-none items-center px-4 py-2 text-sm gap-3 outline-none bg-background transition-colors aria-selected:bg-accent data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
       className
     )}
     {...props}
