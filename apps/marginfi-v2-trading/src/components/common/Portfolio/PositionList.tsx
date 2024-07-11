@@ -31,7 +31,7 @@ export const PositionList = () => {
 
   return (
     <div className="rounded-xl">
-      <Table>
+      <Table className="min-w-[1080px] overflow-auto">
         <TableHeader>
           <TableRow className="hover:bg-transparent">
             <TableHead className="w-[14%]">Position</TableHead>
