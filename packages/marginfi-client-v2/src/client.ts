@@ -598,6 +598,7 @@ class MarginfiClient {
     bankConfig,
     group,
     admin,
+    seed,
     priorityFee,
     opts,
   }: {
@@ -605,12 +606,14 @@ class MarginfiClient {
     bankConfig: BankConfigOpt;
     group: PublicKey;
     admin: PublicKey;
+    seed?: Keypair;
     priorityFee?: number;
+
     opts?: TransactionOptions;
   }) {
     const dbg = require("debug")("mfi:client");
 
-    const keypair = Keypair.generate();
+    const keypair = seed ?? Keypair.generate();
 
     const priorityFeeIx = priorityFee ? makePriorityFeeIx(priorityFee) : [];
 
@@ -634,10 +637,10 @@ class MarginfiClient {
    *
    * @returns MarginfiGroup instance
    */
-  async createMarginfiGroup(opts?: TransactionOptions): Promise<PublicKey> {
+  async createMarginfiGroup(seed?: Keypair, opts?: TransactionOptions): Promise<PublicKey> {
     const dbg = require("debug")("mfi:client");
 
-    const accountKeypair = Keypair.generate();
+    const accountKeypair = seed ?? Keypair.generate();
 
     const ixs = await this.makeCreateMarginfiGroupIx(accountKeypair.publicKey);
     const signers = [...ixs.keys, accountKeypair];
