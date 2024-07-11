@@ -3,6 +3,9 @@
 import React from "react";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { usePrevious } from "~/utils";
+import { useIsMobile } from "~/hooks/useIsMobile";
+
+import { ChartingLibraryFeatureset } from "../../../../public/tradingview";
 
 interface props {
   token: ExtendedBankInfo;
@@ -11,11 +14,23 @@ interface props {
 export const TVWidget = ({ token }: props) => {
   const container = React.useRef<HTMLDivElement>(null);
   const prevToken = usePrevious(token);
+  const isMobile = useIsMobile();
 
   React.useEffect(() => {
-    const isChanged = !prevToken?.address.equals(token.address);
-    if (!container.current || !isChanged) return;
+    if (!container.current) return;
+
     const script = document.createElement("script");
+
+    const disabledFeats: ChartingLibraryFeatureset[] = [
+      "header_symbol_search",
+      "header_quick_search",
+      "header_compare",
+    ];
+
+    if (isMobile) {
+      disabledFeats.push("left_toolbar");
+    }
+
     script.src = "/tradingview/charting_library/charting_library.js";
     script.type = "text/javascript";
     script.async = true;
@@ -31,10 +46,10 @@ export const TVWidget = ({ token }: props) => {
           "paneProperties.backgroundType": "solid",
         },
         height: 600,
-        width: 900,
+        width: container.current?.offsetWidth || 900,
         autosize: false,
         header_widget_buttons_mode: "compact",
-        disabled_features: ["header_symbol_search", "header_quick_search", "header_compare"],
+        disabled_features: disabledFeats,
         custom_formatters: {
           priceFormatterFactory: (symbolInfo, minTick) => {
             if (symbolInfo === null) {
@@ -140,7 +155,7 @@ export const TVWidget = ({ token }: props) => {
     //   if (!container.current) return;
     //   container.current.removeChild(script);
     // };
-  }, [container, token, prevToken]);
+  }, [container, token, prevToken, isMobile]);
 
   return (
     <div id="tv_chart_container" ref={container} className="relative"></div>
