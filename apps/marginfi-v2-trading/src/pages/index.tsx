@@ -81,7 +81,7 @@ export default function HomePage() {
                 }
               />
               <div className="flex items-center gap-4">
-                <PoolSearch />
+                <PoolSearch showNoResults={false} />
               </div>
             </div>
 
