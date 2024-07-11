@@ -2,10 +2,12 @@ import { QuoteResponse, SwapRequest, createJupiterApiClient } from "@jup-ag/api"
 import * as Sentry from "@sentry/nextjs";
 import {
   AddressLookupTableAccount,
+  AddressLookupTableProgram,
   Connection,
   Keypair,
   LAMPORTS_PER_SOL,
   PublicKey,
+  SystemProgram,
   Transaction,
   TransactionInstruction,
   TransactionMessage,
@@ -32,19 +34,22 @@ import {
 } from "~/components/common/TradingBox/tradingBox.utils";
 import { ToastStep } from "~/components/common/Toast";
 import { getMaybeSquadsOptions } from "./mrgnActions";
+import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 
 export async function createMarginfiGroup({
   marginfiClient,
+  additionalIxs,
   seed,
 }: {
   marginfiClient: MarginfiClient;
+  additionalIxs: TransactionInstruction[];
   seed?: Keypair;
 }) {
   const multiStepToast = new MultiStepToastHandle("Group Creation", [{ label: `Creating group` }]);
   multiStepToast.start();
 
   try {
-    const marginfiGroup = await marginfiClient.createMarginfiGroup(seed, {});
+    const marginfiGroup = await marginfiClient.createMarginfiGroup(seed, additionalIxs, {});
     multiStepToast.setSuccessAndNext();
     return marginfiGroup;
   } catch (error: any) {
@@ -57,42 +62,57 @@ export async function createMarginfiGroup({
   }
 }
 
-export async function createPoolLookupTable({ bankPubkey, client }: { bankPubkey: PublicKey; client: MarginfiClient }) {
-  const liquidityVaultSeed = [Buffer.from("liquidity_vault"), bankPubkey.toBuffer()];
-  const liquidityVaultAuthoritySeed = [Buffer.from("liquidity_vault_auth"), bankPubkey.toBuffer()];
+export async function createPoolLookupTable({
+  client,
+  bankKeys,
+  oracleKeys,
+  groupKey,
+  walletKey,
+}: {
+  client: MarginfiClient;
+  bankKeys: PublicKey[];
+  oracleKeys: PublicKey[];
+  groupKey: PublicKey;
+  walletKey: PublicKey;
+}) {
+  let bankAddresses = [...bankKeys];
+  let programs = [SystemProgram.programId, client.programId, TOKEN_PROGRAM_ID];
 
-  const insuranceVaultSeed = [Buffer.from("insurance_vault"), bankPubkey.toBuffer()];
-  const insuranceVaultAuthoritySeed = [Buffer.from("insurance_vault_auth"), bankPubkey.toBuffer()];
+  bankKeys.forEach((bankPubkey) => {
+    const liquidityVaultSeed = [Buffer.from("liquidity_vault"), bankPubkey.toBuffer()];
+    const liquidityVaultAuthoritySeed = [Buffer.from("liquidity_vault_auth"), bankPubkey.toBuffer()];
 
-  const feeVaultSeed = [Buffer.from("fee_vault"), bankPubkey.toBuffer()];
-  const feeVaultAuthoritySeed = [Buffer.from("fee_vault_auth"), bankPubkey.toBuffer()];
+    const [liquidityVault] = PublicKey.findProgramAddressSync(liquidityVaultSeed, client.program.programId);
+    const [liquidityVaultAuthority] = PublicKey.findProgramAddressSync(
+      liquidityVaultAuthoritySeed,
+      client.program.programId
+    );
 
-  const [liquidityVault] = PublicKey.findProgramAddressSync(liquidityVaultSeed, client.program.programId);
-  const [liquidityVaultAuthority] = PublicKey.findProgramAddressSync(
-    liquidityVaultAuthoritySeed,
-    client.program.programId
-  );
-
-  const [insuranceVault] = PublicKey.findProgramAddressSync(insuranceVaultSeed, client.program.programId);
-  const [insuranceVaultAuthority] = PublicKey.findProgramAddressSync(
-    insuranceVaultAuthoritySeed,
-    client.program.programId
-  );
-
-  const [feeVault] = PublicKey.findProgramAddressSync(feeVaultSeed, client.program.programId);
-  const [feeVaultAuthority] = PublicKey.findProgramAddressSync(feeVaultAuthoritySeed, client.program.programId);
-
-  console.log({
-    liquidityVault: liquidityVault.toBase58(),
-    liquidityVaultAuthority: liquidityVaultAuthority.toBase58(),
-    insuranceVault: insuranceVault.toBase58(),
-    insuranceVaultAuthority: insuranceVaultAuthority.toBase58(),
-    feeVault: feeVault.toBase58(),
-    feeVaultAuthority: feeVaultAuthority.toBase58(),
+    bankAddresses.push(...[liquidityVault, liquidityVaultAuthority]);
   });
 
-  // TODO: convert depositLimit and borrowLimit based on mint decimals
-  // const mint = getMint(connection, bankMint);
+  const lutKeys = [...bankAddresses, ...programs, ...[groupKey], ...oracleKeys];
+
+  const slot = await client.provider.connection.getSlot();
+
+  const [lookupTableInst, lookupTableAddress] = AddressLookupTableProgram.createLookupTable({
+    authority: walletKey,
+    payer: walletKey,
+    recentSlot: slot,
+  });
+
+  const extendInstruction = AddressLookupTableProgram.extendLookupTable({
+    payer: walletKey,
+    authority: walletKey,
+    lookupTable: lookupTableAddress,
+    addresses: lutKeys,
+  });
+
+  return {
+    lutAddress: lookupTableAddress,
+    createLutIx: lookupTableInst,
+    extendLutIx: extendInstruction,
+  };
 }
 
 export async function createPermissionlessBank({

@@ -1,17 +1,8 @@
-import Image from "next/image";
-import Link from "next/link";
-
-import { IconConfetti } from "@tabler/icons-react";
-
-import { shortenAddress } from "@mrgnlabs/mrgn-common";
-
 import { Button } from "~/components/ui/button";
 
 import { FormValues } from "~/components/common/Pool/CreatePoolDialog";
 
-import { IconLoader } from "~/components/ui/icons";
-import { Separator } from "~/components/ui/separator";
-import { Stepper, StepperItem, StepperWrapper, useStepper } from "~/components/ui/Stepper";
+import { IconLoader, IconCheck, IconConfetti, IconX } from "~/components/ui/icons";
 import {
   BankConfigOpt,
   MarginfiClient,
@@ -24,7 +15,15 @@ import {
 } from "@mrgnlabs/marginfi-client-v2";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { useConnection } from "~/hooks/useConnection";
-import { Keypair, Message, PublicKey, Transaction, TransactionMessage, VersionedTransaction } from "@solana/web3.js";
+import {
+  Keypair,
+  Message,
+  PublicKey,
+  Transaction,
+  TransactionInstruction,
+  TransactionMessage,
+  VersionedTransaction,
+} from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 import { createMarginfiGroup, createPermissionlessBank, createPoolLookupTable } from "~/utils";
 import { useUiStore } from "~/store";
@@ -100,80 +99,86 @@ const DEFAULT_TOKEN_BANK_CONFIG: BankConfigOpt = {
   permissionlessBadDebtSettlement: null,
 };
 
-type stepperStatus = "default" | "success" | "error" | "loading";
+type StepperStatus = "default" | "success" | "error" | "loading";
+
+type IconMap = { [key in StepperStatus]: React.JSX.Element };
+
+const iconMap: IconMap = {
+  success: <IconCheck className="h-5 w-5 text-white bg-success p-1 rounded-full" />,
+  error: <IconX className="h-5 w-5 text-white bg-destructive p-1 rounded-full" />,
+  loading: <IconLoader className="h-5 w-5 text-black border border-black p-1 rounded-full animate-spin" />,
+  default: <IconCheck className="h-5 w-5 text-black border border-black p-1 rounded-full" />,
+};
 
 interface CreatePoolLoadingProps {
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  setIsCompleted: () => void;
+  setIsCompleted: ({
+    tokenBankPk,
+    stableBankPk,
+    groupPk,
+    lutAddress,
+  }: {
+    tokenBankPk: PublicKey;
+    stableBankPk: PublicKey;
+    groupPk: PublicKey;
+    lutAddress: PublicKey;
+  }) => void;
   poolCreatedData: FormValues | null;
 }
 
-interface CreatePoolLoadingContainerProps extends CreatePoolLoadingProps {
-  setStatus: React.Dispatch<React.SetStateAction<stepperStatus | undefined>>;
-}
-
-export const CreatePoolLoading = (props: CreatePoolLoadingProps) => {
-  const steps = React.useMemo(
-    () => [
-      { label: "Step 1", description: "Creating group" },
-      { label: "Step 2", description: "Creating USDC bank" },
-      { label: "Step 3", description: `Creating ${props.poolCreatedData?.symbol} bank` },
-    ],
-    [props.poolCreatedData]
-  );
-
-  const [status, setStatus] = React.useState<stepperStatus>();
-
-  return (
-    <StepperWrapper
-      initialStep={0}
-      steps={steps}
-      status={status}
-      variant="default"
-      labelOrientation="vertical"
-      orientation="horizontal"
-      isClickable={false}
-    >
-      <CreatePoolLoadingContainer {...props} setStatus={setStatus} />
-    </StepperWrapper>
-  );
-};
-
 type PoolCreationState = {
+  seeds?: {
+    tokenBankSeed: Keypair;
+    stableBankSeed: Keypair;
+    marginfiGroupSeed: Keypair;
+  };
+  lutAddress?: PublicKey;
   marginfiClient?: MarginfiClient;
   marginfiGroupPk?: PublicKey;
-  tokenBankSig?: string;
-  stableBankSig?: string;
+  tokenBankPk?: PublicKey;
+  stableBankPk?: PublicKey;
 };
 
-const CreatePoolLoadingContainer = ({
-  poolCreatedData,
-  setIsOpen,
-  setIsCompleted,
-  setStatus,
-}: CreatePoolLoadingContainerProps) => {
+export const CreatePoolLoading = ({ poolCreatedData, setIsOpen, setIsCompleted }: CreatePoolLoadingProps) => {
   const { wallet } = useWalletContext();
   const { connection } = useConnection();
-  const { nextStep, status, activeStep } = useStepper();
   const [priorityFee] = useUiStore((state) => [state.priorityFee]);
+  const [activeStep, setActiveStep] = React.useState<number>(0);
+  const [status, setStatus] = React.useState<StepperStatus>("default");
+
+  const steps = React.useMemo(
+    () => [
+      { label: "Step 1", description: "Creating group & LUT" },
+      { label: "Step 2", description: "Creating USDC bank" },
+      { label: "Step 3", description: `Creating ${poolCreatedData?.symbol} bank` },
+    ],
+    [poolCreatedData]
+  );
 
   const [poolCreation, setPoolCreation] = React.useState<PoolCreationState>();
 
   const initialized = React.useRef(false);
 
+  React.useEffect(() => {
+    if (!initialized.current) {
+      initialized.current = true;
+      createTransaction();
+    }
+  }, []);
+
   const initializeClient = React.useCallback(async () => {
     const config = getConfig();
 
     const client = await MarginfiClient.fetch(config, wallet, connection);
-    // console.log({ client });
+
     setPoolCreation((state) => ({ ...state, marginfiClient: client }));
     return client;
   }, [connection, wallet]);
 
   const createGroup = React.useCallback(
-    async (marginfiClient: MarginfiClient, seed?: Keypair) => {
+    async (marginfiClient: MarginfiClient, lutIxs: TransactionInstruction[], seed?: Keypair) => {
       try {
-        const marginfiGroup = await createMarginfiGroup({ marginfiClient, seed });
+        const marginfiGroup = await createMarginfiGroup({ marginfiClient, additionalIxs: lutIxs, seed });
 
         if (!marginfiGroup) throw new Error();
 
@@ -186,7 +191,13 @@ const CreatePoolLoadingContainer = ({
   );
 
   const createBank = React.useCallback(
-    async (marginfiClient: MarginfiClient, bankConfig: BankConfigOpt, mint: PublicKey, group: PublicKey) => {
+    async (
+      marginfiClient: MarginfiClient,
+      bankConfig: BankConfigOpt,
+      mint: PublicKey,
+      group: PublicKey,
+      seed?: Keypair
+    ) => {
       try {
         setStatus("loading");
 
@@ -196,6 +207,7 @@ const CreatePoolLoadingContainer = ({
           bankConfig,
           group,
           admin: wallet.publicKey,
+          seed,
           priorityFee,
         });
 
@@ -209,30 +221,63 @@ const CreatePoolLoadingContainer = ({
     [wallet.publicKey, priorityFee, setStatus]
   );
 
+  const createSeeds = React.useCallback(() => {
+    const tokenBankSeed = new Keypair();
+    const stableBankSeed = new Keypair();
+    const marginfiGroupSeed = new Keypair();
+
+    return { tokenBankSeed, stableBankSeed, marginfiGroupSeed };
+  }, []);
+
   const createTransaction = React.useCallback(async () => {
     if (!poolCreatedData) return;
     setStatus("loading");
 
     let client = poolCreation?.marginfiClient;
-
-    if (!client) client = await initializeClient();
-    // createPoolLookupTable({ bankPubkey: new PublicKey("4frT8KttgxPFHJ73BYuLEcvrKtjBcfYyKupZmH4Crhgp"), client });
-
+    let seeds = poolCreation?.seeds;
     let group = poolCreation?.marginfiGroupPk;
-    if (!group) group = await createGroup(client);
-    if (!group) return;
-    setPoolCreation((state) => ({ ...state, group: group }));
+    let lutAddress = poolCreation?.lutAddress;
 
-    nextStep();
+    // create client
+    if (!client) client = await initializeClient();
 
-    if (!poolCreation?.stableBankSig) {
-      const sig = await createBank(client, DEFAULT_USDC_BANK_CONFIG, USDC_MINT, group);
-      if (!sig) return;
-      setPoolCreation((state) => ({ ...state, stableBankSig: sig }));
+    //create seeds
+    if (!seeds) seeds = createSeeds();
+    setPoolCreation((state) => ({ ...state, seeds }));
+
+    // create group & LUT
+    if (!group || !lutAddress) {
+      setActiveStep(0);
+      const oracleKeys = [new PublicKey(poolCreatedData.oracle), ...(DEFAULT_USDC_BANK_CONFIG.oracle?.keys ?? [])];
+      const bankKeys = [seeds.stableBankSeed.publicKey, seeds.tokenBankSeed.publicKey];
+      const {
+        lutAddress: newLutAddress,
+        createLutIx,
+        extendLutIx,
+      } = await createPoolLookupTable({
+        client,
+        oracleKeys,
+        bankKeys,
+        groupKey: seeds.marginfiGroupSeed.publicKey,
+        walletKey: wallet.publicKey,
+      });
+
+      lutAddress = newLutAddress;
+      group = await createGroup(client, [createLutIx, extendLutIx], seeds.marginfiGroupSeed);
+      if (!group || !lutAddress) return;
     }
-    nextStep();
 
-    if (!poolCreation?.tokenBankSig) {
+    setPoolCreation((state) => ({ ...state, marginfiGroupPk: group, lutAddress }));
+
+    if (!poolCreation?.stableBankPk) {
+      setActiveStep(1);
+      const sig = await createBank(client, DEFAULT_USDC_BANK_CONFIG, USDC_MINT, group, seeds.stableBankSeed);
+      if (!sig) return;
+      setPoolCreation((state) => ({ ...state, stableBankPk: seeds.stableBankSeed.publicKey }));
+    }
+
+    if (!poolCreation?.tokenBankPk) {
+      setActiveStep(2);
       const tokenMint = new PublicKey(poolCreatedData.mint);
       // token bank
       let tokenBankConfig = DEFAULT_TOKEN_BANK_CONFIG;
@@ -244,21 +289,26 @@ const CreatePoolLoadingContainer = ({
         keys: [new PublicKey(poolCreatedData.oracle)],
       };
 
-      const sig = await createBank(client, tokenBankConfig, tokenMint, group);
+      const sig = await createBank(client, tokenBankConfig, tokenMint, group, seeds.tokenBankSeed);
       if (!sig) return;
-      setPoolCreation((state) => ({ ...state, tokenBankSig: sig }));
+      setPoolCreation((state) => ({ ...state, tokenBankPk: seeds.tokenBankSeed.publicKey }));
     }
-    setIsCompleted();
+
+    setIsCompleted({
+      groupPk: seeds.marginfiGroupSeed.publicKey,
+      stableBankPk: seeds.stableBankSeed.publicKey,
+      tokenBankPk: seeds.tokenBankSeed.publicKey,
+      lutAddress,
+    });
   }, [
     createBank,
     createGroup,
     initializeClient,
-    nextStep,
     poolCreatedData,
     poolCreation?.marginfiClient,
     poolCreation?.marginfiGroupPk,
-    poolCreation?.stableBankSig,
-    poolCreation?.tokenBankSig,
+    poolCreation?.stableBankPk,
+    poolCreation?.tokenBankPk,
     setIsCompleted,
     setStatus,
   ]);
@@ -270,41 +320,33 @@ const CreatePoolLoadingContainer = ({
         <p className="text-lg text-muted-foreground">Executing transactions to setup token banks.</p>
       </div>
       <div className="space-y-8">
-        <div className="relative w-full max-w-2xl mx-auto">
-          <Stepper>
-            <StepperItem
-              action={
-                <Button size={"sm"} onClick={() => createTransaction()}>
-                  Retry
-                </Button>
-              }
-            ></StepperItem>
-            <StepperItem
-              action={
-                <Button size={"sm"} onClick={() => createTransaction()}>
-                  Retry
-                </Button>
-              }
-            ></StepperItem>
-            <StepperItem
-              action={
-                <Button size={"sm"} onClick={() => createTransaction()}>
-                  Retry
-                </Button>
-              }
-            ></StepperItem>
-          </Stepper>
-        </div>
+        <div className="flex flex-col gap-2 relative w-full max-w-2xl mx-auto">
+          {steps.map((step, idx) => {
+            let stepState: StepperStatus = "default";
+            let showRetry = false;
 
-        <div className="text-center">
-          <Button
-            disabled={status !== "default"}
-            onClick={() => {
-              createTransaction();
-            }}
-          >
-            Create Pool
-          </Button>
+            if (activeStep === idx) {
+              stepState = status;
+              if (status === "error") showRetry = true;
+            } else if (activeStep > idx) {
+              stepState = "success";
+            }
+
+            const icon = iconMap[stepState];
+            return (
+              <div key={idx} className="flex gap-1 items-center">
+                <div className="mr-1">{icon}</div>
+                <div>{step.description}</div>
+                <div>
+                  {showRetry && (
+                    <Button variant={"link"} size={"sm"} onClick={() => createTransaction()}>
+                      Retry
+                    </Button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
     </>
