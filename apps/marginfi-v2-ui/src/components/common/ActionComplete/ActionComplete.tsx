@@ -40,7 +40,7 @@ export const ActionComplete = () => {
     const solanaCompassKey = LSTS_SOLANA_COMPASS_MAP[bank.meta.tokenSymbol];
     if (!solanaCompassKey) return 0;
 
-    const response = await fetch(`/api/solana-compass?solanaCompassKey=${solanaCompassKey}`);
+    const response = await fetch(`/api/lst?solanaCompassKey=${solanaCompassKey}`);
     if (!response.ok) return 0;
 
     const solanaCompassPrices = await response.json();
@@ -51,15 +51,24 @@ export const ActionComplete = () => {
     const lstDepositApy = await getLstYield(previousTxn?.loopingOptions?.depositBank!);
     const lstBorrowApy = await getLstYield(previousTxn?.loopingOptions?.borrowBank!);
 
-    const { netApy, totalDepositApy, totalBorrowApy } = calcNetLoopingApy(
+    const { netApy, totalDepositApy, depositLstApy, totalBorrowApy, borrowLstApy } = calcNetLoopingApy(
       previousTxn?.loopingOptions?.depositBank!,
       previousTxn?.loopingOptions?.borrowBank!,
       lstDepositApy,
       lstBorrowApy,
       previousTxn?.loopingOptions?.leverage!
     );
-    setLoopApy({ netApy, totalDepositApy, totalBorrowApy });
-  }, [previousTxn]);
+    setLoopApy({
+      netApy,
+      totalDepositApy: totalDepositApy + depositLstApy,
+      totalBorrowApy: totalBorrowApy + borrowLstApy,
+    });
+  }, [
+    getLstYield,
+    previousTxn?.loopingOptions?.borrowBank,
+    previousTxn?.loopingOptions?.depositBank,
+    previousTxn?.loopingOptions?.leverage,
+  ]);
 
   React.useEffect(() => {
     if (previousTxn?.type === ActionType.Loop) {
