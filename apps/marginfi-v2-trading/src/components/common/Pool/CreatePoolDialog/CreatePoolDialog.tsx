@@ -34,7 +34,7 @@ type CreatePoolDialogProps = {
 };
 
 export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
-  const [resetFilteredBanks, searchBanks] = useTradeStore((state) => [state.resetFilteredBanks, state.searchBanks]);
+  const [resetSearchResults, searchBanks] = useTradeStore((state) => [state.resetSearchResults, state.searchBanks]);
   const [isOpen, setIsOpen] = React.useState(false);
   const [isReadOnlyMode, setIsReadOnlyMode] = React.useState<boolean>(false);
   const [createPoolState, setCreatePoolState] = React.useState<CreatePoolState>(CreatePoolState.SEARCH);
@@ -154,11 +154,11 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
 
   React.useEffect(() => {
     if (!searchQuery.length) {
-      resetFilteredBanks();
+      resetSearchResults();
       return;
     }
     searchBanks(debouncedSearchQuery);
-  }, [debouncedSearchQuery, searchBanks, resetFilteredBanks, searchQuery]);
+  }, [debouncedSearchQuery, searchBanks, resetSearchResults, searchQuery]);
 
   const reset = React.useCallback(() => {
     setPreviewImage("");
