@@ -26,7 +26,7 @@ import { useWalletContext } from "~/hooks/useWalletContext";
 import { useConnection } from "~/hooks/useConnection";
 import { Keypair, Message, PublicKey, Transaction, TransactionMessage, VersionedTransaction } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
-import { createMarginfiGroup, createPermissionlessBank } from "~/utils";
+import { createMarginfiGroup, createPermissionlessBank, createPoolLookupTable } from "~/utils";
 import { useUiStore } from "~/store";
 import React from "react";
 
@@ -163,15 +163,17 @@ const CreatePoolLoadingContainer = ({
 
   const initializeClient = React.useCallback(async () => {
     const config = getConfig();
+
     const client = await MarginfiClient.fetch(config, wallet, connection);
+    // console.log({ client });
     setPoolCreation((state) => ({ ...state, marginfiClient: client }));
     return client;
   }, [connection, wallet]);
 
   const createGroup = React.useCallback(
-    async (marginfiClient: MarginfiClient) => {
+    async (marginfiClient: MarginfiClient, seed?: Keypair) => {
       try {
-        const marginfiGroup = await createMarginfiGroup({ marginfiClient });
+        const marginfiGroup = await createMarginfiGroup({ marginfiClient, seed });
 
         if (!marginfiGroup) throw new Error();
 
@@ -209,11 +211,12 @@ const CreatePoolLoadingContainer = ({
 
   const createTransaction = React.useCallback(async () => {
     if (!poolCreatedData) return;
-
     setStatus("loading");
 
     let client = poolCreation?.marginfiClient;
+
     if (!client) client = await initializeClient();
+    // createPoolLookupTable({ bankPubkey: new PublicKey("4frT8KttgxPFHJ73BYuLEcvrKtjBcfYyKupZmH4Crhgp"), client });
 
     let group = poolCreation?.marginfiGroupPk;
     if (!group) group = await createGroup(client);
