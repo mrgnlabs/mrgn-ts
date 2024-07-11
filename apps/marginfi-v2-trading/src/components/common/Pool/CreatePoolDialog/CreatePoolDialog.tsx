@@ -62,10 +62,8 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
       setIsSubmitting(true);
       setPoolCreatedData(values);
 
-      setTimeout(() => {
-        setCreatePoolState(CreatePoolState.LOADING);
-        setIsSubmitting(false);
-      }, 2000);
+      setCreatePoolState(CreatePoolState.LOADING);
+      setIsSubmitting(false);
     },
     [setIsSubmitting, setPoolCreatedData, setCreatePoolState]
   );
@@ -149,6 +147,16 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
       setIsSearchingDasApi(false);
     }
   }, [setCreatePoolState, form, mintAddress, setIsSearchingDasApi, setIsTokenFetchingError, setPreviewImage]);
+
+  const onCompletion = (props: {
+    stableBankPk: PublicKey;
+    tokenBankPk: PublicKey;
+    groupPk: PublicKey;
+    lutAddress: PublicKey;
+  }) => {
+    // TODO add props to GCP
+    setCreatePoolState(CreatePoolState.SUCCESS);
+  };
 
   React.useEffect(() => {
     if (!searchQuery.length) {
@@ -250,7 +258,7 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
             <CreatePoolLoading
               poolCreatedData={poolCreatedData}
               setIsOpen={setIsOpen}
-              setIsCompleted={() => setCreatePoolState(CreatePoolState.SUCCESS)}
+              setIsCompleted={(props) => onCompletion(props)}
             />
           )}
 
