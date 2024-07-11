@@ -12,10 +12,7 @@ const Command = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <CommandPrimitive
     ref={ref}
-    className={cn(
-      "flex h-full w-full flex-col overflow-hidden rounded-md bg-popover text-popover-foreground",
-      className
-    )}
+    className={cn("flex h-full w-full flex-col overflow-hidden rounded-md text-popover-foreground", className)}
     {...props}
   />
 ));
@@ -44,7 +41,7 @@ const CommandInput = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.Input> & CommandInputProps
 >(({ className, wrapperClassName = "", ...props }, ref) => (
   <div className={cn("items-center px-3 flex", wrapperClassName)} cmdk-input-wrapper="">
-    <IconSearch size={16} className="mr-2 shrink-0 opacity-50" />
+    <IconSearch size={20} className="mr-2 shrink-0 opacity-50" />
     <CommandPrimitive.Input
       ref={ref}
       className={cn(
@@ -81,7 +78,7 @@ const CommandGroup = React.forwardRef<
   <CommandPrimitive.Group
     ref={ref}
     className={cn(
-      "overflow-hidden text-muted-foreground [&_[cmdk-group-heading]]:py-1 [&_[cmdk-group-heading]]:text-sm [&_[cmdk-group-heading]]:pt-1 [&_[cmdk-group-heading]]:pb-3",
+      "overflow-hidden mt-4 w-3/4 mx-auto rounded-lg [&_[cmdk-group-heading]]:py-1 [&_[cmdk-group-heading]]:text-sm [&_[cmdk-group-heading]]:pt-1 [&_[cmdk-group-heading]]:pb-3",
       className
     )}
     {...props}
@@ -105,7 +102,7 @@ const CommandItem = React.forwardRef<
   <CommandPrimitive.Item
     ref={ref}
     className={cn(
-      "relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none aria-selected:bg-accent aria-selected:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+      "relative flex cursor-default select-none items-center px-4 py-4 text-sm gap-3 outline-none bg-background transition-colors aria-selected:bg-accent data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
       className
     )}
     {...props}
