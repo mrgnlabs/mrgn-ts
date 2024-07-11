@@ -10,7 +10,11 @@ import { useIsMobile } from "~/hooks/useIsMobile";
 import { Input } from "~/components/ui/input";
 
 export const PoolSearch = () => {
-  const [searchBanks, resetFilteredBanks] = useTradeStore((state) => [state.searchBanks, state.resetFilteredBanks]);
+  const [searchBanks, searchResults, resetSearchResults] = useTradeStore((state) => [
+    state.searchBanks,
+    state.searchResults,
+    state.resetSearchResults,
+  ]);
   const searchInputRef = React.useRef<HTMLInputElement>(null);
   const [searchQuery, setSearchQuery] = React.useState("");
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
@@ -18,11 +22,15 @@ export const PoolSearch = () => {
 
   React.useEffect(() => {
     if (!debouncedSearchQuery.length) {
-      resetFilteredBanks();
+      resetSearchResults();
       return;
     }
     searchBanks(debouncedSearchQuery);
-  }, [debouncedSearchQuery, searchBanks, resetFilteredBanks]);
+  }, [debouncedSearchQuery, searchBanks, resetSearchResults]);
+
+  React.useEffect(() => {
+    console.log(searchResults);
+  }, [searchResults]);
 
   return (
     <div className="relative w-full">
