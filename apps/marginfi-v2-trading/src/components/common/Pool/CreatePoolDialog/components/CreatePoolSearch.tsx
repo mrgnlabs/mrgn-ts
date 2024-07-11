@@ -29,8 +29,8 @@ export const CreatePoolSearch = ({
   setSearchQuery,
   debouncedSearchQuery,
 }: CreatePoolSearchProps) => {
-  const { filteredBanks, resetActiveGroup } = useTradeStore((state) => ({
-    filteredBanks: state.filteredBanks,
+  const { searchResults, resetActiveGroup } = useTradeStore((state) => ({
+    searchResults: state.searchResults,
     resetActiveGroup: state.resetActiveGroup,
   }));
 
@@ -65,22 +65,22 @@ export const CreatePoolSearch = ({
         </div>
 
         <div>
-          {debouncedSearchQuery.length > 1 && searchQuery.length > 1 && filteredBanks.length === 0 && (
+          {debouncedSearchQuery.length > 1 && searchQuery.length > 1 && searchResults.length === 0 && (
             <div className="text-center text-muted-foreground w-full">
               <p>No results found for &quot;{searchQuery}&quot;</p>
             </div>
           )}
 
-          {debouncedSearchQuery.length > 0 && filteredBanks.length > 0 && (
+          {debouncedSearchQuery.length > 0 && searchResults.length > 0 && (
             <div className="space-y-3">
-              {filteredBanks.slice(0, 5).map((bank, index) => (
+              {searchResults.slice(0, 5).map((bank, index) => (
                 <button
                   onClick={() => {
                     resetActiveGroup();
                     router.push(`/pools/${bank.address.toBase58()}`);
                     setIsOpen(false);
                   }}
-                  className="flex flex-col items-center w-full gap-4 even:bg-background-gray px-4 py-3 rounded-lg cursor-pointer hover:bg-background-gray-light/50 md:flex-row md:justify-between"
+                  className="flex flex-col items-center w-full gap-4 even:bg-accent px-4 py-3 rounded-lg cursor-pointer hover:bg-accent/80 md:flex-row md:justify-between"
                 >
                   <div className="flex items-center gap-4">
                     <Image
@@ -115,7 +115,7 @@ export const CreatePoolSearch = ({
             </div>
           )}
 
-          {searchQuery.length > 0 && filteredBanks.length === 0 && (
+          {searchQuery.length > 0 && searchResults.length === 0 && (
             <div className="flex justify-center pt-4">
               <Button onClick={() => setCreatePoolState(CreatePoolState.MINT)} variant="secondary">
                 <IconPlus size={18} /> Create new pool

@@ -1,5 +1,6 @@
 import { create, StateCreator } from "zustand";
 import { Connection, PublicKey } from "@solana/web3.js";
+import Fuse from "fuse.js";
 import {
   ExtendedBankInfo,
   makeExtendedBankInfo,
@@ -60,7 +61,7 @@ type TradeStoreState = {
   banks: ExtendedBankInfo[];
 
   // array of banks filtered by search query
-  filteredBanks: ExtendedBankInfo[];
+  searchResults: ExtendedBankInfo[];
 
   // array of collateral usdc banks
   collateralBanks: {
@@ -120,7 +121,7 @@ type TradeStoreState = {
   setIsRefreshingStore: (isRefreshing: boolean) => void;
   resetActiveGroup: () => void;
   searchBanks: (searchQuery: string) => void;
-  resetFilteredBanks: () => void;
+  resetSearchResults: () => void;
   setCurrentPage: (page: number) => void;
   setSortBy: (sortBy: TradePoolFilterStates) => void;
 };
@@ -128,6 +129,8 @@ type TradeStoreState = {
 const { programId } = getConfig();
 
 const USDC_MINT = new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
+
+let fuse: Fuse<{ symbol: string; name: string; mintAddress: string }> | null = null;
 
 function createTradeStore() {
   return create<TradeStoreState>(stateCreator);
@@ -140,7 +143,7 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
   groupsCache: {},
   groups: [],
   banks: [],
-  filteredBanks: [],
+  searchResults: [],
   banksIncludingUSDC: [],
   collateralBanks: {},
   currentPage: 1,
@@ -186,6 +189,31 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
       // sort banks according to sortBy
       const sortBy = get().sortBy;
       const sortedBanks = sortBanks(result.tokenBanks, sortBy);
+
+      const banksPreppedForFuse = result.tokenBanks.map((bank, i) => ({
+        symbol: bank.meta.tokenSymbol,
+        name: bank.meta.tokenName,
+        mintAddress: bank.info.rawBank.mint.toBase58(),
+      }));
+
+      fuse = new Fuse(banksPreppedForFuse, {
+        includeScore: true,
+        findAllMatches: true,
+        keys: [
+          {
+            name: "symbol",
+            weight: 0.7,
+          },
+          {
+            name: "name",
+            weight: 0.3,
+          },
+          {
+            name: "mintAddress",
+            weight: 0.1,
+          },
+        ],
+      });
 
       set({
         initialized: true,
@@ -327,28 +355,22 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
   },
 
   searchBanks: (searchQuery: string) => {
-    const search = searchQuery.toLowerCase();
-    const banks = get().banks;
+    if (!fuse) return;
+    const result = fuse.search(searchQuery);
 
-    const filteredBanks = banks.filter((bank) => {
-      if (bank.meta.tokenName.toLowerCase().includes(search) || bank.meta.tokenSymbol.toLowerCase().includes(search)) {
-        return true;
-      }
-      if (search.length >= 4 && bank.address.toBase58().toLowerCase().includes(search)) {
-        return true;
-      }
-      return false;
-    });
+    const banksFromResult = result
+      .map((res) => get().banks.find((bank) => bank.info.rawBank.mint.toBase58() === res.item.mintAddress))
+      .filter((bank): bank is ExtendedBankInfo => bank !== undefined);
 
     set((state) => {
       return {
         ...state,
-        filteredBanks,
+        searchResults: banksFromResult,
       };
     });
   },
 
-  resetFilteredBanks: () => {
+  resetSearchResults: () => {
     set((state) => {
       return {
         ...state,
