@@ -35,27 +35,17 @@ const sortOptions: {
 ];
 
 export default function HomePage() {
-  const [
-    initialized,
-    banks,
-    filteredBanks,
-    resetActiveGroup,
-    currentPage,
-    totalPages,
-    setCurrentPage,
-    sortBy,
-    setSortBy,
-  ] = useTradeStore((state) => [
-    state.initialized,
-    state.banks,
-    state.filteredBanks,
-    state.resetActiveGroup,
-    state.currentPage,
-    state.totalPages,
-    state.setCurrentPage,
-    state.sortBy,
-    state.setSortBy,
-  ]);
+  const [initialized, banks, resetActiveGroup, currentPage, totalPages, setCurrentPage, sortBy, setSortBy] =
+    useTradeStore((state) => [
+      state.initialized,
+      state.banks,
+      state.resetActiveGroup,
+      state.currentPage,
+      state.totalPages,
+      state.setCurrentPage,
+      state.sortBy,
+      state.setSortBy,
+    ]);
 
   const [previousTxn] = useUiStore((state) => [state.previousTxn]);
 

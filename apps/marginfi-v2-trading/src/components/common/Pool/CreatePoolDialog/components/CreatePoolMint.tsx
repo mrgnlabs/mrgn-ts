@@ -59,16 +59,14 @@ export const CreatePoolMint = ({
           fetchTokenInfo();
         }}
       >
-        <div className="w-full bg-gradient-to-r from-mrgn-gold/80 to-mrgn-chartreuse/80 rounded-full p-0.5 transition-colors">
-          <Input
-            disabled={isSearchingDasApi}
-            placeholder="Token mint address..."
-            className="py-2 px-6 h-auto text-lg rounded-full bg-background outline-none focus-visible:ring-primary/75 disabled:opacity-100"
-            autoFocus
-            value={mintAddress}
-            onChange={(e) => setMintAddress(e.target.value)}
-          />
-        </div>
+        <Input
+          disabled={isSearchingDasApi}
+          placeholder="Token mint address..."
+          className="w-5/6 mx-auto py-2 px-6 h-auto text-lg rounded-full bg-background outline-none focus-visible:ring-primary/75 disabled:opacity-100"
+          autoFocus
+          value={mintAddress}
+          onChange={(e) => setMintAddress(e.target.value)}
+        />
 
         {isTokenFetchingError ? (
           <div className="flex flex-col justify-center items-center gap-4 text-sm text-muted-foreground">

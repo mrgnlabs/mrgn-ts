@@ -376,7 +376,7 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
     set((state) => {
       return {
         ...state,
-        filteredBanks: [],
+        searchResults: [],
       };
     });
   },

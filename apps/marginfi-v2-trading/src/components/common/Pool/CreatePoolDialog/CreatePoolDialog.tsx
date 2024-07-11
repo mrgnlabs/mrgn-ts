@@ -7,7 +7,6 @@ import { z } from "zod";
 import Confetti from "react-confetti";
 import { useWindowSize } from "@uidotdev/usehooks";
 import { IconPlus } from "@tabler/icons-react";
-import { useDebounce } from "@uidotdev/usehooks";
 import { PublicKey } from "@solana/web3.js";
 
 import { useTradeStore } from "~/store";
@@ -47,7 +46,6 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
-  const debouncedSearchQuery = useDebounce(searchQuery, 300);
   const { width, height } = useWindowSize();
   const isMobile = useIsMobile();
 
@@ -157,8 +155,8 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
       resetSearchResults();
       return;
     }
-    searchBanks(debouncedSearchQuery);
-  }, [debouncedSearchQuery, searchBanks, resetSearchResults, searchQuery]);
+    searchBanks(searchQuery);
+  }, [searchBanks, resetSearchResults, searchQuery]);
 
   const reset = React.useCallback(() => {
     setPreviewImage("");
@@ -189,7 +187,13 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
           />,
           document.body
         )}
-      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <Dialog
+        open={isOpen}
+        onOpenChange={(open) => {
+          if (!open) resetSearchResults();
+          setIsOpen(open);
+        }}
+      >
         <DialogTrigger asChild>
           {trigger ? (
             trigger
@@ -205,7 +209,7 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
               setIsOpen={setIsOpen}
               setCreatePoolState={setCreatePoolState}
               searchQuery={searchQuery}
-              debouncedSearchQuery={debouncedSearchQuery}
+              debouncedSearchQuery={searchQuery}
               setSearchQuery={setSearchQuery}
             />
           )}
