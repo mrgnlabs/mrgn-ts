@@ -346,6 +346,7 @@ export const ActionBox = ({
         await fetchTradeState({
           connection,
           wallet,
+          refresh: true,
         });
       } catch (error: any) {
         console.log("Error while reloading state");
@@ -411,6 +412,7 @@ export const ActionBox = ({
       await fetchTradeState({
         connection,
         wallet,
+        refresh: true,
       });
     } catch (error: any) {
       console.log("Error while reloading state");
@@ -525,6 +527,7 @@ export const ActionBox = ({
       await fetchTradeState({
         connection,
         wallet,
+        refresh: true,
       });
     } catch (error: any) {
       console.log("Error while reloading state");

@@ -107,7 +107,15 @@ type TradeStoreState = {
 
   /* Actions */
   // fetch groups / banks
-  fetchTradeState: ({ connection, wallet }: { connection?: Connection; wallet?: Wallet }) => Promise<void>;
+  fetchTradeState: ({
+    connection,
+    wallet,
+    refresh,
+  }: {
+    connection?: Connection;
+    wallet?: Wallet;
+    refresh?: boolean;
+  }) => Promise<void>;
 
   // set active banks and initialize marginfi client
   setActiveBank: ({
@@ -249,7 +257,7 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
         userDataFetched: userDataFetched,
       });
 
-      if (get().activeGroup) {
+      if (get().activeGroup && args.refresh) {
         get().refreshActiveBank({
           connection,
           wallet,
