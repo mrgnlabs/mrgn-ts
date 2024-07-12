@@ -2,7 +2,7 @@ import { Button } from "~/components/ui/button";
 
 import { FormValues } from "~/components/common/Pool/CreatePoolDialog";
 
-import { IconLoader, IconCheck, IconConfetti, IconX } from "~/components/ui/icons";
+import { IconLoader2, IconCheck, IconConfetti, IconX } from "@tabler/icons-react";
 import {
   BankConfigOpt,
   MarginfiClient,
@@ -25,7 +25,7 @@ import {
   VersionedTransaction,
 } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
-import { createMarginfiGroup, createPermissionlessBank, createPoolLookupTable } from "~/utils";
+import { cn, createMarginfiGroup, createPermissionlessBank, createPoolLookupTable } from "~/utils";
 import { useUiStore } from "~/store";
 import React from "react";
 
@@ -104,10 +104,10 @@ type StepperStatus = "default" | "success" | "error" | "loading";
 type IconMap = { [key in StepperStatus]: React.JSX.Element };
 
 const iconMap: IconMap = {
-  success: <IconCheck className="h-5 w-5 text-white bg-success p-1 rounded-full" />,
-  error: <IconX className="h-5 w-5 text-white bg-destructive p-1 rounded-full" />,
-  loading: <IconLoader className="h-5 w-5 text-black border border-black p-1 rounded-full animate-spin" />,
-  default: <IconCheck className="h-5 w-5 text-black border border-black p-1 rounded-full" />,
+  success: <IconCheck className="h-6 w-6 text-white bg-success p-1 rounded-full" />,
+  error: <IconX className="h-6 w-6 text-white bg-destructive p-1 rounded-full" />,
+  loading: <IconLoader2 className="h-6 w-6 rounded-full animate-spin" />,
+  default: <IconCheck className="h-6 w-6 border border-muted-foreground p-1 rounded-full" />,
 };
 
 interface CreatePoolLoadingProps {
@@ -148,9 +148,9 @@ export const CreatePoolLoading = ({ poolCreatedData, setIsOpen, setIsCompleted }
 
   const steps = React.useMemo(
     () => [
-      { label: "Step 1", description: "Creating group & LUT" },
-      { label: "Step 2", description: "Creating USDC bank" },
-      { label: "Step 3", description: `Creating ${poolCreatedData?.symbol} bank` },
+      { label: "Step 1", description: "Creating new marginfi group" },
+      { label: "Step 2", description: "Configuring USDC bank" },
+      { label: "Step 3", description: `Configuring ${poolCreatedData?.symbol} bank` },
     ],
     [poolCreatedData]
   );
@@ -319,35 +319,33 @@ export const CreatePoolLoading = ({ poolCreatedData, setIsOpen, setIsCompleted }
         <h2 className="text-3xl font-medium">Creating a new pool</h2>
         <p className="text-lg text-muted-foreground">Executing transactions to setup token banks.</p>
       </div>
-      <div className="space-y-8">
-        <div className="flex flex-col gap-2 relative w-full max-w-2xl mx-auto">
-          {steps.map((step, idx) => {
-            let stepState: StepperStatus = "default";
-            let showRetry = false;
+      <div className="flex flex-col gap-2 relative w-full max-w-fit mx-auto bg-accent pl-4 pr-3 py-2 rounded-lg text-muted-foreground">
+        {steps.map((step, idx) => {
+          let stepState: StepperStatus = "default";
+          let showRetry = false;
 
-            if (activeStep === idx) {
-              stepState = status;
-              if (status === "error") showRetry = true;
-            } else if (activeStep > idx) {
-              stepState = "success";
-            }
+          if (activeStep === idx) {
+            stepState = status;
+            if (status === "error") showRetry = true;
+          } else if (activeStep > idx) {
+            stepState = "success";
+          }
 
-            const icon = iconMap[stepState];
-            return (
-              <div key={idx} className="flex gap-1 items-center">
-                <div className="mr-1">{icon}</div>
-                <div>{step.description}</div>
-                <div>
-                  {showRetry && (
-                    <Button variant={"link"} size={"sm"} onClick={() => createTransaction()}>
-                      Retry
-                    </Button>
-                  )}
-                </div>
+          const icon = iconMap[stepState];
+          return (
+            <div key={idx} className={cn("flex gap-3 items-center h-10 w-full", activeStep === idx && "text-primary")}>
+              <div>{icon}</div>
+              <div>{step.description}</div>
+              <div className={cn("ml-auto", !showRetry && "px-4")}>
+                {showRetry && (
+                  <Button variant="link" size="sm" className="ml-5" onClick={() => createTransaction()}>
+                    Retry
+                  </Button>
+                )}
               </div>
-            );
-          })}
-        </div>
+            </div>
+          );
+        })}
       </div>
     </>
   );
