@@ -1,8 +1,7 @@
-import { AccountMeta, PublicKey, SYSVAR_INSTRUCTIONS_PUBKEY, SystemProgram } from "@solana/web3.js";
+import { AccountMeta, PublicKey, SYSVAR_INSTRUCTIONS_PUBKEY } from "@solana/web3.js";
 import BN from "bn.js";
 import { MarginfiProgram } from "./types";
-import { BankConfigOptRaw, BankConfigCompactRaw } from "./models/bank";
-import { TOKEN_PROGRAM_ID } from "@mrgnlabs/mrgn-common";
+import { BankConfigOptRaw } from "./models/bank";
 
 async function makeInitMarginfiAccountIx(
   mfProgram: MarginfiProgram,
@@ -182,6 +181,7 @@ function makelendingAccountWithdrawEmissionIx(
     destinationTokenAccount: PublicKey;
     bank: PublicKey;
     emissionsMint: PublicKey;
+    tokenProgram: PublicKey;
   }
 ) {
   return mfiProgram.methods
@@ -193,7 +193,7 @@ function makelendingAccountWithdrawEmissionIx(
       destinationAccount: accounts.destinationTokenAccount,
       bank: accounts.bank,
       emissionsMint: accounts.emissionsMint,
-      tokenProgram: TOKEN_PROGRAM_ID,
+      tokenProgram: accounts.tokenProgram,
     })
     .instruction();
 }

@@ -909,6 +909,10 @@ class MarginfiAccount {
     );
     ixs.push(createAtaIdempotentIx);
 
+    if (!mintData.emissionTokenProgram) {
+      throw Error(`Emission token program not found for bank ${bankAddress.toBase58()}`);
+    }
+
     const withdrawEmissionsIx = await instructions.makelendingAccountWithdrawEmissionIx(program, {
       marginfiGroup: this.group,
       marginfiAccount: this.address,
@@ -916,6 +920,7 @@ class MarginfiAccount {
       bank: bank.address,
       destinationTokenAccount: userAta,
       emissionsMint: bank.emissionsMint,
+      tokenProgram: mintData.emissionTokenProgram,
     });
     ixs.push(withdrawEmissionsIx);
 
