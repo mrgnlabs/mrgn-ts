@@ -64,6 +64,7 @@ export const ActionBox = ({
     activeAccount,
     nativeSolBalance,
     fetchTradeState,
+    setActiveBank,
   ] = useTradeStore((state) => [
     state.initialized,
     state.setIsRefreshingStore,
@@ -72,6 +73,7 @@ export const ActionBox = ({
     state.selectedAccount,
     state.nativeSolBalance,
     state.fetchTradeState,
+    state.setActiveBank,
   ]);
 
   const [
