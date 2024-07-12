@@ -87,7 +87,7 @@ export function useAvailableWallets(preset?: WalletPreset): ExtendedWallet[] {
   );
 
   // filter on installed
-  const installedFilter = React.useCallback((wallet: Wallet) => wallet.readyState === "Installed", []);
+  const installedFilter = React.useCallback((wallet: Wallet) => wallet.readyState !== "NotDetected", []);
 
   // sorting on backpack
   const backpackSort = React.useCallback((a: Wallet, b: Wallet) => {
@@ -150,14 +150,17 @@ export function useAvailableWallets(preset?: WalletPreset): ExtendedWallet[] {
   const filteredWallets = React.useMemo(() => {
     let formattedWallets: ExtendedWallet[] = wallets;
 
-    if (selectedPreset) formattedWallets = formattedWallets.filter(presetFilter);
+    formattedWallets = formattedWallets.filter(installedFilter);
+
+    if (selectedPreset && (preset === "social" || preset === "pwa"))
+      formattedWallets = formattedWallets.filter(presetFilter);
 
     formattedWallets = addAbsentWallets(formattedWallets);
 
     if (selectedPreset && preset !== "social" && preset !== "pwa") {
       formattedWallets = [
         ...formattedWallets,
-        ...(wallets as ExtendedWallet[]).filter(
+        ...(formattedWallets as ExtendedWallet[]).filter(
           (wallet) => !formattedWallets.map((x) => x.adapter.name).includes(wallet.adapter.name)
         ),
       ];
@@ -168,7 +171,7 @@ export function useAvailableWallets(preset?: WalletPreset): ExtendedWallet[] {
     formattedWallets = formattedWallets.map(updateWallets);
 
     return formattedWallets;
-  }, [wallets, selectedPreset, presetFilter, preset, backpackSort, updateWallets]);
+  }, [wallets, installedFilter, selectedPreset, presetFilter, preset, backpackSort, updateWallets]);
 
   return filteredWallets;
 }
