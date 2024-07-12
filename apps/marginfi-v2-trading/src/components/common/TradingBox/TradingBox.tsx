@@ -352,6 +352,7 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
           await fetchTradeState({
             connection,
             wallet,
+            refresh: true,
           });
         } catch (error: any) {
           console.log("Error while reloading state");
