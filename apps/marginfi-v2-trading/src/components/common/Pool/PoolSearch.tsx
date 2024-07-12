@@ -109,7 +109,7 @@ export const PoolSearch = ({
         </div>
         <div className={cn(size === "lg" && "absolute top-10 w-full z-20 md:top-14")}>
           {searchResults.length > 0 && (
-            <CommandGroup className={cn("shadow-lg", size === "lg" && "md:w-4/5 md:mx-auto")}>
+            <CommandGroup className={cn(size === "lg" && "shadow-lg md:w-4/5 md:mx-auto")}>
               {searchResults.slice(0, maxResults).map((result) => {
                 const address = result.info.rawBank.mint.toBase58();
                 const tokenInfo = tokenData ? tokenData[address] : null;
