@@ -22,6 +22,7 @@ import {
 import { AddressLookupTableAccount, Connection, VersionedTransaction } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 import { IconArrowRight, IconPyth, IconSwitchboard } from "~/components/ui/icons";
+import { Skeleton } from "~/components/ui/skeleton";
 import {
   ActionMethodType,
   cn,
@@ -244,6 +245,7 @@ export async function getLoopingTransaction({
     } as QuoteGetRequest;
     try {
       const swapQuote = await getSwapQuoteWithRetry(quoteParams);
+      console.log({ swapQuote });
 
       if (!maxAccounts) {
         firstQuote = swapQuote;
@@ -598,7 +600,10 @@ export async function simulateLooping({
     ]);
     if (!mfiAccountData || !bankData) throw new Error("Failed to simulate looping");
     const previewBanks = marginfiClient.banks;
-    previewBanks.set(bank.address.toBase58(), Bank.fromBuffer(bank.address, bankData, marginfiClient.program.idl, marginfiClient.feedIdMap,));
+    previewBanks.set(
+      bank.address.toBase58(),
+      Bank.fromBuffer(bank.address, bankData, marginfiClient.program.idl, marginfiClient.feedIdMap)
+    );
     const previewClient = new MarginfiClient(
       marginfiClient.config,
       marginfiClient.program,
@@ -608,7 +613,7 @@ export async function simulateLooping({
       marginfiClient.banks,
       marginfiClient.oraclePrices,
       marginfiClient.mintDatas,
-      marginfiClient.feedIdMap,
+      marginfiClient.feedIdMap
     );
     const previewMarginfiAccount = MarginfiAccountWrapper.fromAccountDataRaw(
       account.address,
@@ -664,12 +669,17 @@ export function generateStats(
     <dl className="w-full grid grid-cols-2 gap-1.5 text-xs text-muted-foreground">
       <dt>Entry Price</dt>
       <dd className="text-primary text-right">{usdFormatter.format(tokenBank.info.state.price)}</dd>
-      <dt>Liquidation Price</dt>
-      <dd className="text-primary text-right flex flex-row justify-end gap-2">
-        {currentLiqPrice && <span>{currentLiqPrice}</span>}
-        {showLiqComparison && <IconArrowRight width={12} height={12} />}
-        {simulatedLiqPrice && <span>{simulatedLiqPrice}</span>}
-      </dd>
+      {(currentLiqPrice || simulatedLiqPrice) && (
+        <>
+          <dt>Liquidation Price</dt>
+
+          <dd className="text-primary text-right flex flex-row justify-end gap-2">
+            {currentLiqPrice && <span>{currentLiqPrice}</span>}
+            {showLiqComparison && <IconArrowRight width={12} height={12} />}
+            {simulatedLiqPrice && <span>{simulatedLiqPrice}</span>}
+          </dd>
+        </>
+      )}
       {slippageBps !== undefined ? (
         <>
           <dt>Slippage</dt>
@@ -685,7 +695,11 @@ export function generateStats(
           <dt>Price impact</dt>
           <dd
             className={cn(
-              priceImpactPct > 0.01 && priceImpactPct > 0.05 ? "text-destructive-foreground" : "text-alert-foreground",
+              priceImpactPct > 0.05
+                ? "text-destructive-foreground"
+                : priceImpactPct > 0.01
+                ? "text-alert-foreground"
+                : "text-success-foreground",
               "text-right"
             )}
           >
@@ -768,12 +782,6 @@ export function getSimulationStats(
     usdcPositionAmount,
     healthFactor,
     liquidationPrice,
-    // depositRate: lendingRate.toNumber(),
-    // borrowRate: borrowingRate.toNumber(),
-    // availableCollateral: {
-    //   amount: availableCollateral,
-    //   ratio: availableCollateral / assetsInit.toNumber(),
-    // },
   };
 }
 
@@ -792,18 +800,6 @@ export function getCurrentStats(
       ? tokenBank.position.liquidationPrice
       : null;
 
-  // const poolSize = isLending
-  //   ? bank.info.state.totalDeposits
-  //   : Math.max(
-  //       0,
-  //       Math.min(bank.info.state.totalDeposits, bank.info.rawBank.config.borrowLimit.toNumber()) -
-  //         bank.info.state.totalBorrows
-  //     );
-  // const bankCap = nativeToUi(
-  //   isLending ? bank.info.rawBank.config.depositLimit : bank.info.rawBank.config.borrowLimit,
-  //   bank.info.state.mintDecimals
-  // );
-
   return {
     tokenPositionAmount,
     usdcPositionAmount,
@@ -811,18 +807,6 @@ export function getCurrentStats(
     liquidationPrice,
   };
 }
-
-// const currentPositionAmount = bank?.isActive ? bank.position.amount : 0;
-// const healthFactor = !accountSummary.balance || !accountSummary.healthFactor ? 1 : accountSummary.healthFactor;
-// const liquidationPrice =
-//   bank.isActive && bank.position.liquidationPrice && bank.position.liquidationPrice > 0.01
-//     ? bank.position.liquidationPrice
-//     : undefined;
-
-//   return (
-
-//   )
-// }
 
 export interface ActionMethod {
   isEnabled: boolean;
@@ -955,8 +939,9 @@ function canBeLooped(activeGroup: ActiveGroup, loopingObject: LoopingObject, tra
 
     if (wrongSupplied && wrongBorrowed) {
       checks.push({
-        description: `You are already ${tradeSide === "long" ? "shorting" : "longing"
-          } this asset, you need to close that position first to start ${tradeSide === "long" ? "longing" : "shorting"}.`,
+        description: `You are already ${
+          tradeSide === "long" ? "shorting" : "longing"
+        } this asset, you need to close that position first to start ${tradeSide === "long" ? "longing" : "shorting"}.`,
         isEnabled: false,
         action: {
           type: ActionType.Repay,
@@ -965,8 +950,9 @@ function canBeLooped(activeGroup: ActiveGroup, loopingObject: LoopingObject, tra
       });
     } else if (wrongSupplied) {
       checks.push({
-        description: `Before you can ${tradeSide} this asset, you'll need to withdraw your supplied ${tradeSide === "long" ? activeGroup.usdc.meta.tokenSymbol : activeGroup.token.meta.tokenSymbol
-          }.`,
+        description: `Before you can ${tradeSide} this asset, you'll need to withdraw your supplied ${
+          tradeSide === "long" ? activeGroup.usdc.meta.tokenSymbol : activeGroup.token.meta.tokenSymbol
+        }.`,
         isEnabled: true,
         action: {
           type: ActionType.Withdraw,
@@ -975,8 +961,9 @@ function canBeLooped(activeGroup: ActiveGroup, loopingObject: LoopingObject, tra
       });
     } else if (wrongBorrowed) {
       checks.push({
-        description: `Before you can ${tradeSide} this asset, you'll need to repay your borrowed ${tradeSide === "long" ? activeGroup.token.meta.tokenSymbol : activeGroup.usdc.meta.tokenSymbol
-          }.`,
+        description: `Before you can ${tradeSide} this asset, you'll need to repay your borrowed ${
+          tradeSide === "long" ? activeGroup.token.meta.tokenSymbol : activeGroup.usdc.meta.tokenSymbol
+        }.`,
         isEnabled: false,
         action: {
           type: ActionType.Repay,
