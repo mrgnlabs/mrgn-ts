@@ -76,16 +76,25 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
     }
   }, [tradeState, loopingObject]);
 
-  const [selectedAccount, activeGroup, accountSummary, setActiveBank, marginfiAccounts, marginfiClient] = useTradeStore(
-    (state) => [
-      state.selectedAccount,
-      state.activeGroup,
-      state.accountSummary,
-      state.setActiveBank,
-      state.marginfiAccounts,
-      state.marginfiClient,
-    ]
-  );
+  const [
+    selectedAccount,
+    activeGroup,
+    accountSummary,
+    setActiveBank,
+    marginfiAccounts,
+    marginfiClient,
+    fetchTradeState,
+    setIsRefreshingStore,
+  ] = useTradeStore((state) => [
+    state.selectedAccount,
+    state.activeGroup,
+    state.accountSummary,
+    state.setActiveBank,
+    state.marginfiAccounts,
+    state.marginfiClient,
+    state.fetchTradeState,
+    state.setIsRefreshingStore,
+  ]);
 
   const [slippageBps, priorityFee, setSlippageBps, setPriorityFee, setIsActionComplete, setPreviousTxn] = useUiStore(
     (state) => [
@@ -113,21 +122,6 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
   };
 
   const numberFormater = React.useMemo(() => new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 }), []);
-
-  const tempUsdcDepositBank = React.useMemo(
-    () => extendedBankInfos.find((value) => value.meta.tokenSymbol.includes("USDC")),
-    [extendedBankInfos]
-  );
-
-  const tempBorrowBank = React.useMemo(
-    () => extendedBankInfos.find((value) => value.meta.tokenSymbol.toLowerCase().includes("sol")) as any,
-    [extendedBankInfos]
-  );
-
-  // const activeGroup = React.useMemo(
-  //   () => (tempBorrowBank && tempUsdcDepositBank ? { token: tempBorrowBank, usdc: tempUsdcDepositBank } : null),
-  //   [tempUsdcDepositBank, tempBorrowBank]
-  // );
 
   const isActiveWithCollat = true;
 
@@ -319,6 +313,7 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
   const handleLeverageAction = React.useCallback(async () => {
     if (loopingObject && marginfiClient && collateralBank) {
       try {
+        setIsLoading(true);
         let depositBank: ExtendedBankInfo, borrowBank: ExtendedBankInfo;
         let sig: undefined | string;
 
@@ -351,6 +346,17 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
             });
           }
         }
+        // -------- Refresh state
+        try {
+          setIsRefreshingStore(true);
+          await fetchTradeState({
+            connection,
+            wallet,
+          });
+        } catch (error: any) {
+          console.log("Error while reloading state");
+          console.log(error);
+        }
 
         return sig;
       } catch (error: any) {
@@ -360,19 +366,25 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
         console.log(`Error while longing: ${msg}`);
         console.log(error);
         return;
+      } finally {
+        setIsLoading(false);
       }
     }
   }, [
     activeGroup,
     amount,
     collateralBank,
+    connection,
+    fetchTradeState,
     leverage,
     leverageActionCb,
     loopingObject,
     marginfiClient,
     setIsActionComplete,
+    setIsRefreshingStore,
     setPreviousTxn,
     tradeState,
+    wallet,
   ]);
 
   const handleAmountChange = React.useCallback(
