@@ -210,7 +210,6 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
         if ((error as any).msg) message = (error as any).msg;
         // addStatus({ type: "simulation", msg: message ?? "Simulating transaction failed" }, "warning");
       } finally {
-        // if (simulationResult) removeStatus("simulation");
         loadStats(simulationResult, looping);
       }
     },
@@ -252,12 +251,6 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
 
         if (looping && looping?.loopingTxn && selectedAccount) {
           await handleSimulation(looping, activeGroup.token, selectedAccount);
-          // const simulation = await simulateLooping({
-          //   marginfiClient,
-          //   account: selectedAccount,
-          //   bank: activeGroup.token,
-          //   loopingTxn: looping.loopingTxn,
-          // });
         } else if (!looping) {
           setAdditionalChecks({
             isEnabled: false,
@@ -290,7 +283,7 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
     if (activeGroup) {
       setStats(generateStats(accountSummary, activeGroup.token, activeGroup.usdc, null, null));
     }
-  }, [accountSummary, activeGroup, activeGroup?.token, activeGroup?.usdc]);
+  }, [accountSummary, activeGroup]);
 
   const leverageActionCb = React.useCallback(
     async (depositBank: ExtendedBankInfo, borrowBank: ExtendedBankInfo) => {
@@ -357,13 +350,6 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
               },
             });
           }
-
-          // setPreviousTxn({
-          //   type: ActionType.Borrow ,
-          //   bank: bank as ActiveBankInfo,
-          //   amount: borrowOrLendAmount,
-          //   txn: txnSig!,
-          // });
         }
 
         return sig;
@@ -583,29 +569,8 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
                     </button>
                   </div>
                 </TradingBoxSettingsDialog>
-                {/* <ActionBoxDialog requestedAction={ActionType.Deposit} requestedBank={activeGroup.usdc}>
-                <Button
-                  variant="link"
-                  size="sm"
-                  className="font-normal text-muted-foreground underline hover:no-underline"
-                >
-                  Desposit Collateral
-                </Button>
-              </ActionBoxDialog> */}
               </div>
               {Stats}
-              {/* <dl className="w-full grid grid-cols-2 gap-1.5 text-xs text-muted-foreground">
-              <dt>Entry Price</dt>
-              <dd className="text-primary text-right">$177.78</dd>
-              <dt>Liquidation Price</dt>
-              <dd className="text-primary text-right">$166.67</dd>
-              <dt>Oracle</dt>
-              <dd className="text-primary flex items-center gap-1 ml-auto">
-                Pyth <IconPyth size={14} />
-              </dd>
-              <dt>Available Liquidity</dt>
-              <dd className="text-primary text-right">$1,000,000</dd>
-            </dl> */}
             </>
           ) : (
             <ActionBoxDialog requestedAction={ActionType.Deposit} requestedBank={activeGroup.usdc}>
