@@ -615,15 +615,8 @@ class MarginfiAccountWrapper {
       wrapAndUnwrapSol: true,
     });
     const lookupTables = this.client.addressLookupTables;
-    const newAddressLookupTables = (await this.client.provider.connection.getAddressLookupTable(
-      new PublicKey("TCE5xPtkXKKU9MsvLtZimFxbskvNWv6ZDqR9ZbVPFnj")
-    ))!.value;
 
-    console.log({ newAddressLookupTables });
-
-    const array = newAddressLookupTables ? [newAddressLookupTables] : [];
-
-    const addressLookupTableAccounts = [...array, ...swapLookupTables];
+    const addressLookupTableAccounts = [...lookupTables, ...swapLookupTables];
     const transaction = await this.buildFlashLoanTx({
       ixs: [
         ...priorityFeeIx,
