@@ -522,9 +522,9 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
                         <div
                           className={cn(
                             "flex space-x-2 py-2.5 px-3.5 rounded-lg gap-1 text-sm",
-                            actionMethod.actionMethod === "INFO" && "bg-info text-info-foreground",
+                            actionMethod.actionMethod === "INFO" && "bg-accent text-info-foreground",
                             (!actionMethod.actionMethod || actionMethod.actionMethod === "WARNING") &&
-                              "bg-alert text-alert-foreground",
+                              "bg-accent text-alert-foreground",
                             actionMethod.actionMethod === "ERROR" && "bg-[#990000] text-primary"
                           )}
                         >
