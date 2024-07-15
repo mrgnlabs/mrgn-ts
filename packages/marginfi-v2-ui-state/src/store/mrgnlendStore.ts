@@ -50,6 +50,7 @@ interface MrgnlendState {
   sendEndpoint: string | null;
   spamSendTx: boolean;
   skipPreflightInSpam: boolean;
+  stageTokens: string[] | null;
 
   // Actions
   fetchMrgnlendState: (args?: {
@@ -61,6 +62,7 @@ interface MrgnlendState {
     sendEndpoint?: string;
     spamSendTx?: boolean;
     skipPreflightInSpam?: boolean;
+    stageTokens?: string[];
   }) => Promise<void>;
   setIsRefreshingStore: (isRefreshingStore: boolean) => void;
   resetUserData: () => void;
@@ -150,6 +152,7 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
   sendEndpoint: null,
   spamSendTx: false,
   skipPreflightInSpam: false,
+  stageTokens: null,
 
   // Actions
   fetchMrgnlendState: async (args?: {
@@ -161,6 +164,7 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
     sendEndpoint?: string;
     spamSendTx?: boolean;
     skipPreflightInSpam?: boolean;
+    stageTokens?: string[];
   }) => {
     try {
       const { MarginfiClient } = await import("@mrgnlabs/marginfi-client-v2");
@@ -176,6 +180,8 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
       const marginfiConfig = args?.marginfiConfig ?? get().marginfiClient?.config;
       if (!marginfiConfig) throw new Error("Marginfi config must be provided at least once");
 
+      const stageTokens = args?.stageTokens ?? get().stageTokens;
+
       const isReadOnly = args?.isOverride !== undefined ? args.isOverride : get().marginfiClient?.isReadOnly ?? false;
       const sendEndpoint = args?.sendEndpoint ?? get().sendEndpoint ?? undefined;
       const spamSendTx = args?.spamSendTx ?? get().spamSendTx ?? false;
@@ -190,7 +196,13 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
         spamSendTx: spamSendTx,
         skipPreflightInSpam,
       });
-      const banks = [...marginfiClient.banks.values()];
+      const clientBanks = [...marginfiClient.banks.values()];
+
+      const banks = stageTokens
+        ? clientBanks.filter(
+            (bank) => bank.tokenSymbol && !stageTokens.find((a) => a.toLowerCase() == bank?.tokenSymbol?.toLowerCase())
+          )
+        : clientBanks;
 
       const birdEyeApiKey = args?.birdEyeApiKey ?? get().birdEyeApiKey;
       const emissionsTokenMap = get().emissionTokenMap ?? null;
@@ -342,6 +354,7 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
         sendEndpoint,
         spamSendTx,
         skipPreflightInSpam,
+        stageTokens: stageTokens ?? null,
       });
 
       const pointSummary = await getPointsSummary();
