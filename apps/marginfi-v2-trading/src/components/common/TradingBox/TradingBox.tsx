@@ -518,7 +518,7 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
                 {actionMethods.concat(additionalChecks ?? []).map(
                   (actionMethod, idx) =>
                     actionMethod.description && (
-                      <div className="pb-6" key={idx}>
+                      <div className="pb-6 w-full" key={idx}>
                         <div
                           className={cn(
                             "flex space-x-2 py-2.5 px-3.5 rounded-lg gap-1 text-sm",
