@@ -1,0 +1,14 @@
+{
+  "tokens": [
+    {
+      "token": "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
+      "oracleType": "Pyth",
+      "oracle": "JBu1AL4obBcCMqKBBxhpWCNUt136ijcuMZLFvTP7iWdB"
+    },
+    {
+      "token": "EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm",
+      "oracleType": "Pyth",
+      "oracle": "H6ARHf6YXhGYeQfUzQNGk6rDNnLBQKrenN712K4AQJEG"
+    }
+  ]
+}

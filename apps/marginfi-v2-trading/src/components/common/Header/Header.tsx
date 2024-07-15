@@ -55,7 +55,7 @@ export const Header = () => {
               <CreatePoolDialog
                 trigger={
                   <Button>
-                    <IconPlus size={18} /> Create Pool
+                    <IconPlus size={18} /> Seed Pools
                   </Button>
                 }
               />

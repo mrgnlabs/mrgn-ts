@@ -179,7 +179,7 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
     reset();
     setSearchQuery("");
     setMintAddress("");
-    setCreatePoolState(CreatePoolState.SEARCH);
+    setCreatePoolState(CreatePoolState.LOADING);
   }, [isOpen, reset, setSearchQuery, setMintAddress, setCreatePoolState]);
 
   return (

@@ -6,28 +6,19 @@ import { IconLoader2, IconCheck, IconConfetti, IconX } from "@tabler/icons-react
 import {
   BankConfigOpt,
   MarginfiClient,
-  MarginfiGroup,
   OperationalState,
   OracleSetup,
   RiskTier,
   getConfig,
-  makePriorityFeeIx,
 } from "@mrgnlabs/marginfi-client-v2";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { useConnection } from "~/hooks/useConnection";
-import {
-  Keypair,
-  Message,
-  PublicKey,
-  Transaction,
-  TransactionInstruction,
-  TransactionMessage,
-  VersionedTransaction,
-} from "@solana/web3.js";
+import { Keypair, PublicKey, TransactionInstruction } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 import { cn, createMarginfiGroup, createPermissionlessBank, createPoolLookupTable } from "~/utils";
 import { useUiStore } from "~/store";
 import React from "react";
+import { showErrorToast } from "~/utils/toastUtils";
 
 const USDC_MINT = new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
 
@@ -229,6 +220,14 @@ export const CreatePoolLoading = ({ poolCreatedData, setIsOpen, setIsCompleted }
     return { tokenBankSeed, stableBankSeed, marginfiGroupSeed };
   }, []);
 
+  const createTransactions = () => {
+    const keypair = process.env.MARGINFI_WALLET_KEY;
+
+    if (!keypair) {
+      showErrorToast("MARGINFI_WALLET_KEY env var not defined");
+    }
+  };
+
   const createTransaction = React.useCallback(async () => {
     if (!poolCreatedData) return;
     setStatus("loading");
@@ -303,20 +302,23 @@ export const CreatePoolLoading = ({ poolCreatedData, setIsOpen, setIsCompleted }
   }, [
     createBank,
     createGroup,
+    createSeeds,
     initializeClient,
     poolCreatedData,
+    poolCreation?.lutAddress,
     poolCreation?.marginfiClient,
     poolCreation?.marginfiGroupPk,
+    poolCreation?.seeds,
     poolCreation?.stableBankPk,
     poolCreation?.tokenBankPk,
     setIsCompleted,
-    setStatus,
+    wallet.publicKey,
   ]);
 
   return (
     <>
       <div className="text-center space-y-2 max-w-lg mx-auto">
-        <h2 className="text-3xl font-medium">Creating a new pool</h2>
+        <h2 className="text-3xl font-medium">Creatinging new pools</h2>
         <p className="text-lg text-muted-foreground">Executing transactions to setup token banks.</p>
       </div>
       <div className="flex flex-col gap-2 relative w-full max-w-fit mx-auto bg-accent pl-4 pr-3 py-2 rounded-lg text-muted-foreground">
