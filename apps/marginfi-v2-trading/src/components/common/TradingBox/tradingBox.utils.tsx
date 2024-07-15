@@ -1036,17 +1036,23 @@ export const checkAdditionalActionAvailable = (error: any) => {
         link: "https://forum.marginfi.community/t/work-were-doing-to-improve-oracle-robustness-during-chain-congestion/283",
         linkText: "Learn more about marginfi's decentralized oracles.",
       } as ActionMethod;
-    } else if (error?.programId && error?.programId === "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA") {
-      return {
-        isEnabled: true,
-        actionMethod: "WARNING",
-        description: error?.message,
-      } as ActionMethod;
     } else if (error?.message && (error?.message.includes("6029") || error?.message.includes("borrow cap exceeded"))) {
       return {
         isEnabled: false,
         actionMethod: "WARNING",
         description: "Borrow cap is exceeded.",
+      } as ActionMethod;
+    } else if (error?.message && (error?.message.includes("6028") || error?.message.includes("utilization ratio"))) {
+      return {
+        isEnabled: false,
+        actionMethod: "WARNING",
+        description: "Bank utilization ratio is invalid.",
+      } as ActionMethod;
+    } else if (error?.programId && error?.programId === "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA") {
+      return {
+        isEnabled: true,
+        actionMethod: "WARNING",
+        description: error?.message,
       } as ActionMethod;
     } else if (error?.message && (error?.message.includes("RangeError") || error?.message.includes("too large"))) {
       return {
