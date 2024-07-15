@@ -20,6 +20,9 @@ import { useUiStore } from "~/store";
 import React from "react";
 import { showErrorToast } from "~/utils/toastUtils";
 import { BankToken, bankTokens } from "./tokenSeeds";
+import bs58 from "bs58";
+import { NodeWallet, Wallet } from "@mrgnlabs/mrgn-common";
+import wallet from "~/pages/api/user/wallet";
 
 const USDC_MINT = new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
 
@@ -136,7 +139,6 @@ type LogLine = {
 };
 
 export const CreatePoolLoading = ({ poolCreatedData, setIsOpen, setIsCompleted }: CreatePoolLoadingProps) => {
-  const { wallet } = useWalletContext();
   const { connection } = useConnection();
   const [priorityFee] = useUiStore((state) => [state.priorityFee]);
   const [activeStep, setActiveStep] = React.useState<number>(0);
@@ -164,12 +166,15 @@ export const CreatePoolLoading = ({ poolCreatedData, setIsOpen, setIsCompleted }
   //   }
   // }, []);
 
-  const initializeClient = React.useCallback(async () => {
-    const config = getConfig();
+  const initializeClient = React.useCallback(
+    async (wallet: Wallet) => {
+      const config = getConfig();
 
-    const client = await MarginfiClient.fetch(config, wallet, connection);
-    return client;
-  }, [connection, wallet]);
+      const client = await MarginfiClient.fetch(config, wallet, connection);
+      return client;
+    },
+    [connection]
+  );
 
   const createGroup = React.useCallback(
     async (marginfiClient: MarginfiClient, lutIxs: TransactionInstruction[], seed?: Keypair) => {
@@ -188,6 +193,7 @@ export const CreatePoolLoading = ({ poolCreatedData, setIsOpen, setIsCompleted }
       bankConfig: BankConfigOpt,
       mint: PublicKey,
       group: PublicKey,
+      wallet: Wallet,
       seed?: Keypair
     ) => {
       const sig = await createPermissionlessBank({
@@ -204,7 +210,7 @@ export const CreatePoolLoading = ({ poolCreatedData, setIsOpen, setIsCompleted }
 
       return sig;
     },
-    [wallet.publicKey, priorityFee]
+    [priorityFee]
   );
 
   const createSeeds = React.useCallback(() => {
@@ -216,20 +222,21 @@ export const CreatePoolLoading = ({ poolCreatedData, setIsOpen, setIsCompleted }
   }, []);
 
   const createTransactions = async () => {
-    // const keypair = process.env.MARGINFI_WALLET_KEY;
+    // eslint-disable-next-line turbo/no-undeclared-env-vars
+    const keypair = process.env.NEXT_PUBLIC_WALLET_KEY;
     // console.log({ por: process.env });
+    if (!keypair) {
+      setLogs((state) => [...state, { type: "error", text: "NEXT_PUBLIC_WALLET_KEY env var not defined." }]);
+      showErrorToast("NEXT_PUBLIC_WALLET_KEY env var not defined");
+      return;
+    }
+    const wallet = new NodeWallet(Keypair.fromSecretKey(new Uint8Array(JSON.parse(keypair))));
     let newClient = client;
     if (!newClient) {
-      newClient = await initializeClient();
+      newClient = await initializeClient(wallet);
       setClient(newClient);
       setLogs((state) => [...state, { type: "info", text: "Initializing marginfi client." }]);
     }
-
-    // if (!keypair) {
-    //   setLogs((state) => [...state, { type: "error", text: "MARGINFI_WALLET_KEY env var not defined." }]);
-    //   showErrorToast("MARGINFI_WALLET_KEY env var not defined");
-    //   return;
-    // }
 
     const pools = bankTokens;
     const poolsLength = pools.length;
@@ -238,25 +245,32 @@ export const CreatePoolLoading = ({ poolCreatedData, setIsOpen, setIsCompleted }
     for (let x = 0; x < poolsLength; x++) {
       const pool = pools[x];
       const poolState = poolCreationState ? poolCreationState[x] : undefined;
-      const updatedPoolState = await createTransaction(newClient, pool, poolState);
+      const { poolCreation: updatedPoolState, isFailed } = await createTransaction(newClient, wallet, pool, poolState);
+
       setPoolCreationState((state) => {
-        const newState = state;
-        if (newState) {
+        let newState = state;
+
+        if (newState && updatedPoolState) {
           if (newState[x]) {
             newState[x] = updatedPoolState;
+          } else {
+            newState.push(updatedPoolState);
           }
-        } else {
+        } else if (updatedPoolState) {
+          newState = [updatedPoolState];
         }
 
         return newState;
       });
 
-      setLogs((state) => [...state, { type: "info", text: `loop ${x}` }]);
+      if (isFailed) {
+        break;
+      }
     }
   };
 
   const createTransaction = React.useCallback(
-    async (client: MarginfiClient, pool: BankToken, poolCreationArg: PoolCreationState | undefined) => {
+    async (client: MarginfiClient, wallet: Wallet, pool: BankToken, poolCreationArg: PoolCreationState | undefined) => {
       let poolCreation = poolCreationArg;
 
       setLogs((state) => [...state, { type: "info", text: `Creating pool for ${pool.token}` }]);
@@ -290,6 +304,7 @@ export const CreatePoolLoading = ({ poolCreatedData, setIsOpen, setIsCompleted }
           });
 
           setLogs((state) => [...state, { type: "info", text: `Lookuptable created: ${newLutAddress.toBase58()}` }]);
+          // throw new Error();
 
           lutAddress = newLutAddress;
           setLogs((state) => [
@@ -305,6 +320,8 @@ export const CreatePoolLoading = ({ poolCreatedData, setIsOpen, setIsCompleted }
           ]);
 
           if (!group || !lutAddress) throw new Error();
+        } else {
+          setLogs((state) => [...state, { type: "info", text: `Skipping group creation` }]);
         }
 
         poolCreation = { ...poolCreation, marginfiGroupPk: group, lutAddress };
@@ -320,12 +337,21 @@ export const CreatePoolLoading = ({ poolCreatedData, setIsOpen, setIsCompleted }
             },
           ]);
 
-          const sig = await createBank(client, DEFAULT_USDC_BANK_CONFIG, USDC_MINT, group, seeds.stableBankSeed);
+          const sig = await createBank(
+            client,
+            DEFAULT_USDC_BANK_CONFIG,
+            USDC_MINT,
+            group,
+            wallet,
+            seeds.stableBankSeed
+          );
           if (!sig) throw new Error();
 
           setLogs((state) => [...state, { type: "info", text: `Transaction executed, sig: ${sig}.` }]);
 
           poolCreation = { ...poolCreation, stableBankPk: seeds.stableBankSeed.publicKey };
+        } else {
+          setLogs((state) => [...state, { type: "info", text: `Skipping stable bank creation` }]);
         }
 
         if (!poolCreation?.tokenBankPk) {
@@ -349,19 +375,29 @@ export const CreatePoolLoading = ({ poolCreatedData, setIsOpen, setIsCompleted }
             },
           ]);
 
-          const sig = await createBank(client, tokenBankConfig, tokenMint, group, seeds.tokenBankSeed);
+          const sig = await createBank(client, tokenBankConfig, tokenMint, group, wallet, seeds.tokenBankSeed);
 
           setLogs((state) => [...state, { type: "info", text: `Transaction executed, sig: ${sig}.` }]);
 
           if (!sig) throw new Error();
           poolCreation = { ...poolCreation, tokenBankPk: seeds.tokenBankSeed.publicKey };
+        } else {
+          setLogs((state) => [...state, { type: "info", text: `Skipping token bank creation` }]);
         }
       } catch (error) {
+        setLogs((state) => [
+          ...state,
+          {
+            type: "error",
+            text: `Transaction failed, try again.`,
+          },
+        ]);
+        return { poolCreation, isFailed: true };
       } finally {
-        return poolCreation;
+        return { poolCreation, isFailed: false };
       }
     },
-    [createBank, createGroup, createSeeds, initializeClient, poolCreatedData, setIsCompleted, wallet.publicKey]
+    [createBank, createGroup, createSeeds]
   );
 
   return (
@@ -370,7 +406,7 @@ export const CreatePoolLoading = ({ poolCreatedData, setIsOpen, setIsCompleted }
         <h2 className="text-3xl font-medium">Creating new pools</h2>
         <p className="text-lg text-muted-foreground">Executing transactions to setup token banks.</p>
       </div>
-      <div className="flex flex-col gap-1 relative w-full mx-auto bg-accent pl-4 pr-3 py-2 rounded-lg text-muted-foreground">
+      <div className="flex flex-col gap-1 relative w-full mx-auto bg-accent pl-4 pr-3 py-2 h-80 overflow-y-scroll rounded-lg text-muted-foreground">
         {logs.map((log, idx) => {
           let LogText;
 
@@ -379,7 +415,7 @@ export const CreatePoolLoading = ({ poolCreatedData, setIsOpen, setIsCompleted }
               LogText = <div className="text-error">{log.text}</div>;
               break;
             case "loading":
-              LogText = <div className="text-error">{log.text}</div>;
+              LogText = <div className="font-bold">{log.text}</div>;
               break;
             default:
               LogText = <div>{log.text}</div>;
