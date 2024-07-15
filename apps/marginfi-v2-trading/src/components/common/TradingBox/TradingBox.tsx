@@ -235,7 +235,7 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
           depositBank,
           borrowBank,
           leverage,
-          Number(amount),
+          amount,
           slippageBps,
           priorityFee,
           connection
