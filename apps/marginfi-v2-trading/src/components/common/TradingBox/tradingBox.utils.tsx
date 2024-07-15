@@ -49,7 +49,7 @@ export async function calculateLooping(
   depositBank: ExtendedBankInfo, // deposit
   borrowBank: ExtendedBankInfo, // borrow
   targetLeverage: number,
-  amount: number,
+  amountRaw: string,
   slippageBps: number,
   priorityFee: number,
   connection: Connection
@@ -57,8 +57,11 @@ export async function calculateLooping(
   console.log("bank A: " + depositBank.meta.tokenSymbol);
   console.log("bank B: " + borrowBank.meta.tokenSymbol);
   console.log("leverage: " + targetLeverage);
-  console.log("amount: " + amount);
+  console.log("amount: " + amountRaw);
   console.log("slippageBps: " + slippageBps);
+
+  const strippedAmount = amountRaw.replace(/,/g, "");
+  const amount = isNaN(Number.parseFloat(strippedAmount)) ? 0 : Number.parseFloat(strippedAmount);
 
   const principalBufferAmountUi = amount * targetLeverage * (slippageBps / 10000);
   const adjustedPrincipalAmountUi = amount - principalBufferAmountUi;
