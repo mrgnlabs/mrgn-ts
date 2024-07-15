@@ -148,13 +148,24 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
     }
   }, [setCreatePoolState, form, mintAddress, setIsSearchingDasApi, setIsTokenFetchingError, setPreviewImage]);
 
-  const onCompletion = (props: {
+  const onCompletion = async (props: {
     stableBankPk: PublicKey;
     tokenBankPk: PublicKey;
     groupPk: PublicKey;
     lutAddress: PublicKey;
   }) => {
-    // TODO add props to GCP
+    const lutUpdateRes = await fetch(`/api/lut`, {
+      method: "POST",
+      body: JSON.stringify({
+        groupAddress: props.groupPk.toBase58(),
+        lutAddress: props.lutAddress.toBase58(),
+      }),
+    });
+
+    if (!lutUpdateRes.ok) {
+      console.error("Failed to update LUT");
+    }
+
     setCreatePoolState(CreatePoolState.SUCCESS);
   };
 
