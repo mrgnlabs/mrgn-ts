@@ -164,6 +164,10 @@ const oraclesWithMaxAgeOverMin = [
     address: "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
     maxAge: 600,
   },
+  {
+    address: "2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo",
+    maxAge: 300,
+  },
 ];
 
 export function isBankOracleStale(bank: ExtendedBankInfo) {
