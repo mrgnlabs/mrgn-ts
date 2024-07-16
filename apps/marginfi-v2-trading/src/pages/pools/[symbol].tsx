@@ -17,18 +17,9 @@ import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "
 
 import type { TokenData } from "~/types";
 
-const chartData = [
-  { month: "January", desktop: 186 },
-  { month: "February", desktop: 305 },
-  { month: "March", desktop: 237 },
-  { month: "April", desktop: 73 },
-  { month: "May", desktop: 209 },
-  { month: "June", desktop: 214 },
-];
-
 const chartConfig = {
   desktop: {
-    label: "Desktop",
+    label: "Price",
     color: "hsl(var(--chart-1))",
   },
 } satisfies ChartConfig;
@@ -41,6 +32,22 @@ export default function TradeSymbolPage() {
   ]);
   const [previousTxn] = useUiStore((state) => [state.previousTxn]);
   const [tokenData, setTokenData] = React.useState<TokenData | null>(null);
+  const [priceData, setPriceData] = React.useState<
+    {
+      timestamp: number;
+      label: string;
+      price: number;
+    }[]
+  >([]);
+
+  const chartData = React.useMemo(() => {
+    const data = priceData.map((item) => ({
+      time: item.label,
+      desktop: item.price,
+    }));
+    console.log(data);
+    return data;
+  }, [priceData]);
 
   const healthColor = React.useMemo(() => {
     if (accountSummary.healthFactor) {
@@ -81,7 +88,28 @@ export default function TradeSymbolPage() {
       setTokenData(tokenData);
     };
 
+    const fetchPriceData = async () => {
+      const priceResponse = await fetch(
+        `/api/birdeye/price-history?address=${activeGroup.token.info.state.mint.toBase58()}`
+      );
+
+      if (!priceResponse.ok) {
+        console.error("Failed to fetch price data");
+        return;
+      }
+
+      const priceData = await priceResponse.json();
+
+      if (!priceData) {
+        console.error("Failed to parse price data");
+        return;
+      }
+
+      setPriceData(priceData);
+    };
+
     fetchTokenData();
+    fetchPriceData();
   }, [activeGroup]);
 
   return (
@@ -104,18 +132,63 @@ export default function TradeSymbolPage() {
                     <h1 className="text-2xl font-medium">{activeGroup.token.meta.tokenName}</h1>
                     <h2 className="text-xl text-muted-foreground">{activeGroup.token.meta.tokenSymbol}</h2>
                   </div>
-                  <div className="px-12 w-full">
-                    <ChartContainer config={chartConfig} className="h-[100px] w-full mt-2">
-                      <AreaChart accessibilityLayer data={chartData}>
-                        <defs>
-                          <linearGradient id="fill" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#75ba80" stopOpacity={0.8} />
-                            <stop offset="95%" stopColor="#75ba80" stopOpacity={0.1} />
-                          </linearGradient>
-                        </defs>
-                        <Area dataKey="desktop" type="natural" fill="url(#fill)" fillOpacity={0.4} stroke="#75ba80" />
-                      </AreaChart>
-                    </ChartContainer>
+                  <div className="px-6 lg:px-12 w-full">
+                    {chartData.length > 0 && (
+                      <ChartContainer config={chartConfig} className="h-[100px] w-full mt-2">
+                        <AreaChart accessibilityLayer data={chartData}>
+                          <CartesianGrid horizontal={false} />
+                          <XAxis
+                            dataKey="time"
+                            tickLine={false}
+                            axisLine={false}
+                            minTickGap={32}
+                            tickMargin={8}
+                            tickFormatter={(value) => {
+                              console.log(value);
+                              return value
+                                .replace(/hours|hour/g, "hr")
+                                .replace(/minutes/g, "m")
+                                .replace(/an/g, "1")
+                                .replace(/a day/g, "24 hr")
+                                .replace(/ago/g, "");
+                            }}
+                            className="text-xs"
+                          />
+                          <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
+                          <defs>
+                            <linearGradient id="fill" x1="0" y1="0" x2="0" y2="1">
+                              <stop
+                                offset="5%"
+                                stopColor={
+                                  chartData[chartData.length - 1].desktop >= chartData[0].desktop
+                                    ? "#75ba80"
+                                    : "#e07d6f"
+                                }
+                                stopOpacity={0.8}
+                              />
+                              <stop
+                                offset="95%"
+                                stopColor={
+                                  chartData[chartData.length - 1].desktop >= chartData[0].desktop
+                                    ? "#75ba80"
+                                    : "#e07d6f"
+                                }
+                                stopOpacity={0.1}
+                              />
+                            </linearGradient>
+                          </defs>
+                          <Area
+                            dataKey="desktop"
+                            type="natural"
+                            fill="url(#fill)"
+                            fillOpacity={0.4}
+                            stroke={
+                              chartData[chartData.length - 1].desktop >= chartData[0].desktop ? "#75ba80" : "#e07d6f"
+                            }
+                          />
+                        </AreaChart>
+                      </ChartContainer>
+                    )}
                   </div>
                 </div>
               </div>
