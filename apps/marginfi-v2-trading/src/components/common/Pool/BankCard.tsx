@@ -96,9 +96,12 @@ export const BankCard = ({ bank }: BankCardProps) => {
       )}
       <div className="flex justify-between w-full gap-4 mt-auto">
         {bank.isActive && (
-          <ActionBoxDialog requestedAction={ActionType.Withdraw} requestedBank={bank}>
+          <ActionBoxDialog
+            requestedAction={bank.position.isLending ? ActionType.Withdraw : ActionType.Repay}
+            requestedBank={bank}
+          >
             <Button className="h-12 w-1/2" variant="outline">
-              Withdraw
+              {bank.position.isLending ? "Withdraw" : "Repay"}
             </Button>
           </ActionBoxDialog>
         )}
