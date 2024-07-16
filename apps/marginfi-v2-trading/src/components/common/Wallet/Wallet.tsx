@@ -314,7 +314,7 @@ export const Wallet = () => {
                           </TooltipProvider>
                         </div>
                         <WalletTokens
-                          className="h-[calc(100vh-325px)] pb-16"
+                          className="h-[calc(100vh-285px)] pb-16"
                           tokens={walletData.tokens}
                           onTokenClick={(token) => {
                             setActiveToken(token);
@@ -402,7 +402,7 @@ export const Wallet = () => {
                           <IconArrowLeft size={16} /> back
                         </button>
                         <WalletTokens
-                          className="h-[calc(100vh-235px)]"
+                          className="h-[calc(100vh-285px)]"
                           tokens={walletData.tokens}
                           onTokenClick={(token) => {
                             setActiveToken(token);
