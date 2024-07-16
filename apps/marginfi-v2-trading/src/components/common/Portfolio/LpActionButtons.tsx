@@ -1,12 +1,10 @@
-import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
+import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { IconMinus, IconPlus } from "@tabler/icons-react";
 
 import { ActionBoxDialog } from "~/components/common/ActionBox";
 import { Button } from "~/components/ui/button";
 import React from "react";
-import { useConnection } from "~/hooks/useConnection";
-import { useUiStore } from "~/store";
 import { ActiveGroup } from "~/store/tradeStore";
 
 type LpActionButtonsProps = {
@@ -23,7 +21,7 @@ export const LpActionButtons = ({ marginfiAccount, activeGroup }: LpActionButton
   }, [activeGroup.token, activeGroup.usdc]);
 
   return (
-    <div className="flex gap-3 w-full">
+    <div className="flex gap-3 w-full justify-end">
       <ActionBoxDialog
         requestedBank={activeGroup.usdc}
         requestedAction={ActionType.Deposit}
