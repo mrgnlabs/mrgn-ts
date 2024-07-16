@@ -77,6 +77,8 @@ export default function TradeSymbolPage() {
     fetchTokenData();
   }, [activeGroup]);
 
+  console.log({ activeGroup });
+
   return (
     <>
       <div className="w-full max-w-8xl mx-auto px-4 md:px-8 pb-28 pt-12 z-10">
@@ -253,8 +255,15 @@ export default function TradeSymbolPage() {
                 <BankCard bank={activeGroup.usdc} />
               </div>
 
-              <h2 className="font-medium text-2xl mt-10 mb-4">Provide LP</h2>
-              <LpPositionList />
+              {(activeGroup.token.isActive && activeGroup.token.position.isLending) ||
+              (activeGroup.usdc.isActive && activeGroup.usdc.position.isLending) ? (
+                <>
+                  <h2 className="font-medium text-2xl mt-10 mb-4">Provide LP</h2>
+                  <LpPositionList />
+                </>
+              ) : (
+                <></>
+              )}
             </div>
           </div>
         )}
