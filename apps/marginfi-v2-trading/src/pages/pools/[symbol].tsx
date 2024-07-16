@@ -255,7 +255,7 @@ export default function TradeSymbolPage() {
                 <BankCard bank={activeGroup.usdc} />
               </div>
 
-              {(activeGroup.token.isActive && activeGroup.token.position.isLending) ||
+              {/* {(activeGroup.token.isActive && activeGroup.token.position.isLending) ||
               (activeGroup.usdc.isActive && activeGroup.usdc.position.isLending) ? (
                 <>
                   <h2 className="font-medium text-2xl mt-10 mb-4">Provide LP</h2>
@@ -263,7 +263,7 @@ export default function TradeSymbolPage() {
                 </>
               ) : (
                 <></>
-              )}
+              )} */}
             </div>
           </div>
         )}
