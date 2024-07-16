@@ -9,12 +9,12 @@ import { TipLinkWalletAutoConnect } from "@tiplink/wallet-adapter-react-ui";
 import { init, push } from "@socialgouv/matomo-next";
 import { ToastContainer } from "react-toastify";
 import { Analytics } from "@vercel/analytics/react";
+import { ParsedUrlQuery } from "querystring";
 
 import config from "~/config";
 import { MrgnlendProvider, LipClientProvider, TradePovider } from "~/context";
 import { WALLET_ADAPTERS } from "~/config/wallets";
-import { useMrgnlendStore, useUiStore } from "~/store";
-import { useLstStore } from "~/store";
+import { useTradeStore } from "~/store";
 import { Desktop, Mobile } from "~/mediaQueries";
 import { WalletProvider as MrgnWalletProvider } from "~/hooks/useWalletContext";
 import { ConnectionProvider } from "~/hooks/useConnection";
@@ -42,16 +42,7 @@ const MATOMO_URL = "https://mrgn.matomo.cloud";
 type MrgnAppProps = { path: string };
 
 export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnAppProps) {
-  const [setIsFetchingData] = useUiStore((state) => [state.setIsFetchingData]);
-  const [isMrgnlendStoreInitialized, isRefreshingMrgnlendStore, fetchMrgnlendState] = useMrgnlendStore((state) => [
-    state.initialized,
-    state.isRefreshingStore,
-    state.fetchMrgnlendState,
-  ]);
-  const [isLstStoreInitialised, isRefreshingLstStore] = useLstStore((state) => [
-    state.initialized,
-    state.isRefreshingStore,
-  ]);
+  const [activeGroup] = useTradeStore((state) => [state.activeGroup]);
 
   const { query, isReady } = useRouter();
 
@@ -64,17 +55,6 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
     }
   }, []);
 
-  React.useEffect(() => {
-    const isFetchingData = isRefreshingMrgnlendStore || isRefreshingLstStore;
-    setIsFetchingData(isFetchingData);
-  }, [
-    isLstStoreInitialised,
-    isMrgnlendStoreInitialized,
-    isRefreshingLstStore,
-    isRefreshingMrgnlendStore,
-    setIsFetchingData,
-  ]);
-
   const [ready, setReady] = React.useState(false);
 
   React.useEffect(() => {
@@ -84,7 +64,7 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
 
   return (
     <>
-      <Meta path={path} />
+      <Meta path={path} activeGroup={activeGroup} />
       {ready && (
         <ConnectionProvider endpoint={config.rpcEndpoint}>
           <TipLinkWalletAutoConnect isReady={isReady} query={query}>
