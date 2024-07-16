@@ -16,17 +16,24 @@ import { Loader } from "~/components/ui/loader";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 
 export default function PortfolioPage() {
-  const [initialized, banks, resetActiveGroup] = useTradeStore((state) => [
+  const [initialized, banks, collateralBanks, resetActiveGroup] = useTradeStore((state) => [
     state.initialized,
     state.banks,
+    state.collateralBanks,
     state.resetActiveGroup,
   ]);
   const [previousTxn] = useUiStore((state) => [state.previousTxn]);
 
   const portfolio = React.useMemo(() => {
     const activeBanks = banks.filter((bank) => bank.isActive);
-    const longBanks = activeBanks.filter((bank) => bank.isActive && bank.position.isLending) as ActiveBankInfo[];
-    const shortBanks = activeBanks.filter((bank) => bank.isActive && !bank.position.isLending) as ActiveBankInfo[];
+    const longBanks = activeBanks.filter((bank) => {
+      const collateralBank = collateralBanks[bank.address.toBase58()];
+      return bank.isActive && bank.position.isLending && collateralBank.isActive && !collateralBank.position.isLending;
+    }) as ActiveBankInfo[];
+    const shortBanks = activeBanks.filter((bank) => {
+      const collateralBank = collateralBanks[bank.address.toBase58()];
+      return bank.isActive && !bank.position.isLending && collateralBank.isActive && collateralBank.position.isLending;
+    }) as ActiveBankInfo[];
 
     if (!longBanks.length && !shortBanks.length) return null;
 
@@ -34,7 +41,7 @@ export default function PortfolioPage() {
       long: longBanks.sort((a, b) => a.position.usdValue - b.position.usdValue),
       short: shortBanks.sort((a, b) => a.position.usdValue - b.position.usdValue),
     };
-  }, [banks]);
+  }, [banks, collateralBanks]);
 
   const portfolioCombined = React.useMemo(() => {
     if (!portfolio) return null;
@@ -121,7 +128,6 @@ export default function PortfolioPage() {
                   </div>
                 </div>
                 <div>
-                  <h2 className="font-medium text-2xl mt-10 mb-4">LP Positions</h2>
                   <LpPositionList />
                 </div>
               </div>
