@@ -13,8 +13,25 @@ import { ActionComplete } from "~/components/common/ActionComplete";
 import { Loader } from "~/components/ui/loader";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "~/components/ui/chart";
 
 import type { TokenData } from "~/types";
+
+const chartData = [
+  { month: "January", desktop: 186 },
+  { month: "February", desktop: 305 },
+  { month: "March", desktop: 237 },
+  { month: "April", desktop: 73 },
+  { month: "May", desktop: 209 },
+  { month: "June", desktop: 214 },
+];
+
+const chartConfig = {
+  desktop: {
+    label: "Desktop",
+    color: "hsl(var(--chart-1))",
+  },
+} satisfies ChartConfig;
 
 export default function TradeSymbolPage() {
   const [initialized, activeGroup, accountSummary] = useTradeStore((state) => [
@@ -80,12 +97,25 @@ export default function TradeSymbolPage() {
                     src={getTokenImageURL(activeGroup.token.meta.tokenSymbol)}
                     width={72}
                     height={72}
-                    className="rounded-full"
+                    className="rounded-full border"
                     alt={activeGroup.token.meta.tokenName}
                   />
                   <div className="space-y-0.5">
                     <h1 className="text-2xl font-medium">{activeGroup.token.meta.tokenName}</h1>
                     <h2 className="text-xl text-muted-foreground">{activeGroup.token.meta.tokenSymbol}</h2>
+                  </div>
+                  <div className="px-12 w-full">
+                    <ChartContainer config={chartConfig} className="h-[100px] w-full mt-2">
+                      <AreaChart accessibilityLayer data={chartData}>
+                        <defs>
+                          <linearGradient id="fill" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#75ba80" stopOpacity={0.8} />
+                            <stop offset="95%" stopColor="#75ba80" stopOpacity={0.1} />
+                          </linearGradient>
+                        </defs>
+                        <Area dataKey="desktop" type="natural" fill="url(#fill)" fillOpacity={0.4} stroke="#75ba80" />
+                      </AreaChart>
+                    </ChartContainer>
                   </div>
                 </div>
               </div>
