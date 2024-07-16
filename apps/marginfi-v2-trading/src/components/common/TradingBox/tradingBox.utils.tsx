@@ -107,6 +107,48 @@ export async function calculateLooping(
 export async function getCloseTransaction({
   marginfiAccount,
   borrowBank,
+  depositBanks,
+  slippageBps,
+  connection,
+  priorityFee,
+}: {
+  marginfiAccount: MarginfiAccountWrapper | null;
+  borrowBank: ActiveBankInfo | null;
+  depositBanks: ActiveBankInfo[];
+  slippageBps: number;
+  connection: Connection;
+  priorityFee?: number;
+}) {
+  // user is borrowing and depositing
+  let txn = null;
+  if (borrowBank && depositBanks.length === 1) {
+    txn = closeBorrowLendPosition({
+      marginfiAccount,
+      borrowBank,
+      depositBank: depositBanks[0],
+      slippageBps,
+      connection,
+      priorityFee,
+    });
+  }
+
+  // user is only depositing
+  if (!borrowBank && depositBanks.length > 0 && marginfiAccount) {
+    txn = await marginfiAccount.makeWithdrawAllTx(
+      depositBanks.map((bank) => ({
+        amount: bank.position.amount,
+        bankAddress: bank.address,
+      })),
+      {}
+    );
+  }
+
+  return txn;
+}
+
+async function closeBorrowLendPosition({
+  marginfiAccount,
+  borrowBank,
   depositBank,
   slippageBps,
   connection,

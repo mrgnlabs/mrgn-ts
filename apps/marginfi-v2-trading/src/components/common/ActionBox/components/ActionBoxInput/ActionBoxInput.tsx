@@ -14,6 +14,7 @@ import { InputHeader } from "./Components";
 import { InputAction } from "./Components/InputAction";
 import { useConnection } from "~/hooks/useConnection";
 import { YbxInput } from "./Components/YbxInput";
+import { ActiveGroup } from "~/store/tradeStore";
 
 type ActionBoxInputProps = {
   walletAmount: number | undefined;
@@ -23,6 +24,7 @@ type ActionBoxInputProps = {
   showCloseBalance?: boolean;
   isDialog?: boolean;
   tokensOverride?: ExtendedBankInfo[];
+  activeGroup: ActiveGroup | null;
 };
 
 export const ActionBoxInput = ({
@@ -32,6 +34,7 @@ export const ActionBoxInput = ({
   selectedAccount,
   isDialog,
   tokensOverride,
+  activeGroup,
 }: ActionBoxInputProps) => {
   const [isActionBoxInputFocussed, setIsActionBoxInputFocussed] = useUiStore((state) => [
     state.isActionBoxInputFocussed,
@@ -189,6 +192,7 @@ export const ActionBoxInput = ({
                   setSelectedStakingAccount(account);
                 }}
                 tokensOverride={tokensOverride}
+                activeGroup={activeGroup}
               />
             </div>
             <div className="flex-auto">
