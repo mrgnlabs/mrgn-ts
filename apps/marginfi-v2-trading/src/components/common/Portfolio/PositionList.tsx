@@ -15,6 +15,7 @@ import { PositionActionButtons } from "~/components/common/Portfolio";
 import { Table, TableBody, TableHead, TableCell, TableHeader, TableRow } from "~/components/ui/table";
 import { Button } from "~/components/ui/button";
 import { Badge } from "~/components/ui/badge";
+import { ActiveGroup } from "~/store/tradeStore";
 
 export const PositionList = () => {
   const [marginfiClient, banks, collateralBanks, marginfiAccounts] = useTradeStore((state) => [
@@ -61,6 +62,10 @@ export const PositionList = () => {
             const borrowBank = bank.position.isLending ? collateralBank : bank;
             const depositBank = bank.address.equals(borrowBank.address) ? collateralBank : bank;
             const isBorrowing = borrowBank.isActive && !borrowBank.position.isLending;
+            const activeGroup: ActiveGroup = {
+              usdc: collateralBank,
+              token: bank,
+            };
 
             let leverage = 1;
             if (borrowBank.isActive && depositBank.isActive) {
@@ -120,6 +125,7 @@ export const PositionList = () => {
                       marginfiAccount={marginfiAccount}
                       isBorrowing={isBorrowing}
                       bank={bank}
+                      activeGroup={activeGroup}
                       collateralBank={collateralBank}
                     />
                   )}
