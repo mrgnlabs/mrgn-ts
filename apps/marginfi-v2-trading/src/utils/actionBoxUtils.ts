@@ -187,7 +187,7 @@ function canBeWithdrawn(
 
   if (targetBankInfo.isActive && !targetBankInfo.position.isLending) {
     checks.push({
-      description: `You&apos;re not lending ${targetBankInfo.meta.tokenSymbol}.`,
+      description: `You're not lending ${targetBankInfo.meta.tokenSymbol}.`,
       isEnabled: false,
     });
   }
