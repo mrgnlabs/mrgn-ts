@@ -1,17 +1,12 @@
 import React from "react";
 
-import Link from "next/link";
 import Image from "next/image";
-import { useRouter } from "next/router";
 
 import { IconInfoCircle } from "@tabler/icons-react";
 import { numeralFormatter, percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
-import { PublicKey } from "@solana/web3.js";
 
 import { useTradeStore, useUiStore } from "~/store";
 import { getTokenImageURL, cn } from "~/utils";
-import { useWalletContext } from "~/hooks/useWalletContext";
-import { useConnection } from "~/hooks/useConnection";
 
 import { BankCard } from "~/components/common/Pool";
 import { ActionComplete } from "~/components/common/ActionComplete";
@@ -20,16 +15,11 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/comp
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 
 import type { TokenData } from "~/types";
-import { LpPositionList } from "~/components/common/Portfolio";
 
 export default function TradeSymbolPage() {
-  const router = useRouter();
-  const { connection } = useConnection();
-  const { wallet } = useWalletContext();
-  const [initialized, activeGroup, setActiveBank, accountSummary] = useTradeStore((state) => [
+  const [initialized, activeGroup, accountSummary] = useTradeStore((state) => [
     state.initialized,
     state.activeGroup,
-    state.setActiveBank,
     state.accountSummary,
   ]);
   const [previousTxn] = useUiStore((state) => [state.previousTxn]);
@@ -76,8 +66,6 @@ export default function TradeSymbolPage() {
 
     fetchTokenData();
   }, [activeGroup]);
-
-  console.log({ activeGroup });
 
   return (
     <>
@@ -254,16 +242,6 @@ export default function TradeSymbolPage() {
                 <BankCard bank={activeGroup.token} />
                 <BankCard bank={activeGroup.usdc} />
               </div>
-
-              {/* {(activeGroup.token.isActive && activeGroup.token.position.isLending) ||
-              (activeGroup.usdc.isActive && activeGroup.usdc.position.isLending) ? (
-                <>
-                  <h2 className="font-medium text-2xl mt-10 mb-4">Provide LP</h2>
-                  <LpPositionList />
-                </>
-              ) : (
-                <></>
-              )} */}
             </div>
           </div>
         )}
