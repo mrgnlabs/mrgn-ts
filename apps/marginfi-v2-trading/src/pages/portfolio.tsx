@@ -7,13 +7,13 @@ import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { groupedNumberFormatterDyn, usdFormatter } from "@mrgnlabs/mrgn-common";
 
 import { useTradeStore, useUiStore } from "~/store";
+import { getTokenImageURL } from "~/utils";
 
 import { PageHeading } from "~/components/common/PageHeading";
-import { PositionCard } from "~/components/common/Portfolio/PositionCard";
+import { PositionCard, LpPositionList } from "~/components/common/Portfolio";
 import { ActionComplete } from "~/components/common/ActionComplete";
 import { Loader } from "~/components/ui/loader";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
-import { getTokenImageURL } from "~/utils";
 
 export default function PortfolioPage() {
   const [initialized, banks, resetActiveGroup] = useTradeStore((state) => [
@@ -119,6 +119,10 @@ export default function PortfolioPage() {
                       ))}
                     </div>
                   </div>
+                </div>
+                <div>
+                  <h2 className="font-medium text-2xl mt-10 mb-4">LP Positions</h2>
+                  <LpPositionList />
                 </div>
               </div>
             )}
