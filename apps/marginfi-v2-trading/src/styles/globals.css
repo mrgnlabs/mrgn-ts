@@ -342,7 +342,7 @@ input::-webkit-inner-spin-button {
 }
 
 #jupiter-terminal .bg-\[\#212128\] {
-  background: #111416 !important;
+  background: #f4f4f5 !important;
 }
 
 #jupiter-terminal .bg-jupiter-bg {
@@ -351,17 +351,17 @@ input::-webkit-inner-spin-button {
 
 #jupiter-terminal button.bg-\[\#191B1F\].dark\:bg-black\/50 {
   border-radius: 4px !important;
-  background: #fff !important;
+  background: hsl(var(--primary)) !important;
 }
 
 #jupiter-terminal button.bg-\[\#191B1F\].dark\:bg-black\/50 div {
-  padding-top: 12px !important;
-  padding-bottom: 12px !important;
+  padding-top: 14px !important;
+  padding-bottom: 14px !important;
 }
 
 #jupiter-terminal button.bg-\[\#191B1F\].dark\:bg-black\/50 div span {
   background: none !important;
-  color: #111416 !important;
+  color: hsl(var(--primary-foreground)) !important;
   font-family: "Aeonik Pro" !important;
   font-weight: 500 !important;
 }
@@ -376,4 +376,26 @@ input::-webkit-inner-spin-button {
 
 #jupiter-terminal > div > div > div > div > div.mt-auto.px-5.pb-4.flex.space-x-2 {
   padding: 0 !important;
+}
+
+#jupiter-terminal .text-white\/30,
+#jupiter-terminal input.text-white {
+  color: hsl(var(--secondary-foreground)) !important;
+}
+
+#jupiter-terminal .bg-\[\#36373E\] {
+  background: hsl(var(--primary)) !important;
+}
+
+#jupiter-terminal .bg-\[\#36373E\]:hover {
+  background: hsl(var(--primary)) !important;
+  color: hsl(var(--primary-foreground)) !important;
+}
+
+#jupiter-terminal .border.border-black\/50 {
+  border: none !important;
+}
+
+#jupiter-terminal .border.border-black\/50 path {
+  fill: hsl(var(--primary)) !important;
 }
