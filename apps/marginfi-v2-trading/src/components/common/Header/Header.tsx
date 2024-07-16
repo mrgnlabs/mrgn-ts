@@ -12,6 +12,7 @@ import { WalletButton } from "~/components/common/Wallet";
 import { CreatePoolDialog } from "~/components/common/Pool/CreatePoolDialog";
 import { Button } from "~/components/ui/button";
 import { IconMrgn, IconTrendingUp, IconCoins, IconChartPie, IconPlus } from "~/components/ui/icons";
+import { useIsMobile } from "~/hooks/useIsMobile";
 
 const navItems = [
   { label: "pools", icon: <IconCoins />, href: "/" },
@@ -22,6 +23,7 @@ const navItems = [
 export const Header = () => {
   const { asPath, isReady } = useRouter();
   const { connected } = useWalletContext();
+  const isMobile = useIsMobile();
 
   return (
     <div className="relative h-[64px]">
@@ -51,11 +53,11 @@ export const Header = () => {
         </nav>
         <div className="flex items-center gap-6">
           {connected && (
-            <div className="hidden md:flex">
+            <div className="flex items-center">
               <CreatePoolDialog
                 trigger={
-                  <Button>
-                    <IconPlus size={18} /> Create Pool
+                  <Button size={isMobile ? "sm" : "default"}>
+                    <IconPlus size={isMobile ? 14 : 18} /> Create Pool
                   </Button>
                 }
               />
