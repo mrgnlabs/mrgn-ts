@@ -20,7 +20,6 @@ import {
   WalletOnramp,
   WalletPkDialog,
   WalletIntroDialog,
-  WalletNotis,
   WalletSend,
   WalletAuthAccounts,
 } from "~/components/common/Wallet";
@@ -39,7 +38,6 @@ import {
   IconArrowDown,
   IconArrowUp,
   IconRefresh,
-  IconBell,
   IconArrowLeft,
   IconTrophy,
   IconKey,
@@ -244,31 +242,6 @@ export const Wallet = () => {
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className={cn(
-                            web3AuthConncected && "hidden lg:flex",
-                            walletTokenState === WalletState.NOTIS && "text-chartreuse"
-                          )}
-                          onClick={() => {
-                            setWalletTokenState(
-                              walletTokenState === WalletState.NOTIS ? WalletState.DEFAULT : WalletState.NOTIS
-                            );
-                          }}
-                        >
-                          <IconBell size={18} />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Notification settings</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
                         <Button variant="ghost" size="icon" onClick={logout} className="shrink-0">
                           <IconLogout size={18} className="translate-x-0.5" />
                         </Button>
@@ -293,17 +266,6 @@ export const Wallet = () => {
                   )}
                 </div>
               </header>
-              {walletTokenState === WalletState.NOTIS && (
-                <div className="relative pt-8 space-y-4">
-                  <button
-                    className="flex items-center gap-1 text-sm text-muted-foreground"
-                    onClick={() => resetWalletState()}
-                  >
-                    <IconArrowLeft size={16} /> back
-                  </button>
-                  <WalletNotis />
-                </div>
-              )}
 
               {walletTokenState !== WalletState.NOTIS && (
                 <Tabs defaultValue="tokens" className="py-8">
