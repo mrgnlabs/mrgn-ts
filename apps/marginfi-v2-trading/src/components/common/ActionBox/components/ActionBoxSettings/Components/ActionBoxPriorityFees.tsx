@@ -56,12 +56,12 @@ export const ActionBoxPriorityFees = ({ mode, toggleSettings }: ActionBoxPriorit
           </Tooltip>
         </TooltipProvider>
       </h2>
-      <ul className="grid grid-cols-3 gap-2 mb-6">
+      <ul className="grid grid-cols-3 gap-4 mb-6">
         {priorityFeeOptions.map((option) => (
           <li key={option.value}>
             <Button
               className={cn(
-                "flex flex-col font-normal gap-1 h-auto w-full border border-transparent bg-background transition-colors hover:bg-accent",
+                "flex flex-col font-normal gap-1 h-auto w-full border bg-background transition-colors hover:bg-accent",
                 selectedPriorityFee === option.value && customPriorityFee === null && "bg-accent"
               )}
               variant="secondary"

@@ -35,11 +35,11 @@ export const TradingBoxSettings = ({ toggleSettings, slippageBps, setSlippageBps
           size="lg"
           className="gap-4"
         >
-          <ToggleGroupItem value="slippage" className="w-1/2 text-xs">
+          <ToggleGroupItem value="slippage" className="w-1/2 text-xs border">
             Slippage
           </ToggleGroupItem>
 
-          <ToggleGroupItem value="priority-fee" className="w-1/2 text-xs gap-1.5">
+          <ToggleGroupItem value="priority-fee" className="w-1/2 text-xs gap-1.5 border">
             Priority Fee
           </ToggleGroupItem>
         </ToggleGroup>
