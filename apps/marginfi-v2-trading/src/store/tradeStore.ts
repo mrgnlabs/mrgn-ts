@@ -44,6 +44,11 @@ export enum TradePoolFilterStates {
   SHORT = "short",
 }
 
+export interface ActiveGroup {
+  token: ExtendedBankInfo;
+  usdc: ExtendedBankInfo;
+}
+
 type TradeStoreState = {
   // keep track of store state
   initialized: boolean;
@@ -83,10 +88,7 @@ type TradeStoreState = {
   marginfiClient: MarginfiClient | null;
 
   // active group, currently being viewed / traded
-  activeGroup: {
-    token: ExtendedBankInfo;
-    usdc: ExtendedBankInfo;
-  } | null;
+  activeGroup: ActiveGroup | null;
 
   // array of marginfi accounts
   marginfiAccounts: {

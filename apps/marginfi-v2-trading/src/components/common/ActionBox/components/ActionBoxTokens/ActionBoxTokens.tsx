@@ -5,8 +5,10 @@ import { useActionBoxStore } from "~/hooks/useActionBoxStore";
 import { StakeData } from "~/utils";
 
 import { LendingTokens, YbxTokens, LstTokens } from "./Components";
+import { ActiveGroup } from "~/store/tradeStore";
 
 interface ActionBoxPreviewProps {
+  activeGroup: ActiveGroup | null;
   isDialog?: boolean;
   tokensOverride?: ExtendedBankInfo[];
   setTokenBank: (selectedTokenBank: ExtendedBankInfo | null) => void;
@@ -15,6 +17,7 @@ interface ActionBoxPreviewProps {
 }
 
 export const ActionBoxTokens = ({
+  activeGroup,
   isDialog,
   tokensOverride,
   setRepayTokenBank,
@@ -50,6 +53,7 @@ export const ActionBoxTokens = ({
     <>
       {isInLendingMode && (
         <LendingTokens
+          activeGroup={activeGroup}
           selectedBank={selectedBank}
           selectedRepayBank={selectedRepayBank}
           setSelectedBank={setTokenBank}
