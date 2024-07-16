@@ -439,70 +439,7 @@ export const Wallet = () => {
                     {walletTokenState === WalletState.BRIDGE && (
                       <TabWrapper resetWalletState={resetWalletState}>
                         <div className="relative py-4">
-                          <ToggleGroup
-                            type="single"
-                            size="sm"
-                            value={bridgeType}
-                            onValueChange={(value) => {
-                              if (!value || value === bridgeType) return;
-                              setBridgeType(value as "mayan" | "debridge");
-                            }}
-                            className="w-full md:w-4/5 mx-auto gap-1.5 mb-4 bg-background-gray-light/50"
-                          >
-                            <ToggleGroupItem
-                              value="mayan"
-                              aria-label="lend"
-                              className={cn(
-                                "w-1/2 text-xs gap-1.5 capitalize",
-                                bridgeType === "mayan" && "data-[state=on]:bg-background-gray-light"
-                              )}
-                            >
-                              <span className="flex items-center gap-2">
-                                <Image
-                                  src="/bridges/mayan.png"
-                                  width={53}
-                                  height={46}
-                                  alt="Mayan logo"
-                                  className="h-3 w-auto"
-                                />
-                                Mayan
-                              </span>
-                            </ToggleGroupItem>
-                            <ToggleGroupItem
-                              value="debridge"
-                              aria-label="borrow"
-                              className={cn(
-                                "w-1/2 text-xs gap-1.5 capitalize",
-                                bridgeType === "debridge" && "data-[state=on]:bg-background-gray-light"
-                              )}
-                            >
-                              <span className="flex items-center gap-2">
-                                <Image
-                                  src="/bridges/debridge.png"
-                                  width={83}
-                                  height={46}
-                                  alt="deBridge logo"
-                                  className="h-3 w-auto"
-                                />
-                                deBridge
-                              </span>
-                            </ToggleGroupItem>
-                          </ToggleGroup>
-                          <div
-                            className={cn(
-                              "max-w-[420px] mx-auto w-full px-[1.35rem] max-h-[500px] transition-opacity hidden font-aeonik",
-                              bridgeType === "mayan" && "block"
-                            )}
-                            id="swap_widget"
-                          />
-                          <div
-                            id="debridgeWidget"
-                            className={cn(
-                              "max-w-[420px] mx-auto w-full px-[1.35rem] max-h-[500px] transition-opacity hidden  font-aeonik",
-                              bridgeType === "debridge" && "block"
-                            )}
-                          />
-                          <Bridge />
+                          <Debridge />
                         </div>
                       </TabWrapper>
                     )}
@@ -645,5 +582,79 @@ const TokenOptions = ({ walletAddress, setState, setToken, web3AuthConnected = f
         Bridge
       </button>
     </div>
+  );
+};
+
+const Debridge = () => {
+  const { wallet } = useWalletContext();
+  const divRef = React.useRef<HTMLDivElement>(null);
+  const [isMounted, setIsMounted] = React.useState(false);
+  const [widget, setWidget] = React.useState<any>();
+  const isMobile = useIsMobile();
+
+  const loadDeBridgeWidget = React.useCallback(() => {
+    console.log("debdrige");
+    const widget = window.deBridge.widget({
+      v: "1",
+      element: "debridgeWidget",
+      title: "",
+      description: "",
+      width: "352",
+      height: "",
+      r: 16890,
+      supportedChains:
+        '{"inputChains":{"1":"all","10":"all","56":"all","137":"all","8453":"all","42161":"all","43114":"all","59144":"all","7565164":"all","245022934":"all"},"outputChains":{"7565164":"all"}}',
+      inputChain: 1,
+      outputChain: 7565164,
+      inputCurrency: "ETH",
+      outputCurrency: "SOL",
+      address: wallet.publicKey.toBase58(),
+      showSwapTransfer: true,
+      amount: "",
+      outputAmount: "",
+      isAmountFromNotModifiable: false,
+      isAmountToNotModifiable: false,
+      lang: "en",
+      mode: "deswap",
+      isEnableCalldata: false,
+      styles:
+        "eyJhcHBCYWNrZ3JvdW5kIjoicmdiYSgyNTUsMjU1LDI1NSwwKSIsImJvcmRlclJhZGl1cyI6OCwicHJpbWFyeSI6IiMxODE4MWIiLCJpY29uQ29sb3IiOiIjMTgxODFiIiwiZm9udEZhbWlseSI6IiIsInByaW1hcnlCdG5CZyI6IiMxODE4MUIiLCJwcmltYXJ5QnRuVGV4dCI6IiNmMmYyZjIiLCJsaWdodEJ0bkJnIjoiIiwiaXNOb1BhZGRpbmdGb3JtIjpmYWxzZSwiYnRuUGFkZGluZyI6eyJ0b3AiOm51bGwsInJpZ2h0IjpudWxsLCJib3R0b20iOm51bGwsImxlZnQiOm51bGx9LCJidG5Gb250U2l6ZSI6bnVsbCwiYnRuRm9udFdlaWdodCI6bnVsbH0=",
+      theme: "light",
+      isHideLogo: false,
+      logo: "",
+    });
+
+    setWidget(widget);
+  }, [isMobile, wallet.publicKey]);
+
+  React.useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  React.useEffect(() => {
+    if (widget) {
+      widget.then((widget: any) => {
+        widget.on("order", (event: any, params: any) => {
+          console.log("order params", params);
+        });
+
+        widget.on("singleChainSwap", (event: any, params: any) => {
+          console.log("singleChainSwap params", params);
+        });
+      });
+    }
+  }, [widget]);
+
+  React.useEffect(() => {
+    if (window.deBridge && isMounted && !(divRef.current && divRef.current.innerHTML)) {
+      loadDeBridgeWidget();
+    }
+  }, [isMounted, loadDeBridgeWidget]);
+
+  return (
+    <div
+      id="debridgeWidget"
+      className={cn("max-w-[420px] mx-auto w-full max-h-[500px] transition-opacity font-aeonik")}
+    ></div>
   );
 };
