@@ -58,7 +58,7 @@ export default function PortfolioPage() {
             {!portfolio || !portfolioCombined ? (
               <p className="text-center mt-4">
                 You do not have any open positions.{" "}
-                <Link href="/pools" className="border-b border-primary transition-colors hover:border-transparent">
+                <Link href="/" className="border-b border-primary transition-colors hover:border-transparent">
                   Explore the pools
                 </Link>{" "}
                 and start trading!
