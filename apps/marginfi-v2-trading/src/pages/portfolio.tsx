@@ -16,7 +16,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { getTokenImageURL } from "~/utils";
 
 export default function PortfolioPage() {
-  const [initialized, banks] = useTradeStore((state) => [state.initialized, state.banks]);
+  const [initialized, banks, resetActiveGroup] = useTradeStore((state) => [
+    state.initialized,
+    state.banks,
+    state.resetActiveGroup,
+  ]);
   const [previousTxn] = useUiStore((state) => [state.previousTxn]);
 
   const portfolio = React.useMemo(() => {
@@ -45,6 +49,10 @@ export default function PortfolioPage() {
   const totalShort = React.useMemo(() => {
     return portfolio?.short.reduce((acc, bank) => acc + bank.position.usdValue, 0) || 0;
   }, [portfolio]);
+
+  React.useEffect(() => {
+    resetActiveGroup();
+  }, [resetActiveGroup]);
 
   return (
     <>
