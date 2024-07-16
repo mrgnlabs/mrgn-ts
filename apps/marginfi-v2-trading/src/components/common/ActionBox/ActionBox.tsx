@@ -32,6 +32,7 @@ import {
   ActionBoxActions,
   ActionBoxInput,
 } from "~/components/common/ActionBox/components";
+import { ActiveGroup } from "~/store/tradeStore";
 
 type ActionBoxProps = {
   requestedAction?: ActionType;
@@ -39,6 +40,7 @@ type ActionBoxProps = {
   requestedCollateralBank?: ExtendedBankInfo;
   requestedAccount?: MarginfiAccountWrapper;
   isDialog?: boolean;
+  activeGroupArg?: ActiveGroup | null;
   handleCloseDialog?: () => void;
 };
 
@@ -54,12 +56,13 @@ export const ActionBox = ({
   requestedAccount,
   requestedCollateralBank,
   isDialog,
+  activeGroupArg,
   handleCloseDialog,
 }: ActionBoxProps) => {
   const [
     isInitialized,
     setIsRefreshingStore,
-    activeGroup,
+    activeGroupState,
     mfiClient,
     activeAccount,
     nativeSolBalance,
@@ -75,6 +78,8 @@ export const ActionBox = ({
     state.fetchTradeState,
     state.setActiveBank,
   ]);
+
+  const activeGroup = React.useMemo(() => activeGroupArg ?? activeGroupState, [activeGroupArg, activeGroupState]);
 
   const [
     slippageBps,
@@ -644,6 +649,7 @@ export const ActionBox = ({
                 tokensOverride={
                   requestedCollateralBank && requestedBank ? [requestedBank, requestedCollateralBank] : undefined
                 }
+                activeGroup={activeGroup}
               />
 
               {additionalActionMethods.concat(actionMethods).map(

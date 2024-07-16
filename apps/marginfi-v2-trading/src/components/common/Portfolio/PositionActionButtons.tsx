@@ -11,6 +11,7 @@ import React from "react";
 import { useConnection } from "~/hooks/useConnection";
 import { useUiStore } from "~/store";
 import { MultiStepToastHandle } from "~/utils/toastUtils";
+import { ActiveGroup } from "~/store/tradeStore";
 
 type PositionActionButtonsProps = {
   marginfiClient: MarginfiClient | null;
@@ -19,6 +20,7 @@ type PositionActionButtonsProps = {
   bank: ActiveBankInfo;
   collateralBank?: ExtendedBankInfo | null;
   rightAlignFinalButton?: boolean;
+  activeGroup?: ActiveGroup;
 };
 
 export const PositionActionButtons = ({
@@ -28,15 +30,30 @@ export const PositionActionButtons = ({
   bank,
   collateralBank = null,
   rightAlignFinalButton = false,
+  activeGroup,
 }: PositionActionButtonsProps) => {
   const { connection } = useConnection();
   const [slippageBps, priorityFee] = useUiStore((state) => [state.slippageBps, state.priorityFee]);
+
+  const depositBanks = React.useMemo(() => {
+    let banks = [];
+
+    if (collateralBank && collateralBank.isActive && collateralBank.position.isLending) banks.push(collateralBank);
+    if (bank.isActive && bank.position.isLending) banks.push(bank);
+    return banks;
+  }, [bank, collateralBank]);
+
+  const borrowBank = React.useMemo(() => {
+    if (collateralBank && collateralBank.isActive && !collateralBank.position.isLending) return collateralBank;
+    if (bank.isActive && !bank.position.isLending) return bank;
+    return null;
+  }, [bank, collateralBank]);
 
   const closeTransaction = React.useCallback(async () => {
     if (!marginfiAccount || !collateralBank || !marginfiClient) return;
 
     const multiStepToast = new MultiStepToastHandle("Closing position", [
-      { label: `Closing ${isBorrowing ? bank.meta.tokenSymbol : collateralBank.meta.tokenSymbol} position.` },
+      { label: `Closing borrow and supplied positions.` },
     ]);
 
     multiStepToast.start();
@@ -44,8 +61,8 @@ export const PositionActionButtons = ({
     try {
       const txn = await getCloseTransaction({
         marginfiAccount,
-        borrowBank: isBorrowing ? collateralBank : bank,
-        depositBank: isBorrowing ? bank : collateralBank,
+        borrowBank: borrowBank,
+        depositBanks: depositBanks,
         slippageBps,
         connection: connection,
         priorityFee,
@@ -65,7 +82,7 @@ export const PositionActionButtons = ({
       console.log(error);
       return;
     }
-  }, [marginfiAccount, collateralBank, isBorrowing, bank, slippageBps, connection, priorityFee, marginfiClient]);
+  }, [marginfiAccount, collateralBank, marginfiClient, borrowBank, depositBanks, slippageBps, connection, priorityFee]);
 
   return (
     <div className="flex gap-3 w-full">
@@ -73,6 +90,7 @@ export const PositionActionButtons = ({
         requestedBank={bank.position.isLending ? bank : collateralBank}
         requestedAction={ActionType.Deposit}
         requestedAccount={marginfiAccount}
+        activeGroupArg={activeGroup}
       >
         <Button size="sm" className="gap-1 min-w-16">
           <IconPlus size={14} />
@@ -84,6 +102,7 @@ export const PositionActionButtons = ({
           requestedBank={bank.position.isLending ? collateralBank : bank}
           requestedAction={ActionType.Repay}
           requestedAccount={marginfiAccount}
+          activeGroupArg={activeGroup}
         >
           <Button size="sm" className="gap-1 min-w-16">
             <IconMinus size={14} />
@@ -93,6 +112,7 @@ export const PositionActionButtons = ({
       )}
       {!isBorrowing && (
         <ActionBoxDialog
+          activeGroupArg={activeGroup}
           requestedBank={
             bank.position.isLending ? (collateralBank && collateralBank.isActive ? collateralBank : bank) : bank
           }

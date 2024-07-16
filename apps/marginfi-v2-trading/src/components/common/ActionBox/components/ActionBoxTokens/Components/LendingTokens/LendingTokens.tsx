@@ -10,10 +10,12 @@ import { RepayType, computeBankRate } from "~/utils";
 import { SelectedBankItem, TokenListWrapper } from "../SharedComponents";
 import { LendingTokensList, RepayCollatTokensList, LendingTokensTrigger } from "./Components";
 import { useTradeStore } from "~/store";
+import { ActiveGroup } from "~/store/tradeStore";
 
 type LendingTokensProps = {
   selectedBank: ExtendedBankInfo | null;
   selectedRepayBank: ExtendedBankInfo | null;
+  activeGroup: ActiveGroup | null;
   actionType: ActionType;
   isDialog?: boolean;
   repayType?: RepayType;
@@ -28,6 +30,7 @@ export const LendingTokens = ({
   selectedBank,
   selectedRepayBank,
   actionType,
+  activeGroup,
   isDialog,
   repayType,
   blacklistRepayTokens = [],
@@ -36,8 +39,6 @@ export const LendingTokens = ({
   setSelectedRepayBank,
   setSelectedBank,
 }: LendingTokensProps) => {
-  const [activeGroup] = useTradeStore((state) => [state.activeGroup]);
-
   const isOtherBankActive = React.useMemo(() => {
     if (!selectedBank || !activeGroup) return false;
     const isToken = activeGroup?.token.address.equals(selectedBank.address);

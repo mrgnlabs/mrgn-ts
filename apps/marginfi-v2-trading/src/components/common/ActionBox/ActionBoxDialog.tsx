@@ -10,10 +10,12 @@ import { Dialog, DialogTrigger, DialogOverlay, DialogContent, DialogClose } from
 import { Desktop, Mobile } from "~/mediaQueries";
 import { IconArrowLeft } from "~/components/ui/icons";
 import { useMrgnlendStore } from "~/store";
+import { ActiveGroup } from "~/store/tradeStore";
 
 type ActionBoxDialogProps = {
   requestedAction?: ActionType;
   requestedBank: ExtendedBankInfo | null;
+  activeGroupArg?: ActiveGroup | null;
   requestedCollateralBank?: ExtendedBankInfo;
   requestedAccount?: MarginfiAccountWrapper;
   children: React.ReactNode;
@@ -23,6 +25,7 @@ type ActionBoxDialogProps = {
 export const ActionBoxDialog = ({
   requestedAction,
   requestedBank,
+  activeGroupArg,
   requestedCollateralBank,
   requestedAccount,
   children,
@@ -65,6 +68,7 @@ export const ActionBoxDialog = ({
             </div>
             <div className="p-4 h-screen mb-8">
               <ActionBox
+                activeGroupArg={activeGroupArg}
                 isDialog={true}
                 handleCloseDialog={() => setIsDialogOpen(false)}
                 requestedAction={requestedAction}
@@ -83,6 +87,7 @@ export const ActionBoxDialog = ({
         >
           <div className="p-4">
             <ActionBox
+              activeGroupArg={activeGroupArg}
               isDialog={true}
               handleCloseDialog={() => setIsDialogOpen(false)}
               requestedAction={requestedAction}
