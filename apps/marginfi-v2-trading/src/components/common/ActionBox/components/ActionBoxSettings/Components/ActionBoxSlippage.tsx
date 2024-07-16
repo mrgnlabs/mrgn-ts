@@ -88,7 +88,7 @@ export const ActionBoxSlippage = ({ mode, slippageBps, setSlippageBps, toggleSet
                   <RadioGroup
                     onValueChange={(value) => field.onChange(Number(value))}
                     defaultValue={field.value.toString()}
-                    className="flex justify-between"
+                    className="flex gap-4 justify-between"
                   >
                     {slippageOptions.map((option) => (
                       <div
