@@ -241,32 +241,27 @@ export const CreatePoolLoading = ({ poolCreatedData, setIsOpen, setIsCompleted }
     const pools = bankTokens;
     const poolsLength = pools.length;
     setLogs((state) => [...state, { type: "info", text: `Loaded ${poolsLength} pools` }]);
+    let result = [];
 
     for (let x = 0; x < poolsLength; x++) {
       const pool = pools[x];
-      const poolState = poolCreationState ? poolCreationState[x] : undefined;
-      const { poolCreation: updatedPoolState, isFailed } = await createTransaction(newClient, wallet, pool, poolState);
+      const { poolCreation: updatedPoolState, isFailed } = await createTransaction(newClient, wallet, pool, undefined);
 
-      setPoolCreationState((state) => {
-        let newState = state;
-
-        if (newState && updatedPoolState) {
-          if (newState[x]) {
-            newState[x] = updatedPoolState;
-          } else {
-            newState.push(updatedPoolState);
-          }
-        } else if (updatedPoolState) {
-          newState = [updatedPoolState];
-        }
-
-        return newState;
-      });
+      result.push(updatedPoolState);
 
       if (isFailed) {
         break;
       }
     }
+
+    console.log({
+      pools: result.map((x) => ({
+        group: x?.marginfiGroupPk?.toBase58(),
+        lut: x?.lutAddress?.toBase58(),
+        tokenBank: x?.tokenBankPk?.toBase58(),
+        stableBank: x?.stableBankPk?.toBase58(),
+      })),
+    });
   };
 
   const createTransaction = React.useCallback(
@@ -360,8 +355,8 @@ export const CreatePoolLoading = ({ poolCreatedData, setIsOpen, setIsCompleted }
           // token bank
           let tokenBankConfig = DEFAULT_TOKEN_BANK_CONFIG;
 
-          tokenBankConfig.borrowLimit = new BigNumber(100); // todo: update this according to price
-          tokenBankConfig.depositLimit = new BigNumber(10000); // todo: update this according to price
+          tokenBankConfig.borrowLimit = new BigNumber(pool.borrowLimit ?? 100); // todo: update this according to price
+          tokenBankConfig.depositLimit = new BigNumber(pool.depositLimit ?? 10000); // todo: update this according to price
           tokenBankConfig.oracle = {
             setup: OracleSetup.PythEma,
             keys: [new PublicKey(pool.oracle)],
