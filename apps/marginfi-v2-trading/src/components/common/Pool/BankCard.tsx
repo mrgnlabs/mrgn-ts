@@ -47,7 +47,7 @@ export const BankCard = ({ bank }: BankCardProps) => {
           <div className="flex items-center">
             <Image
               src={getTokenImageURL(bank.meta.tokenSymbol)}
-              className="rounded-full"
+              className="rounded-full border"
               alt={bank.meta.tokenSymbol}
               height={40}
               width={40}
