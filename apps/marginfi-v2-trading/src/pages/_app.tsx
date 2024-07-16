@@ -1,8 +1,6 @@
 import React from "react";
 
 import App, { AppContext, AppInitialProps, AppProps } from "next/app";
-import Head from "next/head";
-import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
 
 import { WalletProvider } from "@solana/wallet-adapter-react";
@@ -28,7 +26,6 @@ import { Tutorial } from "~/components/common/Tutorial";
 import { WalletAuthDialog } from "~/components/common/Wallet";
 import { Header } from "~/components/common/Header";
 import { Footer } from "~/components/desktop/Footer";
-import { ActiveGroup } from "~/components/common/ActiveGroup";
 
 import "swiper/css";
 import "swiper/css/pagination";
@@ -56,7 +53,7 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
     state.isRefreshingStore,
   ]);
 
-  const { query, isReady, asPath } = useRouter();
+  const { query, isReady } = useRouter();
 
   // enable matomo heartbeat
   React.useEffect(() => {
@@ -96,28 +93,30 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
                 <MrgnlendProvider>
                   <TradePovider>
                     <LipClientProvider>
-                      <Header />
+                      <div className="mrgn-bg-gradient">
+                        <Header />
 
-                      <Desktop>
-                        <WalletModalProvider>
+                        <Desktop>
+                          <WalletModalProvider>
+                            <div className="w-full flex flex-col justify-center items-center">
+                              <Component {...pageProps} />
+                            </div>
+                            <Footer />
+                          </WalletModalProvider>
+                        </Desktop>
+
+                        <Mobile>
+                          <MobileNavbar />
                           <div className="w-full flex flex-col justify-center items-center">
                             <Component {...pageProps} />
                           </div>
-                          <Footer />
-                        </WalletModalProvider>
-                      </Desktop>
-
-                      <Mobile>
-                        <MobileNavbar />
-                        <div className="w-full flex flex-col justify-center items-center">
-                          <Component {...pageProps} />
-                        </div>
-                      </Mobile>
-                      <Analytics />
-                      <Tutorial />
-                      <WalletAuthDialog />
-                      <ToastContainer position="bottom-left" theme="light" />
-                      {/* <ActiveGroup /> */}
+                        </Mobile>
+                        <Analytics />
+                        <Tutorial />
+                        <WalletAuthDialog />
+                        <ToastContainer position="bottom-left" theme="light" />
+                        {/* <ActiveGroup /> */}
+                      </div>
                     </LipClientProvider>
                   </TradePovider>
                 </MrgnlendProvider>

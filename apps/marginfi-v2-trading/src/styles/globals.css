@@ -75,7 +75,12 @@ body {
 body {
   font-family: "Aeonik Pro";
   font-weight: 400;
+}
+
+.mrgn-bg-gradient {
   background: radial-gradient(50% 50% at 50% 50%, rgba(255, 249, 146, 0.15) 10%, #ffffff 80%);
+  width: 100vw;
+  height: 100vh;
 }
 
 a {
