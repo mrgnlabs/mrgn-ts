@@ -1,4 +1,4 @@
-import React from "react";
+import React, { act } from "react";
 
 import { PublicKey } from "@solana/web3.js";
 
@@ -18,6 +18,7 @@ type LendingTokensProps = {
   activeGroup: ActiveGroup | null;
   actionType: ActionType;
   isDialog?: boolean;
+  isTokenSelectable?: boolean;
   repayType?: RepayType;
   blacklistRepayTokens?: PublicKey[];
   tokensOverride?: ExtendedBankInfo[];
@@ -32,6 +33,7 @@ export const LendingTokens = ({
   actionType,
   activeGroup,
   isDialog,
+  isTokenSelectable,
   repayType,
   blacklistRepayTokens = [],
   tokensOverride,
@@ -61,8 +63,8 @@ export const LendingTokens = ({
   const [isOpen, setIsOpen] = React.useState(false);
 
   const isSelectable = React.useMemo(
-    () => !isDialog || repayType === RepayType.RepayCollat || isOtherBankActive,
-    [isDialog, isOtherBankActive, repayType]
+    () => !isDialog || repayType === RepayType.RepayCollat || isOtherBankActive || isTokenSelectable,
+    [isDialog, isOtherBankActive, isTokenSelectable, repayType]
   );
 
   const lendingMode = React.useMemo(
