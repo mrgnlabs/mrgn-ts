@@ -10,6 +10,7 @@ import { ActiveGroup } from "~/store/tradeStore";
 interface ActionBoxPreviewProps {
   activeGroup: ActiveGroup | null;
   isDialog?: boolean;
+  isTokenSelectable?: boolean;
   tokensOverride?: ExtendedBankInfo[];
   setTokenBank: (selectedTokenBank: ExtendedBankInfo | null) => void;
   setRepayTokenBank: (selectedTokenBank: ExtendedBankInfo | null) => void;
@@ -19,6 +20,7 @@ interface ActionBoxPreviewProps {
 export const ActionBoxTokens = ({
   activeGroup,
   isDialog,
+  isTokenSelectable,
   tokensOverride,
   setRepayTokenBank,
   setTokenBank,
@@ -60,6 +62,7 @@ export const ActionBoxTokens = ({
           setSelectedRepayBank={setRepayTokenBank}
           repayType={repayMode}
           isDialog={isDialog}
+          isTokenSelectable={isTokenSelectable}
           actionType={actionMode}
           tokensOverride={tokensOverride}
         />

@@ -20,6 +20,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/comp
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 
 import type { TokenData } from "~/types";
+import { LpPositionList } from "~/components/common/Portfolio";
 
 export default function TradeSymbolPage() {
   const router = useRouter();
@@ -251,6 +252,9 @@ export default function TradeSymbolPage() {
                 <BankCard bank={activeGroup.token} />
                 <BankCard bank={activeGroup.usdc} />
               </div>
+
+              <h2 className="font-medium text-2xl mt-10 mb-4">Provide LP</h2>
+              <LpPositionList />
             </div>
           </div>
         )}
