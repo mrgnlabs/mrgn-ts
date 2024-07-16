@@ -72,7 +72,7 @@ export const Wallet = () => {
     useWalletContext();
 
   const [isFetchingWalletData, setIsFetchingWalletData] = React.useState(false);
-  const [isWalletAddressCopied, setisWalletAddressCopied] = React.useState(false);
+  const [isWalletAddressCopied, setIsWalletAddressCopied] = React.useState(false);
   const [walletData, setWalletData] = React.useState<{
     address: string;
     shortAddress: string;
@@ -278,6 +278,41 @@ export const Wallet = () => {
                           setState={setWalletTokenState}
                           web3AuthConnected={web3AuthConncected}
                         />
+                        <div>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div>
+                                  <CopyToClipboard
+                                    text={walletData.address}
+                                    onCopy={() => {
+                                      setIsWalletAddressCopied(true);
+                                      setTimeout(() => {
+                                        setIsWalletAddressCopied(false);
+                                      }, 2000);
+                                    }}
+                                  >
+                                    <button className="flex w-full gap-1 font-medium items-center justify-center text-center text-xs text-muted-foreground">
+                                      {!isWalletAddressCopied ? (
+                                        <>
+                                          <IconCopy size={16} /> Copy wallet address
+                                        </>
+                                      ) : (
+                                        <>
+                                          <IconCheck size={16} />
+                                          Copied! ({shortenAddress(walletData.address)})
+                                        </>
+                                      )}
+                                    </button>
+                                  </CopyToClipboard>
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>{shortenAddress(walletData.address)}</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </div>
                         <WalletTokens
                           className="h-[calc(100vh-325px)] pb-16"
                           tokens={walletData.tokens}
@@ -377,95 +412,99 @@ export const Wallet = () => {
                       </div>
                     )}
                     {walletTokenState === WalletState.SWAP && (
-                      <div className="relative py-4">
-                        <div className="max-w-[590px] mx-auto px-3 transition-opacity" id="integrated-terminal"></div>
-                        <Swap
-                          onLoad={() => {
-                            setIsSwapLoaded(true);
-                          }}
-                          initialInputMint={activeBank?.info.state.mint}
-                        />
-                        {isSwapLoaded && (
-                          <div className="px-5">
-                            <Button
-                              variant="destructive"
-                              size="lg"
-                              className="w-full"
-                              onClick={() => resetWalletState()}
-                            >
-                              Cancel
-                            </Button>
-                          </div>
-                        )}
-                      </div>
+                      <TabWrapper resetWalletState={resetWalletState}>
+                        <div className="relative py-4">
+                          <div className="max-w-[590px] mx-auto px-3 transition-opacity" id="integrated-terminal"></div>
+                          <Swap
+                            onLoad={() => {
+                              setIsSwapLoaded(true);
+                            }}
+                            initialInputMint={activeBank?.info.state.mint}
+                          />
+                          {isSwapLoaded && (
+                            <div className="px-5">
+                              <Button
+                                variant="destructive"
+                                size="lg"
+                                className="w-full"
+                                onClick={() => resetWalletState()}
+                              >
+                                Cancel
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                      </TabWrapper>
                     )}
                     {walletTokenState === WalletState.BRIDGE && (
-                      <div className="relative py-4">
-                        <ToggleGroup
-                          type="single"
-                          size="sm"
-                          value={bridgeType}
-                          onValueChange={(value) => {
-                            if (!value || value === bridgeType) return;
-                            setBridgeType(value as "mayan" | "debridge");
-                          }}
-                          className="w-full md:w-4/5 mx-auto gap-1.5 mb-4 bg-background-gray-light/50"
-                        >
-                          <ToggleGroupItem
-                            value="mayan"
-                            aria-label="lend"
-                            className={cn(
-                              "w-1/2 text-xs gap-1.5 capitalize",
-                              bridgeType === "mayan" && "data-[state=on]:bg-background-gray-light"
-                            )}
+                      <TabWrapper resetWalletState={resetWalletState}>
+                        <div className="relative py-4">
+                          <ToggleGroup
+                            type="single"
+                            size="sm"
+                            value={bridgeType}
+                            onValueChange={(value) => {
+                              if (!value || value === bridgeType) return;
+                              setBridgeType(value as "mayan" | "debridge");
+                            }}
+                            className="w-full md:w-4/5 mx-auto gap-1.5 mb-4 bg-background-gray-light/50"
                           >
-                            <span className="flex items-center gap-2">
-                              <Image
-                                src="/bridges/mayan.png"
-                                width={53}
-                                height={46}
-                                alt="Mayan logo"
-                                className="h-3 w-auto"
-                              />
-                              Mayan
-                            </span>
-                          </ToggleGroupItem>
-                          <ToggleGroupItem
-                            value="debridge"
-                            aria-label="borrow"
+                            <ToggleGroupItem
+                              value="mayan"
+                              aria-label="lend"
+                              className={cn(
+                                "w-1/2 text-xs gap-1.5 capitalize",
+                                bridgeType === "mayan" && "data-[state=on]:bg-background-gray-light"
+                              )}
+                            >
+                              <span className="flex items-center gap-2">
+                                <Image
+                                  src="/bridges/mayan.png"
+                                  width={53}
+                                  height={46}
+                                  alt="Mayan logo"
+                                  className="h-3 w-auto"
+                                />
+                                Mayan
+                              </span>
+                            </ToggleGroupItem>
+                            <ToggleGroupItem
+                              value="debridge"
+                              aria-label="borrow"
+                              className={cn(
+                                "w-1/2 text-xs gap-1.5 capitalize",
+                                bridgeType === "debridge" && "data-[state=on]:bg-background-gray-light"
+                              )}
+                            >
+                              <span className="flex items-center gap-2">
+                                <Image
+                                  src="/bridges/debridge.png"
+                                  width={83}
+                                  height={46}
+                                  alt="deBridge logo"
+                                  className="h-3 w-auto"
+                                />
+                                deBridge
+                              </span>
+                            </ToggleGroupItem>
+                          </ToggleGroup>
+                          <div
                             className={cn(
-                              "w-1/2 text-xs gap-1.5 capitalize",
-                              bridgeType === "debridge" && "data-[state=on]:bg-background-gray-light"
+                              "max-w-[420px] mx-auto w-full px-[1.35rem] max-h-[500px] transition-opacity hidden font-aeonik",
+                              bridgeType === "mayan" && "block"
                             )}
-                          >
-                            <span className="flex items-center gap-2">
-                              <Image
-                                src="/bridges/debridge.png"
-                                width={83}
-                                height={46}
-                                alt="deBridge logo"
-                                className="h-3 w-auto"
-                              />
-                              deBridge
-                            </span>
-                          </ToggleGroupItem>
-                        </ToggleGroup>
-                        <div
-                          className={cn(
-                            "max-w-[420px] mx-auto w-full px-[1.35rem] max-h-[500px] transition-opacity hidden font-aeonik",
-                            bridgeType === "mayan" && "block"
-                          )}
-                          id="swap_widget"
-                        />
-                        <div
-                          id="debridgeWidget"
-                          className={cn(
-                            "max-w-[420px] mx-auto w-full px-[1.35rem] max-h-[500px] transition-opacity hidden  font-aeonik",
-                            bridgeType === "debridge" && "block"
-                          )}
-                        />
-                        <Bridge />
-                      </div>
+                            id="swap_widget"
+                          />
+                          <div
+                            id="debridgeWidget"
+                            className={cn(
+                              "max-w-[420px] mx-auto w-full px-[1.35rem] max-h-[500px] transition-opacity hidden  font-aeonik",
+                              bridgeType === "debridge" && "block"
+                            )}
+                          />
+                          <Bridge />
+                        </div>
+                      </TabWrapper>
                     )}
                   </TabsContent>
                   <TabsContent value="points">
@@ -537,6 +576,22 @@ export const Wallet = () => {
   );
 };
 
+const TabWrapper = ({ resetWalletState, children }: { resetWalletState: () => void; children: React.ReactNode }) => {
+  return (
+    <div className="py-4">
+      <div className="relative flex flex-col pt-6 gap-2">
+        <button
+          className="absolute top-0 left-2 flex items-center gap-1 text-sm text-muted-foreground"
+          onClick={() => resetWalletState()}
+        >
+          <IconArrowLeft size={16} /> back
+        </button>
+        {children}
+      </div>
+    </div>
+  );
+};
+
 type TokenOptionsProps = {
   walletAddress: string;
   setState: (state: WalletState) => void;
@@ -544,39 +599,12 @@ type TokenOptionsProps = {
   web3AuthConnected?: boolean;
 };
 
-function TokenOptions({ walletAddress, setState, setToken, web3AuthConnected = false }: TokenOptionsProps) {
+const TokenOptions = ({ walletAddress, setState, setToken, web3AuthConnected = false }: TokenOptionsProps) => {
   const router = useRouter();
   const [setIsOnrampActive, setIsWalletOpen] = useUiStore((state) => [state.setIsOnrampActive, state.setIsWalletOpen]);
   const [isWalletAddressCopied, setIsWalletAddressCopied] = React.useState(false);
   return (
     <div className="flex items-center justify-center gap-4">
-      <CopyToClipboard
-        text={walletAddress}
-        onCopy={() => {
-          setIsWalletAddressCopied(true);
-          setTimeout(() => {
-            setIsWalletAddressCopied(false);
-          }, 2000);
-        }}
-      >
-        <button className="flex flex-col gap-1 text-sm font-medium items-center">
-          {!isWalletAddressCopied ? (
-            <>
-              <div className="rounded-full flex items-center justify-center h-12 w-12 bg-background border transition-colors hover:bg-accent">
-                <IconArrowDown size={20} />
-              </div>
-              Receive
-            </>
-          ) : (
-            <>
-              <div className="rounded-full flex items-center justify-center h-12 w-12 bg-background transition-colors hover:bg-accent">
-                <IconCheck size={20} />
-              </div>
-              Copied!
-            </>
-          )}
-        </button>
-      </CopyToClipboard>
       <button
         className="flex flex-col gap-1 text-sm font-medium items-center"
         onClick={() => {
@@ -616,19 +644,6 @@ function TokenOptions({ walletAddress, setState, setToken, web3AuthConnected = f
         </div>
         Bridge
       </button>
-      {web3AuthConnected && (
-        <button
-          className="flex flex-col gap-1 text-sm font-medium items-center"
-          onClick={() => {
-            setIsOnrampActive(true);
-          }}
-        >
-          <div className="rounded-full flex items-center justify-center h-12 w-12 bg-background border transition-colors hover:bg-accent">
-            <IconMoonPay size={20} />
-          </div>
-          On ramp
-        </button>
-      )}
     </div>
   );
-}
+};
