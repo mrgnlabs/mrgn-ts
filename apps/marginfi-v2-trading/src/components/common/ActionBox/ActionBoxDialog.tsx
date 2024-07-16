@@ -19,6 +19,7 @@ type ActionBoxDialogProps = {
   requestedCollateralBank?: ExtendedBankInfo;
   requestedAccount?: MarginfiAccountWrapper;
   children: React.ReactNode;
+  isTokenSelectable?: boolean;
   isActionBoxTriggered?: boolean;
 };
 
@@ -29,6 +30,7 @@ export const ActionBoxDialog = ({
   requestedCollateralBank,
   requestedAccount,
   children,
+  isTokenSelectable,
   isActionBoxTriggered = false,
 }: ActionBoxDialogProps) => {
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
@@ -73,6 +75,7 @@ export const ActionBoxDialog = ({
                 handleCloseDialog={() => setIsDialogOpen(false)}
                 requestedAction={requestedAction}
                 requestedBank={requestedBank ?? undefined}
+                isTokenSelectable={isTokenSelectable}
               />
             </div>
           </div>
@@ -94,6 +97,7 @@ export const ActionBoxDialog = ({
               requestedBank={requestedBank ?? undefined}
               requestedAccount={requestedAccount}
               requestedCollateralBank={requestedCollateralBank}
+              isTokenSelectable={isTokenSelectable}
             />
           </div>
         </DialogContent>

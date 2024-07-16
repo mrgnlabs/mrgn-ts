@@ -41,6 +41,7 @@ type ActionBoxProps = {
   requestedAccount?: MarginfiAccountWrapper;
   isDialog?: boolean;
   activeGroupArg?: ActiveGroup | null;
+  isTokenSelectable?: boolean;
   handleCloseDialog?: () => void;
 };
 
@@ -57,6 +58,7 @@ export const ActionBox = ({
   requestedCollateralBank,
   isDialog,
   activeGroupArg,
+  isTokenSelectable,
   handleCloseDialog,
 }: ActionBoxProps) => {
   const [
@@ -645,6 +647,7 @@ export const ActionBox = ({
                 maxAmount={maxAmount}
                 showCloseBalance={showCloseBalance}
                 selectedAccount={selectedAccount}
+                isTokenSelectable={isTokenSelectable}
                 isDialog={isDialog}
                 tokensOverride={
                   requestedCollateralBank && requestedBank ? [requestedBank, requestedCollateralBank] : undefined

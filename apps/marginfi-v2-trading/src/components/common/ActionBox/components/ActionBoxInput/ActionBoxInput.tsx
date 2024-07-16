@@ -23,6 +23,7 @@ type ActionBoxInputProps = {
   selectedAccount: MarginfiAccountWrapper | null;
   showCloseBalance?: boolean;
   isDialog?: boolean;
+  isTokenSelectable?: boolean;
   tokensOverride?: ExtendedBankInfo[];
   activeGroup: ActiveGroup | null;
 };
@@ -33,6 +34,7 @@ export const ActionBoxInput = ({
   showCloseBalance,
   selectedAccount,
   isDialog,
+  isTokenSelectable,
   tokensOverride,
   activeGroup,
 }: ActionBoxInputProps) => {
@@ -192,6 +194,7 @@ export const ActionBoxInput = ({
                   setSelectedStakingAccount(account);
                 }}
                 tokensOverride={tokensOverride}
+                isTokenSelectable={isTokenSelectable}
                 activeGroup={activeGroup}
               />
             </div>
