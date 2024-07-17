@@ -55,10 +55,7 @@ export const ActionBoxInput = ({
     setRepayAmountRaw,
     setSelectedBank,
     setRepayBank,
-    setSelectedStakingAccount,
     setRepayMode,
-    setLstMode,
-    setYbxMode,
     setActionMode,
   ] = useActionBoxStore(isDialog)((state) => [
     state.actionMode,
@@ -73,10 +70,7 @@ export const ActionBoxInput = ({
     state.setRepayAmountRaw,
     state.setSelectedBank,
     state.setRepayBank,
-    state.setSelectedStakingAccount,
     state.setRepayMode,
-    state.setLstMode,
-    state.setYbxMode,
     state.setActionMode,
   ]);
 
@@ -168,8 +162,6 @@ export const ActionBoxInput = ({
       <InputHeader
         isDialog={isDialog}
         changeRepayType={(type) => setRepayMode(type)}
-        changeLstType={(type) => setLstMode(type)}
-        changeYbxType={(type) => setYbxMode(type)}
         changeActionType={(type) => setActionMode(type)}
       />
       {showYbxInput ? (
@@ -189,9 +181,6 @@ export const ActionBoxInput = ({
                 }}
                 setTokenBank={(tokenBank) => {
                   setSelectedBank(tokenBank);
-                }}
-                setStakingAccount={(account) => {
-                  setSelectedStakingAccount(account);
                 }}
                 tokensOverride={tokensOverride}
                 isTokenSelectable={isTokenSelectable}
