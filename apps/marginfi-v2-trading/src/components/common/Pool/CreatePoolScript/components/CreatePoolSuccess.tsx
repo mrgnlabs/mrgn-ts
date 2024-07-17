@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 
 import { IconConfetti } from "@tabler/icons-react";
@@ -7,7 +6,6 @@ import { shortenAddress } from "@mrgnlabs/mrgn-common";
 
 import { Button } from "~/components/ui/button";
 
-import { FormValues } from "~/components/common/Pool/CreatePoolDialog";
 import { BankToken } from "./tokenSeeds";
 
 type CreatePoolSuccessProps = {
