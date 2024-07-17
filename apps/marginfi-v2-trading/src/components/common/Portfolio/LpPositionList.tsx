@@ -3,23 +3,18 @@ import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 
-import { ActionType, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { numeralFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
-import { IconMinus, IconPlus, IconX } from "@tabler/icons-react";
 
 import { getTokenImageURL } from "~/utils";
 import { useTradeStore } from "~/store";
 
-import { ActionBoxDialog } from "~/components/common/ActionBox";
-import { LpActionButtons, PositionActionButtons } from "~/components/common/Portfolio";
+import { LpActionButtons } from "~/components/common/Portfolio";
 import { Table, TableBody, TableHead, TableCell, TableHeader, TableRow } from "~/components/ui/table";
-import { Button } from "~/components/ui/button";
-import { Badge } from "~/components/ui/badge";
 import { ActiveGroup } from "~/store/tradeStore";
 
 export const LpPositionList = () => {
-  const [marginfiClient, marginfiAccounts, activeGroup, banks, collateralBanks] = useTradeStore((state) => [
-    state.marginfiClient,
+  const [marginfiAccounts, activeGroup, banks, collateralBanks] = useTradeStore((state) => [
     state.marginfiAccounts,
     state.activeGroup,
     state.banks,
@@ -41,7 +36,7 @@ export const LpPositionList = () => {
 
   const hasLpPositions = React.useMemo(() => {
     return (
-      portfolio.filter((bank) => {
+      banks.filter((bank) => {
         const collateralBank = collateralBanks[bank.address.toBase58()];
 
         if (
@@ -54,7 +49,7 @@ export const LpPositionList = () => {
         return true;
       }).length > 0
     );
-  }, [portfolio, collateralBanks]);
+  }, [banks, collateralBanks]);
 
   if (!hasLpPositions) {
     return null;
@@ -87,7 +82,8 @@ export const LpPositionList = () => {
 
               if (
                 (collateralBank.isActive && !collateralBank.position.isLending) ||
-                (bank.isActive && !bank.position.isLending)
+                (bank.isActive && !bank.position.isLending) ||
+                (!bank.isActive && !collateralBank.isActive)
               ) {
                 return;
               }
