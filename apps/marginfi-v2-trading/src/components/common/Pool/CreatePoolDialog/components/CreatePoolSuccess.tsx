@@ -8,13 +8,15 @@ import { shortenAddress } from "@mrgnlabs/mrgn-common";
 import { Button } from "~/components/ui/button";
 
 import { FormValues } from "~/components/common/Pool/CreatePoolDialog";
+import { BankToken } from "../tokenSeeds";
 
 type CreatePoolSuccessProps = {
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  poolCreatedData: FormValues | null;
+  goBack: () => void;
+  poolCreatedData: BankToken;
 };
 
-export const CreatePoolSuccess = ({ poolCreatedData, setIsOpen }: CreatePoolSuccessProps) => {
+export const CreatePoolSuccess = ({ poolCreatedData, setIsOpen, goBack }: CreatePoolSuccessProps) => {
   return (
     <div className="flex flex-col justify-center items-center gap-12">
       <div className="text-center space-y-12">
@@ -27,28 +29,19 @@ export const CreatePoolSuccess = ({ poolCreatedData, setIsOpen }: CreatePoolSucc
         </div>
         {poolCreatedData && (
           <div className="flex flex-col items-center justify-center gap-3 mt-8">
-            <Image
-              src={poolCreatedData.imageUpload || poolCreatedData.imageDownload!}
-              alt={`${poolCreatedData.symbol} image`}
-              width={64}
-              height={64}
-              className="rounded-full"
-            />
-            <h1 className="font-medium text-xl">
-              {poolCreatedData.name} <span className="font-normal">({poolCreatedData.symbol})</span>
-            </h1>
+            <h1 className="font-medium text-xl">{poolCreatedData.tag}</h1>
             <Link
-              href={`https://solscan.io/account/${poolCreatedData.mint}`}
+              href={`https://solscan.io/account/${poolCreatedData.token}`}
               target="_blank"
               rel="noreferrer"
               className="text-mrgn-chartreuse border-b border-mrgn-chartreuse transition-colors hover:border-transparent"
             >
-              {shortenAddress(poolCreatedData.mint)}
+              {shortenAddress(poolCreatedData.token)}
             </Link>
           </div>
         )}
       </div>
-      <Button onClick={() => setIsOpen(false)}>Close</Button>
+      <Button onClick={() => goBack()}>Continue</Button>
     </div>
   );
 };
