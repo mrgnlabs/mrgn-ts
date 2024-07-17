@@ -13,11 +13,8 @@ interface InputHeaderActionProps {
   bank: ExtendedBankInfo | null;
   isDialog?: boolean;
   repayType: RepayType;
-  lstType: LstType;
-  ybxType: YbxType;
-  changeYbxType: (ybxType: YbxType) => void;
+
   changeRepayType: (repayType: RepayType) => void;
-  changeLstType: (lstType: LstType) => void;
   changeActionType: (actionType: ActionType) => void;
 }
 
@@ -30,13 +27,10 @@ interface ToggleObject {
 export const InputHeaderActionLeft = ({
   actionType,
   bank,
-  lstType,
   isDialog,
   repayType,
-  ybxType,
-  changeYbxType,
+
   changeRepayType,
-  changeLstType,
   changeActionType,
 }: InputHeaderActionProps) => {
   const [stakeAccounts] = useLstStore((state) => [state.stakeAccounts]);
@@ -90,46 +84,8 @@ export const InputHeaderActionLeft = ({
       } as ToggleObject;
     }
 
-    if (actionType === ActionType.MintLST && stakeAccounts.length > 0) {
-      return {
-        toggles: [
-          { value: LstType.Token, text: "Token" },
-          { value: LstType.Native, text: "Native" },
-        ],
-        action: (value: any) => {
-          if (value) changeLstType(value);
-        },
-        value: lstType,
-      } as ToggleObject;
-    }
-
-    if (actionType === ActionType.MintYBX && (ybxType === YbxType.AddCollat || ybxType === YbxType.WithdrawCollat)) {
-      return {
-        toggles: [
-          { value: YbxType.AddCollat, text: "Add" },
-          { value: YbxType.WithdrawCollat, text: "Withdraw" },
-        ],
-        action: (value: YbxType) => {
-          if (value) changeYbxType(value);
-        },
-        value: ybxType,
-      } as ToggleObject;
-    }
-
     return titleText;
-  }, [
-    isDialog,
-    actionType,
-    stakeAccounts.length,
-    ybxType,
-    titleText,
-    changeActionType,
-    repayType,
-    changeRepayType,
-    lstType,
-    changeLstType,
-    changeYbxType,
-  ]);
+  }, [isDialog, actionType, titleText, changeActionType, repayType, changeRepayType]);
 
   return (
     <>
