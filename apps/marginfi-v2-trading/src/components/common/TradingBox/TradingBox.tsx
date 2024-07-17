@@ -16,7 +16,14 @@ import { TokenCombobox } from "../TokenCombobox/TokenCombobox";
 import { ActionBoxDialog } from "~/components/common/ActionBox";
 import { Card, CardContent, CardFooter } from "~/components/ui/card";
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
-import { IconAlertTriangle, IconLoader, IconPyth, IconSettings, IconWallet } from "~/components/ui/icons";
+import {
+  IconAlertTriangle,
+  IconExternalLink,
+  IconLoader,
+  IconPyth,
+  IconSettings,
+  IconWallet,
+} from "~/components/ui/icons";
 import { Slider } from "~/components/ui/slider";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -25,17 +32,15 @@ import { useWalletContext } from "~/hooks/useWalletContext";
 import { useConnection } from "~/hooks/useConnection";
 import { MarginfiAccountWrapper, SimulationResult, computeMaxLeverage } from "@mrgnlabs/marginfi-client-v2";
 import {
-  ActionMethod,
   LoopingObject,
   TradeSide,
   calculateLooping,
-  checkAdditionalActionAvailable,
   checkLoopingActionAvailable,
   generateStats,
   simulateLooping,
 } from "./tradingBox.utils";
 import { useDebounce } from "~/hooks/useDebounce";
-import { executeLeverageAction, extractErrorString, usePrevious } from "~/utils";
+import { ActionMethod, executeLeverageAction, extractErrorString, handleSimulationError, usePrevious } from "~/utils";
 import Link from "next/link";
 import { TradingBoxSettingsDialog } from "./components/TradingBoxSettings/TradingBoxSettingsDialog";
 
@@ -197,7 +202,7 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
         });
         setAdditionalChecks(undefined);
       } catch (error) {
-        const additionChecks = checkAdditionalActionAvailable(error);
+        const additionChecks = handleSimulationError(error, bank);
         setAdditionalChecks(additionChecks);
 
         let message;
@@ -550,7 +555,8 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
                                   rel="noopener noreferrer"
                                   className="underline hover:no-underline"
                                 >
-                                  Read more
+                                  <IconExternalLink size={14} className="inline -translate-y-[1px]" />{" "}
+                                  {actionMethod.linkText || "Read more"}
                                 </Link>
                               </p>
                             )}

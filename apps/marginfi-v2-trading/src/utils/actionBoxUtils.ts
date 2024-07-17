@@ -35,6 +35,11 @@ export interface ActionMethod {
   actionMethod?: ActionMethodType;
   description?: string;
   link?: string;
+  linkText?: string;
+  action?: {
+    bank: ExtendedBankInfo;
+    type: ActionType;
+  };
 }
 
 export function getColorForActionMethodType(type?: ActionMethodType) {

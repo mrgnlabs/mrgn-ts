@@ -1,8 +1,9 @@
 import React from "react";
 
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 
-import { useMrgnlendStore, useTradeStore } from "~/store";
+import { useTradeStore } from "~/store";
 import { ActionMethod, cn, RepayWithCollatOptions } from "~/utils";
 
 import { AvailableCollateral } from "./AvailableCollateral";
@@ -10,6 +11,7 @@ import { useLendingPreview } from "./useLendingPreview";
 
 interface ActionBoxPreviewProps {
   selectedBank: ExtendedBankInfo | null;
+  selectedAccount: MarginfiAccountWrapper | null;
   actionMode: ActionType;
   isEnabled: boolean;
   amount: number;
@@ -20,6 +22,7 @@ interface ActionBoxPreviewProps {
 
 export const LendingPreview = ({
   selectedBank,
+  selectedAccount,
   actionMode,
   isEnabled,
   amount,
@@ -27,17 +30,7 @@ export const LendingPreview = ({
   addAdditionalsPopup,
   children,
 }: ActionBoxPreviewProps) => {
-  // const [marginfiClient, selectedAccount, accountSummary] = useMrgnlendStore((state) => [
-  //   state.marginfiClient,
-  //   state.selectedAccount,
-  //   state.accountSummary,
-  // ]);
-
-  const [marginfiClient, selectedAccount, accountSummary] = useTradeStore((state) => [
-    state.marginfiClient,
-    state.selectedAccount,
-    state.accountSummary,
-  ]);
+  const [marginfiClient, accountSummary] = useTradeStore((state) => [state.marginfiClient, state.accountSummary]);
 
   const { preview, previewStats, isLoading, actionMethod } = useLendingPreview({
     marginfiClient,

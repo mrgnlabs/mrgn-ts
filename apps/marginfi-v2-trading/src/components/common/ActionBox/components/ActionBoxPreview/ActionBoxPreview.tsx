@@ -1,6 +1,7 @@
 import React from "react";
 
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 
 import { ActionMethod, RepayWithCollatOptions, StakeData } from "~/utils";
 
@@ -9,6 +10,7 @@ import { LendingPreview, LstPreview, YbxPreview } from "./Components";
 interface ActionBoxPreviewProps {
   selectedBank: ExtendedBankInfo | null;
   selectedStakingAccount: StakeData | null;
+  selectedAccount: MarginfiAccountWrapper | null;
   actionMode: ActionType;
   amount: number;
   slippageBps: number;
@@ -21,6 +23,7 @@ interface ActionBoxPreviewProps {
 export const ActionBoxPreview = ({
   selectedBank,
   selectedStakingAccount,
+  selectedAccount,
   actionMode,
   amount,
   slippageBps,
@@ -43,6 +46,7 @@ export const ActionBoxPreview = ({
       {isInLendingMode && (
         <LendingPreview
           selectedBank={selectedBank}
+          selectedAccount={selectedAccount}
           actionMode={actionMode}
           isEnabled={isEnabled}
           amount={amount}
