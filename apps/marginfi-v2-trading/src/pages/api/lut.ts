@@ -1,7 +1,10 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { Storage } from "@google-cloud/storage";
 import path from "path";
 import fs from "fs";
+import { Storage } from "@google-cloud/storage";
+import { PublicKey, Connection } from "@solana/web3.js";
+import { getConfig, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
+import { NodeWallet } from "@mrgnlabs/mrgn-common";
 
 const BUCKET_NAME = process.env.GCP_BUCKET_NAME || "mrgn-public";
 const FILE_NAME = "mrgn-lut-cache.json";
@@ -24,6 +27,38 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (!groupAddress || !lutAddress) {
     res.status(400).json({ message: "groupAddress and lutAddress are required" });
+    return;
+  }
+
+  // check if groupAddress and lutAddress are valid public keys
+  try {
+    new PublicKey(groupAddress);
+    new PublicKey(lutAddress);
+  } catch (error) {
+    res.status(400).json({ message: "Invalid public key" });
+    return;
+  }
+
+  // Ensure groupAddress is a valid Marginfi account
+  try {
+    const connection = new Connection(process.env.NEXT_PUBLIC_MARGINFI_RPC_ENDPOINT_OVERRIDE!, "confirmed");
+    const wallet = NodeWallet.local();
+    const config = await getConfig("production");
+    const client = await MarginfiClient.fetch(
+      {
+        ...config,
+        groupPk: new PublicKey(groupAddress),
+      },
+      wallet,
+      connection
+    );
+
+    if (!client.banks) {
+      res.status(400).json({ message: "Invalid Marginfi group address" });
+      return;
+    }
+  } catch (error) {
+    res.status(400).json({ message: "Invalid Marginfi group address" });
     return;
   }
 
