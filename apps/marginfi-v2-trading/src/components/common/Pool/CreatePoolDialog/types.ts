@@ -2,12 +2,9 @@ import { PublicKey } from "@solana/web3.js";
 import { z } from "zod";
 
 export enum CreatePoolState {
-  SEARCH = "initial",
-  MINT = "mint",
-  FORM = "form",
+  SETUP = "setup",
   LOADING = "loading",
   SUCCESS = "success",
-  ERROR = "error",
 }
 
 export function verifyPublickey(key: string, allowPDA: boolean = false) {
