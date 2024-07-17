@@ -16,7 +16,7 @@ import {
   generateStats,
   simulateAction,
 } from "./LendingPreview.utils";
-import { ActionMethod, RepayWithCollatOptions, usePrevious } from "~/utils";
+import { ActionMethod, RepayWithCollatOptions, handleSimulationError, usePrevious } from "~/utils";
 import { useAmountDebounce } from "~/hooks/useAmountDebounce";
 import { JUPITER_PROGRAM_V6_ID } from "@jup-ag/react-hook";
 
@@ -91,47 +91,8 @@ export function useLendingPreview({
       setSimulationResult(await simulateAction(props));
       setActionMethod(undefined);
     } catch (error: any) {
-      if (error instanceof ProcessTransactionError && error.programId) {
-        if (error.programId === JUPITER_PROGRAM_V6_ID.toBase58() && error.message === "Slippage tolerance exceeded") {
-          setActionMethod({
-            isEnabled: true,
-            actionMethod: "WARNING",
-            description: error.message,
-          } as ActionMethod);
-        } else {
-          setActionMethod({
-            isEnabled: true,
-            actionMethod: "WARNING",
-            description: `Simulating health/liquidation impact failed.`,
-          } as ActionMethod);
-        }
-      } else if (typeof error === "string") {
-        setActionMethod({
-          isEnabled: true,
-          actionMethod: "WARNING",
-          description: "Simulating health/liquidation impact failed.",
-        } as ActionMethod);
-      } else if (error?.message && (error?.message.includes("RangeError") || error?.message.includes("too large"))) {
-        setActionMethod({
-          isEnabled: false,
-          actionMethod: "WARNING",
-          description:
-            "This swap causes the transaction to fail due to size restrictions. Please try again or pick another token.",
-          link: "https://forum.marginfi.community/t/work-were-doing-to-improve-collateral-repay/333",
-        } as ActionMethod);
-      } else if (error?.message && error?.message.includes("6017")) {
-        setActionMethod({
-          isEnabled: true,
-          actionMethod: "WARNING",
-          description: "Stale oracle data.",
-        } as ActionMethod);
-      } else {
-        setActionMethod({
-          isEnabled: true,
-          actionMethod: "WARNING",
-          description: "Simulating health/liquidation impact failed.",
-        } as ActionMethod);
-      }
+      const actionMethod = handleSimulationError(error, bank);
+      if (actionMethod) setActionMethod(actionMethod);
     } finally {
       setIsLoading(false);
     }
