@@ -23,7 +23,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return;
   }
 
-  const { groupAddress, lutAddress } = req.body;
+  const { groupAddress, lutAddress } = JSON.parse(req.body);
 
   if (!groupAddress || !lutAddress) {
     res.status(400).json({ message: "groupAddress and lutAddress are required" });
