@@ -36,6 +36,8 @@ export default function PortfolioPage() {
       return bank.isActive && !bank.position.isLending && collateralBank.isActive && collateralBank.position.isLending;
     }) as ActiveBankInfo[];
 
+    console.log(activeBanks);
+
     if (!longBanks.length && !shortBanks.length) return null;
 
     return {
@@ -90,7 +92,7 @@ export default function PortfolioPage() {
                   <StatBlock label="Total short (USD)" value={usdFormatter.format(totalShort)} />
                   <div className="col-span-2 md:col-span-1">
                     <StatBlock
-                      label={`Active pool${!portfolioCombined || portfolioCombined.length > 1 ? "s" : ""}`}
+                      label="Active pools"
                       value={
                         portfolioCombined && portfolio && portfolio.long.length > 0 && portfolio.short.length ? (
                           <div className="flex items-center gap-4">
