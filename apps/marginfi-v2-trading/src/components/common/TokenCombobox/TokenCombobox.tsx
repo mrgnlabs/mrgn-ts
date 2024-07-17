@@ -3,7 +3,7 @@ import React from "react";
 import Image from "next/image";
 
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { percentFormatter } from "@mrgnlabs/mrgn-common";
+import { percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 import { IconChevronDown, IconTrendingUp, IconTrendingDown } from "@tabler/icons-react";
 
 import { useTradeStore } from "~/store";
@@ -71,7 +71,7 @@ export const TokenCombobox = ({ selected, setSelected }: TokenComboboxProps) => 
                           className="rounded-full"
                         />
                         <span>{bank.meta.tokenSymbol}</span>
-                        <TokenTrending bank={bank} />
+                        <TokenData bank={bank} />
                       </CommandItem>
                     ))}
                   </CommandGroup>
@@ -114,7 +114,7 @@ export const TokenCombobox = ({ selected, setSelected }: TokenComboboxProps) => 
                         className="rounded-full"
                       />
                       <span>{bank.meta.tokenSymbol}</span>
-                      <TokenTrending bank={bank} />
+                      <TokenData bank={bank} />
                     </CommandItem>
                   ))}
                 </CommandGroup>
@@ -151,7 +151,7 @@ const TokenTrigger = ({ selected }: { selected: ExtendedBankInfo | null }) => {
   );
 };
 
-const TokenTrending = ({ bank }: { bank: ExtendedBankInfo }) => {
+const TokenData = ({ bank }: { bank: ExtendedBankInfo }) => {
   const [tokenData, setTokenData] = React.useState<TokenData | null>(null);
 
   React.useEffect(() => {
@@ -171,14 +171,13 @@ const TokenTrending = ({ bank }: { bank: ExtendedBankInfo }) => {
   if (!tokenData) return null;
 
   return (
-    <div
-      className={cn(
-        "flex items-center gap-1 ml-auto",
-        tokenData?.priceChange24h > 1 ? "text-mrgn-success" : "text-mrgn-error"
-      )}
-    >
-      {percentFormatter.format(tokenData?.priceChange24h / 100)}
-      {tokenData?.priceChange24h > 1 ? <IconTrendingUp size={16} /> : <IconTrendingDown size={16} />}
+    <div className="flex items-center gap-1 text-sm ml-auto w-[110px] text-muted-foreground">
+      <span>
+        {tokenData.price > 0.01 ? usdFormatter.format(tokenData.price) : `$${tokenData.price.toExponential(2)}`}
+      </span>
+      <span className={cn("text-xs", tokenData?.priceChange24h > 1 ? "text-mrgn-success" : "text-mrgn-error")}>
+        {percentFormatter.format(tokenData?.priceChange24h / 100)}
+      </span>
     </div>
   );
 };
