@@ -23,7 +23,7 @@ import { useActionBoxStore } from "~/hooks/useActionBoxStore";
 import { SOL_MINT } from "~/store/lstStore";
 
 import { ActionMethod, checkActionAvailable, RepayType } from "~/utils/actionBoxUtils";
-import { IconAlertTriangle, IconSettings } from "~/components/ui/icons";
+import { IconAlertTriangle, IconExternalLink, IconSettings } from "~/components/ui/icons";
 import { showErrorToast } from "~/utils/toastUtils";
 
 import {
@@ -673,14 +673,14 @@ export const ActionBox = ({
                           <p>{actionMethod.description}</p>
                           {actionMethod.link && (
                             <p>
-                              {/* <span className="hidden md:inline">-</span>{" "} */}
                               <Link
                                 href={actionMethod.link}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="underline hover:no-underline"
                               >
-                                Read more
+                                <IconExternalLink size={14} className="inline -translate-y-[1px]" />{" "}
+                                {actionMethod.linkText || "Read more"}
                               </Link>
                             </p>
                           )}
@@ -693,6 +693,7 @@ export const ActionBox = ({
               <ActionBoxPreview
                 selectedBank={selectedBank}
                 selectedStakingAccount={selectedStakingAccount}
+                selectedAccount={selectedAccount}
                 actionMode={actionMode}
                 amount={amount}
                 slippageBps={slippageBps}

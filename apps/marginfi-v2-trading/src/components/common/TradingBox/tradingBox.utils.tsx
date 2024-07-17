@@ -24,12 +24,14 @@ import BigNumber from "bignumber.js";
 import { IconArrowRight, IconPyth, IconSwitchboard } from "~/components/ui/icons";
 import { Skeleton } from "~/components/ui/skeleton";
 import {
+  ActionMethod,
   ActionMethodType,
   cn,
   deserializeInstruction,
   extractErrorString,
   getAdressLookupTableAccounts,
   getSwapQuoteWithRetry,
+  handleSimulationError,
   isBankOracleStale,
 } from "~/utils";
 import { MultiStepToastHandle, showErrorToast } from "~/utils/toastUtils";
@@ -846,18 +848,6 @@ export function getCurrentStats(
   };
 }
 
-export interface ActionMethod {
-  isEnabled: boolean;
-  actionMethod?: ActionMethodType;
-  description?: string;
-  link?: string;
-  linkText?: string;
-  action?: {
-    bank: ExtendedBankInfo;
-    type: ActionType;
-  };
-}
-
 interface ActiveGroup {
   token: ExtendedBankInfo;
   usdc: ExtendedBankInfo;
@@ -1043,68 +1033,3 @@ function canBeLooped(activeGroup: ActiveGroup, loopingObject: LoopingObject, tra
 
   return checks;
 }
-
-export const checkAdditionalActionAvailable = (error: any) => {
-  try {
-    if (
-      error?.programId === JUPITER_PROGRAM_V6_ID.toBase58() &&
-      error?.message.includes("Slippage tolerance exceeded")
-    ) {
-      return {
-        isEnabled: true,
-        actionMethod: "WARNING",
-        description: error.message,
-      } as ActionMethod;
-    } else if (error?.message && (error?.message.includes("RangeError") || error?.message.includes("too large"))) {
-      return {
-        isEnabled: false,
-        actionMethod: "WARNING",
-        description:
-          "This swap causes the transaction to fail due to size restrictions. Please try again or pick another token.",
-        link: "https://forum.marginfi.community/t/work-were-doing-to-improve-collateral-repay/333",
-      } as ActionMethod;
-    } else if (error?.message && (error?.message.includes("6017") || error?.message.includes("stale"))) {
-      return {
-        isEnabled: true,
-        actionMethod: "WARNING",
-        description: "Trading may fail due to network congestion preventing oracles from updating price data.",
-        link: "https://forum.marginfi.community/t/work-were-doing-to-improve-oracle-robustness-during-chain-congestion/283",
-        linkText: "Learn more about marginfi's decentralized oracles.",
-      } as ActionMethod;
-    } else if (error?.message && (error?.message.includes("6029") || error?.message.includes("borrow cap exceeded"))) {
-      return {
-        isEnabled: false,
-        actionMethod: "WARNING",
-        description: "Borrow cap is exceeded.",
-      } as ActionMethod;
-    } else if (error?.message && (error?.message.includes("6028") || error?.message.includes("utilization ratio"))) {
-      return {
-        isEnabled: false,
-        actionMethod: "WARNING",
-        description: "Bank utilization ratio is invalid.",
-      } as ActionMethod;
-    } else if (error?.programId && error?.programId === "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA") {
-      return {
-        isEnabled: true,
-        actionMethod: "WARNING",
-        description: error?.message,
-      } as ActionMethod;
-    } else if (error?.message && (error?.message.includes("RangeError") || error?.message.includes("too large"))) {
-      return {
-        isEnabled: false,
-        actionMethod: "WARNING",
-        description:
-          "This swap causes the transaction to fail due to size restrictions. Please try again or pick another token.",
-      } as ActionMethod;
-    } else {
-      return {
-        isEnabled: true,
-        actionMethod: "WARNING",
-        description: "Simulating health/liquidation impact failed.",
-      } as ActionMethod;
-    }
-  } catch (error) {
-    console.log({ error });
-  } finally {
-  }
-};
