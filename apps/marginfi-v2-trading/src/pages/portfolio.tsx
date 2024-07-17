@@ -16,9 +16,10 @@ import { Loader } from "~/components/ui/loader";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 
 export default function PortfolioPage() {
-  const [initialized, banks, collateralBanks, resetActiveGroup] = useTradeStore((state) => [
+  const [initialized, banks, allBanks, collateralBanks, resetActiveGroup] = useTradeStore((state) => [
     state.initialized,
     state.banks,
+    state.banksIncludingUSDC,
     state.collateralBanks,
     state.resetActiveGroup,
   ]);
@@ -42,6 +43,10 @@ export default function PortfolioPage() {
       short: shortBanks.sort((a, b) => a.position.usdValue - b.position.usdValue),
     };
   }, [banks, collateralBanks]);
+
+  const hasPositions = React.useMemo(() => {
+    return allBanks.some((bank) => bank.isActive);
+  }, [allBanks]);
 
   const portfolioCombined = React.useMemo(() => {
     if (!portfolio) return null;
@@ -70,7 +75,7 @@ export default function PortfolioPage() {
             <div className="w-full max-w-4xl mx-auto px-4 md:px-0">
               <PageHeading heading="Portfolio" body={<p>Manage your mrgntrade positions.</p>} links={[]} />
             </div>
-            {!portfolio || !portfolioCombined ? (
+            {!hasPositions ? (
               <p className="text-center mt-4">
                 You do not have any open positions.{" "}
                 <Link href="/" className="border-b border-primary transition-colors hover:border-transparent">
@@ -85,26 +90,30 @@ export default function PortfolioPage() {
                   <StatBlock label="Total short (USD)" value={usdFormatter.format(totalShort)} />
                   <div className="col-span-2 md:col-span-1">
                     <StatBlock
-                      label="Active pools"
+                      label={`Active pool${!portfolioCombined || portfolioCombined.length > 1 ? "s" : ""}`}
                       value={
-                        <div className="flex items-center gap-4">
-                          {groupedNumberFormatterDyn.format(portfolio.long.length + portfolio.short.length)}
-                          <ul className="flex items-center -space-x-2">
-                            {portfolioCombined.slice(0, 5).map((bank, index) => (
-                              <Image
-                                src={getTokenImageURL(bank.meta.tokenSymbol)}
-                                alt={bank.meta.tokenSymbol}
-                                width={24}
-                                height={24}
-                                key={index}
-                                className="rounded-full ring-1 ring-primary"
-                              />
-                            ))}
-                          </ul>
-                          {portfolioCombined?.length - 5 > 0 && (
-                            <p className="text-sm text-muted-foreground">+{portfolioCombined?.length - 5} more</p>
-                          )}
-                        </div>
+                        portfolioCombined && portfolio && portfolio.long.length > 0 && portfolio.short.length ? (
+                          <div className="flex items-center gap-4">
+                            {groupedNumberFormatterDyn.format(portfolio.long.length + portfolio.short.length)}
+                            <ul className="flex items-center -space-x-2">
+                              {portfolioCombined.slice(0, 5).map((bank, index) => (
+                                <Image
+                                  src={getTokenImageURL(bank.meta.tokenSymbol)}
+                                  alt={bank.meta.tokenSymbol}
+                                  width={24}
+                                  height={24}
+                                  key={index}
+                                  className="rounded-full ring-1 ring-primary"
+                                />
+                              ))}
+                            </ul>
+                            {portfolioCombined?.length - 5 > 0 && (
+                              <p className="text-sm text-muted-foreground">+{portfolioCombined?.length - 5} more</p>
+                            )}
+                          </div>
+                        ) : (
+                          <span>0</span>
+                        )
                       }
                     />
                   </div>
@@ -113,17 +122,39 @@ export default function PortfolioPage() {
                   <div className="space-y-6">
                     <h2 className="text-2xl font-medium">Long positions</h2>
                     <div className="space-y-8">
-                      {portfolio.long.map((bank, index) => (
-                        <PositionCard key={index} bank={bank} isLong={true} />
-                      ))}
+                      {portfolio && portfolio.long.length > 0 ? (
+                        portfolio.long.map((bank, index) => <PositionCard key={index} bank={bank} isLong={true} />)
+                      ) : (
+                        <p className="text-muted-foreground">
+                          You do not have any open long positions.{" "}
+                          <Link
+                            href="/"
+                            className="border-b border-muted-foreground transition-colors hover:border-transparent"
+                          >
+                            Explore the arena pools
+                          </Link>
+                          .
+                        </p>
+                      )}
                     </div>
                   </div>
                   <div className="space-y-6">
                     <h2 className="text-2xl font-medium">Short positions</h2>
                     <div className="space-y-8">
-                      {portfolio.short.map((bank, index) => (
-                        <PositionCard key={index} bank={bank} isLong={false} />
-                      ))}
+                      {portfolio && portfolio.short.length > 0 ? (
+                        portfolio.short.map((bank, index) => <PositionCard key={index} bank={bank} isLong={false} />)
+                      ) : (
+                        <p className="text-muted-foreground">
+                          You do not have any open short positions.{" "}
+                          <Link
+                            href="/"
+                            className="border-b border-muted-foreground transition-colors hover:border-transparent"
+                          >
+                            Explore the arena pools
+                          </Link>
+                          .
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>
