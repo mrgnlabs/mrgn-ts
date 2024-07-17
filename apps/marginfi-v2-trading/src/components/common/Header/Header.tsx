@@ -13,6 +13,7 @@ import { CreatePoolDialog } from "~/components/common/Pool/CreatePoolDialog";
 import { Button } from "~/components/ui/button";
 import { IconMrgn, IconTrendingUp, IconCoins, IconChartPie, IconPlus } from "~/components/ui/icons";
 import { useIsMobile } from "~/hooks/useIsMobile";
+import { CreatePoolScriptDialog } from "../Pool/CreatePoolScript";
 
 const navItems = [
   { label: "pools", icon: <IconCoins />, href: "/" },
@@ -52,6 +53,20 @@ export const Header = () => {
           </ul>
         </nav>
         <div className="flex items-center gap-6">
+          {
+            // eslint-disable-next-line turbo/no-undeclared-env-vars
+            process.env.NEXT_PUBLIC_ENABLE_BANK_SCRIPT && (
+              <div className="flex items-center">
+                <CreatePoolScriptDialog
+                  trigger={
+                    <Button variant={"secondary"} size={isMobile ? "sm" : "default"}>
+                      <IconPlus size={isMobile ? 14 : 18} /> Pool Script
+                    </Button>
+                  }
+                />
+              </div>
+            )
+          }
           {connected && (
             <div className="flex items-center">
               <CreatePoolDialog
