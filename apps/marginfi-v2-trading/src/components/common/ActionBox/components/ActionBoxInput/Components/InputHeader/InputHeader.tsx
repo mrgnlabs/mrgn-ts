@@ -1,25 +1,23 @@
 import React from "react";
 
-import { RepayType, LstType, YbxType } from "~/utils";
+import { RepayType } from "~/utils";
 import { useActionBoxStore } from "~/hooks/useActionBoxStore";
 
-import { InputHeaderActionLeft, InputHeaderActionRight } from "./Components";
+import { InputHeaderActionLeft } from "./Components";
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
 type props = {
   isDialog?: boolean;
-  changeLstType: (lstType: LstType) => void;
-  changeYbxType: (lstType: YbxType) => void;
+
   changeRepayType: (repayType: RepayType) => void;
   changeActionType: (actionType: ActionType) => void;
 };
 
-export const InputHeader = ({ isDialog, changeRepayType, changeLstType, changeYbxType, changeActionType }: props) => {
-  const [actionMode, selectedBank, ybxMode, lstMode, repayMode] = useActionBoxStore(isDialog)((state) => [
+export const InputHeader = ({ isDialog, changeRepayType, changeActionType }: props) => {
+  const [actionMode, selectedBank, repayMode] = useActionBoxStore(isDialog)((state) => [
     state.actionMode,
     state.selectedBank,
-    state.ybxMode,
-    state.lstMode,
+
     state.repayMode,
   ]);
 
@@ -33,25 +31,11 @@ export const InputHeader = ({ isDialog, changeRepayType, changeLstType, changeYb
           actionType={actionMode}
           bank={selectedBank}
           repayType={repayMode}
-          ybxType={ybxMode}
-          lstType={lstMode}
           isDialog={isDialog}
-          changeYbxType={(value) => changeYbxType(value)}
           changeRepayType={(value) => changeRepayType(value)}
-          changeLstType={(value) => changeLstType(value)}
           changeActionType={(value) => changeActionType(value)}
         />
       </div>
-
-      {/* Amount action */}
-      {/* <InputHeaderActionRight
-        actionMode={actionMode}
-        bank={selectedBank}
-        maxAmount={maxAmount}
-        walletAmount={walletAmount}
-        selectedStakingAccount={selectedStakingAccount}
-        onSetAmountRaw={onSetAmountRaw}
-      /> */}
     </div>
   );
 };
