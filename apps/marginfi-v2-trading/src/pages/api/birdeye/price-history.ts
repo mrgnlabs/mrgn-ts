@@ -59,7 +59,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (data.data.items) {
       items = data.data.items.map((item: any) => {
-        console.log(item);
         return {
           timestamp: item.unixTime,
           label: dayjs.unix(item.unixTime).fromNow(),
