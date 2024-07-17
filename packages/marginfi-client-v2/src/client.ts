@@ -167,7 +167,32 @@ class MarginfiClient {
       bankMetadataMap
     );
 
-    const addressLookupTableAddresses = ADDRESS_LOOKUP_TABLE_FOR_GROUP[config.groupPk.toString()] ?? [];
+    let addressLookupTableAddresses = ADDRESS_LOOKUP_TABLE_FOR_GROUP[config.groupPk.toString()];
+
+    if (!addressLookupTableAddresses) {
+      try {
+        const response = await fetch(`https://storage.googleapis.com/mrgn-public/mrgn-lut-cache.json`, {
+          headers: {
+            Accept: "application/json",
+          },
+          method: "GET",
+        });
+
+        if (response.status === 200) {
+          const parsedResponse = await response.json();
+          if (!parsedResponse) throw new Error("JSON is mia");
+          const loopupTableString = parsedResponse[config.groupPk.toString()];
+          if (!parsedResponse) throw new Error("Group not found");
+          addressLookupTableAddresses = [new PublicKey(loopupTableString)];
+        } else {
+          throw new Error("LUT not found");
+        }
+      } catch (error) {
+        console.log("fek");
+        addressLookupTableAddresses = [];
+      }
+    }
+
     debug("Fetching address lookup tables for %s", addressLookupTableAddresses);
     const addressLookupTables = (
       await Promise.all(addressLookupTableAddresses.map((address) => connection.getAddressLookupTable(address)))
