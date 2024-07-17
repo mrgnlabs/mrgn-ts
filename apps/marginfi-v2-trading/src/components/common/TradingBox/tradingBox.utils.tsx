@@ -761,14 +761,22 @@ export function generateStats(
         {oracle}
         {oracle === "Pyth" ? <IconPyth size={14} /> : <IconSwitchboard size={14} />}
       </dd>
-      <dt>Total Longed</dt>
-      <dd className="text-primary text-right">
-        {tokenBank.info.state.totalDeposits.toFixed(2)} {tokenBank.meta.tokenSymbol}
-      </dd>
-      <dt>Total Shorted</dt>
-      <dd className="text-primary text-right">
-        {tokenBank.info.state.totalBorrows.toFixed(2)} {tokenBank.meta.tokenSymbol}
-      </dd>
+      {tokenBank.info.state.totalDeposits > 0 && (
+        <>
+          <dt>Total Open Long</dt>
+          <dd className="text-primary text-right">
+            {tokenBank.info.state.totalDeposits.toFixed(2)} {tokenBank.meta.tokenSymbol}
+          </dd>
+        </>
+      )}
+      {tokenBank.info.state.totalBorrows > 0 && (
+        <>
+          <dt>Total Open Short</dt>
+          <dd className="text-primary text-right">
+            {tokenBank.info.state.totalBorrows.toFixed(2)} {tokenBank.meta.tokenSymbol}
+          </dd>
+        </>
+      )}
     </dl>
   );
 
