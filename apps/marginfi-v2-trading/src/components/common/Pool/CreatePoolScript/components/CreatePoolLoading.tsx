@@ -1,29 +1,16 @@
 import { Button } from "~/components/ui/button";
 
-import { FormValues } from "~/components/common/Pool/CreatePoolDialog";
-
-import { IconLoader2, IconCheck, IconConfetti, IconX } from "@tabler/icons-react";
+import { IconLoader2, IconCheck, IconX } from "@tabler/icons-react";
 import {
   BankConfigOpt,
   MarginfiClient,
-  MarginfiGroup,
   OperationalState,
   OracleSetup,
   RiskTier,
   getConfig,
-  makePriorityFeeIx,
 } from "@mrgnlabs/marginfi-client-v2";
-import { useWalletContext } from "~/hooks/useWalletContext";
 import { useConnection } from "~/hooks/useConnection";
-import {
-  Keypair,
-  Message,
-  PublicKey,
-  Transaction,
-  TransactionInstruction,
-  TransactionMessage,
-  VersionedTransaction,
-} from "@solana/web3.js";
+import { Keypair, PublicKey, TransactionInstruction } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 import { cn, createMarginfiGroup, createPermissionlessBank, createPoolLookupTable } from "~/utils";
 import { useUiStore } from "~/store";

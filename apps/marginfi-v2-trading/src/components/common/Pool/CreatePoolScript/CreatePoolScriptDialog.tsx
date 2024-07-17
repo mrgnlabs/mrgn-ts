@@ -10,11 +10,10 @@ import { useTradeStore } from "~/store";
 import { cn } from "~/utils";
 import { useIsMobile } from "~/hooks/useIsMobile";
 
-import { CreatePoolSuccess } from "~/components/common/Pool/CreatePoolDialog/";
 import { Dialog, DialogContent, DialogTrigger } from "~/components/ui/dialog";
 import { Button } from "~/components/ui/button";
 import { MultiStepToastHandle, showWarningToast } from "~/utils/toastUtils";
-import { CreatePoolLoading, CreatePoolSetup, bankTokens } from "./components";
+import { CreatePoolLoading, CreatePoolSuccess, CreatePoolSetup, bankTokens } from "./components";
 
 enum CreatePoolState {
   SETUP = "setup",
