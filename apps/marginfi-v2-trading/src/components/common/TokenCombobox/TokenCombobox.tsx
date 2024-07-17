@@ -129,7 +129,7 @@ export const TokenCombobox = ({ selected, setSelected }: TokenComboboxProps) => 
 
 const TokenTrigger = ({ selected }: { selected: ExtendedBankInfo | null }) => {
   return (
-    <Button variant="secondary" size="lg" className="min-w-[125px] relative w-full justify-start pr-4 pl-3 py-3">
+    <Button variant="secondary" size="lg" className="relative w-full justify-start pr-8 pl-3 py-3">
       {selected !== null ? (
         <>
           <Image
