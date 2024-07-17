@@ -121,7 +121,16 @@ export const PoolHeader = () => {
                 </span>
               }
             />
-            <StatBlock label="Market cap" value={`$${numeralFormatter(tokenData.marketCap)}`} />
+            <StatBlock
+              label="4hr vol"
+              value={`$${numeralFormatter(tokenData.volume4h)}`}
+              subValue={
+                <span className={cn(tokenData.volumeChange4h > 0 ? "text-mrgn-success" : "text-mrgn-error")}>
+                  {tokenData.volumeChange4h > 0 && "+"}
+                  {percentFormatter.format(tokenData.volumeChange4h / 100)}
+                </span>
+              }
+            />
             <StatBlock
               label="24hr vol"
               value={`$${numeralFormatter(tokenData.volume24h)}`}
@@ -132,6 +141,7 @@ export const PoolHeader = () => {
                 </span>
               }
             />
+
             <StatBlock
               label={
                 <div className="flex items-center gap-2">

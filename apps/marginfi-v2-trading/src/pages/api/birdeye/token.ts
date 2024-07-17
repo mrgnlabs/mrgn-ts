@@ -48,9 +48,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       decimals: data.decimals,
       price: data.price,
       priceChange24h: data.priceChange24hPercent,
-      marketCap: data.mc,
       volume24h: data.v24hUSD,
       volumeChange24h: data.v24hChangePercent,
+      volume4h: data.v4hUSD,
+      volumeChange4h: data.v4hChangePercent,
     };
 
     // Store in cache
