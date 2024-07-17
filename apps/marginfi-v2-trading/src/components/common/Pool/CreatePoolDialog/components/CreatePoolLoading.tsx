@@ -293,10 +293,10 @@ export const CreatePoolLoading = ({ poolCreatedData, setIsOpen, setIsCompleted }
       // token bank
       let tokenBankConfig = DEFAULT_TOKEN_BANK_CONFIG;
 
-      tokenBankConfig.borrowLimit = new BigNumber(100); // todo: update this according to price
-      tokenBankConfig.depositLimit = new BigNumber(10000); // todo: update this according to price
+      tokenBankConfig.borrowLimit = new BigNumber(poolCreatedData.borrowLimit ?? 300); // todo: update this according to price
+      tokenBankConfig.depositLimit = new BigNumber(poolCreatedData.depositLimit ?? 10000); // todo: update this according to price
       tokenBankConfig.oracle = {
-        setup: OracleSetup.PythEma,
+        setup: poolCreatedData.oracleType,
         keys: [new PublicKey(poolCreatedData.oracle)],
       };
 
