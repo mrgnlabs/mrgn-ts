@@ -26,9 +26,20 @@ export const PositionList = () => {
   ]);
 
   const portfolio = React.useMemo(() => {
-    const filteredBanks = banks.filter((bank) => bank.isActive) as ActiveBankInfo[];
-    return filteredBanks.sort((a, b) => a.position.usdValue - b.position.usdValue);
-  }, [banks]);
+    const activeBanks = banks.filter((bank) => bank.isActive);
+    const longBanks = activeBanks.filter((bank) => {
+      const collateralBank = collateralBanks[bank.address.toBase58()];
+      return bank.isActive && bank.position.isLending && collateralBank.isActive && !collateralBank.position.isLending;
+    }) as ActiveBankInfo[];
+    const shortBanks = activeBanks.filter((bank) => {
+      const collateralBank = collateralBanks[bank.address.toBase58()];
+      return bank.isActive && !bank.position.isLending && collateralBank.isActive && collateralBank.position.isLending;
+    }) as ActiveBankInfo[];
+
+    if (!longBanks.length && !shortBanks.length) return [];
+
+    return [...longBanks, ...shortBanks].sort((a, b) => a.position.usdValue - b.position.usdValue);
+  }, [banks, collateralBanks]);
 
   return (
     <div className="rounded-xl">
