@@ -377,7 +377,10 @@ export function generateStats(
 
   let oracle = "";
   switch (tokenBank?.info.rawBank.config.oracleSetup) {
-    case "PythEma":
+    case "PythLegacy":
+      oracle = "Pyth";
+      break;
+    case "PythPushOracle":
       oracle = "Pyth";
       break;
     case "SwitchboardV2":
@@ -652,9 +655,8 @@ function canBeLooped(activeGroup: ActiveGroup, loopingObject: LoopingObject, tra
 
     if (wrongSupplied && wrongBorrowed) {
       checks.push({
-        description: `You are already ${
-          tradeSide === "long" ? "shorting" : "longing"
-        } this asset, you need to close that position first to start ${tradeSide === "long" ? "longing" : "shorting"}.`,
+        description: `You are already ${tradeSide === "long" ? "shorting" : "longing"
+          } this asset, you need to close that position first to start ${tradeSide === "long" ? "longing" : "shorting"}.`,
         isEnabled: false,
         action: {
           type: ActionType.Repay,
@@ -663,9 +665,8 @@ function canBeLooped(activeGroup: ActiveGroup, loopingObject: LoopingObject, tra
       });
     } else if (wrongSupplied) {
       checks.push({
-        description: `Before you can ${tradeSide} this asset, you'll need to withdraw your supplied ${
-          tradeSide === "long" ? activeGroup.usdc.meta.tokenSymbol : activeGroup.token.meta.tokenSymbol
-        }.`,
+        description: `Before you can ${tradeSide} this asset, you'll need to withdraw your supplied ${tradeSide === "long" ? activeGroup.usdc.meta.tokenSymbol : activeGroup.token.meta.tokenSymbol
+          }.`,
         isEnabled: true,
         action: {
           type: ActionType.Withdraw,
@@ -674,9 +675,8 @@ function canBeLooped(activeGroup: ActiveGroup, loopingObject: LoopingObject, tra
       });
     } else if (wrongBorrowed) {
       checks.push({
-        description: `Before you can ${tradeSide} this asset, you'll need to repay your borrowed ${
-          tradeSide === "long" ? activeGroup.token.meta.tokenSymbol : activeGroup.usdc.meta.tokenSymbol
-        }.`,
+        description: `Before you can ${tradeSide} this asset, you'll need to repay your borrowed ${tradeSide === "long" ? activeGroup.token.meta.tokenSymbol : activeGroup.usdc.meta.tokenSymbol
+          }.`,
         isEnabled: false,
         action: {
           type: ActionType.Repay,

@@ -1,8 +1,11 @@
-import { parsePriceData } from "../vendor/pyth";
+import { parsePriceData } from "../vendor/pyth_legacy";
 import BigNumber from "bignumber.js";
 import { AggregatorAccountData, AggregatorAccount } from "../vendor/switchboard";
 import { PYTH_PRICE_CONF_INTERVALS, SWB_PRICE_CONF_INTERVALS, MAX_CONFIDENCE_INTERVAL_RATIO } from "..";
 import { OracleSetup } from "./bank";
+import { IDL } from "@pythnetwork/pyth-solana-receiver/lib/idl/pyth_solana_receiver";
+import * as PythPushOracle from "../vendor/pyth_push_oracle";
+import { readBigUInt64LE } from "../vendor/pyth_legacy/readBig";
 
 interface PriceWithConfidence {
   price: BigNumber;
@@ -23,10 +26,16 @@ enum PriceBias {
   Highest = 2,
 }
 
+function capConfidenceInterval(price: BigNumber, confidence: BigNumber, maxConfidence: BigNumber): BigNumber {
+  let maxConfidenceInterval = price.times(maxConfidence);
+
+  return BigNumber.min(confidence, maxConfidenceInterval);
+}
+
 function parseOraclePriceData(oracleSetup: OracleSetup, rawData: Buffer): OraclePrice {
   const debug = require("debug")("mfi:oracle-loader");
   switch (oracleSetup) {
-    case OracleSetup.PythEma:
+    case OracleSetup.PythLegacy:
       const pythPriceData = parsePriceData(rawData);
 
       let priceData = pythPriceData.price;
@@ -41,15 +50,13 @@ function parseOraclePriceData(oracleSetup: OracleSetup, rawData: Buffer): Oracle
 
       const pythPriceRealtime = new BigNumber(priceData!);
       const pythConfidenceRealtime = new BigNumber(confidenceData!).times(PYTH_PRICE_CONF_INTERVALS);
-      const maxPythConfidenceRealtime = pythPriceRealtime.times(MAX_CONFIDENCE_INTERVAL_RATIO);
-      const pythConfidenceRealtimeCapped = BigNumber.min(pythConfidenceRealtime, maxPythConfidenceRealtime);
+      const pythConfidenceRealtimeCapped = capConfidenceInterval(pythPriceRealtime, pythConfidenceRealtime, PYTH_PRICE_CONF_INTERVALS);
       const pythLowestPriceRealtime = pythPriceRealtime.minus(pythConfidenceRealtimeCapped);
       const pythHighestPriceRealtime = pythPriceRealtime.plus(pythConfidenceRealtimeCapped);
 
       const pythPriceWeighted = new BigNumber(pythPriceData.emaPrice.value);
       const pythConfIntervalWeighted = new BigNumber(pythPriceData.emaConfidence.value).times(PYTH_PRICE_CONF_INTERVALS);
-      const maxPythConfidenceWeighted = pythPriceWeighted.times(MAX_CONFIDENCE_INTERVAL_RATIO);
-      const pythConfIntervalWeightedCapped = BigNumber.min(pythConfIntervalWeighted, maxPythConfidenceWeighted);
+      const pythConfIntervalWeightedCapped = capConfidenceInterval(pythPriceWeighted, pythConfIntervalWeighted, PYTH_PRICE_CONF_INTERVALS);
       const pythLowestPrice = pythPriceWeighted.minus(pythConfIntervalWeightedCapped);
       const pythHighestPrice = pythPriceWeighted.plus(pythConfIntervalWeightedCapped);
 
@@ -71,6 +78,40 @@ function parseOraclePriceData(oracleSetup: OracleSetup, rawData: Buffer): Oracle
         timestamp: new BigNumber(Number(pythPriceData.timestamp)),
       };
 
+    case OracleSetup.PythPushOracle:
+      let bytesWithoutDiscriminator = rawData.slice(8);
+      let data = PythPushOracle.parsePriceInfo(bytesWithoutDiscriminator);
+
+      const exponent = new BigNumber(10 ** data.priceMessage.exponent);
+
+      const priceRealTime = new BigNumber(Number(data.priceMessage.price)).times(exponent);
+      const confidenceRealTime = new BigNumber(Number(data.priceMessage.conf)).times(exponent);
+      const cappedConfidenceRealTime = capConfidenceInterval(priceRealTime, confidenceRealTime, PYTH_PRICE_CONF_INTERVALS);
+      const lowestPriceRealTime = priceRealTime.minus(cappedConfidenceRealTime);
+      const highestPriceRealTime = priceRealTime.plus(cappedConfidenceRealTime);
+
+      const priceTimeWeighted = new BigNumber(Number(data.priceMessage.emaPrice)).times(exponent);
+      const confidenceTimeWeighted = new BigNumber(Number(data.priceMessage.emaConf)).times(exponent);
+      const cappedConfidenceWeighted = capConfidenceInterval(priceTimeWeighted, confidenceTimeWeighted, PYTH_PRICE_CONF_INTERVALS);
+      const lowestPriceWeighted = priceTimeWeighted.minus(cappedConfidenceWeighted);
+      const highestPriceWeighted = priceTimeWeighted.plus(cappedConfidenceWeighted);
+
+      return {
+        priceRealtime: {
+          price: priceRealTime,
+          confidence: cappedConfidenceRealTime,
+          lowestPrice: lowestPriceRealTime,
+          highestPrice: highestPriceRealTime,
+        },
+        priceWeighted: {
+          price: priceTimeWeighted,
+          confidence: cappedConfidenceWeighted,
+          lowestPrice: lowestPriceWeighted,
+          highestPrice: highestPriceWeighted,
+        },
+        timestamp: new BigNumber(Number(data.priceMessage.publishTime)),
+      };
+
     case OracleSetup.SwitchboardV2:
       const aggData = AggregatorAccountData.decode(rawData);
 
@@ -78,8 +119,7 @@ function parseOraclePriceData(oracleSetup: OracleSetup, rawData: Buffer): Oracle
       const swbConfidence = new BigNumber(aggData.latestConfirmedRound.stdDeviation.toBig().toString()).times(
         SWB_PRICE_CONF_INTERVALS
       );
-      const maxSwbConfidence = swbPrice.times(MAX_CONFIDENCE_INTERVAL_RATIO);
-      const swbConfidenceCapped = BigNumber.min(swbConfidence, maxSwbConfidence);
+      const swbConfidenceCapped = capConfidenceInterval(swbPrice, swbConfidence, MAX_CONFIDENCE_INTERVAL_RATIO);
       const swbLowestPrice = swbPrice.minus(swbConfidenceCapped);
       const swbHighestPrice = swbPrice.plus(swbConfidenceCapped);
 

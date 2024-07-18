@@ -5,7 +5,7 @@
  * IDL can be found at `target/idl/marginfi.json`.
  */
 export type Marginfi = {
-  "address": "",
+  "address": "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
   "metadata": {
     "name": "marginfi",
     "version": "0.1.0",
@@ -2387,6 +2387,427 @@ export type Marginfi = {
         182,
         67
       ]
+    }
+  ],
+  "events": [
+    {
+      "name": "lendingAccountBorrowEvent",
+      "discriminator": [
+        223,
+        96,
+        81,
+        10,
+        156,
+        99,
+        26,
+        59
+      ]
+    },
+    {
+      "name": "lendingAccountDepositEvent",
+      "discriminator": [
+        161,
+        54,
+        237,
+        217,
+        105,
+        248,
+        122,
+        151
+      ]
+    },
+    {
+      "name": "lendingAccountLiquidateEvent",
+      "discriminator": [
+        166,
+        160,
+        249,
+        154,
+        183,
+        39,
+        23,
+        242
+      ]
+    },
+    {
+      "name": "lendingAccountRepayEvent",
+      "discriminator": [
+        16,
+        220,
+        55,
+        111,
+        7,
+        80,
+        16,
+        25
+      ]
+    },
+    {
+      "name": "lendingAccountWithdrawEvent",
+      "discriminator": [
+        3,
+        220,
+        148,
+        243,
+        33,
+        249,
+        54,
+        88
+      ]
+    },
+    {
+      "name": "lendingPoolBankAccrueInterestEvent",
+      "discriminator": [
+        104,
+        117,
+        187,
+        156,
+        111,
+        154,
+        106,
+        186
+      ]
+    },
+    {
+      "name": "lendingPoolBankCollectFeesEvent",
+      "discriminator": [
+        101,
+        119,
+        97,
+        250,
+        169,
+        175,
+        156,
+        253
+      ]
+    },
+    {
+      "name": "lendingPoolBankConfigureEvent",
+      "discriminator": [
+        246,
+        35,
+        233,
+        110,
+        93,
+        152,
+        235,
+        40
+      ]
+    },
+    {
+      "name": "lendingPoolBankCreateEvent",
+      "discriminator": [
+        236,
+        220,
+        201,
+        63,
+        239,
+        126,
+        136,
+        249
+      ]
+    },
+    {
+      "name": "lendingPoolBankHandleBankruptcyEvent",
+      "discriminator": [
+        166,
+        77,
+        41,
+        140,
+        36,
+        94,
+        10,
+        57
+      ]
+    },
+    {
+      "name": "marginfiAccountCreateEvent",
+      "discriminator": [
+        183,
+        5,
+        117,
+        104,
+        122,
+        199,
+        68,
+        51
+      ]
+    },
+    {
+      "name": "marginfiAccountTransferAccountAuthorityEvent",
+      "discriminator": [
+        112,
+        61,
+        140,
+        132,
+        251,
+        92,
+        90,
+        202
+      ]
+    },
+    {
+      "name": "marginfiGroupConfigureEvent",
+      "discriminator": [
+        241,
+        104,
+        172,
+        167,
+        41,
+        195,
+        199,
+        170
+      ]
+    },
+    {
+      "name": "marginfiGroupCreateEvent",
+      "discriminator": [
+        233,
+        125,
+        61,
+        14,
+        98,
+        240,
+        136,
+        253
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "mathError",
+      "msg": "Math error"
+    },
+    {
+      "code": 6001,
+      "name": "bankNotFound",
+      "msg": "Invalid bank index"
+    },
+    {
+      "code": 6002,
+      "name": "lendingAccountBalanceNotFound",
+      "msg": "Lending account balance not found"
+    },
+    {
+      "code": 6003,
+      "name": "bankAssetCapacityExceeded",
+      "msg": "Bank deposit capacity exceeded"
+    },
+    {
+      "code": 6004,
+      "name": "invalidTransfer",
+      "msg": "Invalid transfer"
+    },
+    {
+      "code": 6005,
+      "name": "missingPythOrBankAccount",
+      "msg": "Missing Pyth or Bank account"
+    },
+    {
+      "code": 6006,
+      "name": "missingPythAccount",
+      "msg": "Missing Pyth account"
+    },
+    {
+      "code": 6007,
+      "name": "invalidOracleAccount",
+      "msg": "Invalid Pyth account"
+    },
+    {
+      "code": 6008,
+      "name": "missingBankAccount",
+      "msg": "Missing Bank account"
+    },
+    {
+      "code": 6009,
+      "name": "invalidBankAccount",
+      "msg": "Invalid Bank account"
+    },
+    {
+      "code": 6010,
+      "name": "riskEngineInitRejected",
+      "msg": "RiskEngine rejected due to either bad health or stale oracles"
+    },
+    {
+      "code": 6011,
+      "name": "lendingAccountBalanceSlotsFull",
+      "msg": "Lending account balance slots are full"
+    },
+    {
+      "code": 6012,
+      "name": "bankAlreadyExists",
+      "msg": "Bank already exists"
+    },
+    {
+      "code": 6013,
+      "name": "illegalLiquidation",
+      "msg": "Illegal liquidation"
+    },
+    {
+      "code": 6014,
+      "name": "accountNotBankrupt",
+      "msg": "Account is not bankrupt"
+    },
+    {
+      "code": 6015,
+      "name": "balanceNotBadDebt",
+      "msg": "Account balance is not bad debt"
+    },
+    {
+      "code": 6016,
+      "name": "invalidConfig",
+      "msg": "Invalid group config"
+    },
+    {
+      "code": 6017,
+      "name": "staleOracle",
+      "msg": "Stale oracle data"
+    },
+    {
+      "code": 6018,
+      "name": "bankPaused",
+      "msg": "Bank paused"
+    },
+    {
+      "code": 6019,
+      "name": "bankReduceOnly",
+      "msg": "Bank is ReduceOnly mode"
+    },
+    {
+      "code": 6020,
+      "name": "bankAccountNotFound",
+      "msg": "Bank is missing"
+    },
+    {
+      "code": 6021,
+      "name": "operationDepositOnly",
+      "msg": "Operation is deposit-only"
+    },
+    {
+      "code": 6022,
+      "name": "operationWithdrawOnly",
+      "msg": "Operation is withdraw-only"
+    },
+    {
+      "code": 6023,
+      "name": "operationBorrowOnly",
+      "msg": "Operation is borrow-only"
+    },
+    {
+      "code": 6024,
+      "name": "operationRepayOnly",
+      "msg": "Operation is repay-only"
+    },
+    {
+      "code": 6025,
+      "name": "noAssetFound",
+      "msg": "No asset found"
+    },
+    {
+      "code": 6026,
+      "name": "noLiabilityFound",
+      "msg": "No liability found"
+    },
+    {
+      "code": 6027,
+      "name": "invalidOracleSetup",
+      "msg": "Invalid oracle setup"
+    },
+    {
+      "code": 6028,
+      "name": "illegalUtilizationRatio",
+      "msg": "Invalid bank utilization ratio"
+    },
+    {
+      "code": 6029,
+      "name": "bankLiabilityCapacityExceeded",
+      "msg": "Bank borrow cap exceeded"
+    },
+    {
+      "code": 6030,
+      "name": "invalidPrice",
+      "msg": "Invalid Price"
+    },
+    {
+      "code": 6031,
+      "name": "isolatedAccountIllegalState",
+      "msg": "Account can have only one liability when account is under isolated risk"
+    },
+    {
+      "code": 6032,
+      "name": "emissionsAlreadySetup",
+      "msg": "Emissions already setup"
+    },
+    {
+      "code": 6033,
+      "name": "oracleNotSetup",
+      "msg": "Oracle is not set"
+    },
+    {
+      "code": 6034,
+      "name": "invalidSwitchboardDecimalConversion",
+      "msg": "Invalid switchboard decimal conversion"
+    },
+    {
+      "code": 6035,
+      "name": "cannotCloseOutstandingEmissions",
+      "msg": "Cannot close balance because of outstanding emissions"
+    },
+    {
+      "code": 6036,
+      "name": "emissionsUpdateError",
+      "msg": "Update emissions error"
+    },
+    {
+      "code": 6037,
+      "name": "accountDisabled",
+      "msg": "Account disabled"
+    },
+    {
+      "code": 6038,
+      "name": "accountTempActiveBalanceLimitExceeded",
+      "msg": "Account can't temporarily open 3 balances, please close a balance first"
+    },
+    {
+      "code": 6039,
+      "name": "accountInFlashloan",
+      "msg": "Illegal action during flashloan"
+    },
+    {
+      "code": 6040,
+      "name": "illegalFlashloan",
+      "msg": "Illegal flashloan"
+    },
+    {
+      "code": 6041,
+      "name": "illegalFlag",
+      "msg": "Illegal flag"
+    },
+    {
+      "code": 6042,
+      "name": "illegalBalanceState",
+      "msg": "Illegal balance state"
+    },
+    {
+      "code": 6043,
+      "name": "illegalAccountAuthorityTransfer",
+      "msg": "Illegal account authority transfer"
+    },
+    {
+      "code": 6044,
+      "name": "unauthorized",
+      "msg": "unauthorized"
+    },
+    {
+      "code": 6045,
+      "name": "illegalAction",
+      "msg": "Invalid account authority"
+    },
+    {
+      "code": 6046,
+      "name": "t22MintRequired",
+      "msg": "Token22 Banks require mint account as first remaining account"
     }
   ],
   "types": [

@@ -1,2 +1,2 @@
-export * from "./pyth";
+export * from "./pyth_legacy";
 export * from "./switchboard";

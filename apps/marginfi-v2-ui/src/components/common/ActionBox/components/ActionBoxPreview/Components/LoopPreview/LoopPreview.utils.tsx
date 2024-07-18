@@ -249,8 +249,8 @@ function getLiquidationStat(bank: ExtendedBankInfo, isLoading: boolean, simulati
     ? computeLiquidation / price >= 0.5
       ? "SUCCESS"
       : computeLiquidation / price >= 0.25
-      ? "ALERT"
-      : "DESTRUCTIVE"
+        ? "ALERT"
+        : "DESTRUCTIVE"
     : undefined;
 
   return {
@@ -308,7 +308,10 @@ function getBankTypeStat(bank: ExtendedBankInfo): PreviewStat {
 function getOracleStat(bank: ExtendedBankInfo): PreviewStat {
   let oracle = "";
   switch (bank?.info.rawBank.config.oracleSetup) {
-    case "PythEma":
+    case "PythLegacy":
+      oracle = "Pyth";
+      break;
+    case "PythPushOracle":
       oracle = "Pyth";
       break;
     case "SwitchboardV2":
