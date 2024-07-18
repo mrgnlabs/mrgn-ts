@@ -1,5 +1,5 @@
 import React from "react";
-import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
+import { MarginfiAccountWrapper, MarginfiClient, getConfig } from "@mrgnlabs/marginfi-client-v2";
 import { ActiveBankInfo, ExtendedBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { IconMinus, IconX, IconPlus } from "@tabler/icons-react";
 
@@ -14,6 +14,7 @@ import { ActionBoxDialog } from "~/components/common/ActionBox";
 import { Button } from "~/components/ui/button";
 
 import { getCloseTransaction } from "../TradingBox/tradingBox.utils";
+import { PublicKey } from "@solana/web3.js";
 
 type PositionActionButtonsProps = {
   marginfiClient: MarginfiClient | null;
@@ -36,7 +37,8 @@ export const PositionActionButtons = ({
 }: PositionActionButtonsProps) => {
   const { connection } = useConnection();
   const { wallet } = useWalletContext();
-  const [setIsRefreshingStore, fetchTradeState] = useTradeStore((state) => [
+  const [groupsCache, setIsRefreshingStore, fetchTradeState] = useTradeStore((state) => [
+    state.groupsCache,
     state.setIsRefreshingStore,
     state.fetchTradeState,
   ]);
@@ -57,8 +59,10 @@ export const PositionActionButtons = ({
   }, [bank, collateralBank]);
 
   const closeTransaction = React.useCallback(async () => {
-    if (!marginfiAccount || !collateralBank || !marginfiClient) return;
+    console.log({ marginfiAccount, collateralBank, marginfiClient });
+    if (!marginfiAccount || !collateralBank) return;
 
+    let client = marginfiClient;
     const multiStepToast = new MultiStepToastHandle("Closing position", [
       { label: `Closing borrow and supplied positions.` },
     ]);
@@ -66,6 +70,29 @@ export const PositionActionButtons = ({
     multiStepToast.start();
 
     try {
+      if (!marginfiClient) {
+        const { programId } = getConfig();
+        const group = new PublicKey(collateralBank.info.rawBank.group);
+        const bankKeys = groupsCache[group.toBase58()].map((bank) => new PublicKey(bank));
+        client = await MarginfiClient.fetch(
+          {
+            environment: "production",
+            cluster: "mainnet",
+            programId,
+            groupPk: group,
+          },
+          wallet,
+          connection,
+          {
+            preloadedBankAddresses: bankKeys,
+          }
+        );
+      }
+
+      if (!client) {
+        throw new Error("Invalid client");
+      }
+
       const txn = await getCloseTransaction({
         marginfiAccount,
         borrowBank: borrowBank,
@@ -78,7 +105,7 @@ export const PositionActionButtons = ({
         throw new Error("Something went wrong.");
       }
 
-      const txnSig = await marginfiClient.processTransaction(txn);
+      const txnSig = await client.processTransaction(txn);
       multiStepToast.setSuccessAndNext();
 
       // -------- Refresh state
@@ -98,11 +125,23 @@ export const PositionActionButtons = ({
       const msg = extractErrorString(error);
 
       multiStepToast.setFailed(msg);
-      console.log(`Error while borrowing: ${msg}`);
+      console.log(`Error while closing: ${msg}`);
       console.log(error);
       return;
     }
-  }, [marginfiAccount, collateralBank, marginfiClient, borrowBank, depositBanks, slippageBps, connection, priorityFee]);
+  }, [
+    marginfiAccount,
+    collateralBank,
+    marginfiClient,
+    wallet,
+    connection,
+    groupsCache,
+    borrowBank,
+    depositBanks,
+    slippageBps,
+    connection,
+    priorityFee,
+  ]);
 
   return (
     <div className="flex gap-3 w-full">
