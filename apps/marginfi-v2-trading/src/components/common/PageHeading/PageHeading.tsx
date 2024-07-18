@@ -18,7 +18,7 @@ export const PageHeading = ({ heading, body, links, button, size = "md" }: PageH
     <div
       className={cn(
         "text-muted-foreground text-base md:text-lg text-center px-2 pt-4 pb-10 md:pt-0 md:px-0 space-y-3",
-        size === "lg" && "space-y-5"
+        size === "lg" && "text-primary/80 space-y-5 text-lg md:text-2xl"
       )}
     >
       <h1 className={cn("text-5xl font-medium text-primary font-orbitron", size === "lg" && "text-5xl md:text-6xl")}>
