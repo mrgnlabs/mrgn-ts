@@ -988,7 +988,7 @@ function canBeLooped(activeGroup: ActiveGroup, loopingObject: LoopingObject, tra
         isEnabled: false,
         action: {
           type: ActionType.Repay,
-          bank: tradeSide === "long" ? activeGroup.usdc : activeGroup.token,
+          bank: tradeSide === "long" ? activeGroup.token : activeGroup.usdc,
         },
       });
     } else if (wrongSupplied) {
