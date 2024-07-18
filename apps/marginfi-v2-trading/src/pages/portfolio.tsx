@@ -36,8 +36,6 @@ export default function PortfolioPage() {
       return bank.isActive && !bank.position.isLending && collateralBank.isActive && collateralBank.position.isLending;
     }) as ActiveBankInfo[];
 
-    console.log(activeBanks);
-
     if (!longBanks.length && !shortBanks.length) return null;
 
     return {
