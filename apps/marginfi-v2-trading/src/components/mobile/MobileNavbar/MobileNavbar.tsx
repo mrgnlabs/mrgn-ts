@@ -1,4 +1,4 @@
-import React from "react";
+import React, { ReactNode } from "react";
 
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -8,13 +8,20 @@ import { useUiStore } from "~/store";
 import { useFirebaseAccount } from "~/hooks/useFirebaseAccount";
 import { useOs } from "~/hooks/useOs";
 import { cn } from "~/utils/themeUtils";
+import { CreatePoolDialog } from "~/components/common/Pool";
+import { Button } from "~/components/ui/button";
 
 export interface NavLinkInfo {
   href: string;
   alt: string;
   label: string;
+  trigger?: (children: ReactNode) => React.JSX.Element;
   Icon: React.ElementType;
 }
+
+const CreatePoolTrigger = (children: ReactNode) => {
+  return <CreatePoolDialog trigger={children} />;
+};
 
 export const mobileLinks: NavLinkInfo[] = [
   {
@@ -41,6 +48,7 @@ export const mobileLinks: NavLinkInfo[] = [
     alt: "create pool icon",
     label: "create pool",
     Icon: IconPlus,
+    trigger: CreatePoolTrigger,
   },
 ];
 
@@ -74,7 +82,9 @@ const MobileNavbar = () => {
         <div className="h-full w-full text-xs font-normal z-50 flex justify-around relative lg:gap-8">
           {mobileLinks.map((linkInfo, index) => {
             const isActive = activeLink === `link${index}`;
-            return (
+
+            const trigger = linkInfo.trigger;
+            const NavItem = (
               <Link
                 key={linkInfo.label}
                 onClick={() => linkInfo.label === "more" && setIsMenuModalOpen(true)}
@@ -89,6 +99,12 @@ const MobileNavbar = () => {
                 {linkInfo.label}
               </Link>
             );
+
+            if (trigger) {
+              return trigger(NavItem);
+            } else {
+              return NavItem;
+            }
           })}
         </div>
       </nav>
