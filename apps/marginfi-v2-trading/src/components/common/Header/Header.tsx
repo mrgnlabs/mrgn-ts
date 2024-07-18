@@ -34,22 +34,30 @@ export const Header = () => {
         </Link>
         <nav className="mr-auto hidden lg:block">
           <ul className="flex items-center gap-6">
-            {navItems.map((item) => (
-              <li key={item.label}>
-                <Link href={item.href}>
-                  <Button
-                    variant="ghost"
-                    className={cn(
-                      asPath === item.href &&
-                        "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground"
-                    )}
-                  >
-                    {React.cloneElement(item.icon, { size: 18 })}
-                    {item.label}
-                  </Button>
-                </Link>
-              </li>
-            ))}
+            {navItems.map((item) => {
+              let hrefSegment = `/${item.href.split("/")[1]}`;
+              let asPathSegment = `/${asPath.split("/")[1]}`;
+
+              if (asPathSegment === "/pools") {
+                asPathSegment = "/";
+              }
+              return (
+                <li key={item.label}>
+                  <Link href={item.href}>
+                    <Button
+                      variant="ghost"
+                      className={cn(
+                        asPathSegment === hrefSegment &&
+                          "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground"
+                      )}
+                    >
+                      {React.cloneElement(item.icon, { size: 18 })}
+                      {item.label}
+                    </Button>
+                  </Link>
+                </li>
+              );
+            })}
           </ul>
         </nav>
         <div className="flex items-center gap-6">
