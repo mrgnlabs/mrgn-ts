@@ -184,7 +184,7 @@ export async function simulateAction({
           const previewBanks = marginfiClient.banks;
           previewBanks.set(
             bank.address.toBase58(),
-            Bank.fromBuffer(bank.address, bankData, marginfiClient.program.idl)
+            Bank.fromBuffer(bank.address, bankData, marginfiClient.program.idl, marginfiClient.feedIdMap)
           );
           const previewClient = new MarginfiClient(
             marginfiClient.config,
@@ -194,7 +194,8 @@ export async function simulateAction({
             marginfiClient.group,
             marginfiClient.banks,
             marginfiClient.oraclePrices,
-            marginfiClient.mintDatas
+            marginfiClient.mintDatas,
+            marginfiClient.feedIdMap,
           );
           const previewMarginfiAccount = MarginfiAccountWrapper.fromAccountDataRaw(
             account.address,
