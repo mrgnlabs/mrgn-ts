@@ -18,7 +18,7 @@ import {
   PDA_BANK_INSURANCE_VAULT_SEED,
   PDA_BANK_LIQUIDITY_VAULT_AUTH_SEED,
   PDA_BANK_LIQUIDITY_VAULT_SEED,
-  PYTHNET_RECEIVER_ID,
+  PYTH_SOLANA_RECEIVER_ID,
 } from "./constants";
 import { BankVaultType } from "./types";
 import {
@@ -148,13 +148,15 @@ export async function buildFeedIdMap(bankConfigs: BankConfigRaw[], connection: C
     let feedId = bankConfig.oracleKeys[0].toBuffer();
     return {
       feedId, addresses: [
-        findPythPushOracleAddress(feedId, PYTHNET_RECEIVER_ID, PYTH_SPONSORED_SHARD_ID),
-        findPythPushOracleAddress(feedId, PYTHNET_RECEIVER_ID, MARGINFI_SPONSORED_SHARD_ID),
+        findPythPushOracleAddress(feedId, PYTH_SOLANA_RECEIVER_ID, PYTH_SPONSORED_SHARD_ID),
+        findPythPushOracleAddress(feedId, PYTH_SOLANA_RECEIVER_ID, MARGINFI_SPONSORED_SHARD_ID),
       ]
     }
   }).flat();
 
   const addressess = feedIdsWithAddresses.map((feedIdWithAddress) => feedIdWithAddress.addresses).flat();
+
+  console.log("Fetching oracle accounts", addressess.map((address) => address.toBase58()));
 
   const accountInfos = await connection.getMultipleAccountsInfo(addressess);
 

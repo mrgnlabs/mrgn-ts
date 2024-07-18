@@ -839,15 +839,18 @@ function serializeOperationalState(
 }
 
 function parseOracleSetup(oracleSetupRaw: OracleSetupRaw): OracleSetup {
-  switch (Object.keys(oracleSetupRaw)[0].toLowerCase()) {
+  const oracleKey = Object.keys(oracleSetupRaw)[0].toLowerCase()
+  switch (oracleKey) {
     case "none":
       return OracleSetup.None;
-    case "PythLegacy":
+    case "pythlegacy":
       return OracleSetup.PythLegacy;
     case "switchboardv2":
       return OracleSetup.SwitchboardV2;
+    case "pythpushoracle":
+      return OracleSetup.PythPushOracle;
     default:
-      throw new Error(`Invalid oracle setup "${oracleSetupRaw}"`);
+      throw new Error(`Invalid oracle setup "${oracleKey}"`);
   }
 }
 
