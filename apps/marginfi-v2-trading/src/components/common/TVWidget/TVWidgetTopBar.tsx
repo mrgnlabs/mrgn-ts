@@ -37,10 +37,23 @@ export const TVWidgetTopBar = ({ tokenData, activeGroup }: TVWidgetTopBarProps) 
       )}
       <dt className="border-primary/50 text-muted-foreground lg:border-l lg:ml-4 lg:pl-4">Oracle price</dt>
       <dd>{usdFormatter.format(activeGroup?.token?.info?.oraclePrice.priceRealtime.price.toNumber())}</dd>
-      {tokenData?.marketCap && (
+      {tokenData?.volume4h && (
         <>
-          <dt className="border-primary/50 text-muted-foreground lg:border-l lg:ml-4 lg:pl-4">Market cap</dt>
-          <dd>${numeralFormatter(tokenData?.marketCap)}</dd>
+          <dt className="border-primary/50 text-muted-foreground lg:border-l lg:ml-4 lg:pl-4">Vol 4hr</dt>
+          <dd className="flex items-center gap-1">
+            ${numeralFormatter(tokenData?.volume4h)}
+            {tokenData?.volumeChange4h && (
+              <span
+                className={cn(
+                  "flex items-center gap-1",
+                  tokenData?.volumeChange4h > 1 ? "text-mrgn-success" : "text-mrgn-error"
+                )}
+              >
+                {tokenData?.volumeChange4h > 1 && "+"}
+                {percentFormatter.format(tokenData?.volumeChange4h / 100)}
+              </span>
+            )}
+          </dd>
         </>
       )}
       {tokenData?.volume24h && (
