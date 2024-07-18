@@ -353,6 +353,7 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
         }
         // -------- Refresh state
         try {
+          setLoopingObject(null);
           setIsRefreshingStore(true);
           await fetchTradeState({
             connection,
