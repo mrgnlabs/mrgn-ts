@@ -11,13 +11,13 @@ type MrgnProps = {
 
 export const Meta = ({ path, activeGroup }: MrgnProps) => {
   const pageTitle = path.split("/")[1];
-  let title = path === "/" ? "the arena - the mrgn" : pageTitle + " - the arena";
+  let title = (path === "/" ? "Memecoin trading, with leverage" : pageTitle) + " - the arena";
 
   if (activeGroup) {
     if (path.includes("trade")) {
-      title = `trade ${activeGroup.token.meta.tokenSymbol} - the arena`;
+      title = `trade ${activeGroup.token.meta.tokenSymbol} with leverage - the arena`;
     } else if (path.includes("pool")) {
-      title = `${activeGroup.token.meta.tokenSymbol} pool - the arena`;
+      title = `${activeGroup.token.meta.tokenSymbol} - the arena`;
     }
   }
   return (
@@ -26,12 +26,9 @@ export const Meta = ({ path, activeGroup }: MrgnProps) => {
 
       {path === "/" && (
         <>
-          <meta name="description" content="permissionless leverage trading for memecoins, built on marginfi." />
-          <meta property="og:description" content="permissionless leverage trading for memecoins, built on marginfi." />
-          <meta
-            name="twitter:description"
-            content="permissionless leverage trading for memecoins, built on marginfi."
-          />
+          <meta name="description" content="Memecoin trading, with leverage." />
+          <meta property="og:description" content="Memecoin trading, with leverage." />
+          <meta name="twitter:description" content="Memecoin trading, with leverage." />
         </>
       )}
       <meta property="og:title" content={title} />
