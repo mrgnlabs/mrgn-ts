@@ -1,1 +1,0 @@
-{"ast":null,"code":"var isWebColor=function isWebColor(color){return color==='currentcolor'||color==='currentColor'||color==='inherit'||color.indexOf('var(')===0;};export default isWebColor;","map":null,"metadata":{},"sourceType":"module","externalDependencies":[]}

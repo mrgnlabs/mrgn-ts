@@ -1,1 +1,0 @@
-{"ast":null,"code":"import{createContext}from'react';var TextAncestorContext=createContext(false);export default TextAncestorContext;","map":null,"metadata":{},"sourceType":"module","externalDependencies":[]}
