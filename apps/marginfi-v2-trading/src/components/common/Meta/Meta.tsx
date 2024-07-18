@@ -10,7 +10,16 @@ type MrgnProps = {
 };
 
 export const Meta = ({ path, activeGroup }: MrgnProps) => {
-  const title = activeGroup ? `${activeGroup.token.meta.tokenSymbol} - the arena` : "the arena - by mrgn";
+  const pageTitle = path.split("/")[1];
+  let title = path === "/" ? "the arena - the mrgn" : pageTitle + " - the arena";
+
+  if (activeGroup) {
+    if (path.includes("trade")) {
+      title = `trade ${activeGroup.token.meta.tokenSymbol} - the arena`;
+    } else if (path.includes("pool")) {
+      title = `${activeGroup.token.meta.tokenSymbol} pool - the arena`;
+    }
+  }
   return (
     <Head>
       <title>{title}</title>
