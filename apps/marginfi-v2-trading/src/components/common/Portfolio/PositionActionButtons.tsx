@@ -1,17 +1,19 @@
+import React from "react";
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { ActiveBankInfo, ExtendedBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { IconMinus, IconX, IconPlus } from "@tabler/icons-react";
 
+import { useConnection } from "~/hooks/useConnection";
+import { useTradeStore, useUiStore } from "~/store";
+import { ActiveGroup } from "~/store/tradeStore";
+import { useWalletContext } from "~/hooks/useWalletContext";
 import { cn, extractErrorString } from "~/utils";
+import { MultiStepToastHandle } from "~/utils/toastUtils";
 
 import { ActionBoxDialog } from "~/components/common/ActionBox";
 import { Button } from "~/components/ui/button";
+
 import { getCloseTransaction } from "../TradingBox/tradingBox.utils";
-import React from "react";
-import { useConnection } from "~/hooks/useConnection";
-import { useUiStore } from "~/store";
-import { MultiStepToastHandle } from "~/utils/toastUtils";
-import { ActiveGroup } from "~/store/tradeStore";
 
 type PositionActionButtonsProps = {
   marginfiClient: MarginfiClient | null;
@@ -33,6 +35,11 @@ export const PositionActionButtons = ({
   activeGroup,
 }: PositionActionButtonsProps) => {
   const { connection } = useConnection();
+  const { wallet } = useWalletContext();
+  const [setIsRefreshingStore, fetchTradeState] = useTradeStore((state) => [
+    state.setIsRefreshingStore,
+    state.fetchTradeState,
+  ]);
   const [slippageBps, priorityFee] = useUiStore((state) => [state.slippageBps, state.priorityFee]);
 
   const depositBanks = React.useMemo(() => {
@@ -73,6 +80,19 @@ export const PositionActionButtons = ({
 
       const txnSig = await marginfiClient.processTransaction(txn);
       multiStepToast.setSuccessAndNext();
+
+      // -------- Refresh state
+      try {
+        setIsRefreshingStore(true);
+        await fetchTradeState({
+          connection,
+          wallet,
+          refresh: true,
+        });
+      } catch (error: any) {
+        console.log("Error while reloading state");
+        console.log(error);
+      }
       return txnSig;
     } catch (error: any) {
       const msg = extractErrorString(error);
