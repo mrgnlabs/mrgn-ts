@@ -11,6 +11,7 @@ let campaignWhitelist: { icon: string; size: number; publicKey: string }[];
 
 const environment = process.env.NEXT_PUBLIC_MARGINFI_ENVIRONMENT;
 const groupOverride = process.env.NEXT_PUBLIC_MARGINFI_GROUP_OVERRIDE;
+const programOverride = process.env.NEXT_PUBLIC_MARGINFI_PROGRAM_OVERRIDE;
 
 switch (environment) {
   case "production":
@@ -18,6 +19,9 @@ switch (environment) {
     lipConfig = getLipConfig(environment);
     if (groupOverride) {
       mfiConfig.groupPk = new PublicKey(groupOverride);
+    }
+    if (programOverride) {
+      mfiConfig.programId = new PublicKey(programOverride);
     }
     campaignWhitelist = [
       {
