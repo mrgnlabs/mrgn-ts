@@ -45,7 +45,14 @@ const footerLinks = [
 
 export const Footer = () => {
   return (
-    <footer className="bg-background fixed bottom-0 w-full px-4 py-2 z-30">
+    <footer className="bg-background fixed bottom-0 w-full flex items-center justify-between px-4 py-2 z-30">
+      <p className="text-sm">
+        <span className="inline-block translate-y-[1px] mr-0.5">◼️</span> built by{" "}
+        <Link href="https://www.marginfi.com" target="_blank">
+          mrgn
+        </Link>
+        .
+      </p>
       <nav>
         <ul className="flex items-center gap-3.5 justify-end">
           {footerLinks.map((link, index) => (
