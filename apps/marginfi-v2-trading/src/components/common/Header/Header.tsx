@@ -75,7 +75,7 @@ export const Header = () => {
               </div>
             )
           }
-          {connected && (
+          {connected && !isMobile && (
             <div className="flex items-center">
               <CreatePoolDialog
                 trigger={
