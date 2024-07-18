@@ -102,7 +102,7 @@ interface InterestRateConfigRaw {
   protocolIrFee: WrappedI80F48;
 }
 
-type OracleSetupRaw = { none: {} } | { pythEma: {} } | { switchboardV2: {} };
+type OracleSetupRaw = { none: {} } | { pythLegacy: {} } | { switchboardV2: {} } | { pythPushOracle: {} };
 
 export type { BankRaw, BankConfigRaw, BankConfigCompactRaw, RiskTierRaw, InterestRateConfigRaw, OracleSetupRaw };
 
@@ -665,8 +665,9 @@ interface InterestRateConfig {
 
 enum OracleSetup {
   None = "None",
-  PythEma = "PythEma",
+  PythLegacy = "PythLegacy",
   SwitchboardV2 = "SwitchboardV2",
+  PythPushOracle = "PythPushOracle",
 }
 
 // BankConfigOpt Args
@@ -710,7 +711,7 @@ interface BankConfigOptRaw {
   operationalState: { paused: {} } | { operational: {} } | { reduceOnly: {} } | null;
 
   oracle: {
-    setup: { none: {} } | { pythEma: {} } | { switchboardV2: {} };
+    setup: { none: {} } | { pythLegacy: {} } | { switchboardV2: {} } | { pythPushOracle: {} };
     keys: PublicKey[];
   } | null;
 
@@ -832,8 +833,8 @@ function parseOracleSetup(oracleSetupRaw: OracleSetupRaw): OracleSetup {
   switch (Object.keys(oracleSetupRaw)[0].toLowerCase()) {
     case "none":
       return OracleSetup.None;
-    case "pythema":
-      return OracleSetup.PythEma;
+    case "PythLegacy":
+      return OracleSetup.PythLegacy;
     case "switchboardv2":
       return OracleSetup.SwitchboardV2;
     default:
@@ -841,14 +842,16 @@ function parseOracleSetup(oracleSetupRaw: OracleSetupRaw): OracleSetup {
   }
 }
 
-function serializeOracleSetup(oracleSetup: OracleSetup): { none: {} } | { pythEma: {} } | { switchboardV2: {} } {
+function serializeOracleSetup(oracleSetup: OracleSetup): { none: {} } | { pythLegacy: {} } | { switchboardV2: {} } | { pythPushOracle: {} } {
   switch (oracleSetup) {
     case OracleSetup.None:
       return { none: {} };
-    case OracleSetup.PythEma:
-      return { pythEma: {} };
+    case OracleSetup.PythLegacy:
+      return { pythLegacy: {} };
     case OracleSetup.SwitchboardV2:
       return { switchboardV2: {} };
+    case OracleSetup.PythPushOracle:
+      return { pythPushOracle: {} };
     default:
       throw new Error(`Invalid oracle setup "${oracleSetup}"`);
   }

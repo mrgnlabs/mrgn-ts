@@ -1,6 +1,7 @@
 import { Address, AnchorProvider, BorshAccountsCoder, Program, translateAddress } from "@coral-xyz/anchor";
 import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
 import {
+  AccountInfo,
   AddressLookupTableAccount,
   Commitment,
   ConfirmOptions,
@@ -21,6 +22,7 @@ import { MarginRequirementType } from "./models/account";
 import {
   BankMetadataMap,
   chunkedGetRawMultipleAccountInfoOrdered,
+  chunkedGetRawMultipleAccountInfoOrderedOptional,
   DEFAULT_COMMITMENT,
   DEFAULT_CONFIRM_OPTS,
   InstructionsWrapper,
@@ -46,7 +48,7 @@ import {
 } from ".";
 import { MarginfiAccountWrapper } from "./models/account/wrapper";
 import { ProcessTransactionError, ProcessTransactionErrorType, parseErrorFromLogs } from "./errors";
-import { makePriorityFeeIx } from "./utils";
+import { findOracleKeys, makePriorityFeeIx } from "./utils";
 
 export type BankMap = Map<string, Bank>;
 export type OraclePriceMap = Map<string, OraclePrice>;
@@ -274,18 +276,36 @@ class MarginfiClient {
       }));
     }
 
-    const oracleKeys = bankDatasKeyed.map((b) => b.data.config.oracleKeys[0]);
+    // const oracleKeys = bankDatasKeyed.map((b) => b.data.config.oracleKeys[0]);
     const mintKeys = bankDatasKeyed.map((b) => b.data.mint);
     const emissionMintKeys = bankDatasKeyed.map((b) => b.data.emissionsMint).filter((pk) => !pk.equals(PublicKey.default)) as PublicKey[];
 
+    const oracleKeys2: PublicKey[] = [];
+    const reverseOracleMap: { [a: string]: PublicKey } = {};
+    for (let bankData of bankDatasKeyed) {
+      let oracleKeys = findOracleKeys(bankData.data.config);
+      oracleKeys2.push(...oracleKeys);
+      for (let oracleKey of oracleKeys) {
+        reverseOracleMap[oracleKey.toBase58()] = bankData.address;
+      }
+    }
+
     // Batch-fetch the group account and all the oracle accounts as per the banks retrieved above
-    const allAis = await chunkedGetRawMultipleAccountInfoOrdered(program.provider.connection,
-      [groupAddress.toBase58(), ...oracleKeys.map((pk) => pk.toBase58()), ...mintKeys.map((pk) => pk.toBase58()), ...emissionMintKeys.map((pk) => pk.toBase58())],
+    const allAis = await chunkedGetRawMultipleAccountInfoOrderedOptional(program.provider.connection,
+      [groupAddress.toBase58(), ...oracleKeys2.map((pk) => pk.toBase58()), ...mintKeys.map((pk) => pk.toBase58()), ...emissionMintKeys.map((pk) => pk.toBase58())],
     ); // NOTE: This will break if/when we start having more than 1 oracle key per bank
 
+    const bankToPriceFeedMap: { [a: string]: AccountInfo<Buffer> } = {};
+
     const groupAi = allAis.shift();
-    const priceFeedAis = allAis.splice(0, bankDatasKeyed.length);
-    const mintAis = allAis.splice(0, bankDatasKeyed.length);
+    allAis.splice(0, oracleKeys2.length).forEach((ai, index) => {
+      const bankAddress = reverseOracleMap[oracleKeys2[index].toBase58()];
+
+      if (ai) {
+        bankToPriceFeedMap[bankAddress.toBase58()] = ai;
+      }
+    });
+    const mintAis = allAis.splice(0, mintKeys.length);
     const emissionMintAis = allAis.splice(0);
 
     // Unpack raw data for group and oracles, and build the `Bank`s map
@@ -309,7 +329,7 @@ class MarginfiClient {
         let emissionTokenProgram: PublicKey | null = null;
         if (!bankData.emissionsMint.equals(PublicKey.default)) {
           const emissionMintDataRawIndex = emissionMintKeys.findIndex((pk) => pk.equals(bankData.emissionsMint));
-          emissionTokenProgram = emissionMintDataRawIndex >= 0 ? emissionMintAis[emissionMintDataRawIndex].owner : null;
+          emissionTokenProgram = emissionMintDataRawIndex >= 0 ? emissionMintAis[emissionMintDataRawIndex]!.owner : null;
         }
         // TODO: parse extension data to see if there is a fee
         return [bankAddress.toBase58(), { mint: mintAddress, tokenProgram: mintDataRaw.owner, feeBps: 0, emissionTokenProgram }];
@@ -318,7 +338,7 @@ class MarginfiClient {
 
     const priceInfos = new Map(
       bankDatasKeyed.map(({ address: bankAddress, data: bankData }, index) => {
-        const priceDataRaw = priceFeedAis[index];
+        const priceDataRaw = bankToPriceFeedMap[bankAddress.toBase58()];
         if (!priceDataRaw) throw new Error(`Failed to fetch price oracle account for bank ${bankAddress.toBase58()}`);
         const oracleSetup = parseOracleSetup(bankData.config.oracleSetup);
         return [bankAddress.toBase58(), parsePriceInfo(oracleSetup, priceDataRaw.data)];
