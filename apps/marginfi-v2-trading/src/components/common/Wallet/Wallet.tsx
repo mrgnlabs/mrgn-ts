@@ -5,6 +5,20 @@ import Image from "next/image";
 import { useRouter } from "next/router";
 
 import { CopyToClipboard } from "react-copy-to-clipboard";
+import {
+  IconCheck,
+  IconChevronDown,
+  IconCopy,
+  IconLogout,
+  IconArrowUp,
+  IconRefresh,
+  IconArrowLeft,
+  IconTrophy,
+  IconKey,
+  IconX,
+  IconArrowsExchange,
+  IconCreditCardPay,
+} from "@tabler/icons-react";
 import { shortenAddress, usdFormatter, numeralFormatter, groupedNumberFormatterDyn } from "@mrgnlabs/mrgn-common";
 
 import { useMrgnlendStore, useUiStore, useUserProfileStore } from "~/store";
@@ -30,21 +44,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { Button } from "~/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
-import {
-  IconCheck,
-  IconChevronDown,
-  IconCopy,
-  IconLogout,
-  IconArrowDown,
-  IconArrowUp,
-  IconRefresh,
-  IconArrowLeft,
-  IconTrophy,
-  IconKey,
-  IconMoonPay,
-  IconX,
-  IconArrowsExchange,
-} from "~/components/ui/icons";
 
 enum WalletState {
   DEFAULT = "default",
@@ -53,8 +52,7 @@ enum WalletState {
   SELECT = "select",
   SWAP = "swap",
   BRIDGE = "bridge",
-  POINTS = "points",
-  NOTIS = "notis",
+  BUY = "buy",
 }
 
 export const Wallet = () => {
@@ -223,7 +221,6 @@ export const Wallet = () => {
                           <Button
                             variant="ghost"
                             size="icon"
-                            className={cn(walletTokenState === WalletState.NOTIS && "text-chartreuse")}
                             onClick={() => {
                               localStorage.setItem("mrgnPrivateKeyRequested", "true");
                               requestPrivateKey();
@@ -267,239 +264,243 @@ export const Wallet = () => {
                 </div>
               </header>
 
-              {walletTokenState !== WalletState.NOTIS && (
-                <Tabs defaultValue="tokens" className="py-8">
-                  <TabsContent value="tokens">
-                    {walletTokenState === WalletState.DEFAULT && (
-                      <div className="space-y-6 pb-8 pt-4">
-                        <h2 className="text-4xl font-medium text-center">{walletData.balanceUSD}</h2>
-                        <TokenOptions
-                          walletAddress={walletData.address}
-                          setState={setWalletTokenState}
-                          web3AuthConnected={web3AuthConncected}
-                        />
-                        <div>
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <div>
-                                  <CopyToClipboard
-                                    text={walletData.address}
-                                    onCopy={() => {
-                                      setIsWalletAddressCopied(true);
-                                      setTimeout(() => {
-                                        setIsWalletAddressCopied(false);
-                                      }, 2000);
-                                    }}
-                                  >
-                                    <button className="flex w-full gap-1 font-medium items-center justify-center text-center text-xs text-muted-foreground">
-                                      {!isWalletAddressCopied ? (
-                                        <>
-                                          <IconCopy size={16} /> Copy wallet address
-                                        </>
-                                      ) : (
-                                        <>
-                                          <IconCheck size={16} />
-                                          Copied! ({shortenAddress(walletData.address)})
-                                        </>
-                                      )}
-                                    </button>
-                                  </CopyToClipboard>
-                                </div>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>{shortenAddress(walletData.address)}</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        </div>
-                        <WalletTokens
-                          className="h-[calc(100vh-285px)] pb-16"
-                          tokens={walletData.tokens}
-                          onTokenClick={(token) => {
-                            setActiveToken(token);
-                            setWalletTokenState(WalletState.TOKEN);
-                          }}
-                        />
+              <Tabs defaultValue="tokens" className="py-8">
+                <TabsContent value="tokens">
+                  {walletTokenState === WalletState.DEFAULT && (
+                    <div className="space-y-6 pb-8 pt-4">
+                      <h2 className="text-4xl font-medium text-center">{walletData.balanceUSD}</h2>
+                      <TokenOptions
+                        walletAddress={walletData.address}
+                        setState={setWalletTokenState}
+                        web3AuthConnected={web3AuthConncected}
+                      />
+                      <div>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div>
+                                <CopyToClipboard
+                                  text={walletData.address}
+                                  onCopy={() => {
+                                    setIsWalletAddressCopied(true);
+                                    setTimeout(() => {
+                                      setIsWalletAddressCopied(false);
+                                    }, 2000);
+                                  }}
+                                >
+                                  <button className="flex w-full gap-1 font-medium items-center justify-center text-center text-xs text-muted-foreground">
+                                    {!isWalletAddressCopied ? (
+                                      <>
+                                        <IconCopy size={16} /> Copy wallet address
+                                      </>
+                                    ) : (
+                                      <>
+                                        <IconCheck size={16} />
+                                        Copied! ({shortenAddress(walletData.address)})
+                                      </>
+                                    )}
+                                  </button>
+                                </CopyToClipboard>
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>{shortenAddress(walletData.address)}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                       </div>
-                    )}
+                      <WalletTokens
+                        className="h-[calc(100vh-285px)] pb-16"
+                        tokens={walletData.tokens}
+                        onTokenClick={(token) => {
+                          setActiveToken(token);
+                          setWalletTokenState(WalletState.TOKEN);
+                        }}
+                      />
+                    </div>
+                  )}
 
-                    {walletTokenState === WalletState.TOKEN && activeToken && (
-                      <div className="py-4">
-                        <div className="relative flex flex-col pt-6 gap-2">
-                          <button
-                            className="absolute top-0 left-12 flex items-center gap-1 text-sm"
-                            onClick={() => resetWalletState()}
-                          >
-                            <IconArrowLeft size={16} /> back
-                          </button>
-                          <div className="gap-2 text-center flex flex-col items-center">
-                            <Image
-                              src={getTokenImageURL(activeToken.symbol)}
-                              alt={activeToken.symbol}
-                              width={60}
-                              height={60}
-                              className="rounded-full"
-                            />
-                            <div className="space-y-0">
-                              <h2 className="font-medium text-3xl">
-                                {activeToken.value < 0.01
-                                  ? "< 0.01"
-                                  : numeralFormatter(activeToken.value) + " " + activeToken.symbol}
-                              </h2>
-                              <p className="text-muted-foreground">{usdFormatter.format(activeToken.valueUSD)}</p>
-                            </div>
-                          </div>
-                          <div className="mt-6">
-                            <TokenOptions
-                              walletAddress={walletData.address}
-                              setState={setWalletTokenState}
-                              setToken={() => {
-                                setActiveToken(activeToken);
-                              }}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {walletTokenState === WalletState.SEND && (
-                      <div className="py-4">
-                        <div className="relative flex flex-col pt-6 gap-2">
-                          <button
-                            className="absolute top-0 left-12 flex items-center gap-1 text-sm"
-                            onClick={() => resetWalletState()}
-                          >
-                            <IconArrowLeft size={16} /> back
-                          </button>
-                          {activeToken && (
-                            <WalletSend
-                              activeToken={activeToken}
-                              onSendMore={() => {
-                                setWalletTokenState(WalletState.SEND);
-                              }}
-                              onBack={() => {
-                                setWalletTokenState(WalletState.DEFAULT);
-                                setActiveToken(null);
-                              }}
-                              onRetry={() => {
-                                setWalletTokenState(WalletState.SEND);
-                              }}
-                              onCancel={() => {
-                                setWalletTokenState(WalletState.TOKEN);
-                              }}
-                            />
-                          )}
-                        </div>
-                      </div>
-                    )}
-                    {walletTokenState === WalletState.SELECT && (
-                      <div className="relative pt-12">
+                  {walletTokenState === WalletState.TOKEN && activeToken && (
+                    <div className="py-4">
+                      <div className="relative flex flex-col pt-6 gap-2">
                         <button
-                          className="absolute top-4 left-2 flex items-center gap-1 text-sm"
+                          className="absolute top-0 left-12 flex items-center gap-1 text-sm"
                           onClick={() => resetWalletState()}
                         >
                           <IconArrowLeft size={16} /> back
                         </button>
-                        <WalletTokens
-                          className="h-[calc(100vh-285px)]"
-                          tokens={walletData.tokens}
-                          onTokenClick={(token) => {
-                            setActiveToken(token);
-                            setWalletTokenState(WalletState.SEND);
+                        <div className="gap-2 text-center flex flex-col items-center">
+                          <Image
+                            src={getTokenImageURL(activeToken.symbol)}
+                            alt={activeToken.symbol}
+                            width={60}
+                            height={60}
+                            className="rounded-full"
+                          />
+                          <div className="space-y-0">
+                            <h2 className="font-medium text-3xl">
+                              {activeToken.value < 0.01
+                                ? "< 0.01"
+                                : numeralFormatter(activeToken.value) + " " + activeToken.symbol}
+                            </h2>
+                            <p className="text-muted-foreground">{usdFormatter.format(activeToken.valueUSD)}</p>
+                          </div>
+                        </div>
+                        <div className="mt-6">
+                          <TokenOptions
+                            walletAddress={walletData.address}
+                            setState={setWalletTokenState}
+                            setToken={() => {
+                              setActiveToken(activeToken);
+                            }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {walletTokenState === WalletState.SEND && (
+                    <div className="py-4">
+                      <div className="relative flex flex-col pt-6 gap-2">
+                        <button
+                          className="absolute top-0 left-12 flex items-center gap-1 text-sm"
+                          onClick={() => resetWalletState()}
+                        >
+                          <IconArrowLeft size={16} /> back
+                        </button>
+                        {activeToken && (
+                          <WalletSend
+                            activeToken={activeToken}
+                            onSendMore={() => {
+                              setWalletTokenState(WalletState.SEND);
+                            }}
+                            onBack={() => {
+                              setWalletTokenState(WalletState.DEFAULT);
+                              setActiveToken(null);
+                            }}
+                            onRetry={() => {
+                              setWalletTokenState(WalletState.SEND);
+                            }}
+                            onCancel={() => {
+                              setWalletTokenState(WalletState.TOKEN);
+                            }}
+                          />
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  {walletTokenState === WalletState.SELECT && (
+                    <div className="relative pt-12">
+                      <button
+                        className="absolute top-4 left-2 flex items-center gap-1 text-sm"
+                        onClick={() => resetWalletState()}
+                      >
+                        <IconArrowLeft size={16} /> back
+                      </button>
+                      <WalletTokens
+                        className="h-[calc(100vh-285px)]"
+                        tokens={walletData.tokens}
+                        onTokenClick={(token) => {
+                          setActiveToken(token);
+                          setWalletTokenState(WalletState.SEND);
+                        }}
+                      />
+                    </div>
+                  )}
+                  {walletTokenState === WalletState.SWAP && (
+                    <TabWrapper resetWalletState={resetWalletState}>
+                      <div className="relative py-4">
+                        <div className="max-w-[590px] mx-auto px-3 transition-opacity" id="integrated-terminal"></div>
+                        <Swap
+                          onLoad={() => {
+                            setIsSwapLoaded(true);
                           }}
+                          initialInputMint={activeBank?.info.state.mint}
                         />
+                        {isSwapLoaded && (
+                          <div className="px-5">
+                            <Button
+                              variant="destructive"
+                              size="lg"
+                              className="w-full"
+                              onClick={() => resetWalletState()}
+                            >
+                              Cancel
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    </TabWrapper>
+                  )}
+                  {walletTokenState === WalletState.BRIDGE && (
+                    <TabWrapper resetWalletState={resetWalletState}>
+                      <div className="relative py-4">
+                        <Debridge />
+                      </div>
+                    </TabWrapper>
+                  )}
+                  {walletTokenState === WalletState.BUY && (
+                    <TabWrapper resetWalletState={resetWalletState}>
+                      <div className="px-4">
+                        <WalletOnramp showAmountBackButton={false} />
+                      </div>
+                    </TabWrapper>
+                  )}
+                </TabsContent>
+                <TabsContent value="points">
+                  <div className="flex flex-col items-center pt-8">
+                    <p className="font-medium text-4xl flex flex-col justify-center items-center text-center">
+                      <span className="text-sm font-normal text-chartreuse text-center">Your points</span>
+                      {groupedNumberFormatterDyn.format(Math.round(userPointsData.totalPoints))}
+                    </p>
+                    {userPointsData.userRank && (
+                      <div className="flex flex-col items-center justify-center text-xl p-4 bg-background-gray-dark/40 rounded-lg font-medium leading-tight">
+                        <span className="text-sm font-normal text-chartreuse">Your rank</span> #
+                        {groupedNumberFormatterDyn.format(userPointsData.userRank)}
                       </div>
                     )}
-                    {walletTokenState === WalletState.SWAP && (
-                      <TabWrapper resetWalletState={resetWalletState}>
-                        <div className="relative py-4">
-                          <div className="max-w-[590px] mx-auto px-3 transition-opacity" id="integrated-terminal"></div>
-                          <Swap
-                            onLoad={() => {
-                              setIsSwapLoaded(true);
-                            }}
-                            initialInputMint={activeBank?.info.state.mint}
-                          />
-                          {isSwapLoaded && (
-                            <div className="px-5">
-                              <Button
-                                variant="destructive"
-                                size="lg"
-                                className="w-full"
-                                onClick={() => resetWalletState()}
-                              >
-                                Cancel
-                              </Button>
-                            </div>
-                          )}
-                        </div>
-                      </TabWrapper>
-                    )}
-                    {walletTokenState === WalletState.BRIDGE && (
-                      <TabWrapper resetWalletState={resetWalletState}>
-                        <div className="relative py-4">
-                          <Debridge />
-                        </div>
-                      </TabWrapper>
-                    )}
-                  </TabsContent>
-                  <TabsContent value="points">
-                    <div className="flex flex-col items-center pt-8">
-                      <p className="font-medium text-4xl flex flex-col justify-center items-center text-center">
-                        <span className="text-sm font-normal text-chartreuse text-center">Your points</span>
-                        {groupedNumberFormatterDyn.format(Math.round(userPointsData.totalPoints))}
-                      </p>
-                      {userPointsData.userRank && (
-                        <div className="flex flex-col items-center justify-center text-xl p-4 bg-background-gray-dark/40 rounded-lg font-medium leading-tight">
-                          <span className="text-sm font-normal text-chartreuse">Your rank</span> #
-                          {groupedNumberFormatterDyn.format(userPointsData.userRank)}
-                        </div>
-                      )}
-                      <ul className="space-y-2 mt-4">
-                        <li>
-                          <Button
-                            variant="outline"
-                            className="w-full justify-start"
-                            onClick={() => {
-                              setIsWalletOpen(false);
-                              router.push("/points");
-                            }}
-                          >
-                            <IconTrophy size={16} /> Points Leaderboard
+                    <ul className="space-y-2 mt-4">
+                      <li>
+                        <Button
+                          variant="outline"
+                          className="w-full justify-start"
+                          onClick={() => {
+                            setIsWalletOpen(false);
+                            router.push("/points");
+                          }}
+                        >
+                          <IconTrophy size={16} /> Points Leaderboard
+                        </Button>
+                      </li>
+                      <li>
+                        <CopyToClipboard
+                          text={`https://www.mfi.gg/refer/${userPointsData.referralLink}`}
+                          onCopy={() => {
+                            if (userPointsData.referralLink && userPointsData.referralLink.length > 0) {
+                              setIsReferralCopied(true);
+                              setTimeout(() => setIsReferralCopied(false), 2000);
+                            }
+                          }}
+                        >
+                          <Button variant="outline" className="w-full justify-start">
+                            {isReferralCopied ? (
+                              <div className="text-center w-full">Link copied!</div>
+                            ) : (
+                              <>
+                                <IconCopy size={16} /> Copy referral code
+                              </>
+                            )}
                           </Button>
-                        </li>
-                        <li>
-                          <CopyToClipboard
-                            text={`https://www.mfi.gg/refer/${userPointsData.referralLink}`}
-                            onCopy={() => {
-                              if (userPointsData.referralLink && userPointsData.referralLink.length > 0) {
-                                setIsReferralCopied(true);
-                                setTimeout(() => setIsReferralCopied(false), 2000);
-                              }
-                            }}
-                          >
-                            <Button variant="outline" className="w-full justify-start">
-                              {isReferralCopied ? (
-                                <div className="text-center w-full">Link copied!</div>
-                              ) : (
-                                <>
-                                  <IconCopy size={16} /> Copy referral code
-                                </>
-                              )}
-                            </Button>
-                          </CopyToClipboard>
-                        </li>
-                      </ul>
-                    </div>
-                  </TabsContent>
-                </Tabs>
-              )}
+                        </CopyToClipboard>
+                      </li>
+                    </ul>
+                  </div>
+                </TabsContent>
+              </Tabs>
             </div>
           ) : (
             <p>Loading...</p>
           )}
-          <WalletOnramp />
         </SheetContent>
       </Sheet>
 
@@ -581,6 +582,17 @@ const TokenOptions = ({ walletAddress, setState, setToken, web3AuthConnected = f
         </div>
         Bridge
       </button>
+      {/* <button
+        className="flex flex-col gap-1 text-sm font-medium items-center"
+        onClick={() => {
+          setState(WalletState.BUY);
+        }}
+      >
+        <div className="rounded-full flex items-center justify-center h-12 w-12 bg-background border transition-colors hover:bg-accent">
+          <IconCreditCardPay size={20} />
+        </div>
+        Buy
+      </button> */}
     </div>
   );
 };

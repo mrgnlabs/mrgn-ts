@@ -1,108 +1,139 @@
 import React from "react";
-
-import { loadMoonPay } from "@moonpay/moonpay-js";
-
-import { useUiStore } from "~/store";
+import { Asset, AuthenticationStrategy, Environment, MesoEvent, Network, inlineTransfer } from "@meso-network/meso-js";
 
 import { useWalletContext } from "~/hooks/useWalletContext";
-
+import { IconArrowLeft } from "~/components/ui/icons";
 import { Button } from "~/components/ui/button";
-import { IconX } from "~/components/ui/icons";
+import { Label } from "~/components/ui/label";
+import { Input } from "~/components/ui/input";
+import { cn } from "~/utils";
 
-export const WalletOnramp = () => {
-  const [moonPay, setMoonPay] = React.useState<any>(null);
+type WalletOnrampProps = {
+  showAmountBackButton?: boolean;
+};
+
+export const WalletOnramp = ({ showAmountBackButton = true }: WalletOnrampProps) => {
+  const divRef = React.useRef<HTMLDivElement>(null);
+  const [amountRaw, setAmountRaw] = React.useState<string>("100.00");
+  const [showMeso, setIsShowMeso] = React.useState<boolean>(false);
+
   const { wallet } = useWalletContext();
-  const [isOnrampActive, setIsOnrampActive] = useUiStore((state) => [
-    state.isWalletOnrampActive,
-    state.setIsOnrampActive,
-  ]);
 
-  // initialize moonPay sdk on mount
-  const initMoonpay = React.useCallback(async () => {
-    try {
-      const moonPayConstructor = await loadMoonPay();
+  const numberFormater = React.useMemo(() => new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 }), []);
 
-      if (!moonPayConstructor) return;
+  const amount = React.useMemo(() => {
+    const strippedAmount = amountRaw.replace(/,/g, "");
+    return isNaN(Number.parseFloat(strippedAmount)) ? 0 : Number.parseFloat(strippedAmount);
+  }, [amountRaw]);
 
-      const moonPaySdk = moonPayConstructor({
-        flow: "buy",
-        environment: "production",
-        variant: "embedded",
-        containerNodeSelector: "#moonpay",
-        params: {
-          apiKey: process.env.NEXT_PUBLIC_MOONPAY_API_KEY!,
-          theme: "dark",
-          walletAddresses: JSON.stringify({
-            sol: wallet?.publicKey?.toString(),
-            usdc_sol: wallet?.publicKey?.toString(),
-          }),
-          baseCurrencyCode: "usd",
-          baseCurrencyAmount: "30",
-          colorCode: "#7d01ff",
-        },
-        debug: true,
-      });
+  const error = React.useMemo(() => {
+    if (amount > 0 && amount < 25) return "Please enter an amount above 25.";
+  }, [amount]);
 
-      if (!moonPaySdk) return;
-
-      // moonPay requires a signature to be generated on the server
-      const urlForSignature = moonPaySdk.generateUrlForSigning();
-      const response = await fetch("/api/moonpay", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ urlForSignature }),
-      });
-      const data = await response.json();
-
-      moonPaySdk.updateSignature(data.signature);
-      setMoonPay(moonPaySdk);
-
-      // show if onramp already set to active (e.g from wallet funding popup)
-      if (isOnrampActive) {
-        moonPaySdk.show();
-      }
-    } catch (e) {
-      console.log("initMoonpay error", e);
+  const removeMeso = React.useCallback(() => {
+    if (divRef.current && divRef.current.innerHTML) {
+      divRef.current.innerHTML = "";
+      setIsShowMeso(false);
     }
-  }, [isOnrampActive, wallet?.publicKey]);
+  }, [divRef, setIsShowMeso]);
 
-  React.useEffect(() => {
-    if (!window) return;
-    initMoonpay();
-  }, [initMoonpay]);
+  const initializeMeso = React.useCallback(() => {
+    if (!divRef.current) return;
+    const transfer = inlineTransfer({
+      container: "#outlet",
+      partnerId: "marginfi",
+      environment: Environment.SANDBOX,
+      sourceAmount: amount.toString() as any,
+      sourceAsset: "USD",
+      authenticationStrategy: AuthenticationStrategy.BYPASS_WALLET_VERIFICATION,
+      destinationAsset: Asset.SOL,
+      network: Network.SOLANA_MAINNET,
+      walletAddress: wallet.publicKey.toBase58(),
+
+      // A callback to handle events throughout the integration lifecycle
+      onEvent({ kind, payload }: MesoEvent) {},
+
+      // A callback to handle having the user verify their wallet ownership by signing a message
+      async onSignMessageRequest(message: string) {
+        return "";
+      },
+    });
+    setIsShowMeso(true);
+  }, [divRef, wallet, amount, setIsShowMeso]);
+
+  const amountOptions = [
+    {
+      label: "$25",
+      value: 25,
+    },
+    {
+      label: "$50",
+      value: 50,
+    },
+    {
+      label: "$100",
+      value: 100,
+    },
+  ];
 
   return (
-    <div
-      style={{
-        position: "absolute",
-        top: 0,
-        left: 0,
-        width: "100%",
-        height: "100%",
-        background: "#1c1c1e",
-        zIndex: 60,
-        opacity: isOnrampActive ? 1 : 0,
-        pointerEvents: isOnrampActive ? "auto" : "none",
-      }}
-    >
-      <button
-        onClick={() => {
-          moonPay.close();
-          setIsOnrampActive(false);
-        }}
-        className="h-12 items-center px-1.5 flex gap-1 w-full font-medium text-[#98989E] text-sm justify-center text-center"
-      >
-        <IconX size={18} /> back to wallet
-      </button>
-      <div
-        id="moonpay"
-        style={{
-          width: "100%",
-          height: "calc(100% - 48px)",
-        }}
-      />
+    <div className="relative p-2 space-y-2">
+      {showMeso && showAmountBackButton && (
+        <div
+          className="absolute z-20 top-3 left-4 opacity-70 text-sm cursor-pointer flex items-center gap-2"
+          onClick={() => removeMeso()}
+        >
+          <IconArrowLeft width={18} height={18} /> enter amount
+        </div>
+      )}
+      {!showMeso && (
+        <div className={cn("space-y-8", !showAmountBackButton && "pt-4")}>
+          <div className="space-y-2 text-muted-foreground">
+            <p>How much SOL would you like to purchase?</p>
+            <div className="flex flex-col w-full gap-4">
+              <ul className="grid grid-cols-3 gap-3 w-full">
+                {amountOptions.map((option, idx) => (
+                  <li key={idx}>
+                    <Button
+                      className={cn(
+                        "gap-0.5 h-auto py-4 w-full border bg-background transition-colors hover:bg-accent",
+                        amount === option.value && "bg-accent"
+                      )}
+                      variant="secondary"
+                      onClick={() => {
+                        setAmountRaw(numberFormater.format(option.value));
+                      }}
+                    >
+                      {option.label}
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+              <div className="space-y-1">
+                <Label className="text-sm text-muted-foreground">Custom amount</Label>
+                <Input
+                  type="text"
+                  inputMode="decimal"
+                  value={amount}
+                  onChange={(e) => setAmountRaw(e.target.value)}
+                  placeholder="Custom amount"
+                  className={cn(
+                    "h-auto py-3 px-4 w-full focus-visible:ring-0",
+                    !amountOptions.find((value) => value.value === amount) && "bg-accent"
+                  )}
+                />
+              </div>
+            </div>
+          </div>
+          {error && <div className="text-destructive-foreground text-sm">{error}</div>}
+          <Button disabled={!!error || amount <= 0} onClick={() => initializeMeso()} className="w-full mt-8">
+            Buy crypto
+          </Button>
+        </div>
+      )}
+      <div className={cn(showMeso ? "block" : "hidden", "relative", !showAmountBackButton && "-translate-y-4")}>
+        <div id="outlet" className="h-[350px]" ref={divRef}></div>
+      </div>
     </div>
   );
 };
