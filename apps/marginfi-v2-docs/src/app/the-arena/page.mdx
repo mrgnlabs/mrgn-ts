@@ -1,0 +1,85 @@
+import { ImageComponent } from '~/components/ImageComponent'
+
+import CreateBankExample from '~/images/docs/create-bank-example.png'
+
+export const metadata = {
+  title: 'The Arena User Guide',
+  description: 'A User Guide to Making Leveraged Trades with Longtail Assets',
+}
+
+# The Arena: A User Guide to Degeneracy
+
+For the first time on Solana, take leveraged long and short positions on longtail assets (e.g., memecoins, or assets with little liquidity) and permissionlessly create your own isolated banks for any token, using any collateral. {{ className: 'lead' }}
+
+---
+
+## Permissionless Banks {{ tag: '', label: '' }}
+
+Historically, the creation of isolated banks has been controlled by the marginfi team. marginfi has utilized isolated banks to allow users to borrow and lend certain assets without their liquidity and borrow-lend activity affecting the main liquidity pool - hance the term "isolated."
+
+However, with The Arena, the marginfi team is opening up the ability to create isolated banks to everyone. Now, **you can permissionlessly create isolated banks for any token you want, using any collateral you want** directly through <Button href="https://www.thearena.trade/" variant="text"><>The Arena app</></Button>, the marginfi CLI, or the marginfi TS SDK.  Because permissionless banks are isolated banks, **the trading activity that occurs within any given permissionless bank does not impact marginfi's main liquidity pool**. 
+
+<Note>
+  This article is not an advertisement of any token, nor a soliciation to purchase or conduct financial activity with any token. This article is purely for educational purposes.
+</Note>
+
+Are you a fan of Iggy Azalea? Permissionlessly create a bank for $MOTHER and open a max-leveraged long position. When you decide you're tired of her music, open a short position. Share the bank you created with others; invite them to make trades with you. You're in the driver's seat.
+
+**Every permissionless bank will belong to its own group**, and the creator of the bank will be assigned as admin over this group. The group will be created along with the permissionless bank.
+
+<ImageComponent
+  src={CreateBankExample}
+  alt="photo"
+/>
+
+<Note>
+    User funds cannot be withdrawn from a bank by the group admin. All banks listed on The Arena are vetted by the marginfi team.
+</Note>
+
+You can think of a group as a collection of banks and accounts that are governed together. The admin of the group has the authority to perform various administrative actions such as enabling or disabling flash loans, managing account transfer authority, and configuring bank parameters. This structure ensures that **each permissionless bank operates within its own isolated environment, unassociated with the main marginfi liquidity pool**.
+
+---
+
+## Leveraged Trading for Longtail Assets {{ tag: '', label: '' }}
+
+Longtail assets, which are less popular and less traded, often suffer from low liquidity. This makes it difficult to execute large trades without significantly impacting the asset's price. Low liquidity also increases the risk of slippage, where the trade executes at a different price than expected.
+
+By using the marginfi Liquidity Layer, The Arena opens up new opportunities for traders to explore and profit from a wider range of assets without the traditional limitations and risks associated with low liquidity.
+
+Leveraged trades are made possible with marginfi flashloans. marginfi-v2 flashloans bundle multiple borrow and lend instructions within a single transaction, circumventing the routine health-check that executes when you withdraw liquidity from marginfi. The result: **flashloans allow you to borrow an outsized position relative to your available collateral**. 
+
+Per usual, if a given position falls below the liquidation threshold, the position will be at risk of liquidation. To learn more about marginfi's liquidation 
+
+<Note>
+    To learn more about marginfi-v2 flashloans, reference the flashloan endpoints in the <Button href="http://docs.marginfi.com/mfi-v2#instructions" variant="text"><>marginfi-v2 instructions</></Button> documentation.
+</Note>
+
+**Taking a long or short position involves borrowing and lending different assets depending on the desired trade direction**. For example, if you want to open a long position for Token A, your goal is to profit from an increase in Token A's price, relative to Token B. To do this, you would borrow Token B and use it to purchase more of Token A. 
+
+Conversely, if you believe the price of Token A will decrease, you can profit from this negative price movement by borrowing Token A and selling it for Token B. When Token A's price drops, you can buy it back at a lower price to repay the borrowed amount, keeping the difference as profit.
+
+---
+
+## Integrating with Our Infrastructure {{ tag: '', label: '' }}
+
+We built The Arena on top of our flashloan and isolated bank infrastructure to showcase the innovative use cases made possible by marginfi's Liquidity Layer. The infrastructure for accessing leverage and creating permissionless banks is double-audited and ready-for-production. **Anyone can access and build on marginfi's leveraging and permissionless bank infrastructure,** and many teams already are. 
+
+The Arena application is <Button href="https://github.com/mrgnlabs/mrgn-ts/tree/feature/arrakeen/apps/marginfi-v2-trading" variant="text"><>fully open-sourced</></Button>. If you're a developer, feel free to <Button href="https://github.com/mrgnlabs/mrgn-ts/blob/91834b3210e2748a4a036386a8d0afb3096cad66/apps/marginfi-v2-trading/src/components/common/TradingBox/tradingBox.utils.tsx" variant="text"><>review the code for making leveraged trades</></Button> and implement marginfi's leveraging infrastructure in your own apps today!
+
+* **Memecoin Prediction Markets:** Create a platform where users can bet on the success of memes and profit on the outcome of events.
+* **Leveraged Swap Interfaces:** Create a swap interface that allows users to make leveraged trades directly within the application.
+* **Create a Borrow-and-Lending Market:** Create a borrow-and-lending market for a specific asset class using permissionless banks.
+
+These are just a few examples of what you can build using the marginfi Liquidity Layer and our new trading infrastructure. The possibilities are endless.
+
+<Note>
+    Click <Button href="http://docs.marginfi.com/rust-sdk#examples" variant="text"><>this link</></Button> to reference examples of how to create permissionless banks using the marginfi CLI. Click <Button href="http://docs.marginfi.com/ts-sdk#examples" variant="text"><>this link</></Button> to view examples using the TS SDK.
+</Note>
+
+marginfi is enthusiastic about opening our infrastructure to all teams looking to push the limits of Solana DeFi, and **we are opening a grants program to help you build on our Liquidity Layer**. For more information on this grants program and for integration assistance, **please get in touch with @nathanzebedee on Telegram**.
+
+---
+
+## Enter The Arena {{ tag: '', label: '' }}
+
+This guide has shown you how to use The Arena’s features to take advantage of marginfi's Liquidity Layer and flashloan capabilities, opening up new trading opportunities with longtail assets. Stay in touch with marginfi’s latest news by following us on <Button href="https://x.com/marginfi" variant="text"><>X</></Button>, and get in touch with the team via our <Button href="https://discord.com/invite/mrgn" variant="text"><>Discord</></Button>. See you in The Arena!
