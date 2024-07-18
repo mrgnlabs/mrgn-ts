@@ -15,7 +15,7 @@ import { Bank } from "../bank";
 import { PriceBias, OraclePrice } from "../price";
 import instructions from "../../instructions";
 import { AccountType, MarginfiProgram } from "../../types";
-import { makeWrapSolIxs, makeUnwrapSolIx } from "../../utils";
+import { makeWrapSolIxs, makeUnwrapSolIx, PythPushFeedIdMap, findOracleKey } from "../../utils";
 import { Balance, BalanceRaw } from "../balance";
 import {
   BankMap,
@@ -591,7 +591,7 @@ class MarginfiAccount {
   getHealthCheckAccounts(
     banks: Map<string, Bank>,
     mandatoryBanks: Bank[] = [],
-    excludedBanks: Bank[] = []
+    excludedBanks: Bank[] = [],
   ): AccountMeta[] {
     const mandatoryBanksSet = new Set(mandatoryBanks.map((b) => b.address.toBase58()));
     const excludedBanksSet = new Set(excludedBanks.map((b) => b.address.toBase58()));
@@ -934,7 +934,7 @@ class MarginfiAccount {
     mintDatas: Map<string, MintData>,
     assetBankAddress: PublicKey,
     assetQuantityUi: Amount,
-    liabilityBankAddress: PublicKey
+    liabilityBankAddress: PublicKey,
   ): Promise<InstructionsWrapper> {
     const assetBank = banks.get(assetBankAddress.toBase58());
     if (!assetBank) throw Error(`Asset bank ${assetBankAddress.toBase58()} not found`);
@@ -952,12 +952,12 @@ class MarginfiAccount {
     remainingAccounts.push(
       ...[
         {
-          pubkey: assetBank.config.oracleKeys[0],
+          pubkey: assetBank.oracleKey,
           isSigner: false,
           isWritable: false,
         },
         {
-          pubkey: liabilityBank.config.oracleKeys[0],
+          pubkey: liabilityBank.oracleKey,
           isSigner: false,
           isWritable: false,
         },
@@ -1166,7 +1166,7 @@ export function makeHealthAccountMetas(banks: Map<string, Bank>, banksToInclude:
         isWritable: false,
       },
       {
-        pubkey: bank.config.oracleKeys[0],
+        pubkey: bank.oracleKey,
         isSigner: false,
         isWritable: false,
       },

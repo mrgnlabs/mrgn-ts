@@ -15,6 +15,7 @@ import { PriceBias, OraclePrice, getPriceWithConfidence } from "./price";
 import { BorshCoder } from "@coral-xyz/anchor";
 import { AccountType } from "../types";
 import { MARGINFI_IDL, MarginfiIdlType } from "../idl";
+import { findOracleKey, PythPushFeedIdMap } from "../utils";
 
 const SECONDS_PER_DAY = 24 * 60 * 60;
 const SECONDS_PER_YEAR = SECONDS_PER_DAY * 365.25;
@@ -148,6 +149,8 @@ class Bank {
   public emissionsMint: PublicKey;
   public emissionsRemaining: BigNumber;
 
+  public oracleKey: PublicKey;
+
   constructor(
     address: PublicKey,
     mint: PublicKey,
@@ -175,6 +178,7 @@ class Bank {
     emissionsRate: number,
     emissionsMint: PublicKey,
     emissionsRemaining: BigNumber,
+    oracleKey: PublicKey,
     tokenSymbol?: string
   ) {
     this.address = address;
@@ -213,6 +217,8 @@ class Bank {
     this.emissionsRate = emissionsRate;
     this.emissionsMint = emissionsMint;
     this.emissionsRemaining = emissionsRemaining;
+
+    this.oracleKey = oracleKey;
   }
 
   static decodeBankRaw(encoded: Buffer, idl: MarginfiIdlType): BankRaw {
@@ -220,12 +226,12 @@ class Bank {
     return coder.accounts.decode(AccountType.Bank, encoded);
   }
 
-  static fromBuffer(address: PublicKey, buffer: Buffer, idl: MarginfiIdlType): Bank {
+  static fromBuffer(address: PublicKey, buffer: Buffer, idl: MarginfiIdlType, feedIdMap: PythPushFeedIdMap): Bank {
     const accountParsed = Bank.decodeBankRaw(buffer, idl);
-    return Bank.fromAccountParsed(address, accountParsed);
+    return Bank.fromAccountParsed(address, accountParsed, feedIdMap);
   }
 
-  static fromAccountParsed(address: PublicKey, accountParsed: BankRaw, bankMetadata?: BankMetadata): Bank {
+  static fromAccountParsed(address: PublicKey, accountParsed: BankRaw, feedIdMap: PythPushFeedIdMap, bankMetadata?: BankMetadata): Bank {
     const flags = accountParsed.flags.toNumber();
 
     const mint = accountParsed.mint;
@@ -266,6 +272,8 @@ class Bank {
       ? wrappedI80F48toBigNumber(accountParsed.emissionsRemaining)
       : new BigNumber(0);
 
+    const oracleKey = findOracleKey(config, feedIdMap);
+
     return new Bank(
       address,
       mint,
@@ -293,6 +301,7 @@ class Bank {
       emissionsRate,
       emissionsMint,
       emissionsRemaining,
+      oracleKey,
       bankMetadata?.tokenSymbol
     );
   }
