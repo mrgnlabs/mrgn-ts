@@ -50,32 +50,3 @@ function capConfidenceInterval(price: BigNumber, confidence: BigNumber, maxConfi
 
     return BigNumber.min(confidence, maxConfidenceInterval);
 }
-
-(async () => {
-    let connection = new Connection("https://api.mainnet-beta.solana.com");
-    let oracleAddress = new PublicKey("7UVimffxr9ow1uXYxsr4LHAcV58mLzhmwaeKvJ1pjLiE");
-
-    let accountInfo = await connection.getAccountInfo(oracleAddress);
-
-    let dataWithoutHeader = accountInfo!.data.slice(8);
-
-    let data = parsePriceInfo(dataWithoutHeader);
-
-    console.log(data);
-
-    const exponent = new BigNumber(10 ** data.priceMessage.exponent);
-
-    const priceRealTime = new BigNumber(Number(data.priceMessage.price)).times(exponent);
-    const confidenceRealTime = new BigNumber(Number(data.priceMessage.conf)).times(exponent);
-    const cappedConfidenceRealTime = capConfidenceInterval(priceRealTime, confidenceRealTime, PYTH_PRICE_CONF_INTERVALS);
-    const lowestPriceRealTime = priceRealTime.minus(cappedConfidenceRealTime);
-    const highestPriceRealTime = priceRealTime.plus(cappedConfidenceRealTime);
-
-    const priceTimeWeighted = new BigNumber(Number(data.priceMessage.emaPrice)).times(exponent);
-    const confidenceTimeWeighted = new BigNumber(Number(data.priceMessage.emaConf)).times(exponent);
-    const cappedConfidenceWeighted = capConfidenceInterval(priceTimeWeighted, confidenceTimeWeighted, PYTH_PRICE_CONF_INTERVALS);
-    const lowestPriceWeighted = priceTimeWeighted.minus(cappedConfidenceWeighted);
-    const highestPriceWeighted = priceTimeWeighted.plus(cappedConfidenceWeighted);
-
-    console.log("%d +- %d (%d) [%d - %d], ema: %d +- %d (%d) [%d - %d]", priceRealTime.toNumber(), confidenceRealTime.toNumber(), cappedConfidenceRealTime.toNumber(), lowestPriceRealTime.toNumber(), highestPriceRealTime.toNumber(), priceTimeWeighted.toNumber(), confidenceTimeWeighted.toNumber(), cappedConfidenceWeighted.toNumber(), lowestPriceWeighted.toNumber(), highestPriceWeighted.toNumber());
-})()
