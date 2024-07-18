@@ -60,25 +60,15 @@ export default function HomePage() {
 
   return (
     <>
-      <div className="w-full max-w-8xl mx-auto px-4 pb-16 pt-8 md:pt-12">
+      <div className="w-full max-w-8xl mx-auto px-4 pb-16 pt-8 md:pt-14">
         {!initialized && <Loader label="Loading mrgntrade..." className="mt-8" />}
         {initialized && (
           <>
             <div className="w-full max-w-4xl mx-auto">
               <PageHeading
                 size="lg"
-                heading={
-                  <div className="flex flex-col gap-2 md:inline">
-                    the arena <span className="text-lg">by mrgn</span>
-                  </div>
-                }
-                body={
-                  <p>
-                    Permissionless leverage trading, built on marginfi.
-                    <br className="hidden md:block" />
-                    Search for tokens or create a new pool.
-                  </p>
-                }
+                heading={<div className="flex flex-col gap-2 md:inline">Welcome to the arena</div>}
+                body={<p>Memecoin trading, with leverage.</p>}
               />
               <div className="flex items-center gap-4">
                 <PoolSearch showNoResults={false} />
