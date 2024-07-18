@@ -26,4 +26,4 @@ export const DISABLED_FLAG: number = 1 << 0;
 export const FLASHLOAN_ENABLED_FLAG: number = 1 << 2;
 export const TRANSFER_ACCOUNT_AUTHORITY_FLAG: number = 1 << 3;
 
-export const PYTHNET_RECEIVER_ID = new PublicKey("rec5EKMGg6MxZYaMdyBfgwp4d5rB9T1VQH5pJv5LtFJ");
+export const PYTH_SOLANA_RECEIVER_ID = new PublicKey("pythWSnswVUd12oZpeFP8e9CVaEqJg25g1Vtc2biRsT");
