@@ -1,1 +1,0 @@
-{"ast":null,"code":"import{UnavailabilityError}from\"./errors/UnavailabilityError\";export function requireNativeViewManager(viewName){throw new UnavailabilityError('expo-modules-core','requireNativeViewManager');}","map":null,"metadata":{},"sourceType":"module","externalDependencies":[]}

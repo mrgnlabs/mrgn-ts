@@ -1,1 +1,0 @@
-{"ast":null,"code":"export default function pick(obj,list){var nextObj={};for(var key in obj){if(obj.hasOwnProperty(key)){if(list[key]===true){nextObj[key]=obj[key];}}}return nextObj;}","map":null,"metadata":{},"sourceType":"module","externalDependencies":[]}
