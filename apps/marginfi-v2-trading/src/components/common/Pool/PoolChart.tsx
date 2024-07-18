@@ -35,7 +35,6 @@ export const PoolChart = ({ chartData }: PoolChartProps) => {
           minTickGap={32}
           tickMargin={8}
           tickFormatter={(value) => {
-            console.log(value);
             return value
               .replace(/hours|hour/g, "hr")
               .replace(/minutes/g, "m")
