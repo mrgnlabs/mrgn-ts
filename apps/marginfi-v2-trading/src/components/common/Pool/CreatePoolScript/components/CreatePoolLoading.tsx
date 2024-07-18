@@ -22,20 +22,54 @@ import { BankToken } from "./tokenSeeds";
 const USDC_MINT = new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
 
 const DEFAULT_USDC_BANK_CONFIG: BankConfigOpt = {
-  assetWeightInit: new BigNumber(1),
-  assetWeightMaint: new BigNumber(1),
+  assetWeightInit: new BigNumber(0.75),
+  assetWeightMaint: new BigNumber(0.85),
 
   liabilityWeightInit: new BigNumber(1.25),
   liabilityWeightMaint: new BigNumber(1.1),
 
-  depositLimit: new BigNumber(10000), //new BigNumber(200000000),
-  borrowLimit: new BigNumber(100), // new BigNumber(200000000),
+  depositLimit: new BigNumber(100000), //new BigNumber(200000000),
+  borrowLimit: new BigNumber(10000), // new BigNumber(200000000),
   riskTier: RiskTier.Collateral,
 
   totalAssetValueInitLimit: new BigNumber(0),
   interestRateConfig: {
     // Curve Params
-    optimalUtilizationRate: new BigNumber(0.85),
+    optimalUtilizationRate: new BigNumber(0.8),
+    plateauInterestRate: new BigNumber(0.1),
+    maxInterestRate: new BigNumber(3),
+
+    // Fees
+    insuranceFeeFixedApr: new BigNumber(0),
+    insuranceIrFee: new BigNumber(0),
+    protocolFixedFeeApr: new BigNumber(0.01),
+    protocolIrFee: new BigNumber(0),
+  },
+  operationalState: OperationalState.Operational,
+
+  oracle: {
+    setup: OracleSetup.PythEma,
+    keys: [new PublicKey("Gnt27xtC473ZT2Mw5u8wZ68Z3gULkSTb5DuxJy7eJotD")],
+  },
+  oracleMaxAge: 300,
+  permissionlessBadDebtSettlement: null,
+};
+
+const DEFAULT_TOKEN_BANK_CONFIG: BankConfigOpt = {
+  assetWeightInit: new BigNumber(0.4),
+  assetWeightMaint: new BigNumber(0.53),
+
+  liabilityWeightInit: new BigNumber(1.85),
+  liabilityWeightMaint: new BigNumber(1.6),
+
+  depositLimit: new BigNumber(100_000), //new BigNumber(200000000),
+  borrowLimit: new BigNumber(25_000), // new BigNumber(200000000),
+  riskTier: RiskTier.Collateral,
+
+  totalAssetValueInitLimit: new BigNumber(0),
+  interestRateConfig: {
+    // Curve Params
+    optimalUtilizationRate: new BigNumber(0.8),
     plateauInterestRate: new BigNumber(0.1),
     maxInterestRate: new BigNumber(3),
 
@@ -49,43 +83,9 @@ const DEFAULT_USDC_BANK_CONFIG: BankConfigOpt = {
 
   oracle: {
     setup: OracleSetup.PythEma,
-    keys: [new PublicKey("Gnt27xtC473ZT2Mw5u8wZ68Z3gULkSTb5DuxJy7eJotD")],
-  },
-  oracleMaxAge: 300,
-  permissionlessBadDebtSettlement: null,
-};
-
-const DEFAULT_TOKEN_BANK_CONFIG: BankConfigOpt = {
-  assetWeightInit: new BigNumber(0.5),
-  assetWeightMaint: new BigNumber(0.64),
-
-  liabilityWeightInit: new BigNumber(1.3),
-  liabilityWeightMaint: new BigNumber(1.2),
-
-  depositLimit: new BigNumber(10000),
-  borrowLimit: new BigNumber(100),
-  riskTier: RiskTier.Collateral,
-
-  totalAssetValueInitLimit: new BigNumber(0),
-  interestRateConfig: {
-    // Curve Params
-    optimalUtilizationRate: new BigNumber(0.8),
-    plateauInterestRate: new BigNumber(0.2),
-    maxInterestRate: new BigNumber(4),
-
-    // Fees
-    insuranceFeeFixedApr: new BigNumber(0),
-    insuranceIrFee: new BigNumber(0),
-    protocolFixedFeeApr: new BigNumber(0.01),
-    protocolIrFee: new BigNumber(0.05),
-  },
-  operationalState: OperationalState.Operational,
-
-  oracle: {
-    setup: OracleSetup.PythEma,
     keys: [],
   },
-  oracleMaxAge: null,
+  oracleMaxAge: 300,
   permissionlessBadDebtSettlement: null,
 };
 
