@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.js": "./static/js/main.48ba79ce.js",
+    "static/js/458.5708a60e.js": "./static/js/458.5708a60e.js",
+    "index.html": "./index.html",
+    "serve.json": "./serve.json",
+    "manifest.json": "./manifest.json"
+  },
+  "entrypoints": [
+    "static/js/458.5708a60e.js",
+    "static/js/main.48ba79ce.js"
+  ]
+}

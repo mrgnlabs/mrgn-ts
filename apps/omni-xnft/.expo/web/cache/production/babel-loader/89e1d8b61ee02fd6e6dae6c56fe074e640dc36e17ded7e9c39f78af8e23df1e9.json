@@ -1,0 +1,1 @@
+{"ast":null,"code":"import NativeEventEmitter from\"../../vendor/react-native/EventEmitter/NativeEventEmitter\";export default NativeEventEmitter;","map":null,"metadata":{},"sourceType":"module","externalDependencies":[]}
