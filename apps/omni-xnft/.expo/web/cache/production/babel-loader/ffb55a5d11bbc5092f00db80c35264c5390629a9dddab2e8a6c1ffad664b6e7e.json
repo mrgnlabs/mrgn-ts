@@ -1,0 +1,1 @@
+{"ast":null,"code":"import RCTDeviceEventEmitter from\"../../vendor/react-native/EventEmitter/RCTDeviceEventEmitter\";export default RCTDeviceEventEmitter;","map":null,"metadata":{},"sourceType":"module","externalDependencies":[]}

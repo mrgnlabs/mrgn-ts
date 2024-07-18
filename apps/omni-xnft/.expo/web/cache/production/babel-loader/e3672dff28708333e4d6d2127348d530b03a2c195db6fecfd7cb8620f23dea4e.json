@@ -1,0 +1,1 @@
+{"ast":null,"code":"var canUseDOM=!!(typeof window!=='undefined'&&window.document&&window.document.createElement);export default canUseDOM;","map":null,"metadata":{},"sourceType":"module","externalDependencies":[]}

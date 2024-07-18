@@ -1,0 +1,1 @@
+{"ast":null,"code":"import{useEffect,useLayoutEffect}from'react';import canUseDOM from\"../canUseDom\";var useLayoutEffectImpl=canUseDOM?useLayoutEffect:useEffect;export default useLayoutEffectImpl;","map":null,"metadata":{},"sourceType":"module","externalDependencies":[]}

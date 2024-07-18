@@ -1,0 +1,1 @@
+{"ast":null,"code":"var getBoundingClientRect=function getBoundingClientRect(node){if(node!=null){var isElement=node.nodeType===1;if(isElement&&typeof node.getBoundingClientRect==='function'){return node.getBoundingClientRect();}}};export default getBoundingClientRect;","map":null,"metadata":{},"sourceType":"module","externalDependencies":[]}

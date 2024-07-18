@@ -1,0 +1,1 @@
+{"ast":null,"code":"import{unmountComponentAtNode}from'react-dom';export default unmountComponentAtNode;","map":null,"metadata":{},"sourceType":"module","externalDependencies":[]}

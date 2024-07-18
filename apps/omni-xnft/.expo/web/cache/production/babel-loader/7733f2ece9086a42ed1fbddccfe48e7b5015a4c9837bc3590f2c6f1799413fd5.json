@@ -1,0 +1,1 @@
+{"ast":null,"code":"var Platform={OS:'web',select:function select(obj){return'web'in obj?obj.web:obj.default;},get isTesting(){if(process.env.NODE_ENV==='test'){return true;}return false;}};export default Platform;","map":null,"metadata":{},"sourceType":"module","externalDependencies":[]}

@@ -1,0 +1,1 @@
+{"ast":null,"code":"var isDisabled=function isDisabled(props){return props.disabled||Array.isArray(props.accessibilityStates)&&props.accessibilityStates.indexOf('disabled')>-1;};export default isDisabled;","map":null,"metadata":{},"sourceType":"module","externalDependencies":[]}
