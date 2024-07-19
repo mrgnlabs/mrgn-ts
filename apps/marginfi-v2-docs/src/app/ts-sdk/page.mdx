@@ -589,7 +589,7 @@ async function main() {
     const config = getConfig("production");
 
     const client: any = await MarginfiClient.fetch(
-        config,
+        {...config, groupPk: marginfiGroupPk },
         wallet ? ({ publicKey: wallet } as any) : wallet,
         connection,
         { readOnly: true, preloadedBankAddresses: [] }
