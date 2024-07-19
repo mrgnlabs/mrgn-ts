@@ -73,9 +73,9 @@ export default function HomePage() {
   React.useEffect(() => {
     if (!initialized) return;
     setTimeout(() => {
-      requestAnimationFrame(() => animate("[data-item]", { opacity: 1 }, { duration: 0.5, delay: stagger(0.3) }));
-    }, 2000);
-    animate("[data-filter]", { opacity: 1 }, { duration: 0.3, delay: 1.75 });
+      requestAnimationFrame(() => animate("[data-item]", { opacity: 1 }, { duration: 0.5, delay: stagger(0.25) }));
+    }, 1500);
+    animate("[data-filter]", { opacity: 1 }, { duration: 0.3, delay: 1.25 });
   }, [initialized, animate, scope]);
 
   return (
@@ -96,7 +96,7 @@ export default function HomePage() {
                 className="search flex flex-col items-center gap-6"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                transition={{ duration: 0.3, delay: 1.7 }}
+                transition={{ duration: 0.5, delay: 1.2 }}
               >
                 <PoolSearch showNoResults={false} />
 
