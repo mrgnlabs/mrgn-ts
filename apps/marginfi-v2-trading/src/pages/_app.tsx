@@ -92,7 +92,7 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
                           </div>
                         </Mobile>
                         <Analytics />
-                        <Tutorial />
+
                         <WalletAuthDialog />
                         <ToastContainer position="bottom-left" theme="light" />
                         {/* <ActiveGroup /> */}
@@ -105,6 +105,7 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
           </TipLinkWalletAutoConnect>
         </ConnectionProvider>
       )}
+      <Tutorial />
     </>
   );
 }

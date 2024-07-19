@@ -1,259 +1,94 @@
 import React from "react";
 
-import Link from "next/link";
+import { motion } from "framer-motion";
 
-import { Swiper, SwiperSlide } from "swiper/react";
-import { Pagination } from "swiper/modules";
-import { useSwiper } from "swiper/react";
-
-import { useIsMobile } from "~/hooks/useIsMobile";
-
-import { Dialog, DialogContent } from "~/components/ui/dialog";
+import { IconMrgn } from "~/components/ui/icons";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "~/components/ui/carousel";
 import { Button } from "~/components/ui/button";
-import {
-  IconMrgn,
-  IconCheck,
-  IconChevronRight,
-  IconExternalLink,
-  IconBrandX,
-  IconBrandDiscordFilled,
-  IconMoneybag,
-  IconBuildingBank,
-  IconBrandSubstack,
-} from "~/components/ui/icons";
 
-type TutorialSlideProps = {
-  icon?: React.ReactNode;
-  heading?: string;
-  next?: string;
-  docs?: boolean;
-  children: React.ReactNode;
-  closeDialog?: () => void;
-  showSkip?: boolean;
-};
-
-const TutorialSlide = ({
-  children,
-  icon,
-  heading,
-  next,
-  docs = false,
-  closeDialog,
-  showSkip = false,
-}: TutorialSlideProps) => {
-  const swiper = useSwiper();
-
-  const closeBtn = (
-    <Button
-      onClick={() => {
-        if (closeDialog) closeDialog();
-      }}
-    >
-      Get Started <IconCheck size={16} />
-    </Button>
-  );
-
-  return (
-    <div className="pb-16 px-4 space-y-4 md:space-y-8 h-full md:h-auto text-center">
-      <header className="space-y-2 md:space-y-4 flex flex-col items-center">
-        {icon && icon}
-        {heading && <h2 className="text-3xl font-medium">{heading}</h2>}
-      </header>
-      {children}
-      {!docs && next && (
-        <div className="flex items-center justify-center">
-          <Button
-            className="w-full md:w-auto"
-            onClick={() => {
-              swiper.slideNext();
-            }}
-          >
-            {next} <IconChevronRight size={16} />
-          </Button>
-        </div>
-      )}
-      {docs && (
-        <div className="flex flex-col md:flex-row items-center justify-center gap-4">
-          <Link href="https://docs.marginfi.com/" target="_blank" rel="noreferrer" className="block w-full md:w-auto">
-            <Button variant="outline" className="w-full md:w-auto">
-              Read docs <IconExternalLink size={16} />
-            </Button>
-          </Link>
-          {next && (
-            <Button
-              className="w-full md:w-auto"
-              onClick={() => {
-                swiper.slideNext();
-              }}
-            >
-              {next} <IconChevronRight size={16} />
-            </Button>
-          )}
-          {!next && closeBtn}
-        </div>
-      )}
-      {showSkip && (
-        <Button
-          variant="outline"
-          className="mt-4 w-full md:hidden"
-          onClick={() => {
-            if (closeDialog) closeDialog();
-          }}
-        >
-          Skip
-        </Button>
-      )}
-      {!docs && !next && closeBtn}
-    </div>
-  );
-};
+import { type CarouselApi } from "~/components/ui/carousel";
 
 export const Tutorial = () => {
-  const isMobile = useIsMobile();
-  const [open, setOpen] = React.useState(false);
-
-  const handleDialogClose = () => {
-    localStorage.setItem("mrgnTutorialAcknowledged", "true");
-    setOpen(false);
-  };
+  const [api, setApi] = React.useState<CarouselApi>();
+  const [current, setCurrent] = React.useState(0);
+  const [count, setCount] = React.useState(0);
 
   React.useEffect(() => {
-    if (!localStorage.getItem("mrgnTutorialAcknowledged")) {
-      setOpen(true);
+    if (!api) {
       return;
     }
-  }, [isMobile]);
+
+    setCount(api.scrollSnapList().length);
+    setCurrent(api.selectedScrollSnap() + 1);
+
+    api.on("select", () => {
+      setCurrent(api.selectedScrollSnap() + 1);
+    });
+  }, [api]);
 
   return (
-    <>
-      <Dialog
-        open={open}
-        onOpenChange={(open) => {
-          if (!open) handleDialogClose();
-        }}
+    <div className="fixed top-0 left-0 w-screen h-screen bg-background md:max-w-none md:max-h-none md:h-screen z-[999999]">
+      <motion.div
+        className="w-full h-full flex justify-center items-center"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5, delay: 0.5 }}
       >
-        <DialogContent className="p-4 md:py-8 md:max-w-4xl">
-          <div className="max-w-3xl">
-            <Swiper modules={[Pagination]} slidesPerView={1} navigation pagination={{ clickable: true }}>
-              <SwiperSlide className="h-full">
-                <TutorialSlide
-                  icon={<IconMrgn size={48} />}
-                  heading="Welcome to marginfi"
-                  next="Earn Yield"
-                  closeDialog={handleDialogClose}
-                  showSkip={true}
-                >
-                  <div className="space-y-4 pb-2 max-w-xl mx-auto flex flex-col justify-center">
-                    <p>marginfi is a protocol on Solana focused on safety, transparency, and flexibility.</p>
-                    <p>
-                      If you&apos;re a developer looking to integrate with marginfi,{" "}
-                      <Link
-                        href="https://docs.marginfi.com/"
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex items-center gap-1 group leading-5"
-                      >
-                        <span className="border-b border-muted-foreground transition group-hover:border-transparent">
-                          read our docs here
-                        </span>{" "}
-                        <IconExternalLink size={14} />
-                      </Link>
+        <Carousel setApi={setApi} className="w-full text-primary/80" opts={{ duration: 0 }}>
+          <CarouselContent>
+            <CarouselItem>
+              <div className="flex flex-col gap-12 items-center justify-center text-center max-w-2xl mx-auto">
+                <header className="flex flex-col gap-8 items-center justify-center">
+                  <IconMrgn size={56} />
+                  <div className="text-center space-y-4">
+                    <h2 className="text-primary font-medium text-5xl font-orbitron">Welcome to the arena</h2>
+                    <h3 className="text-2xl">Memecoin trading, with leverage.</h3>
+                  </div>
+                </header>
+                <Button onClick={() => api?.scrollNext()}>Get started</Button>
+              </div>
+            </CarouselItem>
+            {[...new Array(4)].map((_, index) => (
+              <CarouselItem key={index}>
+                <div className="flex flex-col gap-8 items-center justify-center text-center max-w-2xl mx-auto">
+                  <div className="flex flex-col gap-4 items-center justify-center">
+                    <header className="flex flex-col gap-4 items-center justify-center">
+                      <IconMrgn size={42} />
+                      <h2 className="text-primary font-medium text-4xl">Number {index + 1} heading here</h2>
+                    </header>
+                    <p className="text-lg">
+                      Sunt ea voluptate qui anim ullamco adipisicing consectetur fugiat enim. Non deserunt in cillum
+                      anim et dolor mollit sit. Sunt eiusmod occaecat exercitation exercitation pariatur laboris dolor
+                      ullamco est excepteur.
                     </p>
                   </div>
-                </TutorialSlide>
-              </SwiperSlide>
-              <SwiperSlide className="h-full">
-                <TutorialSlide icon={<IconMoneybag size={48} />} heading="Earn Yield" next="Safety and Use">
-                  <div className="space-y-4 pb-2 max-w-[32rem] mx-auto flex flex-col justify-center">
-                    <p>
-                      marginfi enables you to permissionlessly earn variable yield,
-                      <br className="hidden md:block" /> paid to you by borrowers.
-                    </p>
-                    <p>
-                      There are no middlemen. marginfi users come from all over the world,
-                      <br className="hidden md:block" /> unblocked from traditional finance rails.
-                    </p>
-                  </div>
-                </TutorialSlide>
-              </SwiperSlide>
-              <SwiperSlide className="h-full">
-                <TutorialSlide icon={<IconBuildingBank size={48} />} heading="Safety and Use" next="Follow marginfi">
-                  <div className="space-y-6 md:space-y-8 pb-2 max-w-[40rem] mx-auto flex-col justify-center">
-                    <p>
-                      marginfi is an{" "}
-                      <Link
-                        href="https://github.com/mrgnlabs/"
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex items-center gap-1 group leading-5"
-                      >
-                        <span className="border-b border-muted-foreground transition group-hover:border-transparent">
-                          open source
-                        </span>{" "}
-                        <IconExternalLink size={14} />
-                      </Link>
-                      ,{" "}
-                      <Link
-                        href="https://github.com/mrgnlabs/marginfi-v2/tree/main/audits/"
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex items-center gap-1 group leading-5"
-                      >
-                        <span className="border-b border-muted-foreground transition group-hover:border-transparent">
-                          double audited
-                        </span>{" "}
-                        <IconExternalLink size={14} />
-                      </Link>
-                      , and{" "}
-                      <Link
-                        href="https://github.com/mrgnlabs/marginfi-v2/blob/main/scripts/verify.sh"
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex items-center gap-1 group leading-5"
-                      >
-                        <span className="border-b border-muted-foreground transition group-hover:border-transparent">
-                          code-verified
-                        </span>{" "}
-                        <IconExternalLink size={14} />
-                      </Link>{" "}
-                      protocol.
-                      <br className="hidden md:block" /> Anyone can build new applications that benefit from
-                      marginfi&apos;s resources.
-                    </p>
-                  </div>
-                </TutorialSlide>
-              </SwiperSlide>
-              <SwiperSlide className="h-full">
-                <TutorialSlide icon={<IconMrgn size={48} />} heading="Follow marginfi" closeDialog={handleDialogClose}>
-                  <div className="space-y-6 md:space-y-8 pb-2 max-w-[30rem] mx-auto flex-col justify-center">
-                    <p>
-                      Join the fastest growing crypto community and keep up with the latest industry news, product
-                      releases, and alpha.
-                    </p>
-                    <ul className="flex items-center justify-center gap-3">
-                      <li className="p-4 rounded-full bg-muted">
-                        <a href="https://discord.gg/mrgn" target="_blank" rel="noreferrer">
-                          <IconBrandDiscordFilled />
-                        </a>
-                      </li>
-                      <li className="p-4 rounded-full bg-muted">
-                        <a href="https://twitter.com/marginfi" target="_blank" rel="noreferrer">
-                          <IconBrandX />
-                        </a>
-                      </li>
-                      <li className="p-4 rounded-full bg-muted">
-                        <a href="https://mrgn.substack.com/" target="_blank" rel="noreferrer">
-                          <IconBrandSubstack />
-                        </a>
-                      </li>
-                    </ul>
-                  </div>
-                </TutorialSlide>
-              </SwiperSlide>
-            </Swiper>
-          </div>
-        </DialogContent>
-      </Dialog>
-    </>
+                  <Button variant="outline" onClick={() => api?.scrollNext()}>
+                    Next
+                  </Button>
+                </div>
+              </CarouselItem>
+            ))}
+            <CarouselItem>
+              <div className="flex flex-col gap-8 items-center justify-center text-center max-w-2xl mx-auto">
+                <div className="flex flex-col gap-4 items-center justify-center">
+                  <header className="flex flex-col gap-4 items-center justify-center">
+                    <IconMrgn size={42} />
+                    <h2 className="text-primary font-medium text-4xl">Final heading here</h2>
+                  </header>
+                  <p className="text-lg">
+                    Sunt ea voluptate qui anim ullamco adipisicing consectetur fugiat enim. Non deserunt in cillum anim
+                    et dolor mollit sit. Sunt eiusmod occaecat exercitation exercitation pariatur laboris dolor ullamco
+                    est excepteur.
+                  </p>
+                </div>
+                <Button onClick={() => api?.scrollNext()}>Enter the arena</Button>
+              </div>
+            </CarouselItem>
+          </CarouselContent>
+          {current > 1 && <CarouselPrevious className="left-8" />}
+          {current > 1 && current < count && <CarouselNext className="right-8" />}
+        </Carousel>
+      </motion.div>
+    </div>
   );
 };
