@@ -58,7 +58,7 @@ export default function TradeSymbolPage() {
   return (
     <>
       <div className="w-full max-w-8xl mx-auto px-4 pt-4 pb-24 mt:pt-8 md:px-8">
-        {(!initialized || !activeGroup) && <Loader label="Loading mrgntrade..." className="mt-8" />}
+        {(!initialized || !activeGroup) && <Loader label="Loading the arena..." className="mt-8" />}
         {initialized && activeGroup && activeGroup.token && (
           <div className="rounded-xl space-y-4 lg:bg-accent/50 lg:p-6">
             <TVWidgetTopBar tokenData={tokenData} activeGroup={activeGroup} />
