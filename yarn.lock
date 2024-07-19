@@ -17258,6 +17258,13 @@ framer-motion@^11.1.8:
   dependencies:
     tslib "^2.4.0"
 
+framer-motion@^11.3.7:
+  version "11.3.7"
+  resolved "https://registry.yarnpkg.com/framer-motion/-/framer-motion-11.3.7.tgz#de37d00f863bd6dabfa2a4002108a3888c7a4535"
+  integrity sha512-wolMesg8ruYgZX8nMELY2a/ZgMMpYhggLNIexx1blaYN0yb2+SdQ78sEkGDKde+3LTCeFy/wCi97i5Br4yT0GQ==
+  dependencies:
+    tslib "^2.4.0"
+
 freeport-async@2.0.0:
   version "2.0.0"
   resolved "https://registry.npmjs.org/freeport-async/-/freeport-async-2.0.0.tgz"
