@@ -42,7 +42,7 @@ export const TVWidget = ({ token }: props) => {
         locale: "en",
         theme: "light",
         overrides: {
-          "paneProperties.background": "#0000ff",
+          "paneProperties.background": "#ffffff",
           "paneProperties.backgroundType": "solid",
         },
         height: 600,
