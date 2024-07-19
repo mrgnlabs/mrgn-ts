@@ -22,21 +22,6 @@ export const AnnouncementsDialog = () => {
     setIsOpen(false);
   }, []);
 
-  // React.useEffect(() => {
-  //   // dont show popup for non-connected or when wallet is open
-  //   if (isOpen || !connected || isWalletOpen) return;
-  //   // only show announcement popup if tutorial has been acknowledged
-  //   // and announcement has not been acknowledged
-  //   if (
-  //     localStorage.getItem("mrgnTutorialAcknowledged") &&
-  //     (!localStorage.getItem("mrgnAnnouncementPopup") ||
-  //       localStorage.getItem("mrgnAnnouncementPopup") !== announcementLabel)
-  //   ) {
-  //     setIsOpen(true);
-  //     return;
-  //   }
-  // }, [connected, isOpen, isWalletOpen]);
-
   return (
     <Dialog
       open={isOpen}
