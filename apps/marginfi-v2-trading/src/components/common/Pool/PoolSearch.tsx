@@ -2,6 +2,7 @@ import React from "react";
 
 import Image from "next/image";
 import { useRouter } from "next/router";
+import { IconX } from "@tabler/icons-react";
 
 import { useDebounce } from "@uidotdev/usehooks";
 import { usdFormatter, percentFormatter, numeralFormatter } from "@mrgnlabs/mrgn-common";
@@ -13,7 +14,6 @@ import { useIsMobile } from "~/hooks/useIsMobile";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "~/components/ui/command";
 
 import type { TokenData } from "~/types";
-import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 type PoolSearchProps = {
   size?: "sm" | "lg";
@@ -45,6 +45,7 @@ export const PoolSearch = ({
   } | null>(null);
   const searchInputRef = React.useRef<HTMLInputElement>(null);
   const [searchQuery, setSearchQuery] = React.useState("");
+  const [isFocused, setIsFocused] = React.useState(false);
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
   const isMobile = useIsMobile();
 
@@ -55,6 +56,11 @@ export const PoolSearch = ({
     }
     searchBanks(debouncedSearchQuery);
   }, [debouncedSearchQuery, searchBanks, resetSearchResults]);
+
+  const resetSearch = React.useCallback(() => {
+    resetSearchResults();
+    setSearchQuery("");
+  }, [resetSearchResults]);
 
   React.useEffect(() => {
     const fetchTokenData = async (address: string) => {
@@ -94,8 +100,13 @@ export const PoolSearch = ({
 
   return (
     <div className="relative w-full">
-      <Command shouldFilter={false}>
-        <div className="border border-muted-foreground/25 rounded-full px-2">
+      <Command shouldFilter={false} onKeyDown={(event) => event.key === "Escape" && resetSearch()}>
+        <div
+          className={cn(
+            "border border-muted-foreground/25 rounded-full px-2 transition-colors",
+            isFocused && "border-primary"
+          )}
+        >
           <CommandInput
             ref={searchInputRef}
             placeholder={isMobile ? "Search tokens..." : "Search tokens by name, symbol, or mint address..."}
@@ -104,8 +115,19 @@ export const PoolSearch = ({
               size === "sm" && "text-base md:text-lg md:py-2.5"
             )}
             value={searchQuery}
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => setIsFocused(false)}
             onValueChange={(value) => setSearchQuery(value)}
           />
+          {searchQuery.length > 0 && (
+            <IconX
+              size={18}
+              className="absolute text-muted-foreground right-4 top-1/2 -translate-y-1/2 cursor-pointer transition-colors hover:text-primary"
+              onClick={() => {
+                resetSearch();
+              }}
+            />
+          )}
         </div>
         <div className={cn(size === "lg" && "absolute top-10 w-full z-20 md:top-14")}>
           {searchResults.length > 0 && (
@@ -128,7 +150,7 @@ export const PoolSearch = ({
                       if (onBankSelect) onBankSelect();
                     }}
                   >
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-3">
                       <Image
                         src={getTokenImageURL(result.meta.tokenSymbol)}
                         width={size === "sm" ? 28 : 32}
