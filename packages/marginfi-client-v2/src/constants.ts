@@ -25,3 +25,5 @@ export const ADDRESS_LOOKUP_TABLE_FOR_GROUP: { [key: string]: PublicKey[] } = {
 export const DISABLED_FLAG: number = 1 << 0;
 export const FLASHLOAN_ENABLED_FLAG: number = 1 << 2;
 export const TRANSFER_ACCOUNT_AUTHORITY_FLAG: number = 1 << 3;
+
+export const PYTH_PUSH_ORACLE_ID = new PublicKey("pythWSnswVUd12oZpeFP8e9CVaEqJg25g1Vtc2biRsT");

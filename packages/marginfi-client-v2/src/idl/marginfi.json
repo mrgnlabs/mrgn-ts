@@ -2105,6 +2105,35 @@
       ]
     },
     {
+      "name": "marginfi_account_close",
+      "discriminator": [
+        186,
+        221,
+        93,
+        34,
+        50,
+        97,
+        194,
+        241
+      ],
+      "accounts": [
+        {
+          "name": "marginfi_account",
+          "writable": true
+        },
+        {
+          "name": "authority",
+          "signer": true
+        },
+        {
+          "name": "fee_payer",
+          "writable": true,
+          "signer": true
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "marginfi_account_initialize",
       "docs": [
         "Initialize a marginfi account for a given group"
@@ -2641,7 +2670,7 @@
     },
     {
       "code": 6020,
-      "name": "BankAccoutNotFound",
+      "name": "BankAccountNotFound",
       "msg": "Bank is missing"
     },
     {
@@ -2697,7 +2726,7 @@
     {
       "code": 6031,
       "name": "IsolatedAccountIllegalState",
-      "msg": "Account can have only one liablity when account is under isolated risk"
+      "msg": "Account can have only one liability when account is under isolated risk"
     },
     {
       "code": 6032,
@@ -2712,7 +2741,7 @@
     {
       "code": 6034,
       "name": "InvalidSwitchboardDecimalConversion",
-      "msg": "Invalid swithcboard decimal conversion"
+      "msg": "Invalid switchboard decimal conversion"
     },
     {
       "code": 6035,
@@ -2766,6 +2795,11 @@
     },
     {
       "code": 6045,
+      "name": "IllegalAction",
+      "msg": "Invalid account authority"
+    },
+    {
+      "code": 6046,
       "name": "T22MintRequired",
       "msg": "Token22 Banks require mint account as first remaining account"
     }
@@ -4360,10 +4394,13 @@
             "name": "None"
           },
           {
-            "name": "PythEma"
+            "name": "PythLegacy"
           },
           {
             "name": "SwitchboardV2"
+          },
+          {
+            "name": "PythPushOracle"
           }
         ]
       }

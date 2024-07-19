@@ -99,8 +99,8 @@ export const getRateData = (bank: ExtendedBankInfo, isInLendingMode: boolean): R
       ? emissionsRate
       : 0
     : emissions == Emissions.Borrowing
-    ? emissionsRate
-    : 0;
+      ? emissionsRate
+      : 0;
 
   const rateAPR = interestRate + emissionRate;
   const rateAPY = aprToApy(rateAPR);
@@ -119,7 +119,10 @@ export const getAssetPriceData = (bank: ExtendedBankInfo): AssetPriceData => {
 
   let oracle = "";
   switch (bank.info.rawBank.config.oracleSetup) {
-    case "PythEma":
+    case "PythLegacy":
+      oracle = "Pyth";
+      break;
+    case "PythPushOracle":
       oracle = "Pyth";
       break;
     case "SwitchboardV2":

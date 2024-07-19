@@ -2,6 +2,7 @@ import {
   AddressLookupTableAccount,
   Blockhash,
   ComputeBudgetProgram,
+  Connection,
   LAMPORTS_PER_SOL,
   PublicKey,
   SystemProgram,
@@ -17,6 +18,7 @@ import {
   PDA_BANK_INSURANCE_VAULT_SEED,
   PDA_BANK_LIQUIDITY_VAULT_AUTH_SEED,
   PDA_BANK_LIQUIDITY_VAULT_SEED,
+  PYTH_PUSH_ORACLE_ID,
 } from "./constants";
 import { BankVaultType } from "./types";
 import {
@@ -28,6 +30,9 @@ import {
   getAssociatedTokenAddressSync,
 } from "@mrgnlabs/mrgn-common";
 import BigNumber from "bignumber.js";
+import { BankConfig, BankConfigRaw, OracleSetup, parseOracleSetup } from ".";
+import { readBigUInt64LE } from "./vendor/pyth_legacy/readBig";
+import { func } from "superstruct";
 
 export function getBankVaultSeeds(type: BankVaultType): Buffer {
   switch (type) {
@@ -128,4 +133,86 @@ export function makePriorityFeeIx(priorityFeeUi?: number): TransactionInstructio
   );
 
   return priorityFeeIx;
+}
+
+export function feedIdToString(feedId: PublicKey): string {
+  return feedId.toBuffer().toString('hex');
+}
+
+export type PythPushFeedIdMap = Map<string, PublicKey>;
+
+export async function buildFeedIdMap(bankConfigs: BankConfigRaw[], connection: Connection): Promise<PythPushFeedIdMap> {
+  const feedIdMap: PythPushFeedIdMap = new Map<string, PublicKey>();
+
+  const feedIdsWithAddresses = bankConfigs.filter((bankConfig) => parseOracleSetup(bankConfig.oracleSetup) == OracleSetup.PythPushOracle).map((bankConfig) => {
+    let feedId = bankConfig.oracleKeys[0].toBuffer();
+    return {
+      feedId, addresses: [
+        findPythPushOracleAddress(feedId, PYTH_PUSH_ORACLE_ID, PYTH_SPONSORED_SHARD_ID),
+        findPythPushOracleAddress(feedId, PYTH_PUSH_ORACLE_ID, MARGINFI_SPONSORED_SHARD_ID),
+      ]
+    }
+  }).flat();
+
+  const addressess = feedIdsWithAddresses.map((feedIdWithAddress) => feedIdWithAddress.addresses).flat();
+  const accountInfos = [];
+
+  const chunkSize = 25;
+  for (let i = 0; i < addressess.length; i += chunkSize) {
+    const chunk = addressess.slice(i, i + chunkSize);
+    const accountInfosChunk = await connection.getMultipleAccountsInfo(chunk);
+    accountInfos.push(...accountInfosChunk);
+  }
+
+  for (let i = 0; i < feedIdsWithAddresses.length; i++) {
+    const oraclesStartIndex = i * 2;
+
+    const pythSponsoredOracle = accountInfos[oraclesStartIndex];
+    const mfiSponsoredOracle = accountInfos[oraclesStartIndex + 1];
+
+    const feedId = feedIdsWithAddresses[i].feedId.toString('hex');
+
+    if (mfiSponsoredOracle) {
+      feedIdMap.set(feedId, feedIdsWithAddresses[i].addresses[1]);
+    } else if (pythSponsoredOracle) {
+      feedIdMap.set(feedId, feedIdsWithAddresses[i].addresses[0]);
+    } else {
+      throw new Error(`No oracle found for feedId: ${feedId}, either Pyth or MFI sponsored oracle must exist`);
+    }
+  }
+
+  return feedIdMap;
+}
+
+export function findOracleKey(bankConfig: BankConfig, feedMap: PythPushFeedIdMap): PublicKey {
+  const oracleSetup = bankConfig.oracleSetup;
+  let oracleKey = bankConfig.oracleKeys[0];
+
+  if (oracleSetup == OracleSetup.PythPushOracle) {
+    const feedId = feedIdToString(oracleKey);
+    oracleKey = feedMap.get(feedId)!;
+
+  }
+
+  return oracleKey;
+}
+
+export const PYTH_SPONSORED_SHARD_ID = 0;
+export const MARGINFI_SPONSORED_SHARD_ID = 3301;
+
+export function findPythPushOracleAddress(feedId: Buffer, programId: PublicKey, shardId: number): PublicKey {
+  const shardBytes = u16ToArrayBufferLE(shardId);
+  return PublicKey.findProgramAddressSync([shardBytes, feedId], programId)[0];
+}
+
+function u16ToArrayBufferLE(value: number): Uint8Array {
+  // Create a buffer of 2 bytes
+  const buffer = new ArrayBuffer(2);
+  const dataView = new DataView(buffer);
+
+  // Set the Uint16 value in little-endian order
+  dataView.setUint16(0, value, true);
+
+  // Return the buffer
+  return new Uint8Array(buffer);
 }

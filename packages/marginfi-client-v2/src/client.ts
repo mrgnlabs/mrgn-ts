@@ -1,6 +1,7 @@
 import { Address, AnchorProvider, BorshAccountsCoder, Program, translateAddress } from "@coral-xyz/anchor";
 import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
 import {
+  AccountInfo,
   AddressLookupTableAccount,
   Commitment,
   ConfirmOptions,
@@ -43,10 +44,11 @@ import {
   MARGINFI_IDL,
   MarginfiIdlType,
   BankConfigOpt,
+  BankConfig,
 } from ".";
 import { MarginfiAccountWrapper } from "./models/account/wrapper";
 import { ProcessTransactionError, ProcessTransactionErrorType, parseErrorFromLogs } from "./errors";
-import { makePriorityFeeIx } from "./utils";
+import { findOracleKey, makePriorityFeeIx, PythPushFeedIdMap, buildFeedIdMap } from "./utils";
 
 export type BankMap = Map<string, Bank>;
 export type OraclePriceMap = Map<string, OraclePrice>;
@@ -77,6 +79,7 @@ class MarginfiClient {
   public oraclePrices: OraclePriceMap;
   public mintDatas: MintDataMap;
   public addressLookupTables: AddressLookupTableAccount[];
+  public feedIdMap: PythPushFeedIdMap;
   private preloadedBankAddresses?: PublicKey[];
   private sendEndpoint?: string;
   private spamSendTx: boolean;
@@ -95,12 +98,13 @@ class MarginfiClient {
     banks: BankMap,
     priceInfos: OraclePriceMap,
     mintDatas: MintDataMap,
+    feedIdMap: PythPushFeedIdMap,
     addressLookupTables?: AddressLookupTableAccount[],
     preloadedBankAddresses?: PublicKey[],
     readonly bankMetadataMap?: BankMetadataMap,
     sendEndpoint?: string,
     spamSendTx: boolean = true,
-    skipPreflightInSpam: boolean = true
+    skipPreflightInSpam: boolean = true,
   ) {
     this.group = group;
     this.banks = banks;
@@ -111,6 +115,7 @@ class MarginfiClient {
     this.sendEndpoint = sendEndpoint;
     this.spamSendTx = spamSendTx;
     this.skipPreflightInSpam = skipPreflightInSpam;
+    this.feedIdMap = feedIdMap;
   }
 
   /**
@@ -159,7 +164,7 @@ class MarginfiClient {
       console.error("Failed to load bank metadatas. Convenience getter by symbol will not be available", error);
     }
 
-    const { marginfiGroup, banks, priceInfos, tokenDatas } = await MarginfiClient.fetchGroupData(
+    const { marginfiGroup, banks, priceInfos, tokenDatas, feedIdMap } = await MarginfiClient.fetchGroupData(
       program,
       config.groupPk,
       connection.commitment,
@@ -184,6 +189,7 @@ class MarginfiClient {
       banks,
       priceInfos,
       tokenDatas,
+      feedIdMap,
       addressLookupTables,
       preloadedBankAddresses,
       bankMetadataMap,
@@ -249,6 +255,7 @@ class MarginfiClient {
     banks: Map<string, Bank>;
     priceInfos: Map<string, OraclePrice>;
     tokenDatas: Map<string, MintData>;
+    feedIdMap: PythPushFeedIdMap;
   }> {
     const debug = require("debug")("mfi:client");
     // Fetch & shape all accounts of Bank type (~ bank discovery)
@@ -274,18 +281,20 @@ class MarginfiClient {
       }));
     }
 
-    const oracleKeys = bankDatasKeyed.map((b) => b.data.config.oracleKeys[0]);
+    const feedIdMap = await buildFeedIdMap(bankDatasKeyed.map((b) => b.data.config), program.provider.connection);
+
+    // const oracleKeys = bankDatasKeyed.map((b) => b.data.config.oracleKeys[0]);
     const mintKeys = bankDatasKeyed.map((b) => b.data.mint);
     const emissionMintKeys = bankDatasKeyed.map((b) => b.data.emissionsMint).filter((pk) => !pk.equals(PublicKey.default)) as PublicKey[];
-
+    const oracleKeys = bankDatasKeyed.map((b) => findOracleKey(BankConfig.fromAccountParsed(b.data.config), feedIdMap));
     // Batch-fetch the group account and all the oracle accounts as per the banks retrieved above
     const allAis = await chunkedGetRawMultipleAccountInfoOrdered(program.provider.connection,
       [groupAddress.toBase58(), ...oracleKeys.map((pk) => pk.toBase58()), ...mintKeys.map((pk) => pk.toBase58()), ...emissionMintKeys.map((pk) => pk.toBase58())],
     ); // NOTE: This will break if/when we start having more than 1 oracle key per bank
 
     const groupAi = allAis.shift();
-    const priceFeedAis = allAis.splice(0, bankDatasKeyed.length);
-    const mintAis = allAis.splice(0, bankDatasKeyed.length);
+    const oracleAis = allAis.splice(0, oracleKeys.length);
+    const mintAis = allAis.splice(0, mintKeys.length);
     const emissionMintAis = allAis.splice(0);
 
     // Unpack raw data for group and oracles, and build the `Bank`s map
@@ -295,7 +304,7 @@ class MarginfiClient {
     const banks = new Map(
       bankDatasKeyed.map(({ address, data }) => {
         const bankMetadata = bankMetadataMap ? bankMetadataMap[address.toBase58()] : undefined;
-        const bank = Bank.fromAccountParsed(address, data, bankMetadata);
+        const bank = Bank.fromAccountParsed(address, data, feedIdMap, bankMetadata);
 
         return [address.toBase58(), bank];
       })
@@ -318,7 +327,7 @@ class MarginfiClient {
 
     const priceInfos = new Map(
       bankDatasKeyed.map(({ address: bankAddress, data: bankData }, index) => {
-        const priceDataRaw = priceFeedAis[index];
+        const priceDataRaw = oracleAis[index];
         if (!priceDataRaw) throw new Error(`Failed to fetch price oracle account for bank ${bankAddress.toBase58()}`);
         const oracleSetup = parseOracleSetup(bankData.config.oracleSetup);
         return [bankAddress.toBase58(), parsePriceInfo(oracleSetup, priceDataRaw.data)];
@@ -332,6 +341,7 @@ class MarginfiClient {
       banks,
       priceInfos,
       tokenDatas,
+      feedIdMap,
     };
   }
 

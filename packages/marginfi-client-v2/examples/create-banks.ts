@@ -35,9 +35,11 @@ const bank: BankConfigOpt = {
   operationalState: OperationalState.Operational,
 
   oracle: {
-    setup: OracleSetup.PythEma,
+    setup: OracleSetup.PythLegacy,
     keys: [new PublicKey("H6ARHf6YXhGYeQfUzQNGk6rDNnLBQKrenN712K4AQJEG")],
   },
+  oracleMaxAge: null,
+  permissionlessBadDebtSettlement: null
 };
 
 async function main() {

@@ -5,7 +5,7 @@
  * IDL can be found at `target/idl/marginfi.json`.
  */
 export type Marginfi = {
-  "address": "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
+  "address": string,
   "metadata": {
     "name": "marginfi",
     "version": "0.1.0",
@@ -2111,6 +2111,35 @@ export type Marginfi = {
       ]
     },
     {
+      "name": "marginfiAccountClose",
+      "discriminator": [
+        186,
+        221,
+        93,
+        34,
+        50,
+        97,
+        194,
+        241
+      ],
+      "accounts": [
+        {
+          "name": "marginfiAccount",
+          "writable": true
+        },
+        {
+          "name": "authority",
+          "signer": true
+        },
+        {
+          "name": "feePayer",
+          "writable": true,
+          "signer": true
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "marginfiAccountInitialize",
       "docs": [
         "Initialize a marginfi account for a given group"
@@ -2647,7 +2676,7 @@ export type Marginfi = {
     },
     {
       "code": 6020,
-      "name": "bankAccoutNotFound",
+      "name": "bankAccountNotFound",
       "msg": "Bank is missing"
     },
     {
@@ -2703,7 +2732,7 @@ export type Marginfi = {
     {
       "code": 6031,
       "name": "isolatedAccountIllegalState",
-      "msg": "Account can have only one liablity when account is under isolated risk"
+      "msg": "Account can have only one liability when account is under isolated risk"
     },
     {
       "code": 6032,
@@ -2718,7 +2747,7 @@ export type Marginfi = {
     {
       "code": 6034,
       "name": "invalidSwitchboardDecimalConversion",
-      "msg": "Invalid swithcboard decimal conversion"
+      "msg": "Invalid switchboard decimal conversion"
     },
     {
       "code": 6035,
@@ -2772,6 +2801,11 @@ export type Marginfi = {
     },
     {
       "code": 6045,
+      "name": "illegalAction",
+      "msg": "Invalid account authority"
+    },
+    {
+      "code": 6046,
       "name": "t22MintRequired",
       "msg": "Token22 Banks require mint account as first remaining account"
     }
@@ -4294,10 +4328,13 @@ export type Marginfi = {
             "name": "none"
           },
           {
-            "name": "pythEma"
+            "name": "pythLegacy"
           },
           {
             "name": "switchboardV2"
+          },
+          {
+            "name": "pythPushOracle"
           }
         ]
       }

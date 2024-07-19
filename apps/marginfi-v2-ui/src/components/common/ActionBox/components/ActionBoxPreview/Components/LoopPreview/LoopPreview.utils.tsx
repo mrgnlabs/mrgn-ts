@@ -128,7 +128,7 @@ export async function simulateLooping({ marginfiClient, account, bank, loopingTx
     ]);
     if (!mfiAccountData || !bankData) throw new Error("Failed to simulate looping");
     const previewBanks = marginfiClient.banks;
-    previewBanks.set(bank.address.toBase58(), Bank.fromBuffer(bank.address, bankData, marginfiClient.program.idl));
+    previewBanks.set(bank.address.toBase58(), Bank.fromBuffer(bank.address, bankData, marginfiClient.program.idl, marginfiClient.feedIdMap,));
     const previewClient = new MarginfiClient(
       marginfiClient.config,
       marginfiClient.program,
@@ -137,7 +137,8 @@ export async function simulateLooping({ marginfiClient, account, bank, loopingTx
       marginfiClient.group,
       marginfiClient.banks,
       marginfiClient.oraclePrices,
-      marginfiClient.mintDatas
+      marginfiClient.mintDatas,
+      marginfiClient.feedIdMap,
     );
     const previewMarginfiAccount = MarginfiAccountWrapper.fromAccountDataRaw(
       account.address,
@@ -249,8 +250,8 @@ function getLiquidationStat(bank: ExtendedBankInfo, isLoading: boolean, simulati
     ? computeLiquidation / price >= 0.5
       ? "SUCCESS"
       : computeLiquidation / price >= 0.25
-      ? "ALERT"
-      : "DESTRUCTIVE"
+        ? "ALERT"
+        : "DESTRUCTIVE"
     : undefined;
 
   return {
@@ -308,7 +309,10 @@ function getBankTypeStat(bank: ExtendedBankInfo): PreviewStat {
 function getOracleStat(bank: ExtendedBankInfo): PreviewStat {
   let oracle = "";
   switch (bank?.info.rawBank.config.oracleSetup) {
-    case "PythEma":
+    case "PythLegacy":
+      oracle = "Pyth";
+      break;
+    case "PythPushOracle":
       oracle = "Pyth";
       break;
     case "SwitchboardV2":
