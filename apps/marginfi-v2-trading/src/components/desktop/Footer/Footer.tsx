@@ -2,15 +2,9 @@ import React from "react";
 
 import Link from "next/link";
 
-import {
-  IconBrandX,
-  IconBrandDiscordFilled,
-  IconBrandGithubFilled,
-  IconBrandSubstack,
-  IconHelp,
-  IconBook,
-  IconChartHistogram,
-} from "~/components/ui/icons";
+import { motion } from "framer-motion";
+
+import { IconBrandX, IconBrandDiscordFilled, IconBrandGithubFilled, IconBook } from "~/components/ui/icons";
 
 const footerLinks = [
   {
@@ -33,7 +27,12 @@ const footerLinks = [
 
 export const Footer = () => {
   return (
-    <footer className="bg-background fixed bottom-0 w-full flex items-center justify-between px-4 py-2 z-30">
+    <motion.footer
+      className="bg-background fixed bottom-0 w-full flex items-center justify-between px-4 py-2 z-30"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ delay: 4 }}
+    >
       <p className="text-xs text-primary/80">
         <span className="inline-block translate-y-[1px] mr-0.5 animate-pulsate">◼️</span> built by{" "}
         <Link href="https://www.marginfi.com" target="_blank">
@@ -57,6 +56,6 @@ export const Footer = () => {
           ))}
         </ul>
       </nav>
-    </footer>
+    </motion.footer>
   );
 };
