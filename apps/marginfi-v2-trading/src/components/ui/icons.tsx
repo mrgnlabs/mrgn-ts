@@ -843,6 +843,247 @@ const IconBrandSubstack = ({ size = 24, className }: IconProps) => (
   </svg>
 );
 
+const IconArena = ({ size = 48, className }: IconProps) => (
+  <svg height={size} viewBox="0 0 704 704" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <mask id="mask0_2020_2" maskUnits="userSpaceOnUse" x="0" y="53" width="200" height="200">
+      <path d="M200 53H0V253H200V53Z" fill="white" />
+    </mask>
+    <g mask="url(#mask0_2020_2)">
+      <path
+        fill-rule="evenodd"
+        clip-rule="evenodd"
+        d="M100 53H0V153C0 97.772 44.772 53 100 53ZM200 153C200 97.772 155.228 53 100 53H200V153Z"
+        fill="black"
+      />
+      <path
+        d="M184 153V645H16V153C16 106.608 53.608 69 100 69C146.392 69 184 106.608 184 153Z"
+        stroke="url(#paint0_linear_2020_2)"
+        stroke-width="32"
+      />
+    </g>
+    <mask id="mask1_2020_2" maskUnits="userSpaceOnUse" x="168" y="53" width="200" height="200">
+      <path d="M368 53H168V253H368V53Z" fill="white" />
+    </mask>
+    <g mask="url(#mask1_2020_2)">
+      <path
+        fill-rule="evenodd"
+        clip-rule="evenodd"
+        d="M268 53H168V153C168 97.772 212.772 53 268 53ZM368 153C368 97.772 323.228 53 268 53H368V153Z"
+        fill="black"
+      />
+      <path
+        d="M352 153V645H184V153C184 106.608 221.608 69 268 69C314.392 69 352 106.608 352 153Z"
+        stroke="url(#paint1_linear_2020_2)"
+        stroke-width="32"
+      />
+    </g>
+    <mask id="mask2_2020_2" maskUnits="userSpaceOnUse" x="0" y="453" width="200" height="200">
+      <path d="M200 453H0V653H200V453Z" fill="white" />
+    </mask>
+    <g mask="url(#mask2_2020_2)">
+      <path
+        fill-rule="evenodd"
+        clip-rule="evenodd"
+        d="M100 453H0V553C0 497.772 44.772 453 100 453ZM200 553C200 497.772 155.228 453 100 453H200V553Z"
+        fill="black"
+      />
+      <path
+        d="M184 553V1045H16V553C16 506.608 53.608 469 100 469C146.392 469 184 506.608 184 553Z"
+        stroke="url(#paint2_linear_2020_2)"
+        stroke-width="32"
+      />
+    </g>
+    <mask id="mask3_2020_2" maskUnits="userSpaceOnUse" x="336" y="453" width="200" height="200">
+      <path d="M536 453H336V653H536V453Z" fill="white" />
+    </mask>
+    <g mask="url(#mask3_2020_2)">
+      <path
+        fill-rule="evenodd"
+        clip-rule="evenodd"
+        d="M436 453H336V553C336 497.772 380.772 453 436 453ZM536 553C536 497.772 491.228 453 436 453H536V553Z"
+        fill="black"
+      />
+      <path
+        d="M520 553V1045H352V553C352 506.608 389.608 469 436 469C482.392 469 520 506.608 520 553Z"
+        stroke="url(#paint3_linear_2020_2)"
+        stroke-width="32"
+      />
+    </g>
+    <mask id="mask4_2020_2" maskUnits="userSpaceOnUse" x="168" y="453" width="200" height="200">
+      <path d="M368 453H168V653H368V453Z" fill="white" />
+    </mask>
+    <g mask="url(#mask4_2020_2)">
+      <path
+        fill-rule="evenodd"
+        clip-rule="evenodd"
+        d="M268 453H168V553C168 497.772 212.772 453 268 453ZM368 553C368 497.772 323.228 453 268 453H368V553Z"
+        fill="black"
+      />
+      <path
+        d="M352 553V1045H184V553C184 506.608 221.608 469 268 469C314.392 469 352 506.608 352 553Z"
+        stroke="url(#paint4_linear_2020_2)"
+        stroke-width="32"
+      />
+    </g>
+    <mask id="mask5_2020_2" maskUnits="userSpaceOnUse" x="504" y="453" width="200" height="200">
+      <path d="M704 453H504V653H704V453Z" fill="white" />
+    </mask>
+    <g mask="url(#mask5_2020_2)">
+      <path
+        fill-rule="evenodd"
+        clip-rule="evenodd"
+        d="M604 453H504V553C504 497.772 548.772 453 604 453ZM704 553C704 497.772 659.228 453 604 453H704V553Z"
+        fill="black"
+      />
+      <path
+        d="M688 553V1045H520V553C520 506.608 557.608 469 604 469C650.392 469 688 506.608 688 553Z"
+        stroke="url(#paint5_linear_2020_2)"
+        stroke-width="32"
+      />
+    </g>
+    <mask id="mask6_2020_2" maskUnits="userSpaceOnUse" x="336" y="253" width="200" height="200">
+      <path d="M536 253H336V453H536V253Z" fill="white" />
+    </mask>
+    <g mask="url(#mask6_2020_2)">
+      <path
+        fill-rule="evenodd"
+        clip-rule="evenodd"
+        d="M436 253H336V353C336 297.772 380.772 253 436 253ZM536 353C536 297.772 491.228 253 436 253H536V353Z"
+        fill="black"
+      />
+      <path
+        d="M520 353V845H352V353C352 306.608 389.608 269 436 269C482.392 269 520 306.608 520 353Z"
+        stroke="url(#paint6_linear_2020_2)"
+        stroke-width="32"
+      />
+    </g>
+    <mask id="mask7_2020_2" maskUnits="userSpaceOnUse" x="0" y="253" width="200" height="200">
+      <path d="M200 253H0V453H200V253Z" fill="white" />
+    </mask>
+    <g mask="url(#mask7_2020_2)">
+      <path
+        fill-rule="evenodd"
+        clip-rule="evenodd"
+        d="M100 253H0V353C0 297.772 44.772 253 100 253ZM200 353C200 297.772 155.228 253 100 253H200V353Z"
+        fill="black"
+      />
+      <path
+        d="M184 353V845H16V353C16 306.608 53.608 269 100 269C146.392 269 184 306.608 184 353Z"
+        stroke="url(#paint7_linear_2020_2)"
+        stroke-width="32"
+      />
+    </g>
+    <mask id="mask8_2020_2" maskUnits="userSpaceOnUse" x="168" y="253" width="200" height="200">
+      <path d="M368 253H168V453H368V253Z" fill="white" />
+    </mask>
+    <g mask="url(#mask8_2020_2)">
+      <path
+        fill-rule="evenodd"
+        clip-rule="evenodd"
+        d="M268 253H168V353C168 297.772 212.772 253 268 253ZM368 353C368 297.772 323.228 253 268 253H368V353Z"
+        fill="black"
+      />
+      <path
+        d="M352 353V845H184V353C184 306.608 221.608 269 268 269C314.392 269 352 306.608 352 353Z"
+        stroke="url(#paint8_linear_2020_2)"
+        stroke-width="32"
+      />
+    </g>
+    <defs>
+      <linearGradient
+        id="paint0_linear_2020_2"
+        x1="-6.84505e-07"
+        y1="133.8"
+        x2="200"
+        y2="133.008"
+        gradientUnits="userSpaceOnUse"
+      >
+        <stop offset="1" />
+      </linearGradient>
+      <linearGradient
+        id="paint1_linear_2020_2"
+        x1="168"
+        y1="133.8"
+        x2="368"
+        y2="133.008"
+        gradientUnits="userSpaceOnUse"
+      >
+        <stop offset="1" />
+      </linearGradient>
+      <linearGradient
+        id="paint2_linear_2020_2"
+        x1="-6.84505e-07"
+        y1="533.8"
+        x2="200"
+        y2="533.008"
+        gradientUnits="userSpaceOnUse"
+      >
+        <stop offset="1" />
+      </linearGradient>
+      <linearGradient
+        id="paint3_linear_2020_2"
+        x1="336"
+        y1="533.8"
+        x2="536"
+        y2="533.008"
+        gradientUnits="userSpaceOnUse"
+      >
+        <stop offset="1" />
+      </linearGradient>
+      <linearGradient
+        id="paint4_linear_2020_2"
+        x1="168"
+        y1="533.8"
+        x2="368"
+        y2="533.008"
+        gradientUnits="userSpaceOnUse"
+      >
+        <stop offset="1" />
+      </linearGradient>
+      <linearGradient
+        id="paint5_linear_2020_2"
+        x1="504"
+        y1="533.8"
+        x2="704"
+        y2="533.008"
+        gradientUnits="userSpaceOnUse"
+      >
+        <stop offset="1" />
+      </linearGradient>
+      <linearGradient
+        id="paint6_linear_2020_2"
+        x1="336"
+        y1="333.8"
+        x2="536"
+        y2="333.008"
+        gradientUnits="userSpaceOnUse"
+      >
+        <stop offset="1" />
+      </linearGradient>
+      <linearGradient
+        id="paint7_linear_2020_2"
+        x1="-6.84505e-07"
+        y1="333.8"
+        x2="200"
+        y2="333.008"
+        gradientUnits="userSpaceOnUse"
+      >
+        <stop offset="1" />
+      </linearGradient>
+      <linearGradient
+        id="paint8_linear_2020_2"
+        x1="168"
+        y1="333.8"
+        x2="368"
+        y2="333.008"
+        gradientUnits="userSpaceOnUse"
+      >
+        <stop offset="1" />
+      </linearGradient>
+    </defs>
+  </svg>
+);
+
 export {
   // tabler icons
   IconCaretUpDownFilled,
@@ -943,4 +1184,5 @@ export {
   IconPlus,
   IconChartLine,
   IconChartPie,
+  IconArena,
 };
