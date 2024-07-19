@@ -28,7 +28,7 @@ export const PageHeading = ({ heading, body, links, button, size = "md", animate
         className={cn("text-5xl font-medium text-primary font-orbitron", size === "lg" && "text-5xl md:text-6xl")}
         initial={{ opacity: animate ? 0 : 1 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 0.3, delay: 1 }}
+        transition={{ duration: 0.5, delay: 0.5 }}
       >
         {heading}
       </motion.h1>
@@ -36,7 +36,7 @@ export const PageHeading = ({ heading, body, links, button, size = "md", animate
         className="max-w-2xl w-full mx-auto"
         initial={{ opacity: animate ? 0 : 1 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 0.3, delay: 1.3 }}
+        transition={{ duration: 0.5, delay: 0.8 }}
       >
         {body}
       </motion.div>

@@ -32,7 +32,7 @@ export const Header = () => {
 
   React.useEffect(() => {
     if (!initialized) return;
-    animate("[data-header]", { opacity: 1, y: 0 }, { duration: 0.3, delay: 0.5 });
+    animate("[data-header]", { opacity: 1, y: 0 }, { duration: 0.3, delay: 0 });
   }, [initialized, animate]);
 
   return (
