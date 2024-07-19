@@ -95,12 +95,12 @@ export const PoolSearch = ({
   return (
     <div className="relative w-full">
       <Command shouldFilter={false}>
-        <div className="border border-[#4E5156] rounded-full px-2">
+        <div className="border border-muted-foreground/25 rounded-full px-2">
           <CommandInput
             ref={searchInputRef}
             placeholder={isMobile ? "Search tokens..." : "Search tokens by name, symbol, or mint address..."}
             className={cn(
-              "py-1.5 h-auto text-lg bg-transparent outline-none focus-visible:ring-0 md:text-xl md:py-3",
+              "py-1.5 h-auto text-lg bg-transparent outline-none focus-visible:ring-0 md:text-lg md:py-3",
               size === "sm" && "text-base md:text-lg md:py-2.5"
             )}
             value={searchQuery}
