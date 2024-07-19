@@ -187,10 +187,7 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
       const spamSendTx = args?.spamSendTx ?? get().spamSendTx ?? false;
       const skipPreflightInSpam = args?.skipPreflightInSpam ?? get().skipPreflightInSpam ?? false;
 
-      const [bankMetadataMap, tokenMetadataMap] = await Promise.all([
-        loadBankMetadatas(process.env.NEXT_PUBLIC_MARGINFI_BANK_METADATA_CACHE_URL || undefined),
-        loadTokenMetadatas(process.env.NEXT_PUBLIC_MARGINFI_TOKEN_METADATA_CACHE_URL || undefined),
-      ]);
+      const [bankMetadataMap, tokenMetadataMap] = await Promise.all([loadBankMetadatas(), loadTokenMetadatas()]);
       const bankAddresses = Object.keys(bankMetadataMap).map((address) => new PublicKey(address));
       const marginfiClient = await MarginfiClient.fetch(marginfiConfig, wallet ?? ({} as any), connection, {
         preloadedBankAddresses: bankAddresses,
