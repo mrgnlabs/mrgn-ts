@@ -1,8 +1,9 @@
 import React from "react";
 
 import { motion } from "framer-motion";
+import { IconAlertTriangle, IconKey } from "@tabler/icons-react";
 
-import { IconMrgn } from "~/components/ui/icons";
+import { IconArena } from "~/components/ui/icons";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "~/components/ui/carousel";
 import { Button } from "~/components/ui/button";
 
@@ -39,7 +40,7 @@ export const Tutorial = () => {
             <CarouselItem>
               <div className="flex flex-col gap-12 items-center justify-center text-center max-w-2xl mx-auto">
                 <header className="flex flex-col gap-8 items-center justify-center">
-                  <IconMrgn size={56} />
+                  <IconArena size={68} />
                   <div className="text-center space-y-4">
                     <h2 className="text-primary font-medium text-5xl font-orbitron">Welcome to the arena</h2>
                     <h3 className="text-2xl">Memecoin trading, with leverage.</h3>
@@ -53,7 +54,7 @@ export const Tutorial = () => {
                 <div className="flex flex-col gap-8 items-center justify-center text-center max-w-2xl mx-auto">
                   <div className="flex flex-col gap-4 items-center justify-center">
                     <header className="flex flex-col gap-4 items-center justify-center">
-                      <IconMrgn size={42} />
+                      <IconAlertTriangle size={42} />
                       <h2 className="text-primary font-medium text-4xl">Number {index + 1} heading here</h2>
                     </header>
                     <p className="text-lg">
@@ -72,7 +73,7 @@ export const Tutorial = () => {
               <div className="flex flex-col gap-8 items-center justify-center text-center max-w-2xl mx-auto">
                 <div className="flex flex-col gap-4 items-center justify-center">
                   <header className="flex flex-col gap-4 items-center justify-center">
-                    <IconMrgn size={42} />
+                    <IconArena size={56} />
                     <h2 className="text-primary font-medium text-4xl">Final heading here</h2>
                   </header>
                   <p className="text-lg">
@@ -81,7 +82,10 @@ export const Tutorial = () => {
                     est excepteur.
                   </p>
                 </div>
-                <Button onClick={() => api?.scrollNext()}>Enter the arena</Button>
+                <Button onClick={() => api?.scrollNext()}>
+                  <IconKey size={16} />
+                  Enter the arena
+                </Button>
               </div>
             </CarouselItem>
           </CarouselContent>
