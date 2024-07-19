@@ -13,7 +13,7 @@ import { useWalletContext } from "~/hooks/useWalletContext";
 import { WalletButton } from "~/components/common/Wallet";
 import { CreatePoolDialog } from "~/components/common/Pool/CreatePoolDialog";
 import { Button } from "~/components/ui/button";
-import { IconMrgn, IconTrendingUp, IconCoins, IconChartPie, IconPlus } from "~/components/ui/icons";
+import { IconMrgn, IconArena, IconTrendingUp, IconCoins, IconChartPie, IconPlus } from "~/components/ui/icons";
 import { useIsMobile } from "~/hooks/useIsMobile";
 import { CreatePoolScriptDialog } from "../Pool/CreatePoolScript";
 
@@ -43,7 +43,7 @@ export const Header = () => {
         initial={{ opacity: 0, y: -64 }}
       >
         <Link href="/">
-          <IconMrgn size={31} />
+          <IconArena size={56} />
         </Link>
         <nav className="mr-auto hidden lg:block">
           <ul className="flex items-center gap-6">
