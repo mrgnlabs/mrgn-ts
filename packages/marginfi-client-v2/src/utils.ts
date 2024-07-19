@@ -18,7 +18,7 @@ import {
   PDA_BANK_INSURANCE_VAULT_SEED,
   PDA_BANK_LIQUIDITY_VAULT_AUTH_SEED,
   PDA_BANK_LIQUIDITY_VAULT_SEED,
-  PYTH_SOLANA_RECEIVER_ID,
+  PYTH_PUSH_ORACLE_ID,
 } from "./constants";
 import { BankVaultType } from "./types";
 import {
@@ -148,17 +148,21 @@ export async function buildFeedIdMap(bankConfigs: BankConfigRaw[], connection: C
     let feedId = bankConfig.oracleKeys[0].toBuffer();
     return {
       feedId, addresses: [
-        findPythPushOracleAddress(feedId, PYTH_SOLANA_RECEIVER_ID, PYTH_SPONSORED_SHARD_ID),
-        findPythPushOracleAddress(feedId, PYTH_SOLANA_RECEIVER_ID, MARGINFI_SPONSORED_SHARD_ID),
+        findPythPushOracleAddress(feedId, PYTH_PUSH_ORACLE_ID, PYTH_SPONSORED_SHARD_ID),
+        findPythPushOracleAddress(feedId, PYTH_PUSH_ORACLE_ID, MARGINFI_SPONSORED_SHARD_ID),
       ]
     }
   }).flat();
 
   const addressess = feedIdsWithAddresses.map((feedIdWithAddress) => feedIdWithAddress.addresses).flat();
+  const accountInfos = [];
 
-  console.log("Fetching oracle accounts", addressess.map((address) => address.toBase58()));
-
-  const accountInfos = await connection.getMultipleAccountsInfo(addressess);
+  const chunkSize = 25;
+  for (let i = 0; i < addressess.length; i += chunkSize) {
+    const chunk = addressess.slice(i, i + chunkSize);
+    const accountInfosChunk = await connection.getMultipleAccountsInfo(chunk);
+    accountInfos.push(...accountInfosChunk);
+  }
 
   for (let i = 0; i < feedIdsWithAddresses.length; i++) {
     const oraclesStartIndex = i * 2;
