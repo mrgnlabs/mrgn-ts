@@ -180,10 +180,6 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
       const marginfiConfig = args?.marginfiConfig ?? get().marginfiClient?.config;
       if (!marginfiConfig) throw new Error("Marginfi config must be provided at least once");
 
-      console.log("marginfiConfig", marginfiConfig);
-      console.log("marginfiConfig programId", marginfiConfig.programId.toBase58());
-      console.log("marginfiConfig group", marginfiConfig.groupPk.toBase58());
-
       const stageTokens = args?.stageTokens ?? get().stageTokens;
 
       const isReadOnly = args?.isOverride !== undefined ? args.isOverride : get().marginfiClient?.isReadOnly ?? false;
