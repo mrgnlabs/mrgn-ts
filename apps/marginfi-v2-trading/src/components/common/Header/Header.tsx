@@ -4,7 +4,9 @@ import React from "react";
 
 import Link from "next/link";
 import { useRouter } from "next/router";
+import { motion, useAnimate } from "framer-motion";
 
+import { useTradeStore } from "~/store";
 import { cn } from "~/utils/themeUtils";
 import { useWalletContext } from "~/hooks/useWalletContext";
 
@@ -22,13 +24,23 @@ const navItems = [
 ];
 
 export const Header = () => {
+  const [initialized] = useTradeStore((state) => [state.initialized]);
   const { asPath, isReady } = useRouter();
   const { connected } = useWalletContext();
   const isMobile = useIsMobile();
+  const [scope, animate] = useAnimate();
+
+  React.useEffect(() => {
+    if (!initialized) return;
+    animate("header", { opacity: 1, y: 0 }, { duration: 0.3, delay: 0.5 });
+  }, [initialized, animate]);
 
   return (
-    <div className="relative h-[64px]">
-      <header className="fixed w-full flex items-center justify-between gap-8 py-3.5 px-4 bg-background z-50">
+    <div ref={scope} className="relative h-[64px]">
+      <motion.header
+        className="fixed w-full flex items-center justify-between gap-8 py-3.5 px-4 bg-background z-50"
+        initial={{ opacity: 0, y: -64 }}
+      >
         <Link href="/">
           <IconMrgn size={31} />
         </Link>
@@ -88,7 +100,7 @@ export const Header = () => {
           )}
           <WalletButton />
         </div>
-      </header>
+      </motion.header>
     </div>
   );
 };
