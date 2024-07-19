@@ -1,6 +1,9 @@
 import React from "react";
 
 import Image from "next/image";
+import Link from "next/link";
+
+import { IconChartLine, IconExternalLink } from "@tabler/icons-react";
 
 import { numeralFormatter, percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 
@@ -9,6 +12,7 @@ import { getTokenImageURL, cn } from "~/utils";
 
 import { PoolChart } from "~/components/common/Pool";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+import { Button } from "~/components/ui/button";
 
 import type { TokenData } from "~/types";
 
@@ -89,7 +93,7 @@ export const PoolHeader = () => {
   return (
     <div className="space-y-8 grid-cols-9 w-full max-w-6xl mx-auto md:grid md:space-y-0">
       <div className="col-span-3">
-        <div className="h-full flex flex-col justify-center text-center items-center gap-3">
+        <div className="h-full flex flex-col justify-center text-center items-center gap-2">
           <Image
             src={getTokenImageURL(activeGroup.token.meta.tokenSymbol)}
             width={72}
@@ -97,9 +101,17 @@ export const PoolHeader = () => {
             className="rounded-full border"
             alt={activeGroup.token.meta.tokenName}
           />
-          <div className="space-y-0.5">
-            <h1 className="text-2xl font-medium">{activeGroup.token.meta.tokenName}</h1>
-            <h2 className="text-xl text-muted-foreground">{activeGroup.token.meta.tokenSymbol}</h2>
+          <div className="space-y-2">
+            <div className="space-y-0">
+              <h1 className="text-2xl font-medium">{activeGroup.token.meta.tokenName}</h1>
+              <h2 className="text-xl text-muted-foreground">{activeGroup.token.meta.tokenSymbol}</h2>
+            </div>
+            <Link className="inline-block" href={`/trade/${activeGroup.token.address.toBase58()}`}>
+              <Button variant="outline" size="sm" className="h-8">
+                <IconExternalLink size={16} />
+                Trade {activeGroup.token.meta.tokenSymbol}
+              </Button>
+            </Link>
           </div>
           <div className="px-6 lg:px-12 w-full">
             <PoolChart chartData={chartData} />
