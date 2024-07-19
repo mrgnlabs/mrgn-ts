@@ -1,6 +1,9 @@
 import React from "react";
 
-import { IconSortAscending, IconSortDescending } from "@tabler/icons-react";
+import { useRouter } from "next/router";
+
+import { IconSortAscending, IconSortDescending, IconSparkles } from "@tabler/icons-react";
+import { motion, useAnimate, stagger } from "framer-motion";
 
 import { useTradeStore, useUiStore } from "~/store";
 import { TradePoolFilterStates } from "~/store/tradeStore";
@@ -35,6 +38,7 @@ const sortOptions: {
 ];
 
 export default function HomePage() {
+  const router = useRouter();
   const [initialized, banks, resetActiveGroup, currentPage, totalPages, setCurrentPage, sortBy, setSortBy] =
     useTradeStore((state) => [
       state.initialized,
@@ -49,18 +53,34 @@ export default function HomePage() {
 
   const [previousTxn] = useUiStore((state) => [state.previousTxn]);
 
+  const [scope, animate] = useAnimate();
+
   const dir = React.useMemo(() => {
     const option = sortOptions.find((option) => option.value === sortBy);
     return option?.dir || "desc";
   }, [sortBy]);
 
+  const handleFeelingLucky = () => {
+    const randomPool = banks[Math.floor(Math.random() * banks.length)];
+    if (!randomPool) return;
+    router.push(`/trade/${randomPool.address.toBase58()}`);
+  };
+
   React.useEffect(() => {
     resetActiveGroup();
   }, [resetActiveGroup]);
 
+  React.useEffect(() => {
+    if (!initialized) return;
+    setTimeout(() => {
+      requestAnimationFrame(() => animate("[data-item]", { opacity: 1 }, { duration: 0.5, delay: stagger(0.3) }));
+    }, 2000);
+    animate("[data-filter]", { opacity: 1 }, { duration: 0.3, delay: 1.75 });
+  }, [initialized, animate, scope]);
+
   return (
     <>
-      <div className="w-full max-w-8xl mx-auto px-4 pb-16 pt-8 md:pt-14">
+      <div ref={scope} className="w-full max-w-8xl mx-auto px-4 pb-16 pt-8 md:pt-14">
         {!initialized && <Loader label="Loading the arena..." className="mt-8" />}
         {initialized && (
           <>
@@ -69,14 +89,25 @@ export default function HomePage() {
                 size="lg"
                 heading={<div className="flex flex-col gap-2 md:inline">Welcome to the arena</div>}
                 body={<p>Memecoin trading, with leverage.</p>}
+                animate={true}
               />
-              <div className="flex items-center gap-4">
+              <motion.div
+                data-search
+                className="search flex flex-col items-center gap-6"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.3, delay: 1.7 }}
+              >
                 <PoolSearch showNoResults={false} />
-              </div>
+
+                <Button variant="outline" onClick={handleFeelingLucky}>
+                  <IconSparkles size={16} /> I&apos;m feeling lucky
+                </Button>
+              </motion.div>
             </div>
 
             <div className="w-full space-y-6 py-12 md:pt-16">
-              <div className="flex items-center justify-end">
+              <motion.div data-filter className="flex items-center justify-end" initial={{ opacity: 0 }}>
                 <Select value={sortBy} onValueChange={(value) => setSortBy(value as TradePoolFilterStates)}>
                   <SelectTrigger className="w-[190px] justify-start gap-2">
                     {dir === "desc" && <IconSortDescending size={16} />}
@@ -91,11 +122,15 @@ export default function HomePage() {
                     ))}
                   </SelectContent>
                 </Select>
-              </div>
-              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
+              </motion.div>
+              <motion.div data-grid className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
                 {banks.length > 0 &&
-                  banks.slice(0, currentPage * POOLS_PER_PAGE).map((bank, i) => <PoolCard key={i} bank={bank} />)}
-              </div>
+                  banks.slice(0, currentPage * POOLS_PER_PAGE).map((bank, i) => (
+                    <motion.div data-item key={i} initial={{ opacity: 0 }}>
+                      <PoolCard bank={bank} />
+                    </motion.div>
+                  ))}
+              </motion.div>
               {currentPage < totalPages && (
                 <div className="py-8 flex justify-center">
                   <Button

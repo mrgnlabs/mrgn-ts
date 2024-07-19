@@ -32,12 +32,13 @@ export const Header = () => {
 
   React.useEffect(() => {
     if (!initialized) return;
-    animate("header", { opacity: 1, y: 0 }, { duration: 0.3, delay: 0.5 });
+    animate("[data-header]", { opacity: 1, y: 0 }, { duration: 0.3, delay: 0.5 });
   }, [initialized, animate]);
 
   return (
     <div ref={scope} className="relative h-[64px]">
       <motion.header
+        data-header
         className="fixed w-full flex items-center justify-between gap-8 py-3.5 px-4 bg-background z-50"
         initial={{ opacity: 0, y: -64 }}
       >
