@@ -223,7 +223,7 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
 
       fuse = new Fuse(banksPreppedForFuse, {
         includeScore: true,
-        findAllMatches: true,
+        threshold: 0.2,
         keys: [
           {
             name: "symbol",
