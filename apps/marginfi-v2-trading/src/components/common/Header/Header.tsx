@@ -73,7 +73,7 @@ export const Header = () => {
             })}
           </ul>
         </nav>
-        <div className="flex items-center gap-6">
+        <div className={cn("flex items-center", process.env.NEXT_PUBLIC_ENABLE_BANK_SCRIPT && "gap-6")}>
           {
             // eslint-disable-next-line turbo/no-undeclared-env-vars
             process.env.NEXT_PUBLIC_ENABLE_BANK_SCRIPT && (
