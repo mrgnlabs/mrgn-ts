@@ -4,6 +4,7 @@ import { IconSearch } from "~/components/ui/icons";
 import { Command as CommandPrimitive } from "cmdk";
 
 import { cn } from "~/utils/themeUtils";
+import { useIsMobile } from "~/hooks/useIsMobile";
 import { Dialog, DialogContent } from "~/components/ui/dialog";
 
 const Command = React.forwardRef<
@@ -39,19 +40,22 @@ type CommandInputProps = {
 const CommandInput = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.Input>,
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.Input> & CommandInputProps
->(({ className, wrapperClassName = "", ...props }, ref) => (
-  <div className={cn("items-center px-3 flex", wrapperClassName)} cmdk-input-wrapper="">
-    <IconSearch size={20} className="mr-2 shrink-0 opacity-50" />
-    <CommandPrimitive.Input
-      ref={ref}
-      className={cn(
-        "flex h-10 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground/75 disabled:cursor-not-allowed disabled:opacity-50",
-        className
-      )}
-      {...props}
-    />
-  </div>
-));
+>(({ className, wrapperClassName = "", ...props }, ref) => {
+  const isMobile = useIsMobile();
+  return (
+    <div className={cn("items-center px-1 flex md:px-3", wrapperClassName)} cmdk-input-wrapper="">
+      <IconSearch size={isMobile ? 18 : 20} className="mr-2 shrink-0 opacity-50" />
+      <CommandPrimitive.Input
+        ref={ref}
+        className={cn(
+          "flex h-10 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground/75 disabled:cursor-not-allowed disabled:opacity-50",
+          className
+        )}
+        {...props}
+      />
+    </div>
+  );
+});
 
 CommandInput.displayName = CommandPrimitive.Input.displayName;
 

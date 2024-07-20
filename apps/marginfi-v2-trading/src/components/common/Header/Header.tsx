@@ -43,7 +43,7 @@ export const Header = () => {
         initial={{ opacity: 0, y: -64 }}
       >
         <Link href="/">
-          <IconArena size={56} />
+          <IconArena size={isMobile ? 40 : 48} className="opacity-90" />
         </Link>
         <nav className="mr-auto hidden lg:block">
           <ul className="flex items-center gap-6">
@@ -99,7 +99,9 @@ export const Header = () => {
               />
             </div>
           )}
-          <WalletButton />
+          <div className="ml-4">
+            <WalletButton />
+          </div>
         </div>
       </motion.header>
     </div>
