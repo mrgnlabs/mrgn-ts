@@ -8,6 +8,7 @@ import { motion, useAnimate, stagger } from "framer-motion";
 import { useTradeStore, useUiStore } from "~/store";
 import { TradePoolFilterStates } from "~/store/tradeStore";
 import { POOLS_PER_PAGE } from "~/config/trade";
+import { useIsMobile } from "~/hooks/useIsMobile";
 
 import { PageHeading } from "~/components/common/PageHeading";
 import { PoolCard } from "~/components/common/Pool/PoolCard";
@@ -39,6 +40,7 @@ const sortOptions: {
 
 export default function HomePage() {
   const router = useRouter();
+  const isMobile = useIsMobile();
   const [initialized, banks, resetActiveGroup, currentPage, totalPages, setCurrentPage, sortBy, setSortBy] =
     useTradeStore((state) => [
       state.initialized,
@@ -93,15 +95,15 @@ export default function HomePage() {
               />
               <motion.div
                 data-search
-                className="search flex flex-col items-center gap-6"
+                className="search flex flex-col items-center gap-4 md:gap-6"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.5, delay: 1.2 }}
               >
                 <PoolSearch showNoResults={false} />
 
-                <Button variant="outline" onClick={handleFeelingLucky}>
-                  <IconSparkles size={16} /> I&apos;m feeling lucky
+                <Button variant="outline" onClick={handleFeelingLucky} size={isMobile ? "sm" : "default"}>
+                  <IconSparkles size={isMobile ? 16 : 18} /> I&apos;m feeling lucky
                 </Button>
               </motion.div>
             </div>
