@@ -21,7 +21,7 @@ import {
 } from "@tabler/icons-react";
 import { shortenAddress, usdFormatter, numeralFormatter, groupedNumberFormatterDyn } from "@mrgnlabs/mrgn-common";
 
-import { useMrgnlendStore, useUiStore, useUserProfileStore } from "~/store";
+import { useMrgnlendStore, useTradeStore, useUiStore, useUserProfileStore } from "~/store";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { useIsMobile } from "~/hooks/useIsMobile";
 import { showErrorToast } from "~/utils/toastUtils";
@@ -57,9 +57,8 @@ enum WalletState {
 
 export const Wallet = () => {
   const router = useRouter();
-  const [marginfiAccounts, extendedBankInfos, nativeSolBalance, initialized] = useMrgnlendStore((state) => [
-    state.marginfiAccounts,
-    state.extendedBankInfos,
+  const [extendedBankInfos, nativeSolBalance, initialized] = useTradeStore((state) => [
+    state.banks,
     state.nativeSolBalance,
     state.initialized,
   ]);
@@ -324,7 +323,7 @@ export const Wallet = () => {
                     <div className="py-4">
                       <div className="relative flex flex-col pt-6 gap-2">
                         <button
-                          className="absolute top-0 left-12 flex items-center gap-1 text-sm"
+                          className="absolute top-0 left-1 flex items-center gap-1 text-sm text-muted-foreground"
                           onClick={() => resetWalletState()}
                         >
                           <IconArrowLeft size={16} /> back

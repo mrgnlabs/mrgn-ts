@@ -99,7 +99,7 @@ export const PoolSearch = ({
   }, [searchResults]);
 
   return (
-    <div className="relative w-full">
+    <div className="relative w-full px-4 md:px-0">
       <Command shouldFilter={false} onKeyDown={(event) => event.key === "Escape" && resetSearch()}>
         <div
           className={cn(
@@ -111,7 +111,7 @@ export const PoolSearch = ({
             ref={searchInputRef}
             placeholder={isMobile ? "Search tokens..." : "Search tokens by name, symbol, or mint address..."}
             className={cn(
-              "py-1.5 h-auto text-lg bg-transparent outline-none focus-visible:ring-0 md:text-lg md:py-3",
+              "py-2 h-auto bg-transparent outline-none focus-visible:ring-0 md:text-lg md:py-3",
               size === "sm" && "text-base md:text-lg md:py-2.5"
             )}
             value={searchQuery}
@@ -121,7 +121,7 @@ export const PoolSearch = ({
           />
           {searchQuery.length > 0 && (
             <IconX
-              size={18}
+              size={isMobile ? 16 : 18}
               className="absolute text-muted-foreground right-4 top-1/2 -translate-y-1/2 cursor-pointer transition-colors hover:text-primary"
               onClick={() => {
                 resetSearch();
