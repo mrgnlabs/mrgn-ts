@@ -16,7 +16,17 @@ In this guide, we will answer commonly asked questions regarding the marginfi pr
 </Note>
 
 ## What are fees? {{ tag: '', label: '' }}
-Fees include borrowing interest, liquidation penalties (5%), and insurance fund fees (2.5%).
+Fees include borrowing interest, liquidation penalties and insurance fund fees.
+
+Borrowing interest varies on the given asset, bank configuration, and market conditions. For the latest interest rates, refer to the asset list on <Button href="https://app.marginfi.com/" variant="text"><>mrgnlend</></Button>
+
+When borrowed positions fall below requirements and are liquidated, liquidated borrowers (a.k.a. liquidatees) are penalized through a liquidation fee. This fee amounts to 5% of the liquidated assets, and is equally distributed among the liquidator and the insurance fund of the bank for the liquidated token.
+
+## Are there fees on flashloans? {{ tag: '', label: '' }}
+No, flashloans do not incur fees. Flashloans bundle multiple borrow and lend instructions into a single transaction, but the borrows that occur within the flashloan get paid back immediately so no interested can be accrued.
+
+## Are there fees on LST? {{ tag: '', label: '' }}
+There are no fees for holding or acquiring LST. There is only a fee for withdrawing LST. 
 
 ## What are marginfi points? {{ tag: '', label: '' }}
 Marginfi points are earned by lending, borrowing, and referring new users, they quantify your contribution to the marginfi ecosystem.
