@@ -71,7 +71,7 @@ export const WalletPkDialog = ({ pk }: WalletPkDialogProps) => {
           </CopyToClipboard>
         </div>
         <Button className="mx-auto mt-4" onClick={() => setIsOpen(false)}>
-          Get Started
+          Close
         </Button>
       </DialogContent>
     </Dialog>
