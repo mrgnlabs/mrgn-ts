@@ -74,10 +74,12 @@ export default function HomePage() {
 
   React.useEffect(() => {
     if (!initialized) return;
-    setTimeout(() => {
+    const timeout = setTimeout(() => {
       requestAnimationFrame(() => animate("[data-item]", { opacity: 1 }, { duration: 0.5, delay: stagger(0.25) }));
     }, 1500);
     animate("[data-filter]", { opacity: 1 }, { duration: 0.3, delay: 1.25 });
+
+    return () => clearTimeout(timeout);
   }, [initialized, animate, scope]);
 
   return (
