@@ -1,14 +1,7 @@
 import React from "react";
 
 import { motion } from "framer-motion";
-import {
-  IconAlertTriangle,
-  IconKey,
-  IconTrendingUp,
-  IconCoins,
-  IconChevronLeft,
-  IconChevronRight,
-} from "@tabler/icons-react";
+import { IconAlertTriangle, IconTrendingUp, IconCoins, IconChevronLeft, IconChevronRight } from "@tabler/icons-react";
 
 import { IconArena } from "~/components/ui/icons";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "~/components/ui/carousel";
@@ -42,6 +35,19 @@ export const Tutorial = () => {
   const [current, setCurrent] = React.useState(0);
   const [count, setCount] = React.useState(0);
   const [checked, setChecked] = React.useState(false);
+  const [open, setOpen] = React.useState(true);
+
+  const handleDialogClose = () => {
+    localStorage.setItem("arenaTutorialAcknowledged", "true");
+    setOpen(false);
+  };
+
+  React.useEffect(() => {
+    if (!localStorage.getItem("arenaTutorialAcknowledged")) {
+      setOpen(true);
+      return;
+    }
+  }, []);
 
   React.useEffect(() => {
     if (!api) {
@@ -55,6 +61,8 @@ export const Tutorial = () => {
       setCurrent(api.selectedScrollSnap() + 1);
     });
   }, [api]);
+
+  if (!open) return null;
 
   return (
     <div className="mrgn-bg-gradient fixed top-0 left-0 w-screen h-screen bg-background md:max-w-none md:max-h-none md:h-screen z-[999999]">
@@ -128,7 +136,7 @@ export const Tutorial = () => {
                   <Button onClick={() => api?.scrollPrev()} variant="outline" className="pl-2">
                     <IconChevronLeft size={16} /> Back
                   </Button>
-                  <Button onClick={() => api?.scrollNext()} className="flex items-center gap-4" disabled={!checked}>
+                  <Button onClick={() => handleDialogClose()} className="flex items-center gap-4" disabled={!checked}>
                     <IconArena className="fill-white" size={16} /> Enter The Arena
                   </Button>
                 </div>
