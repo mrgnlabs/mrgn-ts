@@ -35,7 +35,7 @@ export const Tutorial = () => {
   const [current, setCurrent] = React.useState(0);
   const [count, setCount] = React.useState(0);
   const [checked, setChecked] = React.useState(false);
-  const [open, setOpen] = React.useState(true);
+  const [open, setOpen] = React.useState(false);
 
   const handleDialogClose = () => {
     localStorage.setItem("arenaTutorialAcknowledged", "true");
