@@ -503,12 +503,7 @@ export const Wallet = () => {
         </SheetContent>
       </Sheet>
 
-      {web3AuthConncected && (
-        <>
-          <WalletPkDialog pk={web3AuthPk} />
-          <WalletIntroDialog />
-        </>
-      )}
+      {web3AuthConncected && <WalletPkDialog pk={web3AuthPk} />}
     </>
   );
 };
