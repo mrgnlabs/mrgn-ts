@@ -5,17 +5,19 @@ import React from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { motion, useAnimate } from "framer-motion";
+import { IconTrendingUp, IconCoins, IconChartPie, IconPlus } from "@tabler/icons-react";
 
 import { useTradeStore } from "~/store";
 import { cn } from "~/utils/themeUtils";
 import { useWalletContext } from "~/hooks/useWalletContext";
+import { useIsMobile } from "~/hooks/useIsMobile";
 
 import { WalletButton } from "~/components/common/Wallet";
 import { CreatePoolDialog } from "~/components/common/Pool/CreatePoolDialog";
-import { Button } from "~/components/ui/button";
-import { IconMrgn, IconArena, IconTrendingUp, IconCoins, IconChartPie, IconPlus } from "~/components/ui/icons";
-import { useIsMobile } from "~/hooks/useIsMobile";
 import { CreatePoolScriptDialog } from "../Pool/CreatePoolScript";
+import { Button } from "~/components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
+import { IconArena } from "~/components/ui/icons";
 
 const navItems = [
   { label: "pools", icon: <IconCoins />, href: "/" },
@@ -90,13 +92,25 @@ export const Header = () => {
           }
           {connected && !isMobile && (
             <div className="flex items-center">
-              <CreatePoolDialog
+              {/* <CreatePoolDialog
                 trigger={
-                  <Button size={isMobile ? "sm" : "default"}>
-                    <IconPlus size={isMobile ? 14 : 18} /> Create Pool
+                  <Button size={isMobile ? "sm" : "default"} disabled={true}>
+                    <IconPlus size={isMobile ? 14 : 18} /> Create Pools
                   </Button>
                 }
-              />
+              /> */}
+              <TooltipProvider>
+                <Tooltip delayDuration={0}>
+                  <TooltipTrigger asChild>
+                    <Button size={isMobile ? "sm" : "default"} className="opacity-50">
+                      <IconPlus size={isMobile ? 14 : 18} /> Create Pools
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Permissionless pools coming soon...</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
           )}
           <div className="ml-4">
