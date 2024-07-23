@@ -13,10 +13,8 @@ import { useWalletContext } from "~/hooks/useWalletContext";
 import { useIsMobile } from "~/hooks/useIsMobile";
 
 import { WalletButton } from "~/components/common/Wallet";
-import { CreatePoolDialog } from "~/components/common/Pool/CreatePoolDialog";
 import { CreatePoolScriptDialog } from "../Pool/CreatePoolScript";
 import { Button } from "~/components/ui/button";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { IconArena } from "~/components/ui/icons";
 
 const navItems = [
@@ -99,18 +97,6 @@ export const Header = () => {
                   </Button>
                 }
               /> */}
-              <TooltipProvider>
-                <Tooltip delayDuration={0}>
-                  <TooltipTrigger asChild>
-                    <Button size={isMobile ? "sm" : "default"} className="opacity-50">
-                      <IconPlus size={isMobile ? 14 : 18} /> Create Pools
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Permissionless pools coming soon...</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
             </div>
           )}
           <div className="ml-4">
