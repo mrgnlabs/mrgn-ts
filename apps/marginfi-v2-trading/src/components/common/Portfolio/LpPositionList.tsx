@@ -41,7 +41,8 @@ export const LpPositionList = () => {
 
         if (
           (collateralBank.isActive && !collateralBank.position.isLending) ||
-          (bank.isActive && !bank.position.isLending)
+          (bank.isActive && !bank.position.isLending) ||
+          (!bank.isActive && !collateralBank.isActive)
         ) {
           return false;
         }
