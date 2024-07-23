@@ -45,9 +45,14 @@ export const TradePovider: React.FC<{
     if (!symbol) {
       //clear state
     } else if (isFetchable && initialized && wallet) {
-      setActiveBank({ bankPk: new PublicKey(symbol), wallet });
+      try {
+        const pk = new PublicKey(symbol);
+        setActiveBank({ bankPk: new PublicKey(symbol), wallet });
+      } catch {
+        router.push("/404");
+      }
     }
-  }, [router?.query?.symbol, initialized, setActiveBank, prevWalletAddress, walletAddress, userDataFetched, wallet]);
+  }, [router, initialized, setActiveBank, prevWalletAddress, walletAddress, userDataFetched, wallet]);
 
   React.useEffect(() => {
     const fetchData = () => {
