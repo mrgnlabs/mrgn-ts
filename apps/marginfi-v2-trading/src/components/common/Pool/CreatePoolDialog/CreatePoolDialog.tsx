@@ -26,7 +26,6 @@ import { Dialog, DialogContent, DialogTrigger } from "~/components/ui/dialog";
 import { Button } from "~/components/ui/button";
 import { TokenData } from "~/types";
 import { CreatePoolLoading } from "./components/CreatePoolLoading";
-import { StepperWrapper } from "~/components/ui/Stepper";
 
 type CreatePoolDialogProps = {
   trigger?: React.ReactNode;

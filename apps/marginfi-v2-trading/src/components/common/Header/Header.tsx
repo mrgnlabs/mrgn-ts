@@ -16,6 +16,7 @@ import { WalletButton } from "~/components/common/Wallet";
 import { CreatePoolScriptDialog } from "../Pool/CreatePoolScript";
 import { Button } from "~/components/ui/button";
 import { IconArena } from "~/components/ui/icons";
+import { CreatePoolSoon } from "../Pool/CreatePoolSoon";
 
 const navItems = [
   { label: "pools", icon: <IconCoins />, href: "/" },
@@ -90,13 +91,25 @@ export const Header = () => {
           }
           {connected && !isMobile && (
             <div className="flex items-center">
-              {/* <CreatePoolDialog
+              <CreatePoolSoon
                 trigger={
-                  <Button size={isMobile ? "sm" : "default"} disabled={true}>
+                  <Button size={isMobile ? "sm" : "default"} disabled={false}>
                     <IconPlus size={isMobile ? 14 : 18} /> Create Pools
                   </Button>
                 }
-              /> */}
+              />
+              {/* <TooltipProvider>
+                <Tooltip delayDuration={0}>
+                  <TooltipTrigger asChild>
+                    <Button size={isMobile ? "sm" : "default"} className="opacity-50">
+                      <IconPlus size={isMobile ? 14 : 18} /> Create Pools
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Permissionless pools coming soon...</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider> */}
             </div>
           )}
           <div className="ml-4">
