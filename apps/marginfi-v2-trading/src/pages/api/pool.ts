@@ -14,7 +14,7 @@ const PoolAPI = async (req: NextApiRequest, res: NextApiResponse) => {
 
     await resend.emails.send({
       from: "Pool <pool@resend.dev>",
-      to: ["engineering@mrgn.group"],
+      to: ["pools@mrgn.group"],
       subject: "New pool submission",
       text: `${email} submitted ${mint}`,
       headers: {
