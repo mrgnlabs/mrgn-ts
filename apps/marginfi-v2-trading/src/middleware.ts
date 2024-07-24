@@ -20,7 +20,7 @@ export function middleware(req: NextRequest) {
     restrictedCountries.includes(req.geo.country) &&
     !req.nextUrl.pathname.startsWith("/blocked")
   ) {
-    return NextResponse.redirect("https://www.thearena.trade/blocked");
+    return NextResponse.redirect("/blocked");
   }
 
   if (process.env.AUTHENTICATION_DISABLED === "true") {
