@@ -58,7 +58,7 @@ const DEFAULT_USDC_BANK_CONFIG: BankConfigOpt = {
   operationalState: OperationalState.Operational,
 
   oracle: {
-    setup: OracleSetup.PythEma,
+    setup: OracleSetup.PythLegacy,
     keys: [new PublicKey("Gnt27xtC473ZT2Mw5u8wZ68Z3gULkSTb5DuxJy7eJotD")],
   },
   oracleMaxAge: 300,
@@ -92,7 +92,7 @@ const DEFAULT_TOKEN_BANK_CONFIG: BankConfigOpt = {
   operationalState: OperationalState.Operational,
 
   oracle: {
-    setup: OracleSetup.PythEma,
+    setup: OracleSetup.PythLegacy,
     keys: [],
   },
   oracleMaxAge: null,
@@ -285,7 +285,7 @@ export const CreatePoolLoading = ({ poolCreatedData, setIsOpen, setIsCompleted }
       tokenBankConfig.borrowLimit = new BigNumber(100); // todo: update this according to price
       tokenBankConfig.depositLimit = new BigNumber(10000); // todo: update this according to price
       tokenBankConfig.oracle = {
-        setup: OracleSetup.PythEma,
+        setup: OracleSetup.PythLegacy,
         keys: [new PublicKey(poolCreatedData.oracle)],
       };
 
