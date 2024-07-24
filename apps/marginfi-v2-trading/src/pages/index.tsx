@@ -2,7 +2,7 @@ import React from "react";
 
 import { useRouter } from "next/router";
 
-import { IconSortAscending, IconSortDescending, IconSparkles } from "@tabler/icons-react";
+import { IconSortAscending, IconSortDescending, IconSparkles, IconGridDots, IconList } from "@tabler/icons-react";
 import { motion, useAnimate, stagger } from "framer-motion";
 
 import { useTradeStore, useUiStore } from "~/store";
@@ -16,6 +16,7 @@ import { ActionComplete } from "~/components/common/ActionComplete";
 import { PoolSearch } from "~/components/common/Pool";
 import { Button } from "~/components/ui/button";
 import { Loader } from "~/components/ui/loader";
+import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
 import {
   Select,
   SelectContent,
@@ -111,7 +112,15 @@ export default function HomePage() {
             </div>
 
             <div className="w-full space-y-6 py-12 md:pt-16">
-              <motion.div data-filter className="flex items-center justify-end" initial={{ opacity: 0 }}>
+              <motion.div data-filter className="flex items-center justify-between" initial={{ opacity: 0 }}>
+                <ToggleGroup type="single" defaultValue="grid" className="gap-2 self-baseline">
+                  <ToggleGroupItem value="grid" aria-label="Grid View" className="border gap-1.5">
+                    <IconGridDots size={16} /> Grid
+                  </ToggleGroupItem>
+                  <ToggleGroupItem value="list" aria-label="List View" className="border gap-1.5">
+                    <IconList size={16} /> List
+                  </ToggleGroupItem>
+                </ToggleGroup>
                 <Select value={sortBy} onValueChange={(value) => setSortBy(value as TradePoolFilterStates)}>
                   <SelectTrigger className="w-[190px] justify-start gap-2">
                     {dir === "desc" && <IconSortDescending size={16} />}
