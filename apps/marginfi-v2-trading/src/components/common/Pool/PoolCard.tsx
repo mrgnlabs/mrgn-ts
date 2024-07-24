@@ -65,7 +65,7 @@ export const PoolCard = ({ bank }: PoolCardProps) => {
               </div>
             </Link>
             <div className="font-medium text-xs flex flex-col gap-1 items-center">
-              <Link href="https://x.com/https://twitter.com/marginfi" target="_blank">
+              <Link href="https://x.com/marginfi" target="_blank">
                 <Image
                   src="https://pbs.twimg.com/profile_images/1791110026456633344/VGViq-CJ_400x400.jpg"
                   width={32}
