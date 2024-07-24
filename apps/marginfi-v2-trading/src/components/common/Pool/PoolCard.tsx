@@ -3,9 +3,8 @@ import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 
-import { shortenAddress, usdFormatter, percentFormatter, numeralFormatter } from "@mrgnlabs/mrgn-common";
+import { usdFormatter, percentFormatter, numeralFormatter } from "@mrgnlabs/mrgn-common";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { IconTrendingDown, IconTrendingUp } from "@tabler/icons-react";
 
 import { getTokenImageURL, cn } from "~/utils";
 import { useTradeStore } from "~/store";
@@ -65,6 +64,17 @@ export const PoolCard = ({ bank }: PoolCardProps) => {
                 <span className="text-muted-foreground text-sm">{bank.meta.tokenSymbol}</span>
               </div>
             </Link>
+            <div className="font-medium text-xs flex flex-col gap-1 items-center">
+              <Link href="https://x.com/https://twitter.com/marginfi" target="_blank">
+                <Image
+                  src="https://pbs.twimg.com/profile_images/1791110026456633344/VGViq-CJ_400x400.jpg"
+                  width={32}
+                  height={32}
+                  alt="marginfi"
+                  className="rounded-full"
+                />
+              </Link>
+            </div>
           </div>
         </CardTitle>
       </CardHeader>
