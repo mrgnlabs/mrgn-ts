@@ -10,6 +10,7 @@ import { useOs } from "~/hooks/useOs";
 import { cn } from "~/utils/themeUtils";
 import { CreatePoolDialog } from "~/components/common/Pool";
 import { Button } from "~/components/ui/button";
+import { CreatePoolSoon } from "~/components/common/Pool/CreatePoolSoon";
 
 export interface NavLinkInfo {
   href: string;
@@ -20,7 +21,7 @@ export interface NavLinkInfo {
 }
 
 const CreatePoolTrigger = (children: ReactNode) => {
-  return <CreatePoolDialog trigger={children} />;
+  return <CreatePoolSoon trigger={children} />;
 };
 
 export const mobileLinks: NavLinkInfo[] = [
