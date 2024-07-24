@@ -14,8 +14,13 @@ export function middleware(req: NextRequest) {
   // response.headers.set('CDN-Cache-Control', 'private, max-age=10');
   // response.headers.set('Cache-Control', 'private, max-age=10');
 
-  if (req.geo && req.geo.country && restrictedCountries.includes(req.geo.country)) {
-    return NextResponse.redirect("https://www.marginfi.com");
+  if (
+    req.geo &&
+    req.geo.country &&
+    restrictedCountries.includes(req.geo.country) &&
+    !req.nextUrl.pathname.startsWith("/blocked")
+  ) {
+    return NextResponse.redirect("/blocked");
   }
 
   if (process.env.AUTHENTICATION_DISABLED === "true") {
