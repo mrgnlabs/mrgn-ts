@@ -4,7 +4,7 @@ export const config = {
   matcher: ["/", "/index", "/stake", "/swap", "/bridge", "/earn", "/points"],
 };
 
-const restrictedCountries = ["VE", "CU", "IR", "KP", "SY"];
+const restrictedCountries = ["US", "VE", "CU", "IR", "KP", "SY"];
 
 export function middleware(req: NextRequest) {
   const basicAuth = req.headers.get("authorization");
