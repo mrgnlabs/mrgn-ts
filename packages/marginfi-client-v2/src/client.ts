@@ -187,9 +187,9 @@ class MarginfiClient {
         if (response.status === 200) {
           const parsedResponse = await response.json();
           if (!parsedResponse) throw new Error("JSON is mia");
-          const loopupTableString = parsedResponse[config.groupPk.toString()];
+          const lookupTableString = parsedResponse[config.groupPk.toString()];
           if (!parsedResponse) throw new Error("Group not found");
-          addressLookupTableAddresses = [new PublicKey(loopupTableString)];
+          addressLookupTableAddresses = [new PublicKey(lookupTableString)];
         } else {
           throw new Error("LUT not found");
         }
