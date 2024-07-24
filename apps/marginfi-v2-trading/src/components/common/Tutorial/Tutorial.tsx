@@ -1,5 +1,7 @@
 import React from "react";
 
+import Link from "next/link";
+
 import { motion } from "framer-motion";
 import { IconAlertTriangle, IconTrendingUp, IconCoins, IconChevronLeft, IconChevronRight } from "@tabler/icons-react";
 
@@ -26,7 +28,21 @@ const tutorialSlides = [
   {
     icon: <IconAlertTriangle />,
     heading: "Be aware of the risks",
-    body: "Pool creation is permissionless, be sure to do your own research on pool creators and the oracles the used. Remember The Arena comes with no guarantees.",
+    body: (
+      <>
+        Pool creation is permissionless, be sure to do your own research on pool creators and oracles. Remember The
+        Arena comes with no guarantees.{" "}
+        <Link
+          href="https://docs.marginfi.com/the-arena"
+          className="border-b border-primary transition-colors hover:border-transparent"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Learn more
+        </Link>
+        .
+      </>
+    ),
   },
 ];
 
