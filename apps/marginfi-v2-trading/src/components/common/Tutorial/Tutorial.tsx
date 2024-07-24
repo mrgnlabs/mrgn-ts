@@ -18,20 +18,19 @@ const tutorialSlides = [
   {
     icon: <IconTrendingUp />,
     heading: "How trading on The Arena works",
-    body: "Deposit tokens to go long and leverage against USDC. Deposit USDC to go short and leverage against the pools token.",
+    body: "Long and short your favorite token in one click. Enabled by marginfi's isolated lending groups and flashloans.",
   },
   {
     icon: <IconCoins />,
     heading: "The Arena pools must have liquidity",
-    body: "Pools need liquidity to enable trading. You can provide liquidity, for both token and USDC banks, from the pool page.",
+    body: "If you're a hodler, deposit your token and earn over-collateralized yield. If you're a yield farmer, deposit USDC to earn incredible rates. If you're a smol fish, share with friends to get deposits to lever long your token..",
   },
   {
     icon: <IconAlertTriangle />,
     heading: "Be aware of the risks",
     body: (
       <>
-        Pool creation is permissionless, be sure to do your own research on pool creators and oracles. Remember The
-        Arena comes with no guarantees.{" "}
+        Pool creation is permissionless, be sure to do your own research on pool creators and oracles.{" "}
         <Link
           href="https://docs.marginfi.com/the-arena"
           className="border-b border-primary transition-colors hover:border-transparent"
@@ -99,10 +98,7 @@ export const Tutorial = () => {
                     <h2 className="text-primary font-medium text-4xl font-orbitron md:text-5xl">
                       Welcome to the arena
                     </h2>
-                    <h3 className="md:text-2xl">
-                      The arena is a permisionless lending market that allows users to long and short any token on
-                      Solana.
-                    </h3>
+                    <h3 className="md:text-2xl">Long / short anything on Solana... with leverage.</h3>
                   </div>
                 </header>
                 <Button onClick={() => api?.scrollNext()}>Get started</Button>
