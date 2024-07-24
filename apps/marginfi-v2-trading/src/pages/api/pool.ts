@@ -3,7 +3,7 @@ import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-export default async (req: NextApiRequest, res: NextApiResponse) => {
+const PoolAPI = async (req: NextApiRequest, res: NextApiResponse) => {
   if (req.method !== "POST") {
     res.status(405).json({ message: "Only POST requests are allowed" });
     return;
@@ -44,3 +44,5 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     return res.status(400).json(error);
   }
 };
+
+export default PoolAPI;
