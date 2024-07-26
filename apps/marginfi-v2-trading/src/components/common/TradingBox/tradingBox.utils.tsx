@@ -19,7 +19,7 @@ import {
   uiToNative,
   usdFormatter,
 } from "@mrgnlabs/mrgn-common";
-import { AddressLookupTableAccount, Connection, VersionedTransaction } from "@solana/web3.js";
+import { AddressLookupTableAccount, Connection, PublicKey, VersionedTransaction } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 import { IconArrowRight, IconPyth, IconSwitchboard } from "~/components/ui/icons";
 import { Skeleton } from "~/components/ui/skeleton";
@@ -548,13 +548,14 @@ export async function loopingBuilder({
 
   // get fee account for original borrow mint
   const feeAccount = getFeeAccount(bank.info.state.mint);
+  const feeAccountInfo = await options.connection.getAccountInfo(new PublicKey(feeAccount));
 
   const { swapInstruction, addressLookupTableAddresses } = await jupiterQuoteApi.swapInstructionsPost({
     swapRequest: {
       quoteResponse: options.loopingQuote,
       userPublicKey: marginfiAccount.authority.toBase58(),
       programAuthorityId: LUT_PROGRAM_AUTHORITY_INDEX,
-      feeAccount: feeAccount,
+      feeAccount: feeAccountInfo ? feeAccount : undefined,
     },
   });
 
