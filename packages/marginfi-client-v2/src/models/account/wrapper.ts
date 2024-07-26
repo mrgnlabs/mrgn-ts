@@ -2,6 +2,7 @@ import {
   Amount,
   DEFAULT_COMMITMENT,
   InstructionsWrapper,
+  TOKEN_2022_PROGRAM_ID,
   Wallet,
   createAssociatedTokenAccountIdempotentInstruction,
   getAssociatedTokenAddressSync,
@@ -335,7 +336,14 @@ class MarginfiAccountWrapper {
     try {
       const userAtas = banks.map((bankAddress) => {
         const bank = this.client.bankMetadataMap![bankAddress.toBase58()];
-        return getAssociatedTokenAddressSync(new PublicKey(bank.tokenAddress), this.authority, true);
+        const mintData = this.client.mintDatas.get(bank.tokenAddress);
+        if (!mintData) throw Error(`Token data for ${bank.tokenAddress} not found`);
+        return getAssociatedTokenAddressSync(
+          new PublicKey(bank.tokenAddress),
+          this.authority,
+          true,
+          mintData.tokenProgram.equals(TOKEN_2022_PROGRAM_ID) ? TOKEN_2022_PROGRAM_ID : undefined
+        );
       });
 
       let ixs = [];
@@ -345,12 +353,15 @@ class MarginfiAccountWrapper {
         if (userAta === null) {
           const bankAddress = banks[i];
           const bank = this.client.bankMetadataMap![bankAddress.toBase58()];
+          const mintData = this.client.mintDatas.get(bank.tokenAddress);
+          if (!mintData) throw Error(`Token data for ${bank.tokenAddress} not found`);
           ixs.push(
             createAssociatedTokenAccountIdempotentInstruction(
               this.authority,
               userAtas[i],
               this.authority,
-              new PublicKey(bank.tokenAddress)
+              new PublicKey(bank.tokenAddress),
+              mintData.tokenProgram.equals(TOKEN_2022_PROGRAM_ID) ? TOKEN_2022_PROGRAM_ID : undefined
             )
           );
         }
@@ -421,7 +432,10 @@ class MarginfiAccountWrapper {
     ]);
     if (!mfiAccountData || !bankData) throw new Error("Failed to simulate repay w/ collat");
     const previewBanks = this.client.banks;
-    previewBanks.set(borrowBankAddress.toBase58(), Bank.fromBuffer(borrowBankAddress, bankData, this._program.idl, this.client.feedIdMap));
+    previewBanks.set(
+      borrowBankAddress.toBase58(),
+      Bank.fromBuffer(borrowBankAddress, bankData, this._program.idl, this.client.feedIdMap)
+    );
     const previewClient = new MarginfiClient(
       this._config,
       this.client.program,
@@ -431,7 +445,7 @@ class MarginfiAccountWrapper {
       this.client.banks,
       this.client.oraclePrices,
       this.client.mintDatas,
-      this.client.feedIdMap,
+      this.client.feedIdMap
     );
     const previewMarginfiAccount = MarginfiAccountWrapper.fromAccountDataRaw(
       this.address,
@@ -502,7 +516,8 @@ class MarginfiAccountWrapper {
 
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:repay`);
     debug(
-      `Looping ${depositAmount} ${depositBank.tokenSymbol} against ${borrowAmount} ${borrowBank.tokenSymbol
+      `Looping ${depositAmount} ${depositBank.tokenSymbol} against ${borrowAmount} ${
+        borrowBank.tokenSymbol
       } into marginfi account (banks: ${depositBankAddress.toBase58()} / ${borrowBankAddress.toBase58()})`
     );
 
@@ -566,7 +581,7 @@ class MarginfiAccountWrapper {
       this.client.banks,
       this.client.oraclePrices,
       this.client.mintDatas,
-      this.client.feedIdMap,
+      this.client.feedIdMap
     );
     const previewMarginfiAccount = MarginfiAccountWrapper.fromAccountDataRaw(
       this.address,
@@ -656,7 +671,10 @@ class MarginfiAccountWrapper {
     const [mfiAccountData, bankData] = await this.client.simulateTransaction(tx, [this.address, bankAddress]);
     if (!mfiAccountData || !bankData) throw new Error("Failed to simulate deposit");
     const previewBanks = this.client.banks;
-    previewBanks.set(bankAddress.toBase58(), Bank.fromBuffer(bankAddress, bankData, this._program.idl, this.client.feedIdMap));
+    previewBanks.set(
+      bankAddress.toBase58(),
+      Bank.fromBuffer(bankAddress, bankData, this._program.idl, this.client.feedIdMap)
+    );
     const previewClient = new MarginfiClient(
       this._config,
       this.client.program,
@@ -666,7 +684,7 @@ class MarginfiAccountWrapper {
       this.client.banks,
       this.client.oraclePrices,
       this.client.mintDatas,
-      this.client.feedIdMap,
+      this.client.feedIdMap
     );
     const previewMarginfiAccount = MarginfiAccountWrapper.fromAccountDataRaw(
       this.address,
@@ -723,7 +741,10 @@ class MarginfiAccountWrapper {
     const [mfiAccountData, bankData] = await this.client.simulateTransaction(tx, [this.address, bankAddress]);
     if (!mfiAccountData || !bankData) throw new Error("Failed to simulate repay");
     const previewBanks = this.client.banks;
-    previewBanks.set(bankAddress.toBase58(), Bank.fromBuffer(bankAddress, bankData, this._program.idl, this.client.feedIdMap));
+    previewBanks.set(
+      bankAddress.toBase58(),
+      Bank.fromBuffer(bankAddress, bankData, this._program.idl, this.client.feedIdMap)
+    );
     const previewClient = new MarginfiClient(
       this._config,
       this.client.program,
@@ -733,7 +754,7 @@ class MarginfiAccountWrapper {
       this.client.banks,
       this.client.oraclePrices,
       this.client.mintDatas,
-      this.client.feedIdMap,
+      this.client.feedIdMap
     );
     const previewMarginfiAccount = MarginfiAccountWrapper.fromAccountDataRaw(
       this.address,
@@ -814,7 +835,10 @@ class MarginfiAccountWrapper {
     const [mfiAccountData, bankData] = await this.client.simulateTransaction(tx, [this.address, bankAddress]);
     if (!mfiAccountData || !bankData) throw new Error("Failed to simulate withdraw");
     const previewBanks = this.client.banks;
-    previewBanks.set(bankAddress.toBase58(), Bank.fromBuffer(bankAddress, bankData, this._program.idl, this.client.feedIdMap));
+    previewBanks.set(
+      bankAddress.toBase58(),
+      Bank.fromBuffer(bankAddress, bankData, this._program.idl, this.client.feedIdMap)
+    );
     const previewClient = new MarginfiClient(
       this._config,
       this.client.program,
@@ -824,7 +848,7 @@ class MarginfiAccountWrapper {
       this.client.banks,
       this.client.oraclePrices,
       this.client.mintDatas,
-      this.client.feedIdMap,
+      this.client.feedIdMap
     );
     const previewMarginfiAccount = MarginfiAccountWrapper.fromAccountDataRaw(
       this.address,
@@ -871,7 +895,10 @@ class MarginfiAccountWrapper {
     const [mfiAccountData, bankData] = await this.client.simulateTransaction(tx, [this.address, bankAddress]);
     if (!mfiAccountData || !bankData) throw new Error("Failed to simulate borrow");
     const previewBanks = this.client.banks;
-    previewBanks.set(bankAddress.toBase58(), Bank.fromBuffer(bankAddress, bankData, this._program.idl, this.client.feedIdMap));
+    previewBanks.set(
+      bankAddress.toBase58(),
+      Bank.fromBuffer(bankAddress, bankData, this._program.idl, this.client.feedIdMap)
+    );
     const previewClient = new MarginfiClient(
       this._config,
       this.client.program,
@@ -881,7 +908,7 @@ class MarginfiAccountWrapper {
       this.client.banks,
       this.client.oraclePrices,
       this.client.mintDatas,
-      this.client.feedIdMap,
+      this.client.feedIdMap
     );
     const previewMarginfiAccount = MarginfiAccountWrapper.fromAccountDataRaw(
       this.address,
@@ -896,7 +923,12 @@ class MarginfiAccountWrapper {
   }
 
   async makeWithdrawEmissionsIx(bankAddress: PublicKey): Promise<InstructionsWrapper> {
-    return this._marginfiAccount.makeWithdrawEmissionsIx(this._program, this.client.banks, this.client.mintDatas, bankAddress);
+    return this._marginfiAccount.makeWithdrawEmissionsIx(
+      this._program,
+      this.client.banks,
+      this.client.mintDatas,
+      bankAddress
+    );
   }
 
   async withdrawEmissions(bankAddress: PublicKey): Promise<string> {
@@ -925,7 +957,7 @@ class MarginfiAccountWrapper {
       this.client.mintDatas,
       assetBankAddress,
       assetQuantityUi,
-      liabBankAddress,
+      liabBankAddress
     );
   }
 
