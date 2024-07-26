@@ -2,7 +2,7 @@ import React from "react";
 
 import Image from "next/image";
 import Link from "next/link";
-import { numeralFormatter, percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
+import { aprToApy, numeralFormatter, percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 
 import { cn, getTokenImageURL } from "~/utils";
 import { useUiStore } from "~/store";
@@ -33,6 +33,13 @@ export const EMISSION_MINT_INFO_MAP = new Map<string, { tokenSymbol: string; tok
     {
       tokenSymbol: "BLZE",
       tokenLogoUri: "/blze.png",
+    },
+  ],
+  [
+    "PYUSD",
+    {
+      tokenSymbol: "PYUSD",
+      tokenLogoUri: "/pyusd.png",
     },
   ],
 ]);
@@ -154,9 +161,9 @@ export const getRateCell = ({ rateAPY, symbol, emissionRate, lendingRate, isInLe
                   Liquidity rewards
                 </h4>
                 <p className="text-xs">
-                  {`${percentFormatter.format(lendingRate)} Supply APY + ${percentFormatter.format(emissionRate)} ${
-                    EMISSION_MINT_INFO_MAP.get(symbol)!.tokenSymbol
-                  } rewards. `}
+                  {`${percentFormatter.format(aprToApy(lendingRate))} Supply APY + ${percentFormatter.format(
+                    aprToApy(emissionRate)
+                  )} ${EMISSION_MINT_INFO_MAP.get(symbol)!.tokenSymbol} rewards. `}
                 </p>
                 <p className="text-xs">
                   <Link
