@@ -211,7 +211,7 @@ function canBeWithdrawn(
       description:
         "Withdrawals from this bank may fail due to network congestion preventing oracles from updating price data.",
       isEnabled: true,
-      link: "https://forum.marginfi.community/t/work-were-doing-to-improve-oracle-robustness-during-chain-congestion/283",
+      link: "https://docs.marginfi.com/faqs#what-does-the-stale-oracles-error-mean",
       linkText: "Learn more about marginfi's decentralized oracles.",
     });
   }
@@ -308,7 +308,7 @@ function canBeRepaidCollat(
       description:
         "Repays to this bank may fail due to network congestion preventing oracles from updating price data.",
       isEnabled: true,
-      link: "https://forum.marginfi.community/t/work-were-doing-to-improve-oracle-robustness-during-chain-congestion/283",
+      link: "https://docs.marginfi.com/faqs#what-does-the-stale-oracles-error-mean",
       linkText: "Learn more about marginfi's decentralized oracles.",
     });
   }
@@ -365,7 +365,7 @@ function canBeLooped(
     checks.push({
       description: "Looping may fail due to network congestion preventing oracles from updating price data.",
       isEnabled: true,
-      link: "https://forum.marginfi.community/t/work-were-doing-to-improve-oracle-robustness-during-chain-congestion/283",
+      link: "https://docs.marginfi.com/faqs#what-does-the-stale-oracles-error-mean",
       linkText: "Learn more about marginfi's decentralized oracles.",
     });
   }
@@ -463,7 +463,7 @@ function canBeBorrowed(
       description:
         "Borrows from this bank may fail due to network congestion preventing oracles from updating price data.",
       isEnabled: true,
-      link: "https://forum.marginfi.community/t/work-were-doing-to-improve-oracle-robustness-during-chain-congestion/283",
+      link: "https://docs.marginfi.com/faqs#what-does-the-stale-oracles-error-mean",
       linkText: "Learn more about marginfi's decentralized oracles.",
     });
   }

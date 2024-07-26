@@ -110,7 +110,7 @@ export const getAssetPriceCell = ({
             </p>
             <p>
               <Link
-                href="https://forum.marginfi.community/t/work-were-doing-to-improve-oracle-robustness-during-chain-congestion/283"
+                href="https://docs.marginfi.com/faqs#what-does-the-stale-oracles-error-mean"
                 target="_blank"
                 rel="noreferrer"
                 className="border-b leading-normal border-primary/50 hover:border-transparent transition-colors"

@@ -104,7 +104,7 @@ export const getAssetPriceCell = ({
           <TooltipContent>
             Oracle data is stale for this bank.{" "}
             <Link
-              href="https://forum.marginfi.community/t/work-were-doing-to-improve-oracle-robustness-during-chain-congestion/283"
+              href="https://docs.marginfi.com/faqs#what-does-the-stale-oracles-error-mean"
               target="_blank"
               rel="noreferrer"
               className="underline hover:no-underline"

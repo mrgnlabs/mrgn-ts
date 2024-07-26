@@ -21,7 +21,7 @@ const SIMULATION_ERRORS: { [key: string]: ActionMethod } = {
     isEnabled: true,
     actionMethod: "WARNING",
     description: "Trading may fail due to network congestion preventing oracles from updating price data.",
-    link: "https://forum.marginfi.community/t/work-were-doing-to-improve-oracle-robustness-during-chain-congestion/283",
+    link: "https://docs.marginfi.com/faqs#what-does-the-stale-oracles-error-mean",
     linkText: "Learn more about marginfi's decentralized oracles.",
   },
   BORROW_CAP_EXCEEDED: {

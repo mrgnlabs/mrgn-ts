@@ -209,7 +209,7 @@ function canBeWithdrawn(
     checks.push({
       description: "The oracle data for this bank is stale",
       isEnabled: true,
-      link: "https://forum.marginfi.community/t/work-were-doing-to-improve-oracle-robustness-during-chain-congestion/283",
+      link: "https://docs.marginfi.com/faqs#what-does-the-stale-oracles-error-mean",
     });
   }
 
@@ -251,7 +251,7 @@ function canBeRepaid(targetBankInfo: ExtendedBankInfo): ActionMethod[] {
     checks.push({
       description: "The oracle data for this bank is stale",
       isEnabled: true,
-      link: "https://forum.marginfi.community/t/work-were-doing-to-improve-oracle-robustness-during-chain-congestion/283",
+      link: "https://docs.marginfi.com/faqs#what-does-the-stale-oracles-error-mean",
     });
   }
 
@@ -312,7 +312,7 @@ function canBeRepaidCollat(
     checks.push({
       description: "The oracle data for this bank is stale",
       isEnabled: true,
-      link: "https://forum.marginfi.community/t/work-were-doing-to-improve-oracle-robustness-during-chain-congestion/283",
+      link: "https://docs.marginfi.com/faqs#what-does-the-stale-oracles-error-mean",
     });
   }
 
@@ -416,7 +416,7 @@ function canBeBorrowed(
     checks.push({
       description: "The oracle data for this bank is stale",
       isEnabled: true,
-      link: "https://forum.marginfi.community/t/work-were-doing-to-improve-oracle-robustness-during-chain-congestion/283",
+      link: "https://docs.marginfi.com/faqs#what-does-the-stale-oracles-error-mean",
     });
   }
 
@@ -488,7 +488,7 @@ function canBeLent(targetBankInfo: ExtendedBankInfo, nativeSolBalance: number): 
     checks.push({
       description: "The oracle data for this bank is stale",
       isEnabled: true,
-      link: "https://forum.marginfi.community/t/work-were-doing-to-improve-oracle-robustness-during-chain-congestion/283",
+      link: "https://docs.marginfi.com/faqs#what-does-the-stale-oracles-error-mean",
     });
   }
 
