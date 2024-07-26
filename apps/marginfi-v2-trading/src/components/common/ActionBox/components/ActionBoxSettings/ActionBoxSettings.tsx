@@ -49,6 +49,12 @@ export const ActionBoxSettings = ({
     [actionMode, repayMode]
   );
 
+  const toggleSettingsMode = (value: SettingsState | "") => {
+    if (value !== "") {
+      setSettingsMode(value);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="space-y-3">
@@ -58,7 +64,7 @@ export const ActionBoxSettings = ({
         {isSlippageEnabled && (
           <ToggleGroup
             value={settingsMode}
-            onValueChange={(value: SettingsState) => setSettingsMode(value as SettingsState)}
+            onValueChange={toggleSettingsMode}
             type="single"
             variant="actionBox"
             size="lg"
