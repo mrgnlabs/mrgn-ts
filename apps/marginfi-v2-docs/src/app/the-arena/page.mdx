@@ -19,7 +19,7 @@ For the first time on Solana, take leveraged long and short positions on any ass
 
 Historically, the creation of isolated banks has been controlled by the marginfi team. marginfi has utilized isolated banks to allow users to borrow and lend certain assets without their liquidity and borrow-lend activity affecting the main liquidity pool - hance the term "isolated."
 
-However, with The Arena, the marginfi team is opening up the ability to create isolated banks to everyone. Now, **you can permissionlessly create isolated banks for any token you want, using any collateral you want** directly through <Button href="https://www.thearena.trade/" variant="text"><>The Arena app</></Button>, the marginfi CLI, or the marginfi TS SDK.  Because permissionless banks are isolated banks, **the trading activity that occurs within any given permissionless bank does not impact marginfi's main liquidity pool**. 
+However, with The Arena, the marginfi team is opening up the ability to create isolated groups to everyone. Now, **you can permissionlessly create isolated banks for any token you want, using any collateral you want** directly through <Button href="https://www.thearena.trade/" variant="text"><>The Arena app</></Button>, the marginfi CLI, or the marginfi TS SDK.  Because permissionless banks are isolated banks, **the trading activity that occurs within any given permissionless bank does not impact marginfi's main liquidity pool**. 
 
 <Note>
   This article is not an advertisement of any token, nor a soliciation to purchase or conduct financial activity with any token. This article is purely for educational purposes.
@@ -27,7 +27,7 @@ However, with The Arena, the marginfi team is opening up the ability to create i
 
 Are you a fan of Iggy Azalea? Permissionlessly create a bank for $MOTHER and open a max-leveraged long position. When you decide you're tired of her music, open a short position. Share the bank you created with others; invite them to make trades with you. You're in the driver's seat.
 
-**Every permissionless bank will belong to its own group**, and the creator of the bank will be assigned as admin over this group. The group will be created and populated with two banks: the bank for the given token (e.g., $BODEN), and the bank for the collateral (USDC).
+**For every token listed on The Arena, an isolated group will be created to hold the token bank (e.g., $BODEN) and the collateral bank (e.g., $USDC)**. The creator of the bank will be assigned as admin over this group.
 
 <ImageComponent
   src={CreateBankExample}
@@ -40,7 +40,7 @@ You can think of a group as a collection of banks and accounts that are governed
     User funds cannot be withdrawn from a bank by the group admin. All banks listed on The Arena are vetted by the marginfi team. Bank creation is permissionless, so always be sure to do your own research on pool creators and oracles.
 </Note>
 
-All token banks listed on The Arena are isolated and completely separate from those on mrgnlend. Banks need liquidity to enable trading. You can provide liquidity for an APY for both token and USDC banks on a given bank's page. Select "View" on a bank card to get started.
+All token banks listed on The Arena are isolated and completely separate from those on mrgnlend. Banks need liquidity to enable trading. You can provide liquidity for an APY for both token and $USDC banks on a given bank's page. Select "View" on a bank card to get started.
 
 ---
 
@@ -55,7 +55,7 @@ By using the marginfi Liquidity Layer, The Arena opens up new opportunities for 
   alt="photo"
 />
 
-Leveraged trades are made possible with marginfi flashloans. marginfi-v2 flashloans bundle multiple borrow and lend instructions within a single transaction, circumventing the routine health-check that executes when you withdraw liquidity from marginfi. The result: **flashloans allow you to borrow an outsized position relative to your available collateral**. 
+Leveraged trades are made possible with marginfi flashloans. marginfi-v2 flashloans bundle multiple borrow and lend instructions within a single transaction, circumventing the routine health-check that executes when you withdraw liquidity from marginfi. **The Arena uses flashloans to create a secure and flexible method for optimizing capital and enabling long and short strategies**.
 
 Per usual, if a given position falls below the liquidation threshold, the position will be at risk of liquidation. Review the <Button href="https://docs.marginfi.com/introduction#account-health" variant="text"><>Account Health documentation</></Button> to learn more about liquidation risk on marginfi.
 
@@ -63,34 +63,34 @@ Per usual, if a given position falls below the liquidation threshold, the positi
     To learn more about marginfi-v2 flashloans, reference the flashloan endpoints in the <Button href="http://docs.marginfi.com/mfi-v2#instructions" variant="text"><>marginfi-v2 instructions</></Button> documentation.
 </Note>
 
-**All token banks on The Arena are paired with USDC**. Deposit a given bank's token to go long and leverage against USDC. Depsoit USDC to go short and leverage against the bank's token. 
+For the time being, all token banks on The Arena are paired with $USDC. Deposit a given bank's token to go long and leverage against $USDC. Depsoit $USDC to go short and leverage against the bank's token. **Soon you will be able to create token pairs of any kind**.
 
-**Taking a long or short position involves borrowing and lending different assets depending on the desired trade direction**. For example, if you want to open a long position for $BODEN, your goal is to profit from an increase in $BODEN's price relative to USDC. To do this, you would borrow USDC and use it to purchase more of $BODEN. As the price of $BODEN goes up, you can close your position and repay your loan in USDC, keeping the remains as profit.
+**Taking a long or short position involves borrowing and lending different assets depending on the desired trade direction**. For example, if you want to open a long position for $BODEN, your goal is to profit from an increase in $BODEN's price relative to $USDC. To do this, you would borrow $USDC and use it to purchase more of $BODEN. As the price of $BODEN goes up, you can close your position and repay your loan in $USDC, keeping the remains as profit.
 
-Conversely, if you believe the price of $BODEN will decrease, you can profit from this negative price movement by borrowing $BODEN and swapping it for USDC. When $BODEN's price drops, you can buy it back at a lower price to repay the debt, keeping the difference as profit.
+Conversely, if you believe the price of $BODEN will decrease, you can profit from this negative price movement by borrowing $BODEN and swapping it for $USDC. When $BODEN's price drops, you can buy it back at a lower price to repay the debt, keeping the difference as profit.
 
 ---
 
 ## Providing Liquidity & Earning Yield {{ tag: '', label: '' }}
 
-Using $BODEN as an example, you cannot leverage long $BODEN while also lending USDC in the $BODEN bank. Likewise, you cannot leverage short $BODEN while also lending $BODEN in the $BODEN bank. (This goes for all token banks on The Arena.)
+Using $BODEN as an example, you cannot leverage long $BODEN while also lending $USDC in the $BODEN bank. Likewise, you cannot leverage short $BODEN while also lending $BODEN in the $BODEN bank. (This goes for all token banks on The Arena.)
 
 This is because when you take a leveraged position, you are essentially borrowing the asset you're betting against. If you were simultaneously lending that same asset, it would create a conflict in the system and negate the purpose of the leveraged trade.
 
 Let's step through this:
 
-* When you go long on $BODEN, you're borrowing USDC to buy more $BODEN. You can't lend USDC at the same time because that USDC is being used to create your leveraged position.
-* When you go short on $BODEN, you're borrowing $BODEN to sell for USDC. You can't lend $BODEN at the same time because that $BODEN is being used to create your leveraged short position.
+* When you go long on $BODEN, you're borrowing $USDC to buy more $BODEN. You can't lend $USDC at the same time because that $USDC is being used to create your leveraged position.
+* When you go short on $BODEN, you're borrowing $BODEN to sell for $USDC. You can't lend $BODEN at the same time because that $BODEN is being used to create your leveraged short position.
 
 <ImageComponent
   src={SupplyExample}
   alt="photo"
 />
 
-However, you can earn attractive yields by lending either $BODEN or USDC into the token bank. Using the $BODEN bank as an example:
+However, you can earn attractive yields by lending either $BODEN or $USDC into the token bank. Using the $BODEN bank as an example:
 
 * When the trading trend for $BODEN is predominantly short, the APY for lending $BODEN increases.
-* When the trading trend for $BODEN is predominantly long, the APY for lending USDC increases.
+* When the trading trend for $BODEN is predominantly long, the APY for lending $USDC increases.
 
 <Note>
   Lending and borrowing into a similar token bank on <Button href="https://app.marginfi.com/" variant="text"><>mrgnlend</></Button> will not affect the positions you have on a similar token bank on The Arena. **All banks on The Arena are completely isolated from those on mrgnlend**.
