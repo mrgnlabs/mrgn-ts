@@ -65,7 +65,11 @@ export const PositionActionButtons = ({
 
     let client = marginfiClient;
     const multiStepToast = new MultiStepToastHandle("Closing position", [
-      { label: `Closing borrow and supplied positions.` },
+      {
+        label: `Closing ${bank.meta.tokenSymbol}${
+          collateralBank ? "/" + collateralBank?.meta.tokenSymbol : ""
+        } position.`,
+      },
     ]);
 
     multiStepToast.start();
