@@ -19,7 +19,7 @@ import {
   uiToNative,
   usdFormatter,
 } from "@mrgnlabs/mrgn-common";
-import { AddressLookupTableAccount, Connection, VersionedTransaction } from "@solana/web3.js";
+import { AddressLookupTableAccount, Connection, PublicKey, VersionedTransaction } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 import { IconArrowRight, IconPyth, IconSwitchboard } from "~/components/ui/icons";
 import { Skeleton } from "~/components/ui/skeleton";
@@ -30,6 +30,7 @@ import {
   deserializeInstruction,
   extractErrorString,
   getAdressLookupTableAccounts,
+  getFeeAccount,
   getSwapQuoteWithRetry,
   handleSimulationError,
   isBankOracleStale,
@@ -54,7 +55,8 @@ export async function calculateLooping(
   amountRaw: string,
   slippageBps: number,
   priorityFee: number,
-  connection: Connection
+  connection: Connection,
+  platformFeeBps?: number
 ): Promise<LoopingObject | null> {
   console.log("bank A: " + depositBank.meta.tokenSymbol);
   console.log("bank B: " + borrowBank.meta.tokenSymbol);
@@ -98,6 +100,7 @@ export async function calculateLooping(
       slippageBps,
       connection,
       priorityFee,
+      platformFeeBps,
     });
   } catch (error) {
     console.error(error);
@@ -113,6 +116,7 @@ export async function getCloseTransaction({
   slippageBps,
   connection,
   priorityFee,
+  platformFeeBps,
 }: {
   marginfiAccount: MarginfiAccountWrapper | null;
   borrowBank: ActiveBankInfo | null;
@@ -120,6 +124,7 @@ export async function getCloseTransaction({
   slippageBps: number;
   connection: Connection;
   priorityFee?: number;
+  platformFeeBps?: number;
 }) {
   // user is borrowing and depositing
   let txn = null;
@@ -131,6 +136,7 @@ export async function getCloseTransaction({
       slippageBps,
       connection,
       priorityFee,
+      platformFeeBps,
     });
   }
 
@@ -155,6 +161,7 @@ async function closeBorrowLendPosition({
   slippageBps,
   connection,
   priorityFee,
+  platformFeeBps,
 }: {
   marginfiAccount: MarginfiAccountWrapper | null;
   borrowBank: ExtendedBankInfo;
@@ -162,6 +169,7 @@ async function closeBorrowLendPosition({
   slippageBps: number;
   connection: Connection;
   priorityFee?: number;
+  platformFeeBps?: number;
 }) {
   let firstQuote;
   const maxAccountsArr = [undefined, 50, 40, 30];
@@ -178,6 +186,7 @@ async function closeBorrowLendPosition({
       inputMint: depositBank.info.state.mint.toBase58(),
       outputMint: borrowBank.info.state.mint.toBase58(),
       slippageBps: slippageBps,
+      platformFeeBps: platformFeeBps,
       maxAccounts: maxAccounts,
       swapMode: "ExactIn",
     } as QuoteGetRequest;
@@ -241,6 +250,7 @@ export async function getLoopingTransaction({
   slippageBps,
   connection,
   priorityFee,
+  platformFeeBps,
   loopObject,
 }: {
   marginfiAccount: MarginfiAccountWrapper | null;
@@ -252,6 +262,7 @@ export async function getLoopingTransaction({
   slippageBps: number;
   connection: Connection;
   priorityFee?: number;
+  platformFeeBps?: number;
   loopObject?: LoopingObject;
 }) {
   let firstQuote;
@@ -287,6 +298,7 @@ export async function getLoopingTransaction({
       inputMint: borrowBank.info.state.mint.toBase58(), // borrow
       outputMint: depositBank.info.state.mint.toBase58(), // deposit
       slippageBps: slippageBps,
+      platformFeeBps: platformFeeBps, // platform fee
       maxAccounts: maxAccounts,
       swapMode: "ExactIn",
     } as QuoteGetRequest;
@@ -445,14 +457,17 @@ export async function closePositionBuilder({
 }) {
   const jupiterQuoteApi = createJupiterApiClient();
 
+  const feeMint = quote.swapMode === "ExactIn" ? quote.outputMint : quote.inputMint;
   // get fee account for original borrow mint
-  //const feeAccount = await getFeeAccount(bank.info.state.mint);
+  const feeAccount = getFeeAccount(new PublicKey(feeMint));
+  const feeAccountInfo = await connection.getAccountInfo(new PublicKey(feeAccount));
 
   const { swapInstruction, addressLookupTableAddresses } = await jupiterQuoteApi.swapInstructionsPost({
     swapRequest: {
       quoteResponse: quote,
       userPublicKey: marginfiAccount.authority.toBase58(),
       programAuthorityId: LUT_PROGRAM_AUTHORITY_INDEX,
+      feeAccount: feeAccountInfo ? feeAccount : undefined,
     },
   });
 
@@ -541,14 +556,18 @@ export async function loopingBuilder({
 }) {
   const jupiterQuoteApi = createJupiterApiClient();
 
+  const feeMint =
+    options.loopingQuote.swapMode === "ExactIn" ? options.loopingQuote.outputMint : options.loopingQuote.inputMint;
   // get fee account for original borrow mint
-  //const feeAccount = await getFeeAccount(bank.info.state.mint);
+  const feeAccount = getFeeAccount(new PublicKey(feeMint));
+  const feeAccountInfo = await options.connection.getAccountInfo(new PublicKey(feeAccount));
 
   const { swapInstruction, addressLookupTableAddresses } = await jupiterQuoteApi.swapInstructionsPost({
     swapRequest: {
       quoteResponse: options.loopingQuote,
       userPublicKey: marginfiAccount.authority.toBase58(),
       programAuthorityId: LUT_PROGRAM_AUTHORITY_INDEX,
+      feeAccount: feeAccountInfo ? feeAccount : undefined,
     },
   });
 
@@ -694,6 +713,7 @@ export function generateStats(
 
   const priceImpactPct = looping ? Number(looping.quote.priceImpactPct) : undefined;
   const slippageBps = looping ? Number(looping.quote.slippageBps) : undefined;
+  const platformFeeBps = looping?.quote.platformFee ? Number(looping.quote.platformFee?.feeBps) : undefined;
 
   const currentLiqPrice = currentStats.liquidationPrice ? usdFormatter.format(currentStats.liquidationPrice) : null;
   const simulatedLiqPrice = simStats?.liquidationPrice ? usdFormatter.format(simStats?.liquidationPrice) : null;
@@ -737,16 +757,24 @@ export function generateStats(
       ) : (
         <></>
       )}
+      {platformFeeBps !== undefined ? (
+        <>
+          <dt>Platform fee</dt>
+          <dd className="text-right">{percentFormatter.format(platformFeeBps / 10000)}</dd>
+        </>
+      ) : (
+        <></>
+      )}
       {priceImpactPct !== undefined ? (
         <>
           <dt>Price impact</dt>
           <dd
             className={cn(
               priceImpactPct > 0.05
-                ? "text-destructive-foreground"
+                ? "text-mrgn-error"
                 : priceImpactPct > 0.01
                 ? "text-alert-foreground"
-                : "text-success-foreground",
+                : "text-mrgn-success",
               "text-right"
             )}
           >

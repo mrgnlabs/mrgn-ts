@@ -101,17 +101,23 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
     state.setIsRefreshingStore,
   ]);
 
-  const [slippageBps, priorityFee, setSlippageBps, setPriorityFee, setIsActionComplete, setPreviousTxn] = useUiStore(
-    (state) => [
-      state.slippageBps,
-      state.priorityFee,
-      state.setSlippageBps,
-      state.setPriorityFee,
-      state.setIsActionComplete,
-      state.setPreviousTxn,
-    ]
-  );
-  const [_, extendedBankInfos] = useMrgnlendStore((state) => [state.selectedAccount, state.extendedBankInfos]);
+  const [
+    slippageBps,
+    priorityFee,
+    platformFeeBps,
+    setSlippageBps,
+    setPriorityFee,
+    setIsActionComplete,
+    setPreviousTxn,
+  ] = useUiStore((state) => [
+    state.slippageBps,
+    state.priorityFee,
+    state.platformFeeBps,
+    state.setSlippageBps,
+    state.setPriorityFee,
+    state.setIsActionComplete,
+    state.setPreviousTxn,
+  ]);
 
   React.useEffect(() => {
     if (tradeState !== prevTradeState) {
@@ -243,7 +249,8 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
           amount,
           slippageBps,
           priorityFee,
-          connection
+          connection,
+          platformFeeBps
         );
 
         setLoopingObject(looping);
@@ -275,6 +282,7 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
     slippageBps,
     priorityFee,
     connection,
+    platformFeeBps,
     handleSimulation,
   ]);
 
@@ -531,7 +539,7 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
                             actionMethod.actionMethod === "INFO" && "bg-accent text-info-foreground",
                             (!actionMethod.actionMethod || actionMethod.actionMethod === "WARNING") &&
                               "bg-accent text-alert-foreground",
-                            actionMethod.actionMethod === "ERROR" && "bg-[#990000] text-primary"
+                            actionMethod.actionMethod === "ERROR" && "bg-[#990000] text-white"
                           )}
                         >
                           <IconAlertTriangle className="shrink-0 translate-y-0.5" size={16} />
