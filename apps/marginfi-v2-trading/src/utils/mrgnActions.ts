@@ -407,8 +407,14 @@ export async function repayWithCollatBuilder({
 }) {
   const jupiterQuoteApi = createJupiterApiClient();
 
+  const feeMint =
+    options.repayCollatQuote.swapMode === "ExactIn"
+      ? options.repayCollatQuote.outputMint
+      : options.repayCollatQuote.inputMint;
+
   // get fee account for original borrow mint
-  //const feeAccount = await getFeeAccount(bank.info.state.mint);
+  const feeAccount = getFeeAccount(new PublicKey(feeMint));
+  const feeAccountInfo = await options.connection.getAccountInfo(new PublicKey(feeAccount));
 
   const {
     setupInstructions,
@@ -421,6 +427,7 @@ export async function repayWithCollatBuilder({
       quoteResponse: options.repayCollatQuote,
       userPublicKey: marginfiAccount.authority.toBase58(),
       programAuthorityId: LUT_PROGRAM_AUTHORITY_INDEX,
+      feeAccount: feeAccountInfo ? feeAccount : undefined,
     },
   });
 

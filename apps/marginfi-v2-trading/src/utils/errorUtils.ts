@@ -4,6 +4,7 @@ import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { ActionMethod } from "./actionBoxUtils";
 
+// Static errors that are not expected to change
 const SIMULATION_ERRORS: { [key: string]: ActionMethod } = {
   SLIPPAGE: {
     isEnabled: false,

@@ -116,6 +116,7 @@ export async function getCloseTransaction({
   slippageBps,
   connection,
   priorityFee,
+  platformFeeBps,
 }: {
   marginfiAccount: MarginfiAccountWrapper | null;
   borrowBank: ActiveBankInfo | null;
@@ -123,6 +124,7 @@ export async function getCloseTransaction({
   slippageBps: number;
   connection: Connection;
   priorityFee?: number;
+  platformFeeBps?: number;
 }) {
   // user is borrowing and depositing
   let txn = null;
@@ -134,6 +136,7 @@ export async function getCloseTransaction({
       slippageBps,
       connection,
       priorityFee,
+      platformFeeBps,
     });
   }
 
@@ -158,6 +161,7 @@ async function closeBorrowLendPosition({
   slippageBps,
   connection,
   priorityFee,
+  platformFeeBps,
 }: {
   marginfiAccount: MarginfiAccountWrapper | null;
   borrowBank: ExtendedBankInfo;
@@ -165,6 +169,7 @@ async function closeBorrowLendPosition({
   slippageBps: number;
   connection: Connection;
   priorityFee?: number;
+  platformFeeBps?: number;
 }) {
   let firstQuote;
   const maxAccountsArr = [undefined, 50, 40, 30];
@@ -181,6 +186,7 @@ async function closeBorrowLendPosition({
       inputMint: depositBank.info.state.mint.toBase58(),
       outputMint: borrowBank.info.state.mint.toBase58(),
       slippageBps: slippageBps,
+      platformFeeBps: platformFeeBps,
       maxAccounts: maxAccounts,
       swapMode: "ExactIn",
     } as QuoteGetRequest;
@@ -292,6 +298,7 @@ export async function getLoopingTransaction({
       inputMint: borrowBank.info.state.mint.toBase58(), // borrow
       outputMint: depositBank.info.state.mint.toBase58(), // deposit
       slippageBps: slippageBps,
+      platformFeeBps: platformFeeBps, // platform fee
       maxAccounts: maxAccounts,
       swapMode: "ExactIn",
     } as QuoteGetRequest;
@@ -450,14 +457,17 @@ export async function closePositionBuilder({
 }) {
   const jupiterQuoteApi = createJupiterApiClient();
 
+  const feeMint = quote.swapMode === "ExactIn" ? quote.outputMint : quote.inputMint;
   // get fee account for original borrow mint
-  //const feeAccount = await getFeeAccount(bank.info.state.mint);
+  const feeAccount = getFeeAccount(new PublicKey(feeMint));
+  const feeAccountInfo = await connection.getAccountInfo(new PublicKey(feeAccount));
 
   const { swapInstruction, addressLookupTableAddresses } = await jupiterQuoteApi.swapInstructionsPost({
     swapRequest: {
       quoteResponse: quote,
       userPublicKey: marginfiAccount.authority.toBase58(),
       programAuthorityId: LUT_PROGRAM_AUTHORITY_INDEX,
+      feeAccount: feeAccountInfo ? feeAccount : undefined,
     },
   });
 
@@ -546,8 +556,10 @@ export async function loopingBuilder({
 }) {
   const jupiterQuoteApi = createJupiterApiClient();
 
+  const feeMint =
+    options.loopingQuote.swapMode === "ExactIn" ? options.loopingQuote.outputMint : options.loopingQuote.inputMint;
   // get fee account for original borrow mint
-  const feeAccount = getFeeAccount(bank.info.state.mint);
+  const feeAccount = getFeeAccount(new PublicKey(feeMint));
   const feeAccountInfo = await options.connection.getAccountInfo(new PublicKey(feeAccount));
 
   const { swapInstruction, addressLookupTableAddresses } = await jupiterQuoteApi.swapInstructionsPost({

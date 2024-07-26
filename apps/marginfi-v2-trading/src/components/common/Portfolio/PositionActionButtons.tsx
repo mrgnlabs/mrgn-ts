@@ -37,6 +37,7 @@ export const PositionActionButtons = ({
 }: PositionActionButtonsProps) => {
   const { connection } = useConnection();
   const { wallet } = useWalletContext();
+  const [platformFeeBps] = useUiStore((state) => [state.platformFeeBps]);
   const [groupsCache, setIsRefreshingStore, fetchTradeState] = useTradeStore((state) => [
     state.groupsCache,
     state.setIsRefreshingStore,
@@ -100,6 +101,7 @@ export const PositionActionButtons = ({
         slippageBps,
         connection: connection,
         priorityFee,
+        platformFeeBps,
       });
       if (!txn) {
         throw new Error("Something went wrong.");
@@ -133,14 +135,16 @@ export const PositionActionButtons = ({
     marginfiAccount,
     collateralBank,
     marginfiClient,
-    wallet,
-    connection,
-    groupsCache,
     borrowBank,
     depositBanks,
     slippageBps,
     connection,
     priorityFee,
+    platformFeeBps,
+    groupsCache,
+    wallet,
+    setIsRefreshingStore,
+    fetchTradeState,
   ]);
 
   return (
