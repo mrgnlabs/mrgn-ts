@@ -47,6 +47,7 @@ interface UiState {
   sortOption: SortAssetOption;
   priorityFee: number;
   slippageBps: number;
+  platformFeeBps: number;
   isActionComplete: boolean;
   previousTxn: PreviousTxn | null;
   isActionBoxInputFocussed: boolean;
@@ -103,6 +104,7 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
   actionMode: ActionType.Deposit,
   poolFilter: PoolTypes.ALL,
   sortOption: SORT_OPTIONS_MAP[SortType.TVL_DESC],
+  platformFeeBps: 10,
   selectedTokenBank: null,
   priorityFee: 0,
   isActionComplete: false,
