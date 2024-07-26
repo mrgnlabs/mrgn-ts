@@ -70,8 +70,8 @@ Conversely, if you believe the price of $BODEN will decrease, you can profit fro
 Using $BODEN as an example, you cannot leverage long $BODEN while also lending USDC in the $BODEN bank. Likewise, you cannot leverage short $BODEN while also lending $BODEN in the $BODEN bank. (This goes for all token banks on The Arena.)
 
 This is because when you take a leveraged position, you are essentially borrowing the asset you're betting against. If you were simultaneously lending that same asset, it would create a conflict in the system and negate the purpose of the leveraged trade.
-Specifically:
 
+Let's step through this:
 * When you go long on $BODEN, you're borrowing USDC to buy more $BODEN. You can't lend USDC at the same time because that USDC is being used to create your leveraged position.
 * When you go short on $BODEN, you're borrowing $BODEN to sell for USDC. You can't lend $BODEN at the same time because that $BODEN is being used to create your leveraged short position.
 
@@ -79,7 +79,6 @@ Specifically:
   src={SupplyExample}
   alt="photo"
 />
-
 
 However, you can earn attractive yields by lending either $BODEN or USDC into the token bank. Using the $BODEN bank as an example:
 
