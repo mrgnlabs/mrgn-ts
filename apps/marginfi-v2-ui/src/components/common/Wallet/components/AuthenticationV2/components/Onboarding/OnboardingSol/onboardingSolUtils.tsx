@@ -10,7 +10,7 @@ export type SolOnrampScreen = {
 
 export const solOnrampFlow: SolOnrampScreen[] = [
   {
-    comp: screens.CreateSocialAccount,
+    comp: screens.CreateSolanaAccount,
     title: "Create marginfi account",
     description: "Sign in to download marginfi's mobile web app, or connect your existing wallet.",
     titleSize: "lg",

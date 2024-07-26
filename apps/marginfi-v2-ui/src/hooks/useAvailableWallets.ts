@@ -4,6 +4,23 @@ import { WalletName, WalletReadyState } from "@solana/wallet-adapter-base";
 
 import { useOs } from "~/hooks/useOs";
 
+import {
+  IconMrgn,
+  IconBrandX,
+  IconBrandApple,
+  IconBrandGoogle,
+  IconBraveWallet,
+  IconCoinbaseWallet,
+  IconPhantomWallet,
+  IconBackpackWallet,
+  IconSolflareWallet,
+  IconWalletConnectWallet,
+  IconGlowWallet,
+  IconTrustWallet,
+  IconEthereum,
+} from "~/components/ui/icons";
+import { WalletInfo } from "./useWalletContext";
+
 type WalletPreset = "eth" | "sol" | "social" | "pwa";
 
 const ETH_PRESET = [
@@ -14,15 +31,18 @@ const ETH_PRESET = [
   "Ethereum Wallet",
   "Sign in with Google",
 ];
+
 const SOL_PRESET = ["Backpack", "Phantom", "Solflare"];
+
 const SOCIAL_PRESET = ["Backpack", "Phantom", "Solflare", "Google via TipLink"];
+
 const PWA_PRESET = ["Phantom", "Mobile Wallet Adapter", "Google via TipLink"];
 
 const BackpackWalletName = "Backpack" as WalletName<"Backpack">;
-
 const PhantomWalletName = "Phantom" as WalletName<"Phantom">;
-
 const SolflareWalletName = "Solflare" as WalletName<"Solflare">;
+const CoinbaseWalletName = "Coinbase" as WalletName<"Coinbase">;
+const SquadsXWalletName = "SquadsX" as WalletName<"SquadsX">;
 
 export interface ExtendedWallet extends Wallet {
   deeplink?: string;
@@ -67,7 +87,7 @@ export function useAvailableWallets(preset?: WalletPreset): ExtendedWallet[] {
   );
 
   // filter on installed
-  const installedFilter = React.useCallback((wallet: Wallet) => wallet.readyState === "Installed", []);
+  const installedFilter = React.useCallback((wallet: Wallet) => wallet.readyState !== "NotDetected", []);
 
   // sorting on backpack
   const backpackSort = React.useCallback((a: Wallet, b: Wallet) => {
@@ -130,16 +150,28 @@ export function useAvailableWallets(preset?: WalletPreset): ExtendedWallet[] {
   const filteredWallets = React.useMemo(() => {
     let formattedWallets: ExtendedWallet[] = wallets;
 
-    if (selectedPreset) formattedWallets = formattedWallets.filter(presetFilter);
+    formattedWallets = formattedWallets.filter(installedFilter);
+
+    if (selectedPreset && (preset === "social" || preset === "pwa"))
+      formattedWallets = formattedWallets.filter(presetFilter);
 
     formattedWallets = addAbsentWallets(formattedWallets);
+
+    if (selectedPreset && preset !== "social" && preset !== "pwa") {
+      formattedWallets = [
+        ...formattedWallets,
+        ...(formattedWallets as ExtendedWallet[]).filter(
+          (wallet) => !formattedWallets.map((x) => x.adapter.name).includes(wallet.adapter.name)
+        ),
+      ];
+    }
 
     formattedWallets = formattedWallets.sort(backpackSort);
 
     formattedWallets = formattedWallets.map(updateWallets);
 
     return formattedWallets;
-  }, [wallets, selectedPreset, presetFilter, backpackSort, updateWallets]);
+  }, [wallets, installedFilter, selectedPreset, presetFilter, preset, backpackSort, updateWallets]);
 
   return filteredWallets;
 }
@@ -158,6 +190,8 @@ export const walletInstallMap: WalletLinkMap = {
   Phantom: "https://phantom.app/download",
   Backpack: "https://backpack.app/download",
   Solflare: "https://gamma.solflare.com/download#extension",
+  Coinbase: "https://www.coinbase.com/wallet/articles/getting-started-extension",
+  SquadsX: "https://squads.so/extension",
 };
 
 const backpackAdapter: Wallet = {
