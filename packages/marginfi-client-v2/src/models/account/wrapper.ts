@@ -43,6 +43,7 @@ export interface SimulationResult {
 
 export interface FlashLoanArgs {
   ixs: TransactionInstruction[];
+  bankAddresses: PublicKey[];
   signers?: Signer[];
   addressLookupTableAccounts?: AddressLookupTableAccount[];
 }
@@ -421,7 +422,10 @@ class MarginfiAccountWrapper {
     ]);
     if (!mfiAccountData || !bankData) throw new Error("Failed to simulate repay w/ collat");
     const previewBanks = this.client.banks;
-    previewBanks.set(borrowBankAddress.toBase58(), Bank.fromBuffer(borrowBankAddress, bankData, this._program.idl, this.client.feedIdMap));
+    previewBanks.set(
+      borrowBankAddress.toBase58(),
+      Bank.fromBuffer(borrowBankAddress, bankData, this._program.idl, this.client.feedIdMap)
+    );
     const previewClient = new MarginfiClient(
       this._config,
       this.client.program,
@@ -431,7 +435,7 @@ class MarginfiAccountWrapper {
       this.client.banks,
       this.client.oraclePrices,
       this.client.mintDatas,
-      this.client.feedIdMap,
+      this.client.feedIdMap
     );
     const previewMarginfiAccount = MarginfiAccountWrapper.fromAccountDataRaw(
       this.address,
@@ -481,6 +485,7 @@ class MarginfiAccountWrapper {
         ...depositIxs.instructions,
       ],
       addressLookupTableAccounts,
+      bankAddresses: [depositBankAddress, borrowBankAddress],
     });
 
     return { transaction, addressLookupTableAccounts };
@@ -502,7 +507,8 @@ class MarginfiAccountWrapper {
 
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:repay`);
     debug(
-      `Looping ${depositAmount} ${depositBank.tokenSymbol} against ${borrowAmount} ${borrowBank.tokenSymbol
+      `Looping ${depositAmount} ${depositBank.tokenSymbol} against ${borrowAmount} ${
+        borrowBank.tokenSymbol
       } into marginfi account (banks: ${depositBankAddress.toBase58()} / ${borrowBankAddress.toBase58()})`
     );
 
@@ -566,7 +572,7 @@ class MarginfiAccountWrapper {
       this.client.banks,
       this.client.oraclePrices,
       this.client.mintDatas,
-      this.client.feedIdMap,
+      this.client.feedIdMap
     );
     const previewMarginfiAccount = MarginfiAccountWrapper.fromAccountDataRaw(
       this.address,
@@ -619,6 +625,7 @@ class MarginfiAccountWrapper {
         ...depositIxs.instructions,
       ],
       addressLookupTableAccounts,
+      bankAddresses: [depositBankAddress, borrowBankAddress],
     });
 
     return { transaction, addressLookupTableAccounts };
@@ -656,7 +663,10 @@ class MarginfiAccountWrapper {
     const [mfiAccountData, bankData] = await this.client.simulateTransaction(tx, [this.address, bankAddress]);
     if (!mfiAccountData || !bankData) throw new Error("Failed to simulate deposit");
     const previewBanks = this.client.banks;
-    previewBanks.set(bankAddress.toBase58(), Bank.fromBuffer(bankAddress, bankData, this._program.idl, this.client.feedIdMap));
+    previewBanks.set(
+      bankAddress.toBase58(),
+      Bank.fromBuffer(bankAddress, bankData, this._program.idl, this.client.feedIdMap)
+    );
     const previewClient = new MarginfiClient(
       this._config,
       this.client.program,
@@ -666,7 +676,7 @@ class MarginfiAccountWrapper {
       this.client.banks,
       this.client.oraclePrices,
       this.client.mintDatas,
-      this.client.feedIdMap,
+      this.client.feedIdMap
     );
     const previewMarginfiAccount = MarginfiAccountWrapper.fromAccountDataRaw(
       this.address,
@@ -723,7 +733,10 @@ class MarginfiAccountWrapper {
     const [mfiAccountData, bankData] = await this.client.simulateTransaction(tx, [this.address, bankAddress]);
     if (!mfiAccountData || !bankData) throw new Error("Failed to simulate repay");
     const previewBanks = this.client.banks;
-    previewBanks.set(bankAddress.toBase58(), Bank.fromBuffer(bankAddress, bankData, this._program.idl, this.client.feedIdMap));
+    previewBanks.set(
+      bankAddress.toBase58(),
+      Bank.fromBuffer(bankAddress, bankData, this._program.idl, this.client.feedIdMap)
+    );
     const previewClient = new MarginfiClient(
       this._config,
       this.client.program,
@@ -733,7 +746,7 @@ class MarginfiAccountWrapper {
       this.client.banks,
       this.client.oraclePrices,
       this.client.mintDatas,
-      this.client.feedIdMap,
+      this.client.feedIdMap
     );
     const previewMarginfiAccount = MarginfiAccountWrapper.fromAccountDataRaw(
       this.address,
@@ -814,7 +827,10 @@ class MarginfiAccountWrapper {
     const [mfiAccountData, bankData] = await this.client.simulateTransaction(tx, [this.address, bankAddress]);
     if (!mfiAccountData || !bankData) throw new Error("Failed to simulate withdraw");
     const previewBanks = this.client.banks;
-    previewBanks.set(bankAddress.toBase58(), Bank.fromBuffer(bankAddress, bankData, this._program.idl, this.client.feedIdMap));
+    previewBanks.set(
+      bankAddress.toBase58(),
+      Bank.fromBuffer(bankAddress, bankData, this._program.idl, this.client.feedIdMap)
+    );
     const previewClient = new MarginfiClient(
       this._config,
       this.client.program,
@@ -824,7 +840,7 @@ class MarginfiAccountWrapper {
       this.client.banks,
       this.client.oraclePrices,
       this.client.mintDatas,
-      this.client.feedIdMap,
+      this.client.feedIdMap
     );
     const previewMarginfiAccount = MarginfiAccountWrapper.fromAccountDataRaw(
       this.address,
@@ -871,7 +887,10 @@ class MarginfiAccountWrapper {
     const [mfiAccountData, bankData] = await this.client.simulateTransaction(tx, [this.address, bankAddress]);
     if (!mfiAccountData || !bankData) throw new Error("Failed to simulate borrow");
     const previewBanks = this.client.banks;
-    previewBanks.set(bankAddress.toBase58(), Bank.fromBuffer(bankAddress, bankData, this._program.idl, this.client.feedIdMap));
+    previewBanks.set(
+      bankAddress.toBase58(),
+      Bank.fromBuffer(bankAddress, bankData, this._program.idl, this.client.feedIdMap)
+    );
     const previewClient = new MarginfiClient(
       this._config,
       this.client.program,
@@ -881,7 +900,7 @@ class MarginfiAccountWrapper {
       this.client.banks,
       this.client.oraclePrices,
       this.client.mintDatas,
-      this.client.feedIdMap,
+      this.client.feedIdMap
     );
     const previewMarginfiAccount = MarginfiAccountWrapper.fromAccountDataRaw(
       this.address,
@@ -896,7 +915,12 @@ class MarginfiAccountWrapper {
   }
 
   async makeWithdrawEmissionsIx(bankAddress: PublicKey): Promise<InstructionsWrapper> {
-    return this._marginfiAccount.makeWithdrawEmissionsIx(this._program, this.client.banks, this.client.mintDatas, bankAddress);
+    return this._marginfiAccount.makeWithdrawEmissionsIx(
+      this._program,
+      this.client.banks,
+      this.client.mintDatas,
+      bankAddress
+    );
   }
 
   async withdrawEmissions(bankAddress: PublicKey): Promise<string> {
@@ -925,7 +949,7 @@ class MarginfiAccountWrapper {
       this.client.mintDatas,
       assetBankAddress,
       assetQuantityUi,
-      liabBankAddress,
+      liabBankAddress
     );
   }
 
@@ -949,12 +973,27 @@ class MarginfiAccountWrapper {
     return sig;
   }
 
-  public async makeBeginFlashLoanIx(endIndex: number): Promise<InstructionsWrapper> {
-    return this._marginfiAccount.makeBeginFlashLoanIx(this._program, endIndex);
+  public async makeBeginFlashLoanIx(endIndex: number, bankAddresses: PublicKey[]): Promise<InstructionsWrapper> {
+    return this._marginfiAccount.makeBeginFlashLoanIx(
+      this._program,
+      bankAddresses,
+      this.client.banks,
+      this.client.mintDatas,
+      endIndex
+    );
   }
 
-  public async makeEndFlashLoanIx(projectedActiveBalances: PublicKey[]): Promise<InstructionsWrapper> {
-    return this._marginfiAccount.makeEndFlashLoanIx(this._program, this.client.banks, projectedActiveBalances);
+  public async makeEndFlashLoanIx(
+    projectedActiveBalances: PublicKey[],
+    bankAddresses: PublicKey[]
+  ): Promise<InstructionsWrapper> {
+    return this._marginfiAccount.makeEndFlashLoanIx(
+      this._program,
+      bankAddresses,
+      this.client.banks,
+      this.client.mintDatas,
+      projectedActiveBalances
+    );
   }
 
   public async flashLoan(args: FlashLoanArgs): Promise<string> {
@@ -978,8 +1017,8 @@ class MarginfiAccountWrapper {
       args.ixs
     );
 
-    const beginFlashLoanIx = await this.makeBeginFlashLoanIx(endIndex);
-    const endFlashLoanIx = await this.makeEndFlashLoanIx(projectedActiveBalances);
+    const beginFlashLoanIx = await this.makeBeginFlashLoanIx(endIndex, args.bankAddresses);
+    const endFlashLoanIx = await this.makeEndFlashLoanIx(projectedActiveBalances, args.bankAddresses);
 
     const ixs = [...beginFlashLoanIx.instructions, ...args.ixs, ...endFlashLoanIx.instructions];
 

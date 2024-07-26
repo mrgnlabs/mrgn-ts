@@ -269,7 +269,8 @@ function makeBeginFlashLoanIx(
   },
   args: {
     endIndex: BN;
-  }
+  },
+  remainingAccounts: AccountMeta[] = []
 ) {
   return mfiProgram.methods
     .lendingAccountStartFlashloan(args.endIndex)
@@ -278,6 +279,7 @@ function makeBeginFlashLoanIx(
       signer: accounts.signer,
       ixsSysvar: SYSVAR_INSTRUCTIONS_PUBKEY,
     })
+    .remainingAccounts(remainingAccounts)
     .instruction();
 }
 

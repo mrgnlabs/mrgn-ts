@@ -591,7 +591,7 @@ class MarginfiAccount {
   getHealthCheckAccounts(
     banks: Map<string, Bank>,
     mandatoryBanks: Bank[] = [],
-    excludedBanks: Bank[] = [],
+    excludedBanks: Bank[] = []
   ): AccountMeta[] {
     const mandatoryBanksSet = new Set(mandatoryBanks.map((b) => b.address.toBase58()));
     const excludedBanksSet = new Set(excludedBanks.map((b) => b.address.toBase58()));
@@ -643,10 +643,9 @@ class MarginfiAccount {
 
     const userTokenAtaPk = getAssociatedTokenAddressSync(bank.mint, this.authority, true, mintData.tokenProgram); // We allow off curve addresses here to support Fuse.
 
-    const remainingAccounts =
-      mintData.tokenProgram.equals(TOKEN_2022_PROGRAM_ID)
-        ? [{ pubkey: mintData.mint, isSigner: false, isWritable: false }]
-        : [];
+    const remainingAccounts = mintData.tokenProgram.equals(TOKEN_2022_PROGRAM_ID)
+      ? [{ pubkey: mintData.mint, isSigner: false, isWritable: false }]
+      : [];
 
     const ix = await instructions.makeDepositIx(
       program,
@@ -699,7 +698,7 @@ class MarginfiAccount {
           userAta,
           this.authority,
           bank.emissionsMint,
-          mintData.tokenProgram,
+          mintData.tokenProgram
         );
 
         ixs.push(createAtaIdempotentIx);
@@ -710,10 +709,9 @@ class MarginfiAccount {
     // Add repay-related instructions
     const userAta = getAssociatedTokenAddressSync(bank.mint, this.authority, true, mintData.tokenProgram); // We allow off curve addresses here to support Fuse.
 
-    const remainingAccounts =
-      mintData.tokenProgram.equals(TOKEN_2022_PROGRAM_ID)
-        ? [{ pubkey: mintData.mint, isSigner: false, isWritable: false }]
-        : [];
+    const remainingAccounts = mintData.tokenProgram.equals(TOKEN_2022_PROGRAM_ID)
+      ? [{ pubkey: mintData.mint, isSigner: false, isWritable: false }]
+      : [];
 
     const ix = await instructions.makeRepayIx(
       program,
@@ -760,13 +758,18 @@ class MarginfiAccount {
     // Add emissions-related instructions if necessary
     if (withdrawAll && !bank.emissionsMint.equals(PublicKey.default) && mintData.emissionTokenProgram) {
       if (createAtas) {
-        const userAta = getAssociatedTokenAddressSync(bank.emissionsMint, this.authority, true, mintData.emissionTokenProgram); // We allow off curve addresses here to support Fuse.
+        const userAta = getAssociatedTokenAddressSync(
+          bank.emissionsMint,
+          this.authority,
+          true,
+          mintData.emissionTokenProgram
+        ); // We allow off curve addresses here to support Fuse.
         const createAtaIdempotentIx = createAssociatedTokenAccountIdempotentInstruction(
           this.authority,
           userAta,
           this.authority,
           bank.emissionsMint,
-          mintData.emissionTokenProgram,
+          mintData.emissionTokenProgram
         );
         ixs.push(createAtaIdempotentIx);
       }
@@ -781,7 +784,7 @@ class MarginfiAccount {
         userAta,
         this.authority,
         bank.mint,
-        mintData.tokenProgram,
+        mintData.tokenProgram
       );
       ixs.push(createAtaIdempotentIx);
     }
@@ -849,7 +852,7 @@ class MarginfiAccount {
         userAta,
         this.authority,
         bank.mint,
-        mintData.tokenProgram,
+        mintData.tokenProgram
       );
       ixs.push(createAtaIdempotentIx);
     }
@@ -905,7 +908,7 @@ class MarginfiAccount {
       userAta,
       this.authority,
       bank.emissionsMint,
-      mintData.tokenProgram,
+      mintData.tokenProgram
     );
     ixs.push(createAtaIdempotentIx);
 
@@ -934,7 +937,7 @@ class MarginfiAccount {
     mintDatas: Map<string, MintData>,
     assetBankAddress: PublicKey,
     assetQuantityUi: Amount,
-    liabilityBankAddress: PublicKey,
+    liabilityBankAddress: PublicKey
   ): Promise<InstructionsWrapper> {
     const assetBank = banks.get(assetBankAddress.toBase58());
     if (!assetBank) throw Error(`Asset bank ${assetBankAddress.toBase58()} not found`);
@@ -986,24 +989,54 @@ class MarginfiAccount {
     return { instructions: ixs, keys: [] };
   }
 
-  async makeBeginFlashLoanIx(program: MarginfiProgram, endIndex: number): Promise<InstructionsWrapper> {
+  async makeBeginFlashLoanIx(
+    program: MarginfiProgram,
+    bankAddresses: PublicKey[],
+    banks: Map<string, Bank>,
+    mintDatas: Map<string, MintData>,
+    endIndex: number
+  ): Promise<InstructionsWrapper> {
+    const bankMintDatas = bankAddresses.map((address) => mintDatas.get(address.toBase58()));
+    let remainingAccounts: AccountMeta[] = [];
+
+    bankMintDatas.map((mintData, idx) => {
+      if (!mintData) throw Error(`Mint for bank ${bankAddresses[idx].toBase58()} not found`);
+
+      if (mintData.tokenProgram.equals(TOKEN_2022_PROGRAM_ID)) {
+        remainingAccounts.push({ pubkey: mintData.mint, isSigner: false, isWritable: false });
+      }
+    });
+
     const ix = await instructions.makeBeginFlashLoanIx(
       program,
       {
         marginfiAccount: this.address,
         signer: this.authority,
       },
-      { endIndex: new BN(endIndex) }
+      { endIndex: new BN(endIndex) },
+      remainingAccounts
     );
     return { instructions: [ix], keys: [] };
   }
 
   async makeEndFlashLoanIx(
     program: MarginfiProgram,
+    bankAddresses: PublicKey[],
     banks: Map<string, Bank>,
+    mintDatas: Map<string, MintData>,
     projectedActiveBalances: PublicKey[]
   ): Promise<InstructionsWrapper> {
-    const remainingAccounts = makeHealthAccountMetas(banks, projectedActiveBalances);
+    const bankMintDatas = bankAddresses.map((address) => mintDatas.get(address.toBase58()));
+    let remainingAccounts = makeHealthAccountMetas(banks, projectedActiveBalances);
+
+    bankMintDatas.map((mintData, idx) => {
+      if (!mintData) throw Error(`Mint for bank ${bankAddresses[idx].toBase58()} not found`);
+
+      if (mintData.tokenProgram.equals(TOKEN_2022_PROGRAM_ID)) {
+        remainingAccounts.push({ pubkey: mintData.mint, isSigner: false, isWritable: false });
+      }
+    });
+
     const ix = await instructions.makeEndFlashLoanIx(
       program,
       {
@@ -1066,7 +1099,8 @@ class MarginfiAccount {
           const targetBalance = projectedBalances.find((b) => b.bankPk.equals(targetBank));
           if (!targetBalance) {
             throw Error(
-              `Balance for bank ${targetBank.toBase58()} should be projected active at this point (ix ${index}: ${decoded.name
+              `Balance for bank ${targetBank.toBase58()} should be projected active at this point (ix ${index}: ${
+                decoded.name
               }))`
             );
           }
