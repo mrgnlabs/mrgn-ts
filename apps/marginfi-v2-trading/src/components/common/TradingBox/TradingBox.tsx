@@ -539,7 +539,7 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
                             actionMethod.actionMethod === "INFO" && "bg-accent text-info-foreground",
                             (!actionMethod.actionMethod || actionMethod.actionMethod === "WARNING") &&
                               "bg-accent text-alert-foreground",
-                            actionMethod.actionMethod === "ERROR" && "bg-[#990000] text-primary"
+                            actionMethod.actionMethod === "ERROR" && "bg-[#990000] text-white"
                           )}
                         >
                           <IconAlertTriangle className="shrink-0 translate-y-0.5" size={16} />

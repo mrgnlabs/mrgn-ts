@@ -771,10 +771,10 @@ export function generateStats(
           <dd
             className={cn(
               priceImpactPct > 0.05
-                ? "text-destructive-foreground"
+                ? "text-mrgn-error"
                 : priceImpactPct > 0.01
                 ? "text-alert-foreground"
-                : "text-success-foreground",
+                : "text-mrgn-success",
               "text-right"
             )}
           >
