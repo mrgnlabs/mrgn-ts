@@ -38,8 +38,9 @@ export const ActionBoxInput = ({
   tokensOverride,
   activeGroup,
 }: ActionBoxInputProps) => {
-  const [isActionBoxInputFocussed, setIsActionBoxInputFocussed] = useUiStore((state) => [
+  const [isActionBoxInputFocussed, platformFeeBps, setIsActionBoxInputFocussed] = useUiStore((state) => [
     state.isActionBoxInputFocussed,
+    state.platformFeeBps,
     state.setIsActionBoxInputFocussed,
   ]);
   const [
@@ -139,7 +140,8 @@ export const ActionBoxInput = ({
   const handleInputChange = React.useCallback(
     (newAmount: string) => {
       if (isRepayWithCollat) {
-        if (selectedAccount) setRepayAmountRaw(selectedAccount, formatAmount(newAmount, selectedRepayBank), connection);
+        if (selectedAccount)
+          setRepayAmountRaw(selectedAccount, formatAmount(newAmount, selectedRepayBank), connection, platformFeeBps);
       } else {
         setAmountRaw(formatAmount(newAmount, selectedBank));
       }
@@ -147,12 +149,13 @@ export const ActionBoxInput = ({
     [
       isRepayWithCollat,
       selectedAccount,
-      selectedRepayBank,
-      connection,
-      selectedBank,
-      setAmountRaw,
       setRepayAmountRaw,
       formatAmount,
+      selectedRepayBank,
+      connection,
+      platformFeeBps,
+      setAmountRaw,
+      selectedBank,
     ]
   );
 
