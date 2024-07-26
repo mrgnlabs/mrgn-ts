@@ -151,38 +151,430 @@ const client = await MarginfiClient.fetch(config, wallet, connection);
 </Note>
 
 <Properties>
-  <Property name="makeSetupIx" type="banks: PublicKey[]">
+  <Property name="makeSetupIx" type="">
     The makeSetupIx function is a method that prepares setup instructions for creating Associated Token Accounts (ATAs) if they don't already exist.
+
+    Parameters:
+    - banks (PublicKey[]): The list of bank addresses
   </Property>
 
-  <Property name="repayWithCollat" type="repayAmount: Amount, withdrawAmount:">
-    The makeSetupIx function is a method that prepares setup instructions for creating Associated Token Accounts (ATAs) if they don't already exist.
+  <Property name="repayWithCollateral" type="">
+    The repayWithCollateral method allows users to repay a borrowed asset using collateral from another asset. It performs the following steps:
+    1. Withdraws the specified amount (or all) of the collateral asset.
+    2. Swaps the withdrawn collateral for the borrowed asset.
+    3. Repays the specified amount (or all) of the borrowed asset.
+
+    Parameters:
+    - repayAmount (Amount): The amount to repay of the borrowed asset.
+    - withdrawAmount (Amount): The amount of collateral to withdraw.
+    - borrowBankAddress (PublicKey): The address of the bank where the asset was borrowed from.
+    - depositBankAddress (PublicKey): The address of the bank where the collateral is deposited.
+    - withdrawAll (boolean): (Optional) If true, withdraws all available collateral.
+    - repayAll (boolean): (Optional) If true, repays the entire borrowed amount.
+    - swapIxs (TransactionInstruction[]): An array of swap instructions for converting the collateral to the repayment asset.
+    - swapLookupTables (AddressLookupTableAccount[]): Address lookup tables for the swap.
+    - priorityFeeUi (number): (Optional) Priority fee for the transaction.
+
+    Returns a Promise that resolves to the transaction signature as a string.
+  </Property>
+
+  <Property name="makeRepayWithCollatTx" type="">
+    The makeRepayWithCollatTx method creates a transaction for repaying a borrowed asset using collateral from another asset. It builds a complete transaction including setup instructions, compute budget instructions, priority fee instructions, withdrawal instructions, swap instructions, and deposit instructions.
+
+    Parameters:
+    - repayAmount (Amount): The amount to repay of the borrowed asset.
+    - withdrawAmount (Amount): The amount of collateral to withdraw.
+    - borrowBankAddress (PublicKey): The address of the bank where the asset was borrowed from.
+    - depositBankAddress (PublicKey): The address of the bank where the collateral is deposited.
+    - withdrawAll (boolean): (Optional) If true, withdraws all available collateral.
+    - repayAll (boolean): (Optional) If true, repays the entire borrowed amount.
+    - swapIxs (TransactionInstruction[]): An array of swap instructions for converting the collateral to the repayment asset.
+    - swapLookupTables (AddressLookupTableAccount[]): Address lookup tables for the swap.
+    - priorityFeeUi (number): (Optional) Priority fee for the transaction.
+
+    Returns a Promise that resolves to an object containing:
+    - transaction (VersionedTransaction): The built transaction
+    - addressLookupTableAccounts (AddressLookupTableAccount[]): The address lookup table accounts used in the transaction
+  </Property>
+
+  <Property name="loop" type="">
+    The loop method performs a loop operation, which involves depositing an asset and borrowing against it in a single transaction. This can be used for leveraging a position.
+
+    Parameters:
+    - depositAmount (Amount): The amount of the asset to deposit.
+    - borrowAmount (Amount): The amount of the asset to borrow.
+    - depositBankAddress (PublicKey): The address of the bank where the asset is being deposited.
+    - borrowBankAddress (PublicKey): The address of the bank from which the asset is being borrowed.
+    - swapIxs (TransactionInstruction[]): An array of swap instructions for any necessary token conversions.
+    - swapLookupTables (AddressLookupTableAccount[]): Address lookup tables for the swap.
+    - priorityFeeUi (number): (Optional) Priority fee for the transaction.
+
+    Returns a Promise that resolves to either:
+    - A string representing the transaction signature, or
+    - An object containing:
+      - flashloanTx (VersionedTransaction): The built flashloan transaction
+      - addressLookupTableAccounts (AddressLookupTableAccount[]): The address lookup table accounts used in the transaction
+
+    This method first checks if the specified banks exist, then builds and processes the loop transaction using the makeLoopTx method.
+  </Property>
+
+
+  <Property name="simulateLoop" type="">
+    The simulateLoop method simulates a loop operation without actually executing it on the blockchain. This allows users to preview the results of a loop operation before committing to it.
+
+    Parameters:
+    - depositAmount (Amount): The amount of the asset to deposit in the simulation.
+    - borrowAmount (Amount): The amount of the asset to borrow in the simulation.
+    - depositBankAddress (PublicKey): The address of the bank where the asset is being deposited.
+    - borrowBankAddress (PublicKey): The address of the bank from which the asset is being borrowed.
+    - swapIxs (TransactionInstruction[]): An array of swap instructions for any necessary token conversions.
+    - swapLookupTables (AddressLookupTableAccount[]): Address lookup tables for the swap.
+    - priorityFeeUi (number): (Optional) Priority fee for the simulated transaction.
+
+    Returns a Promise that resolves to a SimulationResult object containing:
+    - banks (Map<string, Bank>): A map of updated bank states after the simulated operation.
+    - marginfiAccount (MarginfiAccountWrapper): The updated state of the Marginfi account after the simulated operation.
+
+    This method creates a transaction using makeLoopTx, simulates it, and then constructs a preview of the resulting state. It's useful for users to understand the potential outcomes of a loop operation before executing it.
+  </Property>
+
+  <Property name="makeLoopTx" type="">
+    The makeLoopTx method creates a transaction for performing a loop operation, which involves borrowing an asset and depositing another asset in a single transaction.
+
+    Parameters:
+    - depositAmount (Amount): The amount of the asset to deposit.
+    - borrowAmount (Amount): The amount of the asset to borrow.
+    - depositBankAddress (PublicKey): The address of the bank where the asset is being deposited.
+    - borrowBankAddress (PublicKey): The address of the bank from which the asset is being borrowed.
+    - swapIxs (TransactionInstruction[]): An array of swap instructions for any necessary token conversions.
+    - swapLookupTables (AddressLookupTableAccount[]): Address lookup tables for the swap.
+    - priorityFeeUi (number): (Optional) Priority fee for the transaction.
+    - createAtas (boolean): (Optional) If true, creates Associated Token Accounts (ATAs) if they don't exist.
+
+    Returns a Promise that resolves to an object containing:
+    - transaction (VersionedTransaction): The built transaction for the loop operation.
+    - addressLookupTableAccounts (AddressLookupTableAccount[]): The address lookup table accounts used in the transaction.
+
+    This method performs the following steps:
+    1. Verifies the existence of the deposit and borrow banks.
+    2. Creates setup instructions for ATAs if necessary.
+    3. Builds compute budget and priority fee instructions.
+    4. Creates borrow and deposit instructions.
+    5. Combines all instructions into a single flash loan transaction.
+
+    The resulting transaction, when executed, will perform the loop operation in an atomic manner.
+  </Property>
+
+  <Property name="makeDepositIx" type="">
+    The makeDepositIx method creates instructions for depositing assets into a Marginfi account.
+
+    Parameters:
+    - amount (Amount): The amount of the asset to deposit.
+    - bankAddress (PublicKey): The address of the bank where the asset is being deposited.
+    - opt (MakeDepositIxOpts): (Optional) Additional options for creating the deposit instruction.
+
+    Returns a Promise that resolves to an InstructionsWrapper containing the deposit instructions.
+
+    This method delegates the creation of deposit instructions to the internal _marginfiAccount object.
+  </Property>
+
+  <Property name="deposit" type="">
+    The deposit method executes a deposit transaction, adding assets to a Marginfi account.
+
+    Parameters:
+    - amount (Amount): The amount of the asset to deposit.
+    - bankAddress (PublicKey): The address of the bank where the asset is being deposited.
+    - opt (MakeDepositIxOpts): (Optional) Additional options for the deposit transaction.
+
+    Returns a Promise that resolves to a string representing the transaction signature.
+
+    This method performs the following steps:
+    1. Creates priority fee instructions if necessary.
+    2. Generates deposit instructions using makeDepositIx.
+    3. Builds and processes the transaction.
+    4. Returns the transaction signature upon successful completion.
+  </Property>
+
+  <Property name="simulateDeposit" type="">
+    The simulateDeposit method simulates a deposit operation without executing it on the blockchain.
+
+    Parameters:
+    - amount (Amount): The amount of the asset to deposit in the simulation.
+    - bankAddress (PublicKey): The address of the bank where the asset is being deposited.
+
+    Returns a Promise that resolves to a SimulationResult object containing:
+    - banks (Map<string, Bank>): A map of updated bank states after the simulated deposit.
+    - marginfiAccount (MarginfiAccountWrapper): The updated state of the Marginfi account after the simulated deposit.
+
+    This method creates a transaction using makeDepositIx, simulates it, and then constructs a preview of the resulting state. It's useful for users to understand the potential outcomes of a deposit operation before executing it.
+  </Property>
+
+  <Property name="makeRepayIx" type="">
+    The makeRepayIx method creates instructions for repaying borrowed assets in a Marginfi account.
+
+    Parameters:
+    - amount (Amount): The amount of the asset to repay.
+    - bankAddress (PublicKey): The address of the bank where the repayment is being made.
+    - repayAll (boolean): (Optional) If true, repays the entire borrowed amount.
+    - opt (MakeRepayIxOpts): (Optional) Additional options for creating the repay instruction.
+
+    Returns a Promise that resolves to an InstructionsWrapper containing the repay instructions.
+
+    This method first checks if the token program address for the repayment mint exists, then delegates the creation of repay instructions to the internal _marginfiAccount object.
+  </Property>
+
+  <Property name="repay" type="">
+    The repay method executes a repayment transaction, reducing the borrowed amount in a Marginfi account.
+
+    Parameters:
+    - amount (Amount): The amount of the asset to repay.
+    - bankAddress (PublicKey): The address of the bank where the repayment is being made.
+    - repayAll (boolean): (Optional) If true, repays the entire borrowed amount.
+    - opt (MakeRepayIxOpts): (Optional) Additional options for the repay transaction.
+
+    Returns a Promise that resolves to a string representing the transaction signature.
+
+    This method performs the following steps:
+    1. Creates priority fee instructions if necessary.
+    2. Generates repay instructions using makeRepayIx.
+    3. Builds and processes the transaction.
+    4. Returns the transaction signature upon successful completion.
+  </Property>
+
+  <Property name="simulateRepay" type="">
+    The simulateRepay method simulates a repayment operation without executing it on the blockchain.
+
+    Parameters:
+    - amount (Amount): The amount of the asset to repay in the simulation.
+    - bankAddress (PublicKey): The address of the bank where the repayment is being made.
+    - repayAll (boolean): (Optional) If true, simulates repaying the entire borrowed amount.
+
+    Returns a Promise that resolves to a SimulationResult object containing:
+    - banks (Map<string, Bank>): A map of updated bank states after the simulated repayment.
+    - marginfiAccount (MarginfiAccountWrapper): The updated state of the Marginfi account after the simulated repayment.
+
+    This method creates a transaction using makeRepayIx, simulates it, and then constructs a preview of the resulting state. It's useful for users to understand the potential outcomes of a repayment operation before executing it.
+  </Property>
+
+  <Property name="makeWithdrawIx" type="">
+    The makeWithdrawIx method creates instructions for withdrawing assets from a Marginfi account.
+
+    Parameters:
+    - amount (Amount): The amount of the asset to withdraw.
+    - bankAddress (PublicKey): The address of the bank from which the withdrawal is being made.
+    - withdrawAll (boolean): (Optional) If true, withdraws the entire available amount.
+    - opt (MakeWithdrawIxOpts): (Optional) Additional options for creating the withdraw instruction.
+
+    Returns a Promise that resolves to an InstructionsWrapper containing the withdraw instructions.
+
+    This method first checks if the token program address for the withdrawal mint exists, then delegates the creation of withdraw instructions to the internal _marginfiAccount object.
+  </Property>
+
+  <Property name="makeWithdrawAllTx" type="">
+    The makeWithdrawAllTx method creates a transaction for withdrawing all assets from multiple banks in a Marginfi account.
+
+    Parameters:
+    - banks (Array): An array of objects, each containing:
+      - amount (Amount): The amount to withdraw from the bank.
+      - bankAddress (PublicKey): The address of the bank to withdraw from.
+    - opt (MakeWithdrawIxOpts): (Optional) Additional options for the withdraw transaction.
+
+    Returns a Promise that resolves to a Transaction object containing instructions for withdrawing from all specified banks.
+
+    This method performs the following steps:
+    1. Creates priority fee instructions if necessary.
+    2. Generates compute budget instructions.
+    3. Creates withdraw instructions for each specified bank using makeWithdrawIx.
+    4. Combines all instructions into a single transaction.
+  </Property>
+
+  <Property name="withdraw" type="">
+    The withdraw method executes a withdrawal transaction, removing assets from a Marginfi account.
+
+    Parameters:
+    - amount (Amount): The amount of the asset to withdraw.
+    - bankAddress (PublicKey): The address of the bank from which the withdrawal is being made.
+    - withdrawAll (boolean): (Optional) If true, withdraws the entire available amount.
+    - opt (MakeWithdrawIxOpts): (Optional) Additional options for the withdraw transaction.
+
+    Returns a Promise that resolves to a string representing the transaction signature.
+
+    This method performs the following steps:
+    1. Creates priority fee instructions if necessary.
+    2. Generates compute budget instructions.
+    3. Creates withdraw instructions using makeWithdrawIx.
+    4. Builds and processes the transaction.
+    5. Returns the transaction signature upon successful completion.
+  </Property>
+
+  <Property name="simulateWithdraw" type="">
+    The simulateWithdraw method simulates a withdrawal operation without actually executing it on the blockchain. This allows users to preview the results of a withdrawal operation before committing to it.
+
+    Parameters:
+    - amount (Amount): The amount of the asset to withdraw.
+    - bankAddress (PublicKey): The address of the bank from which the asset is being withdrawn.
+    - withdrawAll (boolean): (Optional) If true, withdraws all available assets.
+
+    Returns a Promise that resolves to a SimulationResult object containing:
+    - banks (Map<string, Bank>): A map of updated bank states after the simulated operation.
+    - marginfiAccount (MarginfiAccountWrapper): The updated state of the Marginfi account after the simulated operation.
+
+    This method constructs the transaction for the withdrawal, simulates it, and provides a preview of the resulting state.
+  </Property>
+
+  <Property name="makeBorrowIx" type="">
+    The makeBorrowIx method creates instructions for borrowing an asset from a specified bank.
+
+    Parameters:
+    - amount (Amount): The amount of the asset to borrow.
+    - bankAddress (PublicKey): The address of the bank from which the asset is being borrowed.
+    - opt (MakeBorrowIxOpts): (Optional) Additional options for the borrow instruction.
+
+    Returns a Promise that resolves to an InstructionsWrapper containing:
+    - instructions (TransactionInstruction[]): An array of transaction instructions for the borrow operation.
+
+    This method verifies the necessary details and constructs the instructions required to borrow the specified asset.
+  </Property>
+
+  <Property name="borrow" type="">
+    The borrow method allows users to borrow an asset from a specified bank. It processes the borrow transaction on the blockchain.
+
+    Parameters:
+    - amount (Amount): The amount of the asset to borrow.
+    - bankAddress (PublicKey): The address of the bank from which the asset is being borrowed.
+    - opt (MakeBorrowIxOpts): (Optional) Additional options for the borrow transaction.
+
+    Returns a Promise that resolves to a string representing the transaction signature.
+
+    This method builds the complete borrow transaction including priority fee instructions and processes it on the blockchain.
+  </Property>
+
+  <Property name="simulateBorrow" type="">
+    The simulateBorrow method simulates a borrow operation without actually executing it on the blockchain. This allows users to preview the results of a borrow operation before committing to it.
+
+    Parameters:
+    - amount (Amount): The amount of the asset to borrow.
+    - bankAddress (PublicKey): The address of the bank from which the asset is being borrowed.
+
+    Returns a Promise that resolves to a SimulationResult object containing:
+    - banks (Map<string, Bank>): A map of updated bank states after the simulated operation.
+    - marginfiAccount (MarginfiAccountWrapper): The updated state of the Marginfi account after the simulated operation.
+
+    This method constructs the transaction for the borrow operation, simulates it, and provides a preview of the resulting state.
+  </Property>
+
+  <Property name="makeWithdrawEmissionsIx" type="">
+    The makeWithdrawEmissionsIx method creates instructions for withdrawing emissions from a specified bank.
+
+    Parameters:
+    - bankAddress (PublicKey): The address of the bank from which emissions are to be withdrawn.
+
+    Returns a Promise that resolves to an InstructionsWrapper containing:
+    - instructions (TransactionInstruction[]): An array of transaction instructions for the emission withdrawal operation.
+
+    This method constructs the necessary instructions required to withdraw emissions from the specified bank.
+  </Property>
+
+  <Property name="withdrawEmissions" type="">
+    The withdrawEmissions method allows users to withdraw emissions from a specified bank. It processes the emission withdrawal transaction on the blockchain.
+
+    Parameters:
+    - bankAddress (PublicKey): The address of the bank from which emissions are to be withdrawn.
+
+    Returns a Promise that resolves to a string representing the transaction signature.
+
+    This method builds the complete emission withdrawal transaction and processes it on the blockchain.
+  </Property>
+
+  <Property name="makeLendingAccountLiquidateIx" type="">
+    The makeLendingAccountLiquidateIx method creates instructions for liquidating a lending account.
+
+    Parameters:
+    - liquidateeMarginfiAccount (MarginfiAccount): The Marginfi account to be liquidated.
+    - assetBankAddress (PublicKey): The address of the bank holding the asset to be liquidated.
+    - assetQuantityUi (Amount): The quantity of the asset to be liquidated.
+    - liabBankAddress (PublicKey): The address of the bank holding the liability.
+
+    Returns a Promise that resolves to an InstructionsWrapper containing:
+    - instructions (TransactionInstruction[]): An array of transaction instructions for the liquidation operation.
+
+    This method constructs the necessary instructions required to liquidate the specified lending account.
+  </Property>
+
+  <Property name="lendingAccountLiquidate" type="">
+    The lendingAccountLiquidate method allows users to liquidate a lending account. It processes the liquidation transaction on the blockchain.
+
+    Parameters:
+    - liquidateeMarginfiAccount (MarginfiAccount): The Marginfi account to be liquidated.
+    - assetBankAddress (PublicKey): The address of the bank holding the asset to be liquidated.
+    - assetQuantityUi (Amount): The quantity of the asset to be liquidated.
+    - liabBankAddress (PublicKey): The address of the bank holding the liability.
+
+    Returns a Promise that resolves to a string representing the transaction signature.
+
+    This method builds the complete liquidation transaction and processes it on the blockchain.
+  </Property>
+
+  <Property name="makeBeginFlashLoanIx" type="">
+    The makeBeginFlashLoanIx method creates instructions for beginning a flash loan.
+
+    Parameters:
+    - endIndex (number): The index at which the flash loan ends.
+
+    Returns a Promise that resolves to an InstructionsWrapper containing:
+    - instructions (TransactionInstruction[]): An array of transaction instructions for beginning the flash loan.
+
+    This method constructs the necessary instructions required to initiate a flash loan.
+  </Property>
+
+  <Property name="makeEndFlashLoanIx" type="">
+    The makeEndFlashLoanIx method creates instructions for ending a flash loan.
+
+    Parameters:
+    - projectedActiveBalances (PublicKey[]): An array of public keys representing the projected active balances.
+
+    Returns a Promise that resolves to an InstructionsWrapper containing:
+    - instructions (TransactionInstruction[]): An array of transaction instructions for ending the flash loan.
+
+    This method constructs the necessary instructions required to conclude a flash loan.
+  </Property>
+
+  <Property name="flashLoan" type="">
+    The flashLoan method allows users to execute a flash loan. It processes the flash loan transaction on the blockchain.
+
+    Parameters:
+    - args (FlashLoanArgs): The arguments for the flash loan, including instructions and optional signers.
+
+    Returns a Promise that resolves to a string representing the transaction signature.
+
+    This method builds the complete flash loan transaction, including both the beginning and ending instructions, and processes it on the blockchain.
+  </Property>
+
+  <Property name="buildFlashLoanTx" type="">
+    The buildFlashLoanTx method creates a transaction for a flash loan.
+
+    Parameters:
+    - args (FlashLoanArgs): The arguments for the flash loan, including instructions and optional signers.
+    - lookupTables (AddressLookupTableAccount[]): (Optional) Address lookup tables for the transaction.
+
+    Returns a Promise that resolves to a VersionedTransaction object containing:
+    - transaction (VersionedTransaction): The built transaction for the flash loan operation.
+
+    This method constructs the complete transaction for the flash loan, combining all necessary instructions and address lookup tables.
+  </Property>
+
+  <Property name="makeTransferAccountAuthorityIx" type="">
+    The makeTransferAccountAuthorityIx method creates instructions for transferring the authority of an account to a new authority.
+
+    Parameters:
+    - newAccountAuthority (PublicKey): The public key of the new account authority.
+
+    Returns a Promise that resolves to an InstructionsWrapper containing:
+    - instructions (TransactionInstruction[]): An array of transaction instructions for the authority transfer operation.
+
+    This method constructs the necessary instructions required to transfer the account authority to a new public key.
   </Property>
 </Properties>
-
-
-`repayWithCollat`
-
-`borrow`
-
-`loop`
-
-`makeLoopTx`
-
-`withdraw`
-
-`repay`
-
-`makeRepayWithCollatTx`
-
-`makeWithdrawEmissionsIx`
-
-- - - attributes - - -
-
-`authority`
-
-
-
 
 ### `Bank`
 
