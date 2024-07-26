@@ -21,7 +21,7 @@ export default function LooperPage() {
         <div className="w-full max-w-7xl mx-auto mb-20 px-5">
           <PageHeading
             heading={<h1>mrgnloop ➰</h1>}
-            body={<p>Loop your deposits &amp; borrows with flashloans to maximize yield.</p>}
+            body={<p>Leverage your deposits to maximize yield.</p>}
             links={[]}
           />
           <ActionBox requestedAction={ActionType.Loop} />
