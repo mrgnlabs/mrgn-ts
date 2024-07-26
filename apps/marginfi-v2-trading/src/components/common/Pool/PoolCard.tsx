@@ -11,6 +11,7 @@ import { useTradeStore } from "~/store";
 
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "~/components/ui/card";
+import { TooltipProvider, Tooltip, TooltipContent, TooltipTrigger } from "~/components/ui/tooltip";
 
 import type { TokenData } from "~/types";
 
@@ -50,7 +51,7 @@ export const PoolCard = ({ bank }: PoolCardProps) => {
     <Card>
       <CardHeader>
         <CardTitle>
-          <div className="flex items-center gap-2 justify-between">
+          <div className="flex items-start gap-2 justify-between">
             <Link href={`/pools/${bank.address.toBase58()}`} className="flex items-center gap-3">
               <Image
                 src={getTokenImageURL(bank.meta.tokenSymbol)}
@@ -65,15 +66,24 @@ export const PoolCard = ({ bank }: PoolCardProps) => {
               </div>
             </Link>
             <div className="font-medium text-xs flex flex-col gap-1 items-center">
-              <Link href="https://x.com/marginfi" target="_blank">
-                <Image
-                  src="https://pbs.twimg.com/profile_images/1791110026456633344/VGViq-CJ_400x400.jpg"
-                  width={32}
-                  height={32}
-                  alt="marginfi"
-                  className="rounded-full"
-                />
-              </Link>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Link href="https://x.com/marginfi" target="_blank">
+                      <Image
+                        src="https://pbs.twimg.com/profile_images/1791110026456633344/VGViq-CJ_400x400.jpg"
+                        width={20}
+                        height={20}
+                        alt="marginfi"
+                        className="rounded-full"
+                      />
+                    </Link>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Pool created by marginfi</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
           </div>
         </CardTitle>
