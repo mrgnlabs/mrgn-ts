@@ -381,11 +381,11 @@ export async function repay({
   }
 }
 
-const getFeeAccount = async (mint: PublicKey) => {
+export const getFeeAccount = (mint: PublicKey) => {
   const referralProgramPubkey = new PublicKey("REFER4ZgmyYx9c6He5XfaTMiGfdLwRnkV4RPp9t9iF3");
   const referralAccountPubkey = new PublicKey("Mm7HcujSK2JzPW4eX7g4oqTXbWYDuFxapNMHXe8yp1B");
 
-  const [feeAccount] = await PublicKey.findProgramAddressSync(
+  const [feeAccount] = PublicKey.findProgramAddressSync(
     [Buffer.from("referral_ata"), referralAccountPubkey.toBuffer(), mint.toBuffer()],
     referralProgramPubkey
   );

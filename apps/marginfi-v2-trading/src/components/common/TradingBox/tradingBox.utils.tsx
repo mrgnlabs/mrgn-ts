@@ -30,6 +30,7 @@ import {
   deserializeInstruction,
   extractErrorString,
   getAdressLookupTableAccounts,
+  getFeeAccount,
   getSwapQuoteWithRetry,
   handleSimulationError,
   isBankOracleStale,
@@ -54,7 +55,8 @@ export async function calculateLooping(
   amountRaw: string,
   slippageBps: number,
   priorityFee: number,
-  connection: Connection
+  connection: Connection,
+  platformFeeBps?: number
 ): Promise<LoopingObject | null> {
   console.log("bank A: " + depositBank.meta.tokenSymbol);
   console.log("bank B: " + borrowBank.meta.tokenSymbol);
@@ -98,6 +100,7 @@ export async function calculateLooping(
       slippageBps,
       connection,
       priorityFee,
+      platformFeeBps,
     });
   } catch (error) {
     console.error(error);
@@ -241,6 +244,7 @@ export async function getLoopingTransaction({
   slippageBps,
   connection,
   priorityFee,
+  platformFeeBps,
   loopObject,
 }: {
   marginfiAccount: MarginfiAccountWrapper | null;
@@ -252,6 +256,7 @@ export async function getLoopingTransaction({
   slippageBps: number;
   connection: Connection;
   priorityFee?: number;
+  platformFeeBps?: number;
   loopObject?: LoopingObject;
 }) {
   let firstQuote;
@@ -542,13 +547,14 @@ export async function loopingBuilder({
   const jupiterQuoteApi = createJupiterApiClient();
 
   // get fee account for original borrow mint
-  //const feeAccount = await getFeeAccount(bank.info.state.mint);
+  const feeAccount = getFeeAccount(bank.info.state.mint);
 
   const { swapInstruction, addressLookupTableAddresses } = await jupiterQuoteApi.swapInstructionsPost({
     swapRequest: {
       quoteResponse: options.loopingQuote,
       userPublicKey: marginfiAccount.authority.toBase58(),
       programAuthorityId: LUT_PROGRAM_AUTHORITY_INDEX,
+      feeAccount: feeAccount,
     },
   });
 
