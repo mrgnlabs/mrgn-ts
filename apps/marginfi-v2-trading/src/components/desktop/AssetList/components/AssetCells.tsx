@@ -126,7 +126,7 @@ export const getRateCell = ({ rateAPY, symbol, emissionRate, lendingRate, isInLe
           <Tooltip>
             <TooltipTrigger asChild>
               <Image
-                src={EMISSION_MINT_INFO_MAP.get(symbol)!.tokenLogoUri}
+                src={EMISSION_MINT_INFO_MAP.get(symbol.toUpperCase())!.tokenLogoUri}
                 alt="info"
                 height={18}
                 width={18}
