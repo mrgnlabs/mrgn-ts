@@ -129,7 +129,7 @@ export const Slippage = ({ slippageBps, setSlippageBps, toggleSettings }: Slippa
                 <FormControl>
                   <div className="relative">
                     <Input
-                      type="number"
+                      type="decimal"
                       min={0}
                       value={isCustomSlippage ? field.value : undefined}
                       placeholder={isCustomSlippage ? field.value.toString() : "0"}
