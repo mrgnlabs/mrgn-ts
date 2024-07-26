@@ -713,6 +713,7 @@ export function generateStats(
 
   const priceImpactPct = looping ? Number(looping.quote.priceImpactPct) : undefined;
   const slippageBps = looping ? Number(looping.quote.slippageBps) : undefined;
+  const platformFeeBps = looping?.quote.platformFee ? Number(looping.quote.platformFee?.feeBps) : undefined;
 
   const currentLiqPrice = currentStats.liquidationPrice ? usdFormatter.format(currentStats.liquidationPrice) : null;
   const simulatedLiqPrice = simStats?.liquidationPrice ? usdFormatter.format(simStats?.liquidationPrice) : null;
@@ -752,6 +753,14 @@ export function generateStats(
           <dd className={cn(slippageBps > 500 && "text-alert-foreground", "text-right")}>
             {percentFormatter.format(slippageBps / 10000)}
           </dd>
+        </>
+      ) : (
+        <></>
+      )}
+      {platformFeeBps !== undefined ? (
+        <>
+          <dt>Platform fee</dt>
+          <dd className="text-right">{percentFormatter.format(platformFeeBps / 10000)}</dd>
         </>
       ) : (
         <></>

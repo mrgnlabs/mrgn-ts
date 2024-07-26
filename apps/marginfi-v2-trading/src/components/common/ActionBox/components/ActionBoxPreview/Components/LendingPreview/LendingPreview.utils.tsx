@@ -46,6 +46,7 @@ export interface ActionPreview {
   bankCap: number;
   priceImpactPct?: number;
   slippageBps?: number;
+  platformFeeBps?: number;
 }
 
 export interface ActionPreviewSimulation {
@@ -125,10 +126,10 @@ export function calculatePreview({
   const poolSize = isLending
     ? bank.info.state.totalDeposits
     : Math.max(
-      0,
-      Math.min(bank.info.state.totalDeposits, bank.info.rawBank.config.borrowLimit.toNumber()) -
-      bank.info.state.totalBorrows
-    );
+        0,
+        Math.min(bank.info.state.totalDeposits, bank.info.rawBank.config.borrowLimit.toNumber()) -
+          bank.info.state.totalBorrows
+      );
   const bankCap = nativeToUi(
     isLending ? bank.info.rawBank.config.depositLimit : bank.info.rawBank.config.borrowLimit,
     bank.info.state.mintDecimals
@@ -143,6 +144,7 @@ export function calculatePreview({
     priceImpactPct: repayWithCollatOptions?.repayCollatQuote?.priceImpactPct,
     slippageBps: repayWithCollatOptions?.repayCollatQuote?.slippageBps,
     simulationPreview,
+    platformFeeBps: repayWithCollatOptions?.repayCollatQuote?.platformFee?.feeBps,
   } as ActionPreview;
 }
 
@@ -181,7 +183,7 @@ export async function simulateAction({
           const previewBanks = marginfiClient.banks;
           previewBanks.set(
             bank.address.toBase58(),
-            Bank.fromBuffer(bank.address, bankData, marginfiClient.program.idl, marginfiClient.feedIdMap,)
+            Bank.fromBuffer(bank.address, bankData, marginfiClient.program.idl, marginfiClient.feedIdMap)
           );
           const previewClient = new MarginfiClient(
             marginfiClient.config,
@@ -192,7 +194,7 @@ export async function simulateAction({
             marginfiClient.banks,
             marginfiClient.oraclePrices,
             marginfiClient.mintDatas,
-            marginfiClient.feedIdMap,
+            marginfiClient.feedIdMap
           );
           const previewMarginfiAccount = MarginfiAccountWrapper.fromAccountDataRaw(
             account.address,
@@ -233,7 +235,7 @@ export async function simulateAction({
               repayWithCollatOptions.repayBank.address,
               bank.isActive && isWholePosition(bank, amount),
               repayWithCollatOptions.repayBank.isActive &&
-              isWholePosition(repayWithCollatOptions.repayBank, repayWithCollatOptions.repayAmount),
+                isWholePosition(repayWithCollatOptions.repayBank, repayWithCollatOptions.repayAmount),
               [...setupIxs, swapIx, ...swapcleanupIx],
               addressLookupTableAccounts
             );
@@ -275,6 +277,7 @@ export function generateStats(
   stats.push(getAmountStat(preview.currentPositionAmount, bank, preview.simulationPreview?.positionAmount));
   if (preview.priceImpactPct) stats.push(getPriceImpactStat(preview.priceImpactPct));
   if (preview.slippageBps) stats.push(getSlippageStat(preview.slippageBps));
+  if (preview.platformFeeBps) stats.push(getJupFeeStat(preview.platformFeeBps));
 
   stats.push(getHealthStat(preview.healthFactor, isLoading, preview.simulationPreview?.health));
 
@@ -288,10 +291,10 @@ export function generateStats(
   return stats;
 }
 
-function getJupFeeStat(): PreviewStat {
+function getJupFeeStat(platformFeeBps: number): PreviewStat {
   return {
     label: "Platform fee",
-    value: () => <>0.25%</>,
+    value: () => <>{percentFormatter.format(platformFeeBps / 10000)}</>,
   };
 }
 
@@ -361,8 +364,8 @@ function getLiquidationStat(bank: ExtendedBankInfo, isLoading: boolean, simulati
     ? computeLiquidation / price >= 0.5
       ? "SUCCESS"
       : computeLiquidation / price >= 0.25
-        ? "ALERT"
-        : "DESTRUCTIVE"
+      ? "ALERT"
+      : "DESTRUCTIVE"
     : undefined;
 
   return {
@@ -410,10 +413,10 @@ function getPoolSizeStat(bankCap: number, bank: ExtendedBankInfo, isLending: boo
                 isLending
                   ? bank.info.state.totalDeposits
                   : Math.max(
-                    0,
-                    Math.min(bank.info.state.totalDeposits, bank.info.rawBank.config.borrowLimit.toNumber()) -
-                    bank.info.state.totalBorrows
-                  )
+                      0,
+                      Math.min(bank.info.state.totalDeposits, bank.info.rawBank.config.borrowLimit.toNumber()) -
+                        bank.info.state.totalBorrows
+                    )
               )}
 
               {(isReduceOnly || isBankHigh || isBankFilled) && <IconAlertTriangle size={14} />}
@@ -444,8 +447,8 @@ function getPoolSizeStat(bankCap: number, bank: ExtendedBankInfo, isLending: boo
                 {isReduceOnly
                   ? "stSOL is being discontinued."
                   : `${bank.meta.tokenSymbol} ${isLending ? "deposits" : "borrows"} are at ${percentFormatter.format(
-                    (isLending ? bank.info.state.totalDeposits : bank.info.state.totalBorrows) / bankCap
-                  )} capacity.`}
+                      (isLending ? bank.info.state.totalDeposits : bank.info.state.totalBorrows) / bankCap
+                    )} capacity.`}
               </p>
               <a href="https://docs.marginfi.com">
                 <u>Learn more.</u>
