@@ -3,6 +3,7 @@ import { ImageComponent } from '~/components/ImageComponent'
 import CreateBankExample from '~/images/docs/create-bank-example.png'
 import SupplyExample from '~/images/docs/supply-example.png'
 import TradeExample from '~/images/docs/trade-example.png'
+import PortfolioExample from '~/images/docs/portfolio-example.png'
 
 export const metadata = {
   title: 'The Arena User Guide',
@@ -103,6 +104,13 @@ However, you can earn attractive yields by lending either $BODEN or $USDC into t
 These fluctuating lending rates create opportunities for users to maximize yield by arbitraging between the two assets and providing liquidity for both trade directions.
 
 As a lender on The Arena, you assume the same liquidation risk as when lending on <Button href="https://app.marginfi.com/" variant="text"><>mrgnlend</></Button>. Specifically, this means you risk liquidation if your <Button href="https://docs.marginfi.com/introduction#account-health" variant="text"><>account health</></Button> falls below the liquidation threshold.
+
+<ImageComponent
+  src={PortfolioExample}
+  alt="photo"
+/>
+
+Remember, each bank you lend into is completely isolated, meaning you have a separate local health factor for every bank. You can view your health factor for each of your positions by clicking on the corresponding LP position listed on the <Button href="https://www.thearena.trade/portfolio" variant="text"><>Portfolio page</></Button>.
 
 ---
 
