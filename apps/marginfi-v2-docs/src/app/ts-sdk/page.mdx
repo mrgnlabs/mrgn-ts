@@ -16,10 +16,6 @@ The <Button href="https://www.npmjs.com/package/@mrgnlabs/marginfi-client-v2" va
 
 ## Installation {{ tag: '', label: '' }}
 
-<Note>
-    It is recommended you use at least Node version `20.10.0` and NPM version `10.2.3`.
-</Note>
-
 To get started, simply initialize your Node.js project and install the packages using your preferred package manager.
 
 ```bash {{ title: 'Using NPM' }}
@@ -29,6 +25,10 @@ npm install @mrgnlabs/marginfi-client-v2 @mrgnlabs/mrgn-common
 ```bash {{ title: 'Using Yarn' }}
 yarn add @mrgnlabs/marginfi-client-v2 @mrgnlabs/mrgn-common
 ```
+
+<Note>
+  If you run into SDK issues, try using `yarn upgrade @mrgnlabs/marginfi-client-v2 @mrgnlabs/mrgn-common` to download the latest versions.
+</Note>
 
 ---
 
@@ -145,10 +145,6 @@ const client = await MarginfiClient.fetch(config, wallet, connection);
 ```
 
 **User Actions**
-
-<Note>
-  "User actions" refer to methods that allow users to interact with their Marginfi account and perform various operations.
-</Note>
 
 <Properties>
   <Property name="makeSetupIx" type="">
