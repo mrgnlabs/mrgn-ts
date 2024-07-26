@@ -18,6 +18,18 @@ import { PageHeading } from "~/components/common/PageHeading";
 
 const projects = shuffle([
   {
+    title: "The Arena",
+    description: "Memecoin trading, with leverage",
+    url: "https://www.thearena.trade",
+    github: "https://github.com/mrgnlabs/mrgn-ts/tree/main/apps/marginfi-v2-trading",
+    repo: "mrgnlabs/mrgn-ts",
+    author: {
+      name: "marginfi",
+      avatar: "/mrgn_logo_192.png",
+      url: "https://marginfi.com",
+    },
+  },
+  {
     title: "marginfi v2",
     description: "V2 of the marginfi protocol",
     url: "https://app.marginfi.com",
@@ -82,7 +94,7 @@ const projects = shuffle([
     repo: "mrgnlabs/mrgn-account-search",
     author: {
       name: "chambaz",
-      avatar: "https://pbs.twimg.com/profile_images/1744698619947528192/7uW-BVAn_400x400.jpg",
+      avatar: "https://pbs.twimg.com/profile_images/1791112881766895617/Sv4LpSsw_400x400.jpg",
       url: "https://twitter.com/chambaz",
     },
   },
