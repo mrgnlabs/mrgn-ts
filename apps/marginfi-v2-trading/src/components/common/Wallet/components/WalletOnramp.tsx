@@ -41,7 +41,7 @@ export const WalletOnramp = ({ showAmountBackButton = true }: WalletOnrampProps)
     if (!divRef.current) return;
     const transfer = inlineTransfer({
       container: "#outlet",
-      partnerId: "marginfi",
+      partnerId: "arena",
       environment: Environment.SANDBOX,
       sourceAmount: amount.toString() as any,
       sourceAsset: "USD",

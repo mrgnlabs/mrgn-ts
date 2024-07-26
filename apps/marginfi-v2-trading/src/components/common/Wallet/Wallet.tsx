@@ -576,7 +576,7 @@ const TokenOptions = ({ walletAddress, setState, setToken, web3AuthConnected = f
         </div>
         Bridge
       </button>
-      {/* <button
+      <button
         className="flex flex-col gap-1 text-sm font-medium items-center"
         onClick={() => {
           setState(WalletState.BUY);
@@ -586,7 +586,7 @@ const TokenOptions = ({ walletAddress, setState, setToken, web3AuthConnected = f
           <IconCreditCardPay size={20} />
         </div>
         Buy
-      </button> */}
+      </button>
     </div>
   );
 };
