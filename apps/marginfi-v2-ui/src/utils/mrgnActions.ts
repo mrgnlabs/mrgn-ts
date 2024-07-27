@@ -661,27 +661,17 @@ export async function repayWithCollat({
 }
 
 export async function collectRewardsBatch(
-  connection: Connection,
-  wallet: Wallet,
   marginfiAccount: MarginfiAccountWrapper,
-  bankAddresses: PublicKey[]
+  bankAddresses: PublicKey[],
+  priorityFee?: number
 ) {
   const multiStepToast = new MultiStepToastHandle("Collect rewards", [{ label: "Collecting rewards" }]);
   multiStepToast.start();
 
   try {
-    const tx = new Transaction();
-    const ixs = [];
-    const signers = [];
-
-    for (const bankAddress of bankAddresses) {
-      const ix = await marginfiAccount.makeWithdrawEmissionsIx(bankAddress);
-      ixs.push(...ix.instructions);
-      signers.push(ix.keys);
-    }
-    tx.add(...ixs);
-    await processTransaction(connection, wallet, tx);
+    const txnSig = await marginfiAccount.withdrawEmissions(bankAddresses, priorityFee);
     multiStepToast.setSuccessAndNext();
+    return txnSig;
   } catch (error: any) {
     const msg = extractErrorString(error);
     Sentry.captureException({ message: error });
