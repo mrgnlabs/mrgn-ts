@@ -36,7 +36,7 @@ export const Navbar: FC = () => {
       state.resetUserData,
     ]);
 
-  const [isOraclesStale] = useUiStore((state) => [state.isOraclesStale]);
+  const [isOraclesStale, priorityFee] = useUiStore((state) => [state.isOraclesStale, state.priorityFee]);
 
   const [lipAccount, setLipAccount] = useState<LipAccount | null>(null);
 
@@ -142,7 +142,7 @@ export const Navbar: FC = () => {
                 }`}
                 onClick={async () => {
                   if (!wallet || !selectedAccount || bankAddressesWithEmissions.length === 0) return;
-                  await collectRewardsBatch(connection, wallet, selectedAccount, bankAddressesWithEmissions);
+                  await collectRewardsBatch(selectedAccount, bankAddressesWithEmissions, priorityFee);
                 }}
               >
                 collect rewards
