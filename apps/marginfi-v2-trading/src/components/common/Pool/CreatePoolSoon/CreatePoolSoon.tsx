@@ -30,6 +30,7 @@ export const CreatePoolSoon = ({ trigger }: CreatePoolDialogProps) => {
   const [isOpen, setIsOpen] = React.useState(false);
   const [createPoolState, setCreatePoolState] = React.useState<"FORM" | "SUCCESS">("FORM");
   const [formData, setFormData] = React.useState<z.infer<typeof formSchema>>();
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   const { width, height } = useWindowSize();
   const isMobile = useIsMobile();
@@ -41,6 +42,7 @@ export const CreatePoolSoon = ({ trigger }: CreatePoolDialogProps) => {
 
   const onSubmit = React.useCallback(
     async (values: z.infer<typeof formSchema>) => {
+      setIsSubmitting(true);
       setFormData(values);
       const poolSubmission = await fetch(`/api/pool`, {
         method: "POST",
@@ -56,6 +58,7 @@ export const CreatePoolSoon = ({ trigger }: CreatePoolDialogProps) => {
       } else {
         showErrorToast("Pool submission failed.");
       }
+      setIsSubmitting(false);
     },
     [setFormData, setCreatePoolState]
   );
@@ -164,8 +167,8 @@ export const CreatePoolSoon = ({ trigger }: CreatePoolDialogProps) => {
                           )}
                         />
 
-                        <Button className="w-full" type="submit">
-                          Submit
+                        <Button className="w-full" type="submit" disabled={isSubmitting}>
+                          {isSubmitting ? "Submitting..." : "Submit"}
                         </Button>
                       </div>
                     </div>
