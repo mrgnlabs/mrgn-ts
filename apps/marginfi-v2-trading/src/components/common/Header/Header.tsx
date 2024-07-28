@@ -89,7 +89,7 @@ export const Header = () => {
               </div>
             )
           }
-          {connected && !isMobile && (
+          {!isMobile && (
             <div className="flex items-center">
               <CreatePoolSoon
                 trigger={
