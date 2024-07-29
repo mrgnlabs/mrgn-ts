@@ -329,7 +329,7 @@ export const getPositionCell = (positionData: PositionData) => {
             Liquidation price:
           </dt>
           <dd className={cn(positionData.isUserPositionPoorHealth && "text-destructive-foreground")}>
-            {positionData.liquidationPrice > 0.01
+            {positionData.liquidationPrice > 0.00001
               ? usdFormatter.format(positionData.liquidationPrice)
               : `$${positionData.liquidationPrice.toExponential(2)}`}
           </dd>

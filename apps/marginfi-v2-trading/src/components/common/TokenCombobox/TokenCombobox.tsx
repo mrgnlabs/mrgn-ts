@@ -173,7 +173,7 @@ const TokenData = ({ bank }: { bank: ExtendedBankInfo }) => {
   return (
     <div className="flex items-center gap-1 text-sm ml-auto w-[110px] text-muted-foreground">
       <span>
-        {tokenData.price > 0.01 ? usdFormatter.format(tokenData.price) : `$${tokenData.price.toExponential(2)}`}
+        {tokenData.price > 0.00001 ? usdFormatter.format(tokenData.price) : `$${tokenData.price.toExponential(2)}`}
       </span>
       <span className={cn("text-xs", tokenData?.priceChange24h > 1 ? "text-mrgn-success" : "text-mrgn-error")}>
         {percentFormatter.format(tokenData?.priceChange24h / 100)}

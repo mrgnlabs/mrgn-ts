@@ -121,7 +121,7 @@ export const PositionList = () => {
                 <TableCell>
                   {bank.position.liquidationPrice ? (
                     <>
-                      {bank.position.liquidationPrice > 0.01
+                      {bank.position.liquidationPrice > 0.00001
                         ? usdFormatter.format(bank.position.liquidationPrice)
                         : `$${bank.position.liquidationPrice.toExponential(2)}`}
                     </>
