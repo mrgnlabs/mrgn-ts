@@ -173,4 +173,5 @@ export type TokenData = {
   volumeChange24h: number;
   volume4h: number;
   volumeChange4h: number;
+  marketcap: number;
 };

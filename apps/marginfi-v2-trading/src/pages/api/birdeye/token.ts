@@ -40,6 +40,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return;
     }
 
+    console.log(data);
+
     const tokenData: TokenData = {
       address: data.address,
       name: data.name,
@@ -52,6 +54,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       volumeChange24h: data.v24hChangePercent,
       volume4h: data.v4hUSD,
       volumeChange4h: data.v4hChangePercent,
+      marketcap: data.realMc,
     };
 
     // Store in cache
