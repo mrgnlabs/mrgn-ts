@@ -336,7 +336,7 @@ class MarginfiAccountWrapper {
     try {
       const userAtas = banks.map((bankAddress) => {
         const bank = this.client.bankMetadataMap![bankAddress.toBase58()];
-        const mintData = this.client.mintDatas.get(bank.tokenAddress);
+        const mintData = this.client.mintDatas.get(bankAddress.toBase58());
         if (!mintData) throw Error(`Token data for ${bank.tokenAddress} not found`);
         return getAssociatedTokenAddressSync(
           new PublicKey(bank.tokenAddress),
@@ -353,7 +353,7 @@ class MarginfiAccountWrapper {
         if (userAta === null) {
           const bankAddress = banks[i];
           const bank = this.client.bankMetadataMap![bankAddress.toBase58()];
-          const mintData = this.client.mintDatas.get(bank.tokenAddress);
+          const mintData = this.client.mintDatas.get(bankAddress.toBase58());
           if (!mintData) throw Error(`Token data for ${bank.tokenAddress} not found`);
           ixs.push(
             createAssociatedTokenAccountIdempotentInstruction(
