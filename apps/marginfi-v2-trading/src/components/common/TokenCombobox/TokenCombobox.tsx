@@ -64,7 +64,7 @@ export const TokenCombobox = ({ selected, setSelected }: TokenComboboxProps) => 
                         }}
                       >
                         <Image
-                          src={getTokenImageURL(bank.meta.tokenSymbol)}
+                          src={getTokenImageURL(bank.info.state.mint.toBase58())}
                           width={32}
                           height={32}
                           alt={bank.meta.tokenName}
@@ -107,7 +107,7 @@ export const TokenCombobox = ({ selected, setSelected }: TokenComboboxProps) => 
                       }}
                     >
                       <Image
-                        src={getTokenImageURL(bank.meta.tokenSymbol)}
+                        src={getTokenImageURL(bank.info.state.mint.toBase58())}
                         width={32}
                         height={32}
                         alt={bank.meta.tokenName}
@@ -133,7 +133,7 @@ const TokenTrigger = ({ selected }: { selected: ExtendedBankInfo | null }) => {
       {selected !== null ? (
         <>
           <Image
-            src={getTokenImageURL(selected.meta.tokenSymbol)}
+            src={getTokenImageURL(selected.info.state.mint.toBase58())}
             width={24}
             height={24}
             alt={`Pool ${selected}`}

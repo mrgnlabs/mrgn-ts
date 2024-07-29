@@ -152,7 +152,7 @@ export const PoolSearch = ({
                   >
                     <div className="flex items-center gap-3">
                       <Image
-                        src={getTokenImageURL(result.meta.tokenSymbol)}
+                        src={getTokenImageURL(result.info.state.mint.toBase58())}
                         width={size === "sm" ? 28 : 32}
                         height={size === "sm" ? 28 : 32}
                         alt={result.meta.tokenSymbol}

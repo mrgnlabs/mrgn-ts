@@ -123,7 +123,7 @@ export const Wallet = () => {
         return {
           address: bank.address,
           name: isSolBank ? "Solana" : bank.meta.tokenName,
-          image: getTokenImageURL(bank.meta.tokenSymbol),
+          image: getTokenImageURL(bank.info.state.mint.toBase58()),
           symbol: bank.meta.tokenSymbol,
           value: value,
           valueUSD: valueUSD,
@@ -330,7 +330,7 @@ export const Wallet = () => {
                         </button>
                         <div className="gap-2 text-center flex flex-col items-center">
                           <Image
-                            src={getTokenImageURL(activeToken.symbol)}
+                            src={getTokenImageURL(activeToken.address.toBase58())}
                             alt={activeToken.symbol}
                             width={60}
                             height={60}

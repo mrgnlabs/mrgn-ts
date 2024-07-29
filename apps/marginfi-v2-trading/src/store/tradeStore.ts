@@ -557,6 +557,8 @@ const fetchBanksAndTradeGroups = async (wallet: Wallet, connection: Connection) 
     return;
   }
 
+  console.log("tradeGroups", tradeGroups);
+
   const tokenMetadataMap = await loadTokenMetadatas(TOKEN_METADATA_MAP);
 
   const bankMetadataMap = await loadBankMetadatas(BANK_METADATA_MAP);
@@ -637,7 +639,11 @@ const fetchBanksAndTradeGroups = async (wallet: Wallet, connection: Connection) 
       fetchTokenAccounts(
         connection,
         wallet.publicKey,
-        banksWithPriceAndToken.map((bank) => ({ mint: bank.bank.mint, mintDecimals: bank.bank.mintDecimals, bankAddress: bank.bank.address })),
+        banksWithPriceAndToken.map((bank) => ({
+          mint: bank.bank.mint,
+          mintDecimals: bank.bank.mintDecimals,
+          bankAddress: bank.bank.address,
+        })),
         mintDatas
       ),
     ]);

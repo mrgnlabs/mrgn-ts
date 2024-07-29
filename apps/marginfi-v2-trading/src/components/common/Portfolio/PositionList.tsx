@@ -101,7 +101,7 @@ export const PositionList = () => {
                     className="flex items-center gap-3 transition-colors hover:text-mrgn-chartreuse"
                   >
                     <Image
-                      src={getTokenImageURL(bank.meta.tokenSymbol)}
+                      src={getTokenImageURL(bank.info.state.mint.toBase58())}
                       width={24}
                       height={24}
                       alt={bank.meta.tokenSymbol}

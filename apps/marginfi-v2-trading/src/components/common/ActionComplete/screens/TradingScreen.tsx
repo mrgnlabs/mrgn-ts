@@ -46,7 +46,7 @@ export const TradingScreen = ({
           </h3>
           <Image
             className="rounded-full w-9 h-9"
-            src={getTokenImageURL(tokenBank.meta.tokenSymbol)}
+            src={getTokenImageURL(tokenBank.info.state.mint.toBase58())}
             alt={(tokenBank.meta.tokenSymbol || "Token") + "  logo"}
             width={36}
             height={36}

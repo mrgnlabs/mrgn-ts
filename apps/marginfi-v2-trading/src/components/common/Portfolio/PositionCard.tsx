@@ -85,7 +85,7 @@ export const PositionCard = ({ bank, isLong }: PositionCardProps) => {
           className="flex items-center gap-4 font-medium text-muted-foreground"
         >
           <Image
-            src={getTokenImageURL(bank.meta.tokenSymbol)}
+            src={getTokenImageURL(bank.info.state.mint.toBase58())}
             alt={bank.meta.tokenSymbol}
             width={56}
             height={56}

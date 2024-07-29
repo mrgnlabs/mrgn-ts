@@ -311,7 +311,7 @@ export const WalletSend = ({ activeToken, onSendMore, onBack, onRetry, onCancel 
       <div className="gap-6 text-center flex flex-col items-center">
         <div className="gap-2 text-center flex flex-col items-center">
           <Image
-            src={getTokenImageURL(activeToken.symbol)}
+            src={getTokenImageURL(activeToken.address.toBase58())}
             alt={activeToken.symbol}
             width={60}
             height={60}
