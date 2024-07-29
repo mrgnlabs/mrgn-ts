@@ -557,8 +557,6 @@ const fetchBanksAndTradeGroups = async (wallet: Wallet, connection: Connection) 
     return;
   }
 
-  console.log("tradeGroups", tradeGroups);
-
   const tokenMetadataMap = await loadTokenMetadatas(TOKEN_METADATA_MAP);
 
   const bankMetadataMap = await loadBankMetadatas(BANK_METADATA_MAP);
@@ -685,6 +683,8 @@ const fetchBanksAndTradeGroups = async (wallet: Wallet, connection: Connection) 
   }
 
   const tokenBanks = allBanks.filter((bank) => !bank.info.rawBank.mint.equals(USDC_MINT));
+
+  console.log(tokenBanks);
   // const tokenBanks = [
   //   ...allBanks.filter((bank) => !bank.info.rawBank.mint.equals(USDC_MINT)),
   //   ...allBanks.filter((bank) => !bank.info.rawBank.mint.equals(USDC_MINT)),
