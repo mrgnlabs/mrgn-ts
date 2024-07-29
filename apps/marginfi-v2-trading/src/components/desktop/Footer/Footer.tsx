@@ -29,6 +29,9 @@ export const Footer = () => {
   return (
     <motion.footer
       className="bg-background fixed bottom-0 w-full flex items-center justify-between px-4 py-2 z-30"
+      style={{
+        boxShadow: "0 -4px 30px 0 rgba(0, 0, 0, 0.075)",
+      }}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ delay: 4 }}
@@ -40,6 +43,13 @@ export const Footer = () => {
         </Link>
         .
       </p>
+      <Link
+        href="https://github.com/mrgnlabs/marginfi-v2/tree/main/audits"
+        target="blank"
+        className="text-xs text-primary/80 italic border-b border-transparent transition-colors hover:border-primary"
+      >
+        Audited by Ottersec and Sec3
+      </Link>
       <nav>
         <ul className="flex items-center gap-3.5 justify-end">
           {footerLinks.map((link, index) => (
