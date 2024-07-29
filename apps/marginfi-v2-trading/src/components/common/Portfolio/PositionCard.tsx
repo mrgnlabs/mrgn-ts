@@ -3,7 +3,7 @@ import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 
-import { numeralFormatter, percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
+import { numeralFormatter, tokenPriceFormatter, percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { getTokenImageURL, cn } from "~/utils";
@@ -107,8 +107,8 @@ export const PositionCard = ({ bank, isLong }: PositionCardProps) => {
           <dd className="text-right text-primary">{`${leverage}x`}</dd>
           <dt>Price</dt>
           <dd className="text-right text-primary">
-            {bank.info.oraclePrice.priceRealtime.price.toNumber() > 0.01
-              ? usdFormatter.format(bank.info.oraclePrice.priceRealtime.price.toNumber())
+            {bank.info.oraclePrice.priceRealtime.price.toNumber() > 0.00001
+              ? tokenPriceFormatter.format(bank.info.oraclePrice.priceRealtime.price.toNumber())
               : `$${bank.info.oraclePrice.priceRealtime.price.toNumber().toExponential(2)}`}
             {tokenData && (
               <span className={cn("ml-1", tokenData.priceChange24h > 0 ? "text-mrgn-success" : "text-mrgn-error")}>
@@ -121,7 +121,7 @@ export const PositionCard = ({ bank, isLong }: PositionCardProps) => {
           {bank.position.liquidationPrice && (
             <>
               <dt>Liquidation Price</dt>
-              <dd className="text-right text-primary">{usdFormatter.format(bank.position.liquidationPrice)}</dd>
+              <dd className="text-right text-primary">{tokenPriceFormatter.format(bank.position.liquidationPrice)}</dd>
             </>
           )}
         </dl>

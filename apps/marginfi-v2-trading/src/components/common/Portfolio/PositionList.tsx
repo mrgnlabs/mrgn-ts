@@ -3,17 +3,14 @@ import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 
-import { ActionType, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { numeralFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
-import { IconMinus, IconPlus, IconX } from "@tabler/icons-react";
+import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { numeralFormatter, tokenPriceFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 
 import { getTokenImageURL } from "~/utils";
 import { useTradeStore } from "~/store";
 
-import { ActionBoxDialog } from "~/components/common/ActionBox";
 import { PositionActionButtons } from "~/components/common/Portfolio";
 import { Table, TableBody, TableHead, TableCell, TableHeader, TableRow } from "~/components/ui/table";
-import { Button } from "~/components/ui/button";
 import { Badge } from "~/components/ui/badge";
 import { ActiveGroup } from "~/store/tradeStore";
 
@@ -114,15 +111,15 @@ export const PositionList = () => {
                 <TableCell>{`${leverage}x`}</TableCell>
                 <TableCell>{usdFormatter.format(bank.position.usdValue)}</TableCell>
                 <TableCell>
-                  {bank.info.oraclePrice.priceRealtime.price.toNumber()
-                    ? usdFormatter.format(bank.info.oraclePrice.priceRealtime.price.toNumber())
+                  {bank.info.oraclePrice.priceRealtime.price.toNumber() > 0.00001
+                    ? tokenPriceFormatter.format(bank.info.oraclePrice.priceRealtime.price.toNumber())
                     : `$${bank.info.oraclePrice.priceRealtime.price.toExponential(2)}`}
                 </TableCell>
                 <TableCell>
                   {bank.position.liquidationPrice ? (
                     <>
                       {bank.position.liquidationPrice > 0.00001
-                        ? usdFormatter.format(bank.position.liquidationPrice)
+                        ? tokenPriceFormatter.format(bank.position.liquidationPrice)
                         : `$${bank.position.liquidationPrice.toExponential(2)}`}
                     </>
                   ) : (
