@@ -646,7 +646,7 @@ export async function looping({
 
 export interface SimulateLoopingActionProps {
   marginfiClient: MarginfiClient;
-  account: MarginfiAccountWrapper;
+  account: MarginfiAccountWrapper | null;
   bank: ExtendedBankInfo;
   loopingTxn: VersionedTransaction | null;
 }
@@ -659,7 +659,7 @@ export async function simulateLooping({
 }: SimulateLoopingActionProps): Promise<SimulationResult | null> {
   let simulationResult: SimulationResult;
 
-  if (loopingTxn && marginfiClient) {
+  if (loopingTxn && marginfiClient && account) {
     const [mfiAccountData, bankData] = await marginfiClient.simulateTransaction(loopingTxn, [
       account.address,
       bank.address,
@@ -701,7 +701,8 @@ export function generateStats(
   tokenBank: ExtendedBankInfo,
   usdcBank: ExtendedBankInfo,
   simulationResult: SimulationResult | null,
-  looping: LoopingObject | null
+  looping: LoopingObject | null,
+  isAccountInitialized: boolean
 ) {
   let simStats: StatResult | null = null;
 
@@ -733,79 +734,89 @@ export function generateStats(
   }
 
   return (
-    <dl className="w-full grid grid-cols-2 gap-1.5 text-xs text-muted-foreground">
-      <dt>Entry Price</dt>
-      <dd className="text-primary text-right">{usdFormatter.format(tokenBank.info.state.price)}</dd>
-      {(currentLiqPrice || simulatedLiqPrice) && (
-        <>
-          <dt>Liquidation Price</dt>
+    <>
+      <dl className="w-full grid grid-cols-2 gap-1.5 text-xs text-muted-foreground">
+        <dt>Entry Price</dt>
+        <dd className="text-primary text-right">{usdFormatter.format(tokenBank.info.state.price)}</dd>
+        {(currentLiqPrice || simulatedLiqPrice) && (
+          <>
+            <dt>Liquidation Price</dt>
 
-          <dd className="text-primary text-right flex flex-row justify-end gap-2">
-            {currentLiqPrice && <span>{currentLiqPrice}</span>}
-            {showLiqComparison && <IconArrowRight width={12} height={12} />}
-            {simulatedLiqPrice && <span>{simulatedLiqPrice}</span>}
-          </dd>
-        </>
-      )}
-      {slippageBps !== undefined ? (
-        <>
-          <dt>Slippage</dt>
-          <dd className={cn(slippageBps > 500 && "text-alert-foreground", "text-right")}>
-            {percentFormatter.format(slippageBps / 10000)}
-          </dd>
-        </>
+            <dd className="text-primary text-right flex flex-row justify-end gap-2">
+              {currentLiqPrice && <span>{currentLiqPrice}</span>}
+              {showLiqComparison && <IconArrowRight width={12} height={12} />}
+              {simulatedLiqPrice && <span>{simulatedLiqPrice}</span>}
+            </dd>
+          </>
+        )}
+        {slippageBps !== undefined ? (
+          <>
+            <dt>Slippage</dt>
+            <dd className={cn(slippageBps > 500 && "text-alert-foreground", "text-right")}>
+              {percentFormatter.format(slippageBps / 10000)}
+            </dd>
+          </>
+        ) : (
+          <></>
+        )}
+        {platformFeeBps !== undefined ? (
+          <>
+            <dt>Platform fee</dt>
+            <dd className="text-right">{percentFormatter.format(platformFeeBps / 10000)}</dd>
+          </>
+        ) : (
+          <></>
+        )}
+        {priceImpactPct !== undefined ? (
+          <>
+            <dt>Price impact</dt>
+            <dd
+              className={cn(
+                priceImpactPct > 0.05
+                  ? "text-mrgn-error"
+                  : priceImpactPct > 0.01
+                  ? "text-alert-foreground"
+                  : "text-mrgn-success",
+                "text-right"
+              )}
+            >
+              {percentFormatter.format(priceImpactPct)}
+            </dd>
+          </>
+        ) : (
+          <></>
+        )}
+        <dt>Oracle</dt>
+        <dd className="text-primary flex items-center gap-1 ml-auto">
+          {oracle}
+          {oracle === "Pyth" ? <IconPyth size={14} /> : <IconSwitchboard size={14} />}
+        </dd>
+        {tokenBank.info.state.totalDeposits > 0 && (
+          <>
+            <dt>Total Open Long</dt>
+            <dd className="text-primary text-right">
+              {tokenBank.info.state.totalDeposits.toFixed(2)} {tokenBank.meta.tokenSymbol}
+            </dd>
+          </>
+        )}
+        {tokenBank.info.state.totalBorrows > 0 && (
+          <>
+            <dt>Total Open Short</dt>
+            <dd className="text-primary text-right">
+              {tokenBank.info.state.totalBorrows.toFixed(2)} {tokenBank.meta.tokenSymbol}
+            </dd>
+          </>
+        )}
+      </dl>
+
+      {/* {looping && !isAccountInitialized ? (
+        <label className="text-xs italic text-muted-foreground text-center">
+          Health & liquidation simulation will display after the initial transaction.
+        </label>
       ) : (
         <></>
-      )}
-      {platformFeeBps !== undefined ? (
-        <>
-          <dt>Platform fee</dt>
-          <dd className="text-right">{percentFormatter.format(platformFeeBps / 10000)}</dd>
-        </>
-      ) : (
-        <></>
-      )}
-      {priceImpactPct !== undefined ? (
-        <>
-          <dt>Price impact</dt>
-          <dd
-            className={cn(
-              priceImpactPct > 0.05
-                ? "text-mrgn-error"
-                : priceImpactPct > 0.01
-                ? "text-alert-foreground"
-                : "text-mrgn-success",
-              "text-right"
-            )}
-          >
-            {percentFormatter.format(priceImpactPct)}
-          </dd>
-        </>
-      ) : (
-        <></>
-      )}
-      <dt>Oracle</dt>
-      <dd className="text-primary flex items-center gap-1 ml-auto">
-        {oracle}
-        {oracle === "Pyth" ? <IconPyth size={14} /> : <IconSwitchboard size={14} />}
-      </dd>
-      {tokenBank.info.state.totalDeposits > 0 && (
-        <>
-          <dt>Total Open Long</dt>
-          <dd className="text-primary text-right">
-            {tokenBank.info.state.totalDeposits.toFixed(2)} {tokenBank.meta.tokenSymbol}
-          </dd>
-        </>
-      )}
-      {tokenBank.info.state.totalBorrows > 0 && (
-        <>
-          <dt>Total Open Short</dt>
-          <dd className="text-primary text-right">
-            {tokenBank.info.state.totalBorrows.toFixed(2)} {tokenBank.meta.tokenSymbol}
-          </dd>
-        </>
-      )}
-    </dl>
+      )} */}
+    </>
   );
 
   // health comparison
