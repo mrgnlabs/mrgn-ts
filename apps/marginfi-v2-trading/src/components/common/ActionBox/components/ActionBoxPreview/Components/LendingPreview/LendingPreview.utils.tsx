@@ -119,7 +119,7 @@ export function calculatePreview({
   const currentPositionAmount = bank?.isActive ? bank.position.amount : 0;
   const healthFactor = !accountSummary.balance || !accountSummary.healthFactor ? 1 : accountSummary.healthFactor;
   const liquidationPrice =
-    bank.isActive && bank.position.liquidationPrice && bank.position.liquidationPrice > 0.01
+    bank.isActive && bank.position.liquidationPrice && bank.position.liquidationPrice > 0.00001
       ? bank.position.liquidationPrice
       : undefined;
 
@@ -314,7 +314,7 @@ function getAmountStat(currentAmount: number, bank: ExtendedBankInfo, simulatedA
 function getPriceImpactStat(priceImpactPct: number): PreviewStat {
   return {
     label: "Price impact",
-    color: priceImpactPct > 0.01 && priceImpactPct > 0.05 ? "DESTRUCTIVE" : "ALERT",
+    color: priceImpactPct > 0.05 ? "DESTRUCTIVE" : "ALERT",
     value: () => <>{percentFormatter.format(priceImpactPct)}</>,
   };
 }
@@ -375,7 +375,7 @@ function getLiquidationStat(bank: ExtendedBankInfo, isLoading: boolean, simulati
       <>
         {bank.isActive &&
           bank.position.liquidationPrice &&
-          bank.position.liquidationPrice > 0.01 &&
+          bank.position.liquidationPrice > 0.00001 &&
           usdFormatter.format(bank.position.liquidationPrice)}
         {bank.isActive && bank.position.liquidationPrice && simulationLiq && <IconArrowRight width={12} height={12} />}
         {isLoading ? (

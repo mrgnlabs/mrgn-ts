@@ -39,7 +39,7 @@ export const ActionBoxItem = ({
 
   const balancePrice = React.useMemo(
     () =>
-      balance * bank.info.state.price > 0.01
+      balance * bank.info.state.price > 0.00001
         ? usdFormatter.format(balance * bank.info.state.price)
         : `$${(balance * bank.info.state.price).toExponential(2)}`,
     [bank, balance]
@@ -47,7 +47,7 @@ export const ActionBoxItem = ({
 
   const openPositionPrice = React.useMemo(
     () =>
-      openPosition * bank.info.state.price > 0.01
+      openPosition * bank.info.state.price > 0.00001
         ? usdFormatter.format(openPosition * bank.info.state.price)
         : `$${(openPosition * bank.info.state.price).toExponential(2)}`,
     [bank, openPosition]
@@ -84,14 +84,14 @@ export const ActionBoxItem = ({
 
       {((!isRepay && lendingMode && lendingMode === LendingModes.BORROW && balance > 0) || showBalanceOverride) && (
         <div className="space-y-0.5 text-right font-normal text-sm">
-          <p>{balance > 0.01 ? numeralFormatter(balance) : "< 0.01"}</p>
+          <p>{balance > 0.00001 ? numeralFormatter(balance) : `$${balance.toExponential(2)}`}</p>
           <p className="text-xs text-muted-foreground">{balancePrice}</p>
         </div>
       )}
 
       {isRepay && openPosition > 0 && (
         <div className="space-y-0.5 text-right font-normal text-sm">
-          <p>{openPosition > 0.01 ? numeralFormatter(openPosition) : "< 0.01"}</p>
+          <p>{openPosition > 0.00001 ? numeralFormatter(openPosition) : `$${balance.toExponential(2)}`}</p>
           <p className="text-xs text-muted-foreground">{openPositionPrice}</p>
         </div>
       )}

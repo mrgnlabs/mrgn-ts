@@ -53,7 +53,7 @@ export const PoolChart = ({ chartData }: PoolChartProps) => {
                 return (
                   <div className="flex items-center justify-center gap-2 w-full">
                     <strong className="font-medium">Price:</strong>
-                    <span>{num > 0.01 ? usdFormatter.format(num) : `$${num.toExponential(2)}`}</span>
+                    <span>{num > 0.00001 ? usdFormatter.format(num) : `$${num.toExponential(2)}`}</span>
                   </div>
                 );
               }}

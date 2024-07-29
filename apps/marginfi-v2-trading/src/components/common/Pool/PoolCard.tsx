@@ -3,7 +3,7 @@ import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 
-import { usdFormatter, percentFormatter, numeralFormatter } from "@mrgnlabs/mrgn-common";
+import { usdFormatter, percentFormatter, numeralFormatter, shortenAddress } from "@mrgnlabs/mrgn-common";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { getTokenImageURL, cn } from "~/utils";
@@ -60,9 +60,18 @@ export const PoolCard = ({ bank }: PoolCardProps) => {
                 alt={bank.meta.tokenName}
                 className="rounded-full border"
               />{" "}
-              <div className="flex flex-col space-y-1">
-                <h2>{bank.meta.tokenName}</h2>
-                <span className="text-muted-foreground text-sm">{bank.meta.tokenSymbol}</span>
+              <div className="flex flex-col space-y-0.5">
+                <h2>{bank.meta.tokenSymbol}</h2>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="text-muted-foreground text-sm">{shortenAddress(bank.info.state.mint)}</span>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{bank.info.state.mint.toBase58()}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </div>
             </Link>
             <div className="font-medium text-xs flex flex-col gap-1 items-center">
@@ -94,7 +103,9 @@ export const PoolCard = ({ bank }: PoolCardProps) => {
             <>
               <dt className="">Price</dt>
               <dd className="text-right text-primary tracking-wide">
-                {tokenData.price > 0.01 ? usdFormatter.format(tokenData.price) : `$${tokenData.price.toExponential(2)}`}
+                {tokenData.price > 0.00001
+                  ? usdFormatter.format(tokenData.price)
+                  : `$${tokenData.price.toExponential(2)}`}
                 {tokenData?.priceChange24h && (
                   <span
                     className={cn(
@@ -142,7 +153,7 @@ export const PoolCard = ({ bank }: PoolCardProps) => {
         <div className="flex items-center gap-3 w-full">
           <Link href={`/pools/${bank.address.toBase58()}`} className="w-full">
             <Button variant="outline" className="w-full">
-              View
+              Supply
             </Button>
           </Link>
           <Link href={`/trade/${bank.address.toBase58()}?poolsLink=true`} className="w-full">

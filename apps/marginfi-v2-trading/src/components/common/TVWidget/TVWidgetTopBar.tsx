@@ -1,7 +1,9 @@
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { usdFormatter, percentFormatter, numeralFormatter } from "@mrgnlabs/mrgn-common";
+import { usdFormatter, percentFormatter, numeralFormatter, shortenAddress } from "@mrgnlabs/mrgn-common";
 
 import { cn } from "~/utils";
+
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 
 import type { TokenData } from "~/types";
 
@@ -16,11 +18,26 @@ type TVWidgetTopBarProps = {
 export const TVWidgetTopBar = ({ tokenData, activeGroup }: TVWidgetTopBarProps) => {
   return (
     <dl className="hidden items-center gap-2 text-sm w-full lg:flex">
+      <dt className="text-muted-foreground">Mint address</dt>
+      <dd className="flex items-center gap-1">
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span>{shortenAddress(activeGroup?.token?.info?.state.mint)}</span>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{activeGroup?.token?.info?.state.mint.toBase58()}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </dd>
       {tokenData?.price && (
         <>
-          <dt className="text-muted-foreground">Market price</dt>
+          <dt className="border-primary/50 text-muted-foreground lg:border-l lg:ml-4 lg:pl-4">Market price</dt>
           <dd className="flex items-center gap-1">
-            {tokenData.price > 0.01 ? usdFormatter.format(tokenData?.price) : `$${tokenData?.price.toExponential(2)}`}
+            {tokenData.price > 0.00001
+              ? usdFormatter.format(tokenData?.price)
+              : `$${tokenData?.price.toExponential(2)}`}
             {tokenData?.priceChange24h && (
               <span
                 className={cn(
