@@ -699,7 +699,12 @@ async function calculateRepayCollateral(
 }
 async function calculateMaxCollat(bank: ExtendedBankInfo, repayBank: ExtendedBankInfo, slippageBps: number) {
   const amount = repayBank.isActive && repayBank.position.isLending ? repayBank.position.amount : 0;
-  const maxRepayAmount = bank.isActive ? bank?.position.amount : 0;
+  let maxRepayAmount = bank.isActive ? bank?.position.amount : 0;
+  const maxUsdValue = 700_000;
+
+  if (maxRepayAmount * bank.info.oraclePrice.priceRealtime.price.toNumber() > maxUsdValue) {
+    maxRepayAmount = maxUsdValue / bank.info.oraclePrice.priceRealtime.price.toNumber();
+  }
 
   if (amount !== 0) {
     const quoteParams = {
@@ -727,12 +732,14 @@ async function calculateMaxCollat(bank: ExtendedBankInfo, repayBank: ExtendedBan
           swapMode: "ExactOut",
         } as QuoteGetRequest;
 
-        const swapQuoteOutput = await getSwapQuoteWithRetry(quoteParams);
-        if (!swapQuoteOutput) throw new Error();
-
-        const inputOutOtherAmount =
-          nativeToUi(swapQuoteOutput.otherAmountThreshold, repayBank.info.state.mintDecimals) * 1.01; // add this if dust appears: "* 1.01"
-        return inputOutOtherAmount;
+        try {
+          const swapQuoteOutput = await getSwapQuoteWithRetry(quoteParams, 2);
+          if (!swapQuoteOutput) throw new Error();
+          return nativeToUi(swapQuoteOutput.otherAmountThreshold, repayBank.info.state.mintDecimals) * 1.01;
+        } catch (error) {
+          const repayBankAmount = maxRepayAmount * repayBank.info.oraclePrice.priceRealtime.price.toNumber() * 0.998;
+          return repayBankAmount;
+        }
       } else {
         return amount;
       }
