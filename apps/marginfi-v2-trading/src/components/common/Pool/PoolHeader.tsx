@@ -124,7 +124,9 @@ export const PoolHeader = () => {
             <StatBlock
               label="Current Price"
               value={
-                tokenData.price > 0.01 ? usdFormatter.format(tokenData.price) : `$${tokenData.price.toExponential(2)}`
+                tokenData.price > 0.00001
+                  ? usdFormatter.format(tokenData.price)
+                  : `$${tokenData.price.toExponential(2)}`
               }
               subValue={
                 <span className={cn(tokenData.priceChange24h > 0 ? "text-mrgn-success" : "text-mrgn-error")}>

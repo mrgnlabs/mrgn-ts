@@ -173,7 +173,7 @@ export const PoolSearch = ({
                           <dt className="text-muted-foreground">Price:</dt>
                           <dd className="space-x-2">
                             <span>
-                              {tokenInfo.price > 0.01
+                              {tokenInfo.price > 0.00001
                                 ? usdFormatter.format(tokenInfo.price)
                                 : `$${tokenInfo.price.toExponential(2)}`}
                             </span>
