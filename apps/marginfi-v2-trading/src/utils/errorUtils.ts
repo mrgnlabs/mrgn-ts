@@ -16,7 +16,6 @@ const SIMULATION_ERRORS: { [key: string]: ActionMethod } = {
     actionMethod: "WARNING",
     description:
       "This swap causes the transaction to fail due to size restrictions. Please try again or pick another token.",
-    link: "https://forum.marginfi.community/t/work-were-doing-to-improve-collateral-repay/333",
   },
   STALE: {
     isEnabled: true,
