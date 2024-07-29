@@ -94,7 +94,6 @@ export function useLoopingPreview({
             actionMethod: "WARNING",
             description:
               "This swap causes the transaction to fail due to size restrictions. Please try again or pick another token.",
-            link: "https://forum.marginfi.community/t/work-were-doing-to-improve-collateral-repay/333",
           } as ActionMethod);
         } else if (error?.message && error?.message.includes("6017")) {
           setActionMethod({
