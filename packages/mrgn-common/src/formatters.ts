@@ -38,6 +38,14 @@ const usdFormatter = new Intl.NumberFormat("en-US", {
   style: "currency",
   currency: "USD",
   minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+  signDisplay: "auto",
+});
+
+const tokenPriceFormatter = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+  minimumFractionDigits: 2,
   maximumFractionDigits: 5,
   signDisplay: "auto",
 });
@@ -71,4 +79,5 @@ export {
   percentFormatterDyn,
   usdFormatter,
   usdFormatterDyn,
+  tokenPriceFormatter,
 };

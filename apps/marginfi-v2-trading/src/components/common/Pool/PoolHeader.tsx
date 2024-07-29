@@ -3,9 +3,9 @@ import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 
-import { IconChartLine, IconExternalLink } from "@tabler/icons-react";
+import { IconExternalLink } from "@tabler/icons-react";
 
-import { numeralFormatter, percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
+import { numeralFormatter, tokenPriceFormatter, percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 
 import { useTradeStore } from "~/store";
 import { getTokenImageURL, cn } from "~/utils";
@@ -125,7 +125,7 @@ export const PoolHeader = () => {
               label="Current Price"
               value={
                 tokenData.price > 0.00001
-                  ? usdFormatter.format(tokenData.price)
+                  ? tokenPriceFormatter.format(tokenData.price)
                   : `$${tokenData.price.toExponential(2)}`
               }
               subValue={
@@ -247,7 +247,7 @@ const StatBlock = ({ label, value, subValue }: StatProps) => (
     </CardHeader>
     <CardContent className="px-4">
       <p className="text-3xl">
-        {value} {subValue && <span className="text-lg text-muted-foreground">{subValue}</span>}
+        {value} {subValue && <span className="text-base text-muted-foreground">{subValue}</span>}
       </p>
     </CardContent>
   </Card>
