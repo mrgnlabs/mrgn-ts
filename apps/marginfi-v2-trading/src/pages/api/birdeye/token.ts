@@ -40,8 +40,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return;
     }
 
-    console.log(data);
-
     const tokenData: TokenData = {
       address: data.address,
       name: data.name,
