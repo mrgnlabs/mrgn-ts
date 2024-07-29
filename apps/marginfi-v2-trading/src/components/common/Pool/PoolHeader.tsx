@@ -95,7 +95,7 @@ export const PoolHeader = () => {
       <div className="col-span-3">
         <div className="h-full flex flex-col justify-center text-center items-center gap-2">
           <Image
-            src={getTokenImageURL(activeGroup.token.meta.tokenSymbol)}
+            src={getTokenImageURL(activeGroup.token.info.state.mint.toBase58())}
             width={72}
             height={72}
             className="rounded-full border"
@@ -158,7 +158,7 @@ export const PoolHeader = () => {
               label={
                 <div className="flex items-center gap-2">
                   <Image
-                    src={getTokenImageURL(activeGroup.token.meta.tokenSymbol)}
+                    src={getTokenImageURL(activeGroup.token.info.state.mint.toBase58())}
                     alt={activeGroup.token.meta.tokenName}
                     width={24}
                     height={24}
@@ -178,7 +178,7 @@ export const PoolHeader = () => {
               label={
                 <div className="flex items-center gap-2">
                   <Image
-                    src={getTokenImageURL(activeGroup.usdc.meta.tokenSymbol)}
+                    src={getTokenImageURL(activeGroup.usdc.info.state.mint.toBase58())}
                     alt={activeGroup.usdc.meta.tokenName}
                     width={24}
                     height={24}
@@ -200,14 +200,14 @@ export const PoolHeader = () => {
                 <div className="flex items-center">
                   <div className="flex items-center">
                     <Image
-                      src={getTokenImageURL(activeGroup.token.meta.tokenSymbol)}
+                      src={getTokenImageURL(activeGroup.token.info.state.mint.toBase58())}
                       alt={activeGroup.token.meta.tokenName}
                       width={24}
                       height={24}
                       className="rounded-full z-20"
                     />
                     <Image
-                      src={getTokenImageURL(activeGroup.usdc.meta.tokenSymbol)}
+                      src={getTokenImageURL(activeGroup.usdc.info.state.mint.toBase58())}
                       alt={activeGroup.token.meta.tokenName}
                       width={24}
                       height={24}

@@ -40,7 +40,7 @@ export const LendingScreen = ({ amount, bank, type, txn }: Props) => {
           </h3>
           <Image
             className="rounded-full w-9 h-9"
-            src={getTokenImageURL(bank.meta.tokenSymbol)}
+            src={getTokenImageURL(bank.info.state.mint.toBase58())}
             alt={(bank.meta.tokenSymbol || "Token") + "  logo"}
             width={36}
             height={36}

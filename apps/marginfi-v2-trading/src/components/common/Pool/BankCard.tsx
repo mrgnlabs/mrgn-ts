@@ -46,7 +46,7 @@ export const BankCard = ({ bank }: BankCardProps) => {
         <div className="flex text-left gap-3">
           <div className="flex items-center">
             <Image
-              src={getTokenImageURL(bank.meta.tokenSymbol)}
+              src={getTokenImageURL(bank.info.state.mint.toBase58())}
               className="rounded-full border"
               alt={bank.meta.tokenSymbol}
               height={40}

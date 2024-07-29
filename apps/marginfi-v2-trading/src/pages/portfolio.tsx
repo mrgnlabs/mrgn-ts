@@ -104,7 +104,7 @@ export default function PortfolioPage() {
                               {portfolioCombined.slice(0, 5).map((bank, index) => (
                                 <li className="rounded-full bg-white">
                                   <Image
-                                    src={getTokenImageURL(bank.meta.tokenSymbol)}
+                                    src={getTokenImageURL(bank.info.state.mint.toBase58())}
                                     alt={bank.meta.tokenSymbol}
                                     width={24}
                                     height={24}

@@ -57,7 +57,7 @@ export const ActionBoxItem = ({
     <>
       <div className="flex items-center gap-3">
         <Image
-          src={getTokenImageURL(bank.meta.tokenSymbol)}
+          src={getTokenImageURL(bank.info.state.mint.toBase58())}
           alt={bank.meta.tokenName}
           width={28}
           height={28}

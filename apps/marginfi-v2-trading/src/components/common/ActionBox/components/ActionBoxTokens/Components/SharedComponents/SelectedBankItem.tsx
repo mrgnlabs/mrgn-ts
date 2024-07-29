@@ -17,7 +17,7 @@ export const SelectedBankItem = ({ rate, bank, lendingMode }: SelectedBankItemPr
   return (
     <>
       <Image
-        src={getTokenImageURL(bank.meta.tokenSymbol)}
+        src={getTokenImageURL(bank.info.state.mint.toBase58())}
         alt={bank.meta.tokenName}
         width={30}
         height={30}

@@ -114,7 +114,7 @@ export const Announcements = ({ items }: AnnouncementsProps) => {
                       }}
                     >
                       <Image
-                        src={getTokenImageURL(item.bank.meta.tokenSymbol)}
+                        src={getTokenImageURL(item.bank.info.state.mint.toBase58())}
                         alt={`${item.bank.meta.tokenSymbol} logo`}
                         width={24}
                         height={24}
