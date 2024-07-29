@@ -30,6 +30,8 @@ export const BankCard = ({ bank }: BankCardProps) => {
 
     const depositBank = bank.address.equals(borrowBank.address) ? collateralBank : bank;
 
+    if (!depositBank) return 1;
+
     let leverage = 1;
     if (borrowBank.isActive && depositBank.isActive) {
       const borrowUsd = borrowBank.position.usdValue;
