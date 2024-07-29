@@ -37,46 +37,27 @@ export const TVWidgetTopBar = ({ tokenData, activeGroup }: TVWidgetTopBarProps) 
           </Tooltip>
         </TooltipProvider>
       </dd>
-      {tokenData?.price && (
-        <>
-          <dt className="border-primary/50 text-muted-foreground lg:border-l lg:ml-4 lg:pl-4">Market price</dt>
-          <dd className="flex items-center gap-1">
-            {tokenData.price > 0.00001
-              ? tokenPriceFormatter.format(tokenData?.price)
-              : `$${tokenData?.price.toExponential(2)}`}
-            {tokenData?.priceChange24h && (
-              <span
-                className={cn(
-                  "flex items-center gap-1",
-                  tokenData?.priceChange24h > 1 ? "text-mrgn-success" : "text-mrgn-error"
-                )}
-              >
-                {tokenData?.priceChange24h > 1 && "+"}
-                {percentFormatter.format(tokenData?.priceChange24h / 100)}
-              </span>
+      <dt className="border-primary/50 text-muted-foreground lg:border-l lg:ml-4 lg:pl-4">Price</dt>
+      <dd className="flex items-center gap-1">
+        {activeGroup?.token?.info?.oraclePrice.priceRealtime.price.toNumber() > 0.00001
+          ? tokenPriceFormatter.format(activeGroup?.token?.info?.oraclePrice.priceRealtime.price.toNumber())
+          : `$${activeGroup?.token?.info?.oraclePrice.priceRealtime.price.toExponential(2)}`}
+        {tokenData?.priceChange24h && (
+          <span
+            className={cn(
+              "flex items-center gap-1",
+              tokenData?.priceChange24h > 1 ? "text-mrgn-success" : "text-mrgn-error"
             )}
-          </dd>
-        </>
-      )}
-      <dt className="border-primary/50 text-muted-foreground lg:border-l lg:ml-4 lg:pl-4">Oracle price</dt>
-      <dd>{usdFormatter.format(activeGroup?.token?.info?.oraclePrice.priceRealtime.price.toNumber())}</dd>
-      {tokenData?.volume4h && (
+          >
+            {tokenData?.priceChange24h > 1 && "+"}
+            {percentFormatter.format(tokenData?.priceChange24h / 100)}
+          </span>
+        )}
+      </dd>
+      {tokenData?.marketcap && (
         <>
-          <dt className="border-primary/50 text-muted-foreground lg:border-l lg:ml-4 lg:pl-4">Vol 4hr</dt>
-          <dd className="flex items-center gap-1">
-            ${numeralFormatter(tokenData?.volume4h)}
-            {tokenData?.volumeChange4h && (
-              <span
-                className={cn(
-                  "flex items-center gap-1",
-                  tokenData?.volumeChange4h > 1 ? "text-mrgn-success" : "text-mrgn-error"
-                )}
-              >
-                {tokenData?.volumeChange4h > 1 && "+"}
-                {percentFormatter.format(tokenData?.volumeChange4h / 100)}
-              </span>
-            )}
-          </dd>
+          <dt className="border-primary/50 text-muted-foreground lg:border-l lg:ml-4 lg:pl-4">Market cap</dt>
+          <dd className="flex items-center gap-1">${numeralFormatter(tokenData?.marketcap)}</dd>
         </>
       )}
       {tokenData?.volume24h && (
