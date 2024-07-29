@@ -183,17 +183,26 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
   }, [tradeState, activeGroup]);
 
   const loadStats = React.useCallback(
-    async (simulationResult: SimulationResult | null, looping: LoopingObject) => {
+    async (simulationResult: SimulationResult | null, looping: LoopingObject, isAccountInitialized: boolean) => {
       if (!marginfiClient || !activeGroup) {
         return;
       }
-      setStats(generateStats(accountSummary, activeGroup.token, activeGroup.usdc, simulationResult, looping));
+      setStats(
+        generateStats(
+          accountSummary,
+          activeGroup.token,
+          activeGroup.usdc,
+          simulationResult,
+          looping,
+          isAccountInitialized
+        )
+      );
     },
     [accountSummary, activeGroup, marginfiClient]
   );
 
   const handleSimulation = React.useCallback(
-    async (looping: LoopingObject, bank: ExtendedBankInfo, selectedAccount: MarginfiAccountWrapper) => {
+    async (looping: LoopingObject, bank: ExtendedBankInfo, selectedAccount: MarginfiAccountWrapper | null) => {
       if (!marginfiClient) {
         return;
       }
@@ -215,7 +224,7 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
         if ((error as any).msg) message = (error as any).msg;
         // addStatus({ type: "simulation", msg: message ?? "Simulating transaction failed" }, "warning");
       } finally {
-        loadStats(simulationResult, looping);
+        loadStats(simulationResult, looping, !!selectedAccount);
       }
     },
     [loadStats, marginfiClient]
@@ -254,8 +263,11 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
         );
 
         setLoopingObject(looping);
+        console.log({ looping });
 
-        if (looping && looping?.loopingTxn && selectedAccount) {
+        // if txn couldn't be generated one cause could be that the account isn't created yet
+        // most other causes are jupiter routing issues
+        if (looping && (looping?.loopingTxn || !selectedAccount)) {
           await handleSimulation(looping, activeGroup.token, selectedAccount);
         } else if (!looping) {
           setAdditionalChecks({
@@ -288,7 +300,7 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
 
   React.useEffect(() => {
     if (activeGroup) {
-      setStats(generateStats(accountSummary, activeGroup.token, activeGroup.usdc, null, null));
+      setStats(generateStats(accountSummary, activeGroup.token, activeGroup.usdc, null, null, false));
     }
   }, [accountSummary, activeGroup]);
 
