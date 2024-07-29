@@ -3,7 +3,13 @@ import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 
-import { usdFormatter, percentFormatter, numeralFormatter, shortenAddress } from "@mrgnlabs/mrgn-common";
+import {
+  usdFormatter,
+  tokenPriceFormatter,
+  percentFormatter,
+  numeralFormatter,
+  shortenAddress,
+} from "@mrgnlabs/mrgn-common";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { getTokenImageURL, cn } from "~/utils";
@@ -104,7 +110,7 @@ export const PoolCard = ({ bank }: PoolCardProps) => {
               <dt className="">Price</dt>
               <dd className="text-right text-primary tracking-wide">
                 {tokenData.price > 0.00001
-                  ? usdFormatter.format(tokenData.price)
+                  ? tokenPriceFormatter.format(tokenData.price)
                   : `$${tokenData.price.toExponential(2)}`}
                 {tokenData?.priceChange24h && (
                   <span

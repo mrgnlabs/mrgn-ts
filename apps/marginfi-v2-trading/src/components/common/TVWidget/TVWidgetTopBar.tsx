@@ -1,5 +1,11 @@
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { usdFormatter, percentFormatter, numeralFormatter, shortenAddress } from "@mrgnlabs/mrgn-common";
+import {
+  usdFormatter,
+  tokenPriceFormatter,
+  percentFormatter,
+  numeralFormatter,
+  shortenAddress,
+} from "@mrgnlabs/mrgn-common";
 
 import { cn } from "~/utils";
 
@@ -36,7 +42,7 @@ export const TVWidgetTopBar = ({ tokenData, activeGroup }: TVWidgetTopBarProps) 
           <dt className="border-primary/50 text-muted-foreground lg:border-l lg:ml-4 lg:pl-4">Market price</dt>
           <dd className="flex items-center gap-1">
             {tokenData.price > 0.00001
-              ? usdFormatter.format(tokenData?.price)
+              ? tokenPriceFormatter.format(tokenData?.price)
               : `$${tokenData?.price.toExponential(2)}`}
             {tokenData?.priceChange24h && (
               <span

@@ -3,7 +3,7 @@ import React from "react";
 import Image from "next/image";
 
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { numeralFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
+import { numeralFormatter, usdFormatter, tokenPriceFormatter } from "@mrgnlabs/mrgn-common";
 
 import { getTokenImageURL } from "~/utils";
 import { useTradeStore } from "~/store";
@@ -71,7 +71,11 @@ export const BankCard = ({ bank }: BankCardProps) => {
         <div className="bg-accent/50 py-3 px-4 rounded-lg text-sm">
           <dl className="grid grid-cols-2 gap-y-0.5 text-muted-foreground">
             <dt>Current price</dt>
-            <dd className="text-right text-primary">{usdFormatter.format(bank.info.state.price)}</dd>
+            <dd className="text-right text-primary">
+              {bank.info.state.price > 0.00001
+                ? tokenPriceFormatter.format(bank.info.state.price)
+                : `$${bank.info.state.price.toExponential(2)}`}
+            </dd>
             <dt>USD value</dt>
             <dd className="text-right text-primary">
               {bank.position.usdValue < 0.01 ? "< $0.01" : usdFormatter.format(bank.position.usdValue)}
@@ -85,7 +89,9 @@ export const BankCard = ({ bank }: BankCardProps) => {
             {bank.position.liquidationPrice && (
               <>
                 <dt>Liquidation Price</dt>
-                <dd className="text-right text-primary">{usdFormatter.format(bank.position.liquidationPrice)}</dd>
+                <dd className="text-right text-primary">
+                  {tokenPriceFormatter.format(bank.position.liquidationPrice)}
+                </dd>
               </>
             )}
           </dl>
