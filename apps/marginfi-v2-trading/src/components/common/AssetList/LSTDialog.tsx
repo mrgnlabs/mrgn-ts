@@ -27,7 +27,7 @@ const LSTDialog = ({ variant, open, onClose }: LSTDialogProps) => {
     const bank = sortedBanks.find((bank) => bank.meta.tokenSymbol === variant);
     if (!bank) return null;
 
-    return getTokenImageURL(bank.meta.tokenSymbol);
+    return getTokenImageURL(bank.info.state.mint.toBase58());
   }, [variant, sortedBanks]);
 
   return (

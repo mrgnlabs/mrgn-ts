@@ -98,14 +98,14 @@ export const LpPositionList = () => {
                     >
                       <div className="flex">
                         <Image
-                          src={getTokenImageURL(bank.meta.tokenSymbol)}
+                          src={getTokenImageURL(bank.info.state.mint.toBase58())}
                           width={24}
                           height={24}
                           alt={bank.meta.tokenSymbol}
                           className="rounded-full shrink-0 z-20"
                         />
                         <Image
-                          src={getTokenImageURL(collateralBank.meta.tokenSymbol)}
+                          src={getTokenImageURL(collateralBank.info.state.mint.toBase58())}
                           width={24}
                           height={24}
                           alt={collateralBank.meta.tokenSymbol}

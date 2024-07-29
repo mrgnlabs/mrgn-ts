@@ -86,6 +86,11 @@ let config = withBundleAnalyzer({
       },
       {
         protocol: "https",
+        hostname: "storage.googleapis.com",
+        pathname: "/mrgn-public/mrgn-trade-token-icons/**",
+      },
+      {
+        protocol: "https",
         hostname: "pbs.twimg.com",
         pathname: "/profile_images/**",
       },
