@@ -5,6 +5,9 @@ export interface BankToken {
   token: string;
   oracleType: OracleSetup;
   oracle: string;
+  group: string;
+  tokenBank: string;
+  usdcBank: string;
   borrowLimit?: number;
   depositLimit?: number;
 }
@@ -18,28 +21,30 @@ export const bankTokens: BankToken[] = [
   //   borrowLimit: 32463,
   //   depositLimit: 129065,
   // },
+  //   Mint:  CTJf74cTo3cw8acFP1YXF3QpsQUUBGBjh2k2e8xsZ6UL
+  // Group: 66btxK2CRD4wjyQ7ec4yFrmAnsvFY3YvJNHSJ1evHH43
+  // Token: AKEg31GR9rDD36Px5iwJpseve9FD34pGiSUgNqnri7Tw
+  // USDC: 5tAgDoSxJBW995stfnvphtquP8JHn11xD3V3FvtLpxNQ
+  // Mint: CTg3ZgYx79zrE1MteDVkmkcGniiFrK1hJ6yiabropump
+  // Group: FXA3RRXZyujyaz1wWWnyxmgJ91SG8NVderuTgnSfeFUw
+  // Token: CFyznshAA978t6HCm4xprQpnN62c2qFSQrsCWN8q5UDB
+  // USDC: 6YAVn7cEwiKBPiCXMFVY9cv5oWRj56WuPhNFjJyXWFad
   {
-    tag: "DJT",
-    token: "HRw8mqK8N3ASKFKJGMJpy4FodwR3GKvCFKPDQNqUNuEP",
+    tag: "TOKEN_1",
+    token: "CTJf74cTo3cw8acFP1YXF3QpsQUUBGBjh2k2e8xsZ6UL",
     oracleType: OracleSetup.SwitchboardV2,
-    oracle: "GayQym7GYT8C4z7Te37ZiqZUHRpBYotChMV5JRYJxdcQ",
-    borrowLimit: 3384782,
-    depositLimit: 13497098,
+    oracle: "FMtGWfzCAQiacGNuBFPs4AwtJFk3SYj6CnMTax9mXJvh",
+    group: "66btxK2CRD4wjyQ7ec4yFrmAnsvFY3YvJNHSJ1evHH43",
+    tokenBank: "AKEg31GR9rDD36Px5iwJpseve9FD34pGiSUgNqnri7Tw",
+    usdcBank: "5tAgDoSxJBW995stfnvphtquP8JHn11xD3V3FvtLpxNQ",
   },
   {
-    tag: "BILLY",
-    token: "3B5wuUrMEi5yATD7on46hKfej3pfmd7t1RKgrsN3pump",
+    tag: "TOKEN_2",
+    token: "CTg3ZgYx79zrE1MteDVkmkcGniiFrK1hJ6yiabropump",
     oracleType: OracleSetup.SwitchboardV2,
-    oracle: "2fHyhGm1oMujhMPmm7z3pCYbyRTDmFB1CQJjM5caYT4N",
-    borrowLimit: 165782,
-    depositLimit: 673400,
-  },
-  {
-    tag: "RETARDIO",
-    token: "6ogzHhzdrQr9Pgv6hZ2MNze7UrzBMAFyBBWUYp1Fhitx",
-    oracleType: OracleSetup.SwitchboardV2,
-    oracle: "8pMJw6N3e1FDexoTMx1T1ComSB91tmQydFrmhmmnXZuV",
-    borrowLimit: 320512,
-    depositLimit: 1283697,
+    oracle: "EYfBmSdcwKXmGhcjAj9ruvesAH4F82dHFT7w7TZEjFoM",
+    group: "FXA3RRXZyujyaz1wWWnyxmgJ91SG8NVderuTgnSfeFUw",
+    tokenBank: "CFyznshAA978t6HCm4xprQpnN62c2qFSQrsCWN8q5UDB",
+    usdcBank: "6YAVn7cEwiKBPiCXMFVY9cv5oWRj56WuPhNFjJyXWFad",
   },
 ];

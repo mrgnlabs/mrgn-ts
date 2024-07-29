@@ -49,7 +49,7 @@ const DEFAULT_USDC_BANK_CONFIG: BankConfigOpt = {
 
   oracle: {
     setup: OracleSetup.PythLegacy,
-    keys: [new PublicKey("Gnt27xtC473ZT2Mw5u8wZ68Z3gULkSTb5DuxJy7eJotD")],
+    keys: [new PublicKey("Dpw1EAVrSB1ibxiDQyTAW6Zip3J4Btk2x4SgApQCeFbX")],
   },
   oracleMaxAge: 300,
   permissionlessBadDebtSettlement: null,
@@ -232,22 +232,24 @@ export const CreatePoolLoading = ({ poolCreatedData, setIsOpen, setIsCompleted }
     setStatus("loading");
 
     let client = poolCreation?.marginfiClient;
-    let seeds = poolCreation?.seeds;
-    let group = poolCreation?.marginfiGroupPk;
+    // let seeds = poolCreation?.seeds;
+    // let group = poolCreation?.marginfiGroupPk;
     let lutAddress = poolCreation?.lutAddress;
 
     // create client
     if (!client) client = await initializeClient(wallet);
 
     //create seeds
-    if (!seeds) seeds = createSeeds();
-    setPoolCreation((state) => ({ ...state, seeds }));
+    // if (!seeds) seeds = createSeeds();
+    // setPoolCreation((state) => ({ ...state, seeds }));
 
     // create group & LUT
-    if (!group || !lutAddress) {
+    const groupKey = new PublicKey(poolCreatedData.group);
+    const bankKeys = [new PublicKey(poolCreatedData.usdcBank), new PublicKey(poolCreatedData.tokenBank)];
+    if (!lutAddress) {
       setActiveStep(0);
       const oracleKeys = [new PublicKey(poolCreatedData.oracle), ...(DEFAULT_USDC_BANK_CONFIG.oracle?.keys ?? [])];
-      const bankKeys = [seeds.stableBankSeed.publicKey, seeds.tokenBankSeed.publicKey];
+
       const {
         lutAddress: newLutAddress,
         createLutIx,
@@ -256,60 +258,27 @@ export const CreatePoolLoading = ({ poolCreatedData, setIsOpen, setIsCompleted }
         client,
         oracleKeys,
         bankKeys,
-        groupKey: seeds.marginfiGroupSeed.publicKey,
+        groupKey: groupKey,
         walletKey: wallet.publicKey,
       });
 
       lutAddress = newLutAddress;
-      group = await createGroup(client, [createLutIx, extendLutIx], seeds.marginfiGroupSeed);
+      const group = await createGroup(client, [createLutIx, extendLutIx]);
       if (!group || !lutAddress) return;
     }
 
-    setPoolCreation((state) => ({ ...state, marginfiGroupPk: group, lutAddress }));
-
-    if (!poolCreation?.stableBankPk) {
-      setActiveStep(1);
-      const sig = await createBank(client, DEFAULT_USDC_BANK_CONFIG, USDC_MINT, group, wallet, seeds.stableBankSeed);
-      if (!sig) return;
-      setPoolCreation((state) => ({ ...state, stableBankPk: seeds.stableBankSeed.publicKey }));
-    }
-
-    if (!poolCreation?.tokenBankPk) {
-      setActiveStep(2);
-      const tokenMint = new PublicKey(poolCreatedData.token);
-      // token bank
-      let tokenBankConfig = DEFAULT_TOKEN_BANK_CONFIG;
-
-      tokenBankConfig.borrowLimit = new BigNumber(poolCreatedData.borrowLimit ?? 300); // todo: update this according to price
-      tokenBankConfig.depositLimit = new BigNumber(poolCreatedData.depositLimit ?? 10000); // todo: update this according to price
-      tokenBankConfig.oracle = {
-        setup: poolCreatedData.oracleType,
-        keys: [new PublicKey(poolCreatedData.oracle)],
-      };
-
-      const sig = await createBank(client, tokenBankConfig, tokenMint, group, wallet, seeds.tokenBankSeed);
-      if (!sig) return;
-      setPoolCreation((state) => ({ ...state, tokenBankPk: seeds.tokenBankSeed.publicKey }));
-    }
-
     setIsCompleted({
-      groupPk: seeds.marginfiGroupSeed.publicKey,
-      stableBankPk: seeds.stableBankSeed.publicKey,
-      tokenBankPk: seeds.tokenBankSeed.publicKey,
+      groupPk: groupKey,
+      stableBankPk: bankKeys[0],
+      tokenBankPk: bankKeys[1],
       lutAddress,
     });
   }, [
-    createBank,
     createGroup,
-    createSeeds,
     initializeClient,
     poolCreatedData,
     poolCreation?.lutAddress,
     poolCreation?.marginfiClient,
-    poolCreation?.marginfiGroupPk,
-    poolCreation?.seeds,
-    poolCreation?.stableBankPk,
-    poolCreation?.tokenBankPk,
     setIsCompleted,
     wallet,
   ]);
