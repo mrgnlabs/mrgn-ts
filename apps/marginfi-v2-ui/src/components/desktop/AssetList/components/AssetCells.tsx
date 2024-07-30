@@ -162,9 +162,9 @@ export const getRateCell = ({ rateAPY, symbol, emissionRate, lendingRate, isInLe
                     Liquidity rewards
                   </h4>
                   <p className="text-xs">
-                    {`${percentFormatter.format(lendingRate)} Supply APY + ${percentFormatter.format(emissionRate)} ${
-                      EMISSION_MINT_INFO_MAP.get(symbol)!.tokenSymbol
-                    } rewards. `}
+                    {`${percentFormatter.format(aprToApy(lendingRate))} Supply APY + ${percentFormatter.format(
+                      aprToApy(emissionRate)
+                    )} ${EMISSION_MINT_INFO_MAP.get(symbol)!.tokenSymbol} rewards. `}
                   </p>
                   <p className="text-xs">
                     <Link
