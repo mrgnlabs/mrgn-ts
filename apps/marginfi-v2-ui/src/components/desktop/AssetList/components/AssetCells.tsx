@@ -134,12 +134,6 @@ export const getAssetPriceCell = ({
 );
 
 export const getRateCell = ({ rateAPY, symbol, emissionRate, lendingRate, isInLendingMode }: RateData) => {
-  // if (symbol === "PYUSD") {
-  //   console.log("emissionRate apr", emissionRate);
-  //   console.log("lendingRate apr", lendingRate);
-  //   console.log("emissionRate apy", percentFormatter.format(aprToApy(emissionRate)));
-  //   console.log("lendingRate apy", percentFormatter.format(aprToApy(lendingRate)));
-  // }
   return (
     <div className={cn("flex justify-end items-center gap-2", isInLendingMode ? "text-success" : "text-warning")}>
       {emissionRate > 0 && EMISSION_MINT_INFO_MAP.get(symbol) !== undefined && isInLendingMode && (
