@@ -263,7 +263,6 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
         );
 
         setLoopingObject(looping);
-        console.log({ looping });
 
         // if txn couldn't be generated one cause could be that the account isn't created yet
         // most other causes are jupiter routing issues
