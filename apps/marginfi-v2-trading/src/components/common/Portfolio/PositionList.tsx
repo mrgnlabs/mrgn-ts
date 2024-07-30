@@ -75,6 +75,10 @@ export const PositionList = () => {
               token: bank,
             };
 
+            const usdValue =
+              (depositBank.isActive ? depositBank.position.usdValue : 0) -
+              (borrowBank.isActive ? borrowBank.position.usdValue : 0);
+
             let leverage = 1;
             if (borrowBank.isActive && depositBank.isActive) {
               const borrowUsd = borrowBank.position.usdValue;
@@ -109,7 +113,7 @@ export const PositionList = () => {
                 </TableCell>
                 <TableCell>{bank.position.amount < 0.01 ? "0.01" : numeralFormatter(bank.position.amount)}</TableCell>
                 <TableCell>{`${leverage}x`}</TableCell>
-                <TableCell>{usdFormatter.format(bank.position.usdValue)}</TableCell>
+                <TableCell>{usdFormatter.format(usdValue)}</TableCell>
                 <TableCell>
                   {bank.info.oraclePrice.priceRealtime.price.toNumber() > 0.00001
                     ? tokenPriceFormatter.format(bank.info.oraclePrice.priceRealtime.price.toNumber())
