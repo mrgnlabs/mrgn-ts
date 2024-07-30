@@ -29,9 +29,10 @@ export const ActionBoxInput = ({
   isDialog,
   isMini = false,
 }: ActionBoxInputProps) => {
-  const [isActionBoxInputFocussed, setIsActionBoxInputFocussed] = useUiStore((state) => [
+  const [isActionBoxInputFocussed, setIsActionBoxInputFocussed, priorityFee] = useUiStore((state) => [
     state.isActionBoxInputFocussed,
     state.setIsActionBoxInputFocussed,
+    state.priorityFee,
   ]);
   const [
     actionMode,
@@ -118,7 +119,7 @@ export const ActionBoxInput = ({
           setLoopingAmountRaw(selectedAccount, formatAmountCb(newAmount, selectedRepayBank), connection);
       } else if (isRepayWithCollat) {
         if (selectedAccount)
-          setRepayAmountRaw(selectedAccount, formatAmountCb(newAmount, selectedRepayBank), connection);
+          setRepayAmountRaw(selectedAccount, formatAmountCb(newAmount, selectedRepayBank), connection, priorityFee);
       } else {
         setAmountRaw(formatAmountCb(newAmount, selectedBank));
       }
@@ -132,6 +133,7 @@ export const ActionBoxInput = ({
       selectedRepayBank,
       connection,
       setRepayAmountRaw,
+      priorityFee,
       setAmountRaw,
       selectedBank,
     ]

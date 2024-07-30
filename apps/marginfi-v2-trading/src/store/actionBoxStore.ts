@@ -58,7 +58,8 @@ interface ActionBoxState {
     marginfiAccount: MarginfiAccountWrapper,
     repayAmountRaw: string,
     connection: Connection,
-    platformFeeBps?: number
+    platformFeeBps?: number,
+    priorityFees?: number
   ) => void;
   setSelectedBank: (bank: ExtendedBankInfo | null) => void;
   setRepayBank: (bank: ExtendedBankInfo | null) => void;
@@ -70,7 +71,8 @@ interface ActionBoxState {
     amount: number,
     slippageBps: number,
     connection: Connection,
-    platformFeeBps?: number
+    platformFeeBps?: number,
+    priorityFee?: number
   ) => void;
   setIsLoading: (isLoading: boolean) => void;
 }
@@ -184,7 +186,7 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
     }
   },
 
-  setRepayAmountRaw(marginfiAccount, amountRaw, connection, platformFeeBps) {
+  setRepayAmountRaw(marginfiAccount, amountRaw, connection, platformFeeBps, priorityFee) {
     const strippedAmount = amountRaw.replace(/,/g, "");
     const amount = isNaN(Number.parseFloat(strippedAmount)) ? 0 : Number.parseFloat(strippedAmount);
 
@@ -196,7 +198,16 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
 
     if (selectedBank && selectedRepayBank) {
       const setCollat = debounceFn(get().setRepayCollateral, 500);
-      setCollat(marginfiAccount, selectedBank, selectedRepayBank, amount, slippageBps, connection, platformFeeBps);
+      setCollat(
+        marginfiAccount,
+        selectedBank,
+        selectedRepayBank,
+        amount,
+        slippageBps,
+        connection,
+        platformFeeBps,
+        priorityFee
+      );
     }
   },
 
@@ -207,7 +218,8 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
     amount,
     slippageBps,
     connection,
-    platformFeeBps
+    platformFeeBps,
+    priorityFee
   ) {
     set({ isLoading: true });
     const repayCollat = await calculateRepayCollateral(
@@ -217,7 +229,8 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
       amount,
       slippageBps,
       connection,
-      platformFeeBps
+      platformFeeBps,
+      priorityFee
     );
 
     if (repayCollat) {
@@ -394,7 +407,8 @@ async function calculateRepayCollateral(
   amount: number,
   slippageBps: number,
   connection: Connection,
-  platformFeeBps?: number
+  platformFeeBps?: number,
+  priorityFee?: number
 ): Promise<{
   repayTxn: VersionedTransaction;
   bundleTipTx: VersionedTransaction | null;
@@ -408,6 +422,7 @@ async function calculateRepayCollateral(
   let firstQuote;
 
   for (const maxAccounts of maxAccountsArr) {
+    const isTxnSplit = maxAccounts === 30;
     const quoteParams = {
       amount: uiToNative(amount, repayBank.info.state.mintDecimals).toNumber(),
       inputMint: repayBank.info.state.mint.toBase58(),
@@ -438,7 +453,8 @@ async function calculateRepayCollateral(
           amount,
           swapQuote,
           connection,
-          maxAccounts === 30
+          priorityFee,
+          isTxnSplit
         );
         if (txns) {
           capture("repay_with_collat", {

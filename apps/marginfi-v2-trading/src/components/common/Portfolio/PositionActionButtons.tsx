@@ -14,7 +14,7 @@ import { ActionBoxDialog } from "~/components/common/ActionBox";
 import { Button } from "~/components/ui/button";
 
 import { getCloseTransaction } from "../TradingBox/tradingBox.utils";
-import { PublicKey } from "@solana/web3.js";
+import { PublicKey, Transaction } from "@solana/web3.js";
 
 type PositionActionButtonsProps = {
   marginfiClient: MarginfiClient | null;
@@ -98,7 +98,7 @@ export const PositionActionButtons = ({
         throw new Error("Invalid client");
       }
 
-      const txn = await getCloseTransaction({
+      const txns = await getCloseTransaction({
         marginfiAccount,
         borrowBank: borrowBank,
         depositBanks: depositBanks,
@@ -107,12 +107,23 @@ export const PositionActionButtons = ({
         priorityFee,
         platformFeeBps,
       });
-      if (!txn) {
+
+      if (!txns) {
         throw new Error("Something went wrong.");
       }
 
-      const txnSig = await client.processTransaction(txn);
-      multiStepToast.setSuccessAndNext();
+      let txnSig: string | string[];
+
+      if (txns instanceof Transaction) {
+        txnSig = await client.processTransaction(txns);
+        multiStepToast.setSuccessAndNext();
+      } else {
+        txnSig = await client.processTransactions([
+          ...(txns.bundleTipTxn ? [txns.bundleTipTxn] : []),
+          txns.flashloanTx,
+        ]);
+        multiStepToast.setSuccessAndNext();
+      }
 
       // -------- Refresh state
       try {
@@ -139,6 +150,7 @@ export const PositionActionButtons = ({
     marginfiAccount,
     collateralBank,
     marginfiClient,
+    bank.meta.tokenSymbol,
     borrowBank,
     depositBanks,
     slippageBps,

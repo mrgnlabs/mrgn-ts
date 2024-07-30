@@ -61,14 +61,24 @@ interface ActionBoxState {
   setLstMode: (lstMode: LstType) => void;
   setYbxMode: (ybxMode: YbxType) => void;
   setAmountRaw: (amountRaw: string, maxAmount?: number) => void;
-  setLeverage: (leverage: number, marginfiAccount: MarginfiAccountWrapper | null, connection: Connection) => void;
+  setLeverage: (
+    leverage: number,
+    marginfiAccount: MarginfiAccountWrapper | null,
+    connection: Connection,
+    priorityFee: number
+  ) => void;
   setLoopingAmountRaw: (
     marginfiAccount: MarginfiAccountWrapper,
     amountRaw: string,
     connection: Connection,
     maxAmount?: number
   ) => void;
-  setRepayAmountRaw: (marginfiAccount: MarginfiAccountWrapper, repayAmountRaw: string, connection: Connection) => void;
+  setRepayAmountRaw: (
+    marginfiAccount: MarginfiAccountWrapper,
+    repayAmountRaw: string,
+    connection: Connection,
+    priorityFee: number
+  ) => void;
   setSelectedBank: (bank: ExtendedBankInfo | null) => void;
   setRepayBank: (bank: ExtendedBankInfo | null) => void;
   setSelectedStakingAccount: (account: StakeData) => void;
@@ -78,7 +88,8 @@ interface ActionBoxState {
     selectedRepayBank: ExtendedBankInfo,
     amount: number,
     slippageBps: number,
-    connection: Connection
+    connection: Connection,
+    priorityFee: number
   ) => void;
   setLooping: ({
     marginfiAccount,
@@ -88,6 +99,7 @@ interface ActionBoxState {
     slippageBps,
     connection,
     leverage,
+    priorityFee,
   }: {
     marginfiAccount: MarginfiAccountWrapper;
     selectedBank?: ExtendedBankInfo;
@@ -96,6 +108,7 @@ interface ActionBoxState {
     slippageBps?: number;
     connection?: Connection;
     leverage?: number;
+    priorityFee: number;
   }) => void;
   setIsLoading: (isLoading: boolean) => void;
 }
@@ -192,7 +205,7 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
     if (needRefresh) set({ ...initialState, actionMode: requestedAction, selectedBank: requestedBank });
   },
 
-  setLeverage(leverage, marginfiAccount, connection) {
+  setLeverage(leverage, marginfiAccount, connection, priorityFee) {
     const maxLeverage = get().maxLeverage;
     const prevLeverage = get().leverage;
 
@@ -208,7 +221,7 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
       set({ leverage: newLeverage });
 
       if (marginfiAccount && connection) {
-        get().setLooping({ marginfiAccount, connection, leverage: newLeverage });
+        get().setLooping({ marginfiAccount, connection, leverage: newLeverage, priorityFee });
       }
     }
   },
@@ -238,7 +251,7 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
     }
   },
 
-  setRepayAmountRaw(marginfiAccount, amountRaw, connection) {
+  setRepayAmountRaw(marginfiAccount, amountRaw, connection, priorityFee) {
     const strippedAmount = amountRaw.replace(/,/g, "");
     const amount = isNaN(Number.parseFloat(strippedAmount)) ? 0 : Number.parseFloat(strippedAmount);
 
@@ -250,7 +263,7 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
 
     if (selectedBank && selectedRepayBank && connection) {
       const setCollat = debounceFn(get().setRepayCollateral, 500);
-      setCollat(marginfiAccount, selectedBank, selectedRepayBank, amount, slippageBps, connection);
+      setCollat(marginfiAccount, selectedBank, selectedRepayBank, amount, slippageBps, connection, priorityFee);
     }
   },
 
@@ -262,6 +275,7 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
     slippageBps: slippageBpsParam,
     connection,
     leverage: selectedLeverageParam,
+    priorityFee,
   }) {
     const {
       selectedBank: selectedBankStore,
@@ -292,7 +306,8 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
       leverage,
       amount,
       slippageBps,
-      connection
+      connection,
+      priorityFee
     );
 
     if (loopingObject) {
@@ -315,7 +330,15 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
     set({ isLoading: false });
   },
 
-  async setRepayCollateral(marginfiAccount, selectedBank, selectedRepayBank, amount, slippageBps, connection) {
+  async setRepayCollateral(
+    marginfiAccount,
+    selectedBank,
+    selectedRepayBank,
+    amount,
+    slippageBps,
+    connection,
+    priorityFee
+  ) {
     set({ isLoading: true });
     const repayCollat = await calculateRepayCollateral(
       marginfiAccount,
@@ -323,11 +346,16 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
       selectedRepayBank,
       amount,
       slippageBps,
-      connection
+      connection,
+      priorityFee
     );
 
     if (repayCollat) {
       set({
+        actionTxns: {
+          actionTxn: repayCollat.repayTxn,
+          bundleTipTxn: repayCollat.bundleTipTxn,
+        },
         actionQuote: repayCollat.quote,
         amountRaw: repayCollat.amount.toString(),
       });
@@ -531,12 +559,15 @@ async function calculateLooping(
   targetLeverage: number,
   amount: number,
   slippageBps: number,
-  connection: Connection
+  connection: Connection,
+  priorityFee: number
 ): Promise<{
   loopingTxn: VersionedTransaction;
+  bundleTipTxn: VersionedTransaction | null;
   quote: QuoteResponse;
   borrowAmount: BigNumber;
   actualDepositAmount: number;
+  priorityFee: number;
 } | null> {
   //const slippageBps = 0.01 * 10000;
 
@@ -564,6 +595,7 @@ async function calculateLooping(
   let firstQuote;
 
   for (const maxAccounts of maxAccountsArr) {
+    const isTxnSplit = maxAccounts === 30;
     const quoteParams = {
       amount: borrowAmountNative,
       inputMint: loopBank.info.state.mint.toBase58(), // borrow
@@ -590,7 +622,9 @@ async function calculateLooping(
           actualDepositAmountUi,
           borrowAmount,
           swapQuote,
-          connection
+          connection,
+          isTxnSplit,
+          priorityFee
         );
         if (txn) {
           capture("looper", {
@@ -601,10 +635,12 @@ async function calculateLooping(
             outputMint: bank.info.state.mint.toBase58(),
           });
           return {
-            loopingTxn: txn,
+            loopingTxn: txn.flashloanTx,
+            bundleTipTxn: txn.bundleTipTxn,
             quote: swapQuote,
             borrowAmount: borrowAmount,
             actualDepositAmount: actualDepositAmountUi,
+            priorityFee: priorityFee,
           };
         }
       } else {
@@ -630,8 +666,14 @@ async function calculateRepayCollateral(
   repayBank: ExtendedBankInfo,
   amount: number,
   slippageBps: number,
-  connection: Connection
-): Promise<{ repayTxn: VersionedTransaction; quote: QuoteResponse; amount: number } | null> {
+  connection: Connection,
+  priorityFee: number
+): Promise<{
+  repayTxn: VersionedTransaction;
+  bundleTipTxn: VersionedTransaction | null;
+  quote: QuoteResponse;
+  amount: number;
+} | null> {
   const maxRepayAmount = bank.isActive ? bank?.position.amount : 0;
 
   const maxAccountsArr = [undefined, 50, 40, 30];
@@ -639,6 +681,7 @@ async function calculateRepayCollateral(
   let firstQuote;
 
   for (const maxAccounts of maxAccountsArr) {
+    const isTxnSplit = maxAccounts === 30;
     const quoteParams = {
       amount: uiToNative(amount, repayBank.info.state.mintDecimals).toNumber(),
       inputMint: repayBank.info.state.mint.toBase58(),
@@ -667,7 +710,9 @@ async function calculateRepayCollateral(
           amountToRepay,
           amount,
           swapQuote,
-          connection
+          connection,
+          priorityFee,
+          isTxnSplit
         );
         if (txn) {
           capture("repay_with_collat", {
@@ -677,7 +722,7 @@ async function calculateRepayCollateral(
             inputMint: repayBank.info.state.mint.toBase58(),
             outputMint: bank.info.state.mint.toBase58(),
           });
-          return { repayTxn: txn, quote: swapQuote, amount: amountToRepay };
+          return { repayTxn: txn.flashloanTx, bundleTipTxn: txn.bundleTipTxn, quote: swapQuote, amount: amountToRepay };
         }
       } else {
         throw new Error("Swap quote failed");
