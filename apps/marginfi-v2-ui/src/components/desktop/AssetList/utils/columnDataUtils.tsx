@@ -13,7 +13,7 @@ import {
   PriceBias,
   getPriceWithConfidence,
 } from "@mrgnlabs/marginfi-client-v2";
-import { WSOL_MINT, aprToApy, nativeToUi } from "@mrgnlabs/mrgn-common";
+import { WSOL_MINT, aprToApy, apyToApr, nativeToUi } from "@mrgnlabs/mrgn-common";
 
 import { isBankOracleStale } from "~/utils";
 
@@ -99,11 +99,12 @@ export const getRateData = (bank: ExtendedBankInfo, isInLendingMode: boolean): R
       ? emissionsRate
       : 0
     : emissions == Emissions.Borrowing
-      ? emissionsRate
-      : 0;
+    ? emissionsRate
+    : 0;
 
-  const rateAPR = interestRate + emissionRate;
-  const rateAPY = aprToApy(rateAPR);
+  const rateAPY = aprToApy(emissionRate) + interestRate;
+
+  console.log(aprToApy(emissionRate), rateAPY);
 
   return {
     emissionRate,
