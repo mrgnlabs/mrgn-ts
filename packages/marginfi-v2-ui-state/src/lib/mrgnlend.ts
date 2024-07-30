@@ -100,6 +100,10 @@ function makeBankInfo(bank: Bank, oraclePrice: OraclePrice, emissionTokenData?: 
 
   if ((bank.emissionsActiveLending || bank.emissionsActiveBorrowing) && emissionTokenData) {
     const emissionsRateAmount = new BigNumber(nativeToUi(bank.emissionsRate, emissionTokenData.decimals));
+
+    // why are we multiplying emissionsRateAmount by emissionTokenData.price and then dividing by oracle price?
+    // this is causing discrepencies in the emission rate e.g 17% becomes 17.4xxxx
+
     // const emissionsRateValue = emissionsRateAmount.times(emissionTokenData.price);
     // const emissionsRateAdditionalyApy = emissionsRateValue.div(getPriceWithConfidence(oraclePrice, false).price);
 
@@ -186,6 +190,10 @@ export async function makeExtendedBankEmission(
     let emissions = Emissions.Inactive;
     if ((rawBank.emissionsActiveLending || rawBank.emissionsActiveBorrowing) && emissionTokenData) {
       const emissionsRateAmount = new BigNumber(nativeToUi(rawBank.emissionsRate, emissionTokenData.decimals));
+
+      // why are we multiplying emissionsRateAmount by emissionTokenData.price and then dividing by oracle price?
+      // this is causing discrepencies in the emission rate e.g 17% becomes 17.4xxxx
+
       // const emissionsRateValue = emissionsRateAmount.times(emissionTokenData.price);
       // const emissionsRateAdditionalyApy = emissionsRateValue.div(
       //   getPriceWithConfidence(bank.info.oraclePrice, false).price
@@ -197,16 +205,6 @@ export async function makeExtendedBankEmission(
         emissions = Emissions.Borrowing;
       } else if (rawBank.emissionsActiveLending) {
         emissions = Emissions.Lending;
-      }
-
-      if (bank.meta.tokenSymbol === "PYUSD") {
-        console.log("Emissions Rate", rawBank.emissionsRate);
-        // console.log("emissionsRateAmount", emissionsRateValue.toNumber());
-        // console.log(
-        //   "emissionsrate additional",
-        //   emissionsRateValue.div(getPriceWithConfidence(bank.info.oraclePrice, false).price).toNumber()
-        // );
-        console.log("Final emissions rate", emissionsRate);
       }
 
       bank.info.state = {
