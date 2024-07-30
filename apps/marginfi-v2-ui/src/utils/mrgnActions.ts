@@ -27,6 +27,7 @@ import { StakeData, makeDepositSolToStakePoolIx, makeDepositStakeToStakePoolIx }
 
 export type RepayWithCollatOptions = {
   repayCollatQuote: QuoteResponse;
+  bundleTipTxn: VersionedTransaction | null;
   repayCollatTxn: VersionedTransaction | null;
   withdrawAmount: number;
   depositBank: ExtendedBankInfo;
@@ -35,6 +36,7 @@ export type RepayWithCollatOptions = {
 
 export type LoopingOptions = {
   loopingQuote: QuoteResponse;
+  bundleTipTxn: VersionedTransaction | null;
   loopingTxn: VersionedTransaction | null;
   borrowAmount: BigNumber;
   loopingBank: ExtendedBankInfo;
@@ -98,7 +100,7 @@ export async function executeLendingAction({
   priorityFee,
   repayWithCollatOptions,
 }: MarginfiActionParams) {
-  let txnSig: string | undefined;
+  let txnSig: string | string[] | undefined;
 
   if (nativeSolBalance < FEE_MARGIN) {
     showErrorToast("Not enough sol for fee.");
@@ -154,7 +156,7 @@ export async function executeLoopingAction({
   priorityFee,
   loopingOptions,
 }: MarginfiActionParams) {
-  let txnSig: string | undefined;
+  let txnSig: string[] | undefined;
 
   if (!marginfiAccount) {
     showErrorToast("Marginfi account not ready.");
@@ -484,12 +486,14 @@ export async function loopingBuilder({
   depositAmount,
   options,
   priorityFee,
+  isTxnSplit,
 }: {
   marginfiAccount: MarginfiAccountWrapper;
   bank: ExtendedBankInfo;
   depositAmount: number;
   options: LoopingOptions;
   priorityFee?: number;
+  isTxnSplit: boolean;
 }) {
   const jupiterQuoteApi = createJupiterApiClient();
 
@@ -512,7 +516,7 @@ export async function loopingBuilder({
   const swapLUTs: AddressLookupTableAccount[] = [];
   swapLUTs.push(...(await getAdressLookupTableAccounts(options.connection, addressLookupTableAddresses)));
 
-  const { transaction, addressLookupTableAccounts } = await marginfiAccount.makeLoopTx(
+  const { flashloanTx, bundleTipTxn, addressLookupTableAccounts } = await marginfiAccount.makeLoopTx(
     depositAmount,
     options.borrowAmount,
     bank.address,
@@ -520,10 +524,11 @@ export async function loopingBuilder({
     [swapIx],
     swapLUTs,
     priorityFee,
-    true
+    true,
+    isTxnSplit
   );
 
-  return { txn: transaction, addressLookupTableAccounts };
+  return { flashloanTx, bundleTipTxn, addressLookupTableAccounts };
 }
 
 export async function looping({
@@ -533,6 +538,7 @@ export async function looping({
   depositAmount,
   options,
   priorityFee,
+  isTxnSplit = false,
 }: {
   marginfiClient: MarginfiClient | null;
   marginfiAccount: MarginfiAccountWrapper;
@@ -540,6 +546,7 @@ export async function looping({
   depositAmount: number;
   options: LoopingOptions;
   priorityFee?: number;
+  isTxnSplit?: boolean;
 }) {
   if (marginfiClient === null) {
     showErrorToast("Marginfi client not ready");
@@ -552,16 +559,27 @@ export async function looping({
   multiStepToast.start();
 
   try {
-    let txn: VersionedTransaction;
+    let sigs: string[] = [];
 
     if (options.loopingTxn) {
-      txn = options.loopingTxn;
+      sigs = await marginfiClient.processTransactions([
+        ...(options.bundleTipTxn ? [options.bundleTipTxn] : []),
+        options.loopingTxn,
+      ]);
     } else {
-      txn = (await loopingBuilder({ marginfiAccount, bank, depositAmount, options, priorityFee })).txn;
+      const { flashloanTx, bundleTipTxn } = await loopingBuilder({
+        marginfiAccount,
+        bank,
+        depositAmount,
+        options,
+        priorityFee,
+        isTxnSplit,
+      });
+      sigs = await marginfiClient.processTransactions([...(bundleTipTxn ? [bundleTipTxn] : []), flashloanTx]);
     }
-    const sig = await marginfiClient.processTransaction(txn);
+
     multiStepToast.setSuccessAndNext();
-    return sig;
+    return sigs;
   } catch (error: any) {
     const msg = extractErrorString(error);
     Sentry.captureException({ message: error });
@@ -578,12 +596,14 @@ export async function repayWithCollatBuilder({
   amount,
   options,
   priorityFee,
+  isTxnSplit,
 }: {
   marginfiAccount: MarginfiAccountWrapper;
   bank: ExtendedBankInfo;
   amount: number;
   options: RepayWithCollatOptions;
   priorityFee?: number;
+  isTxnSplit: boolean;
 }) {
   const jupiterQuoteApi = createJupiterApiClient();
 
@@ -602,7 +622,7 @@ export async function repayWithCollatBuilder({
   const swapLUTs: AddressLookupTableAccount[] = [];
   swapLUTs.push(...(await getAdressLookupTableAccounts(options.connection, addressLookupTableAddresses)));
 
-  const { transaction, addressLookupTableAccounts } = await marginfiAccount.makeRepayWithCollatTx(
+  const { flashloanTx, bundleTipTxn, addressLookupTableAccounts } = await marginfiAccount.makeRepayWithCollatTx(
     amount, // 3.02 amount to repay repayAmount
     options.withdrawAmount, //2 Deposit amount to withdraw withdrawAmount
     bank.address, // WIF borrowBank
@@ -611,10 +631,11 @@ export async function repayWithCollatBuilder({
     bank.isActive && isWholePosition(bank, amount),
     [swapIx],
     swapLUTs,
-    priorityFee
+    priorityFee,
+    isTxnSplit
   );
 
-  return { txn: transaction, addressLookupTableAccounts };
+  return { flashloanTx, bundleTipTxn, addressLookupTableAccounts };
 }
 
 export async function repayWithCollat({
@@ -624,6 +645,7 @@ export async function repayWithCollat({
   amount,
   options,
   priorityFee,
+  isTxnSplit = false,
 }: {
   marginfiClient: MarginfiClient | null;
   marginfiAccount: MarginfiAccountWrapper;
@@ -631,6 +653,7 @@ export async function repayWithCollat({
   amount: number;
   options: RepayWithCollatOptions;
   priorityFee?: number;
+  isTxnSplit?: boolean;
 }) {
   if (marginfiClient === null) {
     showErrorToast("Marginfi client not ready");
@@ -641,15 +664,28 @@ export async function repayWithCollat({
   multiStepToast.start();
 
   try {
-    let txn: VersionedTransaction;
+    let sigs: string[] = [];
+
     if (options.repayCollatTxn) {
-      txn = options.repayCollatTxn;
+      sigs = await marginfiClient.processTransactions([
+        ...(options.bundleTipTxn ? [options.bundleTipTxn] : []),
+        options.repayCollatTxn,
+      ]);
     } else {
-      txn = (await repayWithCollatBuilder({ marginfiAccount, bank, amount, options, priorityFee })).txn;
+      const { flashloanTx, bundleTipTxn } = await repayWithCollatBuilder({
+        marginfiAccount,
+        bank,
+        amount,
+        options,
+        priorityFee,
+        isTxnSplit,
+      });
+
+      sigs = await marginfiClient.processTransactions([...(bundleTipTxn ? [bundleTipTxn] : []), flashloanTx]);
     }
-    const sig = await marginfiClient.processTransaction(txn);
+
     multiStepToast.setSuccessAndNext();
-    return sig;
+    return sigs;
   } catch (error: any) {
     const msg = extractErrorString(error);
     Sentry.captureException({ message: error });
