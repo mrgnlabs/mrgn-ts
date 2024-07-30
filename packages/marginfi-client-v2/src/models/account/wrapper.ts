@@ -709,6 +709,7 @@ class MarginfiAccountWrapper {
       ixs: [
         ...priorityFeeIx,
         ...cuRequestIxs,
+        ...(isTxnSplit ? [] : [bundleTipIx]),
         ...setupIxs,
         ...borrowIxs.instructions,
         ...swapIxs,
