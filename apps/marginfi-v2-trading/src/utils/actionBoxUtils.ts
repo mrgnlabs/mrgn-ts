@@ -528,7 +528,8 @@ export async function verifyJupTxSize(
   amount: number,
   repayAmount: number,
   quoteResponse: QuoteResponse,
-  connection: Connection
+  connection: Connection,
+  isTxnSplit: boolean = false
 ) {
   try {
     const builder = await repayWithCollatBuilder({
@@ -541,18 +542,20 @@ export async function verifyJupTxSize(
         repayBank: repayBank,
         connection,
         repayCollatTxn: null,
+        bundleTipTxn: null,
       },
+      isTxnSplit,
     });
 
-    const totalSize = builder.txn.message.serialize().length;
-    const totalKeys = builder.txn.message.getAccountKeys({
+    const totalSize = builder.flashloanTx.message.serialize().length;
+    const totalKeys = builder.flashloanTx.message.getAccountKeys({
       addressLookupTableAccounts: builder.addressLookupTableAccounts,
     }).length;
 
     if (totalSize > 1232 || totalKeys >= 64) {
       // too big
     } else {
-      return builder.txn;
+      return { flashloanTx: builder.flashloanTx, bundleTipTxn: builder.bundleTipTxn };
     }
   } catch (error) {
     console.error(error);

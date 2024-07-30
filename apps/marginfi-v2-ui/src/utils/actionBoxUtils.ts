@@ -585,7 +585,8 @@ export async function verifyJupTxSizeLooping(
   depositAmount: number,
   borrowAmount: BigNumber,
   quoteResponse: QuoteResponse,
-  connection: Connection
+  connection: Connection,
+  isTxnSplit: boolean = false
 ) {
   try {
     const builder = await loopingBuilder({
@@ -598,7 +599,9 @@ export async function verifyJupTxSizeLooping(
         loopingBank,
         connection,
         loopingTxn: null,
+        bundleTipTxn: null,
       },
+      isTxnSplit,
     });
 
     return checkTxSize(builder);
@@ -614,7 +617,8 @@ export async function verifyJupTxSizeCollat(
   amount: number,
   withdrawAmount: number,
   quoteResponse: QuoteResponse,
-  connection: Connection
+  connection: Connection,
+  isTxnSplit: boolean = false
 ) {
   try {
     const builder = await repayWithCollatBuilder({
@@ -627,7 +631,9 @@ export async function verifyJupTxSizeCollat(
         depositBank,
         connection,
         repayCollatTxn: null,
+        bundleTipTxn: null,
       },
+      isTxnSplit,
     });
 
     return checkTxSize(builder);
@@ -637,18 +643,19 @@ export async function verifyJupTxSizeCollat(
 }
 
 const checkTxSize = (builder: {
-  txn: VersionedTransaction;
+  flashloanTx: VersionedTransaction;
+  bundleTipTxn: VersionedTransaction | null;
   addressLookupTableAccounts: AddressLookupTableAccount[];
 }) => {
-  const totalSize = builder.txn.message.serialize().length;
-  const totalKeys = builder.txn.message.getAccountKeys({
+  const totalSize = builder.flashloanTx.message.serialize().length;
+  const totalKeys = builder.flashloanTx.message.getAccountKeys({
     addressLookupTableAccounts: builder.addressLookupTableAccounts,
   }).length;
 
   if (totalSize > 1232 || totalKeys >= 64) {
     // too big
   } else {
-    return builder.txn;
+    return { flashloanTx: builder.flashloanTx, bundleTipTxn: builder.bundleTipTxn };
   }
 };
 

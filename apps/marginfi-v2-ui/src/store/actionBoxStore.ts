@@ -46,7 +46,7 @@ interface ActionBoxState {
   selectedStakingAccount: StakeData | null;
 
   actionQuote: QuoteResponse | null;
-  actionTxn: VersionedTransaction | null;
+  actionTxns: { actionTxn: VersionedTransaction | null; bundleTipTxn: VersionedTransaction | null };
 
   errorMessage: string;
   isLoading: boolean;
@@ -147,7 +147,7 @@ const initialState = {
   selectedStakingAccount: null,
 
   actionQuote: null,
-  actionTxn: null,
+  actionTxns: { actionTxn: null, bundleTipTxn: null },
 
   isLoading: false,
 };
@@ -219,12 +219,12 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
     } else {
       const strippedAmount = amountRaw.replace(/,/g, "");
       const amount = isNaN(Number.parseFloat(strippedAmount)) ? 0 : Number.parseFloat(strippedAmount);
-      const numberFormater = new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 });
+      const numberFormatter = new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 });
 
       if (amount && amount > maxAmount) {
-        set({ amountRaw: numberFormater.format(maxAmount) });
+        set({ amountRaw: numberFormatter.format(maxAmount) });
       } else {
-        set({ amountRaw: numberFormater.format(amount) });
+        set({ amountRaw: numberFormatter.format(amount) });
       }
     }
   },
@@ -234,7 +234,7 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
     const isAmountChanged = amountRaw !== prevAmountRaw;
 
     if (isAmountChanged) {
-      set({ amountRaw, actionTxn: null, actionQuote: null, loopingAmounts: undefined });
+      set({ amountRaw, actionTxns: initialState.actionTxns, actionQuote: null, loopingAmounts: undefined });
     }
   },
 
@@ -297,7 +297,10 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
 
     if (loopingObject) {
       set({
-        actionTxn: loopingObject.loopingTxn,
+        actionTxns: {
+          actionTxn: loopingObject.loopingTxn,
+          bundleTipTxn: null,
+        },
         actionQuote: loopingObject.quote,
         loopingAmounts: {
           borrowAmount: loopingObject.borrowAmount,
@@ -325,7 +328,6 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
 
     if (repayCollat) {
       set({
-        actionTxn: repayCollat.repayTxn,
         actionQuote: repayCollat.quote,
         amountRaw: repayCollat.amount.toString(),
       });
@@ -368,18 +370,9 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
         loopingAmounts: initialState.loopingAmounts,
         selectedRepayBank: null,
         leverage: 0,
-        actionTxn: undefined,
+        actionTxns: initialState.actionTxns,
         actionQuote: undefined,
       });
-
-      const repayMode = get().repayMode;
-      const repayBank = get().selectedRepayBank;
-      const slippageBps = get().slippageBps;
-
-      // if (repayMode === RepayType.RepayCollat && tokenBank && repayBank) {
-      //   const maxAmount = await calculateMaxCollat(tokenBank, repayBank, slippageBps);
-      //   set({ maxAmountCollat: maxAmount, repayAmountRaw: "" });
-      // }
     }
   },
 
@@ -420,7 +413,7 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
           repayAmountRaw: "",
           loopingAmounts: initialState.loopingAmounts,
           leverage: 0,
-          actionTxn: undefined,
+          actionTxns: initialState.actionTxns,
           actionQuote: undefined,
         });
 
@@ -465,7 +458,12 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
     }
 
     if (actionMode === ActionType.Loop) {
-      set({ actionQuote: undefined, actionTxn: undefined, loopingAmounts: initialState.loopingAmounts, leverage: 0 });
+      set({
+        actionQuote: undefined,
+        actionTxns: initialState.actionTxns,
+        loopingAmounts: initialState.loopingAmounts,
+        leverage: 0,
+      });
     }
 
     set({ slippageBps });

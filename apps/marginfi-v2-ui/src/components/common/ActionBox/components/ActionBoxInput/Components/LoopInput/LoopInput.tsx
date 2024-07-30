@@ -49,7 +49,7 @@ export const LoopInput = ({
     setSelectedStakingAccount,
     setLeverage,
     setLooping,
-    actionTxn,
+    actionTxns,
 
     loopingAmounts,
     leverage,
@@ -64,7 +64,7 @@ export const LoopInput = ({
     state.setSelectedStakingAccount,
     state.setLeverage,
     state.setLooping,
-    state.actionTxn,
+    state.actionTxns,
     state.loopingAmounts,
     state.leverage,
     state.maxLeverage,
@@ -202,7 +202,7 @@ export const LoopInput = ({
   React.useEffect(() => setLeverageAmount(leverage), [leverage]);
 
   React.useEffect(() => {
-    const blockhash = actionTxn?.message.recentBlockhash;
+    const blockhash = actionTxns?.actionTxn?.message.recentBlockhash;
 
     const checkBlockhashValidity = () => {
       if (blockhash) {
@@ -217,7 +217,7 @@ export const LoopInput = ({
     const interval = setInterval(checkBlockhashValidity, 10000);
 
     return () => clearInterval(interval);
-  }, [refreshTxn, actionTxn, connection]);
+  }, [refreshTxn, actionTxns, connection]);
 
   return (
     <div>

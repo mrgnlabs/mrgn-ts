@@ -36,7 +36,10 @@ interface ActionBoxState {
   selectedRepayBank: ExtendedBankInfo | null;
   selectedStakingAccount: StakeData | null;
   repayCollatQuote: QuoteResponse | null;
-  repayCollatTxn: VersionedTransaction | null;
+  repayCollatTxns: {
+    repayCollatTxn: VersionedTransaction | null;
+    bundleTipTxn: VersionedTransaction | null;
+  };
 
   errorMessage: string;
   isLoading: boolean;
@@ -112,7 +115,10 @@ const initialState = {
   selectedStakingAccount: null,
 
   repayCollatQuote: null,
-  repayCollatTxn: null,
+  repayCollatTxns: {
+    repayCollatTxn: null,
+    bundleTipTxn: null,
+  },
 
   isLoading: false,
 };
@@ -216,7 +222,10 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
 
     if (repayCollat) {
       set({
-        repayCollatTxn: repayCollat.repayTxn,
+        repayCollatTxns: {
+          repayCollatTxn: repayCollat.repayTxn,
+          bundleTipTxn: repayCollat.bundleTipTx,
+        },
         repayCollatQuote: repayCollat.quote,
         amountRaw: repayCollat.amount.toString(),
       });
@@ -386,7 +395,12 @@ async function calculateRepayCollateral(
   slippageBps: number,
   connection: Connection,
   platformFeeBps?: number
-): Promise<{ repayTxn: VersionedTransaction; quote: QuoteResponse; amount: number } | null> {
+): Promise<{
+  repayTxn: VersionedTransaction;
+  bundleTipTx: VersionedTransaction | null;
+  quote: QuoteResponse;
+  amount: number;
+} | null> {
   const maxRepayAmount = bank.isActive ? bank?.position.amount : 0;
 
   const maxAccountsArr = [undefined, 50, 40, 30];
@@ -416,16 +430,17 @@ async function calculateRepayCollateral(
 
         const amountToRepay = outAmount > maxRepayAmount ? maxRepayAmount : outAmountThreshold;
 
-        const txn = await verifyJupTxSize(
+        const txns = await verifyJupTxSize(
           marginfiAccount,
           bank,
           repayBank,
           amountToRepay,
           amount,
           swapQuote,
-          connection
+          connection,
+          maxAccounts === 30
         );
-        if (txn) {
+        if (txns) {
           capture("repay_with_collat", {
             amountIn: uiToNative(amount, repayBank.info.state.mintDecimals).toNumber(),
             firstQuote,
@@ -433,7 +448,12 @@ async function calculateRepayCollateral(
             inputMint: repayBank.info.state.mint.toBase58(),
             outputMint: bank.info.state.mint.toBase58(),
           });
-          return { repayTxn: txn, quote: swapQuote, amount: amountToRepay };
+          return {
+            repayTxn: txns.flashloanTx,
+            bundleTipTx: txns.bundleTipTxn,
+            quote: swapQuote,
+            amount: amountToRepay,
+          };
         }
       } else {
         throw new Error("Swap quote failed");
