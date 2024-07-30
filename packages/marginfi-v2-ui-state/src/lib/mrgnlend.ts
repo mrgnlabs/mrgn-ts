@@ -68,9 +68,9 @@ function computeAccountSummary(marginfiAccount: MarginfiAccountWrapper, banks: E
   const healthFactor = maintenanceComponentsWithBiasAndWeighted.assets.isZero()
     ? 1
     : maintenanceComponentsWithBiasAndWeighted.assets
-      .minus(maintenanceComponentsWithBiasAndWeighted.liabilities)
-      .dividedBy(maintenanceComponentsWithBiasAndWeighted.assets)
-      .toNumber();
+        .minus(maintenanceComponentsWithBiasAndWeighted.liabilities)
+        .dividedBy(maintenanceComponentsWithBiasAndWeighted.assets)
+        .toNumber();
 
   return {
     healthFactor,
@@ -100,10 +100,10 @@ function makeBankInfo(bank: Bank, oraclePrice: OraclePrice, emissionTokenData?: 
 
   if ((bank.emissionsActiveLending || bank.emissionsActiveBorrowing) && emissionTokenData) {
     const emissionsRateAmount = new BigNumber(nativeToUi(bank.emissionsRate, emissionTokenData.decimals));
-    const emissionsRateValue = emissionsRateAmount.times(emissionTokenData.price);
-    const emissionsRateAdditionalyApy = emissionsRateValue.div(getPriceWithConfidence(oraclePrice, false).price);
+    // const emissionsRateValue = emissionsRateAmount.times(emissionTokenData.price);
+    // const emissionsRateAdditionalyApy = emissionsRateValue.div(getPriceWithConfidence(oraclePrice, false).price);
 
-    emissionsRate = emissionsRateAdditionalyApy.toNumber();
+    emissionsRate = emissionsRateAmount.toNumber();
 
     if (bank.emissionsActiveBorrowing) {
       emissions = Emissions.Borrowing;
@@ -186,12 +186,12 @@ export async function makeExtendedBankEmission(
     let emissions = Emissions.Inactive;
     if ((rawBank.emissionsActiveLending || rawBank.emissionsActiveBorrowing) && emissionTokenData) {
       const emissionsRateAmount = new BigNumber(nativeToUi(rawBank.emissionsRate, emissionTokenData.decimals));
-      const emissionsRateValue = emissionsRateAmount.times(emissionTokenData.price);
-      const emissionsRateAdditionalyApy = emissionsRateValue.div(
-        getPriceWithConfidence(bank.info.oraclePrice, false).price
-      );
+      // const emissionsRateValue = emissionsRateAmount.times(emissionTokenData.price);
+      // const emissionsRateAdditionalyApy = emissionsRateValue.div(
+      //   getPriceWithConfidence(bank.info.oraclePrice, false).price
+      // );
 
-      emissionsRate = emissionsRateAdditionalyApy.toNumber();
+      emissionsRate = emissionsRateAmount.toNumber();
 
       if (rawBank.emissionsActiveBorrowing) {
         emissions = Emissions.Borrowing;
@@ -454,7 +454,7 @@ async function fetchTokenAccounts(
     if (!mintData) {
       throw new Error(`Failed to find mint data for ${mint.bankAddress.toBase58()}`);
     }
-    return getAssociatedTokenAddressSync(mint.address, walletAddress!, true, mintData.tokenProgram)
+    return getAssociatedTokenAddressSync(mint.address, walletAddress!, true, mintData.tokenProgram);
   }); // We allow off curve addresses here to support Fuse.
 
   // Fetch relevant accounts
@@ -467,11 +467,7 @@ async function fetchTokenAccounts(
   const ataList: TokenAccount[] = ataAiList.map((ai, index) => {
     const mint = mintList[index];
 
-    if (
-      !ai ||
-      (!ai?.owner?.equals(TOKEN_PROGRAM_ID) &&
-        !ai?.owner?.equals(TOKEN_2022_PROGRAM_ID))
-    ) {
+    if (!ai || (!ai?.owner?.equals(TOKEN_PROGRAM_ID) && !ai?.owner?.equals(TOKEN_2022_PROGRAM_ID))) {
       return {
         created: false,
         mint: mint.address,
