@@ -532,6 +532,7 @@ export async function verifyJupTxSize(
   repayAmount: number,
   quoteResponse: QuoteResponse,
   connection: Connection,
+  priorityFee?: number,
   isTxnSplit: boolean = false
 ) {
   try {
@@ -547,6 +548,7 @@ export async function verifyJupTxSize(
         repayCollatTxn: null,
         bundleTipTxn: null,
       },
+      priorityFee,
       isTxnSplit,
     });
 

@@ -512,12 +512,13 @@ export const ActionBox = ({
     nativeSolBalance,
     selectedAccount,
     walletContextState,
-    actionTxns,
+    actionTxns.actionTxn,
     handleCloseDialog,
     setAmountRaw,
     setIsActionComplete,
     setPreviousTxn,
     lstQuoteMeta,
+    leverage,
   ]);
 
   const handleLstAction = React.useCallback(async () => {

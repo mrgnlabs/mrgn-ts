@@ -94,7 +94,7 @@ export const ActionBox = ({
     selectedRepayBank,
     selectedStakingAccount,
     repayCollatQuote,
-    repayCollatTxn,
+    repayCollatTxns,
     isLoading,
     errorMessage,
 
@@ -116,7 +116,7 @@ export const ActionBox = ({
     state.selectedRepayBank,
     state.selectedStakingAccount,
     state.repayCollatQuote,
-    state.repayCollatTxn,
+    state.repayCollatTxns,
     state.isLoading,
     state.errorMessage,
 
@@ -330,7 +330,7 @@ export const ActionBox = ({
         setIsActionComplete(true);
         setPreviousTxn({
           txnType: "LEND",
-          txn: txnSig!,
+          txn: Array.isArray(txnSig) ? txnSig.pop() ?? "" : txnSig!,
           lendingOptions: {
             type: currentAction,
             bank: bank as ActiveBankInfo,
@@ -580,7 +580,8 @@ export const ActionBox = ({
       if (repayCollatQuote && repayAmount && selectedRepayBank && connection && wallet) {
         params.repayWithCollatOptions = {
           repayCollatQuote,
-          repayCollatTxn,
+          repayCollatTxn: repayCollatTxns.repayCollatTxn,
+          bundleTipTxn: repayCollatTxns.bundleTipTxn,
           repayAmount: repayAmount,
           repayBank: selectedRepayBank,
           connection,
@@ -594,18 +595,19 @@ export const ActionBox = ({
   }, [
     actionMode,
     selectedBank,
-    selectedAccount,
     amount,
-    executeLendingActionCb,
+    repayAmount,
     mfiClient,
     nativeSolBalance,
+    selectedAccount,
     walletContextState,
     repayCollatQuote,
-    repayAmount,
     selectedRepayBank,
     connection,
     wallet,
-    repayCollatTxn,
+    executeLendingActionCb,
+    repayCollatTxns.repayCollatTxn,
+    repayCollatTxns.bundleTipTxn,
   ]);
 
   if (!isInitialized) {
@@ -703,7 +705,8 @@ export const ActionBox = ({
                   repayCollatQuote && repayAmount && selectedRepayBank
                     ? {
                         repayCollatQuote,
-                        repayCollatTxn,
+                        repayCollatTxn: repayCollatTxns.repayCollatTxn,
+                        bundleTipTxn: repayCollatTxns.bundleTipTxn,
                         repayAmount,
                         repayBank: selectedRepayBank,
                         connection,
