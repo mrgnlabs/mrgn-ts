@@ -28,12 +28,14 @@ import {
   ActionMethodType,
   cn,
   deserializeInstruction,
+  DYNAMIC_SIMULATION_ERRORS,
   extractErrorString,
   getAdressLookupTableAccounts,
   getFeeAccount,
   getSwapQuoteWithRetry,
   handleSimulationError,
   isBankOracleStale,
+  STATIC_SIMULATION_ERRORS,
 } from "~/utils";
 import { MultiStepToastHandle, showErrorToast } from "~/utils/toastUtils";
 
@@ -1020,38 +1022,11 @@ function canBeLooped(activeGroup: ActiveGroup, loopingObject: LoopingObject, tra
     const wrongBorrowed = tradeSide === "long" ? tokenPosition === "borrowing" : usdcPosition === "borrowing";
 
     if (wrongSupplied && wrongBorrowed) {
-      checks.push({
-        description: `You are already ${
-          tradeSide === "long" ? "shorting" : "longing"
-        } this asset, you need to close that position first to start ${tradeSide === "long" ? "longing" : "shorting"}.`,
-        isEnabled: false,
-        action: {
-          type: ActionType.Repay,
-          bank: tradeSide === "long" ? activeGroup.token : activeGroup.usdc,
-        },
-      });
+      checks.push(DYNAMIC_SIMULATION_ERRORS.LOOP_CHECK(tradeSide, activeGroup));
     } else if (wrongSupplied) {
-      checks.push({
-        description: `Before you can ${tradeSide} this asset, you'll need to withdraw your supplied ${
-          tradeSide === "long" ? activeGroup.usdc.meta.tokenSymbol : activeGroup.token.meta.tokenSymbol
-        }.`,
-        isEnabled: true,
-        action: {
-          type: ActionType.Withdraw,
-          bank: tradeSide === "long" ? activeGroup.usdc : activeGroup.token,
-        },
-      });
+      checks.push(DYNAMIC_SIMULATION_ERRORS.WITHDRAW_CHECK(tradeSide, activeGroup));
     } else if (wrongBorrowed) {
-      checks.push({
-        description: `Before you can ${tradeSide} this asset, you'll need to repay your borrowed ${
-          tradeSide === "long" ? activeGroup.token.meta.tokenSymbol : activeGroup.usdc.meta.tokenSymbol
-        }.`,
-        isEnabled: false,
-        action: {
-          type: ActionType.Repay,
-          bank: tradeSide === "long" ? activeGroup.token : activeGroup.usdc,
-        },
-      });
+      checks.push(DYNAMIC_SIMULATION_ERRORS.REPAY_CHECK(tradeSide, activeGroup));
     }
   }
 
@@ -1060,16 +1035,9 @@ function canBeLooped(activeGroup: ActiveGroup, loopingObject: LoopingObject, tra
   if (priceImpactPct && Number(priceImpactPct) > 0.01) {
     //invert
     if (priceImpactPct && Number(priceImpactPct) > 0.05) {
-      checks.push({
-        description: `Price impact is ${percentFormatter.format(Number(priceImpactPct))}.`,
-        actionMethod: "ERROR",
-        isEnabled: true,
-      });
+      checks.push(DYNAMIC_SIMULATION_ERRORS.PRICE_IMPACT_ERROR_CHECK(Number(priceImpactPct)));
     } else {
-      checks.push({
-        description: `Price impact is ${percentFormatter.format(Number(priceImpactPct))}.`,
-        isEnabled: true,
-      });
+      checks.push(DYNAMIC_SIMULATION_ERRORS.PRICE_IMPACT_WARNING_CHECK(Number(priceImpactPct)));
     }
   }
 
@@ -1077,12 +1045,7 @@ function canBeLooped(activeGroup: ActiveGroup, loopingObject: LoopingObject, tra
     (activeGroup.token && isBankOracleStale(activeGroup.token)) ||
     (activeGroup.usdc && isBankOracleStale(activeGroup.usdc))
   ) {
-    checks.push({
-      description: "Trading may fail due to network congestion preventing oracles from updating price data.",
-      isEnabled: true,
-      link: "https://docs.marginfi.com/faqs#what-does-the-stale-oracles-error-mean",
-      linkText: "Learn more about marginfi's decentralized oracles.",
-    });
+    checks.push(STATIC_SIMULATION_ERRORS.STALE);
   }
 
   return checks;

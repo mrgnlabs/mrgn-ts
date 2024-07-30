@@ -10,7 +10,13 @@ import { QuoteResponseMeta } from "@jup-ag/react-hook";
 import { createJupiterApiClient, QuoteGetRequest, QuoteResponse } from "@jup-ag/api";
 import { Connection, PublicKey } from "@solana/web3.js";
 
-import { StakeData, isBankOracleStale, repayWithCollatBuilder } from "~/utils";
+import {
+  DYNAMIC_SIMULATION_ERRORS,
+  STATIC_SIMULATION_ERRORS,
+  StakeData,
+  isBankOracleStale,
+  repayWithCollatBuilder,
+} from "~/utils";
 
 export enum RepayType {
   RepayRaw = "Repay",
@@ -206,11 +212,7 @@ function canBeWithdrawn(
   }
 
   if (targetBankInfo && isBankOracleStale(targetBankInfo)) {
-    checks.push({
-      description: "The oracle data for this bank is stale",
-      isEnabled: true,
-      link: "https://docs.marginfi.com/faqs#what-does-the-stale-oracles-error-mean",
-    });
+    checks.push(STATIC_SIMULATION_ERRORS.STALE);
   }
 
   return checks;
@@ -248,11 +250,7 @@ function canBeRepaid(targetBankInfo: ExtendedBankInfo): ActionMethod[] {
   }
 
   if (targetBankInfo && isBankOracleStale(targetBankInfo)) {
-    checks.push({
-      description: "The oracle data for this bank is stale",
-      isEnabled: true,
-      link: "https://docs.marginfi.com/faqs#what-does-the-stale-oracles-error-mean",
-    });
+    checks.push(STATIC_SIMULATION_ERRORS.STALE);
   }
 
   return checks;
@@ -309,11 +307,7 @@ function canBeRepaidCollat(
   }
 
   if ((repayBankInfo && isBankOracleStale(repayBankInfo)) || (targetBankInfo && isBankOracleStale(targetBankInfo))) {
-    checks.push({
-      description: "The oracle data for this bank is stale",
-      isEnabled: true,
-      link: "https://docs.marginfi.com/faqs#what-does-the-stale-oracles-error-mean",
-    });
+    checks.push(STATIC_SIMULATION_ERRORS.STALE);
   }
 
   if (targetBankInfo.userInfo.tokenAccount.balance > 0) {
@@ -413,11 +407,7 @@ function canBeBorrowed(
   }
 
   if (targetBankInfo && isBankOracleStale(targetBankInfo)) {
-    checks.push({
-      description: "The oracle data for this bank is stale",
-      isEnabled: true,
-      link: "https://docs.marginfi.com/faqs#what-does-the-stale-oracles-error-mean",
-    });
+    checks.push(STATIC_SIMULATION_ERRORS.STALE);
   }
 
   return checks;
@@ -485,11 +475,7 @@ function canBeLent(targetBankInfo: ExtendedBankInfo, nativeSolBalance: number): 
   }
 
   if (targetBankInfo && isBankOracleStale(targetBankInfo)) {
-    checks.push({
-      description: "The oracle data for this bank is stale",
-      isEnabled: true,
-      link: "https://docs.marginfi.com/faqs#what-does-the-stale-oracles-error-mean",
-    });
+    checks.push(STATIC_SIMULATION_ERRORS.STALE);
   }
 
   return checks;
@@ -500,16 +486,13 @@ function canBeLstStaked(lstQuoteMeta: QuoteResponseMeta | null): ActionMethod[] 
 
   if (lstQuoteMeta?.quoteResponse?.priceImpactPct && Number(lstQuoteMeta?.quoteResponse.priceImpactPct) > 0.01) {
     if (lstQuoteMeta?.quoteResponse?.priceImpactPct && Number(lstQuoteMeta?.quoteResponse.priceImpactPct) > 0.05) {
-      checks.push({
-        description: `Price impact is ${percentFormatter.format(Number(lstQuoteMeta?.quoteResponse.priceImpactPct))}.`,
-        actionMethod: "ERROR",
-        isEnabled: true,
-      });
+      checks.push(
+        DYNAMIC_SIMULATION_ERRORS.PRICE_IMPACT_ERROR_CHECK(Number(lstQuoteMeta?.quoteResponse.priceImpactPct))
+      );
     } else {
-      checks.push({
-        description: `Price impact is ${percentFormatter.format(Number(lstQuoteMeta?.quoteResponse.priceImpactPct))}.`,
-        isEnabled: true,
-      });
+      checks.push(
+        DYNAMIC_SIMULATION_ERRORS.PRICE_IMPACT_WARNING_CHECK(Number(lstQuoteMeta?.quoteResponse.priceImpactPct))
+      );
     }
   }
 
