@@ -102,9 +102,8 @@ export const getRateData = (bank: ExtendedBankInfo, isInLendingMode: boolean): R
     ? emissionsRate
     : 0;
 
+  // interest rate already apy, convert emissions and add
   const rateAPY = aprToApy(emissionRate) + interestRate;
-
-  console.log(aprToApy(emissionRate), rateAPY);
 
   return {
     emissionRate,
