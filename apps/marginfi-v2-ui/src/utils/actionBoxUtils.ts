@@ -586,7 +586,8 @@ export async function verifyJupTxSizeLooping(
   borrowAmount: BigNumber,
   quoteResponse: QuoteResponse,
   connection: Connection,
-  isTxnSplit: boolean = false
+  isTxnSplit: boolean = false,
+  priorityFee: number
 ) {
   try {
     const builder = await loopingBuilder({
@@ -602,6 +603,7 @@ export async function verifyJupTxSizeLooping(
         bundleTipTxn: null,
       },
       isTxnSplit,
+      priorityFee,
     });
 
     return checkTxSize(builder);
@@ -618,6 +620,7 @@ export async function verifyJupTxSizeCollat(
   withdrawAmount: number,
   quoteResponse: QuoteResponse,
   connection: Connection,
+  priorityFee: number,
   isTxnSplit: boolean = false
 ) {
   try {
@@ -633,6 +636,7 @@ export async function verifyJupTxSizeCollat(
         repayCollatTxn: null,
         bundleTipTxn: null,
       },
+      priorityFee,
       isTxnSplit,
     });
 
