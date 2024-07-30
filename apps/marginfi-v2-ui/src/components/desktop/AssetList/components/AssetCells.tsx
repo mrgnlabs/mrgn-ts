@@ -133,86 +133,94 @@ export const getAssetPriceCell = ({
   </div>
 );
 
-export const getRateCell = ({ rateAPY, symbol, emissionRate, lendingRate, isInLendingMode }: RateData) => (
-  <div className={cn("flex justify-end items-center gap-2", isInLendingMode ? "text-success" : "text-warning")}>
-    {emissionRate > 0 && EMISSION_MINT_INFO_MAP.get(symbol) !== undefined && isInLendingMode && (
-      <div>
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Image
-                src={EMISSION_MINT_INFO_MAP.get(symbol)!.tokenLogoUri}
-                alt="info"
-                height={18}
-                width={18}
-                className="rounded-full"
-              />
-            </TooltipTrigger>
-            <TooltipContent>
-              <div className="flex flex-col items-start gap-1.5">
-                <h4 className="text-base flex items-center gap-1.5">
-                  <Image
-                    src={EMISSION_MINT_INFO_MAP.get(symbol)!.tokenLogoUri}
-                    alt="info"
-                    height={18}
-                    width={18}
-                    className="rounded-full"
-                  />{" "}
-                  Liquidity rewards
-                </h4>
-                <p className="text-xs">
-                  {`${percentFormatter.format(aprToApy(lendingRate))} Supply APY + ${percentFormatter.format(
-                    aprToApy(emissionRate)
-                  )} ${EMISSION_MINT_INFO_MAP.get(symbol)!.tokenSymbol} rewards. `}
-                </p>
-                <p className="text-xs">
+export const getRateCell = ({ rateAPY, symbol, emissionRate, lendingRate, isInLendingMode }: RateData) => {
+  // if (symbol === "PYUSD") {
+  //   console.log("emissionRate apr", emissionRate);
+  //   console.log("lendingRate apr", lendingRate);
+  //   console.log("emissionRate apy", percentFormatter.format(aprToApy(emissionRate)));
+  //   console.log("lendingRate apy", percentFormatter.format(aprToApy(lendingRate)));
+  // }
+  return (
+    <div className={cn("flex justify-end items-center gap-2", isInLendingMode ? "text-success" : "text-warning")}>
+      {emissionRate > 0 && EMISSION_MINT_INFO_MAP.get(symbol) !== undefined && isInLendingMode && (
+        <div>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Image
+                  src={EMISSION_MINT_INFO_MAP.get(symbol)!.tokenLogoUri}
+                  alt="info"
+                  height={18}
+                  width={18}
+                  className="rounded-full"
+                />
+              </TooltipTrigger>
+              <TooltipContent>
+                <div className="flex flex-col items-start gap-1.5">
+                  <h4 className="text-base flex items-center gap-1.5">
+                    <Image
+                      src={EMISSION_MINT_INFO_MAP.get(symbol)!.tokenLogoUri}
+                      alt="info"
+                      height={18}
+                      width={18}
+                      className="rounded-full"
+                    />{" "}
+                    Liquidity rewards
+                  </h4>
+                  <p className="text-xs">
+                    {`${percentFormatter.format(lendingRate)} Supply APY + ${percentFormatter.format(emissionRate)} ${
+                      EMISSION_MINT_INFO_MAP.get(symbol)!.tokenSymbol
+                    } rewards. `}
+                  </p>
+                  <p className="text-xs">
+                    <Link
+                      target="_blank"
+                      rel="noreferrer"
+                      href="https://docs.marginfi.com"
+                      className="inline-block border-b transition-colors hover:border-transparent text-xs"
+                    >
+                      Learn more.
+                    </Link>
+                  </p>
+                </div>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+      )}
+      {symbol === "mSOL" && (
+        <div>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Image src={getTokenImageURL("MNDE")} alt="info" height={18} width={18} />
+              </TooltipTrigger>
+              <TooltipContent>
+                <div className="flex flex-col items-start gap-1.5">
+                  <h4 className="text-base flex items-center gap-1.5">
+                    <Image src={getTokenImageURL("MNDE")} alt="info" height={18} width={18} />
+                    MNDE rewards
+                  </h4>
+                  <p className="text-xs">Eligible for Marinade Earn rewards.</p>
                   <Link
                     target="_blank"
                     rel="noreferrer"
-                    href="https://docs.marginfi.com"
+                    href="https://marinade.finance/app/earn/"
                     className="inline-block border-b transition-colors hover:border-transparent text-xs"
                   >
-                    Learn more.
+                    Learn more
                   </Link>
-                </p>
-              </div>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      </div>
-    )}
-    {symbol === "mSOL" && (
-      <div>
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Image src={getTokenImageURL("MNDE")} alt="info" height={18} width={18} />
-            </TooltipTrigger>
-            <TooltipContent>
-              <div className="flex flex-col items-start gap-1.5">
-                <h4 className="text-base flex items-center gap-1.5">
-                  <Image src={getTokenImageURL("MNDE")} alt="info" height={18} width={18} />
-                  MNDE rewards
-                </h4>
-                <p className="text-xs">Eligible for Marinade Earn rewards.</p>
-                <Link
-                  target="_blank"
-                  rel="noreferrer"
-                  href="https://marinade.finance/app/earn/"
-                  className="inline-block border-b transition-colors hover:border-transparent text-xs"
-                >
-                  Learn more
-                </Link>
-              </div>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      </div>
-    )}
+                </div>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+      )}
 
-    <div className="flex justify-end">{percentFormatter.format(rateAPY)}</div>
-  </div>
-);
+      <div className="flex justify-end">{percentFormatter.format(rateAPY)}</div>
+    </div>
+  );
+};
 
 export const getAssetWeightCell = ({ assetWeight }: AssetWeightData) => (
   <div className="flex justify-end">{!assetWeight ? <>-</> : <>{(assetWeight * 100).toFixed(0) + "%"}</>}</div>

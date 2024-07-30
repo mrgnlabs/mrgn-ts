@@ -199,6 +199,16 @@ export async function makeExtendedBankEmission(
         emissions = Emissions.Lending;
       }
 
+      if (bank.meta.tokenSymbol === "PYUSD") {
+        console.log("Emissions Rate", rawBank.emissionsRate);
+        // console.log("emissionsRateAmount", emissionsRateValue.toNumber());
+        // console.log(
+        //   "emissionsrate additional",
+        //   emissionsRateValue.div(getPriceWithConfidence(bank.info.oraclePrice, false).price).toNumber()
+        // );
+        console.log("Final emissions rate", emissionsRate);
+      }
+
       bank.info.state = {
         ...bank.info.state,
         emissionsRate,
