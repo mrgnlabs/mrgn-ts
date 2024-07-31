@@ -213,7 +213,7 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
 
       // sort banks according to sortBy
       const sortBy = get().sortBy;
-      const sortedBanks = sortBanks(result.tokenBanks, sortBy);
+      const sortedBanks = sortBanks(result.tokenBanks, sortBy, result.tradeGroups);
 
       const banksPreppedForFuse = result.tokenBanks.map((bank, i) => ({
         symbol: bank.meta.tokenSymbol,
@@ -534,7 +534,7 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
 
   setSortBy: (sortBy: TradePoolFilterStates) => {
     set((state) => {
-      const sortedBanks = sortBanks(state.banks, sortBy);
+      const sortedBanks = sortBanks(state.banks, sortBy, state.groupsCache);
       return {
         ...state,
         sortBy,
@@ -684,18 +684,6 @@ const fetchBanksAndTradeGroups = async (wallet: Wallet, connection: Connection) 
 
   const tokenBanks = allBanks.filter((bank) => !bank.info.rawBank.mint.equals(USDC_MINT));
 
-  // console.log(tokenBanks);
-  // const tokenBanks = [
-  //   ...allBanks.filter((bank) => !bank.info.rawBank.mint.equals(USDC_MINT)),
-  //   ...allBanks.filter((bank) => !bank.info.rawBank.mint.equals(USDC_MINT)),
-  //   ...allBanks.filter((bank) => !bank.info.rawBank.mint.equals(USDC_MINT)),
-  //   ...allBanks.filter((bank) => !bank.info.rawBank.mint.equals(USDC_MINT)),
-  //   ...allBanks.filter((bank) => !bank.info.rawBank.mint.equals(USDC_MINT)),
-  //   ...allBanks.filter((bank) => !bank.info.rawBank.mint.equals(USDC_MINT)),
-  //   ...allBanks.filter((bank) => !bank.info.rawBank.mint.equals(USDC_MINT)),
-  //   ...allBanks.filter((bank) => !bank.info.rawBank.mint.equals(USDC_MINT)),
-  // ];
-
   return {
     allBanks,
     tokenBanks,
@@ -708,7 +696,11 @@ const fetchBanksAndTradeGroups = async (wallet: Wallet, connection: Connection) 
   };
 };
 
-const sortBanks = (banks: ExtendedBankInfo[], sortBy: TradePoolFilterStates): ExtendedBankInfo[] => {
+const sortBanks = (
+  banks: ExtendedBankInfo[],
+  sortBy: TradePoolFilterStates,
+  groupsCache?: TradeGroupsCache
+): ExtendedBankInfo[] => {
   if (sortBy === TradePoolFilterStates.PRICE_DESC) {
     return banks.sort(
       (a, b) => b.info.oraclePrice.priceRealtime.price.toNumber() - a.info.oraclePrice.priceRealtime.price.toNumber()
@@ -734,7 +726,16 @@ const sortBanks = (banks: ExtendedBankInfo[], sortBy: TradePoolFilterStates): Ex
       return bTotalBorrows - aTotalBorrows;
     });
   } else if (sortBy === TradePoolFilterStates.TIMESTAMP) {
-    return banks.sort((a, b) => b.info.rawBank.lastUpdate - a.info.rawBank.lastUpdate);
+    if (!groupsCache) {
+      return banks;
+    }
+    const order = Object.keys(groupsCache).reverse();
+
+    return banks.sort((a, b) => {
+      const aGroupIndex = order.indexOf(a.info.rawBank.group.toBase58());
+      const bGroupIndex = order.indexOf(b.info.rawBank.group.toBase58());
+      return aGroupIndex - bGroupIndex;
+    });
   }
   return banks;
 };
