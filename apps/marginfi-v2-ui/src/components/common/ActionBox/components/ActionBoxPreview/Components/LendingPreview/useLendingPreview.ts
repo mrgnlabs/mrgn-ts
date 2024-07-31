@@ -97,7 +97,7 @@ export function useLendingPreview({
       setActionMethod(undefined);
     } catch (error: any) {
       const method = handleSimulationError(error, props.bank);
-      // setActionMethod()
+      setActionMethod(method);
     } finally {
       setIsLoading(false);
     }
