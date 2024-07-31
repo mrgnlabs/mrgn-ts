@@ -36,10 +36,12 @@ export enum YbxType {
 }
 
 export type ActionMethodType = "WARNING" | "ERROR" | "INFO";
+import { ReactNode } from 'react';
+
 export interface ActionMethod {
   isEnabled: boolean;
   actionMethod?: ActionMethodType;
-  description?: string;
+  description?: string | ReactNode; // Updated to accept either a string or ReactNode
   link?: string;
   linkText?: string;
   action?: {
@@ -47,6 +49,7 @@ export interface ActionMethod {
     type: ActionType;
   };
 }
+
 
 export function getColorForActionMethodType(type?: ActionMethodType) {
   if (type === "INFO") {
