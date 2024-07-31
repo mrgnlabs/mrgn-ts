@@ -80,12 +80,6 @@ export const BankCard = ({ bank }: BankCardProps) => {
             <dd className="text-right text-primary">
               {bank.position.usdValue < 0.01 ? "< $0.01" : usdFormatter.format(bank.position.usdValue)}
             </dd>
-            {leverage && (
-              <>
-                <dt>Leverage</dt>
-                <dd className="text-right text-primary">{`${leverage}x`}</dd>
-              </>
-            )}
             {bank.position.liquidationPrice && (
               <>
                 <dt>Liquidation Price</dt>
