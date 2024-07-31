@@ -67,6 +67,11 @@ export const STATIC_SIMULATION_ERRORS: { [key: string]: ActionMethod } = {
     isEnabled: true,
     actionMethod: "WARNING",
   },
+  INSUFICIENT_LAMPORTS: {
+    description: "You do not have enough SOL to execute the transaction",
+    isEnabled: true,
+    actionMethod: "WARNING",
+  },
 };
 
 const createInsufficientBalanceCheck = (tokenSymbol?: string): ActionMethod => ({
@@ -240,6 +245,10 @@ export const handleSimulationError = (
 
       if (error.message.includes("Blockhash not found")) {
         return STATIC_SIMULATION_ERRORS.TRANSACTION_EXPIRED;
+      }
+
+      if (error.message.includes("insufficient lamport")) {
+        return STATIC_SIMULATION_ERRORS.INSUFICIENT_LAMPORTS;
       }
 
       if (error.message.includes("6029") || error.message.includes("borrow cap exceeded")) {
