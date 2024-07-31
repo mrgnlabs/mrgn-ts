@@ -15,6 +15,9 @@
   "dependencies": {
     "@coral-xyz/anchor": "^0.30.1",
     "@jup-ag/api": "^6.0.24",
+    "@mrgnlabs/marginfi-client-v2": "*",
+    "@mrgnlabs/mrgn-common": "*",
+    "@mrgnlabs/marginfi-v2-ui-state": "*",
     "@solana/buffer-layout-utils": "^0.2.0",
     "@solana/wallet-adapter-base": "^0.9.23",
     "@solana/web3.js": "^1.93.2",
