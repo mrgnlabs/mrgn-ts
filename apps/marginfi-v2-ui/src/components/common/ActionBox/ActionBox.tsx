@@ -792,7 +792,6 @@ export const ActionBox = ({
                           )}
                         </div>
                       </div>
-                      ù
                     </div>
                   )
               )}
