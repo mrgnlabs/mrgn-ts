@@ -684,7 +684,7 @@ const fetchBanksAndTradeGroups = async (wallet: Wallet, connection: Connection) 
 
   const tokenBanks = allBanks.filter((bank) => !bank.info.rawBank.mint.equals(USDC_MINT));
 
-  console.log(tokenBanks);
+  // console.log(tokenBanks);
   // const tokenBanks = [
   //   ...allBanks.filter((bank) => !bank.info.rawBank.mint.equals(USDC_MINT)),
   //   ...allBanks.filter((bank) => !bank.info.rawBank.mint.equals(USDC_MINT)),
