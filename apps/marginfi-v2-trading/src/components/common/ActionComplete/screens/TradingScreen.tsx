@@ -9,6 +9,7 @@ import { shortenAddress } from "@mrgnlabs/mrgn-common";
 
 import { cn, getTokenImageURL } from "~/utils";
 import { IconExternalLink } from "~/components/ui/icons";
+import { PublicKey } from "@solana/web3.js";
 
 interface Props {
   depositBank: ActiveBankInfo;
@@ -37,6 +38,10 @@ export const TradingScreen = ({
 }: Props) => {
   const tokenBank = React.useMemo(() => (type === "long" ? depositBank : borrowBank), [type, depositBank, borrowBank]);
 
+  if (!tokenBank) {
+    return <></>;
+  }
+
   return (
     <>
       <div className="flex flex-col items-center gap-2 border-b border-border pb-10">
@@ -46,7 +51,7 @@ export const TradingScreen = ({
           </h3>
           <Image
             className="rounded-full w-9 h-9"
-            src={getTokenImageURL(tokenBank.info.state.mint.toBase58())}
+            src={tokenBank?.info?.state?.mint && getTokenImageURL(new PublicKey(tokenBank.info.state.mint).toBase58())}
             alt={(tokenBank.meta.tokenSymbol || "Token") + "  logo"}
             width={36}
             height={36}
