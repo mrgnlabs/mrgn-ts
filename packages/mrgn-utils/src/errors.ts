@@ -274,7 +274,7 @@ export const handleSimulationError = (
       console.log({ error: error });
       return createCustomError(error.message);
     }
-
+    console.log({ error: error });
     return STATIC_SIMULATION_ERRORS.HEALTH_LIQUIDATION_FAILED;
   } catch (err) {
     console.log({ error: err });
