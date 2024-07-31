@@ -93,7 +93,7 @@ export const ActionBox = ({
     selectedRepayBank,
     selectedStakingAccount,
     actionQuote,
-    actionTxn,
+    actionTxns,
     isLoading,
     leverage,
     errorMessage,
@@ -117,7 +117,7 @@ export const ActionBox = ({
     state.selectedRepayBank,
     state.selectedStakingAccount,
     state.actionQuote,
-    state.actionTxn,
+    state.actionTxns,
     state.isLoading,
     state.leverage,
     state.errorMessage,
@@ -331,7 +331,7 @@ export const ActionBox = ({
           type: currentAction,
           bank: bank as ActiveBankInfo,
           amount: borrowOrLendAmount,
-          txn: txnSig!,
+          txn: Array.isArray(txnSig) ? txnSig.pop() ?? "" : txnSig!,
         });
         capture(`user_${currentAction.toLowerCase()}`, {
           uuid: attemptUuid,
@@ -464,7 +464,7 @@ export const ActionBox = ({
       walletContextState,
       loopingOptions: {
         loopingQuote: actionQuote,
-        loopingTxn: actionTxn,
+        loopingTxn: actionTxns.actionTxn,
         borrowAmount: loopingAmounts?.borrowAmount,
         loopingBank: selectedRepayBank,
         connection,
@@ -486,7 +486,7 @@ export const ActionBox = ({
         bank: selectedBank as ActiveBankInfo,
         amount: amount,
         lstQuote: lstQuoteMeta || undefined,
-        txn: txnSig!,
+        txn: Array.isArray(txnSig) ? txnSig.pop() ?? "" : txnSig!,
         loopingOptions: {
           depositAmount: loopingAmounts?.actualDepositAmount,
           depositBank: selectedBank as ActiveBankInfo,
@@ -512,12 +512,13 @@ export const ActionBox = ({
     nativeSolBalance,
     selectedAccount,
     walletContextState,
-    actionTxn,
+    actionTxns.actionTxn,
     handleCloseDialog,
     setAmountRaw,
     setIsActionComplete,
     setPreviousTxn,
     lstQuoteMeta,
+    leverage,
   ]);
 
   const handleLstAction = React.useCallback(async () => {
@@ -651,7 +652,8 @@ export const ActionBox = ({
       if (actionQuote && repayAmount && selectedRepayBank && connection && wallet) {
         params.repayWithCollatOptions = {
           repayCollatQuote: actionQuote,
-          repayCollatTxn: actionTxn,
+          repayCollatTxn: actionTxns.actionTxn,
+          bundleTipTxn: actionTxns.bundleTipTxn,
           withdrawAmount: repayAmount,
           depositBank: selectedRepayBank,
           connection,
@@ -700,7 +702,7 @@ export const ActionBox = ({
     connection,
     wallet,
     executeLendingActionCb,
-    actionTxn,
+    actionTxns,
   ]);
 
   if (!isInitialized) {
@@ -806,7 +808,8 @@ export const ActionBox = ({
                     ? {
                         loopingQuote: actionQuote,
                         loopingBank: selectedRepayBank,
-                        loopingTxn: actionTxn,
+                        loopingTxn: actionTxns.actionTxn,
+                        bundleTipTxn: actionTxns.bundleTipTxn,
                         borrowAmount: loopingAmounts?.borrowAmount,
                         connection,
                       }
@@ -816,7 +819,8 @@ export const ActionBox = ({
                   actionQuote && repayAmount && selectedRepayBank
                     ? {
                         repayCollatQuote: actionQuote,
-                        repayCollatTxn: actionTxn,
+                        repayCollatTxn: actionTxns.actionTxn,
+                        bundleTipTxn: actionTxns.bundleTipTxn,
                         withdrawAmount: repayAmount,
                         depositBank: selectedRepayBank,
                         connection,

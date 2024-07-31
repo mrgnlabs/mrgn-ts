@@ -21,6 +21,7 @@ import {
   AddressLookupTableAccount,
   TransactionMessage,
   VersionedTransaction,
+  SystemProgram,
 } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 import {
@@ -322,6 +323,45 @@ class MarginfiAccountWrapper {
     return cuRequestIxs;
   }
 
+  makeBundleTipIx(feePayer: PublicKey): TransactionInstruction {
+    // they have remained constant so function not used (for now)
+    const getTipAccounts = async () => {
+      const response = await fetch("https://mainnet.block-engine.jito.wtf/api/v1/bundles", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          jsonrpc: "2.0",
+          id: 1,
+          method: "getTipAccounts",
+          params: [],
+        }),
+      });
+
+      const data = await response.json();
+      return data.result;
+    };
+
+    const tipAccounts = [
+      "96gYZGLnJYVFmbjzopPSU6QiEV5fGqZNyN9nmNhvrZU5",
+      "HFqU5x63VTqvQss8hp11i4wVV8bD44PvwucfZ2bU7gRe",
+      "Cw8CFyM9FkoMi7K7Crf6HNQqf4uEMzpKw6QNghXLvLkY",
+      "ADaUMid9yfUytqMBgopwjb2DTLSokTSzL1zt6iGPaS49",
+      "DfXygSm4jCyNCybVYYK6DwvWqjKee8pbDmJGcLWNDXjh",
+      "ADuUkR4vqLUMWXxW9gh6D6L8pMSawimctcNZ5pGwDcEt",
+      "DttWaMuVvTiduZRnguLF7jNxTgiMBZ1hyAumKUiL2KRL",
+      "3AVi9Tg9Uo68tJfuvoKvqKNWKkC5wPdSSdeBnizKZ6jT",
+    ];
+    const randomTipAccount = tipAccounts[Math.floor(Math.random() * tipAccounts.length)];
+
+    return SystemProgram.transfer({
+      fromPubkey: feePayer,
+      toPubkey: new PublicKey(randomTipAccount),
+      lamports: 10_000, // 1000 lamports = 0.000001 SOL
+    });
+  }
+
   // --------------------------------------------------------------------------
   // User actions
   // --------------------------------------------------------------------------
@@ -387,7 +427,7 @@ class MarginfiAccountWrapper {
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:repay`);
     debug("Repaying %s into marginfi account (bank: %s), repay all: %s", repayAmount, borrowBankAddress, repayAll);
 
-    const { transaction } = await this.makeRepayWithCollatTx(
+    const { flashloanTx, bundleTipTxn } = await this.makeRepayWithCollatTx(
       repayAmount,
       withdrawAmount,
       borrowBankAddress,
@@ -399,7 +439,8 @@ class MarginfiAccountWrapper {
       priorityFeeUi
     );
 
-    const sig = await this.client.processTransaction(transaction, []);
+    // assumes only one tx
+    const sig = await this.client.processTransaction(flashloanTx, []);
     debug("Repay with collateral successful %s", sig);
 
     return sig;
@@ -415,7 +456,7 @@ class MarginfiAccountWrapper {
     swapIxs: TransactionInstruction[],
     addressLookupTableAccounts: AddressLookupTableAccount[]
   ): Promise<SimulationResult> {
-    const { transaction } = await this.makeRepayWithCollatTx(
+    const { flashloanTx } = await this.makeRepayWithCollatTx(
       repayAmount,
       withdrawAmount,
       borrowBankAddress,
@@ -426,7 +467,7 @@ class MarginfiAccountWrapper {
       addressLookupTableAccounts
     );
 
-    const [mfiAccountData, bankData] = await this.client.simulateTransaction(transaction, [
+    const [mfiAccountData, bankData] = await this.client.simulateTransaction(flashloanTx, [
       this.address,
       borrowBankAddress,
     ]);
@@ -468,8 +509,13 @@ class MarginfiAccountWrapper {
     repayAll: boolean = false,
     swapIxs: TransactionInstruction[],
     swapLookupTables: AddressLookupTableAccount[],
-    priorityFeeUi?: number
-  ): Promise<{ transaction: VersionedTransaction; addressLookupTableAccounts: AddressLookupTableAccount[] }> {
+    priorityFeeUi?: number,
+    isTxnSplit?: boolean
+  ): Promise<{
+    flashloanTx: VersionedTransaction;
+    bundleTipTxn: VersionedTransaction | null;
+    addressLookupTableAccounts: AddressLookupTableAccount[];
+  }> {
     const setupIxs = await this.makeSetupIx([borrowBankAddress, depositBankAddress]);
     const cuRequestIxs = this.makeComputeBudgetIx();
     const priorityFeeIx = this.makePriorityFeeIx(priorityFeeUi);
@@ -481,14 +527,29 @@ class MarginfiAccountWrapper {
       createAtas: false,
       wrapAndUnwrapSol: false,
     });
+    const bundleTipIx = this.makeBundleTipIx(this.client.provider.publicKey);
     const lookupTables = this.client.addressLookupTables;
 
     const addressLookupTableAccounts = [...lookupTables, ...swapLookupTables];
 
-    const transaction = await this.buildFlashLoanTx({
+    let bundleTipTxn: VersionedTransaction | null = null;
+
+    if (isTxnSplit) {
+      const { blockhash } = await this._program.provider.connection.getLatestBlockhash();
+      const message = new TransactionMessage({
+        payerKey: this.client.wallet.publicKey,
+        recentBlockhash: blockhash,
+        instructions: [bundleTipIx],
+      }).compileToV0Message([...addressLookupTableAccounts]);
+
+      bundleTipTxn = new VersionedTransaction(message);
+    }
+
+    const flashloanTx = await this.buildFlashLoanTx({
       ixs: [
         ...priorityFeeIx,
         ...cuRequestIxs,
+        ...(isTxnSplit ? [] : [bundleTipIx]),
         ...setupIxs,
         ...withdrawIxs.instructions,
         ...swapIxs,
@@ -497,7 +558,7 @@ class MarginfiAccountWrapper {
       addressLookupTableAccounts,
     });
 
-    return { transaction, addressLookupTableAccounts };
+    return { flashloanTx, bundleTipTxn, addressLookupTableAccounts };
   }
 
   async loop(
@@ -521,7 +582,7 @@ class MarginfiAccountWrapper {
       } into marginfi account (banks: ${depositBankAddress.toBase58()} / ${borrowBankAddress.toBase58()})`
     );
 
-    const { transaction } = await this.makeLoopTx(
+    const { flashloanTx, bundleTipTxn } = await this.makeLoopTx(
       depositAmount,
       borrowAmount,
       depositBankAddress,
@@ -531,7 +592,7 @@ class MarginfiAccountWrapper {
       priorityFeeUi
     );
 
-    const sig = await this.client.processTransaction(transaction, []);
+    const sig = await this.client.processTransaction(flashloanTx, []);
     debug("Repay with collateral successful %s", sig);
 
     return sig;
@@ -546,7 +607,7 @@ class MarginfiAccountWrapper {
     swapLookupTables: AddressLookupTableAccount[],
     priorityFeeUi?: number
   ): Promise<SimulationResult> {
-    const { transaction } = await this.makeLoopTx(
+    const { flashloanTx } = await this.makeLoopTx(
       depositAmount,
       borrowAmount,
       depositBankAddress,
@@ -556,7 +617,7 @@ class MarginfiAccountWrapper {
       priorityFeeUi
     );
 
-    const [mfiAccountData, depositBankData, borrowBankData] = await this.client.simulateTransaction(transaction, [
+    const [mfiAccountData, depositBankData, borrowBankData] = await this.client.simulateTransaction(flashloanTx, [
       this.address,
       depositBankAddress,
       borrowBankAddress,
@@ -604,8 +665,13 @@ class MarginfiAccountWrapper {
     swapIxs: TransactionInstruction[],
     swapLookupTables: AddressLookupTableAccount[],
     priorityFeeUi?: number,
-    createAtas?: boolean
-  ): Promise<{ transaction: VersionedTransaction; addressLookupTableAccounts: AddressLookupTableAccount[] }> {
+    createAtas?: boolean,
+    isTxnSplit?: boolean
+  ): Promise<{
+    flashloanTx: VersionedTransaction;
+    bundleTipTxn: VersionedTransaction | null;
+    addressLookupTableAccounts: AddressLookupTableAccount[];
+  }> {
     const depositBank = this.client.banks.get(depositBankAddress.toBase58());
     if (!depositBank) throw Error("Deposit bank not found");
     const borrowBank = this.client.banks.get(borrowBankAddress.toBase58());
@@ -621,13 +687,29 @@ class MarginfiAccountWrapper {
     const depositIxs = await this.makeDepositIx(depositAmount, depositBankAddress, {
       wrapAndUnwrapSol: true,
     });
+    const bundleTipIx = this.makeBundleTipIx(this.client.provider.publicKey);
     const lookupTables = this.client.addressLookupTables;
 
     const addressLookupTableAccounts = [...lookupTables, ...swapLookupTables];
-    const transaction = await this.buildFlashLoanTx({
+
+    let bundleTipTxn: VersionedTransaction | null = null;
+
+    if (isTxnSplit) {
+      const { blockhash } = await this._program.provider.connection.getLatestBlockhash();
+      const message = new TransactionMessage({
+        payerKey: this.client.wallet.publicKey,
+        recentBlockhash: blockhash,
+        instructions: [bundleTipIx],
+      }).compileToV0Message([...addressLookupTableAccounts]);
+
+      bundleTipTxn = new VersionedTransaction(message);
+    }
+
+    const flashloanTx = await this.buildFlashLoanTx({
       ixs: [
         ...priorityFeeIx,
         ...cuRequestIxs,
+        ...(isTxnSplit ? [] : [bundleTipIx]),
         ...setupIxs,
         ...borrowIxs.instructions,
         ...swapIxs,
@@ -636,7 +718,7 @@ class MarginfiAccountWrapper {
       addressLookupTableAccounts,
     });
 
-    return { transaction, addressLookupTableAccounts };
+    return { flashloanTx, bundleTipTxn, addressLookupTableAccounts };
   }
 
   async makeDepositIx(
@@ -658,8 +740,9 @@ class MarginfiAccountWrapper {
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:deposit`);
     debug("Depositing %s into marginfi account (bank: %s)", amount, shortenAddress(bankAddress));
     const priorityFeeIx = this.makePriorityFeeIx(opt.priorityFeeUi);
+    const bundleTipIx = this.makeBundleTipIx(this.client.provider.publicKey);
     const ixs = await this.makeDepositIx(amount, bankAddress, opt);
-    const tx = new Transaction().add(...priorityFeeIx, ...ixs.instructions);
+    const tx = new Transaction().add(bundleTipIx, ...priorityFeeIx, ...ixs.instructions);
     const sig = await this.client.processTransaction(tx, []);
     debug("Depositing successful %s", sig);
     return sig;
@@ -727,8 +810,9 @@ class MarginfiAccountWrapper {
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:repay`);
     debug("Repaying %s into marginfi account (bank: %s), repay all: %s", amount, bankAddress, repayAll);
     const priorityFeeIx = this.makePriorityFeeIx(opt.priorityFeeUi);
+    const bundleTipIx = this.makeBundleTipIx(this.client.provider.publicKey);
     const ixs = await this.makeRepayIx(amount, bankAddress, repayAll, opt);
-    const tx = new Transaction().add(...priorityFeeIx, ...ixs.instructions);
+    const tx = new Transaction().add(bundleTipIx, ...priorityFeeIx, ...ixs.instructions);
     const sig = await this.client.processTransaction(tx, []);
     debug("Depositing successful %s", sig);
 
@@ -816,9 +900,10 @@ class MarginfiAccountWrapper {
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:withdraw`);
     debug("Withdrawing %s from marginfi account", amount);
     const priorityFeeIx = this.makePriorityFeeIx(opt.priorityFeeUi);
+    const bundleTipIx = this.makeBundleTipIx(this.client.provider.publicKey);
     const cuRequestIxs = this.makeComputeBudgetIx();
     const ixs = await this.makeWithdrawIx(amount, bankAddress, withdrawAll, opt);
-    const tx = new Transaction().add(...priorityFeeIx, ...cuRequestIxs, ...ixs.instructions);
+    const tx = new Transaction().add(bundleTipIx, ...priorityFeeIx, ...cuRequestIxs, ...ixs.instructions);
     const sig = await this.client.processTransaction(tx, []);
     debug("Withdrawing successful %s", sig);
     return sig;
@@ -880,9 +965,10 @@ class MarginfiAccountWrapper {
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:borrow`);
     debug("Borrowing %s from marginfi account", amount);
     const priorityFeeIx = this.makePriorityFeeIx(opt.priorityFeeUi);
+    const bundleTipIx = this.makeBundleTipIx(this.client.provider.publicKey);
     const cuRequestIxs = this.makeComputeBudgetIx();
     const ixs = await this.makeBorrowIx(amount, bankAddress, opt);
-    const tx = new Transaction().add(...priorityFeeIx, ...cuRequestIxs, ...ixs.instructions);
+    const tx = new Transaction().add(bundleTipIx, ...priorityFeeIx, ...cuRequestIxs, ...ixs.instructions);
     const sig = await this.client.processTransaction(tx, []);
     debug("Borrowing successful %s", sig);
     return sig;
@@ -934,6 +1020,7 @@ class MarginfiAccountWrapper {
   async withdrawEmissions(bankAddresses: PublicKey[], priorityFeeUi?: number): Promise<string> {
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:withdraw-emissions`);
     debug("Withdrawing emission from marginfi account (bank: %s)", bankAddresses.map((b) => b.toBase58()).join(", "));
+    const bundleTipIx = this.makeBundleTipIx(this.client.provider.publicKey);
     const priorityFeeIx = this.makePriorityFeeIx(priorityFeeUi);
     const ixs: TransactionInstruction[] = [];
     const signers = [];
@@ -942,7 +1029,7 @@ class MarginfiAccountWrapper {
       ixs.push(...ix.instructions);
       signers.push(ix.keys);
     }
-    const tx = new Transaction().add(...priorityFeeIx, ...ixs);
+    const tx = new Transaction().add(bundleTipIx, ...priorityFeeIx, ...ixs);
     const sig = await this.client.processTransaction(tx, []);
     debug("Withdrawing emission successful %s", sig);
     return sig;

@@ -19,6 +19,7 @@ import {
 import { ActionMethod, LoopingOptions, usePrevious } from "~/utils";
 import { JUPITER_PROGRAM_V6_ID } from "@jup-ag/react-hook";
 import { VersionedTransaction } from "@solana/web3.js";
+import { handleSimulationError } from "@mrgnlabs/mrgn-utils";
 
 interface UseLoopingPreviewProps {
   marginfiClient: MarginfiClient | null;
@@ -68,46 +69,8 @@ export function useLoopingPreview({
         setSimulationResult(await simulateLooping(props));
         setActionMethod(undefined);
       } catch (error: any) {
-        if (error instanceof ProcessTransactionError && error.programId) {
-          if (error.programId === JUPITER_PROGRAM_V6_ID.toBase58() && error.message === "Slippage tolerance exceeded") {
-            setActionMethod({
-              isEnabled: true,
-              actionMethod: "WARNING",
-              description: error.message,
-            } as ActionMethod);
-          } else {
-            setActionMethod({
-              isEnabled: true,
-              actionMethod: "WARNING",
-              description: `Simulating health/liquidation impact failed.`,
-            } as ActionMethod);
-          }
-        } else if (typeof error === "string") {
-          setActionMethod({
-            isEnabled: true,
-            actionMethod: "WARNING",
-            description: "Simulating health/liquidation impact failed.",
-          } as ActionMethod);
-        } else if (error?.message && (error?.message.includes("RangeError") || error?.message.includes("too large"))) {
-          setActionMethod({
-            isEnabled: false,
-            actionMethod: "WARNING",
-            description:
-              "This swap causes the transaction to fail due to size restrictions. Please try again or pick another token.",
-          } as ActionMethod);
-        } else if (error?.message && error?.message.includes("6017")) {
-          setActionMethod({
-            isEnabled: true,
-            actionMethod: "WARNING",
-            description: "Stale oracle data.",
-          } as ActionMethod);
-        } else {
-          setActionMethod({
-            isEnabled: true,
-            actionMethod: "WARNING",
-            description: "Simulating health/liquidation impact failed.",
-          } as ActionMethod);
-        }
+        const method = handleSimulationError(error, props.bank);
+        setActionMethod(method);
       } finally {
         setIsLoading(false);
       }

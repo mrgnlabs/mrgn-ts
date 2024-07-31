@@ -745,6 +745,199 @@ class MarginfiClient {
    *
    * @throws ProcessTransactionError
    */
+  async processTransactions(
+    transaction: VersionedTransaction[],
+    signers?: Array<Signer>,
+    opts?: TransactionOptions
+  ): Promise<TransactionSignature[]> {
+    let signatures: TransactionSignature[] = [""];
+
+    let versionedTransactions: VersionedTransaction[] = transaction;
+    const connection = new Connection(this.provider.connection.rpcEndpoint, this.provider.opts);
+    const sendConnection = this.sendEndpoint ? new Connection(this.sendEndpoint, this.provider.opts) : connection;
+    let minContextSlot: number;
+    let blockhash: string;
+    let lastValidBlockHeight: number;
+
+    try {
+      const getLatestBlockhashAndContext = await connection.getLatestBlockhashAndContext();
+
+      minContextSlot = getLatestBlockhashAndContext.context.slot - 4;
+      blockhash = getLatestBlockhashAndContext.value.blockhash;
+      lastValidBlockHeight = getLatestBlockhashAndContext.value.lastValidBlockHeight;
+
+      if (versionedTransactions.length === 0) throw new Error();
+
+      // only signers for last tx
+      if (signers) versionedTransactions[versionedTransactions.length - 1].sign(signers);
+    } catch (error: any) {
+      console.log("Failed to build the transaction", error);
+      throw new ProcessTransactionError(error.message, ProcessTransactionErrorType.TransactionBuildingError);
+    }
+
+    try {
+      if (opts?.dryRun || this.isReadOnly) {
+        for (const versionedTransaction of versionedTransactions) {
+          const response = await connection.simulateTransaction(
+            versionedTransaction,
+            opts ?? { minContextSlot, sigVerify: false }
+          );
+          console.log(
+            response.value.err ? `❌ Error: ${response.value.err}` : `✅ Success - ${response.value.unitsConsumed} CU`
+          );
+          console.log("------ Logs 👇 ------");
+          if (response.value.logs) {
+            for (const log of response.value.logs) {
+              console.log(log);
+            }
+          }
+
+          const signaturesEncoded = encodeURIComponent(
+            JSON.stringify(versionedTransaction.signatures.map((s) => bs58.encode(s)))
+          );
+          const messageEncoded = encodeURIComponent(
+            Buffer.from(versionedTransaction.message.serialize()).toString("base64")
+          );
+
+          const urlEscaped = `https://explorer.solana.com/tx/inspector?cluster=${this.config.cluster}&signatures=${signaturesEncoded}&message=${messageEncoded}`;
+          console.log("------ Inspect 👇 ------");
+          console.log(urlEscaped);
+
+          if (response.value.err)
+            throw new SendTransactionError({
+              action: "simulate",
+              signature: "",
+              transactionMessage: JSON.stringify(response.value.err),
+              logs: response.value.logs ?? [],
+            });
+          // throw new SendTransactionError(JSON.stringify(response.value.err), response.value.logs ?? []);
+          signatures.push(versionedTransaction.signatures[0].toString());
+        }
+        return signatures;
+      } else {
+        let base58Txs: string[] = [];
+        for (let i = 0; i < versionedTransactions.length; i++) {
+          const signedTx = await this.wallet.signTransaction(versionedTransactions[i]);
+          const base58Tx = bs58.encode(signedTx.serialize());
+          base58Txs.push(base58Tx);
+          versionedTransactions[i] = signedTx;
+        }
+
+        let mergedOpts: ConfirmOptions = {
+          ...DEFAULT_CONFIRM_OPTS,
+          commitment: connection.commitment ?? DEFAULT_CONFIRM_OPTS.commitment,
+          preflightCommitment: connection.commitment ?? DEFAULT_CONFIRM_OPTS.commitment,
+          minContextSlot,
+          ...opts,
+        };
+
+        if (this.spamSendTx) {
+          let status = "pending";
+          if (this.skipPreflightInSpam) {
+            for (const versionedTransaction of versionedTransactions) {
+              const response = await connection.simulateTransaction(
+                versionedTransaction,
+                opts ?? { minContextSlot, sigVerify: false }
+              );
+              if (response.value.err) {
+                throw new SendTransactionError({
+                  action: "simulate",
+                  signature: "",
+                  transactionMessage: JSON.stringify(response.value.err),
+                  logs: response.value.logs ?? [],
+                });
+              }
+            }
+          }
+
+          while (true) {
+            signatures = await this.sendTransactionAsBundle(base58Txs).catch(
+              async () =>
+                await Promise.all(
+                  versionedTransactions.map(async (versionedTransaction) => {
+                    const signature = await connection.sendTransaction(versionedTransaction, {
+                      // minContextSlot: mergedOpts.minContextSlot,
+                      skipPreflight: mergedOpts.skipPreflight,
+                      preflightCommitment: mergedOpts.preflightCommitment,
+                      maxRetries: mergedOpts.maxRetries,
+                    });
+                    return signature;
+                  })
+                )
+            );
+            for (let i = 0; i < 5; i++) {
+              const signatureStatus = await connection.getSignatureStatuses(signatures, {
+                searchTransactionHistory: false,
+              });
+              if (signatureStatus.value?.every((status) => status && status.confirmationStatus === "confirmed")) {
+                status = "confirmed";
+                break;
+              }
+              await sleep(200);
+            }
+
+            let blockHeight = await connection.getBlockHeight();
+            if (blockHeight > lastValidBlockHeight) {
+              throw new ProcessTransactionError(
+                "Transaction was not confirmed within †he alloted time",
+                ProcessTransactionErrorType.TimeoutError
+              );
+            }
+
+            if (status === "confirmed") {
+              break;
+            }
+          }
+        } else {
+          signatures = await this.sendTransactionAsBundle(base58Txs).catch(
+            async () =>
+              await Promise.all(
+                versionedTransactions.map(async (versionedTransaction) => {
+                  const signature = await connection.sendTransaction(versionedTransaction, {
+                    // minContextSlot: mergedOpts.minContextSlot,
+                    skipPreflight: mergedOpts.skipPreflight,
+                    preflightCommitment: mergedOpts.preflightCommitment,
+                    maxRetries: mergedOpts.maxRetries,
+                  });
+                  return signature;
+                })
+              )
+          );
+          await Promise.all(
+            signatures.map(async (signature) => {
+              await connection.confirmTransaction(
+                {
+                  blockhash,
+                  lastValidBlockHeight,
+                  signature,
+                },
+                mergedOpts.commitment
+              );
+            })
+          );
+        }
+
+        return signatures;
+      }
+    } catch (error: any) {
+      if (error.logs) {
+        console.log("------ Logs 👇 ------");
+        console.log(error.logs.join("\n"));
+        const errorParsed = parseErrorFromLogs(error.logs, this.config.programId);
+        if (errorParsed) {
+          console.log("Parsed:", errorParsed);
+          throw new ProcessTransactionError(
+            errorParsed.description,
+            ProcessTransactionErrorType.SimulationError,
+            error.logs
+          );
+        }
+      }
+      console.log("fallthrough error", error);
+      throw new ProcessTransactionError("Something went wrong", ProcessTransactionErrorType.FallthroughError);
+    }
+  }
+
   async processTransaction(
     transaction: Transaction | VersionedTransaction,
     signers?: Array<Signer>,
@@ -823,6 +1016,7 @@ class MarginfiClient {
         return versionedTransaction.signatures[0].toString();
       } else {
         versionedTransaction = await this.wallet.signTransaction(versionedTransaction);
+        const base58Tx = bs58.encode(versionedTransaction.serialize());
 
         let mergedOpts: ConfirmOptions = {
           ...DEFAULT_CONFIRM_OPTS,
@@ -850,6 +1044,16 @@ class MarginfiClient {
           }
 
           while (true) {
+            signature = (
+              await this.sendTransactionAsBundle([base58Tx]).catch(async () => [
+                await connection.sendTransaction(versionedTransaction, {
+                  // minContextSlot: mergedOpts.minContextSlot,
+                  skipPreflight: mergedOpts.skipPreflight,
+                  preflightCommitment: mergedOpts.preflightCommitment,
+                  maxRetries: mergedOpts.maxRetries,
+                }),
+              ])
+            )[0];
             signature = await sendConnection.sendTransaction(versionedTransaction, {
               // minContextSlot: mergedOpts.minContextSlot,
               skipPreflight: this.skipPreflightInSpam || mergedOpts.skipPreflight,
@@ -880,12 +1084,16 @@ class MarginfiClient {
             }
           }
         } else {
-          signature = await connection.sendTransaction(versionedTransaction, {
-            // minContextSlot: mergedOpts.minContextSlot,
-            skipPreflight: mergedOpts.skipPreflight,
-            preflightCommitment: mergedOpts.preflightCommitment,
-            maxRetries: mergedOpts.maxRetries,
-          });
+          signature = (
+            await this.sendTransactionAsBundle([base58Tx]).catch(async () => [
+              await connection.sendTransaction(versionedTransaction, {
+                // minContextSlot: mergedOpts.minContextSlot,
+                skipPreflight: mergedOpts.skipPreflight,
+                preflightCommitment: mergedOpts.preflightCommitment,
+                maxRetries: mergedOpts.maxRetries,
+              }),
+            ])
+          )[0];
           await connection.confirmTransaction(
             {
               blockhash,
@@ -915,6 +1123,40 @@ class MarginfiClient {
       console.log("fallthrough error", error);
       throw new ProcessTransactionError("Something went wrong", ProcessTransactionErrorType.FallthroughError);
     }
+  }
+
+  private async sendTransactionAsBundle(base58Txs: string[]): Promise<string[]> {
+    const sendBundleResponse = await fetch("https://mainnet.block-engine.jito.wtf/api/v1/bundles", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        jsonrpc: "2.0",
+        id: 1,
+        method: "sendBundle",
+        params: [base58Txs],
+      }),
+    });
+
+    const sendBundleResult = await sendBundleResponse.json();
+    if (sendBundleResult.error) throw new Error(sendBundleResult.error.message);
+
+    const bundleId = sendBundleResult.result;
+
+    const getBundleStatusResponse = await fetch("https://mainnet.block-engine.jito.wtf/api/v1/bundles", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        jsonrpc: "2.0",
+        id: 1,
+        method: "getBundleStatuses",
+        params: [[bundleId]],
+      }),
+    });
+
+    const getBundleStatusResult = await getBundleStatusResponse.json();
+    if (getBundleStatusResult.error) throw new Error(getBundleStatusResult.error.message);
+
+    return getBundleStatusResult.result.value[0].transactions;
   }
 
   async simulateTransaction(
@@ -957,7 +1199,11 @@ class MarginfiClient {
       }
     } catch (error: any) {
       console.log("fallthrough error", error);
-      throw new ProcessTransactionError("Something went wrong", ProcessTransactionErrorType.FallthroughError);
+      throw new ProcessTransactionError(
+        "Something went wrong",
+        ProcessTransactionErrorType.FallthroughError,
+        error?.logs
+      );
     }
 
     const error = response.value;
@@ -975,8 +1221,13 @@ class MarginfiClient {
         );
       }
     }
+    console.log({ error });
     console.log("fallthrough error", error);
-    throw new ProcessTransactionError("Something went wrong", ProcessTransactionErrorType.FallthroughError);
+    throw new ProcessTransactionError(
+      "Something went wrong",
+      ProcessTransactionErrorType.FallthroughError,
+      error?.logs ?? []
+    );
   }
 }
 

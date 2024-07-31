@@ -23,6 +23,7 @@
     "@mrgnlabs/marginfi-client-v2": "*",
     "@mrgnlabs/marginfi-v2-ui-state": "*",
     "@mrgnlabs/mrgn-common": "*",
+    "@mrgnlabs/mrgn-utils": "*",
     "@mui/material": "^5.15.11",
     "@next/bundle-analyzer": "^13.4.19",
     "@next/font": "13.1.1",

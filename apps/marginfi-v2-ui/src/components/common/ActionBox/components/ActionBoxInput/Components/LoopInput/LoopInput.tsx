@@ -9,7 +9,6 @@ import { percentFormatter } from "@mrgnlabs/mrgn-common";
 import { useActionBoxStore } from "~/hooks/useActionBoxStore";
 import { useConnection } from "~/hooks/useConnection";
 import { useWalletContext } from "~/hooks/useWalletContext";
-import { useLstStore, LST_MINT } from "~/store";
 import { formatAmount, getTokenImageURL, calcLstYield, LSTS_SOLANA_COMPASS_MAP, calcNetLoopingApy } from "~/utils";
 
 import { ActionBoxTokens } from "~/components/common/ActionBox/components";
@@ -21,7 +20,7 @@ import { IconChevronDown } from "~/components/ui/icons";
 import { cn } from "~/utils";
 
 import { LendingModes } from "~/types";
-import { useMrgnlendStore } from "~/store";
+import { useMrgnlendStore, useUiStore } from "~/store";
 import { useDebounce } from "~/hooks/useDebounce";
 
 type LoopInputProps = {
@@ -49,7 +48,7 @@ export const LoopInput = ({
     setSelectedStakingAccount,
     setLeverage,
     setLooping,
-    actionTxn,
+    actionTxns,
 
     loopingAmounts,
     leverage,
@@ -64,7 +63,7 @@ export const LoopInput = ({
     state.setSelectedStakingAccount,
     state.setLeverage,
     state.setLooping,
-    state.actionTxn,
+    state.actionTxns,
     state.loopingAmounts,
     state.leverage,
     state.maxLeverage,
@@ -73,6 +72,7 @@ export const LoopInput = ({
     state.amountRaw,
     state.isLoading,
   ]);
+  const [priorityFee] = useUiStore((state) => [state.priorityFee]);
 
   // const [inputAmount, setInputAmount] = React.useState<string>("");
   const [leverageAmount, setLeverageAmount] = React.useState<number>(0);
@@ -121,8 +121,9 @@ export const LoopInput = ({
   }, []);
 
   const refreshTxn = React.useCallback(() => {
-    if (selectedAccount && debouncedAmount) setLooping({ marginfiAccount: selectedAccount, connection: connection });
-  }, [connection, debouncedAmount, selectedAccount, setLooping]);
+    if (selectedAccount && debouncedAmount)
+      setLooping({ marginfiAccount: selectedAccount, connection: connection, priorityFee });
+  }, [connection, debouncedAmount, priorityFee, selectedAccount, setLooping]);
 
   const formatAmountCb = React.useCallback(
     (newAmount: string, bank: ExtendedBankInfo | null) => {
@@ -195,14 +196,14 @@ export const LoopInput = ({
   }, [netApyRaw]);
 
   React.useEffect(
-    () => setLeverage(debouncedLeverage, selectedAccount, connection),
-    [debouncedLeverage, selectedAccount, connection, setLeverage]
+    () => setLeverage(debouncedLeverage, selectedAccount, connection, priorityFee),
+    [debouncedLeverage, selectedAccount, connection, setLeverage, priorityFee]
   );
 
   React.useEffect(() => setLeverageAmount(leverage), [leverage]);
 
   React.useEffect(() => {
-    const blockhash = actionTxn?.message.recentBlockhash;
+    const blockhash = actionTxns?.actionTxn?.message.recentBlockhash;
 
     const checkBlockhashValidity = () => {
       if (blockhash) {
@@ -217,7 +218,7 @@ export const LoopInput = ({
     const interval = setInterval(checkBlockhashValidity, 10000);
 
     return () => clearInterval(interval);
-  }, [refreshTxn, actionTxn, connection]);
+  }, [refreshTxn, actionTxns, connection]);
 
   return (
     <div>

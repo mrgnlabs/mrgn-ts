@@ -4451,9 +4451,9 @@
   resolved "https://registry.npmjs.org/@jup-ag/api/-/api-6.0.23.tgz"
   integrity sha512-GjLXWHKNOhe9MtO0FuTqSg9xl2uXOYfY7BXRGSPZUjDmqLrisgRuxfb661u16caOF0FHJkQ1ZUQPATKjwh3AOQ==
 
-"@jup-ag/api@~6.0.5":
+"@jup-ag/api@^6.0.24", "@jup-ag/api@~6.0.5":
   version "6.0.24"
-  resolved "https://registry.npmjs.org/@jup-ag/api/-/api-6.0.24.tgz"
+  resolved "https://registry.yarnpkg.com/@jup-ag/api/-/api-6.0.24.tgz#c311ea05c7b18a6372471c48e6508b68ad79271c"
   integrity sha512-zIX4WIPb0Kb2UnK2wNIOQBWqPJyMJq/D9dQTf/2qvPb0hfa8XdgbrQAzomHMHnAzw9StMQoybBk+JK/A76xP3w==
 
 "@jup-ag/common@4.0.0-beta.21":

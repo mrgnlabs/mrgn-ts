@@ -33,6 +33,7 @@ import { ToastStep } from "~/components/common/Toast";
 
 export type RepayWithCollatOptions = {
   repayCollatQuote: QuoteResponse;
+  bundleTipTxn: VersionedTransaction | null;
   repayCollatTxn: VersionedTransaction | null;
   repayAmount: number;
   repayBank: ExtendedBankInfo;
@@ -76,7 +77,7 @@ export async function executeLendingAction({
   priorityFee,
   repayWithCollatOptions,
 }: MarginfiActionParams) {
-  let txnSig: string | undefined;
+  let txnSig: string | string[] | undefined;
 
   if (nativeSolBalance < FEE_MARGIN) {
     showErrorToast("Not enough sol for fee.");
@@ -398,12 +399,14 @@ export async function repayWithCollatBuilder({
   amount,
   options,
   priorityFee,
+  isTxnSplit,
 }: {
   marginfiAccount: MarginfiAccountWrapper;
   bank: ExtendedBankInfo;
   amount: number;
   options: RepayWithCollatOptions;
   priorityFee?: number;
+  isTxnSplit: boolean;
 }) {
   const jupiterQuoteApi = createJupiterApiClient();
 
@@ -439,7 +442,7 @@ export async function repayWithCollatBuilder({
   const swapLUTs: AddressLookupTableAccount[] = [];
   swapLUTs.push(...(await getAdressLookupTableAccounts(options.connection, addressLookupTableAddresses)));
 
-  const { transaction, addressLookupTableAccounts } = await marginfiAccount.makeRepayWithCollatTx(
+  const { flashloanTx, bundleTipTxn, addressLookupTableAccounts } = await marginfiAccount.makeRepayWithCollatTx(
     amount,
     options.repayAmount,
     bank.address,
@@ -448,10 +451,11 @@ export async function repayWithCollatBuilder({
     bank.isActive && isWholePosition(bank, amount),
     [swapIx],
     swapLUTs,
-    priorityFee
+    priorityFee,
+    isTxnSplit
   );
 
-  return { txn: transaction, addressLookupTableAccounts };
+  return { flashloanTx, bundleTipTxn, addressLookupTableAccounts };
 }
 
 export async function repayWithCollat({
@@ -461,6 +465,7 @@ export async function repayWithCollat({
   amount,
   options,
   priorityFee,
+  isTxnSplit = false,
 }: {
   marginfiClient: MarginfiClient | null;
   marginfiAccount: MarginfiAccountWrapper;
@@ -468,6 +473,7 @@ export async function repayWithCollat({
   amount: number;
   options: RepayWithCollatOptions;
   priorityFee?: number;
+  isTxnSplit?: boolean;
 }) {
   if (marginfiClient === null) {
     showErrorToast("Marginfi client not ready");
@@ -478,15 +484,28 @@ export async function repayWithCollat({
   multiStepToast.start();
 
   try {
-    let txn;
+    let sigs: string[] = [];
+
     if (options.repayCollatTxn) {
-      txn = options.repayCollatTxn;
+      sigs = await marginfiClient.processTransactions([
+        ...(options.bundleTipTxn ? [options.bundleTipTxn] : []),
+        options.repayCollatTxn,
+      ]);
     } else {
-      txn = (await repayWithCollatBuilder({ marginfiAccount, bank, amount, options, priorityFee })).txn;
+      const { flashloanTx, bundleTipTxn } = await repayWithCollatBuilder({
+        marginfiAccount,
+        bank,
+        amount,
+        options,
+        priorityFee,
+        isTxnSplit,
+      });
+
+      sigs = await marginfiClient.processTransactions([...(bundleTipTxn ? [bundleTipTxn] : []), flashloanTx]);
     }
-    const sig = await marginfiClient.processTransaction(txn);
+
     multiStepToast.setSuccessAndNext();
-    return sig;
+    return sigs;
   } catch (error: any) {
     const msg = extractErrorString(error);
     Sentry.captureException({ message: error });
