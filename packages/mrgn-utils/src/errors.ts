@@ -3,7 +3,7 @@ import { JUPITER_PROGRAM_V6_ID } from "@jup-ag/react-hook";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { percentFormatter } from "@mrgnlabs/mrgn-common";
-import { ActionMethod } from "./actionbox";
+import { ActionMethod } from "./actions";
 
 // Static errors that are not expected to change
 export const STATIC_SIMULATION_ERRORS: { [key: string]: ActionMethod } = {
@@ -61,6 +61,11 @@ export const STATIC_SIMULATION_ERRORS: { [key: string]: ActionMethod } = {
   EXISTING_BORROW: {
     description: "You cannot borrow an isolated asset with existing borrows.",
     isEnabled: false,
+  },
+  TRANSACTION_EXPIRED: {
+    description: "The transaction has expired. Please try again.",
+    isEnabled: true,
+    actionMethod: "WARNING",
   },
 };
 
@@ -208,7 +213,11 @@ const createCustomError = (description: string): ActionMethod => ({
   description,
 });
 
-export const handleSimulationError = (error: any, bank: ExtendedBankInfo | null) => {
+export const handleSimulationError = (
+  error: any,
+  bank: ExtendedBankInfo | null,
+  isArena: boolean = false
+): ActionMethod | undefined => {
   try {
     // JUPITER ERRORS
     if (error?.programId === JUPITER_PROGRAM_V6_ID.toBase58()) {
@@ -229,11 +238,15 @@ export const handleSimulationError = (error: any, bank: ExtendedBankInfo | null)
         return STATIC_SIMULATION_ERRORS.STALE;
       }
 
+      if (error.message.includes("Blockhash not found")) {
+        return STATIC_SIMULATION_ERRORS.TRANSACTION_EXPIRED;
+      }
+
       if (error.message.includes("6029") || error.message.includes("borrow cap exceeded")) {
         return STATIC_SIMULATION_ERRORS.BORROW_CAP_EXCEEDED;
       }
 
-      if (error.message.includes("6028") || error.message.includes("utilization ratio")) {
+      if (isArena && (error.message.includes("6028") || error.message.includes("utilization ratio"))) {
         if (bank) {
           const method = {
             ...STATIC_SIMULATION_ERRORS.UTILIZATION_RATIO_INVALID,
@@ -249,6 +262,7 @@ export const handleSimulationError = (error: any, bank: ExtendedBankInfo | null)
 
     // CATCH REMAINING MARGINFI PROGRAM ERROS
     if (error?.programId === "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA") {
+      console.log({ error: error });
       return createCustomError(error.message);
     }
 

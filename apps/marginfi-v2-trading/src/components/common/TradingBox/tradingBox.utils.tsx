@@ -33,7 +33,6 @@ import {
   getAdressLookupTableAccounts,
   getFeeAccount,
   getSwapQuoteWithRetry,
-  handleSimulationError,
   isBankOracleStale,
   STATIC_SIMULATION_ERRORS,
 } from "~/utils";

@@ -40,9 +40,10 @@ import {
   simulateLooping,
 } from "./tradingBox.utils";
 import { useDebounce } from "~/hooks/useDebounce";
-import { ActionMethod, executeLeverageAction, extractErrorString, handleSimulationError, usePrevious } from "~/utils";
+import { ActionMethod, executeLeverageAction, extractErrorString, usePrevious } from "~/utils";
 import Link from "next/link";
 import { TradingBoxSettingsDialog } from "./components/TradingBoxSettings/TradingBoxSettingsDialog";
+import { handleSimulationError } from "@mrgnlabs/mrgn-utils";
 
 const USDC_BANK_PK = new PublicKey("2s37akK2eyBbp8DZgCm7RtsaEz8eJP3Nxd4urLHQv7yB");
 
