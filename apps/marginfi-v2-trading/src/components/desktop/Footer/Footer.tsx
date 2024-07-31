@@ -8,19 +8,15 @@ import { IconBrandX, IconBrandDiscordFilled, IconBrandGithubFilled, IconBook } f
 
 const footerLinks = [
   {
-    href: "https://twitter.com/marginfi",
+    href: "https://twitter.com/thearenatrade",
     icon: <IconBrandX />,
   },
   {
-    href: "https://discord.gg/mrgn",
-    icon: <IconBrandDiscordFilled />,
-  },
-  {
-    href: "https://github.com/mrgnlabs",
+    href: "https://github.com/mrgnlabs/mrgn-ts/tree/main/apps/marginfi-v2-trading",
     icon: <IconBrandGithubFilled />,
   },
   {
-    href: "https://docs.marginfi.com/",
+    href: "https://docs.marginfi.com/the-arena/",
     icon: <IconBook />,
   },
 ];
