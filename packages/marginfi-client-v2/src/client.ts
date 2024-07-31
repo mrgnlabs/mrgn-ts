@@ -1199,7 +1199,11 @@ class MarginfiClient {
       }
     } catch (error: any) {
       console.log("fallthrough error", error);
-      throw new ProcessTransactionError("Something went wrong", ProcessTransactionErrorType.FallthroughError);
+      throw new ProcessTransactionError(
+        "Something went wrong",
+        ProcessTransactionErrorType.FallthroughError,
+        error?.logs
+      );
     }
 
     const error = response.value;
@@ -1217,8 +1221,13 @@ class MarginfiClient {
         );
       }
     }
+    console.log({ error });
     console.log("fallthrough error", error);
-    throw new ProcessTransactionError("Something went wrong", ProcessTransactionErrorType.FallthroughError);
+    throw new ProcessTransactionError(
+      "Something went wrong",
+      ProcessTransactionErrorType.FallthroughError,
+      error?.logs ?? []
+    );
   }
 }
 

@@ -239,15 +239,25 @@ export const handleSimulationError = (
         return STATIC_SIMULATION_ERRORS.TX_SIZE;
       }
 
-      if (error.message.includes("6017") || error.message.includes("stale")) {
+      if (
+        error.message.includes("6017") ||
+        error.message.includes("stale") ||
+        error?.logs.some((entry: string[]) => entry.includes("stale"))
+      ) {
         return STATIC_SIMULATION_ERRORS.STALE;
       }
 
-      if (error.message.includes("Blockhash not found")) {
+      if (
+        error.message.includes("Blockhash not found") ||
+        error?.logs.some((entry: string[]) => entry.includes("Blockhash not found"))
+      ) {
         return STATIC_SIMULATION_ERRORS.TRANSACTION_EXPIRED;
       }
 
-      if (error.message.includes("insufficient lamport")) {
+      if (
+        error.message.includes("insufficient lamport") ||
+        error?.logs.some((entry: string[]) => entry.includes("insufficient lamport"))
+      ) {
         return STATIC_SIMULATION_ERRORS.INSUFICIENT_LAMPORTS;
       }
 
