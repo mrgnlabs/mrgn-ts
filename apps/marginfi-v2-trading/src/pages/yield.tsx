@@ -10,6 +10,7 @@ import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { useTradeStore } from "~/store";
 import { getTokenImageURL } from "~/utils";
+import { useIsMobile } from "~/hooks/useIsMobile";
 
 import { PageHeading } from "~/components/common/PageHeading";
 import { ActionBoxDialog } from "~/components/common/ActionBox";
@@ -74,6 +75,7 @@ export default function PortfolioPage() {
   ]);
   const [sort, setSort] = React.useState<SortOptions>(SortOptions.TotalDeposits);
   const [search, setSearch] = React.useState("");
+  const isMobile = useIsMobile();
 
   const sortPools = React.useCallback(
     (pools: Pool[]) => {
@@ -130,8 +132,6 @@ export default function PortfolioPage() {
       })
     );
 
-    console.log(sortedPools);
-
     fuse = new Fuse(sortedPools, {
       includeScore: true,
       threshold: 0.2,
@@ -179,10 +179,10 @@ export default function PortfolioPage() {
               />
             </div>
 
-            <div className="flex flex-col items-center gap-4 mt-8 mb-12 lg:gap-12 lg:flex-row">
+            <div className="flex flex-col items-center gap-4 mb-16 lg:mb-12 lg:mt-8 lg:gap-12 lg:flex-row">
               <div className="w-full relative">
                 <Input
-                  placeholder="Search tokens by name, symbol, or mint address"
+                  placeholder={isMobile ? "Search tokens..." : "Search tokens by name, symbol, or mint address..."}
                   className="pl-10 py-2.5 text-lg rounded-full h-auto bg-transparent"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
@@ -366,6 +366,176 @@ export default function PortfolioPage() {
                   );
                 })}
               </div>
+            </div>
+
+            <div className="lg:hidden">
+              {pools.map(({ bank, collateralBank }) => {
+                return (
+                  <div className="relative bg-background border rounded-xl mb-12 pt-5 pb-2 px-4">
+                    <Link
+                      href={`/trade/${bank.address.toBase58()}`}
+                      className="group bg-background border rounded-xl absolute -top-5 left-3.5 px-2 py-1.5 flex items-center gap-2 transition-colors hover:bg-accent"
+                    >
+                      <div className="flex items-center -space-x-2.5">
+                        <Image
+                          src={getTokenImageURL(collateralBank.info.state.mint.toBase58())}
+                          alt={collateralBank.meta.tokenSymbol}
+                          width={24}
+                          height={24}
+                          className="rounded-full"
+                        />
+                        <Image
+                          src={getTokenImageURL(bank.info.state.mint.toBase58())}
+                          alt={bank.meta.tokenSymbol}
+                          width={24}
+                          height={24}
+                          className="rounded-full bg-background"
+                        />
+                      </div>
+                      <span>
+                        {bank.meta.tokenSymbol}/{collateralBank.meta.tokenSymbol}
+                      </span>
+                      <div className="flex items-center gap-1 text-mrgn-green">
+                        <span>Trade</span>
+                        <IconArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
+                      </div>
+                    </Link>
+                    <div className="pt-2 pb-4 border-b items-center" key={bank.address.toBase58()}>
+                      <div className="flex items-center gap-2">
+                        <Image
+                          src={getTokenImageURL(bank.info.state.mint.toBase58())}
+                          alt={bank.meta.tokenSymbol}
+                          width={24}
+                          height={24}
+                          className="rounded-full"
+                        />
+                        {bank.meta.tokenSymbol}
+                      </div>
+                      <div className="grid grid-cols-3 gap-2 my-6">
+                        <div className="flex flex-col gap-1">
+                          <span className="text-muted-foreground text-sm">
+                            Total
+                            <br /> Deposits
+                          </span>
+                          <div className="flex flex-col">
+                            <span>{numeralFormatter(bank.info.state.totalDeposits)}</span>
+                            <span className="text-muted-foreground text-sm">
+                              {usdFormatter.format(
+                                bank.info.state.totalDeposits * bank.info.oraclePrice.priceRealtime.price.toNumber()
+                              )}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex flex-col gap-1">
+                          <span className="text-muted-foreground text-sm">
+                            Lending
+                            <br /> Rate (APY)
+                          </span>
+                          <span className="text-mrgn-success">
+                            {percentFormatter.format(aprToApy(bank.info.state.lendingRate))}
+                          </span>
+                        </div>
+                        <div className="flex flex-col gap-1">
+                          <span className="text-muted-foreground text-sm">
+                            Borrowing
+                            <br /> Rate (APY)
+                          </span>
+                          <span className="text-mrgn-warning">
+                            {percentFormatter.format(aprToApy(bank.info.state.borrowingRate))}
+                          </span>
+                        </div>
+                      </div>
+                      {bank.isActive && bank.position.isLending && (
+                        <div className="text-sm mb-4">
+                          <span className="text-muted-foreground">Supplied</span>{" "}
+                          {numeralFormatter(bank.position.amount)} <span>{bank.meta.tokenSymbol}</span>
+                        </div>
+                      )}
+                      <div className="flex gap-2">
+                        {bank.isActive && bank.position.isLending && (
+                          <ActionBoxDialog requestedBank={bank} requestedAction={ActionType.Withdraw}>
+                            <Button className="w-full bg-background border text-foreground hover:bg-accent">
+                              Withdraw
+                            </Button>
+                          </ActionBoxDialog>
+                        )}
+                        <ActionBoxDialog requestedBank={bank} requestedAction={ActionType.Deposit}>
+                          <Button className="w-full bg-background border text-foreground hover:bg-accent">
+                            Supply
+                          </Button>
+                        </ActionBoxDialog>
+                      </div>
+                    </div>
+                    <div className="pt-4 pb-2 items-center">
+                      <div className="flex items-center gap-2">
+                        <Image
+                          src={getTokenImageURL(collateralBank.info.state.mint.toBase58())}
+                          alt={collateralBank.meta.tokenSymbol}
+                          width={24}
+                          height={24}
+                          className="rounded-full"
+                        />
+                        {collateralBank.meta.tokenSymbol}
+                      </div>
+                      <div className="grid grid-cols-3 gap-2 my-6">
+                        <div className="flex flex-col gap-1">
+                          <span className="text-muted-foreground text-sm">
+                            Total
+                            <br /> Deposits
+                          </span>
+                          <div className="flex flex-col">
+                            <span>{numeralFormatter(bank.info.state.totalDeposits)}</span>
+                            <span className="text-muted-foreground text-sm">
+                              {usdFormatter.format(
+                                bank.info.state.totalDeposits * bank.info.oraclePrice.priceRealtime.price.toNumber()
+                              )}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex flex-col gap-1">
+                          <span className="text-muted-foreground text-sm">
+                            Lending
+                            <br /> Rate (APY)
+                          </span>
+                          <span className="text-mrgn-success">
+                            {percentFormatter.format(aprToApy(bank.info.state.lendingRate))}
+                          </span>
+                        </div>
+                        <div className="flex flex-col gap-1">
+                          <span className="text-muted-foreground text-sm">
+                            Borrowing
+                            <br /> Rate (APY)
+                          </span>
+                          <span className="text-mrgn-warning">
+                            {percentFormatter.format(aprToApy(bank.info.state.borrowingRate))}
+                          </span>
+                        </div>
+                      </div>
+                      {collateralBank.isActive && collateralBank.position.isLending && (
+                        <div className="text-sm mb-4">
+                          <span className="text-muted-foreground">Supplied</span>{" "}
+                          {numeralFormatter(collateralBank.position.amount)}{" "}
+                          <span>{collateralBank.meta.tokenSymbol}</span>
+                        </div>
+                      )}
+                      <div className="flex gap-2">
+                        {collateralBank.isActive && collateralBank.position.isLending && (
+                          <ActionBoxDialog requestedBank={collateralBank} requestedAction={ActionType.Withdraw}>
+                            <Button className="w-full bg-background border text-foreground hover:bg-accent">
+                              Withdraw
+                            </Button>
+                          </ActionBoxDialog>
+                        )}
+                        <ActionBoxDialog requestedBank={collateralBank} requestedAction={ActionType.Deposit}>
+                          <Button className="w-full bg-background border text-foreground hover:bg-accent">
+                            Supply
+                          </Button>
+                        </ActionBoxDialog>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </>
         )}
