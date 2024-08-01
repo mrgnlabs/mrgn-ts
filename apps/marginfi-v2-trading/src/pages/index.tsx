@@ -121,7 +121,7 @@ export default function HomePage() {
                     if (!value) return;
                     setView(value as View);
                   }}
-                  className="gap-2 self-baseline"
+                  className="hidden gap-2 self-baseline lg:flex"
                 >
                   <ToggleGroupItem value={View.GRID} aria-label="Grid View" className="border gap-1.5">
                     <IconGridDots size={16} /> Grid
@@ -162,7 +162,7 @@ export default function HomePage() {
                     <div className="pl-2.5">Price</div>
                     <div className="pl-2">24hr Volume</div>
                     <div>Market cap</div>
-                    <div>Total liquidity</div>
+                    <div>Pool liquidity</div>
                     <div className="pl-2">Created by</div>
                     <div />
                   </div>

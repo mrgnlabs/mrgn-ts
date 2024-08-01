@@ -21,13 +21,8 @@ import type { TokenData } from "~/types";
 
 export default function TradeSymbolPage() {
   const router = useRouter();
-  const { connection } = useConnection();
-  const { wallet } = useWalletContext();
-  const [initialized, activeGroup, setActiveBank] = useTradeStore((state) => [
-    state.initialized,
-    state.activeGroup,
-    state.setActiveBank,
-  ]);
+  const [initialized, activeGroup] = useTradeStore((state) => [state.initialized, state.activeGroup]);
+  const side = router.query.side as "long" | "short";
   const [previousTxn] = useUiStore((state) => [state.previousTxn]);
   const [tokenData, setTokenData] = React.useState<TokenData | null>(null);
 
@@ -68,7 +63,7 @@ export default function TradeSymbolPage() {
                   <TVWidget token={activeGroup.token} />
                 </div>
                 <div className="w-full flex lg:max-w-sm lg:ml-auto">
-                  <TradingBox activeBank={activeGroup.token} />
+                  <TradingBox side={side} />
                 </div>
               </div>
             </div>

@@ -155,7 +155,7 @@ export const PoolCard = ({ bank }: PoolCardProps) => {
               <dd className="text-right text-primary tracking-wide">${numeralFormatter(tokenData?.marketcap)}</dd>
             </>
           )}
-          <dt>Total Pool Liquidity</dt>
+          <dt>Pool Liquidity</dt>
           <dd className="text-right text-primary tracking-wide">
             {usdFormatter.format(
               bank.info.state.totalDeposits * bank.info.state.price +
@@ -166,13 +166,15 @@ export const PoolCard = ({ bank }: PoolCardProps) => {
       </CardContent>
       <CardFooter>
         <div className="flex items-center gap-3 w-full">
-          <Link href={`/pools/${bank.address.toBase58()}`} className="w-full">
-            <Button variant="outline" className="w-full">
-              Supply
+          <Link href={`/trade/${bank.address.toBase58()}?side=long`} className="w-full">
+            <Button variant="long" className="w-full">
+              Long
             </Button>
           </Link>
-          <Link href={`/trade/${bank.address.toBase58()}`} className="w-full">
-            <Button className="w-full">Trade</Button>
+          <Link href={`/trade/${bank.address.toBase58()}?side=short`} className="w-full">
+            <Button variant="short" className="w-full">
+              Short
+            </Button>
           </Link>
         </div>
       </CardFooter>
