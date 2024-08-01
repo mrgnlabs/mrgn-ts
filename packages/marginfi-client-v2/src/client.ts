@@ -1046,20 +1046,14 @@ class MarginfiClient {
           while (true) {
             signature = (
               await this.sendTransactionAsBundle([base58Tx]).catch(async () => [
-                await connection.sendTransaction(versionedTransaction, {
+                await sendConnection.sendTransaction(versionedTransaction, {
                   // minContextSlot: mergedOpts.minContextSlot,
-                  skipPreflight: mergedOpts.skipPreflight,
+                  skipPreflight: this.skipPreflightInSpam || mergedOpts.skipPreflight,
                   preflightCommitment: mergedOpts.preflightCommitment,
                   maxRetries: mergedOpts.maxRetries,
                 }),
               ])
             )[0];
-            signature = await sendConnection.sendTransaction(versionedTransaction, {
-              // minContextSlot: mergedOpts.minContextSlot,
-              skipPreflight: this.skipPreflightInSpam || mergedOpts.skipPreflight,
-              preflightCommitment: mergedOpts.preflightCommitment,
-              maxRetries: mergedOpts.maxRetries,
-            });
             for (let i = 0; i < 5; i++) {
               const signatureStatus = await connection.getSignatureStatus(signature, {
                 searchTransactionHistory: false,
