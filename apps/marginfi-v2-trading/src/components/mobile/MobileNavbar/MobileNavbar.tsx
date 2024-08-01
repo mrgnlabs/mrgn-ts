@@ -2,15 +2,12 @@ import React, { ReactNode } from "react";
 
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { IconCoins, IconTrendingUp, IconChartPie, IconPlus } from "@tabler/icons-react";
+import { IconCoins, IconTrendingUp, IconChartPie, IconShovelPitchforks } from "@tabler/icons-react";
 
 import { useUiStore } from "~/store";
 import { useFirebaseAccount } from "~/hooks/useFirebaseAccount";
 import { useOs } from "~/hooks/useOs";
 import { cn } from "~/utils/themeUtils";
-import { CreatePoolDialog } from "~/components/common/Pool";
-import { Button } from "~/components/ui/button";
-import { CreatePoolSoon } from "~/components/common/Pool/CreatePoolSoon";
 
 export interface NavLinkInfo {
   href: string;
@@ -19,10 +16,6 @@ export interface NavLinkInfo {
   trigger?: (children: ReactNode) => React.JSX.Element;
   Icon: React.ElementType;
 }
-
-const CreatePoolTrigger = (children: ReactNode) => {
-  return <CreatePoolSoon trigger={children} />;
-};
 
 export const mobileLinks: NavLinkInfo[] = [
   {
@@ -45,11 +38,10 @@ export const mobileLinks: NavLinkInfo[] = [
     Icon: IconChartPie,
   },
   {
-    href: "#",
-    alt: "create pool icon",
-    label: "create pool",
-    Icon: IconPlus,
-    trigger: CreatePoolTrigger,
+    href: "/yield",
+    alt: "yield farming icon",
+    label: "yield",
+    Icon: IconShovelPitchforks,
   },
 ];
 

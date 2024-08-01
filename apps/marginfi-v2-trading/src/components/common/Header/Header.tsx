@@ -5,7 +5,7 @@ import React from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { motion, useAnimate } from "framer-motion";
-import { IconTrendingUp, IconCoins, IconChartPie, IconPlus } from "@tabler/icons-react";
+import { IconTrendingUp, IconCoins, IconChartPie, IconPlus, IconShovelPitchforks } from "@tabler/icons-react";
 
 import { useTradeStore } from "~/store";
 import { cn } from "~/utils/themeUtils";
@@ -21,6 +21,7 @@ import { CreatePoolSoon } from "../Pool/CreatePoolSoon";
 const navItems = [
   { label: "pools", icon: <IconCoins />, href: "/" },
   { label: "trade", icon: <IconTrendingUp />, href: "/trade/59yr2vuW1qv3UVQx9HC6Q8mxns5S6g7fjS8YWgRgaLA7" },
+  { label: "yield farming", icon: <IconShovelPitchforks />, href: "yield" },
   { label: "portfolio", icon: <IconChartPie />, href: "/portfolio" },
 ];
 
@@ -89,16 +90,15 @@ export const Header = () => {
               </div>
             )
           }
-          {!isMobile && (
-            <div className="flex items-center">
-              <CreatePoolSoon
-                trigger={
-                  <Button size={isMobile ? "sm" : "default"} disabled={false}>
-                    <IconPlus size={isMobile ? 14 : 18} /> Create Pools
-                  </Button>
-                }
-              />
-              {/* <TooltipProvider>
+          <div className="flex items-center">
+            <CreatePoolSoon
+              trigger={
+                <Button size={isMobile ? "sm" : "default"} disabled={false}>
+                  <IconPlus size={isMobile ? 14 : 18} /> Create Pools
+                </Button>
+              }
+            />
+            {/* <TooltipProvider>
                 <Tooltip delayDuration={0}>
                   <TooltipTrigger asChild>
                     <Button size={isMobile ? "sm" : "default"} className="opacity-50">
@@ -110,8 +110,7 @@ export const Header = () => {
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider> */}
-            </div>
-          )}
+          </div>
           <div className="ml-4">
             <WalletButton />
           </div>
