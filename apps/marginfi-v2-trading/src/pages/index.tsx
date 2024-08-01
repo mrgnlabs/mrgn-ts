@@ -156,17 +156,22 @@ export default function HomePage() {
                 </motion.div>
               )}
               {view === View.LIST && (
-                <div>
-                  <div className="grid grid-cols-8">
-                    <div>Asset</div>
-                    <div>Price</div>
-                    <div>24hr Volume</div>
+                <div className="w-full space-y-2">
+                  <div className="grid grid-cols-7 w-full text-muted-foreground">
+                    <div className="pl-5">Asset</div>
+                    <div className="pl-2.5">Price</div>
+                    <div className="pl-2">24hr Volume</div>
+                    <div>Market cap</div>
                     <div>Total liquidity</div>
-                    <div>Created by</div>
+                    <div className="pl-2">Created by</div>
                     <div />
                   </div>
-                  {banks.length > 0 &&
-                    banks.slice(0, currentPage * POOLS_PER_PAGE).map((bank, i) => <PoolListItem key={i} bank={bank} />)}
+                  <div className="bg-background border rounded-xl px-4 py-1">
+                    {banks.length > 0 &&
+                      banks
+                        .slice(0, currentPage * POOLS_PER_PAGE)
+                        .map((bank, i) => <PoolListItem key={i} bank={bank} last={i === banks.length - 1} />)}
+                  </div>
                 </div>
               )}
               {currentPage < totalPages && (
