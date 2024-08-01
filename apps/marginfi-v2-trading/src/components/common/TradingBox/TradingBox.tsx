@@ -48,7 +48,7 @@ import { handleSimulationError } from "@mrgnlabs/mrgn-utils";
 const USDC_BANK_PK = new PublicKey("2s37akK2eyBbp8DZgCm7RtsaEz8eJP3Nxd4urLHQv7yB");
 
 type TradingBoxProps = {
-  activeBank?: ExtendedBankInfo | null;
+  side: "long" | "short";
 };
 
 type StatusType = {
@@ -56,11 +56,11 @@ type StatusType = {
   msg: string;
 };
 
-export const TradingBox = ({ activeBank }: TradingBoxProps) => {
+export const TradingBox = ({ side }: TradingBoxProps) => {
   const router = useRouter();
   const { walletContextState, wallet, connected } = useWalletContext();
   const { connection } = useConnection();
-  const [tradeState, setTradeState] = React.useState<TradeSide>("long");
+  const [tradeState, setTradeState] = React.useState<TradeSide>(side ? (side as TradeSide) : "long");
   const prevTradeState = usePrevious(tradeState);
   const [amount, setAmount] = React.useState<string>("");
   const [loopingObject, setLoopingObject] = React.useState<LoopingObject | null>(null);
@@ -68,12 +68,10 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const [Stats, setStats] = React.useState<React.JSX.Element>(<></>);
   const [additionalChecks, setAdditionalChecks] = React.useState<ActionMethod>();
-  const [showSettings, setShowSettings] = React.useState<boolean>(false);
 
   const debouncedLeverage = useDebounce(leverage, 1000);
   const debouncedAmount = useDebounce(amount, 1000);
 
-  // const borrowAmount = React.useMemo(() => loopingObject?.borrowAmount.toNumber(), [loopingObject]);
   const leveragedAmount = React.useMemo(() => {
     if (tradeState === "long") {
       return loopingObject?.actualDepositAmount;
@@ -446,7 +444,7 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
               <ToggleGroup
                 type="single"
                 className="w-full gap-4"
-                defaultValue="long"
+                value={tradeState}
                 onValueChange={(value) => value && setTradeState(value as TradeSide)}
               >
                 <ToggleGroupItem className="w-full border" value="long" aria-label="Toggle long">
