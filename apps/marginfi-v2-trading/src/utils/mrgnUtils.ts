@@ -8,6 +8,7 @@ import { ActiveBankInfo, Emissions, ExtendedBankInfo } from "@mrgnlabs/marginfi-
 import { ProcessTransactionError } from "@mrgnlabs/marginfi-client-v2";
 
 import { LendingModes } from "~/types";
+import { handleError } from "@mrgnlabs/mrgn-utils";
 
 // ================ development utils ================
 
@@ -118,9 +119,10 @@ export const clampedNumeralFormatter = (value: number) => {
 };
 
 export function extractErrorString(error: any, fallback?: string): string {
-  if (error instanceof ProcessTransactionError) {
-    if (error.message === "Bank deposit capacity exceeded") return "We've reached maximum capacity for this asset";
-    return error.message;
+  const errorCode = handleError(error, null, false);
+
+  if (errorCode?.description) {
+    return errorCode.description;
   }
 
   if (typeof error === "string") {

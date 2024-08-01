@@ -25,10 +25,15 @@ export const STATIC_SIMULATION_ERRORS: { [key: string]: ActionMethod } = {
     link: "https://docs.marginfi.com/faqs#what-does-the-stale-oracles-error-mean",
     linkText: "Learn more about marginfi's decentralized oracles.",
   },
-  BORROW_CAP_EXCEEDED: {
+  USER_REJECTED: {
     isEnabled: false,
     actionMethod: "WARNING",
-    description: "Borrow cap is exceeded.",
+    description: "User rejected the transaction.",
+  },
+  DEPOSIT_CAP_EXCEEDED: {
+    isEnabled: false,
+    actionMethod: "WARNING",
+    description: "The maximum deposit capacity for this asset has been reached.",
   },
   UTILIZATION_RATIO_INVALID: {
     isEnabled: false,
@@ -63,7 +68,8 @@ export const STATIC_SIMULATION_ERRORS: { [key: string]: ActionMethod } = {
     isEnabled: false,
   },
   TRANSACTION_EXPIRED: {
-    description: "The transaction has expired. Please try again.",
+    description:
+      "Transaction failed to land due to network congestion. This is a known issue that marginfi is actively working with Solana Labs to address. Please try again in a few moments.",
     isEnabled: true,
     actionMethod: "WARNING",
   },
@@ -218,11 +224,11 @@ const createCustomError = (description: string): ActionMethod => ({
   description,
 });
 
-export const handleSimulationError = (
+export const handleError = (
   error: any,
   bank: ExtendedBankInfo | null,
   isArena: boolean = false
-): ActionMethod | undefined => {
+): ActionMethod | null => {
   try {
     // JUPITER ERRORS
     if (error?.programId === JUPITER_PROGRAM_V6_ID.toBase58()) {
@@ -249,9 +255,14 @@ export const handleSimulationError = (
 
       if (
         error.message.includes("Blockhash not found") ||
-        error?.logs.some((entry: string[]) => entry.includes("Blockhash not found"))
+        error?.logs.some((entry: string[]) => entry.includes("Blockhash not found")) ||
+        error.message.includes("BlockhashNotFound")
       ) {
         return STATIC_SIMULATION_ERRORS.TRANSACTION_EXPIRED;
+      }
+
+      if (error.message.includes("user rejected")) {
+        return STATIC_SIMULATION_ERRORS.USER_REJECTED;
       }
 
       if (
@@ -259,6 +270,10 @@ export const handleSimulationError = (
         error?.logs.some((entry: string[]) => entry.includes("insufficient lamport"))
       ) {
         return STATIC_SIMULATION_ERRORS.INSUFICIENT_LAMPORTS;
+      }
+
+      if (error.message.includes("6029") || error.message.includes("deposit capacity exceeded")) {
+        return STATIC_SIMULATION_ERRORS.DEPOSIT_CAP_EXCEEDED;
       }
 
       if (error.message.includes("6029") || error.message.includes("borrow cap exceeded")) {
@@ -281,8 +296,41 @@ export const handleSimulationError = (
 
     // CATCH REMAINING MARGINFI PROGRAM ERROS
     if (error?.programId === "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA") {
-      console.log({ error: error });
       return createCustomError(error.message);
+    }
+  } catch (err) {
+    console.log({ error: err });
+  } finally {
+    return null;
+  }
+};
+
+export const handleTransactionError = (
+  error: any,
+  bank: ExtendedBankInfo | null,
+  isArena: boolean = false
+): ActionMethod | undefined => {
+  try {
+    const action = handleError(error, bank, isArena);
+    if (action) {
+      return action;
+    }
+    console.log({ error: error });
+    return STATIC_SIMULATION_ERRORS.HEALTH_LIQUIDATION_FAILED;
+  } catch (err) {
+    console.log({ error: err });
+  }
+};
+
+export const handleSimulationError = (
+  error: any,
+  bank: ExtendedBankInfo | null,
+  isArena: boolean = false
+): ActionMethod | undefined => {
+  try {
+    const action = handleError(error, bank, isArena);
+    if (action) {
+      return action;
     }
     console.log({ error: error });
     return STATIC_SIMULATION_ERRORS.HEALTH_LIQUIDATION_FAILED;
