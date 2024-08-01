@@ -88,6 +88,7 @@ module.exports = {
           foreground: "hsl(var(--card-foreground))",
         },
         mrgn: {
+          green: "hsl(var(--mrgn-green))",
           chartreuse: "hsl(var(--mrgn-chartreuse))",
           gold: "hsl(var(--mrgn-gold))",
           slate: "hsl(var(--mrgn-slate))",
