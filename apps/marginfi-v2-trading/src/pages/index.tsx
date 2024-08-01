@@ -11,21 +11,13 @@ import { POOLS_PER_PAGE } from "~/config/trade";
 import { useIsMobile } from "~/hooks/useIsMobile";
 
 import { PageHeading } from "~/components/common/PageHeading";
-import { PoolCard } from "~/components/common/Pool/PoolCard";
+import { PoolCard, PoolListItem } from "~/components/common/Pool";
 import { ActionComplete } from "~/components/common/ActionComplete";
 import { PoolSearch } from "~/components/common/Pool";
 import { Button } from "~/components/ui/button";
 import { Loader } from "~/components/ui/loader";
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "~/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
 
 const sortOptions: {
   value: TradePoolFilterStates;
@@ -38,6 +30,11 @@ const sortOptions: {
   { value: TradePoolFilterStates.LONG, label: "Open long" },
   { value: TradePoolFilterStates.SHORT, label: "Open short" },
 ];
+
+enum View {
+  GRID = "grid",
+  LIST = "list",
+}
 
 export default function HomePage() {
   const router = useRouter();
@@ -58,6 +55,9 @@ export default function HomePage() {
 
   const [scope, animate] = useAnimate();
 
+  const [view, setView] = React.useState<View>(View.GRID);
+  const [initialAnimation, setInitialAnimation] = React.useState(false);
+
   const dir = React.useMemo(() => {
     const option = sortOptions.find((option) => option.value === sortBy);
     return option?.dir || "desc";
@@ -77,6 +77,7 @@ export default function HomePage() {
     if (!initialized) return;
     const timeout = setTimeout(() => {
       requestAnimationFrame(() => animate("[data-item]", { opacity: 1 }, { duration: 0.5, delay: stagger(0.25) }));
+      setInitialAnimation(true);
     }, 1500);
     animate("[data-filter]", { opacity: 1 }, { duration: 0.3, delay: 1.25 });
 
@@ -113,11 +114,19 @@ export default function HomePage() {
 
             <div className="w-full space-y-6 py-12 md:pt-16">
               <motion.div data-filter className="flex items-center justify-between" initial={{ opacity: 0 }}>
-                <ToggleGroup type="single" defaultValue="grid" className="gap-2 self-baseline">
-                  <ToggleGroupItem value="grid" aria-label="Grid View" className="border gap-1.5">
+                <ToggleGroup
+                  type="single"
+                  value={view}
+                  onValueChange={(value) => {
+                    if (!value) return;
+                    setView(value as View);
+                  }}
+                  className="gap-2 self-baseline"
+                >
+                  <ToggleGroupItem value={View.GRID} aria-label="Grid View" className="border gap-1.5">
                     <IconGridDots size={16} /> Grid
                   </ToggleGroupItem>
-                  <ToggleGroupItem value="list" aria-label="List View" className="border gap-1.5">
+                  <ToggleGroupItem value={View.LIST} aria-label="List View" className="border gap-1.5">
                     <IconList size={16} /> List
                   </ToggleGroupItem>
                 </ToggleGroup>
@@ -136,14 +145,30 @@ export default function HomePage() {
                   </SelectContent>
                 </Select>
               </motion.div>
-              <motion.div data-grid className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                {banks.length > 0 &&
-                  banks.slice(0, currentPage * POOLS_PER_PAGE).map((bank, i) => (
-                    <motion.div data-item key={i} initial={{ opacity: 0 }}>
-                      <PoolCard bank={bank} />
-                    </motion.div>
-                  ))}
-              </motion.div>
+              {view === View.GRID && (
+                <motion.div data-grid className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                  {banks.length > 0 &&
+                    banks.slice(0, currentPage * POOLS_PER_PAGE).map((bank, i) => (
+                      <motion.div data-item key={i} initial={{ opacity: !initialAnimation ? 0 : 1 }}>
+                        <PoolCard bank={bank} />
+                      </motion.div>
+                    ))}
+                </motion.div>
+              )}
+              {view === View.LIST && (
+                <div>
+                  <div className="grid grid-cols-8">
+                    <div>Asset</div>
+                    <div>Price</div>
+                    <div>24hr Volume</div>
+                    <div>Total liquidity</div>
+                    <div>Created by</div>
+                    <div />
+                  </div>
+                  {banks.length > 0 &&
+                    banks.slice(0, currentPage * POOLS_PER_PAGE).map((bank, i) => <PoolListItem key={i} bank={bank} />)}
+                </div>
+              )}
               {currentPage < totalPages && (
                 <div className="py-8 flex justify-center">
                   <Button
