@@ -34,8 +34,39 @@ export interface ProgramErrorWithDescription extends ProgramError {
 
 const MFI_ERROR_CODE_MAP: Map<number, string> = new Map(MARGINFI_IDL.errors.map((error) => [error.code, error.msg]));
 
+export function parseTransactionError(error: any, mfiProgramId: PublicKey) {
+  const logs = error?.logs;
+  const name = error?.name;
+  let message = error?.message;
+  let programId = error?.programId;
+  let code = error?.code;
+
+  if (logs) {
+    const parsedError = parseErrorFromLogs(logs, mfiProgramId);
+    if (parsedError) {
+      message = parsedError.description;
+      programId = parsedError.programId;
+      code = parsedError.code;
+    }
+  }
+
+  return {
+    programId: programId,
+    type: name,
+    description: message,
+    code: code,
+  };
+}
+
 export function parseErrorFromLogs(logs: string[], mfiProgramId: PublicKey): ProgramErrorWithDescription | null {
-  const error = parseCustomProgramError(logs);
+  const customError = parseCustomProgramError(logs, mfiProgramId);
+  if (customError) return customError;
+
+  return null;
+}
+
+function parseCustomProgramError(logs: string[], mfiProgramId: PublicKey): ProgramErrorWithDescription | null {
+  const error = parseCustomProgramErrorFromLogs(logs);
   if (error === null) {
     return null;
   }
@@ -65,7 +96,7 @@ export function parseErrorFromLogs(logs: string[], mfiProgramId: PublicKey): Pro
   return null;
 }
 
-function parseCustomProgramError(logs: string[]): ProgramError | null {
+function parseCustomProgramErrorFromLogs(logs: string[]): ProgramError | null {
   const log = logs.find((log) => log.includes("failed: custom program error"));
   if (!log) return null;
   const regex = /^Program (?<program>\S+) failed: custom program error: (?<code>0x[0-9a-fA-F]+)/g;
@@ -164,7 +195,6 @@ const JupiterErrorCodeMap: Map<number, string> = new Map([
   [JupiterErrorCode.ExactOutAmountNotMatched, "Exact out amount doesn't match"],
   [JupiterErrorCode.SourceAndDestinationMintCannotBeTheSame, "Source mint and destination mint cannot the same"],
 ]);
-
 
 const ERROR_CODE_MAPS: Map<string, Map<number, string>> = new Map([
   [TOKEN_PROGRAM_ID.toBase58(), TokenErrorCodeMap],
