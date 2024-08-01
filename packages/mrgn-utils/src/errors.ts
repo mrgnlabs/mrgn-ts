@@ -253,10 +253,14 @@ export const handleError = (
         return STATIC_SIMULATION_ERRORS.STALE;
       }
 
+      console.log({ error: error.message }); // "BlockhashNotFound"
       if (
-        error.message.includes("Blockhash not found") ||
-        error?.logs.some((entry: string[]) => entry.includes("Blockhash not found")) ||
-        error.message.includes("BlockhashNotFound")
+        error.message === "BlockhashNotFound" || // Exact match
+        error.message.includes("lockhashNotFou") || // Contains 'BlockhashNotFound'
+        error.message.includes("BlockhashNotFound") || // Contains 'BlockhashNotFound'
+        error.message.includes('"BlockhashNotFound"') || // Contains '"BlockhashNotFound"'
+        error.message.includes("Blockhash not found") || // Contains 'Blockhash not found'
+        error?.logs.some((entry: string[]) => entry.includes("Blockhash not found"))
       ) {
         return STATIC_SIMULATION_ERRORS.TRANSACTION_EXPIRED;
       }

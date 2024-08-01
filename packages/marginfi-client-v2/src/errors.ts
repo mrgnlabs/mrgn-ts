@@ -37,9 +37,13 @@ const MFI_ERROR_CODE_MAP: Map<number, string> = new Map(MARGINFI_IDL.errors.map(
 export function parseTransactionError(error: any, mfiProgramId: PublicKey) {
   const logs = error?.logs;
   const name = error?.name;
-  let message = error?.message;
+  let message = error?.transactionMessage ?? error?.message;
   let programId = error?.programId;
   let code = error?.code;
+
+  if (message) {
+    message = message.replace(/\\"/g, '"').replace(/^"|"$/g, "");
+  }
 
   if (logs) {
     const parsedError = parseErrorFromLogs(logs, mfiProgramId);
