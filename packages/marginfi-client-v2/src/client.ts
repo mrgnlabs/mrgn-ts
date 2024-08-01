@@ -48,7 +48,12 @@ import {
   BankConfig,
 } from ".";
 import { MarginfiAccountWrapper } from "./models/account/wrapper";
-import { ProcessTransactionError, ProcessTransactionErrorType, parseErrorFromLogs } from "./errors";
+import {
+  ProcessTransactionError,
+  ProcessTransactionErrorType,
+  parseErrorFromLogs,
+  parseTransactionError,
+} from "./errors";
 import { findOracleKey, makePriorityFeeIx, PythPushFeedIdMap, buildFeedIdMap } from "./utils";
 
 export type BankMap = Map<string, Bank>;
@@ -920,21 +925,28 @@ class MarginfiClient {
         return signatures;
       }
     } catch (error: any) {
-      if (error.logs) {
+      const parsedError = parseTransactionError(error, this.config.programId);
+
+      if (error?.logs?.length > 0) {
         console.log("------ Logs 👇 ------");
         console.log(error.logs.join("\n"));
-        const errorParsed = parseErrorFromLogs(error.logs, this.config.programId);
-        if (errorParsed) {
-          console.log("Parsed:", errorParsed);
+        if (parsedError) {
+          console.log("Parsed:", parsedError);
           throw new ProcessTransactionError(
-            errorParsed.description,
+            parsedError.description,
             ProcessTransactionErrorType.SimulationError,
-            error.logs
+            error.logs,
+            parsedError.programId
           );
         }
       }
       console.log("fallthrough error", error);
-      throw new ProcessTransactionError("Something went wrong", ProcessTransactionErrorType.FallthroughError);
+      throw new ProcessTransactionError(
+        parsedError?.description ?? "Something went wrong",
+        ProcessTransactionErrorType.SimulationError,
+        error.logs,
+        parsedError.programId
+      );
     }
   }
 
@@ -1101,21 +1113,28 @@ class MarginfiClient {
         return signature;
       }
     } catch (error: any) {
-      if (error.logs) {
+      const parsedError = parseTransactionError(error, this.config.programId);
+
+      if (error?.logs?.length > 0) {
         console.log("------ Logs 👇 ------");
         console.log(error.logs.join("\n"));
-        const errorParsed = parseErrorFromLogs(error.logs, this.config.programId);
-        if (errorParsed) {
-          console.log("Parsed:", errorParsed);
+        if (parsedError) {
+          console.log("Parsed:", parsedError);
           throw new ProcessTransactionError(
-            errorParsed.description,
+            parsedError.description,
             ProcessTransactionErrorType.SimulationError,
-            error.logs
+            error.logs,
+            parsedError.programId
           );
         }
       }
       console.log("fallthrough error", error);
-      throw new ProcessTransactionError("Something went wrong", ProcessTransactionErrorType.FallthroughError);
+      throw new ProcessTransactionError(
+        parsedError?.description ?? "Something went wrong",
+        ProcessTransactionErrorType.SimulationError,
+        error.logs,
+        parsedError.programId
+      );
     }
   }
 
@@ -1215,7 +1234,6 @@ class MarginfiClient {
         );
       }
     }
-    console.log({ error });
     console.log("fallthrough error", error);
     throw new ProcessTransactionError(
       "Something went wrong",
