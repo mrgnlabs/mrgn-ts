@@ -2,12 +2,14 @@ import React, { ReactNode } from "react";
 
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { IconCoins, IconTrendingUp, IconChartPie, IconShovelPitchforks } from "@tabler/icons-react";
+import { IconChartPie, IconShovelPitchforks, IconSearch, IconPlus } from "@tabler/icons-react";
 
 import { useUiStore } from "~/store";
 import { useFirebaseAccount } from "~/hooks/useFirebaseAccount";
 import { useOs } from "~/hooks/useOs";
 import { cn } from "~/utils/themeUtils";
+
+import { CreatePoolSoon } from "~/components/common/Pool/CreatePoolSoon";
 
 export interface NavLinkInfo {
   href: string;
@@ -17,20 +19,23 @@ export interface NavLinkInfo {
   Icon: React.ElementType;
 }
 
+const CreatePoolTrigger = (children: ReactNode) => {
+  return <CreatePoolSoon trigger={children} />;
+};
+
 export const mobileLinks: NavLinkInfo[] = [
   {
     href: "/",
-    alt: "pools icon",
-    label: "pools",
-    Icon: IconCoins,
+    alt: "discover icon",
+    label: "discover",
+    Icon: IconSearch,
   },
   {
-    href: "/trade/59yr2vuW1qv3UVQx9HC6Q8mxns5S6g7fjS8YWgRgaLA7",
-    alt: "trade icon",
-    label: "trade",
-    Icon: IconTrendingUp,
+    href: "/yield",
+    alt: "yield farming icon",
+    label: "yield",
+    Icon: IconShovelPitchforks,
   },
-
   {
     href: "/portfolio",
     alt: "portfolio icon",
@@ -38,10 +43,11 @@ export const mobileLinks: NavLinkInfo[] = [
     Icon: IconChartPie,
   },
   {
-    href: "/yield",
-    alt: "yield farming icon",
-    label: "yield",
-    Icon: IconShovelPitchforks,
+    href: "/",
+    alt: "create pool icon",
+    label: "create pool",
+    trigger: CreatePoolTrigger,
+    Icon: IconPlus,
   },
 ];
 

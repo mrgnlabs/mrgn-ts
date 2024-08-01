@@ -19,10 +19,9 @@ import { IconArena } from "~/components/ui/icons";
 import { CreatePoolSoon } from "../Pool/CreatePoolSoon";
 
 const navItems = [
-  { label: "pools", icon: <IconCoins />, href: "/" },
-  { label: "trade", icon: <IconTrendingUp />, href: "/trade/59yr2vuW1qv3UVQx9HC6Q8mxns5S6g7fjS8YWgRgaLA7" },
-  { label: "yield farming", icon: <IconShovelPitchforks />, href: "/yield" },
-  { label: "portfolio", icon: <IconChartPie />, href: "/portfolio" },
+  { label: "Discover", href: "/" },
+  { label: "Yield", href: "/yield" },
+  { label: "Portfolio", href: "/portfolio" },
 ];
 
 export const Header = () => {
@@ -66,7 +65,6 @@ export const Header = () => {
                           "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground"
                       )}
                     >
-                      {React.cloneElement(item.icon, { size: 18 })}
                       {item.label}
                     </Button>
                   </Link>
@@ -90,15 +88,16 @@ export const Header = () => {
               </div>
             )
           }
-          <div className="flex items-center">
-            <CreatePoolSoon
-              trigger={
-                <Button size={isMobile ? "sm" : "default"} disabled={false}>
-                  <IconPlus size={isMobile ? 14 : 18} /> Create Pools
-                </Button>
-              }
-            />
-            {/* <TooltipProvider>
+          {!isMobile && (
+            <div className="flex items-center">
+              <CreatePoolSoon
+                trigger={
+                  <Button size={isMobile ? "sm" : "default"} disabled={false}>
+                    <IconPlus size={isMobile ? 14 : 18} /> Create Pools
+                  </Button>
+                }
+              />
+              {/* <TooltipProvider>
                 <Tooltip delayDuration={0}>
                   <TooltipTrigger asChild>
                     <Button size={isMobile ? "sm" : "default"} className="opacity-50">
@@ -110,7 +109,8 @@ export const Header = () => {
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider> */}
-          </div>
+            </div>
+          )}
           <div className="ml-4">
             <WalletButton />
           </div>
