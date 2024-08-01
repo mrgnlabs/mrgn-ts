@@ -43,7 +43,7 @@ function canBeWithdrawn(
   }
 
   const noFreeCollateral = marginfiAccount && marginfiAccount.computeFreeCollateral().isZero();
-  if (noFreeCollateral) {
+  if (noFreeCollateral && !targetBankInfo.info.state.isIsolated) {
     checks.push(STATIC_SIMULATION_ERRORS.NO_COLLATERAL);
   }
 
