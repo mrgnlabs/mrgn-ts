@@ -306,10 +306,6 @@ export const WalletAuthDialog = () => {
                   )}
                 </ul>
               )}
-              <div className="flex items-center gap-1 justify-center mt-8 text-sm">
-                <IconStarFilled className="text-yellow-400" size={16} /> 5% points boost for{" "}
-                <IconBackpackWallet size={16} /> <strong className="font-medium">Backpack</strong> users
-              </div>
             </div>
           </div>
         </DialogContent>
