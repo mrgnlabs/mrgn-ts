@@ -21,7 +21,7 @@ import { CreatePoolSoon } from "../Pool/CreatePoolSoon";
 const navItems = [
   { label: "pools", icon: <IconCoins />, href: "/" },
   { label: "trade", icon: <IconTrendingUp />, href: "/trade/59yr2vuW1qv3UVQx9HC6Q8mxns5S6g7fjS8YWgRgaLA7" },
-  { label: "yield farming", icon: <IconShovelPitchforks />, href: "yield" },
+  { label: "yield farming", icon: <IconShovelPitchforks />, href: "/yield" },
   { label: "portfolio", icon: <IconChartPie />, href: "/portfolio" },
 ];
 
