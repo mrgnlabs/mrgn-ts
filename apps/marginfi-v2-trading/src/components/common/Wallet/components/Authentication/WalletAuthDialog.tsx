@@ -152,8 +152,8 @@ export const WalletAuthDialog = () => {
         >
           <DialogHeader>
             <IconMrgn size={48} />
-            <DialogTitle>Sign in to marginfi</DialogTitle>
-            <DialogDescription>Earn yield, permissionlessly.</DialogDescription>
+            <DialogTitle>Sign in to The Arena</DialogTitle>
+            <DialogDescription>Long and short any token on Solana with leverage.</DialogDescription>
           </DialogHeader>
 
           <div className="w-full space-y-6 mt-8">
@@ -189,7 +189,7 @@ export const WalletAuthDialog = () => {
 
                 <h2 className="font-semibold text-2xl">Mobile friendly account</h2>
                 <p className="mt-2 text-[15px] sm:text-base">
-                  Sign in with email to download marginfi&apos;s app directly from the web.
+                  Sign in with email to download The Arena app directly from the web.
                 </p>
               </header>
 
