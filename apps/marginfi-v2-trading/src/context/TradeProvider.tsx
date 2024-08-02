@@ -40,11 +40,11 @@ export const TradePovider: React.FC<{
     const symbol = router?.query?.symbol as string | undefined;
     const isWalletConnected = wallet?.publicKey;
 
-    const isFetchable = (isWalletConnected && userDataFetched) || (!isWalletConnected && !userDataFetched);
+    // const isFetchable = (isWalletConnected && userDataFetched) || (!isWalletConnected && !userDataFetched);
 
     if (!symbol) {
       //clear state
-    } else if (isFetchable && initialized && wallet) {
+    } else if (initialized) {
       try {
         const pk = new PublicKey(symbol);
         setActiveGroup({ groupPk: new PublicKey(symbol) });

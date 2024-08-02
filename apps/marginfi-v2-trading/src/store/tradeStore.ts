@@ -95,7 +95,7 @@ type TradeStoreState = {
   tokenAccountMap: TokenAccountMap | null;
 
   // array of marginfi groups
-  groupMap: Map<PublicKey, GroupData>;
+  groupMap: Map<string, GroupData>;
   groups: PublicKey[];
 
   // array of extended token bank objects
@@ -197,7 +197,7 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
   tokenMetadataCache: {},
   bankMetadataCache: {},
   groups: [],
-  groupMap: new Map<PublicKey, GroupData>(),
+  groupMap: new Map<string, GroupData>(),
   banks: [],
   searchResults: [],
   banksIncludingUSDC: [],
@@ -240,21 +240,27 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
         signAllTransactions: (arg: any) => {},
       } as Wallet;
 
-      const wallet = argWallet ?? storeWallet ?? dummyWallet;
+      const wallet =
+        argWallet && argWallet.publicKey ? argWallet : storeWallet && storeWallet.publicKey ? storeWallet : dummyWallet;
       if (!connection) throw new Error("Connection not found");
-      if (!storeWallet && !argWallet) {
-        walletChanged = false;
-      } else if ((!storeWallet && argWallet) || (storeWallet && !argWallet)) {
-        walletChanged = true;
-      } else if (storeWallet && argWallet) {
-        walletChanged = !storeWallet.publicKey.equals(argWallet.publicKey);
-      }
+      // if (!storeWallet && !argWallet) {
+      //   walletChanged = false;
+      // } else if ((!storeWallet && argWallet) || (storeWallet && !argWallet)) {
+      //   walletChanged = true;
+      // } else if (storeWallet && argWallet) {
+      //   walletChanged = !storeWallet.publicKey.equals(argWallet.publicKey);
+      // }
+
       //   if (!wallet) throw new Error("Wallet not found");
       //   if (wallet?.publicKey) userDataFetched = true;
 
       let { tokenMetadataCache, bankMetadataCache, groupsCache } = get();
 
-      if (!tokenMetadataCache || !bankMetadataCache || !groupsCache) {
+      if (
+        !Object.keys(tokenMetadataCache).length ||
+        !Object.keys(bankMetadataCache).length ||
+        !Object.keys(groupsCache).length
+      ) {
         try {
           groupsCache = await fetch(TRADE_GROUPS_MAP).then((res) => res.json());
           tokenMetadataCache = await loadTokenMetadatas(TOKEN_METADATA_MAP);
@@ -272,12 +278,6 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
       const allBanks: ExtendedBankInfo[] = [];
 
       const mintDatas: Map<string, MintData> = new Map();
-
-      const banksWithPriceAndToken: {
-        bank: Bank;
-        oraclePrice: OraclePrice;
-        tokenMetadata: TokenMetadata;
-      }[] = [];
 
       await Promise.all(
         groups.map(async (group) => {
@@ -309,6 +309,11 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
           }
 
           const banksIncludingUSDC = Array.from(marginfiClient.banks.values());
+          const banksWithPriceAndToken: {
+            bank: Bank;
+            oraclePrice: OraclePrice;
+            tokenMetadata: TokenMetadata;
+          }[] = [];
 
           banksIncludingUSDC.forEach((bank) => {
             const oraclePrice = marginfiClient.getOraclePriceByBank(bank.address);
@@ -366,8 +371,8 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
           );
 
           // change this logic when adding more collateral banks
-          const tokenBanks = extendedBankInfos.filter((bank) => bank.info.rawBank.address.equals(USDC_MINT));
-          const collateralBanks = extendedBankInfos.filter((bank) => !bank.info.rawBank.address.equals(USDC_MINT));
+          const tokenBanks = extendedBankInfos.filter((bank) => !bank.info.rawBank.mint.equals(USDC_MINT));
+          const collateralBanks = extendedBankInfos.filter((bank) => bank.info.rawBank.mint.equals(USDC_MINT));
 
           if (tokenBanks.length > 1) console.error("Inconsitency in token banks!");
 
@@ -386,7 +391,7 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
             groupData.selectedAccount = mfiAccount;
           }
 
-          groupMap.set(group, groupData);
+          groupMap.set(group.toBase58(), groupData);
         })
       );
 
@@ -524,7 +529,7 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
       if (!connection) throw new Error("Connection not found");
       if (!wallet) throw new Error("Wallet not found");
 
-      const group = groupMap.get(activeGroup);
+      const group = groupMap.get(activeGroup.toBase58());
 
       if (!group) throw new Error("Group not found");
 
@@ -605,7 +610,7 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
         pool: { ...updatedPool, poolData: group.pool.poolData },
       };
 
-      groupMap.set(activeGroup, newGroup);
+      groupMap.set(activeGroup.toBase58(), newGroup);
 
       set({
         marginfiClient,
