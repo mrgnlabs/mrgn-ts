@@ -48,7 +48,7 @@ import { handleSimulationError } from "@mrgnlabs/mrgn-utils";
 const USDC_BANK_PK = new PublicKey("2s37akK2eyBbp8DZgCm7RtsaEz8eJP3Nxd4urLHQv7yB");
 
 type TradingBoxProps = {
-  side: "long" | "short";
+  side?: "long" | "short";
 };
 
 type StatusType = {
@@ -56,11 +56,11 @@ type StatusType = {
   msg: string;
 };
 
-export const TradingBox = ({ side }: TradingBoxProps) => {
+export const TradingBox = ({ side = "long" }: TradingBoxProps) => {
   const router = useRouter();
   const { walletContextState, wallet, connected } = useWalletContext();
   const { connection } = useConnection();
-  const [tradeState, setTradeState] = React.useState<TradeSide>(side ? (side as TradeSide) : "long");
+  const [tradeState, setTradeState] = React.useState<TradeSide>(side as TradeSide);
   const prevTradeState = usePrevious(tradeState);
   const [amount, setAmount] = React.useState<string>("");
   const [loopingObject, setLoopingObject] = React.useState<LoopingObject | null>(null);
