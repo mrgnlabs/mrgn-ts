@@ -780,8 +780,10 @@ async function calculateMaxCollat(bank: ExtendedBankInfo, repayBank: ExtendedBan
           if (!swapQuoteOutput) throw new Error();
           return nativeToUi(swapQuoteOutput.otherAmountThreshold, repayBank.info.state.mintDecimals) * 1.01;
         } catch (error) {
-          const repayBankAmount = maxRepayAmount * repayBank.info.oraclePrice.priceRealtime.price.toNumber() * 0.998;
-          return repayBankAmount;
+          const bankAmountUsd = maxRepayAmount * bank.info.oraclePrice.priceRealtime.price.toNumber() * 0.9998;
+          const repayAmount = bankAmountUsd / repayBank.info.oraclePrice.priceRealtime.price.toNumber();
+
+          return repayAmount;
         }
       } else {
         return amount;
