@@ -9,13 +9,13 @@ import { aprToApy, numeralFormatter, percentFormatter, usdFormatter } from "@mrg
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { useTradeStore } from "~/store";
-import { getTokenImageURL } from "~/utils";
+import { getTokenImageURL, cn } from "~/utils";
 import { useIsMobile } from "~/hooks/useIsMobile";
+import { useWalletContext } from "~/hooks/useWalletContext";
 
 import { PageHeading } from "~/components/common/PageHeading";
 import { ActionBoxDialog } from "~/components/common/ActionBox";
 import { Loader } from "~/components/ui/loader";
-import { Select, SelectTrigger, SelectContent, SelectValue, SelectItem } from "~/components/ui/select";
 import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
 
@@ -73,9 +73,10 @@ export default function PortfolioPage() {
     state.collateralBanks,
     state.resetActiveGroup,
   ]);
+  const isMobile = useIsMobile();
+  const { connected } = useWalletContext();
   const [sort, setSort] = React.useState<SortOptions>(SortOptions.TotalDeposits);
   const [search, setSearch] = React.useState("");
-  const isMobile = useIsMobile();
 
   const sortPools = React.useCallback(
     (pools: Pool[]) => {
@@ -172,14 +173,10 @@ export default function PortfolioPage() {
         {initialized && (
           <>
             <div className="w-full max-w-4xl mx-auto px-4 md:px-0">
-              <PageHeading
-                heading="Yield farming"
-                body={<p>Nulla veniam tempor duis duis exercitation et ipsum ea consectetur elit mollit.</p>}
-                links={[]}
-              />
+              <PageHeading heading="Yield farming" body={<p>Supply liquidity and earn yield.</p>} links={[]} />
             </div>
 
-            <div className="flex flex-col items-center gap-4 mb-16 lg:mb-12 lg:mt-8 lg:gap-12 lg:flex-row">
+            <div className="flex justify-center items-center w-full max-w-4xl mx-auto mb-16 mt-8">
               <div className="w-full relative">
                 <Input
                   placeholder={isMobile ? "Search tokens..." : "Search tokens by name, symbol, or mint address..."}
@@ -192,29 +189,23 @@ export default function PortfolioPage() {
                   className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground"
                 />
               </div>
-              <div>
-                <Select value={sort} onValueChange={(value) => setSort(value as SortOptions)}>
-                  <SelectTrigger className="w-[190px] justify-start gap-2">
-                    <IconSortDescending size={16} />
-                    <SelectValue placeholder="Filter" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {sortOptions.map((option) => (
-                      <SelectItem value={option.value}>{option.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
             </div>
 
             <div className="w-full hidden lg:block">
-              <div className="text-sm grid xl:text-base grid-cols-7 gap-4 text-muted-foreground mb-8">
+              <div
+                className={cn(
+                  "text-sm grid xl:text-base gap-4 text-muted-foreground mb-8",
+                  connected ? "grid-cols-7" : "grid-cols-6"
+                )}
+              >
                 <div className="pl-4">Pool</div>
-                <div className="pl-3">Total Deposits</div>
+                <div className="pl-3 text-foreground flex items-center gap-1">
+                  <IconSortDescending size={20} /> Total Deposits
+                </div>
                 <div className="text-right xl:text-left">Lending Rate (APY)</div>
                 <div className="text-right xl:text-left">Borrow Rate (APY)</div>
                 <div className="text-center">Created by</div>
-                <div>Supplied</div>
+                {connected && <div>Supplied</div>}
                 <div />
               </div>
               <div>
@@ -250,7 +241,10 @@ export default function PortfolioPage() {
                         </div>
                       </Link>
                       <div
-                        className="grid grid-cols-7 gap-4 pt-2 pb-4 border-b items-center"
+                        className={cn(
+                          "grid gap-4 pt-2 pb-4 border-b items-center",
+                          connected ? "grid-cols-7" : "grid-cols-6"
+                        )}
                         key={bank.address.toBase58()}
                       >
                         <div className="flex items-center gap-2">
@@ -289,10 +283,16 @@ export default function PortfolioPage() {
                             />
                           </Link>
                         </div>
-                        <div className="pl-2 text-lg flex flex-col xl:gap-1 xl:flex-row xl:items-baseline">
-                          {bank.isActive && bank.position.isLending ? numeralFormatter(bank.position.amount) : 0}{" "}
-                          <span className="text-muted-foreground text-sm">{bank.meta.tokenSymbol}</span>
-                        </div>
+                        {connected && (
+                          <div className="pl-2 text-lg flex flex-col xl:gap-1 xl:flex-row xl:items-baseline">
+                            {bank.isActive && bank.position.isLending && (
+                              <>
+                                {numeralFormatter(bank.position.amount)}
+                                <span className="text-muted-foreground text-sm">{bank.meta.tokenSymbol}</span>
+                              </>
+                            )}
+                          </div>
+                        )}
                         <div className="flex justify-end gap-2">
                           {bank.isActive && bank.position.isLending && (
                             <ActionBoxDialog requestedBank={bank} requestedAction={ActionType.Withdraw}>
@@ -305,7 +305,7 @@ export default function PortfolioPage() {
                         </div>
                       </div>
                       <div
-                        className="grid grid-cols-7 gap-4 pt-4 pb-2 items-center"
+                        className={cn("grid gap-4 pt-4 pb-2 items-center", connected ? "grid-cols-7" : "grid-cols-6")}
                         key={collateralBank.address.toBase58()}
                       >
                         <div className="flex items-center gap-2">
@@ -345,12 +345,16 @@ export default function PortfolioPage() {
                             />
                           </Link>
                         </div>
-                        <div className="pl-2 text-lg flex flex-col xl:gap-1 xl:flex-row xl:items-baseline">
-                          {collateralBank.isActive && collateralBank.position.isLending
-                            ? numeralFormatter(collateralBank.position.amount)
-                            : 0}{" "}
-                          <span className="text-muted-foreground text-sm">{collateralBank.meta.tokenSymbol}</span>
-                        </div>
+                        {connected && (
+                          <div className="pl-2 text-lg flex flex-col xl:gap-1 xl:flex-row xl:items-baseline">
+                            {collateralBank.isActive && collateralBank.position.isLending && (
+                              <>
+                                {numeralFormatter(collateralBank.position.amount)}
+                                <span className="text-muted-foreground text-sm">{collateralBank.meta.tokenSymbol}</span>
+                              </>
+                            )}
+                          </div>
+                        )}
                         <div className="flex justify-end gap-2">
                           {collateralBank.isActive && collateralBank.position.isLending && (
                             <ActionBoxDialog requestedBank={collateralBank} requestedAction={ActionType.Withdraw}>
