@@ -122,7 +122,7 @@ type TradeStoreState = {
   marginfiClient: MarginfiClient | null;
 
   // active group, currently being viewed / traded
-  activeGroup: ActiveGroup | null;
+  activeGroup: PublicKey | null;
 
   // array of marginfi accounts
   marginfiAccounts: {
@@ -153,16 +153,8 @@ type TradeStoreState = {
     refresh?: boolean;
   }) => Promise<void>;
 
-  // set active banks and initialize marginfi client
-  setActiveBank: ({
-    bankPk,
-    connection,
-    wallet,
-  }: {
-    bankPk: PublicKey;
-    connection?: Connection;
-    wallet?: Wallet;
-  }) => Promise<void>;
+  // set active group and initialize marginfi client
+  setActiveGroup: ({ groupPk }: { groupPk: PublicKey }) => Promise<void>;
 
   setIsRefreshingStore: (isRefreshing: boolean) => void;
   refreshActiveBank: ({
@@ -279,9 +271,6 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
       const groupMap = get().groupMap;
       const allBanks: ExtendedBankInfo[] = [];
 
-      const marginfiAccounts: {
-        [group: string]: MarginfiAccountWrapper;
-      } = {};
       const mintDatas: Map<string, MintData> = new Map();
 
       const banksWithPriceAndToken: {
@@ -451,6 +440,12 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
 
       // deprecate this
       const tokenBanks = [...groupMap.values()].map((group) => group.pool.token);
+      const collateralBanks = [...groupMap.values()].flatMap((group) => group.pool.quoteTokens);
+
+      const extendedBankInfoMap: { [token: string]: ExtendedBankInfo } = collateralBanks.reduce((acc, current) => {
+        acc[current.info.rawBank.mint.toBase58()] = current;
+        return acc;
+      }, {} as { [token: string]: ExtendedBankInfo });
 
       if (!tokenBanks) throw new Error("Error fetching banks & groups");
 
@@ -488,30 +483,30 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
 
       set({
         initialized: true,
-        groupsCache: result.tradeGroups,
-        groups: result.groups,
+        groupsCache: groupsCache,
+        groups: groups,
         banks: sortedBanks,
-        banksIncludingUSDC: result.allBanks,
-        collateralBanks: result.collateralBanks,
+        banksIncludingUSDC: allBanks,
+        collateralBanks: extendedBankInfoMap,
         totalPages,
         currentPage,
-        nativeSolBalance: result.nativeSolBalance,
-        tokenAccountMap: result.tokenAccountMap,
-        marginfiAccounts: result.marginfiAccounts,
+        nativeSolBalance: nativeSolBalance,
+        tokenAccountMap: tokenAccountMap,
+        // marginfiAccounts: result.marginfiAccounts,
         wallet: wallet,
         connection: connection,
         userDataFetched: userDataFetched,
       });
 
-      if (get().activeGroup && args.refresh) {
-        get().refreshActiveBank({
-          connection,
-          wallet,
-          allBanks: result.allBanks,
-          collateralBanks: result.collateralBanks,
-          tradeGroups: result.tradeGroups,
-        });
-      }
+      // if (get().activeGroup && args.refresh) {
+      //   get().refreshActiveBank({
+      //     connection,
+      //     wallet,
+      //     allBanks: allBanks,
+      //     collateralBanks: collateralBanks,
+      //     tradeGroups: tradeGroups,
+      //   });
+      // }
     } catch (error) {
       console.error(error);
     }
@@ -522,26 +517,24 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
       const connection = args.connection ?? get().connection;
       const wallet = args?.wallet ?? get().wallet;
       const activeGroup = get().activeGroup;
+      const groupMap = get().groupMap;
 
       if (!activeGroup) throw new Error("No group to refresh");
+      if (!groupMap) throw new Error("Groups not fetched");
       if (!connection) throw new Error("Connection not found");
       if (!wallet) throw new Error("Wallet not found");
 
-      const bankPk = new PublicKey(activeGroup.token.address);
-      let bank = args.allBanks.find((bank) => new PublicKey(bank.address).equals(bankPk));
+      const group = groupMap.get(activeGroup);
 
-      if (!bank) return;
+      if (!group) throw new Error("Group not found");
 
-      const collateralBank = args.collateralBanks[bank.info.rawBank.address.toBase58()];
-
-      const group = new PublicKey(bank.info.rawBank.group);
-      const bankKeys = args.tradeGroups[group.toBase58()].map((bank) => new PublicKey(bank));
+      const bankKeys = [group.pool.token.address, ...group.pool.quoteTokens.map((bank) => bank.address)];
       const marginfiClient = await MarginfiClient.fetch(
         {
           environment: "production",
           cluster: "mainnet",
           programId,
-          groupPk: group,
+          groupPk: activeGroup,
         },
         wallet,
         connection,
@@ -553,184 +546,86 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
       let marginfiAccounts: MarginfiAccountWrapper[] = [];
       let selectedAccount: MarginfiAccountWrapper | null = null;
       let accountSummary: AccountSummary = DEFAULT_ACCOUNT_SUMMARY;
-      let updatedTokenBank: ExtendedBankInfo = {
+      let updatedTokenBank: ArenaBank = {
+        ...group.pool.token,
+        isActive: false,
+      };
+      let updatedCollateralBanks: ArenaBank[] = group.pool.quoteTokens.map((bank) => ({
         ...bank,
         isActive: false,
+      }));
+
+      let updatedPool: ArenaPool = {
+        token: updatedTokenBank,
+        quoteTokens: updatedCollateralBanks,
       };
-      let updatedCollateralBank: ExtendedBankInfo = {
-        ...collateralBank,
-        isActive: false,
-      };
 
-      if (wallet.publicKey) {
-        marginfiAccounts = await marginfiClient.getMarginfiAccountsForAuthority(wallet.publicKey);
-        selectedAccount = marginfiAccounts[0];
+      if (!wallet.publicKey.equals(PublicKey.default)) {
+        const [tokenData] = await Promise.all([
+          fetchTokenAccounts(
+            connection,
+            wallet.publicKey,
+            [updatedTokenBank, ...updatedCollateralBanks].map((bank) => ({
+              mint: bank.info.rawBank.mint,
+              mintDecimals: bank.info.rawBank.mintDecimals,
+              bankAddress: bank.info.rawBank.address,
+            })),
+            marginfiClient.mintDatas
+          ),
+        ]);
 
-        // token bank
-        const positionRaw = selectedAccount
-          ? selectedAccount.activeBalances.find((balance) => balance.bankPk.equals(bank.address))
-          : false;
+        const nativeSolBalance = tokenData.nativeSolBalance;
+        const tokenAccountMap = tokenData.tokenAccountMap;
 
-        if (positionRaw) {
-          const position = makeLendingPosition(
-            positionRaw,
+        const updateBank = (bank: ExtendedBankInfo) => {
+          const tokenAccount = tokenAccountMap?.get(bank.info.rawBank.mint.toBase58());
+          if (!tokenAccount) return bank;
+
+          return makeExtendedBankInfo(
+            { icon: bank.meta.tokenLogoUri, name: bank.meta.tokenName, symbol: bank.meta.tokenSymbol },
             bank.info.rawBank,
-            makeBankInfo(bank.info.rawBank, bank.info.oraclePrice),
             bank.info.oraclePrice,
-            selectedAccount
+            undefined,
+            {
+              nativeSolBalance,
+              marginfiAccount: group.selectedAccount,
+              tokenAccount,
+            }
           );
+        };
 
-          updatedTokenBank = {
-            ...bank,
-            position,
-            isActive: true,
-          };
-        }
-
-        const collateralPositionRaw = selectedAccount
-          ? selectedAccount.activeBalances.find((balance) => balance.bankPk.equals(collateralBank.info.rawBank.address))
-          : false;
-
-        if (collateralPositionRaw) {
-          const collateralPosition = makeLendingPosition(
-            collateralPositionRaw,
-            collateralBank.info.rawBank,
-            makeBankInfo(collateralBank.info.rawBank, collateralBank.info.oraclePrice),
-            collateralBank.info.oraclePrice,
-            selectedAccount
-          );
-
-          updatedCollateralBank = {
-            ...collateralBank,
-            position: collateralPosition,
-            isActive: true,
-          };
-        }
-
-        if (selectedAccount) {
-          accountSummary = computeAccountSummary(selectedAccount, [updatedTokenBank, updatedCollateralBank]);
-        }
+        updatedPool = {
+          token: updateBank(updatedTokenBank),
+          quoteTokens: updatedCollateralBanks.map(updateBank),
+        };
       }
+
+      const newGroup = {
+        ...group,
+        pool: { ...updatedPool, poolData: group.pool.poolData },
+      };
+
+      groupMap.set(activeGroup, newGroup);
 
       set({
         marginfiClient,
         selectedAccount,
         accountSummary,
-        activeGroup: {
-          token: updatedTokenBank,
-          usdc: updatedCollateralBank,
-        },
+        groupMap,
+        activeGroup: activeGroup,
       });
     } catch (error) {
       console.error(error);
     }
   },
 
-  setActiveBank: async (args) => {
-    try {
-      const connection = args.connection ?? get().connection;
-      const wallet = args?.wallet ?? get().wallet;
-
-      if (!connection) throw new Error("Connection not found");
-      if (!wallet) throw new Error("Wallet not found");
-
-      const bankPk = new PublicKey(args.bankPk);
-      let bank = get().banksIncludingUSDC.find((bank) => new PublicKey(bank.address).equals(bankPk));
-
-      if (!bank) return;
-
-      const collateralBank = get().collateralBanks[bank.info.rawBank.address.toBase58()];
-
-      const group = new PublicKey(bank.info.rawBank.group);
-      const bankKeys = get().groupsCache[group.toBase58()].map((bank) => new PublicKey(bank));
-      const marginfiClient = await MarginfiClient.fetch(
-        {
-          environment: "production",
-          cluster: "mainnet",
-          programId,
-          groupPk: group,
-        },
-        wallet,
-        connection,
-        {
-          preloadedBankAddresses: bankKeys,
-        }
-      );
-
-      let marginfiAccounts: MarginfiAccountWrapper[] = [];
-      let selectedAccount: MarginfiAccountWrapper | null = null;
-      let accountSummary: AccountSummary = DEFAULT_ACCOUNT_SUMMARY;
-      let updatedTokenBank: ExtendedBankInfo = {
-        ...bank,
-        isActive: false,
+  setActiveGroup: async (args) => {
+    set((state) => {
+      return {
+        ...state,
+        activeGroup: args.groupPk,
       };
-      let updatedCollateralBank: ExtendedBankInfo = {
-        ...collateralBank,
-        isActive: false,
-      };
-
-      if (wallet.publicKey) {
-        marginfiAccounts = await marginfiClient.getMarginfiAccountsForAuthority(wallet.publicKey);
-        selectedAccount = marginfiAccounts[0];
-
-        // token bank
-        const positionRaw = selectedAccount
-          ? selectedAccount.activeBalances.find((balance) => balance.bankPk.equals(bank.address))
-          : false;
-
-        if (positionRaw) {
-          const position = makeLendingPosition(
-            positionRaw,
-            bank.info.rawBank,
-            makeBankInfo(bank.info.rawBank, bank.info.oraclePrice),
-            bank.info.oraclePrice,
-            selectedAccount
-          );
-
-          updatedTokenBank = {
-            ...bank,
-            position,
-            isActive: true,
-          };
-        }
-
-        const collateralPositionRaw = selectedAccount
-          ? selectedAccount.activeBalances.find((balance) => balance.bankPk.equals(collateralBank.info.rawBank.address))
-          : false;
-
-        if (collateralPositionRaw) {
-          const collateralPosition = makeLendingPosition(
-            collateralPositionRaw,
-            collateralBank.info.rawBank,
-            makeBankInfo(collateralBank.info.rawBank, collateralBank.info.oraclePrice),
-            collateralBank.info.oraclePrice,
-            selectedAccount
-          );
-
-          updatedCollateralBank = {
-            ...collateralBank,
-            position: collateralPosition,
-            isActive: true,
-          };
-        }
-
-        if (selectedAccount) {
-          accountSummary = computeAccountSummary(selectedAccount, [updatedTokenBank, updatedCollateralBank]);
-        }
-      }
-
-      set({
-        marginfiClient,
-        selectedAccount,
-        accountSummary,
-        activeGroup: {
-          token: updatedTokenBank,
-          usdc: updatedCollateralBank,
-        },
-      });
-    } catch (error) {
-      console.error(error);
-    }
+    });
   },
 
   resetActiveGroup: () => {
@@ -792,153 +687,6 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
 
 export { createTradeStore };
 export type { TradeStoreState };
-
-const fetchBanksAndTradeGroups = async (wallet: Wallet | null, connection: Connection) => {
-  if (!connection) throw new Error("Connection not found");
-  //   if (!wallet) throw new Error("Wallet not found");
-  const tradeGroups: TradeGroupsCache = await fetch(TRADE_GROUPS_MAP).then((res) => res.json());
-  const tokenMetadataMap = await loadTokenMetadatas(TOKEN_METADATA_MAP);
-  const bankMetadataMap = await loadBankMetadatas(BANK_METADATA_MAP);
-
-  if (!tradeGroups) {
-    console.error("Failed to fetch trade groups");
-    return;
-  }
-
-  const groups = Object.keys(tradeGroups).map((group) => new PublicKey(group));
-  const allBanks: ExtendedBankInfo[] = [];
-  const banksWithPriceAndToken: {
-    bank: Bank;
-    oraclePrice: OraclePrice;
-    tokenMetadata: TokenMetadata;
-  }[] = [];
-  const marginfiAccounts: {
-    [group: string]: MarginfiAccountWrapper;
-  } = {};
-  const mintDatas: Map<string, MintData> = new Map();
-
-  await Promise.all(
-    groups.map(async (group) => {
-      const bankKeys = tradeGroups[group.toBase58()].map((bank) => new PublicKey(bank));
-      const marginfiClient = await MarginfiClient.fetch(
-        {
-          environment: "production",
-          cluster: "mainnet",
-          programId,
-          groupPk: group,
-        },
-        wallet,
-        connection,
-        {
-          preloadedBankAddresses: bankKeys,
-        }
-      );
-
-      for (const [k, v] of marginfiClient.mintDatas) {
-        mintDatas.set(k, v);
-      }
-
-      const banksIncludingUSDC = Array.from(marginfiClient.banks.values());
-
-      banksIncludingUSDC.forEach((bank) => {
-        const oraclePrice = marginfiClient.getOraclePriceByBank(bank.address);
-        if (!oraclePrice) {
-          return;
-        }
-
-        const bankMetadata = bankMetadataMap[bank.address.toBase58()];
-        if (bankMetadata === undefined) {
-          return;
-        }
-
-        try {
-          const tokenMetadata = getValueInsensitive(tokenMetadataMap, bankMetadata.tokenSymbol);
-          if (!tokenMetadata) {
-            return;
-          }
-
-          banksWithPriceAndToken.push({ bank, oraclePrice, tokenMetadata });
-        } catch (err) {
-          console.error("error fetching token metadata: ", err);
-        }
-      });
-
-      if (wallet.publicKey) {
-        const mfiAccounts = await marginfiClient.getMarginfiAccountsForAuthority(wallet.publicKey);
-        const mfiAccount = mfiAccounts[0];
-
-        if (mfiAccount) {
-          marginfiAccounts[group.toBase58()] = mfiAccount;
-        }
-      }
-    })
-  );
-
-  let nativeSolBalance = 0;
-  let tokenAccountMap: TokenAccountMap | null = null;
-  if (wallet?.publicKey) {
-    const [tokenData] = await Promise.all([
-      fetchTokenAccounts(
-        connection,
-        wallet.publicKey,
-        banksWithPriceAndToken.map((bank) => ({
-          mint: bank.bank.mint,
-          mintDecimals: bank.bank.mintDecimals,
-          bankAddress: bank.bank.address,
-        })),
-        mintDatas
-      ),
-    ]);
-
-    nativeSolBalance = tokenData.nativeSolBalance;
-    tokenAccountMap = tokenData.tokenAccountMap;
-  }
-
-  const [extendedBankInfos] = await banksWithPriceAndToken.reduce(
-    async (accPromise, { bank, oraclePrice, tokenMetadata }) => {
-      const acc = await accPromise;
-      let userData;
-      if (wallet?.publicKey) {
-        const marginfiAccount = marginfiAccounts[bank.group.toBase58()];
-        const tokenAccount = tokenAccountMap!.get(bank.mint.toBase58());
-        if (!tokenAccount) {
-          return acc;
-        }
-        userData = {
-          nativeSolBalance,
-          tokenAccount,
-          marginfiAccount,
-        };
-      }
-      acc[0].push(makeExtendedBankInfo(tokenMetadata, bank, oraclePrice, undefined, userData));
-      return acc;
-    },
-    Promise.resolve([[]] as [ExtendedBankInfo[]])
-  );
-
-  allBanks.push(...extendedBankInfos);
-
-  const collateralBanks: {
-    [group: string]: ExtendedBankInfo;
-  } = {};
-
-  for (let i = 0; i < allBanks.length - 1; i++) {
-    collateralBanks[allBanks[i + 1].info.rawBank.address.toBase58()] = allBanks[i];
-  }
-
-  const tokenBanks = allBanks.filter((bank) => !bank.info.rawBank.mint.equals(USDC_MINT));
-
-  return {
-    allBanks,
-    tokenBanks,
-    collateralBanks,
-    tradeGroups,
-    groups,
-    nativeSolBalance,
-    tokenAccountMap,
-    marginfiAccounts,
-  };
-};
 
 const sortBanks = (
   banks: ExtendedBankInfo[],
