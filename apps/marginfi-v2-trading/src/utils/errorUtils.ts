@@ -49,7 +49,7 @@ const createWithdrawCheck = (tradeSide: string, activeGroup: ActiveGroup): Actio
   isEnabled: true,
   description: `Before you can ${tradeSide} this asset, you'll need to withdraw your supplied ${
     tradeSide === "long" ? activeGroup.usdc.meta.tokenSymbol : activeGroup.token.meta.tokenSymbol
-  }.`,
+  }. Learn more here.`,
   action: {
     type: ActionType.Withdraw,
     bank: tradeSide === "long" ? activeGroup.usdc : activeGroup.token,
