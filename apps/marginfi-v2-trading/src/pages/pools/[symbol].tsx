@@ -13,11 +13,17 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/comp
 
 export default function TradeSymbolPage() {
   const [previousTxn] = useUiStore((state) => [state.previousTxn]);
-  const [initialized, activeGroup, accountSummary] = useTradeStore((state) => [
+  const [initialized, activeGroupPk, groupMap, accountSummary] = useTradeStore((state) => [
     state.initialized,
     state.activeGroup,
+    state.groupMap,
     state.accountSummary,
   ]);
+
+  const activeGroup = React.useMemo(() => {
+    const group = activeGroupPk ? groupMap.get(activeGroupPk) : null;
+    return group ? { token: group.pool.token, usdc: group.pool.quoteTokens[0] } : null;
+  }, [activeGroupPk, groupMap]);
 
   const healthColor = React.useMemo(() => {
     if (accountSummary.healthFactor) {

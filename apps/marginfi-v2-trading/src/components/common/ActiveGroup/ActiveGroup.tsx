@@ -9,11 +9,17 @@ import { useTradeStore } from "~/store";
 import { Button } from "~/components/ui/button";
 
 export const ActiveGroup = () => {
-  const [activeGroup, selectedAccount, marginfiClient] = useTradeStore((state) => [
+  const [activeGroupPk, groupMap, selectedAccount, marginfiClient] = useTradeStore((state) => [
     state.activeGroup,
+    state.groupMap,
     state.selectedAccount,
     state.marginfiClient,
   ]);
+
+  const activeGroup = React.useMemo(() => {
+    const group = activeGroupPk ? groupMap.get(activeGroupPk) : null;
+    return group ? { token: group.pool.token, usdc: group.pool.quoteTokens[0] } : null;
+  }, [activeGroupPk, groupMap]);
   const [isOpen, setIsOpen] = React.useState(false);
 
   if (!isOpen) {

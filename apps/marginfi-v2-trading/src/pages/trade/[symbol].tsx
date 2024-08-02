@@ -21,8 +21,20 @@ import type { TokenData } from "~/types";
 
 export default function TradeSymbolPage() {
   const router = useRouter();
-  const [initialized, activeGroup] = useTradeStore((state) => [state.initialized, state.activeGroup]);
   const side = router.query.side as "long" | "short";
+  const { connection } = useConnection();
+  const { wallet } = useWalletContext();
+  const [initialized, activeGroupPk, groupMap] = useTradeStore((state) => [
+    state.initialized,
+    state.activeGroup,
+    state.groupMap,
+  ]);
+
+  const activeGroup = React.useMemo(() => {
+    const group = activeGroupPk ? groupMap.get(activeGroupPk) : null;
+    return group ? { token: group.pool.token, usdc: group.pool.quoteTokens[0] } : null;
+  }, [activeGroupPk, groupMap]);
+
   const [previousTxn] = useUiStore((state) => [state.previousTxn]);
   const [tokenData, setTokenData] = React.useState<TokenData | null>(null);
 

@@ -48,12 +48,12 @@ export const WalletAuthAccounts = () => {
   const newAccountNameRef = React.useRef<HTMLInputElement>(null);
   const editAccountNameRef = React.useRef<HTMLInputElement>(null);
 
-  const [initialized, mfiClient, selectedAccount, activeGroup, setActiveBank] = useTradeStore((state) => [
+  const [initialized, mfiClient, selectedAccount, activeGroup, setActiveGroup] = useTradeStore((state) => [
     state.initialized,
     state.marginfiClient,
     state.selectedAccount,
     state.activeGroup,
-    state.setActiveBank,
+    state.setActiveGroup,
   ]);
 
   if (!initialized || !selectedAccount) return null;

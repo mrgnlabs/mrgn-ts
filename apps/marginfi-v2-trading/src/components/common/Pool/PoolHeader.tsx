@@ -17,7 +17,12 @@ import { Button } from "~/components/ui/button";
 import type { TokenData } from "~/types";
 
 export const PoolHeader = () => {
-  const [activeGroup] = useTradeStore((state) => [state.activeGroup]);
+  const [activeGroupPk, groupMap] = useTradeStore((state) => [state.activeGroup, state.groupMap]);
+
+  const activeGroup = React.useMemo(() => {
+    const group = activeGroupPk ? groupMap.get(activeGroupPk) : null;
+    return group ? { token: group.pool.token, usdc: group.pool.quoteTokens[0] } : null;
+  }, [activeGroupPk, groupMap]);
 
   const [tokenData, setTokenData] = React.useState<TokenData | null>(null);
 

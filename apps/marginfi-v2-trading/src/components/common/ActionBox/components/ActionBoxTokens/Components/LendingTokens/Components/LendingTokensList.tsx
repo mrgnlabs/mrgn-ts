@@ -32,8 +32,13 @@ export const LendingTokensList = ({
   onClose,
   tokensOverride,
 }: LendingTokensListProps) => {
-  const [activeGroup] = useTradeStore((state) => [state.activeGroup]);
+  const [activeGroupPk, groupMap] = useTradeStore((state) => [state.activeGroup, state.groupMap]);
   const [nativeSolBalance] = useMrgnlendStore((state) => [state.nativeSolBalance]);
+
+  const activeGroup = React.useMemo(() => {
+    const group = activeGroupPk ? groupMap.get(activeGroupPk) : null;
+    return group ? { token: group.pool.token, usdc: group.pool.quoteTokens[0] } : null;
+  }, [activeGroupPk, groupMap]);
 
   const lendingMode = React.useMemo(
     () =>

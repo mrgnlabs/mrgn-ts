@@ -14,12 +14,18 @@ import { Table, TableBody, TableHead, TableCell, TableHeader, TableRow } from "~
 import { ActiveGroup } from "~/store/tradeStore";
 
 export const LpPositionList = () => {
-  const [marginfiAccounts, activeGroup, banks, collateralBanks] = useTradeStore((state) => [
+  const [marginfiAccounts, banks, collateralBanks] = useTradeStore((state) => [
     state.marginfiAccounts,
-    state.activeGroup,
     state.banks,
     state.collateralBanks,
   ]);
+
+  const [activeGroupPk, groupMap] = useTradeStore((state) => [state.activeGroup, state.groupMap]);
+
+  const activeGroup = React.useMemo(() => {
+    const group = activeGroupPk ? groupMap.get(activeGroupPk) : null;
+    return group ? { token: group.pool.token, usdc: group.pool.quoteTokens[0] } : null;
+  }, [activeGroupPk, groupMap]);
 
   const portfolio = React.useMemo(() => {
     const filteredBanks = banks.filter((bank) => bank.isActive) as ActiveBankInfo[];
