@@ -39,9 +39,10 @@ enum View {
 export default function HomePage() {
   const router = useRouter();
   const isMobile = useIsMobile();
-  const [initialized, banks, resetActiveGroup, currentPage, totalPages, setCurrentPage, sortBy, setSortBy] =
+  const [initialized, groupMap, banks, resetActiveGroup, currentPage, totalPages, setCurrentPage, sortBy, setSortBy] =
     useTradeStore((state) => [
       state.initialized,
+      state.groupMap,
       state.banks,
       state.resetActiveGroup,
       state.currentPage,
@@ -63,6 +64,8 @@ export default function HomePage() {
     return option?.dir || "desc";
   }, [sortBy]);
 
+  const groups = Array.from(groupMap.values());
+
   const handleFeelingLucky = () => {
     const randomPool = banks[Math.floor(Math.random() * banks.length)];
     if (!randomPool) return;
@@ -73,20 +76,9 @@ export default function HomePage() {
     resetActiveGroup();
   }, [resetActiveGroup]);
 
-  React.useEffect(() => {
-    if (!initialized) return;
-    const timeout = setTimeout(() => {
-      requestAnimationFrame(() => animate("[data-item]", { opacity: 1 }, { duration: 0.5, delay: stagger(0.25) }));
-      setInitialAnimation(true);
-    }, 1500);
-    animate("[data-filter]", { opacity: 1 }, { duration: 0.3, delay: 1.25 });
-
-    return () => clearTimeout(timeout);
-  }, [initialized, animate, scope]);
-
   return (
     <>
-      <div ref={scope} className="w-full max-w-8xl mx-auto px-4 pb-16 pt-8 md:pt-14">
+      <div className="w-full max-w-8xl mx-auto px-4 pb-16 pt-8 md:pt-14">
         {!initialized && <Loader label="Loading the arena..." className="mt-8" />}
         {initialized && (
           <>
@@ -145,35 +137,33 @@ export default function HomePage() {
                   </SelectContent>
                 </Select>
               </motion.div>
-              {view === View.GRID && (
-                <motion.div data-grid className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                  {banks.length > 0 &&
-                    banks.slice(0, currentPage * POOLS_PER_PAGE).map((bank, i) => (
-                      <motion.div data-item key={i} initial={{ opacity: !initialAnimation ? 0 : 1 }}>
-                        <PoolCard bank={bank} />
-                      </motion.div>
-                    ))}
-                </motion.div>
-              )}
-              {view === View.LIST && (
-                <div className="w-full space-y-2">
-                  <div className="grid grid-cols-7 w-full text-muted-foreground">
-                    <div className="pl-5">Asset</div>
-                    <div className="pl-2.5">Price</div>
-                    <div className="pl-2">24hr Volume</div>
-                    <div>Market cap</div>
-                    <div>Pool liquidity</div>
-                    <div className="pl-2">Created by</div>
-                    <div />
-                  </div>
-                  <div className="bg-background border rounded-xl px-4 py-1">
-                    {banks.length > 0 &&
-                      banks
-                        .slice(0, currentPage * POOLS_PER_PAGE)
-                        .map((bank, i) => <PoolListItem key={i} bank={bank} last={i === banks.length - 1} />)}
-                  </div>
-                </div>
-              )}
+              <motion.div
+                className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8"
+                initial="hidden"
+                animate="visible"
+                variants={{
+                  visible: {
+                    transition: {
+                      staggerChildren: 0.15,
+                      delayChildren: 1.5,
+                    },
+                  },
+                }}
+              >
+                {groups.length > 0 &&
+                  groups.slice(0, currentPage * POOLS_PER_PAGE).map((group, i) => (
+                    <motion.div
+                      key={i}
+                      variants={{
+                        hidden: { opacity: 0 },
+                        visible: { opacity: 1 },
+                      }}
+                      transition={{ duration: 0.5 }}
+                    >
+                      <PoolCard groupData={group} />
+                    </motion.div>
+                  ))}
+              </motion.div>
               {currentPage < totalPages && (
                 <div className="py-8 flex justify-center">
                   <Button

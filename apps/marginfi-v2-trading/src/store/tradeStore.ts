@@ -376,9 +376,24 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
 
           if (tokenBanks.length > 1) console.error("Inconsitency in token banks!");
 
+          const totalTokenLiquidity = tokenBanks.reduce(
+            (total, bank) =>
+              total + bank.info.state.totalDeposits * bank.info.oraclePrice.priceRealtime.price.toNumber(),
+            0
+          );
+
+          const totalCollateralLiquidity = collateralBanks.reduce(
+            (total, bank) =>
+              total + bank.info.state.totalDeposits * bank.info.oraclePrice.priceRealtime.price.toNumber(),
+            0
+          );
+
           groupData.pool = {
             token: tokenBanks[0],
             quoteTokens: collateralBanks,
+            poolData: {
+              totalLiquidity: totalTokenLiquidity + totalCollateralLiquidity,
+            },
           };
 
           allBanks.push(...extendedBankInfos);
@@ -432,9 +447,21 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
             );
           };
 
+          const tokenLiquidity =
+            group.pool.token.info.state.totalDeposits *
+            group.pool.token.info.oraclePrice.priceRealtime.price.toNumber();
+          const quoteTokenLiquidity = group.pool.quoteTokens.reduce(
+            (acc, bank) => acc + bank.info.state.totalDeposits * bank.info.oraclePrice.priceRealtime.price.toNumber(),
+            0
+          );
+          const totalLiquidity = tokenLiquidity + quoteTokenLiquidity;
+
           const updatedPool = {
             token: updateBank(group.pool.token),
             quoteTokens: group.pool.quoteTokens.map(updateBank),
+            poolData: {
+              totalLiquidity,
+            },
           };
 
           groupMap.set(id, { ...group, pool: updatedPool });
@@ -490,6 +517,7 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
         initialized: true,
         groupsCache: groupsCache,
         groups: groups,
+        groupMap,
         banks: sortedBanks,
         banksIncludingUSDC: allBanks,
         collateralBanks: extendedBankInfoMap,
