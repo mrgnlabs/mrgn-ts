@@ -82,20 +82,22 @@ export const TradingBox = ({ side = "long" }: TradingBoxProps) => {
 
   const [
     selectedAccount,
-    activeGroup,
+    activeGroupPk,
     accountSummary,
-    setActiveBank,
+    setActiveGroup,
     marginfiAccounts,
     marginfiClient,
+    groupMap,
     fetchTradeState,
     setIsRefreshingStore,
   ] = useTradeStore((state) => [
     state.selectedAccount,
     state.activeGroup,
     state.accountSummary,
-    state.setActiveBank,
+    state.setActiveGroup,
     state.marginfiAccounts,
     state.marginfiClient,
+    state.groupMap,
     state.fetchTradeState,
     state.setIsRefreshingStore,
   ]);
@@ -117,6 +119,19 @@ export const TradingBox = ({ side = "long" }: TradingBoxProps) => {
     state.setIsActionComplete,
     state.setPreviousTxn,
   ]);
+
+  const activeGroup = React.useMemo(() => {
+    if (activeGroupPk) {
+      const group = groupMap.get(activeGroupPk) ?? null;
+      if (group) {
+        return {
+          token: group.pool.token,
+          usdc: group.pool.quoteTokens[0],
+        };
+      }
+    }
+    return null;
+  }, [activeGroupPk, groupMap]);
 
   React.useEffect(() => {
     if (tradeState !== prevTradeState) {
@@ -495,7 +510,7 @@ export const TradingBox = ({ side = "long" }: TradingBoxProps) => {
                     selected={activeGroup.token}
                     setSelected={(bank) => {
                       router.push(`/trade/${bank.address.toBase58()}`);
-                      setActiveBank({ bankPk: bank.address, connection, wallet });
+                      setActiveGroup({ groupPk: bank.info.rawBank.group });
                       clearStates();
                     }}
                   />

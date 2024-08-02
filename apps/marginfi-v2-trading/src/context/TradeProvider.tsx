@@ -23,7 +23,7 @@ export const TradePovider: React.FC<{
     userDataFetched,
     activeGroup,
     fetchTradeState,
-    setActiveBank,
+    setActiveGroup,
     isRefreshingStore,
     setIsRefreshingStore,
   ] = useTradeStore((state) => [
@@ -31,7 +31,7 @@ export const TradePovider: React.FC<{
     state.userDataFetched,
     state.activeGroup,
     state.fetchTradeState,
-    state.setActiveBank,
+    state.setActiveGroup,
     state.isRefreshingStore,
     state.setIsRefreshingStore,
   ]);
@@ -47,12 +47,12 @@ export const TradePovider: React.FC<{
     } else if (isFetchable && initialized && wallet) {
       try {
         const pk = new PublicKey(symbol);
-        setActiveBank({ bankPk: new PublicKey(symbol), wallet });
+        setActiveGroup({ groupPk: new PublicKey(symbol) });
       } catch {
         router.push("/404");
       }
     }
-  }, [router, initialized, setActiveBank, prevWalletAddress, walletAddress, userDataFetched, wallet]);
+  }, [router, initialized, prevWalletAddress, walletAddress, userDataFetched, wallet, setActiveGroup]);
 
   React.useEffect(() => {
     const fetchData = () => {

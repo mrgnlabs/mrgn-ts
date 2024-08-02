@@ -64,24 +64,36 @@ export const ActionBox = ({
   const [
     isInitialized,
     setIsRefreshingStore,
-    activeGroupState,
+    activeGroupPk,
+    groupMap,
     mfiClient,
     activeAccount,
     nativeSolBalance,
     fetchTradeState,
-    setActiveBank,
+    setActiveGroup,
   ] = useTradeStore((state) => [
     state.initialized,
     state.setIsRefreshingStore,
     state.activeGroup,
+    state.groupMap,
     state.marginfiClient,
     state.selectedAccount,
     state.nativeSolBalance,
     state.fetchTradeState,
-    state.setActiveBank,
+    state.setActiveGroup,
   ]);
 
-  const activeGroup = React.useMemo(() => activeGroupArg ?? activeGroupState, [activeGroupArg, activeGroupState]);
+  const activeGroup = React.useMemo(() => {
+    const group = activeGroupPk ? groupMap.get(activeGroupPk) : null;
+
+    const activeGroupState = group
+      ? {
+          token: group.pool.token,
+          usdc: group.pool.quoteTokens[0],
+        }
+      : null;
+    return activeGroupArg ?? activeGroupState;
+  }, [activeGroupArg, activeGroupPk, groupMap]);
 
   const [
     slippageBps,

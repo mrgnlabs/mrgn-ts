@@ -42,7 +42,12 @@ const MATOMO_URL = "https://mrgn.matomo.cloud";
 type MrgnAppProps = { path: string };
 
 export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnAppProps) {
-  const [activeGroup] = useTradeStore((state) => [state.activeGroup]);
+  const [activeGroupPk, groupMap] = useTradeStore((state) => [state.activeGroup, state.groupMap]);
+
+  const activeGroup = React.useMemo(() => {
+    const group = activeGroupPk ? groupMap.get(activeGroupPk) : null;
+    return group ? { token: group.pool.token, usdc: group.pool.quoteTokens[0] } : null;
+  }, [activeGroupPk, groupMap]);
 
   const { query, isReady } = useRouter();
 
