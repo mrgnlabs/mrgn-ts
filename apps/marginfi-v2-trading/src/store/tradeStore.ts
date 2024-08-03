@@ -430,11 +430,11 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
         tokenAccountMap = tData.tokenAccountMap;
 
         for (const [id, group] of groupMap) {
-          const updateBank = (bank: ExtendedBankInfo) => {
+          const updateBank = (bank: ArenaBank) => {
             const tokenAccount = tokenAccountMap?.get(bank.info.rawBank.mint.toBase58());
             if (!tokenAccount) return bank;
 
-            return makeExtendedBankInfo(
+            const updatedBankInfo = makeExtendedBankInfo(
               { icon: bank.meta.tokenLogoUri, name: bank.meta.tokenName, symbol: bank.meta.tokenSymbol },
               bank.info.rawBank,
               bank.info.oraclePrice,
@@ -445,6 +445,11 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
                 tokenAccount,
               }
             );
+
+            return {
+              ...updatedBankInfo,
+              tokenData: bank.tokenData,
+            };
           };
 
           const tokenLiquidity =
