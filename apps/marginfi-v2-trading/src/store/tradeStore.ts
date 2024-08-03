@@ -76,6 +76,11 @@ export interface GroupData {
   accountSummary: AccountSummary;
 }
 
+type Portfolio = {
+  long: ArenaBank[];
+  short: ArenaBank[];
+} | null;
+
 type TradeStoreState = {
   // keep track of store state
   initialized: boolean;
@@ -140,6 +145,8 @@ type TradeStoreState = {
   // wallet state
   wallet: Wallet | null;
   connection: Connection | null;
+
+  portfolio: Portfolio | null;
 
   /* Actions */
   // fetch groups / banks
@@ -214,6 +221,7 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
   tokenAccountMap: null,
   connection: null,
   wallet: null,
+  portfolio: null,
 
   setIsRefreshingStore: (isRefreshing) => {
     set((state) => {
@@ -412,6 +420,7 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
 
       let nativeSolBalance = 0;
       let tokenAccountMap: TokenAccountMap | null = null;
+      let portfolio: Portfolio | null = null;
       if (!wallet.publicKey.equals(PublicKey.default)) {
         const [tData] = await Promise.all([
           fetchTokenAccounts(
@@ -452,28 +461,57 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
             };
           };
 
-          const tokenLiquidity =
-            group.pool.token.info.state.totalDeposits *
-            group.pool.token.info.oraclePrice.priceRealtime.price.toNumber();
-          const quoteTokenLiquidity = group.pool.quoteTokens.reduce(
-            (acc, bank) => acc + bank.info.state.totalDeposits * bank.info.oraclePrice.priceRealtime.price.toNumber(),
-            0
-          );
-          const totalLiquidity = tokenLiquidity + quoteTokenLiquidity;
-
           const updatedPool = {
+            ...group.pool,
             token: updateBank(group.pool.token),
             quoteTokens: group.pool.quoteTokens.map(updateBank),
-            poolData: {
-              totalLiquidity,
-            },
           };
 
           groupMap.set(id, { ...group, pool: updatedPool });
         }
-      }
 
-      //   const result = await fetchBanksAndTradeGroups(wallet, connection);
+        const longBanks: ArenaBank[] = [];
+        const shortBanks: ArenaBank[] = [];
+
+        groupMap.forEach((group) => {
+          const tokenBank = group.pool.token;
+          const quoteTokens = group.pool.quoteTokens;
+
+          if (tokenBank.isActive && tokenBank.position) {
+            const hasLongPosition = tokenBank.position.isLending;
+            const hasShortPosition = !tokenBank.position.isLending && tokenBank.position.usdValue > 0;
+
+            if (hasLongPosition) {
+              const matchingQuoteToken = quoteTokens.find((qt) => qt.isActive && qt.position && !qt.position.isLending);
+              if (matchingQuoteToken) {
+                longBanks.push(tokenBank);
+              }
+            } else if (hasShortPosition) {
+              const matchingQuoteToken = quoteTokens.find((qt) => qt.isActive && qt.position && qt.position.isLending);
+              if (matchingQuoteToken) {
+                shortBanks.push(tokenBank);
+              }
+            }
+          }
+        });
+
+        console.log("longBanks", longBanks);
+        console.log("shortBanks", shortBanks);
+
+        const sortBanks = (banks: ArenaBank[]) =>
+          banks.sort((a, b) => {
+            const aValue = a.isActive && a.position ? a.position.usdValue : 0;
+            const bValue = b.isActive && b.position ? b.position.usdValue : 0;
+            return bValue - aValue;
+          });
+
+        if (longBanks.length > 0 || shortBanks.length > 0) {
+          portfolio = {
+            long: sortBanks(longBanks),
+            short: sortBanks(shortBanks),
+          };
+        }
+      }
 
       // deprecate this
       const tokenBanks = [...groupMap.values()].map((group) => group.pool.token);
@@ -534,7 +572,10 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
         wallet: wallet,
         connection: connection,
         userDataFetched: userDataFetched,
+        portfolio: portfolio,
       });
+
+      console.log("portfolio", portfolio);
 
       // if (get().activeGroup && args.refresh) {
       //   get().refreshActiveBank({
