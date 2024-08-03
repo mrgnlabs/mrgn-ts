@@ -79,6 +79,7 @@ export interface GroupData {
 type Portfolio = {
   long: ArenaBank[];
   short: ArenaBank[];
+  lpPositions: GroupData[];
 } | null;
 
 type TradeStoreState = {
@@ -472,31 +473,44 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
 
         const longBanks: ArenaBank[] = [];
         const shortBanks: ArenaBank[] = [];
+        const lpPositions: GroupData[] = [];
 
         groupMap.forEach((group) => {
           const tokenBank = group.pool.token;
           const quoteTokens = group.pool.quoteTokens;
 
-          if (tokenBank.isActive && tokenBank.position) {
-            const hasLongPosition = tokenBank.position.isLending;
-            const hasShortPosition = !tokenBank.position.isLending && tokenBank.position.usdValue > 0;
+          let isLpPosition = true;
+          let hasAnyPosition = false;
+          let isLendingInAny = false;
 
-            if (hasLongPosition) {
-              const matchingQuoteToken = quoteTokens.find((qt) => qt.isActive && qt.position && !qt.position.isLending);
-              if (matchingQuoteToken) {
-                longBanks.push(tokenBank);
-              }
-            } else if (hasShortPosition) {
-              const matchingQuoteToken = quoteTokens.find((qt) => qt.isActive && qt.position && qt.position.isLending);
-              if (matchingQuoteToken) {
-                shortBanks.push(tokenBank);
-              }
+          if (tokenBank.isActive && tokenBank.position) {
+            hasAnyPosition = true;
+            if (tokenBank.position.isLending) {
+              isLendingInAny = true;
+            } else if (tokenBank.position.usdValue > 0) {
+              shortBanks.push(tokenBank);
+              isLpPosition = false;
             }
           }
-        });
 
-        console.log("longBanks", longBanks);
-        console.log("shortBanks", shortBanks);
+          quoteTokens.forEach((quoteToken) => {
+            if (quoteToken.isActive && quoteToken.position) {
+              hasAnyPosition = true;
+              if (quoteToken.position.isLending) {
+                isLendingInAny = true;
+              } else if (quoteToken.position.usdValue > 0) {
+                if (tokenBank.isActive && tokenBank.position && tokenBank.position.isLending) {
+                  longBanks.push(tokenBank);
+                }
+                isLpPosition = false;
+              }
+            }
+          });
+
+          if (hasAnyPosition && isLpPosition && isLendingInAny) {
+            lpPositions.push(group);
+          }
+        });
 
         const sortBanks = (banks: ArenaBank[]) =>
           banks.sort((a, b) => {
@@ -505,10 +519,11 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
             return bValue - aValue;
           });
 
-        if (longBanks.length > 0 || shortBanks.length > 0) {
+        if (longBanks.length > 0 || shortBanks.length > 0 || lpPositions.length > 0) {
           portfolio = {
             long: sortBanks(longBanks),
             short: sortBanks(shortBanks),
+            lpPositions: lpPositions,
           };
         }
       }
