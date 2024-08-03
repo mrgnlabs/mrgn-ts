@@ -105,7 +105,13 @@ export default function HomePage() {
             </div>
 
             <div className="w-full space-y-6 py-12 md:pt-16">
-              <motion.div data-filter className="flex items-center justify-between" initial={{ opacity: 0 }}>
+              <motion.div
+                data-filter
+                className="flex items-center justify-between"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.5, delay: 1.2 }}
+              >
                 <ToggleGroup
                   type="single"
                   value={view}
@@ -137,33 +143,54 @@ export default function HomePage() {
                   </SelectContent>
                 </Select>
               </motion.div>
-              <motion.div
-                className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8"
-                initial="hidden"
-                animate="visible"
-                variants={{
-                  visible: {
-                    transition: {
-                      staggerChildren: 0.15,
-                      delayChildren: 1.5,
+              {view === View.GRID && (
+                <motion.div
+                  className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8"
+                  initial="hidden"
+                  animate="visible"
+                  variants={{
+                    visible: {
+                      transition: {
+                        staggerChildren: 0.15,
+                        delayChildren: 1.5,
+                      },
                     },
-                  },
-                }}
-              >
-                {groups.length > 0 &&
-                  groups.slice(0, currentPage * POOLS_PER_PAGE).map((group, i) => (
-                    <motion.div
-                      key={i}
-                      variants={{
-                        hidden: { opacity: 0 },
-                        visible: { opacity: 1 },
-                      }}
-                      transition={{ duration: 0.5 }}
-                    >
-                      <PoolCard groupData={group} />
-                    </motion.div>
-                  ))}
-              </motion.div>
+                  }}
+                >
+                  {groups.length > 0 &&
+                    groups.slice(0, currentPage * POOLS_PER_PAGE).map((group, i) => (
+                      <motion.div
+                        key={i}
+                        variants={{
+                          hidden: { opacity: 0 },
+                          visible: { opacity: 1 },
+                        }}
+                        transition={{ duration: 0.5 }}
+                      >
+                        <PoolCard groupData={group} />
+                      </motion.div>
+                    ))}
+                </motion.div>
+              )}
+              {view === View.LIST && (
+                <div className="w-full space-y-2">
+                  <div className="grid grid-cols-7 w-full text-muted-foreground">
+                    <div className="pl-5">Asset</div>
+                    <div className="pl-2.5">Price</div>
+                    <div className="pl-2">24hr Volume</div>
+                    <div>Market cap</div>
+                    <div>Pool liquidity</div>
+                    <div className="pl-2">Created by</div>
+                    <div />
+                  </div>
+                  <div className="bg-background border rounded-xl px-4 py-1">
+                    {groups.length > 0 &&
+                      groups
+                        .slice(0, currentPage * POOLS_PER_PAGE)
+                        .map((group, i) => <PoolListItem key={i} groupData={group} last={i === groups.length - 1} />)}
+                  </div>
+                </div>
+              )}
               {currentPage < totalPages && (
                 <div className="py-8 flex justify-center">
                   <Button
