@@ -2,36 +2,32 @@ import React from "react";
 
 import Image from "next/image";
 
-import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
-import { IconChevronDown, IconTrendingUp, IconTrendingDown } from "@tabler/icons-react";
+import { IconChevronDown } from "@tabler/icons-react";
 
 import { useTradeStore } from "~/store";
 import { getTokenImageURL, cn } from "~/utils";
 
-import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "~/components/ui/command";
 import { Button } from "~/components/ui/button";
 
-import type { TokenData } from "~/types";
 import { Dialog, DialogContent, DialogTrigger } from "~/components/ui/dialog";
 import { Desktop, Mobile } from "~/mediaQueries";
 import { Drawer, DrawerContent, DrawerTrigger } from "~/components/ui/drawer";
 
+import type { GroupData } from "~/store/tradeStore";
+
 type TokenComboboxProps = {
-  selected: ExtendedBankInfo | null;
-  setSelected: (bank: ExtendedBankInfo) => void;
+  selected: GroupData | null;
+  setSelected: (groupData: GroupData) => void;
 };
 
 export const TokenCombobox = ({ selected, setSelected }: TokenComboboxProps) => {
   const [open, setOpen] = React.useState(false);
-  const [extendedBankInfos] = useTradeStore((state) => [state.banks]);
-
-  const banks = React.useMemo(() => {
-    return extendedBankInfos.sort(
-      (a, b) => b.info.oraclePrice.priceRealtime.price.toNumber() - a.info.oraclePrice.priceRealtime.price.toNumber()
-    );
-  }, [extendedBankInfos]);
+  const [groupMap] = useTradeStore((state) => [state.groupMap]);
+  const groups = Array.from(groupMap.values()).sort((a, b) => {
+    return a.pool.poolData && b.pool.poolData ? b.pool.poolData.totalLiquidity - a.pool.poolData.totalLiquidity : 0;
+  });
 
   return (
     <>
@@ -49,14 +45,14 @@ export const TokenCombobox = ({ selected, setSelected }: TokenComboboxProps) => 
                 <CommandList className="max-h-[390px]">
                   <CommandEmpty>No results found.</CommandEmpty>
                   <CommandGroup>
-                    {banks.map((bank, index) => (
+                    {groups.map((group, index) => (
                       <CommandItem
                         key={index}
                         className="gap-3 py-2 cursor-pointer rounded-md aria-selected:text-primary"
-                        value={bank.meta.tokenSymbol}
+                        value={group.client.group.address.toBase58().toLowerCase()}
                         onSelect={(value) => {
-                          const selBank = extendedBankInfos.find(
-                            (bank) => bank.meta.tokenSymbol.toLowerCase() === value
+                          const selBank = groups.find(
+                            (group) => group.client.group.address.toBase58().toLowerCase() === value
                           );
                           if (!selBank) return;
                           setSelected(selBank);
@@ -64,14 +60,32 @@ export const TokenCombobox = ({ selected, setSelected }: TokenComboboxProps) => 
                         }}
                       >
                         <Image
-                          src={getTokenImageURL(bank.info.state.mint.toBase58())}
+                          src={getTokenImageURL(group.pool.token.info.state.mint.toBase58())}
                           width={32}
                           height={32}
-                          alt={bank.meta.tokenName}
+                          alt={group.pool.token.meta.tokenName}
                           className="rounded-full"
                         />
-                        <span>{bank.meta.tokenSymbol}</span>
-                        <TokenData bank={bank} />
+                        <span>{group.pool.token.meta.tokenSymbol}</span>
+                        {group.pool.token.tokenData && (
+                          <div className="flex items-center gap-1 text-sm ml-auto w-[110px] text-muted-foreground">
+                            <span>
+                              {group.pool.token.tokenData.price > 0.00001
+                                ? usdFormatter.format(group.pool.token.tokenData.price)
+                                : `$${group.pool.token.tokenData.price.toExponential(2)}`}
+                            </span>
+                            <span
+                              className={cn(
+                                "text-xs",
+                                group.pool.token.tokenData?.priceChange24hr > 1
+                                  ? "text-mrgn-success"
+                                  : "text-mrgn-error"
+                              )}
+                            >
+                              {percentFormatter.format(group.pool.token.tokenData?.priceChange24hr / 100)}
+                            </span>
+                          </div>
+                        )}
                       </CommandItem>
                     ))}
                   </CommandGroup>
@@ -94,27 +108,45 @@ export const TokenCombobox = ({ selected, setSelected }: TokenComboboxProps) => 
               <CommandList className="max-h-[390px]">
                 <CommandEmpty>No results found.</CommandEmpty>
                 <CommandGroup>
-                  {banks.map((bank, index) => (
+                  {groups.map((group, index) => (
                     <CommandItem
                       key={index}
                       className="gap-3 py-2 cursor-pointer rounded-md aria-selected:text-primary"
-                      value={bank.meta.tokenSymbol}
+                      value={group.client.group.address.toBase58().toLowerCase()}
                       onSelect={(value) => {
-                        const selBank = extendedBankInfos.find((bank) => bank.meta.tokenSymbol.toLowerCase() === value);
+                        const selBank = groups.find(
+                          (group) => group.client.group.address.toBase58().toLowerCase() === value
+                        );
                         if (!selBank) return;
                         setSelected(selBank);
                         setOpen(false);
                       }}
                     >
                       <Image
-                        src={getTokenImageURL(bank.info.state.mint.toBase58())}
+                        src={getTokenImageURL(group.pool.token.info.state.mint.toBase58())}
                         width={32}
                         height={32}
-                        alt={bank.meta.tokenName}
+                        alt={group.pool.token.meta.tokenName}
                         className="rounded-full"
                       />
-                      <span>{bank.meta.tokenSymbol}</span>
-                      <TokenData bank={bank} />
+                      <span>{group.pool.token.meta.tokenSymbol}</span>
+                      {group.pool.token.tokenData && (
+                        <div className="flex items-center gap-1 text-sm ml-auto w-[110px] text-muted-foreground">
+                          <span>
+                            {group.pool.token.tokenData.price > 0.00001
+                              ? usdFormatter.format(group.pool.token.tokenData.price)
+                              : `$${group.pool.token.tokenData.price.toExponential(2)}`}
+                          </span>
+                          <span
+                            className={cn(
+                              "text-xs",
+                              group.pool.token.tokenData?.priceChange24hr > 1 ? "text-mrgn-success" : "text-mrgn-error"
+                            )}
+                          >
+                            {percentFormatter.format(group.pool.token.tokenData?.priceChange24hr / 100)}
+                          </span>
+                        </div>
+                      )}
                     </CommandItem>
                   ))}
                 </CommandGroup>
@@ -127,19 +159,19 @@ export const TokenCombobox = ({ selected, setSelected }: TokenComboboxProps) => 
   );
 };
 
-const TokenTrigger = ({ selected }: { selected: ExtendedBankInfo | null }) => {
+const TokenTrigger = ({ selected }: { selected: GroupData | null }) => {
   return (
     <Button variant="secondary" size="lg" className="relative w-full justify-start pr-8 pl-3 py-3">
       {selected !== null ? (
         <>
           <Image
-            src={getTokenImageURL(selected.info.state.mint.toBase58())}
+            src={getTokenImageURL(selected.pool.token.info.state.mint.toBase58())}
             width={24}
             height={24}
             alt={`Pool ${selected}`}
             className="rounded-full"
           />{" "}
-          {selected.meta.tokenSymbol}
+          {selected.pool.token.meta.tokenSymbol}
         </>
       ) : (
         <>Select pool</>
@@ -148,36 +180,5 @@ const TokenTrigger = ({ selected }: { selected: ExtendedBankInfo | null }) => {
         <IconChevronDown size={18} className="ml-auto" />
       </div>
     </Button>
-  );
-};
-
-const TokenData = ({ bank }: { bank: ExtendedBankInfo }) => {
-  const [tokenData, setTokenData] = React.useState<TokenData | null>(null);
-
-  React.useEffect(() => {
-    const fetchTokenData = async () => {
-      const response = await fetch(`/api/birdeye/token?address=${bank.info.state.mint.toBase58()}`);
-
-      if (!response.ok) return;
-
-      const tokenData = await response.json();
-
-      setTokenData(tokenData);
-    };
-
-    fetchTokenData();
-  }, [bank]);
-
-  if (!tokenData) return null;
-
-  return (
-    <div className="flex items-center gap-1 text-sm ml-auto w-[110px] text-muted-foreground">
-      <span>
-        {tokenData.price > 0.00001 ? usdFormatter.format(tokenData.price) : `$${tokenData.price.toExponential(2)}`}
-      </span>
-      <span className={cn("text-xs", tokenData?.priceChange24h > 1 ? "text-mrgn-success" : "text-mrgn-error")}>
-        {percentFormatter.format(tokenData?.priceChange24h / 100)}
-      </span>
-    </div>
   );
 };
