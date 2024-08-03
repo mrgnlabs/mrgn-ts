@@ -413,7 +413,7 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
       let nativeSolBalance = 0;
       let tokenAccountMap: TokenAccountMap | null = null;
       if (!wallet.publicKey.equals(PublicKey.default)) {
-        const [tokenData] = await Promise.all([
+        const [tData] = await Promise.all([
           fetchTokenAccounts(
             connection,
             wallet.publicKey,
@@ -426,8 +426,8 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
           ),
         ]);
 
-        nativeSolBalance = tokenData.nativeSolBalance;
-        tokenAccountMap = tokenData.tokenAccountMap;
+        nativeSolBalance = tData.nativeSolBalance;
+        tokenAccountMap = tData.tokenAccountMap;
 
         for (const [id, group] of groupMap) {
           const updateBank = (bank: ExtendedBankInfo) => {

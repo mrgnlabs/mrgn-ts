@@ -5,25 +5,18 @@ import React from "react";
 import { useRouter } from "next/router";
 
 import { ActionType, ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { PublicKey, VersionedTransaction } from "@solana/web3.js";
+import { PublicKey } from "@solana/web3.js";
 import capitalize from "lodash/capitalize";
-import { WSOL_MINT, numeralFormatter } from "@mrgnlabs/mrgn-common";
+import { numeralFormatter } from "@mrgnlabs/mrgn-common";
 
 import { cn } from "~/utils/themeUtils";
-import { useMrgnlendStore, useTradeStore, useUiStore } from "~/store";
+import { useTradeStore, useUiStore } from "~/store";
 
 import { TokenCombobox } from "../TokenCombobox/TokenCombobox";
 import { ActionBoxDialog } from "~/components/common/ActionBox";
 import { Card, CardContent, CardFooter } from "~/components/ui/card";
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
-import {
-  IconAlertTriangle,
-  IconExternalLink,
-  IconLoader,
-  IconPyth,
-  IconSettings,
-  IconWallet,
-} from "~/components/ui/icons";
+import { IconAlertTriangle, IconExternalLink, IconLoader, IconSettings, IconWallet } from "~/components/ui/icons";
 import { Slider } from "~/components/ui/slider";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -45,15 +38,8 @@ import Link from "next/link";
 import { TradingBoxSettingsDialog } from "./components/TradingBoxSettings/TradingBoxSettingsDialog";
 import { handleSimulationError } from "@mrgnlabs/mrgn-utils";
 
-const USDC_BANK_PK = new PublicKey("2s37akK2eyBbp8DZgCm7RtsaEz8eJP3Nxd4urLHQv7yB");
-
 type TradingBoxProps = {
   side?: "long" | "short";
-};
-
-type StatusType = {
-  type: "simulation" | "bank";
-  msg: string;
 };
 
 export const TradingBox = ({ side = "long" }: TradingBoxProps) => {
@@ -85,7 +71,6 @@ export const TradingBox = ({ side = "long" }: TradingBoxProps) => {
     activeGroupPk,
     accountSummary,
     setActiveGroup,
-    marginfiAccounts,
     marginfiClient,
     groupMap,
     fetchTradeState,
@@ -95,36 +80,29 @@ export const TradingBox = ({ side = "long" }: TradingBoxProps) => {
     state.activeGroup,
     state.accountSummary,
     state.setActiveGroup,
-    state.marginfiAccounts,
     state.marginfiClient,
     state.groupMap,
     state.fetchTradeState,
     state.setIsRefreshingStore,
   ]);
 
-  const [
-    slippageBps,
-    priorityFee,
-    platformFeeBps,
-    setSlippageBps,
-    setPriorityFee,
-    setIsActionComplete,
-    setPreviousTxn,
-  ] = useUiStore((state) => [
-    state.slippageBps,
-    state.priorityFee,
-    state.platformFeeBps,
-    state.setSlippageBps,
-    state.setPriorityFee,
-    state.setIsActionComplete,
-    state.setPreviousTxn,
-  ]);
+  const [slippageBps, priorityFee, platformFeeBps, setSlippageBps, setIsActionComplete, setPreviousTxn] = useUiStore(
+    (state) => [
+      state.slippageBps,
+      state.priorityFee,
+      state.platformFeeBps,
+      state.setSlippageBps,
+      state.setIsActionComplete,
+      state.setPreviousTxn,
+    ]
+  );
 
   const activeGroup = React.useMemo(() => {
     if (activeGroupPk) {
-      const group = groupMap.get(activeGroupPk) ?? null;
+      const group = groupMap.get(activeGroupPk.toBase58()) ?? null;
       if (group) {
         return {
+          group: group,
           token: group.pool.token,
           usdc: group.pool.quoteTokens[0],
         };
@@ -155,7 +133,7 @@ export const TradingBox = ({ side = "long" }: TradingBoxProps) => {
       const deposit = tradeState === "long" ? activeGroup.token.info.rawBank : activeGroup.usdc.info.rawBank;
       const borrow = tradeState === "long" ? activeGroup.usdc.info.rawBank : activeGroup.token.info.rawBank;
 
-      const { maxLeverage, ltv } = computeMaxLeverage(deposit, borrow);
+      const { maxLeverage } = computeMaxLeverage(deposit, borrow);
       return maxLeverage;
     }
     return 0;
@@ -507,10 +485,11 @@ export const TradingBox = ({ side = "long" }: TradingBoxProps) => {
                 <Label>Size of {tradeState}</Label>
                 <div className="relative flex gap-2 items-center border border-accent p-2 rounded-lg">
                   <TokenCombobox
-                    selected={activeGroup.token}
-                    setSelected={(bank) => {
-                      router.push(`/trade/${bank.address.toBase58()}`);
-                      setActiveGroup({ groupPk: bank.info.rawBank.group });
+                    selected={activeGroup.group}
+                    setSelected={(group) => {
+                      console.log("HJI", group.client.group.address.toBase58());
+                      router.push(`/trade/${group.client.group.address.toBase58()}`);
+                      setActiveGroup({ groupPk: group.client.group.address });
                       clearStates();
                     }}
                   />
