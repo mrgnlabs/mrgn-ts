@@ -189,20 +189,20 @@ export default function TradeSymbolPage() {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent style={{ width: "var(--radix-dropdown-menu-trigger-width)" }}>
-                              <DropdownMenuItem className="text-xs">
+                              <DropdownMenuItem className="text-xs" onSelect={(e) => e.preventDefault()}>
                                 <ActionBoxDialog
                                   requestedBank={activeGroup.pool.token}
                                   requestedAction={ActionType.Deposit}
                                 >
-                                  Supply more
+                                  <p>Supply more</p>
                                 </ActionBoxDialog>
                               </DropdownMenuItem>
-                              <DropdownMenuItem className="text-xs">
+                              <DropdownMenuItem className="text-xs" onSelect={(e) => e.preventDefault()}>
                                 <ActionBoxDialog
                                   requestedBank={activeGroup.pool.token}
                                   requestedAction={ActionType.Withdraw}
                                 >
-                                  Withdraw
+                                  <p>Withdraw</p>
                                 </ActionBoxDialog>
                               </DropdownMenuItem>
                             </DropdownMenuContent>
@@ -258,7 +258,7 @@ export default function TradeSymbolPage() {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent style={{ width: "var(--radix-dropdown-menu-trigger-width)" }}>
-                              <DropdownMenuItem className="text-xs">
+                              <DropdownMenuItem className="text-xs" onSelect={(e) => e.preventDefault()}>
                                 <ActionBoxDialog
                                   requestedBank={activeGroup.pool.quoteTokens[0]}
                                   requestedAction={ActionType.Deposit}
@@ -266,7 +266,7 @@ export default function TradeSymbolPage() {
                                   <p>Supply more</p>
                                 </ActionBoxDialog>
                               </DropdownMenuItem>
-                              <DropdownMenuItem className="text-xs">
+                              <DropdownMenuItem className="text-xs" onSelect={(e) => e.preventDefault()}>
                                 <ActionBoxDialog
                                   requestedBank={activeGroup.pool.quoteTokens[0]}
                                   requestedAction={ActionType.Withdraw}
