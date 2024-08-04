@@ -1,8 +1,10 @@
 import React from "react";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/router";
-import { IconChevronDown } from "@tabler/icons-react";
+
+import { IconChevronDown, IconExternalLink } from "@tabler/icons-react";
 
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import {
@@ -109,7 +111,15 @@ export default function TradeSymbolPage() {
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger>
-                          {shortenAddress(activeGroup.pool.token.info.state.mint.toBase58())}
+                          <Link
+                            href={`https://solscan.io/token/${activeGroup.pool.token.info.state.mint.toBase58()}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-primary text-xs flex items-center gap-1"
+                          >
+                            {shortenAddress(activeGroup.pool.token.info.state.mint.toBase58())}
+                            <IconExternalLink size={12} />
+                          </Link>
                         </TooltipTrigger>
                         <TooltipContent>
                           <p>{activeGroup.pool.token.info.state.mint.toBase58()}</p>
