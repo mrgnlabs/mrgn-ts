@@ -44,7 +44,7 @@ export enum TradePoolFilterStates {
   SHORT = "short",
 }
 
-type ArenaBank = ExtendedBankInfo & {
+export type ArenaBank = ExtendedBankInfo & {
   tokenData?: {
     price: number;
     priceChange24hr: number;
@@ -77,8 +77,8 @@ export interface GroupData {
 }
 
 type Portfolio = {
-  long: ArenaBank[];
-  short: ArenaBank[];
+  long: GroupData[];
+  short: GroupData[];
   lpPositions: GroupData[];
 } | null;
 
@@ -471,8 +471,8 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
           groupMap.set(id, { ...group, pool: updatedPool });
         }
 
-        const longBanks: ArenaBank[] = [];
-        const shortBanks: ArenaBank[] = [];
+        const longPositions: GroupData[] = [];
+        const shortPositions: GroupData[] = [];
         const lpPositions: GroupData[] = [];
 
         groupMap.forEach((group) => {
@@ -482,13 +482,15 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
           let isLpPosition = true;
           let hasAnyPosition = false;
           let isLendingInAny = false;
+          let isLong = false;
+          let isShort = false;
 
           if (tokenBank.isActive && tokenBank.position) {
             hasAnyPosition = true;
             if (tokenBank.position.isLending) {
               isLendingInAny = true;
             } else if (tokenBank.position.usdValue > 0) {
-              shortBanks.push(tokenBank);
+              isShort = true;
               isLpPosition = false;
             }
           }
@@ -500,29 +502,35 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
                 isLendingInAny = true;
               } else if (quoteToken.position.usdValue > 0) {
                 if (tokenBank.isActive && tokenBank.position && tokenBank.position.isLending) {
-                  longBanks.push(tokenBank);
+                  isLong = true;
                 }
                 isLpPosition = false;
               }
             }
           });
 
-          if (hasAnyPosition && isLpPosition && isLendingInAny) {
-            lpPositions.push(group);
+          if (hasAnyPosition) {
+            if (isLpPosition && isLendingInAny) {
+              lpPositions.push(group);
+            } else if (isLong) {
+              longPositions.push(group);
+            } else if (isShort) {
+              shortPositions.push(group);
+            }
           }
         });
 
-        const sortBanks = (banks: ArenaBank[]) =>
-          banks.sort((a, b) => {
-            const aValue = a.isActive && a.position ? a.position.usdValue : 0;
-            const bValue = b.isActive && b.position ? b.position.usdValue : 0;
+        const sortGroupsByUsdValue = (groups: GroupData[]) =>
+          groups.sort((a, b) => {
+            const aValue = a.pool.token.isActive && a.pool.token.position ? a.pool.token.position.usdValue : 0;
+            const bValue = b.pool.token.isActive && b.pool.token.position ? b.pool.token.position.usdValue : 0;
             return bValue - aValue;
           });
 
-        if (longBanks.length > 0 || shortBanks.length > 0 || lpPositions.length > 0) {
+        if (longPositions.length > 0 || shortPositions.length > 0 || lpPositions.length > 0) {
           portfolio = {
-            long: sortBanks(longBanks),
-            short: sortBanks(shortBanks),
+            long: sortGroupsByUsdValue(longPositions),
+            short: sortGroupsByUsdValue(shortPositions),
             lpPositions: lpPositions,
           };
         }
