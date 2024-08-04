@@ -95,14 +95,15 @@ export const CreatePoolSoon = ({ trigger }: CreatePoolDialogProps) => {
         <DialogContent className="w-full space-y-4 sm:max-w-4xl md:max-w-4xl z-[70] py-20">
           {createPoolState === "FORM" && (
             <>
-              <div className="text-center space-y-2 max-w-lg mx-auto">
-                <h2 className="text-3xl font-medium">Pool Submission</h2>
-                <p className="text-lg text-muted-foreground">
-                  Permissionless pools are coming soon. In the meantime submit your token to get listed.
+              <div className="text-center max-w-lg mx-auto w-full">
+                <h2 className="text-3xl font-medium mb-4">Request a token listing</h2>
+                <p className="text-muted-foreground mb-8">
+                  Permissionless pools are coming soon.
+                  <br className="hidden md:block" /> In the meantime submit your token to get listed.
                 </p>
                 <Form {...form}>
                   <form className={cn("space-y-6")} onSubmit={form.handleSubmit(onSubmit)}>
-                    <div className="text-left gap-8">
+                    <div className="text-left space-y-8">
                       <div className="space-y-4">
                         <FormField
                           control={form.control}
@@ -166,11 +167,10 @@ export const CreatePoolSoon = ({ trigger }: CreatePoolDialogProps) => {
                             </FormItem>
                           )}
                         />
-
-                        <Button className="w-full" type="submit" disabled={isSubmitting}>
-                          {isSubmitting ? "Submitting..." : "Submit"}
-                        </Button>
                       </div>
+                      <Button type="submit" disabled={isSubmitting}>
+                        {isSubmitting ? "Submitting..." : "Submit"}
+                      </Button>
                     </div>
                   </form>
                 </Form>
