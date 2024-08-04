@@ -1,8 +1,13 @@
 import React from "react";
 
+import Image from "next/image";
 import { useRouter } from "next/router";
+import { IconChevronDown } from "@tabler/icons-react";
+
+import { tokenPriceFormatter, percentFormatter, numeralFormatter, aprToApy } from "@mrgnlabs/mrgn-common";
 
 import { useTradeStore, useUiStore } from "~/store";
+import { getTokenImageURL, cn } from "~/utils";
 
 import { ActionComplete } from "~/components/common/ActionComplete";
 import { TVWidget, TVWidgetTopBar } from "~/components/common/TVWidget";
@@ -27,23 +32,140 @@ export default function TradeSymbolPage() {
 
   return (
     <>
-      <div className="w-full max-w-8xl mx-auto px-4 pt-4 pb-24 mt:pt-8 md:px-8">
+      <div className="w-full max-w-8xl mx-auto px-4 pt-8 pb-24 mt:pt-8 md:px-8">
         {(!initialized || !activeGroup) && <Loader label="Loading the arena..." className="mt-8" />}
         {initialized && activeGroup && (
-          <div className="rounded-xl space-y-4 lg:bg-accent/50 lg:p-6">
-            <TVWidgetTopBar groupData={activeGroup} />
-            <div className="flex relative w-full">
-              <div className="flex flex-col-reverse w-full gap-4 lg:flex-row">
-                <div className="flex-4 border rounded-xl overflow-hidden">
-                  <TVWidget token={activeGroup.pool.token} />
+          <div className="w-full space-y-4">
+            <div className="bg-background border rounded-xl p-8 py-10">
+              <div className="flex items-center justify-between gap-8">
+                <div className="flex flex-col items-center px-8 w-1/4">
+                  <Image
+                    src={getTokenImageURL(activeGroup.pool.token.info.state.mint.toBase58())}
+                    alt={activeGroup.pool.token.meta.tokenSymbol}
+                    width={72}
+                    height={72}
+                    className="bg-background border rounded-full"
+                  />
+                  <h1 className="text-lg font-medium mt-2 flex items-center gap-1">
+                    {activeGroup.pool.token.meta.tokenName} <IconChevronDown size={18} className="-mr-5" />
+                  </h1>
+                  <p className="text-sm text-muted-foreground">{activeGroup.pool.token.meta.tokenSymbol}</p>
                 </div>
-                <div className="w-full flex lg:max-w-sm lg:ml-auto">
-                  <TradingBox side={side} />
+                <div className="w-full space-y-8">
+                  {activeGroup.pool.token.tokenData && (
+                    <div className="grid grid-cols-4">
+                      <div>
+                        <p className="text-sm text-muted-foreground">Price</p>
+                        <p className="text-2xl">
+                          {tokenPriceFormatter.format(activeGroup.pool.token.tokenData.price)}
+                          <span
+                            className={cn(
+                              "text-sm ml-1",
+                              activeGroup.pool.token.tokenData.priceChange24hr > 0
+                                ? "text-mrgn-success"
+                                : "text-mrgn-error"
+                            )}
+                          >
+                            {percentFormatter.format(activeGroup.pool.token.tokenData.priceChange24hr / 100)}
+                          </span>
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">24hr Volume</p>
+                        <p className="text-2xl">
+                          ${numeralFormatter(activeGroup.pool.token.tokenData.volume24hr)}
+                          <span
+                            className={cn(
+                              "text-sm ml-1",
+                              activeGroup.pool.token.tokenData.volumeChange24hr > 0
+                                ? "text-mrgn-success"
+                                : "text-mrgn-error"
+                            )}
+                          >
+                            {percentFormatter.format(activeGroup.pool.token.tokenData.volumeChange24hr / 100)}
+                          </span>
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Market cap</p>
+                        <p className="text-2xl">${numeralFormatter(activeGroup.pool.token.tokenData.marketCap)}</p>
+                      </div>
+                      {activeGroup.pool.poolData && (
+                        <div>
+                          <p className="text-sm text-muted-foreground">Pool Liqiuidity</p>
+                          <p className="text-2xl">${numeralFormatter(activeGroup.pool.poolData.totalLiquidity)}</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  <div className="grid grid-cols-2">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <Image
+                          src={getTokenImageURL(activeGroup.pool.token.info.state.mint.toBase58())}
+                          alt={activeGroup.pool.token.meta.tokenSymbol}
+                          width={32}
+                          height={32}
+                          className="bg-background border rounded-full"
+                        />
+                        <div className="leading-tight">
+                          <p>Total Deposits ({activeGroup.pool.token.meta.tokenSymbol})</p>
+                          <p className="text-mrgn-success">
+                            {percentFormatter.format(aprToApy(activeGroup.pool.token.info.state.lendingRate))}
+                          </p>
+                        </div>
+                      </div>
+                      <p className="text-2xl">
+                        $
+                        {numeralFormatter(
+                          activeGroup.pool.token.info.state.totalDeposits *
+                            activeGroup.pool.token.info.oraclePrice.priceRealtime.price.toNumber()
+                        )}
+                      </p>
+                    </div>
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <Image
+                          src={getTokenImageURL(activeGroup.pool.quoteTokens[0].info.state.mint.toBase58())}
+                          alt={activeGroup.pool.quoteTokens[0].meta.tokenSymbol}
+                          width={32}
+                          height={32}
+                          className="bg-background border rounded-full"
+                        />
+                        <div className="leading-tight">
+                          <p>Total Deposits ({activeGroup.pool.quoteTokens[0].meta.tokenSymbol})</p>
+                          <p className="text-mrgn-success">
+                            {percentFormatter.format(aprToApy(activeGroup.pool.quoteTokens[0].info.state.lendingRate))}
+                          </p>
+                        </div>
+                      </div>
+                      <p className="text-2xl">
+                        $
+                        {numeralFormatter(
+                          activeGroup.pool.quoteTokens[0].info.state.totalDeposits *
+                            activeGroup.pool.quoteTokens[0].info.oraclePrice.priceRealtime.price.toNumber()
+                        )}
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
-            <div className="pt-4">
-              <PositionList />
+            <div className="rounded-xl space-y-4 bg-background border lg:p-6">
+              <TVWidgetTopBar groupData={activeGroup} />
+              <div className="flex relative w-full">
+                <div className="flex flex-col-reverse w-full gap-4 lg:flex-row">
+                  <div className="flex-4 border rounded-xl overflow-hidden">
+                    <TVWidget token={activeGroup.pool.token} />
+                  </div>
+                  <div className="w-full flex lg:max-w-sm lg:ml-auto">
+                    <TradingBox side={side} />
+                  </div>
+                </div>
+              </div>
+              <div className="pt-4">
+                <PositionList />
+              </div>
             </div>
           </div>
         )}

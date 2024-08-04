@@ -126,7 +126,7 @@ export default function PortfolioPage() {
                     return (
                       <div className="relative bg-background border rounded-xl mb-12 pt-5 pb-2 px-4">
                         <Link
-                          href={`/pools/${group.client.group.address.toBase58()}`}
+                          href={`/trade/${group.client.group.address.toBase58()}`}
                           className="group bg-background border rounded-xl absolute -top-5 left-3.5 px-2 py-1.5 flex items-center gap-2 transition-colors hover:bg-accent"
                         >
                           <div className="flex items-center -space-x-2.5">
