@@ -4,7 +4,6 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { numeralFormatter, tokenPriceFormatter, percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
-import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { getTokenImageURL, cn } from "~/utils";
 import { useTradeStore } from "~/store";
@@ -46,7 +45,7 @@ export const PositionCard = ({ groupData, isLong }: PositionCardProps) => {
 
       leverage = Math.round((borrowUsd / depositUsd + Number.EPSILON) * 100) / 100 + 1;
     }
-    return leverage;
+    return numeralFormatter(leverage);
   }, [groupData]);
 
   if (!groupData.pool.token.isActive) return null;

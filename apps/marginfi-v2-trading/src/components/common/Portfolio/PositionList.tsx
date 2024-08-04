@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { numeralFormatter, tokenPriceFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
+import { numeralFormatter, tokenPriceFormatter, usdFormatter, percentFormatter } from "@mrgnlabs/mrgn-common";
 
 import { getTokenImageURL } from "~/utils";
 import { useTradeStore } from "~/store";
@@ -89,12 +89,12 @@ export const PositionList = () => {
               (depositBank.isActive ? depositBank.position.usdValue : 0) -
               (borrowBank.isActive ? borrowBank.position.usdValue : 0);
 
-            let leverage = 1;
+            let leverage = "1";
             if (borrowBank.isActive && depositBank.isActive) {
               const borrowUsd = borrowBank.position.usdValue;
               const depositUsd = depositBank.position.usdValue;
 
-              leverage = Math.round((borrowUsd / depositUsd + Number.EPSILON) * 100) / 100 + 1;
+              leverage = numeralFormatter(Math.round((borrowUsd / depositUsd + Number.EPSILON) * 100) / 100 + 1);
             }
 
             return (
