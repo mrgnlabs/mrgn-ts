@@ -81,15 +81,15 @@ export default function TradeSymbolPage() {
         {(!initialized || !activeGroup) && <Loader label="Loading the arena..." className="mt-8" />}
         {initialized && activeGroup && (
           <div className="w-full space-y-4">
-            <div className="bg-background border rounded-xl p-8 py-10">
-              <div className="flex items-center justify-between gap-8">
-                <div className="flex flex-col items-center px-8 w-1/4">
+            <div className="bg-background border rounded-xl px-4 py-10 lg:px-8">
+              <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
+                <div className="flex flex-col items-center px-8 w-full lg:w-1/4">
                   <Image
                     src={getTokenImageURL(activeGroup.pool.token.info.state.mint.toBase58())}
                     alt={activeGroup.pool.token.meta.tokenSymbol}
                     width={72}
                     height={72}
-                    className="bg-background border rounded-full"
+                    className="bg-background border rounded-full mb-2 lg:mb-0"
                   />
 
                   <TokenCombobox
@@ -102,8 +102,10 @@ export default function TradeSymbolPage() {
                       {activeGroup.pool.token.meta.tokenName} <IconChevronDown size={18} />
                     </h1>
                   </TokenCombobox>
-                  <p className="text-sm text-muted-foreground">{activeGroup.pool.token.meta.tokenSymbol}</p>
-                  <p className="text-sm text-muted-foreground mt-2">
+                  <p className="text-sm text-muted-foreground mt-1 lg:mt-0">
+                    {activeGroup.pool.token.meta.tokenSymbol}
+                  </p>
+                  <p className="text-sm text-muted-foreground mt-1 lg:mt-2">
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger>
@@ -118,10 +120,10 @@ export default function TradeSymbolPage() {
                 </div>
                 <div className="w-full space-y-10">
                   {activeGroup.pool.token.tokenData && (
-                    <div className="grid grid-cols-4">
-                      <div>
+                    <div className="grid w-full max-w-md mx-auto gap-1 lg:gap-0 lg:max-w-none lg:grid-cols-4">
+                      <div className="grid grid-cols-2 lg:block">
                         <p className="text-sm text-muted-foreground">Price</p>
-                        <p className="text-2xl">
+                        <p className="text-sm text-right lg:text-left lg:text-2xl">
                           {tokenPriceFormatter.format(activeGroup.pool.token.tokenData.price)}
                           <span
                             className={cn(
@@ -135,9 +137,9 @@ export default function TradeSymbolPage() {
                           </span>
                         </p>
                       </div>
-                      <div>
+                      <div className="grid grid-cols-2 lg:block">
                         <p className="text-sm text-muted-foreground">24hr Volume</p>
-                        <p className="text-2xl">
+                        <p className="text-sm text-right lg:text-left lg:text-2xl">
                           ${numeralFormatter(activeGroup.pool.token.tokenData.volume24hr)}
                           <span
                             className={cn(
@@ -151,20 +153,24 @@ export default function TradeSymbolPage() {
                           </span>
                         </p>
                       </div>
-                      <div>
+                      <div className="grid grid-cols-2 lg:block">
                         <p className="text-sm text-muted-foreground">Market cap</p>
-                        <p className="text-2xl">${numeralFormatter(activeGroup.pool.token.tokenData.marketCap)}</p>
+                        <p className="text-sm text-right lg:text-left lg:text-2xl">
+                          ${numeralFormatter(activeGroup.pool.token.tokenData.marketCap)}
+                        </p>
                       </div>
                       {activeGroup.pool.poolData && (
-                        <div>
+                        <div className="grid grid-cols-2 lg:block">
                           <p className="text-sm text-muted-foreground">Pool Liqiuidity</p>
-                          <p className="text-2xl">${numeralFormatter(activeGroup.pool.poolData.totalLiquidity)}</p>
+                          <p className="text-sm text-right lg:text-left lg:text-2xl">
+                            ${numeralFormatter(activeGroup.pool.poolData.totalLiquidity)}
+                          </p>
                         </div>
                       )}
                     </div>
                   )}
-                  <div className="grid grid-cols-2">
-                    <div className="space-y-1">
+                  <div className="w-full grid gap-4 max-w-md mx-auto lg:gap-0 lg:max-w-none lg:grid-cols-2">
+                    <div className="flex flex-row justify-between space-y-1 lg:block">
                       <div className="flex items-center gap-2">
                         <Image
                           src={getTokenImageURL(activeGroup.pool.token.info.state.mint.toBase58())}
@@ -174,14 +180,17 @@ export default function TradeSymbolPage() {
                           className="bg-background border rounded-full"
                         />
                         <div className="leading-tight text-sm">
-                          <p>Total Deposits ({activeGroup.pool.token.meta.tokenSymbol})</p>
+                          <p>
+                            Total Deposits
+                            <br />({activeGroup.pool.token.meta.tokenSymbol})
+                          </p>
                           <p className="text-mrgn-success">
                             {percentFormatter.format(aprToApy(activeGroup.pool.token.info.state.lendingRate))}
                           </p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-4">
-                        <p className="text-2xl">
+                      <div className="flex flex-col items-end justify-end gap-2 lg:gap-4 lg:items-center lg:flex-row lg:justify-start">
+                        <p className="text-sm lg:text-2xl">
                           $
                           {numeralFormatter(
                             activeGroup.pool.token.info.state.totalDeposits *
@@ -191,7 +200,7 @@ export default function TradeSymbolPage() {
                         {!hasTradePosition && lpPosition?.token && lpPosition.token.pool.token.isActive ? (
                           <DropdownMenu>
                             <DropdownMenuTrigger className="focus:outline-none focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0">
-                              <Button size="sm" variant="outline">
+                              <Button size="sm" variant="outline" className="px-2 py-1.5 h-auto lg:px-4 lg:py-2">
                                 Supplied {numeralFormatter(lpPosition.token.pool.token.position.amount)}
                                 <div className="border-l pl-2 ml-1">
                                   <IconChevronDown size={14} />
@@ -223,7 +232,7 @@ export default function TradeSymbolPage() {
                               requestedBank={activeGroup.pool.token}
                               requestedAction={ActionType.Deposit}
                             >
-                              <Button size="sm" variant="outline">
+                              <Button size="sm" variant="outline" className="px-2 py-1.5 h-auto lg:px-4 lg:py-2">
                                 Supply
                               </Button>
                             </ActionBoxDialog>
@@ -231,7 +240,7 @@ export default function TradeSymbolPage() {
                         )}
                       </div>
                     </div>
-                    <div className="space-y-1">
+                    <div className="flex flex-row justify-between space-y-1 lg:block">
                       <div className="flex items-center gap-2">
                         <Image
                           src={getTokenImageURL(activeGroup.pool.quoteTokens[0].info.state.mint.toBase58())}
@@ -241,14 +250,17 @@ export default function TradeSymbolPage() {
                           className="bg-background border rounded-full"
                         />
                         <div className="leading-tight text-sm">
-                          <p>Total Deposits ({activeGroup.pool.quoteTokens[0].meta.tokenSymbol})</p>
+                          <p>
+                            Total Deposits
+                            <br />({activeGroup.pool.quoteTokens[0].meta.tokenSymbol})
+                          </p>
                           <p className="text-mrgn-success">
                             {percentFormatter.format(aprToApy(activeGroup.pool.quoteTokens[0].info.state.lendingRate))}
                           </p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-4">
-                        <p className="text-2xl">
+                      <div className="flex flex-col items-end justify-end gap-2 lg:gap-4 lg:flex-row lg:items-center lg:justify-start">
+                        <p className="text-sm lg:text-2xl">
                           $
                           {numeralFormatter(
                             activeGroup.pool.quoteTokens[0].info.state.totalDeposits *
@@ -260,7 +272,7 @@ export default function TradeSymbolPage() {
                         lpPosition.quoteToken.pool.quoteTokens[0].isActive ? (
                           <DropdownMenu>
                             <DropdownMenuTrigger className="focus:outline-none focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0">
-                              <Button size="sm" variant="outline">
+                              <Button size="sm" variant="outline" className="px-2 py-1.5 h-auto lg:px-4 lg:py-2">
                                 Supplied {numeralFormatter(lpPosition.quoteToken.pool.quoteTokens[0].position.amount)}
                                 <div className="border-l pl-2 ml-1">
                                   <IconChevronDown size={14} />
@@ -292,7 +304,7 @@ export default function TradeSymbolPage() {
                               requestedBank={activeGroup.pool.quoteTokens[0]}
                               requestedAction={ActionType.Deposit}
                             >
-                              <Button size="sm" variant="outline">
+                              <Button size="sm" variant="outline" className="px-2 py-1.5 h-auto lg:px-4 lg:py-2">
                                 Supply
                               </Button>
                             </ActionBoxDialog>
