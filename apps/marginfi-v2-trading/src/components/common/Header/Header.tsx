@@ -100,7 +100,7 @@ export const Header = () => {
               <div className="flex items-center">
                 <CreatePoolSoon
                   trigger={
-                    <Button size="sm" disabled={false} className="py-2 h-auto">
+                    <Button disabled={false}>
                       <IconPlus size={14} /> Create Pool
                     </Button>
                   }
