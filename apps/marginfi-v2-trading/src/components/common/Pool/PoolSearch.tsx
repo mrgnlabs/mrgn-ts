@@ -2,7 +2,7 @@ import React from "react";
 
 import Image from "next/image";
 import { useRouter } from "next/router";
-import { IconX } from "@tabler/icons-react";
+import { IconX, IconCommand } from "@tabler/icons-react";
 
 import { useDebounce } from "@uidotdev/usehooks";
 import { usdFormatter, percentFormatter, numeralFormatter } from "@mrgnlabs/mrgn-common";
@@ -12,7 +12,7 @@ import { cn, getTokenImageURL } from "~/utils";
 import { useIsMobile } from "~/hooks/useIsMobile";
 
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "~/components/ui/command";
-
+import { Button } from "~/components/ui/button";
 import type { TokenData } from "~/types";
 
 type PoolSearchProps = {
@@ -98,6 +98,24 @@ export const PoolSearch = ({
     }
   }, [searchResults]);
 
+  React.useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key === "k") {
+        event.preventDefault();
+        searchInputRef.current?.focus();
+      } else if (event.key === "Escape") {
+        searchInputRef.current?.blur();
+        resetSearch();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [resetSearch]);
+
   return (
     <div className="relative w-full px-4 md:px-0">
       <Command shouldFilter={false} onKeyDown={(event) => event.key === "Escape" && resetSearch()}>
@@ -128,6 +146,17 @@ export const PoolSearch = ({
               }}
             />
           )}
+
+          <Button
+            size="sm"
+            variant="outline"
+            className="absolute right-4 top-1/2 -translate-y-1/2 gap-0.5 px-1.5 py-0.5 h-auto text-muted-foreground"
+            onClick={() => {
+              searchInputRef.current?.focus();
+            }}
+          >
+            <IconCommand size={14} />K
+          </Button>
         </div>
         <div className={cn(size === "lg" && "absolute top-10 w-full z-20 md:top-14")}>
           {searchResults.length > 0 && (
