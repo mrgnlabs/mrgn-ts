@@ -12,19 +12,33 @@ import { useTradeStore } from "~/store";
 import { PositionActionButtons } from "~/components/common/Portfolio";
 import { Table, TableBody, TableHead, TableCell, TableHeader, TableRow } from "~/components/ui/table";
 import { Badge } from "~/components/ui/badge";
-import { ActiveGroup } from "~/store/tradeStore";
+import { ActiveGroup, GroupData } from "~/store/tradeStore";
 
 export const PositionList = () => {
-  const [marginfiClient, portfolio, marginfiAccounts] = useTradeStore((state) => [
+  const [marginfiClient, activeGroupPk, groupMap, portfolio, marginfiAccounts] = useTradeStore((state) => [
     state.marginfiClient,
+    state.activeGroup,
+    state.groupMap,
     state.portfolio,
     state.marginfiAccounts,
   ]);
 
+  const activeGroup = React.useMemo(() => {
+    return activeGroupPk ? groupMap.get(activeGroupPk.toBase58()) : undefined;
+  }, [activeGroupPk, groupMap]);
+
   const portfolioCombined = React.useMemo(() => {
-    if (!portfolio) return [];
-    return [...portfolio.long, ...portfolio.short];
-  }, [portfolio]);
+    if (!portfolio || !activeGroup) return [];
+
+    const isActiveGroupPosition = (item: GroupData) => item.pool.token.address.equals(activeGroup.pool.token.address);
+
+    const activeGroupPosition = [...portfolio.long, ...portfolio.short].find(isActiveGroupPosition);
+
+    const sortedLongs = portfolio.long.filter((item) => !isActiveGroupPosition(item));
+    const sortedShorts = portfolio.short.filter((item) => !isActiveGroupPosition(item));
+
+    return [...(activeGroupPosition ? [activeGroupPosition] : []), ...sortedLongs, ...sortedShorts];
+  }, [portfolio, activeGroup]);
 
   if (!portfolio) return null;
 
