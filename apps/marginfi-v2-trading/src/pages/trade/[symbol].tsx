@@ -21,6 +21,7 @@ import { ActionBoxDialog } from "~/components/common/ActionBox";
 import { TVWidget } from "~/components/common/TVWidget";
 import { TradingBox } from "~/components/common/TradingBox";
 import { PositionList } from "~/components/common/Portfolio";
+import { TokenCombobox } from "~/components/common/TokenCombobox";
 import { Loader } from "~/components/ui/loader";
 import { TooltipProvider, Tooltip, TooltipContent, TooltipTrigger } from "~/components/ui/tooltip";
 import { Button } from "~/components/ui/button";
@@ -34,9 +35,10 @@ import {
 export default function TradeSymbolPage() {
   const router = useRouter();
   const side = router.query.side as "long" | "short";
-  const [initialized, activeGroupPk, groupMap, portfolio] = useTradeStore((state) => [
+  const [initialized, activeGroupPk, setActiveGroup, groupMap, portfolio] = useTradeStore((state) => [
     state.initialized,
     state.activeGroup,
+    state.setActiveGroup,
     state.groupMap,
     state.portfolio,
   ]);
@@ -89,9 +91,17 @@ export default function TradeSymbolPage() {
                     height={72}
                     className="bg-background border rounded-full"
                   />
-                  <h1 className="text-lg font-medium mt-2 flex items-center gap-1">
-                    {activeGroup.pool.token.meta.tokenName} <IconChevronDown size={18} className="-mr-5" />
-                  </h1>
+
+                  <TokenCombobox
+                    selected={activeGroup}
+                    setSelected={(group) => {
+                      setActiveGroup({ groupPk: group.client.group.address });
+                    }}
+                  >
+                    <h1 className="text-lg font-medium mt-2 flex items-center gap-1 px-2 py-1 pl-3 rounded-md cursor-pointer transition-colors hover:bg-accent translate-x-1.5">
+                      {activeGroup.pool.token.meta.tokenName} <IconChevronDown size={18} />
+                    </h1>
+                  </TokenCombobox>
                   <p className="text-sm text-muted-foreground">{activeGroup.pool.token.meta.tokenSymbol}</p>
                   <p className="text-sm text-muted-foreground mt-2">
                     <TooltipProvider>

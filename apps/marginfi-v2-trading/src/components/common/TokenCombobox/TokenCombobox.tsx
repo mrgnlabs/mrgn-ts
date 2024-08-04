@@ -20,9 +20,10 @@ import type { GroupData } from "~/store/tradeStore";
 type TokenComboboxProps = {
   selected: GroupData | null;
   setSelected: (groupData: GroupData) => void;
+  children?: React.ReactNode;
 };
 
-export const TokenCombobox = ({ selected, setSelected }: TokenComboboxProps) => {
+export const TokenCombobox = ({ selected, setSelected, children }: TokenComboboxProps) => {
   const [open, setOpen] = React.useState(false);
   const [groupMap] = useTradeStore((state) => [state.groupMap]);
   const groups = Array.from(groupMap.values()).sort((a, b) => {
@@ -34,9 +35,7 @@ export const TokenCombobox = ({ selected, setSelected }: TokenComboboxProps) => 
       <Desktop>
         <Dialog open={open} onOpenChange={(open) => setOpen(open)}>
           <DialogTrigger asChild>
-            <div>
-              <TokenTrigger selected={selected} />
-            </div>
+            <div>{children ? children : <TokenTrigger selected={selected} />}</div>
           </DialogTrigger>
           <DialogContent className="p-4 bg-background m-0" hideClose={true} hidePadding={true} size="sm" position="top">
             <div className="h-[500px] relative overflow-auto">
