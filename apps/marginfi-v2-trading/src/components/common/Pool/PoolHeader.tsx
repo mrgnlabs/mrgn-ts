@@ -89,7 +89,7 @@ export const PoolHeader = ({ groupData }: PoolHeaderProps) => {
               <h1 className="text-2xl font-medium">{groupData.pool.token.meta.tokenName}</h1>
               <h2 className="text-xl text-muted-foreground">{groupData.pool.token.meta.tokenSymbol}</h2>
             </div>
-            <Link className="inline-block" href={`/trade/${groupData.pool.token.address.toBase58()}`}>
+            <Link className="inline-block" href={`/trade/${groupData.client.group.address.toBase58()}`}>
               <Button variant="outline" size="sm" className="h-8">
                 <IconExternalLink size={16} />
                 Trade {groupData.pool.token.meta.tokenSymbol}
