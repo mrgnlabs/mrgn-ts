@@ -4,16 +4,23 @@ import Image from "next/image";
 import { useRouter } from "next/router";
 import { IconChevronDown } from "@tabler/icons-react";
 
-import { tokenPriceFormatter, percentFormatter, numeralFormatter, aprToApy } from "@mrgnlabs/mrgn-common";
+import {
+  tokenPriceFormatter,
+  percentFormatter,
+  numeralFormatter,
+  aprToApy,
+  shortenAddress,
+} from "@mrgnlabs/mrgn-common";
 
 import { useTradeStore, useUiStore } from "~/store";
 import { getTokenImageURL, cn } from "~/utils";
 
 import { ActionComplete } from "~/components/common/ActionComplete";
-import { TVWidget, TVWidgetTopBar } from "~/components/common/TVWidget";
+import { TVWidget } from "~/components/common/TVWidget";
 import { TradingBox } from "~/components/common/TradingBox";
 import { PositionList } from "~/components/common/Portfolio";
 import { Loader } from "~/components/ui/loader";
+import { TooltipProvider, Tooltip, TooltipContent, TooltipTrigger } from "~/components/ui/tooltip";
 
 export default function TradeSymbolPage() {
   const router = useRouter();
@@ -50,8 +57,20 @@ export default function TradeSymbolPage() {
                     {activeGroup.pool.token.meta.tokenName} <IconChevronDown size={18} className="-mr-5" />
                   </h1>
                   <p className="text-sm text-muted-foreground">{activeGroup.pool.token.meta.tokenSymbol}</p>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          {shortenAddress(activeGroup.pool.token.info.state.mint.toBase58())}
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>{activeGroup.pool.token.info.state.mint.toBase58()}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </p>
                 </div>
-                <div className="w-full space-y-8">
+                <div className="w-full space-y-10">
                   {activeGroup.pool.token.tokenData && (
                     <div className="grid grid-cols-4">
                       <div>
@@ -108,7 +127,7 @@ export default function TradeSymbolPage() {
                           height={32}
                           className="bg-background border rounded-full"
                         />
-                        <div className="leading-tight">
+                        <div className="leading-tight text-sm">
                           <p>Total Deposits ({activeGroup.pool.token.meta.tokenSymbol})</p>
                           <p className="text-mrgn-success">
                             {percentFormatter.format(aprToApy(activeGroup.pool.token.info.state.lendingRate))}
@@ -132,7 +151,7 @@ export default function TradeSymbolPage() {
                           height={32}
                           className="bg-background border rounded-full"
                         />
-                        <div className="leading-tight">
+                        <div className="leading-tight text-sm">
                           <p>Total Deposits ({activeGroup.pool.quoteTokens[0].meta.tokenSymbol})</p>
                           <p className="text-mrgn-success">
                             {percentFormatter.format(aprToApy(activeGroup.pool.quoteTokens[0].info.state.lendingRate))}
@@ -151,14 +170,13 @@ export default function TradeSymbolPage() {
                 </div>
               </div>
             </div>
-            <div className="rounded-xl space-y-4 bg-background border lg:p-6">
-              <TVWidgetTopBar groupData={activeGroup} />
+            <div className="rounded-xl space-y-4">
               <div className="flex relative w-full">
                 <div className="flex flex-col-reverse w-full gap-4 lg:flex-row">
-                  <div className="flex-4 border rounded-xl overflow-hidden">
+                  <div className="flex-4 border rounded-xl overflow-hidden w-full">
                     <TVWidget token={activeGroup.pool.token} />
                   </div>
-                  <div className="w-full flex lg:max-w-sm lg:ml-auto">
+                  <div className="flex lg:max-w-sm w-full lg:ml-auto">
                     <TradingBox side={side} />
                   </div>
                 </div>
