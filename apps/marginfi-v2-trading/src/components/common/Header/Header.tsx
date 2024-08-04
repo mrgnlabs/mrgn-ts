@@ -5,7 +5,14 @@ import React from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { motion, useAnimate } from "framer-motion";
-import { IconTrendingUp, IconCoins, IconChartPie, IconPlus, IconShovelPitchforks } from "@tabler/icons-react";
+import {
+  IconTrendingUp,
+  IconCoins,
+  IconChartPie,
+  IconPlus,
+  IconShovelPitchforks,
+  IconCommand,
+} from "@tabler/icons-react";
 
 import { useTradeStore } from "~/store";
 import { cn } from "~/utils/themeUtils";
@@ -88,16 +95,17 @@ export const Header = () => {
               </div>
             )
           }
-          {!isMobile && (
-            <div className="flex items-center">
-              <CreatePoolSoon
-                trigger={
-                  <Button size={isMobile ? "sm" : "default"} disabled={false}>
-                    <IconPlus size={isMobile ? 14 : 18} /> Create Pools
-                  </Button>
-                }
-              />
-              {/* <TooltipProvider>
+          <div className="flex items-center gap-6">
+            {!isMobile && (
+              <div className="flex items-center">
+                <CreatePoolSoon
+                  trigger={
+                    <Button size="sm" disabled={false} className="py-2 h-auto">
+                      <IconPlus size={14} /> Create Pool
+                    </Button>
+                  }
+                />
+                {/* <TooltipProvider>
                 <Tooltip delayDuration={0}>
                   <TooltipTrigger asChild>
                     <Button size={isMobile ? "sm" : "default"} className="opacity-50">
@@ -109,9 +117,8 @@ export const Header = () => {
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider> */}
-            </div>
-          )}
-          <div className="ml-4">
+              </div>
+            )}
             <WalletButton />
           </div>
         </div>
