@@ -148,7 +148,9 @@ export default function PortfolioPage() {
                     </div>
                   </div>
                 </div>
-                <div>{/* <LpPositionList /> */}</div>
+                <div>
+                  <LpPositionList />
+                </div>
               </div>
             )}
           </div>
