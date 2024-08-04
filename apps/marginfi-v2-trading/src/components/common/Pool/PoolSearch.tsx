@@ -175,7 +175,7 @@ export const PoolSearch = ({
                       const bank = banks.find((bank) => bank.address.toBase58().toLowerCase() === value);
 
                       if (!bank) return;
-                      router.push(`/pools/${bank.address.toBase58()}`);
+                      router.push(`/trade/${bank.info.rawBank.group.toBase58()}`);
                       if (onBankSelect) onBankSelect();
                     }}
                   >
