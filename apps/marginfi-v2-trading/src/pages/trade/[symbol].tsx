@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useRouter } from "next/router";
 import { IconChevronDown } from "@tabler/icons-react";
 
+import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import {
   tokenPriceFormatter,
   percentFormatter,
@@ -16,24 +17,59 @@ import { useTradeStore, useUiStore } from "~/store";
 import { getTokenImageURL, cn } from "~/utils";
 
 import { ActionComplete } from "~/components/common/ActionComplete";
+import { ActionBoxDialog } from "~/components/common/ActionBox";
 import { TVWidget } from "~/components/common/TVWidget";
 import { TradingBox } from "~/components/common/TradingBox";
 import { PositionList } from "~/components/common/Portfolio";
 import { Loader } from "~/components/ui/loader";
 import { TooltipProvider, Tooltip, TooltipContent, TooltipTrigger } from "~/components/ui/tooltip";
+import { Button } from "~/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "~/components/ui/dropdown-menu";
 
 export default function TradeSymbolPage() {
   const router = useRouter();
   const side = router.query.side as "long" | "short";
-  const [initialized, activeGroupPk, groupMap] = useTradeStore((state) => [
+  const [initialized, activeGroupPk, groupMap, portfolio] = useTradeStore((state) => [
     state.initialized,
     state.activeGroup,
     state.groupMap,
+    state.portfolio,
   ]);
 
   const activeGroup = React.useMemo(() => {
     return activeGroupPk ? groupMap.get(activeGroupPk.toBase58()) : null;
   }, [activeGroupPk, groupMap]);
+
+  const lpPosition = React.useMemo(() => {
+    if (!portfolio) return null;
+    const tokenLpPosition = portfolio.lpPositions.find(
+      (lp) => lp.pool.token.info.state.mint.toBase58() === activeGroup?.pool.token.info.state.mint.toBase58()
+    );
+    const quoteTokenLpPosition = portfolio.lpPositions.find(
+      (lp) =>
+        lp.pool.quoteTokens[0].info.state.mint.toBase58() ===
+        activeGroup?.pool.quoteTokens[0].info.state.mint.toBase58()
+    );
+    return {
+      token: tokenLpPosition,
+      quoteToken: quoteTokenLpPosition,
+    };
+  }, [portfolio, activeGroup]);
+
+  const hasTradePosition = React.useMemo(() => {
+    const long = portfolio?.long.find(
+      (lp) => lp.pool.token.info.state.mint.toBase58() === activeGroup?.pool.token.info.state.mint.toBase58()
+    );
+    const short = portfolio?.short.find(
+      (lp) => lp.pool.token.info.state.mint.toBase58() === activeGroup?.pool.token.info.state.mint.toBase58()
+    );
+    return long || short;
+  }, [portfolio, activeGroup]);
 
   const [previousTxn] = useUiStore((state) => [state.previousTxn]);
 
@@ -134,13 +170,56 @@ export default function TradeSymbolPage() {
                           </p>
                         </div>
                       </div>
-                      <p className="text-2xl">
-                        $
-                        {numeralFormatter(
-                          activeGroup.pool.token.info.state.totalDeposits *
-                            activeGroup.pool.token.info.oraclePrice.priceRealtime.price.toNumber()
+                      <div className="flex items-center gap-4">
+                        <p className="text-2xl">
+                          $
+                          {numeralFormatter(
+                            activeGroup.pool.token.info.state.totalDeposits *
+                              activeGroup.pool.token.info.oraclePrice.priceRealtime.price.toNumber()
+                          )}
+                        </p>
+                        {!hasTradePosition && lpPosition?.token && lpPosition.token.pool.token.isActive ? (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger className="focus:outline-none focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0">
+                              <Button size="sm" variant="outline">
+                                Supplied {numeralFormatter(lpPosition.token.pool.token.position.amount)}
+                                <div className="border-l pl-2 ml-1">
+                                  <IconChevronDown size={14} />
+                                </div>
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent style={{ width: "var(--radix-dropdown-menu-trigger-width)" }}>
+                              <DropdownMenuItem className="text-xs">
+                                <ActionBoxDialog
+                                  requestedBank={activeGroup.pool.token}
+                                  requestedAction={ActionType.Deposit}
+                                >
+                                  Supply more
+                                </ActionBoxDialog>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem className="text-xs">
+                                <ActionBoxDialog
+                                  requestedBank={activeGroup.pool.token}
+                                  requestedAction={ActionType.Withdraw}
+                                >
+                                  Withdraw
+                                </ActionBoxDialog>
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        ) : (
+                          !hasTradePosition && (
+                            <ActionBoxDialog
+                              requestedBank={activeGroup.pool.token}
+                              requestedAction={ActionType.Deposit}
+                            >
+                              <Button size="sm" variant="outline">
+                                Supply
+                              </Button>
+                            </ActionBoxDialog>
+                          )
                         )}
-                      </p>
+                      </div>
                     </div>
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
@@ -158,13 +237,58 @@ export default function TradeSymbolPage() {
                           </p>
                         </div>
                       </div>
-                      <p className="text-2xl">
-                        $
-                        {numeralFormatter(
-                          activeGroup.pool.quoteTokens[0].info.state.totalDeposits *
-                            activeGroup.pool.quoteTokens[0].info.oraclePrice.priceRealtime.price.toNumber()
+                      <div className="flex items-center gap-4">
+                        <p className="text-2xl">
+                          $
+                          {numeralFormatter(
+                            activeGroup.pool.quoteTokens[0].info.state.totalDeposits *
+                              activeGroup.pool.quoteTokens[0].info.oraclePrice.priceRealtime.price.toNumber()
+                          )}
+                        </p>
+                        {!hasTradePosition &&
+                        lpPosition?.quoteToken &&
+                        lpPosition.quoteToken.pool.quoteTokens[0].isActive ? (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger className="focus:outline-none focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0">
+                              <Button size="sm" variant="outline">
+                                Supplied {numeralFormatter(lpPosition.quoteToken.pool.quoteTokens[0].position.amount)}
+                                <div className="border-l pl-2 ml-1">
+                                  <IconChevronDown size={14} />
+                                </div>
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent style={{ width: "var(--radix-dropdown-menu-trigger-width)" }}>
+                              <DropdownMenuItem className="text-xs">
+                                <ActionBoxDialog
+                                  requestedBank={activeGroup.pool.quoteTokens[0]}
+                                  requestedAction={ActionType.Deposit}
+                                >
+                                  <p>Supply more</p>
+                                </ActionBoxDialog>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem className="text-xs">
+                                <ActionBoxDialog
+                                  requestedBank={activeGroup.pool.quoteTokens[0]}
+                                  requestedAction={ActionType.Withdraw}
+                                >
+                                  <p>Withdraw</p>
+                                </ActionBoxDialog>
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        ) : (
+                          !hasTradePosition && (
+                            <ActionBoxDialog
+                              requestedBank={activeGroup.pool.quoteTokens[0]}
+                              requestedAction={ActionType.Deposit}
+                            >
+                              <Button size="sm" variant="outline">
+                                Supply
+                              </Button>
+                            </ActionBoxDialog>
+                          )
                         )}
-                      </p>
+                      </div>
                     </div>
                   </div>
                 </div>
