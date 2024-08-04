@@ -11,37 +11,33 @@ import { useTradeStore } from "~/store";
 
 import { PositionActionButtons } from "~/components/common/Portfolio";
 
-import type { TokenData } from "~/types";
+import type { GroupData } from "~/store/tradeStore";
 
 type PositionCardProps = {
-  bank: ActiveBankInfo;
+  groupData: GroupData;
   isLong: boolean;
 };
 
-export const PositionCard = ({ bank, isLong }: PositionCardProps) => {
-  const [marginfiClient, collateralBanks, marginfiAccounts] = useTradeStore((state) => [
-    state.marginfiClient,
-    state.collateralBanks,
-    state.marginfiAccounts,
-  ]);
-  const [tokenData, setTokenData] = React.useState<TokenData | null>(null);
-
-  const collateralBank = React.useMemo(() => {
-    return collateralBanks[bank.address.toBase58()] || null;
-  }, [collateralBanks, bank]);
-
-  const isBorrowing = React.useMemo(() => {
-    const borrowBank = isLong ? collateralBank : bank;
-    return borrowBank.isActive && !borrowBank.position.isLending;
-  }, [bank, isLong, collateralBank]);
+export const PositionCard = ({ groupData, isLong }: PositionCardProps) => {
+  const [marginfiClient, marginfiAccounts] = useTradeStore((state) => [state.marginfiClient, state.marginfiAccounts]);
 
   const marginfiAccount = React.useMemo(() => {
-    return marginfiAccounts ? marginfiAccounts[bank.info.rawBank.group.toBase58()] : undefined;
-  }, [marginfiAccounts, bank]);
+    return marginfiAccounts ? marginfiAccounts[groupData.client.group.address.toBase58()] : undefined;
+  }, [marginfiAccounts, groupData]);
+
+  const isBorrowing = React.useMemo(() => {
+    const borrowBank = isLong ? groupData.pool.quoteTokens[0] : groupData.pool.token;
+    return borrowBank.isActive && !borrowBank.position.isLending;
+  }, [isLong, groupData]);
 
   const leverage = React.useMemo(() => {
-    const borrowBank = bank.position.isLending ? collateralBank : bank;
-    const depositBank = bank.address.equals(borrowBank.address) ? collateralBank : bank;
+    const borrowBank =
+      groupData.pool.token.isActive && groupData.pool.token.position.isLending
+        ? groupData.pool.quoteTokens[0]
+        : groupData.pool.token;
+    const depositBank = groupData.pool.token.address.equals(borrowBank.address)
+      ? groupData.pool.quoteTokens[0]
+      : groupData.pool.token;
 
     let leverage = 1;
     if (borrowBank.isActive && depositBank.isActive) {
@@ -51,49 +47,27 @@ export const PositionCard = ({ bank, isLong }: PositionCardProps) => {
       leverage = Math.round((borrowUsd / depositUsd + Number.EPSILON) * 100) / 100 + 1;
     }
     return leverage;
-  }, [bank, collateralBank]);
+  }, [groupData]);
 
-  React.useEffect(() => {
-    if (!bank) return;
-
-    const fetchTokenData = async () => {
-      const tokenResponse = await fetch(`/api/birdeye/token?address=${bank.info.state.mint.toBase58()}`);
-
-      if (!tokenResponse.ok) {
-        console.error("Failed to fetch token data");
-        return;
-      }
-
-      const tokenData = await tokenResponse.json();
-
-      if (!tokenData) {
-        console.error("Failed to parse token data");
-        return;
-      }
-
-      setTokenData(tokenData);
-    };
-
-    fetchTokenData();
-  }, [bank]);
+  if (!groupData.pool.token.isActive) return null;
 
   return (
     <div className="bg-background border p-4 rounded-2xl space-y-4">
       <div className="flex items-center gap-4 justify-between">
         <Link
-          href={`/pools/${bank.address.toBase58()}`}
+          href={`/pools/${groupData.client.group.address.toBase58()}`}
           className="flex items-center gap-4 font-medium text-muted-foreground"
         >
           <Image
-            src={getTokenImageURL(bank.info.state.mint.toBase58())}
-            alt={bank.meta.tokenSymbol}
+            src={getTokenImageURL(groupData.pool.token.info.state.mint.toBase58())}
+            alt={groupData.pool.token.meta.tokenSymbol}
             width={56}
             height={56}
             className="rounded-full"
           />
           <div className="leading-none space-y-0.5">
-            <h2 className="text-lg text-primary">{bank.meta.tokenName}</h2>
-            <h3>{bank.meta.tokenSymbol}</h3>
+            <h2 className="text-lg text-primary">{groupData.pool.token.meta.tokenName}</h2>
+            <h3>{groupData.pool.token.meta.tokenSymbol}</h3>
           </div>
         </Link>
       </div>
@@ -101,27 +75,34 @@ export const PositionCard = ({ bank, isLong }: PositionCardProps) => {
         <dl className="w-full grid grid-cols-2 text-sm text-muted-foreground gap-1">
           <dt>Size</dt>
           <dd className="text-right text-primary">
-            {numeralFormatter(bank.position.amount)} {bank.meta.tokenSymbol}
+            {numeralFormatter(groupData.pool.token.position.amount)} {groupData.pool.token.meta.tokenSymbol}
           </dd>
           <dt>Leverage</dt>
           <dd className="text-right text-primary">{`${leverage}x`}</dd>
           <dt>Price</dt>
           <dd className="text-right text-primary">
-            {bank.info.oraclePrice.priceRealtime.price.toNumber() > 0.00001
-              ? tokenPriceFormatter.format(bank.info.oraclePrice.priceRealtime.price.toNumber())
-              : `$${bank.info.oraclePrice.priceRealtime.price.toNumber().toExponential(2)}`}
-            {tokenData && (
-              <span className={cn("ml-1", tokenData.priceChange24h > 0 ? "text-mrgn-success" : "text-mrgn-error")}>
-                {percentFormatter.format(tokenData.priceChange24h / 100)}
+            {groupData.pool.token.info.oraclePrice.priceRealtime.price.toNumber() > 0.00001
+              ? tokenPriceFormatter.format(groupData.pool.token.info.oraclePrice.priceRealtime.price.toNumber())
+              : `$${groupData.pool.token.info.oraclePrice.priceRealtime.price.toNumber().toExponential(2)}`}
+            {groupData.pool.token.tokenData && (
+              <span
+                className={cn(
+                  "ml-1",
+                  groupData.pool.token.tokenData.priceChange24hr > 0 ? "text-mrgn-success" : "text-mrgn-error"
+                )}
+              >
+                {percentFormatter.format(groupData.pool.token.tokenData.priceChange24hr / 100)}
               </span>
             )}
           </dd>
           <dt>USD Value</dt>
-          <dd className="text-right text-primary">{usdFormatter.format(bank.position.usdValue)} USD</dd>
-          {bank.position.liquidationPrice && (
+          <dd className="text-right text-primary">{usdFormatter.format(groupData.pool.token.position.usdValue)} USD</dd>
+          {groupData.pool.token.position.liquidationPrice && (
             <>
               <dt>Liquidation Price</dt>
-              <dd className="text-right text-primary">{tokenPriceFormatter.format(bank.position.liquidationPrice)}</dd>
+              <dd className="text-right text-primary">
+                {tokenPriceFormatter.format(groupData.pool.token.position.liquidationPrice)}
+              </dd>
             </>
           )}
         </dl>
@@ -131,8 +112,8 @@ export const PositionCard = ({ bank, isLong }: PositionCardProps) => {
           marginfiClient={marginfiClient}
           marginfiAccount={marginfiAccount}
           isBorrowing={isBorrowing}
-          bank={bank}
-          collateralBank={collateralBank}
+          bank={groupData.pool.token}
+          collateralBank={groupData.pool.quoteTokens[0]}
           rightAlignFinalButton={true}
         />
       </div>
