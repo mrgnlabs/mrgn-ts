@@ -26,13 +26,8 @@ const sortOptions: {
   label: string;
   dir?: "asc" | "desc";
 }[] = [
-  { value: TradePoolFilterStates.TIMESTAMP, label: "Recently created" },
   { value: TradePoolFilterStates.APY_DESC, label: "APY Desc" },
   { value: TradePoolFilterStates.APY_ASC, label: "APY Asc", dir: "asc" },
-  { value: TradePoolFilterStates.PRICE_DESC, label: "Price Desc" },
-  { value: TradePoolFilterStates.PRICE_ASC, label: "Price Asc", dir: "asc" },
-  { value: TradePoolFilterStates.MARKET_CAP_DESC, label: "Market Cap Desc" },
-  { value: TradePoolFilterStates.MARKET_CAP_ASC, label: "Market Cap Asc", dir: "asc" },
   { value: TradePoolFilterStates.LIQUIDITY_DESC, label: "Liquidity Desc" },
   { value: TradePoolFilterStates.LIQUIDITY_ASC, label: "Liquidity Asc", dir: "asc" },
 ];
@@ -114,7 +109,7 @@ export default function PortfolioPage() {
               <PageHeading heading="Yield farming" body={<p>Supply liquidity and earn yield.</p>} links={[]} />
             </div>
 
-            <div className="flex justify-center items-center w-full max-w-4xl mx-auto mb-16 mt-8">
+            <div className="flex justify-center items-center w-full max-w-4xl mx-auto mb-8 mt-4 lg:mb-16 lg:mt-8">
               <div className="w-full relative">
                 <Input
                   placeholder={isMobile ? "Search tokens..." : "Search tokens by name, symbol, or mint address..."}
@@ -207,18 +202,18 @@ export default function PortfolioPage() {
                         >
                           <div className="flex items-center -space-x-2.5">
                             <Image
+                              src={getTokenImageURL(group.pool.token.info.state.mint.toBase58())}
+                              alt={group.pool.token.meta.tokenSymbol}
+                              width={24}
+                              height={24}
+                              className="rounded-full bg-background z-10"
+                            />
+                            <Image
                               src={getTokenImageURL(collateralBank.info.state.mint.toBase58())}
                               alt={collateralBank.meta.tokenSymbol}
                               width={24}
                               height={24}
                               className="rounded-full"
-                            />
-                            <Image
-                              src={getTokenImageURL(group.pool.token.info.state.mint.toBase58())}
-                              alt={group.pool.token.meta.tokenSymbol}
-                              width={24}
-                              height={24}
-                              className="rounded-full bg-background"
                             />
                           </div>
                           <span>
@@ -389,7 +384,29 @@ export default function PortfolioPage() {
               </div>
             </div>
 
-            <div className="lg:hidden">
+            <div className="lg:hidden space-y-12">
+              <div className="flex flex-col items-center">
+                <Select
+                  value={sortBy}
+                  onValueChange={(value) => {
+                    setSortBy(value as TradePoolFilterStates);
+                    sortGroups(value as TradePoolFilterStates);
+                  }}
+                >
+                  <SelectTrigger className="w-[190px] justify-start gap-2">
+                    {dir === "desc" && <IconSortDescending size={16} />}
+                    {dir === "asc" && <IconSortAscending size={16} />}
+                    <SelectValue placeholder="Sort pools" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {sortOptions.map((option, i) => (
+                      <SelectItem key={i} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
               {filteredGroups &&
                 filteredGroups.length > 0 &&
                 filteredGroups.map((group) => {
@@ -405,18 +422,18 @@ export default function PortfolioPage() {
                       >
                         <div className="flex items-center -space-x-2.5">
                           <Image
+                            src={getTokenImageURL(group.pool.token.info.state.mint.toBase58())}
+                            alt={group.pool.token.meta.tokenSymbol}
+                            width={24}
+                            height={24}
+                            className="rounded-full bg-background z-10"
+                          />
+                          <Image
                             src={getTokenImageURL(collateralBank.info.state.mint.toBase58())}
                             alt={collateralBank.meta.tokenSymbol}
                             width={24}
                             height={24}
                             className="rounded-full"
-                          />
-                          <Image
-                            src={getTokenImageURL(group.pool.token.info.state.mint.toBase58())}
-                            alt={group.pool.token.meta.tokenSymbol}
-                            width={24}
-                            height={24}
-                            className="rounded-full bg-background"
                           />
                         </div>
                         <span>
