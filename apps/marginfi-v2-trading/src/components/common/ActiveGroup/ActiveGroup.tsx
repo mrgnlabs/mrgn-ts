@@ -9,12 +9,19 @@ import { useTradeStore } from "~/store";
 import { Button } from "~/components/ui/button";
 
 export const ActiveGroup = () => {
-  const [activeGroupPk, groupMap, selectedAccount, marginfiClient] = useTradeStore((state) => [
+  const [activeGroupPk, groupMap, marginfiAccounts, marginfiClient] = useTradeStore((state) => [
     state.activeGroup,
     state.groupMap,
-    state.selectedAccount,
+    state.marginfiAccounts,
     state.marginfiClient,
   ]);
+
+  const activeAccount = React.useMemo(() => {
+    if (marginfiAccounts) {
+      return marginfiAccounts[activeGroupPk?.toBase58() ?? ""] ?? null;
+    }
+    return null;
+  }, [marginfiAccounts, activeGroupPk]);
 
   const activeGroup = React.useMemo(() => {
     const group = activeGroupPk ? groupMap.get(activeGroupPk.toBase58()) : null;
@@ -84,11 +91,11 @@ export const ActiveGroup = () => {
                 {shortenAddress(activeGroup.usdc.address.toBase58())}
               </Link>
             </li>
-            {selectedAccount && (
+            {activeAccount && (
               <li>
                 <strong className="font-medium">Selected account</strong>:{" "}
                 <Link
-                  href={`https://solana.fm/address/${selectedAccount.address.toBase58()}`}
+                  href={`https://solana.fm/address/${activeAccount.address.toBase58()}`}
                   target="_blank"
                   rel="noreferrer"
                   className="text-chartreuse"

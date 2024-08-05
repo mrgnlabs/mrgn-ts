@@ -137,9 +137,6 @@ type TradeStoreState = {
     [group: string]: MarginfiAccountWrapper;
   } | null;
 
-  // currently selected marginfi account
-  selectedAccount: MarginfiAccountWrapper | null;
-
   accountSummary: AccountSummary;
 
   // user native sol balance
@@ -218,7 +215,6 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
   marginfiClient: null,
   activeGroup: null,
   marginfiAccounts: null,
-  selectedAccount: null,
   accountSummary: DEFAULT_ACCOUNT_SUMMARY,
   nativeSolBalance: 0,
   tokenAccountMap: null,
@@ -696,7 +692,6 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
 
       set({
         marginfiClient,
-        selectedAccount,
         accountSummary,
         groupMap,
         activeGroup: activeGroup,
