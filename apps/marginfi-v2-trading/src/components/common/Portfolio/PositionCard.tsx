@@ -18,12 +18,6 @@ type PositionCardProps = {
 };
 
 export const PositionCard = ({ groupData, isLong }: PositionCardProps) => {
-  const [marginfiClient, marginfiAccounts] = useTradeStore((state) => [state.marginfiClient, state.marginfiAccounts]);
-
-  const marginfiAccount = React.useMemo(() => {
-    return marginfiAccounts ? marginfiAccounts[groupData.client.group.address.toBase58()] : undefined;
-  }, [marginfiAccounts, groupData]);
-
   const isBorrowing = React.useMemo(() => {
     const borrowBank = isLong ? groupData.pool.quoteTokens[0] : groupData.pool.token;
     return borrowBank.isActive && !borrowBank.position.isLending;
@@ -107,14 +101,16 @@ export const PositionCard = ({ groupData, isLong }: PositionCardProps) => {
         </dl>
       </div>
       <div className="flex items-center justify-between gap-4">
-        <PositionActionButtons
-          marginfiClient={marginfiClient}
-          marginfiAccount={marginfiAccount}
-          isBorrowing={isBorrowing}
-          bank={groupData.pool.token}
-          collateralBank={groupData.pool.quoteTokens[0]}
-          rightAlignFinalButton={true}
-        />
+        {groupData.client && groupData.selectedAccount && (
+          <PositionActionButtons
+            marginfiClient={groupData.client}
+            marginfiAccount={groupData.selectedAccount}
+            isBorrowing={isBorrowing}
+            bank={groupData.pool.token}
+            collateralBank={groupData.pool.quoteTokens[0]}
+            rightAlignFinalButton={true}
+          />
+        )}
       </div>
     </div>
   );
