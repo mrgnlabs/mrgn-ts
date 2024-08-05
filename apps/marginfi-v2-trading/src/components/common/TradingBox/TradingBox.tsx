@@ -218,7 +218,7 @@ export const TradingBox = ({ activeBank }: TradingBoxProps) => {
         });
         setAdditionalChecks(undefined);
       } catch (error) {
-        const additionChecks = handleSimulationError(error, bank);
+        const additionChecks = handleSimulationError(error, bank, true);
         setAdditionalChecks(additionChecks);
 
         let message;
