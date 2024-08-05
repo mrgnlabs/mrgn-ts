@@ -67,7 +67,7 @@ export const ActionBox = ({
     activeGroupPk,
     groupMap,
     mfiClient,
-    activeAccount,
+    marginfiAccounts,
     nativeSolBalance,
     fetchTradeState,
     setActiveGroup,
@@ -77,11 +77,18 @@ export const ActionBox = ({
     state.activeGroup,
     state.groupMap,
     state.marginfiClient,
-    state.selectedAccount,
+    state.marginfiAccounts,
     state.nativeSolBalance,
     state.fetchTradeState,
     state.setActiveGroup,
   ]);
+
+  const activeAccount = React.useMemo(() => {
+    if (marginfiAccounts) {
+      return marginfiAccounts[activeGroupPk?.toBase58() ?? ""] ?? null;
+    }
+    return null;
+  }, [marginfiAccounts, activeGroupPk]);
 
   const activeGroup = React.useMemo(() => {
     const group = activeGroupPk ? groupMap.get(activeGroupPk.toBase58()) : null;

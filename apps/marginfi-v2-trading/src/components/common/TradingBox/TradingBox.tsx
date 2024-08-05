@@ -67,7 +67,7 @@ export const TradingBox = ({ side = "long" }: TradingBoxProps) => {
   }, [tradeState, loopingObject]);
 
   const [
-    selectedAccount,
+    marginfiAccounts,
     activeGroupPk,
     accountSummary,
     setActiveGroup,
@@ -76,7 +76,7 @@ export const TradingBox = ({ side = "long" }: TradingBoxProps) => {
     fetchTradeState,
     setIsRefreshingStore,
   ] = useTradeStore((state) => [
-    state.selectedAccount,
+    state.marginfiAccounts,
     state.activeGroup,
     state.accountSummary,
     state.setActiveGroup,
@@ -85,6 +85,13 @@ export const TradingBox = ({ side = "long" }: TradingBoxProps) => {
     state.fetchTradeState,
     state.setIsRefreshingStore,
   ]);
+
+  const selectedAccount = React.useMemo(() => {
+    if (marginfiAccounts) {
+      return marginfiAccounts[activeGroupPk?.toBase58() ?? ""] ?? null;
+    }
+    return null;
+  }, [marginfiAccounts, activeGroupPk]);
 
   const [slippageBps, priorityFee, platformFeeBps, setSlippageBps, setIsActionComplete, setPreviousTxn] = useUiStore(
     (state) => [
