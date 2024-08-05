@@ -48,7 +48,7 @@ export default function PortfolioPage() {
   const isMobile = useIsMobile();
   const { connected } = useWalletContext();
   const [search, setSearch] = React.useState("");
-  const [sortBy, setSortBy] = React.useState<TradePoolFilterStates>(TradePoolFilterStates.TIMESTAMP);
+  const [sortBy, setSortBy] = React.useState<TradePoolFilterStates>(TradePoolFilterStates.APY_DESC);
   const groups = Array.from(groupMap.values());
 
   const dir = React.useMemo(() => {
@@ -100,6 +100,10 @@ export default function PortfolioPage() {
     return results;
   }, [groups, search]);
 
+  React.useEffect(() => {
+    sortGroups(TradePoolFilterStates.APY_DESC);
+  }, [sortGroups]);
+
   return (
     <>
       <div className="w-full max-w-8xl mx-auto px-4 md:px-8 pb-28 pt-12">
@@ -134,35 +138,57 @@ export default function PortfolioPage() {
                   )}
                 >
                   <div className="pl-4">Pool</div>
-                  <div className="pl-3 text-foreground flex items-center gap-1">
-                    <IconSortDescending size={20} /> Total Deposits
+                  <div
+                    className={cn(
+                      "pl-3 flex items-center gap-1 cursor-pointer transition-colors hover:text-foreground",
+                      (sortBy === TradePoolFilterStates.LIQUIDITY_ASC ||
+                        sortBy === TradePoolFilterStates.LIQUIDITY_DESC) &&
+                        "text-foreground"
+                    )}
+                    onClick={() => {
+                      setSortBy(
+                        sortBy === TradePoolFilterStates.LIQUIDITY_DESC
+                          ? TradePoolFilterStates.LIQUIDITY_ASC
+                          : TradePoolFilterStates.LIQUIDITY_DESC
+                      );
+                      sortGroups(
+                        sortBy === TradePoolFilterStates.LIQUIDITY_DESC
+                          ? TradePoolFilterStates.LIQUIDITY_ASC
+                          : TradePoolFilterStates.LIQUIDITY_DESC
+                      );
+                    }}
+                  >
+                    {sortBy === TradePoolFilterStates.LIQUIDITY_ASC && <IconSortAscending size={16} />}
+                    {sortBy === TradePoolFilterStates.LIQUIDITY_DESC && <IconSortDescending size={16} />}
+                    Total Deposits
                   </div>
-                  <div className="text-right xl:text-left">Lending Rate (APY)</div>
-                  <div className="text-right xl:text-left">Borrow Rate (APY)</div>
+                  <button
+                    className={cn(
+                      "flex items-center gap-1 justify-end cursor-pointer transition-colors xl:justify-center xl:pr-4 hover:text-foreground",
+                      (sortBy === TradePoolFilterStates.APY_ASC || sortBy === TradePoolFilterStates.APY_DESC) &&
+                        "text-foreground"
+                    )}
+                    onClick={() => {
+                      setSortBy(
+                        sortBy === TradePoolFilterStates.APY_DESC
+                          ? TradePoolFilterStates.APY_ASC
+                          : TradePoolFilterStates.APY_DESC
+                      );
+                      sortGroups(
+                        sortBy === TradePoolFilterStates.APY_DESC
+                          ? TradePoolFilterStates.APY_ASC
+                          : TradePoolFilterStates.APY_DESC
+                      );
+                    }}
+                  >
+                    {sortBy === TradePoolFilterStates.APY_ASC && <IconSortAscending size={16} />}
+                    {sortBy === TradePoolFilterStates.APY_DESC && <IconSortDescending size={16} />}
+                    Lending APY
+                  </button>
+                  <div className="text-right xl:text-center">Borrow APY</div>
                   <div className="text-center">Created by</div>
                   {connected && <div>Supplied</div>}
-                  <div>
-                    <Select
-                      value={sortBy}
-                      onValueChange={(value) => {
-                        setSortBy(value as TradePoolFilterStates);
-                        sortGroups(value as TradePoolFilterStates);
-                      }}
-                    >
-                      <SelectTrigger className="w-[190px] justify-start gap-2">
-                        {dir === "desc" && <IconSortDescending size={16} />}
-                        {dir === "asc" && <IconSortAscending size={16} />}
-                        <SelectValue placeholder="Sort pools" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {sortOptions.map((option, i) => (
-                          <SelectItem key={i} value={option.value}>
-                            {option.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  <div />
                 </div>
               )}
               <div>
