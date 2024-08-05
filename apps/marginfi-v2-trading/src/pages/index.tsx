@@ -25,12 +25,12 @@ const sortOptions: {
   dir?: "asc" | "desc";
 }[] = [
   { value: TradePoolFilterStates.TIMESTAMP, label: "Recently created" },
-  { value: TradePoolFilterStates.PRICE_ASC, label: "Price Asc", dir: "asc" },
   { value: TradePoolFilterStates.PRICE_DESC, label: "Price Desc" },
-  { value: TradePoolFilterStates.MARKET_CAP_ASC, label: "Market Cap Asc", dir: "asc" },
+  { value: TradePoolFilterStates.PRICE_ASC, label: "Price Asc", dir: "asc" },
   { value: TradePoolFilterStates.MARKET_CAP_DESC, label: "Market Cap Desc" },
-  { value: TradePoolFilterStates.LIQUIDITY_ASC, label: "Liquidity Asc", dir: "asc" },
+  { value: TradePoolFilterStates.MARKET_CAP_ASC, label: "Market Cap Asc", dir: "asc" },
   { value: TradePoolFilterStates.LIQUIDITY_DESC, label: "Liquidity Desc" },
+  { value: TradePoolFilterStates.LIQUIDITY_ASC, label: "Liquidity Asc", dir: "asc" },
 ];
 
 enum View {
