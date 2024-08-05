@@ -8,6 +8,7 @@ import * as solanaStakePool from "@solana/spl-stake-pool";
 import { nativeToUi, uiToNative } from "@mrgnlabs/mrgn-common";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { computeMaxLeverage, MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
+import { STATIC_SIMULATION_ERRORS, DYNAMIC_SIMULATION_ERRORS } from "@mrgnlabs/mrgn-utils";
 
 import {
   LstType,
@@ -21,6 +22,7 @@ import {
   verifyJupTxSizeLooping,
 } from "~/utils";
 import BigNumber from "bignumber.js";
+import { ActionMethod } from "@mrgnlabs/mrgn-utils/dist/actions";
 
 interface ActionBoxState {
   // State
@@ -48,7 +50,7 @@ interface ActionBoxState {
   actionQuote: QuoteResponse | null;
   actionTxns: { actionTxn: VersionedTransaction | null; bundleTipTxn: VersionedTransaction | null };
 
-  errorMessage: string;
+  errorMessage: ActionMethod | null;
   isLoading: boolean;
 
   // Actions
@@ -141,7 +143,7 @@ const initialState = {
   amountRaw: "",
   repayAmountRaw: "",
   maxAmountCollat: 0,
-  errorMessage: "",
+  errorMessage: null,
 
   leverage: 0,
   maxLeverage: 0,
@@ -310,7 +312,7 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
       priorityFee
     );
 
-    if (loopingObject) {
+    if (loopingObject && "loopingTxn" in loopingObject) {
       set({
         actionTxns: {
           actionTxn: loopingObject.loopingTxn,
@@ -323,9 +325,15 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
         },
       });
     } else {
-      set({
-        errorMessage: "Unable to retrieve data. Please choose a different collateral option or refresh the page.",
-      });
+      if (loopingObject?.description) {
+        set({
+          errorMessage: loopingObject,
+        });
+      } else {
+        set({
+          errorMessage: STATIC_SIMULATION_ERRORS.FL_FAILED,
+        });
+      }
     }
     set({ isLoading: false });
   },
@@ -350,7 +358,7 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
       priorityFee
     );
 
-    if (repayCollat) {
+    if (repayCollat && "repayTxn" in repayCollat) {
       set({
         actionTxns: {
           actionTxn: repayCollat.repayTxn,
@@ -360,9 +368,15 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
         amountRaw: repayCollat.amount.toString(),
       });
     } else {
-      set({
-        errorMessage: "Unable to retrieve data. Please choose a different collateral option or refresh the page.",
-      });
+      if (repayCollat?.description) {
+        set({
+          errorMessage: repayCollat,
+        });
+      } else {
+        set({
+          errorMessage: DYNAMIC_SIMULATION_ERRORS.REPAY_COLLAT_FAILED_CHECK(selectedRepayBank.meta.tokenSymbol),
+        });
+      }
     }
     set({ isLoading: false });
   },
@@ -424,9 +438,7 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
           if (maxAmount) {
             set({ maxAmountCollat: maxAmount, repayAmountRaw: "" });
           } else {
-            set({
-              errorMessage: `Unable to repay using ${repayTokenBank.meta.tokenSymbol}, please select another collateral.`,
-            });
+            set({ errorMessage: DYNAMIC_SIMULATION_ERRORS.REPAY_COLLAT_FAILED_CHECK(repayTokenBank.meta.tokenSymbol) });
           }
           set({ isLoading: false });
         }
@@ -479,7 +491,7 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
         set({ maxAmountCollat: maxAmount, repayAmountRaw: "" });
       } else {
         set({
-          errorMessage: `Unable to repay using ${repayTokenBank.meta.tokenSymbol}, please select another collateral.`,
+          errorMessage: DYNAMIC_SIMULATION_ERRORS.REPAY_COLLAT_FAILED_CHECK(repayTokenBank.meta.tokenSymbol),
         });
       }
       set({ isLoading: false });
@@ -521,7 +533,7 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
           set({ maxAmountCollat: maxAmount, repayAmountRaw: "" });
         } else {
           set({
-            errorMessage: `Unable to repay using ${repayBank.meta.tokenSymbol}, please select another collateral.`,
+            errorMessage: DYNAMIC_SIMULATION_ERRORS.REPAY_COLLAT_FAILED_CHECK(repayBank.meta.tokenSymbol),
           });
         }
         set({ isLoading: false });
@@ -561,14 +573,18 @@ async function calculateLooping(
   slippageBps: number,
   connection: Connection,
   priorityFee: number
-): Promise<{
-  loopingTxn: VersionedTransaction;
-  bundleTipTxn: VersionedTransaction | null;
-  quote: QuoteResponse;
-  borrowAmount: BigNumber;
-  actualDepositAmount: number;
-  priorityFee: number;
-} | null> {
+): Promise<
+  | {
+      loopingTxn: VersionedTransaction;
+      bundleTipTxn: VersionedTransaction | null;
+      quote: QuoteResponse;
+      borrowAmount: BigNumber;
+      actualDepositAmount: number;
+      priorityFee: number;
+    }
+  | null
+  | ActionMethod
+> {
   //const slippageBps = 0.01 * 10000;
 
   // console.log("bank A: " + bank.meta.tokenSymbol);
@@ -596,6 +612,7 @@ async function calculateLooping(
 
   for (const maxAccounts of maxAccountsArr) {
     const isTxnSplit = maxAccounts === 30;
+
     const quoteParams = {
       amount: borrowAmountNative,
       inputMint: loopBank.info.state.mint.toBase58(), // borrow
@@ -626,7 +643,7 @@ async function calculateLooping(
           isTxnSplit,
           priorityFee
         );
-        if (txn) {
+        if (txn.flashloanTx) {
           capture("looper", {
             amountIn: uiToNative(amount, loopBank.info.state.mintDecimals).toNumber(),
             firstQuote,
@@ -642,6 +659,8 @@ async function calculateLooping(
             actualDepositAmount: actualDepositAmountUi,
             priorityFee: priorityFee,
           };
+        } else if (txn.error && maxAccounts === maxAccountsArr[maxAccountsArr.length - 1]) {
+          return txn.error;
         }
       } else {
         throw new Error("Swap quote failed");
@@ -668,12 +687,16 @@ async function calculateRepayCollateral(
   slippageBps: number,
   connection: Connection,
   priorityFee: number
-): Promise<{
-  repayTxn: VersionedTransaction;
-  bundleTipTxn: VersionedTransaction | null;
-  quote: QuoteResponse;
-  amount: number;
-} | null> {
+): Promise<
+  | {
+      repayTxn: VersionedTransaction;
+      bundleTipTxn: VersionedTransaction | null;
+      quote: QuoteResponse;
+      amount: number;
+    }
+  | null
+  | ActionMethod
+> {
   const maxRepayAmount = bank.isActive ? bank?.position.amount : 0;
 
   const maxAccountsArr = [undefined, 50, 40, 30];
@@ -714,7 +737,7 @@ async function calculateRepayCollateral(
           priorityFee,
           isTxnSplit
         );
-        if (txn) {
+        if (txn.flashloanTx) {
           capture("repay_with_collat", {
             amountIn: uiToNative(amount, repayBank.info.state.mintDecimals).toNumber(),
             firstQuote,
@@ -723,6 +746,8 @@ async function calculateRepayCollateral(
             outputMint: bank.info.state.mint.toBase58(),
           });
           return { repayTxn: txn.flashloanTx, bundleTipTxn: txn.bundleTipTxn, quote: swapQuote, amount: amountToRepay };
+        } else if (txn.error && maxAccounts === maxAccountsArr[maxAccountsArr.length - 1]) {
+          return txn.error;
         }
       } else {
         throw new Error("Swap quote failed");
@@ -782,7 +807,6 @@ async function calculateMaxCollat(bank: ExtendedBankInfo, repayBank: ExtendedBan
         } catch (error) {
           const bankAmountUsd = maxRepayAmount * bank.info.oraclePrice.priceRealtime.price.toNumber() * 0.9998;
           const repayAmount = bankAmountUsd / repayBank.info.oraclePrice.priceRealtime.price.toNumber();
-
           return repayAmount;
         }
       } else {

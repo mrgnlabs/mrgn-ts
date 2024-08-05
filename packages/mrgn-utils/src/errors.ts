@@ -18,6 +18,17 @@ export const STATIC_SIMULATION_ERRORS: { [key: string]: ActionMethod } = {
     description:
       "This swap causes the transaction to fail due to size restrictions. Please try again or pick another token.",
   },
+  FL_FAILED: {
+    isEnabled: false,
+    actionMethod: "WARNING",
+    description: "Failed to fetch data. Please choose a different collateral option or refresh the page.",
+  },
+  KEY_SIZE: {
+    isEnabled: false,
+    actionMethod: "WARNING",
+    description:
+      "This transaction fails due to account restrictions. Please decrease the positions on mrgnlend and try again.",
+  },
   STALE_TRADING: {
     isEnabled: true,
     actionMethod: "WARNING",
@@ -78,7 +89,23 @@ export const STATIC_SIMULATION_ERRORS: { [key: string]: ActionMethod } = {
     isEnabled: true,
     actionMethod: "WARNING",
   },
+  INSUFICIENT_FUNDS: {
+    description: "You do not have enough funds to execute the transaction",
+    isEnabled: true,
+    actionMethod: "WARNING",
+  },
+  INSUFICIENT_FUNDS_REPAY: {
+    description:
+      "Insufficient funds for the transaction, likely due to a bad Jupiter quote. Please select another amount and try again.",
+    isEnabled: true,
+    actionMethod: "WARNING",
+  },
 };
+
+const createRepayCollatFailedCheck = (tokenSymbol?: string): ActionMethod => ({
+  description: `Unable to repay using ${tokenSymbol}, please select another collateral.`,
+  isEnabled: false,
+});
 
 const createInsufficientBalanceCheck = (tokenSymbol?: string): ActionMethod => ({
   description: `Insufficient ${tokenSymbol} in wallet.`,
@@ -216,6 +243,7 @@ export const DYNAMIC_SIMULATION_ERRORS = {
   BORROW_CAPACITY_CHECK: createBorrowCapacityCheck,
   EXISTING_ISO_BORROW_CHECK: createExistingIsolatedBorrowCheck,
   INSUFFICIENT_BALANCE_CHECK: createInsufficientBalanceCheck,
+  REPAY_COLLAT_FAILED_CHECK: createRepayCollatFailedCheck,
 };
 
 const createCustomError = (description: string): ActionMethod => ({
@@ -265,7 +293,7 @@ export const handleError = (
         error.message.toLowerCase().includes("blockhashnotfound") || // Contains 'BlockhashNotFound'
         error.message.includes('"BlockhashNotFound"') || // Contains '"BlockhashNotFound"'
         error.message.toLowerCase().includes("blockhash not found") || // Contains 'Blockhash not found'
-        error?.logs.some((entry: string) => entry.toLowerCase().includes("blockhash not found"))
+        error?.logs?.some((entry: string) => entry.toLowerCase().includes("blockhash not found"))
       ) {
         return STATIC_SIMULATION_ERRORS.TRANSACTION_EXPIRED;
       }
@@ -274,9 +302,17 @@ export const handleError = (
         return STATIC_SIMULATION_ERRORS.USER_REJECTED;
       }
 
+      if (error.message.toLowerCase().includes("insufficient funds")) {
+        if (action === "Repaying") {
+          return STATIC_SIMULATION_ERRORS.INSUFICIENT_FUNDS_REPAY;
+        } else {
+          return STATIC_SIMULATION_ERRORS.INSUFICIENT_FUNDS;
+        }
+      }
+
       if (
-        error.message.includes("insufficient lamport") ||
-        error?.logs.some((entry: string[]) => entry.includes("insufficient lamport"))
+        error.message.toLowerCase().includes("insufficient lamport") ||
+        error?.logs?.some((entry: string[]) => entry.includes("insufficient lamport"))
       ) {
         return STATIC_SIMULATION_ERRORS.INSUFICIENT_LAMPORTS;
       }
