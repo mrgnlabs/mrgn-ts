@@ -227,7 +227,8 @@ const createCustomError = (description: string): ActionMethod => ({
 export const handleError = (
   error: any,
   bank: ExtendedBankInfo | null,
-  isArena: boolean = false
+  isArena: boolean = false,
+  action?: string
 ): ActionMethod | null => {
   try {
     // JUPITER ERRORS
@@ -241,26 +242,30 @@ export const handleError = (
 
     // CATCH SPECIFIC ERRORS
     if (error?.message) {
-      if (error.message.includes("RangeError") || error.message.includes("too large")) {
+      if (error.message.includes("RangeError") || error.message.toLowerCase().includes("too large")) {
         return STATIC_SIMULATION_ERRORS.TX_SIZE;
       }
 
       if (
+        error.message.toLowerCase().includes("stale") ||
         error.message.includes("6017") ||
-        error.message.includes("stale") ||
-        error?.logs.some((entry: string[]) => entry.includes("stale"))
+        error.message.toLowerCase().includes("stale") ||
+        error?.logs?.some((entry: string) => entry.includes("stale"))
       ) {
-        return STATIC_SIMULATION_ERRORS.STALE;
+        if (isArena) {
+          return STATIC_SIMULATION_ERRORS.STALE_TRADING;
+        } else {
+          return DYNAMIC_SIMULATION_ERRORS.STALE_CHECK(action ?? "The action");
+        }
       }
 
-      console.log({ error: error.message }); // "BlockhashNotFound"
       if (
         error.message === "BlockhashNotFound" || // Exact match
-        error.message.includes("lockhashNotFou") || // Contains 'BlockhashNotFound'
-        error.message.includes("BlockhashNotFound") || // Contains 'BlockhashNotFound'
+        error.message.toLowerCase().includes("lockhashnotfou") || // Contains 'BlockhashNotFound'
+        error.message.toLowerCase().includes("blockhashnotfound") || // Contains 'BlockhashNotFound'
         error.message.includes('"BlockhashNotFound"') || // Contains '"BlockhashNotFound"'
-        error.message.includes("Blockhash not found") || // Contains 'Blockhash not found'
-        error?.logs.some((entry: string[]) => entry.includes("Blockhash not found"))
+        error.message.toLowerCase().includes("blockhash not found") || // Contains 'Blockhash not found'
+        error?.logs.some((entry: string) => entry.toLowerCase().includes("blockhash not found"))
       ) {
         return STATIC_SIMULATION_ERRORS.TRANSACTION_EXPIRED;
       }
@@ -276,15 +281,15 @@ export const handleError = (
         return STATIC_SIMULATION_ERRORS.INSUFICIENT_LAMPORTS;
       }
 
-      if (error.message.includes("6029") || error.message.includes("deposit capacity exceeded")) {
+      if (error.message.includes("6029") || error.message.toLowerCase().includes("deposit capacity exceeded")) {
         return STATIC_SIMULATION_ERRORS.DEPOSIT_CAP_EXCEEDED;
       }
 
-      if (error.message.includes("6029") || error.message.includes("borrow cap exceeded")) {
+      if (error.message.includes("6029") || error.message.toLowerCase().includes("borrow cap exceeded")) {
         return STATIC_SIMULATION_ERRORS.BORROW_CAP_EXCEEDED;
       }
 
-      if (isArena && (error.message.includes("6028") || error.message.includes("utilization ratio"))) {
+      if (isArena && (error.message.includes("6028") || error.message.toLowerCase().includes("utilization ratio"))) {
         if (bank) {
           const method = {
             ...STATIC_SIMULATION_ERRORS.UTILIZATION_RATIO_INVALID,
@@ -302,9 +307,10 @@ export const handleError = (
     if (error?.programId === "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA") {
       return createCustomError(error.message);
     }
+
+    return null;
   } catch (err) {
     console.log({ error: err });
-  } finally {
     return null;
   }
 };
@@ -329,10 +335,12 @@ export const handleTransactionError = (
 export const handleSimulationError = (
   error: any,
   bank: ExtendedBankInfo | null,
-  isArena: boolean = false
+  isArena: boolean = false,
+  actionString?: string
 ): ActionMethod | undefined => {
   try {
-    const action = handleError(error, bank, isArena);
+    const action = handleError(error, bank, isArena, actionString);
+    console.log("action", action);
     if (action) {
       return action;
     }

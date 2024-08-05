@@ -69,7 +69,7 @@ export function useLoopingPreview({
         setSimulationResult(await simulateLooping(props));
         setActionMethod(undefined);
       } catch (error: any) {
-        const method = handleSimulationError(error, props.bank);
+        const method = handleSimulationError(error, props.bank, false, "Looping");
         setActionMethod(method);
       } finally {
         setIsLoading(false);
