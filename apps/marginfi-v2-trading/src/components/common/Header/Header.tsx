@@ -12,6 +12,7 @@ import {
   IconPlus,
   IconShovelPitchforks,
   IconCommand,
+  IconRefresh,
 } from "@tabler/icons-react";
 
 import { useTradeStore } from "~/store";
@@ -87,7 +88,7 @@ export const Header = () => {
               <div className="flex items-center">
                 <CreatePoolScriptDialog
                   trigger={
-                    <Button variant={"secondary"} size={isMobile ? "sm" : "default"}>
+                    <Button variant="outline" size={isMobile ? "sm" : "default"}>
                       <IconPlus size={isMobile ? 14 : 18} /> Pool Script
                     </Button>
                   }
@@ -96,12 +97,15 @@ export const Header = () => {
             )
           }
           <div className="flex items-center gap-6">
+            <Button variant="outline">
+              <IconRefresh size={16} /> Swap tokens
+            </Button>
             {!isMobile && (
               <div className="flex items-center">
                 <CreatePoolSoon
                   trigger={
                     <Button disabled={false}>
-                      <IconPlus size={14} /> Create Pool
+                      <IconPlus size={16} /> Create Pool
                     </Button>
                   }
                 />
