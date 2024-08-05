@@ -84,7 +84,7 @@ export const ActionBox = ({
   ]);
 
   const activeGroup = React.useMemo(() => {
-    const group = activeGroupPk ? groupMap.get(activeGroupPk) : null;
+    const group = activeGroupPk ? groupMap.get(activeGroupPk.toBase58()) : null;
 
     const activeGroupState = group
       ? {

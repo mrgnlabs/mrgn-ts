@@ -17,7 +17,7 @@ export const ActiveGroup = () => {
   ]);
 
   const activeGroup = React.useMemo(() => {
-    const group = activeGroupPk ? groupMap.get(activeGroupPk) : null;
+    const group = activeGroupPk ? groupMap.get(activeGroupPk.toBase58()) : null;
     return group ? { token: group.pool.token, usdc: group.pool.quoteTokens[0] } : null;
   }, [activeGroupPk, groupMap]);
   const [isOpen, setIsOpen] = React.useState(false);
