@@ -2,7 +2,7 @@ import React from "react";
 
 import Image from "next/image";
 
-import { percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
+import { percentFormatter, tokenPriceFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 import { IconChevronDown } from "@tabler/icons-react";
 
 import { useTradeStore } from "~/store";
@@ -40,7 +40,7 @@ export const TokenCombobox = ({ selected, setSelected, children }: TokenCombobox
           <DialogContent className="p-4 bg-background m-0" hideClose={true} hidePadding={true} size="sm" position="top">
             <div className="h-[500px] relative overflow-auto">
               <Command>
-                <CommandInput placeholder="Select pool..." />
+                <CommandInput placeholder="Select pool..." autoFocus={true} />
                 <CommandList className="max-h-[390px]">
                   <CommandEmpty>No results found.</CommandEmpty>
                   <CommandGroup>
@@ -67,10 +67,10 @@ export const TokenCombobox = ({ selected, setSelected, children }: TokenCombobox
                         />
                         <span>{group.pool.token.meta.tokenSymbol}</span>
                         {group.pool.token.tokenData && (
-                          <div className="flex items-center gap-1 text-sm ml-auto w-[110px] text-muted-foreground">
+                          <div className="flex items-center justify-between w-[35%] gap-1 text-sm ml-auto text-muted-foreground">
                             <span>
                               {group.pool.token.tokenData.price > 0.00001
-                                ? usdFormatter.format(group.pool.token.tokenData.price)
+                                ? tokenPriceFormatter.format(group.pool.token.tokenData.price)
                                 : `$${group.pool.token.tokenData.price.toExponential(2)}`}
                             </span>
                             <span
@@ -81,6 +81,7 @@ export const TokenCombobox = ({ selected, setSelected, children }: TokenCombobox
                                   : "text-mrgn-error"
                               )}
                             >
+                              {group.pool.token.tokenData?.priceChange24hr > 1 ? "+" : ""}
                               {percentFormatter.format(group.pool.token.tokenData?.priceChange24hr / 100)}
                             </span>
                           </div>
@@ -101,9 +102,9 @@ export const TokenCombobox = ({ selected, setSelected, children }: TokenCombobox
               <TokenTrigger selected={selected} />
             </div>
           </DrawerTrigger>
-          <DrawerContent className="h-full z-[55] mt-0" hideTopTrigger={true}>
+          <DrawerContent className="h-full z-[55] mt-0 p-2" hideTopTrigger={true}>
             <Command>
-              <CommandInput placeholder="Select pool..." />
+              <CommandInput placeholder="Select pool..." autoFocus={true} />
               <CommandList className="max-h-[390px]">
                 <CommandEmpty>No results found.</CommandEmpty>
                 <CommandGroup>
@@ -130,10 +131,10 @@ export const TokenCombobox = ({ selected, setSelected, children }: TokenCombobox
                       />
                       <span>{group.pool.token.meta.tokenSymbol}</span>
                       {group.pool.token.tokenData && (
-                        <div className="flex items-center gap-1 text-sm ml-auto w-[110px] text-muted-foreground">
+                        <div className="flex items-center justify-between gap-1 text-sm ml-auto w-[35%] text-muted-foreground">
                           <span>
                             {group.pool.token.tokenData.price > 0.00001
-                              ? usdFormatter.format(group.pool.token.tokenData.price)
+                              ? tokenPriceFormatter.format(group.pool.token.tokenData.price)
                               : `$${group.pool.token.tokenData.price.toExponential(2)}`}
                           </span>
                           <span
