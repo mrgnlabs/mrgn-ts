@@ -4,11 +4,12 @@ import Link from "next/link";
 import Image from "next/image";
 
 import Fuse from "fuse.js";
-import { IconSortDescending, IconArrowRight, IconSearch } from "@tabler/icons-react";
+import { IconSortDescending, IconSortAscending, IconArrowRight, IconSearch } from "@tabler/icons-react";
 import { aprToApy, numeralFormatter, percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
-import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { useTradeStore } from "~/store";
+import { GroupData, TradePoolFilterStates } from "~/store/tradeStore";
 import { getTokenImageURL, cn } from "~/utils";
 import { useIsMobile } from "~/hooks/useIsMobile";
 import { useWalletContext } from "~/hooks/useWalletContext";
@@ -18,17 +19,42 @@ import { ActionBoxDialog } from "~/components/common/ActionBox";
 import { Loader } from "~/components/ui/loader";
 import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
 
-import type { GroupData } from "~/store/tradeStore";
+const sortOptions: {
+  value: TradePoolFilterStates;
+  label: string;
+  dir?: "asc" | "desc";
+}[] = [
+  { value: TradePoolFilterStates.TIMESTAMP, label: "Recently created" },
+  { value: TradePoolFilterStates.APY_DESC, label: "APY Desc" },
+  { value: TradePoolFilterStates.APY_ASC, label: "APY Asc", dir: "asc" },
+  { value: TradePoolFilterStates.PRICE_DESC, label: "Price Desc" },
+  { value: TradePoolFilterStates.PRICE_ASC, label: "Price Asc", dir: "asc" },
+  { value: TradePoolFilterStates.MARKET_CAP_DESC, label: "Market Cap Desc" },
+  { value: TradePoolFilterStates.MARKET_CAP_ASC, label: "Market Cap Asc", dir: "asc" },
+  { value: TradePoolFilterStates.LIQUIDITY_DESC, label: "Liquidity Desc" },
+  { value: TradePoolFilterStates.LIQUIDITY_ASC, label: "Liquidity Asc", dir: "asc" },
+];
 
 let fuse: Fuse<GroupData> | null = null;
 
 export default function PortfolioPage() {
-  const [initialized, groupMap] = useTradeStore((state) => [state.initialized, state.groupMap]);
+  const [initialized, groupMap, sortGroups] = useTradeStore((state) => [
+    state.initialized,
+    state.groupMap,
+    state.sortGroups,
+  ]);
   const isMobile = useIsMobile();
   const { connected } = useWalletContext();
   const [search, setSearch] = React.useState("");
+  const [sortBy, setSortBy] = React.useState<TradePoolFilterStates>(TradePoolFilterStates.TIMESTAMP);
   const groups = Array.from(groupMap.values());
+
+  const dir = React.useMemo(() => {
+    const option = sortOptions.find((option) => option.value === sortBy);
+    return option?.dir || "desc";
+  }, [sortBy]);
 
   React.useEffect(() => {
     fuse = new Fuse(groups, {
@@ -103,7 +129,7 @@ export default function PortfolioPage() {
               {filteredGroups && filteredGroups.length > 0 && (
                 <div
                   className={cn(
-                    "text-sm grid xl:text-base gap-4 text-muted-foreground mb-8",
+                    "text-sm grid xl:text-base gap-4 text-muted-foreground mb-8 items-center",
                     connected ? "grid-cols-7" : "grid-cols-6"
                   )}
                 >
@@ -115,7 +141,28 @@ export default function PortfolioPage() {
                   <div className="text-right xl:text-left">Borrow Rate (APY)</div>
                   <div className="text-center">Created by</div>
                   {connected && <div>Supplied</div>}
-                  <div />
+                  <div>
+                    <Select
+                      value={sortBy}
+                      onValueChange={(value) => {
+                        setSortBy(value as TradePoolFilterStates);
+                        sortGroups(value as TradePoolFilterStates);
+                      }}
+                    >
+                      <SelectTrigger className="w-[190px] justify-start gap-2">
+                        {dir === "desc" && <IconSortDescending size={16} />}
+                        {dir === "asc" && <IconSortAscending size={16} />}
+                        <SelectValue placeholder="Sort pools" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {sortOptions.map((option, i) => (
+                          <SelectItem key={i} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               )}
               <div>

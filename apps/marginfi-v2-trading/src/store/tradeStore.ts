@@ -44,6 +44,8 @@ export enum TradePoolFilterStates {
   MARKET_CAP_DESC = "market-cap-desc",
   LIQUIDITY_ASC = "liquidity-asc",
   LIQUIDITY_DESC = "liquidity-desc",
+  APY_ASC = "apy-asc",
+  APY_DESC = "apy-desc",
 }
 
 export type ArenaBank = ExtendedBankInfo & {
@@ -784,36 +786,30 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
           const aIndex = timestampOrder.indexOf(a.client.group.address.toBase58());
           const bIndex = timestampOrder.indexOf(b.client.group.address.toBase58());
           return aIndex - bIndex;
-        } else if (sortBy === TradePoolFilterStates.PRICE_ASC) {
-          return (
-            a.pool.token.info.oraclePrice.priceRealtime.price.toNumber() -
-            b.pool.token.info.oraclePrice.priceRealtime.price.toNumber()
-          );
-        } else if (sortBy === TradePoolFilterStates.PRICE_DESC) {
-          return (
-            b.pool.token.info.oraclePrice.priceRealtime.price.toNumber() -
-            a.pool.token.info.oraclePrice.priceRealtime.price.toNumber()
-          );
-        } else if (sortBy === TradePoolFilterStates.MARKET_CAP_ASC) {
-          if (!a.pool.token.tokenData || !b.pool.token.tokenData) {
-            return 0;
-          }
-          return a.pool.token.tokenData.marketCap - b.pool.token.tokenData.marketCap;
-        } else if (sortBy === TradePoolFilterStates.MARKET_CAP_DESC) {
-          if (!a.pool.token.tokenData || !b.pool.token.tokenData) {
-            return 0;
-          }
-          return b.pool.token.tokenData.marketCap - a.pool.token.tokenData.marketCap;
-        } else if (sortBy === TradePoolFilterStates.LIQUIDITY_ASC) {
-          if (!a.pool.poolData || !b.pool.poolData) {
-            return 0;
-          }
-          return a.pool.poolData.totalLiquidity - b.pool.poolData.totalLiquidity;
-        } else if (sortBy === TradePoolFilterStates.LIQUIDITY_DESC) {
-          if (!a.pool.poolData || !b.pool.poolData) {
-            return 0;
-          }
-          return b.pool.poolData.totalLiquidity - a.pool.poolData.totalLiquidity;
+        } else if (sortBy.startsWith("price")) {
+          const aPrice = a.pool.token.info.oraclePrice.priceRealtime.price.toNumber();
+          const bPrice = b.pool.token.info.oraclePrice.priceRealtime.price.toNumber();
+          return sortBy === TradePoolFilterStates.PRICE_ASC ? aPrice - bPrice : bPrice - aPrice;
+        } else if (sortBy.startsWith("market-cap")) {
+          const aMarketCap = a.pool.token.tokenData?.marketCap ?? 0;
+          const bMarketCap = b.pool.token.tokenData?.marketCap ?? 0;
+          return sortBy === TradePoolFilterStates.MARKET_CAP_ASC ? aMarketCap - bMarketCap : bMarketCap - aMarketCap;
+        } else if (sortBy.startsWith("liquidity")) {
+          const aLiquidity = a.pool.poolData?.totalLiquidity ?? 0;
+          const bLiquidity = b.pool.poolData?.totalLiquidity ?? 0;
+          return sortBy === TradePoolFilterStates.LIQUIDITY_ASC ? aLiquidity - bLiquidity : bLiquidity - aLiquidity;
+        } else if (sortBy.startsWith("apy")) {
+          const getHighestLendingRate = (group: GroupData) => {
+            const rates = [
+              group.pool.token.info.state.lendingRate,
+              ...group.pool.quoteTokens.map((bank) => bank.info.state.lendingRate),
+            ];
+            return Math.max(...rates);
+          };
+
+          const aHighestRate = getHighestLendingRate(a);
+          const bHighestRate = getHighestLendingRate(b);
+          return sortBy === TradePoolFilterStates.APY_ASC ? aHighestRate - bHighestRate : bHighestRate - aHighestRate;
         }
 
         return 0;
