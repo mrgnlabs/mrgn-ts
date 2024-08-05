@@ -212,14 +212,24 @@ export default function PortfolioPage() {
                             </div>
                           )}
                           <div className="flex justify-end gap-2">
-                            {group.pool.token.isActive && group.pool.token.position.isLending && (
-                              <ActionBoxDialog requestedBank={group.pool.token} requestedAction={ActionType.Withdraw}>
-                                <Button className="bg-background border text-foreground hover:bg-accent">
-                                  Withdraw
-                                </Button>
-                              </ActionBoxDialog>
-                            )}
-                            <ActionBoxDialog requestedBank={group.pool.token} requestedAction={ActionType.Deposit}>
+                            {group.pool.token.isActive &&
+                              group.pool.token.position.isLending &&
+                              group.selectedAccount && (
+                                <ActionBoxDialog
+                                  requestedBank={group.pool.token}
+                                  requestedAction={ActionType.Withdraw}
+                                  requestedAccount={group.selectedAccount}
+                                >
+                                  <Button className="bg-background border text-foreground hover:bg-accent">
+                                    Withdraw
+                                  </Button>
+                                </ActionBoxDialog>
+                              )}
+                            <ActionBoxDialog
+                              requestedBank={group.pool.token}
+                              requestedAction={ActionType.Deposit}
+                              requestedAccount={group.marginfiAccounts[0]}
+                            >
                               <Button className="bg-background border text-foreground hover:bg-accent">Supply</Button>
                             </ActionBoxDialog>
                           </div>
@@ -278,14 +288,22 @@ export default function PortfolioPage() {
                             </div>
                           )}
                           <div className="flex justify-end gap-2">
-                            {collateralBank.isActive && collateralBank.position.isLending && (
-                              <ActionBoxDialog requestedBank={collateralBank} requestedAction={ActionType.Withdraw}>
+                            {collateralBank.isActive && collateralBank.position.isLending && group.selectedAccount && (
+                              <ActionBoxDialog
+                                requestedBank={collateralBank}
+                                requestedAction={ActionType.Withdraw}
+                                requestedAccount={group.selectedAccount}
+                              >
                                 <Button className="bg-background border text-foreground hover:bg-accent">
                                   Withdraw
                                 </Button>
                               </ActionBoxDialog>
                             )}
-                            <ActionBoxDialog requestedBank={collateralBank} requestedAction={ActionType.Deposit}>
+                            <ActionBoxDialog
+                              requestedBank={collateralBank}
+                              requestedAction={ActionType.Deposit}
+                              requestedAccount={group.marginfiAccounts[0]}
+                            >
                               <Button className="bg-background border text-foreground hover:bg-accent">Supply</Button>
                             </ActionBoxDialog>
                           </div>
