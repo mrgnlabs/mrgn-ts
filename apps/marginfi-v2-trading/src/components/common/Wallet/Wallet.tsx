@@ -435,6 +435,7 @@ export const Wallet = () => {
                     <TabWrapper resetWalletState={resetWalletState}>
                       <div className="relative py-4">
                         <Debridge />
+                        <Bridge />
                       </div>
                     </TabWrapper>
                   )}
@@ -652,7 +653,9 @@ const Debridge = () => {
   }, [widget]);
 
   React.useEffect(() => {
+    console.log("debdrige?", window.deBridge);
     if (window.deBridge && isMounted && !(divRef.current && divRef.current.innerHTML)) {
+      console.log("hello?");
       loadDeBridgeWidget();
     }
   }, [isMounted, loadDeBridgeWidget]);
