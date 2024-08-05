@@ -226,10 +226,7 @@ export default function TradeSymbolPage() {
                                   requestedBank={activeGroup.pool.token}
                                   requestedAction={ActionType.Deposit}
                                   requestedAccount={activeGroup.selectedAccount}
-                                  activeGroupArg={{
-                                    token: activeGroup.pool.token,
-                                    usdc: activeGroup.pool.quoteTokens[0],
-                                  }}
+                                  activeGroupArg={activeGroup}
                                 >
                                   <p>Supply more</p>
                                 </ActionBoxDialog>
@@ -239,10 +236,7 @@ export default function TradeSymbolPage() {
                                   requestedBank={activeGroup.pool.token}
                                   requestedAction={ActionType.Withdraw}
                                   requestedAccount={activeGroup.selectedAccount}
-                                  activeGroupArg={{
-                                    token: activeGroup.pool.token,
-                                    usdc: activeGroup.pool.quoteTokens[0],
-                                  }}
+                                  activeGroupArg={activeGroup}
                                 >
                                   <p>Withdraw</p>
                                 </ActionBoxDialog>
@@ -255,10 +249,7 @@ export default function TradeSymbolPage() {
                               requestedBank={activeGroup.pool.token}
                               requestedAction={ActionType.Deposit}
                               requestedAccount={activeGroup.selectedAccount || undefined}
-                              activeGroupArg={{
-                                token: activeGroup.pool.token,
-                                usdc: activeGroup.pool.quoteTokens[0],
-                              }}
+                              activeGroupArg={activeGroup}
                             >
                               <Button size="sm" variant="outline" className="px-2 py-1.5 h-auto lg:px-4 lg:py-2">
                                 Supply
@@ -314,10 +305,7 @@ export default function TradeSymbolPage() {
                                   requestedBank={activeGroup.pool.quoteTokens[0]}
                                   requestedAction={ActionType.Deposit}
                                   requestedAccount={activeGroup.selectedAccount}
-                                  activeGroupArg={{
-                                    token: activeGroup.pool.token,
-                                    usdc: activeGroup.pool.quoteTokens[0],
-                                  }}
+                                  activeGroupArg={activeGroup}
                                 >
                                   <p>Supply more</p>
                                 </ActionBoxDialog>
@@ -338,10 +326,7 @@ export default function TradeSymbolPage() {
                               requestedBank={activeGroup.pool.quoteTokens[0]}
                               requestedAction={ActionType.Deposit}
                               requestedAccount={activeGroup.selectedAccount || undefined}
-                              activeGroupArg={{
-                                token: activeGroup.pool.token,
-                                usdc: activeGroup.pool.quoteTokens[0],
-                              }}
+                              activeGroupArg={activeGroup}
                             >
                               <Button size="sm" variant="outline" className="px-2 py-1.5 h-auto lg:px-4 lg:py-2">
                                 Supply

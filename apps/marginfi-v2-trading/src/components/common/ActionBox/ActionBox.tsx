@@ -32,7 +32,7 @@ import {
   ActionBoxActions,
   ActionBoxInput,
 } from "~/components/common/ActionBox/components";
-import { ActiveGroup } from "~/store/tradeStore";
+import { GroupData } from "~/store/tradeStore";
 
 type ActionBoxProps = {
   requestedAction?: ActionType;
@@ -40,7 +40,7 @@ type ActionBoxProps = {
   requestedCollateralBank?: ExtendedBankInfo;
   requestedAccount?: MarginfiAccountWrapper;
   isDialog?: boolean;
-  activeGroupArg?: ActiveGroup | null;
+  activeGroupArg?: GroupData | null;
   isTokenSelectable?: boolean;
   handleCloseDialog?: () => void;
 };
@@ -91,15 +91,8 @@ export const ActionBox = ({
   }, [marginfiAccounts, activeGroupPk]);
 
   const activeGroup = React.useMemo(() => {
-    const group = activeGroupPk ? groupMap.get(activeGroupPk.toBase58()) : null;
-
-    const activeGroupState = group
-      ? {
-          token: group.pool.token,
-          usdc: group.pool.quoteTokens[0],
-        }
-      : null;
-    return activeGroupArg ?? activeGroupState;
+    const group = activeGroupPk ? groupMap.get(activeGroupPk.toBase58()) || null : null;
+    return activeGroupArg ?? group;
   }, [activeGroupArg, activeGroupPk, groupMap]);
 
   const [
@@ -182,7 +175,8 @@ export const ActionBox = ({
   }, [requestedAccount, activeAccount]);
 
   const extendedBankInfos = React.useMemo(() => {
-    return activeGroup ? [activeGroup.token, activeGroup.usdc] : [];
+    console.log({ activeGroup });
+    return activeGroup ? [activeGroup.pool.token, ...activeGroup.pool.quoteTokens] : [];
   }, [activeGroup]);
 
   React.useEffect(() => {

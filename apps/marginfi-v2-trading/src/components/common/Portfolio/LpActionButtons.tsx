@@ -5,25 +5,29 @@ import { IconMinus, IconPlus } from "@tabler/icons-react";
 import { ActionBoxDialog } from "~/components/common/ActionBox";
 import { Button } from "~/components/ui/button";
 import React from "react";
-import { ActiveGroup } from "~/store/tradeStore";
+import { GroupData } from "~/store/tradeStore";
 
 type LpActionButtonsProps = {
   marginfiAccount?: MarginfiAccountWrapper;
-  activeGroup: ActiveGroup;
+  activeGroup: GroupData;
 };
 
 export const LpActionButtons = ({ marginfiAccount, activeGroup }: LpActionButtonsProps) => {
   const lendingBank = React.useMemo(() => {
-    if (activeGroup.token.isActive && activeGroup.token.position.isLending) return activeGroup.token;
-    if (activeGroup.usdc.isActive && activeGroup.usdc.position.isLending) return activeGroup.usdc;
+    if (activeGroup?.pool?.token.isActive && activeGroup?.pool?.token.position.isLending)
+      return [activeGroup?.pool?.token];
+    const lendingBanks = activeGroup?.pool?.quoteTokens.filter((group) => group.isActive && group.position.isLending);
+    if (lendingBanks.length > 0) {
+      return lendingBanks;
+    }
 
     return null;
-  }, [activeGroup.token, activeGroup.usdc]);
+  }, [activeGroup?.pool?.quoteTokens, activeGroup?.pool?.token]);
 
   return (
     <div className="flex gap-3 w-full justify-end">
       <ActionBoxDialog
-        requestedBank={activeGroup.usdc}
+        requestedBank={activeGroup.pool.quoteTokens[0]}
         requestedAction={ActionType.Deposit}
         requestedAccount={marginfiAccount}
         activeGroupArg={activeGroup}
@@ -37,7 +41,7 @@ export const LpActionButtons = ({ marginfiAccount, activeGroup }: LpActionButton
 
       <ActionBoxDialog
         activeGroupArg={activeGroup}
-        requestedBank={lendingBank}
+        requestedBank={lendingBank ? lendingBank[0] : null}
         requestedAction={ActionType.Withdraw}
         requestedAccount={marginfiAccount}
       >

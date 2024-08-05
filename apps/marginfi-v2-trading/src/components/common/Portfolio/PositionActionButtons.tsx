@@ -5,7 +5,7 @@ import { IconMinus, IconX, IconPlus } from "@tabler/icons-react";
 
 import { useConnection } from "~/hooks/useConnection";
 import { useTradeStore, useUiStore } from "~/store";
-import { ActiveGroup } from "~/store/tradeStore";
+import { ActiveGroup, GroupData } from "~/store/tradeStore";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { cn, extractErrorString } from "~/utils";
 import { MultiStepToastHandle } from "~/utils/toastUtils";
@@ -23,7 +23,7 @@ type PositionActionButtonsProps = {
   bank: ActiveBankInfo;
   collateralBank?: ExtendedBankInfo | null;
   rightAlignFinalButton?: boolean;
-  activeGroup?: ActiveGroup;
+  activeGroup?: GroupData;
 };
 
 export const PositionActionButtons = ({

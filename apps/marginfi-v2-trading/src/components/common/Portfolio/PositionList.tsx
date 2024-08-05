@@ -12,7 +12,7 @@ import { useTradeStore } from "~/store";
 import { PositionActionButtons } from "~/components/common/Portfolio";
 import { Table, TableBody, TableHead, TableCell, TableHeader, TableRow } from "~/components/ui/table";
 import { Badge } from "~/components/ui/badge";
-import { ActiveGroup, GroupData } from "~/store/tradeStore";
+import { GroupData } from "~/store/tradeStore";
 
 export const PositionList = () => {
   const [activeGroupPk, groupMap, portfolio] = useTradeStore((state) => [
@@ -75,10 +75,6 @@ export const PositionList = () => {
               ? group.pool.quoteTokens[0]
               : group.pool.token;
             const isBorrowing = borrowBank.isActive && !borrowBank.position.isLending;
-            const activeGroup: ActiveGroup = {
-              usdc: group.pool.quoteTokens[0],
-              token: group.pool.token,
-            };
 
             const usdValue =
               (depositBank.isActive ? depositBank.position.usdValue : 0) -
