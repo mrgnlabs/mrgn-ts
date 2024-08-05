@@ -707,11 +707,29 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
   },
 
   setActiveGroup: async (args) => {
-    set((state) => {
-      return {
-        ...state,
-        activeGroup: args.groupPk,
-      };
+    const state = get();
+    const group = state.groupMap.get(args.groupPk.toBase58());
+
+    if (!group) throw new Error("Group not found");
+
+    const bankKeys = [group.pool.token.address, ...group.pool.quoteTokens.map((bank) => bank.address)];
+    const marginfiClient = await MarginfiClient.fetch(
+      {
+        environment: "production",
+        cluster: "mainnet",
+        programId,
+        groupPk: args.groupPk,
+      },
+      state.wallet as Wallet,
+      state.connection as Connection,
+      {
+        preloadedBankAddresses: bankKeys,
+      }
+    );
+
+    set({
+      activeGroup: args.groupPk,
+      marginfiClient,
     });
   },
 
