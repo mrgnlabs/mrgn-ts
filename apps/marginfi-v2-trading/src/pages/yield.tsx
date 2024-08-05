@@ -197,7 +197,10 @@ export default function PortfolioPage() {
                   filteredGroups.map((group) => {
                     const collateralBank = group.pool.quoteTokens[0];
                     return (
-                      <div className="relative bg-background border rounded-xl mb-12 pt-5 pb-2 px-4">
+                      <div
+                        key={group.client.group.address.toBase58()}
+                        className="relative bg-background border rounded-xl mb-12 pt-5 pb-2 px-4"
+                      >
                         <Link
                           href={`/trade/${group.client.group.address.toBase58()}`}
                           className="group bg-background border rounded-xl absolute -top-5 left-3.5 px-2 py-1.5 flex items-center gap-2 transition-colors hover:bg-accent"
@@ -231,7 +234,6 @@ export default function PortfolioPage() {
                             "grid gap-4 pt-2 pb-4 border-b items-center",
                             connected ? "grid-cols-7" : "grid-cols-6"
                           )}
-                          key={group.client.group.address.toBase58()}
                         >
                           <div className="flex items-center gap-2">
                             <Image
