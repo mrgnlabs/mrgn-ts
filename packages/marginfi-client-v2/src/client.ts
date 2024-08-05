@@ -1226,7 +1226,7 @@ class MarginfiClient {
           );
         }
       }
-      console.log("nah one?");
+
       console.log("fallthrough error", error);
       throw new ProcessTransactionError(
         parsedError?.description ?? "Something went wrong",
@@ -1252,7 +1252,6 @@ class MarginfiClient {
       }
     }
     console.log("fallthrough error", error);
-    console.log("this one?");
     throw new ProcessTransactionError(
       "Something went wrong",
       ProcessTransactionErrorType.FallthroughError,
