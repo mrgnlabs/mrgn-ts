@@ -31,7 +31,7 @@ export const RepayCollatTokensList = ({
   const [nativeSolBalance] = useMrgnlendStore((state) => [state.nativeSolBalance]);
 
   const activeGroup = React.useMemo(() => {
-    const group = activeGroupPk ? groupMap.get(activeGroupPk) : null;
+    const group = activeGroupPk ? groupMap.get(activeGroupPk.toBase58()) : null;
     return group ? { token: group.pool.token, usdc: group.pool.quoteTokens[0] } : null;
   }, [activeGroupPk, groupMap]);
 
