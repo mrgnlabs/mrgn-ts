@@ -78,6 +78,10 @@ export default function HomePage() {
     resetActiveGroup();
   }, [resetActiveGroup]);
 
+  React.useEffect(() => {
+    sortGroups(TradePoolFilterStates.TIMESTAMP);
+  }, [sortGroups]);
+
   return (
     <>
       <div className="w-full max-w-8xl mx-auto px-4 pb-16 pt-8 md:pt-14">
