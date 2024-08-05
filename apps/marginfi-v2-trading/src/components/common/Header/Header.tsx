@@ -15,7 +15,8 @@ import {
   IconRefresh,
 } from "@tabler/icons-react";
 
-import { useTradeStore } from "~/store";
+import { useTradeStore, useUiStore } from "~/store";
+import { WalletState } from "~/store/uiStore";
 import { cn } from "~/utils/themeUtils";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { useIsMobile } from "~/hooks/useIsMobile";
@@ -34,6 +35,7 @@ const navItems = [
 
 export const Header = () => {
   const [initialized] = useTradeStore((state) => [state.initialized]);
+  const [setIsWalletOpen, setWalletState] = useUiStore((state) => [state.setIsWalletOpen, state.setWalletState]);
   const { asPath, isReady } = useRouter();
   const { connected } = useWalletContext();
   const isMobile = useIsMobile();
@@ -97,7 +99,13 @@ export const Header = () => {
             )
           }
           <div className="flex items-center gap-6">
-            <Button variant="outline">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setWalletState(WalletState.SWAP);
+                setIsWalletOpen(true);
+              }}
+            >
               <IconRefresh size={16} /> Swap tokens
             </Button>
             {!isMobile && (
