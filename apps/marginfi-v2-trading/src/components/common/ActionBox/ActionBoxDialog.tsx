@@ -2,20 +2,18 @@ import React from "react";
 
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
-import { PublicKey } from "@solana/web3.js";
 
 import { useIsMobile } from "~/hooks/useIsMobile";
 import { ActionBox } from "~/components/common/ActionBox";
-import { Dialog, DialogTrigger, DialogOverlay, DialogContent, DialogClose } from "~/components/ui/dialog";
+import { Dialog, DialogTrigger, DialogContent } from "~/components/ui/dialog";
 import { Desktop, Mobile } from "~/mediaQueries";
 import { IconArrowLeft } from "~/components/ui/icons";
-import { useMrgnlendStore } from "~/store";
-import { ActiveGroup } from "~/store/tradeStore";
+import { GroupData } from "~/store/tradeStore";
 
 type ActionBoxDialogProps = {
   requestedAction?: ActionType;
   requestedBank: ExtendedBankInfo | null;
-  activeGroupArg?: ActiveGroup | null;
+  activeGroupArg?: GroupData | null;
   requestedCollateralBank?: ExtendedBankInfo;
   requestedAccount?: MarginfiAccountWrapper;
   children: React.ReactNode;

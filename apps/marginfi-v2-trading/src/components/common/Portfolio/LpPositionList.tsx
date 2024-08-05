@@ -3,7 +3,6 @@ import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 
-import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { numeralFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 
 import { getTokenImageURL } from "~/utils";
@@ -11,7 +10,6 @@ import { useTradeStore } from "~/store";
 
 import { LpActionButtons } from "~/components/common/Portfolio";
 import { Table, TableBody, TableHead, TableCell, TableHeader, TableRow } from "~/components/ui/table";
-import { ActiveGroup } from "~/store/tradeStore";
 
 export const LpPositionList = () => {
   const [portfolio] = useTradeStore((state) => [state.portfolio]);
@@ -87,13 +85,7 @@ export const LpPositionList = () => {
 
                   <TableCell className="text-right">
                     {group.selectedAccount && (
-                      <LpActionButtons
-                        marginfiAccount={group.selectedAccount}
-                        activeGroup={{
-                          token: group.pool.token,
-                          usdc: group.pool.quoteTokens[0],
-                        }}
-                      />
+                      <LpActionButtons marginfiAccount={group.selectedAccount} activeGroup={group} />
                     )}
                   </TableCell>
                 </TableRow>

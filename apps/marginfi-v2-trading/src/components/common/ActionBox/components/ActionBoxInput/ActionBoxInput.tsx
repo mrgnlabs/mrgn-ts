@@ -14,7 +14,7 @@ import { InputHeader } from "./Components";
 import { InputAction } from "./Components/InputAction";
 import { useConnection } from "~/hooks/useConnection";
 import { YbxInput } from "./Components/YbxInput";
-import { ActiveGroup } from "~/store/tradeStore";
+import { GroupData } from "~/store/tradeStore";
 
 type ActionBoxInputProps = {
   walletAmount: number | undefined;
@@ -25,7 +25,7 @@ type ActionBoxInputProps = {
   isDialog?: boolean;
   isTokenSelectable?: boolean;
   tokensOverride?: ExtendedBankInfo[];
-  activeGroup: ActiveGroup | null;
+  activeGroup: GroupData | null;
 };
 
 export const ActionBoxInput = ({
@@ -161,6 +161,7 @@ export const ActionBoxInput = ({
       selectedRepayBank,
       connection,
       platformFeeBps,
+      priorityFee,
       setAmountRaw,
       selectedBank,
     ]
