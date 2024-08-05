@@ -96,7 +96,27 @@ export function useLendingPreview({
       setSimulationResult(await simulateAction(props));
       setActionMethod(undefined);
     } catch (error: any) {
-      const method = handleSimulationError(error, props.bank);
+      let actionString;
+      switch (props.actionMode) {
+        case ActionType.Deposit:
+          actionString = "Depositing";
+          break;
+        case ActionType.Withdraw:
+          actionString = "Withdrawing";
+          break;
+        case ActionType.Loop:
+          actionString = "Looping";
+          break;
+        case ActionType.Repay:
+          actionString = "Repaying";
+          break;
+        case ActionType.Borrow:
+          actionString = "Borrowing";
+          break;
+        default:
+          actionString = "The action";
+      }
+      const method = handleSimulationError(error, props.bank, false, actionString);
       setActionMethod(method);
     } finally {
       setIsLoading(false);
