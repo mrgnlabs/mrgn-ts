@@ -14,7 +14,7 @@ import { Table, TableBody, TableHead, TableCell, TableHeader, TableRow } from "~
 import { ActiveGroup } from "~/store/tradeStore";
 
 export const LpPositionList = () => {
-  const [marginfiAccounts, portfolio] = useTradeStore((state) => [state.marginfiAccounts, state.portfolio]);
+  const [portfolio] = useTradeStore((state) => [state.portfolio]);
 
   if (!portfolio || !portfolio.lpPositions.length) {
     return null;
@@ -36,12 +36,6 @@ export const LpPositionList = () => {
           </TableHeader>
           <TableBody>
             {portfolio.lpPositions.map((group, i) => {
-              const marginfiAccount = marginfiAccounts
-                ? marginfiAccounts[group.client.group.address.toBase58()]
-                : undefined;
-
-              console.log(marginfiAccounts);
-
               return (
                 <TableRow key={i} className="even:bg-white/50 hover:even:bg-white/50">
                   <TableCell>
@@ -92,9 +86,9 @@ export const LpPositionList = () => {
                   </TableCell>
 
                   <TableCell className="text-right">
-                    {marginfiAccounts && (
+                    {group.selectedAccount && (
                       <LpActionButtons
-                        marginfiAccount={marginfiAccount}
+                        marginfiAccount={group.selectedAccount}
                         activeGroup={{
                           token: group.pool.token,
                           usdc: group.pool.quoteTokens[0],

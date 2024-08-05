@@ -187,7 +187,6 @@ type TradeStoreState = {
   resetSearchResults: () => void;
   setCurrentPage: (page: number) => void;
   sortGroups: (sortBy: TradePoolFilterStates) => void;
-  sortGroupsByToken: (sortBy: TradePoolFilterStates) => void;
 };
 
 const { programId } = getConfig();
@@ -590,24 +589,11 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
         currentPage,
         nativeSolBalance: nativeSolBalance,
         tokenAccountMap: tokenAccountMap,
-        // marginfiAccounts: result.marginfiAccounts,
         wallet: wallet,
         connection: connection,
         userDataFetched: userDataFetched,
         portfolio: portfolio,
       });
-
-      console.log("portfolio", portfolio);
-
-      // if (get().activeGroup && args.refresh) {
-      //   get().refreshActiveBank({
-      //     connection,
-      //     wallet,
-      //     allBanks: allBanks,
-      //     collateralBanks: collateralBanks,
-      //     tradeGroups: tradeGroups,
-      //   });
-      // }
     } catch (error) {
       console.error(error);
     }
@@ -774,7 +760,7 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
     });
   },
 
-  sortGroupsByToken: (sortBy: TradePoolFilterStates) => {
+  sortGroups: (sortBy: TradePoolFilterStates) => {
     set((state) => {
       const groups = [...state.groupMap.values()];
       const groupCache = state.groupsCache;
@@ -831,12 +817,6 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
         groupMap,
       };
     });
-  },
-
-  sortGroups: (sortBy: TradePoolFilterStates) => {
-    // set((state) => {
-    //   ...state,
-    // });
   },
 });
 
