@@ -40,8 +40,10 @@ export enum TradePoolFilterStates {
   TIMESTAMP = "timestamp",
   PRICE_ASC = "price-asc",
   PRICE_DESC = "price-desc",
-  LONG = "long",
-  SHORT = "short",
+  MARKET_CAP_ASC = "market-cap-asc",
+  MARKET_CAP_DESC = "market-cap-desc",
+  LIQUIDITY_ASC = "liquidity-asc",
+  LIQUIDITY_DESC = "liquidity-desc",
 }
 
 export type ArenaBank = ExtendedBankInfo & {
@@ -184,7 +186,8 @@ type TradeStoreState = {
   searchBanks: (searchQuery: string) => void;
   resetSearchResults: () => void;
   setCurrentPage: (page: number) => void;
-  setSortBy: (sortBy: TradePoolFilterStates) => void;
+  sortGroups: (sortBy: TradePoolFilterStates) => void;
+  sortGroupsByToken: (sortBy: TradePoolFilterStates) => void;
 };
 
 const { programId } = getConfig();
@@ -550,10 +553,6 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
       const totalPages = Math.ceil(groupMap.entries.length / POOLS_PER_PAGE);
       const currentPage = get().currentPage || 1;
 
-      // sort banks according to sortBy
-      const sortBy = get().sortBy;
-      const sortedBanks = sortBanks(tokenBanks, sortBy, groupsCache);
-
       const banksPreppedForFuse = tokenBanks.map((bank, i) => ({
         symbol: bank.meta.tokenSymbol,
         name: bank.meta.tokenName,
@@ -584,7 +583,7 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
         groupsCache: groupsCache,
         groups: groups,
         groupMap,
-        banks: sortedBanks,
+        banks: tokenBanks,
         banksIncludingUSDC: allBanks,
         collateralBanks: extendedBankInfoMap,
         totalPages,
@@ -775,61 +774,71 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
     });
   },
 
-  setSortBy: (sortBy: TradePoolFilterStates) => {
+  sortGroupsByToken: (sortBy: TradePoolFilterStates) => {
     set((state) => {
-      const sortedBanks = sortBanks(state.banks, sortBy, state.groupsCache);
+      const groups = [...state.groupMap.values()];
+      const groupCache = state.groupsCache;
+      const timestampOrder = Object.keys(groupCache).reverse();
+
+      const sortedGroups = groups.sort((a, b) => {
+        if (sortBy === TradePoolFilterStates.TIMESTAMP) {
+          const aIndex = timestampOrder.indexOf(a.client.group.address.toBase58());
+          const bIndex = timestampOrder.indexOf(b.client.group.address.toBase58());
+          return aIndex - bIndex;
+        } else if (sortBy === TradePoolFilterStates.PRICE_ASC) {
+          return (
+            a.pool.token.info.oraclePrice.priceRealtime.price.toNumber() -
+            b.pool.token.info.oraclePrice.priceRealtime.price.toNumber()
+          );
+        } else if (sortBy === TradePoolFilterStates.PRICE_DESC) {
+          return (
+            b.pool.token.info.oraclePrice.priceRealtime.price.toNumber() -
+            a.pool.token.info.oraclePrice.priceRealtime.price.toNumber()
+          );
+        } else if (sortBy === TradePoolFilterStates.MARKET_CAP_ASC) {
+          if (!a.pool.token.tokenData || !b.pool.token.tokenData) {
+            return 0;
+          }
+          return a.pool.token.tokenData.marketCap - b.pool.token.tokenData.marketCap;
+        } else if (sortBy === TradePoolFilterStates.MARKET_CAP_DESC) {
+          if (!a.pool.token.tokenData || !b.pool.token.tokenData) {
+            return 0;
+          }
+          return b.pool.token.tokenData.marketCap - a.pool.token.tokenData.marketCap;
+        } else if (sortBy === TradePoolFilterStates.LIQUIDITY_ASC) {
+          if (!a.pool.poolData || !b.pool.poolData) {
+            return 0;
+          }
+          return a.pool.poolData.totalLiquidity - b.pool.poolData.totalLiquidity;
+        } else if (sortBy === TradePoolFilterStates.LIQUIDITY_DESC) {
+          if (!a.pool.poolData || !b.pool.poolData) {
+            return 0;
+          }
+          return b.pool.poolData.totalLiquidity - a.pool.poolData.totalLiquidity;
+        }
+
+        return 0;
+      });
+
+      const groupMap = new Map<string, GroupData>();
+
+      sortedGroups.forEach((group) => {
+        groupMap.set(group.pool.token.address.toBase58(), group);
+      });
+
       return {
         ...state,
-        sortBy,
-        banks: sortedBanks,
+        groupMap,
       };
     });
+  },
+
+  sortGroups: (sortBy: TradePoolFilterStates) => {
+    // set((state) => {
+    //   ...state,
+    // });
   },
 });
 
 export { createTradeStore };
 export type { TradeStoreState };
-
-const sortBanks = (
-  banks: ExtendedBankInfo[],
-  sortBy: TradePoolFilterStates,
-  groupsCache?: TradeGroupsCache
-): ExtendedBankInfo[] => {
-  if (sortBy === TradePoolFilterStates.PRICE_DESC) {
-    return banks.sort(
-      (a, b) => b.info.oraclePrice.priceRealtime.price.toNumber() - a.info.oraclePrice.priceRealtime.price.toNumber()
-    );
-  } else if (sortBy === TradePoolFilterStates.PRICE_ASC) {
-    return banks.sort(
-      (a, b) => a.info.oraclePrice.priceRealtime.price.toNumber() - b.info.oraclePrice.priceRealtime.price.toNumber()
-    );
-  } else if (sortBy === TradePoolFilterStates.LONG) {
-    return banks.sort((a, b) => {
-      const aPrice = a.info.state.price;
-      const bPrice = b.info.state.price;
-      const aTotalDeposits = a.info.state.totalDeposits * aPrice;
-      const bTotalDeposits = b.info.state.totalDeposits * bPrice;
-      return bTotalDeposits - aTotalDeposits;
-    });
-  } else if (sortBy === TradePoolFilterStates.SHORT) {
-    return banks.sort((a, b) => {
-      const aPrice = a.info.state.price;
-      const bPrice = b.info.state.price;
-      const aTotalBorrows = a.info.state.totalBorrows * aPrice;
-      const bTotalBorrows = b.info.state.totalBorrows * bPrice;
-      return bTotalBorrows - aTotalBorrows;
-    });
-  } else if (sortBy === TradePoolFilterStates.TIMESTAMP) {
-    if (!groupsCache) {
-      return banks;
-    }
-    const order = Object.keys(groupsCache).reverse();
-
-    return banks.sort((a, b) => {
-      const aGroupIndex = order.indexOf(a.info.rawBank.group.toBase58());
-      const bGroupIndex = order.indexOf(b.info.rawBank.group.toBase58());
-      return aGroupIndex - bGroupIndex;
-    });
-  }
-  return banks;
-};

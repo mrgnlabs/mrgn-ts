@@ -27,8 +27,6 @@ const sortOptions: {
   { value: TradePoolFilterStates.TIMESTAMP, label: "Recently created" },
   { value: TradePoolFilterStates.PRICE_ASC, label: "Price Asc", dir: "asc" },
   { value: TradePoolFilterStates.PRICE_DESC, label: "Price Desc" },
-  { value: TradePoolFilterStates.LONG, label: "Open long" },
-  { value: TradePoolFilterStates.SHORT, label: "Open short" },
 ];
 
 enum View {
@@ -39,7 +37,7 @@ enum View {
 export default function HomePage() {
   const router = useRouter();
   const isMobile = useIsMobile();
-  const [initialized, groupMap, banks, resetActiveGroup, currentPage, totalPages, setCurrentPage, sortBy, setSortBy] =
+  const [initialized, groupMap, banks, resetActiveGroup, currentPage, totalPages, setCurrentPage, sortGroupsByToken] =
     useTradeStore((state) => [
       state.initialized,
       state.groupMap,
@@ -48,8 +46,7 @@ export default function HomePage() {
       state.currentPage,
       state.totalPages,
       state.setCurrentPage,
-      state.sortBy,
-      state.setSortBy,
+      state.sortGroupsByToken,
     ]);
 
   const [previousTxn] = useUiStore((state) => [state.previousTxn]);
@@ -58,6 +55,7 @@ export default function HomePage() {
 
   const [view, setView] = React.useState<View>(View.GRID);
   const [initialAnimation, setInitialAnimation] = React.useState(false);
+  const [sortBy, setSortBy] = React.useState<TradePoolFilterStates>(TradePoolFilterStates.TIMESTAMP);
 
   const dir = React.useMemo(() => {
     const option = sortOptions.find((option) => option.value === sortBy);
@@ -128,7 +126,13 @@ export default function HomePage() {
                     <IconList size={16} /> List
                   </ToggleGroupItem>
                 </ToggleGroup>
-                <Select value={sortBy} onValueChange={(value) => setSortBy(value as TradePoolFilterStates)}>
+                <Select
+                  value={sortBy}
+                  onValueChange={(value) => {
+                    setSortBy(value as TradePoolFilterStates);
+                    sortGroupsByToken(value as TradePoolFilterStates);
+                  }}
+                >
                   <SelectTrigger className="w-[190px] justify-start gap-2">
                     {dir === "desc" && <IconSortDescending size={16} />}
                     {dir === "asc" && <IconSortAscending size={16} />}
