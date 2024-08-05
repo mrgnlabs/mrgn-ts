@@ -207,7 +207,10 @@ export default function TradeSymbolPage() {
                               activeGroup.pool.token.info.oraclePrice.priceRealtime.price.toNumber()
                           )}
                         </p>
-                        {!hasTradePosition && lpPosition?.token && lpPosition.token.pool.token.isActive ? (
+                        {!hasTradePosition &&
+                        lpPosition?.token &&
+                        lpPosition.token.pool.token.isActive &&
+                        activeGroup.selectedAccount ? (
                           <DropdownMenu>
                             <DropdownMenuTrigger className="focus:outline-none focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0">
                               <Button size="sm" variant="outline" className="px-2 py-1.5 h-auto lg:px-4 lg:py-2">
@@ -222,6 +225,11 @@ export default function TradeSymbolPage() {
                                 <ActionBoxDialog
                                   requestedBank={activeGroup.pool.token}
                                   requestedAction={ActionType.Deposit}
+                                  requestedAccount={activeGroup.selectedAccount}
+                                  activeGroupArg={{
+                                    token: activeGroup.pool.token,
+                                    usdc: activeGroup.pool.quoteTokens[0],
+                                  }}
                                 >
                                   <p>Supply more</p>
                                 </ActionBoxDialog>
@@ -230,6 +238,11 @@ export default function TradeSymbolPage() {
                                 <ActionBoxDialog
                                   requestedBank={activeGroup.pool.token}
                                   requestedAction={ActionType.Withdraw}
+                                  requestedAccount={activeGroup.selectedAccount}
+                                  activeGroupArg={{
+                                    token: activeGroup.pool.token,
+                                    usdc: activeGroup.pool.quoteTokens[0],
+                                  }}
                                 >
                                   <p>Withdraw</p>
                                 </ActionBoxDialog>
@@ -241,6 +254,11 @@ export default function TradeSymbolPage() {
                             <ActionBoxDialog
                               requestedBank={activeGroup.pool.token}
                               requestedAction={ActionType.Deposit}
+                              requestedAccount={activeGroup.selectedAccount || undefined}
+                              activeGroupArg={{
+                                token: activeGroup.pool.token,
+                                usdc: activeGroup.pool.quoteTokens[0],
+                              }}
                             >
                               <Button size="sm" variant="outline" className="px-2 py-1.5 h-auto lg:px-4 lg:py-2">
                                 Supply
@@ -279,7 +297,8 @@ export default function TradeSymbolPage() {
                         </p>
                         {!hasTradePosition &&
                         lpPosition?.quoteToken &&
-                        lpPosition.quoteToken.pool.quoteTokens[0].isActive ? (
+                        lpPosition.quoteToken.pool.quoteTokens[0].isActive &&
+                        activeGroup.selectedAccount ? (
                           <DropdownMenu>
                             <DropdownMenuTrigger className="focus:outline-none focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0">
                               <Button size="sm" variant="outline" className="px-2 py-1.5 h-auto lg:px-4 lg:py-2">
@@ -294,6 +313,11 @@ export default function TradeSymbolPage() {
                                 <ActionBoxDialog
                                   requestedBank={activeGroup.pool.quoteTokens[0]}
                                   requestedAction={ActionType.Deposit}
+                                  requestedAccount={activeGroup.selectedAccount}
+                                  activeGroupArg={{
+                                    token: activeGroup.pool.token,
+                                    usdc: activeGroup.pool.quoteTokens[0],
+                                  }}
                                 >
                                   <p>Supply more</p>
                                 </ActionBoxDialog>
@@ -313,6 +337,11 @@ export default function TradeSymbolPage() {
                             <ActionBoxDialog
                               requestedBank={activeGroup.pool.quoteTokens[0]}
                               requestedAction={ActionType.Deposit}
+                              requestedAccount={activeGroup.selectedAccount || undefined}
+                              activeGroupArg={{
+                                token: activeGroup.pool.token,
+                                usdc: activeGroup.pool.quoteTokens[0],
+                              }}
                             >
                               <Button size="sm" variant="outline" className="px-2 py-1.5 h-auto lg:px-4 lg:py-2">
                                 Supply

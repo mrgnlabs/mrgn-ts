@@ -15,8 +15,7 @@ import { Badge } from "~/components/ui/badge";
 import { ActiveGroup, GroupData } from "~/store/tradeStore";
 
 export const PositionList = () => {
-  const [marginfiClient, activeGroupPk, groupMap, portfolio] = useTradeStore((state) => [
-    state.marginfiClient,
+  const [activeGroupPk, groupMap, portfolio] = useTradeStore((state) => [
     state.activeGroup,
     state.groupMap,
     state.portfolio,
@@ -150,10 +149,10 @@ export const PositionList = () => {
                   )}
                 </TableCell>
                 <TableCell className="text-right">
-                  {group.selectedAccount && (
+                  {group.client && (
                     <PositionActionButtons
-                      marginfiClient={marginfiClient}
-                      marginfiAccount={group.selectedAccount}
+                      marginfiClient={group.client}
+                      marginfiAccount={group.marginfiAccounts[0]}
                       isBorrowing={isBorrowing}
                       bank={group.pool.token as ActiveBankInfo}
                       activeGroup={activeGroup}
