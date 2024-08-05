@@ -15,12 +15,11 @@ import { Badge } from "~/components/ui/badge";
 import { ActiveGroup, GroupData } from "~/store/tradeStore";
 
 export const PositionList = () => {
-  const [marginfiClient, activeGroupPk, groupMap, portfolio, marginfiAccounts] = useTradeStore((state) => [
+  const [marginfiClient, activeGroupPk, groupMap, portfolio] = useTradeStore((state) => [
     state.marginfiClient,
     state.activeGroup,
     state.groupMap,
     state.portfolio,
-    state.marginfiAccounts,
   ]);
 
   const activeGroup = React.useMemo(() => {
@@ -69,9 +68,6 @@ export const PositionList = () => {
           )}
 
           {portfolioCombined.map((group, index) => {
-            const marginfiAccount = marginfiAccounts
-              ? marginfiAccounts[group.client.group.address.toBase58()]
-              : undefined;
             const borrowBank =
               group.pool.token.isActive && group.pool.token.position.isLending
                 ? group.pool.quoteTokens[0]
@@ -154,10 +150,10 @@ export const PositionList = () => {
                   )}
                 </TableCell>
                 <TableCell className="text-right">
-                  {marginfiAccounts && (
+                  {group.selectedAccount && (
                     <PositionActionButtons
                       marginfiClient={marginfiClient}
-                      marginfiAccount={marginfiAccount}
+                      marginfiAccount={group.selectedAccount}
                       isBorrowing={isBorrowing}
                       bank={group.pool.token as ActiveBankInfo}
                       activeGroup={activeGroup}
