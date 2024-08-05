@@ -1211,11 +1211,28 @@ class MarginfiClient {
         return response.value.accounts?.map((a) => (a ? Buffer.from(a.data[0], "base64") : null)) ?? [];
       }
     } catch (error: any) {
+      const parsedError = parseTransactionError(error, this.config.programId);
+
+      if (error?.logs?.length > 0) {
+        console.log("------ Logs 👇 ------");
+        console.log(error.logs.join("\n"));
+        if (parsedError) {
+          console.log("Parsed:", parsedError);
+          throw new ProcessTransactionError(
+            parsedError.description,
+            ProcessTransactionErrorType.FallthroughError,
+            error.logs,
+            parsedError.programId
+          );
+        }
+      }
+      console.log("nah one?");
       console.log("fallthrough error", error);
       throw new ProcessTransactionError(
-        "Something went wrong",
+        parsedError?.description ?? "Something went wrong",
         ProcessTransactionErrorType.FallthroughError,
-        error?.logs
+        error.logs,
+        parsedError.programId
       );
     }
 
@@ -1235,6 +1252,7 @@ class MarginfiClient {
       }
     }
     console.log("fallthrough error", error);
+    console.log("this one?");
     throw new ProcessTransactionError(
       "Something went wrong",
       ProcessTransactionErrorType.FallthroughError,

@@ -518,7 +518,7 @@ class MarginfiAccountWrapper {
   }> {
     const setupIxs = await this.makeSetupIx([borrowBankAddress, depositBankAddress]);
     const cuRequestIxs = this.makeComputeBudgetIx();
-    const priorityFeeIx = this.makePriorityFeeIx(priorityFeeUi);
+    // const priorityFeeIx = this.makePriorityFeeIx(priorityFeeUi);
     const withdrawIxs = await this.makeWithdrawIx(withdrawAmount, depositBankAddress, withdrawAll, {
       createAtas: false,
       wrapAndUnwrapSol: false,
@@ -533,13 +533,14 @@ class MarginfiAccountWrapper {
     const addressLookupTableAccounts = [...lookupTables, ...swapLookupTables];
 
     let bundleTipTxn: VersionedTransaction | null = null;
+    console.log({ isTxnSplit });
 
     if (isTxnSplit) {
       const { blockhash } = await this._program.provider.connection.getLatestBlockhash();
       const message = new TransactionMessage({
         payerKey: this.client.wallet.publicKey,
         recentBlockhash: blockhash,
-        instructions: [bundleTipIx],
+        instructions: [bundleTipIx, ...setupIxs],
       }).compileToV0Message([...addressLookupTableAccounts]);
 
       bundleTipTxn = new VersionedTransaction(message);
@@ -547,10 +548,10 @@ class MarginfiAccountWrapper {
 
     const flashloanTx = await this.buildFlashLoanTx({
       ixs: [
-        ...priorityFeeIx,
+        // ...priorityFeeIx,
         ...cuRequestIxs,
         ...(isTxnSplit ? [] : [bundleTipIx]),
-        ...setupIxs,
+        ...(isTxnSplit ? [] : setupIxs),
         ...withdrawIxs.instructions,
         ...swapIxs,
         ...depositIxs.instructions,
@@ -699,7 +700,7 @@ class MarginfiAccountWrapper {
       const message = new TransactionMessage({
         payerKey: this.client.wallet.publicKey,
         recentBlockhash: blockhash,
-        instructions: [bundleTipIx],
+        instructions: [bundleTipIx, ...setupIxs],
       }).compileToV0Message([...addressLookupTableAccounts]);
 
       bundleTipTxn = new VersionedTransaction(message);
@@ -707,10 +708,10 @@ class MarginfiAccountWrapper {
 
     const flashloanTx = await this.buildFlashLoanTx({
       ixs: [
-        ...priorityFeeIx,
+        // ...priorityFeeIx,
         ...cuRequestIxs,
         ...(isTxnSplit ? [] : [bundleTipIx]),
-        ...setupIxs,
+        ...(isTxnSplit ? [] : setupIxs),
         ...borrowIxs.instructions,
         ...swapIxs,
         ...depositIxs.instructions,

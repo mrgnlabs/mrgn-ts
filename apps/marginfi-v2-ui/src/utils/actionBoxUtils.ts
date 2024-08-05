@@ -14,6 +14,7 @@ import { createJupiterApiClient, QuoteGetRequest, QuoteResponse } from "@jup-ag/
 import { AddressLookupTableAccount, Connection, PublicKey, VersionedTransaction } from "@solana/web3.js";
 
 import { StakeData, loopingBuilder, repayWithCollatBuilder } from "~/utils";
+import { STATIC_SIMULATION_ERRORS } from "@mrgnlabs/mrgn-utils";
 import BigNumber from "bignumber.js";
 
 export enum RepayType {
@@ -202,7 +203,12 @@ export async function verifyJupTxSizeLooping(
   connection: Connection,
   isTxnSplit: boolean = false,
   priorityFee: number
-) {
+): Promise<{
+  flashloanTx: VersionedTransaction | null;
+  bundleTipTxn: VersionedTransaction | null;
+  addressLookupTableAccounts: AddressLookupTableAccount[];
+  error?: ActionMethod;
+}> {
   try {
     const builder = await loopingBuilder({
       marginfiAccount,
@@ -220,9 +226,18 @@ export async function verifyJupTxSizeLooping(
       priorityFee,
     });
 
-    return checkTxSize(builder);
+    const txCheck = checkTxSize(builder);
+    if (!txCheck) throw Error("this should not happen");
+
+    return txCheck;
   } catch (error) {
     console.error(error);
+    return {
+      flashloanTx: null,
+      bundleTipTxn: null,
+      addressLookupTableAccounts: [],
+      error: STATIC_SIMULATION_ERRORS.TX_SIZE,
+    };
   }
 }
 
@@ -236,7 +251,12 @@ export async function verifyJupTxSizeCollat(
   connection: Connection,
   priorityFee: number,
   isTxnSplit: boolean = false
-) {
+): Promise<{
+  flashloanTx: VersionedTransaction | null;
+  bundleTipTxn: VersionedTransaction | null;
+  addressLookupTableAccounts: AddressLookupTableAccount[];
+  error?: ActionMethod;
+}> {
   try {
     const builder = await repayWithCollatBuilder({
       marginfiAccount,
@@ -254,9 +274,18 @@ export async function verifyJupTxSizeCollat(
       isTxnSplit,
     });
 
-    return checkTxSize(builder);
+    const txCheck = checkTxSize(builder);
+    if (!txCheck) throw Error("this should not happen");
+
+    return txCheck;
   } catch (error) {
     console.error(error);
+    return {
+      flashloanTx: null,
+      bundleTipTxn: null,
+      addressLookupTableAccounts: [],
+      error: STATIC_SIMULATION_ERRORS.TX_SIZE,
+    };
   }
 }
 
@@ -265,15 +294,43 @@ const checkTxSize = (builder: {
   bundleTipTxn: VersionedTransaction | null;
   addressLookupTableAccounts: AddressLookupTableAccount[];
 }) => {
-  const totalSize = builder.flashloanTx.message.serialize().length;
-  const totalKeys = builder.flashloanTx.message.getAccountKeys({
-    addressLookupTableAccounts: builder.addressLookupTableAccounts,
-  }).length;
-
-  if (totalSize > 1232 || totalKeys >= 64) {
-    // too big
-  } else {
-    return { flashloanTx: builder.flashloanTx, bundleTipTxn: builder.bundleTipTxn };
+  try {
+    const totalSize = builder.flashloanTx.message.serialize().length;
+    const totalKeys = builder.flashloanTx.message.getAccountKeys({
+      addressLookupTableAccounts: builder.addressLookupTableAccounts,
+    }).length;
+    if (totalSize > 1232 - 110 || totalKeys >= 64) {
+      // signature is roughly 110 bytes
+      if (totalKeys >= 64) {
+        return {
+          flashloanTx: null,
+          bundleTipTxn: null,
+          addressLookupTableAccounts: builder.addressLookupTableAccounts,
+          error: STATIC_SIMULATION_ERRORS.KEY_SIZE,
+        };
+      } else if (totalSize > 1232 - 110) {
+        return {
+          flashloanTx: null,
+          bundleTipTxn: null,
+          addressLookupTableAccounts: builder.addressLookupTableAccounts,
+          error: STATIC_SIMULATION_ERRORS.TX_SIZE,
+        };
+      }
+    } else {
+      return {
+        flashloanTx: builder.flashloanTx,
+        bundleTipTxn: builder.bundleTipTxn,
+        addressLookupTableAccounts: builder.addressLookupTableAccounts,
+        error: undefined,
+      };
+    }
+  } catch (error) {
+    return {
+      flashloanTx: null,
+      bundleTipTxn: null,
+      addressLookupTableAccounts: builder.addressLookupTableAccounts,
+      error: STATIC_SIMULATION_ERRORS.TX_SIZE,
+    };
   }
 };
 

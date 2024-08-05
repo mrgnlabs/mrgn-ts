@@ -83,9 +83,11 @@ export function useLendingPreview({
 
   const getSimulationResult = async (props: SimulateActionProps) => {
     try {
-      setSimulationResult(await simulateAction(props));
+      const result = await simulateAction(props);
+      setSimulationResult(result);
       setActionMethod(undefined);
     } catch (error: any) {
+      console.log({ errorGoota: error });
       let actionString;
       switch (props.actionMode) {
         case ActionType.Deposit:
