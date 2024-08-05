@@ -41,7 +41,7 @@ enum View {
 export default function HomePage() {
   const router = useRouter();
   const isMobile = useIsMobile();
-  const [initialized, groupMap, banks, resetActiveGroup, currentPage, totalPages, setCurrentPage, sortGroupsByToken] =
+  const [initialized, groupMap, banks, resetActiveGroup, currentPage, totalPages, setCurrentPage, sortGroups] =
     useTradeStore((state) => [
       state.initialized,
       state.groupMap,
@@ -50,7 +50,7 @@ export default function HomePage() {
       state.currentPage,
       state.totalPages,
       state.setCurrentPage,
-      state.sortGroupsByToken,
+      state.sortGroups,
     ]);
 
   const [previousTxn] = useUiStore((state) => [state.previousTxn]);
@@ -134,7 +134,7 @@ export default function HomePage() {
                   value={sortBy}
                   onValueChange={(value) => {
                     setSortBy(value as TradePoolFilterStates);
-                    sortGroupsByToken(value as TradePoolFilterStates);
+                    sortGroups(value as TradePoolFilterStates);
                   }}
                 >
                   <SelectTrigger className="w-[190px] justify-start gap-2">

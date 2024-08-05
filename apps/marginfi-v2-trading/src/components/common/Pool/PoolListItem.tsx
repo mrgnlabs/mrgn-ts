@@ -61,7 +61,7 @@ export const PoolListItem = ({ groupData, last }: PoolListItemProps) => {
             )}
           </div>
           <div>${numeralFormatter(groupData.pool.token.tokenData.marketCap)}</div>
-          <div>{groupData.pool.poolData && usdFormatter.format(groupData.pool.poolData.totalLiquidity)}</div>
+          <div>{groupData.pool.poolData && `$${numeralFormatter(groupData.pool.poolData.totalLiquidity)}`}</div>
         </>
       )}
       <div className="pl-5">
