@@ -95,6 +95,8 @@ export const TradingBox = ({ side = "long" }: TradingBoxProps) => {
     return null;
   }, [activeGroupPk, groupMap]);
 
+  const activeGroupPrevPk = usePrevious(activeGroup?.groupPk);
+
   React.useEffect(() => {
     if (tradeState !== prevTradeState) {
       clearStates();
@@ -275,12 +277,13 @@ export const TradingBox = ({ side = "long" }: TradingBoxProps) => {
   ]);
 
   React.useEffect(() => {
-    if (activeGroup) {
+    const hasChanged = activeGroup?.groupPk.toBase58() !== activeGroupPrevPk?.toBase58();
+    if (activeGroup && hasChanged) {
       setStats(
         generateStats(accountSummary, activeGroup.pool.token, activeGroup.pool.quoteTokens[0], null, null, false)
       );
     }
-  }, [accountSummary, activeGroup]);
+  }, [accountSummary, activeGroup, activeGroupPrevPk]);
 
   const leverageActionCb = React.useCallback(
     async (depositBank: ExtendedBankInfo, borrowBank: ExtendedBankInfo) => {
