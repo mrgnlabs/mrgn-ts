@@ -830,7 +830,7 @@ const sortGroups = (groupMap: Map<string, GroupData>, sortBy: TradePoolFilterSta
   const sortedGroupMap = new Map<string, GroupData>();
 
   sortedGroups.forEach((group) => {
-    sortedGroupMap.set(group.pool.token.address.toBase58(), group);
+    sortedGroupMap.set(group.client.group.address.toBase58(), group);
   });
 
   return sortedGroupMap;
