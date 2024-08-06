@@ -99,7 +99,7 @@ export const PositionList = () => {
                 </TableCell>
                 <TableCell>
                   <Link
-                    href={`/pools/${group.client.group.address.toBase58()}`}
+                    href={`/trade/${group.client.group.address.toBase58()}`}
                     className="flex items-center gap-3 transition-colors hover:text-mrgn-chartreuse"
                   >
                     <Image
