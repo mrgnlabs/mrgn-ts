@@ -31,28 +31,33 @@ export const PoolCard = ({ groupData }: PoolCardProps) => {
       <CardHeader>
         <CardTitle>
           <div className="flex items-center gap-2 justify-between">
-            <Image
-              src={getTokenImageURL(groupData.pool.token.info.state.mint.toBase58())}
-              width={48}
-              height={48}
-              alt={groupData.pool.token.meta.tokenName}
-              className="rounded-full border"
-            />{" "}
-            <div className="flex flex-col space-y-0.5">
-              <h2>{groupData.pool.token.meta.tokenSymbol}</h2>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <span className="text-muted-foreground text-sm">
-                      {shortenAddress(groupData.pool.token.info.state.mint)}
-                    </span>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>{groupData.pool.token.info.state.mint.toBase58()}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </div>
+            <Link
+              href={`/trade/${groupData.client.group.address.toBase58()}`}
+              className="flex items-center gap-2 justify-between cursor-pointer"
+            >
+              <Image
+                src={getTokenImageURL(groupData.pool.token.info.state.mint.toBase58())}
+                width={48}
+                height={48}
+                alt={groupData.pool.token.meta.tokenName}
+                className="rounded-full border"
+              />{" "}
+              <div className="flex flex-col space-y-0.5">
+                <h2>{groupData.pool.token.meta.tokenSymbol}</h2>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="text-muted-foreground text-sm">
+                        {shortenAddress(groupData.pool.token.info.state.mint)}
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{groupData.pool.token.info.state.mint.toBase58()}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+            </Link>
             <div className="font-medium text-xs flex flex-col gap-1 items-center ml-auto self-start">
               <TooltipProvider>
                 <Tooltip>
