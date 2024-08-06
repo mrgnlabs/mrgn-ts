@@ -457,7 +457,6 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
             token: updateBank(group.pool.token),
             quoteTokens: group.pool.quoteTokens.map(updateBank),
           };
-          console.log({ updatedPool: updatedPool });
           groupMap.set(id, { ...group, pool: updatedPool });
         }
 
