@@ -48,7 +48,7 @@ export const PositionCard = ({ groupData, isLong }: PositionCardProps) => {
     <div className="bg-background border p-4 rounded-2xl space-y-4">
       <div className="flex items-center gap-4 justify-between">
         <Link
-          href={`/pools/${groupData.client.group.address.toBase58()}`}
+          href={`/trade/${groupData.client.group.address.toBase58()}`}
           className="flex items-center gap-4 font-medium text-muted-foreground"
         >
           <Image
