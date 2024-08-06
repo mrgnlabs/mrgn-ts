@@ -817,7 +817,7 @@ export function generateStats(
         </dd>
         {tokenBank.info.state.totalDeposits > 0 && (
           <>
-            <dt>Total Open Long</dt>
+            <dt>Total despoits</dt>
             <dd className="text-primary text-right">
               {tokenBank.info.state.totalDeposits.toFixed(2)} {tokenBank.meta.tokenSymbol}
             </dd>
@@ -825,7 +825,7 @@ export function generateStats(
         )}
         {tokenBank.info.state.totalBorrows > 0 && (
           <>
-            <dt>Total Open Short</dt>
+            <dt>Total borrows</dt>
             <dd className="text-primary text-right">
               {tokenBank.info.state.totalBorrows.toFixed(2)} {tokenBank.meta.tokenSymbol}
             </dd>
