@@ -85,7 +85,7 @@ export default function TradeSymbolPage() {
           <div className="w-full space-y-4">
             <div className="bg-background border rounded-xl px-4 py-10 lg:px-8">
               <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
-                <div className="flex flex-col items-center px-8 w-full lg:w-1/4">
+                <div className="flex flex-col items-center px-8 w-full lg:w-1/4 xl:w-[35%]">
                   <Image
                     src={getTokenImageURL(activeGroup.pool.token.info.state.mint.toBase58())}
                     alt={activeGroup.pool.token.meta.tokenSymbol}
