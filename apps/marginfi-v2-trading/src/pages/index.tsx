@@ -41,7 +41,7 @@ enum View {
 export default function HomePage() {
   const router = useRouter();
   const isMobile = useIsMobile();
-  const [initialized, groupMap, banks, resetActiveGroup, currentPage, totalPages, setCurrentPage, sortGroups] =
+  const [initialized, groupMap, banks, resetActiveGroup, currentPage, totalPages, setCurrentPage, sortBy, setSortBy] =
     useTradeStore((state) => [
       state.initialized,
       state.groupMap,
@@ -50,7 +50,8 @@ export default function HomePage() {
       state.currentPage,
       state.totalPages,
       state.setCurrentPage,
-      state.sortGroups,
+      state.sortBy,
+      state.setSortBy,
     ]);
 
   const [previousTxn] = useUiStore((state) => [state.previousTxn]);
@@ -59,14 +60,15 @@ export default function HomePage() {
 
   const [view, setView] = React.useState<View>(View.GRID);
   const [initialAnimation, setInitialAnimation] = React.useState(false);
-  const [sortBy, setSortBy] = React.useState<TradePoolFilterStates>(TradePoolFilterStates.TIMESTAMP);
 
   const dir = React.useMemo(() => {
     const option = sortOptions.find((option) => option.value === sortBy);
     return option?.dir || "desc";
   }, [sortBy]);
 
-  const groups = Array.from(groupMap.values());
+  const groups = React.useMemo(() => {
+    return [...groupMap.values()];
+  }, [groupMap]);
 
   const handleFeelingLucky = () => {
     const randomPool = banks[Math.floor(Math.random() * banks.length)];
@@ -79,8 +81,8 @@ export default function HomePage() {
   }, [resetActiveGroup]);
 
   React.useEffect(() => {
-    sortGroups(TradePoolFilterStates.TIMESTAMP);
-  }, [sortGroups]);
+    setSortBy(TradePoolFilterStates.TIMESTAMP);
+  }, [setSortBy]);
 
   return (
     <>
@@ -138,7 +140,6 @@ export default function HomePage() {
                   value={sortBy}
                   onValueChange={(value) => {
                     setSortBy(value as TradePoolFilterStates);
-                    sortGroups(value as TradePoolFilterStates);
                   }}
                 >
                   <SelectTrigger className="w-[190px] justify-start gap-2">

@@ -185,7 +185,7 @@ type TradeStoreState = {
   searchBanks: (searchQuery: string) => void;
   resetSearchResults: () => void;
   setCurrentPage: (page: number) => void;
-  sortGroups: (sortBy: TradePoolFilterStates) => void;
+  setSortBy: (sortBy: TradePoolFilterStates) => void;
 };
 
 const { programId } = getConfig();
@@ -547,6 +547,8 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
 
       if (!tokenBanks) throw new Error("Error fetching banks & groups");
 
+      const sortedGroups = sortGroups(groupMap, get().sortBy, groupsCache);
+
       const totalPages = Math.ceil(groupMap.entries.length / POOLS_PER_PAGE);
       const currentPage = get().currentPage || 1;
 
@@ -579,7 +581,7 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
         initialized: true,
         groupsCache: groupsCache,
         groups: groups,
-        groupMap,
+        groupMap: sortedGroups,
         banks: tokenBanks,
         banksIncludingUSDC: allBanks,
         collateralBanks: extendedBankInfoMap,
@@ -775,59 +777,64 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
     });
   },
 
-  sortGroups: (sortBy: TradePoolFilterStates) => {
+  setSortBy: (sortBy: TradePoolFilterStates) => {
+    const groupMap = sortGroups(get().groupMap, sortBy, get().groupsCache);
     set((state) => {
-      const groups = [...state.groupMap.values()];
-      const groupCache = state.groupsCache;
-      const timestampOrder = Object.keys(groupCache).reverse();
-
-      const sortedGroups = groups.sort((a, b) => {
-        if (sortBy === TradePoolFilterStates.TIMESTAMP) {
-          const aIndex = timestampOrder.indexOf(a.client.group.address.toBase58());
-          const bIndex = timestampOrder.indexOf(b.client.group.address.toBase58());
-          return aIndex - bIndex;
-        } else if (sortBy.startsWith("price")) {
-          const aPrice = a.pool.token.info.oraclePrice.priceRealtime.price.toNumber();
-          const bPrice = b.pool.token.info.oraclePrice.priceRealtime.price.toNumber();
-          return sortBy === TradePoolFilterStates.PRICE_ASC ? aPrice - bPrice : bPrice - aPrice;
-        } else if (sortBy.startsWith("market-cap")) {
-          const aMarketCap = a.pool.token.tokenData?.marketCap ?? 0;
-          const bMarketCap = b.pool.token.tokenData?.marketCap ?? 0;
-          return sortBy === TradePoolFilterStates.MARKET_CAP_ASC ? aMarketCap - bMarketCap : bMarketCap - aMarketCap;
-        } else if (sortBy.startsWith("liquidity")) {
-          const aLiquidity = a.pool.poolData?.totalLiquidity ?? 0;
-          const bLiquidity = b.pool.poolData?.totalLiquidity ?? 0;
-          return sortBy === TradePoolFilterStates.LIQUIDITY_ASC ? aLiquidity - bLiquidity : bLiquidity - aLiquidity;
-        } else if (sortBy.startsWith("apy")) {
-          const getHighestLendingRate = (group: GroupData) => {
-            const rates = [
-              group.pool.token.info.state.lendingRate,
-              ...group.pool.quoteTokens.map((bank) => bank.info.state.lendingRate),
-            ];
-            return Math.max(...rates);
-          };
-
-          const aHighestRate = getHighestLendingRate(a);
-          const bHighestRate = getHighestLendingRate(b);
-          return sortBy === TradePoolFilterStates.APY_ASC ? aHighestRate - bHighestRate : bHighestRate - aHighestRate;
-        }
-
-        return 0;
-      });
-
-      const groupMap = new Map<string, GroupData>();
-
-      sortedGroups.forEach((group) => {
-        groupMap.set(group.pool.token.address.toBase58(), group);
-      });
-
       return {
         ...state,
+        sortBy,
         groupMap,
       };
     });
   },
 });
+
+const sortGroups = (groupMap: Map<string, GroupData>, sortBy: TradePoolFilterStates, groupsCache: TradeGroupsCache) => {
+  const groups = [...groupMap.values()];
+  const timestampOrder = Object.keys(groupsCache).reverse();
+
+  const sortedGroups = groups.sort((a, b) => {
+    if (sortBy === TradePoolFilterStates.TIMESTAMP) {
+      const aIndex = timestampOrder.indexOf(a.client.group.address.toBase58());
+      const bIndex = timestampOrder.indexOf(b.client.group.address.toBase58());
+      return aIndex - bIndex;
+    } else if (sortBy.startsWith("price")) {
+      const aPrice = a.pool.token.info.oraclePrice.priceRealtime.price.toNumber();
+      const bPrice = b.pool.token.info.oraclePrice.priceRealtime.price.toNumber();
+      return sortBy === TradePoolFilterStates.PRICE_ASC ? aPrice - bPrice : bPrice - aPrice;
+    } else if (sortBy.startsWith("market-cap")) {
+      const aMarketCap = a.pool.token.tokenData?.marketCap ?? 0;
+      const bMarketCap = b.pool.token.tokenData?.marketCap ?? 0;
+      return sortBy === TradePoolFilterStates.MARKET_CAP_ASC ? aMarketCap - bMarketCap : bMarketCap - aMarketCap;
+    } else if (sortBy.startsWith("liquidity")) {
+      const aLiquidity = a.pool.poolData?.totalLiquidity ?? 0;
+      const bLiquidity = b.pool.poolData?.totalLiquidity ?? 0;
+      return sortBy === TradePoolFilterStates.LIQUIDITY_ASC ? aLiquidity - bLiquidity : bLiquidity - aLiquidity;
+    } else if (sortBy.startsWith("apy")) {
+      const getHighestLendingRate = (group: GroupData) => {
+        const rates = [
+          group.pool.token.info.state.lendingRate,
+          ...group.pool.quoteTokens.map((bank) => bank.info.state.lendingRate),
+        ];
+        return Math.max(...rates);
+      };
+
+      const aHighestRate = getHighestLendingRate(a);
+      const bHighestRate = getHighestLendingRate(b);
+      return sortBy === TradePoolFilterStates.APY_ASC ? aHighestRate - bHighestRate : bHighestRate - aHighestRate;
+    }
+
+    return 0;
+  });
+
+  const sortedGroupMap = new Map<string, GroupData>();
+
+  sortedGroups.forEach((group) => {
+    sortedGroupMap.set(group.pool.token.address.toBase58(), group);
+  });
+
+  return sortedGroupMap;
+};
 
 export { createTradeStore };
 export type { TradeStoreState };
