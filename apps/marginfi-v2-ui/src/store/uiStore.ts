@@ -2,8 +2,9 @@ import { create, StateCreator } from "zustand";
 import { persist } from "zustand/middleware";
 
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
+import { LendingModes, PoolTypes } from "@mrgnlabs/mrgn-utils";
 
-import { LendingModes, PoolTypes, SortType, sortDirection, SortAssetOption, PreviousTxn } from "~/types";
+import { SortType, sortDirection, SortAssetOption, PreviousTxn } from "~/types";
 
 const SORT_OPTIONS_MAP: { [key in SortType]: SortAssetOption } = {
   APY_DESC: {

@@ -3,7 +3,8 @@ import React from "react";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { useMrgnlendStore } from "~/store";
-import { ActionMethod, cn, RepayWithCollatOptions } from "~/utils";
+import { cn } from "~/utils";
+import { ActionMethod, RepayWithCollatOptions } from "@mrgnlabs/mrgn-utils";
 
 import { AvailableCollateral } from "./AvailableCollateral";
 import { useLendingPreview } from "./useLendingPreview";

@@ -12,63 +12,25 @@ import {
 } from "@solana/web3.js";
 import { QuoteResponseMeta } from "@jup-ag/react-hook";
 import { WalletContextState } from "@solana/wallet-adapter-react";
-import BigNumber from "bignumber.js";
 
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
-import { LUT_PROGRAM_AUTHORITY_INDEX, Wallet, processTransaction, uiToNative } from "@mrgnlabs/mrgn-common";
+import { LUT_PROGRAM_AUTHORITY_INDEX, Wallet, uiToNative } from "@mrgnlabs/mrgn-common";
 import { ExtendedBankInfo, FEE_MARGIN, ActionType, clearAccountCache } from "@mrgnlabs/marginfi-v2-ui-state";
+import {
+  extractErrorString,
+  isWholePosition,
+  loopingBuilder,
+  LoopingOptions,
+  LstActionParams,
+  MarginfiActionParams,
+  RepayWithCollatOptions,
+} from "@mrgnlabs/mrgn-utils";
 
 import { WalletContextStateOverride } from "~/hooks/useWalletContext";
 import { LstData, SOL_MINT } from "~/store/lstStore";
 
 import { MultiStepToastHandle, showErrorToast } from "./toastUtils";
-import { isWholePosition, extractErrorString } from "./mrgnUtils";
 import { StakeData, makeDepositSolToStakePoolIx, makeDepositStakeToStakePoolIx } from "./lstUtils";
-
-export type RepayWithCollatOptions = {
-  repayCollatQuote: QuoteResponse;
-  bundleTipTxn: VersionedTransaction | null;
-  repayCollatTxn: VersionedTransaction | null;
-  withdrawAmount: number;
-  depositBank: ExtendedBankInfo;
-  connection: Connection;
-};
-
-export type LoopingOptions = {
-  loopingQuote: QuoteResponse;
-  bundleTipTxn: VersionedTransaction | null;
-  loopingTxn: VersionedTransaction | null;
-  borrowAmount: BigNumber;
-  loopingBank: ExtendedBankInfo;
-  connection: Connection;
-};
-
-export type MarginfiActionParams = {
-  mfiClient: MarginfiClient | null;
-  bank: ExtendedBankInfo;
-  actionType: ActionType;
-  amount: number;
-  nativeSolBalance: number;
-  marginfiAccount: MarginfiAccountWrapper | null;
-  repayWithCollatOptions?: RepayWithCollatOptions;
-  loopingOptions?: LoopingOptions;
-  walletContextState?: WalletContextState | WalletContextStateOverride;
-  priorityFee?: number;
-};
-
-export type LstActionParams = {
-  actionMode: ActionType;
-  marginfiClient: MarginfiClient;
-  amount: number;
-  nativeSolBalance: number;
-  connection: Connection;
-  wallet: Wallet;
-  lstData: LstData;
-  bank: ExtendedBankInfo | null;
-  selectedStakingAccount: StakeData | null;
-  quoteResponseMeta: QuoteResponseMeta | null;
-  priorityFee?: number;
-};
 
 export async function createAccountAction({
   marginfiClient,
@@ -479,57 +441,6 @@ const getFeeAccount = async (mint: PublicKey) => {
   );
   return feeAccount.toBase58();
 };
-
-export async function loopingBuilder({
-  marginfiAccount,
-  bank,
-  depositAmount,
-  options,
-  priorityFee,
-  isTxnSplit,
-}: {
-  marginfiAccount: MarginfiAccountWrapper;
-  bank: ExtendedBankInfo;
-  depositAmount: number;
-  options: LoopingOptions;
-  priorityFee?: number;
-  isTxnSplit: boolean;
-}) {
-  const jupiterQuoteApi = createJupiterApiClient();
-
-  // get fee account for original borrow mint
-  //const feeAccount = await getFeeAccount(bank.info.state.mint);
-
-  const { swapInstruction, addressLookupTableAddresses } = await jupiterQuoteApi.swapInstructionsPost({
-    swapRequest: {
-      quoteResponse: options.loopingQuote,
-      userPublicKey: marginfiAccount.authority.toBase58(),
-      programAuthorityId: LUT_PROGRAM_AUTHORITY_INDEX,
-    },
-  });
-
-  // const setupIxs = setupInstructions.length > 0 ? setupInstructions.map(deserializeInstruction) : []; //**not optional but man0s smart**
-  const swapIx = deserializeInstruction(swapInstruction);
-  // const swapcleanupIx = cleanupInstruction ? [deserializeInstruction(cleanupInstruction)] : []; **optional**
-  // tokenLedgerInstruction **also optional**
-
-  const swapLUTs: AddressLookupTableAccount[] = [];
-  swapLUTs.push(...(await getAdressLookupTableAccounts(options.connection, addressLookupTableAddresses)));
-
-  const { flashloanTx, bundleTipTxn, addressLookupTableAccounts } = await marginfiAccount.makeLoopTx(
-    depositAmount,
-    options.borrowAmount,
-    bank.address,
-    options.loopingBank.address,
-    [swapIx],
-    swapLUTs,
-    priorityFee,
-    true,
-    isTxnSplit
-  );
-
-  return { flashloanTx, bundleTipTxn, addressLookupTableAccounts };
-}
 
 export async function looping({
   marginfiClient,

@@ -3,8 +3,9 @@ import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 
+import { getTokenImageURL } from "@mrgnlabs/mrgn-utils";
+
 import { useMrgnlendStore } from "~/store";
-import { getTokenImageURL } from "~/utils";
 
 import { Dialog, DialogContent } from "~/components/ui/dialog";
 import { Button } from "~/components/ui/button";

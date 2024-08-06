@@ -6,7 +6,7 @@ import { useUiStore, useUserProfileStore } from "~/store";
 import { cn } from "~/utils";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { useActionBoxStore } from "~/hooks/useActionBoxStore";
-import { LendingModes, PoolTypes } from "~/types";
+import { LendingModes, PoolTypes } from "@mrgnlabs/mrgn-utils";
 
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
 import { Switch } from "~/components/ui/switch";

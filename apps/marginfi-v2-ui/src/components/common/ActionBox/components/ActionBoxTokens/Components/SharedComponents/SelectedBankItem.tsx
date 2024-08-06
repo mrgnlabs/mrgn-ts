@@ -3,9 +3,9 @@ import React from "react";
 import Image from "next/image";
 
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { getTokenImageURL, LendingModes } from "@mrgnlabs/mrgn-utils";
 
-import { LendingModes } from "~/types";
-import { cn, getTokenImageURL } from "~/utils";
+import { cn } from "~/utils";
 
 type SelectedBankItemProps = {
   bank: ExtendedBankInfo;

@@ -4,8 +4,9 @@ import Image from "next/image";
 
 import { usdFormatter, numeralFormatter } from "@mrgnlabs/mrgn-common";
 import { ActiveBankInfo, ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { getTokenImageURL } from "@mrgnlabs/mrgn-utils";
 
-import { cn, getTokenImageURL } from "~/utils";
+import { cn } from "~/utils";
 import { useAssetItemData } from "~/hooks/useAssetItemData";
 
 import { ActionBoxDialog } from "~/components/common/ActionBox";

@@ -4,10 +4,10 @@ import Image from "next/image";
 import { Swiper, SwiperSlide, useSwiper } from "swiper/react";
 import { Autoplay } from "swiper/modules";
 
+import { getTokenImageURL, LendingModes } from "@mrgnlabs/mrgn-utils";
 import { ExtendedBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { LendingModes } from "~/types";
-import { cn, getTokenImageURL } from "~/utils";
+import { cn } from "~/utils";
 import { useWalletContext } from "~/hooks/useWalletContext";
 
 import { ActionBoxDialog } from "~/components/common/ActionBox";

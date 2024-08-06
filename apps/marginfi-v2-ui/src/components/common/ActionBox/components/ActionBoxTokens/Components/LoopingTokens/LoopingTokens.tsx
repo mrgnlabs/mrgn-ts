@@ -2,19 +2,19 @@ import React from "react";
 
 import { ExtendedBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { MarginRequirementType, OperationalState } from "@mrgnlabs/marginfi-client-v2";
+import { WSOL_MINT } from "@mrgnlabs/mrgn-common";
+import { computeBankRate, LendingModes } from "@mrgnlabs/mrgn-utils";
 
-import { cn, computeBankRate } from "~/utils";
+import { cn } from "~/utils";
 import { useMrgnlendStore } from "~/store";
+import { useActionBoxStore } from "~/hooks/useActionBoxStore";
 
-import { TokenListWrapper, TokenListCommand, SelectedBankItem } from "../SharedComponents";
 import { ActionBoxItem } from "~/components/common/ActionBox/components";
 import { CommandEmpty, CommandItem } from "~/components/ui/command";
 import { Button } from "~/components/ui/button";
 import { IconChevronDown } from "~/components/ui/icons";
 
-import { LendingModes } from "~/types";
-import { useActionBoxStore } from "~/hooks/useActionBoxStore";
-import { WSOL_MINT } from "@mrgnlabs/mrgn-common";
+import { TokenListWrapper, TokenListCommand, SelectedBankItem } from "../SharedComponents";
 
 type LoopingTokensProps = {
   actionType: ActionType;

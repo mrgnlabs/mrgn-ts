@@ -1,9 +1,10 @@
 import React from "react";
 
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { LoopingOptions, ActionMethod } from "@mrgnlabs/mrgn-utils";
 
 import { useMrgnlendStore } from "~/store";
-import { ActionMethod, cn, LoopingOptions, RepayWithCollatOptions } from "~/utils";
+import { cn } from "~/utils";
 
 import { useLoopingPreview } from "./useLoopingPreview";
 

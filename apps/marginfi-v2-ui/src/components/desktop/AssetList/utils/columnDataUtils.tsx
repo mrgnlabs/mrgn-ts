@@ -13,9 +13,8 @@ import {
   PriceBias,
   getPriceWithConfidence,
 } from "@mrgnlabs/marginfi-client-v2";
-import { WSOL_MINT, aprToApy, apyToApr, nativeToUi } from "@mrgnlabs/mrgn-common";
-
-import { isBankOracleStale } from "~/utils";
+import { WSOL_MINT, aprToApy, nativeToUi } from "@mrgnlabs/mrgn-common";
+import { isBankOracleStale } from "@mrgnlabs/mrgn-utils";
 
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { ActionBoxDialog } from "~/components/common/ActionBox";

@@ -275,9 +275,9 @@ export const handleError = (
       }
 
       if (
-        error.message.toLowerCase().includes("stale") ||
-        error.message.includes("6017") ||
-        error.message.toLowerCase().includes("stale") ||
+        error.message?.toLowerCase()?.includes("stale") ||
+        error.message?.includes("6017") ||
+        error.message?.toLowerCase()?.includes("stale") ||
         error?.logs?.some((entry: string) => entry.includes("stale"))
       ) {
         if (isArena) {
@@ -288,12 +288,12 @@ export const handleError = (
       }
 
       if (
-        error.messgae.toLowerCase().includes("block height exceeded") ||
+        error.messgae?.toLowerCase()?.includes("block height exceeded") ||
         error.message === "BlockhashNotFound" || // Exact match
-        error.message.toLowerCase().includes("lockhashnotfou") || // Contains 'BlockhashNotFound'
-        error.message.toLowerCase().includes("blockhashnotfound") || // Contains 'BlockhashNotFound'
-        error.message.includes('"BlockhashNotFound"') || // Contains '"BlockhashNotFound"'
-        error.message.toLowerCase().includes("blockhash not found") || // Contains 'Blockhash not found'
+        error.message?.toLowerCase()?.includes("lockhashnotfou") || // Contains 'BlockhashNotFound'
+        error.message?.toLowerCase()?.includes("blockhashnotfound") || // Contains 'BlockhashNotFound'
+        error.message?.includes('"BlockhashNotFound"') || // Contains '"BlockhashNotFound"'
+        error.message?.toLowerCase()?.includes("blockhash not found") || // Contains 'Blockhash not found'
         error?.logs?.some((entry: string) => entry.toLowerCase().includes("blockhash not found"))
       ) {
         return STATIC_SIMULATION_ERRORS.TRANSACTION_EXPIRED;
@@ -303,7 +303,7 @@ export const handleError = (
         return STATIC_SIMULATION_ERRORS.USER_REJECTED;
       }
 
-      if (error.message.toLowerCase().includes("insufficient funds")) {
+      if (error.message?.toLowerCase().includes("insufficient funds")) {
         if (action === "Repaying") {
           return STATIC_SIMULATION_ERRORS.INSUFICIENT_FUNDS_REPAY;
         } else {
@@ -312,21 +312,21 @@ export const handleError = (
       }
 
       if (
-        error.message.toLowerCase().includes("insufficient lamport") ||
+        error.message?.toLowerCase().includes("insufficient lamport") ||
         error?.logs?.some((entry: string[]) => entry.includes("insufficient lamport"))
       ) {
         return STATIC_SIMULATION_ERRORS.INSUFICIENT_LAMPORTS;
       }
 
-      if (error.message.includes("6029") || error.message.toLowerCase().includes("deposit capacity exceeded")) {
+      if (error.message?.includes("6029") || error.message?.toLowerCase().includes("deposit capacity exceeded")) {
         return STATIC_SIMULATION_ERRORS.DEPOSIT_CAP_EXCEEDED;
       }
 
-      if (error.message.includes("6029") || error.message.toLowerCase().includes("borrow cap exceeded")) {
+      if (error.message?.includes("6029") || error.message?.toLowerCase().includes("borrow cap exceeded")) {
         return STATIC_SIMULATION_ERRORS.BORROW_CAP_EXCEEDED;
       }
 
-      if (isArena && (error.message.includes("6028") || error.message.toLowerCase().includes("utilization ratio"))) {
+      if (isArena && (error.message?.includes("6028") || error.message?.toLowerCase().includes("utilization ratio"))) {
         if (bank) {
           const method = {
             ...STATIC_SIMULATION_ERRORS.UTILIZATION_RATIO_INVALID,

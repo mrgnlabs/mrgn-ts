@@ -5,10 +5,9 @@ import BN from "bn.js";
 
 import { TOKEN_PROGRAM_ID, aprToApy, ceil, floor, percentFormatter } from "@mrgnlabs/mrgn-common";
 import { ActiveBankInfo, Emissions, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { ProcessTransactionError } from "@mrgnlabs/marginfi-client-v2";
 
-import { LendingModes } from "~/types";
-import { handleError } from "@mrgnlabs/mrgn-utils";
+import { LendingModes } from "./types";
+import { handleError } from "./errors";
 
 // ================ development utils ================
 
@@ -112,16 +111,6 @@ export function getLiquidationPriceColor(currentPrice: number, liquidationPrice:
   }
   return color;
 }
-
-export const clampedNumeralFormatter = (value: number) => {
-  if (value === 0) {
-    return "0";
-  } else if (value < 0.01) {
-    return "< 0.01";
-  } else {
-    return numeral(value).format("0.00a");
-  }
-};
 
 export function extractErrorString(error: any, fallback?: string): string {
   const errorCode = handleError(error, null, false);
