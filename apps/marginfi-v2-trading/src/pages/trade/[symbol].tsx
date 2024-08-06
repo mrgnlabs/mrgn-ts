@@ -97,6 +97,7 @@ export default function TradeSymbolPage() {
                   <TokenCombobox
                     selected={activeGroup}
                     setSelected={(group) => {
+                      router.push(`/trade/${group.client.group.address.toBase58()}`);
                       setActiveGroup({ groupPk: group.client.group.address });
                     }}
                   >
