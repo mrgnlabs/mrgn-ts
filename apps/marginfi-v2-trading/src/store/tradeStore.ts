@@ -652,13 +652,17 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
         const nativeSolBalance = tokenData.nativeSolBalance;
         const tokenAccountMap = tokenData.tokenAccountMap;
 
+        const updatedBanks = Array.from(marginfiClient.banks.values());
+
         const updateBank = (bank: ExtendedBankInfo) => {
           const tokenAccount = tokenAccountMap?.get(bank.info.rawBank.mint.toBase58());
           if (!tokenAccount) return bank;
 
+          const updatedBank = updatedBanks.find((b) => b.mint.equals(bank.info.rawBank.mint)) ?? bank.info.rawBank;
+
           return makeExtendedBankInfo(
             { icon: bank.meta.tokenLogoUri, name: bank.meta.tokenName, symbol: bank.meta.tokenSymbol },
-            bank.info.rawBank,
+            updatedBank,
             bank.info.oraclePrice,
             undefined,
             {
@@ -673,6 +677,8 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
           token: updateBank(updatedTokenBank),
           quoteTokens: updatedCollateralBanks.map(updateBank),
         };
+
+        console.log({ updatedPool });
       }
 
       const newGroup = {
