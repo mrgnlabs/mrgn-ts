@@ -494,7 +494,6 @@ export const TradingBox = ({ side = "long" }: TradingBoxProps) => {
                   <TokenCombobox
                     selected={activeGroup.group}
                     setSelected={(group) => {
-                      console.log("HJI", group.client.group.address.toBase58());
                       router.push(`/trade/${group.client.group.address.toBase58()}`);
                       setActiveGroup({ groupPk: group.client.group.address });
                       clearStates();
