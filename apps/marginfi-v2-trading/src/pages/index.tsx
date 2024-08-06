@@ -25,12 +25,10 @@ const sortOptions: {
   dir?: "asc" | "desc";
 }[] = [
   { value: TradePoolFilterStates.TIMESTAMP, label: "Recently created" },
-  { value: TradePoolFilterStates.PRICE_DESC, label: "Price Desc" },
-  { value: TradePoolFilterStates.PRICE_ASC, label: "Price Asc", dir: "asc" },
-  { value: TradePoolFilterStates.MARKET_CAP_DESC, label: "Market Cap Desc" },
-  { value: TradePoolFilterStates.MARKET_CAP_ASC, label: "Market Cap Asc", dir: "asc" },
-  { value: TradePoolFilterStates.LIQUIDITY_DESC, label: "Liquidity Desc" },
-  { value: TradePoolFilterStates.LIQUIDITY_ASC, label: "Liquidity Asc", dir: "asc" },
+  { value: TradePoolFilterStates.PRICE_MOVEMENT_DESC, label: "24hr price movement" },
+  { value: TradePoolFilterStates.LIQUIDITY_DESC, label: "Lending pool liquidity" },
+  { value: TradePoolFilterStates.MARKET_CAP_DESC, label: "Market cap desc" },
+  { value: TradePoolFilterStates.MARKET_CAP_ASC, label: "Market cap asc", dir: "asc" },
 ];
 
 enum View {
@@ -142,7 +140,7 @@ export default function HomePage() {
                     setSortBy(value as TradePoolFilterStates);
                   }}
                 >
-                  <SelectTrigger className="w-[190px] justify-start gap-2">
+                  <SelectTrigger className="w-[210px] justify-start gap-2">
                     {dir === "desc" && <IconSortDescending size={16} />}
                     {dir === "asc" && <IconSortAscending size={16} />}
                     <SelectValue placeholder="Sort pools" />

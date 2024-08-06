@@ -38,8 +38,8 @@ type TradeGroupsCache = {
 
 export enum TradePoolFilterStates {
   TIMESTAMP = "timestamp",
-  PRICE_ASC = "price-asc",
-  PRICE_DESC = "price-desc",
+  PRICE_MOVEMENT_ASC = "price-movement-asc",
+  PRICE_MOVEMENT_DESC = "price-movement-desc",
   MARKET_CAP_ASC = "market-cap-asc",
   MARKET_CAP_DESC = "market-cap-desc",
   LIQUIDITY_ASC = "liquidity-asc",
@@ -798,10 +798,10 @@ const sortGroups = (groupMap: Map<string, GroupData>, sortBy: TradePoolFilterSta
       const aIndex = timestampOrder.indexOf(a.client.group.address.toBase58());
       const bIndex = timestampOrder.indexOf(b.client.group.address.toBase58());
       return aIndex - bIndex;
-    } else if (sortBy.startsWith("price")) {
-      const aPrice = a.pool.token.info.oraclePrice.priceRealtime.price.toNumber();
-      const bPrice = b.pool.token.info.oraclePrice.priceRealtime.price.toNumber();
-      return sortBy === TradePoolFilterStates.PRICE_ASC ? aPrice - bPrice : bPrice - aPrice;
+    } else if (sortBy.startsWith("price-movement")) {
+      const aPrice = Math.abs(a.pool.token.tokenData?.priceChange24hr ?? 0);
+      const bPrice = Math.abs(b.pool.token.tokenData?.priceChange24hr ?? 0);
+      return sortBy === TradePoolFilterStates.PRICE_MOVEMENT_ASC ? aPrice - bPrice : bPrice - aPrice;
     } else if (sortBy.startsWith("market-cap")) {
       const aMarketCap = a.pool.token.tokenData?.marketCap ?? 0;
       const bMarketCap = b.pool.token.tokenData?.marketCap ?? 0;
