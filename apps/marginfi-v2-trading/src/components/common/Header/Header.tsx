@@ -101,15 +101,6 @@ export const Header = () => {
           <div className="flex items-center gap-6">
             {!isMobile && (
               <div className="flex items-center">
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setWalletState(WalletState.SWAP);
-                    setIsWalletOpen(true);
-                  }}
-                >
-                  <IconRefresh size={16} /> Swap tokens
-                </Button>
                 <CreatePoolSoon
                   trigger={
                     <Button disabled={false}>
