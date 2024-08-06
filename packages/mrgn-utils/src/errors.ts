@@ -299,7 +299,7 @@ export const handleError = (
         return STATIC_SIMULATION_ERRORS.TRANSACTION_EXPIRED;
       }
 
-      if (error.message.includes("user rejected")) {
+      if (error.message?.toLowerCase()?.includes("user rejected")) {
         return STATIC_SIMULATION_ERRORS.USER_REJECTED;
       }
 

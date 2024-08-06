@@ -125,6 +125,7 @@ export const clampedNumeralFormatter = (value: number) => {
 
 export function extractErrorString(error: any, fallback?: string): string {
   const errorCode = handleError(error, null, false);
+  console.log({ error });
 
   if (errorCode?.description) {
     return errorCode.description;
