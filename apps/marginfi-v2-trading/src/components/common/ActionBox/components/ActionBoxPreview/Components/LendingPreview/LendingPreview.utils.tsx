@@ -464,30 +464,7 @@ function getPoolSizeStat(bankCap: number, bank: ExtendedBankInfo, isLending: boo
 function getBankTypeStat(bank: ExtendedBankInfo): PreviewStat {
   return {
     label: "Type",
-    value: () => (
-      <>
-        {bank.info.state.isIsolated ? (
-          <>
-            Isolated pool{" "}
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Image src="/info_icon.png" alt="info" height={12} width={12} />
-                </TooltipTrigger>
-                <TooltipContent>
-                  <h4 className="text-base">Isolated pools are risky ⚠️</h4>
-                  Assets in isolated pools cannot be used as collateral. When you borrow an isolated asset, you cannot
-                  borrow other assets. Isolated pools should be considered particularly risky. As always, remember that
-                  marginfi is a decentralized protocol and all deposited funds are at risk.
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </>
-        ) : (
-          <>Global pool</>
-        )}
-      </>
-    ),
+    value: () => <>Isolated pool</>,
   };
 }
 

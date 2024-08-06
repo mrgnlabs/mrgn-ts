@@ -106,7 +106,11 @@ export default function PortfolioPage() {
         {initialized && (
           <>
             <div className="w-full max-w-4xl mx-auto px-4 md:px-0">
-              <PageHeading heading="Yield farming" body={<p>Supply liquidity and earn yield.</p>} links={[]} />
+              <PageHeading
+                heading="Yield farming"
+                body={<p>Supply over-collateralized liquidity and earn yield.</p>}
+                links={[]}
+              />
             </div>
 
             <div className="flex justify-center items-center w-full max-w-4xl mx-auto mb-8 mt-4 lg:mb-16 lg:mt-8">

@@ -179,9 +179,9 @@ export default function TradeSymbolPage() {
                       )}
                     </div>
                   )}
-                  <div className="w-full grid gap-4 max-w-md mx-auto lg:gap-0 lg:max-w-none lg:grid-cols-2">
+                  <div className="w-full grid gap-4 max-w-md mx-auto lg:gap-0 lg:max-w-none lg:grid-cols-4">
                     <div className="flex flex-row justify-between space-y-1 lg:block">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-start gap-2 translate-y-0.5">
                         <Image
                           src={getTokenImageURL(activeGroup.pool.token.info.state.mint.toBase58())}
                           alt={activeGroup.pool.token.meta.tokenSymbol}
@@ -199,7 +199,7 @@ export default function TradeSymbolPage() {
                           </p>
                         </div>
                       </div>
-                      <div className="flex flex-col items-end justify-end gap-2 lg:gap-4 lg:items-center lg:flex-row lg:justify-start">
+                      <div className="flex flex-col items-end justify-end gap-2 lg:items-start lg:justify-start">
                         <p className="text-sm lg:text-2xl">
                           $
                           {numeralFormatter(
@@ -260,13 +260,13 @@ export default function TradeSymbolPage() {
                       </div>
                     </div>
                     <div className="flex flex-row justify-between space-y-1 lg:block">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-start gap-2">
                         <Image
                           src={getTokenImageURL(activeGroup.pool.quoteTokens[0].info.state.mint.toBase58())}
                           alt={activeGroup.pool.quoteTokens[0].meta.tokenSymbol}
                           width={32}
                           height={32}
-                          className="bg-background border rounded-full"
+                          className="bg-background border rounded-full translate-y-0.5"
                         />
                         <div className="leading-tight text-sm">
                           <p>
@@ -278,7 +278,7 @@ export default function TradeSymbolPage() {
                           </p>
                         </div>
                       </div>
-                      <div className="flex flex-col items-end justify-end gap-2 lg:gap-4 lg:flex-row lg:items-center lg:justify-start">
+                      <div className="flex flex-col items-end justify-end gap-2 lg:items-start lg:justify-start">
                         <p className="text-sm lg:text-2xl">
                           $
                           {numeralFormatter(
