@@ -35,15 +35,15 @@ const sortOptions: {
 let fuse: Fuse<GroupData> | null = null;
 
 export default function PortfolioPage() {
-  const [initialized, groupMap, sortGroups] = useTradeStore((state) => [
+  const [initialized, groupMap, sortBy, setSortBy] = useTradeStore((state) => [
     state.initialized,
     state.groupMap,
-    state.sortGroups,
+    state.sortBy,
+    state.setSortBy,
   ]);
   const isMobile = useIsMobile();
   const { connected } = useWalletContext();
   const [search, setSearch] = React.useState("");
-  const [sortBy, setSortBy] = React.useState<TradePoolFilterStates>(TradePoolFilterStates.APY_DESC);
   const groups = Array.from(groupMap.values());
 
   const dir = React.useMemo(() => {
@@ -96,8 +96,8 @@ export default function PortfolioPage() {
   }, [groups, search]);
 
   React.useEffect(() => {
-    sortGroups(TradePoolFilterStates.APY_DESC);
-  }, [sortGroups]);
+    setSortBy(TradePoolFilterStates.APY_DESC);
+  }, [setSortBy]);
 
   return (
     <>
@@ -150,11 +150,6 @@ export default function PortfolioPage() {
                           ? TradePoolFilterStates.LIQUIDITY_ASC
                           : TradePoolFilterStates.LIQUIDITY_DESC
                       );
-                      sortGroups(
-                        sortBy === TradePoolFilterStates.LIQUIDITY_DESC
-                          ? TradePoolFilterStates.LIQUIDITY_ASC
-                          : TradePoolFilterStates.LIQUIDITY_DESC
-                      );
                     }}
                   >
                     {sortBy === TradePoolFilterStates.LIQUIDITY_ASC && <IconSortAscending size={16} />}
@@ -169,11 +164,6 @@ export default function PortfolioPage() {
                     )}
                     onClick={() => {
                       setSortBy(
-                        sortBy === TradePoolFilterStates.APY_DESC
-                          ? TradePoolFilterStates.APY_ASC
-                          : TradePoolFilterStates.APY_DESC
-                      );
-                      sortGroups(
                         sortBy === TradePoolFilterStates.APY_DESC
                           ? TradePoolFilterStates.APY_ASC
                           : TradePoolFilterStates.APY_DESC
@@ -394,7 +384,6 @@ export default function PortfolioPage() {
                   value={sortBy}
                   onValueChange={(value) => {
                     setSortBy(value as TradePoolFilterStates);
-                    sortGroups(value as TradePoolFilterStates);
                   }}
                 >
                   <SelectTrigger className="w-[190px] justify-start gap-2">
