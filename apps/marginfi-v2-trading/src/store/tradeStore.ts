@@ -73,6 +73,7 @@ export type ArenaPool = {
 };
 
 export interface GroupData {
+  groupPk: PublicKey;
   pool: ArenaPool;
   client: MarginfiClient;
   marginfiAccounts: MarginfiAccountWrapper[];
@@ -134,11 +135,6 @@ type TradeStoreState = {
   // active group, currently being viewed / traded
   activeGroup: PublicKey | null;
 
-  // array of marginfi accounts
-  marginfiAccounts: {
-    [group: string]: MarginfiAccountWrapper;
-  } | null;
-
   accountSummary: AccountSummary;
 
   // user native sol balance
@@ -166,20 +162,14 @@ type TradeStoreState = {
   setActiveGroup: ({ groupPk }: { groupPk: PublicKey }) => Promise<void>;
 
   setIsRefreshingStore: (isRefreshing: boolean) => void;
-  refreshActiveBank: ({
+  refreshGroup: ({
     connection,
     wallet,
-    allBanks,
-    collateralBanks,
-    tradeGroups,
+    groupPk,
   }: {
     connection?: Connection;
     wallet?: Wallet;
-    allBanks: ExtendedBankInfo[];
-    tradeGroups: TradeGroupsCache;
-    collateralBanks: {
-      [group: string]: ExtendedBankInfo;
-    };
+    groupPk?: PublicKey;
   }) => Promise<void>;
   resetActiveGroup: () => void;
   searchBanks: (searchQuery: string) => void;
@@ -216,7 +206,6 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
   sortBy: TradePoolFilterStates.TIMESTAMP,
   marginfiClient: null,
   activeGroup: null,
-  marginfiAccounts: null,
   accountSummary: DEFAULT_ACCOUNT_SUMMARY,
   nativeSolBalance: 0,
   tokenAccountMap: null,
@@ -306,6 +295,7 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
           );
 
           let groupData: GroupData = {
+            groupPk: group,
             pool: {} as any,
             client: marginfiClient,
             marginfiAccounts: [],
@@ -467,7 +457,7 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
             token: updateBank(group.pool.token),
             quoteTokens: group.pool.quoteTokens.map(updateBank),
           };
-
+          console.log({ updatedPool: updatedPool });
           groupMap.set(id, { ...group, pool: updatedPool });
         }
 
@@ -599,11 +589,11 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
     }
   },
 
-  refreshActiveBank: async (args) => {
+  refreshGroup: async (args) => {
     try {
       const connection = args.connection ?? get().connection;
       const wallet = args?.wallet ?? get().wallet;
-      const activeGroup = get().activeGroup;
+      const activeGroup = args?.groupPk ?? get().activeGroup;
       const groupMap = get().groupMap;
 
       if (!activeGroup) throw new Error("No group to refresh");
@@ -630,7 +620,6 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
         }
       );
 
-      let marginfiAccounts: MarginfiAccountWrapper[] = [];
       let selectedAccount: MarginfiAccountWrapper | null = null;
       let accountSummary: AccountSummary = DEFAULT_ACCOUNT_SUMMARY;
       let updatedTokenBank: ArenaBank = {

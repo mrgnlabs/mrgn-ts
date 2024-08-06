@@ -1,16 +1,14 @@
 import { QuoteGetRequest, QuoteResponse, createJupiterApiClient } from "@jup-ag/api";
-import { JUPITER_PROGRAM_V6_ID } from "@jup-ag/react-hook";
 import {
   Bank,
   MarginRequirementType,
   MarginfiAccountWrapper,
   MarginfiClient,
   OperationalState,
-  ProcessTransactionError,
   SimulationResult,
   computeLoopingParams,
 } from "@mrgnlabs/marginfi-client-v2";
-import { AccountSummary, ActionType, ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { AccountSummary, ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import {
   LUT_PROGRAM_AUTHORITY_INDEX,
   Wallet,
@@ -19,22 +17,20 @@ import {
   uiToNative,
   usdFormatter,
 } from "@mrgnlabs/mrgn-common";
+import { DYNAMIC_SIMULATION_ERRORS, STATIC_SIMULATION_ERRORS } from "@mrgnlabs/mrgn-utils";
 import { AddressLookupTableAccount, Connection, PublicKey, VersionedTransaction } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 import { IconArrowRight, IconPyth, IconSwitchboard } from "~/components/ui/icons";
-import { Skeleton } from "~/components/ui/skeleton";
+import { GroupData } from "~/store/tradeStore";
 import {
   ActionMethod,
-  ActionMethodType,
   cn,
   deserializeInstruction,
-  DYNAMIC_SIMULATION_ERRORS,
   extractErrorString,
   getAdressLookupTableAccounts,
   getFeeAccount,
   getSwapQuoteWithRetry,
   isBankOracleStale,
-  STATIC_SIMULATION_ERRORS,
 } from "~/utils";
 import { MultiStepToastHandle, showErrorToast } from "~/utils/toastUtils";
 
@@ -926,15 +922,10 @@ export function getCurrentStats(
   };
 }
 
-interface ActiveGroup {
-  token: ExtendedBankInfo;
-  usdc: ExtendedBankInfo;
-}
-
 interface CheckActionAvailableProps {
   amount: string;
   connected: boolean;
-  activeGroup: ActiveGroup | null;
+  activeGroup: GroupData | null;
   loopingObject: LoopingObject | null;
   tradeSide: TradeSide;
 }
@@ -958,10 +949,6 @@ export function checkLoopingActionAvailable({
   if (activeGroup && loopingObject) {
     const lentChecks = canBeLooped(activeGroup, loopingObject, tradeSide);
     if (lentChecks.length) checks.push(...lentChecks);
-
-    // case ActionType.MintYBX:
-    //   if (check) checks.push(check);
-    //   break;
   }
 
   if (checks.length === 0)
@@ -974,7 +961,7 @@ export function checkLoopingActionAvailable({
 
 function getRequiredCheck(
   connected: boolean,
-  activeGroup: ActiveGroup | null,
+  activeGroup: GroupData | null,
   loopingObject: LoopingObject | null
 ): ActionMethod | null {
   if (!connected) {
@@ -1004,20 +991,21 @@ function getGeneralChecks(amount: string): ActionMethod[] {
   }
 }
 
-function canBeLooped(activeGroup: ActiveGroup, loopingObject: LoopingObject, tradeSide: TradeSide): ActionMethod[] {
+function canBeLooped(activeGroup: GroupData, loopingObject: LoopingObject, tradeSide: TradeSide): ActionMethod[] {
   let checks: ActionMethod[] = [];
-  const isUsdcBankPaused = activeGroup.usdc.info.rawBank.config.operationalState === OperationalState.Paused;
-  const isTokenBankPaused = activeGroup.token.info.rawBank.config.operationalState === OperationalState.Paused;
+  const isUsdcBankPaused =
+    activeGroup.pool.quoteTokens[0].info.rawBank.config.operationalState === OperationalState.Paused;
+  const isTokenBankPaused = activeGroup.pool.token.info.rawBank.config.operationalState === OperationalState.Paused;
 
   let tokenPosition,
     usdcPosition: "inactive" | "lending" | "borrowing" = "inactive";
 
-  if (activeGroup.usdc.isActive) {
-    usdcPosition = activeGroup.usdc.position.isLending ? "lending" : "borrowing";
+  if (activeGroup.pool.quoteTokens[0].isActive) {
+    usdcPosition = activeGroup.pool.quoteTokens[0].position.isLending ? "lending" : "borrowing";
   }
 
-  if (activeGroup.token.isActive) {
-    tokenPosition = activeGroup.token.position.isLending ? "lending" : "borrowing";
+  if (activeGroup.pool.token.isActive) {
+    tokenPosition = activeGroup.pool.token.position.isLending ? "lending" : "borrowing";
   }
 
   const wrongPositionActive =
@@ -1027,14 +1015,14 @@ function canBeLooped(activeGroup: ActiveGroup, loopingObject: LoopingObject, tra
 
   if (isUsdcBankPaused) {
     checks.push({
-      description: `The ${activeGroup.usdc.info.rawBank.tokenSymbol} bank is paused at this time.`,
+      description: `The ${activeGroup.pool.quoteTokens[0].info.rawBank.tokenSymbol} bank is paused at this time.`,
       isEnabled: false,
     });
   }
 
   if (isTokenBankPaused) {
     checks.push({
-      description: `The ${activeGroup.token.info.rawBank.tokenSymbol} bank is paused at this time.`,
+      description: `The ${activeGroup.pool.token.info.rawBank.tokenSymbol} bank is paused at this time.`,
       isEnabled: false,
     });
   }
@@ -1044,11 +1032,17 @@ function canBeLooped(activeGroup: ActiveGroup, loopingObject: LoopingObject, tra
     const wrongBorrowed = tradeSide === "long" ? tokenPosition === "borrowing" : usdcPosition === "borrowing";
 
     if (wrongSupplied && wrongBorrowed) {
-      checks.push(DYNAMIC_SIMULATION_ERRORS.LOOP_CHECK(tradeSide, activeGroup));
+      checks.push(
+        DYNAMIC_SIMULATION_ERRORS.LOOP_CHECK(tradeSide, activeGroup.pool.quoteTokens[0], activeGroup.pool.token)
+      );
     } else if (wrongSupplied) {
-      checks.push(DYNAMIC_SIMULATION_ERRORS.WITHDRAW_CHECK(tradeSide, activeGroup));
+      checks.push(
+        DYNAMIC_SIMULATION_ERRORS.WITHDRAW_CHECK(tradeSide, activeGroup.pool.quoteTokens[0], activeGroup.pool.token)
+      );
     } else if (wrongBorrowed) {
-      checks.push(DYNAMIC_SIMULATION_ERRORS.REPAY_CHECK(tradeSide, activeGroup));
+      checks.push(
+        DYNAMIC_SIMULATION_ERRORS.REPAY_CHECK(tradeSide, activeGroup.pool.quoteTokens[0], activeGroup.pool.token)
+      );
     }
   }
 
@@ -1064,10 +1058,10 @@ function canBeLooped(activeGroup: ActiveGroup, loopingObject: LoopingObject, tra
   }
 
   if (
-    (activeGroup.token && isBankOracleStale(activeGroup.token)) ||
-    (activeGroup.usdc && isBankOracleStale(activeGroup.usdc))
+    (activeGroup.pool.token && isBankOracleStale(activeGroup.pool.token)) ||
+    (activeGroup.pool.quoteTokens[0] && isBankOracleStale(activeGroup.pool.quoteTokens[0]))
   ) {
-    checks.push(STATIC_SIMULATION_ERRORS.STALE);
+    checks.push(STATIC_SIMULATION_ERRORS.STALE_TRADING);
   }
 
   return checks;

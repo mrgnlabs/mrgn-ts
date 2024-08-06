@@ -38,10 +38,10 @@ export const PositionActionButtons = ({
   const { connection } = useConnection();
   const { wallet } = useWalletContext();
   const [platformFeeBps] = useUiStore((state) => [state.platformFeeBps]);
-  const [groupsCache, setIsRefreshingStore, fetchTradeState] = useTradeStore((state) => [
+  const [groupsCache, refreshGroup, setIsRefreshingStore] = useTradeStore((state) => [
     state.groupsCache,
+    state.refreshGroup,
     state.setIsRefreshingStore,
-    state.fetchTradeState,
   ]);
   const [slippageBps, priorityFee] = useUiStore((state) => [state.slippageBps, state.priorityFee]);
 
@@ -128,10 +128,10 @@ export const PositionActionButtons = ({
       // -------- Refresh state
       try {
         setIsRefreshingStore(true);
-        await fetchTradeState({
+        await refreshGroup({
           connection,
           wallet,
-          refresh: true,
+          groupPk: activeGroup?.groupPk,
         });
       } catch (error: any) {
         console.log("Error while reloading state");
@@ -160,7 +160,6 @@ export const PositionActionButtons = ({
     groupsCache,
     wallet,
     setIsRefreshingStore,
-    fetchTradeState,
   ]);
 
   return (

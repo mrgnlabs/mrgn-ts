@@ -19,6 +19,8 @@ export const TVWidget = ({ token }: props) => {
   React.useEffect(() => {
     if (!container.current) return;
 
+    if (prevToken?.address.equals(token.address)) return;
+
     const script = document.createElement("script");
 
     const disabledFeats: ChartingLibraryFeatureset[] = [

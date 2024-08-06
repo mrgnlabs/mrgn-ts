@@ -66,32 +66,16 @@ export const TradingBox = ({ side = "long" }: TradingBoxProps) => {
     }
   }, [tradeState, loopingObject]);
 
-  const [
-    marginfiAccounts,
-    activeGroupPk,
-    accountSummary,
-    setActiveGroup,
-    marginfiClient,
-    groupMap,
-    fetchTradeState,
-    setIsRefreshingStore,
-  ] = useTradeStore((state) => [
-    state.marginfiAccounts,
-    state.activeGroup,
-    state.accountSummary,
-    state.setActiveGroup,
-    state.marginfiClient,
-    state.groupMap,
-    state.fetchTradeState,
-    state.setIsRefreshingStore,
-  ]);
-
-  const selectedAccount = React.useMemo(() => {
-    if (marginfiAccounts) {
-      return marginfiAccounts[activeGroupPk?.toBase58() ?? ""] ?? null;
-    }
-    return null;
-  }, [marginfiAccounts, activeGroupPk]);
+  const [activeGroupPk, accountSummary, setActiveGroup, marginfiClient, groupMap, setIsRefreshingStore, refreshGroup] =
+    useTradeStore((state) => [
+      state.activeGroup,
+      state.accountSummary,
+      state.setActiveGroup,
+      state.marginfiClient,
+      state.groupMap,
+      state.setIsRefreshingStore,
+      state.refreshGroup,
+    ]);
 
   const [slippageBps, priorityFee, platformFeeBps, setSlippageBps, setIsActionComplete, setPreviousTxn] = useUiStore(
     (state) => [
@@ -106,14 +90,7 @@ export const TradingBox = ({ side = "long" }: TradingBoxProps) => {
 
   const activeGroup = React.useMemo(() => {
     if (activeGroupPk) {
-      const group = groupMap.get(activeGroupPk.toBase58()) ?? null;
-      if (group) {
-        return {
-          group: group,
-          token: group.pool.token,
-          usdc: group.pool.quoteTokens[0],
-        };
-      }
+      return groupMap.get(activeGroupPk.toBase58()) ?? null;
     }
     return null;
   }, [activeGroupPk, groupMap]);
@@ -137,8 +114,10 @@ export const TradingBox = ({ side = "long" }: TradingBoxProps) => {
 
   const maxLeverage = React.useMemo(() => {
     if (activeGroup) {
-      const deposit = tradeState === "long" ? activeGroup.token.info.rawBank : activeGroup.usdc.info.rawBank;
-      const borrow = tradeState === "long" ? activeGroup.usdc.info.rawBank : activeGroup.token.info.rawBank;
+      const deposit =
+        tradeState === "long" ? activeGroup.pool.token.info.rawBank : activeGroup.pool.quoteTokens[0].info.rawBank;
+      const borrow =
+        tradeState === "long" ? activeGroup.pool.quoteTokens[0].info.rawBank : activeGroup.pool.token.info.rawBank;
 
       const { maxLeverage } = computeMaxLeverage(deposit, borrow);
       return maxLeverage;
@@ -149,9 +128,9 @@ export const TradingBox = ({ side = "long" }: TradingBoxProps) => {
   const collateralBank = React.useMemo(() => {
     if (activeGroup) {
       if (tradeState === "short") {
-        return activeGroup.usdc;
+        return activeGroup.pool.quoteTokens[0];
       } else {
-        return activeGroup.token;
+        return activeGroup.pool.token;
       }
     }
   }, [activeGroup, tradeState]);
@@ -177,7 +156,7 @@ export const TradingBox = ({ side = "long" }: TradingBoxProps) => {
 
   const walletAmount = React.useMemo(() => {
     if (!activeGroup) return 0;
-    const bank = tradeState === "long" ? activeGroup.token : activeGroup.usdc;
+    const bank = tradeState === "long" ? activeGroup.pool.token : activeGroup.pool.quoteTokens[0];
     return bank?.userInfo.tokenAccount.balance;
   }, [tradeState, activeGroup]);
 
@@ -189,8 +168,8 @@ export const TradingBox = ({ side = "long" }: TradingBoxProps) => {
       setStats(
         generateStats(
           accountSummary,
-          activeGroup.token,
-          activeGroup.usdc,
+          activeGroup.pool.token,
+          activeGroup.pool.quoteTokens[0],
           simulationResult,
           looping,
           isAccountInitialized
@@ -240,17 +219,17 @@ export const TradingBox = ({ side = "long" }: TradingBoxProps) => {
         let borrowBank, depositBank;
 
         if (tradeState === "long") {
-          depositBank = activeGroup.token;
-          borrowBank = activeGroup.usdc;
+          depositBank = activeGroup.pool.token;
+          borrowBank = activeGroup.pool.quoteTokens[0];
         } else {
-          depositBank = activeGroup.usdc;
-          borrowBank = activeGroup.token;
+          depositBank = activeGroup.pool.quoteTokens[0];
+          borrowBank = activeGroup.pool.token;
         }
         setAdditionalChecks(undefined);
 
         const looping = await calculateLooping(
           marginfiClient,
-          selectedAccount,
+          activeGroup.selectedAccount,
           depositBank,
           borrowBank,
           leverage,
@@ -265,8 +244,8 @@ export const TradingBox = ({ side = "long" }: TradingBoxProps) => {
 
         // if txn couldn't be generated one cause could be that the account isn't created yet
         // most other causes are jupiter routing issues
-        if (looping && (looping?.loopingTxn || !selectedAccount)) {
-          await handleSimulation(looping, activeGroup.token, selectedAccount);
+        if (looping && (looping?.loopingTxn || !activeGroup.selectedAccount)) {
+          await handleSimulation(looping, activeGroup.pool.token, activeGroup.selectedAccount);
         } else if (!looping) {
           setAdditionalChecks({
             isEnabled: false,
@@ -288,7 +267,6 @@ export const TradingBox = ({ side = "long" }: TradingBoxProps) => {
     amount,
     leverage,
     tradeState,
-    selectedAccount,
     slippageBps,
     priorityFee,
     connection,
@@ -298,7 +276,9 @@ export const TradingBox = ({ side = "long" }: TradingBoxProps) => {
 
   React.useEffect(() => {
     if (activeGroup) {
-      setStats(generateStats(accountSummary, activeGroup.token, activeGroup.usdc, null, null, false));
+      setStats(
+        generateStats(accountSummary, activeGroup.pool.token, activeGroup.pool.quoteTokens[0], null, null, false)
+      );
     }
   }, [accountSummary, activeGroup]);
 
@@ -306,7 +286,7 @@ export const TradingBox = ({ side = "long" }: TradingBoxProps) => {
     async (depositBank: ExtendedBankInfo, borrowBank: ExtendedBankInfo) => {
       const sig = await executeLeverageAction({
         marginfiClient,
-        marginfiAccount: selectedAccount,
+        marginfiAccount: activeGroup?.selectedAccount ?? null,
         depositBank,
         borrowBank,
         walletContextState,
@@ -326,7 +306,7 @@ export const TradingBox = ({ side = "long" }: TradingBoxProps) => {
       loopingObject,
       marginfiClient,
       priorityFee,
-      selectedAccount,
+      activeGroup,
       slippageBps,
       tradeState,
       walletContextState,
@@ -342,11 +322,11 @@ export const TradingBox = ({ side = "long" }: TradingBoxProps) => {
 
         if (activeGroup) {
           if (tradeState === "short") {
-            depositBank = activeGroup.usdc;
-            borrowBank = activeGroup.token;
+            depositBank = activeGroup.pool.quoteTokens[0];
+            borrowBank = activeGroup.pool.token;
           } else {
-            depositBank = activeGroup.token;
-            borrowBank = activeGroup.usdc;
+            depositBank = activeGroup.pool.token;
+            borrowBank = activeGroup.pool.quoteTokens[0];
           }
           sig = await leverageActionCb(depositBank, borrowBank);
 
@@ -359,7 +339,7 @@ export const TradingBox = ({ side = "long" }: TradingBoxProps) => {
                 depositBank: depositBank as ActiveBankInfo,
                 borrowBank: borrowBank as ActiveBankInfo,
                 initDepositAmount: amount,
-                entryPrice: activeGroup.token.info.oraclePrice.priceRealtime.price.toNumber(),
+                entryPrice: activeGroup.pool.token.info.oraclePrice.priceRealtime.price.toNumber(),
                 depositAmount: loopingObject.actualDepositAmount,
                 borrowAmount: loopingObject.borrowAmount.toNumber(),
                 leverage: leverage,
@@ -373,10 +353,10 @@ export const TradingBox = ({ side = "long" }: TradingBoxProps) => {
         try {
           setLoopingObject(null);
           setIsRefreshingStore(true);
-          await fetchTradeState({
+          await refreshGroup({
             connection,
             wallet,
-            refresh: true,
+            groupPk: activeGroup?.groupPk,
           });
         } catch (error: any) {
           console.log("Error while reloading state");
@@ -400,7 +380,6 @@ export const TradingBox = ({ side = "long" }: TradingBoxProps) => {
     amount,
     collateralBank,
     connection,
-    fetchTradeState,
     leverage,
     leverageActionCb,
     loopingObject,
@@ -492,7 +471,7 @@ export const TradingBox = ({ side = "long" }: TradingBoxProps) => {
                 <Label>Size of {tradeState}</Label>
                 <div className="relative flex gap-2 items-center border border-accent p-2 rounded-lg">
                   <TokenCombobox
-                    selected={activeGroup.group}
+                    selected={activeGroup}
                     setSelected={(group) => {
                       console.log("HJI", group.client.group.address.toBase58());
                       router.push(`/trade/${group.client.group.address.toBase58()}`);
@@ -503,7 +482,9 @@ export const TradingBox = ({ side = "long" }: TradingBoxProps) => {
                   <Input
                     type="text"
                     inputMode="decimal"
-                    value={leveragedAmount ? leveragedAmount.toFixed(activeGroup.token.info.state.mintDecimals) : 0}
+                    value={
+                      leveragedAmount ? leveragedAmount.toFixed(activeGroup.pool.token.info.state.mintDecimals) : 0
+                    }
                     disabled
                     className="appearance-none border-none text-right focus-visible:ring-0 focus-visible:outline-none disabled:opacity-100 bg-background shadow-none border-accent"
                   />
@@ -597,7 +578,7 @@ export const TradingBox = ({ side = "long" }: TradingBoxProps) => {
                     <IconLoader />
                   ) : (
                     <>
-                      {capitalize(tradeState)} {activeGroup.token.meta.tokenSymbol}
+                      {capitalize(tradeState)} {activeGroup.pool.token.meta.tokenSymbol}
                     </>
                   )}
                 </Button>
@@ -615,7 +596,7 @@ export const TradingBox = ({ side = "long" }: TradingBoxProps) => {
               {Stats}
             </>
           ) : (
-            <ActionBoxDialog requestedAction={ActionType.Deposit} requestedBank={activeGroup.usdc}>
+            <ActionBoxDialog requestedAction={ActionType.Deposit} requestedBank={activeGroup.pool.quoteTokens[0]}>
               <Button className="w-full">Deposit Collateral</Button>
             </ActionBoxDialog>
           )}

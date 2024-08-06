@@ -73,7 +73,7 @@ export const TradePovider: React.FC<{
       const id = setInterval(() => {
         setIsRefreshingStore(true);
         fetchTradeState({});
-      }, 30_000);
+      }, 50_000);
 
       return () => {
         clearInterval(id);

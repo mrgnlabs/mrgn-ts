@@ -9,4 +9,3 @@ export * from "./lstApyUtils";
 export * from "./actionBoxUtils";
 export * from "./mintUtils";
 export * from "./tradingActions";
-export * from "./errorUtils";
