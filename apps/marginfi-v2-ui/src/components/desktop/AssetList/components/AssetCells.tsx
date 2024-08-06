@@ -3,9 +3,10 @@ import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { aprToApy, numeralFormatter, percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
+import { getTokenImageURL } from "@mrgnlabs/mrgn-utils";
 
-import { cn, getTokenImageURL } from "~/utils";
-import { useUiStore } from "~/store";
+import { cn } from "~/utils";
+
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { IconAlertTriangle, IconExternalLink, IconPyth, IconSwitchboard } from "~/components/ui/icons";
 

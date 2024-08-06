@@ -1,9 +1,8 @@
 import React from "react";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { RepayType, LstType, YbxType, LendingModes } from "@mrgnlabs/mrgn-utils";
 
-import { LstType, RepayType, YbxType } from "~/utils";
-import { useLstStore, useUiStore } from "~/store";
-import { LendingModes } from "~/types";
+import { useLstStore } from "~/store";
 
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
 import { IconSparkles } from "~/components/ui/icons";

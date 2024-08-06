@@ -2,11 +2,12 @@ import React from "react";
 
 import Link from "next/link";
 
+import { isBankOracleStale } from "@mrgnlabs/mrgn-utils";
+
 import { useMrgnlendStore, useUiStore } from "~/store";
 
 import { IconAlertTriangle, IconX } from "~/components/ui/icons";
 import { Button } from "~/components/ui/button";
-import { isBankOracleStale } from "~/utils";
 
 export const CONGESTION_THRESHOLD = 5;
 

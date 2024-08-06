@@ -1,4 +1,5 @@
 import { usdFormatter } from "@mrgnlabs/mrgn-common";
+import { getTokenImageURL } from "@mrgnlabs/mrgn-utils";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -7,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { IconExternalLink, IconOrca, IconMeteora, IconRaydium } from "~/components/ui/icons";
 import { Skeleton } from "~/components/ui/skeleton";
 
-import { IntegrationsData, getTokenImageURL } from "~/utils";
+import { IntegrationsData } from "~/utils";
 
 interface IntegrationCardProps {
   integrationsData: IntegrationsData;

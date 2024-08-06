@@ -24,7 +24,8 @@ import {
 } from "@mrgnlabs/mrgn-common";
 
 import { useMrgnlendStore } from "~/store";
-import { getTokenImageURL, cn } from "~/utils";
+import { getTokenImageURL } from "@mrgnlabs/mrgn-utils";
+import { cn } from "~/utils";
 import { MultiStepToastHandle } from "~/utils/toastUtils";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { useConnection } from "~/hooks/useConnection";

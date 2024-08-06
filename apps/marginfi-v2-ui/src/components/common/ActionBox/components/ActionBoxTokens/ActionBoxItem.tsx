@@ -3,10 +3,10 @@ import React from "react";
 import Image from "next/image";
 
 import { numeralFormatter, usdFormatter, WSOL_MINT } from "@mrgnlabs/mrgn-common";
+import { LendingModes, getTokenImageURL } from "@mrgnlabs/mrgn-utils";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { LendingModes } from "~/types";
-import { cn, getTokenImageURL } from "~/utils";
+import { cn } from "~/utils";
 
 type ActionBoxItemProps = {
   bank: ExtendedBankInfo;

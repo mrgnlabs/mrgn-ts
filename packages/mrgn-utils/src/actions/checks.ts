@@ -16,7 +16,7 @@ type QuoteResponseMeta = {
   original: any;
 };
 
-export function isBankOracleStale(bank: ExtendedBankInfo) {
+function isBankOracleStale(bank: ExtendedBankInfo) {
   // NOTE: Hot fix to temporary remove oracle stale warnings.
   // return bank.info.rawBank.lastUpdate + 60 > Math.round(Date.now() / 1000);
   return false;

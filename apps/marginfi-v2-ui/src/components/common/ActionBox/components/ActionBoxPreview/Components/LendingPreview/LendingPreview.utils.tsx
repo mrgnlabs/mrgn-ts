@@ -4,7 +4,15 @@ import { createJupiterApiClient } from "@jup-ag/api";
 import { AddressLookupTableAccount } from "@solana/web3.js";
 
 import { ExtendedBankInfo, ActionType, AccountSummary } from "@mrgnlabs/marginfi-v2-ui-state";
-import { Wallet, nativeToUi, numeralFormatter, percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
+import {
+  Wallet,
+  nativeToUi,
+  numeralFormatter,
+  percentFormatter,
+  usdFormatter,
+  clampedNumeralFormatter,
+} from "@mrgnlabs/mrgn-common";
+import { isWholePosition, RepayWithCollatOptions } from "@mrgnlabs/mrgn-utils";
 import {
   Bank,
   MarginRequirementType,
@@ -14,14 +22,7 @@ import {
   getPriceWithConfidence,
 } from "@mrgnlabs/marginfi-client-v2";
 
-import {
-  RepayWithCollatOptions,
-  clampedNumeralFormatter,
-  cn,
-  deserializeInstruction,
-  getAdressLookupTableAccounts,
-  isWholePosition,
-} from "~/utils";
+import { cn, deserializeInstruction, getAdressLookupTableAccounts } from "~/utils";
 
 import { IconAlertTriangle, IconArrowRight, IconPyth, IconSwitchboard } from "~/components/ui/icons";
 import { Skeleton } from "~/components/ui/skeleton";

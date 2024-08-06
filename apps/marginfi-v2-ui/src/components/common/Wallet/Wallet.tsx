@@ -11,7 +11,8 @@ import { useMrgnlendStore, useUiStore, useUserProfileStore } from "~/store";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { useIsMobile } from "~/hooks/useIsMobile";
 import { showErrorToast } from "~/utils/toastUtils";
-import { getTokenImageURL, cn } from "~/utils";
+import { getTokenImageURL } from "@mrgnlabs/mrgn-utils";
+import { cn } from "~/utils";
 
 import {
   WalletAvatar,

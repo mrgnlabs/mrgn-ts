@@ -1,14 +1,12 @@
 import React from "react";
 
-import { percentFormatter, aprToApy } from "@mrgnlabs/mrgn-common";
-import { ExtendedBankInfo, Emissions } from "@mrgnlabs/marginfi-v2-ui-state";
-
-import { LendingModes } from "~/types";
-import { useUiStore } from "~/store";
-import { RepayType, cn, computeBankRate } from "~/utils";
+import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { computeBankRate, LendingModes, RepayType } from "@mrgnlabs/mrgn-utils";
 
 import { Button } from "~/components/ui/button";
 import { IconChevronDown } from "~/components/ui/icons";
+
+import { cn } from "~/utils";
 
 import { SelectedBankItem } from "../../SharedComponents";
 

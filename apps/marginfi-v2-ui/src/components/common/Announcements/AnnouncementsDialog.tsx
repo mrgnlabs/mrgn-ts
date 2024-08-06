@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { useUiStore } from "~/store";
-import { getTokenImageURL } from "~/utils";
+import { getTokenImageURL } from "@mrgnlabs/mrgn-utils";
 import { useWalletContext } from "~/hooks/useWalletContext";
 
 import { Button } from "~/components/ui/button";

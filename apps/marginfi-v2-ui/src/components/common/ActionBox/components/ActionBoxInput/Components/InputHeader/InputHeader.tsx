@@ -1,10 +1,11 @@
 import React from "react";
 
-import { RepayType, LstType, YbxType } from "~/utils";
+import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
+import { LstType, YbxType, RepayType } from "@mrgnlabs/mrgn-utils";
+
 import { useActionBoxStore } from "~/hooks/useActionBoxStore";
 
-import { InputHeaderActionLeft, InputHeaderActionRight } from "./Components";
-import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
+import { InputHeaderActionLeft } from "./Components";
 
 type props = {
   isDialog?: boolean;

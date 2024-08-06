@@ -70,11 +70,22 @@ const percentFormatterDyn = new Intl.NumberFormat("en-US", {
   maximumFractionDigits: 2,
 });
 
+const clampedNumeralFormatter = (value: number) => {
+  if (value === 0) {
+    return "0";
+  } else if (value < 0.01) {
+    return "< 0.01";
+  } else {
+    return numeral(value).format("0.00a");
+  }
+};
+
 export {
   CustomNumberFormat,
   groupedNumberFormatter,
   groupedNumberFormatterDyn,
   numeralFormatter,
+  clampedNumeralFormatter,
   percentFormatter,
   percentFormatterDyn,
   usdFormatter,

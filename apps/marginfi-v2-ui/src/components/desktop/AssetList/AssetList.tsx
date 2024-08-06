@@ -4,6 +4,7 @@ import { getCoreRowModel, flexRender, useReactTable, SortingState, getSortedRowM
 import { useHotkeys } from "react-hotkeys-hook";
 
 import { ExtendedBankInfo, ActiveBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
+import { LendingModes } from "@mrgnlabs/mrgn-utils";
 
 import { useMrgnlendStore, useUserProfileStore, useUiStore } from "~/store";
 import { useActionBoxStore } from "~/hooks/useActionBoxStore";
@@ -17,7 +18,6 @@ import {
   STABLECOINS,
   LSTS,
 } from "~/components/common/AssetList";
-import { LendingModes } from "~/types";
 import { Table, TableBody, TableHead, TableHeader, TableRow } from "~/components/ui/table";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { IconAlertTriangle } from "~/components/ui/icons";

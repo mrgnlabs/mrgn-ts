@@ -4,12 +4,17 @@ import JSBI from "jsbi";
 import { SwapMode, useJupiter } from "@jup-ag/react-hook";
 
 import { getPriceWithConfidence } from "@mrgnlabs/marginfi-client-v2";
-import { percentFormatter, numeralFormatter, percentFormatterDyn } from "@mrgnlabs/mrgn-common";
+import {
+  percentFormatter,
+  numeralFormatter,
+  percentFormatterDyn,
+  clampedNumeralFormatter,
+} from "@mrgnlabs/mrgn-common";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { useLstStore, useMrgnlendStore } from "~/store";
 import { LST_MINT, SOL_MINT } from "~/store/lstStore";
-import { clampedNumeralFormatter, cn, StakeData } from "~/utils";
+import { cn, StakeData } from "~/utils";
 import { useDebounce } from "~/hooks/useDebounce";
 
 import { Skeleton } from "~/components/ui/skeleton";

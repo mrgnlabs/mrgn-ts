@@ -1,21 +1,9 @@
 import React from "react";
 
-import Link from "next/link";
-import Image from "next/image";
-
-import Confetti from "react-confetti";
-import { useWindowSize } from "@uidotdev/usehooks";
-import { PublicKey } from "@solana/web3.js";
-import { ActionType, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { percentFormatterDyn, shortenAddress } from "@mrgnlabs/mrgn-common";
-
-import { MintPageState, cn, getTokenImageURL, signUpYbx } from "~/utils";
-import { useUiStore, useLstStore, useMrgnlendStore } from "~/store";
-import { useAssetItemData } from "~/hooks/useAssetItemData";
-import { useIsMobile } from "~/hooks/useIsMobile";
+import { MintPageState, signUpYbx } from "~/utils";
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "~/components/ui/dialog";
-import { IconConfetti, IconExternalLink, IconArrowDown, IconArrowUp, IconYBX, IconCheck } from "~/components/ui/icons";
+import { IconYBX, IconCheck } from "~/components/ui/icons";
 import { Button } from "~/components/ui/button";
 import { DialogDescription, DialogProps } from "@radix-ui/react-dialog";
 import { Input } from "~/components/ui/input";
