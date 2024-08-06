@@ -171,7 +171,7 @@ export default function TradeSymbolPage() {
                       </div>
                       {activeGroup.pool.poolData && (
                         <div className="grid grid-cols-2 lg:block">
-                          <p className="text-sm text-muted-foreground">Pool Liqiuidity</p>
+                          <p className="text-sm text-muted-foreground">Lending pool liquidity</p>
                           <p className="text-sm text-right lg:text-left lg:text-2xl">
                             ${numeralFormatter(activeGroup.pool.poolData.totalLiquidity)}
                           </p>

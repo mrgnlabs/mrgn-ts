@@ -191,7 +191,7 @@ export default function HomePage() {
                     <div className="pl-2.5">Price</div>
                     <div className="pl-2">24hr Volume</div>
                     <div>Market cap</div>
-                    <div>Pool liquidity</div>
+                    <div>Lending pool liquidity</div>
                     <div className="pl-2">Created by</div>
                     <div />
                   </div>

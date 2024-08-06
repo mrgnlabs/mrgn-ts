@@ -30,7 +30,7 @@ export const PoolCard = ({ groupData }: PoolCardProps) => {
     <Card>
       <CardHeader>
         <CardTitle>
-          <div className="flex items-start gap-2 justify-between">
+          <div className="flex items-center gap-2 justify-between">
             <Image
               src={getTokenImageURL(groupData.pool.token.info.state.mint.toBase58())}
               width={48}
@@ -53,7 +53,7 @@ export const PoolCard = ({ groupData }: PoolCardProps) => {
                 </Tooltip>
               </TooltipProvider>
             </div>
-            <div className="font-medium text-xs flex flex-col gap-1 items-center">
+            <div className="font-medium text-xs flex flex-col gap-1 items-center ml-auto self-start">
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -117,7 +117,7 @@ export const PoolCard = ({ groupData }: PoolCardProps) => {
             </dd>
             {groupData.pool.poolData && (
               <>
-                <dt>Pool liquidity</dt>
+                <dt>Lending pool liquidity</dt>
                 <dd className="text-right text-primary tracking-wide">
                   ${numeralFormatter(groupData.pool.poolData.totalLiquidity)}
                 </dd>
