@@ -9,7 +9,6 @@ import { TipLinkWalletAutoConnect } from "@tiplink/wallet-adapter-react-ui";
 import { init, push } from "@socialgouv/matomo-next";
 import { ToastContainer } from "react-toastify";
 import { Analytics } from "@vercel/analytics/react";
-import { ParsedUrlQuery } from "querystring";
 
 import config from "~/config";
 import { MrgnlendProvider, LipClientProvider, TradePovider } from "~/context";
