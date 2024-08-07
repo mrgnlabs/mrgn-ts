@@ -1,6 +1,7 @@
 import React from "react";
 
 import Image from "next/image";
+import Link from "next/link";
 
 import { useRouter } from "next/router";
 
@@ -13,15 +14,14 @@ import {
   IconArrowUp,
   IconRefresh,
   IconArrowLeft,
-  IconTrophy,
   IconKey,
   IconX,
   IconArrowsExchange,
   IconCreditCardPay,
 } from "@tabler/icons-react";
-import { shortenAddress, usdFormatter, numeralFormatter, groupedNumberFormatterDyn } from "@mrgnlabs/mrgn-common";
+import { shortenAddress, usdFormatter, numeralFormatter } from "@mrgnlabs/mrgn-common";
 
-import { useMrgnlendStore, useTradeStore, useUiStore, useUserProfileStore } from "~/store";
+import { useTradeStore, useUiStore } from "~/store";
 import { WalletState } from "~/store/uiStore";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { useIsMobile } from "~/hooks/useIsMobile";
@@ -34,24 +34,21 @@ import {
   Token as TokenType,
   WalletOnramp,
   WalletPkDialog,
-  WalletIntroDialog,
   WalletSend,
-  WalletAuthAccounts,
 } from "~/components/common/Wallet";
 import { Swap } from "~/components/common/Swap";
 import { Bridge } from "~/components/common/Bridge";
 import { Sheet, SheetContent, SheetTrigger } from "~/components/ui/sheet";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { Button } from "~/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
-import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
 
 export const Wallet = () => {
   const router = useRouter();
-  const [extendedBankInfos, nativeSolBalance, initialized] = useTradeStore((state) => [
+  const [extendedBankInfos, nativeSolBalance, initialized, referralCode] = useTradeStore((state) => [
     state.banks,
     state.nativeSolBalance,
     state.initialized,
+    state.referralCode,
   ]);
   const [walletState, setWalletState, isWalletOpen, setIsWalletOpen] = useUiStore((state) => [
     state.walletState,
@@ -59,7 +56,6 @@ export const Wallet = () => {
     state.isWalletOpen,
     state.setIsWalletOpen,
   ]);
-  const [userPointsData] = useUserProfileStore((state) => [state.userPointsData, state.fetchPoints]);
 
   const { wallet, logout, pfp, requestPrivateKey, web3AuthPk, web3AuthConncected, walletContextState } =
     useWalletContext();
@@ -80,7 +76,6 @@ export const Wallet = () => {
   const [activeToken, setActiveToken] = React.useState<TokenType | null>(null);
   const [isSwapLoaded, setIsSwapLoaded] = React.useState(false);
   const [isReferralCopied, setIsReferralCopied] = React.useState(false);
-  const [bridgeType, setBridgeType] = React.useState<"mayan" | "debridge">("mayan");
 
   const isMobile = useIsMobile();
 
@@ -202,12 +197,43 @@ export const Wallet = () => {
         <SheetContent className="outline-none z-[50] px-4 border-0">
           {walletData.address ? (
             <div className="max-h-full">
-              <header className="flex items-center gap-2">
-                <WalletAvatar pfp={pfp} address={walletData.address} size="md" className="absolute left-2 top-2" />
-                {/* <div className="mx-auto">
-                  <WalletAuthAccounts />
-                </div> */}
-                <div className="absolute right-2 flex items-center md:gap-1">
+              <header className="flex items-start gap-2 w-full justify-between -translate-y-2">
+                <WalletAvatar pfp={pfp} address={walletData.address} size="md" className="" />
+                {referralCode && (
+                  <div className="flex flex-col items-center gap-2">
+                    <CopyToClipboard
+                      text={referralCode}
+                      onCopy={() => {
+                        setIsReferralCopied(true);
+                        setTimeout(() => {
+                          setIsReferralCopied(false);
+                        }, 2000);
+                      }}
+                    >
+                      <Button size="sm" variant="outline">
+                        {isReferralCopied ? (
+                          <>
+                            <p>Copied!</p>
+                            <IconCheck size={16} />
+                          </>
+                        ) : (
+                          <>
+                            <p>Copy referrral link</p>
+                            <IconCopy size={16} />
+                          </>
+                        )}
+                      </Button>
+                    </CopyToClipboard>
+                    <p className="text-xs text-muted-foreground">
+                      Invite friends and{" "}
+                      <Link href="#" className="border-b border-border">
+                        earn rewards
+                      </Link>
+                      .
+                    </p>
+                  </div>
+                )}
+                <div className="flex items-center md:gap-1">
                   {web3AuthConncected && (
                     <TooltipProvider>
                       <Tooltip>
@@ -561,7 +587,7 @@ const Debridge = () => {
     });
 
     setWidget(widget);
-  }, [isMobile, wallet.publicKey]);
+  }, [wallet.publicKey]);
 
   React.useEffect(() => {
     setIsMounted(true);
