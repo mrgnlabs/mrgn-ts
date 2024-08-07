@@ -690,7 +690,7 @@ export const ActionBox = ({
               <ActionBoxPreview
                 selectedBank={selectedBank}
                 selectedStakingAccount={selectedStakingAccount}
-                selectedAccount={selectedAccount}
+                activeGroup={activeGroup}
                 actionMode={actionMode}
                 amount={amount}
                 slippageBps={slippageBps}

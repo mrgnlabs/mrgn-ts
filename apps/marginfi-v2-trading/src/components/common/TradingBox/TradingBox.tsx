@@ -236,6 +236,7 @@ export const TradingBox = ({ side = "long" }: TradingBoxProps) => {
           priorityFee,
           connection,
           platformFeeBps,
+          isTrading: true,
         });
 
         let loopingObject: LoopingObject | null = null;
