@@ -1,5 +1,4 @@
 import * as admin from "firebase-admin";
-import { UserRecord } from "firebase-admin/lib/auth/user-record";
 import generatePassword from "omgopass";
 
 export function initFirebaseIfNeeded() {
@@ -20,7 +19,7 @@ export function initFirebaseIfNeeded() {
 // if the wallet address is not in the referral table, then add it with a random code
 export async function getReferralCode(walletAddress: string) {
   const db = admin.firestore();
-  const user = await db.collection("arena_referrals").doc(walletAddress).get();
+  const user = await db.collection("arena_referral_codes").doc(walletAddress).get();
 
   if (!user.exists) {
     const referralCode = generatePassword({
@@ -31,33 +30,39 @@ export async function getReferralCode(walletAddress: string) {
       separators: "-",
     });
 
-    await db.collection("arena_referrals").doc(walletAddress).set({ referralCode });
+    await db.collection("arena_referral_codes").doc(walletAddress).set({ referralCode });
     return referralCode;
   }
 
   return user.data()?.referralCode;
 }
 
-export async function getFirebaseUserByWallet(walletAddress: string): Promise<UserRecord | undefined> {
-  try {
-    const user = await admin.auth().getUser(walletAddress);
-    return user;
-  } catch (error: any) {
-    if (error.code === "auth/user-not-found") {
-      return undefined;
-    }
-    throw error;
-  }
-}
-
-export async function getLastUsedWallet(wallet: string) {
+// track successful referral
+export async function trackReferral(walletAddress: string, referralCode: string) {
   const db = admin.firestore();
-  const user = await db.collection("users").doc(wallet).get();
 
-  if (!user.exists) {
-    return "";
+  // fetch referral code
+  const refCode = await db.collection("arena_referral_codes").where("referralCode", "==", referralCode).get();
+
+  // referral code not found
+  if (refCode.size === 0) {
+    return false;
   }
 
-  const userData = user.data();
-  return userData?.lastUsedWalletId;
+  const refData = refCode.docs[0].data();
+
+  // check if user has already been referred
+  const referrals = await db.collection("arena_referrals").doc(walletAddress).get();
+  if (referrals.exists) {
+    return false;
+  }
+
+  // add tracked referral
+  await db.collection("arena_referrals").doc(walletAddress).set({
+    referralCode: refData.referralCode,
+    referrerAddress: refCode.docs[0].id,
+    createdAt: admin.firestore.Timestamp.now(),
+  });
+
+  return true;
 }
