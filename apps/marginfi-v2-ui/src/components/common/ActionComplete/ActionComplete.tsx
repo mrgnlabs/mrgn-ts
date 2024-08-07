@@ -8,8 +8,9 @@ import { useWindowSize } from "@uidotdev/usehooks";
 import { PublicKey } from "@solana/web3.js";
 import { ActionType, ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { percentFormatterDyn, shortenAddress, percentFormatter } from "@mrgnlabs/mrgn-common";
+import { getTokenImageURL } from "@mrgnlabs/mrgn-utils";
 
-import { LSTS_SOLANA_COMPASS_MAP, calcLstYield, calcNetLoopingApy, cn, getTokenImageURL } from "~/utils";
+import { LSTS_SOLANA_COMPASS_MAP, calcLstYield, calcNetLoopingApy, cn } from "~/utils";
 import { useUiStore, useLstStore, useMrgnlendStore } from "~/store";
 import { useAssetItemData } from "~/hooks/useAssetItemData";
 import { useIsMobile } from "~/hooks/useIsMobile";

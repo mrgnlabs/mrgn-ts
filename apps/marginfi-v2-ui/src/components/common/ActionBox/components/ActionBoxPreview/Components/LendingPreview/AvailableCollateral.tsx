@@ -2,7 +2,7 @@ import React from "react";
 import { MarginRequirementType, MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 import { usdFormatterDyn } from "@mrgnlabs/mrgn-common";
 
-import { getMaintHealthColor } from "~/utils";
+import { getMaintHealthColor } from "@mrgnlabs/mrgn-utils";
 
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { IconInfoCircle } from "~/components/ui/icons";

@@ -1,8 +1,7 @@
 import { Readable } from "stream";
 import { parse } from "csv-parse";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { computeBankRateRaw } from "./mrgnUtils";
-import { LendingModes } from "~/types";
+import { computeBankRateRaw, LendingModes } from "@mrgnlabs/mrgn-utils";
 
 export const LSTS_SOLANA_COMPASS_MAP: {
   [key: string]: string;

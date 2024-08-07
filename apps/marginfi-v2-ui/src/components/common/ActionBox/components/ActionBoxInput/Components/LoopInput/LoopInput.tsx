@@ -4,12 +4,13 @@ import BigNumber from "bignumber.js";
 import Image from "next/image";
 
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { formatAmount, getTokenImageURL } from "@mrgnlabs/mrgn-utils";
 import { percentFormatter } from "@mrgnlabs/mrgn-common";
 
 import { useActionBoxStore } from "~/hooks/useActionBoxStore";
 import { useConnection } from "~/hooks/useConnection";
 import { useWalletContext } from "~/hooks/useWalletContext";
-import { formatAmount, getTokenImageURL, calcLstYield, LSTS_SOLANA_COMPASS_MAP, calcNetLoopingApy } from "~/utils";
+import { calcLstYield, LSTS_SOLANA_COMPASS_MAP, calcNetLoopingApy } from "~/utils";
 
 import { ActionBoxTokens } from "~/components/common/ActionBox/components";
 import { InputAction } from "~/components/common/ActionBox/components/ActionBoxInput/Components/InputAction";
@@ -19,7 +20,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover
 import { IconChevronDown } from "~/components/ui/icons";
 import { cn } from "~/utils";
 
-import { LendingModes } from "~/types";
 import { useMrgnlendStore, useUiStore } from "~/store";
 import { useDebounce } from "~/hooks/useDebounce";
 

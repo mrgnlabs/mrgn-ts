@@ -1,9 +1,8 @@
 import React from "react";
 
-import Link from "next/link";
 import { JupiterProvider } from "@jup-ag/react-hook";
 
-import { groupedNumberFormatterDyn, numeralFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
+import { groupedNumberFormatterDyn, clampedNumeralFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 
 import { useConnection } from "~/hooks/useConnection";
 import { useWalletContext } from "~/hooks/useWalletContext";
@@ -21,14 +20,7 @@ import {
   MintCardWrapper,
   YbxDialogPartner,
 } from "~/components/common/Mint";
-import {
-  IntegrationsData,
-  MintCardProps,
-  MintOverview,
-  MintPageState,
-  clampedNumeralFormatter,
-  fetchMintOverview,
-} from "~/utils";
+import { IntegrationsData, MintCardProps, MintOverview, MintPageState, fetchMintOverview } from "~/utils";
 import { PageHeading } from "~/components/common/PageHeading";
 
 export default function MintPage() {

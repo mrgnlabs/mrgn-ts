@@ -1,8 +1,8 @@
 import React from "react";
 
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { RepayType, YbxType, formatAmount } from "@mrgnlabs/mrgn-utils";
 
-import { RepayType, YbxType, formatAmount } from "~/utils";
 import { useActionBoxStore } from "~/hooks/useActionBoxStore";
 import { useConnection } from "~/hooks/useConnection";
 import { useMrgnlendStore, useUiStore } from "~/store";

@@ -2,9 +2,8 @@ import React from "react";
 
 import Image from "next/image";
 
+import { getTokenImageURL } from "@mrgnlabs/mrgn-utils";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { LendingModes } from "~/types";
-import { getTokenImageURL } from "~/utils";
 
 import { ActionBoxDialog } from "../ActionBox";
 import { Button } from "~/components/ui/button";

@@ -1,28 +1,23 @@
 import { create, StateCreator } from "zustand";
 import { persist } from "zustand/middleware";
 
-import { QuoteGetRequest, QuoteResponse } from "@jup-ag/api";
+import { QuoteResponse } from "@jup-ag/api";
 import { Connection, PublicKey, VersionedTransaction } from "@solana/web3.js";
 import * as solanaStakePool from "@solana/spl-stake-pool";
 
-import { nativeToUi, uiToNative } from "@mrgnlabs/mrgn-common";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { computeMaxLeverage, MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
-import { STATIC_SIMULATION_ERRORS, DYNAMIC_SIMULATION_ERRORS } from "@mrgnlabs/mrgn-utils";
-
+import { ActionMethod, debounceFn, LstType, RepayType, YbxType } from "@mrgnlabs/mrgn-utils";
 import {
-  LstType,
-  RepayType,
-  StakeData,
-  YbxType,
-  capture,
-  debounceFn,
-  getSwapQuoteWithRetry,
-  verifyJupTxSizeCollat,
-  verifyJupTxSizeLooping,
-} from "~/utils";
+  STATIC_SIMULATION_ERRORS,
+  DYNAMIC_SIMULATION_ERRORS,
+  calculateLoopingParams,
+  calculateRepayCollateralParams,
+  calculateMaxRepayableCollateral,
+} from "@mrgnlabs/mrgn-utils";
+
+import { StakeData, capture } from "~/utils";
 import BigNumber from "bignumber.js";
-import { ActionMethod } from "@mrgnlabs/mrgn-utils/dist/actions";
 
 interface ActionBoxState {
   // State
@@ -249,7 +244,13 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
     const isAmountChanged = amountRaw !== prevAmountRaw;
 
     if (isAmountChanged) {
-      set({ amountRaw, actionTxns: initialState.actionTxns, actionQuote: null, loopingAmounts: undefined });
+      set({
+        amountRaw,
+        actionTxns: initialState.actionTxns,
+        actionQuote: null,
+        loopingAmounts: undefined,
+        errorMessage: null,
+      });
     }
   },
 
@@ -414,6 +415,7 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
         leverage: 0,
         actionTxns: initialState.actionTxns,
         actionQuote: undefined,
+        errorMessage: null,
       });
     }
   },
@@ -426,7 +428,7 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
 
     if (action === ActionType.Repay) {
       if (hasBankChanged) {
-        set({ selectedRepayBank: repayTokenBank, amountRaw: "", repayAmountRaw: "" });
+        set({ selectedRepayBank: repayTokenBank, amountRaw: "", repayAmountRaw: "", errorMessage: null });
 
         const repayMode = get().repayMode;
         const prevTokenBank = get().selectedBank;
@@ -434,7 +436,7 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
 
         if (repayMode === RepayType.RepayCollat && repayTokenBank && prevTokenBank) {
           set({ isLoading: true });
-          const maxAmount = await calculateMaxCollat(prevTokenBank, repayTokenBank, slippageBps);
+          const maxAmount = await calculateMaxRepayableCollateral(prevTokenBank, repayTokenBank, slippageBps);
           if (maxAmount) {
             set({ maxAmountCollat: maxAmount, repayAmountRaw: "" });
           } else {
@@ -455,6 +457,7 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
           leverage: 0,
           actionTxns: initialState.actionTxns,
           actionQuote: undefined,
+          errorMessage: null,
         });
 
         const prevTokenBank = get().selectedBank;
@@ -486,7 +489,7 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
 
     if (repayMode === RepayType.RepayCollat && repayTokenBank && tokenBank) {
       set({ isLoading: true });
-      const maxAmount = await calculateMaxCollat(tokenBank, repayTokenBank, slippageBps);
+      const maxAmount = await calculateMaxRepayableCollateral(tokenBank, repayTokenBank, slippageBps);
       if (maxAmount) {
         set({ maxAmountCollat: maxAmount, repayAmountRaw: "" });
       } else {
@@ -518,7 +521,7 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
     const repayModeChanged = repayMode !== newRepayMode;
 
     if (repayModeChanged) {
-      set({ repayAmountRaw: "", actionQuote: null, repayMode: newRepayMode });
+      set({ repayAmountRaw: "", actionQuote: null, repayMode: newRepayMode, errorMessage: null });
     }
 
     if (newRepayMode === RepayType.RepayCollat) {
@@ -528,7 +531,7 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
 
       if (bank && repayBank) {
         set({ isLoading: true });
-        const maxAmount = await calculateMaxCollat(bank, repayBank, slippageBps);
+        const maxAmount = await calculateMaxRepayableCollateral(bank, repayBank, slippageBps);
         if (maxAmount) {
           set({ maxAmountCollat: maxAmount, repayAmountRaw: "" });
         } else {
@@ -545,7 +548,7 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
     const selectedActionMode = get().actionMode;
     const hasActionModeChanged = !selectedActionMode || actionMode !== selectedActionMode;
 
-    if (hasActionModeChanged) set({ amountRaw: "", repayAmountRaw: "" });
+    if (hasActionModeChanged) set({ amountRaw: "", repayAmountRaw: "", errorMessage: null });
 
     if (actionMode !== ActionType.Repay) {
       set({ repayMode: RepayType.RepayRaw });
@@ -582,107 +585,35 @@ async function calculateLooping(
       actualDepositAmount: number;
       priorityFee: number;
     }
-  | null
   | ActionMethod
 > {
-  //const slippageBps = 0.01 * 10000;
+  // TODO setup logging again
+  // capture("looper", {
+  //   amountIn: uiToNative(amount, loopBank.info.state.mintDecimals).toNumber(),
+  //   firstQuote,
+  //   bestQuote: swapQuote,
+  //   inputMint: loopBank.info.state.mint.toBase58(),
+  //   outputMint: bank.info.state.mint.toBase58(),
+  // });
 
-  // console.log("bank A: " + bank.meta.tokenSymbol);
-  // console.log("bank B: " + loopBank.meta.tokenSymbol);
-  // console.log("leverage: " + targetLeverage);
-  // console.log("amount " + amount);
-
-  const principalBufferAmountUi = amount * targetLeverage * (slippageBps / 10000);
-  const adjustedPrincipalAmountUi = amount - principalBufferAmountUi;
-
-  const { borrowAmount, totalDepositAmount: depositAmount } = marginfiAccount.computeLoopingParams(
-    adjustedPrincipalAmountUi,
+  const result = await calculateLoopingParams(
+    marginfiAccount,
+    bank,
+    loopBank,
     targetLeverage,
-    bank.address,
-    loopBank.address
+    amount,
+    slippageBps,
+    connection,
+    priorityFee
   );
 
-  const borrowAmountNative = uiToNative(borrowAmount, loopBank.info.state.mintDecimals).toNumber();
-
-  const maxLoopAmount = bank.isActive ? bank?.position.amount : 0;
-
-  const maxAccountsArr = [undefined, 50, 40, 30];
-
-  let firstQuote;
-
-  for (const maxAccounts of maxAccountsArr) {
-    const isTxnSplit = maxAccounts === 30;
-
-    const quoteParams = {
-      amount: borrowAmountNative,
-      inputMint: loopBank.info.state.mint.toBase58(), // borrow
-      outputMint: bank.info.state.mint.toBase58(), // deposit
-      slippageBps: slippageBps,
-      maxAccounts: maxAccounts,
-      swapMode: "ExactIn",
-    } as QuoteGetRequest;
-    try {
-      const swapQuote = await getSwapQuoteWithRetry(quoteParams);
-
-      if (!maxAccounts) {
-        firstQuote = swapQuote;
-      }
-
-      if (swapQuote) {
-        const minSwapAmountOutUi = nativeToUi(swapQuote.otherAmountThreshold, bank.info.state.mintDecimals);
-        const actualDepositAmountUi = minSwapAmountOutUi + amount;
-
-        const txn = await verifyJupTxSizeLooping(
-          marginfiAccount,
-          bank,
-          loopBank,
-          actualDepositAmountUi,
-          borrowAmount,
-          swapQuote,
-          connection,
-          isTxnSplit,
-          priorityFee
-        );
-        if (txn.flashloanTx) {
-          capture("looper", {
-            amountIn: uiToNative(amount, loopBank.info.state.mintDecimals).toNumber(),
-            firstQuote,
-            bestQuote: swapQuote,
-            inputMint: loopBank.info.state.mint.toBase58(),
-            outputMint: bank.info.state.mint.toBase58(),
-          });
-          return {
-            loopingTxn: txn.flashloanTx,
-            bundleTipTxn: txn.bundleTipTxn,
-            quote: swapQuote,
-            borrowAmount: borrowAmount,
-            actualDepositAmount: actualDepositAmountUi,
-            priorityFee: priorityFee,
-          };
-        } else if (txn.error && maxAccounts === maxAccountsArr[maxAccountsArr.length - 1]) {
-          return txn.error;
-        }
-      } else {
-        throw new Error("Swap quote failed");
-      }
-    } catch (error) {
-      console.error(error);
-      capture("looper", {
-        amountIn: uiToNative(amount, loopBank.info.state.mintDecimals).toNumber(),
-        firstQuote,
-        inputMint: loopBank.info.state.mint.toBase58(),
-        outputMint: bank.info.state.mint.toBase58(),
-      });
-      return null;
-    }
-  }
-  return null;
+  return result;
 }
 
 async function calculateRepayCollateral(
   marginfiAccount: MarginfiAccountWrapper,
-  bank: ExtendedBankInfo,
-  repayBank: ExtendedBankInfo,
+  bank: ExtendedBankInfo, // borrow
+  repayBank: ExtendedBankInfo, // deposit
   amount: number,
   slippageBps: number,
   connection: Connection,
@@ -694,128 +625,28 @@ async function calculateRepayCollateral(
       quote: QuoteResponse;
       amount: number;
     }
-  | null
   | ActionMethod
 > {
-  const maxRepayAmount = bank.isActive ? bank?.position.amount : 0;
+  // TODO setup logging again
+  // capture("repay_with_collat", {
+  //   amountIn: uiToNative(amount, repayBank.info.state.mintDecimals).toNumber(),
+  //   firstQuote,
+  //   bestQuote: swapQuote,
+  //   inputMint: repayBank.info.state.mint.toBase58(),
+  //   outputMint: bank.info.state.mint.toBase58(),
+  // });
 
-  const maxAccountsArr = [undefined, 50, 40, 30];
+  const result = await calculateRepayCollateralParams(
+    marginfiAccount,
+    bank,
+    repayBank,
+    amount,
+    slippageBps,
+    connection,
+    priorityFee
+  );
 
-  let firstQuote;
-
-  for (const maxAccounts of maxAccountsArr) {
-    const isTxnSplit = maxAccounts === 30;
-    const quoteParams = {
-      amount: uiToNative(amount, repayBank.info.state.mintDecimals).toNumber(),
-      inputMint: repayBank.info.state.mint.toBase58(),
-      outputMint: bank.info.state.mint.toBase58(),
-      slippageBps: slippageBps,
-      maxAccounts: maxAccounts,
-      swapMode: "ExactIn",
-    } as QuoteGetRequest;
-    try {
-      const swapQuote = await getSwapQuoteWithRetry(quoteParams);
-
-      if (!maxAccounts) {
-        firstQuote = swapQuote;
-      }
-
-      if (swapQuote) {
-        const outAmount = nativeToUi(swapQuote.outAmount, bank.info.state.mintDecimals);
-        const outAmountThreshold = nativeToUi(swapQuote.otherAmountThreshold, bank.info.state.mintDecimals);
-
-        const amountToRepay = outAmount > maxRepayAmount ? maxRepayAmount : outAmountThreshold;
-
-        const txn = await verifyJupTxSizeCollat(
-          marginfiAccount,
-          bank,
-          repayBank,
-          amountToRepay,
-          amount,
-          swapQuote,
-          connection,
-          priorityFee,
-          isTxnSplit
-        );
-        if (txn.flashloanTx) {
-          capture("repay_with_collat", {
-            amountIn: uiToNative(amount, repayBank.info.state.mintDecimals).toNumber(),
-            firstQuote,
-            bestQuote: swapQuote,
-            inputMint: repayBank.info.state.mint.toBase58(),
-            outputMint: bank.info.state.mint.toBase58(),
-          });
-          return { repayTxn: txn.flashloanTx, bundleTipTxn: txn.bundleTipTxn, quote: swapQuote, amount: amountToRepay };
-        } else if (txn.error && maxAccounts === maxAccountsArr[maxAccountsArr.length - 1]) {
-          return txn.error;
-        }
-      } else {
-        throw new Error("Swap quote failed");
-      }
-    } catch (error) {
-      console.error(error);
-      capture("repay_with_collat", {
-        amountIn: uiToNative(amount, repayBank.info.state.mintDecimals).toNumber(),
-        firstQuote,
-        inputMint: repayBank.info.state.mint.toBase58(),
-        outputMint: bank.info.state.mint.toBase58(),
-      });
-      return null;
-    }
-  }
-  return null;
-}
-async function calculateMaxCollat(bank: ExtendedBankInfo, repayBank: ExtendedBankInfo, slippageBps: number) {
-  const amount = repayBank.isActive && repayBank.position.isLending ? repayBank.position.amount : 0;
-  let maxRepayAmount = bank.isActive ? bank?.position.amount : 0;
-  const maxUsdValue = 700_000;
-
-  if (maxRepayAmount * bank.info.oraclePrice.priceRealtime.price.toNumber() > maxUsdValue) {
-    maxRepayAmount = maxUsdValue / bank.info.oraclePrice.priceRealtime.price.toNumber();
-  }
-
-  if (amount !== 0) {
-    const quoteParams = {
-      amount: uiToNative(amount, repayBank.info.state.mintDecimals).toNumber(),
-      inputMint: repayBank.info.state.mint.toBase58(),
-      outputMint: bank.info.state.mint.toBase58(),
-      slippageBps: slippageBps,
-      maxAccounts: 40,
-      swapMode: "ExactIn",
-    } as QuoteGetRequest;
-
-    try {
-      const swapQuoteInput = await getSwapQuoteWithRetry(quoteParams);
-
-      if (!swapQuoteInput) throw new Error();
-
-      const inputInOtherAmount = nativeToUi(swapQuoteInput.otherAmountThreshold, bank.info.state.mintDecimals);
-
-      if (inputInOtherAmount > maxRepayAmount) {
-        const quoteParams = {
-          amount: uiToNative(maxRepayAmount, bank.info.state.mintDecimals).toNumber(),
-          inputMint: repayBank.info.state.mint.toBase58(), // USDC
-          outputMint: bank.info.state.mint.toBase58(), // JITO
-          slippageBps: slippageBps,
-          swapMode: "ExactOut",
-        } as QuoteGetRequest;
-
-        try {
-          const swapQuoteOutput = await getSwapQuoteWithRetry(quoteParams, 2);
-          if (!swapQuoteOutput) throw new Error();
-          return nativeToUi(swapQuoteOutput.otherAmountThreshold, repayBank.info.state.mintDecimals) * 1.01;
-        } catch (error) {
-          const bankAmountUsd = maxRepayAmount * bank.info.oraclePrice.priceRealtime.price.toNumber() * 0.9998;
-          const repayAmount = bankAmountUsd / repayBank.info.oraclePrice.priceRealtime.price.toNumber();
-          return repayAmount;
-        }
-      } else {
-        return amount;
-      }
-    } catch {
-      return 0;
-    }
-  }
+  return result;
 }
 
 export { createActionBoxStore };

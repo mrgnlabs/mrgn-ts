@@ -256,18 +256,6 @@ export type MayanSwapInfo = {
   fromAmount: number;
 };
 
-export enum LendingModes {
-  LEND = "lend",
-  BORROW = "borrow",
-}
-
-export enum PoolTypes {
-  ALL = "all",
-  ISOLATED = "isolated",
-  STABLE = "stable",
-  LST = "lst",
-}
-
 export type SortAssetOption = {
   label: string;
   borrowLabel?: string;

@@ -8,7 +8,6 @@ import { ActionType, ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi
 
 import { useLstStore, useMrgnlendStore, useUiStore } from "~/store";
 import {
-  MarginfiActionParams,
   closeBalance,
   executeLendingAction,
   cn,
@@ -17,16 +16,14 @@ import {
   getBlockedActions,
   executeLoopingAction,
   createAccountAction,
-  usePrevious,
 } from "~/utils";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { useConnection } from "~/hooks/useConnection";
 import { useActionBoxStore } from "~/hooks/useActionBoxStore";
-import { useUnmount } from "~/hooks/useUnmount";
 import { SOL_MINT } from "~/store/lstStore";
 
 import { LSTDialog, LSTDialogVariants } from "~/components/common/AssetList";
-import { ActionMethod, checkActionAvailable, RepayType } from "~/utils/actionBoxUtils";
+import { checkActionAvailable } from "~/utils/actionBoxUtils";
 import { IconAlertTriangle, IconExternalLink, IconSettings } from "~/components/ui/icons";
 import { showErrorToast } from "~/utils/toastUtils";
 
@@ -37,6 +34,7 @@ import {
   ActionBoxInput,
 } from "~/components/common/ActionBox/components";
 import { Button } from "~/components/ui/button";
+import { ActionMethod, MarginfiActionParams, RepayType } from "@mrgnlabs/mrgn-utils";
 
 type ActionBoxProps = {
   requestedAction?: ActionType;
@@ -561,7 +559,7 @@ export const ActionBox = ({
       bank: selectedBank,
       nativeSolBalance,
       selectedStakingAccount,
-      quoteResponseMeta: lstQuoteMeta,
+      quoteResponseMeta: lstQuoteMeta as any, // TODO: fix type
       priorityFee,
     });
 

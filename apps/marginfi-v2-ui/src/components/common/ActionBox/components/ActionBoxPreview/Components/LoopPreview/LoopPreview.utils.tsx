@@ -3,7 +3,7 @@ import Image from "next/image";
 import { VersionedTransaction } from "@solana/web3.js";
 
 import { ExtendedBankInfo, AccountSummary } from "@mrgnlabs/marginfi-v2-ui-state";
-import { Wallet, percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
+import { Wallet, percentFormatter, usdFormatter, clampedNumeralFormatter } from "@mrgnlabs/mrgn-common";
 import {
   Bank,
   MarginRequirementType,
@@ -12,8 +12,7 @@ import {
   SimulationResult,
   getPriceWithConfidence,
 } from "@mrgnlabs/marginfi-client-v2";
-
-import { LoopingOptions, clampedNumeralFormatter } from "~/utils";
+import { LoopingOptions } from "@mrgnlabs/mrgn-utils";
 
 import { IconArrowRight, IconPyth, IconSwitchboard } from "~/components/ui/icons";
 import { Skeleton } from "~/components/ui/skeleton";
@@ -128,7 +127,10 @@ export async function simulateLooping({ marginfiClient, account, bank, loopingTx
     ]);
     if (!mfiAccountData || !bankData) throw new Error("Failed to simulate looping");
     const previewBanks = marginfiClient.banks;
-    previewBanks.set(bank.address.toBase58(), Bank.fromBuffer(bank.address, bankData, marginfiClient.program.idl, marginfiClient.feedIdMap,));
+    previewBanks.set(
+      bank.address.toBase58(),
+      Bank.fromBuffer(bank.address, bankData, marginfiClient.program.idl, marginfiClient.feedIdMap)
+    );
     const previewClient = new MarginfiClient(
       marginfiClient.config,
       marginfiClient.program,
@@ -138,7 +140,7 @@ export async function simulateLooping({ marginfiClient, account, bank, loopingTx
       marginfiClient.banks,
       marginfiClient.oraclePrices,
       marginfiClient.mintDatas,
-      marginfiClient.feedIdMap,
+      marginfiClient.feedIdMap
     );
     const previewMarginfiAccount = MarginfiAccountWrapper.fromAccountDataRaw(
       account.address,
@@ -250,8 +252,8 @@ function getLiquidationStat(bank: ExtendedBankInfo, isLoading: boolean, simulati
     ? computeLiquidation / price >= 0.5
       ? "SUCCESS"
       : computeLiquidation / price >= 0.25
-        ? "ALERT"
-        : "DESTRUCTIVE"
+      ? "ALERT"
+      : "DESTRUCTIVE"
     : undefined;
 
   return {

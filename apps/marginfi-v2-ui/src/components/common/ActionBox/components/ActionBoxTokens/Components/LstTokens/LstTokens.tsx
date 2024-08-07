@@ -1,9 +1,9 @@
 import React from "react";
-import { PublicKey } from "@solana/web3.js";
 
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { LstType } from "@mrgnlabs/mrgn-utils";
 
-import { LstType, StakeData } from "~/utils";
+import { StakeData } from "~/utils";
 
 import { LstTokenList, LstTokensTrigger } from "./Components";
 import { SelectedBankItem, TokenListWrapper } from "../SharedComponents";

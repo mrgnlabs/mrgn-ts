@@ -3,9 +3,7 @@ import React from "react";
 import { PublicKey } from "@solana/web3.js";
 
 import { ExtendedBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
-
-import { LendingModes } from "~/types";
-import { RepayType, computeBankRate } from "~/utils";
+import { computeBankRate, LendingModes, RepayType } from "@mrgnlabs/mrgn-utils";
 
 import { SelectedBankItem, TokenListWrapper } from "../SharedComponents";
 import { LendingTokensList, RepayCollatTokensList, LendingTokensTrigger } from "./Components";
