@@ -64,8 +64,8 @@ interface ActionBoxState {
     marginfiAccount: MarginfiAccountWrapper,
     repayAmountRaw: string,
     connection: Connection,
-    platformFeeBps?: number,
-    priorityFees?: number
+    priorityFees: number,
+    platformFeeBps?: number
   ) => void;
   setSelectedBank: (bank: ExtendedBankInfo | null) => void;
   setRepayBank: (bank: ExtendedBankInfo | null) => void;
@@ -175,8 +175,6 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
   },
 
   setAmountRaw(amountRaw, maxAmount) {
-    const repayMode = get().repayMode;
-
     if (!maxAmount) {
       set({ amountRaw });
     } else {
@@ -192,7 +190,7 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
     }
   },
 
-  setRepayAmountRaw(marginfiAccount, amountRaw, connection, platformFeeBps, priorityFee) {
+  setRepayAmountRaw(marginfiAccount, amountRaw, connection, priorityFee, platformFeeBps) {
     const strippedAmount = amountRaw.replace(/,/g, "");
     const amount = isNaN(Number.parseFloat(strippedAmount)) ? 0 : Number.parseFloat(strippedAmount);
 
@@ -211,8 +209,8 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
         amount,
         slippageBps,
         connection,
-        platformFeeBps,
-        priorityFee
+        priorityFee,
+        platformFeeBps
       );
     }
   },

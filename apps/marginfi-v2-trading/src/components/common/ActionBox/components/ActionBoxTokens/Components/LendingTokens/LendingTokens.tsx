@@ -87,8 +87,6 @@ export const LendingTokens = ({
     [lendingMode]
   );
 
-  console.log("I'm here");
-
   return (
     <>
       {!isSelectable && (

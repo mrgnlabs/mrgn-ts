@@ -146,8 +146,8 @@ export const ActionBoxInput = ({
             selectedAccount,
             formatAmount(newAmount, selectedRepayBank),
             connection,
-            platformFeeBps,
-            priorityFee
+            priorityFee,
+            platformFeeBps
           );
       } else {
         setAmountRaw(formatAmount(newAmount, selectedBank));
