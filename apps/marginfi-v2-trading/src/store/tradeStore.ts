@@ -133,6 +133,7 @@ type TradeStoreState = {
   connection: Connection | null;
 
   portfolio: Portfolio | null;
+  referralCode: string | null;
 
   /* Actions */
   // fetch groups / banks
@@ -196,6 +197,7 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
   connection: null,
   wallet: null,
   portfolio: null,
+  referralCode: null,
 
   setIsRefreshingStore: (isRefreshing) => {
     set((state) => {
@@ -287,6 +289,8 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
       let nativeSolBalance = 0;
       let tokenAccountMap: TokenAccountMap | null = null;
       let portfolio: Portfolio | null = null;
+      let referralCode = null;
+
       if (!wallet.publicKey.equals(PublicKey.default)) {
         const [tData] = await Promise.all([
           fetchTokenAccounts(
@@ -372,6 +376,23 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
             lpPositions: lpPositions,
           };
         }
+
+        // fetch / create referral code
+        const referralCodeRes = await fetch(`/api/user/referral/get-code`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ wallet: wallet.publicKey.toBase58() }),
+        });
+
+        if (!referralCodeRes.ok) {
+          console.error("Error fetching referral code");
+        } else {
+          const referralCodeData = await referralCodeRes.json();
+          const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.thearena.trade";
+          referralCode = `${baseUrl}/refer/${referralCodeData.referralCode}`;
+        }
       }
 
       // deprecate this
@@ -422,6 +443,7 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
         connection: connection,
         userDataFetched: userDataFetched,
         portfolio: portfolio,
+        referralCode,
       });
     } catch (error) {
       console.error(error);
