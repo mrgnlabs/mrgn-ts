@@ -1,40 +1,27 @@
-import { QuoteResponse, SwapRequest, createJupiterApiClient } from "@jup-ag/api";
 import * as Sentry from "@sentry/nextjs";
 import {
-  AddressLookupTableAccount,
   AddressLookupTableProgram,
   Connection,
   Keypair,
-  LAMPORTS_PER_SOL,
   PublicKey,
   SystemProgram,
-  Transaction,
   TransactionInstruction,
-  TransactionMessage,
-  VersionedTransaction,
 } from "@solana/web3.js";
-import { QuoteResponseMeta } from "@jup-ag/react-hook";
+import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { WalletContextState } from "@solana/wallet-adapter-react";
 
 import { BankConfigOpt, MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
-import { LUT_PROGRAM_AUTHORITY_INDEX, Wallet, processTransaction, uiToNative } from "@mrgnlabs/mrgn-common";
-import { ExtendedBankInfo, FEE_MARGIN, ActionType, clearAccountCache } from "@mrgnlabs/marginfi-v2-ui-state";
+import { uiToNative } from "@mrgnlabs/mrgn-common";
+import { ExtendedBankInfo, clearAccountCache } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { WalletContextStateOverride } from "~/hooks/useWalletContext";
-import { LstData, SOL_MINT } from "~/store/lstStore";
 
 import { MultiStepToastHandle, showErrorToast } from "./toastUtils";
-import { isWholePosition, extractErrorString } from "./mrgnUtils";
-import { StakeData, makeDepositSolToStakePoolIx, makeDepositStakeToStakePoolIx } from "./lstUtils";
-import {
-  LoopingObject,
-  LoopingOptions,
-  TradeSide,
-  getLoopingTransaction,
-} from "~/components/common/TradingBox/tradingBox.utils";
+import { extractErrorString } from "./mrgnUtils";
+import { TradeSide } from "~/components/common/TradingBox/tradingBox.utils";
 import { ToastStep } from "~/components/common/Toast";
 import { getMaybeSquadsOptions } from "./mrgnActions";
-import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import { calculateLoopingParams, calculateLoopingTransaction, LoopingObject } from "@mrgnlabs/mrgn-utils";
 
 export async function createMarginfiGroup({
   marginfiClient,
@@ -178,7 +165,7 @@ export async function executeLeverageAction({
   depositAmount: number;
   tradeState: TradeSide;
   loopingObject: LoopingObject | null;
-  priorityFee?: number;
+  priorityFee: number;
   slippageBps: number;
 }) {
   if (marginfiClient === null) {
@@ -234,19 +221,21 @@ export async function executeLeverageAction({
 
   if (!loopingObject.loopingTxn) {
     try {
-      const borrowAmountNative = uiToNative(loopingObject.borrowAmount, borrowBank.info.state.mintDecimals).toNumber();
-      loopingObject = await getLoopingTransaction({
+      const result = await calculateLoopingTransaction({
         marginfiAccount,
-        borrowAmountNative,
         borrowBank,
         depositBank,
-        amount: depositAmount,
-        borrowAmount: loopingObject.borrowAmount,
-        slippageBps,
         connection,
         loopObject: loopingObject,
         priorityFee,
+        isTrading: true,
       });
+
+      if ("loopingTxn" in result) {
+        loopingObject = result;
+      } else if ("error" in result) {
+        throw new Error(result.description ?? "Something went wrong, please try again.");
+      }
 
       if (!loopingObject?.loopingTxn) {
         throw new Error("Something went wrong, please try again.");

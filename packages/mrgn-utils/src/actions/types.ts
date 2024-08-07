@@ -103,3 +103,12 @@ export type LstActionParams = {
   quoteResponseMeta: QuoteResponseMeta | null;
   priorityFee?: number;
 };
+
+export interface LoopingObject {
+  loopingTxn: VersionedTransaction | null;
+  bundleTipTxn: VersionedTransaction | null;
+  quote: QuoteResponse;
+  actualDepositAmount: number;
+  borrowAmount: BigNumber;
+  priorityFee: number;
+}

@@ -24,19 +24,12 @@ import { Label } from "~/components/ui/label";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { useConnection } from "~/hooks/useConnection";
 import { MarginfiAccountWrapper, SimulationResult, computeMaxLeverage } from "@mrgnlabs/marginfi-client-v2";
-import {
-  LoopingObject,
-  TradeSide,
-  calculateLooping,
-  checkLoopingActionAvailable,
-  generateStats,
-  simulateLooping,
-} from "./tradingBox.utils";
+import { TradeSide, checkLoopingActionAvailable, generateStats, simulateLooping } from "./tradingBox.utils";
 import { useDebounce } from "~/hooks/useDebounce";
 import { ActionMethod, executeLeverageAction, extractErrorString, usePrevious } from "~/utils";
 import Link from "next/link";
 import { TradingBoxSettingsDialog } from "./components/TradingBoxSettings/TradingBoxSettingsDialog";
-import { handleSimulationError } from "@mrgnlabs/mrgn-utils";
+import { calculateLoopingParams, handleSimulationError, LoopingObject } from "@mrgnlabs/mrgn-utils";
 
 type TradingBoxProps = {
   side?: "long" | "short";
@@ -229,33 +222,35 @@ export const TradingBox = ({ side = "long" }: TradingBoxProps) => {
         }
         setAdditionalChecks(undefined);
 
-        const looping = await calculateLooping(
+        const strippedAmount = amount.replace(/,/g, "");
+        const amountParsed = isNaN(Number.parseFloat(strippedAmount)) ? 0 : Number.parseFloat(strippedAmount);
+
+        const result = await calculateLoopingParams({
           marginfiClient,
-          activeGroup.selectedAccount,
+          marginfiAccount: activeGroup.selectedAccount,
           depositBank,
           borrowBank,
-          leverage,
-          amount,
+          targetLeverage: leverage,
+          amount: amountParsed,
           slippageBps,
           priorityFee,
           connection,
-          platformFeeBps
-        );
+          platformFeeBps,
+        });
 
-        setLoopingObject(looping);
+        let loopingObject: LoopingObject | null = null;
 
-        // if txn couldn't be generated one cause could be that the account isn't created yet
-        // most other causes are jupiter routing issues
-        if (looping && (looping?.loopingTxn || !activeGroup.selectedAccount)) {
-          await handleSimulation(looping, activeGroup.pool.token, activeGroup.selectedAccount);
-        } else if (!looping) {
-          setAdditionalChecks({
-            isEnabled: false,
-            actionMethod: "WARNING",
-            description:
-              "This swap causes the transaction to fail due to size restrictions. Please try again or pick another token.",
-            link: "https://forum.marginfi.community/t/work-were-doing-to-improve-collateral-repay/333",
-          });
+        if ("quote" in result) {
+          loopingObject = result;
+          setLoopingObject(result);
+        } else if ("error" in result) {
+          // if txn couldn't be generated one cause could be that the account isn't created yet
+          // most other causes are jupiter routing issues
+          setAdditionalChecks(result);
+        }
+
+        if (loopingObject && (loopingObject.loopingTxn || !activeGroup.selectedAccount)) {
+          await handleSimulation(loopingObject, depositBank, activeGroup.selectedAccount);
         }
       } catch (error) {
         setLoopingObject(null);
