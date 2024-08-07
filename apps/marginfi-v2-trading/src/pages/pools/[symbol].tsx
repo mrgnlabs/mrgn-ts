@@ -10,27 +10,30 @@ import { ActionComplete } from "~/components/common/ActionComplete";
 
 import { Loader } from "~/components/ui/loader";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
+import { DEFAULT_ACCOUNT_SUMMARY } from "@mrgnlabs/marginfi-v2-ui-state";
 
 export default function TradeSymbolPage() {
   const [previousTxn] = useUiStore((state) => [state.previousTxn]);
-  const [initialized, activeGroupPk, groupMap, accountSummary] = useTradeStore((state) => [
+  const [initialized, activeGroupPk, groupMap] = useTradeStore((state) => [
     state.initialized,
     state.activeGroup,
     state.groupMap,
-    state.accountSummary,
   ]);
 
   const activeGroup = React.useMemo(() => {
     return activeGroupPk ? groupMap.get(activeGroupPk.toBase58()) : null;
   }, [activeGroupPk, groupMap]);
 
+  const accountSummary = React.useMemo(() => activeGroup?.accountSummary ?? DEFAULT_ACCOUNT_SUMMARY, [activeGroup]);
+
   const healthColor = React.useMemo(() => {
     if (accountSummary.healthFactor) {
+      const healthFactor = accountSummary.healthFactor;
       let color: string;
 
-      if (accountSummary.healthFactor >= 0.5) {
+      if (healthFactor >= 0.5) {
         color = "#75BA80"; // green color " : "#",
-      } else if (accountSummary.healthFactor >= 0.25) {
+      } else if (healthFactor >= 0.25) {
         color = "#B8B45F"; // yellow color
       } else {
         color = "#CF6F6F"; // red color

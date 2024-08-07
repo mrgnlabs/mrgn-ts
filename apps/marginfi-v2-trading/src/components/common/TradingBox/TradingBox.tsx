@@ -66,15 +66,15 @@ export const TradingBox = ({ side = "long" }: TradingBoxProps) => {
     }
   }, [tradeState, loopingObject]);
 
-  const [activeGroupPk, accountSummary, setActiveGroup, marginfiClient, groupMap, setIsRefreshingStore, refreshGroup] =
+  const [activeGroupPk, setActiveGroup, marginfiClient, groupMap, setIsRefreshingStore, refreshGroup, fetchTradeState] =
     useTradeStore((state) => [
       state.activeGroup,
-      state.accountSummary,
       state.setActiveGroup,
       state.marginfiClient,
       state.groupMap,
       state.setIsRefreshingStore,
       state.refreshGroup,
+      state.fetchTradeState,
     ]);
 
   const [slippageBps, priorityFee, platformFeeBps, setSlippageBps, setIsActionComplete, setPreviousTxn] = useUiStore(
@@ -169,7 +169,7 @@ export const TradingBox = ({ side = "long" }: TradingBoxProps) => {
       }
       setStats(
         generateStats(
-          accountSummary,
+          activeGroup.accountSummary,
           activeGroup.pool.token,
           activeGroup.pool.quoteTokens[0],
           simulationResult,
@@ -178,7 +178,7 @@ export const TradingBox = ({ side = "long" }: TradingBoxProps) => {
         )
       );
     },
-    [accountSummary, activeGroup, marginfiClient]
+    [activeGroup, marginfiClient]
   );
 
   const handleSimulation = React.useCallback(
@@ -280,10 +280,17 @@ export const TradingBox = ({ side = "long" }: TradingBoxProps) => {
     const hasChanged = activeGroup?.groupPk.toBase58() !== activeGroupPrevPk?.toBase58();
     if (activeGroup && hasChanged) {
       setStats(
-        generateStats(accountSummary, activeGroup.pool.token, activeGroup.pool.quoteTokens[0], null, null, false)
+        generateStats(
+          activeGroup.accountSummary,
+          activeGroup.pool.token,
+          activeGroup.pool.quoteTokens[0],
+          null,
+          null,
+          false
+        )
       );
     }
-  }, [accountSummary, activeGroup, activeGroupPrevPk]);
+  }, [activeGroup, activeGroupPrevPk]);
 
   const leverageActionCb = React.useCallback(
     async (depositBank: ExtendedBankInfo, borrowBank: ExtendedBankInfo) => {

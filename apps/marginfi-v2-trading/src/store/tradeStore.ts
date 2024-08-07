@@ -107,21 +107,12 @@ type TradeStoreState = {
 
   // array of marginfi groups
   groupMap: Map<string, GroupData>;
-  groups: PublicKey[];
 
   // array of extended token bank objects
   banks: ExtendedBankInfo[];
 
   // array of banks filtered by search query
   searchResults: ExtendedBankInfo[];
-
-  // array of collateral usdc banks
-  collateralBanks: {
-    [token: string]: ExtendedBankInfo;
-  };
-
-  // array of all banks including collateral usdc banks
-  banksIncludingUSDC: ExtendedBankInfo[];
 
   currentPage: number;
 
@@ -134,9 +125,6 @@ type TradeStoreState = {
 
   // active group, currently being viewed / traded
   activeGroup: PublicKey | null;
-
-  accountSummary: AccountSummary;
-
   // user native sol balance
   nativeSolBalance: number;
 
@@ -195,18 +183,14 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
   groupsCache: {},
   tokenMetadataCache: {},
   bankMetadataCache: {},
-  groups: [],
   groupMap: new Map<string, GroupData>(),
   banks: [],
   searchResults: [],
-  banksIncludingUSDC: [],
-  collateralBanks: {},
   currentPage: 1,
   totalPages: 0,
   sortBy: TradePoolFilterStates.TIMESTAMP,
   marginfiClient: null,
   activeGroup: null,
-  accountSummary: DEFAULT_ACCOUNT_SUMMARY,
   nativeSolBalance: 0,
   tokenAccountMap: null,
   connection: null,
@@ -280,130 +264,21 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
       await Promise.all(
         groups.map(async (group) => {
           const bankKeys = groupsCache[group.toBase58()].map((bank) => new PublicKey(bank));
-          const marginfiClient = await MarginfiClient.fetch(
-            {
-              environment: "production",
-              cluster: "mainnet",
-              programId,
-              groupPk: group,
-            },
+
+          const { groupData, extendedBankInfos, marginfiClient } = await getGroupData({
+            groupPk: group,
             wallet,
             connection,
-            {
-              preloadedBankAddresses: bankKeys,
-            }
-          );
-
-          let groupData: GroupData = {
-            groupPk: group,
-            pool: {} as any,
-            client: marginfiClient,
-            marginfiAccounts: [],
-            selectedAccount: null,
-            accountSummary: DEFAULT_ACCOUNT_SUMMARY,
-          };
+            bankKeys,
+            bankMetadataCache,
+            tokenMetadataCache,
+          });
 
           for (const [k, v] of marginfiClient.mintDatas) {
             mintDatas.set(k, v);
           }
 
-          const banksIncludingUSDC = Array.from(marginfiClient.banks.values());
-          const banksWithPriceAndToken: {
-            bank: Bank;
-            oraclePrice: OraclePrice;
-            tokenMetadata: TokenMetadata;
-          }[] = [];
-
-          banksIncludingUSDC.forEach((bank) => {
-            const oraclePrice = marginfiClient.getOraclePriceByBank(bank.address);
-            if (!oraclePrice) {
-              return;
-            }
-
-            const bankMetadata = bankMetadataCache[bank.address.toBase58()];
-            if (bankMetadata === undefined) {
-              return;
-            }
-
-            try {
-              const tokenMetadata = getValueInsensitive(tokenMetadataCache, bankMetadata.tokenSymbol);
-              if (!tokenMetadata) {
-                return;
-              }
-
-              banksWithPriceAndToken.push({ bank, oraclePrice, tokenMetadata });
-            } catch (err) {
-              console.error("error fetching token metadata: ", err);
-            }
-          });
-
-          const extendedBankInfos = await Promise.all(
-            banksWithPriceAndToken.map(async ({ bank, oraclePrice, tokenMetadata }) => {
-              const extendedBankInfo = makeExtendedBankInfo(tokenMetadata, bank, oraclePrice);
-              const address = bank.mint.toBase58();
-              const tokenResponse = await fetch(`/api/birdeye/token?address=${address}`);
-
-              if (!tokenResponse.ok) {
-                console.error("Failed to fetch token data");
-                return extendedBankInfo;
-              }
-
-              const tokenData = (await tokenResponse.json()) as TokenData;
-
-              if (!tokenData) {
-                console.error("Failed to parse token data");
-              }
-
-              const extendedArenaBank = {
-                ...extendedBankInfo,
-                tokenData: {
-                  price: tokenData.price,
-                  priceChange24hr: tokenData.priceChange24h,
-                  volume24hr: tokenData.volume24h,
-                  volumeChange24hr: tokenData.volumeChange24h,
-                  marketCap: tokenData.marketcap,
-                },
-              } as ArenaBank;
-
-              return extendedArenaBank;
-            })
-          );
-
-          // change this logic when adding more collateral banks
-          const tokenBanks = extendedBankInfos.filter((bank) => !bank.info.rawBank.mint.equals(USDC_MINT));
-          const collateralBanks = extendedBankInfos.filter((bank) => bank.info.rawBank.mint.equals(USDC_MINT));
-
-          if (tokenBanks.length > 1) console.error("Inconsitency in token banks!");
-
-          const totalTokenLiquidity = tokenBanks.reduce(
-            (total, bank) =>
-              total + bank.info.state.totalDeposits * bank.info.oraclePrice.priceRealtime.price.toNumber(),
-            0
-          );
-
-          const totalCollateralLiquidity = collateralBanks.reduce(
-            (total, bank) =>
-              total + bank.info.state.totalDeposits * bank.info.oraclePrice.priceRealtime.price.toNumber(),
-            0
-          );
-
-          groupData.pool = {
-            token: tokenBanks[0],
-            quoteTokens: collateralBanks,
-            poolData: {
-              totalLiquidity: totalTokenLiquidity + totalCollateralLiquidity,
-            },
-          };
-
           allBanks.push(...extendedBankInfos);
-
-          if (!wallet.publicKey.equals(PublicKey.default)) {
-            const mfiAccounts = await marginfiClient.getMarginfiAccountsForAuthority(wallet.publicKey);
-            const mfiAccount = mfiAccounts[0];
-
-            groupData.marginfiAccounts = mfiAccounts;
-            groupData.selectedAccount = mfiAccount;
-          }
 
           groupMap.set(group.toBase58(), groupData);
         })
@@ -430,33 +305,7 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
         tokenAccountMap = tData.tokenAccountMap;
 
         for (const [id, group] of groupMap) {
-          const updateBank = (bank: ArenaBank) => {
-            const tokenAccount = tokenAccountMap?.get(bank.info.rawBank.mint.toBase58());
-            if (!tokenAccount) return bank;
-
-            const updatedBankInfo = makeExtendedBankInfo(
-              { icon: bank.meta.tokenLogoUri, name: bank.meta.tokenName, symbol: bank.meta.tokenSymbol },
-              bank.info.rawBank,
-              bank.info.oraclePrice,
-              undefined,
-              {
-                nativeSolBalance,
-                marginfiAccount: group.selectedAccount,
-                tokenAccount,
-              }
-            );
-
-            return {
-              ...updatedBankInfo,
-              tokenData: bank.tokenData,
-            };
-          };
-
-          const updatedPool = {
-            ...group.pool,
-            token: updateBank(group.pool.token),
-            quoteTokens: group.pool.quoteTokens.map(updateBank),
-          };
+          const updatedPool = await getUpdatedGroupPool({ group, tokenAccountMap, nativeSolBalance });
           groupMap.set(id, { ...group, pool: updatedPool });
         }
 
@@ -527,12 +376,6 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
 
       // deprecate this
       const tokenBanks = [...groupMap.values()].map((group) => group.pool.token);
-      const collateralBanks = [...groupMap.values()].flatMap((group) => group.pool.quoteTokens);
-
-      const extendedBankInfoMap: { [token: string]: ExtendedBankInfo } = collateralBanks.reduce((acc, current) => {
-        acc[current.info.rawBank.mint.toBase58()] = current;
-        return acc;
-      }, {} as { [token: string]: ExtendedBankInfo });
 
       if (!tokenBanks) throw new Error("Error fetching banks & groups");
 
@@ -569,11 +412,8 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
       set({
         initialized: true,
         groupsCache: groupsCache,
-        groups: groups,
         groupMap: sortedGroups,
         banks: tokenBanks,
-        banksIncludingUSDC: allBanks,
-        collateralBanks: extendedBankInfoMap,
         totalPages,
         currentPage,
         nativeSolBalance: nativeSolBalance,
@@ -599,48 +439,27 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
       if (!groupMap) throw new Error("Groups not fetched");
       if (!connection) throw new Error("Connection not found");
       if (!wallet) throw new Error("Wallet not found");
+      const { groupsCache, tokenMetadataCache, bankMetadataCache } = get();
 
-      const group = groupMap.get(activeGroup.toBase58());
-
-      if (!group) throw new Error("Group not found");
-
-      const bankKeys = [group.pool.token.address, ...group.pool.quoteTokens.map((bank) => bank.address)];
-      const marginfiClient = await MarginfiClient.fetch(
-        {
-          environment: "production",
-          cluster: "mainnet",
-          programId,
-          groupPk: activeGroup,
-        },
+      const bankKeys = groupsCache[activeGroup.toBase58()].map((bank) => new PublicKey(bank));
+      const { groupData, extendedBankInfos, marginfiClient } = await getGroupData({
+        groupPk: activeGroup,
         wallet,
         connection,
-        {
-          preloadedBankAddresses: bankKeys,
-        }
-      );
+        bankKeys,
+        bankMetadataCache,
+        tokenMetadataCache,
+      });
 
-      let selectedAccount: MarginfiAccountWrapper | null = null;
-      let accountSummary: AccountSummary = DEFAULT_ACCOUNT_SUMMARY;
-      let updatedTokenBank: ArenaBank = {
-        ...group.pool.token,
-        isActive: false,
-      };
-      let updatedCollateralBanks: ArenaBank[] = group.pool.quoteTokens.map((bank) => ({
-        ...bank,
-        isActive: false,
-      }));
-
-      let updatedPool: ArenaPool = {
-        token: updatedTokenBank,
-        quoteTokens: updatedCollateralBanks,
-      };
+      console.log("groupData", groupData);
+      groupMap.set(activeGroup.toBase58(), groupData);
 
       if (!wallet.publicKey.equals(PublicKey.default)) {
         const [tokenData] = await Promise.all([
           fetchTokenAccounts(
             connection,
             wallet.publicKey,
-            [updatedTokenBank, ...updatedCollateralBanks].map((bank) => ({
+            extendedBankInfos.map((bank) => ({
               mint: bank.info.rawBank.mint,
               mintDecimals: bank.info.rawBank.mintDecimals,
               bankAddress: bank.info.rawBank.address,
@@ -652,47 +471,21 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
         const nativeSolBalance = tokenData.nativeSolBalance;
         const tokenAccountMap = tokenData.tokenAccountMap;
 
-        const updatedBanks = Array.from(marginfiClient.banks.values());
-
-        const updateBank = (bank: ExtendedBankInfo) => {
-          const tokenAccount = tokenAccountMap?.get(bank.info.rawBank.mint.toBase58());
-          if (!tokenAccount) return bank;
-
-          const updatedBank = updatedBanks.find((b) => b.mint.equals(bank.info.rawBank.mint)) ?? bank.info.rawBank;
-
-          return makeExtendedBankInfo(
-            { icon: bank.meta.tokenLogoUri, name: bank.meta.tokenName, symbol: bank.meta.tokenSymbol },
-            updatedBank,
-            bank.info.oraclePrice,
-            undefined,
-            {
-              nativeSolBalance,
-              marginfiAccount: group.selectedAccount,
-              tokenAccount,
-            }
-          );
-        };
-
-        updatedPool = {
-          token: updateBank(updatedTokenBank),
-          quoteTokens: updatedCollateralBanks.map(updateBank),
-        };
-
-        console.log({ updatedPool });
+        const updatedPool = await getUpdatedGroupPool({ group: groupData, tokenAccountMap, nativeSolBalance });
+        groupMap.set(activeGroup.toBase58(), { ...groupData, pool: updatedPool });
+        console.log("updated pool", updatedPool);
+        console.log("groupData", groupData);
+        console.log("groupRefreshed", { ...groupData, pool: updatedPool });
+        console.log("groupMap", groupMap);
+        console.log("activeGroup.toBase58()", activeGroup.toBase58());
       }
-
-      const newGroup = {
-        ...group,
-        pool: { ...updatedPool, poolData: group.pool.poolData },
-      };
-
-      groupMap.set(activeGroup.toBase58(), newGroup);
 
       set({
         marginfiClient,
-        accountSummary,
         groupMap,
         activeGroup: activeGroup,
+        wallet: wallet,
+        connection: connection,
       });
     } catch (error) {
       console.error(error);
@@ -829,6 +622,187 @@ const sortGroups = (groupMap: Map<string, GroupData>, sortBy: TradePoolFilterSta
 
   return sortedGroupMap;
 };
+
+async function getGroupData({
+  groupPk,
+  wallet,
+  connection,
+  bankKeys,
+  bankMetadataCache,
+  tokenMetadataCache,
+}: {
+  groupPk: PublicKey;
+  wallet: Wallet;
+  connection: Connection;
+  bankKeys: PublicKey[];
+  bankMetadataCache: {
+    [symbol: string]: BankMetadata;
+  };
+  tokenMetadataCache: {
+    [address: string]: TokenMetadata;
+  };
+}) {
+  const marginfiClient = await MarginfiClient.fetch(
+    {
+      environment: "production",
+      cluster: "mainnet",
+      programId,
+      groupPk,
+    },
+    wallet,
+    connection,
+    {
+      preloadedBankAddresses: bankKeys,
+    }
+  );
+
+  let groupData: GroupData = {
+    groupPk,
+    pool: {} as any,
+    client: marginfiClient,
+    marginfiAccounts: [],
+    selectedAccount: null,
+    accountSummary: DEFAULT_ACCOUNT_SUMMARY,
+  };
+
+  const banksIncludingUSDC = Array.from(marginfiClient.banks.values());
+  const banksWithPriceAndToken: {
+    bank: Bank;
+    oraclePrice: OraclePrice;
+    tokenMetadata: TokenMetadata;
+  }[] = [];
+
+  banksIncludingUSDC.forEach((bank) => {
+    const oraclePrice = marginfiClient.getOraclePriceByBank(bank.address);
+    if (!oraclePrice) {
+      return;
+    }
+
+    const bankMetadata = bankMetadataCache[bank.address.toBase58()];
+    if (bankMetadata === undefined) {
+      return;
+    }
+
+    try {
+      const tokenMetadata = getValueInsensitive(tokenMetadataCache, bankMetadata.tokenSymbol);
+      if (!tokenMetadata) {
+        return;
+      }
+
+      banksWithPriceAndToken.push({ bank, oraclePrice, tokenMetadata });
+    } catch (err) {
+      console.error("error fetching token metadata: ", err);
+    }
+  });
+
+  const extendedBankInfos = await Promise.all(
+    banksWithPriceAndToken.map(async ({ bank, oraclePrice, tokenMetadata }) => {
+      const extendedBankInfo = makeExtendedBankInfo(tokenMetadata, bank, oraclePrice);
+      const address = bank.mint.toBase58();
+      const tokenResponse = await fetch(`/api/birdeye/token?address=${address}`);
+
+      if (!tokenResponse.ok) {
+        console.error("Failed to fetch token data");
+        return extendedBankInfo;
+      }
+
+      const tokenData = (await tokenResponse.json()) as TokenData;
+
+      if (!tokenData) {
+        console.error("Failed to parse token data");
+      }
+
+      const extendedArenaBank = {
+        ...extendedBankInfo,
+        tokenData: {
+          price: tokenData.price,
+          priceChange24hr: tokenData.priceChange24h,
+          volume24hr: tokenData.volume24h,
+          volumeChange24hr: tokenData.volumeChange24h,
+          marketCap: tokenData.marketcap,
+        },
+      } as ArenaBank;
+
+      return extendedArenaBank;
+    })
+  );
+
+  // change this logic when adding more collateral banks
+  const tokenBanks = extendedBankInfos.filter((bank) => !bank.info.rawBank.mint.equals(USDC_MINT));
+  const collateralBanks = extendedBankInfos.filter((bank) => bank.info.rawBank.mint.equals(USDC_MINT));
+
+  if (tokenBanks.length > 1) console.error("Inconsitency in token banks!");
+
+  const totalTokenLiquidity = tokenBanks.reduce(
+    (total, bank) => total + bank.info.state.totalDeposits * bank.info.oraclePrice.priceRealtime.price.toNumber(),
+    0
+  );
+
+  const totalCollateralLiquidity = collateralBanks.reduce(
+    (total, bank) => total + bank.info.state.totalDeposits * bank.info.oraclePrice.priceRealtime.price.toNumber(),
+    0
+  );
+
+  groupData.pool = {
+    token: tokenBanks[0],
+    quoteTokens: collateralBanks,
+    poolData: {
+      totalLiquidity: totalTokenLiquidity + totalCollateralLiquidity,
+    },
+  };
+
+  if (!wallet.publicKey.equals(PublicKey.default)) {
+    const mfiAccounts = await marginfiClient.getMarginfiAccountsForAuthority(wallet.publicKey);
+    const mfiAccount = mfiAccounts[0];
+
+    groupData.marginfiAccounts = mfiAccounts;
+    groupData.selectedAccount = mfiAccount;
+
+    if (mfiAccount) groupData.accountSummary = computeAccountSummary(mfiAccount, [...tokenBanks, ...collateralBanks]);
+  }
+
+  return { groupData, extendedBankInfos, marginfiClient };
+}
+
+async function getUpdatedGroupPool({
+  group,
+  tokenAccountMap,
+  nativeSolBalance,
+}: {
+  group: GroupData;
+  tokenAccountMap: TokenAccountMap;
+  nativeSolBalance: number;
+}) {
+  const updateBank = (bank: ArenaBank) => {
+    const tokenAccount = tokenAccountMap?.get(bank.info.rawBank.mint.toBase58());
+    if (!tokenAccount) return bank;
+
+    const updatedBankInfo = makeExtendedBankInfo(
+      { icon: bank.meta.tokenLogoUri, name: bank.meta.tokenName, symbol: bank.meta.tokenSymbol },
+      bank.info.rawBank,
+      bank.info.oraclePrice,
+      undefined,
+      {
+        nativeSolBalance,
+        marginfiAccount: group.selectedAccount,
+        tokenAccount,
+      }
+    );
+
+    return {
+      ...updatedBankInfo,
+      tokenData: bank.tokenData,
+    };
+  };
+
+  const updatedPool = {
+    ...group.pool,
+    token: updateBank(group.pool.token),
+    quoteTokens: group.pool.quoteTokens.map(updateBank),
+  };
+
+  return updatedPool;
+}
 
 export { createTradeStore };
 export type { TradeStoreState };

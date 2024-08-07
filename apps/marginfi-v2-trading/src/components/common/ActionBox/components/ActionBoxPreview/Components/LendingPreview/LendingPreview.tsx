@@ -1,6 +1,6 @@
 import React from "react";
 
-import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActionType, DEFAULT_ACCOUNT_SUMMARY, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 
 import { useTradeStore } from "~/store";
@@ -30,11 +30,22 @@ export const LendingPreview = ({
   addAdditionalsPopup,
   children,
 }: ActionBoxPreviewProps) => {
-  const [marginfiClient, accountSummary] = useTradeStore((state) => [state.marginfiClient, state.accountSummary]);
+  const [marginfiClient, activeGroupPk, groupMap] = useTradeStore((state) => [
+    state.marginfiClient,
+    state.activeGroup,
+    state.groupMap,
+  ]);
+
+  const activeGroup = React.useMemo(() => {
+    if (activeGroupPk) {
+      return groupMap.get(activeGroupPk.toBase58()) ?? null;
+    }
+    return null;
+  }, [activeGroupPk, groupMap]);
 
   const { preview, previewStats, isLoading, actionMethod } = useLendingPreview({
     marginfiClient,
-    accountSummary,
+    accountSummary: activeGroup?.accountSummary ?? DEFAULT_ACCOUNT_SUMMARY,
     actionMode,
     account: selectedAccount,
     bank: selectedBank,
