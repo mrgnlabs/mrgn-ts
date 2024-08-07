@@ -1,60 +1,6 @@
 import * as admin from "firebase-admin";
 import { UserRecord } from "firebase-admin/lib/auth/user-record";
-import { v4 as uuidv4 } from "uuid";
-
-export const logSignupAttempt = async (
-  publicKey: string,
-  uuid: string | null,
-  signature: string,
-  successful: boolean,
-  walletId: string = ""
-) => {
-  try {
-    const db = admin.firestore();
-    const loginsCollection = db.collection("logins");
-    const usersCollection = db.collection("users");
-    await loginsCollection.add({
-      publicKey,
-      uuid,
-      signature,
-      successful,
-      walletId,
-      timestamp: admin.firestore.FieldValue.serverTimestamp(),
-    });
-    await usersCollection.doc(publicKey).update({
-      lastUsedWalletId: walletId,
-    });
-  } catch (error: any) {
-    console.error("Error logging sign-up attempt:", error);
-  }
-};
-
-export const logLoginAttempt = async (
-  publicKey: string,
-  uuid: string | null,
-  signature: string,
-  successful: boolean,
-  walletId: string = ""
-) => {
-  try {
-    const db = admin.firestore();
-    const loginsCollection = db.collection("logins");
-    const usersCollection = db.collection("users");
-    await loginsCollection.add({
-      publicKey,
-      uuid,
-      signature,
-      successful,
-      walletId,
-      timestamp: admin.firestore.FieldValue.serverTimestamp(),
-    });
-    await usersCollection.doc(publicKey).update({
-      lastUsedWalletId: walletId,
-    });
-  } catch (error: any) {
-    console.error("Error logging log-in attempt:", error);
-  }
-};
+import generatePassword from "omgopass";
 
 export function initFirebaseIfNeeded() {
   // Check if the app is already initialized to avoid initializing multiple times
@@ -70,6 +16,28 @@ export function initFirebaseIfNeeded() {
   }
 }
 
+// function to get the referral code for a given wallet address
+// if the wallet address is not in the referral table, then add it with a random code
+export async function getReferralCode(walletAddress: string) {
+  const db = admin.firestore();
+  const user = await db.collection("arena_referrals").doc(walletAddress).get();
+
+  if (!user.exists) {
+    const referralCode = generatePassword({
+      minSyllableLength: 4,
+      maxSyllableLength: 6,
+      hasNumbers: false,
+      titlecased: false,
+      separators: "-",
+    });
+
+    await db.collection("arena_referrals").doc(walletAddress).set({ referralCode });
+    return referralCode;
+  }
+
+  return user.data()?.referralCode;
+}
+
 export async function getFirebaseUserByWallet(walletAddress: string): Promise<UserRecord | undefined> {
   try {
     const user = await admin.auth().getUser(walletAddress);
@@ -80,46 +48,6 @@ export async function getFirebaseUserByWallet(walletAddress: string): Promise<Us
     }
     throw error;
   }
-}
-
-export async function createFirebaseUser(walletAddress: string, referralCode?: string) {
-  const db = admin.firestore();
-  let referredBy = null;
-
-  // Validate referrer code if one exists
-  let referrerQuery;
-  const referralCodeLower = referralCode?.toLowerCase();
-  if (referralCodeLower) {
-    // Do the standard search
-    referrerQuery = await db.collection("users").where("referralCode", "==", referralCodeLower).limit(1).get();
-    if (!referrerQuery.empty) {
-      console.log("found standard referral code");
-      const referrerDoc = referrerQuery.docs[0];
-      referredBy = referrerDoc.id;
-    } else {
-      referrerQuery = await db
-        .collection("users")
-        .where("referralCode", "array-contains", referralCodeLower)
-        .limit(1)
-        .get();
-      if (!referrerQuery.empty) {
-        console.log("found multiple referral codes for user");
-        const referrerDoc = referrerQuery.docs[0];
-        referredBy = referrerDoc.id;
-      }
-    }
-  }
-
-  // Create new user in Firebase Auth
-  await admin.auth().createUser({
-    uid: walletAddress,
-  });
-
-  // Create new user in Firestore
-  await db.collection("users").doc(walletAddress).set({
-    referredBy,
-    referralCode: uuidv4(),
-  });
 }
 
 export async function getLastUsedWallet(wallet: string) {
