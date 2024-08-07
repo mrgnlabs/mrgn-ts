@@ -116,7 +116,7 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
   actionMode: ActionType.Deposit,
   poolFilter: PoolTypes.ALL,
   sortOption: SORT_OPTIONS_MAP[SortType.TVL_DESC],
-  platformFeeBps: 10,
+  platformFeeBps: 30,
   selectedTokenBank: null,
   priorityFee: 0,
   isActionComplete: false,

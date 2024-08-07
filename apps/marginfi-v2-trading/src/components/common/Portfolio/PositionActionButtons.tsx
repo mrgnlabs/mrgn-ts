@@ -59,7 +59,6 @@ export const PositionActionButtons = ({
   }, [bank, collateralBank]);
 
   const closeTransaction = React.useCallback(async () => {
-    console.log({ marginfiAccount, collateralBank, marginfiClient });
     if (!marginfiAccount || !collateralBank) return;
 
     let client = marginfiClient;
