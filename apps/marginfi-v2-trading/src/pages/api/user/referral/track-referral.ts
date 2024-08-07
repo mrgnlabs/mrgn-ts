@@ -22,15 +22,16 @@ export type GetCodeResponse =
 export default async function handler(req: NextApiRequest<GetCodeRequest>, res: NextApiResponse<GetCodeResponse>) {
   const { wallet, referralCode } = req.body;
 
+  console.log("track-referral", wallet, referralCode);
+
   if (!wallet || !referralCode) {
     return res.status(STATUS_BAD_REQUEST).json({ error: "Invalid request" });
   }
 
   try {
     const code = await trackReferral(wallet, referralCode);
-    console.log("code", code);
     if (!code) {
-      return res.status(STATUS_NOT_FOUND).json({ error: "Referral not tracked" });
+      return res.status(STATUS_OK).json({ error: "Referral not tracked" });
     }
     return res.status(STATUS_OK).json({ wallet, referralTracked: true });
   } catch (error: any) {
