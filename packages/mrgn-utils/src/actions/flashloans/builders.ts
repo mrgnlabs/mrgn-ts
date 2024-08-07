@@ -19,7 +19,8 @@ export async function calculateRepayCollateralParams(
   amount: number,
   slippageBps: number,
   connection: Connection,
-  priorityFee: number
+  priorityFee: number,
+  platformFeeBps?: number
 ): Promise<
   | {
       repayTxn: VersionedTransaction;
@@ -44,6 +45,7 @@ export async function calculateRepayCollateralParams(
       slippageBps: slippageBps,
       maxAccounts: maxAccounts,
       swapMode: "ExactIn",
+      platformFeeBps: platformFeeBps,
     } as QuoteGetRequest;
     try {
       const swapQuote = await getSwapQuoteWithRetry(quoteParams);

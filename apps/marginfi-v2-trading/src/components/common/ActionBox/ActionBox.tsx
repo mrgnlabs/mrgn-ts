@@ -190,8 +190,9 @@ export const ActionBox = ({
   }, [extendedBankInfos, refreshSelectedBanks]);
 
   React.useEffect(() => {
-    if (errorMessage !== "") {
-      showErrorToast(errorMessage);
+    if (errorMessage !== null && errorMessage.description) {
+      showErrorToast(errorMessage?.description);
+      setAdditionalActionMethods([errorMessage]);
     }
   }, [errorMessage]);
 
