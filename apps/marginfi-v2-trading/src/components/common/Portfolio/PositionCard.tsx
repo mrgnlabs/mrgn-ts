@@ -105,6 +105,7 @@ export const PositionCard = ({ groupData, isLong }: PositionCardProps) => {
           <PositionActionButtons
             marginfiClient={groupData.client}
             marginfiAccount={groupData.selectedAccount}
+            activeGroup={groupData}
             isBorrowing={isBorrowing}
             bank={groupData.pool.token}
             collateralBank={groupData.pool.quoteTokens[0]}

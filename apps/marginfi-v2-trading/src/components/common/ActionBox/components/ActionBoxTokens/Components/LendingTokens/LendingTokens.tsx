@@ -87,6 +87,8 @@ export const LendingTokens = ({
     [lendingMode]
   );
 
+  console.log("I'm here");
+
   return (
     <>
       {!isSelectable && (
@@ -117,6 +119,7 @@ export const LendingTokens = ({
                 onClose={() => setIsOpen(false)}
                 onSetSelectedRepayBank={setSelectedRepayBank}
                 selectedRepayBank={null}
+                activeGroup={activeGroup}
                 tokensOverride={tokensOverride}
               />
             ) : (
@@ -124,6 +127,7 @@ export const LendingTokens = ({
                 isOpen={isOpen}
                 onClose={() => setIsOpen(false)}
                 selectedBank={selectedBank}
+                activeGroup={activeGroup}
                 onSetSelectedBank={setSelectedBank}
                 isDialog={isDialog}
                 actionMode={actionType}
