@@ -12,11 +12,13 @@ import { CommandEmpty, CommandGroup, CommandItem } from "~/components/ui/command
 import { BuyWithMoonpay, ActionBoxItem } from "~/components/common/ActionBox/components";
 
 import { TokenListCommand } from "../../SharedComponents";
+import { GroupData } from "~/store/tradeStore";
 
 type LendingTokensListProps = {
   selectedBank: ExtendedBankInfo | null;
   isOpen: boolean;
   actionMode: ActionType;
+  activeGroup: GroupData | null;
   isDialog?: boolean;
   tokensOverride?: ExtendedBankInfo[];
 
@@ -27,6 +29,7 @@ type LendingTokensListProps = {
 export const LendingTokensList = ({
   selectedBank,
   actionMode,
+  activeGroup: activeGroupData,
   onSetSelectedBank,
   isOpen,
   onClose,
@@ -37,8 +40,8 @@ export const LendingTokensList = ({
 
   const activeGroup = React.useMemo(() => {
     const group = activeGroupPk ? groupMap.get(activeGroupPk.toBase58()) : null;
-    return group ? { token: group.pool.token, usdc: group.pool.quoteTokens[0] } : null;
-  }, [activeGroupPk, groupMap]);
+    return activeGroupData ?? group ?? null;
+  }, [activeGroupPk, activeGroupData, groupMap]);
 
   const lendingMode = React.useMemo(
     () =>
@@ -47,7 +50,11 @@ export const LendingTokensList = ({
   );
 
   const extendedBankInfos = React.useMemo(() => {
-    return tokensOverride ? tokensOverride : activeGroup ? [activeGroup.usdc, activeGroup.token] : [];
+    return tokensOverride
+      ? tokensOverride
+      : activeGroup
+      ? [...activeGroup.pool.quoteTokens, activeGroup.pool.token]
+      : [];
   }, [activeGroup, tokensOverride]);
 
   const [searchQuery, setSearchQuery] = React.useState("");

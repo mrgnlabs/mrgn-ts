@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { numeralFormatter, tokenPriceFormatter, usdFormatter, percentFormatter } from "@mrgnlabs/mrgn-common";
+import { numeralFormatter, tokenPriceFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 
 import { getTokenImageURL } from "~/utils";
 import { useTradeStore } from "~/store";
@@ -15,20 +15,12 @@ import { Badge } from "~/components/ui/badge";
 import { GroupData } from "~/store/tradeStore";
 
 export const PositionList = () => {
-  const [activeGroupPk, groupMap, portfolio] = useTradeStore((state) => [
-    state.activeGroup,
-    state.groupMap,
-    state.portfolio,
-  ]);
-
-  const activeGroup = React.useMemo(() => {
-    return activeGroupPk ? groupMap.get(activeGroupPk.toBase58()) : undefined;
-  }, [activeGroupPk, groupMap]);
+  const [portfolio] = useTradeStore((state) => [state.portfolio]);
 
   const portfolioCombined = React.useMemo(() => {
-    if (!portfolio || !activeGroup) return [];
+    if (!portfolio) return [];
 
-    const isActiveGroupPosition = (item: GroupData) => item.pool.token.address.equals(activeGroup.pool.token.address);
+    const isActiveGroupPosition = (item: GroupData) => item.pool.token.isActive;
 
     const activeGroupPosition = [...portfolio.long, ...portfolio.short].find(isActiveGroupPosition);
 
@@ -36,7 +28,7 @@ export const PositionList = () => {
     const sortedShorts = portfolio.short.filter((item) => !isActiveGroupPosition(item));
 
     return [...(activeGroupPosition ? [activeGroupPosition] : []), ...sortedLongs, ...sortedShorts];
-  }, [portfolio, activeGroup]);
+  }, [portfolio]);
 
   if (!portfolio) return null;
 
@@ -151,7 +143,7 @@ export const PositionList = () => {
                       marginfiAccount={group.marginfiAccounts[0]}
                       isBorrowing={isBorrowing}
                       bank={group.pool.token as ActiveBankInfo}
-                      activeGroup={activeGroup}
+                      activeGroup={group}
                       collateralBank={group.pool.quoteTokens[0] as ActiveBankInfo}
                     />
                   )}
