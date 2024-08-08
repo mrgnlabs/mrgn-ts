@@ -10,6 +10,7 @@ import {
   IconBrandDiscordFilled,
   IconBrandReddit,
 } from "@tabler/icons-react";
+import { CopyToClipboard } from "react-copy-to-clipboard";
 
 import { useTradeStore } from "~/store";
 
@@ -42,9 +43,11 @@ export const PoolShare = () => {
               value={`${window.location.origin}/trade/${activeGroup.client.group.address.toBase58()}`}
               readOnly
             />
-            <button className="cursor-pointer rounded-md p-2 transition-colors hover:bg-accent">
-              <IconCopy size={16} />
-            </button>
+            <CopyToClipboard text={`${window.location.origin}/trade/${activeGroup.client.group.address.toBase58()}`}>
+              <button className="cursor-pointer rounded-md p-2 transition-colors hover:bg-accent">
+                <IconCopy size={16} />
+              </button>
+            </CopyToClipboard>
           </div>
           <div className="flex items-center gap-2 text-xs pl-0.5">
             <span className="-translate-y-0.5 font-medium">Share to:</span>
