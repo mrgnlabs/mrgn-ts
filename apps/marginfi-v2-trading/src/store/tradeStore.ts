@@ -313,69 +313,7 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
           groupMap.set(id, { ...group, pool: updatedPool });
         }
 
-        const longPositions: GroupData[] = [];
-        const shortPositions: GroupData[] = [];
-        const lpPositions: GroupData[] = [];
-
-        groupMap.forEach((group) => {
-          const tokenBank = group.pool.token;
-          const quoteTokens = group.pool.quoteTokens;
-
-          let isLpPosition = true;
-          let hasAnyPosition = false;
-          let isLendingInAny = false;
-          let isLong = false;
-          let isShort = false;
-
-          if (tokenBank.isActive && tokenBank.position) {
-            hasAnyPosition = true;
-            if (tokenBank.position.isLending) {
-              isLendingInAny = true;
-            } else if (tokenBank.position.usdValue > 0) {
-              isShort = true;
-              isLpPosition = false;
-            }
-          }
-
-          quoteTokens.forEach((quoteToken) => {
-            if (quoteToken.isActive && quoteToken.position) {
-              hasAnyPosition = true;
-              if (quoteToken.position.isLending) {
-                isLendingInAny = true;
-              } else if (quoteToken.position.usdValue > 0) {
-                if (tokenBank.isActive && tokenBank.position && tokenBank.position.isLending) {
-                  isLong = true;
-                }
-                isLpPosition = false;
-              }
-            }
-          });
-
-          if (hasAnyPosition) {
-            if (isLpPosition && isLendingInAny) {
-              lpPositions.push(group);
-            } else if (isLong) {
-              longPositions.push(group);
-            } else if (isShort) {
-              shortPositions.push(group);
-            }
-          }
-        });
-
-        const sortGroupsByUsdValue = (groups: GroupData[]) =>
-          groups.sort((a, b) => {
-            const aValue = a.pool.token.isActive && a.pool.token.position ? a.pool.token.position.usdValue : 0;
-            const bValue = b.pool.token.isActive && b.pool.token.position ? b.pool.token.position.usdValue : 0;
-            return bValue - aValue;
-          });
-
-        if (longPositions.length > 0 || shortPositions.length > 0 || lpPositions.length > 0) {
-          portfolio = {
-            long: sortGroupsByUsdValue(longPositions),
-            short: sortGroupsByUsdValue(shortPositions),
-            lpPositions: lpPositions,
-          };
-        }
+        portfolio = getPorfolioData(groupMap);
 
         // fetch / create referral code
         if (!referralCode) {
@@ -475,7 +413,8 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
         tokenMetadataCache,
       });
 
-      console.log("groupData", groupData);
+      let portfolio: Portfolio | null = null;
+
       groupMap.set(activeGroup.toBase58(), groupData);
 
       if (!wallet.publicKey.equals(PublicKey.default)) {
@@ -497,17 +436,14 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
 
         const updatedPool = await getUpdatedGroupPool({ group: groupData, tokenAccountMap, nativeSolBalance });
         groupMap.set(activeGroup.toBase58(), { ...groupData, pool: updatedPool });
-        console.log("updated pool", updatedPool);
-        console.log("groupData", groupData);
-        console.log("groupRefreshed", { ...groupData, pool: updatedPool });
-        console.log("groupMap", groupMap);
-        console.log("activeGroup.toBase58()", activeGroup.toBase58());
+
+        portfolio = getPorfolioData(groupMap);
       }
 
       set({
         marginfiClient,
+        portfolio,
         groupMap,
-        activeGroup: activeGroup,
         wallet: wallet,
         connection: connection,
       });
@@ -826,6 +762,76 @@ async function getUpdatedGroupPool({
   };
 
   return updatedPool;
+}
+
+function getPorfolioData(groupMap: Map<string, GroupData>) {
+  const longPositions: GroupData[] = [];
+  const shortPositions: GroupData[] = [];
+  const lpPositions: GroupData[] = [];
+
+  let portfolio: Portfolio | null = null;
+
+  groupMap.forEach((group) => {
+    const tokenBank = group.pool.token;
+    const quoteTokens = group.pool.quoteTokens;
+
+    let isLpPosition = true;
+    let hasAnyPosition = false;
+    let isLendingInAny = false;
+    let isLong = false;
+    let isShort = false;
+
+    if (tokenBank.isActive && tokenBank.position) {
+      hasAnyPosition = true;
+      if (tokenBank.position.isLending) {
+        isLendingInAny = true;
+      } else if (tokenBank.position.usdValue > 0) {
+        isShort = true;
+        isLpPosition = false;
+      }
+    }
+
+    quoteTokens.forEach((quoteToken) => {
+      if (quoteToken.isActive && quoteToken.position) {
+        hasAnyPosition = true;
+        if (quoteToken.position.isLending) {
+          isLendingInAny = true;
+        } else if (quoteToken.position.usdValue > 0) {
+          if (tokenBank.isActive && tokenBank.position && tokenBank.position.isLending) {
+            isLong = true;
+          }
+          isLpPosition = false;
+        }
+      }
+    });
+
+    if (hasAnyPosition) {
+      if (isLpPosition && isLendingInAny) {
+        lpPositions.push(group);
+      } else if (isLong) {
+        longPositions.push(group);
+      } else if (isShort) {
+        shortPositions.push(group);
+      }
+    }
+  });
+
+  const sortGroupsByUsdValue = (groups: GroupData[]) =>
+    groups.sort((a, b) => {
+      const aValue = a.pool.token.isActive && a.pool.token.position ? a.pool.token.position.usdValue : 0;
+      const bValue = b.pool.token.isActive && b.pool.token.position ? b.pool.token.position.usdValue : 0;
+      return bValue - aValue;
+    });
+
+  if (longPositions.length > 0 || shortPositions.length > 0 || lpPositions.length > 0) {
+    portfolio = {
+      long: sortGroupsByUsdValue(longPositions),
+      short: sortGroupsByUsdValue(shortPositions),
+      lpPositions: lpPositions,
+    };
+  }
+
+  return portfolio;
 }
 
 export { createTradeStore };
