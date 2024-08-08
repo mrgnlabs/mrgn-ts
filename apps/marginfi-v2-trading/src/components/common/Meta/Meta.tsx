@@ -1,5 +1,6 @@
-import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import Head from "next/head";
+
+import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 type MrgnProps = {
   path: string;
@@ -9,28 +10,36 @@ type MrgnProps = {
   } | null;
 };
 
-export const Meta = ({ path, activeGroup }: MrgnProps) => {
-  const pageTitle = path.split("/")[1];
-  let title = (path === "/" ? "Memecoin trading, with leverage" : pageTitle) + " - the arena";
+export const Meta = ({ path }: MrgnProps) => {
+  let title = "The Arena";
+  let description = "";
+  const pageTitlePart = path.split("/").pop();
+  const pageTitle = pageTitlePart ? pageTitlePart.charAt(0).toUpperCase() + pageTitlePart.slice(1) : "";
 
-  if (activeGroup) {
-    if (path.includes("trade")) {
-      title = `trade ${activeGroup.token.meta.tokenSymbol} with leverage - the arena`;
-    } else if (path.includes("pool")) {
-      title = `${activeGroup.token.meta.tokenSymbol} - the arena`;
-    }
+  if (path !== "/") {
+    title = pageTitle + " | " + title;
+    description = "Memecoin trading, with leverage.";
   }
+
+  if (path.includes("trade/")) {
+    title = "custom token info";
+    description = "custom token description";
+  }
+
+  console.log(path);
+
   return (
     <Head>
       <title>{title}</title>
 
-      {path === "/" && (
+      {description.length > 0 && (
         <>
-          <meta name="description" content="Memecoin trading, with leverage." />
-          <meta property="og:description" content="Memecoin trading, with leverage." />
-          <meta name="twitter:description" content="Memecoin trading, with leverage." />
+          <meta name="description" content={description} />
+          <meta property="og:description" content={description} />
+          <meta name="twitter:description" content={description} />
         </>
       )}
+
       <meta property="og:title" content={title} />
       <meta property="og:url" content="https://www.thearena.trade/" />
       <meta property="og:type" content="website" />
