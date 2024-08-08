@@ -24,6 +24,7 @@ import { TVWidget } from "~/components/common/TVWidget";
 import { TradingBox } from "~/components/common/TradingBox";
 import { PositionList } from "~/components/common/Portfolio";
 import { TokenCombobox } from "~/components/common/TokenCombobox";
+import { PoolShare } from "~/components/common/Pool/PoolShare";
 import { Loader } from "~/components/ui/loader";
 import { TooltipProvider, Tooltip, TooltipContent, TooltipTrigger } from "~/components/ui/tooltip";
 import { Button } from "~/components/ui/button";
@@ -44,6 +45,7 @@ export default function TradeSymbolPage() {
     state.groupMap,
     state.portfolio,
   ]);
+  const [previousTxn] = useUiStore((state) => [state.previousTxn]);
 
   const activeGroup = React.useMemo(() => {
     return activeGroupPk ? groupMap.get(activeGroupPk.toBase58()) : null;
@@ -75,8 +77,6 @@ export default function TradeSymbolPage() {
     return long || short;
   }, [portfolio, activeGroup]);
 
-  const [previousTxn] = useUiStore((state) => [state.previousTxn]);
-
   return (
     <>
       <div className="w-full max-w-8xl mx-auto px-4 pt-8 pb-24 mt:pt-8 md:px-8">
@@ -85,7 +85,7 @@ export default function TradeSymbolPage() {
           <div className="w-full space-y-4">
             <div className="bg-background border rounded-xl px-4 py-10 lg:px-8">
               <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
-                <div className="flex flex-col items-center px-8 w-full lg:w-1/4 xl:w-[35%]">
+                <div className="flex flex-col items-center px-8 w-full lg:w-1/4 xl:w-1/2">
                   <Image
                     src={getTokenImageURL(activeGroup.pool.token.info.state.mint.toBase58())}
                     alt={activeGroup.pool.token.meta.tokenSymbol}
@@ -105,10 +105,8 @@ export default function TradeSymbolPage() {
                       {activeGroup.pool.token.meta.tokenName} <IconChevronDown size={18} />
                     </h1>
                   </TokenCombobox>
-                  <p className="text-sm text-muted-foreground mt-1 lg:mt-0">
-                    {activeGroup.pool.token.meta.tokenSymbol}
-                  </p>
-                  <p className="text-sm text-muted-foreground mt-1 lg:mt-2">
+                  <p className="text-sm text-muted-foreground">{activeGroup.pool.token.meta.tokenSymbol}</p>
+                  <p className="text-sm text-muted-foreground">
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger>
@@ -128,10 +126,11 @@ export default function TradeSymbolPage() {
                       </Tooltip>
                     </TooltipProvider>
                   </p>
+                  <PoolShare />
                 </div>
                 <div className="w-full space-y-10">
                   {activeGroup.pool.token.tokenData && (
-                    <div className="grid w-full max-w-md mx-auto gap-1 lg:gap-0 lg:max-w-none lg:grid-cols-4">
+                    <div className="grid w-full max-w-md mx-auto gap-1 lg:gap-16 lg:max-w-none lg:grid-cols-3">
                       <div className="grid grid-cols-2 lg:block">
                         <p className="text-sm text-muted-foreground">Price</p>
                         <p className="text-sm text-right lg:text-left lg:text-2xl">
@@ -170,18 +169,18 @@ export default function TradeSymbolPage() {
                           ${numeralFormatter(activeGroup.pool.token.tokenData.marketCap)}
                         </p>
                       </div>
-                      {activeGroup.pool.poolData && (
+                      {/* {activeGroup.pool.poolData && (
                         <div className="grid grid-cols-2 lg:block">
                           <p className="text-sm text-muted-foreground">Lending pool liquidity</p>
                           <p className="text-sm text-right lg:text-left lg:text-2xl">
                             ${numeralFormatter(activeGroup.pool.poolData.totalLiquidity)}
                           </p>
                         </div>
-                      )}
+                      )} */}
                     </div>
                   )}
-                  <div className="w-full grid gap-4 max-w-md mx-auto lg:gap-0 lg:max-w-none lg:grid-cols-4">
-                    <div className="flex flex-row justify-between space-y-1 lg:block">
+                  <div className="w-full grid gap-4 max-w-md mx-auto lg:gap-16 lg:max-w-none lg:grid-cols-3">
+                    <div className="flex flex-row justify-between space-y-2 lg:block">
                       <div className="flex items-start gap-2 translate-y-0.5">
                         <Image
                           src={getTokenImageURL(activeGroup.pool.token.info.state.mint.toBase58())}
@@ -213,7 +212,10 @@ export default function TradeSymbolPage() {
                         lpPosition.token.pool.token.isActive &&
                         activeGroup.selectedAccount ? (
                           <DropdownMenu>
-                            <DropdownMenuTrigger className="focus:outline-none focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0">
+                            <DropdownMenuTrigger
+                              className="focus:outline-none focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                              asChild
+                            >
                               <Button size="sm" variant="outline" className="px-2 py-1.5 h-auto lg:px-4 lg:py-2">
                                 Supplied {numeralFormatter(lpPosition.token.pool.token.position.amount)}
                                 <div className="border-l pl-2 ml-1">
@@ -260,7 +262,7 @@ export default function TradeSymbolPage() {
                         )}
                       </div>
                     </div>
-                    <div className="flex flex-row justify-between space-y-1 lg:block">
+                    <div className="flex flex-row justify-between space-y-2 lg:block">
                       <div className="flex items-start gap-2">
                         <Image
                           src={getTokenImageURL(activeGroup.pool.quoteTokens[0].info.state.mint.toBase58())}
