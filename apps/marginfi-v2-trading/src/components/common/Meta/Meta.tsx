@@ -1,23 +1,20 @@
 import Head from "next/head";
 
-import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { BankMetadataRaw } from "@mrgnlabs/mrgn-common";
 
 type MrgnProps = {
   path: string;
-  activeGroup?: {
-    token: ExtendedBankInfo;
-    usdc: ExtendedBankInfo;
-  } | null;
+  bank: BankMetadataRaw | null;
 };
 
-export const Meta = ({ path }: MrgnProps) => {
+export const Meta = ({ path, bank }: MrgnProps) => {
   let title = "The Arena";
   let description = "";
   const pageTitlePart = path.split("/").pop();
   const pageTitle = pageTitlePart ? pageTitlePart.charAt(0).toUpperCase() + pageTitlePart.slice(1) : "";
 
   if (path !== "/") {
-    title = pageTitle + " | " + title;
+    title = pageTitle + " - The Arena";
     description = "Memecoin trading, with leverage.";
   }
 
@@ -26,7 +23,10 @@ export const Meta = ({ path }: MrgnProps) => {
     description = "custom token description";
   }
 
-  console.log(path);
+  if (bank) {
+    title = bank.tokenSymbol + " - The Arena";
+    description = `Long / shot ${bank.tokenSymbol} with leverage in The Arena.`;
+  }
 
   return (
     <Head>
