@@ -1,20 +1,19 @@
 import React from "react";
+import { IconMinus, IconX, IconPlus } from "@tabler/icons-react";
+import { PublicKey, Transaction } from "@solana/web3.js";
+
 import { MarginfiAccountWrapper, MarginfiClient, getConfig } from "@mrgnlabs/marginfi-client-v2";
 import { ActiveBankInfo, ExtendedBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
-import { IconMinus, IconX, IconPlus } from "@tabler/icons-react";
 
 import { useConnection } from "~/hooks/useConnection";
 import { useTradeStore, useUiStore } from "~/store";
-import { ActiveGroup } from "~/store/tradeStore";
+import { GroupData } from "~/store/tradeStore";
 import { useWalletContext } from "~/hooks/useWalletContext";
-import { cn, extractErrorString } from "~/utils";
+import { calculateClosePositions, cn, extractErrorString } from "~/utils";
 import { MultiStepToastHandle } from "~/utils/toastUtils";
 
 import { ActionBoxDialog } from "~/components/common/ActionBox";
 import { Button } from "~/components/ui/button";
-
-import { getCloseTransaction } from "../TradingBox/tradingBox.utils";
-import { PublicKey, Transaction } from "@solana/web3.js";
 
 type PositionActionButtonsProps = {
   marginfiClient: MarginfiClient | null;
@@ -23,7 +22,7 @@ type PositionActionButtonsProps = {
   bank: ActiveBankInfo;
   collateralBank?: ExtendedBankInfo | null;
   rightAlignFinalButton?: boolean;
-  activeGroup?: ActiveGroup;
+  activeGroup?: GroupData;
 };
 
 export const PositionActionButtons = ({
@@ -38,10 +37,10 @@ export const PositionActionButtons = ({
   const { connection } = useConnection();
   const { wallet } = useWalletContext();
   const [platformFeeBps] = useUiStore((state) => [state.platformFeeBps]);
-  const [groupsCache, setIsRefreshingStore, fetchTradeState] = useTradeStore((state) => [
+  const [groupsCache, refreshGroup, setIsRefreshingStore] = useTradeStore((state) => [
     state.groupsCache,
+    state.refreshGroup,
     state.setIsRefreshingStore,
-    state.fetchTradeState,
   ]);
   const [slippageBps, priorityFee] = useUiStore((state) => [state.slippageBps, state.priorityFee]);
 
@@ -60,7 +59,6 @@ export const PositionActionButtons = ({
   }, [bank, collateralBank]);
 
   const closeTransaction = React.useCallback(async () => {
-    console.log({ marginfiAccount, collateralBank, marginfiClient });
     if (!marginfiAccount || !collateralBank) return;
 
     let client = marginfiClient;
@@ -98,40 +96,36 @@ export const PositionActionButtons = ({
         throw new Error("Invalid client");
       }
 
-      const txns = await getCloseTransaction({
+      const txns = await calculateClosePositions({
         marginfiAccount,
-        borrowBank: borrowBank,
         depositBanks: depositBanks,
+        borrowBank: borrowBank,
         slippageBps,
         connection: connection,
         priorityFee,
         platformFeeBps,
       });
 
-      if (!txns) {
-        throw new Error("Something went wrong.");
-      }
-
-      let txnSig: string | string[];
-
-      if (txns instanceof Transaction) {
-        txnSig = await client.processTransaction(txns);
-        multiStepToast.setSuccessAndNext();
-      } else {
-        txnSig = await client.processTransactions([
-          ...(txns.bundleTipTxn ? [txns.bundleTipTxn] : []),
-          txns.flashloanTx,
-        ]);
-        multiStepToast.setSuccessAndNext();
+      let txnSig: string | string[] = "";
+      if ("description" in txns) {
+        throw new Error(txns?.description ?? "Something went wrong.");
+      } else if ("closeTxn" in txns) {
+        if (txns.closeTxn instanceof Transaction) {
+          txnSig = await client.processTransaction(txns.closeTxn);
+          multiStepToast.setSuccessAndNext();
+        } else {
+          txnSig = await client.processTransactions([...(txns.bundleTipTxn ? [txns.bundleTipTxn] : []), txns.closeTxn]);
+          multiStepToast.setSuccessAndNext();
+        }
       }
 
       // -------- Refresh state
       try {
         setIsRefreshingStore(true);
-        await fetchTradeState({
+        await refreshGroup({
           connection,
           wallet,
-          refresh: true,
+          groupPk: activeGroup?.groupPk,
         });
       } catch (error: any) {
         console.log("Error while reloading state");
@@ -160,7 +154,6 @@ export const PositionActionButtons = ({
     groupsCache,
     wallet,
     setIsRefreshingStore,
-    fetchTradeState,
   ]);
 
   return (

@@ -36,11 +36,10 @@
     --chart-5: 27 87% 67%;
 
     /* brand vars */
+    --mrgn-green: 78 100% 43%;
     --mrgn-chartreuse: 66 75% 64%;
     --mrgn-gold: 33 16% 67%;
     --mrgn-slate: 72 3% 32%;
-
-    --tv-color-pane-background: #ff0000;
   }
 }
 
@@ -348,8 +347,21 @@ input::-webkit-inner-spin-button {
   pointer-events: none;
 }
 
-#jupiter-terminal .bg-\[\#212128\] {
-  background: #f4f4f5 !important;
+#jupiter-terminal .text-white,
+#jupiter-terminal .text-white\/75,
+#jupiter-terminal .text-white\/50 {
+  color: hsl(var(--foreground)) !important;
+}
+
+#jupiter-terminal .bg-\[\#212128\],
+#jupiter-terminal .bg-\[\#191B1F\] {
+  background: hsl(var(--accent)) !important;
+  color: hsl(var(--accent-foreground)) !important;
+}
+
+#jupiter-terminal .bg-\[\#212128\],
+#jupiter-terminal .bg-\[\#191B1F\] .text-white {
+  color: hsl(var(--accent-foreground)) !important;
 }
 
 #jupiter-terminal .bg-jupiter-bg {
@@ -385,13 +397,24 @@ input::-webkit-inner-spin-button {
   padding: 0 !important;
 }
 
+#jupiter-terminal form .rounded-xl button {
+  border-radius: 8px !important;
+  background: hsl(var(--background)) !important;
+  color: hsl(var(--muted-foreground)) !important;
+  border: solid 1px hsl(var(--border)) !important;
+}
+
+#jupiter-terminal form .rounded-xl button span {
+  color: hsl(var(--muted-foreground)) !important;
+}
+
+#jupiter-terminal form .rounded-xl button .font-semibold {
+  margin-left: 8px !important;
+}
+
 #jupiter-terminal .text-white\/30,
 #jupiter-terminal input.text-white {
   color: hsl(var(--secondary-foreground)) !important;
-}
-
-#jupiter-terminal .bg-\[\#36373E\] {
-  background: hsl(var(--primary)) !important;
 }
 
 #jupiter-terminal .bg-\[\#36373E\]:hover {
@@ -405,4 +428,19 @@ input::-webkit-inner-spin-button {
 
 #jupiter-terminal .border.border-black\/50 path {
   fill: hsl(var(--primary)) !important;
+}
+
+#jupiter-terminal .bg-\[\#25252D\] {
+  background: hsl(var(--accent)) !important;
+  color: hsl(var(--accent-foreground)) !important;
+  border: none !important;
+}
+
+#jupiter-terminal .bg-\[\#25252D\] .text-white\/75 {
+  color: hsl(var(--accent-foreground)) !important;
+}
+
+#jupiter-terminal a.text-white\/50 {
+  color: hsl(var(--accent-foreground)) !important;
+  text-decoration: underline !important;
 }

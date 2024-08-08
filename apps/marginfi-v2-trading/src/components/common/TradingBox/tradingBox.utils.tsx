@@ -1,614 +1,27 @@
-import { QuoteGetRequest, QuoteResponse, createJupiterApiClient } from "@jup-ag/api";
-import { JUPITER_PROGRAM_V6_ID } from "@jup-ag/react-hook";
 import {
   Bank,
   MarginRequirementType,
   MarginfiAccountWrapper,
   MarginfiClient,
   OperationalState,
-  ProcessTransactionError,
   SimulationResult,
-  computeLoopingParams,
 } from "@mrgnlabs/marginfi-client-v2";
-import { AccountSummary, ActionType, ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { AccountSummary, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { Wallet, percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 import {
-  LUT_PROGRAM_AUTHORITY_INDEX,
-  Wallet,
-  nativeToUi,
-  percentFormatter,
-  uiToNative,
-  usdFormatter,
-} from "@mrgnlabs/mrgn-common";
-import { AddressLookupTableAccount, Connection, PublicKey, VersionedTransaction } from "@solana/web3.js";
-import BigNumber from "bignumber.js";
-import { IconArrowRight, IconPyth, IconSwitchboard } from "~/components/ui/icons";
-import { Skeleton } from "~/components/ui/skeleton";
-import {
-  ActionMethod,
-  ActionMethodType,
-  cn,
-  deserializeInstruction,
   DYNAMIC_SIMULATION_ERRORS,
-  extractErrorString,
-  getAdressLookupTableAccounts,
-  getFeeAccount,
-  getSwapQuoteWithRetry,
-  isBankOracleStale,
+  loopingBuilder,
+  LoopingObject,
+  LoopingOptions,
   STATIC_SIMULATION_ERRORS,
-} from "~/utils";
+} from "@mrgnlabs/mrgn-utils";
+import { VersionedTransaction } from "@solana/web3.js";
+import { IconArrowRight, IconPyth, IconSwitchboard } from "~/components/ui/icons";
+import { GroupData } from "~/store/tradeStore";
+import { ActionMethod, cn, extractErrorString, isBankOracleStale } from "~/utils";
 import { MultiStepToastHandle, showErrorToast } from "~/utils/toastUtils";
 
 export type TradeSide = "long" | "short";
-
-export interface LoopingObject {
-  loopingTxn: VersionedTransaction | null;
-  bundleTipTxn: VersionedTransaction | null;
-  quote: QuoteResponse;
-  borrowAmount: BigNumber;
-  actualDepositAmount: number;
-}
-
-export async function calculateLooping(
-  marginfiClient: MarginfiClient,
-  marginfiAccount: MarginfiAccountWrapper | null,
-  depositBank: ExtendedBankInfo, // deposit
-  borrowBank: ExtendedBankInfo, // borrow
-  targetLeverage: number,
-  amountRaw: string,
-  slippageBps: number,
-  priorityFee: number,
-  connection: Connection,
-  platformFeeBps?: number
-): Promise<LoopingObject | null> {
-  console.log("bank A: " + depositBank.meta.tokenSymbol);
-  console.log("bank B: " + borrowBank.meta.tokenSymbol);
-  console.log("leverage: " + targetLeverage);
-  console.log("amount: " + amountRaw);
-  console.log("slippageBps: " + slippageBps);
-
-  const strippedAmount = amountRaw.replace(/,/g, "");
-  const amount = isNaN(Number.parseFloat(strippedAmount)) ? 0 : Number.parseFloat(strippedAmount);
-
-  const principalBufferAmountUi = amount * targetLeverage * (slippageBps / 10000);
-  const adjustedPrincipalAmountUi = amount - principalBufferAmountUi;
-
-  try {
-    const depositPriceInfo = marginfiClient.oraclePrices.get(depositBank.address.toBase58());
-    const borrowPriceInfo = marginfiClient.oraclePrices.get(borrowBank.address.toBase58());
-
-    if (!depositPriceInfo) throw Error(`Price info for ${depositBank.address.toBase58()} not found`);
-    if (!borrowPriceInfo) throw Error(`Price info for ${borrowBank.address.toBase58()} not found`);
-
-    const { borrowAmount, totalDepositAmount: depositAmount } = computeLoopingParams(
-      adjustedPrincipalAmountUi,
-      targetLeverage,
-      depositBank.info.rawBank,
-      borrowBank.info.rawBank,
-      depositPriceInfo,
-      borrowPriceInfo
-    );
-
-    console.log("borrowAmount: " + borrowAmount.toString());
-
-    const borrowAmountNative = uiToNative(borrowAmount, borrowBank.info.state.mintDecimals).toNumber();
-
-    return await getLoopingTransaction({
-      marginfiAccount,
-      borrowAmountNative,
-      borrowBank,
-      depositBank,
-      amount,
-      borrowAmount,
-      slippageBps,
-      connection,
-      priorityFee,
-      platformFeeBps,
-    });
-  } catch (error) {
-    console.error(error);
-  }
-
-  return null;
-}
-
-export async function getCloseTransaction({
-  marginfiAccount,
-  borrowBank,
-  depositBanks,
-  slippageBps,
-  connection,
-  priorityFee,
-  platformFeeBps,
-}: {
-  marginfiAccount: MarginfiAccountWrapper;
-  borrowBank: ActiveBankInfo | null;
-  depositBanks: ActiveBankInfo[];
-  slippageBps: number;
-  connection: Connection;
-  priorityFee?: number;
-  platformFeeBps?: number;
-}) {
-  // user is borrowing and depositing
-  if (borrowBank && depositBanks.length === 1) {
-    return closeBorrowLendPosition({
-      marginfiAccount,
-      borrowBank,
-      depositBank: depositBanks[0],
-      slippageBps,
-      connection,
-      priorityFee,
-      platformFeeBps,
-    });
-  }
-
-  // user is only depositing
-  if (!borrowBank && depositBanks.length > 0 && marginfiAccount) {
-    return await marginfiAccount.makeWithdrawAllTx(
-      depositBanks.map((bank) => ({
-        amount: bank.position.amount,
-        bankAddress: bank.address,
-      }))
-    );
-  }
-
-  return null;
-}
-
-async function closeBorrowLendPosition({
-  marginfiAccount,
-  borrowBank,
-  depositBank,
-  slippageBps,
-  connection,
-  priorityFee,
-  platformFeeBps,
-}: {
-  marginfiAccount: MarginfiAccountWrapper;
-  borrowBank: ExtendedBankInfo;
-  depositBank: ExtendedBankInfo;
-  slippageBps: number;
-  connection: Connection;
-  priorityFee?: number;
-  platformFeeBps?: number;
-}) {
-  let firstQuote;
-  const maxAccountsArr = [undefined, 50, 40, 30];
-
-  if (!borrowBank.isActive) throw new Error("not active");
-
-  const maxAmount = await calculateMaxCollat(borrowBank, depositBank, slippageBps);
-
-  if (!maxAmount) return;
-
-  for (const maxAccounts of maxAccountsArr) {
-    const isTxnSplit = maxAccounts === 30;
-    const quoteParams = {
-      amount: uiToNative(maxAmount, depositBank.info.state.mintDecimals).toNumber(),
-      inputMint: depositBank.info.state.mint.toBase58(),
-      outputMint: borrowBank.info.state.mint.toBase58(),
-      slippageBps: slippageBps,
-      platformFeeBps: platformFeeBps,
-      maxAccounts: maxAccounts,
-      swapMode: "ExactIn",
-    } as QuoteGetRequest;
-    try {
-      const swapQuote = await getSwapQuoteWithRetry(quoteParams);
-
-      if (!maxAccounts) {
-        firstQuote = swapQuote;
-      }
-
-      if (swapQuote) {
-        const txn = await verifyJupTxSizeClosePosition(
-          marginfiAccount,
-          depositBank,
-          borrowBank,
-          swapQuote,
-          connection,
-          isTxnSplit,
-          priorityFee
-        );
-
-        if (txn || !marginfiAccount) {
-          // capture("looper", {
-          //   amountIn: uiToNative(amount, borrowBank.info.state.mintDecimals).toNumber(),
-          //   firstQuote,
-          //   bestQuote: swapQuote,
-          //   inputMint: borrowBank.info.state.mint.toBase58(),
-          //   outputMint: bank.info.state.mint.toBase58(),
-          // });
-          return txn ?? null;
-        }
-      } else {
-        throw new Error("Swap quote failed");
-      }
-    } catch (error) {
-      console.error(error);
-      // capture("looper", {
-      //   amountIn: uiToNative(amount, borrowBank.info.state.mintDecimals).toNumber(),
-      //   firstQuote,
-      //   inputMint: borrowBank.info.state.mint.toBase58(),
-      //   outputMint: bank.info.state.mint.toBase58(),
-      // });
-      return null;
-    }
-  }
-  return null;
-}
-
-export async function getLoopingTransaction({
-  marginfiAccount,
-  borrowAmountNative,
-  borrowBank,
-  depositBank,
-  amount,
-  borrowAmount,
-  slippageBps,
-  connection,
-  priorityFee,
-  platformFeeBps,
-  loopObject,
-}: {
-  marginfiAccount: MarginfiAccountWrapper | null;
-  borrowAmountNative: number;
-  borrowBank: ExtendedBankInfo;
-  depositBank: ExtendedBankInfo;
-  amount: number;
-  borrowAmount: BigNumber;
-  slippageBps: number;
-  connection: Connection;
-  priorityFee?: number;
-  platformFeeBps?: number;
-  loopObject?: LoopingObject;
-}) {
-  let firstQuote;
-  const maxAccountsArr = [undefined, 50, 40, 30];
-
-  if (loopObject?.loopingTxn && marginfiAccount) {
-    const txn = await verifyJupTxSizeLooping(
-      marginfiAccount,
-      depositBank,
-      borrowBank,
-      loopObject.actualDepositAmount,
-      loopObject.borrowAmount,
-      loopObject.quote,
-      connection,
-      priorityFee
-    );
-
-    if (!txn) {
-      throw new Error("Transaction expired, please try again.");
-    } else {
-      return {
-        loopingTxn: txn.flashloanTx,
-        bundleTipTxn: txn.bundleTipTxn,
-        quote: loopObject.quote,
-        borrowAmount: loopObject.borrowAmount,
-        actualDepositAmount: loopObject.actualDepositAmount,
-      };
-    }
-  }
-
-  for (const maxAccounts of maxAccountsArr) {
-    const isTxnSplit = maxAccounts === 30;
-    const quoteParams = {
-      amount: borrowAmountNative,
-      inputMint: borrowBank.info.state.mint.toBase58(), // borrow
-      outputMint: depositBank.info.state.mint.toBase58(), // deposit
-      slippageBps: slippageBps,
-      platformFeeBps: platformFeeBps, // platform fee
-      maxAccounts: maxAccounts,
-      swapMode: "ExactIn",
-    } as QuoteGetRequest;
-    try {
-      const swapQuote = await getSwapQuoteWithRetry(quoteParams);
-
-      if (!maxAccounts) {
-        firstQuote = swapQuote;
-      }
-
-      if (swapQuote) {
-        const minSwapAmountOutUi = nativeToUi(swapQuote.otherAmountThreshold, depositBank.info.state.mintDecimals);
-        const actualDepositAmountUi = minSwapAmountOutUi + amount;
-
-        let txn: { flashloanTx: VersionedTransaction; bundleTipTxn: VersionedTransaction | null } | undefined;
-
-        if (marginfiAccount) {
-          txn = await verifyJupTxSizeLooping(
-            marginfiAccount,
-            depositBank,
-            borrowBank,
-            actualDepositAmountUi,
-            borrowAmount,
-            swapQuote,
-            connection,
-            priorityFee,
-            isTxnSplit
-          );
-        }
-
-        if (txn || !marginfiAccount) {
-          // capture("looper", {
-          //   amountIn: uiToNative(amount, borrowBank.info.state.mintDecimals).toNumber(),
-          //   firstQuote,
-          //   bestQuote: swapQuote,
-          //   inputMint: borrowBank.info.state.mint.toBase58(),
-          //   outputMint: bank.info.state.mint.toBase58(),
-          // });
-          return {
-            loopingTxn: txn?.flashloanTx ?? null,
-            bundleTipTxn: txn?.bundleTipTxn ?? null,
-            quote: swapQuote,
-            borrowAmount: borrowAmount,
-            actualDepositAmount: actualDepositAmountUi,
-          };
-        }
-      } else {
-        throw new Error("Swap quote failed");
-      }
-    } catch (error) {
-      console.error(error);
-      // capture("looper", {
-      //   amountIn: uiToNative(amount, borrowBank.info.state.mintDecimals).toNumber(),
-      //   firstQuote,
-      //   inputMint: borrowBank.info.state.mint.toBase58(),
-      //   outputMint: bank.info.state.mint.toBase58(),
-      // });
-      return null;
-    }
-  }
-  return null;
-}
-
-export async function verifyJupTxSizeClosePosition(
-  marginfiAccount: MarginfiAccountWrapper,
-  depositBank: ExtendedBankInfo,
-  borrowBank: ExtendedBankInfo,
-  quoteResponse: QuoteResponse,
-  connection: Connection,
-  isTxnSplit?: boolean,
-  priorityFee?: number
-) {
-  try {
-    if (!depositBank.isActive || !borrowBank.isActive) {
-      throw new Error("Position not active");
-    }
-    const builder = await closePositionBuilder({
-      marginfiAccount,
-      depositBank,
-      borrowBank,
-      quote: quoteResponse,
-      connection,
-      isTxnSplit,
-      priorityFee,
-    });
-
-    return checkTxSize(builder);
-  } catch (error) {
-    console.error(error);
-  }
-}
-
-export async function verifyJupTxSizeLooping(
-  marginfiAccount: MarginfiAccountWrapper,
-  bank: ExtendedBankInfo,
-  loopingBank: ExtendedBankInfo,
-  depositAmount: number,
-  borrowAmount: BigNumber,
-  quoteResponse: QuoteResponse,
-  connection: Connection,
-  priorityFee?: number,
-  isTxnSplit?: boolean
-) {
-  try {
-    const builder = await loopingBuilder({
-      marginfiAccount,
-      bank,
-      depositAmount,
-      options: {
-        loopingQuote: quoteResponse,
-        borrowAmount,
-        loopingBank,
-        connection,
-        loopingTxn: null,
-        bundleTipTxn: null,
-      },
-      priorityFee,
-      isTxnSplit,
-    });
-
-    return checkTxSize(builder);
-  } catch (error) {
-    console.error(error);
-  }
-}
-
-const checkTxSize = (builder: {
-  flashloanTx: VersionedTransaction;
-  bundleTipTxn: VersionedTransaction | null;
-  addressLookupTableAccounts: AddressLookupTableAccount[];
-}) => {
-  try {
-    const totalSize = builder.flashloanTx.message.serialize().length;
-    const totalKeys = builder.flashloanTx.message.getAccountKeys({
-      addressLookupTableAccounts: builder.addressLookupTableAccounts,
-    }).length;
-
-    if (totalSize > 1158 || totalKeys >= 64) {
-      throw new Error("TX doesn't fit");
-    } else {
-      return { flashloanTx: builder.flashloanTx, bundleTipTxn: builder.bundleTipTxn };
-    }
-  } catch (error) {
-    console.log("tx to large, trying again");
-    // too big
-  }
-};
-
-export async function closePositionBuilder({
-  marginfiAccount,
-  depositBank,
-  borrowBank,
-  quote,
-  connection,
-  isTxnSplit,
-  priorityFee,
-}: {
-  marginfiAccount: MarginfiAccountWrapper;
-  depositBank: ActiveBankInfo;
-  borrowBank: ActiveBankInfo;
-  quote: QuoteResponse;
-  connection: Connection;
-  isTxnSplit?: boolean;
-  priorityFee?: number;
-}) {
-  const jupiterQuoteApi = createJupiterApiClient();
-
-  const feeMint = quote.swapMode === "ExactIn" ? quote.outputMint : quote.inputMint;
-  // get fee account for original borrow mint
-  const feeAccount = getFeeAccount(new PublicKey(feeMint));
-  const feeAccountInfo = await connection.getAccountInfo(new PublicKey(feeAccount));
-
-  const { swapInstruction, addressLookupTableAddresses } = await jupiterQuoteApi.swapInstructionsPost({
-    swapRequest: {
-      quoteResponse: quote,
-      userPublicKey: marginfiAccount.authority.toBase58(),
-      programAuthorityId: LUT_PROGRAM_AUTHORITY_INDEX,
-      feeAccount: feeAccountInfo ? feeAccount : undefined,
-    },
-  });
-
-  // const setupIxs = setupInstructions.length > 0 ? setupInstructions.map(deserializeInstruction) : []; //**not optional but man0s smart**
-  const swapIx = deserializeInstruction(swapInstruction);
-  // const swapcleanupIx = cleanupInstruction ? [deserializeInstruction(cleanupInstruction)] : []; **optional**
-  // tokenLedgerInstruction **also optional**
-
-  const swapLUTs: AddressLookupTableAccount[] = [];
-  swapLUTs.push(...(await getAdressLookupTableAccounts(connection, addressLookupTableAddresses)));
-
-  const { flashloanTx, bundleTipTxn, addressLookupTableAccounts } = await marginfiAccount.makeRepayWithCollatTx(
-    borrowBank.position.amount,
-    depositBank.position.amount,
-    borrowBank.address,
-    depositBank.address,
-    true,
-    true,
-    [swapIx],
-    swapLUTs,
-    priorityFee,
-    isTxnSplit
-  );
-
-  return { flashloanTx, bundleTipTxn, addressLookupTableAccounts };
-}
-
-async function calculateMaxCollat(bank: ExtendedBankInfo, repayBank: ExtendedBankInfo, slippageBps: number) {
-  const amount = repayBank.isActive && repayBank.position.isLending ? repayBank.position.amount : 0;
-  const maxRepayAmount = bank.isActive ? bank?.position.amount : 0;
-
-  console.log({ bank, repayBank, amount, maxRepayAmount });
-
-  if (amount !== 0) {
-    const quoteParams = {
-      amount: uiToNative(amount, repayBank.info.state.mintDecimals).toNumber(),
-      inputMint: repayBank.info.state.mint.toBase58(),
-      outputMint: bank.info.state.mint.toBase58(),
-      slippageBps: slippageBps,
-      maxAccounts: 40,
-      swapMode: "ExactIn",
-    } as QuoteGetRequest;
-
-    try {
-      const swapQuoteInput = await getSwapQuoteWithRetry(quoteParams);
-
-      if (!swapQuoteInput) throw new Error();
-
-      const inputInOtherAmount = nativeToUi(swapQuoteInput.otherAmountThreshold, bank.info.state.mintDecimals);
-
-      if (inputInOtherAmount > maxRepayAmount) {
-        const quoteParams = {
-          amount: uiToNative(maxRepayAmount, bank.info.state.mintDecimals).toNumber(),
-          inputMint: repayBank.info.state.mint.toBase58(), // USDC
-          outputMint: bank.info.state.mint.toBase58(), // JITO
-          slippageBps: slippageBps,
-          swapMode: "ExactOut",
-        } as QuoteGetRequest;
-
-        const swapQuoteOutput = await getSwapQuoteWithRetry(quoteParams);
-        if (!swapQuoteOutput) throw new Error();
-
-        const inputOutOtherAmount =
-          nativeToUi(swapQuoteOutput.otherAmountThreshold, repayBank.info.state.mintDecimals) * 1.01; // add this if dust appears: "* 1.01"
-        return inputOutOtherAmount;
-      } else {
-        return amount;
-      }
-    } catch {
-      return 0;
-    }
-  }
-}
-
-export async function loopingBuilder({
-  marginfiAccount,
-  bank,
-  depositAmount,
-  options,
-  priorityFee,
-  isTxnSplit,
-}: {
-  marginfiAccount: MarginfiAccountWrapper;
-  bank: ExtendedBankInfo;
-  depositAmount: number;
-  options: LoopingOptions;
-  priorityFee?: number;
-  isTxnSplit?: boolean;
-}) {
-  const jupiterQuoteApi = createJupiterApiClient();
-
-  const feeMint =
-    options.loopingQuote.swapMode === "ExactIn" ? options.loopingQuote.outputMint : options.loopingQuote.inputMint;
-  // get fee account for original borrow mint
-  const feeAccount = getFeeAccount(new PublicKey(feeMint));
-  const feeAccountInfo = await options.connection.getAccountInfo(new PublicKey(feeAccount));
-
-  const { swapInstruction, addressLookupTableAddresses } = await jupiterQuoteApi.swapInstructionsPost({
-    swapRequest: {
-      quoteResponse: options.loopingQuote,
-      userPublicKey: marginfiAccount.authority.toBase58(),
-      programAuthorityId: LUT_PROGRAM_AUTHORITY_INDEX,
-      feeAccount: feeAccountInfo ? feeAccount : undefined,
-    },
-  });
-
-  const swapIx = deserializeInstruction(swapInstruction);
-
-  const swapLUTs: AddressLookupTableAccount[] = [];
-  swapLUTs.push(...(await getAdressLookupTableAccounts(options.connection, addressLookupTableAddresses)));
-
-  const { flashloanTx, bundleTipTxn, addressLookupTableAccounts } = await marginfiAccount.makeLoopTx(
-    depositAmount,
-    options.borrowAmount,
-    bank.address,
-    options.loopingBank.address,
-    [swapIx],
-    swapLUTs,
-    priorityFee,
-    true,
-    isTxnSplit
-  );
-
-  return { flashloanTx, bundleTipTxn, addressLookupTableAccounts };
-}
-
-export type LoopingOptions = {
-  loopingQuote: QuoteResponse;
-  loopingTxn: VersionedTransaction | null;
-  bundleTipTxn: VersionedTransaction | null;
-  borrowAmount: BigNumber;
-  loopingBank: ExtendedBankInfo;
-  connection: Connection;
-};
 
 export async function looping({
   marginfiClient,
@@ -817,7 +230,7 @@ export function generateStats(
         </dd>
         {tokenBank.info.state.totalDeposits > 0 && (
           <>
-            <dt>Total Open Long</dt>
+            <dt>Total despoits</dt>
             <dd className="text-primary text-right">
               {tokenBank.info.state.totalDeposits.toFixed(2)} {tokenBank.meta.tokenSymbol}
             </dd>
@@ -825,7 +238,7 @@ export function generateStats(
         )}
         {tokenBank.info.state.totalBorrows > 0 && (
           <>
-            <dt>Total Open Short</dt>
+            <dt>Total borrows</dt>
             <dd className="text-primary text-right">
               {tokenBank.info.state.totalBorrows.toFixed(2)} {tokenBank.meta.tokenSymbol}
             </dd>
@@ -926,15 +339,10 @@ export function getCurrentStats(
   };
 }
 
-interface ActiveGroup {
-  token: ExtendedBankInfo;
-  usdc: ExtendedBankInfo;
-}
-
 interface CheckActionAvailableProps {
   amount: string;
   connected: boolean;
-  activeGroup: ActiveGroup | null;
+  activeGroup: GroupData | null;
   loopingObject: LoopingObject | null;
   tradeSide: TradeSide;
 }
@@ -958,10 +366,6 @@ export function checkLoopingActionAvailable({
   if (activeGroup && loopingObject) {
     const lentChecks = canBeLooped(activeGroup, loopingObject, tradeSide);
     if (lentChecks.length) checks.push(...lentChecks);
-
-    // case ActionType.MintYBX:
-    //   if (check) checks.push(check);
-    //   break;
   }
 
   if (checks.length === 0)
@@ -974,7 +378,7 @@ export function checkLoopingActionAvailable({
 
 function getRequiredCheck(
   connected: boolean,
-  activeGroup: ActiveGroup | null,
+  activeGroup: GroupData | null,
   loopingObject: LoopingObject | null
 ): ActionMethod | null {
   if (!connected) {
@@ -1004,20 +408,21 @@ function getGeneralChecks(amount: string): ActionMethod[] {
   }
 }
 
-function canBeLooped(activeGroup: ActiveGroup, loopingObject: LoopingObject, tradeSide: TradeSide): ActionMethod[] {
+function canBeLooped(activeGroup: GroupData, loopingObject: LoopingObject, tradeSide: TradeSide): ActionMethod[] {
   let checks: ActionMethod[] = [];
-  const isUsdcBankPaused = activeGroup.usdc.info.rawBank.config.operationalState === OperationalState.Paused;
-  const isTokenBankPaused = activeGroup.token.info.rawBank.config.operationalState === OperationalState.Paused;
+  const isUsdcBankPaused =
+    activeGroup.pool.quoteTokens[0].info.rawBank.config.operationalState === OperationalState.Paused;
+  const isTokenBankPaused = activeGroup.pool.token.info.rawBank.config.operationalState === OperationalState.Paused;
 
   let tokenPosition,
     usdcPosition: "inactive" | "lending" | "borrowing" = "inactive";
 
-  if (activeGroup.usdc.isActive) {
-    usdcPosition = activeGroup.usdc.position.isLending ? "lending" : "borrowing";
+  if (activeGroup.pool.quoteTokens[0].isActive) {
+    usdcPosition = activeGroup.pool.quoteTokens[0].position.isLending ? "lending" : "borrowing";
   }
 
-  if (activeGroup.token.isActive) {
-    tokenPosition = activeGroup.token.position.isLending ? "lending" : "borrowing";
+  if (activeGroup.pool.token.isActive) {
+    tokenPosition = activeGroup.pool.token.position.isLending ? "lending" : "borrowing";
   }
 
   const wrongPositionActive =
@@ -1027,14 +432,14 @@ function canBeLooped(activeGroup: ActiveGroup, loopingObject: LoopingObject, tra
 
   if (isUsdcBankPaused) {
     checks.push({
-      description: `The ${activeGroup.usdc.info.rawBank.tokenSymbol} bank is paused at this time.`,
+      description: `The ${activeGroup.pool.quoteTokens[0].info.rawBank.tokenSymbol} bank is paused at this time.`,
       isEnabled: false,
     });
   }
 
   if (isTokenBankPaused) {
     checks.push({
-      description: `The ${activeGroup.token.info.rawBank.tokenSymbol} bank is paused at this time.`,
+      description: `The ${activeGroup.pool.token.info.rawBank.tokenSymbol} bank is paused at this time.`,
       isEnabled: false,
     });
   }
@@ -1044,11 +449,17 @@ function canBeLooped(activeGroup: ActiveGroup, loopingObject: LoopingObject, tra
     const wrongBorrowed = tradeSide === "long" ? tokenPosition === "borrowing" : usdcPosition === "borrowing";
 
     if (wrongSupplied && wrongBorrowed) {
-      checks.push(DYNAMIC_SIMULATION_ERRORS.LOOP_CHECK(tradeSide, activeGroup));
+      checks.push(
+        DYNAMIC_SIMULATION_ERRORS.LOOP_CHECK(tradeSide, activeGroup.pool.quoteTokens[0], activeGroup.pool.token)
+      );
     } else if (wrongSupplied) {
-      checks.push(DYNAMIC_SIMULATION_ERRORS.WITHDRAW_CHECK(tradeSide, activeGroup));
+      checks.push(
+        DYNAMIC_SIMULATION_ERRORS.WITHDRAW_CHECK(tradeSide, activeGroup.pool.quoteTokens[0], activeGroup.pool.token)
+      );
     } else if (wrongBorrowed) {
-      checks.push(DYNAMIC_SIMULATION_ERRORS.REPAY_CHECK(tradeSide, activeGroup));
+      checks.push(
+        DYNAMIC_SIMULATION_ERRORS.REPAY_CHECK(tradeSide, activeGroup.pool.quoteTokens[0], activeGroup.pool.token)
+      );
     }
   }
 
@@ -1064,10 +475,10 @@ function canBeLooped(activeGroup: ActiveGroup, loopingObject: LoopingObject, tra
   }
 
   if (
-    (activeGroup.token && isBankOracleStale(activeGroup.token)) ||
-    (activeGroup.usdc && isBankOracleStale(activeGroup.usdc))
+    (activeGroup.pool.token && isBankOracleStale(activeGroup.pool.token)) ||
+    (activeGroup.pool.quoteTokens[0] && isBankOracleStale(activeGroup.pool.quoteTokens[0]))
   ) {
-    checks.push(STATIC_SIMULATION_ERRORS.STALE);
+    checks.push(STATIC_SIMULATION_ERRORS.STALE_TRADING);
   }
 
   return checks;

@@ -15,7 +15,7 @@ export const TradePovider: React.FC<{
 }> = ({ children }) => {
   const router = useRouter();
   const debounceId = React.useRef<NodeJS.Timeout | null>(null);
-  const { wallet, isOverride, sendEndpoint, walletAddress } = useWalletContext();
+  const { wallet, isOverride, connected, walletAddress } = useWalletContext();
   const prevWalletAddress = usePrevious(walletAddress);
   const { connection } = useConnection();
   const [
@@ -23,7 +23,7 @@ export const TradePovider: React.FC<{
     userDataFetched,
     activeGroup,
     fetchTradeState,
-    setActiveBank,
+    setActiveGroup,
     isRefreshingStore,
     setIsRefreshingStore,
   ] = useTradeStore((state) => [
@@ -31,7 +31,7 @@ export const TradePovider: React.FC<{
     state.userDataFetched,
     state.activeGroup,
     state.fetchTradeState,
-    state.setActiveBank,
+    state.setActiveGroup,
     state.isRefreshingStore,
     state.setIsRefreshingStore,
   ]);
@@ -40,19 +40,44 @@ export const TradePovider: React.FC<{
     const symbol = router?.query?.symbol as string | undefined;
     const isWalletConnected = wallet?.publicKey;
 
-    const isFetchable = (isWalletConnected && userDataFetched) || (!isWalletConnected && !userDataFetched);
+    // const isFetchable = (isWalletConnected && userDataFetched) || (!isWalletConnected && !userDataFetched);
 
     if (!symbol) {
       //clear state
-    } else if (isFetchable && initialized && wallet) {
+    } else if (initialized) {
       try {
         const pk = new PublicKey(symbol);
-        setActiveBank({ bankPk: new PublicKey(symbol), wallet });
+        setActiveGroup({ groupPk: new PublicKey(symbol) });
       } catch {
         router.push("/404");
       }
     }
-  }, [router, initialized, setActiveBank, prevWalletAddress, walletAddress, userDataFetched, wallet]);
+  }, [router, initialized, prevWalletAddress, walletAddress, userDataFetched, wallet, setActiveGroup]);
+
+  // add a useEffect to run on every route change
+  React.useEffect(() => {
+    const trackReferral = async (referralCode: string, walletAddress: string) => {
+      const trackReferralRes = await fetch(`/api/user/referral/track-referral`, {
+        method: "POST",
+        body: JSON.stringify({ referralCode, wallet: walletAddress }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!trackReferralRes.ok) {
+        return;
+      }
+
+      const trackReferralResJson = await trackReferralRes.json();
+      sessionStorage.removeItem("arenaReferralCode");
+    };
+
+    const referralCode = sessionStorage.getItem("arenaReferralCode");
+    if (!referralCode || !wallet || !connected) return;
+
+    trackReferral(referralCode, wallet.publicKey.toBase58());
+  }, [router.asPath, wallet, connected]);
 
   React.useEffect(() => {
     const fetchData = () => {
@@ -73,7 +98,7 @@ export const TradePovider: React.FC<{
       const id = setInterval(() => {
         setIsRefreshingStore(true);
         fetchTradeState({});
-      }, 30_000);
+      }, 50_000);
 
       return () => {
         clearInterval(id);

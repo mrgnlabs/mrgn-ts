@@ -2,14 +2,13 @@ import React, { ReactNode } from "react";
 
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { IconCoins, IconTrendingUp, IconChartPie, IconPlus } from "@tabler/icons-react";
+import { IconChartPie, IconShovelPitchforks, IconSearch, IconPlus } from "@tabler/icons-react";
 
 import { useUiStore } from "~/store";
 import { useFirebaseAccount } from "~/hooks/useFirebaseAccount";
 import { useOs } from "~/hooks/useOs";
 import { cn } from "~/utils/themeUtils";
-import { CreatePoolDialog } from "~/components/common/Pool";
-import { Button } from "~/components/ui/button";
+
 import { CreatePoolSoon } from "~/components/common/Pool/CreatePoolSoon";
 
 export interface NavLinkInfo {
@@ -27,17 +26,16 @@ const CreatePoolTrigger = (children: ReactNode) => {
 export const mobileLinks: NavLinkInfo[] = [
   {
     href: "/",
-    alt: "pools icon",
-    label: "pools",
-    Icon: IconCoins,
+    alt: "discover icon",
+    label: "discover",
+    Icon: IconSearch,
   },
   {
-    href: "/trade/59yr2vuW1qv3UVQx9HC6Q8mxns5S6g7fjS8YWgRgaLA7",
-    alt: "trade icon",
-    label: "trade",
-    Icon: IconTrendingUp,
+    href: "/yield",
+    alt: "yield farming icon",
+    label: "yield",
+    Icon: IconShovelPitchforks,
   },
-
   {
     href: "/portfolio",
     alt: "portfolio icon",
@@ -45,11 +43,11 @@ export const mobileLinks: NavLinkInfo[] = [
     Icon: IconChartPie,
   },
   {
-    href: "#",
+    href: "/",
     alt: "create pool icon",
     label: "create pool",
-    Icon: IconPlus,
     trigger: CreatePoolTrigger,
+    Icon: IconPlus,
   },
 ];
 
@@ -79,7 +77,12 @@ const MobileNavbar = () => {
 
   return (
     <footer>
-      <nav className="fixed w-full bottom-0 z-50 bg-background border">
+      <nav
+        className="fixed w-full bottom-0 z-50 bg-background border"
+        style={{
+          boxShadow: "0 -4px 30px 0 rgba(0, 0, 0, 0.075)",
+        }}
+      >
         <div className="h-full w-full text-xs font-normal z-50 flex justify-around relative lg:gap-8">
           {mobileLinks.map((linkInfo, index) => {
             const isActive = activeLink === `link${index}`;

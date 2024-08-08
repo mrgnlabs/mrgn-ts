@@ -18,30 +18,6 @@ type BankCardProps = {
 
 export const BankCard = ({ bank }: BankCardProps) => {
   const { rateAP } = useAssetItemData({ bank, isInLendingMode: true });
-  const [collateralBanks] = useTradeStore((state) => [state.collateralBanks]);
-
-  const leverage = React.useMemo(() => {
-    if (!bank || !bank.isActive) return 1;
-
-    const collateralBank = collateralBanks[bank.address.toBase58()];
-    const borrowBank = bank.position.isLending ? collateralBank : bank;
-
-    if (!borrowBank) return 1;
-
-    const depositBank = bank.address.equals(borrowBank.address) ? collateralBank : bank;
-
-    if (!depositBank) return 1;
-
-    let leverage = 1;
-    if (borrowBank.isActive && depositBank.isActive) {
-      const borrowUsd = borrowBank.position.usdValue;
-      const depositUsd = depositBank.position.usdValue;
-
-      leverage = Math.round((borrowUsd / depositUsd + Number.EPSILON) * 100) / 100 + 1;
-    }
-    return leverage;
-  }, [bank, collateralBanks]);
-
   return (
     <div className="bg-background border p-4 rounded-lg space-y-4 flex flex-col justify-between">
       <div className="flex justify-between items-center w-full gap-2">

@@ -2,7 +2,7 @@ import React from "react";
 
 import { useRouter } from "next/router";
 
-import { IconSortAscending, IconSortDescending, IconSparkles } from "@tabler/icons-react";
+import { IconSortAscending, IconSortDescending, IconSparkles, IconGridDots, IconList } from "@tabler/icons-react";
 import { motion, useAnimate, stagger } from "framer-motion";
 
 import { useTradeStore, useUiStore } from "~/store";
@@ -11,20 +11,13 @@ import { POOLS_PER_PAGE } from "~/config/trade";
 import { useIsMobile } from "~/hooks/useIsMobile";
 
 import { PageHeading } from "~/components/common/PageHeading";
-import { PoolCard } from "~/components/common/Pool/PoolCard";
+import { PoolCard, PoolListItem } from "~/components/common/Pool";
 import { ActionComplete } from "~/components/common/ActionComplete";
 import { PoolSearch } from "~/components/common/Pool";
 import { Button } from "~/components/ui/button";
 import { Loader } from "~/components/ui/loader";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "~/components/ui/select";
+import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
 
 const sortOptions: {
   value: TradePoolFilterStates;
@@ -32,18 +25,24 @@ const sortOptions: {
   dir?: "asc" | "desc";
 }[] = [
   { value: TradePoolFilterStates.TIMESTAMP, label: "Recently created" },
-  { value: TradePoolFilterStates.PRICE_ASC, label: "Price Asc", dir: "asc" },
-  { value: TradePoolFilterStates.PRICE_DESC, label: "Price Desc" },
-  { value: TradePoolFilterStates.LONG, label: "Open long" },
-  { value: TradePoolFilterStates.SHORT, label: "Open short" },
+  { value: TradePoolFilterStates.PRICE_MOVEMENT_DESC, label: "24hr price movement" },
+  { value: TradePoolFilterStates.LIQUIDITY_DESC, label: "Lending pool liquidity" },
+  { value: TradePoolFilterStates.MARKET_CAP_DESC, label: "Market cap desc" },
+  { value: TradePoolFilterStates.MARKET_CAP_ASC, label: "Market cap asc", dir: "asc" },
 ];
+
+enum View {
+  GRID = "grid",
+  LIST = "list",
+}
 
 export default function HomePage() {
   const router = useRouter();
   const isMobile = useIsMobile();
-  const [initialized, banks, resetActiveGroup, currentPage, totalPages, setCurrentPage, sortBy, setSortBy] =
+  const [initialized, groupMap, banks, resetActiveGroup, currentPage, totalPages, setCurrentPage, sortBy, setSortBy] =
     useTradeStore((state) => [
       state.initialized,
+      state.groupMap,
       state.banks,
       state.resetActiveGroup,
       state.currentPage,
@@ -57,10 +56,17 @@ export default function HomePage() {
 
   const [scope, animate] = useAnimate();
 
+  const [view, setView] = React.useState<View>(View.GRID);
+  const [initialAnimation, setInitialAnimation] = React.useState(false);
+
   const dir = React.useMemo(() => {
     const option = sortOptions.find((option) => option.value === sortBy);
     return option?.dir || "desc";
   }, [sortBy]);
+
+  const groups = React.useMemo(() => {
+    return [...groupMap.values()];
+  }, [groupMap]);
 
   const handleFeelingLucky = () => {
     const randomPool = banks[Math.floor(Math.random() * banks.length)];
@@ -73,18 +79,12 @@ export default function HomePage() {
   }, [resetActiveGroup]);
 
   React.useEffect(() => {
-    if (!initialized) return;
-    const timeout = setTimeout(() => {
-      requestAnimationFrame(() => animate("[data-item]", { opacity: 1 }, { duration: 0.5, delay: stagger(0.25) }));
-    }, 1500);
-    animate("[data-filter]", { opacity: 1 }, { duration: 0.3, delay: 1.25 });
-
-    return () => clearTimeout(timeout);
-  }, [initialized, animate, scope]);
+    setSortBy(TradePoolFilterStates.TIMESTAMP);
+  }, [setSortBy]);
 
   return (
     <>
-      <div ref={scope} className="w-full max-w-8xl mx-auto px-4 pb-16 pt-8 md:pt-14">
+      <div className="w-full max-w-8xl mx-auto px-4 pb-16 pt-8 md:pt-14">
         {!initialized && <Loader label="Loading the arena..." className="mt-8" />}
         {initialized && (
           <>
@@ -111,9 +111,36 @@ export default function HomePage() {
             </div>
 
             <div className="w-full space-y-6 py-12 md:pt-16">
-              <motion.div data-filter className="flex items-center justify-end" initial={{ opacity: 0 }}>
-                <Select value={sortBy} onValueChange={(value) => setSortBy(value as TradePoolFilterStates)}>
-                  <SelectTrigger className="w-[190px] justify-start gap-2">
+              <motion.div
+                data-filter
+                className="flex items-center justify-between"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.5, delay: 1.2 }}
+              >
+                <ToggleGroup
+                  type="single"
+                  value={view}
+                  onValueChange={(value) => {
+                    if (!value) return;
+                    setView(value as View);
+                  }}
+                  className="hidden gap-2 self-baseline lg:flex"
+                >
+                  <ToggleGroupItem value={View.GRID} aria-label="Grid View" className="border gap-1.5">
+                    <IconGridDots size={16} /> Grid
+                  </ToggleGroupItem>
+                  <ToggleGroupItem value={View.LIST} aria-label="List View" className="border gap-1.5">
+                    <IconList size={16} /> List
+                  </ToggleGroupItem>
+                </ToggleGroup>
+                <Select
+                  value={sortBy}
+                  onValueChange={(value) => {
+                    setSortBy(value as TradePoolFilterStates);
+                  }}
+                >
+                  <SelectTrigger className="w-[210px] justify-start gap-2">
                     {dir === "desc" && <IconSortDescending size={16} />}
                     {dir === "asc" && <IconSortAscending size={16} />}
                     <SelectValue placeholder="Sort pools" />
@@ -127,14 +154,54 @@ export default function HomePage() {
                   </SelectContent>
                 </Select>
               </motion.div>
-              <motion.div data-grid className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                {banks.length > 0 &&
-                  banks.slice(0, currentPage * POOLS_PER_PAGE).map((bank, i) => (
-                    <motion.div data-item key={i} initial={{ opacity: 0 }}>
-                      <PoolCard bank={bank} />
-                    </motion.div>
-                  ))}
-              </motion.div>
+              {view === View.GRID && (
+                <motion.div
+                  className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8"
+                  initial="hidden"
+                  animate="visible"
+                  variants={{
+                    visible: {
+                      transition: {
+                        staggerChildren: 0.15,
+                        delayChildren: 1.5,
+                      },
+                    },
+                  }}
+                >
+                  {groups.length > 0 &&
+                    groups.slice(0, currentPage * POOLS_PER_PAGE).map((group, i) => (
+                      <motion.div
+                        key={i}
+                        variants={{
+                          hidden: { opacity: 0 },
+                          visible: { opacity: 1 },
+                        }}
+                        transition={{ duration: 0.5 }}
+                      >
+                        <PoolCard groupData={group} />
+                      </motion.div>
+                    ))}
+                </motion.div>
+              )}
+              {view === View.LIST && (
+                <div className="w-full space-y-2">
+                  <div className="grid grid-cols-7 w-full text-muted-foreground">
+                    <div className="pl-5">Asset</div>
+                    <div className="pl-2.5">Price</div>
+                    <div className="pl-2">24hr Volume</div>
+                    <div>Market cap</div>
+                    <div>Lending pool liquidity</div>
+                    <div className="pl-2">Created by</div>
+                    <div />
+                  </div>
+                  <div className="bg-background border rounded-xl px-4 py-1">
+                    {groups.length > 0 &&
+                      groups
+                        .slice(0, currentPage * POOLS_PER_PAGE)
+                        .map((group, i) => <PoolListItem key={i} groupData={group} last={i === groups.length - 1} />)}
+                  </div>
+                </div>
+              )}
               {currentPage < totalPages && (
                 <div className="py-8 flex justify-center">
                   <Button

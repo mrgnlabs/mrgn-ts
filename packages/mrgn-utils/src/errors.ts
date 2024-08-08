@@ -7,6 +7,11 @@ import { ActionMethod } from "./actions";
 
 // Static errors that are not expected to change
 export const STATIC_SIMULATION_ERRORS: { [key: string]: ActionMethod } = {
+  NOT_INITIALIZED: {
+    isEnabled: false,
+    actionMethod: "WARNING",
+    description: "Marginfi client or account not initialized. Please refresh and try again.",
+  },
   SLIPPAGE: {
     isEnabled: false,
     actionMethod: "WARNING",
@@ -22,6 +27,11 @@ export const STATIC_SIMULATION_ERRORS: { [key: string]: ActionMethod } = {
     isEnabled: false,
     actionMethod: "WARNING",
     description: "Failed to fetch data. Please choose a different collateral option or refresh the page.",
+  },
+  CLOSE_POSITIONS_FL_FAILED: {
+    isEnabled: false,
+    actionMethod: "WARNING",
+    description: "Failed to close position. Please try again or manually reduce your position size.",
   },
   KEY_SIZE: {
     isEnabled: false,

@@ -1,13 +1,13 @@
 import { AddressLookupTableAccount, Connection, VersionedTransaction } from "@solana/web3.js";
 
-import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
-import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { computeLoopingParams, MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
+import { ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import BigNumber from "bignumber.js";
 import { QuoteGetRequest, QuoteResponse } from "@jup-ag/api";
 
 import { STATIC_SIMULATION_ERRORS } from "../../errors";
 import { ActionMethod } from "../types";
-import { loopingBuilder, repayWithCollatBuilder } from "./builders";
+import { closePositionBuilder, loopingBuilder, repayWithCollatBuilder } from "./builders";
 import { getSwapQuoteWithRetry } from "../helpers";
 import { nativeToUi, uiToNative } from "@mrgnlabs/mrgn-common";
 
@@ -58,6 +58,49 @@ export async function verifyTxSizeLooping(
       bundleTipTxn: null,
       addressLookupTableAccounts: [],
       error: STATIC_SIMULATION_ERRORS.TX_SIZE,
+    };
+  }
+}
+
+/*
+ * Builds and verifies the size of the Looping transaction.
+ */
+export async function verifyTxSizeCloseBorrowLendPosition(
+  marginfiAccount: MarginfiAccountWrapper,
+  depositBank: ActiveBankInfo,
+  borrowBank: ActiveBankInfo,
+  quoteResponse: QuoteResponse,
+  connection: Connection,
+  isTxnSplit: boolean = false,
+  priorityFee: number
+): Promise<{
+  flashloanTx: VersionedTransaction | null;
+  bundleTipTxn: VersionedTransaction | null;
+  addressLookupTableAccounts: AddressLookupTableAccount[];
+  error?: ActionMethod;
+}> {
+  try {
+    const builder = await closePositionBuilder({
+      marginfiAccount,
+      depositBank,
+      borrowBank,
+      quote: quoteResponse,
+      connection,
+      isTxnSplit,
+      priorityFee,
+    });
+
+    const txCheck = verifyFlashloanTxSize(builder);
+    if (!txCheck) throw Error("this should not happen");
+
+    return txCheck;
+  } catch (error) {
+    console.error(error);
+    return {
+      flashloanTx: null,
+      bundleTipTxn: null,
+      addressLookupTableAccounts: [],
+      error: STATIC_SIMULATION_ERRORS.CLOSE_POSITIONS_FL_FAILED,
     };
   }
 }
@@ -213,4 +256,58 @@ export async function calculateMaxRepayableCollateral(
       return 0;
     }
   }
+}
+
+export function getLoopingParamsForClient(
+  marginfiClient: MarginfiClient,
+  depositBank: ExtendedBankInfo,
+  borrowBank: ExtendedBankInfo,
+  targetLeverage: number,
+  amount: number,
+  slippageBps: number
+) {
+  const principalBufferAmountUi = amount * targetLeverage * (slippageBps / 10000);
+  const adjustedPrincipalAmountUi = amount - principalBufferAmountUi;
+
+  const depositPriceInfo = marginfiClient.oraclePrices.get(depositBank.address.toBase58());
+  const borrowPriceInfo = marginfiClient.oraclePrices.get(borrowBank.address.toBase58());
+
+  if (!depositPriceInfo) throw Error(`Price info for ${depositBank.address.toBase58()} not found`);
+  if (!borrowPriceInfo) throw Error(`Price info for ${borrowBank.address.toBase58()} not found`);
+
+  const { borrowAmount, totalDepositAmount: depositAmount } = computeLoopingParams(
+    adjustedPrincipalAmountUi,
+    targetLeverage,
+    depositBank.info.rawBank,
+    borrowBank.info.rawBank,
+    depositPriceInfo,
+    borrowPriceInfo
+  );
+
+  const borrowAmountNative = uiToNative(borrowAmount, borrowBank.info.state.mintDecimals).toNumber();
+
+  return { borrowAmount, depositAmount, borrowAmountNative };
+}
+
+export function getLoopingParamsForAccount(
+  marginfiAccount: MarginfiAccountWrapper,
+  depositBank: ExtendedBankInfo,
+  borrowBank: ExtendedBankInfo,
+  targetLeverage: number,
+  amount: number,
+  slippageBps: number
+) {
+  const principalBufferAmountUi = amount * targetLeverage * (slippageBps / 10000);
+  const adjustedPrincipalAmountUi = amount - principalBufferAmountUi;
+
+  const { borrowAmount, totalDepositAmount: depositAmount } = marginfiAccount.computeLoopingParams(
+    adjustedPrincipalAmountUi,
+    targetLeverage,
+    depositBank.address,
+    borrowBank.address
+  );
+
+  const borrowAmountNative = uiToNative(borrowAmount, borrowBank.info.state.mintDecimals).toNumber();
+
+  return { borrowAmount, depositAmount, borrowAmountNative };
 }

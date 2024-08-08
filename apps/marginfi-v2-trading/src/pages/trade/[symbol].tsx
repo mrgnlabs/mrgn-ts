@@ -1,79 +1,360 @@
 import React from "react";
 
+import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/router";
 
-import { PublicKey } from "@solana/web3.js";
-import { numeralFormatter, percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
-import { IconTrendingDown, IconTrendingUp } from "@tabler/icons-react";
+import { IconChevronDown, IconExternalLink } from "@tabler/icons-react";
+
+import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
+import {
+  tokenPriceFormatter,
+  percentFormatter,
+  numeralFormatter,
+  aprToApy,
+  shortenAddress,
+} from "@mrgnlabs/mrgn-common";
 
 import { useTradeStore, useUiStore } from "~/store";
-import { cn } from "~/utils";
-import { useConnection } from "~/hooks/useConnection";
-import { useWalletContext } from "~/hooks/useWalletContext";
+import { getTokenImageURL, cn } from "~/utils";
 
 import { ActionComplete } from "~/components/common/ActionComplete";
-import { TVWidget, TVWidgetTopBar } from "~/components/common/TVWidget";
+import { ActionBoxDialog } from "~/components/common/ActionBox";
+import { TVWidget } from "~/components/common/TVWidget";
 import { TradingBox } from "~/components/common/TradingBox";
 import { PositionList } from "~/components/common/Portfolio";
+import { TokenCombobox } from "~/components/common/TokenCombobox";
 import { Loader } from "~/components/ui/loader";
-
-import type { TokenData } from "~/types";
+import { TooltipProvider, Tooltip, TooltipContent, TooltipTrigger } from "~/components/ui/tooltip";
+import { Button } from "~/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "~/components/ui/dropdown-menu";
 
 export default function TradeSymbolPage() {
   const router = useRouter();
-  const { connection } = useConnection();
-  const { wallet } = useWalletContext();
-  const [initialized, activeGroup, setActiveBank] = useTradeStore((state) => [
+  const side = router.query.side as "long" | "short";
+  const [initialized, activeGroupPk, setActiveGroup, groupMap, portfolio] = useTradeStore((state) => [
     state.initialized,
     state.activeGroup,
-    state.setActiveBank,
+    state.setActiveGroup,
+    state.groupMap,
+    state.portfolio,
   ]);
-  const [previousTxn] = useUiStore((state) => [state.previousTxn]);
-  const [tokenData, setTokenData] = React.useState<TokenData | null>(null);
 
-  React.useEffect(() => {
-    if (!activeGroup?.token) return;
+  const activeGroup = React.useMemo(() => {
+    return activeGroupPk ? groupMap.get(activeGroupPk.toBase58()) : null;
+  }, [activeGroupPk, groupMap]);
 
-    const fetchTokenData = async () => {
-      const tokenResponse = await fetch(`/api/birdeye/token?address=${activeGroup.token.info.rawBank.mint.toBase58()}`);
-
-      if (!tokenResponse.ok) {
-        console.error("Failed to fetch token data");
-        return;
-      }
-
-      const tokenData = await tokenResponse.json();
-
-      if (!tokenData) {
-        console.error("Failed to parse token data");
-        return;
-      }
-
-      setTokenData(tokenData);
+  const lpPosition = React.useMemo(() => {
+    if (!portfolio) return null;
+    const tokenLpPosition = portfolio.lpPositions.find(
+      (lp) => lp.pool.token.info.state.mint.toBase58() === activeGroup?.pool.token.info.state.mint.toBase58()
+    );
+    const quoteTokenLpPosition = portfolio.lpPositions.find(
+      (lp) =>
+        lp.pool.quoteTokens[0].info.state.mint.toBase58() ===
+        activeGroup?.pool.quoteTokens[0].info.state.mint.toBase58()
+    );
+    return {
+      token: tokenLpPosition,
+      quoteToken: quoteTokenLpPosition,
     };
+  }, [portfolio, activeGroup]);
 
-    fetchTokenData();
-  }, [activeGroup]);
+  const hasTradePosition = React.useMemo(() => {
+    const long = portfolio?.long.find(
+      (lp) => lp.pool.token.info.state.mint.toBase58() === activeGroup?.pool.token.info.state.mint.toBase58()
+    );
+    const short = portfolio?.short.find(
+      (lp) => lp.pool.token.info.state.mint.toBase58() === activeGroup?.pool.token.info.state.mint.toBase58()
+    );
+    return long || short;
+  }, [portfolio, activeGroup]);
+
+  const [previousTxn] = useUiStore((state) => [state.previousTxn]);
 
   return (
     <>
-      <div className="w-full max-w-8xl mx-auto px-4 pt-4 pb-24 mt:pt-8 md:px-8">
+      <div className="w-full max-w-8xl mx-auto px-4 pt-8 pb-24 mt:pt-8 md:px-8">
         {(!initialized || !activeGroup) && <Loader label="Loading the arena..." className="mt-8" />}
-        {initialized && activeGroup && activeGroup.token && (
-          <div className="rounded-xl space-y-4 lg:bg-accent/50 lg:p-6">
-            <TVWidgetTopBar tokenData={tokenData} activeGroup={activeGroup} />
-            <div className="flex relative w-full">
-              <div className="flex flex-col-reverse w-full gap-4 lg:flex-row">
-                <div className="flex-4 border rounded-xl overflow-hidden">
-                  <TVWidget token={activeGroup.token} />
+        {initialized && activeGroup && (
+          <div className="w-full space-y-4">
+            <div className="bg-background border rounded-xl px-4 py-10 lg:px-8">
+              <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
+                <div className="flex flex-col items-center px-8 w-full lg:w-1/4 xl:w-[35%]">
+                  <Image
+                    src={getTokenImageURL(activeGroup.pool.token.info.state.mint.toBase58())}
+                    alt={activeGroup.pool.token.meta.tokenSymbol}
+                    width={72}
+                    height={72}
+                    className="bg-background border rounded-full mb-2 lg:mb-0"
+                  />
+
+                  <TokenCombobox
+                    selected={activeGroup}
+                    setSelected={(group) => {
+                      router.push(`/trade/${group.client.group.address.toBase58()}`);
+                      setActiveGroup({ groupPk: group.client.group.address });
+                    }}
+                  >
+                    <h1 className="text-lg font-medium mt-2 flex items-center gap-1 px-2 py-1 pl-3 rounded-md cursor-pointer transition-colors hover:bg-accent translate-x-1.5">
+                      {activeGroup.pool.token.meta.tokenName} <IconChevronDown size={18} />
+                    </h1>
+                  </TokenCombobox>
+                  <p className="text-sm text-muted-foreground mt-1 lg:mt-0">
+                    {activeGroup.pool.token.meta.tokenSymbol}
+                  </p>
+                  <p className="text-sm text-muted-foreground mt-1 lg:mt-2">
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <Link
+                            href={`https://solscan.io/token/${activeGroup.pool.token.info.state.mint.toBase58()}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-primary text-xs flex items-center gap-1"
+                          >
+                            {shortenAddress(activeGroup.pool.token.info.state.mint.toBase58())}
+                            <IconExternalLink size={12} />
+                          </Link>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>{activeGroup.pool.token.info.state.mint.toBase58()}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </p>
                 </div>
-                <div className="w-full flex lg:max-w-sm lg:ml-auto">
-                  <TradingBox activeBank={activeGroup.token} />
+                <div className="w-full space-y-10">
+                  {activeGroup.pool.token.tokenData && (
+                    <div className="grid w-full max-w-md mx-auto gap-1 lg:gap-0 lg:max-w-none lg:grid-cols-4">
+                      <div className="grid grid-cols-2 lg:block">
+                        <p className="text-sm text-muted-foreground">Price</p>
+                        <p className="text-sm text-right lg:text-left lg:text-2xl">
+                          {tokenPriceFormatter.format(activeGroup.pool.token.tokenData.price)}
+                          <span
+                            className={cn(
+                              "text-sm ml-1",
+                              activeGroup.pool.token.tokenData.priceChange24hr > 0
+                                ? "text-mrgn-success"
+                                : "text-mrgn-error"
+                            )}
+                          >
+                            {percentFormatter.format(activeGroup.pool.token.tokenData.priceChange24hr / 100)}
+                          </span>
+                        </p>
+                      </div>
+                      <div className="grid grid-cols-2 lg:block">
+                        <p className="text-sm text-muted-foreground">24hr Volume</p>
+                        <p className="text-sm text-right lg:text-left lg:text-2xl">
+                          ${numeralFormatter(activeGroup.pool.token.tokenData.volume24hr)}
+                          <span
+                            className={cn(
+                              "text-sm ml-1",
+                              activeGroup.pool.token.tokenData.volumeChange24hr > 0
+                                ? "text-mrgn-success"
+                                : "text-mrgn-error"
+                            )}
+                          >
+                            {percentFormatter.format(activeGroup.pool.token.tokenData.volumeChange24hr / 100)}
+                          </span>
+                        </p>
+                      </div>
+                      <div className="grid grid-cols-2 lg:block">
+                        <p className="text-sm text-muted-foreground">Market cap</p>
+                        <p className="text-sm text-right lg:text-left lg:text-2xl">
+                          ${numeralFormatter(activeGroup.pool.token.tokenData.marketCap)}
+                        </p>
+                      </div>
+                      {activeGroup.pool.poolData && (
+                        <div className="grid grid-cols-2 lg:block">
+                          <p className="text-sm text-muted-foreground">Lending pool liquidity</p>
+                          <p className="text-sm text-right lg:text-left lg:text-2xl">
+                            ${numeralFormatter(activeGroup.pool.poolData.totalLiquidity)}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  <div className="w-full grid gap-4 max-w-md mx-auto lg:gap-0 lg:max-w-none lg:grid-cols-4">
+                    <div className="flex flex-row justify-between space-y-1 lg:block">
+                      <div className="flex items-start gap-2 translate-y-0.5">
+                        <Image
+                          src={getTokenImageURL(activeGroup.pool.token.info.state.mint.toBase58())}
+                          alt={activeGroup.pool.token.meta.tokenSymbol}
+                          width={32}
+                          height={32}
+                          className="bg-background border rounded-full"
+                        />
+                        <div className="leading-tight text-sm">
+                          <p>
+                            Total Deposits
+                            <br />({activeGroup.pool.token.meta.tokenSymbol})
+                          </p>
+                          <p className="text-mrgn-success">
+                            {percentFormatter.format(aprToApy(activeGroup.pool.token.info.state.lendingRate))}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex flex-col items-end justify-end gap-2 lg:items-start lg:justify-start">
+                        <p className="text-sm lg:text-2xl">
+                          $
+                          {numeralFormatter(
+                            activeGroup.pool.token.info.state.totalDeposits *
+                              activeGroup.pool.token.info.oraclePrice.priceRealtime.price.toNumber()
+                          )}
+                        </p>
+                        {!hasTradePosition &&
+                        lpPosition?.token &&
+                        lpPosition.token.pool.token.isActive &&
+                        activeGroup.selectedAccount ? (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger className="focus:outline-none focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0">
+                              <Button size="sm" variant="outline" className="px-2 py-1.5 h-auto lg:px-4 lg:py-2">
+                                Supplied {numeralFormatter(lpPosition.token.pool.token.position.amount)}
+                                <div className="border-l pl-2 ml-1">
+                                  <IconChevronDown size={14} />
+                                </div>
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent style={{ width: "var(--radix-dropdown-menu-trigger-width)" }}>
+                              <DropdownMenuItem className="text-xs" onSelect={(e) => e.preventDefault()}>
+                                <ActionBoxDialog
+                                  requestedBank={activeGroup.pool.token}
+                                  requestedAction={ActionType.Deposit}
+                                  requestedAccount={activeGroup.selectedAccount}
+                                  activeGroupArg={activeGroup}
+                                >
+                                  <p>Supply more</p>
+                                </ActionBoxDialog>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem className="text-xs" onSelect={(e) => e.preventDefault()}>
+                                <ActionBoxDialog
+                                  requestedBank={activeGroup.pool.token}
+                                  requestedAction={ActionType.Withdraw}
+                                  requestedAccount={activeGroup.selectedAccount}
+                                  activeGroupArg={activeGroup}
+                                >
+                                  <p>Withdraw</p>
+                                </ActionBoxDialog>
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        ) : (
+                          !hasTradePosition && (
+                            <ActionBoxDialog
+                              requestedBank={activeGroup.pool.token}
+                              requestedAction={ActionType.Deposit}
+                              requestedAccount={activeGroup.selectedAccount || undefined}
+                              activeGroupArg={activeGroup}
+                            >
+                              <Button size="sm" variant="outline" className="px-2 py-1.5 h-auto lg:px-4 lg:py-2">
+                                Supply
+                              </Button>
+                            </ActionBoxDialog>
+                          )
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex flex-row justify-between space-y-1 lg:block">
+                      <div className="flex items-start gap-2">
+                        <Image
+                          src={getTokenImageURL(activeGroup.pool.quoteTokens[0].info.state.mint.toBase58())}
+                          alt={activeGroup.pool.quoteTokens[0].meta.tokenSymbol}
+                          width={32}
+                          height={32}
+                          className="bg-background border rounded-full translate-y-0.5"
+                        />
+                        <div className="leading-tight text-sm">
+                          <p>
+                            Total Deposits
+                            <br />({activeGroup.pool.quoteTokens[0].meta.tokenSymbol})
+                          </p>
+                          <p className="text-mrgn-success">
+                            {percentFormatter.format(aprToApy(activeGroup.pool.quoteTokens[0].info.state.lendingRate))}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex flex-col items-end justify-end gap-2 lg:items-start lg:justify-start">
+                        <p className="text-sm lg:text-2xl">
+                          $
+                          {numeralFormatter(
+                            activeGroup.pool.quoteTokens[0].info.state.totalDeposits *
+                              activeGroup.pool.quoteTokens[0].info.oraclePrice.priceRealtime.price.toNumber()
+                          )}
+                        </p>
+                        {!hasTradePosition &&
+                        lpPosition?.quoteToken &&
+                        lpPosition.quoteToken.pool.quoteTokens[0].isActive &&
+                        activeGroup.selectedAccount ? (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger className="focus:outline-none focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0">
+                              <Button size="sm" variant="outline" className="px-2 py-1.5 h-auto lg:px-4 lg:py-2">
+                                Supplied {numeralFormatter(lpPosition.quoteToken.pool.quoteTokens[0].position.amount)}
+                                <div className="border-l pl-2 ml-1">
+                                  <IconChevronDown size={14} />
+                                </div>
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent style={{ width: "var(--radix-dropdown-menu-trigger-width)" }}>
+                              <DropdownMenuItem className="text-xs" onSelect={(e) => e.preventDefault()}>
+                                <ActionBoxDialog
+                                  requestedBank={activeGroup.pool.quoteTokens[0]}
+                                  requestedAction={ActionType.Deposit}
+                                  requestedAccount={activeGroup.selectedAccount}
+                                  activeGroupArg={activeGroup}
+                                >
+                                  <p>Supply more</p>
+                                </ActionBoxDialog>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem className="text-xs" onSelect={(e) => e.preventDefault()}>
+                                <ActionBoxDialog
+                                  requestedBank={activeGroup.pool.quoteTokens[0]}
+                                  requestedAction={ActionType.Withdraw}
+                                >
+                                  <p>Withdraw</p>
+                                </ActionBoxDialog>
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        ) : (
+                          !hasTradePosition && (
+                            <ActionBoxDialog
+                              requestedBank={activeGroup.pool.quoteTokens[0]}
+                              requestedAction={ActionType.Deposit}
+                              requestedAccount={activeGroup.selectedAccount || undefined}
+                              activeGroupArg={activeGroup}
+                            >
+                              <Button size="sm" variant="outline" className="px-2 py-1.5 h-auto lg:px-4 lg:py-2">
+                                Supply
+                              </Button>
+                            </ActionBoxDialog>
+                          )
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
-            <div className="pt-4">
-              <PositionList />
+            <div className="rounded-xl space-y-4">
+              <div className="flex relative w-full">
+                <div className="flex flex-col-reverse w-full gap-4 lg:flex-row">
+                  <div className="flex-4 border rounded-xl overflow-hidden w-full">
+                    <TVWidget token={activeGroup.pool.token} />
+                  </div>
+                  <div className="flex lg:max-w-sm w-full lg:ml-auto">
+                    <TradingBox side={side} />
+                  </div>
+                </div>
+              </div>
+              <div className="pt-4">
+                <PositionList />
+              </div>
             </div>
           </div>
         )}

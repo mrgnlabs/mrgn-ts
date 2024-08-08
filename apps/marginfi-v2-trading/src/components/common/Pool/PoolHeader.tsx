@@ -14,12 +14,14 @@ import { PoolChart } from "~/components/common/Pool";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 
-import type { TokenData } from "~/types";
+import type { GroupData } from "~/store/tradeStore";
 
-export const PoolHeader = () => {
-  const [activeGroup] = useTradeStore((state) => [state.activeGroup]);
+type PoolHeaderProps = {
+  groupData: GroupData;
+};
 
-  const [tokenData, setTokenData] = React.useState<TokenData | null>(null);
+export const PoolHeader = ({ groupData }: PoolHeaderProps) => {
+  const [activeGroupPk, groupMap] = useTradeStore((state) => [state.activeGroup, state.groupMap]);
 
   const [priceData, setPriceData] = React.useState<
     {
@@ -38,29 +40,11 @@ export const PoolHeader = () => {
   }, [priceData]);
 
   React.useEffect(() => {
-    if (!activeGroup) return;
-
-    const fetchTokenData = async () => {
-      const tokenResponse = await fetch(`/api/birdeye/token?address=${activeGroup.token.info.state.mint.toBase58()}`);
-
-      if (!tokenResponse.ok) {
-        console.error("Failed to fetch token data");
-        return;
-      }
-
-      const tokenData = await tokenResponse.json();
-
-      if (!tokenData) {
-        console.error("Failed to parse token data");
-        return;
-      }
-
-      setTokenData(tokenData);
-    };
+    if (!groupData) return;
 
     const fetchPriceData = async () => {
       const priceResponse = await fetch(
-        `/api/birdeye/price-history?address=${activeGroup.token.info.state.mint.toBase58()}`
+        `/api/birdeye/price-history?address=${groupData.pool.token.info.state.mint.toBase58()}`
       );
 
       if (!priceResponse.ok) {
@@ -78,38 +62,37 @@ export const PoolHeader = () => {
       priceData.push({
         timestamp: Date.now(),
         label: "",
-        price: activeGroup.token.info.oraclePrice.priceRealtime.price.toNumber(),
+        price: groupData.pool.token.info.oraclePrice.priceRealtime.price.toNumber(),
       });
 
       setPriceData(priceData);
     };
 
-    fetchTokenData();
     fetchPriceData();
-  }, [activeGroup]);
+  }, [groupData]);
 
-  if (!activeGroup) return null;
+  if (!groupData) return null;
 
   return (
     <div className="space-y-8 grid-cols-9 w-full max-w-6xl mx-auto md:grid md:space-y-0">
       <div className="col-span-3">
         <div className="h-full flex flex-col justify-center text-center items-center gap-2">
           <Image
-            src={getTokenImageURL(activeGroup.token.info.state.mint.toBase58())}
+            src={getTokenImageURL(groupData.pool.token.info.state.mint.toBase58())}
             width={72}
             height={72}
             className="rounded-full border"
-            alt={activeGroup.token.meta.tokenName}
+            alt={groupData.pool.token.meta.tokenName}
           />
           <div className="space-y-2">
             <div className="space-y-0">
-              <h1 className="text-2xl font-medium">{activeGroup.token.meta.tokenName}</h1>
-              <h2 className="text-xl text-muted-foreground">{activeGroup.token.meta.tokenSymbol}</h2>
+              <h1 className="text-2xl font-medium">{groupData.pool.token.meta.tokenName}</h1>
+              <h2 className="text-xl text-muted-foreground">{groupData.pool.token.meta.tokenSymbol}</h2>
             </div>
-            <Link className="inline-block" href={`/trade/${activeGroup.token.address.toBase58()}`}>
+            <Link className="inline-block" href={`/trade/${groupData.client.group.address.toBase58()}`}>
               <Button variant="outline" size="sm" className="h-8">
                 <IconExternalLink size={16} />
-                Trade {activeGroup.token.meta.tokenSymbol}
+                Trade {groupData.pool.token.meta.tokenSymbol}
               </Button>
             </Link>
           </div>
@@ -119,69 +102,68 @@ export const PoolHeader = () => {
         </div>
       </div>
       <div className="col-span-6">
-        {tokenData && (
+        {groupData.pool.token.tokenData && (
           <div className="grid grid-cols-2 w-full max-w-6xl mx-auto gap-4 md:gap-8 md:grid-cols-3">
             <StatBlock
               label="Current Price"
               value={
-                tokenData.price > 0.00001
-                  ? tokenPriceFormatter.format(tokenData.price)
-                  : `$${tokenData.price.toExponential(2)}`
+                groupData.pool.token.tokenData.price > 0.00001
+                  ? tokenPriceFormatter.format(groupData.pool.token.tokenData.price)
+                  : `$${groupData.pool.token.tokenData.price.toExponential(2)}`
               }
               subValue={
-                <span className={cn(tokenData.priceChange24h > 0 ? "text-mrgn-success" : "text-mrgn-error")}>
-                  {tokenData.priceChange24h > 0 && "+"}
-                  {percentFormatter.format(tokenData.priceChange24h / 100)}
-                </span>
-              }
-            />
-            <StatBlock
-              label="4hr vol"
-              value={`$${numeralFormatter(tokenData.volume4h)}`}
-              subValue={
-                <span className={cn(tokenData.volumeChange4h > 0 ? "text-mrgn-success" : "text-mrgn-error")}>
-                  {tokenData.volumeChange4h > 0 && "+"}
-                  {percentFormatter.format(tokenData.volumeChange4h / 100)}
+                <span
+                  className={cn(
+                    groupData.pool.token.tokenData.priceChange24hr > 0 ? "text-mrgn-success" : "text-mrgn-error"
+                  )}
+                >
+                  {groupData.pool.token.tokenData.priceChange24hr > 0 && "+"}
+                  {percentFormatter.format(groupData.pool.token.tokenData.priceChange24hr / 100)}
                 </span>
               }
             />
             <StatBlock
               label="24hr vol"
-              value={`$${numeralFormatter(tokenData.volume24h)}`}
+              value={`$${numeralFormatter(groupData.pool.token.tokenData.volume24hr)}`}
               subValue={
-                <span className={cn(tokenData.volumeChange24h > 0 ? "text-mrgn-success" : "text-mrgn-error")}>
-                  {tokenData.volumeChange24h > 0 && "+"}
-                  {percentFormatter.format(tokenData.volumeChange24h / 100)}
+                <span
+                  className={cn(
+                    groupData.pool.token.tokenData.volumeChange24hr > 0 ? "text-mrgn-success" : "text-mrgn-error"
+                  )}
+                >
+                  {groupData.pool.token.tokenData.volumeChange24hr > 0 && "+"}
+                  {percentFormatter.format(groupData.pool.token.tokenData.volumeChange24hr / 100)}
                 </span>
               }
             />
+            <StatBlock label="Market cap" value={`$${numeralFormatter(groupData.pool.token.tokenData.marketCap)}`} />
 
             <StatBlock
               label={
                 <div className="flex items-center gap-2">
                   <Image
-                    src={getTokenImageURL(activeGroup.token.info.state.mint.toBase58())}
-                    alt={activeGroup.token.meta.tokenName}
+                    src={getTokenImageURL(groupData.pool.token.info.state.mint.toBase58())}
+                    alt={groupData.pool.token.meta.tokenName}
                     width={24}
                     height={24}
                     className="rounded-full"
                   />
                   Total Deposits
-                  <br />({activeGroup.token.meta.tokenSymbol})
+                  <br />({groupData.pool.token.meta.tokenSymbol})
                 </div>
               }
-              value={numeralFormatter(activeGroup.token.info.state.totalDeposits)}
+              value={numeralFormatter(groupData.pool.token.info.state.totalDeposits)}
               subValue={usdFormatter.format(
-                activeGroup.token.info.state.totalDeposits *
-                  activeGroup.token.info.oraclePrice.priceRealtime.price.toNumber()
+                groupData.pool.token.info.state.totalDeposits *
+                  groupData.pool.token.info.oraclePrice.priceRealtime.price.toNumber()
               )}
             />
             <StatBlock
               label={
                 <div className="flex items-center gap-2">
                   <Image
-                    src={getTokenImageURL(activeGroup.usdc.info.state.mint.toBase58())}
-                    alt={activeGroup.usdc.meta.tokenName}
+                    src={getTokenImageURL(groupData.pool.quoteTokens[0].info.state.mint.toBase58())}
+                    alt={groupData.pool.quoteTokens[0].meta.tokenName}
                     width={24}
                     height={24}
                     className="rounded-full"
@@ -191,42 +173,39 @@ export const PoolHeader = () => {
                   (USDC)
                 </div>
               }
-              value={numeralFormatter(activeGroup.usdc.info.state.totalDeposits)}
+              value={numeralFormatter(groupData.pool.quoteTokens[0].info.state.totalDeposits)}
               subValue={usdFormatter.format(
-                activeGroup.usdc.info.state.totalDeposits *
-                  activeGroup.usdc.info.oraclePrice.priceRealtime.price.toNumber()
+                groupData.pool.quoteTokens[0].info.state.totalDeposits *
+                  groupData.pool.quoteTokens[0].info.oraclePrice.priceRealtime.price.toNumber()
               )}
             />
-            <StatBlock
-              label={
-                <div className="flex items-center">
+            {groupData.pool.poolData?.totalLiquidity && (
+              <StatBlock
+                label={
                   <div className="flex items-center">
-                    <Image
-                      src={getTokenImageURL(activeGroup.token.info.state.mint.toBase58())}
-                      alt={activeGroup.token.meta.tokenName}
-                      width={24}
-                      height={24}
-                      className="rounded-full z-20"
-                    />
-                    <Image
-                      src={getTokenImageURL(activeGroup.usdc.info.state.mint.toBase58())}
-                      alt={activeGroup.token.meta.tokenName}
-                      width={24}
-                      height={24}
-                      className="rounded-full -translate-x-2.5 z-10"
-                    />
+                    <div className="flex items-center">
+                      <Image
+                        src={getTokenImageURL(groupData.pool.token.info.state.mint.toBase58())}
+                        alt={groupData.pool.token.meta.tokenName}
+                        width={24}
+                        height={24}
+                        className="rounded-full z-20"
+                      />
+                      <Image
+                        src={getTokenImageURL(groupData.pool.quoteTokens[0].info.state.mint.toBase58())}
+                        alt={groupData.pool.quoteTokens[0].meta.tokenName}
+                        width={24}
+                        height={24}
+                        className="rounded-full -translate-x-2.5 z-10"
+                      />
+                    </div>
+                    Total Liquidity
+                    <br />({groupData.pool.token.meta.tokenSymbol} + USDC)
                   </div>
-                  Total Liquidity
-                  <br />({activeGroup.token.meta.tokenSymbol} + USDC)
-                </div>
-              }
-              value={usdFormatter.format(
-                activeGroup.usdc.info.state.totalDeposits *
-                  activeGroup.usdc.info.oraclePrice.priceRealtime.price.toNumber() +
-                  activeGroup.token.info.state.totalDeposits *
-                    activeGroup.token.info.oraclePrice.priceRealtime.price.toNumber()
-              )}
-            />
+                }
+                value={usdFormatter.format(groupData.pool.poolData.totalLiquidity)}
+              />
+            )}
           </div>
         )}
       </div>

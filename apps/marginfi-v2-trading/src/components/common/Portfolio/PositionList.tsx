@@ -12,31 +12,25 @@ import { useTradeStore } from "~/store";
 import { PositionActionButtons } from "~/components/common/Portfolio";
 import { Table, TableBody, TableHead, TableCell, TableHeader, TableRow } from "~/components/ui/table";
 import { Badge } from "~/components/ui/badge";
-import { ActiveGroup } from "~/store/tradeStore";
+import { GroupData } from "~/store/tradeStore";
 
 export const PositionList = () => {
-  const [marginfiClient, banks, collateralBanks, marginfiAccounts] = useTradeStore((state) => [
-    state.marginfiClient,
-    state.banks,
-    state.collateralBanks,
-    state.marginfiAccounts,
-  ]);
+  const [portfolio] = useTradeStore((state) => [state.portfolio]);
 
-  const portfolio = React.useMemo(() => {
-    const activeBanks = banks.filter((bank) => bank.isActive);
-    const longBanks = activeBanks.filter((bank) => {
-      const collateralBank = collateralBanks[bank.address.toBase58()];
-      return bank.isActive && bank.position.isLending && collateralBank.isActive && !collateralBank.position.isLending;
-    }) as ActiveBankInfo[];
-    const shortBanks = activeBanks.filter((bank) => {
-      const collateralBank = collateralBanks[bank.address.toBase58()];
-      return bank.isActive && !bank.position.isLending && collateralBank.isActive && collateralBank.position.isLending;
-    }) as ActiveBankInfo[];
+  const portfolioCombined = React.useMemo(() => {
+    if (!portfolio) return [];
 
-    if (!longBanks.length && !shortBanks.length) return [];
+    const isActiveGroupPosition = (item: GroupData) => item.pool.token.isActive;
 
-    return [...longBanks, ...shortBanks].sort((a, b) => a.position.usdValue - b.position.usdValue);
-  }, [banks, collateralBanks]);
+    const activeGroupPosition = [...portfolio.long, ...portfolio.short].find(isActiveGroupPosition);
+
+    const sortedLongs = portfolio.long.filter((item) => !isActiveGroupPosition(item));
+    const sortedShorts = portfolio.short.filter((item) => !isActiveGroupPosition(item));
+
+    return [...(activeGroupPosition ? [activeGroupPosition] : []), ...sortedLongs, ...sortedShorts];
+  }, [portfolio]);
+
+  if (!portfolio) return null;
 
   return (
     <div className="rounded-xl">
@@ -54,7 +48,7 @@ export const PositionList = () => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {portfolio.length === 0 ? (
+          {portfolio.long.length === 0 && portfolio.short.length === 0 ? (
             <TableRow>
               <TableCell colSpan={7}>
                 <p className="text-sm text-muted-foreground pt-2">No positions found</p>
@@ -64,33 +58,32 @@ export const PositionList = () => {
             <></>
           )}
 
-          {portfolio.map((bank, index) => {
-            const collateralBank = collateralBanks[bank.address.toBase58()] || null;
-            const marginfiAccount = marginfiAccounts ? marginfiAccounts[bank.info.rawBank.group.toBase58()] : undefined;
-            const borrowBank = bank.position.isLending ? collateralBank : bank;
-            const depositBank = bank.address.equals(borrowBank.address) ? collateralBank : bank;
+          {portfolioCombined.map((group, index) => {
+            const borrowBank =
+              group.pool.token.isActive && group.pool.token.position.isLending
+                ? group.pool.quoteTokens[0]
+                : group.pool.token;
+            const depositBank = group.pool.token.address.equals(borrowBank.address)
+              ? group.pool.quoteTokens[0]
+              : group.pool.token;
             const isBorrowing = borrowBank.isActive && !borrowBank.position.isLending;
-            const activeGroup: ActiveGroup = {
-              usdc: collateralBank,
-              token: bank,
-            };
 
             const usdValue =
               (depositBank.isActive ? depositBank.position.usdValue : 0) -
               (borrowBank.isActive ? borrowBank.position.usdValue : 0);
 
-            let leverage = 1;
+            let leverage = "1";
             if (borrowBank.isActive && depositBank.isActive) {
               const borrowUsd = borrowBank.position.usdValue;
               const depositUsd = depositBank.position.usdValue;
 
-              leverage = Math.round((borrowUsd / depositUsd + Number.EPSILON) * 100) / 100 + 1;
+              leverage = numeralFormatter(Math.round((borrowUsd / depositUsd + Number.EPSILON) * 100) / 100 + 1);
             }
 
             return (
               <TableRow key={index} className="even:bg-white/50 hover:even:bg-white/50">
                 <TableCell>
-                  {bank.position.isLending ? (
+                  {group.pool.token.isActive && group.pool.token.position.isLending ? (
                     <Badge className="w-14 bg-success uppercase font-medium justify-center">long</Badge>
                   ) : (
                     <Badge className="w-14 bg-error uppercase font-medium justify-center">short</Badge>
@@ -98,47 +91,60 @@ export const PositionList = () => {
                 </TableCell>
                 <TableCell>
                   <Link
-                    href={`/pools/${bank.address.toBase58()}`}
+                    href={`/trade/${group.client.group.address.toBase58()}`}
                     className="flex items-center gap-3 transition-colors hover:text-mrgn-chartreuse"
                   >
                     <Image
-                      src={getTokenImageURL(bank.info.state.mint.toBase58())}
+                      src={getTokenImageURL(group.pool.token.info.state.mint.toBase58())}
                       width={24}
                       height={24}
-                      alt={bank.meta.tokenSymbol}
+                      alt={group.pool.token.meta.tokenSymbol}
                       className="rounded-full shrink-0"
                     />{" "}
-                    {bank.meta.tokenSymbol}
+                    {group.pool.token.meta.tokenSymbol}
                   </Link>
                 </TableCell>
-                <TableCell>{bank.position.amount < 0.01 ? "0.01" : numeralFormatter(bank.position.amount)}</TableCell>
+                <TableCell>
+                  {group.pool.token.isActive && group.pool.token.position.amount < 0.01
+                    ? "0.01"
+                    : group.pool.token.isActive
+                    ? numeralFormatter(group.pool.token.position.amount)
+                    : 0}
+                </TableCell>
                 <TableCell>{`${leverage}x`}</TableCell>
                 <TableCell>{usdFormatter.format(usdValue)}</TableCell>
                 <TableCell>
-                  {bank.info.oraclePrice.priceRealtime.price.toNumber() > 0.00001
-                    ? tokenPriceFormatter.format(bank.info.oraclePrice.priceRealtime.price.toNumber())
-                    : `$${bank.info.oraclePrice.priceRealtime.price.toExponential(2)}`}
+                  {group.pool.token.isActive &&
+                  group.pool.token.info.oraclePrice.priceRealtime.price.toNumber() > 0.00001
+                    ? tokenPriceFormatter.format(group.pool.token.info.oraclePrice.priceRealtime.price.toNumber())
+                    : `$${
+                        group.pool.token.isActive
+                          ? group.pool.token.info.oraclePrice.priceRealtime.price.toExponential(2)
+                          : 0
+                      }`}
                 </TableCell>
                 <TableCell>
-                  {bank.position.liquidationPrice ? (
+                  {group.pool.token.isActive && group.pool.token.position.liquidationPrice ? (
                     <>
-                      {bank.position.liquidationPrice > 0.00001
-                        ? tokenPriceFormatter.format(bank.position.liquidationPrice)
-                        : `$${bank.position.liquidationPrice.toExponential(2)}`}
+                      {group.pool.token.position.liquidationPrice > 0.00001
+                        ? tokenPriceFormatter.format(group.pool.token.position.liquidationPrice)
+                        : `$${
+                            group.pool.token.isActive ? group.pool.token.position.liquidationPrice.toExponential(2) : 0
+                          }`}
                     </>
                   ) : (
                     "n/a"
                   )}
                 </TableCell>
                 <TableCell className="text-right">
-                  {marginfiAccounts && (
+                  {group.client && (
                     <PositionActionButtons
-                      marginfiClient={marginfiClient}
-                      marginfiAccount={marginfiAccount}
+                      marginfiClient={group.client}
+                      marginfiAccount={group.marginfiAccounts[0]}
                       isBorrowing={isBorrowing}
-                      bank={bank}
-                      activeGroup={activeGroup}
-                      collateralBank={collateralBank}
+                      bank={group.pool.token as ActiveBankInfo}
+                      activeGroup={group}
+                      collateralBank={group.pool.quoteTokens[0] as ActiveBankInfo}
                     />
                   )}
                 </TableCell>

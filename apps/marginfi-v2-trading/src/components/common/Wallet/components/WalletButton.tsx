@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo } from "react";
 import Image from "next/image";
+import Script from "next/script";
 import { useWallet } from "@solana/wallet-adapter-react";
 
 import { useUiStore } from "~/store";
@@ -98,6 +99,7 @@ export const WalletButton = () => {
       {connected && (
         <div className={cn(isMoongate && "pr-12")}>
           <Wallet />
+          <Script src="https://app.debridge.finance/assets/scripts/widget.js" />
         </div>
       )}
     </>

@@ -1,17 +1,17 @@
 import React from "react";
 
-import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
+import { ActionType, DEFAULT_ACCOUNT_SUMMARY, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { useTradeStore } from "~/store";
+import { GroupData } from "~/store/tradeStore";
 import { ActionMethod, cn, RepayWithCollatOptions } from "~/utils";
 
 import { AvailableCollateral } from "./AvailableCollateral";
 import { useLendingPreview } from "./useLendingPreview";
+import { useTradeStore } from "~/store";
 
 interface ActionBoxPreviewProps {
   selectedBank: ExtendedBankInfo | null;
-  selectedAccount: MarginfiAccountWrapper | null;
+  activeGroup: GroupData | null;
   actionMode: ActionType;
   isEnabled: boolean;
   amount: number;
@@ -22,7 +22,7 @@ interface ActionBoxPreviewProps {
 
 export const LendingPreview = ({
   selectedBank,
-  selectedAccount,
+  activeGroup,
   actionMode,
   isEnabled,
   amount,
@@ -30,13 +30,13 @@ export const LendingPreview = ({
   addAdditionalsPopup,
   children,
 }: ActionBoxPreviewProps) => {
-  const [marginfiClient, accountSummary] = useTradeStore((state) => [state.marginfiClient, state.accountSummary]);
+  const [marginfiClient] = useTradeStore((state) => [state.marginfiClient]);
 
   const { preview, previewStats, isLoading, actionMethod } = useLendingPreview({
-    marginfiClient,
-    accountSummary,
+    marginfiClient: activeGroup?.client ?? marginfiClient,
+    accountSummary: activeGroup?.accountSummary ?? DEFAULT_ACCOUNT_SUMMARY,
     actionMode,
-    account: selectedAccount,
+    account: activeGroup?.selectedAccount ?? null,
     bank: selectedBank,
     amount,
     repayWithCollatOptions,
@@ -50,10 +50,10 @@ export const LendingPreview = ({
 
   return (
     <div className="flex flex-col gap-4">
-      {selectedAccount && (
+      {activeGroup?.selectedAccount && (
         <AvailableCollateral
           isLoading={isLoading}
-          marginfiAccount={selectedAccount}
+          marginfiAccount={activeGroup.selectedAccount}
           availableCollateral={preview?.simulationPreview?.availableCollateral}
         />
       )}

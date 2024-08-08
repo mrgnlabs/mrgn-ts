@@ -1,17 +1,27 @@
 import { createJupiterApiClient, QuoteGetRequest, QuoteResponse } from "@jup-ag/api";
-import { AddressLookupTableAccount, Connection, VersionedTransaction } from "@solana/web3.js";
+import { AddressLookupTableAccount, Connection, PublicKey, VersionedTransaction } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 
-import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
-import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
+import { ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { LUT_PROGRAM_AUTHORITY_INDEX, nativeToUi, uiToNative } from "@mrgnlabs/mrgn-common";
 
-import { deserializeInstruction, getAdressLookupTableAccounts, getSwapQuoteWithRetry } from "../helpers";
+import { deserializeInstruction, getAdressLookupTableAccounts, getFeeAccount, getSwapQuoteWithRetry } from "../helpers";
 import { isWholePosition } from "../../mrgnUtils";
-import { ActionMethod, LoopingOptions, RepayWithCollatOptions } from "../types";
-import { verifyTxSizeCollat, verifyTxSizeLooping } from "./helpers";
+import { ActionMethod, LoopingObject, LoopingOptions, RepayWithCollatOptions } from "../types";
+import {
+  calculateMaxRepayableCollateral,
+  getLoopingParamsForAccount,
+  getLoopingParamsForClient,
+  verifyTxSizeCloseBorrowLendPosition,
+  verifyTxSizeCollat,
+  verifyTxSizeLooping,
+} from "./helpers";
 import { STATIC_SIMULATION_ERRORS } from "../../errors";
 
+/*
+ * Calculates the parameters for a repay with collateral flashloan
+ */
 export async function calculateRepayCollateralParams(
   marginfiAccount: MarginfiAccountWrapper,
   bank: ExtendedBankInfo, // borrow
@@ -19,7 +29,8 @@ export async function calculateRepayCollateralParams(
   amount: number,
   slippageBps: number,
   connection: Connection,
-  priorityFee: number
+  priorityFee: number,
+  platformFeeBps?: number
 ): Promise<
   | {
       repayTxn: VersionedTransaction;
@@ -44,6 +55,7 @@ export async function calculateRepayCollateralParams(
       slippageBps: slippageBps,
       maxAccounts: maxAccounts,
       swapMode: "ExactIn",
+      platformFeeBps: platformFeeBps,
     } as QuoteGetRequest;
     try {
       const swapQuote = await getSwapQuoteWithRetry(quoteParams);
@@ -86,54 +98,49 @@ export async function calculateRepayCollateralParams(
 }
 
 /*
- * Calculates the parameters for a looper flashloan
+ * Calculates the parameters for a close all positions flashloan
  */
-export async function calculateLoopingParams(
-  marginfiAccount: MarginfiAccountWrapper,
-  bank: ExtendedBankInfo, // deposit
-  loopBank: ExtendedBankInfo, // borrow
-  targetLeverage: number,
-  amount: number,
-  slippageBps: number,
-  connection: Connection,
-  priorityFee: number
-): Promise<
+export async function calculateBorrowLendPositionParams({
+  marginfiAccount,
+  borrowBank,
+  depositBank,
+  slippageBps,
+  connection,
+  priorityFee,
+  platformFeeBps,
+}: {
+  marginfiAccount: MarginfiAccountWrapper;
+  borrowBank: ActiveBankInfo;
+  depositBank: ActiveBankInfo;
+  slippageBps: number;
+  connection: Connection;
+  priorityFee: number;
+  platformFeeBps?: number;
+}): Promise<
   | {
-      loopingTxn: VersionedTransaction;
+      closeTxn: VersionedTransaction;
       bundleTipTxn: VersionedTransaction | null;
       quote: QuoteResponse;
-      borrowAmount: BigNumber;
-      actualDepositAmount: number;
-      priorityFee: number;
     }
   | ActionMethod
 > {
-  const principalBufferAmountUi = amount * targetLeverage * (slippageBps / 10000);
-  const adjustedPrincipalAmountUi = amount - principalBufferAmountUi;
-
-  const { borrowAmount, totalDepositAmount: depositAmount } = marginfiAccount.computeLoopingParams(
-    adjustedPrincipalAmountUi,
-    targetLeverage,
-    bank.address,
-    loopBank.address
-  );
-
-  const borrowAmountNative = uiToNative(borrowAmount, loopBank.info.state.mintDecimals).toNumber();
-
-  const maxLoopAmount = bank.isActive ? bank?.position.amount : 0;
-
+  let firstQuote;
   const maxAccountsArr = [undefined, 50, 40, 30];
 
-  let firstQuote;
+  if (!borrowBank.isActive) throw new Error("not active");
+
+  const maxAmount = await calculateMaxRepayableCollateral(borrowBank, depositBank, slippageBps);
+
+  if (!maxAmount) return STATIC_SIMULATION_ERRORS.CLOSE_POSITIONS_FL_FAILED;
 
   for (const maxAccounts of maxAccountsArr) {
     const isTxnSplit = maxAccounts === 30;
-
     const quoteParams = {
-      amount: borrowAmountNative,
-      inputMint: loopBank.info.state.mint.toBase58(), // borrow
-      outputMint: bank.info.state.mint.toBase58(), // deposit
+      amount: uiToNative(maxAmount, depositBank.info.state.mintDecimals).toNumber(),
+      inputMint: depositBank.info.state.mint.toBase58(),
+      outputMint: borrowBank.info.state.mint.toBase58(),
       slippageBps: slippageBps,
+      platformFeeBps: platformFeeBps,
       maxAccounts: maxAccounts,
       swapMode: "ExactIn",
     } as QuoteGetRequest;
@@ -145,24 +152,151 @@ export async function calculateLoopingParams(
       }
 
       if (swapQuote) {
-        const minSwapAmountOutUi = nativeToUi(swapQuote.otherAmountThreshold, bank.info.state.mintDecimals);
-        const actualDepositAmountUi = minSwapAmountOutUi + amount;
-
-        const txn = await verifyTxSizeLooping(
+        const txn = await verifyTxSizeCloseBorrowLendPosition(
           marginfiAccount,
-          bank,
-          loopBank,
-          actualDepositAmountUi,
-          borrowAmount,
+          depositBank,
+          borrowBank,
           swapQuote,
           connection,
           isTxnSplit,
           priorityFee
         );
+
         if (txn.flashloanTx) {
+          return { closeTxn: txn.flashloanTx, bundleTipTxn: txn.bundleTipTxn, quote: swapQuote };
+        } else if (txn.error && maxAccounts === maxAccountsArr[maxAccountsArr.length - 1]) {
+          return txn.error;
+        }
+      } else {
+        throw new Error("Swap quote failed");
+      }
+    } catch (error) {
+      console.error(error);
+      return STATIC_SIMULATION_ERRORS.CLOSE_POSITIONS_FL_FAILED;
+    }
+  }
+  return STATIC_SIMULATION_ERRORS.CLOSE_POSITIONS_FL_FAILED;
+}
+
+/*
+ * Calculates the parameters for a looper flashloan
+ */
+export async function calculateLoopingParams({
+  marginfiAccount,
+  marginfiClient,
+  depositBank,
+  borrowBank,
+  targetLeverage,
+  amount,
+  slippageBps,
+  connection,
+  priorityFee,
+  platformFeeBps,
+  isTrading,
+}: {
+  marginfiAccount: MarginfiAccountWrapper | null;
+  marginfiClient?: MarginfiClient;
+  depositBank: ExtendedBankInfo; // deposit
+  borrowBank: ExtendedBankInfo; // borrow
+  targetLeverage: number;
+  amount: number;
+  slippageBps: number;
+  connection: Connection;
+  priorityFee: number;
+  platformFeeBps?: number;
+  isTrading?: boolean;
+}): Promise<LoopingObject | ActionMethod> {
+  if (!marginfiAccount && !marginfiClient) {
+    return STATIC_SIMULATION_ERRORS.NOT_INITIALIZED;
+  }
+
+  let borrowAmount: BigNumber, depositAmount: BigNumber, borrowAmountNative: number;
+  if (marginfiAccount) {
+    const params = getLoopingParamsForAccount(
+      marginfiAccount,
+      depositBank,
+      borrowBank,
+      targetLeverage,
+      amount,
+      slippageBps
+    );
+    borrowAmount = params.borrowAmount;
+    depositAmount = params.depositAmount;
+    borrowAmountNative = params.borrowAmountNative;
+  } else {
+    if (!marginfiClient) return STATIC_SIMULATION_ERRORS.NOT_INITIALIZED;
+    const params = getLoopingParamsForClient(
+      marginfiClient,
+      depositBank,
+      borrowBank,
+      targetLeverage,
+      amount,
+      slippageBps
+    );
+    borrowAmount = params.borrowAmount;
+    depositAmount = params.depositAmount;
+    borrowAmountNative = params.borrowAmountNative;
+  }
+  const principalBufferAmountUi = amount * targetLeverage * (slippageBps / 10000);
+  const adjustedPrincipalAmountUi = amount - principalBufferAmountUi;
+
+  const maxLoopAmount = depositBank.isActive ? depositBank?.position.amount : 0;
+
+  const maxAccountsArr = [undefined, 50, 40, 30];
+
+  let firstQuote;
+
+  for (const maxAccounts of maxAccountsArr) {
+    const isTxnSplit = maxAccounts === 30;
+
+    const quoteParams = {
+      amount: borrowAmountNative,
+      inputMint: borrowBank.info.state.mint.toBase58(), // borrow
+      outputMint: depositBank.info.state.mint.toBase58(), // deposit
+      slippageBps: slippageBps,
+      platformFeeBps: platformFeeBps, // platform fee
+      maxAccounts: maxAccounts,
+      swapMode: "ExactIn",
+    } as QuoteGetRequest;
+    try {
+      const swapQuote = await getSwapQuoteWithRetry(quoteParams);
+
+      if (!maxAccounts) {
+        firstQuote = swapQuote;
+      }
+
+      if (swapQuote) {
+        const minSwapAmountOutUi = nativeToUi(swapQuote.otherAmountThreshold, depositBank.info.state.mintDecimals);
+        const actualDepositAmountUi = minSwapAmountOutUi + amount;
+        let txn: {
+          flashloanTx: VersionedTransaction | null;
+          bundleTipTxn: VersionedTransaction | null;
+          addressLookupTableAccounts: AddressLookupTableAccount[];
+          error?: ActionMethod;
+        } = {
+          flashloanTx: null,
+          bundleTipTxn: null,
+          addressLookupTableAccounts: [],
+          error: undefined,
+        };
+
+        if (marginfiAccount) {
+          txn = await verifyTxSizeLooping(
+            marginfiAccount,
+            depositBank,
+            borrowBank,
+            actualDepositAmountUi,
+            borrowAmount,
+            swapQuote,
+            connection,
+            isTxnSplit,
+            priorityFee
+          );
+        }
+        if (txn.flashloanTx || !marginfiAccount) {
           return {
-            loopingTxn: txn.flashloanTx,
-            bundleTipTxn: txn.bundleTipTxn,
+            loopingTxn: txn.flashloanTx ?? null,
+            bundleTipTxn: txn.bundleTipTxn ?? null,
             quote: swapQuote,
             borrowAmount: borrowAmount,
             actualDepositAmount: actualDepositAmountUi,
@@ -180,6 +314,52 @@ export async function calculateLoopingParams(
     }
   }
 
+  return STATIC_SIMULATION_ERRORS.FL_FAILED;
+}
+
+export async function calculateLoopingTransaction({
+  marginfiAccount,
+  borrowBank,
+  depositBank,
+  connection,
+  priorityFee,
+  loopObject,
+  isTrading,
+}: {
+  marginfiAccount: MarginfiAccountWrapper | null;
+  borrowBank: ExtendedBankInfo;
+  depositBank: ExtendedBankInfo;
+  connection: Connection;
+  priorityFee: number;
+  loopObject?: LoopingObject;
+  isTrading?: boolean;
+}): Promise<ActionMethod | LoopingObject> {
+  if (loopObject?.loopingTxn && marginfiAccount) {
+    const txn = await verifyTxSizeLooping(
+      marginfiAccount,
+      depositBank,
+      borrowBank,
+      loopObject.actualDepositAmount,
+      loopObject.borrowAmount,
+      loopObject.quote,
+      connection,
+      false,
+      priorityFee
+    );
+
+    if (!txn) {
+      return STATIC_SIMULATION_ERRORS.FL_FAILED;
+    } else {
+      return {
+        loopingTxn: txn.flashloanTx,
+        bundleTipTxn: txn.bundleTipTxn,
+        quote: loopObject.quote,
+        borrowAmount: loopObject.borrowAmount,
+        actualDepositAmount: loopObject.actualDepositAmount,
+        priorityFee: priorityFee,
+      };
+    }
+  }
   return STATIC_SIMULATION_ERRORS.FL_FAILED;
 }
 
@@ -208,13 +388,18 @@ export async function loopingBuilder({
   const jupiterQuoteApi = createJupiterApiClient();
 
   // get fee account for original borrow mint
-  // const feeAccount = await getFeeAccount(bank.info.state.mint);
+  const feeMint =
+    options.loopingQuote.swapMode === "ExactIn" ? options.loopingQuote.outputMint : options.loopingQuote.inputMint;
+  // get fee account for original borrow mint
+  const feeAccount = getFeeAccount(new PublicKey(feeMint));
+  const feeAccountInfo = await options.connection.getAccountInfo(new PublicKey(feeAccount));
 
   const { swapInstruction, addressLookupTableAddresses } = await jupiterQuoteApi.swapInstructionsPost({
     swapRequest: {
       quoteResponse: options.loopingQuote,
       userPublicKey: marginfiAccount.authority.toBase58(),
       programAuthorityId: LUT_PROGRAM_AUTHORITY_INDEX,
+      feeAccount: feeAccountInfo ? feeAccount : undefined,
     },
   });
 
@@ -287,6 +472,66 @@ export async function repayWithCollatBuilder({
     options.depositBank.address,
     options.depositBank.isActive && isWholePosition(options.depositBank, options.withdrawAmount),
     bank.isActive && isWholePosition(bank, amount),
+    [swapIx],
+    swapLUTs,
+    priorityFee,
+    isTxnSplit
+  );
+
+  return { flashloanTx, bundleTipTxn, addressLookupTableAccounts };
+}
+
+/*
+ * Builds a close all positions flashloan transaction
+ */
+export async function closePositionBuilder({
+  marginfiAccount,
+  depositBank,
+  borrowBank,
+  quote,
+  connection,
+  isTxnSplit,
+  priorityFee,
+}: {
+  marginfiAccount: MarginfiAccountWrapper;
+  depositBank: ActiveBankInfo;
+  borrowBank: ActiveBankInfo;
+  quote: QuoteResponse;
+  connection: Connection;
+  isTxnSplit?: boolean;
+  priorityFee?: number;
+}) {
+  const jupiterQuoteApi = createJupiterApiClient();
+
+  const feeMint = quote.swapMode === "ExactIn" ? quote.outputMint : quote.inputMint;
+  // get fee account for original borrow mint
+  const feeAccount = getFeeAccount(new PublicKey(feeMint));
+  const feeAccountInfo = await connection.getAccountInfo(new PublicKey(feeAccount));
+
+  const { swapInstruction, addressLookupTableAddresses } = await jupiterQuoteApi.swapInstructionsPost({
+    swapRequest: {
+      quoteResponse: quote,
+      userPublicKey: marginfiAccount.authority.toBase58(),
+      programAuthorityId: LUT_PROGRAM_AUTHORITY_INDEX,
+      feeAccount: feeAccountInfo ? feeAccount : undefined,
+    },
+  });
+
+  // const setupIxs = setupInstructions.length > 0 ? setupInstructions.map(deserializeInstruction) : []; //**not optional but man0s smart**
+  const swapIx = deserializeInstruction(swapInstruction);
+  // const swapcleanupIx = cleanupInstruction ? [deserializeInstruction(cleanupInstruction)] : []; **optional**
+  // tokenLedgerInstruction **also optional**
+
+  const swapLUTs: AddressLookupTableAccount[] = [];
+  swapLUTs.push(...(await getAdressLookupTableAccounts(connection, addressLookupTableAddresses)));
+
+  const { flashloanTx, bundleTipTxn, addressLookupTableAccounts } = await marginfiAccount.makeRepayWithCollatTx(
+    borrowBank.position.amount,
+    depositBank.position.amount,
+    borrowBank.address,
+    depositBank.address,
+    true,
+    true,
     [swapIx],
     swapLUTs,
     priorityFee,

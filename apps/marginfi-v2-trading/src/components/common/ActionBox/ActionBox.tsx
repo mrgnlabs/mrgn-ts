@@ -32,7 +32,7 @@ import {
   ActionBoxActions,
   ActionBoxInput,
 } from "~/components/common/ActionBox/components";
-import { ActiveGroup } from "~/store/tradeStore";
+import { GroupData } from "~/store/tradeStore";
 
 type ActionBoxProps = {
   requestedAction?: ActionType;
@@ -40,7 +40,7 @@ type ActionBoxProps = {
   requestedCollateralBank?: ExtendedBankInfo;
   requestedAccount?: MarginfiAccountWrapper;
   isDialog?: boolean;
-  activeGroupArg?: ActiveGroup | null;
+  activeGroupArg?: GroupData | null;
   isTokenSelectable?: boolean;
   handleCloseDialog?: () => void;
 };
@@ -61,27 +61,21 @@ export const ActionBox = ({
   isTokenSelectable,
   handleCloseDialog,
 }: ActionBoxProps) => {
-  const [
-    isInitialized,
-    setIsRefreshingStore,
-    activeGroupState,
-    mfiClient,
-    activeAccount,
-    nativeSolBalance,
-    fetchTradeState,
-    setActiveBank,
-  ] = useTradeStore((state) => [
-    state.initialized,
-    state.setIsRefreshingStore,
-    state.activeGroup,
-    state.marginfiClient,
-    state.selectedAccount,
-    state.nativeSolBalance,
-    state.fetchTradeState,
-    state.setActiveBank,
-  ]);
+  const [isInitialized, setIsRefreshingStore, activeGroupPk, groupMap, mfiClient, nativeSolBalance, refreshGroup] =
+    useTradeStore((state) => [
+      state.initialized,
+      state.setIsRefreshingStore,
+      state.activeGroup,
+      state.groupMap,
+      state.marginfiClient,
+      state.nativeSolBalance,
+      state.refreshGroup,
+    ]);
 
-  const activeGroup = React.useMemo(() => activeGroupArg ?? activeGroupState, [activeGroupArg, activeGroupState]);
+  const activeGroup = React.useMemo(() => {
+    const group = activeGroupPk ? groupMap.get(activeGroupPk.toBase58()) || null : null;
+    return activeGroupArg ?? group;
+  }, [activeGroupArg, activeGroupPk, groupMap]);
 
   const [
     slippageBps,
@@ -155,15 +149,15 @@ export const ActionBox = ({
   const selectedAccount = React.useMemo(() => {
     if (requestedAccount) {
       return requestedAccount;
-    } else if (activeAccount) {
-      return activeAccount;
+    } else if (activeGroup?.selectedAccount) {
+      return activeGroup.selectedAccount;
     } else {
       return null;
     }
-  }, [requestedAccount, activeAccount]);
+  }, [requestedAccount, activeGroup?.selectedAccount]);
 
   const extendedBankInfos = React.useMemo(() => {
-    return activeGroup ? [activeGroup.token, activeGroup.usdc] : [];
+    return activeGroup ? [activeGroup.pool.token, ...activeGroup.pool.quoteTokens] : [];
   }, [activeGroup]);
 
   React.useEffect(() => {
@@ -177,8 +171,9 @@ export const ActionBox = ({
   }, [extendedBankInfos, refreshSelectedBanks]);
 
   React.useEffect(() => {
-    if (errorMessage !== "") {
-      showErrorToast(errorMessage);
+    if (errorMessage !== null && errorMessage.description) {
+      showErrorToast(errorMessage?.description);
+      setAdditionalActionMethods([errorMessage]);
     }
   }, [errorMessage]);
 
@@ -350,10 +345,10 @@ export const ActionBox = ({
       // -------- Refresh state
       try {
         setIsRefreshingStore(true);
-        await fetchTradeState({
+        await refreshGroup({
           connection,
           wallet,
-          refresh: true,
+          groupPk: activeGroup?.groupPk,
         });
       } catch (error: any) {
         console.log("Error while reloading state");
@@ -368,9 +363,9 @@ export const ActionBox = ({
       setIsActionComplete,
       setPreviousTxn,
       setIsRefreshingStore,
-      fetchTradeState,
       connection,
       wallet,
+      activeGroup?.groupPk,
     ]
   );
 
@@ -416,10 +411,10 @@ export const ActionBox = ({
 
     try {
       setIsRefreshingStore(true);
-      await fetchTradeState({
+      await refreshGroup({
         connection,
         wallet,
-        refresh: true,
+        groupPk: activeGroup?.groupPk,
       });
     } catch (error: any) {
       console.log("Error while reloading state");
@@ -434,9 +429,9 @@ export const ActionBox = ({
     handleCloseDialog,
     setPreviousTxn,
     setIsRefreshingStore,
-    fetchTradeState,
     connection,
     wallet,
+    activeGroup?.groupPk,
   ]);
 
   const handleAction = async () => {
@@ -531,10 +526,10 @@ export const ActionBox = ({
     // -------- Refresh state
     try {
       setIsRefreshingStore(true);
-      await fetchTradeState({
+      await refreshGroup({
         connection,
         wallet,
-        refresh: true,
+        groupPk: activeGroup?.groupPk,
       });
     } catch (error: any) {
       console.log("Error while reloading state");
@@ -558,7 +553,7 @@ export const ActionBox = ({
     setIsActionComplete,
     setPreviousTxn,
     setIsRefreshingStore,
-    fetchTradeState,
+    activeGroup?.groupPk,
   ]);
 
   const handleLendingAction = React.useCallback(async () => {
@@ -695,7 +690,7 @@ export const ActionBox = ({
               <ActionBoxPreview
                 selectedBank={selectedBank}
                 selectedStakingAccount={selectedStakingAccount}
-                selectedAccount={selectedAccount}
+                activeGroup={activeGroup}
                 actionMode={actionMode}
                 amount={amount}
                 slippageBps={slippageBps}

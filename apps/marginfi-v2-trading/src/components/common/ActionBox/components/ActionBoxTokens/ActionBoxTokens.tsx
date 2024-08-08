@@ -5,10 +5,10 @@ import { useActionBoxStore } from "~/hooks/useActionBoxStore";
 import { StakeData } from "~/utils";
 
 import { LendingTokens } from "./Components";
-import { ActiveGroup } from "~/store/tradeStore";
+import { GroupData } from "~/store/tradeStore";
 
 interface ActionBoxPreviewProps {
-  activeGroup: ActiveGroup | null;
+  activeGroup: GroupData | null;
   isDialog?: boolean;
   isTokenSelectable?: boolean;
   tokensOverride?: ExtendedBankInfo[];

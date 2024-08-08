@@ -10,12 +10,12 @@ import { RepayType, computeBankRate } from "~/utils";
 import { SelectedBankItem, TokenListWrapper } from "../SharedComponents";
 import { LendingTokensList, RepayCollatTokensList, LendingTokensTrigger } from "./Components";
 import { useTradeStore } from "~/store";
-import { ActiveGroup } from "~/store/tradeStore";
+import { GroupData } from "~/store/tradeStore";
 
 type LendingTokensProps = {
   selectedBank: ExtendedBankInfo | null;
   selectedRepayBank: ExtendedBankInfo | null;
-  activeGroup: ActiveGroup | null;
+  activeGroup: GroupData | null;
   actionType: ActionType;
   isDialog?: boolean;
   isTokenSelectable?: boolean;
@@ -43,17 +43,25 @@ export const LendingTokens = ({
 }: LendingTokensProps) => {
   const isOtherBankActive = React.useMemo(() => {
     if (!selectedBank || !activeGroup) return false;
-    const isToken = activeGroup?.token.address.equals(selectedBank.address);
+    const isToken = activeGroup.pool.token.address.equals(selectedBank.address);
+    const isTokenActive = activeGroup.pool.token.isActive;
+    const isTokenLending = isTokenActive && activeGroup.pool.token.position.isLending;
+
+    const isQuoteActive = activeGroup.pool.quoteTokens.some((quoteToken) => quoteToken.isActive);
+    const isQuoteLending = activeGroup.pool.quoteTokens.some(
+      (quoteToken) => quoteToken.isActive && quoteToken.position.isLending
+    );
+
     if (actionType === ActionType.Withdraw) {
-      if (isToken && activeGroup.usdc.isActive && activeGroup.usdc.position.isLending) {
+      if (isToken && isQuoteActive && isQuoteLending) {
         return true;
-      } else if (!isToken && activeGroup.token.isActive && activeGroup.token.position.isLending) {
+      } else if (!isToken && isTokenActive && isTokenLending) {
         return true;
       }
     } else if (actionType === ActionType.Repay) {
-      if (isToken && activeGroup.usdc.isActive && !activeGroup.usdc.position.isLending) {
+      if (isToken && isQuoteActive && !isQuoteLending) {
         return true;
-      } else if (!isToken && activeGroup.token.isActive && !activeGroup.token.position.isLending) {
+      } else if (!isToken && isTokenActive && !isTokenLending) {
         return true;
       }
     }
@@ -109,6 +117,7 @@ export const LendingTokens = ({
                 onClose={() => setIsOpen(false)}
                 onSetSelectedRepayBank={setSelectedRepayBank}
                 selectedRepayBank={null}
+                activeGroup={activeGroup}
                 tokensOverride={tokensOverride}
               />
             ) : (
@@ -116,6 +125,7 @@ export const LendingTokens = ({
                 isOpen={isOpen}
                 onClose={() => setIsOpen(false)}
                 selectedBank={selectedBank}
+                activeGroup={activeGroup}
                 onSetSelectedBank={setSelectedBank}
                 isDialog={isDialog}
                 actionMode={actionType}

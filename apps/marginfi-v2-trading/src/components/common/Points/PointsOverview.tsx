@@ -22,17 +22,6 @@ export const PointsOverview = ({ userPointsData }: PointsOverviewProps) => {
   const [isReferralCopied, setIsReferralCopied] = React.useState(false);
   const [lastUsedWallet, setLastUsedWallet] = React.useState<string>("");
 
-  React.useEffect(() => {
-    if (!wallet) return;
-    const getLastUsedWallet = async (wallet: string) => {
-      const response = await fetch(`/api/user/wallet-pref?wallet=${wallet}`);
-      const data = await response.json();
-      if (data.wallet) setLastUsedWallet(data.wallet);
-    };
-
-    getLastUsedWallet(wallet.publicKey.toBase58());
-  }, [wallet]);
-
   return (
     <>
       <div className="max-w-[800px] w-full mx-auto mt-4">

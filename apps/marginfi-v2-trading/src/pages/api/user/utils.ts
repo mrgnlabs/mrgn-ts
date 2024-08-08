@@ -1,60 +1,5 @@
 import * as admin from "firebase-admin";
-import { UserRecord } from "firebase-admin/lib/auth/user-record";
-import { v4 as uuidv4 } from "uuid";
-
-export const logSignupAttempt = async (
-  publicKey: string,
-  uuid: string | null,
-  signature: string,
-  successful: boolean,
-  walletId: string = ""
-) => {
-  try {
-    const db = admin.firestore();
-    const loginsCollection = db.collection("logins");
-    const usersCollection = db.collection("users");
-    await loginsCollection.add({
-      publicKey,
-      uuid,
-      signature,
-      successful,
-      walletId,
-      timestamp: admin.firestore.FieldValue.serverTimestamp(),
-    });
-    await usersCollection.doc(publicKey).update({
-      lastUsedWalletId: walletId,
-    });
-  } catch (error: any) {
-    console.error("Error logging sign-up attempt:", error);
-  }
-};
-
-export const logLoginAttempt = async (
-  publicKey: string,
-  uuid: string | null,
-  signature: string,
-  successful: boolean,
-  walletId: string = ""
-) => {
-  try {
-    const db = admin.firestore();
-    const loginsCollection = db.collection("logins");
-    const usersCollection = db.collection("users");
-    await loginsCollection.add({
-      publicKey,
-      uuid,
-      signature,
-      successful,
-      walletId,
-      timestamp: admin.firestore.FieldValue.serverTimestamp(),
-    });
-    await usersCollection.doc(publicKey).update({
-      lastUsedWalletId: walletId,
-    });
-  } catch (error: any) {
-    console.error("Error logging log-in attempt:", error);
-  }
-};
+import generatePassword from "omgopass";
 
 export function initFirebaseIfNeeded() {
   // Check if the app is already initialized to avoid initializing multiple times
@@ -70,66 +15,54 @@ export function initFirebaseIfNeeded() {
   }
 }
 
-export async function getFirebaseUserByWallet(walletAddress: string): Promise<UserRecord | undefined> {
-  try {
-    const user = await admin.auth().getUser(walletAddress);
-    return user;
-  } catch (error: any) {
-    if (error.code === "auth/user-not-found") {
-      return undefined;
-    }
-    throw error;
-  }
-}
-
-export async function createFirebaseUser(walletAddress: string, referralCode?: string) {
+// function to get the referral code for a given wallet address
+// if the wallet address is not in the referral table, then add it with a random code
+export async function getReferralCode(walletAddress: string) {
   const db = admin.firestore();
-  let referredBy = null;
-
-  // Validate referrer code if one exists
-  let referrerQuery;
-  const referralCodeLower = referralCode?.toLowerCase();
-  if (referralCodeLower) {
-    // Do the standard search
-    referrerQuery = await db.collection("users").where("referralCode", "==", referralCodeLower).limit(1).get();
-    if (!referrerQuery.empty) {
-      console.log("found standard referral code");
-      const referrerDoc = referrerQuery.docs[0];
-      referredBy = referrerDoc.id;
-    } else {
-      referrerQuery = await db
-        .collection("users")
-        .where("referralCode", "array-contains", referralCodeLower)
-        .limit(1)
-        .get();
-      if (!referrerQuery.empty) {
-        console.log("found multiple referral codes for user");
-        const referrerDoc = referrerQuery.docs[0];
-        referredBy = referrerDoc.id;
-      }
-    }
-  }
-
-  // Create new user in Firebase Auth
-  await admin.auth().createUser({
-    uid: walletAddress,
-  });
-
-  // Create new user in Firestore
-  await db.collection("users").doc(walletAddress).set({
-    referredBy,
-    referralCode: uuidv4(),
-  });
-}
-
-export async function getLastUsedWallet(wallet: string) {
-  const db = admin.firestore();
-  const user = await db.collection("users").doc(wallet).get();
+  const user = await db.collection("arena_referral_codes").doc(walletAddress).get();
 
   if (!user.exists) {
-    return "";
+    const referralCode = generatePassword({
+      minSyllableLength: 4,
+      maxSyllableLength: 6,
+      hasNumbers: false,
+      titlecased: false,
+      separators: "-",
+    });
+
+    await db.collection("arena_referral_codes").doc(walletAddress).set({ referralCode });
+    return referralCode;
   }
 
-  const userData = user.data();
-  return userData?.lastUsedWalletId;
+  return user.data()?.referralCode;
+}
+
+// track successful referral
+export async function trackReferral(walletAddress: string, referralCode: string) {
+  const db = admin.firestore();
+
+  // fetch referral code
+  const refCode = await db.collection("arena_referral_codes").where("referralCode", "==", referralCode).get();
+
+  // referral code not found
+  if (refCode.size === 0) {
+    return false;
+  }
+
+  const refData = refCode.docs[0].data();
+
+  // check if user has already been referred
+  const referrals = await db.collection("arena_referrals").doc(walletAddress).get();
+  if (referrals.exists) {
+    return false;
+  }
+
+  // add tracked referral
+  await db.collection("arena_referrals").doc(walletAddress).set({
+    referralCode: refData.referralCode,
+    referrerAddress: refCode.docs[0].id,
+    createdAt: admin.firestore.Timestamp.now(),
+  });
+
+  return true;
 }

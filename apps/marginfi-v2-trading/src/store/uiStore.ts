@@ -5,6 +5,16 @@ import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { LendingModes, PoolTypes, SortType, sortDirection, SortAssetOption, PreviousTxn } from "~/types";
 
+export enum WalletState {
+  DEFAULT = "default",
+  TOKEN = "token",
+  SEND = "send",
+  SELECT = "select",
+  SWAP = "swap",
+  BRIDGE = "bridge",
+  BUY = "buy",
+}
+
 const SORT_OPTIONS_MAP: { [key in SortType]: SortAssetOption } = {
   APY_DESC: {
     label: "APY highest to lowest",
@@ -52,6 +62,7 @@ interface UiState {
   previousTxn: PreviousTxn | null;
   isActionBoxInputFocussed: boolean;
   assetListSearch: string;
+  walletState: WalletState;
 
   // Actions
   setIsMenuDrawerOpen: (isOpen: boolean) => void;
@@ -69,6 +80,7 @@ interface UiState {
   setPreviousTxn: (previousTxn: PreviousTxn) => void;
   setIsActionBoxInputFocussed: (isFocussed: boolean) => void;
   setAssetListSearch: (search: string) => void;
+  setWalletState: (walletState: WalletState) => void;
 }
 
 function createUiStore() {
@@ -104,13 +116,14 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
   actionMode: ActionType.Deposit,
   poolFilter: PoolTypes.ALL,
   sortOption: SORT_OPTIONS_MAP[SortType.TVL_DESC],
-  platformFeeBps: 10,
+  platformFeeBps: 30,
   selectedTokenBank: null,
   priorityFee: 0,
   isActionComplete: false,
   previousTxn: null,
   isActionBoxInputFocussed: false,
   assetListSearch: "",
+  walletState: WalletState.DEFAULT,
 
   // Actions
   setIsMenuDrawerOpen: (isOpen: boolean) => set({ isMenuDrawerOpen: isOpen }),
@@ -132,6 +145,7 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
   setPreviousTxn: (previousTxn: PreviousTxn) => set({ previousTxn: previousTxn }),
   setIsActionBoxInputFocussed: (isFocussed: boolean) => set({ isActionBoxInputFocussed: isFocussed }),
   setAssetListSearch: (search: string) => set({ assetListSearch: search }),
+  setWalletState: (walletState: WalletState) => set({ walletState: walletState }),
 });
 
 export { createUiStore, SORT_OPTIONS_MAP };

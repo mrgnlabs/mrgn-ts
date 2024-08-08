@@ -10,22 +10,30 @@ import { ActionComplete } from "~/components/common/ActionComplete";
 
 import { Loader } from "~/components/ui/loader";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
+import { DEFAULT_ACCOUNT_SUMMARY } from "@mrgnlabs/marginfi-v2-ui-state";
 
 export default function TradeSymbolPage() {
   const [previousTxn] = useUiStore((state) => [state.previousTxn]);
-  const [initialized, activeGroup, accountSummary] = useTradeStore((state) => [
+  const [initialized, activeGroupPk, groupMap] = useTradeStore((state) => [
     state.initialized,
     state.activeGroup,
-    state.accountSummary,
+    state.groupMap,
   ]);
+
+  const activeGroup = React.useMemo(() => {
+    return activeGroupPk ? groupMap.get(activeGroupPk.toBase58()) : null;
+  }, [activeGroupPk, groupMap]);
+
+  const accountSummary = React.useMemo(() => activeGroup?.accountSummary ?? DEFAULT_ACCOUNT_SUMMARY, [activeGroup]);
 
   const healthColor = React.useMemo(() => {
     if (accountSummary.healthFactor) {
+      const healthFactor = accountSummary.healthFactor;
       let color: string;
 
-      if (accountSummary.healthFactor >= 0.5) {
+      if (healthFactor >= 0.5) {
         color = "#75BA80"; // green color " : "#",
-      } else if (accountSummary.healthFactor >= 0.25) {
+      } else if (healthFactor >= 0.25) {
         color = "#B8B45F"; // yellow color
       } else {
         color = "#CF6F6F"; // red color
@@ -41,9 +49,9 @@ export default function TradeSymbolPage() {
     <>
       <div className="w-full max-w-8xl mx-auto px-4 md:px-8 pb-28 pt-12 z-10">
         {(!initialized || !activeGroup) && <Loader label="Loading arena pool..." className="mt-8" />}
-        {initialized && activeGroup && activeGroup.token && (
+        {initialized && activeGroup && activeGroup.pool.token && (
           <div className="flex flex-col items-start gap-8 pb-16 w-full">
-            <PoolHeader />
+            <PoolHeader groupData={activeGroup} />
             <div className="bg-background/80 backdrop-blur-sm border shadow-sm p-6 rounded-xl w-full max-w-6xl mx-auto">
               <h2 className="font-medium text-2xl mb-4">Your position</h2>
               <dl className="flex justify-between items-center gap-2">
@@ -91,8 +99,8 @@ export default function TradeSymbolPage() {
               </div>
 
               <div className="grid grid-cols-1 gap-4 w-full mx-auto mt-8 md:grid-cols-2 md:gap-8">
-                <BankCard bank={activeGroup.token} />
-                <BankCard bank={activeGroup.usdc} />
+                <BankCard bank={activeGroup.pool.token} />
+                <BankCard bank={activeGroup.pool.quoteTokens[0]} />
               </div>
             </div>
           </div>

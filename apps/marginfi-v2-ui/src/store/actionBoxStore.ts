@@ -7,7 +7,7 @@ import * as solanaStakePool from "@solana/spl-stake-pool";
 
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { computeMaxLeverage, MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
-import { ActionMethod, debounceFn, LstType, RepayType, YbxType } from "@mrgnlabs/mrgn-utils";
+import { ActionMethod, debounceFn, LoopingObject, LstType, RepayType, YbxType } from "@mrgnlabs/mrgn-utils";
 import {
   STATIC_SIMULATION_ERRORS,
   DYNAMIC_SIMULATION_ERRORS,
@@ -576,17 +576,7 @@ async function calculateLooping(
   slippageBps: number,
   connection: Connection,
   priorityFee: number
-): Promise<
-  | {
-      loopingTxn: VersionedTransaction;
-      bundleTipTxn: VersionedTransaction | null;
-      quote: QuoteResponse;
-      borrowAmount: BigNumber;
-      actualDepositAmount: number;
-      priorityFee: number;
-    }
-  | ActionMethod
-> {
+): Promise<LoopingObject | ActionMethod> {
   // TODO setup logging again
   // capture("looper", {
   //   amountIn: uiToNative(amount, loopBank.info.state.mintDecimals).toNumber(),
@@ -596,16 +586,16 @@ async function calculateLooping(
   //   outputMint: bank.info.state.mint.toBase58(),
   // });
 
-  const result = await calculateLoopingParams(
+  const result = await calculateLoopingParams({
     marginfiAccount,
-    bank,
-    loopBank,
+    depositBank: bank,
+    borrowBank: loopBank,
     targetLeverage,
     amount,
     slippageBps,
     connection,
-    priorityFee
-  );
+    priorityFee,
+  });
 
   return result;
 }

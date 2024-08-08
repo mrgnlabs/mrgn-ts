@@ -6,11 +6,12 @@ import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 import { ActionMethod, RepayWithCollatOptions, StakeData } from "~/utils";
 
 import { LendingPreview, LstPreview, YbxPreview } from "./Components";
+import { GroupData } from "~/store/tradeStore";
 
 interface ActionBoxPreviewProps {
   selectedBank: ExtendedBankInfo | null;
   selectedStakingAccount: StakeData | null;
-  selectedAccount: MarginfiAccountWrapper | null;
+  activeGroup: GroupData | null;
   actionMode: ActionType;
   amount: number;
   slippageBps: number;
@@ -23,7 +24,7 @@ interface ActionBoxPreviewProps {
 export const ActionBoxPreview = ({
   selectedBank,
   selectedStakingAccount,
-  selectedAccount,
+  activeGroup,
   actionMode,
   amount,
   slippageBps,
@@ -46,7 +47,7 @@ export const ActionBoxPreview = ({
       {isInLendingMode && (
         <LendingPreview
           selectedBank={selectedBank}
-          selectedAccount={selectedAccount}
+          activeGroup={activeGroup}
           actionMode={actionMode}
           isEnabled={isEnabled}
           amount={amount}

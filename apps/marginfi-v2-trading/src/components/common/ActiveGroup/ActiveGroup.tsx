@@ -9,11 +9,15 @@ import { useTradeStore } from "~/store";
 import { Button } from "~/components/ui/button";
 
 export const ActiveGroup = () => {
-  const [activeGroup, selectedAccount, marginfiClient] = useTradeStore((state) => [
+  const [activeGroupPk, groupMap, marginfiClient] = useTradeStore((state) => [
     state.activeGroup,
-    state.selectedAccount,
+    state.groupMap,
     state.marginfiClient,
   ]);
+
+  const activeGroup = React.useMemo(() => {
+    return (activeGroupPk ? groupMap.get(activeGroupPk.toBase58()) : null) ?? null;
+  }, [activeGroupPk, groupMap]);
   const [isOpen, setIsOpen] = React.useState(false);
 
   if (!isOpen) {
@@ -27,8 +31,8 @@ export const ActiveGroup = () => {
 
   return (
     <div className="fixed bottom-14 left-6 bg-secondary/90 max-w-fit p-4 rounded-xl text-sm z-50">
-      {(!activeGroup || !activeGroup.token || !marginfiClient) && <p>No active group</p>}
-      {activeGroup && activeGroup.token && marginfiClient && isOpen && (
+      {(!activeGroup || !activeGroup.pool.token || !marginfiClient) && <p>No active group</p>}
+      {activeGroup && activeGroup.pool.token && marginfiClient && isOpen && (
         <>
           <Button variant="ghost" className="absolute top-2 right-2 h-auto p-1" onClick={() => setIsOpen(false)}>
             <IconX size={14} />
@@ -37,12 +41,12 @@ export const ActiveGroup = () => {
             <li>
               <strong className="font-medium">Active token</strong>:{" "}
               <Link
-                href={`https://birdeye.so/token/${activeGroup.token.info.rawBank.mint.toBase58()}`}
+                href={`https://birdeye.so/token/${activeGroup.pool.token.info.rawBank.mint.toBase58()}`}
                 target="_blank"
                 rel="noreferrer"
                 className="text-chartreuse"
               >
-                {activeGroup.token.meta.tokenSymbol}
+                {activeGroup.pool.token.meta.tokenSymbol}
               </Link>
             </li>
             <li>
@@ -59,35 +63,35 @@ export const ActiveGroup = () => {
             <li>
               <strong className="font-medium">Active token bank</strong>:{" "}
               <Link
-                href={`https://birdeye.so/token/${activeGroup.token.address.toBase58()}`}
+                href={`https://birdeye.so/token/${activeGroup.pool.token.address.toBase58()}`}
                 target="_blank"
                 rel="noreferrer"
                 className="text-chartreuse"
               >
-                {shortenAddress(activeGroup.token.address.toBase58())}
+                {shortenAddress(activeGroup.pool.token.address.toBase58())}
               </Link>
             </li>
             <li>
               <strong className="font-medium">Active collateral bank</strong>:{" "}
               <Link
-                href={`https://solana.fm/address/${activeGroup.usdc.address.toBase58()}`}
+                href={`https://solana.fm/address/${activeGroup.pool.quoteTokens[0].address.toBase58()}`}
                 target="_blank"
                 rel="noreferrer"
                 className="text-chartreuse"
               >
-                {shortenAddress(activeGroup.usdc.address.toBase58())}
+                {shortenAddress(activeGroup.pool.quoteTokens[0].address.toBase58())}
               </Link>
             </li>
-            {selectedAccount && (
+            {activeGroup?.selectedAccount && (
               <li>
                 <strong className="font-medium">Selected account</strong>:{" "}
                 <Link
-                  href={`https://solana.fm/address/${selectedAccount.address.toBase58()}`}
+                  href={`https://solana.fm/address/${activeGroup.selectedAccount.address.toBase58()}`}
                   target="_blank"
                   rel="noreferrer"
                   className="text-chartreuse"
                 >
-                  {shortenAddress(activeGroup.usdc.address.toBase58())}
+                  {shortenAddress(activeGroup.selectedAccount.address.toBase58())}
                 </Link>
               </li>
             )}

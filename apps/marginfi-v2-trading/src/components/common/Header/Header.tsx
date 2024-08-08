@@ -5,9 +5,18 @@ import React from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { motion, useAnimate } from "framer-motion";
-import { IconTrendingUp, IconCoins, IconChartPie, IconPlus } from "@tabler/icons-react";
+import {
+  IconTrendingUp,
+  IconCoins,
+  IconChartPie,
+  IconPlus,
+  IconShovelPitchforks,
+  IconCommand,
+  IconRefresh,
+} from "@tabler/icons-react";
 
-import { useTradeStore } from "~/store";
+import { useTradeStore, useUiStore } from "~/store";
+import { WalletState } from "~/store/uiStore";
 import { cn } from "~/utils/themeUtils";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { useIsMobile } from "~/hooks/useIsMobile";
@@ -19,13 +28,14 @@ import { IconArena } from "~/components/ui/icons";
 import { CreatePoolSoon } from "../Pool/CreatePoolSoon";
 
 const navItems = [
-  { label: "pools", icon: <IconCoins />, href: "/" },
-  { label: "trade", icon: <IconTrendingUp />, href: "/trade/59yr2vuW1qv3UVQx9HC6Q8mxns5S6g7fjS8YWgRgaLA7" },
-  { label: "portfolio", icon: <IconChartPie />, href: "/portfolio" },
+  { label: "Discover", href: "/" },
+  { label: "Yield", href: "/yield" },
+  { label: "Portfolio", href: "/portfolio" },
 ];
 
 export const Header = () => {
   const [initialized] = useTradeStore((state) => [state.initialized]);
+  const [setIsWalletOpen, setWalletState] = useUiStore((state) => [state.setIsWalletOpen, state.setWalletState]);
   const { asPath, isReady } = useRouter();
   const { connected } = useWalletContext();
   const isMobile = useIsMobile();
@@ -65,7 +75,6 @@ export const Header = () => {
                           "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground"
                       )}
                     >
-                      {React.cloneElement(item.icon, { size: 18 })}
                       {item.label}
                     </Button>
                   </Link>
@@ -81,7 +90,7 @@ export const Header = () => {
               <div className="flex items-center">
                 <CreatePoolScriptDialog
                   trigger={
-                    <Button variant={"secondary"} size={isMobile ? "sm" : "default"}>
+                    <Button variant="outline" size={isMobile ? "sm" : "default"}>
                       <IconPlus size={isMobile ? 14 : 18} /> Pool Script
                     </Button>
                   }
@@ -89,16 +98,17 @@ export const Header = () => {
               </div>
             )
           }
-          {!isMobile && (
-            <div className="flex items-center">
-              <CreatePoolSoon
-                trigger={
-                  <Button size={isMobile ? "sm" : "default"} disabled={false}>
-                    <IconPlus size={isMobile ? 14 : 18} /> Create Pools
-                  </Button>
-                }
-              />
-              {/* <TooltipProvider>
+          <div className="flex items-center gap-6">
+            {!isMobile && (
+              <div className="flex items-center">
+                <CreatePoolSoon
+                  trigger={
+                    <Button disabled={false}>
+                      <IconPlus size={16} /> Create Pool
+                    </Button>
+                  }
+                />
+                {/* <TooltipProvider>
                 <Tooltip delayDuration={0}>
                   <TooltipTrigger asChild>
                     <Button size={isMobile ? "sm" : "default"} className="opacity-50">
@@ -110,9 +120,8 @@ export const Header = () => {
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider> */}
-            </div>
-          )}
-          <div className="ml-4">
+              </div>
+            )}
             <WalletButton />
           </div>
         </div>

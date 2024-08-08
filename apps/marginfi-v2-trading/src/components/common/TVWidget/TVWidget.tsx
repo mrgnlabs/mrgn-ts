@@ -19,6 +19,8 @@ export const TVWidget = ({ token }: props) => {
   React.useEffect(() => {
     if (!container.current) return;
 
+    if (prevToken?.address.equals(token.address)) return;
+
     const script = document.createElement("script");
 
     const disabledFeats: ChartingLibraryFeatureset[] = [
@@ -35,7 +37,7 @@ export const TVWidget = ({ token }: props) => {
     script.type = "text/javascript";
     script.async = true;
     script.onload = () => {
-      new window.TradingView.widget({
+      const tvWidget = new window.TradingView.widget({
         symbol: token.info.rawBank.mint.toString(), // default symbol
         interval: "30" as any, // default interval
         container: "tv_chart_container",
@@ -70,7 +72,7 @@ export const TVWidget = ({ token }: props) => {
                   return `${(price / 1000).toFixed(3)}K`;
                 }
 
-                return price.toFixed(2);
+                return price.toFixed(5);
               },
               // };
             };
@@ -147,6 +149,30 @@ export const TVWidget = ({ token }: props) => {
           },
         },
         library_path: "/tradingview/charting_library/",
+      });
+
+      tvWidget.onChartReady(() => {
+        if (token.isActive && token.position) {
+          const liquidationPrice = token.position.liquidationPrice;
+          if (liquidationPrice) {
+            const chart = tvWidget.chart();
+            chart.createShape(
+              { price: liquidationPrice, time: chart.getVisibleRange().to },
+              {
+                shape: "horizontal_line",
+                text: "Liquidation price",
+                overrides: {
+                  linecolor: "#e07d6f",
+                  linestyle: 2,
+                  linewidth: 2,
+                  showLabel: true,
+                  textcolor: "#e07d6f",
+                  fontsize: 12,
+                },
+              }
+            );
+          }
+        }
       });
     };
     container.current.appendChild(script);
