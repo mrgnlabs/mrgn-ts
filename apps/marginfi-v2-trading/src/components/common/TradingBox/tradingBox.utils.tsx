@@ -7,7 +7,7 @@ import {
   SimulationResult,
 } from "@mrgnlabs/marginfi-client-v2";
 import { AccountSummary, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { Wallet, percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
+import { Wallet, percentFormatter, tokenPriceFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 import {
   DYNAMIC_SIMULATION_ERRORS,
   loopingBuilder,
@@ -174,7 +174,7 @@ export function generateStats(
     <>
       <dl className="w-full grid grid-cols-2 gap-1.5 text-xs text-muted-foreground">
         <dt>Entry Price</dt>
-        <dd className="text-primary text-right">{usdFormatter.format(tokenBank.info.state.price)}</dd>
+        <dd className="text-primary text-right">{tokenPriceFormatter.format(tokenBank.info.state.price)}</dd>
         {(currentLiqPrice || simulatedLiqPrice) && (
           <>
             <dt>Liquidation Price</dt>
