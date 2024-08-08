@@ -170,7 +170,7 @@ export const PositionActionButtons = ({
         requestedAccount={marginfiAccount}
         activeGroupArg={activeGroup}
       >
-        <Button size="sm" className="gap-1 min-w-16">
+        <Button variant="outline" size="sm" className="gap-1 min-w-16">
           <IconPlus size={14} />
           Add
         </Button>
@@ -182,7 +182,7 @@ export const PositionActionButtons = ({
           requestedAccount={marginfiAccount}
           activeGroupArg={activeGroup}
         >
-          <Button size="sm" className="gap-1 min-w-16">
+          <Button variant="outline" size="sm" className="gap-1 min-w-16">
             <IconMinus size={14} />
             Reduce
           </Button>
@@ -204,7 +204,7 @@ export const PositionActionButtons = ({
               : collateralBank || undefined
           }
         >
-          <Button size="sm" className="gap-1 min-w-16">
+          <Button variant="outline" size="sm" className="gap-1 min-w-16">
             <IconMinus size={14} />
             Withdraw
           </Button>
