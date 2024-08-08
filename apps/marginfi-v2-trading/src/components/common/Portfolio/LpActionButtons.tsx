@@ -33,7 +33,7 @@ export const LpActionButtons = ({ marginfiAccount, activeGroup }: LpActionButton
         activeGroupArg={activeGroup}
         isTokenSelectable={true}
       >
-        <Button size="sm" className="gap-1 min-w-16">
+        <Button variant="outline" size="sm" className="gap-1 min-w-16">
           <IconPlus size={14} />
           Add
         </Button>
@@ -45,7 +45,7 @@ export const LpActionButtons = ({ marginfiAccount, activeGroup }: LpActionButton
         requestedAction={ActionType.Withdraw}
         requestedAccount={marginfiAccount}
       >
-        <Button size="sm" className="gap-1 min-w-16" disabled={!lendingBank}>
+        <Button variant="outline" size="sm" className="gap-1 min-w-16" disabled={!lendingBank}>
           <IconMinus size={14} />
           Withdraw
         </Button>
