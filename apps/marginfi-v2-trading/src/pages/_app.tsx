@@ -9,10 +9,12 @@ import { TipLinkWalletAutoConnect } from "@tiplink/wallet-adapter-react-ui";
 import { init, push } from "@socialgouv/matomo-next";
 import { ToastContainer } from "react-toastify";
 import { Analytics } from "@vercel/analytics/react";
+import { BankMetadataRaw } from "@mrgnlabs/mrgn-common";
 
 import config from "~/config";
 import { MrgnlendProvider, LipClientProvider, TradePovider } from "~/context";
 import { WALLET_ADAPTERS } from "~/config/wallets";
+import { BANK_METADATA_MAP } from "~/config/trade";
 import { useTradeStore } from "~/store";
 import { Desktop, Mobile } from "~/mediaQueries";
 import { WalletProvider as MrgnWalletProvider } from "~/hooks/useWalletContext";
@@ -38,9 +40,9 @@ require("~/styles/asset-borders.css");
 
 const MATOMO_URL = "https://mrgn.matomo.cloud";
 
-type MrgnAppProps = { path: string };
+type MrgnAppProps = { path: string; bank: BankMetadataRaw | null };
 
-export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnAppProps) {
+export default function MrgnApp({ Component, pageProps, path, bank }: AppProps & MrgnAppProps) {
   const { query, isReady } = useRouter();
 
   // enable matomo heartbeat
@@ -61,7 +63,7 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
 
   return (
     <>
-      <Meta path={path} />
+      <Meta path={path} bank={bank} />
       {ready && (
         <ConnectionProvider endpoint={config.rpcEndpoint}>
           <TipLinkWalletAutoConnect isReady={isReady} query={query}>
@@ -110,5 +112,16 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
 MrgnApp.getInitialProps = async (appContext: AppContext): Promise<AppInitialProps & MrgnAppProps> => {
   const appProps = await App.getInitialProps(appContext);
   const path = appContext.ctx.asPath;
-  return { ...appProps, path: path || "/" };
+  let bank = null;
+
+  if (path && path.includes("/trade")) {
+    const cleanPath = path.split("?")[0];
+    const groupAddress = cleanPath.split("/trade/")[1];
+    const res = await fetch(BANK_METADATA_MAP);
+    const data = await res.json();
+    bank = data.find((bank: BankMetadataRaw) => bank.groupAddress === groupAddress);
+  }
+
+  console.log(path);
+  return { ...appProps, path: path || "/", bank };
 };

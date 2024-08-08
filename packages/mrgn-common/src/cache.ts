@@ -1,4 +1,4 @@
-import { object, string, number, array, Infer, assert } from "superstruct";
+import { object, string, number, array, Infer, assert, optional } from "superstruct";
 
 // ----------------------------------------------------------------------------
 // Token metadata cache
@@ -83,6 +83,7 @@ interface BankMetadata {
 }
 
 const BankMetadataRaw = object({
+  groupAddress: optional(string()), // optional as only present on arena cache not mrgnlend
   bankAddress: string(),
   tokenAddress: string(),
   tokenName: string(),
