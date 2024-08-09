@@ -6,7 +6,7 @@ export default function NotAllowed() {
   const router = useRouter();
 
   return (
-    <div className="flex items-center justify-center min-h-screen">
+    <div className="flex items-center justify-center pt-16">
       <Head>
         <title>Access Denied</title>
       </Head>
