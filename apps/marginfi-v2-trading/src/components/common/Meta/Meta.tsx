@@ -23,7 +23,7 @@ export const Meta = ({ path, bank }: MrgnProps) => {
 
   if (bank) {
     title = bank.tokenSymbol + " - The Arena";
-    description = `Long / shot ${bank.tokenSymbol} with leverage in The Arena.`;
+    description = `Long / short ${bank.tokenSymbol} with leverage in The Arena.`;
     image = GCP_URL + `/${bank.tokenAddress}.jpg`;
   }
 
