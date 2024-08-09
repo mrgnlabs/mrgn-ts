@@ -19,6 +19,8 @@ export function middleware(req: NextRequest) {
 
   const country = req.geo?.country;
 
+  console.log(req.nextUrl);
+  console.log(req.url);
   console.log(country, req.nextUrl.pathname, restrictedRoute);
 
   if (country && restrictedCountries.includes(country)) {
