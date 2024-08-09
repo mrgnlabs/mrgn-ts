@@ -6,6 +6,9 @@ export const config = {
 
 const restrictedCountries = ["VE", "CU", "IR", "KP", "SY"];
 
+const leverageRestrictedCountries = ["US"];
+const restrictedRoute = "/looper";
+
 export function middleware(req: NextRequest) {
   const basicAuth = req.headers.get("authorization");
   const url = req.nextUrl;
@@ -14,8 +17,14 @@ export function middleware(req: NextRequest) {
   // response.headers.set('CDN-Cache-Control', 'private, max-age=10');
   // response.headers.set('Cache-Control', 'private, max-age=10');
 
-  if (req.geo && req.geo.country && restrictedCountries.includes(req.geo.country)) {
+  const country = req.geo?.country;
+
+  if (country && restrictedCountries.includes(country)) {
     return NextResponse.redirect("https://www.marginfi.com");
+  }
+
+  if (req.nextUrl.pathname.startsWith(restrictedRoute) && country && leverageRestrictedCountries.includes(country)) {
+    return NextResponse.redirect(new URL("/not-allowed", req.url));
   }
 
   if (process.env.AUTHENTICATION_DISABLED === "true") {
