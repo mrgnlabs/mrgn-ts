@@ -12,20 +12,7 @@ export function middleware(req: NextRequest) {
   const basicAuth = req.headers.get("authorization");
   const url = req.nextUrl;
   const response = NextResponse.next();
-
   const country = req.geo?.country;
-
-  console.log("nextUrl:", req.nextUrl.href);
-  console.log("url:", req.url);
-  console.log(
-    "country:",
-    country,
-    "pathname:",
-    req.nextUrl.pathname,
-    "restrictedRoute:",
-    restrictedRoute,
-    req.nextUrl.pathname.startsWith(restrictedRoute)
-  );
 
   if (country && restrictedCountries.includes(country)) {
     return NextResponse.redirect("https://www.marginfi.com");
