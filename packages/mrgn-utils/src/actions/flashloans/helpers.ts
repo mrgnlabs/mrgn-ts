@@ -80,6 +80,14 @@ export async function verifyTxSizeCloseBorrowLendPosition(
   error?: ActionMethod;
 }> {
   try {
+    if (quoteResponse.slippageBps > 150) {
+      throw Error("Slippage too high");
+    }
+
+    if (Number(quoteResponse.priceImpactPct) > 0.05) {
+      throw Error("Price impact too high");
+    }
+
     const builder = await closePositionBuilder({
       marginfiAccount,
       depositBank,
