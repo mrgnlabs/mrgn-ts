@@ -7,7 +7,7 @@ import {
   IconShare,
   IconBrandXFilled,
   IconBrandTelegram,
-  IconBrandDiscordFilled,
+  IconBrandWhatsapp,
   IconBrandReddit,
 } from "@tabler/icons-react";
 import { CopyToClipboard } from "react-copy-to-clipboard";
@@ -16,6 +16,29 @@ import { useTradeStore } from "~/store";
 
 import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
 import { Button } from "~/components/ui/button";
+
+const shareLinks = [
+  {
+    icon: IconBrandXFilled,
+    url: "https://twitter.com/intent/tweet?url={url}&text={text}",
+  },
+  {
+    icon: IconBrandTelegram,
+    url: "https://t.me/share/url?url={url}&text={text}",
+  },
+  {
+    icon: IconBrandWhatsapp,
+    url: "https://wa.me/?text={text}%20-%20{url}",
+  },
+  {
+    icon: IconBrandReddit,
+    url: "https://reddit.com/submit/?url={url}&amp;resubmit=true&amp;title={text}",
+  },
+];
+
+const buildShareUrl = (link: string, url: string, text: string) => {
+  return link.replace("{url}", url).replace("{text}", text);
+};
 
 export const PoolShare = () => {
   const [activeGroupPk, groupMap] = useTradeStore((state) => [state.activeGroup, state.groupMap]);
@@ -52,46 +75,22 @@ export const PoolShare = () => {
           <div className="flex items-center gap-2 text-xs pl-0.5">
             <span className="-translate-y-0.5 font-medium">Share to:</span>
             <ul className="flex items-center justify-center gap-1">
-              <li>
-                <Link
-                  href=""
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-block cursor-pointer rounded-md p-2 transition-colors hover:bg-accent"
-                >
-                  <IconBrandXFilled size={16} />
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href=""
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-block cursor-pointer rounded-md p-2 transition-colors hover:bg-accent"
-                >
-                  <IconBrandTelegram size={16} />
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href=""
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-block cursor-pointer rounded-md p-2 transition-colors hover:bg-accent"
-                >
-                  <IconBrandDiscordFilled size={16} />
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href=""
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-block cursor-pointer rounded-md p-2 transition-colors hover:bg-accent"
-                >
-                  <IconBrandReddit size={16} />
-                </Link>
-              </li>
+              {shareLinks.map((link, index) => {
+                const url = `${window.location.origin}/trade/${activeGroup.client.group.address.toBase58()}`;
+                const text = `Long / short ${activeGroup.pool.token.meta.tokenSymbol} with leverage in The Arena`;
+                return (
+                  <li key={index}>
+                    <Link
+                      href={buildShareUrl(link.url, url, text)}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-block cursor-pointer rounded-md p-2 transition-colors hover:bg-accent"
+                    >
+                      <link.icon size={16} />
+                    </Link>
+                  </li>
+                );
+              })}
             </ul>
           </div>
         </div>
