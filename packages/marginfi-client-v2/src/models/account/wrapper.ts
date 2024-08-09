@@ -323,45 +323,6 @@ class MarginfiAccountWrapper {
     return cuRequestIxs;
   }
 
-  makeBundleTipIx(feePayer: PublicKey): TransactionInstruction {
-    // they have remained constant so function not used (for now)
-    const getTipAccounts = async () => {
-      const response = await fetch("https://mainnet.block-engine.jito.wtf/api/v1/bundles", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          jsonrpc: "2.0",
-          id: 1,
-          method: "getTipAccounts",
-          params: [],
-        }),
-      });
-
-      const data = await response.json();
-      return data.result;
-    };
-
-    const tipAccounts = [
-      "96gYZGLnJYVFmbjzopPSU6QiEV5fGqZNyN9nmNhvrZU5",
-      "HFqU5x63VTqvQss8hp11i4wVV8bD44PvwucfZ2bU7gRe",
-      "Cw8CFyM9FkoMi7K7Crf6HNQqf4uEMzpKw6QNghXLvLkY",
-      "ADaUMid9yfUytqMBgopwjb2DTLSokTSzL1zt6iGPaS49",
-      "DfXygSm4jCyNCybVYYK6DwvWqjKee8pbDmJGcLWNDXjh",
-      "ADuUkR4vqLUMWXxW9gh6D6L8pMSawimctcNZ5pGwDcEt",
-      "DttWaMuVvTiduZRnguLF7jNxTgiMBZ1hyAumKUiL2KRL",
-      "3AVi9Tg9Uo68tJfuvoKvqKNWKkC5wPdSSdeBnizKZ6jT",
-    ];
-    const randomTipAccount = tipAccounts[Math.floor(Math.random() * tipAccounts.length)];
-
-    return SystemProgram.transfer({
-      fromPubkey: feePayer,
-      toPubkey: new PublicKey(randomTipAccount),
-      lamports: 10_000, // 1000 lamports = 0.000001 SOL
-    });
-  }
-
   // --------------------------------------------------------------------------
   // User actions
   // --------------------------------------------------------------------------
@@ -527,7 +488,7 @@ class MarginfiAccountWrapper {
       createAtas: false,
       wrapAndUnwrapSol: false,
     });
-    const bundleTipIx = this.makeBundleTipIx(this.client.provider.publicKey);
+    const bundleTipIx = makeBundleTipIx(this.client.provider.publicKey);
     const lookupTables = this.client.addressLookupTables;
 
     const addressLookupTableAccounts = [...lookupTables, ...swapLookupTables];
@@ -687,7 +648,7 @@ class MarginfiAccountWrapper {
     const depositIxs = await this.makeDepositIx(depositAmount, depositBankAddress, {
       wrapAndUnwrapSol: true,
     });
-    const bundleTipIx = this.makeBundleTipIx(this.client.provider.publicKey);
+    const bundleTipIx = makeBundleTipIx(this.client.provider.publicKey);
     const lookupTables = this.client.addressLookupTables;
 
     const addressLookupTableAccounts = [...lookupTables, ...swapLookupTables];
@@ -740,7 +701,7 @@ class MarginfiAccountWrapper {
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:deposit`);
     debug("Depositing %s into marginfi account (bank: %s)", amount, shortenAddress(bankAddress));
     const priorityFeeIx = this.makePriorityFeeIx(opt.priorityFeeUi);
-    const bundleTipIx = this.makeBundleTipIx(this.client.provider.publicKey);
+    const bundleTipIx = makeBundleTipIx(this.client.provider.publicKey);
     const ixs = await this.makeDepositIx(amount, bankAddress, opt);
     const tx = new Transaction().add(bundleTipIx, ...priorityFeeIx, ...ixs.instructions);
     const sig = await this.client.processTransaction(tx, []);
@@ -810,7 +771,7 @@ class MarginfiAccountWrapper {
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:repay`);
     debug("Repaying %s into marginfi account (bank: %s), repay all: %s", amount, bankAddress, repayAll);
     const priorityFeeIx = this.makePriorityFeeIx(opt.priorityFeeUi);
-    const bundleTipIx = this.makeBundleTipIx(this.client.provider.publicKey);
+    const bundleTipIx = makeBundleTipIx(this.client.provider.publicKey);
     const ixs = await this.makeRepayIx(amount, bankAddress, repayAll, opt);
     const tx = new Transaction().add(bundleTipIx, ...priorityFeeIx, ...ixs.instructions);
     const sig = await this.client.processTransaction(tx, []);
@@ -900,7 +861,7 @@ class MarginfiAccountWrapper {
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:withdraw`);
     debug("Withdrawing %s from marginfi account", amount);
     const priorityFeeIx = this.makePriorityFeeIx(opt.priorityFeeUi);
-    const bundleTipIx = this.makeBundleTipIx(this.client.provider.publicKey);
+    const bundleTipIx = makeBundleTipIx(this.client.provider.publicKey);
     const cuRequestIxs = this.makeComputeBudgetIx();
     const ixs = await this.makeWithdrawIx(amount, bankAddress, withdrawAll, opt);
     const tx = new Transaction().add(bundleTipIx, ...priorityFeeIx, ...cuRequestIxs, ...ixs.instructions);
@@ -965,7 +926,7 @@ class MarginfiAccountWrapper {
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:borrow`);
     debug("Borrowing %s from marginfi account", amount);
     const priorityFeeIx = this.makePriorityFeeIx(opt.priorityFeeUi);
-    const bundleTipIx = this.makeBundleTipIx(this.client.provider.publicKey);
+    const bundleTipIx = makeBundleTipIx(this.client.provider.publicKey);
     const cuRequestIxs = this.makeComputeBudgetIx();
     const ixs = await this.makeBorrowIx(amount, bankAddress, opt);
     const tx = new Transaction().add(bundleTipIx, ...priorityFeeIx, ...cuRequestIxs, ...ixs.instructions);
@@ -1020,7 +981,7 @@ class MarginfiAccountWrapper {
   async withdrawEmissions(bankAddresses: PublicKey[], priorityFeeUi?: number): Promise<string> {
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:withdraw-emissions`);
     debug("Withdrawing emission from marginfi account (bank: %s)", bankAddresses.map((b) => b.toBase58()).join(", "));
-    const bundleTipIx = this.makeBundleTipIx(this.client.provider.publicKey);
+    const bundleTipIx = makeBundleTipIx(this.client.provider.publicKey);
     const priorityFeeIx = this.makePriorityFeeIx(priorityFeeUi);
     const ixs: TransactionInstruction[] = [];
     const signers = [];
@@ -1191,6 +1152,45 @@ class MarginfiAccountWrapper {
   public describe(): string {
     return this._marginfiAccount.describe(this.client.banks, this.client.oraclePrices);
   }
+}
+
+export function makeBundleTipIx(feePayer: PublicKey): TransactionInstruction {
+  // they have remained constant so function not used (for now)
+  const getTipAccounts = async () => {
+    const response = await fetch("https://mainnet.block-engine.jito.wtf/api/v1/bundles", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        jsonrpc: "2.0",
+        id: 1,
+        method: "getTipAccounts",
+        params: [],
+      }),
+    });
+
+    const data = await response.json();
+    return data.result;
+  };
+
+  const tipAccounts = [
+    "96gYZGLnJYVFmbjzopPSU6QiEV5fGqZNyN9nmNhvrZU5",
+    "HFqU5x63VTqvQss8hp11i4wVV8bD44PvwucfZ2bU7gRe",
+    "Cw8CFyM9FkoMi7K7Crf6HNQqf4uEMzpKw6QNghXLvLkY",
+    "ADaUMid9yfUytqMBgopwjb2DTLSokTSzL1zt6iGPaS49",
+    "DfXygSm4jCyNCybVYYK6DwvWqjKee8pbDmJGcLWNDXjh",
+    "ADuUkR4vqLUMWXxW9gh6D6L8pMSawimctcNZ5pGwDcEt",
+    "DttWaMuVvTiduZRnguLF7jNxTgiMBZ1hyAumKUiL2KRL",
+    "3AVi9Tg9Uo68tJfuvoKvqKNWKkC5wPdSSdeBnizKZ6jT",
+  ];
+  const randomTipAccount = tipAccounts[Math.floor(Math.random() * tipAccounts.length)];
+
+  return SystemProgram.transfer({
+    fromPubkey: feePayer,
+    toPubkey: new PublicKey(randomTipAccount),
+    lamports: 10_000, // 1000 lamports = 0.000001 SOL
+  });
 }
 
 export { MarginfiAccountWrapper };

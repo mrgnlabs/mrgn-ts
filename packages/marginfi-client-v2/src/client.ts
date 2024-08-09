@@ -46,6 +46,7 @@ import {
   MarginfiIdlType,
   BankConfigOpt,
   BankConfig,
+  makeBundleTipIx,
 } from ".";
 import { MarginfiAccountWrapper } from "./models/account/wrapper";
 import {
@@ -607,12 +608,13 @@ class MarginfiClient {
     const accountKeypair = Keypair.generate();
     const newAccountKey = createOpts?.newAccountKey ?? accountKeypair.publicKey;
 
+    const bundleTipIx = makeBundleTipIx(this.provider.publicKey);
     const ixs = await this.makeCreateMarginfiAccountIx(newAccountKey);
     const signers = [...ixs.keys];
     // If there was no newAccountKey provided, we need to sign with the ephemeraKeypair we generated.
     if (!createOpts?.newAccountKey) signers.push(accountKeypair);
 
-    const tx = new Transaction().add(...ixs.instructions);
+    const tx = new Transaction().add(bundleTipIx, ...ixs.instructions);
     const sig = await this.processTransaction(tx, signers, opts);
 
     dbg("Created Marginfi account %s", sig);
