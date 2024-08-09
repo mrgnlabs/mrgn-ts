@@ -4,6 +4,7 @@ import Link from "next/link";
 
 import {
   IconCopy,
+  IconCheck,
   IconShare,
   IconBrandXFilled,
   IconBrandTelegram,
@@ -42,11 +43,19 @@ const buildShareUrl = (link: string, url: string, text: string) => {
 
 export const PoolShare = () => {
   const [activeGroupPk, groupMap] = useTradeStore((state) => [state.activeGroup, state.groupMap]);
+  const [isUrlCopied, setIsUrlCopied] = React.useState(false);
   const copyUrlRef = React.useRef<HTMLInputElement>(null);
 
   const activeGroup = React.useMemo(() => {
     return activeGroupPk ? groupMap.get(activeGroupPk.toBase58()) : null;
   }, [activeGroupPk, groupMap]);
+
+  const handleCopyUrl = () => {
+    setIsUrlCopied(true);
+    setTimeout(() => {
+      setIsUrlCopied(false);
+    }, 2000);
+  };
 
   if (!activeGroup) return null;
 
@@ -67,8 +76,11 @@ export const PoolShare = () => {
               readOnly
             />
             <CopyToClipboard text={`${window.location.origin}/trade/${activeGroup.client.group.address.toBase58()}`}>
-              <button className="cursor-pointer rounded-md p-2 transition-colors hover:bg-accent">
-                <IconCopy size={16} />
+              <button
+                onClick={handleCopyUrl}
+                className="cursor-pointer rounded-md p-2 transition-colors hover:bg-accent"
+              >
+                {isUrlCopied ? <IconCheck size={16} /> : <IconCopy size={16} />}
               </button>
             </CopyToClipboard>
           </div>
