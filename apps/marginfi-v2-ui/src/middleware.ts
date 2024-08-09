@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export const config = {
-  matcher: ["/", "/index", "/stake", "/swap", "/bridge", "/earn", "/points"],
+  matcher: ["/", "/index", "/stake", "/swap", "/bridge", "/earn", "/points", "/looper"],
 };
 
 const restrictedCountries = ["VE", "CU", "IR", "KP", "SY"];
-
 const leverageRestrictedCountries = ["US"];
 const restrictedRoute = "/looper";
 
@@ -13,15 +12,20 @@ export function middleware(req: NextRequest) {
   const basicAuth = req.headers.get("authorization");
   const url = req.nextUrl;
   const response = NextResponse.next();
-  // response.headers.set('Vercel-CDN-Cache-Control', 'private, max-age=10');
-  // response.headers.set('CDN-Cache-Control', 'private, max-age=10');
-  // response.headers.set('Cache-Control', 'private, max-age=10');
 
   const country = req.geo?.country;
 
-  console.log(req.nextUrl);
-  console.log(req.url);
-  console.log(country, req.nextUrl.pathname, restrictedRoute);
+  console.log("nextUrl:", req.nextUrl.href);
+  console.log("url:", req.url);
+  console.log(
+    "country:",
+    country,
+    "pathname:",
+    req.nextUrl.pathname,
+    "restrictedRoute:",
+    restrictedRoute,
+    req.nextUrl.pathname.startsWith(restrictedRoute)
+  );
 
   if (country && restrictedCountries.includes(country)) {
     return NextResponse.redirect("https://www.marginfi.com");
