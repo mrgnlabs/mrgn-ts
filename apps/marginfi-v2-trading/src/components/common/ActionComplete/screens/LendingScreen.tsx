@@ -36,19 +36,21 @@ export const LendingScreen = ({ amount, bank, type, txn }: Props) => {
       <div className="flex flex-col items-center gap-2 border-b border-border pb-10">
         <div className="flex items-center justify-center gap-2">
           <h3 className="text-4xl font-medium">
-            {amount} {bank.meta.tokenSymbol}
+            {amount} {bank?.meta.tokenSymbol}
           </h3>
-          <Image
-            className="rounded-full w-9 h-9"
-            src={getTokenImageURL(bank.info.state.mint.toBase58())}
-            alt={(bank.meta.tokenSymbol || "Token") + "  logo"}
-            width={36}
-            height={36}
-          />
+          {bank && (
+            <Image
+              className="rounded-full w-9 h-9"
+              src={getTokenImageURL(bank.info.state.mint.toString())}
+              alt={(bank?.meta.tokenSymbol || "Token") + "  logo"}
+              width={36}
+              height={36}
+            />
+          )}
         </div>
       </div>
       <dl className="grid grid-cols-2 w-full text-muted-foreground gap-x-8 gap-y-2">
-        {bank.position && (
+        {bank?.position && (
           <>
             <dt>Total {bank.meta.tokenSymbol} Deposits</dt>
             <dd className="text-right">
