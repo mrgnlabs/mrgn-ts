@@ -8,7 +8,7 @@ import { IconSortDescending, IconSortAscending, IconArrowRight, IconSearch } fro
 import { aprToApy, numeralFormatter, percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { useTradeStore } from "~/store";
+import { useTradeStore, useUiStore } from "~/store";
 import { GroupData, TradePoolFilterStates } from "~/store/tradeStore";
 import { getTokenImageURL, cn } from "~/utils";
 import { useIsMobile } from "~/hooks/useIsMobile";
@@ -16,6 +16,7 @@ import { useWalletContext } from "~/hooks/useWalletContext";
 
 import { PageHeading } from "~/components/common/PageHeading";
 import { ActionBoxDialog } from "~/components/common/ActionBox";
+import { ActionComplete } from "~/components/common/ActionComplete";
 import { Loader } from "~/components/ui/loader";
 import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
@@ -41,6 +42,7 @@ export default function PortfolioPage() {
     state.sortBy,
     state.setSortBy,
   ]);
+  const [previousTxn] = useUiStore((state) => [state.previousTxn]);
   const isMobile = useIsMobile();
   const { connected } = useWalletContext();
   const [search, setSearch] = React.useState("");
@@ -586,6 +588,8 @@ export default function PortfolioPage() {
           </>
         )}
       </div>
+
+      {initialized && previousTxn && <ActionComplete />}
     </>
   );
 }
