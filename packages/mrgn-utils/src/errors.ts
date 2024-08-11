@@ -181,7 +181,7 @@ const createWithdrawCheck = (
   stableBank: ExtendedBankInfo,
   tokenBank: ExtendedBankInfo
 ): ActionMethod => ({
-  isEnabled: true,
+  isEnabled: false,
   description: `Before you can ${tradeSide} this asset, you'll need to withdraw your supplied ${
     tradeSide === "long" ? stableBank.meta.tokenSymbol : tokenBank.meta.tokenSymbol
   }.`,
