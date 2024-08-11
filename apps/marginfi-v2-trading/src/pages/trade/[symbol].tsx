@@ -53,13 +53,15 @@ export default function TradeSymbolPage() {
 
   const lpPosition = React.useMemo(() => {
     if (!portfolio) return null;
-    const tokenLpPosition = portfolio.lpPositions.find(
-      (lp) => lp.pool.token.info.state.mint.toBase58() === activeGroup?.pool.token.info.state.mint.toBase58()
+    const tokenLpPosition = portfolio.lpPositions.find((lp) =>
+      activeGroup?.pool.token.info.rawBank.address
+        ? lp.pool.token.info.rawBank.address.equals(activeGroup?.pool.token.info.rawBank.address)
+        : null
     );
-    const quoteTokenLpPosition = portfolio.lpPositions.find(
-      (lp) =>
-        lp.pool.quoteTokens[0].info.state.mint.toBase58() ===
-        activeGroup?.pool.quoteTokens[0].info.state.mint.toBase58()
+    const quoteTokenLpPosition = portfolio.lpPositions.find((lp) =>
+      activeGroup?.pool.quoteTokens[0].info.rawBank.address
+        ? lp.pool.quoteTokens[0].info.rawBank.address.equals(activeGroup?.pool.quoteTokens[0].info.rawBank.address)
+        : null
     );
     return {
       token: tokenLpPosition,
