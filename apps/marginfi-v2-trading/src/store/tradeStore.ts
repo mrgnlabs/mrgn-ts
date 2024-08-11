@@ -120,9 +120,6 @@ type TradeStoreState = {
 
   sortBy: TradePoolFilterStates;
 
-  // marginfi client, initialized when viewing an active group
-  marginfiClient: MarginfiClient | null;
-
   // active group, currently being viewed / traded
   activeGroup: PublicKey | null;
   // user native sol balance
@@ -190,7 +187,6 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
   currentPage: 1,
   totalPages: 0,
   sortBy: TradePoolFilterStates.TIMESTAMP,
-  marginfiClient: null,
   activeGroup: null,
   nativeSolBalance: 0,
   tokenAccountMap: null,
@@ -441,7 +437,6 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
       }
 
       set({
-        marginfiClient,
         portfolio,
         groupMap,
         wallet: wallet,
@@ -475,7 +470,6 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
 
     set({
       activeGroup: args.groupPk,
-      marginfiClient,
     });
   },
 
@@ -483,7 +477,6 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
     set((state) => {
       return {
         ...state,
-        marginfiClient: null,
         selectedAccount: null,
         activeGroup: null,
       };

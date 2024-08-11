@@ -99,8 +99,8 @@ export default function TradeSymbolPage() {
               </div>
 
               <div className="grid grid-cols-1 gap-4 w-full mx-auto mt-8 md:grid-cols-2 md:gap-8">
-                <BankCard bank={activeGroup.pool.token} />
-                <BankCard bank={activeGroup.pool.quoteTokens[0]} />
+                <BankCard activeGroup={activeGroup} bank={activeGroup.pool.token} />
+                <BankCard activeGroup={activeGroup} bank={activeGroup.pool.quoteTokens[0]} />
               </div>
             </div>
           </div>

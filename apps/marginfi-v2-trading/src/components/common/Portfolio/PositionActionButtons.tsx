@@ -145,8 +145,8 @@ export const PositionActionButtons = ({
     collateralBank,
     marginfiClient,
     bank.meta.tokenSymbol,
-    borrowBank,
     depositBanks,
+    borrowBank,
     slippageBps,
     connection,
     priorityFee,
@@ -154,6 +154,8 @@ export const PositionActionButtons = ({
     groupsCache,
     wallet,
     setIsRefreshingStore,
+    refreshGroup,
+    activeGroup?.groupPk,
   ]);
 
   return (

@@ -13,14 +13,14 @@ import { PositionActionButtons } from "~/components/common/Portfolio";
 import { Table, TableBody, TableHead, TableCell, TableHeader, TableRow } from "~/components/ui/table";
 import { Badge } from "~/components/ui/badge";
 import { GroupData } from "~/store/tradeStore";
+import { PublicKey } from "@solana/web3.js";
 
-export const PositionList = () => {
+export const PositionList = ({ activeGroupPk }: { activeGroupPk: PublicKey }) => {
   const [portfolio] = useTradeStore((state) => [state.portfolio]);
 
   const portfolioCombined = React.useMemo(() => {
     if (!portfolio) return [];
-
-    const isActiveGroupPosition = (item: GroupData) => item.pool.token.isActive;
+    const isActiveGroupPosition = (item: GroupData) => item.groupPk.equals(activeGroupPk);
 
     const activeGroupPosition = [...portfolio.long, ...portfolio.short].find(isActiveGroupPosition);
 
@@ -28,7 +28,7 @@ export const PositionList = () => {
     const sortedShorts = portfolio.short.filter((item) => !isActiveGroupPosition(item));
 
     return [...(activeGroupPosition ? [activeGroupPosition] : []), ...sortedLongs, ...sortedShorts];
-  }, [portfolio]);
+  }, [activeGroupPk, portfolio]);
 
   if (!portfolio) return null;
 

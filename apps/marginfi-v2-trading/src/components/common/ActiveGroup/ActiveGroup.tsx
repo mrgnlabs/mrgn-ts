@@ -9,11 +9,7 @@ import { useTradeStore } from "~/store";
 import { Button } from "~/components/ui/button";
 
 export const ActiveGroup = () => {
-  const [activeGroupPk, groupMap, marginfiClient] = useTradeStore((state) => [
-    state.activeGroup,
-    state.groupMap,
-    state.marginfiClient,
-  ]);
+  const [activeGroupPk, groupMap] = useTradeStore((state) => [state.activeGroup, state.groupMap]);
 
   const activeGroup = React.useMemo(() => {
     return (activeGroupPk ? groupMap.get(activeGroupPk.toBase58()) : null) ?? null;
@@ -31,8 +27,8 @@ export const ActiveGroup = () => {
 
   return (
     <div className="fixed bottom-14 left-6 bg-secondary/90 max-w-fit p-4 rounded-xl text-sm z-50">
-      {(!activeGroup || !activeGroup.pool.token || !marginfiClient) && <p>No active group</p>}
-      {activeGroup && activeGroup.pool.token && marginfiClient && isOpen && (
+      {(!activeGroup || !activeGroup.pool.token || !activeGroup.client) && <p>No active group</p>}
+      {activeGroup && activeGroup.pool.token && activeGroup.client && isOpen && (
         <>
           <Button variant="ghost" className="absolute top-2 right-2 h-auto p-1" onClick={() => setIsOpen(false)}>
             <IconX size={14} />
@@ -52,12 +48,12 @@ export const ActiveGroup = () => {
             <li>
               <strong className="font-medium">Active group</strong>:{" "}
               <Link
-                href={`https://solana.fm/address/${marginfiClient.groupAddress.toBase58()}`}
+                href={`https://solana.fm/address/${activeGroup.client.groupAddress.toBase58()}`}
                 target="_blank"
                 rel="noreferrer"
                 className="text-chartreuse"
               >
-                {shortenAddress(marginfiClient.groupAddress)}
+                {shortenAddress(activeGroup.client.groupAddress)}
               </Link>
             </li>
             <li>

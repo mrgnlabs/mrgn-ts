@@ -30,10 +30,8 @@ export const LendingPreview = ({
   addAdditionalsPopup,
   children,
 }: ActionBoxPreviewProps) => {
-  const [marginfiClient] = useTradeStore((state) => [state.marginfiClient]);
-
   const { preview, previewStats, isLoading, actionMethod } = useLendingPreview({
-    marginfiClient: activeGroup?.client ?? marginfiClient,
+    marginfiClient: activeGroup?.client ?? null,
     accountSummary: activeGroup?.accountSummary ?? DEFAULT_ACCOUNT_SUMMARY,
     actionMode,
     account: activeGroup?.selectedAccount ?? null,

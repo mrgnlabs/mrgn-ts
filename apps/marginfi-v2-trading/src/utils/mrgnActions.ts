@@ -101,7 +101,6 @@ export async function executeLendingAction({
 
   if (actionType === ActionType.Repay) {
     if (repayWithCollatOptions) {
-      console.log({ amount, repay: repayWithCollatOptions.repayAmount });
       txnSig = await repayWithCollat({
         marginfiClient: mfiClient,
         marginfiAccount,

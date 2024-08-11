@@ -280,6 +280,7 @@ export default function PortfolioPage() {
                               group.pool.token.position.isLending &&
                               group.selectedAccount && (
                                 <ActionBoxDialog
+                                  activeGroupArg={group}
                                   requestedBank={group.pool.token}
                                   requestedAction={ActionType.Withdraw}
                                   requestedAccount={group.selectedAccount}
@@ -290,9 +291,10 @@ export default function PortfolioPage() {
                                 </ActionBoxDialog>
                               )}
                             <ActionBoxDialog
+                              activeGroupArg={group}
                               requestedBank={group.pool.token}
                               requestedAction={ActionType.Deposit}
-                              requestedAccount={group.marginfiAccounts[0]}
+                              requestedAccount={group.selectedAccount ?? undefined}
                             >
                               <Button className="bg-background border text-foreground hover:bg-accent">Supply</Button>
                             </ActionBoxDialog>
@@ -354,6 +356,7 @@ export default function PortfolioPage() {
                           <div className="flex justify-end gap-2">
                             {collateralBank.isActive && collateralBank.position.isLending && group.selectedAccount && (
                               <ActionBoxDialog
+                                activeGroupArg={group}
                                 requestedBank={collateralBank}
                                 requestedAction={ActionType.Withdraw}
                                 requestedAccount={group.selectedAccount}
@@ -364,9 +367,10 @@ export default function PortfolioPage() {
                               </ActionBoxDialog>
                             )}
                             <ActionBoxDialog
+                              activeGroupArg={group}
                               requestedBank={collateralBank}
                               requestedAction={ActionType.Deposit}
-                              requestedAccount={group.marginfiAccounts[0]}
+                              requestedAccount={group.selectedAccount ?? undefined}
                             >
                               <Button className="bg-background border text-foreground hover:bg-accent">Supply</Button>
                             </ActionBoxDialog>
@@ -492,13 +496,21 @@ export default function PortfolioPage() {
                         )}
                         <div className="flex gap-2">
                           {group.pool.token.isActive && group.pool.token.position.isLending && (
-                            <ActionBoxDialog requestedBank={group.pool.token} requestedAction={ActionType.Withdraw}>
+                            <ActionBoxDialog
+                              activeGroupArg={group}
+                              requestedBank={group.pool.token}
+                              requestedAction={ActionType.Withdraw}
+                            >
                               <Button className="w-full bg-background border text-foreground hover:bg-accent">
                                 Withdraw
                               </Button>
                             </ActionBoxDialog>
                           )}
-                          <ActionBoxDialog requestedBank={group.pool.token} requestedAction={ActionType.Deposit}>
+                          <ActionBoxDialog
+                            activeGroupArg={group}
+                            requestedBank={group.pool.token}
+                            requestedAction={ActionType.Deposit}
+                          >
                             <Button className="w-full bg-background border text-foreground hover:bg-accent">
                               Supply
                             </Button>
@@ -560,13 +572,21 @@ export default function PortfolioPage() {
                         )}
                         <div className="flex gap-2">
                           {collateralBank.isActive && collateralBank.position.isLending && (
-                            <ActionBoxDialog requestedBank={collateralBank} requestedAction={ActionType.Withdraw}>
+                            <ActionBoxDialog
+                              activeGroupArg={group}
+                              requestedBank={collateralBank}
+                              requestedAction={ActionType.Withdraw}
+                            >
                               <Button className="w-full bg-background border text-foreground hover:bg-accent">
                                 Withdraw
                               </Button>
                             </ActionBoxDialog>
                           )}
-                          <ActionBoxDialog requestedBank={collateralBank} requestedAction={ActionType.Deposit}>
+                          <ActionBoxDialog
+                            activeGroupArg={group}
+                            requestedBank={collateralBank}
+                            requestedAction={ActionType.Deposit}
+                          >
                             <Button className="w-full bg-background border text-foreground hover:bg-accent">
                               Supply
                             </Button>

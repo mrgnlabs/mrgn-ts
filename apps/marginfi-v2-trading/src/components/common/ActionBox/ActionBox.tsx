@@ -61,16 +61,16 @@ export const ActionBox = ({
   isTokenSelectable,
   handleCloseDialog,
 }: ActionBoxProps) => {
-  const [isInitialized, setIsRefreshingStore, activeGroupPk, groupMap, mfiClient, nativeSolBalance, refreshGroup] =
-    useTradeStore((state) => [
+  const [isInitialized, setIsRefreshingStore, activeGroupPk, groupMap, nativeSolBalance, refreshGroup] = useTradeStore(
+    (state) => [
       state.initialized,
       state.setIsRefreshingStore,
       state.activeGroup,
       state.groupMap,
-      state.marginfiClient,
       state.nativeSolBalance,
       state.refreshGroup,
-    ]);
+    ]
+  );
 
   const activeGroup = React.useMemo(() => {
     const group = activeGroupPk ? groupMap.get(activeGroupPk.toBase58()) || null : null;
@@ -363,6 +363,7 @@ export const ActionBox = ({
       setIsActionComplete,
       setPreviousTxn,
       setIsRefreshingStore,
+      refreshGroup,
       connection,
       wallet,
       activeGroup?.groupPk,
@@ -443,7 +444,7 @@ export const ActionBox = ({
   };
 
   const handleLstAction = React.useCallback(async () => {
-    if ((!selectedBank && !selectedStakingAccount) || !mfiClient || !lstData) {
+    if ((!selectedBank && !selectedStakingAccount) || !activeGroup?.client || !lstData) {
       return;
     }
 
@@ -473,7 +474,7 @@ export const ActionBox = ({
 
     const txnSig = await executeLstAction({
       actionMode,
-      marginfiClient: mfiClient,
+      marginfiClient: activeGroup.client,
       amount,
       connection,
       wallet,
@@ -538,7 +539,8 @@ export const ActionBox = ({
   }, [
     selectedBank,
     selectedStakingAccount,
-    mfiClient,
+    activeGroup?.client,
+    activeGroup?.groupPk,
     lstData,
     lstQuoteMeta,
     setIsLoading,
@@ -553,17 +555,18 @@ export const ActionBox = ({
     setIsActionComplete,
     setPreviousTxn,
     setIsRefreshingStore,
-    activeGroup?.groupPk,
+    refreshGroup,
   ]);
 
   const handleLendingAction = React.useCallback(async () => {
-    if (!actionMode || !selectedBank || (!amount && !repayAmount)) {
+    console.log({ activeGroup });
+    if (!actionMode || !activeGroup?.client || !selectedBank || (!amount && !repayAmount)) {
       return;
     }
 
     const action = async () => {
       const params = {
-        mfiClient,
+        mfiClient: activeGroup.client,
         actionType: actionMode,
         bank: selectedBank,
         amount,
@@ -589,10 +592,10 @@ export const ActionBox = ({
     await action();
   }, [
     actionMode,
+    activeGroup?.client,
     selectedBank,
     amount,
     repayAmount,
-    mfiClient,
     nativeSolBalance,
     selectedAccount,
     walletContextState,

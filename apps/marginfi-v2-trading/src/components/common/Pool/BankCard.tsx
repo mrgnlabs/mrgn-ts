@@ -6,17 +6,18 @@ import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { numeralFormatter, usdFormatter, tokenPriceFormatter } from "@mrgnlabs/mrgn-common";
 
 import { getTokenImageURL } from "~/utils";
-import { useTradeStore } from "~/store";
+import { GroupData } from "~/store/tradeStore";
 import { useAssetItemData } from "~/hooks/useAssetItemData";
 
 import { ActionBoxDialog } from "~/components/common/ActionBox";
 import { Button } from "~/components/ui/button";
 
 type BankCardProps = {
+  activeGroup: GroupData;
   bank: ExtendedBankInfo;
 };
 
-export const BankCard = ({ bank }: BankCardProps) => {
+export const BankCard = ({ activeGroup, bank }: BankCardProps) => {
   const { rateAP } = useAssetItemData({ bank, isInLendingMode: true });
   return (
     <div className="bg-background border p-4 rounded-lg space-y-4 flex flex-col justify-between">
@@ -75,6 +76,7 @@ export const BankCard = ({ bank }: BankCardProps) => {
       <div className="flex justify-between w-full gap-4 mt-auto">
         {bank.isActive && (
           <ActionBoxDialog
+            activeGroupArg={activeGroup}
             requestedAction={bank.position.isLending ? ActionType.Withdraw : ActionType.Repay}
             requestedBank={bank}
           >
@@ -83,7 +85,7 @@ export const BankCard = ({ bank }: BankCardProps) => {
             </Button>
           </ActionBoxDialog>
         )}
-        <ActionBoxDialog requestedAction={ActionType.Deposit} requestedBank={bank}>
+        <ActionBoxDialog activeGroupArg={activeGroup} requestedAction={ActionType.Deposit} requestedBank={bank}>
           <Button className="h-12 w-1/2 ml-auto" variant="default">
             Supply {bank.isActive && "more"}
           </Button>

@@ -122,6 +122,5 @@ MrgnApp.getInitialProps = async (appContext: AppContext): Promise<AppInitialProp
     bank = data.find((bank: BankMetadataRaw) => bank.groupAddress === groupAddress);
   }
 
-  console.log(path);
   return { ...appProps, path: path || "/", bank };
 };

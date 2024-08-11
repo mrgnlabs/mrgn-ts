@@ -355,7 +355,7 @@ export default function TradeSymbolPage() {
                 </div>
               </div>
               <div className="pt-4">
-                <PositionList />
+                <PositionList activeGroupPk={activeGroup.groupPk} />
               </div>
             </div>
           </div>
