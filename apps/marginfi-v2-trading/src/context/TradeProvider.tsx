@@ -5,7 +5,7 @@ import { useTradeStore } from "~/store";
 import { useConnection } from "~/hooks/useConnection";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { PublicKey } from "@solana/web3.js";
-import { usePrevious } from "~/utils";
+import { identify, usePrevious } from "~/utils";
 
 // @ts-ignore - Safe because context hook checks for null
 const TradeContext = React.createContext<>();
@@ -35,12 +35,16 @@ export const TradePovider: React.FC<{
     state.isRefreshingStore,
     state.setIsRefreshingStore,
   ]);
+  const [isLoggedIn, setIsLoggedIn] = React.useState(false);
 
   React.useEffect(() => {
     const symbol = router?.query?.symbol as string | undefined;
     const isWalletConnected = wallet?.publicKey;
 
-    // const isFetchable = (isWalletConnected && userDataFetched) || (!isWalletConnected && !userDataFetched);
+    if (!isLoggedIn && isWalletConnected) {
+      setIsLoggedIn(true);
+      identify(wallet.publicKey.toBase58());
+    }
 
     if (!symbol) {
       //clear state
@@ -52,7 +56,7 @@ export const TradePovider: React.FC<{
         router.push("/404");
       }
     }
-  }, [router, initialized, prevWalletAddress, walletAddress, userDataFetched, wallet, setActiveGroup]);
+  }, [router, initialized, prevWalletAddress, walletAddress, userDataFetched, wallet, setActiveGroup, isLoggedIn]);
 
   // add a useEffect to run on every route change
   React.useEffect(() => {
