@@ -7,19 +7,22 @@ import { IconArrowRight } from "@tabler/icons-react";
 import { aprToApy, numeralFormatter, percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { GroupData } from "~/store/tradeStore";
-import { getTokenImageURL, cn } from "~/utils";
+import { ArenaBank, GroupData } from "~/store/tradeStore";
+import { getTokenImageURL, cn, getGroupPositionInfo } from "~/utils";
 
 import { ActionBoxDialog } from "~/components/common/ActionBox";
 import { Button } from "~/components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 
 interface YieldCardProps {
   group: GroupData;
 }
 
 export const YieldCard = ({ group }: YieldCardProps) => {
+  const positionInfo = React.useMemo(() => getGroupPositionInfo({ group }), [group]);
+  const isLeveraged = React.useMemo(() => positionInfo === "LONG" || positionInfo === "SHORT", [positionInfo]);
+
   const collateralBank = group.pool.quoteTokens[0];
-  // const positionInfo = React.useMemo(() => getGroupPositionInfo({ group }), [group]);
 
   return (
     <div
@@ -54,140 +57,108 @@ export const YieldCard = ({ group }: YieldCardProps) => {
           <IconArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
         </div>
       </Link>
-      <div className="pt-2 pb-4 border-b items-center">
-        <div className="flex items-center gap-2">
-          <Image
-            src={getTokenImageURL(group.pool.token.info.state.mint.toBase58())}
-            alt={group.pool.token.meta.tokenSymbol}
-            width={24}
-            height={24}
-            className="rounded-full"
-          />
-          {group.pool.token.meta.tokenSymbol}
+      <YieldItem
+        group={group}
+        bank={group.pool.token}
+        isLeveraged={isLeveraged}
+        className="pt-2 pb-4 border-b items-center"
+      />
+      <YieldItem group={group} bank={collateralBank} isLeveraged={isLeveraged} className="pt-4 pb-2 items-center" />
+    </div>
+  );
+};
+
+const YieldItem = ({
+  group,
+  bank,
+  className,
+  isLeveraged,
+}: {
+  group: GroupData;
+  bank: ArenaBank;
+  className?: string;
+  isLeveraged?: boolean;
+}) => {
+  return (
+    <div className={cn("items-center", className)}>
+      <div className="flex items-center gap-2">
+        <Image
+          src={getTokenImageURL(bank.info.state.mint.toBase58())}
+          alt={bank.meta.tokenSymbol}
+          width={24}
+          height={24}
+          className="rounded-full"
+        />
+        {bank.meta.tokenSymbol}
+      </div>
+      <div className="grid grid-cols-3 gap-2 my-6">
+        <div className="flex flex-col gap-1">
+          <span className="text-muted-foreground text-sm">
+            Total
+            <br /> Deposits
+          </span>
+          <div className="flex flex-col">
+            <span>{numeralFormatter(bank.info.state.totalDeposits)}</span>
+            <span className="text-muted-foreground text-sm">
+              {usdFormatter.format(
+                bank.info.state.totalDeposits * bank.info.oraclePrice.priceRealtime.price.toNumber()
+              )}
+            </span>
+          </div>
         </div>
-        <div className="grid grid-cols-3 gap-2 my-6">
-          <div className="flex flex-col gap-1">
-            <span className="text-muted-foreground text-sm">
-              Total
-              <br /> Deposits
-            </span>
-            <div className="flex flex-col">
-              <span>{numeralFormatter(group.pool.token.info.state.totalDeposits)}</span>
-              <span className="text-muted-foreground text-sm">
-                {usdFormatter.format(
-                  group.pool.token.info.state.totalDeposits *
-                    group.pool.token.info.oraclePrice.priceRealtime.price.toNumber()
-                )}
-              </span>
-            </div>
-          </div>
-          <div className="flex flex-col gap-1">
-            <span className="text-muted-foreground text-sm">
-              Lending
-              <br /> Rate (APY)
-            </span>
-            <span className="text-mrgn-success">
-              {percentFormatter.format(aprToApy(group.pool.token.info.state.lendingRate))}
-            </span>
-          </div>
-          <div className="flex flex-col gap-1">
-            <span className="text-muted-foreground text-sm">
-              Borrowing
-              <br /> Rate (APY)
-            </span>
-            <span className="text-mrgn-warning">
-              {percentFormatter.format(aprToApy(group.pool.token.info.state.borrowingRate))}
-            </span>
-          </div>
+        <div className="flex flex-col gap-1">
+          <span className="text-muted-foreground text-sm">
+            Lending
+            <br /> Rate (APY)
+          </span>
+          <span className="text-mrgn-success">{percentFormatter.format(aprToApy(bank.info.state.lendingRate))}</span>
         </div>
-        {group.pool.token.isActive && group.pool.token.position.isLending && (
-          <div className="text-sm mb-4">
-            <span className="text-muted-foreground">Supplied</span> {numeralFormatter(group.pool.token.position.amount)}{" "}
-            <span>{group.pool.token.meta.tokenSymbol}</span>
-          </div>
-        )}
+        <div className="flex flex-col gap-1">
+          <span className="text-muted-foreground text-sm">
+            Borrowing
+            <br /> Rate (APY)
+          </span>
+          <span className="text-mrgn-warning">{percentFormatter.format(aprToApy(bank.info.state.borrowingRate))}</span>
+        </div>
+      </div>
+      {bank.isActive && bank.position.isLending && (
+        <div className="text-sm mb-4">
+          <span className="text-muted-foreground">Supplied</span> {numeralFormatter(bank.position.amount)}{" "}
+          <span>{bank.meta.tokenSymbol}</span>
+        </div>
+      )}
+      <TooltipProvider>
         <div className="flex gap-2">
-          {group.pool.token.isActive && group.pool.token.position.isLending && (
-            <ActionBoxDialog
-              activeGroupArg={group}
-              requestedBank={group.pool.token}
-              requestedAction={ActionType.Withdraw}
-            >
+          {bank.isActive && isLeveraged && bank.position.isLending && (
+            <ActionBoxDialog activeGroupArg={group} requestedBank={bank} requestedAction={ActionType.Withdraw}>
               <Button className="w-full bg-background border text-foreground hover:bg-accent">Withdraw</Button>
             </ActionBoxDialog>
           )}
           <ActionBoxDialog activeGroupArg={group} requestedBank={group.pool.token} requestedAction={ActionType.Deposit}>
-            <Button className="w-full bg-background border text-foreground hover:bg-accent">Supply</Button>
+            {isLeveraged ? (
+              <Tooltip>
+                <TooltipTrigger className="cursor-default">
+                  <Button disabled className="w-full bg-background border text-foreground hover:bg-accent">
+                    Supply
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  You cannot provide liquidity with an open trade. <br />
+                  <Link
+                    className="underline"
+                    href={"https://docs.marginfi.com/the-arena#supply-liquidity-and-earn-yield"}
+                    target="_blank"
+                  >
+                    learn more
+                  </Link>
+                </TooltipContent>
+              </Tooltip>
+            ) : (
+              <Button className="w-full bg-background border text-foreground hover:bg-accent">Supply</Button>
+            )}
           </ActionBoxDialog>
         </div>
-      </div>
-      <div className="pt-4 pb-2 items-center">
-        <div className="flex items-center gap-2">
-          <Image
-            src={getTokenImageURL(collateralBank.info.state.mint.toBase58())}
-            alt={collateralBank.meta.tokenSymbol}
-            width={24}
-            height={24}
-            className="rounded-full"
-          />
-          {collateralBank.meta.tokenSymbol}
-        </div>
-        <div className="grid grid-cols-3 gap-2 my-6">
-          <div className="flex flex-col gap-1">
-            <span className="text-muted-foreground text-sm">
-              Total
-              <br /> Deposits
-            </span>
-            <div className="flex flex-col">
-              <span>{numeralFormatter(collateralBank.info.state.totalDeposits)}</span>
-              <span className="text-muted-foreground text-sm">
-                {usdFormatter.format(
-                  collateralBank.info.state.totalDeposits *
-                    collateralBank.info.oraclePrice.priceRealtime.price.toNumber()
-                )}
-              </span>
-            </div>
-          </div>
-          <div className="flex flex-col gap-1">
-            <span className="text-muted-foreground text-sm">
-              Lending
-              <br /> Rate (APY)
-            </span>
-            <span className="text-mrgn-success">
-              {percentFormatter.format(aprToApy(collateralBank.info.state.lendingRate))}
-            </span>
-          </div>
-          <div className="flex flex-col gap-1">
-            <span className="text-muted-foreground text-sm">
-              Borrowing
-              <br /> Rate (APY)
-            </span>
-            <span className="text-mrgn-warning">
-              {percentFormatter.format(aprToApy(collateralBank.info.state.borrowingRate))}
-            </span>
-          </div>
-        </div>
-        {collateralBank.isActive && collateralBank.position.isLending && (
-          <div className="text-sm mb-4">
-            <span className="text-muted-foreground">Supplied</span> {numeralFormatter(collateralBank.position.amount)}{" "}
-            <span>{collateralBank.meta.tokenSymbol}</span>
-          </div>
-        )}
-        <div className="flex gap-2">
-          {collateralBank.isActive && collateralBank.position.isLending && (
-            <ActionBoxDialog
-              activeGroupArg={group}
-              requestedBank={collateralBank}
-              requestedAction={ActionType.Withdraw}
-            >
-              <Button className="w-full bg-background border text-foreground hover:bg-accent">Withdraw</Button>
-            </ActionBoxDialog>
-          )}
-          <ActionBoxDialog activeGroupArg={group} requestedBank={collateralBank} requestedAction={ActionType.Deposit}>
-            <Button className="w-full bg-background border text-foreground hover:bg-accent">Supply</Button>
-          </ActionBoxDialog>
-        </div>
-      </div>
+      </TooltipProvider>
     </div>
   );
 };

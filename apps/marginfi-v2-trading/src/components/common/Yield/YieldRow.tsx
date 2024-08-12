@@ -3,24 +3,16 @@ import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 
-import Fuse from "fuse.js";
-import { IconSortDescending, IconSortAscending, IconArrowRight, IconSearch } from "@tabler/icons-react";
+import { IconArrowRight } from "@tabler/icons-react";
 import { aprToApy, numeralFormatter, percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { useTradeStore, useUiStore } from "~/store";
-import { ArenaBank, GroupData, TradePoolFilterStates } from "~/store/tradeStore";
+import { ArenaBank, GroupData } from "~/store/tradeStore";
 import { getTokenImageURL, cn, getGroupPositionInfo } from "~/utils";
-import { useIsMobile } from "~/hooks/useIsMobile";
 import { useWalletContext } from "~/hooks/useWalletContext";
 
-import { PageHeading } from "~/components/common/PageHeading";
 import { ActionBoxDialog } from "~/components/common/ActionBox";
-import { ActionComplete } from "~/components/common/ActionComplete";
-import { Loader } from "~/components/ui/loader";
-import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 
 interface props {
