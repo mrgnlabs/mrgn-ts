@@ -174,7 +174,7 @@ export const verifyFlashloanTxSize = (builder: {
     const totalKeys = builder.flashloanTx.message.getAccountKeys({
       addressLookupTableAccounts: builder.addressLookupTableAccounts,
     }).length;
-    if (totalSize > 1232 - 110 || totalKeys >= 64) {
+    if (totalSize > 1232 - 64 || totalKeys >= 64) {
       // signature is roughly 110 bytes
       if (totalKeys >= 64) {
         return {
@@ -183,7 +183,7 @@ export const verifyFlashloanTxSize = (builder: {
           addressLookupTableAccounts: builder.addressLookupTableAccounts,
           error: STATIC_SIMULATION_ERRORS.KEY_SIZE,
         };
-      } else if (totalSize > 1232 - 110) {
+      } else if (totalSize > 1232 - 64) {
         return {
           flashloanTx: null,
           bundleTipTxn: null,

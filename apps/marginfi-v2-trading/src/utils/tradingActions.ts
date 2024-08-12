@@ -254,7 +254,14 @@ export async function executeLeverageAction({
 
   try {
     if (loopingObject.loopingTxn) {
-      const txnSig = await marginfiClient.processTransaction(loopingObject.loopingTxn);
+      let txnSig: string[] = [];
+
+      if (loopingObject.bundleTipTxn) {
+        txnSig = await marginfiClient.processTransactions([loopingObject.bundleTipTxn, loopingObject.loopingTxn]);
+      } else {
+        txnSig = [await marginfiClient.processTransaction(loopingObject.loopingTxn)];
+      }
+
       multiStepToast.setSuccessAndNext();
       return txnSig;
     } else {

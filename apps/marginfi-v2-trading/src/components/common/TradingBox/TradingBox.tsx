@@ -313,7 +313,7 @@ export const TradingBox = ({ side = "long" }: TradingBoxProps) => {
       try {
         setIsLoading(true);
         let depositBank: ExtendedBankInfo, borrowBank: ExtendedBankInfo;
-        let sig: undefined | string;
+        let sig: undefined | string[];
 
         if (activeGroup) {
           if (tradeState === "short") {
@@ -329,7 +329,7 @@ export const TradingBox = ({ side = "long" }: TradingBoxProps) => {
             setIsActionComplete(true);
             setPreviousTxn({
               txnType: "TRADING",
-              txn: sig!,
+              txn: sig[sig.length - 1],
               tradingOptions: {
                 depositBank: depositBank as ActiveBankInfo,
                 borrowBank: borrowBank as ActiveBankInfo,

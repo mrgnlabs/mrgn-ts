@@ -559,7 +559,6 @@ export const ActionBox = ({
   ]);
 
   const handleLendingAction = React.useCallback(async () => {
-    console.log({ activeGroup });
     if (!actionMode || !activeGroup?.client || !selectedBank || (!amount && !repayAmount)) {
       return;
     }
