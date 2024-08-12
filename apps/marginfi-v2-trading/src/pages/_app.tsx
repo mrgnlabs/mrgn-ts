@@ -2,6 +2,7 @@ import React from "react";
 
 import App, { AppContext, AppInitialProps, AppProps } from "next/app";
 import { useRouter } from "next/router";
+import { GoogleAnalytics } from "@next/third-parties/google";
 
 import { WalletProvider } from "@solana/wallet-adapter-react";
 import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
@@ -105,6 +106,7 @@ export default function MrgnApp({ Component, pageProps, path, bank }: AppProps &
         </ConnectionProvider>
       )}
       <Tutorial />
+      <GoogleAnalytics gaId="G-T5B2WRLKL9" />
     </>
   );
 }
