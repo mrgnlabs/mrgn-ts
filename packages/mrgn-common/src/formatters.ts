@@ -42,14 +42,6 @@ const usdFormatter = new Intl.NumberFormat("en-US", {
   signDisplay: "auto",
 });
 
-const tokenPriceFormatter = new Intl.NumberFormat("en-US", {
-  style: "currency",
-  currency: "USD",
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 5,
-  signDisplay: "auto",
-});
-
 const usdFormatterDyn = new Intl.NumberFormat("en-US", {
   style: "currency",
   currency: "USD",
@@ -78,6 +70,31 @@ const clampedNumeralFormatter = (value: number) => {
   } else {
     return numeral(value).format("0.00a");
   }
+};
+
+const tokenPriceFormatter = (price: number) => {
+  const reformatNum = Number(price.toFixed(20));
+
+  if (reformatNum < 0.00000001) {
+    return price.toExponential(2);
+  }
+
+  const { minFractionDigits, maxFractionDigits } =
+    reformatNum > 1
+      ? { minFractionDigits: 0, maxFractionDigits: 2 }
+      : reformatNum > 0.000001
+      ? { minFractionDigits: 2, maxFractionDigits: 7 }
+      : { minFractionDigits: 7, maxFractionDigits: 10 };
+
+  const formatter = new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: minFractionDigits,
+    maximumFractionDigits: maxFractionDigits,
+    signDisplay: "auto",
+  });
+
+  return formatter.format(price);
 };
 
 export {

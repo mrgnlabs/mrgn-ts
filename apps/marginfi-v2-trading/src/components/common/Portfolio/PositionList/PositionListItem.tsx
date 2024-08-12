@@ -47,21 +47,11 @@ export const PositionListItem = ({ group }: props) => {
       <TableCell>{usdFormatter.format(totalUsdValue)}</TableCell>
       <TableCell>{`${leverage}x`}</TableCell>
       <TableCell>{positionSizeUsd < 0.01 ? "< 0.01" : usdFormatter.format(positionSizeUsd)}</TableCell>
-      <TableCell>
-        {group.pool.token.isActive && group.pool.token.info.oraclePrice.priceRealtime.price.toNumber() > 0.00001
-          ? tokenPriceFormatter.format(group.pool.token.info.oraclePrice.priceRealtime.price.toNumber())
-          : `$${
-              group.pool.token.isActive ? group.pool.token.info.oraclePrice.priceRealtime.price.toExponential(2) : 0
-            }`}
-      </TableCell>
+      <TableCell>{tokenPriceFormatter(group.pool.token.info.oraclePrice.priceRealtime.price.toNumber())}</TableCell>
 
       <TableCell>
         {group.pool.token.isActive && group.pool.token.position.liquidationPrice ? (
-          <>
-            {group.pool.token.position.liquidationPrice > 0.00001
-              ? tokenPriceFormatter.format(group.pool.token.position.liquidationPrice)
-              : `$${group.pool.token.isActive ? group.pool.token.position.liquidationPrice.toExponential(2) : 0}`}
-          </>
+          <>{tokenPriceFormatter(group.pool.token.position.liquidationPrice)}</>
         ) : (
           "n/a"
         )}

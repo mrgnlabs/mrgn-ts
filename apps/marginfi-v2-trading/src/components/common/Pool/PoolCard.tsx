@@ -26,6 +26,9 @@ type PoolCardProps = {
 };
 
 export const PoolCard = ({ groupData }: PoolCardProps) => {
+  if (groupData.pool.token.meta.tokenSymbol === "HMTR") {
+    console.log(groupData.pool.token.info.oraclePrice.priceRealtime.price.toNumber());
+  }
   return (
     <Card>
       <CardHeader>
@@ -86,9 +89,7 @@ export const PoolCard = ({ groupData }: PoolCardProps) => {
           <dl className="grid grid-cols-2 gap-1.5 text-sm text-muted-foreground w-full mt-2">
             <dt className="">Price</dt>
             <dd className="text-right text-primary tracking-wide">
-              {groupData.pool.token.tokenData.price > 0.00001
-                ? tokenPriceFormatter.format(groupData.pool.token.tokenData.price)
-                : `$${groupData.pool.token.tokenData.price.toExponential(2)}`}
+              {tokenPriceFormatter(groupData.pool.token.info.oraclePrice.priceRealtime.price.toNumber())}
               {groupData.pool.token.tokenData.priceChange24hr && (
                 <span
                   className={cn(
