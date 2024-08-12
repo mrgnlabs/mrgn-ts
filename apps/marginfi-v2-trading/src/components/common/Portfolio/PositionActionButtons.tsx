@@ -1,6 +1,9 @@
 import React from "react";
+
+import Image from "next/image";
+
 import { IconMinus, IconX, IconPlus } from "@tabler/icons-react";
-import { PublicKey, Transaction } from "@solana/web3.js";
+import { PublicKey, Transaction, VersionedTransaction } from "@solana/web3.js";
 
 import { MarginfiAccountWrapper, MarginfiClient, getConfig } from "@mrgnlabs/marginfi-client-v2";
 import { ActiveBankInfo, ExtendedBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
@@ -9,63 +12,85 @@ import { useConnection } from "~/hooks/useConnection";
 import { useTradeStore, useUiStore } from "~/store";
 import { GroupData } from "~/store/tradeStore";
 import { useWalletContext } from "~/hooks/useWalletContext";
-import { calculateClosePositions, cn, extractErrorString } from "~/utils";
+import { calculateClosePositions, cn, extractErrorString, getTokenImageURL } from "~/utils";
 import { MultiStepToastHandle } from "~/utils/toastUtils";
 
 import { ActionBoxDialog } from "~/components/common/ActionBox";
 import { Button } from "~/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "~/components/ui/dialog";
+import { QuoteResponse } from "@jup-ag/api";
+import { percentFormatter } from "@mrgnlabs/mrgn-common";
+import { IconLoader } from "~/components/ui/icons";
 
 type PositionActionButtonsProps = {
-  marginfiClient: MarginfiClient | null;
-  marginfiAccount?: MarginfiAccountWrapper;
   isBorrowing: boolean;
-  bank: ActiveBankInfo;
-  collateralBank?: ExtendedBankInfo | null;
   rightAlignFinalButton?: boolean;
-  activeGroup?: GroupData;
+  activeGroup: GroupData;
 };
 
 export const PositionActionButtons = ({
-  marginfiClient,
-  marginfiAccount,
   isBorrowing,
-  bank,
-  collateralBank = null,
   rightAlignFinalButton = false,
   activeGroup,
 }: PositionActionButtonsProps) => {
   const { connection } = useConnection();
   const { wallet } = useWalletContext();
   const [platformFeeBps] = useUiStore((state) => [state.platformFeeBps]);
-  const [groupsCache, refreshGroup, setIsRefreshingStore] = useTradeStore((state) => [
-    state.groupsCache,
+  const [actionTransaction, setActionTransaction] = React.useState<{
+    closeTxn: VersionedTransaction | Transaction;
+    bundleTipTxn: VersionedTransaction | null;
+    quote?: QuoteResponse;
+  } | null>(null);
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [multiStepToast, setMultiStepToast] = React.useState<MultiStepToastHandle | null>(null);
+
+  const [refreshGroup, setIsRefreshingStore] = useTradeStore((state) => [
     state.refreshGroup,
     state.setIsRefreshingStore,
   ]);
-  const [slippageBps, priorityFee] = useUiStore((state) => [state.slippageBps, state.priorityFee]);
+  const [slippageBps, priorityFee, setIsActionComplete, setPreviousTxn] = useUiStore((state) => [
+    state.slippageBps,
+    state.priorityFee,
+    state.setIsActionComplete,
+    state.setPreviousTxn,
+  ]);
 
   const depositBanks = React.useMemo(() => {
-    let banks = [];
+    const tokenBank = activeGroup.pool.token.isActive ? activeGroup.pool.token : null;
+    const quoteBank = activeGroup.pool.quoteTokens.filter((bank) => bank.isActive)[0] ?? null;
 
-    if (collateralBank && collateralBank.isActive && collateralBank.position.isLending) banks.push(collateralBank);
-    if (bank.isActive && bank.position.isLending) banks.push(bank);
-    return banks;
-  }, [bank, collateralBank]);
+    return [tokenBank, quoteBank].filter((bank): bank is ActiveBankInfo => bank !== null && bank.position.isLending);
+  }, [activeGroup]);
 
   const borrowBank = React.useMemo(() => {
-    if (collateralBank && collateralBank.isActive && !collateralBank.position.isLending) return collateralBank;
-    if (bank.isActive && !bank.position.isLending) return bank;
-    return null;
-  }, [bank, collateralBank]);
+    const tokenBank = activeGroup.pool.token.isActive ? activeGroup.pool.token : null;
+    const quoteBank = activeGroup.pool.quoteTokens.filter((bank) => bank.isActive)[0] ?? null;
+
+    let borrowBank = null;
+    if (tokenBank && !tokenBank.position.isLending) {
+      borrowBank = tokenBank;
+    } else if (quoteBank && !quoteBank.position.isLending) {
+      borrowBank = quoteBank;
+    }
+
+    return borrowBank;
+  }, [activeGroup]);
 
   const closeTransaction = React.useCallback(async () => {
-    if (!marginfiAccount || !collateralBank) return;
+    if (!activeGroup.selectedAccount || (!borrowBank && !depositBanks[0])) return;
 
-    let client = marginfiClient;
     const multiStepToast = new MultiStepToastHandle("Closing position", [
       {
-        label: `Closing ${bank.meta.tokenSymbol}${
-          collateralBank ? "/" + collateralBank?.meta.tokenSymbol : ""
+        label: `Closing ${depositBanks[0].meta.tokenSymbol}${
+          borrowBank ? "/" + borrowBank?.meta.tokenSymbol : ""
         } position.`,
       },
     ]);
@@ -73,31 +98,12 @@ export const PositionActionButtons = ({
     multiStepToast.start();
 
     try {
-      if (!marginfiClient) {
-        const { programId } = getConfig();
-        const group = new PublicKey(collateralBank.info.rawBank.group);
-        const bankKeys = groupsCache[group.toBase58()].map((bank) => new PublicKey(bank));
-        client = await MarginfiClient.fetch(
-          {
-            environment: "production",
-            cluster: "mainnet",
-            programId,
-            groupPk: group,
-          },
-          wallet,
-          connection,
-          {
-            preloadedBankAddresses: bankKeys,
-          }
-        );
-      }
-
-      if (!client) {
+      if (!activeGroup) {
         throw new Error("Invalid client");
       }
 
       const txns = await calculateClosePositions({
-        marginfiAccount,
+        marginfiAccount: activeGroup.selectedAccount,
         depositBanks: depositBanks,
         borrowBank: borrowBank,
         slippageBps,
@@ -106,19 +112,62 @@ export const PositionActionButtons = ({
         platformFeeBps,
       });
 
-      let txnSig: string | string[] = "";
       if ("description" in txns) {
         throw new Error(txns?.description ?? "Something went wrong.");
       } else if ("closeTxn" in txns) {
-        if (txns.closeTxn instanceof Transaction) {
-          txnSig = await client.processTransaction(txns.closeTxn);
-          multiStepToast.setSuccessAndNext();
-        } else {
-          txnSig = await client.processTransactions([...(txns.bundleTipTxn ? [txns.bundleTipTxn] : []), txns.closeTxn]);
-          multiStepToast.setSuccessAndNext();
-        }
+        setActionTransaction(txns);
+      }
+    } catch (error: any) {
+      const msg = extractErrorString(error);
+
+      multiStepToast.setFailed(msg);
+      console.log(`Error while closing: ${msg}`);
+      console.log(error);
+    } finally {
+      setMultiStepToast(multiStepToast);
+    }
+  }, [
+    activeGroup,
+    slippageBps,
+    connection,
+    priorityFee,
+    platformFeeBps,
+    wallet,
+    setIsRefreshingStore,
+    refreshGroup,
+    borrowBank,
+    depositBanks,
+  ]);
+
+  const processTransaction = React.useCallback(async () => {
+    try {
+      setIsLoading(true);
+      let txnSig: string | string[] = "";
+
+      if (!actionTransaction || !multiStepToast) throw new Error("Action not ready");
+      if (actionTransaction.closeTxn instanceof Transaction) {
+        txnSig = await activeGroup.client.processTransaction(actionTransaction.closeTxn);
+        multiStepToast.setSuccessAndNext();
+      } else {
+        txnSig = await activeGroup.client.processTransactions([
+          ...(actionTransaction.bundleTipTxn ? [actionTransaction.bundleTipTxn] : []),
+          actionTransaction.closeTxn,
+        ]);
+        multiStepToast.setSuccessAndNext();
       }
 
+      if (txnSig) {
+        setActionTransaction(null);
+        setIsActionComplete(true);
+        setPreviousTxn({
+          txnType: "CLOSE_POSITION",
+          txn: Array.isArray(txnSig) ? txnSig.pop() ?? "" : txnSig!,
+          positionClosedOptions: {
+            tokenBank: activeGroup.pool.token,
+            collateralBank: activeGroup.pool.quoteTokens[0],
+          },
+        });
+      }
       // -------- Refresh state
       try {
         setIsRefreshingStore(true);
@@ -135,35 +184,33 @@ export const PositionActionButtons = ({
     } catch (error: any) {
       const msg = extractErrorString(error);
 
-      multiStepToast.setFailed(msg);
+      if (multiStepToast) {
+        multiStepToast.setFailed(msg);
+      }
       console.log(`Error while closing: ${msg}`);
       console.log(error);
-      return;
+    } finally {
+      setIsLoading(false);
+      setActionTransaction(null);
+      setMultiStepToast(null);
     }
-  }, [
-    marginfiAccount,
-    collateralBank,
-    marginfiClient,
-    bank.meta.tokenSymbol,
-    depositBanks,
-    borrowBank,
-    slippageBps,
-    connection,
-    priorityFee,
-    platformFeeBps,
-    groupsCache,
-    wallet,
-    setIsRefreshingStore,
-    refreshGroup,
-    activeGroup?.groupPk,
-  ]);
+  }, [actionTransaction, multiStepToast, activeGroup]);
+
+  const onClose = React.useCallback(() => {
+    if (multiStepToast) {
+      multiStepToast.setFailed("User canceled transaction.");
+    }
+
+    setActionTransaction(null);
+    setMultiStepToast(null);
+  }, [multiStepToast, setActionTransaction, setMultiStepToast]);
 
   return (
     <div className="flex gap-3 w-full">
       <ActionBoxDialog
-        requestedBank={bank.position.isLending ? bank : collateralBank}
+        requestedBank={depositBanks[0]}
         requestedAction={ActionType.Deposit}
-        requestedAccount={marginfiAccount}
+        requestedAccount={activeGroup.selectedAccount ?? undefined}
         activeGroupArg={activeGroup}
       >
         <Button variant="outline" size="sm" className="gap-1 min-w-16">
@@ -171,11 +218,11 @@ export const PositionActionButtons = ({
           Add
         </Button>
       </ActionBoxDialog>
-      {collateralBank && isBorrowing && (
+      {borrowBank && isBorrowing && (
         <ActionBoxDialog
-          requestedBank={bank.position.isLending ? collateralBank : bank}
+          requestedBank={borrowBank}
           requestedAction={ActionType.Repay}
-          requestedAccount={marginfiAccount}
+          requestedAccount={activeGroup.selectedAccount ?? undefined}
           activeGroupArg={activeGroup}
         >
           <Button variant="outline" size="sm" className="gap-1 min-w-16">
@@ -187,18 +234,10 @@ export const PositionActionButtons = ({
       {!isBorrowing && (
         <ActionBoxDialog
           activeGroupArg={activeGroup}
-          requestedBank={
-            bank.position.isLending ? (collateralBank && collateralBank.isActive ? collateralBank : bank) : bank
-          }
+          requestedBank={depositBanks[0]}
           requestedAction={ActionType.Withdraw}
-          requestedAccount={marginfiAccount}
-          requestedCollateralBank={
-            bank.position.isLending
-              ? collateralBank && collateralBank.isActive
-                ? bank
-                : collateralBank || undefined
-              : collateralBank || undefined
-          }
+          requestedAccount={activeGroup.selectedAccount ?? undefined}
+          requestedCollateralBank={depositBanks.length > 1 ? depositBanks[1] : undefined}
         >
           <Button variant="outline" size="sm" className="gap-1 min-w-16">
             <IconMinus size={14} />
@@ -215,6 +254,97 @@ export const PositionActionButtons = ({
         <IconX size={14} />
         Close
       </Button>
+
+      <Dialog open={!!actionTransaction} onOpenChange={() => onClose()}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="space-y-4 text-center flex flex-col items-center justify-center">
+              <h2 className="font-medium text-xl">Closing position</h2>
+            </DialogTitle>
+          </DialogHeader>
+          <DialogDescription className="space-y-12 w-full">
+            <div className="flex flex-col items-center gap-2 border-b border-border pb-10">
+              <div className="flex items-center justify-center gap-2">
+                {activeGroup.pool.token && (
+                  <Image
+                    className="rounded-full w-9 h-9"
+                    src={getTokenImageURL(activeGroup.pool.token.info.state.mint.toString())}
+                    alt={(activeGroup.pool.token?.meta.tokenSymbol || "Token") + "  logo"}
+                    width={36}
+                    height={36}
+                  />
+                )}
+                <h3 className="text-4xl font-medium">
+                  {`${activeGroup.pool.token.meta.tokenSymbol}/${activeGroup.pool.quoteTokens[0].meta.tokenSymbol}`}
+                </h3>
+              </div>
+            </div>
+
+            <dl className="grid grid-cols-2 w-full text-muted-foreground gap-x-8 gap-y-2">
+              {depositBanks.map((bank) => (
+                <React.Fragment key={bank.meta.tokenSymbol}>
+                  <dt>Supplied</dt>
+                  <dd className="text-right">
+                    {bank.position.amount} {bank.meta.tokenSymbol}
+                  </dd>
+                </React.Fragment>
+              ))}
+
+              {borrowBank && (
+                <>
+                  <dt>Borrowed</dt>
+                  <dd className="text-right">
+                    {borrowBank.position.amount} {borrowBank.meta.tokenSymbol}
+                  </dd>
+                </>
+              )}
+
+              {actionTransaction?.quote?.priceImpactPct && (
+                <>
+                  <dt>Price impact</dt>
+                  <dd
+                    className={cn(
+                      Number(actionTransaction.quote.priceImpactPct) > 0.05
+                        ? "text-mrgn-error"
+                        : Number(actionTransaction.quote.priceImpactPct) > 0.01
+                        ? "text-alert-foreground"
+                        : "text-mrgn-success",
+                      "text-right"
+                    )}
+                  >
+                    {percentFormatter.format(Number(actionTransaction.quote.priceImpactPct))}
+                  </dd>
+                </>
+              )}
+
+              {actionTransaction?.quote?.slippageBps && (
+                <>
+                  <dt>Slippage</dt>
+                  <dd
+                    className={cn(actionTransaction.quote.slippageBps > 500 && "text-alert-foreground", "text-right")}
+                  >
+                    {percentFormatter.format(Number(actionTransaction.quote.slippageBps) / 10000)}
+                  </dd>
+                </>
+              )}
+
+              <dt>Platform fee</dt>
+              {actionTransaction?.quote?.platformFee?.feeBps && (
+                <>
+                  <dd className="text-right">
+                    {percentFormatter.format(actionTransaction.quote.platformFee.feeBps / 10000)}
+                  </dd>
+                </>
+              )}
+            </dl>
+          </DialogDescription>
+          <DialogFooter>
+            <Button disabled={isLoading} className="w-full mx-auto" onClick={() => processTransaction()}>
+              {isLoading ? <IconLoader /> : "Close position"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

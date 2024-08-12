@@ -137,16 +137,7 @@ export const PositionList = ({ activeGroupPk }: { activeGroupPk: PublicKey }) =>
                   )}
                 </TableCell>
                 <TableCell className="text-right">
-                  {group.client && (
-                    <PositionActionButtons
-                      marginfiClient={group.client}
-                      marginfiAccount={group.marginfiAccounts[0]}
-                      isBorrowing={isBorrowing}
-                      bank={group.pool.token as ActiveBankInfo}
-                      activeGroup={group}
-                      collateralBank={group.pool.quoteTokens[0] as ActiveBankInfo}
-                    />
-                  )}
+                  {group.client && <PositionActionButtons isBorrowing={isBorrowing} activeGroup={group} />}
                 </TableCell>
               </TableRow>
             );

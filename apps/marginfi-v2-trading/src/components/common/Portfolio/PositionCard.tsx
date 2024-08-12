@@ -102,15 +102,7 @@ export const PositionCard = ({ groupData, isLong }: PositionCardProps) => {
       </div>
       <div className="flex items-center justify-between gap-4">
         {groupData.client && groupData.selectedAccount && (
-          <PositionActionButtons
-            marginfiClient={groupData.client}
-            marginfiAccount={groupData.selectedAccount}
-            activeGroup={groupData}
-            isBorrowing={isBorrowing}
-            bank={groupData.pool.token}
-            collateralBank={groupData.pool.quoteTokens[0]}
-            rightAlignFinalButton={true}
-          />
+          <PositionActionButtons activeGroup={groupData} isBorrowing={isBorrowing} rightAlignFinalButton={true} />
         )}
       </div>
     </div>

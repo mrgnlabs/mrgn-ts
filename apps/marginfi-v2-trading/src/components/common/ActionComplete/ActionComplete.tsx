@@ -74,6 +74,9 @@ export const ActionComplete = () => {
             {previousTxn.txnType === "TRADING" && (
               <screens.TradingScreen {...previousTxn.tradingOptions} txn={previousTxn.txn} />
             )}
+            {previousTxn.txnType === "CLOSE_POSITION" && (
+              <screens.ClosePositionScreen {...previousTxn.positionClosedOptions} txn={previousTxn.txn} />
+            )}
           </div>
           <DialogFooter className="mt-6">
             <Button className="w-full mx-auto" onClick={() => setIsActionComplete(false)}>

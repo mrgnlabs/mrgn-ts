@@ -143,6 +143,15 @@ interface PreviousTxnLst {
   };
 }
 
+interface PreviousTxnPositionClosed {
+  txn: string;
+  txnType: "CLOSE_POSITION";
+  positionClosedOptions: {
+    tokenBank: ExtendedBankInfo;
+    collateralBank: ExtendedBankInfo;
+  };
+}
+
 interface PreviousTxnTrading {
   txn: string;
   txnType: "TRADING";
@@ -159,7 +168,7 @@ interface PreviousTxnTrading {
   };
 }
 
-export type PreviousTxn = PreviousTxnLending | PreviousTxnTrading | PreviousTxnLst;
+export type PreviousTxn = PreviousTxnLending | PreviousTxnTrading | PreviousTxnLst | PreviousTxnPositionClosed;
 
 export type TokenData = {
   address: string;
