@@ -40,7 +40,7 @@ export default function PortfolioPage() {
   const portfolioCombined = React.useMemo(() => {
     if (!portfolio) return null;
 
-    return [...portfolio.long, ...portfolio.short].sort((a, b) =>
+    return [...portfolio.long, ...portfolio.short, ...portfolio.lpPositions].sort((a, b) =>
       a.pool.token.isActive && b.pool.token.isActive
         ? a.pool.token.position.usdValue - b.pool.token.position.usdValue
         : 0
@@ -74,13 +74,13 @@ export default function PortfolioPage() {
                 >
                   <StatBlock label="Total long (USD)" value={usdFormatter.format(totalLong)} />
                   <StatBlock label="Total short (USD)" value={usdFormatter.format(totalShort)} />
-                  {portfolioCombined && portfolio && portfolio.long.length > 0 && portfolio.short.length && (
+                  {portfolioCombined && portfolioCombined.length > 0 && (
                     <div className="col-span-2 md:col-span-1">
                       <StatBlock
                         label="Active pools"
                         value={
                           <div className="flex items-center gap-4">
-                            {groupedNumberFormatterDyn.format(portfolio.long.length + portfolio.short.length)}
+                            {groupedNumberFormatterDyn.format(portfolioCombined.length)}
                             <ul className="flex items-center -space-x-2">
                               {portfolioCombined.slice(0, 5).map((group, index) => (
                                 <li className="rounded-full bg-white">
