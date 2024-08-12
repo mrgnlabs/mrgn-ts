@@ -128,7 +128,7 @@ export default function TradeSymbolPage() {
                       </Tooltip>
                     </TooltipProvider>
                   </p>
-                  {/* <PoolShare /> */}
+                  <PoolShare />
                 </div>
                 <div className="w-full space-y-10">
                   {activeGroup.pool.token.tokenData && (
