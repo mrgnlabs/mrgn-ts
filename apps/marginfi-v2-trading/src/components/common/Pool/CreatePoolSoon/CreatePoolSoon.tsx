@@ -10,7 +10,7 @@ import { IconConfetti, IconPlus } from "@tabler/icons-react";
 import { PublicKey } from "@solana/web3.js";
 
 import { useTradeStore } from "~/store";
-import { cn } from "~/utils";
+import { capture, cn } from "~/utils";
 import { useIsMobile } from "~/hooks/useIsMobile";
 
 import { Dialog, DialogContent, DialogTrigger } from "~/components/ui/dialog";
@@ -55,6 +55,9 @@ export const CreatePoolSoon = ({ trigger }: CreatePoolDialogProps) => {
 
       if (poolSubmission.ok) {
         setCreatePoolState("SUCCESS");
+        capture("token_request", {
+          mint: values.mint,
+        });
       } else {
         showErrorToast("Pool submission failed.");
       }
