@@ -334,7 +334,7 @@ export async function calculateLoopingTransaction({
   loopObject?: LoopingObject;
   isTrading?: boolean;
 }): Promise<ActionMethod | LoopingObject> {
-  if (loopObject?.loopingTxn && marginfiAccount) {
+  if (loopObject && marginfiAccount) {
     const txn = await verifyTxSizeLooping(
       marginfiAccount,
       depositBank,
