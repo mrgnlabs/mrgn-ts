@@ -68,11 +68,7 @@ export const TokenCombobox = ({ selected, setSelected, children }: TokenCombobox
                         <span>{group.pool.token.meta.tokenSymbol}</span>
                         {group.pool.token.tokenData && (
                           <div className="flex items-center justify-between w-[35%] gap-1 text-sm ml-auto text-muted-foreground">
-                            <span>
-                              {group.pool.token.tokenData.price > 0.00001
-                                ? tokenPriceFormatter.format(group.pool.token.tokenData.price)
-                                : `$${group.pool.token.tokenData.price.toExponential(2)}`}
-                            </span>
+                            <span>{tokenPriceFormatter(group.pool.token.tokenData.price)}</span>
                             <span
                               className={cn(
                                 "text-xs",
@@ -132,11 +128,7 @@ export const TokenCombobox = ({ selected, setSelected, children }: TokenCombobox
                       <span>{group.pool.token.meta.tokenSymbol}</span>
                       {group.pool.token.tokenData && (
                         <div className="flex items-center justify-between gap-1 text-sm ml-auto w-[35%] text-muted-foreground">
-                          <span>
-                            {group.pool.token.tokenData.price > 0.00001
-                              ? tokenPriceFormatter.format(group.pool.token.tokenData.price)
-                              : `$${group.pool.token.tokenData.price.toExponential(2)}`}
-                          </span>
+                          <span>{tokenPriceFormatter(group.pool.token.tokenData.price)}</span>
                           <span
                             className={cn(
                               "text-xs",

@@ -106,11 +106,7 @@ export const PoolHeader = ({ groupData }: PoolHeaderProps) => {
           <div className="grid grid-cols-2 w-full max-w-6xl mx-auto gap-4 md:gap-8 md:grid-cols-3">
             <StatBlock
               label="Current Price"
-              value={
-                groupData.pool.token.tokenData.price > 0.00001
-                  ? tokenPriceFormatter.format(groupData.pool.token.tokenData.price)
-                  : `$${groupData.pool.token.tokenData.price.toExponential(2)}`
-              }
+              value={tokenPriceFormatter(groupData.pool.token.tokenData.price)}
               subValue={
                 <span
                   className={cn(
