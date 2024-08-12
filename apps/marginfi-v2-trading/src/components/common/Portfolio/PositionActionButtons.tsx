@@ -12,7 +12,7 @@ import { useConnection } from "~/hooks/useConnection";
 import { useTradeStore, useUiStore } from "~/store";
 import { GroupData } from "~/store/tradeStore";
 import { useWalletContext } from "~/hooks/useWalletContext";
-import { calculateClosePositions, cn, extractErrorString, getTokenImageURL } from "~/utils";
+import { calculateClosePositions, cn, extractErrorString, getTokenImageURL, capture } from "~/utils";
 import { MultiStepToastHandle } from "~/utils/toastUtils";
 
 import { ActionBoxDialog } from "~/components/common/ActionBox";
@@ -166,6 +166,13 @@ export const PositionActionButtons = ({
             tokenBank: activeGroup.pool.token,
             collateralBank: activeGroup.pool.quoteTokens[0],
           },
+        });
+        capture("close_position", {
+          group: activeGroup?.groupPk?.toBase58(),
+          txnSig: txnSig,
+          token: activeGroup.pool.token.meta.tokenSymbol,
+          tokenSize: activeGroup.pool.token.isActive ? activeGroup.pool.token.position.amount : 0,
+          usdcSize: activeGroup.pool.quoteTokens[0].isActive ? activeGroup.pool.quoteTokens[0].position.amount : 0,
         });
       }
       // -------- Refresh state

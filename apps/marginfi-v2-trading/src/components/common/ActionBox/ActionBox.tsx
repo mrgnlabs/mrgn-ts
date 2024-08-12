@@ -297,14 +297,7 @@ export const ActionBox = ({
       repayWithCollatOptions,
     }: MarginfiActionParams) => {
       setIsLoading(true);
-      const attemptUuid = uuidv4();
-      capture(`user_${currentAction.toLowerCase()}_initiate`, {
-        uuid: attemptUuid,
-        tokenSymbol: bank.meta.tokenSymbol,
-        tokenName: bank.meta.tokenName,
-        amount: borrowOrLendAmount,
-        priorityFee,
-      });
+
       const txnSig = await executeLendingAction({
         mfiClient,
         actionType: currentAction,
@@ -333,7 +326,6 @@ export const ActionBox = ({
           },
         });
         capture(`user_${currentAction.toLowerCase()}`, {
-          uuid: attemptUuid,
           tokenSymbol: bank.meta.tokenSymbol,
           tokenName: bank.meta.tokenName,
           amount: borrowOrLendAmount,
@@ -376,13 +368,6 @@ export const ActionBox = ({
     }
     setIsLoading(true);
     const attemptUuid = uuidv4();
-    capture(`user_close_balance_initiate`, {
-      uuid: attemptUuid,
-      tokenSymbol: selectedBank.meta.tokenSymbol,
-      tokenName: selectedBank.meta.tokenName,
-      amount: 0,
-      priorityFee,
-    });
 
     const txnSig = await closeBalance({ marginfiAccount: selectedAccount, bank: selectedBank, priorityFee });
     setIsLoading(false);
@@ -452,25 +437,6 @@ export const ActionBox = ({
       return;
     }
     setIsLoading(true);
-    const attemptUuid = uuidv4();
-
-    if (selectedBank) {
-      capture(`user_${actionMode.toLowerCase()}_initiate`, {
-        uuid: attemptUuid,
-        tokenSymbol: selectedBank.meta.tokenSymbol,
-        tokenName: selectedBank.meta.tokenName,
-        amount,
-        priorityFee,
-      });
-    } else {
-      capture(`user_${actionMode.toLowerCase()}_initiate`, {
-        uuid: attemptUuid,
-        tokenSymbol: "SOL",
-        tokenName: "Solana",
-        amount,
-        priorityFee,
-      });
-    }
 
     const txnSig = await executeLstAction({
       actionMode,
@@ -505,7 +471,6 @@ export const ActionBox = ({
       });
       if (selectedBank) {
         capture(`user_${actionMode.toLowerCase()}`, {
-          uuid: attemptUuid,
           tokenSymbol: selectedBank.meta.tokenSymbol,
           tokenName: selectedBank.meta.tokenName,
           amount,
@@ -514,7 +479,6 @@ export const ActionBox = ({
         });
       } else {
         capture(`user_${actionMode.toLowerCase()}`, {
-          uuid: attemptUuid,
           tokenSymbol: "SOL",
           tokenName: "Solana",
           amount,

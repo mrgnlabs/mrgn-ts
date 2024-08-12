@@ -26,7 +26,7 @@ import { useConnection } from "~/hooks/useConnection";
 import { MarginfiAccountWrapper, SimulationResult, computeMaxLeverage } from "@mrgnlabs/marginfi-client-v2";
 import { TradeSide, checkLoopingActionAvailable, generateStats, simulateLooping } from "./tradingBox.utils";
 import { useDebounce } from "~/hooks/useDebounce";
-import { ActionMethod, executeLeverageAction, extractErrorString, usePrevious } from "~/utils";
+import { ActionMethod, capture, executeLeverageAction, extractErrorString, usePrevious } from "~/utils";
 import Link from "next/link";
 import { TradingBoxSettingsDialog } from "./components/TradingBoxSettings/TradingBoxSettingsDialog";
 import { calculateLoopingParams, handleSimulationError, LoopingObject } from "@mrgnlabs/mrgn-utils";
@@ -341,6 +341,16 @@ export const TradingBox = ({ side = "long" }: TradingBoxProps) => {
                 type: tradeState,
                 quote: loopingObject.quote,
               },
+            });
+            capture(`open_position`, {
+              group: activeGroup?.groupPk?.toBase58(),
+              txnSig: sig[sig.length - 1],
+              token: depositBank.meta.tokenSymbol,
+              entryPrice: activeGroup.pool.token.info.oraclePrice.priceRealtime.price.toNumber(),
+              depositAmount: loopingObject.actualDepositAmount,
+              borrowAmount: loopingObject.borrowAmount.toNumber(),
+              leverage: leverage,
+              type: tradeState,
             });
           }
         }
