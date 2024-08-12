@@ -11,6 +11,7 @@ import { useTradeStore } from "~/store";
 import { PositionActionButtons } from "~/components/common/Portfolio";
 
 import type { GroupData } from "~/store/tradeStore";
+import { useGroupBanks, useGroupPosition } from "~/hooks/arenaHooks";
 
 type PositionCardProps = {
   groupData: GroupData;
@@ -18,29 +19,8 @@ type PositionCardProps = {
 };
 
 export const PositionCard = ({ groupData, isLong }: PositionCardProps) => {
-  const isBorrowing = React.useMemo(() => {
-    const borrowBank = isLong ? groupData.pool.quoteTokens[0] : groupData.pool.token;
-    return borrowBank.isActive && !borrowBank.position.isLending;
-  }, [isLong, groupData]);
-
-  const leverage = React.useMemo(() => {
-    const borrowBank =
-      groupData.pool.token.isActive && groupData.pool.token.position.isLending
-        ? groupData.pool.quoteTokens[0]
-        : groupData.pool.token;
-    const depositBank = groupData.pool.token.address.equals(borrowBank.address)
-      ? groupData.pool.quoteTokens[0]
-      : groupData.pool.token;
-
-    let leverage = 1;
-    if (borrowBank.isActive && depositBank.isActive) {
-      const borrowUsd = borrowBank.position.usdValue;
-      const depositUsd = depositBank.position.usdValue;
-
-      leverage = Math.round((borrowUsd / depositUsd + Number.EPSILON) * 100) / 100 + 1;
-    }
-    return numeralFormatter(leverage);
-  }, [groupData]);
+  const { borrowBank, depositBank } = useGroupBanks({ group: groupData });
+  const { positionSizeUsd, positionSizeToken, totalUsdValue, leverage } = useGroupPosition({ group: groupData });
 
   if (!groupData.pool.token.isActive) return null;
 
@@ -66,12 +46,19 @@ export const PositionCard = ({ groupData, isLong }: PositionCardProps) => {
       </div>
       <div className="bg-accent/50 rounded-xl p-4">
         <dl className="w-full grid grid-cols-2 text-sm text-muted-foreground gap-1">
-          <dt>Size</dt>
+          <dt>Token</dt>
           <dd className="text-right text-primary">
             {numeralFormatter(groupData.pool.token.position.amount)} {groupData.pool.token.meta.tokenSymbol}
           </dd>
+          <dt>Value</dt>
+          <dd className="text-right text-primary">{usdFormatter.format(totalUsdValue)} USD</dd>
           <dt>Leverage</dt>
           <dd className="text-right text-primary">{`${leverage}x`}</dd>
+          <dt>Size</dt>
+          <dd className="text-right text-primary">
+            {positionSizeUsd < 0.01 ? "< 0.01" : usdFormatter.format(positionSizeUsd)} USD
+          </dd>
+
           <dt>Price</dt>
           <dd className="text-right text-primary">
             {groupData.pool.token.info.oraclePrice.priceRealtime.price.toNumber() > 0.00001
@@ -88,8 +75,6 @@ export const PositionCard = ({ groupData, isLong }: PositionCardProps) => {
               </span>
             )}
           </dd>
-          <dt>USD Value</dt>
-          <dd className="text-right text-primary">{usdFormatter.format(groupData.pool.token.position.usdValue)} USD</dd>
           {groupData.pool.token.position.liquidationPrice && (
             <>
               <dt>Liquidation Price</dt>
@@ -102,7 +87,7 @@ export const PositionCard = ({ groupData, isLong }: PositionCardProps) => {
       </div>
       <div className="flex items-center justify-between gap-4">
         {groupData.client && groupData.selectedAccount && (
-          <PositionActionButtons activeGroup={groupData} isBorrowing={isBorrowing} rightAlignFinalButton={true} />
+          <PositionActionButtons activeGroup={groupData} isBorrowing={!!borrowBank} rightAlignFinalButton={true} />
         )}
       </div>
     </div>

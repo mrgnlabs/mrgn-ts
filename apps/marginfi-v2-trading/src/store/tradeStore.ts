@@ -31,6 +31,7 @@ import {
 
 import { TRADE_GROUPS_MAP, TOKEN_METADATA_MAP, BANK_METADATA_MAP, POOLS_PER_PAGE } from "~/config/trade";
 import { TokenData } from "~/types";
+import { getGroupPositionInfo } from "~/utils";
 
 type TradeGroupsCache = {
   [group: string]: [string, string];
@@ -454,19 +455,19 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
     if (!group) throw new Error("Group not found");
 
     const bankKeys = [group.pool.token.address, ...group.pool.quoteTokens.map((bank) => bank.address)];
-    const marginfiClient = await MarginfiClient.fetch(
-      {
-        environment: "production",
-        cluster: "mainnet",
-        programId,
-        groupPk: args.groupPk,
-      },
-      state.wallet as Wallet,
-      state.connection as Connection,
-      {
-        preloadedBankAddresses: bankKeys,
-      }
-    );
+    // const marginfiClient = await MarginfiClient.fetch(
+    //   {
+    //     environment: "production",
+    //     cluster: "mainnet",
+    //     programId,
+    //     groupPk: args.groupPk,
+    //   },
+    //   state.wallet as Wallet,
+    //   state.connection as Connection,
+    //   {
+    //     preloadedBankAddresses: bankKeys,
+    //   }
+    // );
 
     set({
       activeGroup: args.groupPk,
@@ -798,14 +799,14 @@ function getPorfolioData(groupMap: Map<string, GroupData>) {
       }
     });
 
-    if (hasAnyPosition) {
-      if (isLpPosition && isLendingInAny) {
-        lpPositions.push(group);
-      } else if (isLong) {
-        longPositions.push(group);
-      } else if (isShort) {
-        shortPositions.push(group);
-      }
+    const positionInfo = getGroupPositionInfo({ group });
+
+    if (positionInfo === "LP") {
+      lpPositions.push(group);
+    } else if (positionInfo === "LONG") {
+      longPositions.push(group);
+    } else if (positionInfo === "SHORT") {
+      shortPositions.push(group);
     }
   });
 
