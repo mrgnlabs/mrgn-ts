@@ -106,7 +106,7 @@ export default function MrgnApp({ Component, pageProps, path, bank }: AppProps &
         </ConnectionProvider>
       )}
       <Tutorial />
-      <GoogleAnalytics gaId="G-T5B2WRLKL9" />
+      {process.env.NEXT_PUBLIC_ANALYTICS === "true" && <GoogleAnalytics gaId="G-T5B2WRLKL9" />}
     </>
   );
 }
