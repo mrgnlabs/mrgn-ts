@@ -169,7 +169,7 @@ export default function HomePage() {
                   }}
                 >
                   {groups.length > 0 &&
-                    groups.slice(0, currentPage * POOLS_PER_PAGE).map((group, i) => (
+                    groups.map((group, i) => (
                       <motion.div
                         key={i}
                         variants={{
@@ -196,13 +196,13 @@ export default function HomePage() {
                   </div>
                   <div className="bg-background border rounded-xl px-4 py-1">
                     {groups.length > 0 &&
-                      groups
-                        .slice(0, currentPage * POOLS_PER_PAGE)
-                        .map((group, i) => <PoolListItem key={i} groupData={group} last={i === groups.length - 1} />)}
+                      groups.map((group, i) => (
+                        <PoolListItem key={i} groupData={group} last={i === groups.length - 1} />
+                      ))}
                   </div>
                 </div>
               )}
-              {currentPage < totalPages && (
+              {/* {currentPage < totalPages && (
                 <div className="py-8 flex justify-center">
                   <Button
                     variant="secondary"
@@ -215,7 +215,7 @@ export default function HomePage() {
                     Load more pools
                   </Button>
                 </div>
-              )}
+              )} */}
             </div>
           </>
         )}
