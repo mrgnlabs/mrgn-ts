@@ -107,7 +107,9 @@ export default function TradeSymbolPage() {
                       {activeGroup.pool.token.meta.tokenName} <IconChevronDown size={18} />
                     </h1>
                   </TokenCombobox>
-                  <p className="text-sm text-muted-foreground">{activeGroup.pool.token.meta.tokenSymbol}</p>
+                  <p className="text-sm text-muted-foreground mt-2 lg:mt-0">
+                    {activeGroup.pool.token.meta.tokenSymbol}
+                  </p>
                   <p className="text-sm text-muted-foreground">
                     <TooltipProvider>
                       <Tooltip>
@@ -182,7 +184,7 @@ export default function TradeSymbolPage() {
                     </div>
                   )}
                   <div className="w-full grid gap-4 max-w-md mx-auto lg:gap-16 lg:max-w-none lg:grid-cols-3">
-                    <div className="flex flex-row justify-between space-y-2 lg:block">
+                    <div className="flex flex-row justify-between space-y-2 lg:block border-b border-border pb-6 lg:border-b-0 lg:pb-0">
                       <div className="flex items-start gap-2 translate-y-0.5">
                         <Image
                           src={getTokenImageURL(activeGroup.pool.token.info.state.mint.toBase58())}
