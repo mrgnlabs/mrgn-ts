@@ -79,7 +79,7 @@ export default function HomePage() {
   }, [resetActiveGroup]);
 
   React.useEffect(() => {
-    setSortBy(TradePoolFilterStates.TIMESTAMP);
+    setSortBy(TradePoolFilterStates.PRICE_MOVEMENT_DESC);
   }, [setSortBy]);
 
   return (
