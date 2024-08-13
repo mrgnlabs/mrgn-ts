@@ -200,7 +200,6 @@ class MarginfiClient {
           throw new Error("LUT not found");
         }
       } catch (error) {
-        console.log("fek");
         addressLookupTableAddresses = [];
       }
     }

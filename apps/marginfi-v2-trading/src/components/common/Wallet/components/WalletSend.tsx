@@ -67,8 +67,6 @@ export const WalletSend = ({ activeToken, onSendMore, onBack, onRetry, onCancel 
   const [sendSig, setSendSig] = React.useState<string>("");
   const toAddressRef = React.useRef<HTMLInputElement>(null);
 
-  console.log(Token);
-
   const numberFormater = React.useMemo(() => new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 }), []);
 
   const activeBank = React.useMemo(() => {

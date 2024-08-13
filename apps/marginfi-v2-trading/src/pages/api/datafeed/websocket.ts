@@ -7,7 +7,6 @@ import { getNextBarTime } from "~/utils/tradingViewUtils";
 let wsServer: WebSocket.Server | null = null;
 
 export default (req: NextApiRequest, res: NextApiResponse) => {
-  console.log("am I hitting");
   if (!(res.socket as any)?.server?.ws) {
     console.log("Initializing WebSocket server...");
     wsServer = new WebSocket.Server({ noServer: true });

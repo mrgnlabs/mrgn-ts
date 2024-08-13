@@ -549,7 +549,6 @@ const Debridge = () => {
   const isMobile = useIsMobile();
 
   const loadDeBridgeWidget = React.useCallback(() => {
-    console.log("debdrige");
     const widget = window.deBridge.widget({
       v: "1",
       element: "debridgeWidget",
@@ -602,9 +601,7 @@ const Debridge = () => {
   }, [widget]);
 
   React.useEffect(() => {
-    console.log("debdrige?", window.deBridge);
     if (window.deBridge && isMounted && !(divRef.current && divRef.current.innerHTML)) {
-      console.log("hello?");
       loadDeBridgeWidget();
     }
   }, [isMounted, loadDeBridgeWidget]);
