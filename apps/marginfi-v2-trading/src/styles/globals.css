@@ -357,6 +357,7 @@ input::-webkit-inner-spin-button {
 #jupiter-terminal .bg-\[\#191B1F\] {
   background: hsl(var(--accent)) !important;
   color: hsl(var(--accent-foreground)) !important;
+  border-radius: 8px !important;
 }
 
 #jupiter-terminal .bg-\[\#212128\],
@@ -398,10 +399,15 @@ input::-webkit-inner-spin-button {
 }
 
 #jupiter-terminal form .rounded-xl button {
-  border-radius: 8px !important;
+  border-radius: 6px !important;
   background: hsl(var(--background)) !important;
-  color: hsl(var(--muted-foreground)) !important;
   border: solid 1px hsl(var(--border)) !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+#jupiter-terminal form .rounded-xl button:hover {
+  background: hsl(var(--background)) !important;
+  color: hsl(var(--foreground)) !important;
 }
 
 #jupiter-terminal form .rounded-xl button span {
@@ -431,7 +437,7 @@ input::-webkit-inner-spin-button {
 }
 
 #jupiter-terminal .bg-\[\#25252D\] {
-  background: hsl(var(--accent)) !important;
+  background: hsl(var(--background)) !important;
   color: hsl(var(--accent-foreground)) !important;
   border: none !important;
 }
@@ -443,4 +449,29 @@ input::-webkit-inner-spin-button {
 #jupiter-terminal a.text-white\/50 {
   color: hsl(var(--accent-foreground)) !important;
   text-decoration: underline !important;
+}
+
+#jupiter-terminal .bg-v3-modal {
+  background: hsl(var(--accent)) !important;
+}
+
+#jupiter-terminal .bg-v2-lily\/10 {
+  background: hsl(var(--background)) !important;
+}
+
+#jupiter-terminal .bg-v2-lily\/10.w\-\[98\%\] {
+  height: auto !important;
+  color: hsl(var(--foreground)) !important;
+  padding-top: 8px !important;
+  padding-bottom: 8px !important;
+  font-size: 14px !important;
+}
+
+#jupiter-terminal .bg-v2-lily\/10.w\-\[98\%\] svg {
+  width: 12px !important;
+  height: 12px !important;
+}
+
+#jupiter-terminal .bg-v2-lily\/10.w\-\[98\%\]::placeholder {
+  color: hsl(var(--foreground)) !important;
 }
