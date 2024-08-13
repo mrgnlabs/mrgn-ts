@@ -187,7 +187,7 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
   searchResults: [],
   currentPage: 1,
   totalPages: 0,
-  sortBy: TradePoolFilterStates.TIMESTAMP,
+  sortBy: TradePoolFilterStates.PRICE_MOVEMENT_DESC,
   activeGroup: null,
   nativeSolBalance: 0,
   tokenAccountMap: null,
