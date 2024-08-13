@@ -387,7 +387,6 @@ export const handleSimulationError = (
 ): ActionMethod | undefined => {
   try {
     const action = handleError(error, bank, isArena, actionString);
-    console.log("action", action);
     if (action) {
       return action;
     }

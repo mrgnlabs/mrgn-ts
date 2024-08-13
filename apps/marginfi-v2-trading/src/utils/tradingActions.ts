@@ -233,15 +233,10 @@ export async function executeLeverageAction({
 
       if ("loopingTxn" in result) {
         loopingObject = result;
-      } else if ("error" in result) {
+      } else {
         throw new Error(result.description ?? "Something went wrong, please try again.");
       }
-
-      if (!loopingObject?.loopingTxn) {
-        throw new Error("Something went wrong, please try again.");
-      } else {
-        multiStepToast.setSuccessAndNext();
-      }
+      multiStepToast.setSuccessAndNext();
     } catch (error) {
       const msg = extractErrorString(error);
       Sentry.captureException({ message: error });

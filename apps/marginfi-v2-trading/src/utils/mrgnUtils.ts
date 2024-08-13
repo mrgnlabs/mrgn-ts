@@ -125,6 +125,10 @@ export function extractErrorString(error: any, fallback?: string): string {
     return errorCode.description;
   }
 
+  if (error?.message) {
+    return error.message;
+  }
+
   if (typeof error === "string") {
     return error;
   }

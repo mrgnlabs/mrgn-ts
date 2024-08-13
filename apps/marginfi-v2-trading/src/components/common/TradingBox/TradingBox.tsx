@@ -244,7 +244,7 @@ export const TradingBox = ({ side = "long" }: TradingBoxProps) => {
         if ("quote" in result) {
           loopingObject = result;
           setLoopingObject(result);
-        } else if ("error" in result) {
+        } else {
           // if txn couldn't be generated one cause could be that the account isn't created yet
           // most other causes are jupiter routing issues
           setAdditionalChecks(result);
