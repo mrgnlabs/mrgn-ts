@@ -72,7 +72,11 @@ export const TVWidget = ({ token }: props) => {
                   return `${(price / 1000).toFixed(3)}K`;
                 }
 
-                return price.toFixed(5);
+                if (price < 0.000001) {
+                  return price.toFixed(10);
+                }
+
+                return price.toFixed(7);
               },
               // };
             };
