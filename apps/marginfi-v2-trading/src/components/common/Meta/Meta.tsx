@@ -16,7 +16,7 @@ export const Meta = ({ path, bank }: MrgnProps) => {
   const pageTitlePart = path.split("/").pop();
   const pageTitle = pageTitlePart ? pageTitlePart.charAt(0).toUpperCase() + pageTitlePart.slice(1) : "";
 
-  if (path !== "/") {
+  if (path !== "/" && path !== "/blocked") {
     title = pageTitle + " - The Arena";
     description = "";
   }
