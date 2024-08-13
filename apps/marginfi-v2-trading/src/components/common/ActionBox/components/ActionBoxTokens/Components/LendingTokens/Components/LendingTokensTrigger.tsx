@@ -33,9 +33,9 @@ export const LendingTokensTrigger = React.forwardRef<HTMLButtonElement, LendingT
       <Button
         ref={ref}
         className={cn(
-          "bg-primary text-white w-full font-normal text-left text-base items-center gap-2.5 transition-colors hover:bg-primary/90",
+          "bg-background text-foreground w-full font-normal text-left text-sm items-center gap-2.5 transition-colors hover:bg-background/90",
           "justify-start py-6 px-3 xs:pr-2.5 xs:pl-3.5 xs:py-6 xs:justify-center",
-          isOpen && "bg-primary"
+          isOpen && "bg-background"
         )}
       >
         {!isRepayWithCollat && selectedBank && (
