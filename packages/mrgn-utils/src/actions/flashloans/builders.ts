@@ -349,6 +349,8 @@ export async function calculateLoopingTransaction({
 
     if (!txn) {
       return STATIC_SIMULATION_ERRORS.FL_FAILED;
+    } else if (txn.error) {
+      return txn.error;
     } else {
       return {
         loopingTxn: txn.flashloanTx,

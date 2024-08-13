@@ -26,9 +26,6 @@ type PoolCardProps = {
 };
 
 export const PoolCard = ({ groupData }: PoolCardProps) => {
-  if (groupData.pool.token.meta.tokenSymbol === "HMTR") {
-    console.log(groupData.pool.token.info.oraclePrice.priceRealtime.price.toNumber());
-  }
   return (
     <Card>
       <CardHeader>
