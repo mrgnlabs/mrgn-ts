@@ -107,7 +107,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       try {
         const data = await makeApiRequest(`defi/ohlcv?${birdeyeQuery}`);
-        console.log({ data });
 
         if (!data.success || data.data.items.length === 0) {
           // "noData" should be set if there is no data in the requested period.

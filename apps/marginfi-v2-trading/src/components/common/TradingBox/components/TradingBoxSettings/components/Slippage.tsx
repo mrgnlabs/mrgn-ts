@@ -86,7 +86,6 @@ export const Slippage = ({ slippageBps, setSlippageBps, toggleSettings }: Slippa
                 <FormControl>
                   <RadioGroup
                     onValueChange={(value) => {
-                      console.log({ value });
                       field.onChange(Number(value));
                     }}
                     defaultValue={field.value.toString()}
