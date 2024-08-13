@@ -105,48 +105,26 @@ export default function PortfolioPage() {
                   )}
                 </div>
                 <div className="grid grid-cols-1 gap-12 w-full md:grid-cols-2">
-                  <div className="space-y-6">
-                    <h2 className="text-2xl font-medium">Long positions</h2>
-                    <div className="space-y-8">
-                      {portfolio && portfolio.long.length > 0 ? (
-                        portfolio.long.map((group, index) => (
-                          <PositionCard key={index} groupData={group} isLong={true} />
-                        ))
-                      ) : (
-                        <p className="text-muted-foreground">
-                          You do not have any open long positions.{" "}
-                          <Link
-                            href="/"
-                            className="border-b border-muted-foreground transition-colors hover:border-transparent"
-                          >
-                            Explore the arena pools
-                          </Link>
-                          .
-                        </p>
-                      )}
+                  {portfolio.long.length > 0 && (
+                    <div className="space-y-6">
+                      <h2 className="text-2xl font-medium">Long positions</h2>
+                      <div className="space-y-8">
+                        {portfolio.long.map((group, index) => (
+                          <PositionCard key={index} groupData={group} />
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                  <div className="space-y-6">
-                    <h2 className="text-2xl font-medium">Short positions</h2>
-                    <div className="space-y-8">
-                      {portfolio && portfolio.short.length > 0 ? (
-                        portfolio.short.map((group, index) => (
-                          <PositionCard key={index} groupData={group} isLong={false} />
-                        ))
-                      ) : (
-                        <p className="text-muted-foreground">
-                          You do not have any open short positions.{" "}
-                          <Link
-                            href="/"
-                            className="border-b border-muted-foreground transition-colors hover:border-transparent"
-                          >
-                            Explore the arena pools
-                          </Link>
-                          .
-                        </p>
-                      )}
+                  )}
+                  {portfolio.short.length > 0 && (
+                    <div className="space-y-6">
+                      <h2 className="text-2xl font-medium">Short positions</h2>
+                      <div className="space-y-8">
+                        {portfolio.short.map((group, index) => (
+                          <PositionCard key={index} groupData={group} />
+                        ))}
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
                 <div>
                   <LpPositionList />
