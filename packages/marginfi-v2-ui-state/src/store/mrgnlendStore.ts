@@ -150,8 +150,8 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
   birdEyeApiKey: "",
   emissionTokenMap: {},
   sendEndpoint: null,
-  spamSendTx: false,
-  skipPreflightInSpam: false,
+  spamSendTx: true,
+  skipPreflightInSpam: true,
   stageTokens: null,
 
   // Actions
