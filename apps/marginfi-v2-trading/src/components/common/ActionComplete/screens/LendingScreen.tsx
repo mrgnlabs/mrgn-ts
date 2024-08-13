@@ -64,7 +64,7 @@ export const LendingScreen = ({ amount, bank, type, txn }: Props) => {
         <dd className="text-right">
           <Link
             href={`https://solscan.io/tx/${txn}`}
-            className="flex items-center justify-end gap-1.5 text-chartreuse text-sm"
+            className="flex items-center justify-end gap-1.5 text-foreground text-sm underline hover:no-underline"
             target="_blank"
             rel="noopener noreferrer"
           >
