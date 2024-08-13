@@ -7,6 +7,7 @@ import { IconArrowRight } from "@tabler/icons-react";
 import { aprToApy, numeralFormatter, percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
+import { useTradeStore } from "~/store";
 import { ArenaBank, GroupData } from "~/store/tradeStore";
 import { getTokenImageURL, cn, getGroupPositionInfo } from "~/utils";
 import { useWalletContext } from "~/hooks/useWalletContext";
@@ -21,11 +22,21 @@ interface props {
 
 export const YieldRow = ({ group }: props) => {
   const { connected } = useWalletContext();
+  const { portfolio } = useTradeStore();
   const positionInfo = React.useMemo(() => getGroupPositionInfo({ group }), [group]);
 
   const isLeveraged = React.useMemo(() => positionInfo === "LONG" || positionInfo === "SHORT", [positionInfo]);
 
   const collateralBank = group.pool.quoteTokens[0];
+
+  const isLPPosition = React.useCallback(
+    (bank: ArenaBank) => {
+      if (!portfolio) return false;
+      return portfolio.lpPositions.some((group) => group.groupPk.equals(bank.info.rawBank.group));
+    },
+    [portfolio]
+  );
+
   return (
     <div
       key={group.client.group.address.toBase58()}
@@ -66,6 +77,7 @@ export const YieldRow = ({ group }: props) => {
         bank={group.pool.token}
         connected={connected}
         isLeveraged={isLeveraged}
+        isLPPosition={isLPPosition(group.pool.token)}
       />
 
       <YieldItem
@@ -74,6 +86,7 @@ export const YieldRow = ({ group }: props) => {
         bank={collateralBank}
         connected={connected}
         isLeveraged={isLeveraged}
+        isLPPosition={isLPPosition(collateralBank)}
       />
     </div>
   );
@@ -85,12 +98,14 @@ const YieldItem = ({
   connected,
   className,
   isLeveraged,
+  isLPPosition,
 }: {
   group: GroupData;
   bank: ArenaBank;
   connected: boolean;
   className?: string;
   isLeveraged?: boolean;
+  isLPPosition?: boolean;
 }) => {
   return (
     <div className={cn("grid gap-4items-center", className, connected ? "grid-cols-7" : "grid-cols-6")}>
@@ -130,7 +145,7 @@ const YieldItem = ({
       </div>
       {connected && (
         <div className="pl-2 text-lg flex flex-col xl:gap-1 xl:flex-row xl:items-baseline">
-          {bank.isActive && bank.position.isLending && (
+          {bank.isActive && bank.position.isLending && isLPPosition && (
             <>
               {numeralFormatter(bank.position.amount)}
               <span className="text-muted-foreground text-sm">{bank.meta.tokenSymbol}</span>
