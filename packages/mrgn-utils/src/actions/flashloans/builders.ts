@@ -242,7 +242,7 @@ export async function calculateLoopingParams({
 
   const maxLoopAmount = depositBank.isActive ? depositBank?.position.amount : 0;
 
-  const maxAccountsArr = [undefined, 50, 40, 30];
+  const maxAccountsArr = marginfiAccount ? [undefined, 50, 40, 30] : [40, 30];
 
   let firstQuote;
 

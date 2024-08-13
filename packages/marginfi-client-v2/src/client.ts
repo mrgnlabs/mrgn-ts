@@ -1140,37 +1140,54 @@ class MarginfiClient {
   }
 
   private async sendTransactionAsBundle(base58Txs: string[]): Promise<string[]> {
-    const sendBundleResponse = await fetch("https://mainnet.block-engine.jito.wtf/api/v1/bundles", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        jsonrpc: "2.0",
-        id: 1,
-        method: "sendBundle",
-        params: [base58Txs],
-      }),
-    });
+    try {
+      const sendBundleResponse = await fetch("https://mainnet.block-engine.jito.wtf/api/v1/bundles", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          jsonrpc: "2.0",
+          id: 1,
+          method: "sendBundle",
+          params: [base58Txs],
+        }),
+      });
 
-    const sendBundleResult = await sendBundleResponse.json();
-    if (sendBundleResult.error) throw new Error(sendBundleResult.error.message);
+      const sendBundleResult = await sendBundleResponse.json();
+      if (sendBundleResult.error) throw new Error(sendBundleResult.error.message);
 
-    const bundleId = sendBundleResult.result;
+      const bundleId = sendBundleResult.result;
 
-    const getBundleStatusResponse = await fetch("https://mainnet.block-engine.jito.wtf/api/v1/bundles", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        jsonrpc: "2.0",
-        id: 1,
-        method: "getBundleStatuses",
-        params: [[bundleId]],
-      }),
-    });
+      await sleep(500);
 
-    const getBundleStatusResult = await getBundleStatusResponse.json();
-    if (getBundleStatusResult.error) throw new Error(getBundleStatusResult.error.message);
+      for (let attempt = 0; attempt < 5; attempt++) {
+        const getBundleStatusResponse = await fetch("https://mainnet.block-engine.jito.wtf/api/v1/bundles", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            jsonrpc: "2.0",
+            id: 1,
+            method: "getBundleStatuses",
+            params: [[bundleId]],
+          }),
+        });
 
-    return getBundleStatusResult.result.value[0].transactions;
+        const getBundleStatusResult = await getBundleStatusResponse.json();
+
+        if (getBundleStatusResult.error) throw new Error(getBundleStatusResult.error.message);
+
+        const signature = getBundleStatusResult?.result?.value[0]?.transactions;
+
+        if (signature) {
+          return signature;
+        }
+
+        await sleep(500); // Wait before retrying
+      }
+    } catch (error) {
+      console.error(error);
+    }
+
+    throw new Error("Bundle failed");
   }
 
   async simulateTransaction(
