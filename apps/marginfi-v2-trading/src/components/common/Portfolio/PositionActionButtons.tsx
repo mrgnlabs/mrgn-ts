@@ -51,6 +51,7 @@ export const PositionActionButtons = ({
   } | null>(null);
   const [isLoading, setIsLoading] = React.useState(false);
   const [multiStepToast, setMultiStepToast] = React.useState<MultiStepToastHandle | null>(null);
+  const [isClosing, setIsClosing] = React.useState(false);
 
   const [refreshGroup, setIsRefreshingStore] = useTradeStore((state) => [
     state.refreshGroup,
@@ -86,6 +87,7 @@ export const PositionActionButtons = ({
 
   const closeTransaction = React.useCallback(async () => {
     if (!activeGroup.selectedAccount || (!borrowBank && !depositBanks[0])) return;
+    setIsClosing(true);
 
     const multiStepToast = new MultiStepToastHandle("Closing position", [
       {
@@ -126,6 +128,7 @@ export const PositionActionButtons = ({
     } finally {
       setMultiStepToast(multiStepToast);
     }
+    setIsClosing(false);
   }, [
     activeGroup,
     slippageBps,
@@ -137,6 +140,7 @@ export const PositionActionButtons = ({
     refreshGroup,
     borrowBank,
     depositBanks,
+    setIsClosing,
   ]);
 
   const processTransaction = React.useCallback(async () => {
@@ -254,6 +258,7 @@ export const PositionActionButtons = ({
       )}
       <Button
         onClick={() => closeTransaction()}
+        disabled={isClosing}
         variant="destructive"
         size="sm"
         className={cn("gap-1 min-w-16", rightAlignFinalButton && "ml-auto")}
