@@ -199,7 +199,7 @@ export const Wallet = () => {
             <div className="max-h-full">
               <header className="flex items-start gap-2 w-full justify-between -translate-y-2">
                 <WalletAvatar pfp={pfp} address={walletData.address} size="md" className="" />
-                {/* {referralCode && (
+                {referralCode && (
                   <div className="flex flex-col items-center gap-2">
                     <CopyToClipboard
                       text={referralCode}
@@ -210,7 +210,7 @@ export const Wallet = () => {
                         }, 2000);
                       }}
                     >
-                      <Button size="sm" variant="outline">
+                      <Button size="sm" variant="outline" disabled={true}>
                         {isReferralCopied ? (
                           <>
                             <p>Copied!</p>
@@ -224,15 +224,9 @@ export const Wallet = () => {
                         )}
                       </Button>
                     </CopyToClipboard>
-                    <p className="text-xs text-muted-foreground">
-                      Invite friends and{" "}
-                      <Link href="#" className="border-b border-border">
-                        earn rewards
-                      </Link>
-                      .
-                    </p>
+                    <p className="text-xs text-muted-foreground">Referral program coming soon.</p>
                   </div>
-                )} */}
+                )}
                 <div className="flex items-center md:gap-1">
                   {web3AuthConncected && (
                     <TooltipProvider>
