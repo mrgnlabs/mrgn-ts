@@ -49,7 +49,7 @@ export const CreatePoolSoon = ({ trigger }: CreatePoolDialogProps) => {
         body: JSON.stringify({
           email: values.email,
           mint: values.mint,
-          twitter: values.twitter ?? "",
+          // twitter: values.twitter ?? "",
         }),
       });
 
@@ -151,7 +151,7 @@ export const CreatePoolSoon = ({ trigger }: CreatePoolDialogProps) => {
                             </FormItem>
                           )}
                         />
-                        <FormField
+                        {/* <FormField
                           control={form.control}
                           name="twitter"
                           render={({ field, formState }) => (
@@ -169,7 +169,7 @@ export const CreatePoolSoon = ({ trigger }: CreatePoolDialogProps) => {
                               </div>
                             </FormItem>
                           )}
-                        />
+                        /> */}
                       </div>
                       <Button type="submit" disabled={isSubmitting}>
                         {isSubmitting ? "Submitting..." : "Submit"}
@@ -193,12 +193,10 @@ export const CreatePoolSoon = ({ trigger }: CreatePoolDialogProps) => {
           {createPoolState === "SUCCESS" && (
             <div className="flex flex-col justify-center items-center gap-12">
               <div className="text-center space-y-12">
-                <div className="flex flex-col items-center gap-3">
+                <div className="flex flex-col items-center gap-6">
                   <IconConfetti size={48} />
                   <h2 className="text-3xl font-medium">Pool submitted!</h2>
-                  <p className="text-muted-foreground">
-                    Your token has been submitted. It will be verified before it shows on mrgntrade.
-                  </p>
+                  <p className="text-muted-foreground">Your token request has been submitted!</p>
                   <Button className="mt-2" onClick={() => setIsOpen(false)}>
                     Close
                   </Button>
