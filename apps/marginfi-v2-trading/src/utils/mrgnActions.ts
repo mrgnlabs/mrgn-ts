@@ -14,15 +14,13 @@ import { QuoteResponseMeta } from "@jup-ag/react-hook";
 import { WalletContextState } from "@solana/wallet-adapter-react";
 
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
-import { LUT_PROGRAM_AUTHORITY_INDEX, Wallet, processTransaction, uiToNative } from "@mrgnlabs/mrgn-common";
+import { LUT_PROGRAM_AUTHORITY_INDEX, WSOL_MINT, Wallet, processTransaction, uiToNative } from "@mrgnlabs/mrgn-common";
 import { ExtendedBankInfo, FEE_MARGIN, ActionType, clearAccountCache } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { WalletContextStateOverride } from "~/hooks/useWalletContext";
-import { LstData, SOL_MINT } from "~/store/lstStore";
 
 import { MultiStepToastHandle, showErrorToast } from "./toastUtils";
 import { isWholePosition, extractErrorString } from "./mrgnUtils";
-import { StakeData, makeDepositSolToStakePoolIx, makeDepositStakeToStakePoolIx } from "./lstUtils";
 
 export type RepayWithCollatOptions = {
   repayCollatQuote: QuoteResponse;
@@ -42,20 +40,6 @@ export type MarginfiActionParams = {
   marginfiAccount: MarginfiAccountWrapper | null;
   repayWithCollatOptions?: RepayWithCollatOptions;
   walletContextState?: WalletContextState | WalletContextStateOverride;
-  priorityFee?: number;
-};
-
-export type LstActionParams = {
-  actionMode: ActionType;
-  marginfiClient: MarginfiClient;
-  amount: number;
-  nativeSolBalance: number;
-  connection: Connection;
-  wallet: Wallet;
-  lstData: LstData;
-  bank: ExtendedBankInfo | null;
-  selectedStakingAccount: StakeData | null;
-  quoteResponseMeta: QuoteResponseMeta | null;
   priorityFee?: number;
 };
 
@@ -115,78 +99,6 @@ export async function executeLendingAction({
   }
 
   return txnSig;
-}
-
-export async function executeLstAction({
-  actionMode,
-  marginfiClient,
-  amount,
-  connection,
-  wallet,
-  lstData,
-  bank,
-  nativeSolBalance,
-  selectedStakingAccount,
-  quoteResponseMeta,
-  priorityFee,
-}: LstActionParams) {
-  let txnSig: string | undefined;
-
-  if (nativeSolBalance < FEE_MARGIN) {
-    showErrorToast("Not enough sol for fee.");
-    return;
-  }
-
-  if (!wallet.publicKey) {
-    showErrorToast("Wallet not connected.");
-    return;
-  }
-
-  if (!selectedStakingAccount && !bank) {
-    showErrorToast("No token selected.");
-    return;
-  }
-
-  if (actionMode === ActionType.MintLST) {
-    // Stake account selected
-    if (selectedStakingAccount) {
-      txnSig = await mintLstStakeToStake({
-        marginfiClient,
-        priorityFee,
-        connection,
-        selectedStakingAccount,
-        wallet,
-        lstData,
-      });
-    }
-
-    if (bank) {
-      if (bank.info.state.mint.equals(SOL_MINT)) {
-        // SOL selected
-        txnSig = await mintLstNative({ marginfiClient, bank, amount, priorityFee, connection, wallet, lstData });
-      } else {
-        // token selected
-        txnSig = await mintLstToken({ bank, amount, priorityFee, connection, wallet, quoteResponseMeta });
-      }
-    }
-    return txnSig;
-  } else if (actionMode === ActionType.UnstakeLST) {
-    if (bank) {
-      txnSig = await mintLstToken({
-        bank,
-        amount,
-        priorityFee,
-        connection,
-        wallet,
-        quoteResponseMeta,
-        isUnstake: true,
-      });
-      return txnSig;
-    }
-  } else {
-    throw new Error("Action not implemented");
-    Sentry.captureException({ message: "Action not implemented" });
-  }
 }
 
 // ------------------------------------------------------------------//
@@ -508,38 +420,6 @@ export async function repayWithCollat({
   }
 }
 
-export async function collectRewardsBatch(
-  connection: Connection,
-  wallet: Wallet,
-  marginfiAccount: MarginfiAccountWrapper,
-  bankAddresses: PublicKey[]
-) {
-  const multiStepToast = new MultiStepToastHandle("Collect rewards", [{ label: "Collecting rewards" }]);
-  multiStepToast.start();
-
-  try {
-    const tx = new Transaction();
-    const ixs = [];
-    const signers = [];
-
-    for (const bankAddress of bankAddresses) {
-      const ix = await marginfiAccount.makeWithdrawEmissionsIx(bankAddress);
-      ixs.push(...ix.instructions);
-      signers.push(ix.keys);
-    }
-    tx.add(...ixs);
-    await processTransaction(connection, wallet, tx);
-    multiStepToast.setSuccessAndNext();
-  } catch (error: any) {
-    const msg = extractErrorString(error);
-    Sentry.captureException({ message: error });
-    multiStepToast.setFailed(msg);
-    console.log(`Error while collecting rewards: ${msg}`);
-    console.log(error);
-    return;
-  }
-}
-
 export const closeBalance = async ({
   bank,
   marginfiAccount,
@@ -580,201 +460,6 @@ export const closeBalance = async ({
     console.log(error);
   }
 };
-
-export async function mintLstStakeToStake({
-  marginfiClient,
-  priorityFee,
-  connection,
-  wallet,
-  lstData,
-  selectedStakingAccount,
-}: {
-  marginfiClient: MarginfiClient;
-  priorityFee?: number;
-  connection: Connection;
-  wallet: Wallet;
-  lstData: LstData;
-  selectedStakingAccount: StakeData | null;
-}) {
-  const multiStepToast = new MultiStepToastHandle("Mint LST", [{ label: `Minting LST` }]);
-  multiStepToast.start();
-
-  try {
-    const {
-      value: { blockhash },
-    } = await connection.getLatestBlockhashAndContext();
-
-    if (!selectedStakingAccount) {
-      multiStepToast.setFailed("Route not calculated yet");
-      return;
-    }
-
-    const { instructions, signers } = await makeDepositStakeToStakePoolIx(
-      lstData.accountData,
-      lstData.poolAddress,
-      wallet.publicKey,
-      selectedStakingAccount.validatorVoteAddress,
-      selectedStakingAccount.address,
-      priorityFee
-    );
-
-    const depositMessage = new TransactionMessage({
-      instructions: instructions,
-      payerKey: wallet.publicKey,
-      recentBlockhash: blockhash,
-    });
-
-    const depositTransaction = new VersionedTransaction(depositMessage.compileToV0Message([]));
-    depositTransaction.sign(signers);
-
-    const txnSig = await marginfiClient.processTransaction(depositTransaction);
-    multiStepToast.setSuccessAndNext();
-    return txnSig;
-  } catch (error: any) {
-    const msg = extractErrorString(error);
-    Sentry.captureException({ message: error });
-    multiStepToast.setFailed(msg);
-    console.log(`Error while minting lst: ${msg}`);
-    console.log(error);
-    return;
-  }
-}
-
-export async function mintLstNative({
-  marginfiClient,
-  bank,
-  amount,
-  priorityFee,
-  connection,
-  wallet,
-  lstData,
-}: {
-  marginfiClient: MarginfiClient;
-  bank: ExtendedBankInfo;
-  amount: number;
-  priorityFee?: number;
-  connection: Connection;
-  wallet: Wallet;
-  lstData: LstData;
-}) {
-  const multiStepToast = new MultiStepToastHandle("Mint LST", [
-    { label: `Staking ${amount} ${bank.meta.tokenSymbol}` },
-  ]);
-  multiStepToast.start();
-
-  try {
-    const {
-      value: { blockhash },
-    } = await connection.getLatestBlockhashAndContext();
-
-    const bnAmount = uiToNative(amount, bank.info.state.mintDecimals);
-
-    const { instructions, signers } = await makeDepositSolToStakePoolIx(
-      lstData.accountData,
-      lstData.poolAddress,
-      wallet.publicKey,
-      bnAmount,
-      undefined,
-      undefined,
-      undefined,
-      priorityFee
-    );
-
-    const depositMessage = new TransactionMessage({
-      instructions: instructions,
-      payerKey: wallet.publicKey,
-      recentBlockhash: blockhash,
-    });
-
-    const depositTransaction = new VersionedTransaction(depositMessage.compileToV0Message([]));
-    depositTransaction.sign(signers);
-
-    const txnSig = await marginfiClient.processTransaction(depositTransaction);
-    multiStepToast.setSuccessAndNext();
-    return txnSig;
-  } catch (error: any) {
-    const msg = extractErrorString(error);
-    Sentry.captureException({ message: error });
-    multiStepToast.setFailed(msg);
-    console.log(`Error while minting lst: ${msg}`);
-    console.log(error);
-    return;
-  }
-}
-
-export async function mintLstToken({
-  bank,
-  amount,
-  priorityFee,
-  connection,
-  wallet,
-  quoteResponseMeta,
-  isUnstake = false,
-}: {
-  bank: ExtendedBankInfo;
-  amount: number;
-  priorityFee?: number;
-  connection: Connection;
-  wallet: Wallet;
-  quoteResponseMeta: QuoteResponseMeta | null;
-  isUnstake?: boolean;
-}) {
-  const jupiterApiClient = createJupiterApiClient();
-
-  const multiStepToast = isUnstake
-    ? new MultiStepToastHandle("Unstake LST", [{ label: `Swapping ${amount} ${bank.meta.tokenSymbol} for SOL` }])
-    : new MultiStepToastHandle("Mint LST", [{ label: `Swapping ${amount} ${bank.meta.tokenSymbol} for LST` }]);
-  multiStepToast.start();
-
-  try {
-    const {
-      value: { blockhash },
-    } = await connection.getLatestBlockhashAndContext();
-
-    const quote = quoteResponseMeta?.original;
-    if (!quote) {
-      multiStepToast.setFailed("Route not calculated yet");
-      return;
-    }
-
-    const swapRequest = {
-      quoteResponse: quote,
-      userPublicKey: wallet.publicKey.toBase58(),
-      wrapAndUnwrapSol: false,
-    } as SwapRequest;
-
-    if (priorityFee) {
-      swapRequest.prioritizationFeeLamports = priorityFee * LAMPORTS_PER_SOL;
-    }
-
-    const { swapTransaction: swapTransactionEncoded, lastValidBlockHeight } = await jupiterApiClient.swapPost({
-      swapRequest: swapRequest,
-    });
-    const swapTransactionBuffer = Buffer.from(swapTransactionEncoded, "base64");
-    const swapTransaction = VersionedTransaction.deserialize(swapTransactionBuffer);
-
-    const signedSwapTransaction = await wallet.signTransaction(swapTransaction);
-    const swapSig = await connection.sendTransaction(signedSwapTransaction);
-    await connection.confirmTransaction(
-      {
-        blockhash,
-        lastValidBlockHeight,
-        signature: swapSig,
-      },
-      "confirmed"
-    );
-
-    multiStepToast.setSuccessAndNext();
-    return swapSig;
-  } catch (error: any) {
-    const msg = extractErrorString(error);
-    Sentry.captureException({ message: error });
-    multiStepToast.setFailed(msg);
-    console.log(`Error while minting lst: ${msg}`);
-    console.log(error);
-    return;
-  }
-}
 
 // ------------------------------------------------------------------//
 // Helpers //

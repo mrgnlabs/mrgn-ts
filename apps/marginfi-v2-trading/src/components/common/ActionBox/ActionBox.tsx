@@ -7,20 +7,11 @@ import { WSOL_MINT, nativeToUi } from "@mrgnlabs/mrgn-common";
 import { ActionType, ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 
-import { useLstStore, useUiStore, useTradeStore } from "~/store";
-import {
-  MarginfiActionParams,
-  closeBalance,
-  executeLendingAction,
-  cn,
-  capture,
-  executeLstAction,
-  getBlockedActions,
-} from "~/utils";
+import { useUiStore, useTradeStore } from "~/store";
+import { MarginfiActionParams, closeBalance, executeLendingAction, cn, capture } from "~/utils";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { useConnection } from "~/hooks/useConnection";
 import { useActionBoxStore } from "~/hooks/useActionBoxStore";
-import { SOL_MINT } from "~/store/lstStore";
 
 import { ActionMethod, checkActionAvailable, RepayType } from "~/utils/actionBoxUtils";
 import { IconAlertTriangle, IconExternalLink, IconSettings } from "~/components/ui/icons";
@@ -129,11 +120,6 @@ export const ActionBox = ({
     state.setIsActionComplete,
     state.setPreviousTxn,
   ]);
-  const [lstData, lstQuoteMeta, feesAndRent] = useLstStore((state) => [
-    state.lstData,
-    state.quoteResponseMeta,
-    state.feesAndRent,
-  ]);
 
   const { walletContextState, connected, wallet } = useWalletContext();
   const { connection } = useConnection();
@@ -177,15 +163,6 @@ export const ActionBox = ({
     }
   }, [errorMessage]);
 
-  // Either a staking account is selected or a bank
-  const isActionDisabled = React.useMemo(() => {
-    const blockedActions = getBlockedActions();
-
-    if (blockedActions?.find((value) => value === actionMode)) return true;
-
-    return false;
-  }, [actionMode]);
-
   // Amount related useMemo's
   const amount = React.useMemo(() => {
     const strippedAmount = amountRaw.replace(/,/g, "");
@@ -220,33 +197,13 @@ export const ActionBox = ({
       case ActionType.Repay:
         if (repayMode === RepayType.RepayCollat && selectedBank?.isActive) return maxAmountCollat ?? 0;
         return selectedBank?.userInfo.maxRepay ?? 0;
-      case ActionType.MintLST:
-        if (selectedStakingAccount) return nativeToUi(selectedStakingAccount.lamports, 9);
-        if (selectedBank?.info.state.mint.equals(SOL_MINT))
-          return walletAmount ? Math.max(0, walletAmount - nativeToUi(feesAndRent, 9)) : 0;
-        else return walletAmount ?? 0;
-      case ActionType.UnstakeLST:
-        return walletAmount ?? 0;
       default:
         return 0;
     }
-  }, [
-    selectedBank,
-    selectedStakingAccount,
-    actionMode,
-    isInitialized,
-    walletAmount,
-    feesAndRent,
-    maxAmountCollat,
-    repayMode,
-  ]);
+  }, [selectedBank, selectedStakingAccount, actionMode, isInitialized, walletAmount, maxAmountCollat, repayMode]);
 
   const isDust = React.useMemo(() => selectedBank?.isActive && selectedBank?.position.isDust, [selectedBank]);
   const showCloseBalance = React.useMemo(() => actionMode === ActionType.Withdraw && isDust, [actionMode, isDust]);
-  // const isPreviewVisible = React.useMemo(
-  //   () => actionMode === ActionType.MintLST || !!selectedBank,
-  //   [actionMode, selectedBank]
-  // );
 
   const actionMethods = React.useMemo(
     () =>
@@ -257,7 +214,6 @@ export const ActionBox = ({
         showCloseBalance,
         selectedBank,
         selectedRepayBank,
-        selectedStakingAccount,
         extendedBankInfos,
         marginfiAccount: selectedAccount,
         nativeSolBalance,
@@ -265,7 +221,6 @@ export const ActionBox = ({
         blacklistRoutes: null,
         repayMode,
         repayCollatQuote: repayCollatQuote ?? null,
-        lstQuoteMeta: lstQuoteMeta,
       }),
     [
       amount,
@@ -281,7 +236,6 @@ export const ActionBox = ({
       actionMode,
       repayMode,
       repayCollatQuote,
-      lstQuoteMeta,
     ]
   );
 
@@ -420,108 +374,6 @@ export const ActionBox = ({
     activeGroup?.groupPk,
   ]);
 
-  const handleAction = async () => {
-    if (actionMode === ActionType.MintLST || actionMode === ActionType.UnstakeLST) {
-      await handleLstAction();
-    } else {
-      await handleLendingAction();
-    }
-  };
-
-  const handleLstAction = React.useCallback(async () => {
-    if ((!selectedBank && !selectedStakingAccount) || !activeGroup?.client || !lstData) {
-      return;
-    }
-
-    if (selectedBank && !lstQuoteMeta) {
-      return;
-    }
-    setIsLoading(true);
-
-    const txnSig = await executeLstAction({
-      actionMode,
-      marginfiClient: activeGroup.client,
-      amount,
-      connection,
-      wallet,
-      lstData,
-      bank: selectedBank,
-      nativeSolBalance,
-      selectedStakingAccount,
-      quoteResponseMeta: lstQuoteMeta,
-      priorityFee,
-    });
-
-    setIsLoading(false);
-    handleCloseDialog && handleCloseDialog();
-    setAmountRaw("");
-
-    if (txnSig) {
-      setIsActionComplete(true);
-
-      setPreviousTxn({
-        txn: txnSig!,
-        txnType: "LST",
-        lstOptions: {
-          type: ActionType.MintLST,
-          bank: selectedBank as ActiveBankInfo,
-          amount: amount,
-          quote: lstQuoteMeta || undefined,
-        },
-      });
-      if (selectedBank) {
-        capture(`user_${actionMode.toLowerCase()}`, {
-          tokenSymbol: selectedBank.meta.tokenSymbol,
-          tokenName: selectedBank.meta.tokenName,
-          amount,
-          txn: txnSig!,
-          priorityFee,
-        });
-      } else {
-        capture(`user_${actionMode.toLowerCase()}`, {
-          tokenSymbol: "SOL",
-          tokenName: "Solana",
-          amount,
-          txn: txnSig!,
-          priorityFee,
-        });
-      }
-    }
-
-    // -------- Refresh state
-    try {
-      setIsRefreshingStore(true);
-      await refreshGroup({
-        connection,
-        wallet,
-        groupPk: activeGroup?.groupPk,
-      });
-    } catch (error: any) {
-      console.log("Error while reloading state");
-      console.log(error);
-    }
-  }, [
-    selectedBank,
-    selectedStakingAccount,
-    activeGroup?.client,
-    activeGroup?.groupPk,
-    lstData,
-    lstQuoteMeta,
-    setIsLoading,
-    actionMode,
-    amount,
-    connection,
-    wallet,
-    nativeSolBalance,
-    priorityFee,
-    handleCloseDialog,
-    setAmountRaw,
-    setIsActionComplete,
-    setPreviousTxn,
-    setIsRefreshingStore,
-    refreshGroup,
-  ]);
-
   const handleLendingAction = React.useCallback(async () => {
     if (!actionMode || !activeGroup?.client || !selectedBank || (!amount && !repayAmount)) {
       return;
@@ -573,21 +425,6 @@ export const ActionBox = ({
 
   if (!isInitialized) {
     return null;
-  }
-
-  if (isActionDisabled) {
-    return (
-      <div className="flex flex-col items-center">
-        <div
-          className={cn(
-            "p-4 md:p-6 bg-background w-full max-w-[480px] rounded-lg relative",
-            isDialog && "py-5 border border-background-gray-light/50"
-          )}
-        >
-          Action is temporary disabled. <br /> Visit our socials for more information.
-        </div>
-      </div>
-    );
   }
 
   return (
@@ -678,7 +515,7 @@ export const ActionBox = ({
               >
                 <ActionBoxActions
                   handleAction={() => {
-                    showCloseBalance ? handleCloseBalance() : handleAction();
+                    showCloseBalance ? handleCloseBalance() : handleLendingAction();
                   }}
                   isLoading={isLoading}
                   showCloseBalance={showCloseBalance ?? false}

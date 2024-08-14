@@ -3,7 +3,7 @@ import { persist } from "zustand/middleware";
 
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { LendingModes, PoolTypes, SortType, sortDirection, SortAssetOption, PreviousTxn } from "~/types";
+import { LendingModes, PoolTypes, PreviousTxn } from "~/types";
 
 export enum WalletState {
   DEFAULT = "default",
@@ -15,35 +15,6 @@ export enum WalletState {
   BUY = "buy",
 }
 
-const SORT_OPTIONS_MAP: { [key in SortType]: SortAssetOption } = {
-  APY_DESC: {
-    label: "APY highest to lowest",
-    borrowLabel: "APY highest to lowest",
-    value: SortType.APY_DESC,
-    field: "APY",
-    direction: sortDirection.DESC,
-  },
-  APY_ASC: {
-    label: "APY lowest to highest",
-    borrowLabel: "APY lowest to highest",
-    value: SortType.APY_ASC,
-    field: "APY",
-    direction: sortDirection.ASC,
-  },
-  TVL_DESC: {
-    label: "$ highest to lowest",
-    value: SortType.TVL_DESC,
-    field: "TVL",
-    direction: sortDirection.DESC,
-  },
-  TVL_ASC: {
-    label: "$ lowest to highest",
-    value: SortType.TVL_ASC,
-    field: "TVL",
-    direction: sortDirection.ASC,
-  },
-};
-
 interface UiState {
   // State
   isMenuDrawerOpen: boolean;
@@ -54,7 +25,6 @@ interface UiState {
   isFilteredUserPositions: boolean;
   lendingMode: LendingModes;
   poolFilter: PoolTypes;
-  sortOption: SortAssetOption;
   priorityFee: number;
   slippageBps: number;
   platformFeeBps: number;
@@ -73,7 +43,6 @@ interface UiState {
   setIsFilteredUserPositions: (isFilteredUserPositions: boolean) => void;
   setLendingMode: (lendingMode: LendingModes) => void;
   setPoolFilter: (poolType: PoolTypes) => void;
-  setSortOption: (sortOption: SortAssetOption) => void;
   setPriorityFee: (priorityFee: number) => void;
   setSlippageBps: (slippageBps: number) => void;
   setIsActionComplete: (isActionSuccess: boolean) => void;
@@ -115,7 +84,6 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
   lendingMode: LendingModes.LEND,
   actionMode: ActionType.Deposit,
   poolFilter: PoolTypes.ALL,
-  sortOption: SORT_OPTIONS_MAP[SortType.TVL_DESC],
   platformFeeBps: 30,
   selectedTokenBank: null,
   priorityFee: 0,
@@ -138,7 +106,6 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
       lendingMode: lendingMode,
     }),
   setPoolFilter: (poolType: PoolTypes) => set({ poolFilter: poolType }),
-  setSortOption: (sortOption: SortAssetOption) => set({ sortOption: sortOption }),
   setPriorityFee: (priorityFee: number) => set({ priorityFee: priorityFee }),
   setSlippageBps: (slippageBps: number) => set({ slippageBps: slippageBps }),
   setIsActionComplete: (isActionComplete: boolean) => set({ isActionComplete: isActionComplete }),
@@ -148,5 +115,5 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
   setWalletState: (walletState: WalletState) => set({ walletState: walletState }),
 });
 
-export { createUiStore, SORT_OPTIONS_MAP };
+export { createUiStore };
 export type { UiState };

@@ -9,5 +9,4 @@ export * from "./components/WalletTokens";
 export * from "./components/WalletOnramp";
 export * from "./components/WalletPkDialog";
 export * from "./components/WalletIntroDialog";
-export * from "./components/WalletNotis";
 export * from "./components/WalletSend";

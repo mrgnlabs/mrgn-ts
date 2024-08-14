@@ -26,7 +26,6 @@ import {
 import { IconAlertTriangle, IconArrowRight, IconPyth, IconSwitchboard } from "~/components/ui/icons";
 import { Skeleton } from "~/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
-import { REDUCE_ONLY_BANKS } from "~/components/desktop/AssetList/utils";
 
 export interface SimulateActionProps {
   marginfiClient: MarginfiClient;
@@ -391,8 +390,6 @@ function getLiquidationStat(bank: ExtendedBankInfo, isLoading: boolean, simulati
 }
 
 function getPoolSizeStat(bankCap: number, bank: ExtendedBankInfo, isLending: boolean): PreviewStat {
-  const isReduceOnly = bank?.meta?.tokenSymbol ? REDUCE_ONLY_BANKS.includes(bank?.meta.tokenSymbol) : false;
-
   const isBankHigh = (isLending ? bank.info.state.totalDeposits : bank.info.state.totalBorrows) >= bankCap * 0.9;
   const isBankFilled = (isLending ? bank.info.state.totalDeposits : bank.info.state.totalBorrows) >= bankCap * 0.99999;
 
@@ -403,11 +400,7 @@ function getPoolSizeStat(bankCap: number, bank: ExtendedBankInfo, isLending: boo
         <Tooltip>
           <TooltipTrigger asChild>
             <span
-              className={cn(
-                "flex items-center justify-end gap-1.5",
-                (isReduceOnly || isBankHigh) && "text-warning",
-                isBankFilled && "text-destructive-foreground"
-              )}
+              className={cn("flex items-center justify-end gap-1.5", isBankFilled && "text-destructive-foreground")}
             >
               {numeralFormatter(
                 isLending
@@ -419,18 +412,13 @@ function getPoolSizeStat(bankCap: number, bank: ExtendedBankInfo, isLending: boo
                     )
               )}
 
-              {(isReduceOnly || isBankHigh || isBankFilled) && <IconAlertTriangle size={14} />}
+              {(isBankHigh || isBankFilled) && <IconAlertTriangle size={14} />}
             </span>
           </TooltipTrigger>
           <TooltipContent>
             <div className="flex flex-col items-start gap-1">
               <h4 className="text-base flex items-center gap-1.5">
-                {isReduceOnly ? (
-                  <>
-                    <IconAlertTriangle size={16} /> Reduce Only
-                  </>
-                ) : (
-                  isBankHigh &&
+                {isBankHigh &&
                   (isBankFilled ? (
                     <>
                       <IconAlertTriangle size={16} /> Limit Reached
@@ -439,16 +427,13 @@ function getPoolSizeStat(bankCap: number, bank: ExtendedBankInfo, isLending: boo
                     <>
                       <IconAlertTriangle size={16} /> Approaching Limit
                     </>
-                  ))
-                )}
+                  ))}
               </h4>
 
               <p>
-                {isReduceOnly
-                  ? "stSOL is being discontinued."
-                  : `${bank.meta.tokenSymbol} ${isLending ? "deposits" : "borrows"} are at ${percentFormatter.format(
-                      (isLending ? bank.info.state.totalDeposits : bank.info.state.totalBorrows) / bankCap
-                    )} capacity.`}
+                {`${bank.meta.tokenSymbol} ${isLending ? "deposits" : "borrows"} are at ${percentFormatter.format(
+                  (isLending ? bank.info.state.totalDeposits : bank.info.state.totalBorrows) / bankCap
+                )} capacity.`}
               </p>
               <a href="https://docs.marginfi.com">
                 <u>Learn more.</u>

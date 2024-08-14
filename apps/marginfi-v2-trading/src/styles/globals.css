@@ -89,11 +89,6 @@ body {
   height: 100%;
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
-}
-
 @keyframes pulse {
   0% {
     opacity: 0.9;
@@ -113,138 +108,19 @@ a {
   animation: pulse 1.8s infinite;
 }
 
-.bg-lines {
-  background-image: url(../../public/WaveBG2.png);
-  background-size: 900px;
-  background-repeat: no-repeat;
-  background-position: 40%;
-}
-
-.bg-lines2 {
-  background-image: url(../../public/WaveBG2.png);
-  background-size: 400px;
-  background-repeat: no-repeat;
-  background-color: #dce85d;
-  background-position: -20%;
-}
-
-.nav-link {
-  flex: 1;
-  text-align: center;
-  position: relative;
-  z-index: 1;
-}
-
-.border-slider {
-  position: absolute;
-  top: 0;
-  height: 3px;
-  width: 25%;
-  background-color: #dce85d;
-  transition: left 0.25s ease-in-out;
-}
-
-.border-slider.linknone {
-  display: none;
-}
-
-.border-slider.link0 {
-  left: 0%;
-}
-
-.border-slider.link1 {
-  left: 25%;
-}
-
-.border-slider.link2 {
-  left: 50%;
-}
-
-.border-slider.link3 {
-  left: 75%;
-}
-
-.hover-underline-static {
-  display: inline-block;
-  position: relative;
-}
-
-.hover-underline-static::after {
-  content: "";
-  position: absolute;
-  width: 100%;
-  transform: scaleX(1);
-  height: 2px;
-  bottom: 0;
-  left: 0;
-  background-color: #dce85d;
-  transform-origin: center;
-  transition: transform 0.25s ease-out;
-}
-
-.hover-underline-animation {
-  display: inline-block;
-  position: relative;
-}
-
-.hover-underline-animation::after {
-  content: "";
-  position: absolute;
-  width: 100%;
-  transform: scaleX(0);
-  height: 2px;
-  bottom: 0;
-  left: 0;
-  background-color: #dce85d;
-  transform-origin: center;
-  transition: transform 0.25s ease-out;
-}
-
-.hover-underline-animation:hover::after {
-  transform: scaleX(1);
-  transform-origin: center;
-}
-
-.glow {
-  text-shadow: 0 0 10px #dce85d, 0 0 30px #dce85d;
-  color: #dce85d !important;
-}
-
-.glow-uxd {
-  text-shadow: 0 0 10px #05ffff, 0 0 30px #05ffff;
-  color: #05ffff !important;
-}
-
-@keyframes radiate {
-  0% {
-    color: #ccc;
-  }
-  100% {
-    color: #fff;
-  }
-}
-
-.radiating-text {
-  animation: radiate 2s infinite alternate;
-}
-
-/* width */
 ::-webkit-scrollbar {
   width: 8px;
 }
 
-/* Track */
 ::-webkit-scrollbar-track {
   background: #131719;
 }
 
-/* Handle */
 ::-webkit-scrollbar-thumb {
   background: #2a2f33;
   border-radius: 5px;
 }
 
-/* Handle on hover */
 ::-webkit-scrollbar-thumb:hover {
   background: #131719;
 }
@@ -253,91 +129,6 @@ input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
-}
-
-@keyframes wavyGradientAnimation {
-  0% {
-    background-position: 200% 0;
-  }
-  100% {
-    background-position: 0 0;
-  }
-}
-
-.wavy-gradient-bg {
-  animation: wavyGradientAnimation 2s linear infinite;
-  background: linear-gradient(90deg, #808080, #dce85dcc, #808080);
-  background-size: 200% 100%;
-}
-
-.btn-gleam {
-  position: relative;
-  overflow: hidden;
-  /* Other styles remain the same */
-}
-
-.btn-gleam::before {
-  content: "";
-  position: absolute;
-  margin: -50%;
-  top: 0;
-  left: 0;
-  width: 50%; /* width of the gleam, you can adjust this */
-  height: 500%; /* covering the full height of the button */
-  background: linear-gradient(to left, transparent, #ffffff66, transparent); /* Adjust colors for the gleam effect */
-  transform: translateX(-50%) rotate(-40deg);
-  animation: 5s infinite gleam;
-}
-
-@keyframes gleam {
-  0% {
-    transform: translateX(-50%) rotate(-40deg);
-  }
-  15%,
-  100% {
-    transform: translateX(350%) rotate(-40deg);
-  }
-}
-
-.swiper-pagination-bullet {
-  background: #fff;
-  opacity: 0.25;
-}
-
-.swiper-pagination-bullet-active {
-  opacity: 1;
-}
-
-.swiper-wrapper {
-  align-items: center;
-}
-
-@media (max-width: 768px) {
-  .MuiPaper-root {
-    height: 100% !important;
-    max-height: none !important;
-  }
-}
-
-/* Mayan Bridge Overrides */
-#MAYAN_SWAP_PV_ROOT {
-  padding-left: 0px;
-  padding-right: 0px;
-  height: auto;
-  width: auto !important;
-  font-family: "Aeonik Pro";
-}
-
-#MAYAN_SWAP_PV_ROOT .MuiButtonBase-root.MuiButton-fullWidth {
-  font-family: "Aeonik Pro";
-  background: #ffffff;
-  color: #101212;
-  border-radius: 6px;
-  height: 43px;
-}
-
-#MAAYAN_SWAP_PV_ROOT .MuiBox-root .MuiLink-underlineAlways {
-  opacity: 0;
 }
 
 /* Jupiter Terminal Overrides */

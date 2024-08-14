@@ -7,7 +7,7 @@ import { PublicKey } from "@solana/web3.js";
 import { useIsMobile } from "~/hooks/useIsMobile";
 import { ActionBox } from "~/components/common/ActionBox";
 import { Dialog, DialogTrigger, DialogOverlay, DialogContent, DialogClose } from "~/components/ui/dialog";
-import { Desktop, Mobile } from "~/mediaQueries";
+import { Desktop, Mobile } from "~/utils/mediaQueries";
 import { IconArrowLeft } from "~/components/ui/icons";
 import { useMrgnlendStore } from "~/store";
 import { TradingBoxSettings } from "./TradingBoxSettings";

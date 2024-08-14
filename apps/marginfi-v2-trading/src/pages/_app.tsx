@@ -8,17 +8,15 @@ import { GoogleAnalytics } from "@next/third-parties/google";
 import { WalletProvider } from "@solana/wallet-adapter-react";
 import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
 import { TipLinkWalletAutoConnect } from "@tiplink/wallet-adapter-react-ui";
-import { init, push } from "@socialgouv/matomo-next";
 import { ToastContainer } from "react-toastify";
 import { Analytics } from "@vercel/analytics/react";
 import { BankMetadataRaw } from "@mrgnlabs/mrgn-common";
 
 import config from "~/config";
-import { MrgnlendProvider, LipClientProvider, TradePovider } from "~/context";
+import { MrgnlendProvider, TradePovider } from "~/context";
 import { WALLET_ADAPTERS } from "~/config/wallets";
 import { BANK_METADATA_MAP } from "~/config/trade";
-import { useTradeStore } from "~/store";
-import { Desktop, Mobile } from "~/mediaQueries";
+import { Desktop, Mobile } from "~/utils/mediaQueries";
 import { WalletProvider as MrgnWalletProvider } from "~/hooks/useWalletContext";
 import { ConnectionProvider } from "~/hooks/useConnection";
 import { init as initAnalytics } from "~/utils/analytics";
@@ -30,31 +28,13 @@ import { WalletAuthDialog } from "~/components/common/Wallet";
 import { Header } from "~/components/common/Header";
 import { Footer } from "~/components/desktop/Footer";
 
-import "swiper/css";
-import "swiper/css/pagination";
-import "react-toastify/dist/ReactToastify.min.css";
-
-// Use require instead of import since order matters
-require("@solana/wallet-adapter-react-ui/styles.css");
 require("~/styles/globals.css");
 require("~/styles/fonts.css");
-require("~/styles/asset-borders.css");
-
-const MATOMO_URL = "https://mrgn.matomo.cloud";
 
 type MrgnAppProps = { path: string; bank: BankMetadataRaw | null };
 
 export default function MrgnApp({ Component, pageProps, path, bank }: AppProps & MrgnAppProps) {
   const { query, isReady } = useRouter();
-
-  // enable matomo heartbeat
-  React.useEffect(() => {
-    if (process.env.NEXT_PUBLIC_MARGINFI_ENVIRONMENT === "alpha") {
-      init({ url: MATOMO_URL, siteId: "1" });
-      // accurately measure the time spent in the visit
-      push(["enableHeartBeatTimer"]);
-    }
-  }, []);
 
   const [ready, setReady] = React.useState(false);
 
@@ -73,32 +53,29 @@ export default function MrgnApp({ Component, pageProps, path, bank }: AppProps &
               <MrgnWalletProvider>
                 <MrgnlendProvider>
                   <TradePovider>
-                    <LipClientProvider>
-                      <div className="mrgn-bg-gradient">
-                        <Header />
+                    <div className="mrgn-bg-gradient">
+                      <Header />
 
-                        <Desktop>
-                          <WalletModalProvider>
-                            <div className="w-full flex flex-col justify-center items-center">
-                              <Component {...pageProps} />
-                            </div>
-                            <Footer />
-                          </WalletModalProvider>
-                        </Desktop>
-
-                        <Mobile>
-                          <MobileNavbar />
+                      <Desktop>
+                        <WalletModalProvider>
                           <div className="w-full flex flex-col justify-center items-center">
                             <Component {...pageProps} />
                           </div>
-                        </Mobile>
-                        <Analytics />
+                          <Footer />
+                        </WalletModalProvider>
+                      </Desktop>
 
-                        <WalletAuthDialog />
-                        <ToastContainer position="bottom-left" theme="light" />
-                        {/* <ActiveGroup /> */}
-                      </div>
-                    </LipClientProvider>
+                      <Mobile>
+                        <MobileNavbar />
+                        <div className="w-full flex flex-col justify-center items-center">
+                          <Component {...pageProps} />
+                        </div>
+                      </Mobile>
+                      <Analytics />
+
+                      <WalletAuthDialog />
+                      <ToastContainer position="bottom-left" theme="light" />
+                    </div>
                   </TradePovider>
                 </MrgnlendProvider>
               </MrgnWalletProvider>
