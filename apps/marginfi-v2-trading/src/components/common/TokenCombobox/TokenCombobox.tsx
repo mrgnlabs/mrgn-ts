@@ -67,11 +67,10 @@ export const TokenCombobox = ({ selected, setSelected, children }: TokenCombobox
                         />
                         <span>{group.pool.token.meta.tokenSymbol}</span>
                         {group.pool.token.tokenData && (
-                          <div className="flex items-center justify-between w-[35%] gap-1 text-sm ml-auto text-muted-foreground">
+                          <div className="flex items-center justify-between gap-1 w-[40%] text-xs ml-auto text-muted-foreground">
                             <span>{tokenPriceFormatter(group.pool.token.tokenData.price)}</span>
                             <span
                               className={cn(
-                                "text-xs",
                                 group.pool.token.tokenData?.priceChange24hr > 1
                                   ? "text-mrgn-success"
                                   : "text-mrgn-error"
@@ -127,7 +126,7 @@ export const TokenCombobox = ({ selected, setSelected, children }: TokenCombobox
                       />
                       <span>{group.pool.token.meta.tokenSymbol}</span>
                       {group.pool.token.tokenData && (
-                        <div className="flex items-center justify-between gap-1 text-sm ml-auto w-[35%] text-muted-foreground">
+                        <div className="flex items-center justify-between gap-1 text-sm ml-auto w-full text-muted-foreground bg-red-400">
                           <span>{tokenPriceFormatter(group.pool.token.tokenData.price)}</span>
                           <span
                             className={cn(
