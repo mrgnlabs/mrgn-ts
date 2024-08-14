@@ -1,6 +1,6 @@
 import { create, StateCreator } from "zustand";
 import { Connection, PublicKey } from "@solana/web3.js";
-import Fuse from "fuse.js";
+import Fuse, { FuseResult } from "fuse.js";
 import {
   ExtendedBankInfo,
   makeExtendedBankInfo,
@@ -113,7 +113,7 @@ type TradeStoreState = {
   banks: ExtendedBankInfo[];
 
   // array of banks filtered by search query
-  searchResults: ExtendedBankInfo[];
+  searchResults: FuseResult<GroupData>[];
 
   currentPage: number;
 
@@ -169,7 +169,7 @@ const { programId } = getConfig();
 
 const USDC_MINT = new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
 
-let fuse: Fuse<{ symbol: string; name: string; mintAddress: string }> | null = null;
+let fuse: Fuse<GroupData> | null = null;
 
 function createTradeStore() {
   return create<TradeStoreState>(stateCreator);
@@ -342,26 +342,20 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
       const totalPages = Math.ceil(groupMap.entries.length / POOLS_PER_PAGE);
       const currentPage = get().currentPage || 1;
 
-      const banksPreppedForFuse = tokenBanks.map((bank, i) => ({
-        symbol: bank.meta.tokenSymbol,
-        name: bank.meta.tokenName,
-        mintAddress: bank.info.rawBank.mint.toBase58(),
-      }));
-
-      fuse = new Fuse(banksPreppedForFuse, {
+      fuse = new Fuse([...groupMap.values()], {
         includeScore: true,
         threshold: 0.2,
         keys: [
           {
-            name: "symbol",
+            name: "pool.token.meta.tokenSymbol",
             weight: 0.7,
           },
           {
-            name: "name",
+            name: "pool.token.meta.tokenName",
             weight: 0.3,
           },
           {
-            name: "mintAddress",
+            name: "pool.token.info.state.mint.toBase58()",
             weight: 0.1,
           },
         ],
@@ -486,16 +480,12 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
 
   searchBanks: (searchQuery: string) => {
     if (!fuse) return;
-    const result = fuse.search(searchQuery);
-
-    const banksFromResult = result
-      .map((res) => get().banks.find((bank) => bank.info.rawBank.mint.toBase58() === res.item.mintAddress))
-      .filter((bank): bank is ExtendedBankInfo => bank !== undefined);
+    const searchResults = fuse.search(searchQuery);
 
     set((state) => {
       return {
         ...state,
-        searchResults: banksFromResult,
+        searchResults,
       };
     });
   },
