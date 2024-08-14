@@ -12,7 +12,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Button } from "~/components/ui/button";
 
 import { Dialog, DialogContent, DialogTrigger } from "~/components/ui/dialog";
-import { Desktop, Mobile } from "~/mediaQueries";
+import { Desktop, Mobile } from "~/utils/mediaQueries";
 import { Drawer, DrawerContent, DrawerTrigger } from "~/components/ui/drawer";
 
 import type { GroupData } from "~/store/tradeStore";

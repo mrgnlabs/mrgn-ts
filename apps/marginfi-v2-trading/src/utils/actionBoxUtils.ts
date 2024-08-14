@@ -1,18 +1,11 @@
-import {
-  canBeBorrowed,
-  canBeLent,
-  canBeLstStaked,
-  canBeRepaid,
-  canBeRepaidCollat,
-  canBeWithdrawn,
-} from "@mrgnlabs/mrgn-utils";
+import { canBeBorrowed, canBeLent, canBeRepaid, canBeRepaidCollat, canBeWithdrawn } from "@mrgnlabs/mrgn-utils";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 import { QuoteResponseMeta } from "@jup-ag/react-hook";
 import { createJupiterApiClient, QuoteGetRequest, QuoteResponse } from "@jup-ag/api";
 import { Connection, PublicKey } from "@solana/web3.js";
 
-import { StakeData, repayWithCollatBuilder } from "~/utils";
+import { repayWithCollatBuilder } from "~/utils";
 
 export enum RepayType {
   RepayRaw = "Repay",
@@ -62,14 +55,12 @@ interface CheckActionAvailableProps {
   showCloseBalance?: boolean;
   selectedBank: ExtendedBankInfo | null;
   selectedRepayBank: ExtendedBankInfo | null;
-  selectedStakingAccount: StakeData | null;
   extendedBankInfos: ExtendedBankInfo[];
   marginfiAccount: MarginfiAccountWrapper | null;
   actionMode: ActionType;
   blacklistRoutes: PublicKey[] | null;
   repayMode: RepayType;
   repayCollatQuote: QuoteResponse | null;
-  lstQuoteMeta: QuoteResponseMeta | null;
 }
 
 export function checkActionAvailable({
@@ -80,18 +71,16 @@ export function checkActionAvailable({
   showCloseBalance,
   selectedBank,
   selectedRepayBank,
-  selectedStakingAccount,
   extendedBankInfos,
   marginfiAccount,
   actionMode,
   blacklistRoutes,
   repayMode,
   repayCollatQuote,
-  lstQuoteMeta,
 }: CheckActionAvailableProps): ActionMethod[] {
   let checks: ActionMethod[] = [];
 
-  const requiredCheck = getRequiredCheck(connected, selectedBank, selectedStakingAccount);
+  const requiredCheck = getRequiredCheck(connected, selectedBank);
   if (requiredCheck) return [requiredCheck];
 
   const generalChecks = getGeneralChecks(amount ?? 0, repayAmount ?? 0, showCloseBalance);
@@ -121,18 +110,6 @@ export function checkActionAvailable({
         }
         if (repayChecks) checks.push(...repayChecks);
         break;
-      case ActionType.MintLST:
-        const lstStakeChecks = canBeLstStaked(lstQuoteMeta as any);
-        if (lstStakeChecks) checks.push(...lstStakeChecks);
-        break;
-      case ActionType.UnstakeLST:
-        const lstUnstakeChecks = canBeLstStaked(lstQuoteMeta as any);
-        if (lstUnstakeChecks) checks.push(...lstUnstakeChecks);
-        break;
-
-      // case ActionType.MintYBX:
-      //   if (check) checks.push(check);
-      //   break;
     }
   }
 
@@ -144,15 +121,11 @@ export function checkActionAvailable({
   return checks;
 }
 
-function getRequiredCheck(
-  connected: boolean,
-  selectedBank: ExtendedBankInfo | null,
-  selectedStakingAccount: StakeData | null
-): ActionMethod | null {
+function getRequiredCheck(connected: boolean, selectedBank: ExtendedBankInfo | null): ActionMethod | null {
   if (!connected) {
     return { isEnabled: false };
   }
-  if (!selectedBank && !selectedStakingAccount) {
+  if (!selectedBank) {
     return { isEnabled: false };
   }
 
