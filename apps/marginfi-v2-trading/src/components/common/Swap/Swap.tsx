@@ -1,18 +1,17 @@
 "use client";
 
 import React from "react";
-
-import { useRouter } from "next/router";
 import Script from "next/script";
+import { useRouter } from "next/router";
 
+import { WSOL_MINT, LST_MINT } from "@mrgnlabs/mrgn-common";
 import { PublicKey } from "@solana/web3.js";
 
 import config from "~/config";
 import { capture } from "~/utils";
-
-import { WSOL_MINT, LST_MINT } from "@mrgnlabs/mrgn-common";
-
+import { useTradeStore } from "~/store";
 import { useWalletContext } from "~/hooks/useWalletContext";
+import { useConnection } from "~/hooks/useConnection";
 
 type SwapProps = {
   onLoad?: () => void;
@@ -20,8 +19,10 @@ type SwapProps = {
 };
 
 export const Swap = ({ onLoad, initialInputMint }: SwapProps) => {
-  const { walletContextState } = useWalletContext();
+  const { walletContextState, wallet } = useWalletContext();
+  const { connection } = useConnection();
   const [loadTimestamp, setLoadTimestamp] = React.useState(0);
+  const [fetchTradeState] = useTradeStore((state) => [state.fetchTradeState]);
   const router = useRouter();
 
   const initialMint = React.useMemo(() => {
@@ -45,6 +46,10 @@ export const Swap = ({ onLoad, initialInputMint }: SwapProps) => {
       endpoint: config.rpcEndpoint,
       passThroughWallet: walletContextState.wallet,
       onSuccess: ({ txid }: { txid: string }) => {
+        fetchTradeState({
+          connection,
+          wallet,
+        });
         capture("user_swap", {
           txn: txid,
         });
