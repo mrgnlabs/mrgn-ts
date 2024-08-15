@@ -2,7 +2,7 @@ import React from "react";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { LstType, RepayType, YbxType } from "~/utils";
-import { useLstStore, useTradeStore, useUiStore } from "~/store";
+import { useTradeStore, useUiStore } from "~/store";
 import { LendingModes } from "~/types";
 
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
@@ -33,8 +33,6 @@ export const InputHeaderActionLeft = ({
   changeRepayType,
   changeActionType,
 }: InputHeaderActionProps) => {
-  const [stakeAccounts] = useLstStore((state) => [state.stakeAccounts]);
-
   const isSolBank = React.useMemo(() => bank?.meta.tokenSymbol === "SOL", [bank]);
 
   const titleText = React.useMemo(() => {

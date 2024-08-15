@@ -83,7 +83,7 @@ export default function PortfolioPage() {
                             {groupedNumberFormatterDyn.format(portfolioCombined.length)}
                             <ul className="flex items-center -space-x-2">
                               {portfolioCombined.slice(0, 5).map((group, index) => (
-                                <li className="rounded-full bg-white">
+                                <li key={index} className="rounded-full bg-white">
                                   <Image
                                     src={getTokenImageURL(group.pool.token.info.state.mint.toBase58())}
                                     alt={group.pool.token.meta.tokenSymbol}
@@ -151,9 +151,9 @@ const StatBlock = ({ label, value, subValue }: StatProps) => (
       <CardTitle className="text-base text-muted-foreground font-normal">{label}</CardTitle>
     </CardHeader>
     <CardContent>
-      <p className="text-3xl">
+      <div className="text-3xl">
         {value} {subValue && <span className="text-lg text-muted-foreground">{subValue}</span>}
-      </p>
+      </div>
     </CardContent>
   </Card>
 );
