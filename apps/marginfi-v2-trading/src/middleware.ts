@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export const config = {
-  matcher: ["/", "/index", "/stake", "/swap", "/bridge", "/earn", "/points"],
+  matcher: ["/", "/index", "/yield", "/portfolio", "/trade/:path*"],
 };
 
 const restrictedCountries = ["US", "VE", "CU", "IR", "KP", "SY"];
