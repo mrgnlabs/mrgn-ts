@@ -23,6 +23,8 @@ export class MultiStepToastHandle {
     this._toastId = toast(() => <MultiStepToast title={this._title} steps={this._stepsWithStatus} />, {
       hideProgressBar: true,
       autoClose: false,
+      closeOnClick: false,
+      closeButton: false,
       style: {
         width: "100%",
         height: "100%",
@@ -40,6 +42,8 @@ export class MultiStepToastHandle {
       toast.update(this._toastId, {
         render: () => <MultiStepToast title={this._title} steps={this._stepsWithStatus} />,
         autoClose: 2000,
+        closeOnClick: true,
+        closeButton: true,
       });
     } else {
       this._stepsWithStatus[this._stepIndex].status = "success";
