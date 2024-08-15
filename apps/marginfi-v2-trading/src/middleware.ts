@@ -10,11 +10,6 @@ export function middleware(req: NextRequest) {
   const basicAuth = req.headers.get("authorization");
   const url = req.nextUrl;
   const response = NextResponse.next();
-  // response.headers.set('Vercel-CDN-Cache-Control', 'private, max-age=10');
-  // response.headers.set('CDN-Cache-Control', 'private, max-age=10');
-  // response.headers.set('Cache-Control', 'private, max-age=10');
-
-  console.log(req.geo, req?.geo?.country, req.nextUrl.pathname);
 
   if (
     !process.env.GEOBLOCK_DISABLED &&
