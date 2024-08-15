@@ -8,7 +8,7 @@ import { aprToApy, numeralFormatter, percentFormatter, usdFormatter } from "@mrg
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { ArenaBank, GroupData } from "~/store/tradeStore";
-import { getTokenImageURL, cn, getGroupPositionInfo } from "~/utils";
+import { getTokenImageURL, cn, getGroupPositionInfo, capture } from "~/utils";
 
 import { ActionBoxDialog } from "~/components/common/ActionBox";
 import { Button } from "~/components/ui/button";
@@ -131,7 +131,17 @@ const YieldItem = ({
         <div className="flex gap-2">
           {bank.isActive && isLeveraged && bank.position.isLending && (
             <ActionBoxDialog activeGroupArg={group} requestedBank={bank} requestedAction={ActionType.Withdraw}>
-              <Button className="w-full bg-background border text-foreground hover:bg-accent">Withdraw</Button>
+              <Button
+                className="w-full bg-background border text-foreground hover:bg-accent"
+                onClick={() => {
+                  capture("yield_withdraw_btn_click", {
+                    group: group.client.group.address.toBase58(),
+                    bank: bank.meta.tokenSymbol,
+                  });
+                }}
+              >
+                Withdraw
+              </Button>
             </ActionBoxDialog>
           )}
           <ActionBoxDialog activeGroupArg={group} requestedBank={group.pool.token} requestedAction={ActionType.Deposit}>
@@ -154,7 +164,17 @@ const YieldItem = ({
                 </TooltipContent>
               </Tooltip>
             ) : (
-              <Button className="w-full bg-background border text-foreground hover:bg-accent">Supply</Button>
+              <Button
+                className="w-full bg-background border text-foreground hover:bg-accent"
+                onClick={() => {
+                  capture("yield_supply_btn_click", {
+                    group: group.client.group.address.toBase58(),
+                    bank: bank.meta.tokenSymbol,
+                  });
+                }}
+              >
+                Supply
+              </Button>
             )}
           </ActionBoxDialog>
         </div>

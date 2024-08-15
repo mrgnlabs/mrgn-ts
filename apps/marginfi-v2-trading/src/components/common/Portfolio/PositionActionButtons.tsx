@@ -224,7 +224,17 @@ export const PositionActionButtons = ({
         requestedAccount={activeGroup.selectedAccount ?? undefined}
         activeGroupArg={activeGroup}
       >
-        <Button variant="outline" size="sm" className="gap-1 min-w-16">
+        <Button
+          variant="outline"
+          size="sm"
+          className="gap-1 min-w-16"
+          onClick={() => {
+            capture("position_add_btn_click", {
+              group: activeGroup?.groupPk?.toBase58(),
+              token: activeGroup.pool.token.meta.tokenSymbol,
+            });
+          }}
+        >
           <IconPlus size={14} />
           Add
         </Button>
@@ -236,7 +246,17 @@ export const PositionActionButtons = ({
           requestedAccount={activeGroup.selectedAccount ?? undefined}
           activeGroupArg={activeGroup}
         >
-          <Button variant="outline" size="sm" className="gap-1 min-w-16">
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1 min-w-16"
+            onClick={() => {
+              capture("position_reduce_btn_click", {
+                group: activeGroup?.groupPk?.toBase58(),
+                token: activeGroup.pool.token.meta.tokenSymbol,
+              });
+            }}
+          >
             <IconMinus size={14} />
             Reduce
           </Button>
@@ -250,7 +270,17 @@ export const PositionActionButtons = ({
           requestedAccount={activeGroup.selectedAccount ?? undefined}
           requestedCollateralBank={depositBanks.length > 1 ? depositBanks[1] : undefined}
         >
-          <Button variant="outline" size="sm" className="gap-1 min-w-16">
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1 min-w-16"
+            onClick={() => {
+              capture("position_withdraw_btn_click", {
+                group: activeGroup?.groupPk?.toBase58(),
+                token: activeGroup.pool.token.meta.tokenSymbol,
+              });
+            }}
+          >
             <IconMinus size={14} />
             Withdraw
           </Button>

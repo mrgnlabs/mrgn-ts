@@ -9,7 +9,7 @@ import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { useTradeStore } from "~/store";
 import { ArenaBank, GroupData } from "~/store/tradeStore";
-import { getTokenImageURL, cn, getGroupPositionInfo } from "~/utils";
+import { getTokenImageURL, cn, getGroupPositionInfo, capture } from "~/utils";
 import { useWalletContext } from "~/hooks/useWalletContext";
 
 import { ActionBoxDialog } from "~/components/common/ActionBox";
@@ -162,7 +162,17 @@ const YieldItem = ({
               requestedAction={ActionType.Withdraw}
               requestedAccount={group.selectedAccount}
             >
-              <Button className="bg-background border text-foreground hover:bg-accent">Withdraw</Button>
+              <Button
+                className="bg-background border text-foreground hover:bg-accent"
+                onClick={() => {
+                  capture("yield_withdraw_btn_click", {
+                    group: group.client.group.address.toBase58(),
+                    bank: bank.meta.tokenSymbol,
+                  });
+                }}
+              >
+                Withdraw
+              </Button>
             </ActionBoxDialog>
           )}
           <ActionBoxDialog
@@ -190,7 +200,17 @@ const YieldItem = ({
                 </TooltipContent>
               </Tooltip>
             ) : (
-              <Button className="bg-background border text-foreground hover:bg-accent">Supply</Button>
+              <Button
+                className="bg-background border text-foreground hover:bg-accent"
+                onClick={() => {
+                  capture("yield_supply_btn_click", {
+                    group: group.client.group.address.toBase58(),
+                    bank: bank.meta.tokenSymbol,
+                  });
+                }}
+              >
+                Supply
+              </Button>
             )}
           </ActionBoxDialog>
         </div>
