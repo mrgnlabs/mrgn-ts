@@ -270,13 +270,8 @@ export const PositionActionButtons = ({
       <Dialog open={!!actionTransaction} onOpenChange={() => onClose()}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle className="space-y-4 text-center flex flex-col items-center justify-center">
-              <h2 className="font-medium text-xl">Closing position</h2>
-            </DialogTitle>
-          </DialogHeader>
-          <DialogDescription className="space-y-12 w-full">
-            <div className="flex flex-col items-center gap-2 border-b border-border pb-10">
-              <div className="flex items-center justify-center gap-2">
+            <DialogTitle className="flex flex-col items-center gap-2 border-b border-border pb-10">
+              <span className="flex items-center justify-center gap-2">
                 {activeGroup.pool.token && (
                   <Image
                     className="rounded-full w-9 h-9"
@@ -286,12 +281,13 @@ export const PositionActionButtons = ({
                     height={36}
                   />
                 )}
-                <h3 className="text-4xl font-medium">
+                <span className="text-4xl font-medium">
                   {`${activeGroup.pool.token.meta.tokenSymbol}/${activeGroup.pool.quoteTokens[0].meta.tokenSymbol}`}
-                </h3>
-              </div>
-            </div>
-
+                </span>
+              </span>
+            </DialogTitle>
+          </DialogHeader>
+          <DialogDescription className="space-y-12 w-full">
             <dl className="grid grid-cols-2 w-full text-muted-foreground gap-x-8 gap-y-2">
               {depositBanks.map((bank) => (
                 <React.Fragment key={bank.meta.tokenSymbol}>
@@ -351,8 +347,13 @@ export const PositionActionButtons = ({
             </dl>
           </DialogDescription>
           <DialogFooter>
-            <Button disabled={isLoading} className="w-full mx-auto" onClick={() => processTransaction()}>
-              {isLoading ? <IconLoader /> : "Close position"}
+            <Button
+              variant="destructive"
+              disabled={isLoading}
+              className="w-full mx-auto"
+              onClick={() => processTransaction()}
+            >
+              {isLoading ? <IconLoader /> : "Confirm close position"}
             </Button>
           </DialogFooter>
         </DialogContent>
