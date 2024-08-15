@@ -39,11 +39,10 @@ enum View {
 export default function HomePage() {
   const router = useRouter();
   const isMobile = useIsMobile();
-  const [initialized, groupMap, banks, resetActiveGroup, currentPage, totalPages, setCurrentPage, sortBy, setSortBy] =
+  const [initialized, groupMap, resetActiveGroup, currentPage, totalPages, setCurrentPage, sortBy, setSortBy] =
     useTradeStore((state) => [
       state.initialized,
       state.groupMap,
-      state.banks,
       state.resetActiveGroup,
       state.currentPage,
       state.totalPages,
@@ -54,10 +53,7 @@ export default function HomePage() {
 
   const [previousTxn] = useUiStore((state) => [state.previousTxn]);
 
-  const [scope, animate] = useAnimate();
-
   const [view, setView] = React.useState<View>(View.GRID);
-  const [initialAnimation, setInitialAnimation] = React.useState(false);
 
   const dir = React.useMemo(() => {
     const option = sortOptions.find((option) => option.value === sortBy);
@@ -68,11 +64,11 @@ export default function HomePage() {
     return [...groupMap.values()];
   }, [groupMap]);
 
-  const handleFeelingLucky = () => {
-    const randomPool = banks[Math.floor(Math.random() * banks.length)];
-    if (!randomPool) return;
-    router.push(`/trade/${randomPool.address.toBase58()}`);
-  };
+  const handleFeelingLucky = React.useCallback(() => {
+    const randomGroup = groups[Math.floor(Math.random() * groups.length)];
+    if (!randomGroup) return;
+    router.push(`/trade/${randomGroup.groupPk.toBase58()}`);
+  }, [groups, router]);
 
   React.useEffect(() => {
     resetActiveGroup();
