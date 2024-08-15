@@ -28,6 +28,8 @@ import { WalletAuthDialog } from "~/components/common/Wallet";
 import { Header } from "~/components/common/Header";
 import { Footer } from "~/components/desktop/Footer";
 
+import "react-toastify/dist/ReactToastify.min.css";
+
 require("~/styles/globals.css");
 require("~/styles/fonts.css");
 

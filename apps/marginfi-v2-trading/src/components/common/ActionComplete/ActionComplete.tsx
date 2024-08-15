@@ -70,7 +70,6 @@ export const ActionComplete = () => {
             {previousTxn.txnType === "LEND" && (
               <screens.LendingScreen {...previousTxn.lendingOptions} txn={previousTxn.txn} />
             )}
-            {previousTxn.txnType === "LST" && <screens.LstScreen {...previousTxn.lstOptions} txn={previousTxn.txn} />}
             {previousTxn.txnType === "TRADING" && (
               <screens.TradingScreen {...previousTxn.tradingOptions} txn={previousTxn.txn} />
             )}
