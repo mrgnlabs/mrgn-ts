@@ -1,7 +1,7 @@
 import React from "react";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { StakeData, clampedNumeralFormatter } from "~/utils";
+import { clampedNumeralFormatter } from "~/utils";
 
 import { nativeToUi } from "@mrgnlabs/mrgn-common";
 import { IconWallet } from "~/components/ui/icons";
@@ -11,7 +11,6 @@ interface InputHeaderActionProps {
   bank: ExtendedBankInfo | null;
   maxAmount: number;
   walletAmount: number | undefined;
-  selectedStakingAccount: StakeData | null;
   onSetAmountRaw: (amount: string) => void;
 }
 
@@ -20,7 +19,6 @@ export const InputHeaderActionRight = ({
   bank,
   maxAmount,
   walletAmount,
-  selectedStakingAccount,
   onSetAmountRaw,
 }: InputHeaderActionProps) => {
   const numberFormater = React.useMemo(() => new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 }), []);
@@ -54,27 +52,10 @@ export const InputHeaderActionRight = ({
           label: "Supplied: ",
         };
 
-      case ActionType.MintLST:
-        if (selectedStakingAccount) {
-          return {
-            amount: formatAmount(nativeToUi(selectedStakingAccount.lamports, 9), "SOL"),
-          };
-        }
-        return {
-          showWalletIcon: true,
-          amount: formatAmount(walletAmount, bank?.meta.tokenSymbol),
-        };
-
-      case ActionType.UnstakeLST:
-        return {
-          showWalletIcon: true,
-          amount: formatAmount(walletAmount, bank?.meta.tokenSymbol),
-        };
-
       default:
         return { amount: "-" };
     }
-  }, [bank, actionMode, walletAmount, selectedStakingAccount]);
+  }, [bank, actionMode, walletAmount]);
 
   return (
     <>

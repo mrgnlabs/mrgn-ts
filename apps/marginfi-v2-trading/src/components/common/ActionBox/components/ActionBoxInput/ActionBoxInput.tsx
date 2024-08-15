@@ -52,7 +52,6 @@ export const ActionBoxInput = ({
     selectedRepayBank,
     amountRaw,
     repayAmountRaw,
-    selectedStakingAccount,
     setAmountRaw,
     setRepayAmountRaw,
     setSelectedBank,
@@ -67,7 +66,6 @@ export const ActionBoxInput = ({
     state.selectedRepayBank,
     state.amountRaw,
     state.repayAmountRaw,
-    state.selectedStakingAccount,
     state.setAmountRaw,
     state.setRepayAmountRaw,
     state.setSelectedBank,
@@ -87,10 +85,7 @@ export const ActionBoxInput = ({
 
   const numberFormater = React.useMemo(() => new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 }), []);
 
-  const isInputDisabled = React.useMemo(
-    () => (maxAmount === 0 && !showCloseBalance) || !!selectedStakingAccount,
-    [maxAmount, showCloseBalance, selectedStakingAccount]
-  );
+  const isInputDisabled = React.useMemo(() => maxAmount === 0 && !showCloseBalance, [maxAmount, showCloseBalance]);
 
   const isRepayWithCollat = React.useMemo(
     () => actionMode === ActionType.Repay && repayMode === RepayType.RepayCollat,

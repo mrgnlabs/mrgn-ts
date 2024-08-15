@@ -5,7 +5,7 @@ import {
   createUserProfileStore,
 } from "@mrgnlabs/marginfi-v2-ui-state";
 import { UseBoundStore, StoreApi } from "zustand";
-import { UiState, createUiStore, SORT_OPTIONS_MAP } from "./uiStore";
+import { UiState, createUiStore } from "./uiStore";
 import { ActionBoxState, createActionBoxStore } from "./actionBoxStore";
 import { TradeStoreState, createTradeStore } from "./tradeStore";
 
@@ -23,7 +23,6 @@ export {
   useActionBoxDialogStore,
   useUserProfileStore,
   useTradeStore,
-  SORT_OPTIONS_MAP,
   createActionBoxStore,
 };
 export type { ActionBoxState };

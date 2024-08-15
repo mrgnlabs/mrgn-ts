@@ -17,16 +17,16 @@ type props = {
 };
 
 export const InputAction = ({ maxAmount, walletAmount, isDialog, onSetAmountRaw }: props) => {
-  const [amountRaw, repayAmountRaw, actionMode, selectedBank, selectedRepayBank, selectedStakingAccount, repayMode] =
-    useActionBoxStore(isDialog)((state) => [
-      state.amountRaw,
-      state.repayAmountRaw,
-      state.actionMode,
-      state.selectedBank,
-      state.selectedRepayBank,
-      state.selectedStakingAccount,
-      state.repayMode,
-    ]);
+  const [amountRaw, repayAmountRaw, actionMode, selectedBank, selectedRepayBank, repayMode] = useActionBoxStore(
+    isDialog
+  )((state) => [
+    state.amountRaw,
+    state.repayAmountRaw,
+    state.actionMode,
+    state.selectedBank,
+    state.selectedRepayBank,
+    state.repayMode,
+  ]);
 
   const numberFormater = React.useMemo(() => new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 }), []);
 
@@ -93,28 +93,10 @@ export const InputAction = ({ maxAmount, walletAmount, isDialog, onSetAmountRaw 
           };
         }
 
-      case ActionType.UnstakeLST:
-        return {
-          label: "Wallet: ",
-          amount: formatAmount(walletAmount, selectedBank?.meta.tokenSymbol),
-        };
-
-      case ActionType.MintLST:
-        if (selectedStakingAccount) {
-          return {
-            label: "Staked: ",
-            amount: formatAmount(nativeToUi(selectedStakingAccount.lamports, 9), "SOL"),
-          };
-        }
-        return {
-          label: "Wallet: ",
-          amount: formatAmount(walletAmount, selectedBank?.meta.tokenSymbol),
-        };
-
       default:
         return { amount: "-" };
     }
-  }, [selectedBank, actionMode, walletAmount, repayMode, selectedStakingAccount, amountRaw]);
+  }, [selectedBank, actionMode, walletAmount, repayMode, amountRaw]);
 
   const isUnchanged = React.useMemo(() => repayAmount === 0, [repayAmount]);
 
