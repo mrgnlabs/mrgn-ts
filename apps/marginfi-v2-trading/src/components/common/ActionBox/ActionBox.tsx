@@ -77,7 +77,6 @@ export const ActionBox = ({
     repayMode,
     selectedBank,
     selectedRepayBank,
-    selectedStakingAccount,
     repayCollatQuote,
     repayCollatTxns,
     isLoading,
@@ -99,7 +98,6 @@ export const ActionBox = ({
     state.repayMode,
     state.selectedBank,
     state.selectedRepayBank,
-    state.selectedStakingAccount,
     state.repayCollatQuote,
     state.repayCollatTxns,
     state.isLoading,
@@ -183,7 +181,7 @@ export const ActionBox = ({
   );
 
   const maxAmount = React.useMemo(() => {
-    if ((!selectedBank && !selectedStakingAccount) || !isInitialized) {
+    if (!selectedBank || !isInitialized) {
       return 0;
     }
 
@@ -200,7 +198,7 @@ export const ActionBox = ({
       default:
         return 0;
     }
-  }, [selectedBank, selectedStakingAccount, actionMode, isInitialized, walletAmount, maxAmountCollat, repayMode]);
+  }, [selectedBank, actionMode, isInitialized, walletAmount, maxAmountCollat, repayMode]);
 
   const isDust = React.useMemo(() => selectedBank?.isActive && selectedBank?.position.isDust, [selectedBank]);
   const showCloseBalance = React.useMemo(() => actionMode === ActionType.Withdraw && isDust, [actionMode, isDust]);
@@ -229,7 +227,6 @@ export const ActionBox = ({
       showCloseBalance,
       selectedBank,
       selectedRepayBank,
-      selectedStakingAccount,
       extendedBankInfos,
       selectedAccount,
       nativeSolBalance,
@@ -492,7 +489,6 @@ export const ActionBox = ({
 
               <ActionBoxPreview
                 selectedBank={selectedBank}
-                selectedStakingAccount={selectedStakingAccount}
                 activeGroup={activeGroup}
                 actionMode={actionMode}
                 amount={amount}

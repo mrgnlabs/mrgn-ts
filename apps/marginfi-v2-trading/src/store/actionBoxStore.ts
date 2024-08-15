@@ -9,16 +9,7 @@ import { nativeToUi, uiToNative } from "@mrgnlabs/mrgn-common";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 
-import {
-  LstType,
-  RepayType,
-  StakeData,
-  YbxType,
-  capture,
-  debounceFn,
-  getSwapQuoteWithRetry,
-  verifyJupTxSize,
-} from "~/utils";
+import { LstType, RepayType, YbxType, capture, debounceFn, getSwapQuoteWithRetry, verifyJupTxSize } from "~/utils";
 import {
   ActionMethod,
   calculateMaxRepayableCollateral,
@@ -40,7 +31,6 @@ interface ActionBoxState {
 
   selectedBank: ExtendedBankInfo | null;
   selectedRepayBank: ExtendedBankInfo | null;
-  selectedStakingAccount: StakeData | null;
   repayCollatQuote: QuoteResponse | null;
   repayCollatTxns: {
     repayCollatTxn: VersionedTransaction | null;
@@ -69,7 +59,6 @@ interface ActionBoxState {
   ) => void;
   setSelectedBank: (bank: ExtendedBankInfo | null) => void;
   setRepayBank: (bank: ExtendedBankInfo | null) => void;
-  setSelectedStakingAccount: (account: StakeData) => void;
   setRepayCollateral: (
     marginfiAccount: MarginfiAccountWrapper,
     selectedBank: ExtendedBankInfo,
@@ -326,10 +315,6 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
 
   setYbxMode(ybxMode) {
     set({ ybxMode });
-  },
-
-  setSelectedStakingAccount(account) {
-    set({ selectedStakingAccount: account });
   },
 
   async setSlippageBps(slippageBps) {
