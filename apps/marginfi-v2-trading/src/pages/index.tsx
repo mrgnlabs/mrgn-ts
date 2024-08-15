@@ -3,12 +3,13 @@ import React from "react";
 import { useRouter } from "next/router";
 
 import { IconSortAscending, IconSortDescending, IconSparkles, IconGridDots, IconList } from "@tabler/icons-react";
-import { motion, useAnimate, stagger } from "framer-motion";
+import { motion } from "framer-motion";
 
 import { useTradeStore, useUiStore } from "~/store";
 import { TradePoolFilterStates } from "~/store/tradeStore";
 import { POOLS_PER_PAGE } from "~/config/trade";
 import { useIsMobile } from "~/hooks/useIsMobile";
+import { capture } from "~/utils";
 
 import { PageHeading } from "~/components/common/PageHeading";
 import { PoolCard, PoolListItem } from "~/components/common/Pool";
@@ -67,6 +68,11 @@ export default function HomePage() {
   const handleFeelingLucky = React.useCallback(() => {
     const randomGroup = groups[Math.floor(Math.random() * groups.length)];
     if (!randomGroup) return;
+    capture("feeling_lucky", {
+      groupAddress: randomGroup.groupPk.toBase58(),
+      tokenAddress: randomGroup.pool.token.info.state.mint.toString(),
+      tokenSymbol: randomGroup.pool.token.meta.tokenSymbol,
+    });
     router.push(`/trade/${randomGroup.groupPk.toBase58()}`);
   }, [groups, router]);
 
