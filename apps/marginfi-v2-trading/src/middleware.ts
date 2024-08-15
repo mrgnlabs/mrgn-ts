@@ -14,6 +14,8 @@ export function middleware(req: NextRequest) {
   // response.headers.set('CDN-Cache-Control', 'private, max-age=10');
   // response.headers.set('Cache-Control', 'private, max-age=10');
 
+  console.log(req.geo, req?.geo?.country, req.nextUrl.pathname);
+
   if (
     !process.env.GEOBLOCK_DISABLED &&
     req.geo &&
