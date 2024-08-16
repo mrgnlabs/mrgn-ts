@@ -1,20 +1,20 @@
 import React from "react";
 
-import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { RepayType, YbxType, formatAmount } from "@mrgnlabs/mrgn-utils";
+import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { formatAmount } from "@mrgnlabs/mrgn-utils";
 
-import { useActionBoxStore } from "~/hooks/useActionBoxStore";
 import { useConnection } from "~/hooks/useConnection";
-import { useMrgnlendStore, useUiStore } from "~/store";
+import { useUiStore } from "~/store";
 
 import { Input } from "~/components/ui/input";
-import { ActionBoxTokens } from "~/components/common/ActionBox/components";
 
-import { YbxInput, InputAction } from "./Components";
-import { LoopInput } from "./Components/LoopInput";
-import { useLendBoxStore } from "../store";
+import { useLendBoxStore } from "../../store";
+import { LendingTokens } from "./LendingTokens";
+import { LendingAction } from "./LendingAction";
 
 type ActionBoxInputProps = {
+  banks: ExtendedBankInfo[];
+  nativeSolBalance: number;
   walletAmount: number | undefined;
   amountRaw: string;
   maxAmount: number;
@@ -24,18 +24,25 @@ type ActionBoxInputProps = {
 };
 
 export const ActionBoxInput = ({
+  banks,
+  nativeSolBalance,
   walletAmount,
   maxAmount,
   showCloseBalance,
   isDialog,
-  isMini = false,
 }: ActionBoxInputProps) => {
   const [isActionBoxInputFocussed, setIsActionBoxInputFocussed, priorityFee] = useUiStore((state) => [
     state.isActionBoxInputFocussed,
     state.setIsActionBoxInputFocussed,
     state.priorityFee,
   ]);
-  const [setAmountRaw, selectedBank] = useLendBoxStore((state) => [state.setAmountRaw, state.selectedBank]);
+  const [amountRaw, selectedBank, lendMode, setAmountRaw, setSelectedBank] = useLendBoxStore((state) => [
+    state.amountRaw,
+    state.selectedBank,
+    state.lendMode,
+    state.setAmountRaw,
+    state.setSelectedBank,
+  ]);
   const { connection } = useConnection();
 
   const amountInputRef = React.useRef<HTMLInputElement>(null);
@@ -64,20 +71,14 @@ export const ActionBoxInput = ({
       <div className="bg-background rounded-lg p-2.5 mb-6">
         <div className="flex justify-center gap-1 items-center font-medium text-3xl">
           <div className="w-full flex-auto max-w-[162px]">
-            <ActionBoxTokens
-              isDialog={isDialog}
-              setRepayTokenBank={(tokenBank) => {
-                setRepayBank(tokenBank);
+            <LendingTokens
+              selectedBank={selectedBank}
+              setSelectedBank={(bank) => {
+                setSelectedBank(bank);
               }}
-              setTokenBank={(tokenBank) => {
-                setSelectedBank(tokenBank);
-              }}
-              setStakingAccount={(account) => {
-                setSelectedStakingAccount(account);
-              }}
-              setLoopBank={(tokenBank) => {
-                setRepayBank(tokenBank);
-              }}
+              banks={banks}
+              nativeSolBalance={nativeSolBalance}
+              lendMode={lendMode}
             />
           </div>
           <div className="flex-auto">
@@ -85,7 +86,7 @@ export const ActionBoxInput = ({
               type="text"
               ref={amountInputRef}
               inputMode="decimal"
-              value={inputAmount}
+              value={amountRaw}
               disabled={isInputDisabled}
               onChange={(e) => handleInputChange(e.target.value)}
               onFocus={() => setIsActionBoxInputFocussed(true)}
@@ -95,7 +96,7 @@ export const ActionBoxInput = ({
             />
           </div>
         </div>
-        <InputAction
+        <LendingAction
           walletAmount={walletAmount}
           maxAmount={maxAmount}
           isDialog={isDialog}

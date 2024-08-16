@@ -800,6 +800,13 @@ enum Emissions {
   Borrowing,
 }
 
+enum LendType {
+  Deposit = "Supply",
+  Borrow = "Borrow",
+  Repay = "Repay",
+  Withdraw = "Withdraw",
+}
+
 enum ActionType {
   Deposit = "Supply",
   Borrow = "Borrow",
@@ -811,7 +818,7 @@ enum ActionType {
   Loop = "Loop",
 }
 
-export { Emissions, ActionType };
+export { Emissions, ActionType, LendType };
 export type {
   AccountSummary,
   LendingPosition,

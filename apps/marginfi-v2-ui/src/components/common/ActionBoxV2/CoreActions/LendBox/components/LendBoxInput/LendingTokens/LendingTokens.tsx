@@ -1,6 +1,6 @@
 import React from "react";
 
-import { ExtendedBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo, LendType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { computeBankRate, LendingModes } from "@mrgnlabs/mrgn-utils";
 
 import { SelectedBankItem, TokenListWrapper } from "~/components/common/ActionBoxV2/sharedComponents";
@@ -12,9 +12,8 @@ type LendingTokensProps = {
   selectedBank: ExtendedBankInfo | null;
   banks: ExtendedBankInfo[];
   nativeSolBalance: number;
-  actionType: ActionType;
+  lendMode: LendType;
 
-  setSelectedRepayBank: (selectedBank: ExtendedBankInfo | null) => void;
   setSelectedBank: (selectedBank: ExtendedBankInfo | null) => void;
 };
 
@@ -22,9 +21,7 @@ export const LendingTokens = ({
   selectedBank,
   banks,
   nativeSolBalance,
-  actionType,
-
-  setSelectedRepayBank,
+  lendMode,
   setSelectedBank,
 }: LendingTokensProps) => {
   const [isOpen, setIsOpen] = React.useState(false);
@@ -33,8 +30,8 @@ export const LendingTokens = ({
   const isSelectable = React.useMemo(() => true, []);
 
   const lendingMode = React.useMemo(
-    () => (actionType === ActionType.Deposit ? LendingModes.LEND : LendingModes.BORROW),
-    [actionType]
+    () => (lendMode === LendType.Deposit || lendMode === LendType.Withdraw ? LendingModes.LEND : LendingModes.BORROW),
+    [lendMode]
   );
 
   const calculateRate = React.useCallback(
@@ -65,7 +62,7 @@ export const LendingTokens = ({
               onClose={() => setIsOpen(false)}
               selectedBank={selectedBank}
               onSetSelectedBank={setSelectedBank}
-              actionMode={actionType}
+              lendMode={lendMode}
               banks={banks}
               nativeSolBalance={nativeSolBalance}
             />

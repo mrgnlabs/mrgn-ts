@@ -1,10 +1,9 @@
 import React from "react";
 
 import { WSOL_MINT } from "@mrgnlabs/mrgn-common";
-import { ExtendedBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo, LendType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { LendingModes, computeBankRate } from "@mrgnlabs/mrgn-utils";
 
-import { useMrgnlendStore } from "~/store";
 import { cn } from "~/utils";
 import { useWalletContext } from "~/hooks/useWalletContext";
 
@@ -17,7 +16,7 @@ type LendingTokensListProps = {
   banks: ExtendedBankInfo[];
   nativeSolBalance: number;
   isOpen: boolean;
-  actionMode: ActionType;
+  lendMode: LendType;
 
   onSetSelectedBank: (selectedTokenBank: ExtendedBankInfo | null) => void;
   onClose: () => void;
@@ -27,14 +26,14 @@ export const LendingTokensList = ({
   selectedBank,
   banks,
   nativeSolBalance,
-  actionMode,
+  lendMode,
   onSetSelectedBank,
   isOpen,
   onClose,
 }: LendingTokensListProps) => {
   const lendingMode = React.useMemo(
-    () => (actionMode === ActionType.Deposit ? LendingModes.LEND : LendingModes.BORROW),
-    [actionMode]
+    () => (lendMode === LendType.Deposit || lendMode === LendType.Withdraw ? LendingModes.LEND : LendingModes.BORROW),
+    [lendMode]
   );
 
   const [searchQuery, setSearchQuery] = React.useState("");

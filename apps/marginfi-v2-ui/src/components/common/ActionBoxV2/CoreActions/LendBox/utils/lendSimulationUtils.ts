@@ -66,7 +66,40 @@ export function calculateSummary({
   } as ActionSummary;
 }
 
-export function calculateActionPreview(
+export const getSimulationResult = async (props: SimulateActionProps) => {
+  let actionMethod: ActionMethod | undefined = undefined;
+  let simulationResult: SimulationResult | null = null;
+
+  try {
+    simulationResult = await simulateAction(props);
+  } catch (error: any) {
+    let actionString;
+    switch (props.actionMode) {
+      case ActionType.Deposit:
+        actionString = "Depositing";
+        break;
+      case ActionType.Withdraw:
+        actionString = "Withdrawing";
+        break;
+      case ActionType.Loop:
+        actionString = "Looping";
+        break;
+      case ActionType.Repay:
+        actionString = "Repaying";
+        break;
+      case ActionType.Borrow:
+        actionString = "Borrowing";
+        break;
+      default:
+        actionString = "The action";
+    }
+    actionMethod = handleSimulationError(error, props.bank, false, actionString);
+  }
+
+  return { simulationResult, actionMethod };
+};
+
+function calculateActionPreview(
   bank: ExtendedBankInfo,
   actionMode: ActionType,
   accountSummary: AccountSummary
@@ -100,7 +133,7 @@ export function calculateActionPreview(
   } as ActionPreview;
 }
 
-export function calculateSimulatedActionPreview(
+function calculateSimulatedActionPreview(
   simulationResult: SimulationResult,
   bank: ExtendedBankInfo
 ): SimulatedActionPreview {
@@ -121,7 +154,7 @@ export function calculateSimulatedActionPreview(
   };
 }
 
-export async function simulateAction({ actionMode, account, bank, amount }: SimulateActionProps) {
+async function simulateAction({ actionMode, account, bank, amount }: SimulateActionProps) {
   let simulationResult: SimulationResult;
 
   switch (actionMode) {
@@ -151,36 +184,3 @@ export async function simulateAction({ actionMode, account, bank, amount }: Simu
 
   return simulationResult;
 }
-
-export const getSimulationResult = async (props: SimulateActionProps) => {
-  let actionMethod: ActionMethod | undefined = undefined;
-  let simulationResult: SimulationResult | null = null;
-
-  try {
-    simulationResult = await simulateAction(props);
-  } catch (error: any) {
-    let actionString;
-    switch (props.actionMode) {
-      case ActionType.Deposit:
-        actionString = "Depositing";
-        break;
-      case ActionType.Withdraw:
-        actionString = "Withdrawing";
-        break;
-      case ActionType.Loop:
-        actionString = "Looping";
-        break;
-      case ActionType.Repay:
-        actionString = "Repaying";
-        break;
-      case ActionType.Borrow:
-        actionString = "Borrowing";
-        break;
-      default:
-        actionString = "The action";
-    }
-    actionMethod = handleSimulationError(error, props.bank, false, actionString);
-  }
-
-  return { simulationResult, actionMethod };
-};
