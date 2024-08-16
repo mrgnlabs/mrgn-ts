@@ -15,8 +15,8 @@ export const init = () => {
   posthog.init(process.env.NEXT_PUBLIC_POSTHOG_API_KEY!, {
     api_host: "https://app.posthog.com",
     autocapture: false,
-    capture_pageview: false,
-    capture_pageleave: false,
+    capture_pageview: true,
+    capture_pageleave: true,
   });
 };
 
