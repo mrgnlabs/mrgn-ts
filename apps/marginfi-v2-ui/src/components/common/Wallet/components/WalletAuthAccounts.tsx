@@ -2,6 +2,7 @@ import React from "react";
 
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 import { clearAccountCache, firebaseApi } from "@mrgnlabs/marginfi-v2-ui-state";
+import CopyToClipboard from "react-copy-to-clipboard";
 
 import { useMrgnlendStore } from "~/store";
 
@@ -13,7 +14,7 @@ import { getMaybeSquadsOptions } from "~/utils/mrgnActions";
 import { capture } from "~/utils";
 
 import { Button } from "~/components/ui/button";
-import { IconChevronDown, IconUserPlus, IconPencil, IconAlertTriangle, IconLoader } from "~/components/ui/icons";
+import { IconChevronDown, IconUserPlus, IconPencil, IconAlertTriangle, IconLoader, IconCopy, IconCheck } from "~/components/ui/icons";
 import { Label } from "~/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
 import { shortenAddress } from "@mrgnlabs/mrgn-common";
@@ -43,6 +44,7 @@ export const WalletAuthAccounts = () => {
   const [editAccountError, setEditAccountError] = React.useState<string>("");
   const [isSubmitting, setIsSubmitting] = React.useState<boolean>(false);
   const [useAuthTxn, setUseAuthTxn] = React.useState(false);
+  const [isAccountPubkeyCopied, setIsAccountPubkeyCopied] = React.useState(false);
   const newAccountNameRef = React.useRef<HTMLInputElement>(null);
   const editAccountNameRef = React.useRef<HTMLInputElement>(null);
 
@@ -279,6 +281,7 @@ export const WalletAuthAccounts = () => {
                               {accountLabel}
                             </Label>
                           </TooltipTrigger>
+
                           <TooltipContent>
                             <p>{accountLabel}</p>
                           </TooltipContent>
@@ -295,9 +298,32 @@ export const WalletAuthAccounts = () => {
                         <Badge className="text-xs p-1 h-5">active</Badge>
                       )}
 
-                      <div className="flex items-center ml-auto">
+                      <div className="flex items-center ml-auto gap-x-2">
+                        <CopyToClipboard
+                          text={account.address.toString()}
+                          onCopy={() => {
+                            setIsAccountPubkeyCopied(true);
+                            setTimeout(() => {
+                              setIsAccountPubkeyCopied(false);
+                            }, 2000);
+                          }}
+                        >
+                          <button className="py-1.5 transition-colors rounded-lg hover:bg-background-gray-light cursor-pointer">
+                            {isAccountPubkeyCopied && (
+                              <>
+                                <IconCheck size={16} />
+                              </>
+                            )}
+                            {!isAccountPubkeyCopied && (
+                              <>
+                                <IconCopy size={16} />
+                              </>
+                            )}
+                          </button>
+                        </CopyToClipboard>
+
                         <div
-                          className="p-1.5 transition-colors rounded-lg hover:bg-background-gray-light"
+                          className="py-1.5 transition-colors rounded-lg hover:bg-background-gray-light cursor-pointer"
                           onClick={(e) => {
                             e.stopPropagation();
                             setEditingAccount(account);
@@ -361,7 +387,7 @@ export const WalletAuthAccounts = () => {
                 <Checkbox checked={useAuthTxn} onCheckedChange={(checked) => setUseAuthTxn(checked as boolean)} />
                 Using Ledger?
               </Label>
-              <Button type="submit" className="w-full" onClick={() => {}} disabled={isSubmitting}>
+              <Button type="submit" className="w-full" onClick={() => { }} disabled={isSubmitting}>
                 {isSubmitting ? (
                   <>
                     <IconLoader size={16} /> Creating account...
