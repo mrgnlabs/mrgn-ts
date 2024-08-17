@@ -5,7 +5,7 @@ import { useRouter } from "next/router";
 import { IconX, IconCommand } from "@tabler/icons-react";
 
 import { useDebounce } from "@uidotdev/usehooks";
-import { usdFormatter, percentFormatter, numeralFormatter, tokenPriceFormatter } from "@mrgnlabs/mrgn-common";
+import { percentFormatter, numeralFormatter, tokenPriceFormatter } from "@mrgnlabs/mrgn-common";
 
 import { useTradeStore } from "~/store";
 import { cn, getTokenImageURL } from "~/utils";
@@ -13,7 +13,6 @@ import { useIsMobile } from "~/hooks/useIsMobile";
 
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "~/components/ui/command";
 import { Button } from "~/components/ui/button";
-import type { TokenData } from "~/types";
 
 type PoolSearchProps = {
   size?: "sm" | "lg";
@@ -33,7 +32,8 @@ export const PoolSearch = ({
   showNoResults = true,
 }: PoolSearchProps) => {
   const router = useRouter();
-  const [searchBanks, searchResults, resetSearchResults] = useTradeStore((state) => [
+  const [groupMap, searchBanks, searchResults, resetSearchResults] = useTradeStore((state) => [
+    state.groupMap,
     state.searchBanks,
     state.searchResults,
     state.resetSearchResults,
@@ -43,6 +43,8 @@ export const PoolSearch = ({
   const [isFocused, setIsFocused] = React.useState(false);
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
   const isMobile = useIsMobile();
+
+  const groups = [...groupMap.values()];
 
   React.useEffect(() => {
     if (!debouncedSearchQuery.length) {
@@ -131,7 +133,10 @@ export const PoolSearch = ({
                     value={address}
                     className={cn(size === "sm" ? "text-sm" : "py-4")}
                     onSelect={(value) => {
-                      router.push(`/trade/${value}`);
+                      const foundGroup = groups.find((g) => g.groupPk.toBase58().toLowerCase() === value);
+                      if (!foundGroup) return;
+
+                      router.push(`/trade/${foundGroup.groupPk.toBase58()}`);
                       if (onBankSelect) onBankSelect();
                     }}
                   >
