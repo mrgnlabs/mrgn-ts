@@ -14,6 +14,7 @@ import {
 import { CopyToClipboard } from "react-copy-to-clipboard";
 
 import { useTradeStore } from "~/store";
+import { GroupData } from "~/store/tradeStore";
 
 import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
 import { Button } from "~/components/ui/button";
@@ -41,14 +42,13 @@ const buildShareUrl = (link: string, url: string, text: string) => {
   return link.replace("{url}", url).replace("{text}", text);
 };
 
-export const PoolShare = () => {
-  const [activeGroupPk, groupMap] = useTradeStore((state) => [state.activeGroup, state.groupMap]);
+type PoolShareProps = {
+  activeGroup: GroupData;
+};
+
+export const PoolShare = ({ activeGroup }: PoolShareProps) => {
   const [isUrlCopied, setIsUrlCopied] = React.useState(false);
   const copyUrlRef = React.useRef<HTMLInputElement>(null);
-
-  const activeGroup = React.useMemo(() => {
-    return activeGroupPk ? groupMap.get(activeGroupPk.toBase58()) : null;
-  }, [activeGroupPk, groupMap]);
 
   const handleCopyUrl = () => {
     setIsUrlCopied(true);
@@ -56,8 +56,6 @@ export const PoolShare = () => {
       setIsUrlCopied(false);
     }, 2000);
   };
-
-  if (!activeGroup) return null;
 
   return (
     <Popover>

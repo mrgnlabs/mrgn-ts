@@ -40,17 +40,15 @@ enum View {
 export default function HomePage() {
   const router = useRouter();
   const isMobile = useIsMobile();
-  const [initialized, groupMap, resetActiveGroup, currentPage, totalPages, setCurrentPage, sortBy, setSortBy] =
-    useTradeStore((state) => [
-      state.initialized,
-      state.groupMap,
-      state.resetActiveGroup,
-      state.currentPage,
-      state.totalPages,
-      state.setCurrentPage,
-      state.sortBy,
-      state.setSortBy,
-    ]);
+  const [initialized, groupMap, currentPage, totalPages, setCurrentPage, sortBy, setSortBy] = useTradeStore((state) => [
+    state.initialized,
+    state.groupMap,
+    state.currentPage,
+    state.totalPages,
+    state.setCurrentPage,
+    state.sortBy,
+    state.setSortBy,
+  ]);
 
   const [previousTxn] = useUiStore((state) => [state.previousTxn]);
 
@@ -75,10 +73,6 @@ export default function HomePage() {
     });
     router.push(`/trade/${randomGroup.groupPk.toBase58()}`);
   }, [groups, router]);
-
-  React.useEffect(() => {
-    resetActiveGroup();
-  }, [resetActiveGroup]);
 
   React.useEffect(() => {
     setSortBy(TradePoolFilterStates.PRICE_MOVEMENT_DESC);

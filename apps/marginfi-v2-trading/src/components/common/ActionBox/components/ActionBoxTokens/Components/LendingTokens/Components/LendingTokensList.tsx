@@ -4,7 +4,7 @@ import { WSOL_MINT } from "@mrgnlabs/mrgn-common";
 import { ExtendedBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { LendingModes } from "~/types";
-import { useMrgnlendStore, useTradeStore } from "~/store";
+import { useMrgnlendStore } from "~/store";
 import { cn, computeBankRate } from "~/utils";
 import { useWalletContext } from "~/hooks/useWalletContext";
 
@@ -29,19 +29,13 @@ type LendingTokensListProps = {
 export const LendingTokensList = ({
   selectedBank,
   actionMode,
-  activeGroup: activeGroupData,
+  activeGroup,
   onSetSelectedBank,
   isOpen,
   onClose,
   tokensOverride,
 }: LendingTokensListProps) => {
-  const [activeGroupPk, groupMap] = useTradeStore((state) => [state.activeGroup, state.groupMap]);
   const [nativeSolBalance] = useMrgnlendStore((state) => [state.nativeSolBalance]);
-
-  const activeGroup = React.useMemo(() => {
-    const group = activeGroupPk ? groupMap.get(activeGroupPk.toBase58()) : null;
-    return activeGroupData ?? group ?? null;
-  }, [activeGroupPk, activeGroupData, groupMap]);
 
   const lendingMode = React.useMemo(
     () =>

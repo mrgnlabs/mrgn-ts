@@ -5,12 +5,12 @@ import React from "react";
 import { useRouter } from "next/router";
 
 import { ActionType, ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { PublicKey } from "@solana/web3.js";
 import capitalize from "lodash/capitalize";
 import { numeralFormatter } from "@mrgnlabs/mrgn-common";
 
 import { cn } from "~/utils/themeUtils";
 import { useTradeStore, useUiStore } from "~/store";
+import { GroupData } from "~/store/tradeStore";
 
 import { TokenCombobox } from "../TokenCombobox/TokenCombobox";
 import { ActionBoxDialog } from "~/components/common/ActionBox";
@@ -32,10 +32,11 @@ import { TradingBoxSettingsDialog } from "./components/TradingBoxSettings/Tradin
 import { calculateLoopingParams, handleSimulationError, LoopingObject } from "@mrgnlabs/mrgn-utils";
 
 type TradingBoxProps = {
+  activeGroup: GroupData;
   side?: "long" | "short";
 };
 
-export const TradingBox = ({ side = "long" }: TradingBoxProps) => {
+export const TradingBox = ({ activeGroup, side = "long" }: TradingBoxProps) => {
   const router = useRouter();
   const { walletContextState, wallet, connected } = useWalletContext();
   const { connection } = useConnection();
@@ -59,16 +60,10 @@ export const TradingBox = ({ side = "long" }: TradingBoxProps) => {
     }
   }, [tradeState, loopingObject]);
 
-  const [activeGroupPk, setActiveGroup, groupMap, setIsRefreshingStore, refreshGroup, fetchTradeState] = useTradeStore(
-    (state) => [
-      state.activeGroup,
-      state.setActiveGroup,
-      state.groupMap,
-      state.setIsRefreshingStore,
-      state.refreshGroup,
-      state.fetchTradeState,
-    ]
-  );
+  const [setIsRefreshingStore, refreshGroup] = useTradeStore((state) => [
+    state.setIsRefreshingStore,
+    state.refreshGroup,
+  ]);
 
   const [slippageBps, priorityFee, platformFeeBps, setSlippageBps, setIsActionComplete, setPreviousTxn] = useUiStore(
     (state) => [
@@ -80,15 +75,6 @@ export const TradingBox = ({ side = "long" }: TradingBoxProps) => {
       state.setPreviousTxn,
     ]
   );
-
-  const activeGroup = React.useMemo(() => {
-    if (activeGroupPk) {
-      return groupMap.get(activeGroupPk.toBase58()) ?? null;
-    }
-    return null;
-  }, [activeGroupPk, groupMap]);
-
-  const activeGroupPrevPk = usePrevious(activeGroup?.groupPk);
 
   React.useEffect(() => {
     if (tradeState !== prevTradeState) {
@@ -272,8 +258,7 @@ export const TradingBox = ({ side = "long" }: TradingBoxProps) => {
   ]);
 
   React.useEffect(() => {
-    const hasChanged = activeGroup?.groupPk.toBase58() !== activeGroupPrevPk?.toBase58();
-    if (activeGroup && hasChanged) {
+    if (activeGroup) {
       setStats(
         generateStats(
           activeGroup.accountSummary,
@@ -285,7 +270,7 @@ export const TradingBox = ({ side = "long" }: TradingBoxProps) => {
         )
       );
     }
-  }, [activeGroup, activeGroupPrevPk]);
+  }, [activeGroup]);
 
   const leverageActionCb = React.useCallback(
     async (depositBank: ExtendedBankInfo, borrowBank: ExtendedBankInfo) => {
@@ -479,7 +464,6 @@ export const TradingBox = ({ side = "long" }: TradingBoxProps) => {
                     selected={activeGroup}
                     setSelected={(group) => {
                       router.push(`/trade/${group.client.group.address.toBase58()}`);
-                      setActiveGroup({ groupPk: group.client.group.address });
                       clearStates();
                     }}
                   />

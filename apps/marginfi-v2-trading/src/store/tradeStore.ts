@@ -121,8 +121,6 @@ type TradeStoreState = {
 
   sortBy: TradePoolFilterStates;
 
-  // active group, currently being viewed / traded
-  activeGroup: PublicKey | null;
   // user native sol balance
   nativeSolBalance: number;
 
@@ -145,20 +143,16 @@ type TradeStoreState = {
     refresh?: boolean;
   }) => Promise<void>;
 
-  // set active group and initialize marginfi client
-  setActiveGroup: ({ groupPk }: { groupPk: PublicKey }) => Promise<void>;
-
   setIsRefreshingStore: (isRefreshing: boolean) => void;
   refreshGroup: ({
+    groupPk,
     connection,
     wallet,
-    groupPk,
   }: {
+    groupPk: PublicKey;
     connection?: Connection;
     wallet?: Wallet;
-    groupPk?: PublicKey;
   }) => Promise<void>;
-  resetActiveGroup: () => void;
   searchBanks: (searchQuery: string) => void;
   resetSearchResults: () => void;
   setCurrentPage: (page: number) => void;
@@ -381,11 +375,11 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
     }
   },
 
-  refreshGroup: async (args) => {
+  refreshGroup: async (args: { groupPk: PublicKey; connection?: Connection; wallet?: Wallet }) => {
     try {
       const connection = args.connection ?? get().connection;
       const wallet = args?.wallet ?? get().wallet;
-      const activeGroup = args?.groupPk ?? get().activeGroup;
+      const activeGroup = args.groupPk;
       const groupMap = get().groupMap;
 
       if (!activeGroup) throw new Error("No group to refresh");
@@ -440,42 +434,6 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
     } catch (error) {
       console.error(error);
     }
-  },
-
-  setActiveGroup: async (args) => {
-    const state = get();
-    const group = state.groupMap.get(args.groupPk.toBase58());
-
-    if (!group) throw new Error("Group not found");
-
-    const bankKeys = [group.pool.token.address, ...group.pool.quoteTokens.map((bank) => bank.address)];
-    // const marginfiClient = await MarginfiClient.fetch(
-    //   {
-    //     environment: "production",
-    //     cluster: "mainnet",
-    //     programId,
-    //     groupPk: args.groupPk,
-    //   },
-    //   state.wallet as Wallet,
-    //   state.connection as Connection,
-    //   {
-    //     preloadedBankAddresses: bankKeys,
-    //   }
-    // );
-
-    set({
-      activeGroup: args.groupPk,
-    });
-  },
-
-  resetActiveGroup: () => {
-    set((state) => {
-      return {
-        ...state,
-        selectedAccount: null,
-        activeGroup: null,
-      };
-    });
   },
 
   searchBanks: (searchQuery: string) => {
