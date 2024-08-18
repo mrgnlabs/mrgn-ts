@@ -44,8 +44,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/comp
 
 export const Wallet = () => {
   const router = useRouter();
-  const [extendedBankInfos, nativeSolBalance, initialized, referralCode] = useTradeStore((state) => [
-    state.banks,
+  const [groupMap, nativeSolBalance, initialized, referralCode] = useTradeStore((state) => [
+    state.groupMap,
     state.nativeSolBalance,
     state.initialized,
     state.referralCode,
@@ -78,6 +78,11 @@ export const Wallet = () => {
   const [isReferralCopied, setIsReferralCopied] = React.useState(false);
 
   const isMobile = useIsMobile();
+
+  const extendedBankInfos = React.useMemo(() => {
+    const groups = [...groupMap.values()];
+    return groups.map((group) => group.pool.token).flat();
+  }, [groupMap]);
 
   const activeBank = React.useMemo(() => {
     if (!activeToken) return null;
