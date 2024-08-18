@@ -16,6 +16,7 @@ import {
 } from "@mrgnlabs/mrgn-common";
 
 import { useTradeStore, useUiStore } from "~/store";
+import { GroupData } from "~/store/tradeStore";
 import { getTokenImageURL, cn } from "~/utils";
 
 import { ActionComplete } from "~/components/common/ActionComplete";
@@ -38,18 +39,13 @@ import {
 export default function TradeSymbolPage() {
   const router = useRouter();
   const side = router.query.side as "long" | "short";
-  const [initialized, activeGroupPk, setActiveGroup, groupMap, portfolio] = useTradeStore((state) => [
+  const [initialized, groupMap, portfolio] = useTradeStore((state) => [
     state.initialized,
-    state.activeGroup,
-    state.setActiveGroup,
     state.groupMap,
     state.portfolio,
   ]);
   const [previousTxn] = useUiStore((state) => [state.previousTxn]);
-
-  const activeGroup = React.useMemo(() => {
-    return activeGroupPk ? groupMap.get(activeGroupPk.toBase58()) : null;
-  }, [activeGroupPk, groupMap]);
+  const [activeGroup, setActiveGroup] = React.useState<GroupData | null>(null);
 
   const lpPosition = React.useMemo(() => {
     if (!portfolio) return null;
@@ -79,6 +75,25 @@ export default function TradeSymbolPage() {
     return long || short;
   }, [portfolio, activeGroup]);
 
+  React.useEffect(() => {
+    if (!router.isReady) return;
+
+    const symbol = router.query.symbol as string;
+
+    if (!symbol) {
+      router.push("/404");
+      return;
+    }
+
+    const group = groupMap.get(symbol);
+    if (!group) {
+      router.push("/404");
+      return;
+    }
+
+    setActiveGroup(group);
+  }, [router, groupMap, setActiveGroup]);
+
   return (
     <>
       <div className="w-full max-w-8xl mx-auto px-4 pt-8 pb-24 mt:pt-8 md:px-8">
@@ -100,7 +115,6 @@ export default function TradeSymbolPage() {
                     selected={activeGroup}
                     setSelected={(group) => {
                       router.push(`/trade/${group.client.group.address.toBase58()}`);
-                      setActiveGroup({ groupPk: group.client.group.address });
                     }}
                   >
                     <h1 className="text-lg font-medium mt-2 flex items-center gap-1 px-2 py-1 pl-3 rounded-md cursor-pointer transition-colors hover:bg-accent translate-x-1.5">
