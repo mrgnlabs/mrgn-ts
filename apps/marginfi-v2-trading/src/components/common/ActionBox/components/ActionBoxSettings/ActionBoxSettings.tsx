@@ -1,9 +1,9 @@
 import React from "react";
 
+import { IconArrowLeft } from "@tabler/icons-react";
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
-import { IconArrowLeft } from "~/components/ui/icons";
 
 import { ActionBoxSlippage, ActionBoxPriorityFees } from "./Components";
 import { RepayType } from "~/utils";

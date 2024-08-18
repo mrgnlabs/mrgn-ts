@@ -1,6 +1,7 @@
 import React from "react";
 
 import CopyToClipboard from "react-copy-to-clipboard";
+import { IconCopy, IconCheck } from "@tabler/icons-react";
 
 import { useUiStore } from "~/store";
 import { useWalletContext } from "~/hooks/useWalletContext";
@@ -9,7 +10,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/comp
 
 import { Dialog, DialogContent } from "~/components/ui/dialog";
 import { Button } from "~/components/ui/button";
-import { IconCoins, IconCopy, IconCheck } from "~/components/ui/icons";
+import { IconCoins } from "~/components/ui/icons";
 
 export const WalletIntroDialog = () => {
   const [isWalletIntroOpen, setIsWalletIntroOpen] = React.useState(false);

@@ -3,11 +3,11 @@ import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 
+import { IconExternalLink } from "@tabler/icons-react";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { shortenAddress } from "@mrgnlabs/mrgn-common";
 
 import { getTokenImageURL } from "~/utils";
-import { IconExternalLink } from "~/components/ui/icons";
 
 interface Props {
   tokenBank: ExtendedBankInfo;

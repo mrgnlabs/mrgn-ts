@@ -6,13 +6,16 @@ import {
   PublicKey,
   SystemProgram,
   TransactionInstruction,
+  Transaction,
+  VersionedTransaction,
 } from "@solana/web3.js";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { WalletContextState } from "@solana/wallet-adapter-react";
+import { QuoteResponse } from "@jup-ag/api";
 
 import { BankConfigOpt, MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { uiToNative } from "@mrgnlabs/mrgn-common";
-import { ExtendedBankInfo, clearAccountCache } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo, clearAccountCache, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { WalletContextStateOverride } from "~/hooks/useWalletContext";
 
@@ -21,7 +24,14 @@ import { extractErrorString } from "./mrgnUtils";
 import { TradeSide } from "~/components/common/TradingBox/tradingBox.utils";
 import { ToastStep } from "~/components/common/Toast";
 import { getMaybeSquadsOptions } from "./mrgnActions";
-import { calculateLoopingParams, calculateLoopingTransaction, LoopingObject } from "@mrgnlabs/mrgn-utils";
+import {
+  calculateLoopingParams,
+  calculateLoopingTransaction,
+  LoopingObject,
+  ActionMethod,
+  calculateBorrowLendPositionParams,
+  STATIC_SIMULATION_ERRORS,
+} from "@mrgnlabs/mrgn-utils";
 
 export async function createMarginfiGroup({
   marginfiClient,
@@ -270,4 +280,58 @@ export async function executeLeverageAction({
     console.log(error);
     return;
   }
+}
+
+export async function calculateClosePositions({
+  marginfiAccount,
+  borrowBank,
+  depositBanks,
+  slippageBps,
+  connection,
+  priorityFee,
+  platformFeeBps,
+}: {
+  marginfiAccount: MarginfiAccountWrapper;
+  borrowBank: ActiveBankInfo | null;
+  depositBanks: ActiveBankInfo[];
+  slippageBps: number;
+  connection: Connection;
+  priorityFee: number;
+  platformFeeBps?: number;
+}): Promise<
+  | {
+      closeTxn: VersionedTransaction | Transaction;
+      bundleTipTxn: VersionedTransaction | null;
+      quote?: QuoteResponse;
+    }
+  | ActionMethod
+> {
+  // user is borrowing and depositing
+  if (borrowBank && depositBanks.length === 1) {
+    return calculateBorrowLendPositionParams({
+      marginfiAccount,
+      borrowBank,
+      depositBank: depositBanks[0],
+      slippageBps,
+      connection,
+      priorityFee,
+      platformFeeBps,
+    });
+  }
+
+  // user is only depositing
+  if (!borrowBank && depositBanks.length > 0 && marginfiAccount) {
+    const txn = await marginfiAccount.makeWithdrawAllTx(
+      depositBanks.map((bank) => ({
+        amount: bank.position.amount,
+        bankAddress: bank.address,
+      }))
+    );
+    return {
+      closeTxn: txn,
+      bundleTipTxn: null,
+    };
+  }
+
+  return STATIC_SIMULATION_ERRORS.CLOSE_POSITIONS_FL_FAILED;
 }

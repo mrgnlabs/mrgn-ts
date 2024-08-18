@@ -1,10 +1,10 @@
 import React from "react";
 
+import { IconArrowRight } from "@tabler/icons-react";
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { nativeToUi, numeralFormatter } from "@mrgnlabs/mrgn-common";
 
 import { clampedNumeralFormatter, RepayType } from "~/utils";
-import { IconArrowRight } from "~/components/ui/icons";
 import { useActionBoxStore } from "~/hooks/useActionBoxStore";
 
 type props = {

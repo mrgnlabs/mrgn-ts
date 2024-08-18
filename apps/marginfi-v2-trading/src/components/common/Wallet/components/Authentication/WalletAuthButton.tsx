@@ -1,7 +1,8 @@
+import { IconLoader } from "@tabler/icons-react";
+
 import { titleCase } from "~/utils/themeUtils";
 
 import { Button } from "~/components/ui/button";
-import { IconLoader } from "~/components/ui/icons";
 
 type WalletAuthButtonProps = {
   name: string;
@@ -21,7 +22,7 @@ export const WalletAuthButton = ({ name, image, loading, active, onClick }: Wall
       disabled={!active}
       className="w-14 h-14 transition-colors bg-white hover:bg-white/80"
     >
-      {loading && <IconLoader />}
+      {loading && <IconLoader className="animate-spin" />}
       {!loading && image}
     </Button>
   );

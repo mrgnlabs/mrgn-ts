@@ -1,12 +1,12 @@
 import React from "react";
 
 import CopyToClipboard from "react-copy-to-clipboard";
+import { IconCheck, IconCopy } from "@tabler/icons-react";
 
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 
 import { Button } from "~/components/ui/button";
 import { Dialog, DialogContent } from "~/components/ui/dialog";
-import { IconCheck, IconCopy } from "~/components/ui/icons";
 
 type WalletPkDialogProps = {
   pk?: string;

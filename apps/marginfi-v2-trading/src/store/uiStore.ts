@@ -27,6 +27,7 @@ interface UiState {
   previousTxn: PreviousTxn | null;
   isActionBoxInputFocussed: boolean;
   walletState: WalletState;
+  isOnrampActive: boolean;
 
   // Actions
   setIsWalletAuthDialogOpen: (isOpen: boolean) => void;
@@ -37,6 +38,8 @@ interface UiState {
   setIsActionComplete: (isActionSuccess: boolean) => void;
   setPreviousTxn: (previousTxn: PreviousTxn) => void;
   setWalletState: (walletState: WalletState) => void;
+  setIsActionBoxInputFocussed: (isFocussed: boolean) => void;
+  setIsOnrampActive: (isOnrampActive: boolean) => void;
 }
 
 function createUiStore() {
@@ -73,6 +76,7 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
   previousTxn: null,
   isActionBoxInputFocussed: false,
   walletState: WalletState.DEFAULT,
+  isOnrampActive: false,
 
   // Actions
   setIsWalletAuthDialogOpen: (isOpen: boolean) => set({ isWalletAuthDialogOpen: isOpen }),
@@ -86,6 +90,8 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
   setIsActionComplete: (isActionComplete: boolean) => set({ isActionComplete: isActionComplete }),
   setPreviousTxn: (previousTxn: PreviousTxn) => set({ previousTxn: previousTxn }),
   setWalletState: (walletState: WalletState) => set({ walletState: walletState }),
+  setIsActionBoxInputFocussed: (isFocussed: boolean) => set({ isActionBoxInputFocussed: isFocussed }),
+  setIsOnrampActive: (isOnrampActive: boolean) => set({ isOnrampActive: isOnrampActive }),
 });
 
 export { createUiStore };

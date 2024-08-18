@@ -8,7 +8,7 @@ import { useMrgnlendStore, useTradeStore, useUiStore } from "~/store";
 import { cn } from "~/utils";
 
 import { CommandEmpty, CommandGroup, CommandItem } from "~/components/ui/command";
-import { BuyWithMoonpay, ActionBoxItem } from "~/components/common/ActionBox/components";
+import { ActionBoxItem } from "~/components/common/ActionBox/components";
 
 import { TokenListCommand } from "../../SharedComponents";
 import { GroupData } from "~/store/tradeStore";

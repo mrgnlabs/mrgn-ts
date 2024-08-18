@@ -1,11 +1,12 @@
 import React from "react";
+
+import { IconInfoCircle } from "@tabler/icons-react";
 import { MarginRequirementType, MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 import { usdFormatterDyn } from "@mrgnlabs/mrgn-common";
 
 import { getMaintHealthColor } from "~/utils";
 
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
-import { IconInfoCircle } from "~/components/ui/icons";
 import { Skeleton } from "~/components/ui/skeleton";
 
 type ActionBoxAvailableCollateralProps = {

@@ -1,6 +1,7 @@
 import React from "react";
 
 import Confetti from "react-confetti";
+import { IconConfetti } from "@tabler/icons-react";
 import { useWindowSize } from "@uidotdev/usehooks";
 
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
@@ -10,7 +11,6 @@ import { useUiStore } from "~/store";
 import { useIsMobile } from "~/hooks/useIsMobile";
 
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "~/components/ui/dialog";
-import { IconConfetti } from "~/components/ui/icons";
 import { Button } from "~/components/ui/button";
 
 import * as screens from "./screens";

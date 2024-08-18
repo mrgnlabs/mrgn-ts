@@ -1,4 +1,4 @@
-import { IconLoader, IconCheck, IconAlertTriangle } from "~/components/ui/icons";
+import { IconLoader, IconCheck, IconAlertTriangle } from "@tabler/icons-react";
 
 import { cn } from "~/utils";
 

@@ -4,6 +4,7 @@ import React from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 
+import { IconAlertTriangle, IconExternalLink, IconLoader, IconSettings, IconWallet } from "@tabler/icons-react";
 import capitalize from "lodash/capitalize";
 import { useDebounce } from "@uidotdev/usehooks";
 import { ActionType, ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
@@ -17,7 +18,6 @@ import { TokenCombobox } from "../TokenCombobox/TokenCombobox";
 import { ActionBoxDialog } from "~/components/common/ActionBox";
 import { Card, CardContent, CardFooter } from "~/components/ui/card";
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
-import { IconAlertTriangle, IconExternalLink, IconLoader, IconSettings, IconWallet } from "~/components/ui/icons";
 import { Slider } from "~/components/ui/slider";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";

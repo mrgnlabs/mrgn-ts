@@ -1,5 +1,6 @@
 import React from "react";
 
+import { IconInfoCircle } from "@tabler/icons-react";
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { useUiStore } from "~/store";
@@ -8,7 +9,6 @@ import { cn } from "~/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
-import { IconInfoCircle } from "~/components/ui/icons";
 
 type ActionBoxPriorityFeesProps = {
   mode: ActionType;

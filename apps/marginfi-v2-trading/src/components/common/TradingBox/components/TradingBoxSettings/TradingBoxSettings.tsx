@@ -1,12 +1,9 @@
 import React from "react";
 
-import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
+import { IconArrowLeft } from "@tabler/icons-react";
 
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
-import { IconArrowLeft } from "~/components/ui/icons";
-
 import { Slippage, PriorityFees } from "./components";
-import { RepayType } from "~/utils";
 
 type TradingBoxSettingsProps = {
   toggleSettings: (mode: boolean) => void;

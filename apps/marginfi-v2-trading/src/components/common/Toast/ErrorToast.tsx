@@ -1,5 +1,5 @@
 import { FC } from "react";
-import { IconAlertTriangle } from "~/components/ui/icons";
+import { IconAlertTriangle } from "@tabler/icons-react";
 
 export interface ErrorToastProps {
   title: string;

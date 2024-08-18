@@ -1,8 +1,8 @@
 import React from "react";
-import Image from "next/image";
+
 import { createJupiterApiClient } from "@jup-ag/api";
 import { AddressLookupTableAccount } from "@solana/web3.js";
-
+import { IconAlertTriangle, IconArrowRight } from "@tabler/icons-react";
 import { ExtendedBankInfo, ActionType, AccountSummary } from "@mrgnlabs/marginfi-v2-ui-state";
 import { Wallet, nativeToUi, numeralFormatter, percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 import {
@@ -23,7 +23,7 @@ import {
   isWholePosition,
 } from "~/utils";
 
-import { IconAlertTriangle, IconArrowRight, IconPyth, IconSwitchboard } from "~/components/ui/icons";
+import { IconPyth, IconSwitchboard } from "~/components/ui/icons";
 import { Skeleton } from "~/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 
