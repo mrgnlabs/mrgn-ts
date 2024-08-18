@@ -7,7 +7,6 @@ import { IconExternalLink } from "@tabler/icons-react";
 
 import { numeralFormatter, tokenPriceFormatter, percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 
-import { useTradeStore } from "~/store";
 import { getTokenImageURL, cn } from "~/utils";
 
 import { PoolChart } from "~/components/common/Pool";
@@ -21,8 +20,6 @@ type PoolHeaderProps = {
 };
 
 export const PoolHeader = ({ groupData }: PoolHeaderProps) => {
-  const [activeGroupPk, groupMap] = useTradeStore((state) => [state.activeGroup, state.groupMap]);
-
   const [priceData, setPriceData] = React.useState<
     {
       timestamp: number;

@@ -1,25 +1,26 @@
 import React from "react";
 
-import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { PublicKey } from "@solana/web3.js";
-
 import { useIsMobile } from "~/hooks/useIsMobile";
-import { ActionBox } from "~/components/common/ActionBox";
-import { Dialog, DialogTrigger, DialogOverlay, DialogContent, DialogClose } from "~/components/ui/dialog";
 import { Desktop, Mobile } from "~/utils/mediaQueries";
-import { IconArrowLeft } from "~/components/ui/icons";
-import { useMrgnlendStore } from "~/store";
+import { GroupData } from "~/store/tradeStore";
+
 import { TradingBox } from "./TradingBox";
+import { Dialog, DialogTrigger, DialogContent } from "~/components/ui/dialog";
+import { IconArrowLeft } from "~/components/ui/icons";
 
 type TradingBoxDialogProps = {
-  //   requestedAction?: ActionType;
-  //   requestedBank: ExtendedBankInfo | null;
+  activeGroup: GroupData;
   isTradingBoxTriggered?: boolean;
   title: string;
   children: React.ReactNode;
 };
 
-export const TradingBoxDialog = ({ isTradingBoxTriggered = false, title, children }: TradingBoxDialogProps) => {
+export const TradingBoxDialog = ({
+  activeGroup,
+  isTradingBoxTriggered = false,
+  title,
+  children,
+}: TradingBoxDialogProps) => {
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const isMobile = useIsMobile();
 
@@ -44,7 +45,7 @@ export const TradingBoxDialog = ({ isTradingBoxTriggered = false, title, childre
               <IconArrowLeft /> {`${title}`}
             </div>
             <div className="p-4 h-screen mb-8">
-              <TradingBox />
+              <TradingBox activeGroup={activeGroup} />
             </div>
           </div>
         </DialogContent>
@@ -57,7 +58,7 @@ export const TradingBoxDialog = ({ isTradingBoxTriggered = false, title, childre
           closeClassName="top-2 right-2"
         >
           <div className="p-4">
-            <TradingBox />
+            <TradingBox activeGroup={activeGroup} />
           </div>
         </DialogContent>
       </Desktop>

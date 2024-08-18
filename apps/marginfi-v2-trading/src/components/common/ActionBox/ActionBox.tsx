@@ -48,25 +48,16 @@ export const ActionBox = ({
   requestedAccount,
   requestedCollateralBank,
   isDialog,
-  activeGroupArg,
   isTokenSelectable,
   handleCloseDialog,
 }: ActionBoxProps) => {
-  const [isInitialized, setIsRefreshingStore, activeGroupPk, groupMap, nativeSolBalance, refreshGroup] = useTradeStore(
-    (state) => [
-      state.initialized,
-      state.setIsRefreshingStore,
-      state.activeGroup,
-      state.groupMap,
-      state.nativeSolBalance,
-      state.refreshGroup,
-    ]
-  );
-
-  const activeGroup = React.useMemo(() => {
-    const group = activeGroupPk ? groupMap.get(activeGroupPk.toBase58()) || null : null;
-    return activeGroupArg ?? group;
-  }, [activeGroupArg, activeGroupPk, groupMap]);
+  const [isInitialized, setIsRefreshingStore, groupMap, nativeSolBalance, refreshGroup] = useTradeStore((state) => [
+    state.initialized,
+    state.setIsRefreshingStore,
+    state.groupMap,
+    state.nativeSolBalance,
+    state.refreshGroup,
+  ]);
 
   const [
     slippageBps,
@@ -122,13 +113,15 @@ export const ActionBox = ({
   const { walletContextState, connected, wallet } = useWalletContext();
   const { connection } = useConnection();
 
-  // Cleanup the store when the component unmounts or wallet disconnects
-  React.useEffect(() => {
-    return () => refreshState();
-  }, [refreshState, connected]);
-
   const [isSettingsMode, setIsSettingsMode] = React.useState<boolean>(false);
   const [additionalActionMethods, setAdditionalActionMethods] = React.useState<ActionMethod[]>([]);
+
+  const activeGroup = React.useMemo(() => {
+    if (!selectedBank && !requestedBank) return null;
+    const bank = selectedBank ?? requestedBank;
+    const group = groupMap.get(bank?.info.rawBank.group.toBase58() ?? "");
+    return group ?? null;
+  }, [selectedBank, requestedBank, groupMap]);
 
   const selectedAccount = React.useMemo(() => {
     if (requestedAccount) {
@@ -143,23 +136,6 @@ export const ActionBox = ({
   const extendedBankInfos = React.useMemo(() => {
     return activeGroup ? [activeGroup.pool.token, ...activeGroup.pool.quoteTokens] : [];
   }, [activeGroup]);
-
-  React.useEffect(() => {
-    if (!selectedBank) {
-      fetchActionBoxState({ requestedAction, requestedBank });
-    }
-  }, [requestedAction, selectedBank, requestedBank, fetchActionBoxState]);
-
-  React.useEffect(() => {
-    refreshSelectedBanks(extendedBankInfos);
-  }, [extendedBankInfos, refreshSelectedBanks]);
-
-  React.useEffect(() => {
-    if (errorMessage !== null && errorMessage.description) {
-      showErrorToast(errorMessage?.description);
-      setAdditionalActionMethods([errorMessage]);
-    }
-  }, [errorMessage]);
 
   // Amount related useMemo's
   const amount = React.useMemo(() => {
@@ -287,12 +263,15 @@ export const ActionBox = ({
 
       // -------- Refresh state
       try {
+        if (!activeGroup) return;
+
         setIsRefreshingStore(true);
         await refreshGroup({
           connection,
           wallet,
           groupPk: activeGroup?.groupPk,
         });
+        setIsRefreshingStore(false);
       } catch (error: any) {
         console.log("Error while reloading state");
         console.log(error);
@@ -309,7 +288,7 @@ export const ActionBox = ({
       refreshGroup,
       connection,
       wallet,
-      activeGroup?.groupPk,
+      activeGroup,
     ]
   );
 
@@ -347,12 +326,14 @@ export const ActionBox = ({
     handleCloseDialog && handleCloseDialog();
 
     try {
+      if (!activeGroup) return;
       setIsRefreshingStore(true);
       await refreshGroup({
         connection,
         wallet,
         groupPk: activeGroup?.groupPk,
       });
+      setIsRefreshingStore(false);
     } catch (error: any) {
       console.log("Error while reloading state");
       console.log(error);
@@ -368,10 +349,12 @@ export const ActionBox = ({
     setIsRefreshingStore,
     connection,
     wallet,
-    activeGroup?.groupPk,
+    activeGroup,
+    refreshGroup,
   ]);
 
   const handleLendingAction = React.useCallback(async () => {
+    console.log("handleLendingAction", activeGroup);
     if (!actionMode || !activeGroup?.client || !selectedBank || (!amount && !repayAmount)) {
       return;
     }
@@ -404,7 +387,7 @@ export const ActionBox = ({
     await action();
   }, [
     actionMode,
-    activeGroup?.client,
+    activeGroup,
     selectedBank,
     amount,
     repayAmount,
@@ -419,6 +402,28 @@ export const ActionBox = ({
     repayCollatTxns.repayCollatTxn,
     repayCollatTxns.bundleTipTxn,
   ]);
+
+  React.useEffect(() => {
+    if (!selectedBank) {
+      fetchActionBoxState({ requestedAction, requestedBank });
+    }
+  }, [requestedAction, selectedBank, requestedBank, fetchActionBoxState]);
+
+  React.useEffect(() => {
+    refreshSelectedBanks(extendedBankInfos);
+  }, [extendedBankInfos, refreshSelectedBanks]);
+
+  React.useEffect(() => {
+    if (errorMessage !== null && errorMessage.description) {
+      showErrorToast(errorMessage?.description);
+      setAdditionalActionMethods([errorMessage]);
+    }
+  }, [errorMessage]);
+
+  // Cleanup the store when the component unmounts or wallet disconnects
+  React.useEffect(() => {
+    return () => refreshState();
+  }, [refreshState, connected]);
 
   if (!isInitialized) {
     return null;

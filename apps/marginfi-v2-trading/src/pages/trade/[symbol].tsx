@@ -144,7 +144,7 @@ export default function TradeSymbolPage() {
                       </Tooltip>
                     </TooltipProvider>
                   </p>
-                  <PoolShare />
+                  <PoolShare activeGroup={activeGroup} />
                 </div>
                 <div className="w-full space-y-10">
                   {activeGroup.pool.token.tokenData && (
@@ -368,7 +368,7 @@ export default function TradeSymbolPage() {
                     <TVWidget token={activeGroup.pool.token} />
                   </div>
                   <div className="flex lg:max-w-sm w-full lg:ml-auto">
-                    <TradingBox side={side} />
+                    <TradingBox activeGroup={activeGroup} side={side} />
                   </div>
                 </div>
               </div>

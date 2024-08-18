@@ -25,18 +25,12 @@ type RepayCollatTokensListProps = {
 export const RepayCollatTokensList = ({
   selectedRepayBank,
   onSetSelectedRepayBank,
-  activeGroup: activeGroupData,
+  activeGroup,
   isOpen,
   onClose,
   tokensOverride,
 }: RepayCollatTokensListProps) => {
-  const [activeGroupPk, groupMap] = useTradeStore((state) => [state.activeGroup, state.groupMap]);
   const [nativeSolBalance] = useMrgnlendStore((state) => [state.nativeSolBalance]);
-
-  const activeGroup = React.useMemo(() => {
-    const group = activeGroupPk ? groupMap.get(activeGroupPk.toBase58()) : null;
-    return activeGroupData ?? group ?? null;
-  }, [activeGroupPk, activeGroupData, groupMap]);
 
   //const [lendingMode] = useUiStore((state) => [state.lendingMode, state.setIsWalletOpen]);
   const [searchQuery, setSearchQuery] = React.useState("");
