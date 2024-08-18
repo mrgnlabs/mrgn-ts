@@ -4,8 +4,7 @@ import { useRouter } from "next/router";
 import { useTradeStore } from "~/store";
 import { useConnection } from "~/hooks/useConnection";
 import { useWalletContext } from "~/hooks/useWalletContext";
-import { PublicKey } from "@solana/web3.js";
-import { identify, usePrevious } from "~/utils";
+import { identify } from "~/utils";
 
 // @ts-ignore - Safe because context hook checks for null
 const TradeContext = React.createContext<>();
@@ -15,50 +14,14 @@ export const TradePovider: React.FC<{
 }> = ({ children }) => {
   const router = useRouter();
   const debounceId = React.useRef<NodeJS.Timeout | null>(null);
-  const { wallet, isOverride, connected, walletAddress } = useWalletContext();
-  const prevWalletAddress = usePrevious(walletAddress);
+  const { wallet, isOverride, connected } = useWalletContext();
   const { connection } = useConnection();
-  const [
-    initialized,
-    userDataFetched,
-    activeGroup,
-    fetchTradeState,
-    setActiveGroup,
-    isRefreshingStore,
-    setIsRefreshingStore,
-  ] = useTradeStore((state) => [
-    state.initialized,
-    state.userDataFetched,
-    state.activeGroup,
+  const [fetchTradeState, setIsRefreshingStore] = useTradeStore((state) => [
     state.fetchTradeState,
-    state.setActiveGroup,
-    state.isRefreshingStore,
     state.setIsRefreshingStore,
   ]);
   const [isLoggedIn, setIsLoggedIn] = React.useState(false);
 
-  React.useEffect(() => {
-    const symbol = router?.query?.symbol as string | undefined;
-    const isWalletConnected = wallet?.publicKey;
-
-    if (!isLoggedIn && isWalletConnected) {
-      setIsLoggedIn(true);
-      identify(wallet.publicKey.toBase58());
-    }
-
-    if (!symbol) {
-      //clear state
-    } else if (initialized) {
-      try {
-        const pk = new PublicKey(symbol);
-        setActiveGroup({ groupPk: new PublicKey(symbol) });
-      } catch {
-        router.push("/404");
-      }
-    }
-  }, [router, initialized, prevWalletAddress, walletAddress, userDataFetched, wallet, setActiveGroup, isLoggedIn]);
-
-  // add a useEffect to run on every route change
   React.useEffect(() => {
     const trackReferral = async (referralCode: string, walletAddress: string) => {
       const trackReferralRes = await fetch(`/api/user/referral/track-referral`, {
@@ -81,7 +44,12 @@ export const TradePovider: React.FC<{
     if (!referralCode || !wallet || !connected) return;
 
     trackReferral(referralCode, wallet.publicKey.toBase58());
-  }, [router.asPath, wallet, connected]);
+
+    if (!isLoggedIn && wallet.publicKey) {
+      setIsLoggedIn(true);
+      identify(wallet.publicKey.toBase58());
+    }
+  }, [router.asPath, wallet, connected, isLoggedIn]);
 
   React.useEffect(() => {
     const fetchData = () => {

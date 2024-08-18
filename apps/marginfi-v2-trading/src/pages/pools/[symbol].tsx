@@ -1,9 +1,12 @@
 import React from "react";
 
+import { useRouter } from "next/router";
+
 import { IconInfoCircle } from "@tabler/icons-react";
 import { numeralFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 
 import { useTradeStore, useUiStore } from "~/store";
+import { GroupData } from "~/store/tradeStore";
 
 import { PoolHeader, BankCard } from "~/components/common/Pool";
 import { ActionComplete } from "~/components/common/ActionComplete";
@@ -13,16 +16,10 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/comp
 import { DEFAULT_ACCOUNT_SUMMARY } from "@mrgnlabs/marginfi-v2-ui-state";
 
 export default function TradeSymbolPage() {
+  const router = useRouter();
   const [previousTxn] = useUiStore((state) => [state.previousTxn]);
-  const [initialized, activeGroupPk, groupMap] = useTradeStore((state) => [
-    state.initialized,
-    state.activeGroup,
-    state.groupMap,
-  ]);
-
-  const activeGroup = React.useMemo(() => {
-    return activeGroupPk ? groupMap.get(activeGroupPk.toBase58()) : null;
-  }, [activeGroupPk, groupMap]);
+  const [initialized, groupMap] = useTradeStore((state) => [state.initialized, state.groupMap]);
+  const [activeGroup, setActiveGroup] = React.useState<GroupData | null>(null);
 
   const accountSummary = React.useMemo(() => activeGroup?.accountSummary ?? DEFAULT_ACCOUNT_SUMMARY, [activeGroup]);
 
@@ -44,6 +41,25 @@ export default function TradeSymbolPage() {
       return "#fff";
     }
   }, [accountSummary.healthFactor]);
+
+  React.useEffect(() => {
+    if (!router.isReady) return;
+
+    const symbol = router.query.symbol as string;
+
+    if (!symbol) {
+      router.push("/404");
+      return;
+    }
+
+    const group = groupMap.get(symbol);
+    if (!group) {
+      router.push("/404");
+      return;
+    }
+
+    setActiveGroup(group);
+  }, [router, groupMap, setActiveGroup]);
 
   return (
     <>
