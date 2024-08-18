@@ -6,8 +6,6 @@ import {
   makeExtendedBankInfo,
   fetchTokenAccounts,
   TokenAccountMap,
-  makeBankInfo,
-  makeLendingPosition,
   computeAccountSummary,
   DEFAULT_ACCOUNT_SUMMARY,
   AccountSummary,
@@ -59,11 +57,6 @@ export type ArenaBank = ExtendedBankInfo & {
   };
 };
 
-export interface ActiveGroup {
-  token: ExtendedBankInfo;
-  usdc: ExtendedBankInfo;
-}
-
 export type ArenaPool = {
   token: ArenaBank;
   quoteTokens: ArenaBank[]; // will just be single USDC bank for now, but this allows us to add quote tokens in future
@@ -109,16 +102,12 @@ type TradeStoreState = {
   // array of marginfi groups
   groupMap: Map<string, GroupData>;
 
-  // array of extended token bank objects
-  banks: ExtendedBankInfo[];
-
   // array of banks filtered by search query
   searchResults: FuseResult<GroupData>[];
 
+  // pagination and sorting
   currentPage: number;
-
   totalPages: number;
-
   sortBy: TradePoolFilterStates;
 
   // user native sol balance
@@ -128,6 +117,7 @@ type TradeStoreState = {
   wallet: Wallet | null;
   connection: Connection | null;
 
+  // user data
   portfolio: Portfolio | null;
   referralCode: string | null;
 
@@ -142,8 +132,6 @@ type TradeStoreState = {
     wallet?: Wallet;
     refresh?: boolean;
   }) => Promise<void>;
-
-  setIsRefreshingStore: (isRefreshing: boolean) => void;
   refreshGroup: ({
     groupPk,
     connection,
@@ -153,6 +141,7 @@ type TradeStoreState = {
     connection?: Connection;
     wallet?: Wallet;
   }) => Promise<void>;
+  setIsRefreshingStore: (isRefreshing: boolean) => void;
   searchBanks: (searchQuery: string) => void;
   resetSearchResults: () => void;
   setCurrentPage: (page: number) => void;
@@ -177,7 +166,6 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
   tokenMetadataCache: {},
   bankMetadataCache: {},
   groupMap: new Map<string, GroupData>(),
-  banks: [],
   searchResults: [],
   currentPage: 1,
   totalPages: 0,
@@ -218,16 +206,6 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
       const wallet =
         argWallet && argWallet.publicKey ? argWallet : storeWallet && storeWallet.publicKey ? storeWallet : dummyWallet;
       if (!connection) throw new Error("Connection not found");
-      // if (!storeWallet && !argWallet) {
-      //   walletChanged = false;
-      // } else if ((!storeWallet && argWallet) || (storeWallet && !argWallet)) {
-      //   walletChanged = true;
-      // } else if (storeWallet && argWallet) {
-      //   walletChanged = !storeWallet.publicKey.equals(argWallet.publicKey);
-      // }
-
-      //   if (!wallet) throw new Error("Wallet not found");
-      //   if (wallet?.publicKey) userDataFetched = true;
 
       let { tokenMetadataCache, bankMetadataCache, groupsCache } = get();
 
@@ -307,32 +285,26 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
         portfolio = getPorfolioData(groupMap);
 
         // fetch / create referral code
-        if (!referralCode) {
-          const referralCodeRes = await fetch(`/api/user/referral/get-code`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ wallet: wallet.publicKey.toBase58() }),
-          });
+        // if (!referralCode) {
+        //   const referralCodeRes = await fetch(`/api/user/referral/get-code`, {
+        //     method: "POST",
+        //     headers: {
+        //       "Content-Type": "application/json",
+        //     },
+        //     body: JSON.stringify({ wallet: wallet.publicKey.toBase58() }),
+        //   });
 
-          if (!referralCodeRes.ok) {
-            console.error("Error fetching referral code");
-          } else {
-            const referralCodeData = await referralCodeRes.json();
-            const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.thearena.trade";
-            referralCode = `${baseUrl}/refer/${referralCodeData.referralCode}`;
-          }
-        }
+        //   if (!referralCodeRes.ok) {
+        //     console.error("Error fetching referral code");
+        //   } else {
+        //     const referralCodeData = await referralCodeRes.json();
+        //     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.thearena.trade";
+        //     referralCode = `${baseUrl}/refer/${referralCodeData.referralCode}`;
+        //   }
+        // }
       }
 
-      // deprecate this
-      const tokenBanks = [...groupMap.values()].map((group) => group.pool.token);
-
-      if (!tokenBanks) throw new Error("Error fetching banks & groups");
-
       const sortedGroups = sortGroups(groupMap, get().sortBy, groupsCache);
-
       const totalPages = Math.ceil(groupMap.entries.length / POOLS_PER_PAGE);
       const currentPage = get().currentPage || 1;
 
@@ -359,7 +331,6 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
         initialized: true,
         groupsCache: groupsCache,
         groupMap: sortedGroups,
-        banks: tokenBanks,
         totalPages,
         currentPage,
         nativeSolBalance: nativeSolBalance,
