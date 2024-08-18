@@ -1,11 +1,12 @@
 "use client";
 
 import React from "react";
-
+import Link from "next/link";
 import { useRouter } from "next/router";
 
-import { ActionType, ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import capitalize from "lodash/capitalize";
+import { useDebounce } from "@uidotdev/usehooks";
+import { ActionType, ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { numeralFormatter } from "@mrgnlabs/mrgn-common";
 
 import { cn } from "~/utils/themeUtils";
@@ -25,9 +26,7 @@ import { useWalletContext } from "~/hooks/useWalletContext";
 import { useConnection } from "~/hooks/useConnection";
 import { MarginfiAccountWrapper, SimulationResult, computeMaxLeverage } from "@mrgnlabs/marginfi-client-v2";
 import { TradeSide, checkLoopingActionAvailable, generateStats, simulateLooping } from "./tradingBox.utils";
-import { useDebounce } from "~/hooks/useDebounce";
 import { ActionMethod, capture, executeLeverageAction, extractErrorString, usePrevious } from "~/utils";
-import Link from "next/link";
 import { TradingBoxSettingsDialog } from "./components/TradingBoxSettings/TradingBoxSettingsDialog";
 import { calculateLoopingParams, handleSimulationError, LoopingObject } from "@mrgnlabs/mrgn-utils";
 
