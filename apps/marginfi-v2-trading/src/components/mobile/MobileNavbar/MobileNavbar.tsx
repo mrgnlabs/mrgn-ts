@@ -5,7 +5,6 @@ import { useRouter } from "next/router";
 import { IconChartPie, IconShovelPitchforks, IconSearch, IconPlus } from "@tabler/icons-react";
 
 import { useUiStore } from "~/store";
-import { useFirebaseAccount } from "~/hooks/useFirebaseAccount";
 import { useOs } from "~/hooks/useOs";
 import { cn } from "~/utils/themeUtils";
 
@@ -52,13 +51,8 @@ export const mobileLinks: NavLinkInfo[] = [
 ];
 
 const MobileNavbar = () => {
-  useFirebaseAccount();
-
   const router = useRouter();
-  const [setIsMenuModalOpen, isActionBoxInputFocussed] = useUiStore((state) => [
-    state.setIsMenuDrawerOpen,
-    state.isActionBoxInputFocussed,
-  ]);
+  const [isActionBoxInputFocussed] = useUiStore((state) => [state.isActionBoxInputFocussed]);
 
   const { isIOS, isPWA } = useOs();
 
@@ -86,12 +80,10 @@ const MobileNavbar = () => {
         <div className="h-full w-full text-xs font-normal z-50 flex justify-around relative lg:gap-8">
           {mobileLinks.map((linkInfo, index) => {
             const isActive = activeLink === `link${index}`;
-
             const trigger = linkInfo.trigger;
             const NavItem = (
               <Link
                 key={linkInfo.label}
-                onClick={() => linkInfo.label === "more" && setIsMenuModalOpen(true)}
                 href={linkInfo.href}
                 className={cn(
                   "w-1/4 py-2.5 flex flex-col gap-1 items-center border-t border-solid border-transparent transition-colors",
