@@ -15,8 +15,9 @@ import {
   LoopingOptions,
   STATIC_SIMULATION_ERRORS,
 } from "@mrgnlabs/mrgn-utils";
+import { IconArrowRight } from "@tabler/icons-react";
 import { VersionedTransaction } from "@solana/web3.js";
-import { IconArrowRight, IconPyth, IconSwitchboard } from "~/components/ui/icons";
+import { IconPyth, IconSwitchboard } from "~/components/ui/icons";
 import { GroupData } from "~/store/tradeStore";
 import { ActionMethod, cn, extractErrorString, isBankOracleStale } from "~/utils";
 import { MultiStepToastHandle, showErrorToast } from "~/utils/toastUtils";

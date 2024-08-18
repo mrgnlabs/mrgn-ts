@@ -1,8 +1,9 @@
 import React from "react";
+
 import { Asset, AuthenticationStrategy, Environment, MesoEvent, Network, inlineTransfer } from "@meso-network/meso-js";
+import { IconArrowLeft } from "@tabler/icons-react";
 
 import { useWalletContext } from "~/hooks/useWalletContext";
-import { IconArrowLeft } from "~/components/ui/icons";
 import { Button } from "~/components/ui/button";
 import { Label } from "~/components/ui/label";
 import { Input } from "~/components/ui/input";

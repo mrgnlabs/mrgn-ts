@@ -1,12 +1,13 @@
 import React from "react";
 
+import { IconArrowLeft } from "@tabler/icons-react";
+
 import { useIsMobile } from "~/hooks/useIsMobile";
 import { Desktop, Mobile } from "~/utils/mediaQueries";
 import { GroupData } from "~/store/tradeStore";
 
 import { TradingBox } from "./TradingBox";
 import { Dialog, DialogTrigger, DialogContent } from "~/components/ui/dialog";
-import { IconArrowLeft } from "~/components/ui/icons";
 
 type TradingBoxDialogProps = {
   activeGroup: GroupData;

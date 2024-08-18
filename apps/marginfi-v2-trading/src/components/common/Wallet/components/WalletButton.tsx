@@ -1,14 +1,17 @@
 import React, { useCallback, useMemo } from "react";
+
 import Image from "next/image";
 import Script from "next/script";
 import { useWallet } from "@solana/wallet-adapter-react";
+
+import { IconChevronDown, IconBrandX, IconBrandApple } from "@tabler/icons-react";
 
 import { useUiStore } from "~/store";
 import { WalletInfo, Web3AuthProvider, useWalletContext } from "~/hooks/useWalletContext";
 import { cn } from "~/utils";
 
 import { Wallet } from "~/components/common/Wallet";
-import { IconChevronDown, IconBrandGoogle, IconBrandX, IconBrandApple, IconMrgn } from "~/components/ui/icons";
+import { IconBrandGoogle, IconMrgn } from "~/components/ui/icons";
 import { Button } from "~/components/ui/button";
 
 const web3AuthIconMap: { [key in Web3AuthProvider]: { icon: JSX.Element } } = {

@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { useWallet } from "@solana/wallet-adapter-react";
+import { IconBrandX, IconBrandApple, IconChevronDown, IconStarFilled } from "@tabler/icons-react";
 
 import { useUiStore } from "~/store";
 import { useOs } from "~/hooks/useOs";
@@ -16,9 +17,6 @@ import { WalletAuthButton, WalletAuthEmailForm } from "~/components/common/Walle
 
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "~/components/ui/dialog";
 import {
-  IconMrgn,
-  IconBrandX,
-  IconBrandApple,
   IconBrandGoogle,
   IconBraveWallet,
   IconCoinbaseWallet,
@@ -29,8 +27,6 @@ import {
   IconGlowWallet,
   IconTrustWallet,
   IconEthereum,
-  IconChevronDown,
-  IconStarFilled,
   IconArena,
 } from "~/components/ui/icons";
 

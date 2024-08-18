@@ -1,15 +1,8 @@
 import React from "react";
 
-import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
-import { PublicKey } from "@solana/web3.js";
-
 import { useIsMobile } from "~/hooks/useIsMobile";
-import { ActionBox } from "~/components/common/ActionBox";
-import { Dialog, DialogTrigger, DialogOverlay, DialogContent, DialogClose } from "~/components/ui/dialog";
+import { Dialog, DialogTrigger, DialogContent } from "~/components/ui/dialog";
 import { Desktop, Mobile } from "~/utils/mediaQueries";
-import { IconArrowLeft } from "~/components/ui/icons";
-import { useMrgnlendStore } from "~/store";
 import { TradingBoxSettings } from "./TradingBoxSettings";
 
 type SettingsDialogProps = {

@@ -11,7 +11,7 @@ import {
   VersionedTransaction,
   TransactionMessage,
 } from "@solana/web3.js";
-import { Token, TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import { IconCheck, IconX, IconWallet } from "@tabler/icons-react";
 
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import {
@@ -30,7 +30,6 @@ import { useWalletContext } from "~/hooks/useWalletContext";
 import { useConnection } from "~/hooks/useConnection";
 import { capture } from "~/utils";
 
-import { IconCheck, IconX, IconWallet } from "~/components/ui/icons";
 import { Loader } from "~/components/ui/loader";
 import { Button } from "~/components/ui/button";
 import { Label } from "~/components/ui/label";

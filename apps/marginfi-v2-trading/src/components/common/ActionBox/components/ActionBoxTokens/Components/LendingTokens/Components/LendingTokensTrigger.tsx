@@ -1,15 +1,12 @@
 import React from "react";
 
-import { percentFormatter, aprToApy } from "@mrgnlabs/mrgn-common";
+import { IconChevronDown } from "@tabler/icons-react";
 import { ExtendedBankInfo, Emissions } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { LendingModes } from "~/types";
-import { useUiStore } from "~/store";
 import { RepayType, cn, computeBankRate } from "~/utils";
 
 import { Button } from "~/components/ui/button";
-import { IconChevronDown } from "~/components/ui/icons";
-
 import { SelectedBankItem } from "../../SharedComponents";
 
 type LendingTokensTriggerProps = {

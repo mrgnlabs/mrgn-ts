@@ -1,6 +1,6 @@
 import * as React from "react";
 import * as SheetPrimitive from "@radix-ui/react-dialog";
-import { IconX } from "~/components/ui/icons";
+import { IconX } from "@tabler/icons-react";
 import { cva, type VariantProps } from "class-variance-authority";
 
 import { cn } from "~/utils/themeUtils";

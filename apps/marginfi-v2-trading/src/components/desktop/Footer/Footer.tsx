@@ -2,9 +2,8 @@ import React from "react";
 
 import Link from "next/link";
 
+import { IconBrandX, IconBrandGithubFilled, IconBook } from "@tabler/icons-react";
 import { motion } from "framer-motion";
-
-import { IconBrandX, IconBrandDiscordFilled, IconBrandGithubFilled, IconBook } from "~/components/ui/icons";
 
 const footerLinks = [
   {

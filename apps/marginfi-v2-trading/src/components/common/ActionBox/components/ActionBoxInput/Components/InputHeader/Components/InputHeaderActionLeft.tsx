@@ -1,12 +1,12 @@
 import React from "react";
-import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { LstType, RepayType, YbxType } from "~/utils";
-import { useTradeStore, useUiStore } from "~/store";
+import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { IconSparkles } from "@tabler/icons-react";
+
+import { RepayType } from "~/utils";
 import { LendingModes } from "~/types";
 
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
-import { IconSparkles } from "~/components/ui/icons";
 
 interface InputHeaderActionProps {
   actionType: ActionType;

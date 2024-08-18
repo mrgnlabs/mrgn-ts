@@ -2,11 +2,11 @@ import React from "react";
 
 import Image from "next/image";
 
+import { IconSearch } from "@tabler/icons-react";
 import { PublicKey } from "@solana/web3.js";
 
 import { cn } from "~/utils";
 
-import { IconSearch } from "~/components/ui/icons";
 import { Input } from "~/components/ui/input";
 
 export type Token = {

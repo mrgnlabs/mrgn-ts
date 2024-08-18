@@ -1,12 +1,12 @@
 import React from "react";
 
+import { IconLoader } from "@tabler/icons-react";
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { useUiStore } from "~/store";
 import { useWalletContext } from "~/hooks/useWalletContext";
 
 import { Button } from "~/components/ui/button";
-import { IconLoader } from "~/components/ui/icons";
 
 type ActionBoxActionsProps = {
   isLoading: boolean;
@@ -38,7 +38,7 @@ export const ActionBoxActions = ({
 
   return (
     <Button disabled={isLoading || !isEnabled} className="w-full py-5" onClick={handleAction}>
-      {isLoading ? <IconLoader /> : buttonLabel}
+      {isLoading ? <IconLoader className="animate-spin" /> : buttonLabel}
     </Button>
   );
 };

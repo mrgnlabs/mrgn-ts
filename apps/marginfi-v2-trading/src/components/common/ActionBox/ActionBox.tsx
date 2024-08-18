@@ -3,6 +3,7 @@ import React from "react";
 import Link from "next/link";
 import { v4 as uuidv4 } from "uuid";
 
+import { IconAlertTriangle, IconExternalLink, IconSettings } from "@tabler/icons-react";
 import { WSOL_MINT, nativeToUi } from "@mrgnlabs/mrgn-common";
 import { ActionType, ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
@@ -14,7 +15,6 @@ import { useConnection } from "~/hooks/useConnection";
 import { useActionBoxStore } from "~/hooks/useActionBoxStore";
 
 import { ActionMethod, checkActionAvailable, RepayType } from "~/utils/actionBoxUtils";
-import { IconAlertTriangle, IconExternalLink, IconSettings } from "~/components/ui/icons";
 import { showErrorToast } from "~/utils/toastUtils";
 
 import {

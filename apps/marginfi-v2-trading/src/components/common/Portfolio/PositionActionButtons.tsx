@@ -2,11 +2,10 @@ import React from "react";
 
 import Image from "next/image";
 
-import { IconMinus, IconX, IconPlus } from "@tabler/icons-react";
-import { PublicKey, Transaction, VersionedTransaction } from "@solana/web3.js";
+import { IconMinus, IconX, IconPlus, IconLoader } from "@tabler/icons-react";
+import { Transaction, VersionedTransaction } from "@solana/web3.js";
 
-import { MarginfiAccountWrapper, MarginfiClient, getConfig } from "@mrgnlabs/marginfi-client-v2";
-import { ActiveBankInfo, ExtendedBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActiveBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { useConnection } from "~/hooks/useConnection";
 import { useTradeStore, useUiStore } from "~/store";
@@ -24,11 +23,9 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "~/components/ui/dialog";
 import { QuoteResponse } from "@jup-ag/api";
 import { percentFormatter } from "@mrgnlabs/mrgn-common";
-import { IconLoader } from "~/components/ui/icons";
 
 type PositionActionButtonsProps = {
   isBorrowing: boolean;
@@ -383,7 +380,7 @@ export const PositionActionButtons = ({
               className="w-full mx-auto"
               onClick={() => processTransaction()}
             >
-              {isLoading ? <IconLoader /> : "Confirm close position"}
+              {isLoading ? <IconLoader className="animate-spin" /> : "Confirm close position"}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -1,9 +1,10 @@
 import React from "react";
 
+import { IconLoader } from "@tabler/icons-react";
+
 import { Label } from "~/components/ui/label";
 import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
-import { IconLoader } from "~/components/ui/icons";
 
 type WalletAuthEmailFormProps = {
   loading: boolean;
@@ -32,7 +33,7 @@ export const WalletAuthEmailForm = ({ loading, active, onSubmit }: WalletAuthEma
         <Input ref={inputRef} id="email" type="email" placeholder="example@example.com" className="text-lg h-12" />
       </div>
       <Button type="submit" size="lg" disabled={!active}>
-        {loading && <IconLoader className="absolute left-2" />}
+        {loading && <IconLoader className="absolute left-2 animate-spin" />}
         Sign In
       </Button>
     </form>

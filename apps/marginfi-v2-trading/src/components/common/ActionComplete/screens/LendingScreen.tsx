@@ -3,12 +3,12 @@ import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 
+import { IconExternalLink } from "@tabler/icons-react";
 import { ActionType, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { shortenAddress } from "@mrgnlabs/mrgn-common";
 
 import { cn, getTokenImageURL } from "~/utils";
 import { useAssetItemData } from "~/hooks/useAssetItemData";
-import { IconExternalLink } from "~/components/ui/icons";
 
 interface Props {
   amount: number;

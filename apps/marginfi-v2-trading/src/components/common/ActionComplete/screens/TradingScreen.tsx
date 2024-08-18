@@ -2,13 +2,13 @@ import React from "react";
 
 import Link from "next/link";
 import Image from "next/image";
-import { QuoteResponse } from "@jup-ag/api";
 
+import { IconExternalLink } from "@tabler/icons-react";
+import { QuoteResponse } from "@jup-ag/api";
 import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { shortenAddress } from "@mrgnlabs/mrgn-common";
 
 import { cn, getTokenImageURL } from "~/utils";
-import { IconExternalLink } from "~/components/ui/icons";
 import { PublicKey } from "@solana/web3.js";
 
 interface Props {

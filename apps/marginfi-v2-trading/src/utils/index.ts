@@ -7,5 +7,4 @@ export * from "./mrgnUtils";
 export * from "./themeUtils";
 export * from "./toastUtils";
 export * from "./tradingActions";
-export * from "./tradeActions";
 export * from "./tradingViewUtils";

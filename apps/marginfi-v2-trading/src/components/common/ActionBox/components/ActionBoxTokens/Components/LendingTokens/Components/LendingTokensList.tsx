@@ -9,7 +9,7 @@ import { cn, computeBankRate } from "~/utils";
 import { useWalletContext } from "~/hooks/useWalletContext";
 
 import { CommandEmpty, CommandGroup, CommandItem } from "~/components/ui/command";
-import { BuyWithMoonpay, ActionBoxItem } from "~/components/common/ActionBox/components";
+import { ActionBoxItem } from "~/components/common/ActionBox/components";
 
 import { TokenListCommand } from "../../SharedComponents";
 import { GroupData } from "~/store/tradeStore";
@@ -150,7 +150,6 @@ export const LendingTokensList = ({
   return (
     <>
       <TokenListCommand selectedBank={selectedBank} onClose={onClose} onSetSearchQuery={setSearchQuery}>
-        {!hasTokens && <BuyWithMoonpay />}
         <CommandEmpty>No tokens found.</CommandEmpty>
 
         {/* LENDING */}
