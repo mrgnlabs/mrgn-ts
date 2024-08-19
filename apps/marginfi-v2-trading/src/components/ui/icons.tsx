@@ -771,294 +771,39 @@ const IconBrandSubstack = ({ size = 24, className }: IconProps) => (
 );
 
 const IconArena = ({ size = 48, className }: IconProps) => (
-  <svg height={size} viewBox="0 0 723 723" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
-    <rect width="723" height="723" fill="white" />
-    <rect x="27" y="144" width="138" height="100" fill="black" />
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 704 704"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={cn("text-black", className)}
+  >
+    <rect width="704" height="704" />
+    <path d="M32 534C32 496.445 62.4446 466 100 466C137.555 466 168 496.445 168 534V630H32V534Z" fill="currentColor" />
+    <path d="M32 338C32 300.445 62.4446 270 100 270C137.555 270 168 300.445 168 338V434H32V338Z" fill="currentColor" />
+    <path d="M32 142C32 104.445 62.4446 74 100 74C137.555 74 168 104.445 168 142V238H32V142Z" fill="currentColor" />
     <path
-      d="M96 244C57.8924 244 27 213.108 27 175V139C27 100.892 57.8924 70 96 70V70C134.108 70 165 100.892 165 139V175C165 213.108 134.108 244 96 244V244Z"
-      fill="black"
+      d="M368 534C368 496.445 398.445 466 436 466C473.555 466 504 496.445 504 534V630H368V534Z"
+      fill="currentColor"
     />
-    <rect x="204" y="144" width="138" height="100" fill="black" />
     <path
-      d="M273 244C234.892 244 204 213.108 204 175V139C204 100.892 234.892 70 273 70V70C311.108 70 342 100.892 342 139V175C342 213.108 311.108 244 273 244V244Z"
-      fill="black"
+      d="M368 338C368 300.445 398.445 270 436 270C473.555 270 504 300.445 504 338V434H368V338Z"
+      fill="currentColor"
     />
-    <rect x="27" y="554" width="138" height="100" fill="black" />
     <path
-      d="M96 654C57.8924 654 27 623.108 27 585V549C27 510.892 57.8924 480 96 480V480C134.108 480 165 510.892 165 549V585C165 623.108 134.108 654 96 654V654Z"
-      fill="black"
+      d="M200 534C200 496.445 230.445 466 268 466C305.555 466 336 496.445 336 534V630H200V534Z"
+      fill="currentColor"
     />
-    <rect x="204" y="554" width="138" height="100" fill="black" />
     <path
-      d="M273 654C234.892 654 204 623.108 204 585V549C204 510.892 234.892 480 273 480V480C311.108 480 342 510.892 342 549V585C342 623.108 311.108 654 273 654V654Z"
-      fill="black"
+      d="M200 338C200 300.445 230.445 270 268 270C305.555 270 336 300.445 336 338V434H200V338Z"
+      fill="currentColor"
     />
-    <rect x="381" y="554" width="138" height="100" fill="black" />
+    <path d="M200 142C200 104.445 230.445 74 268 74C305.555 74 336 104.445 336 142V238H200V142Z" fill="currentColor" />
     <path
-      d="M450 654C411.892 654 381 623.108 381 585V549C381 510.892 411.892 480 450 480V480C488.108 480 519 510.892 519 549V585C519 623.108 488.108 654 450 654V654Z"
-      fill="black"
+      d="M536 534C536 496.445 566.445 466 604 466C641.555 466 672 496.445 672 534V630H536V534Z"
+      fill="currentColor"
     />
-    <rect x="558" y="554" width="138" height="100" fill="black" />
-    <path
-      d="M627 654C588.892 654 558 623.108 558 585V549C558 510.892 588.892 480 627 480V480C665.108 480 696 510.892 696 549V585C696 623.108 665.108 654 627 654V654Z"
-      fill="black"
-    />
-    <rect x="381" y="349" width="138" height="100" fill="black" />
-    <path
-      d="M450 449C411.892 449 381 418.108 381 380V344C381 305.892 411.892 275 450 275V275C488.108 275 519 305.892 519 344V380C519 418.108 488.108 449 450 449V449Z"
-      fill="black"
-    />
-    <rect x="27" y="349" width="138" height="100" fill="black" />
-    <path
-      d="M96 449C57.8924 449 27 418.108 27 380V344C27 305.892 57.8924 275 96 275V275C134.108 275 165 305.892 165 344V380C165 418.108 134.108 449 96 449V449Z"
-      fill="black"
-    />
-    <rect x="204" y="349" width="138" height="100" fill="black" />
-    <path
-      d="M273 449C234.892 449 204 418.108 204 380V344C204 305.892 234.892 275 273 275V275C311.108 275 342 305.892 342 344V380C342 418.108 311.108 449 273 449V449Z"
-      fill="black"
-    />
-  </svg>
-);
-
-const IconArenaBlack = ({ size = 48, className }: IconProps) => (
-  <svg height={size} viewBox="0 0 704 704" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
-    <mask id="mask0_2020_2" maskUnits="userSpaceOnUse" x="0" y="53" width="200" height="200">
-      <path d="M200 53H0V253H200V53Z" fill="white" />
-    </mask>
-    <g mask="url(#mask0_2020_2)">
-      <path
-        fill-rule="evenodd"
-        clip-rule="evenodd"
-        d="M100 53H0V153C0 97.772 44.772 53 100 53ZM200 153C200 97.772 155.228 53 100 53H200V153Z"
-        fill="black"
-      />
-      <path
-        d="M184 153V645H16V153C16 106.608 53.608 69 100 69C146.392 69 184 106.608 184 153Z"
-        stroke="url(#paint0_linear_2020_2)"
-        stroke-width="32"
-      />
-    </g>
-    <mask id="mask1_2020_2" maskUnits="userSpaceOnUse" x="168" y="53" width="200" height="200">
-      <path d="M368 53H168V253H368V53Z" fill="white" />
-    </mask>
-    <g mask="url(#mask1_2020_2)">
-      <path
-        fill-rule="evenodd"
-        clip-rule="evenodd"
-        d="M268 53H168V153C168 97.772 212.772 53 268 53ZM368 153C368 97.772 323.228 53 268 53H368V153Z"
-        fill="black"
-      />
-      <path
-        d="M352 153V645H184V153C184 106.608 221.608 69 268 69C314.392 69 352 106.608 352 153Z"
-        stroke="url(#paint1_linear_2020_2)"
-        stroke-width="32"
-      />
-    </g>
-    <mask id="mask2_2020_2" maskUnits="userSpaceOnUse" x="0" y="453" width="200" height="200">
-      <path d="M200 453H0V653H200V453Z" fill="white" />
-    </mask>
-    <g mask="url(#mask2_2020_2)">
-      <path
-        fill-rule="evenodd"
-        clip-rule="evenodd"
-        d="M100 453H0V553C0 497.772 44.772 453 100 453ZM200 553C200 497.772 155.228 453 100 453H200V553Z"
-        fill="black"
-      />
-      <path
-        d="M184 553V1045H16V553C16 506.608 53.608 469 100 469C146.392 469 184 506.608 184 553Z"
-        stroke="url(#paint2_linear_2020_2)"
-        stroke-width="32"
-      />
-    </g>
-    <mask id="mask3_2020_2" maskUnits="userSpaceOnUse" x="336" y="453" width="200" height="200">
-      <path d="M536 453H336V653H536V453Z" fill="white" />
-    </mask>
-    <g mask="url(#mask3_2020_2)">
-      <path
-        fill-rule="evenodd"
-        clip-rule="evenodd"
-        d="M436 453H336V553C336 497.772 380.772 453 436 453ZM536 553C536 497.772 491.228 453 436 453H536V553Z"
-        fill="black"
-      />
-      <path
-        d="M520 553V1045H352V553C352 506.608 389.608 469 436 469C482.392 469 520 506.608 520 553Z"
-        stroke="url(#paint3_linear_2020_2)"
-        stroke-width="32"
-      />
-    </g>
-    <mask id="mask4_2020_2" maskUnits="userSpaceOnUse" x="168" y="453" width="200" height="200">
-      <path d="M368 453H168V653H368V453Z" fill="white" />
-    </mask>
-    <g mask="url(#mask4_2020_2)">
-      <path
-        fill-rule="evenodd"
-        clip-rule="evenodd"
-        d="M268 453H168V553C168 497.772 212.772 453 268 453ZM368 553C368 497.772 323.228 453 268 453H368V553Z"
-        fill="black"
-      />
-      <path
-        d="M352 553V1045H184V553C184 506.608 221.608 469 268 469C314.392 469 352 506.608 352 553Z"
-        stroke="url(#paint4_linear_2020_2)"
-        stroke-width="32"
-      />
-    </g>
-    <mask id="mask5_2020_2" maskUnits="userSpaceOnUse" x="504" y="453" width="200" height="200">
-      <path d="M704 453H504V653H704V453Z" fill="white" />
-    </mask>
-    <g mask="url(#mask5_2020_2)">
-      <path
-        fill-rule="evenodd"
-        clip-rule="evenodd"
-        d="M604 453H504V553C504 497.772 548.772 453 604 453ZM704 553C704 497.772 659.228 453 604 453H704V553Z"
-        fill="black"
-      />
-      <path
-        d="M688 553V1045H520V553C520 506.608 557.608 469 604 469C650.392 469 688 506.608 688 553Z"
-        stroke="url(#paint5_linear_2020_2)"
-        stroke-width="32"
-      />
-    </g>
-    <mask id="mask6_2020_2" maskUnits="userSpaceOnUse" x="336" y="253" width="200" height="200">
-      <path d="M536 253H336V453H536V253Z" fill="white" />
-    </mask>
-    <g mask="url(#mask6_2020_2)">
-      <path
-        fill-rule="evenodd"
-        clip-rule="evenodd"
-        d="M436 253H336V353C336 297.772 380.772 253 436 253ZM536 353C536 297.772 491.228 253 436 253H536V353Z"
-        fill="black"
-      />
-      <path
-        d="M520 353V845H352V353C352 306.608 389.608 269 436 269C482.392 269 520 306.608 520 353Z"
-        stroke="url(#paint6_linear_2020_2)"
-        stroke-width="32"
-      />
-    </g>
-    <mask id="mask7_2020_2" maskUnits="userSpaceOnUse" x="0" y="253" width="200" height="200">
-      <path d="M200 253H0V453H200V253Z" fill="white" />
-    </mask>
-    <g mask="url(#mask7_2020_2)">
-      <path
-        fill-rule="evenodd"
-        clip-rule="evenodd"
-        d="M100 253H0V353C0 297.772 44.772 253 100 253ZM200 353C200 297.772 155.228 253 100 253H200V353Z"
-        fill="black"
-      />
-      <path
-        d="M184 353V845H16V353C16 306.608 53.608 269 100 269C146.392 269 184 306.608 184 353Z"
-        stroke="url(#paint7_linear_2020_2)"
-        stroke-width="32"
-      />
-    </g>
-    <mask id="mask8_2020_2" maskUnits="userSpaceOnUse" x="168" y="253" width="200" height="200">
-      <path d="M368 253H168V453H368V253Z" fill="white" />
-    </mask>
-    <g mask="url(#mask8_2020_2)">
-      <path
-        fill-rule="evenodd"
-        clip-rule="evenodd"
-        d="M268 253H168V353C168 297.772 212.772 253 268 253ZM368 353C368 297.772 323.228 253 268 253H368V353Z"
-        fill="black"
-      />
-      <path
-        d="M352 353V845H184V353C184 306.608 221.608 269 268 269C314.392 269 352 306.608 352 353Z"
-        stroke="url(#paint8_linear_2020_2)"
-        stroke-width="32"
-      />
-    </g>
-    <defs>
-      <linearGradient
-        id="paint0_linear_2020_2"
-        x1="-6.84505e-07"
-        y1="133.8"
-        x2="200"
-        y2="133.008"
-        gradientUnits="userSpaceOnUse"
-      >
-        <stop offset="1" />
-      </linearGradient>
-      <linearGradient
-        id="paint1_linear_2020_2"
-        x1="168"
-        y1="133.8"
-        x2="368"
-        y2="133.008"
-        gradientUnits="userSpaceOnUse"
-      >
-        <stop offset="1" />
-      </linearGradient>
-      <linearGradient
-        id="paint2_linear_2020_2"
-        x1="-6.84505e-07"
-        y1="533.8"
-        x2="200"
-        y2="533.008"
-        gradientUnits="userSpaceOnUse"
-      >
-        <stop offset="1" />
-      </linearGradient>
-      <linearGradient
-        id="paint3_linear_2020_2"
-        x1="336"
-        y1="533.8"
-        x2="536"
-        y2="533.008"
-        gradientUnits="userSpaceOnUse"
-      >
-        <stop offset="1" />
-      </linearGradient>
-      <linearGradient
-        id="paint4_linear_2020_2"
-        x1="168"
-        y1="533.8"
-        x2="368"
-        y2="533.008"
-        gradientUnits="userSpaceOnUse"
-      >
-        <stop offset="1" />
-      </linearGradient>
-      <linearGradient
-        id="paint5_linear_2020_2"
-        x1="504"
-        y1="533.8"
-        x2="704"
-        y2="533.008"
-        gradientUnits="userSpaceOnUse"
-      >
-        <stop offset="1" />
-      </linearGradient>
-      <linearGradient
-        id="paint6_linear_2020_2"
-        x1="336"
-        y1="333.8"
-        x2="536"
-        y2="333.008"
-        gradientUnits="userSpaceOnUse"
-      >
-        <stop offset="1" />
-      </linearGradient>
-      <linearGradient
-        id="paint7_linear_2020_2"
-        x1="-6.84505e-07"
-        y1="333.8"
-        x2="200"
-        y2="333.008"
-        gradientUnits="userSpaceOnUse"
-      >
-        <stop offset="1" />
-      </linearGradient>
-      <linearGradient
-        id="paint8_linear_2020_2"
-        x1="168"
-        y1="333.8"
-        x2="368"
-        y2="333.008"
-        gradientUnits="userSpaceOnUse"
-      >
-        <stop offset="1" />
-      </linearGradient>
-    </defs>
   </svg>
 );
 
@@ -1092,5 +837,4 @@ export {
   IconSol,
   IconUsd,
   IconArena,
-  IconArenaBlack,
 };

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { IconAlertTriangle, IconTrendingUp, IconCoins, IconChevronLeft, IconChevronRight } from "@tabler/icons-react";
 
-import { IconArena, IconArenaBlack } from "~/components/ui/icons";
+import { IconArena } from "~/components/ui/icons";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "~/components/ui/carousel";
 import { Button } from "~/components/ui/button";
 import { Label } from "~/components/ui/label";
@@ -148,8 +148,8 @@ export const Tutorial = () => {
                   <Button onClick={() => api?.scrollPrev()} variant="outline" className="pl-2">
                     <IconChevronLeft size={16} /> Back
                   </Button>
-                  <Button onClick={() => handleDialogClose()} className="flex items-center gap-4" disabled={!checked}>
-                    <IconArenaBlack className="fill-white" size={16} /> Enter The Arena
+                  <Button onClick={() => handleDialogClose()} className="flex items-center gap-3" disabled={!checked}>
+                    <IconArena className="text-white" size={16} /> Enter The Arena
                   </Button>
                 </div>
               </div>
