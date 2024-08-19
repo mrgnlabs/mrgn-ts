@@ -36,8 +36,10 @@ import { ActionMethod, MarginfiActionParams, RepayType } from "@mrgnlabs/mrgn-ut
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 import { useLendBoxStore } from "./store";
 import { checkActionAvailable } from "./utils";
-import { ActionBoxWrapper, ActionMessage } from "../../sharedComponents";
+import { ActionBoxWrapper, ActionMessage, ActionProgressBar, ActionSettingsButton } from "../../sharedComponents";
+import { LendBoxInput } from "./components";
 
+// error handling
 export type LendBoxProps = {
   nativeSolBalance: number;
   tokenAccountMap: TokenAccountMap;
@@ -94,8 +96,7 @@ export const LendBox = ({
     state.setPreviousTxn,
   ]);
 
-  const { walletContextState, connected, wallet } = useWalletContext();
-  const { connection } = useConnection();
+  const { walletContextState, connected } = useWalletContext();
 
   // Cleanup the store when the wallet disconnects
   React.useEffect(() => {
@@ -104,12 +105,13 @@ export const LendBox = ({
     }
   }, [refreshState, connected, lendMode]);
 
+  //LST has been seen todo add to store
+
   // Toggle between main action view and settings view
   const [isSettingsActive, setIsSettingsActive] = React.useState<boolean>(false);
-  const [isLSTDialogOpen, setIsLSTDialogOpen] = React.useState(false);
-  const [lstDialogVariant, setLSTDialogVariant] = React.useState<LSTDialogVariants | null>(null);
-  const [hasLSTDialogShown, setHasLSTDialogShown] = React.useState<LSTDialogVariants[]>([]);
+
   const [lstDialogCallback, setLSTDialogCallback] = React.useState<(() => void) | null>(null);
+
   const [additionalActionMethods, setAdditionalActionMethods] = React.useState<ActionMethod[]>([]);
 
   React.useEffect(() => {
@@ -178,78 +180,6 @@ export const LendBox = ({
     [amount, connected, showCloseBalance, selectedBank, banks, selectedAccount, nativeSolBalance, lendMode]
   );
 
-  const executeLendingActionCb = React.useCallback(
-    async ({
-      mfiClient,
-      actionType: currentAction,
-      bank,
-      amount: borrowOrLendAmount,
-      nativeSolBalance,
-      marginfiAccount,
-      walletContextState,
-      repayWithCollatOptions,
-    }: MarginfiActionParams) => {
-      setIsLoading(true);
-      const attemptUuid = uuidv4();
-      capture(`user_${currentAction.toLowerCase()}_initiate`, {
-        uuid: attemptUuid,
-        tokenSymbol: bank.meta.tokenSymbol,
-        tokenName: bank.meta.tokenName,
-        amount: borrowOrLendAmount,
-        priorityFee,
-      });
-      // idea execute in parent
-      const txnSig = await executeLendingAction({
-        mfiClient,
-        actionType: currentAction,
-        bank,
-        amount: borrowOrLendAmount,
-        nativeSolBalance,
-        marginfiAccount,
-        walletContextState,
-        priorityFee,
-        repayWithCollatOptions,
-      });
-
-      setIsLoading(false);
-      //   handleCloseDialog && handleCloseDialog();
-      setAmountRaw("");
-
-      if (txnSig) {
-        setIsActionComplete(true);
-        setPreviousTxn({
-          type: currentAction,
-          bank: bank as ActiveBankInfo,
-          amount: borrowOrLendAmount,
-          txn: Array.isArray(txnSig) ? txnSig.pop() ?? "" : txnSig!,
-        });
-        capture(`user_${currentAction.toLowerCase()}`, {
-          uuid: attemptUuid,
-          tokenSymbol: bank.meta.tokenSymbol,
-          tokenName: bank.meta.tokenName,
-          amount: borrowOrLendAmount,
-          txn: txnSig!,
-          priorityFee,
-        });
-
-        // onComplete && onComplete();
-      } else {
-        // onError && onError();
-      }
-
-      // -------- Refresh state
-      try {
-        // second case to execute in parent
-        // setIsRefreshingStore(true);
-        // await fetchMrgnlendState();
-      } catch (error: any) {
-        console.log("Error while reloading state");
-        console.log(error);
-      }
-    },
-    [setIsLoading, priorityFee, setAmountRaw, setIsActionComplete, setPreviousTxn]
-  );
-
   const handleCloseBalance = React.useCallback(async () => {
     if (!selectedBank || !selectedAccount) {
       return;
@@ -295,12 +225,8 @@ export const LendBox = ({
     }
   }, [selectedBank, selectedAccount, priorityFee, setIsLoading, setAmountRaw, setPreviousTxn]);
 
-  const handleAction = async () => {
-    await handleLendingAction();
-  };
-
   const handleLendingAction = React.useCallback(async () => {
-    if (!lendMode || !selectedBank || !amount) {
+    if (!selectedBank || !amount) {
       return;
     }
 
@@ -320,72 +246,63 @@ export const LendBox = ({
 
     if (
       lendMode === ActionType.Deposit &&
-      (selectedBank.meta.tokenSymbol === "SOL" || selectedBank.meta.tokenSymbol === "stSOL") &&
-      !hasLSTDialogShown.includes(selectedBank.meta.tokenSymbol as LSTDialogVariants)
+      (selectedBank.meta.tokenSymbol === "SOL" || selectedBank.meta.tokenSymbol === "stSOL")
     ) {
-      setHasLSTDialogShown((prev) => [...prev, selectedBank.meta.tokenSymbol as LSTDialogVariants]);
-      setLSTDialogVariant(selectedBank.meta.tokenSymbol as LSTDialogVariants);
-      setIsLSTDialogOpen(true);
       setLSTDialogCallback(() => action);
-
       return;
     }
 
     await action();
-
-    if (
-      lendMode === ActionType.Withdraw &&
-      (selectedBank.meta.tokenSymbol === "SOL" || selectedBank.meta.tokenSymbol === "stSOL") &&
-      !hasLSTDialogShown.includes(selectedBank.meta.tokenSymbol as LSTDialogVariants)
-    ) {
-      setHasLSTDialogShown((prev) => [...prev, selectedBank.meta.tokenSymbol as LSTDialogVariants]);
-      setLSTDialogVariant(selectedBank.meta.tokenSymbol as LSTDialogVariants);
-      return;
-    }
-  }, [
-    lendMode,
-    selectedBank,
-    amount,
-    hasLSTDialogShown,
-    nativeSolBalance,
-    selectedAccount,
-    walletContextState,
-    executeLendingActionCb,
-  ]);
+  }, [lendMode, selectedBank, amount, nativeSolBalance, selectedAccount, walletContextState]);
 
   return (
     <ActionBoxWrapper
       actionMode={lendMode as any}
       settings={{ value: isSettingsActive, setShowSettings: setIsSettingsActive }}
     >
-      <>
-        {additionalActionMethods.concat(actionMethods).map(
-          (actionMethod, idx) =>
-            actionMethod.description && (
-              <div className="pb-6" key={idx}>
-                <ActionMessage actionMethod={actionMethod} />
-              </div>
-            )
-        )}
+      <LendBoxInput
+        banks={banks}
+        nativeSolBalance={nativeSolBalance}
+        walletAmount={walletAmount}
+        amountRaw={amountRaw}
+        maxAmount={maxAmount}
+      />
 
-        <div className="flex justify-between mt-3">
-          <div className="flex justify-end gap-2 ml-auto">
-            <button
-              onClick={() => setIsSettingsActive(true)}
-              className="text-xs gap-1 h-6 px-2 flex items-center rounded-full border border-background-gray-light bg-transparent hover:bg-background-gray-light text-muted-foreground"
-            >
-              Settings <IconSettings size={16} />
-            </button>
+      {additionalActionMethods.concat(actionMethods).map(
+        (actionMethod, idx) =>
+          actionMethod.description && (
+            <div className="pb-6" key={idx}>
+              <ActionMessage actionMethod={actionMethod} />
+            </div>
+          )
+      )}
+
+      <ActionProgressBar
+        amount={0}
+        ratio={0}
+        label={"Available Collateral"}
+        TooltipValue={
+          <div className="space-y-2">
+            <p>Available collateral is the USD value of your collateral not actively backing a loan.</p>
+            <p>It can be used to open additional borrows or withdraw part of your collateral.</p>
           </div>
-        </div>
-      </>
+        }
+      />
+
+      <ActionSettingsButton setIsSettingsActive={setIsSettingsActive} />
+
+      <ActionBoxActions
+        isLoading={false}
+        isEnabled={false}
+        actionMode={ActionType.Deposit}
+        showCloseBalance={false}
+        handleAction={() => {}}
+      />
 
       <LSTDialog
-        variant={lstDialogVariant}
-        open={isLSTDialogOpen}
+        variant={selectedBank?.meta.tokenSymbol as LSTDialogVariants}
+        open={!!lstDialogCallback}
         onClose={() => {
-          setIsLSTDialogOpen(false);
-          setLSTDialogVariant(null);
           if (lstDialogCallback) {
             lstDialogCallback();
             setLSTDialogCallback(null);

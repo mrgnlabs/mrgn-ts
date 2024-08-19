@@ -12,7 +12,7 @@ import { useLendBoxStore } from "../../store";
 import { LendingTokens } from "./LendingTokens";
 import { LendingAction } from "./LendingAction";
 
-type ActionBoxInputProps = {
+type LendBoxInputProps = {
   banks: ExtendedBankInfo[];
   nativeSolBalance: number;
   walletAmount: number | undefined;
@@ -23,14 +23,14 @@ type ActionBoxInputProps = {
   isMini?: boolean;
 };
 
-export const ActionBoxInput = ({
+export const LendBoxInput = ({
   banks,
   nativeSolBalance,
   walletAmount,
   maxAmount,
   showCloseBalance,
   isDialog,
-}: ActionBoxInputProps) => {
+}: LendBoxInputProps) => {
   const [isActionBoxInputFocussed, setIsActionBoxInputFocussed, priorityFee] = useUiStore((state) => [
     state.isActionBoxInputFocussed,
     state.setIsActionBoxInputFocussed,

@@ -1,4 +1,4 @@
-export * from "./DialogWrapper";
+export * from "./ActionDialogWrapper";
 export * from "./ActionInput";
 export * from "./ActionStats";
 export * from "./ActionBoxWrapper";

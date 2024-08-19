@@ -4,14 +4,17 @@ import { useIsMobile } from "~/hooks/useIsMobile";
 import { Dialog, DialogTrigger, DialogContent } from "~/components/ui/dialog";
 import { IconArrowLeft } from "~/components/ui/icons";
 
-export type DialogWrapperProps = {
+export interface ActionDialogProps {
   trigger: React.ReactNode;
-  children: React.ReactNode;
   title: string;
   isTriggered?: boolean;
-};
+}
 
-export const DialogWrapper = ({ trigger, children, title, isTriggered = false }: DialogWrapperProps) => {
+interface ActionDialogWrapperProps extends ActionDialogProps {
+  children: React.ReactNode;
+}
+
+export const ActionDialogWrapper = ({ trigger, children, title, isTriggered = false }: ActionDialogWrapperProps) => {
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const isMobile = useIsMobile();
 

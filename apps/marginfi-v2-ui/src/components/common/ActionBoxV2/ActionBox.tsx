@@ -5,37 +5,59 @@ import { LendBox, LendBoxProps } from "./CoreActions/LendBox";
 // import FlashLoanActionbox from "./FlashLoan/FlashLoanActionbox";
 // import LSTActionbox from "./LST/LSTActionbox";
 
-import { DialogWrapper, DialogWrapperProps } from "./sharedComponents";
+import { ActionDialogWrapper, ActionDialogProps } from "./sharedComponents";
 
-type ActionboxProps = {
-  isDialog?: boolean;
-} & Partial<DialogWrapperProps>;
+type ActionboxDialogProps = {
+  isDialog: true;
+  dialogProps: ActionDialogProps;
+};
 
-interface ActionboxComponent extends React.FC<ActionboxProps> {
+type ActionboxWithoutDailogProps = {
+  isDialog: false;
+};
+
+type ActionboxProps = ActionboxWithoutDailogProps | ActionboxDialogProps;
+
+const isDialogWrapperProps = (props: ActionboxProps): props is ActionboxDialogProps => props.isDialog === true;
+
+interface ActionboxComponentProps {
+  children: React.ReactNode;
+}
+
+interface ActionboxComponent extends React.FC<ActionboxProps & ActionboxComponentProps> {
   Lend: React.FC<ActionboxProps & { lendProps: LendBoxProps }>;
   FlashLoan: React.FC<ActionboxProps>;
   LST: React.FC<ActionboxProps>;
 }
 
-const Actionbox: ActionboxComponent = ({ isDialog, children, ...dialogProps }) => {
-  if (isDialog && dialogProps.title && dialogProps.trigger) {
+const Actionbox: ActionboxComponent = (props) => {
+  if (isDialogWrapperProps(props)) {
+    const dialogProps = props.dialogProps;
+
     return (
-      <DialogWrapper title={dialogProps.title} trigger={dialogProps.trigger} isTriggered={dialogProps.isTriggered}>
-        {children}
-      </DialogWrapper>
+      <ActionDialogWrapper
+        title={dialogProps.title}
+        trigger={dialogProps.trigger}
+        isTriggered={dialogProps.isTriggered}
+      >
+        {props.children}
+      </ActionDialogWrapper>
     );
   }
 
-  return <>{children}</>;
+  return <>{props.children}</>;
 };
+
 // Assign subcomponents as static properties
-Actionbox.Lend = ({ isDialog, lendProps, ...dialogProps }: ActionboxProps & { lendProps: LendBoxProps }) => (
-  <Actionbox isDialog={isDialog} {...dialogProps}>
-    <LendBox isDialog={isDialog} {...lendProps} />
+Actionbox.Lend = (props: ActionboxProps & { lendProps: LendBoxProps }) => (
+  <Actionbox {...props}>
+    <LendBox isDialog={props.isDialog} {...props.lendProps} />
   </Actionbox>
 );
 // Actionbox.LendBorrow
 Actionbox.FlashLoan = () => <div>FlashLoan</div>;
 Actionbox.LST = () => <div>LST</div>;
+
+Actionbox.displayName = "Actionbox";
 
 export default Actionbox;
