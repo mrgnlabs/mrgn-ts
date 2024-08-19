@@ -3,6 +3,7 @@
 .env*
 
 # dependencies
+/public/trading_lib
 /node_modules
 /.pnp
 .pnp.js
