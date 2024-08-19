@@ -1,0 +1,3 @@
+[submodule "apps/marginfi-v2-trading/public/tradingview"]
+	path = apps/marginfi-v2-trading/public/tradingview
+	url = git@github.com:mrgnlabs/tradingview.git
