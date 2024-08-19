@@ -3,12 +3,8 @@ import {
   ActionMethodType,
   canBeBorrowed,
   canBeLent,
-  canBeLooped,
-  canBeLstStaked,
   canBeRepaid,
-  canBeRepaidCollat,
   canBeWithdrawn,
-  RepayType,
 } from "@mrgnlabs/mrgn-utils";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
@@ -29,9 +25,9 @@ interface CheckActionAvailableProps {
   nativeSolBalance: number;
   showCloseBalance?: boolean;
   selectedBank: ExtendedBankInfo | null;
-  extendedBankInfos: ExtendedBankInfo[];
+  banks: ExtendedBankInfo[];
   marginfiAccount: MarginfiAccountWrapper | null;
-  actionMode: ActionType;
+  lendMode: ActionType;
 }
 
 export function checkActionAvailable({
@@ -40,9 +36,9 @@ export function checkActionAvailable({
   connected,
   showCloseBalance,
   selectedBank,
-  extendedBankInfos,
+  banks,
   marginfiAccount,
-  actionMode,
+  lendMode,
 }: CheckActionAvailableProps): ActionMethod[] {
   let checks: ActionMethod[] = [];
 
@@ -54,7 +50,7 @@ export function checkActionAvailable({
 
   // allert checks
   if (selectedBank) {
-    switch (actionMode) {
+    switch (lendMode) {
       case ActionType.Deposit:
         const lentChecks = canBeLent(selectedBank, nativeSolBalance);
         if (lentChecks.length) checks.push(...lentChecks);
@@ -64,7 +60,7 @@ export function checkActionAvailable({
         if (withdrawChecks.length) checks.push(...withdrawChecks);
         break;
       case ActionType.Borrow:
-        const borrowChecks = canBeBorrowed(selectedBank, extendedBankInfos, marginfiAccount);
+        const borrowChecks = canBeBorrowed(selectedBank, banks, marginfiAccount);
         if (borrowChecks.length) checks.push(...borrowChecks);
         break;
       case ActionType.Repay:

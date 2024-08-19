@@ -1,7 +1,7 @@
 import React from "react";
 
 import { WSOL_MINT } from "@mrgnlabs/mrgn-common";
-import { ExtendedBankInfo, LendType } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { LendingModes, computeBankRate } from "@mrgnlabs/mrgn-utils";
 
 import { cn } from "~/utils";
@@ -16,7 +16,7 @@ type LendingTokensListProps = {
   banks: ExtendedBankInfo[];
   nativeSolBalance: number;
   isOpen: boolean;
-  lendMode: LendType;
+  lendMode: ActionType;
 
   onSetSelectedBank: (selectedTokenBank: ExtendedBankInfo | null) => void;
   onClose: () => void;
@@ -32,7 +32,8 @@ export const LendingTokensList = ({
   onClose,
 }: LendingTokensListProps) => {
   const lendingMode = React.useMemo(
-    () => (lendMode === LendType.Deposit || lendMode === LendType.Withdraw ? LendingModes.LEND : LendingModes.BORROW),
+    () =>
+      lendMode === ActionType.Deposit || lendMode === ActionType.Withdraw ? LendingModes.LEND : LendingModes.BORROW,
     [lendMode]
   );
 

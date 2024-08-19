@@ -4,7 +4,7 @@ import Link from "next/link";
 import { v4 as uuidv4 } from "uuid";
 
 import { WSOL_MINT, nativeToUi } from "@mrgnlabs/mrgn-common";
-import { ActionType, ActiveBankInfo, ExtendedBankInfo, TokenAccountMap } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActiveBankInfo, ExtendedBankInfo, ActionType, TokenAccountMap } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { useUiStore } from "~/store";
 import {
@@ -36,55 +36,60 @@ import { ActionMethod, MarginfiActionParams, RepayType } from "@mrgnlabs/mrgn-ut
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 import { useLendBoxStore } from "./store";
 import { checkActionAvailable } from "./utils";
+import { ActionBoxWrapper, ActionMessage } from "../../sharedComponents";
 
-type ActionBoxProps = {
+export type LendBoxProps = {
   nativeSolBalance: number;
   tokenAccountMap: TokenAccountMap;
   selectedAccount: MarginfiAccountWrapper | null;
-  extendedBankInfos: ExtendedBankInfo[];
-  requestedAction?: ActionType;
+  banks: ExtendedBankInfo[];
+  requestedLendType: ActionType;
+  isDialog?: boolean;
   requestedBank?: ExtendedBankInfo;
+  onComplete: () => void;
 };
 
 export const LendBox = ({
   nativeSolBalance,
   tokenAccountMap,
-  extendedBankInfos,
+  banks,
   selectedAccount,
-  requestedAction,
+  requestedLendType,
   requestedBank,
-}: ActionBoxProps) => {
+  isDialog,
+  onComplete,
+}: LendBoxProps) => {
+  const priorityFee = 0;
+
   const [
     amountRaw,
-    actionMode,
+    lendMode,
     selectedBank,
     isLoading,
     errorMessage,
 
     refreshState,
     fetchActionBoxState,
-    setActionMode,
+    setLendMode,
     setIsLoading,
     setAmountRaw,
     refreshSelectedBanks,
   ] = useLendBoxStore((state) => [
     state.amountRaw,
-    state.actionMode,
+    state.lendMode,
     state.selectedBank,
     state.isLoading,
     state.errorMessage,
 
     state.refreshState,
     state.fetchActionBoxState,
-    state.setActionMode,
+    state.setLendMode,
     state.setIsLoading,
     state.setAmountRaw,
     state.refreshSelectedBanks,
   ]);
 
-  const [priorityFee, setPriorityFee, setIsActionComplete, setPreviousTxn] = useUiStore((state) => [
-    state.priorityFee,
-    state.setPriorityFee,
+  const [setIsActionComplete, setPreviousTxn] = useUiStore((state) => [
     state.setIsActionComplete,
     state.setPreviousTxn,
   ]);
@@ -95,11 +100,12 @@ export const LendBox = ({
   // Cleanup the store when the wallet disconnects
   React.useEffect(() => {
     if (!connected) {
-      refreshState(actionMode);
+      refreshState(lendMode);
     }
-  }, [refreshState, connected, actionMode]);
+  }, [refreshState, connected, lendMode]);
 
-  const [isSettingsMode, setIsSettingsMode] = React.useState<boolean>(false);
+  // Toggle between main action view and settings view
+  const [isSettingsActive, setIsSettingsActive] = React.useState<boolean>(false);
   const [isLSTDialogOpen, setIsLSTDialogOpen] = React.useState(false);
   const [lstDialogVariant, setLSTDialogVariant] = React.useState<LSTDialogVariants | null>(null);
   const [hasLSTDialogShown, setHasLSTDialogShown] = React.useState<LSTDialogVariants[]>([]);
@@ -107,8 +113,8 @@ export const LendBox = ({
   const [additionalActionMethods, setAdditionalActionMethods] = React.useState<ActionMethod[]>([]);
 
   React.useEffect(() => {
-    fetchActionBoxState({ requestedAction, requestedBank });
-  }, [requestedAction, requestedBank, fetchActionBoxState]);
+    fetchActionBoxState({ requestedLendType, requestedBank });
+  }, [requestedLendType, requestedBank, fetchActionBoxState]);
 
   //   React.useEffect(() => {
   //     refreshSelectedBanks(extendedBankInfos);
@@ -140,10 +146,8 @@ export const LendBox = ({
       return 0;
     }
 
-    switch (actionMode) {
+    switch (lendMode) {
       case ActionType.Deposit:
-        return selectedBank?.userInfo.maxDeposit ?? 0;
-      case ActionType.Loop:
         return selectedBank?.userInfo.maxDeposit ?? 0;
       case ActionType.Withdraw:
         return selectedBank?.userInfo.maxWithdraw ?? 0;
@@ -154,10 +158,10 @@ export const LendBox = ({
       default:
         return 0;
     }
-  }, [selectedBank, actionMode]);
+  }, [selectedBank, lendMode]);
 
   const isDust = React.useMemo(() => selectedBank?.isActive && selectedBank?.position.isDust, [selectedBank]);
-  const showCloseBalance = React.useMemo(() => actionMode === ActionType.Withdraw && isDust, [actionMode, isDust]);
+  const showCloseBalance = React.useMemo(() => lendMode === ActionType.Withdraw && isDust, [lendMode, isDust]);
 
   const actionMethods = React.useMemo(
     () =>
@@ -166,21 +170,12 @@ export const LendBox = ({
         connected,
         showCloseBalance,
         selectedBank,
-        extendedBankInfos,
+        banks,
         marginfiAccount: selectedAccount,
         nativeSolBalance,
-        actionMode,
+        lendMode,
       }),
-    [
-      amount,
-      connected,
-      showCloseBalance,
-      selectedBank,
-      extendedBankInfos,
-      selectedAccount,
-      nativeSolBalance,
-      actionMode,
-    ]
+    [amount, connected, showCloseBalance, selectedBank, banks, selectedAccount, nativeSolBalance, lendMode]
   );
 
   const executeLendingActionCb = React.useCallback(
@@ -305,14 +300,14 @@ export const LendBox = ({
   };
 
   const handleLendingAction = React.useCallback(async () => {
-    if (!actionMode || !selectedBank || !amount) {
+    if (!lendMode || !selectedBank || !amount) {
       return;
     }
 
     const action = async () => {
       const params = {
         mfiClient: null,
-        actionType: actionMode,
+        actionType: lendMode,
         bank: selectedBank,
         amount,
         nativeSolBalance,
@@ -324,7 +319,7 @@ export const LendBox = ({
     };
 
     if (
-      actionMode === ActionType.Deposit &&
+      lendMode === ActionType.Deposit &&
       (selectedBank.meta.tokenSymbol === "SOL" || selectedBank.meta.tokenSymbol === "stSOL") &&
       !hasLSTDialogShown.includes(selectedBank.meta.tokenSymbol as LSTDialogVariants)
     ) {
@@ -339,7 +334,7 @@ export const LendBox = ({
     await action();
 
     if (
-      actionMode === ActionType.Withdraw &&
+      lendMode === ActionType.Withdraw &&
       (selectedBank.meta.tokenSymbol === "SOL" || selectedBank.meta.tokenSymbol === "stSOL") &&
       !hasLSTDialogShown.includes(selectedBank.meta.tokenSymbol as LSTDialogVariants)
     ) {
@@ -348,7 +343,7 @@ export const LendBox = ({
       return;
     }
   }, [
-    actionMode,
+    lendMode,
     selectedBank,
     amount,
     hasLSTDialogShown,
@@ -359,130 +354,30 @@ export const LendBox = ({
   ]);
 
   return (
-    <>
+    <ActionBoxWrapper
+      actionMode={lendMode as any}
+      settings={{ value: isSettingsActive, setShowSettings: setIsSettingsActive }}
+    >
       <>
-        <ActionBoxInput
-          isMini={isMini}
-          walletAmount={walletAmount}
-          amountRaw={amountRaw}
-          maxAmount={maxAmount}
-          showCloseBalance={showCloseBalance}
-          isDialog={isDialog}
-        />
-
         {additionalActionMethods.concat(actionMethods).map(
           (actionMethod, idx) =>
             actionMethod.description && (
               <div className="pb-6" key={idx}>
-                <div
-                  className={cn(
-                    "flex space-x-2 py-2.5 px-3.5 rounded-lg gap-1 text-sm",
-                    actionMethod.actionMethod === "INFO" && "bg-info text-info-foreground",
-                    (!actionMethod.actionMethod || actionMethod.actionMethod === "WARNING") &&
-                      "bg-alert text-alert-foreground",
-                    actionMethod.actionMethod === "ERROR" && "bg-[#990000] text-primary"
-                  )}
-                >
-                  <IconAlertTriangle className="shrink-0 translate-y-0.5" size={16} />
-                  <div className="space-y-2.5">
-                    <p>{actionMethod.description}</p>
-                    {actionMethod.link && (
-                      <p>
-                        {/* <span className="hidden md:inline">-</span>{" "} */}
-                        <Link
-                          href={actionMethod.link}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="border-b border-warning/50 hover:border-transparent transition-colors"
-                        >
-                          <IconExternalLink size={14} className="inline -translate-y-[1px]" />{" "}
-                          {actionMethod.linkText || "Read more"}
-                        </Link>
-                      </p>
-                    )}
-                  </div>
-                </div>
+                <ActionMessage actionMethod={actionMethod} />
               </div>
             )
         )}
 
-        <ActionBoxPreview
-          selectedBank={selectedBank}
-          selectedStakingAccount={selectedStakingAccount}
-          actionMode={actionMode}
-          amount={amount}
-          slippageBps={slippageBps}
-          isEnabled={!isMini}
-          loopOptions={
-            actionQuote && loopingAmounts && selectedRepayBank
-              ? {
-                  loopingQuote: actionQuote,
-                  loopingBank: selectedRepayBank,
-                  loopingTxn: actionTxns.actionTxn,
-                  bundleTipTxn: actionTxns.bundleTipTxn,
-                  borrowAmount: loopingAmounts?.borrowAmount,
-                  connection,
-                }
-              : undefined
-          }
-          repayWithCollatOptions={
-            actionQuote && repayAmount && selectedRepayBank
-              ? {
-                  repayCollatQuote: actionQuote,
-                  repayCollatTxn: actionTxns.actionTxn,
-                  bundleTipTxn: actionTxns.bundleTipTxn,
-                  withdrawAmount: repayAmount,
-                  depositBank: selectedRepayBank,
-                  connection,
-                }
-              : undefined
-          }
-          addAdditionalsPopup={(actions) => setAdditionalActionMethods(actions)}
-        >
-          <ActionBoxActions
-            handleAction={() => {
-              showCloseBalance ? handleCloseBalance() : handleAction();
-            }}
-            isLoading={isLoading}
-            showCloseBalance={showCloseBalance ?? false}
-            isEnabled={
-              !additionalActionMethods.concat(actionMethods).filter((value) => value.isEnabled === false).length
-            }
-            actionMode={actionMode}
-          />
-          <div className="flex justify-between mt-3">
-            {/* {isPreviewVisible ? (
-                    <button
-                      className={cn(
-                        "flex text-muted-foreground text-xs items-center cursor-pointer transition hover:text-primary cursor-pointer"
-                      )}
-                      onClick={() => setHasPreviewShown(!hasPreviewShown)}
-                    >
-                      {hasPreviewShown ? (
-                        <>
-                          <IconEyeClosed size={14} /> <span className="mx-1">Hide details</span>
-                        </>
-                      ) : (
-                        <>
-                          <IconEye size={14} /> <span className="mx-1">View details</span>
-                        </>
-                      )}
-                      <IconChevronDown className={cn(hasPreviewShown && "rotate-180")} size={16} />
-                    </button>
-                  ) : (
-                    <div />
-                  )} */}
-
-            <div className="flex justify-end gap-2 ml-auto">
-              <button
-                onClick={() => setIsSettingsMode(true)}
-                className="text-xs gap-1 h-6 px-2 flex items-center rounded-full border border-background-gray-light bg-transparent hover:bg-background-gray-light text-muted-foreground"
-              >
-                Settings <IconSettings size={16} />
-              </button>
-            </div>
+        <div className="flex justify-between mt-3">
+          <div className="flex justify-end gap-2 ml-auto">
+            <button
+              onClick={() => setIsSettingsActive(true)}
+              className="text-xs gap-1 h-6 px-2 flex items-center rounded-full border border-background-gray-light bg-transparent hover:bg-background-gray-light text-muted-foreground"
+            >
+              Settings <IconSettings size={16} />
+            </button>
           </div>
-        </ActionBoxPreview>
+        </div>
       </>
 
       <LSTDialog
@@ -497,6 +392,6 @@ export const LendBox = ({
           }
         }}
       />
-    </>
+    </ActionBoxWrapper>
   );
 };

@@ -1,6 +1,6 @@
 import React from "react";
 
-import { LendType } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { clampedNumeralFormatter } from "@mrgnlabs/mrgn-common";
 
 import { IconArrowRight } from "~/components/ui/icons";
@@ -40,18 +40,18 @@ export const LendingAction = ({ maxAmount, walletAmount, isDialog, onSetAmountRa
       amount !== undefined ? `${clampedNumeralFormatter(amount)} ${symbol}` : "-";
 
     switch (lendMode) {
-      case LendType.Deposit:
+      case ActionType.Deposit:
         return {
           label: "Wallet: ",
           amount: formatAmount(walletAmount, selectedBank?.meta.tokenSymbol),
         };
-      case LendType.Borrow:
+      case ActionType.Borrow:
         return {
           label: "Max Borrow: ",
           amount: formatAmount(selectedBank.userInfo.maxBorrow, selectedBank?.meta.tokenSymbol),
         };
 
-      case LendType.Withdraw:
+      case ActionType.Withdraw:
         return {
           amount: formatAmount(
             selectedBank?.isActive ? selectedBank.position.amount : undefined,
@@ -60,7 +60,7 @@ export const LendingAction = ({ maxAmount, walletAmount, isDialog, onSetAmountRa
           label: "Supplied: ",
         };
 
-      case LendType.Repay:
+      case ActionType.Repay:
         return {
           amount: formatAmount(
             selectedBank?.isActive ? selectedBank.position.amount : undefined,
@@ -74,7 +74,7 @@ export const LendingAction = ({ maxAmount, walletAmount, isDialog, onSetAmountRa
     }
   }, [selectedBank, lendMode, walletAmount]);
 
-  const isMaxButtonVisible = React.useMemo(() => lendMode === LendType.Repay, [lendMode]);
+  const isMaxButtonVisible = React.useMemo(() => lendMode === ActionType.Repay, [lendMode]);
 
   // Section above the input
   return (

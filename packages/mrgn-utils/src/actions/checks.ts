@@ -162,7 +162,7 @@ function canBeLooped(
 
 function canBeBorrowed(
   targetBankInfo: ExtendedBankInfo,
-  extendedBankInfos: ExtendedBankInfo[],
+  banks: ExtendedBankInfo[],
   marginfiAccount: MarginfiAccountWrapper | null
 ): ActionMethod[] {
   let checks: ActionMethod[] = [];
@@ -202,9 +202,7 @@ function canBeBorrowed(
     checks.push(STATIC_SIMULATION_ERRORS.NO_COLLATERAL);
   }
 
-  const existingLiabilityBanks = extendedBankInfos.filter(
-    (b) => b.isActive && !b.position.isLending
-  ) as ActiveBankInfo[];
+  const existingLiabilityBanks = banks.filter((b) => b.isActive && !b.position.isLending) as ActiveBankInfo[];
   const existingIsolatedBorrow = existingLiabilityBanks.find(
     (b) => b.info.rawBank.config.riskTier === RiskTier.Isolated && !b.address.equals(targetBankInfo.address)
   );

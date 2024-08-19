@@ -1,6 +1,6 @@
 import { create, StateCreator } from "zustand";
 
-import { LendType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { ActionMethod } from "@mrgnlabs/mrgn-utils";
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 
@@ -9,7 +9,7 @@ import { ActionSummary } from "../utils";
 interface LendBoxState {
   // State
   amountRaw: string;
-  lendMode: LendType;
+  lendMode: ActionType;
   actionSummary: ActionSummary | null;
   selectedBank: ExtendedBankInfo | null;
   selectedAccount: MarginfiAccountWrapper | null;
@@ -17,10 +17,10 @@ interface LendBoxState {
   isLoading: boolean;
 
   // Actions
-  refreshState: (actionMode?: LendType) => void;
+  refreshState: (actionMode?: ActionType) => void;
   refreshSelectedBanks: (banks: ExtendedBankInfo[]) => void;
-  fetchActionBoxState: (args: { requestedAction?: LendType; requestedBank?: ExtendedBankInfo }) => void;
-  setActionMode: (actionMode: LendType) => void;
+  fetchActionBoxState: (args: { requestedLendType?: ActionType; requestedBank?: ExtendedBankInfo }) => void;
+  setLendMode: (lendMode: ActionType) => void;
   setAmountRaw: (amountRaw: string, maxAmount?: number) => void;
   setSelectedBank: (bank: ExtendedBankInfo | null) => void;
   setSelectedAccount: (selectedAccount: MarginfiAccountWrapper | null) => void;
@@ -35,7 +35,7 @@ const initialState = {
   amountRaw: "",
   actionSummary: null,
   errorMessage: null,
-  lendMode: LendType.Deposit,
+  lendMode: ActionType.Deposit,
   selectedBank: null,
   selectedAccount: null,
   isLoading: false,
@@ -45,7 +45,7 @@ const stateCreator: StateCreator<LendBoxState, [], []> = (set, get) => ({
   // State
   ...initialState,
 
-  refreshState(lendMode?: LendType) {
+  refreshState(lendMode?: ActionType) {
     if (lendMode) {
       set({ ...initialState, lendMode });
     } else {
@@ -54,12 +54,12 @@ const stateCreator: StateCreator<LendBoxState, [], []> = (set, get) => ({
   },
 
   fetchActionBoxState(args) {
-    let requestedAction: LendType;
+    let requestedAction: ActionType;
     let requestedBank: ExtendedBankInfo | null = null;
-    const actionMode = get().lendMode;
+    const lendMode = get().lendMode;
 
-    if (args.requestedAction) {
-      requestedAction = args.requestedAction;
+    if (args.requestedLendType) {
+      requestedAction = args.requestedLendType;
     } else {
       requestedAction = initialState.lendMode;
     }
@@ -75,7 +75,7 @@ const stateCreator: StateCreator<LendBoxState, [], []> = (set, get) => ({
     const needRefresh =
       !selectedBank ||
       !requestedAction ||
-      actionMode !== requestedAction ||
+      lendMode !== requestedAction ||
       (requestedBank && !requestedBank.address.equals(selectedBank.address));
 
     if (needRefresh) set({ ...initialState, lendMode: requestedAction, selectedBank: requestedBank });
@@ -125,7 +125,7 @@ const stateCreator: StateCreator<LendBoxState, [], []> = (set, get) => ({
     set({ selectedAccount: selectedAccount });
   },
 
-  setActionMode(lendMode) {
+  setLendMode(lendMode) {
     const selectedActionMode = get().lendMode;
     const hasActionModeChanged = !selectedActionMode || lendMode !== selectedActionMode;
 

@@ -1,51 +1,35 @@
-import React, { useEffect } from "react";
+import React from "react";
 
-import Link from "next/link";
-import { v4 as uuidv4 } from "uuid";
+import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { WSOL_MINT, nativeToUi } from "@mrgnlabs/mrgn-common";
-import { ActionType, ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { cn, getBlockedActions } from "~/utils";
+import { ActionSettings } from "./ActionSettings";
+import { PriorityFeeState, SlippageState } from "../sharedTypes";
 
-import { useLstStore, useMrgnlendStore, useUiStore } from "~/store";
-import {
-  closeBalance,
-  executeLendingAction,
-  cn,
-  capture,
-  executeLstAction,
-  getBlockedActions,
-  executeLoopingAction,
-  createAccountAction,
-} from "~/utils";
-import { useWalletContext } from "~/hooks/useWalletContext";
-import { useConnection } from "~/hooks/useConnection";
-import { useActionBoxStore } from "~/hooks/useActionBoxStore";
-import { SOL_MINT } from "~/store/lstStore";
-
-import { LSTDialog, LSTDialogVariants } from "~/components/common/AssetList";
-import { checkActionAvailable } from "~/utils/actionBoxUtils";
-import { IconAlertTriangle, IconExternalLink, IconSettings } from "~/components/ui/icons";
-import { showErrorToast } from "~/utils/toastUtils";
-
-import {
-  ActionBoxPreview,
-  ActionBoxSettings,
-  ActionBoxActions,
-  ActionBoxInput,
-} from "~/components/common/ActionBox/components";
-import { Button } from "~/components/ui/button";
-import { ActionMethod, MarginfiActionParams, RepayType } from "@mrgnlabs/mrgn-utils";
-
-type ActionBoxWrapperProps = {
-  children: React.ReactNode;
+type ActionSettingsState = {
+  value: boolean;
+  setShowSettings: (value: boolean) => void;
 };
 
-export const ActionBoxWrapper = ({ children }: ActionBoxWrapperProps) => {
-  const [showSettingsDialog, setShowSettingsDialog] = React.useState<boolean>(false);
+interface ActionBoxWrapperProps {
+  actionMode: ActionType;
+  settings: ActionSettingsState;
+  priorityFee?: PriorityFeeState;
+  slippage?: SlippageState;
+  isDialog?: boolean;
+  children: React.ReactNode;
+}
 
+export const ActionBoxWrapper = ({
+  children,
+  isDialog,
+  actionMode,
+  settings,
+  priorityFee,
+  slippage,
+}: ActionBoxWrapperProps) => {
   const isActionDisabled = React.useMemo(() => {
     const blockedActions = getBlockedActions();
-
     if (blockedActions?.find((value) => value === actionMode)) return true;
 
     return false;
@@ -75,16 +59,14 @@ export const ActionBoxWrapper = ({ children }: ActionBoxWrapperProps) => {
             isDialog && "py-5 border border-background-gray-light/50"
           )}
         >
-          {showSettingsDialog ? (
-            <ActionBoxSettings
-              repayMode={repayMode}
-              actionMode={actionMode}
-              toggleSettings={setIsSettingsMode}
-              setSlippageBps={(value) => setSlippageBps(value * 100)}
-              slippageBps={slippageBps / 100}
+          {settings.value ? (
+            <ActionSettings
+              priorityFee={priorityFee}
+              slippage={slippage}
+              toggleSettings={(value) => settings.setShowSettings(value)}
             />
           ) : (
-            { children }
+            <>{children}</>
           )}
         </div>
       </div>

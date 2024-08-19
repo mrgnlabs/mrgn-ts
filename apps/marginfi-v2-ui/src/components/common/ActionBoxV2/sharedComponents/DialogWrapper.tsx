@@ -4,7 +4,7 @@ import { useIsMobile } from "~/hooks/useIsMobile";
 import { Dialog, DialogTrigger, DialogContent } from "~/components/ui/dialog";
 import { IconArrowLeft } from "~/components/ui/icons";
 
-type DialogWrapperProps = {
+export type DialogWrapperProps = {
   trigger: React.ReactNode;
   children: React.ReactNode;
   title: string;

@@ -1,6 +1,12 @@
 import React from "react";
+
+import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
+
+import { ActionStatItem } from "~/components/common/ActionBoxV2/sharedComponents";
+import { cn } from "~/utils";
+
 import { useLendBoxStore } from "../../store";
-import { LendType } from "@mrgnlabs/marginfi-v2-ui-state";
+
 import { generateLendingStats } from "./lendBoxPreviewUtils";
 
 interface LendBoxPreviewProps {}
@@ -13,7 +19,10 @@ export const LendBoxPreview = ({}: LendBoxPreviewProps) => {
     state.lendMode,
   ]);
 
-  const isLending = React.useMemo(() => lendMode === LendType.Deposit || lendMode === LendType.Withdraw, [lendMode]);
+  const isLending = React.useMemo(
+    () => lendMode === ActionType.Deposit || lendMode === ActionType.Withdraw,
+    [lendMode]
+  );
 
   const stats = React.useMemo(
     () =>
@@ -21,5 +30,26 @@ export const LendBoxPreview = ({}: LendBoxPreviewProps) => {
     [actionSummary, selectedBank, isLending, isLoading]
   );
 
-  return <div>Lend Box Preview</div>;
+  return (
+    <>
+      {selectedBank &&
+        stats &&
+        stats.map((stat, idx) => (
+          <ActionStatItem
+            key={idx}
+            label={stat.label}
+            classNames={cn(
+              stat.color &&
+                (stat.color === "SUCCESS"
+                  ? "text-success"
+                  : stat.color === "ALERT"
+                  ? "text-alert-foreground"
+                  : "text-destructive-foreground")
+            )}
+          >
+            <stat.value />
+          </ActionStatItem>
+        ))}
+    </>
+  );
 };

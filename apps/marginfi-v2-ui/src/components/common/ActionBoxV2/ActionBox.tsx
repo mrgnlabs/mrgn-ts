@@ -1,26 +1,41 @@
 import React from "react";
 
 // Import your subcomponents
-import LendActionbox from "./Lend/LendActionbox";
-import FlashLoanActionbox from "./FlashLoan/FlashLoanActionbox";
-import LSTActionbox from "./LST/LSTActionbox";
+import { LendBox, LendBoxProps } from "./CoreActions/LendBox";
+// import FlashLoanActionbox from "./FlashLoan/FlashLoanActionbox";
+// import LSTActionbox from "./LST/LSTActionbox";
 
-const Actionbox = (props) => {
-  // const isActionDisabled = React.useMemo(() => {
-  //   const blockedActions = getBlockedActions();
+import { DialogWrapper, DialogWrapperProps } from "./sharedComponents";
 
-  //   if (blockedActions?.find((value) => value === actionMode)) return true;
+type ActionboxProps = {
+  isDialog?: boolean;
+} & Partial<DialogWrapperProps>;
 
-  //   return false;
-  // }, [actionMode]);
+interface ActionboxComponent extends React.FC<ActionboxProps> {
+  Lend: React.FC<ActionboxProps & { lendProps: LendBoxProps }>;
+  FlashLoan: React.FC<ActionboxProps>;
+  LST: React.FC<ActionboxProps>;
+}
 
-  return null; // Since we're using static properties, no render logic is needed here
+const Actionbox: ActionboxComponent = ({ isDialog, children, ...dialogProps }) => {
+  if (isDialog && dialogProps.title && dialogProps.trigger) {
+    return (
+      <DialogWrapper title={dialogProps.title} trigger={dialogProps.trigger} isTriggered={dialogProps.isTriggered}>
+        {children}
+      </DialogWrapper>
+    );
+  }
+
+  return <>{children}</>;
 };
-
 // Assign subcomponents as static properties
-Actionbox.Lend = LendActionbox;
+Actionbox.Lend = ({ isDialog, lendProps, ...dialogProps }: ActionboxProps & { lendProps: LendBoxProps }) => (
+  <Actionbox isDialog={isDialog} {...dialogProps}>
+    <LendBox isDialog={isDialog} {...lendProps} />
+  </Actionbox>
+);
 // Actionbox.LendBorrow
-Actionbox.FlashLoan = FlashLoanActionbox;
-Actionbox.LST = LSTActionbox;
+Actionbox.FlashLoan = () => <div>FlashLoan</div>;
+Actionbox.LST = () => <div>LST</div>;
 
 export default Actionbox;
