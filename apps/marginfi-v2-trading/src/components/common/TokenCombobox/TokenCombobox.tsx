@@ -126,7 +126,7 @@ export const TokenCombobox = ({ selected, setSelected, children }: TokenCombobox
                       />
                       <span>{group.pool.token.meta.tokenSymbol}</span>
                       {group.pool.token.tokenData && (
-                        <div className="flex items-center justify-between gap-1 text-sm ml-auto w-full text-muted-foreground bg-red-400">
+                        <div className="flex items-center justify-between gap-1 text-sm ml-auto w-full text-muted-foreground max-w-[160px]">
                           <span>{tokenPriceFormatter(group.pool.token.tokenData.price)}</span>
                           <span
                             className={cn(
