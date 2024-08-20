@@ -6,6 +6,8 @@ import {
   Emissions,
   getCurrentAction,
   ActionType,
+  TokenAccount,
+  AccountSummary,
 } from "@mrgnlabs/marginfi-v2-ui-state";
 import {
   MarginRequirementType,
@@ -20,6 +22,10 @@ import { isBankOracleStale } from "@mrgnlabs/mrgn-utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { ActionBoxDialog } from "~/components/common/ActionBox";
 import { Button } from "~/components/ui/button";
+import Actionbox from "~/components/common/ActionBoxV2/ActionBox";
+import { useMrgnlendStore, useUiStore } from "~/store";
+import { capture } from "~/utils";
+import { PreviousTxn } from "~/types";
 
 export const REDUCE_ONLY_BANKS = ["stSOL", "RLB"];
 
@@ -286,7 +292,12 @@ export const getPositionData = (
 export const getAction = (
   bank: ExtendedBankInfo,
   isInLendingMode: boolean,
-  marginfiAccount: MarginfiAccountWrapper | null
+  marginfiAccount: MarginfiAccountWrapper | null,
+  banks: ExtendedBankInfo[],
+  nativeSolBalance: number,
+  tokenAccountMap: Map<string, TokenAccount>,
+  accountSummary: AccountSummary,
+  handleOnComplete: (previousTxn: PreviousTxn) => void
 ) => {
   const currentAction = getCurrentAction(isInLendingMode, bank);
   const isDust = bank.isActive && bank.position.isDust;
@@ -299,14 +310,41 @@ export const getAction = (
           <Tooltip>
             <TooltipTrigger asChild>
               <div className="flex px-0 sm:pl-4 gap-4 justify-center lg:justify-end items-center">
-                <ActionBoxDialog requestedBank={bank} requestedAction={currentAction}>
+                <Actionbox.Lend
+                  isDialog={true}
+                  dialogProps={{
+                    title: `${currentAction} ${bank.meta.tokenSymbol}`,
+                    trigger: (
+                      <Button
+                        variant="secondary"
+                        className="w-full max-w-[140px] hover:bg-primary hover:text-primary-foreground"
+                      >
+                        {showCloseBalance ? "Close" : currentAction}
+                      </Button>
+                    ),
+                  }}
+                  lendProps={{
+                    requestedBank: bank,
+                    requestedLendType: currentAction,
+                    nativeSolBalance: nativeSolBalance,
+                    tokenAccountMap: tokenAccountMap,
+                    selectedAccount: marginfiAccount,
+                    accountSummary: accountSummary,
+                    banks: banks,
+                    onComplete: handleOnComplete,
+                    captureEvent: (event, properties) => {
+                      capture(event, properties);
+                    },
+                  }}
+                />
+                {/* <ActionBoxDialog requestedBank={bank} requestedAction={currentAction}>
                   <Button
                     variant="secondary"
                     className="w-full max-w-[140px] hover:bg-primary hover:text-primary-foreground"
                   >
                     {showCloseBalance ? "Close" : currentAction}
                   </Button>
-                </ActionBoxDialog>
+                </ActionBoxDialog> */}
               </div>
             </TooltipTrigger>
             <TooltipContent>User account will be automatically created on first deposit</TooltipContent>
@@ -316,11 +354,38 @@ export const getAction = (
 
       {marginfiAccount !== null && (
         <div className="flex px-0 sm:pl-4 gap-4 justify-center lg:justify-end items-center">
-          <ActionBoxDialog requestedBank={bank} requestedAction={currentAction}>
+          <Actionbox.Lend
+            isDialog={true}
+            dialogProps={{
+              title: `${currentAction} ${bank.meta.tokenSymbol}`,
+              trigger: (
+                <Button
+                  variant="secondary"
+                  className="w-full max-w-[140px] hover:bg-primary hover:text-primary-foreground"
+                >
+                  {showCloseBalance ? "Close" : currentAction}
+                </Button>
+              ),
+            }}
+            lendProps={{
+              requestedBank: bank,
+              requestedLendType: currentAction,
+              nativeSolBalance: nativeSolBalance,
+              tokenAccountMap: tokenAccountMap,
+              selectedAccount: marginfiAccount,
+              accountSummary: accountSummary,
+              banks: banks,
+              onComplete: handleOnComplete,
+              captureEvent: (event, properties) => {
+                capture(event, properties);
+              },
+            }}
+          />
+          {/* <ActionBoxDialog requestedBank={bank} requestedAction={currentAction}>
             <Button variant="secondary" className="w-full max-w-[140px] hover:bg-primary hover:text-primary-foreground">
               {showCloseBalance ? "Close" : currentAction}
             </Button>
-          </ActionBoxDialog>
+          </ActionBoxDialog> */}
         </div>
       )}
     </>

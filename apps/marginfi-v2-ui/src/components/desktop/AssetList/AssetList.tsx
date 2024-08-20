@@ -24,14 +24,31 @@ import { IconAlertTriangle } from "~/components/ui/icons";
 
 import { AssetListModel, generateColumns, makeData } from "./utils";
 import { AssetRow } from "./components";
+import { PreviousTxn } from "~/types";
 
 export const AssetsList = () => {
-  const [isStoreInitialized, extendedBankInfos, nativeSolBalance, selectedAccount] = useMrgnlendStore((state) => [
+  const [
+    isStoreInitialized,
+    accountSummary,
+    extendedBankInfos,
+    nativeSolBalance,
+    selectedAccount,
+    setIsRefreshingStore,
+    fetchMrgnlendState,
+  ] = useMrgnlendStore((state) => [
     state.initialized,
+    state.accountSummary,
     state.extendedBankInfos,
     state.nativeSolBalance,
     state.selectedAccount,
+    state.setIsRefreshingStore,
+    state.fetchMrgnlendState,
   ]);
+  const [setIsActionComplete, setPreviousTxn] = useUiStore((state) => [
+    state.setIsActionComplete,
+    state.setPreviousTxn,
+  ]);
+
   const [denominationUSD, setShowBadges] = useUserProfileStore((state) => [state.denominationUSD, state.setShowBadges]);
   const [poolFilter, isFilteredUserPositions, sortOption] = useUiStore((state) => [
     state.poolFilter,
@@ -103,6 +120,18 @@ export const AssetsList = () => {
     [extendedBankInfos]
   ) as ActiveBankInfo[];
 
+  const handleOnComplete = async (previousTxn: PreviousTxn) => {
+    setIsActionComplete(true);
+    setPreviousTxn(previousTxn);
+    try {
+      setIsRefreshingStore(true);
+      await fetchMrgnlendState();
+    } catch (error: any) {
+      console.log("Error while reloading state");
+      console.log(error);
+    }
+  };
+
   // Enter hotkey mode
   useHotkeys(
     "meta + k",
@@ -160,13 +189,28 @@ export const AssetsList = () => {
   const [sorting, setSorting] = React.useState<SortingState>([]);
 
   const globalPoolTableData = React.useMemo(() => {
-    return makeData(globalBanks, isInLendingMode, denominationUSD, nativeSolBalance, selectedAccount);
-  }, [globalBanks, isInLendingMode, denominationUSD, nativeSolBalance, selectedAccount]);
+    return makeData(
+      globalBanks,
+      isInLendingMode,
+      denominationUSD,
+      nativeSolBalance,
+      selectedAccount,
+      accountSummary,
+      handleOnComplete
+    );
+  }, [globalBanks, isInLendingMode, denominationUSD, nativeSolBalance, selectedAccount, accountSummary]);
 
   const isolatedPoolTableData = React.useMemo(() => {
-    const data = makeData(isolatedBanks, isInLendingMode, denominationUSD, nativeSolBalance, selectedAccount);
-    return data;
-  }, [isolatedBanks, isInLendingMode, denominationUSD, nativeSolBalance, selectedAccount]);
+    return makeData(
+      isolatedBanks,
+      isInLendingMode,
+      denominationUSD,
+      nativeSolBalance,
+      selectedAccount,
+      accountSummary,
+      handleOnComplete
+    );
+  }, [isolatedBanks, isInLendingMode, denominationUSD, nativeSolBalance, selectedAccount, accountSummary]);
 
   const tableColumns = React.useMemo(() => {
     return generateColumns(isInLendingMode);

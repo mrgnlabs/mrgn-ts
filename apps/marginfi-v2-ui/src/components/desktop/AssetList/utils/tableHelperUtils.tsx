@@ -1,5 +1,5 @@
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
-import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { AccountSummary, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { createColumnHelper } from "@tanstack/react-table";
 import {
   HeaderWrapper,
@@ -12,6 +12,7 @@ import {
   getUtilizationCell,
 } from "../components";
 import * as assetUtils from ".";
+import { PreviousTxn } from "~/types";
 
 export interface AssetListModel {
   asset: assetUtils.AssetData;
@@ -29,8 +30,12 @@ export const makeData = (
   isInLendingMode: boolean,
   denominationUSD: boolean,
   nativeSolBalance: number,
-  marginfiAccount: MarginfiAccountWrapper | null
+  marginfiAccount: MarginfiAccountWrapper | null,
+  accountSummary: AccountSummary,
+  handleOnComplete: (previousTxn: PreviousTxn) => void
 ) => {
+  const tokenAccountMap = new Map(data.map((bank) => [bank.info.state.mint.toBase58(), bank.userInfo.tokenAccount]));
+
   return data.map(
     (bank) =>
       ({
@@ -42,7 +47,16 @@ export const makeData = (
         bankCap: assetUtils.getBankCapData(bank, isInLendingMode, denominationUSD),
         utilization: assetUtils.getUtilizationData(bank),
         position: assetUtils.getPositionData(bank, denominationUSD, nativeSolBalance, isInLendingMode),
-        action: assetUtils.getAction(bank, isInLendingMode, marginfiAccount),
+        action: assetUtils.getAction(
+          bank,
+          isInLendingMode,
+          marginfiAccount,
+          data,
+          nativeSolBalance,
+          tokenAccountMap,
+          accountSummary,
+          handleOnComplete
+        ),
       } as AssetListModel)
   );
 };
@@ -68,10 +82,11 @@ export const generateColumns = (isInLendingMode: boolean) => {
       id: "price",
       enableResizing: false,
       size: 170,
-      cell: (props) => getAssetPriceCell({
-        ...props.getValue(),
-        isInLendingMode,
-    }),
+      cell: (props) =>
+        getAssetPriceCell({
+          ...props.getValue(),
+          isInLendingMode,
+        }),
       header: (header) => (
         <HeaderWrapper
           header={header}
