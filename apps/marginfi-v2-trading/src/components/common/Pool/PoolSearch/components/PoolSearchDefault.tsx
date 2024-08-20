@@ -1,63 +1,45 @@
 import React from "react";
 
 import Image from "next/image";
-import { useRouter } from "next/router";
-import { IconX, IconCommand } from "@tabler/icons-react";
 
-import { useDebounce } from "@uidotdev/usehooks";
-import { percentFormatter, numeralFormatter, tokenPriceFormatter } from "@mrgnlabs/mrgn-common";
+import { tokenPriceFormatter, numeralFormatter, percentFormatter } from "@mrgnlabs/mrgn-common";
+import { IconCommand, IconX } from "@tabler/icons-react";
 
-import { useTradeStore } from "~/store";
 import { cn, getTokenImageURL } from "~/utils";
-import { useIsMobile } from "~/hooks/useIsMobile";
 
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "~/components/ui/command";
 import { Button } from "~/components/ui/button";
 
-type PoolSearchProps = {
-  size?: "sm" | "lg";
-  maxResults?: number;
-  additionalContent?: React.ReactNode;
-  additionalContentQueryMin?: number;
-  onBankSelect?: () => void;
-  showNoResults?: boolean;
+import type { FuseResult } from "fuse.js";
+import type { GroupData } from "~/store/tradeStore";
+
+type PoolSearchDefaultProps = {
+  searchQuery: string;
+  setSearchQuery: (query: string) => void;
+  resetSearch: () => void;
+  searchResults: FuseResult<GroupData>[];
+  size: "sm" | "lg";
+  additionalContent: React.ReactNode;
+  additionalContentQueryMin: number;
+  showNoResults: boolean;
+  onBankSelect: (value: string) => void;
+  maxResults: number;
 };
 
-export const PoolSearch = ({
-  size = "lg",
-  maxResults = 5,
+export const PoolSearchDefault = ({
+  searchQuery,
+  setSearchQuery,
+  resetSearch,
+  searchResults,
+  size,
   additionalContent,
-  additionalContentQueryMin = 3,
+  additionalContentQueryMin,
+  showNoResults,
   onBankSelect,
-  showNoResults = true,
-}: PoolSearchProps) => {
-  const router = useRouter();
-  const [groupMap, searchBanks, searchResults, resetSearchResults] = useTradeStore((state) => [
-    state.groupMap,
-    state.searchBanks,
-    state.searchResults,
-    state.resetSearchResults,
-  ]);
+  maxResults = 5,
+}: PoolSearchDefaultProps) => {
   const searchInputRef = React.useRef<HTMLInputElement>(null);
-  const [searchQuery, setSearchQuery] = React.useState("");
   const [isFocused, setIsFocused] = React.useState(false);
-  const debouncedSearchQuery = useDebounce(searchQuery, 300);
-  const isMobile = useIsMobile();
-
-  const groups = [...groupMap.values()];
-
-  React.useEffect(() => {
-    if (!debouncedSearchQuery.length) {
-      resetSearchResults();
-      return;
-    }
-    searchBanks(debouncedSearchQuery);
-  }, [debouncedSearchQuery, searchBanks, resetSearchResults]);
-
-  const resetSearch = React.useCallback(() => {
-    resetSearchResults();
-    setSearchQuery("");
-  }, [resetSearchResults]);
 
   React.useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -88,7 +70,7 @@ export const PoolSearch = ({
         >
           <CommandInput
             ref={searchInputRef}
-            placeholder={isMobile ? "Search tokens..." : "Search tokens by name, symbol, or mint address..."}
+            placeholder={"Search tokens by name, symbol, or mint address..."}
             className={cn(
               "py-2 h-auto bg-transparent outline-none focus-visible:ring-0 md:text-lg md:py-3",
               size === "sm" && "text-base md:text-lg md:py-2.5"
@@ -100,8 +82,8 @@ export const PoolSearch = ({
           />
           {searchQuery.length > 0 && (
             <IconX
-              size={isMobile ? 16 : 18}
-              className="absolute text-muted-foreground right-4 top-1/2 -translate-y-1/2 cursor-pointer transition-colors hover:text-primary"
+              size={18}
+              className="absolute text-muted-foreground right-6 top-1/2 -translate-y-1/2 cursor-pointer transition-colors hover:text-primary md:right-4"
               onClick={() => {
                 resetSearch();
               }}
@@ -111,7 +93,10 @@ export const PoolSearch = ({
           <Button
             size="sm"
             variant="outline"
-            className="absolute right-4 top-1/2 -translate-y-1/2 gap-0.5 px-1.5 py-0.5 h-auto text-muted-foreground"
+            className={cn(
+              searchQuery.length > 0 ? "hidden" : "flex",
+              "absolute text-[10px] right-6 top-1/2 -translate-y-1/2 gap-0.5 px-1.5 py-0.5 h-auto text-muted-foreground md:right-4 md:text-xs"
+            )}
             onClick={() => {
               searchInputRef.current?.focus();
             }}
@@ -132,13 +117,7 @@ export const PoolSearch = ({
                     key={address}
                     value={address}
                     className={cn(size === "sm" ? "text-sm" : "py-4")}
-                    onSelect={(value) => {
-                      const foundGroup = groups.find((g) => g.groupPk.toBase58().toLowerCase() === value);
-                      if (!foundGroup) return;
-
-                      router.push(`/trade/${foundGroup.groupPk.toBase58()}`);
-                      if (onBankSelect) onBankSelect();
-                    }}
+                    onSelect={onBankSelect}
                   >
                     <div className="flex items-center gap-3">
                       <Image
