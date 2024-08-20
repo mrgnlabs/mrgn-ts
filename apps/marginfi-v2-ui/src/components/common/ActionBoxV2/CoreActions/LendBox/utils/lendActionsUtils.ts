@@ -1,17 +1,24 @@
+import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
+import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { MarginfiActionParams } from "@mrgnlabs/mrgn-utils";
 
 import { v4 as uuidv4 } from "uuid";
-import { executeLendingAction, capture } from "~/utils";
+import { closeBalance, executeLendingAction } from "~/utils";
 
-interface ExecuteLendingActionsProps {
-  params: MarginfiActionParams;
+interface ExecuteActionsCallbackProps {
+  captureEvent: (event: string, properties?: Record<string, any>) => void;
   setIsLoading: (isLoading: boolean) => void;
-  setIsComplete: (txnSigs: string[], uuid: string) => void;
+  setIsComplete: (txnSigs: string[]) => void;
   setIsError: () => void;
+}
+
+interface ExecuteLendingActionsProps extends ExecuteActionsCallbackProps {
+  params: MarginfiActionParams;
 }
 
 export const handleExecuteLendingAction = async ({
   params,
+  captureEvent,
   setIsLoading,
   setIsComplete,
   setIsError,
@@ -20,7 +27,7 @@ export const handleExecuteLendingAction = async ({
 
   setIsLoading(true);
   const attemptUuid = uuidv4();
-  capture(`user_${actionType.toLowerCase()}_initiate`, {
+  captureEvent(`user_${actionType.toLowerCase()}_initiate`, {
     uuid: attemptUuid,
     tokenSymbol: bank.meta.tokenSymbol,
     tokenName: bank.meta.tokenName,
@@ -33,7 +40,59 @@ export const handleExecuteLendingAction = async ({
   setIsLoading(false);
 
   if (txnSig) {
-    setIsComplete([...txnSig], attemptUuid);
+    setIsComplete([...txnSig]);
+    captureEvent(`user_${actionType.toLowerCase()}`, {
+      uuid: attemptUuid,
+      tokenSymbol: bank.meta.tokenSymbol,
+      tokenName: bank.meta.tokenName,
+      amount: amount,
+      txn: txnSig!,
+      priorityFee,
+    });
+  } else {
+    setIsError();
+  }
+};
+
+interface HandleCloseBalanceProps extends ExecuteActionsCallbackProps {
+  params: {
+    bank: ExtendedBankInfo;
+    marginfiAccount: MarginfiAccountWrapper | null;
+    priorityFee?: number;
+  };
+}
+
+export const handleExecuteCloseBalance = async ({
+  params,
+  captureEvent,
+  setIsLoading,
+  setIsComplete,
+  setIsError,
+}: HandleCloseBalanceProps) => {
+  const { bank, marginfiAccount, priorityFee } = params;
+
+  setIsLoading(true);
+  const attemptUuid = uuidv4();
+  captureEvent(`user_close_balance_initiate`, {
+    uuid: attemptUuid,
+    tokenSymbol: bank.meta.tokenSymbol,
+    tokenName: bank.meta.tokenName,
+    amount: 0,
+    priorityFee,
+  });
+
+  const txnSig = await closeBalance({ marginfiAccount: marginfiAccount, bank: bank, priorityFee });
+  setIsLoading(false);
+  if (txnSig) {
+    setIsComplete([...txnSig]);
+    captureEvent(`user_close_balance`, {
+      uuid: attemptUuid,
+      tokenSymbol: bank.meta.tokenSymbol,
+      tokenName: bank.meta.tokenName,
+      amount: 0,
+      txn: txnSig!,
+      priorityFee,
+    });
   } else {
     setIsError();
   }

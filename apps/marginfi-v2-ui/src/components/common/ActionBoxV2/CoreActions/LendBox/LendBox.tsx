@@ -35,20 +35,26 @@ import { Button } from "~/components/ui/button";
 import { ActionMethod, MarginfiActionParams, RepayType } from "@mrgnlabs/mrgn-utils";
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 import { useLendBoxStore } from "./store";
-import { checkActionAvailable } from "./utils";
+import { checkActionAvailable, handleExecuteCloseBalance, handleExecuteLendingAction } from "./utils";
 import { ActionBoxWrapper, ActionMessage, ActionProgressBar, ActionSettingsButton } from "../../sharedComponents";
 import { LendBoxInput } from "./components";
+import { PreviousTxn } from "~/types";
+import { useLendAmounts } from "./hooks";
 
 // error handling
 export type LendBoxProps = {
   nativeSolBalance: number;
   tokenAccountMap: TokenAccountMap;
+
   selectedAccount: MarginfiAccountWrapper | null;
   banks: ExtendedBankInfo[];
   requestedLendType: ActionType;
-  isDialog?: boolean;
   requestedBank?: ExtendedBankInfo;
-  onComplete: () => void;
+
+  isDialog?: boolean;
+
+  onComplete: (previousTxn: PreviousTxn) => void;
+  captureEvent?: (event: string, properties?: Record<string, any>) => void;
 };
 
 export const LendBox = ({
@@ -60,6 +66,7 @@ export const LendBox = ({
   requestedBank,
   isDialog,
   onComplete,
+  captureEvent,
 }: LendBoxProps) => {
   const priorityFee = 0;
 
@@ -91,10 +98,12 @@ export const LendBox = ({
     state.refreshSelectedBanks,
   ]);
 
-  const [setIsActionComplete, setPreviousTxn] = useUiStore((state) => [
-    state.setIsActionComplete,
-    state.setPreviousTxn,
-  ]);
+  const { amount, walletAmount, maxAmount } = useLendAmounts({
+    amountRaw,
+    selectedBank,
+    nativeSolBalance,
+    lendMode,
+  });
 
   const { walletContextState, connected } = useWalletContext();
 
@@ -104,8 +113,6 @@ export const LendBox = ({
       refreshState(lendMode);
     }
   }, [refreshState, connected, lendMode]);
-
-  //LST has been seen todo add to store
 
   // Toggle between main action view and settings view
   const [isSettingsActive, setIsSettingsActive] = React.useState<boolean>(false);
@@ -118,10 +125,6 @@ export const LendBox = ({
     fetchActionBoxState({ requestedLendType, requestedBank });
   }, [requestedLendType, requestedBank, fetchActionBoxState]);
 
-  //   React.useEffect(() => {
-  //     refreshSelectedBanks(extendedBankInfos);
-  //   }, [extendedBankInfos, refreshSelectedBanks]);
-
   React.useEffect(() => {
     if (errorMessage !== null && errorMessage.description) {
       showErrorToast(errorMessage?.description);
@@ -129,41 +132,11 @@ export const LendBox = ({
     }
   }, [errorMessage]);
 
-  // Amount related useMemo's
-  const amount = React.useMemo(() => {
-    const strippedAmount = amountRaw.replace(/,/g, "");
-    return isNaN(Number.parseFloat(strippedAmount)) ? 0 : Number.parseFloat(strippedAmount);
-  }, [amountRaw]);
-
-  const walletAmount = React.useMemo(
-    () =>
-      selectedBank?.info.state.mint?.equals && selectedBank?.info.state.mint?.equals(WSOL_MINT)
-        ? selectedBank?.userInfo.tokenAccount.balance + nativeSolBalance
-        : selectedBank?.userInfo.tokenAccount.balance,
-    [nativeSolBalance, selectedBank]
-  );
-
-  const maxAmount = React.useMemo(() => {
-    if (!selectedBank) {
-      return 0;
-    }
-
-    switch (lendMode) {
-      case ActionType.Deposit:
-        return selectedBank?.userInfo.maxDeposit ?? 0;
-      case ActionType.Withdraw:
-        return selectedBank?.userInfo.maxWithdraw ?? 0;
-      case ActionType.Borrow:
-        return selectedBank?.userInfo.maxBorrow ?? 0;
-      case ActionType.Repay:
-        return selectedBank?.userInfo.maxRepay ?? 0;
-      default:
-        return 0;
-    }
-  }, [selectedBank, lendMode]);
-
   const isDust = React.useMemo(() => selectedBank?.isActive && selectedBank?.position.isDust, [selectedBank]);
-  const showCloseBalance = React.useMemo(() => lendMode === ActionType.Withdraw && isDust, [lendMode, isDust]);
+  const showCloseBalance = React.useMemo(
+    () => (lendMode === ActionType.Withdraw && isDust) || false,
+    [lendMode, isDust]
+  );
 
   const actionMethods = React.useMemo(
     () =>
@@ -184,46 +157,30 @@ export const LendBox = ({
     if (!selectedBank || !selectedAccount) {
       return;
     }
-    setIsLoading(true);
-    const attemptUuid = uuidv4();
-    capture(`user_close_balance_initiate`, {
-      uuid: attemptUuid,
-      tokenSymbol: selectedBank.meta.tokenSymbol,
-      tokenName: selectedBank.meta.tokenName,
-      amount: 0,
-      priorityFee,
+
+    await handleExecuteCloseBalance({
+      params: {
+        bank: selectedBank,
+        marginfiAccount: selectedAccount,
+        priorityFee,
+      },
+      captureEvent: (event, properties) => {
+        captureEvent && captureEvent(event, properties);
+      },
+      setIsComplete: (txnSigs) => {
+        onComplete({
+          type: ActionType.Withdraw,
+          bank: selectedBank as ActiveBankInfo,
+          amount: 0,
+          txn: txnSigs.pop() ?? "",
+        });
+      },
+      setIsError: () => {},
+      setIsLoading: (isLoading) => setIsLoading(isLoading),
     });
 
-    const txnSig = await closeBalance({ marginfiAccount: selectedAccount, bank: selectedBank, priorityFee });
-    setIsLoading(false);
-    if (txnSig) {
-      setPreviousTxn({
-        type: ActionType.Withdraw,
-        bank: selectedBank as ActiveBankInfo,
-        amount: 0,
-        txn: txnSig!,
-      });
-      capture(`user_close_balance`, {
-        uuid: attemptUuid,
-        tokenSymbol: selectedBank.meta.tokenSymbol,
-        tokenName: selectedBank.meta.tokenName,
-        amount: 0,
-        txn: txnSig!,
-        priorityFee,
-      });
-    }
-
     setAmountRaw("");
-    // handleCloseDialog && handleCloseDialog();
-
-    try {
-      //   setIsRefreshingStore(true);
-      //   await fetchMrgnlendState();
-    } catch (error: any) {
-      console.log("Error while reloading state");
-      console.log(error);
-    }
-  }, [selectedBank, selectedAccount, priorityFee, setIsLoading, setAmountRaw, setPreviousTxn]);
+  }, [selectedBank, selectedAccount, priorityFee, setIsLoading, setAmountRaw]);
 
   const handleLendingAction = React.useCallback(async () => {
     if (!selectedBank || !amount) {
@@ -241,7 +198,22 @@ export const LendBox = ({
         walletContextState,
       } as MarginfiActionParams;
 
-      executeLendingActionCb(params);
+      handleExecuteLendingAction({
+        params,
+        captureEvent: (event, properties) => {
+          captureEvent && captureEvent(event, properties);
+        },
+        setIsComplete: (txnSigs) => {
+          onComplete({
+            type: lendMode,
+            bank: selectedBank as ActiveBankInfo,
+            amount: amount,
+            txn: txnSigs.pop() ?? "",
+          });
+        },
+        setIsError: () => {},
+        setIsLoading: (isLoading) => setIsLoading(isLoading),
+      });
     };
 
     if (
@@ -253,6 +225,7 @@ export const LendBox = ({
     }
 
     await action();
+    setAmountRaw("");
   }, [lendMode, selectedBank, amount, nativeSolBalance, selectedAccount, walletContextState]);
 
   return (
@@ -292,11 +265,15 @@ export const LendBox = ({
       <ActionSettingsButton setIsSettingsActive={setIsSettingsActive} />
 
       <ActionBoxActions
-        isLoading={false}
+        isLoading={isLoading}
         isEnabled={false}
-        actionMode={ActionType.Deposit}
-        showCloseBalance={false}
-        handleAction={() => {}}
+        actionMode={lendMode}
+        showCloseBalance={
+          !additionalActionMethods.concat(actionMethods).filter((value) => value.isEnabled === false).length
+        }
+        handleAction={() => {
+          showCloseBalance ? handleCloseBalance() : handleLendingAction();
+        }}
       />
 
       <LSTDialog
