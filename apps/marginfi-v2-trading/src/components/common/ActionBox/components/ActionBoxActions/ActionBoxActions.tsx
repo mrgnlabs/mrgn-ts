@@ -1,6 +1,6 @@
 import React from "react";
 
-import { IconLoader } from "@tabler/icons-react";
+import { IconLoader2 } from "@tabler/icons-react";
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { useUiStore } from "~/store";
@@ -38,7 +38,7 @@ export const ActionBoxActions = ({
 
   return (
     <Button disabled={isLoading || !isEnabled} className="w-full py-5" onClick={handleAction}>
-      {isLoading ? <IconLoader className="animate-spin" /> : buttonLabel}
+      {isLoading ? <IconLoader2 className="animate-spin" /> : buttonLabel}
     </Button>
   );
 };

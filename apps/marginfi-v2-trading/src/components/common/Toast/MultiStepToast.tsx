@@ -1,4 +1,4 @@
-import { IconLoader, IconCheck, IconAlertTriangle } from "@tabler/icons-react";
+import { IconLoader2, IconCheck, IconAlertTriangle } from "@tabler/icons-react";
 
 import { cn } from "~/utils";
 
@@ -39,7 +39,7 @@ export const MultiStepToast = ({ title, steps }: MultiStepToastProps) => {
                 </h3>
                 {step.status === "success" && <IconCheck size={18} className="text-green-400" />}
                 {step.status === "error" && <IconAlertTriangle size={18} className="text-red-400" />}
-                {step.status === "pending" && <IconLoader size={18} />}
+                {step.status === "pending" && <IconLoader2 size={18} className="animate-spin" />}
               </div>
               {step.message && (
                 <p className="bg-destructive py-3 px-4 rounded-xl mt-2.5 text-destructive-foreground">{step.message}</p>

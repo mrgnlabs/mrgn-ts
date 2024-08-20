@@ -2,7 +2,7 @@ import React from "react";
 
 import Image from "next/image";
 
-import { IconMinus, IconX, IconPlus, IconLoader } from "@tabler/icons-react";
+import { IconMinus, IconX, IconPlus, IconLoader2 } from "@tabler/icons-react";
 import { Transaction, VersionedTransaction } from "@solana/web3.js";
 
 import { ActiveBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
@@ -380,7 +380,7 @@ export const PositionActionButtons = ({
               className="w-full mx-auto"
               onClick={() => processTransaction()}
             >
-              {isLoading ? <IconLoader className="animate-spin" /> : "Confirm close position"}
+              {isLoading ? <IconLoader2 className="animate-spin" /> : "Confirm close position"}
             </Button>
           </DialogFooter>
         </DialogContent>

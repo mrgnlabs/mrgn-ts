@@ -4,7 +4,7 @@ import React from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 
-import { IconAlertTriangle, IconExternalLink, IconLoader, IconSettings, IconWallet } from "@tabler/icons-react";
+import { IconAlertTriangle, IconExternalLink, IconLoader2, IconSettings, IconWallet } from "@tabler/icons-react";
 import capitalize from "lodash/capitalize";
 import { useDebounce } from "@uidotdev/usehooks";
 import { ActionType, ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
@@ -563,7 +563,7 @@ export const TradingBox = ({ activeGroup, side = "long" }: TradingBoxProps) => {
                   className={cn("w-full", tradeState === "long" && "bg-success", tradeState === "short" && "bg-error")}
                 >
                   {isLoading ? (
-                    <IconLoader />
+                    <IconLoader2 className="animate-spin" />
                   ) : (
                     <>
                       {capitalize(tradeState)} {activeGroup.pool.token.meta.tokenSymbol}
