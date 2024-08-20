@@ -12,7 +12,6 @@ interface LendBoxState {
   lendMode: ActionType;
   simulationResult: SimulationResult | null;
   selectedBank: ExtendedBankInfo | null;
-  selectedAccount: MarginfiAccountWrapper | null;
   errorMessage: ActionMethod | null;
   isLoading: boolean;
 
@@ -22,8 +21,8 @@ interface LendBoxState {
   fetchActionBoxState: (args: { requestedLendType?: ActionType; requestedBank?: ExtendedBankInfo }) => void;
   setLendMode: (lendMode: ActionType) => void;
   setAmountRaw: (amountRaw: string, maxAmount?: number) => void;
+  setSimulationResult: (simulationResult: SimulationResult | null) => void;
   setSelectedBank: (bank: ExtendedBankInfo | null) => void;
-  setSelectedAccount: (selectedAccount: MarginfiAccountWrapper | null) => void;
   setIsLoading: (isLoading: boolean) => void;
 }
 
@@ -37,7 +36,6 @@ const initialState = {
   errorMessage: null,
   lendMode: ActionType.Deposit,
   selectedBank: null,
-  selectedAccount: null,
   isLoading: false,
 };
 
@@ -94,21 +92,6 @@ const stateCreator: StateCreator<LendBoxState, [], []> = (set, get) => ({
       }
 
       set({ amountRaw: numberFormatter.format(amount) });
-
-      const { lendMode, selectedAccount, selectedBank } = get();
-
-      if (selectedAccount && selectedBank && amount !== 0) {
-        const simulationResult = await getSimulationResult({
-          actionMode: lendMode,
-          account: selectedAccount,
-          bank: selectedBank,
-          amount: amount,
-        });
-
-        set({ simulationResult: simulationResult.simulationResult });
-      } else {
-        set({ simulationResult: null });
-      }
     }
   },
 
@@ -136,10 +119,6 @@ const stateCreator: StateCreator<LendBoxState, [], []> = (set, get) => ({
     }
   },
 
-  setSelectedAccount(selectedAccount) {
-    set({ selectedAccount: selectedAccount });
-  },
-
   setLendMode(lendMode) {
     const selectedActionMode = get().lendMode;
     const hasActionModeChanged = !selectedActionMode || lendMode !== selectedActionMode;
@@ -147,6 +126,10 @@ const stateCreator: StateCreator<LendBoxState, [], []> = (set, get) => ({
     if (hasActionModeChanged) set({ amountRaw: "", errorMessage: null });
 
     set({ lendMode });
+  },
+
+  setSimulationResult(simulationResult) {
+    set({ simulationResult });
   },
 
   setIsLoading(isLoading) {

@@ -4,7 +4,13 @@ import Link from "next/link";
 import { v4 as uuidv4 } from "uuid";
 
 import { WSOL_MINT, nativeToUi } from "@mrgnlabs/mrgn-common";
-import { ActiveBankInfo, ExtendedBankInfo, ActionType, TokenAccountMap } from "@mrgnlabs/marginfi-v2-ui-state";
+import {
+  ActiveBankInfo,
+  ExtendedBankInfo,
+  ActionType,
+  TokenAccountMap,
+  AccountSummary,
+} from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { useUiStore } from "~/store";
 import {
@@ -35,11 +41,17 @@ import { Button } from "~/components/ui/button";
 import { ActionMethod, MarginfiActionParams, RepayType } from "@mrgnlabs/mrgn-utils";
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 import { useLendBoxStore } from "./store";
-import { checkActionAvailable, handleExecuteCloseBalance, handleExecuteLendingAction } from "./utils";
+import {
+  calculateSummary,
+  checkActionAvailable,
+  getSimulationResult,
+  handleExecuteCloseBalance,
+  handleExecuteLendingAction,
+} from "./utils";
 import { ActionBoxWrapper, ActionMessage, ActionProgressBar, ActionSettingsButton } from "../../sharedComponents";
-import { LendBoxInput } from "./components";
+import { LendBoxCollateral, LendBoxInput, LendBoxPreview } from "./components";
 import { PreviousTxn } from "~/types";
-import { useLendAmounts } from "./hooks";
+import { useLendAmounts, useLendSimulation } from "./hooks";
 
 // error handling
 export type LendBoxProps = {
@@ -50,6 +62,7 @@ export type LendBoxProps = {
   banks: ExtendedBankInfo[];
   requestedLendType: ActionType;
   requestedBank?: ExtendedBankInfo;
+  accountSummary?: AccountSummary;
 
   isDialog?: boolean;
 
@@ -62,6 +75,7 @@ export const LendBox = ({
   tokenAccountMap,
   banks,
   selectedAccount,
+  accountSummary,
   requestedLendType,
   requestedBank,
   isDialog,
@@ -74,6 +88,7 @@ export const LendBox = ({
     amountRaw,
     lendMode,
     selectedBank,
+    simulationResult,
     isLoading,
     errorMessage,
 
@@ -83,10 +98,12 @@ export const LendBox = ({
     setIsLoading,
     setAmountRaw,
     refreshSelectedBanks,
+    setSimulationResult,
   ] = useLendBoxStore((state) => [
     state.amountRaw,
     state.lendMode,
     state.selectedBank,
+    state.simulationResult,
     state.isLoading,
     state.errorMessage,
 
@@ -96,16 +113,21 @@ export const LendBox = ({
     state.setIsLoading,
     state.setAmountRaw,
     state.refreshSelectedBanks,
+    state.setSimulationResult,
   ]);
-
-  const { amount, walletAmount, maxAmount } = useLendAmounts({
+  const { amount, debouncedAmount, walletAmount, maxAmount } = useLendAmounts({
     amountRaw,
     selectedBank,
     nativeSolBalance,
     lendMode,
   });
+  const { actionSummary } = useLendSimulation(debouncedAmount ?? 0, selectedAccount, accountSummary);
 
   const { walletContextState, connected } = useWalletContext();
+
+  const [isSettingsActive, setIsSettingsActive] = React.useState<boolean>(false);
+  const [lstDialogCallback, setLSTDialogCallback] = React.useState<(() => void) | null>(null);
+  const [additionalActionMethods, setAdditionalActionMethods] = React.useState<ActionMethod[]>([]);
 
   // Cleanup the store when the wallet disconnects
   React.useEffect(() => {
@@ -113,13 +135,6 @@ export const LendBox = ({
       refreshState(lendMode);
     }
   }, [refreshState, connected, lendMode]);
-
-  // Toggle between main action view and settings view
-  const [isSettingsActive, setIsSettingsActive] = React.useState<boolean>(false);
-
-  const [lstDialogCallback, setLSTDialogCallback] = React.useState<(() => void) | null>(null);
-
-  const [additionalActionMethods, setAdditionalActionMethods] = React.useState<ActionMethod[]>([]);
 
   React.useEffect(() => {
     fetchActionBoxState({ requestedLendType, requestedBank });
@@ -250,17 +265,7 @@ export const LendBox = ({
           )
       )}
 
-      <ActionProgressBar
-        amount={0}
-        ratio={0}
-        label={"Available Collateral"}
-        TooltipValue={
-          <div className="space-y-2">
-            <p>Available collateral is the USD value of your collateral not actively backing a loan.</p>
-            <p>It can be used to open additional borrows or withdraw part of your collateral.</p>
-          </div>
-        }
-      />
+      <LendBoxCollateral selectedAccount={selectedAccount} actionSummary={actionSummary} />
 
       <ActionSettingsButton setIsSettingsActive={setIsSettingsActive} />
 
@@ -275,6 +280,8 @@ export const LendBox = ({
           showCloseBalance ? handleCloseBalance() : handleLendingAction();
         }}
       />
+
+      <LendBoxPreview actionSummary={actionSummary} />
 
       <LSTDialog
         variant={selectedBank?.meta.tokenSymbol as LSTDialogVariants}

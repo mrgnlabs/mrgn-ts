@@ -2,6 +2,7 @@ import React from "react";
 
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { WSOL_MINT } from "@mrgnlabs/mrgn-common";
+import { useAmountDebounce } from "~/hooks/useAmountDebounce";
 
 export function useLendAmounts({
   amountRaw,
@@ -18,6 +19,8 @@ export function useLendAmounts({
     const strippedAmount = amountRaw.replace(/,/g, "");
     return isNaN(Number.parseFloat(strippedAmount)) ? 0 : Number.parseFloat(strippedAmount);
   }, [amountRaw]);
+
+  const debouncedAmount = useAmountDebounce<number | null>(amount, 500);
 
   const walletAmount = React.useMemo(
     () =>
@@ -48,6 +51,7 @@ export function useLendAmounts({
 
   return {
     amount,
+    debouncedAmount,
     walletAmount,
     maxAmount,
   };

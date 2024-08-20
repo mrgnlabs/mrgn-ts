@@ -6,14 +6,16 @@ import { ActionStatItem } from "~/components/common/ActionBoxV2/sharedComponents
 import { cn } from "~/utils";
 
 import { useLendBoxStore } from "../../store";
+import { ActionSummary } from "../../utils";
 
 import { generateLendingStats } from "./lendBoxPreviewUtils";
 
-interface LendBoxPreviewProps {}
+interface LendBoxPreviewProps {
+  actionSummary?: ActionSummary;
+}
 
-export const LendBoxPreview = ({}: LendBoxPreviewProps) => {
-  const [actionSummary, selectedBank, isLoading, lendMode] = useLendBoxStore((state) => [
-    state.actionSummary,
+export const LendBoxPreview = ({ actionSummary }: LendBoxPreviewProps) => {
+  const [selectedBank, isLoading, lendMode] = useLendBoxStore((state) => [
     state.selectedBank,
     state.isLoading,
     state.lendMode,

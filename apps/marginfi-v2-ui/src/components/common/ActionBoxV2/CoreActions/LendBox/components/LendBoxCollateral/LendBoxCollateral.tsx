@@ -1,16 +1,18 @@
 import React from "react";
 
-import { MarginRequirementType } from "@mrgnlabs/marginfi-client-v2";
+import { MarginfiAccountWrapper, MarginRequirementType } from "@mrgnlabs/marginfi-client-v2";
 
 import { ActionProgressBar } from "~/components/common/ActionBoxV2/sharedComponents/ActionStats";
 
 import { useLendBoxStore } from "../../store";
+import { ActionSummary } from "../../utils";
 
-interface LendBoxCollateralProps {}
+interface LendBoxCollateralProps {
+  selectedAccount: MarginfiAccountWrapper | null;
+  actionSummary?: ActionSummary;
+}
 
-export const LendBoxCollateral = ({}: LendBoxCollateralProps) => {
-  const [actionSummary, selectedAccount] = useLendBoxStore((state) => [state.actionSummary, state.selectedAccount]);
-
+export const LendBoxCollateral = ({ selectedAccount, actionSummary }: LendBoxCollateralProps) => {
   const availableCollateral = React.useMemo(() => {
     if (!selectedAccount) return null;
 
