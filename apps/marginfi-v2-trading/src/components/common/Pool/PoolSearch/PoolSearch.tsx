@@ -83,7 +83,6 @@ export const PoolSearch = ({
           setSearchQuery={setSearchQuery}
           resetSearch={resetSearch}
           searchResults={searchResults}
-          size={size}
           additionalContent={additionalContent}
           additionalContentQueryMin={additionalContentQueryMin}
           showNoResults={showNoResults}
