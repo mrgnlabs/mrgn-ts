@@ -43,7 +43,7 @@ export default function TradeSymbolPage() {
   }, [accountSummary.healthFactor]);
 
   React.useEffect(() => {
-    if (!router.isReady) return;
+    if (!router.isReady || !initialized) return;
 
     const symbol = router.query.symbol as string;
 
@@ -59,7 +59,7 @@ export default function TradeSymbolPage() {
     }
 
     setActiveGroup(group);
-  }, [router, groupMap, setActiveGroup]);
+  }, [router, groupMap, setActiveGroup, initialized]);
 
   return (
     <>
