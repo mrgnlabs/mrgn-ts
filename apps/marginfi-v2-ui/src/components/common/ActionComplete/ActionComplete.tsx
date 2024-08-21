@@ -306,9 +306,24 @@ export const ActionComplete = () => {
                 </dl>
               </>
             )}
-            <Button className="w-full mx-auto" onClick={() => setIsActionComplete(false)}>
-              Done
-            </Button>
+            <div className="space-y-4">
+              <Button className="w-full mx-auto" onClick={() => setIsActionComplete(false)}>
+                Done
+              </Button>
+              {!previousTxn.lstQuote && (
+                <div className="flex flex-col sm:flex-row text-sm items-center justify-center text-center">
+                  <p className="opacity-60">Get daily alerts on your position using</p>
+                  <Link
+                    href="https://t.me/HeimdallWatchBot"
+                    className="flex items-center gap-1.5 text-chartreuse sm:ml-1.5"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    AsgardWatchBot <IconExternalLink size={14} className="-translate-y-[1px]" />
+                  </Link>
+                </div>
+              )}
+            </div>
           </div>
         </DialogContent>
       </Dialog>
