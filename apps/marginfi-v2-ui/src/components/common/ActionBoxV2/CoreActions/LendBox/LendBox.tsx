@@ -271,11 +271,9 @@ export const LendBox = ({
 
       <ActionBoxActions
         isLoading={isLoading}
-        isEnabled={false}
+        isEnabled={!additionalActionMethods.concat(actionMethods).filter((value) => value.isEnabled === false).length}
         actionMode={lendMode}
-        showCloseBalance={
-          !additionalActionMethods.concat(actionMethods).filter((value) => value.isEnabled === false).length
-        }
+        showCloseBalance={showCloseBalance}
         handleAction={() => {
           showCloseBalance ? handleCloseBalance() : handleLendingAction();
         }}
