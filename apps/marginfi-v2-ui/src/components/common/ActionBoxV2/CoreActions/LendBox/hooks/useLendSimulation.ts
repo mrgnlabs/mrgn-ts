@@ -5,12 +5,14 @@ import { AccountSummary } from "@mrgnlabs/marginfi-v2-ui-state";
 import { useLendBoxStore } from "../store";
 import { ActionSummary, calculateSummary, getSimulationResult } from "../utils";
 import { MarginfiAccountWrapper, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
+import { usePrevious } from "@mrgnlabs/mrgn-utils";
 
 export function useLendSimulation(
   debouncedAmount: number,
   selectedAccount: MarginfiAccountWrapper | null,
   accountSummary?: AccountSummary
 ) {
+  const prevDebouncedAmount = usePrevious(debouncedAmount);
   const [lendMode, selectedBank, simulationResult, setSimulationResult] = useLendBoxStore((state) => [
     state.lendMode,
     state.selectedBank,
@@ -51,11 +53,12 @@ export function useLendSimulation(
   );
 
   React.useEffect(() => {
-    handleSimulation(debouncedAmount ?? 0);
-  }, [debouncedAmount, handleSimulation]);
+    if (prevDebouncedAmount !== debouncedAmount) {
+      handleSimulation(debouncedAmount ?? 0);
+    }
+  }, [prevDebouncedAmount, debouncedAmount, handleSimulation]);
 
   const actionSummary = React.useMemo(() => {
-    console.log("actionSummary", accountSummary);
     return handleActionSummary(accountSummary, simulationResult ?? undefined);
   }, [accountSummary, simulationResult, handleActionSummary]);
 

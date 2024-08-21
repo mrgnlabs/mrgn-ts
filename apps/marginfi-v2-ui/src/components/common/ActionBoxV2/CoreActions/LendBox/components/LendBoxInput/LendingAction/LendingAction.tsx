@@ -16,11 +16,7 @@ type props = {
 };
 
 export const LendingAction = ({ maxAmount, walletAmount, isDialog, onSetAmountRaw }: props) => {
-  const [amountRaw, lendMode, selectedBank] = useLendBoxStore((state) => [
-    state.amountRaw,
-    state.lendMode,
-    state.selectedBank,
-  ]);
+  const [lendMode, selectedBank] = useLendBoxStore((state) => [state.lendMode, state.selectedBank]);
 
   const numberFormater = React.useMemo(() => new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 }), []);
 
@@ -74,7 +70,7 @@ export const LendingAction = ({ maxAmount, walletAmount, isDialog, onSetAmountRa
     }
   }, [selectedBank, lendMode, walletAmount]);
 
-  const isMaxButtonVisible = React.useMemo(() => lendMode === ActionType.Repay, [lendMode]);
+  // const isMaxButtonVisible = React.useMemo(() => lendMode === ActionType.Repay, [lendMode]);
 
   // Section above the input
   return (
@@ -84,18 +80,17 @@ export const LendingAction = ({ maxAmount, walletAmount, isDialog, onSetAmountRa
           <li className="flex justify-between items-center gap-1.5">
             <strong className="mr-auto">{maxLabel.label}</strong>
             <div className="flex space-x-1">
-              {selectedBank?.isActive && <div>{clampedNumeralFormatter(selectedBank.position.amount)}</div>}
-              {selectedBank?.isActive && <IconArrowRight width={12} height={12} />}
+              {/* {selectedBank?.isActive && <div>{clampedNumeralFormatter(selectedBank.position.amount)}</div>}
+              {selectedBank?.isActive && <IconArrowRight width={12} height={12} />} */}
               <div>{maxLabel.amount}</div>
-              {isMaxButtonVisible && (
-                <button
-                  className="cursor-pointer text-chartreuse border-b border-transparent transition hover:border-chartreuse"
-                  disabled={maxAmount === 0}
-                  onClick={() => onSetAmountRaw(numberFormater.format(maxAmount))}
-                >
-                  MAX
-                </button>
-              )}
+
+              <button
+                className="cursor-pointer text-chartreuse border-b border-transparent transition hover:border-chartreuse"
+                disabled={maxAmount === 0}
+                onClick={() => onSetAmountRaw(numberFormater.format(maxAmount))}
+              >
+                MAX
+              </button>
             </div>
           </li>
         </ul>

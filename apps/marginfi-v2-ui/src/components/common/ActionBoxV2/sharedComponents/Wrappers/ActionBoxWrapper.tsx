@@ -3,31 +3,26 @@ import React from "react";
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { cn, getBlockedActions } from "~/utils";
-import { ActionSettings } from "./ActionSettings";
-import { PriorityFeeState, SlippageState } from "../sharedTypes";
-
-type ActionSettingsState = {
-  value: boolean;
-  setShowSettings: (value: boolean) => void;
-};
+import { ActionSettings } from "../ActionSettings";
+import { useActionBoxStore } from "../../store";
 
 interface ActionBoxWrapperProps {
   actionMode: ActionType;
-  settings: ActionSettingsState;
-  priorityFee?: PriorityFeeState;
-  slippage?: SlippageState;
   isDialog?: boolean;
   children: React.ReactNode;
 }
 
-export const ActionBoxWrapper = ({
-  children,
-  isDialog,
-  actionMode,
-  settings,
-  priorityFee,
-  slippage,
-}: ActionBoxWrapperProps) => {
+export const ActionBoxWrapper = ({ children, isDialog, actionMode }: ActionBoxWrapperProps) => {
+  const [priorityFee, slippage, isSettingsDialogOpen, setIsSettingsDialogOpen, setPriorityFee, setSlippageBps] =
+    useActionBoxStore((state) => [
+      state.priorityFee,
+      state.slippageBps,
+      state.isSettingsDialogOpen,
+      state.setIsSettingsDialogOpen,
+      state.setPriorityFee,
+      state.setSlippageBps,
+    ]);
+
   const isActionDisabled = React.useMemo(() => {
     const blockedActions = getBlockedActions();
     if (blockedActions?.find((value) => value === actionMode)) return true;
@@ -59,11 +54,13 @@ export const ActionBoxWrapper = ({
             isDialog && "py-5 border border-background-gray-light/50"
           )}
         >
-          {settings.value ? (
+          {isSettingsDialogOpen ? (
             <ActionSettings
               priorityFee={priorityFee}
               slippage={slippage}
-              toggleSettings={(value) => settings.setShowSettings(value)}
+              changePriorityFee={setPriorityFee}
+              changeSlippage={setSlippageBps}
+              toggleSettings={(value) => setIsSettingsDialogOpen(value)}
             />
           ) : (
             <>{children}</>

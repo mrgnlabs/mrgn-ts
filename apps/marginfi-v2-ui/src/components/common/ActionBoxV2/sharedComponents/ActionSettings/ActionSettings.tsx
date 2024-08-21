@@ -4,11 +4,13 @@ import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
 import { IconArrowLeft } from "~/components/ui/icons";
 
 import { ActionBoxSlippage, ActionBoxPriorityFees } from "./Components";
-import { PriorityFeeState, SlippageState } from "../../sharedTypes";
 
 interface ActionSettingsProps {
-  priorityFee?: PriorityFeeState;
-  slippage?: SlippageState;
+  priorityFee?: number;
+  slippage?: number;
+
+  changePriorityFee: (value: number) => void;
+  changeSlippage: (value: number) => void;
 
   toggleSettings: (value: boolean) => void;
   returnLabel?: string;
@@ -22,6 +24,8 @@ enum SettingsState {
 export const ActionSettings = ({
   priorityFee,
   slippage,
+  changePriorityFee,
+  changeSlippage,
 
   toggleSettings,
   returnLabel = "Back",
@@ -54,17 +58,13 @@ export const ActionSettings = ({
       </div>
       <div>
         {slippage && settingsMode === SettingsState.Slippage && (
-          <ActionBoxSlippage
-            toggleSettings={toggleSettings}
-            slippageBps={slippage.value}
-            setSlippageBps={slippage.setSlippageBps}
-          />
+          <ActionBoxSlippage toggleSettings={toggleSettings} slippageBps={slippage} setSlippageBps={changeSlippage} />
         )}
         {priorityFee && settingsMode === SettingsState.PriorityFee && (
           <ActionBoxPriorityFees
             toggleSettings={toggleSettings}
-            priorityFee={priorityFee.value}
-            setPriorityFee={priorityFee.setPriorityFee}
+            priorityFee={priorityFee}
+            setPriorityFee={changePriorityFee}
           />
         )}
       </div>

@@ -6,13 +6,11 @@ import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
   The health factor is the ratio of the maintenance assets to the initial assets.
 */
 export function simulatedHealthFactor(simulationResult: SimulationResult) {
-  const { assets: assetsMaintenance, liabilities: liabilitiesMaintenance } =
-    simulationResult.marginfiAccount.computeHealthComponents(MarginRequirementType.Maintenance);
-  const { assets: assetsInit } = simulationResult.marginfiAccount.computeHealthComponents(
-    MarginRequirementType.Initial
+  const { assets, liabilities } = simulationResult.marginfiAccount.computeHealthComponents(
+    MarginRequirementType.Maintenance
   );
 
-  const health = assetsMaintenance.minus(liabilitiesMaintenance).dividedBy(assetsInit).toNumber();
+  const health = assets.minus(liabilities).dividedBy(assets).toNumber();
   return health;
 }
 

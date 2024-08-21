@@ -52,6 +52,7 @@ import { ActionBoxWrapper, ActionMessage, ActionProgressBar, ActionSettingsButto
 import { LendBoxCollateral, LendBoxInput, LendBoxPreview } from "./components";
 import { PreviousTxn } from "~/types";
 import { useLendAmounts, useLendSimulation } from "./hooks";
+import { useActionBoxStore } from "../../store";
 
 // error handling
 export type LendBoxProps = {
@@ -115,6 +116,9 @@ export const LendBox = ({
     state.refreshSelectedBanks,
     state.setSimulationResult,
   ]);
+
+  const [setIsSettingsDialogOpen] = useActionBoxStore((state) => [state.setIsSettingsDialogOpen]);
+
   const { amount, debouncedAmount, walletAmount, maxAmount } = useLendAmounts({
     amountRaw,
     selectedBank,
@@ -125,7 +129,6 @@ export const LendBox = ({
 
   const { walletContextState, connected } = useWalletContext();
 
-  const [isSettingsActive, setIsSettingsActive] = React.useState<boolean>(false);
   const [lstDialogCallback, setLSTDialogCallback] = React.useState<(() => void) | null>(null);
   const [additionalActionMethods, setAdditionalActionMethods] = React.useState<ActionMethod[]>([]);
 
@@ -244,10 +247,7 @@ export const LendBox = ({
   }, [lendMode, selectedBank, amount, nativeSolBalance, selectedAccount, walletContextState]);
 
   return (
-    <ActionBoxWrapper
-      actionMode={lendMode as any}
-      settings={{ value: isSettingsActive, setShowSettings: setIsSettingsActive }}
-    >
+    <>
       <LendBoxInput
         banks={banks}
         nativeSolBalance={nativeSolBalance}
@@ -267,8 +267,6 @@ export const LendBox = ({
 
       <LendBoxCollateral selectedAccount={selectedAccount} actionSummary={actionSummary} />
 
-      <ActionSettingsButton setIsSettingsActive={setIsSettingsActive} />
-
       <ActionBoxActions
         isLoading={isLoading}
         isEnabled={!additionalActionMethods.concat(actionMethods).filter((value) => value.isEnabled === false).length}
@@ -278,6 +276,8 @@ export const LendBox = ({
           showCloseBalance ? handleCloseBalance() : handleLendingAction();
         }}
       />
+
+      <ActionSettingsButton setIsSettingsActive={setIsSettingsDialogOpen} />
 
       <LendBoxPreview actionSummary={actionSummary} />
 
@@ -291,6 +291,6 @@ export const LendBox = ({
           }
         }}
       />
-    </ActionBoxWrapper>
+    </>
   );
 };

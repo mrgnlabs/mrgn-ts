@@ -1,36 +1,44 @@
 import React from "react";
 
 // Import your subcomponents
-import { LendBox, LendBoxProps } from "./CoreActions/LendBox";
-// import FlashLoanActionbox from "./FlashLoan/FlashLoanActionbox";
-// import LSTActionbox from "./LST/LSTActionbox";
+import { LendBox, LendBoxProps } from "./CoreActions";
+// import FlashLoanActionBox from "./FlashLoan/FlashLoanActionBox";
+// import LSTActionBox from "./LST/LSTActionBox";
 
-import { ActionDialogWrapper, ActionDialogProps } from "./sharedComponents";
+import { ActionDialogWrapper, ActionDialogProps, ActionBoxWrapper, ActionBoxNavigator } from "./sharedComponents";
+import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
-type ActionboxDialogProps = {
+type ActionBoxDialogProps = {
   isDialog: true;
   dialogProps: ActionDialogProps;
 };
 
-type ActionboxWithoutDailogProps = {
+type ActionBoxWithoutDailogProps = {
   isDialog: false;
 };
 
-type ActionboxProps = ActionboxWithoutDailogProps | ActionboxDialogProps;
+type ActionBoxProps = ActionBoxWithoutDailogProps | ActionBoxDialogProps;
 
-const isDialogWrapperProps = (props: ActionboxProps): props is ActionboxDialogProps => props.isDialog === true;
+const isDialogWrapperProps = (props: ActionBoxProps): props is ActionBoxDialogProps => props.isDialog === true;
 
-interface ActionboxComponentProps {
+interface ActionBoxComponentProps {
   children: React.ReactNode;
 }
 
-interface ActionboxComponent extends React.FC<ActionboxProps & ActionboxComponentProps> {
-  Lend: React.FC<ActionboxProps & { lendProps: LendBoxProps }>;
-  FlashLoan: React.FC<ActionboxProps>;
-  LST: React.FC<ActionboxProps>;
+interface BorrowLendBoxProps
+  extends Pick<
+    LendBoxProps,
+    "nativeSolBalance" | "tokenAccountMap" | "selectedAccount" | "banks" | "accountSummary" | "onComplete"
+  > {}
+
+interface ActionBoxComponent extends React.FC<ActionBoxProps & ActionBoxComponentProps> {
+  Lend: React.FC<ActionBoxProps & { lendProps: LendBoxProps }>;
+  LendBorrow: React.FC<ActionBoxProps & { lendProps: BorrowLendBoxProps }>;
+  FlashLoan: React.FC<ActionBoxProps>;
+  LST: React.FC<ActionBoxProps>;
 }
 
-const Actionbox: ActionboxComponent = (props) => {
+const ActionBox: ActionBoxComponent = (props) => {
   if (isDialogWrapperProps(props)) {
     const dialogProps = props.dialogProps;
 
@@ -49,15 +57,36 @@ const Actionbox: ActionboxComponent = (props) => {
 };
 
 // Assign subcomponents as static properties
-Actionbox.Lend = (props: ActionboxProps & { lendProps: LendBoxProps }) => (
-  <Actionbox {...props}>
-    <LendBox isDialog={props.isDialog} {...props.lendProps} />
-  </Actionbox>
+ActionBox.Lend = (props: ActionBoxProps & { lendProps: LendBoxProps }) => (
+  <ActionBox {...props}>
+    <ActionBoxWrapper isDialog={props.isDialog} actionMode={props.lendProps.requestedLendType}>
+      <ActionBoxNavigator selectedAction={props.lendProps.requestedLendType}>
+        <LendBox isDialog={props.isDialog} {...props.lendProps} />
+      </ActionBoxNavigator>
+    </ActionBoxWrapper>
+  </ActionBox>
 );
-// Actionbox.LendBorrow
-Actionbox.FlashLoan = () => <div>FlashLoan</div>;
-Actionbox.LST = () => <div>LST</div>;
+ActionBox.LendBorrow = (props: ActionBoxProps & { lendProps: BorrowLendBoxProps }) => {
+  const [selectedAction, setSelectedAction] = React.useState(ActionType.Deposit);
+  return (
+    <ActionBox {...props}>
+      <ActionBoxWrapper isDialog={props.isDialog} actionMode={ActionType.Deposit}>
+        <ActionBoxNavigator
+          selectedAction={selectedAction}
+          onSelectAction={setSelectedAction}
+          actionTypes={[ActionType.Deposit, ActionType.Borrow]}
+        >
+          <LendBox isDialog={props.isDialog} requestedLendType={ActionType.Deposit} {...props.lendProps} />
+          <LendBox isDialog={props.isDialog} requestedLendType={ActionType.Borrow} {...props.lendProps} />
+        </ActionBoxNavigator>
+      </ActionBoxWrapper>
+    </ActionBox>
+  );
+};
 
-Actionbox.displayName = "Actionbox";
+ActionBox.FlashLoan = () => <div>FlashLoan</div>;
+ActionBox.LST = () => <div>LST</div>;
 
-export default Actionbox;
+ActionBox.displayName = "ActionBox";
+
+export default ActionBox;
