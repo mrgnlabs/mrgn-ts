@@ -18,6 +18,7 @@ import {
 import { useTradeStore, useUiStore } from "~/store";
 import { GroupData } from "~/store/tradeStore";
 import { getTokenImageURL, cn } from "~/utils";
+import { useIsMobile } from "~/hooks/useIsMobile";
 
 import { ActionComplete } from "~/components/common/ActionComplete";
 import { ActionBoxDialog } from "~/components/common/ActionBox";
@@ -37,6 +38,7 @@ import {
 } from "~/components/ui/dropdown-menu";
 
 export default function TradeSymbolPage() {
+  const isMobile = useIsMobile();
   const router = useRouter();
   const side = router.query.side as "long" | "short";
   const [initialized, groupMap, portfolio] = useTradeStore((state) => [
@@ -372,9 +374,11 @@ export default function TradeSymbolPage() {
                   </div>
                 </div>
               </div>
-              <div className="pt-4">
-                <PositionList activeGroupPk={activeGroup.groupPk} />
-              </div>
+              {!isMobile && (
+                <div className="pt-4">
+                  <PositionList activeGroupPk={activeGroup.groupPk} />
+                </div>
+              )}
             </div>
           </div>
         )}

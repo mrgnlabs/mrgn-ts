@@ -1,7 +1,7 @@
 import React from "react";
 
 import Image from "next/image";
-import Link from "next/link";
+import { useRouter } from "next/router";
 
 import { numeralFormatter, tokenPriceFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 
@@ -17,11 +17,25 @@ interface props {
 }
 
 export const PositionListItem = ({ group }: props) => {
+  const router = useRouter();
   const { borrowBank, depositBank } = useGroupBanks({ group });
   const { positionSizeUsd, positionSizeToken, totalUsdValue, leverage } = useGroupPosition({ group });
 
   return (
-    <TableRow className="even:bg-white/50 hover:even:bg-white/50">
+    <TableRow
+      className="cursor-pointer transition-colors hover:bg-accent/75"
+      onClick={(e) => {
+        console.log(e.target);
+        if (
+          e.target instanceof HTMLButtonElement ||
+          e.target instanceof HTMLAnchorElement ||
+          e.target instanceof SVGElement ||
+          (e.target instanceof Element && e.target.hasAttribute("data-state"))
+        )
+          return;
+        router.push(`/trade/${group.client.group.address.toBase58()}`);
+      }}
+    >
       <TableCell>
         {group.pool.token.isActive && group.pool.token.position.isLending ? (
           <Badge className="w-14 bg-success uppercase font-medium justify-center">long</Badge>
@@ -30,10 +44,7 @@ export const PositionListItem = ({ group }: props) => {
         )}
       </TableCell>
       <TableCell>
-        <Link
-          href={`/trade/${group.client.group.address.toBase58()}`}
-          className="flex items-center gap-3 transition-colors hover:text-mrgn-chartreuse"
-        >
+        <span className="flex items-center gap-3">
           <Image
             src={getTokenImageURL(group.pool.token.info.state.mint.toBase58())}
             width={24}
@@ -42,7 +53,7 @@ export const PositionListItem = ({ group }: props) => {
             className="rounded-full shrink-0"
           />{" "}
           {group.pool.token.meta.tokenSymbol}
-        </Link>
+        </span>
       </TableCell>
       <TableCell>{usdFormatter.format(totalUsdValue)}</TableCell>
       <TableCell>{`${leverage}x`}</TableCell>
