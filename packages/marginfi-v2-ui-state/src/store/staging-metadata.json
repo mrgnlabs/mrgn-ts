@@ -1,0 +1,24 @@
+{
+  "bankMetadata": {
+    "EbFkYVsNWiKYdiyug3To6KRDTGUKzdUZnvpby1KPdWXx": {
+      "tokenAddress": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "tokenName": "USD Coin",
+      "tokenSymbol": "USDC"
+    },
+    "4DSx551213J6FUYcu1uRYAYxqiJeVfdYpjdGiDwzL8ek": {
+      "tokenAddress": "2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo",
+      "tokenName": "PayPal USD",
+      "tokenSymbol": "PYUSD"
+    }
+  },
+  "tokenMetadata": {
+    "USDC": {
+      "name": "USD Coin",
+      "symbol": "USDC"
+    },
+    "PYUSD": {
+      "name": "PayPal USD",
+      "symbol": "PYUSD"
+    }
+  }
+}
