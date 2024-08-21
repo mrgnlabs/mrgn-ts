@@ -156,7 +156,7 @@ export default function MintPage() {
                 <PageHeading
                   heading={
                     <>
-                      <h1 className="leading-normal">Inflation protected</h1>
+                      <span className="leading-normal">Inflation protected</span>
                       <div className="text-3xl leading-normal flex items-center gap-2 pb-2 justify-center">
                         <IconSol size={32} />
                         <p>SOL</p>
@@ -172,7 +172,6 @@ export default function MintPage() {
                       <br className="hidden lg:block" /> Capture inflation automatically with LST and YBX.
                     </p>
                   }
-                  links={[]}
                 />
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 md:gap-11 mt-8">
