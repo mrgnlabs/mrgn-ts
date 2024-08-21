@@ -6,13 +6,15 @@ import { useAmountDebounce } from "~/hooks/useAmountDebounce";
 
 export function useLendAmounts({
   amountRaw,
+  maxAmountCollat,
   selectedBank,
   nativeSolBalance,
-  lendMode,
+  actionMode,
 }: {
   amountRaw: string;
+  maxAmountCollat: number | null;
   nativeSolBalance: number;
-  lendMode: ActionType;
+  actionMode: ActionType;
   selectedBank: ExtendedBankInfo | null;
 }) {
   const amount = React.useMemo(() => {
@@ -35,19 +37,16 @@ export function useLendAmounts({
       return 0;
     }
 
-    switch (lendMode) {
-      case ActionType.Deposit:
+    switch (actionMode) {
+      case ActionType.Loop:
         return selectedBank?.userInfo.maxDeposit ?? 0;
-      case ActionType.Withdraw:
-        return selectedBank?.userInfo.maxWithdraw ?? 0;
-      case ActionType.Borrow:
-        return selectedBank?.userInfo.maxBorrow ?? 0;
-      case ActionType.Repay:
-        return selectedBank?.userInfo.maxRepay ?? 0;
+      case ActionType.RepayCollat:
+        return maxAmountCollat ?? 0;
+
       default:
         return 0;
     }
-  }, [selectedBank, lendMode]);
+  }, [selectedBank, actionMode]);
 
   return {
     amount,

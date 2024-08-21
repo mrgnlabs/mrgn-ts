@@ -40,20 +40,14 @@ import {
 import { Button } from "~/components/ui/button";
 import { ActionMethod, MarginfiActionParams, RepayType } from "@mrgnlabs/mrgn-utils";
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
-import { useLendBoxStore } from "./store";
-import {
-  calculateSummary,
-  checkActionAvailable,
-  getSimulationResult,
-  handleExecuteCloseBalance,
-  handleExecuteLendingAction,
-} from "./utils";
+
 import { ActionBoxWrapper, ActionMessage, ActionProgressBar, ActionSettingsButton } from "../../sharedComponents";
-import { LendBoxCollateral, LendBoxInput, LendBoxPreview } from "./components";
+
 import { PreviousTxn } from "~/types";
-import { useLendSimulation } from "./hooks";
+
 import { useActionBoxStore } from "../../store";
 import { useActionAmounts } from "../../sharedHooks";
+import { useFlashLoanBoxStore } from "./store";
 
 // error handling
 export type LendBoxProps = {
@@ -72,7 +66,7 @@ export type LendBoxProps = {
   captureEvent?: (event: string, properties?: Record<string, any>) => void;
 };
 
-export const LendBox = ({
+export const FlashLoanBox = ({
   nativeSolBalance,
   tokenAccountMap,
   banks,
@@ -86,36 +80,10 @@ export const LendBox = ({
 }: LendBoxProps) => {
   const priorityFee = 0;
 
-  const [
-    amountRaw,
-    lendMode,
-    selectedBank,
-    simulationResult,
-    isLoading,
-    errorMessage,
-
-    refreshState,
-    fetchActionBoxState,
-    setLendMode,
-    setIsLoading,
-    setAmountRaw,
-    refreshSelectedBanks,
-    setSimulationResult,
-  ] = useLendBoxStore((state) => [
+  const [actionMode, amountRaw, selectedBank] = useFlashLoanBoxStore((state) => [
+    state.actionMode,
     state.amountRaw,
-    state.lendMode,
     state.selectedBank,
-    state.simulationResult,
-    state.isLoading,
-    state.errorMessage,
-
-    state.refreshState,
-    state.fetchActionBoxState,
-    state.setLendMode,
-    state.setIsLoading,
-    state.setAmountRaw,
-    state.refreshSelectedBanks,
-    state.setSimulationResult,
   ]);
 
   const [setIsSettingsDialogOpen] = useActionBoxStore((state) => [state.setIsSettingsDialogOpen]);
@@ -124,7 +92,7 @@ export const LendBox = ({
     amountRaw,
     selectedBank,
     nativeSolBalance,
-    actionMode: lendMode,
+    actionMode,
   });
   const { actionSummary } = useLendSimulation(debouncedAmount ?? 0, selectedAccount, accountSummary);
 
@@ -247,51 +215,5 @@ export const LendBox = ({
     setAmountRaw("");
   }, [lendMode, selectedBank, amount, nativeSolBalance, selectedAccount, walletContextState]);
 
-  return (
-    <>
-      <LendBoxInput
-        banks={banks}
-        nativeSolBalance={nativeSolBalance}
-        walletAmount={walletAmount}
-        amountRaw={amountRaw}
-        maxAmount={maxAmount}
-      />
-
-      {additionalActionMethods.concat(actionMethods).map(
-        (actionMethod, idx) =>
-          actionMethod.description && (
-            <div className="pb-6" key={idx}>
-              <ActionMessage actionMethod={actionMethod} />
-            </div>
-          )
-      )}
-
-      <LendBoxCollateral selectedAccount={selectedAccount} actionSummary={actionSummary} />
-
-      <ActionBoxActions
-        isLoading={isLoading}
-        isEnabled={!additionalActionMethods.concat(actionMethods).filter((value) => value.isEnabled === false).length}
-        actionMode={lendMode}
-        showCloseBalance={showCloseBalance}
-        handleAction={() => {
-          showCloseBalance ? handleCloseBalance() : handleLendingAction();
-        }}
-      />
-
-      <ActionSettingsButton setIsSettingsActive={setIsSettingsDialogOpen} />
-
-      <LendBoxPreview actionSummary={actionSummary} />
-
-      <LSTDialog
-        variant={selectedBank?.meta.tokenSymbol as LSTDialogVariants}
-        open={!!lstDialogCallback}
-        onClose={() => {
-          if (lstDialogCallback) {
-            lstDialogCallback();
-            setLSTDialogCallback(null);
-          }
-        }}
-      />
-    </>
-  );
+  return <></>;
 };

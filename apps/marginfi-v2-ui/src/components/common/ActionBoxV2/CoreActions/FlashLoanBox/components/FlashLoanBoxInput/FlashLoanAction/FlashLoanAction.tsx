@@ -1,10 +1,10 @@
 import React from "react";
 
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
-import { clampedNumeralFormatter } from "@mrgnlabs/mrgn-common";
+import { clampedNumeralFormatter, numeralFormatter } from "@mrgnlabs/mrgn-common";
 
 import { IconArrowRight } from "~/components/ui/icons";
-import { useLendBoxStore } from "~/components/common/ActionBoxV2/CoreActions/LendBox/store";
+import { useFlashLoanBoxStore } from "~/components/common/ActionBoxV2/CoreActions/FlashLoanBox/store";
 
 type props = {
   walletAmount: number | undefined;
@@ -14,10 +14,21 @@ type props = {
   onSetAmountRaw: (amount: string) => void;
 };
 
-export const LendingAction = ({ maxAmount, walletAmount, onSetAmountRaw }: props) => {
-  const [lendMode, selectedBank] = useLendBoxStore((state) => [state.lendMode, state.selectedBank]);
+export const FlashLoanAction = ({ maxAmount, walletAmount, onSetAmountRaw }: props) => {
+  const [actionMode, amountRaw, repayAmountRaw, selectedBank, selectedSecondaryBank] = useFlashLoanBoxStore((state) => [
+    state.actionMode,
+    state.amountRaw,
+    state.repayAmountRaw,
+    state.selectedBank,
+    state.selectedSecondaryBank,
+  ]);
 
   const numberFormater = React.useMemo(() => new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 }), []);
+
+  const repayAmount = React.useMemo(() => {
+    const strippedAmount = repayAmountRaw.replace(/,/g, "");
+    return isNaN(Number.parseFloat(strippedAmount)) ? 0 : Number.parseFloat(strippedAmount);
+  }, [repayAmountRaw]);
 
   const maxLabel = React.useMemo((): {
     amount: string;
@@ -34,44 +45,36 @@ export const LendingAction = ({ maxAmount, walletAmount, onSetAmountRaw }: props
     const formatAmount = (amount?: number, symbol?: string) =>
       amount !== undefined ? `${clampedNumeralFormatter(amount)} ${symbol}` : "-";
 
-    switch (lendMode) {
-      case ActionType.Deposit:
+    switch (actionMode) {
+      case ActionType.Loop:
         return {
           label: "Wallet: ",
           amount: formatAmount(walletAmount, selectedBank?.meta.tokenSymbol),
         };
-      case ActionType.Borrow:
-        return {
-          label: "Max Borrow: ",
-          amount: formatAmount(selectedBank.userInfo.maxBorrow, selectedBank?.meta.tokenSymbol),
-        };
 
-      case ActionType.Withdraw:
-        return {
-          amount: formatAmount(
-            selectedBank?.isActive ? selectedBank.position.amount : undefined,
-            selectedBank?.meta.tokenSymbol
-          ),
-          label: "Supplied: ",
-        };
+      case ActionType.RepayCollat:
+        const strippedAmount = amountRaw.replace(/,/g, "");
 
-      case ActionType.Repay:
+        const amount = isNaN(Number.parseFloat(strippedAmount)) ? 0 : Number.parseFloat(strippedAmount);
+
+        const amountLeft = numeralFormatter(selectedBank?.isActive ? selectedBank.position.amount - amount : 0);
         return {
-          amount: formatAmount(
-            selectedBank?.isActive ? selectedBank.position.amount : undefined,
-            selectedBank?.meta.tokenSymbol
-          ),
+          amount: `${amountLeft} ${selectedBank?.meta.tokenSymbol}`,
           label: "Borrowed: ",
         };
 
       default:
         return { amount: "-" };
     }
-  }, [selectedBank, lendMode, walletAmount]);
+  }, [selectedBank, actionMode, walletAmount]);
 
-  // const isMaxButtonVisible = React.useMemo(() => lendMode === ActionType.Repay, [lendMode]);
+  const isUnchanged = React.useMemo(() => repayAmount === 0, [repayAmount]);
 
-  // Section above the input
+  const isMaxButtonVisible = React.useMemo(
+    () => actionMode === ActionType.Loop || (actionMode === ActionType.RepayCollat && selectedSecondaryBank),
+    [actionMode, selectedSecondaryBank]
+  );
+
   return (
     <>
       {selectedBank && (
