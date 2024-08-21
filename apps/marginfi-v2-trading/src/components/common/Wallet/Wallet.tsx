@@ -204,10 +204,10 @@ export const Wallet = () => {
             <div className="max-h-full">
               <header className="flex items-start gap-2 w-full justify-between -translate-y-2">
                 <WalletAvatar pfp={pfp} address={walletData.address} size="md" className="" />
-                {referralCode && (
-                  <div className="flex flex-col items-center gap-2">
+                {!referralCode && (
+                  <div className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center gap-2">
                     <CopyToClipboard
-                      text={referralCode}
+                      text={referralCode ?? ""}
                       onCopy={() => {
                         setIsReferralCopied(true);
                         setTimeout(() => {
@@ -233,43 +233,19 @@ export const Wallet = () => {
                   </div>
                 )}
                 <div className="flex items-center md:gap-1">
-                  {web3AuthConncected && (
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => {
-                              localStorage.setItem("mrgnPrivateKeyRequested", "true");
-                              requestPrivateKey();
-                            }}
-                          >
-                            <IconKey size={18} />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Export private key</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  )}
-
-                  <Button variant="ghost" size="icon" onClick={logout} className="shrink-0">
+                  <button onClick={logout} className="shrink-0 p-2">
                     <IconLogout size={18} className="translate-x-0.5" />
-                  </Button>
+                  </button>
 
                   {isMobile && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
+                    <button
+                      className="shrink-0 p-2"
                       onClick={() => {
                         setIsWalletOpen(false);
                       }}
-                      className="shrink-0"
                     >
                       <IconX size={18} className="translate-x-0.5" />
-                    </Button>
+                    </button>
                   )}
                 </div>
               </header>
@@ -296,7 +272,7 @@ export const Wallet = () => {
                                   }, 2000);
                                 }}
                               >
-                                <button className="flex w-full gap-1 font-medium items-center justify-center text-center text-xs text-muted-foreground">
+                                <button className="flex w-full gap-1 font-medium items-center justify-center text-center text-xs text-muted-foreground py-2">
                                   {!isWalletAddressCopied ? (
                                     <>
                                       <IconCopy size={16} /> Copy wallet address
@@ -316,9 +292,20 @@ export const Wallet = () => {
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
+                      {web3AuthConncected && (
+                        <button
+                          className="flex w-full gap-1 font-medium items-center justify-center text-center text-xs text-muted-foreground py-2"
+                          onClick={() => {
+                            localStorage.setItem("mrgnPrivateKeyRequested", "true");
+                            requestPrivateKey();
+                          }}
+                        >
+                          <IconKey size={18} /> Export private key
+                        </button>
+                      )}
                     </div>
                     <WalletTokens
-                      className="h-[calc(100vh-285px)] pb-16"
+                      className="h-[calc(100vh-325px)] pb-16"
                       tokens={walletData.tokens}
                       onTokenClick={(token) => {
                         setActiveToken(token);
