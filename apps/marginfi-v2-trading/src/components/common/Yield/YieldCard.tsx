@@ -128,7 +128,7 @@ const YieldItem = ({
         </div>
       )}
       <TooltipProvider>
-        <div className="flex gap-2">
+        <div className="flex flex-col gap-2 md:flex-row">
           {bank.isActive && isLeveraged && bank.position.isLending && (
             <ActionBoxDialog activeGroupArg={group} requestedBank={bank} requestedAction={ActionType.Withdraw}>
               <Button
@@ -147,9 +147,9 @@ const YieldItem = ({
           <ActionBoxDialog activeGroupArg={group} requestedBank={group.pool.token} requestedAction={ActionType.Deposit}>
             {isLeveraged ? (
               <Tooltip>
-                <TooltipTrigger className="cursor-default">
+                <TooltipTrigger className="cursor-default" asChild>
                   <Button disabled className="w-full bg-background border text-foreground hover:bg-accent">
-                    Supply
+                    Supply {bank.meta.tokenSymbol}
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
@@ -173,7 +173,7 @@ const YieldItem = ({
                   });
                 }}
               >
-                Supply
+                Supply {bank.meta.tokenSymbol}
               </Button>
             )}
           </ActionBoxDialog>
