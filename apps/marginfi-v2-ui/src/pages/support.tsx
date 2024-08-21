@@ -34,7 +34,7 @@ export default function SupportPage() {
   }, []);
 
   return (
-    <div className="h-full flex flex-col justify-start items-center content-start gap-4">
+    <div className="h-full flex flex-col justify-start items-center content-start gap-4 px-4">
       <PageHeading
         heading="Help & Support"
         body={
@@ -45,7 +45,7 @@ export default function SupportPage() {
         }
       />
 
-      <div className="grid grid-cols-3 gap-8 w-full">
+      <div className="grid md:grid-cols-3 gap-8 w-full">
         {links.map((link) => (
           <Link
             href={link.href}
