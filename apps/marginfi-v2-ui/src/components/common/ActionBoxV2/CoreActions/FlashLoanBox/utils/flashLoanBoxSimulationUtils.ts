@@ -194,7 +194,7 @@ async function simulateAction({ actionMode, account, bank, amount }: SimulateAct
   return simulationResult;
 }
 
-async function calculateLooping(
+export async function calculateLooping(
   marginfiAccount: MarginfiAccountWrapper,
   bank: ExtendedBankInfo, // deposit
   loopBank: ExtendedBankInfo, // borrow
