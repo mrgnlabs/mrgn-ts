@@ -6,11 +6,13 @@ import {
   IconBrandX,
   IconBrandDiscordFilled,
   IconBrandGithubFilled,
-  IconBrandSubstack,
   IconHelp,
   IconBook,
   IconChartHistogram,
-} from "~/components/ui/icons";
+  IconMessage,
+} from "@tabler/icons-react";
+
+import { IconBrandSubstack } from "~/components/ui/icons";
 
 const footerLinks = [
   {
@@ -46,7 +48,10 @@ const footerLinks = [
 export const Footer = () => {
   return (
     <footer className="bg-background-gray text-muted-foreground fixed bottom-0 w-full px-4 py-2">
-      <nav>
+      <nav className="flex items-center justify-between">
+        <Link href="/support" className="flex items-center gap-2 text-sm font-medium">
+          <IconMessage size={18} /> help &amp; support
+        </Link>
         <ul className="flex items-center gap-3.5 justify-end">
           {footerLinks.map((link, index) => (
             <li key={index}>
