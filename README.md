@@ -12,8 +12,8 @@
     <a href="http://www.apache.org/licenses/LICENSE-2.0"><img alt="License" src="https://img.shields.io/github/license/mrgnlabs/mrgn-ts?style=flat-square&color=ffff00"/></a>
     <!-- Total lines -->
     <a href=""><img alt="License" src="https://img.shields.io/tokei/lines/github/mrgnlabs/mrgn-ts?style=flat-square&color=000000"/></a>
-    <!-- Twitter -->
-    <a href="https://twitter.com/intent/tweet?text=Wow:&url=https%3A%2F%2Ftwitter.com%2Fmarginfi"><img alt="Twitter" src="https://img.shields.io/twitter/url?style=social&url=https%3A%2F%2Ftwitter.com%2Fmarginfi"/></a>
+    <!-- X -->
+    <a href="https://x.com/intent/tweet?text=Wow:&url=https%3A%2F%2Fx.com%2Fmarginfi"><img alt="X" src="https://img.shields.io/x/url?style=social&url=https%3A%2F%2Fx.com%2Fmarginfi"/></a>
     <br>
     <!-- Versions -->
     <a href=""><img alt="marginfi-v2-ui" src="https://img.shields.io/github/package-json/v/mrgnlabs/mrgn-ts?color=white&filename=apps%2Fmarginfi-v2-ui%2Fpackage.json&label=marginfi-v2-ui&style=flat-square"/></a>
