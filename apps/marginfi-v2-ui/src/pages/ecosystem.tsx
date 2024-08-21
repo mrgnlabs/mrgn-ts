@@ -259,7 +259,7 @@ export default function Ecosystem() {
     <>
       <div className="w-full xl:w-4/5 xl:max-w-7xl mx-auto px-4">
         <PageHeading
-          heading={<h1 className="text-4xl font-medium text-primary">Ecosystem</h1>}
+          heading={<span className="text-4xl font-medium text-primary">Ecosystem</span>}
           body={
             <p>
               Official and community projects powered by the marginfi SDK. <br className="hidden lg:block" />
