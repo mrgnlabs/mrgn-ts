@@ -1,9 +1,9 @@
 import Link from "next/link";
 
 interface PageHeadingProps {
-  heading: JSX.Element;
+  heading: string | JSX.Element;
   body?: JSX.Element;
-  links: {
+  links?: {
     href: string;
     icon: JSX.Element;
   }[];
@@ -16,7 +16,7 @@ export const PageHeading = ({ heading, body, links, button }: PageHeadingProps) 
       <h1 className="text-4xl font-medium text-primary">{heading}</h1>
       <div className="max-w-2xl w-full mx-auto">{body}</div>
 
-      {links.length > 0 && (
+      {links && links.length > 0 && (
         <ul className="flex items-center gap-4 justify-center pt-2">
           {links.map((link, idx) => (
             <li key={idx}>
