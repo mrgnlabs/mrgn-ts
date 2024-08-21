@@ -16,4 +16,5 @@ interface Window {
   deBridge: any;
   phantom: any;
   backpack?: any;
+  FrontChat: any;
 }
