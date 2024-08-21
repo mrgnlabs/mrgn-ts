@@ -33,7 +33,7 @@ export const LendBoxPreview = ({ actionSummary }: LendBoxPreviewProps) => {
   );
 
   return (
-    <>
+    <dl className={cn("grid grid-cols-2 gap-y-2 pt-6 text-xs text-white")}>
       {selectedBank &&
         stats &&
         stats.map((stat, idx) => (
@@ -52,6 +52,6 @@ export const LendBoxPreview = ({ actionSummary }: LendBoxPreviewProps) => {
             <stat.value />
           </ActionStatItem>
         ))}
-    </>
+    </dl>
   );
 };
