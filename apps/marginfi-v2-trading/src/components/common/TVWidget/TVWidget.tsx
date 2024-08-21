@@ -1,9 +1,6 @@
-"use client";
-
 import React from "react";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { usePrevious } from "~/utils";
-import { useIsMobile } from "~/hooks/useIsMobile";
 
 import { ChartingLibraryFeatureset } from "../../../../public/tradingview";
 
@@ -14,13 +11,13 @@ interface props {
 export const TVWidget = ({ token }: props) => {
   const container = React.useRef<HTMLDivElement>(null);
   const prevToken = usePrevious(token);
-  const isMobile = useIsMobile();
 
   React.useEffect(() => {
     if (!container.current) return;
 
     if (prevToken?.address.equals(token.address)) return;
 
+    const isMobile = window.innerWidth < 1024;
     const script = document.createElement("script");
 
     const disabledFeats: ChartingLibraryFeatureset[] = [
@@ -30,7 +27,7 @@ export const TVWidget = ({ token }: props) => {
     ];
 
     if (isMobile) {
-      disabledFeats.push("left_toolbar");
+      disabledFeats.push("left_toolbar", "header_widget", "control_bar");
     }
 
     script.src = "/tradingview/charting_library/charting_library.js";
@@ -47,7 +44,7 @@ export const TVWidget = ({ token }: props) => {
           "paneProperties.background": "#ffffff",
           "paneProperties.backgroundType": "solid",
         },
-        height: 600,
+        height: isMobile ? 400 : 600,
         width: container.current?.offsetWidth || 900,
         autosize: false,
         header_widget_buttons_mode: "compact",
@@ -180,20 +177,7 @@ export const TVWidget = ({ token }: props) => {
       });
     };
     container.current.appendChild(script);
+  }, [container, token, prevToken]);
 
-    // return () => {
-    //   if (!container.current) return;
-    //   container.current.removeChild(script);
-    // };
-  }, [container, token, prevToken, isMobile]);
-
-  return (
-    <div id="tv_chart_container" ref={container} className="relative"></div>
-    // <div className="tradingview-widget-container" >
-    //   <div
-    //     className="tradingview-widget-container__widget"
-    //     style={{ height: "calc(100% - 32px)", width: "120%" }}
-    //   ></div>
-    // </div>
-  );
+  return <div id="tv_chart_container" ref={container} className="relative"></div>;
 };
