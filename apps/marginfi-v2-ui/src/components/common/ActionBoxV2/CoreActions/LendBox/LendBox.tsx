@@ -213,7 +213,7 @@ export const LendBox = ({
         walletContextState,
       } as MarginfiActionParams;
 
-      handleExecuteLendingAction({
+      await handleExecuteLendingAction({
         params,
         captureEvent: (event, properties) => {
           captureEvent && captureEvent(event, properties);

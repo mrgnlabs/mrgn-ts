@@ -27,7 +27,7 @@ export function generateLendingStats(
     )
   );
 
-  stats.push(getHealthStat(summary.actionPreview.health, isLoading, summary.simulationPreview?.health));
+  stats.push(getHealthStat(summary.actionPreview.health, false, summary.simulationPreview?.health));
 
   if (summary.simulationPreview?.liquidationPrice && bank.isActive)
     stats.push(getLiquidationStat(bank, isLoading, summary.simulationPreview?.liquidationPrice));
