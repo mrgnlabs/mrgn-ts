@@ -93,9 +93,7 @@ export const TokenCombobox = ({ selected, setSelected, children }: TokenCombobox
       <Mobile>
         <Drawer open={open} onOpenChange={(open) => setOpen(open)}>
           <DrawerTrigger asChild>
-            <div>
-              <TokenTrigger selected={selected} />
-            </div>
+            <div>{children ? children : <TokenTrigger selected={selected} />}</div>
           </DrawerTrigger>
           <DrawerContent className="h-full z-[55] mt-0 p-2" hideTopTrigger={true}>
             <Command>
