@@ -16,9 +16,10 @@ import type { GroupData } from "~/store/tradeStore";
 
 type PositionCardProps = {
   groupData: GroupData;
+  size?: "sm" | "lg";
 };
 
-export const PositionCard = ({ groupData }: PositionCardProps) => {
+export const PositionCard = ({ size = "lg", groupData }: PositionCardProps) => {
   const { borrowBank } = useGroupBanks({ group: groupData });
   const { positionSizeUsd, totalUsdValue, leverage } = useGroupPosition({ group: groupData });
 
@@ -43,25 +44,27 @@ export const PositionCard = ({ groupData }: PositionCardProps) => {
   if (!groupData.pool.token.isActive) return null;
 
   return (
-    <div className="bg-background border p-4 rounded-2xl space-y-4">
-      <div className="flex items-center gap-4 justify-between">
-        <Link
-          href={`/trade/${groupData.client.group.address.toBase58()}`}
-          className="flex items-center gap-4 font-medium text-muted-foreground"
-        >
-          <Image
-            src={getTokenImageURL(groupData.pool.token.info.state.mint.toBase58())}
-            alt={groupData.pool.token.meta.tokenSymbol}
-            width={56}
-            height={56}
-            className="rounded-full"
-          />
-          <div className="leading-none space-y-0.5">
-            <h2 className="text-lg text-primary">{groupData.pool.token.meta.tokenName}</h2>
-            <h3>{groupData.pool.token.meta.tokenSymbol}</h3>
-          </div>
-        </Link>
-      </div>
+    <div className={cn("space-y-4", size === "lg" && "bg-background border p-4 rounded-2xl")}>
+      {size === "lg" && (
+        <div className="flex items-center gap-4 justify-between">
+          <Link
+            href={`/trade/${groupData.client.group.address.toBase58()}`}
+            className="flex items-center gap-4 font-medium text-muted-foreground"
+          >
+            <Image
+              src={getTokenImageURL(groupData.pool.token.info.state.mint.toBase58())}
+              alt={groupData.pool.token.meta.tokenSymbol}
+              width={56}
+              height={56}
+              className="rounded-full"
+            />
+            <div className="leading-none space-y-0.5">
+              <h2 className="text-lg text-primary">{groupData.pool.token.meta.tokenName}</h2>
+              <h3>{groupData.pool.token.meta.tokenSymbol}</h3>
+            </div>
+          </Link>
+        </div>
+      )}
       <div className="bg-accent/50 rounded-xl p-4">
         <dl className="w-full grid grid-cols-2 text-sm text-muted-foreground gap-1">
           <dt>Token</dt>

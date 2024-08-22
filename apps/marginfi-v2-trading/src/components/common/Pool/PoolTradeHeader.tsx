@@ -21,7 +21,8 @@ import { GroupData } from "~/store/tradeStore";
 
 import { TokenCombobox } from "~/components/common/TokenCombobox";
 import { PoolShare } from "~/components/common/Pool/PoolShare";
-import { ActionBoxDialog } from "~/components/common/ActionBox/ActionBoxDialog";
+import { ActionBoxDialog } from "~/components/common/ActionBox";
+import { PositionCard } from "~/components/common/Portfolio";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import {
   DropdownMenu,
@@ -34,11 +35,7 @@ import { Button } from "~/components/ui/button";
 export const PoolTradeHeader = ({ activeGroup }: { activeGroup: GroupData }) => {
   const router = useRouter();
 
-  const [initialized, groupMap, portfolio] = useTradeStore((state) => [
-    state.initialized,
-    state.groupMap,
-    state.portfolio,
-  ]);
+  const [portfolio] = useTradeStore((state) => [state.portfolio]);
 
   const lpPosition = React.useMemo(() => {
     if (!portfolio) return null;
@@ -69,7 +66,7 @@ export const PoolTradeHeader = ({ activeGroup }: { activeGroup: GroupData }) => 
   }, [portfolio, activeGroup]);
 
   return (
-    <div className="px-4 py-10 lg:px-8 lg:bg-background lg:border lg:rounded-xl">
+    <div className="px-4 pb-10 lg:px-8 lg:py-10 lg:bg-background lg:border lg:rounded-xl">
       <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
         <div className="flex flex-col items-center px-8 w-full lg:w-1/4 xl:w-1/2">
           <Image
@@ -439,6 +436,25 @@ export const PoolTradeHeader = ({ activeGroup }: { activeGroup: GroupData }) => 
           </div>
         </div>
       </div>
+      {hasTradePosition && (
+        <Mobile>
+          <div className="mt-8 space-y-2">
+            <p className="flex items-center text-sm">
+              <span
+                className={cn(
+                  "flex w-2.5 h-2.5 rounded-full mr-2",
+                  activeGroup.pool.token.isActive && activeGroup.pool.token.position.isLending
+                    ? "bg-mrgn-green"
+                    : "bg-mrgn-error"
+                )}
+              ></span>
+              Open {activeGroup.pool.token.isActive && activeGroup.pool.token.position.isLending ? "long " : "short "}
+              position
+            </p>
+            <PositionCard groupData={activeGroup} size="sm" />
+          </div>
+        </Mobile>
+      )}
     </div>
   );
 };
