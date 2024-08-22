@@ -194,10 +194,16 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
         let results = await Promise.all([loadBankMetadatas(), loadTokenMetadatas()]);
         bankMetadataMap = results[0];
         tokenMetadataMap = results[1];
-      } else {
-        const bankMetadataJson = (await import(`./${marginfiConfig.environment}-metadata.json`)) as { bankMetadata: BankMetadataMap, tokenMetadata: TokenMetadataMap };
+      } else if (marginfiConfig.environment === "staging") {
+        const bankMetadataJson = (await import("./staging-metadata.json")) as { bankMetadata: BankMetadataMap, tokenMetadata: TokenMetadataMap };
         bankMetadataMap = bankMetadataJson.bankMetadata;
         tokenMetadataMap = bankMetadataJson.tokenMetadata;
+      } else if (marginfiConfig.environment === "mainnet-test-1") {
+        const bankMetadataJson = (await import("./mainnet-test-1-metadata.json")) as { bankMetadata: BankMetadataMap, tokenMetadata: TokenMetadataMap };
+        bankMetadataMap = bankMetadataJson.bankMetadata;
+        tokenMetadataMap = bankMetadataJson.tokenMetadata;
+      } else {
+        throw new Error("Unknown environment");
       }
 
       const bankAddresses = Object.keys(bankMetadataMap).map((address) => new PublicKey(address));

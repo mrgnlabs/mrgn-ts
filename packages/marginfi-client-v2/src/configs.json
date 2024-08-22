@@ -15,13 +15,13 @@
     "label": "mainnet-test-1",
     "cluster": "mainnet",
     "program": "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
-    "group": "CWqJj49NPUGE7Y18QuKcJCC6vEyspCj91oKgECyfxepR"
+    "group": "B3DJPqgoKJ7PLCcFiDwEUv6aDfaWmPXkGQk55Mt56Edu"
   },
   {
     "label": "staging",
     "cluster": "mainnet",
     "program": "stag8sTKds2h4KzjUw3zKTsxbqvT4XKHdaR9X9E6Rct",
-    "group": "42Q5U5J5qY6vAoZke4D2XtqxapiHFGGgxxCsLm4MSHj8"
+    "group": "FCPfpHA69EbS8f9KKSreTRkXbzFpunsKuYf5qNmnJjpo"
   },
   {
     "label": "dev.1",
