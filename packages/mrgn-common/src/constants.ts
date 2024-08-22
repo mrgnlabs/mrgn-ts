@@ -18,6 +18,8 @@ export const WSOL_MINT = new PublicKey("So11111111111111111111111111111111111111
 
 export const LST_MINT = new PublicKey("LSTxxxnJzKDFSLr4dUkPcmCf5VyryEqzPLz5j4bpxFp");
 
+export const USDC_MINT = new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
+
 export const HOURS_PER_YEAR = 365.25 * 24;
 
 export const LUT_PROGRAM_AUTHORITY_INDEX = 5;
