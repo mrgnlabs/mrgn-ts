@@ -1,7 +1,6 @@
 import { Address, AnchorProvider, BorshAccountsCoder, Program, translateAddress } from "@coral-xyz/anchor";
 import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
 import {
-  AccountInfo,
   AddressLookupTableAccount,
   Commitment,
   ConfirmOptions,
@@ -162,7 +161,10 @@ class MarginfiClient {
       commitment: connection.commitment ?? AnchorProvider.defaultOptions().commitment,
       ...confirmOpts,
     });
-    const program = new Program(MARGINFI_IDL as unknown as MarginfiIdlType, provider) as any as MarginfiProgram;
+
+    const idl = { ...(MARGINFI_IDL as unknown as MarginfiIdlType), address: config.programId.toBase58() };
+
+    const program = new Program(idl, provider) as any as MarginfiProgram;
 
     let bankMetadataMap: BankMetadataMap | undefined = undefined;
     try {
