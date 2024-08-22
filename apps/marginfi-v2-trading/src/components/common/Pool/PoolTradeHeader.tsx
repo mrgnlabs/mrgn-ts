@@ -296,11 +296,8 @@ export const PoolTradeHeader = ({ activeGroup }: { activeGroup: GroupData }) => 
                       requestedAccount={activeGroup.selectedAccount || undefined}
                       activeGroupArg={activeGroup}
                     >
-                      <Button variant="outline" className="px-2 py-1.5 h-auto w-full lg:px-4 lg:py-2">
-                        Supply{" "}
-                        <p className="hidden text-mrgn-success lg:block">
-                          {percentFormatter.format(aprToApy(activeGroup.pool.token.info.state.lendingRate))}
-                        </p>
+                      <Button size="sm" variant="outline" className="px-2 py-1.5 h-auto w-full lg:px-4 lg:py-2 mt-4">
+                        Supply
                       </Button>
                     </ActionBoxDialog>
                   )
