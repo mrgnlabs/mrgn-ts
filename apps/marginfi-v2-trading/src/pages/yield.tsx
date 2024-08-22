@@ -120,7 +120,7 @@ export default function PortfolioPage() {
 
   return (
     <>
-      <div className="w-full max-w-8xl mx-auto px-4 md:px-8 pb-28 pt-12">
+      <div className="w-full max-w-8xl mx-auto px-4 md:px-8 pb-28 pt-12 min-h-[calc(100vh-100px)]">
         {!initialized && <Loader label="Loading yield farming..." className="mt-8" />}
         {initialized && (
           <>
