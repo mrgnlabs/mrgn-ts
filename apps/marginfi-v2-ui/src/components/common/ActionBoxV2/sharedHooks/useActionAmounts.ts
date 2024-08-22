@@ -53,7 +53,7 @@ export function useActionAmounts({
       default:
         return 0;
     }
-  }, [selectedBank, actionMode]);
+  }, [selectedBank, actionMode, maxAmountCollat]);
 
   return {
     amount,

@@ -1,73 +1,38 @@
 import { ExtendedBankInfo, ActionType, AccountSummary } from "@mrgnlabs/marginfi-v2-ui-state";
-import { nativeToUi } from "@mrgnlabs/mrgn-common";
+import { Wallet } from "@mrgnlabs/mrgn-common";
+import { ActionMethod, handleSimulationError } from "@mrgnlabs/mrgn-utils";
+import { Bank, MarginfiAccountWrapper, MarginfiClient, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
+
 import {
-  ActionMethod,
-  calculateLoopingParams,
-  calculateRepayCollateralParams,
-  handleSimulationError,
-  isWholePosition,
-  LoopingObject,
-} from "@mrgnlabs/mrgn-utils";
-import { MarginfiAccountWrapper, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
-
-import { simulatedCollateral, simulatedHealthFactor, simulatedPositionSize } from "../../../sharedUtils";
-import { Connection, VersionedTransaction } from "@solana/web3.js";
-import { QuoteResponse } from "@jup-ag/api";
-
-export interface ActionSummary {
-  actionPreview: ActionPreview;
-  simulationPreview: SimulatedActionPreview | null;
-}
-
-interface ActionPreview {
-  health: number;
-  liquidationPrice: number | null;
-  positionAmount: number;
-  poolSize: number;
-  bankCap: number;
-  priceImpactPct?: number;
-  slippageBps?: number;
-}
-
-export interface SimulatedActionPreview {
-  health: number;
-  liquidationPrice: number | null;
-  depositRate: number;
-  borrowRate: number;
-  positionAmount: number;
-  availableCollateral: {
-    ratio: number;
-    amount: number;
-  };
-}
+  ActionPreview,
+  ActionSummary,
+  calculateSimulatedActionPreview,
+  SimulatedActionPreview,
+} from "../../../sharedUtils";
+import { VersionedTransaction } from "@solana/web3.js";
 
 export interface CalculatePreviewProps {
-  actionMode: ActionType;
   simulationResult?: SimulationResult;
   bank: ExtendedBankInfo;
   accountSummary: AccountSummary;
 }
 
 export interface SimulateActionProps {
+  marginfiClient: MarginfiClient;
   actionMode: ActionType;
+  actionTxn: VersionedTransaction | null;
   account: MarginfiAccountWrapper;
   bank: ExtendedBankInfo;
-  amount: number;
 }
 
-export function calculateSummary({
-  simulationResult,
-  bank,
-  actionMode,
-  accountSummary,
-}: CalculatePreviewProps): ActionSummary {
+export function calculateSummary({ simulationResult, bank, accountSummary }: CalculatePreviewProps): ActionSummary {
   let simulationPreview: SimulatedActionPreview | null = null;
 
   if (simulationResult) {
     simulationPreview = calculateSimulatedActionPreview(simulationResult, bank);
   }
 
-  const actionPreview = calculateActionPreview(bank, actionMode, accountSummary);
+  const actionPreview = calculateActionPreview(bank, accountSummary);
 
   return {
     actionPreview,
@@ -84,21 +49,13 @@ export const getSimulationResult = async (props: SimulateActionProps) => {
   } catch (error: any) {
     let actionString;
     switch (props.actionMode) {
-      case ActionType.Deposit:
-        actionString = "Depositing";
-        break;
-      case ActionType.Withdraw:
-        actionString = "Withdrawing";
-        break;
       case ActionType.Loop:
         actionString = "Looping";
         break;
-      case ActionType.Repay:
-        actionString = "Repaying";
+      case ActionType.RepayCollat:
+        actionString = "Repaying Collateral";
         break;
-      case ActionType.Borrow:
-        actionString = "Borrowing";
-        break;
+
       default:
         actionString = "The action";
     }
@@ -108,12 +65,7 @@ export const getSimulationResult = async (props: SimulateActionProps) => {
   return { simulationResult, actionMethod };
 };
 
-function calculateActionPreview(
-  bank: ExtendedBankInfo,
-  actionMode: ActionType,
-  accountSummary: AccountSummary
-): ActionPreview {
-  const isLending = [ActionType.Deposit, ActionType.Withdraw].includes(actionMode);
+function calculateActionPreview(bank: ExtendedBankInfo, accountSummary: AccountSummary): ActionPreview {
   const positionAmount = bank?.isActive ? bank.position.amount : 0;
   const health = accountSummary.balance && accountSummary.healthFactor ? accountSummary.healthFactor : 1;
   const liquidationPrice =
@@ -121,72 +73,21 @@ function calculateActionPreview(
       ? bank.position.liquidationPrice
       : null;
 
-  const poolSize = isLending
-    ? bank.info.state.totalDeposits
-    : Math.max(
-        0,
-        Math.min(bank.info.state.totalDeposits, bank.info.rawBank.config.borrowLimit.toNumber()) -
-          bank.info.state.totalBorrows
-      );
-  const bankCap = nativeToUi(
-    isLending ? bank.info.rawBank.config.depositLimit : bank.info.rawBank.config.borrowLimit,
-    bank.info.state.mintDecimals
-  );
-
   return {
     positionAmount,
     health,
     liquidationPrice,
-    poolSize,
-    bankCap,
   } as ActionPreview;
 }
 
-function calculateSimulatedActionPreview(
-  simulationResult: SimulationResult,
-  bank: ExtendedBankInfo
-): SimulatedActionPreview {
-  const health = simulatedHealthFactor(simulationResult);
-  const positionAmount = simulatedPositionSize(simulationResult, bank);
-  const availableCollateral = simulatedCollateral(simulationResult);
-
-  const liquidationPrice = simulationResult.marginfiAccount.computeLiquidationPriceForBank(bank.address);
-  const { lendingRate, borrowingRate } = simulationResult.banks.get(bank.address.toBase58())!.computeInterestRates();
-
-  return {
-    health,
-    liquidationPrice,
-    depositRate: lendingRate.toNumber(),
-    borrowRate: borrowingRate.toNumber(),
-    positionAmount,
-    availableCollateral,
-  };
-}
-
-async function simulateAction({ actionMode, account, bank, amount }: SimulateActionProps) {
+async function simulateAction({ marginfiClient, actionMode, account, bank, actionTxn }: SimulateActionProps) {
   let simulationResult: SimulationResult;
 
   switch (actionMode) {
-    case ActionType.Deposit:
-      simulationResult = await account.simulateDeposit(amount, bank.address);
+    case ActionType.Loop && ActionType.RepayCollat:
+      simulationResult = await simulateFlashLoan({ marginfiClient, account, bank, actionTxn });
       break;
-    case ActionType.Withdraw:
-      simulationResult = await account.simulateWithdraw(
-        amount,
-        bank.address,
-        bank.isActive && isWholePosition(bank, amount)
-      );
-      break;
-    case ActionType.Borrow:
-      simulationResult = await account.simulateBorrow(amount, bank.address);
-      break;
-    case ActionType.Repay:
-      simulationResult = await account.simulateRepay(
-        amount,
-        bank.address,
-        bank.isActive && isWholePosition(bank, amount)
-      );
-      break;
+
     default:
       throw new Error("Unknown action mode");
   }
@@ -194,74 +95,51 @@ async function simulateAction({ actionMode, account, bank, amount }: SimulateAct
   return simulationResult;
 }
 
-export async function calculateLooping(
-  marginfiAccount: MarginfiAccountWrapper,
-  bank: ExtendedBankInfo, // deposit
-  loopBank: ExtendedBankInfo, // borrow
-  targetLeverage: number,
-  amount: number,
-  slippageBps: number,
-  connection: Connection,
-  priorityFee: number
-): Promise<LoopingObject | ActionMethod> {
-  // TODO setup logging again
-  // capture("looper", {
-  //   amountIn: uiToNative(amount, loopBank.info.state.mintDecimals).toNumber(),
-  //   firstQuote,
-  //   bestQuote: swapQuote,
-  //   inputMint: loopBank.info.state.mint.toBase58(),
-  //   outputMint: bank.info.state.mint.toBase58(),
-  // });
-
-  const result = await calculateLoopingParams({
-    marginfiAccount,
-    depositBank: bank,
-    borrowBank: loopBank,
-    targetLeverage,
-    amount,
-    slippageBps,
-    connection,
-    priorityFee,
-  });
-
-  return result;
+interface SimulateFlashLoanProps {
+  marginfiClient: MarginfiClient;
+  account: MarginfiAccountWrapper;
+  bank: ExtendedBankInfo;
+  actionTxn: VersionedTransaction | null;
 }
 
-async function calculateRepayCollateral(
-  marginfiAccount: MarginfiAccountWrapper,
-  bank: ExtendedBankInfo, // borrow
-  repayBank: ExtendedBankInfo, // deposit
-  amount: number,
-  slippageBps: number,
-  connection: Connection,
-  priorityFee: number
-): Promise<
-  | {
-      repayTxn: VersionedTransaction;
-      bundleTipTxn: VersionedTransaction | null;
-      quote: QuoteResponse;
-      amount: number;
-    }
-  | ActionMethod
-> {
-  // TODO setup logging again
-  // capture("repay_with_collat", {
-  //   amountIn: uiToNative(amount, repayBank.info.state.mintDecimals).toNumber(),
-  //   firstQuote,
-  //   bestQuote: swapQuote,
-  //   inputMint: repayBank.info.state.mint.toBase58(),
-  //   outputMint: bank.info.state.mint.toBase58(),
-  // });
+async function simulateFlashLoan({ marginfiClient, account, bank, actionTxn }: SimulateFlashLoanProps) {
+  let simulationResult: SimulationResult;
 
-  const result = await calculateRepayCollateralParams(
-    marginfiAccount,
-    bank,
-    repayBank,
-    amount,
-    slippageBps,
-    connection,
-    priorityFee
-  );
+  if (actionTxn && marginfiClient) {
+    const [mfiAccountData, bankData] = await marginfiClient.simulateTransaction(actionTxn, [
+      account.address,
+      bank.address,
+    ]);
+    if (!mfiAccountData || !bankData) throw new Error("Failed to simulate flashloan");
+    const previewBanks = marginfiClient.banks;
+    previewBanks.set(
+      bank.address.toBase58(),
+      Bank.fromBuffer(bank.address, bankData, marginfiClient.program.idl, marginfiClient.feedIdMap)
+    );
+    const previewClient = new MarginfiClient(
+      marginfiClient.config,
+      marginfiClient.program,
+      {} as Wallet,
+      true,
+      marginfiClient.group,
+      marginfiClient.banks,
+      marginfiClient.oraclePrices,
+      marginfiClient.mintDatas,
+      marginfiClient.feedIdMap
+    );
+    const previewMarginfiAccount = MarginfiAccountWrapper.fromAccountDataRaw(
+      account.address,
+      previewClient,
+      mfiAccountData,
+      marginfiClient.program.idl
+    );
+    simulationResult = {
+      banks: previewBanks,
+      marginfiAccount: previewMarginfiAccount,
+    };
 
-  return result;
+    return simulationResult;
+  } else {
+    throw new Error("Failed to simulate flashloan");
+  }
 }

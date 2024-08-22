@@ -47,3 +47,51 @@ export function simulatedCollateral(simulationResult: SimulationResult) {
     ratio: availableCollateral / assetsInit.toNumber(),
   };
 }
+
+export interface ActionSummary {
+  actionPreview: ActionPreview;
+  simulationPreview: SimulatedActionPreview | null;
+}
+
+export interface SimulatedActionPreview {
+  health: number;
+  liquidationPrice: number | null;
+  depositRate: number;
+  borrowRate: number;
+  positionAmount: number;
+  availableCollateral: {
+    ratio: number;
+    amount: number;
+  };
+}
+
+export interface ActionPreview {
+  health: number;
+  liquidationPrice: number | null;
+  positionAmount: number;
+  poolSize?: number;
+  bankCap?: number;
+  priceImpactPct?: number;
+  slippageBps?: number;
+}
+
+export function calculateSimulatedActionPreview(
+  simulationResult: SimulationResult,
+  bank: ExtendedBankInfo
+): SimulatedActionPreview {
+  const health = simulatedHealthFactor(simulationResult);
+  const positionAmount = simulatedPositionSize(simulationResult, bank);
+  const availableCollateral = simulatedCollateral(simulationResult);
+
+  const liquidationPrice = simulationResult.marginfiAccount.computeLiquidationPriceForBank(bank.address);
+  const { lendingRate, borrowingRate } = simulationResult.banks.get(bank.address.toBase58())!.computeInterestRates();
+
+  return {
+    health,
+    liquidationPrice,
+    depositRate: lendingRate.toNumber(),
+    borrowRate: borrowingRate.toNumber(),
+    positionAmount,
+    availableCollateral,
+  };
+}

@@ -35,7 +35,7 @@ export function useLendSimulation(
         setSimulationResult(null);
       }
     },
-    [selectedAccount, selectedBank, lendMode]
+    [selectedAccount, selectedBank, lendMode, setSimulationResult]
   );
 
   const handleActionSummary = React.useCallback(
