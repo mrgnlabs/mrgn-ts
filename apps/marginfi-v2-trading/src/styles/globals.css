@@ -83,10 +83,19 @@ body {
 }
 
 .mrgn-bg-gradient {
-  background: radial-gradient(50% 50% at 50% 50%, rgba(255, 249, 146, 0.15) 10%, #ffffff 80%);
+  background: radial-gradient(circle at 50% 50%, rgba(255, 249, 146, 0.15) 30%, #ffffff 70%);
   background-attachment: fixed;
   width: 100vw;
   height: 100%;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+
+@media (min-width: 768px) {
+  .mrgn-bg-gradient {
+    background-size: 65%;
+    background-position: center;
+  }
 }
 
 @keyframes pulse {
