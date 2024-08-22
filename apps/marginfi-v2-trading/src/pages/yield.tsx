@@ -1,25 +1,18 @@
 import React from "react";
 
-import Link from "next/link";
-import Image from "next/image";
-
 import Fuse from "fuse.js";
-import { IconSortDescending, IconSortAscending, IconArrowRight, IconSearch } from "@tabler/icons-react";
-import { aprToApy, numeralFormatter, percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
-import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
+import { IconSortDescending, IconSortAscending, IconSearch } from "@tabler/icons-react";
 
 import { useTradeStore, useUiStore } from "~/store";
 import { GroupData, TradePoolFilterStates } from "~/store/tradeStore";
-import { getTokenImageURL, cn } from "~/utils";
+import { cn, Desktop, Mobile } from "~/utils";
 import { useIsMobile } from "~/hooks/useIsMobile";
 import { useWalletContext } from "~/hooks/useWalletContext";
 
 import { PageHeading } from "~/components/common/PageHeading";
-import { ActionBoxDialog } from "~/components/common/ActionBox";
 import { ActionComplete } from "~/components/common/ActionComplete";
 import { Loader } from "~/components/ui/loader";
 import { Input } from "~/components/ui/input";
-import { Button } from "~/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
 import { YieldRow } from "~/components/common/Yield";
 import { YieldCard } from "~/components/common/Yield/YieldCard";
@@ -154,7 +147,7 @@ export default function PortfolioPage() {
               </div>
             </div>
 
-            <div className="w-full hidden lg:block">
+            <Desktop>
               {filteredGroups && filteredGroups.length > 0 && (
                 <div
                   className={cn(
@@ -211,36 +204,37 @@ export default function PortfolioPage() {
                   filteredGroups.length > 0 &&
                   filteredGroups.map((group) => <YieldRow key={group.client.group.address.toBase58()} group={group} />)}
               </div>
-            </div>
-
-            <div className="lg:hidden space-y-12">
-              <div className="flex flex-col items-center">
-                <Select
-                  value={sortBy}
-                  onValueChange={(value) => {
-                    setSortBy(value as TradePoolFilterStates);
-                  }}
-                >
-                  <SelectTrigger className="w-[190px] justify-start gap-2">
-                    {dir === "desc" && <IconSortDescending size={16} />}
-                    {dir === "asc" && <IconSortAscending size={16} />}
-                    <SelectValue placeholder="Sort pools" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {sortOptions.map((option, i) => (
-                      <SelectItem key={i} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+            </Desktop>
+            <Mobile>
+              <div className="space-y-12">
+                <div className="flex flex-col items-center">
+                  <Select
+                    value={sortBy}
+                    onValueChange={(value) => {
+                      setSortBy(value as TradePoolFilterStates);
+                    }}
+                  >
+                    <SelectTrigger className="w-[190px] justify-start gap-2">
+                      {dir === "desc" && <IconSortDescending size={16} />}
+                      {dir === "asc" && <IconSortAscending size={16} />}
+                      <SelectValue placeholder="Sort pools" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {sortOptions.map((option, i) => (
+                        <SelectItem key={i} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                {filteredGroups &&
+                  filteredGroups.length > 0 &&
+                  filteredGroups.map((group) => {
+                    return <YieldCard key={group.client.group.address.toBase58()} group={group} />;
+                  })}
               </div>
-              {filteredGroups &&
-                filteredGroups.length > 0 &&
-                filteredGroups.map((group) => {
-                  return <YieldCard key={group.client.group.address.toBase58()} group={group} />;
-                })}
-            </div>
+            </Mobile>
 
             {filteredGroups.length === 0 && search.length > 0 && (
               <div className="w-full flex items-center justify-center">
