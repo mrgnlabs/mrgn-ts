@@ -3,15 +3,14 @@ import React from "react";
 import { MarginfiAccountWrapper, MarginRequirementType } from "@mrgnlabs/marginfi-client-v2";
 
 import { ActionProgressBar } from "~/components/common/ActionBoxV2/sharedComponents/ActionStats";
+import { ActionSummary } from "~/components/common/ActionBoxV2/sharedUtils";
 
-import { ActionSummary } from "../../utils";
-
-interface LendBoxCollateralProps {
+interface RepayCollatBoxCollateralProps {
   selectedAccount: MarginfiAccountWrapper | null;
   actionSummary?: ActionSummary;
 }
 
-export const LendBoxCollateral = ({ selectedAccount, actionSummary }: LendBoxCollateralProps) => {
+export const RepayCollatBoxCollateral = ({ selectedAccount, actionSummary }: RepayCollatBoxCollateralProps) => {
   const availableCollateral = React.useMemo(() => {
     if (!selectedAccount) return null;
 

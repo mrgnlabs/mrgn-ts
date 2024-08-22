@@ -3,32 +3,25 @@ import React from "react";
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { clampedNumeralFormatter, numeralFormatter } from "@mrgnlabs/mrgn-common";
 
-import { IconArrowRight } from "~/components/ui/icons";
-import { useFlashLoanBoxStore } from "~/components/common/ActionBoxV2/CoreActions/FlashLoanBox/store";
+import { useRepayCollatBoxStore } from "~/components/common/ActionBoxV2/CoreActions/RepayCollatBox/store";
+import { IconArrowRight } from "@tabler/icons-react";
 
-type props = {
-  walletAmount: number | undefined;
+type RepayCollatActionProps = {
   maxAmount: number;
-  showLendingHeader?: boolean;
 
   onSetAmountRaw: (amount: string) => void;
 };
 
-export const FlashLoanAction = ({ maxAmount, walletAmount, onSetAmountRaw }: props) => {
-  const [actionMode, amountRaw, repayAmountRaw, selectedBank, selectedSecondaryBank] = useFlashLoanBoxStore((state) => [
+export const RepayCollatAction = ({ maxAmount, onSetAmountRaw }: RepayCollatActionProps) => {
+  const [actionMode, amountRaw, repayAmount, selectedBank, selectedSecondaryBank] = useRepayCollatBoxStore((state) => [
     state.actionMode,
     state.amountRaw,
-    state.repayAmountRaw,
+    state.repayAmount,
     state.selectedBank,
     state.selectedSecondaryBank,
   ]);
 
   const numberFormater = React.useMemo(() => new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 }), []);
-
-  const repayAmount = React.useMemo(() => {
-    const strippedAmount = repayAmountRaw.replace(/,/g, "");
-    return isNaN(Number.parseFloat(strippedAmount)) ? 0 : Number.parseFloat(strippedAmount);
-  }, [repayAmountRaw]);
 
   const maxLabel = React.useMemo((): {
     amount: string;
@@ -46,18 +39,8 @@ export const FlashLoanAction = ({ maxAmount, walletAmount, onSetAmountRaw }: pro
       amount !== undefined ? `${clampedNumeralFormatter(amount)} ${symbol}` : "-";
 
     switch (actionMode) {
-      case ActionType.Loop:
-        return {
-          label: "Wallet: ",
-          amount: formatAmount(walletAmount, selectedBank?.meta.tokenSymbol),
-        };
-
       case ActionType.RepayCollat:
-        const strippedAmount = amountRaw.replace(/,/g, "");
-
-        const amount = isNaN(Number.parseFloat(strippedAmount)) ? 0 : Number.parseFloat(strippedAmount);
-
-        const amountLeft = numeralFormatter(selectedBank?.isActive ? selectedBank.position.amount - amount : 0);
+        const amountLeft = numeralFormatter(selectedBank?.isActive ? selectedBank.position.amount - repayAmount : 0);
         return {
           amount: `${amountLeft} ${selectedBank?.meta.tokenSymbol}`,
           label: "Borrowed: ",
@@ -66,14 +49,9 @@ export const FlashLoanAction = ({ maxAmount, walletAmount, onSetAmountRaw }: pro
       default:
         return { amount: "-" };
     }
-  }, [selectedBank, actionMode, walletAmount]);
+  }, [selectedBank, actionMode, repayAmount]);
 
-  const isUnchanged = React.useMemo(() => repayAmount === 0, [repayAmount]);
-
-  const isMaxButtonVisible = React.useMemo(
-    () => actionMode === ActionType.Loop || (actionMode === ActionType.RepayCollat && selectedSecondaryBank),
-    [actionMode, selectedSecondaryBank]
-  );
+  const isUnchanged = React.useMemo(() => amountRaw === "" || amountRaw === "0", [amountRaw]);
 
   return (
     <>
@@ -82,9 +60,20 @@ export const FlashLoanAction = ({ maxAmount, walletAmount, onSetAmountRaw }: pro
           <li className="flex justify-between items-center gap-1.5">
             <strong className="mr-auto">{maxLabel.label}</strong>
             <div className="flex space-x-1">
-              {/* {selectedBank?.isActive && <div>{clampedNumeralFormatter(selectedBank.position.amount)}</div>}
-              {selectedBank?.isActive && <IconArrowRight width={12} height={12} />} */}
+              {selectedBank?.isActive && !isUnchanged && (
+                <div>{clampedNumeralFormatter(selectedBank.position.amount)}</div>
+              )}
+              {selectedBank?.isActive && !isUnchanged && <IconArrowRight width={12} height={12} />}
               <div>{maxLabel.amount}</div>
+              {selectedSecondaryBank && (
+                <button
+                  className="cursor-pointer text-chartreuse border-b border-transparent transition hover:border-chartreuse"
+                  disabled={maxAmount === 0}
+                  onClick={() => onSetAmountRaw(numberFormater.format(maxAmount))}
+                >
+                  MAX
+                </button>
+              )}
 
               <button
                 className="cursor-pointer text-chartreuse border-b border-transparent transition hover:border-chartreuse"

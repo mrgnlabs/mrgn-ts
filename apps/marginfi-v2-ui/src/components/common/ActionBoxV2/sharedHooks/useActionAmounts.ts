@@ -9,13 +9,13 @@ export function useActionAmounts({
   selectedBank,
   nativeSolBalance,
   actionMode,
-  maxAmountCollat,
+  maxAmountCollateral,
 }: {
   amountRaw: string;
   nativeSolBalance: number;
   actionMode: ActionType;
   selectedBank: ExtendedBankInfo | null;
-  maxAmountCollat?: number;
+  maxAmountCollateral?: number;
 }) {
   const amount = React.useMemo(() => {
     const strippedAmount = amountRaw.replace(/,/g, "");
@@ -49,11 +49,11 @@ export function useActionAmounts({
       case ActionType.Loop:
         return selectedBank?.userInfo.maxDeposit ?? 0;
       case ActionType.RepayCollat:
-        return maxAmountCollat ?? 0;
+        return maxAmountCollateral ?? 0;
       default:
         return 0;
     }
-  }, [selectedBank, actionMode, maxAmountCollat]);
+  }, [selectedBank, actionMode, maxAmountCollateral]);
 
   return {
     amount,

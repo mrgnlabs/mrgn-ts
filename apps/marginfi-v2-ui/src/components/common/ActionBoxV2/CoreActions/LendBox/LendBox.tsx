@@ -199,7 +199,7 @@ export const LendBox = ({
     });
 
     setAmountRaw("");
-  }, [selectedBank, selectedAccount, priorityFee, setIsLoading, setAmountRaw]);
+  }, [selectedBank, selectedAccount, setAmountRaw, captureEvent, onComplete, setIsLoading]);
 
   const handleLendingAction = React.useCallback(async () => {
     if (!selectedBank || !amount) {
@@ -245,7 +245,18 @@ export const LendBox = ({
 
     await action();
     setAmountRaw("");
-  }, [lendMode, selectedBank, amount, nativeSolBalance, selectedAccount, walletContextState]);
+  }, [
+    selectedBank,
+    amount,
+    lendMode,
+    setAmountRaw,
+    nativeSolBalance,
+    selectedAccount,
+    walletContextState,
+    captureEvent,
+    onComplete,
+    setIsLoading,
+  ]);
 
   return (
     <>

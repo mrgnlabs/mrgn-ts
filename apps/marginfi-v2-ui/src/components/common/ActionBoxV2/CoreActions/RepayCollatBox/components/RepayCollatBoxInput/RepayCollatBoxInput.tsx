@@ -8,48 +8,40 @@ import { useUiStore } from "~/store";
 
 import { Input } from "~/components/ui/input";
 
-import { useLendBoxStore } from "../../store";
-import { LendingTokens } from "./LendingTokens";
-import { LendingAction } from "./LendingAction";
+import { useRepayCollatBoxStore } from "../../store";
+import { RepayCollatTokens } from "./RepayCollatTokens";
+import { RepayCollatAction } from "./RepayCollatAction";
 
-type LendBoxInputProps = {
+type RepayCollatBoxInputProps = {
   banks: ExtendedBankInfo[];
   nativeSolBalance: number;
-  walletAmount: number | undefined;
   amountRaw: string;
   maxAmount: number;
-  showCloseBalance?: boolean;
   isDialog?: boolean;
   isMini?: boolean;
 };
 
-export const LendBoxInput = ({
-  banks,
-  nativeSolBalance,
-  walletAmount,
-  maxAmount,
-  showCloseBalance,
-  isDialog,
-}: LendBoxInputProps) => {
+export const RepayCollatBoxInput = ({ banks, nativeSolBalance, maxAmount }: RepayCollatBoxInputProps) => {
   const [isActionBoxInputFocussed, setIsActionBoxInputFocussed, priorityFee] = useUiStore((state) => [
     state.isActionBoxInputFocussed,
     state.setIsActionBoxInputFocussed,
     state.priorityFee,
   ]);
-  const [amountRaw, selectedBank, lendMode, setAmountRaw, setSelectedBank] = useLendBoxStore((state) => [
-    state.amountRaw,
-    state.selectedBank,
-    state.lendMode,
-    state.setAmountRaw,
-    state.setSelectedBank,
-  ]);
-  const { connection } = useConnection();
+  const [amountRaw, selectedBank, selectedSecondaryBank, setAmountRaw, setSelectedBank, setSelectedSecondaryBank] =
+    useRepayCollatBoxStore((state) => [
+      state.amountRaw,
+      state.selectedBank,
+      state.selectedSecondaryBank,
+      state.setAmountRaw,
+      state.setSelectedBank,
+      state.setSelectedSecondaryBank,
+    ]);
 
   const amountInputRef = React.useRef<HTMLInputElement>(null);
 
   const numberFormater = React.useMemo(() => new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 }), []);
 
-  const isInputDisabled = React.useMemo(() => maxAmount === 0 && !showCloseBalance, [maxAmount, showCloseBalance]);
+  const isInputDisabled = React.useMemo(() => maxAmount === 0, [maxAmount]);
 
   const formatAmountCb = React.useCallback(
     (newAmount: string, bank: ExtendedBankInfo | null) => {
@@ -71,14 +63,17 @@ export const LendBoxInput = ({
       <div className="bg-background rounded-lg p-2.5 mb-6">
         <div className="flex justify-center gap-1 items-center font-medium text-3xl">
           <div className="w-full flex-auto max-w-[162px]">
-            <LendingTokens
+            <RepayCollatTokens
               selectedBank={selectedBank}
-              setSelectedBank={(bank) => {
-                setSelectedBank(bank);
+              selectedSecondaryBank={selectedSecondaryBank}
+              setSecondaryTokenBank={(bank) => {
+                setSelectedSecondaryBank(bank);
               }}
               banks={banks}
               nativeSolBalance={nativeSolBalance}
-              lendMode={lendMode}
+              setTokenBank={function (selectedTokenBank: ExtendedBankInfo | null): void {
+                throw new Error("Function not implemented.");
+              }}
             />
           </div>
           <div className="flex-auto">
@@ -96,11 +91,7 @@ export const LendBoxInput = ({
             />
           </div>
         </div>
-        <LendingAction
-          walletAmount={walletAmount}
-          maxAmount={maxAmount}
-          onSetAmountRaw={(amount) => handleInputChange(amount)}
-        />
+        <RepayCollatAction maxAmount={maxAmount} onSetAmountRaw={(amount) => handleInputChange(amount)} />
       </div>
     </>
   );

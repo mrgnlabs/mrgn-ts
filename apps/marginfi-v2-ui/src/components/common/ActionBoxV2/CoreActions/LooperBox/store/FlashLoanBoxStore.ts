@@ -12,7 +12,7 @@ import BigNumber from "bignumber.js";
 interface FlashLoanBoxState {
   // State
   amountRaw: string;
-
+  maxAmountCollateral: number;
   repayAmount: number;
   loopingAmounts: {
     actualDepositAmount: number;
@@ -41,7 +41,7 @@ interface FlashLoanBoxState {
   fetchActionBoxState: (args: { requestedAction?: ActionType; requestedBank?: ExtendedBankInfo }) => void;
   setAmountRaw: (amountRaw: string, maxAmount?: number) => void;
   setLeverage: (leverage: number) => void;
-
+  setMaxAmountCollateral: (maxAmountCollateral: number) => void;
   setRepayAmount: (repayAmount: number) => void;
   setLoopingAmounts: (loopingAmounts: { actualDepositAmount: number; borrowAmount: BigNumber }) => void;
   setSimulationResult: (simulationResult: SimulationResult | null) => void;
@@ -70,6 +70,7 @@ const initialState: FlashLoanBoxState = {
     actualDepositAmount: 0,
     borrowAmount: new BigNumber(0),
   },
+  maxAmountCollateral: 0,
   leverage: 0,
   maxLeverage: 0,
   actionMode: ActionType.RepayCollat,
@@ -88,6 +89,7 @@ const initialState: FlashLoanBoxState = {
   setLeverage: () => {},
   setRepayAmount: () => {},
   setLoopingAmounts: () => {},
+  setMaxAmountCollateral: () => {},
   setSimulationResult: () => {},
   setActionQuote: () => {},
   setActionTxns: () => {},
@@ -207,6 +209,10 @@ const stateCreator: StateCreator<FlashLoanBoxState, [], []> = (set, get) => ({
 
   setSimulationResult(simulationResult) {
     set({ simulationResult });
+  },
+
+  setMaxAmountCollateral(maxAmountCollateral) {
+    set({ maxAmountCollateral });
   },
 
   refreshSelectedBanks(banks: ExtendedBankInfo[]) {

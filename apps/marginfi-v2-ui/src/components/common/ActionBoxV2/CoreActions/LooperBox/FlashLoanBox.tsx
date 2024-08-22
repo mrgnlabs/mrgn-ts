@@ -39,7 +39,7 @@ import {
 } from "~/components/common/ActionBox/components";
 import { Button } from "~/components/ui/button";
 import { ActionMethod, MarginfiActionParams, RepayType } from "@mrgnlabs/mrgn-utils";
-import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
+import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 
 import { ActionBoxWrapper, ActionMessage, ActionProgressBar, ActionSettingsButton } from "../../sharedComponents";
 
@@ -48,15 +48,18 @@ import { PreviousTxn } from "~/types";
 import { useActionBoxStore } from "../../store";
 import { useActionAmounts } from "../../sharedHooks";
 import { useFlashLoanBoxStore } from "./store";
+import { useFlashLoanSimulation } from "./hooks";
+import { checkActionAvailable } from "./utils";
 
 // error handling
-export type LendBoxProps = {
+export type FlashLoanBoxProps = {
   nativeSolBalance: number;
   tokenAccountMap: TokenAccountMap;
 
+  marginfiClient: MarginfiClient;
   selectedAccount: MarginfiAccountWrapper | null;
   banks: ExtendedBankInfo[];
-  requestedLendType: ActionType;
+  requestedActionType: ActionType;
   requestedBank?: ExtendedBankInfo;
   accountSummary?: AccountSummary;
 
@@ -70,20 +73,37 @@ export const FlashLoanBox = ({
   nativeSolBalance,
   tokenAccountMap,
   banks,
+  marginfiClient,
   selectedAccount,
   accountSummary,
-  requestedLendType,
+  requestedActionType,
   requestedBank,
   isDialog,
   onComplete,
   captureEvent,
-}: LendBoxProps) => {
+}: FlashLoanBoxProps) => {
   const priorityFee = 0;
 
-  const [actionMode, amountRaw, selectedBank] = useFlashLoanBoxStore((state) => [
+  const [
+    maxAmountCollateral,
+    actionMode,
+    amountRaw,
+    actionQuote,
+    selectedBank,
+    selectedSecondaryBank,
+    errorMessage,
+    refreshState,
+    fetchActionBoxState,
+  ] = useFlashLoanBoxStore((state) => [
+    state.maxAmountCollateral,
     state.actionMode,
     state.amountRaw,
+    state.actionQuote,
     state.selectedBank,
+    state.selectedSecondaryBank,
+    state.errorMessage,
+    state.refreshState,
+    state.fetchActionBoxState,
   ]);
 
   const [setIsSettingsDialogOpen] = useActionBoxStore((state) => [state.setIsSettingsDialogOpen]);
@@ -93,8 +113,15 @@ export const FlashLoanBox = ({
     selectedBank,
     nativeSolBalance,
     actionMode,
+    maxAmountCollateral,
   });
-  const { actionSummary } = useLendSimulation(debouncedAmount ?? 0, selectedAccount, accountSummary);
+
+  const { actionSummary } = useFlashLoanSimulation(
+    debouncedAmount ?? 0,
+    selectedAccount,
+    marginfiClient,
+    accountSummary
+  );
 
   const { walletContextState, connected } = useWalletContext();
 
@@ -104,13 +131,13 @@ export const FlashLoanBox = ({
   // Cleanup the store when the wallet disconnects
   React.useEffect(() => {
     if (!connected) {
-      refreshState(lendMode);
+      refreshState(actionMode);
     }
-  }, [refreshState, connected, lendMode]);
+  }, [refreshState, connected, actionMode]);
 
   React.useEffect(() => {
-    fetchActionBoxState({ requestedLendType, requestedBank });
-  }, [requestedLendType, requestedBank, fetchActionBoxState]);
+    fetchActionBoxState({ requestedAction: requestedActionType, requestedBank });
+  }, [requestedBank, fetchActionBoxState, requestedActionType]);
 
   React.useEffect(() => {
     if (errorMessage !== null && errorMessage.description) {
@@ -119,101 +146,64 @@ export const FlashLoanBox = ({
     }
   }, [errorMessage]);
 
-  const isDust = React.useMemo(() => selectedBank?.isActive && selectedBank?.position.isDust, [selectedBank]);
-  const showCloseBalance = React.useMemo(
-    () => (lendMode === ActionType.Withdraw && isDust) || false,
-    [lendMode, isDust]
-  );
-
   const actionMethods = React.useMemo(
     () =>
       checkActionAvailable({
         amount,
         connected,
-        showCloseBalance,
         selectedBank,
-        banks,
-        marginfiAccount: selectedAccount,
-        nativeSolBalance,
-        lendMode,
+        selectedSecondaryBank,
+        actionMode,
+        actionQuote,
       }),
-    [amount, connected, showCloseBalance, selectedBank, banks, selectedAccount, nativeSolBalance, lendMode]
+    [amount, connected, selectedBank, selectedSecondaryBank, actionMode, actionQuote]
   );
 
-  const handleCloseBalance = React.useCallback(async () => {
-    if (!selectedBank || !selectedAccount) {
-      return;
-    }
+  // const handleLendingAction = React.useCallback(async () => {
+  //   if (!selectedBank || !amount) {
+  //     return;
+  //   }
 
-    await handleExecuteCloseBalance({
-      params: {
-        bank: selectedBank,
-        marginfiAccount: selectedAccount,
-        priorityFee,
-      },
-      captureEvent: (event, properties) => {
-        captureEvent && captureEvent(event, properties);
-      },
-      setIsComplete: (txnSigs) => {
-        onComplete({
-          type: ActionType.Withdraw,
-          bank: selectedBank as ActiveBankInfo,
-          amount: 0,
-          txn: txnSigs.pop() ?? "",
-        });
-      },
-      setIsError: () => {},
-      setIsLoading: (isLoading) => setIsLoading(isLoading),
-    });
+  //   const action = async () => {
+  //     const params = {
+  //       mfiClient: null,
+  //       actionType: lendMode,
+  //       bank: selectedBank,
+  //       amount,
+  //       nativeSolBalance,
+  //       marginfiAccount: selectedAccount,
+  //       walletContextState,
+  //     } as MarginfiActionParams;
 
-    setAmountRaw("");
-  }, [selectedBank, selectedAccount, priorityFee, setIsLoading, setAmountRaw]);
+  //     await handleExecuteLendingAction({
+  //       params,
+  //       captureEvent: (event, properties) => {
+  //         captureEvent && captureEvent(event, properties);
+  //       },
+  //       setIsComplete: (txnSigs) => {
+  //         onComplete({
+  //           type: lendMode,
+  //           bank: selectedBank as ActiveBankInfo,
+  //           amount: amount,
+  //           txn: txnSigs.pop() ?? "",
+  //         });
+  //       },
+  //       setIsError: () => {},
+  //       setIsLoading: (isLoading) => setIsLoading(isLoading),
+  //     });
+  //   };
 
-  const handleLendingAction = React.useCallback(async () => {
-    if (!selectedBank || !amount) {
-      return;
-    }
+  //   if (
+  //     lendMode === ActionType.Deposit &&
+  //     (selectedBank.meta.tokenSymbol === "SOL" || selectedBank.meta.tokenSymbol === "stSOL")
+  //   ) {
+  //     setLSTDialogCallback(() => action);
+  //     return;
+  //   }
 
-    const action = async () => {
-      const params = {
-        mfiClient: null,
-        actionType: lendMode,
-        bank: selectedBank,
-        amount,
-        nativeSolBalance,
-        marginfiAccount: selectedAccount,
-        walletContextState,
-      } as MarginfiActionParams;
-
-      await handleExecuteLendingAction({
-        params,
-        captureEvent: (event, properties) => {
-          captureEvent && captureEvent(event, properties);
-        },
-        setIsComplete: (txnSigs) => {
-          onComplete({
-            type: lendMode,
-            bank: selectedBank as ActiveBankInfo,
-            amount: amount,
-            txn: txnSigs.pop() ?? "",
-          });
-        },
-        setIsError: () => {},
-        setIsLoading: (isLoading) => setIsLoading(isLoading),
-      });
-    };
-
-    if (
-      lendMode === ActionType.Deposit &&
-      (selectedBank.meta.tokenSymbol === "SOL" || selectedBank.meta.tokenSymbol === "stSOL")
-    ) {
-      setLSTDialogCallback(() => action);
-      return;
-    }
-
-    await action();
-    setAmountRaw("");
-  }, [lendMode, selectedBank, amount, nativeSolBalance, selectedAccount, walletContextState]);
+  //   await action();
+  //   setAmountRaw("");
+  // }, [lendMode, selectedBank, amount, nativeSolBalance, selectedAccount, walletContextState]);
 
   return <></>;
 };
