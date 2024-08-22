@@ -49,6 +49,7 @@ export default function PortfolioPage() {
   const { connected } = useWalletContext();
   const [search, setSearch] = React.useState("");
   const groups = Array.from(groupMap.values());
+  const searchRef = React.useRef<HTMLDivElement>(null);
 
   const dir = React.useMemo(() => {
     const option = sortOptions.find((option) => option.value === sortBy);
@@ -103,13 +104,34 @@ export default function PortfolioPage() {
     setSortBy(TradePoolFilterStates.APY_DESC);
   }, [setSortBy]);
 
+  React.useEffect(() => {
+    if (!isMobile) return;
+
+    const handleFocus = () => {
+      if (searchRef.current) {
+        const rect = searchRef.current.getBoundingClientRect();
+        window.scrollTo({
+          top: window.pageYOffset + rect.top - 80,
+          behavior: "smooth",
+        });
+      }
+    };
+
+    const searchInput = searchRef.current?.querySelector("input");
+    searchInput?.addEventListener("focus", handleFocus);
+
+    return () => {
+      searchInput?.removeEventListener("focus", handleFocus);
+    };
+  }, [isMobile]);
+
   return (
     <>
       <div className="w-full max-w-8xl mx-auto px-4 md:px-8 pb-28 pt-12">
         {!initialized && <Loader label="Loading yield farming..." className="mt-8" />}
         {initialized && (
           <>
-            <div className="w-full max-w-4xl mx-auto px-4 md:px-0">
+            <div className="w-full max-w-4xl mx-auto">
               <PageHeading
                 heading="Yield farming"
                 body={<p>Supply over-collateralized liquidity and earn yield.</p>}
@@ -118,15 +140,15 @@ export default function PortfolioPage() {
             </div>
 
             <div className="flex justify-center items-center w-full max-w-4xl mx-auto mb-8 mt-4 lg:mb-16 lg:mt-8">
-              <div className="w-full relative">
+              <div className="w-full relative" ref={searchRef}>
                 <Input
                   placeholder={isMobile ? "Search tokens..." : "Search tokens by name, symbol, or mint address..."}
-                  className="pl-10 py-2.5 text-lg rounded-full h-auto bg-transparent"
+                  className="pl-10 py-2 rounded-full h-auto bg-transparent lg:py-2.5 lg:text-lg"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                 />
                 <IconSearch
-                  size={18}
+                  size={isMobile ? 16 : 18}
                   className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground"
                 />
               </div>
