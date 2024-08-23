@@ -133,56 +133,54 @@ const YieldItem = ({
           )}
         </div>
       )}
-      <TooltipProvider>
-        <div className="flex flex-col gap-2 md:flex-row">
-          {bank.isActive && !isLeveraged && bank.position.isLending && group.selectedAccount && (
-            <ActionBoxDialog activeGroupArg={group} requestedBank={bank} requestedAction={ActionType.Withdraw}>
-              <Button
-                className="w-full bg-background border text-foreground hover:bg-accent"
-                onClick={() => {
-                  capture("yield_withdraw_btn_click", {
-                    group: group.client.group.address.toBase58(),
-                    bank: bank.meta.tokenSymbol,
-                  });
-                }}
-              >
-                Withdraw {bank.meta.tokenSymbol}
-              </Button>
-            </ActionBoxDialog>
-          )}
-          <ActionBoxDialog activeGroupArg={group} requestedBank={group.pool.token} requestedAction={ActionType.Deposit}>
-            {isLeveraged ? (
-              <div>
-                <p className="text-xs text-muted-foreground mb-2">
-                  You cannot provide liquidity with an open trade.{" "}
-                  <Link
-                    className="underline"
-                    href={"https://docs.marginfi.com/the-arena#supply-liquidity-and-earn-yield"}
-                    target="_blank"
-                  >
-                    learn more
-                  </Link>
-                </p>
-                <Button disabled className="w-full bg-background border text-foreground hover:bg-accent">
-                  Supply {bank.meta.tokenSymbol}
-                </Button>
-              </div>
-            ) : (
-              <Button
-                className="w-full bg-background border text-foreground hover:bg-accent"
-                onClick={() => {
-                  capture("yield_supply_btn_click", {
-                    group: group.client.group.address.toBase58(),
-                    bank: bank.meta.tokenSymbol,
-                  });
-                }}
-              >
+      <div className="flex flex-col gap-2 md:flex-row">
+        {bank.isActive && !isLeveraged && bank.position.isLending && group.selectedAccount && (
+          <ActionBoxDialog activeGroupArg={group} requestedBank={bank} requestedAction={ActionType.Withdraw}>
+            <Button
+              className="w-full bg-background border text-foreground hover:bg-accent"
+              onClick={() => {
+                capture("yield_withdraw_btn_click", {
+                  group: group.client.group.address.toBase58(),
+                  bank: bank.meta.tokenSymbol,
+                });
+              }}
+            >
+              Withdraw {bank.meta.tokenSymbol}
+            </Button>
+          </ActionBoxDialog>
+        )}
+        <ActionBoxDialog activeGroupArg={group} requestedBank={bank} requestedAction={ActionType.Deposit}>
+          {isLeveraged ? (
+            <div>
+              <p className="text-xs text-muted-foreground mb-2">
+                You cannot provide liquidity with an open trade.{" "}
+                <Link
+                  className="underline"
+                  href={"https://docs.marginfi.com/the-arena#supply-liquidity-and-earn-yield"}
+                  target="_blank"
+                >
+                  learn more
+                </Link>
+              </p>
+              <Button disabled className="w-full bg-background border text-foreground hover:bg-accent">
                 Supply {bank.meta.tokenSymbol}
               </Button>
-            )}
-          </ActionBoxDialog>
-        </div>
-      </TooltipProvider>
+            </div>
+          ) : (
+            <Button
+              className="w-full bg-background border text-foreground hover:bg-accent"
+              onClick={() => {
+                capture("yield_supply_btn_click", {
+                  group: group.client.group.address.toBase58(),
+                  bank: bank.meta.tokenSymbol,
+                });
+              }}
+            >
+              Supply {bank.meta.tokenSymbol}
+            </Button>
+          )}
+        </ActionBoxDialog>
+      </div>
     </div>
   );
 };
