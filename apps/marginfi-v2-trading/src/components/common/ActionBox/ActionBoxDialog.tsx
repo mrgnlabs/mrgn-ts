@@ -5,10 +5,11 @@ import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 
 import { useIsMobile } from "~/hooks/useIsMobile";
-import { ActionBox } from "~/components/common/ActionBox";
-import { Dialog, DialogTrigger, DialogContent } from "~/components/ui/dialog";
 import { Desktop, Mobile } from "~/utils/mediaQueries";
 import { GroupData } from "~/store/tradeStore";
+import { useActionBoxStore } from "~/hooks/useActionBoxStore";
+import { ActionBox } from "~/components/common/ActionBox";
+import { Dialog, DialogTrigger, DialogContent } from "~/components/ui/dialog";
 
 type ActionBoxDialogProps = {
   requestedAction?: ActionType;
@@ -33,6 +34,7 @@ export const ActionBoxDialog = ({
 }: ActionBoxDialogProps) => {
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const isMobile = useIsMobile();
+  const [selectedBank] = useActionBoxStore(true)((state) => [state.selectedBank]);
 
   React.useEffect(() => {
     setIsDialogOpen(isActionBoxTriggered);
@@ -47,8 +49,10 @@ export const ActionBoxDialog = ({
       return `${requestedAction}`;
     }
 
-    return `${requestedAction} ${requestedBank?.meta.tokenSymbol}`;
-  }, [requestedAction, requestedBank?.meta.tokenSymbol]);
+    const selected = selectedBank ?? requestedBank;
+
+    return `${requestedAction} ${selected?.meta.tokenSymbol}`;
+  }, [requestedAction, requestedBank, selectedBank]);
 
   return (
     <Dialog open={isDialogOpen} modal={!isMobile} onOpenChange={(open) => setIsDialogOpen(open)}>
