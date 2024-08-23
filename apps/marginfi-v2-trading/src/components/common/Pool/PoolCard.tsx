@@ -28,7 +28,7 @@ type PoolCardProps = {
 export const PoolCard = ({ groupData }: PoolCardProps) => {
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="md:pb-0">
         <CardTitle>
           <div className="flex items-center gap-2 justify-between">
             <Link
@@ -81,7 +81,7 @@ export const PoolCard = ({ groupData }: PoolCardProps) => {
           </div>
         </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="md:pb-0">
         {groupData.pool.token.tokenData && (
           <dl className="grid grid-cols-2 gap-1.5 text-sm text-muted-foreground w-full mt-2">
             <dt className="">Price</dt>
