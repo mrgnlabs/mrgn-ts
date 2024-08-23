@@ -189,35 +189,39 @@ export const LendingTokensList = ({
                 })}
             </CommandGroup>
           )}
-        {lendingMode === LendingModes.LEND && filteredBanksActive.length > 0 && onSetSelectedBank && (
-          <CommandGroup heading="Currently supplying">
-            {filteredBanksActive.map((bank, index) => (
-              <CommandItem
-                key={index}
-                value={bank.address?.toString().toLowerCase()}
-                // disabled={!ownedBanksPk.includes(bank.address)}
-                onSelect={(currentValue) => {
-                  onSetSelectedBank(
-                    extendedBankInfos.find((bankInfo) => bankInfo.address.toString().toLowerCase() === currentValue) ??
-                      null
-                  );
-                  onClose();
-                }}
-                className={cn(
-                  "cursor-pointer font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-accent py-2"
-                )}
-              >
-                <ActionBoxItem
-                  rate={calculateRate(bank)}
-                  lendingMode={lendingMode}
-                  bank={bank}
-                  showBalanceOverride={false}
-                  nativeSolBalance={nativeSolBalance}
-                />
-              </CommandItem>
-            ))}
-          </CommandGroup>
-        )}
+        {lendingMode === LendingModes.LEND &&
+          actionMode === ActionType.Withdraw &&
+          filteredBanksActive.length > 0 &&
+          onSetSelectedBank && (
+            <CommandGroup heading="Currently supplying">
+              {filteredBanksActive.map((bank, index) => (
+                <CommandItem
+                  key={index}
+                  value={bank.address?.toString().toLowerCase()}
+                  // disabled={!ownedBanksPk.includes(bank.address)}
+                  onSelect={(currentValue) => {
+                    onSetSelectedBank(
+                      extendedBankInfos.find(
+                        (bankInfo) => bankInfo.address.toString().toLowerCase() === currentValue
+                      ) ?? null
+                    );
+                    onClose();
+                  }}
+                  className={cn(
+                    "cursor-pointer font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-accent py-2"
+                  )}
+                >
+                  <ActionBoxItem
+                    rate={calculateRate(bank)}
+                    lendingMode={lendingMode}
+                    bank={bank}
+                    showBalanceOverride={false}
+                    nativeSolBalance={nativeSolBalance}
+                  />
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          )}
 
         {/* BORROWING */}
         {lendingMode === LendingModes.BORROW && filteredBanksActive.length > 0 && onSetSelectedBank && (
@@ -250,7 +254,7 @@ export const LendingTokensList = ({
         )}
 
         {/* GLOBAL & ISOLATED */}
-        {actionMode !== ActionType.Withdraw && globalBanks.length > 0 && onSetSelectedBank && (
+        {/* {actionMode !== ActionType.Withdraw && globalBanks.length > 0 && onSetSelectedBank && (
           <CommandGroup heading="Global pools">
             {globalBanks.map((bank, index) => {
               return (
@@ -282,8 +286,8 @@ export const LendingTokensList = ({
               );
             })}
           </CommandGroup>
-        )}
-        {actionMode !== ActionType.Repay && isolatedBanks.length > 0 && onSetSelectedBank && (
+        )} */}
+        {/* {actionMode !== ActionType.Repay && isolatedBanks.length > 0 && onSetSelectedBank && (
           <CommandGroup heading="Isolated pools">
             {isolatedBanks.map((bank, index) => {
               return (
@@ -315,7 +319,7 @@ export const LendingTokensList = ({
               );
             })}
           </CommandGroup>
-        )}
+        )} */}
       </TokenListCommand>
     </>
   );
