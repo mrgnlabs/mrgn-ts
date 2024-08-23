@@ -1,18 +1,22 @@
+import React from "react";
+
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { IconMinus, IconPlus } from "@tabler/icons-react";
 
+import { GroupData } from "~/store/tradeStore";
+import { cn } from "~/utils";
+
 import { ActionBoxDialog } from "~/components/common/ActionBox";
 import { Button } from "~/components/ui/button";
-import React from "react";
-import { GroupData } from "~/store/tradeStore";
 
 type LpActionButtonsProps = {
   marginfiAccount?: MarginfiAccountWrapper;
   activeGroup: GroupData;
+  size?: "sm" | "lg";
 };
 
-export const LpActionButtons = ({ marginfiAccount, activeGroup }: LpActionButtonsProps) => {
+export const LpActionButtons = ({ size = "sm", marginfiAccount, activeGroup }: LpActionButtonsProps) => {
   const lendingBank = React.useMemo(() => {
     if (activeGroup?.pool?.token.isActive && activeGroup?.pool?.token.position.isLending)
       return [activeGroup?.pool?.token];
@@ -25,7 +29,7 @@ export const LpActionButtons = ({ marginfiAccount, activeGroup }: LpActionButton
   }, [activeGroup?.pool?.quoteTokens, activeGroup?.pool?.token]);
 
   return (
-    <div className="flex gap-3 w-full justify-end">
+    <div className={cn("flex gap-3 w-full", size === "sm" && "justify-end")}>
       <ActionBoxDialog
         requestedBank={activeGroup.pool.quoteTokens[0]}
         requestedAction={ActionType.Deposit}
@@ -33,7 +37,7 @@ export const LpActionButtons = ({ marginfiAccount, activeGroup }: LpActionButton
         activeGroupArg={activeGroup}
         isTokenSelectable={true}
       >
-        <Button variant="outline" size="sm" className="gap-1 min-w-16">
+        <Button variant="outline" size="sm" className={cn("gap-1 min-w-16", size === "lg" && "w-full")}>
           <IconPlus size={14} />
           Add
         </Button>
@@ -45,7 +49,12 @@ export const LpActionButtons = ({ marginfiAccount, activeGroup }: LpActionButton
         requestedAction={ActionType.Withdraw}
         requestedAccount={marginfiAccount}
       >
-        <Button variant="outline" size="sm" className="gap-1 min-w-16" disabled={!lendingBank}>
+        <Button
+          variant="outline"
+          size="sm"
+          className={cn("gap-1 min-w-16", size === "lg" && "w-full")}
+          disabled={!lendingBank}
+        >
           <IconMinus size={14} />
           Withdraw
         </Button>
