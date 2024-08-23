@@ -8,11 +8,10 @@ import NodeCache from "node-cache";
 const myCache = new NodeCache({ stdTTL: 20 }); // Cache for 20 seconds
 const SWITCHBOARD_CROSSSBAR_API = "https://crossbar.switchboard.xyz";
 
-const maxOracleAge = 60 * 2; // 2 minutes
-
 interface OracleData {
   oracleKey: string;
   oracleSetup: OracleSetup;
+  maxAge: number;
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -60,7 +59,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       const currentTime = Math.round(Date.now() / 1000);
       const oracleTime = Math.round(oraclePrice.timestamp ? oraclePrice.timestamp.toNumber() : new Date().getTime());
-      const isStale = currentTime - oracleTime > maxOracleAge;
+      const isStale = currentTime - oracleTime > oracleData.maxAge;
 
       if (!isStale || oracleData.oracleSetup !== OracleSetup.SwitchboardPull) {
         myCache.set(cacheKey, oraclePrice);
