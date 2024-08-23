@@ -13,6 +13,7 @@ import {
   MintData,
   OraclePrice,
   parseOracleSetup,
+  parsePriceInfo,
   PriceBias,
   PythPushFeedIdMap,
   RiskTier,
@@ -288,7 +289,6 @@ function makeExtendedBankInfo(
 ): ExtendedBankInfo {
   // Aggregate user-agnostic bank info
   const meta = makeExtendedBankMetadata(bank.address, tokenMetadata);
-
   const bankInfo = makeBankInfo(bank, oraclePrice, emissionTokenPrice);
   let state: BankInfo = {
     rawBank: bank,
@@ -593,10 +593,26 @@ async function fetchGroupData(
   });
 
   const responseBody = await response.json();
-  if (responseBody.success) {
-    const data = responseBody.data;
-    console.log({ data });
+
+  if (!responseBody) {
+    throw new Error("Failed to fetch oracle prices");
   }
+
+  const oraclePrices = responseBody.map((oraclePrice: any) => ({
+    priceRealtime: {
+      price: BigNumber(oraclePrice.priceRealtime.price),
+      confidence: BigNumber(oraclePrice.priceRealtime.confidence),
+      lowestPrice: BigNumber(oraclePrice.priceRealtime.lowestPrice),
+      highestPrice: BigNumber(oraclePrice.priceRealtime.highestPrice),
+    },
+    priceWeighted: {
+      price: BigNumber(oraclePrice.priceWeighted.price),
+      confidence: BigNumber(oraclePrice.priceWeighted.confidence),
+      lowestPrice: BigNumber(oraclePrice.priceWeighted.lowestPrice),
+      highestPrice: BigNumber(oraclePrice.priceWeighted.highestPrice),
+    },
+    timestamp: oraclePrice.timestamp ? BigNumber(oraclePrice.timestamp) : null,
+  })) as OraclePrice[];
 
   // Batch-fetch the group account and all the oracle accounts as per the banks retrieved above
   const allAis = await chunkedGetRawMultipleAccountInfoOrdered(program.provider.connection, [
@@ -640,13 +656,15 @@ async function fetchGroupData(
     })
   );
 
-  const priceInfos = new Map();
-  // bankDatasKeyed.map(({ address: bankAddress, data: bankData }, index) => {
-  //   const priceDataRaw = oracleAis[index];
-  //   if (!priceDataRaw) throw new Error(`Failed to fetch price oracle account for bank ${bankAddress.toBase58()}`);
-  //   const oracleSetup = parseOracleSetup(bankData.config.oracleSetup);
-  //   return [bankAddress.toBase58(), parsePriceInfo(oracleSetup, priceDataRaw.data)];
-  // })
+  const priceInfos = new Map(
+    bankDatasKeyed.map(({ address: bankAddress, data: bankData }, index) => {
+      const priceData = oraclePrices[index];
+      if (!priceData) throw new Error(`Failed to fetch price oracle account for bank ${bankAddress.toBase58()}`);
+      return [bankAddress.toBase58(), priceData as OraclePrice];
+    })
+  );
+
+  console.log({ priceInfos });
 
   debug("Fetched %s banks and %s price feeds", banks.size, priceInfos.size);
 
@@ -667,6 +685,7 @@ export {
   makeExtendedBankInfo,
   fetchTokenAccounts,
   getCurrentAction,
+  fetchGroupData,
 };
 
 // ----------------------------------------------------------------------------

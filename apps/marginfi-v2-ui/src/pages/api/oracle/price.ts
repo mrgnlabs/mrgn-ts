@@ -14,13 +14,26 @@ interface OracleData {
   maxAge: number;
 }
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== "POST") {
-    res.status(405).json({ error: "Only POST requests are allowed" });
-    return;
-  }
+interface PriceWithConfidenceString {
+  price: string;
+  confidence: string;
+  lowestPrice: string;
+  highestPrice: string;
+}
 
-  const { oracleDataArray }: { oracleDataArray: OracleData[] } = req.body;
+interface OraclePriceString {
+  priceRealtime: PriceWithConfidenceString;
+  priceWeighted: PriceWithConfidenceString;
+  timestamp?: string;
+}
+
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  // if (req.method !== "POST") {
+  //   res.status(405).json({ error: "Only POST requests are allowed" });
+  //   return;
+  // }
+
+  const oracleDataArray: OracleData[] = req.body;
 
   if (!Array.isArray(oracleDataArray) || oracleDataArray.length === 0) {
     res.status(400).json({ error: "Invalid input: expected an array of objects" });
@@ -89,7 +102,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return oraclePrice;
   });
 
-  res.status(200).json(updatedOracleArray);
+  const stringyfiedArray = updatedOracleArray.map((oraclePrice) => ({
+    priceRealtime: {
+      price: oraclePrice.priceRealtime.price.toString(),
+      confidence: oraclePrice.priceRealtime.confidence.toString(),
+      lowestPrice: oraclePrice.priceRealtime.lowestPrice.toString(),
+      highestPrice: oraclePrice.priceRealtime.highestPrice.toString(),
+    },
+    priceWeighted: {
+      price: oraclePrice.priceWeighted.price.toString(),
+      confidence: oraclePrice.priceWeighted.confidence.toString(),
+      lowestPrice: oraclePrice.priceWeighted.lowestPrice.toString(),
+      highestPrice: oraclePrice.priceWeighted.highestPrice.toString(),
+    },
+    timestamp: oraclePrice.timestamp?.toString(),
+  }));
+
+  res.status(200).json(stringyfiedArray);
 }
 
 async function fetchCrossbarPrice(feedHash: string) {

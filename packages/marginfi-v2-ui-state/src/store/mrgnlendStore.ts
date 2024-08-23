@@ -13,6 +13,7 @@ import {
   makeExtendedBankMetadata,
   makeExtendedBankEmission,
   TokenPriceMap,
+  fetchGroupData,
 } from "../lib";
 import { getPointsSummary } from "../lib/points";
 import { create, StateCreator } from "zustand";
@@ -195,11 +196,17 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
         bankMetadataMap = results[0];
         tokenMetadataMap = results[1];
       } else if (marginfiConfig.environment === "staging") {
-        const bankMetadataJson = (await import("./staging-metadata.json")) as { bankMetadata: BankMetadataMap, tokenMetadata: TokenMetadataMap };
+        const bankMetadataJson = (await import("./staging-metadata.json")) as {
+          bankMetadata: BankMetadataMap;
+          tokenMetadata: TokenMetadataMap;
+        };
         bankMetadataMap = bankMetadataJson.bankMetadata;
         tokenMetadataMap = bankMetadataJson.tokenMetadata;
       } else if (marginfiConfig.environment === "mainnet-test-1") {
-        const bankMetadataJson = (await import("./mainnet-test-1-metadata.json")) as { bankMetadata: BankMetadataMap, tokenMetadata: TokenMetadataMap };
+        const bankMetadataJson = (await import("./mainnet-test-1-metadata.json")) as {
+          bankMetadata: BankMetadataMap;
+          tokenMetadata: TokenMetadataMap;
+        };
         bankMetadataMap = bankMetadataJson.bankMetadata;
         tokenMetadataMap = bankMetadataJson.tokenMetadata;
       } else {
@@ -213,13 +220,14 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
         sendEndpoint: sendEndpoint,
         spamSendTx: spamSendTx,
         skipPreflightInSpam,
+        fetchGroupDataOverride: fetchGroupData,
       });
       const clientBanks = [...marginfiClient.banks.values()];
 
       const banks = stageTokens
         ? clientBanks.filter(
-          (bank) => bank.tokenSymbol && !stageTokens.find((a) => a.toLowerCase() == bank?.tokenSymbol?.toLowerCase())
-        )
+            (bank) => bank.tokenSymbol && !stageTokens.find((a) => a.toLowerCase() == bank?.tokenSymbol?.toLowerCase())
+          )
         : clientBanks;
 
       const birdEyeApiKey = args?.birdEyeApiKey ?? get().birdEyeApiKey;
