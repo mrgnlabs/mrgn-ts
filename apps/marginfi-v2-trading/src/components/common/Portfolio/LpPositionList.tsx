@@ -49,14 +49,14 @@ export const LpPositionList = () => {
                             width={24}
                             height={24}
                             alt={group.pool.token.meta.tokenSymbol}
-                            className="rounded-full shrink-0 z-20"
+                            className="rounded-full shrink-0 z-20 bg-background"
                           />
                           <Image
                             src={getTokenImageURL(group.pool.quoteTokens[0].info.state.mint.toBase58())}
                             width={24}
                             height={24}
                             alt={group.pool.quoteTokens[0].meta.tokenSymbol}
-                            className="rounded-full shrink-0 ml-[-12px] z-10"
+                            className="rounded-full shrink-0 ml-[-12px] z-10 bg-background"
                           />
                         </div>{" "}
                         {`${group.pool.token.meta.tokenSymbol}/${group.pool.quoteTokens[0].meta.tokenSymbol} `}
@@ -98,64 +98,62 @@ export const LpPositionList = () => {
         </div>
       </Desktop>
       <Mobile>
-        <div className="space-y-4">
+        <div className="space-y-8">
           {portfolio.lpPositions.map((group, i) => {
             return (
-              <Card key={i}>
-                <CardHeader>
-                  <Link
-                    href={`/trade/${group.client.group.address.toBase58()}`}
-                    className="flex items-center gap-3 transition-colors shrink-0"
-                  >
-                    <div className="flex shrink-0">
-                      <Image
-                        src={getTokenImageURL(group.pool.token.info.state.mint.toBase58())}
-                        width={24}
-                        height={24}
-                        alt={group.pool.token.meta.tokenSymbol}
-                        className="rounded-full shrink-0 z-20"
-                      />
-                      <Image
-                        src={getTokenImageURL(group.pool.quoteTokens[0].info.state.mint.toBase58())}
-                        width={24}
-                        height={24}
-                        alt={group.pool.quoteTokens[0].meta.tokenSymbol}
-                        className="rounded-full shrink-0 ml-[-12px] z-10"
-                      />
-                    </div>{" "}
-                    {`${group.pool.token.meta.tokenSymbol}/${group.pool.quoteTokens[0].meta.tokenSymbol} `}
-                  </Link>
-                </CardHeader>
-                <CardContent className="md:pt-0">
-                  <div className="bg-accent rounded-lg p-4">
-                    <p>
-                      {group.pool.token.meta.tokenSymbol} size:{" "}
-                      <span className="text-right">
-                        {group.pool.token.isActive
-                          ? usdFormatter.format(
-                              group.pool.token.position.amount *
+              <div key={i} className="bg-background border border-border rounded-lg p-4 space-y-4">
+                <Link
+                  href={`/trade/${group.client.group.address.toBase58()}`}
+                  className="flex items-center gap-3 transition-colors shrink-0"
+                >
+                  <div className="flex shrink-0">
+                    <Image
+                      src={getTokenImageURL(group.pool.token.info.state.mint.toBase58())}
+                      width={24}
+                      height={24}
+                      alt={group.pool.token.meta.tokenSymbol}
+                      className="rounded-full shrink-0 z-20 bg-background"
+                    />
+                    <Image
+                      src={getTokenImageURL(group.pool.quoteTokens[0].info.state.mint.toBase58())}
+                      width={24}
+                      height={24}
+                      alt={group.pool.quoteTokens[0].meta.tokenSymbol}
+                      className="rounded-full shrink-0 ml-[-12px] z-10 bg-background"
+                    />
+                  </div>{" "}
+                  {`${group.pool.token.meta.tokenSymbol}/${group.pool.quoteTokens[0].meta.tokenSymbol} `}
+                </Link>
+                <div>
+                  <div className="bg-accent rounded-lg p-2">
+                    <p className="flex justify-between gap-2 text-muted-foreground">
+                      {group.pool.token.meta.tokenSymbol} supplied
+                      <span className="text-primary">
+                        {usdFormatter.format(
+                          group.pool.token.isActive
+                            ? group.pool.token.position.amount *
                                 group.pool.token.info.oraclePrice.priceRealtime.price.toNumber()
-                            )
-                          : 0}
+                            : 0
+                        )}
                       </span>
                     </p>
-                    <p>
-                      {group.pool.quoteTokens[0].meta.tokenSymbol} size:{" "}
-                      <span className="text-right">
-                        {group.pool.quoteTokens[0].isActive
-                          ? usdFormatter.format(
-                              group.pool.quoteTokens[0].position.amount *
+                    <p className="flex justify-between gap-2 text-muted-foreground">
+                      {group.pool.quoteTokens[0].meta.tokenSymbol} supplied
+                      <span className="text-primary">
+                        {usdFormatter.format(
+                          group.pool.quoteTokens[0].isActive
+                            ? group.pool.quoteTokens[0].position.amount *
                                 group.pool.quoteTokens[0].info.oraclePrice.priceRealtime.price.toNumber()
-                            )
-                          : 0}
+                            : 0
+                        )}
                       </span>
                     </p>
                   </div>
-                </CardContent>
-                <CardFooter className="md:pt-0">
+                </div>
+                <div>
                   <LpActionButtons size="lg" marginfiAccount={group.selectedAccount || undefined} activeGroup={group} />
-                </CardFooter>
-              </Card>
+                </div>
+              </div>
             );
           })}
         </div>
