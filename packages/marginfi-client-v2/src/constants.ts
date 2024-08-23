@@ -31,3 +31,5 @@ export const FLASHLOAN_ENABLED_FLAG: number = 1 << 2;
 export const TRANSFER_ACCOUNT_AUTHORITY_FLAG: number = 1 << 3;
 
 export const PYTH_PUSH_ORACLE_ID = new PublicKey("pythWSnswVUd12oZpeFP8e9CVaEqJg25g1Vtc2biRsT");
+
+export const DEFAULT_ORACLE_MAX_AGE = 60; // seconds

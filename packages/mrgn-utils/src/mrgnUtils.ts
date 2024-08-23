@@ -45,8 +45,8 @@ export function computeBankRateRaw(bank: ExtendedBankInfo, lendingMode: LendingM
       ? bank.info.state.emissionsRate
       : 0
     : bank.info.state.emissions == Emissions.Borrowing
-    ? bank.info.state.emissionsRate
-    : 0;
+      ? bank.info.state.emissionsRate
+      : 0;
 
   const aprRate = interestRate + emissionRate;
   const apyRate = aprToApy(aprRate);
@@ -131,42 +131,8 @@ export function getTokenImageURL(tokenSymbol: string): string {
   return `https://storage.googleapis.com/mrgn-public/mrgn-token-icons/${tokenSymbol}.png`;
 }
 
-const oraclesWithMaxAgeOverMin = [
-  {
-    address: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-    maxAge: 300,
-  },
-  {
-    address: "HZ1JovNiVvGrGNiiYvEozEVgZ58xaU3RKwX8eACQBCt3",
-    maxAge: 120,
-  },
-  {
-    address: "J1toso1uCk3RLmjorhTtrVwY9HJ7X8V9yYac6Y7kGCPn",
-    maxAge: 180,
-  },
-  {
-    address: "mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So",
-    maxAge: 180,
-  },
-  {
-    address: "LSTxxxnJzKDFSLr4dUkPcmCf5VyryEqzPLz5j4bpxFp",
-    maxAge: 180,
-  },
-  {
-    address: "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
-    maxAge: 600,
-  },
-  {
-    address: "2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo",
-    maxAge: 300,
-  },
-];
-
 export function isBankOracleStale(bank: ExtendedBankInfo) {
-  const oracle = oraclesWithMaxAgeOverMin.find(
-    (oracle) => oracle.address.toLowerCase() === bank.info.rawBank.mint.toBase58().toLowerCase()
-  );
-  const maxAge = oracle ? oracle.maxAge : 60;
+  const maxAge = bank.info.rawBank.config.oracleMaxAge;
   const currentTime = Math.round(Date.now() / 1000);
   const oracleTime = Math.round(
     bank.info.oraclePrice.timestamp ? bank.info.oraclePrice.timestamp.toNumber() : new Date().getTime()

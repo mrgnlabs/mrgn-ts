@@ -16,6 +16,7 @@ import { BorshCoder } from "@coral-xyz/anchor";
 import { AccountType } from "../types";
 import { MARGINFI_IDL, MarginfiIdlType } from "../idl";
 import { findOracleKey, PythPushFeedIdMap } from "../utils";
+import { DEFAULT_ORACLE_MAX_AGE } from "../constants";
 
 const SECONDS_PER_DAY = 24 * 60 * 60;
 const SECONDS_PER_YEAR = SECONDS_PER_DAY * 365.25;
@@ -71,6 +72,7 @@ interface BankConfigRaw {
   borrowLimit: BN;
   riskTier: RiskTierRaw;
   totalAssetValueInitLimit: BN;
+  oracleMaxAge: number;
 
   interestRateConfig: InterestRateConfigRaw;
   operationalState: OperationalStateRaw;
@@ -582,6 +584,7 @@ class BankConfig {
 
   public oracleSetup: OracleSetup;
   public oracleKeys: PublicKey[];
+  public oracleMaxAge: number;
 
   constructor(
     assetWeightInit: BigNumber,
@@ -594,6 +597,7 @@ class BankConfig {
     totalAssetValueInitLimit: BigNumber,
     oracleSetup: OracleSetup,
     oracleKeys: PublicKey[],
+    oracleMaxAge: number,
     interestRateConfig: InterestRateConfig,
     operationalState: OperationalState
   ) {
@@ -609,6 +613,7 @@ class BankConfig {
     this.oracleKeys = oracleKeys;
     this.interestRateConfig = interestRateConfig;
     this.operationalState = operationalState;
+    this.oracleMaxAge = oracleMaxAge;
   }
 
   static fromAccountParsed(bankConfigRaw: BankConfigRaw): BankConfig {
@@ -623,6 +628,7 @@ class BankConfig {
     const totalAssetValueInitLimit = BigNumber(bankConfigRaw.totalAssetValueInitLimit.toString());
     const oracleSetup = parseOracleSetup(bankConfigRaw.oracleSetup);
     const oracleKeys = bankConfigRaw.oracleKeys;
+    const oracleMaxAge = bankConfigRaw.oracleMaxAge === 0 ? DEFAULT_ORACLE_MAX_AGE : bankConfigRaw.oracleMaxAge;
     const interestRateConfig = {
       insuranceFeeFixedApr: wrappedI80F48toBigNumber(bankConfigRaw.interestRateConfig.insuranceFeeFixedApr),
       maxInterestRate: wrappedI80F48toBigNumber(bankConfigRaw.interestRateConfig.maxInterestRate),
@@ -645,6 +651,7 @@ class BankConfig {
       totalAssetValueInitLimit,
       oracleSetup,
       oracleKeys,
+      oracleMaxAge,
       interestRateConfig,
     };
   }
