@@ -57,7 +57,7 @@ export const ActionBoxDialog = ({
         <DialogTrigger asChild>{children}</DialogTrigger>
         <DialogContent
           hideClose={true}
-          className="mt-20 justify-start flex md:max-w-[520px] md:py-3 md:px-5 p-0 sm:rounded-2xl bg-transparent border-none z-[9999] md:z-50"
+          className="mt-20 justify-start flex md:max-w-[520px] md:py-3 md:px-5 p-0 sm:rounded-2xl bg-transparent border-none z-40 md:z-50"
         >
           <div>
             <div
