@@ -679,6 +679,7 @@ enum OracleSetup {
   PythLegacy = "PythLegacy",
   SwitchboardV2 = "SwitchboardV2",
   PythPushOracle = "PythPushOracle",
+  SwitchboardPull = "SwitchboardPull",
 }
 
 // BankConfigOpt Args
@@ -722,7 +723,7 @@ interface BankConfigOptRaw {
   operationalState: { paused: {} } | { operational: {} } | { reduceOnly: {} } | null;
 
   oracle: {
-    setup: { none: {} } | { pythLegacy: {} } | { switchboardV2: {} } | { pythPushOracle: {} };
+    setup: { none: {} } | { pythLegacy: {} } | { switchboardV2: {} } | { pythPushOracle: {} } | { switchboardPull: {} };
     keys: PublicKey[];
   } | null;
 
@@ -885,12 +886,14 @@ function parseOracleSetup(oracleSetupRaw: OracleSetupRaw): OracleSetup {
       return OracleSetup.SwitchboardV2;
     case "pythpushoracle":
       return OracleSetup.PythPushOracle;
+    case "switchboardpull":
+      return OracleSetup.SwitchboardPull;
     default:
       throw new Error(`Invalid oracle setup "${oracleKey}"`);
   }
 }
 
-function serializeOracleSetup(oracleSetup: OracleSetup): { none: {} } | { pythLegacy: {} } | { switchboardV2: {} } | { pythPushOracle: {} } {
+function serializeOracleSetup(oracleSetup: OracleSetup): { none: {} } | { pythLegacy: {} } | { switchboardV2: {} } | { pythPushOracle: {} } | { switchboardPull: {} } {
   switch (oracleSetup) {
     case OracleSetup.None:
       return { none: {} };
@@ -900,6 +903,8 @@ function serializeOracleSetup(oracleSetup: OracleSetup): { none: {} } | { pythLe
       return { switchboardV2: {} };
     case OracleSetup.PythPushOracle:
       return { pythPushOracle: {} };
+    case OracleSetup.SwitchboardPull:
+      return { switchboardPull: {} };
     default:
       throw new Error(`Invalid oracle setup "${oracleSetup}"`);
   }
