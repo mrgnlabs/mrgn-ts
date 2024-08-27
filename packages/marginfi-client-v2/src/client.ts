@@ -839,11 +839,17 @@ class MarginfiClient {
         return signatures;
       } else {
         let base58Txs: string[] = [];
-        for (let i = 0; i < versionedTransactions.length; i++) {
-          const signedTx = await this.wallet.signTransaction(versionedTransactions[i]);
-          const base58Tx = bs58.encode(signedTx.serialize());
-          base58Txs.push(base58Tx);
-          versionedTransactions[i] = signedTx;
+
+        if (!!this.wallet.signAllTransactions) {
+          versionedTransactions = await this.wallet.signAllTransactions(versionedTransactions);
+          base58Txs = versionedTransactions.map((signedTx) => bs58.encode(signedTx.serialize()));
+        } else {
+          for (let i = 0; i < versionedTransactions.length; i++) {
+            const signedTx = await this.wallet.signTransaction(versionedTransactions[i]);
+            const base58Tx = bs58.encode(signedTx.serialize());
+            base58Txs.push(base58Tx);
+            versionedTransactions[i] = signedTx;
+          }
         }
 
         let mergedOpts: ConfirmOptions = {

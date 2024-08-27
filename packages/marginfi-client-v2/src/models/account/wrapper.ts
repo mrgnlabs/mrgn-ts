@@ -8,6 +8,7 @@ import {
   getAssociatedTokenAddressSync,
   shortenAddress,
 } from "@mrgnlabs/mrgn-common";
+import * as sb from "@switchboard-xyz/on-demand";
 import { Address, BorshCoder, Idl, translateAddress } from "@coral-xyz/anchor";
 import {
   AccountMeta,
@@ -32,6 +33,7 @@ import {
   MarginfiClient,
   MarginfiGroup,
   MarginfiIdlType,
+  OracleSetup,
 } from "../..";
 import { AccountType, MarginfiConfig, MarginfiProgram } from "../../types";
 import { MarginfiAccount, MarginRequirementType, MarginfiAccountRaw } from "./pure";
@@ -471,7 +473,7 @@ class MarginfiAccountWrapper {
     swapIxs: TransactionInstruction[],
     swapLookupTables: AddressLookupTableAccount[],
     priorityFeeUi?: number,
-    isTxnSplit?: boolean
+    isTxnSplitParam?: boolean
   ): Promise<{
     flashloanTx: VersionedTransaction;
     bundleTipTxn: VersionedTransaction | null;
@@ -491,17 +493,24 @@ class MarginfiAccountWrapper {
     const bundleTipIx = makeBundleTipIx(this.client.provider.publicKey);
     const lookupTables = this.client.addressLookupTables;
 
+    const { instructions: updateFeedIxs, luts: feedLuts } = this.makeUpdateFeedIx([
+      depositBankAddress,
+      borrowBankAddress,
+    ]);
+
     const addressLookupTableAccounts = [...lookupTables, ...swapLookupTables];
 
     let bundleTipTxn: VersionedTransaction | null = null;
 
+    // isTxnSplit forced set to true as we're always splitting now
+    const isTxnSplit = true; //isTxnSplitParam
     if (isTxnSplit) {
       const { blockhash } = await this._program.provider.connection.getLatestBlockhash();
       const message = new TransactionMessage({
         payerKey: this.client.wallet.publicKey,
         recentBlockhash: blockhash,
-        instructions: [bundleTipIx],
-      }).compileToV0Message([...addressLookupTableAccounts]);
+        instructions: [bundleTipIx, ...updateFeedIxs],
+      }).compileToV0Message([...addressLookupTableAccounts, ...feedLuts]);
 
       bundleTipTxn = new VersionedTransaction(message);
     }
@@ -627,7 +636,7 @@ class MarginfiAccountWrapper {
     swapLookupTables: AddressLookupTableAccount[],
     priorityFeeUi?: number,
     createAtas?: boolean,
-    isTxnSplit?: boolean
+    isTxnSplitParam?: boolean
   ): Promise<{
     flashloanTx: VersionedTransaction;
     bundleTipTxn: VersionedTransaction | null;
@@ -651,17 +660,24 @@ class MarginfiAccountWrapper {
     const bundleTipIx = makeBundleTipIx(this.client.provider.publicKey);
     const lookupTables = this.client.addressLookupTables;
 
+    const { instructions: updateFeedIxs, luts: feedLuts } = this.makeUpdateFeedIx([
+      depositBankAddress,
+      borrowBankAddress,
+    ]);
+
     const addressLookupTableAccounts = [...lookupTables, ...swapLookupTables];
 
     let bundleTipTxn: VersionedTransaction | null = null;
 
+    // isTxnSplit forced set to true as we're always splitting now
+    const isTxnSplit = true; //isTxnSplitParam
     if (isTxnSplit) {
       const { blockhash } = await this._program.provider.connection.getLatestBlockhash();
       const message = new TransactionMessage({
         payerKey: this.client.wallet.publicKey,
         recentBlockhash: blockhash,
-        instructions: [bundleTipIx],
-      }).compileToV0Message([...addressLookupTableAccounts]);
+        instructions: [bundleTipIx, ...updateFeedIxs],
+      }).compileToV0Message([...addressLookupTableAccounts, ...feedLuts]);
 
       bundleTipTxn = new VersionedTransaction(message);
     }
@@ -1098,6 +1114,49 @@ class MarginfiAccountWrapper {
     const sig = await this.client.processTransaction(tx, []);
     debug("Transfer successful %s", sig);
     return sig;
+  }
+
+  makeUpdateFeedIx(banksPk: PublicKey[]): {
+    instructions: TransactionInstruction[];
+    luts: AddressLookupTableAccount[];
+  } {
+    // get all banks
+    const banks = Array.from(this.client.banks.values());
+
+    // filter balances on active
+    const activeBanksPk = this._marginfiAccount.balances
+      .filter((balance) => balance.active || banksPk.includes(balance.bankPk))
+      .map((balance) => balance.bankPk);
+    const activeBanks = banks.filter((bank) => activeBanksPk.includes(bank.address));
+
+    const swbPullBanks = activeBanks.filter((bank) => bank.config.oracleSetup === OracleSetup.SwitchboardPull);
+
+    if (swbPullBanks.length > 0) {
+      const staleOracles = swbPullBanks
+        .filter((bank) => {
+          const oraclePrice = this.client.oraclePrices.get(bank.address.toBase58());
+          const maxAge = bank.config.oracleMaxAge;
+          const currentTime = Math.round(Date.now() / 1000);
+          const oracleTime = Math.round(
+            oraclePrice?.timestamp ? oraclePrice.timestamp.toNumber() : new Date().getTime()
+          );
+          const isStale = currentTime - oracleTime > maxAge;
+
+          return isStale;
+        })
+        .map((bank) => bank.oracleKey);
+
+      if (staleOracles.length > 0) {
+        const sbProgram = null as any;
+        const [pullIx, luts] = sb.PullFeed.fetchUpdateManyIx(sbProgram, { feeds: staleOracles, numSignatures: 3 });
+
+        return { instructions: [pullIx], luts };
+      }
+
+      return { instructions: [], luts: [] };
+    } else {
+      return { instructions: [], luts: [] };
+    }
   }
 
   // --------------------------------------------------------------------------
