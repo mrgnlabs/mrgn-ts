@@ -3,7 +3,11 @@ import { nativeToUi } from "@mrgnlabs/mrgn-common";
 import { ActionMethod, handleSimulationError, isWholePosition } from "@mrgnlabs/mrgn-utils";
 import { MarginfiAccountWrapper, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
 
-import { simulatedCollateral, simulatedHealthFactor, simulatedPositionSize } from "../../../sharedUtils";
+import {
+  simulatedHealthFactor,
+  simulatedPositionSize,
+  simulatedCollateral,
+} from "~/components/ActionboxV2/sharedUtils";
 
 export interface ActionSummary {
   actionPreview: ActionPreview;

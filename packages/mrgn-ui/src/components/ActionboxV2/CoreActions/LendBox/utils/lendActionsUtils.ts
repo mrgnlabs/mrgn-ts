@@ -8,7 +8,7 @@ interface ExecuteActionsCallbackProps {
   captureEvent: (event: string, properties?: Record<string, any>) => void;
   setIsLoading: (isLoading: boolean) => void;
   setIsComplete: (txnSigs: string[]) => void;
-  setIsError: () => void;
+  setIsError: (error: string) => void;
 }
 
 interface ExecuteLendingActionsProps extends ExecuteActionsCallbackProps {
@@ -34,9 +34,13 @@ export const handleExecuteLendingAction = async ({
     priorityFee,
   });
 
-  const txnSig = await executeLendingAction(params);
+  const { txnSig, error } = await executeLendingAction(params);
 
   setIsLoading(false);
+
+  if (error) {
+    setIsError(error);
+  }
 
   if (txnSig) {
     setIsComplete([...txnSig]);
@@ -49,7 +53,8 @@ export const handleExecuteLendingAction = async ({
       priorityFee,
     });
   } else {
-    setIsError();
+    // does this ever happen?
+    setIsError("Transaction not landed");
   }
 };
 
@@ -80,8 +85,13 @@ export const handleExecuteCloseBalance = async ({
     priorityFee,
   });
 
-  const txnSig = await closeBalance({ marginfiAccount: marginfiAccount, bank: bank, priorityFee });
+  const { txnSig, error } = await closeBalance({ marginfiAccount: marginfiAccount, bank: bank, priorityFee });
   setIsLoading(false);
+
+  if (error) {
+    setIsError(error);
+  }
+
   if (txnSig) {
     setIsComplete([...txnSig]);
     captureEvent(`user_close_balance`, {
@@ -93,6 +103,6 @@ export const handleExecuteCloseBalance = async ({
       priorityFee,
     });
   } else {
-    setIsError();
+    setIsError("Transaction failed to land");
   }
 };

@@ -1,11 +1,12 @@
 import React from "react";
 
+import { IconX } from "@tabler/icons-react";
+
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { Command, CommandInput, CommandList } from "~/components/ui/command";
-import { IconX } from "~/components/ui/icons";
 import { useIsMobile } from "~/hooks/useIsMobile";
-import { cn } from "~/utils";
+import { cn } from "~/utils/themeUtils";
 
 type TokenListCommandProps = {
   selectedBank: ExtendedBankInfo | null;

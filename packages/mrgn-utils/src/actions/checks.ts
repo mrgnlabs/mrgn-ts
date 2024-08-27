@@ -79,7 +79,6 @@ function canBeRepaid(targetBankInfo: ExtendedBankInfo): ActionMethod[] {
 function canBeRepaidCollat(
   targetBankInfo: ExtendedBankInfo,
   repayBankInfo: ExtendedBankInfo | null,
-  blacklistRoutes: PublicKey[] | null,
   swapQuote: QuoteResponse | null
 ): ActionMethod[] {
   let checks: ActionMethod[] = [];

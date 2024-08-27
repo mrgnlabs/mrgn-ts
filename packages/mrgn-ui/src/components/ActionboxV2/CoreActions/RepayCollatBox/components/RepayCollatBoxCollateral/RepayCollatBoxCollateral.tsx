@@ -2,8 +2,8 @@ import React from "react";
 
 import { MarginfiAccountWrapper, MarginRequirementType } from "@mrgnlabs/marginfi-client-v2";
 
-import { ActionProgressBar } from "~/components/common/ActionBoxV2/sharedComponents/ActionStats";
-import { ActionSummary } from "~/components/common/ActionBoxV2/sharedUtils";
+import { ActionProgressBar } from "~/components/ActionboxV2/sharedComponents";
+import { ActionSummary } from "~/components/ActionboxV2/sharedUtils";
 
 interface RepayCollatBoxCollateralProps {
   selectedAccount: MarginfiAccountWrapper | null;

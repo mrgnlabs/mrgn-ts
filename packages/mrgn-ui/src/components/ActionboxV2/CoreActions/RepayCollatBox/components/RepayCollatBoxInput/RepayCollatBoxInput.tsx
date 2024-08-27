@@ -3,9 +3,6 @@ import React from "react";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { formatAmount } from "@mrgnlabs/mrgn-utils";
 
-import { useConnection } from "~/hooks/useConnection";
-import { useUiStore } from "~/store";
-
 import { Input } from "~/components/ui/input";
 
 import { useRepayCollatBoxStore } from "../../store";
@@ -22,11 +19,6 @@ type RepayCollatBoxInputProps = {
 };
 
 export const RepayCollatBoxInput = ({ banks, nativeSolBalance, maxAmount }: RepayCollatBoxInputProps) => {
-  const [isActionBoxInputFocussed, setIsActionBoxInputFocussed, priorityFee] = useUiStore((state) => [
-    state.isActionBoxInputFocussed,
-    state.setIsActionBoxInputFocussed,
-    state.priorityFee,
-  ]);
   const [amountRaw, selectedBank, selectedSecondaryBank, setAmountRaw, setSelectedBank, setSelectedSecondaryBank] =
     useRepayCollatBoxStore((state) => [
       state.amountRaw,
@@ -84,8 +76,6 @@ export const RepayCollatBoxInput = ({ banks, nativeSolBalance, maxAmount }: Repa
               value={amountRaw}
               disabled={isInputDisabled}
               onChange={(e) => handleInputChange(e.target.value)}
-              onFocus={() => setIsActionBoxInputFocussed(true)}
-              onBlur={() => setIsActionBoxInputFocussed(false)}
               placeholder="0"
               className="bg-transparent min-w-[130px] text-right outline-none focus-visible:outline-none focus-visible:ring-0 border-none text-base font-medium"
             />

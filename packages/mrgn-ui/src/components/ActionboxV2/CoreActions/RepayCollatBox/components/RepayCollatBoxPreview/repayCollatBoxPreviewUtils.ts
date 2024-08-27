@@ -3,12 +3,12 @@ import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import {
   ActionSummary,
   getAmountStat,
-  getBankTypeStat,
   getHealthStat,
   getLiquidationStat,
-  getOracleStat,
   getPoolSizeStat,
-} from "~/components/common/ActionBoxV2/sharedUtils";
+  getBankTypeStat,
+  getOracleStat,
+} from "~/components/ActionboxV2/sharedUtils";
 
 export function generateRepayCollatStats(summary: ActionSummary, bank: ExtendedBankInfo, isLoading: boolean) {
   const stats = [];

@@ -1,10 +1,10 @@
 import React from "react";
-import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { useActionBoxStore } from "~/hooks/useActionBoxStore";
-import { StakeData } from "~/utils";
-import { SelectedBankItem, TokenListWrapper } from "~/components/common/ActionBoxV2/sharedComponents";
+import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { computeBankRate, LendingModes } from "@mrgnlabs/mrgn-utils";
+
+import { SelectedBankItem, TokenListWrapper } from "~/components/ActionboxV2/sharedComponents";
+
 import { RepayCollatTokensList } from "./RepayCollatTokensList";
 import { RepayCollatTokensTrigger } from "./RepayCollatTokensTrigger";
 

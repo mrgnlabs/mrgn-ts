@@ -5,10 +5,9 @@ import { IconChevronDown } from "@tabler/icons-react";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { LendingModes } from "@mrgnlabs/mrgn-utils";
 
+import { SelectedBankItem } from "~/components/ActionboxV2/sharedComponents";
 import { Button } from "~/components/ui/button";
-
-import { cn } from "~/utils";
-import { SelectedBankItem } from "~/components/common/ActionBoxV2/sharedComponents";
+import { cn } from "~/utils/themeUtils";
 
 type RepayCollatTokensTriggerProps = {
   bank: ExtendedBankInfo | null;

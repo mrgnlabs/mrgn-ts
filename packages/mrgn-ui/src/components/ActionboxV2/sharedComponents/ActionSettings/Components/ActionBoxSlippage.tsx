@@ -1,17 +1,15 @@
 import React from "react";
+import { IconInfoCircle } from "@tabler/icons-react";
 
-import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { useForm } from "react-hook-form";
-
-import { cn } from "~/utils";
 
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
-import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group";
 import { Label } from "~/components/ui/label";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "~/components/ui/form";
-import { IconInfoCircle } from "~/components/ui/icons";
+import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group";
+import { cn } from "~/utils/themeUtils";
 
 type ActionBoxSlippageProps = {
   slippageBps: number;

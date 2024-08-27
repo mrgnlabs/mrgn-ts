@@ -1,18 +1,15 @@
 import React from "react";
 import { useForm } from "react-hook-form";
+import { IconInfoCircle } from "@tabler/icons-react";
 
-import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
-
-import { useUiStore } from "~/store";
-import { cn } from "~/utils";
+import { cn } from "~/utils/themeUtils";
 
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
-import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group";
 import { Label } from "~/components/ui/label";
-import { Form, FormControl, FormField, FormItem, FormMessage } from "~/components/ui/form";
-import { IconInfoCircle } from "~/components/ui/icons";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
+import { Form, FormControl, FormField, FormItem } from "~/components/ui/form";
+import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group";
 
 type ActionBoxPriorityFeesProps = {
   toggleSettings: (mode: boolean) => void;

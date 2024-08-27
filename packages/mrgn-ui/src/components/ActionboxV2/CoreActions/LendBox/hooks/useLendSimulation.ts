@@ -3,7 +3,7 @@ import React from "react";
 import { AccountSummary } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { useLendBoxStore } from "../store";
-import { ActionSummary, calculateSummary, getSimulationResult } from "../utils";
+import { calculateSummary, getSimulationResult } from "../utils";
 import { MarginfiAccountWrapper, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
 import { usePrevious } from "@mrgnlabs/mrgn-utils";
 

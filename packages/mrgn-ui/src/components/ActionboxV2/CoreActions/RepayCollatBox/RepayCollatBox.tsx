@@ -1,19 +1,10 @@
 import React from "react";
 
-import { ExtendedBankInfo, ActionType, TokenAccountMap, AccountSummary } from "@mrgnlabs/marginfi-v2-ui-state";
-
-import { useWalletContext } from "~/hooks/useWalletContext";
-
-import { showErrorToast } from "~/utils/toastUtils";
-
-import { ActionBoxActions } from "~/components/common/ActionBox/components";
-import { ActionMethod } from "@mrgnlabs/mrgn-utils";
+import { ExtendedBankInfo, ActionType, AccountSummary } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActionMethod, PreviousTxn, showErrorToast } from "@mrgnlabs/mrgn-utils";
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 
-import { ActionMessage, ActionSettingsButton } from "../../sharedComponents";
-
-import { PreviousTxn } from "~/types";
-
+import { ActionBoxActions, ActionMessage, ActionSettingsButton } from "../../sharedComponents";
 import { useActionBoxStore } from "../../store";
 import { useActionAmounts } from "../../sharedHooks";
 import { useRepayCollatBoxStore } from "./store";
@@ -25,6 +16,7 @@ import { RepayCollatBoxCollateral, RepayCollatBoxInput, RepayCollatBoxPreview } 
 export type RepayCollatBoxProps = {
   nativeSolBalance: number;
   // tokenAccountMap: TokenAccountMap;
+  connected: boolean;
 
   marginfiClient: MarginfiClient;
   selectedAccount: MarginfiAccountWrapper | null;
@@ -35,12 +27,14 @@ export type RepayCollatBoxProps = {
 
   isDialog?: boolean;
 
+  onConnect?: () => void;
   onComplete: (previousTxn: PreviousTxn) => void;
   captureEvent?: (event: string, properties?: Record<string, any>) => void;
 };
 
 export const RepayCollatBox = ({
   nativeSolBalance,
+  connected,
   // tokenAccountMap,
   banks,
   marginfiClient,
@@ -49,6 +43,7 @@ export const RepayCollatBox = ({
   requestedActionType,
   requestedBank,
   isDialog,
+  onConnect,
   onComplete,
   captureEvent,
 }: RepayCollatBoxProps) => {
@@ -95,8 +90,6 @@ export const RepayCollatBox = ({
     marginfiClient,
     accountSummary
   );
-
-  const { walletContextState, connected } = useWalletContext();
 
   const [additionalActionMethods, setAdditionalActionMethods] = React.useState<ActionMethod[]>([]);
 
@@ -158,11 +151,11 @@ export const RepayCollatBox = ({
       <ActionBoxActions
         isLoading={isLoading}
         isEnabled={!additionalActionMethods.concat(actionMethods).filter((value) => value.isEnabled === false).length}
-        actionMode={actionMode}
-        showCloseBalance={false}
         handleAction={() => {
           handleRepayCollatAction();
         }}
+        buttonLabel={"Repay with collateral"}
+        handleConnect={() => onConnect && onConnect()}
       />
 
       <ActionSettingsButton setIsSettingsActive={setIsSettingsDialogOpen} />

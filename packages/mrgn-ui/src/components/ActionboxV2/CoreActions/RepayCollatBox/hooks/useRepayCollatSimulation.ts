@@ -9,7 +9,6 @@ import {
   usePrevious,
 } from "@mrgnlabs/mrgn-utils";
 import { useActionBoxStore } from "../../../store";
-import { useConnection } from "~/hooks/useConnection";
 import { calculateRepayCollateral, calculateSummary, getSimulationResult } from "../utils";
 import { AccountSummary } from "@mrgnlabs/marginfi-v2-ui-state";
 import { VersionedTransaction } from "@solana/web3.js";
@@ -48,7 +47,6 @@ export function useRepayCollatSimulation(
     state.setMaxAmountCollateral,
   ]);
   const [slippageBps, priorityFee] = useActionBoxStore((state) => [state.slippageBps, state.priorityFee]);
-  const { connection } = useConnection();
 
   const prevSelectedSecondaryBank = usePrevious(selectedSecondaryBank);
 
@@ -124,7 +122,7 @@ export function useRepayCollatSimulation(
           selectedSecondaryBank,
           amount,
           slippageBps,
-          connection,
+          marginfiClient.provider.connection,
           priorityFee
         );
 
@@ -157,7 +155,7 @@ export function useRepayCollatSimulation(
       selectedAccount,
       setIsLoading,
       slippageBps,
-      connection,
+      marginfiClient,
       priorityFee,
       setRepayAmount,
       setActionQuote,

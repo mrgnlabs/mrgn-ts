@@ -1,5 +1,10 @@
 import { IconLoader, IconCheck, IconAlertTriangle } from "@tabler/icons-react";
-import { cn } from "~/utils/themeUtils";
+import { type ClassValue, clsx } from "clsx";
+import { twMerge } from "tailwind-merge";
+
+export const cn = (...inputs: ClassValue[]) => {
+  return twMerge(clsx(inputs));
+};
 
 export interface MultiStepToastProps {
   title: string;

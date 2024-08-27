@@ -2,12 +2,10 @@ import React from "react";
 
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { useMrgnlendStore } from "~/store";
-import { cn } from "~/utils";
-
 import { CommandEmpty, CommandGroup, CommandItem } from "~/components/ui/command";
-import { BuyWithMoonpay, ActionBoxItem } from "~/components/common/ActionBox/components";
-import { TokenListCommand } from "~/components/common/ActionBoxV2/sharedComponents";
+import { ActionBoxItem, TokenListCommand } from "~/components/ActionboxV2/sharedComponents";
+import { BuyWithMoonpay } from "~/components/ui/icons";
+import { cn } from "~/utils/themeUtils";
 
 type RepayCollatTokensListProps = {
   selectedSecondaryBank: ExtendedBankInfo | null;

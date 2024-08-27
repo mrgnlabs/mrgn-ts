@@ -5,10 +5,11 @@ import { WalletContextState } from "@solana/wallet-adapter-react";
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { ExtendedBankInfo, FEE_MARGIN, ActionType, clearAccountCache } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { MultiStepToastHandle, showErrorToast } from "~/toasts";
 import { WalletContextStateOverride } from "~/wallet";
-import { loopingBuilder, repayWithCollatBuilder } from "../flashloans";
+import { showErrorToast, MultiStepToastHandle } from "~/Toasts";
 import { extractErrorString, isWholePosition } from "~/mrgnUtils";
+
+import { loopingBuilder, repayWithCollatBuilder } from "../flashloans";
 import { MarginfiActionParams, LoopingOptions, RepayWithCollatOptions } from "../types";
 import { getMaybeSquadsOptions } from "../helpers";
 
@@ -41,12 +42,15 @@ export async function executeLendingAction({
   walletContextState,
   priorityFee,
   repayWithCollatOptions,
-}: MarginfiActionParams) {
+}: MarginfiActionParams): Promise<{
+  txnSig?: string | string[];
+  error?: any;
+}> {
   let txnSig: string | string[] | undefined;
 
   if (nativeSolBalance < FEE_MARGIN) {
     showErrorToast("Not enough sol for fee.");
-    return;
+    return { error: "Not enough sol for fee." };
   }
 
   if (actionType === ActionType.Deposit) {
@@ -55,12 +59,11 @@ export async function executeLendingAction({
     } else {
       return await createAccountAndDeposit({ mfiClient, bank, amount, walletContextState, priorityFee });
     }
-    return txnSig;
   }
 
   if (!marginfiAccount) {
     showErrorToast("Marginfi account not ready.");
-    return;
+    return { error: "Marginfi account not ready." };
   }
 
   if (actionType === ActionType.Borrow) {
@@ -73,7 +76,7 @@ export async function executeLendingAction({
 
   if (actionType === ActionType.Repay) {
     if (repayWithCollatOptions) {
-      txnSig = await repayWithCollat({
+      return await repayWithCollat({
         marginfiClient: mfiClient,
         marginfiAccount,
         bank,
@@ -82,11 +85,11 @@ export async function executeLendingAction({
         options: repayWithCollatOptions,
       });
     } else {
-      txnSig = await repay({ marginfiAccount, bank, amount, priorityFee });
+      return await repay({ marginfiAccount, bank, amount, priorityFee });
     }
   }
 
-  return txnSig;
+  return {};
 }
 
 export async function executeLoopingAction({
@@ -133,7 +136,7 @@ async function createAccount({
 }) {
   if (mfiClient === null) {
     showErrorToast("Marginfi client not ready");
-    return;
+    return { error: "Marginfi client not ready" };
   }
 
   const multiStepToast = new MultiStepToastHandle("Creating account", [{ label: "Creating account" }]);
@@ -151,10 +154,11 @@ async function createAccount({
     return marginfiAccount;
   } catch (error: any) {
     const msg = extractErrorString(error);
-    Sentry.captureException({ message: error });
+    // Sentry.captureException({ message: error });
     multiStepToast.setFailed(msg);
     console.log(`Error while depositing: ${msg}`);
     console.log(error);
+    return { error };
   }
 }
 
@@ -173,7 +177,7 @@ async function createAccountAndDeposit({
 }) {
   if (mfiClient === null) {
     showErrorToast("Marginfi client not ready");
-    return;
+    return { error: "Marginfi client not ready" };
   }
 
   const multiStepToast = new MultiStepToastHandle("Initial deposit", [
@@ -192,24 +196,24 @@ async function createAccountAndDeposit({
     multiStepToast.setSuccessAndNext();
   } catch (error: any) {
     const msg = extractErrorString(error);
-    Sentry.captureException({ message: error });
+    // Sentry.captureException({ message: error });
     multiStepToast.setFailed(msg);
     console.log(`Error while depositing: ${msg}`);
     console.log(error);
-    return;
+    return { error };
   }
 
   try {
     const txnSig = await marginfiAccount.deposit(amount, bank.address, { priorityFeeUi: priorityFee });
     multiStepToast.setSuccessAndNext();
-    return txnSig;
+    return { txnSig };
   } catch (error: any) {
     const msg = extractErrorString(error);
-    Sentry.captureException({ message: error });
+    // Sentry.captureException({ message: error });
     multiStepToast.setFailed(msg);
     console.log(`Error while depositing: ${msg}`);
     console.log(error);
-    return;
+    return { error };
   }
 }
 
@@ -329,14 +333,14 @@ export async function repay({
       priorityFeeUi: priorityFee,
     });
     multiStepToast.setSuccessAndNext();
-    return txnSig;
+    return { txnSig };
   } catch (error: any) {
     const msg = extractErrorString(error);
-    Sentry.captureException({ message: error });
+    // Sentry.captureException({ message: error });
     multiStepToast.setFailed(msg);
     console.log(`Error while repaying: ${msg}`);
     console.log(error);
-    return;
+    return { error };
   }
 }
 
@@ -429,7 +433,7 @@ export async function repayWithCollat({
 }) {
   if (marginfiClient === null) {
     showErrorToast("Marginfi client not ready");
-    return;
+    return { error: "Marginfi client not ready" };
   }
 
   const multiStepToast = new MultiStepToastHandle("Repayment", [{ label: `Executing flashloan repayment` }]);
@@ -460,7 +464,7 @@ export async function repayWithCollat({
     return { txnSig };
   } catch (error: any) {
     const msg = extractErrorString(error);
-    Sentry.captureException({ message: error });
+    // Sentry.captureException({ message: error });
     multiStepToast.setFailed(msg);
     console.log(`Error while repaying: ${msg}`);
     console.log(error);
@@ -500,12 +504,12 @@ export const closeBalance = async ({
   priorityFee?: number;
 }) => {
   if (!marginfiAccount) {
-    showErrorToast("marginfi account not ready.");
-    return;
+    showErrorToast("Marginfi account not ready.");
+    return { error: "Marginfi account not ready." };
   }
   if (!bank.isActive) {
-    showErrorToast("no position to close.");
-    return;
+    showErrorToast("No position to close.");
+    return { error: "No position to close." };
   }
 
   const multiStepToast = new MultiStepToastHandle("Closing balance", [
@@ -521,12 +525,13 @@ export const closeBalance = async ({
       txnSig = await marginfiAccount.repay(0, bank.address, true, { priorityFeeUi: priorityFee });
     }
     multiStepToast.setSuccessAndNext();
-    return txnSig;
+    return { txnSig };
   } catch (error: any) {
     const msg = extractErrorString(error);
-    Sentry.captureException({ message: error });
+    // Sentry.captureException({ message: error });
     multiStepToast.setFailed(msg);
     console.log(`Error while closing balance`);
     console.log(error);
+    return { error };
   }
 };

@@ -1,10 +1,9 @@
 import React from "react";
 
-import { Desktop, Mobile } from "~/mediaQueries";
+import { Desktop, Mobile } from "@mrgnlabs/mrgn-utils";
 
-import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
-import { Drawer, DrawerContent, DrawerTrigger } from "~/components/ui/drawer";
 import { Dialog, DialogContent, DialogTrigger } from "~/components/ui/dialog";
+import { Drawer, DrawerContent, DrawerTrigger } from "~/components/ui/drawer";
 
 type TokenListWrapperProps = {
   isOpen: boolean;

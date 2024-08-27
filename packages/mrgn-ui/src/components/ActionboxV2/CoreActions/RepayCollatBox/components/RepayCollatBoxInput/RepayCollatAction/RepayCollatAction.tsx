@@ -1,10 +1,11 @@
 import React from "react";
 
+import { IconArrowRight } from "@tabler/icons-react";
+
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { clampedNumeralFormatter, numeralFormatter } from "@mrgnlabs/mrgn-common";
 
-import { useRepayCollatBoxStore } from "~/components/common/ActionBoxV2/CoreActions/RepayCollatBox/store";
-import { IconArrowRight } from "@tabler/icons-react";
+import { useRepayCollatBoxStore } from "../../../store";
 
 type RepayCollatActionProps = {
   maxAmount: number;

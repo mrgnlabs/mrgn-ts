@@ -1,13 +1,9 @@
 import { QuoteResponse } from "@jup-ag/api";
+import { Connection, VersionedTransaction } from "@solana/web3.js";
+
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import {
-  LoopingObject,
-  ActionMethod,
-  calculateLoopingParams,
-  calculateRepayCollateralParams,
-} from "@mrgnlabs/mrgn-utils";
-import { Connection, VersionedTransaction } from "@solana/web3.js";
+import { ActionMethod, calculateRepayCollateralParams } from "@mrgnlabs/mrgn-utils";
 
 export async function calculateRepayCollateral(
   marginfiAccount: MarginfiAccountWrapper,

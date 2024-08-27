@@ -1,7 +1,7 @@
-import { ActionMethod, canBeLooped, canBeRepaidCollat } from "@mrgnlabs/mrgn-utils";
-import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 import { QuoteResponse } from "@jup-ag/api";
+
+import { ActionMethod, canBeRepaidCollat } from "@mrgnlabs/mrgn-utils";
+import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 interface CheckActionAvailableProps {
   amount: number | null;

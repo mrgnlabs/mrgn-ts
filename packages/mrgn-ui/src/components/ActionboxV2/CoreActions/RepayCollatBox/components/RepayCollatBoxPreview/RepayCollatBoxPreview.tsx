@@ -1,14 +1,12 @@
 import React from "react";
 
-import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
-
-import { ActionStatItem } from "~/components/common/ActionBoxV2/sharedComponents";
-import { cn } from "~/utils";
-
-import { useRepayCollatBoxStore } from "../../store";
+import { ActionSummary } from "~/components/ActionboxV2/sharedUtils";
+import { ActionStatItem } from "~/components/ActionboxV2/sharedComponents";
+import { cn } from "~/utils/themeUtils";
 
 import { generateRepayCollatStats } from "./repayCollatBoxPreviewUtils";
-import { ActionSummary } from "~/components/common/ActionBoxV2/sharedUtils";
+
+import { useRepayCollatBoxStore } from "../../store";
 
 interface RepayCollatBoxPreviewProps {
   actionSummary?: ActionSummary;

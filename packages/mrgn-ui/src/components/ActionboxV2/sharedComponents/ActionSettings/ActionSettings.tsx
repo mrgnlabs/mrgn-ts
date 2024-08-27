@@ -1,7 +1,7 @@
 import React from "react";
+import { IconArrowLeft } from "@tabler/icons-react";
 
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
-import { IconArrowLeft } from "~/components/ui/icons";
 
 import { ActionBoxSlippage, ActionBoxPriorityFees } from "./Components";
 
