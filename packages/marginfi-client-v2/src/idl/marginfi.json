@@ -1,5 +1,5 @@
 {
-  "address": "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
+  "address": "",
   "metadata": {
     "name": "marginfi",
     "version": "0.1.0",
@@ -2849,7 +2849,7 @@
             "type": "pubkey"
           },
           {
-            "name": "auto_padding_0",
+            "name": "_pad0",
             "type": {
               "array": [
                 "u8",
@@ -2919,7 +2919,7 @@
             "type": "pubkey"
           },
           {
-            "name": "auto_padding_0",
+            "name": "_pad0",
             "type": {
               "array": [
                 "u8",
@@ -2968,7 +2968,7 @@
             "type": "u8"
           },
           {
-            "name": "auto_padding_1",
+            "name": "_pad1",
             "type": {
               "array": [
                 "u8",
@@ -2997,7 +2997,7 @@
             "type": "u8"
           },
           {
-            "name": "auto_padding_2",
+            "name": "_pad2",
             "type": {
               "array": [
                 "u8",
@@ -3186,7 +3186,7 @@
             }
           },
           {
-            "name": "auto_padding_0",
+            "name": "_pad0",
             "type": {
               "array": [
                 "u8",
@@ -3207,7 +3207,7 @@
             }
           },
           {
-            "name": "auto_padding_1",
+            "name": "_pad1",
             "type": {
               "array": [
                 "u8",
@@ -3240,8 +3240,8 @@
             "name": "_padding",
             "type": {
               "array": [
-                "u16",
-                19
+                "u8",
+                38
               ]
             }
           }
@@ -3324,15 +3324,6 @@
             "type": "pubkey"
           },
           {
-            "name": "auto_padding_0",
-            "type": {
-              "array": [
-                "u8",
-                6
-              ]
-            }
-          },
-          {
             "name": "borrow_limit",
             "type": "u64"
           },
@@ -3345,7 +3336,7 @@
             }
           },
           {
-            "name": "auto_padding_1",
+            "name": "_pad0",
             "type": {
               "array": [
                 "u8",
@@ -4401,6 +4392,9 @@
           },
           {
             "name": "PythPushOracle"
+          },
+          {
+            "name": "SwitchboardPull"
           }
         ]
       }

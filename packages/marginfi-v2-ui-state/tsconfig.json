@@ -4,13 +4,9 @@
     "outDir": "dist",
     "jsx": "preserve",
     "downlevelIteration": true,
-    "lib": [ "dom" ]
+    "lib": ["dom"],
+    "resolveJsonModule": true
   },
-  "include": [
-    "."
-  ],
-  "exclude": [
-    "dist",
-    "node_modules"
-  ]
+  "include": ["."],
+  "exclude": ["dist", "node_modules"]
 }

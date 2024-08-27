@@ -10,6 +10,7 @@ import {
 import {
   MarginRequirementType,
   MarginfiAccountWrapper,
+  OracleSetup,
   PriceBias,
   getPriceWithConfidence,
 } from "@mrgnlabs/marginfi-client-v2";
@@ -117,15 +118,18 @@ export const getRateData = (bank: ExtendedBankInfo, isInLendingMode: boolean): R
 export const getAssetPriceData = (bank: ExtendedBankInfo): AssetPriceData => {
   const assetPrice = getPriceWithConfidence(bank.info.oraclePrice, false).price.toNumber();
 
-  let oracle = "";
+  let oracle = "" as "Pyth" | "Switchboard";
   switch (bank.info.rawBank.config.oracleSetup) {
-    case "PythLegacy":
+    case OracleSetup.PythLegacy:
       oracle = "Pyth";
       break;
-    case "PythPushOracle":
+    case OracleSetup.PythPushOracle:
       oracle = "Pyth";
       break;
-    case "SwitchboardV2":
+    case OracleSetup.SwitchboardV2:
+      oracle = "Switchboard";
+      break;
+    case OracleSetup.SwitchboardPull:
       oracle = "Switchboard";
       break;
   }

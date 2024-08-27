@@ -365,6 +365,7 @@ async function makePoolAddBankIx(
       oracleKey: args.bankConfig.oracleKey,
       borrowLimit: args.bankConfig.borrowLimit,
       riskTier: args.bankConfig.riskTier,
+      pad0: [0, 0, 0, 0, 0, 0, 0, 0],
       totalAssetValueInitLimit: args.bankConfig.totalAssetValueInitLimit,
       oracleMaxAge: 0,
     })

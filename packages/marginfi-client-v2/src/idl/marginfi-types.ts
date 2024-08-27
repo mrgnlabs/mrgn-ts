@@ -5,7 +5,7 @@
  * IDL can be found at `target/idl/marginfi.json`.
  */
 export type Marginfi = {
-  "address": string,
+  "address": "",
   "metadata": {
     "name": "marginfi",
     "version": "0.1.0",
@@ -2855,6 +2855,15 @@ export type Marginfi = {
             "type": "pubkey"
           },
           {
+            "name": "pad0",
+            "type": {
+              "array": [
+                "u8",
+                7
+              ]
+            }
+          },
+          {
             "name": "assetShares",
             "type": {
               "defined": {
@@ -2916,6 +2925,15 @@ export type Marginfi = {
             "type": "pubkey"
           },
           {
+            "name": "pad0",
+            "type": {
+              "array": [
+                "u8",
+                7
+              ]
+            }
+          },
+          {
             "name": "assetShareValue",
             "type": {
               "defined": {
@@ -2956,6 +2974,15 @@ export type Marginfi = {
             "type": "u8"
           },
           {
+            "name": "pad1",
+            "type": {
+              "array": [
+                "u8",
+                4
+              ]
+            }
+          },
+          {
             "name": "collectedInsuranceFeesOutstanding",
             "type": {
               "defined": {
@@ -2974,6 +3001,15 @@ export type Marginfi = {
           {
             "name": "feeVaultAuthorityBump",
             "type": "u8"
+          },
+          {
+            "name": "pad2",
+            "type": {
+              "array": [
+                "u8",
+                6
+              ]
+            }
           },
           {
             "name": "collectedGroupFeesOutstanding",
@@ -3156,6 +3192,15 @@ export type Marginfi = {
             }
           },
           {
+            "name": "pad0",
+            "type": {
+              "array": [
+                "u8",
+                6
+              ]
+            }
+          },
+          {
             "name": "borrowLimit",
             "type": "u64"
           },
@@ -3165,6 +3210,15 @@ export type Marginfi = {
               "defined": {
                 "name": "riskTier"
               }
+            }
+          },
+          {
+            "name": "pad1",
+            "type": {
+              "array": [
+                "u8",
+                7
+              ]
             }
           },
           {
@@ -3192,8 +3246,8 @@ export type Marginfi = {
             "name": "padding",
             "type": {
               "array": [
-                "u16",
-                19
+                "u8",
+                38
               ]
             }
           }
@@ -3285,6 +3339,15 @@ export type Marginfi = {
               "defined": {
                 "name": "riskTier"
               }
+            }
+          },
+          {
+            "name": "pad0",
+            "type": {
+              "array": [
+                "u8",
+                7
+              ]
             }
           },
           {
@@ -4335,6 +4398,9 @@ export type Marginfi = {
           },
           {
             "name": "pythPushOracle"
+          },
+          {
+            "name": "switchboardPull"
           }
         ]
       }

@@ -1,0 +1,33 @@
+{
+  "bankMetadata": {
+    "Ek5JSFJFD8QgXM6rPDCzf31XhDp1q3xezaWYSkJWqbqc": {
+      "tokenAddress": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "tokenName": "USD Coin",
+      "tokenSymbol": "USDC"
+    },
+    "Fe5QkKPVAh629UPP5aJ8sDZu8HTfe6M26jDQkKyXVhoA": {
+      "tokenAddress": "2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo",
+      "tokenName": "PayPal USD",
+      "tokenSymbol": "PYUSD"
+    },
+    "DDLVJyj5sT3knnVDoTifrtQmroLnRCkBmGZ1QXCUDUUd": {
+      "tokenAddress": "EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm",
+      "tokenName": "dogwifhat",
+      "tokenSymbol": "$WIF"
+    }
+  },
+  "tokenMetadata": {
+    "USDC": {
+      "name": "USD Coin",
+      "symbol": "USDC"
+    },
+    "PYUSD": {
+      "name": "PayPal USD",
+      "symbol": "PYUSD"
+    },
+    "$WIF": {
+      "name": "dogwifhat",
+      "symbol": "$WIF"
+    }
+  }
+}

@@ -1,7 +1,6 @@
 import { Address, AnchorProvider, BorshAccountsCoder, Program, translateAddress } from "@coral-xyz/anchor";
 import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
 import {
-  AccountInfo,
   AddressLookupTableAccount,
   Commitment,
   ConfirmOptions,
@@ -75,6 +74,19 @@ export type MarginfiClientOptions = {
   spamSendTx?: boolean;
   skipPreflightInSpam?: boolean;
   preloadedBankAddresses?: PublicKey[];
+  fetchGroupDataOverride?: (
+    program: MarginfiProgram,
+    groupAddress: PublicKey,
+    commitment?: Commitment,
+    bankAddresses?: PublicKey[],
+    bankMetadataMap?: BankMetadataMap
+  ) => Promise<{
+    marginfiGroup: MarginfiGroup;
+    banks: Map<string, Bank>;
+    priceInfos: Map<string, OraclePrice>;
+    tokenDatas: Map<string, MintData>;
+    feedIdMap: PythPushFeedIdMap;
+  }>;
 };
 
 /**
@@ -162,7 +174,10 @@ class MarginfiClient {
       commitment: connection.commitment ?? AnchorProvider.defaultOptions().commitment,
       ...confirmOpts,
     });
-    const program = new Program(MARGINFI_IDL as unknown as MarginfiIdlType, provider) as any as MarginfiProgram;
+
+    const idl = { ...(MARGINFI_IDL as unknown as MarginfiIdlType), address: config.programId.toBase58() };
+
+    const program = new Program(idl, provider) as any as MarginfiProgram;
 
     let bankMetadataMap: BankMetadataMap | undefined = undefined;
     try {
@@ -171,7 +186,9 @@ class MarginfiClient {
       console.error("Failed to load bank metadatas. Convenience getter by symbol will not be available", error);
     }
 
-    const { marginfiGroup, banks, priceInfos, tokenDatas, feedIdMap } = await MarginfiClient.fetchGroupData(
+    const fetchGroupData = clientOptions?.fetchGroupDataOverride ?? MarginfiClient.fetchGroupData;
+
+    const { marginfiGroup, banks, priceInfos, tokenDatas, feedIdMap } = await fetchGroupData(
       program,
       config.groupPk,
       connection.commitment,

@@ -13,13 +13,14 @@ import {
   makeExtendedBankMetadata,
   makeExtendedBankEmission,
   TokenPriceMap,
+  fetchGroupData,
 } from "../lib";
 import { getPointsSummary } from "../lib/points";
 import { create, StateCreator } from "zustand";
 import { persist } from "zustand/middleware";
 
 import { Bank, getPriceWithConfidence, OraclePrice } from "@mrgnlabs/marginfi-client-v2";
-import type { Wallet, BankMetadataMap, TokenMetadataMap, TokenMetadata } from "@mrgnlabs/mrgn-common";
+import type { Wallet, BankMetadataMap, TokenMetadataMap, TokenMetadata, BankMetadata } from "@mrgnlabs/mrgn-common";
 import type { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 import type { MarginfiClient, MarginfiConfig } from "@mrgnlabs/marginfi-client-v2";
 
@@ -187,7 +188,31 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
       const spamSendTx = args?.spamSendTx ?? get().spamSendTx ?? false;
       const skipPreflightInSpam = args?.skipPreflightInSpam ?? get().skipPreflightInSpam ?? false;
 
-      const [bankMetadataMap, tokenMetadataMap] = await Promise.all([loadBankMetadatas(), loadTokenMetadatas()]);
+      let bankMetadataMap: { [address: string]: BankMetadata };
+      let tokenMetadataMap: { [symbol: string]: TokenMetadata };
+
+      if (marginfiConfig.environment === "production") {
+        let results = await Promise.all([loadBankMetadatas(), loadTokenMetadatas()]);
+        bankMetadataMap = results[0];
+        tokenMetadataMap = results[1];
+      } else if (marginfiConfig.environment === "staging") {
+        const bankMetadataJson = (await import("./staging-metadata.json")) as {
+          bankMetadata: BankMetadataMap;
+          tokenMetadata: TokenMetadataMap;
+        };
+        bankMetadataMap = bankMetadataJson.bankMetadata;
+        tokenMetadataMap = bankMetadataJson.tokenMetadata;
+      } else if (marginfiConfig.environment === "mainnet-test-1") {
+        const bankMetadataJson = (await import("./mainnet-test-1-metadata.json")) as {
+          bankMetadata: BankMetadataMap;
+          tokenMetadata: TokenMetadataMap;
+        };
+        bankMetadataMap = bankMetadataJson.bankMetadata;
+        tokenMetadataMap = bankMetadataJson.tokenMetadata;
+      } else {
+        throw new Error("Unknown environment");
+      }
+
       const bankAddresses = Object.keys(bankMetadataMap).map((address) => new PublicKey(address));
       const marginfiClient = await MarginfiClient.fetch(marginfiConfig, wallet ?? ({} as any), connection, {
         preloadedBankAddresses: bankAddresses,
@@ -195,13 +220,14 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
         sendEndpoint: sendEndpoint,
         spamSendTx: spamSendTx,
         skipPreflightInSpam,
+        // fetchGroupDataOverride: fetchGroupData,
       });
       const clientBanks = [...marginfiClient.banks.values()];
 
       const banks = stageTokens
         ? clientBanks.filter(
-            (bank) => bank.tokenSymbol && !stageTokens.find((a) => a.toLowerCase() == bank?.tokenSymbol?.toLowerCase())
-          )
+          (bank) => bank.tokenSymbol && !stageTokens.find((a) => a.toLowerCase() == bank?.tokenSymbol?.toLowerCase())
+        )
         : clientBanks;
 
       const birdEyeApiKey = args?.birdEyeApiKey ?? get().birdEyeApiKey;
