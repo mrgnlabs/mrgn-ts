@@ -220,14 +220,14 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
         sendEndpoint: sendEndpoint,
         spamSendTx: spamSendTx,
         skipPreflightInSpam,
-        fetchGroupDataOverride: fetchGroupData,
+        // fetchGroupDataOverride: fetchGroupData,
       });
       const clientBanks = [...marginfiClient.banks.values()];
 
       const banks = stageTokens
         ? clientBanks.filter(
-            (bank) => bank.tokenSymbol && !stageTokens.find((a) => a.toLowerCase() == bank?.tokenSymbol?.toLowerCase())
-          )
+          (bank) => bank.tokenSymbol && !stageTokens.find((a) => a.toLowerCase() == bank?.tokenSymbol?.toLowerCase())
+        )
         : clientBanks;
 
       const birdEyeApiKey = args?.birdEyeApiKey ?? get().birdEyeApiKey;
