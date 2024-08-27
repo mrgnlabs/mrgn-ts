@@ -15,10 +15,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // Check cache
   const cachedData = tokenCache.get(cacheKey);
-  if (cachedData) {
-    res.status(200).json(cachedData);
-    return;
-  }
+  // if (cachedData) {
+  //   res.status(200).json(cachedData);
+  //   return;
+  // }
 
   // Fetch from API and update cache
   try {
@@ -57,6 +57,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // Store in cache
     tokenCache.set(cacheKey, tokenData);
+
+    res.setHeader("Cache-Control", "s-maxage=300, stale-while-revalidate=59");
     res.status(200).json(tokenData);
   } catch (error) {
     console.error("Error:", error);
