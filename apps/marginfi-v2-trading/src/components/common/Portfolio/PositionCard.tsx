@@ -82,9 +82,7 @@ export const PositionCard = ({ size = "lg", groupData }: PositionCardProps) => {
 
           <dt>Price</dt>
           <dd className="text-right text-primary">
-            {groupData.pool.token.info.oraclePrice.priceRealtime.price.toNumber() > 0.00001
-              ? tokenPriceFormatter(groupData.pool.token.info.oraclePrice.priceRealtime.price.toNumber())
-              : `$${groupData.pool.token.info.oraclePrice.priceRealtime.price.toNumber().toExponential(2)}`}
+            {tokenPriceFormatter(groupData.pool.token.info.oraclePrice.priceRealtime.price.toNumber())}
           </dd>
           {groupData.pool.token.position.liquidationPrice && (
             <>
