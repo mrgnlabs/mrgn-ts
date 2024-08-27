@@ -3,3 +3,5 @@ export * from "./actions";
 export * from "./errors";
 export * from "./wallet";
 export * from "./mrgnUtils";
+export * from "./toasts";
+export * from "./featureGateUtils";
