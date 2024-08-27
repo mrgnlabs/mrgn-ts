@@ -103,7 +103,7 @@ export const PoolHeader = ({ groupData }: PoolHeaderProps) => {
           <div className="grid grid-cols-2 w-full max-w-6xl mx-auto gap-4 md:gap-8 md:grid-cols-3">
             <StatBlock
               label="Current Price"
-              value={tokenPriceFormatter(groupData.pool.token.tokenData.price)}
+              value={tokenPriceFormatter(groupData.pool.token.info.oraclePrice.priceRealtime.price.toNumber())}
               subValue={
                 <span
                   className={cn(

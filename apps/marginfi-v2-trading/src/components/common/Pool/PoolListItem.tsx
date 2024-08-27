@@ -35,7 +35,7 @@ export const PoolListItem = ({ groupData, last }: PoolListItemProps) => {
       {groupData.pool.token.tokenData && (
         <>
           <div>
-            {tokenPriceFormatter(groupData.pool.token.tokenData.price)}{" "}
+            {tokenPriceFormatter(groupData.pool.token.info.oraclePrice.priceRealtime.price.toNumber())}{" "}
             <span
               className={cn(
                 "text-xs ml-2",

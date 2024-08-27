@@ -116,7 +116,7 @@ export const PoolTradeHeader = ({ activeGroup }: { activeGroup: GroupData }) => 
               <div className="grid grid-cols-2 lg:block">
                 <p className="text-sm text-muted-foreground">Price</p>
                 <p className="text-sm text-right lg:text-left lg:text-2xl">
-                  {tokenPriceFormatter(activeGroup.pool.token.tokenData.price)}
+                  {tokenPriceFormatter(activeGroup.pool.token.info.oraclePrice.priceRealtime.price.toNumber())}
                   <span
                     className={cn(
                       "text-sm ml-1",
