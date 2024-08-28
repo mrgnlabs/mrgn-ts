@@ -1,9 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import NodeCache from "node-cache";
 
 import type { TokenData } from "~/types";
-
-const tokenCache = new NodeCache({ stdTTL: 60 }); // Cache for 1 min
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { address } = req.query;
@@ -11,14 +8,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.status(400).json({ error: "No token provided" });
     return;
   }
-  const cacheKey = `token_${address}`;
-
-  // Check cache
-  const cachedData = tokenCache.get(cacheKey);
-  // if (cachedData) {
-  //   res.status(200).json(cachedData);
-  //   return;
-  // }
 
   // Fetch from API and update cache
   try {
@@ -55,9 +44,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       marketcap: data.realMc,
     };
 
-    // Store in cache
-    tokenCache.set(cacheKey, tokenData);
-
+    // 5 min cache
     res.setHeader("Cache-Control", "s-maxage=300, stale-while-revalidate=59");
     res.status(200).json(tokenData);
   } catch (error) {
