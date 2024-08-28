@@ -1,4 +1,4 @@
-import { BN, BorshCoder, Idl } from "@coral-xyz/anchor";
+import { BN, BorshCoder, Idl, Program, Provider } from "@coral-xyz/anchor";
 import SWB_ONDEMAND_IDL from "./idl.json";
 import { PublicKey } from "@solana/web3.js";
 
@@ -41,6 +41,9 @@ export interface PullFeedAccountData {
 }
 
 export const switchboardAccountCoder = new BorshCoder(SWB_ONDEMAND_IDL as unknown as Idl);
+export function getSwitchboardProgram(provider: Provider): Program {
+  return new Program(SWB_ONDEMAND_IDL as unknown as Idl, provider);
+}
 
 export function decodeSwitchboardPullFeedData(data: Buffer): PullFeedAccountData {
   const pullFeedDAta = switchboardAccountCoder.accounts.decode("PullFeedAccountData", data) as PullFeedAccountData;
