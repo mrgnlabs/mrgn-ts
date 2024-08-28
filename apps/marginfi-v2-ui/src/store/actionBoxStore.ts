@@ -317,7 +317,7 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
       set({
         actionTxns: {
           actionTxn: loopingObject.loopingTxn,
-          bundleTipTxn: null,
+          bundleTipTxn: loopingObject.bundleTipTxn,
         },
         actionQuote: loopingObject.quote,
         loopingAmounts: {
