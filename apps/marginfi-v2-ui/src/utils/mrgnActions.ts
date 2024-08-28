@@ -110,11 +110,11 @@ export async function executeLendingAction({
   }
 
   if (actionType === ActionType.Borrow) {
-    txnSig = await borrow({ client: mfiClient, marginfiAccount, bank, amount, priorityFee });
+    txnSig = await borrow({ marginfiAccount, bank, amount, priorityFee });
   }
 
   if (actionType === ActionType.Withdraw) {
-    txnSig = await withdraw({ client: mfiClient, marginfiAccount, bank, amount, priorityFee });
+    txnSig = await withdraw({ marginfiAccount, bank, amount, priorityFee });
   }
 
   return txnSig;
@@ -129,6 +129,7 @@ export async function executeLoopingAction({
   priorityFee,
   loopingOptions,
 }: MarginfiActionParams) {
+  console.log("CALL executeLoopingAction");
   let txnSig: string[] | undefined;
 
   if (!marginfiAccount) {
@@ -346,13 +347,11 @@ export async function deposit({
 }
 
 export async function borrow({
-  client,
   marginfiAccount,
   bank,
   amount,
   priorityFee,
 }: {
-  client: MarginfiClient;
   marginfiAccount: MarginfiAccountWrapper;
   bank: ExtendedBankInfo;
   amount: number;
@@ -364,29 +363,7 @@ export async function borrow({
 
   multiStepToast.start();
   try {
-    // new logic
-    const bundleTipIx = makeBundleTipIx(marginfiAccount.authority);
-    const borrowIxs = await marginfiAccount.makeBorrowIx(amount, bank.address, { priorityFeeUi: priorityFee });
-    const cuRequestIxs = marginfiAccount.makeComputeBudgetIx();
-    const { instructions: updateFeedIxs, luts: feedLuts } = marginfiAccount.makeUpdateFeedIx([bank.address]);
-
-    const {
-      value: { blockhash },
-    } = await client.provider.connection.getLatestBlockhashAndContext();
-
-    const borrowMessage = new TransactionMessage({
-      instructions: [bundleTipIx, ...cuRequestIxs, ...updateFeedIxs, ...borrowIxs.instructions],
-      payerKey: marginfiAccount.authority,
-      recentBlockhash: blockhash,
-    });
-
-    const lookupTables = [...client.addressLookupTables, ...feedLuts];
-
-    const versionedTx = new VersionedTransaction(borrowMessage.compileToV0Message(lookupTables));
-
-    const txnSig = client.processTransaction(versionedTx, [], {});
-
-    // const txnSig = await marginfiAccount.borrow(amount, bank.address, { priorityFeeUi: priorityFee });
+    const txnSig = await marginfiAccount.borrow(amount, bank.address, { priorityFeeUi: priorityFee });
     multiStepToast.setSuccessAndNext();
     return txnSig;
   } catch (error: any) {
@@ -400,13 +377,11 @@ export async function borrow({
 }
 
 export async function withdraw({
-  client,
   marginfiAccount,
   bank,
   amount,
   priorityFee,
 }: {
-  client: MarginfiClient;
   marginfiAccount: MarginfiAccountWrapper;
   bank: ExtendedBankInfo;
   amount: number;
@@ -418,33 +393,12 @@ export async function withdraw({
   multiStepToast.start();
 
   try {
-    // new logic
-    const bundleTipIx = makeBundleTipIx(marginfiAccount.authority);
-    const withdrawIxs = await marginfiAccount.makeWithdrawIx(
+    const txnSig = await marginfiAccount.withdraw(
       amount,
       bank.address,
       bank.isActive && isWholePosition(bank, amount),
       { priorityFeeUi: priorityFee }
     );
-    const cuRequestIxs = marginfiAccount.makeComputeBudgetIx();
-    const { instructions: updateFeedIxs, luts: feedLuts } = marginfiAccount.makeUpdateFeedIx([bank.address]);
-
-    const {
-      value: { blockhash },
-    } = await client.provider.connection.getLatestBlockhashAndContext();
-
-    const withdrawMessage = new TransactionMessage({
-      instructions: [bundleTipIx, ...cuRequestIxs, ...updateFeedIxs, ...withdrawIxs.instructions],
-      payerKey: marginfiAccount.authority,
-      recentBlockhash: blockhash,
-    });
-
-    const lookupTables = [...client.addressLookupTables, ...feedLuts];
-
-    const versionedTx = new VersionedTransaction(withdrawMessage.compileToV0Message(lookupTables));
-
-    const txnSig = client.processTransaction(versionedTx, [], {});
-
     multiStepToast.setSuccessAndNext();
     return txnSig;
   } catch (error: any) {
@@ -530,7 +484,9 @@ export async function looping({
   try {
     let sigs: string[] = [];
 
+    console.log("loopingTxn", options.loopingTxn)
     if (options.loopingTxn) {
+      console.log("options.bundleTipTxn", options.bundleTipTxn)
       sigs = await marginfiClient.processTransactions([
         ...(options.bundleTipTxn ? [options.bundleTipTxn] : []),
         options.loopingTxn,
