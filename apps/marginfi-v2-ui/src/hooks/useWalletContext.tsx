@@ -189,7 +189,9 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
             signTransaction: walletContextState?.signTransaction as <T extends Transaction | VersionedTransaction>(
               transactions: T
             ) => Promise<T>,
-            signAllTransactions: walletContextState?.signTransaction as <T extends Transaction | VersionedTransaction>(
+            signAllTransactions: walletContextState?.signAllTransactions as <
+              T extends Transaction | VersionedTransaction
+            >(
               transactions: T[]
             ) => Promise<T[]>,
           },
@@ -205,7 +207,9 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
           signTransaction: walletContextState?.signTransaction as <T extends Transaction | VersionedTransaction>(
             transactions: T
           ) => Promise<T>,
-          signAllTransactions: walletContextState?.signTransaction as <T extends Transaction | VersionedTransaction>(
+          signAllTransactions: walletContextState?.signAllTransactions as <
+            T extends Transaction | VersionedTransaction
+          >(
             transactions: T[]
           ) => Promise<T[]>,
         },
