@@ -464,6 +464,7 @@ export const ActionBox = ({
       loopingOptions: {
         loopingQuote: actionQuote,
         loopingTxn: actionTxns.actionTxn,
+        bundleTipTxn: actionTxns.bundleTipTxn,
         borrowAmount: loopingAmounts?.borrowAmount,
         loopingBank: selectedRepayBank,
         connection,
@@ -512,6 +513,7 @@ export const ActionBox = ({
     selectedAccount,
     walletContextState,
     actionTxns.actionTxn,
+    actionTxns.bundleTipTxn,
     handleCloseDialog,
     setAmountRaw,
     setIsActionComplete,
