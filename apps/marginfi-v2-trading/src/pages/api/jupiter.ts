@@ -1,19 +1,9 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import NodeCache from "node-cache";
 
-const myCache = new NodeCache({ stdTTL: 1000 });
 const STORAGE_URL = "https://storage.googleapis.com/mrgn-public/blacklisted_routes.json";
 
 export default async function handler(_: NextApiRequest, res: NextApiResponse) {
-  const cacheKey = `blacklisted_routes`;
-
-  // Check cache
-  const cachedData = myCache.get(cacheKey);
-  if (cachedData) {
-    res.status(200).json(cachedData);
-    return;
-  }
-
   // use abort controller to restrict fetch to 10 seconds
   const controller = new AbortController();
   const timeoutId = setTimeout(() => {
@@ -35,9 +25,7 @@ export default async function handler(_: NextApiRequest, res: NextApiResponse) {
     }
     const data = await response.json();
 
-    // Store in cache
-    myCache.set(cacheKey, data);
-
+    res.setHeader("Cache-Control", "s-maxage=1000, stale-while-revalidate=59");
     res.status(200).json(data);
   } catch (error) {
     console.error("Error:", error);

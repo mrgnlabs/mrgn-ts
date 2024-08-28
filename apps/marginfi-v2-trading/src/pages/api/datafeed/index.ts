@@ -1,9 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import NodeCache from "node-cache";
 
 import { RESOLUTION_MAPPING, configurationData, parseResolution } from "~/utils/tradingViewUtils";
-
-const resolveCache = new NodeCache({ stdTTL: 300 }); // Cache for 5 min
 
 const lastBarsCache = new Map();
 
@@ -61,6 +58,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         // }
 
         // Implement resolve logic here
+        res.setHeader("Cache-Control", "s-maxage=120, stale-while-revalidate=59");
         return res.status(200).json({
           address: address,
           ticker: address,
@@ -134,6 +132,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           });
         }
 
+        res.setHeader("Cache-Control", "s-maxage=120, stale-while-revalidate=59");
         return res.status(200).json({ bars, success: true });
       } catch (error) {
         return res.status(200).json({ success: false });
