@@ -33,11 +33,11 @@ export async function calculateRepayCollateralParams(
   platformFeeBps?: number
 ): Promise<
   | {
-      repayTxn: VersionedTransaction;
-      bundleTipTxn: VersionedTransaction | null;
-      quote: QuoteResponse;
-      amount: number;
-    }
+    repayTxn: VersionedTransaction;
+    bundleTipTxn: VersionedTransaction | null;
+    quote: QuoteResponse;
+    amount: number;
+  }
   | ActionMethod
 > {
   const maxRepayAmount = bank.isActive ? bank?.position.amount : 0;
@@ -118,10 +118,10 @@ export async function calculateBorrowLendPositionParams({
   platformFeeBps?: number;
 }): Promise<
   | {
-      closeTxn: VersionedTransaction;
-      bundleTipTxn: VersionedTransaction | null;
-      quote: QuoteResponse;
-    }
+    closeTxn: VersionedTransaction;
+    bundleTipTxn: VersionedTransaction | null;
+    quote: QuoteResponse;
+  }
   | ActionMethod
 > {
   let firstQuote;
@@ -387,6 +387,7 @@ export async function loopingBuilder({
   bundleTipTxn: VersionedTransaction | null;
   addressLookupTableAccounts: AddressLookupTableAccount[];
 }> {
+  console.log("CALL loopingBuilder");
   const jupiterQuoteApi = createJupiterApiClient();
 
   // get fee account for original borrow mint
@@ -428,6 +429,8 @@ export async function loopingBuilder({
     true,
     isTxnSplit
   );
+
+  console.log("bundleTipTxn", bundleTipTxn);
 
   return { flashloanTx, bundleTipTxn, addressLookupTableAccounts };
 }

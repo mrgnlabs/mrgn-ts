@@ -20,6 +20,7 @@
     "@pythnetwork/pyth-solana-receiver": "^0.8.0",
     "@solana/wallet-adapter-base": "^0.9.23",
     "@solana/web3.js": "^1.93.2",
+    "@switchboard-xyz/on-demand": "^1.2.36",
     "bignumber.js": "^9.1.2",
     "borsh": "^2.0.0",
     "bs58": "^6.0.0",
