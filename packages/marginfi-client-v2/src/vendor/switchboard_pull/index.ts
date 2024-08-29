@@ -40,6 +40,13 @@ export interface PullFeedAccountData {
   min_sample_size: number;
 }
 
+export type CrossbarSimulatePayload = FeedResponse[];
+
+export interface FeedResponse {
+  feedHash: string;
+  results: number[];
+}
+
 export const switchboardAccountCoder = new BorshCoder(SWB_ONDEMAND_IDL as unknown as Idl);
 export function getSwitchboardProgram(provider: Provider): Program {
   return new Program(SWB_ONDEMAND_IDL as unknown as Idl, provider);

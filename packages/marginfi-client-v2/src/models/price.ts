@@ -16,7 +16,7 @@ interface PriceWithConfidence {
 interface OraclePrice {
   priceRealtime: PriceWithConfidence;
   priceWeighted: PriceWithConfidence;
-  timestamp?: BigNumber;
+  timestamp: BigNumber;
 }
 
 enum PriceBias {

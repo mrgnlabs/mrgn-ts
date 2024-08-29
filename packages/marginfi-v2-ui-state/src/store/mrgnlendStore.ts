@@ -220,7 +220,7 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
         sendEndpoint: sendEndpoint,
         spamSendTx: spamSendTx,
         skipPreflightInSpam,
-        // fetchGroupDataOverride: fetchGroupData,
+        fetchGroupDataOverride: fetchGroupData,
       });
       const clientBanks = [...marginfiClient.banks.values()];
 
