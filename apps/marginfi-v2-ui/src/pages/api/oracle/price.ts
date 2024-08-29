@@ -1,7 +1,8 @@
 import { OraclePrice, OracleSetup, parsePriceInfo } from "@mrgnlabs/marginfi-client-v2";
-import { decodeSwitchboardPullFeedData } from "@mrgnlabs/marginfi-client-v2/dist/vendor";
-import { chunkedGetRawMultipleAccountInfoOrdered } from "@mrgnlabs/mrgn-common";
+import { CrossbarSimulatePayload, decodeSwitchboardPullFeedData, FeedResponse } from "@mrgnlabs/marginfi-client-v2/dist/vendor";
+import { chunkedGetRawMultipleAccountInfoOrdered, median } from "@mrgnlabs/mrgn-common";
 import { Connection } from "@solana/web3.js";
+import BigNumber from "bignumber.js";
 import { NextApiRequest, NextApiResponse } from "next";
 import NodeCache from "node-cache";
 
@@ -57,40 +58,46 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
 
   try {
-    const allAis = await chunkedGetRawMultipleAccountInfoOrdered(connection, [
+    // Fetch on-chain data for all oracles
+    const oracleAis = await chunkedGetRawMultipleAccountInfoOrdered(connection, [
       ...oraclesToFetch.map((oracleData) => oracleData.oracleKey),
     ]); // NOTE: This will break if/when we start having more than 1 oracle key per bank
-
-    const oracleAis = allAis.splice(0, oraclesToFetch.length);
-
+    let swbPullOraclesStale: { data: OracleData; feedHash: string }[] = [];
     for (const index in oraclesToFetch) {
       const oracleData = oraclesToFetch[index];
       const cacheKey = `oracle_feed_${oracleData.oracleKey}`;
       const priceDataRaw = oracleAis[index];
-
       const oraclePrice = parsePriceInfo(oracleData.oracleSetup, priceDataRaw.data);
 
       const currentTime = Math.round(Date.now() / 1000);
-      const oracleTime = Math.round(oraclePrice.timestamp ? oraclePrice.timestamp.toNumber() : new Date().getTime());
+      const oracleTime = oraclePrice.timestamp.toNumber();
       const isStale = currentTime - oracleTime > oracleData.maxAge;
 
-      if (!isStale || oracleData.oracleSetup !== OracleSetup.SwitchboardPull) {
-        myCache.set(cacheKey, oraclePrice);
-        cachedOracles.set(oracleData.oracleKey, oraclePrice);
-      } else {
-        const feedHash = Buffer.from(decodeSwitchboardPullFeedData(priceDataRaw.data)).toString("hex");
-
-        try {
-          const crossbarPrice = await fetchCrossbarPrice(feedHash);
-
-          myCache.set(cacheKey, crossbarPrice);
-          cachedOracles.set(oracleData.oracleKey, oraclePrice);
-        } catch (error) {
-          // fallback if crossbar fails
-          myCache.set(cacheKey, oraclePrice);
-        }
+      // If on-chain data is recent enough, use it even for SwitchboardPull oracles
+      if (oracleData.oracleSetup === OracleSetup.SwitchboardPull && isStale) {
+        swbPullOraclesStale.push({ data: oracleData, feedHash: Buffer.from(decodeSwitchboardPullFeedData(priceDataRaw.data).feed_hash).toString("hex") });
+        continue;
       }
+
+      myCache.set(cacheKey, oraclePrice);
+      cachedOracles.set(oracleData.oracleKey, oraclePrice);
     }
+
+    // Batch-fetch and cache price data from Crossbar for stale SwitchboardPull oracles
+    const feedHashes = swbPullOraclesStale.map((value) => value.feedHash);
+    const crossbarPrices = await fetchCrossbarPrices(feedHashes);
+
+    for (const { data: { oracleKey }, feedHash } of swbPullOraclesStale) {
+      const cacheKey = `oracle_feed_${oracleKey}`;
+      const crossbarPrice = crossbarPrices.get(feedHash);
+      if (!crossbarPrice) {
+        throw new Error(`Crossbar didn't return data for ${feedHash}`);
+      }
+
+      myCache.set(cacheKey, crossbarPrice);
+      cachedOracles.set(oracleKey, crossbarPrice);
+    }
+
   } catch (error) {
     console.error("Error:", error);
     res.status(500).json({ error: "Error fetching data" });
@@ -102,7 +109,73 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return oraclePrice;
   });
 
-  const stringyfiedArray = updatedOracleArray.map((oraclePrice) => ({
+  res.status(200).json(updatedOracleArray.map(stringifyOraclePrice));
+}
+
+async function fetchCrossbarPrices(feedHashes: string[]): Promise<Map<string, OraclePrice>> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => {
+    controller.abort();
+  }, 5000);
+
+  try {
+    const feedHashesString = feedHashes.join(",");
+    const response = await fetch(`${SWITCHBOARD_CROSSSBAR_API}/simulate/${feedHashesString}`, {
+      headers: {
+        Accept: "application/json",
+      },
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      throw new Error("Network response was not ok");
+    }
+    const payload = await response.json() as CrossbarSimulatePayload;
+
+    return crossbarPayloadToOraclePricePerFeedHash(payload);
+  } catch (error) {
+    console.error("Error:", error);
+    throw new Error("Couldn't fetch from crossbar");
+  }
+}
+
+function crossbarPayloadToOraclePricePerFeedHash(payload: CrossbarSimulatePayload): Map<string, OraclePrice> {
+  const oraclePrices: Map<string, OraclePrice> = new Map();
+  for (const feedResponse of payload) {
+    const oraclePrice = crossbarFeedResultToOraclePrice(feedResponse);
+    oraclePrices.set(feedResponse.feedHash, oraclePrice);
+  }
+  return oraclePrices;
+}
+
+function crossbarFeedResultToOraclePrice(feedResponse: FeedResponse): OraclePrice {
+  let medianPrice = new BigNumber(median(feedResponse.results));
+
+  const priceRealtime = {
+    price: medianPrice,
+    confidence: new BigNumber(0),
+    lowestPrice: medianPrice,
+    highestPrice: medianPrice,
+  };
+
+  const priceWeighted = {
+    price: medianPrice,
+    confidence: new BigNumber(0),
+    lowestPrice: medianPrice,
+    highestPrice: medianPrice,
+  };
+
+  return {
+    priceRealtime,
+    priceWeighted,
+    timestamp: new BigNumber(Math.floor(new Date().getTime() / 1000)),
+  };
+}
+
+function stringifyOraclePrice(oraclePrice: OraclePrice): OraclePriceString {
+  return {
     priceRealtime: {
       price: oraclePrice.priceRealtime.price.toString(),
       confidence: oraclePrice.priceRealtime.confidence.toString(),
@@ -115,39 +188,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       lowestPrice: oraclePrice.priceWeighted.lowestPrice.toString(),
       highestPrice: oraclePrice.priceWeighted.highestPrice.toString(),
     },
-    timestamp: oraclePrice.timestamp?.toString(),
-  }));
-
-  res.status(200).json(stringyfiedArray);
-}
-
-async function fetchCrossbarPrice(feedHash: string) {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => {
-    controller.abort();
-  }, 5000);
-
-  try {
-    const response = await fetch(`${SWITCHBOARD_CROSSSBAR_API}/simulate/${feedHash}`, {
-      headers: {
-        Accept: "application/json",
-      },
-      signal: controller.signal,
-    });
-
-    clearTimeout(timeoutId);
-
-    if (!response.ok) {
-      throw new Error("Network response was not ok");
-    }
-    const data = await response.json();
-
-    throw new Error("TODO format price from crossbar");
-    // TODO manipulate the data once we get stddev
-
-    return data;
-  } catch (error) {
-    console.error("Error:", error);
-    throw new Error("Couldn't fetch from crossbar");
-  }
+    timestamp: oraclePrice.timestamp.toString(),
+  };
 }
