@@ -78,7 +78,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         myCache.set(cacheKey, oraclePrice);
         cachedOracles.set(oracleData.oracleKey, oraclePrice);
       } else {
-        const feedHash = decodeSwitchboardPullFeedData(priceDataRaw.data).feed_hash.toString();
+        const feedHash = Buffer.from(decodeSwitchboardPullFeedData(priceDataRaw.data)).toString("hex");
 
         try {
           const crossbarPrice = await fetchCrossbarPrice(feedHash);
