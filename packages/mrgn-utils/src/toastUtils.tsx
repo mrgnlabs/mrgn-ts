@@ -1,7 +1,7 @@
 import { Id, toast } from "react-toastify";
-import { MultiStepToast, ToastStep, ToastStepWithStatus } from "./Toasts/MultiStepToast";
-import { ErrorToast } from "./Toasts/ErrorToast";
-import { WarningToast } from "./Toasts/WarningToast";
+import { MultiStepToast, ToastStep, ToastStepWithStatus } from "~/toasts/MultiStepToast";
+import { ErrorToast } from "~/toasts/ErrorToast";
+import { WarningToast } from "~/toasts/WarningToast";
 
 export class MultiStepToastHandle {
   private _title: string;

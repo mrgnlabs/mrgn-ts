@@ -1,7 +1,6 @@
 {
   "extends": "@mrgnlabs/tsconfig/base.json",
   "compilerOptions": {
-    "baseUrl": "./src",
     "jsx": "preserve",
     "resolveJsonModule": true,
     "outDir": "dist",

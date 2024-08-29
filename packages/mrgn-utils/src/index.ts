@@ -4,6 +4,6 @@ export * from "./errors";
 export * from "./wallet";
 export * from "./mrgnUtils";
 export * from "./featureGateUtils";
-export * from "./Toasts";
+export * from "./toasts";
 export * from "./mediaQueries";
 export * from "./toastUtils";
