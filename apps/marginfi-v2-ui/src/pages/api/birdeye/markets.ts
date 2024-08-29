@@ -1,5 +1,4 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import NodeCache from "node-cache";
 import { IntegrationsData } from "~/utils/mintUtils";
 
 type AssetInfo = {
@@ -25,7 +24,6 @@ type MarketInfo = {
   volume24h: number;
 };
 
-const myCache = new NodeCache({ stdTTL: 240 }); // Cache for 4 min
 const BIRDEYE_API = "https://public-api.birdeye.so";
 
 function getMarketUrl(source: string, address: string, token: string) {
@@ -47,14 +45,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { token } = req.query;
   if (!token) {
     res.status(400).json({ error: "No token provided" });
-    return;
-  }
-  const cacheKey = `markets_${token}`;
-
-  // Check cache
-  const cachedData = myCache.get(cacheKey);
-  if (cachedData) {
-    res.status(200).json(cachedData);
     return;
   }
 
@@ -106,9 +96,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         },
       }));
 
-    // Store in cache
-    myCache.set(cacheKey, markets);
-
+    // cache for 4 minutes
+    res.setHeader("Cache-Control", "s-maxage=240, stale-while-revalidate=59");
     res.status(200).json(markets);
   } catch (error) {
     console.error("Error:", error);
