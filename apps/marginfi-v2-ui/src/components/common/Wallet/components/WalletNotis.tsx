@@ -57,11 +57,11 @@ export const WalletNotis = () => {
           className="px-2 pr-3.5 py-2.5 gap-1.5 max-w-max"
           onClick={(e) => {
             e.preventDefault();
-            window.open("https://t.me/HeimdallWatchBot");
+            window.open("https://t.me/AsgardWatchBot");
           }}
         >
-          <Image src="/heimdall.jpg" alt="HeimdallWatchBot Logo" width={28} height={28} className="rounded-full" />{" "}
-          HiemdallWatchBot
+          <Image src="/asgardwatchbot.jpg" alt="AsgardWatchBot Logo" width={28} height={28} className="rounded-full" />{" "}
+          Asgard WatchBot
         </Button>
       </p>
       <div className="space-y-2">

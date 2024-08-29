@@ -314,7 +314,7 @@ export const ActionComplete = () => {
                 <div className="flex flex-col sm:flex-row text-sm items-center justify-center text-center">
                   <p className="opacity-60">Get daily alerts on your position using</p>
                   <Link
-                    href="https://t.me/HeimdallWatchBot"
+                    href="https://t.me/AsgardWatchBot"
                     className="flex items-center gap-1.5 text-chartreuse sm:ml-1.5"
                     target="_blank"
                     rel="noopener noreferrer"
