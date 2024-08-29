@@ -142,6 +142,7 @@ async function fetchCrossbarPrice(feedHash: string) {
     }
     const data = await response.json();
 
+    throw new Error("TODO format price from crossbar");
     // TODO manipulate the data once we get stddev
 
     return data;
