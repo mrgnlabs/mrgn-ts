@@ -27,7 +27,7 @@ import {
 } from "~/components/common/Wallet";
 import { Swap } from "~/components/common/Swap";
 import { Bridge } from "~/components/common/Bridge";
-import { Sheet, SheetContent, SheetTrigger } from "~/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescription } from "~/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { Button } from "~/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
@@ -77,7 +77,7 @@ export const Wallet = () => {
   const { wallet, connected, logout, pfp, requestPrivateKey, web3AuthPk, web3AuthConncected } = useWalletContext();
 
   const debounceId = React.useRef<NodeJS.Timeout | null>(null);
-  const [isFetchingWalletData, setIsFetchingWalletData] = React.useState(false);
+  const isFetchingWalletDataRef = React.useRef(false);
   const [isWalletAddressCopied, setIsWalletAddressCopied] = React.useState(false);
   const [walletData, setWalletData] = React.useState<{
     address: string;
@@ -110,9 +110,9 @@ export const Wallet = () => {
   }, []);
 
   const getWalletData = React.useCallback(async () => {
-    if (isFetchingWalletData || !wallet?.publicKey || !extendedBankInfos || isNaN(nativeSolBalance)) return;
+    if (isFetchingWalletDataRef.current || !wallet?.publicKey || !extendedBankInfos || isNaN(nativeSolBalance)) return;
 
-    setIsFetchingWalletData(true);
+    isFetchingWalletDataRef.current = true;
     setIsWalletBalanceErrorShown(false);
 
     try {
@@ -178,31 +178,33 @@ export const Wallet = () => {
         tokens: [],
       });
     } finally {
-      setIsFetchingWalletData(false);
+      isFetchingWalletDataRef.current = false;
     }
-  }, [wallet?.publicKey, extendedBankInfos, nativeSolBalance, isFetchingWalletData, isWalletBalanceErrorShown]);
+  }, [wallet?.publicKey, extendedBankInfos, nativeSolBalance, isWalletBalanceErrorShown]);
 
   React.useEffect(() => {
     if (!initialized) return;
+
+    let intervalId: NodeJS.Timeout | null = null;
+
+    const fetchData = () => {
+      getWalletData().catch(console.error);
+    };
 
     if (debounceId.current) {
       clearTimeout(debounceId.current);
     }
 
     debounceId.current = setTimeout(() => {
-      getWalletData();
+      fetchData();
 
-      const id = setInterval(() => {
-        getWalletData().catch(console.error);
-      }, 20_000);
-
-      return () => {
-        clearInterval(id);
-        clearTimeout(debounceId.current!);
-      };
+      intervalId = setInterval(fetchData, 20_000);
     }, 1000);
 
     return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
       if (debounceId.current) {
         clearTimeout(debounceId.current);
       }
@@ -222,6 +224,10 @@ export const Wallet = () => {
           )}
         </SheetTrigger>
         <SheetContent className="outline-none z-[50] px-4 bg-background border-0">
+          <SheetHeader className="sr-only">
+            <SheetTitle>marginfi wallet</SheetTitle>
+            <SheetDescription>Manage your marginfi wallet.</SheetDescription>
+          </SheetHeader>
           {walletData.address ? (
             <div className="max-h-full">
               <header className="flex items-center gap-2">
