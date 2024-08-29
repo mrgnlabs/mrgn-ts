@@ -33,16 +33,17 @@ export async function calculateRepayCollateralParams(
   platformFeeBps?: number
 ): Promise<
   | {
-    repayTxn: VersionedTransaction;
-    bundleTipTxn: VersionedTransaction | null;
-    quote: QuoteResponse;
-    amount: number;
-  }
+      repayTxn: VersionedTransaction;
+      bundleTipTxn: VersionedTransaction | null;
+      quote: QuoteResponse;
+      amount: number;
+    }
   | ActionMethod
 > {
   const maxRepayAmount = bank.isActive ? bank?.position.amount : 0;
 
-  const maxAccountsArr = [undefined, 50, 40, 30];
+  // decreased maxAccounts from [undefined, 50, 40, 30] to [50, 40, 30]
+  const maxAccountsArr = [50, 40, 30];
 
   let firstQuote;
 
@@ -118,10 +119,10 @@ export async function calculateBorrowLendPositionParams({
   platformFeeBps?: number;
 }): Promise<
   | {
-    closeTxn: VersionedTransaction;
-    bundleTipTxn: VersionedTransaction | null;
-    quote: QuoteResponse;
-  }
+      closeTxn: VersionedTransaction;
+      bundleTipTxn: VersionedTransaction | null;
+      quote: QuoteResponse;
+    }
   | ActionMethod
 > {
   let firstQuote;
@@ -242,7 +243,8 @@ export async function calculateLoopingParams({
 
   const maxLoopAmount = depositBank.isActive ? depositBank?.position.amount : 0;
 
-  const maxAccountsArr = marginfiAccount ? [undefined, 50, 40, 30] : [40, 30];
+  // decreased maxAccounts from [undefined, 50, 40, 30] to [40, 30]
+  const maxAccountsArr = marginfiAccount ? [40, 30] : [40, 30];
 
   let firstQuote;
 

@@ -175,7 +175,7 @@ export const verifyFlashloanTxSize = (builder: {
       addressLookupTableAccounts: builder.addressLookupTableAccounts,
     }).length;
     if (totalSize > 1232 - 64 || totalKeys >= 64) {
-      // signature is roughly 110 bytes
+      // signature is roughly 64 bytes
       if (totalKeys >= 64) {
         return {
           flashloanTx: null,
