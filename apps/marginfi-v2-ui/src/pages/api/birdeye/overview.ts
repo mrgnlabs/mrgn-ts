@@ -1,21 +1,11 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import NodeCache from "node-cache";
 
-const myCache = new NodeCache({ stdTTL: 240 }); // Cache for 4 min
 const BIRDEYE_API = "https://public-api.birdeye.so";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { token } = req.query;
   if (!token) {
     res.status(400).json({ error: "No token provided" });
-    return;
-  }
-  const cacheKey = `overview_${token}`;
-
-  // Check cache
-  const cachedData = myCache.get(cacheKey);
-  if (cachedData) {
-    res.status(200).json(cachedData);
     return;
   }
 
@@ -42,9 +32,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
     const data = await response.json();
 
-    // Store in cache
-    myCache.set(cacheKey, data);
-
+    // cache for 4 minutes
+    res.setHeader("Cache-Control", "s-maxage=240, stale-while-revalidate=59");
     res.status(200).json(data);
   } catch (error) {
     console.error("Error:", error);
