@@ -142,12 +142,13 @@ const CONTENT = {
       },
     },
     {
-      title: "Heimdall",
-      description: "Account monitoring bot for Telegram",
-      url: "https://t.me/HeimdallWatchBot",
+      title: "Asgard Watch Bot",
+      description: "Get real-time Telegram alerts for your DeFi positions and protect your collateral!",
+      url: "https://t.me/AsgardWatchBot",
       author: {
-        name: "Heimdall",
-        avatar: "/ecosystem/heimdall.jpg",
+        name: "Asgard",
+        avatar: "/ecosystem/asgardwatchbot.jpg",
+        url: "https://twitter.com/asgardfi",
       },
     },
     {
