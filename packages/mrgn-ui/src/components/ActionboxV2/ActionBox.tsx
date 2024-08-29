@@ -99,4 +99,4 @@ ActionBox.LST = () => <div>LST</div>;
 
 ActionBox.displayName = "ActionBox";
 
-export default ActionBox;
+export { ActionBox };

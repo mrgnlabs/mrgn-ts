@@ -14,7 +14,6 @@ import {
   usePrevious,
 } from "@mrgnlabs/mrgn-utils";
 import { useActionBoxStore } from "../../../store";
-import { useConnection } from "~/hooks/useConnection";
 import { calculateLooping, calculateRepayCollateral, calculateSummary, getSimulationResult } from "../utils";
 import { AccountSummary, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { useAmountDebounce } from "~/hooks/useAmountDebounce";
@@ -60,7 +59,6 @@ export function useFlashLoanSimulation(
     state.setMaxAmountCollateral,
   ]);
   const [slippageBps, priorityFee] = useActionBoxStore((state) => [state.slippageBps, state.priorityFee]);
-  const { connection } = useConnection();
 
   const debouncedLeverage = useAmountDebounce<number>(leverage, 500);
   const prevDebouncedLeverage = usePrevious(debouncedLeverage);
@@ -122,66 +120,6 @@ export function useFlashLoanSimulation(
     }
   }, [actionTxns, handleSimulation, prevActionTxn]);
 
-  const fetchRepayCollateralObject = React.useCallback(
-    async (amount: number) => {
-      if (!selectedBank || !selectedSecondaryBank || !selectedAccount) {
-        return;
-      }
-
-      if (amount === 0) {
-        return;
-      }
-
-      setIsLoading(true);
-      try {
-        const repayCollat = await calculateRepayCollateral(
-          selectedAccount,
-          selectedBank,
-          selectedSecondaryBank,
-          amount,
-          slippageBps,
-          connection,
-          priorityFee
-        );
-
-        if (repayCollat && "repayTxn" in repayCollat) {
-          const actionTxns = {
-            actionTxn: repayCollat.repayTxn,
-            bundleTipTxn: repayCollat.bundleTipTxn,
-          };
-          const actionQuote = repayCollat.quote;
-          const amountRaw = repayCollat.amount.toString();
-
-          setRepayAmount(amount);
-          setActionQuote(actionQuote);
-          setActionTxns(actionTxns);
-        } else {
-          const errorMessage =
-            repayCollat ?? DYNAMIC_SIMULATION_ERRORS.REPAY_COLLAT_FAILED_CHECK(selectedSecondaryBank.meta.tokenSymbol);
-
-          setErrorMessage(errorMessage);
-        }
-      } catch (error) {
-        setErrorMessage(STATIC_SIMULATION_ERRORS.REPAY_COLLAT_FAILED);
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [
-      selectedBank,
-      selectedSecondaryBank,
-      selectedAccount,
-      setIsLoading,
-      slippageBps,
-      connection,
-      priorityFee,
-      setRepayAmount,
-      setActionQuote,
-      setActionTxns,
-      setErrorMessage,
-    ]
-  );
-
   const fetchLoopingObject = React.useCallback(
     async (amount: number) => {
       if (!selectedBank || !selectedSecondaryBank || !selectedAccount) {
@@ -201,7 +139,7 @@ export function useFlashLoanSimulation(
           leverage,
           amount,
           slippageBps,
-          connection,
+          marginfiClient.provider.connection,
           priorityFee
         );
 
@@ -238,7 +176,7 @@ export function useFlashLoanSimulation(
       leverage,
       setIsLoading,
       slippageBps,
-      connection,
+      marginfiClient.provider.connection,
       priorityFee,
       setLoopingAmounts,
       setActionQuote,
@@ -260,13 +198,11 @@ export function useFlashLoanSimulation(
   // Fetch the action object based on the action mode
   React.useEffect(() => {
     if (prevDebouncedAmount !== debouncedAmount) {
-      if (actionMode === ActionType.RepayCollat) {
-        fetchRepayCollateralObject(debouncedAmount);
-      } else if (actionMode === ActionType.Loop) {
+      if (actionMode === ActionType.Loop) {
         fetchLoopingObject(debouncedAmount);
       }
     }
-  }, [prevDebouncedAmount, debouncedAmount, actionMode, fetchRepayCollateralObject, fetchLoopingObject]);
+  }, [prevDebouncedAmount, debouncedAmount, actionMode, fetchLoopingObject]);
 
   const fetchMaxRepayableCollateral = React.useCallback(async () => {
     if (selectedBank && selectedSecondaryBank) {

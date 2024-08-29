@@ -4,7 +4,7 @@ import { getCoreRowModel, flexRender, useReactTable, SortingState, getSortedRowM
 import { useHotkeys } from "react-hotkeys-hook";
 
 import { ExtendedBankInfo, ActiveBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
-import { LendingModes } from "@mrgnlabs/mrgn-utils";
+import { LendingModes, PreviousTxn } from "@mrgnlabs/mrgn-utils";
 
 import { useMrgnlendStore, useUserProfileStore, useUiStore } from "~/store";
 import { useActionBoxStore } from "~/hooks/useActionBoxStore";
@@ -24,7 +24,7 @@ import { IconAlertTriangle } from "~/components/ui/icons";
 
 import { AssetListModel, generateColumns, makeData } from "./utils";
 import { AssetRow } from "./components";
-import { PreviousTxn } from "~/types";
+import { useWalletContext } from "~/hooks/useWalletContext";
 
 export const AssetsList = () => {
   const [
@@ -61,6 +61,7 @@ export const AssetsList = () => {
     () => (actionMode === ActionType.Deposit ? LendingModes.LEND : LendingModes.BORROW),
     [actionMode]
   );
+  const { connected } = useWalletContext();
 
   const inputRefs = React.useRef<Record<string, HTMLInputElement | null>>({});
   const [isHotkeyMode, setIsHotkeyMode] = React.useState(false);
@@ -122,7 +123,7 @@ export const AssetsList = () => {
 
   const handleOnComplete = async (previousTxn: PreviousTxn) => {
     setIsActionComplete(true);
-    setPreviousTxn(previousTxn);
+    // setPreviousTxn(previousTxn);
     try {
       setIsRefreshingStore(true);
       await fetchMrgnlendState();
@@ -196,9 +197,19 @@ export const AssetsList = () => {
       nativeSolBalance,
       selectedAccount,
       accountSummary,
+      connected,
       handleOnComplete
     );
-  }, [globalBanks, isInLendingMode, denominationUSD, nativeSolBalance, selectedAccount, accountSummary]);
+  }, [
+    globalBanks,
+    isInLendingMode,
+    denominationUSD,
+    nativeSolBalance,
+    selectedAccount,
+    accountSummary,
+    connected,
+    handleOnComplete,
+  ]);
 
   const isolatedPoolTableData = React.useMemo(() => {
     return makeData(
@@ -208,9 +219,19 @@ export const AssetsList = () => {
       nativeSolBalance,
       selectedAccount,
       accountSummary,
+      connected,
       handleOnComplete
     );
-  }, [isolatedBanks, isInLendingMode, denominationUSD, nativeSolBalance, selectedAccount, accountSummary]);
+  }, [
+    isolatedBanks,
+    isInLendingMode,
+    denominationUSD,
+    nativeSolBalance,
+    selectedAccount,
+    accountSummary,
+    connected,
+    handleOnComplete,
+  ]);
 
   const tableColumns = React.useMemo(() => {
     return generateColumns(isInLendingMode);

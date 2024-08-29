@@ -2,9 +2,7 @@ import React from "react";
 
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { clampedNumeralFormatter, numeralFormatter } from "@mrgnlabs/mrgn-common";
-
-import { IconArrowRight } from "~/components/ui/icons";
-import { useFlashLoanBoxStore } from "~/components/common/ActionBoxV2/CoreActions/RepayCollatBox/store";
+import { useFlashLoanBoxStore } from "../../../store";
 
 type props = {
   walletAmount: number | undefined;
@@ -15,20 +13,14 @@ type props = {
 };
 
 export const FlashLoanAction = ({ maxAmount, walletAmount, onSetAmountRaw }: props) => {
-  const [actionMode, amountRaw, repayAmountRaw, selectedBank, selectedSecondaryBank] = useFlashLoanBoxStore((state) => [
+  const [actionMode, amountRaw, selectedBank, selectedSecondaryBank] = useFlashLoanBoxStore((state) => [
     state.actionMode,
     state.amountRaw,
-    state.repayAmountRaw,
     state.selectedBank,
     state.selectedSecondaryBank,
   ]);
 
   const numberFormater = React.useMemo(() => new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 }), []);
-
-  const repayAmount = React.useMemo(() => {
-    const strippedAmount = repayAmountRaw.replace(/,/g, "");
-    return isNaN(Number.parseFloat(strippedAmount)) ? 0 : Number.parseFloat(strippedAmount);
-  }, [repayAmountRaw]);
 
   const maxLabel = React.useMemo((): {
     amount: string;
@@ -67,8 +59,6 @@ export const FlashLoanAction = ({ maxAmount, walletAmount, onSetAmountRaw }: pro
         return { amount: "-" };
     }
   }, [selectedBank, actionMode, walletAmount]);
-
-  const isUnchanged = React.useMemo(() => repayAmount === 0, [repayAmount]);
 
   const isMaxButtonVisible = React.useMemo(
     () => actionMode === ActionType.Loop || (actionMode === ActionType.RepayCollat && selectedSecondaryBank),

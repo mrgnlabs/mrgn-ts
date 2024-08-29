@@ -12,7 +12,7 @@ import {
   getUtilizationCell,
 } from "../components";
 import * as assetUtils from ".";
-import { PreviousTxn } from "~/types";
+import { PreviousTxn } from "@mrgnlabs/mrgn-utils";
 
 export interface AssetListModel {
   asset: assetUtils.AssetData;
@@ -32,6 +32,7 @@ export const makeData = (
   nativeSolBalance: number,
   marginfiAccount: MarginfiAccountWrapper | null,
   accountSummary: AccountSummary,
+  connected: boolean,
   handleOnComplete: (previousTxn: PreviousTxn) => void
 ) => {
   const tokenAccountMap = new Map(data.map((bank) => [bank.info.state.mint.toBase58(), bank.userInfo.tokenAccount]));
@@ -55,6 +56,7 @@ export const makeData = (
           nativeSolBalance,
           tokenAccountMap,
           accountSummary,
+          connected,
           handleOnComplete
         ),
       } as AssetListModel)

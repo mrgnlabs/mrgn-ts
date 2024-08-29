@@ -12,38 +12,10 @@ import {
   AccountSummary,
 } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { useUiStore } from "~/store";
-import {
-  closeBalance,
-  executeLendingAction,
-  cn,
-  capture,
-  executeLstAction,
-  getBlockedActions,
-  executeLoopingAction,
-  createAccountAction,
-} from "~/utils";
-import { useWalletContext } from "~/hooks/useWalletContext";
-import { useConnection } from "~/hooks/useConnection";
-import { SOL_MINT } from "~/store/lstStore";
-
-import { LSTDialog, LSTDialogVariants } from "~/components/common/AssetList";
-import { IconAlertTriangle, IconExternalLink, IconSettings } from "~/components/ui/icons";
-import { showErrorToast } from "~/utils/toastUtils";
-
-import {
-  ActionBoxPreview,
-  ActionBoxSettings,
-  ActionBoxActions,
-  ActionBoxInput,
-} from "~/components/common/ActionBox/components";
-import { Button } from "~/components/ui/button";
-import { ActionMethod, MarginfiActionParams, RepayType } from "@mrgnlabs/mrgn-utils";
+import { ActionMethod, MarginfiActionParams, PreviousTxn, RepayType, showErrorToast } from "@mrgnlabs/mrgn-utils";
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 
 import { ActionBoxWrapper, ActionMessage, ActionProgressBar, ActionSettingsButton } from "../../sharedComponents";
-
-import { PreviousTxn } from "~/types";
 
 import { useActionBoxStore } from "../../store";
 import { useActionAmounts } from "../../sharedHooks";
@@ -58,6 +30,7 @@ export type FlashLoanBoxProps = {
 
   marginfiClient: MarginfiClient;
   selectedAccount: MarginfiAccountWrapper | null;
+  connected: boolean;
   banks: ExtendedBankInfo[];
   requestedActionType: ActionType;
   requestedBank?: ExtendedBankInfo;
@@ -78,6 +51,7 @@ export const FlashLoanBox = ({
   accountSummary,
   requestedActionType,
   requestedBank,
+  connected,
   isDialog,
   onComplete,
   captureEvent,
@@ -122,8 +96,6 @@ export const FlashLoanBox = ({
     marginfiClient,
     accountSummary
   );
-
-  const { walletContextState, connected } = useWalletContext();
 
   const [lstDialogCallback, setLSTDialogCallback] = React.useState<(() => void) | null>(null);
   const [additionalActionMethods, setAdditionalActionMethods] = React.useState<ActionMethod[]>([]);

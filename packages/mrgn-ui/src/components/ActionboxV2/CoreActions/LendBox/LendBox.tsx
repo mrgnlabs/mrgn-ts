@@ -27,7 +27,7 @@ import { useLendSimulation } from "./hooks";
 export type LendBoxProps = {
   nativeSolBalance: number;
   tokenAccountMap: TokenAccountMap;
-  walletContextState: WalletContextStateOverride | WalletContextState;
+  walletContextState?: WalletContextStateOverride | WalletContextState;
   connected: boolean;
 
   selectedAccount: MarginfiAccountWrapper | null;

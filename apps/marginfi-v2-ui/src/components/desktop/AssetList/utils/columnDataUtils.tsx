@@ -17,15 +17,14 @@ import {
   getPriceWithConfidence,
 } from "@mrgnlabs/marginfi-client-v2";
 import { WSOL_MINT, aprToApy, nativeToUi } from "@mrgnlabs/mrgn-common";
-import { isBankOracleStale } from "@mrgnlabs/mrgn-utils";
+import { isBankOracleStale, PreviousTxn } from "@mrgnlabs/mrgn-utils";
 
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { ActionBoxDialog } from "~/components/common/ActionBox";
 import { Button } from "~/components/ui/button";
-import Actionbox from "~/components/common/ActionBoxV2/ActionBox";
 import { useMrgnlendStore, useUiStore } from "~/store";
 import { capture } from "~/utils";
-import { PreviousTxn } from "~/types";
+import { ActionBox } from "@mrgnlabs/mrgn-ui";
 
 export const REDUCE_ONLY_BANKS = ["stSOL", "RLB"];
 
@@ -297,6 +296,7 @@ export const getAction = (
   nativeSolBalance: number,
   tokenAccountMap: Map<string, TokenAccount>,
   accountSummary: AccountSummary,
+  connected: boolean,
   handleOnComplete: (previousTxn: PreviousTxn) => void
 ) => {
   const currentAction = getCurrentAction(isInLendingMode, bank);
@@ -310,7 +310,7 @@ export const getAction = (
           <Tooltip>
             <TooltipTrigger asChild>
               <div className="flex px-0 sm:pl-4 gap-4 justify-center lg:justify-end items-center">
-                <Actionbox.Lend
+                <ActionBox.Lend
                   isDialog={true}
                   dialogProps={{
                     title: `${currentAction} ${bank.meta.tokenSymbol}`,
@@ -331,7 +331,8 @@ export const getAction = (
                     selectedAccount: marginfiAccount,
                     accountSummary: accountSummary,
                     banks: banks,
-                    onComplete: handleOnComplete,
+                    connected: connected,
+                    onComplete: (previousTxn: PreviousTxn) => handleOnComplete(previousTxn),
                     captureEvent: (event, properties) => {
                       capture(event, properties);
                     },
@@ -354,7 +355,7 @@ export const getAction = (
 
       {marginfiAccount !== null && (
         <div className="flex px-0 sm:pl-4 gap-4 justify-center lg:justify-end items-center">
-          <Actionbox.Lend
+          <ActionBox.Lend
             isDialog={true}
             dialogProps={{
               title: `${currentAction} ${bank.meta.tokenSymbol}`,
@@ -375,7 +376,8 @@ export const getAction = (
               selectedAccount: marginfiAccount,
               accountSummary: accountSummary,
               banks: banks,
-              onComplete: handleOnComplete,
+              connected: connected,
+              onComplete: (previousTxn: PreviousTxn) => handleOnComplete(previousTxn),
               captureEvent: (event, properties) => {
                 capture(event, properties);
               },

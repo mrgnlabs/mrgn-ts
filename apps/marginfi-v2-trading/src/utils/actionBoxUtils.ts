@@ -106,7 +106,7 @@ export function checkActionAvailable({
         if (repayMode === RepayType.RepayRaw) {
           repayChecks = canBeRepaid(selectedBank);
         } else if (repayMode === RepayType.RepayCollat) {
-          repayChecks = canBeRepaidCollat(selectedBank, selectedRepayBank, blacklistRoutes, repayCollatQuote);
+          repayChecks = canBeRepaidCollat(selectedBank, selectedRepayBank, repayCollatQuote);
         }
         if (repayChecks) checks.push(...repayChecks);
         break;
