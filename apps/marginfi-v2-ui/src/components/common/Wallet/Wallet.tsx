@@ -148,38 +148,14 @@ export const Wallet = () => {
           );
         });
 
-      // attempt to fetch cached totalBalanceData
-      const cacheKey = `marginfi_totalBalanceData-${wallet?.publicKey.toString()}`;
-      const cachedData = localStorage.getItem(cacheKey);
       let totalBalance = 0;
-      let totalBalanceStr = "";
+      let totalBalanceStr = "0.00";
 
-      if (cachedData) {
-        const parsedData = JSON.parse(cachedData);
-        const now = new Date();
-        // 5 minute expiration time on cache
-        if (now.getTime() - parsedData.timestamp < 5 * 60 * 1000) {
-          totalBalance = parsedData.totalValue;
-          totalBalanceStr = usdFormatter.format(totalBalance);
-        }
-      }
-
-      if (!totalBalanceStr) {
-        const totalBalanceRes = await fetch(`/api/user/wallet?wallet=${wallet?.publicKey}`);
-        if (totalBalanceRes.ok) {
-          const totalBalanceData = await totalBalanceRes.json();
-          totalBalance = totalBalanceData.totalValue;
-          totalBalanceStr = usdFormatter.format(totalBalance);
-          // update cache
-          localStorage.setItem(cacheKey, JSON.stringify({ totalValue: totalBalance, timestamp: new Date().getTime() }));
-        } else {
-          throw new Error("Failed to fetch wallet balance");
-        }
-      }
-
-      // show error toast
-      if (!totalBalanceStr) {
-        throw new Error("Failed to fetch wallet balance");
+      const totalBalanceRes = await fetch(`/api/user/wallet?wallet=${wallet?.publicKey}`);
+      if (totalBalanceRes.ok) {
+        const totalBalanceData = await totalBalanceRes.json();
+        totalBalance = totalBalanceData.totalValue;
+        totalBalanceStr = usdFormatter.format(totalBalance);
       }
 
       setWalletData({
