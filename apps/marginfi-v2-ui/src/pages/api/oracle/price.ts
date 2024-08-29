@@ -62,17 +62,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       updatedOraclePrices.set(oracleData.oracleKey, oraclePrice);
     }
 
-    // Batch-fetch and cache price data from Crossbar for stale SwitchboardPull oracles
-    const feedHashes = swbPullOraclesStale.map((value) => value.feedHash);
-    const crossbarPrices = await fetchCrossbarPrices(feedHashes);
+    if (swbPullOraclesStale.length === 0) {
+      // Batch-fetch and cache price data from Crossbar for stale SwitchboardPull oracles
+      const feedHashes = swbPullOraclesStale.map((value) => value.feedHash);
+      const crossbarPrices = await fetchCrossbarPrices(feedHashes);
 
-    for (const { data: { oracleKey }, feedHash } of swbPullOraclesStale) {
-      const crossbarPrice = crossbarPrices.get(feedHash);
-      if (!crossbarPrice) {
-        throw new Error(`Crossbar didn't return data for ${feedHash}`);
+      for (const { data: { oracleKey }, feedHash } of swbPullOraclesStale) {
+        const crossbarPrice = crossbarPrices.get(feedHash);
+        if (!crossbarPrice) {
+          throw new Error(`Crossbar didn't return data for ${feedHash}`);
+        }
+
+        updatedOraclePrices.set(oracleKey, crossbarPrice);
       }
-
-      updatedOraclePrices.set(oracleKey, crossbarPrice);
     }
   } catch (error) {
     console.error("Error:", error);
