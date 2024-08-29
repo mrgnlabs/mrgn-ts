@@ -147,7 +147,7 @@ const CONTENT = {
       url: "https://t.me/AsgardWatchBot",
       author: {
         name: "Asgard",
-        avatar: "/ecosystem/asgardwatchbot.jpg",
+        avatar: "/images/ecosystem/asgardwatchbot.jpg",
         url: "https://twitter.com/asgardfi",
       },
     },
