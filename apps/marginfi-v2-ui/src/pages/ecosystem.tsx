@@ -18,6 +18,36 @@ import { PageHeading } from "~/components/common/PageHeading";
 
 const projects = shuffle([
   {
+    title: "WRTHY",
+    description: "On-chain credit systems",
+    url: "https://trustless.engineering",
+    author: {
+      name: "WRTHY",
+      avatar: "/wrthy.png",
+      url: "https://trustless.engineering",
+    },
+  },
+  {
+    title: "Carrot",
+    description: "Auto-adjusting yield bearing token",
+    url: "https://deficarrot.com/",
+    author: {
+      name: "Carrot",
+      avatar: "/carrot.jpg",
+      url: "https://deficarrot.com/",
+    },
+  },
+  {
+    title: "Mantis SVM",
+    description: "The first Solana L2 with native yield",
+    url: "https://www.mantis.app/",
+    author: {
+      name: "Mantis",
+      avatar: "/mantis.png",
+      url: "https://www.mantis.app/",
+    },
+  },
+  {
     title: "The Arena",
     description: "Memecoin trading, with leverage",
     url: "https://www.thearena.trade",
