@@ -19,6 +19,36 @@ const CONTENT = {
   body: "Build something the world hasn't seen yet. The mrgn. community is waiting for you.",
   cards: shuffle([
     {
+      title: "WRTHY",
+      description: "On-chain credit systems",
+      url: "https://trustless.engineering",
+      author: {
+        name: "WRTHY",
+        avatar: "/images/ecosystem/wrthy.png",
+        url: "https://trustless.engineering",
+      },
+    },
+    {
+      title: "Carrot",
+      description: "Auto-adjusting yield bearing token",
+      url: "https://deficarrot.com/",
+      author: {
+        name: "Carrot",
+        avatar: "/images/ecosystem/carrot.jpg",
+        url: "https://deficarrot.com/",
+      },
+    },
+    {
+      title: "Mantis SVM",
+      description: "The first Solana L2 with native yield",
+      url: "https://www.mantis.app/",
+      author: {
+        name: "Mantis",
+        avatar: "/images/ecosystem/mantis.png",
+        url: "https://www.mantis.app/",
+      },
+    },
+    {
       title: "marginfi v2",
       description: "V2 of the marginfi protocol",
       url: "https://app.marginfi.com",
