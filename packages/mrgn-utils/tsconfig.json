@@ -2,12 +2,13 @@
   "extends": "@mrgnlabs/tsconfig/base.json",
   "compilerOptions": {
     "jsx": "preserve",
+    "baseUrl": "./src",
     "resolveJsonModule": true,
     "outDir": "dist",
     "paths": {
       "~/*": ["./src/*"]
     }
   },
-  "include": ["."],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "."],
   "exclude": ["dist", "node_modules", "*.spec.ts"]
 }

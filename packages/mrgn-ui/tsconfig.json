@@ -1,6 +1,7 @@
 {
   "extends": "@mrgnlabs/tsconfig/base.json",
   "compilerOptions": {
+    "baseUrl": "./src",
     "jsx": "preserve",
     "resolveJsonModule": true,
     "outDir": "dist",
@@ -8,6 +9,6 @@
       "~/*": ["./src/*"]
     }
   },
-  "include": ["."],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "."],
   "exclude": ["dist", "node_modules", "*.spec.ts"]
 }

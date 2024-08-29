@@ -6,12 +6,13 @@ import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-clien
 import { ExtendedBankInfo, FEE_MARGIN, ActionType, clearAccountCache } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { WalletContextStateOverride } from "~/wallet";
-import { showErrorToast, MultiStepToastHandle } from "~/Toasts";
+
 import { extractErrorString, isWholePosition } from "~/mrgnUtils";
 
 import { loopingBuilder, repayWithCollatBuilder } from "../flashloans";
 import { MarginfiActionParams, LoopingOptions, RepayWithCollatOptions } from "../types";
 import { getMaybeSquadsOptions } from "../helpers";
+import { MultiStepToastHandle, showErrorToast } from "~/toastUtils";
 
 export async function createAccountAction({
   marginfiClient,

@@ -6,3 +6,4 @@ export * from "./mrgnUtils";
 export * from "./featureGateUtils";
 export * from "./Toasts";
 export * from "./mediaQueries";
+export * from "./toastUtils";
