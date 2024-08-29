@@ -1,5 +1,7 @@
 import { NextApiResponse } from "next";
 import { STATUS_BAD_REQUEST, STATUS_OK } from "@mrgnlabs/marginfi-v2-ui-state";
+import { WSOL_MINT } from "@mrgnlabs/mrgn-common";
+import { LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { NextApiRequest } from "../utils";
 
 type WalletRequest = {
@@ -20,7 +22,8 @@ async function fetchAssets(
   nativeBalance: any = null
 ): Promise<{ items: any[]; nativeBalance: any }> {
   const url = `https://mainnet.helius-rpc.com/?api-key=${process.env.HELIUS_API_KEY!}`;
-  const response = await fetch(url, {
+
+  const solResponse = await fetch(url, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -28,24 +31,51 @@ async function fetchAssets(
     body: JSON.stringify({
       jsonrpc: "2.0",
       id: "my-id",
-      method: "searchAssets",
+      method: "getAsset",
+      params: {
+        id: WSOL_MINT.toBase58(),
+      },
+    }),
+  });
+
+  const solResponseJson = await solResponse.json();
+
+  const allTokensResponse = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      jsonrpc: "2.0",
+      id: "my-id",
+      method: "getAssetsByOwner",
       params: {
         ownerAddress,
         page,
         limit: 1000,
-        tokenType: "fungible",
         displayOptions: {
+          showFungible: true,
           showNativeBalance: true,
         },
       },
     }),
   });
 
-  const { result } = await response.json();
+  if (!allTokensResponse.ok) {
+    throw new Error("Network response was not ok");
+  }
+
+  const { result } = await allTokensResponse.json();
   allItems.push(...result.items);
 
-  if (page === 1 && result.nativeBalance) {
-    nativeBalance = result.nativeBalance;
+  if (page === 1 && result.nativeBalance.lamports && solResponseJson.result.token_info.price_info) {
+    nativeBalance = {
+      lamports: result.nativeBalance.lamports,
+      price_per_sol: solResponseJson.result.token_info.price_info.price_per_token,
+      total_price:
+        (result.nativeBalance.lamports / LAMPORTS_PER_SOL) *
+        solResponseJson.result.token_info.price_info.price_per_token,
+    };
   }
 
   if (result.items.length === 1000) {
@@ -66,41 +96,46 @@ export default async function handler(req: NextApiRequest<WalletRequest>, res: N
   const ownerAddress = ownerAddressParam;
   const tokenList = tokenListParam ? Boolean(tokenListParam) : false;
 
-  const { items, nativeBalance } = await fetchAssets(ownerAddress);
+  try {
+    const { items, nativeBalance } = await fetchAssets(ownerAddress);
 
-  const tokens: Token[] = items
-    .filter((item: any) => item.token_info?.price_info?.total_price)
-    .map((item: any) => {
-      return {
-        name: item.content.metadata.name,
-        symbol: item.content.metadata.symbol,
-        price: item.token_info.price_info.price_per_token,
-        total: item.token_info.price_info.total_price,
-      };
-    })
-    .sort((a: any, b: any) => b.total - a.total);
+    const tokens: Token[] = items
+      .filter((item: any) => item.token_info?.price_info?.total_price)
+      .map((item: any) => {
+        return {
+          name: item.content.metadata.name,
+          symbol: item.content.metadata.symbol,
+          price: item.token_info.price_info.price_per_token,
+          total: item.token_info.price_info.total_price,
+        };
+      })
+      .sort((a: any, b: any) => b.total - a.total);
 
-  tokens.unshift({
-    name: "SOL",
-    symbol: "SOL",
-    price: nativeBalance.price_per_sol,
-    total: nativeBalance.total_price,
-  });
+    tokens.unshift({
+      name: "SOL",
+      symbol: "SOL",
+      price: nativeBalance.price_per_sol,
+      total: nativeBalance.total_price,
+    });
 
-  const totalValue = tokens.reduce((acc: number, item: Token) => acc + item.total, 0);
+    const totalValue = tokens.reduce((acc: number, item: Token) => acc + item.total, 0);
 
-  const data: {
-    totalValue: number;
-    tokens?: Token[];
-  } = {
-    totalValue,
-  };
+    const data: {
+      totalValue: number;
+      tokens?: Token[];
+    } = {
+      totalValue,
+    };
 
-  if (tokenList) {
-    data.tokens = tokens;
+    if (tokenList) {
+      data.tokens = tokens;
+    }
+
+    // cache for 4 minutes
+    res.setHeader("Cache-Control", "s-maxage=240, stale-while-revalidate=59");
+    return res.status(STATUS_OK).json(data);
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ error: "Error fetching data" });
   }
-
-  // cache for 4 minutes
-  res.setHeader("Cache-Control", "s-maxage=240, stale-while-revalidate=59");
-  return res.status(STATUS_OK).json(data);
 }
