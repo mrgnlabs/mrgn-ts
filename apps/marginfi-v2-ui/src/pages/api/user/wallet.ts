@@ -1,5 +1,7 @@
 import { NextApiResponse } from "next";
 import { STATUS_BAD_REQUEST, STATUS_OK } from "@mrgnlabs/marginfi-v2-ui-state";
+import { WSOL_MINT } from "@mrgnlabs/mrgn-common";
+import { LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { NextApiRequest } from "../utils";
 
 type WalletRequest = {
@@ -21,7 +23,7 @@ async function fetchAssets(
 ): Promise<{ items: any[]; nativeBalance: any }> {
   const url = `https://mainnet.helius-rpc.com/?api-key=${process.env.HELIUS_API_KEY!}`;
 
-  const response = await fetch(url, {
+  const solResponse = await fetch(url, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -29,28 +31,51 @@ async function fetchAssets(
     body: JSON.stringify({
       jsonrpc: "2.0",
       id: "my-id",
-      method: "searchAssets",
+      method: "getAsset",
+      params: {
+        id: WSOL_MINT.toBase58(),
+      },
+    }),
+  });
+
+  const solResponseJson = await solResponse.json();
+
+  const allTokensResponse = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      jsonrpc: "2.0",
+      id: "my-id",
+      method: "getAssetsByOwner",
       params: {
         ownerAddress,
         page,
         limit: 1000,
-        tokenType: "fungible",
         displayOptions: {
+          showFungible: true,
           showNativeBalance: true,
         },
       },
     }),
   });
 
-  if (!response.ok) {
+  if (!allTokensResponse.ok) {
     throw new Error("Network response was not ok");
   }
 
-  const { result } = await response.json();
+  const { result } = await allTokensResponse.json();
   allItems.push(...result.items);
 
-  if (page === 1 && result.nativeBalance) {
-    nativeBalance = result.nativeBalance;
+  if (page === 1 && result.nativeBalance.lamports && solResponseJson.result.token_info.price_info) {
+    nativeBalance = {
+      lamports: result.nativeBalance.lamports,
+      price_per_sol: solResponseJson.result.token_info.price_info.price_per_token,
+      total_price:
+        (result.nativeBalance.lamports / LAMPORTS_PER_SOL) *
+        solResponseJson.result.token_info.price_info.price_per_token,
+    };
   }
 
   if (result.items.length === 1000) {
