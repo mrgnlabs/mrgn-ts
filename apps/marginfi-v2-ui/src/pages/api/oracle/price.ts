@@ -4,9 +4,7 @@ import { chunkedGetRawMultipleAccountInfoOrdered, median } from "@mrgnlabs/mrgn-
 import { Connection } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 import { NextApiRequest, NextApiResponse } from "next";
-import NodeCache from "node-cache";
 
-const myCache = new NodeCache({ stdTTL: 20 }); // Cache for 20 seconds
 const SWITCHBOARD_CROSSSBAR_API = "https://crossbar.switchboard.xyz";
 
 interface OracleData {
@@ -29,43 +27,25 @@ interface OraclePriceString {
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  // if (req.method !== "POST") {
-  //   res.status(405).json({ error: "Only POST requests are allowed" });
-  //   return;
-  // }
+  const requestedOraclesData: OracleData[] = req.body;
 
-  const oracleDataArray: OracleData[] = req.body;
-
-  if (!Array.isArray(oracleDataArray) || oracleDataArray.length === 0) {
+  if (!Array.isArray(requestedOraclesData) || requestedOraclesData.length === 0) {
     res.status(400).json({ error: "Invalid input: expected an array of objects" });
     return;
   }
 
   const connection = new Connection(process.env.NEXT_PUBLIC_MARGINFI_RPC_ENDPOINT_OVERRIDE || "");
 
-  let cachedOracles = new Map<string, OraclePrice>();
-  let oraclesToFetch: OracleData[] = [];
-
-  oracleDataArray.forEach((oracleData) => {
-    const cacheKey = `oracle_feed_${oracleData.oracleKey}`;
-    const cachedData = myCache.get(cacheKey) as OraclePrice | undefined;
-
-    if (cachedData) {
-      cachedOracles.set(oracleData.oracleKey, cachedData);
-    } else {
-      oraclesToFetch.push(oracleData);
-    }
-  });
+  let updatedOraclePrices = new Map<string, OraclePrice>();
 
   try {
     // Fetch on-chain data for all oracles
     const oracleAis = await chunkedGetRawMultipleAccountInfoOrdered(connection, [
-      ...oraclesToFetch.map((oracleData) => oracleData.oracleKey),
-    ]); // NOTE: This will break if/when we start having more than 1 oracle key per bank
+      ...requestedOraclesData.map((oracleData) => oracleData.oracleKey),
+    ]);
     let swbPullOraclesStale: { data: OracleData; feedHash: string }[] = [];
-    for (const index in oraclesToFetch) {
-      const oracleData = oraclesToFetch[index];
-      const cacheKey = `oracle_feed_${oracleData.oracleKey}`;
+    for (const index in requestedOraclesData) {
+      const oracleData = requestedOraclesData[index];
       const priceDataRaw = oracleAis[index];
       const oraclePrice = parsePriceInfo(oracleData.oracleSetup, priceDataRaw.data);
 
@@ -79,8 +59,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         continue;
       }
 
-      myCache.set(cacheKey, oraclePrice);
-      cachedOracles.set(oracleData.oracleKey, oraclePrice);
+      updatedOraclePrices.set(oracleData.oracleKey, oraclePrice);
     }
 
     // Batch-fetch and cache price data from Crossbar for stale SwitchboardPull oracles
@@ -88,28 +67,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const crossbarPrices = await fetchCrossbarPrices(feedHashes);
 
     for (const { data: { oracleKey }, feedHash } of swbPullOraclesStale) {
-      const cacheKey = `oracle_feed_${oracleKey}`;
       const crossbarPrice = crossbarPrices.get(feedHash);
       if (!crossbarPrice) {
         throw new Error(`Crossbar didn't return data for ${feedHash}`);
       }
 
-      myCache.set(cacheKey, crossbarPrice);
-      cachedOracles.set(oracleKey, crossbarPrice);
+      updatedOraclePrices.set(oracleKey, crossbarPrice);
     }
-
   } catch (error) {
     console.error("Error:", error);
     res.status(500).json({ error: "Error fetching data" });
   }
 
-  const updatedOracleArray = oracleDataArray.map((value, idx) => {
-    const oraclePrice = cachedOracles.get(value.oracleKey)!;
+  const updatedOraclePricesSorted = requestedOraclesData.map(value => updatedOraclePrices.get(value.oracleKey)!);
 
-    return oraclePrice;
-  });
-
-  res.status(200).json(updatedOracleArray.map(stringifyOraclePrice));
+  res.setHeader("Cache-Control", "s-maxage=20, stale-while-revalidate=59");
+  res.status(200).json(updatedOraclePricesSorted.map(stringifyOraclePrice));
 }
 
 async function fetchCrossbarPrices(feedHashes: string[]): Promise<Map<string, OraclePrice>> {
