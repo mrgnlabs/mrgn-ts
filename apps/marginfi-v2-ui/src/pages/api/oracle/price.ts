@@ -62,7 +62,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       updatedOraclePrices.set(oracleData.oracleKey, oraclePrice);
     }
 
-    if (swbPullOraclesStale.length === 0) {
+    if (swbPullOraclesStale.length > 0) {
       // Batch-fetch and cache price data from Crossbar for stale SwitchboardPull oracles
       const feedHashes = swbPullOraclesStale.map((value) => value.feedHash);
       const crossbarPrices = await fetchCrossbarPrices(feedHashes);
