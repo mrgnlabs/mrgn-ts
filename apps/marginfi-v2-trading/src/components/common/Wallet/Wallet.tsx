@@ -82,7 +82,9 @@ export const Wallet = () => {
 
   const extendedBankInfos = React.useMemo(() => {
     const groups = [...groupMap.values()];
-    return groups.map((group) => group.pool.token).flat();
+    if (!groups.length) return [];
+    const singleUSDCBank = groups[0].pool.quoteTokens[0];
+    return [singleUSDCBank, ...groups.map((group) => group.pool.token).flat()];
   }, [groupMap]);
 
   const activeBank = React.useMemo(() => {
