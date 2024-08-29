@@ -100,5 +100,7 @@ export default async function handler(req: NextApiRequest<WalletRequest>, res: N
     data.tokens = tokens;
   }
 
+  // cache for 4 minutes
+  res.setHeader("Cache-Control", "s-maxage=240, stale-while-revalidate=59");
   return res.status(STATUS_OK).json(data);
 }
