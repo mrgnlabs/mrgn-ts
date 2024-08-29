@@ -76,6 +76,7 @@ export const Wallet = () => {
   const [activeToken, setActiveToken] = React.useState<TokenType | null>(null);
   const [isSwapLoaded, setIsSwapLoaded] = React.useState(false);
   const [isReferralCopied, setIsReferralCopied] = React.useState(false);
+  const [isWalletBalanceErrorShown, setIsWalletBalanceErrorShown] = React.useState(false);
 
   const isMobile = useIsMobile();
 
@@ -98,6 +99,7 @@ export const Wallet = () => {
     if (isFetchingWalletData || !wallet?.publicKey || !extendedBankInfos || isNaN(nativeSolBalance)) return;
 
     setIsFetchingWalletData(true);
+    setIsWalletBalanceErrorShown(false);
 
     try {
       const userBanks = extendedBankInfos.filter(
@@ -153,7 +155,10 @@ export const Wallet = () => {
 
       setIsFetchingWalletData(false);
     } catch (error) {
-      showErrorToast("Error fetching wallet balance");
+      if (!isWalletBalanceErrorShown) {
+        showErrorToast("Error fetching wallet balance");
+        setIsWalletBalanceErrorShown(true);
+      }
       setWalletData({
         address: wallet?.publicKey.toString(),
         shortAddress: shortenAddress(wallet?.publicKey.toString()),
@@ -163,7 +168,7 @@ export const Wallet = () => {
     } finally {
       setIsFetchingWalletData(false);
     }
-  }, [wallet?.publicKey, extendedBankInfos, nativeSolBalance, isFetchingWalletData]);
+  }, [wallet?.publicKey, extendedBankInfos, nativeSolBalance, isFetchingWalletData, isWalletBalanceErrorShown]);
 
   // fetch wallet data on mount and every 20 seconds
   React.useEffect(() => {

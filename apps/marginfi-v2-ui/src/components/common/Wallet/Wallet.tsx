@@ -95,6 +95,7 @@ export const Wallet = () => {
   const [isSwapLoaded, setIsSwapLoaded] = React.useState(false);
   const [isReferralCopied, setIsReferralCopied] = React.useState(false);
   const [bridgeType, setBridgeType] = React.useState<"mayan" | "debridge">("mayan");
+  const [isWalletBalanceErrorShown, setIsWalletBalanceErrorShown] = React.useState(false);
 
   const isMobile = useIsMobile();
 
@@ -112,6 +113,7 @@ export const Wallet = () => {
     if (isFetchingWalletData || !wallet?.publicKey || !extendedBankInfos || isNaN(nativeSolBalance)) return;
 
     setIsFetchingWalletData(true);
+    setIsWalletBalanceErrorShown(false);
 
     try {
       const userBanks = extendedBankInfos.filter(
@@ -165,7 +167,10 @@ export const Wallet = () => {
         tokens: (userTokens || []) as TokenType[],
       });
     } catch (error) {
-      showErrorToast("Error fetching wallet balance");
+      if (!isWalletBalanceErrorShown) {
+        showErrorToast("Error fetching wallet balance");
+        setIsWalletBalanceErrorShown(true);
+      }
       setWalletData({
         address: wallet?.publicKey.toString(),
         shortAddress: shortenAddress(wallet?.publicKey.toString()),
@@ -175,9 +180,11 @@ export const Wallet = () => {
     } finally {
       setIsFetchingWalletData(false);
     }
-  }, [wallet?.publicKey, extendedBankInfos, nativeSolBalance, isFetchingWalletData]);
+  }, [wallet?.publicKey, extendedBankInfos, nativeSolBalance, isFetchingWalletData, isWalletBalanceErrorShown]);
 
   React.useEffect(() => {
+    if (!initialized) return;
+
     if (debounceId.current) {
       clearTimeout(debounceId.current);
     }
@@ -200,7 +207,7 @@ export const Wallet = () => {
         clearTimeout(debounceId.current);
       }
     };
-  }, []);
+  }, [initialized, getWalletData]);
 
   return (
     <>
@@ -221,31 +228,6 @@ export const Wallet = () => {
                 <WalletAvatar pfp={pfp} address={walletData.address} size="md" className="absolute left-2" />
 
                 <div className="mx-auto">
-                  {/* {marginfiAccounts.length > 1 ? (
-                    <WalletAuthAccounts />
-                  ) : (
-                    <CopyToClipboard
-                      text={walletData.address}
-                      onCopy={() => {
-                        setisWalletAddressCopied(true);
-                        setTimeout(() => {
-                          setisWalletAddressCopied(false);
-                        }, 2000);
-                      }}
-                    >
-                      <Button variant="secondary" size="sm" className="text-sm">
-                        {!isWalletAddressCopied ? (
-                          <>
-                            {walletData.shortAddress} <IconCopy size={16} />
-                          </>
-                        ) : (
-                          <>
-                            Copied! <IconCheck size={16} />
-                          </>
-                        )}
-                      </Button>
-                    </CopyToClipboard>
-                  )} */}
                   <WalletAuthAccounts />
                 </div>
                 <div className="absolute right-2 flex items-center md:gap-1">
