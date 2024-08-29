@@ -14,6 +14,41 @@
       "tokenAddress": "EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm",
       "tokenName": "dogwifhat",
       "tokenSymbol": "$WIF"
+    },
+    "EJuhmswifV6wumS28Sfr5W8B18CJ29m1ZNKkhbhbYDCA": {
+      "tokenAddress": "jupSoLaHXQiZZTSfEWMTRRgpnyFm8f6sZdosWBjx93v",
+      "tokenName": "Jupiter Staked SOL",
+      "tokenSymbol": "jupSOL"
+    },
+    "7QYMReTbACXKeX3fJWeJfxJs1gKRrCyWXKq63fUtBDNJ": {
+      "tokenAddress": "he1iusmfkpAdwvxLNGV8Y1iSbj4rUy6yMhEA3fotn9A",
+      "tokenName": "Helius Staked SOL",
+      "tokenSymbol": "hSOL"
+    },
+    "FNEoFRVnmBF5KpRtghHJrJPbdbMjry1E33dNzzHY9UGC": {
+      "tokenAddress": "7kbnvuGBxxj8AG9qp8Scn56muWGaRaFqxg1FsRp3PaFT",
+      "tokenName": "UXD Stablecoin",
+      "tokenSymbol": "UXD"
+    },
+    "GNw2sfgnFX4vermA94de6tgTyftpQHMvWLqFEceVZ1ad": {
+      "tokenAddress": "DUSTawucrTsGU8hcqRdHDCbuYhCPADMLM2VcCb8VnFnQ",
+      "tokenName": "DUST Protocol",
+      "tokenSymbol": "DUST"
+    },
+    "5J6yfh9UK8iMsudMsDz65NHedQRCofGBdcecsVbMG3tY": {
+      "tokenAddress": "METADDFL6wWMWEoKTFJwcThTbUmtarRJZjRpzUvkxhr",
+      "tokenName": "META",
+      "tokenSymbol": "META"
+    },
+    "6hTqUxXyF6rDPoYAQrFftezorJpC9c5hPr9Go75Saobb": {
+      "tokenAddress": "4vMsoUT2BWatFweudnQM1xedRLfJgJ7hswhcpz4xgBTy",
+      "tokenName": "HONEY",
+      "tokenSymbol": "HONEY"
+    },
+    "CRMic9nVJkFYjWYUPFKSTNmdUPSwZyN7Axdy3Y1PAH3z": {
+      "tokenAddress": "3S8qX1MsMqRbiwKg2cQyx7nis1oHMgaCuc9c4VfvVdPN",
+      "tokenName": "MOTHER IGGY",
+      "tokenSymbol": "MOTHER"
     }
   },
   "tokenMetadata": {
@@ -28,6 +63,34 @@
     "$WIF": {
       "name": "dogwifhat",
       "symbol": "$WIF"
+    },
+    "jupSOL": {
+      "name": "Jupiter Staked SOL",
+      "symbol": "jupSOL"
+    },
+    "hSOL": {
+      "name": "Helius Staked SOL",
+      "symbol": "hSOL"
+    },
+    "UXD": {
+      "name": "UXD Stablecoin",
+      "symbol": "UXD"
+    },
+    "DUST": {
+      "name": "DUST Protocol",
+      "symbol": "DUST"
+    },
+    "META": {
+      "name": "META",
+      "symbol": "META"
+    },
+    "HONEY": {
+      "name": "HONEY",
+      "symbol": "HONEY"
+    },
+    "MOTHER": {
+      "name": "MOTHER IGGY",
+      "symbol": "MOTHER"
     }
   }
 }
