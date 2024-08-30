@@ -56,7 +56,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       data: Bank.decodeBankRaw(account.data, program.idl),
     }));
 
-    const host = req.headers.origin || req.headers.referer;
+    const host = extractHost(req.headers.origin) || extractHost(req.headers.referer);
+    if (!host) {
+      return res.status(400).json({ error: 'Invalid input: expected a valid host.' });
+    }
     const feedIdMapRaw: Record<string, string> = await fetch(`${host}/api/oracle/pythFeedMap`).then((response) => response.json());
     const feedIdMap: Map<string, PublicKey> = new Map(Object.entries(feedIdMapRaw).map(([key, value]) => [key, new PublicKey(value)]));
 
@@ -193,4 +196,12 @@ function stringifyOraclePrice(oraclePrice: OraclePrice): OraclePriceString {
     },
     timestamp: oraclePrice.timestamp.toString(),
   };
+}
+
+function extractHost(referer: string | undefined): string | undefined {
+  if (!referer) {
+    return undefined;
+  }
+  const url = new URL(referer);
+  return url.origin;
 }
