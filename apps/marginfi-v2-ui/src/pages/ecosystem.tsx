@@ -23,7 +23,7 @@ const projects = shuffle([
     url: "https://trustless.engineering",
     author: {
       name: "WRTHY",
-      avatar: "/wrthy.png",
+      avatar: "https://storage.googleapis.com/mrgn-public/ecosystem-images/wrthy.png",
       url: "https://trustless.engineering",
     },
   },
@@ -33,7 +33,7 @@ const projects = shuffle([
     url: "https://deficarrot.com/",
     author: {
       name: "Carrot",
-      avatar: "/carrot.jpg",
+      avatar: "https://storage.googleapis.com/mrgn-public/ecosystem-images/carrot.jpg",
       url: "https://deficarrot.com/",
     },
   },
@@ -43,7 +43,7 @@ const projects = shuffle([
     url: "https://www.mantis.app/",
     author: {
       name: "Mantis",
-      avatar: "/mantis.png",
+      avatar: "https://storage.googleapis.com/mrgn-public/ecosystem-images/mantis.png",
       url: "https://www.mantis.app/",
     },
   },
@@ -55,7 +55,7 @@ const projects = shuffle([
     repo: "mrgnlabs/mrgn-ts",
     author: {
       name: "marginfi",
-      avatar: "/mrgn_logo_192.png",
+      avatar: "https://storage.googleapis.com/mrgn-public/ecosystem-images/mrgn_logo_192.png",
       url: "https://marginfi.com",
     },
   },
@@ -67,7 +67,7 @@ const projects = shuffle([
     repo: "mrgnlabs/marginfi-v2",
     author: {
       name: "marginfi",
-      avatar: "/mrgn_logo_192.png",
+      avatar: "https://storage.googleapis.com/mrgn-public/ecosystem-images/mrgn_logo_192.png",
       url: "https://marginfi.com",
     },
   },
@@ -79,7 +79,7 @@ const projects = shuffle([
     repo: "mrgnlabs/mrgn-ts",
     author: {
       name: "marginfi",
-      avatar: "/mrgn_logo_192.png",
+      avatar: "https://storage.googleapis.com/mrgn-public/ecosystem-images/mrgn_logo_192.png",
       url: "https://marginfi.com",
     },
   },
@@ -91,7 +91,7 @@ const projects = shuffle([
     repo: "mrgnlabs/mrgn-ts",
     author: {
       name: "marginfi",
-      avatar: "/mrgn_logo_192.png",
+      avatar: "https://storage.googleapis.com/mrgn-public/ecosystem-images/mrgn_logo_192.png",
       url: "https://marginfi.com",
     },
   },
@@ -102,7 +102,7 @@ const projects = shuffle([
     repo: "mrgnlabs/mrgn-ts",
     author: {
       name: "marginfi",
-      avatar: "/mrgn_logo_192.png",
+      avatar: "https://storage.googleapis.com/mrgn-public/ecosystem-images/mrgn_logo_192.png",
       url: "https://marginfi.com",
     },
   },
@@ -112,7 +112,7 @@ const projects = shuffle([
     url: "https://dune.com/man0s/marginfi/",
     author: {
       name: "man0s",
-      avatar: "https://pbs.twimg.com/profile_images/1597050177084325889/YRXpZdxn_400x400.jpg",
+      avatar: "https://storage.googleapis.com/mrgn-public/ecosystem-images/manos.jpg",
       url: "https://twitter.com/losman0s",
     },
   },
@@ -124,7 +124,7 @@ const projects = shuffle([
     repo: "mrgnlabs/mrgn-account-search",
     author: {
       name: "chambaz",
-      avatar: "https://pbs.twimg.com/profile_images/1791112881766895617/Sv4LpSsw_400x400.jpg",
+      avatar: "https://storage.googleapis.com/mrgn-public/ecosystem-images/chambaz.jpg",
       url: "https://twitter.com/chambaz",
     },
   },
@@ -136,7 +136,7 @@ const projects = shuffle([
     repo: "gohyun14/marginfi-borrow-caps",
     author: {
       name: "0xCosmic",
-      avatar: "https://pbs.twimg.com/profile_images/1720548857904291840/TSUNn3BC_400x400.jpg",
+      avatar: "https://storage.googleapis.com/mrgn-public/ecosystem-images/cosmic.jpg",
       url: "https://twitter.com/0xCosmic_",
     },
   },
@@ -148,7 +148,7 @@ const projects = shuffle([
     repo: "gohyun14/marginfi-borrow-caps",
     author: {
       name: "0xCosmic",
-      avatar: "https://pbs.twimg.com/profile_images/1720548857904291840/TSUNn3BC_400x400.jpg",
+      avatar: "https://storage.googleapis.com/mrgn-public/ecosystem-images/cosmic.jpg",
       url: "https://twitter.com/0xCosmic_",
     },
   },
@@ -158,7 +158,7 @@ const projects = shuffle([
     url: "https://beta.juicer.fi/borrow-lend",
     author: {
       name: "juicerfi",
-      avatar: "https://pbs.twimg.com/profile_images/1767957333668192256/LGEetjVV_400x400.jpg",
+      avatar: "https://storage.googleapis.com/mrgn-public/ecosystem-images/juicerfi.jpg",
       url: "https://twitter.com/juicerfi",
     },
   },
@@ -168,7 +168,7 @@ const projects = shuffle([
     url: "https://www.dreamos.app/",
     author: {
       name: "DreamOS",
-      avatar: "https://pbs.twimg.com/profile_images/1769861055541329920/3pVxclYQ_400x400.jpg",
+      avatar: "https://storage.googleapis.com/mrgn-public/ecosystem-images/dreamOS.jpg",
       url: "https://twitter.com/theDreamOS",
     },
   },
@@ -178,7 +178,7 @@ const projects = shuffle([
     url: "https://fluxbot.xyz/",
     author: {
       name: "FluxBeam",
-      avatar: "https://pbs.twimg.com/profile_images/1659266532898218005/dAQyCgCC_400x400.jpg",
+      avatar: "https://storage.googleapis.com/mrgn-public/ecosystem-images/fluxbot.jpg",
       url: "https://twitter.com/FluxBeamDEX",
     },
   },
@@ -188,7 +188,7 @@ const projects = shuffle([
     url: "https://t.me/AsgardWatchBot",
     author: {
       name: "Asgard",
-      avatar: "/asgardwatchbot.jpg",
+      avatar: "https://storage.googleapis.com/mrgn-public/ecosystem-images/asgardwatchbot.jpg",
       url: "https://twitter.com/asgardfi"
     },
   },
@@ -198,7 +198,7 @@ const projects = shuffle([
     url: "https://bags.fm",
     author: {
       name: "Bags",
-      avatar: "https://pbs.twimg.com/profile_images/1751442866453520384/SsDbz1cU_400x400.jpg",
+      avatar: "https://storage.googleapis.com/mrgn-public/ecosystem-images/bags.webp",
     },
   },
   {
@@ -207,7 +207,7 @@ const projects = shuffle([
     url: "https://www.hampterfi.com/",
     author: {
       name: "Hampter",
-      avatar: "https://pbs.twimg.com/profile_images/1737818252657451008/ClXs-B7y_400x400.jpg",
+      avatar: "https://storage.googleapis.com/mrgn-public/ecosystem-images/hampter.jpg",
     },
   },
   {
@@ -216,7 +216,7 @@ const projects = shuffle([
     url: "https://splitwave.app/",
     author: {
       name: "Splitwave",
-      avatar: "https://pbs.twimg.com/profile_images/1733236904118628352/Zxvz7b9A_400x400.jpg",
+      avatar: "https://storage.googleapis.com/mrgn-public/ecosystem-images/splitwave.jpg",
     },
   },
   {
@@ -225,7 +225,7 @@ const projects = shuffle([
     url: "https://www.meteora.ag/",
     author: {
       name: "Meteora",
-      avatar: "https://pbs.twimg.com/profile_images/1623689233813864450/XDk-DpAP_400x400.jpg",
+      avatar: "https://storage.googleapis.com/mrgn-public/ecosystem-images/meteora.jpg",
     },
   },
   {
@@ -234,7 +234,7 @@ const projects = shuffle([
     url: "https://www.step.finance/",
     author: {
       name: "Step Finance",
-      avatar: "https://pbs.twimg.com/profile_images/1475429797694218242/ThXbtC9p_400x400.jpg",
+      avatar: "https://storage.googleapis.com/mrgn-public/ecosystem-images/step.jpg",
     },
   },
   {
@@ -243,7 +243,7 @@ const projects = shuffle([
     url: "https://sonar.watch/",
     author: {
       name: "SonarWatch",
-      avatar: "https://pbs.twimg.com/profile_images/1709587389339811841/C9hOTnMV_400x400.jpg",
+      avatar: "https://storage.googleapis.com/mrgn-public/ecosystem-images/sonar.jpg",
     },
   },
   {
@@ -252,7 +252,7 @@ const projects = shuffle([
     url: "https://www.assetdash.com/",
     author: {
       name: "AssetDash",
-      avatar: "https://pbs.twimg.com/profile_images/1523849014881525761/eKB3fD5c_400x400.jpg",
+      avatar: "https://storage.googleapis.com/mrgn-public/ecosystem-images/assetdash.jpg",
     },
   },
   {
@@ -261,7 +261,7 @@ const projects = shuffle([
     url: "https://app.pulsar.finance/",
     author: {
       name: "Pulsar Finance",
-      avatar: "https://pbs.twimg.com/profile_images/1610654730778296335/yaq9r3FW_400x400.jpg",
+      avatar: "https://storage.googleapis.com/mrgn-public/ecosystem-images/pulsar.jpg",
     },
   },
   {
@@ -270,7 +270,7 @@ const projects = shuffle([
     url: "https://squads.so/",
     author: {
       name: "Squads",
-      avatar: "https://pbs.twimg.com/profile_images/1707747492014473216/0ABIvUee_400x400.jpg",
+      avatar: "https://storage.googleapis.com/mrgn-public/ecosystem-images/squads.jpg",
     },
   },
 ]);

@@ -24,7 +24,7 @@ const CONTENT = {
       url: "https://trustless.engineering",
       author: {
         name: "WRTHY",
-        avatar: "/images/ecosystem/wrthy.png",
+        avatar: "https://storage.googleapis.com/mrgn-public/ecosystem-images/wrthy.png",
         url: "https://trustless.engineering",
       },
     },
@@ -34,7 +34,7 @@ const CONTENT = {
       url: "https://deficarrot.com/",
       author: {
         name: "Carrot",
-        avatar: "/images/ecosystem/carrot.jpg",
+        avatar: "https://storage.googleapis.com/mrgn-public/ecosystem-images/carrot.jpg",
         url: "https://deficarrot.com/",
       },
     },
@@ -44,8 +44,20 @@ const CONTENT = {
       url: "https://www.mantis.app/",
       author: {
         name: "Mantis",
-        avatar: "/images/ecosystem/mantis.png",
+        avatar: "https://storage.googleapis.com/mrgn-public/ecosystem-images/mantis.png",
         url: "https://www.mantis.app/",
+      },
+    },
+    {
+      title: "The Arena",
+      description: "Memecoin trading, with leverage",
+      url: "https://www.thearena.trade",
+      github: "https://github.com/mrgnlabs/mrgn-ts/tree/main/apps/marginfi-v2-trading",
+      repo: "mrgnlabs/mrgn-ts",
+      author: {
+        name: "marginfi",
+        avatar: "https://storage.googleapis.com/mrgn-public/ecosystem-images/mrgn_logo_192.png",
+        url: "https://marginfi.com",
       },
     },
     {
@@ -56,7 +68,7 @@ const CONTENT = {
       repo: "mrgnlabs/marginfi-v2",
       author: {
         name: "marginfi",
-        avatar: "/images/mrgn_logo_192.png",
+        avatar: "https://storage.googleapis.com/mrgn-public/ecosystem-images/mrgn_logo_192.png",
         url: "https://marginfi.com",
       },
     },
@@ -68,7 +80,7 @@ const CONTENT = {
       repo: "mrgnlabs/mrgn-ts",
       author: {
         name: "marginfi",
-        avatar: "/images/mrgn_logo_192.png",
+        avatar: "https://storage.googleapis.com/mrgn-public/ecosystem-images/mrgn_logo_192.png",
         url: "https://marginfi.com",
       },
     },
@@ -80,7 +92,7 @@ const CONTENT = {
       repo: "mrgnlabs/mrgn-ts",
       author: {
         name: "marginfi",
-        avatar: "/images/mrgn_logo_192.png",
+        avatar: "https://storage.googleapis.com/mrgn-public/ecosystem-images/mrgn_logo_192.png",
         url: "https://marginfi.com",
       },
     },
@@ -91,7 +103,7 @@ const CONTENT = {
       repo: "mrgnlabs/mrgn-ts",
       author: {
         name: "marginfi",
-        avatar: "/images/mrgn_logo_192.png",
+        avatar: "https://storage.googleapis.com/mrgn-public/ecosystem-images/mrgn_logo_192.png",
         url: "https://marginfi.com",
       },
     },
@@ -101,7 +113,7 @@ const CONTENT = {
       url: "https://dune.com/man0s/marginfi/",
       author: {
         name: "man0s",
-        avatar: "https://pbs.twimg.com/profile_images/1597050177084325889/YRXpZdxn_400x400.jpg",
+        avatar: "https://storage.googleapis.com/mrgn-public/ecosystem-images/manos.jpg",
         url: "https://twitter.com/losman0s",
       },
     },
@@ -113,7 +125,7 @@ const CONTENT = {
       repo: "mrgnlabs/mrgn-account-search",
       author: {
         name: "chambaz",
-        avatar: "https://pbs.twimg.com/profile_images/1785355556166795264/LUwJsL89_400x400.jpg",
+        avatar: "https://storage.googleapis.com/mrgn-public/ecosystem-images/chambaz.jpg",
         url: "https://twitter.com/chambaz",
       },
     },
@@ -125,7 +137,7 @@ const CONTENT = {
       repo: "gohyun14/marginfi-borrow-caps",
       author: {
         name: "0xCosmic",
-        avatar: "https://pbs.twimg.com/profile_images/1720548857904291840/TSUNn3BC_400x400.jpg",
+        avatar: "https://storage.googleapis.com/mrgn-public/ecosystem-images/cosmic.jpg",
         url: "https://twitter.com/0xCosmic_",
       },
     },
@@ -137,7 +149,7 @@ const CONTENT = {
       repo: "gohyun14/marginfi-borrow-caps",
       author: {
         name: "0xCosmic",
-        avatar: "https://pbs.twimg.com/profile_images/1720548857904291840/TSUNn3BC_400x400.jpg",
+        avatar: "https://storage.googleapis.com/mrgn-public/ecosystem-images/cosmic.jpg",
         url: "https://twitter.com/0xCosmic_",
       },
     },
@@ -147,7 +159,7 @@ const CONTENT = {
       url: "https://beta.juicer.fi/borrow-lend",
       author: {
         name: "juicerfi",
-        avatar: "https://pbs.twimg.com/profile_images/1767957333668192256/LGEetjVV_400x400.jpg",
+        avatar: "https://storage.googleapis.com/mrgn-public/ecosystem-images/juicerfi.jpg",
         url: "https://twitter.com/juicerfi",
       },
     },
@@ -157,7 +169,7 @@ const CONTENT = {
       url: "https://www.dreamos.app/",
       author: {
         name: "DreamOS",
-        avatar: "https://pbs.twimg.com/profile_images/1769861055541329920/3pVxclYQ_400x400.jpg",
+        avatar: "https://storage.googleapis.com/mrgn-public/ecosystem-images/dreamOS.jpg",
         url: "https://twitter.com/theDreamOS",
       },
     },
@@ -167,7 +179,7 @@ const CONTENT = {
       url: "https://fluxbot.xyz/",
       author: {
         name: "FluxBeam",
-        avatar: "https://pbs.twimg.com/profile_images/1659266532898218005/dAQyCgCC_400x400.jpg",
+        avatar: "https://storage.googleapis.com/mrgn-public/ecosystem-images/fluxbot.jpg",
         url: "https://twitter.com/FluxBeamDEX",
       },
     },
@@ -177,8 +189,8 @@ const CONTENT = {
       url: "https://t.me/AsgardWatchBot",
       author: {
         name: "Asgard",
-        avatar: "/images/ecosystem/asgardwatchbot.jpg",
-        url: "https://twitter.com/asgardfi",
+        avatar: "https://storage.googleapis.com/mrgn-public/ecosystem-images/asgardwatchbot.jpg",
+        url: "https://twitter.com/asgardfi"
       },
     },
     {
@@ -187,7 +199,7 @@ const CONTENT = {
       url: "https://bags.fm",
       author: {
         name: "Bags",
-        avatar: "https://pbs.twimg.com/profile_images/1751442866453520384/SsDbz1cU_400x400.jpg",
+        avatar: "https://storage.googleapis.com/mrgn-public/ecosystem-images/bags.webp",
       },
     },
     {
@@ -196,7 +208,7 @@ const CONTENT = {
       url: "https://www.hampterfi.com/",
       author: {
         name: "Hampter",
-        avatar: "https://pbs.twimg.com/profile_images/1737818252657451008/ClXs-B7y_400x400.jpg",
+        avatar: "https://storage.googleapis.com/mrgn-public/ecosystem-images/hampter.jpg",
       },
     },
     {
@@ -205,7 +217,7 @@ const CONTENT = {
       url: "https://splitwave.app/",
       author: {
         name: "Splitwave",
-        avatar: "https://pbs.twimg.com/profile_images/1733236904118628352/Zxvz7b9A_400x400.jpg",
+        avatar: "https://storage.googleapis.com/mrgn-public/ecosystem-images/splitwave.jpg",
       },
     },
     {
@@ -214,7 +226,7 @@ const CONTENT = {
       url: "https://www.meteora.ag/",
       author: {
         name: "Meteora",
-        avatar: "https://pbs.twimg.com/profile_images/1623689233813864450/XDk-DpAP_400x400.jpg",
+        avatar: "https://storage.googleapis.com/mrgn-public/ecosystem-images/meteora.jpg",
       },
     },
     {
@@ -223,7 +235,7 @@ const CONTENT = {
       url: "https://www.step.finance/",
       author: {
         name: "Step Finance",
-        avatar: "https://pbs.twimg.com/profile_images/1475429797694218242/ThXbtC9p_400x400.jpg",
+        avatar: "https://storage.googleapis.com/mrgn-public/ecosystem-images/step.jpg",
       },
     },
     {
@@ -232,7 +244,7 @@ const CONTENT = {
       url: "https://sonar.watch/",
       author: {
         name: "SonarWatch",
-        avatar: "https://pbs.twimg.com/profile_images/1709587389339811841/C9hOTnMV_400x400.jpg",
+        avatar: "https://storage.googleapis.com/mrgn-public/ecosystem-images/sonar.jpg",
       },
     },
     {
@@ -241,7 +253,7 @@ const CONTENT = {
       url: "https://www.assetdash.com/",
       author: {
         name: "AssetDash",
-        avatar: "https://pbs.twimg.com/profile_images/1523849014881525761/eKB3fD5c_400x400.jpg",
+        avatar: "https://storage.googleapis.com/mrgn-public/ecosystem-images/assetdash.jpg",
       },
     },
     {
@@ -250,7 +262,7 @@ const CONTENT = {
       url: "https://app.pulsar.finance/",
       author: {
         name: "Pulsar Finance",
-        avatar: "https://pbs.twimg.com/profile_images/1610654730778296335/yaq9r3FW_400x400.jpg",
+        avatar: "https://storage.googleapis.com/mrgn-public/ecosystem-images/pulsar.jpg",
       },
     },
     {
@@ -259,7 +271,7 @@ const CONTENT = {
       url: "https://squads.so/",
       author: {
         name: "Squads",
-        avatar: "https://pbs.twimg.com/profile_images/1707747492014473216/0ABIvUee_400x400.jpg",
+        avatar: "https://storage.googleapis.com/mrgn-public/ecosystem-images/squads.jpg",
       },
     },
   ]).slice(0, 6),
