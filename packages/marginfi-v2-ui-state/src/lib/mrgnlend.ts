@@ -574,7 +574,7 @@ async function fetchGroupData(
 
   async function fetchOraclePrices() {
     const bankDataKeysStr = bankDatasKeyed.map((b) => b.address.toBase58());
-    const response = await fetch(`/api/oracle/price2?banks=${bankDataKeysStr.join(",")}`, {
+    const response = await fetch(`/api/oracle/price?banks=${bankDataKeysStr.join(",")}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
