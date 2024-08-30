@@ -566,61 +566,60 @@ async function fetchGroupData(
     }));
   }
 
-  const feedIdMap = await buildFeedIdMap(
-    bankDatasKeyed.map((b) => b.data.config),
-    program.provider.connection
-  );
+  async function fetchPythFeedMap() {
+    const feedIdMapRaw: Record<string, string> = await fetch(`/api/oracle/pythFeedMap`).then((response) => response.json());
+    const feedIdMap: Map<string, PublicKey> = new Map(Object.entries(feedIdMapRaw).map(([key, value]) => [key, new PublicKey(value)]));
+    return feedIdMap;
+  }
 
-  // const oracleKeys = bankDatasKeyed.map((b) => b.data.config.oracleKeys[0]);
+  async function fetchOraclePrices() {
+    const bankDataKeysStr = bankDatasKeyed.map((b) => b.address.toBase58());
+    const response = await fetch(`/api/oracle/price2?banks=${bankDataKeysStr.join(",")}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch oracle prices");
+    }
+
+    const responseBody = await response.json();
+
+    if (!responseBody) {
+      throw new Error("Failed to fetch oracle prices");
+    }
+
+    const oraclePrices = responseBody.map((oraclePrice: any) => ({
+      priceRealtime: {
+        price: BigNumber(oraclePrice.priceRealtime.price),
+        confidence: BigNumber(oraclePrice.priceRealtime.confidence),
+        lowestPrice: BigNumber(oraclePrice.priceRealtime.lowestPrice),
+        highestPrice: BigNumber(oraclePrice.priceRealtime.highestPrice),
+      },
+      priceWeighted: {
+        price: BigNumber(oraclePrice.priceWeighted.price),
+        confidence: BigNumber(oraclePrice.priceWeighted.confidence),
+        lowestPrice: BigNumber(oraclePrice.priceWeighted.lowestPrice),
+        highestPrice: BigNumber(oraclePrice.priceWeighted.highestPrice),
+      },
+      timestamp: oraclePrice.timestamp ? BigNumber(oraclePrice.timestamp) : null,
+    })) as OraclePrice[];
+
+    return oraclePrices;
+  }
+
+  const [feedIdMapRaw, oraclePrices] = await Promise.all([
+    fetchPythFeedMap(),
+    fetchOraclePrices(),
+  ]);
+  const feedIdMap: Map<string, PublicKey> = new Map(Object.entries(feedIdMapRaw).map(([key, value]) => [key, new PublicKey(value)]));
+
   const mintKeys = bankDatasKeyed.map((b) => b.data.mint);
   const emissionMintKeys = bankDatasKeyed
     .map((b) => b.data.emissionsMint)
     .filter((pk) => !pk.equals(PublicKey.default)) as PublicKey[];
-  const oracleKeys = bankDatasKeyed.map((b) => findOracleKey(BankConfig.fromAccountParsed(b.data.config), feedIdMap));
-
-  const oracleObject = bankDatasKeyed.map((b) => ({
-    oracleKey: findOracleKey(BankConfig.fromAccountParsed(b.data.config), feedIdMap).toBase58(),
-    oracleSetup: parseOracleSetup(b.data.config.oracleSetup),
-    maxAge: b.data.config.oracleMaxAge,
-  }));
-
-  const response = await fetch(`/api/oracle/price`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(oracleObject),
-  });
-
-  const response2 = await fetch(`/api/oracle/test`, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
-  console.log("resopnse2", response2);
-
-  const responseBody = await response.json();
-
-  if (!responseBody) {
-    throw new Error("Failed to fetch oracle prices");
-  }
-
-  const oraclePrices = responseBody.map((oraclePrice: any) => ({
-    priceRealtime: {
-      price: BigNumber(oraclePrice.priceRealtime.price),
-      confidence: BigNumber(oraclePrice.priceRealtime.confidence),
-      lowestPrice: BigNumber(oraclePrice.priceRealtime.lowestPrice),
-      highestPrice: BigNumber(oraclePrice.priceRealtime.highestPrice),
-    },
-    priceWeighted: {
-      price: BigNumber(oraclePrice.priceWeighted.price),
-      confidence: BigNumber(oraclePrice.priceWeighted.confidence),
-      lowestPrice: BigNumber(oraclePrice.priceWeighted.lowestPrice),
-      highestPrice: BigNumber(oraclePrice.priceWeighted.highestPrice),
-    },
-    timestamp: oraclePrice.timestamp ? BigNumber(oraclePrice.timestamp) : null,
-  })) as OraclePrice[];
 
   // Batch-fetch the group account and all the oracle accounts as per the banks retrieved above
   const allAis = await chunkedGetRawMultipleAccountInfoOrdered(program.provider.connection, [
