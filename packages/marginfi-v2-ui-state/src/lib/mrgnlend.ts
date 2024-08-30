@@ -592,6 +592,14 @@ async function fetchGroupData(
     body: JSON.stringify(oracleObject),
   });
 
+  const response2 = await fetch(`/api/oracle/test`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+  console.log("resopnse2", response2);
+
   const responseBody = await response.json();
 
   if (!responseBody) {
