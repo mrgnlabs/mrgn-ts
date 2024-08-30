@@ -1,9 +1,11 @@
-import { OraclePrice, OracleSetup, parsePriceInfo } from "@mrgnlabs/marginfi-client-v2";
+import { Program, AnchorProvider } from "@coral-xyz/anchor";
+import { Bank, BankConfig, BankRaw, findOracleKey, MARGINFI_IDL, MarginfiIdlType, MarginfiProgram, OraclePrice, OracleSetup, parseOracleSetup, parsePriceInfo } from "@mrgnlabs/marginfi-client-v2";
 import { CrossbarSimulatePayload, decodeSwitchboardPullFeedData, FeedResponse } from "@mrgnlabs/marginfi-client-v2/dist/vendor";
-import { chunkedGetRawMultipleAccountInfoOrdered, median } from "@mrgnlabs/mrgn-common";
-import { Connection } from "@solana/web3.js";
+import { chunkedGetRawMultipleAccountInfoOrdered, median, Wallet } from "@mrgnlabs/mrgn-common";
+import { Connection, PublicKey } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 import { NextApiRequest, NextApiResponse } from "next";
+import config from "~/config/marginfi";
 
 const SWITCHBOARD_CROSSSBAR_API = "https://crossbar.switchboard.xyz";
 
@@ -27,18 +29,43 @@ interface OraclePriceString {
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const requestedOraclesData: OracleData[] = req.body;
+  console.log("EXEC price2");
+  const requestedBanksRaw = req.query.banks;
 
-  if (!Array.isArray(requestedOraclesData) || requestedOraclesData.length === 0) {
-    res.status(400).json({ error: "Invalid input: expected an array of objects" });
-    return;
+  if (!(requestedBanksRaw) || typeof requestedBanksRaw !== 'string') {
+    return res.status(400).json({ error: 'Invalid input: expected an array of bank base58-encoded addresses.' });
   }
 
+  const requestedBanks = requestedBanksRaw.split(',').map((bankAddress) => bankAddress.trim());
+
   const connection = new Connection(process.env.NEXT_PUBLIC_MARGINFI_RPC_ENDPOINT_OVERRIDE || "");
+  const idl = { ...MARGINFI_IDL, address: config.mfiConfig.programId.toBase58() } as unknown as MarginfiIdlType;
+  const provider = new AnchorProvider(connection, {} as Wallet, {
+    ...AnchorProvider.defaultOptions(),
+    commitment: connection.commitment ?? AnchorProvider.defaultOptions().commitment,
+  });
+  const program = new Program(idl, provider) as any as MarginfiProgram;
 
   let updatedOraclePrices = new Map<string, OraclePrice>();
 
   try {
+    // Fetch on-chain data for all banks
+    const banksAis = await chunkedGetRawMultipleAccountInfoOrdered(connection, requestedBanks);
+    let banksMap: { address: PublicKey; data: BankRaw }[] = banksAis.map((account, index) => ({
+      address: new PublicKey(requestedBanks[index]),
+      data: Bank.decodeBankRaw(account.data, program.idl),
+    }));
+
+    const host = req.headers.origin || req.headers.referer;
+    const feedIdMapRaw: Record<string, string> = await fetch(`${host}/api/oracle/pythFeedMap`).then((response) => response.json());
+    const feedIdMap: Map<string, PublicKey> = new Map(Object.entries(feedIdMapRaw).map(([key, value]) => [key, new PublicKey(value)]));
+
+    const requestedOraclesData = banksMap.map((b) => ({
+      oracleKey: findOracleKey(BankConfig.fromAccountParsed(b.data.config), feedIdMap).toBase58(),
+      oracleSetup: parseOracleSetup(b.data.config.oracleSetup),
+      maxAge: b.data.config.oracleMaxAge,
+    }));
+
     // Fetch on-chain data for all oracles
     const oracleAis = await chunkedGetRawMultipleAccountInfoOrdered(connection, [
       ...requestedOraclesData.map((oracleData) => oracleData.oracleKey),
@@ -76,14 +103,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         updatedOraclePrices.set(oracleKey, crossbarPrice);
       }
     }
+
     const updatedOraclePricesSorted = requestedOraclesData.map(value => updatedOraclePrices.get(value.oracleKey)!);
 
-    // res.setHeader("Cache-Control", "s-maxage=20, stale-while-revalidate=59");
+    res.setHeader("Cache-Control", "s-maxage=20, stale-while-revalidate=59");
     return res.status(200).json(updatedOraclePricesSorted.map(stringifyOraclePrice));
   } catch (error) {
     console.error("Error:", error);
     return res.status(500).json({ error: "Error fetching data" });
   }
+
 }
 
 async function fetchCrossbarPrices(feedHashes: string[]): Promise<Map<string, OraclePrice>> {
