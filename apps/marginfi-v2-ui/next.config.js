@@ -45,6 +45,12 @@ let config = withBundleAnalyzer({
     remotePatterns: [
       {
         protocol: "https",
+        hostname: "storage.googleapis.com",
+        port: "",
+        pathname: "/mrgn-public/**/*",
+      },
+      {
+        protocol: "https",
         hostname: "raw.githubusercontent.com",
         port: "",
         pathname: "/solana-labs/token-list/main/assets/mainnet/**",
