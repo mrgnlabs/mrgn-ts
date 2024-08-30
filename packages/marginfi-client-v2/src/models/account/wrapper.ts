@@ -969,7 +969,7 @@ class MarginfiAccountWrapper {
     );
   }
 
-  async borrow(amount: Amount, bankAddress: PublicKey, opt: MakeBorrowIxOpts = {}): Promise<string> {
+  async borrow(amount: Amount, bankAddress: PublicKey, opt: MakeBorrowIxOpts = {}): Promise<string[]> {
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:borrow`);
     debug("Borrowing %s from marginfi account", amount);
     const bundleTipIx = makeBundleTipIx(this.client.provider.publicKey);
@@ -982,19 +982,35 @@ class MarginfiAccountWrapper {
       value: { blockhash },
     } = await this._program.provider.connection.getLatestBlockhashAndContext();
 
+    // separate bundle tip + feed updates message
+    const bundleTipFeedUpdateMessage = new TransactionMessage({
+      instructions: [bundleTipIx, ...updateFeedIxs],
+      payerKey: this.authority,
+      recentBlockhash: blockhash,
+    });
+
+    // borrow message with including bundle tip if no feed updates
     const borrowMessage = new TransactionMessage({
-      instructions: [bundleTipIx, ...cuRequestIxs, ...priorityFeeIxs, ...updateFeedIxs, ...ixs.instructions],
+      instructions: [
+        ...(updateFeedIxs.length ? [] : [bundleTipIx]),
+        ...cuRequestIxs,
+        ...priorityFeeIxs,
+        ...updateFeedIxs,
+        ...ixs.instructions,
+      ],
       payerKey: this.authority,
       recentBlockhash: blockhash,
     });
 
     const lookupTables = [...this.client.addressLookupTables, ...feedLuts];
 
-    const versionedTx = new VersionedTransaction(borrowMessage.compileToV0Message(lookupTables));
+    const bundleTipFeedUpdateTx = new VersionedTransaction(bundleTipFeedUpdateMessage.compileToV0Message(lookupTables));
+    const borrowTx = new VersionedTransaction(borrowMessage.compileToV0Message(lookupTables));
 
-    const sig = this.client.processTransaction(versionedTx, [], {});
-    debug("Borrowing successful %s", sig);
-    return sig;
+    // process multiple transactions if feed updates required
+    const sigs = this.client.processTransactions([...(updateFeedIxs.length ? [bundleTipFeedUpdateTx] : []), borrowTx]);
+    debug("Borrowing successful %s", sigs);
+    return sigs;
   }
 
   async simulateBorrow(amount: Amount, bankAddress: PublicKey): Promise<SimulationResult> {
@@ -1188,7 +1204,7 @@ class MarginfiAccountWrapper {
     const activeBanksPk = this._marginfiAccount.balances
       .filter((balance) => balance.active || banksPk.includes(balance.bankPk))
       .map((balance) => balance.bankPk);
-    const activeBanks = activeBanksPk.map(pk => this.client.banks.get(pk.toBase58())!);
+    const activeBanks = activeBanksPk.map((pk) => this.client.banks.get(pk.toBase58())!);
     const swbPullBanks = activeBanks.filter((bank) => bank.config.oracleSetup === OracleSetup.SwitchboardPull);
 
     if (swbPullBanks.length > 0) {
