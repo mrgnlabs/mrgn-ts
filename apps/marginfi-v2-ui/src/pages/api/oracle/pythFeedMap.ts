@@ -34,12 +34,12 @@ export default async function handler(_req: NextApiRequest, res: NextApiResponse
     );
 
     res.setHeader("Cache-Control", "s-maxage=60, stale-while-revalidate=119");
-    res.status(200).json(stringifyFeedIdMap(feedIdMap));
+    return res.status(200).json(stringifyFeedIdMap(feedIdMap));
   } catch (error) {
     console.error("Error:", error);
+    return res.status(500).json({ error: "Error fetching data" });
   }
 
-  res.status(500).json({ error: "Error fetching data" });
 }
 
 function stringifyFeedIdMap(feedIdMap: Map<string, PublicKey>) {

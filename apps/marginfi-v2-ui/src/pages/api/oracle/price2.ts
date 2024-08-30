@@ -107,12 +107,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const updatedOraclePricesSorted = requestedOraclesData.map(value => updatedOraclePrices.get(value.oracleKey)!);
 
     res.setHeader("Cache-Control", "s-maxage=20, stale-while-revalidate=59");
-    res.status(200).json(updatedOraclePricesSorted.map(stringifyOraclePrice));
+    return res.status(200).json(updatedOraclePricesSorted.map(stringifyOraclePrice));
   } catch (error) {
     console.error("Error:", error);
+    return res.status(500).json({ error: "Error fetching data" });
   }
 
-  res.status(500).json({ error: "Error fetching data" });
 }
 
 async function fetchCrossbarPrices(feedHashes: string[]): Promise<Map<string, OraclePrice>> {
