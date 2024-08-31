@@ -18,7 +18,7 @@ interface ActionBoxPreviewProps {
   repayWithCollatOptions?: RepayWithCollatOptions;
   actionTxns: {
     actionTxn: VersionedTransaction | null;
-    bundleTipTxn: VersionedTransaction[];
+    feedCrankTxs: VersionedTransaction[];
   };
   addAdditionalsPopup: (actions: ActionMethod[]) => void;
   children: React.ReactNode;
@@ -51,7 +51,7 @@ export const LendingPreview = ({
     repayWithCollatOptions,
     borrowWithdrawOptions: {
       actionTx: actionTxns.actionTxn,
-      bundleTipTxs: actionTxns.bundleTipTxn,
+      feedCrankTxs: actionTxns.feedCrankTxs,
     },
   });
 

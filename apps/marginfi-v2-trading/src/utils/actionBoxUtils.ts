@@ -185,7 +185,7 @@ export async function verifyJupTxSize(
         repayBank: repayBank,
         connection,
         repayCollatTxn: null,
-        bundleTipTxn: [],
+        feedCrankTxs: [],
       },
       priorityFee,
       isTxnSplit,
@@ -199,7 +199,7 @@ export async function verifyJupTxSize(
     if (totalSize > 1232 || totalKeys >= 64) {
       // too big
     } else {
-      return { flashloanTx: builder.flashloanTx, bundleTipTxn: builder.bundleTipTxn };
+      return { flashloanTx: builder.flashloanTx, feedCrankTxs: builder.feedCrankTxs };
     }
   } catch (error) {
     console.error(error);

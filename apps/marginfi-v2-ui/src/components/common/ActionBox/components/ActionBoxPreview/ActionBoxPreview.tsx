@@ -14,7 +14,7 @@ interface ActionBoxPreviewProps {
   actionMode: ActionType;
   actionTxns: {
     actionTxn: VersionedTransaction | null;
-    bundleTipTxn: VersionedTransaction[];
+    feedCrankTxs: VersionedTransaction[];
   };
   amount: number;
   slippageBps: number;

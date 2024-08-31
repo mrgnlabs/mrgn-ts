@@ -24,7 +24,7 @@ import { isWholePosition, extractErrorString } from "./mrgnUtils";
 
 export type RepayWithCollatOptions = {
   repayCollatQuote: QuoteResponse;
-  bundleTipTxn: VersionedTransaction[];
+  feedCrankTxs: VersionedTransaction[];
   repayCollatTxn: VersionedTransaction | null;
   repayAmount: number;
   repayBank: ExtendedBankInfo;
@@ -346,7 +346,7 @@ export async function repayWithCollatBuilder({
   const swapLUTs: AddressLookupTableAccount[] = [];
   swapLUTs.push(...(await getAdressLookupTableAccounts(options.connection, addressLookupTableAddresses)));
 
-  const { flashloanTx, bundleTipTxn, addressLookupTableAccounts } = await marginfiAccount.makeRepayWithCollatTx(
+  const { flashloanTx, feedCrankTxs, addressLookupTableAccounts } = await marginfiAccount.makeRepayWithCollatTx(
     amount,
     options.repayAmount,
     bank.address,
@@ -359,7 +359,7 @@ export async function repayWithCollatBuilder({
     isTxnSplit
   );
 
-  return { flashloanTx, bundleTipTxn, addressLookupTableAccounts };
+  return { flashloanTx, feedCrankTxs, addressLookupTableAccounts };
 }
 
 export async function repayWithCollat({
@@ -391,9 +391,9 @@ export async function repayWithCollat({
     let sigs: string[] = [];
 
     if (options.repayCollatTxn) {
-      sigs = await marginfiClient.processTransactions([...options.bundleTipTxn, options.repayCollatTxn]);
+      sigs = await marginfiClient.processTransactions([...options.feedCrankTxs, options.repayCollatTxn]);
     } else {
-      const { flashloanTx, bundleTipTxn } = await repayWithCollatBuilder({
+      const { flashloanTx, feedCrankTxs } = await repayWithCollatBuilder({
         marginfiAccount,
         bank,
         amount,
@@ -402,7 +402,7 @@ export async function repayWithCollat({
         isTxnSplit,
       });
 
-      sigs = await marginfiClient.processTransactions([...bundleTipTxn, flashloanTx]);
+      sigs = await marginfiClient.processTransactions([...feedCrankTxs, flashloanTx]);
     }
 
     multiStepToast.setSuccessAndNext();

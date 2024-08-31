@@ -391,7 +391,7 @@ class MarginfiAccountWrapper {
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:repay`);
     debug("Repaying %s into marginfi account (bank: %s), repay all: %s", repayAmount, borrowBankAddress, repayAll);
 
-    const { flashloanTx, bundleTipTxn } = await this.makeRepayWithCollatTx(
+    const { flashloanTx, feedCrankTxs } = await this.makeRepayWithCollatTx(
       repayAmount,
       withdrawAmount,
       borrowBankAddress,
@@ -404,7 +404,7 @@ class MarginfiAccountWrapper {
     );
 
     // assumes only one tx
-    const sigs = await this.client.processTransactions([flashloanTx, ...bundleTipTxn]);
+    const sigs = await this.client.processTransactions([flashloanTx, ...feedCrankTxs]);
     debug("Repay with collateral successful %s", sigs.pop() ?? "");
 
     return sigs;
@@ -477,7 +477,7 @@ class MarginfiAccountWrapper {
     isTxnSplitParam?: boolean
   ): Promise<{
     flashloanTx: VersionedTransaction;
-    bundleTipTxn: VersionedTransaction[];
+    feedCrankTxs: VersionedTransaction[];
     addressLookupTableAccounts: AddressLookupTableAccount[];
   }> {
     const setupIxs = await this.makeSetupIx([borrowBankAddress, depositBankAddress]);
@@ -501,7 +501,7 @@ class MarginfiAccountWrapper {
 
     const addressLookupTableAccounts = [...lookupTables, ...swapLookupTables];
 
-    let bundleTipTxn: VersionedTransaction[] = [];
+    let feedCrankTxs: VersionedTransaction[] = [];
 
     // isTxnSplit forced set to true as we're always splitting now
     const isTxnSplit = true; //isTxnSplitParam
@@ -513,7 +513,7 @@ class MarginfiAccountWrapper {
         instructions: [bundleTipIx, ...updateFeedIxs],
       }).compileToV0Message([...addressLookupTableAccounts, ...feedLuts]);
 
-      bundleTipTxn = [new VersionedTransaction(message)];
+      feedCrankTxs = [new VersionedTransaction(message)];
     }
 
     const flashloanTx = await this.buildFlashLoanTx({
@@ -529,7 +529,7 @@ class MarginfiAccountWrapper {
       addressLookupTableAccounts,
     });
 
-    return { flashloanTx, bundleTipTxn, addressLookupTableAccounts };
+    return { flashloanTx, feedCrankTxs, addressLookupTableAccounts };
   }
 
   async loop(
@@ -552,7 +552,7 @@ class MarginfiAccountWrapper {
       } into marginfi account (banks: ${depositBankAddress.toBase58()} / ${borrowBankAddress.toBase58()})`
     );
 
-    const { flashloanTx, bundleTipTxn } = await this.makeLoopTx(
+    const { flashloanTx, feedCrankTxs } = await this.makeLoopTx(
       depositAmount,
       borrowAmount,
       depositBankAddress,
@@ -562,6 +562,7 @@ class MarginfiAccountWrapper {
       priorityFeeUi
     );
 
+    // TODO: Check why different than repayWithCollat
     const sig = await this.client.processTransaction(flashloanTx, []);
     debug("Repay with collateral successful %s", sig);
 
@@ -639,7 +640,7 @@ class MarginfiAccountWrapper {
     isTxnSplitParam?: boolean
   ): Promise<{
     flashloanTx: VersionedTransaction;
-    bundleTipTxn: VersionedTransaction[];
+    feedCrankTxs: VersionedTransaction[];
     addressLookupTableAccounts: AddressLookupTableAccount[];
   }> {
     const depositBank = this.client.banks.get(depositBankAddress.toBase58());
@@ -667,7 +668,7 @@ class MarginfiAccountWrapper {
 
     const addressLookupTableAccounts = [...lookupTables, ...swapLookupTables];
 
-    let bundleTipTxn: VersionedTransaction[] = [];
+    let feedCrankTxs: VersionedTransaction[] = [];
 
     // isTxnSplit forced set to true as we're always splitting now
     const isTxnSplit = true; //isTxnSplitParam
@@ -679,7 +680,7 @@ class MarginfiAccountWrapper {
         instructions: [bundleTipIx, ...updateFeedIxs],
       }).compileToV0Message([...addressLookupTableAccounts, ...feedLuts]);
 
-      bundleTipTxn = [new VersionedTransaction(message)];
+      feedCrankTxs = [new VersionedTransaction(message)];
     }
 
     const flashloanTx = await this.buildFlashLoanTx({
@@ -695,7 +696,7 @@ class MarginfiAccountWrapper {
       addressLookupTableAccounts,
     });
 
-    return { flashloanTx, bundleTipTxn, addressLookupTableAccounts };
+    return { flashloanTx, feedCrankTxs, addressLookupTableAccounts };
   }
 
   async makeDepositIx(

@@ -261,8 +261,8 @@ export async function executeLeverageAction({
     if (loopingObject.loopingTxn) {
       let txnSig: string[] = [];
 
-      if (loopingObject.bundleTipTxn) {
-        txnSig = await marginfiClient.processTransactions([...loopingObject.bundleTipTxn, loopingObject.loopingTxn]);
+      if (loopingObject.feedCrankTxs) {
+        txnSig = await marginfiClient.processTransactions([...loopingObject.feedCrankTxs, loopingObject.loopingTxn]);
       } else {
         txnSig = [await marginfiClient.processTransaction(loopingObject.loopingTxn)];
       }
@@ -300,10 +300,10 @@ export async function calculateClosePositions({
   platformFeeBps?: number;
 }): Promise<
   | {
-      closeTxn: VersionedTransaction | Transaction;
-      bundleTipTxn: VersionedTransaction[];
-      quote?: QuoteResponse;
-    }
+    closeTxn: VersionedTransaction | Transaction;
+    feedCrankTxs: VersionedTransaction[];
+    quote?: QuoteResponse;
+  }
   | ActionMethod
 > {
   // user is borrowing and depositing
@@ -329,7 +329,7 @@ export async function calculateClosePositions({
     );
     return {
       closeTxn: txn,
-      bundleTipTxn: [],
+      feedCrankTxs: [],
     };
   }
 

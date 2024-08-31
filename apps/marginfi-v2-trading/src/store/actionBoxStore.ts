@@ -34,7 +34,7 @@ interface ActionBoxState {
   repayCollatQuote: QuoteResponse | null;
   repayCollatTxns: {
     repayCollatTxn: VersionedTransaction | null;
-    bundleTipTxn: VersionedTransaction[];
+    feedCrankTxs: VersionedTransaction[];
   };
 
   errorMessage: ActionMethod | null;
@@ -114,7 +114,7 @@ const initialState = {
   repayCollatQuote: null,
   repayCollatTxns: {
     repayCollatTxn: null,
-    bundleTipTxn: [],
+    feedCrankTxs: [],
   },
 
   isLoading: false,
@@ -230,7 +230,7 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
       set({
         repayCollatTxns: {
           repayCollatTxn: repayCollat.repayTxn,
-          bundleTipTxn: repayCollat.bundleTipTxn,
+          feedCrankTxs: repayCollat.feedCrankTxs,
         },
         repayCollatQuote: repayCollat.quote,
         amountRaw: repayCollat.amount.toString(),

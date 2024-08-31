@@ -25,7 +25,7 @@ interface UseLendingPreviewProps {
   repayWithCollatOptions?: RepayWithCollatOptions;
   borrowWithdrawOptions?: {
     actionTx: VersionedTransaction | null;
-    bundleTipTxs: VersionedTransaction[];
+    feedCrankTxs: VersionedTransaction[];
   };
 }
 

@@ -43,7 +43,7 @@ export const PositionActionButtons = ({
   const [platformFeeBps] = useUiStore((state) => [state.platformFeeBps]);
   const [actionTransaction, setActionTransaction] = React.useState<{
     closeTxn: VersionedTransaction | Transaction;
-    bundleTipTxn: VersionedTransaction[];
+    feedCrankTxs: VersionedTransaction[];
     quote?: QuoteResponse;
   } | null>(null);
   const [isLoading, setIsLoading] = React.useState(false);
@@ -151,7 +151,7 @@ export const PositionActionButtons = ({
         multiStepToast.setSuccessAndNext();
       } else {
         txnSig = await activeGroup.client.processTransactions([
-          ...actionTransaction.bundleTipTxn,
+          ...actionTransaction.feedCrankTxs,
           actionTransaction.closeTxn,
         ]);
         multiStepToast.setSuccessAndNext();
