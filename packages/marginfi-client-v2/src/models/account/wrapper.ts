@@ -877,7 +877,7 @@ class MarginfiAccountWrapper {
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:withdraw`);
     debug("Withdrawing %s from marginfi account", amount);
 
-    const { bundleTipFeedUpdateTxs, withdrawTx, addressLookupTableAccounts } = await this.makeWithdrawTx(
+    const { feedCrankTxs, withdrawTx } = await this.makeWithdrawTx(
       amount,
       bankAddress,
       withdrawAll,
@@ -886,7 +886,7 @@ class MarginfiAccountWrapper {
 
     // process multiple transactions if feed updates required
     const sigs = await this.client.processTransactions([
-      ...(bundleTipFeedUpdateTxs.length ? bundleTipFeedUpdateTxs : []),
+      ...feedCrankTxs,
       withdrawTx,
     ]);
 
@@ -900,25 +900,24 @@ class MarginfiAccountWrapper {
     withdrawAll: boolean = false,
     opt: MakeWithdrawIxOpts = {}
   ): Promise<{
-    bundleTipFeedUpdateTxs: VersionedTransaction[];
+    feedCrankTxs: VersionedTransaction[];
     withdrawTx: VersionedTransaction;
     addressLookupTableAccounts: AddressLookupTableAccount[];
   }> {
     const bundleTipIx = makeBundleTipIx(this.client.provider.publicKey);
     const priorityFeeIxs = this.makePriorityFeeIx(opt.priorityFeeUi);
     const cuRequestIxs = this.makeComputeBudgetIx();
-    const { instructions: updateFeedIxs, luts: feedLuts } = await this.makeUpdateFeedIx([bankAddress]);
+    const { instructions: updateFeedIxs, luts: feedLuts } = await this.makeUpdateFeedIx([]);
     const ixs = await this.makeWithdrawIx(amount, bankAddress, withdrawAll, opt);
 
     const {
       value: { blockhash },
     } = await this._program.provider.connection.getLatestBlockhashAndContext();
 
-    // separate bundle tip + feed updates message
-    let bundleTipFeedUpdateTxs: VersionedTransaction[] = [];
+    let feedCrankTxs: VersionedTransaction[] = [];
 
     if (updateFeedIxs.length > 0) {
-      bundleTipFeedUpdateTxs.push(
+      feedCrankTxs.push(
         new VersionedTransaction(
           new TransactionMessage({
             instructions: updateFeedIxs,
@@ -929,7 +928,6 @@ class MarginfiAccountWrapper {
       );
     }
 
-    // borrow message with including bundle tip if no feed updates
     const withdrawTx = new VersionedTransaction(
       new TransactionMessage({
         instructions: [
@@ -945,7 +943,7 @@ class MarginfiAccountWrapper {
 
     const addressLookupTableAccounts = [...this.client.addressLookupTables, ...feedLuts];
 
-    return { bundleTipFeedUpdateTxs, withdrawTx, addressLookupTableAccounts };
+    return { feedCrankTxs, withdrawTx, addressLookupTableAccounts };
   }
 
   async simulateWithdraw(
@@ -1020,7 +1018,7 @@ class MarginfiAccountWrapper {
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:borrow`);
     debug("Borrowing %s from marginfi account", amount);
 
-    const { bundleTipFeedUpdateTxs, borrowTx, addressLookupTableAccounts } = await this.makeBorrowTx(
+    const { feedCrankTxs, borrowTx } = await this.makeBorrowTx(
       amount,
       bankAddress,
       opt
@@ -1028,7 +1026,7 @@ class MarginfiAccountWrapper {
 
     // process multiple transactions if feed updates required
     const sigs = await this.client.processTransactions([
-      ...(bundleTipFeedUpdateTxs.length ? bundleTipFeedUpdateTxs : []),
+      ...feedCrankTxs,
       borrowTx,
     ]);
     debug("Borrowing successful %s", sigs);
@@ -1040,7 +1038,7 @@ class MarginfiAccountWrapper {
     bankAddress: PublicKey,
     opt: MakeBorrowIxOpts = {}
   ): Promise<{
-    bundleTipFeedUpdateTxs: VersionedTransaction[];
+    feedCrankTxs: VersionedTransaction[];
     borrowTx: VersionedTransaction;
     addressLookupTableAccounts: AddressLookupTableAccount[];
   }> {
@@ -1054,11 +1052,10 @@ class MarginfiAccountWrapper {
       value: { blockhash },
     } = await this._program.provider.connection.getLatestBlockhashAndContext();
 
-    // separate bundle tip + feed updates message
-    let bundleTipFeedUpdateTxs: VersionedTransaction[] = [];
+    let feedCrankTxs: VersionedTransaction[] = [];
 
     if (updateFeedIxs.length > 0) {
-      bundleTipFeedUpdateTxs.push(
+      feedCrankTxs.push(
         new VersionedTransaction(
           new TransactionMessage({
             instructions: updateFeedIxs,
@@ -1069,7 +1066,6 @@ class MarginfiAccountWrapper {
       );
     }
 
-    // borrow message with including bundle tip if no feed updates
     const borrowTx = new VersionedTransaction(
       new TransactionMessage({
         instructions: [
@@ -1085,7 +1081,7 @@ class MarginfiAccountWrapper {
 
     const addressLookupTableAccounts = [...this.client.addressLookupTables, ...feedLuts];
 
-    return { bundleTipFeedUpdateTxs, borrowTx, addressLookupTableAccounts };
+    return { feedCrankTxs, borrowTx, addressLookupTableAccounts };
   }
 
   async simulateBorrow(amount: Amount, bankAddress: PublicKey): Promise<SimulationResult> {
@@ -1268,19 +1264,18 @@ class MarginfiAccountWrapper {
     return sig;
   }
 
-  async makeUpdateFeedIx(banksPk: PublicKey[]): Promise<{
+  async makeUpdateFeedIx(newBanksPk: PublicKey[]): Promise<{
     instructions: TransactionInstruction[];
     luts: AddressLookupTableAccount[];
   }> {
-    // get all banks
-    const banks = Array.from(this.client.banks.values());
-
-    // filter balances on active
+    // filter active and newly opening balances
     const activeBanksPk = this._marginfiAccount.balances
-      .filter((balance) => balance.active || banksPk.includes(balance.bankPk))
+      .filter((balance) => balance.active)
       .map((balance) => balance.bankPk);
     const activeBanks = activeBanksPk.map((pk) => this.client.banks.get(pk.toBase58())!);
-    const swbPullBanks = activeBanks.filter((bank) => bank.config.oracleSetup === OracleSetup.SwitchboardPull);
+    const newBanks = newBanksPk.map((pk) => this.client.banks.get(pk.toBase58())!);
+
+    const swbPullBanks = [...activeBanks, ...newBanks].filter((bank) => bank.config.oracleSetup === OracleSetup.SwitchboardPull);
 
     if (swbPullBanks.length > 0) {
       const staleOracles = swbPullBanks
@@ -1306,7 +1301,8 @@ class MarginfiAccountWrapper {
           numSignatures: 1,
         });
 
-        return { instructions: [pullIx], luts };
+        const cuRequestIx = ComputeBudgetProgram.setComputeUnitLimit({ units: 1_000_000 });
+        return { instructions: [cuRequestIx, pullIx], luts };
       }
 
       return { instructions: [], luts: [] };
