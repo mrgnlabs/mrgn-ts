@@ -26,7 +26,7 @@ export async function verifyTxSizeLooping(
   priorityFee: number
 ): Promise<{
   flashloanTx: VersionedTransaction | null;
-  bundleTipTxn: VersionedTransaction | null;
+  bundleTipTxn: VersionedTransaction[];
   addressLookupTableAccounts: AddressLookupTableAccount[];
   error?: ActionMethod;
 }> {
@@ -41,7 +41,7 @@ export async function verifyTxSizeLooping(
         loopingBank,
         connection,
         loopingTxn: null,
-        bundleTipTxn: null,
+        bundleTipTxn: [],
       },
       isTxnSplit,
       priorityFee,
@@ -55,7 +55,7 @@ export async function verifyTxSizeLooping(
     console.error(error);
     return {
       flashloanTx: null,
-      bundleTipTxn: null,
+      bundleTipTxn: [],
       addressLookupTableAccounts: [],
       error: STATIC_SIMULATION_ERRORS.TX_SIZE,
     };
@@ -75,7 +75,7 @@ export async function verifyTxSizeCloseBorrowLendPosition(
   priorityFee: number
 ): Promise<{
   flashloanTx: VersionedTransaction | null;
-  bundleTipTxn: VersionedTransaction | null;
+  bundleTipTxn: VersionedTransaction[];
   addressLookupTableAccounts: AddressLookupTableAccount[];
   error?: ActionMethod;
 }> {
@@ -106,7 +106,7 @@ export async function verifyTxSizeCloseBorrowLendPosition(
     console.error(error);
     return {
       flashloanTx: null,
-      bundleTipTxn: null,
+      bundleTipTxn: [],
       addressLookupTableAccounts: [],
       error: STATIC_SIMULATION_ERRORS.CLOSE_POSITIONS_FL_FAILED,
     };
@@ -128,7 +128,7 @@ export async function verifyTxSizeCollat(
   isTxnSplit: boolean = false
 ): Promise<{
   flashloanTx: VersionedTransaction | null;
-  bundleTipTxn: VersionedTransaction | null;
+  bundleTipTxn: VersionedTransaction[];
   addressLookupTableAccounts: AddressLookupTableAccount[];
   error?: ActionMethod;
 }> {
@@ -143,7 +143,7 @@ export async function verifyTxSizeCollat(
         depositBank,
         connection,
         repayCollatTxn: null,
-        bundleTipTxn: null,
+        bundleTipTxn: [],
       },
       priorityFee,
       isTxnSplit,
@@ -157,7 +157,7 @@ export async function verifyTxSizeCollat(
     console.error(error);
     return {
       flashloanTx: null,
-      bundleTipTxn: null,
+      bundleTipTxn: [],
       addressLookupTableAccounts: [],
       error: STATIC_SIMULATION_ERRORS.TX_SIZE,
     };
@@ -166,9 +166,14 @@ export async function verifyTxSizeCollat(
 
 export const verifyFlashloanTxSize = (builder: {
   flashloanTx: VersionedTransaction;
-  bundleTipTxn: VersionedTransaction | null;
+  bundleTipTxn: VersionedTransaction[];
   addressLookupTableAccounts: AddressLookupTableAccount[];
-}) => {
+}): {
+  flashloanTx: VersionedTransaction | null;
+  bundleTipTxn: VersionedTransaction[];
+  addressLookupTableAccounts: AddressLookupTableAccount[];
+  error?: ActionMethod;
+} => {
   try {
     const totalSize = builder.flashloanTx.message.serialize().length;
     const totalKeys = builder.flashloanTx.message.getAccountKeys({
@@ -179,14 +184,14 @@ export const verifyFlashloanTxSize = (builder: {
       if (totalKeys >= 64) {
         return {
           flashloanTx: null,
-          bundleTipTxn: null,
+          bundleTipTxn: [],
           addressLookupTableAccounts: builder.addressLookupTableAccounts,
           error: STATIC_SIMULATION_ERRORS.KEY_SIZE,
         };
       } else if (totalSize > 1232 - 64) {
         return {
           flashloanTx: null,
-          bundleTipTxn: null,
+          bundleTipTxn: [],
           addressLookupTableAccounts: builder.addressLookupTableAccounts,
           error: STATIC_SIMULATION_ERRORS.TX_SIZE,
         };
@@ -199,10 +204,17 @@ export const verifyFlashloanTxSize = (builder: {
         error: undefined,
       };
     }
+
+    return {
+      flashloanTx: null,
+      bundleTipTxn: [],
+      addressLookupTableAccounts: builder.addressLookupTableAccounts,
+      error: STATIC_SIMULATION_ERRORS.TX_SIZE,
+    };
   } catch (error) {
     return {
       flashloanTx: null,
-      bundleTipTxn: null,
+      bundleTipTxn: [],
       addressLookupTableAccounts: builder.addressLookupTableAccounts,
       error: STATIC_SIMULATION_ERRORS.TX_SIZE,
     };

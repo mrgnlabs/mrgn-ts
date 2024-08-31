@@ -55,10 +55,7 @@ export async function looping({
     let sigs: string[] = [];
 
     if (options.loopingTxn) {
-      sigs = await marginfiClient.processTransactions([
-        ...(options.bundleTipTxn ? [options.bundleTipTxn] : []),
-        options.loopingTxn,
-      ]);
+      sigs = await marginfiClient.processTransactions([...options.bundleTipTxn, options.loopingTxn]);
     } else {
       const { flashloanTx, bundleTipTxn } = await loopingBuilder({
         marginfiAccount,
@@ -68,7 +65,7 @@ export async function looping({
         priorityFee,
         isTxnSplit,
       });
-      sigs = await marginfiClient.processTransactions([...(bundleTipTxn ? [bundleTipTxn] : []), flashloanTx]);
+      sigs = await marginfiClient.processTransactions([...bundleTipTxn, flashloanTx]);
     }
     multiStepToast.setSuccessAndNext();
     return sigs;

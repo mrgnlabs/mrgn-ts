@@ -262,7 +262,7 @@ export async function executeLeverageAction({
       let txnSig: string[] = [];
 
       if (loopingObject.bundleTipTxn) {
-        txnSig = await marginfiClient.processTransactions([loopingObject.bundleTipTxn, loopingObject.loopingTxn]);
+        txnSig = await marginfiClient.processTransactions([...loopingObject.bundleTipTxn, loopingObject.loopingTxn]);
       } else {
         txnSig = [await marginfiClient.processTransaction(loopingObject.loopingTxn)];
       }
@@ -301,7 +301,7 @@ export async function calculateClosePositions({
 }): Promise<
   | {
       closeTxn: VersionedTransaction | Transaction;
-      bundleTipTxn: VersionedTransaction | null;
+      bundleTipTxn: VersionedTransaction[];
       quote?: QuoteResponse;
     }
   | ActionMethod
@@ -329,7 +329,7 @@ export async function calculateClosePositions({
     );
     return {
       closeTxn: txn,
-      bundleTipTxn: null,
+      bundleTipTxn: [],
     };
   }
 

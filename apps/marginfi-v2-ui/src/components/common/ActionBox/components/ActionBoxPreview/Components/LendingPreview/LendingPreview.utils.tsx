@@ -1,7 +1,7 @@
 import React from "react";
 import Image from "next/image";
 import { createJupiterApiClient } from "@jup-ag/api";
-import { AddressLookupTableAccount } from "@solana/web3.js";
+import { AddressLookupTableAccount, VersionedTransaction } from "@solana/web3.js";
 
 import { ExtendedBankInfo, ActionType, AccountSummary } from "@mrgnlabs/marginfi-v2-ui-state";
 import {
@@ -36,6 +36,10 @@ export interface SimulateActionProps {
   bank: ExtendedBankInfo;
   amount: number;
   repayWithCollatOptions?: RepayWithCollatOptions;
+  borrowWithdrawOptions?: {
+    actionTx: VersionedTransaction | null;
+    bundleTipTxs: VersionedTransaction[];
+  };
 }
 
 export interface ActionPreview {
@@ -154,6 +158,7 @@ export async function simulateAction({
   bank,
   amount,
   repayWithCollatOptions,
+  borrowWithdrawOptions,
 }: SimulateActionProps) {
   let simulationResult: SimulationResult;
 
@@ -161,11 +166,8 @@ export async function simulateAction({
     case ActionType.Deposit:
       simulationResult = await account.simulateDeposit(amount, bank.address);
       break;
-    case ActionType.Loop:
-      // what is this doing here?
-      simulationResult = await account.simulateDeposit(amount, bank.address);
-      break;
     case ActionType.Withdraw:
+      // TODO simulate borrowWithdrawOptions
       simulationResult = await account.simulateWithdraw(
         amount,
         bank.address,
@@ -173,6 +175,7 @@ export async function simulateAction({
       );
       break;
     case ActionType.Borrow:
+      // TODO simulate borrowWithdrawOptions
       simulationResult = await account.simulateBorrow(amount, bank.address);
       break;
     case ActionType.Repay:
