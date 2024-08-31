@@ -72,6 +72,10 @@ export interface CalculatePreviewProps {
   repayWithCollatOptions?: RepayWithCollatOptions;
   accountSummary: AccountSummary;
   isLoading: boolean;
+  borrowWithdrawOptions?: {
+    actionTx: VersionedTransaction | null;
+    bundleTipTxs: VersionedTransaction[];
+  };
 }
 
 export function calculatePreview({
@@ -168,6 +172,7 @@ export async function simulateAction({
       break;
     case ActionType.Withdraw:
       // TODO simulate borrowWithdrawOptions
+      console.log({ borrowWithdrawOptions });
       simulationResult = await account.simulateWithdraw(
         amount,
         bank.address,
@@ -176,6 +181,7 @@ export async function simulateAction({
       break;
     case ActionType.Borrow:
       // TODO simulate borrowWithdrawOptions
+      console.log({ borrowWithdrawOptions });
       simulationResult = await account.simulateBorrow(amount, bank.address);
       break;
     case ActionType.Repay:

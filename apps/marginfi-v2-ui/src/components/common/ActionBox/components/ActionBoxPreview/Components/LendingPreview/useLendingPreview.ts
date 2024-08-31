@@ -75,9 +75,17 @@ export function useLendingPreview({
 
   React.useEffect(() => {
     if (bank) {
-      getPreviewStats({ simulationResult, bank, repayWithCollatOptions, actionMode, accountSummary, isLoading });
+      getPreviewStats({
+        simulationResult,
+        bank,
+        repayWithCollatOptions,
+        actionMode,
+        accountSummary,
+        isLoading,
+        borrowWithdrawOptions,
+      });
     }
-  }, [simulationResult, bank, repayWithCollatOptions, accountSummary, actionMode, isLoading]);
+  }, [simulationResult, bank, repayWithCollatOptions, accountSummary, actionMode, isLoading, borrowWithdrawOptions]);
 
   const getPreviewStats = (props: CalculatePreviewProps) => {
     const isLending =
