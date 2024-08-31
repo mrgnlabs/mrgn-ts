@@ -67,6 +67,7 @@ export async function executeLendingAction({
   walletContextState,
   priorityFee,
   repayWithCollatOptions,
+  actionTxns,
 }: MarginfiActionParams) {
   let txnSig: string | string[] | undefined;
 
@@ -110,11 +111,11 @@ export async function executeLendingAction({
   }
 
   if (actionType === ActionType.Borrow) {
-    txnSig = await borrow({ marginfiAccount, bank, amount, priorityFee });
+    txnSig = await borrow({ marginfiClient: mfiClient, marginfiAccount, bank, amount, priorityFee, actionTxns });
   }
 
   if (actionType === ActionType.Withdraw) {
-    txnSig = await withdraw({ marginfiAccount, bank, amount, priorityFee });
+    txnSig = await withdraw({ marginfiClient: mfiClient, marginfiAccount, bank, amount, priorityFee, actionTxns });
   }
 
   return txnSig;
@@ -347,25 +348,38 @@ export async function deposit({
 }
 
 export async function borrow({
+  marginfiClient,
   marginfiAccount,
   bank,
   amount,
   priorityFee,
+  actionTxns,
 }: {
+  marginfiClient: MarginfiClient | null;
   marginfiAccount: MarginfiAccountWrapper;
   bank: ExtendedBankInfo;
   amount: number;
   priorityFee?: number;
+  actionTxns?: {
+    actionTxn: VersionedTransaction | null;
+    bundleTipTxn: VersionedTransaction[];
+  };
 }) {
   const multiStepToast = new MultiStepToastHandle("Borrow", [
     { label: `Borrowing ${amount} ${bank.meta.tokenSymbol}` },
   ]);
 
   multiStepToast.start();
+  let sigs: string[] = [];
+
   try {
-    const txnSig = await marginfiAccount.borrow(amount, bank.address, { priorityFeeUi: priorityFee });
-    multiStepToast.setSuccessAndNext();
-    return txnSig;
+    if (actionTxns?.actionTxn && marginfiClient) {
+      sigs = await marginfiClient.processTransactions([...actionTxns.bundleTipTxn, actionTxns.actionTxn]);
+    } else {
+      sigs = await marginfiAccount.borrow(amount, bank.address, { priorityFeeUi: priorityFee });
+      multiStepToast.setSuccessAndNext();
+    }
+    return sigs;
   } catch (error: any) {
     const msg = extractErrorString(error);
     Sentry.captureException({ message: error });
@@ -377,30 +391,40 @@ export async function borrow({
 }
 
 export async function withdraw({
+  marginfiClient,
   marginfiAccount,
   bank,
   amount,
   priorityFee,
+  actionTxns,
 }: {
+  marginfiClient: MarginfiClient | null;
   marginfiAccount: MarginfiAccountWrapper;
   bank: ExtendedBankInfo;
   amount: number;
   priorityFee?: number;
+  actionTxns?: {
+    actionTxn: VersionedTransaction | null;
+    bundleTipTxn: VersionedTransaction[];
+  };
 }) {
   const multiStepToast = new MultiStepToastHandle("Withdrawal", [
     { label: `Withdrawing ${amount} ${bank.meta.tokenSymbol}` },
   ]);
   multiStepToast.start();
 
+  let sigs: string[] = [];
+
   try {
-    const txnSig =
-      (
-        await marginfiAccount.withdraw(amount, bank.address, bank.isActive && isWholePosition(bank, amount), {
-          priorityFeeUi: priorityFee,
-        })
-      ).pop() ?? "";
-    multiStepToast.setSuccessAndNext();
-    return txnSig;
+    if (actionTxns?.actionTxn && marginfiClient) {
+      sigs = await marginfiClient.processTransactions([...actionTxns.bundleTipTxn, actionTxns.actionTxn]);
+    } else {
+      sigs = await marginfiAccount.withdraw(amount, bank.address, bank.isActive && isWholePosition(bank, amount), {
+        priorityFeeUi: priorityFee,
+      });
+      multiStepToast.setSuccessAndNext();
+    }
+    return sigs;
   } catch (error: any) {
     const msg = extractErrorString(error);
     Sentry.captureException({ message: error });
