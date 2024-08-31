@@ -61,7 +61,7 @@ export interface LstData {
 
 export type RepayWithCollatOptions = {
   repayCollatQuote: QuoteResponse;
-  bundleTipTxn: VersionedTransaction | null;
+  bundleTipTxn: VersionedTransaction[];
   repayCollatTxn: VersionedTransaction | null;
   withdrawAmount: number;
   depositBank: ExtendedBankInfo;
@@ -70,7 +70,7 @@ export type RepayWithCollatOptions = {
 
 export type LoopingOptions = {
   loopingQuote: QuoteResponse;
-  bundleTipTxn: VersionedTransaction | null;
+  bundleTipTxn: VersionedTransaction[];
   loopingTxn: VersionedTransaction | null;
   borrowAmount: BigNumber;
   loopingBank: ExtendedBankInfo;
@@ -106,7 +106,7 @@ export type LstActionParams = {
 
 export interface LoopingObject {
   loopingTxn: VersionedTransaction | null;
-  bundleTipTxn: VersionedTransaction | null;
+  bundleTipTxn: VersionedTransaction[];
   quote: QuoteResponse;
   actualDepositAmount: number;
   borrowAmount: BigNumber;

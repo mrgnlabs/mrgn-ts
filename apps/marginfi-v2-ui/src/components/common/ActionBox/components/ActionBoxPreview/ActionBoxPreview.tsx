@@ -6,11 +6,16 @@ import { ActionMethod, LoopingOptions, RepayWithCollatOptions } from "@mrgnlabs/
 import { StakeData } from "~/utils";
 
 import { LendingPreview, LstPreview, YbxPreview, LoopPreview } from "./Components";
+import { VersionedTransaction } from "@solana/web3.js";
 
 interface ActionBoxPreviewProps {
   selectedBank: ExtendedBankInfo | null;
   selectedStakingAccount: StakeData | null;
   actionMode: ActionType;
+  actionTxns: {
+    actionTxn: VersionedTransaction | null;
+    bundleTipTxn: VersionedTransaction[];
+  };
   amount: number;
   slippageBps: number;
   isEnabled: boolean;
@@ -24,6 +29,7 @@ export const ActionBoxPreview = ({
   selectedBank,
   selectedStakingAccount,
   actionMode,
+  actionTxns,
   amount,
   slippageBps,
   isEnabled,
@@ -50,6 +56,7 @@ export const ActionBoxPreview = ({
           isEnabled={isEnabled}
           amount={amount}
           repayWithCollatOptions={repayWithCollatOptions}
+          actionTxns={actionTxns}
           addAdditionalsPopup={addAdditionalsPopup}
         >
           {children}

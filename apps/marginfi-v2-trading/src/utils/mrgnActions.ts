@@ -24,7 +24,7 @@ import { isWholePosition, extractErrorString } from "./mrgnUtils";
 
 export type RepayWithCollatOptions = {
   repayCollatQuote: QuoteResponse;
-  bundleTipTxn: VersionedTransaction | null;
+  bundleTipTxn: VersionedTransaction[];
   repayCollatTxn: VersionedTransaction | null;
   repayAmount: number;
   repayBank: ExtendedBankInfo;
@@ -236,12 +236,12 @@ export async function withdraw({
   multiStepToast.start();
 
   try {
-    const txnSig = await marginfiAccount.withdraw(
-      amount,
-      bank.address,
-      bank.isActive && isWholePosition(bank, amount),
-      { priorityFeeUi: priorityFee }
-    );
+    const txnSig =
+      (
+        await marginfiAccount.withdraw(amount, bank.address, bank.isActive && isWholePosition(bank, amount), {
+          priorityFeeUi: priorityFee,
+        })
+      ).pop() ?? "";
     multiStepToast.setSuccessAndNext();
     return txnSig;
   } catch (error: any) {
@@ -391,10 +391,7 @@ export async function repayWithCollat({
     let sigs: string[] = [];
 
     if (options.repayCollatTxn) {
-      sigs = await marginfiClient.processTransactions([
-        ...(options.bundleTipTxn ? [options.bundleTipTxn] : []),
-        options.repayCollatTxn,
-      ]);
+      sigs = await marginfiClient.processTransactions([...options.bundleTipTxn, options.repayCollatTxn]);
     } else {
       const { flashloanTx, bundleTipTxn } = await repayWithCollatBuilder({
         marginfiAccount,
@@ -405,7 +402,7 @@ export async function repayWithCollat({
         isTxnSplit,
       });
 
-      sigs = await marginfiClient.processTransactions([...(bundleTipTxn ? [bundleTipTxn] : []), flashloanTx]);
+      sigs = await marginfiClient.processTransactions([...bundleTipTxn, flashloanTx]);
     }
 
     multiStepToast.setSuccessAndNext();
@@ -446,7 +443,7 @@ export const closeBalance = async ({
   try {
     let txnSig = "";
     if (bank.position.isLending) {
-      txnSig = await marginfiAccount.withdraw(0, bank.address, true, { priorityFeeUi: priorityFee });
+      txnSig = (await marginfiAccount.withdraw(0, bank.address, true, { priorityFeeUi: priorityFee })).pop() ?? "";
     } else {
       txnSig = await marginfiAccount.repay(0, bank.address, true, { priorityFeeUi: priorityFee });
     }
