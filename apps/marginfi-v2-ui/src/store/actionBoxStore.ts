@@ -7,7 +7,15 @@ import * as solanaStakePool from "@solana/spl-stake-pool";
 
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { computeMaxLeverage, MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
-import { ActionMethod, debounceFn, LoopingObject, LstType, RepayType, YbxType } from "@mrgnlabs/mrgn-utils";
+import {
+  ActionMethod,
+  debounceFn,
+  isWholePosition,
+  LoopingObject,
+  LstType,
+  RepayType,
+  YbxType,
+} from "@mrgnlabs/mrgn-utils";
 import {
   STATIC_SIMULATION_ERRORS,
   DYNAMIC_SIMULATION_ERRORS,
@@ -43,7 +51,7 @@ interface ActionBoxState {
   selectedStakingAccount: StakeData | null;
 
   actionQuote: QuoteResponse | null;
-  actionTxns: { actionTxn: VersionedTransaction | null; bundleTipTxn: VersionedTransaction | null };
+  actionTxns: { actionTxn: VersionedTransaction | null; bundleTipTxn: VersionedTransaction[] };
 
   errorMessage: ActionMethod | null;
   isLoading: boolean;
@@ -58,6 +66,7 @@ interface ActionBoxState {
   setLstMode: (lstMode: LstType) => void;
   setYbxMode: (ybxMode: YbxType) => void;
   setAmountRaw: (amountRaw: string, maxAmount?: number) => void;
+  setActionTxns: (actionTxns: { actionTxn: VersionedTransaction | null; bundleTipTxn: VersionedTransaction[] }) => void;
   setLeverage: (
     leverage: number,
     marginfiAccount: MarginfiAccountWrapper | null,
@@ -157,7 +166,7 @@ const initialState = {
   selectedStakingAccount: null,
 
   actionQuote: null,
-  actionTxns: { actionTxn: null, bundleTipTxn: null },
+  actionTxns: { actionTxn: null, bundleTipTxn: [] },
 
   isLoading: false,
 };
@@ -544,6 +553,10 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
     }
   },
 
+  setActionTxns(actionTxns) {
+    set({ actionTxns });
+  },
+
   setActionMode(actionMode) {
     const selectedActionMode = get().actionMode;
     const hasActionModeChanged = !selectedActionMode || actionMode !== selectedActionMode;
@@ -600,6 +613,52 @@ async function calculateLooping(
   return result;
 }
 
+export interface BorrowLendObject {
+  actionTx: VersionedTransaction | null;
+  bundleTipTxs: VersionedTransaction[];
+}
+
+// ugly code but it works
+async function calculateBorrowLend(
+  marginfiAccount: MarginfiAccountWrapper,
+  type: ActionType,
+  bank: ExtendedBankInfo, // deposit
+  amount: number
+): Promise<BorrowLendObject> {
+  let actionTx: VersionedTransaction | null = null;
+  let bundleTipTxs: VersionedTransaction[] = [];
+
+  if (type === ActionType.Borrow) {
+    const { borrowTx, bundleTipFeedUpdateTxs, addressLookupTableAccounts } = await marginfiAccount.makeBorrowTx(
+      amount,
+      bank.address,
+      {
+        createAtas: true,
+        wrapAndUnwrapSol: false,
+      }
+    );
+
+    actionTx = borrowTx;
+    bundleTipTxs = bundleTipFeedUpdateTxs;
+  }
+
+  if (type === ActionType.Withdraw) {
+    const { withdrawTx, bundleTipFeedUpdateTxs, addressLookupTableAccounts } = await marginfiAccount.makeWithdrawTx(
+      amount,
+      bank.address,
+      bank.isActive && isWholePosition(bank, amount)
+    );
+
+    actionTx = withdrawTx;
+    bundleTipTxs = bundleTipFeedUpdateTxs;
+  }
+
+  return {
+    actionTx,
+    bundleTipTxs,
+  };
+}
+
 async function calculateRepayCollateral(
   marginfiAccount: MarginfiAccountWrapper,
   bank: ExtendedBankInfo, // borrow
@@ -611,7 +670,7 @@ async function calculateRepayCollateral(
 ): Promise<
   | {
       repayTxn: VersionedTransaction;
-      bundleTipTxn: VersionedTransaction | null;
+      bundleTipTxn: VersionedTransaction[];
       quote: QuoteResponse;
       amount: number;
     }
@@ -639,5 +698,5 @@ async function calculateRepayCollateral(
   return result;
 }
 
-export { createActionBoxStore };
+export { createActionBoxStore, calculateBorrowLend };
 export type { ActionBoxState };

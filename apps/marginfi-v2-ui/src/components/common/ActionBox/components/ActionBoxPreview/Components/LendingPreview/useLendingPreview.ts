@@ -13,6 +13,7 @@ import {
   simulateAction,
 } from "./LendingPreview.utils";
 import { useAmountDebounce } from "~/hooks/useAmountDebounce";
+import { VersionedTransaction } from "@solana/web3.js";
 
 interface UseLendingPreviewProps {
   marginfiClient: MarginfiClient | null;
@@ -22,6 +23,10 @@ interface UseLendingPreviewProps {
   bank: ExtendedBankInfo | null;
   amount: number | null;
   repayWithCollatOptions?: RepayWithCollatOptions;
+  borrowWithdrawOptions?: {
+    actionTx: VersionedTransaction | null;
+    bundleTipTxs: VersionedTransaction[];
+  };
 }
 
 export function useLendingPreview({
@@ -32,6 +37,7 @@ export function useLendingPreview({
   bank,
   amount,
   repayWithCollatOptions,
+  borrowWithdrawOptions,
 }: UseLendingPreviewProps) {
   const [simulationResult, setSimulationResult] = React.useState<SimulationResult>();
   const [preview, setPreview] = React.useState<ActionPreview | null>(null);
@@ -57,6 +63,7 @@ export function useLendingPreview({
         bank,
         amount: debouncedAmount,
         repayWithCollatOptions,
+        borrowWithdrawOptions,
       });
     } else {
       setSimulationResult(undefined);

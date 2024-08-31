@@ -8,6 +8,7 @@ import { ActionMethod, RepayWithCollatOptions } from "@mrgnlabs/mrgn-utils";
 
 import { AvailableCollateral } from "./AvailableCollateral";
 import { useLendingPreview } from "./useLendingPreview";
+import { VersionedTransaction } from "@solana/web3.js";
 
 interface ActionBoxPreviewProps {
   selectedBank: ExtendedBankInfo | null;
@@ -15,6 +16,10 @@ interface ActionBoxPreviewProps {
   isEnabled: boolean;
   amount: number;
   repayWithCollatOptions?: RepayWithCollatOptions;
+  actionTxns: {
+    actionTxn: VersionedTransaction | null;
+    bundleTipTxn: VersionedTransaction[];
+  };
   addAdditionalsPopup: (actions: ActionMethod[]) => void;
   children: React.ReactNode;
 }
@@ -25,6 +30,7 @@ export const LendingPreview = ({
   isEnabled,
   amount,
   repayWithCollatOptions,
+  actionTxns,
   addAdditionalsPopup,
   children,
 }: ActionBoxPreviewProps) => {
@@ -32,6 +38,7 @@ export const LendingPreview = ({
     state.marginfiClient,
     state.selectedAccount,
     state.accountSummary,
+    state,
   ]);
 
   const { preview, previewStats, isLoading, actionMethod } = useLendingPreview({
@@ -42,6 +49,10 @@ export const LendingPreview = ({
     bank: selectedBank,
     amount,
     repayWithCollatOptions,
+    borrowWithdrawOptions: {
+      actionTx: actionTxns.actionTxn,
+      bundleTipTxs: actionTxns.bundleTipTxn,
+    },
   });
 
   React.useEffect(() => {

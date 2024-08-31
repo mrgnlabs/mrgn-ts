@@ -34,7 +34,7 @@ interface ActionBoxState {
   repayCollatQuote: QuoteResponse | null;
   repayCollatTxns: {
     repayCollatTxn: VersionedTransaction | null;
-    bundleTipTxn: VersionedTransaction | null;
+    bundleTipTxn: VersionedTransaction[];
   };
 
   errorMessage: ActionMethod | null;
@@ -114,7 +114,7 @@ const initialState = {
   repayCollatQuote: null,
   repayCollatTxns: {
     repayCollatTxn: null,
-    bundleTipTxn: null,
+    bundleTipTxn: [],
   },
 
   isLoading: false,

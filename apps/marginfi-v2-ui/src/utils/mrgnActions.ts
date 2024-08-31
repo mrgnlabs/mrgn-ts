@@ -393,12 +393,12 @@ export async function withdraw({
   multiStepToast.start();
 
   try {
-    const txnSig = await marginfiAccount.withdraw(
-      amount,
-      bank.address,
-      bank.isActive && isWholePosition(bank, amount),
-      { priorityFeeUi: priorityFee }
-    );
+    const txnSig =
+      (
+        await marginfiAccount.withdraw(amount, bank.address, bank.isActive && isWholePosition(bank, amount), {
+          priorityFeeUi: priorityFee,
+        })
+      ).pop() ?? "";
     multiStepToast.setSuccessAndNext();
     return txnSig;
   } catch (error: any) {
@@ -484,13 +484,10 @@ export async function looping({
   try {
     let sigs: string[] = [];
 
-    console.log("loopingTxn", options.loopingTxn)
+    console.log("loopingTxn", options.loopingTxn);
     if (options.loopingTxn) {
-      console.log("options.bundleTipTxn", options.bundleTipTxn)
-      sigs = await marginfiClient.processTransactions([
-        ...(options.bundleTipTxn ? [options.bundleTipTxn] : []),
-        options.loopingTxn,
-      ]);
+      console.log("options.bundleTipTxn", options.bundleTipTxn);
+      sigs = await marginfiClient.processTransactions([...options.bundleTipTxn, options.loopingTxn]);
     } else {
       const { flashloanTx, bundleTipTxn } = await loopingBuilder({
         marginfiAccount,
@@ -500,7 +497,7 @@ export async function looping({
         priorityFee,
         isTxnSplit,
       });
-      sigs = await marginfiClient.processTransactions([...(bundleTipTxn ? [bundleTipTxn] : []), flashloanTx]);
+      sigs = await marginfiClient.processTransactions([...bundleTipTxn, flashloanTx]);
     }
 
     multiStepToast.setSuccessAndNext();
@@ -592,10 +589,7 @@ export async function repayWithCollat({
     let sigs: string[] = [];
 
     if (options.repayCollatTxn) {
-      sigs = await marginfiClient.processTransactions([
-        ...(options.bundleTipTxn ? [options.bundleTipTxn] : []),
-        options.repayCollatTxn,
-      ]);
+      sigs = await marginfiClient.processTransactions([...options.bundleTipTxn, options.repayCollatTxn]);
     } else {
       const { flashloanTx, bundleTipTxn } = await repayWithCollatBuilder({
         marginfiAccount,
@@ -606,7 +600,7 @@ export async function repayWithCollat({
         isTxnSplit,
       });
 
-      sigs = await marginfiClient.processTransactions([...(bundleTipTxn ? [bundleTipTxn] : []), flashloanTx]);
+      sigs = await marginfiClient.processTransactions([...bundleTipTxn, flashloanTx]);
     }
 
     multiStepToast.setSuccessAndNext();
@@ -669,7 +663,7 @@ export const closeBalance = async ({
   try {
     let txnSig = "";
     if (bank.position.isLending) {
-      txnSig = await marginfiAccount.withdraw(0, bank.address, true, { priorityFeeUi: priorityFee });
+      txnSig = (await marginfiAccount.withdraw(0, bank.address, true, { priorityFeeUi: priorityFee })).pop() ?? "";
     } else {
       txnSig = await marginfiAccount.repay(0, bank.address, true, { priorityFeeUi: priorityFee });
     }

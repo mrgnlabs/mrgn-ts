@@ -387,7 +387,7 @@ class MarginfiAccountWrapper {
     swapIxs: TransactionInstruction[],
     swapLookupTables: AddressLookupTableAccount[],
     priorityFeeUi?: number
-  ): Promise<string> {
+  ): Promise<string[]> {
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:repay`);
     debug("Repaying %s into marginfi account (bank: %s), repay all: %s", repayAmount, borrowBankAddress, repayAll);
 
@@ -404,10 +404,10 @@ class MarginfiAccountWrapper {
     );
 
     // assumes only one tx
-    const sig = await this.client.processTransaction(flashloanTx, []);
-    debug("Repay with collateral successful %s", sig);
+    const sigs = await this.client.processTransactions([flashloanTx, ...bundleTipTxn]);
+    debug("Repay with collateral successful %s", sigs.pop() ?? "");
 
-    return sig;
+    return sigs;
   }
 
   async simulateRepayWithCollat(
@@ -477,7 +477,7 @@ class MarginfiAccountWrapper {
     isTxnSplitParam?: boolean
   ): Promise<{
     flashloanTx: VersionedTransaction;
-    bundleTipTxn: VersionedTransaction | null;
+    bundleTipTxn: VersionedTransaction[];
     addressLookupTableAccounts: AddressLookupTableAccount[];
   }> {
     const setupIxs = await this.makeSetupIx([borrowBankAddress, depositBankAddress]);
@@ -501,7 +501,7 @@ class MarginfiAccountWrapper {
 
     const addressLookupTableAccounts = [...lookupTables, ...swapLookupTables];
 
-    let bundleTipTxn: VersionedTransaction | null = null;
+    let bundleTipTxn: VersionedTransaction[] = [];
 
     // isTxnSplit forced set to true as we're always splitting now
     const isTxnSplit = true; //isTxnSplitParam
@@ -513,7 +513,7 @@ class MarginfiAccountWrapper {
         instructions: [bundleTipIx, ...updateFeedIxs],
       }).compileToV0Message([...addressLookupTableAccounts, ...feedLuts]);
 
-      bundleTipTxn = new VersionedTransaction(message);
+      bundleTipTxn = [new VersionedTransaction(message)];
     }
 
     const flashloanTx = await this.buildFlashLoanTx({
@@ -548,7 +548,8 @@ class MarginfiAccountWrapper {
 
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:repay`);
     debug(
-      `Looping ${depositAmount} ${depositBank.tokenSymbol} against ${borrowAmount} ${borrowBank.tokenSymbol
+      `Looping ${depositAmount} ${depositBank.tokenSymbol} against ${borrowAmount} ${
+        borrowBank.tokenSymbol
       } into marginfi account (banks: ${depositBankAddress.toBase58()} / ${borrowBankAddress.toBase58()})`
     );
 
@@ -639,7 +640,7 @@ class MarginfiAccountWrapper {
     isTxnSplitParam?: boolean
   ): Promise<{
     flashloanTx: VersionedTransaction;
-    bundleTipTxn: VersionedTransaction | null;
+    bundleTipTxn: VersionedTransaction[];
     addressLookupTableAccounts: AddressLookupTableAccount[];
   }> {
     const depositBank = this.client.banks.get(depositBankAddress.toBase58());
@@ -667,7 +668,7 @@ class MarginfiAccountWrapper {
 
     const addressLookupTableAccounts = [...lookupTables, ...swapLookupTables];
 
-    let bundleTipTxn: VersionedTransaction | null = null;
+    let bundleTipTxn: VersionedTransaction[] = [];
 
     // isTxnSplit forced set to true as we're always splitting now
     const isTxnSplit = true; //isTxnSplitParam
@@ -679,7 +680,7 @@ class MarginfiAccountWrapper {
         instructions: [bundleTipIx, ...updateFeedIxs],
       }).compileToV0Message([...addressLookupTableAccounts, ...feedLuts]);
 
-      bundleTipTxn = new VersionedTransaction(message);
+      bundleTipTxn = [new VersionedTransaction(message)];
     }
 
     const flashloanTx = await this.buildFlashLoanTx({
@@ -873,32 +874,80 @@ class MarginfiAccountWrapper {
     bankAddress: PublicKey,
     withdrawAll: boolean = false,
     opt: MakeWithdrawIxOpts = {}
-  ): Promise<string> {
+  ): Promise<string[]> {
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:withdraw`);
     debug("Withdrawing %s from marginfi account", amount);
+
+    const { bundleTipFeedUpdateTxs, withdrawTx, addressLookupTableAccounts } = await this.makeWithdrawTx(
+      amount,
+      bankAddress,
+      withdrawAll,
+      opt
+    );
+
+    // process multiple transactions if feed updates required
+    const sigs = await this.client.processTransactions([
+      ...(bundleTipFeedUpdateTxs.length ? bundleTipFeedUpdateTxs : []),
+      withdrawTx,
+    ]);
+
+    debug("Withdrawing successful %s", sigs.pop());
+    return sigs;
+  }
+
+  async makeWithdrawTx(
+    amount: Amount,
+    bankAddress: PublicKey,
+    withdrawAll: boolean = false,
+    opt: MakeWithdrawIxOpts = {}
+  ): Promise<{
+    bundleTipFeedUpdateTxs: VersionedTransaction[];
+    withdrawTx: VersionedTransaction;
+    addressLookupTableAccounts: AddressLookupTableAccount[];
+  }> {
     const bundleTipIx = makeBundleTipIx(this.client.provider.publicKey);
-    const cuRequestIxs = this.makeComputeBudgetIx();
     const priorityFeeIxs = this.makePriorityFeeIx(opt.priorityFeeUi);
+    const cuRequestIxs = this.makeComputeBudgetIx();
     const { instructions: updateFeedIxs, luts: feedLuts } = await this.makeUpdateFeedIx([bankAddress]);
     const ixs = await this.makeWithdrawIx(amount, bankAddress, withdrawAll, opt);
 
     const {
       value: { blockhash },
-    } = await this.client.provider.connection.getLatestBlockhashAndContext();
+    } = await this._program.provider.connection.getLatestBlockhashAndContext();
 
-    const withdrawMessage = new TransactionMessage({
-      instructions: [bundleTipIx, ...cuRequestIxs, ...priorityFeeIxs, ...updateFeedIxs, ...ixs.instructions],
-      payerKey: this.authority,
-      recentBlockhash: blockhash,
-    });
+    // separate bundle tip + feed updates message
+    let bundleTipFeedUpdateTxs: VersionedTransaction[] = [];
 
-    const lookupTables = [...this.client.addressLookupTables, ...feedLuts];
+    if (updateFeedIxs.length) {
+      bundleTipFeedUpdateTxs.push(
+        new VersionedTransaction(
+          new TransactionMessage({
+            instructions: [bundleTipIx, ...updateFeedIxs],
+            payerKey: this.authority,
+            recentBlockhash: blockhash,
+          }).compileToV0Message([...feedLuts])
+        )
+      );
+    }
 
-    const versionedTx = new VersionedTransaction(withdrawMessage.compileToV0Message(lookupTables));
+    // borrow message with including bundle tip if no feed updates
+    const withdrawTx = new VersionedTransaction(
+      new TransactionMessage({
+        instructions: [
+          ...(updateFeedIxs.length ? [] : [bundleTipIx]),
+          ...cuRequestIxs,
+          ...priorityFeeIxs,
+          ...updateFeedIxs,
+          ...ixs.instructions,
+        ],
+        payerKey: this.authority,
+        recentBlockhash: blockhash,
+      }).compileToV0Message([...this.client.addressLookupTables])
+    );
 
-    const sig = this.client.processTransaction(versionedTx, [], {});
-    debug("Withdrawing successful %s", sig);
-    return sig;
+    const addressLookupTableAccounts = [...this.client.addressLookupTables, ...feedLuts];
+
+    return { bundleTipFeedUpdateTxs, withdrawTx, addressLookupTableAccounts };
   }
 
   async simulateWithdraw(
@@ -907,7 +956,7 @@ class MarginfiAccountWrapper {
     withdrawAll: boolean = false
   ): Promise<SimulationResult> {
     const cuRequestIxs = this.makeComputeBudgetIx();
-    console.log("hey")
+    console.log("hey");
     const { instructions: updateFeedIxs, luts: feedLuts } = await this.makeUpdateFeedIx([bankAddress]);
     const ixs = await this.makeWithdrawIx(amount, bankAddress, withdrawAll);
 
@@ -972,6 +1021,31 @@ class MarginfiAccountWrapper {
   async borrow(amount: Amount, bankAddress: PublicKey, opt: MakeBorrowIxOpts = {}): Promise<string[]> {
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:borrow`);
     debug("Borrowing %s from marginfi account", amount);
+
+    const { bundleTipFeedUpdateTxs, borrowTx, addressLookupTableAccounts } = await this.makeBorrowTx(
+      amount,
+      bankAddress,
+      opt
+    );
+
+    // process multiple transactions if feed updates required
+    const sigs = await this.client.processTransactions([
+      ...(bundleTipFeedUpdateTxs.length ? bundleTipFeedUpdateTxs : []),
+      borrowTx,
+    ]);
+    debug("Borrowing successful %s", sigs);
+    return sigs;
+  }
+
+  async makeBorrowTx(
+    amount: Amount,
+    bankAddress: PublicKey,
+    opt: MakeBorrowIxOpts = {}
+  ): Promise<{
+    bundleTipFeedUpdateTxs: VersionedTransaction[];
+    borrowTx: VersionedTransaction;
+    addressLookupTableAccounts: AddressLookupTableAccount[];
+  }> {
     const bundleTipIx = makeBundleTipIx(this.client.provider.publicKey);
     const priorityFeeIxs = this.makePriorityFeeIx(opt.priorityFeeUi);
     const cuRequestIxs = this.makeComputeBudgetIx();
@@ -983,34 +1057,38 @@ class MarginfiAccountWrapper {
     } = await this._program.provider.connection.getLatestBlockhashAndContext();
 
     // separate bundle tip + feed updates message
-    const bundleTipFeedUpdateMessage = new TransactionMessage({
-      instructions: [bundleTipIx, ...updateFeedIxs],
-      payerKey: this.authority,
-      recentBlockhash: blockhash,
-    });
+    let bundleTipFeedUpdateTxs: VersionedTransaction[] = [];
+
+    if (updateFeedIxs.length) {
+      bundleTipFeedUpdateTxs.push(
+        new VersionedTransaction(
+          new TransactionMessage({
+            instructions: [bundleTipIx, ...updateFeedIxs],
+            payerKey: this.authority,
+            recentBlockhash: blockhash,
+          }).compileToV0Message([...feedLuts])
+        )
+      );
+    }
 
     // borrow message with including bundle tip if no feed updates
-    const borrowMessage = new TransactionMessage({
-      instructions: [
-        ...(updateFeedIxs.length ? [] : [bundleTipIx]),
-        ...cuRequestIxs,
-        ...priorityFeeIxs,
-        ...updateFeedIxs,
-        ...ixs.instructions,
-      ],
-      payerKey: this.authority,
-      recentBlockhash: blockhash,
-    });
+    const borrowTx = new VersionedTransaction(
+      new TransactionMessage({
+        instructions: [
+          ...(updateFeedIxs.length ? [] : [bundleTipIx]),
+          ...cuRequestIxs,
+          ...priorityFeeIxs,
+          ...updateFeedIxs,
+          ...ixs.instructions,
+        ],
+        payerKey: this.authority,
+        recentBlockhash: blockhash,
+      }).compileToV0Message([...this.client.addressLookupTables])
+    );
 
-    const lookupTables = [...this.client.addressLookupTables, ...feedLuts];
+    const addressLookupTableAccounts = [...this.client.addressLookupTables, ...feedLuts];
 
-    const bundleTipFeedUpdateTx = new VersionedTransaction(bundleTipFeedUpdateMessage.compileToV0Message(lookupTables));
-    const borrowTx = new VersionedTransaction(borrowMessage.compileToV0Message(lookupTables));
-
-    // process multiple transactions if feed updates required
-    const sigs = this.client.processTransactions([...(updateFeedIxs.length ? [bundleTipFeedUpdateTx] : []), borrowTx]);
-    debug("Borrowing successful %s", sigs);
-    return sigs;
+    return { bundleTipFeedUpdateTxs, borrowTx, addressLookupTableAccounts };
   }
 
   async simulateBorrow(amount: Amount, bankAddress: PublicKey): Promise<SimulationResult> {
@@ -1226,7 +1304,10 @@ class MarginfiAccountWrapper {
 
       if (staleOracles.length > 0) {
         const sbProgram = getSwitchboardProgram(this._program.provider);
-        const [pullIx, luts] = await sb.PullFeed.fetchUpdateManyIx(sbProgram, { feeds: staleOracles, numSignatures: 3 });
+        const [pullIx, luts] = await sb.PullFeed.fetchUpdateManyIx(sbProgram, {
+          feeds: staleOracles,
+          numSignatures: 3,
+        });
 
         return { instructions: [pullIx], luts };
       }

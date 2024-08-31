@@ -185,7 +185,7 @@ export async function verifyJupTxSize(
         repayBank: repayBank,
         connection,
         repayCollatTxn: null,
-        bundleTipTxn: null,
+        bundleTipTxn: [],
       },
       priorityFee,
       isTxnSplit,

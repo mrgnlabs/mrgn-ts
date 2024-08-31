@@ -34,7 +34,9 @@ import {
   ActionBoxInput,
 } from "~/components/common/ActionBox/components";
 import { Button } from "~/components/ui/button";
-import { ActionMethod, MarginfiActionParams, RepayType } from "@mrgnlabs/mrgn-utils";
+import { ActionMethod, MarginfiActionParams, RepayType, usePrevious } from "@mrgnlabs/mrgn-utils";
+import { useAmountDebounce } from "~/hooks/useAmountDebounce";
+import { calculateBorrowLend } from "~/store/actionBoxStore";
 
 type ActionBoxProps = {
   requestedAction?: ActionType;
@@ -706,6 +708,56 @@ export const ActionBox = ({
     actionTxns,
   ]);
 
+  const debouncedAmount = useAmountDebounce(amount);
+  const prevDebouncedAmount = usePrevious(debouncedAmount);
+
+  const fetchBorrowWithdrawObject = React.useCallback(
+    async (amount: number) => {
+      if (!selectedBank || !selectedAccount) {
+        return;
+      }
+
+      if (amount === 0) {
+        return;
+      }
+
+      setIsLoading(true);
+      try {
+        const borrowWithdrawObject = await calculateBorrowLend(selectedAccount, actionMode, selectedBank, amount);
+
+        // if (borrowWithdrawObject && "repayTxn" in repayCollat) {
+        //   const actionTxns = {
+        //     actionTxn: repayCollat.repayTxn,
+        //     bundleTipTxn: repayCollat.bundleTipTxn,
+        //   };
+        //   const actionQuote = repayCollat.quote;
+        //   const amountRaw = repayCollat.amount.toString();
+
+        //   setRepayAmount(amount);
+        //   setActionQuote(actionQuote);
+        //   setActionTxns(actionTxns);
+        // } else {
+        //   const errorMessage =
+        //     repayCollat ?? DYNAMIC_SIMULATION_ERRORS.REPAY_COLLAT_FAILED_CHECK(selectedSecondaryBank.meta.tokenSymbol);
+
+        //   setErrorMessage(errorMessage);
+        // }
+      } catch (error) {
+        // setErrorMessage(STATIC_SIMULATION_ERRORS.REPAY_COLLAT_FAILED);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [selectedBank, selectedAccount, setIsLoading, actionMode]
+  );
+
+  // Fetch the action object based on the action mode
+  React.useEffect(() => {
+    if (prevDebouncedAmount !== debouncedAmount) {
+      fetchBorrowWithdrawObject(debouncedAmount);
+    }
+  }, [prevDebouncedAmount, debouncedAmount, fetchBorrowWithdrawObject]);
+
   if (!isInitialized) {
     return null;
   }
@@ -828,6 +880,7 @@ export const ActionBox = ({
                       }
                     : undefined
                 }
+                actionTxns={actionTxns}
                 addAdditionalsPopup={(actions) => setAdditionalActionMethods(actions)}
               >
                 <ActionBoxActions

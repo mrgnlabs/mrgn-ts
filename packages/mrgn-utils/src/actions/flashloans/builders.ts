@@ -34,7 +34,7 @@ export async function calculateRepayCollateralParams(
 ): Promise<
   | {
       repayTxn: VersionedTransaction;
-      bundleTipTxn: VersionedTransaction | null;
+      bundleTipTxn: VersionedTransaction[];
       quote: QuoteResponse;
       amount: number;
     }
@@ -120,7 +120,7 @@ export async function calculateBorrowLendPositionParams({
 }): Promise<
   | {
       closeTxn: VersionedTransaction;
-      bundleTipTxn: VersionedTransaction | null;
+      bundleTipTxn: VersionedTransaction[];
       quote: QuoteResponse;
     }
   | ActionMethod
@@ -272,12 +272,12 @@ export async function calculateLoopingParams({
         const actualDepositAmountUi = minSwapAmountOutUi + amount;
         let txn: {
           flashloanTx: VersionedTransaction | null;
-          bundleTipTxn: VersionedTransaction | null;
+          bundleTipTxn: VersionedTransaction[];
           addressLookupTableAccounts: AddressLookupTableAccount[];
           error?: ActionMethod;
         } = {
           flashloanTx: null,
-          bundleTipTxn: null,
+          bundleTipTxn: [],
           addressLookupTableAccounts: [],
           error: undefined,
         };
@@ -298,7 +298,7 @@ export async function calculateLoopingParams({
         if (txn.flashloanTx || !marginfiAccount) {
           return {
             loopingTxn: txn.flashloanTx ?? null,
-            bundleTipTxn: txn.bundleTipTxn ?? null,
+            bundleTipTxn: txn.bundleTipTxn,
             quote: swapQuote,
             borrowAmount: borrowAmount,
             actualDepositAmount: actualDepositAmountUi,
@@ -386,7 +386,7 @@ export async function loopingBuilder({
   isTxnSplit: boolean;
 }): Promise<{
   flashloanTx: VersionedTransaction;
-  bundleTipTxn: VersionedTransaction | null;
+  bundleTipTxn: VersionedTransaction[];
   addressLookupTableAccounts: AddressLookupTableAccount[];
 }> {
   console.log("CALL loopingBuilder");
