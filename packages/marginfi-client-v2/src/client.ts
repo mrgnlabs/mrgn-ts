@@ -28,6 +28,7 @@ import {
   loadBankMetadatas,
   loadKeypair,
   NodeWallet,
+  simulateBundle,
   sleep,
   TransactionOptions,
   Wallet,
@@ -101,8 +102,6 @@ class MarginfiClient {
   public feedIdMap: PythPushFeedIdMap;
   private preloadedBankAddresses?: PublicKey[];
   private sendEndpoint?: string;
-  private spamSendTx: boolean;
-  private skipPreflightInSpam: boolean;
 
   // --------------------------------------------------------------------------
   // Factories
@@ -122,8 +121,6 @@ class MarginfiClient {
     preloadedBankAddresses?: PublicKey[],
     readonly bankMetadataMap?: BankMetadataMap,
     sendEndpoint?: string,
-    spamSendTx: boolean = true,
-    skipPreflightInSpam: boolean = true
   ) {
     this.group = group;
     this.banks = banks;
@@ -132,8 +129,6 @@ class MarginfiClient {
     this.addressLookupTables = addressLookupTables ?? [];
     this.preloadedBankAddresses = preloadedBankAddresses;
     this.sendEndpoint = sendEndpoint;
-    this.spamSendTx = spamSendTx;
-    this.skipPreflightInSpam = skipPreflightInSpam;
     this.feedIdMap = feedIdMap;
   }
 
@@ -242,8 +237,6 @@ class MarginfiClient {
       preloadedBankAddresses,
       bankMetadataMap,
       sendEndpoint,
-      spamSendTx,
-      skipPreflightInSpam
     );
   }
 
@@ -777,7 +770,6 @@ class MarginfiClient {
 
     let versionedTransactions: VersionedTransaction[] = transaction;
     const connection = new Connection(this.provider.connection.rpcEndpoint, this.provider.opts);
-    const sendConnection = this.sendEndpoint ? new Connection(this.sendEndpoint, this.provider.opts) : connection;
     let minContextSlot: number;
     let blockhash: string;
     let lastValidBlockHeight: number;
@@ -800,47 +792,31 @@ class MarginfiClient {
 
     try {
       if (opts?.dryRun || this.isReadOnly) {
-        for (const versionedTransaction of versionedTransactions) {
-          const response = await connection.simulateTransaction(
-            versionedTransaction,
-            opts ?? { minContextSlot, sigVerify: false }
-          );
-          console.log(
-            response.value.err ? `❌ Error: ${response.value.err}` : `✅ Success - ${response.value.unitsConsumed} CU`
-          );
-          console.log("------ Logs 👇 ------");
-          if (response.value.logs) {
-            for (const log of response.value.logs) {
-              console.log(log);
-            }
+        const response = await simulateBundle(connection, versionedTransactions);
+        console.log(
+          response.value.err ? `❌ Error: ${response.value.err}` : `✅ Success - ${response.value.unitsConsumed} CU`
+        );
+        console.log("------ Logs 👇 ------");
+        if (response.value.logs) {
+          for (const log of response.value.logs) {
+            console.log(log);
           }
-
-          const signaturesEncoded = encodeURIComponent(
-            JSON.stringify(versionedTransaction.signatures.map((s) => bs58.encode(s)))
-          );
-          const messageEncoded = encodeURIComponent(
-            Buffer.from(versionedTransaction.message.serialize()).toString("base64")
-          );
-
-          const urlEscaped = `https://explorer.solana.com/tx/inspector?cluster=${this.config.cluster}&signatures=${signaturesEncoded}&message=${messageEncoded}`;
-          console.log("------ Inspect 👇 ------");
-          console.log(urlEscaped);
-
-          if (response.value.err)
-            throw new SendTransactionError({
-              action: "simulate",
-              signature: "",
-              transactionMessage: JSON.stringify(response.value.err),
-              logs: response.value.logs ?? [],
-            });
-          // throw new SendTransactionError(JSON.stringify(response.value.err), response.value.logs ?? []);
-          signatures.push(versionedTransaction.signatures[0].toString());
         }
-        return signatures;
+
+        if (response.value.err)
+          throw new SendTransactionError({
+            action: "simulate",
+            signature: "",
+            transactionMessage: JSON.stringify(response.value.err),
+            logs: response.value.logs ?? [],
+          });
+        return [];
       } else {
         let base58Txs: string[] = [];
 
         if (!!this.wallet.signAllTransactions) {
+          console.log(this.wallet.signAllTransactions)
+          console.log("sign all txs")
           versionedTransactions = await this.wallet.signAllTransactions(versionedTransactions);
           base58Txs = versionedTransactions.map((signedTx) => bs58.encode(signedTx.serialize()));
         } else {
@@ -860,94 +836,54 @@ class MarginfiClient {
           ...opts,
         };
 
-        if (this.spamSendTx) {
-          let status = "pending";
-          if (this.skipPreflightInSpam) {
-            for (const versionedTransaction of versionedTransactions) {
-              const response = await connection.simulateTransaction(
-                versionedTransaction,
-                opts ?? { minContextSlot, sigVerify: false }
-              );
-              if (response.value.err) {
-                throw new SendTransactionError({
-                  action: "simulate",
-                  signature: "",
-                  transactionMessage: JSON.stringify(response.value.err),
-                  logs: response.value.logs ?? [],
-                });
-              }
-            }
-          }
+        const response = await simulateBundle(connection, versionedTransactions).catch((error) => {
+          throw new SendTransactionError({
+            action: "simulate",
+            signature: "",
+            transactionMessage: JSON.stringify(error),
+            logs: [],
+          });
+        });
+        console.log("response", response);
 
-          while (true) {
-            signatures = await this.sendTransactionAsBundle(base58Txs).catch(
-              async () =>
-                await Promise.all(
-                  versionedTransactions.map(async (versionedTransaction) => {
-                    const signature = await connection.sendTransaction(versionedTransaction, {
-                      // minContextSlot: mergedOpts.minContextSlot,
-                      skipPreflight: mergedOpts.skipPreflight,
-                      preflightCommitment: mergedOpts.preflightCommitment,
-                      maxRetries: mergedOpts.maxRetries,
-                    });
-                    return signature;
-                  })
-                )
-            );
-            for (let i = 0; i < 5; i++) {
-              const signatureStatus = await connection.getSignatureStatuses(signatures, {
-                searchTransactionHistory: false,
-              });
-              if (signatureStatus.value?.every((status) => status && status.confirmationStatus === "confirmed")) {
-                status = "confirmed";
-                break;
-              }
-              await sleep(200);
-            }
-
-            let blockHeight = await connection.getBlockHeight();
-            if (blockHeight > lastValidBlockHeight) {
-              throw new ProcessTransactionError(
-                "Transaction was not confirmed within †he alloted time",
-                ProcessTransactionErrorType.TimeoutError
-              );
-            }
-
-            if (status === "confirmed") {
-              break;
-            }
-          }
-        } else {
-          signatures = await this.sendTransactionAsBundle(base58Txs).catch(
-            async () =>
-              await Promise.all(
-                versionedTransactions.map(async (versionedTransaction) => {
-                  const signature = await connection.sendTransaction(versionedTransaction, {
-                    // minContextSlot: mergedOpts.minContextSlot,
-                    skipPreflight: mergedOpts.skipPreflight,
-                    preflightCommitment: mergedOpts.preflightCommitment,
-                    maxRetries: mergedOpts.maxRetries,
-                  });
-                  return signature;
-                })
-              )
-          );
-          await Promise.all(
-            signatures.map(async (signature) => {
-              await connection.confirmTransaction(
-                {
-                  blockhash,
-                  lastValidBlockHeight,
-                  signature,
-                },
-                mergedOpts.commitment
-              );
-            })
-          );
+        if (response.value.err) {
+          throw new SendTransactionError({
+            action: "simulate",
+            signature: "",
+            transactionMessage: JSON.stringify(response.value.err),
+            logs: response.value.logs ?? [],
+          });
         }
 
-        return signatures;
+        signatures = await this.sendTransactionAsBundle(base58Txs).catch(
+          async () =>
+            await Promise.all(
+              versionedTransactions.map(async (versionedTransaction) => {
+                const signature = await connection.sendTransaction(versionedTransaction, {
+                  // minContextSlot: mergedOpts.minContextSlot,
+                  skipPreflight: mergedOpts.skipPreflight,
+                  preflightCommitment: mergedOpts.preflightCommitment,
+                  maxRetries: mergedOpts.maxRetries,
+                });
+                return signature;
+              })
+            )
+        );
+
+        await Promise.all(
+          signatures.map(async (signature) => {
+            await connection.confirmTransaction(
+              {
+                blockhash,
+                lastValidBlockHeight,
+                signature,
+              },
+              mergedOpts.commitment
+            );
+          })
+        );
       }
+      return signatures;
     } catch (error: any) {
       const parsedError = parseTransactionError(error, this.config.programId);
 
@@ -1047,7 +983,6 @@ class MarginfiClient {
             transactionMessage: JSON.stringify(response.value.err),
             logs: response.value.logs ?? [],
           });
-        // throw new SendTransactionError(JSON.stringify(response.value.err), response.value.logs ?? []);
 
         return versionedTransaction.signatures[0].toString();
       } else {
@@ -1062,80 +997,27 @@ class MarginfiClient {
           ...opts,
         };
 
-        if (this.spamSendTx) {
-          let status = "pending";
-          if (this.skipPreflightInSpam) {
-            const response = await connection.simulateTransaction(
-              versionedTransaction,
-              opts ?? { minContextSlot, sigVerify: false }
-            );
-            if (response.value.err)
-              throw new SendTransactionError({
-                action: "simulate",
-                signature: "",
-                transactionMessage: JSON.stringify(response.value.err),
-                logs: response.value.logs ?? [],
-              });
-            // throw new SendTransactionError(JSON.stringify(response.value.err), response.value.logs ?? []);
-          }
-
-          while (true) {
-            signature = (
-              await this.sendTransactionAsBundle([base58Tx]).catch(async () => [
-                await sendConnection.sendTransaction(versionedTransaction, {
-                  // minContextSlot: mergedOpts.minContextSlot,
-                  skipPreflight: this.skipPreflightInSpam || mergedOpts.skipPreflight,
-                  preflightCommitment: mergedOpts.preflightCommitment,
-                  maxRetries: mergedOpts.maxRetries,
-                }),
-              ])
-            )[0];
-            for (let i = 0; i < 5; i++) {
-              const signatureStatus = await connection.getSignatureStatus(signature, {
-                searchTransactionHistory: false,
-              });
-              if (signatureStatus.value?.confirmationStatus === "confirmed") {
-                status = "confirmed";
-                break;
-              }
-              await sleep(200);
-            }
-
-            let blockHeight = await connection.getBlockHeight();
-            if (blockHeight > lastValidBlockHeight) {
-              throw new ProcessTransactionError(
-                "Transaction was not confirmed within †he alloted time",
-                ProcessTransactionErrorType.TimeoutError
-              );
-            }
-
-            if (status === "confirmed") {
-              break;
-            }
-          }
-        } else {
-          signature = (
-            await this.sendTransactionAsBundle([base58Tx]).catch(async () => [
-              await connection.sendTransaction(versionedTransaction, {
-                // minContextSlot: mergedOpts.minContextSlot,
-                skipPreflight: mergedOpts.skipPreflight,
-                preflightCommitment: mergedOpts.preflightCommitment,
-                maxRetries: mergedOpts.maxRetries,
-              }),
-            ])
-          )[0];
-          await connection.confirmTransaction(
-            {
-              blockhash,
-              lastValidBlockHeight,
-              signature,
-            },
-            mergedOpts.commitment
-          );
-        }
-
-        return signature;
+        signature = (
+          await this.sendTransactionAsBundle([base58Tx]).catch(async () => [
+            await connection.sendTransaction(versionedTransaction, {
+              // minContextSlot: mergedOpts.minContextSlot,
+              skipPreflight: mergedOpts.skipPreflight,
+              preflightCommitment: mergedOpts.preflightCommitment,
+              maxRetries: mergedOpts.maxRetries,
+            }),
+          ])
+        )[0];
+        await connection.confirmTransaction(
+          {
+            blockhash,
+            lastValidBlockHeight,
+            signature,
+          },
+          mergedOpts.commitment
+        );
       }
+
+      return signature;
     } catch (error: any) {
       const parsedError = parseTransactionError(error, this.config.programId);
 
