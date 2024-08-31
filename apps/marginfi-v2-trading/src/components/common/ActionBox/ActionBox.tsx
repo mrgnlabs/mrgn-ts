@@ -374,7 +374,7 @@ export const ActionBox = ({
         params.repayWithCollatOptions = {
           repayCollatQuote,
           repayCollatTxn: repayCollatTxns.repayCollatTxn,
-          bundleTipTxn: repayCollatTxns.bundleTipTxn,
+          feedCrankTxs: repayCollatTxns.feedCrankTxs,
           repayAmount: repayAmount,
           repayBank: selectedRepayBank,
           connection,
@@ -400,7 +400,7 @@ export const ActionBox = ({
     wallet,
     executeLendingActionCb,
     repayCollatTxns.repayCollatTxn,
-    repayCollatTxns.bundleTipTxn,
+    repayCollatTxns.feedCrankTxs,
   ]);
 
   React.useEffect(() => {
@@ -505,7 +505,7 @@ export const ActionBox = ({
                     ? {
                         repayCollatQuote,
                         repayCollatTxn: repayCollatTxns.repayCollatTxn,
-                        bundleTipTxn: repayCollatTxns.bundleTipTxn,
+                        feedCrankTxs: repayCollatTxns.feedCrankTxs,
                         repayAmount,
                         repayBank: selectedRepayBank,
                         connection,

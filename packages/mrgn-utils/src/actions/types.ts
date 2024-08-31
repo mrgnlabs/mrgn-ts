@@ -61,7 +61,7 @@ export interface LstData {
 
 export type RepayWithCollatOptions = {
   repayCollatQuote: QuoteResponse;
-  bundleTipTxn: VersionedTransaction[];
+  feedCrankTxs: VersionedTransaction[];
   repayCollatTxn: VersionedTransaction | null;
   withdrawAmount: number;
   depositBank: ExtendedBankInfo;
@@ -70,7 +70,7 @@ export type RepayWithCollatOptions = {
 
 export type LoopingOptions = {
   loopingQuote: QuoteResponse;
-  bundleTipTxn: VersionedTransaction[];
+  feedCrankTxs: VersionedTransaction[];
   loopingTxn: VersionedTransaction | null;
   borrowAmount: BigNumber;
   loopingBank: ExtendedBankInfo;
@@ -86,7 +86,7 @@ export type MarginfiActionParams = {
   marginfiAccount: MarginfiAccountWrapper | null;
   actionTxns?: {
     actionTxn: VersionedTransaction | null;
-    bundleTipTxn: VersionedTransaction[];
+    feedCrankTxs: VersionedTransaction[];
   };
   repayWithCollatOptions?: RepayWithCollatOptions;
   loopingOptions?: LoopingOptions;
@@ -110,7 +110,7 @@ export type LstActionParams = {
 
 export interface LoopingObject {
   loopingTxn: VersionedTransaction | null;
-  bundleTipTxn: VersionedTransaction[];
+  feedCrankTxs: VersionedTransaction[];
   quote: QuoteResponse;
   actualDepositAmount: number;
   borrowAmount: BigNumber;

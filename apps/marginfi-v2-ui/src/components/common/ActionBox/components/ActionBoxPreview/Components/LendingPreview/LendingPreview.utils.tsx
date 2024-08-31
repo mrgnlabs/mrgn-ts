@@ -38,7 +38,7 @@ export interface SimulateActionProps {
   repayWithCollatOptions?: RepayWithCollatOptions;
   borrowWithdrawOptions?: {
     actionTx: VersionedTransaction | null;
-    bundleTipTxs: VersionedTransaction[];
+    feedCrankTxs: VersionedTransaction[];
   };
 }
 
@@ -74,7 +74,7 @@ export interface CalculatePreviewProps {
   isLoading: boolean;
   borrowWithdrawOptions?: {
     actionTx: VersionedTransaction | null;
-    bundleTipTxs: VersionedTransaction[];
+    feedCrankTxs: VersionedTransaction[];
   };
 }
 

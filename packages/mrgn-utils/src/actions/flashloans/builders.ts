@@ -33,11 +33,11 @@ export async function calculateRepayCollateralParams(
   platformFeeBps?: number
 ): Promise<
   | {
-      repayTxn: VersionedTransaction;
-      bundleTipTxn: VersionedTransaction[];
-      quote: QuoteResponse;
-      amount: number;
-    }
+    repayTxn: VersionedTransaction;
+    feedCrankTxs: VersionedTransaction[];
+    quote: QuoteResponse;
+    amount: number;
+  }
   | ActionMethod
 > {
   const maxRepayAmount = bank.isActive ? bank?.position.amount : 0;
@@ -83,7 +83,7 @@ export async function calculateRepayCollateralParams(
           isTxnSplit
         );
         if (txn.flashloanTx) {
-          return { repayTxn: txn.flashloanTx, bundleTipTxn: txn.bundleTipTxn, quote: swapQuote, amount: amountToRepay };
+          return { repayTxn: txn.flashloanTx, feedCrankTxs: txn.feedCrankTxs, quote: swapQuote, amount: amountToRepay };
         } else if (txn.error && maxAccounts === maxAccountsArr[maxAccountsArr.length - 1]) {
           return txn.error;
         }
@@ -119,10 +119,10 @@ export async function calculateBorrowLendPositionParams({
   platformFeeBps?: number;
 }): Promise<
   | {
-      closeTxn: VersionedTransaction;
-      bundleTipTxn: VersionedTransaction[];
-      quote: QuoteResponse;
-    }
+    closeTxn: VersionedTransaction;
+    feedCrankTxs: VersionedTransaction[];
+    quote: QuoteResponse;
+  }
   | ActionMethod
 > {
   let firstQuote;
@@ -164,7 +164,7 @@ export async function calculateBorrowLendPositionParams({
         );
 
         if (txn.flashloanTx) {
-          return { closeTxn: txn.flashloanTx, bundleTipTxn: txn.bundleTipTxn, quote: swapQuote };
+          return { closeTxn: txn.flashloanTx, feedCrankTxs: txn.feedCrankTxs, quote: swapQuote };
         } else if (txn.error && maxAccounts === maxAccountsArr[maxAccountsArr.length - 1]) {
           return txn.error;
         }
@@ -272,12 +272,12 @@ export async function calculateLoopingParams({
         const actualDepositAmountUi = minSwapAmountOutUi + amount;
         let txn: {
           flashloanTx: VersionedTransaction | null;
-          bundleTipTxn: VersionedTransaction[];
+          feedCrankTxs: VersionedTransaction[];
           addressLookupTableAccounts: AddressLookupTableAccount[];
           error?: ActionMethod;
         } = {
           flashloanTx: null,
-          bundleTipTxn: [],
+          feedCrankTxs: [],
           addressLookupTableAccounts: [],
           error: undefined,
         };
@@ -298,7 +298,7 @@ export async function calculateLoopingParams({
         if (txn.flashloanTx || !marginfiAccount) {
           return {
             loopingTxn: txn.flashloanTx ?? null,
-            bundleTipTxn: txn.bundleTipTxn,
+            feedCrankTxs: txn.feedCrankTxs,
             quote: swapQuote,
             borrowAmount: borrowAmount,
             actualDepositAmount: actualDepositAmountUi,
@@ -356,7 +356,7 @@ export async function calculateLoopingTransaction({
     } else {
       return {
         loopingTxn: txn.flashloanTx,
-        bundleTipTxn: txn.bundleTipTxn,
+        feedCrankTxs: txn.feedCrankTxs,
         quote: loopObject.quote,
         borrowAmount: loopObject.borrowAmount,
         actualDepositAmount: loopObject.actualDepositAmount,
@@ -386,7 +386,7 @@ export async function loopingBuilder({
   isTxnSplit: boolean;
 }): Promise<{
   flashloanTx: VersionedTransaction;
-  bundleTipTxn: VersionedTransaction[];
+  feedCrankTxs: VersionedTransaction[];
   addressLookupTableAccounts: AddressLookupTableAccount[];
 }> {
   console.log("CALL loopingBuilder");
@@ -420,7 +420,7 @@ export async function loopingBuilder({
   const swapLUTs: AddressLookupTableAccount[] = [];
   swapLUTs.push(...(await getAdressLookupTableAccounts(options.connection, addressLookupTableAddresses)));
 
-  const { flashloanTx, bundleTipTxn, addressLookupTableAccounts } = await marginfiAccount.makeLoopTx(
+  const { flashloanTx, feedCrankTxs, addressLookupTableAccounts } = await marginfiAccount.makeLoopTx(
     depositAmount,
     options.borrowAmount,
     bank.address,
@@ -432,9 +432,7 @@ export async function loopingBuilder({
     isTxnSplit
   );
 
-  console.log("bundleTipTxn", bundleTipTxn);
-
-  return { flashloanTx, bundleTipTxn, addressLookupTableAccounts };
+  return { flashloanTx, feedCrankTxs, addressLookupTableAccounts };
 }
 
 /*
@@ -472,7 +470,7 @@ export async function repayWithCollatBuilder({
   const swapLUTs: AddressLookupTableAccount[] = [];
   swapLUTs.push(...(await getAdressLookupTableAccounts(options.connection, addressLookupTableAddresses)));
 
-  const { flashloanTx, bundleTipTxn, addressLookupTableAccounts } = await marginfiAccount.makeRepayWithCollatTx(
+  const { flashloanTx, feedCrankTxs, addressLookupTableAccounts } = await marginfiAccount.makeRepayWithCollatTx(
     amount,
     options.withdrawAmount,
     bank.address,
@@ -485,7 +483,7 @@ export async function repayWithCollatBuilder({
     isTxnSplit
   );
 
-  return { flashloanTx, bundleTipTxn, addressLookupTableAccounts };
+  return { flashloanTx, feedCrankTxs, addressLookupTableAccounts };
 }
 
 /*
@@ -532,7 +530,7 @@ export async function closePositionBuilder({
   const swapLUTs: AddressLookupTableAccount[] = [];
   swapLUTs.push(...(await getAdressLookupTableAccounts(connection, addressLookupTableAddresses)));
 
-  const { flashloanTx, bundleTipTxn, addressLookupTableAccounts } = await marginfiAccount.makeRepayWithCollatTx(
+  const { flashloanTx, feedCrankTxs, addressLookupTableAccounts } = await marginfiAccount.makeRepayWithCollatTx(
     borrowBank.position.amount,
     depositBank.position.amount,
     borrowBank.address,
@@ -545,5 +543,5 @@ export async function closePositionBuilder({
     isTxnSplit
   );
 
-  return { flashloanTx, bundleTipTxn, addressLookupTableAccounts };
+  return { flashloanTx, feedCrankTxs, addressLookupTableAccounts };
 }

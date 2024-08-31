@@ -470,7 +470,7 @@ export const ActionBox = ({
       loopingOptions: {
         loopingQuote: actionQuote,
         loopingTxn: actionTxns.actionTxn,
-        bundleTipTxn: actionTxns.bundleTipTxn,
+        feedCrankTxs: actionTxns.feedCrankTxs,
         borrowAmount: loopingAmounts?.borrowAmount,
         loopingBank: selectedRepayBank,
         connection,
@@ -519,7 +519,7 @@ export const ActionBox = ({
     selectedAccount,
     walletContextState,
     actionTxns.actionTxn,
-    actionTxns.bundleTipTxn,
+    actionTxns.feedCrankTxs,
     handleCloseDialog,
     setAmountRaw,
     setIsActionComplete,
@@ -661,7 +661,7 @@ export const ActionBox = ({
         params.repayWithCollatOptions = {
           repayCollatQuote: actionQuote,
           repayCollatTxn: actionTxns.actionTxn,
-          bundleTipTxn: actionTxns.bundleTipTxn,
+          feedCrankTxs: actionTxns.feedCrankTxs,
           withdrawAmount: repayAmount,
           depositBank: selectedRepayBank,
           connection,
@@ -735,7 +735,7 @@ export const ActionBox = ({
         const borrowWithdrawObject = await calculateBorrowLend(selectedAccount, actionMode, selectedBank, amount);
 
         if (borrowWithdrawObject) {
-          setActionTxns({ actionTxn: borrowWithdrawObject.actionTx, bundleTipTxn: borrowWithdrawObject.bundleTipTxs });
+          setActionTxns({ actionTxn: borrowWithdrawObject.actionTx, feedCrankTxs: borrowWithdrawObject.bundleTipTxs });
         } else {
           // TODO: handle setErrorMessage
           console.error("No borrowWithdrawObject");
@@ -861,7 +861,7 @@ export const ActionBox = ({
                         loopingQuote: actionQuote,
                         loopingBank: selectedRepayBank,
                         loopingTxn: actionTxns.actionTxn,
-                        bundleTipTxn: actionTxns.bundleTipTxn,
+                        feedCrankTxs: actionTxns.feedCrankTxs,
                         borrowAmount: loopingAmounts?.borrowAmount,
                         connection,
                       }
@@ -872,7 +872,7 @@ export const ActionBox = ({
                     ? {
                         repayCollatQuote: actionQuote,
                         repayCollatTxn: actionTxns.actionTxn,
-                        bundleTipTxn: actionTxns.bundleTipTxn,
+                        feedCrankTxs: actionTxns.feedCrankTxs,
                         withdrawAmount: repayAmount,
                         depositBank: selectedRepayBank,
                         connection,

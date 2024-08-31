@@ -51,7 +51,7 @@ interface ActionBoxState {
   selectedStakingAccount: StakeData | null;
 
   actionQuote: QuoteResponse | null;
-  actionTxns: { actionTxn: VersionedTransaction | null; bundleTipTxn: VersionedTransaction[] };
+  actionTxns: { actionTxn: VersionedTransaction | null; feedCrankTxs: VersionedTransaction[] };
 
   errorMessage: ActionMethod | null;
   isLoading: boolean;
@@ -66,7 +66,7 @@ interface ActionBoxState {
   setLstMode: (lstMode: LstType) => void;
   setYbxMode: (ybxMode: YbxType) => void;
   setAmountRaw: (amountRaw: string, maxAmount?: number) => void;
-  setActionTxns: (actionTxns: { actionTxn: VersionedTransaction | null; bundleTipTxn: VersionedTransaction[] }) => void;
+  setActionTxns: (actionTxns: { actionTxn: VersionedTransaction | null; feedCrankTxs: VersionedTransaction[] }) => void;
   setLeverage: (
     leverage: number,
     marginfiAccount: MarginfiAccountWrapper | null,
@@ -166,7 +166,7 @@ const initialState = {
   selectedStakingAccount: null,
 
   actionQuote: null,
-  actionTxns: { actionTxn: null, bundleTipTxn: [] },
+  actionTxns: { actionTxn: null, feedCrankTxs: [] },
 
   isLoading: false,
 };
@@ -326,7 +326,7 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
       set({
         actionTxns: {
           actionTxn: loopingObject.loopingTxn,
-          bundleTipTxn: loopingObject.bundleTipTxn,
+          feedCrankTxs: loopingObject.feedCrankTxs,
         },
         actionQuote: loopingObject.quote,
         loopingAmounts: {
@@ -372,7 +372,7 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
       set({
         actionTxns: {
           actionTxn: repayCollat.repayTxn,
-          bundleTipTxn: repayCollat.bundleTipTxn,
+          feedCrankTxs: repayCollat.feedCrankTxs,
         },
         actionQuote: repayCollat.quote,
         amountRaw: repayCollat.amount.toString(),
@@ -670,7 +670,7 @@ async function calculateRepayCollateral(
 ): Promise<
   | {
     repayTxn: VersionedTransaction;
-    bundleTipTxn: VersionedTransaction[];
+    feedCrankTxs: VersionedTransaction[];
     quote: QuoteResponse;
     amount: number;
   }
