@@ -104,6 +104,7 @@ export const ActionBox = ({
     setActionMode,
     setIsLoading,
     setAmountRaw,
+    setActionTxns,
     refreshSelectedBanks,
   ] = useActionBoxStore(isDialog)((state) => [
     state.slippageBps,
@@ -128,6 +129,7 @@ export const ActionBox = ({
     state.setActionMode,
     state.setIsLoading,
     state.setAmountRaw,
+    state.setActionTxns,
     state.refreshSelectedBanks,
   ]);
 
@@ -300,6 +302,7 @@ export const ActionBox = ({
       marginfiAccount,
       walletContextState,
       repayWithCollatOptions,
+      actionTxns,
     }: MarginfiActionParams) => {
       setIsLoading(true);
       const attemptUuid = uuidv4();
@@ -320,6 +323,7 @@ export const ActionBox = ({
         walletContextState,
         priorityFee,
         repayWithCollatOptions,
+        actionTxns,
       });
 
       setIsLoading(false);
@@ -650,6 +654,7 @@ export const ActionBox = ({
         nativeSolBalance,
         marginfiAccount: selectedAccount,
         walletContextState,
+        actionTxns,
       } as MarginfiActionParams;
 
       if (actionQuote && repayAmount && selectedRepayBank && connection && wallet) {
@@ -721,34 +726,28 @@ export const ActionBox = ({
         return;
       }
 
+      if (actionMode !== ActionType.Borrow && actionMode !== ActionType.Withdraw) {
+        return;
+      }
+
       setIsLoading(true);
       try {
         const borrowWithdrawObject = await calculateBorrowLend(selectedAccount, actionMode, selectedBank, amount);
 
-        // if (borrowWithdrawObject && "repayTxn" in repayCollat) {
-        //   const actionTxns = {
-        //     actionTxn: repayCollat.repayTxn,
-        //     bundleTipTxn: repayCollat.bundleTipTxn,
-        //   };
-        //   const actionQuote = repayCollat.quote;
-        //   const amountRaw = repayCollat.amount.toString();
-
-        //   setRepayAmount(amount);
-        //   setActionQuote(actionQuote);
-        //   setActionTxns(actionTxns);
-        // } else {
-        //   const errorMessage =
-        //     repayCollat ?? DYNAMIC_SIMULATION_ERRORS.REPAY_COLLAT_FAILED_CHECK(selectedSecondaryBank.meta.tokenSymbol);
-
-        //   setErrorMessage(errorMessage);
-        // }
+        if (borrowWithdrawObject) {
+          setActionTxns({ actionTxn: borrowWithdrawObject.actionTx, bundleTipTxn: borrowWithdrawObject.bundleTipTxs });
+        } else {
+          // TODO: handle setErrorMessage
+          console.error("No borrowWithdrawObject");
+        }
       } catch (error) {
-        // setErrorMessage(STATIC_SIMULATION_ERRORS.REPAY_COLLAT_FAILED);
+        // TODO: eccountered error,  handle setErrorMessage
+        console.error("Error fetching borrowWithdrawObject");
       } finally {
         setIsLoading(false);
       }
     },
-    [selectedBank, selectedAccount, setIsLoading, actionMode]
+    [selectedBank, selectedAccount, actionMode, setIsLoading, setActionTxns]
   );
 
   // Fetch the action object based on the action mode

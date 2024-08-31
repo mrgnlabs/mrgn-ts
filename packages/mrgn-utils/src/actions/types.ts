@@ -84,6 +84,10 @@ export type MarginfiActionParams = {
   amount: number;
   nativeSolBalance: number;
   marginfiAccount: MarginfiAccountWrapper | null;
+  actionTxns?: {
+    actionTxn: VersionedTransaction | null;
+    bundleTipTxn: VersionedTransaction[];
+  };
   repayWithCollatOptions?: RepayWithCollatOptions;
   loopingOptions?: LoopingOptions;
   walletContextState?: WalletContextState | WalletContextStateOverride;
