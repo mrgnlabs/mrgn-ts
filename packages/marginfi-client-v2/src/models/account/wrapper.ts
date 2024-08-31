@@ -548,8 +548,7 @@ class MarginfiAccountWrapper {
 
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:repay`);
     debug(
-      `Looping ${depositAmount} ${depositBank.tokenSymbol} against ${borrowAmount} ${
-        borrowBank.tokenSymbol
+      `Looping ${depositAmount} ${depositBank.tokenSymbol} against ${borrowAmount} ${borrowBank.tokenSymbol
       } into marginfi account (banks: ${depositBankAddress.toBase58()} / ${borrowBankAddress.toBase58()})`
     );
 
@@ -918,11 +917,11 @@ class MarginfiAccountWrapper {
     // separate bundle tip + feed updates message
     let bundleTipFeedUpdateTxs: VersionedTransaction[] = [];
 
-    if (updateFeedIxs.length) {
+    if (updateFeedIxs.length > 0) {
       bundleTipFeedUpdateTxs.push(
         new VersionedTransaction(
           new TransactionMessage({
-            instructions: [bundleTipIx, ...updateFeedIxs],
+            instructions: updateFeedIxs,
             payerKey: this.authority,
             recentBlockhash: blockhash,
           }).compileToV0Message([...feedLuts])
@@ -934,10 +933,9 @@ class MarginfiAccountWrapper {
     const withdrawTx = new VersionedTransaction(
       new TransactionMessage({
         instructions: [
-          ...(updateFeedIxs.length ? [] : [bundleTipIx]),
+          bundleTipIx,
           ...cuRequestIxs,
           ...priorityFeeIxs,
-          ...updateFeedIxs,
           ...ixs.instructions,
         ],
         payerKey: this.authority,
@@ -1059,11 +1057,11 @@ class MarginfiAccountWrapper {
     // separate bundle tip + feed updates message
     let bundleTipFeedUpdateTxs: VersionedTransaction[] = [];
 
-    if (updateFeedIxs.length) {
+    if (updateFeedIxs.length > 0) {
       bundleTipFeedUpdateTxs.push(
         new VersionedTransaction(
           new TransactionMessage({
-            instructions: [bundleTipIx, ...updateFeedIxs],
+            instructions: updateFeedIxs,
             payerKey: this.authority,
             recentBlockhash: blockhash,
           }).compileToV0Message([...feedLuts])
@@ -1075,10 +1073,9 @@ class MarginfiAccountWrapper {
     const borrowTx = new VersionedTransaction(
       new TransactionMessage({
         instructions: [
-          ...(updateFeedIxs.length ? [] : [bundleTipIx]),
+          bundleTipIx,
           ...cuRequestIxs,
           ...priorityFeeIxs,
-          ...updateFeedIxs,
           ...ixs.instructions,
         ],
         payerKey: this.authority,
@@ -1306,7 +1303,7 @@ class MarginfiAccountWrapper {
         const sbProgram = getSwitchboardProgram(this._program.provider);
         const [pullIx, luts] = await sb.PullFeed.fetchUpdateManyIx(sbProgram, {
           feeds: staleOracles,
-          numSignatures: 3,
+          numSignatures: 1,
         });
 
         return { instructions: [pullIx], luts };
