@@ -1,5 +1,4 @@
 import { useEffect, useRef } from "react";
-import numeral from "numeral";
 import { PublicKey, TransactionInstruction } from "@solana/web3.js";
 import BN from "bn.js";
 

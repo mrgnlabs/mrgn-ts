@@ -12,11 +12,10 @@ import {
 import { ActionMethod, MarginfiActionParams, PreviousTxn, WalletContextStateOverride } from "@mrgnlabs/mrgn-utils";
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 
-import { ActionBoxActions, ActionMessage, ActionSettingsButton } from "~/components/ActionboxV2/sharedComponents";
-import { useActionBoxStore } from "~/components/ActionboxV2/store";
-import { useActionAmounts } from "~/components/ActionboxV2/sharedHooks";
-
-import { LSTDialog, LSTDialogVariants } from "~/components/LSTDialog";
+import { ActionBoxActions, ActionMessage, ActionSettingsButton } from "../../../ActionboxV2/sharedComponents";
+import { useActionBoxStore } from "../../../ActionboxV2/store";
+import { useActionAmounts } from "../../../ActionboxV2/sharedHooks";
+import { LSTDialog, LSTDialogVariants } from "../../../../components/LSTDialog";
 
 import { useLendBoxStore } from "./store";
 import { checkActionAvailable, handleExecuteCloseBalance, handleExecuteLendingAction } from "./utils";

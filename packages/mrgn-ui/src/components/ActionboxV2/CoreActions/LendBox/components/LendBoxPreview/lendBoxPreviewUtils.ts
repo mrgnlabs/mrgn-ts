@@ -8,7 +8,7 @@ import {
   getBankTypeStat,
   getOracleStat,
   ActionSummary,
-} from "~/components/ActionboxV2/sharedUtils";
+} from "../../../../../ActionboxV2/sharedUtils";
 
 export function generateLendingStats(
   summary: ActionSummary,

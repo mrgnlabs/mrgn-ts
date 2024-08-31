@@ -1,4 +1,3 @@
-import { FC } from "react";
 import { IconAlertTriangle } from "@tabler/icons-react";
 
 export interface WarningToastProps {
@@ -6,7 +5,7 @@ export interface WarningToastProps {
   message: string;
 }
 
-export const WarningToast: FC<WarningToastProps> = ({ title, message }) => {
+export const WarningToast = ({ title, message }: WarningToastProps) => {
   return (
     <div className="w-full h-full bg-black text-white rounded-lg shadow-lg z-50">
       <h2 className="text-xl font-medium">{title}</h2>

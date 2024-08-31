@@ -5,7 +5,7 @@ import { ExtendedBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { LendingModes, computeBankRate } from "@mrgnlabs/mrgn-utils";
 
 import { CommandEmpty, CommandGroup, CommandItem } from "~/components/ui/command";
-import { ActionBoxItem, TokenListCommand } from "~/components/ActionboxV2/sharedComponents";
+import { ActionBoxItem, TokenListCommand } from "../../../../../../ActionboxV2/sharedComponents";
 
 import { cn } from "~/utils/themeUtils";
 

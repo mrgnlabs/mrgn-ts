@@ -1,8 +1,8 @@
 import { JUPITER_PROGRAM_V6_ID } from "@jup-ag/react-hook";
 
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-
 import { percentFormatter } from "@mrgnlabs/mrgn-common";
+
 import { ActionMethod } from "./actions";
 
 // Static errors that are not expected to change

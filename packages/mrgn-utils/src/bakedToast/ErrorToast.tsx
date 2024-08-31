@@ -1,4 +1,3 @@
-import { FC } from "react";
 import { IconAlertTriangle } from "@tabler/icons-react";
 
 export interface ErrorToastProps {
@@ -6,7 +5,7 @@ export interface ErrorToastProps {
   message: string;
 }
 
-export const ErrorToast: FC<ErrorToastProps> = ({ title, message }) => {
+export function ErrorToast({ title, message }: ErrorToastProps) {
   return (
     <div className="w-full h-full bg-black text-white rounded-lg shadow-lg z-50">
       <h2 className="text-xl font-medium">{title}</h2>
@@ -18,4 +17,4 @@ export const ErrorToast: FC<ErrorToastProps> = ({ title, message }) => {
       </div>
     </div>
   );
-};
+}

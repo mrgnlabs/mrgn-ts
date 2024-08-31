@@ -2,8 +2,6 @@ import React from "react";
 
 // Import your subcomponents
 import { LendBox, LendBoxProps } from "./CoreActions";
-// import FlashLoanActionBox from "./FlashLoan/FlashLoanActionBox";
-// import LSTActionBox from "./LST/LSTActionBox";
 
 import { ActionDialogWrapper, ActionDialogProps, ActionBoxWrapper, ActionBoxNavigator } from "./sharedComponents";
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
@@ -44,8 +42,6 @@ interface BorrowLendBoxProps
 interface ActionBoxComponent extends React.FC<ActionBoxProps & ActionBoxComponentProps> {
   Lend: React.FC<ActionBoxProps & { lendProps: LendBoxProps }>;
   LendBorrow: React.FC<ActionBoxProps & { lendProps: BorrowLendBoxProps }>;
-  FlashLoan: React.FC<ActionBoxProps>;
-  LST: React.FC<ActionBoxProps>;
 }
 
 const ActionBox: ActionBoxComponent = (props) => {
@@ -93,9 +89,6 @@ ActionBox.LendBorrow = (props: ActionBoxProps & { lendProps: BorrowLendBoxProps 
     </ActionBox>
   );
 };
-
-ActionBox.FlashLoan = () => <div>FlashLoan</div>;
-ActionBox.LST = () => <div>LST</div>;
 
 ActionBox.displayName = "ActionBox";
 

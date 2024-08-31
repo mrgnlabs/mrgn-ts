@@ -5,7 +5,7 @@ import Link from "next/link";
 
 import { getTokenImageURL } from "@mrgnlabs/mrgn-utils";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { Button, Dialog, DialogContent } from "~/components/ui";
+import { Button, Dialog, DialogContent } from "../ui";
 
 export enum LSTDialogVariants {
   SOL = "SOL",

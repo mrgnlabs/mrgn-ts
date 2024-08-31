@@ -6,7 +6,8 @@
     "outDir": "dist",
     "paths": {
       "~/*": ["./src/*"]
-    }
+    },
+    "module": "ESNext"
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "."],
   "exclude": ["dist", "node_modules", "*.spec.ts"]

@@ -1,4 +1,3 @@
-import * as Sentry from "@sentry/nextjs";
 import { PublicKey } from "@solana/web3.js";
 import { WalletContextState } from "@solana/wallet-adapter-react";
 
@@ -7,12 +6,11 @@ import { ExtendedBankInfo, FEE_MARGIN, ActionType, clearAccountCache } from "@mr
 
 import { WalletContextStateOverride } from "~/wallet";
 
-import { extractErrorString, isWholePosition } from "~/mrgnUtils";
-
+import { extractErrorString, isWholePosition } from "../../mrgnUtils";
 import { loopingBuilder, repayWithCollatBuilder } from "../flashloans";
 import { MarginfiActionParams, LoopingOptions, RepayWithCollatOptions } from "../types";
 import { getMaybeSquadsOptions } from "../helpers";
-import { MultiStepToastHandle, showErrorToast } from "~/toastUtils";
+import { MultiStepToastHandle, showErrorToast } from "../../toastUtils";
 
 export async function createAccountAction({
   marginfiClient,
@@ -407,7 +405,7 @@ export async function looping({
     return sigs;
   } catch (error: any) {
     const msg = extractErrorString(error);
-    Sentry.captureException({ message: error });
+    // Sentry.captureException({ message: error });
     multiStepToast.setFailed(msg);
     console.log(`Error while looping: ${msg}`);
     console.log(error);
@@ -487,7 +485,7 @@ export async function collectRewardsBatch(
     return txnSig;
   } catch (error: any) {
     const msg = extractErrorString(error);
-    Sentry.captureException({ message: error });
+    // Sentry.captureException({ message: error });
     multiStepToast.setFailed(msg);
     console.log(`Error while collecting rewards: ${msg}`);
     console.log(error);

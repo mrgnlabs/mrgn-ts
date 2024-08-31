@@ -3,7 +3,7 @@ import React from "react";
 import { MarginfiAccountWrapper, MarginRequirementType } from "@mrgnlabs/marginfi-client-v2";
 
 import { ActionSummary } from "../../utils";
-import { ActionProgressBar } from "~/components/ActionboxV2/sharedComponents";
+import { ActionProgressBar } from "../../../../../ActionboxV2/sharedComponents";
 
 interface LendBoxCollateralProps {
   selectedAccount: MarginfiAccountWrapper | null;
