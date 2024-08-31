@@ -629,7 +629,7 @@ async function calculateBorrowLend(
   let bundleTipTxs: VersionedTransaction[] = [];
 
   if (type === ActionType.Borrow) {
-    const { borrowTx, bundleTipFeedUpdateTxs, addressLookupTableAccounts } = await marginfiAccount.makeBorrowTx(
+    const { borrowTx, feedCrankTxs } = await marginfiAccount.makeBorrowTx(
       amount,
       bank.address,
       {
@@ -639,18 +639,18 @@ async function calculateBorrowLend(
     );
 
     actionTx = borrowTx;
-    bundleTipTxs = bundleTipFeedUpdateTxs;
+    bundleTipTxs = feedCrankTxs;
   }
 
   if (type === ActionType.Withdraw) {
-    const { withdrawTx, bundleTipFeedUpdateTxs, addressLookupTableAccounts } = await marginfiAccount.makeWithdrawTx(
+    const { withdrawTx, feedCrankTxs } = await marginfiAccount.makeWithdrawTx(
       amount,
       bank.address,
       bank.isActive && isWholePosition(bank, amount)
     );
 
     actionTx = withdrawTx;
-    bundleTipTxs = bundleTipFeedUpdateTxs;
+    bundleTipTxs = feedCrankTxs;
   }
 
   return {
@@ -669,11 +669,11 @@ async function calculateRepayCollateral(
   priorityFee: number
 ): Promise<
   | {
-      repayTxn: VersionedTransaction;
-      bundleTipTxn: VersionedTransaction[];
-      quote: QuoteResponse;
-      amount: number;
-    }
+    repayTxn: VersionedTransaction;
+    bundleTipTxn: VersionedTransaction[];
+    quote: QuoteResponse;
+    amount: number;
+  }
   | ActionMethod
 > {
   // TODO setup logging again
