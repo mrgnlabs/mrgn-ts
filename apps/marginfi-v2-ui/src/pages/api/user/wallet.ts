@@ -132,17 +132,20 @@ export default async function handler(req: NextApiRequest<WalletRequest>, res: N
   try {
     const { items, nativeBalance } = await fetchAssets(ownerAddress);
 
-    const tokens: Token[] = items
-      .filter((item: any) => item.token_info?.price_info?.total_price)
-      .map((item: any) => {
-        return {
-          name: item.content.metadata.name,
-          symbol: item.content.metadata.symbol,
-          price: item.token_info.price_info.price_per_token,
-          total: item.token_info.price_info.total_price,
-        };
-      })
-      .sort((a: any, b: any) => b.total - a.total);
+    const tokens: Token[] =
+      items.length > 0
+        ? items
+            .filter((item: any) => item.token_info?.price_info?.total_price)
+            .map((item: any) => {
+              return {
+                name: item.content.metadata.name,
+                symbol: item.content.metadata.symbol,
+                price: item.token_info.price_info.price_per_token,
+                total: item.token_info.price_info.total_price,
+              };
+            })
+            .sort((a: any, b: any) => b.total - a.total)
+        : [];
 
     if (nativeBalance) {
       tokens.unshift({
