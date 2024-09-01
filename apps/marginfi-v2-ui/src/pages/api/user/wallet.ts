@@ -1,4 +1,5 @@
 import { NextApiResponse } from "next";
+import { setTimeout } from "timers/promises";
 import { STATUS_BAD_REQUEST, STATUS_OK } from "@mrgnlabs/marginfi-v2-ui-state";
 import { WSOL_MINT } from "@mrgnlabs/mrgn-common";
 import { LAMPORTS_PER_SOL } from "@solana/web3.js";
@@ -6,6 +7,7 @@ import { NextApiRequest } from "../utils";
 
 type WalletRequest = {
   wallet: string;
+  tokenList?: string;
 };
 
 type Token = {
@@ -15,15 +17,19 @@ type Token = {
   total: number;
 };
 
+if (!process.env.HELIUS_API_KEY) {
+  throw new Error("HELIUS_API_KEY is not set");
+}
+
+const HELIUS_URL = `https://mainnet.helius-rpc.com/?api-key=${process.env.HELIUS_API_KEY}`;
+
 async function fetchAssets(
   ownerAddress: string,
   page: number = 1,
   allItems: any[] = [],
   nativeBalance: any = null
 ): Promise<{ items: any[]; nativeBalance: any }> {
-  const url = `https://mainnet.helius-rpc.com/?api-key=${process.env.HELIUS_API_KEY!}`;
-
-  const solResponse = await fetch(url, {
+  const solResponse = await fetch(HELIUS_URL, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -38,9 +44,13 @@ async function fetchAssets(
     }),
   });
 
+  if (!solResponse.ok) {
+    return { items: allItems, nativeBalance };
+  }
+
   const solResponseJson = await solResponse.json();
 
-  const allTokensResponse = await fetch(url, {
+  const allTokensResponse = await fetch(HELIUS_URL, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -62,7 +72,7 @@ async function fetchAssets(
   });
 
   if (!allTokensResponse.ok) {
-    throw new Error("Network response was not ok");
+    return { items: allItems, nativeBalance };
   }
 
   const { result } = await allTokensResponse.json();
@@ -79,6 +89,7 @@ async function fetchAssets(
   }
 
   if (result.items.length === 1000) {
+    await setTimeout(100);
     return fetchAssets(ownerAddress, page + 1, allItems, nativeBalance);
   } else {
     return { items: allItems, nativeBalance };

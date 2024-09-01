@@ -96,6 +96,7 @@ export const Wallet = () => {
   const [isReferralCopied, setIsReferralCopied] = React.useState(false);
   const [bridgeType, setBridgeType] = React.useState<"mayan" | "debridge">("mayan");
   const [isWalletBalanceErrorShown, setIsWalletBalanceErrorShown] = React.useState(false);
+  const prevIsWalletOpenRef = React.useRef(isWalletOpen);
 
   const isMobile = useIsMobile();
 
@@ -183,33 +184,16 @@ export const Wallet = () => {
   }, [wallet?.publicKey, extendedBankInfos, nativeSolBalance, isWalletBalanceErrorShown]);
 
   React.useEffect(() => {
-    if (!initialized) return;
-
-    let intervalId: NodeJS.Timeout | null = null;
-
-    const fetchData = () => {
-      getWalletData().catch(console.error);
-    };
-
-    if (debounceId.current) {
-      clearTimeout(debounceId.current);
+    if (!walletData.address) {
+      getWalletData();
+      return;
     }
 
-    debounceId.current = setTimeout(() => {
-      fetchData();
-
-      intervalId = setInterval(fetchData, 20_000);
-    }, 1000);
-
-    return () => {
-      if (intervalId) {
-        clearInterval(intervalId);
-      }
-      if (debounceId.current) {
-        clearTimeout(debounceId.current);
-      }
-    };
-  }, [initialized, getWalletData]);
+    if (isWalletOpen && isWalletOpen !== prevIsWalletOpenRef.current) {
+      getWalletData();
+    }
+    prevIsWalletOpenRef.current = isWalletOpen;
+  }, [isWalletOpen, getWalletData, walletData.address]);
 
   return (
     <>
