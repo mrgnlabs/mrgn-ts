@@ -48,9 +48,7 @@ interface MrgnlendState {
   accountSummary: AccountSummary;
   emissionTokenMap: TokenPriceMap | null;
   birdEyeApiKey: string;
-  sendEndpoint: string | null;
-  spamSendTx: boolean;
-  skipPreflightInSpam: boolean;
+  bundleSimRpcEndpoint: string | null;
   stageTokens: string[] | null;
 
   // Actions
@@ -60,9 +58,7 @@ interface MrgnlendState {
     wallet?: Wallet;
     isOverride?: boolean;
     birdEyeApiKey?: string;
-    sendEndpoint?: string;
-    spamSendTx?: boolean;
-    skipPreflightInSpam?: boolean;
+    bundleSimRpcEndpoint?: string;
     stageTokens?: string[];
   }) => Promise<void>;
   setIsRefreshingStore: (isRefreshingStore: boolean) => void;
@@ -150,9 +146,7 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
   accountSummary: DEFAULT_ACCOUNT_SUMMARY,
   birdEyeApiKey: "",
   emissionTokenMap: {},
-  sendEndpoint: null,
-  spamSendTx: true,
-  skipPreflightInSpam: true,
+  bundleSimRpcEndpoint: null,
   stageTokens: null,
 
   // Actions
@@ -162,9 +156,7 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
     wallet?: Wallet;
     isOverride?: boolean;
     birdEyeApiKey?: string;
-    sendEndpoint?: string;
-    spamSendTx?: boolean;
-    skipPreflightInSpam?: boolean;
+    bundleSimRpcEndpoint?: string;
     stageTokens?: string[];
   }) => {
     try {
@@ -184,9 +176,7 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
       const stageTokens = args?.stageTokens ?? get().stageTokens;
 
       const isReadOnly = args?.isOverride !== undefined ? args.isOverride : get().marginfiClient?.isReadOnly ?? false;
-      const sendEndpoint = args?.sendEndpoint ?? get().sendEndpoint ?? undefined;
-      const spamSendTx = args?.spamSendTx ?? get().spamSendTx ?? false;
-      const skipPreflightInSpam = args?.skipPreflightInSpam ?? get().skipPreflightInSpam ?? false;
+      const bundleSimRpcEndpoint = args?.bundleSimRpcEndpoint ?? get().bundleSimRpcEndpoint ?? undefined;
 
       let bankMetadataMap: { [address: string]: BankMetadata };
       let tokenMetadataMap: { [symbol: string]: TokenMetadata };
@@ -217,9 +207,7 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
       const marginfiClient = await MarginfiClient.fetch(marginfiConfig, wallet ?? ({} as any), connection, {
         preloadedBankAddresses: bankAddresses,
         readOnly: isReadOnly,
-        sendEndpoint: sendEndpoint,
-        spamSendTx: spamSendTx,
-        skipPreflightInSpam,
+        bundleSimRpcEndpoint,
         fetchGroupDataOverride: fetchGroupData,
       });
       const clientBanks = [...marginfiClient.banks.values()];
@@ -377,9 +365,7 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
         nativeSolBalance,
         accountSummary,
         birdEyeApiKey,
-        sendEndpoint,
-        spamSendTx,
-        skipPreflightInSpam,
+        bundleSimRpcEndpoint,
         stageTokens: stageTokens ?? null,
       });
 
