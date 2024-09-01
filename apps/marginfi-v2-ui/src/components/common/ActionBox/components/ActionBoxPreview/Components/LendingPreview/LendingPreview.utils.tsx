@@ -171,24 +171,24 @@ export async function simulateAction({
       simulationResult = await account.simulateDeposit(amount, bank.address);
       break;
     case ActionType.Withdraw:
-      // TODO simulate borrowWithdrawOptions
       console.log({ borrowWithdrawOptions });
-      simulationResult = await account.simulateWithdraw(
-        amount,
-        bank.address,
-        bank.isActive && isWholePosition(bank, amount)
-      );
+      simulationResult = await account.simulateWithdraw(bank.address, [
+        ...(borrowWithdrawOptions?.feedCrankTxs || []),
+        ...(borrowWithdrawOptions?.actionTx ? [borrowWithdrawOptions.actionTx] : []),
+      ]);
       break;
     case ActionType.Borrow:
-      // TODO simulate borrowWithdrawOptions
       console.log({ borrowWithdrawOptions });
-      simulationResult = await account.simulateBorrow(amount, bank.address);
+      simulationResult = await account.simulateBorrow(bank.address, [
+        ...(borrowWithdrawOptions?.feedCrankTxs || []),
+        ...(borrowWithdrawOptions?.actionTx ? [borrowWithdrawOptions.actionTx] : []),
+      ]);
       break;
     case ActionType.Repay:
       if (repayWithCollatOptions) {
         if (repayWithCollatOptions.repayCollatTxn && marginfiClient) {
-          const [mfiAccountData, bankData] = await marginfiClient.simulateTransaction(
-            repayWithCollatOptions.repayCollatTxn,
+          const [mfiAccountData, bankData] = await marginfiClient.simulateTransactions(
+            [repayWithCollatOptions.repayCollatTxn],
             [account.address, bank.address]
           );
           if (!mfiAccountData || !bankData) throw new Error("Failed to simulate repay w/ collat");

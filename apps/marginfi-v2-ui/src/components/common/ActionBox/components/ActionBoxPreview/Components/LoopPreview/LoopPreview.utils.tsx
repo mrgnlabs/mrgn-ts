@@ -121,10 +121,10 @@ export async function simulateLooping({ marginfiClient, account, bank, loopingTx
   let simulationResult: SimulationResult;
 
   if (loopingTxn && marginfiClient) {
-    const [mfiAccountData, bankData] = await marginfiClient.simulateTransaction(loopingTxn, [
-      account.address,
-      bank.address,
-    ]);
+    const [mfiAccountData, bankData] = await marginfiClient.simulateTransactions(
+      [loopingTxn],
+      [account.address, bank.address]
+    );
     if (!mfiAccountData || !bankData) throw new Error("Failed to simulate looping");
     const previewBanks = marginfiClient.banks;
     previewBanks.set(
