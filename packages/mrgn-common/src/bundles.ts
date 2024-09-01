@@ -55,7 +55,7 @@ export type SimulationSlotConfig = "confirmed" | "processed" | number;
 
 
 export async function simulateBundle(
-  connection: Connection,
+  rpcEndpoint: string,
   transactions: VersionedTransaction[],
   includeAccounts?: Array<PublicKey>
 ): Promise<RpcResponseAndContext<SimulatedTransactionResponse>> {
@@ -77,7 +77,7 @@ export async function simulateBundle(
     }]
   };
 
-  const responseRaw = await fetch(connection.rpcEndpoint, {
+  const responseRaw = await fetch(rpcEndpoint, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

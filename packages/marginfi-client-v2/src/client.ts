@@ -71,10 +71,8 @@ export type MintData = {
 export type MarginfiClientOptions = {
   confirmOpts?: ConfirmOptions;
   readOnly?: boolean;
-  sendEndpoint?: string;
-  spamSendTx?: boolean;
-  skipPreflightInSpam?: boolean;
   preloadedBankAddresses?: PublicKey[];
+  bundleSimRpcEndpoint?: string;
   fetchGroupDataOverride?: (
     program: MarginfiProgram,
     groupAddress: PublicKey,
@@ -101,7 +99,7 @@ class MarginfiClient {
   public addressLookupTables: AddressLookupTableAccount[];
   public feedIdMap: PythPushFeedIdMap;
   private preloadedBankAddresses?: PublicKey[];
-  private sendEndpoint?: string;
+  private bundleSimRpcEndpoint: string;
 
   // --------------------------------------------------------------------------
   // Factories
@@ -120,7 +118,7 @@ class MarginfiClient {
     addressLookupTables?: AddressLookupTableAccount[],
     preloadedBankAddresses?: PublicKey[],
     readonly bankMetadataMap?: BankMetadataMap,
-    sendEndpoint?: string,
+    bundleSimRpcEndpoint?: string,
   ) {
     this.group = group;
     this.banks = banks;
@@ -128,8 +126,8 @@ class MarginfiClient {
     this.mintDatas = mintDatas;
     this.addressLookupTables = addressLookupTables ?? [];
     this.preloadedBankAddresses = preloadedBankAddresses;
-    this.sendEndpoint = sendEndpoint;
     this.feedIdMap = feedIdMap;
+    this.bundleSimRpcEndpoint = bundleSimRpcEndpoint ?? program.provider.connection.rpcEndpoint;
   }
 
   /**
@@ -159,10 +157,7 @@ class MarginfiClient {
 
     const confirmOpts = clientOptions?.confirmOpts ?? {};
     const readOnly = clientOptions?.readOnly ?? false;
-    const sendEndpoint = clientOptions?.sendEndpoint;
     const preloadedBankAddresses = clientOptions?.preloadedBankAddresses;
-    const spamSendTx = clientOptions?.spamSendTx ?? false;
-    const skipPreflightInSpam = clientOptions?.skipPreflightInSpam ?? false;
 
     const provider = new AnchorProvider(connection, wallet, {
       ...AnchorProvider.defaultOptions(),
@@ -236,7 +231,6 @@ class MarginfiClient {
       addressLookupTables,
       preloadedBankAddresses,
       bankMetadataMap,
-      sendEndpoint,
     );
   }
 
@@ -792,7 +786,7 @@ class MarginfiClient {
 
     try {
       if (opts?.dryRun || this.isReadOnly) {
-        const response = await simulateBundle(connection, versionedTransactions);
+        const response = await simulateBundle(this.bundleSimRpcEndpoint, versionedTransactions);
         console.log(
           response.value.err ? `❌ Error: ${response.value.err}` : `✅ Success - ${response.value.unitsConsumed} CU`
         );
@@ -836,7 +830,7 @@ class MarginfiClient {
           ...opts,
         };
 
-        const response = await simulateBundle(connection, versionedTransactions).catch((error) => {
+        const response = await simulateBundle(this.bundleSimRpcEndpoint, versionedTransactions).catch((error) => {
           throw new SendTransactionError({
             action: "simulate",
             signature: "",
@@ -919,7 +913,6 @@ class MarginfiClient {
 
     let versionedTransaction: VersionedTransaction;
     const connection = new Connection(this.provider.connection.rpcEndpoint, this.provider.opts);
-    const sendConnection = this.sendEndpoint ? new Connection(this.sendEndpoint, this.provider.opts) : connection;
     let minContextSlot: number;
     let blockhash: string;
     let lastValidBlockHeight: number;
@@ -1136,7 +1129,7 @@ class MarginfiClient {
           return response.value.accounts?.map((a) => (a ? Buffer.from(a.data[0], "base64") : null)) ?? [];
         }
       } else {
-        response = await simulateBundle(connection, versionedTransactions, accountsToInspect);
+        response = await simulateBundle(this.bundleSimRpcEndpoint, versionedTransactions, accountsToInspect);
         if (response.value.err === null) {
           return response.value.accounts?.map((a) => (a ? Buffer.from(a.data[0], "base64") : null)) ?? [];
         }
