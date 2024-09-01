@@ -62,7 +62,7 @@ async function fetchAssets(
   });
 
   if (!allTokensResponse.ok) {
-    throw new Error("Network response was not ok");
+    return { items: allItems, nativeBalance };
   }
 
   const { result } = await allTokensResponse.json();
@@ -99,24 +99,29 @@ export default async function handler(req: NextApiRequest<WalletRequest>, res: N
   try {
     const { items, nativeBalance } = await fetchAssets(ownerAddress);
 
-    const tokens: Token[] = items
-      .filter((item: any) => item.token_info?.price_info?.total_price)
-      .map((item: any) => {
-        return {
-          name: item.content.metadata.name,
-          symbol: item.content.metadata.symbol,
-          price: item.token_info.price_info.price_per_token,
-          total: item.token_info.price_info.total_price,
-        };
-      })
-      .sort((a: any, b: any) => b.total - a.total);
+    const tokens: Token[] =
+      items.length > 0
+        ? items
+            .filter((item: any) => item.token_info?.price_info?.total_price)
+            .map((item: any) => {
+              return {
+                name: item.content.metadata.name,
+                symbol: item.content.metadata.symbol,
+                price: item.token_info.price_info.price_per_token,
+                total: item.token_info.price_info.total_price,
+              };
+            })
+            .sort((a: any, b: any) => b.total - a.total)
+        : [];
 
-    tokens.unshift({
-      name: "SOL",
-      symbol: "SOL",
-      price: nativeBalance.price_per_sol,
-      total: nativeBalance.total_price,
-    });
+    if (nativeBalance) {
+      tokens.unshift({
+        name: "SOL",
+        symbol: "SOL",
+        price: nativeBalance.price_per_sol,
+        total: nativeBalance.total_price,
+      });
+    }
 
     const totalValue = tokens.reduce((acc: number, item: Token) => acc + item.total, 0);
 
