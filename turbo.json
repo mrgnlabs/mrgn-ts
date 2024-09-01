@@ -5,8 +5,13 @@
       "cache": false
     },
     "build": {
-      "dependsOn": ["^build"],
-      "outputs": ["dist/**", ".next/**"]
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        "dist/**",
+        ".next/**"
+      ]
     },
     "lint": {
       "outputs": []
@@ -26,6 +31,7 @@
     "NEXT_PUBLIC_MARGINFI_RPC_ENDPOINT_OVERRIDE_REROUTE",
     "NEXT_PUBLIC_MARGINFI_SEND_RPC_ENDPOINT_OVERRIDE",
     "NEXT_PUBLIC_MARGINFI_SEND_RPC_ENDPOINT_OVERRIDE_REROUTE",
+    "NEXT_PUBLIC_MARGINFI_BUNDLE_SIM_RPC_ENDPOINT_OVERRIDE",
     "NEXT_PUBLIC_MARGINFI_GROUP_OVERRIDE",
     "NEXT_PUBLIC_MARGINFI_PROGRAM_OVERRIDE",
     "NEXT_PUBLIC_MARGINFI_FEATURES_AIRDROP",
