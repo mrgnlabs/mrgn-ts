@@ -1,9 +1,4 @@
-import { Signer } from "@solana/web3.js";
-import { TransactionError } from "@solana/web3.js";
-import { PublicKey } from "@solana/web3.js";
-import { SimulatedTransactionResponse } from "@solana/web3.js";
-import { RpcResponseAndContext, VersionedTransaction } from "@solana/web3.js";
-import { Connection } from "@solana/web3.js";
+import { TransactionError, PublicKey, SimulatedTransactionResponse, RpcResponseAndContext, VersionedTransaction, Connection } from "@solana/web3.js";
 
 export interface JsonRpcContext {
   apiVersion: number;
@@ -38,20 +33,49 @@ export interface RpcSimulateBundleTransactionResult {
   logs: string[],
   preExecutionAccounts?: any, //UiAccount[],
   postExecutionAccounts?: any, //UiAccount[],
-  units_consumed?: string,
-  return_data?: any, //UiTransactionReturnData,
+  unitsConsumed?: string,
+  returnData?: any, //UiTransactionReturnData,
 }
+
+export interface RpcSimulateBundleConfig {
+  preExecutionAccountsConfigs: (RpcSimulateTransactionAccountsConfig | undefined)[],
+  postExecutionAccountsConfigs: (RpcSimulateTransactionAccountsConfig | undefined)[],
+  transactionEncoding?: any,
+  simulationBank?: SimulationSlotConfig,
+  skipSigVerify?: boolean,
+  replaceRecentBlockhash?: boolean,
+}
+
+export interface RpcSimulateTransactionAccountsConfig {
+  encoding?: any, // UiAccountEncoding,
+  addresses: string[],
+}
+
+export type SimulationSlotConfig = "confirmed" | "processed" | number;
+
 
 export async function simulateBundle(
   connection: Connection,
   transactions: VersionedTransaction[],
-  signers?: Array<Signer>,
-  includeAccounts?: boolean | Array<PublicKey>
+  includeAccounts?: Array<PublicKey>
 ): Promise<RpcResponseAndContext<SimulatedTransactionResponse>> {
+  if (transactions.length === 0) {
+    throw new Error("Empty bundle");
+  }
+
   const encodedTransactions = transactions.map((tx) => {
     const serialized = tx.serialize();
     return Buffer.from(serialized).toString("base64");
   });
+
+  const config: RpcSimulateBundleConfig = {
+    skipSigVerify: true,
+    replaceRecentBlockhash: true,
+    preExecutionAccountsConfigs: [{ addresses: [] }, { addresses: [] }],
+    postExecutionAccountsConfigs: [{ addresses: [] }, {
+      addresses: includeAccounts ? includeAccounts.map((account) => account.toBase58()) : []
+    }]
+  };
 
   const responseRaw = await fetch(connection.rpcEndpoint, {
     method: "POST",
@@ -62,7 +86,7 @@ export async function simulateBundle(
       jsonrpc: "2.0",
       id: 1,
       method: "simulateBundle",
-      params: [{ encodedTransactions }],
+      params: [{ encodedTransactions }, config],
     }),
   });
 
@@ -73,12 +97,11 @@ export async function simulateBundle(
 
   const context = response.result.context;
   const value = response.result.value;
-  console.log(value)
 
   return {
     context,
     value: {
-      err: value.summary !== "succeeded" ? value.summary.error : {},
+      err: value.summary !== "succeeded" ? value.summary.error : null,
       logs: value.transactionResults.flatMap((tx) => tx.logs),
       accounts: value.transactionResults[value.transactionResults.length - 1].postExecutionAccounts,
     },

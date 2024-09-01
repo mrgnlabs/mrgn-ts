@@ -431,7 +431,7 @@ class MarginfiAccountWrapper {
       addressLookupTableAccounts
     );
 
-    const [mfiAccountData, bankData] = await this.client.simulateTransaction(flashloanTx, [
+    const [mfiAccountData, bankData] = await this.client.simulateTransactions([flashloanTx], [
       this.address,
       borrowBankAddress,
     ]);
@@ -588,7 +588,7 @@ class MarginfiAccountWrapper {
       priorityFeeUi
     );
 
-    const [mfiAccountData, depositBankData, borrowBankData] = await this.client.simulateTransaction(flashloanTx, [
+    const [mfiAccountData, depositBankData, borrowBankData] = await this.client.simulateTransactions([flashloanTx], [
       this.address,
       depositBankAddress,
       borrowBankAddress,
@@ -729,7 +729,7 @@ class MarginfiAccountWrapper {
   async simulateDeposit(amount: Amount, bankAddress: PublicKey): Promise<SimulationResult> {
     const ixs = await this.makeDepositIx(amount, bankAddress);
     const tx = new Transaction().add(...ixs.instructions);
-    const [mfiAccountData, bankData] = await this.client.simulateTransaction(tx, [this.address, bankAddress]);
+    const [mfiAccountData, bankData] = await this.client.simulateTransactions([tx], [this.address, bankAddress]);
     if (!mfiAccountData || !bankData) throw new Error("Failed to simulate deposit");
     const previewBanks = this.client.banks;
     previewBanks.set(
@@ -800,7 +800,7 @@ class MarginfiAccountWrapper {
   async simulateRepay(amount: Amount, bankAddress: PublicKey, repayAll: boolean = false): Promise<SimulationResult> {
     const ixs = await this.makeRepayIx(amount, bankAddress, repayAll);
     const tx = new Transaction().add(...ixs.instructions);
-    const [mfiAccountData, bankData] = await this.client.simulateTransaction(tx, [this.address, bankAddress]);
+    const [mfiAccountData, bankData] = await this.client.simulateTransactions([tx], [this.address, bankAddress]);
     if (!mfiAccountData || !bankData) throw new Error("Failed to simulate repay");
     const previewBanks = this.client.banks;
     previewBanks.set(
@@ -947,31 +947,8 @@ class MarginfiAccountWrapper {
     return { feedCrankTxs, withdrawTx, addressLookupTableAccounts };
   }
 
-  async simulateWithdraw(
-    amount: Amount,
-    bankAddress: PublicKey,
-    withdrawAll: boolean = false
-  ): Promise<SimulationResult> {
-    const cuRequestIxs = this.makeComputeBudgetIx();
-    console.log("hey");
-    const { instructions: updateFeedIxs, luts: feedLuts } = await this.makeUpdateFeedIx([bankAddress]);
-    const ixs = await this.makeWithdrawIx(amount, bankAddress, withdrawAll);
-
-    const {
-      value: { blockhash },
-    } = await this.client.provider.connection.getLatestBlockhashAndContext();
-
-    const withdrawMessage = new TransactionMessage({
-      instructions: [...cuRequestIxs, ...updateFeedIxs, ...ixs.instructions],
-      payerKey: this.authority,
-      recentBlockhash: blockhash,
-    });
-
-    const lookupTables = [...this.client.addressLookupTables, ...feedLuts];
-
-    const versionedTx = new VersionedTransaction(withdrawMessage.compileToV0Message(lookupTables));
-
-    const [mfiAccountData, bankData] = await this.client.simulateTransaction(versionedTx, [this.address, bankAddress]);
+  async simulateWithdraw(bankAddress: PublicKey, txs: VersionedTransaction[]): Promise<SimulationResult> {
+    const [mfiAccountData, bankData] = await this.client.simulateTransactions(txs, [this.address, bankAddress]);
     if (!mfiAccountData || !bankData) throw new Error("Failed to simulate withdraw");
     const previewBanks = this.client.banks;
     previewBanks.set(
@@ -1085,26 +1062,8 @@ class MarginfiAccountWrapper {
     return { feedCrankTxs, borrowTx, addressLookupTableAccounts };
   }
 
-  async simulateBorrow(amount: Amount, bankAddress: PublicKey): Promise<SimulationResult> {
-    const cuRequestIxs = this.makeComputeBudgetIx();
-    const { instructions: updateFeedIxs, luts: feedLuts } = await this.makeUpdateFeedIx([bankAddress]);
-    const ixs = await this.makeBorrowIx(amount, bankAddress);
-
-    const {
-      value: { blockhash },
-    } = await this._program.provider.connection.getLatestBlockhashAndContext();
-
-    const borrowMessage = new TransactionMessage({
-      instructions: [...cuRequestIxs, ...updateFeedIxs, ...ixs.instructions],
-      payerKey: this.authority,
-      recentBlockhash: blockhash,
-    });
-
-    const lookupTables = [...this.client.addressLookupTables, ...feedLuts];
-
-    const versionedTx = new VersionedTransaction(borrowMessage.compileToV0Message(lookupTables));
-
-    const [mfiAccountData, bankData] = await this.client.simulateTransaction(versionedTx, [this.address, bankAddress]);
+  async simulateBorrow(bankAddress: PublicKey, transactions: VersionedTransaction[]): Promise<SimulationResult> {
+    const [mfiAccountData, bankData] = await this.client.simulateTransactions(transactions, [this.address, bankAddress]);
     if (!mfiAccountData || !bankData) throw new Error("Failed to simulate borrow");
     const previewBanks = this.client.banks;
     previewBanks.set(

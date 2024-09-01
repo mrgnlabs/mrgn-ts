@@ -85,7 +85,7 @@ export function useLendingPreview({
         borrowWithdrawOptions,
       });
     }
-  }, [simulationResult, bank, repayWithCollatOptions, accountSummary, actionMode, isLoading, borrowWithdrawOptions]);
+  }, [simulationResult, bank, repayWithCollatOptions, borrowWithdrawOptions, accountSummary, actionMode, isLoading]);
 
   const getPreviewStats = (props: CalculatePreviewProps) => {
     const isLending =

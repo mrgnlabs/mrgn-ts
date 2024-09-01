@@ -1095,29 +1095,30 @@ class MarginfiClient {
     throw new Error("Bundle failed");
   }
 
-  async simulateTransaction(
-    transaction: Transaction | VersionedTransaction,
+  async simulateTransactions(
+    transactions: (Transaction | VersionedTransaction)[],
     accountsToInspect: PublicKey[]
   ): Promise<(Buffer | null)[]> {
-    let versionedTransaction: VersionedTransaction;
+    let versionedTransactions: VersionedTransaction[] = [];
     const connection = new Connection(this.provider.connection.rpcEndpoint, this.provider.opts);
     let blockhash: string;
 
     try {
       const getLatestBlockhashAndContext = await connection.getLatestBlockhashAndContext();
-
       blockhash = getLatestBlockhashAndContext.value.blockhash;
 
-      if (transaction instanceof Transaction) {
-        const versionedMessage = new TransactionMessage({
-          instructions: transaction.instructions,
-          payerKey: this.provider.publicKey,
-          recentBlockhash: blockhash,
-        });
+      for (const transaction of transactions) {
+        if (transaction instanceof Transaction) {
+          const versionedMessage = new TransactionMessage({
+            instructions: transaction.instructions,
+            payerKey: this.provider.publicKey,
+            recentBlockhash: blockhash,
+          });
 
-        versionedTransaction = new VersionedTransaction(versionedMessage.compileToV0Message(this.addressLookupTables));
-      } else {
-        versionedTransaction = transaction;
+          versionedTransactions.push(new VersionedTransaction(versionedMessage.compileToV0Message(this.addressLookupTables)));
+        } else {
+          versionedTransactions.push(transaction);
+        }
       }
     } catch (error: any) {
       console.log("Failed to build the transaction", error);
@@ -1126,12 +1127,19 @@ class MarginfiClient {
 
     let response;
     try {
-      response = await connection.simulateTransaction(versionedTransaction, {
-        sigVerify: false,
-        accounts: { encoding: "base64", addresses: accountsToInspect.map((a) => a.toBase58()) },
-      });
-      if (response.value.err === null) {
-        return response.value.accounts?.map((a) => (a ? Buffer.from(a.data[0], "base64") : null)) ?? [];
+      if (transactions.length === 1) {
+        response = await connection.simulateTransaction(versionedTransactions[0], {
+          sigVerify: false,
+          accounts: { encoding: "base64", addresses: accountsToInspect.map((a) => a.toBase58()) },
+        });
+        if (response.value.err === null) {
+          return response.value.accounts?.map((a) => (a ? Buffer.from(a.data[0], "base64") : null)) ?? [];
+        }
+      } else {
+        response = await simulateBundle(connection, versionedTransactions, accountsToInspect);
+        if (response.value.err === null) {
+          return response.value.accounts?.map((a) => (a ? Buffer.from(a.data[0], "base64") : null)) ?? [];
+        }
       }
     } catch (error: any) {
       const parsedError = parseTransactionError(error, this.config.programId);
