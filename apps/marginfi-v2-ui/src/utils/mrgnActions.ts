@@ -377,8 +377,8 @@ export async function borrow({
       sigs = await marginfiClient.processTransactions([...actionTxns.feedCrankTxs, actionTxns.actionTxn]);
     } else {
       sigs = await marginfiAccount.borrow(amount, bank.address, { priorityFeeUi: priorityFee });
-      multiStepToast.setSuccessAndNext();
     }
+    multiStepToast.setSuccessAndNext();
     return sigs;
   } catch (error: any) {
     const msg = extractErrorString(error);
