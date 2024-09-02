@@ -77,6 +77,7 @@ export const Wallet = () => {
   const [isSwapLoaded, setIsSwapLoaded] = React.useState(false);
   const [isReferralCopied, setIsReferralCopied] = React.useState(false);
   const [isWalletBalanceErrorShown, setIsWalletBalanceErrorShown] = React.useState(false);
+  const prevIsWalletOpenRef = React.useRef(isWalletOpen);
 
   const isMobile = useIsMobile();
 
@@ -172,17 +173,17 @@ export const Wallet = () => {
     }
   }, [wallet?.publicKey, extendedBankInfos, nativeSolBalance, isFetchingWalletData, isWalletBalanceErrorShown]);
 
-  // fetch wallet data on mount and every 20 seconds
   React.useEffect(() => {
-    getWalletData();
-    const intervalId = setInterval(() => {
+    if (!walletData.address) {
       getWalletData();
-    }, 20000);
+      return;
+    }
 
-    return () => {
-      clearInterval(intervalId);
-    };
-  }, [getWalletData]);
+    if (isWalletOpen && isWalletOpen !== prevIsWalletOpenRef.current) {
+      getWalletData();
+    }
+    prevIsWalletOpenRef.current = isWalletOpen;
+  }, [isWalletOpen, getWalletData, walletData.address]);
 
   return (
     <>
