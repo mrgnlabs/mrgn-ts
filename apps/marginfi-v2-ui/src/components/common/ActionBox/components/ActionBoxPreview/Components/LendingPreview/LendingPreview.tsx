@@ -9,6 +9,7 @@ import { ActionMethod, RepayWithCollatOptions } from "@mrgnlabs/mrgn-utils";
 import { AvailableCollateral } from "./AvailableCollateral";
 import { useLendingPreview } from "./useLendingPreview";
 import { VersionedTransaction } from "@solana/web3.js";
+import { useActionBoxStore } from "~/hooks/useActionBoxStore";
 
 interface ActionBoxPreviewProps {
   selectedBank: ExtendedBankInfo | null;
@@ -20,6 +21,7 @@ interface ActionBoxPreviewProps {
     actionTxn: VersionedTransaction | null;
     feedCrankTxs: VersionedTransaction[];
   };
+  isDialog?: boolean;
   addAdditionalsPopup: (actions: ActionMethod[]) => void;
   children: React.ReactNode;
 }
@@ -32,12 +34,19 @@ export const LendingPreview = ({
   repayWithCollatOptions,
   actionTxns,
   addAdditionalsPopup,
+  isDialog,
   children,
 }: ActionBoxPreviewProps) => {
   const [marginfiClient, selectedAccount, accountSummary] = useMrgnlendStore((state) => [
     state.marginfiClient,
     state.selectedAccount,
     state.accountSummary,
+    state,
+  ]);
+
+  const [setIsLoading, setActionTxns] = useActionBoxStore(isDialog)((state) => [
+    state.setIsLoading,
+    state.setActionTxns,
   ]);
 
   const { preview, previewStats, isLoading, actionMethod } = useLendingPreview({
@@ -48,10 +57,8 @@ export const LendingPreview = ({
     bank: selectedBank,
     amount,
     repayWithCollatOptions,
-    borrowWithdrawOptions: {
-      actionTx: actionTxns.actionTxn,
-      feedCrankTxs: actionTxns.feedCrankTxs,
-    },
+    setLoadingState: setIsLoading,
+    setActionTxns,
   });
 
   React.useEffect(() => {

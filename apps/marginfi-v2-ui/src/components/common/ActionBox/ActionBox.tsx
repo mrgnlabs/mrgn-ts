@@ -716,46 +716,12 @@ export const ActionBox = ({
   const debouncedAmount = useAmountDebounce(amount);
   const prevDebouncedAmount = usePrevious(debouncedAmount);
 
-  const fetchBorrowWithdrawObject = React.useCallback(
-    async (amount: number) => {
-      if (!selectedBank || !selectedAccount) {
-        return;
-      }
-
-      if (amount === 0) {
-        return;
-      }
-
-      if (actionMode !== ActionType.Borrow && actionMode !== ActionType.Withdraw) {
-        return;
-      }
-
-      setIsLoading(true);
-      try {
-        const borrowWithdrawObject = await calculateBorrowLend(selectedAccount, actionMode, selectedBank, amount);
-
-        if (borrowWithdrawObject) {
-          setActionTxns({ actionTxn: borrowWithdrawObject.actionTx, feedCrankTxs: borrowWithdrawObject.bundleTipTxs });
-        } else {
-          // TODO: handle setErrorMessage
-          console.error("No borrowWithdrawObject");
-        }
-      } catch (error) {
-        // TODO: eccountered error,  handle setErrorMessage
-        console.error("Error fetching borrowWithdrawObject");
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [selectedBank, selectedAccount, actionMode, setIsLoading, setActionTxns]
-  );
-
   // Fetch the action object based on the action mode
-  React.useEffect(() => {
-    if (prevDebouncedAmount !== debouncedAmount) {
-      fetchBorrowWithdrawObject(debouncedAmount);
-    }
-  }, [prevDebouncedAmount, debouncedAmount, fetchBorrowWithdrawObject]);
+  // React.useEffect(() => {
+  //   if (prevDebouncedAmount !== debouncedAmount) {
+  //     fetchBorrowWithdrawObject(debouncedAmount);
+  //   }
+  // }, [prevDebouncedAmount, debouncedAmount, fetchBorrowWithdrawObject]);
 
   if (!isInitialized) {
     return null;
@@ -849,6 +815,7 @@ export const ActionBox = ({
               )}
 
               <ActionBoxPreview
+                isDialog={isDialog}
                 selectedBank={selectedBank}
                 selectedStakingAccount={selectedStakingAccount}
                 actionMode={actionMode}
