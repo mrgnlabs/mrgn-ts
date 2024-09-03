@@ -39,7 +39,6 @@ export const useProtocolStats = (): UseProtocolStats => {
 
       const marginfiClient = await MarginfiClient.fetch(getConfig(), {} as any, connection, {
         preloadedBankAddresses: bankAddresses,
-        sendEndpoint: process.env.NEXT_PUBLIC_MARGINFI_SEND_RPC_ENDPOINT_OVERRIDE,
       });
 
       const banks = [...marginfiClient.banks.values()];
