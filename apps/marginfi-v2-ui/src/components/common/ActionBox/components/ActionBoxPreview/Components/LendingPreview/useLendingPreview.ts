@@ -69,13 +69,7 @@ export function useLendingPreview({
           if (controller.signal.aborted) {
             return;
           }
-
-          if (borrowWithdrawObject) {
-            setActionTxns({ actionTxn: borrowWithdrawObject.actionTx, feedCrankTxs: borrowWithdrawObject.bundleTipTxs });
-          } else {
-            // TODO: handle setErrorMessage
-            console.error("No borrowWithdrawObject");
-          }
+          setActionTxns({ actionTxn: borrowWithdrawObject.actionTx, feedCrankTxs: borrowWithdrawObject.bundleTipTxs });
         } catch (error) {
           // TODO: eccountered error,  handle setErrorMessage
           console.error("Error fetching borrowWithdrawObject");
@@ -124,10 +118,10 @@ export function useLendingPreview({
         }
         const method = handleSimulationError(error, bank, false, actionString);
         setActionMethod(method);
-      } finally {
-        setLoadingState(false);
-        setIsLoading(false);
       }
+
+      setLoadingState(false);
+      setIsLoading(false);
     },
     [marginfiClient, account, bank, actionMode, repayWithCollatOptions, setActionTxns, setLoadingState]
   );
