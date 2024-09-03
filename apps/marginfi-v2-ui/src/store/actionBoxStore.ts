@@ -252,6 +252,8 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
     const prevAmountRaw = get().amountRaw;
     const isAmountChanged = amountRaw !== prevAmountRaw;
 
+    console.log("hit setLoopingAmountRaw");
+
     if (isAmountChanged) {
       set({
         amountRaw,
@@ -323,6 +325,7 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
     );
 
     if (loopingObject && "loopingTxn" in loopingObject) {
+      console.log("hit loopingObject");
       set({
         actionTxns: {
           actionTxn: loopingObject.loopingTxn,
@@ -415,6 +418,7 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
     const hasBankChanged = !tokenBank || !selectedBank || !tokenBank.address.equals(selectedBank.address);
 
     if (hasBankChanged) {
+      console.log("hit setSelectedBank");
       set({
         selectedBank: tokenBank,
         amountRaw: "",
@@ -554,6 +558,7 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
   },
 
   setActionTxns(actionTxns) {
+    console.log("hit setActionTxns");
     set({ actionTxns });
   },
 
@@ -629,14 +634,10 @@ async function calculateBorrowLend(
   let bundleTipTxs: VersionedTransaction[] = [];
 
   if (type === ActionType.Borrow) {
-    const { borrowTx, feedCrankTxs } = await marginfiAccount.makeBorrowTx(
-      amount,
-      bank.address,
-      {
-        createAtas: true,
-        wrapAndUnwrapSol: false,
-      }
-    );
+    const { borrowTx, feedCrankTxs } = await marginfiAccount.makeBorrowTx(amount, bank.address, {
+      createAtas: true,
+      wrapAndUnwrapSol: false,
+    });
 
     actionTx = borrowTx;
     bundleTipTxs = feedCrankTxs;
@@ -669,11 +670,11 @@ async function calculateRepayCollateral(
   priorityFee: number
 ): Promise<
   | {
-    repayTxn: VersionedTransaction;
-    feedCrankTxs: VersionedTransaction[];
-    quote: QuoteResponse;
-    amount: number;
-  }
+      repayTxn: VersionedTransaction;
+      feedCrankTxs: VersionedTransaction[];
+      quote: QuoteResponse;
+      amount: number;
+    }
   | ActionMethod
 > {
   // TODO setup logging again

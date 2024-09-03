@@ -47,31 +47,48 @@ export function useLendingPreview({
 
   const bankPrev = usePrevious(bank);
   const debouncedAmount = useAmountDebounce<number | null>(amount, 500);
+  const prevDebouncedAmount = usePrevious(debouncedAmount);
 
   React.useEffect(() => {
     setIsLoading(true);
   }, [amount]);
 
-  React.useEffect(() => {
-    const isBankChanged = bank ? !bankPrev?.address.equals(bank.address) : false;
+  const getSimulationResultCb = React.useCallback(
+    (amountArg: number) => {
+      if (!marginfiClient || !account || !bank || !amountArg) {
+        return;
+      }
 
-    if (account && marginfiClient && bank && debouncedAmount && !isBankChanged && amount !== 0) {
       getSimulationResult({
         marginfiClient,
         actionMode,
         account,
         bank,
-        amount: debouncedAmount,
+        amount: amountArg,
         repayWithCollatOptions,
         borrowWithdrawOptions,
       });
-    } else {
+    },
+    [marginfiClient, account, bank, repayWithCollatOptions, borrowWithdrawOptions, actionMode]
+  );
+
+  React.useEffect(() => {
+    if (prevDebouncedAmount !== debouncedAmount) {
+      console.log("debouncedAmount", debouncedAmount);
+      console.log("prevDebouncedAmount", prevDebouncedAmount);
+      getSimulationResultCb(debouncedAmount ?? 0);
+    }
+  }, [prevDebouncedAmount, debouncedAmount, getSimulationResultCb]);
+
+  React.useEffect(() => {
+    const isBankChanged = bank ? !bankPrev?.address.equals(bank.address) : false;
+
+    if (isBankChanged) {
       setSimulationResult(undefined);
       setActionMethod(undefined);
       setIsLoading(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [actionMode, account, bankPrev, bank, debouncedAmount, repayWithCollatOptions?.repayCollatQuote]);
+  }, [bank, bankPrev]);
 
   React.useEffect(() => {
     if (bank) {
