@@ -23,6 +23,7 @@ interface ActionBoxPreviewProps {
   loopOptions?: LoopingOptions;
   addAdditionalsPopup: (actions: ActionMethod[]) => void;
   children: React.ReactNode;
+  isDialog?: boolean;
 }
 
 export const ActionBoxPreview = ({
@@ -37,6 +38,7 @@ export const ActionBoxPreview = ({
   loopOptions,
   addAdditionalsPopup,
   children,
+  isDialog,
 }: ActionBoxPreviewProps) => {
   const isInLendingMode = React.useMemo(
     () =>
@@ -58,6 +60,7 @@ export const ActionBoxPreview = ({
           repayWithCollatOptions={repayWithCollatOptions}
           actionTxns={actionTxns}
           addAdditionalsPopup={addAdditionalsPopup}
+          isDialog={isDialog}
         >
           {children}
         </LendingPreview>
