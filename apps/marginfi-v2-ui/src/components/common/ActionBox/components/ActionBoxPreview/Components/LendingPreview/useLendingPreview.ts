@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef } from "react";
 import { ActionType, AccountSummary, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { MarginfiAccountWrapper, MarginfiClient, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
 import { ActionMethod, handleSimulationError, RepayWithCollatOptions, usePrevious } from "@mrgnlabs/mrgn-utils";
@@ -7,7 +7,6 @@ import {
   ActionPreview,
   CalculatePreviewProps,
   PreviewStat,
-  SimulateActionProps,
   calculatePreview,
   generateStats,
   simulateAction,
@@ -44,6 +43,7 @@ export function useLendingPreview({
   const [previewStats, setPreviewStats] = React.useState<PreviewStat[]>([]);
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const [actionMethod, setActionMethod] = React.useState<ActionMethod>();
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const bankPrev = usePrevious(bank);
   const debouncedAmount = useAmountDebounce<number | null>(amount, 500);
@@ -53,67 +53,97 @@ export function useLendingPreview({
     setIsLoading(true);
   }, [amount]);
 
-  const fetchBorrowWithdrawObject = React.useCallback(
-    async (bank: ExtendedBankInfo, account: MarginfiAccountWrapper, amount: number, actionMode: ActionType) => {
-      if (amount === 0) {
-        return;
-      }
-
-      if (actionMode !== ActionType.Borrow && actionMode !== ActionType.Withdraw) {
-        return;
-      }
-
-      setLoadingState(true);
-      try {
-        const borrowWithdrawObject = await calculateBorrowLend(account, actionMode, bank, amount);
-
-        if (borrowWithdrawObject) {
-          setActionTxns({ actionTxn: borrowWithdrawObject.actionTx, feedCrankTxs: borrowWithdrawObject.bundleTipTxs });
-
-          return borrowWithdrawObject;
-        } else {
-          // TODO: handle setErrorMessage
-          console.error("No borrowWithdrawObject");
-        }
-      } catch (error) {
-        // TODO: eccountered error,  handle setErrorMessage
-        console.error("Error fetching borrowWithdrawObject");
-      } finally {
-        setLoadingState(false);
-      }
-    },
-    [setActionTxns, setLoadingState]
-  );
-
   const getSimulationResultCb = React.useCallback(
-    async (amountArg: number) => {
+    async (amountArg: number, controller: AbortController) => {
       if (!marginfiClient || !account || !bank || !amountArg) {
         return;
       }
 
-      const borrowWithdrawObject = await fetchBorrowWithdrawObject(bank, account, amountArg, actionMode);
+      setLoadingState(true);
+      setIsLoading(true);
 
-      getSimulationResult({
-        marginfiClient,
-        actionMode,
-        account,
-        bank,
-        amount: amountArg,
-        repayWithCollatOptions,
-        borrowWithdrawOptions: {
-          actionTx: borrowWithdrawObject?.actionTx ?? null,
-          feedCrankTxs: borrowWithdrawObject?.bundleTipTxs ?? [],
-        },
-      });
+      let borrowWithdrawObject;
+      if (actionMode === ActionType.Borrow || actionMode === ActionType.Withdraw) {
+        try {
+          borrowWithdrawObject = await calculateBorrowLend(account, actionMode, bank, amountArg);
+          if (controller.signal.aborted) {
+            return;
+          }
+
+          if (borrowWithdrawObject) {
+            setActionTxns({ actionTxn: borrowWithdrawObject.actionTx, feedCrankTxs: borrowWithdrawObject.bundleTipTxs });
+          } else {
+            // TODO: handle setErrorMessage
+            console.error("No borrowWithdrawObject");
+          }
+        } catch (error) {
+          // TODO: eccountered error,  handle setErrorMessage
+          console.error("Error fetching borrowWithdrawObject");
+        }
+      }
+
+      try {
+        const simulationResult = await simulateAction({
+          marginfiClient,
+          actionMode,
+          account,
+          bank,
+          amount: amountArg,
+          repayWithCollatOptions,
+          borrowWithdrawOptions: {
+            actionTx: borrowWithdrawObject?.actionTx ?? null,
+            feedCrankTxs: borrowWithdrawObject?.bundleTipTxs ?? [],
+          },
+        });
+        if (controller.signal.aborted) {
+          return;
+        }
+
+        setSimulationResult(simulationResult);
+        setActionMethod(undefined);
+      } catch (error: any) {
+        let actionString;
+        switch (actionMode) {
+          case ActionType.Deposit:
+            actionString = "Depositing";
+            break;
+          case ActionType.Withdraw:
+            actionString = "Withdrawing";
+            break;
+          case ActionType.Loop:
+            actionString = "Looping";
+            break;
+          case ActionType.Repay:
+            actionString = "Repaying";
+            break;
+          case ActionType.Borrow:
+            actionString = "Borrowing";
+            break;
+          default:
+            actionString = "The action";
+        }
+        const method = handleSimulationError(error, bank, false, actionString);
+        setActionMethod(method);
+      } finally {
+        setLoadingState(false);
+        setIsLoading(false);
+      }
     },
-    [marginfiClient, account, bank, fetchBorrowWithdrawObject, actionMode, repayWithCollatOptions]
+    [marginfiClient, account, bank, actionMode, repayWithCollatOptions, setActionTxns, setLoadingState]
   );
 
   React.useEffect(() => {
     if (prevDebouncedAmount !== debouncedAmount) {
       console.log("debouncedAmount", debouncedAmount);
       console.log("prevDebouncedAmount", prevDebouncedAmount);
-      getSimulationResultCb(debouncedAmount ?? 0);
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+
+      const newAbortController = new AbortController();
+      abortControllerRef.current = newAbortController;
+
+      getSimulationResultCb(debouncedAmount ?? 0, abortControllerRef.current);
     }
   }, [prevDebouncedAmount, debouncedAmount, getSimulationResultCb]);
 
@@ -150,38 +180,6 @@ export function useLendingPreview({
     const preview = calculatePreview(props);
     setPreview(preview);
     setPreviewStats(generateStats(preview, props.bank, isLending, props.isLoading, isRepayWithCollat));
-  };
-
-  const getSimulationResult = async (props: SimulateActionProps) => {
-    try {
-      setSimulationResult(await simulateAction(props));
-      setActionMethod(undefined);
-    } catch (error: any) {
-      let actionString;
-      switch (props.actionMode) {
-        case ActionType.Deposit:
-          actionString = "Depositing";
-          break;
-        case ActionType.Withdraw:
-          actionString = "Withdrawing";
-          break;
-        case ActionType.Loop:
-          actionString = "Looping";
-          break;
-        case ActionType.Repay:
-          actionString = "Repaying";
-          break;
-        case ActionType.Borrow:
-          actionString = "Borrowing";
-          break;
-        default:
-          actionString = "The action";
-      }
-      const method = handleSimulationError(error, props.bank, false, actionString);
-      setActionMethod(method);
-    } finally {
-      setIsLoading(false);
-    }
   };
 
   return { preview, previewStats, isLoading, actionMethod };

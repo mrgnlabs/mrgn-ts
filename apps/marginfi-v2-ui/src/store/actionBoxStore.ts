@@ -24,7 +24,7 @@ import {
   calculateMaxRepayableCollateral,
 } from "@mrgnlabs/mrgn-utils";
 
-import { StakeData, capture } from "~/utils";
+import { StakeData } from "~/utils";
 import BigNumber from "bignumber.js";
 
 interface ActionBoxState {
@@ -558,7 +558,6 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
   },
 
   setActionTxns(actionTxns) {
-    console.log("hit setActionTxns");
     set({ actionTxns });
   },
 
@@ -639,8 +638,10 @@ async function calculateBorrowLend(
       wrapAndUnwrapSol: false,
     });
 
-    actionTx = borrowTx;
-    bundleTipTxs = feedCrankTxs;
+    return {
+      actionTx: borrowTx,
+      bundleTipTxs: feedCrankTxs,
+    };
   }
 
   if (type === ActionType.Withdraw) {
@@ -650,8 +651,10 @@ async function calculateBorrowLend(
       bank.isActive && isWholePosition(bank, amount)
     );
 
-    actionTx = withdrawTx;
-    bundleTipTxs = feedCrankTxs;
+    return {
+      actionTx: withdrawTx,
+      bundleTipTxs: feedCrankTxs,
+    };
   }
 
   return {
@@ -670,11 +673,11 @@ async function calculateRepayCollateral(
   priorityFee: number
 ): Promise<
   | {
-      repayTxn: VersionedTransaction;
-      feedCrankTxs: VersionedTransaction[];
-      quote: QuoteResponse;
-      amount: number;
-    }
+    repayTxn: VersionedTransaction;
+    feedCrankTxs: VersionedTransaction[];
+    quote: QuoteResponse;
+    amount: number;
+  }
   | ActionMethod
 > {
   // TODO setup logging again

@@ -1252,8 +1252,6 @@ class MarginfiAccountWrapper {
         })
         .map((bank) => bank.oracleKey);
 
-      console.log("Stale oracles", staleOracles);
-
       if (staleOracles.length > 0) {
         const sbProgram = getSwitchboardProgram(this._program.provider);
         const [pullIx, luts] = await sb.PullFeed.fetchUpdateManyIx(sbProgram, {
