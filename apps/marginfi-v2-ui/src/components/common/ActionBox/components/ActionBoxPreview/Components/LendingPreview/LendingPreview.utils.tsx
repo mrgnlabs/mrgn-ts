@@ -28,6 +28,7 @@ import { IconAlertTriangle, IconArrowRight, IconPyth, IconSwitchboard } from "~/
 import { Skeleton } from "~/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { REDUCE_ONLY_BANKS } from "~/components/desktop/AssetList/utils";
+import { calculateBorrowLend } from "~/store/actionBoxStore";
 
 export interface SimulateActionProps {
   marginfiClient: MarginfiClient;
@@ -171,18 +172,32 @@ export async function simulateAction({
       simulationResult = await account.simulateDeposit(amount, bank.address);
       break;
     case ActionType.Withdraw:
-      console.log({ borrowWithdrawOptions });
-      simulationResult = await account.simulateWithdraw(bank.address, [
-        ...(borrowWithdrawOptions?.feedCrankTxs || []),
-        ...(borrowWithdrawOptions?.actionTx ? [borrowWithdrawOptions.actionTx] : []),
-      ]);
+      if (borrowWithdrawOptions?.actionTx) {
+        simulationResult = await account.simulateWithdraw(bank.address, [
+          ...(borrowWithdrawOptions?.feedCrankTxs || []),
+          ...(borrowWithdrawOptions?.actionTx ? [borrowWithdrawOptions.actionTx] : []),
+        ]);
+      } else {
+        const newBorrowWithdrawObject = await calculateBorrowLend(account, actionMode, bank, amount);
+        simulationResult = await account.simulateWithdraw(bank.address, [
+          ...(newBorrowWithdrawObject.bundleTipTxs || []),
+          ...(newBorrowWithdrawObject?.actionTx ? [newBorrowWithdrawObject.actionTx] : []),
+        ]);
+      }
       break;
     case ActionType.Borrow:
-      console.log({ borrowWithdrawOptions });
-      simulationResult = await account.simulateBorrow(bank.address, [
-        ...(borrowWithdrawOptions?.feedCrankTxs || []),
-        ...(borrowWithdrawOptions?.actionTx ? [borrowWithdrawOptions.actionTx] : []),
-      ]);
+      if (borrowWithdrawOptions?.actionTx) {
+        simulationResult = await account.simulateBorrow(bank.address, [
+          ...(borrowWithdrawOptions?.feedCrankTxs || []),
+          ...(borrowWithdrawOptions?.actionTx ? [borrowWithdrawOptions.actionTx] : []),
+        ]);
+      } else {
+        const newBorrowWithdrawObject = await calculateBorrowLend(account, actionMode, bank, amount);
+        simulationResult = await account.simulateWithdraw(bank.address, [
+          ...(newBorrowWithdrawObject.bundleTipTxs || []),
+          ...(newBorrowWithdrawObject?.actionTx ? [newBorrowWithdrawObject.actionTx] : []),
+        ]);
+      }
       break;
     case ActionType.Repay:
       if (repayWithCollatOptions) {

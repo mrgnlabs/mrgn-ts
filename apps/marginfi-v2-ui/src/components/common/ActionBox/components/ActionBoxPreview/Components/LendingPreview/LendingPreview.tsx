@@ -38,7 +38,6 @@ export const LendingPreview = ({
     state.marginfiClient,
     state.selectedAccount,
     state.accountSummary,
-    state,
   ]);
 
   const { preview, previewStats, isLoading, actionMethod } = useLendingPreview({
