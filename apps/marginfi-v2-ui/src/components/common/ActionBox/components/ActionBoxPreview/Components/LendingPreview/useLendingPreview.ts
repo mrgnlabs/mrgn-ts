@@ -14,6 +14,7 @@ import {
 } from "./LendingPreview.utils";
 import { useAmountDebounce } from "~/hooks/useAmountDebounce";
 import { VersionedTransaction } from "@solana/web3.js";
+import { calculateBorrowLend } from "~/store/actionBoxStore";
 
 interface UseLendingPreviewProps {
   marginfiClient: MarginfiClient | null;
@@ -23,10 +24,8 @@ interface UseLendingPreviewProps {
   bank: ExtendedBankInfo | null;
   amount: number | null;
   repayWithCollatOptions?: RepayWithCollatOptions;
-  borrowWithdrawOptions?: {
-    actionTx: VersionedTransaction | null;
-    feedCrankTxs: VersionedTransaction[];
-  };
+  setLoadingState: (isLoading: boolean) => void;
+  setActionTxns: (actionTxns: { actionTxn: VersionedTransaction | null; feedCrankTxs: VersionedTransaction[] }) => void;
 }
 
 export function useLendingPreview({
@@ -37,7 +36,8 @@ export function useLendingPreview({
   bank,
   amount,
   repayWithCollatOptions,
-  borrowWithdrawOptions,
+  setLoadingState,
+  setActionTxns,
 }: UseLendingPreviewProps) {
   const [simulationResult, setSimulationResult] = React.useState<SimulationResult>();
   const [preview, setPreview] = React.useState<ActionPreview | null>(null);
@@ -53,11 +53,45 @@ export function useLendingPreview({
     setIsLoading(true);
   }, [amount]);
 
+  const fetchBorrowWithdrawObject = React.useCallback(
+    async (bank: ExtendedBankInfo, account: MarginfiAccountWrapper, amount: number, actionMode: ActionType) => {
+      if (amount === 0) {
+        return;
+      }
+
+      if (actionMode !== ActionType.Borrow && actionMode !== ActionType.Withdraw) {
+        return;
+      }
+
+      setLoadingState(true);
+      try {
+        const borrowWithdrawObject = await calculateBorrowLend(account, actionMode, bank, amount);
+
+        if (borrowWithdrawObject) {
+          setActionTxns({ actionTxn: borrowWithdrawObject.actionTx, feedCrankTxs: borrowWithdrawObject.bundleTipTxs });
+
+          return borrowWithdrawObject;
+        } else {
+          // TODO: handle setErrorMessage
+          console.error("No borrowWithdrawObject");
+        }
+      } catch (error) {
+        // TODO: eccountered error,  handle setErrorMessage
+        console.error("Error fetching borrowWithdrawObject");
+      } finally {
+        setLoadingState(false);
+      }
+    },
+    [setActionTxns, setLoadingState]
+  );
+
   const getSimulationResultCb = React.useCallback(
-    (amountArg: number) => {
+    async (amountArg: number) => {
       if (!marginfiClient || !account || !bank || !amountArg) {
         return;
       }
+
+      const borrowWithdrawObject = await fetchBorrowWithdrawObject(bank, account, amountArg, actionMode);
 
       getSimulationResult({
         marginfiClient,
@@ -66,10 +100,13 @@ export function useLendingPreview({
         bank,
         amount: amountArg,
         repayWithCollatOptions,
-        borrowWithdrawOptions,
+        borrowWithdrawOptions: {
+          actionTx: borrowWithdrawObject?.actionTx ?? null,
+          feedCrankTxs: borrowWithdrawObject?.bundleTipTxs ?? [],
+        },
       });
     },
-    [marginfiClient, account, bank, repayWithCollatOptions, borrowWithdrawOptions, actionMode]
+    [marginfiClient, account, bank, fetchBorrowWithdrawObject, actionMode, repayWithCollatOptions]
   );
 
   React.useEffect(() => {
@@ -99,10 +136,9 @@ export function useLendingPreview({
         actionMode,
         accountSummary,
         isLoading,
-        borrowWithdrawOptions,
       });
     }
-  }, [simulationResult, bank, repayWithCollatOptions, borrowWithdrawOptions, accountSummary, actionMode, isLoading]);
+  }, [simulationResult, bank, repayWithCollatOptions, accountSummary, actionMode, isLoading]);
 
   const getPreviewStats = (props: CalculatePreviewProps) => {
     const isLending =
