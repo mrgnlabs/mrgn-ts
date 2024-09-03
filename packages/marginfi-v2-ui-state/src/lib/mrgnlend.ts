@@ -671,8 +671,6 @@ async function fetchGroupData(
     })
   );
 
-  console.log({ priceInfos });
-
   debug("Fetched %s banks and %s price feeds", banks.size, priceInfos.size);
 
   return {
