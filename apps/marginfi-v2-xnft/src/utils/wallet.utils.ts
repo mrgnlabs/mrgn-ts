@@ -42,12 +42,10 @@ const solanaSendLegacyTransaction = async () => {
   const result = await window.xnft.solana.send(transaction, [], {
     minContextSlot,
   });
-  console.log("signature from legacy transaction ", result);
 };
 
 export const solanaSignAllTransactions = async (transactions: Transaction | VersionedTransaction[]) => {
   const result = await window.xnft.solana.signAllTransactions(transactions);
-  console.log("solana sign all transactions", result);
 };
 
 export async function generateTransaction(
