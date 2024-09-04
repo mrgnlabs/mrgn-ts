@@ -190,8 +190,11 @@ export function findOracleKey(bankConfig: BankConfig, feedMap: PythPushFeedIdMap
 
   if (oracleSetup == OracleSetup.PythPushOracle) {
     const feedId = feedIdToString(oracleKey);
-    oracleKey = feedMap.get(feedId)!;
-
+    const maybeOracleKey = feedMap.get(feedId);
+    if (!maybeOracleKey) {
+      throw new Error(`No oracle key found for feedId: ${feedId}`);
+    }
+    oracleKey = maybeOracleKey;
   }
 
   return oracleKey;

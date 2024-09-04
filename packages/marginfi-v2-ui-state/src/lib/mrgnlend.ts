@@ -610,11 +610,10 @@ async function fetchGroupData(
     return oraclePrices;
   }
 
-  const [feedIdMapRaw, oraclePrices] = await Promise.all([
+  const [feedIdMap, oraclePrices] = await Promise.all([
     fetchPythFeedMap(),
     fetchOraclePrices(),
   ]);
-  const feedIdMap: Map<string, PublicKey> = new Map(Object.entries(feedIdMapRaw).map(([key, value]) => [key, new PublicKey(value)]));
 
   const mintKeys = bankDatasKeyed.map((b) => b.data.mint);
   const emissionMintKeys = bankDatasKeyed
