@@ -128,8 +128,6 @@ export function useLendingPreview({
 
   React.useEffect(() => {
     if (prevDebouncedAmount !== debouncedAmount) {
-      console.log("debouncedAmount", debouncedAmount);
-      console.log("prevDebouncedAmount", prevDebouncedAmount);
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
       }
