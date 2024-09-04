@@ -809,8 +809,6 @@ class MarginfiClient {
         let base58Txs: string[] = [];
 
         if (!!this.wallet.signAllTransactions) {
-          console.log(this.wallet.signAllTransactions)
-          console.log("sign all txs")
           versionedTransactions = await this.wallet.signAllTransactions(versionedTransactions);
           base58Txs = versionedTransactions.map((signedTx) => bs58.encode(signedTx.serialize()));
         } else {
@@ -838,7 +836,6 @@ class MarginfiClient {
             logs: [],
           });
         });
-        console.log("response", response);
 
         if (response.value.err) {
           throw new SendTransactionError({
