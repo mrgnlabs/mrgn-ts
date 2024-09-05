@@ -22,7 +22,7 @@ export async function verifyTxSizeLooping(
   borrowAmount: BigNumber,
   quoteResponse: QuoteResponse,
   connection: Connection,
-  isTxnSplit: boolean = false,
+  // isTxnSplit: boolean = false,
   priorityFee: number
 ): Promise<{
   flashloanTx: VersionedTransaction | null;
@@ -43,7 +43,7 @@ export async function verifyTxSizeLooping(
         loopingTxn: null,
         feedCrankTxs: [],
       },
-      isTxnSplit,
+      // isTxnSplit,
       priorityFee,
     });
 

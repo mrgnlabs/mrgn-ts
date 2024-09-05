@@ -50,16 +50,18 @@ export function useLoopingPreview({
   };
 
   const getSimulationResult = React.useCallback(
-    async (loopingTxn: VersionedTransaction | null) => {
+    async (loopingTxn: VersionedTransaction | null, feedCrankTxs: VersionedTransaction[] = []) => {
       const props = {
         marginfiClient,
         account,
         bank,
         loopingTxn,
+        feedCrankTxs
       } as SimulateLoopingActionProps;
 
       try {
-        setSimulationResult(await simulateLooping(props));
+        const result = await simulateLooping(props);
+        setSimulationResult(result);
         setActionMethod(undefined);
       } catch (error: any) {
         const method = handleSimulationError(error, props.bank, false, "Looping");
@@ -80,7 +82,7 @@ export function useLoopingPreview({
     if (isUnchanged) return;
 
     if (loopOptions?.loopingTxn) {
-      getSimulationResult(loopOptions?.loopingTxn);
+      getSimulationResult(loopOptions?.loopingTxn, loopOptions?.feedCrankTxs);
     } else {
       setSimulationResult(undefined);
       setActionMethod(undefined);

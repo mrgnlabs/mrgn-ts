@@ -637,7 +637,7 @@ class MarginfiAccountWrapper {
     swapLookupTables: AddressLookupTableAccount[],
     priorityFeeUi?: number,
     createAtas?: boolean,
-    isTxnSplitParam?: boolean
+    // isTxnSplitParam?: boolean
   ): Promise<{
     flashloanTx: VersionedTransaction;
     feedCrankTxs: VersionedTransaction[];
@@ -659,44 +659,35 @@ class MarginfiAccountWrapper {
       wrapAndUnwrapSol: true,
     });
     const bundleTipIx = makeBundleTipIx(this.client.provider.publicKey);
-    const lookupTables = this.client.addressLookupTables;
+    const clientLookupTables = this.client.addressLookupTables;
 
     const { instructions: updateFeedIxs, luts: feedLuts } = await this.makeUpdateFeedIx([
       depositBankAddress,
       borrowBankAddress,
     ]);
 
-    const addressLookupTableAccounts = [...lookupTables, ...swapLookupTables];
-
-    let feedCrankTxs: VersionedTransaction[] = [];
-
     // isTxnSplit forced set to true as we're always splitting now
-    const isTxnSplit = true; //isTxnSplitParam
-    if (isTxnSplit) {
-      const { blockhash } = await this._program.provider.connection.getLatestBlockhash();
-      const message = new TransactionMessage({
-        payerKey: this.client.wallet.publicKey,
-        recentBlockhash: blockhash,
-        instructions: [bundleTipIx, ...updateFeedIxs],
-      }).compileToV0Message([...addressLookupTableAccounts, ...feedLuts]);
+    const { blockhash } = await this._program.provider.connection.getLatestBlockhash();
+    const message = new TransactionMessage({
+      payerKey: this.client.wallet.publicKey,
+      recentBlockhash: blockhash,
+      instructions: [bundleTipIx, ...updateFeedIxs, ...setupIxs],
+    }).compileToV0Message([...clientLookupTables, ...feedLuts]);
 
-      feedCrankTxs = [new VersionedTransaction(message)];
-    }
+    const feedCrankTxs = [new VersionedTransaction(message)];
 
     const flashloanTx = await this.buildFlashLoanTx({
       ixs: [
         ...priorityFeeIx,
         ...cuRequestIxs,
-        ...(isTxnSplit ? [] : [bundleTipIx]),
-        ...setupIxs,
         ...borrowIxs.instructions,
         ...swapIxs,
         ...depositIxs.instructions,
       ],
-      addressLookupTableAccounts,
+      addressLookupTableAccounts: [...clientLookupTables, ...swapLookupTables],
     });
 
-    return { flashloanTx, feedCrankTxs, addressLookupTableAccounts };
+    return { flashloanTx, feedCrankTxs, addressLookupTableAccounts: [...clientLookupTables, ...swapLookupTables, ...feedLuts] };
   }
 
   async makeDepositIx(
