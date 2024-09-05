@@ -1,20 +1,16 @@
-import { QuoteResponse, SwapRequest, createJupiterApiClient } from "@jup-ag/api";
+import { QuoteResponse, createJupiterApiClient } from "@jup-ag/api";
 import * as Sentry from "@sentry/nextjs";
 import {
   AddressLookupTableAccount,
   Connection,
-  LAMPORTS_PER_SOL,
   PublicKey,
-  Transaction,
   TransactionInstruction,
-  TransactionMessage,
   VersionedTransaction,
 } from "@solana/web3.js";
-import { QuoteResponseMeta } from "@jup-ag/react-hook";
 import { WalletContextState } from "@solana/wallet-adapter-react";
 
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
-import { LUT_PROGRAM_AUTHORITY_INDEX, WSOL_MINT, Wallet, processTransaction, uiToNative } from "@mrgnlabs/mrgn-common";
+import { LUT_PROGRAM_AUTHORITY_INDEX } from "@mrgnlabs/mrgn-common";
 import { ExtendedBankInfo, FEE_MARGIN, ActionType, clearAccountCache } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { WalletContextStateOverride } from "~/hooks/useWalletContext";

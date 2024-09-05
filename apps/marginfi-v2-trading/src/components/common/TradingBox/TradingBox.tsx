@@ -172,6 +172,7 @@ export const TradingBox = ({ activeGroup, side = "long" }: TradingBoxProps) => {
           account: selectedAccount,
           bank: bank,
           loopingTxn: looping.loopingTxn,
+          feedCrankTxs: looping.feedCrankTxs,
         });
         setAdditionalChecks(undefined);
       } catch (error) {

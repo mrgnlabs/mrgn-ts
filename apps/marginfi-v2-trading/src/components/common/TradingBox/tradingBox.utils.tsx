@@ -63,7 +63,7 @@ export async function looping({
         depositAmount,
         options,
         priorityFee,
-        isTxnSplit,
+        // isTxnSplit,
       });
       sigs = await marginfiClient.processTransactions([...feedCrankTxs, flashloanTx]);
     }
@@ -84,6 +84,7 @@ export interface SimulateLoopingActionProps {
   account: MarginfiAccountWrapper | null;
   bank: ExtendedBankInfo;
   loopingTxn: VersionedTransaction | null;
+  feedCrankTxs: VersionedTransaction[];
 }
 
 export async function simulateLooping({
@@ -91,14 +92,15 @@ export async function simulateLooping({
   account,
   bank,
   loopingTxn,
+  feedCrankTxs,
 }: SimulateLoopingActionProps): Promise<SimulationResult | null> {
   let simulationResult: SimulationResult;
 
   if (loopingTxn && marginfiClient && account) {
-    const [mfiAccountData, bankData] = await marginfiClient.simulateTransaction(loopingTxn, [
-      account.address,
-      bank.address,
-    ]);
+    const [mfiAccountData, bankData] = await marginfiClient.simulateTransactions(
+      [...feedCrankTxs, loopingTxn],
+      [account.address, bank.address]
+    );
     if (!mfiAccountData || !bankData) throw new Error("Failed to simulate looping");
     const previewBanks = marginfiClient.banks;
     previewBanks.set(

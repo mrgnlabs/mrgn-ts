@@ -1,11 +1,10 @@
-import { QuoteResponse, SwapRequest, createJupiterApiClient } from "@jup-ag/api";
+import { SwapRequest, createJupiterApiClient } from "@jup-ag/api";
 import * as Sentry from "@sentry/nextjs";
 import {
   AddressLookupTableAccount,
   Connection,
   LAMPORTS_PER_SOL,
   PublicKey,
-  Transaction,
   TransactionInstruction,
   TransactionMessage,
   VersionedTransaction,
@@ -14,11 +13,8 @@ import { QuoteResponseMeta } from "@jup-ag/react-hook";
 import { WalletContextState } from "@solana/wallet-adapter-react";
 
 import {
-  Balance,
-  makeBundleTipIx,
   MarginfiAccountWrapper,
   MarginfiClient,
-  OracleSetup,
 } from "@mrgnlabs/marginfi-client-v2";
 import { LUT_PROGRAM_AUTHORITY_INDEX, Wallet, uiToNative } from "@mrgnlabs/mrgn-common";
 import { ExtendedBankInfo, FEE_MARGIN, ActionType, clearAccountCache } from "@mrgnlabs/marginfi-v2-ui-state";
@@ -519,7 +515,6 @@ export async function looping({
         depositAmount,
         options,
         priorityFee,
-        isTxnSplit,
       });
       sigs = await marginfiClient.processTransactions([...feedCrankTxs, flashloanTx]);
     }
