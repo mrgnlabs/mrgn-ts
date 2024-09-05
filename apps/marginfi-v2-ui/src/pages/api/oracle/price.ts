@@ -29,7 +29,6 @@ interface OraclePriceString {
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  console.log("EXEC price2");
   const requestedBanksRaw = req.query.banks;
 
   if (!(requestedBanksRaw) || typeof requestedBanksRaw !== 'string') {
