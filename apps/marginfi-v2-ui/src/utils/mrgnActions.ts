@@ -418,8 +418,8 @@ export async function withdraw({
       sigs = await marginfiAccount.withdraw(amount, bank.address, bank.isActive && isWholePosition(bank, amount), {
         priorityFeeUi: priorityFee,
       });
-      multiStepToast.setSuccessAndNext();
     }
+    multiStepToast.setSuccessAndNext();
     return sigs;
   } catch (error: any) {
     const msg = extractErrorString(error);
