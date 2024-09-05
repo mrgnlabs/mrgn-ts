@@ -1130,6 +1130,7 @@ class MarginfiClient {
         if (response.value.err === null) {
           return response.value.accounts?.map((a) => (a ? Buffer.from(a.data[0], "base64") : null)) ?? [];
         }
+        throw new Error(JSON.stringify(response.value.err));
       }
     } catch (error: any) {
       const parsedError = parseTransactionError(error, this.config.programId);
