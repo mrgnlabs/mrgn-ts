@@ -15,6 +15,7 @@ import {
   calculateMaxRepayableCollateral,
   calculateRepayCollateralParams,
   DYNAMIC_SIMULATION_ERRORS,
+  isWholePosition,
 } from "@mrgnlabs/mrgn-utils";
 
 interface ActionBoxState {
@@ -393,5 +394,51 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
   },
 });
 
-export { createActionBoxStore };
+export interface BorrowLendObject {
+  actionTx: VersionedTransaction | null;
+  feedCrankTxs: VersionedTransaction[];
+}
+
+// ugly code but it works
+async function calculateBorrowLend(
+  marginfiAccount: MarginfiAccountWrapper,
+  type: ActionType,
+  bank: ExtendedBankInfo, // deposit
+  amount: number
+): Promise<BorrowLendObject> {
+  let actionTx: VersionedTransaction | null = null;
+  let feedCrankTxs: VersionedTransaction[] = [];
+
+  if (type === ActionType.Borrow) {
+    const { borrowTx, feedCrankTxs } = await marginfiAccount.makeBorrowTx(amount, bank.address, {
+      createAtas: true,
+      wrapAndUnwrapSol: false,
+    });
+
+    return {
+      actionTx: borrowTx,
+      feedCrankTxs: feedCrankTxs,
+    };
+  }
+
+  if (type === ActionType.Withdraw) {
+    const { withdrawTx, feedCrankTxs } = await marginfiAccount.makeWithdrawTx(
+      amount,
+      bank.address,
+      bank.isActive && isWholePosition(bank, amount)
+    );
+
+    return {
+      actionTx: withdrawTx,
+      feedCrankTxs: feedCrankTxs,
+    };
+  }
+
+  return {
+    actionTx,
+    feedCrankTxs,
+  };
+}
+
+export { createActionBoxStore, calculateBorrowLend };
 export type { ActionBoxState };

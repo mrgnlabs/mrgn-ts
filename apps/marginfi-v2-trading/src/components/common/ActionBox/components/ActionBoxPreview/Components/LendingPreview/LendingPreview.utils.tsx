@@ -1,7 +1,7 @@
 import React from "react";
 
 import { createJupiterApiClient } from "@jup-ag/api";
-import { AddressLookupTableAccount } from "@solana/web3.js";
+import { AddressLookupTableAccount, VersionedTransaction } from "@solana/web3.js";
 import { IconAlertTriangle, IconArrowRight } from "@tabler/icons-react";
 import { ExtendedBankInfo, ActionType, AccountSummary } from "@mrgnlabs/marginfi-v2-ui-state";
 import { Wallet, nativeToUi, numeralFormatter, percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
@@ -22,6 +22,7 @@ import {
   getAdressLookupTableAccounts,
   isWholePosition,
 } from "~/utils";
+import { calculateBorrowLend } from "~/store/actionBoxStore";
 
 import { IconPyth, IconSwitchboard } from "~/components/ui/icons";
 import { Skeleton } from "~/components/ui/skeleton";
@@ -34,6 +35,10 @@ export interface SimulateActionProps {
   bank: ExtendedBankInfo;
   amount: number;
   repayWithCollatOptions?: RepayWithCollatOptions;
+  borrowWithdrawOptions?: {
+    actionTx: VersionedTransaction | null;
+    feedCrankTxs: VersionedTransaction[];
+  };
 }
 
 export interface ActionPreview {
@@ -154,6 +159,7 @@ export async function simulateAction({
   bank,
   amount,
   repayWithCollatOptions,
+  borrowWithdrawOptions,
 }: SimulateActionProps) {
   let simulationResult: SimulationResult;
 
@@ -162,20 +168,38 @@ export async function simulateAction({
       simulationResult = await account.simulateDeposit(amount, bank.address);
       break;
     case ActionType.Withdraw:
-      simulationResult = await account.simulateWithdraw(
-        amount,
-        bank.address,
-        bank.isActive && isWholePosition(bank, amount)
-      );
+      if (borrowWithdrawOptions?.actionTx) {
+        simulationResult = await account.simulateWithdraw(bank.address, [
+          ...(borrowWithdrawOptions?.feedCrankTxs || []),
+          ...(borrowWithdrawOptions?.actionTx ? [borrowWithdrawOptions.actionTx] : []),
+        ]);
+      } else {
+        const newBorrowWithdrawObject = await calculateBorrowLend(account, actionMode, bank, amount);
+        simulationResult = await account.simulateWithdraw(bank.address, [
+          ...(newBorrowWithdrawObject.feedCrankTxs || []),
+          ...(newBorrowWithdrawObject?.actionTx ? [newBorrowWithdrawObject.actionTx] : []),
+        ]);
+      }
       break;
     case ActionType.Borrow:
-      simulationResult = await account.simulateBorrow(amount, bank.address);
+      if (borrowWithdrawOptions?.actionTx) {
+        simulationResult = await account.simulateBorrow(bank.address, [
+          ...(borrowWithdrawOptions?.feedCrankTxs || []),
+          ...(borrowWithdrawOptions?.actionTx ? [borrowWithdrawOptions.actionTx] : []),
+        ]);
+      } else {
+        const newBorrowWithdrawObject = await calculateBorrowLend(account, actionMode, bank, amount);
+        simulationResult = await account.simulateWithdraw(bank.address, [
+          ...(newBorrowWithdrawObject.feedCrankTxs || []),
+          ...(newBorrowWithdrawObject?.actionTx ? [newBorrowWithdrawObject.actionTx] : []),
+        ]);
+      }
       break;
     case ActionType.Repay:
       if (repayWithCollatOptions) {
         if (repayWithCollatOptions.repayCollatTxn && marginfiClient) {
-          const [mfiAccountData, bankData] = await marginfiClient.simulateTransaction(
-            repayWithCollatOptions.repayCollatTxn,
+          const [mfiAccountData, bankData] = await marginfiClient.simulateTransactions(
+            [repayWithCollatOptions.repayCollatTxn],
             [account.address, bank.address]
           );
           if (!mfiAccountData || !bankData) throw new Error("Failed to simulate repay w/ collat");

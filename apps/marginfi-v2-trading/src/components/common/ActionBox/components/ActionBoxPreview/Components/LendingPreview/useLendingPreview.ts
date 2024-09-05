@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef } from "react";
 import { ActionType, AccountSummary, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { MarginfiAccountWrapper, MarginfiClient, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
 import { handleSimulationError } from "@mrgnlabs/mrgn-utils";
@@ -14,6 +14,7 @@ import {
 } from "./LendingPreview.utils";
 import { ActionMethod, RepayWithCollatOptions, usePrevious } from "~/utils";
 import { useAmountDebounce } from "~/hooks/useAmountDebounce";
+import { BorrowLendObject, calculateBorrowLend } from "~/store/actionBoxStore";
 
 interface UseLendingPreviewProps {
   marginfiClient: MarginfiClient | null;
@@ -39,33 +40,67 @@ export function useLendingPreview({
   const [previewStats, setPreviewStats] = React.useState<PreviewStat[]>([]);
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const [actionMethod, setActionMethod] = React.useState<ActionMethod>();
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const bankPrev = usePrevious(bank);
   const debouncedAmount = useAmountDebounce<number | null>(amount, 500);
+  const prevDebouncedAmount = usePrevious(debouncedAmount);
 
   React.useEffect(() => {
     setIsLoading(true);
   }, [amount]);
 
-  React.useEffect(() => {
-    const isBankChanged = bank ? !bankPrev?.address.equals(bank.address) : false;
 
-    if (account && marginfiClient && bank && debouncedAmount && !isBankChanged && amount !== 0) {
-      getSimulationResult({
-        marginfiClient,
-        actionMode,
-        account,
-        bank,
-        amount: debouncedAmount,
-        repayWithCollatOptions,
-      });
-    } else {
-      setSimulationResult(undefined);
-      setActionMethod(undefined);
-      setIsLoading(false);
+  const getSimulationResultCb = React.useCallback(
+    async (amountArg: number, controller: AbortController) => {
+
+      const isBankChanged = bank ? !bankPrev?.address.equals(bank.address) : false;
+
+      if (account && marginfiClient && bank && debouncedAmount && !isBankChanged && amount !== 0) {
+        let borrowWithdrawOptions: BorrowLendObject | undefined;
+        if (actionMode === ActionType.Borrow || actionMode === ActionType.Withdraw) {
+          try {
+            borrowWithdrawOptions = await calculateBorrowLend(account, actionMode, bank, amountArg);
+            if (controller.signal.aborted) {
+              return;
+            }
+          } catch (error) {
+            // TODO: eccountered error,  handle setErrorMessage
+            console.error("Error fetching borrowWithdrawOptions");
+          }
+        }
+
+        getSimulationResult({
+          marginfiClient,
+          actionMode,
+          account,
+          bank,
+          amount: debouncedAmount,
+          repayWithCollatOptions,
+          borrowWithdrawOptions
+        });
+      } else {
+        setSimulationResult(undefined);
+        setActionMethod(undefined);
+        setIsLoading(false);
+      }
+    },
+    [account, actionMode, amount, bank, bankPrev?.address, debouncedAmount, marginfiClient, repayWithCollatOptions]
+  )
+
+  React.useEffect(() => {
+    if (prevDebouncedAmount !== debouncedAmount) {
+      const controller = new AbortController();
+      abortControllerRef.current = controller;
+
+      getSimulationResultCb(debouncedAmount ?? 0, controller);
+
+      return () => {
+        controller.abort();
+        setIsLoading(false);
+      };
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [actionMode, account, bankPrev, bank, debouncedAmount, repayWithCollatOptions?.repayCollatQuote]);
+  }, [prevDebouncedAmount, debouncedAmount, getSimulationResultCb]);
 
   React.useEffect(() => {
     if (bank) {

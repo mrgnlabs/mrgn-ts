@@ -42,9 +42,6 @@ export const MrgnlendProvider: React.FC<{
         connection,
         wallet,
         isOverride,
-        sendEndpoint,
-        spamSendTx: false,
-        skipPreflightInSpam: false,
       }).catch(console.error);
     };
 
