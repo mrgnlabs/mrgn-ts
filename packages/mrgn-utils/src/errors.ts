@@ -21,7 +21,7 @@ export const STATIC_SIMULATION_ERRORS: { [key: string]: ActionMethod } = {
     isEnabled: false,
     actionMethod: "WARNING",
     description:
-      "This swap causes the transaction to fail due to size restrictions. Please try again or pick another token.",
+      "The Jupiter routes for this swap cause the transaction to fail due to size restrictions. Please try again or pick another token.",
   },
   FL_FAILED: {
     isEnabled: false,
@@ -300,7 +300,6 @@ export const handleError = (
       if (
         error.messgae?.toLowerCase()?.includes("block height exceeded") ||
         error.message === "BlockhashNotFound" || // Exact match
-        error.message?.toLowerCase()?.includes("lockhashnotfou") || // Contains 'BlockhashNotFound'
         error.message?.toLowerCase()?.includes("blockhashnotfound") || // Contains 'BlockhashNotFound'
         error.message?.includes('"BlockhashNotFound"') || // Contains '"BlockhashNotFound"'
         error.message?.toLowerCase()?.includes("blockhash not found") || // Contains 'Blockhash not found'
