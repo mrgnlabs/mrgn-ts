@@ -126,7 +126,6 @@ export async function executeLoopingAction({
   priorityFee,
   loopingOptions,
 }: MarginfiActionParams) {
-  console.log("CALL executeLoopingAction");
   let txnSig: string[] | undefined;
 
   if (!marginfiAccount) {
@@ -504,9 +503,7 @@ export async function looping({
   try {
     let sigs: string[] = [];
 
-    console.log("loopingTxn", options.loopingTxn);
     if (options.loopingTxn) {
-      console.log("options.feedCrankTxs", options.feedCrankTxs);
       sigs = await marginfiClient.processTransactions([...options.feedCrankTxs, options.loopingTxn]);
     } else {
       const { flashloanTx, feedCrankTxs } = await loopingBuilder({
