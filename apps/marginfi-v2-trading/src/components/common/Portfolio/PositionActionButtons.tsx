@@ -295,7 +295,7 @@ export const PositionActionButtons = ({
       </Button>
 
       <Dialog open={!!actionTransaction} onOpenChange={() => onClose()}>
-        <DialogContent>
+        <DialogContent className="space-y-12 w-full">
           <DialogHeader>
             <DialogTitle className="flex flex-col items-center gap-2 border-b border-border pb-10">
               <span className="flex items-center justify-center gap-2">
@@ -317,65 +317,61 @@ export const PositionActionButtons = ({
               {`${activeGroup.pool.token.meta.tokenSymbol}/${activeGroup.pool.quoteTokens[0].meta.tokenSymbol}`}
             </DialogDescription>
           </DialogHeader>
-          <DialogContent className="space-y-12 w-full">
-            <dl className="grid grid-cols-2 w-full text-muted-foreground gap-x-8 gap-y-2">
-              {depositBanks.map((bank) => (
-                <React.Fragment key={bank.meta.tokenSymbol}>
-                  <dt>Supplied</dt>
-                  <dd className="text-right">
-                    {bank.position.amount} {bank.meta.tokenSymbol}
-                  </dd>
-                </React.Fragment>
-              ))}
+          <dl className="grid grid-cols-2 w-full text-muted-foreground gap-x-8 gap-y-2">
+            {depositBanks.map((bank) => (
+              <React.Fragment key={bank.meta.tokenSymbol}>
+                <dt>Supplied</dt>
+                <dd className="text-right">
+                  {bank.position.amount} {bank.meta.tokenSymbol}
+                </dd>
+              </React.Fragment>
+            ))}
 
-              {borrowBank && (
-                <>
-                  <dt>Borrowed</dt>
-                  <dd className="text-right">
-                    {borrowBank.position.amount} {borrowBank.meta.tokenSymbol}
-                  </dd>
-                </>
-              )}
+            {borrowBank && (
+              <>
+                <dt>Borrowed</dt>
+                <dd className="text-right">
+                  {borrowBank.position.amount} {borrowBank.meta.tokenSymbol}
+                </dd>
+              </>
+            )}
 
-              {actionTransaction?.quote?.priceImpactPct && (
-                <>
-                  <dt>Price impact</dt>
-                  <dd
-                    className={cn(
-                      Number(actionTransaction.quote.priceImpactPct) > 0.05
-                        ? "text-mrgn-error"
-                        : Number(actionTransaction.quote.priceImpactPct) > 0.01
-                        ? "text-alert-foreground"
-                        : "text-mrgn-success",
-                      "text-right"
-                    )}
-                  >
-                    {percentFormatter.format(Number(actionTransaction.quote.priceImpactPct))}
-                  </dd>
-                </>
-              )}
+            {actionTransaction?.quote?.priceImpactPct && (
+              <>
+                <dt>Price impact</dt>
+                <dd
+                  className={cn(
+                    Number(actionTransaction.quote.priceImpactPct) > 0.05
+                      ? "text-mrgn-error"
+                      : Number(actionTransaction.quote.priceImpactPct) > 0.01
+                      ? "text-alert-foreground"
+                      : "text-mrgn-success",
+                    "text-right"
+                  )}
+                >
+                  {percentFormatter.format(Number(actionTransaction.quote.priceImpactPct))}
+                </dd>
+              </>
+            )}
 
-              {actionTransaction?.quote?.slippageBps && (
-                <>
-                  <dt>Slippage</dt>
-                  <dd
-                    className={cn(actionTransaction.quote.slippageBps > 500 && "text-alert-foreground", "text-right")}
-                  >
-                    {percentFormatter.format(Number(actionTransaction.quote.slippageBps) / 10000)}
-                  </dd>
-                </>
-              )}
+            {actionTransaction?.quote?.slippageBps && (
+              <>
+                <dt>Slippage</dt>
+                <dd className={cn(actionTransaction.quote.slippageBps > 500 && "text-alert-foreground", "text-right")}>
+                  {percentFormatter.format(Number(actionTransaction.quote.slippageBps) / 10000)}
+                </dd>
+              </>
+            )}
 
-              <dt>Platform fee</dt>
-              {actionTransaction?.quote?.platformFee?.feeBps && (
-                <>
-                  <dd className="text-right">
-                    {percentFormatter.format(actionTransaction.quote.platformFee.feeBps / 10000)}
-                  </dd>
-                </>
-              )}
-            </dl>
-          </DialogContent>
+            <dt>Platform fee</dt>
+            {actionTransaction?.quote?.platformFee?.feeBps && (
+              <>
+                <dd className="text-right">
+                  {percentFormatter.format(actionTransaction.quote.platformFee.feeBps / 10000)}
+                </dd>
+              </>
+            )}
+          </dl>
           <DialogFooter>
             <Button
               variant="destructive"
