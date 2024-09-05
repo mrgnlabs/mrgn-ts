@@ -14,7 +14,7 @@ export const MrgnlendProvider: React.FC<{
 }> = ({ children }) => {
   const router = useRouter();
   const debounceId = React.useRef<NodeJS.Timeout | null>(null);
-  const { wallet, isOverride, sendEndpoint } = useWalletContext();
+  const { wallet, isOverride } = useWalletContext();
   const { connection } = useConnection();
   const [fetchMrgnlendState, setIsRefreshingStore] = useMrgnlendStore((state) => [
     state.fetchMrgnlendState,
