@@ -17,6 +17,27 @@ type Token = {
   total: number;
 };
 
+type NativeBalance = {
+  lamports: number;
+  price_per_sol: number;
+  total_price: number;
+};
+
+type Asset = {
+  content: {
+    metadata: {
+      name: string;
+      symbol: string;
+    };
+  };
+  token_info: {
+    price_info: {
+      price_per_token: number;
+      total_price: number;
+    };
+  };
+};
+
 if (!process.env.HELIUS_API_KEY) {
   throw new Error("HELIUS_API_KEY is not set");
 }
@@ -26,8 +47,8 @@ const HELIUS_URL = `https://mainnet.helius-rpc.com/?api-key=${process.env.HELIUS
 async function fetchAssets(
   ownerAddress: string,
   page: number = 1,
-  allItems: any[] = [],
-  nativeBalance: any = null
+  allItems: Asset[] = [],
+  nativeBalance: NativeBalance | null = null
 ): Promise<{ items: any[]; nativeBalance: any }> {
   const solResponse = await fetch(HELIUS_URL, {
     method: "POST",
@@ -44,11 +65,11 @@ async function fetchAssets(
     }),
   });
 
-  if (!solResponse.ok) {
-    return { items: allItems, nativeBalance };
-  }
+  let solResponseJson = null;
 
-  const solResponseJson = await solResponse.json();
+  if (solResponse.ok) {
+    solResponseJson = await solResponse.json();
+  }
 
   const allTokensResponse = await fetch(HELIUS_URL, {
     method: "POST",
@@ -72,6 +93,7 @@ async function fetchAssets(
   });
 
   if (!allTokensResponse.ok) {
+    console.error("Error fetching assets:", allTokensResponse.statusText);
     return { items: allItems, nativeBalance };
   }
 
@@ -122,12 +144,14 @@ export default async function handler(req: NextApiRequest<WalletRequest>, res: N
       })
       .sort((a: any, b: any) => b.total - a.total);
 
-    tokens.unshift({
-      name: "SOL",
-      symbol: "SOL",
-      price: nativeBalance.price_per_sol,
-      total: nativeBalance.total_price,
-    });
+    if (nativeBalance) {
+      tokens.unshift({
+        name: "SOL",
+        symbol: "SOL",
+        price: nativeBalance.price_per_sol,
+        total: nativeBalance.total_price,
+      });
+    }
 
     const totalValue = tokens.reduce((acc: number, item: Token) => acc + item.total, 0);
 
