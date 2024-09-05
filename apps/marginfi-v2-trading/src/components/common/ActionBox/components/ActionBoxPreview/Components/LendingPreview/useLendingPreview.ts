@@ -47,9 +47,10 @@ export function useLendingPreview({
   const prevDebouncedAmount = usePrevious(debouncedAmount);
 
   React.useEffect(() => {
-    setIsLoading(true);
-  }, [amount]);
-
+    if (amount && amount !== prevDebouncedAmount) {
+      setIsLoading(true);
+    }
+  }, [amount, prevDebouncedAmount]);
 
   const getSimulationResultCb = React.useCallback(
     async (amountArg: number, controller: AbortController) => {
