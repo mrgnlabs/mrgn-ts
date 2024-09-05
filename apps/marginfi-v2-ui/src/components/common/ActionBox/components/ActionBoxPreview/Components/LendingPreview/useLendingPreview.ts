@@ -56,7 +56,7 @@ export function useLendingPreview({
   }, [amount, prevDebouncedAmount]);
 
   const getSimulationResultCb = React.useCallback(
-    async (amountArg: number, controller: AbortController) => {
+    async (amountArg: number) => {
       if (!marginfiClient || !account || !bank || !amountArg) {
         return;
       }
@@ -68,9 +68,6 @@ export function useLendingPreview({
       if (actionMode === ActionType.Borrow || actionMode === ActionType.Withdraw) {
         try {
           borrowWithdrawObject = await calculateBorrowLend(account, actionMode, bank, amountArg);
-          if (controller.signal.aborted) {
-            return;
-          }
           setActionTxns({ actionTxn: borrowWithdrawObject.actionTx, feedCrankTxs: borrowWithdrawObject.bundleTipTxs });
         } catch (error) {
           // TODO: eccountered error,  handle setErrorMessage
@@ -91,9 +88,6 @@ export function useLendingPreview({
             feedCrankTxs: borrowWithdrawObject?.bundleTipTxs ?? [],
           },
         });
-        if (controller.signal.aborted) {
-          return;
-        }
 
         setSimulationResult(simulationResult);
         setActionMethod(undefined);
@@ -130,14 +124,7 @@ export function useLendingPreview({
 
   React.useEffect(() => {
     if (prevDebouncedAmount !== debouncedAmount) {
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
-
-      const newAbortController = new AbortController();
-      abortControllerRef.current = newAbortController;
-
-      getSimulationResultCb(debouncedAmount ?? 0, abortControllerRef.current);
+      getSimulationResultCb(debouncedAmount ?? 0);
     }
   }, [prevDebouncedAmount, debouncedAmount, getSimulationResultCb]);
 
@@ -176,5 +163,5 @@ export function useLendingPreview({
     setPreviewStats(generateStats(preview, props.bank, isLending, props.isLoading, isRepayWithCollat));
   };
 
-  return { preview, previewStats, isLoading, actionMethod };
+  return { preview, previewStats, isLoading, actionMethod, getSimulationResultCb };
 }
