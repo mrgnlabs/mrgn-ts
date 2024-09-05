@@ -5,7 +5,7 @@ import { PublicKey } from "@solana/web3.js";
 
 import { useIsMobile } from "~/hooks/useIsMobile";
 import { ActionBox } from "~/components/common/ActionBox";
-import { Dialog, DialogTrigger, DialogOverlay, DialogContent, DialogClose } from "~/components/ui/dialog";
+import { Dialog, DialogTrigger, DialogOverlay, DialogContent, DialogClose, DialogHeader, DialogTitle, DialogDescription } from "~/components/ui/dialog";
 import { Desktop, Mobile } from "~/mediaQueries";
 import { IconArrowLeft } from "~/components/ui/icons";
 import { useMrgnlendStore } from "~/store";
@@ -50,6 +50,10 @@ export const ActionBoxDialog = ({
           hideClose={true}
           className="mt-20 justify-start flex md:max-w-[520px] md:py-3 md:px-5 p-0 sm:rounded-2xl border-none z-50"
         >
+          <DialogHeader className="sr-only">
+            <DialogTitle>{titleText}</DialogTitle>
+            <DialogDescription>{titleText}</DialogDescription>
+          </DialogHeader>
           <div>
             <div
               className="flex gap-2 items-center capitalize pl-2 cursor-pointer hover:underline"
@@ -75,6 +79,10 @@ export const ActionBoxDialog = ({
           className="md:flex md:max-w-[520px] md:py-3 md:px-5 p-0 sm:rounded-2xl bg-transparent border-none"
           closeClassName="top-2 right-2"
         >
+          <DialogHeader className="sr-only">
+            <DialogTitle>{titleText}</DialogTitle>
+            <DialogDescription>{titleText}</DialogDescription>
+          </DialogHeader>
           <div className="p-4">
             <ActionBox
               isDialog={true}

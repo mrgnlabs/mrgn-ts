@@ -11,7 +11,14 @@ import { getTokenImageURL, cn } from "~/utils";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "~/components/ui/command";
 import { Button } from "~/components/ui/button";
 
-import { Dialog, DialogContent, DialogTrigger } from "~/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "~/components/ui/dialog";
 import { Desktop, Mobile } from "~/utils/mediaQueries";
 import { Drawer, DrawerContent, DrawerTrigger } from "~/components/ui/drawer";
 
@@ -38,10 +45,14 @@ export const TokenCombobox = ({ selected, setSelected, children }: TokenCombobox
             <div>{children ? children : <TokenTrigger selected={selected} />}</div>
           </DialogTrigger>
           <DialogContent className="p-4 bg-background m-0" hideClose={true} hidePadding={true} size="sm" position="top">
+            <DialogHeader className="sr-only">
+              <DialogTitle>Select a token</DialogTitle>
+              <DialogDescription>Select a token to trade</DialogDescription>
+            </DialogHeader>
             <div className="h-[500px] relative overflow-auto">
               <Command>
                 <CommandInput placeholder="Select pool..." autoFocus={true} />
-                <CommandList className="max-h-[390px]">
+                <CommandList>
                   <CommandEmpty>No results found.</CommandEmpty>
                   <CommandGroup>
                     {groups.map((group, index) => (
@@ -98,6 +109,10 @@ export const TokenCombobox = ({ selected, setSelected, children }: TokenCombobox
             <div>{children ? children : <TokenTrigger selected={selected} />}</div>
           </DrawerTrigger>
           <DrawerContent className="h-full z-[55] mt-0 p-2" hideTopTrigger={true}>
+            <DialogHeader className="sr-only">
+              <DialogTitle>Select a token</DialogTitle>
+              <DialogDescription>Select a token to trade</DialogDescription>
+            </DialogHeader>
             <Command>
               <CommandInput placeholder="Select pool..." autoFocus={true} />
               <CommandList className="max-h-[390px]">

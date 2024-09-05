@@ -212,9 +212,9 @@ const createLoopCheck = (
   tokenBank: ExtendedBankInfo
 ): ActionMethod => ({
   isEnabled: false,
-  description: `You are already ${
-    tradeSide === "long" ? "shorting" : "longing"
-  } this asset, you need to close that position first to start ${tradeSide === "long" ? "longing" : "shorting"}.`,
+  description: `You are already ${tradeSide} this asset, you need to close that position before you can go ${
+    tradeSide === "long" ? "short" : "long"
+  }.`,
   action: {
     type: ActionType.Repay,
     bank: tradeSide === "long" ? tokenBank : stableBank,
