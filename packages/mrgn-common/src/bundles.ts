@@ -68,13 +68,22 @@ export async function simulateBundle(
     return Buffer.from(serialized).toString("base64");
   });
 
+  const preExecutionAccountsConfigs = transactions.map(() => ({ addresses: [] }));
+  let postExecutionAccountsConfigs = transactions.map((_, index) => {
+    if (index === transactions.length - 1) {
+      return {
+        addresses: includeAccounts ? includeAccounts.map((account) => account.toBase58()) : []
+      };
+    } else {
+      return ({ addresses: [] })
+    }
+  });
+
   const config: RpcSimulateBundleConfig = {
     skipSigVerify: true,
     replaceRecentBlockhash: true,
-    preExecutionAccountsConfigs: [{ addresses: [] }, { addresses: [] }],
-    postExecutionAccountsConfigs: [{ addresses: [] }, {
-      addresses: includeAccounts ? includeAccounts.map((account) => account.toBase58()) : []
-    }]
+    preExecutionAccountsConfigs,
+    postExecutionAccountsConfigs,
   };
 
   const responseRaw = await fetch(rpcEndpoint, {
