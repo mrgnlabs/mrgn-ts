@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 
 import Link from "next/link";
 import { v4 as uuidv4 } from "uuid";
@@ -36,7 +36,6 @@ import {
 import { Button } from "~/components/ui/button";
 import { ActionMethod, MarginfiActionParams, RepayType, usePrevious } from "@mrgnlabs/mrgn-utils";
 import { useAmountDebounce } from "~/hooks/useAmountDebounce";
-import { calculateBorrowLend } from "~/store/actionBoxStore";
 
 type ActionBoxProps = {
   requestedAction?: ActionType;
@@ -101,10 +100,8 @@ export const ActionBox = ({
     refreshState,
     fetchActionBoxState,
     setSlippageBps,
-    setActionMode,
     setIsLoading,
     setAmountRaw,
-    setActionTxns,
     refreshSelectedBanks,
   ] = useActionBoxStore(isDialog)((state) => [
     state.slippageBps,
@@ -126,16 +123,13 @@ export const ActionBox = ({
     state.refreshState,
     state.fetchActionBoxState,
     state.setSlippageBps,
-    state.setActionMode,
     state.setIsLoading,
     state.setAmountRaw,
-    state.setActionTxns,
     state.refreshSelectedBanks,
   ]);
 
-  const [priorityFee, setPriorityFee, setIsActionComplete, setPreviousTxn] = useUiStore((state) => [
+  const [priorityFee, setIsActionComplete, setPreviousTxn] = useUiStore((state) => [
     state.priorityFee,
-    state.setPriorityFee,
     state.setIsActionComplete,
     state.setPreviousTxn,
   ]);
