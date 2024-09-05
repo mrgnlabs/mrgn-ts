@@ -6,7 +6,6 @@ import { NextApiRequest, NextApiResponse } from "next";
 import config from "~/config/marginfi";
 
 export default async function handler(_req: NextApiRequest, res: NextApiResponse) {
-  console.log("EXEC pythFeedMap");
   try {
     const connection = new Connection(process.env.NEXT_PUBLIC_MARGINFI_RPC_ENDPOINT_OVERRIDE || "");
     const idl = { ...MARGINFI_IDL, address: config.mfiConfig.programId.toBase58() } as unknown as MarginfiIdlType;
