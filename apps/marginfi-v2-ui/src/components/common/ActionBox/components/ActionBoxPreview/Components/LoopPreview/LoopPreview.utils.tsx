@@ -23,6 +23,7 @@ export interface SimulateLoopingActionProps {
   account: MarginfiAccountWrapper;
   bank: ExtendedBankInfo;
   loopingTxn: VersionedTransaction | null;
+  feedCrankTxs: VersionedTransaction[];
 }
 
 export interface ActionPreview {
@@ -117,12 +118,18 @@ export function calculatePreview({
   } as ActionPreview;
 }
 
-export async function simulateLooping({ marginfiClient, account, bank, loopingTxn }: SimulateLoopingActionProps) {
+export async function simulateLooping({
+  marginfiClient,
+  account,
+  bank,
+  loopingTxn,
+  feedCrankTxs,
+}: SimulateLoopingActionProps) {
   let simulationResult: SimulationResult;
 
   if (loopingTxn && marginfiClient) {
     const [mfiAccountData, bankData] = await marginfiClient.simulateTransactions(
-      [loopingTxn],
+      [...feedCrankTxs, loopingTxn],
       [account.address, bank.address]
     );
     if (!mfiAccountData || !bankData) throw new Error("Failed to simulate looping");

@@ -238,18 +238,18 @@ export async function calculateLoopingParams({
     depositAmount = params.depositAmount;
     borrowAmountNative = params.borrowAmountNative;
   }
-  const principalBufferAmountUi = amount * targetLeverage * (slippageBps / 10000);
-  const adjustedPrincipalAmountUi = amount - principalBufferAmountUi;
+  // const principalBufferAmountUi = amount * targetLeverage * (slippageBps / 10000);
+  // const adjustedPrincipalAmountUi = amount - principalBufferAmountUi;
 
-  const maxLoopAmount = depositBank.isActive ? depositBank?.position.amount : 0;
+  // const maxLoopAmount = depositBank.isActive ? depositBank?.position.amount : 0;
 
   // decreased maxAccounts from [undefined, 50, 40, 30] to [40, 30]
-  const maxAccountsArr = marginfiAccount ? [40, 30] : [40, 30];
+  const maxAccountsArr = marginfiAccount ? [40, 25] : [40, 25];
 
   let firstQuote;
 
   for (const maxAccounts of maxAccountsArr) {
-    const isTxnSplit = maxAccounts === 30;
+    // const isTxnSplit = maxAccounts === 30;
 
     const quoteParams = {
       amount: borrowAmountNative,
@@ -291,7 +291,7 @@ export async function calculateLoopingParams({
             borrowAmount,
             swapQuote,
             connection,
-            isTxnSplit,
+            // isTxnSplit,
             priorityFee
           );
         }
@@ -345,7 +345,7 @@ export async function calculateLoopingTransaction({
       loopObject.borrowAmount,
       loopObject.quote,
       connection,
-      false,
+      // false,
       priorityFee
     );
 
@@ -376,14 +376,14 @@ export async function loopingBuilder({
   depositAmount,
   options,
   priorityFee,
-  isTxnSplit,
+  // isTxnSplit,
 }: {
   marginfiAccount: MarginfiAccountWrapper;
   bank: ExtendedBankInfo;
   depositAmount: number;
   options: LoopingOptions;
   priorityFee?: number;
-  isTxnSplit: boolean;
+  // isTxnSplit: boolean;
 }): Promise<{
   flashloanTx: VersionedTransaction;
   feedCrankTxs: VersionedTransaction[];
@@ -429,7 +429,7 @@ export async function loopingBuilder({
     swapLUTs,
     priorityFee,
     true,
-    isTxnSplit
+    // isTxnSplit
   );
 
   return { flashloanTx, feedCrankTxs, addressLookupTableAccounts };
