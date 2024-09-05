@@ -313,8 +313,11 @@ export const PositionActionButtons = ({
                 </span>
               </span>
             </DialogTitle>
+            <DialogDescription className="sr-only">
+              {`${activeGroup.pool.token.meta.tokenSymbol}/${activeGroup.pool.quoteTokens[0].meta.tokenSymbol}`}
+            </DialogDescription>
           </DialogHeader>
-          <DialogDescription className="space-y-12 w-full">
+          <DialogContent className="space-y-12 w-full">
             <dl className="grid grid-cols-2 w-full text-muted-foreground gap-x-8 gap-y-2">
               {depositBanks.map((bank) => (
                 <React.Fragment key={bank.meta.tokenSymbol}>
@@ -372,7 +375,7 @@ export const PositionActionButtons = ({
                 </>
               )}
             </dl>
-          </DialogDescription>
+          </DialogContent>
           <DialogFooter>
             <Button
               variant="destructive"

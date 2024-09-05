@@ -183,20 +183,22 @@ const YieldItem = ({
           >
             {isLeveraged ? (
               <Tooltip>
-                <TooltipTrigger className="cursor-default">
+                <TooltipTrigger className="cursor-default" asChild>
                   <Button disabled className="bg-background border text-foreground hover:bg-accent">
                     Supply
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  You cannot provide liquidity with an open trade. <br />
-                  <Link
-                    className="underline"
-                    href={"https://docs.marginfi.com/the-arena#supply-liquidity-and-earn-yield"}
-                    target="_blank"
-                  >
-                    learn more
-                  </Link>
+                  <div>
+                    You cannot provide liquidity with an open trade. <br />
+                    <Link
+                      className="underline"
+                      href={"https://docs.marginfi.com/the-arena#supply-liquidity-and-earn-yield"}
+                      target="_blank"
+                    >
+                      learn more
+                    </Link>
+                  </div>
                 </TooltipContent>
               </Tooltip>
             ) : (

@@ -10,7 +10,14 @@ import { cn } from "~/utils";
 import { useUiStore } from "~/store";
 import { useIsMobile } from "~/hooks/useIsMobile";
 
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "~/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "~/components/ui/dialog";
 import { Button } from "~/components/ui/button";
 
 import * as screens from "./screens";
@@ -65,6 +72,7 @@ export const ActionComplete = () => {
               <IconConfetti size={48} />
               <h2 className="font-medium text-xl">{headerText}</h2>
             </DialogTitle>
+            <DialogDescription className="sr-only">{headerText}</DialogDescription>
           </DialogHeader>
           <div className="space-y-12 w-full">
             {previousTxn.txnType === "LEND" && (

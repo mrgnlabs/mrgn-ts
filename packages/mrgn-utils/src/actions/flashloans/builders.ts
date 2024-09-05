@@ -33,11 +33,11 @@ export async function calculateRepayCollateralParams(
   platformFeeBps?: number
 ): Promise<
   | {
-    repayTxn: VersionedTransaction;
-    feedCrankTxs: VersionedTransaction[];
-    quote: QuoteResponse;
-    amount: number;
-  }
+      repayTxn: VersionedTransaction;
+      feedCrankTxs: VersionedTransaction[];
+      quote: QuoteResponse;
+      amount: number;
+    }
   | ActionMethod
 > {
   const maxRepayAmount = bank.isActive ? bank?.position.amount : 0;
@@ -119,10 +119,10 @@ export async function calculateBorrowLendPositionParams({
   platformFeeBps?: number;
 }): Promise<
   | {
-    closeTxn: VersionedTransaction;
-    feedCrankTxs: VersionedTransaction[];
-    quote: QuoteResponse;
-  }
+      closeTxn: VersionedTransaction;
+      feedCrankTxs: VersionedTransaction[];
+      quote: QuoteResponse;
+    }
   | ActionMethod
 > {
   let firstQuote;
@@ -376,8 +376,8 @@ export async function loopingBuilder({
   depositAmount,
   options,
   priorityFee,
-  // isTxnSplit,
-}: {
+}: // isTxnSplit,
+{
   marginfiAccount: MarginfiAccountWrapper;
   bank: ExtendedBankInfo;
   depositAmount: number;
@@ -389,7 +389,6 @@ export async function loopingBuilder({
   feedCrankTxs: VersionedTransaction[];
   addressLookupTableAccounts: AddressLookupTableAccount[];
 }> {
-  console.log("CALL loopingBuilder");
   const jupiterQuoteApi = createJupiterApiClient();
 
   // get fee account for original borrow mint
@@ -428,7 +427,7 @@ export async function loopingBuilder({
     [swapIx],
     swapLUTs,
     priorityFee,
-    true,
+    true
     // isTxnSplit
   );
 
