@@ -184,12 +184,12 @@ function canBeBorrowed(
       .getAssetWeight(MarginRequirementType.Maintenance, targetBankInfo.info.oraclePrice)
       .gt(0);
   if (isBeingRetired) {
-    checks.push(DYNAMIC_SIMULATION_ERRORS.BANK_RETIRED_CHECK(targetBankInfo.info.rawBank.tokenSymbol));
+    checks.push(DYNAMIC_SIMULATION_ERRORS.BANK_RETIRED_CHECK(targetBankInfo.meta.tokenSymbol));
   }
 
   const isFull = targetBankInfo.info.rawBank.computeRemainingCapacity().borrowCapacity.lte(0);
   if (isFull) {
-    checks.push(DYNAMIC_SIMULATION_ERRORS.BORROW_CAPACITY_CHECK(targetBankInfo.info.rawBank.tokenSymbol));
+    checks.push(DYNAMIC_SIMULATION_ERRORS.BORROW_CAPACITY_CHECK(targetBankInfo.meta.tokenSymbol));
   }
 
   const alreadyLending = targetBankInfo.isActive && targetBankInfo.position.isLending;
@@ -233,12 +233,12 @@ function canBeLent(targetBankInfo: ExtendedBankInfo, nativeSolBalance: number): 
   const isPaused = targetBankInfo.info.rawBank.config.operationalState === OperationalState.Paused;
 
   if (isPaused) {
-    checks.push(DYNAMIC_SIMULATION_ERRORS.BANK_PAUSED_CHECK(targetBankInfo.info.rawBank.tokenSymbol));
+    checks.push(DYNAMIC_SIMULATION_ERRORS.BANK_PAUSED_CHECK(targetBankInfo.meta.tokenSymbol));
   }
 
   const isReduceOnly = targetBankInfo.info.rawBank.config.operationalState === OperationalState.ReduceOnly;
   if (isReduceOnly) {
-    checks.push(DYNAMIC_SIMULATION_ERRORS.REDUCE_ONLY_CHECK(targetBankInfo.info.rawBank.tokenSymbol));
+    checks.push(DYNAMIC_SIMULATION_ERRORS.REDUCE_ONLY_CHECK(targetBankInfo.meta.tokenSymbol));
   }
 
   const isBeingRetired =
@@ -249,7 +249,7 @@ function canBeLent(targetBankInfo: ExtendedBankInfo, nativeSolBalance: number): 
       .getAssetWeight(MarginRequirementType.Maintenance, targetBankInfo.info.oraclePrice)
       .gt(0);
   if (isBeingRetired) {
-    checks.push(DYNAMIC_SIMULATION_ERRORS.BANK_RETIRED_CHECK(targetBankInfo.info.rawBank.tokenSymbol));
+    checks.push(DYNAMIC_SIMULATION_ERRORS.BANK_RETIRED_CHECK(targetBankInfo.meta.tokenSymbol));
   }
 
   const alreadyBorrowing = targetBankInfo.isActive && !targetBankInfo.position.isLending;
@@ -260,7 +260,7 @@ function canBeLent(targetBankInfo: ExtendedBankInfo, nativeSolBalance: number): 
   const isFull = targetBankInfo.info.rawBank.computeRemainingCapacity().depositCapacity.lte(0);
   if (isFull) {
     checks.push({
-      description: `The ${targetBankInfo.info.rawBank.tokenSymbol} bank is at deposit capacity.`,
+      description: `The ${targetBankInfo.meta.tokenSymbol} bank is at deposit capacity.`,
       isEnabled: false,
     });
   }
