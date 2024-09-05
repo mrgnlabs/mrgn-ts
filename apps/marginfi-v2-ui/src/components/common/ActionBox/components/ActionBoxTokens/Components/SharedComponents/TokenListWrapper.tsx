@@ -2,9 +2,8 @@ import React from "react";
 
 import { Desktop, Mobile } from "~/mediaQueries";
 
-import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
 import { Drawer, DrawerContent, DrawerTrigger } from "~/components/ui/drawer";
-import { Dialog, DialogContent, DialogTrigger } from "~/components/ui/dialog";
+import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle, DialogDescription } from "~/components/ui/dialog";
 
 type TokenListWrapperProps = {
   isOpen: boolean;
@@ -35,6 +34,10 @@ export const TokenListWrapper = ({
             size="sm"
             position="top"
           >
+            <DialogHeader className="sr-only">
+              <DialogTitle>{label}</DialogTitle>
+              <DialogDescription>Select a token from the list.</DialogDescription>
+            </DialogHeader>
             <div className="h-[500px] relative overflow-auto">{Content}</div>
           </DialogContent>
         </Dialog>
