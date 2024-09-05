@@ -54,7 +54,6 @@ export function useLendingPreview({
 
   const getSimulationResultCb = React.useCallback(
     async (amountArg: number, controller: AbortController) => {
-
       const isBankChanged = bank ? !bankPrev?.address.equals(bank.address) : false;
 
       if (account && marginfiClient && bank && debouncedAmount && !isBankChanged && amount !== 0) {
@@ -78,7 +77,7 @@ export function useLendingPreview({
           bank,
           amount: debouncedAmount,
           repayWithCollatOptions,
-          borrowWithdrawOptions
+          borrowWithdrawOptions,
         });
       } else {
         setSimulationResult(undefined);
@@ -87,7 +86,7 @@ export function useLendingPreview({
       }
     },
     [account, actionMode, amount, bank, bankPrev?.address, debouncedAmount, marginfiClient, repayWithCollatOptions]
-  )
+  );
 
   React.useEffect(() => {
     if (prevDebouncedAmount !== debouncedAmount) {
@@ -123,7 +122,6 @@ export function useLendingPreview({
       setSimulationResult(result);
       setActionMethod(undefined);
     } catch (error: any) {
-      console.log({ errorGoota: error });
       let actionString;
       switch (props.actionMode) {
         case ActionType.Deposit:
