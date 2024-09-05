@@ -203,7 +203,7 @@ export async function simulateAction({
       if (repayWithCollatOptions) {
         if (repayWithCollatOptions.repayCollatTxn && marginfiClient) {
           const [mfiAccountData, bankData] = await marginfiClient.simulateTransactions(
-            [repayWithCollatOptions.repayCollatTxn],
+            [...repayWithCollatOptions.feedCrankTxs, repayWithCollatOptions.repayCollatTxn],
             [account.address, bank.address]
           );
           if (!mfiAccountData || !bankData) throw new Error("Failed to simulate repay w/ collat");
