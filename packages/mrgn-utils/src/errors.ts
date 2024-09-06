@@ -70,7 +70,7 @@ export const STATIC_SIMULATION_ERRORS: { [key: string]: ActionMethod } = {
   HEALTH_LIQUIDATION_FAILED: {
     isEnabled: true,
     actionMethod: "WARNING",
-    description: "Simulating health/liquidation impact failed.",
+    description: "Simulating transaction failed. Please try again.",
   },
   NO_COLLATERAL: {
     description: "No available collateral.",
