@@ -138,7 +138,7 @@ export const PoolSearchDefault = ({
                           size === "sm" && "md:text-xs"
                         )}
                       >
-                        <div className="w-[110px] md:w-[130px]">
+                        <div className="w-[110px] md:w-[150px]">
                           <dt className="text-muted-foreground">Price:</dt>
                           <dd className="space-x-2">
                             <span>
@@ -156,7 +156,7 @@ export const PoolSearchDefault = ({
                             </span>
                           </dd>
                         </div>
-                        <div className="hidden w-[130px] md:block">
+                        <div className="hidden w-[150px] md:block">
                           <dt className="text-muted-foreground">Vol 24hr:</dt>
                           <dd className="space-x-2">
                             <span>${numeralFormatter(tokenBank.tokenData.volume24hr)}</span>
