@@ -19,7 +19,6 @@ export default function PortfolioPage() {
           <>
             <PortfolioHeader />
             <LendingPortfolio />
-            {/* <Portfolio /> */}
           </>
         )}
       </div>

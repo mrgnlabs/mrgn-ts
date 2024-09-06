@@ -58,7 +58,8 @@ export default function PortfolioPage() {
             </div>
             {!portfolio || (!portfolio.long.length && !portfolio.short.length && !portfolio.lpPositions.length) ? (
               <p className="text-center mt-4">
-                You do not have any open positions.{" "}
+                You do not have any open positions.
+                <br className="md:hidden" />{" "}
                 <Link href="/" className="border-b border-primary transition-colors hover:border-transparent">
                   Explore the pools
                 </Link>{" "}
