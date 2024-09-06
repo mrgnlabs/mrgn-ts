@@ -1,4 +1,5 @@
 import React from "react";
+import Link from "next/link";
 
 import { numeralFormatter } from "@mrgnlabs/mrgn-common";
 import { usdFormatter, usdFormatterDyn } from "@mrgnlabs/mrgn-common";
@@ -86,7 +87,16 @@ export const LendingPortfolio = () => {
   }, [accountSummary.healthFactor]);
 
   if (!borrowingBanks.length && !lendingBanks.length) {
-    return null;
+    return (
+      <p className="text-center mt-4">
+        You do not have any open positions.
+        <br className="md:hidden" />{" "}
+        <Link href="/" className="border-b border-primary transition-colors hover:border-transparent">
+          Explore the pools
+        </Link>{" "}
+        and make your first deposit!
+      </p>
+    );
   }
 
   return (
