@@ -5,13 +5,8 @@
       "cache": false
     },
     "build": {
-      "dependsOn": [
-        "^build"
-      ],
-      "outputs": [
-        "dist/**",
-        ".next/**"
-      ]
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**", ".next/**"]
     },
     "lint": {
       "outputs": []
@@ -63,14 +58,6 @@
     "UPSTASH_REDIS_REST_URL",
     "UPSTASH_REDIS_REST_TOKEN",
     "PRIVATE_RPC_ENDPOINT",
-    "NEXT_PUBLIC_ETHEREUM_RPC_ENDPOINT",
-    "NEXT_PUBLIC_BSC_ENDPOINT",
-    "NEXT_PUBLIC_POLYGON_ENDPOINT",
-    "NEXT_PUBLIC_AVALANCE_ENDPOINT",
-    "NEXT_PUBLIC_ARBITRUM_ENDPOINT",
-    "NEXT_PUBLIC_OPTIMISM_ENDPOINT",
-    "NEXT_PUBLIC_SOLANA2_RPC_ENDPOINT",
-    "NEXT_PUBLIC_BASE_ENDPOINT",
     "SENTRY_DSN",
     "BIRDEYE_API_KEY",
     "NEXT_PUBLIC_WEB3_AUTH_CLIENT_ID",

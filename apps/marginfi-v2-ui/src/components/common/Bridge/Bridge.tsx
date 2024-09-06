@@ -64,7 +64,6 @@ const mayanWidgetConfig: MayanWidgetConfigType = {
       solana: tokens,
     },
   },
-  solanaExtraRpcs: [process.env.NEXT_PUBLIC_SOLANA2_RPC_ENDPOINT!],
 };
 
 export const Bridge = ({ onLoad }: BridgeProps) => {
