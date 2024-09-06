@@ -82,14 +82,12 @@ export const PoolSearchDialog = ({
                         alt={tokenBank.meta.tokenSymbol}
                         className="rounded-full"
                       />
-                      <h3>
-                        {tokenBank.meta.tokenName} ({tokenBank.meta.tokenSymbol})
-                      </h3>
+                      <h3>{tokenBank.meta.tokenSymbol}</h3>
                     </div>
                     {tokenBank.tokenData && (
-                      <dl className={cn("flex items-center gap-2 text-xs ml-auto md:text-sm")}>
-                        <div className="w-[110px] md:w-[130px]">
-                          <dt className="text-muted-foreground">Price:</dt>
+                      <dl className="flex items-center text-xs ml-auto md:text-sm md:gap-8">
+                        <div>
+                          <dt className="text-muted-foreground sr-only md:not-sr-only">Price:</dt>
                           <dd className="space-x-2">
                             <span>
                               {tokenPriceFormatter(tokenBank.info.oraclePrice.priceRealtime.price.toNumber())}
