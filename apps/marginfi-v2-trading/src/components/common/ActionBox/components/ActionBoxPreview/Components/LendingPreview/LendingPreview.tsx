@@ -1,13 +1,13 @@
 import React from "react";
 
 import { ActionType, DEFAULT_ACCOUNT_SUMMARY, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { usdFormatterDyn } from "@mrgnlabs/mrgn-common";
 
 import { GroupData } from "~/store/tradeStore";
 import { ActionMethod, cn, RepayWithCollatOptions } from "~/utils";
-
-import { AvailableCollateral } from "./AvailableCollateral";
 import { useLendingPreview } from "./useLendingPreview";
-import { useTradeStore } from "~/store";
+
+import { Skeleton } from "~/components/ui/skeleton";
 
 interface ActionBoxPreviewProps {
   selectedBank: ExtendedBankInfo | null;
@@ -47,40 +47,30 @@ export const LendingPreview = ({
   }, [actionMethod]);
 
   return (
-    <div className="flex flex-col gap-4">
-      {activeGroup?.selectedAccount && (
-        <AvailableCollateral
-          isLoading={isLoading}
-          marginfiAccount={activeGroup.selectedAccount}
-          availableCollateral={preview?.simulationPreview?.availableCollateral}
-        />
+    <>
+      {children}
+
+      {isEnabled && selectedBank && (
+        <dl className={cn("grid grid-cols-2 gap-y-2 pt-6 text-xs")}>
+          {previewStats.map((stat, idx) => (
+            <Stat
+              key={idx}
+              label={stat.label}
+              classNames={cn(
+                stat.color &&
+                  (stat.color === "SUCCESS"
+                    ? "text-success"
+                    : stat.color === "ALERT"
+                    ? "text-alert-foreground"
+                    : "text-destructive-foreground")
+              )}
+            >
+              <stat.value />
+            </Stat>
+          ))}
+        </dl>
       )}
-
-      <div>
-        {children}
-
-        {isEnabled && selectedBank && (
-          <dl className={cn("grid grid-cols-2 gap-y-2 pt-6 text-xs")}>
-            {previewStats.map((stat, idx) => (
-              <Stat
-                key={idx}
-                label={stat.label}
-                classNames={cn(
-                  stat.color &&
-                    (stat.color === "SUCCESS"
-                      ? "text-success"
-                      : stat.color === "ALERT"
-                      ? "text-alert-foreground"
-                      : "text-destructive-foreground")
-                )}
-              >
-                <stat.value />
-              </Stat>
-            ))}
-          </dl>
-        )}
-      </div>
-    </div>
+    </>
   );
 };
 
