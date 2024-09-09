@@ -27,7 +27,7 @@ export const TokenListCommand = ({ selectedBank, onSetSearchQuery, onClose, chil
           placeholder="Search token..."
           wrapperClassName="fixed mx-2 lg:mx-0 bg-background-gray w-[calc(100%-30px)] px-4 lg:pl-3 border rounded-lg border-background-gray-light z-40 flex justify-between"
           className="h-12"
-          autoFocus={false}
+          autoFocus={true}
           onValueChange={(value) => onSetSearchQuery(value)}
         />
         <button onClick={() => onClose()} className={cn("fixed z-50", isMobile ? "top-9 right-4" : "top-8 right-6")}>
