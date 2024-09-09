@@ -191,7 +191,7 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
     if (args.requestedAction) {
       requestedAction = args.requestedAction;
     } else {
-      requestedAction = initialState.actionMode;
+      requestedAction = actionMode;
     }
 
     if (args.requestedBank) {
@@ -669,11 +669,11 @@ async function calculateRepayCollateral(
   priorityFee: number
 ): Promise<
   | {
-    repayTxn: VersionedTransaction;
-    feedCrankTxs: VersionedTransaction[];
-    quote: QuoteResponse;
-    amount: number;
-  }
+      repayTxn: VersionedTransaction;
+      feedCrankTxs: VersionedTransaction[];
+      quote: QuoteResponse;
+      amount: number;
+    }
   | ActionMethod
 > {
   // TODO setup logging again
