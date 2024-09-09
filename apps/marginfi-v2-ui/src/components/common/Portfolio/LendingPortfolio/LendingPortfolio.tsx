@@ -1,17 +1,27 @@
 import React from "react";
 import Link from "next/link";
+import { useRouter } from "next/router";
 
 import { numeralFormatter } from "@mrgnlabs/mrgn-common";
 import { usdFormatter, usdFormatterDyn } from "@mrgnlabs/mrgn-common";
-import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActiveBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
+import { LendingModes } from "@mrgnlabs/mrgn-utils";
 
-import { useMrgnlendStore, useUserProfileStore } from "~/store";
+import {
+  useMrgnlendStore,
+  useUserProfileStore,
+  useActionBoxGeneralStore,
+  useActionBoxDialogStore,
+  useUiStore,
+} from "~/store";
 
 import { PortfolioUserStats, PortfolioAssetCard, PortfolioAssetCardSkeleton } from "~/components/common/Portfolio";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { IconInfoCircle } from "~/components/ui/icons";
 
 export const LendingPortfolio = () => {
+  const router = useRouter();
+
   const [isStoreInitialized, sortedBanks, accountSummary] = useMrgnlendStore((state) => [
     state.initialized,
     state.extendedBankInfos,
@@ -19,6 +29,8 @@ export const LendingPortfolio = () => {
   ]);
 
   const [userPointsData] = useUserProfileStore((state) => [state.userPointsData]);
+  const [setLendingMode] = useUiStore((state) => [state.setLendingMode]);
+  const [setActionMode] = useActionBoxDialogStore((state) => [state.setActionMode]);
 
   const lendingBanks = React.useMemo(
     () =>
@@ -198,7 +210,18 @@ export const LendingPortfolio = () => {
               </div>
             ) : (
               <div color="#868E95" className="font-aeonik font-[300] text-sm flex gap-1">
-                No borrow positions found.
+                No borrow positions found.{" "}
+                <button
+                  className="border-b border-primary/50 transition-colors hover:border-primary"
+                  onClick={() => {
+                    setActionMode(ActionType.Borrow);
+                    setLendingMode(LendingModes.BORROW);
+                    router.push("/");
+                  }}
+                >
+                  Search the pools
+                </button>{" "}
+                and open a new borrow position.
               </div>
             )
           ) : (
