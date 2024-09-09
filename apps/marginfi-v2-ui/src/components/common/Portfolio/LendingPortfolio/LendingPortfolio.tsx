@@ -7,13 +7,8 @@ import { usdFormatter, usdFormatterDyn } from "@mrgnlabs/mrgn-common";
 import { ActiveBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { LendingModes } from "@mrgnlabs/mrgn-utils";
 
-import {
-  useMrgnlendStore,
-  useUserProfileStore,
-  useActionBoxGeneralStore,
-  useActionBoxDialogStore,
-  useUiStore,
-} from "~/store";
+import { useMrgnlendStore, useUserProfileStore, useUiStore } from "~/store";
+import { useActionBoxStore } from "~/hooks/useActionBoxStore";
 
 import { PortfolioUserStats, PortfolioAssetCard, PortfolioAssetCardSkeleton } from "~/components/common/Portfolio";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
@@ -29,8 +24,7 @@ export const LendingPortfolio = () => {
   ]);
 
   const [userPointsData] = useUserProfileStore((state) => [state.userPointsData]);
-  const [setLendingMode] = useUiStore((state) => [state.setLendingMode]);
-  const [setActionMode] = useActionBoxDialogStore((state) => [state.setActionMode]);
+  const [setActionMode] = useActionBoxStore()((state) => [state.setActionMode]);
 
   const lendingBanks = React.useMemo(
     () =>
@@ -215,13 +209,12 @@ export const LendingPortfolio = () => {
                   className="border-b border-primary/50 transition-colors hover:border-primary"
                   onClick={() => {
                     setActionMode(ActionType.Borrow);
-                    setLendingMode(LendingModes.BORROW);
                     router.push("/");
                   }}
                 >
                   Search the pools
                 </button>{" "}
-                and open a new borrow position.
+                and open a new borrow.
               </div>
             )
           ) : (
