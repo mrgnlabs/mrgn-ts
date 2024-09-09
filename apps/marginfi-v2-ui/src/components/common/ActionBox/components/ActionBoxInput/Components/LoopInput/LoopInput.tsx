@@ -92,6 +92,9 @@ export const LoopInput = ({
     lstApy: 0,
   });
 
+  const prevLeverageRef = React.useRef(leverage);
+  const prevDebouncedAmountRef = React.useRef(debouncedAmount);
+
   const numberFormater = React.useMemo(() => new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 }), []);
 
   const bothBanksSelected = React.useMemo(
@@ -199,6 +202,21 @@ export const LoopInput = ({
     () => setLeverage(debouncedLeverage, selectedAccount, connection, priorityFee),
     [debouncedLeverage, selectedAccount, connection, setLeverage, priorityFee]
   );
+
+  React.useEffect(() => {
+    if (
+      selectedAccount &&
+      connection &&
+      leverage &&
+      debouncedAmount !== prevDebouncedAmountRef.current &&
+      leverage === prevLeverageRef.current
+    ) {
+      setLooping({ marginfiAccount: selectedAccount, connection: connection, priorityFee });
+    }
+
+    prevLeverageRef.current = leverage;
+    prevDebouncedAmountRef.current = debouncedAmount;
+  }, [debouncedAmount, leverage, selectedAccount, connection, priorityFee, setLooping]);
 
   React.useEffect(() => setLeverageAmount(leverage), [leverage]);
 
