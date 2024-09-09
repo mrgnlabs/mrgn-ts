@@ -71,7 +71,7 @@ export function Loader({ label = "Loading...", className, iconSize = 24 }: Loade
   return (
     <div className={cn("flex flex-col items-center justify-center gap-2 text-muted-foreground", className)}>
       <motion.svg width="32" height="32" viewBox="0 0 704 704" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect width="704" height="704" fill="white" />
+        <rect width="704" height="704" fill="transparent" />
         <AnimatePresence mode="wait">
           {isVisible && (
             <motion.g key="paths" variants={containerVariants} initial="hidden" animate="visible" exit="exit">
