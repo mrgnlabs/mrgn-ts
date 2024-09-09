@@ -118,7 +118,7 @@ class MarginfiClient {
     addressLookupTables?: AddressLookupTableAccount[],
     preloadedBankAddresses?: PublicKey[],
     readonly bankMetadataMap?: BankMetadataMap,
-    bundleSimRpcEndpoint?: string,
+    bundleSimRpcEndpoint?: string
   ) {
     this.group = group;
     this.banks = banks;
@@ -230,7 +230,7 @@ class MarginfiClient {
       feedIdMap,
       addressLookupTables,
       preloadedBankAddresses,
-      bankMetadataMap,
+      bankMetadataMap
     );
   }
 
@@ -1105,7 +1105,9 @@ class MarginfiClient {
             recentBlockhash: blockhash,
           });
 
-          versionedTransactions.push(new VersionedTransaction(versionedMessage.compileToV0Message(this.addressLookupTables)));
+          versionedTransactions.push(
+            new VersionedTransaction(versionedMessage.compileToV0Message(this.addressLookupTables))
+          );
         } else {
           versionedTransactions.push(transaction);
         }
