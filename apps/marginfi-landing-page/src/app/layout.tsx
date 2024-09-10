@@ -1,3 +1,6 @@
+import { SpeedInsights } from "@vercel/speed-insights/next";
+import { GoogleAnalytics } from "@next/third-parties/google";
+
 import { Header } from "~/components/header";
 
 import type { Metadata } from "next";
@@ -20,6 +23,12 @@ export default function RootLayout({
       <body>
         <Header />
         {children}
+        {process.env.NEXT_PUBLIC_ANALYTICS === "true" && (
+          <>
+            <GoogleAnalytics gaId="G-TS0DF3DM7G" />
+            <SpeedInsights />
+          </>
+        )}
       </body>
     </html>
   );

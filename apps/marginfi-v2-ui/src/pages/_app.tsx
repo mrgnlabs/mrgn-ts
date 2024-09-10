@@ -1,7 +1,8 @@
 import React from "react";
 
 import App, { AppContext, AppInitialProps, AppProps } from "next/app";
-import Head from "next/head";
+import { SpeedInsights } from "@vercel/speed-insights/next";
+import { GoogleAnalytics } from "@next/third-parties/google";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
 
@@ -138,6 +139,13 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
             </WalletProvider>
           </TipLinkWalletAutoConnect>
         </ConnectionProvider>
+      )}
+
+      {process.env.NEXT_PUBLIC_ANALYTICS === "true" && (
+        <>
+          <GoogleAnalytics gaId="G-0ZTQRWVG02" />
+          <SpeedInsights />
+        </>
       )}
     </>
   );
