@@ -514,7 +514,7 @@ export const TradingBox = ({ activeGroup, side = "long" }: TradingBoxProps) => {
             </div>
           )}
         </CardContent>
-        <CardFooter className="flex-col gap-5">
+        <CardFooter className="flex-col gap-5 md:pt-0">
           {tradeState === "long" && activeGroup?.pool.token.userInfo.tokenAccount.balance === 0 && (
             <div className="w-full flex space-x-2 py-2.5 px-3.5 rounded-lg gap-1 text-sm bg-accent text-alert-foreground">
               <IconAlertTriangle className="shrink-0 translate-y-0.5" size={16} />
