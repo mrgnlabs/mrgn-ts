@@ -5,6 +5,7 @@ import config from "~/config/marginfi";
 import { useMrgnlendStore } from "~/store";
 import { useConnection } from "~/hooks/useConnection";
 import { useWalletContext } from "~/hooks/useWalletContext";
+import { identify } from "~/utils";
 
 // @ts-ignore - Safe because context hook checks for null
 const MrgnlendContext = React.createContext<>();
@@ -20,6 +21,11 @@ export const MrgnlendProvider: React.FC<{
     state.fetchMrgnlendState,
     state.setIsRefreshingStore,
   ]);
+
+  // identify user if logged in
+  React.useEffect(() => {
+    identify(wallet.publicKey.toBase58());
+  }, [wallet.publicKey]);
 
   // if account set in query param then store inn local storage and remove from url
   React.useEffect(() => {
