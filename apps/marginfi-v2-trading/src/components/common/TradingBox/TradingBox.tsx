@@ -4,17 +4,24 @@ import React from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 
+import { ActionType, ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { numeralFormatter } from "@mrgnlabs/mrgn-common";
+import { calculateLoopingParams, handleSimulationError, LoopingObject } from "@mrgnlabs/mrgn-utils";
+import { MarginfiAccountWrapper, SimulationResult, computeMaxLeverage } from "@mrgnlabs/marginfi-client-v2";
 import { IconAlertTriangle, IconExternalLink, IconLoader2, IconSettings, IconWallet } from "@tabler/icons-react";
 import capitalize from "lodash/capitalize";
 import { useDebounce } from "@uidotdev/usehooks";
-import { ActionType, ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { numeralFormatter } from "@mrgnlabs/mrgn-common";
 
-import { cn } from "~/utils/themeUtils";
+import { TradeSide, checkLoopingActionAvailable, generateStats, simulateLooping } from "./tradingBox.utils";
+import { cn, ActionMethod, capture, executeLeverageAction, extractErrorString, usePrevious } from "~/utils";
 import { useTradeStore, useUiStore } from "~/store";
 import { GroupData } from "~/store/tradeStore";
+import { WalletState } from "~/store/uiStore";
+import { useWalletContext } from "~/hooks/useWalletContext";
+import { useConnection } from "~/hooks/useConnection";
 
 import { TokenCombobox } from "../TokenCombobox/TokenCombobox";
+import { TradingBoxSettingsDialog } from "./components/TradingBoxSettings/TradingBoxSettingsDialog";
 import { ActionBoxDialog } from "~/components/common/ActionBox";
 import { Card, CardContent, CardFooter } from "~/components/ui/card";
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
@@ -22,13 +29,6 @@ import { Slider } from "~/components/ui/slider";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
-import { useWalletContext } from "~/hooks/useWalletContext";
-import { useConnection } from "~/hooks/useConnection";
-import { MarginfiAccountWrapper, SimulationResult, computeMaxLeverage } from "@mrgnlabs/marginfi-client-v2";
-import { TradeSide, checkLoopingActionAvailable, generateStats, simulateLooping } from "./tradingBox.utils";
-import { ActionMethod, capture, executeLeverageAction, extractErrorString, usePrevious } from "~/utils";
-import { TradingBoxSettingsDialog } from "./components/TradingBoxSettings/TradingBoxSettingsDialog";
-import { calculateLoopingParams, handleSimulationError, LoopingObject } from "@mrgnlabs/mrgn-utils";
 
 type TradingBoxProps = {
   activeGroup: GroupData;
@@ -64,16 +64,25 @@ export const TradingBox = ({ activeGroup, side = "long" }: TradingBoxProps) => {
     state.refreshGroup,
   ]);
 
-  const [slippageBps, priorityFee, platformFeeBps, setSlippageBps, setIsActionComplete, setPreviousTxn] = useUiStore(
-    (state) => [
-      state.slippageBps,
-      state.priorityFee,
-      state.platformFeeBps,
-      state.setSlippageBps,
-      state.setIsActionComplete,
-      state.setPreviousTxn,
-    ]
-  );
+  const [
+    setWalletState,
+    setIsWalletOpen,
+    slippageBps,
+    priorityFee,
+    platformFeeBps,
+    setSlippageBps,
+    setIsActionComplete,
+    setPreviousTxn,
+  ] = useUiStore((state) => [
+    state.setWalletState,
+    state.setIsWalletOpen,
+    state.slippageBps,
+    state.priorityFee,
+    state.platformFeeBps,
+    state.setSlippageBps,
+    state.setIsActionComplete,
+    state.setPreviousTxn,
+  ]);
 
   React.useEffect(() => {
     if (tradeState !== prevTradeState) {
@@ -506,6 +515,44 @@ export const TradingBox = ({ activeGroup, side = "long" }: TradingBoxProps) => {
           )}
         </CardContent>
         <CardFooter className="flex-col gap-5">
+          {tradeState === "long" && activeGroup?.pool.token.userInfo.tokenAccount.balance === 0 && (
+            <div className="w-full flex space-x-2 py-2.5 px-3.5 rounded-lg gap-1 text-sm bg-accent text-alert-foreground">
+              <IconAlertTriangle className="shrink-0 translate-y-0.5" size={16} />
+              <div className="space-y-1">
+                <p>
+                  You need to deposit {activeGroup?.pool.token.meta.tokenSymbol} to open a long position.{" "}
+                  <button
+                    className="border-b border-alert-foreground hover:border-transparent"
+                    onClick={() => {
+                      setWalletState(WalletState.SWAP);
+                      setIsWalletOpen(true);
+                    }}
+                  >
+                    Swap tokens.
+                  </button>
+                </p>
+              </div>
+            </div>
+          )}
+          {tradeState === "short" && activeGroup?.pool.quoteTokens[0].userInfo.tokenAccount.balance === 0 && (
+            <div className="w-full flex space-x-2 py-2.5 px-3.5 rounded-lg gap-1 text-sm bg-accent text-alert-foreground">
+              <IconAlertTriangle className="shrink-0 translate-y-0.5" size={16} />
+              <div className="space-y-1">
+                <p>
+                  You need to deposit {activeGroup?.pool.quoteTokens[0].meta.tokenSymbol} to open a short position.{" "}
+                  <button
+                    className="border-b border-alert-foreground hover:border-transparent"
+                    onClick={() => {
+                      setWalletState(WalletState.SWAP);
+                      setIsWalletOpen(true);
+                    }}
+                  >
+                    Swap tokens.
+                  </button>
+                </p>
+              </div>
+            </div>
+          )}
           {isActiveWithCollat ? (
             <>
               <div className="gap-1 w-full flex flex-col items-center">
