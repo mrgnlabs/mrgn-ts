@@ -5,9 +5,8 @@ import { useRouter } from "next/router";
 import { numeralFormatter } from "@mrgnlabs/mrgn-common";
 import { usdFormatter, usdFormatterDyn } from "@mrgnlabs/mrgn-common";
 import { ActiveBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
-import { LendingModes } from "@mrgnlabs/mrgn-utils";
 
-import { useMrgnlendStore, useUserProfileStore, useUiStore } from "~/store";
+import { useMrgnlendStore, useUserProfileStore } from "~/store";
 import { useActionBoxStore } from "~/hooks/useActionBoxStore";
 
 import { PortfolioUserStats, PortfolioAssetCard, PortfolioAssetCardSkeleton } from "~/components/common/Portfolio";
@@ -92,12 +91,12 @@ export const LendingPortfolio = () => {
     }
   }, [accountSummary.healthFactor]);
 
-  if (!borrowingBanks.length && !lendingBanks.length) {
+  if (!lendingBanks.length && !borrowingBanks.length && isStoreInitialized) {
     return (
-      <p className="text-center mt-4">
+      <p className="text-center mt-4 text-muted-foreground">
         You do not have any open positions.
         <br className="md:hidden" />{" "}
-        <Link href="/" className="border-b border-primary transition-colors hover:border-transparent">
+        <Link href="/" className="border-b border-muted-foreground transition-colors hover:border-transparent">
           Explore the pools
         </Link>{" "}
         and make your first deposit!

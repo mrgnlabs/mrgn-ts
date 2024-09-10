@@ -1,6 +1,7 @@
 import React from "react";
 
 import { useMrgnlendStore, useUiStore } from "~/store";
+import { useWalletContext } from "~/hooks/useWalletContext";
 
 import { LendingPortfolio } from "~/components/common/Portfolio";
 import { ActionComplete } from "~/components/common/ActionComplete";
@@ -10,6 +11,7 @@ import { PortfolioHeader } from "~/components/common/Portfolio/PortfolioHeader";
 export default function PortfolioPage() {
   const [initialized] = useMrgnlendStore((state) => [state.initialized]);
   const [previousTxn] = useUiStore((state) => [state.previousTxn]);
+  const { connected } = useWalletContext();
 
   return (
     <>
@@ -18,7 +20,7 @@ export default function PortfolioPage() {
         {initialized && (
           <>
             <PortfolioHeader />
-            <LendingPortfolio />
+            {connected && <LendingPortfolio />}
           </>
         )}
       </div>
