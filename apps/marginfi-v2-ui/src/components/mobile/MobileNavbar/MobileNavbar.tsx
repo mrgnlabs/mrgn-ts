@@ -116,11 +116,11 @@ const MobileNavbar = () => {
             <PopoverTrigger asChild>
               <button
                 className={cn(
-                  "w-1/4 py-2.5 flex flex-col gap-1 items-center border-t border-border text-[#999] data-[state=open]:bg-secondary",
+                  "group w-1/4 py-2.5 flex flex-col gap-1 items-center border-t border-border text-[#999] data-[state=open]:bg-secondary",
                   isIOS && isPWA && "pb-8"
                 )}
               >
-                <IconPlus />
+                <IconPlus className="transition-transform rotate-0 group-data-[state=open]:rotate-[225deg]" />
                 More
               </button>
             </PopoverTrigger>
