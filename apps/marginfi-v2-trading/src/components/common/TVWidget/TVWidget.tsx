@@ -49,6 +49,7 @@ export const TVWidget = ({ token }: props) => {
         autosize: false,
         header_widget_buttons_mode: "compact",
         disabled_features: disabledFeats,
+        enabled_features: ["move_logo_to_main_pane"],
         custom_formatters: {
           priceFormatterFactory: (symbolInfo, minTick) => {
             if (symbolInfo === null) {
