@@ -120,12 +120,12 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
                     </Desktop>
 
                     <Mobile>
-                      <MobileNavbar />
                       <div
                         className={cn("w-full flex flex-col justify-center items-center", isOraclesStale && "pt-16")}
                       >
                         <Component {...pageProps} />
                       </div>
+                      <MobileNavbar />
                     </Mobile>
 
                     <Analytics />

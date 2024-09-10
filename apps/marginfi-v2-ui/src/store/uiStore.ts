@@ -86,6 +86,10 @@ function createUiStore() {
         if (window.innerWidth < 768) {
           state?.setIsWalletOpen(false);
         }
+
+        // ensure input focus is not set when rehydrated
+        // this is used to hide the mobile navbar when input is focussed to fix a bug specific to Backpack wallet
+        state?.setIsActionBoxInputFocussed(false);
       },
     })
   );
