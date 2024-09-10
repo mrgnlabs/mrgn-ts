@@ -46,8 +46,14 @@ export const TradePovider: React.FC<{
     trackReferral(referralCode, wallet.publicKey.toBase58());
 
     if (!isLoggedIn && wallet.publicKey) {
+      const walletAddress = wallet.publicKey.toBase58();
       setIsLoggedIn(true);
-      identify(wallet.publicKey.toBase58());
+
+      if (!walletAddress) return;
+
+      identify(walletAddress, {
+        wallet: walletAddress,
+      });
     }
   }, [router.asPath, wallet, connected, isLoggedIn]);
 

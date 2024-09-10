@@ -24,7 +24,11 @@ export const MrgnlendProvider: React.FC<{
 
   // identify user if logged in
   React.useEffect(() => {
-    identify(wallet.publicKey.toBase58());
+    const walletAddress = wallet.publicKey?.toBase58();
+    if (!walletAddress) return;
+    identify(walletAddress, {
+      wallet: walletAddress,
+    });
   }, [wallet.publicKey]);
 
   // if account set in query param then store inn local storage and remove from url
