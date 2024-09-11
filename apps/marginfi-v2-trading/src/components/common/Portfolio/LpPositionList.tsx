@@ -30,7 +30,7 @@ export const LpPositionList = () => {
                 <TableHead className="w-[20%]">Pool</TableHead>
                 <TableHead className="w-[20%]">Token Size</TableHead>
                 <TableHead className="w-[20%]">USDC Size</TableHead>
-                <TableHead className="w-[20%]">USD Value</TableHead>
+                <TableHead className="w-[20%]">Total (USD)</TableHead>
                 <TableHead className="w-[20%]"></TableHead>
               </TableRow>
             </TableHeader>
@@ -79,9 +79,8 @@ export const LpPositionList = () => {
                     <TableCell>
                       {(group.pool.token.isActive || group.pool.quoteTokens[0].isActive) &&
                         usdFormatter.format(
-                          group.pool.token.isActive
-                            ? group.pool.token.position.usdValue
-                            : 0 + (group.pool.quoteTokens[0].isActive ? group.pool.quoteTokens[0].position.usdValue : 0)
+                          (group.pool.token.isActive ? group.pool.token.position.usdValue : 0) +
+                            (group.pool.quoteTokens[0].isActive ? group.pool.quoteTokens[0].position.usdValue : 0)
                         )}
                     </TableCell>
 
