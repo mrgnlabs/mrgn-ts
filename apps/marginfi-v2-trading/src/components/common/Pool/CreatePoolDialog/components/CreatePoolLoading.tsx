@@ -142,6 +142,7 @@ export const CreatePoolLoading = ({ poolData, setCreatePoolState }: CreatePoolLo
       { label: "Step 1", description: "Creating new marginfi group" },
       { label: "Step 2", description: "Configuring USDC bank" },
       { label: "Step 3", description: `Configuring ${poolData?.symbol} bank` },
+      { label: "Step 4", description: "Finalizing pool" },
     ],
     [poolData]
   );
@@ -213,25 +214,6 @@ export const CreatePoolLoading = ({ poolData, setCreatePoolState }: CreatePoolLo
     return { tokenBankSeed, stableBankSeed, marginfiGroupSeed };
   }, []);
 
-  const createLutCache = React.useCallback(
-    async (props: { stableBankPk: PublicKey; tokenBankPk: PublicKey; groupPk: PublicKey; lutAddress: PublicKey }) => {
-      // const lutUpdateRes = await fetch(`/api/lut`, {
-      //   method: "POST",
-      //   body: JSON.stringify({
-      //     groupAddress: props.groupPk.toBase58(),
-      //     lutAddress: props.lutAddress.toBase58(),
-      //   }),
-      // });
-
-      // if (!lutUpdateRes.ok) {
-      //   console.error("Failed to update LUT");
-      // }
-      console.log("createLutCache", props);
-      setCreatePoolState(CreatePoolState.SUCCESS);
-    },
-    [setCreatePoolState]
-  );
-
   const createTransaction = React.useCallback(async () => {
     if (!poolData) return;
     setStatus("loading");
@@ -250,6 +232,7 @@ export const CreatePoolLoading = ({ poolData, setCreatePoolState }: CreatePoolLo
 
     // create group & LUT
     if (!group || !lutAddress) {
+      console.log("creating lut");
       setActiveStep(0);
       const oracleKeys = [new PublicKey(poolData.oracle), ...(DEFAULT_USDC_BANK_CONFIG.oracle?.keys ?? [])];
       const bankKeys = [seeds.stableBankSeed.publicKey, seeds.tokenBankSeed.publicKey];
@@ -266,6 +249,8 @@ export const CreatePoolLoading = ({ poolData, setCreatePoolState }: CreatePoolLo
       });
 
       lutAddress = newLutAddress;
+
+      console.log("creating group");
       group = await createGroup(client, [createLutIx, extendLutIx], seeds.marginfiGroupSeed);
       if (!group || !lutAddress) return;
     }
@@ -273,6 +258,7 @@ export const CreatePoolLoading = ({ poolData, setCreatePoolState }: CreatePoolLo
     setPoolCreation((state) => ({ ...state, marginfiGroupPk: group, lutAddress }));
 
     if (!poolCreation?.stableBankPk) {
+      console.log("creating stable bank");
       setActiveStep(1);
       const sig = await createBank(client, DEFAULT_USDC_BANK_CONFIG, USDC_MINT, group, seeds.stableBankSeed);
       if (!sig) return;
@@ -297,12 +283,23 @@ export const CreatePoolLoading = ({ poolData, setCreatePoolState }: CreatePoolLo
       setPoolCreation((state) => ({ ...state, tokenBankPk: seeds.tokenBankSeed.publicKey }));
     }
 
-    createLutCache({
-      groupPk: seeds.marginfiGroupSeed.publicKey,
-      stableBankPk: seeds.stableBankSeed.publicKey,
-      tokenBankPk: seeds.tokenBankSeed.publicKey,
-      lutAddress,
+    console.log("updating lut cache");
+    setActiveStep(3);
+    const lutUpdateRes = await fetch(`/api/lut`, {
+      method: "POST",
+      body: JSON.stringify({
+        groupAddress: seeds.marginfiGroupSeed.publicKey.toBase58(),
+        lutAddress: lutAddress.toBase58(),
+      }),
     });
+
+    if (!lutUpdateRes.ok) {
+      console.error("Failed to update LUT");
+      return;
+    }
+
+    console.log("pool creation complete");
+    setCreatePoolState(CreatePoolState.SUCCESS);
   }, [
     createBank,
     createGroup,
@@ -313,7 +310,7 @@ export const CreatePoolLoading = ({ poolData, setCreatePoolState }: CreatePoolLo
     wallet.publicKey,
     setActiveStep,
     createSeeds,
-    createLutCache,
+    setCreatePoolState,
   ]);
 
   React.useEffect(() => {
