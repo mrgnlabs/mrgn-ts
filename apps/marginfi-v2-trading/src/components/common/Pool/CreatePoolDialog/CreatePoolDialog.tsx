@@ -135,6 +135,7 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
               isSearchingToken={isSearchingToken}
               setMintAddress={setMintAddress}
               fetchTokenInfo={fetchTokenInfo}
+              setIsOpen={setIsOpen}
             />
           )}
           {createPoolState === CreatePoolState.FORM && (
