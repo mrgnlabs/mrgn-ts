@@ -1,8 +1,5 @@
-import { Button } from "~/components/ui/button";
+import React from "react";
 
-import { FormValues } from "~/components/common/Pool/CreatePoolDialog";
-
-import { IconLoader2, IconCheck, IconConfetti, IconX } from "@tabler/icons-react";
 import {
   BankConfigOpt,
   MarginfiClient,
@@ -13,8 +10,7 @@ import {
   getConfig,
   makePriorityFeeIx,
 } from "@mrgnlabs/marginfi-client-v2";
-import { useWalletContext } from "~/hooks/useWalletContext";
-import { useConnection } from "~/hooks/useConnection";
+import { IconLoader2, IconCheck, IconConfetti, IconX } from "@tabler/icons-react";
 import {
   Keypair,
   Message,
@@ -25,9 +21,15 @@ import {
   VersionedTransaction,
 } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
-import { cn, createMarginfiGroup, createPermissionlessBank, createPoolLookupTable } from "~/utils";
+
 import { useUiStore } from "~/store";
-import React from "react";
+import { useWalletContext } from "~/hooks/useWalletContext";
+import { useConnection } from "~/hooks/useConnection";
+import { cn, createMarginfiGroup, createPermissionlessBank, createPoolLookupTable } from "~/utils";
+
+import { Button } from "~/components/ui/button";
+
+import { PoolData, CreatePoolState } from "../types";
 
 const USDC_MINT = new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
 
@@ -111,19 +113,8 @@ const iconMap: IconMap = {
 };
 
 interface CreatePoolLoadingProps {
-  setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  setIsCompleted: ({
-    tokenBankPk,
-    stableBankPk,
-    groupPk,
-    lutAddress,
-  }: {
-    tokenBankPk: PublicKey;
-    stableBankPk: PublicKey;
-    groupPk: PublicKey;
-    lutAddress: PublicKey;
-  }) => void;
-  poolCreatedData: FormValues | null;
+  poolData: PoolData | null;
+  setCreatePoolState: React.Dispatch<React.SetStateAction<CreatePoolState>>;
 }
 
 type PoolCreationState = {
@@ -139,7 +130,7 @@ type PoolCreationState = {
   stableBankPk?: PublicKey;
 };
 
-export const CreatePoolLoading = ({ poolCreatedData, setIsOpen, setIsCompleted }: CreatePoolLoadingProps) => {
+export const CreatePoolLoading = ({ poolData, setCreatePoolState }: CreatePoolLoadingProps) => {
   const { wallet } = useWalletContext();
   const { connection } = useConnection();
   const [priorityFee] = useUiStore((state) => [state.priorityFee]);
@@ -150,21 +141,14 @@ export const CreatePoolLoading = ({ poolCreatedData, setIsOpen, setIsCompleted }
     () => [
       { label: "Step 1", description: "Creating new marginfi group" },
       { label: "Step 2", description: "Configuring USDC bank" },
-      { label: "Step 3", description: `Configuring ${poolCreatedData?.symbol} bank` },
+      { label: "Step 3", description: `Configuring ${poolData?.symbol} bank` },
     ],
-    [poolCreatedData]
+    [poolData]
   );
 
   const [poolCreation, setPoolCreation] = React.useState<PoolCreationState>();
 
   const initialized = React.useRef(false);
-
-  React.useEffect(() => {
-    if (!initialized.current) {
-      initialized.current = true;
-      createTransaction();
-    }
-  }, []);
 
   const initializeClient = React.useCallback(async () => {
     const config = getConfig();
@@ -229,8 +213,27 @@ export const CreatePoolLoading = ({ poolCreatedData, setIsOpen, setIsCompleted }
     return { tokenBankSeed, stableBankSeed, marginfiGroupSeed };
   }, []);
 
+  const createLutCache = React.useCallback(
+    async (props: { stableBankPk: PublicKey; tokenBankPk: PublicKey; groupPk: PublicKey; lutAddress: PublicKey }) => {
+      // const lutUpdateRes = await fetch(`/api/lut`, {
+      //   method: "POST",
+      //   body: JSON.stringify({
+      //     groupAddress: props.groupPk.toBase58(),
+      //     lutAddress: props.lutAddress.toBase58(),
+      //   }),
+      // });
+
+      // if (!lutUpdateRes.ok) {
+      //   console.error("Failed to update LUT");
+      // }
+      console.log("createLutCache", props);
+      setCreatePoolState(CreatePoolState.SUCCESS);
+    },
+    [setCreatePoolState]
+  );
+
   const createTransaction = React.useCallback(async () => {
-    if (!poolCreatedData) return;
+    if (!poolData) return;
     setStatus("loading");
 
     let client = poolCreation?.marginfiClient;
@@ -248,7 +251,7 @@ export const CreatePoolLoading = ({ poolCreatedData, setIsOpen, setIsCompleted }
     // create group & LUT
     if (!group || !lutAddress) {
       setActiveStep(0);
-      const oracleKeys = [new PublicKey(poolCreatedData.oracle), ...(DEFAULT_USDC_BANK_CONFIG.oracle?.keys ?? [])];
+      const oracleKeys = [new PublicKey(poolData.oracle), ...(DEFAULT_USDC_BANK_CONFIG.oracle?.keys ?? [])];
       const bankKeys = [seeds.stableBankSeed.publicKey, seeds.tokenBankSeed.publicKey];
       const {
         lutAddress: newLutAddress,
@@ -278,7 +281,7 @@ export const CreatePoolLoading = ({ poolCreatedData, setIsOpen, setIsCompleted }
 
     if (!poolCreation?.tokenBankPk) {
       setActiveStep(2);
-      const tokenMint = new PublicKey(poolCreatedData.mint);
+      const tokenMint = new PublicKey(poolData.mint);
       // token bank
       let tokenBankConfig = DEFAULT_TOKEN_BANK_CONFIG;
 
@@ -286,7 +289,7 @@ export const CreatePoolLoading = ({ poolCreatedData, setIsOpen, setIsCompleted }
       tokenBankConfig.depositLimit = new BigNumber(10000); // todo: update this according to price
       tokenBankConfig.oracle = {
         setup: OracleSetup.PythLegacy,
-        keys: [new PublicKey(poolCreatedData.oracle)],
+        keys: [new PublicKey(poolData.oracle)],
       };
 
       const sig = await createBank(client, tokenBankConfig, tokenMint, group, seeds.tokenBankSeed);
@@ -294,7 +297,7 @@ export const CreatePoolLoading = ({ poolCreatedData, setIsOpen, setIsCompleted }
       setPoolCreation((state) => ({ ...state, tokenBankPk: seeds.tokenBankSeed.publicKey }));
     }
 
-    setIsCompleted({
+    createLutCache({
       groupPk: seeds.marginfiGroupSeed.publicKey,
       stableBankPk: seeds.stableBankSeed.publicKey,
       tokenBankPk: seeds.tokenBankSeed.publicKey,
@@ -304,20 +307,28 @@ export const CreatePoolLoading = ({ poolCreatedData, setIsOpen, setIsCompleted }
     createBank,
     createGroup,
     initializeClient,
-    poolCreatedData,
-    poolCreation?.marginfiClient,
-    poolCreation?.marginfiGroupPk,
-    poolCreation?.stableBankPk,
-    poolCreation?.tokenBankPk,
-    setIsCompleted,
+    poolData,
+    poolCreation,
     setStatus,
+    wallet.publicKey,
+    setActiveStep,
+    createSeeds,
+    createLutCache,
   ]);
+
+  React.useEffect(() => {
+    // if (!initialized.current) {
+    //   initialized.current = true;
+    //   createTransaction();
+    // }
+    console.log("CREATE EVERYTHING!");
+  }, [createTransaction]);
 
   return (
     <>
       <div className="text-center space-y-2 max-w-lg mx-auto">
-        <h2 className="text-3xl font-medium">Creating a new pool</h2>
-        <p className="text-lg text-muted-foreground">Executing transactions to setup token banks.</p>
+        <h2 className="text-3xl font-medium">Creating new pool</h2>
+        <p className="text-lg text-muted-foreground">Executing transactions to configure new group and banks.</p>
       </div>
       <div className="flex flex-col gap-2 relative w-full max-w-fit mx-auto bg-accent pl-4 pr-3 py-2 rounded-lg text-muted-foreground">
         {steps.map((step, idx) => {

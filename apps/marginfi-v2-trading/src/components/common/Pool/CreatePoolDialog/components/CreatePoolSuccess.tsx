@@ -1,20 +1,19 @@
 import Image from "next/image";
 import Link from "next/link";
 
-import { IconConfetti } from "@tabler/icons-react";
-
 import { shortenAddress } from "@mrgnlabs/mrgn-common";
+import { IconConfetti } from "@tabler/icons-react";
 
 import { Button } from "~/components/ui/button";
 
-import { FormValues } from "~/components/common/Pool/CreatePoolDialog";
+import type { PoolData } from "../types";
 
 type CreatePoolSuccessProps = {
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  poolCreatedData: FormValues | null;
+  poolData: PoolData | null;
 };
 
-export const CreatePoolSuccess = ({ poolCreatedData, setIsOpen }: CreatePoolSuccessProps) => {
+export const CreatePoolSuccess = ({ poolData, setIsOpen }: CreatePoolSuccessProps) => {
   return (
     <div className="flex flex-col justify-center items-center gap-12">
       <div className="text-center space-y-12">
@@ -25,25 +24,25 @@ export const CreatePoolSuccess = ({ poolCreatedData, setIsOpen }: CreatePoolSucc
             Your pool has been created. It will be verified before it shows on mrgntrade.
           </p>
         </div>
-        {poolCreatedData && (
+        {poolData && (
           <div className="flex flex-col items-center justify-center gap-3 mt-8">
             <Image
-              src={poolCreatedData.imageUpload || poolCreatedData.imageDownload!}
-              alt={`${poolCreatedData.symbol} image`}
+              src={poolData.icon}
+              alt={`${poolData.symbol} icon`}
               width={64}
               height={64}
               className="rounded-full"
             />
             <h1 className="font-medium text-xl">
-              {poolCreatedData.name} <span className="font-normal">({poolCreatedData.symbol})</span>
+              {poolData.name} <span className="font-normal">({poolData.symbol})</span>
             </h1>
             <Link
-              href={`https://solscan.io/account/${poolCreatedData.mint}`}
+              href={`https://solscan.io/account/${poolData.mint}`}
               target="_blank"
               rel="noreferrer"
               className="text-mrgn-chartreuse border-b border-mrgn-chartreuse transition-colors hover:border-transparent"
             >
-              {shortenAddress(poolCreatedData.mint)}
+              {shortenAddress(poolData.mint)}
             </Link>
           </div>
         )}
