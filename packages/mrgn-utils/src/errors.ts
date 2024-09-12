@@ -59,9 +59,7 @@ export const STATIC_SIMULATION_ERRORS: { [key: string]: ActionMethod } = {
   UTILIZATION_RATIO_INVALID: {
     isEnabled: false,
     actionMethod: "WARNING",
-    description: "Insufficient liquidity available to complete this action.",
-    link: "/",
-    linkText: "View the pool to generate more deposits.",
+    description: "Insufficient liquidity for this trade.",
   },
   NO_POSITIONS: {
     description: "No position found.",
@@ -236,6 +234,11 @@ const createPriceImpactWarningCheck = (priceImpactPct: number): ActionMethod => 
   };
 };
 
+const checkErrorCodeMatch = (errorMessage: string, errorCode: number): boolean => {
+  const hex = "0x" + errorCode.toString(16).padStart(4, "0");
+  return errorMessage.includes(hex) || errorMessage.includes(errorCode.toString());
+};
+
 export const DYNAMIC_SIMULATION_ERRORS = {
   WITHDRAW_CHECK: createWithdrawCheck,
   REPAY_CHECK: createRepayCheck,
@@ -286,7 +289,7 @@ export const handleError = (
 
       if (
         error.message?.toLowerCase()?.includes("stale") ||
-        error.message?.includes("6017") ||
+        checkErrorCodeMatch(error.message, 6017) ||
         error.message?.toLowerCase()?.includes("stale") ||
         error?.logs?.some((entry: string) => entry.includes("stale"))
       ) {
@@ -327,25 +330,22 @@ export const handleError = (
         return STATIC_SIMULATION_ERRORS.INSUFICIENT_LAMPORTS;
       }
 
-      if (error.message?.includes("6029") || error.message?.toLowerCase().includes("deposit capacity exceeded")) {
+      if (
+        checkErrorCodeMatch(error.message, 6029) ||
+        error.message?.toLowerCase().includes("deposit capacity exceeded")
+      ) {
         return STATIC_SIMULATION_ERRORS.DEPOSIT_CAP_EXCEEDED;
       }
 
-      if (error.message?.includes("6029") || error.message?.toLowerCase().includes("borrow cap exceeded")) {
+      if (checkErrorCodeMatch(error.message, 6029) || error.message?.toLowerCase().includes("borrow cap exceeded")) {
         return STATIC_SIMULATION_ERRORS.BORROW_CAP_EXCEEDED;
       }
 
-      if (isArena && (error.message?.includes("6028") || error.message?.toLowerCase().includes("utilization ratio"))) {
-        if (bank) {
-          const method = {
-            ...STATIC_SIMULATION_ERRORS.UTILIZATION_RATIO_INVALID,
-            link: `/pools/${bank.address.toBase58()}`,
-            linkText: `View the ${bank.meta.tokenSymbol} pool to generate more deposits.`,
-          };
-          return method;
-        } else {
-          return STATIC_SIMULATION_ERRORS.UTILIZATION_RATIO_INVALID;
-        }
+      if (
+        isArena &&
+        (checkErrorCodeMatch(error.message, 6028) || error.message?.toLowerCase().includes("utilization ratio"))
+      ) {
+        return STATIC_SIMULATION_ERRORS.UTILIZATION_RATIO_INVALID;
       }
     }
 
