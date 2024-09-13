@@ -46,7 +46,7 @@ export const CreatePoolForm = ({ isTokenFetchingError, poolData, setCreatePoolSt
 
       <div className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="flex flex-col gap-2 items-center justify-center border-2 border-dashed border-border rounded-lg py-8 px-12 text-muted-foreground hover:bg-secondary/20">
+          <div className="flex flex-col gap-2 items-center justify-center bg-secondary/20 border border-input/50 rounded-lg py-8 px-12 text-muted-foreground hover:bg-secondary/20">
             {poolData.icon && (
               // using img as source unknown and not whitelisted in next config
               // eslint-disable-next-line @next/next/no-img-element
