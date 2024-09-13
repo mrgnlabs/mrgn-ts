@@ -3,12 +3,11 @@ import React from "react";
 import {
   BankConfigOpt,
   MarginfiClient,
-  MarginfiGroup,
   OperationalState,
   OracleSetup,
   RiskTier,
   getConfig,
-  makePriorityFeeIx,
+  makeBundleTipIx,
 } from "@mrgnlabs/marginfi-client-v2";
 import { IconLoader2, IconCheck, IconConfetti, IconX } from "@tabler/icons-react";
 import {
@@ -163,7 +162,12 @@ export const CreatePoolLoading = ({ poolData, setCreatePoolState }: CreatePoolLo
   const createGroup = React.useCallback(
     async (marginfiClient: MarginfiClient, lutIxs: TransactionInstruction[], seed?: Keypair) => {
       try {
-        const marginfiGroup = await createMarginfiGroup({ marginfiClient, additionalIxs: lutIxs, seed });
+        const bundleTipIx = makeBundleTipIx(wallet.publicKey);
+        const marginfiGroup = await createMarginfiGroup({
+          marginfiClient,
+          additionalIxs: [bundleTipIx, ...lutIxs],
+          seed,
+        });
 
         if (!marginfiGroup) throw new Error();
 
@@ -172,7 +176,7 @@ export const CreatePoolLoading = ({ poolData, setCreatePoolState }: CreatePoolLo
         setStatus("error");
       }
     },
-    [setStatus]
+    [setStatus, wallet.publicKey]
   );
 
   const createBank = React.useCallback(
@@ -257,6 +261,8 @@ export const CreatePoolLoading = ({ poolData, setCreatePoolState }: CreatePoolLo
 
     setPoolCreation((state) => ({ ...state, marginfiGroupPk: group, lutAddress }));
 
+    console.log("Group", group.toBase58());
+
     if (!poolCreation?.stableBankPk) {
       console.log("creating stable bank");
       setActiveStep(1);
@@ -314,10 +320,10 @@ export const CreatePoolLoading = ({ poolData, setCreatePoolState }: CreatePoolLo
   ]);
 
   React.useEffect(() => {
-    // if (!initialized.current) {
-    //   initialized.current = true;
-    //   createTransaction();
-    // }
+    if (!initialized.current) {
+      initialized.current = true;
+      createTransaction();
+    }
     console.log("CREATE EVERYTHING!");
   }, [createTransaction]);
 
