@@ -710,9 +710,10 @@ class MarginfiClient {
 
     const accountKeypair = seed ?? Keypair.generate();
 
+    const bundleTipIx = makeBundleTipIx(this.provider.publicKey);
     const ixs = await this.makeCreateMarginfiGroupIx(accountKeypair.publicKey);
     const signers = [...ixs.keys, accountKeypair];
-    const tx = new Transaction().add(...ixs.instructions, ...(additionalIxs ?? []));
+    const tx = new Transaction().add(bundleTipIx, ...ixs.instructions, ...(additionalIxs ?? []));
     const sig = await this.processTransaction(tx, signers, opts);
     dbg("Created Marginfi group %s", sig);
 

@@ -53,7 +53,6 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
       }
 
       const tokenInfo = (await fetchTokenReq.json()) as TokenData;
-      console.log("tokenInfo", tokenInfo);
       if (!tokenInfo) {
         throw new Error("Could not find token info");
       }
@@ -64,7 +63,6 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
         symbol: tokenInfo.symbol,
         icon: tokenInfo.imageUrl,
         decimals: tokenInfo.decimals,
-        oracle: new PublicKey(tokenInfo.address),
       });
 
       setIsSearchingToken(false);
@@ -148,7 +146,7 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
           )}
 
           {createPoolState === CreatePoolState.LOADING && (
-            <CreatePoolLoading poolData={poolData} setCreatePoolState={setCreatePoolState} />
+            <CreatePoolLoading poolData={poolData} setPoolData={setPoolData} setCreatePoolState={setCreatePoolState} />
           )}
 
           {createPoolState === CreatePoolState.SUCCESS && (

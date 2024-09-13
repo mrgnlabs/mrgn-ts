@@ -14,5 +14,5 @@ export type PoolData = {
   symbol: string;
   icon: string;
   decimals: number;
-  oracle: PublicKey;
+  group?: PublicKey;
 };

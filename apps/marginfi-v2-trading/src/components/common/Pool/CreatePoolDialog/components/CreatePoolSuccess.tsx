@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { shortenAddress } from "@mrgnlabs/mrgn-common";
-import { IconConfetti } from "@tabler/icons-react";
+import { IconConfetti, IconExternalLink } from "@tabler/icons-react";
 
 import { Button } from "~/components/ui/button";
 
@@ -40,9 +40,12 @@ export const CreatePoolSuccess = ({ poolData, setIsOpen }: CreatePoolSuccessProp
               href={`https://solscan.io/account/${poolData.mint}`}
               target="_blank"
               rel="noreferrer"
-              className="text-mrgn-chartreuse border-b border-mrgn-chartreuse transition-colors hover:border-transparent"
+              className="text-muted-foreground group flex items-center gap-1"
             >
-              {shortenAddress(poolData.mint)}
+              <span className="border-b border-border transition-colors group-hover:border-transparent">
+                {shortenAddress(poolData.group || poolData.mint)}
+              </span>
+              <IconExternalLink size={16} />
             </Link>
           </div>
         )}

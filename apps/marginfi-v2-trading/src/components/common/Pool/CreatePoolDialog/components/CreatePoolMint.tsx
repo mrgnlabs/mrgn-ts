@@ -59,11 +59,8 @@ export const CreatePoolMint = ({
 
       const groups = [...groupMap.values()];
 
-      console.log(groups);
-
       // check if mint address is in groupMap it will be found at entry.pool.token.mint
       const group = groups.find((group: GroupData) => {
-        console.log("hello", group);
         return group.pool.token.info.rawBank.mint.equals(new PublicKey(mintAddress));
       });
 
@@ -93,6 +90,7 @@ export const CreatePoolMint = ({
         onSubmit={onSubmit}
       >
         <Input
+          name="mintAddress"
           disabled={isSearchingToken}
           placeholder="Token mint address..."
           className="w-5/6 mx-auto py-2 px-6 h-auto text-lg rounded-full bg-background outline-none focus-visible:ring-primary/75 disabled:opacity-100"

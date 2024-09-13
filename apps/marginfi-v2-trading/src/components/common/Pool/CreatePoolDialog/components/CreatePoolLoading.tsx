@@ -7,18 +7,9 @@ import {
   OracleSetup,
   RiskTier,
   getConfig,
-  makeBundleTipIx,
 } from "@mrgnlabs/marginfi-client-v2";
-import { IconLoader2, IconCheck, IconConfetti, IconX } from "@tabler/icons-react";
-import {
-  Keypair,
-  Message,
-  PublicKey,
-  Transaction,
-  TransactionInstruction,
-  TransactionMessage,
-  VersionedTransaction,
-} from "@solana/web3.js";
+import { IconLoader2, IconCheck, IconX } from "@tabler/icons-react";
+import { Keypair, PublicKey, TransactionInstruction } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 
 import { useUiStore } from "~/store";
@@ -33,20 +24,20 @@ import { PoolData, CreatePoolState } from "../types";
 const USDC_MINT = new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
 
 const DEFAULT_USDC_BANK_CONFIG: BankConfigOpt = {
-  assetWeightInit: new BigNumber(1),
-  assetWeightMaint: new BigNumber(1),
+  assetWeightInit: new BigNumber(0.9),
+  assetWeightMaint: new BigNumber(0.95),
 
   liabilityWeightInit: new BigNumber(1.25),
   liabilityWeightMaint: new BigNumber(1.1),
 
-  depositLimit: new BigNumber(10000), //new BigNumber(200000000),
-  borrowLimit: new BigNumber(100), // new BigNumber(200000000),
+  depositLimit: new BigNumber(1000000).multipliedBy(1e6), // 1,000,000 USDC
+  borrowLimit: new BigNumber(250000).multipliedBy(1e6), // 250,000 USDC
   riskTier: RiskTier.Collateral,
 
   totalAssetValueInitLimit: new BigNumber(0),
   interestRateConfig: {
     // Curve Params
-    optimalUtilizationRate: new BigNumber(0.85),
+    optimalUtilizationRate: new BigNumber(0.8),
     plateauInterestRate: new BigNumber(0.1),
     maxInterestRate: new BigNumber(3),
 
@@ -54,47 +45,51 @@ const DEFAULT_USDC_BANK_CONFIG: BankConfigOpt = {
     insuranceFeeFixedApr: new BigNumber(0),
     insuranceIrFee: new BigNumber(0),
     protocolFixedFeeApr: new BigNumber(0.01),
-    protocolIrFee: new BigNumber(0.05),
+    protocolIrFee: new BigNumber(0.3),
   },
   operationalState: OperationalState.Operational,
 
   oracle: {
-    setup: OracleSetup.PythLegacy,
-    keys: [new PublicKey("Gnt27xtC473ZT2Mw5u8wZ68Z3gULkSTb5DuxJy7eJotD")],
+    setup: OracleSetup.PythPushOracle,
+    keys: [
+      new PublicKey("Gnt27xtC473ZT2Mw5u8wZ68Z3gULkSTb5DuxJy7eJotD"), // feed id
+      new PublicKey("Dpw1EAVrSB1ibxiDQyTAW6Zip3J4Btk2x4SgApQCeFbX"), // oracle key
+    ],
   },
   oracleMaxAge: 300,
   permissionlessBadDebtSettlement: null,
 };
 
 const DEFAULT_TOKEN_BANK_CONFIG: BankConfigOpt = {
-  assetWeightInit: new BigNumber(0.5),
-  assetWeightMaint: new BigNumber(0.64),
+  assetWeightInit: new BigNumber(0.65),
+  assetWeightMaint: new BigNumber(0.8),
 
   liabilityWeightInit: new BigNumber(1.3),
   liabilityWeightMaint: new BigNumber(1.2),
 
-  depositLimit: new BigNumber(10000),
-  borrowLimit: new BigNumber(100),
+  // this will be overwritten based on oracle price
+  depositLimit: new BigNumber(0), // 1,000,000 / oracle price
+  borrowLimit: new BigNumber(0), // 250,000 / oracle price
   riskTier: RiskTier.Collateral,
 
   totalAssetValueInitLimit: new BigNumber(0),
   interestRateConfig: {
     // Curve Params
     optimalUtilizationRate: new BigNumber(0.8),
-    plateauInterestRate: new BigNumber(0.2),
-    maxInterestRate: new BigNumber(4),
+    plateauInterestRate: new BigNumber(0.1),
+    maxInterestRate: new BigNumber(3),
 
     // Fees
     insuranceFeeFixedApr: new BigNumber(0),
     insuranceIrFee: new BigNumber(0),
     protocolFixedFeeApr: new BigNumber(0.01),
-    protocolIrFee: new BigNumber(0.05),
+    protocolIrFee: new BigNumber(0.3),
   },
   operationalState: OperationalState.Operational,
 
   oracle: {
-    setup: OracleSetup.PythLegacy,
-    keys: [],
+    setup: OracleSetup.SwitchboardV2,
+    keys: [new PublicKey("8pMJw6N3e1FDexoTMx1T1ComSB91tmQydFrmhmmnXZuV")],
   },
   oracleMaxAge: null,
   permissionlessBadDebtSettlement: null,
@@ -113,6 +108,7 @@ const iconMap: IconMap = {
 
 interface CreatePoolLoadingProps {
   poolData: PoolData | null;
+  setPoolData: React.Dispatch<React.SetStateAction<PoolData | null>>;
   setCreatePoolState: React.Dispatch<React.SetStateAction<CreatePoolState>>;
 }
 
@@ -129,7 +125,7 @@ type PoolCreationState = {
   stableBankPk?: PublicKey;
 };
 
-export const CreatePoolLoading = ({ poolData, setCreatePoolState }: CreatePoolLoadingProps) => {
+export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }: CreatePoolLoadingProps) => {
   const { wallet } = useWalletContext();
   const { connection } = useConnection();
   const [priorityFee] = useUiStore((state) => [state.priorityFee]);
@@ -162,10 +158,9 @@ export const CreatePoolLoading = ({ poolData, setCreatePoolState }: CreatePoolLo
   const createGroup = React.useCallback(
     async (marginfiClient: MarginfiClient, lutIxs: TransactionInstruction[], seed?: Keypair) => {
       try {
-        const bundleTipIx = makeBundleTipIx(wallet.publicKey);
         const marginfiGroup = await createMarginfiGroup({
           marginfiClient,
-          additionalIxs: [bundleTipIx, ...lutIxs],
+          additionalIxs: lutIxs,
           seed,
         });
 
@@ -234,11 +229,14 @@ export const CreatePoolLoading = ({ poolData, setCreatePoolState }: CreatePoolLo
     if (!seeds) seeds = createSeeds();
     setPoolCreation((state) => ({ ...state, seeds }));
 
+    // TODO: Create SWB Pull oracle (currently usig RETARDIO)
+    const swbOracle = new PublicKey("8pMJw6N3e1FDexoTMx1T1ComSB91tmQydFrmhmmnXZuV");
+
     // create group & LUT
     if (!group || !lutAddress) {
       console.log("creating lut");
       setActiveStep(0);
-      const oracleKeys = [new PublicKey(poolData.oracle), ...(DEFAULT_USDC_BANK_CONFIG.oracle?.keys ?? [])];
+      const oracleKeys = [swbOracle, ...(DEFAULT_USDC_BANK_CONFIG.oracle?.keys ?? [])];
       const bankKeys = [seeds.stableBankSeed.publicKey, seeds.tokenBankSeed.publicKey];
       const {
         lutAddress: newLutAddress,
@@ -261,7 +259,7 @@ export const CreatePoolLoading = ({ poolData, setCreatePoolState }: CreatePoolLo
 
     setPoolCreation((state) => ({ ...state, marginfiGroupPk: group, lutAddress }));
 
-    console.log("Group", group.toBase58());
+    console.log("group created: ", group.toBase58());
 
     if (!poolCreation?.stableBankPk) {
       console.log("creating stable bank");
@@ -277,11 +275,13 @@ export const CreatePoolLoading = ({ poolData, setCreatePoolState }: CreatePoolLo
       // token bank
       let tokenBankConfig = DEFAULT_TOKEN_BANK_CONFIG;
 
-      tokenBankConfig.borrowLimit = new BigNumber(100); // todo: update this according to price
-      tokenBankConfig.depositLimit = new BigNumber(10000); // todo: update this according to price
+      // TODO: create switchboard pull oracle
+      // TODO: update limits according to oracle price / token decimals (currently using Retardio data)
+      tokenBankConfig.borrowLimit = new BigNumber(11481056).multipliedBy(1e6);
+      tokenBankConfig.depositLimit = new BigNumber(252870264).multipliedBy(1e6);
       tokenBankConfig.oracle = {
-        setup: OracleSetup.PythLegacy,
-        keys: [new PublicKey(poolData.oracle)],
+        setup: OracleSetup.SwitchboardV2,
+        keys: [swbOracle],
       };
 
       const sig = await createBank(client, tokenBankConfig, tokenMint, group, seeds.tokenBankSeed);
@@ -289,22 +289,28 @@ export const CreatePoolLoading = ({ poolData, setCreatePoolState }: CreatePoolLo
       setPoolCreation((state) => ({ ...state, tokenBankPk: seeds.tokenBankSeed.publicKey }));
     }
 
-    console.log("updating lut cache");
-    setActiveStep(3);
-    const lutUpdateRes = await fetch(`/api/lut`, {
-      method: "POST",
-      body: JSON.stringify({
-        groupAddress: seeds.marginfiGroupSeed.publicKey.toBase58(),
-        lutAddress: lutAddress.toBase58(),
-      }),
-    });
+    // TODO: temporary upload to gcp cache for testing purposes
+    // --------------------------------------------------------
+    // console.log("updating lut cache");
+    // setActiveStep(3);
+    // const lutUpdateRes = await fetch(`/api/lut`, {
+    //   method: "POST",
+    //   body: JSON.stringify({
+    //     groupAddress: seeds.marginfiGroupSeed.publicKey.toBase58(),
+    //     lutAddress: lutAddress.toBase58(),
+    //   }),
+    // });
 
-    if (!lutUpdateRes.ok) {
-      console.error("Failed to update LUT");
-      return;
-    }
+    // if (!lutUpdateRes.ok) {
+    //   console.error("Failed to update LUT");
+    //   return;
+    // }
 
     console.log("pool creation complete");
+    setPoolData((state) => {
+      if (!state) return null;
+      return { ...state, group };
+    });
     setCreatePoolState(CreatePoolState.SUCCESS);
   }, [
     createBank,
@@ -317,6 +323,7 @@ export const CreatePoolLoading = ({ poolData, setCreatePoolState }: CreatePoolLo
     setActiveStep,
     createSeeds,
     setCreatePoolState,
+    setPoolData,
   ]);
 
   React.useEffect(() => {
@@ -324,7 +331,6 @@ export const CreatePoolLoading = ({ poolData, setCreatePoolState }: CreatePoolLo
       initialized.current = true;
       createTransaction();
     }
-    console.log("CREATE EVERYTHING!");
   }, [createTransaction]);
 
   return (
