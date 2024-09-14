@@ -1,7 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import path from "path";
-import fs from "fs";
-import { Storage } from "@google-cloud/storage";
+import { Storage, Bucket } from "@google-cloud/storage";
 import { PublicKey, Connection } from "@solana/web3.js";
 import { getConfig, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { NodeWallet } from "@mrgnlabs/mrgn-common";
@@ -88,6 +86,11 @@ const uploadImageToGCP = async (imageUrl: string, tokenMint: string): Promise<st
   }
 };
 
+const getFileContents = async (bucket: Bucket, fileName: string) => {
+  const [fileContents] = await bucket.file(fileName).download();
+  return JSON.parse(fileContents.toString());
+};
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
     res.status(405).json({ message: "Only POST requests are allowed" });
@@ -167,21 +170,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // get the cache files
     const bucket = storage.bucket(BUCKET_NAME);
 
-    const lutCacheFile = bucket.file(LUT_FILE_NAME);
-    const [lutCacheFileContents] = await lutCacheFile.download();
-    const lutCache = JSON.parse(lutCacheFileContents.toString());
+    const lutCache = await getFileContents(bucket, LUT_FILE_NAME);
+    const groupsCache = await getFileContents(bucket, GROUPS_FILE_NAME);
+    const bankMetadataCache = await getFileContents(bucket, BANK_FILE_NAME);
+    const tokenMetadataCache = await getFileContents(bucket, TOKEN_FILE_NAME);
 
-    const groupsCacheFile = bucket.file(GROUPS_FILE_NAME);
-    const [groupsCacheFileContents] = await groupsCacheFile.download();
-    const groupsCache = JSON.parse(groupsCacheFileContents.toString());
+    // check if group / banks already cached
+    const existingEntry = bankMetadataCache.find(
+      (entry: any) =>
+        entry.groupAddress === createPoolData.groupAddress ||
+        entry.bankAddress === createPoolData.usdcBankAddress ||
+        entry.bankAddress === createPoolData.tokenBankAddress
+    );
 
-    const bankMetadataCacheFile = bucket.file(BANK_FILE_NAME);
-    const [bankMetadataCacheFileContents] = await bankMetadataCacheFile.download();
-    const bankMetadataCache = JSON.parse(bankMetadataCacheFileContents.toString());
-
-    const tokenMetadataCacheFile = bucket.file(TOKEN_FILE_NAME);
-    const [tokenMetadataCacheFileContents] = await tokenMetadataCacheFile.download();
-    const tokenMetadataCache = JSON.parse(tokenMetadataCacheFileContents.toString());
+    if (existingEntry) {
+      return res.status(400).json({ message: "Group, USDC bank, or token bank already exists" });
+    }
 
     // append the new entries
     lutCache[createPoolData.groupAddress] = createPoolData.lutAddress;
@@ -236,7 +240,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // upload the token image to GCP
     try {
       const gcpImageUrl = await uploadImageToGCP(createPoolData.tokenImage, createPoolData.tokenMint);
-      console.log("Image uploaded successfully:", gcpImageUrl);
+      console.log(`Successfully uploaded image ${gcpImageUrl}`);
     } catch (imageUploadError) {
       console.error("Error uploading image:", imageUploadError);
       res.status(500).json({ message: "Error uploading image" });
