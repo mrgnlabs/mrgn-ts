@@ -49,6 +49,45 @@ const validateCreatePoolData = (data: Partial<CreatePoolData>): { valid: boolean
   return { valid: missingFields.length === 0, missingFields };
 };
 
+const preprocessFotofolioUrl = (imageUrl: string): string => {
+  try {
+    const url = new URL(imageUrl);
+    if (url.hostname === "img.fotofolio.xyz") {
+      const originalUrl = url.searchParams.get("url");
+      if (originalUrl) {
+        return `https://img.fotofolio.xyz/?url=${encodeURIComponent(originalUrl)}&w=120&h=120`;
+      }
+    }
+  } catch (error) {
+    console.error("Error preprocessing Fotofolio URL:", error);
+  }
+  return imageUrl; // Return original URL if not Fotofolio or if there's an error
+};
+
+const uploadImageToGCP = async (imageUrl: string, tokenMint: string): Promise<string> => {
+  try {
+    const processedImageUrl = preprocessFotofolioUrl(imageUrl);
+    const response = await fetch(processedImageUrl);
+    if (!response.ok) throw new Error("Failed to fetch image");
+    const arrayBuffer = await response.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    const fileName = `mrgn-trade-token-icons-test/${tokenMint}.png`;
+    const file = storage.bucket(BUCKET_NAME).file(fileName);
+
+    await file.save(buffer, {
+      metadata: {
+        contentType: "image/png",
+      },
+    });
+
+    return `https://storage.googleapis.com/${BUCKET_NAME}/${fileName}`;
+  } catch (error) {
+    console.error("Error uploading image to GCP:", error);
+    throw new Error("Failed to upload image to GCP");
+  }
+};
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
     res.status(405).json({ message: "Only POST requests are allowed" });
@@ -182,13 +221,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     ];
 
     for (const file of filesToUpload) {
-      const fileContent = JSON.stringify(file.data, null, 2);
-      await bucket.file(file.name).save(fileContent, {
-        contentType: "application/json",
-      });
+      try {
+        const fileContent = JSON.stringify(file.data, null, 2);
+        await bucket.file(file.name).save(fileContent, {
+          contentType: "application/json",
+        });
+        console.log(`Successfully uploaded ${file.name}`);
+      } catch (error) {
+        console.error(`Error uploading ${file.name}:`, error);
+        return res.status(500).json({ message: `Failed to upload ${file.name}` });
+      }
     }
 
-    res.status(200).json({ message: "Cache files updated successfully" });
+    // upload the token image to GCP
+    try {
+      const gcpImageUrl = await uploadImageToGCP(createPoolData.tokenImage, createPoolData.tokenMint);
+      console.log("Image uploaded successfully:", gcpImageUrl);
+    } catch (imageUploadError) {
+      console.error("Error uploading image:", imageUploadError);
+      res.status(500).json({ message: "Error uploading image" });
+      return;
+    }
+
+    res.status(200).json({ message: "Cache files updated and image uploaded successfully" });
+    return;
   } catch (error) {
     console.error("Error updating cache files:", error);
     res.status(500).json({ message: "Internal server error" });
