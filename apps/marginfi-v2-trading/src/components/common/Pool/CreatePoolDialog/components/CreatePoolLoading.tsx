@@ -12,7 +12,7 @@ import { IconLoader2, IconCheck, IconX } from "@tabler/icons-react";
 import { Keypair, PublicKey, TransactionInstruction } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 
-import { useUiStore } from "~/store";
+import { useUiStore, useTradeStore } from "~/store";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { useConnection } from "~/hooks/useConnection";
 import { cn, createMarginfiGroup, createPermissionlessBank, createPoolLookupTable } from "~/utils";
@@ -128,6 +128,7 @@ type PoolCreationState = {
 export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }: CreatePoolLoadingProps) => {
   const { wallet } = useWalletContext();
   const { connection } = useConnection();
+  const [fetchTradeState] = useTradeStore((state) => [state.fetchTradeState]);
   const [priorityFee] = useUiStore((state) => [state.priorityFee]);
   const [activeStep, setActiveStep] = React.useState<number>(0);
   const [status, setStatus] = React.useState<StepperStatus>("default");
@@ -171,7 +172,7 @@ export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }:
         setStatus("error");
       }
     },
-    [setStatus, wallet.publicKey]
+    [setStatus]
   );
 
   const createBank = React.useCallback(
@@ -289,29 +290,45 @@ export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }:
       setPoolCreation((state) => ({ ...state, tokenBankPk: seeds.tokenBankSeed.publicKey }));
     }
 
-    // TODO: temporary upload to gcp cache for testing purposes
-    // --------------------------------------------------------
-    // console.log("updating lut cache");
-    // setActiveStep(3);
-    // const lutUpdateRes = await fetch(`/api/lut`, {
-    //   method: "POST",
-    //   body: JSON.stringify({
-    //     groupAddress: seeds.marginfiGroupSeed.publicKey.toBase58(),
-    //     lutAddress: lutAddress.toBase58(),
-    //   }),
-    // });
+    console.log("updating gcp caches");
+    setActiveStep(3);
+    const cacheData = {
+      groupAddress: group.toBase58(),
+      lutAddress: lutAddress.toBase58(),
+      usdcBankAddress: seeds.stableBankSeed.publicKey.toBase58(),
+      tokenBankAddress: seeds.tokenBankSeed.publicKey.toBase58(),
+      tokenName: poolData.name,
+      tokenMint: poolData.mint,
+      tokenSymbol: poolData.symbol,
+      tokenImage: poolData.icon,
+      tokenDecimals: poolData.decimals,
+    };
+    console.log("cache data", cacheData);
+    const lutUpdateRes = await fetch(`/api/pool/create`, {
+      method: "POST",
+      body: JSON.stringify(cacheData),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
 
-    // if (!lutUpdateRes.ok) {
-    //   console.error("Failed to update LUT");
-    //   return;
-    // }
+    if (!lutUpdateRes.ok) {
+      console.error("Failed to update GCP caches");
+      return;
+    }
 
     console.log("pool creation complete");
+    console.log(cacheData);
     setPoolData((state) => {
       if (!state) return null;
       return { ...state, group };
     });
     setCreatePoolState(CreatePoolState.SUCCESS);
+    fetchTradeState({
+      connection,
+      wallet,
+      refresh: true,
+    });
   }, [
     createBank,
     createGroup,
@@ -319,11 +336,14 @@ export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }:
     poolData,
     poolCreation,
     setStatus,
-    wallet.publicKey,
+    ,
     setActiveStep,
     createSeeds,
     setCreatePoolState,
     setPoolData,
+    fetchTradeState,
+    connection,
+    wallet,
   ]);
 
   React.useEffect(() => {
