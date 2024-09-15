@@ -11,6 +11,10 @@ import {
 import { IconLoader2, IconCheck, IconX } from "@tabler/icons-react";
 import { Keypair, PublicKey, TransactionInstruction } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
+import * as sb from "@switchboard-xyz/on-demand";
+import { CrossbarClient, decodeString } from "@switchboard-xyz/common";
+
+import * as anchor from "@coral-xyz/anchor";
 
 import { useUiStore, useTradeStore } from "~/store";
 import { useWalletContext } from "~/hooks/useWalletContext";
@@ -123,6 +127,7 @@ type PoolCreationState = {
   marginfiGroupPk?: PublicKey;
   tokenBankPk?: PublicKey;
   stableBankPk?: PublicKey;
+  oraclePk?: PublicKey;
 };
 
 export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }: CreatePoolLoadingProps) => {
@@ -135,10 +140,11 @@ export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }:
 
   const steps = React.useMemo(
     () => [
-      { label: "Step 1", description: "Creating new marginfi group" },
-      { label: "Step 2", description: "Configuring USDC bank" },
-      { label: "Step 3", description: `Configuring ${poolData?.symbol} bank` },
-      { label: "Step 4", description: "Finalizing pool" },
+      { label: "Step 1", description: "Creating a swb oracle" },
+      { label: "Step 2", description: "Creating new marginfi group" },
+      { label: "Step 3", description: "Configuring USDC bank" },
+      { label: "Step 4", description: `Configuring ${poolData?.symbol} bank` },
+      { label: "Step 5", description: "Finalizing pool" },
     ],
     [poolData]
   );
@@ -206,6 +212,101 @@ export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }:
     [wallet.publicKey, priorityFee, setStatus]
   );
 
+  const createOracle = React.useCallback(
+    async (tokenMint: PublicKey, symbol: string, client: MarginfiClient) => {
+      // get switchboard onDemand program id
+
+      try {
+        const programId = await sb.getProgramId(connection);
+        const provider = new anchor.AnchorProvider(connection, wallet, {});
+        const crossbarClient = new CrossbarClient("https://crossbar.switchboard.xyz", /* verbose= */ true);
+        const idl = await anchor.Program.fetchIdl(programId, provider);
+
+        if (!idl) return;
+
+        const onDemandProgram = new anchor.Program(idl, provider);
+
+        const [pullFeed, feedKp] = sb.PullFeed.generate(onDemandProgram);
+
+        const feedPubkey = feedKp.publicKey;
+
+        const oracleTasks = sb.OracleJob.Task.create({
+          valueTask: {
+            big: "1",
+          },
+          divideTask: {
+            job: {
+              tasks: [
+                {
+                  jupiterSwapTask: {
+                    inTokenAddress: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", // USDC
+                    outTokenAddress: tokenMint.toBase58(), // TOKEN
+                    baseAmountString: "1",
+                  },
+                },
+              ],
+            },
+          },
+          multiplyTask: {
+            job: {
+              tasks: [
+                {
+                  oracleTask: {
+                    pythAddress: "Gnt27xtC473ZT2Mw5u8wZ68Z3gULkSTb5DuxJy7eJotD", // PYTH USDC oracle
+                  },
+                },
+              ],
+            },
+          },
+        });
+
+        const queueAccount = await sb.getDefaultQueue(connection.rpcEndpoint);
+        const queue = queueAccount.pubkey;
+
+        const oracleJob = sb.OracleJob.create({
+          tasks: [oracleTasks],
+        });
+
+        const feedHash = decodeString((await crossbarClient.store(queue.toString(), [oracleJob])).feedHash);
+
+        if (!feedHash) return;
+
+        const conf = {
+          name: `${symbol}/USD`, // the feed name (max 32 bytes)
+          queue: new PublicKey(queue), // the queue of oracles to bind to
+          maxVariance: 10.0, // allow 1% variance between submissions and jobs
+          minResponses: 1, // minimum number of responses of jobs to allow
+          numSignatures: 1, // number of signatures to fetch per update
+          minSampleSize: 1, // minimum number of responses to sample for a result
+          maxStaleness: 250, // maximum stale slots of responses to sample
+          feedHash: feedHash,
+        };
+
+        const pullFeedIx = await pullFeed.initIx(conf);
+
+        const initTx = await sb.asV0Tx({
+          connection,
+          ixs: [pullFeedIx],
+          payer: wallet.publicKey,
+          signers: [feedKp],
+          computeUnitPrice: 75_000,
+          computeUnitLimitMultiple: 1.3,
+        });
+
+        const sig = await client.processTransaction(initTx);
+
+        console.log("sig", sig);
+
+        if (!sig || !feedPubkey) throw new Error();
+        return feedPubkey;
+      } catch (error) {
+        setStatus("error");
+        console.log("error creating oracle", error);
+      }
+    },
+    [connection, wallet]
+  );
+
   const createSeeds = React.useCallback(() => {
     const tokenBankSeed = new Keypair();
     const stableBankSeed = new Keypair();
@@ -222,7 +323,7 @@ export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }:
     let seeds = poolCreation?.seeds;
     let group = poolCreation?.marginfiGroupPk;
     let lutAddress = poolCreation?.lutAddress;
-
+    let oraclePk = poolCreation?.oraclePk;
     // create client
     if (!client) client = await initializeClient();
 
@@ -231,13 +332,23 @@ export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }:
     setPoolCreation((state) => ({ ...state, seeds }));
 
     // TODO: Create SWB Pull oracle (currently usig RETARDIO)
-    const swbOracle = new PublicKey("8pMJw6N3e1FDexoTMx1T1ComSB91tmQydFrmhmmnXZuV");
+
+    // create oracle
+    if (!oraclePk) {
+      setActiveStep(0);
+      oraclePk = await createOracle(poolData.mint, poolData.symbol, client);
+      if (!oraclePk) return;
+    }
+
+    console.log("oracle", oraclePk);
+
+    // const swbOracle = new PublicKey("8pMJw6N3e1FDexoTMx1T1ComSB91tmQydFrmhmmnXZuV");
 
     // create group & LUT
     if (!group || !lutAddress) {
       console.log("creating lut");
-      setActiveStep(0);
-      const oracleKeys = [swbOracle, ...(DEFAULT_USDC_BANK_CONFIG.oracle?.keys ?? [])];
+      setActiveStep(1);
+      const oracleKeys = [oraclePk, ...(DEFAULT_USDC_BANK_CONFIG.oracle?.keys ?? [])];
       const bankKeys = [seeds.stableBankSeed.publicKey, seeds.tokenBankSeed.publicKey];
       const {
         lutAddress: newLutAddress,
@@ -264,14 +375,14 @@ export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }:
 
     if (!poolCreation?.stableBankPk) {
       console.log("creating stable bank");
-      setActiveStep(1);
+      setActiveStep(2);
       const sig = await createBank(client, DEFAULT_USDC_BANK_CONFIG, USDC_MINT, group, seeds.stableBankSeed);
       if (!sig) return;
       setPoolCreation((state) => ({ ...state, stableBankPk: seeds.stableBankSeed.publicKey }));
     }
 
     if (!poolCreation?.tokenBankPk) {
-      setActiveStep(2);
+      setActiveStep(3);
       const tokenMint = new PublicKey(poolData.mint);
       // token bank
       let tokenBankConfig = DEFAULT_TOKEN_BANK_CONFIG;
@@ -282,7 +393,7 @@ export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }:
       tokenBankConfig.depositLimit = new BigNumber(252870264).multipliedBy(1e6);
       tokenBankConfig.oracle = {
         setup: OracleSetup.SwitchboardV2,
-        keys: [swbOracle],
+        keys: [oraclePk],
       };
 
       const sig = await createBank(client, tokenBankConfig, tokenMint, group, seeds.tokenBankSeed);
@@ -291,7 +402,7 @@ export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }:
     }
 
     console.log("updating gcp caches");
-    setActiveStep(3);
+    setActiveStep(4);
     const cacheData = {
       groupAddress: group.toBase58(),
       lutAddress: lutAddress.toBase58(),
@@ -330,20 +441,24 @@ export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }:
       refresh: true,
     });
   }, [
-    createBank,
-    createGroup,
-    initializeClient,
     poolData,
-    poolCreation,
-    setStatus,
-    ,
-    setActiveStep,
+    poolCreation?.marginfiClient,
+    poolCreation?.seeds,
+    poolCreation?.marginfiGroupPk,
+    poolCreation?.lutAddress,
+    poolCreation?.oraclePk,
+    poolCreation?.stableBankPk,
+    poolCreation?.tokenBankPk,
+    initializeClient,
     createSeeds,
-    setCreatePoolState,
     setPoolData,
+    setCreatePoolState,
     fetchTradeState,
     connection,
     wallet,
+    createOracle,
+    createGroup,
+    createBank,
   ]);
 
   React.useEffect(() => {
