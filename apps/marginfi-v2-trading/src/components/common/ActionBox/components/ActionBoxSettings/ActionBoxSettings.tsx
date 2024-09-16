@@ -1,12 +1,12 @@
 import React from "react";
-
 import { IconArrowLeft } from "@tabler/icons-react";
+
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
+import { RepayType } from "@mrgnlabs/mrgn-utils";
 
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
 
 import { ActionBoxSlippage, ActionBoxPriorityFees } from "./Components";
-import { RepayType } from "~/utils";
 
 type ActionBoxSettingsProps = {
   repayMode: RepayType;

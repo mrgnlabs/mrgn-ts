@@ -1,9 +1,9 @@
 import React from "react";
 
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
+import { ActionMethod } from "@mrgnlabs/mrgn-utils";
 
-import { ActionMethod, RepayWithCollatOptions } from "~/utils";
+import { RepayWithCollatOptions } from "~/utils";
 
 import { LendingPreview } from "./Components";
 import { GroupData } from "~/store/tradeStore";

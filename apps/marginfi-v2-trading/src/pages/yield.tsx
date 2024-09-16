@@ -3,9 +3,11 @@ import React from "react";
 import Fuse from "fuse.js";
 import { IconSortDescending, IconSortAscending, IconSearch } from "@tabler/icons-react";
 
+import { Desktop, Mobile } from "@mrgnlabs/mrgn-utils";
+
 import { useTradeStore, useUiStore } from "~/store";
 import { GroupData, TradePoolFilterStates } from "~/store/tradeStore";
-import { cn, Desktop, Mobile } from "~/utils";
+import { cn } from "~/utils";
 import { useIsMobile } from "~/hooks/useIsMobile";
 import { useWalletContext } from "~/hooks/useWalletContext";
 

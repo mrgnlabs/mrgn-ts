@@ -14,24 +14,22 @@ import { WalletContextState } from "@solana/wallet-adapter-react";
 import { QuoteResponse } from "@jup-ag/api";
 
 import { BankConfigOpt, MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
-import { uiToNative } from "@mrgnlabs/mrgn-common";
-import { ExtendedBankInfo, clearAccountCache, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-
-import { WalletContextStateOverride } from "~/hooks/useWalletContext";
-
-import { MultiStepToastHandle, showErrorToast } from "./toastUtils";
-import { extractErrorString } from "./mrgnUtils";
-import { TradeSide } from "~/components/common/TradingBox/tradingBox.utils";
-import { ToastStep } from "~/components/common/Toast";
-import { getMaybeSquadsOptions } from "./mrgnActions";
 import {
-  calculateLoopingParams,
   calculateLoopingTransaction,
   LoopingObject,
   ActionMethod,
   calculateBorrowLendPositionParams,
   STATIC_SIMULATION_ERRORS,
 } from "@mrgnlabs/mrgn-utils";
+import { ExtendedBankInfo, clearAccountCache, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+
+import { TradeSide } from "~/components/common/TradingBox/tradingBox.utils";
+import { ToastStep } from "~/components/common/Toast";
+import { WalletContextStateOverride } from "~/hooks/useWalletContext";
+
+import { MultiStepToastHandle, showErrorToast } from "./toastUtils";
+import { extractErrorString } from "./mrgnUtils";
+import { getMaybeSquadsOptions } from "./mrgnActions";
 
 export async function createMarginfiGroup({
   marginfiClient,
@@ -300,10 +298,10 @@ export async function calculateClosePositions({
   platformFeeBps?: number;
 }): Promise<
   | {
-    closeTxn: VersionedTransaction | Transaction;
-    feedCrankTxs: VersionedTransaction[];
-    quote?: QuoteResponse;
-  }
+      closeTxn: VersionedTransaction | Transaction;
+      feedCrankTxs: VersionedTransaction[];
+      quote?: QuoteResponse;
+    }
   | ActionMethod
 > {
   // user is borrowing and depositing

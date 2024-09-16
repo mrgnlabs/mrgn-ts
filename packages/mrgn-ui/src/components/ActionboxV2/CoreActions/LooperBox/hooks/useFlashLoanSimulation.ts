@@ -146,7 +146,8 @@ export function useFlashLoanSimulation(
         if (loopingObject && "loopingTxn" in loopingObject) {
           const actionTxns = {
             actionTxn: loopingObject.loopingTxn,
-            bundleTipTxn: loopingObject.bundleTipTxn,
+            // TODO: update this to match the new return type
+            // bundleTipTxn: loopingObject.bundleTipTxn as any,
           };
 
           const actionQuote = loopingObject.quote;
@@ -157,7 +158,8 @@ export function useFlashLoanSimulation(
 
           setLoopingAmounts(loopingAmounts);
           setActionQuote(actionQuote);
-          setActionTxns(actionTxns);
+          // TODO: update this to match the new return type
+          // setActionTxns(actionTxns);
         } else {
           const errorMessage = loopingObject ?? STATIC_SIMULATION_ERRORS.FL_FAILED;
 

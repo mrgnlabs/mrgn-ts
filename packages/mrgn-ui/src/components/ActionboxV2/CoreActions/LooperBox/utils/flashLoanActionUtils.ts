@@ -78,5 +78,6 @@ export async function calculateRepayCollateral(
     priorityFee
   );
 
-  return result;
+  // TODO: update this to match the new return type
+  return result as any;
 }

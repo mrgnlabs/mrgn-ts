@@ -1,9 +1,10 @@
 import React from "react";
 
 import Image from "next/image";
+import { IconChevronDown } from "@tabler/icons-react";
 
 import { percentFormatter, tokenPriceFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
-import { IconChevronDown } from "@tabler/icons-react";
+import { Desktop, Mobile } from "@mrgnlabs/mrgn-utils";
 
 import { useTradeStore } from "~/store";
 import { getTokenImageURL, cn } from "~/utils";
@@ -19,7 +20,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "~/components/ui/dialog";
-import { Desktop, Mobile } from "~/utils/mediaQueries";
 import { Drawer, DrawerContent, DrawerTrigger } from "~/components/ui/drawer";
 
 import type { GroupData } from "~/store/tradeStore";

@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from "uuid";
 
 import { IconAlertTriangle, IconExternalLink, IconSettings } from "@tabler/icons-react";
 import { WSOL_MINT, nativeToUi } from "@mrgnlabs/mrgn-common";
+import { ActionMethod, RepayType } from "@mrgnlabs/mrgn-utils";
 import { ActionType, ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 
@@ -14,7 +15,7 @@ import { useWalletContext } from "~/hooks/useWalletContext";
 import { useConnection } from "~/hooks/useConnection";
 import { useActionBoxStore } from "~/hooks/useActionBoxStore";
 
-import { ActionMethod, checkActionAvailable, RepayType } from "~/utils/actionBoxUtils";
+import { checkActionAvailable } from "~/utils/actionBoxUtils";
 import { showErrorToast } from "~/utils/toastUtils";
 
 import {

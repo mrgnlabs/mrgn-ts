@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from "uuid";
 
 import { WSOL_MINT, nativeToUi } from "@mrgnlabs/mrgn-common";
 import { ActionType, ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { getBlockedActions } from "@mrgnlabs/mrgn-utils";
 
 import { useLstStore, useMrgnlendStore, useUiStore } from "~/store";
 import {
@@ -13,7 +14,6 @@ import {
   cn,
   capture,
   executeLstAction,
-  getBlockedActions,
   executeLoopingAction,
   createAccountAction,
 } from "~/utils";

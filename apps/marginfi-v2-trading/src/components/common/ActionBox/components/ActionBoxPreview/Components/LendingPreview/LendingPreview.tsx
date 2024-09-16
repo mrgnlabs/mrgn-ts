@@ -1,13 +1,12 @@
 import React from "react";
 
 import { ActionType, DEFAULT_ACCOUNT_SUMMARY, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { usdFormatterDyn } from "@mrgnlabs/mrgn-common";
+import { ActionMethod } from "@mrgnlabs/mrgn-utils";
 
 import { GroupData } from "~/store/tradeStore";
-import { ActionMethod, cn, RepayWithCollatOptions } from "~/utils";
-import { useLendingPreview } from "./useLendingPreview";
+import { cn, RepayWithCollatOptions } from "~/utils";
 
-import { Skeleton } from "~/components/ui/skeleton";
+import { useLendingPreview } from "./useLendingPreview";
 
 interface ActionBoxPreviewProps {
   selectedBank: ExtendedBankInfo | null;

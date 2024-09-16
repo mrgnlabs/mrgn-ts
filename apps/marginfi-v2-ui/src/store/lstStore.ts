@@ -3,14 +3,8 @@ import { ACCOUNT_SIZE, TOKEN_PROGRAM_ID, Wallet, aprToApy, uiToNative } from "@m
 import { Connection, PublicKey } from "@solana/web3.js";
 import { create, StateCreator } from "zustand";
 import * as solanaStakePool from "@solana/spl-stake-pool";
-import {
-  PERIOD,
-  StakeData,
-  calcYield,
-  fetchAndParsePricesCsv,
-  fetchStakeAccounts,
-  getPriceRangeFromPeriod,
-} from "~/utils";
+import { StakeData } from "@mrgnlabs/mrgn-utils";
+import { PERIOD, calcYield, fetchAndParsePricesCsv, getPriceRangeFromPeriod } from "~/utils";
 import { TokenAccount, TokenAccountMap, fetchBirdeyePrices } from "@mrgnlabs/marginfi-v2-ui-state";
 import { persist } from "zustand/middleware";
 import BN from "bn.js";

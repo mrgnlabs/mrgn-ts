@@ -1,12 +1,10 @@
 import React from "react";
+import { VersionedTransaction } from "@solana/web3.js";
 
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { ActionMethod, LoopingOptions, RepayWithCollatOptions } from "@mrgnlabs/mrgn-utils";
-
-import { StakeData } from "~/utils";
+import { ActionMethod, LoopingOptions, RepayWithCollatOptions, StakeData } from "@mrgnlabs/mrgn-utils";
 
 import { LendingPreview, LstPreview, YbxPreview, LoopPreview } from "./Components";
-import { VersionedTransaction } from "@solana/web3.js";
 
 interface ActionBoxPreviewProps {
   selectedBank: ExtendedBankInfo | null;

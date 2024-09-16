@@ -14,10 +14,13 @@ import {
 } from "@solana/web3.js";
 import * as solanaStakePool from "@solana/spl-stake-pool";
 import BN from "bn.js";
+
 import {
   createAssociatedTokenAccountIdempotentInstruction,
   getAssociatedTokenAddressSync,
 } from "@mrgnlabs/mrgn-common";
+
+import { StakeData } from "./actions/types";
 
 const DEFAULT_TICKS_PER_SECOND = 160;
 const DEFAULT_TICKS_PER_SLOT = 64;
@@ -27,13 +30,6 @@ const DEFAULT_SLOTS_PER_EPOCH = (2 * TICKS_PER_DAY) / DEFAULT_TICKS_PER_SLOT;
 const DEFAULT_S_PER_SLOT = DEFAULT_TICKS_PER_SLOT / DEFAULT_TICKS_PER_SECOND;
 const SECONDS_PER_EPOCH = DEFAULT_SLOTS_PER_EPOCH * DEFAULT_S_PER_SLOT;
 export const EPOCHS_PER_YEAR = (SECONDS_PER_DAY * 365.25) / SECONDS_PER_EPOCH;
-
-export interface StakeData {
-  address: PublicKey;
-  lamports: BN;
-  isActive: boolean;
-  validatorVoteAddress: PublicKey;
-}
 
 export async function fetchStakeAccounts(connection: Connection, walletAddress: PublicKey): Promise<StakeData[]> {
   const [parsedAccounts, currentEpoch] = await Promise.all([

@@ -4,9 +4,9 @@ import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
 
 import { shortenAddress } from "@mrgnlabs/mrgn-common";
+import { Desktop, Mobile } from "@mrgnlabs/mrgn-utils";
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { Desktop, Mobile } from "~/mediaQueries";
 import { useMrgnlendStore, useUiStore } from "~/store";
 import { useActionBoxStore } from "~/hooks/useActionBoxStore";
 import { useWalletContext } from "~/hooks/useWalletContext";

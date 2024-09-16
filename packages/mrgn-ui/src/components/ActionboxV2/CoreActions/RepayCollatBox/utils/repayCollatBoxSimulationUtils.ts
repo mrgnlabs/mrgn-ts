@@ -110,10 +110,10 @@ async function simulateFlashLoan({ marginfiClient, account, bank, actionTxn }: S
   let simulationResult: SimulationResult;
 
   if (actionTxn && marginfiClient) {
-    const [mfiAccountData, bankData] = await marginfiClient.simulateTransaction(actionTxn, [
-      account.address,
-      bank.address,
-    ]);
+    const [mfiAccountData, bankData] = await marginfiClient.simulateTransactions(
+      [actionTxn],
+      [account.address, bank.address]
+    );
     if (!mfiAccountData || !bankData) throw new Error("Failed to simulate flashloan");
     const previewBanks = marginfiClient.banks;
     previewBanks.set(

@@ -1,9 +1,16 @@
 import React from "react";
 
-import { Desktop, Mobile } from "~/mediaQueries";
+import { Desktop, Mobile } from "@mrgnlabs/mrgn-utils";
 
 import { Drawer, DrawerContent, DrawerTrigger } from "~/components/ui/drawer";
-import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle, DialogDescription } from "~/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogTrigger,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "~/components/ui/dialog";
 
 type TokenListWrapperProps = {
   isOpen: boolean;

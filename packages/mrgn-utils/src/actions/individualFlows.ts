@@ -1,229 +1,33 @@
 import { SwapRequest, createJupiterApiClient } from "@jup-ag/api";
-import * as Sentry from "@sentry/nextjs";
+import { QuoteResponseMeta } from "@jup-ag/react-hook";
 import {
   AddressLookupTableAccount,
   Connection,
   LAMPORTS_PER_SOL,
   PublicKey,
-  TransactionInstruction,
   TransactionMessage,
   VersionedTransaction,
 } from "@solana/web3.js";
-import { QuoteResponseMeta } from "@jup-ag/react-hook";
 import { WalletContextState } from "@solana/wallet-adapter-react";
+import * as Sentry from "@sentry/nextjs";
 
+import { ExtendedBankInfo, FEE_MARGIN, ActionType, clearAccountCache } from "@mrgnlabs/marginfi-v2-ui-state";
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { LUT_PROGRAM_AUTHORITY_INDEX, Wallet, uiToNative } from "@mrgnlabs/mrgn-common";
-import { ExtendedBankInfo, FEE_MARGIN, ActionType, clearAccountCache } from "@mrgnlabs/marginfi-v2-ui-state";
-import {
-  extractErrorString,
-  isWholePosition,
-  loopingBuilder,
-  LoopingOptions,
-  LstActionParams,
-  MarginfiActionParams,
-  RepayWithCollatOptions,
-  StakeData,
-  makeDepositSolToStakePoolIx,
-  makeDepositStakeToStakePoolIx,
-} from "@mrgnlabs/mrgn-utils";
 
-import { WalletContextStateOverride } from "~/hooks/useWalletContext";
-import { LstData, SOL_MINT } from "~/store/lstStore";
+import { WalletContextStateOverride } from "../wallet";
+import { showErrorToast, MultiStepToastHandle } from "../toasts";
+import { extractErrorString, isWholePosition } from "../mrgnUtils";
+import { makeDepositSolToStakePoolIx, makeDepositStakeToStakePoolIx } from "../lstUtils";
 
-import { MultiStepToastHandle, showErrorToast } from "./toastUtils";
-
-export async function createAccountAction({
-  marginfiClient,
-  nativeSolBalance,
-  walletContextState,
-}: {
-  marginfiClient: MarginfiClient | null;
-  nativeSolBalance: number;
-  walletContextState?: WalletContextState | WalletContextStateOverride;
-}) {
-  if (nativeSolBalance < FEE_MARGIN) {
-    showErrorToast("Not enough sol for fee.");
-    return;
-  }
-
-  const txnSig = await createAccount({ mfiClient: marginfiClient, walletContextState });
-
-  return txnSig;
-}
-
-export async function executeLendingAction({
-  mfiClient,
-  actionType,
-  bank,
-  amount,
-  nativeSolBalance,
-  marginfiAccount,
-  walletContextState,
-  priorityFee,
-  repayWithCollatOptions,
-  actionTxns,
-}: MarginfiActionParams) {
-  let txnSig: string | string[] | undefined;
-
-  if (nativeSolBalance < FEE_MARGIN) {
-    showErrorToast("Not enough sol for fee.");
-    return;
-  }
-
-  if (actionType === ActionType.Deposit) {
-    if (marginfiAccount) {
-      txnSig = await deposit({ marginfiAccount, bank, amount, priorityFee });
-    } else {
-      txnSig = await createAccountAndDeposit({ mfiClient, bank, amount, walletContextState, priorityFee });
-    }
-    return txnSig;
-  }
-
-  if (!marginfiAccount) {
-    showErrorToast("Marginfi account not ready.");
-    return;
-  }
-
-  if (actionType === ActionType.Repay) {
-    if (repayWithCollatOptions) {
-      txnSig = await repayWithCollat({
-        marginfiClient: mfiClient,
-        marginfiAccount,
-        bank,
-        amount,
-        priorityFee,
-        options: repayWithCollatOptions,
-      });
-    } else {
-      txnSig = await repay({ marginfiAccount, bank, amount, priorityFee });
-    }
-  }
-
-  if (!mfiClient) {
-    showErrorToast("Client not ready.");
-    return;
-  }
-
-  if (actionType === ActionType.Borrow) {
-    txnSig = await borrow({ marginfiClient: mfiClient, marginfiAccount, bank, amount, priorityFee, actionTxns });
-  }
-
-  if (actionType === ActionType.Withdraw) {
-    txnSig = await withdraw({ marginfiClient: mfiClient, marginfiAccount, bank, amount, priorityFee, actionTxns });
-  }
-
-  return txnSig;
-}
-
-export async function executeLoopingAction({
-  mfiClient,
-  actionType,
-  bank,
-  amount,
-  marginfiAccount,
-  priorityFee,
-  loopingOptions,
-}: MarginfiActionParams) {
-  let txnSig: string[] | undefined;
-
-  if (!marginfiAccount) {
-    showErrorToast("Marginfi account not ready.");
-    return;
-  }
-
-  if (actionType === ActionType.Loop) {
-    if (loopingOptions) {
-      txnSig = await looping({
-        marginfiClient: mfiClient,
-        marginfiAccount,
-        bank,
-        depositAmount: amount,
-        priorityFee,
-        options: loopingOptions,
-      });
-    }
-  }
-
-  return txnSig;
-}
-
-export async function executeLstAction({
-  actionMode,
-  marginfiClient,
-  amount,
-  connection,
-  wallet,
-  lstData,
-  bank,
-  nativeSolBalance,
-  selectedStakingAccount,
-  quoteResponseMeta,
-  priorityFee,
-}: LstActionParams) {
-  let txnSig: string | undefined;
-
-  if (nativeSolBalance < FEE_MARGIN) {
-    showErrorToast("Not enough sol for fee.");
-    return;
-  }
-
-  if (!wallet.publicKey) {
-    showErrorToast("Wallet not connected.");
-    return;
-  }
-
-  if (!selectedStakingAccount && !bank) {
-    showErrorToast("No token selected.");
-    return;
-  }
-
-  if (actionMode === ActionType.MintLST) {
-    // Stake account selected
-    if (selectedStakingAccount) {
-      txnSig = await mintLstStakeToStake({
-        marginfiClient,
-        priorityFee,
-        connection,
-        selectedStakingAccount,
-        wallet,
-        lstData,
-      });
-    }
-
-    if (bank) {
-      if (bank.info.state.mint.equals(SOL_MINT)) {
-        // SOL selected
-        txnSig = await mintLstNative({ marginfiClient, bank, amount, priorityFee, connection, wallet, lstData });
-      } else {
-        // token selected
-        txnSig = await mintLstToken({ bank, amount, priorityFee, connection, wallet, quoteResponseMeta });
-      }
-    }
-    return txnSig;
-  } else if (actionMode === ActionType.UnstakeLST) {
-    if (bank) {
-      txnSig = await mintLstToken({
-        bank,
-        amount,
-        priorityFee,
-        connection,
-        wallet,
-        quoteResponseMeta,
-        isUnstake: true,
-      });
-      return txnSig;
-    }
-  } else {
-    throw new Error("Action not implemented");
-    Sentry.captureException({ message: "Action not implemented" });
-  }
-}
+import { loopingBuilder, repayWithCollatBuilder } from "./flashloans";
+import { getMaybeSquadsOptions } from "./helpers";
+import { RepayWithCollatOptions, LoopingOptions, LstData, StakeData } from "./types";
 
 // ------------------------------------------------------------------//
 // Individual action flows - non-throwing - for use in UI components //
 // ------------------------------------------------------------------//
-async function createAccount({
+export async function createAccount({
   mfiClient,
   walletContextState,
 }: {
@@ -256,7 +60,7 @@ async function createAccount({
   }
 }
 
-async function createAccountAndDeposit({
+export async function createAccountAndDeposit({
   mfiClient,
   bank,
   amount,
@@ -525,54 +329,6 @@ export async function looping({
     console.log(error);
     return;
   }
-}
-
-export async function repayWithCollatBuilder({
-  marginfiAccount,
-  bank,
-  amount,
-  options,
-  priorityFee,
-  isTxnSplit,
-}: {
-  marginfiAccount: MarginfiAccountWrapper;
-  bank: ExtendedBankInfo;
-  amount: number;
-  options: RepayWithCollatOptions;
-  priorityFee?: number;
-  isTxnSplit: boolean;
-}) {
-  const jupiterQuoteApi = createJupiterApiClient();
-
-  // get fee account for original borrow mint
-  //const feeAccount = await getFeeAccount(bank.info.state.mint);
-
-  const { swapInstruction, addressLookupTableAddresses } = await jupiterQuoteApi.swapInstructionsPost({
-    swapRequest: {
-      quoteResponse: options.repayCollatQuote,
-      userPublicKey: marginfiAccount.authority.toBase58(),
-      programAuthorityId: LUT_PROGRAM_AUTHORITY_INDEX,
-    },
-  });
-  const swapIx = deserializeInstruction(swapInstruction);
-
-  const swapLUTs: AddressLookupTableAccount[] = [];
-  swapLUTs.push(...(await getAdressLookupTableAccounts(options.connection, addressLookupTableAddresses)));
-
-  const { flashloanTx, feedCrankTxs, addressLookupTableAccounts } = await marginfiAccount.makeRepayWithCollatTx(
-    amount, // 3.02 amount to repay repayAmount
-    options.withdrawAmount, //2 Deposit amount to withdraw withdrawAmount
-    bank.address, // WIF borrowBank
-    options.depositBank.address, // NOS depositBank
-    options.depositBank.isActive && isWholePosition(options.depositBank, options.withdrawAmount),
-    bank.isActive && isWholePosition(bank, amount),
-    [swapIx],
-    swapLUTs,
-    priorityFee,
-    isTxnSplit
-  );
-
-  return { flashloanTx, feedCrankTxs, addressLookupTableAccounts };
 }
 
 export async function repayWithCollat({
@@ -886,57 +642,4 @@ export async function mintLstToken({
     console.log(error);
     return;
   }
-}
-
-// ------------------------------------------------------------------//
-// Helpers //
-// ------------------------------------------------------------------//
-
-// PDA not being able to create a bank?
-export async function getMaybeSquadsOptions(walletContextState?: WalletContextState | WalletContextStateOverride) {
-  // If the connected wallet is SquadsX, use the ephemeral signer address provided by the wallet to create the marginfi account.
-  const adapter = walletContextState?.wallet?.adapter;
-  const ephemeralSignerAddress =
-    adapter &&
-    "standard" in adapter &&
-    "fuse:getEphemeralSigners" in adapter.wallet.features &&
-    // @ts-ignore
-    (await adapter.wallet.features["fuse:getEphemeralSigners"].getEphemeralSigners(1))[0];
-  const ephemeralSignerPubkey = ephemeralSignerAddress ? new PublicKey(ephemeralSignerAddress) : undefined;
-
-  return ephemeralSignerPubkey ? { newAccountKey: ephemeralSignerPubkey } : undefined;
-}
-
-export function deserializeInstruction(instruction: any) {
-  return new TransactionInstruction({
-    programId: new PublicKey(instruction.programId),
-    keys: instruction.accounts.map((key: any) => ({
-      pubkey: new PublicKey(key.pubkey),
-      isSigner: key.isSigner,
-      isWritable: key.isWritable,
-    })),
-    data: Buffer.from(instruction.data, "base64"),
-  });
-}
-
-export async function getAdressLookupTableAccounts(
-  connection: Connection,
-  keys: string[]
-): Promise<AddressLookupTableAccount[]> {
-  const addressLookupTableAccountInfos = await connection.getMultipleAccountsInfo(
-    keys.map((key) => new PublicKey(key))
-  );
-
-  return addressLookupTableAccountInfos.reduce((acc, accountInfo, index) => {
-    const addressLookupTableAddress = keys[index];
-    if (accountInfo) {
-      const addressLookupTableAccount = new AddressLookupTableAccount({
-        key: new PublicKey(addressLookupTableAddress),
-        state: AddressLookupTableAccount.deserialize(accountInfo.data),
-      });
-      acc.push(addressLookupTableAccount);
-    }
-
-    return acc;
-  }, new Array<AddressLookupTableAccount>());
 }

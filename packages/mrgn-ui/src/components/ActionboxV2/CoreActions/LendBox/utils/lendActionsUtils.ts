@@ -34,13 +34,15 @@ export const handleExecuteLendingAction = async ({
     priorityFee,
   });
 
-  const { txnSig, error } = await executeLendingAction(params);
+  // const { txnSig, error } = await executeLendingAction(params);
+
+  const txnSig = await executeLendingAction(params);
 
   setIsLoading(false);
 
-  if (error) {
-    setIsError(error);
-  }
+  // if (error) {
+  //   setIsError(error);
+  // }
 
   if (txnSig) {
     setIsComplete([...txnSig]);
@@ -85,12 +87,13 @@ export const handleExecuteCloseBalance = async ({
     priorityFee,
   });
 
-  const { txnSig, error } = await closeBalance({ marginfiAccount: marginfiAccount, bank: bank, priorityFee });
+  // const { txnSig, error } = await closeBalance({ marginfiAccount: marginfiAccount, bank: bank, priorityFee });
+  const txnSig = await closeBalance({ marginfiAccount: marginfiAccount, bank: bank, priorityFee });
   setIsLoading(false);
 
-  if (error) {
-    setIsError(error);
-  }
+  // if (error) {
+  //   setIsError(error);
+  // }
 
   if (txnSig) {
     setIsComplete([...txnSig]);

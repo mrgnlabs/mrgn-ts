@@ -38,7 +38,7 @@ export function checkActionAvailable({
         if (loopChecks.length) checks.push(...loopChecks);
         break;
       case ActionType.RepayCollat:
-        const repayChecks = canBeRepaidCollat(selectedBank, selectedSecondaryBank, actionQuote);
+        const repayChecks = canBeRepaidCollat(selectedBank, selectedSecondaryBank, [], actionQuote);
         if (repayChecks) checks.push(...repayChecks);
         break;
     }

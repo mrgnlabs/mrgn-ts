@@ -1,41 +1,17 @@
-import { canBeBorrowed, canBeLent, canBeRepaid, canBeRepaidCollat, canBeWithdrawn } from "@mrgnlabs/mrgn-utils";
+import {
+  ActionMethod,
+  ActionMethodType,
+  canBeBorrowed,
+  canBeLent,
+  canBeRepaid,
+  canBeRepaidCollat,
+  canBeWithdrawn,
+  RepayType,
+} from "@mrgnlabs/mrgn-utils";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
-import { QuoteResponseMeta } from "@jup-ag/react-hook";
 import { createJupiterApiClient, QuoteGetRequest, QuoteResponse } from "@jup-ag/api";
-import { Connection, PublicKey } from "@solana/web3.js";
-
-import { repayWithCollatBuilder } from "~/utils";
-
-export enum RepayType {
-  RepayRaw = "Repay",
-  RepayCollat = "Collateral Repay",
-}
-
-export enum LstType {
-  Token = "Token",
-  Native = "Native Stake",
-}
-
-export enum YbxType {
-  MintYbx = "Mint YBX",
-  WithdrawCollat = "Withdraw Collateral",
-  AddCollat = "Add Collateral",
-  RepayYbx = "Repay",
-}
-
-export type ActionMethodType = "WARNING" | "ERROR" | "INFO";
-export interface ActionMethod {
-  isEnabled: boolean;
-  actionMethod?: ActionMethodType;
-  description?: string;
-  link?: string;
-  linkText?: string;
-  action?: {
-    bank: ExtendedBankInfo;
-    type: ActionType;
-  };
-}
+import { PublicKey } from "@solana/web3.js";
 
 export function getColorForActionMethodType(type?: ActionMethodType) {
   if (type === "INFO") {
@@ -160,49 +136,6 @@ export async function getSwapQuoteWithRetry(quoteParams: QuoteGetRequest, maxRet
       }
       await new Promise((resolve) => setTimeout(resolve, timeout));
     }
-  }
-}
-
-export async function verifyJupTxSize(
-  marginfiAccount: MarginfiAccountWrapper,
-  bank: ExtendedBankInfo,
-  repayBank: ExtendedBankInfo,
-  amount: number,
-  repayAmount: number,
-  quoteResponse: QuoteResponse,
-  connection: Connection,
-  priorityFee?: number,
-  isTxnSplit: boolean = false
-) {
-  try {
-    const builder = await repayWithCollatBuilder({
-      marginfiAccount,
-      bank,
-      amount,
-      options: {
-        repayCollatQuote: quoteResponse,
-        repayAmount,
-        repayBank: repayBank,
-        connection,
-        repayCollatTxn: null,
-        feedCrankTxs: [],
-      },
-      priorityFee,
-      isTxnSplit,
-    });
-
-    const totalSize = builder.flashloanTx.message.serialize().length;
-    const totalKeys = builder.flashloanTx.message.getAccountKeys({
-      addressLookupTableAccounts: builder.addressLookupTableAccounts,
-    }).length;
-
-    if (totalSize > 1232 || totalKeys >= 64) {
-      // too big
-    } else {
-      return { flashloanTx: builder.flashloanTx, feedCrankTxs: builder.feedCrankTxs };
-    }
-  } catch (error) {
-    console.error(error);
   }
 }
 

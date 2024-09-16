@@ -1,3 +1,6 @@
+import { IconArrowRight } from "@tabler/icons-react";
+import { VersionedTransaction } from "@solana/web3.js";
+
 import {
   Bank,
   MarginRequirementType,
@@ -9,17 +12,17 @@ import {
 import { AccountSummary, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { Wallet, percentFormatter, tokenPriceFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 import {
+  ActionMethod,
   DYNAMIC_SIMULATION_ERRORS,
   loopingBuilder,
   LoopingObject,
   LoopingOptions,
   STATIC_SIMULATION_ERRORS,
 } from "@mrgnlabs/mrgn-utils";
-import { IconArrowRight } from "@tabler/icons-react";
-import { VersionedTransaction } from "@solana/web3.js";
+
 import { IconPyth, IconSwitchboard } from "~/components/ui/icons";
 import { GroupData } from "~/store/tradeStore";
-import { ActionMethod, cn, extractErrorString, isBankOracleStale } from "~/utils";
+import { cn, extractErrorString, isBankOracleStale } from "~/utils";
 import { MultiStepToastHandle, showErrorToast } from "~/utils/toastUtils";
 
 export type TradeSide = "long" | "short";

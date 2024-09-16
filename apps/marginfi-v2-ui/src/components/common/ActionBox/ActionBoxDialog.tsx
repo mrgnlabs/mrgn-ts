@@ -1,12 +1,20 @@
 import React from "react";
 
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { PublicKey } from "@solana/web3.js";
+import { Desktop, Mobile } from "@mrgnlabs/mrgn-utils";
 
 import { useIsMobile } from "~/hooks/useIsMobile";
 import { ActionBox } from "~/components/common/ActionBox";
-import { Dialog, DialogTrigger, DialogOverlay, DialogContent, DialogClose, DialogHeader, DialogTitle, DialogDescription } from "~/components/ui/dialog";
-import { Desktop, Mobile } from "~/mediaQueries";
+import {
+  Dialog,
+  DialogTrigger,
+  DialogOverlay,
+  DialogContent,
+  DialogClose,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "~/components/ui/dialog";
 import { IconArrowLeft } from "~/components/ui/icons";
 import { useMrgnlendStore } from "~/store";
 

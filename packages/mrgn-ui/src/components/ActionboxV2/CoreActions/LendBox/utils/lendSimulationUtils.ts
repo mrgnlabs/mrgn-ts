@@ -157,19 +157,22 @@ function calculateSimulatedActionPreview(
 async function simulateAction({ actionMode, account, bank, amount }: SimulateActionProps) {
   let simulationResult: SimulationResult;
 
+  // TODO: new simulation method
   switch (actionMode) {
     case ActionType.Deposit:
       simulationResult = await account.simulateDeposit(amount, bank.address);
       break;
     case ActionType.Withdraw:
-      simulationResult = await account.simulateWithdraw(
-        amount,
-        bank.address,
-        bank.isActive && isWholePosition(bank, amount)
-      );
+      simulationResult = null as any;
+      // simulationResult = await account.simulateWithdraw(
+      //   amount,
+      //   bank.address,
+      //   bank.isActive && isWholePosition(bank, amount)
+      // );
       break;
     case ActionType.Borrow:
-      simulationResult = await account.simulateBorrow(amount, bank.address);
+      simulationResult = null as any;
+      // simulationResult =  await account.simulateBorrow(amount, bank.address);
       break;
     case ActionType.Repay:
       simulationResult = await account.simulateRepay(

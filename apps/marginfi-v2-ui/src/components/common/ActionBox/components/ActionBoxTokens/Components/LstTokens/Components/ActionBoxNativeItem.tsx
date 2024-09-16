@@ -3,8 +3,8 @@ import React from "react";
 import Image from "next/image";
 
 import { nativeToUi, numeralFormatter, shortenAddress, usdFormatter } from "@mrgnlabs/mrgn-common";
+import { StakeData } from "@mrgnlabs/mrgn-utils";
 
-import { StakeData } from "~/utils";
 import { Badge } from "~/components/ui/badge";
 
 type ActionBoxNativeItemProps = {

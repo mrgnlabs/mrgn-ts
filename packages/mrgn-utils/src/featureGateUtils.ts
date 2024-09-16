@@ -4,7 +4,7 @@ enum Features {
   STAKE = "stake",
 }
 
-function isActive(feature: Features) {
+function isFeatureActive(feature: Features) {
   const featureGatesRaw = process.env.NEXT_PUBLIC_FEATURE_GATES as string | undefined;
   if (!featureGatesRaw) return true;
 
@@ -15,7 +15,7 @@ function isActive(feature: Features) {
 
 function getBlockedActions(): ActionType[] | undefined {
   const actionGate =
-    process.env.NEXT_PUBLIC_ACTION_GATE && Object.values(JSON.parse(process.env.NEXT_PUBLIC_ACTION_GATE)) as string[];
+    process.env.NEXT_PUBLIC_ACTION_GATE && (Object.values(JSON.parse(process.env.NEXT_PUBLIC_ACTION_GATE)) as string[]);
 
   if (!actionGate) return undefined;
 
@@ -33,4 +33,4 @@ function getBlockedActions(): ActionType[] | undefined {
   );
 }
 
-export { Features, isActive, getBlockedActions };
+export { Features, isFeatureActive, getBlockedActions };
