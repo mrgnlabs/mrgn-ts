@@ -4,9 +4,11 @@ import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
 
 import { shortenAddress } from "@mrgnlabs/mrgn-common";
+import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { Desktop, Mobile } from "~/mediaQueries";
 import { useMrgnlendStore, useUiStore } from "~/store";
+import { useActionBoxStore } from "~/hooks/useActionBoxStore";
 import { useWalletContext } from "~/hooks/useWalletContext";
 
 import { Banner } from "~/components/desktop/Banner";
@@ -37,6 +39,8 @@ export default function HomePage() {
     state.selectedAccount,
     state.extendedBankInfos,
   ]);
+  const [actionMode, refreshState] = useActionBoxStore()((state) => [state.actionMode, state.refreshState]);
+  const [isStateReset, setIsStateReset] = React.useState(false);
 
   const annoucements = React.useMemo(() => {
     const mother = extendedBankInfos.find((bank) => bank.meta.tokenSymbol === "MOTHER");
@@ -57,6 +61,15 @@ export default function HomePage() {
       },
     ] as (AnnouncementBankItem | AnnouncementCustomItem)[];
   }, [extendedBankInfos, router]);
+
+  // reset actionbox state (except for deposit / borrow)
+  // this allows for linking to lend page with action mode preset
+  React.useEffect(() => {
+    if (actionMode !== ActionType.Deposit && actionMode !== ActionType.Borrow && !isStateReset) {
+      refreshState();
+      setIsStateReset(true);
+    }
+  }, [actionMode, refreshState, isStateReset]);
 
   return (
     <>
@@ -96,7 +109,7 @@ export default function HomePage() {
           </>
         )}
       </Mobile>
-      
+
       {isStoreInitialized && previousTxn && <ActionComplete />}
     </>
   );
