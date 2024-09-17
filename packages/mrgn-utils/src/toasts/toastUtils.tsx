@@ -84,7 +84,7 @@ export function showErrorToast(msgOrOptions: string | { message: string; theme?:
     theme = msgOrOptions.theme || "dark";
   }
 
-  toast(() => <ErrorToast title={"Error"} message={msg} />, {
+  toast(() => <ErrorToast title={"Error"} message={msg} theme={theme} />, {
     hideProgressBar: true,
     autoClose: 3000,
     style: {
@@ -106,7 +106,7 @@ export function showWarningToast(msgOrOptions: string | { message: string; theme
     theme = msgOrOptions.theme || "dark";
   }
 
-  toast(() => <WarningToast title={"Warning"} message={msg} />, {
+  toast(() => <WarningToast title={"Warning"} message={msg} theme={theme} />, {
     hideProgressBar: true,
     autoClose: 2000,
     style: {
