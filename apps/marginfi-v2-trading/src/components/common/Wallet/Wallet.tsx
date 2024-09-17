@@ -19,14 +19,15 @@ import {
   IconArrowsExchange,
   IconCreditCardPay,
 } from "@tabler/icons-react";
+
 import { shortenAddress, usdFormatter, numeralFormatter } from "@mrgnlabs/mrgn-common";
+import { showErrorToast, getTokenImageURL } from "@mrgnlabs/mrgn-utils";
 
 import { useTradeStore, useUiStore } from "~/store";
 import { WalletState } from "~/store/uiStore";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { useIsMobile } from "~/hooks/useIsMobile";
-import { showErrorToast } from "~/utils/toastUtils";
-import { getTokenImageURL, cn } from "~/utils";
+import { cn } from "~/utils";
 
 import {
   WalletAvatar,

@@ -10,6 +10,7 @@ import {
   closeBalance,
   executeLendingAction,
   ActionMethod,
+  showErrorToast,
   RepayType,
 } from "@mrgnlabs/mrgn-utils";
 import { ActionType, ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
@@ -22,7 +23,6 @@ import { useConnection } from "~/hooks/useConnection";
 import { useActionBoxStore } from "~/hooks/useActionBoxStore";
 
 import { checkActionAvailable } from "~/utils/actionBoxUtils";
-import { showErrorToast } from "~/utils/toastUtils";
 
 import {
   ActionBoxPreview,

@@ -16,7 +16,7 @@ import {
   RepayType,
   usePrevious,
 } from "@mrgnlabs/mrgn-utils";
-import { getBlockedActions } from "@mrgnlabs/mrgn-utils";
+import { getBlockedActions, showErrorToast } from "@mrgnlabs/mrgn-utils";
 
 import { useLstStore, useMrgnlendStore, useUiStore } from "~/store";
 import { cn, capture } from "~/utils";
@@ -28,7 +28,6 @@ import { SOL_MINT } from "~/store/lstStore";
 import { LSTDialog, LSTDialogVariants } from "~/components/common/AssetList";
 import { checkActionAvailable } from "~/utils/actionBoxUtils";
 import { IconAlertTriangle, IconExternalLink, IconSettings } from "~/components/ui/icons";
-import { showErrorToast } from "~/utils/toastUtils";
 
 import {
   ActionBoxPreview,

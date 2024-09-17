@@ -7,13 +7,12 @@ import { PublicKey } from "@solana/web3.js";
 
 import { shortenAddress } from "@mrgnlabs/mrgn-common";
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
-import { extractErrorString } from "@mrgnlabs/mrgn-utils";
+import { extractErrorString, MultiStepToastHandle } from "@mrgnlabs/mrgn-utils";
 
 import { useMrgnlendStore } from "~/store";
 import { useWalletContext } from "~/hooks/useWalletContext";
 
 import { WalletButton } from "~/components/common/Wallet";
-import { MultiStepToastHandle } from "~/utils/toastUtils";
 import { Badge } from "~/components/ui/badge";
 import { Input } from "~/components/ui/input";
 import { Loader } from "~/components/ui/loader";

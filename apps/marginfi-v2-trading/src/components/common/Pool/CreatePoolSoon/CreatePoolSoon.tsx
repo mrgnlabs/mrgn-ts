@@ -7,7 +7,8 @@ import { z } from "zod";
 import Confetti from "react-confetti";
 import { useWindowSize } from "@uidotdev/usehooks";
 import { IconConfetti, IconPlus } from "@tabler/icons-react";
-import { PublicKey } from "@solana/web3.js";
+
+import { showErrorToast } from "@mrgnlabs/mrgn-utils";
 
 import { useTradeStore } from "~/store";
 import { capture, cn } from "~/utils";
@@ -19,7 +20,6 @@ import { Button } from "~/components/ui/button";
 import { TokenData } from "~/types";
 import { formSchema } from "./types";
 import { Input } from "~/components/ui/input";
-import { showErrorToast } from "~/utils/toastUtils";
 
 type CreatePoolDialogProps = {
   trigger?: React.ReactNode;

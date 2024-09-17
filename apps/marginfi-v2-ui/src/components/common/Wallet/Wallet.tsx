@@ -1,17 +1,14 @@
 import React from "react";
-
 import Image from "next/image";
-
 import { useRouter } from "next/router";
-
 import { CopyToClipboard } from "react-copy-to-clipboard";
+
 import { shortenAddress, usdFormatter, numeralFormatter, groupedNumberFormatterDyn } from "@mrgnlabs/mrgn-common";
+import { getTokenImageURL, showErrorToast } from "@mrgnlabs/mrgn-utils";
 
 import { useMrgnlendStore, useUiStore, useUserProfileStore } from "~/store";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { useIsMobile } from "~/hooks/useIsMobile";
-import { showErrorToast } from "~/utils/toastUtils";
-import { getTokenImageURL } from "@mrgnlabs/mrgn-utils";
 import { cn } from "~/utils";
 
 import {

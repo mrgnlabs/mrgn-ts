@@ -20,15 +20,16 @@ import {
   ActionMethod,
   calculateBorrowLendPositionParams,
   getMaybeSquadsOptions,
+  ToastStep,
+  MultiStepToastHandle,
+  showErrorToast,
   STATIC_SIMULATION_ERRORS,
 } from "@mrgnlabs/mrgn-utils";
 import { ExtendedBankInfo, clearAccountCache, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { TradeSide } from "~/components/common/TradingBox/tradingBox.utils";
-import { ToastStep } from "~/components/common/Toast";
 import { WalletContextStateOverride } from "~/hooks/useWalletContext";
 
-import { MultiStepToastHandle, showErrorToast } from "./toastUtils";
 import { extractErrorString } from "./mrgnUtils";
 
 export async function createMarginfiGroup({

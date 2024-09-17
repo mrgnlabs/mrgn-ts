@@ -3,6 +3,5 @@ export * from "./analytics";
 export * from "./arenaUtils";
 export * from "./mrgnUtils";
 export * from "./themeUtils";
-export * from "./toastUtils";
 export * from "./tradingActions";
 export * from "./tradingViewUtils";

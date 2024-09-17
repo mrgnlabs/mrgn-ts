@@ -23,16 +23,15 @@ import {
   groupedNumberFormatterDyn,
   percentFormatterDyn,
   shortenAddress,
-  usdFormatter,
   usdFormatterDyn,
 } from "@mrgnlabs/mrgn-common";
 import { Bank, PriceBias } from "@mrgnlabs/marginfi-client-v2";
-import { Desktop, Mobile } from "@mrgnlabs/mrgn-utils";
+import { Desktop, MultiStepToastHandle } from "@mrgnlabs/mrgn-utils";
+
 import { Countdown } from "~/components/desktop/Countdown";
 import BigNumber from "bignumber.js";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { useMrgnlendStore } from "~/store";
-import { MultiStepToastHandle } from "~/utils/toastUtils";
 
 const Earn = () => {
   const { wallet, isOverride, connected, walletAddress } = useWalletContext();

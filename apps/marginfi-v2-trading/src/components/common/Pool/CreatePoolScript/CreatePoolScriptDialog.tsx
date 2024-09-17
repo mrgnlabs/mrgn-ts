@@ -1,6 +1,8 @@
 import React from "react";
 import ReactDOM from "react-dom";
 
+import { MultiStepToastHandle, showWarningToast } from "@mrgnlabs/mrgn-utils";
+
 import Confetti from "react-confetti";
 import { useWindowSize } from "@uidotdev/usehooks";
 import { IconPlus } from "@tabler/icons-react";
@@ -12,7 +14,6 @@ import { useIsMobile } from "~/hooks/useIsMobile";
 
 import { Dialog, DialogContent, DialogTrigger } from "~/components/ui/dialog";
 import { Button } from "~/components/ui/button";
-import { MultiStepToastHandle, showWarningToast } from "~/utils/toastUtils";
 import { CreatePoolLoading, CreatePoolSuccess, CreatePoolSetup, bankTokens } from "./components";
 
 enum CreatePoolState {

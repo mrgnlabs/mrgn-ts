@@ -11,10 +11,10 @@ import { OpenloginAdapter } from "@web3auth/openlogin-adapter";
 import { SolanaWallet, SolanaPrivateKeyProvider } from "@web3auth/solana-provider";
 import base58 from "bs58";
 
-import { showErrorToast } from "~/utils/toastUtils";
-import { useUiStore } from "~/store";
-
+import { showErrorToast } from "@mrgnlabs/mrgn-utils";
 import type { Wallet } from "@mrgnlabs/mrgn-common";
+
+import { useUiStore } from "~/store";
 
 // wallet adapter context type to override with web3auth data
 // this allows us to pass web3auth wallet to 3rd party services that expect wallet adapter
@@ -182,7 +182,9 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
             signTransaction: walletContextState?.signTransaction as <T extends Transaction | VersionedTransaction>(
               transactions: T
             ) => Promise<T>,
-            signAllTransactions: walletContextState?.signAllTransactions as <T extends Transaction | VersionedTransaction>(
+            signAllTransactions: walletContextState?.signAllTransactions as <
+              T extends Transaction | VersionedTransaction
+            >(
               transactions: T[]
             ) => Promise<T[]>,
           },
@@ -198,7 +200,9 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
           signTransaction: walletContextState?.signTransaction as <T extends Transaction | VersionedTransaction>(
             transactions: T
           ) => Promise<T>,
-          signAllTransactions: walletContextState?.signAllTransactions as <T extends Transaction | VersionedTransaction>(
+          signAllTransactions: walletContextState?.signAllTransactions as <
+            T extends Transaction | VersionedTransaction
+          >(
             transactions: T[]
           ) => Promise<T[]>,
         },
