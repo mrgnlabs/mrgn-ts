@@ -46,6 +46,14 @@ export const STATIC_SIMULATION_ERRORS: { [key: string]: ActionMethod } = {
     link: "https://docs.marginfi.com/faqs#what-does-the-stale-oracles-error-mean",
     linkText: "Learn more about marginfi's decentralized oracles.",
   },
+  STALE_TRADING_OR_HEALTH: {
+    isEnabled: true,
+    actionMethod: "WARNING",
+    description:
+      "Trading may fail due to poor account health or network congestion preventing oracles from updating price data.",
+    link: "https://docs.marginfi.com/faqs#what-does-the-stale-oracles-error-mean",
+    linkText: "Learn more about marginfi's decentralized oracles.",
+  },
   USER_REJECTED: {
     isEnabled: false,
     actionMethod: "WARNING",
@@ -339,6 +347,13 @@ export const handleError = (
 
       if (checkErrorCodeMatch(error.message, 6029) || error.message?.toLowerCase().includes("borrow cap exceeded")) {
         return STATIC_SIMULATION_ERRORS.BORROW_CAP_EXCEEDED;
+      }
+
+      if (
+        checkErrorCodeMatch(error.message, 6010) ||
+        error.message?.toLowerCase().includes("bad health or stale oracle")
+      ) {
+        return STATIC_SIMULATION_ERRORS.STALE_TRADING_OR_HEALTH;
       }
 
       if (
