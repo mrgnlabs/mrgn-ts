@@ -232,8 +232,6 @@ export const ActionBox = ({
     }: MarginfiActionParams) => {
       setIsLoading(true);
 
-      console.log("theme");
-
       const txnSig = await executeLendingAction({
         mfiClient,
         actionType: currentAction,

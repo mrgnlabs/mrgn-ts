@@ -21,13 +21,13 @@ import {
 } from "@tabler/icons-react";
 
 import { shortenAddress, usdFormatter, numeralFormatter } from "@mrgnlabs/mrgn-common";
-import { showErrorToast, getTokenImageURL } from "@mrgnlabs/mrgn-utils";
+import { showErrorToast } from "@mrgnlabs/mrgn-utils";
 
 import { useTradeStore, useUiStore } from "~/store";
 import { WalletState } from "~/store/uiStore";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { useIsMobile } from "~/hooks/useIsMobile";
-import { cn } from "~/utils";
+import { cn, getTokenImageURL } from "~/utils";
 
 import {
   WalletAvatar,
