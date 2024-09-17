@@ -4,13 +4,19 @@ import Link from "next/link";
 import { v4 as uuidv4 } from "uuid";
 
 import { IconAlertTriangle, IconExternalLink, IconSettings } from "@tabler/icons-react";
-import { WSOL_MINT, nativeToUi } from "@mrgnlabs/mrgn-common";
-import { ActionMethod, RepayType } from "@mrgnlabs/mrgn-utils";
+import { WSOL_MINT } from "@mrgnlabs/mrgn-common";
+import {
+  MarginfiActionParams,
+  closeBalance,
+  executeLendingAction,
+  ActionMethod,
+  RepayType,
+} from "@mrgnlabs/mrgn-utils";
 import { ActionType, ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 
 import { useUiStore, useTradeStore } from "~/store";
-import { MarginfiActionParams, closeBalance, executeLendingAction, cn, capture } from "~/utils";
+import { cn, capture } from "~/utils";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { useConnection } from "~/hooks/useConnection";
 import { useActionBoxStore } from "~/hooks/useActionBoxStore";
@@ -376,8 +382,8 @@ export const ActionBox = ({
           repayCollatQuote,
           repayCollatTxn: repayCollatTxns.repayCollatTxn,
           feedCrankTxs: repayCollatTxns.feedCrankTxs,
-          repayAmount: repayAmount,
-          repayBank: selectedRepayBank,
+          withdrawAmount: repayAmount,
+          depositBank: selectedRepayBank,
           connection,
         };
       }
@@ -507,8 +513,8 @@ export const ActionBox = ({
                         repayCollatQuote,
                         repayCollatTxn: repayCollatTxns.repayCollatTxn,
                         feedCrankTxs: repayCollatTxns.feedCrankTxs,
-                        repayAmount,
-                        repayBank: selectedRepayBank,
+                        withdrawAmount: repayAmount,
+                        depositBank: selectedRepayBank,
                         connection,
                       }
                     : undefined

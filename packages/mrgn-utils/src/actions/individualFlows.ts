@@ -11,9 +11,9 @@ import {
 import { WalletContextState } from "@solana/wallet-adapter-react";
 import * as Sentry from "@sentry/nextjs";
 
-import { ExtendedBankInfo, FEE_MARGIN, ActionType, clearAccountCache } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo, clearAccountCache } from "@mrgnlabs/marginfi-v2-ui-state";
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
-import { LUT_PROGRAM_AUTHORITY_INDEX, Wallet, uiToNative } from "@mrgnlabs/mrgn-common";
+import { Wallet, uiToNative } from "@mrgnlabs/mrgn-common";
 
 import { WalletContextStateOverride } from "../wallet";
 import { showErrorToast, MultiStepToastHandle } from "../toasts";

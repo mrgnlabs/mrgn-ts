@@ -6,9 +6,11 @@ import { useRouter } from "next/router";
 import { PublicKey } from "@solana/web3.js";
 import LipAccount from "@mrgnlabs/lip-client/src/account";
 
+import { collectRewardsBatch } from "@mrgnlabs/mrgn-utils";
+
 import { useMrgnlendStore, useUiStore } from "~/store";
 import { useLipClient } from "~/context";
-import { cn, collectRewardsBatch } from "~/utils";
+import { cn } from "~/utils";
 import { useFirebaseAccount } from "~/hooks/useFirebaseAccount";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { useConnection } from "~/hooks/useConnection";

@@ -5,6 +5,7 @@ import { AddressLookupTableAccount, VersionedTransaction } from "@solana/web3.js
 import { IconAlertTriangle, IconArrowRight } from "@tabler/icons-react";
 import { ExtendedBankInfo, ActionType, AccountSummary } from "@mrgnlabs/marginfi-v2-ui-state";
 import { Wallet, nativeToUi, numeralFormatter, percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
+import { RepayWithCollatOptions, deserializeInstruction, getAdressLookupTableAccounts } from "@mrgnlabs/mrgn-utils";
 import {
   Bank,
   MarginRequirementType,
@@ -14,14 +15,7 @@ import {
   getPriceWithConfidence,
 } from "@mrgnlabs/marginfi-client-v2";
 
-import {
-  RepayWithCollatOptions,
-  clampedNumeralFormatter,
-  cn,
-  deserializeInstruction,
-  getAdressLookupTableAccounts,
-  isWholePosition,
-} from "~/utils";
+import { clampedNumeralFormatter, cn, isWholePosition } from "~/utils";
 import { calculateBorrowLend } from "~/store/actionBoxStore";
 
 import { IconPyth, IconSwitchboard } from "~/components/ui/icons";
@@ -253,12 +247,12 @@ export async function simulateAction({
           try {
             simulationResult = await account.simulateRepayWithCollat(
               amount,
-              repayWithCollatOptions.repayAmount,
+              repayWithCollatOptions.withdrawAmount,
               bank.address,
-              repayWithCollatOptions.repayBank.address,
+              repayWithCollatOptions.depositBank.address,
               bank.isActive && isWholePosition(bank, amount),
-              repayWithCollatOptions.repayBank.isActive &&
-                isWholePosition(repayWithCollatOptions.repayBank, repayWithCollatOptions.repayAmount),
+              repayWithCollatOptions.depositBank.isActive &&
+                isWholePosition(repayWithCollatOptions.depositBank, repayWithCollatOptions.withdrawAmount),
               [...setupIxs, swapIx, ...swapcleanupIx],
               addressLookupTableAccounts
             );

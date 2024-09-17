@@ -1,10 +1,10 @@
 import React from "react";
 
 import { ActionType, DEFAULT_ACCOUNT_SUMMARY, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { ActionMethod } from "@mrgnlabs/mrgn-utils";
+import { ActionMethod, RepayWithCollatOptions } from "@mrgnlabs/mrgn-utils";
 
 import { GroupData } from "~/store/tradeStore";
-import { cn, RepayWithCollatOptions } from "~/utils";
+import { cn } from "~/utils";
 
 import { useLendingPreview } from "./useLendingPreview";
 

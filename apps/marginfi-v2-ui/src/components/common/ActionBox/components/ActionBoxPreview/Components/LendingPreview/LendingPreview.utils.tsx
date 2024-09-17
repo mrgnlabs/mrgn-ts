@@ -12,7 +12,12 @@ import {
   usdFormatter,
   clampedNumeralFormatter,
 } from "@mrgnlabs/mrgn-common";
-import { isWholePosition, RepayWithCollatOptions } from "@mrgnlabs/mrgn-utils";
+import {
+  isWholePosition,
+  RepayWithCollatOptions,
+  deserializeInstruction,
+  getAdressLookupTableAccounts,
+} from "@mrgnlabs/mrgn-utils";
 import {
   Bank,
   MarginRequirementType,
@@ -22,7 +27,7 @@ import {
   getPriceWithConfidence,
 } from "@mrgnlabs/marginfi-client-v2";
 
-import { cn, deserializeInstruction, getAdressLookupTableAccounts } from "~/utils";
+import { cn } from "~/utils";
 
 import { IconAlertTriangle, IconArrowRight, IconPyth, IconSwitchboard } from "~/components/ui/icons";
 import { Skeleton } from "~/components/ui/skeleton";

@@ -19,6 +19,7 @@ import {
   LoopingObject,
   ActionMethod,
   calculateBorrowLendPositionParams,
+  getMaybeSquadsOptions,
   STATIC_SIMULATION_ERRORS,
 } from "@mrgnlabs/mrgn-utils";
 import { ExtendedBankInfo, clearAccountCache, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
@@ -29,7 +30,6 @@ import { WalletContextStateOverride } from "~/hooks/useWalletContext";
 
 import { MultiStepToastHandle, showErrorToast } from "./toastUtils";
 import { extractErrorString } from "./mrgnUtils";
-import { getMaybeSquadsOptions } from "./mrgnActions";
 
 export async function createMarginfiGroup({
   marginfiClient,

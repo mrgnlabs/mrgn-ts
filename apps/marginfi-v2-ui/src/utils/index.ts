@@ -1,5 +1,4 @@
 export { OKXWalletAdapter } from "./OKXWalletAdapter";
-export * from "./mrgnActions";
 export * from "./themeUtils";
 export * from "./analytics";
 export * from "./lstApyUtils";
