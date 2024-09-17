@@ -30,16 +30,18 @@ import { RepayWithCollatOptions, LoopingOptions, LstData, StakeData } from "./ty
 export async function createAccount({
   mfiClient,
   walletContextState,
+  theme,
 }: {
   mfiClient: MarginfiClient | null;
   walletContextState?: WalletContextState | WalletContextStateOverride;
+  theme?: "light" | "dark";
 }) {
   if (mfiClient === null) {
-    showErrorToast("Marginfi client not ready");
+    showErrorToast({ message: "Marginfi client not ready", theme });
     return;
   }
 
-  const multiStepToast = new MultiStepToastHandle("Creating account", [{ label: "Creating account" }]);
+  const multiStepToast = new MultiStepToastHandle("Creating account", [{ label: "Creating account" }], theme);
   multiStepToast.start();
 
   let marginfiAccount: MarginfiAccountWrapper;
@@ -66,22 +68,25 @@ export async function createAccountAndDeposit({
   amount,
   walletContextState,
   priorityFee,
+  theme,
 }: {
   mfiClient: MarginfiClient | null;
   bank: ExtendedBankInfo;
   amount: number;
   walletContextState?: WalletContextState | WalletContextStateOverride;
   priorityFee?: number;
+  theme?: "light" | "dark";
 }) {
   if (mfiClient === null) {
-    showErrorToast("Marginfi client not ready");
+    showErrorToast({ message: "Marginfi client not ready", theme });
     return;
   }
 
-  const multiStepToast = new MultiStepToastHandle("Initial deposit", [
-    { label: "Creating account" },
-    { label: `Depositing ${amount} ${bank.meta.tokenSymbol}` },
-  ]);
+  const multiStepToast = new MultiStepToastHandle(
+    "Initial deposit",
+    [{ label: "Creating account" }, { label: `Depositing ${amount} ${bank.meta.tokenSymbol}` }],
+    theme
+  );
   multiStepToast.start();
 
   let marginfiAccount: MarginfiAccountWrapper;
@@ -120,15 +125,19 @@ export async function deposit({
   bank,
   amount,
   priorityFee,
+  theme,
 }: {
   marginfiAccount: MarginfiAccountWrapper;
   bank: ExtendedBankInfo;
   amount: number;
   priorityFee?: number;
+  theme?: "light" | "dark";
 }) {
-  const multiStepToast = new MultiStepToastHandle("Deposit", [
-    { label: `Depositing ${amount} ${bank.meta.tokenSymbol}` },
-  ]);
+  const multiStepToast = new MultiStepToastHandle(
+    "Deposit",
+    [{ label: `Depositing ${amount} ${bank.meta.tokenSymbol}` }],
+    theme
+  );
   multiStepToast.start();
 
   try {
@@ -152,6 +161,7 @@ export async function borrow({
   amount,
   priorityFee,
   actionTxns,
+  theme,
 }: {
   marginfiClient: MarginfiClient | null;
   marginfiAccount: MarginfiAccountWrapper;
@@ -162,10 +172,13 @@ export async function borrow({
     actionTxn: VersionedTransaction | null;
     feedCrankTxs: VersionedTransaction[];
   };
+  theme?: "light" | "dark";
 }) {
-  const multiStepToast = new MultiStepToastHandle("Borrow", [
-    { label: `Borrowing ${amount} ${bank.meta.tokenSymbol}` },
-  ]);
+  const multiStepToast = new MultiStepToastHandle(
+    "Borrow",
+    [{ label: `Borrowing ${amount} ${bank.meta.tokenSymbol}` }],
+    theme
+  );
 
   multiStepToast.start();
   let sigs: string[] = [];
@@ -195,6 +208,7 @@ export async function withdraw({
   amount,
   priorityFee,
   actionTxns,
+  theme,
 }: {
   marginfiClient: MarginfiClient | null;
   marginfiAccount: MarginfiAccountWrapper;
@@ -205,10 +219,13 @@ export async function withdraw({
     actionTxn: VersionedTransaction | null;
     feedCrankTxs: VersionedTransaction[];
   };
+  theme?: "light" | "dark";
 }) {
-  const multiStepToast = new MultiStepToastHandle("Withdrawal", [
-    { label: `Withdrawing ${amount} ${bank.meta.tokenSymbol}` },
-  ]);
+  const multiStepToast = new MultiStepToastHandle(
+    "Withdrawal",
+    [{ label: `Withdrawing ${amount} ${bank.meta.tokenSymbol}` }],
+    theme
+  );
   multiStepToast.start();
 
   let sigs: string[] = [];
@@ -238,15 +255,19 @@ export async function repay({
   bank,
   amount,
   priorityFee,
+  theme,
 }: {
   marginfiAccount: MarginfiAccountWrapper;
   bank: ExtendedBankInfo;
   amount: number;
   priorityFee?: number;
+  theme?: "light" | "dark";
 }) {
-  const multiStepToast = new MultiStepToastHandle("Repayment", [
-    { label: `Repaying ${amount} ${bank.meta.tokenSymbol}` },
-  ]);
+  const multiStepToast = new MultiStepToastHandle(
+    "Repayment",
+    [{ label: `Repaying ${amount} ${bank.meta.tokenSymbol}` }],
+    theme
+  );
   multiStepToast.start();
 
   try {
@@ -284,6 +305,7 @@ export async function looping({
   options,
   priorityFee,
   isTxnSplit = false,
+  theme,
 }: {
   marginfiClient: MarginfiClient | null;
   marginfiAccount: MarginfiAccountWrapper;
@@ -292,15 +314,18 @@ export async function looping({
   options: LoopingOptions;
   priorityFee?: number;
   isTxnSplit?: boolean;
+  theme?: "light" | "dark";
 }) {
   if (marginfiClient === null) {
-    showErrorToast("Marginfi client not ready");
+    showErrorToast({ message: "Marginfi client not ready", theme });
     return;
   }
 
-  const multiStepToast = new MultiStepToastHandle("Looping", [
-    { label: `Executing looping ${bank.meta.tokenSymbol} with ${options.loopingBank.meta.tokenSymbol}` },
-  ]);
+  const multiStepToast = new MultiStepToastHandle(
+    "Looping",
+    [{ label: `Executing looping ${bank.meta.tokenSymbol} with ${options.loopingBank.meta.tokenSymbol}` }],
+    theme
+  );
   multiStepToast.start();
 
   try {
@@ -339,6 +364,7 @@ export async function repayWithCollat({
   options,
   priorityFee,
   isTxnSplit = false,
+  theme,
 }: {
   marginfiClient: MarginfiClient | null;
   marginfiAccount: MarginfiAccountWrapper;
@@ -347,13 +373,14 @@ export async function repayWithCollat({
   options: RepayWithCollatOptions;
   priorityFee?: number;
   isTxnSplit?: boolean;
+  theme?: "light" | "dark";
 }) {
   if (marginfiClient === null) {
-    showErrorToast("Marginfi client not ready");
+    showErrorToast({ message: "Marginfi client not ready", theme });
     return;
   }
 
-  const multiStepToast = new MultiStepToastHandle("Repayment", [{ label: `Executing flashloan repayment` }]);
+  const multiStepToast = new MultiStepToastHandle("Repayment", [{ label: `Executing flashloan repayment` }], theme);
   multiStepToast.start();
 
   try {
@@ -389,9 +416,10 @@ export async function repayWithCollat({
 export async function collectRewardsBatch(
   marginfiAccount: MarginfiAccountWrapper,
   bankAddresses: PublicKey[],
-  priorityFee?: number
+  priorityFee?: number,
+  theme?: "light" | "dark"
 ) {
-  const multiStepToast = new MultiStepToastHandle("Collect rewards", [{ label: "Collecting rewards" }]);
+  const multiStepToast = new MultiStepToastHandle("Collect rewards", [{ label: "Collecting rewards" }], theme);
   multiStepToast.start();
 
   try {
@@ -412,23 +440,27 @@ export const closeBalance = async ({
   bank,
   marginfiAccount,
   priorityFee,
+  theme,
 }: {
   bank: ExtendedBankInfo;
   marginfiAccount: MarginfiAccountWrapper | null | undefined;
   priorityFee?: number;
+  theme?: "light" | "dark";
 }) => {
   if (!marginfiAccount) {
-    showErrorToast("marginfi account not ready.");
+    showErrorToast({ message: "marginfi account not ready.", theme });
     return;
   }
   if (!bank.isActive) {
-    showErrorToast("no position to close.");
+    showErrorToast({ message: "no position to close.", theme });
     return;
   }
 
-  const multiStepToast = new MultiStepToastHandle("Closing balance", [
-    { label: `Closing ${bank.position.isLending ? "lending" : "borrow"} balance for ${bank.meta.tokenSymbol}` },
-  ]);
+  const multiStepToast = new MultiStepToastHandle(
+    "Closing balance",
+    [{ label: `Closing ${bank.position.isLending ? "lending" : "borrow"} balance for ${bank.meta.tokenSymbol}` }],
+    theme
+  );
   multiStepToast.start();
 
   try {
@@ -456,6 +488,7 @@ export async function mintLstStakeToStake({
   wallet,
   lstData,
   selectedStakingAccount,
+  theme,
 }: {
   marginfiClient: MarginfiClient;
   priorityFee?: number;
@@ -463,8 +496,9 @@ export async function mintLstStakeToStake({
   wallet: Wallet;
   lstData: LstData;
   selectedStakingAccount: StakeData | null;
+  theme?: "light" | "dark";
 }) {
-  const multiStepToast = new MultiStepToastHandle("Mint LST", [{ label: `Minting LST` }]);
+  const multiStepToast = new MultiStepToastHandle("Mint LST", [{ label: `Minting LST` }], theme);
   multiStepToast.start();
 
   try {
@@ -516,6 +550,7 @@ export async function mintLstNative({
   connection,
   wallet,
   lstData,
+  theme,
 }: {
   marginfiClient: MarginfiClient;
   bank: ExtendedBankInfo;
@@ -524,10 +559,13 @@ export async function mintLstNative({
   connection: Connection;
   wallet: Wallet;
   lstData: LstData;
+  theme?: "light" | "dark";
 }) {
-  const multiStepToast = new MultiStepToastHandle("Mint LST", [
-    { label: `Staking ${amount} ${bank.meta.tokenSymbol}` },
-  ]);
+  const multiStepToast = new MultiStepToastHandle(
+    "Mint LST",
+    [{ label: `Staking ${amount} ${bank.meta.tokenSymbol}` }],
+    theme
+  );
   multiStepToast.start();
 
   try {
@@ -578,6 +616,7 @@ export async function mintLstToken({
   wallet,
   quoteResponseMeta,
   isUnstake = false,
+  theme,
 }: {
   bank: ExtendedBankInfo;
   amount: number;
@@ -586,12 +625,13 @@ export async function mintLstToken({
   wallet: Wallet;
   quoteResponseMeta: QuoteResponseMeta | null;
   isUnstake?: boolean;
+  theme?: "light" | "dark";
 }) {
   const jupiterApiClient = createJupiterApiClient();
 
   const multiStepToast = isUnstake
     ? new MultiStepToastHandle("Unstake LST", [{ label: `Swapping ${amount} ${bank.meta.tokenSymbol} for SOL` }])
-    : new MultiStepToastHandle("Mint LST", [{ label: `Swapping ${amount} ${bank.meta.tokenSymbol} for LST` }]);
+    : new MultiStepToastHandle("Mint LST", [{ label: `Swapping ${amount} ${bank.meta.tokenSymbol} for LST` }], theme);
   multiStepToast.start();
 
   try {

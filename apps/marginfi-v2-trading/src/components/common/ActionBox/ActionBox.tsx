@@ -242,6 +242,7 @@ export const ActionBox = ({
         walletContextState,
         priorityFee,
         repayWithCollatOptions,
+        theme: "light",
       });
 
       setIsLoading(false);
@@ -422,7 +423,7 @@ export const ActionBox = ({
 
   React.useEffect(() => {
     if (errorMessage !== null && errorMessage.description) {
-      showErrorToast(errorMessage?.description);
+      showErrorToast({ message: errorMessage?.description, theme: "light" });
       setAdditionalActionMethods([errorMessage]);
     }
   }, [errorMessage]);

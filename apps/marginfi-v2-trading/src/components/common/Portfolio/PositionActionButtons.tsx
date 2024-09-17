@@ -86,13 +86,17 @@ export const PositionActionButtons = ({
     if (!activeGroup.selectedAccount || (!borrowBank && !depositBanks[0])) return;
     setIsClosing(true);
 
-    const multiStepToast = new MultiStepToastHandle("Closing position", [
-      {
-        label: `Closing ${depositBanks[0].meta.tokenSymbol}${
-          borrowBank ? "/" + borrowBank?.meta.tokenSymbol : ""
-        } position.`,
-      },
-    ]);
+    const multiStepToast = new MultiStepToastHandle(
+      "Closing position",
+      [
+        {
+          label: `Closing ${depositBanks[0].meta.tokenSymbol}${
+            borrowBank ? "/" + borrowBank?.meta.tokenSymbol : ""
+          } position.`,
+        },
+      ],
+      "light"
+    );
 
     multiStepToast.start();
 

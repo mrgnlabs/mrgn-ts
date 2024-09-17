@@ -160,7 +160,7 @@ export const Wallet = () => {
       setIsFetchingWalletData(false);
     } catch (error) {
       if (!isWalletBalanceErrorShown) {
-        showErrorToast("Error fetching wallet balance");
+        showErrorToast({ message: "Error fetching wallet balance", theme: "light" });
         setIsWalletBalanceErrorShown(true);
       }
       setWalletData({

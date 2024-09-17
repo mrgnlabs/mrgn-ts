@@ -8,10 +8,12 @@ export class MultiStepToastHandle {
   private _stepIndex: number;
   private _stepsWithStatus: ToastStepWithStatus[];
   private _toastId: Id | undefined = undefined;
+  private _theme: "light" | "dark" = "dark";
 
-  constructor(title: string, steps: ToastStep[]) {
+  constructor(title: string, steps: ToastStep[], theme?: "light" | "dark") {
     this._title = title;
     this._stepIndex = 0;
+    this._theme = theme || "dark";
     this._stepsWithStatus = steps.map((step, index) => {
       if (index === 0) {
         return { ...step, status: "pending" };
@@ -30,7 +32,7 @@ export class MultiStepToastHandle {
         height: "100%",
         bottom: "12px",
       },
-      className: "bg-black rounded-xl pt-3 pb-2 px-3.5",
+      className: `rounded-xl pt-3 pb-2 px-3.5 ${this._theme === "dark" ? "bg-black" : "bg-background"}`,
     });
   }
 
@@ -68,12 +70,15 @@ export class MultiStepToastHandle {
   }
 }
 
-export function showErrorToast(msgOrOptions: string | { message: string }) {
+export function showErrorToast(msgOrOptions: string | { message: string; theme?: "light" | "dark" }) {
   let msg: string;
+  let theme: "light" | "dark";
   if (typeof msgOrOptions === "string") {
     msg = msgOrOptions;
+    theme = "dark";
   } else {
     msg = msgOrOptions.message;
+    theme = msgOrOptions.theme || "dark";
   }
 
   toast(() => <ErrorToast title={"Error"} message={msg} />, {
@@ -83,16 +88,19 @@ export function showErrorToast(msgOrOptions: string | { message: string }) {
       width: "100%",
       height: "100%",
     },
-    className: "bg-black p-4 bottom-4 rounded-xl",
+    className: `p-4 bottom-4 rounded-xl ${theme === "light" ? "bg-background" : "bg-black"}`,
   });
 }
 
-export function showWarningToast(msgOrOptions: string | { message: string }) {
+export function showWarningToast(msgOrOptions: string | { message: string; theme?: "light" | "dark" }) {
   let msg: string;
+  let theme: "light" | "dark";
   if (typeof msgOrOptions === "string") {
     msg = msgOrOptions;
+    theme = "dark";
   } else {
     msg = msgOrOptions.message;
+    theme = msgOrOptions.theme || "dark";
   }
 
   toast(() => <WarningToast title={"Warning"} message={msg} />, {
@@ -102,6 +110,6 @@ export function showWarningToast(msgOrOptions: string | { message: string }) {
       width: "100%",
       height: "100%",
     },
-    className: "bg-black p-4 bottom-4 rounded-xl",
+    className: `p-4 bottom-4 rounded-xl ${theme === "light" ? "bg-background" : "bg-black"}`,
   });
 }

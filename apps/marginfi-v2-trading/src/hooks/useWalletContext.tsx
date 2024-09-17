@@ -216,7 +216,7 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
     async (provider: string, extraLoginOptions: any = {}, cb?: () => void) => {
       try {
         if (!web3Auth) {
-          showErrorToast("marginfi account not ready.");
+          showErrorToast({ message: "marginfi account not ready.", theme: "light" });
           throw new Error("marginfi account not ready.");
         }
         await web3Auth.connectTo(WALLET_ADAPTERS.OPENLOGIN, {

@@ -46,13 +46,15 @@ export async function looping({
   isTxnSplit?: boolean;
 }) {
   if (marginfiClient === null) {
-    showErrorToast("Marginfi client not ready");
+    showErrorToast({ message: "Marginfi client not ready", theme: "light" });
     return;
   }
 
-  const multiStepToast = new MultiStepToastHandle("Looping", [
-    { label: `Executing looping ${bank.meta.tokenSymbol} with ${options.loopingBank.meta.tokenSymbol}` },
-  ]);
+  const multiStepToast = new MultiStepToastHandle(
+    "Looping",
+    [{ label: `Executing looping ${bank.meta.tokenSymbol} with ${options.loopingBank.meta.tokenSymbol}` }],
+    "light"
+  );
   multiStepToast.start();
 
   try {

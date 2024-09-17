@@ -41,7 +41,7 @@ export async function createMarginfiGroup({
   additionalIxs: TransactionInstruction[];
   seed?: Keypair;
 }) {
-  const multiStepToast = new MultiStepToastHandle("Group Creation", [{ label: `Creating group` }]);
+  const multiStepToast = new MultiStepToastHandle("Group Creation", [{ label: `Creating group` }], "light");
   multiStepToast.start();
 
   try {
@@ -128,7 +128,11 @@ export async function createPermissionlessBank({
   seed?: Keypair;
   priorityFee?: number;
 }) {
-  const multiStepToast = new MultiStepToastHandle("Bank Creation", [{ label: `Creating permissionless bank` }]);
+  const multiStepToast = new MultiStepToastHandle(
+    "Bank Creation",
+    [{ label: `Creating permissionless bank` }],
+    "light"
+  );
   multiStepToast.start();
 
   try {
@@ -203,7 +207,8 @@ export async function executeLeverageAction({
   const multiStepToast = new MultiStepToastHandle(
     `${tradeState.slice(0, 1).toUpperCase() + tradeState.slice(1)} 
       ${tradeState === "long" ? depositBank.meta.tokenSymbol : borrowBank.meta.tokenSymbol}`,
-    toastSteps
+    toastSteps,
+    "light"
   );
   multiStepToast.start();
 

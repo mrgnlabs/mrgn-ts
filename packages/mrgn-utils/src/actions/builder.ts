@@ -1,4 +1,3 @@
-import { PublicKey } from "@solana/web3.js";
 import { WalletContextState } from "@solana/wallet-adapter-react";
 
 import { MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
@@ -26,17 +25,19 @@ export async function createAccountAction({
   marginfiClient,
   nativeSolBalance,
   walletContextState,
+  theme = "dark",
 }: {
   marginfiClient: MarginfiClient | null;
   nativeSolBalance: number;
   walletContextState?: WalletContextState | WalletContextStateOverride;
+  theme?: "light" | "dark";
 }) {
   if (nativeSolBalance < FEE_MARGIN) {
     showErrorToast("Not enough sol for fee.");
     return;
   }
 
-  const txnSig = await createAccount({ mfiClient: marginfiClient, walletContextState });
+  const txnSig = await createAccount({ mfiClient: marginfiClient, walletContextState, theme });
 
   return txnSig;
 }
@@ -52,6 +53,7 @@ export async function executeLendingAction({
   priorityFee,
   repayWithCollatOptions,
   actionTxns,
+  theme = "dark",
 }: MarginfiActionParams) {
   let txnSig: string | string[] | undefined;
 
@@ -62,9 +64,9 @@ export async function executeLendingAction({
 
   if (actionType === ActionType.Deposit) {
     if (marginfiAccount) {
-      txnSig = await deposit({ marginfiAccount, bank, amount, priorityFee });
+      txnSig = await deposit({ marginfiAccount, bank, amount, priorityFee, theme });
     } else {
-      txnSig = await createAccountAndDeposit({ mfiClient, bank, amount, walletContextState, priorityFee });
+      txnSig = await createAccountAndDeposit({ mfiClient, bank, amount, walletContextState, priorityFee, theme });
     }
     return txnSig;
   }
@@ -83,9 +85,10 @@ export async function executeLendingAction({
         amount,
         priorityFee,
         options: repayWithCollatOptions,
+        theme,
       });
     } else {
-      txnSig = await repay({ marginfiAccount, bank, amount, priorityFee });
+      txnSig = await repay({ marginfiAccount, bank, amount, priorityFee, theme });
     }
   }
 
@@ -95,11 +98,19 @@ export async function executeLendingAction({
   }
 
   if (actionType === ActionType.Borrow) {
-    txnSig = await borrow({ marginfiClient: mfiClient, marginfiAccount, bank, amount, priorityFee, actionTxns });
+    txnSig = await borrow({ marginfiClient: mfiClient, marginfiAccount, bank, amount, priorityFee, actionTxns, theme });
   }
 
   if (actionType === ActionType.Withdraw) {
-    txnSig = await withdraw({ marginfiClient: mfiClient, marginfiAccount, bank, amount, priorityFee, actionTxns });
+    txnSig = await withdraw({
+      marginfiClient: mfiClient,
+      marginfiAccount,
+      bank,
+      amount,
+      priorityFee,
+      actionTxns,
+      theme,
+    });
   }
 
   return txnSig;
@@ -113,6 +124,7 @@ export async function executeLoopingAction({
   marginfiAccount,
   priorityFee,
   loopingOptions,
+  theme = "dark",
 }: MarginfiActionParams) {
   let txnSig: string[] | undefined;
 
@@ -130,6 +142,7 @@ export async function executeLoopingAction({
         depositAmount: amount,
         priorityFee,
         options: loopingOptions,
+        theme,
       });
     }
   }
@@ -149,6 +162,7 @@ export async function executeLstAction({
   selectedStakingAccount,
   quoteResponseMeta,
   priorityFee,
+  theme = "dark",
 }: LstActionParams) {
   let txnSig: string | undefined;
 
@@ -177,16 +191,17 @@ export async function executeLstAction({
         selectedStakingAccount,
         wallet,
         lstData,
+        theme,
       });
     }
 
     if (bank) {
       if (bank.info.state.mint.equals(WSOL_MINT)) {
         // SOL selected
-        txnSig = await mintLstNative({ marginfiClient, bank, amount, priorityFee, connection, wallet, lstData });
+        txnSig = await mintLstNative({ marginfiClient, bank, amount, priorityFee, connection, wallet, lstData, theme });
       } else {
         // token selected
-        txnSig = await mintLstToken({ bank, amount, priorityFee, connection, wallet, quoteResponseMeta });
+        txnSig = await mintLstToken({ bank, amount, priorityFee, connection, wallet, quoteResponseMeta, theme });
       }
     }
     return txnSig;
@@ -200,6 +215,7 @@ export async function executeLstAction({
         wallet,
         quoteResponseMeta,
         isUnstake: true,
+        theme,
       });
       return txnSig;
     }

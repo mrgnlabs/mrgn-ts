@@ -41,7 +41,7 @@ export const CreatePoolScriptDialog = ({ trigger }: CreatePoolDialogProps) => {
     groupPk: PublicKey;
     lutAddress: PublicKey;
   }) => {
-    const multiStepToast = new MultiStepToastHandle("LUT upload", [{ label: `Uploading LUT to GCP` }]);
+    const multiStepToast = new MultiStepToastHandle("LUT upload", [{ label: `Uploading LUT to GCP` }], "light");
     multiStepToast.start();
 
     try {
@@ -77,7 +77,7 @@ export const CreatePoolScriptDialog = ({ trigger }: CreatePoolDialogProps) => {
 
     const isFinished = bankTokens.length === newIndex;
     if (isFinished) {
-      showWarningToast("All banks created! LFG");
+      showWarningToast({ message: "All banks created! LFG", theme: "light" });
     } else {
       setCurrentIndex((state) => state + 1);
       setCreatePoolState(CreatePoolState.SETUP);

@@ -1,14 +1,11 @@
-import { IconLoader, IconCheck, IconAlertTriangle } from "@tabler/icons-react";
-import { type ClassValue, clsx } from "clsx";
-import { twMerge } from "tailwind-merge";
+import { IconLoader2, IconCheck, IconAlertTriangle } from "@tabler/icons-react";
 
-export const cn = (...inputs: ClassValue[]) => {
-  return twMerge(clsx(inputs));
-};
+import { cn } from "./themeUtils";
 
 export interface MultiStepToastProps {
   title: string;
   steps: ToastStepWithStatus[];
+  theme?: "light" | "dark";
 }
 
 export interface ToastStep {
@@ -22,17 +19,25 @@ export interface ToastStepWithStatus extends ToastStep {
   message?: string;
 }
 
-export const MultiStepToast = ({ title, steps }: MultiStepToastProps) => {
+export const MultiStepToast = ({ title, steps, theme = "dark" }: MultiStepToastProps) => {
   return (
-    <div className="w-full h-full bg-black text-white rounded-xl shadow-lg z-50">
+    <div
+      className={cn(
+        "w-full h-full rounded-xl z-50",
+        theme === "dark" && " bg-black text-white shadow-lg",
+        theme === "light" && "text-primary "
+      )}
+    >
       <h2 className="text-xl font-medium">{title}</h2>
       <div className="pb-3 pt-6 space-y-2">
         {steps.map((step, index) => {
           return (
             <div
               className={cn(
-                "text-gray-400",
-                (step.status === "todo" || step.status === "canceled") && "text-gray-400/50",
+                theme === "dark" && "text-gray-400",
+                theme === "light" && "text-primary",
+                (step.status === "todo" || step.status === "canceled") &&
+                  ((theme === "dark" && "text-gray-400/50") || (theme === "light" && "text-muted-foreground")),
                 step.status === "canceled" && "line-through"
               )}
               key={index}
@@ -43,7 +48,7 @@ export const MultiStepToast = ({ title, steps }: MultiStepToastProps) => {
                 </h3>
                 {step.status === "success" && <IconCheck size={18} className="text-green-400" />}
                 {step.status === "error" && <IconAlertTriangle size={18} className="text-red-400" />}
-                {step.status === "pending" && <IconLoader size={18} />}
+                {step.status === "pending" && <IconLoader2 size={18} className="animate-spin" />}
               </div>
               {step.message && (
                 <p className="bg-destructive py-3 px-4 rounded-xl mt-2.5 text-destructive-foreground">{step.message}</p>

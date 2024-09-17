@@ -129,9 +129,11 @@ export const WalletSend = ({ activeToken, onSendMore, onBack, onRetry, onCancel 
         return;
       }
 
-      const multiStepToast = new MultiStepToastHandle(`Transfer ${token.meta.tokenSymbol}`, [
-        { label: `Sending ${amount} ${token.meta.tokenSymbol} to ${shortenAddress(recipientAddress)}` },
-      ]);
+      const multiStepToast = new MultiStepToastHandle(
+        `Transfer ${token.meta.tokenSymbol}`,
+        [{ label: `Sending ${amount} ${token.meta.tokenSymbol} to ${shortenAddress(recipientAddress)}` }],
+        "light"
+      );
 
       const tokenMint = token.info.state.mint;
       const tokenDecimals = token.info.state.mintDecimals;
