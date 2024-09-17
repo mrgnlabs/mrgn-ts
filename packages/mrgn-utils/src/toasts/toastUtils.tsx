@@ -24,16 +24,19 @@ export class MultiStepToastHandle {
   }
 
   start() {
-    this._toastId = toast(() => <MultiStepToast title={this._title} steps={this._stepsWithStatus} />, {
-      hideProgressBar: true,
-      autoClose: false,
-      style: {
-        width: "100%",
-        height: "100%",
-        bottom: "12px",
-      },
-      className: `rounded-xl pt-3 pb-2 px-3.5 ${this._theme === "dark" ? "bg-black" : "bg-background"}`,
-    });
+    this._toastId = toast(
+      () => <MultiStepToast title={this._title} steps={this._stepsWithStatus} theme={this._theme} />,
+      {
+        hideProgressBar: true,
+        autoClose: false,
+        style: {
+          width: "100%",
+          height: "100%",
+          bottom: "12px",
+        },
+        className: `rounded-xl pt-3 pb-2 px-3.5 ${this._theme === "dark" ? "bg-black" : "bg-background"}`,
+      }
+    );
   }
 
   setSuccessAndNext() {
@@ -42,7 +45,7 @@ export class MultiStepToastHandle {
     if (this._stepIndex >= this._stepsWithStatus.length - 1) {
       this._stepsWithStatus[this._stepIndex].status = "success";
       toast.update(this._toastId, {
-        render: () => <MultiStepToast title={this._title} steps={this._stepsWithStatus} />,
+        render: () => <MultiStepToast title={this._title} steps={this._stepsWithStatus} theme={this._theme} />,
         autoClose: 2000,
       });
     } else {
@@ -50,7 +53,7 @@ export class MultiStepToastHandle {
       this._stepIndex++;
       this._stepsWithStatus[this._stepIndex].status = "pending";
       toast.update(this._toastId, {
-        render: () => <MultiStepToast title={this._title} steps={this._stepsWithStatus} />,
+        render: () => <MultiStepToast title={this._title} steps={this._stepsWithStatus} theme={this._theme} />,
         autoClose: false,
       });
     }
@@ -64,7 +67,7 @@ export class MultiStepToastHandle {
       this._stepsWithStatus[i].status = "canceled";
     }
     toast.update(this._toastId, {
-      render: () => <MultiStepToast title={this._title} steps={this._stepsWithStatus} />,
+      render: () => <MultiStepToast title={this._title} steps={this._stepsWithStatus} theme={this._theme} />,
       autoClose: false,
     });
   }

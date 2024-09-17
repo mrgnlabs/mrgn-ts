@@ -25,7 +25,7 @@ export const MultiStepToast = ({ title, steps, theme = "dark" }: MultiStepToastP
       className={cn(
         "w-full h-full rounded-xl z-50",
         theme === "dark" && " bg-black text-white shadow-lg",
-        theme === "light" && "text-primary "
+        theme === "light" && "text-primary"
       )}
     >
       <h2 className="text-xl font-medium">{title}</h2>
