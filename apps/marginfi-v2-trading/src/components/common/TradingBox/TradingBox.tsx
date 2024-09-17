@@ -520,7 +520,7 @@ export const TradingBox = ({ activeGroup, side = "long" }: TradingBoxProps) => {
               <IconAlertTriangle className="shrink-0 translate-y-0.5" size={16} />
               <div className="space-y-1">
                 <p>
-                  You need to deposit {activeGroup?.pool.token.meta.tokenSymbol} to open a long position.{" "}
+                  You need to hold {activeGroup?.pool.token.meta.tokenSymbol} to open a long position.{" "}
                   <button
                     className="border-b border-alert-foreground hover:border-transparent"
                     onClick={() => {
@@ -539,7 +539,7 @@ export const TradingBox = ({ activeGroup, side = "long" }: TradingBoxProps) => {
               <IconAlertTriangle className="shrink-0 translate-y-0.5" size={16} />
               <div className="space-y-1">
                 <p>
-                  You need to deposit {activeGroup?.pool.quoteTokens[0].meta.tokenSymbol} to open a short position.{" "}
+                  You need to hold {activeGroup?.pool.quoteTokens[0].meta.tokenSymbol} to open a short position.{" "}
                   <button
                     className="border-b border-alert-foreground hover:border-transparent"
                     onClick={() => {
