@@ -40,10 +40,8 @@ registerMoonGateWallet({ authMode: "Google", position: "bottom-right" });
 registerMoonGateWallet({ authMode: "Ethereum", position: "bottom-right" });
 
 // Use require instead of import since order matters
-require("@solana/wallet-adapter-react-ui/styles.css");
 require("~/styles/globals.css");
 require("~/styles/fonts.css");
-require("~/styles/asset-borders.css");
 
 const Navbar = dynamic(async () => (await import("~/components/common/Navbar")).Navbar, {
   ssr: false,
