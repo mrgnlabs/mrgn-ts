@@ -70,9 +70,6 @@ export const MintCardWrapper: React.FC<MintCardWrapperProps> = ({ mintCard, ...p
           </ul>
         )}
 
-        {/* <div className="mt-4">
-          <a className="text-muted-foreground my-4 cursor-pointer text-sm">How it works?</a>
-        </div> */}
         {mintCard.title === "LST" ? (
           <ActionBoxDialog
             requestedAction={requestedAction}

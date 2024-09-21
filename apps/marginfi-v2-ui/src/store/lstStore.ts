@@ -221,10 +221,10 @@ const stateCreator: StateCreator<LstState, [], []> = (set, get) => ({
 });
 
 async function fetchLstData(connection: Connection): Promise<LstData> {
-  const [stakePoolInfo, stakePoolAccount, apyData, solanaCompassPrices] = await Promise.all([
+  const [stakePoolInfo, stakePoolAccount, solanaCompassPrices] = await Promise.all([
     solanaStakePool.stakePoolInfo(connection, STAKE_POOL_ID),
     solanaStakePool.getStakePoolAccount(connection, STAKE_POOL_ID),
-    fetch(STAKEVIEW_APP_URL).then((res) => res.json()),
+    // fetch(STAKEVIEW_APP_URL).then((res) => res.json()),
     fetchAndParsePricesCsv(SOLANA_COMPASS_PRICES_URL),
   ]);
   const stakePool = stakePoolAccount.account.data;
@@ -251,11 +251,12 @@ async function fetchLstData(connection: Connection): Promise<LstData> {
     projectedApy = calcYield(priceRange).apy;
   }
 
-  if (projectedApy < 0.08) {
-    // temporarily use baseline validator APY waiting for a few epochs to pass
-    const baselineValidatorData = apyData.validators.find((validator: any) => validator.id === BASELINE_VALIDATOR_ID);
-    if (baselineValidatorData) projectedApy = baselineValidatorData.apy;
-  }
+  // commenting out until authorization for stakeview url is approved
+  // if (projectedApy < 0.08) {
+  //   // temporarily use baseline validator APY waiting for a few epochs to pass
+  //   const baselineValidatorData = apyData.validators.find((validator: any) => validator.id === BASELINE_VALIDATOR_ID);
+  //   if (baselineValidatorData) projectedApy = baselineValidatorData.apy;
+  // }
 
   return {
     poolAddress: new PublicKey(stakePoolInfo.address),
