@@ -7,9 +7,18 @@ import {
   OracleSetup,
   RiskTier,
   getConfig,
+  makeBundleTipIx,
 } from "@mrgnlabs/marginfi-client-v2";
 import { IconLoader2, IconCheck, IconX } from "@tabler/icons-react";
-import { Keypair, PublicKey, TransactionInstruction } from "@solana/web3.js";
+import {
+  Keypair,
+  PublicKey,
+  TransactionInstruction,
+  TransactionMessage,
+  VersionedTransaction,
+  Signer,
+  Connection,
+} from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 import * as sb from "@switchboard-xyz/on-demand";
 import { CrossbarClient, decodeString } from "@switchboard-xyz/common";
@@ -140,13 +149,12 @@ export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }:
 
   const steps = React.useMemo(
     () => [
-      { label: "Step 1", description: "Creating a swb oracle" },
-      { label: "Step 2", description: "Creating new marginfi group" },
-      { label: "Step 3", description: "Configuring USDC bank" },
-      { label: "Step 4", description: `Configuring ${poolData?.symbol} bank` },
-      { label: "Step 5", description: "Finalizing pool" },
+      { label: "Step 1", description: "Creating a switchboard oracle" },
+      { label: "Step 2", description: "Generating transactions" },
+      { label: "Step 3", description: "Executing transactions" },
+      { label: "Step 4", description: "Finalizing pool" },
     ],
-    [poolData]
+    []
   );
 
   const [poolCreation, setPoolCreation] = React.useState<PoolCreationState>();
@@ -162,57 +170,7 @@ export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }:
     return client;
   }, [connection, wallet]);
 
-  const createGroup = React.useCallback(
-    async (marginfiClient: MarginfiClient, lutIxs: TransactionInstruction[], seed?: Keypair) => {
-      try {
-        const marginfiGroup = await createMarginfiGroup({
-          marginfiClient,
-          additionalIxs: lutIxs,
-          seed,
-        });
-
-        if (!marginfiGroup) throw new Error();
-
-        return marginfiGroup;
-      } catch (error) {
-        setStatus("error");
-      }
-    },
-    [setStatus]
-  );
-
-  const createBank = React.useCallback(
-    async (
-      marginfiClient: MarginfiClient,
-      bankConfig: BankConfigOpt,
-      mint: PublicKey,
-      group: PublicKey,
-      seed?: Keypair
-    ) => {
-      try {
-        setStatus("loading");
-
-        const sig = await createPermissionlessBank({
-          marginfiClient,
-          mint,
-          bankConfig,
-          group,
-          admin: wallet.publicKey,
-          seed,
-          priorityFee,
-        });
-
-        if (!sig) throw new Error();
-
-        return sig;
-      } catch (error) {
-        setStatus("error");
-      }
-    },
-    [wallet.publicKey, priorityFee, setStatus]
-  );
-
-  const createOracle = React.useCallback(
+  const createOracleIx = React.useCallback(
     async (tokenMint: PublicKey, symbol: string, client: MarginfiClient) => {
       // get switchboard onDemand program id
 
@@ -226,9 +184,9 @@ export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }:
 
         const onDemandProgram = new anchor.Program(idl, provider);
 
-        const [pullFeed, feedKp] = sb.PullFeed.generate(onDemandProgram);
+        const [pullFeed, feedSeed] = sb.PullFeed.generate(onDemandProgram);
 
-        const feedPubkey = feedKp.publicKey;
+        const feedPubkey = feedSeed.publicKey;
 
         const oracleTasks = sb.OracleJob.Task.create({
           valueTask: {
@@ -267,9 +225,11 @@ export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }:
           tasks: [oracleTasks],
         });
 
-        const feedHash = decodeString((await crossbarClient.store(queue.toString(), [oracleJob])).feedHash);
+        const feedHash = (await crossbarClient.store(queue.toString(), [oracleJob])).feedHash;
 
-        if (!feedHash) return;
+        const feedHashBuffer = decodeString(feedHash);
+
+        if (!feedHashBuffer) return;
 
         const conf = {
           name: `${symbol}/USD`, // the feed name (max 32 bytes)
@@ -279,26 +239,22 @@ export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }:
           numSignatures: 1, // number of signatures to fetch per update
           minSampleSize: 1, // minimum number of responses to sample for a result
           maxStaleness: 250, // maximum stale slots of responses to sample
-          feedHash: feedHash,
+          feedHash: feedHashBuffer,
         };
 
         const pullFeedIx = await pullFeed.initIx(conf);
 
-        const initTx = await sb.asV0Tx({
-          connection,
-          ixs: [pullFeedIx],
-          payer: wallet.publicKey,
-          signers: [feedKp],
-          computeUnitPrice: 75_000,
-          computeUnitLimitMultiple: 1.3,
-        });
+        // const pullFeedTx = await sb.asV0Tx({
+        //   connection,
+        //   ixs: [pullFeedIx],
+        //   payer: wallet.publicKey,
+        //   signers: [feedSeed],
+        //   computeUnitPrice: 75_000,
+        //   computeUnitLimitMultiple: 1.3,
+        // });
 
-        const sig = await client.processTransaction(initTx);
-
-        console.log("sig", sig);
-
-        if (!sig || !feedPubkey) throw new Error();
-        return feedPubkey;
+        if (!feedPubkey) throw new Error();
+        return { feedPubkey, pullFeedIx, feedSeed };
       } catch (error) {
         setStatus("error");
         console.log("error creating oracle", error);
@@ -307,104 +263,136 @@ export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }:
     [connection, wallet]
   );
 
-  const createSeeds = React.useCallback(() => {
-    const tokenBankSeed = new Keypair();
-    const stableBankSeed = new Keypair();
-    const marginfiGroupSeed = new Keypair();
+  const createPermissionlessBankBundle = React.useCallback(async () => {
+    setActiveStep(0);
 
-    return { tokenBankSeed, stableBankSeed, marginfiGroupSeed };
-  }, []);
-
-  const createTransaction = React.useCallback(async () => {
     if (!poolData) return;
-    setStatus("loading");
 
-    let client = poolCreation?.marginfiClient;
-    let seeds = poolCreation?.seeds;
-    let group = poolCreation?.marginfiGroupPk;
-    let lutAddress = poolCreation?.lutAddress;
-    let oraclePk = poolCreation?.oraclePk;
     // create client
-    if (!client) client = await initializeClient();
+    const client = await initializeClient();
 
-    //create seeds
-    if (!seeds) seeds = createSeeds();
-    setPoolCreation((state) => ({ ...state, seeds }));
+    // create seeds
+    const seeds = createSeeds();
 
-    // TODO: Create SWB Pull oracle (currently usig RETARDIO)
+    // create bundle tip ix
+    const bundleTipIx = makeBundleTipIx(wallet.publicKey);
 
-    // create oracle
-    if (!oraclePk) {
-      setActiveStep(0);
-      oraclePk = await createOracle(poolData.mint, poolData.symbol, client);
-      if (!oraclePk) return;
-    }
+    // create oracle ix
+    const oracleCreation = await createOracleIx(poolData.mint, poolData.symbol, client);
 
-    console.log("oracle", oraclePk);
+    if (!oracleCreation) throw new Error("Oracle creation failed");
 
-    // const swbOracle = new PublicKey("8pMJw6N3e1FDexoTMx1T1ComSB91tmQydFrmhmmnXZuV");
+    setActiveStep(1);
 
-    // create group & LUT
-    if (!group || !lutAddress) {
-      console.log("creating lut");
-      setActiveStep(1);
-      const oracleKeys = [oraclePk, ...(DEFAULT_USDC_BANK_CONFIG.oracle?.keys ?? [])];
-      const bankKeys = [seeds.stableBankSeed.publicKey, seeds.tokenBankSeed.publicKey];
-      const {
-        lutAddress: newLutAddress,
-        createLutIx,
-        extendLutIx,
-      } = await createPoolLookupTable({
-        client,
-        oracleKeys,
-        bankKeys,
-        groupKey: seeds.marginfiGroupSeed.publicKey,
-        walletKey: wallet.publicKey,
-      });
+    // create group ix
+    const groupIxWrapped = await client.makeCreateMarginfiGroupIx(seeds.marginfiGroupSeed.publicKey);
 
-      lutAddress = newLutAddress;
+    // create lut ix
+    const oracleKeys = [oracleCreation.feedPubkey, ...(DEFAULT_USDC_BANK_CONFIG.oracle?.keys ?? [])];
+    const bankKeys = [seeds.stableBankSeed.publicKey, seeds.tokenBankSeed.publicKey];
+    const { lutAddress, createLutIx, extendLutIx } = await createPoolLookupTable({
+      client,
+      oracleKeys,
+      bankKeys,
+      groupKey: seeds.marginfiGroupSeed.publicKey,
+      walletKey: wallet.publicKey,
+    });
 
-      console.log("creating group");
-      group = await createGroup(client, [createLutIx, extendLutIx], seeds.marginfiGroupSeed);
-      if (!group || !lutAddress) return;
-    }
+    // create bank ix wrapper (stable)
+    const stableBankIxWrapper = await client.group.makePoolAddBankIx(
+      client.program,
+      seeds.stableBankSeed.publicKey,
+      USDC_MINT,
+      DEFAULT_USDC_BANK_CONFIG,
+      {
+        admin: wallet.publicKey,
+        groupAddress: seeds.marginfiGroupSeed.publicKey,
+      }
+    );
 
-    setPoolCreation((state) => ({ ...state, marginfiGroupPk: group, lutAddress }));
+    let tokenBankConfig = DEFAULT_TOKEN_BANK_CONFIG;
 
-    console.log("group created: ", group.toBase58());
+    // TODO: create switchboard pull oracle
+    // TODO: update limits according to oracle price / token decimals (currently using Retardio data)
+    tokenBankConfig.borrowLimit = new BigNumber(11481056).multipliedBy(1e6);
+    tokenBankConfig.depositLimit = new BigNumber(252870264).multipliedBy(1e6);
+    tokenBankConfig.oracle = {
+      setup: OracleSetup.SwitchboardV2,
+      keys: [oracleCreation.feedPubkey],
+    };
 
-    if (!poolCreation?.stableBankPk) {
-      console.log("creating stable bank");
-      setActiveStep(2);
-      const sig = await createBank(client, DEFAULT_USDC_BANK_CONFIG, USDC_MINT, group, seeds.stableBankSeed);
-      if (!sig) return;
-      setPoolCreation((state) => ({ ...state, stableBankPk: seeds.stableBankSeed.publicKey }));
-    }
+    // create bank ix wrapper (token)
+    const tokenBankIxWrapper = await client.group.makePoolAddBankIx(
+      client.program,
+      seeds.tokenBankSeed.publicKey,
+      poolData.mint,
+      tokenBankConfig,
+      {
+        admin: wallet.publicKey,
+        groupAddress: seeds.marginfiGroupSeed.publicKey,
+      }
+    );
 
-    if (!poolCreation?.tokenBankPk) {
-      setActiveStep(3);
-      const tokenMint = new PublicKey(poolData.mint);
-      // token bank
-      let tokenBankConfig = DEFAULT_TOKEN_BANK_CONFIG;
+    // transactions
+    const transactions: VersionedTransaction[] = [];
+    const {
+      value: { blockhash },
+    } = await connection.getLatestBlockhashAndContext();
 
-      // TODO: create switchboard pull oracle
-      // TODO: update limits according to oracle price / token decimals (currently using Retardio data)
-      tokenBankConfig.borrowLimit = new BigNumber(11481056).multipliedBy(1e6);
-      tokenBankConfig.depositLimit = new BigNumber(252870264).multipliedBy(1e6);
-      tokenBankConfig.oracle = {
-        setup: OracleSetup.SwitchboardV2,
-        keys: [oraclePk],
-      };
+    // bundle tip & create oracle transaction
+    transactions.push(
+      await createTransaction(
+        [bundleTipIx, oracleCreation.pullFeedIx],
+        wallet.publicKey,
+        connection,
+        [oracleCreation.feedSeed],
+        blockhash
+      )
+    );
 
-      const sig = await createBank(client, tokenBankConfig, tokenMint, group, seeds.tokenBankSeed);
-      if (!sig) return;
-      setPoolCreation((state) => ({ ...state, tokenBankPk: seeds.tokenBankSeed.publicKey }));
-    }
+    // create lut & create group transaction
+    transactions.push(
+      await createTransaction(
+        [createLutIx, extendLutIx, ...groupIxWrapped.instructions],
+        wallet.publicKey,
+        connection,
+        [seeds.marginfiGroupSeed],
+        blockhash
+      )
+    );
 
-    console.log("updating gcp caches");
-    setActiveStep(4);
+    // stable bank transaction
+    transactions.push(
+      await createTransaction(
+        [...stableBankIxWrapper.instructions],
+        wallet.publicKey,
+        connection,
+        [seeds.stableBankSeed, ...stableBankIxWrapper.keys],
+        blockhash
+      )
+    );
+
+    // token bank transaction
+    transactions.push(
+      await createTransaction(
+        [...tokenBankIxWrapper.instructions],
+        wallet.publicKey,
+        connection,
+        [seeds.tokenBankSeed, ...tokenBankIxWrapper.keys],
+        blockhash
+      )
+    );
+
+    setActiveStep(2);
+
+    // transaction execution
+    const sigs = client.processTransactions(transactions);
+
+    setActiveStep(3);
+
+    // update LUT GCP
     const cacheData = {
-      groupAddress: group.toBase58(),
+      groupAddress: seeds.marginfiGroupSeed.publicKey.toBase58(),
       lutAddress: lutAddress.toBase58(),
       usdcBankAddress: seeds.stableBankSeed.publicKey.toBase58(),
       tokenBankAddress: seeds.tokenBankSeed.publicKey.toBase58(),
@@ -428,11 +416,9 @@ export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }:
       return;
     }
 
-    console.log("pool creation complete");
-    console.log(cacheData);
     setPoolData((state) => {
       if (!state) return null;
-      return { ...state, group };
+      return { ...state, group: seeds.marginfiGroupSeed.publicKey };
     });
     setCreatePoolState(CreatePoolState.SUCCESS);
     fetchTradeState({
@@ -441,32 +427,54 @@ export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }:
       refresh: true,
     });
   }, [
-    poolData,
-    poolCreation?.marginfiClient,
-    poolCreation?.seeds,
-    poolCreation?.marginfiGroupPk,
-    poolCreation?.lutAddress,
-    poolCreation?.oraclePk,
-    poolCreation?.stableBankPk,
-    poolCreation?.tokenBankPk,
-    initializeClient,
-    createSeeds,
-    setPoolData,
-    setCreatePoolState,
-    fetchTradeState,
     connection,
+    createOracleIx,
+    fetchTradeState,
+    initializeClient,
+    poolData,
+    setCreatePoolState,
+    setPoolData,
     wallet,
-    createOracle,
-    createGroup,
-    createBank,
   ]);
+
+  const createTransaction = async (
+    ixs: TransactionInstruction[],
+    payerKey: PublicKey,
+    connection: Connection,
+    signers: Signer[],
+    blockhashArg?: string
+  ) => {
+    let blockhash = blockhashArg;
+    if (!blockhash) {
+      blockhash = (await connection.getLatestBlockhashAndContext()).value.blockhash;
+    }
+
+    const message = new TransactionMessage({
+      instructions: ixs,
+      payerKey,
+      recentBlockhash: blockhash,
+    });
+
+    const transaction = new VersionedTransaction(message.compileToV0Message());
+    transaction.sign(signers);
+
+    return transaction;
+  };
+
+  const createSeeds = () => {
+    const tokenBankSeed = new Keypair();
+    const stableBankSeed = new Keypair();
+    const marginfiGroupSeed = new Keypair();
+
+    return { tokenBankSeed, stableBankSeed, marginfiGroupSeed };
+  };
 
   React.useEffect(() => {
     if (!initialized.current) {
       initialized.current = true;
-      createTransaction();
+      // createTransaction();
     }
-  }, [createTransaction]);
+  }, []);
 
   return (
     <>
@@ -493,7 +501,7 @@ export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }:
               <div>{step.description}</div>
               <div className={cn("ml-auto", !showRetry && "px-4")}>
                 {showRetry && (
-                  <Button variant="link" size="sm" className="ml-5" onClick={() => createTransaction()}>
+                  <Button variant="link" size="sm" className="ml-5" onClick={() => createPermissionlessBankBundle()}>
                     Retry
                   </Button>
                 )}
