@@ -149,7 +149,7 @@ export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }:
 
   const steps = React.useMemo(
     () => [
-      { label: "Step 1", description: "Creating a switchboard oracle" },
+      { label: "Step 1", description: "Setting up a switchboard oracle" },
       { label: "Step 2", description: "Generating transactions" },
       { label: "Step 3", description: "Executing transactions" },
       { label: "Step 4", description: "Finalizing pool" },
@@ -226,6 +226,7 @@ export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }:
         });
 
         const feedHash = (await crossbarClient.store(queue.toString(), [oracleJob])).feedHash;
+        console.log("feedHash", feedHash);
 
         const feedHashBuffer = decodeString(feedHash);
 
@@ -254,6 +255,7 @@ export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }:
         // });
 
         if (!feedPubkey) throw new Error();
+        console.log("feedPubkey", feedPubkey.toBase58());
         return { feedPubkey, pullFeedIx, feedSeed };
       } catch (error) {
         setStatus("error");
@@ -267,6 +269,8 @@ export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }:
     setActiveStep(0);
 
     if (!poolData) return;
+
+    setStatus("loading");
 
     // create client
     const client = await initializeClient();
@@ -472,6 +476,7 @@ export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }:
   React.useEffect(() => {
     if (!initialized.current) {
       initialized.current = true;
+      createPermissionlessBankBundle();
       // createTransaction();
     }
   }, []);
