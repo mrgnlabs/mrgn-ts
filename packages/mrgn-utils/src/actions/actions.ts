@@ -21,6 +21,15 @@ import {
   mintLstStakeToStake,
 } from "./individualFlows";
 
+// ------------------------------------------------------------------//
+// Actions //
+/**
+ * This file contains action functions for executing various marginfi operations.
+ * These actions support the execution of different operations such as depositing, borrowing,
+ * repaying, withdrawing, looping, and repaying with collateral.
+ */
+// ------------------------------------------------------------------//
+
 export async function createAccountAction({
   marginfiClient,
   nativeSolBalance,

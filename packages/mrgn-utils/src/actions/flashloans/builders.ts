@@ -19,8 +19,19 @@ import {
 } from "./helpers";
 import { STATIC_SIMULATION_ERRORS } from "../../errors";
 
+// ------------------------------------------------------------------//
+// Builders //
+/**
+ * This file contains builder functions for creating and managing flashloan transactions.
+ * These builders support the construction, validation, and execution of various flashloan operations,
+ * such as looping and repaying with collateral.
+ */
+// ------------------------------------------------------------------//
+
 /*
  * Calculates the parameters for a repay with collateral flashloan
+ *
+ * IDEA to improve: instead of for loop, promise.all
  */
 export async function calculateRepayCollateralParams(
   marginfiAccount: MarginfiAccountWrapper,
