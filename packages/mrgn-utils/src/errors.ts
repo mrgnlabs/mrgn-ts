@@ -116,6 +116,13 @@ export const STATIC_SIMULATION_ERRORS: { [key: string]: ActionMethod } = {
     isEnabled: true,
     actionMethod: "WARNING",
   },
+  BUILDING_LENDING_TX: {
+    description: "Transaction failed to build, please open a ticket.",
+    link: "https://support.marginfi.com/",
+    linkText: "Contact support",
+    isEnabled: false,
+    actionMethod: "WARNING",
+  },
 };
 
 const createRepayCollatFailedCheck = (tokenSymbol?: string): ActionMethod => ({

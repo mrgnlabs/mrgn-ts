@@ -1,6 +1,13 @@
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
-import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { closeBalance, executeLendingAction, MarginfiActionParams } from "@mrgnlabs/mrgn-utils";
+import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import {
+  ActionMethod,
+  closeBalance,
+  executeLendingAction,
+  isWholePosition,
+  MarginfiActionParams,
+} from "@mrgnlabs/mrgn-utils";
+import { Transaction, VersionedTransaction } from "@solana/web3.js";
 
 import { v4 as uuidv4 } from "uuid";
 
@@ -40,10 +47,6 @@ export const handleExecuteLendingAction = async ({
 
   setIsLoading(false);
 
-  // if (error) {
-  //   setIsError(error);
-  // }
-
   if (txnSig) {
     setIsComplete([...txnSig]);
     captureEvent(`user_${actionType.toLowerCase()}`, {
@@ -55,7 +58,6 @@ export const handleExecuteLendingAction = async ({
       priorityFee,
     });
   } else {
-    // does this ever happen?
     setIsError("Transaction not landed");
   }
 };
@@ -109,3 +111,59 @@ export const handleExecuteCloseBalance = async ({
     setIsError("Transaction failed to land");
   }
 };
+
+export async function calculateLendingTransaction(
+  marginfiAccount: MarginfiAccountWrapper,
+  bank: ExtendedBankInfo,
+  actionMode: ActionType,
+  amount: number,
+  priorityFee: number
+): Promise<
+  | {
+      actionTxn: VersionedTransaction | Transaction;
+      additionalTxns: VersionedTransaction[];
+    }
+  | ActionMethod
+> {
+  switch (actionMode) {
+    case ActionType.Deposit:
+      const depositTx = await marginfiAccount.makeDepositTx(amount, bank.address, { priorityFeeUi: priorityFee });
+      return {
+        actionTxn: depositTx,
+        additionalTxns: [], // bundle tip ix is in depositTx
+      };
+    case ActionType.Borrow:
+      const borrowTxObject = await marginfiAccount.makeBorrowTx(amount, bank.address, {
+        createAtas: true,
+        wrapAndUnwrapSol: false,
+        priorityFeeUi: priorityFee,
+      });
+      return {
+        actionTxn: borrowTxObject.borrowTx,
+        additionalTxns: [],
+      };
+    case ActionType.Withdraw:
+      const withdrawTxObject = await marginfiAccount.makeWithdrawTx(
+        amount,
+        bank.address,
+        bank.isActive && isWholePosition(bank, amount)
+      );
+      return {
+        actionTxn: withdrawTxObject.withdrawTx,
+        additionalTxns: [],
+      };
+    case ActionType.Repay:
+      const repayTx = await marginfiAccount.makeRepayTx(
+        amount,
+        bank.address,
+        bank.isActive && isWholePosition(bank, amount),
+        { priorityFeeUi: priorityFee }
+      );
+      return {
+        actionTxn: repayTx,
+        additionalTxns: [], // bundle tip ix is in repayTx
+      };
+    default:
+      throw new Error("Unknown action mode");
+  }
+}

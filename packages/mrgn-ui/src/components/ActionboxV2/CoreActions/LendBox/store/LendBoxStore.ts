@@ -1,4 +1,5 @@
 import { create, StateCreator } from "zustand";
+import { Transaction, VersionedTransaction } from "@solana/web3.js";
 
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { ActionMethod } from "@mrgnlabs/mrgn-utils";
@@ -7,9 +8,13 @@ import { SimulationResult } from "@mrgnlabs/marginfi-client-v2";
 interface LendBoxState {
   // State
   amountRaw: string;
+
   lendMode: ActionType;
-  simulationResult: SimulationResult | null;
   selectedBank: ExtendedBankInfo | null;
+
+  simulationResult: SimulationResult | null;
+  actionTxns: { actionTxn: VersionedTransaction | Transaction | null; additionalTxns: VersionedTransaction[] };
+
   errorMessage: ActionMethod | null;
   isLoading: boolean;
 
@@ -20,8 +25,13 @@ interface LendBoxState {
   setLendMode: (lendMode: ActionType) => void;
   setAmountRaw: (amountRaw: string, maxAmount?: number) => void;
   setSimulationResult: (simulationResult: SimulationResult | null) => void;
+  setActionTxns: (actionTxns: {
+    actionTxn: VersionedTransaction | Transaction | null;
+    additionalTxns: VersionedTransaction[];
+  }) => void;
   setSelectedBank: (bank: ExtendedBankInfo | null) => void;
   setIsLoading: (isLoading: boolean) => void;
+  setErrorMessage: (errorMessage: ActionMethod | null) => void;
 }
 
 function createLendBoxStore() {
@@ -31,9 +41,10 @@ function createLendBoxStore() {
 const initialState = {
   amountRaw: "",
   simulationResult: null,
-  errorMessage: null,
   lendMode: ActionType.Deposit,
   selectedBank: null,
+  actionTxns: { actionTxn: null, additionalTxns: [] },
+  errorMessage: null,
   isLoading: false,
 };
 
@@ -126,12 +137,20 @@ const stateCreator: StateCreator<LendBoxState, [], []> = (set, get) => ({
     set({ lendMode });
   },
 
+  setActionTxns(actionTxns) {
+    set({ actionTxns });
+  },
+
   setSimulationResult(simulationResult) {
     set({ simulationResult });
   },
 
   setIsLoading(isLoading) {
     set({ isLoading });
+  },
+
+  setErrorMessage(errorMessage) {
+    set({ errorMessage });
   },
 });
 

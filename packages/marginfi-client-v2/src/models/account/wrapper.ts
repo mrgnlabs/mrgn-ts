@@ -706,13 +706,20 @@ class MarginfiAccountWrapper {
   async deposit(amount: Amount, bankAddress: PublicKey, opt: MakeDepositIxOpts = {}): Promise<string> {
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:deposit`);
     debug("Depositing %s into marginfi account (bank: %s)", amount, shortenAddress(bankAddress));
+
+    const tx = await this.makeDepositTx(amount, bankAddress, opt);
+
+    const sig = await this.client.processTransaction(tx, []);
+    debug("Depositing successful %s", sig);
+    return sig;
+  }
+
+  async makeDepositTx(amount: Amount, bankAddress: PublicKey, opt: MakeDepositIxOpts = {}): Promise<Transaction> {
     const priorityFeeIx = this.makePriorityFeeIx(opt.priorityFeeUi);
     const bundleTipIx = makeBundleTipIx(this.client.provider.publicKey);
     const ixs = await this.makeDepositIx(amount, bankAddress, opt);
     const tx = new Transaction().add(bundleTipIx, ...priorityFeeIx, ...ixs.instructions);
-    const sig = await this.client.processTransaction(tx, []);
-    debug("Depositing successful %s", sig);
-    return sig;
+    return tx;
   }
 
   async simulateDeposit(amount: Amount, bankAddress: PublicKey): Promise<SimulationResult> {
@@ -776,14 +783,26 @@ class MarginfiAccountWrapper {
   ): Promise<string> {
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:repay`);
     debug("Repaying %s into marginfi account (bank: %s), repay all: %s", amount, bankAddress, repayAll);
-    const priorityFeeIx = this.makePriorityFeeIx(opt.priorityFeeUi);
-    const bundleTipIx = makeBundleTipIx(this.client.provider.publicKey);
-    const ixs = await this.makeRepayIx(amount, bankAddress, repayAll, opt);
-    const tx = new Transaction().add(bundleTipIx, ...priorityFeeIx, ...ixs.instructions);
+
+    const tx = await this.makeRepayTx(amount, bankAddress, repayAll, opt);
+
     const sig = await this.client.processTransaction(tx, []);
     debug("Depositing successful %s", sig);
 
     return sig;
+  }
+
+  async makeRepayTx(
+    amount: Amount,
+    bankAddress: PublicKey,
+    repayAll: boolean = false,
+    opt: MakeRepayIxOpts = {}
+  ): Promise<Transaction> {
+    const priorityFeeIx = this.makePriorityFeeIx(opt.priorityFeeUi);
+    const bundleTipIx = makeBundleTipIx(this.client.provider.publicKey);
+    const ixs = await this.makeRepayIx(amount, bankAddress, repayAll, opt);
+    const tx = new Transaction().add(bundleTipIx, ...priorityFeeIx, ...ixs.instructions);
+    return tx;
   }
 
   async simulateRepay(amount: Amount, bankAddress: PublicKey, repayAll: boolean = false): Promise<SimulationResult> {

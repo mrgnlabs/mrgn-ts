@@ -11,6 +11,15 @@ import { closePositionBuilder, loopingBuilder, repayWithCollatBuilder } from "./
 import { getSwapQuoteWithRetry } from "../helpers";
 import { nativeToUi, uiToNative } from "@mrgnlabs/mrgn-common";
 
+// ------------------------------------------------------------------//
+// Helpers //
+/**
+ * This file contains helper functions and utilities for handling flashloan-related actions.
+ * These helpers facilitate the building, verification, and execution of flashloan transactions,
+ * including looping and repaying with collateral.
+ */
+// ------------------------------------------------------------------//
+
 /*
  * Builds and verifies the size of the Looping transaction.
  */
