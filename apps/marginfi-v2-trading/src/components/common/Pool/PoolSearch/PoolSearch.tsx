@@ -11,7 +11,6 @@ import { Desktop, Mobile } from "~/utils/mediaQueries";
 import { PoolSearchDefault, PoolSearchDialog } from "./components/";
 
 type PoolSearchProps = {
-  size?: "sm" | "lg";
   maxResults?: number;
   additionalContent?: React.ReactNode;
   additionalContentQueryMin?: number;
@@ -20,7 +19,6 @@ type PoolSearchProps = {
 };
 
 export const PoolSearch = ({
-  size = "lg",
   maxResults = 5,
   additionalContent,
   additionalContentQueryMin = 3,
@@ -63,7 +61,6 @@ export const PoolSearch = ({
           setSearchQuery={setSearchQuery}
           resetSearch={resetSearch}
           searchResults={searchResults}
-          size={size}
           additionalContent={additionalContent}
           additionalContentQueryMin={additionalContentQueryMin}
           showNoResults={showNoResults}

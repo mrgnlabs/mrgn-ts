@@ -44,7 +44,7 @@ export const CreatePoolSoon = ({ trigger }: CreatePoolDialogProps) => {
     async (values: z.infer<typeof formSchema>) => {
       setIsSubmitting(true);
       setFormData(values);
-      const poolSubmission = await fetch(`/api/pool`, {
+      const poolSubmission = await fetch(`/api/pool/request`, {
         method: "POST",
         body: JSON.stringify({
           email: values.email,

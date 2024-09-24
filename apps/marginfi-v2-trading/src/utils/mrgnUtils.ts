@@ -137,7 +137,11 @@ export function extractErrorString(error: any, fallback?: string): string {
 }
 
 export function getTokenImageURL(mintAddress: string): string {
-  return `https://storage.googleapis.com/mrgn-public/mrgn-trade-token-icons/${mintAddress}.png`;
+  const url = `https://storage.googleapis.com/mrgn-public/mrgn-trade-token-icons-test/${mintAddress}.png`;
+  if (process.env.NEXT_PUBLIC_INVALIDATE_GCP_CACHE === "true") {
+    return `${url}?t=${Date.now()}`;
+  }
+  return url;
 }
 
 export function isBankOracleStale(bank: ExtendedBankInfo) {

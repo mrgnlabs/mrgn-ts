@@ -42,17 +42,12 @@ export async function createMarginfiGroup({
   additionalIxs: TransactionInstruction[];
   seed?: Keypair;
 }) {
-  const multiStepToast = new MultiStepToastHandle("Group Creation", [{ label: `Creating group` }]);
-  multiStepToast.start();
-
   try {
     const marginfiGroup = await marginfiClient.createMarginfiGroup(seed, additionalIxs, {});
-    multiStepToast.setSuccessAndNext();
     return marginfiGroup;
   } catch (error: any) {
     const msg = extractErrorString(error);
     Sentry.captureException({ message: error });
-    multiStepToast.setFailed(msg);
     console.log(`Error while withdrawing: ${msg}`);
     console.log(error);
     return;
@@ -129,9 +124,6 @@ export async function createPermissionlessBank({
   seed?: Keypair;
   priorityFee?: number;
 }) {
-  const multiStepToast = new MultiStepToastHandle("Bank Creation", [{ label: `Creating permissionless bank` }]);
-  multiStepToast.start();
-
   try {
     const txnSig = await marginfiClient.createPermissionlessBank({
       mint,
@@ -141,12 +133,10 @@ export async function createPermissionlessBank({
       seed,
       priorityFee,
     });
-    multiStepToast.setSuccessAndNext();
     return txnSig;
   } catch (error: any) {
     const msg = extractErrorString(error);
     Sentry.captureException({ message: error });
-    multiStepToast.setFailed(msg);
     console.log(`Error while creating bank: ${msg}`);
     console.log(error);
     return;
@@ -300,10 +290,10 @@ export async function calculateClosePositions({
   platformFeeBps?: number;
 }): Promise<
   | {
-    closeTxn: VersionedTransaction | Transaction;
-    feedCrankTxs: VersionedTransaction[];
-    quote?: QuoteResponse;
-  }
+      closeTxn: VersionedTransaction | Transaction;
+      feedCrankTxs: VersionedTransaction[];
+      quote?: QuoteResponse;
+    }
   | ActionMethod
 > {
   // user is borrowing and depositing

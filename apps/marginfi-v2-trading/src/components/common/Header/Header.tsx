@@ -5,27 +5,17 @@ import React from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { motion, useAnimate } from "framer-motion";
-import {
-  IconTrendingUp,
-  IconCoins,
-  IconChartPie,
-  IconPlus,
-  IconShovelPitchforks,
-  IconCommand,
-  IconRefresh,
-} from "@tabler/icons-react";
+import { IconPlus } from "@tabler/icons-react";
 
-import { useTradeStore, useUiStore } from "~/store";
-import { WalletState } from "~/store/uiStore";
+import { useTradeStore } from "~/store";
 import { cn } from "~/utils/themeUtils";
-import { useWalletContext } from "~/hooks/useWalletContext";
 import { useIsMobile } from "~/hooks/useIsMobile";
 
 import { WalletButton } from "~/components/common/Wallet";
 import { CreatePoolScriptDialog } from "../Pool/CreatePoolScript";
+import { CreatePoolDialog } from "../Pool/CreatePoolDialog";
 import { Button } from "~/components/ui/button";
 import { IconArena } from "~/components/ui/icons";
-import { CreatePoolSoon } from "../Pool/CreatePoolSoon";
 
 const navItems = [
   { label: "Discover", href: "/" },
@@ -35,9 +25,7 @@ const navItems = [
 
 export const Header = () => {
   const [initialized] = useTradeStore((state) => [state.initialized]);
-  const [setIsWalletOpen, setWalletState] = useUiStore((state) => [state.setIsWalletOpen, state.setWalletState]);
-  const { asPath, isReady } = useRouter();
-  const { connected } = useWalletContext();
+  const { asPath } = useRouter();
   const isMobile = useIsMobile();
   const [scope, animate] = useAnimate();
 
@@ -101,25 +89,13 @@ export const Header = () => {
           <div className="flex items-center gap-6">
             {!isMobile && (
               <div className="flex items-center">
-                <CreatePoolSoon
+                <CreatePoolDialog
                   trigger={
                     <Button disabled={false}>
                       <IconPlus size={16} /> Create Pool
                     </Button>
                   }
                 />
-                {/* <TooltipProvider>
-                <Tooltip delayDuration={0}>
-                  <TooltipTrigger asChild>
-                    <Button size={isMobile ? "sm" : "default"} className="opacity-50">
-                      <IconPlus size={isMobile ? 14 : 18} /> Create Pools
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Permissionless pools coming soon...</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider> */}
               </div>
             )}
             <WalletButton />
