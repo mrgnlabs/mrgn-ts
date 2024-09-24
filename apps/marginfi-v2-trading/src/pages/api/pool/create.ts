@@ -47,25 +47,9 @@ const validateCreatePoolData = (data: Partial<CreatePoolData>): { valid: boolean
   return { valid: missingFields.length === 0, missingFields };
 };
 
-const preprocessFotofolioUrl = (imageUrl: string): string => {
-  try {
-    const url = new URL(imageUrl);
-    if (url.hostname === "img.fotofolio.xyz") {
-      const originalUrl = url.searchParams.get("url");
-      if (originalUrl) {
-        return `https://img.fotofolio.xyz/?url=${encodeURIComponent(originalUrl)}&w=120&h=120`;
-      }
-    }
-  } catch (error) {
-    console.error("Error preprocessing Fotofolio URL:", error);
-  }
-  return imageUrl; // Return original URL if not Fotofolio or if there's an error
-};
-
 const uploadImageToGCP = async (imageUrl: string, tokenMint: string): Promise<string> => {
   try {
-    const processedImageUrl = preprocessFotofolioUrl(imageUrl);
-    const response = await fetch(processedImageUrl);
+    const response = await fetch(imageUrl);
     if (!response.ok) throw new Error("Failed to fetch image");
     const arrayBuffer = await response.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
