@@ -321,7 +321,7 @@ export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }:
     tokenBankConfig.borrowLimit = new BigNumber(11481056).multipliedBy(1e6);
     tokenBankConfig.depositLimit = new BigNumber(252870264).multipliedBy(1e6);
     tokenBankConfig.oracle = {
-      setup: OracleSetup.SwitchboardV2,
+      setup: OracleSetup.SwitchboardPull,
       keys: [oracleCreation.feedPubkey],
     };
 
