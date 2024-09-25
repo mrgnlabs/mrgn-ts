@@ -2,7 +2,7 @@ import React from "react";
 
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { cn } from "~/utils/themeUtils";
+import { cn } from "~/utils/theme-utils";
 import { ActionStatItem } from "../../../../../ActionboxV2/sharedComponents";
 
 import { useLendBoxStore } from "../../store";

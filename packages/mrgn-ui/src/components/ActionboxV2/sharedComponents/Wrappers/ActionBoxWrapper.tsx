@@ -3,7 +3,7 @@ import React from "react";
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { getBlockedActions } from "@mrgnlabs/mrgn-utils";
 
-import { cn } from "~/utils/themeUtils";
+import { cn } from "~/utils/theme-utils";
 
 import { ActionSettings } from "../ActionSettings";
 import { useActionBoxStore } from "../../store";

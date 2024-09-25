@@ -7,7 +7,7 @@ import { LendingModes } from "@mrgnlabs/mrgn-utils";
 
 import { SelectedBankItem } from "~/components/ActionboxV2/sharedComponents";
 import { Button } from "~/components/ui/button";
-import { cn } from "~/utils/themeUtils";
+import { cn } from "~/utils/theme-utils";
 
 type RepayCollatTokensTriggerProps = {
   bank: ExtendedBankInfo | null;

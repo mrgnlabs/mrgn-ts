@@ -5,7 +5,7 @@ import Image from "next/image";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { getTokenImageURL, LendingModes } from "@mrgnlabs/mrgn-utils";
 
-import { cn } from "~/utils/themeUtils";
+import { cn } from "~/utils/theme-utils";
 
 type SelectedBankItemProps = {
   bank: ExtendedBankInfo;

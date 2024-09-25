@@ -1,4 +1,4 @@
-import { cn } from "~/utils/themeUtils";
+import { cn } from "~/utils/theme-utils";
 
 interface ActionStatItemProps {
   label: string;

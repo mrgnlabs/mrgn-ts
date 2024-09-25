@@ -2,7 +2,7 @@ import React from "react";
 
 import { ActionSummary } from "~/components/ActionboxV2/sharedUtils";
 import { ActionStatItem } from "~/components/ActionboxV2/sharedComponents";
-import { cn } from "~/utils/themeUtils";
+import { cn } from "~/utils/theme-utils";
 
 import { generateRepayCollatStats } from "./repayCollatBoxPreviewUtils";
 

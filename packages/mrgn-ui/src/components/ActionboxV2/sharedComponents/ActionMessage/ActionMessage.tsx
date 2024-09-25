@@ -3,7 +3,7 @@ import { IconAlertTriangle, IconExternalLink } from "@tabler/icons-react";
 
 import { ActionMethod } from "@mrgnlabs/mrgn-utils";
 
-import { cn } from "~/utils/themeUtils";
+import { cn } from "~/utils/theme-utils";
 
 interface ActionMessageProps {
   actionMethod: ActionMethod;
