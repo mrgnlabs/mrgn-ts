@@ -1,6 +1,6 @@
 import React from "react";
 
-import { cn } from "~/utils/theme-utils";
+import { cn } from "@mrgnlabs/mrgn-utils";
 
 interface props {
   children: React.ReactNode;

@@ -1,7 +1,7 @@
 import React from "react";
 import { useWallet, Wallet } from "@solana/wallet-adapter-react";
 import { WalletName, WalletReadyState } from "@solana/wallet-adapter-base";
-import { useOs } from "~/hooks/use-os";
+import { useOs } from "./use-os";
 
 type WalletPreset = "eth" | "sol" | "social" | "pwa";
 

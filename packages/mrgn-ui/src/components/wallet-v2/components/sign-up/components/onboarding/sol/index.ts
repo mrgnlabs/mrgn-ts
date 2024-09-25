@@ -1,1 +1,1 @@
-export * from "./OnboardingSol";
+export * from "./onboarding-sol";

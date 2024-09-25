@@ -1,14 +1,11 @@
 import React from "react";
 import Image from "next/image";
-import { Wallet } from "@solana/wallet-adapter-react";
+import { IconPlus } from "@tabler/icons-react";
+import { ExtendedWallet } from "@mrgnlabs/mrgn-utils";
 
-import { walletIcons } from "~/utils";
-
+import { walletIcons } from "~/components/wallet-v2/components/sign-up/sign-up.utils";
+import { WalletAuthButton } from "~/components/wallet-v2/components/sign-up/components";
 import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
-import { IconPlus } from "~/components/ui/icons";
-import { ExtendedWallet } from "~/hooks/useAvailableWallets";
-
-import { WalletAuthButton } from "./wallet-auth-button";
 
 interface props {
   isLoading: boolean;

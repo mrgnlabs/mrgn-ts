@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 import Image from "next/image";
 
 import { OnrampScreenProps } from "~/components/wallet-v2/components/sign-up/sign-up.utils";
-import { useAvailableWallets } from "~/components/wallet-v2/hooks/use-available-wallets";
+import { useAvailableWallets } from "@mrgnlabs/mrgn-utils";
 import { Button } from "~/components/ui/button";
 
 import { ScreenWrapper } from "~/components/wallet-v2/components/sign-up/components";

@@ -4,8 +4,8 @@ import { WalletName } from "@solana/wallet-adapter-base";
 import { IconBrandX, IconBrandApple, IconBrandGoogle } from "@tabler/icons-react";
 import { MarginfiAccount } from "@mrgnlabs/marginfi-client-v2";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { Web3AuthSocialProvider } from "~/components/wallet-v2/hooks/use-wallet";
-import { ExtendedWallet } from "~/components/wallet-v2/hooks/use-available-wallets";
+import { Web3AuthSocialProvider } from "~/components/wallet-v2/wallet.hooks";
+import { ExtendedWallet } from "@mrgnlabs/mrgn-utils";
 import {
   InAppSignIn,
   OnboardingEth,
@@ -53,8 +53,8 @@ export interface OnrampScreenProps extends AuthScreenProps {
 }
 
 export interface AuthScreenProps {
-  marginfiAccounts: MarginfiAccount[];
-  userDataFetched: boolean;
+  marginfiAccounts?: MarginfiAccount[];
+  userDataFetched?: boolean;
   update: (screen: AuthFlowType) => void;
   isLoading: boolean;
   flow: AuthFlowType;

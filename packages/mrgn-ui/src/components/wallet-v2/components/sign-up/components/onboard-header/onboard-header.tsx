@@ -2,7 +2,7 @@ import { IconArrowLeft } from "@tabler/icons-react";
 
 import { DialogDescription, DialogHeader, DialogTitle } from "~/components/ui/dialog";
 import { IconMrgn } from "~/components/ui/icons";
-import { cn } from "~/utils/theme-utils";
+import { cn } from "@mrgnlabs/mrgn-utils";
 
 interface props {
   title: string;

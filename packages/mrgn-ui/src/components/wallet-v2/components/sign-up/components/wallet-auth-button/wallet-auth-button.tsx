@@ -1,4 +1,4 @@
-import { titleCase } from "~/utils/theme-utils";
+import { titleCase } from "@mrgnlabs/mrgn-utils";
 
 import { Button } from "~/components/ui/button";
 import { IconLoader } from "~/components/ui/icons";

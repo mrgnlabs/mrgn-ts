@@ -1,10 +1,10 @@
 import * as React from "react";
+import { cn } from "@mrgnlabs/mrgn-utils";
 import { DialogProps } from "@radix-ui/react-dialog";
 import { IconSearch } from "@tabler/icons-react";
 
 import { Command as CommandPrimitive } from "cmdk";
 
-import { cn } from "~/utils/theme-utils";
 import { Dialog, DialogContent } from "~/components/ui/dialog";
 
 const Command = React.forwardRef<

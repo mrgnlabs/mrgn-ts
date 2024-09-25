@@ -1,10 +1,10 @@
 import React from "react";
 
-import { AuthScreenProps, cn } from "~/utils";
-import { useIsMobile } from "~/hooks/useIsMobile";
+import { AuthScreenProps } from "~/components/wallet-v2/components/sign-up/sign-up.utils";
+import { useIsMobile } from "@mrgnlabs/mrgn-utils";
 
 import { Button } from "~/components/ui/button";
-import { OnboardHeader } from "../components";
+import { OnboardHeader } from "~/components/wallet-v2/components/sign-up/components";
 
 interface props extends AuthScreenProps {}
 

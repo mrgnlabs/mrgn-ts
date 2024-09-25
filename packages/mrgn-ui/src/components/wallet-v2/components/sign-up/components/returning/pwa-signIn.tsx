@@ -1,7 +1,7 @@
 import React from "react";
 
 import { AuthScreenProps, socialProviders } from "~/components/wallet-v2/components/sign-up/sign-up.utils";
-import { useWallet } from "~/components/wallet-v2/hooks/use-wallet";
+import { useWallet } from "~/components/wallet-v2/wallet.hooks";
 
 import {
   OnboardHeader,

@@ -1,8 +1,8 @@
 import React from "react";
 
 import { OnrampScreenProps } from "~/components/wallet-v2/components/sign-up/sign-up.utils";
-import { useIsMobile } from "~/hooks/useIsMobile";
-import { useWallet } from "~/components/wallet-v2/hooks/use-wallet";
+import { useIsMobile } from "@mrgnlabs/mrgn-utils";
+import { useWallet } from "~/components/wallet-v2/wallet.hooks";
 
 import { ScreenWrapper, WalletSeperator } from "~/components/wallet-v2/components/sign-up/components";
 

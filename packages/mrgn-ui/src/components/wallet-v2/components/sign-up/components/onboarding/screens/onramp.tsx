@@ -11,11 +11,11 @@ import {
   inlineTransfer,
 } from "@meso-network/meso-js";
 
-import { cn } from "~/utils/theme-utils";
+import { cn } from "@mrgnlabs/mrgn-utils";
 
 import { OnrampScreenProps } from "~/components/wallet-v2/components/sign-up/sign-up.utils";
 import { ScreenWrapper, WalletSeperator } from "~/components/wallet-v2/components/sign-up/components";
-import { useWallet } from "~/components/wallet-v2/hooks/use-wallet";
+import { useWallet } from "~/components/wallet-v2/wallet.hooks";
 
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";

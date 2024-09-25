@@ -9,6 +9,6 @@
     },
     "module": "ESNext"
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "."],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".", "../mrgn-utils/src/hooks/useIsMobile.ts"],
   "exclude": ["dist", "node_modules", "*.spec.ts"]
 }

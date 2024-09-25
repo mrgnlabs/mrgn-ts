@@ -2,7 +2,7 @@ import { IconArrowLeft } from "@tabler/icons-react";
 import React from "react";
 
 import { Dialog, DialogTrigger, DialogContent } from "~/components/ui/dialog";
-import { useIsMobile } from "~/hooks/useIsMobile";
+import { useIsMobile } from "@mrgnlabs/mrgn-utils";
 
 export interface ActionDialogProps {
   trigger: React.ReactNode;

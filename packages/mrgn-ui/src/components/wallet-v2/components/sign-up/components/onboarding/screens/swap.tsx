@@ -5,7 +5,7 @@ import { USDC_MINT } from "@bonfida/spl-name-service";
 import { Swap } from "~/components/swap";
 import { OnrampScreenProps } from "~/components/wallet-v2/components/sign-up/sign-up.utils";
 
-import { cn } from "~/utils/theme-utils";
+import { cn } from "@mrgnlabs/mrgn-utils";
 
 import { ScreenWrapper, WalletSeperator } from "~/components/wallet-v2/components/sign-up/components";
 import { Loader } from "~/components/ui/loader";

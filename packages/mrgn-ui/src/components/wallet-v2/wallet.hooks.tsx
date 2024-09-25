@@ -15,7 +15,7 @@ import { SolanaWallet, SolanaPrivateKeyProvider } from "@web3auth/solana-provide
 import { showErrorToast } from "@mrgnlabs/mrgn-utils";
 import type { Wallet } from "@mrgnlabs/mrgn-common";
 
-import { useWalletStore } from "~/components/wallet-v2/store";
+import { useWalletStore } from "~/components/wallet-v2/wallet.store";
 
 // wallet adapter context type to override with web3auth data
 // this allows us to pass web3auth wallet to 3rd party services that expect wallet adapter

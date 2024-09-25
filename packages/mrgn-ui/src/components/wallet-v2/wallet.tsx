@@ -20,12 +20,10 @@ import {
 
 import { ExtendedBankInfo, UserPointsData } from "@mrgnlabs/marginfi-v2-ui-state";
 import { shortenAddress, usdFormatter, numeralFormatter, groupedNumberFormatterDyn } from "@mrgnlabs/mrgn-common";
-import { getTokenImageURL } from "@mrgnlabs/mrgn-utils";
+import { getTokenImageURL, showErrorToast, useIsMobile, cn } from "@mrgnlabs/mrgn-utils";
 
-import { useWalletStore } from "~/components/wallet-v2/store";
-import { useWallet } from "~/components/wallet-v2/hooks/use-wallet";
-import { useIsMobile } from "~/hooks/useIsMobile";
-import { cn } from "~/utils/theme-utils";
+import { useWalletStore } from "~/components/wallet-v2/wallet.store";
+import { useWallet } from "~/components/wallet-v2/wallet.hooks";
 
 import {
   WalletButton,
@@ -38,8 +36,8 @@ import {
   WalletSend,
   WalletAuthAccounts,
 } from "~/components/wallet-v2/components";
-import { Swap } from "~/components/cAommon/Swap";
-import { Bridge } from "~/components/common/Bridge";
+import { Swap } from "~/components/swap";
+import { Bridge } from "~/components/bridge";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescription } from "~/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { Button } from "~/components/ui/button";

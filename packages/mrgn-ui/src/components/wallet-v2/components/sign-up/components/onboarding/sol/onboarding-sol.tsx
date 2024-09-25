@@ -1,13 +1,18 @@
 import React from "react";
 
-import { useWalletContext } from "~/hooks/useWalletContext";
-import { AuthScreenProps, InstallingWallet, OnrampScreenProps, SuccessProps, getWalletConnectionMethod } from "~/utils";
-import { useOs } from "~/hooks/useOs";
-import { useBrowser } from "~/hooks/useBrowser";
-import { ExtendedWallet } from "~/hooks/useAvailableWallets";
+import { useWallet } from "~/components/wallet-v2/wallet.hooks";
+import { getWalletConnectionMethod } from "~/components/wallet-v2/wallet.utils";
+import {
+  AuthScreenProps,
+  InstallingWallet,
+  OnrampScreenProps,
+  SuccessProps,
+} from "~/components/wallet-v2/components/sign-up/sign-up.utils";
+import { useOs } from "@mrgnlabs/mrgn-utils";
+import { useBrowser, ExtendedWallet } from "@mrgnlabs/mrgn-utils";
 
-import { OnboardHeader } from "../../components";
-import { installWallet, solOnrampFlow, successSwap } from "./onboardingSolUtils";
+import { OnboardHeader } from "~/components/wallet-v2/components/sign-up/components";
+import { installWallet, solOnrampFlow, successSwap } from "./onboarding-sol-utils";
 
 interface props extends AuthScreenProps {}
 
@@ -21,7 +26,7 @@ export const OnboardingSol = ({
   onClose,
   onPrev,
 }: props) => {
-  const { connected, logout } = useWalletContext();
+  const { connected, logout } = useWallet();
   const { isPhone, isPWA } = useOs();
   const browser = useBrowser();
 

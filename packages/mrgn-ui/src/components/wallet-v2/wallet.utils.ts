@@ -1,6 +1,6 @@
 import { Wallet } from "@solana/wallet-adapter-react";
 import { WalletReadyState } from "@solana/wallet-adapter-base";
-import { BrowserTypes } from "~/hooks/use-browser";
+import { BrowserTypes } from "@mrgnlabs/mrgn-utils";
 
 export type WalletConnectionMethod = "INSTALL" | "DEEPLINK" | "CONNECT";
 

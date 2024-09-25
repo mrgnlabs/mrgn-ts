@@ -7,11 +7,11 @@ import {
   SuccessProps,
 } from "~/components/wallet-v2/components/sign-up/sign-up.utils";
 import { getWalletConnectionMethod } from "~/components/wallet-v2/wallet.utils";
-import { useWallet } from "~/components/wallet-v2/hooks/use-wallet";
+import { useWallet } from "~/components/wallet-v2/wallet.hooks";
 import { Loader } from "~/components/ui/loader";
-import { useOs } from "~/hooks/use-os";
-import { useBrowser } from "~/hooks/use-browser";
-import { ExtendedWallet } from "~/components/wallet-v2/hooks/use-available-wallets";
+import { useOs } from "@mrgnlabs/mrgn-utils";
+import { useBrowser } from "@mrgnlabs/mrgn-utils";
+import { ExtendedWallet } from "@mrgnlabs/mrgn-utils";
 
 import { OnboardHeader } from "~/components/wallet-v2/components/sign-up/components";
 import {
@@ -45,7 +45,7 @@ export const OnboardingSocial = ({
   const [isSocialAuthLoading, setIsSocialAuthLoading] = React.useState<boolean>(false);
 
   const userHasAcct = React.useMemo(
-    () => userDataFetched && marginfiAccounts.length > 0,
+    () => userDataFetched && marginfiAccounts && marginfiAccounts.length > 0,
     [marginfiAccounts, userDataFetched]
   );
 
