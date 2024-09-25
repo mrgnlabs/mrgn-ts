@@ -625,9 +625,7 @@ type TokenOptionsProps = {
   web3AuthConnected?: boolean;
 };
 
-function TokenOptions({ walletAddress, setState, setToken, web3AuthConnected = false }: TokenOptionsProps) {
-  const [setIsOnrampActive, setIsWalletOpen] = useUiStore((state) => [state.setIsOnrampActive, state.setIsWalletOpen]);
-  const [isWalletAddressCopied, setIsWalletAddressCopied] = React.useState(false);
+function TokenOptions({ setState, setToken }: TokenOptionsProps) {
   return (
     <div className="flex items-center justify-center gap-4">
       <button
@@ -685,7 +683,7 @@ function TokenOptions({ walletAddress, setState, setToken, web3AuthConnected = f
 }
 
 const Debridge = () => {
-  const { wallet } = useWalletContext();
+  const { wallet } = useWallet();
   const divRef = React.useRef<HTMLDivElement>(null);
   const [isMounted, setIsMounted] = React.useState(false);
   const [widget, setWidget] = React.useState<any>();
