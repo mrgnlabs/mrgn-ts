@@ -9,7 +9,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/comp
 import { Label } from "~/components/ui/label";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "~/components/ui/form";
 import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group";
-import { cn } from "~/utils/themeUtils";
+import { cn } from "~/utils/theme-utils";
 
 type ActionBoxSlippageProps = {
   slippageBps: number;

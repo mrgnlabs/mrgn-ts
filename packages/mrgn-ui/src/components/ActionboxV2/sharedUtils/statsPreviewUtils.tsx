@@ -8,7 +8,7 @@ import { clampedNumeralFormatter, numeralFormatter, percentFormatter, usdFormatt
 import { Skeleton } from "~/components/ui/skeleton";
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "~/components/ui/tooltip";
 import { IconPyth, IconSwitchboard } from "~/components/ui/icons";
-import { cn } from "~/utils/themeUtils";
+import { cn } from "~/utils/theme-utils";
 
 export const REDUCE_ONLY_BANKS = ["stSOL", "RLB"];
 

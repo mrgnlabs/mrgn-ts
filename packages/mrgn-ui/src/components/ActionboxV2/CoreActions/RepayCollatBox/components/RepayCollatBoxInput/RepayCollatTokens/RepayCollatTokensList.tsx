@@ -5,7 +5,7 @@ import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { CommandEmpty, CommandGroup, CommandItem } from "~/components/ui/command";
 import { ActionBoxItem, TokenListCommand } from "~/components/ActionboxV2/sharedComponents";
 import { BuyWithMoonpay } from "~/components/ui/icons";
-import { cn } from "~/utils/themeUtils";
+import { cn } from "~/utils/theme-utils";
 
 type RepayCollatTokensListProps = {
   selectedSecondaryBank: ExtendedBankInfo | null;
