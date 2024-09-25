@@ -7,6 +7,7 @@ import { calculateLendingTransaction, calculateSummary, getSimulationResult } fr
 import { MarginfiAccountWrapper, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
 import { STATIC_SIMULATION_ERRORS, usePrevious } from "@mrgnlabs/mrgn-utils";
 import { useActionBoxStore } from "~/components/ActionboxV2/store";
+import { Transaction, VersionedTransaction } from "@solana/web3.js";
 
 /*
 How lending action simulation works:
@@ -44,13 +45,14 @@ export function useLendSimulation(
   const [priorityFee] = useActionBoxStore((state) => [state.priorityFee]);
 
   const handleSimulation = React.useCallback(
-    async (amountParam: number) => {
-      if (selectedAccount && selectedBank && amountParam !== 0) {
+    async (txns: (VersionedTransaction | Transaction)[]) => {
+      if (selectedAccount && selectedBank && txns.length > 0) {
         const simulationResult = await getSimulationResult({
           actionMode: lendMode,
           account: selectedAccount,
           bank: selectedBank,
-          amount: amountParam,
+          amount: debouncedAmount,
+          txns,
         });
 
         setSimulationResult(simulationResult.simulationResult);
@@ -58,7 +60,7 @@ export function useLendSimulation(
         setSimulationResult(null);
       }
     },
-    [selectedAccount, selectedBank, lendMode, setSimulationResult]
+    [selectedAccount, debouncedAmount, selectedBank, actionTxns, lendMode, setSimulationResult]
   );
 
   const handleActionSummary = React.useCallback(
@@ -85,6 +87,7 @@ export function useLendSimulation(
         if (!selectedBank) missingParams.push("bank is null");
 
         console.error(`Can't simulate transaction: ${missingParams.join(", ")}`);
+        setActionTxns({ actionTxn: null, additionalTxns: [] });
         return;
       }
 
@@ -117,9 +120,15 @@ export function useLendSimulation(
     // only simulate when amount changes
     if (prevDebouncedAmount !== debouncedAmount) {
       fetchActionTxn(debouncedAmount ?? 0);
-      handleSimulation(debouncedAmount ?? 0);
     }
   }, [prevDebouncedAmount, debouncedAmount, handleSimulation]);
+
+  React.useEffect(() => {
+    handleSimulation([
+      ...(actionTxns?.actionTxn ? [actionTxns?.actionTxn] : []),
+      ...(actionTxns?.additionalTxns ?? []),
+    ]);
+  }, [actionTxns, handleSimulation]);
 
   const actionSummary = React.useMemo(() => {
     return handleActionSummary(accountSummary, simulationResult ?? undefined);

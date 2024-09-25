@@ -725,8 +725,19 @@ class MarginfiAccountWrapper {
   async simulateDeposit(amount: Amount, bankAddress: PublicKey): Promise<SimulationResult> {
     const ixs = await this.makeDepositIx(amount, bankAddress);
     const tx = new Transaction().add(...ixs.instructions);
-    const [mfiAccountData, bankData] = await this.client.simulateTransactions([tx], [this.address, bankAddress]);
-    if (!mfiAccountData || !bankData) throw new Error("Failed to simulate deposit");
+    try {
+      return this.simulateBorrowLendTransaction([tx], bankAddress);
+    } catch (e) {
+      throw new Error("Failed to simulate deposit");
+    }
+  }
+
+  async simulateBorrowLendTransaction(
+    txs: (VersionedTransaction | Transaction)[],
+    bankAddress: PublicKey
+  ): Promise<SimulationResult> {
+    const [mfiAccountData, bankData] = await this.client.simulateTransactions(txs, [this.address, bankAddress]);
+    if (!mfiAccountData || !bankData) throw new Error("Failed to simulate");
     const previewBanks = this.client.banks;
     previewBanks.set(
       bankAddress.toBase58(),
@@ -808,34 +819,11 @@ class MarginfiAccountWrapper {
   async simulateRepay(amount: Amount, bankAddress: PublicKey, repayAll: boolean = false): Promise<SimulationResult> {
     const ixs = await this.makeRepayIx(amount, bankAddress, repayAll);
     const tx = new Transaction().add(...ixs.instructions);
-    const [mfiAccountData, bankData] = await this.client.simulateTransactions([tx], [this.address, bankAddress]);
-    if (!mfiAccountData || !bankData) throw new Error("Failed to simulate repay");
-    const previewBanks = this.client.banks;
-    previewBanks.set(
-      bankAddress.toBase58(),
-      Bank.fromBuffer(bankAddress, bankData, this._program.idl, this.client.feedIdMap)
-    );
-    const previewClient = new MarginfiClient(
-      this._config,
-      this.client.program,
-      {} as Wallet,
-      true,
-      this.client.group,
-      this.client.banks,
-      this.client.oraclePrices,
-      this.client.mintDatas,
-      this.client.feedIdMap
-    );
-    const previewMarginfiAccount = MarginfiAccountWrapper.fromAccountDataRaw(
-      this.address,
-      previewClient,
-      mfiAccountData,
-      this._program.idl
-    );
-    return {
-      banks: previewBanks,
-      marginfiAccount: previewMarginfiAccount,
-    };
+    try {
+      return this.simulateBorrowLendTransaction([tx], bankAddress);
+    } catch (e) {
+      throw new Error("Failed to simulate repay");
+    }
   }
 
   async makeWithdrawIx(
@@ -943,34 +931,11 @@ class MarginfiAccountWrapper {
   }
 
   async simulateWithdraw(bankAddress: PublicKey, txs: VersionedTransaction[]): Promise<SimulationResult> {
-    const [mfiAccountData, bankData] = await this.client.simulateTransactions(txs, [this.address, bankAddress]);
-    if (!mfiAccountData || !bankData) throw new Error("Failed to simulate withdraw");
-    const previewBanks = this.client.banks;
-    previewBanks.set(
-      bankAddress.toBase58(),
-      Bank.fromBuffer(bankAddress, bankData, this._program.idl, this.client.feedIdMap)
-    );
-    const previewClient = new MarginfiClient(
-      this._config,
-      this.client.program,
-      {} as Wallet,
-      true,
-      this.client.group,
-      this.client.banks,
-      this.client.oraclePrices,
-      this.client.mintDatas,
-      this.client.feedIdMap
-    );
-    const previewMarginfiAccount = MarginfiAccountWrapper.fromAccountDataRaw(
-      this.address,
-      previewClient,
-      mfiAccountData,
-      this._program.idl
-    );
-    return {
-      banks: previewBanks,
-      marginfiAccount: previewMarginfiAccount,
-    };
+    try {
+      return this.simulateBorrowLendTransaction(txs, bankAddress);
+    } catch (e) {
+      throw new Error("Failed to simulate withdraw");
+    }
   }
 
   async makeBorrowIx(amount: Amount, bankAddress: PublicKey, opt: MakeBorrowIxOpts = {}): Promise<InstructionsWrapper> {
@@ -1045,38 +1010,12 @@ class MarginfiAccountWrapper {
     return { feedCrankTxs, borrowTx, addressLookupTableAccounts };
   }
 
-  async simulateBorrow(bankAddress: PublicKey, transactions: VersionedTransaction[]): Promise<SimulationResult> {
-    const [mfiAccountData, bankData] = await this.client.simulateTransactions(transactions, [
-      this.address,
-      bankAddress,
-    ]);
-    if (!mfiAccountData || !bankData) throw new Error("Failed to simulate borrow");
-    const previewBanks = this.client.banks;
-    previewBanks.set(
-      bankAddress.toBase58(),
-      Bank.fromBuffer(bankAddress, bankData, this._program.idl, this.client.feedIdMap)
-    );
-    const previewClient = new MarginfiClient(
-      this._config,
-      this.client.program,
-      {} as Wallet,
-      true,
-      this.client.group,
-      this.client.banks,
-      this.client.oraclePrices,
-      this.client.mintDatas,
-      this.client.feedIdMap
-    );
-    const previewMarginfiAccount = MarginfiAccountWrapper.fromAccountDataRaw(
-      this.address,
-      previewClient,
-      mfiAccountData,
-      this._program.idl
-    );
-    return {
-      banks: previewBanks,
-      marginfiAccount: previewMarginfiAccount,
-    };
+  async simulateBorrow(bankAddress: PublicKey, txs: VersionedTransaction[]): Promise<SimulationResult> {
+    try {
+      return this.simulateBorrowLendTransaction(txs, bankAddress);
+    } catch (e) {
+      throw new Error("Failed to simulate borrow");
+    }
   }
 
   async makeWithdrawEmissionsIx(bankAddress: PublicKey): Promise<InstructionsWrapper> {

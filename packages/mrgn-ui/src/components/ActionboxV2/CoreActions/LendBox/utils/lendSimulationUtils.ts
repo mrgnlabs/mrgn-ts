@@ -4,6 +4,7 @@ import { ActionMethod, handleSimulationError, isWholePosition } from "@mrgnlabs/
 import { MarginfiAccountWrapper, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
 
 import { simulatedHealthFactor, simulatedPositionSize, simulatedCollateral } from "../../../../ActionboxV2/sharedUtils";
+import { Transaction, VersionedTransaction } from "@solana/web3.js";
 
 export interface ActionSummary {
   actionPreview: ActionPreview;
@@ -44,6 +45,7 @@ export interface SimulateActionProps {
   account: MarginfiAccountWrapper;
   bank: ExtendedBankInfo;
   amount: number;
+  txns: (VersionedTransaction | Transaction)[];
 }
 
 export function calculateSummary({
@@ -154,32 +156,45 @@ function calculateSimulatedActionPreview(
   };
 }
 
-async function simulateAction({ actionMode, account, bank, amount }: SimulateActionProps) {
-  let simulationResult: SimulationResult;
+async function simulateAction({ actionMode, account, bank, amount, txns }: SimulateActionProps) {
+  let simulationResult: SimulationResult | null = null;
 
   // TODO: new simulation method
   switch (actionMode) {
     case ActionType.Deposit:
-      simulationResult = await account.simulateDeposit(amount, bank.address);
+      if (txns.length > 0) {
+        simulationResult = await account.simulateBorrowLendTransaction(txns, bank.address);
+      } else {
+        console.error("descrepency in deposit simulateAction");
+        simulationResult = await account.simulateDeposit(amount, bank.address);
+      }
       break;
     case ActionType.Withdraw:
-      simulationResult = null as any;
-      // simulationResult = await account.simulateWithdraw(
-      //   amount,
-      //   bank.address,
-      //   bank.isActive && isWholePosition(bank, amount)
-      // );
+      if (txns.length > 0) {
+        simulationResult = await account.simulateBorrowLendTransaction(txns, bank.address);
+      } else {
+        console.error("descrepency in withdraw simulateAction");
+      }
       break;
     case ActionType.Borrow:
-      simulationResult = null as any;
-      // simulationResult =  await account.simulateBorrow(amount, bank.address);
+      if (txns.length > 0) {
+        simulationResult = await account.simulateBorrowLendTransaction(txns, bank.address);
+      } else {
+        console.error("descrepency in borrow simulateAction");
+      }
       break;
     case ActionType.Repay:
-      simulationResult = await account.simulateRepay(
-        amount,
-        bank.address,
-        bank.isActive && isWholePosition(bank, amount)
-      );
+      if (txns.length > 0) {
+        simulationResult = await account.simulateBorrowLendTransaction(txns, bank.address);
+      } else {
+        console.error("descrepency in repay simulateAction");
+        simulationResult = await account.simulateRepay(
+          amount,
+          bank.address,
+          bank.isActive && isWholePosition(bank, amount)
+        );
+      }
+
       break;
     default:
       throw new Error("Unknown action mode");
