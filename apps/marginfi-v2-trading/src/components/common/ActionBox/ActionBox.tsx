@@ -250,16 +250,16 @@ export const ActionBox = ({
       setAmountRaw("");
 
       if (txnSig) {
-        setIsActionComplete(true);
-        setPreviousTxn({
-          txnType: "LEND",
-          txn: Array.isArray(txnSig) ? txnSig.pop() ?? "" : txnSig!,
-          lendingOptions: {
-            type: currentAction,
-            bank: bank as ActiveBankInfo,
-            amount: borrowOrLendAmount,
-          },
-        });
+        // setIsActionComplete(true);
+        // setPreviousTxn({
+        //   txnType: "LEND",
+        //   txn: Array.isArray(txnSig) ? txnSig.pop() ?? "" : txnSig!,
+        //   lendingOptions: {
+        //     type: currentAction,
+        //     bank: bank as ActiveBankInfo,
+        //     amount: borrowOrLendAmount,
+        //   },
+        // });
         capture(`user_${currentAction.toLowerCase()}`, {
           tokenSymbol: bank.meta.tokenSymbol,
           tokenName: bank.meta.tokenName,

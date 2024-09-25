@@ -25,7 +25,6 @@ export const PositionListItem = ({ group }: props) => {
     <TableRow
       className="cursor-pointer transition-colors hover:bg-accent/75"
       onClick={(e) => {
-        console.log(e.target);
         if (
           e.target instanceof HTMLButtonElement ||
           e.target instanceof HTMLAnchorElement ||
