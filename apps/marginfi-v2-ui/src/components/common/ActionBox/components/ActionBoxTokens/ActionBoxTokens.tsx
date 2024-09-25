@@ -1,8 +1,8 @@
 import React from "react";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { StakeData } from "@mrgnlabs/mrgn-utils";
 
 import { useActionBoxStore } from "~/hooks/useActionBoxStore";
-import { StakeData } from "~/utils";
 
 import { LendingTokens, YbxTokens, LstTokens, LoopingTokens } from "./Components";
 

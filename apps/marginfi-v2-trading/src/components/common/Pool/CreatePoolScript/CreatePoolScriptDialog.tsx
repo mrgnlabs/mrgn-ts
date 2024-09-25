@@ -1,6 +1,8 @@
 import React from "react";
 import ReactDOM from "react-dom";
 
+import { MultiStepToastHandle, showWarningToast } from "@mrgnlabs/mrgn-utils";
+
 import Confetti from "react-confetti";
 import { useWindowSize } from "@uidotdev/usehooks";
 import { IconPlus } from "@tabler/icons-react";
@@ -12,7 +14,6 @@ import { useIsMobile } from "~/hooks/useIsMobile";
 
 import { Dialog, DialogContent, DialogTrigger } from "~/components/ui/dialog";
 import { Button } from "~/components/ui/button";
-import { MultiStepToastHandle, showWarningToast } from "~/utils/toastUtils";
 import { CreatePoolLoading, CreatePoolSuccess, CreatePoolSetup, bankTokens } from "./components";
 
 enum CreatePoolState {
@@ -40,7 +41,7 @@ export const CreatePoolScriptDialog = ({ trigger }: CreatePoolDialogProps) => {
     groupPk: PublicKey;
     lutAddress: PublicKey;
   }) => {
-    const multiStepToast = new MultiStepToastHandle("LUT upload", [{ label: `Uploading LUT to GCP` }]);
+    const multiStepToast = new MultiStepToastHandle("LUT upload", [{ label: `Uploading LUT to GCP` }], "light");
     multiStepToast.start();
 
     try {
@@ -76,7 +77,7 @@ export const CreatePoolScriptDialog = ({ trigger }: CreatePoolDialogProps) => {
 
     const isFinished = bankTokens.length === newIndex;
     if (isFinished) {
-      showWarningToast("All banks created! LFG");
+      showWarningToast({ message: "All banks created! LFG", theme: "light" });
     } else {
       setCurrentIndex((state) => state + 1);
       setCreatePoolState(CreatePoolState.SETUP);

@@ -1,6 +1,6 @@
 import React from "react";
 
-import { Desktop, Mobile } from "~/utils/mediaQueries";
+import { Desktop, Mobile } from "@mrgnlabs/mrgn-utils";
 
 import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
 import { Drawer, DrawerContent, DrawerTrigger } from "~/components/ui/drawer";

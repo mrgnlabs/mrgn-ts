@@ -1,7 +1,11 @@
 import React, { useRef } from "react";
 import { ActionType, AccountSummary, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { MarginfiAccountWrapper, MarginfiClient, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
-import { handleSimulationError } from "@mrgnlabs/mrgn-utils";
+import { RepayWithCollatOptions, ActionMethod, handleSimulationError } from "@mrgnlabs/mrgn-utils";
+
+import { usePrevious } from "~/utils";
+import { useAmountDebounce } from "~/hooks/useAmountDebounce";
+import { BorrowLendObject, calculateBorrowLend } from "~/store/actionBoxStore";
 
 import {
   ActionPreview,
@@ -12,9 +16,6 @@ import {
   generateStats,
   simulateAction,
 } from "./LendingPreview.utils";
-import { ActionMethod, RepayWithCollatOptions, usePrevious } from "~/utils";
-import { useAmountDebounce } from "~/hooks/useAmountDebounce";
-import { BorrowLendObject, calculateBorrowLend } from "~/store/actionBoxStore";
 
 interface UseLendingPreviewProps {
   marginfiClient: MarginfiClient | null;

@@ -1,8 +1,9 @@
 import React from "react";
 
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
+import { getBlockedActions } from "@mrgnlabs/mrgn-utils";
 
-import { MintCardProps, getBlockedActions } from "~/utils";
+import { MintCardProps } from "~/utils";
 import { useMrgnlendStore } from "~/store";
 
 import { IconCheck, IconBell } from "~/components/ui/icons";
@@ -10,7 +11,6 @@ import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { ActionBoxDialog } from "~/components/common/ActionBox";
 import { LST_MINT } from "~/store/lstStore";
-import { PublicKey } from "@solana/web3.js";
 
 interface MintCardWrapperProps {
   mintCard: MintCardProps;

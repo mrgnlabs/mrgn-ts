@@ -1,9 +1,7 @@
 import React from "react";
 
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { LstType } from "@mrgnlabs/mrgn-utils";
-
-import { StakeData } from "~/utils";
+import { LstType, StakeData } from "@mrgnlabs/mrgn-utils";
 
 import { LstTokenList, LstTokensTrigger } from "./Components";
 import { SelectedBankItem, TokenListWrapper } from "../SharedComponents";

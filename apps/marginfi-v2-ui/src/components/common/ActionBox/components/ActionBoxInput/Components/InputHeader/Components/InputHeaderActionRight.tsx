@@ -1,9 +1,9 @@
 import React from "react";
+
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-
-import { StakeData } from "~/utils";
-
+import { StakeData } from "@mrgnlabs/mrgn-utils";
 import { nativeToUi, clampedNumeralFormatter } from "@mrgnlabs/mrgn-common";
+
 import { IconWallet } from "~/components/ui/icons";
 
 interface InputHeaderActionProps {

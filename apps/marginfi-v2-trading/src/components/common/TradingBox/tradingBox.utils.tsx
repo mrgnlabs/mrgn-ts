@@ -1,3 +1,6 @@
+import { IconArrowRight } from "@tabler/icons-react";
+import { VersionedTransaction } from "@solana/web3.js";
+
 import {
   Bank,
   MarginRequirementType,
@@ -9,18 +12,19 @@ import {
 import { AccountSummary, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { Wallet, percentFormatter, tokenPriceFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 import {
+  ActionMethod,
   DYNAMIC_SIMULATION_ERRORS,
   loopingBuilder,
   LoopingObject,
   LoopingOptions,
+  showErrorToast,
+  MultiStepToastHandle,
   STATIC_SIMULATION_ERRORS,
 } from "@mrgnlabs/mrgn-utils";
-import { IconArrowRight } from "@tabler/icons-react";
-import { VersionedTransaction } from "@solana/web3.js";
+
 import { IconPyth, IconSwitchboard } from "~/components/ui/icons";
 import { GroupData } from "~/store/tradeStore";
-import { ActionMethod, cn, extractErrorString, isBankOracleStale } from "~/utils";
-import { MultiStepToastHandle, showErrorToast } from "~/utils/toastUtils";
+import { cn, extractErrorString, isBankOracleStale } from "~/utils";
 
 export type TradeSide = "long" | "short";
 
@@ -42,13 +46,15 @@ export async function looping({
   isTxnSplit?: boolean;
 }) {
   if (marginfiClient === null) {
-    showErrorToast("Marginfi client not ready");
+    showErrorToast({ message: "Marginfi client not ready", theme: "light" });
     return;
   }
 
-  const multiStepToast = new MultiStepToastHandle("Looping", [
-    { label: `Executing looping ${bank.meta.tokenSymbol} with ${options.loopingBank.meta.tokenSymbol}` },
-  ]);
+  const multiStepToast = new MultiStepToastHandle(
+    "Looping",
+    [{ label: `Executing looping ${bank.meta.tokenSymbol} with ${options.loopingBank.meta.tokenSymbol}` }],
+    "light"
+  );
   multiStepToast.start();
 
   try {

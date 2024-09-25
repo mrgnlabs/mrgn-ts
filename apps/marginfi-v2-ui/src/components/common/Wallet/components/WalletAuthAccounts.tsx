@@ -2,14 +2,13 @@ import React from "react";
 
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 import { clearAccountCache, firebaseApi } from "@mrgnlabs/marginfi-v2-ui-state";
+import { getMaybeSquadsOptions, MultiStepToastHandle } from "@mrgnlabs/mrgn-utils";
 
 import { useMrgnlendStore } from "~/store";
 
 import { cn } from "~/utils/themeUtils";
-import { MultiStepToastHandle } from "~/utils/toastUtils";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { useConnection } from "~/hooks/useConnection";
-import { getMaybeSquadsOptions } from "~/utils/mrgnActions";
 import { capture } from "~/utils";
 
 import { Button } from "~/components/ui/button";

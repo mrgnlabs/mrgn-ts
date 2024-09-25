@@ -1,11 +1,12 @@
 import React from "react";
 import Script from "next/script";
 
+import { MultiStepToastHandle } from "@mrgnlabs/mrgn-utils";
+
 import config from "~/config";
-import { cn, capture } from "~/utils";
+import { capture } from "~/utils";
 import { MayanWidgetColors, MayanWidgetConfigType } from "~/types";
 import { useUserProfileStore, useUiStore } from "~/store";
-import { MultiStepToastHandle } from "~/utils/toastUtils";
 import { useWalletContext } from "~/hooks/useWalletContext";
 
 type BridgeProps = {

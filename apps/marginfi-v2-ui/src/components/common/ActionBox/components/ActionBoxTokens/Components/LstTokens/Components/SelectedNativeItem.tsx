@@ -1,8 +1,7 @@
 import React from "react";
-
 import Image from "next/image";
 
-import { StakeData } from "~/utils";
+import { StakeData } from "@mrgnlabs/mrgn-utils";
 
 type SelectedNativeItemProps = {
   stakeData: StakeData;

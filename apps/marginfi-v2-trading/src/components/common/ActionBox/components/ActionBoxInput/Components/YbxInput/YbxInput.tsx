@@ -1,6 +1,8 @@
 import React from "react";
 
-import { YbxType, cn } from "~/utils";
+import { YbxType } from "@mrgnlabs/mrgn-utils";
+
+import { cn } from "~/utils";
 import { useActionBoxStore } from "~/hooks/useActionBoxStore";
 
 import { Input } from "~/components/ui/input";

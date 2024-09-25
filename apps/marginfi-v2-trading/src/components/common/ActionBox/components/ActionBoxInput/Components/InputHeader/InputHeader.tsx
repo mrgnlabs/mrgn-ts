@@ -1,6 +1,6 @@
 import React from "react";
 
-import { RepayType } from "~/utils";
+import { RepayType } from "@mrgnlabs/mrgn-utils";
 import { useActionBoxStore } from "~/hooks/useActionBoxStore";
 
 import { InputHeaderActionLeft } from "./Components";

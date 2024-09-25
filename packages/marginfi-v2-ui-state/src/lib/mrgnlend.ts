@@ -79,9 +79,9 @@ function computeAccountSummary(marginfiAccount: MarginfiAccountWrapper, banks: E
   const healthFactor = maintenanceComponentsWithBiasAndWeighted.assets.isZero()
     ? 1
     : maintenanceComponentsWithBiasAndWeighted.assets
-      .minus(maintenanceComponentsWithBiasAndWeighted.liabilities)
-      .dividedBy(maintenanceComponentsWithBiasAndWeighted.assets)
-      .toNumber();
+        .minus(maintenanceComponentsWithBiasAndWeighted.liabilities)
+        .dividedBy(maintenanceComponentsWithBiasAndWeighted.assets)
+        .toNumber();
 
   return {
     healthFactor,
@@ -567,8 +567,12 @@ async function fetchGroupData(
   }
 
   async function fetchPythFeedMap() {
-    const feedIdMapRaw: Record<string, string> = await fetch(`/api/oracle/pythFeedMap`).then((response) => response.json());
-    const feedIdMap: Map<string, PublicKey> = new Map(Object.entries(feedIdMapRaw).map(([key, value]) => [key, new PublicKey(value)]));
+    const feedIdMapRaw: Record<string, string> = await fetch(`/api/oracle/pythFeedMap`).then((response) =>
+      response.json()
+    );
+    const feedIdMap: Map<string, PublicKey> = new Map(
+      Object.entries(feedIdMapRaw).map(([key, value]) => [key, new PublicKey(value)])
+    );
     return feedIdMap;
   }
 
@@ -610,10 +614,7 @@ async function fetchGroupData(
     return oraclePrices;
   }
 
-  const [feedIdMap, oraclePrices] = await Promise.all([
-    fetchPythFeedMap(),
-    fetchOraclePrices(),
-  ]);
+  const [feedIdMap, oraclePrices] = await Promise.all([fetchPythFeedMap(), fetchOraclePrices()]);
 
   const mintKeys = bankDatasKeyed.map((b) => b.data.mint);
   const emissionMintKeys = bankDatasKeyed
@@ -804,6 +805,7 @@ enum ActionType {
   Deposit = "Supply",
   Borrow = "Borrow",
   Repay = "Repay",
+  RepayCollat = "Collateral Repay",
   Withdraw = "Withdraw",
   MintLST = "Mint LST",
   UnstakeLST = "Unstake LST",

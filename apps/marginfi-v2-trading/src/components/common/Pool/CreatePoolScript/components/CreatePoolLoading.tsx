@@ -1,6 +1,8 @@
-import { Button } from "~/components/ui/button";
-
+import React from "react";
 import { IconLoader2, IconCheck, IconX } from "@tabler/icons-react";
+import { Keypair, PublicKey, TransactionInstruction } from "@solana/web3.js";
+import BigNumber from "bignumber.js";
+
 import {
   BankConfigOpt,
   MarginfiClient,
@@ -9,14 +11,14 @@ import {
   RiskTier,
   getConfig,
 } from "@mrgnlabs/marginfi-client-v2";
-import { useConnection } from "~/hooks/useConnection";
-import { Keypair, PublicKey, TransactionInstruction } from "@solana/web3.js";
-import BigNumber from "bignumber.js";
-import { cn, createMarginfiGroup, createPermissionlessBank, createPoolLookupTable } from "~/utils";
-import { useUiStore } from "~/store";
-import React from "react";
-import { showErrorToast } from "~/utils/toastUtils";
+import { showErrorToast } from "@mrgnlabs/mrgn-utils";
 import { NodeWallet } from "@mrgnlabs/mrgn-common";
+
+import { useConnection } from "~/hooks/useConnection";
+import { cn, createMarginfiGroup, createPermissionlessBank, createPoolLookupTable } from "~/utils";
+import { Button } from "~/components/ui/button";
+import { useUiStore } from "~/store";
+
 import { BankToken } from "./tokenSeeds";
 
 const USDC_MINT = new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
@@ -154,7 +156,7 @@ export const CreatePoolLoading = ({ poolCreatedData, setIsOpen, setIsCompleted }
     const keypair = process.env.NEXT_PUBLIC_WALLET_KEY;
     // console.log({ por: process.env });
     if (!keypair) {
-      showErrorToast("NEXT_PUBLIC_WALLET_KEY env var not defined");
+      showErrorToast({ message: "NEXT_PUBLIC_WALLET_KEY env var not defined", theme: "light" });
       return;
     }
     return new NodeWallet(Keypair.fromSecretKey(new Uint8Array(JSON.parse(keypair))));

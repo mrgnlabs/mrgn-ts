@@ -1,15 +1,11 @@
 {
   "extends": "@mrgnlabs/tsconfig/base.json",
   "compilerOptions": {
+    "jsx": "preserve",
     "resolveJsonModule": true,
-    "outDir": "dist"
+    "outDir": "dist",
+    "module": "ESNext"
   },
-  "include": [
-    "."
-  ],
-  "exclude": [
-    "dist",
-    "node_modules",
-    "*.spec.ts",
-  ]
+  "include": ["."],
+  "exclude": ["dist", "node_modules", "*.spec.ts"]
 }

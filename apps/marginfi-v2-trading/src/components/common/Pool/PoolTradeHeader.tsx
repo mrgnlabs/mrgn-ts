@@ -13,9 +13,10 @@ import {
   aprToApy,
 } from "@mrgnlabs/mrgn-common";
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
+import { Desktop, Mobile } from "@mrgnlabs/mrgn-utils";
 import { IconChevronDown, IconExternalLink } from "@tabler/icons-react";
 
-import { getTokenImageURL, Desktop, Mobile, cn } from "~/utils";
+import { getTokenImageURL, cn } from "~/utils";
 import { useTradeStore } from "~/store";
 import { GroupData } from "~/store/tradeStore";
 

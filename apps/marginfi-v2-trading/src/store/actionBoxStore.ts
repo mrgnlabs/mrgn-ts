@@ -1,22 +1,24 @@
 import { create, StateCreator } from "zustand";
 import { persist } from "zustand/middleware";
 
-import { QuoteGetRequest, QuoteResponse } from "@jup-ag/api";
+import { QuoteResponse } from "@jup-ag/api";
 import { Connection, PublicKey, VersionedTransaction } from "@solana/web3.js";
 import * as solanaStakePool from "@solana/spl-stake-pool";
 
-import { nativeToUi, uiToNative } from "@mrgnlabs/mrgn-common";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
-
-import { LstType, RepayType, YbxType, capture, debounceFn, getSwapQuoteWithRetry, verifyJupTxSize } from "~/utils";
 import {
+  LstType,
+  RepayType,
+  YbxType,
   ActionMethod,
   calculateMaxRepayableCollateral,
   calculateRepayCollateralParams,
   DYNAMIC_SIMULATION_ERRORS,
   isWholePosition,
 } from "@mrgnlabs/mrgn-utils";
+
+import { debounceFn } from "~/utils";
 
 interface ActionBoxState {
   // State

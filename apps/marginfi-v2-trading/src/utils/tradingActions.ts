@@ -14,24 +14,23 @@ import { WalletContextState } from "@solana/wallet-adapter-react";
 import { QuoteResponse } from "@jup-ag/api";
 
 import { BankConfigOpt, MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
-import { uiToNative } from "@mrgnlabs/mrgn-common";
-import { ExtendedBankInfo, clearAccountCache, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-
-import { WalletContextStateOverride } from "~/hooks/useWalletContext";
-
-import { MultiStepToastHandle, showErrorToast } from "./toastUtils";
-import { extractErrorString } from "./mrgnUtils";
-import { TradeSide } from "~/components/common/TradingBox/tradingBox.utils";
-import { ToastStep } from "~/components/common/Toast";
-import { getMaybeSquadsOptions } from "./mrgnActions";
 import {
-  calculateLoopingParams,
   calculateLoopingTransaction,
   LoopingObject,
   ActionMethod,
   calculateBorrowLendPositionParams,
+  getMaybeSquadsOptions,
+  ToastStep,
+  MultiStepToastHandle,
+  showErrorToast,
   STATIC_SIMULATION_ERRORS,
 } from "@mrgnlabs/mrgn-utils";
+import { ExtendedBankInfo, clearAccountCache, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+
+import { TradeSide } from "~/components/common/TradingBox/tradingBox.utils";
+import { WalletContextStateOverride } from "~/hooks/useWalletContext";
+
+import { extractErrorString } from "./mrgnUtils";
 
 export async function createMarginfiGroup({
   marginfiClient,
@@ -42,7 +41,7 @@ export async function createMarginfiGroup({
   additionalIxs: TransactionInstruction[];
   seed?: Keypair;
 }) {
-  const multiStepToast = new MultiStepToastHandle("Group Creation", [{ label: `Creating group` }]);
+  const multiStepToast = new MultiStepToastHandle("Group Creation", [{ label: `Creating group` }], "light");
   multiStepToast.start();
 
   try {
@@ -129,7 +128,11 @@ export async function createPermissionlessBank({
   seed?: Keypair;
   priorityFee?: number;
 }) {
-  const multiStepToast = new MultiStepToastHandle("Bank Creation", [{ label: `Creating permissionless bank` }]);
+  const multiStepToast = new MultiStepToastHandle(
+    "Bank Creation",
+    [{ label: `Creating permissionless bank` }],
+    "light"
+  );
   multiStepToast.start();
 
   try {
@@ -204,7 +207,8 @@ export async function executeLeverageAction({
   const multiStepToast = new MultiStepToastHandle(
     `${tradeState.slice(0, 1).toUpperCase() + tradeState.slice(1)} 
       ${tradeState === "long" ? depositBank.meta.tokenSymbol : borrowBank.meta.tokenSymbol}`,
-    toastSteps
+    toastSteps,
+    "light"
   );
   multiStepToast.start();
 
@@ -300,10 +304,10 @@ export async function calculateClosePositions({
   platformFeeBps?: number;
 }): Promise<
   | {
-    closeTxn: VersionedTransaction | Transaction;
-    feedCrankTxs: VersionedTransaction[];
-    quote?: QuoteResponse;
-  }
+      closeTxn: VersionedTransaction | Transaction;
+      feedCrankTxs: VersionedTransaction[];
+      quote?: QuoteResponse;
+    }
   | ActionMethod
 > {
   // user is borrowing and depositing

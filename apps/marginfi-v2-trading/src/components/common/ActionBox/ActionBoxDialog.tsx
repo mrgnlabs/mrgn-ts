@@ -3,9 +3,9 @@ import React from "react";
 import { IconArrowLeft } from "@tabler/icons-react";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
+import { Desktop, Mobile } from "@mrgnlabs/mrgn-utils";
 
 import { useIsMobile } from "~/hooks/useIsMobile";
-import { Desktop, Mobile } from "~/utils/mediaQueries";
 import { GroupData } from "~/store/tradeStore";
 import { useActionBoxStore } from "~/hooks/useActionBoxStore";
 import { ActionBox } from "~/components/common/ActionBox";

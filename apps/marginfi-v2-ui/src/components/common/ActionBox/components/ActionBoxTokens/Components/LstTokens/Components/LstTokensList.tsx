@@ -3,10 +3,9 @@ import React from "react";
 import { WSOL_MINT } from "@mrgnlabs/mrgn-common";
 import { getPriceWithConfidence } from "@mrgnlabs/marginfi-client-v2";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { LstType } from "@mrgnlabs/mrgn-utils";
+import { LstType, StakeData } from "@mrgnlabs/mrgn-utils";
 
 import { SOL_MINT } from "~/store/lstStore";
-import { StakeData } from "~/utils";
 import { useLstStore, useMrgnlendStore } from "~/store";
 import { useWalletContext } from "~/hooks/useWalletContext";
 

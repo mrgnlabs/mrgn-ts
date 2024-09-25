@@ -2,8 +2,9 @@ import React from "react";
 
 import { IconArrowLeft } from "@tabler/icons-react";
 
+import { Desktop, Mobile } from "@mrgnlabs/mrgn-utils";
+
 import { useIsMobile } from "~/hooks/useIsMobile";
-import { Desktop, Mobile } from "~/utils/mediaQueries";
 import { GroupData } from "~/store/tradeStore";
 
 import { TradingBox } from "./TradingBox";

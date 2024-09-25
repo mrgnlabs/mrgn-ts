@@ -1,12 +1,12 @@
 import React from "react";
 
 import { useRouter } from "next/router";
+import { Desktop, Mobile } from "@mrgnlabs/mrgn-utils";
 
 import { useDebounce } from "@uidotdev/usehooks";
 
 import { useTradeStore } from "~/store";
 import { useIsMobile } from "~/hooks/useIsMobile";
-import { Desktop, Mobile } from "~/utils/mediaQueries";
 
 import { PoolSearchDefault, PoolSearchDialog } from "./components/";
 

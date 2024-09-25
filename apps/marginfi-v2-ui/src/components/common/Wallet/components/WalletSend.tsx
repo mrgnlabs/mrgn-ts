@@ -22,14 +22,12 @@ import {
   createTransferCheckedInstruction,
   createAssociatedTokenAccountInstruction,
 } from "@mrgnlabs/mrgn-common";
+import { getTokenImageURL, MultiStepToastHandle } from "@mrgnlabs/mrgn-utils";
 
 import { useMrgnlendStore } from "~/store";
-import { getTokenImageURL } from "@mrgnlabs/mrgn-utils";
-import { cn } from "~/utils";
-import { MultiStepToastHandle } from "~/utils/toastUtils";
+import { cn, capture } from "~/utils";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { useConnection } from "~/hooks/useConnection";
-import { capture } from "~/utils";
 
 import { IconCheck, IconX, IconWallet } from "~/components/ui/icons";
 import { Loader } from "~/components/ui/loader";

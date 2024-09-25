@@ -6,14 +6,14 @@ import { useRouter } from "next/router";
 
 import { ActionType, ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { numeralFormatter } from "@mrgnlabs/mrgn-common";
-import { calculateLoopingParams, handleSimulationError, LoopingObject } from "@mrgnlabs/mrgn-utils";
+import { ActionMethod, calculateLoopingParams, handleSimulationError, LoopingObject } from "@mrgnlabs/mrgn-utils";
 import { MarginfiAccountWrapper, SimulationResult, computeMaxLeverage } from "@mrgnlabs/marginfi-client-v2";
 import { IconAlertTriangle, IconExternalLink, IconLoader2, IconSettings, IconWallet } from "@tabler/icons-react";
 import capitalize from "lodash/capitalize";
 import { useDebounce } from "@uidotdev/usehooks";
 
 import { TradeSide, checkLoopingActionAvailable, generateStats, simulateLooping } from "./tradingBox.utils";
-import { cn, ActionMethod, capture, executeLeverageAction, extractErrorString, usePrevious } from "~/utils";
+import { cn, capture, executeLeverageAction, extractErrorString, usePrevious } from "~/utils";
 import { useTradeStore, useUiStore } from "~/store";
 import { GroupData } from "~/store/tradeStore";
 import { WalletState } from "~/store/uiStore";

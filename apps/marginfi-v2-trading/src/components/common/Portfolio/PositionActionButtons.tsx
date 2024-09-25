@@ -5,6 +5,7 @@ import Image from "next/image";
 import { IconMinus, IconX, IconPlus, IconLoader2 } from "@tabler/icons-react";
 import { Transaction, VersionedTransaction } from "@solana/web3.js";
 
+import { MultiStepToastHandle } from "@mrgnlabs/mrgn-utils";
 import { ActiveBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { useConnection } from "~/hooks/useConnection";
@@ -12,7 +13,6 @@ import { useTradeStore, useUiStore } from "~/store";
 import { GroupData } from "~/store/tradeStore";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { calculateClosePositions, cn, extractErrorString, getTokenImageURL, capture } from "~/utils";
-import { MultiStepToastHandle } from "~/utils/toastUtils";
 
 import { ActionBoxDialog } from "~/components/common/ActionBox";
 import { Button } from "~/components/ui/button";
@@ -86,13 +86,17 @@ export const PositionActionButtons = ({
     if (!activeGroup.selectedAccount || (!borrowBank && !depositBanks[0])) return;
     setIsClosing(true);
 
-    const multiStepToast = new MultiStepToastHandle("Closing position", [
-      {
-        label: `Closing ${depositBanks[0].meta.tokenSymbol}${
-          borrowBank ? "/" + borrowBank?.meta.tokenSymbol : ""
-        } position.`,
-      },
-    ]);
+    const multiStepToast = new MultiStepToastHandle(
+      "Closing position",
+      [
+        {
+          label: `Closing ${depositBanks[0].meta.tokenSymbol}${
+            borrowBank ? "/" + borrowBank?.meta.tokenSymbol : ""
+          } position.`,
+        },
+      ],
+      "light"
+    );
 
     multiStepToast.start();
 

@@ -92,6 +92,7 @@ export type MarginfiActionParams = {
   loopingOptions?: LoopingOptions;
   walletContextState?: WalletContextState | WalletContextStateOverride;
   priorityFee?: number;
+  theme?: "light" | "dark";
 };
 
 export type LstActionParams = {
@@ -106,6 +107,7 @@ export type LstActionParams = {
   selectedStakingAccount: StakeData | null;
   quoteResponseMeta: QuoteResponseMeta | null;
   priorityFee?: number;
+  theme?: "light" | "dark";
 };
 
 export interface LoopingObject {

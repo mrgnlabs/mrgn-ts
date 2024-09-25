@@ -4,8 +4,9 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { numeralFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
+import { Desktop, Mobile } from "@mrgnlabs/mrgn-utils";
 
-import { getTokenImageURL, Desktop, Mobile } from "~/utils";
+import { getTokenImageURL } from "~/utils";
 import { useTradeStore } from "~/store";
 
 import { LpActionButtons } from "~/components/common/Portfolio";

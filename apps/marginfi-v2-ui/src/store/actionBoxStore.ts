@@ -1,9 +1,9 @@
 import { create, StateCreator } from "zustand";
 import { persist } from "zustand/middleware";
-
 import { QuoteResponse } from "@jup-ag/api";
 import { Connection, PublicKey, VersionedTransaction } from "@solana/web3.js";
 import * as solanaStakePool from "@solana/spl-stake-pool";
+import BigNumber from "bignumber.js";
 
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { computeMaxLeverage, MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
@@ -17,15 +17,13 @@ import {
   YbxType,
 } from "@mrgnlabs/mrgn-utils";
 import {
+  StakeData,
   STATIC_SIMULATION_ERRORS,
   DYNAMIC_SIMULATION_ERRORS,
   calculateLoopingParams,
   calculateRepayCollateralParams,
   calculateMaxRepayableCollateral,
 } from "@mrgnlabs/mrgn-utils";
-
-import { StakeData } from "~/utils";
-import BigNumber from "bignumber.js";
 
 interface ActionBoxState {
   // State

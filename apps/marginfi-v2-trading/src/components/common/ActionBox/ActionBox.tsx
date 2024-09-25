@@ -4,18 +4,25 @@ import Link from "next/link";
 import { v4 as uuidv4 } from "uuid";
 
 import { IconAlertTriangle, IconExternalLink, IconSettings } from "@tabler/icons-react";
-import { WSOL_MINT, nativeToUi } from "@mrgnlabs/mrgn-common";
+import { WSOL_MINT } from "@mrgnlabs/mrgn-common";
+import {
+  MarginfiActionParams,
+  closeBalance,
+  executeLendingAction,
+  ActionMethod,
+  showErrorToast,
+  RepayType,
+} from "@mrgnlabs/mrgn-utils";
 import { ActionType, ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 
 import { useUiStore, useTradeStore } from "~/store";
-import { MarginfiActionParams, closeBalance, executeLendingAction, cn, capture } from "~/utils";
+import { cn, capture } from "~/utils";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { useConnection } from "~/hooks/useConnection";
 import { useActionBoxStore } from "~/hooks/useActionBoxStore";
 
-import { ActionMethod, checkActionAvailable, RepayType } from "~/utils/actionBoxUtils";
-import { showErrorToast } from "~/utils/toastUtils";
+import { checkActionAvailable } from "~/utils/actionBoxUtils";
 
 import {
   ActionBoxPreview,
@@ -235,6 +242,7 @@ export const ActionBox = ({
         walletContextState,
         priorityFee,
         repayWithCollatOptions,
+        theme: "light",
       });
 
       setIsLoading(false);
@@ -242,16 +250,16 @@ export const ActionBox = ({
       setAmountRaw("");
 
       if (txnSig) {
-        setIsActionComplete(true);
-        setPreviousTxn({
-          txnType: "LEND",
-          txn: Array.isArray(txnSig) ? txnSig.pop() ?? "" : txnSig!,
-          lendingOptions: {
-            type: currentAction,
-            bank: bank as ActiveBankInfo,
-            amount: borrowOrLendAmount,
-          },
-        });
+        // setIsActionComplete(true);
+        // setPreviousTxn({
+        //   txnType: "LEND",
+        //   txn: Array.isArray(txnSig) ? txnSig.pop() ?? "" : txnSig!,
+        //   lendingOptions: {
+        //     type: currentAction,
+        //     bank: bank as ActiveBankInfo,
+        //     amount: borrowOrLendAmount,
+        //   },
+        // });
         capture(`user_${currentAction.toLowerCase()}`, {
           tokenSymbol: bank.meta.tokenSymbol,
           tokenName: bank.meta.tokenName,
@@ -375,8 +383,8 @@ export const ActionBox = ({
           repayCollatQuote,
           repayCollatTxn: repayCollatTxns.repayCollatTxn,
           feedCrankTxs: repayCollatTxns.feedCrankTxs,
-          repayAmount: repayAmount,
-          repayBank: selectedRepayBank,
+          withdrawAmount: repayAmount,
+          depositBank: selectedRepayBank,
           connection,
         };
       }
@@ -415,7 +423,7 @@ export const ActionBox = ({
 
   React.useEffect(() => {
     if (errorMessage !== null && errorMessage.description) {
-      showErrorToast(errorMessage?.description);
+      showErrorToast({ message: errorMessage?.description, theme: "light" });
       setAdditionalActionMethods([errorMessage]);
     }
   }, [errorMessage]);
@@ -506,8 +514,8 @@ export const ActionBox = ({
                         repayCollatQuote,
                         repayCollatTxn: repayCollatTxns.repayCollatTxn,
                         feedCrankTxs: repayCollatTxns.feedCrankTxs,
-                        repayAmount,
-                        repayBank: selectedRepayBank,
+                        withdrawAmount: repayAmount,
+                        depositBank: selectedRepayBank,
                         connection,
                       }
                     : undefined

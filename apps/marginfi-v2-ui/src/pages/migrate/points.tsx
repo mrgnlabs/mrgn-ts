@@ -4,11 +4,11 @@ import Link from "next/link";
 
 import { shortenAddress } from "@mrgnlabs/mrgn-common";
 import { firebaseApi } from "@mrgnlabs/marginfi-v2-ui-state";
+import { MultiStepToastHandle } from "@mrgnlabs/mrgn-utils";
 
 import { useMrgnlendStore } from "~/store";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { useConnection } from "~/hooks/useConnection";
-import { MultiStepToastHandle } from "~/utils/toastUtils";
 
 import { WalletButton } from "~/components/common/Wallet";
 import { Loader } from "~/components/ui/loader";

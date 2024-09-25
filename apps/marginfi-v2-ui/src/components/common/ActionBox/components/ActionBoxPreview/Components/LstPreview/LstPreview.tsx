@@ -11,10 +11,11 @@ import {
   clampedNumeralFormatter,
 } from "@mrgnlabs/mrgn-common";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { StakeData } from "@mrgnlabs/mrgn-utils";
 
 import { useLstStore, useMrgnlendStore } from "~/store";
 import { LST_MINT, SOL_MINT } from "~/store/lstStore";
-import { cn, StakeData } from "~/utils";
+import { cn } from "~/utils";
 import { useDebounce } from "~/hooks/useDebounce";
 
 import { Skeleton } from "~/components/ui/skeleton";

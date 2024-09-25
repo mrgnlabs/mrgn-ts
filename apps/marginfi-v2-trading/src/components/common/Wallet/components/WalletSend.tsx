@@ -22,10 +22,10 @@ import {
   createTransferCheckedInstruction,
   createAssociatedTokenAccountInstruction,
 } from "@mrgnlabs/mrgn-common";
+import { MultiStepToastHandle } from "@mrgnlabs/mrgn-utils";
 
 import { useMrgnlendStore } from "~/store";
 import { getTokenImageURL, cn } from "~/utils";
-import { MultiStepToastHandle } from "~/utils/toastUtils";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { useConnection } from "~/hooks/useConnection";
 import { capture } from "~/utils";
@@ -129,9 +129,11 @@ export const WalletSend = ({ activeToken, onSendMore, onBack, onRetry, onCancel 
         return;
       }
 
-      const multiStepToast = new MultiStepToastHandle(`Transfer ${token.meta.tokenSymbol}`, [
-        { label: `Sending ${amount} ${token.meta.tokenSymbol} to ${shortenAddress(recipientAddress)}` },
-      ]);
+      const multiStepToast = new MultiStepToastHandle(
+        `Transfer ${token.meta.tokenSymbol}`,
+        [{ label: `Sending ${amount} ${token.meta.tokenSymbol} to ${shortenAddress(recipientAddress)}` }],
+        "light"
+      );
 
       const tokenMint = token.info.state.mint;
       const tokenDecimals = token.info.state.mintDecimals;

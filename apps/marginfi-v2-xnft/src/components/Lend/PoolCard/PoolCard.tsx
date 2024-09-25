@@ -4,8 +4,8 @@ import { StyleSheet, View, Text, Image } from "react-native";
 import { ActionType, Emissions, ExtendedBankInfo, FEE_MARGIN, getCurrentAction } from "@mrgnlabs/marginfi-v2-ui-state";
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
+import { showErrorToast, showSuccessToast } from "@mrgnlabs/mrgn-utils";
 
-import { showErrorToast, showSuccessToast } from "~/utils";
 import tw from "~/styles/tailwind";
 import { useConnection } from "~/context/ConnectionContext";
 
