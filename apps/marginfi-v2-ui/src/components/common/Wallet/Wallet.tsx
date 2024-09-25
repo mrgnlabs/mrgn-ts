@@ -45,6 +45,7 @@ import {
   IconBuildingBank,
   IconArrowDown,
   IconCheck,
+  IconInfoCircleFilled,
 } from "~/components/ui/icons";
 
 enum WalletState {
@@ -61,12 +62,15 @@ enum WalletState {
 
 export const Wallet = () => {
   const router = useRouter();
-  const [marginfiAccounts, extendedBankInfos, nativeSolBalance, initialized] = useMrgnlendStore((state) => [
-    state.marginfiAccounts,
-    state.extendedBankInfos,
-    state.nativeSolBalance,
-    state.initialized,
-  ]);
+  const [marginfiAccounts, extendedBankInfos, nativeSolBalance, initialized, accountSummary] = useMrgnlendStore(
+    (state) => [
+      state.marginfiAccounts,
+      state.extendedBankInfos,
+      state.nativeSolBalance,
+      state.initialized,
+      state.accountSummary,
+    ]
+  );
   const [isWalletOpen, setIsWalletOpen] = useUiStore((state) => [state.isWalletOpen, state.setIsWalletOpen]);
 
   const [userPointsData] = useUserProfileStore((state) => [state.userPointsData, state.fetchPoints]);
@@ -148,15 +152,7 @@ export const Wallet = () => {
           );
         });
 
-      let totalBalance = 0;
-      let totalBalanceStr = "0.00";
-
-      const totalBalanceRes = await fetch(`/api/user/wallet?wallet=${wallet?.publicKey}`);
-      if (totalBalanceRes.ok) {
-        const totalBalanceData = await totalBalanceRes.json();
-        totalBalance = totalBalanceData.totalValue;
-        totalBalanceStr = usdFormatter.format(totalBalance);
-      }
+      const totalBalance = userTokens.reduce((acc, token) => acc + token.valueUSD, 0);
 
       setWalletData({
         address: wallet?.publicKey.toString(),
@@ -340,14 +336,48 @@ export const Wallet = () => {
                   </TabsList>
                   <TabsContent value="tokens">
                     {walletTokenState === WalletState.DEFAULT && (
-                      <div className="space-y-6 py-8">
-                        <h2 className="text-4xl font-medium text-center">{walletData.balanceUSD}</h2>
-                        <TokenOptions
-                          walletAddress={walletData.address}
-                          setState={setWalletTokenState}
-                          web3AuthConnected={web3AuthConncected}
-                        />
-                        <div className="">
+                      <div className="py-8">
+                        <div className="flex flex-col items-center justify-center gap-3">
+                          <div className="flex flex-col items-center justify-center gap-2">
+                            <h2 className="text-4xl font-medium">{walletData.balanceUSD}</h2>
+                            <p className="flex items-center gap-1 text-muted-foreground text-sm">
+                              Available to deposit
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <IconInfoCircleFilled size={14} />
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>Available balance of tokens supported as collateral on marginfi.</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            </p>
+                          </div>
+                          <p className="flex items-center gap-2 text-muted-foreground text-sm">
+                            Portfolio balance
+                            <span className="flex items-center gap-1 text-primary">
+                              {usdFormatter.format(accountSummary.balance)}{" "}
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <IconInfoCircleFilled className="text-muted-foreground" size={14} />
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>Your current marginfi portfolio balance.</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            </span>
+                          </p>
+                        </div>
+
+                        <div className="mt-10 space-y-6">
+                          <TokenOptions
+                            walletAddress={walletData.address}
+                            setState={setWalletTokenState}
+                            web3AuthConnected={web3AuthConncected}
+                          />
                           <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger asChild>
@@ -381,15 +411,15 @@ export const Wallet = () => {
                               </TooltipContent>
                             </Tooltip>
                           </TooltipProvider>
+                          <WalletTokens
+                            className="h-[calc(100vh-325px)] pb-16"
+                            tokens={walletData.tokens}
+                            onTokenClick={(token) => {
+                              setActiveToken(token);
+                              setWalletTokenState(WalletState.TOKEN);
+                            }}
+                          />
                         </div>
-                        <WalletTokens
-                          className="h-[calc(100vh-325px)] pb-16"
-                          tokens={walletData.tokens}
-                          onTokenClick={(token) => {
-                            setActiveToken(token);
-                            setWalletTokenState(WalletState.TOKEN);
-                          }}
-                        />
                       </div>
                     )}
 
