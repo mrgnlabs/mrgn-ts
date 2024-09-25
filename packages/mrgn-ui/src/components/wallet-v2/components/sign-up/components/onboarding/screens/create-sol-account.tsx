@@ -4,9 +4,9 @@ import { IconStarFilled } from "@tabler/icons-react";
 
 import { IconBackpackWallet } from "~/components/ui/icons";
 import { OnrampScreenProps, socialProviders } from "~/components/wallet-v2/components/sign-up/sign-up.utils";
-import { useAvailableWallets } from "~/components/wallet-v2/hooks/use-available-wallets";
-import { useWallet } from "~/components/wallet-v2/hooks/use-wallet";
-import { useOs } from "~/hooks/use-os";
+import { useAvailableWallets } from "@mrgnlabs/mrgn-utils";
+import { useWallet } from "~/components/wallet-v2/wallet.hooks";
+import { useOs } from "@mrgnlabs/mrgn-utils";
 
 import {
   ScreenWrapper,

@@ -4,11 +4,11 @@ import { useRouter } from "next/router";
 import Script from "next/script";
 
 import { WSOL_MINT, LST_MINT } from "@mrgnlabs/mrgn-common";
+import { capture } from "@mrgnlabs/mrgn-utils";
 import { PublicKey } from "@solana/web3.js";
 import { QuoteResponseMeta, SwapResult } from "@jup-ag/react-hook";
 
-import { capture } from "@mrgnlabs/mrgn-utils";
-import { useWallet } from "~/components/wallet-v2/hooks/use-wallet";
+import { useWallet } from "~/components/wallet-v2/wallet.hooks";
 
 type SwapProps = {
   onLoad?: () => void;

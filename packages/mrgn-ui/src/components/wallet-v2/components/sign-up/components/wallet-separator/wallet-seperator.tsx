@@ -1,4 +1,4 @@
-import { cn } from "~/utils/theme-utils";
+import { cn } from "@mrgnlabs/mrgn-utils";
 
 export const WalletSeperator = ({ description, onClick }: { description: string; onClick?: () => void }) => {
   return (

@@ -1,10 +1,10 @@
 import React from "react";
 import Script from "next/script";
 
-import { useOs } from "~/hooks/use-os";
-import { useBrowser } from "~/hooks/use-browser";
-import { useWallet } from "~/components/wallet-v2/hooks/use-wallet";
-import { ExtendedWallet } from "~/components/wallet-v2/hooks/use-available-wallets";
+import { useOs } from "@mrgnlabs/mrgn-utils";
+import { useBrowser } from "@mrgnlabs/mrgn-utils";
+import { useWallet } from "~/components/wallet-v2/wallet.hooks";
+import { ExtendedWallet } from "@mrgnlabs/mrgn-utils";
 import {
   AuthScreenProps,
   InstallingWallet,
@@ -39,7 +39,7 @@ export const OnboardingEth = ({
   const [screenIndex, setScreenIndex] = React.useState<number>(0);
   const [installingWallet, setInstallingWallet] = React.useState<InstallingWallet>();
   const [successProps, setSuccessProps] = React.useState<SuccessProps>();
-  const userHasAcct = React.useMemo(() => marginfiAccounts.length > 0, [marginfiAccounts]);
+  const userHasAcct = React.useMemo(() => marginfiAccounts && marginfiAccounts.length > 0, [marginfiAccounts]);
 
   const screen = React.useMemo(() => {
     if (installingWallet) {

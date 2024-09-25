@@ -2,11 +2,11 @@ import React from "react";
 
 import { IconStarFilled } from "@tabler/icons-react";
 
-import { cn } from "~/utils/theme-utils";
-import { useOs } from "~/hooks/use-os";
-import { useBrowser } from "~/hooks/use-browser";
+import { cn } from "@mrgnlabs/mrgn-utils";
+import { useOs } from "@mrgnlabs/mrgn-utils";
+import { useBrowser } from "@mrgnlabs/mrgn-utils";
 import { getWalletConnectionMethod } from "~/components/wallet-v2/wallet.utils";
-import { useWallet } from "~/components/wallet-v2/hooks/use-wallet";
+import { useWallet } from "~/components/wallet-v2/wallet.hooks";
 import { AuthScreenProps, socialProviders } from "~/components/wallet-v2/components/sign-up/sign-up.utils";
 import {
   OnboardHeader,
@@ -15,7 +15,7 @@ import {
   WalletAuthWrapper,
   WalletSeperator,
 } from "~/components/wallet-v2/components/sign-up/components";
-import { ExtendedWallet, useAvailableWallets } from "~/components/wallet-v2/hooks/use-available-wallets";
+import { ExtendedWallet, useAvailableWallets } from "@mrgnlabs/mrgn-utils";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "~/components/ui/accordion";
 import { IconBackpackWallet } from "~/components/ui/icons";
 

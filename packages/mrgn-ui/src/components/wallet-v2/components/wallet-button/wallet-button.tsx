@@ -5,10 +5,10 @@ import Script from "next/script";
 
 import { IconChevronDown, IconBrandX, IconBrandApple, IconBrandGoogle } from "@tabler/icons-react";
 
-import { cn } from "~/utils/theme-utils";
+import { cn } from "@mrgnlabs/mrgn-utils";
 
-import { WalletInfo, Web3AuthProvider, useWallet } from "~/components/wallet-v2/hooks/use-wallet";
-import { useWalletStore } from "~/components/wallet-v2/store";
+import { WalletInfo, Web3AuthProvider, useWallet } from "~/components/wallet-v2/wallet.hooks";
+import { useWalletStore } from "~/components/wallet-v2/wallet.store";
 import { Wallet } from "~/components/wallet-v2/wallet";
 
 import { IconMrgn } from "~/components/ui/icons";

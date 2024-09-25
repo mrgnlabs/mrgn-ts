@@ -1,19 +1,17 @@
 import React from "react";
 import { useRouter } from "next/router";
-import { useWallet } from "@solana/wallet-adapter-react";
 
 import { Dialog, DialogContent } from "~/components/ui/dialog";
-import { useOs } from "~/hooks/useOs";
-import { useWalletContext } from "~/hooks/useWalletContext";
-import { useBrowser } from "~/hooks/useBrowser";
-import { AUTO_FLOW_MAP, AuthFlowType, AuthScreenProps, cn } from "~/utils";
-import { useUiStore } from "~/store";
+import { useOs, useBrowser, cn } from "@mrgnlabs/mrgn-utils";
+import { useWallet } from "~/components/wallet-v2/wallet.hooks";
+import { AUTO_FLOW_MAP, AuthFlowType, AuthScreenProps } from "~/components/wallet-v2/components/sign-up/sign-up.utils";
+import { useWalletStore } from "~/components/wallet-v2/wallet.store";
 import { Progress } from "~/components/ui/progress";
 
 export const AuthDialog = () => {
-  const [isWalletAuthDialogOpen, setIsWalletAuthDialogOpen] = useUiStore((state) => [
-    state.isWalletAuthDialogOpen,
-    state.setIsWalletAuthDialogOpen,
+  const [isWalletAuthDialogOpen, setIsWalletAuthDialogOpen] = useWalletStore((state) => [
+    state.isWalletSignUpOpen,
+    state.setIsWalletSignUpOpen,
   ]);
 
   const { isAndroid, isIOS, isPWA } = useOs();
@@ -47,8 +45,7 @@ export const AuthDialog = () => {
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const [isActiveLoading, setIsActiveLoading] = React.useState<string>("");
   const [progress, setProgress] = React.useState<number>(0);
-  const { select } = useWallet();
-  const { loginWeb3Auth, connecting, connected } = useWalletContext();
+  const { loginWeb3Auth, connecting, connected, walletContextState } = useWallet();
   const { query, replace, pathname } = useRouter();
 
   // if user has PWA force social login
@@ -102,7 +99,7 @@ export const AuthDialog = () => {
 
       setIsLoading(true);
       setIsActiveLoading(selectedWallet);
-      select(selectedWallet as any);
+      walletContextState.select(selectedWallet as any);
 
       const newQuery = { ...query };
       delete newQuery.onramp;
@@ -116,7 +113,7 @@ export const AuthDialog = () => {
         { shallow: true }
       );
     }
-  }, [pathname, query, query.onramp, replace, select]);
+  }, [pathname, query, query.onramp, replace, walletContextState.select]);
 
   // reset on force close
   React.useEffect(() => {
@@ -135,7 +132,7 @@ export const AuthDialog = () => {
     if (!selectedWallet) return;
     setIsLoading(true);
     setIsActiveLoading(selectedWallet);
-    select(selectedWallet as any);
+    walletContextState.select(selectedWallet as any);
     localStorage.setItem("isOnboarded", "true");
   };
 

@@ -12,9 +12,7 @@ import {
   IconDeviceMobilePlus,
 } from "@tabler/icons-react";
 
-import { BrowserTypes, useBrowser } from "~/hooks/use-browser";
-import { useOs } from "~/hooks/use-os";
-import { useIOSVersion } from "~/hooks/use-ios-version";
+import { BrowserTypes, useBrowser, useIOSVersion, useOs } from "@mrgnlabs/mrgn-utils";
 
 import { AuthScreenProps } from "~/components/wallet-v2/components/sign-up/sign-up.utils";
 import { ScreenWrapper } from "~/components/wallet-v2/components/sign-up/components";

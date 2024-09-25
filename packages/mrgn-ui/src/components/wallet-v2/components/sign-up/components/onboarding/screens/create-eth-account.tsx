@@ -1,5 +1,5 @@
 import { OnrampScreenProps, socialProviders } from "~/components/wallet-v2/components/sign-up/sign-up.utils";
-import { useAvailableWallets } from "~/components/wallet-v2/hooks/use-available-wallets";
+import { useAvailableWallets } from "@mrgnlabs/mrgn-utils";
 
 import {
   ScreenWrapper,
@@ -8,7 +8,7 @@ import {
   WalletSeperator,
   WalletAuthWrapper,
 } from "~/components/wallet-v2/components/sign-up/components";
-import { useWallet } from "~/components/wallet-v2/hooks/use-wallet";
+import { useWallet } from "~/components/wallet-v2/wallet.hooks";
 
 export const CreateEthAccount = ({
   isLoading,

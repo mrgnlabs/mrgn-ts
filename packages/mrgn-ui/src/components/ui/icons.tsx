@@ -1,6 +1,5 @@
+import { cn } from "@mrgnlabs/mrgn-utils";
 import { IconLoader2 } from "@tabler/icons-react";
-
-import { cn } from "~/utils/theme-utils";
 
 export type IconProps = {
   size?: number;

@@ -29,5 +29,7 @@ const stateCreator: StateCreator<WalletState, [], []> = (set, get) => ({
   setIsWalletSignUpOpen: (isOpen: boolean) => set({ isWalletSignUpOpen: isOpen }),
 });
 
-export { createWalletStore };
+const useWalletStore = createWalletStore();
+
+export { useWalletStore };
 export type { WalletState };

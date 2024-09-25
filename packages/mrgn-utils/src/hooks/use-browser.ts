@@ -1,7 +1,7 @@
 import React from "react";
 
-import { useOs } from "~/hooks/use-os";
-import { useAvailableWallets } from "~/components/wallet-v2/hooks/use-available-wallets";
+import { useOs } from "./use-os";
+import { useAvailableWallets } from "./use-available-wallets";
 
 export type BrowserTypes =
   | "Chrome"
