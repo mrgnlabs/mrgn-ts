@@ -6,7 +6,7 @@ interface ActionSettingsButtonProps {
 
 export const ActionSettingsButton = ({ setIsSettingsActive }: ActionSettingsButtonProps) => {
   return (
-    <div className="flex justify-between mt-3">
+    <div className="flex justify-between">
       <div className="flex justify-end gap-2 ml-auto">
         <button
           onClick={() => setIsSettingsActive(true)}

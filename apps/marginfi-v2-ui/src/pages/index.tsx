@@ -6,6 +6,7 @@ import { useRouter } from "next/router";
 import { shortenAddress } from "@mrgnlabs/mrgn-common";
 import { Desktop, Mobile } from "@mrgnlabs/mrgn-utils";
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActionBox } from "@mrgnlabs/mrgn-ui";
 
 import { useMrgnlendStore, useUiStore } from "~/store";
 import { useActionBoxStore } from "~/hooks/useActionBoxStore";
@@ -31,14 +32,17 @@ const AssetsList = dynamic(async () => (await import("~/components/desktop/Asset
 
 export default function HomePage() {
   const router = useRouter();
-  const { walletAddress, isOverride } = useWallet();
+  const { walletContextState, walletAddress, isOverride, connected } = useWalletContext();
   const [previousTxn, setIsWalletOpen] = useUiStore((state) => [state.previousTxn, state.setIsWalletOpen]);
-  const [isStoreInitialized, isRefreshingStore, selectedAccount, extendedBankInfos] = useMrgnlendStore((state) => [
-    state.initialized,
-    state.isRefreshingStore,
-    state.selectedAccount,
-    state.extendedBankInfos,
-  ]);
+  const [isStoreInitialized, isRefreshingStore, selectedAccount, extendedBankInfos, accountSummary, nativeSolBalance] =
+    useMrgnlendStore((state) => [
+      state.initialized,
+      state.isRefreshingStore,
+      state.selectedAccount,
+      state.extendedBankInfos,
+      state.accountSummary,
+      state.nativeSolBalance,
+    ]);
   const [actionMode, refreshState] = useActionBoxStore()((state) => [state.actionMode, state.refreshState]);
   const [isStateReset, setIsStateReset] = React.useState(false);
 
@@ -88,6 +92,21 @@ export default function HomePage() {
               )}
               <Announcements items={annoucements} />
               <AnnouncementsDialog />
+              <div className="p-4 space-y-4 w-full">
+                <ActionBox.LendBorrow
+                  lendProps={{
+                    nativeSolBalance: nativeSolBalance,
+                    selectedAccount,
+                    banks: extendedBankInfos,
+                    accountSummary: accountSummary,
+                    onComplete: () => {},
+                    connected: connected,
+                    captureEvent: () => {},
+                    onConnect: () => {},
+                    walletContextState: walletContextState,
+                  }}
+                />
+              </div>
               <ActionBoxLendWrapper />
             </div>
             <div className="pt-[16px] pb-[64px] px-4 w-full xl:w-4/5 xl:max-w-7xl mt-8 gap-4">
@@ -104,7 +123,22 @@ export default function HomePage() {
           <>
             <Announcements items={annoucements} />
             <AnnouncementsDialog />
-            <ActionBoxLendWrapper />
+            {/* <ActionBoxLendWrapper /> */}
+            <div className="p-4 space-y-4 w-full">
+              <ActionBox.LendBorrow
+                lendProps={{
+                  nativeSolBalance: nativeSolBalance,
+                  selectedAccount,
+                  banks: extendedBankInfos,
+                  accountSummary: accountSummary,
+                  onComplete: () => {},
+                  connected: false,
+                  captureEvent: () => {},
+                  onConnect: () => {},
+                  walletContextState: {},
+                }}
+              />
+            </div>
             <div className="mb-24" />
           </>
         )}

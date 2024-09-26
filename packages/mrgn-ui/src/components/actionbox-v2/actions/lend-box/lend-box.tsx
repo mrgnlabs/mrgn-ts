@@ -141,6 +141,8 @@ export const LendBox = ({
     [amount, connected, showCloseBalance, selectedBank, banks, selectedAccount, nativeSolBalance, lendMode]
   );
 
+  const buttonLabel = React.useMemo(() => (showCloseBalance ? "Close" : actionMode), [showCloseBalance, actionMode]);
+
   const handleCloseBalance = React.useCallback(async () => {
     if (!selectedBank || !selectedAccount) {
       return;
@@ -235,14 +237,16 @@ export const LendBox = ({
 
   return (
     <>
-      <ActionInput
-        banks={banks}
-        nativeSolBalance={nativeSolBalance}
-        walletAmount={walletAmount}
-        amountRaw={amountRaw}
-        maxAmount={maxAmount}
-        connected={connected}
-      />
+      <div className="mb-6">
+        <ActionInput
+          banks={banks}
+          nativeSolBalance={nativeSolBalance}
+          walletAmount={walletAmount}
+          amountRaw={amountRaw}
+          maxAmount={maxAmount}
+          connected={connected}
+        />
+      </div>
 
       {additionalActionMethods.concat(actionMethods).map(
         (actionMethod, idx) =>
@@ -253,19 +257,23 @@ export const LendBox = ({
           )
       )}
 
-      <Collateral selectedAccount={selectedAccount} actionSummary={actionSummary} />
+      <div className="mb-6">
+        <Collateral selectedAccount={selectedAccount} actionSummary={actionSummary} />
+      </div>
 
-      <ActionButton
-        isLoading={isLoading}
-        isEnabled={!additionalActionMethods.concat(actionMethods).filter((value) => value.isEnabled === false).length}
-        connected={connected}
-        // showCloseBalance={showCloseBalance}
-        handleAction={() => {
-          showCloseBalance ? handleCloseBalance() : handleLendingAction();
-        }}
-        handleConnect={() => onConnect && onConnect()}
-        buttonLabel={""}
-      />
+      <div className="mb-3">
+        <ActionButton
+          isLoading={isLoading}
+          isEnabled={!additionalActionMethods.concat(actionMethods).filter((value) => value.isEnabled === false).length}
+          connected={connected}
+          // showCloseBalance={showCloseBalance}
+          handleAction={() => {
+            showCloseBalance ? handleCloseBalance() : handleLendingAction();
+          }}
+          handleConnect={() => onConnect && onConnect()}
+          buttonLabel={"Supply"}
+        />
+      </div>
 
       <ActionSettingsButton setIsSettingsActive={setIsSettingsDialogOpen} />
 

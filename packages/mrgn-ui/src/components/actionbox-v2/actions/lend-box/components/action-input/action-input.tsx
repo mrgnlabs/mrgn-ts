@@ -59,41 +59,38 @@ export const ActionInput = ({
   );
 
   return (
-    <>
-      {/* Contains 'max' button and input title */}
-      <div className="bg-background rounded-lg p-2.5 mb-6">
-        <div className="flex justify-center gap-1 items-center font-medium text-3xl">
-          <div className="w-full flex-auto max-w-[162px]">
-            <BankSelect
-              selectedBank={selectedBank}
-              setSelectedBank={(bank) => {
-                setSelectedBank(bank);
-              }}
-              banks={banks}
-              nativeSolBalance={nativeSolBalance}
-              lendMode={lendMode}
-              connected={connected}
-            />
-          </div>
-          <div className="flex-auto">
-            <Input
-              type="text"
-              ref={amountInputRef}
-              inputMode="decimal"
-              value={amountRaw}
-              disabled={isInputDisabled}
-              onChange={(e) => handleInputChange(e.target.value)}
-              placeholder="0"
-              className="bg-transparent min-w-[130px] text-right outline-none focus-visible:outline-none focus-visible:ring-0 border-none text-base font-medium"
-            />
-          </div>
+    <div className="bg-background rounded-lg p-2.5">
+      <div className="flex justify-center gap-1 items-center font-medium text-3xl">
+        <div className="w-full flex-auto max-w-[162px]">
+          <BankSelect
+            selectedBank={selectedBank}
+            setSelectedBank={(bank) => {
+              setSelectedBank(bank);
+            }}
+            banks={banks}
+            nativeSolBalance={nativeSolBalance}
+            lendMode={lendMode}
+            connected={connected}
+          />
         </div>
-        <LendingAction
-          walletAmount={walletAmount}
-          maxAmount={maxAmount}
-          onSetAmountRaw={(amount) => handleInputChange(amount)}
-        />
+        <div className="flex-auto">
+          <Input
+            type="text"
+            ref={amountInputRef}
+            inputMode="decimal"
+            value={amountRaw}
+            disabled={isInputDisabled}
+            onChange={(e) => handleInputChange(e.target.value)}
+            placeholder="0"
+            className="bg-transparent min-w-[130px] text-right outline-none focus-visible:outline-none focus-visible:ring-0 border-none text-base font-medium"
+          />
+        </div>
       </div>
-    </>
+      <LendingAction
+        walletAmount={walletAmount}
+        maxAmount={maxAmount}
+        onSetAmountRaw={(amount) => handleInputChange(amount)}
+      />
+    </div>
   );
 };
