@@ -5,7 +5,7 @@ import { IconStarFilled } from "@tabler/icons-react";
 import { cn } from "@mrgnlabs/mrgn-utils";
 import { useOs } from "@mrgnlabs/mrgn-utils";
 import { useBrowser } from "@mrgnlabs/mrgn-utils";
-import { getWalletConnectionMethod } from "~/components/wallet-v2/wallet.utils";
+import { getWalletConnectionMethod } from "~/components/wallet-v2/utils/wallet.utils";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { AuthScreenProps, socialProviders } from "~/components/wallet-v2/components/sign-up/sign-up.utils";
 import {
