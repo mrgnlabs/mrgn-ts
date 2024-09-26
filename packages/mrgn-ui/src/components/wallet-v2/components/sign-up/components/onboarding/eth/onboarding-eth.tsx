@@ -11,7 +11,7 @@ import {
   OnrampScreenProps,
   SuccessProps,
 } from "~/components/wallet-v2/components/sign-up/sign-up.utils";
-import { getWalletConnectionMethod } from "~/components/wallet-v2/wallet.utils";
+import { getWalletConnectionMethod } from "~/components/wallet-v2/utils/wallet.utils";
 import {
   ethOnrampFlow,
   installWallet,

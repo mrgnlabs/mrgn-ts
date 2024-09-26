@@ -204,421 +204,424 @@ const Wallet = ({
   return (
     <>
       {!isLoading && !connected && <WalletButton />}
-      <Sheet open={isWalletOpen} onOpenChange={(open) => setIsWalletOpen(open)}>
-        <SheetTrigger asChild>
-          {walletData.address && (
-            <button className="flex items-center gap-2 hover:bg-background-gray-light transition-colors rounded-full py-0.5 pr-2 pl-1 text-sm text-muted-foreground">
-              <WalletAvatar pfp={pfp} address={walletData.address} size="sm" />
-              {walletData.shortAddress}
-              <IconChevronDown size={16} />
-            </button>
-          )}
-        </SheetTrigger>
-        <SheetContent className="outline-none z-[50] px-4 bg-background border-0">
-          <SheetHeader className="sr-only">
-            <SheetTitle>marginfi wallet</SheetTitle>
-            <SheetDescription>Manage your marginfi wallet.</SheetDescription>
-          </SheetHeader>
-          {walletData.address ? (
-            <div className="max-h-full">
-              <header className="flex items-center gap-2">
-                <WalletAvatar pfp={pfp} address={walletData.address} size="md" className="absolute left-2" />
 
-                <div className="mx-auto">
-                  <WalletAuthAccounts
-                    initialized={initialized}
-                    mfiClient={mfiClient}
-                    marginfiAccounts={marginfiAccounts}
-                    selectedAccount={selectedAccount}
-                    fetchMrgnlendState={function (): Promise<void> {
-                      throw new Error("Function not implemented.");
-                    }}
-                  />
-                </div>
-                <div className="absolute right-2 flex items-center md:gap-1">
-                  {web3AuthConncected && (
+      {!isLoading && connected && (
+        <Sheet open={isWalletOpen} onOpenChange={(open) => setIsWalletOpen(open)}>
+          <SheetTrigger asChild>
+            {walletData.address && (
+              <button className="flex items-center gap-2 hover:bg-background-gray-light transition-colors rounded-full py-0.5 pr-2 pl-1 text-sm text-muted-foreground">
+                <WalletAvatar pfp={pfp} address={walletData.address} size="sm" />
+                {walletData.shortAddress}
+                <IconChevronDown size={16} />
+              </button>
+            )}
+          </SheetTrigger>
+          <SheetContent className="outline-none z-[50] px-4 bg-background border-0">
+            <SheetHeader className="sr-only">
+              <SheetTitle>marginfi wallet</SheetTitle>
+              <SheetDescription>Manage your marginfi wallet.</SheetDescription>
+            </SheetHeader>
+            {walletData.address ? (
+              <div className="max-h-full">
+                <header className="flex items-center gap-2">
+                  <WalletAvatar pfp={pfp} address={walletData.address} size="md" className="absolute left-2" />
+
+                  <div className="mx-auto">
+                    <WalletAuthAccounts
+                      initialized={initialized}
+                      mfiClient={mfiClient}
+                      marginfiAccounts={marginfiAccounts}
+                      selectedAccount={selectedAccount}
+                      fetchMrgnlendState={function (): Promise<void> {
+                        throw new Error("Function not implemented.");
+                      }}
+                    />
+                  </div>
+                  <div className="absolute right-2 flex items-center md:gap-1">
+                    {web3AuthConncected && (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className={cn(walletTokenState === WalletState.NOTIS && "text-chartreuse")}
+                              onClick={() => {
+                                localStorage.setItem("mrgnPrivateKeyRequested", "true");
+                                requestPrivateKey();
+                              }}
+                            >
+                              <IconKey size={18} />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Export private key</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    )}
+
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <Button
                             variant="ghost"
                             size="icon"
-                            className={cn(walletTokenState === WalletState.NOTIS && "text-chartreuse")}
+                            className={cn(
+                              web3AuthConncected && "hidden lg:flex",
+                              walletTokenState === WalletState.NOTIS && "text-chartreuse"
+                            )}
                             onClick={() => {
-                              localStorage.setItem("mrgnPrivateKeyRequested", "true");
-                              requestPrivateKey();
+                              setWalletTokenState(
+                                walletTokenState === WalletState.NOTIS ? WalletState.DEFAULT : WalletState.NOTIS
+                              );
                             }}
                           >
-                            <IconKey size={18} />
+                            <IconBell size={18} />
                           </Button>
                         </TooltipTrigger>
                         <TooltipContent>
-                          <p>Export private key</p>
+                          <p>Notification settings</p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
-                  )}
 
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className={cn(
-                            web3AuthConncected && "hidden lg:flex",
-                            walletTokenState === WalletState.NOTIS && "text-chartreuse"
-                          )}
-                          onClick={() => {
-                            setWalletTokenState(
-                              walletTokenState === WalletState.NOTIS ? WalletState.DEFAULT : WalletState.NOTIS
-                            );
-                          }}
-                        >
-                          <IconBell size={18} />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Notification settings</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button variant="ghost" size="icon" onClick={logout} className="shrink-0">
+                            <IconLogout size={18} className="translate-x-0.5" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Disconnect wallet</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
 
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button variant="ghost" size="icon" onClick={logout} className="shrink-0">
-                          <IconLogout size={18} className="translate-x-0.5" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Disconnect wallet</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-
-                  {isMobile && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => {
-                        setIsWalletOpen(false);
-                      }}
-                      className="shrink-0"
-                    >
-                      <IconX size={18} className="translate-x-0.5" />
-                    </Button>
-                  )}
-                </div>
-              </header>
-              {walletTokenState === WalletState.NOTIS && (
-                <div className="relative pt-8 space-y-4">
-                  <button
-                    className="flex items-center gap-1 text-sm text-muted-foreground"
-                    onClick={() => resetWalletState()}
-                  >
-                    <IconArrowLeft size={16} /> back
-                  </button>
-                  <WalletNotis />
-                </div>
-              )}
-
-              {walletTokenState !== WalletState.NOTIS && (
-                <Tabs defaultValue="tokens" className="py-8">
-                  <TabsList className="flex items-center gap-4 bg-transparent px-16 mx-auto">
-                    <TabsTrigger
-                      value="tokens"
-                      className="group w-1/3 bg-transparent data-[state=active]:bg-transparent"
+                    {isMobile && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => {
+                          setIsWalletOpen(false);
+                        }}
+                        className="shrink-0"
+                      >
+                        <IconX size={18} className="translate-x-0.5" />
+                      </Button>
+                    )}
+                  </div>
+                </header>
+                {walletTokenState === WalletState.NOTIS && (
+                  <div className="relative pt-8 space-y-4">
+                    <button
+                      className="flex items-center gap-1 text-sm text-muted-foreground"
                       onClick={() => resetWalletState()}
                     >
-                      <span className="group-data-[state=active]:bg-background-gray-light hover:bg-background-gray-light/75 py-1.5 px-3 rounded-md">
-                        Tokens
-                      </span>
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="points"
-                      className="group w-1/3 bg-transparent data-[state=active]:bg-transparent"
-                    >
-                      <span className="group-data-[state=active]:bg-background-gray-light hover:bg-background-gray-light/75 py-1.5 px-3 rounded-md">
-                        Points
-                      </span>
-                    </TabsTrigger>
-                    <div className="cursor-help w-1/3 inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow">
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <span className="py-1.5 px-3 rounded-md opacity-50">Activity</span>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Coming soon</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </div>
-                  </TabsList>
-                  <TabsContent value="tokens">
-                    {walletTokenState === WalletState.DEFAULT && (
-                      <div className="space-y-6 py-8">
-                        <h2 className="text-4xl font-medium text-center">{walletData.balanceUSD}</h2>
-                        <TokenOptions
-                          walletAddress={walletData.address}
-                          setState={setWalletTokenState}
-                          web3AuthConnected={web3AuthConncected}
-                        />
-                        <div className="">
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <div>
-                                  <CopyToClipboard
-                                    text={walletData.address}
-                                    onCopy={() => {
-                                      setIsWalletAddressCopied(true);
-                                      setTimeout(() => {
-                                        setIsWalletAddressCopied(false);
-                                      }, 2000);
-                                    }}
-                                  >
-                                    <button className="flex w-full gap-1 font-medium items-center justify-center text-center text-xs text-muted-foreground">
-                                      {!isWalletAddressCopied ? (
-                                        <>
-                                          <IconCopy size={16} /> Copy wallet address
-                                        </>
-                                      ) : (
-                                        <>
-                                          <IconCheck size={16} />
-                                          Copied! ({shortenAddress(walletData.address)})
-                                        </>
-                                      )}
-                                    </button>
-                                  </CopyToClipboard>
-                                </div>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>{shortenAddress(walletData.address)}</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        </div>
-                        <WalletTokens
-                          className="h-[calc(100vh-325px)] pb-16"
-                          tokens={walletData.tokens}
-                          onTokenClick={(token) => {
-                            setActiveToken(token);
-                            setWalletTokenState(WalletState.TOKEN);
-                          }}
-                        />
-                      </div>
-                    )}
+                      <IconArrowLeft size={16} /> back
+                    </button>
+                    <WalletNotis />
+                  </div>
+                )}
 
-                    {walletTokenState === WalletState.TOKEN && activeToken && (
-                      <TabWrapper resetWalletState={resetWalletState}>
-                        <div className="gap-2 text-center flex flex-col items-center">
-                          <Image
-                            src={getTokenImageURL(activeToken.symbol)}
-                            alt={activeToken.symbol}
-                            width={60}
-                            height={60}
-                            className="rounded-full"
-                          />
-                          <div className="space-y-0">
-                            <h2 className="font-medium text-3xl">
-                              {activeToken.value < 0.01
-                                ? "< 0.01"
-                                : numeralFormatter(activeToken.value) + " " + activeToken.symbol}
-                            </h2>
-                            <p className="text-muted-foreground">{usdFormatter.format(activeToken.valueUSD)}</p>
-                          </div>
-                        </div>
-                        <div className="mt-6">
+                {walletTokenState !== WalletState.NOTIS && (
+                  <Tabs defaultValue="tokens" className="py-8">
+                    <TabsList className="flex items-center gap-4 bg-transparent px-16 mx-auto">
+                      <TabsTrigger
+                        value="tokens"
+                        className="group w-1/3 bg-transparent data-[state=active]:bg-transparent"
+                        onClick={() => resetWalletState()}
+                      >
+                        <span className="group-data-[state=active]:bg-background-gray-light hover:bg-background-gray-light/75 py-1.5 px-3 rounded-md">
+                          Tokens
+                        </span>
+                      </TabsTrigger>
+                      <TabsTrigger
+                        value="points"
+                        className="group w-1/3 bg-transparent data-[state=active]:bg-transparent"
+                      >
+                        <span className="group-data-[state=active]:bg-background-gray-light hover:bg-background-gray-light/75 py-1.5 px-3 rounded-md">
+                          Points
+                        </span>
+                      </TabsTrigger>
+                      <div className="cursor-help w-1/3 inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow">
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <span className="py-1.5 px-3 rounded-md opacity-50">Activity</span>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Coming soon</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </div>
+                    </TabsList>
+                    <TabsContent value="tokens">
+                      {walletTokenState === WalletState.DEFAULT && (
+                        <div className="space-y-6 py-8">
+                          <h2 className="text-4xl font-medium text-center">{walletData.balanceUSD}</h2>
                           <TokenOptions
                             walletAddress={walletData.address}
                             setState={setWalletTokenState}
-                            setToken={() => {
-                              setActiveToken(activeToken);
-                            }}
+                            web3AuthConnected={web3AuthConncected}
                           />
-                        </div>
-                      </TabWrapper>
-                    )}
-
-                    {walletTokenState === WalletState.SEND && (
-                      <TabWrapper resetWalletState={resetWalletState}>
-                        {activeToken && (
-                          <WalletSend
-                            activeToken={activeToken}
-                            extendedBankInfos={extendedBankInfos}
-                            nativeSolBalance={nativeSolBalance}
-                            onSendMore={() => {
-                              setWalletTokenState(WalletState.SEND);
-                            }}
-                            onBack={() => {
-                              setWalletTokenState(WalletState.DEFAULT);
-                              setActiveToken(null);
-                            }}
-                            onRetry={() => {
-                              setWalletTokenState(WalletState.SEND);
-                            }}
-                            onCancel={() => {
+                          <div className="">
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <div>
+                                    <CopyToClipboard
+                                      text={walletData.address}
+                                      onCopy={() => {
+                                        setIsWalletAddressCopied(true);
+                                        setTimeout(() => {
+                                          setIsWalletAddressCopied(false);
+                                        }, 2000);
+                                      }}
+                                    >
+                                      <button className="flex w-full gap-1 font-medium items-center justify-center text-center text-xs text-muted-foreground">
+                                        {!isWalletAddressCopied ? (
+                                          <>
+                                            <IconCopy size={16} /> Copy wallet address
+                                          </>
+                                        ) : (
+                                          <>
+                                            <IconCheck size={16} />
+                                            Copied! ({shortenAddress(walletData.address)})
+                                          </>
+                                        )}
+                                      </button>
+                                    </CopyToClipboard>
+                                  </div>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>{shortenAddress(walletData.address)}</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </div>
+                          <WalletTokens
+                            className="h-[calc(100vh-325px)] pb-16"
+                            tokens={walletData.tokens}
+                            onTokenClick={(token) => {
+                              setActiveToken(token);
                               setWalletTokenState(WalletState.TOKEN);
                             }}
                           />
-                        )}
-                      </TabWrapper>
-                    )}
-                    {walletTokenState === WalletState.BUY && (
-                      <TabWrapper resetWalletState={resetWalletState}>
-                        <div className="px-4">
-                          <WalletOnramp showAmountBackButton={false} />
-                        </div>
-                      </TabWrapper>
-                    )}
-                    {walletTokenState === WalletState.SELECT && (
-                      <TabWrapper resetWalletState={resetWalletState}>
-                        <WalletTokens
-                          className="h-[calc(100vh-235px)]"
-                          tokens={walletData.tokens}
-                          onTokenClick={(token) => {
-                            setActiveToken(token);
-                            setWalletTokenState(WalletState.SEND);
-                          }}
-                        />
-                      </TabWrapper>
-                    )}
-                    {walletTokenState === WalletState.SWAP && (
-                      <TabWrapper resetWalletState={resetWalletState}>
-                        <div className="max-w-[590px] mx-auto px-3 transition-opacity" id="integrated-terminal"></div>
-                        <Swap
-                          onLoad={() => {
-                            setIsSwapLoaded(true);
-                          }}
-                          initialInputMint={activeBank?.info.state.mint}
-                        />
-                      </TabWrapper>
-                    )}
-                    {walletTokenState === WalletState.BRIDGE && (
-                      <TabWrapper resetWalletState={resetWalletState}>
-                        <ToggleGroup
-                          type="single"
-                          size="sm"
-                          value={bridgeType}
-                          onValueChange={(value) => {
-                            if (!value || value === bridgeType) return;
-                            setBridgeType(value as "mayan" | "debridge");
-                          }}
-                          className="w-full md:w-4/5 mx-auto mt-4 gap-1.5 mb-4 bg-background-gray-light/50"
-                        >
-                          <ToggleGroupItem
-                            value="mayan"
-                            aria-label="lend"
-                            className={cn(
-                              "w-1/2 text-xs gap-1.5 capitalize",
-                              bridgeType === "mayan" && "data-[state=on]:bg-background-gray-light"
-                            )}
-                          >
-                            <span className="flex items-center gap-2">
-                              <Image
-                                src="/bridges/mayan.png"
-                                width={53}
-                                height={46}
-                                alt="Mayan logo"
-                                className="h-3 w-auto"
-                              />
-                              Mayan
-                            </span>
-                          </ToggleGroupItem>
-                          <ToggleGroupItem
-                            value="debridge"
-                            aria-label="borrow"
-                            className={cn(
-                              "w-1/2 text-xs gap-1.5",
-                              bridgeType === "debridge" && "data-[state=on]:bg-background-gray-light"
-                            )}
-                          >
-                            <span className="flex items-center gap-2">
-                              <Image
-                                src="/bridges/debridge.png"
-                                width={83}
-                                height={46}
-                                alt="deBridge logo"
-                                className="h-3 w-auto"
-                              />
-                              deBridge
-                            </span>
-                          </ToggleGroupItem>
-                        </ToggleGroup>
-                        <div
-                          className={cn(
-                            "max-w-[420px] mx-auto w-full px-[1.35rem] max-h-[500px] transition-opacity hidden font-aeonik",
-                            bridgeType === "mayan" && "block"
-                          )}
-                          id="swap_widget"
-                        />
-                        <div className={cn("hidden", bridgeType === "debridge" && "block")}>
-                          <Debridge />
-                        </div>
-
-                        <Bridge />
-                      </TabWrapper>
-                    )}
-                  </TabsContent>
-                  <TabsContent value="points">
-                    <div className="flex flex-col items-center pt-8">
-                      <p className="font-medium text-4xl flex flex-col justify-center items-center text-center">
-                        <span className="text-sm font-normal text-chartreuse text-center">Your points</span>
-                        {groupedNumberFormatterDyn.format(Math.round(userPointsData.totalPoints))}
-                      </p>
-                      {userPointsData.userRank && (
-                        <div className="flex flex-col items-center justify-center text-xl p-4 bg-background-gray-dark/40 rounded-lg font-medium leading-tight">
-                          <span className="text-sm font-normal text-chartreuse">Your rank</span> #
-                          {groupedNumberFormatterDyn.format(userPointsData.userRank)}
                         </div>
                       )}
-                      <ul className="space-y-2 mt-4">
-                        <li>
-                          <Button
-                            variant="outline"
-                            className="w-full justify-start"
-                            onClick={() => {
-                              setIsWalletOpen(false);
-                              router.push("/points");
+
+                      {walletTokenState === WalletState.TOKEN && activeToken && (
+                        <TabWrapper resetWalletState={resetWalletState}>
+                          <div className="gap-2 text-center flex flex-col items-center">
+                            <Image
+                              src={getTokenImageURL(activeToken.symbol)}
+                              alt={activeToken.symbol}
+                              width={60}
+                              height={60}
+                              className="rounded-full"
+                            />
+                            <div className="space-y-0">
+                              <h2 className="font-medium text-3xl">
+                                {activeToken.value < 0.01
+                                  ? "< 0.01"
+                                  : numeralFormatter(activeToken.value) + " " + activeToken.symbol}
+                              </h2>
+                              <p className="text-muted-foreground">{usdFormatter.format(activeToken.valueUSD)}</p>
+                            </div>
+                          </div>
+                          <div className="mt-6">
+                            <TokenOptions
+                              walletAddress={walletData.address}
+                              setState={setWalletTokenState}
+                              setToken={() => {
+                                setActiveToken(activeToken);
+                              }}
+                            />
+                          </div>
+                        </TabWrapper>
+                      )}
+
+                      {walletTokenState === WalletState.SEND && (
+                        <TabWrapper resetWalletState={resetWalletState}>
+                          {activeToken && (
+                            <WalletSend
+                              activeToken={activeToken}
+                              extendedBankInfos={extendedBankInfos}
+                              nativeSolBalance={nativeSolBalance}
+                              onSendMore={() => {
+                                setWalletTokenState(WalletState.SEND);
+                              }}
+                              onBack={() => {
+                                setWalletTokenState(WalletState.DEFAULT);
+                                setActiveToken(null);
+                              }}
+                              onRetry={() => {
+                                setWalletTokenState(WalletState.SEND);
+                              }}
+                              onCancel={() => {
+                                setWalletTokenState(WalletState.TOKEN);
+                              }}
+                            />
+                          )}
+                        </TabWrapper>
+                      )}
+                      {walletTokenState === WalletState.BUY && (
+                        <TabWrapper resetWalletState={resetWalletState}>
+                          <div className="px-4">
+                            <WalletOnramp showAmountBackButton={false} />
+                          </div>
+                        </TabWrapper>
+                      )}
+                      {walletTokenState === WalletState.SELECT && (
+                        <TabWrapper resetWalletState={resetWalletState}>
+                          <WalletTokens
+                            className="h-[calc(100vh-235px)]"
+                            tokens={walletData.tokens}
+                            onTokenClick={(token) => {
+                              setActiveToken(token);
+                              setWalletTokenState(WalletState.SEND);
                             }}
-                          >
-                            <IconTrophy size={16} /> Points Leaderboard
-                          </Button>
-                        </li>
-                        <li>
-                          <CopyToClipboard
-                            text={`https://www.mfi.gg/refer/${userPointsData.referralLink}`}
-                            onCopy={() => {
-                              if (userPointsData.referralLink && userPointsData.referralLink.length > 0) {
-                                setIsReferralCopied(true);
-                                setTimeout(() => setIsReferralCopied(false), 2000);
-                              }
+                          />
+                        </TabWrapper>
+                      )}
+                      {walletTokenState === WalletState.SWAP && (
+                        <TabWrapper resetWalletState={resetWalletState}>
+                          <div className="max-w-[590px] mx-auto px-3 transition-opacity" id="integrated-terminal"></div>
+                          <Swap
+                            onLoad={() => {
+                              setIsSwapLoaded(true);
                             }}
+                            initialInputMint={activeBank?.info.state.mint}
+                          />
+                        </TabWrapper>
+                      )}
+                      {walletTokenState === WalletState.BRIDGE && (
+                        <TabWrapper resetWalletState={resetWalletState}>
+                          <ToggleGroup
+                            type="single"
+                            size="sm"
+                            value={bridgeType}
+                            onValueChange={(value) => {
+                              if (!value || value === bridgeType) return;
+                              setBridgeType(value as "mayan" | "debridge");
+                            }}
+                            className="w-full md:w-4/5 mx-auto mt-4 gap-1.5 mb-4 bg-background-gray-light/50"
                           >
-                            <Button variant="outline" className="w-full justify-start">
-                              {isReferralCopied ? (
-                                <div className="text-center w-full">Link copied!</div>
-                              ) : (
-                                <>
-                                  <IconCopy size={16} /> Copy referral code
-                                </>
+                            <ToggleGroupItem
+                              value="mayan"
+                              aria-label="lend"
+                              className={cn(
+                                "w-1/2 text-xs gap-1.5 capitalize",
+                                bridgeType === "mayan" && "data-[state=on]:bg-background-gray-light"
                               )}
+                            >
+                              <span className="flex items-center gap-2">
+                                <Image
+                                  src="/bridges/mayan.png"
+                                  width={53}
+                                  height={46}
+                                  alt="Mayan logo"
+                                  className="h-3 w-auto"
+                                />
+                                Mayan
+                              </span>
+                            </ToggleGroupItem>
+                            <ToggleGroupItem
+                              value="debridge"
+                              aria-label="borrow"
+                              className={cn(
+                                "w-1/2 text-xs gap-1.5",
+                                bridgeType === "debridge" && "data-[state=on]:bg-background-gray-light"
+                              )}
+                            >
+                              <span className="flex items-center gap-2">
+                                <Image
+                                  src="/bridges/debridge.png"
+                                  width={83}
+                                  height={46}
+                                  alt="deBridge logo"
+                                  className="h-3 w-auto"
+                                />
+                                deBridge
+                              </span>
+                            </ToggleGroupItem>
+                          </ToggleGroup>
+                          <div
+                            className={cn(
+                              "max-w-[420px] mx-auto w-full px-[1.35rem] max-h-[500px] transition-opacity hidden font-aeonik",
+                              bridgeType === "mayan" && "block"
+                            )}
+                            id="swap_widget"
+                          />
+                          <div className={cn("hidden", bridgeType === "debridge" && "block")}>
+                            <Debridge />
+                          </div>
+
+                          <Bridge />
+                        </TabWrapper>
+                      )}
+                    </TabsContent>
+                    <TabsContent value="points">
+                      <div className="flex flex-col items-center pt-8">
+                        <p className="font-medium text-4xl flex flex-col justify-center items-center text-center">
+                          <span className="text-sm font-normal text-chartreuse text-center">Your points</span>
+                          {groupedNumberFormatterDyn.format(Math.round(userPointsData.totalPoints))}
+                        </p>
+                        {userPointsData.userRank && (
+                          <div className="flex flex-col items-center justify-center text-xl p-4 bg-background-gray-dark/40 rounded-lg font-medium leading-tight">
+                            <span className="text-sm font-normal text-chartreuse">Your rank</span> #
+                            {groupedNumberFormatterDyn.format(userPointsData.userRank)}
+                          </div>
+                        )}
+                        <ul className="space-y-2 mt-4">
+                          <li>
+                            <Button
+                              variant="outline"
+                              className="w-full justify-start"
+                              onClick={() => {
+                                setIsWalletOpen(false);
+                                router.push("/points");
+                              }}
+                            >
+                              <IconTrophy size={16} /> Points Leaderboard
                             </Button>
-                          </CopyToClipboard>
-                        </li>
-                      </ul>
-                    </div>
-                  </TabsContent>
-                </Tabs>
-              )}
-            </div>
-          ) : (
-            <p>Loading...</p>
-          )}
-        </SheetContent>
-      </Sheet>
+                          </li>
+                          <li>
+                            <CopyToClipboard
+                              text={`https://www.mfi.gg/refer/${userPointsData.referralLink}`}
+                              onCopy={() => {
+                                if (userPointsData.referralLink && userPointsData.referralLink.length > 0) {
+                                  setIsReferralCopied(true);
+                                  setTimeout(() => setIsReferralCopied(false), 2000);
+                                }
+                              }}
+                            >
+                              <Button variant="outline" className="w-full justify-start">
+                                {isReferralCopied ? (
+                                  <div className="text-center w-full">Link copied!</div>
+                                ) : (
+                                  <>
+                                    <IconCopy size={16} /> Copy referral code
+                                  </>
+                                )}
+                              </Button>
+                            </CopyToClipboard>
+                          </li>
+                        </ul>
+                      </div>
+                    </TabsContent>
+                  </Tabs>
+                )}
+              </div>
+            ) : (
+              <p>Loading...</p>
+            )}
+          </SheetContent>
+        </Sheet>
+      )}
 
       {web3AuthConncected && <WalletPkDialog pk={web3AuthPk} />}
     </>
