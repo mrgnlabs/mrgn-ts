@@ -6,7 +6,7 @@
     "esModuleInterop": true,
     "downlevelIteration": true,
     "paths": {
-      "~/*": ["./src/*", "../../packages/mrgn-ui/src/*"]
+      "~/*": ["./src/*", "../../packages/mrgn-ui/src/*", "../../packages/mrgn-utils/src/*"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],

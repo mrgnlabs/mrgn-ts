@@ -17,7 +17,6 @@ import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { useConnection } from "~/hooks/useConnection";
 import { useIsMobile } from "~/hooks/useIsMobile";
 
-import { WalletButton } from "~/components/common/Wallet";
 import { EMISSION_MINT_INFO_MAP } from "~/components/desktop/AssetList/components";
 import { DialectNotification } from "~/components/common/Notifications";
 import { IconMrgn } from "~/components/ui/icons";
@@ -41,6 +40,7 @@ export const Navbar: FC = () => {
     resetLendUserData,
     nativeSolBalance,
     accountSummary,
+    fetchMrgnlendState,
   ] = useMrgnlendStore((state) => [
     state.initialized,
     state.marginfiClient,
@@ -51,6 +51,7 @@ export const Navbar: FC = () => {
     state.resetUserData,
     state.nativeSolBalance,
     state.accountSummary,
+    state.fetchMrgnlendState,
   ]);
 
   const [isOraclesStale, priorityFee] = useUiStore((state) => [state.isOraclesStale, state.priorityFee]);
@@ -176,6 +177,7 @@ export const Navbar: FC = () => {
               <DialectNotification />
 
               <Wallet
+                connection={connection}
                 initialized={initialized}
                 mfiClient={mfiClient}
                 marginfiAccounts={marginfiAccounts}
@@ -184,6 +186,7 @@ export const Navbar: FC = () => {
                 nativeSolBalance={nativeSolBalance}
                 userPointsData={userPointsData}
                 accountSummary={accountSummary}
+                refreshState={fetchMrgnlendState}
               />
             </div>
           )}

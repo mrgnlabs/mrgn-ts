@@ -10,6 +10,7 @@ import {
   LAMPORTS_PER_SOL,
   VersionedTransaction,
   TransactionMessage,
+  Connection,
 } from "@solana/web3.js";
 import { IconCheck, IconX, IconWallet } from "@tabler/icons-react";
 
@@ -26,7 +27,6 @@ import { getTokenImageURL, MultiStepToastHandle } from "@mrgnlabs/mrgn-utils";
 
 import { cn, capture } from "@mrgnlabs/mrgn-utils";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
-import { useConnection } from "@mrgnlabs/mrgn-utils";
 
 import { Loader } from "~/components/ui/loader";
 import { Button } from "~/components/ui/button";
@@ -36,13 +36,15 @@ import { Input } from "~/components/ui/input";
 import { Token as TokenType } from "~/components/wallet-v2/components/wallet-tokens/wallet-tokens";
 
 type WalletSendProps = {
+  connection: Connection;
   extendedBankInfos: ExtendedBankInfo[];
   nativeSolBalance: number;
   activeToken: TokenType;
-  onSendMore: () => void;
-  onBack: () => void;
-  onRetry: () => void;
-  onCancel: () => void;
+  onSendMore?: () => void;
+  onBack?: () => void;
+  onRetry?: () => void;
+  onCancel?: () => void;
+  onComplete?: () => void;
 };
 
 enum SendingState {
@@ -53,6 +55,7 @@ enum SendingState {
 }
 
 export const WalletSend = ({
+  connection,
   extendedBankInfos,
   nativeSolBalance,
   activeToken,
@@ -60,9 +63,9 @@ export const WalletSend = ({
   onBack,
   onRetry,
   onCancel,
+  onComplete,
 }: WalletSendProps) => {
   const { wallet } = useWallet();
-  const { connection } = useConnection();
   const [amount, setAmount] = React.useState(0);
   const [amountRaw, setAmountRaw] = React.useState("");
   const [sendingState, setSendingState] = React.useState<SendingState>(SendingState.DEFAULT);
@@ -127,6 +130,7 @@ export const WalletSend = ({
 
   const handleTransfer = React.useCallback(
     async (recipientAddress: string, token: ExtendedBankInfo, amount: number) => {
+      console.log(connection);
       if (!wallet.publicKey) {
         console.log("Wallet is not connected");
         return;
@@ -143,28 +147,27 @@ export const WalletSend = ({
       const recipientPublicKey = new PublicKey(recipientAddress);
 
       try {
-        let transaction = new Transaction();
-        let instructions = [];
+        const instructions = [];
 
         if (tokenMint.equals(WSOL_MINT)) {
           instructions.push(
             SystemProgram.transfer({
               fromPubkey: senderWalletAddress,
               toPubkey: recipientPublicKey,
-              lamports: amount * LAMPORTS_PER_SOL,
+              lamports: Math.floor(amount * LAMPORTS_PER_SOL),
             })
           );
         } else {
           const senderTokenAccountAddress = getAssociatedTokenAddressSync(tokenMint, senderWalletAddress);
-          const recipientTokenAccountAddress = getAssociatedTokenAddressSync(tokenMint, senderWalletAddress);
+          const recipientTokenAccountAddress = getAssociatedTokenAddressSync(tokenMint, recipientPublicKey);
           const recipientAta = await connection.getAccountInfo(recipientTokenAccountAddress);
 
           if (!recipientAta) {
             instructions.push(
               createAssociatedTokenAccountInstruction(
-                wallet.publicKey,
+                senderWalletAddress,
                 recipientTokenAccountAddress,
-                wallet.publicKey,
+                recipientPublicKey,
                 tokenMint
               )
             );
@@ -175,8 +178,8 @@ export const WalletSend = ({
               senderTokenAccountAddress,
               tokenMint,
               recipientTokenAccountAddress,
-              new PublicKey(wallet.publicKey),
-              amount * 10,
+              senderWalletAddress,
+              Math.floor(amount * Math.pow(10, tokenDecimals)),
               tokenDecimals
             )
           );
@@ -220,6 +223,7 @@ export const WalletSend = ({
           recipient: recipientAddress,
           wallet: wallet.publicKey,
         });
+        onComplete && onComplete();
       } catch (error: any) {
         multiStepToast.setFailed(error.message || "Transaction failed, please try again");
         setSendingState(SendingState.FAILED);
@@ -256,7 +260,7 @@ export const WalletSend = ({
             variant="outline"
             className="w-full"
             onClick={() => {
-              onSendMore();
+              onSendMore && onSendMore();
               setSendingState(SendingState.DEFAULT);
               setAmountRaw("");
             }}
@@ -267,7 +271,7 @@ export const WalletSend = ({
             variant="outline"
             className="w-full"
             onClick={() => {
-              onBack();
+              onBack && onBack();
               setSendingState(SendingState.DEFAULT);
               setAmountRaw("");
             }}
@@ -299,7 +303,7 @@ export const WalletSend = ({
           className="w-full"
           onClick={() => {
             setSendingState(SendingState.DEFAULT);
-            onRetry();
+            onRetry && onRetry();
           }}
         >
           Retry
@@ -318,7 +322,7 @@ export const WalletSend = ({
             className="rounded-full"
           />
           <div className="space-y-0">
-            <h2 className="flex items-center gap-2 font-medium text-xl">Send ${activeToken.symbol}</h2>
+            <h2 className="flex items-center gap-2 font-medium text-xl">Send {activeToken.symbol}</h2>
           </div>
         </div>
         <form
@@ -377,7 +381,7 @@ export const WalletSend = ({
               variant="destructive"
               className="w-full"
               onClick={() => {
-                onCancel();
+                onCancel && onCancel();
                 setAmountRaw("");
               }}
             >
