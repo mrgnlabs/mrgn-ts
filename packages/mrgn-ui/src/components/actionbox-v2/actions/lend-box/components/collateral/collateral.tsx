@@ -2,8 +2,8 @@ import React from "react";
 
 import { MarginfiAccountWrapper, MarginRequirementType } from "@mrgnlabs/marginfi-client-v2";
 
-import { ActionSummary } from "../../utils";
-import { ActionProgressBar } from "../../../../components";
+import { ActionSummary } from "~/components/actionbox-v2/utils";
+import { ActionProgressBar } from "~/components/actionbox-v2/components";
 
 type CollateralProps = {
   selectedAccount: MarginfiAccountWrapper | null;

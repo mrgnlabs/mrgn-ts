@@ -6,10 +6,10 @@ import { AccountSummary } from "@mrgnlabs/marginfi-v2-ui-state";
 import { MarginfiAccountWrapper, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
 import { STATIC_SIMULATION_ERRORS, usePrevious } from "@mrgnlabs/mrgn-utils";
 
+import { useActionBoxStore } from "~/components/actionbox-v2/store";
+
 import { useLendBoxStore } from "../store";
 import { calculateLendingTransaction, calculateSummary, getSimulationResult } from "../utils";
-
-import { useActionBoxStore } from "../../../store";
 
 /*
 How lending action simulation works:

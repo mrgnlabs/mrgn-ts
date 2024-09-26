@@ -6,7 +6,7 @@ import { LendingModes, cn, computeBankRate } from "@mrgnlabs/mrgn-utils";
 
 import { CommandEmpty, CommandGroup, CommandItem } from "~/components/ui/command";
 
-import { BankItem, BankListCommand } from "../../../../../../../../components";
+import { BankItem, BankListCommand } from "~/components/actionbox-v2/components";
 
 type TokenListProps = {
   selectedBank: ExtendedBankInfo | null;

@@ -3,7 +3,7 @@ import React from "react";
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { clampedNumeralFormatter } from "@mrgnlabs/mrgn-common";
 
-import { useLendBoxStore } from "../../../../store";
+import { useLendBoxStore } from "~/components/actionbox-v2/actions/lend-box/store";
 
 type LendingActionProps = {
   walletAmount: number | undefined;

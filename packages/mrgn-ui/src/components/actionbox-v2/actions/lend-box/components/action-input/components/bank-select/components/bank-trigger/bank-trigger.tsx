@@ -7,7 +7,7 @@ import { computeBankRate, cn, LendingModes } from "@mrgnlabs/mrgn-utils";
 
 import { Button } from "~/components/ui/button";
 
-import { SelectedBankItem } from "../../../../../../../../components";
+import { SelectedBankItem } from "~/components/actionbox-v2/components";
 
 type TokenTriggerProps = {
   selectedBank: ExtendedBankInfo | null;

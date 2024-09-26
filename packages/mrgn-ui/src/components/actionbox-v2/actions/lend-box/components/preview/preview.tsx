@@ -3,9 +3,7 @@ import React from "react";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { cn } from "@mrgnlabs/mrgn-utils";
 
-import { ActionStatItem } from "../../../../components";
-import { useLendBoxStore } from "../../store";
-
+import { ActionStatItem } from "~/components/actionbox-v2/components";
 import {
   getAmountStat,
   getHealthStat,
@@ -14,7 +12,8 @@ import {
   getBankTypeStat,
   getOracleStat,
   ActionSummary,
-} from "../../../../utils";
+} from "~/components/actionbox-v2/utils";
+import { useLendBoxStore } from "~/components/actionbox-v2/actions/lend-box/store";
 
 interface PreviewProps {
   actionSummary?: ActionSummary;
