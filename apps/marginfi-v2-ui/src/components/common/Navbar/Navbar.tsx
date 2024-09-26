@@ -40,6 +40,7 @@ export const Navbar: FC = () => {
     lendUserDataFetched,
     resetLendUserData,
     nativeSolBalance,
+    accountSummary,
   ] = useMrgnlendStore((state) => [
     state.initialized,
     state.marginfiClient,
@@ -49,6 +50,7 @@ export const Navbar: FC = () => {
     state.userDataFetched,
     state.resetUserData,
     state.nativeSolBalance,
+    state.accountSummary,
   ]);
 
   const [isOraclesStale, priorityFee] = useUiStore((state) => [state.isOraclesStale, state.priorityFee]);
@@ -173,7 +175,6 @@ export const Navbar: FC = () => {
 
               <DialectNotification />
 
-              {/* <WalletButton /> */}
               <Wallet
                 initialized={initialized}
                 mfiClient={mfiClient}
@@ -182,6 +183,7 @@ export const Navbar: FC = () => {
                 extendedBankInfos={extendedBankInfos}
                 nativeSolBalance={nativeSolBalance}
                 userPointsData={userPointsData}
+                accountSummary={accountSummary}
               />
             </div>
           )}

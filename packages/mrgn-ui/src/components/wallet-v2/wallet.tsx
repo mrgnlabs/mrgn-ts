@@ -15,11 +15,13 @@ import {
   IconX,
   IconArrowsExchange,
   IconCreditCardPay,
+  IconInfoCircleFilled,
+  IconArrowDown,
   IconCheck,
 } from "@tabler/icons-react";
 
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
-import { ExtendedBankInfo, UserPointsData } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo, UserPointsData, AccountSummary } from "@mrgnlabs/marginfi-v2-ui-state";
 import { shortenAddress, usdFormatter, numeralFormatter, groupedNumberFormatterDyn } from "@mrgnlabs/mrgn-common";
 import { getTokenImageURL, showErrorToast, useIsMobile, cn } from "@mrgnlabs/mrgn-utils";
 
@@ -35,6 +37,7 @@ import {
   WalletPkDialog,
   WalletNotis,
   WalletSend,
+  WalletReceive,
   WalletAuthAccounts,
 } from "~/components/wallet-v2/components";
 import { Swap } from "~/components/swap";
@@ -53,12 +56,14 @@ type WalletProps = {
   extendedBankInfos: ExtendedBankInfo[];
   nativeSolBalance: number;
   userPointsData: UserPointsData;
+  accountSummary: AccountSummary;
 };
 
 enum WalletState {
   DEFAULT = "default",
   TOKEN = "token",
   SEND = "send",
+  RECEIVE = "receive",
   SELECT = "select",
   SWAP = "swap",
   BUY = "bug",
@@ -75,6 +80,7 @@ const Wallet = ({
   extendedBankInfos,
   nativeSolBalance,
   userPointsData,
+  accountSummary,
 }: WalletProps) => {
   const router = useRouter();
 
@@ -157,15 +163,7 @@ const Wallet = ({
           );
         });
 
-      let totalBalance = 0;
-      let totalBalanceStr = "0.00";
-
-      const totalBalanceRes = await fetch(`/api/user/wallet?wallet=${wallet?.publicKey}`);
-      if (totalBalanceRes.ok) {
-        const totalBalanceData = await totalBalanceRes.json();
-        totalBalance = totalBalanceData.totalValue;
-        totalBalanceStr = usdFormatter.format(totalBalance);
-      }
+      const totalBalance = userTokens.reduce((acc, token) => acc + token.valueUSD, 0);
 
       setWalletData({
         address: wallet?.publicKey.toString(),
@@ -360,56 +358,52 @@ const Wallet = ({
                     </TabsList>
                     <TabsContent value="tokens">
                       {walletTokenState === WalletState.DEFAULT && (
-                        <div className="space-y-6 py-8">
-                          <h2 className="text-4xl font-medium text-center">{walletData.balanceUSD}</h2>
-                          <TokenOptions
-                            walletAddress={walletData.address}
-                            setState={setWalletTokenState}
-                            web3AuthConnected={web3AuthConncected}
-                          />
-                          <div className="">
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <div>
-                                    <CopyToClipboard
-                                      text={walletData.address}
-                                      onCopy={() => {
-                                        setIsWalletAddressCopied(true);
-                                        setTimeout(() => {
-                                          setIsWalletAddressCopied(false);
-                                        }, 2000);
-                                      }}
-                                    >
-                                      <button className="flex w-full gap-1 font-medium items-center justify-center text-center text-xs text-muted-foreground">
-                                        {!isWalletAddressCopied ? (
-                                          <>
-                                            <IconCopy size={16} /> Copy wallet address
-                                          </>
-                                        ) : (
-                                          <>
-                                            <IconCheck size={16} />
-                                            Copied! ({shortenAddress(walletData.address)})
-                                          </>
-                                        )}
-                                      </button>
-                                    </CopyToClipboard>
-                                  </div>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>{shortenAddress(walletData.address)}</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
+                        <div className="py-8">
+                          <div className="flex flex-col items-center justify-center gap-2">
+                            <h2 className="text-4xl font-medium">{walletData.balanceUSD}</h2>
+                            <p className="flex items-center gap-1 text-muted-foreground text-sm">
+                              Available to deposit
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <IconInfoCircleFilled size={14} />
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>Available balance of tokens supported as collateral on marginfi.</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            </p>
+                            <p className="flex items-center gap-2 text-muted-foreground text-sm">
+                              Portfolio balance
+                              <span className="flex items-center gap-1 text-primary">
+                                {usdFormatter.format(accountSummary.balance)}{" "}
+                                <TooltipProvider>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <IconInfoCircleFilled className="text-muted-foreground" size={14} />
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      <p>Your current marginfi portfolio balance.</p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
+                              </span>
+                            </p>
                           </div>
-                          <WalletTokens
-                            className="h-[calc(100vh-325px)] pb-16"
-                            tokens={walletData.tokens}
-                            onTokenClick={(token) => {
-                              setActiveToken(token);
-                              setWalletTokenState(WalletState.TOKEN);
-                            }}
-                          />
+
+                          <div className="mt-8 space-y-6">
+                            <TokenOptions setState={setWalletTokenState} />
+
+                            <WalletTokens
+                              className="h-[calc(100vh-325px)] pb-16"
+                              tokens={walletData.tokens}
+                              onTokenClick={(token) => {
+                                setActiveToken(token);
+                                setWalletTokenState(WalletState.TOKEN);
+                              }}
+                            />
+                          </div>
                         </div>
                       )}
 
@@ -434,7 +428,6 @@ const Wallet = ({
                           </div>
                           <div className="mt-6">
                             <TokenOptions
-                              walletAddress={walletData.address}
                               setState={setWalletTokenState}
                               setToken={() => {
                                 setActiveToken(activeToken);
@@ -466,6 +459,11 @@ const Wallet = ({
                               }}
                             />
                           )}
+                        </TabWrapper>
+                      )}
+                      {walletTokenState === WalletState.RECEIVE && (
+                        <TabWrapper resetWalletState={resetWalletState}>
+                          <WalletReceive address={walletData.address} />
                         </TabWrapper>
                       )}
                       {walletTokenState === WalletState.BUY && (
@@ -645,17 +643,15 @@ const TabWrapper = ({ resetWalletState, children }: { resetWalletState: () => vo
 };
 
 type TokenOptionsProps = {
-  walletAddress: string;
   setState: (state: WalletState) => void;
   setToken?: () => void;
-  web3AuthConnected?: boolean;
 };
 
 function TokenOptions({ setState, setToken }: TokenOptionsProps) {
   return (
-    <div className="flex items-center justify-center gap-4">
+    <div className="flex items-center justify-center gap-4 text-xs">
       <button
-        className="flex flex-col gap-1 text-sm font-medium items-center"
+        className="flex flex-col gap-1 font-medium items-center"
         onClick={() => {
           if (!setToken && !setToken) {
             setState(WalletState.SELECT);
@@ -666,40 +662,57 @@ function TokenOptions({ setState, setToken }: TokenOptionsProps) {
           setState(WalletState.SEND);
         }}
       >
-        <div className="rounded-full flex items-center justify-center h-12 w-12 bg-background-gray transition-colors hover:bg-background-gray-hover">
+        <div className="rounded-full flex items-center justify-center h-10 w-10 bg-background-gray transition-colors hover:bg-background-gray-hover">
           <IconArrowUp size={20} />
         </div>
         Send
       </button>
       <button
-        className="flex flex-col gap-1 text-sm font-medium items-center"
+        className="flex flex-col gap-1 font-medium items-center"
+        onClick={() => {
+          if (!setToken && !setToken) {
+            setState(WalletState.RECEIVE);
+            return;
+          }
+
+          if (setToken) setToken();
+          setState(WalletState.RECEIVE);
+        }}
+      >
+        <div className="rounded-full flex items-center justify-center h-10 w-10 bg-background-gray transition-colors hover:bg-background-gray-hover">
+          <IconArrowDown size={20} />
+        </div>
+        Receive
+      </button>
+      <button
+        className="flex flex-col gap-1 font-medium items-center"
         onClick={() => {
           setState(WalletState.SWAP);
         }}
       >
-        <div className="rounded-full flex items-center justify-center h-12 w-12 bg-background-gray transition-colors hover:bg-background-gray-hover">
+        <div className="rounded-full flex items-center justify-center h-10 w-10 bg-background-gray transition-colors hover:bg-background-gray-hover">
           <IconRefresh size={20} />
         </div>
         Swap
       </button>
       <button
-        className="flex flex-col gap-1 text-sm font-medium items-center"
+        className="flex flex-col gap-1 font-medium items-center"
         onClick={() => {
           setState(WalletState.BRIDGE);
         }}
       >
-        <div className="rounded-full flex items-center justify-center h-12 w-12 bg-background-gray transition-colors hover:bg-background-gray-hover">
+        <div className="rounded-full flex items-center justify-center h-10 w-10 bg-background-gray transition-colors hover:bg-background-gray-hover">
           <IconArrowsExchange size={20} />
         </div>
         Bridge
       </button>
       <button
-        className="flex flex-col gap-1 text-sm font-medium items-center"
+        className="flex flex-col gap-1 font-medium items-center"
         onClick={() => {
           setState(WalletState.BUY);
         }}
       >
-        <div className="rounded-full flex items-center justify-center h-12 w-12 bg-background-gray transition-colors hover:bg-background-gray-hover">
+        <div className="rounded-full flex items-center justify-center h-10 w-10 bg-background-gray transition-colors hover:bg-background-gray-hover">
           <IconCreditCardPay size={20} />
         </div>
         Buy
