@@ -6,13 +6,16 @@ import { ActionBox } from "~/components/actionbox-v2";
 
 import { ScreenWrapper, WalletSeperator } from "~/components/wallet-v2/components/sign-up/components";
 import { useWallet } from "~/components/wallet-v2/wallet.hooks";
+import { IconLoader } from "@tabler/icons-react";
 
-interface props extends OnrampScreenProps {
-  extendedBankInfos: ExtendedBankInfo[];
-}
+interface DepositTokenProps extends OnrampScreenProps {}
 
-export const DepositToken = ({ extendedBankInfos, successProps, onNext, onClose }: props) => {
+export const DepositToken = ({ mrgnState, successProps, onNext, onClose }: DepositTokenProps) => {
   const { walletContextState, connected } = useWallet();
+
+  const extendedBankInfos = React.useMemo(() => {
+    return mrgnState?.extendedBankInfos || [];
+  }, [mrgnState?.extendedBankInfos]);
 
   const requestedBank = React.useMemo(() => {
     const mint = successProps?.jupiterSuccess?.quoteResponseMeta?.quoteResponse.outputMint;
@@ -24,23 +27,30 @@ export const DepositToken = ({ extendedBankInfos, successProps, onNext, onClose 
 
   return (
     <ScreenWrapper noBackground={true}>
-      <ActionBox.Lend
-        lendProps={{
-          nativeSolBalance: 5,
-          walletContextState,
-          connected,
+      {mrgnState ? (
+        <ActionBox.Lend
+          lendProps={{
+            nativeSolBalance: mrgnState.nativeSolBalance,
+            walletContextState,
+            connected,
 
-          selectedAccount: null,
-          banks: extendedBankInfos,
-          requestedLendType: ActionType.Deposit,
-          requestedBank: requestedBank,
+            selectedAccount: mrgnState.selectedAccount,
+            banks: extendedBankInfos,
+            requestedLendType: ActionType.Deposit,
+            requestedBank: requestedBank,
 
-          // isMini: true,
-          onComplete: () => {
-            onClose();
-          },
-        }}
-      />
+            // isMini: true,
+            onComplete: () => {
+              onClose();
+            },
+          }}
+        />
+      ) : (
+        <>
+          <IconLoader size={18} className="animate-spin-slow" />
+          <span>Loading...</span>
+        </>
+      )}
       {/* <ActionBox
         requestedAction={ActionType.Deposit}
         requestedBank={requestedBank}
