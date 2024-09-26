@@ -13,7 +13,6 @@ import {
   getOracleStat,
   ActionSummary,
 } from "~/components/actionbox-v2/utils";
-import { useLendBoxStore } from "~/components/actionbox-v2/actions/lend-box/store";
 
 interface PreviewProps {
   selectedBank: ExtendedBankInfo | null;
