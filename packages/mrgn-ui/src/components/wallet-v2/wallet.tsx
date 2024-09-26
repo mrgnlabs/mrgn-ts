@@ -272,8 +272,8 @@ const Wallet = ({
                     )}
                   </div>
                 </header>
-                {walletTokenState !== WalletState.NOTIS && (
-                  <Tabs defaultValue="tokens" className="py-8">
+                <Tabs defaultValue="tokens" className="py-8">
+                  {walletTokenState === WalletState.DEFAULT && (
                     <TabsList className="flex items-center gap-4 bg-transparent px-16 mx-auto">
                       <TabsTrigger
                         value="tokens"
@@ -305,267 +305,267 @@ const Wallet = ({
                         </TooltipProvider>
                       </div>
                     </TabsList>
-                    <TabsContent value="tokens">
-                      {walletTokenState === WalletState.DEFAULT && (
-                        <div className="py-8">
-                          <div className="flex flex-col items-center justify-center gap-2">
-                            <h2 className="text-4xl font-medium">{walletData.balanceUSD}</h2>
-                            <p className="flex items-center gap-1 text-muted-foreground text-sm">
-                              Available to deposit
+                  )}
+                  <TabsContent value="tokens">
+                    {walletTokenState === WalletState.DEFAULT && (
+                      <div className="py-8">
+                        <div className="flex flex-col items-center justify-center gap-2">
+                          <h2 className="text-4xl font-medium">{walletData.balanceUSD}</h2>
+                          <p className="flex items-center gap-1 text-muted-foreground text-sm">
+                            Available to deposit
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <IconInfoCircleFilled size={14} />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Available balance of tokens supported as collateral on marginfi.</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </p>
+                          <p className="flex items-center gap-2 text-muted-foreground text-sm">
+                            Portfolio balance
+                            <span className="flex items-center gap-1 text-primary">
+                              {usdFormatter.format(accountSummary.balance)}{" "}
                               <TooltipProvider>
                                 <Tooltip>
                                   <TooltipTrigger asChild>
-                                    <IconInfoCircleFilled size={14} />
+                                    <IconInfoCircleFilled className="text-muted-foreground" size={14} />
                                   </TooltipTrigger>
                                   <TooltipContent>
-                                    <p>Available balance of tokens supported as collateral on marginfi.</p>
+                                    <p>Your current marginfi portfolio balance.</p>
                                   </TooltipContent>
                                 </Tooltip>
                               </TooltipProvider>
-                            </p>
-                            <p className="flex items-center gap-2 text-muted-foreground text-sm">
-                              Portfolio balance
-                              <span className="flex items-center gap-1 text-primary">
-                                {usdFormatter.format(accountSummary.balance)}{" "}
-                                <TooltipProvider>
-                                  <Tooltip>
-                                    <TooltipTrigger asChild>
-                                      <IconInfoCircleFilled className="text-muted-foreground" size={14} />
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                      <p>Your current marginfi portfolio balance.</p>
-                                    </TooltipContent>
-                                  </Tooltip>
-                                </TooltipProvider>
-                              </span>
-                            </p>
-                          </div>
-
-                          <div className="mt-8 space-y-6">
-                            <TokenOptions setState={setWalletTokenState} />
-
-                            <WalletTokens
-                              className="h-[calc(100vh-325px)] pb-16"
-                              tokens={walletData.tokens}
-                              onTokenClick={(token) => {
-                                setActiveToken(token);
-                                setWalletTokenState(WalletState.TOKEN);
-                              }}
-                            />
-                          </div>
+                            </span>
+                          </p>
                         </div>
-                      )}
 
-                      {walletTokenState === WalletState.TOKEN && activeToken && (
-                        <TabWrapper resetWalletState={resetWalletState}>
-                          <div className="gap-2 text-center flex flex-col items-center">
-                            <Image
-                              src={getTokenImageURL(activeToken.symbol)}
-                              alt={activeToken.symbol}
-                              width={60}
-                              height={60}
-                              className="rounded-full"
-                            />
-                            <div className="space-y-0">
-                              <h2 className="font-medium text-3xl">
-                                {activeToken.value < 0.01
-                                  ? "< 0.01"
-                                  : numeralFormatter(activeToken.value) + " " + activeToken.symbol}
-                              </h2>
-                              <p className="text-muted-foreground">{usdFormatter.format(activeToken.valueUSD)}</p>
-                            </div>
-                          </div>
-                          <div className="mt-6">
-                            <TokenOptions
-                              setState={setWalletTokenState}
-                              setToken={() => {
-                                setActiveToken(activeToken);
-                              }}
-                            />
-                          </div>
-                        </TabWrapper>
-                      )}
+                        <div className="mt-8 space-y-6">
+                          <TokenOptions setState={setWalletTokenState} />
 
-                      {walletTokenState === WalletState.SEND && (
-                        <TabWrapper resetWalletState={resetWalletState}>
-                          {activeToken && (
-                            <WalletSend
-                              connection={connection}
-                              activeToken={activeToken}
-                              extendedBankInfos={extendedBankInfos}
-                              nativeSolBalance={nativeSolBalance}
-                              onSendMore={() => {
-                                setWalletTokenState(WalletState.SEND);
-                              }}
-                              onBack={() => {
-                                setWalletTokenState(WalletState.DEFAULT);
-                                setActiveToken(null);
-                              }}
-                              onRetry={() => {
-                                setWalletTokenState(WalletState.SEND);
-                              }}
-                              onCancel={() => {
-                                setWalletTokenState(WalletState.TOKEN);
-                              }}
-                              onComplete={() => {
-                                refreshState();
-                              }}
-                            />
-                          )}
-                        </TabWrapper>
-                      )}
-                      {walletTokenState === WalletState.RECEIVE && (
-                        <TabWrapper resetWalletState={resetWalletState}>
-                          <WalletReceive address={walletData.address} />
-                        </TabWrapper>
-                      )}
-                      {walletTokenState === WalletState.BUY && (
-                        <TabWrapper resetWalletState={resetWalletState}>
-                          <div className="px-4">
-                            <WalletOnramp showAmountBackButton={false} />
-                          </div>
-                        </TabWrapper>
-                      )}
-                      {walletTokenState === WalletState.SELECT && (
-                        <TabWrapper resetWalletState={resetWalletState}>
                           <WalletTokens
-                            className="h-[calc(100vh-235px)]"
+                            className="h-[calc(100vh-325px)] pb-16"
                             tokens={walletData.tokens}
                             onTokenClick={(token) => {
                               setActiveToken(token);
+                              setWalletTokenState(WalletState.TOKEN);
+                            }}
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {walletTokenState === WalletState.TOKEN && activeToken && (
+                      <TabWrapper resetWalletState={resetWalletState}>
+                        <div className="gap-2 text-center flex flex-col items-center">
+                          <Image
+                            src={getTokenImageURL(activeToken.symbol)}
+                            alt={activeToken.symbol}
+                            width={60}
+                            height={60}
+                            className="rounded-full"
+                          />
+                          <div className="space-y-0">
+                            <h2 className="font-medium text-3xl">
+                              {activeToken.value < 0.01
+                                ? "< 0.01"
+                                : numeralFormatter(activeToken.value) + " " + activeToken.symbol}
+                            </h2>
+                            <p className="text-muted-foreground">{usdFormatter.format(activeToken.valueUSD)}</p>
+                          </div>
+                        </div>
+                        <div className="mt-6">
+                          <TokenOptions
+                            setState={setWalletTokenState}
+                            setToken={() => {
+                              setActiveToken(activeToken);
+                            }}
+                          />
+                        </div>
+                      </TabWrapper>
+                    )}
+
+                    {walletTokenState === WalletState.SEND && (
+                      <TabWrapper resetWalletState={resetWalletState}>
+                        {activeToken && (
+                          <WalletSend
+                            connection={connection}
+                            activeToken={activeToken}
+                            extendedBankInfos={extendedBankInfos}
+                            nativeSolBalance={nativeSolBalance}
+                            onSendMore={() => {
                               setWalletTokenState(WalletState.SEND);
                             }}
-                          />
-                        </TabWrapper>
-                      )}
-                      {walletTokenState === WalletState.SWAP && (
-                        <TabWrapper resetWalletState={resetWalletState}>
-                          <div className="max-w-[590px] mx-auto px-3 transition-opacity" id="integrated-terminal"></div>
-                          <Swap
-                            onLoad={() => {
-                              setIsSwapLoaded(true);
+                            onBack={() => {
+                              setWalletTokenState(WalletState.DEFAULT);
+                              setActiveToken(null);
                             }}
-                            initialInputMint={activeBank?.info.state.mint}
-                          />
-                        </TabWrapper>
-                      )}
-                      {walletTokenState === WalletState.BRIDGE && (
-                        <TabWrapper resetWalletState={resetWalletState}>
-                          <ToggleGroup
-                            type="single"
-                            size="sm"
-                            value={bridgeType}
-                            onValueChange={(value) => {
-                              if (!value || value === bridgeType) return;
-                              setBridgeType(value as "mayan" | "debridge");
+                            onRetry={() => {
+                              setWalletTokenState(WalletState.SEND);
                             }}
-                            className="w-full md:w-4/5 mx-auto mt-4 gap-1.5 mb-4 bg-background-gray-light/50"
-                          >
-                            <ToggleGroupItem
-                              value="mayan"
-                              aria-label="lend"
-                              className={cn(
-                                "w-1/2 text-xs gap-1.5 capitalize",
-                                bridgeType === "mayan" && "data-[state=on]:bg-background-gray-light"
-                              )}
-                            >
-                              <span className="flex items-center gap-2">
-                                <Image
-                                  src="/bridges/mayan.png"
-                                  width={53}
-                                  height={46}
-                                  alt="Mayan logo"
-                                  className="h-3 w-auto"
-                                />
-                                Mayan
-                              </span>
-                            </ToggleGroupItem>
-                            <ToggleGroupItem
-                              value="debridge"
-                              aria-label="borrow"
-                              className={cn(
-                                "w-1/2 text-xs gap-1.5",
-                                bridgeType === "debridge" && "data-[state=on]:bg-background-gray-light"
-                              )}
-                            >
-                              <span className="flex items-center gap-2">
-                                <Image
-                                  src="/bridges/debridge.png"
-                                  width={83}
-                                  height={46}
-                                  alt="deBridge logo"
-                                  className="h-3 w-auto"
-                                />
-                                deBridge
-                              </span>
-                            </ToggleGroupItem>
-                          </ToggleGroup>
-                          <div
-                            className={cn(
-                              "max-w-[420px] mx-auto w-full px-[1.35rem] max-h-[500px] transition-opacity hidden font-aeonik",
-                              bridgeType === "mayan" && "block"
-                            )}
-                            id="swap_widget"
+                            onCancel={() => {
+                              setWalletTokenState(WalletState.TOKEN);
+                            }}
+                            onComplete={() => {
+                              refreshState();
+                            }}
                           />
-                          <div className={cn("hidden", bridgeType === "debridge" && "block")}>
-                            <Debridge />
-                          </div>
-
-                          <Bridge />
-                        </TabWrapper>
-                      )}
-                    </TabsContent>
-                    <TabsContent value="points">
-                      <div className="flex flex-col items-center pt-8">
-                        <p className="font-medium text-4xl flex flex-col justify-center items-center text-center">
-                          <span className="text-sm font-normal text-chartreuse text-center">Your points</span>
-                          {groupedNumberFormatterDyn.format(Math.round(userPointsData.totalPoints))}
-                        </p>
-                        {userPointsData.userRank && (
-                          <div className="flex flex-col items-center justify-center text-xl p-4 bg-background-gray-dark/40 rounded-lg font-medium leading-tight">
-                            <span className="text-sm font-normal text-chartreuse">Your rank</span> #
-                            {groupedNumberFormatterDyn.format(userPointsData.userRank)}
-                          </div>
                         )}
-                        <ul className="space-y-2 mt-4">
-                          <li>
-                            <Button
-                              variant="outline"
-                              className="w-full justify-start"
-                              onClick={() => {
-                                setIsWalletOpen(false);
-                                router.push("/points");
-                              }}
-                            >
-                              <IconTrophy size={16} /> Points Leaderboard
+                      </TabWrapper>
+                    )}
+                    {walletTokenState === WalletState.RECEIVE && (
+                      <TabWrapper resetWalletState={resetWalletState}>
+                        <WalletReceive address={walletData.address} />
+                      </TabWrapper>
+                    )}
+                    {walletTokenState === WalletState.BUY && (
+                      <TabWrapper resetWalletState={resetWalletState}>
+                        <div className="px-4">
+                          <WalletOnramp showAmountBackButton={false} />
+                        </div>
+                      </TabWrapper>
+                    )}
+                    {walletTokenState === WalletState.SELECT && (
+                      <TabWrapper resetWalletState={resetWalletState}>
+                        <WalletTokens
+                          className="h-[calc(100vh-235px)]"
+                          tokens={walletData.tokens}
+                          onTokenClick={(token) => {
+                            setActiveToken(token);
+                            setWalletTokenState(WalletState.SEND);
+                          }}
+                        />
+                      </TabWrapper>
+                    )}
+                    {walletTokenState === WalletState.SWAP && (
+                      <TabWrapper resetWalletState={resetWalletState}>
+                        <div className="max-w-[590px] mx-auto px-3 transition-opacity" id="integrated-terminal"></div>
+                        <Swap
+                          onLoad={() => {
+                            setIsSwapLoaded(true);
+                          }}
+                          initialInputMint={activeBank?.info.state.mint}
+                        />
+                      </TabWrapper>
+                    )}
+                    {walletTokenState === WalletState.BRIDGE && (
+                      <TabWrapper resetWalletState={resetWalletState}>
+                        <ToggleGroup
+                          type="single"
+                          size="sm"
+                          value={bridgeType}
+                          onValueChange={(value) => {
+                            if (!value || value === bridgeType) return;
+                            setBridgeType(value as "mayan" | "debridge");
+                          }}
+                          className="w-full md:w-4/5 mx-auto mt-4 gap-1.5 mb-4 bg-background-gray-light/50"
+                        >
+                          <ToggleGroupItem
+                            value="mayan"
+                            aria-label="lend"
+                            className={cn(
+                              "w-1/2 text-xs gap-1.5 capitalize",
+                              bridgeType === "mayan" && "data-[state=on]:bg-background-gray-light"
+                            )}
+                          >
+                            <span className="flex items-center gap-2">
+                              <Image
+                                src="/bridges/mayan.png"
+                                width={53}
+                                height={46}
+                                alt="Mayan logo"
+                                className="h-3 w-auto"
+                              />
+                              Mayan
+                            </span>
+                          </ToggleGroupItem>
+                          <ToggleGroupItem
+                            value="debridge"
+                            aria-label="borrow"
+                            className={cn(
+                              "w-1/2 text-xs gap-1.5",
+                              bridgeType === "debridge" && "data-[state=on]:bg-background-gray-light"
+                            )}
+                          >
+                            <span className="flex items-center gap-2">
+                              <Image
+                                src="/bridges/debridge.png"
+                                width={83}
+                                height={46}
+                                alt="deBridge logo"
+                                className="h-3 w-auto"
+                              />
+                              deBridge
+                            </span>
+                          </ToggleGroupItem>
+                        </ToggleGroup>
+                        <div
+                          className={cn(
+                            "max-w-[420px] mx-auto w-full px-[1.35rem] max-h-[500px] transition-opacity hidden font-aeonik",
+                            bridgeType === "mayan" && "block"
+                          )}
+                          id="swap_widget"
+                        />
+                        <div className={cn("hidden", bridgeType === "debridge" && "block")}>
+                          <Debridge />
+                        </div>
+
+                        <Bridge />
+                      </TabWrapper>
+                    )}
+                  </TabsContent>
+                  <TabsContent value="points">
+                    <div className="flex flex-col items-center pt-8">
+                      <p className="font-medium text-4xl flex flex-col justify-center items-center text-center">
+                        <span className="text-sm font-normal text-chartreuse text-center">Your points</span>
+                        {groupedNumberFormatterDyn.format(Math.round(userPointsData.totalPoints))}
+                      </p>
+                      {userPointsData.userRank && (
+                        <div className="flex flex-col items-center justify-center text-xl p-4 bg-background-gray-dark/40 rounded-lg font-medium leading-tight">
+                          <span className="text-sm font-normal text-chartreuse">Your rank</span> #
+                          {groupedNumberFormatterDyn.format(userPointsData.userRank)}
+                        </div>
+                      )}
+                      <ul className="space-y-2 mt-4">
+                        <li>
+                          <Button
+                            variant="outline"
+                            className="w-full justify-start"
+                            onClick={() => {
+                              setIsWalletOpen(false);
+                              router.push("/points");
+                            }}
+                          >
+                            <IconTrophy size={16} /> Points Leaderboard
+                          </Button>
+                        </li>
+                        <li>
+                          <CopyToClipboard
+                            text={`https://www.mfi.gg/refer/${userPointsData.referralLink}`}
+                            onCopy={() => {
+                              if (userPointsData.referralLink && userPointsData.referralLink.length > 0) {
+                                setIsReferralCopied(true);
+                                setTimeout(() => setIsReferralCopied(false), 2000);
+                              }
+                            }}
+                          >
+                            <Button variant="outline" className="w-full justify-start">
+                              {isReferralCopied ? (
+                                <div className="text-center w-full">Link copied!</div>
+                              ) : (
+                                <>
+                                  <IconCopy size={16} /> Copy referral code
+                                </>
+                              )}
                             </Button>
-                          </li>
-                          <li>
-                            <CopyToClipboard
-                              text={`https://www.mfi.gg/refer/${userPointsData.referralLink}`}
-                              onCopy={() => {
-                                if (userPointsData.referralLink && userPointsData.referralLink.length > 0) {
-                                  setIsReferralCopied(true);
-                                  setTimeout(() => setIsReferralCopied(false), 2000);
-                                }
-                              }}
-                            >
-                              <Button variant="outline" className="w-full justify-start">
-                                {isReferralCopied ? (
-                                  <div className="text-center w-full">Link copied!</div>
-                                ) : (
-                                  <>
-                                    <IconCopy size={16} /> Copy referral code
-                                  </>
-                                )}
-                              </Button>
-                            </CopyToClipboard>
-                          </li>
-                        </ul>
-                      </div>
-                    </TabsContent>
-                  </Tabs>
-                )}
+                          </CopyToClipboard>
+                        </li>
+                      </ul>
+                    </div>
+                  </TabsContent>
+                </Tabs>
               </div>
             ) : (
               <p>Loading...</p>
@@ -581,16 +581,14 @@ const Wallet = ({
 
 const TabWrapper = ({ resetWalletState, children }: { resetWalletState: () => void; children: React.ReactNode }) => {
   return (
-    <div className="py-4">
-      <div className="relative flex flex-col pt-6 gap-2">
-        <button
-          className="absolute top-0 left-2 flex items-center gap-1 text-sm text-muted-foreground"
-          onClick={() => resetWalletState()}
-        >
-          <IconArrowLeft size={16} /> back
-        </button>
-        {children}
-      </div>
+    <div className="relative flex flex-col pt-6 gap-2">
+      <button
+        className="absolute top-0 left-2 flex items-center gap-1 text-sm text-muted-foreground"
+        onClick={() => resetWalletState()}
+      >
+        <IconArrowLeft size={16} /> back
+      </button>
+      {children}
     </div>
   );
 };
