@@ -17,6 +17,7 @@ import { installWallet, solOnrampFlow, successSwap } from "./onboarding-sol-util
 interface props extends AuthScreenProps {}
 
 export const OnboardingSol = ({
+  mrgnState,
   flow,
   isLoading,
   isActiveLoading,
@@ -108,6 +109,7 @@ export const OnboardingSol = ({
         isActiveLoading: isActiveLoading,
         successProps: successProps,
         installingWallet: installingWallet,
+        mrgnState: mrgnState,
         onNext: () => setScreenIndex(screenIndex + 1),
         setIsLoading: setIsLoading,
         setIsActiveLoading: setIsActiveLoading,

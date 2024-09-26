@@ -1,6 +1,9 @@
 import React from "react";
 import { useRouter } from "next/router";
 
+import { MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
+import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+
 import { Dialog, DialogContent } from "~/components/ui/dialog";
 import { useOs, useBrowser, cn } from "@mrgnlabs/mrgn-utils";
 import { useWallet } from "~/components/wallet-v2/wallet.hooks";
@@ -8,7 +11,16 @@ import { AUTO_FLOW_MAP, AuthFlowType, AuthScreenProps } from "~/components/walle
 import { useWalletStore } from "~/components/wallet-v2/wallet.store";
 import { Progress } from "~/components/ui/progress";
 
-export const AuthDialog = () => {
+type AuthDialogProps = {
+  mrgnState?: {
+    marginfiClient: MarginfiClient;
+    selectedAccount: string;
+    extendedBankInfos: ExtendedBankInfo[];
+    nativeSolBalance: number;
+  };
+};
+
+export const AuthDialog = ({ mrgnState }: AuthDialogProps) => {
   const [isWalletAuthDialogOpen, setIsWalletAuthDialogOpen] = useWalletStore((state) => [
     state.isWalletSignUpOpen,
     state.setIsWalletSignUpOpen,
@@ -165,6 +177,7 @@ export const AuthDialog = () => {
             isLoading: isLoading,
             flow: flow,
             isActiveLoading: isActiveLoading,
+            mrgnState: mrgnState,
             setIsLoading: setIsLoading,
             setProgress: setProgress,
             select: onSelectWallet,

@@ -21,7 +21,7 @@ import {
 import { OnboardHeader } from "~/components/wallet-v2/components/sign-up/components";
 
 export const OnboardingEth = ({
-  marginfiAccounts,
+  mrgnState,
   isLoading,
   flow,
   isActiveLoading,
@@ -39,7 +39,7 @@ export const OnboardingEth = ({
   const [screenIndex, setScreenIndex] = React.useState<number>(0);
   const [installingWallet, setInstallingWallet] = React.useState<InstallingWallet>();
   const [successProps, setSuccessProps] = React.useState<SuccessProps>();
-  const userHasAcct = React.useMemo(() => marginfiAccounts && marginfiAccounts.length > 0, [marginfiAccounts]);
+  const userHasAcct = React.useMemo(() => mrgnState?.selectedAccount, [mrgnState?.selectedAccount]);
 
   const screen = React.useMemo(() => {
     if (installingWallet) {
@@ -123,6 +123,7 @@ export const OnboardingEth = ({
         isLoading: isLoading,
         flow: flow,
         isActiveLoading: isActiveLoading,
+        mrgnState: mrgnState,
         onNext: () => setScreenIndex(screenIndex + 1),
         setIsLoading: setIsLoading,
         setIsActiveLoading: setIsActiveLoading,

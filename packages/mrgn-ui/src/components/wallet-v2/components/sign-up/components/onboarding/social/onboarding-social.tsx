@@ -23,7 +23,7 @@ import {
 } from "./onboarding-social.utils";
 
 export const OnboardingSocial = ({
-  marginfiAccounts,
+  mrgnState,
   userDataFetched,
   flow,
   isLoading,
@@ -45,8 +45,8 @@ export const OnboardingSocial = ({
   const [isSocialAuthLoading, setIsSocialAuthLoading] = React.useState<boolean>(false);
 
   const userHasAcct = React.useMemo(
-    () => userDataFetched && marginfiAccounts && marginfiAccounts.length > 0,
-    [marginfiAccounts, userDataFetched]
+    () => userDataFetched && mrgnState?.selectedAccount,
+    [mrgnState?.selectedAccount, userDataFetched]
   );
 
   const screen = React.useMemo(() => {
@@ -145,6 +145,7 @@ export const OnboardingSocial = ({
           installingWallet: installingWallet,
           successProps: successProps,
           flow: flow,
+          mrgnState: mrgnState,
           onNext: () => setScreenIndex(screenIndex + 1),
           onClose: onClose,
           setIsLoading: setIsLoading,
