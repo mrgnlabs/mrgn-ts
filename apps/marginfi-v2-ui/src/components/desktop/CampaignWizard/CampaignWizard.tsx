@@ -21,7 +21,7 @@ import { NumberFormatValues, NumericFormat } from "react-number-format";
 import { useMrgnlendStore } from "~/store";
 import { computeGuaranteedApy } from "@mrgnlabs/lip-client";
 import { EarnAction } from "~/components/desktop/Earn";
-import { useWalletContext } from "~/hooks/useWalletContext";
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
 interface CampaignWizardInputBox {
   value: number;
@@ -88,7 +88,7 @@ const CampaignWizard: FC<CampaignWizardProps> = () => {
   const [depositCapacity, setDepositCapacity] = useState(0);
   const [campaignBank, setCampaignBank] = useState<Bank | null>(null);
 
-  const walletContext = useWalletContext();
+  const walletContext = useWallet();
   const [mfiClient] = useMrgnlendStore((state) => [state.marginfiClient]);
   const { lipClient, reload: reloadLipClient } = useLipClient();
 

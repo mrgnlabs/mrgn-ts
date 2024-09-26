@@ -1,7 +1,7 @@
 import React from "react";
 
 import { AuthScreenProps, cn, getWalletConnectionMethod, socialProviders } from "~/utils";
-import { useWalletContext } from "~/hooks/useWalletContext";
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { ExtendedWallet, useAvailableWallets } from "~/hooks/useAvailableWallets";
 import { useOs } from "~/hooks/useOs";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "~/components/ui/accordion";
@@ -27,7 +27,7 @@ export const ReturningUser = ({
   onClose,
 }: props) => {
   const wallets = useAvailableWallets();
-  const { connected, loginWeb3Auth } = useWalletContext();
+  const { connected, loginWeb3Auth } = useWallet();
   const { isAndroid, isIOS, isPWA, isPhone } = useOs();
   const browser = useBrowser();
 

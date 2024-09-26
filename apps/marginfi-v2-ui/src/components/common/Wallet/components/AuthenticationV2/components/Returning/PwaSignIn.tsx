@@ -1,14 +1,14 @@
 import React from "react";
 
 import { AuthScreenProps, socialProviders } from "~/utils";
-import { useWalletContext } from "~/hooks/useWalletContext";
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
 import { OnboardHeader, WalletAuthButton, WalletAuthEmailForm, WalletSeperator } from "../sharedComponents";
 
 interface props extends AuthScreenProps {}
 
 export const PwaSignIn = ({ isLoading, isActiveLoading, setIsActiveLoading, setIsLoading, onClose }: props) => {
-  const { connected, loginWeb3Auth } = useWalletContext();
+  const { connected, loginWeb3Auth } = useWallet();
 
   React.useEffect(() => {
     if (connected) {

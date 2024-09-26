@@ -5,7 +5,7 @@ import { OnrampScreenProps } from "~/components/wallet-v2/components/sign-up/sig
 import { ActionBox } from "~/components/actionbox-v2";
 
 import { ScreenWrapper, WalletSeperator } from "~/components/wallet-v2/components/sign-up/components";
-import { useWallet } from "~/components/wallet-v2/wallet.hooks";
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { IconLoader } from "@tabler/icons-react";
 
 interface DepositTokenProps extends OnrampScreenProps {}

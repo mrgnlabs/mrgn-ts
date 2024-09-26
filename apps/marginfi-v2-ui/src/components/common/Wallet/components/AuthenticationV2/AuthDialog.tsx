@@ -1,10 +1,9 @@
 import React from "react";
 import { useRouter } from "next/router";
-import { useWallet } from "@solana/wallet-adapter-react";
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
 import { Dialog, DialogContent } from "~/components/ui/dialog";
 import { useOs } from "~/hooks/useOs";
-import { useWalletContext } from "~/hooks/useWalletContext";
 import { useBrowser } from "~/hooks/useBrowser";
 import { AUTO_FLOW_MAP, AuthFlowType, AuthScreenProps, cn } from "~/utils";
 import { useUiStore } from "~/store";
@@ -47,8 +46,8 @@ export const AuthDialog = () => {
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const [isActiveLoading, setIsActiveLoading] = React.useState<string>("");
   const [progress, setProgress] = React.useState<number>(0);
-  const { select } = useWallet();
-  const { loginWeb3Auth, connecting, connected } = useWalletContext();
+  const { walletContextState } = useWallet();
+  const { loginWeb3Auth, connecting, connected } = useWallet();
   const { query, replace, pathname } = useRouter();
 
   // if user has PWA force social login
@@ -102,7 +101,7 @@ export const AuthDialog = () => {
 
       setIsLoading(true);
       setIsActiveLoading(selectedWallet);
-      select(selectedWallet as any);
+      walletContextState.select(selectedWallet as any);
 
       const newQuery = { ...query };
       delete newQuery.onramp;
@@ -116,7 +115,7 @@ export const AuthDialog = () => {
         { shallow: true }
       );
     }
-  }, [pathname, query, query.onramp, replace, select]);
+  }, [pathname, query, query.onramp, replace, walletContextState]);
 
   // reset on force close
   React.useEffect(() => {
@@ -135,7 +134,7 @@ export const AuthDialog = () => {
     if (!selectedWallet) return;
     setIsLoading(true);
     setIsActiveLoading(selectedWallet);
-    select(selectedWallet as any);
+    walletContextState.select(selectedWallet as any);
     localStorage.setItem("isOnboarded", "true");
   };
 

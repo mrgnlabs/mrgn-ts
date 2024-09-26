@@ -3,7 +3,11 @@
   "compilerOptions": {
     "jsx": "preserve",
     "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "downlevelIteration": true,
     "outDir": "dist",
+    "baseUrl": ".",
     "paths": {
       "~/*": ["./src/*"]
     },

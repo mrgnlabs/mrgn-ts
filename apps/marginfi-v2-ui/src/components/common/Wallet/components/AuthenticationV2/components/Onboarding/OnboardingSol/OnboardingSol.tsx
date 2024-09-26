@@ -1,6 +1,6 @@
 import React from "react";
 
-import { useWalletContext } from "~/hooks/useWalletContext";
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { AuthScreenProps, InstallingWallet, OnrampScreenProps, SuccessProps, getWalletConnectionMethod } from "~/utils";
 import { useOs } from "~/hooks/useOs";
 import { useBrowser } from "~/hooks/useBrowser";
@@ -21,7 +21,7 @@ export const OnboardingSol = ({
   onClose,
   onPrev,
 }: props) => {
-  const { connected, logout } = useWalletContext();
+  const { connected, logout } = useWallet();
   const { isPhone, isPWA } = useOs();
   const browser = useBrowser();
 

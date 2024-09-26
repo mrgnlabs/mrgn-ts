@@ -9,7 +9,7 @@ import { percentFormatter } from "@mrgnlabs/mrgn-common";
 
 import { useActionBoxStore } from "~/hooks/useActionBoxStore";
 import { useConnection } from "~/hooks/useConnection";
-import { useWalletContext } from "~/hooks/useWalletContext";
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { calcLstYield, LSTS_SOLANA_COMPASS_MAP, calcNetLoopingApy } from "~/utils";
 
 import { ActionBoxTokens } from "~/components/common/ActionBox/components";
@@ -40,7 +40,7 @@ export const LoopInput = ({
 }: LoopInputProps) => {
   const amountInputRef = React.useRef<HTMLInputElement>(null);
   const { connection } = useConnection();
-  const { wallet } = useWalletContext();
+  const { wallet } = useWallet();
   const [selectedAccount] = useMrgnlendStore((state) => [state.selectedAccount]);
   const [
     setSelectedBank,

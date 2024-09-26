@@ -2,7 +2,7 @@ import React from "react";
 
 import { AuthScreenProps } from "~/components/wallet-v2/components/sign-up/sign-up.utils";
 import { useBrowser } from "@mrgnlabs/mrgn-utils";
-import { useWallet } from "~/components/wallet-v2/wallet.hooks";
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { OnboardHeader, ScreenWrapper, WalletSeperator } from "~/components/wallet-v2/components/sign-up/components";
 import { IconBackpackWallet, IconLoader, IconPhantomWallet, IconSolflareWallet } from "~/components/ui/icons";
 import { Button } from "~/components/ui/button";

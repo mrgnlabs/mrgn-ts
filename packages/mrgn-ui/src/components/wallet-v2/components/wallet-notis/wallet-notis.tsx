@@ -3,7 +3,7 @@ import React from "react";
 import Image from "next/image";
 import { IconAlertTriangle, IconCheck } from "@tabler/icons-react";
 
-import { useWallet } from "~/components/wallet-v2/wallet.hooks";
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";

@@ -2,7 +2,7 @@ import React from "react";
 
 import { useMrgnlendStore } from "~/store";
 import { AuthScreenProps, InstallingWallet, OnrampScreenProps, SuccessProps, getWalletConnectionMethod } from "~/utils";
-import { useWalletContext } from "~/hooks/useWalletContext";
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { Loader } from "~/components/ui/loader";
 import { useOs } from "~/hooks/useOs";
 import { useBrowser } from "~/hooks/useBrowser";
@@ -24,7 +24,7 @@ export const OnboardingSocial: React.FC<props> = ({
   onPrev,
   select,
 }: props) => {
-  const { connected, logout } = useWalletContext();
+  const { connected, logout } = useWallet();
   const { isPhone, isPWA } = useOs();
   const browser = useBrowser();
 

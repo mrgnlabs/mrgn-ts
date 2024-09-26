@@ -8,7 +8,7 @@ import { getTokenImageURL, LendingModes } from "@mrgnlabs/mrgn-utils";
 import { ExtendedBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { cn } from "~/utils";
-import { useWalletContext } from "~/hooks/useWalletContext";
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
 import { ActionBoxDialog } from "~/components/common/ActionBox";
 import { IconArrowRight } from "~/components/ui/icons";
@@ -73,7 +73,7 @@ const Pagination = ({ itemsLength }: PaginationProps) => {
 };
 
 export const Announcements = ({ items }: AnnouncementsProps) => {
-  const { connected } = useWalletContext();
+  const { connected } = useWallet();
   const [requestedAction, setRequestedAction] = React.useState<ActionType>();
   const [requestedBank, setRequestedBank] = React.useState<ExtendedBankInfo | null>(null);
 

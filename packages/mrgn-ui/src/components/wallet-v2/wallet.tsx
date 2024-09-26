@@ -23,8 +23,8 @@ import { ExtendedBankInfo, UserPointsData } from "@mrgnlabs/marginfi-v2-ui-state
 import { shortenAddress, usdFormatter, numeralFormatter, groupedNumberFormatterDyn } from "@mrgnlabs/mrgn-common";
 import { getTokenImageURL, showErrorToast, useIsMobile, cn } from "@mrgnlabs/mrgn-utils";
 
-import { useWalletStore } from "~/components/wallet-v2/wallet.store";
-import { useWallet } from "~/components/wallet-v2/wallet.hooks";
+import { useWalletStore } from "~/components/wallet-v2/store/wallet.store";
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
 import {
   WalletButton,
@@ -47,7 +47,7 @@ import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
 
 type WalletProps = {
   initialized: boolean;
-  mfiClient: MarginfiClient;
+  mfiClient: MarginfiClient | null;
   marginfiAccounts: MarginfiAccountWrapper[];
   selectedAccount: MarginfiAccountWrapper | null;
   extendedBankInfos: ExtendedBankInfo[];

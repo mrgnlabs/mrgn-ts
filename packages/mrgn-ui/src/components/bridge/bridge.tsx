@@ -3,8 +3,8 @@ import Script from "next/script";
 
 import { MultiStepToastHandle, capture } from "@mrgnlabs/mrgn-utils";
 
-import { useWalletStore } from "~/components/wallet-v2/wallet.store";
-import { useWallet } from "~/components/wallet-v2/wallet.hooks";
+import { useWalletStore } from "~/components/wallet-v2/store/wallet.store";
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
 import type { MayanWidgetColors, MayanWidgetConfigType } from "./bridge.types";
 

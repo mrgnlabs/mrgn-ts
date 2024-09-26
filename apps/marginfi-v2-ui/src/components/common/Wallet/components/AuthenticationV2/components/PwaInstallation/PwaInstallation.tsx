@@ -1,5 +1,5 @@
 import React from "react";
-import { useWallet } from "@solana/wallet-adapter-react";
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
 import { AuthScreenProps, OnrampScreenProps, cn } from "~/utils";
 

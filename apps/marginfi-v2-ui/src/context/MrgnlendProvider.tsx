@@ -4,7 +4,7 @@ import { useRouter } from "next/router";
 import config from "~/config/marginfi";
 import { useMrgnlendStore } from "~/store";
 import { useConnection } from "~/hooks/useConnection";
-import { useWalletContext } from "~/hooks/useWalletContext";
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { identify } from "~/utils";
 
 // @ts-ignore - Safe because context hook checks for null
@@ -15,7 +15,7 @@ export const MrgnlendProvider: React.FC<{
 }> = ({ children }) => {
   const router = useRouter();
   const debounceId = React.useRef<NodeJS.Timeout | null>(null);
-  const { wallet, isOverride } = useWalletContext();
+  const { wallet, isOverride } = useWallet();
   const { connection } = useConnection();
   const [fetchMrgnlendState, setIsRefreshingStore] = useMrgnlendStore((state) => [
     state.fetchMrgnlendState,

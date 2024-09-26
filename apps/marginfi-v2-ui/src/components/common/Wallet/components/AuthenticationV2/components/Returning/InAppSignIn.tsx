@@ -4,14 +4,14 @@ import { AuthScreenProps, socialProviders } from "~/utils";
 import { IconBackpackWallet, IconLoader, IconPhantomWallet, IconSolflareWallet } from "~/components/ui/icons";
 import { Button } from "~/components/ui/button";
 import { useBrowser } from "~/hooks/useBrowser";
-import { useWalletContext } from "~/hooks/useWalletContext";
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
 import { OnboardHeader, ScreenWrapper, WalletSeperator } from "../sharedComponents";
 
 interface props extends AuthScreenProps {}
 
 export const InAppSignIn = ({ isLoading, select, update, onClose }: props) => {
-  const { connected } = useWalletContext();
+  const { connected } = useWallet();
   const browser = useBrowser();
 
   const inAppWallet = React.useMemo(() => {

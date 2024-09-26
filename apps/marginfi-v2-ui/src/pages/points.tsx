@@ -3,14 +3,14 @@ import React from "react";
 import Link from "next/link";
 
 import { useMrgnlendStore, useUserProfileStore } from "~/store";
-import { useWalletContext } from "~/hooks/useWalletContext";
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
 import { PointsOverview, PointsConnectWallet } from "~/components/common/Points";
 import { PointsTable } from "~/components/desktop/Points";
 import { Loader } from "~/components/ui/loader";
 
 export default function PointsPage() {
-  const { connected } = useWalletContext();
+  const { connected } = useWallet();
 
   const [initialized] = useMrgnlendStore((state) => [state.initialized]);
 

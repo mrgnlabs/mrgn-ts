@@ -5,7 +5,7 @@ import { JupiterProvider } from "@jup-ag/react-hook";
 import { groupedNumberFormatterDyn, clampedNumeralFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 
 import { useConnection } from "~/hooks/useConnection";
-import { useWalletContext } from "~/hooks/useWalletContext";
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { useLstStore, useMrgnlendStore, useUiStore } from "~/store";
 import { LST_MINT } from "~/store/lstStore";
 
@@ -25,7 +25,7 @@ import { PageHeading } from "~/components/common/PageHeading";
 
 export default function MintPage() {
   const { connection } = useConnection();
-  const { wallet } = useWalletContext();
+  const { wallet } = useWallet();
   const [mintPageState, setMintPageState] = React.useState<MintPageState>(MintPageState.DEFAULT);
   const [ybxNotificationsDialogOpen, setYbxNotificationsDialogOpen] = React.useState(false);
   const [ybxPartnerDialogOpen, setYbxPartnerDialogOpen] = React.useState(false);

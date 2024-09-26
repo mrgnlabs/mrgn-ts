@@ -7,7 +7,7 @@ import { IconChevronDown, IconUserPlus, IconPencil, IconAlertTriangle } from "@t
 
 import { cn } from "@mrgnlabs/mrgn-utils";
 import { useConnection } from "@mrgnlabs/mrgn-utils";
-import { useWallet } from "~/components/wallet-v2/wallet.hooks";
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
 import { Button } from "~/components/ui/button";
 import { IconLoader } from "~/components/ui/icons";
@@ -27,7 +27,7 @@ enum WalletAuthAccountsState {
 
 type WalletAuthAccountsProps = {
   initialized: boolean;
-  mfiClient: MarginfiClient;
+  mfiClient: MarginfiClient | null;
   marginfiAccounts: MarginfiAccountWrapper[];
   selectedAccount: MarginfiAccountWrapper | null;
   fetchMrgnlendState: () => Promise<void>;

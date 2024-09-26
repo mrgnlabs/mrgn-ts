@@ -7,7 +7,7 @@ import { firebaseApi } from "@mrgnlabs/marginfi-v2-ui-state";
 import { MultiStepToastHandle } from "@mrgnlabs/mrgn-utils";
 
 import { useMrgnlendStore } from "~/store";
-import { useWalletContext } from "~/hooks/useWalletContext";
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { useConnection } from "~/hooks/useConnection";
 
 import { WalletButton } from "~/components/common/Wallet";
@@ -22,7 +22,7 @@ import { IconAlertTriangle, IconMrgn, IconTransfer, IconX } from "~/components/u
 
 export default function MigratePointsPage() {
   const [initialized] = useMrgnlendStore((state) => [state.initialized]);
-  const { connected, wallet } = useWalletContext();
+  const { connected, wallet } = useWallet();
   const { connection } = useConnection();
   const [useAuthTxn, setUseAuthTxn] = React.useState(false);
   const [isComplete, setIsComplete] = React.useState(false);
