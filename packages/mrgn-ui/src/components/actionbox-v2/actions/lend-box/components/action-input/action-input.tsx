@@ -1,10 +1,9 @@
 import React from "react";
 
-import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { formatAmount } from "@mrgnlabs/mrgn-utils";
 
 import { Input } from "~/components/ui/input";
-import { useLendBoxStore } from "~/components/actionbox-v2/actions/lend-box/store";
 
 import { LendingAction, BankSelect } from "./components";
 
@@ -12,13 +11,18 @@ type ActionInputProps = {
   banks: ExtendedBankInfo[];
   nativeSolBalance: number;
   walletAmount: number | undefined;
-  amountRaw: string;
   maxAmount: number;
 
   connected: boolean;
   showCloseBalance?: boolean;
   isDialog?: boolean;
   isMini?: boolean;
+
+  amountRaw: string;
+  selectedBank: ExtendedBankInfo | null;
+  lendMode: ActionType;
+  setAmountRaw: (amount: string) => void;
+  setSelectedBank: (bank: ExtendedBankInfo | null) => void;
 };
 
 export const ActionInput = ({
@@ -29,15 +33,13 @@ export const ActionInput = ({
   showCloseBalance,
   connected,
   isDialog,
-}: ActionInputProps) => {
-  const [amountRaw, selectedBank, lendMode, setAmountRaw, setSelectedBank] = useLendBoxStore((state) => [
-    state.amountRaw,
-    state.selectedBank,
-    state.lendMode,
-    state.setAmountRaw,
-    state.setSelectedBank,
-  ]);
 
+  amountRaw,
+  selectedBank,
+  lendMode,
+  setAmountRaw,
+  setSelectedBank,
+}: ActionInputProps) => {
   const amountInputRef = React.useRef<HTMLInputElement>(null);
 
   const numberFormater = React.useMemo(() => new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 }), []);
@@ -90,6 +92,8 @@ export const ActionInput = ({
         walletAmount={walletAmount}
         maxAmount={maxAmount}
         onSetAmountRaw={(amount) => handleInputChange(amount)}
+        selectedBank={selectedBank}
+        lendMode={lendMode}
       />
     </div>
   );

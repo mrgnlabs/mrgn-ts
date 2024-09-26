@@ -16,16 +16,13 @@ import {
 import { useLendBoxStore } from "~/components/actionbox-v2/actions/lend-box/store";
 
 interface PreviewProps {
+  selectedBank: ExtendedBankInfo | null;
+  isLoading: boolean;
+  lendMode: ActionType;
   actionSummary?: ActionSummary;
 }
 
-export const Preview = ({ actionSummary }: PreviewProps) => {
-  const [selectedBank, isLoading, lendMode] = useLendBoxStore((state) => [
-    state.selectedBank,
-    state.isLoading,
-    state.lendMode,
-  ]);
-
+export const Preview = ({ actionSummary, selectedBank, isLoading, lendMode }: PreviewProps) => {
   const isLending = React.useMemo(
     () => lendMode === ActionType.Deposit || lendMode === ActionType.Withdraw,
     [lendMode]

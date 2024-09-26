@@ -32,7 +32,7 @@ const AssetsList = dynamic(async () => (await import("~/components/desktop/Asset
 
 export default function HomePage() {
   const router = useRouter();
-  const { walletContextState, walletAddress, isOverride, connected } = useWalletContext();
+  const { walletContextState, walletAddress, isOverride, connected } = useWallet();
   const [previousTxn, setIsWalletOpen] = useUiStore((state) => [state.previousTxn, state.setIsWalletOpen]);
   const [isStoreInitialized, isRefreshingStore, selectedAccount, extendedBankInfos, accountSummary, nativeSolBalance] =
     useMrgnlendStore((state) => [
@@ -135,7 +135,7 @@ export default function HomePage() {
                   connected: false,
                   captureEvent: () => {},
                   onConnect: () => {},
-                  walletContextState: {},
+                  walletContextState: walletContextState,
                 }}
               />
             </div>

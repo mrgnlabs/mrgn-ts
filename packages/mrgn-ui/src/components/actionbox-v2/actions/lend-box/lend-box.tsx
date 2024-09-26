@@ -70,6 +70,7 @@ export const LendBox = ({
     setLendMode,
     setIsLoading,
     setAmountRaw,
+    setSelectedBank,
     refreshSelectedBanks,
     setSimulationResult,
   ] = useLendBoxStore((state) => [
@@ -85,6 +86,7 @@ export const LendBox = ({
     state.setLendMode,
     state.setIsLoading,
     state.setAmountRaw,
+    state.setSelectedBank,
     state.refreshSelectedBanks,
     state.setSimulationResult,
   ]);
@@ -244,6 +246,10 @@ export const LendBox = ({
           amountRaw={amountRaw}
           maxAmount={maxAmount}
           connected={connected}
+          selectedBank={selectedBank}
+          lendMode={lendMode}
+          setAmountRaw={setAmountRaw}
+          setSelectedBank={setSelectedBank}
         />
       </div>
 
@@ -276,7 +282,7 @@ export const LendBox = ({
 
       <ActionSettingsButton setIsSettingsActive={setIsSettingsDialogOpen} />
 
-      <Preview actionSummary={actionSummary} />
+      <Preview actionSummary={actionSummary} selectedBank={selectedBank} isLoading={isLoading} lendMode={lendMode} />
 
       <LSTDialog
         variant={selectedBank?.meta.tokenSymbol as LSTDialogVariants}
