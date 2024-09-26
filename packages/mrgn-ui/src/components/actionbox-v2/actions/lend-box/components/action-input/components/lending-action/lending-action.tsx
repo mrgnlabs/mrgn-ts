@@ -1,21 +1,25 @@
 import React from "react";
 
-import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { clampedNumeralFormatter } from "@mrgnlabs/mrgn-common";
-
-import { useLendBoxStore } from "~/components/actionbox-v2/actions/lend-box/store";
 
 type LendingActionProps = {
   walletAmount: number | undefined;
   maxAmount: number;
   showLendingHeader?: boolean;
+  lendMode: ActionType;
+  selectedBank: ExtendedBankInfo | null;
 
   onSetAmountRaw: (amount: string) => void;
 };
 
-export const LendingAction = ({ maxAmount, walletAmount, onSetAmountRaw }: LendingActionProps) => {
-  const [lendMode, selectedBank] = useLendBoxStore((state) => [state.lendMode, state.selectedBank]);
-
+export const LendingAction = ({
+  maxAmount,
+  walletAmount,
+  onSetAmountRaw,
+  selectedBank,
+  lendMode,
+}: LendingActionProps) => {
   const numberFormater = React.useMemo(() => new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 }), []);
 
   const maxLabel = React.useMemo((): {
