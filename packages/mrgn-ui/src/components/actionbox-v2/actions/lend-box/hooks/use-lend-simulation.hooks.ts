@@ -2,9 +2,9 @@ import React from "react";
 
 import { Transaction, VersionedTransaction } from "@solana/web3.js";
 
-import { AccountSummary } from "@mrgnlabs/marginfi-v2-ui-state";
+import { AccountSummary, ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { MarginfiAccountWrapper, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
-import { STATIC_SIMULATION_ERRORS, usePrevious } from "@mrgnlabs/mrgn-utils";
+import { ActionMethod, STATIC_SIMULATION_ERRORS, usePrevious } from "@mrgnlabs/mrgn-utils";
 
 import { useActionBoxStore } from "~/components/actionbox-v2/store";
 
@@ -18,31 +18,40 @@ How lending action simulation works:
 3) Set the simulation result.
 */
 
-export function useLendSimulation(
-  debouncedAmount: number,
-  selectedAccount: MarginfiAccountWrapper | null,
-  accountSummary?: AccountSummary
-) {
+type LendSimulationProps = {
+  debouncedAmount: number;
+  selectedAccount: MarginfiAccountWrapper | null;
+  accountSummary?: AccountSummary;
+  selectedBank: ExtendedBankInfo | null;
+  lendMode: ActionType;
+  actionTxns: {
+    actionTxn: VersionedTransaction | Transaction | null;
+    additionalTxns: (VersionedTransaction | Transaction)[];
+  };
+  simulationResult: SimulationResult | null;
+  setSimulationResult: (result: SimulationResult | null) => void;
+  setActionTxns: (actionTxns: {
+    actionTxn: VersionedTransaction | Transaction | null;
+    additionalTxns: VersionedTransaction[];
+  }) => void;
+  setErrorMessage: (error: ActionMethod) => void;
+  setIsLoading: (isLoading: boolean) => void;
+};
+
+export function useLendSimulation({
+  debouncedAmount,
+  selectedAccount,
+  accountSummary,
+  selectedBank,
+  lendMode,
+  actionTxns,
+  simulationResult,
+  setSimulationResult,
+  setActionTxns,
+  setErrorMessage,
+  setIsLoading,
+}: LendSimulationProps) {
   const prevDebouncedAmount = usePrevious(debouncedAmount);
-  const [
-    lendMode,
-    actionTxns,
-    selectedBank,
-    simulationResult,
-    setSimulationResult,
-    setActionTxns,
-    setIsLoading,
-    setErrorMessage,
-  ] = useLendBoxStore((state) => [
-    state.lendMode,
-    state.actionTxns,
-    state.selectedBank,
-    state.simulationResult,
-    state.setSimulationResult,
-    state.setActionTxns,
-    state.setIsLoading,
-    state.setErrorMessage,
-  ]);
 
   const [priorityFee] = useActionBoxStore((state) => [state.priorityFee]);
 

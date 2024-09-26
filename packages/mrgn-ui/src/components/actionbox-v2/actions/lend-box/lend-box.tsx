@@ -60,6 +60,7 @@ export const LendBox = ({
   const [
     amountRaw,
     lendMode,
+    actionTxns,
     selectedBank,
     simulationResult,
     isLoading,
@@ -68,14 +69,17 @@ export const LendBox = ({
     refreshState,
     fetchActionBoxState,
     setLendMode,
-    setIsLoading,
     setAmountRaw,
     setSelectedBank,
     refreshSelectedBanks,
     setSimulationResult,
+    setActionTxns,
+    setIsLoading,
+    setErrorMessage,
   ] = useLendBoxStore((state) => [
     state.amountRaw,
     state.lendMode,
+    state.actionTxns,
     state.selectedBank,
     state.simulationResult,
     state.isLoading,
@@ -84,11 +88,13 @@ export const LendBox = ({
     state.refreshState,
     state.fetchActionBoxState,
     state.setLendMode,
-    state.setIsLoading,
     state.setAmountRaw,
     state.setSelectedBank,
     state.refreshSelectedBanks,
     state.setSimulationResult,
+    state.setActionTxns,
+    state.setIsLoading,
+    state.setErrorMessage,
   ]);
 
   const [setIsSettingsDialogOpen] = useActionBoxStore((state) => [state.setIsSettingsDialogOpen]);
@@ -99,7 +105,19 @@ export const LendBox = ({
     nativeSolBalance,
     actionMode: lendMode,
   });
-  const { actionSummary } = useLendSimulation(debouncedAmount ?? 0, selectedAccount, accountSummary);
+  const { actionSummary } = useLendSimulation({
+    debouncedAmount: debouncedAmount ?? 0,
+    selectedAccount,
+    accountSummary,
+    selectedBank,
+    lendMode,
+    actionTxns,
+    simulationResult,
+    setSimulationResult,
+    setActionTxns,
+    setErrorMessage,
+    setIsLoading,
+  });
 
   const [lstDialogCallback, setLSTDialogCallback] = React.useState<(() => void) | null>(null);
   const [additionalActionMethods, setAdditionalActionMethods] = React.useState<ActionMethod[]>([]);
