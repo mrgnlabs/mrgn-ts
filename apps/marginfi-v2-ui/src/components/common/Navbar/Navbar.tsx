@@ -1,10 +1,12 @@
 import { FC, useEffect, useMemo, useState } from "react";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/router";
 
 import { PublicKey } from "@solana/web3.js";
 import LipAccount from "@mrgnlabs/lip-client/src/account";
+import { IconBell, IconBrandTelegram } from "@tabler/icons-react";
 
 import { collectRewardsBatch } from "@mrgnlabs/mrgn-utils";
 import { Wallet } from "@mrgnlabs/mrgn-ui";
@@ -18,7 +20,8 @@ import { useConnection } from "~/hooks/useConnection";
 import { useIsMobile } from "~/hooks/useIsMobile";
 
 import { EMISSION_MINT_INFO_MAP } from "~/components/desktop/AssetList/components";
-import { DialectNotification } from "~/components/common/Notifications";
+import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
+import { Button } from "~/components/ui/button";
 import { IconMrgn } from "~/components/ui/icons";
 
 // @todo implement second pretty navbar row
@@ -155,7 +158,7 @@ export const Navbar: FC = () => {
             </div>
           </div>
           {initialized && (
-            <div className="h-full w-1/2 flex justify-end items-center z-10 gap-4 lg:gap-8 text-[#868E95]">
+            <div className="h-full w-1/2 flex justify-end items-center z-10 gap-4 lg:gap-4 text-[#868E95]">
               <div
                 className={`whitespace-nowrap inline-flex mr-4 md: mr-0 ${
                   bankAddressesWithEmissions.length > 0 ? "cursor-pointer hover:text-[#AAA]" : "cursor-not-allowed"
@@ -174,7 +177,33 @@ export const Navbar: FC = () => {
                 )}
               </div>
 
-              <DialectNotification />
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-10 w-10">
+                    <IconBell size={20} />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-80">
+                  <div className="flex flex-col items-center justify-center text-center gap-4">
+                    <div className="flex flex-col items-center justify-center text-center gap-2">
+                      <Image
+                        src="https://storage.googleapis.com/mrgn-public/ecosystem-images/asgardwatchbot.jpg"
+                        alt="Asgard Heimdall"
+                        width={52}
+                        height={52}
+                        className="rounded-full"
+                      />
+                      <h2 className="text-lg font-medium">Asgard Watchbot</h2>
+                      <p className="text-sm">
+                        Sign up for real time notifications with Asgardfi&apos;s telegram watchbot.
+                      </p>
+                    </div>
+                    <Button variant="secondary" size="sm">
+                      <IconBrandTelegram size={18} /> Open in Telegram
+                    </Button>
+                  </div>
+                </PopoverContent>
+              </Popover>
 
               <Wallet
                 connection={connection}
