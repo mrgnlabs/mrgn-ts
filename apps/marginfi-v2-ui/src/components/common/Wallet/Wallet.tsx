@@ -17,7 +17,7 @@ import {
   Token as TokenType,
   WalletOnramp,
   WalletPkDialog,
-  WalletIntroDialog,
+  WalletReceive,
   WalletNotis,
   WalletSend,
   WalletAuthAccounts,
@@ -52,6 +52,7 @@ enum WalletState {
   DEFAULT = "default",
   TOKEN = "token",
   SEND = "send",
+  RECEIVE = "receive",
   SELECT = "select",
   SWAP = "swap",
   BUY = "bug",
@@ -476,6 +477,16 @@ export const Wallet = () => {
                         )}
                       </TabWrapper>
                     )}
+                    {walletTokenState === WalletState.RECEIVE && (
+                      <TabWrapper resetWalletState={resetWalletState}>
+                        <WalletReceive
+                          address={walletData.address}
+                          onBack={() => {
+                            setWalletTokenState(WalletState.DEFAULT);
+                          }}
+                        />
+                      </TabWrapper>
+                    )}
                     {walletTokenState === WalletState.BUY && (
                       <TabWrapper resetWalletState={resetWalletState}>
                         <div className="px-4">
@@ -679,6 +690,23 @@ function TokenOptions({ walletAddress, setState, setToken, web3AuthConnected = f
           <IconArrowUp size={20} />
         </div>
         Send
+      </button>
+      <button
+        className="flex flex-col gap-1 text-sm font-medium items-center"
+        onClick={() => {
+          if (!setToken && !setToken) {
+            setState(WalletState.RECEIVE);
+            return;
+          }
+
+          if (setToken) setToken();
+          setState(WalletState.RECEIVE);
+        }}
+      >
+        <div className="rounded-full flex items-center justify-center h-12 w-12 bg-background-gray transition-colors hover:bg-background-gray-hover">
+          <IconArrowDown size={20} />
+        </div>
+        Receive
       </button>
       <button
         className="flex flex-col gap-1 text-sm font-medium items-center"
