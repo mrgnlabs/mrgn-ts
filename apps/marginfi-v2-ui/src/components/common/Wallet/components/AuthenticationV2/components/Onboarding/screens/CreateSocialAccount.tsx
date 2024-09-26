@@ -1,7 +1,7 @@
 import { useAvailableWallets } from "~/hooks/useAvailableWallets";
 import { useOs } from "~/hooks/useOs";
 import { OnrampScreenProps, socialProviders } from "~/utils";
-import { useWalletContext } from "~/hooks/useWalletContext";
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
 import {
   ScreenWrapper,
@@ -24,7 +24,7 @@ export const CreateSocialAccount: React.FC<props> = ({
   const wallets = useAvailableWallets("pwa");
   const pwaWallets = useAvailableWallets("pwa");
   const { isPWA } = useOs();
-  const { loginWeb3Auth } = useWalletContext();
+  const { loginWeb3Auth } = useWallet();
 
   return (
     <ScreenWrapper>

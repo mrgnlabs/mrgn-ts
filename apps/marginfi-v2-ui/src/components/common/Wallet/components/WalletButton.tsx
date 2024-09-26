@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo } from "react";
 import Image from "next/image";
-import { useWallet } from "@solana/wallet-adapter-react";
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
 import { useUiStore } from "~/store";
 import { WalletInfo, Web3AuthProvider, useWalletContext } from "~/hooks/useWalletContext";
@@ -33,8 +33,8 @@ export const WalletButton = () => {
   const { isPhone, isPWA } = useOs();
   const browser = useBrowser();
   const wallets = useAvailableWallets();
-  const { select } = useWallet();
-  const { connected, isLoading, loginWeb3Auth } = useWalletContext();
+  const { walletContextState } = useWallet();
+  const { connected, isLoading, loginWeb3Auth } = useWallet();
   const [setIsWalletAuthDialogOpen] = useUiStore((state) => [state.setIsWalletAuthDialogOpen]);
 
   const walletInfo = useMemo(() => JSON.parse(localStorage.getItem("walletInfo") ?? "null") as WalletInfo, []);
@@ -80,16 +80,16 @@ export const WalletButton = () => {
           } else if (connectionMethod === "DEEPLINK") {
             window.open(walletObject.deeplink);
           } else if (connectionMethod === "CONNECT") {
-            select(walletObject.adapter.name as any);
+            walletContextState.select(walletObject.adapter.name as any);
           }
         } else {
-          select(walletInfo.name as any);
+          walletContextState.select(walletInfo.name as any);
         }
       }
     } catch (error) {
       setIsWalletAuthDialogOpen(true);
     }
-  }, [walletInfo, walletObject, isPWA, isPhone, browser, setIsWalletAuthDialogOpen, select, loginWeb3Auth]);
+  }, [walletInfo, walletObject, isPWA, isPhone, browser, setIsWalletAuthDialogOpen, walletContextState, loginWeb3Auth]);
 
   return (
     <>

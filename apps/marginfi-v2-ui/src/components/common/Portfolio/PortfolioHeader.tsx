@@ -1,6 +1,6 @@
 import React from "react";
 
-import { useWalletContext } from "~/hooks/useWalletContext";
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
 import { PageHeading } from "~/components/common/PageHeading";
 import { WalletButton } from "~/components/common/Wallet";
@@ -10,7 +10,7 @@ interface PortfolioHeaderProps {
 }
 
 export const PortfolioHeader = ({ netValue, points }: PortfolioHeaderProps) => {
-  const { connected } = useWalletContext();
+  const { connected } = useWallet();
   return (
     <PageHeading
       heading="Portfolio"

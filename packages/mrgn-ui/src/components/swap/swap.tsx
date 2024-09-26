@@ -8,7 +8,7 @@ import { capture } from "@mrgnlabs/mrgn-utils";
 import { PublicKey } from "@solana/web3.js";
 import { QuoteResponseMeta, SwapResult } from "@jup-ag/react-hook";
 
-import { useWallet } from "~/components/wallet-v2/wallet.hooks";
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
 type SwapProps = {
   onLoad?: () => void;

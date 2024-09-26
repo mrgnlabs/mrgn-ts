@@ -8,7 +8,7 @@ import {
   WalletSeperator,
   WalletAuthWrapper,
 } from "../../sharedComponents";
-import { useWalletContext } from "~/hooks/useWalletContext";
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
 interface props extends OnrampScreenProps {}
 
@@ -21,7 +21,7 @@ export const CreateEthAccount: React.FC<props> = ({
   selectWallet,
 }: props) => {
   const wallets = useAvailableWallets("eth");
-  const { loginWeb3Auth } = useWalletContext();
+  const { loginWeb3Auth } = useWallet();
 
   return (
     <ScreenWrapper>

@@ -12,7 +12,7 @@ import {
 import { ActionMethod, MarginfiActionParams, PreviousTxn } from "@mrgnlabs/mrgn-utils";
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 
-import { WalletContextStateOverride } from "~/components/wallet-v2/wallet.hooks";
+import { WalletContextStateOverride } from "~/components/wallet-v2/hooks/wallet.hooks";
 
 import { ActionButton, ActionMessage, ActionSettingsButton } from "../../components";
 import { useActionBoxStore } from "../../store";

@@ -6,11 +6,11 @@ import { useRouter } from "next/router";
 
 import { toast } from "react-toastify";
 import { useUserProfileStore } from "~/store";
-import { useWalletContext } from "./useWalletContext";
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import React from "react";
 
 const useFirebaseAccount = () => {
-  const { connected, walletAddress } = useWalletContext();
+  const { connected, walletAddress } = useWallet();
   const { query: routerQuery } = useRouter();
 
   const [isLogged, setIsLogged] = React.useState(false);

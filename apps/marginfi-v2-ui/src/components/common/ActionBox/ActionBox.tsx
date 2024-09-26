@@ -20,7 +20,7 @@ import { getBlockedActions, showErrorToast } from "@mrgnlabs/mrgn-utils";
 
 import { useLstStore, useMrgnlendStore, useUiStore } from "~/store";
 import { cn, capture } from "~/utils";
-import { useWalletContext } from "~/hooks/useWalletContext";
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { useConnection } from "~/hooks/useConnection";
 import { useActionBoxStore } from "~/hooks/useActionBoxStore";
 import { SOL_MINT } from "~/store/lstStore";
@@ -140,7 +140,7 @@ export const ActionBox = ({
     state.feesAndRent,
   ]);
 
-  const { walletContextState, connected, wallet } = useWalletContext();
+  const { walletContextState, connected, wallet } = useWallet();
   const { connection } = useConnection();
 
   // Cleanup the store when the wallet disconnects

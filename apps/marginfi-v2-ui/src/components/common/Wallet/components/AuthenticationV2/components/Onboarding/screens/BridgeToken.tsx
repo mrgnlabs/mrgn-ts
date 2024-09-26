@@ -2,14 +2,14 @@ import React from "react";
 
 import { OnrampScreenProps } from "~/utils";
 import { useIsMobile } from "~/hooks/useIsMobile";
-import { useWalletContext } from "~/hooks/useWalletContext";
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
 import { ScreenWrapper, WalletSeperator } from "../../sharedComponents";
 
 interface props extends OnrampScreenProps {}
 
 export const BridgeToken: React.FC<props> = ({ onNext }: props) => {
-  const { wallet } = useWalletContext();
+  const { wallet } = useWallet();
   const divRef = React.useRef<HTMLDivElement>(null);
   const [isMounted, setIsMounted] = React.useState(false);
   const [widget, setWidget] = React.useState<any>();

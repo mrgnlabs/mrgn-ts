@@ -9,7 +9,7 @@ import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { useMrgnlendStore, useUiStore } from "~/store";
 import { useActionBoxStore } from "~/hooks/useActionBoxStore";
-import { useWalletContext } from "~/hooks/useWalletContext";
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
 import { Banner } from "~/components/desktop/Banner";
 import { ActionBoxLendWrapper } from "~/components/common/ActionBox";
@@ -31,7 +31,7 @@ const AssetsList = dynamic(async () => (await import("~/components/desktop/Asset
 
 export default function HomePage() {
   const router = useRouter();
-  const { walletAddress, isOverride } = useWalletContext();
+  const { walletAddress, isOverride } = useWallet();
   const [previousTxn, setIsWalletOpen] = useUiStore((state) => [state.previousTxn, state.setIsWalletOpen]);
   const [isStoreInitialized, isRefreshingStore, selectedAccount, extendedBankInfos] = useMrgnlendStore((state) => [
     state.initialized,

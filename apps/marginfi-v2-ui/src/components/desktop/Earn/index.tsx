@@ -30,11 +30,11 @@ import { Desktop, MultiStepToastHandle } from "@mrgnlabs/mrgn-utils";
 
 import { Countdown } from "~/components/desktop/Countdown";
 import BigNumber from "bignumber.js";
-import { useWalletContext } from "~/hooks/useWalletContext";
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { useMrgnlendStore } from "~/store";
 
 const Earn = () => {
-  const { wallet, isOverride, connected, walletAddress } = useWalletContext();
+  const { wallet, isOverride, connected, walletAddress } = useWallet();
   const { connection } = useConnection();
   const { lipClient } = useLipClient();
 
@@ -524,7 +524,7 @@ interface EarnActionProps extends ButtonProps {
 }
 
 export const EarnAction: FC<EarnActionProps> = ({ children, spinning, disabled, ...otherProps }) => {
-  const { connected } = useWalletContext();
+  const { connected } = useWallet();
 
   return connected ? (
     <Button

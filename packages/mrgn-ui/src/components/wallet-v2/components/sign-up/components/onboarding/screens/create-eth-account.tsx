@@ -8,7 +8,7 @@ import {
   WalletSeperator,
   WalletAuthWrapper,
 } from "~/components/wallet-v2/components/sign-up/components";
-import { useWallet } from "~/components/wallet-v2/wallet.hooks";
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
 export const CreateEthAccount = ({
   isLoading,

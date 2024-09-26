@@ -3,7 +3,7 @@ import Script from "next/script";
 
 import { useOs } from "@mrgnlabs/mrgn-utils";
 import { useBrowser } from "@mrgnlabs/mrgn-utils";
-import { useWallet } from "~/components/wallet-v2/wallet.hooks";
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { ExtendedWallet } from "@mrgnlabs/mrgn-utils";
 import {
   AuthScreenProps,

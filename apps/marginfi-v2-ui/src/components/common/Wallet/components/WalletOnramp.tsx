@@ -13,7 +13,7 @@ import {
 import { loadMoonPay } from "@moonpay/moonpay-js";
 
 import { useUiStore } from "~/store";
-import { useWalletContext } from "~/hooks/useWalletContext";
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { IconArrowLeft, IconX } from "~/components/ui/icons";
 import { Button } from "~/components/ui/button";
 import { Label } from "~/components/ui/label";
@@ -30,7 +30,7 @@ export const WalletOnramp = ({ showAmountBackButton = true }: WalletOnrampProps)
   const [showMeso, setIsShowMeso] = React.useState<boolean>(false);
 
   const [moonPay, setMoonPay] = React.useState<any>(null);
-  const { wallet } = useWalletContext();
+  const { wallet } = useWallet();
   const [isOnrampActive, setIsOnrampActive] = useUiStore((state) => [
     state.isWalletOnrampActive,
     state.setIsOnrampActive,

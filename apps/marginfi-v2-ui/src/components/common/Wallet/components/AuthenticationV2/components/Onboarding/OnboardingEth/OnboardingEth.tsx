@@ -2,7 +2,7 @@ import React from "react";
 import Script from "next/script";
 
 import { useMrgnlendStore } from "~/store";
-import { useWalletContext } from "~/hooks/useWalletContext";
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { AuthScreenProps, InstallingWallet, OnrampScreenProps, SuccessProps, getWalletConnectionMethod } from "~/utils";
 import { useOs } from "~/hooks/useOs";
 import { useBrowser } from "~/hooks/useBrowser";
@@ -25,7 +25,7 @@ export const OnboardingEth = ({
   onPrev,
 }: props) => {
   const [marginfiAccounts] = useMrgnlendStore((state) => [state.marginfiAccounts]);
-  const { connected, logout } = useWalletContext();
+  const { connected, logout } = useWallet();
   const { isPWA, isPhone } = useOs();
   const browser = useBrowser();
 

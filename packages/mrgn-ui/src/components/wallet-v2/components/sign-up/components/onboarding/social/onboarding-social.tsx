@@ -7,7 +7,7 @@ import {
   SuccessProps,
 } from "~/components/wallet-v2/components/sign-up/sign-up.utils";
 import { getWalletConnectionMethod } from "~/components/wallet-v2/wallet.utils";
-import { useWallet } from "~/components/wallet-v2/wallet.hooks";
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { Loader } from "~/components/ui/loader";
 import { useOs } from "@mrgnlabs/mrgn-utils";
 import { useBrowser } from "@mrgnlabs/mrgn-utils";

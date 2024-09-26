@@ -7,7 +7,7 @@ import { getMaybeSquadsOptions, MultiStepToastHandle } from "@mrgnlabs/mrgn-util
 import { useMrgnlendStore } from "~/store";
 
 import { cn } from "~/utils/themeUtils";
-import { useWalletContext } from "~/hooks/useWalletContext";
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { useConnection } from "~/hooks/useConnection";
 import { capture } from "~/utils";
 
@@ -28,7 +28,7 @@ enum WalletAuthAccountsState {
 }
 
 export const WalletAuthAccounts = () => {
-  const { wallet, walletContextState } = useWalletContext();
+  const { wallet, walletContextState } = useWallet();
   const { connection } = useConnection();
   const [isActivatingAccount, setIsActivatingAccount] = React.useState<number | null>(null);
   const [isActivatingAccountDelay, setIsActivatingAccountDelay] = React.useState<number | null>(null);

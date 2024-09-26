@@ -9,7 +9,7 @@ import { QuoteResponseMeta, SwapResult } from "@jup-ag/react-hook";
 
 import config from "~/config";
 import { capture } from "~/utils";
-import { useWalletContext } from "~/hooks/useWalletContext";
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
 type SwapProps = {
   onLoad?: () => void;
@@ -27,7 +27,7 @@ type SwapProps = {
 };
 
 export const Swap = ({ onLoad, onSuccess, initialInputMint, initialOutputMint }: SwapProps) => {
-  const { walletContextState } = useWalletContext();
+  const { walletContextState } = useWallet();
   const [loadTimestamp, setLoadTimestamp] = React.useState(0);
   const router = useRouter();
 

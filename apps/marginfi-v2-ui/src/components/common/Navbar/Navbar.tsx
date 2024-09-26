@@ -7,12 +7,13 @@ import { PublicKey } from "@solana/web3.js";
 import LipAccount from "@mrgnlabs/lip-client/src/account";
 
 import { collectRewardsBatch } from "@mrgnlabs/mrgn-utils";
+import { Wallet } from "@mrgnlabs/mrgn-ui";
 
-import { useMrgnlendStore, useUiStore } from "~/store";
+import { useMrgnlendStore, useUiStore, useUserProfileStore } from "~/store";
 import { useLipClient } from "~/context";
 import { cn } from "~/utils";
 import { useFirebaseAccount } from "~/hooks/useFirebaseAccount";
-import { useWalletContext } from "~/hooks/useWalletContext";
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { useConnection } from "~/hooks/useConnection";
 import { useIsMobile } from "~/hooks/useIsMobile";
 
@@ -27,20 +28,32 @@ export const Navbar: FC = () => {
 
   const { connection } = useConnection();
   const isMobile = useIsMobile();
-  const { wallet, walletAddress } = useWalletContext();
+  const { wallet, walletAddress } = useWallet();
   const router = useRouter();
   const { lipClient } = useLipClient();
-  const [initialized, mfiClient, selectedAccount, extendedBankInfos, lendUserDataFetched, resetLendUserData] =
-    useMrgnlendStore((state) => [
-      state.initialized,
-      state.marginfiClient,
-      state.selectedAccount,
-      state.extendedBankInfos,
-      state.userDataFetched,
-      state.resetUserData,
-    ]);
+  const [
+    initialized,
+    mfiClient,
+    marginfiAccounts,
+    selectedAccount,
+    extendedBankInfos,
+    lendUserDataFetched,
+    resetLendUserData,
+    nativeSolBalance,
+  ] = useMrgnlendStore((state) => [
+    state.initialized,
+    state.marginfiClient,
+    state.marginfiAccounts,
+    state.selectedAccount,
+    state.extendedBankInfos,
+    state.userDataFetched,
+    state.resetUserData,
+    state.nativeSolBalance,
+  ]);
 
   const [isOraclesStale, priorityFee] = useUiStore((state) => [state.isOraclesStale, state.priorityFee]);
+
+  const [userPointsData] = useUserProfileStore((state) => [state.userPointsData]);
 
   const [lipAccount, setLipAccount] = useState<LipAccount | null>(null);
 
@@ -160,7 +173,16 @@ export const Navbar: FC = () => {
 
               <DialectNotification />
 
-              <WalletButton />
+              {/* <WalletButton /> */}
+              <Wallet
+                initialized={initialized}
+                mfiClient={mfiClient}
+                marginfiAccounts={marginfiAccounts}
+                selectedAccount={selectedAccount}
+                extendedBankInfos={extendedBankInfos}
+                nativeSolBalance={nativeSolBalance}
+                userPointsData={userPointsData}
+              />
             </div>
           )}
         </div>

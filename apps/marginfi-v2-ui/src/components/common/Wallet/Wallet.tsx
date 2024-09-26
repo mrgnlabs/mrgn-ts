@@ -7,7 +7,7 @@ import { shortenAddress, usdFormatter, numeralFormatter, groupedNumberFormatterD
 import { getTokenImageURL, showErrorToast } from "@mrgnlabs/mrgn-utils";
 
 import { useMrgnlendStore, useUiStore, useUserProfileStore } from "~/store";
-import { useWalletContext } from "~/hooks/useWalletContext";
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { useIsMobile } from "~/hooks/useIsMobile";
 import { cn } from "~/utils";
 
@@ -76,7 +76,7 @@ export const Wallet = () => {
 
   const [userPointsData] = useUserProfileStore((state) => [state.userPointsData, state.fetchPoints]);
 
-  const { wallet, connected, logout, pfp, requestPrivateKey, web3AuthPk, web3AuthConncected } = useWalletContext();
+  const { wallet, connected, logout, pfp, requestPrivateKey, web3AuthPk, web3AuthConncected } = useWallet();
 
   const debounceId = React.useRef<NodeJS.Timeout | null>(null);
   const isFetchingWalletDataRef = React.useRef(false);
@@ -746,7 +746,7 @@ function TokenOptions({ walletAddress, setState, setToken, web3AuthConnected = f
 }
 
 export const Debridge = () => {
-  const { wallet } = useWalletContext();
+  const { wallet } = useWallet();
   const divRef = React.useRef<HTMLDivElement>(null);
   const [isMounted, setIsMounted] = React.useState(false);
   const [widget, setWidget] = React.useState<any>();

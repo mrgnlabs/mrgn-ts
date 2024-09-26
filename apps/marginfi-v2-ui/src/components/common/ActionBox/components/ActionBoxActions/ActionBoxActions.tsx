@@ -3,7 +3,7 @@ import React from "react";
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { useUiStore } from "~/store";
-import { useWalletContext } from "~/hooks/useWalletContext";
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
 import { Button } from "~/components/ui/button";
 import { IconInfiniteLoader, IconLoader } from "~/components/ui/icons";
@@ -23,7 +23,7 @@ export const ActionBoxActions = ({
   actionMode,
   handleAction,
 }: ActionBoxActionsProps) => {
-  const { connected } = useWalletContext();
+  const { connected } = useWallet();
   const [setIsWalletAuthDialogOpen] = useUiStore((state) => [state.setIsWalletAuthDialogOpen]);
 
   const buttonLabel = React.useMemo(() => (showCloseBalance ? "Close" : actionMode), [showCloseBalance, actionMode]);

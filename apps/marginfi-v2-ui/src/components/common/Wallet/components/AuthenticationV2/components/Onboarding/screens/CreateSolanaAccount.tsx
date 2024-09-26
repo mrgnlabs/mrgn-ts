@@ -3,7 +3,7 @@ import React from "react";
 import { IconBackpackWallet, IconStarFilled } from "~/components/ui/icons";
 import { OnrampScreenProps, socialProviders } from "~/utils";
 import { useAvailableWallets } from "~/hooks/useAvailableWallets";
-import { useWalletContext } from "~/hooks/useWalletContext";
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { useOs } from "~/hooks/useOs";
 
 import {
@@ -24,7 +24,7 @@ export const CreateSolanaAccount: React.FC<props> = ({
   setIsActiveLoading,
   selectWallet,
 }: props) => {
-  const { loginWeb3Auth } = useWalletContext();
+  const { loginWeb3Auth } = useWallet();
   const wallets = useAvailableWallets();
 
   const { isAndroid, isIOS } = useOs();

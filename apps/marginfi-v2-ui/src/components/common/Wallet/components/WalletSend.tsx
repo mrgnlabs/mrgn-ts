@@ -26,7 +26,7 @@ import { getTokenImageURL, MultiStepToastHandle } from "@mrgnlabs/mrgn-utils";
 
 import { useMrgnlendStore } from "~/store";
 import { cn, capture } from "~/utils";
-import { useWalletContext } from "~/hooks/useWalletContext";
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { useConnection } from "~/hooks/useConnection";
 
 import { IconCheck, IconX, IconWallet } from "~/components/ui/icons";
@@ -58,7 +58,7 @@ export const WalletSend = ({ activeToken, onSendMore, onBack, onRetry, onCancel 
     state.nativeSolBalance,
     state.initialized,
   ]);
-  const { wallet } = useWalletContext();
+  const { wallet } = useWallet();
   const { connection } = useConnection();
   const [amount, setAmount] = React.useState(0);
   const [amountRaw, setAmountRaw] = React.useState("");

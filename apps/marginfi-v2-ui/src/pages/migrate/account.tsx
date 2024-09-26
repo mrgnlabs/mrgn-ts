@@ -10,7 +10,7 @@ import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 import { extractErrorString, MultiStepToastHandle } from "@mrgnlabs/mrgn-utils";
 
 import { useMrgnlendStore } from "~/store";
-import { useWalletContext } from "~/hooks/useWalletContext";
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
 import { WalletButton } from "~/components/common/Wallet";
 import { Badge } from "~/components/ui/badge";
@@ -24,7 +24,7 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrig
 
 export default function MigrateAccountPage() {
   const router = useRouter();
-  const { connected, wallet } = useWalletContext();
+  const { connected, wallet } = useWallet();
   const [fetchMrgnlendState, isRefreshingStore, setIsRefreshingStore, initialized, marginfiAccounts, selectedAccount] =
     useMrgnlendStore((state) => [
       state.fetchMrgnlendState,

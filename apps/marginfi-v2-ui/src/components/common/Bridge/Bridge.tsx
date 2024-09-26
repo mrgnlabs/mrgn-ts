@@ -7,7 +7,7 @@ import config from "~/config";
 import { capture } from "~/utils";
 import { MayanWidgetColors, MayanWidgetConfigType } from "~/types";
 import { useUserProfileStore, useUiStore } from "~/store";
-import { useWalletContext } from "~/hooks/useWalletContext";
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
 type BridgeProps = {
   onLoad?: () => void;
@@ -68,7 +68,7 @@ const mayanWidgetConfig: MayanWidgetConfigType = {
 };
 
 export const Bridge = ({ onLoad }: BridgeProps) => {
-  const { walletAddress, walletContextState } = useWalletContext();
+  const { walletAddress, walletContextState } = useWallet();
   const setShowBadges = useUserProfileStore((state) => state.setShowBadges);
   const [setIsWalletAuthDialogOpen] = useUiStore((state) => [state.setIsWalletAuthDialogOpen]);
   const [loadTimestamp, setLoadTimestamp] = React.useState(0);

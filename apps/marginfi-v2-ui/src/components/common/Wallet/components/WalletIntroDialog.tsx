@@ -3,7 +3,7 @@ import React from "react";
 import CopyToClipboard from "react-copy-to-clipboard";
 
 import { useUiStore } from "~/store";
-import { useWalletContext } from "~/hooks/useWalletContext";
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 
@@ -14,7 +14,7 @@ import { IconCoins, IconCopy, IconCheck } from "~/components/ui/icons";
 export const WalletIntroDialog = () => {
   const [isWalletIntroOpen, setIsWalletIntroOpen] = React.useState(false);
   const [isCopied, setIsCopied] = React.useState(false);
-  const { wallet } = useWalletContext();
+  const { wallet } = useWallet();
   const [setIsWalletOpen, setIsOnrampActive] = useUiStore((state) => [state.setIsWalletOpen, state.setIsOnrampActive]);
 
   const handleDialogClose = () => {

@@ -1,7 +1,7 @@
 import { useAvailableWallets } from "@mrgnlabs/mrgn-utils";
 import { useOs } from "@mrgnlabs/mrgn-utils";
 import { OnrampScreenProps, socialProviders } from "~/components/wallet-v2/components/sign-up/sign-up.utils";
-import { useWallet } from "~/components/wallet-v2/wallet.hooks";
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
 import {
   ScreenWrapper,

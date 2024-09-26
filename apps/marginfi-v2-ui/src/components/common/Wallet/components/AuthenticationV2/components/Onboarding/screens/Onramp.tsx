@@ -14,7 +14,7 @@ import {
 import { OnrampScreenProps, cn } from "~/utils";
 
 import { ScreenWrapper, WalletSeperator } from "../../sharedComponents";
-import { useWalletContext } from "~/hooks/useWalletContext";
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { IconArrowLeft } from "~/components/ui/icons";
@@ -23,7 +23,7 @@ import { Label } from "~/components/ui/label";
 interface props extends OnrampScreenProps {}
 
 export const Onramp = ({ successProps, onNext, setSuccessProps }: props) => {
-  const { wallet } = useWalletContext();
+  const { wallet } = useWallet();
   const divRef = React.useRef<HTMLDivElement>(null);
   const [amountRaw, setAmountRaw] = React.useState<string>("100.00");
   const [isCustomMode, setIsCustomMode] = React.useState<boolean>(false);

@@ -7,7 +7,7 @@ import { LstType, StakeData } from "@mrgnlabs/mrgn-utils";
 
 import { SOL_MINT } from "~/store/lstStore";
 import { useLstStore, useMrgnlendStore } from "~/store";
-import { useWalletContext } from "~/hooks/useWalletContext";
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
 import { CommandEmpty, CommandGroup, CommandItem } from "~/components/ui/command";
 import { BuyWithMoonpay, ActionBoxItem } from "~/components/common/ActionBox/components";
@@ -42,7 +42,7 @@ export const LstTokenList = ({
   const [stakeAccounts] = useLstStore((state) => [state.stakeAccounts]);
   const [searchQuery, setSearchQuery] = React.useState("");
 
-  const { connected } = useWalletContext();
+  const { connected } = useWallet();
 
   const solUsdValue = React.useMemo(() => {
     const bank = extendedBankInfos.find((bank) => bank.info.state.mint.equals(SOL_MINT));

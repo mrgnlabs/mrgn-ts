@@ -4,7 +4,7 @@ import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { useUiStore, useUserProfileStore } from "~/store";
 import { cn } from "~/utils";
-import { useWalletContext } from "~/hooks/useWalletContext";
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { useActionBoxStore } from "~/hooks/useActionBoxStore";
 import { LendingModes, PoolTypes } from "@mrgnlabs/mrgn-utils";
 
@@ -16,7 +16,7 @@ import { IconFilter, IconSearch, IconX } from "~/components/ui/icons";
 import { Input } from "~/components/ui/input";
 
 export const AssetListFilters = () => {
-  const { connected } = useWalletContext();
+  const { connected } = useWallet();
   const [
     poolFilter,
     setPoolFilter,
