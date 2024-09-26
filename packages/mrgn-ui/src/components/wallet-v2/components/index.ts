@@ -2,7 +2,6 @@ export * from "./sign-up";
 export * from "./wallet-auth-accounts";
 export * from "./wallet-avatar";
 export * from "./wallet-button";
-export * from "./wallet-notis";
 export * from "./wallet-onramp";
 export * from "./wallet-pk-dialog";
 export * from "./wallet-send";
