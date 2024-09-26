@@ -3,7 +3,7 @@ import React from "react";
 import { ExtendedBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { computeBankRate, LendingModes } from "@mrgnlabs/mrgn-utils";
 
-import { SelectedBankItem, BankListWrapper } from "../../../../../../components";
+import { SelectedBankItem, BankListWrapper } from "~/components/actionbox-v2/components";
 
 import { TokenTrigger, TokenList } from "./components";
 

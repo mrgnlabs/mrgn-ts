@@ -12,12 +12,11 @@ import {
 import { ActionMethod, MarginfiActionParams, PreviousTxn } from "@mrgnlabs/mrgn-utils";
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 
-import { WalletContextStateOverride } from "~/components/wallet-v2/hooks/wallet.hooks";
-
-import { ActionButton, ActionMessage, ActionSettingsButton } from "../../components";
-import { useActionBoxStore } from "../../store";
-import { useActionAmounts } from "../../hooks";
-import { LSTDialog, LSTDialogVariants } from "../../../LSTDialog";
+import { ActionButton, ActionMessage, ActionSettingsButton } from "~/components/actionbox-v2/components";
+import { useActionBoxStore } from "~/components/actionbox-v2/store";
+import { useActionAmounts } from "~/components/actionbox-v2/hooks";
+import { LSTDialog, LSTDialogVariants } from "~/components/LSTDialog";
+import { WalletContextStateOverride } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
 import { useLendBoxStore } from "./store";
 import { checkActionAvailable, handleExecuteCloseBalance, handleExecuteLendingAction } from "./utils";
@@ -141,7 +140,7 @@ export const LendBox = ({
     [amount, connected, showCloseBalance, selectedBank, banks, selectedAccount, nativeSolBalance, lendMode]
   );
 
-  const buttonLabel = React.useMemo(() => (showCloseBalance ? "Close" : actionMode), [showCloseBalance, actionMode]);
+  const buttonLabel = React.useMemo(() => (showCloseBalance ? "Close" : lendMode), [showCloseBalance, lendMode]);
 
   const handleCloseBalance = React.useCallback(async () => {
     if (!selectedBank || !selectedAccount) {
@@ -271,7 +270,7 @@ export const LendBox = ({
             showCloseBalance ? handleCloseBalance() : handleLendingAction();
           }}
           handleConnect={() => onConnect && onConnect()}
-          buttonLabel={"Supply"}
+          buttonLabel={buttonLabel}
         />
       </div>
 

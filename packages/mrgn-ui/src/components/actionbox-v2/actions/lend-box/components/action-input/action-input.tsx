@@ -4,8 +4,8 @@ import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { formatAmount } from "@mrgnlabs/mrgn-utils";
 
 import { Input } from "~/components/ui/input";
+import { useLendBoxStore } from "~/components/actionbox-v2/actions/lend-box/store";
 
-import { useLendBoxStore } from "../../store";
 import { LendingAction, BankSelect } from "./components";
 
 type ActionInputProps = {
