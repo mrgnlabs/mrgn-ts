@@ -4,9 +4,7 @@ import Image from "next/image";
 
 import { numeralFormatter, usdFormatter, WSOL_MINT } from "@mrgnlabs/mrgn-common";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { getTokenImageURL, LendingModes } from "@mrgnlabs/mrgn-utils";
-
-import { cn } from "~/utils/theme-utils";
+import { getTokenImageURL, cn, LendingModes } from "@mrgnlabs/mrgn-utils";
 
 type BankItemProps = {
   bank: ExtendedBankInfo;

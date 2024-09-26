@@ -1,9 +1,7 @@
 import Link from "next/link";
 import { IconAlertTriangle, IconExternalLink } from "@tabler/icons-react";
 
-import { ActionMethod } from "@mrgnlabs/mrgn-utils";
-
-import { cn } from "~/utils/theme-utils";
+import { ActionMethod, cn } from "@mrgnlabs/mrgn-utils";
 
 type ActionMessageProps = {
   actionMethod: ActionMethod;

@@ -9,8 +9,10 @@ import {
   TokenAccountMap,
   AccountSummary,
 } from "@mrgnlabs/marginfi-v2-ui-state";
-import { ActionMethod, MarginfiActionParams, PreviousTxn, WalletContextStateOverride } from "@mrgnlabs/mrgn-utils";
+import { ActionMethod, MarginfiActionParams, PreviousTxn } from "@mrgnlabs/mrgn-utils";
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
+
+import { WalletContextStateOverride } from "~/components/wallet-v2/wallet.hooks";
 
 import { ActionButton, ActionMessage, ActionSettingsButton } from "../../components";
 import { useActionBoxStore } from "../../store";

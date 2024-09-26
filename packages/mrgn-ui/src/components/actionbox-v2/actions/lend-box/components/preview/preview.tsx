@@ -1,10 +1,9 @@
 import React from "react";
 
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { cn } from "@mrgnlabs/mrgn-utils";
 
-import { cn } from "~/utils/themeUtils";
 import { ActionStatItem } from "../../../../components";
-
 import { useLendBoxStore } from "../../store";
 
 import {

@@ -12,7 +12,7 @@ type ActionBoxDialogProps = {
 };
 
 type ActionBoxWithoutDailogProps = {
-  isDialog: false;
+  isDialog?: false;
 };
 
 type ActionBoxProps = ActionBoxWithoutDailogProps | ActionBoxDialogProps;

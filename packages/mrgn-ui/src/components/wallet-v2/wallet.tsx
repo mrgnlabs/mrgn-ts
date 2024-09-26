@@ -18,6 +18,7 @@ import {
   IconCheck,
 } from "@tabler/icons-react";
 
+import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { ExtendedBankInfo, UserPointsData } from "@mrgnlabs/marginfi-v2-ui-state";
 import { shortenAddress, usdFormatter, numeralFormatter, groupedNumberFormatterDyn } from "@mrgnlabs/mrgn-common";
 import { getTokenImageURL, showErrorToast, useIsMobile, cn } from "@mrgnlabs/mrgn-utils";
@@ -45,6 +46,10 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/comp
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
 
 type WalletProps = {
+  initialized: boolean;
+  mfiClient: MarginfiClient;
+  marginfiAccounts: MarginfiAccountWrapper[];
+  selectedAccount: MarginfiAccountWrapper | null;
   extendedBankInfos: ExtendedBankInfo[];
   nativeSolBalance: number;
   userPointsData: UserPointsData;
@@ -62,7 +67,15 @@ enum WalletState {
   NOTIS = "notis",
 }
 
-const Wallet = ({ extendedBankInfos, nativeSolBalance, userPointsData }: WalletProps) => {
+const Wallet = ({
+  initialized,
+  mfiClient,
+  marginfiAccounts,
+  selectedAccount,
+  extendedBankInfos,
+  nativeSolBalance,
+  userPointsData,
+}: WalletProps) => {
   const router = useRouter();
 
   const [isWalletOpen, setIsWalletOpen] = useWalletStore((state) => [state.isWalletOpen, state.setIsWalletOpen]);
@@ -212,7 +225,15 @@ const Wallet = ({ extendedBankInfos, nativeSolBalance, userPointsData }: WalletP
                 <WalletAvatar pfp={pfp} address={walletData.address} size="md" className="absolute left-2" />
 
                 <div className="mx-auto">
-                  <WalletAuthAccounts />
+                  <WalletAuthAccounts
+                    initialized={initialized}
+                    mfiClient={mfiClient}
+                    marginfiAccounts={marginfiAccounts}
+                    selectedAccount={selectedAccount}
+                    fetchMrgnlendState={function (): Promise<void> {
+                      throw new Error("Function not implemented.");
+                    }}
+                  />
                 </div>
                 <div className="absolute right-2 flex items-center md:gap-1">
                   {web3AuthConncected && (
@@ -426,6 +447,8 @@ const Wallet = ({ extendedBankInfos, nativeSolBalance, userPointsData }: WalletP
                         {activeToken && (
                           <WalletSend
                             activeToken={activeToken}
+                            extendedBankInfos={extendedBankInfos}
+                            nativeSolBalance={nativeSolBalance}
                             onSendMore={() => {
                               setWalletTokenState(WalletState.SEND);
                             }}

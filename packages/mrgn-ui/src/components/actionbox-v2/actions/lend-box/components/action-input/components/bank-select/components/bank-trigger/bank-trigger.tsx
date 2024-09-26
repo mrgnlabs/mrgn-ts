@@ -3,10 +3,9 @@ import React from "react";
 import { IconChevronDown } from "@tabler/icons-react";
 
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { computeBankRate, LendingModes } from "@mrgnlabs/mrgn-utils";
+import { computeBankRate, cn, LendingModes } from "@mrgnlabs/mrgn-utils";
 
 import { Button } from "~/components/ui/button";
-import { cn } from "~/utils/themeUtils";
 
 import { SelectedBankItem } from "../../../../../../../../components";
 

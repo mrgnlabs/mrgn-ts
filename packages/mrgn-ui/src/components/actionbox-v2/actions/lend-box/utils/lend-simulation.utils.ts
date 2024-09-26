@@ -1,10 +1,11 @@
+import { Transaction, VersionedTransaction } from "@solana/web3.js";
+
 import { ExtendedBankInfo, ActionType, AccountSummary } from "@mrgnlabs/marginfi-v2-ui-state";
 import { nativeToUi } from "@mrgnlabs/mrgn-common";
 import { ActionMethod, handleSimulationError, isWholePosition } from "@mrgnlabs/mrgn-utils";
 import { MarginfiAccountWrapper, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
 
 import { simulatedHealthFactor, simulatedPositionSize, simulatedCollateral } from "../../../utils";
-import { Transaction, VersionedTransaction } from "@solana/web3.js";
 
 export interface ActionSummary {
   actionPreview: ActionPreview;
