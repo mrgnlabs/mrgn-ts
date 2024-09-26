@@ -1,13 +1,15 @@
 import React from "react";
 
+import { Transaction, VersionedTransaction } from "@solana/web3.js";
+
 import { AccountSummary } from "@mrgnlabs/marginfi-v2-ui-state";
+import { MarginfiAccountWrapper, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
+import { STATIC_SIMULATION_ERRORS, usePrevious } from "@mrgnlabs/mrgn-utils";
 
 import { useLendBoxStore } from "../store";
 import { calculateLendingTransaction, calculateSummary, getSimulationResult } from "../utils";
-import { MarginfiAccountWrapper, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
-import { STATIC_SIMULATION_ERRORS, usePrevious } from "@mrgnlabs/mrgn-utils";
-import { useActionBoxStore } from "~/components/actionbox-v2/store";
-import { Transaction, VersionedTransaction } from "@solana/web3.js";
+
+import { useActionBoxStore } from "../../../store";
 
 /*
 How lending action simulation works:
