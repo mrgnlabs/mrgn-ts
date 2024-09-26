@@ -6,4 +6,5 @@ export * from "./wallet-notis";
 export * from "./wallet-onramp";
 export * from "./wallet-pk-dialog";
 export * from "./wallet-send";
+export * from "./wallet-receive";
 export * from "./wallet-tokens";
