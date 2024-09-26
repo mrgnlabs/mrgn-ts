@@ -19,6 +19,7 @@ import {
   IconArrowDown,
   IconCheck,
 } from "@tabler/icons-react";
+import { Connection } from "@solana/web3.js";
 
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { ExtendedBankInfo, UserPointsData, AccountSummary } from "@mrgnlabs/marginfi-v2-ui-state";
@@ -49,6 +50,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/comp
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
 
 type WalletProps = {
+  connection: Connection;
   initialized: boolean;
   mfiClient: MarginfiClient | null;
   marginfiAccounts: MarginfiAccountWrapper[];
@@ -57,6 +59,7 @@ type WalletProps = {
   nativeSolBalance: number;
   userPointsData: UserPointsData;
   accountSummary: AccountSummary;
+  refreshState: () => void;
 };
 
 enum WalletState {
@@ -73,6 +76,7 @@ enum WalletState {
 }
 
 const Wallet = ({
+  connection,
   initialized,
   mfiClient,
   marginfiAccounts,
@@ -81,6 +85,7 @@ const Wallet = ({
   nativeSolBalance,
   userPointsData,
   accountSummary,
+  refreshState,
 }: WalletProps) => {
   const router = useRouter();
 
@@ -441,6 +446,7 @@ const Wallet = ({
                         <TabWrapper resetWalletState={resetWalletState}>
                           {activeToken && (
                             <WalletSend
+                              connection={connection}
                               activeToken={activeToken}
                               extendedBankInfos={extendedBankInfos}
                               nativeSolBalance={nativeSolBalance}
@@ -456,6 +462,9 @@ const Wallet = ({
                               }}
                               onCancel={() => {
                                 setWalletTokenState(WalletState.TOKEN);
+                              }}
+                              onComplete={() => {
+                                refreshState();
                               }}
                             />
                           )}

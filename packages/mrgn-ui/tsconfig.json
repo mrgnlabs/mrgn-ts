@@ -9,10 +9,10 @@
     "outDir": "dist",
     "baseUrl": ".",
     "paths": {
-      "~/*": ["./src/*"]
+      "~/*": ["./src/*", "../../packages/mrgn-utils/src/*"]
     },
     "module": "ESNext"
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".", "../mrgn-utils/src/hooks/useIsMobile.ts"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "."],
   "exclude": ["dist", "node_modules", "*.spec.ts"]
 }
