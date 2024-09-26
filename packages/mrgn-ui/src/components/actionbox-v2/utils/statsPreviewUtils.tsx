@@ -4,11 +4,11 @@ import { IconArrowRight, IconAlertTriangle } from "@tabler/icons-react";
 import { getPriceWithConfidence } from "@mrgnlabs/marginfi-client-v2";
 import { ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { clampedNumeralFormatter, numeralFormatter, percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
+import { cn } from "@mrgnlabs/mrgn-utils";
 
 import { Skeleton } from "~/components/ui/skeleton";
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "~/components/ui/tooltip";
 import { IconPyth, IconSwitchboard } from "~/components/ui/icons";
-import { cn } from "~/utils/theme-utils";
 
 export const REDUCE_ONLY_BANKS = ["stSOL", "RLB"];
 

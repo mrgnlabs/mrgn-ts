@@ -5,8 +5,7 @@ import { IconX } from "@tabler/icons-react";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { Command, CommandInput, CommandList } from "~/components/ui/command";
-import { useIsMobile } from "@mrgnlabs/mrgn-utils";
-import { cn } from "~/utils/theme-utils";
+import { cn, useIsMobile } from "@mrgnlabs/mrgn-utils";
 
 type BankListCommandProps = {
   selectedBank: ExtendedBankInfo | null;
