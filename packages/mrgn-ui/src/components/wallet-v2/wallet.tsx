@@ -283,7 +283,7 @@ const Wallet = ({
                   <TabsContent value="tokens">
                     {walletTokenState === WalletState.DEFAULT && (
                       <div className="py-8">
-                        <div className="flex flex-col items-center justify-center gap-2">
+                        <div className="flex flex-col items-center justify-center gap-1.5">
                           <h2 className="text-4xl font-medium">{walletData.balanceUSD}</h2>
                           <p className="flex items-center gap-1 text-muted-foreground text-sm">
                             Available to deposit
@@ -298,10 +298,10 @@ const Wallet = ({
                               </Tooltip>
                             </TooltipProvider>
                           </p>
-                          <p className="flex items-center gap-2 text-muted-foreground text-sm">
+                          <p className="flex items-center gap-1.5 text-muted-foreground text-sm">
                             Portfolio balance
                             <span className="flex items-center gap-1 text-primary">
-                              {usdFormatter.format(accountSummary.balance)}{" "}
+                              <strong className="font-medium">{usdFormatter.format(accountSummary.balance)}</strong>{" "}
                               <TooltipProvider>
                                 <Tooltip>
                                   <TooltipTrigger asChild>
