@@ -8,7 +8,7 @@ import { useMrgnlendStore } from "~/store";
 
 import { cn } from "~/utils/themeUtils";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
-import { useConnection } from "~/hooks/useConnection";
+import { useConnection } from "~/hooks/use-connection";
 import { capture } from "~/utils";
 
 import { Button } from "~/components/ui/button";

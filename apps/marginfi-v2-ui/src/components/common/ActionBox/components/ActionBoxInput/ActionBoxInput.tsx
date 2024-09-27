@@ -4,7 +4,7 @@ import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { RepayType, YbxType, formatAmount } from "@mrgnlabs/mrgn-utils";
 
 import { useActionBoxStore } from "~/hooks/useActionBoxStore";
-import { useConnection } from "~/hooks/useConnection";
+import { useConnection } from "~/hooks/use-connection";
 import { useMrgnlendStore, useUiStore } from "~/store";
 
 import { Input } from "~/components/ui/input";

@@ -13,6 +13,7 @@ import { init, push } from "@socialgouv/matomo-next";
 import { ToastContainer } from "react-toastify";
 import { Analytics } from "@vercel/analytics/react";
 import { Desktop, Mobile } from "@mrgnlabs/mrgn-utils";
+import { AuthDialog } from "@mrgnlabs/mrgn-ui";
 
 import config from "~/config";
 import { MrgnlendProvider, LipClientProvider } from "~/context";
@@ -32,7 +33,6 @@ import { CongestionBanner } from "~/components/common/CongestionBanner";
 import "swiper/css";
 import "swiper/css/pagination";
 import "react-toastify/dist/ReactToastify.min.css";
-import { AuthDialog } from "~/components/common/Wallet/components/AuthenticationV2";
 
 import { registerMoonGateWallet } from "@moongate/moongate-adapter";
 

@@ -1,5 +1,5 @@
 import React, { FC, MouseEventHandler, ReactNode, useCallback, useEffect, useMemo, useState } from "react";
-import { useConnection } from "~/hooks/useConnection";
+import { useConnection } from "~/hooks/use-connection";
 import { useLipClient } from "~/context";
 import Button from "@mui/material/Button";
 import Card from "@mui/material/Card";

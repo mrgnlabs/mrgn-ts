@@ -1,1 +1,2 @@
-export * from "./bridge";
+export * from "./mayan";
+export * from "./debridge";

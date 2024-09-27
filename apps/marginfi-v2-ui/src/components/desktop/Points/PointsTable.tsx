@@ -14,7 +14,7 @@ import {
 } from "@mrgnlabs/marginfi-v2-ui-state";
 import { groupedNumberFormatter, shortenAddress } from "@mrgnlabs/mrgn-common";
 
-import { useConnection } from "~/hooks/useConnection";
+import { useConnection } from "~/hooks/use-connection";
 import { cn } from "~/utils";
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table";

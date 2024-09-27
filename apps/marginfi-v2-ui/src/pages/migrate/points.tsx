@@ -8,7 +8,7 @@ import { MultiStepToastHandle } from "@mrgnlabs/mrgn-utils";
 
 import { useMrgnlendStore } from "~/store";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
-import { useConnection } from "~/hooks/useConnection";
+import { useConnection } from "~/hooks/use-connection";
 
 import { WalletButton } from "~/components/common/Wallet";
 import { Loader } from "~/components/ui/loader";

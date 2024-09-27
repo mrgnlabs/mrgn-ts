@@ -1,14 +1,15 @@
 import React from "react";
 import Image from "next/image";
 import { useRouter } from "next/router";
+
 import { CopyToClipboard } from "react-copy-to-clipboard";
+import { Connection } from "@solana/web3.js";
 import {
   IconChevronDown,
   IconCopy,
   IconLogout,
   IconArrowUp,
   IconRefresh,
-  IconBell,
   IconArrowLeft,
   IconTrophy,
   IconKey,
@@ -17,9 +18,7 @@ import {
   IconCreditCardPay,
   IconInfoCircleFilled,
   IconArrowDown,
-  IconCheck,
 } from "@tabler/icons-react";
-import { Connection } from "@solana/web3.js";
 
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { ExtendedBankInfo, UserPointsData, AccountSummary } from "@mrgnlabs/marginfi-v2-ui-state";
@@ -41,7 +40,7 @@ import {
   WalletAuthAccounts,
 } from "~/components/wallet-v2/components";
 import { Swap } from "~/components/swap";
-import { Bridge } from "~/components/bridge";
+import { Mayan, Debridge } from "~/components/bridge";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescription } from "~/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { Button } from "~/components/ui/button";
@@ -87,14 +86,8 @@ const Wallet = ({
   refreshState,
 }: WalletProps) => {
   const router = useRouter();
-
   const [isWalletOpen, setIsWalletOpen] = useWalletStore((state) => [state.isWalletOpen, state.setIsWalletOpen]);
-
   const { wallet, connected, logout, pfp, requestPrivateKey, web3AuthPk, web3AuthConncected, isLoading } = useWallet();
-
-  const debounceId = React.useRef<NodeJS.Timeout | null>(null);
-  const isFetchingWalletDataRef = React.useRef(false);
-  const [isWalletAddressCopied, setIsWalletAddressCopied] = React.useState(false);
   const [walletData, setWalletData] = React.useState<{
     address: string;
     shortAddress: string;
@@ -108,7 +101,6 @@ const Wallet = ({
   });
   const [walletTokenState, setWalletTokenState] = React.useState<WalletState>(WalletState.DEFAULT);
   const [activeToken, setActiveToken] = React.useState<TokenType | null>(null);
-  const [isSwapLoaded, setIsSwapLoaded] = React.useState(false);
   const [isReferralCopied, setIsReferralCopied] = React.useState(false);
   const [bridgeType, setBridgeType] = React.useState<"mayan" | "debridge">("mayan");
   const [isWalletBalanceErrorShown, setIsWalletBalanceErrorShown] = React.useState(false);
@@ -127,68 +119,50 @@ const Wallet = ({
   }, []);
 
   const getWalletData = React.useCallback(async () => {
-    if (isFetchingWalletDataRef.current || !wallet?.publicKey || !extendedBankInfos || isNaN(nativeSolBalance)) return;
+    if (!wallet?.publicKey || !extendedBankInfos || isNaN(nativeSolBalance)) return;
 
-    isFetchingWalletDataRef.current = true;
-    setIsWalletBalanceErrorShown(false);
+    const userBanks = extendedBankInfos.filter(
+      (bank) => bank.userInfo.tokenAccount.balance !== 0 || bank.meta.tokenSymbol === "SOL"
+    );
 
-    try {
-      const userBanks = extendedBankInfos.filter(
-        (bank) => bank.userInfo.tokenAccount.balance !== 0 || bank.meta.tokenSymbol === "SOL"
-      );
+    const prioritizedSymbols = ["SOL", "LST"];
 
-      const prioritizedSymbols = ["SOL", "LST"];
+    const userTokens = userBanks
+      .map((bank) => {
+        const isSolBank = bank.meta.tokenSymbol === "SOL";
+        const value = isSolBank
+          ? nativeSolBalance + bank.userInfo.tokenAccount.balance
+          : bank.userInfo.tokenAccount.balance;
+        const valueUSD =
+          (isSolBank ? nativeSolBalance + bank.userInfo.tokenAccount.balance : bank.userInfo.tokenAccount.balance) *
+          bank.info.state.price;
 
-      const userTokens = userBanks
-        .map((bank) => {
-          const isSolBank = bank.meta.tokenSymbol === "SOL";
-          const value = isSolBank
-            ? nativeSolBalance + bank.userInfo.tokenAccount.balance
-            : bank.userInfo.tokenAccount.balance;
-          const valueUSD =
-            (isSolBank ? nativeSolBalance + bank.userInfo.tokenAccount.balance : bank.userInfo.tokenAccount.balance) *
-            bank.info.state.price;
-
-          return {
-            address: bank.address,
-            name: isSolBank ? "Solana" : bank.meta.tokenName,
-            image: getTokenImageURL(bank.meta.tokenSymbol),
-            symbol: bank.meta.tokenSymbol,
-            value: value,
-            valueUSD: valueUSD,
-            formattedValue: value < 0.01 ? `< 0.01` : numeralFormatter(value),
-            formattedValueUSD: usdFormatter.format(valueUSD),
-          };
-        })
-        .sort((a, b) => {
-          return (
-            (prioritizedSymbols.includes(b.symbol) ? 1 : 0) - (prioritizedSymbols.includes(a.symbol) ? 1 : 0) ||
-            b.valueUSD - a.valueUSD
-          );
-        });
-
-      const totalBalance = userTokens.reduce((acc, token) => acc + token.valueUSD, 0);
-
-      setWalletData({
-        address: wallet?.publicKey.toString(),
-        shortAddress: shortenAddress(wallet?.publicKey.toString()),
-        balanceUSD: usdFormatter.format(totalBalance),
-        tokens: (userTokens || []) as TokenType[],
+        return {
+          address: bank.address,
+          name: isSolBank ? "Solana" : bank.meta.tokenName,
+          image: getTokenImageURL(bank.meta.tokenSymbol),
+          symbol: bank.meta.tokenSymbol,
+          value: value,
+          valueUSD: valueUSD,
+          formattedValue: value < 0.01 ? `< 0.01` : numeralFormatter(value),
+          formattedValueUSD: usdFormatter.format(valueUSD),
+        };
+      })
+      .sort((a, b) => {
+        return (
+          (prioritizedSymbols.includes(b.symbol) ? 1 : 0) - (prioritizedSymbols.includes(a.symbol) ? 1 : 0) ||
+          b.valueUSD - a.valueUSD
+        );
       });
-    } catch (error) {
-      if (!isWalletBalanceErrorShown) {
-        showErrorToast("Error fetching wallet balance");
-        setIsWalletBalanceErrorShown(true);
-      }
-      setWalletData({
-        address: wallet?.publicKey.toString(),
-        shortAddress: shortenAddress(wallet?.publicKey.toString()),
-        balanceUSD: usdFormatter.format(0),
-        tokens: [],
-      });
-    } finally {
-      isFetchingWalletDataRef.current = false;
-    }
+
+    const totalBalance = userTokens.reduce((acc, token) => acc + token.valueUSD, 0);
+
+    setWalletData({
+      address: wallet?.publicKey.toString(),
+      shortAddress: shortenAddress(wallet?.publicKey.toString()),
+      balanceUSD: usdFormatter.format(totalBalance),
+      tokens: (userTokens || []) as TokenType[],
+    });
   }, [wallet?.publicKey, extendedBankInfos, nativeSolBalance, isWalletBalanceErrorShown]);
 
   React.useEffect(() => {
@@ -442,12 +416,7 @@ const Wallet = ({
                     {walletTokenState === WalletState.SWAP && (
                       <TabWrapper resetWalletState={resetWalletState}>
                         <div className="max-w-[590px] mx-auto px-3 transition-opacity" id="integrated-terminal"></div>
-                        <Swap
-                          onLoad={() => {
-                            setIsSwapLoaded(true);
-                          }}
-                          initialInputMint={activeBank?.info.state.mint}
-                        />
+                        <Swap initialInputMint={activeBank?.info.state.mint} />
                       </TabWrapper>
                     )}
                     {walletTokenState === WalletState.BRIDGE && (
@@ -512,7 +481,9 @@ const Wallet = ({
                           <Debridge />
                         </div>
 
-                        <Bridge />
+                        <div className={cn("hidden", bridgeType === "mayan" && "block")}>
+                          <Mayan />
+                        </div>
                       </TabWrapper>
                     )}
                   </TabsContent>
@@ -672,78 +643,4 @@ function TokenOptions({ setState, setToken }: TokenOptionsProps) {
   );
 }
 
-const Debridge = () => {
-  const { wallet } = useWallet();
-  const divRef = React.useRef<HTMLDivElement>(null);
-  const [isMounted, setIsMounted] = React.useState(false);
-  const [widget, setWidget] = React.useState<any>();
-  const isMobile = useIsMobile();
-
-  const loadDeBridgeWidget = React.useCallback(() => {
-    console.log("debdrige");
-    const widget = window.deBridge.widget({
-      v: "1",
-      element: "debridgeWidget",
-      title: "",
-      description: "",
-      width: "328",
-      height: "",
-      r: 16890,
-      supportedChains:
-        '{"inputChains":{"1":"all","10":"all","56":"all","137":"all","8453":"all","42161":"all","43114":"all","59144":"all","7565164":"all","245022934":"all"},"outputChains":{"7565164":"all"}}',
-      inputChain: 1,
-      outputChain: 7565164,
-      inputCurrency: "ETH",
-      outputCurrency: "SOL",
-      address: wallet.publicKey.toBase58(),
-      showSwapTransfer: true,
-      amount: "",
-      outputAmount: "",
-      isAmountFromNotModifiable: false,
-      isAmountToNotModifiable: false,
-      lang: "en",
-      mode: "deswap",
-      isEnableCalldata: false,
-      styles:
-        "eyJhcHBCYWNrZ3JvdW5kIjoicmdiYSgxOCwyMCwyMiwwKSIsImFwcEFjY2VudEJnIjoicmdiYSgyNTUsMjU1LDI1NSwwKSIsImNoYXJ0QmciOiJyZ2JhKDE4LDIwLDIyLDApIiwiYmFkZ2UiOiIjZGNlODVkIiwiYm9yZGVyUmFkaXVzIjo4LCJmb250RmFtaWx5IjoiIiwicHJpbWFyeUJ0bkJnIjoiI2ZmZmZmZiIsInNlY29uZGFyeUJ0bkJnIjoiI0RDRTg1RCIsImxpZ2h0QnRuQmciOiIiLCJpc05vUGFkZGluZ0Zvcm0iOnRydWUsImJ0blBhZGRpbmciOnsidG9wIjoxMiwicmlnaHQiOm51bGwsImJvdHRvbSI6MTIsImxlZnQiOm51bGx9LCJidG5Gb250U2l6ZSI6bnVsbCwiYnRuRm9udFdlaWdodCI6NDAwfQ==",
-      theme: "dark",
-      isHideLogo: false,
-      logo: "",
-    });
-
-    setWidget(widget);
-  }, [isMobile, wallet.publicKey]);
-
-  React.useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  React.useEffect(() => {
-    if (widget) {
-      widget.then((widget: any) => {
-        widget.on("order", (event: any, params: any) => {
-          console.log("order params", params);
-        });
-
-        widget.on("singleChainSwap", (event: any, params: any) => {
-          console.log("singleChainSwap params", params);
-        });
-      });
-    }
-  }, [widget]);
-
-  React.useEffect(() => {
-    if (window.deBridge && isMounted && !(divRef.current && divRef.current.innerHTML)) {
-      loadDeBridgeWidget();
-    }
-  }, [isMounted, loadDeBridgeWidget]);
-
-  return (
-    <div
-      id="debridgeWidget"
-      className={cn("max-w-[420px] mx-auto w-full px-[1.35rem] max-h-[500px] transition-opacity font-aeonik")}
-    ></div>
-  );
-};
-
-export { Wallet, Debridge };
+export { Wallet };
