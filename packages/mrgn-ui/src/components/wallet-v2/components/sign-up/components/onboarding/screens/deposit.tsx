@@ -30,6 +30,7 @@ export const DepositToken = ({ mrgnState, successProps, onNext, onClose }: Depos
       {mrgnState ? (
         <ActionBox.Lend
           lendProps={{
+            marginfiClient: mrgnState.marginfiClient,
             nativeSolBalance: mrgnState.nativeSolBalance,
             walletContextState,
             connected,

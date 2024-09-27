@@ -32,6 +32,7 @@ interface BorrowLendBoxProps
     | "banks"
     | "accountSummary"
     | "onComplete"
+    | "marginfiClient"
     | "connected"
     | "captureEvent"
     | "onConnect"

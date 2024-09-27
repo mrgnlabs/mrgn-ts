@@ -57,18 +57,25 @@ export function useLendSimulation({
 
   const handleSimulation = React.useCallback(
     async (txns: (VersionedTransaction | Transaction)[]) => {
-      if (selectedAccount && selectedBank && txns.length > 0) {
-        const simulationResult = await getSimulationResult({
-          actionMode: lendMode,
-          account: selectedAccount,
-          bank: selectedBank,
-          amount: debouncedAmount,
-          txns,
-        });
-
-        setSimulationResult(simulationResult.simulationResult);
-      } else {
+      try {
+        if (selectedAccount && selectedBank && txns.length > 0) {
+          const simulationResult = await getSimulationResult({
+            actionMode: lendMode,
+            account: selectedAccount,
+            bank: selectedBank,
+            amount: debouncedAmount,
+            txns,
+          });
+          console.log("simulationResult", simulationResult);
+          setSimulationResult(simulationResult.simulationResult);
+        } else {
+          setSimulationResult(null);
+        }
+      } catch (error) {
+        console.error("Error simulating transaction", error);
         setSimulationResult(null);
+      } finally {
+        setIsLoading(false);
       }
     },
     [selectedAccount, debouncedAmount, selectedBank, actionTxns, lendMode, setSimulationResult]
@@ -120,9 +127,13 @@ export function useLendSimulation({
         }
       } catch (error) {
         setErrorMessage(STATIC_SIMULATION_ERRORS.BUILDING_LENDING_TX);
-      } finally {
         setIsLoading(false);
       }
+
+      // is set to false in simulation
+      // finally {
+      //   setIsLoading(false);
+      // }
     },
     [selectedAccount, selectedBank, lendMode, priorityFee, setActionTxns, setErrorMessage, setIsLoading]
   );
@@ -139,7 +150,7 @@ export function useLendSimulation({
       ...(actionTxns?.actionTxn ? [actionTxns?.actionTxn] : []),
       ...(actionTxns?.additionalTxns ?? []),
     ]);
-  }, [actionTxns, handleSimulation]);
+  }, [actionTxns]);
 
   const actionSummary = React.useMemo(() => {
     return handleActionSummary(accountSummary, simulationResult ?? undefined);

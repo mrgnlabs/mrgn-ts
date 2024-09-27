@@ -122,15 +122,22 @@ export async function createAccountAndDeposit({
 
 export async function deposit({
   marginfiAccount,
+  marginfiClient,
   bank,
   amount,
   priorityFee,
+  actionTxns,
   theme,
 }: {
   marginfiAccount: MarginfiAccountWrapper;
+  marginfiClient?: MarginfiClient | null; // TODO move to required in the next PR
   bank: ExtendedBankInfo;
   amount: number;
   priorityFee?: number;
+  actionTxns?: {
+    actionTxn: VersionedTransaction | null;
+    feedCrankTxs: VersionedTransaction[];
+  };
   theme?: "light" | "dark";
 }) {
   const multiStepToast = new MultiStepToastHandle(
@@ -141,7 +148,13 @@ export async function deposit({
   multiStepToast.start();
 
   try {
-    const txnSig = await marginfiAccount.deposit(amount, bank.address, { priorityFeeUi: priorityFee });
+    let txnSig: string;
+
+    if (actionTxns?.actionTxn && marginfiClient) {
+      txnSig = await marginfiClient.processTransaction(actionTxns.actionTxn);
+    } else {
+      txnSig = await marginfiAccount.deposit(amount, bank.address, { priorityFeeUi: priorityFee });
+    }
     multiStepToast.setSuccessAndNext();
     return txnSig;
   } catch (error: any) {
@@ -252,15 +265,22 @@ export async function withdraw({
 
 export async function repay({
   marginfiAccount,
+  marginfiClient,
   bank,
   amount,
   priorityFee,
+  actionTxns,
   theme,
 }: {
   marginfiAccount: MarginfiAccountWrapper;
+  marginfiClient?: MarginfiClient | null; // TODO move to required in the next PR
   bank: ExtendedBankInfo;
   amount: number;
   priorityFee?: number;
+  actionTxns?: {
+    actionTxn: VersionedTransaction | null;
+    feedCrankTxs: VersionedTransaction[];
+  };
   theme?: "light" | "dark";
 }) {
   const multiStepToast = new MultiStepToastHandle(
@@ -271,9 +291,14 @@ export async function repay({
   multiStepToast.start();
 
   try {
-    const txnSig = await marginfiAccount.repay(amount, bank.address, bank.isActive && isWholePosition(bank, amount), {
-      priorityFeeUi: priorityFee,
-    });
+    let txnSig: string;
+    if (actionTxns?.actionTxn && marginfiClient) {
+      txnSig = await marginfiClient.processTransaction(actionTxns.actionTxn);
+    } else {
+      txnSig = await marginfiAccount.repay(amount, bank.address, bank.isActive && isWholePosition(bank, amount), {
+        priorityFeeUi: priorityFee,
+      });
+    }
     multiStepToast.setSuccessAndNext();
     return txnSig;
   } catch (error: any) {
