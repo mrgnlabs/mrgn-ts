@@ -74,7 +74,7 @@ function generateLendingStats(summary: ActionSummary, bank: ExtendedBankInfo, is
   stats.push(getHealthStat(summary.actionPreview.health, false, summary.simulationPreview?.health));
 
   if (summary.simulationPreview?.liquidationPrice && bank.isActive)
-    stats.push(getLiquidationStat(bank, isLoading, summary.simulationPreview?.liquidationPrice));
+    stats.push(getLiquidationStat(bank, false, summary.simulationPreview?.liquidationPrice));
 
   if (summary.actionPreview.bankCap) stats.push(getPoolSizeStat(summary.actionPreview.bankCap, bank, isLending));
   stats.push(getBankTypeStat(bank));

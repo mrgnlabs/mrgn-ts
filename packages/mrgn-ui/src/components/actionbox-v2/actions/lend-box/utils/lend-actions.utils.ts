@@ -48,7 +48,7 @@ export const handleExecuteLendingAction = async ({
   setIsLoading(false);
 
   if (txnSig) {
-    setIsComplete([...txnSig]);
+    setIsComplete(Array.isArray(txnSig) ? txnSig : [txnSig]);
     captureEvent(`user_${actionType.toLowerCase()}`, {
       uuid: attemptUuid,
       tokenSymbol: bank.meta.tokenSymbol,

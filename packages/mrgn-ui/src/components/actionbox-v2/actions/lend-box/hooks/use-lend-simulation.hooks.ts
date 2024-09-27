@@ -104,7 +104,7 @@ export function useLendSimulation({
         if (amount === 0) missingParams.push("amount is 0");
         if (!selectedBank) missingParams.push("bank is null");
 
-        console.error(`Can't simulate transaction: ${missingParams.join(", ")}`);
+        // console.error(`Can't simulate transaction: ${missingParams.join(", ")}`);
         setActionTxns({ actionTxn: null, additionalTxns: [] });
         return;
       }
