@@ -55,11 +55,24 @@ type MrgnAppProps = { path: string };
 
 export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnAppProps) {
   const [setIsFetchingData, isOraclesStale] = useUiStore((state) => [state.setIsFetchingData, state.isOraclesStale]);
-  const [isMrgnlendStoreInitialized, isRefreshingMrgnlendStore, fetchMrgnlendState] = useMrgnlendStore((state) => [
+  const [
+    isMrgnlendStoreInitialized,
+    isRefreshingMrgnlendStore,
+    marginfiClient,
+    selectedAccount,
+    extendedBankInfos,
+    nativeSolBalance,
+    fetchMrgnlendState,
+  ] = useMrgnlendStore((state) => [
     state.initialized,
     state.isRefreshingStore,
+    state.marginfiClient,
+    state.selectedAccount,
+    state.extendedBankInfos,
+    state.nativeSolBalance,
     state.fetchMrgnlendState,
   ]);
+
   const [isLstStoreInitialised, isRefreshingLstStore] = useLstStore((state) => [
     state.initialized,
     state.isRefreshingStore,
@@ -129,7 +142,7 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
 
                     <Analytics />
                     <Tutorial />
-                    <AuthDialog />
+                    <AuthDialog mrgnState={{ marginfiClient, selectedAccount, extendedBankInfos, nativeSolBalance }} />
                     <ToastContainer position="bottom-left" theme="dark" />
                   </LipClientProvider>
                 </MrgnlendProvider>

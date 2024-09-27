@@ -6,7 +6,7 @@ import { ActionBox } from "~/components/actionbox-v2";
 
 import { ScreenWrapper, WalletSeperator } from "~/components/wallet-v2/components/sign-up/components";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
-import { IconLoader } from "@tabler/icons-react";
+import { IconLoader2 } from "@tabler/icons-react";
 
 interface DepositTokenProps extends OnrampScreenProps {}
 
@@ -47,10 +47,10 @@ export const DepositToken = ({ mrgnState, successProps, onNext, onClose }: Depos
           }}
         />
       ) : (
-        <>
-          <IconLoader size={18} className="animate-spin-slow" />
+        <div className="flex flex-col items-center gap-2">
+          <IconLoader2 size={18} className="animate-spin" />
           <span>Loading...</span>
-        </>
+        </div>
       )}
       {/* <ActionBox
         requestedAction={ActionType.Deposit}
