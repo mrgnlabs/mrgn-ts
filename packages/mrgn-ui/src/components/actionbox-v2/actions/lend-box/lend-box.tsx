@@ -8,6 +8,8 @@ import {
   ActionType,
   TokenAccountMap,
   AccountSummary,
+  computeAccountSummary,
+  DEFAULT_ACCOUNT_SUMMARY,
 } from "@mrgnlabs/marginfi-v2-ui-state";
 import { ActionMethod, MarginfiActionParams, PreviousTxn } from "@mrgnlabs/mrgn-utils";
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
@@ -35,7 +37,7 @@ export type LendBoxProps = {
   banks: ExtendedBankInfo[];
   requestedLendType: ActionType;
   requestedBank?: ExtendedBankInfo;
-  accountSummary?: AccountSummary;
+  accountSummaryArg?: AccountSummary;
 
   onConnect?: () => void;
   onComplete: (previousTxn: PreviousTxn) => void;
@@ -50,7 +52,7 @@ export const LendBox = ({
   marginfiClient,
   banks,
   selectedAccount,
-  accountSummary,
+  accountSummaryArg,
   requestedLendType,
   requestedBank,
   onConnect,
@@ -98,6 +100,12 @@ export const LendBox = ({
     state.setIsLoading,
     state.setErrorMessage,
   ]);
+
+  const accountSummary = React.useMemo(() => {
+    return (
+      accountSummaryArg ?? (selectedAccount ? computeAccountSummary(selectedAccount, banks) : DEFAULT_ACCOUNT_SUMMARY)
+    );
+  }, [accountSummaryArg, selectedAccount, banks]);
 
   const [setIsSettingsDialogOpen] = useActionBoxStore((state) => [state.setIsSettingsDialogOpen]);
 

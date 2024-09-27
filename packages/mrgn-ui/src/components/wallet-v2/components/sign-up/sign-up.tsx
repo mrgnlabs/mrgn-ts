@@ -1,7 +1,7 @@
 import React from "react";
 import { useRouter } from "next/router";
 
-import { MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
+import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { Dialog, DialogContent } from "~/components/ui/dialog";
@@ -13,8 +13,8 @@ import { Progress } from "~/components/ui/progress";
 
 type AuthDialogProps = {
   mrgnState?: {
-    marginfiClient: MarginfiClient;
-    selectedAccount: string;
+    marginfiClient: MarginfiClient | null;
+    selectedAccount: MarginfiAccountWrapper | null;
     extendedBankInfos: ExtendedBankInfo[];
     nativeSolBalance: number;
   };
