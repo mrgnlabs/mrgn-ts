@@ -20,7 +20,7 @@ import { WALLET_ADAPTERS } from "~/config/wallets";
 import { useMrgnlendStore, useUiStore } from "~/store";
 import { useLstStore } from "~/store";
 import { WalletProvider as MrgnWalletProvider } from "~/components/wallet-v2/hooks/use-wallet.hook";
-import { ConnectionProvider } from "~/hooks/useConnection";
+import { ConnectionProvider } from "~/hooks/use-connection";
 import { init as initAnalytics } from "~/utils/analytics";
 import { cn } from "~/utils";
 
