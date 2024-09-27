@@ -24,7 +24,6 @@ import {
 
 export const OnboardingSocial = ({
   mrgnState,
-  userDataFetched,
   flow,
   isLoading,
   isActiveLoading,
@@ -44,10 +43,7 @@ export const OnboardingSocial = ({
   const [successProps, setSuccessProps] = React.useState<SuccessProps>();
   const [isSocialAuthLoading, setIsSocialAuthLoading] = React.useState<boolean>(false);
 
-  const userHasAcct = React.useMemo(
-    () => userDataFetched && mrgnState?.selectedAccount,
-    [mrgnState?.selectedAccount, userDataFetched]
-  );
+  const userHasAcct = React.useMemo(() => mrgnState?.selectedAccount, [mrgnState?.selectedAccount]);
 
   const screen = React.useMemo(() => {
     if (installingWallet) {
@@ -75,7 +71,7 @@ export const OnboardingSocial = ({
   }, [screenIndex]);
 
   React.useEffect(() => {
-    if (connected && userDataFetched && screenIndex === 0) {
+    if (connected && screenIndex === 0) {
       setIsActiveLoading("");
       setIsLoading(false);
       setIsSocialAuthLoading(false);
@@ -85,10 +81,10 @@ export const OnboardingSocial = ({
       if (userHasAcct) {
         setScreenIndex((prev) => prev++);
       }
-    } else if (connected && !userDataFetched && screenIndex === 0) {
+    } else if (connected && screenIndex === 0) {
       setIsSocialAuthLoading(true);
     }
-  }, [userDataFetched, userHasAcct, connected, screenIndex]);
+  }, [userHasAcct, connected, screenIndex]);
 
   const onSelectWallet = React.useCallback(
     (selectedWallet: ExtendedWallet) => {
@@ -137,7 +133,7 @@ export const OnboardingSocial = ({
       />
 
       {isSocialAuthLoading ? (
-        <Loader />
+        <Loader label="Loading..." />
       ) : (
         React.createElement(screen.comp, {
           isLoading: isLoading,
