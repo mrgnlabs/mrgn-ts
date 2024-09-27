@@ -30,7 +30,7 @@ interface BorrowLendBoxProps
     // | "tokenAccountMap"
     | "selectedAccount"
     | "banks"
-    | "accountSummary"
+    | "accountSummaryArg"
     | "onComplete"
     | "marginfiClient"
     | "connected"

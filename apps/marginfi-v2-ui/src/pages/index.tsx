@@ -116,7 +116,7 @@ export default function HomePage() {
                     nativeSolBalance: nativeSolBalance,
                     selectedAccount,
                     banks: extendedBankInfos,
-                    accountSummary: accountSummary,
+                    accountSummaryArg: accountSummary,
                     walletContextState: walletContextState,
                     connected: connected,
 
@@ -139,7 +139,6 @@ export default function HomePage() {
                   }}
                 />
               </div>
-              <ActionBoxLendWrapper />
             </div>
             <div className="pt-[16px] pb-[64px] px-4 w-full xl:w-4/5 xl:max-w-7xl mt-8 gap-4">
               <AssetsList />
@@ -155,7 +154,6 @@ export default function HomePage() {
           <>
             <Announcements items={annoucements} />
             <AnnouncementsDialog />
-            {/* <ActionBoxLendWrapper /> */}
             <div className="p-4 space-y-4 w-full">
               <ActionBox.LendBorrow
                 lendProps={{
@@ -163,7 +161,7 @@ export default function HomePage() {
                   nativeSolBalance: nativeSolBalance,
                   selectedAccount,
                   banks: extendedBankInfos,
-                  accountSummary: accountSummary,
+                  accountSummaryArg: accountSummary,
                   walletContextState: walletContextState,
                   connected: connected,
 
