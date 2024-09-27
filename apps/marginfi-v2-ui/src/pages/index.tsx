@@ -4,7 +4,7 @@ import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
 
 import { shortenAddress } from "@mrgnlabs/mrgn-common";
-import { Desktop, Mobile } from "@mrgnlabs/mrgn-utils";
+import { capture, Desktop, Mobile } from "@mrgnlabs/mrgn-utils";
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { ActionBox } from "@mrgnlabs/mrgn-ui";
 
@@ -33,7 +33,15 @@ const AssetsList = dynamic(async () => (await import("~/components/desktop/Asset
 export default function HomePage() {
   const router = useRouter();
   const { walletContextState, walletAddress, isOverride, connected } = useWallet();
-  const [previousTxn, setIsWalletOpen] = useUiStore((state) => [state.previousTxn, state.setIsWalletOpen]);
+  const [previousTxn, setIsWalletOpen, setIsWalletAuthDialogOpen, setPreviousTxn, setIsActionComplete] = useUiStore(
+    (state) => [
+      state.previousTxn,
+      state.setIsWalletOpen,
+      state.setIsWalletAuthDialogOpen,
+      state.setPreviousTxn,
+      state.setIsActionComplete,
+    ]
+  );
   const [
     marginfiClient,
     isStoreInitialized,
@@ -51,6 +59,7 @@ export default function HomePage() {
     state.accountSummary,
     state.nativeSolBalance,
   ]);
+
   const [actionMode, refreshState] = useActionBoxStore()((state) => [state.actionMode, state.refreshState]);
   const [isStateReset, setIsStateReset] = React.useState(false);
 
@@ -108,11 +117,25 @@ export default function HomePage() {
                     selectedAccount,
                     banks: extendedBankInfos,
                     accountSummary: accountSummary,
-                    onComplete: () => {},
-                    connected: connected,
-                    captureEvent: () => {},
-                    onConnect: () => {},
                     walletContextState: walletContextState,
+                    connected: connected,
+
+                    onComplete: (previousTxn) => {
+                      // TODO refactor previousTxn to be more like tradingui
+                      if (previousTxn.txnType !== "LEND") return;
+                      setIsActionComplete(true);
+
+                      setPreviousTxn({
+                        type: previousTxn.lendingOptions.type,
+                        bank: previousTxn.lendingOptions.bank,
+                        amount: previousTxn.lendingOptions.amount,
+                        txn: previousTxn.txn,
+                      });
+                    },
+                    captureEvent: (event, properties) => {
+                      capture(event, properties);
+                    },
+                    onConnect: () => setIsWalletAuthDialogOpen(true),
                   }}
                 />
               </div>
@@ -141,11 +164,25 @@ export default function HomePage() {
                   selectedAccount,
                   banks: extendedBankInfos,
                   accountSummary: accountSummary,
-                  onComplete: () => {},
-                  connected: false,
-                  captureEvent: () => {},
-                  onConnect: () => {},
                   walletContextState: walletContextState,
+                  connected: connected,
+
+                  onComplete: (previousTxn) => {
+                    // TODO refactor previousTxn to be more like tradingui
+                    if (previousTxn.txnType !== "LEND") return;
+                    setIsActionComplete(true);
+
+                    setPreviousTxn({
+                      type: previousTxn.lendingOptions.type,
+                      bank: previousTxn.lendingOptions.bank,
+                      amount: previousTxn.lendingOptions.amount,
+                      txn: previousTxn.txn,
+                    });
+                  },
+                  captureEvent: (event, properties) => {
+                    capture(event, properties);
+                  },
+                  onConnect: () => setIsWalletAuthDialogOpen(true),
                 }}
               />
             </div>
