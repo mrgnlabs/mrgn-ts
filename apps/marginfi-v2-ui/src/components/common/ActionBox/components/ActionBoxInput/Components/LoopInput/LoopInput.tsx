@@ -8,7 +8,7 @@ import { formatAmount, getTokenImageURL } from "@mrgnlabs/mrgn-utils";
 import { percentFormatter } from "@mrgnlabs/mrgn-common";
 
 import { useActionBoxStore } from "~/hooks/useActionBoxStore";
-import { useConnection } from "~/hooks/useConnection";
+import { useConnection } from "~/hooks/use-connection";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { calcLstYield, LSTS_SOLANA_COMPASS_MAP, calcNetLoopingApy } from "~/utils";
 

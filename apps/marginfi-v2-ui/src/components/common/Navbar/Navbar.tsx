@@ -16,7 +16,7 @@ import { useLipClient } from "~/context";
 import { cn } from "~/utils";
 import { useFirebaseAccount } from "~/hooks/useFirebaseAccount";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
-import { useConnection } from "~/hooks/useConnection";
+import { useConnection } from "~/hooks/use-connection";
 import { useIsMobile } from "~/hooks/useIsMobile";
 
 import { EMISSION_MINT_INFO_MAP } from "~/components/desktop/AssetList/components";

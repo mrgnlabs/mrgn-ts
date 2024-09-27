@@ -21,7 +21,7 @@ import { getBlockedActions, showErrorToast } from "@mrgnlabs/mrgn-utils";
 import { useLstStore, useMrgnlendStore, useUiStore } from "~/store";
 import { cn, capture } from "~/utils";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
-import { useConnection } from "~/hooks/useConnection";
+import { useConnection } from "~/hooks/use-connection";
 import { useActionBoxStore } from "~/hooks/useActionBoxStore";
 import { SOL_MINT } from "~/store/lstStore";
 

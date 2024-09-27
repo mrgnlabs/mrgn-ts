@@ -27,7 +27,7 @@ import { getTokenImageURL, MultiStepToastHandle } from "@mrgnlabs/mrgn-utils";
 import { useMrgnlendStore } from "~/store";
 import { cn, capture } from "~/utils";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
-import { useConnection } from "~/hooks/useConnection";
+import { useConnection } from "~/hooks/use-connection";
 
 import { IconCheck, IconX, IconWallet } from "~/components/ui/icons";
 import { Loader } from "~/components/ui/loader";
