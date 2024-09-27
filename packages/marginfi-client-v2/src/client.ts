@@ -756,13 +756,13 @@ class MarginfiClient {
    * @throws ProcessTransactionError
    */
   async processTransactions(
-    transaction: VersionedTransaction[],
+    transactions: (VersionedTransaction | Transaction)[],
     signers?: Array<Signer>,
     opts?: TransactionOptions
   ): Promise<TransactionSignature[]> {
     let signatures: TransactionSignature[] = [""];
 
-    let versionedTransactions: VersionedTransaction[] = transaction;
+    let versionedTransactions: VersionedTransaction[] = [];
     const connection = new Connection(this.provider.connection.rpcEndpoint, this.provider.opts);
     let minContextSlot: number;
     let blockhash: string;
@@ -774,6 +774,21 @@ class MarginfiClient {
       minContextSlot = getLatestBlockhashAndContext.context.slot - 4;
       blockhash = getLatestBlockhashAndContext.value.blockhash;
       lastValidBlockHeight = getLatestBlockhashAndContext.value.lastValidBlockHeight;
+
+      for (const transaction of transactions) {
+        if (transaction instanceof VersionedTransaction) {
+          versionedTransactions.push(transaction);
+        } else {
+          const versionedMessage = new TransactionMessage({
+            instructions: transaction.instructions,
+            payerKey: this.provider.publicKey,
+            recentBlockhash: blockhash,
+          });
+          versionedTransactions.push(
+            new VersionedTransaction(versionedMessage.compileToV0Message(this.addressLookupTables))
+          );
+        }
+      }
 
       if (versionedTransactions.length === 0) throw new Error();
 

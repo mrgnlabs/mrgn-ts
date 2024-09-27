@@ -1,4 +1,4 @@
-import { IconLoader } from "@tabler/icons-react";
+import { IconLoader2 } from "@tabler/icons-react";
 import React from "react";
 
 import { Button } from "~/components/ui/button";
@@ -26,11 +26,11 @@ export const ActionButton = ({
   const Loader = React.useMemo(() => {
     switch (loaderType) {
       case "DEFAULT":
-        return IconLoader;
+        return IconLoader2;
       case "INFINITE":
         return IconInfiniteLoader;
       default:
-        return IconLoader;
+        return IconLoader2;
     }
   }, [loaderType]);
 
@@ -44,7 +44,7 @@ export const ActionButton = ({
 
   return (
     <Button disabled={isLoading || !isEnabled} className="w-full py-5" onClick={handleAction}>
-      {isLoading ? <Loader /> : buttonLabel}
+      {isLoading ? <Loader className="animate-spin" /> : buttonLabel}
     </Button>
   );
 };

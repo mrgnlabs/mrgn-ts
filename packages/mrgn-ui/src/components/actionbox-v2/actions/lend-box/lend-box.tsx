@@ -10,7 +10,7 @@ import {
   AccountSummary,
 } from "@mrgnlabs/marginfi-v2-ui-state";
 import { ActionMethod, MarginfiActionParams, PreviousTxn } from "@mrgnlabs/mrgn-utils";
-import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
+import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 
 import { ActionButton, ActionMessage, ActionSettingsButton } from "~/components/actionbox-v2/components";
 import { useActionBoxStore } from "~/components/actionbox-v2/store";
@@ -30,6 +30,7 @@ export type LendBoxProps = {
   walletContextState?: WalletContextStateOverride | WalletContextState;
   connected: boolean;
 
+  marginfiClient: MarginfiClient | null;
   selectedAccount: MarginfiAccountWrapper | null;
   banks: ExtendedBankInfo[];
   requestedLendType: ActionType;
@@ -46,6 +47,7 @@ export const LendBox = ({
   // tokenAccountMap,
   walletContextState,
   connected,
+  marginfiClient,
   banks,
   selectedAccount,
   accountSummary,
@@ -201,7 +203,7 @@ export const LendBox = ({
 
     const action = async () => {
       const params = {
-        mfiClient: null,
+        mfiClient: marginfiClient,
         actionType: lendMode,
         bank: selectedBank,
         amount,
@@ -242,6 +244,7 @@ export const LendBox = ({
     await action();
     setAmountRaw("");
   }, [
+    marginfiClient,
     selectedBank,
     amount,
     lendMode,

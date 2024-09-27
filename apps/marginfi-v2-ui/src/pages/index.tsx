@@ -34,15 +34,23 @@ export default function HomePage() {
   const router = useRouter();
   const { walletContextState, walletAddress, isOverride, connected } = useWallet();
   const [previousTxn, setIsWalletOpen] = useUiStore((state) => [state.previousTxn, state.setIsWalletOpen]);
-  const [isStoreInitialized, isRefreshingStore, selectedAccount, extendedBankInfos, accountSummary, nativeSolBalance] =
-    useMrgnlendStore((state) => [
-      state.initialized,
-      state.isRefreshingStore,
-      state.selectedAccount,
-      state.extendedBankInfos,
-      state.accountSummary,
-      state.nativeSolBalance,
-    ]);
+  const [
+    marginfiClient,
+    isStoreInitialized,
+    isRefreshingStore,
+    selectedAccount,
+    extendedBankInfos,
+    accountSummary,
+    nativeSolBalance,
+  ] = useMrgnlendStore((state) => [
+    state.marginfiClient,
+    state.initialized,
+    state.isRefreshingStore,
+    state.selectedAccount,
+    state.extendedBankInfos,
+    state.accountSummary,
+    state.nativeSolBalance,
+  ]);
   const [actionMode, refreshState] = useActionBoxStore()((state) => [state.actionMode, state.refreshState]);
   const [isStateReset, setIsStateReset] = React.useState(false);
 
@@ -95,6 +103,7 @@ export default function HomePage() {
               <div className="p-4 space-y-4 w-full">
                 <ActionBox.LendBorrow
                   lendProps={{
+                    marginfiClient,
                     nativeSolBalance: nativeSolBalance,
                     selectedAccount,
                     banks: extendedBankInfos,
@@ -127,6 +136,7 @@ export default function HomePage() {
             <div className="p-4 space-y-4 w-full">
               <ActionBox.LendBorrow
                 lendProps={{
+                  marginfiClient,
                   nativeSolBalance: nativeSolBalance,
                   selectedAccount,
                   banks: extendedBankInfos,
