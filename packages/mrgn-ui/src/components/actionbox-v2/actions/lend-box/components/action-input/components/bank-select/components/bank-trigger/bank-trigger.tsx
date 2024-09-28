@@ -6,16 +6,15 @@ import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { computeBankRate, cn, LendingModes } from "@mrgnlabs/mrgn-utils";
 
 import { Button } from "~/components/ui/button";
-
 import { SelectedBankItem } from "~/components/actionbox-v2/components";
 
-type TokenTriggerProps = {
+type BankTriggerProps = {
   selectedBank: ExtendedBankInfo | null;
   lendingMode: LendingModes;
   isOpen?: boolean;
 };
 
-export const TokenTrigger = React.forwardRef<HTMLButtonElement, TokenTriggerProps>(
+export const BankTrigger = React.forwardRef<HTMLButtonElement, BankTriggerProps>(
   ({ selectedBank, lendingMode, isOpen }, ref) => {
     const calculateRate = React.useCallback(
       (bank: ExtendedBankInfo) => computeBankRate(bank, lendingMode),
@@ -41,4 +40,4 @@ export const TokenTrigger = React.forwardRef<HTMLButtonElement, TokenTriggerProp
   }
 );
 
-TokenTrigger.displayName = "TokenTrigger";
+BankTrigger.displayName = "BankTrigger";

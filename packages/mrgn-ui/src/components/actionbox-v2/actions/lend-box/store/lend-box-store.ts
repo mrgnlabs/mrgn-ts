@@ -13,7 +13,10 @@ interface LendBoxState {
   selectedBank: ExtendedBankInfo | null;
 
   simulationResult: SimulationResult | null;
-  actionTxns: { actionTxn: VersionedTransaction | Transaction | null; additionalTxns: VersionedTransaction[] };
+  actionTxns: {
+    actionTxn: VersionedTransaction | Transaction | null;
+    additionalTxns: (VersionedTransaction | Transaction)[];
+  };
 
   errorMessage: ActionMethod | null;
   isLoading: boolean;
@@ -27,7 +30,7 @@ interface LendBoxState {
   setSimulationResult: (simulationResult: SimulationResult | null) => void;
   setActionTxns: (actionTxns: {
     actionTxn: VersionedTransaction | Transaction | null;
-    additionalTxns: VersionedTransaction[];
+    additionalTxns: (VersionedTransaction | Transaction)[];
   }) => void;
   setSelectedBank: (bank: ExtendedBankInfo | null) => void;
   setIsLoading: (isLoading: boolean) => void;

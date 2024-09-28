@@ -5,7 +5,7 @@ import { computeBankRate, LendingModes } from "@mrgnlabs/mrgn-utils";
 
 import { SelectedBankItem, BankListWrapper } from "~/components/actionbox-v2/components";
 
-import { TokenTrigger, TokenList } from "./components";
+import { BankTrigger, BankList } from "./components";
 
 type BankSelectProps = {
   selectedBank: ExtendedBankInfo | null;
@@ -25,10 +25,9 @@ export const BankSelect = ({
   connected,
   setSelectedBank,
 }: BankSelectProps) => {
-  const [isOpen, setIsOpen] = React.useState(false);
-
   // idea check list if banks[] == 1 make it unselectable
   const isSelectable = React.useMemo(() => true, []);
+  const [isOpen, setIsOpen] = React.useState(false);
 
   const lendingMode = React.useMemo(
     () =>
@@ -57,9 +56,9 @@ export const BankSelect = ({
         <BankListWrapper
           isOpen={isOpen}
           setIsOpen={setIsOpen}
-          Trigger={<TokenTrigger selectedBank={selectedBank} lendingMode={lendingMode} isOpen={isOpen} />}
+          Trigger={<BankTrigger selectedBank={selectedBank} lendingMode={lendingMode} isOpen={isOpen} />}
           Content={
-            <TokenList
+            <BankList
               isOpen={isOpen}
               onClose={() => setIsOpen(false)}
               selectedBank={selectedBank}

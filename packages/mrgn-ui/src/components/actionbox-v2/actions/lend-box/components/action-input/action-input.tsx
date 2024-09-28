@@ -8,19 +8,19 @@ import { Input } from "~/components/ui/input";
 import { LendingAction, BankSelect } from "./components";
 
 type ActionInputProps = {
-  banks: ExtendedBankInfo[];
+  amountRaw: string;
   nativeSolBalance: number;
   walletAmount: number | undefined;
   maxAmount: number;
+  banks: ExtendedBankInfo[];
+  selectedBank: ExtendedBankInfo | null;
+  lendMode: ActionType;
 
   connected: boolean;
   showCloseBalance?: boolean;
   isDialog?: boolean;
   isMini?: boolean;
 
-  amountRaw: string;
-  selectedBank: ExtendedBankInfo | null;
-  lendMode: ActionType;
   setAmountRaw: (amount: string) => void;
   setSelectedBank: (bank: ExtendedBankInfo | null) => void;
 };
