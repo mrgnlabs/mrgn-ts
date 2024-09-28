@@ -13,7 +13,7 @@ import { init, push } from "@socialgouv/matomo-next";
 import { ToastContainer } from "react-toastify";
 import { Analytics } from "@vercel/analytics/react";
 import { Desktop, Mobile } from "@mrgnlabs/mrgn-utils";
-import { AuthDialog } from "@mrgnlabs/mrgn-ui";
+import { ActionBoxProvider, AuthDialog } from "@mrgnlabs/mrgn-ui";
 
 import config from "~/config";
 import { MrgnlendProvider, LipClientProvider } from "~/context";
@@ -62,6 +62,7 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
     selectedAccount,
     extendedBankInfos,
     nativeSolBalance,
+    accountSummary,
     fetchMrgnlendState,
   ] = useMrgnlendStore((state) => [
     state.initialized,
@@ -70,6 +71,7 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
     state.selectedAccount,
     state.extendedBankInfos,
     state.nativeSolBalance,
+    state.accountSummary,
     state.fetchMrgnlendState,
   ]);
 
@@ -117,33 +119,47 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
               <MrgnWalletProvider>
                 <MrgnlendProvider>
                   <LipClientProvider>
-                    <CongestionBanner />
-                    <Navbar />
+                    <ActionBoxProvider
+                      banks={extendedBankInfos}
+                      nativeSolBalance={nativeSolBalance}
+                      marginfiClient={marginfiClient}
+                      selectedAccount={selectedAccount}
+                      connected={false}
+                      accountSummaryArg={accountSummary}
+                    >
+                      <CongestionBanner />
+                      <Navbar />
 
-                    <Desktop>
-                      <WalletModalProvider>
+                      <Desktop>
+                        <WalletModalProvider>
+                          <div
+                            className={cn(
+                              "w-full flex flex-col justify-center items-center",
+                              isOraclesStale && "pt-10"
+                            )}
+                          >
+                            <Component {...pageProps} />
+                          </div>
+                          <Footer />
+                        </WalletModalProvider>
+                      </Desktop>
+
+                      <Mobile>
                         <div
-                          className={cn("w-full flex flex-col justify-center items-center", isOraclesStale && "pt-10")}
+                          className={cn("w-full flex flex-col justify-center items-center", isOraclesStale && "pt-16")}
                         >
                           <Component {...pageProps} />
                         </div>
-                        <Footer />
-                      </WalletModalProvider>
-                    </Desktop>
+                        <MobileNavbar />
+                      </Mobile>
 
-                    <Mobile>
-                      <div
-                        className={cn("w-full flex flex-col justify-center items-center", isOraclesStale && "pt-16")}
-                      >
-                        <Component {...pageProps} />
-                      </div>
-                      <MobileNavbar />
-                    </Mobile>
-
-                    <Analytics />
-                    <Tutorial />
-                    <AuthDialog mrgnState={{ marginfiClient, selectedAccount, extendedBankInfos, nativeSolBalance }} />
-                    <ToastContainer position="bottom-left" theme="dark" />
+                      <Analytics />
+                      <Tutorial />
+                      <AuthDialog
+                        mrgnState={{ marginfiClient, selectedAccount, extendedBankInfos, nativeSolBalance }}
+                      />
+                      <ToastContainer position="bottom-left" theme="dark" />
+                    </ActionBoxProvider>
                   </LipClientProvider>
                 </MrgnlendProvider>
               </MrgnWalletProvider>

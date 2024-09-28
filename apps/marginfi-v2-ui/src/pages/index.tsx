@@ -110,16 +110,12 @@ export default function HomePage() {
               <Announcements items={annoucements} />
               <AnnouncementsDialog />
               <div className="p-4 space-y-4 w-full">
-                <ActionBox.LendBorrow
+                <ActionBox.BorrowLend
+                  useProvider={true}
                   lendProps={{
-                    marginfiClient,
-                    nativeSolBalance: nativeSolBalance,
-                    selectedAccount,
                     banks: extendedBankInfos,
-                    accountSummaryArg: accountSummary,
-                    walletContextState: walletContextState,
                     connected: connected,
-
+                    walletContextState: walletContextState,
                     onComplete: (previousTxn) => {
                       // TODO refactor previousTxn to be more like tradingui
                       if (previousTxn.txnType !== "LEND") return;
@@ -155,16 +151,12 @@ export default function HomePage() {
             <Announcements items={annoucements} />
             <AnnouncementsDialog />
             <div className="p-4 space-y-4 w-full">
-              <ActionBox.LendBorrow
+              <ActionBox.BorrowLend
+                useProvider={true}
                 lendProps={{
-                  marginfiClient,
-                  nativeSolBalance: nativeSolBalance,
-                  selectedAccount,
                   banks: extendedBankInfos,
-                  accountSummaryArg: accountSummary,
-                  walletContextState: walletContextState,
                   connected: connected,
-
+                  walletContextState: walletContextState,
                   onComplete: (previousTxn) => {
                     // TODO refactor previousTxn to be more like tradingui
                     if (previousTxn.txnType !== "LEND") return;
