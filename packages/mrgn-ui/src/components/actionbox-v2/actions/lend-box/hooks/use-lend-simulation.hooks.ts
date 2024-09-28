@@ -32,7 +32,7 @@ type LendSimulationProps = {
   setSimulationResult: (result: SimulationResult | null) => void;
   setActionTxns: (actionTxns: {
     actionTxn: VersionedTransaction | Transaction | null;
-    additionalTxns: VersionedTransaction[];
+    additionalTxns: (VersionedTransaction | Transaction)[];
   }) => void;
   setErrorMessage: (error: ActionMethod) => void;
   setIsLoading: (isLoading: boolean) => void;
@@ -78,7 +78,7 @@ export function useLendSimulation({
         setIsLoading(false);
       }
     },
-    [selectedAccount, debouncedAmount, selectedBank, actionTxns, lendMode, setSimulationResult]
+    [selectedAccount, debouncedAmount, selectedBank, lendMode, setSimulationResult]
   );
 
   const handleActionSummary = React.useCallback(
@@ -143,7 +143,7 @@ export function useLendSimulation({
     if (prevDebouncedAmount !== debouncedAmount) {
       fetchActionTxn(debouncedAmount ?? 0);
     }
-  }, [prevDebouncedAmount, debouncedAmount, handleSimulation]);
+  }, [prevDebouncedAmount, debouncedAmount, fetchActionTxn]);
 
   React.useEffect(() => {
     handleSimulation([

@@ -5,10 +5,9 @@ import { ExtendedBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { LendingModes, cn, computeBankRate } from "@mrgnlabs/mrgn-utils";
 
 import { CommandEmpty, CommandGroup, CommandItem } from "~/components/ui/command";
-
 import { BankItem, BankListCommand } from "~/components/actionbox-v2/components";
 
-type TokenListProps = {
+type BankListProps = {
   selectedBank: ExtendedBankInfo | null;
   banks: ExtendedBankInfo[];
   nativeSolBalance: number;
@@ -20,7 +19,7 @@ type TokenListProps = {
   onClose: () => void;
 };
 
-export const TokenList = ({
+export const BankList = ({
   selectedBank,
   banks,
   nativeSolBalance,
@@ -29,7 +28,7 @@ export const TokenList = ({
   onSetSelectedBank,
   isOpen,
   onClose,
-}: TokenListProps) => {
+}: BankListProps) => {
   const lendingMode = React.useMemo(
     () =>
       lendMode === ActionType.Deposit || lendMode === ActionType.Withdraw ? LendingModes.LEND : LendingModes.BORROW,
