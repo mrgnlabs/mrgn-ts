@@ -14,6 +14,8 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "~/
 import { Button } from "~/components/ui/button";
 import { IconAlertTriangle } from "~/components/ui/icons";
 import { Skeleton } from "~/components/ui/skeleton";
+import { ActionBox } from "@mrgnlabs/mrgn-ui";
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
 interface PortfolioAssetCardProps {
   bank: ActiveBankInfo;
@@ -23,6 +25,7 @@ interface PortfolioAssetCardProps {
 
 export const PortfolioAssetCard = ({ bank, isInLendingMode, isBorrower = true }: PortfolioAssetCardProps) => {
   const { rateAP } = useAssetItemData({ bank, isInLendingMode });
+  const { walletContextState, connected } = useWallet();
 
   const [requestedAction, setRequestedAction] = React.useState<ActionType>();
   const [requestedBank, setRequestedBank] = React.useState<ExtendedBankInfo | null>(null);
@@ -117,7 +120,6 @@ export const PortfolioAssetCard = ({ bank, isInLendingMode, isBorrower = true }:
               </div>
             </div>
           )}
-
           <div className="bg-background/60 py-3 px-4 rounded-lg">
             <dl className="grid grid-cols-2 gap-y-0.5">
               <dt className="text-muted-foreground">USD value</dt>
@@ -144,6 +146,64 @@ export const PortfolioAssetCard = ({ bank, isInLendingMode, isBorrower = true }:
               )}
             </dl>
           </div>
+          <div className="flex w-full gap-3">
+            <ActionBox.Repay
+              useProvider={true}
+              repayProps={{
+                onComplete: () => {},
+                captureEvent: () => {},
+                onConnect: () => {},
+                requestedBank: requestedBank ?? undefined,
+                walletContextState: walletContextState,
+                connected: connected,
+              }}
+              isDialog={true}
+              dialogProps={{
+                trigger: (
+                  <Button
+                    onClick={() => {
+                      setRequestedAction(isInLendingMode ? ActionType.Withdraw : ActionType.Repay);
+                      setRequestedBank(bank);
+                    }}
+                    className="flex-1 h-12"
+                    variant="outline"
+                  >
+                    {isInLendingMode ? (isDust ? "Close" : "Withdraw") : "Repay"}
+                  </Button>
+                ),
+                title: "Repay",
+              }}
+            />
+            <ActionBox.Lend
+              useProvider={true}
+              lendProps={{
+                onComplete: () => {},
+                captureEvent: () => {},
+                onConnect: () => {},
+                requestedLendType: isInLendingMode ? ActionType.Deposit : ActionType.Borrow,
+                requestedBank: requestedBank ?? undefined,
+                walletContextState: walletContextState,
+                connected: connected,
+              }}
+              isDialog={true}
+              dialogProps={{
+                trigger: (
+                  <Button
+                    onClick={() => {
+                      setRequestedAction(isInLendingMode ? ActionType.Deposit : ActionType.Borrow);
+                      setRequestedBank(bank);
+                    }}
+                    className="flex-1 h-12"
+                    variant="default"
+                  >
+                    {isInLendingMode ? "Supply more" : "Borrow more"}
+                  </Button>
+                ),
+                title: "Repay",
+              }}
+            />{" "}
+          </div>
+
           <ActionBoxDialog requestedAction={requestedAction} requestedBank={requestedBank}>
             <div className="flex w-full gap-3">
               <Button
