@@ -236,7 +236,7 @@ export function generateStats(
         </dd>
         {tokenBank.info.state.totalDeposits > 0 && (
           <>
-            <dt>Total despoits</dt>
+            <dt>Total deposits</dt>
             <dd className="text-primary text-right">
               {tokenBank.info.state.totalDeposits.toFixed(2)} {tokenBank.meta.tokenSymbol}
             </dd>
