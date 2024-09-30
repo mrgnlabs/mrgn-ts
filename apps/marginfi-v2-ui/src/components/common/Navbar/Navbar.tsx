@@ -198,9 +198,11 @@ export const Navbar: FC = () => {
                         Sign up for real time notifications with Asgardfi&apos;s telegram watchbot.
                       </p>
                     </div>
-                    <Button variant="secondary" size="sm">
-                      <IconBrandTelegram size={18} /> Open in Telegram
-                    </Button>
+                    <Link href="https://t.me/AsgardWatchBot" target="_blank" rel="noopener noreferrer">
+                      <Button variant="secondary" size="sm">
+                        <IconBrandTelegram size={18} /> Open in Telegram
+                      </Button>
+                    </Link>
                   </div>
                 </PopoverContent>
               </Popover>
