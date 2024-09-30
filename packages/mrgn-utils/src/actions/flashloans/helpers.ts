@@ -140,6 +140,7 @@ export async function verifyTxSizeCollat(
   feedCrankTxs: VersionedTransaction[];
   addressLookupTableAccounts: AddressLookupTableAccount[];
   error?: ActionMethod;
+  lastValidBlockHeight?: number;
 }> {
   try {
     const builder = await repayWithCollatBuilder({
@@ -177,10 +178,12 @@ export const verifyFlashloanTxSize = (builder: {
   flashloanTx: VersionedTransaction;
   feedCrankTxs: VersionedTransaction[];
   addressLookupTableAccounts: AddressLookupTableAccount[];
+  lastValidBlockHeight?: number;
 }): {
   flashloanTx: VersionedTransaction | null;
   feedCrankTxs: VersionedTransaction[];
   addressLookupTableAccounts: AddressLookupTableAccount[];
+  lastValidBlockHeight?: number;
   error?: ActionMethod;
 } => {
   try {
@@ -211,6 +214,7 @@ export const verifyFlashloanTxSize = (builder: {
         feedCrankTxs: builder.feedCrankTxs,
         addressLookupTableAccounts: builder.addressLookupTableAccounts,
         error: undefined,
+        lastValidBlockHeight: builder.lastValidBlockHeight,
       };
     }
 

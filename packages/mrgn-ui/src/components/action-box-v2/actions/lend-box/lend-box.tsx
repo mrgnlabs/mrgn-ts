@@ -140,6 +140,12 @@ export const LendBox = ({
   }, [refreshState, connected, lendMode]);
 
   React.useEffect(() => {
+    return () => {
+      refreshState();
+    };
+  }, []);
+
+  React.useEffect(() => {
     fetchActionBoxState({ requestedLendType, requestedBank });
   }, [requestedLendType, requestedBank, fetchActionBoxState]);
 
@@ -316,7 +322,6 @@ export const LendBox = ({
       <LSTDialog
         variant={selectedBank?.meta.tokenSymbol as LSTDialogVariants}
         open={!!lstDialogCallback}
-        sentFrom="lend"
         onClose={() => {
           if (lstDialogCallback) {
             lstDialogCallback();

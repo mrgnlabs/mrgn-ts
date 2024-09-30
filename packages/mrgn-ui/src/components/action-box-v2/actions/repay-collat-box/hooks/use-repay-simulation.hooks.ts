@@ -14,6 +14,7 @@ import { AccountSummary, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state
 
 import { useActionBoxStore } from "../../../store";
 import { calculateRepayCollateral, calculateSummary, getSimulationResult } from "../utils";
+import { ActionTxns } from "../store/repay-collat-store";
 
 type RepayCollatSimulationProps = {
   debouncedAmount: number;
@@ -27,13 +28,10 @@ type RepayCollatSimulationProps = {
     additionalTxns: (VersionedTransaction | Transaction)[];
   };
   simulationResult: SimulationResult | null;
+  isRefreshTxn: boolean;
 
   setSimulationResult: (simulationResult: SimulationResult | null) => void;
-  setActionQuote: (actionQuote: QuoteResponse | null) => void;
-  setActionTxns: (actionTxns: {
-    actionTxn: VersionedTransaction | null;
-    additionalTxns: (VersionedTransaction | Transaction)[];
-  }) => void;
+  setActionTxns: (actionTxns: ActionTxns) => void;
   setErrorMessage: (error: ActionMethod) => void;
   setRepayAmount: (repayAmount: number) => void;
   setIsLoading: (isLoading: boolean) => void;
@@ -49,8 +47,9 @@ export function useRepayCollatSimulation({
   selectedSecondaryBank,
   actionTxns,
   simulationResult,
+  isRefreshTxn,
+
   setSimulationResult,
-  setActionQuote,
   setActionTxns,
   setErrorMessage,
   setRepayAmount,
@@ -109,7 +108,8 @@ export function useRepayCollatSimulation({
         if (!selectedBank) missingParams.push("bank is null");
 
         // console.error(`Can't simulate transaction: ${missingParams.join(", ")}`);
-        setActionTxns({ actionTxn: null, additionalTxns: [] });
+        setActionTxns({ actionTxn: null, additionalTxns: [], actionQuote: null, lastValidBlockHeight: undefined });
+        setSimulationResult(null);
         return;
       }
 
@@ -129,13 +129,12 @@ export function useRepayCollatSimulation({
           const actionTxns = {
             actionTxn: repayObject.repayTxn,
             additionalTxns: repayObject.feedCrankTxs,
+            actionQuote: repayObject.quote,
+            lastValidBlockHeight: repayObject.lastValidBlockHeight,
           };
-          const actionQuote = repayObject.quote;
-          const amountRaw = repayObject.amount.toString();
+          const amountRaw = repayObject.amount;
 
-          console.log("amountRaw", amountRaw);
-          // setRepayAmount(amountRaw);
-          setActionQuote(actionQuote);
+          setRepayAmount(amountRaw);
           setActionTxns(actionTxns);
         } else {
           const errorMessage =
@@ -157,7 +156,6 @@ export function useRepayCollatSimulation({
       marginfiClient,
       priorityFee,
       setRepayAmount,
-      setActionQuote,
       setActionTxns,
       setErrorMessage,
     ]
@@ -178,6 +176,17 @@ export function useRepayCollatSimulation({
       }
     }
   }, [selectedBank, selectedSecondaryBank, slippageBps, setErrorMessage, setMaxAmountCollateral]);
+
+  const prevIsRefreshTxn = usePrevious(isRefreshTxn);
+
+  React.useEffect(() => {
+    const isChanged = prevIsRefreshTxn && isRefreshTxn;
+
+    if (isRefreshTxn) {
+      setActionTxns({ actionTxn: null, additionalTxns: [], actionQuote: null, lastValidBlockHeight: undefined });
+      setSimulationResult(null);
+    }
+  }, [isRefreshTxn, prevIsRefreshTxn]);
 
   React.useEffect(() => {
     // only simulate when amount changes
@@ -200,6 +209,7 @@ export function useRepayCollatSimulation({
     }
     const hasBankChanged = !prevSelectedSecondaryBank?.address.equals(selectedSecondaryBank.address);
     if (hasBankChanged) {
+      console.log("fetching max repayable collateral");
       fetchMaxRepayableCollateral();
     }
   }, [selectedSecondaryBank, prevSelectedSecondaryBank, fetchMaxRepayableCollateral]);

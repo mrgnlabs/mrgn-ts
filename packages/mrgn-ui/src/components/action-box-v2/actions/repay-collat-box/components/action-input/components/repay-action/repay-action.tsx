@@ -28,11 +28,7 @@ export const RepayAction = ({
     showWalletIcon?: boolean;
     label?: string;
   } => {
-    const strippedAmount = amountRaw.replace(/,/g, "");
-
-    const amount = isNaN(Number.parseFloat(strippedAmount)) ? 0 : Number.parseFloat(strippedAmount);
-
-    const amountLeft = numeralFormatter(selectedBank?.isActive ? selectedBank.position.amount - amount : 0);
+    const amountLeft = numeralFormatter(selectedBank?.isActive ? selectedBank.position.amount - repayAmount : 0);
     return {
       amount: `${amountLeft} ${selectedBank?.meta.tokenSymbol}`,
       label: "Borrowed: ",
@@ -72,7 +68,7 @@ export const RepayAction = ({
               {selectedSecondaryBank?.isActive && !isUnchanged && <IconArrowRight width={12} height={12} />}
               {selectedSecondaryBank?.isActive &&
                 !isUnchanged &&
-                selectedSecondaryBank.position.amount - repayAmount}{" "}
+                selectedSecondaryBank.position.amount - Number(amountRaw)}{" "}
               {selectedSecondaryBank?.meta.tokenSymbol}
             </div>
           </li>

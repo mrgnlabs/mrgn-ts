@@ -7,6 +7,13 @@ import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { SimulationResult } from "@mrgnlabs/marginfi-client-v2";
 import { ActionMethod } from "@mrgnlabs/mrgn-utils";
 
+type ActionTxns = {
+  actionTxn: VersionedTransaction | null;
+  additionalTxns: (VersionedTransaction | Transaction)[];
+  actionQuote: QuoteResponse | null;
+  lastValidBlockHeight?: number;
+};
+
 interface RepayCollatBoxState {
   // State
   amountRaw: string;
@@ -18,11 +25,7 @@ interface RepayCollatBoxState {
 
   simulationResult: SimulationResult | null;
 
-  actionQuote: QuoteResponse | null;
-  actionTxns: {
-    actionTxn: VersionedTransaction | null;
-    additionalTxns: (VersionedTransaction | Transaction)[];
-  };
+  actionTxns: ActionTxns;
 
   errorMessage: ActionMethod | null;
   isLoading: boolean;
@@ -36,11 +39,7 @@ interface RepayCollatBoxState {
   setRepayAmount: (repayAmount: number) => void;
   setSimulationResult: (simulationResult: SimulationResult | null) => void;
 
-  setActionQuote: (actionQuote: QuoteResponse | null) => void;
-  setActionTxns: (actionTxns: {
-    actionTxn: VersionedTransaction | null;
-    additionalTxns: (VersionedTransaction | Transaction)[];
-  }) => void;
+  setActionTxns: (actionTxns: ActionTxns) => void;
   setErrorMessage: (errorMessage: ActionMethod | null) => void;
   setSelectedBank: (bank: ExtendedBankInfo | null) => void;
   setSelectedSecondaryBank: (bank: ExtendedBankInfo | null) => void;
@@ -59,8 +58,8 @@ const initialState = {
   selectedBank: null,
   selectedSecondaryBank: null,
   simulationResult: null,
-  actionQuote: null,
-  actionTxns: { actionTxn: null, additionalTxns: [] },
+
+  actionTxns: { actionTxn: null, additionalTxns: [], actionQuote: null, lastValidBlockHeight: undefined },
   errorMessage: null,
   isLoading: false,
 };
@@ -101,7 +100,6 @@ const stateCreator: StateCreator<RepayCollatBoxState, [], []> = (set, get) => ({
       set({
         simulationResult: null,
         actionTxns: initialState.actionTxns,
-        actionQuote: null,
         repayAmount: 0,
         errorMessage: null,
       });
@@ -120,10 +118,6 @@ const stateCreator: StateCreator<RepayCollatBoxState, [], []> = (set, get) => ({
         set({ amountRaw: numberFormatter.format(amount) });
       }
     }
-  },
-
-  setActionQuote(actionQuote) {
-    set({ actionQuote });
   },
 
   setActionTxns(actionTxns) {
@@ -176,7 +170,6 @@ const stateCreator: StateCreator<RepayCollatBoxState, [], []> = (set, get) => ({
         repayAmount: 0,
         selectedSecondaryBank: null,
         actionTxns: initialState.actionTxns,
-        actionQuote: undefined,
         errorMessage: null,
       });
     }
@@ -197,7 +190,6 @@ const stateCreator: StateCreator<RepayCollatBoxState, [], []> = (set, get) => ({
         amountRaw: "",
         repayAmount: undefined,
         actionTxns: initialState.actionTxns,
-        actionQuote: undefined,
         errorMessage: null,
       });
     } else {
@@ -207,4 +199,4 @@ const stateCreator: StateCreator<RepayCollatBoxState, [], []> = (set, get) => ({
 });
 
 export { createRepayCollatBoxStore };
-export type { RepayCollatBoxState };
+export type { RepayCollatBoxState, ActionTxns };
