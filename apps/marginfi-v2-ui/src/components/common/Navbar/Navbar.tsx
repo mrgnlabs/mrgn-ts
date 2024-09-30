@@ -18,6 +18,7 @@ import { useFirebaseAccount } from "~/hooks/useFirebaseAccount";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { useConnection } from "~/hooks/use-connection";
 import { useIsMobile } from "~/hooks/useIsMobile";
+import { capture } from "~/utils/analytics";
 
 import { EMISSION_MINT_INFO_MAP } from "~/components/desktop/AssetList/components";
 import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
@@ -198,7 +199,14 @@ export const Navbar: FC = () => {
                         Sign up for real time notifications with Asgardfi&apos;s telegram watchbot.
                       </p>
                     </div>
-                    <Link href="https://t.me/AsgardWatchBot" target="_blank" rel="noopener noreferrer">
+                    <Link
+                      href="https://t.me/AsgardWatchBot"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={() => {
+                        capture("asgard_watchbot_clicked");
+                      }}
+                    >
                       <Button variant="secondary" size="sm">
                         <IconBrandTelegram size={18} /> Open in Telegram
                       </Button>
