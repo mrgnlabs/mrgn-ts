@@ -71,7 +71,11 @@ export const ActionBoxNavigator = ({
                 type="single"
                 className="bg-background"
                 value={selectedAction}
-                onValueChange={onSelectAction}
+                onValueChange={(value) => {
+                  if (value !== "") {
+                    onSelectAction && onSelectAction(value as ActionType);
+                  }
+                }}
               >
                 {navigatorToggles.map((toggle, idx) => (
                   <ToggleGroupItem

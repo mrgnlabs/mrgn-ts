@@ -19,6 +19,7 @@ export async function calculateRepayCollateral(
       feedCrankTxs: VersionedTransaction[];
       quote: QuoteResponse;
       amount: number;
+      lastValidBlockHeight?: number;
     }
   | ActionMethod
 > {

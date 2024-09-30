@@ -16,15 +16,11 @@ type LSTDialogProps = {
   banks: ExtendedBankInfo[];
   variant: LSTDialogVariants | null;
   open: boolean;
-  sentFrom?: string;
   onClose: () => void;
 };
 
-const LSTDialog = ({ banks, variant, open, sentFrom, onClose }: LSTDialogProps) => {
-  console.log("sentFrom", sentFrom);
-
+const LSTDialog = ({ banks, variant, open, onClose }: LSTDialogProps) => {
   const tokenImage = React.useMemo(() => {
-    console.log("banks", banks);
     const bank = banks.find((bank) => bank.meta.tokenSymbol === variant);
     if (!bank) return null;
 

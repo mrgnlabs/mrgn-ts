@@ -35,25 +35,24 @@ export const Preview = ({ actionSummary, selectedBank, isLoading, lendMode }: Pr
 
   return (
     <>
-      {selectedBank && (
+      {stats && selectedBank && (
         <dl className={cn("grid grid-cols-2 gap-y-2 pt-6 text-xs text-white")}>
-          {stats &&
-            stats.map((stat, idx) => (
-              <ActionStatItem
-                key={idx}
-                label={stat.label}
-                classNames={cn(
-                  stat.color &&
-                    (stat.color === "SUCCESS"
-                      ? "text-success"
-                      : stat.color === "ALERT"
-                      ? "text-alert-foreground"
-                      : "text-destructive-foreground")
-                )}
-              >
-                <stat.value />
-              </ActionStatItem>
-            ))}
+          {stats.map((stat, idx) => (
+            <ActionStatItem
+              key={idx}
+              label={stat.label}
+              classNames={cn(
+                stat.color &&
+                  (stat.color === "SUCCESS"
+                    ? "text-success"
+                    : stat.color === "ALERT"
+                    ? "text-alert-foreground"
+                    : "text-destructive-foreground")
+              )}
+            >
+              <stat.value />
+            </ActionStatItem>
+          ))}
         </dl>
       )}
     </>
