@@ -5,7 +5,7 @@ import { MarginRequirementType, OperationalState } from "@mrgnlabs/marginfi-clie
 import { WSOL_MINT } from "@mrgnlabs/mrgn-common";
 import { computeBankRate, LendingModes } from "@mrgnlabs/mrgn-utils";
 
-import { cn } from "~/utils";
+import { cn } from "@mrgnlabs/mrgn-utils";
 import { useMrgnlendStore } from "~/store";
 import { useActionBoxStore } from "~/hooks/useActionBoxStore";
 

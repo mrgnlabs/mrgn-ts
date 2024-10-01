@@ -7,7 +7,7 @@ import { ActiveBankInfo, ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi
 import { capture } from "@mrgnlabs/mrgn-utils";
 import { ActionBox } from "@mrgnlabs/mrgn-ui";
 
-import { cn } from "~/utils";
+import { cn } from "@mrgnlabs/mrgn-utils";
 import { useAssetItemData } from "~/hooks/useAssetItemData";
 
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "~/components/ui/accordion";

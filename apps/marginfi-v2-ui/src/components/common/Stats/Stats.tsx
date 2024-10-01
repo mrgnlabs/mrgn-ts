@@ -2,7 +2,7 @@ import React from "react";
 
 import { useMrgnlendStore } from "~/store";
 
-import { cn } from "~/utils";
+import { cn } from "@mrgnlabs/mrgn-utils";
 
 import { numeralFormatter, usdFormatterDyn } from "@mrgnlabs/mrgn-common";
 

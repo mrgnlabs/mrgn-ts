@@ -11,7 +11,7 @@ import { ActionBoxTokens } from "~/components/common/ActionBox/components";
 
 import { InputHeader } from "./Components";
 import { InputAction } from "./Components/InputAction";
-import { useConnection } from "~/hooks/useConnection";
+import { useConnection } from "~/hooks/use-connection";
 import { YbxInput } from "./Components/YbxInput";
 import { GroupData } from "~/store/tradeStore";
 

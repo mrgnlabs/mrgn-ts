@@ -27,7 +27,7 @@ import { useTradeStore, useUiStore } from "~/store";
 import { GroupData } from "~/store/tradeStore";
 import { WalletState } from "~/store/uiStore";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
-import { useConnection } from "~/hooks/useConnection";
+import { useConnection } from "~/hooks/use-connection";
 
 import { TokenCombobox } from "../TokenCombobox/TokenCombobox";
 import { TradingBoxSettingsDialog } from "./components/TradingBoxSettings/TradingBoxSettingsDialog";

@@ -4,7 +4,7 @@ import { IconSearch } from "@tabler/icons-react";
 import { Command as CommandPrimitive } from "cmdk";
 
 import { cn } from "@mrgnlabs/mrgn-utils";
-import { useIsMobile } from "~/hooks/useIsMobile";
+import { useIsMobile } from "~/hooks/use-is-mobile";
 import { Dialog, DialogContent } from "~/components/ui/dialog";
 
 const Command = React.forwardRef<

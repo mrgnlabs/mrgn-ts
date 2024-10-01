@@ -4,7 +4,7 @@ import { useRouter } from "next/router";
 
 import { useTradeStore, useUiStore } from "~/store";
 import { GroupData } from "~/store/tradeStore";
-import { useIsMobile } from "~/hooks/useIsMobile";
+import { useIsMobile } from "~/hooks/use-is-mobile";
 
 import { ActionComplete } from "~/components/common/ActionComplete";
 import { TVWidget } from "~/components/common/TVWidget";

@@ -2,7 +2,7 @@ import React from "react";
 
 import { Desktop, Mobile } from "@mrgnlabs/mrgn-utils";
 
-import { useIsMobile } from "~/hooks/useIsMobile";
+import { useIsMobile } from "~/hooks/use-is-mobile";
 import { Dialog, DialogTrigger, DialogContent } from "~/components/ui/dialog";
 
 import { TradingBoxSettings } from "./TradingBoxSettings";

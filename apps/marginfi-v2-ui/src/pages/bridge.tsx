@@ -1,6 +1,6 @@
 import React from "react";
 
-import { cn } from "~/utils";
+import { cn } from "@mrgnlabs/mrgn-utils";
 
 import { Bridge } from "~/components/common/Bridge";
 import { Loader } from "~/components/ui/loader";

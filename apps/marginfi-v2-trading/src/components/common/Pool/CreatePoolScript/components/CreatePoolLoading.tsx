@@ -14,7 +14,7 @@ import {
 import { showErrorToast, cn } from "@mrgnlabs/mrgn-utils";
 import { NodeWallet } from "@mrgnlabs/mrgn-common";
 
-import { useConnection } from "~/hooks/useConnection";
+import { useConnection } from "~/hooks/use-connection";
 import { createMarginfiGroup, createPermissionlessBank, createPoolLookupTable } from "~/utils";
 import { Button } from "~/components/ui/button";
 import { useUiStore } from "~/store";

@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { useUiStore } from "~/store";
-import { cn } from "~/utils";
+import { cn } from "@mrgnlabs/mrgn-utils";
 
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";

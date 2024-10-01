@@ -3,7 +3,7 @@ import { IconSortAscending, IconSortDescending } from "@tabler/icons-react";
 import Image from "next/image";
 
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
-import { cn } from "~/utils";
+import { cn } from "@mrgnlabs/mrgn-utils";
 import { AssetListModel } from "../utils";
 
 interface HeaderWrapperProps {

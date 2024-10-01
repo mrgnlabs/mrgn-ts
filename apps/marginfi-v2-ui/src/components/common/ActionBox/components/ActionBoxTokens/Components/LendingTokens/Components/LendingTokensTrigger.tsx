@@ -6,7 +6,7 @@ import { computeBankRate, LendingModes, RepayType } from "@mrgnlabs/mrgn-utils";
 import { Button } from "~/components/ui/button";
 import { IconChevronDown } from "~/components/ui/icons";
 
-import { cn } from "~/utils";
+import { cn } from "@mrgnlabs/mrgn-utils";
 
 import { SelectedBankItem } from "../../SharedComponents";
 

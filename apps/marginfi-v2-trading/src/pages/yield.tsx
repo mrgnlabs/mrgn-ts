@@ -8,7 +8,7 @@ import { Desktop, Mobile } from "@mrgnlabs/mrgn-utils";
 import { useTradeStore, useUiStore } from "~/store";
 import { GroupData, TradePoolFilterStates } from "~/store/tradeStore";
 import { cn } from "@mrgnlabs/mrgn-utils";
-import { useIsMobile } from "~/hooks/useIsMobile";
+import { useIsMobile } from "~/hooks/use-is-mobile";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
 import { PageHeading } from "~/components/common/PageHeading";

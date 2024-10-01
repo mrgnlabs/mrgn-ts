@@ -183,6 +183,7 @@ function crossbarPayloadToOraclePricePerFeedHash(payload: CrossbarSimulatePayloa
 }
 
 function crossbarFeedResultToOraclePrice(feedResponse: FeedResponse): OraclePrice {
+  console.log("feedResponse", feedResponse);
   let medianPrice = new BigNumber(median(feedResponse.results));
 
   const priceRealtime = {
@@ -207,6 +208,7 @@ function crossbarFeedResultToOraclePrice(feedResponse: FeedResponse): OraclePric
 }
 
 function stringifyOraclePrice(oraclePrice: OraclePrice): OraclePriceString {
+  console.log("oraclePrice", oraclePrice);
   return {
     priceRealtime: {
       price: oraclePrice.priceRealtime.price.toString(),

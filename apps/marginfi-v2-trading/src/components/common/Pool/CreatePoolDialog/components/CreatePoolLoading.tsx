@@ -15,7 +15,7 @@ import {
 } from "@mrgnlabs/marginfi-client-v2";
 import { cn } from "@mrgnlabs/mrgn-utils";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
-import { useConnection } from "~/hooks/useConnection";
+import { useConnection } from "~/hooks/use-connection";
 import {
   Keypair,
   Message,

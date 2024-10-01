@@ -5,7 +5,7 @@ import Image from "next/image";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { LendingModes } from "@mrgnlabs/mrgn-utils";
 
-import { cn } from "~/utils";
+import { cn } from "@mrgnlabs/mrgn-utils";
 
 type SelectedBankItemProps = {
   bank: ExtendedBankInfo;

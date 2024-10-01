@@ -4,7 +4,7 @@ import { IconArrowLeft } from "@tabler/icons-react";
 
 import { Desktop, Mobile } from "@mrgnlabs/mrgn-utils";
 
-import { useIsMobile } from "~/hooks/useIsMobile";
+import { useIsMobile } from "~/hooks/use-is-mobile";
 import { GroupData } from "~/store/tradeStore";
 
 import { TradingBox } from "./TradingBox";

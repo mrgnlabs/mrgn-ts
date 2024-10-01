@@ -5,10 +5,9 @@ import { Swiper, SwiperSlide, useSwiper } from "swiper/react";
 import { Autoplay } from "swiper/modules";
 
 import { ActionBox } from "@mrgnlabs/mrgn-ui";
-import { capture, LendingModes } from "@mrgnlabs/mrgn-utils";
+import { capture, LendingModes, cn } from "@mrgnlabs/mrgn-utils";
 import { ExtendedBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { cn } from "~/utils";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
 import { IconArrowRight } from "~/components/ui/icons";

@@ -1,4 +1,4 @@
-import { cn } from "~/utils";
+import { cn } from "@mrgnlabs/mrgn-utils";
 
 import { IconMrgn } from "~/components/ui/icons";
 

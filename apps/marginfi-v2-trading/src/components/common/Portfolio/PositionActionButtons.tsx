@@ -8,7 +8,7 @@ import { Transaction, VersionedTransaction } from "@solana/web3.js";
 import { MultiStepToastHandle, cn, extractErrorString, capture } from "@mrgnlabs/mrgn-utils";
 import { ActiveBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { useConnection } from "~/hooks/useConnection";
+import { useConnection } from "~/hooks/use-connection";
 import { useTradeStore, useUiStore } from "~/store";
 import { GroupData } from "~/store/tradeStore";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";

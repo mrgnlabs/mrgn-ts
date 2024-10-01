@@ -1,5 +1,4 @@
 import { create, StateCreator } from "zustand";
-import { persist } from "zustand/middleware";
 
 interface WalletState {
   // State
@@ -12,11 +11,7 @@ interface WalletState {
 }
 
 function createWalletStore() {
-  return create<WalletState>()(
-    persist(stateCreator, {
-      name: "walletStore",
-    })
-  );
+  return create<WalletState>(stateCreator);
 }
 
 const stateCreator: StateCreator<WalletState, [], []> = (set, get) => ({

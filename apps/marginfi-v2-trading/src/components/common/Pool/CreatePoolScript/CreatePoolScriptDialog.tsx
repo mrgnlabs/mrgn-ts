@@ -9,7 +9,7 @@ import { IconPlus } from "@tabler/icons-react";
 import { PublicKey } from "@solana/web3.js";
 
 import { useTradeStore } from "~/store";
-import { useIsMobile } from "~/hooks/useIsMobile";
+import { useIsMobile } from "~/hooks/use-is-mobile";
 
 import { Dialog, DialogContent, DialogTrigger } from "~/components/ui/dialog";
 import { Button } from "~/components/ui/button";

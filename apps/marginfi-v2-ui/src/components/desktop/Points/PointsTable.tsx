@@ -15,7 +15,7 @@ import {
 import { groupedNumberFormatter, shortenAddress } from "@mrgnlabs/mrgn-common";
 
 import { useConnection } from "~/hooks/use-connection";
-import { cn } from "~/utils";
+import { cn } from "@mrgnlabs/mrgn-utils";
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table";
 import { Button } from "~/components/ui/button";

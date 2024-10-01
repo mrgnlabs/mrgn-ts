@@ -8,11 +8,12 @@ import { motion, useAnimate } from "framer-motion";
 import { IconPlus, IconCopy, IconCheck } from "@tabler/icons-react";
 import { CopyToClipboard } from "react-copy-to-clipboard";
 import { Wallet } from "@mrgnlabs/mrgn-ui";
-import { useConnection, cn } from "@mrgnlabs/mrgn-utils";
+import { cn } from "@mrgnlabs/mrgn-utils";
 
 import { useTradeStore } from "~/store";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
-import { useIsMobile } from "~/hooks/useIsMobile";
+import { useIsMobile } from "~/hooks/use-is-mobile";
+import { useConnection } from "~/hooks/use-connection";
 
 import { CreatePoolScriptDialog } from "../Pool/CreatePoolScript";
 import { CreatePoolSoon } from "../Pool/CreatePoolSoon";

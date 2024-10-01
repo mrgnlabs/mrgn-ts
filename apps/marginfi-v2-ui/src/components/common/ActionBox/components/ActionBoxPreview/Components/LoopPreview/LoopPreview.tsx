@@ -4,7 +4,7 @@ import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { LoopingOptions, ActionMethod } from "@mrgnlabs/mrgn-utils";
 
 import { useMrgnlendStore } from "~/store";
-import { cn } from "~/utils";
+import { cn } from "@mrgnlabs/mrgn-utils";
 
 import { useLoopingPreview } from "./useLoopingPreview";
 

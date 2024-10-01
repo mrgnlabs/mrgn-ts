@@ -6,7 +6,7 @@ import { Desktop, Mobile } from "@mrgnlabs/mrgn-utils";
 import { useDebounce } from "@uidotdev/usehooks";
 
 import { useTradeStore } from "~/store";
-import { useIsMobile } from "~/hooks/useIsMobile";
+import { useIsMobile } from "~/hooks/use-is-mobile";
 
 import { PoolSearchDefault, PoolSearchDialog } from "./components/";
 
