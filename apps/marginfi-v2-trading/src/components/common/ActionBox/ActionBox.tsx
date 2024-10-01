@@ -221,7 +221,7 @@ export const ActionBox = ({
 
   const executeLendingActionCb = React.useCallback(
     async ({
-      mfiClient,
+      marginfiClient,
       actionType: currentAction,
       bank,
       amount: borrowOrLendAmount,
@@ -233,7 +233,7 @@ export const ActionBox = ({
       setIsLoading(true);
 
       const txnSig = await executeLendingAction({
-        mfiClient,
+        marginfiClient,
         actionType: currentAction,
         bank,
         amount: borrowOrLendAmount,
@@ -369,7 +369,7 @@ export const ActionBox = ({
 
     const action = async () => {
       const params = {
-        mfiClient: activeGroup.client,
+        marginfiClient: activeGroup.client,
         actionType: actionMode,
         bank: selectedBank,
         amount,

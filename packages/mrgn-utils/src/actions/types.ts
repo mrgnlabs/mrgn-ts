@@ -2,7 +2,7 @@ import { BN } from "@coral-xyz/anchor";
 import { QuoteResponse } from "@jup-ag/api";
 import { QuoteResponseMeta } from "@jup-ag/react-hook";
 import { WalletContextState } from "@solana/wallet-adapter-react";
-import { Connection, PublicKey, VersionedTransaction } from "@solana/web3.js";
+import { Connection, PublicKey, Transaction, VersionedTransaction } from "@solana/web3.js";
 import * as solanaStakePool from "@solana/spl-stake-pool";
 import BigNumber from "bignumber.js";
 
@@ -59,6 +59,16 @@ export interface LstData {
   validatorList: PublicKey[];
 }
 
+export interface ActionTxns {
+  actionTxn: VersionedTransaction | Transaction | null;
+  additionalTxns: (VersionedTransaction | Transaction)[];
+}
+
+export interface RepayCollatActionTxns extends ActionTxns {
+  actionQuote: QuoteResponse | null;
+  lastValidBlockHeight?: number;
+}
+
 export type RepayWithCollatOptions = {
   repayCollatQuote: QuoteResponse;
   feedCrankTxs: VersionedTransaction[];
@@ -78,18 +88,15 @@ export type LoopingOptions = {
 };
 
 export type MarginfiActionParams = {
-  mfiClient: MarginfiClient | null;
+  marginfiClient: MarginfiClient | null;
   bank: ExtendedBankInfo;
   actionType: ActionType;
   amount: number;
   nativeSolBalance: number;
   marginfiAccount: MarginfiAccountWrapper | null;
-  actionTxns?: {
-    actionTxn: VersionedTransaction | null;
-    feedCrankTxs: VersionedTransaction[];
-  };
-  repayWithCollatOptions?: RepayWithCollatOptions;
-  loopingOptions?: LoopingOptions;
+  actionTxns?: ActionTxns;
+  repayWithCollatOptions?: RepayWithCollatOptions; // deprecated
+  loopingOptions?: LoopingOptions; // deprecated
   walletContextState?: WalletContextState | WalletContextStateOverride;
   priorityFee?: number;
   theme?: "light" | "dark";

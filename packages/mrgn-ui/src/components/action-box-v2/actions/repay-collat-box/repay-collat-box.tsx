@@ -6,20 +6,23 @@ import {
   AccountSummary,
   computeAccountSummary,
   DEFAULT_ACCOUNT_SUMMARY,
+  ActiveBankInfo,
 } from "@mrgnlabs/marginfi-v2-ui-state";
-import { ActionMethod, PreviousTxn, showErrorToast } from "@mrgnlabs/mrgn-utils";
+import { ActionMethod, MarginfiActionParams, PreviousTxn, showErrorToast } from "@mrgnlabs/mrgn-utils";
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 
 import { ActionButton, ActionMessage, ActionSettingsButton } from "~/components/action-box-v2/components";
 import { useActionBoxStore } from "~/components/action-box-v2/store";
 import { useActionAmounts, usePollBlockHeight } from "~/components/action-box-v2/hooks";
 
-import { checkActionAvailable } from "./utils";
+import { checkActionAvailable, handleExecuteRepayCollatAction } from "./utils";
 import { Collateral, ActionInput, Preview } from "./components";
 import { useRepayCollatBoxStore } from "./store";
 import { useRepayCollatSimulation } from "./hooks";
 import { LSTDialog, LSTDialogVariants } from "~/components/LSTDialog";
 import { CircularProgress } from "~/components/ui/circular-progress";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
+import { IconInfoCircle } from "@tabler/icons-react";
 
 // error handling
 export type RepayCollatBoxProps = {
@@ -100,7 +103,10 @@ export const RepayCollatBox = ({
     state.setIsLoading,
   ]);
 
-  const { isRefreshTxn } = usePollBlockHeight(marginfiClient?.provider.connection, actionTxns.lastValidBlockHeight);
+  const { isRefreshTxn, blockProgress } = usePollBlockHeight(
+    marginfiClient?.provider.connection,
+    actionTxns.lastValidBlockHeight
+  );
 
   React.useEffect(() => {
     return () => {
@@ -180,14 +186,65 @@ export const RepayCollatBox = ({
   );
 
   const handleRepayCollatAction = React.useCallback(async () => {
-    console.log("handleRepayCollatAction");
+    if (!selectedBank || !amount) {
+      return;
+    }
+
+    const action = async () => {
+      const params = {
+        marginfiClient,
+        actionType: ActionType.RepayCollat,
+        bank: selectedBank,
+        amount,
+        nativeSolBalance,
+        marginfiAccount: selectedAccount,
+        actionTxns,
+      } as MarginfiActionParams;
+
+      await handleExecuteRepayCollatAction({
+        params,
+        captureEvent: (event, properties) => {
+          captureEvent && captureEvent(event, properties);
+        },
+        setIsComplete: (txnSigs) => {
+          onComplete({
+            txn: txnSigs.pop() ?? "",
+            txnType: "LEND",
+            lendingOptions: {
+              amount: amount,
+              type: ActionType.RepayCollat,
+              bank: selectedBank as ActiveBankInfo,
+            },
+          });
+        },
+        setIsError: () => {},
+        setIsLoading: (isLoading) => setIsLoading(isLoading),
+      });
+    };
+
+    await action();
+    setAmountRaw("");
   }, []);
 
   return (
     <>
-      <div className="absolute top-5 right-4">
-        <CircularProgress size={18} strokeWidth={3} value={20} />
-      </div>
+      {actionTxns.lastValidBlockHeight && blockProgress !== 0 && (
+        <div className="absolute top-5 right-4 z-50">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger>
+                <CircularProgress size={18} strokeWidth={3} value={blockProgress * 100} />
+              </TooltipTrigger>
+              <TooltipContent side="left">
+                <div className="space-y-2">
+                  <p>Your transaction is ready for execution.</p>
+                  <p>Once the spinner reaches 100%, if not processed, it will refresh to fetch updated quotes.</p>
+                </div>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+      )}
       <div className="mb-6">
         <ActionInput
           banks={banks}

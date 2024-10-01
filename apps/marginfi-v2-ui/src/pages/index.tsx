@@ -113,7 +113,6 @@ export default function HomePage() {
                 <ActionBox.BorrowLend
                   useProvider={true}
                   lendProps={{
-                    banks: extendedBankInfos,
                     connected: connected,
                     walletContextState: walletContextState,
                     onComplete: (previousTxn) => {
@@ -154,7 +153,6 @@ export default function HomePage() {
               <ActionBox.BorrowLend
                 useProvider={true}
                 lendProps={{
-                  banks: extendedBankInfos,
                   connected: connected,
                   walletContextState: walletContextState,
                   onComplete: (previousTxn) => {

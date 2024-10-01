@@ -7,6 +7,7 @@ import {
   ActionMethod,
   calculateMaxRepayableCollateral,
   DYNAMIC_SIMULATION_ERRORS,
+  RepayCollatActionTxns,
   STATIC_SIMULATION_ERRORS,
   usePrevious,
 } from "@mrgnlabs/mrgn-utils";
@@ -14,7 +15,6 @@ import { AccountSummary, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state
 
 import { useActionBoxStore } from "../../../store";
 import { calculateRepayCollateral, calculateSummary, getSimulationResult } from "../utils";
-import { ActionTxns } from "../store/repay-collat-store";
 
 type RepayCollatSimulationProps = {
   debouncedAmount: number;
@@ -23,15 +23,12 @@ type RepayCollatSimulationProps = {
   accountSummary?: AccountSummary;
   selectedBank: ExtendedBankInfo | null;
   selectedSecondaryBank: ExtendedBankInfo | null;
-  actionTxns: {
-    actionTxn: VersionedTransaction | null;
-    additionalTxns: (VersionedTransaction | Transaction)[];
-  };
+  actionTxns: RepayCollatActionTxns;
   simulationResult: SimulationResult | null;
   isRefreshTxn: boolean;
 
   setSimulationResult: (simulationResult: SimulationResult | null) => void;
-  setActionTxns: (actionTxns: ActionTxns) => void;
+  setActionTxns: (actionTxns: RepayCollatActionTxns) => void;
   setErrorMessage: (error: ActionMethod) => void;
   setRepayAmount: (repayAmount: number) => void;
   setIsLoading: (isLoading: boolean) => void;
@@ -93,10 +90,11 @@ export function useRepayCollatSimulation({
           simulationResult: result ?? undefined,
           bank: selectedBank,
           accountSummary: summary,
+          actionTxns: actionTxns,
         });
       }
     },
-    [selectedAccount, selectedBank]
+    [selectedAccount, selectedBank, actionTxns]
   );
 
   const fetchRepayTxn = React.useCallback(
@@ -177,23 +175,23 @@ export function useRepayCollatSimulation({
     }
   }, [selectedBank, selectedSecondaryBank, slippageBps, setErrorMessage, setMaxAmountCollateral]);
 
-  const prevIsRefreshTxn = usePrevious(isRefreshTxn);
-
   React.useEffect(() => {
-    const isChanged = prevIsRefreshTxn && isRefreshTxn;
-
     if (isRefreshTxn) {
       setActionTxns({ actionTxn: null, additionalTxns: [], actionQuote: null, lastValidBlockHeight: undefined });
       setSimulationResult(null);
     }
-  }, [isRefreshTxn, prevIsRefreshTxn]);
+  }, [isRefreshTxn]);
 
   React.useEffect(() => {
     // only simulate when amount changes
     if (prevDebouncedAmount !== debouncedAmount) {
       fetchRepayTxn(debouncedAmount ?? 0);
     }
-  }, [prevDebouncedAmount, debouncedAmount, fetchRepayTxn]);
+
+    if (isRefreshTxn) {
+      fetchRepayTxn(debouncedAmount ?? 0);
+    }
+  }, [prevDebouncedAmount, isRefreshTxn, debouncedAmount, fetchRepayTxn]);
 
   React.useEffect(() => {
     handleSimulation([

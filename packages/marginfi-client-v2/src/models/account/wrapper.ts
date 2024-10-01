@@ -482,7 +482,8 @@ class MarginfiAccountWrapper {
     feedCrankTxs: VersionedTransaction[];
     addressLookupTableAccounts: AddressLookupTableAccount[];
   }> {
-    const blockhash = blockhashArg ?? (await this._program.provider.connection.getLatestBlockhash()).blockhash;
+    const blockhash =
+      blockhashArg ?? (await this._program.provider.connection.getLatestBlockhash("confirmed")).blockhash;
     const setupIxs = await this.makeSetupIx([borrowBankAddress, depositBankAddress]);
     const cuRequestIxs = this.makeComputeBudgetIx();
     const priorityFeeIx = this.makePriorityFeeIx(priorityFeeUi);
@@ -670,7 +671,7 @@ class MarginfiAccountWrapper {
     ]);
 
     // isTxnSplit forced set to true as we're always splitting now
-    const { blockhash } = await this._program.provider.connection.getLatestBlockhash();
+    const { blockhash } = await this._program.provider.connection.getLatestBlockhash("confirmed");
     const message = new TransactionMessage({
       payerKey: this.client.wallet.publicKey,
       recentBlockhash: blockhash,
@@ -904,7 +905,7 @@ class MarginfiAccountWrapper {
 
     const {
       value: { blockhash },
-    } = await this._program.provider.connection.getLatestBlockhashAndContext();
+    } = await this._program.provider.connection.getLatestBlockhashAndContext("confirmed");
 
     let feedCrankTxs: VersionedTransaction[] = [];
 
@@ -984,7 +985,7 @@ class MarginfiAccountWrapper {
 
     const {
       value: { blockhash },
-    } = await this._program.provider.connection.getLatestBlockhashAndContext();
+    } = await this._program.provider.connection.getLatestBlockhashAndContext("confirmed");
 
     let feedCrankTxs: VersionedTransaction[] = [];
 
@@ -1122,7 +1123,8 @@ class MarginfiAccountWrapper {
 
     const ixs = [...beginFlashLoanIx.instructions, ...args.ixs, ...endFlashLoanIx.instructions];
 
-    const blockhash = args.blockhash ?? (await this._program.provider.connection.getLatestBlockhash()).blockhash;
+    const blockhash =
+      args.blockhash ?? (await this._program.provider.connection.getLatestBlockhash("confirmed")).blockhash;
     const message = new TransactionMessage({
       payerKey: this.client.wallet.publicKey,
       recentBlockhash: blockhash,

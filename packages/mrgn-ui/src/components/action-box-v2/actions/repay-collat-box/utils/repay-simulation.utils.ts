@@ -12,10 +12,13 @@ import {
   ActionPreview,
 } from "~/components/action-box-v2/utils";
 
+import { RepayCollatActionTxns } from "../store/repay-collat-store";
+
 export interface CalculatePreviewProps {
   simulationResult?: SimulationResult;
   bank: ExtendedBankInfo;
   accountSummary: AccountSummary;
+  actionTxns: RepayCollatActionTxns;
 }
 
 export interface SimulateActionProps {
@@ -24,14 +27,19 @@ export interface SimulateActionProps {
   bank: ExtendedBankInfo;
 }
 
-export function calculateSummary({ simulationResult, bank, accountSummary }: CalculatePreviewProps): ActionSummary {
+export function calculateSummary({
+  simulationResult,
+  bank,
+  accountSummary,
+  actionTxns,
+}: CalculatePreviewProps): ActionSummary {
   let simulationPreview: SimulatedActionPreview | null = null;
 
   if (simulationResult) {
     simulationPreview = calculateSimulatedActionPreview(simulationResult, bank);
   }
 
-  const actionPreview = calculateActionPreview(bank, accountSummary);
+  const actionPreview = calculateActionPreview(bank, accountSummary, actionTxns);
 
   return {
     actionPreview,
@@ -53,7 +61,11 @@ export const getSimulationResult = async (props: SimulateActionProps) => {
   return { simulationResult, actionMethod };
 };
 
-function calculateActionPreview(bank: ExtendedBankInfo, accountSummary: AccountSummary): ActionPreview {
+function calculateActionPreview(
+  bank: ExtendedBankInfo,
+  accountSummary: AccountSummary,
+  actionTxns: RepayCollatActionTxns
+): ActionPreview {
   const positionAmount = bank?.isActive ? bank.position.amount : 0;
   const health = accountSummary.balance && accountSummary.healthFactor ? accountSummary.healthFactor : 1;
   const liquidationPrice =
@@ -66,11 +78,16 @@ function calculateActionPreview(bank: ExtendedBankInfo, accountSummary: AccountS
     bank.info.state.mintDecimals
   );
 
+  const priceImpactPct = actionTxns.actionQuote?.priceImpactPct;
+  const slippageBps = actionTxns.actionQuote?.slippageBps;
+
   return {
     positionAmount,
     health,
     liquidationPrice,
     bankCap,
+    priceImpactPct,
+    slippageBps,
   } as ActionPreview;
 }
 

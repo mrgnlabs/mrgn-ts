@@ -769,7 +769,7 @@ class MarginfiClient {
     let lastValidBlockHeight: number;
 
     try {
-      const getLatestBlockhashAndContext = await connection.getLatestBlockhashAndContext();
+      const getLatestBlockhashAndContext = await connection.getLatestBlockhashAndContext("confirmed");
 
       minContextSlot = getLatestBlockhashAndContext.context.slot - 4;
       blockhash = getLatestBlockhashAndContext.value.blockhash;
@@ -930,7 +930,7 @@ class MarginfiClient {
     let lastValidBlockHeight: number;
 
     try {
-      const getLatestBlockhashAndContext = await connection.getLatestBlockhashAndContext();
+      const getLatestBlockhashAndContext = await connection.getLatestBlockhashAndContext("confirmed");
 
       minContextSlot = getLatestBlockhashAndContext.context.slot - 4;
       blockhash = getLatestBlockhashAndContext.value.blockhash;
@@ -1109,7 +1109,7 @@ class MarginfiClient {
     let blockhash: string;
 
     try {
-      const getLatestBlockhashAndContext = await connection.getLatestBlockhashAndContext();
+      const getLatestBlockhashAndContext = await connection.getLatestBlockhashAndContext("confirmed");
       blockhash = getLatestBlockhashAndContext.value.blockhash;
 
       for (const transaction of transactions) {
