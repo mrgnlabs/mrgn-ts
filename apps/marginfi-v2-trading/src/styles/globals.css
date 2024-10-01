@@ -140,6 +140,30 @@ input::-webkit-inner-spin-button {
   margin: 0;
 }
 
+#MAYAN_SWAP_PV_ROOT {
+  padding-left: 0px;
+  padding-right: 0px;
+  height: auto;
+  width: auto !important;
+  font-family: "Aeonik Pro";
+}
+
+#MAYAN_SWAP_PV_ROOT .MuiButtonBase-root.MuiButton-fullWidth {
+  font-family: "Aeonik Pro";
+  background: hsl(var(--secondary-foreground));
+  color: hsl(var(--secondary));
+  border-radius: 6px;
+  height: 43px;
+}
+
+#MAAYAN_SWAP_PV_ROOT .MuiBox-root .MuiLink-underlineAlways {
+  opacity: 0;
+}
+
+#MAYAN_SWAP_PV_ROOT .MuiTypography-body1 {
+  color: hsl(var(--foreground));
+}
+
 /* Jupiter Terminal Overrides */
 #jupiter-terminal a[href^="https://jup.ag/"]
 {
