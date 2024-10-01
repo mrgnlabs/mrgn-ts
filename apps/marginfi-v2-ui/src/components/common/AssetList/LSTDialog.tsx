@@ -3,8 +3,6 @@ import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 
-import { getTokenImageURL } from "@mrgnlabs/mrgn-utils";
-
 import { useMrgnlendStore } from "~/store";
 
 import { Dialog, DialogContent } from "~/components/ui/dialog";
@@ -28,7 +26,7 @@ const LSTDialog = ({ variant, open, onClose }: LSTDialogProps) => {
     const bank = sortedBanks.find((bank) => bank.meta.tokenSymbol === variant);
     if (!bank) return null;
 
-    return getTokenImageURL(bank.meta.tokenSymbol);
+    return bank.meta.tokenLogoUri;
   }, [variant, sortedBanks]);
 
   return (

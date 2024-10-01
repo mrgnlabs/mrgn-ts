@@ -3,10 +3,9 @@ import React from "react";
 import Confetti from "react-confetti";
 import { IconConfetti } from "@tabler/icons-react";
 import { useWindowSize } from "@uidotdev/usehooks";
-
+import { cn } from "@mrgnlabs/mrgn-utils";
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { cn } from "~/utils";
 import { useUiStore } from "~/store";
 import { useIsMobile } from "~/hooks/useIsMobile";
 

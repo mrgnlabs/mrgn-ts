@@ -5,14 +5,14 @@ import Image from "next/image";
 import { IconMinus, IconX, IconPlus, IconLoader2 } from "@tabler/icons-react";
 import { Transaction, VersionedTransaction } from "@solana/web3.js";
 
-import { MultiStepToastHandle } from "@mrgnlabs/mrgn-utils";
+import { MultiStepToastHandle, cn, extractErrorString, capture } from "@mrgnlabs/mrgn-utils";
 import { ActiveBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { useConnection } from "~/hooks/useConnection";
 import { useTradeStore, useUiStore } from "~/store";
 import { GroupData } from "~/store/tradeStore";
-import { useWalletContext } from "~/hooks/useWalletContext";
-import { calculateClosePositions, cn, extractErrorString, getTokenImageURL, capture } from "~/utils";
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
+import { calculateClosePositions } from "~/utils";
 
 import { ActionBoxDialog } from "~/components/common/ActionBox";
 import { Button } from "~/components/ui/button";
@@ -39,7 +39,7 @@ export const PositionActionButtons = ({
   activeGroup,
 }: PositionActionButtonsProps) => {
   const { connection } = useConnection();
-  const { wallet } = useWalletContext();
+  const { wallet } = useWallet();
   const [platformFeeBps] = useUiStore((state) => [state.platformFeeBps]);
   const [actionTransaction, setActionTransaction] = React.useState<{
     closeTxn: VersionedTransaction | Transaction;
@@ -306,7 +306,7 @@ export const PositionActionButtons = ({
                 {activeGroup.pool.token && (
                   <Image
                     className="rounded-full w-9 h-9"
-                    src={getTokenImageURL(activeGroup.pool.token.info.state.mint.toString())}
+                    src={activeGroup.pool.token.meta.tokenLogoUri}
                     alt={(activeGroup.pool.token?.meta.tokenSymbol || "Token") + "  logo"}
                     width={36}
                     height={36}

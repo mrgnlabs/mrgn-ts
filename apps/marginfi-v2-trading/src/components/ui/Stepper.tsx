@@ -2,7 +2,7 @@ import React from "react";
 import { cva } from "class-variance-authority";
 import { Check, Loader2, X } from "lucide-react";
 
-import { cn } from "~/utils";
+import { cn } from "@mrgnlabs/mrgn-utils";
 
 import { Button } from "./button";
 import { Separator } from "./separator";

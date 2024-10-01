@@ -1,4 +1,4 @@
-import { cn } from "~/utils/themeUtils";
+import { cn } from "@mrgnlabs/mrgn-utils";
 
 export type IconProps = {
   size?: number;

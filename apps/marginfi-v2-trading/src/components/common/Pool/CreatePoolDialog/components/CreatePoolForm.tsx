@@ -6,7 +6,7 @@ import Link from "next/link";
 import { IconChevronLeft, IconUpload, IconInfoCircle, IconLoader2 } from "@tabler/icons-react";
 import { UseFormReturn } from "react-hook-form";
 
-import { cn } from "~/utils";
+import { cn } from "@mrgnlabs/mrgn-utils";
 
 import { Form, FormControl, FormField, FormItem, FormLabel } from "~/components/ui/form";
 import { Button } from "~/components/ui/button";

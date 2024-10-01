@@ -1,9 +1,8 @@
 import React, { useRef } from "react";
 import { ActionType, AccountSummary, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { MarginfiAccountWrapper, MarginfiClient, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
-import { RepayWithCollatOptions, ActionMethod, handleSimulationError } from "@mrgnlabs/mrgn-utils";
+import { RepayWithCollatOptions, ActionMethod, handleSimulationError, usePrevious } from "@mrgnlabs/mrgn-utils";
 
-import { usePrevious } from "~/utils";
 import { useAmountDebounce } from "~/hooks/useAmountDebounce";
 import { BorrowLendObject, calculateBorrowLend } from "~/store/actionBoxStore";
 

@@ -2,11 +2,11 @@ import React from "react";
 
 import { WSOL_MINT } from "@mrgnlabs/mrgn-common";
 import { ExtendedBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
+import { cn, computeBankRate } from "@mrgnlabs/mrgn-utils";
 
 import { LendingModes } from "~/types";
 import { useMrgnlendStore } from "~/store";
-import { cn, computeBankRate } from "~/utils";
-import { useWalletContext } from "~/hooks/useWalletContext";
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
 import { CommandEmpty, CommandGroup, CommandItem } from "~/components/ui/command";
 import { ActionBoxItem } from "~/components/common/ActionBox/components";
@@ -52,7 +52,7 @@ export const LendingTokensList = ({
   }, [activeGroup, tokensOverride]);
 
   const [searchQuery, setSearchQuery] = React.useState("");
-  const { connected } = useWalletContext();
+  const { connected } = useWallet();
 
   const calculateRate = React.useCallback(
     (bank: ExtendedBankInfo) => {

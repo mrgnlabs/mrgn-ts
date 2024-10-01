@@ -3,11 +3,10 @@ import React, { act } from "react";
 import { PublicKey } from "@solana/web3.js";
 
 import { ExtendedBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
-import { RepayType } from "@mrgnlabs/mrgn-utils";
+import { RepayType, computeBankRate } from "@mrgnlabs/mrgn-utils";
 
 import { GroupData } from "~/store/tradeStore";
 import { LendingModes } from "~/types";
-import { computeBankRate } from "~/utils";
 
 import { SelectedBankItem, TokenListWrapper } from "../SharedComponents";
 import { LendingTokensList, RepayCollatTokensList, LendingTokensTrigger } from "./Components";

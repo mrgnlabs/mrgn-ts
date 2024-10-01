@@ -11,8 +11,8 @@ import {
   shortenAddress,
 } from "@mrgnlabs/mrgn-common";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { cn } from "@mrgnlabs/mrgn-utils";
 
-import { getTokenImageURL, cn } from "~/utils";
 import { useTradeStore } from "~/store";
 
 import { Button } from "~/components/ui/button";
@@ -36,7 +36,7 @@ export const PoolCard = ({ groupData }: PoolCardProps) => {
               className="flex items-center gap-2 justify-between cursor-pointer"
             >
               <Image
-                src={getTokenImageURL(groupData.pool.token.info.state.mint.toBase58())}
+                src={groupData.pool.token.meta.tokenLogoUri}
                 width={48}
                 height={48}
                 alt={groupData.pool.token.meta.tokenName}

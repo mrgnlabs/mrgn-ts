@@ -7,8 +7,8 @@ import { IconExternalLink } from "@tabler/icons-react";
 import { QuoteResponse } from "@jup-ag/api";
 import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { shortenAddress } from "@mrgnlabs/mrgn-common";
+import { cn } from "@mrgnlabs/mrgn-utils";
 
-import { cn, getTokenImageURL } from "~/utils";
 import { PublicKey } from "@solana/web3.js";
 
 interface Props {
@@ -51,7 +51,7 @@ export const TradingScreen = ({
           </h3>
           <Image
             className="rounded-full w-9 h-9"
-            src={tokenBank?.info?.state?.mint && getTokenImageURL(new PublicKey(tokenBank.info.state.mint).toBase58())}
+            src={tokenBank.meta.tokenLogoUri}
             alt={(tokenBank.meta.tokenSymbol || "Token") + "  logo"}
             width={36}
             height={36}

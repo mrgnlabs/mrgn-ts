@@ -3,8 +3,8 @@ import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 
+import { IMAGE_CDN_URL } from "~/config/constants";
 import { useUiStore } from "~/store";
-import { getTokenImageURL } from "@mrgnlabs/mrgn-utils";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
 import { Button } from "~/components/ui/button";
@@ -36,7 +36,13 @@ export const AnnouncementsDialog = () => {
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle className="flex flex-col justify-center items-center gap-4">
-            <Image src={getTokenImageURL("RLB")} width={60} height={60} alt="RLB" className="rounded-full" />
+            <Image
+              src={`${IMAGE_CDN_URL}/RLBxxFkseAZ4RgJH3Sqn8jXxhmGoz9jWxDNJMh8pL7a.png`}
+              width={60}
+              height={60}
+              alt="RLB"
+              className="rounded-full"
+            />
             RLB Discontinued
           </DialogTitle>
         </DialogHeader>

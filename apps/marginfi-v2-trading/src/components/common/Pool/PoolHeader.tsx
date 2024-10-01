@@ -6,8 +6,7 @@ import Link from "next/link";
 import { IconExternalLink } from "@tabler/icons-react";
 
 import { numeralFormatter, tokenPriceFormatter, percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
-
-import { getTokenImageURL, cn } from "~/utils";
+import { cn } from "@mrgnlabs/mrgn-utils";
 
 import { PoolChart } from "~/components/common/Pool";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
@@ -75,7 +74,7 @@ export const PoolHeader = ({ groupData }: PoolHeaderProps) => {
       <div className="col-span-3">
         <div className="h-full flex flex-col justify-center text-center items-center gap-2">
           <Image
-            src={getTokenImageURL(groupData.pool.token.info.state.mint.toBase58())}
+            src={groupData.pool.token.meta.tokenLogoUri}
             width={72}
             height={72}
             className="rounded-full border"
@@ -135,7 +134,7 @@ export const PoolHeader = ({ groupData }: PoolHeaderProps) => {
               label={
                 <div className="flex items-center gap-2">
                   <Image
-                    src={getTokenImageURL(groupData.pool.token.info.state.mint.toBase58())}
+                    src={groupData.pool.token.meta.tokenLogoUri}
                     alt={groupData.pool.token.meta.tokenName}
                     width={24}
                     height={24}
@@ -155,7 +154,7 @@ export const PoolHeader = ({ groupData }: PoolHeaderProps) => {
               label={
                 <div className="flex items-center gap-2">
                   <Image
-                    src={getTokenImageURL(groupData.pool.quoteTokens[0].info.state.mint.toBase58())}
+                    src={groupData.pool.quoteTokens[0].meta.tokenLogoUri}
                     alt={groupData.pool.quoteTokens[0].meta.tokenName}
                     width={24}
                     height={24}
@@ -178,14 +177,14 @@ export const PoolHeader = ({ groupData }: PoolHeaderProps) => {
                   <div className="flex items-center">
                     <div className="flex items-center">
                       <Image
-                        src={getTokenImageURL(groupData.pool.token.info.state.mint.toBase58())}
+                        src={groupData.pool.token.meta.tokenLogoUri}
                         alt={groupData.pool.token.meta.tokenName}
                         width={24}
                         height={24}
                         className="rounded-full z-20"
                       />
                       <Image
-                        src={getTokenImageURL(groupData.pool.quoteTokens[0].info.state.mint.toBase58())}
+                        src={groupData.pool.quoteTokens[0].meta.tokenLogoUri}
                         alt={groupData.pool.quoteTokens[0].meta.tokenName}
                         width={24}
                         height={24}

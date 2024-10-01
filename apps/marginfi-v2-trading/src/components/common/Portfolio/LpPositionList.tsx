@@ -6,7 +6,6 @@ import Link from "next/link";
 import { numeralFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 import { Desktop, Mobile } from "@mrgnlabs/mrgn-utils";
 
-import { getTokenImageURL } from "~/utils";
 import { useTradeStore } from "~/store";
 
 import { LpActionButtons } from "~/components/common/Portfolio";
@@ -46,14 +45,14 @@ export const LpPositionList = () => {
                       >
                         <div className="flex shrink-0">
                           <Image
-                            src={getTokenImageURL(group.pool.token.info.state.mint.toBase58())}
+                            src={group.pool.token.meta.tokenLogoUri}
                             width={24}
                             height={24}
                             alt={group.pool.token.meta.tokenSymbol}
                             className="rounded-full shrink-0 z-20 bg-background"
                           />
                           <Image
-                            src={getTokenImageURL(group.pool.quoteTokens[0].info.state.mint.toBase58())}
+                            src={group.pool.quoteTokens[0].meta.tokenLogoUri}
                             width={24}
                             height={24}
                             alt={group.pool.quoteTokens[0].meta.tokenSymbol}
@@ -108,14 +107,14 @@ export const LpPositionList = () => {
                 >
                   <div className="flex shrink-0">
                     <Image
-                      src={getTokenImageURL(group.pool.token.info.state.mint.toBase58())}
+                      src={group.pool.token.meta.tokenLogoUri}
                       width={24}
                       height={24}
                       alt={group.pool.token.meta.tokenSymbol}
                       className="rounded-full shrink-0 z-20 bg-background"
                     />
                     <Image
-                      src={getTokenImageURL(group.pool.quoteTokens[0].info.state.mint.toBase58())}
+                      src={group.pool.quoteTokens[0].meta.tokenLogoUri}
                       width={24}
                       height={24}
                       alt={group.pool.quoteTokens[0].meta.tokenSymbol}

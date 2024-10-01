@@ -6,18 +6,27 @@ import { useRouter } from "next/router";
 
 import { ActionType, ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { numeralFormatter } from "@mrgnlabs/mrgn-common";
-import { ActionMethod, calculateLoopingParams, handleSimulationError, LoopingObject } from "@mrgnlabs/mrgn-utils";
+import {
+  ActionMethod,
+  calculateLoopingParams,
+  handleSimulationError,
+  LoopingObject,
+  cn,
+  capture,
+  extractErrorString,
+  usePrevious,
+} from "@mrgnlabs/mrgn-utils";
 import { MarginfiAccountWrapper, SimulationResult, computeMaxLeverage } from "@mrgnlabs/marginfi-client-v2";
 import { IconAlertTriangle, IconExternalLink, IconLoader2, IconSettings, IconWallet } from "@tabler/icons-react";
 import capitalize from "lodash/capitalize";
 import { useDebounce } from "@uidotdev/usehooks";
 
 import { TradeSide, checkLoopingActionAvailable, generateStats, simulateLooping } from "./tradingBox.utils";
-import { cn, capture, executeLeverageAction, extractErrorString, usePrevious } from "~/utils";
+import { executeLeverageAction } from "~/utils";
 import { useTradeStore, useUiStore } from "~/store";
 import { GroupData } from "~/store/tradeStore";
 import { WalletState } from "~/store/uiStore";
-import { useWalletContext } from "~/hooks/useWalletContext";
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { useConnection } from "~/hooks/useConnection";
 
 import { TokenCombobox } from "../TokenCombobox/TokenCombobox";
@@ -37,7 +46,7 @@ type TradingBoxProps = {
 
 export const TradingBox = ({ activeGroup, side = "long" }: TradingBoxProps) => {
   const router = useRouter();
-  const { walletContextState, wallet, connected } = useWalletContext();
+  const { walletContextState, wallet, connected } = useWallet();
   const { connection } = useConnection();
   const [tradeState, setTradeState] = React.useState<TradeSide>(side as TradeSide);
   const prevTradeState = usePrevious(tradeState);

@@ -5,9 +5,9 @@ import Link from "next/link";
 
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { tokenPriceFormatter, percentFormatter, usdFormatter, numeralFormatter } from "@mrgnlabs/mrgn-common";
+import { cn } from "@mrgnlabs/mrgn-utils";
 
 import { useTradeStore } from "~/store";
-import { getTokenImageURL, cn } from "~/utils";
 
 import { Button } from "~/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
@@ -24,7 +24,7 @@ export const PoolListItem = ({ groupData, last }: PoolListItemProps) => {
     <div className={cn("grid grid-cols-7 py-2 w-full items-center", !last && "border-b pb-3 mb-2")}>
       <div className="flex items-center gap-2">
         <Image
-          src={getTokenImageURL(groupData.pool.token.info.state.mint.toBase58())}
+          src={groupData.pool.token.meta.tokenLogoUri}
           alt={groupData.pool.token.meta.tokenSymbol}
           width={32}
           height={32}

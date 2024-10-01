@@ -3,9 +3,8 @@ import React from "react";
 import Image from "next/image";
 
 import { tokenPriceFormatter, numeralFormatter, percentFormatter } from "@mrgnlabs/mrgn-common";
+import { cn } from "@mrgnlabs/mrgn-utils";
 import { IconCommand, IconX } from "@tabler/icons-react";
-
-import { cn, getTokenImageURL } from "~/utils";
 
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "~/components/ui/command";
 import { Button } from "~/components/ui/button";
@@ -121,7 +120,7 @@ export const PoolSearchDefault = ({
                   >
                     <div className="flex items-center gap-3">
                       <Image
-                        src={getTokenImageURL(tokenBank.info.state.mint.toBase58())}
+                        src={tokenBank.meta.tokenLogoUri}
                         width={size === "sm" ? 28 : 32}
                         height={size === "sm" ? 28 : 32}
                         alt={tokenBank.meta.tokenSymbol}

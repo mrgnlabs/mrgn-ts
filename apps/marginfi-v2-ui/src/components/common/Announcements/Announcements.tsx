@@ -4,7 +4,7 @@ import Image from "next/image";
 import { Swiper, SwiperSlide, useSwiper } from "swiper/react";
 import { Autoplay } from "swiper/modules";
 
-import { getTokenImageURL, LendingModes } from "@mrgnlabs/mrgn-utils";
+import { LendingModes } from "@mrgnlabs/mrgn-utils";
 import { ExtendedBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { cn } from "~/utils";
@@ -114,7 +114,7 @@ export const Announcements = ({ items }: AnnouncementsProps) => {
                       }}
                     >
                       <Image
-                        src={getTokenImageURL(item.bank.meta.tokenSymbol)}
+                        src={item.bank.meta.tokenLogoUri}
                         alt={`${item.bank.meta.tokenSymbol} logo`}
                         width={24}
                         height={24}

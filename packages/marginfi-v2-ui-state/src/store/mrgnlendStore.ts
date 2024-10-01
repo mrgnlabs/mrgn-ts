@@ -214,8 +214,8 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
 
       const banks = stageTokens
         ? clientBanks.filter(
-          (bank) => bank.tokenSymbol && !stageTokens.find((a) => a.toLowerCase() == bank?.tokenSymbol?.toLowerCase())
-        )
+            (bank) => bank.tokenSymbol && !stageTokens.find((a) => a.toLowerCase() == bank?.tokenSymbol?.toLowerCase())
+          )
         : clientBanks;
 
       const birdEyeApiKey = args?.birdEyeApiKey ?? get().birdEyeApiKey;
@@ -311,7 +311,7 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
           }
 
           acc[0].push(makeExtendedBankInfo(tokenMetadata, bank, oraclePrice, emissionTokenPriceData, userData));
-          acc[1].push(makeExtendedBankMetadata(new PublicKey(bank.address), tokenMetadata));
+          acc[1].push(makeExtendedBankMetadata(bank, tokenMetadata));
 
           return acc;
         },

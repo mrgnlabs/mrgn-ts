@@ -112,12 +112,6 @@ function makeBankInfo(bank: Bank, oraclePrice: OraclePrice, emissionTokenData?: 
   if ((bank.emissionsActiveLending || bank.emissionsActiveBorrowing) && emissionTokenData) {
     const emissionsRateAmount = new BigNumber(nativeToUi(bank.emissionsRate, emissionTokenData.decimals));
 
-    // why are we multiplying emissionsRateAmount by emissionTokenData.price and then dividing by oracle price?
-    // this is causing discrepencies in the emission rate e.g 17% becomes 17.4xxxx
-
-    // const emissionsRateValue = emissionsRateAmount.times(emissionTokenData.price);
-    // const emissionsRateAdditionalyApy = emissionsRateValue.div(getPriceWithConfidence(oraclePrice, false).price);
-
     emissionsRate = emissionsRateAmount.toNumber();
 
     if (bank.emissionsActiveBorrowing) {
@@ -201,15 +195,6 @@ export async function makeExtendedBankEmission(
     let emissions = Emissions.Inactive;
     if ((rawBank.emissionsActiveLending || rawBank.emissionsActiveBorrowing) && emissionTokenData) {
       const emissionsRateAmount = new BigNumber(nativeToUi(rawBank.emissionsRate, emissionTokenData.decimals));
-
-      // why are we multiplying emissionsRateAmount by emissionTokenData.price and then dividing by oracle price?
-      // this is causing discrepencies in the emission rate e.g 17% becomes 17.4xxxx
-
-      // const emissionsRateValue = emissionsRateAmount.times(emissionTokenData.price);
-      // const emissionsRateAdditionalyApy = emissionsRateValue.div(
-      //   getPriceWithConfidence(bank.info.oraclePrice, false).price
-      // );
-
       emissionsRate = emissionsRateAmount.toNumber();
 
       if (rawBank.emissionsActiveBorrowing) {
@@ -267,12 +252,12 @@ export async function makeEmissionsPriceMap(
   return tokenMap;
 }
 
-function makeExtendedBankMetadata(bankAddress: PublicKey, tokenMetadata: TokenMetadata): ExtendedBankMetadata {
+function makeExtendedBankMetadata(bank: Bank, tokenMetadata: TokenMetadata): ExtendedBankMetadata {
   return {
-    address: bankAddress,
+    address: bank.address,
     tokenSymbol: tokenMetadata.symbol,
     tokenName: tokenMetadata.name,
-    tokenLogoUri: tokenMetadata.icon,
+    tokenLogoUri: `https://storage.googleapis.com/mrgn-public/mrgn-token-icons/${bank.mint.toBase58()}.png`,
   };
 }
 
@@ -288,7 +273,7 @@ function makeExtendedBankInfo(
   }
 ): ExtendedBankInfo {
   // Aggregate user-agnostic bank info
-  const meta = makeExtendedBankMetadata(bank.address, tokenMetadata);
+  const meta = makeExtendedBankMetadata(bank, tokenMetadata);
   const bankInfo = makeBankInfo(bank, oraclePrice, emissionTokenPrice);
   let state: BankInfo = {
     rawBank: bank,
@@ -733,7 +718,7 @@ interface ExtendedBankMetadata {
   address: PublicKey;
   tokenSymbol: string;
   tokenName: string;
-  tokenLogoUri?: string;
+  tokenLogoUri: string;
 }
 
 interface BankState {

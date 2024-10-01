@@ -1,9 +1,9 @@
 import React from "react";
 
 import { IconInfoCircle } from "@tabler/icons-react";
+import { cn } from "@mrgnlabs/mrgn-utils";
 
 import { useUiStore } from "~/store";
-import { cn } from "~/utils";
 
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { Button } from "~/components/ui/button";

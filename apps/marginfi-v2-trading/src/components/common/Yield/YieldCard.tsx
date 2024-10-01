@@ -6,10 +6,11 @@ import Image from "next/image";
 import { IconArrowRight } from "@tabler/icons-react";
 import { aprToApy, numeralFormatter, percentFormatter, usdFormatter, USDC_MINT } from "@mrgnlabs/mrgn-common";
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
+import { cn, capture } from "@mrgnlabs/mrgn-utils";
 
 import { useTradeStore } from "~/store";
 import { ArenaBank, GroupData } from "~/store/tradeStore";
-import { getTokenImageURL, cn, getGroupPositionInfo, capture } from "~/utils";
+import { getGroupPositionInfo } from "~/utils";
 
 import { ActionBoxDialog } from "~/components/common/ActionBox";
 import { Button } from "~/components/ui/button";
@@ -45,14 +46,14 @@ export const YieldCard = ({ group }: YieldCardProps) => {
       >
         <div className="flex items-center -space-x-2.5">
           <Image
-            src={getTokenImageURL(group.pool.token.info.state.mint.toBase58())}
+            src={group.pool.token.meta.tokenLogoUri}
             alt={group.pool.token.meta.tokenSymbol}
             width={24}
             height={24}
             className="rounded-full bg-background z-10"
           />
           <Image
-            src={getTokenImageURL(collateralBank.info.state.mint.toBase58())}
+            src={collateralBank.meta.tokenLogoUri}
             alt={collateralBank.meta.tokenSymbol}
             width={24}
             height={24}
@@ -102,7 +103,7 @@ const YieldItem = ({
     <div className={cn("items-center", className)}>
       <div className="flex items-center gap-2">
         <Image
-          src={getTokenImageURL(bank.info.state.mint.toBase58())}
+          src={bank.meta.tokenLogoUri}
           alt={bank.meta.tokenSymbol}
           width={24}
           height={24}

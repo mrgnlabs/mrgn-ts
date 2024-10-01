@@ -7,9 +7,9 @@ import { Desktop, Mobile } from "@mrgnlabs/mrgn-utils";
 
 import { useTradeStore, useUiStore } from "~/store";
 import { GroupData, TradePoolFilterStates } from "~/store/tradeStore";
-import { cn } from "~/utils";
+import { cn } from "@mrgnlabs/mrgn-utils";
 import { useIsMobile } from "~/hooks/useIsMobile";
-import { useWalletContext } from "~/hooks/useWalletContext";
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
 import { PageHeading } from "~/components/common/PageHeading";
 import { ActionComplete } from "~/components/common/ActionComplete";
@@ -41,7 +41,7 @@ export default function PortfolioPage() {
   ]);
   const [previousTxn] = useUiStore((state) => [state.previousTxn]);
   const isMobile = useIsMobile();
-  const { connected } = useWalletContext();
+  const { connected } = useWallet();
   const [search, setSearch] = React.useState("");
   const groups = Array.from(groupMap.values());
   const searchRef = React.useRef<HTMLDivElement>(null);

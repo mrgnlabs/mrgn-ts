@@ -13,10 +13,9 @@ import {
   aprToApy,
 } from "@mrgnlabs/mrgn-common";
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
-import { Desktop, Mobile } from "@mrgnlabs/mrgn-utils";
+import { Desktop, Mobile, cn } from "@mrgnlabs/mrgn-utils";
 import { IconChevronDown, IconExternalLink } from "@tabler/icons-react";
 
-import { getTokenImageURL, cn } from "~/utils";
 import { useTradeStore } from "~/store";
 import { GroupData } from "~/store/tradeStore";
 
@@ -71,7 +70,7 @@ export const PoolTradeHeader = ({ activeGroup }: { activeGroup: GroupData }) => 
       <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
         <div className="flex flex-col items-center px-8 w-full lg:w-1/4 xl:w-1/2">
           <Image
-            src={getTokenImageURL(activeGroup.pool.token.info.state.mint.toBase58())}
+            src={activeGroup.pool.token.meta.tokenLogoUri}
             alt={activeGroup.pool.token.meta.tokenSymbol}
             width={72}
             height={72}
@@ -165,7 +164,7 @@ export const PoolTradeHeader = ({ activeGroup }: { activeGroup: GroupData }) => 
               <div className="flex flex-row justify-between space-y-2 lg:block">
                 <div className="flex items-start gap-2 translate-y-0.5">
                   <Image
-                    src={getTokenImageURL(activeGroup.pool.token.info.state.mint.toBase58())}
+                    src={activeGroup.pool.token.meta.tokenLogoUri}
                     alt={activeGroup.pool.token.meta.tokenSymbol}
                     width={32}
                     height={32}
@@ -305,7 +304,7 @@ export const PoolTradeHeader = ({ activeGroup }: { activeGroup: GroupData }) => 
             <div className="flex flex-row justify-between space-y-2 lg:block">
               <div className="flex items-start gap-2">
                 <Image
-                  src={getTokenImageURL(activeGroup.pool.quoteTokens[0].info.state.mint.toBase58())}
+                  src={activeGroup.pool.quoteTokens[0].meta.tokenLogoUri}
                   alt={activeGroup.pool.quoteTokens[0].meta.tokenSymbol}
                   width={32}
                   height={32}

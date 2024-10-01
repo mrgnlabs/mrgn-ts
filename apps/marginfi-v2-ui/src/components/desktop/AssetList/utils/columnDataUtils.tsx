@@ -26,6 +26,7 @@ export const REDUCE_ONLY_BANKS = ["stSOL", "RLB"];
 export interface AssetData {
   symbol: string;
   name: string;
+  image: string;
 }
 
 export interface RateData {
@@ -88,6 +89,7 @@ export interface PositionData {
 export const getAssetData = (asset: ExtendedBankMetadata): AssetData => ({
   symbol: asset.tokenSymbol,
   name: asset.tokenName,
+  image: asset.tokenLogoUri,
 });
 
 export const getRateData = (bank: ExtendedBankInfo, isInLendingMode: boolean): RateData => {

@@ -6,7 +6,7 @@ import { IconChartPie, IconShovelPitchforks, IconSearch, IconPlus } from "@table
 
 import { useUiStore } from "~/store";
 import { useOs } from "~/hooks/useOs";
-import { cn } from "~/utils/themeUtils";
+import { cn } from "@mrgnlabs/mrgn-utils";
 
 import { CreatePoolSoon } from "~/components/common/Pool/CreatePoolSoon";
 
