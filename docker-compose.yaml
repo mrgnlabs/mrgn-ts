@@ -1,0 +1,22 @@
+services:
+  mrgn-liquidator:
+    build:
+      context: .
+      dockerfile: liquidator.Dockerfile
+    environment:
+      - NODE_ENV=production
+      - NODE_OPTIONS="--max-old-space-size=16384"
+      - RPC_ENDPOINT=<your_rpc_endpoint>
+      - LIQUIDATOR_PK=<your_liquidator_public_key>
+      - WALLET_KEYPAIR=<your_wallet_keypair>
+      - MIN_LIQUIDATION_AMOUNT_USD_UI="0.1"
+      - MAX_SLIPPAGE_BPS="250"
+      - MIN_SOL_BALANCE=0.5
+      - ACCOUNT_COOL_DOWN_SECONDS="120"
+      - SLEEP_INTERVAL="10000"
+      - SENTRY="false"
+      - SENTRY_DSN=<your_sentry_dsn> # Optional
+      - SORT_ACCOUNTS_MODE="false"
+      - EXCLUDE_ISOLATED_BANKS="false"
+      - MARGINFI_ACCOUNT_BLACKLIST=<your_blacklist> # Optional
+      - MARGINFI_ACCOUNT_WHITELIST=<your_whitelist> # Optional
