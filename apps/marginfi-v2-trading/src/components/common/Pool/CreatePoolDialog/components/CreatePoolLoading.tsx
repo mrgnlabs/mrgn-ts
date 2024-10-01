@@ -13,7 +13,8 @@ import {
   getConfig,
   makePriorityFeeIx,
 } from "@mrgnlabs/marginfi-client-v2";
-import { useWalletContext } from "~/hooks/useWalletContext";
+import { cn } from "@mrgnlabs/mrgn-utils";
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { useConnection } from "~/hooks/useConnection";
 import {
   Keypair,
@@ -25,7 +26,7 @@ import {
   VersionedTransaction,
 } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
-import { cn, createMarginfiGroup, createPermissionlessBank, createPoolLookupTable } from "~/utils";
+import { createMarginfiGroup, createPermissionlessBank, createPoolLookupTable } from "~/utils";
 import { useUiStore } from "~/store";
 import React from "react";
 
@@ -140,7 +141,7 @@ type PoolCreationState = {
 };
 
 export const CreatePoolLoading = ({ poolCreatedData, setIsOpen, setIsCompleted }: CreatePoolLoadingProps) => {
-  const { wallet } = useWalletContext();
+  const { wallet } = useWallet();
   const { connection } = useConnection();
   const [priorityFee] = useUiStore((state) => [state.priorityFee]);
   const [activeStep, setActiveStep] = React.useState<number>(0);

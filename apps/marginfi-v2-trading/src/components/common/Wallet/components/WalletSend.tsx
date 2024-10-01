@@ -22,13 +22,11 @@ import {
   createTransferCheckedInstruction,
   createAssociatedTokenAccountInstruction,
 } from "@mrgnlabs/mrgn-common";
-import { MultiStepToastHandle } from "@mrgnlabs/mrgn-utils";
+import { MultiStepToastHandle, cn, capture } from "@mrgnlabs/mrgn-utils";
 
 import { useMrgnlendStore } from "~/store";
-import { getTokenImageURL, cn } from "~/utils";
-import { useWalletContext } from "~/hooks/useWalletContext";
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { useConnection } from "~/hooks/useConnection";
-import { capture } from "~/utils";
 
 import { Loader } from "~/components/ui/loader";
 import { Button } from "~/components/ui/button";
@@ -58,7 +56,7 @@ export const WalletSend = ({ activeToken, onSendMore, onBack, onRetry, onCancel 
     state.nativeSolBalance,
     state.initialized,
   ]);
-  const { wallet } = useWalletContext();
+  const { wallet } = useWallet();
   const { connection } = useConnection();
   const [amount, setAmount] = React.useState(0);
   const [amountRaw, setAmountRaw] = React.useState("");
@@ -309,13 +307,7 @@ export const WalletSend = ({ activeToken, onSendMore, onBack, onRetry, onCancel 
     return (
       <div className="gap-6 text-center flex flex-col items-center">
         <div className="gap-2 text-center flex flex-col items-center">
-          <Image
-            src={getTokenImageURL(activeToken.address.toBase58())}
-            alt={activeToken.symbol}
-            width={60}
-            height={60}
-            className="rounded-full"
-          />
+          <Image src={activeToken.image} alt={activeToken.symbol} width={60} height={60} className="rounded-full" />
           <div className="space-y-0">
             <h2 className="flex items-center gap-2 font-medium text-xl">Send ${activeToken.symbol}</h2>
           </div>

@@ -21,13 +21,12 @@ import {
 } from "@tabler/icons-react";
 
 import { shortenAddress, usdFormatter, numeralFormatter } from "@mrgnlabs/mrgn-common";
-import { showErrorToast } from "@mrgnlabs/mrgn-utils";
+import { showErrorToast, cn } from "@mrgnlabs/mrgn-utils";
 
 import { useTradeStore, useUiStore } from "~/store";
 import { WalletState } from "~/store/uiStore";
-import { useWalletContext } from "~/hooks/useWalletContext";
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { useIsMobile } from "~/hooks/useIsMobile";
-import { cn, getTokenImageURL } from "~/utils";
 
 import {
   WalletAvatar,
@@ -58,8 +57,7 @@ export const Wallet = () => {
     state.setIsWalletOpen,
   ]);
 
-  const { wallet, logout, pfp, requestPrivateKey, web3AuthPk, web3AuthConncected, walletContextState } =
-    useWalletContext();
+  const { wallet, logout, pfp, requestPrivateKey, web3AuthPk, web3AuthConncected, walletContextState } = useWallet();
 
   const [isFetchingWalletData, setIsFetchingWalletData] = React.useState(false);
   const [isWalletAddressCopied, setIsWalletAddressCopied] = React.useState(false);
@@ -125,7 +123,7 @@ export const Wallet = () => {
           return {
             address: bank.address,
             name: isSolBank ? "Solana" : bank.meta.tokenName,
-            image: getTokenImageURL(bank.info.state.mint.toBase58()),
+            image: bank.meta.tokenLogoUri,
             symbol: bank.meta.tokenSymbol,
             value: value,
             valueUSD: valueUSD,
@@ -325,7 +323,7 @@ export const Wallet = () => {
                       </button>
                       <div className="gap-2 text-center flex flex-col items-center">
                         <Image
-                          src={getTokenImageURL(activeToken.address.toBase58())}
+                          src={activeToken.image}
                           alt={activeToken.symbol}
                           width={60}
                           height={60}
@@ -533,7 +531,7 @@ const TokenOptions = ({ walletAddress, setState, setToken, web3AuthConnected = f
 };
 
 const Debridge = () => {
-  const { wallet } = useWalletContext();
+  const { wallet } = useWallet();
   const divRef = React.useRef<HTMLDivElement>(null);
   const [isMounted, setIsMounted] = React.useState(false);
   const [widget, setWidget] = React.useState<any>();

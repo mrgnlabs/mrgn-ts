@@ -5,7 +5,7 @@ import Image from "next/image";
 import { tokenPriceFormatter, numeralFormatter, percentFormatter } from "@mrgnlabs/mrgn-common";
 import { IconX, IconSearch } from "@tabler/icons-react";
 
-import { cn, getTokenImageURL } from "~/utils";
+import { cn } from "@mrgnlabs/mrgn-utils";
 
 import { CommandDialog, Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "~/components/ui/command";
 import { Input } from "~/components/ui/input";
@@ -76,7 +76,7 @@ export const PoolSearchDialog = ({
                   <CommandItem key={address} value={address} className="py-4" onSelect={onBankSelect}>
                     <div className="flex items-center gap-3">
                       <Image
-                        src={getTokenImageURL(tokenBank.info.state.mint.toBase58())}
+                        src={tokenBank.meta.tokenLogoUri}
                         width={32}
                         height={32}
                         alt={tokenBank.meta.tokenSymbol}

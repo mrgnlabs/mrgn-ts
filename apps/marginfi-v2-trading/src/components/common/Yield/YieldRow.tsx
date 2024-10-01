@@ -6,11 +6,12 @@ import Image from "next/image";
 import { IconArrowRight } from "@tabler/icons-react";
 import { aprToApy, numeralFormatter, percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
+import { cn, capture } from "@mrgnlabs/mrgn-utils";
 
 import { useTradeStore } from "~/store";
 import { ArenaBank, GroupData } from "~/store/tradeStore";
-import { getTokenImageURL, cn, getGroupPositionInfo, capture } from "~/utils";
-import { useWalletContext } from "~/hooks/useWalletContext";
+import { getGroupPositionInfo } from "~/utils";
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
 import { ActionBoxDialog } from "~/components/common/ActionBox";
 import { Button } from "~/components/ui/button";
@@ -21,7 +22,7 @@ interface props {
 }
 
 export const YieldRow = ({ group }: props) => {
-  const { connected } = useWalletContext();
+  const { connected } = useWallet();
   const { portfolio } = useTradeStore();
   const positionInfo = React.useMemo(() => getGroupPositionInfo({ group }), [group]);
 
@@ -48,14 +49,14 @@ export const YieldRow = ({ group }: props) => {
       >
         <div className="flex items-center -space-x-2.5">
           <Image
-            src={getTokenImageURL(group.pool.token.info.state.mint.toBase58())}
+            src={group.pool.token.meta.tokenLogoUri}
             alt={group.pool.token.meta.tokenSymbol}
             width={24}
             height={24}
             className="rounded-full bg-background z-10"
           />
           <Image
-            src={getTokenImageURL(collateralBank.info.state.mint.toBase58())}
+            src={collateralBank.meta.tokenLogoUri}
             alt={collateralBank.meta.tokenSymbol}
             width={24}
             height={24}
@@ -111,7 +112,7 @@ const YieldItem = ({
     <div className={cn("grid gap-4items-center", className, connected ? "grid-cols-7" : "grid-cols-6")}>
       <div className="flex items-center gap-2">
         <Image
-          src={getTokenImageURL(bank.info.state.mint.toBase58())}
+          src={bank.meta.tokenLogoUri}
           alt={bank.meta.tokenSymbol}
           width={24}
           height={24}

@@ -2,10 +2,9 @@ import React from "react";
 
 import { IconChevronDown } from "@tabler/icons-react";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { RepayType } from "@mrgnlabs/mrgn-utils";
+import { RepayType, cn, computeBankRate } from "@mrgnlabs/mrgn-utils";
 
 import { LendingModes } from "~/types";
-import { cn, computeBankRate } from "~/utils";
 
 import { Button } from "~/components/ui/button";
 import { SelectedBankItem } from "../../SharedComponents";

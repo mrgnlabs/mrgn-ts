@@ -5,8 +5,6 @@ import { useRouter } from "next/router";
 
 import { numeralFormatter, tokenPriceFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 
-import { getTokenImageURL } from "~/utils";
-
 import { PositionActionButtons } from "~/components/common/Portfolio";
 import { TableCell, TableRow } from "~/components/ui/table";
 import { Badge } from "~/components/ui/badge";
@@ -45,7 +43,7 @@ export const PositionListItem = ({ group }: props) => {
       <TableCell>
         <span className="flex items-center gap-3">
           <Image
-            src={getTokenImageURL(group.pool.token.info.state.mint.toBase58())}
+            src={group.pool.token.meta.tokenLogoUri}
             width={24}
             height={24}
             alt={group.pool.token.meta.tokenSymbol}

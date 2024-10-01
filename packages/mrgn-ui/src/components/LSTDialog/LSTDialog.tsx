@@ -3,7 +3,6 @@ import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 
-import { getTokenImageURL } from "@mrgnlabs/mrgn-utils";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { Button, Dialog, DialogContent } from "../ui";
 
@@ -24,7 +23,7 @@ const LSTDialog = ({ banks, variant, open, onClose }: LSTDialogProps) => {
     const bank = banks.find((bank) => bank.meta.tokenSymbol === variant);
     if (!bank) return null;
 
-    return getTokenImageURL(bank.meta.tokenSymbol);
+    return bank.meta.tokenLogoUri;
   }, [variant, banks]);
 
   return (

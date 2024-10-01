@@ -3,7 +3,7 @@ import { DialogProps } from "@radix-ui/react-dialog";
 import { IconSearch } from "@tabler/icons-react";
 import { Command as CommandPrimitive } from "cmdk";
 
-import { cn } from "~/utils/themeUtils";
+import { cn } from "@mrgnlabs/mrgn-utils";
 import { useIsMobile } from "~/hooks/useIsMobile";
 import { Dialog, DialogContent } from "~/components/ui/dialog";
 

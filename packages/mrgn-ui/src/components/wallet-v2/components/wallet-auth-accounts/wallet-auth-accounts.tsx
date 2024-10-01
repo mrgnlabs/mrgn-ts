@@ -30,7 +30,7 @@ type WalletAuthAccountsProps = {
   mfiClient: MarginfiClient | null;
   marginfiAccounts: MarginfiAccountWrapper[];
   selectedAccount: MarginfiAccountWrapper | null;
-  fetchMrgnlendState: () => Promise<void>;
+  fetchMrgnlendState: () => void;
 };
 
 export const WalletAuthAccounts = ({

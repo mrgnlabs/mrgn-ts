@@ -4,7 +4,7 @@ import Image from "next/image";
 
 import { shortenAddress } from "@mrgnlabs/mrgn-common";
 
-import { cn } from "~/utils/themeUtils";
+import { cn } from "@mrgnlabs/mrgn-utils";
 
 type WalletAvatarProps = {
   pfp: string;

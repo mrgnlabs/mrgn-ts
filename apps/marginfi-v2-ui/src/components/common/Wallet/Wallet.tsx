@@ -4,7 +4,7 @@ import { useRouter } from "next/router";
 import { CopyToClipboard } from "react-copy-to-clipboard";
 
 import { shortenAddress, usdFormatter, numeralFormatter, groupedNumberFormatterDyn } from "@mrgnlabs/mrgn-common";
-import { getTokenImageURL, showErrorToast } from "@mrgnlabs/mrgn-utils";
+import { showErrorToast } from "@mrgnlabs/mrgn-utils";
 
 import { useMrgnlendStore, useUiStore, useUserProfileStore } from "~/store";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
@@ -138,7 +138,7 @@ export const Wallet = () => {
           return {
             address: bank.address,
             name: isSolBank ? "Solana" : bank.meta.tokenName,
-            image: getTokenImageURL(bank.meta.tokenSymbol),
+            image: bank.meta.tokenLogoUri,
             symbol: bank.meta.tokenSymbol,
             value: value,
             valueUSD: valueUSD,
@@ -428,7 +428,7 @@ export const Wallet = () => {
                       <TabWrapper resetWalletState={resetWalletState}>
                         <div className="gap-2 text-center flex flex-col items-center">
                           <Image
-                            src={getTokenImageURL(activeToken.symbol)}
+                            src={activeToken.image}
                             alt={activeToken.symbol}
                             width={60}
                             height={60}

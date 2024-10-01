@@ -22,7 +22,7 @@ import {
   createTransferCheckedInstruction,
   createAssociatedTokenAccountInstruction,
 } from "@mrgnlabs/mrgn-common";
-import { getTokenImageURL, MultiStepToastHandle } from "@mrgnlabs/mrgn-utils";
+import { MultiStepToastHandle } from "@mrgnlabs/mrgn-utils";
 
 import { useMrgnlendStore } from "~/store";
 import { cn, capture } from "~/utils";
@@ -310,7 +310,7 @@ export const WalletSend = ({ activeToken, onSendMore, onBack, onRetry, onCancel 
       <div className="gap-6 text-center flex flex-col items-center">
         <div className="gap-2 text-center flex flex-col items-center">
           <Image
-            src={getTokenImageURL(activeToken.symbol)}
+            src={activeToken.image}
             alt={activeToken.symbol}
             width={60}
             height={60}

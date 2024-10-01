@@ -1,5 +1,5 @@
 import React from "react";
-import { cn } from "~/utils";
+import { cn } from "@mrgnlabs/mrgn-utils";
 import { motion, Variants, AnimatePresence } from "framer-motion";
 
 type LoaderProps = {

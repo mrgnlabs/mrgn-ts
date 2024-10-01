@@ -3,11 +3,11 @@ import React from "react";
 import { Asset, AuthenticationStrategy, Environment, MesoEvent, Network, inlineTransfer } from "@meso-network/meso-js";
 import { IconArrowLeft } from "@tabler/icons-react";
 
-import { useWalletContext } from "~/hooks/useWalletContext";
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { Button } from "~/components/ui/button";
 import { Label } from "~/components/ui/label";
 import { Input } from "~/components/ui/input";
-import { cn } from "~/utils";
+import { cn } from "@mrgnlabs/mrgn-utils";
 
 type WalletOnrampProps = {
   showAmountBackButton?: boolean;
@@ -18,7 +18,7 @@ export const WalletOnramp = ({ showAmountBackButton = true }: WalletOnrampProps)
   const [amountRaw, setAmountRaw] = React.useState<string>("100.00");
   const [showMeso, setIsShowMeso] = React.useState<boolean>(false);
 
-  const { wallet } = useWalletContext();
+  const { wallet } = useWallet();
 
   const numberFormater = React.useMemo(() => new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 }), []);
 

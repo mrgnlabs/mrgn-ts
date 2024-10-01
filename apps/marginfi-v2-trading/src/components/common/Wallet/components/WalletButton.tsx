@@ -3,12 +3,11 @@ import React, { useCallback, useMemo } from "react";
 import Image from "next/image";
 import Script from "next/script";
 import { useWallet } from "@solana/wallet-adapter-react";
-
 import { IconChevronDown, IconBrandX, IconBrandApple } from "@tabler/icons-react";
+import { cn } from "@mrgnlabs/mrgn-utils";
 
 import { useUiStore } from "~/store";
 import { WalletInfo, Web3AuthProvider, useWalletContext } from "~/hooks/useWalletContext";
-import { cn } from "~/utils";
 
 import { Wallet } from "~/components/common/Wallet";
 import { IconBrandGoogle, IconMrgn } from "~/components/ui/icons";
@@ -31,7 +30,7 @@ const web3AuthIconMap: { [key in Web3AuthProvider]: { icon: JSX.Element } } = {
 
 export const WalletButton = () => {
   const { select } = useWallet();
-  const { connected, connecting, isLoading, loginWeb3Auth } = useWalletContext();
+  const { connected, connecting, isLoading, loginWeb3Auth } = useWallet();
   const [setIsWalletAuthDialogOpen] = useUiStore((state) => [state.setIsWalletAuthDialogOpen]);
 
   const walletInfo = useMemo(() => JSON.parse(localStorage.getItem("walletInfo") ?? "null") as WalletInfo, []);

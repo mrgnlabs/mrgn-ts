@@ -8,7 +8,6 @@ import { useWindowSize } from "@uidotdev/usehooks";
 import { PublicKey } from "@solana/web3.js";
 import { ActionType, ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { percentFormatterDyn, shortenAddress, percentFormatter } from "@mrgnlabs/mrgn-common";
-import { getTokenImageURL } from "@mrgnlabs/mrgn-utils";
 
 import { LSTS_SOLANA_COMPASS_MAP, calcLstYield, calcNetLoopingApy, cn } from "~/utils";
 import { useUiStore, useLstStore, useMrgnlendStore } from "~/store";
@@ -153,7 +152,7 @@ export const ActionComplete = () => {
                     </h3>
                     <Image
                       className="rounded-full w-9 h-9"
-                      src={getTokenImageURL(previousTxn?.bank.meta.tokenSymbol)}
+                      src={previousTxn?.bank.meta.tokenLogoUri}
                       alt={(previousTxn?.bank.meta.tokenSymbol || "Token") + "  logo"}
                       width={36}
                       height={36}
@@ -204,7 +203,7 @@ export const ActionComplete = () => {
                       </h3>
                       <Image
                         className="rounded-full w-9 h-9"
-                        src={getTokenImageURL(lstBank.meta.tokenSymbol)}
+                        src={lstBank.meta.tokenLogoUri}
                         alt={(lstBank.meta.tokenSymbol || "Token") + "  logo"}
                         width={36}
                         height={36}
@@ -254,7 +253,7 @@ export const ActionComplete = () => {
                       </h3>
                       <Image
                         className="rounded-full w-7 h-7"
-                        src={getTokenImageURL(previousTxn.loopingOptions.depositBank.meta.tokenSymbol)}
+                        src={previousTxn.loopingOptions.depositBank.meta.tokenLogoUri}
                         alt={(previousTxn.loopingOptions.depositBank.meta.tokenSymbol || "Token") + "  logo"}
                         width={28}
                         height={28}
@@ -271,7 +270,7 @@ export const ActionComplete = () => {
                       </h3>
                       <Image
                         className="rounded-full w-7 h-7"
-                        src={getTokenImageURL(previousTxn.loopingOptions.borrowBank.meta.tokenSymbol)}
+                        src={previousTxn.loopingOptions.borrowBank.meta.tokenLogoUri}
                         alt={(previousTxn.loopingOptions.borrowBank.meta.tokenSymbol || "Token") + "  logo"}
                         width={28}
                         height={28}

@@ -4,7 +4,7 @@ import BigNumber from "bignumber.js";
 import Image from "next/image";
 
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { formatAmount, getTokenImageURL } from "@mrgnlabs/mrgn-utils";
+import { formatAmount } from "@mrgnlabs/mrgn-utils";
 import { percentFormatter } from "@mrgnlabs/mrgn-common";
 
 import { useActionBoxStore } from "~/hooks/useActionBoxStore";
@@ -376,7 +376,7 @@ export const LoopInput = ({
                             <li key={bank.meta.tokenSymbol} className="flex items-center gap-8 justify-between text-xs">
                               <div className="flex items-center gap-2">
                                 <Image
-                                  src={getTokenImageURL(bank.meta.tokenSymbol)}
+                                  src={bank.meta.tokenLogoUri}
                                   width={16}
                                   height={16}
                                   alt={bank.meta.tokenName}
@@ -395,7 +395,7 @@ export const LoopInput = ({
                               <li className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
                                   <Image
-                                    src={getTokenImageURL(bank.meta.tokenSymbol)}
+                                    src={bank.meta.tokenLogoUri}
                                     width={16}
                                     height={16}
                                     alt={bank.meta.tokenName}
@@ -415,7 +415,7 @@ export const LoopInput = ({
                               <li className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
                                   <Image
-                                    src={getTokenImageURL(bank.meta.tokenSymbol)}
+                                    src={bank.meta.tokenLogoUri}
                                     width={16}
                                     height={16}
                                     alt={bank.meta.tokenName}

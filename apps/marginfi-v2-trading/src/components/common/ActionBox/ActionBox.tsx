@@ -15,10 +15,10 @@ import {
 } from "@mrgnlabs/mrgn-utils";
 import { ActionType, ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
+import { cn, capture } from "@mrgnlabs/mrgn-utils";
 
 import { useUiStore, useTradeStore } from "~/store";
-import { cn, capture } from "~/utils";
-import { useWalletContext } from "~/hooks/useWalletContext";
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { useConnection } from "~/hooks/useConnection";
 import { useActionBoxStore } from "~/hooks/useActionBoxStore";
 
@@ -117,7 +117,7 @@ export const ActionBox = ({
     state.setPreviousTxn,
   ]);
 
-  const { walletContextState, connected, wallet } = useWalletContext();
+  const { walletContextState, connected, wallet } = useWallet();
   const { connection } = useConnection();
 
   const [isSettingsMode, setIsSettingsMode] = React.useState<boolean>(false);

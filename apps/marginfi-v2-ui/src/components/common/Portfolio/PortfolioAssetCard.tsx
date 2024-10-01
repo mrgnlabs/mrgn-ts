@@ -4,7 +4,7 @@ import Image from "next/image";
 
 import { usdFormatter, numeralFormatter } from "@mrgnlabs/mrgn-common";
 import { ActiveBankInfo, ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { capture, getTokenImageURL } from "@mrgnlabs/mrgn-utils";
+import { capture } from "@mrgnlabs/mrgn-utils";
 import { ActionBox } from "@mrgnlabs/mrgn-ui";
 
 import { cn } from "~/utils";
@@ -72,7 +72,7 @@ export const PortfolioAssetCard = ({ bank, isInLendingMode, isBorrower = true }:
               <div className="flex text-left gap-3">
                 <div className="flex items-center">
                   <Image
-                    src={getTokenImageURL(bank.meta.tokenSymbol)}
+                    src={bank.meta.tokenLogoUri}
                     className="rounded-full"
                     alt={bank.meta.tokenSymbol}
                     height={40}

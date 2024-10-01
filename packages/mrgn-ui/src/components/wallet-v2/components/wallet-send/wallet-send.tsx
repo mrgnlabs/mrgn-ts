@@ -23,7 +23,7 @@ import {
   createTransferCheckedInstruction,
   createAssociatedTokenAccountInstruction,
 } from "@mrgnlabs/mrgn-common";
-import { getTokenImageURL, MultiStepToastHandle } from "@mrgnlabs/mrgn-utils";
+import { MultiStepToastHandle } from "@mrgnlabs/mrgn-utils";
 
 import { cn, capture } from "@mrgnlabs/mrgn-utils";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
@@ -314,13 +314,7 @@ export const WalletSend = ({
     return (
       <div className="gap-6 text-center flex flex-col items-center">
         <div className="gap-2 text-center flex flex-col items-center">
-          <Image
-            src={getTokenImageURL(activeToken.symbol)}
-            alt={activeToken.symbol}
-            width={60}
-            height={60}
-            className="rounded-full"
-          />
+          <Image src={activeToken.image} alt={activeToken.symbol} width={60} height={60} className="rounded-full" />
           <div className="space-y-0">
             <h2 className="flex items-center gap-2 font-medium text-xl">Send {activeToken.symbol}</h2>
           </div>

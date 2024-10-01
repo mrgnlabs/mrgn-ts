@@ -3,9 +3,9 @@ import React from "react";
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { IconMinus, IconPlus } from "@tabler/icons-react";
+import { cn } from "@mrgnlabs/mrgn-utils";
 
 import { GroupData } from "~/store/tradeStore";
-import { cn } from "~/utils";
 
 import { ActionBoxDialog } from "~/components/common/ActionBox";
 import { Button } from "~/components/ui/button";

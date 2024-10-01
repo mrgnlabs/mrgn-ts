@@ -6,8 +6,8 @@ import Image from "next/image";
 import { IconExternalLink } from "@tabler/icons-react";
 import { ActionType, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { shortenAddress } from "@mrgnlabs/mrgn-common";
+import { cn } from "@mrgnlabs/mrgn-utils";
 
-import { cn, getTokenImageURL } from "~/utils";
 import { useAssetItemData } from "~/hooks/useAssetItemData";
 
 interface Props {
@@ -41,7 +41,7 @@ export const LendingScreen = ({ amount, bank, type, txn }: Props) => {
           {bank && (
             <Image
               className="rounded-full w-9 h-9"
-              src={getTokenImageURL(bank.info.state.mint.toString())}
+              src={bank.meta.tokenLogoUri}
               alt={(bank?.meta.tokenSymbol || "Token") + "  logo"}
               width={36}
               height={36}

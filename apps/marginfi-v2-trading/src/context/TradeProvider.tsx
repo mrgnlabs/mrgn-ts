@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 
 import { useTradeStore } from "~/store";
 import { useConnection } from "~/hooks/useConnection";
-import { useWalletContext } from "~/hooks/useWalletContext";
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { identify } from "~/utils";
 
 // @ts-ignore - Safe because context hook checks for null
@@ -14,7 +14,7 @@ export const TradePovider: React.FC<{
 }> = ({ children }) => {
   const router = useRouter();
   const debounceId = React.useRef<NodeJS.Timeout | null>(null);
-  const { wallet, isOverride, connected } = useWalletContext();
+  const { wallet, isOverride, connected } = useWallet();
   const { connection } = useConnection();
   const [fetchTradeState, setIsRefreshingStore] = useTradeStore((state) => [
     state.fetchTradeState,

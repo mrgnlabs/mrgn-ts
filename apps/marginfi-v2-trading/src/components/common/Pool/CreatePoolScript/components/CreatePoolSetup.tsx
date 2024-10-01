@@ -1,6 +1,6 @@
-import { Button } from "~/components/ui/button";
-import { cn } from "~/utils";
+import { cn } from "@mrgnlabs/mrgn-utils";
 
+import { Button } from "~/components/ui/button";
 import { BankToken, bankTokens } from "./tokenSeeds";
 
 type CreatePoolSuccessProps = {

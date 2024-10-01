@@ -2,8 +2,7 @@ import React from "react";
 
 import { IconInfoCircle } from "@tabler/icons-react";
 import { useForm } from "react-hook-form";
-
-import { cn } from "~/utils";
+import { cn } from "@mrgnlabs/mrgn-utils";
 
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";

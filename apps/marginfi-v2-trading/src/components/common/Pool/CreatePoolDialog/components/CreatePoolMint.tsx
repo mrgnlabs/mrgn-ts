@@ -1,6 +1,6 @@
 import { IconChevronLeft, IconArrowRight, IconLoader2 } from "@tabler/icons-react";
 
-import { cn } from "~/utils";
+import { cn } from "@mrgnlabs/mrgn-utils";
 
 import { CreatePoolState } from "~/components/common/Pool/CreatePoolDialog";
 

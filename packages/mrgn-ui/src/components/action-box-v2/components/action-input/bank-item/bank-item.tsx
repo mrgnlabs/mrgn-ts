@@ -4,7 +4,7 @@ import Image from "next/image";
 
 import { numeralFormatter, usdFormatter, WSOL_MINT } from "@mrgnlabs/mrgn-common";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { getTokenImageURL, cn, LendingModes } from "@mrgnlabs/mrgn-utils";
+import { cn, LendingModes } from "@mrgnlabs/mrgn-utils";
 
 type BankItemProps = {
   bank: ExtendedBankInfo;
@@ -54,13 +54,7 @@ export const BankItem = ({
   return (
     <>
       <div className="flex items-center gap-3">
-        <Image
-          src={getTokenImageURL(bank.info.state.mint.toBase58())}
-          alt={bank.meta.tokenName}
-          width={28}
-          height={28}
-          className="rounded-full"
-        />
+        <Image src={bank.meta.tokenLogoUri} alt={bank.meta.tokenName} width={28} height={28} className="rounded-full" />
         <div>
           <p className="flex items-center">
             {bank.meta.tokenSymbol}

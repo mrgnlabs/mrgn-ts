@@ -3,9 +3,9 @@ import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { aprToApy, numeralFormatter, percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
-import { getTokenImageURL } from "@mrgnlabs/mrgn-utils";
 
 import { cn } from "~/utils";
+import { IMAGE_CDN_URL } from "~/config/constants";
 
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { IconAlertTriangle, IconExternalLink, IconPyth, IconSwitchboard } from "~/components/ui/icons";
@@ -47,13 +47,7 @@ export const EMISSION_MINT_INFO_MAP = new Map<string, { tokenSymbol: string; tok
 
 export const getAssetCell = (asset: AssetData) => (
   <div className="flex gap-4 justify-start items-center">
-    <Image
-      src={getTokenImageURL(asset.symbol)}
-      alt={`${asset.symbol} logo`}
-      height={25}
-      width={25}
-      className="rounded-full"
-    />
+    <Image src={asset.image} alt={`${asset.symbol} logo`} height={25} width={25} className="rounded-full" />
     <div>{asset.symbol}</div>
   </div>
 );
@@ -188,12 +182,22 @@ export const getRateCell = ({ rateAPY, symbol, emissionRate, lendingRate, isInLe
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Image src={getTokenImageURL("MNDE")} alt="info" height={18} width={18} />
+                <Image
+                  src={`${IMAGE_CDN_URL}/MNDEFzGvMt87ueuHvVU9VcTqsAP5b3fTGPsHuuPA5ey.png`}
+                  alt="info"
+                  height={18}
+                  width={18}
+                />
               </TooltipTrigger>
               <TooltipContent>
                 <div className="flex flex-col items-start gap-1.5">
                   <h4 className="text-base flex items-center gap-1.5">
-                    <Image src={getTokenImageURL("MNDE")} alt="info" height={18} width={18} />
+                    <Image
+                      src={`${IMAGE_CDN_URL}/MNDEFzGvMt87ueuHvVU9VcTqsAP5b3fTGPsHuuPA5ey.png`}
+                      alt="info"
+                      height={18}
+                      width={18}
+                    />
                     MNDE rewards
                   </h4>
                   <p className="text-xs">Eligible for Marinade Earn rewards.</p>

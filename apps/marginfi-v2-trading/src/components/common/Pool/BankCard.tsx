@@ -5,7 +5,6 @@ import Image from "next/image";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { numeralFormatter, usdFormatter, tokenPriceFormatter } from "@mrgnlabs/mrgn-common";
 
-import { getTokenImageURL } from "~/utils";
 import { GroupData } from "~/store/tradeStore";
 import { useAssetItemData } from "~/hooks/useAssetItemData";
 
@@ -25,7 +24,7 @@ export const BankCard = ({ activeGroup, bank }: BankCardProps) => {
         <div className="flex text-left gap-3">
           <div className="flex items-center">
             <Image
-              src={getTokenImageURL(bank.info.state.mint.toBase58())}
+              src={bank.meta.tokenLogoUri}
               className="rounded-full border"
               alt={bank.meta.tokenSymbol}
               height={40}

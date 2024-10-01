@@ -2,12 +2,12 @@ import React from "react";
 
 import Image from "next/image";
 
+import { IconX } from "@tabler/icons-react";
 import { ActionBox, useWallet } from "@mrgnlabs/mrgn-ui";
-import { capture, getTokenImageURL } from "@mrgnlabs/mrgn-utils";
+import { capture } from "@mrgnlabs/mrgn-utils";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { Button } from "~/components/ui/button";
-import { IconX } from "~/components/ui/icons";
 
 type NewAssetBannerProps = {
   bankInfo: ExtendedBankInfo;
@@ -34,12 +34,7 @@ export const NewAssetBanner = ({ bankInfo }: NewAssetBannerProps) => {
     <div className="bg-muted text-white/80 py-4 pl-5 pr-12 rounded-sm max-w-fit relative">
       <div className="flex gap-6 items-center">
         <div className="mr-auto flex items-start">
-          <Image
-            src={getTokenImageURL(bankInfo.meta.tokenSymbol)}
-            alt={bankInfo.meta.tokenSymbol}
-            width={50}
-            height={50}
-          />
+          <Image src={bankInfo.meta.tokenLogoUri} alt={bankInfo.meta.tokenSymbol} width={50} height={50} />
         </div>
         <div className="space-y-2.5">
           <h2 className="font-medium">${bankInfo.meta.tokenSymbol} is now available on marginfi</h2>

@@ -9,9 +9,9 @@ import { IconBrandX, IconBrandApple, IconChevronDown, IconStarFilled } from "@ta
 import { useUiStore } from "~/store";
 import { useOs } from "~/hooks/useOs";
 import { useIsMobile } from "~/hooks/useIsMobile";
-import { useWalletContext } from "~/hooks/useWalletContext";
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { Web3AuthSocialProvider } from "~/hooks/useWalletContext";
-import { cn } from "~/utils";
+import { cn } from "@mrgnlabs/mrgn-utils";
 
 import { WalletAuthButton, WalletAuthEmailForm } from "~/components/common/Wallet";
 
@@ -71,7 +71,7 @@ const walletIcons: { [key: string]: React.ReactNode } = {
 export const WalletAuthDialog = () => {
   const isMobile = useIsMobile();
   const { select, wallets } = useWallet();
-  const { connected, loginWeb3Auth } = useWalletContext();
+  const { connected, loginWeb3Auth } = useWallet();
 
   const { isAndroid, isIOS } = useOs();
 
