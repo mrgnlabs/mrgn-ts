@@ -1,6 +1,22 @@
 import { Program, AnchorProvider } from "@coral-xyz/anchor";
-import { Bank, BankConfig, BankRaw, findOracleKey, MARGINFI_IDL, MarginfiIdlType, MarginfiProgram, OraclePrice, OracleSetup, parseOracleSetup, parsePriceInfo } from "@mrgnlabs/marginfi-client-v2";
-import { CrossbarSimulatePayload, decodeSwitchboardPullFeedData, FeedResponse } from "@mrgnlabs/marginfi-client-v2/dist/vendor";
+import {
+  Bank,
+  BankConfig,
+  BankRaw,
+  findOracleKey,
+  MARGINFI_IDL,
+  MarginfiIdlType,
+  MarginfiProgram,
+  OraclePrice,
+  OracleSetup,
+  parseOracleSetup,
+  parsePriceInfo,
+} from "@mrgnlabs/marginfi-client-v2";
+import {
+  CrossbarSimulatePayload,
+  decodeSwitchboardPullFeedData,
+  FeedResponse,
+} from "@mrgnlabs/marginfi-client-v2/dist/vendor";
 import { chunkedGetRawMultipleAccountInfoOrdered, median, Wallet } from "@mrgnlabs/mrgn-common";
 import { Connection, PublicKey } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
@@ -31,13 +47,15 @@ interface OraclePriceString {
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const requestedBanksRaw = req.query.banks;
 
-  if (!(requestedBanksRaw) || typeof requestedBanksRaw !== 'string') {
-    return res.status(400).json({ error: 'Invalid input: expected an array of bank base58-encoded addresses.' });
+  if (!requestedBanksRaw || typeof requestedBanksRaw !== "string") {
+    return res.status(400).json({ error: "Invalid input: expected an array of bank base58-encoded addresses." });
   }
 
-  const requestedBanks = requestedBanksRaw.split(',').map((bankAddress) => bankAddress.trim());
+  const requestedBanks = requestedBanksRaw.split(",").map((bankAddress) => bankAddress.trim());
 
-  const connection = new Connection(process.env.NEXT_PUBLIC_MARGINFI_RPC_ENDPOINT_OVERRIDE || "");
+  const connection = new Connection(
+    process.env.PRIVATE_RPC_ENDPOINT_OVERRIDE || process.env.NEXT_PUBLIC_MARGINFI_RPC_ENDPOINT_OVERRIDE || ""
+  );
   const idl = { ...MARGINFI_IDL, address: config.mfiConfig.programId.toBase58() } as unknown as MarginfiIdlType;
   const provider = new AnchorProvider(connection, {} as Wallet, {
     ...AnchorProvider.defaultOptions(),
@@ -57,10 +75,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const host = extractHost(req.headers.origin) || extractHost(req.headers.referer);
     if (!host) {
-      return res.status(400).json({ error: 'Invalid input: expected a valid host.' });
+      return res.status(400).json({ error: "Invalid input: expected a valid host." });
     }
-    const feedIdMapRaw: Record<string, string> = await fetch(`${host}/api/oracle/pythFeedMap`).then((response) => response.json());
-    const feedIdMap: Map<string, PublicKey> = new Map(Object.entries(feedIdMapRaw).map(([key, value]) => [key, new PublicKey(value)]));
+    const feedIdMapRaw: Record<string, string> = await fetch(`${host}/api/oracle/pythFeedMap`).then((response) =>
+      response.json()
+    );
+    const feedIdMap: Map<string, PublicKey> = new Map(
+      Object.entries(feedIdMapRaw).map(([key, value]) => [key, new PublicKey(value)])
+    );
 
     const requestedOraclesData = banksMap.map((b) => ({
       oracleKey: findOracleKey(BankConfig.fromAccountParsed(b.data.config), feedIdMap).toBase58(),
@@ -84,7 +106,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       // If on-chain data is recent enough, use it even for SwitchboardPull oracles
       if (oracleData.oracleSetup === OracleSetup.SwitchboardPull && isStale) {
-        swbPullOraclesStale.push({ data: oracleData, feedHash: Buffer.from(decodeSwitchboardPullFeedData(priceDataRaw.data).feed_hash).toString("hex") });
+        swbPullOraclesStale.push({
+          data: oracleData,
+          feedHash: Buffer.from(decodeSwitchboardPullFeedData(priceDataRaw.data).feed_hash).toString("hex"),
+        });
         continue;
       }
 
@@ -96,7 +121,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const feedHashes = swbPullOraclesStale.map((value) => value.feedHash);
       const crossbarPrices = await fetchCrossbarPrices(feedHashes);
 
-      for (const { data: { oracleKey }, feedHash } of swbPullOraclesStale) {
+      for (const {
+        data: { oracleKey },
+        feedHash,
+      } of swbPullOraclesStale) {
         const crossbarPrice = crossbarPrices.get(feedHash);
         if (!crossbarPrice) {
           throw new Error(`Crossbar didn't return data for ${feedHash}`);
@@ -106,7 +134,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
     }
 
-    const updatedOraclePricesSorted = requestedOraclesData.map(value => updatedOraclePrices.get(value.oracleKey)!);
+    const updatedOraclePricesSorted = requestedOraclesData.map((value) => updatedOraclePrices.get(value.oracleKey)!);
 
     res.setHeader("Cache-Control", "s-maxage=20, stale-while-revalidate=59");
     return res.status(200).json(updatedOraclePricesSorted.map(stringifyOraclePrice));
@@ -114,7 +142,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     console.error("Error:", error);
     return res.status(500).json({ error: "Error fetching data" });
   }
-
 }
 
 async function fetchCrossbarPrices(feedHashes: string[]): Promise<Map<string, OraclePrice>> {
@@ -137,7 +164,7 @@ async function fetchCrossbarPrices(feedHashes: string[]): Promise<Map<string, Or
     if (!response.ok) {
       throw new Error("Network response was not ok");
     }
-    const payload = await response.json() as CrossbarSimulatePayload;
+    const payload = (await response.json()) as CrossbarSimulatePayload;
 
     return crossbarPayloadToOraclePricePerFeedHash(payload);
   } catch (error) {
