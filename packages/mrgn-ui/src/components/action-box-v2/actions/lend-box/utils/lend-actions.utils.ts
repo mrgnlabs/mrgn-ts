@@ -1,3 +1,6 @@
+import { Transaction, VersionedTransaction } from "@solana/web3.js";
+import { v4 as uuidv4 } from "uuid";
+
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import {
@@ -7,16 +10,8 @@ import {
   isWholePosition,
   MarginfiActionParams,
 } from "@mrgnlabs/mrgn-utils";
-import { Transaction, VersionedTransaction } from "@solana/web3.js";
 
-import { v4 as uuidv4 } from "uuid";
-
-interface ExecuteActionsCallbackProps {
-  captureEvent: (event: string, properties?: Record<string, any>) => void;
-  setIsLoading: (isLoading: boolean) => void;
-  setIsComplete: (txnSigs: string[]) => void;
-  setIsError: (error: string) => void;
-}
+import { ExecuteActionsCallbackProps } from "~/components/action-box-v2/types";
 
 interface ExecuteLendingActionsProps extends ExecuteActionsCallbackProps {
   params: MarginfiActionParams;
@@ -40,8 +35,6 @@ export const handleExecuteLendingAction = async ({
     amount,
     priorityFee,
   });
-
-  // const { txnSig, error } = await executeLendingAction(params);
 
   const txnSig = await executeLendingAction(params);
 

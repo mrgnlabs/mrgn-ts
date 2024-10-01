@@ -217,13 +217,14 @@ export const LendBox = ({
 
     const action = async () => {
       const params = {
-        mfiClient: marginfiClient,
+        marginfiClient,
         actionType: lendMode,
         bank: selectedBank,
         amount,
         nativeSolBalance,
         marginfiAccount: selectedAccount,
         walletContextState,
+        actionTxns,
       } as MarginfiActionParams;
 
       await handleExecuteLendingAction({
@@ -262,6 +263,7 @@ export const LendBox = ({
     selectedBank,
     amount,
     lendMode,
+    actionTxns,
     setAmountRaw,
     nativeSolBalance,
     selectedAccount,

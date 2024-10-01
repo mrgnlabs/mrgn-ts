@@ -289,7 +289,7 @@ export const ActionBox = ({
 
   const executeLendingActionCb = React.useCallback(
     async ({
-      mfiClient,
+      marginfiClient,
       actionType: currentAction,
       bank,
       amount: borrowOrLendAmount,
@@ -309,7 +309,7 @@ export const ActionBox = ({
         priorityFee,
       });
       const txnSig = await executeLendingAction({
-        mfiClient,
+        marginfiClient,
         actionType: currentAction,
         bank,
         amount: borrowOrLendAmount,
@@ -455,7 +455,7 @@ export const ActionBox = ({
     setIsLoading(true);
 
     const params = {
-      mfiClient,
+      marginfiClient: mfiClient,
       actionType: actionMode,
       bank: selectedBank,
       amount,
@@ -642,14 +642,17 @@ export const ActionBox = ({
 
     const action = async () => {
       const params = {
-        mfiClient,
+        marginfiClient: mfiClient,
         actionType: actionMode,
         bank: selectedBank,
         amount,
         nativeSolBalance,
         marginfiAccount: selectedAccount,
         walletContextState,
-        actionTxns,
+        actionTxns: {
+          actionTxn: actionTxns.actionTxn,
+          additionalTxns: actionTxns.feedCrankTxs,
+        },
       } as MarginfiActionParams;
 
       if (actionQuote && repayAmount && selectedRepayBank && connection && wallet) {

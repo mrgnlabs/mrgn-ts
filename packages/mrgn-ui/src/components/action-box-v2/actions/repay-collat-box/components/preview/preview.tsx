@@ -12,6 +12,8 @@ import {
   getBankTypeStat,
   getOracleStat,
   ActionSummary,
+  getPriceImpactStat,
+  getSlippageStat,
 } from "~/components/action-box-v2/utils";
 
 interface PreviewProps {
@@ -63,6 +65,8 @@ function generateRepayCollatStats(summary: ActionSummary, bank: ExtendedBankInfo
       summary.simulationPreview?.positionAmount
     )
   );
+  if (summary.actionPreview.priceImpactPct) stats.push(getPriceImpactStat(summary.actionPreview.priceImpactPct));
+  if (summary.actionPreview.slippageBps) stats.push(getSlippageStat(summary.actionPreview.slippageBps));
 
   stats.push(getHealthStat(summary.actionPreview.health, false, summary.simulationPreview?.health));
 

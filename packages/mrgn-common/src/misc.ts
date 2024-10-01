@@ -57,7 +57,7 @@ export async function processTransaction(
     const {
       context: { slot: minContextSlot },
       value: { blockhash, lastValidBlockHeight },
-    } = await connection.getLatestBlockhashAndContext();
+    } = await connection.getLatestBlockhashAndContext("confirmed");
 
     if (transaction instanceof Transaction) {
       const versionedMessage = new TransactionMessage({

@@ -5,14 +5,7 @@ import { Transaction, VersionedTransaction } from "@solana/web3.js";
 
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { SimulationResult } from "@mrgnlabs/marginfi-client-v2";
-import { ActionMethod } from "@mrgnlabs/mrgn-utils";
-
-type ActionTxns = {
-  actionTxn: VersionedTransaction | null;
-  additionalTxns: (VersionedTransaction | Transaction)[];
-  actionQuote: QuoteResponse | null;
-  lastValidBlockHeight?: number;
-};
+import { ActionMethod, RepayCollatActionTxns } from "@mrgnlabs/mrgn-utils";
 
 interface RepayCollatBoxState {
   // State
@@ -25,7 +18,7 @@ interface RepayCollatBoxState {
 
   simulationResult: SimulationResult | null;
 
-  actionTxns: ActionTxns;
+  actionTxns: RepayCollatActionTxns;
 
   errorMessage: ActionMethod | null;
   isLoading: boolean;
@@ -39,7 +32,7 @@ interface RepayCollatBoxState {
   setRepayAmount: (repayAmount: number) => void;
   setSimulationResult: (simulationResult: SimulationResult | null) => void;
 
-  setActionTxns: (actionTxns: ActionTxns) => void;
+  setActionTxns: (actionTxns: RepayCollatActionTxns) => void;
   setErrorMessage: (errorMessage: ActionMethod | null) => void;
   setSelectedBank: (bank: ExtendedBankInfo | null) => void;
   setSelectedSecondaryBank: (bank: ExtendedBankInfo | null) => void;
@@ -199,4 +192,4 @@ const stateCreator: StateCreator<RepayCollatBoxState, [], []> = (set, get) => ({
 });
 
 export { createRepayCollatBoxStore };
-export type { RepayCollatBoxState, ActionTxns };
+export type { RepayCollatBoxState, RepayCollatActionTxns };

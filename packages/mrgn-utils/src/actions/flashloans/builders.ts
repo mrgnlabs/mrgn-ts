@@ -486,7 +486,7 @@ export async function repayWithCollatBuilder({
 
   const swapLUTs: AddressLookupTableAccount[] = [];
   swapLUTs.push(...(await getAdressLookupTableAccounts(options.connection, addressLookupTableAddresses)));
-  const { blockhash, lastValidBlockHeight } = await options.connection.getLatestBlockhash();
+  const { blockhash, lastValidBlockHeight } = await options.connection.getLatestBlockhash("confirmed");
 
   const { flashloanTx, feedCrankTxs, addressLookupTableAccounts } = await marginfiAccount.makeRepayWithCollatTx(
     amount,

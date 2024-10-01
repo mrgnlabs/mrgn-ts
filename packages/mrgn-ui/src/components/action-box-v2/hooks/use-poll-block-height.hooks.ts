@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
-import { Connection, VersionedTransaction } from "@solana/web3.js";
+import { Connection } from "@solana/web3.js";
 
 export const usePollBlockHeight = (connection?: Connection, lastValidBlockHeight?: number) => {
   const [isRefreshTxn, setIsRefreshTxn] = useState(false);
+  const [blockProgress, setBlockProgress] = useState(0);
+  const blockHeightSpace = 300;
 
   useEffect(() => {
     if (!lastValidBlockHeight || !connection) {
@@ -10,30 +12,33 @@ export const usePollBlockHeight = (connection?: Connection, lastValidBlockHeight
       return;
     }
 
-    let intervalId: number;
+    let intervalId: any;
 
     const pollBlockHeight = async () => {
       try {
         const currentBlockHeight = await connection.getBlockHeight("confirmed");
+        const blockHeightProgress = 1 - (lastValidBlockHeight - currentBlockHeight) / blockHeightSpace;
+        setBlockProgress(blockHeightProgress);
 
         if (currentBlockHeight > lastValidBlockHeight) {
           clearInterval(intervalId);
+          setBlockProgress(0);
           setIsRefreshTxn(true);
         } else {
+          setBlockProgress(blockHeightProgress);
           setIsRefreshTxn(false);
         }
       } catch (error) {
         console.error("Error polling block height:", error);
-        clearInterval(intervalId);
       }
     };
 
-    intervalId = setInterval(pollBlockHeight, 1000); // Poll every second
+    intervalId = setInterval(pollBlockHeight, 3000) as any; // Poll every second
 
     return () => {
       clearInterval(intervalId);
     };
   }, [lastValidBlockHeight, connection]);
 
-  return { isRefreshTxn };
+  return { blockProgress, isRefreshTxn };
 };

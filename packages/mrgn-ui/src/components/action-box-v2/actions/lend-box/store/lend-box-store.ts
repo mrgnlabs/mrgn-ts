@@ -2,7 +2,7 @@ import { create, StateCreator } from "zustand";
 import { Transaction, VersionedTransaction } from "@solana/web3.js";
 
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { ActionMethod } from "@mrgnlabs/mrgn-utils";
+import { ActionMethod, ActionTxns } from "@mrgnlabs/mrgn-utils";
 import { SimulationResult } from "@mrgnlabs/marginfi-client-v2";
 
 interface LendBoxState {
@@ -13,10 +13,7 @@ interface LendBoxState {
   selectedBank: ExtendedBankInfo | null;
 
   simulationResult: SimulationResult | null;
-  actionTxns: {
-    actionTxn: VersionedTransaction | Transaction | null;
-    additionalTxns: (VersionedTransaction | Transaction)[];
-  };
+  actionTxns: ActionTxns;
 
   errorMessage: ActionMethod | null;
   isLoading: boolean;
@@ -28,10 +25,7 @@ interface LendBoxState {
   setLendMode: (lendMode: ActionType) => void;
   setAmountRaw: (amountRaw: string, maxAmount?: number) => void;
   setSimulationResult: (simulationResult: SimulationResult | null) => void;
-  setActionTxns: (actionTxns: {
-    actionTxn: VersionedTransaction | Transaction | null;
-    additionalTxns: (VersionedTransaction | Transaction)[];
-  }) => void;
+  setActionTxns: (actionTxns: ActionTxns) => void;
   setSelectedBank: (bank: ExtendedBankInfo | null) => void;
   setIsLoading: (isLoading: boolean) => void;
   setErrorMessage: (errorMessage: ActionMethod | null) => void;

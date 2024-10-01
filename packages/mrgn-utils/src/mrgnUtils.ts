@@ -45,8 +45,8 @@ export function computeBankRateRaw(bank: ExtendedBankInfo, lendingMode: LendingM
       ? bank.info.state.emissionsRate
       : 0
     : bank.info.state.emissions == Emissions.Borrowing
-      ? bank.info.state.emissionsRate
-      : 0;
+    ? bank.info.state.emissionsRate
+    : 0;
 
   const aprRate = interestRate + emissionRate;
   const apyRate = aprToApy(aprRate);
@@ -114,7 +114,6 @@ export function getLiquidationPriceColor(currentPrice: number, liquidationPrice:
 
 export function extractErrorString(error: any, fallback?: string): string {
   const errorCode = handleError(error, null, false);
-  console.log({ error });
 
   if (errorCode?.description) {
     return errorCode.description;

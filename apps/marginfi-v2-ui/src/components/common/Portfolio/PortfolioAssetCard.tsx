@@ -4,7 +4,8 @@ import Image from "next/image";
 
 import { usdFormatter, numeralFormatter } from "@mrgnlabs/mrgn-common";
 import { ActiveBankInfo, ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { getTokenImageURL } from "@mrgnlabs/mrgn-utils";
+import { capture, getTokenImageURL } from "@mrgnlabs/mrgn-utils";
+import { ActionBox } from "@mrgnlabs/mrgn-ui";
 
 import { cn } from "~/utils";
 import { useAssetItemData } from "~/hooks/useAssetItemData";
@@ -14,8 +15,8 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "~/
 import { Button } from "~/components/ui/button";
 import { IconAlertTriangle } from "~/components/ui/icons";
 import { Skeleton } from "~/components/ui/skeleton";
-import { ActionBox } from "@mrgnlabs/mrgn-ui";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
+import { useUiStore } from "~/store";
 
 interface PortfolioAssetCardProps {
   bank: ActiveBankInfo;
@@ -26,6 +27,15 @@ interface PortfolioAssetCardProps {
 export const PortfolioAssetCard = ({ bank, isInLendingMode, isBorrower = true }: PortfolioAssetCardProps) => {
   const { rateAP } = useAssetItemData({ bank, isInLendingMode });
   const { walletContextState, connected } = useWallet();
+  const [previousTxn, setIsWalletOpen, setIsWalletAuthDialogOpen, setPreviousTxn, setIsActionComplete] = useUiStore(
+    (state) => [
+      state.previousTxn,
+      state.setIsWalletOpen,
+      state.setIsWalletAuthDialogOpen,
+      state.setPreviousTxn,
+      state.setIsActionComplete,
+    ]
+  );
 
   const [requestedAction, setRequestedAction] = React.useState<ActionType>();
   const [requestedBank, setRequestedBank] = React.useState<ExtendedBankInfo | null>(null);
@@ -150,12 +160,25 @@ export const PortfolioAssetCard = ({ bank, isInLendingMode, isBorrower = true }:
             <ActionBox.Repay
               useProvider={true}
               repayProps={{
-                onComplete: () => {},
-                captureEvent: () => {},
-                onConnect: () => {},
                 requestedBank: requestedBank ?? undefined,
                 walletContextState: walletContextState,
                 connected: connected,
+                onComplete: (previousTxn) => {
+                  // TODO refactor previousTxn to be more like tradingui
+                  if (previousTxn.txnType !== "LEND") return;
+                  setIsActionComplete(true);
+
+                  setPreviousTxn({
+                    type: previousTxn.lendingOptions.type,
+                    bank: previousTxn.lendingOptions.bank,
+                    amount: previousTxn.lendingOptions.amount,
+                    txn: previousTxn.txn,
+                  });
+                },
+                captureEvent: (event, properties) => {
+                  capture(event, properties);
+                },
+                onConnect: () => setIsWalletAuthDialogOpen(true),
               }}
               isDialog={true}
               dialogProps={{
@@ -177,13 +200,26 @@ export const PortfolioAssetCard = ({ bank, isInLendingMode, isBorrower = true }:
             <ActionBox.Lend
               useProvider={true}
               lendProps={{
-                onComplete: () => {},
-                captureEvent: () => {},
-                onConnect: () => {},
                 requestedLendType: isInLendingMode ? ActionType.Deposit : ActionType.Borrow,
                 requestedBank: requestedBank ?? undefined,
                 walletContextState: walletContextState,
                 connected: connected,
+                onComplete: (previousTxn) => {
+                  // TODO refactor previousTxn to be more like tradingui
+                  if (previousTxn.txnType !== "LEND") return;
+                  setIsActionComplete(true);
+
+                  setPreviousTxn({
+                    type: previousTxn.lendingOptions.type,
+                    bank: previousTxn.lendingOptions.bank,
+                    amount: previousTxn.lendingOptions.amount,
+                    txn: previousTxn.txn,
+                  });
+                },
+                captureEvent: (event, properties) => {
+                  capture(event, properties);
+                },
+                onConnect: () => setIsWalletAuthDialogOpen(true),
               }}
               isDialog={true}
               dialogProps={{
