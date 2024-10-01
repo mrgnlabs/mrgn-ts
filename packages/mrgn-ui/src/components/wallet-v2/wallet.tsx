@@ -438,14 +438,14 @@ const Wallet = ({
                             if (!value || value === bridgeType) return;
                             setBridgeType(value as "mayan" | "debridge");
                           }}
-                          className="w-full md:w-4/5 mx-auto mt-4 gap-1.5 mb-4 bg-background-gray-light/50"
+                          className="w-full md:w-4/5 mx-auto mt-4 gap-1.5 mb-4 bg-accent px-1"
                         >
                           <ToggleGroupItem
                             value="mayan"
                             aria-label="lend"
                             className={cn(
                               "w-1/2 text-xs gap-1.5 capitalize",
-                              bridgeType === "mayan" && "data-[state=on]:bg-background-gray-light"
+                              bridgeType === "mayan" && "data-[state=on]:bg-background"
                             )}
                           >
                             <span className="flex items-center gap-2">
@@ -464,7 +464,7 @@ const Wallet = ({
                             aria-label="borrow"
                             className={cn(
                               "w-1/2 text-xs gap-1.5",
-                              bridgeType === "debridge" && "data-[state=on]:bg-background-gray-light"
+                              bridgeType === "debridge" && "data-[state=on]:bg-background"
                             )}
                           >
                             <span className="flex items-center gap-2">
