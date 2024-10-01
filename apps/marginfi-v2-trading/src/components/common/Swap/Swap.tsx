@@ -11,7 +11,7 @@ import { PublicKey } from "@solana/web3.js";
 import config from "~/config";
 import { useTradeStore } from "~/store";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
-import { useConnection } from "~/hooks/useConnection";
+import { useConnection } from "~/hooks/use-connection";
 
 type SwapProps = {
   onLoad?: () => void;

@@ -3,7 +3,7 @@ import React from "react";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { StakeData } from "@mrgnlabs/mrgn-utils";
 
-import { cn } from "~/utils";
+import { cn } from "@mrgnlabs/mrgn-utils";
 
 import { Button } from "~/components/ui/button";
 import { IconChevronDown } from "~/components/ui/icons";

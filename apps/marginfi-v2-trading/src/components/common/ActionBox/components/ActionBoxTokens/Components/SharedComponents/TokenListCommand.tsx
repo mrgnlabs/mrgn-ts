@@ -5,7 +5,7 @@ import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { cn } from "@mrgnlabs/mrgn-utils";
 
 import { Command, CommandInput, CommandList } from "~/components/ui/command";
-import { useIsMobile } from "~/hooks/useIsMobile";
+import { useIsMobile } from "~/hooks/use-is-mobile";
 
 type TokenListCommandProps = {
   selectedBank: ExtendedBankInfo | null;

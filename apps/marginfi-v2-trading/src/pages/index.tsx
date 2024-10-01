@@ -4,12 +4,12 @@ import { useRouter } from "next/router";
 
 import { IconSortAscending, IconSortDescending, IconSparkles, IconGridDots, IconList } from "@tabler/icons-react";
 import { motion } from "framer-motion";
+import { capture } from "@mrgnlabs/mrgn-utils";
 
 import { useTradeStore, useUiStore } from "~/store";
 import { TradePoolFilterStates } from "~/store/tradeStore";
 import { POOLS_PER_PAGE } from "~/config/trade";
-import { useIsMobile } from "~/hooks/useIsMobile";
-import { capture } from "~/utils";
+import { useIsMobile } from "~/hooks/use-is-mobile";
 
 import { PageHeading } from "~/components/common/PageHeading";
 import { PoolCard, PoolListItem } from "~/components/common/Pool";

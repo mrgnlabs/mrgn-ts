@@ -3,7 +3,7 @@ import Image from "next/image";
 
 import shuffle from "lodash/shuffle";
 
-import { cn } from "~/utils";
+import { cn } from "@mrgnlabs/mrgn-utils";
 
 import {
   IconExternalLink,
@@ -189,7 +189,7 @@ const projects = shuffle([
     author: {
       name: "Asgard",
       avatar: "https://storage.googleapis.com/mrgn-public/ecosystem-images/asgardwatchbot.jpg",
-      url: "https://twitter.com/asgardfi"
+      url: "https://twitter.com/asgardfi",
     },
   },
   {

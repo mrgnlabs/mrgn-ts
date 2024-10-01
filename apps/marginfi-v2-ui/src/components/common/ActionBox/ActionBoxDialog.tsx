@@ -3,7 +3,7 @@ import React from "react";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { Desktop, Mobile } from "@mrgnlabs/mrgn-utils";
 
-import { useIsMobile } from "~/hooks/useIsMobile";
+import { useIsMobile } from "~/hooks/use-is-mobile";
 import { ActionBox } from "~/components/common/ActionBox";
 import {
   Dialog,

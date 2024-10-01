@@ -2,7 +2,7 @@ import * as React from "react";
 import * as SliderPrimitive from "@radix-ui/react-slider";
 import Lottie from "lottie-react";
 
-import { cn, blendHexColors } from "~/utils/themeUtils";
+import { cn, blendHexColors } from "@mrgnlabs/mrgn-utils";
 import fireAnimation from "./fire-lottie.json";
 
 const Slider = React.forwardRef<

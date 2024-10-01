@@ -6,7 +6,7 @@ import { numeralFormatter, usdFormatter, WSOL_MINT } from "@mrgnlabs/mrgn-common
 import { LendingModes } from "@mrgnlabs/mrgn-utils";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { cn } from "~/utils";
+import { cn } from "@mrgnlabs/mrgn-utils";
 
 type ActionBoxItemProps = {
   bank: ExtendedBankInfo;

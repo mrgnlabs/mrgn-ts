@@ -2,7 +2,7 @@
 
 import React from "react";
 
-import { cn } from "~/utils";
+import { cn } from "@mrgnlabs/mrgn-utils";
 
 import { Swap } from "~/components/common/Swap";
 import { Loader } from "~/components/ui/loader";

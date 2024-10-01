@@ -19,12 +19,11 @@ import { MrgnlendProvider, TradePovider } from "~/context";
 import { WALLET_ADAPTERS } from "~/config/wallets";
 import { BANK_METADATA_MAP } from "~/config/trade";
 import { WalletProvider as MrgnWalletProvider } from "~/components/wallet-v2/hooks/use-wallet.hook";
-import { ConnectionProvider } from "~/hooks/useConnection";
+import { ConnectionProvider } from "~/hooks/use-connection";
 
 import { Meta } from "~/components/common/Meta";
 import { MobileNavbar } from "~/components/mobile/MobileNavbar";
 import { Tutorial } from "~/components/common/Tutorial";
-import { WalletAuthDialog } from "~/components/common/Wallet";
 import { Header } from "~/components/common/Header";
 import { Footer } from "~/components/desktop/Footer";
 

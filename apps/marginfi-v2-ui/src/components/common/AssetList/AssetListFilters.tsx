@@ -3,7 +3,7 @@ import React from "react";
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { useUiStore, useUserProfileStore } from "~/store";
-import { cn } from "~/utils";
+import { cn } from "@mrgnlabs/mrgn-utils";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { useActionBoxStore } from "~/hooks/useActionBoxStore";
 import { LendingModes, PoolTypes } from "@mrgnlabs/mrgn-utils";

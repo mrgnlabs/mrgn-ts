@@ -14,6 +14,7 @@ import { ToastContainer } from "react-toastify";
 import { Analytics } from "@vercel/analytics/react";
 import { Desktop, Mobile } from "@mrgnlabs/mrgn-utils";
 import { AuthDialog } from "@mrgnlabs/mrgn-ui";
+import { init as initAnalytics } from "@mrgnlabs/mrgn-utils";
 
 import config from "~/config";
 import { MrgnlendProvider, LipClientProvider } from "~/context";
@@ -22,8 +23,7 @@ import { useMrgnlendStore, useUiStore } from "~/store";
 import { useLstStore } from "~/store";
 import { WalletProvider as MrgnWalletProvider } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { ConnectionProvider } from "~/hooks/use-connection";
-import { init as initAnalytics } from "~/utils/analytics";
-import { cn } from "~/utils";
+import { cn } from "@mrgnlabs/mrgn-utils";
 
 import { Meta } from "~/components/common/Meta";
 import { MobileNavbar } from "~/components/mobile/MobileNavbar";

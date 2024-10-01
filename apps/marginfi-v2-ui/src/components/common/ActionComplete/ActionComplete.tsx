@@ -12,7 +12,7 @@ import { percentFormatterDyn, shortenAddress, percentFormatter } from "@mrgnlabs
 import { LSTS_SOLANA_COMPASS_MAP, calcLstYield, calcNetLoopingApy, cn } from "~/utils";
 import { useUiStore, useLstStore, useMrgnlendStore } from "~/store";
 import { useAssetItemData } from "~/hooks/useAssetItemData";
-import { useIsMobile } from "~/hooks/useIsMobile";
+import { useIsMobile } from "~/hooks/use-is-mobile";
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "~/components/ui/dialog";
 import { IconConfetti, IconExternalLink, IconArrowDown, IconArrowUp } from "~/components/ui/icons";

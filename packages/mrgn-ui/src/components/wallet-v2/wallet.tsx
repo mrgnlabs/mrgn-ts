@@ -132,12 +132,17 @@ const Wallet = ({
     const userTokens = userBanks
       .map((bank) => {
         const isSolBank = bank.meta.tokenSymbol === "SOL";
-        const value = isSolBank
+        let value = isSolBank
           ? nativeSolBalance + bank.userInfo.tokenAccount.balance
           : bank.userInfo.tokenAccount.balance;
-        const valueUSD =
+        let valueUSD =
           (isSolBank ? nativeSolBalance + bank.userInfo.tokenAccount.balance : bank.userInfo.tokenAccount.balance) *
           bank.info.state.price;
+
+        if (Number.isNaN(value) || Number.isNaN(valueUSD)) {
+          value = 0;
+          valueUSD = 0;
+        }
 
         return {
           address: bank.address,
@@ -157,7 +162,12 @@ const Wallet = ({
         );
       });
 
-    const totalBalance = userTokens.reduce((acc, token) => acc + token.valueUSD, 0);
+    const totalBalance = userTokens.reduce(
+      (acc, token) => acc + (typeof token.valueUSD === "number" ? token.valueUSD : 0),
+      0
+    );
+
+    console.log(totalBalance);
 
     setWalletData({
       address: wallet?.publicKey.toString(),
@@ -168,7 +178,7 @@ const Wallet = ({
   }, [wallet?.publicKey, extendedBankInfos, nativeSolBalance, isWalletBalanceErrorShown]);
 
   React.useEffect(() => {
-    if (!walletData.address) {
+    if (!walletData.tokens.length) {
       getWalletData();
       return;
     }

@@ -19,7 +19,7 @@ import { cn, capture } from "@mrgnlabs/mrgn-utils";
 
 import { useUiStore, useTradeStore } from "~/store";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
-import { useConnection } from "~/hooks/useConnection";
+import { useConnection } from "~/hooks/use-connection";
 import { useActionBoxStore } from "~/hooks/useActionBoxStore";
 
 import { checkActionAvailable } from "~/utils/actionBoxUtils";

@@ -16,7 +16,7 @@ import {
   STATUS_OK,
   firebaseApi,
 } from "@mrgnlabs/marginfi-v2-ui-state";
-import { capture, identify } from "~/utils/analytics";
+import { capture, identify } from "@mrgnlabs/mrgn-utils";
 
 initFirebaseIfNeeded();
 

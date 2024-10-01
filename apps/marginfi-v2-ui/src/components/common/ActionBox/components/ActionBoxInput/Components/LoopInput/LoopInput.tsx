@@ -18,7 +18,7 @@ import { Input } from "~/components/ui/input";
 import { Slider } from "~/components/ui/slider";
 import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
 import { IconChevronDown } from "~/components/ui/icons";
-import { cn } from "~/utils";
+import { cn } from "@mrgnlabs/mrgn-utils";
 
 import { useMrgnlendStore, useUiStore } from "~/store";
 import { useDebounce } from "~/hooks/useDebounce";

@@ -15,7 +15,7 @@ import { StakeData } from "@mrgnlabs/mrgn-utils";
 
 import { useLstStore, useMrgnlendStore } from "~/store";
 import { LST_MINT, SOL_MINT } from "~/store/lstStore";
-import { cn } from "~/utils";
+import { cn } from "@mrgnlabs/mrgn-utils";
 import { useDebounce } from "~/hooks/useDebounce";
 
 import { Skeleton } from "~/components/ui/skeleton";

@@ -11,7 +11,7 @@ import { PublicKey } from "@solana/web3.js";
 import { cn } from "@mrgnlabs/mrgn-utils";
 
 import { useTradeStore } from "~/store";
-import { useIsMobile } from "~/hooks/useIsMobile";
+import { useIsMobile } from "~/hooks/use-is-mobile";
 
 import {
   CreatePoolSearch,

@@ -2,7 +2,7 @@ import React from "react";
 import { useRouter } from "next/router";
 
 import { useTradeStore } from "~/store";
-import { useConnection } from "~/hooks/useConnection";
+import { useConnection } from "~/hooks/use-connection";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { identify } from "~/utils";
 

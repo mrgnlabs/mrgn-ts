@@ -5,7 +5,7 @@ import { ExtendedBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { LendingModes, computeBankRate } from "@mrgnlabs/mrgn-utils";
 
 import { useMrgnlendStore } from "~/store";
-import { cn } from "~/utils";
+import { cn } from "@mrgnlabs/mrgn-utils";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
 import { CommandEmpty, CommandGroup, CommandItem } from "~/components/ui/command";

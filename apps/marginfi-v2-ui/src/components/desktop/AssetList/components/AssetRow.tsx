@@ -7,7 +7,7 @@ import { TableCell, TableRow } from "~/components/ui/table";
 
 import { getPositionCell } from "./AssetCells";
 import { AssetListModel } from "../utils";
-import { cn } from "~/utils";
+import { cn } from "@mrgnlabs/mrgn-utils";
 
 export const AssetRow = (row: Row<AssetListModel>) => {
   const [isHovering, setIsHovering] = React.useState(false);

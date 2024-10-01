@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 
 import config from "~/config/marginfi";
 import { useMrgnlendStore } from "~/store";
-import { useConnection } from "~/hooks/useConnection";
+import { useConnection } from "~/hooks/use-connection";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
 // @ts-ignore - Safe because context hook checks for null
