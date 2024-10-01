@@ -15,10 +15,10 @@ const WalletReceive = ({ address }: WalletReceiveProps) => {
   return (
     <div className="gap-6 text-center flex flex-col items-center pt-6 px-6">
       <p className="px-8">Scan the qr code with a wallet app or copy your address below.</p>
-      <div className="border-4 border-background-gray-hover rounded-lg">
+      <div className="border-4 border-accent rounded-lg">
         <QRCode value={address} size={180} />
       </div>
-      <div className="bg-background-gray border border-border text-primary rounded-md text-sm md:mx-4">
+      <div className="bg-accent border border-border text-primary rounded-md text-sm md:mx-4">
         <p className="break-all px-8 py-2 text-muted-foreground">{address}</p>
         <CopyToClipboard
           text={address}
