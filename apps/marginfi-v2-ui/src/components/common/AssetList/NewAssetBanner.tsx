@@ -2,12 +2,13 @@ import React from "react";
 
 import Image from "next/image";
 
-import { getTokenImageURL } from "@mrgnlabs/mrgn-utils";
+import { capture, getTokenImageURL } from "@mrgnlabs/mrgn-utils";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { ActionBoxDialog } from "../ActionBox";
 import { Button } from "~/components/ui/button";
 import { IconX } from "~/components/ui/icons";
+import { ActionBox } from "@mrgnlabs/mrgn-ui";
 
 type NewAssetBannerProps = {
   bankInfo: ExtendedBankInfo;
@@ -44,6 +45,18 @@ export const NewAssetBanner = ({ bankInfo }: NewAssetBannerProps) => {
           <h2 className="font-medium">${bankInfo.meta.tokenSymbol} is now available on marginfi</h2>
           <ul className="flex items-center gap-2 justify-center">
             <li className="w-full">
+              {/* <ActionBox.Lend
+                isDialog={true}
+                useProvider={true}
+                lendProps={{
+                  connected: connected,
+                  requestedLendType: ActionType.Deposit,
+                  requestedBank: bankInfo,
+                  captureEvent: (event, properties) => {
+                    capture(event, properties);
+                  },
+                }}
+              /> */}
               <ActionBoxDialog requestedBank={bankInfo} requestedAction={ActionType.Deposit}>
                 <Button variant="outline" size="sm" className="w-full">
                   Deposit ${bankInfo.meta.tokenSymbol}
