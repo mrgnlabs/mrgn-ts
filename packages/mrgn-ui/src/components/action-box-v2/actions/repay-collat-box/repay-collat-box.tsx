@@ -11,18 +11,17 @@ import {
 import { ActionMethod, MarginfiActionParams, PreviousTxn, showErrorToast } from "@mrgnlabs/mrgn-utils";
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 
+import { CircularProgress } from "~/components/ui/circular-progress";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { ActionButton, ActionMessage, ActionSettingsButton } from "~/components/action-box-v2/components";
-import { useActionBoxStore } from "~/components/action-box-v2/store";
 import { useActionAmounts, usePollBlockHeight } from "~/components/action-box-v2/hooks";
 
 import { checkActionAvailable, handleExecuteRepayCollatAction } from "./utils";
 import { Collateral, ActionInput, Preview } from "./components";
 import { useRepayCollatBoxStore } from "./store";
 import { useRepayCollatSimulation } from "./hooks";
-import { LSTDialog, LSTDialogVariants } from "~/components/LSTDialog";
-import { CircularProgress } from "~/components/ui/circular-progress";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
-import { IconInfoCircle } from "@tabler/icons-react";
+
+import { useActionBoxStore } from "../../store";
 
 // error handling
 export type RepayCollatBoxProps = {
@@ -39,7 +38,7 @@ export type RepayCollatBoxProps = {
   isDialog?: boolean;
 
   onConnect?: () => void;
-  onComplete: (previousTxn: PreviousTxn) => void;
+  onComplete?: (previousTxn: PreviousTxn) => void;
   captureEvent?: (event: string, properties?: Record<string, any>) => void;
 };
 
@@ -120,7 +119,11 @@ export const RepayCollatBox = ({
     );
   }, [accountSummaryArg, selectedAccount, banks]);
 
-  const [setIsSettingsDialogOpen] = useActionBoxStore((state) => [state.setIsSettingsDialogOpen]);
+  const [setIsSettingsDialogOpen, setPreviousTxn, setIsActionComplete] = useActionBoxStore((state) => [
+    state.setIsSettingsDialogOpen,
+    state.setPreviousTxn,
+    state.setIsActionComplete,
+  ]);
 
   const { amount, debouncedAmount, walletAmount, maxAmount } = useActionAmounts({
     amountRaw,
@@ -202,7 +205,8 @@ export const RepayCollatBox = ({
           captureEvent && captureEvent(event, properties);
         },
         setIsComplete: (txnSigs) => {
-          onComplete({
+          setIsActionComplete(true);
+          setPreviousTxn({
             txn: txnSigs.pop() ?? "",
             txnType: "LEND",
             lendingOptions: {
@@ -211,6 +215,17 @@ export const RepayCollatBox = ({
               bank: selectedBank as ActiveBankInfo,
             },
           });
+
+          onComplete &&
+            onComplete({
+              txn: txnSigs.pop() ?? "",
+              txnType: "LEND",
+              lendingOptions: {
+                amount: amount,
+                type: ActionType.RepayCollat,
+                bank: selectedBank as ActiveBankInfo,
+              },
+            });
         },
         setIsError: () => {},
         setIsLoading: (isLoading) => setIsLoading(isLoading),

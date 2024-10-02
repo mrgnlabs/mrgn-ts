@@ -21,11 +21,11 @@ import * as screens from "./screens";
 
 type ActionCompleteProps = {
   isActionComplete: boolean;
-  setIsActionComplete: (isActionComplete: boolean) => void;
   previousTxn: PreviousTxn;
+  setIsActionComplete: (isActionComplete: boolean) => void;
 };
 
-export const ActionComplete = ({ isActionComplete, setIsActionComplete, previousTxn }: ActionCompleteProps) => {
+export const ActionComplete = ({ isActionComplete, previousTxn, setIsActionComplete }: ActionCompleteProps) => {
   const { width, height } = useWindowSize();
 
   const headerText = React.useMemo(() => {
@@ -48,6 +48,10 @@ export const ActionComplete = ({ isActionComplete, setIsActionComplete, previous
       return "Action Completed!";
     }
   }, [previousTxn]);
+
+  const handleClose = React.useCallback(() => {
+    setIsActionComplete(false);
+  }, [setIsActionComplete]);
 
   if (!isActionComplete || !previousTxn) return null;
 
@@ -83,7 +87,7 @@ export const ActionComplete = ({ isActionComplete, setIsActionComplete, previous
             )}
           </div>
           <DialogFooter className="mt-6">
-            <Button className="w-full mx-auto" onClick={() => setIsActionComplete(false)}>
+            <Button className="w-full mx-auto" onClick={handleClose}>
               Done
             </Button>
           </DialogFooter>

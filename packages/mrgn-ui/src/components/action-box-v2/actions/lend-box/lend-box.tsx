@@ -15,7 +15,7 @@ import { ActionMethod, MarginfiActionParams, PreviousTxn } from "@mrgnlabs/mrgn-
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 
 import { ActionButton, ActionMessage, ActionSettingsButton } from "~/components/action-box-v2/components";
-import { useActionBoxStore } from "~/components/action-box-v2/store";
+
 import { useActionAmounts } from "~/components/action-box-v2/hooks";
 import { LSTDialog, LSTDialogVariants } from "~/components/LSTDialog";
 import { WalletContextStateOverride } from "~/components/wallet-v2/hooks/use-wallet.hook";
@@ -24,6 +24,7 @@ import { useLendBoxStore } from "./store";
 import { checkActionAvailable, handleExecuteCloseBalance, handleExecuteLendingAction } from "./utils";
 import { Collateral, ActionInput, Preview } from "./components";
 import { useLendSimulation } from "./hooks";
+import { useActionBoxStore } from "../../store";
 
 // error handling
 export type LendBoxProps = {
@@ -40,7 +41,7 @@ export type LendBoxProps = {
   accountSummaryArg?: AccountSummary;
 
   onConnect?: () => void;
-  onComplete: (previousTxn: PreviousTxn) => void;
+  onComplete?: (previousTxn: PreviousTxn) => void;
   captureEvent?: (event: string, properties?: Record<string, any>) => void;
 };
 
@@ -59,8 +60,6 @@ export const LendBox = ({
   onComplete,
   captureEvent,
 }: LendBoxProps) => {
-  const priorityFee = 0;
-
   const [
     amountRaw,
     lendMode,
@@ -107,9 +106,11 @@ export const LendBox = ({
     );
   }, [accountSummaryArg, selectedAccount, banks]);
 
-  const [isSettingsDialogOpen, setIsSettingsDialogOpen] = useActionBoxStore((state) => [
-    state.isSettingsDialogOpen,
+  const [setIsSettingsDialogOpen, priorityFee, setPreviousTxn, setIsActionComplete] = useActionBoxStore((state) => [
     state.setIsSettingsDialogOpen,
+    state.priorityFee,
+    state.setPreviousTxn,
+    state.setIsActionComplete,
   ]);
 
   const { amount, debouncedAmount, walletAmount, maxAmount } = useActionAmounts({
@@ -196,7 +197,8 @@ export const LendBox = ({
         captureEvent && captureEvent(event, properties);
       },
       setIsComplete: (txnSigs) => {
-        onComplete({
+        setIsActionComplete(true);
+        setPreviousTxn({
           txn: txnSigs.pop() ?? "",
           txnType: "LEND",
           lendingOptions: {
@@ -205,6 +207,17 @@ export const LendBox = ({
             bank: selectedBank as ActiveBankInfo,
           },
         });
+
+        onComplete &&
+          onComplete({
+            txn: txnSigs.pop() ?? "",
+            txnType: "LEND",
+            lendingOptions: {
+              amount: 0,
+              type: ActionType.Withdraw,
+              bank: selectedBank as ActiveBankInfo,
+            },
+          });
       },
       setIsError: () => {},
       setIsLoading: (isLoading) => setIsLoading(isLoading),
@@ -236,7 +249,8 @@ export const LendBox = ({
           captureEvent && captureEvent(event, properties);
         },
         setIsComplete: (txnSigs) => {
-          onComplete({
+          setIsActionComplete(true);
+          setPreviousTxn({
             txn: txnSigs.pop() ?? "",
             txnType: "LEND",
             lendingOptions: {
@@ -245,6 +259,16 @@ export const LendBox = ({
               bank: selectedBank as ActiveBankInfo,
             },
           });
+          onComplete &&
+            onComplete({
+              txn: txnSigs.pop() ?? "",
+              txnType: "LEND",
+              lendingOptions: {
+                amount: amount,
+                type: lendMode,
+                bank: selectedBank as ActiveBankInfo,
+              },
+            });
         },
         setIsError: () => {},
         setIsLoading: (isLoading) => setIsLoading(isLoading),
