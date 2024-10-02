@@ -29,7 +29,7 @@ import {
 import { ExtendedBankInfo, clearAccountCache, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { TradeSide } from "~/components/common/TradingBox/tradingBox.utils";
-import { WalletContextStateOverride } from "~/hooks/useWalletContext";
+import { WalletContextStateOverride } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
 export async function createMarginfiGroup({
   marginfiClient,
