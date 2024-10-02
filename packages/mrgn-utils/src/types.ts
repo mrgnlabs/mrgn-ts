@@ -32,20 +32,22 @@ interface PreviousTxnPositionClosed {
   };
 }
 
+export interface PreviousTxnTradingOptions {
+  initDepositAmount: string;
+  depositAmount: number;
+  depositBank: ActiveBankInfo;
+  borrowAmount: number;
+  borrowBank: ActiveBankInfo;
+  leverage: number;
+  quote: QuoteResponse;
+  entryPrice: number;
+  type: "long" | "short";
+}
+
 interface PreviousTxnTrading {
   txn: string;
   txnType: "TRADING";
-  tradingOptions: {
-    initDepositAmount: string;
-    depositAmount: number;
-    depositBank: ActiveBankInfo;
-    borrowAmount: number;
-    borrowBank: ActiveBankInfo;
-    leverage: number;
-    quote: QuoteResponse;
-    entryPrice: number;
-    type: "long" | "short";
-  };
+  tradingOptions: PreviousTxnTradingOptions;
 }
 
 export type PreviousTxn = PreviousTxnLending | PreviousTxnTrading | PreviousTxnPositionClosed;

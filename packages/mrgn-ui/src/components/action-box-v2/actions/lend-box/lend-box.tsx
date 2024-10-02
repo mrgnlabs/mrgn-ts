@@ -107,7 +107,10 @@ export const LendBox = ({
     );
   }, [accountSummaryArg, selectedAccount, banks]);
 
-  const [setIsSettingsDialogOpen] = useActionBoxStore((state) => [state.setIsSettingsDialogOpen]);
+  const [isSettingsDialogOpen, setIsSettingsDialogOpen] = useActionBoxStore((state) => [
+    state.isSettingsDialogOpen,
+    state.setIsSettingsDialogOpen,
+  ]);
 
   const { amount, debouncedAmount, walletAmount, maxAmount } = useActionAmounts({
     amountRaw,
@@ -143,7 +146,7 @@ export const LendBox = ({
     return () => {
       refreshState();
     };
-  }, []);
+  }, [refreshState]);
 
   React.useEffect(() => {
     fetchActionBoxState({ requestedLendType, requestedBank });
