@@ -15,6 +15,7 @@ import { Desktop, Mobile, init as initAnalytics } from "@mrgnlabs/mrgn-utils";
 import { AuthDialog } from "@mrgnlabs/mrgn-ui";
 
 import config from "~/config";
+import { useTradeStore } from "~/store";
 import { MrgnlendProvider, TradePovider } from "~/context";
 import { WALLET_ADAPTERS } from "~/config/wallets";
 import { BANK_METADATA_MAP } from "~/config/trade";
@@ -74,7 +75,7 @@ export default function MrgnApp({ Component, pageProps, path, bank }: AppProps &
                       </Mobile>
                       <Analytics />
 
-                      <AuthDialog />
+                      <AuthDialog onboardingEnabled={false} />
                       <ToastContainer position="bottom-left" theme="light" />
                     </div>
                   </TradePovider>

@@ -10,7 +10,7 @@ import { useMrgnlendStore } from "~/store";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { useConnection } from "~/hooks/use-connection";
 
-import { WalletButton } from "~/components/common/Wallet";
+import { WalletButton } from "~/components/wallet-v2";
 import { Loader } from "~/components/ui/loader";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -18,7 +18,8 @@ import { Alert, AlertTitle } from "~/components/ui/alert";
 import { Checkbox } from "~/components/ui/checkbox";
 import { Label } from "~/components/ui/label";
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "~/components/ui/tooltip";
-import { IconAlertTriangle, IconMrgn, IconTransfer, IconX } from "~/components/ui/icons";
+import { IconMrgn } from "~/components/ui/icons";
+import { IconAlertTriangle, IconTransfer, IconX } from "@tabler/icons-react";
 
 export default function MigratePointsPage() {
   const [initialized] = useMrgnlendStore((state) => [state.initialized]);

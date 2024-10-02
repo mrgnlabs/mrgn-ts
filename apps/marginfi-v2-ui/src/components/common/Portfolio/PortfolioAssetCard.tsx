@@ -2,6 +2,7 @@ import React from "react";
 
 import Image from "next/image";
 
+import { IconAlertTriangle } from "@tabler/icons-react";
 import { usdFormatter, numeralFormatter } from "@mrgnlabs/mrgn-common";
 import { ActiveBankInfo, ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { capture } from "@mrgnlabs/mrgn-utils";
@@ -12,7 +13,6 @@ import { useAssetItemData } from "~/hooks/useAssetItemData";
 
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "~/components/ui/accordion";
 import { Button } from "~/components/ui/button";
-import { IconAlertTriangle } from "~/components/ui/icons";
 import { Skeleton } from "~/components/ui/skeleton";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { useUiStore } from "~/store";

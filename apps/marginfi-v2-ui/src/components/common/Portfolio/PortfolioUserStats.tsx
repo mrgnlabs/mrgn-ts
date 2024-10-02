@@ -1,4 +1,4 @@
-import { IconClockHour4 } from "~/components/ui/icons";
+import { IconClockHour4 } from "@tabler/icons-react";
 
 interface PortfolioUserStatsProps {
   supplied: string;

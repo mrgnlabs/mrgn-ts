@@ -11,6 +11,7 @@ import { ActionBox } from "@mrgnlabs/mrgn-ui";
 import { useMrgnlendStore, useUiStore } from "~/store";
 import { useActionBoxStore } from "~/hooks/useActionBoxStore";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
+import { IconBook, IconTrophy } from "@tabler/icons-react";
 
 import { Banner } from "~/components/desktop/Banner";
 import { ActionBoxLendWrapper } from "~/components/common/ActionBox";
@@ -23,7 +24,7 @@ import {
 } from "~/components/common/Announcements";
 
 import { OverlaySpinner } from "~/components/ui/overlay-spinner";
-import { IconBackpackWallet, IconBook, IconTrophy, IconYBX } from "~/components/ui/icons";
+import { IconYBX, IconBackpackWallet } from "~/components/ui/icons";
 import { Loader } from "~/components/ui/loader";
 
 const AssetsList = dynamic(async () => (await import("~/components/desktop/AssetList")).AssetsList, {

@@ -11,7 +11,7 @@ import {
   IconBrandDiscordFilled,
   IconBrandX,
   IconChartHistogram,
-} from "~/components/ui/icons";
+} from "@tabler/icons-react";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import { PageHeading } from "~/components/common/PageHeading";
