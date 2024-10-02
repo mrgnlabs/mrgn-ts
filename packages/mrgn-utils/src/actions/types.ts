@@ -64,6 +64,13 @@ export interface ActionTxns {
   additionalTxns: (VersionedTransaction | Transaction)[];
 }
 
+export interface LoopActionTxns extends ActionTxns {
+  actionQuote: QuoteResponse | null;
+  lastValidBlockHeight?: number;
+  actualDepositAmount: number;
+  borrowAmount: BigNumber;
+}
+
 export interface RepayCollatActionTxns extends ActionTxns {
   actionQuote: QuoteResponse | null;
   lastValidBlockHeight?: number;

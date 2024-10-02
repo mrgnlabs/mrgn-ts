@@ -2,6 +2,15 @@ import { StoreApi, UseBoundStore } from "zustand";
 
 import { createLendBoxStore, LendBoxState } from "./lend-box-store";
 
-const useLendBoxStore: UseBoundStore<StoreApi<LendBoxState>> = createLendBoxStore();
+const useLendBoxGeneralStore: UseBoundStore<StoreApi<LendBoxState>> = createLendBoxStore();
+const useLendBoxDialogStore: UseBoundStore<StoreApi<LendBoxState>> = createLendBoxStore();
+
+const useLendBoxStore = (isDialog?: boolean): UseBoundStore<StoreApi<LendBoxState>> => {
+  if (!isDialog) {
+    return useLendBoxGeneralStore;
+  } else {
+    return useLendBoxDialogStore;
+  }
+};
 
 export { useLendBoxStore };
