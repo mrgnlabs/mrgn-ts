@@ -6,7 +6,7 @@ import { StakeData } from "@mrgnlabs/mrgn-utils";
 import { cn } from "@mrgnlabs/mrgn-utils";
 
 import { Button } from "~/components/ui/button";
-import { IconChevronDown } from "~/components/ui/icons";
+import { IconChevronDown } from "@tabler/icons-react";
 
 import { SelectedBankItem } from "../../SharedComponents";
 import { SelectedNativeItem } from "./SelectedNativeItem";

@@ -4,7 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { Button, Dialog, DialogContent } from "../ui";
+import { Dialog, DialogContent } from "~/components/ui/dialog";
+import { Button } from "~/components/ui/button";
 
 export enum LSTDialogVariants {
   SOL = "SOL",

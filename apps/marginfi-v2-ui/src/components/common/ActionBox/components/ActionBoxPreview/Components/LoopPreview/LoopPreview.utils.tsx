@@ -13,8 +13,9 @@ import {
   getPriceWithConfidence,
 } from "@mrgnlabs/marginfi-client-v2";
 import { LoopingOptions } from "@mrgnlabs/mrgn-utils";
+import { IconArrowRight } from "@tabler/icons-react";
 
-import { IconArrowRight, IconPyth, IconSwitchboard } from "~/components/ui/icons";
+import { IconPyth, IconSwitchboard } from "~/components/ui/icons";
 import { Skeleton } from "~/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 

@@ -6,6 +6,7 @@ import Image from "next/image";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { formatAmount } from "@mrgnlabs/mrgn-utils";
 import { percentFormatter } from "@mrgnlabs/mrgn-common";
+import { IconChevronDown } from "@tabler/icons-react";
 
 import { useActionBoxStore } from "~/hooks/useActionBoxStore";
 import { useConnection } from "~/hooks/use-connection";
@@ -17,7 +18,6 @@ import { InputAction } from "~/components/common/ActionBox/components/ActionBoxI
 import { Input } from "~/components/ui/input";
 import { Slider } from "~/components/ui/slider";
 import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
-import { IconChevronDown } from "~/components/ui/icons";
 import { cn } from "@mrgnlabs/mrgn-utils";
 
 import { useMrgnlendStore, useUiStore } from "~/store";

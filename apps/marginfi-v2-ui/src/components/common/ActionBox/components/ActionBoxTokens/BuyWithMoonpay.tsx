@@ -3,7 +3,6 @@ import React from "react";
 import { useUiStore } from "~/store";
 
 import { Button } from "~/components/ui/button";
-import { IconMoonPay } from "~/components/ui/icons";
 
 type props = {};
 
@@ -16,10 +15,7 @@ export const BuyWithMoonpay = ({}: props) => {
         You don&apos;t own any supported tokens in marginfi. Check out what marginfi supports.
       </div>
       <Button variant="outline" className="w-fit mx-auto mb-3" onClick={() => setIsWalletOpen(true)}>
-        <>
-          Buy with
-          <IconMoonPay />
-        </>
+        <>Buy with Moonpay</>
       </Button>
     </>
   );

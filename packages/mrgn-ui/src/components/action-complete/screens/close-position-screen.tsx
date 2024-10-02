@@ -5,7 +5,6 @@ import { IconExternalLink } from "@tabler/icons-react";
 
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { shortenAddress } from "@mrgnlabs/mrgn-common";
-import { getTokenImageURL } from "@mrgnlabs/mrgn-utils";
 
 interface Props {
   tokenBank: ExtendedBankInfo;
@@ -21,7 +20,7 @@ export const ClosePositionScreen = ({ tokenBank, collateralBank, txn }: Props) =
           {tokenBank && (
             <Image
               className="rounded-full w-9 h-9"
-              src={getTokenImageURL(tokenBank.info.state.mint.toString())}
+              src={tokenBank.meta.tokenLogoUri}
               alt={(tokenBank.meta.tokenSymbol || "Token") + "  logo"}
               width={36}
               height={36}

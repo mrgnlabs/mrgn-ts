@@ -17,9 +17,10 @@ import {
   usePrevious,
 } from "@mrgnlabs/mrgn-utils";
 import { getBlockedActions, showErrorToast } from "@mrgnlabs/mrgn-utils";
+import { IconAlertTriangle, IconExternalLink, IconSettings } from "@tabler/icons-react";
 
 import { useLstStore, useMrgnlendStore, useUiStore } from "~/store";
-import { cn, capture } from "~/utils";
+import { cn, capture } from "@mrgnlabs/mrgn-utils";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { useConnection } from "~/hooks/use-connection";
 import { useActionBoxStore } from "~/hooks/useActionBoxStore";
@@ -27,7 +28,6 @@ import { SOL_MINT } from "~/store/lstStore";
 
 import { LSTDialog, LSTDialogVariants } from "~/components/common/AssetList";
 import { checkActionAvailable } from "~/utils/actionBoxUtils";
-import { IconAlertTriangle, IconExternalLink, IconSettings } from "~/components/ui/icons";
 
 import {
   ActionBoxPreview,

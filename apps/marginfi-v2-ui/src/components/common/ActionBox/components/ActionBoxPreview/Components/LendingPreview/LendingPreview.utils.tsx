@@ -28,8 +28,9 @@ import {
 } from "@mrgnlabs/marginfi-client-v2";
 
 import { cn } from "@mrgnlabs/mrgn-utils";
+import { IconAlertTriangle, IconArrowRight } from "@tabler/icons-react";
 
-import { IconAlertTriangle, IconArrowRight, IconPyth, IconSwitchboard } from "~/components/ui/icons";
+import { IconPyth, IconSwitchboard } from "~/components/ui/icons";
 import { Skeleton } from "~/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { REDUCE_ONLY_BANKS } from "~/components/desktop/AssetList/utils";

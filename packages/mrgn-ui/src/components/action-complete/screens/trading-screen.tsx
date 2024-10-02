@@ -5,7 +5,7 @@ import Image from "next/image";
 import { PublicKey } from "@solana/web3.js";
 import { IconExternalLink } from "@tabler/icons-react";
 import { shortenAddress } from "@mrgnlabs/mrgn-common";
-import { cn, getTokenImageURL, PreviousTxnTradingOptions } from "@mrgnlabs/mrgn-utils";
+import { cn, PreviousTxnTradingOptions } from "@mrgnlabs/mrgn-utils";
 
 interface TradingScreenProps extends PreviousTxnTradingOptions {
   txn: string;
@@ -38,7 +38,7 @@ export const TradingScreen = ({
           </h3>
           <Image
             className="rounded-full w-9 h-9"
-            src={tokenBank?.info?.state?.mint && getTokenImageURL(new PublicKey(tokenBank.info.state.mint).toBase58())}
+            src={tokenBank?.meta.tokenLogoUri}
             alt={(tokenBank.meta.tokenSymbol || "Token") + "  logo"}
             width={36}
             height={36}
