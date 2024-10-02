@@ -115,18 +115,6 @@ export default function HomePage() {
                   lendProps={{
                     connected: connected,
                     walletContextState: walletContextState,
-                    onComplete: (previousTxn) => {
-                      // TODO refactor previousTxn to be more like tradingui
-                      if (previousTxn.txnType !== "LEND") return;
-                      setIsActionComplete(true);
-
-                      setPreviousTxn({
-                        type: previousTxn.lendingOptions.type,
-                        bank: previousTxn.lendingOptions.bank,
-                        amount: previousTxn.lendingOptions.amount,
-                        txn: previousTxn.txn,
-                      });
-                    },
                     captureEvent: (event, properties) => {
                       capture(event, properties);
                     },
@@ -155,21 +143,6 @@ export default function HomePage() {
                 lendProps={{
                   connected: connected,
                   walletContextState: walletContextState,
-                  onComplete: (previousTxn) => {
-                    // TODO refactor previousTxn to be more like tradingui
-                    if (previousTxn.txnType !== "LEND") return;
-                    setIsActionComplete(true);
-
-                    setPreviousTxn({
-                      type: previousTxn.lendingOptions.type,
-                      bank: previousTxn.lendingOptions.bank,
-                      amount: previousTxn.lendingOptions.amount,
-                      txn: previousTxn.txn,
-                    });
-                  },
-                  captureEvent: (event, properties) => {
-                    capture(event, properties);
-                  },
                   onConnect: () => setIsWalletAuthDialogOpen(true),
                 }}
               />

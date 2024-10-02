@@ -80,7 +80,7 @@ const Lend = (props: ActionBoxProps & { lendProps: RequiredLendBoxProps | LendBo
   }
 
   return (
-    <ActionBox {...props}>
+    <ActionBox {...actionBoxProps}>
       <ActionBoxWrapper isDialog={props.isDialog} actionMode={props.lendProps.requestedLendType}>
         <ActionBoxNavigator selectedAction={props.lendProps.requestedLendType}>
           <LendBox {...combinedProps} />

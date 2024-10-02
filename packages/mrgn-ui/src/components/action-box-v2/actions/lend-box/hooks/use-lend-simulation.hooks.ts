@@ -6,9 +6,7 @@ import { AccountSummary, ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi
 import { MarginfiAccountWrapper, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
 import { ActionMethod, STATIC_SIMULATION_ERRORS, usePrevious } from "@mrgnlabs/mrgn-utils";
 
-import { useActionBoxStore } from "~/components/action-box-v2/store";
-
-import { useLendBoxStore } from "../store";
+import { useActionBoxStore } from "../../../store";
 import { calculateLendingTransaction, calculateSummary, getSimulationResult } from "../utils";
 
 /*
