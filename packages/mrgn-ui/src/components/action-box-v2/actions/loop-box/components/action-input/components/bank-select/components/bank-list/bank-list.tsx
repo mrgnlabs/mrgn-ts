@@ -1,63 +1,53 @@
 import React from "react";
 
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { cn } from "@mrgnlabs/mrgn-utils";
+import { cn, computeBankRate, LendingModes } from "@mrgnlabs/mrgn-utils";
 
 import { CommandEmpty, CommandGroup, CommandItem } from "~/components/ui/command";
 
 import { BankItem, BankListCommand } from "~/components/action-box-v2/components";
+import { MarginRequirementType, OperationalState } from "@mrgnlabs/marginfi-client-v2";
+import { WSOL_MINT } from "@mrgnlabs/mrgn-common";
 
 type BankListProps = {
-  selectedSecondaryBank: ExtendedBankInfo | null;
+  selectedBank: ExtendedBankInfo | null;
   banks: ExtendedBankInfo[];
   nativeSolBalance: number;
   isOpen: boolean;
 
-  onSetSelectedSecondaryBank: (selectedTokenBank: ExtendedBankInfo | null) => void;
+  onSetSelectedBank: (selectedTokenBank: ExtendedBankInfo | null) => void;
   onClose: () => void;
 };
 
 export const BankList = ({
-  selectedSecondaryBank,
+  selectedBank,
   banks,
   nativeSolBalance,
   isOpen,
 
-  onSetSelectedSecondaryBank,
+  onSetSelectedBank,
   onClose,
 }: BankListProps) => {
   const [searchQuery, setSearchQuery] = React.useState("");
 
-  const hasTokens = React.useMemo(() => {
-    const hasBankTokens = !!banks.filter(
-      (bank) => bank.userInfo.tokenAccount.balance !== 0 || bank.meta.tokenSymbol === "SOL"
-    );
-    return hasBankTokens;
-  }, [banks]);
-
-  /////// FILTERS
-  // filter on search
-  const searchFilter = React.useCallback(
-    (bankInfo: ExtendedBankInfo) => {
-      const lowerCaseSearchQuery = searchQuery.toLowerCase();
-      return bankInfo.meta.tokenSymbol.toLowerCase().includes(lowerCaseSearchQuery);
-    },
-    [searchQuery]
-  );
-
-  // filter on positions
-  const positionFilter = React.useCallback((bankInfo: ExtendedBankInfo) => {
-    return bankInfo.isActive && bankInfo.position.isLending;
+  const calculateRate = React.useCallback((bank: ExtendedBankInfo) => {
+    return computeBankRate(bank, LendingModes.BORROW);
   }, []);
 
-  /////// BANKS
-  // active position banks
-  const filteredBanksActive = React.useMemo(() => {
-    return banks
-      .filter(searchFilter)
-      .filter((bankInfo) => positionFilter(bankInfo))
-      .sort((a, b) => (b.isActive ? b?.position?.amount : 0) - (a.isActive ? a?.position?.amount : 0));
-  }, [banks, searchFilter, positionFilter]);
+  const loopingBanks = React.useMemo(() => {
+    return banks.filter((bank) => {
+      const isIsolated = bank.info.state.isIsolated;
+      const isReduceOnly = bank.info.rawBank.config.operationalState === OperationalState.ReduceOnly;
+      const isBeingRetired =
+        bank.info.rawBank.getAssetWeight(MarginRequirementType.Initial, bank.info.oraclePrice, true).eq(0) &&
+        bank.info.rawBank.getAssetWeight(MarginRequirementType.Maintenance, bank.info.oraclePrice).gt(0);
+      const containsSearchQuery = searchQuery
+        ? bank.meta.tokenSymbol.toLowerCase().includes(searchQuery.toLowerCase())
+        : true;
+
+      return !isIsolated && !isReduceOnly && !isBeingRetired && containsSearchQuery;
+    });
+  }, [banks, searchQuery]);
 
   React.useEffect(() => {
     if (!isOpen) {
@@ -67,45 +57,37 @@ export const BankList = ({
 
   return (
     <>
-      <BankListCommand selectedBank={selectedSecondaryBank} onClose={onClose} onSetSearchQuery={setSearchQuery}>
-        {!hasTokens && (
-          <div className="text-sm text-[#C0BFBF] font-normal p-3">
-            You don&apos;t own any supported tokens in marginfi. Check out what marginfi supports.
-          </div>
-        )}
+      <BankListCommand selectedBank={selectedBank} onClose={onClose} onSetSearchQuery={setSearchQuery}>
         <CommandEmpty>No tokens found.</CommandEmpty>
 
-        {/* REPAYING */}
-        {filteredBanksActive.length > 0 && (
-          <CommandGroup heading="Currently supplying">
-            {filteredBanksActive.map((bank, index) => {
-              return (
-                <CommandItem
-                  key={index}
-                  value={bank.address?.toString().toLowerCase()}
-                  onSelect={(currentValue) => {
-                    onSetSelectedSecondaryBank(
-                      banks.find((bankInfo) => bankInfo.address.toString().toLowerCase() === currentValue) ?? null
-                    );
-                    onClose();
-                  }}
-                  className={cn(
-                    "cursor-pointer font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white py-2",
-                    "opacity-100"
-                  )}
-                >
-                  <BankItem
-                    bank={bank}
-                    showBalanceOverride={false}
-                    nativeSolBalance={nativeSolBalance}
-                    isRepay={true}
-                    available={true}
-                  />
-                </CommandItem>
-              );
-            })}
-          </CommandGroup>
-        )}
+        {loopingBanks.map((bank, index) => {
+          return (
+            <CommandItem
+              key={index}
+              value={bank.address?.toString().toLowerCase()}
+              onSelect={(currentValue) => {
+                onSetSelectedBank(
+                  banks.find((bankInfo) => bankInfo.address.toString().toLowerCase() === currentValue) ?? null
+                );
+                onClose();
+              }}
+              className={cn(
+                "cursor-pointer font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white py-2",
+                "opacity-100"
+              )}
+            >
+              <BankItem
+                rate={calculateRate(bank)}
+                lendingMode={LendingModes.BORROW}
+                bank={bank}
+                showBalanceOverride={
+                  bank.info.state.mint.equals(WSOL_MINT) ? nativeSolBalance > 0 : bank.userInfo.tokenAccount.balance > 0
+                }
+                nativeSolBalance={nativeSolBalance}
+              />
+            </CommandItem>
+          );
+        })}
       </BankListCommand>
     </>
   );

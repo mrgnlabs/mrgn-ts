@@ -1,20 +1,23 @@
 import React from "react";
 
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { formatAmount } from "@mrgnlabs/mrgn-utils";
+import { cn, formatAmount, LoopActionTxns } from "@mrgnlabs/mrgn-utils";
 
 import { Input } from "~/components/ui/input";
 
-import { BankSelect, RepayAction } from "./components";
+import { BankSelect, LoopAction } from "./components";
+import BigNumber from "bignumber.js";
 
 type ActionInputProps = {
   nativeSolBalance: number;
   amountRaw: string;
-  repayAmount: number;
   maxAmount: number;
+  isLoading: boolean;
+  walletAmount: number | undefined;
   banks: ExtendedBankInfo[];
   selectedBank: ExtendedBankInfo | null;
   selectedSecondaryBank: ExtendedBankInfo | null;
+  actionTxns: LoopActionTxns;
 
   isDialog?: boolean;
   isMini?: boolean;
@@ -28,19 +31,29 @@ export const ActionInput = ({
   banks,
   nativeSolBalance,
   amountRaw,
-  repayAmount,
+  walletAmount,
   maxAmount,
+  isLoading,
   selectedBank,
   selectedSecondaryBank,
+  actionTxns,
   setAmountRaw,
   setSelectedBank,
   setSelectedSecondaryBank,
 }: ActionInputProps) => {
   const amountInputRef = React.useRef<HTMLInputElement>(null);
 
+  const bothBanksSelected = React.useMemo(
+    () => Boolean(selectedBank && selectedSecondaryBank),
+    [selectedBank, selectedSecondaryBank]
+  );
+
   const numberFormater = React.useMemo(() => new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 }), []);
 
-  const isInputDisabled = React.useMemo(() => maxAmount === 0, [maxAmount]);
+  const isInputDisabled = React.useMemo(
+    () => maxAmount === 0 || isLoading || !bothBanksSelected,
+    [maxAmount, isLoading, bothBanksSelected]
+  );
 
   const formatAmountCb = React.useCallback(
     (newAmount: string, bank: ExtendedBankInfo | null) => {
@@ -64,10 +77,6 @@ export const ActionInput = ({
           <div className="w-full flex-auto max-w-[162px]">
             <BankSelect
               selectedBank={selectedBank}
-              selectedSecondaryBank={selectedSecondaryBank}
-              setSecondaryTokenBank={(bank) => {
-                setSelectedSecondaryBank(bank);
-              }}
               banks={banks}
               nativeSolBalance={nativeSolBalance}
               setTokenBank={(bank) => setSelectedBank(bank)}
@@ -86,14 +95,40 @@ export const ActionInput = ({
             />
           </div>
         </div>
-        <RepayAction
+        <LoopAction
           maxAmount={maxAmount}
           onSetAmountRaw={(amount) => handleInputChange(amount)}
           amountRaw={amountRaw}
-          repayAmount={repayAmount}
           selectedBank={selectedBank}
           selectedSecondaryBank={selectedSecondaryBank}
+          loopActionTxns={actionTxns}
+          walletAmount={walletAmount}
         />
+      </div>
+      <div className={cn("space-y-2", !selectedBank && "pointer-events-none opacity-75")}>
+        <p className="text-sm font-normal text-muted-foreground">You borrow</p>
+        <div className="bg-background rounded-lg p-2.5 mb-6">
+          <div className="flex gap-1 items-center font-medium text-3xl">
+            <div className={cn("w-full flex-auto max-w-[162px]", !selectedBank && "opacity-60")}>
+              <BankSelect
+                selectedBank={selectedSecondaryBank}
+                banks={banks}
+                nativeSolBalance={nativeSolBalance}
+                setTokenBank={(bank) => setSelectedSecondaryBank(bank)}
+              />
+            </div>
+            <div className="flex-auto">
+              <Input
+                type="text"
+                inputMode="decimal"
+                disabled={true}
+                value={actionTxns?.borrowAmount.decimalPlaces(4, BigNumber.ROUND_DOWN).toString()}
+                placeholder="0"
+                className="bg-transparent min-w-[130px] text-right outline-none focus-visible:outline-none focus-visible:ring-0 border-none text-base font-medium"
+              />
+            </div>
+          </div>
+        </div>
       </div>
     </>
   );

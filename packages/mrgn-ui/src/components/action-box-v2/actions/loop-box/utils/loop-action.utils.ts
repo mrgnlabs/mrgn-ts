@@ -19,7 +19,7 @@ interface ExecuteLendingActionsProps extends ExecuteActionsCallbackProps {
   params: MarginfiActionParams;
 }
 
-export const handleExecuteRepayCollatAction = async ({
+export const handleExecuteLoopAction = async ({
   params,
   captureEvent,
   setIsLoading,

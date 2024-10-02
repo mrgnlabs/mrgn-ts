@@ -16,10 +16,10 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/comp
 import { ActionButton, ActionMessage, ActionSettingsButton } from "~/components/action-box-v2/components";
 import { useActionAmounts, usePollBlockHeight } from "~/components/action-box-v2/hooks";
 
-import { checkActionAvailable, handleExecuteRepayCollatAction } from "./utils";
+import { checkActionAvailable, handleExecuteLoopAction } from "./utils";
 import { Collateral, ActionInput, Preview } from "./components";
-import { useRepayCollatBoxStore } from "./store";
-import { useRepayCollatSimulation } from "./hooks";
+import { useLoopBoxStore } from "./store";
+import { useLoopSimulation } from "./hooks";
 
 import { useActionBoxStore } from "../../store";
 
@@ -59,8 +59,8 @@ export const LoopBox = ({
   const priorityFee = 0;
 
   const [
-    maxAmountCollateral,
-    repayAmount,
+    leverage,
+    maxLeverage,
     amountRaw,
     selectedBank,
     selectedSecondaryBank,
@@ -76,12 +76,12 @@ export const LoopBox = ({
     setAmountRaw,
     setSelectedBank,
     setSelectedSecondaryBank,
-    setRepayAmount,
-    setMaxAmountCollateral,
+    setMaxLeverage,
+    setLeverage,
     setIsLoading,
-  ] = useRepayCollatBoxStore((state) => [
-    state.maxAmountCollateral,
-    state.repayAmount,
+  ] = useLoopBoxStore((state) => [
+    state.leverage,
+    state.maxLeverage,
     state.amountRaw,
     state.selectedBank,
     state.selectedSecondaryBank,
@@ -97,8 +97,8 @@ export const LoopBox = ({
     state.setAmountRaw,
     state.setSelectedBank,
     state.setSelectedSecondaryBank,
-    state.setRepayAmount,
-    state.setMaxAmountCollateral,
+    state.setMaxLeverage,
+    state.setLeverage,
     state.setIsLoading,
   ]);
 
@@ -130,10 +130,9 @@ export const LoopBox = ({
     selectedBank,
     nativeSolBalance,
     actionMode: ActionType.RepayCollat,
-    maxAmountCollateral,
   });
 
-  const { actionSummary } = useRepayCollatSimulation({
+  const { actionSummary } = useLoopSimulation({
     debouncedAmount: debouncedAmount ?? 0,
     selectedAccount,
     marginfiClient,
@@ -143,12 +142,12 @@ export const LoopBox = ({
     actionTxns,
     simulationResult,
     isRefreshTxn,
+    leverage,
+    setMaxLeverage,
     setSimulationResult,
     setActionTxns,
     setErrorMessage,
-    setRepayAmount,
     setIsLoading,
-    setMaxAmountCollateral,
   });
 
   const [additionalActionMethods, setAdditionalActionMethods] = React.useState<ActionMethod[]>([]);
@@ -199,7 +198,7 @@ export const LoopBox = ({
         actionTxns,
       } as MarginfiActionParams;
 
-      await handleExecuteRepayCollatAction({
+      await handleExecuteLoopAction({
         params,
         captureEvent: (event, properties) => {
           captureEvent && captureEvent(event, properties);
@@ -244,7 +243,9 @@ export const LoopBox = ({
     selectedAccount,
     selectedBank,
     setAmountRaw,
+    setIsActionComplete,
     setIsLoading,
+    setPreviousTxn,
   ]);
 
   return (
@@ -267,12 +268,11 @@ export const LoopBox = ({
         </div>
       )}
       <div className="mb-6">
-        <ActionInput
+        {/* <ActionInput
           banks={banks}
           nativeSolBalance={nativeSolBalance}
           amountRaw={amountRaw}
           maxAmount={maxAmount}
-          repayAmount={repayAmount}
           selectedBank={selectedBank}
           selectedSecondaryBank={selectedSecondaryBank}
           setAmountRaw={setAmountRaw}
@@ -280,7 +280,7 @@ export const LoopBox = ({
           setSelectedSecondaryBank={(bank) => {
             setSelectedSecondaryBank(bank);
           }}
-        />
+        /> */}
       </div>
 
       {additionalActionMethods.concat(actionMethods).map(
