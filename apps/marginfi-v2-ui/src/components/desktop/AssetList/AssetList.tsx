@@ -24,6 +24,7 @@ import { IconAlertTriangle } from "~/components/ui/icons";
 
 import { AssetListModel, generateColumns, makeData } from "./utils";
 import { AssetRow } from "./components";
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
 export const AssetsList = () => {
   const [isStoreInitialized, extendedBankInfos, nativeSolBalance, selectedAccount] = useMrgnlendStore((state) => [
@@ -39,6 +40,7 @@ export const AssetsList = () => {
     state.sortOption,
   ]);
   const [actionMode, setActionMode] = useActionBoxStore()((state) => [state.actionMode, state.setActionMode]);
+  const { connected, walletContextState } = useWallet();
 
   const lendingMode = React.useMemo(
     () => (actionMode === ActionType.Deposit ? LendingModes.LEND : LendingModes.BORROW),
@@ -160,13 +162,36 @@ export const AssetsList = () => {
   const [sorting, setSorting] = React.useState<SortingState>([]);
 
   const globalPoolTableData = React.useMemo(() => {
-    return makeData(globalBanks, isInLendingMode, denominationUSD, nativeSolBalance, selectedAccount);
-  }, [globalBanks, isInLendingMode, denominationUSD, nativeSolBalance, selectedAccount]);
+    return makeData(
+      globalBanks,
+      isInLendingMode,
+      denominationUSD,
+      nativeSolBalance,
+      selectedAccount,
+      connected,
+      walletContextState
+    );
+  }, [connected, walletContextState, globalBanks, isInLendingMode, denominationUSD, nativeSolBalance, selectedAccount]);
 
   const isolatedPoolTableData = React.useMemo(() => {
-    const data = makeData(isolatedBanks, isInLendingMode, denominationUSD, nativeSolBalance, selectedAccount);
-    return data;
-  }, [isolatedBanks, isInLendingMode, denominationUSD, nativeSolBalance, selectedAccount]);
+    return makeData(
+      isolatedBanks,
+      isInLendingMode,
+      denominationUSD,
+      nativeSolBalance,
+      selectedAccount,
+      connected,
+      walletContextState
+    );
+  }, [
+    connected,
+    walletContextState,
+    isolatedBanks,
+    isInLendingMode,
+    denominationUSD,
+    nativeSolBalance,
+    selectedAccount,
+  ]);
 
   const tableColumns = React.useMemo(() => {
     return generateColumns(isInLendingMode);

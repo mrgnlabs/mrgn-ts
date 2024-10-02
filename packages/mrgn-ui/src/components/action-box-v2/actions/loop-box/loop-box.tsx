@@ -1,44 +1,40 @@
 import React from "react";
 
-import { WalletContextState } from "@solana/wallet-adapter-react";
-
 import {
-  ActiveBankInfo,
   ExtendedBankInfo,
   ActionType,
-  TokenAccountMap,
   AccountSummary,
   computeAccountSummary,
   DEFAULT_ACCOUNT_SUMMARY,
+  ActiveBankInfo,
 } from "@mrgnlabs/marginfi-v2-ui-state";
-import { ActionMethod, MarginfiActionParams, PreviousTxn } from "@mrgnlabs/mrgn-utils";
+import { ActionMethod, MarginfiActionParams, PreviousTxn, showErrorToast } from "@mrgnlabs/mrgn-utils";
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 
+import { CircularProgress } from "~/components/ui/circular-progress";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { ActionButton, ActionMessage, ActionSettingsButton } from "~/components/action-box-v2/components";
+import { useActionAmounts, usePollBlockHeight } from "~/components/action-box-v2/hooks";
 
-import { useActionAmounts } from "~/components/action-box-v2/hooks";
-import { LSTDialog, LSTDialogVariants } from "~/components/LSTDialog";
-import { WalletContextStateOverride } from "~/components/wallet-v2/hooks/use-wallet.hook";
-
-import { useLendBoxStore } from "./store";
-import { checkActionAvailable, handleExecuteCloseBalance, handleExecuteLendingAction } from "./utils";
+import { checkActionAvailable, handleExecuteRepayCollatAction } from "./utils";
 import { Collateral, ActionInput, Preview } from "./components";
-import { useLendSimulation } from "./hooks";
+import { useRepayCollatBoxStore } from "./store";
+import { useRepayCollatSimulation } from "./hooks";
+
 import { useActionBoxStore } from "../../store";
 
 // error handling
-export type LendBoxProps = {
+export type LoopBoxProps = {
   nativeSolBalance: number;
   // tokenAccountMap: TokenAccountMap;
-  walletContextState?: WalletContextStateOverride | WalletContextState;
   connected: boolean;
 
   marginfiClient: MarginfiClient | null;
   selectedAccount: MarginfiAccountWrapper | null;
   banks: ExtendedBankInfo[];
-  requestedLendType: ActionType;
   requestedBank?: ExtendedBankInfo;
   accountSummaryArg?: AccountSummary;
+
   isDialog?: boolean;
 
   onConnect?: () => void;
@@ -46,61 +42,76 @@ export type LendBoxProps = {
   captureEvent?: (event: string, properties?: Record<string, any>) => void;
 };
 
-export const LendBox = ({
+export const LoopBox = ({
   nativeSolBalance,
-  // tokenAccountMap,
-  walletContextState,
   connected,
-  marginfiClient,
+  // tokenAccountMap,
   banks,
+  marginfiClient,
   selectedAccount,
   accountSummaryArg,
-  isDialog,
-  requestedLendType,
   requestedBank,
+  isDialog,
   onConnect,
   onComplete,
   captureEvent,
-}: LendBoxProps) => {
-  const [
-    amountRaw,
-    lendMode,
-    actionTxns,
-    selectedBank,
-    simulationResult,
-    isLoading,
-    errorMessage,
+}: LoopBoxProps) => {
+  const priorityFee = 0;
 
+  const [
+    maxAmountCollateral,
+    repayAmount,
+    amountRaw,
+    selectedBank,
+    selectedSecondaryBank,
+    errorMessage,
+    isLoading,
+    simulationResult,
+    actionTxns,
     refreshState,
-    fetchActionBoxState,
-    setLendMode,
-    setAmountRaw,
-    setSelectedBank,
-    refreshSelectedBanks,
     setSimulationResult,
     setActionTxns,
-    setIsLoading,
     setErrorMessage,
-  ] = useLendBoxStore(isDialog)((state) => [
+    fetchActionBoxState,
+    setAmountRaw,
+    setSelectedBank,
+    setSelectedSecondaryBank,
+    setRepayAmount,
+    setMaxAmountCollateral,
+    setIsLoading,
+  ] = useRepayCollatBoxStore((state) => [
+    state.maxAmountCollateral,
+    state.repayAmount,
     state.amountRaw,
-    state.lendMode,
-    state.actionTxns,
     state.selectedBank,
-    state.simulationResult,
-    state.isLoading,
+    state.selectedSecondaryBank,
     state.errorMessage,
-
+    state.isLoading,
+    state.simulationResult,
+    state.actionTxns,
     state.refreshState,
-    state.fetchActionBoxState,
-    state.setLendMode,
-    state.setAmountRaw,
-    state.setSelectedBank,
-    state.refreshSelectedBanks,
     state.setSimulationResult,
     state.setActionTxns,
-    state.setIsLoading,
     state.setErrorMessage,
+    state.fetchActionBoxState,
+    state.setAmountRaw,
+    state.setSelectedBank,
+    state.setSelectedSecondaryBank,
+    state.setRepayAmount,
+    state.setMaxAmountCollateral,
+    state.setIsLoading,
   ]);
+
+  const { isRefreshTxn, blockProgress } = usePollBlockHeight(
+    marginfiClient?.provider.connection,
+    actionTxns.lastValidBlockHeight
+  );
+
+  React.useEffect(() => {
+    return () => {
+      refreshState();
+    };
+  }, [refreshState]);
 
   const accountSummary = React.useMemo(() => {
     return (
@@ -108,9 +119,8 @@ export const LendBox = ({
     );
   }, [accountSummaryArg, selectedAccount, banks]);
 
-  const [setIsSettingsDialogOpen, priorityFee, setPreviousTxn, setIsActionComplete] = useActionBoxStore((state) => [
+  const [setIsSettingsDialogOpen, setPreviousTxn, setIsActionComplete] = useActionBoxStore((state) => [
     state.setIsSettingsDialogOpen,
-    state.priorityFee,
     state.setPreviousTxn,
     state.setIsActionComplete,
   ]);
@@ -119,116 +129,61 @@ export const LendBox = ({
     amountRaw,
     selectedBank,
     nativeSolBalance,
-    actionMode: lendMode,
+    actionMode: ActionType.RepayCollat,
+    maxAmountCollateral,
   });
-  const { actionSummary } = useLendSimulation({
+
+  const { actionSummary } = useRepayCollatSimulation({
     debouncedAmount: debouncedAmount ?? 0,
     selectedAccount,
+    marginfiClient,
     accountSummary,
     selectedBank,
-    lendMode,
+    selectedSecondaryBank,
     actionTxns,
     simulationResult,
+    isRefreshTxn,
     setSimulationResult,
     setActionTxns,
     setErrorMessage,
+    setRepayAmount,
     setIsLoading,
+    setMaxAmountCollateral,
   });
 
-  const [lstDialogCallback, setLSTDialogCallback] = React.useState<(() => void) | null>(null);
   const [additionalActionMethods, setAdditionalActionMethods] = React.useState<ActionMethod[]>([]);
 
   // Cleanup the store when the wallet disconnects
   React.useEffect(() => {
     if (!connected) {
-      refreshState(lendMode);
-    }
-  }, [refreshState, connected, lendMode]);
-
-  React.useEffect(() => {
-    return () => {
       refreshState();
-    };
-  }, [refreshState]);
+    }
+  }, [refreshState, connected]);
 
   React.useEffect(() => {
-    fetchActionBoxState({ requestedLendType, requestedBank });
-  }, [requestedLendType, requestedBank, fetchActionBoxState]);
+    fetchActionBoxState({ requestedBank });
+  }, [requestedBank, fetchActionBoxState]);
 
   React.useEffect(() => {
     if (errorMessage !== null && errorMessage.description) {
+      showErrorToast(errorMessage?.description);
       setAdditionalActionMethods([errorMessage]);
     }
   }, [errorMessage]);
-
-  const isDust = React.useMemo(() => selectedBank?.isActive && selectedBank?.position.isDust, [selectedBank]);
-  const showCloseBalance = React.useMemo(
-    () => (lendMode === ActionType.Withdraw && isDust) || false,
-    [lendMode, isDust]
-  );
 
   const actionMethods = React.useMemo(
     () =>
       checkActionAvailable({
         amount,
         connected,
-        showCloseBalance,
         selectedBank,
-        banks,
-        marginfiAccount: selectedAccount,
-        nativeSolBalance,
-        lendMode,
+        selectedSecondaryBank,
+        actionQuote: actionTxns.actionQuote,
       }),
-    [amount, connected, showCloseBalance, selectedBank, banks, selectedAccount, nativeSolBalance, lendMode]
+    [amount, connected, selectedBank, selectedSecondaryBank, actionTxns.actionQuote]
   );
 
-  const buttonLabel = React.useMemo(() => (showCloseBalance ? "Close" : lendMode), [showCloseBalance, lendMode]);
-
-  const handleCloseBalance = React.useCallback(async () => {
-    if (!selectedBank || !selectedAccount) {
-      return;
-    }
-
-    await handleExecuteCloseBalance({
-      params: {
-        bank: selectedBank,
-        marginfiAccount: selectedAccount,
-        priorityFee,
-      },
-      captureEvent: (event, properties) => {
-        captureEvent && captureEvent(event, properties);
-      },
-      setIsComplete: (txnSigs) => {
-        setIsActionComplete(true);
-        setPreviousTxn({
-          txn: txnSigs.pop() ?? "",
-          txnType: "LEND",
-          lendingOptions: {
-            amount: 0,
-            type: ActionType.Withdraw,
-            bank: selectedBank as ActiveBankInfo,
-          },
-        });
-
-        onComplete &&
-          onComplete({
-            txn: txnSigs.pop() ?? "",
-            txnType: "LEND",
-            lendingOptions: {
-              amount: 0,
-              type: ActionType.Withdraw,
-              bank: selectedBank as ActiveBankInfo,
-            },
-          });
-      },
-      setIsError: () => {},
-      setIsLoading: (isLoading) => setIsLoading(isLoading),
-    });
-
-    setAmountRaw("");
-  }, [selectedBank, selectedAccount, setAmountRaw, captureEvent, onComplete, setIsLoading]);
-
-  const handleLendingAction = React.useCallback(async () => {
+  const handleRepayCollatAction = React.useCallback(async () => {
     if (!selectedBank || !amount) {
       return;
     }
@@ -236,16 +191,15 @@ export const LendBox = ({
     const action = async () => {
       const params = {
         marginfiClient,
-        actionType: lendMode,
+        actionType: ActionType.RepayCollat,
         bank: selectedBank,
         amount,
         nativeSolBalance,
         marginfiAccount: selectedAccount,
-        walletContextState,
         actionTxns,
       } as MarginfiActionParams;
 
-      await handleExecuteLendingAction({
+      await handleExecuteRepayCollatAction({
         params,
         captureEvent: (event, properties) => {
           captureEvent && captureEvent(event, properties);
@@ -257,17 +211,18 @@ export const LendBox = ({
             txnType: "LEND",
             lendingOptions: {
               amount: amount,
-              type: lendMode,
+              type: ActionType.RepayCollat,
               bank: selectedBank as ActiveBankInfo,
             },
           });
+
           onComplete &&
             onComplete({
               txn: txnSigs.pop() ?? "",
               txnType: "LEND",
               lendingOptions: {
                 amount: amount,
-                type: lendMode,
+                type: ActionType.RepayCollat,
                 bank: selectedBank as ActiveBankInfo,
               },
             });
@@ -277,45 +232,54 @@ export const LendBox = ({
       });
     };
 
-    if (
-      lendMode === ActionType.Deposit &&
-      (selectedBank.meta.tokenSymbol === "SOL" || selectedBank.meta.tokenSymbol === "stSOL")
-    ) {
-      setLSTDialogCallback(() => action);
-      return;
-    }
-
     await action();
     setAmountRaw("");
   }, [
-    marginfiClient,
-    selectedBank,
-    amount,
-    lendMode,
     actionTxns,
-    setAmountRaw,
-    nativeSolBalance,
-    selectedAccount,
-    walletContextState,
+    amount,
     captureEvent,
+    marginfiClient,
+    nativeSolBalance,
     onComplete,
+    selectedAccount,
+    selectedBank,
+    setAmountRaw,
     setIsLoading,
   ]);
 
   return (
     <>
+      {actionTxns.lastValidBlockHeight && blockProgress !== 0 && (
+        <div className="absolute top-5 right-4 z-50">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger>
+                <CircularProgress size={18} strokeWidth={3} value={blockProgress * 100} />
+              </TooltipTrigger>
+              <TooltipContent side="left">
+                <div className="space-y-2">
+                  <p>Your transaction is ready for execution.</p>
+                  <p>Once the spinner reaches 100%, if not processed, it will refresh to fetch updated quotes.</p>
+                </div>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+      )}
       <div className="mb-6">
         <ActionInput
           banks={banks}
           nativeSolBalance={nativeSolBalance}
-          walletAmount={walletAmount}
           amountRaw={amountRaw}
           maxAmount={maxAmount}
-          connected={connected}
+          repayAmount={repayAmount}
           selectedBank={selectedBank}
-          lendMode={lendMode}
+          selectedSecondaryBank={selectedSecondaryBank}
           setAmountRaw={setAmountRaw}
           setSelectedBank={setSelectedBank}
+          setSelectedSecondaryBank={(bank) => {
+            setSelectedSecondaryBank(bank);
+          }}
         />
       </div>
 
@@ -337,30 +301,17 @@ export const LendBox = ({
           isLoading={isLoading}
           isEnabled={!additionalActionMethods.concat(actionMethods).filter((value) => value.isEnabled === false).length}
           connected={connected}
-          // showCloseBalance={showCloseBalance}
           handleAction={() => {
-            showCloseBalance ? handleCloseBalance() : handleLendingAction();
+            handleRepayCollatAction();
           }}
           handleConnect={() => onConnect && onConnect()}
-          buttonLabel={buttonLabel}
+          buttonLabel={"Repay"}
         />
       </div>
 
       <ActionSettingsButton setIsSettingsActive={setIsSettingsDialogOpen} />
 
-      <Preview actionSummary={actionSummary} selectedBank={selectedBank} isLoading={isLoading} lendMode={lendMode} />
-
-      <LSTDialog
-        variant={selectedBank?.meta.tokenSymbol as LSTDialogVariants}
-        open={!!lstDialogCallback}
-        onClose={() => {
-          if (lstDialogCallback) {
-            lstDialogCallback();
-            setLSTDialogCallback(null);
-          }
-        }}
-        banks={banks}
-      />
+      <Preview actionSummary={actionSummary} selectedBank={selectedBank} isLoading={isLoading} />
     </>
   );
 };

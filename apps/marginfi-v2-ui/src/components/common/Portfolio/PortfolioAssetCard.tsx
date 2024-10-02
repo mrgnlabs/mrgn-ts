@@ -10,7 +10,6 @@ import { ActionBox } from "@mrgnlabs/mrgn-ui";
 import { cn } from "~/utils";
 import { useAssetItemData } from "~/hooks/useAssetItemData";
 
-import { ActionBoxDialog } from "~/components/common/ActionBox";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "~/components/ui/accordion";
 import { Button } from "~/components/ui/button";
 import { IconAlertTriangle } from "~/components/ui/icons";
@@ -239,31 +238,6 @@ export const PortfolioAssetCard = ({ bank, isInLendingMode, isBorrower = true }:
               }}
             />{" "}
           </div>
-
-          <ActionBoxDialog requestedAction={requestedAction} requestedBank={requestedBank}>
-            <div className="flex w-full gap-3">
-              <Button
-                onClick={() => {
-                  setRequestedAction(isInLendingMode ? ActionType.Withdraw : ActionType.Repay);
-                  setRequestedBank(bank);
-                }}
-                className="flex-1 h-12"
-                variant="outline"
-              >
-                {isInLendingMode ? (isDust ? "Close" : "Withdraw") : "Repay"}
-              </Button>
-              <Button
-                onClick={() => {
-                  setRequestedAction(isInLendingMode ? ActionType.Deposit : ActionType.Borrow);
-                  setRequestedBank(bank);
-                }}
-                className="flex-1 h-12"
-                variant="default"
-              >
-                {isInLendingMode ? "Supply more" : "Borrow more"}
-              </Button>
-            </div>
-          </ActionBoxDialog>
         </AccordionContent>
       </AccordionItem>
     </Accordion>

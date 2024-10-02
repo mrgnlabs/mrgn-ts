@@ -1,6 +1,10 @@
+import { WalletContextState } from "@solana/wallet-adapter-react";
+import { createColumnHelper } from "@tanstack/react-table";
+
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { createColumnHelper } from "@tanstack/react-table";
+import { WalletContextStateOverride } from "@mrgnlabs/mrgn-ui";
+
 import {
   HeaderWrapper,
   getAssetCell,
@@ -29,7 +33,9 @@ export const makeData = (
   isInLendingMode: boolean,
   denominationUSD: boolean,
   nativeSolBalance: number,
-  marginfiAccount: MarginfiAccountWrapper | null
+  marginfiAccount: MarginfiAccountWrapper | null,
+  connected: boolean,
+  walletContextState: WalletContextStateOverride | WalletContextState
 ) => {
   return data.map(
     (bank) =>
@@ -42,7 +48,7 @@ export const makeData = (
         bankCap: assetUtils.getBankCapData(bank, isInLendingMode, denominationUSD),
         utilization: assetUtils.getUtilizationData(bank),
         position: assetUtils.getPositionData(bank, denominationUSD, nativeSolBalance, isInLendingMode),
-        action: assetUtils.getAction(bank, isInLendingMode, marginfiAccount),
+        action: assetUtils.getAction(bank, isInLendingMode, marginfiAccount, connected, walletContextState),
       } as AssetListModel)
   );
 };
@@ -68,10 +74,11 @@ export const generateColumns = (isInLendingMode: boolean) => {
       id: "price",
       enableResizing: false,
       size: 170,
-      cell: (props) => getAssetPriceCell({
-        ...props.getValue(),
-        isInLendingMode,
-    }),
+      cell: (props) =>
+        getAssetPriceCell({
+          ...props.getValue(),
+          isInLendingMode,
+        }),
       header: (header) => (
         <HeaderWrapper
           header={header}

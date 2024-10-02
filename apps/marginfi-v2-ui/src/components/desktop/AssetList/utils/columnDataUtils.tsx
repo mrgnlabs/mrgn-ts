@@ -1,4 +1,5 @@
 import React from "react";
+import { WalletContextState } from "@solana/wallet-adapter-react";
 
 import {
   ExtendedBankInfo,
@@ -16,6 +17,7 @@ import {
 } from "@mrgnlabs/marginfi-client-v2";
 import { WSOL_MINT, aprToApy, nativeToUi } from "@mrgnlabs/mrgn-common";
 import { isBankOracleStale } from "@mrgnlabs/mrgn-utils";
+import { ActionBox, WalletContextStateOverride } from "@mrgnlabs/mrgn-ui";
 
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { ActionBoxDialog } from "~/components/common/ActionBox";
@@ -283,10 +285,71 @@ export const getPositionData = (
   } as PositionData;
 };
 
+const ActionBoxCell = ({
+  bank,
+  isInLendingMode,
+  connected,
+  walletContextState,
+}: {
+  bank: ExtendedBankInfo;
+  isInLendingMode: boolean;
+  connected: boolean;
+  walletContextState: WalletContextStateOverride | WalletContextState;
+}) => {
+  const currentAction = getCurrentAction(isInLendingMode, bank);
+  const isDust = bank.isActive && bank.position.isDust;
+  const showCloseBalance = currentAction === ActionType.Withdraw && isDust;
+
+  if (currentAction === ActionType.Repay) {
+    return (
+      <ActionBox.Repay
+        isDialog={true}
+        useProvider={true}
+        repayProps={{
+          connected: connected,
+          walletContextState,
+          requestedBank: bank,
+        }}
+        dialogProps={{
+          title: "Repay",
+          trigger: (
+            <Button variant="secondary" className="w-full max-w-[140px] hover:bg-primary hover:text-primary-foreground">
+              {showCloseBalance ? "Close" : currentAction}
+            </Button>
+          ),
+        }}
+      />
+    );
+  } else {
+    return (
+      <ActionBox.Lend
+        isDialog={true}
+        useProvider={true}
+        lendProps={{
+          requestedBank: bank,
+          requestedLendType: currentAction,
+          connected: connected,
+          walletContextState,
+        }}
+        dialogProps={{
+          title: "Deposit",
+          trigger: (
+            <Button variant="secondary" className="w-full max-w-[140px] hover:bg-primary hover:text-primary-foreground">
+              {showCloseBalance ? "Close" : currentAction}
+            </Button>
+          ),
+        }}
+      />
+    );
+  }
+};
+
 export const getAction = (
   bank: ExtendedBankInfo,
   isInLendingMode: boolean,
-  marginfiAccount: MarginfiAccountWrapper | null
+  marginfiAccount: MarginfiAccountWrapper | null,
+  connected: boolean,
+  walletContextState: WalletContextStateOverride | WalletContextState
 ) => {
   const currentAction = getCurrentAction(isInLendingMode, bank);
   const isDust = bank.isActive && bank.position.isDust;
@@ -299,14 +362,12 @@ export const getAction = (
           <Tooltip>
             <TooltipTrigger asChild>
               <div className="flex px-0 sm:pl-4 gap-4 justify-center lg:justify-end items-center">
-                <ActionBoxDialog requestedBank={bank} requestedAction={currentAction}>
-                  <Button
-                    variant="secondary"
-                    className="w-full max-w-[140px] hover:bg-primary hover:text-primary-foreground"
-                  >
-                    {showCloseBalance ? "Close" : currentAction}
-                  </Button>
-                </ActionBoxDialog>
+                <ActionBoxCell
+                  bank={bank}
+                  isInLendingMode={isInLendingMode}
+                  connected={connected}
+                  walletContextState={walletContextState}
+                />
               </div>
             </TooltipTrigger>
             <TooltipContent>User account will be automatically created on first deposit</TooltipContent>
@@ -316,11 +377,12 @@ export const getAction = (
 
       {marginfiAccount !== null && (
         <div className="flex px-0 sm:pl-4 gap-4 justify-center lg:justify-end items-center">
-          <ActionBoxDialog requestedBank={bank} requestedAction={currentAction}>
-            <Button variant="secondary" className="w-full max-w-[140px] hover:bg-primary hover:text-primary-foreground">
-              {showCloseBalance ? "Close" : currentAction}
-            </Button>
-          </ActionBoxDialog>
+          <ActionBoxCell
+            bank={bank}
+            isInLendingMode={isInLendingMode}
+            connected={connected}
+            walletContextState={walletContextState}
+          />
         </div>
       )}
     </>

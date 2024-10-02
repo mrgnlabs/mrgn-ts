@@ -83,7 +83,7 @@ const Lend = (props: ActionBoxProps & { lendProps: RequiredLendBoxProps | LendBo
     <ActionBox {...actionBoxProps}>
       <ActionBoxWrapper isDialog={props.isDialog} actionMode={props.lendProps.requestedLendType}>
         <ActionBoxNavigator selectedAction={props.lendProps.requestedLendType}>
-          <LendBox {...combinedProps} />
+          <LendBox {...combinedProps} isDialog={props.isDialog} />
         </ActionBoxNavigator>
       </ActionBoxWrapper>
     </ActionBox>
@@ -152,7 +152,7 @@ const Repay = (
           onSelectAction={setSelectedAction}
           actionTypes={[ActionType.Repay, ActionType.RepayCollat]}
         >
-          <LendBox {...combinedProps} requestedLendType={ActionType.Repay} />
+          <LendBox {...combinedProps} requestedLendType={ActionType.Repay} isDialog={actionBoxProps.isDialog} />
           <RepayCollatBox {...combinedProps} />
         </ActionBoxNavigator>
       </ActionBoxWrapper>
