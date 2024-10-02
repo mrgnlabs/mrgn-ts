@@ -1,5 +1,5 @@
 import { StoreApi, UseBoundStore } from "zustand";
 
-import { createRepayCollatBoxStore, RepayCollatBoxState } from "./loop-store";
+import { createLoopBoxStore, LoopBoxState } from "./loop-store";
 
-export const useRepayCollatBoxStore: UseBoundStore<StoreApi<RepayCollatBoxState>> = createRepayCollatBoxStore();
+export const useLoopBoxStore: UseBoundStore<StoreApi<LoopBoxState>> = createLoopBoxStore();

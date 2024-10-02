@@ -288,16 +288,18 @@ export const LendBox = ({
     await action();
     setAmountRaw("");
   }, [
-    marginfiClient,
     selectedBank,
     amount,
     lendMode,
-    actionTxns,
     setAmountRaw,
+    marginfiClient,
     nativeSolBalance,
     selectedAccount,
     walletContextState,
+    actionTxns,
     captureEvent,
+    setIsActionComplete,
+    setPreviousTxn,
     onComplete,
     setIsLoading,
   ]);

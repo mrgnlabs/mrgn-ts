@@ -3,7 +3,7 @@ import React from "react";
 import { IconChevronDown } from "@tabler/icons-react";
 
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { cn, LendingModes } from "@mrgnlabs/mrgn-utils";
+import { cn, computeBankRate, LendingModes } from "@mrgnlabs/mrgn-utils";
 
 import { SelectedBankItem } from "~/components/action-box-v2/components";
 import { Button } from "~/components/ui/button";
@@ -14,6 +14,10 @@ type BankTriggerProps = {
 };
 
 export const BankTrigger = React.forwardRef<HTMLButtonElement, BankTriggerProps>(({ bank, isOpen }, ref) => {
+  const calculateRate = React.useCallback((bank: ExtendedBankInfo) => {
+    return computeBankRate(bank, LendingModes.BORROW);
+  }, []);
+
   return (
     <Button
       ref={ref}
@@ -23,7 +27,7 @@ export const BankTrigger = React.forwardRef<HTMLButtonElement, BankTriggerProps>
         isOpen && "bg-background-gray"
       )}
     >
-      {bank && <SelectedBankItem bank={bank} lendingMode={LendingModes.BORROW} />}
+      {bank && <SelectedBankItem bank={bank} lendingMode={LendingModes.BORROW} rate={calculateRate(bank)} />}
       {!bank && <>Select token</>}
       <IconChevronDown className="shrink-0" size={20} />
     </Button>

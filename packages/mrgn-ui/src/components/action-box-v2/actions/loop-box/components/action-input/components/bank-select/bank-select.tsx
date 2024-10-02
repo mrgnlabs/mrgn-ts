@@ -9,21 +9,18 @@ import { BankList, BankTrigger } from "./components";
 
 interface BankSelectProps {
   selectedBank: ExtendedBankInfo | null;
-  selectedSecondaryBank: ExtendedBankInfo | null;
   banks: ExtendedBankInfo[];
   nativeSolBalance: number;
 
   setTokenBank: (selectedTokenBank: ExtendedBankInfo | null) => void;
-  setSecondaryTokenBank: (selectedTokenBank: ExtendedBankInfo | null) => void;
 }
 
 export const BankSelect = ({
   selectedBank,
-  selectedSecondaryBank,
   banks,
   nativeSolBalance,
 
-  setSecondaryTokenBank,
+  setTokenBank,
 }: BankSelectProps) => {
   // idea check list if banks[] == 1 make it unselectable
   const isSelectable = React.useMemo(() => true, []);
@@ -51,15 +48,15 @@ export const BankSelect = ({
         <BankListWrapper
           isOpen={isOpen}
           setIsOpen={setIsOpen}
-          Trigger={<BankTrigger bank={selectedSecondaryBank} isOpen={isOpen} />}
+          Trigger={<BankTrigger bank={selectedBank} isOpen={isOpen} />}
           Content={
             <BankList
               banks={banks}
               nativeSolBalance={nativeSolBalance}
               isOpen={isOpen}
               onClose={() => setIsOpen(false)}
-              onSetSelectedSecondaryBank={(bank) => setSecondaryTokenBank(bank)}
-              selectedSecondaryBank={selectedSecondaryBank}
+              onSetSelectedBank={(bank) => setTokenBank(bank)}
+              selectedBank={selectedBank}
             />
           }
         />
