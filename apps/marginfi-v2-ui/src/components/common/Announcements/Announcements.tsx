@@ -4,13 +4,13 @@ import Image from "next/image";
 import { Swiper, SwiperSlide, useSwiper } from "swiper/react";
 import { Autoplay } from "swiper/modules";
 
-import { getTokenImageURL, LendingModes } from "@mrgnlabs/mrgn-utils";
+import { ActionBox } from "@mrgnlabs/mrgn-ui";
+import { capture, getTokenImageURL, LendingModes } from "@mrgnlabs/mrgn-utils";
 import { ExtendedBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { cn } from "~/utils";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
-import { ActionBoxDialog } from "~/components/common/ActionBox";
 import { IconArrowRight } from "~/components/ui/icons";
 
 import "swiper/css";
@@ -105,28 +105,43 @@ export const Announcements = ({ items }: AnnouncementsProps) => {
                 }}
               >
                 {isBankItem(item) ? (
-                  <ActionBoxDialog requestedAction={requestedAction} requestedBank={requestedBank}>
-                    <div
-                      className="flex items-center gap-2 w-full"
-                      onClick={() => {
-                        setRequestedAction(item.actionType || ActionType.Deposit);
-                        setRequestedBank(item.bank);
-                      }}
-                    >
-                      <Image
-                        src={getTokenImageURL(item.bank.meta.tokenSymbol)}
-                        alt={`${item.bank.meta.tokenSymbol} logo`}
-                        width={24}
-                        height={24}
-                        className="rounded-full"
-                      />
-                      <p className="text-xs md:text-sm">
-                        <strong className="font-medium mr-1.5">{item.bank.meta.tokenSymbol}</strong>
-                        {item.text || "now available on marginfi"}
-                      </p>
-                      <IconArrowRight size={20} className="ml-auto text-muted-foreground" />
-                    </div>
-                  </ActionBoxDialog>
+                  <ActionBox.Lend
+                    isDialog={true}
+                    useProvider={true}
+                    lendProps={{
+                      connected: connected,
+                      requestedLendType: item.actionType || ActionType.Deposit,
+                      requestedBank: requestedBank ?? undefined,
+                      captureEvent: (event, properties) => {
+                        capture(event, properties);
+                      },
+                    }}
+                    dialogProps={{
+                      trigger: (
+                        <div
+                          className="flex items-center gap-2 w-full"
+                          onClick={() => {
+                            setRequestedAction(item.actionType || ActionType.Deposit);
+                            setRequestedBank(item.bank);
+                          }}
+                        >
+                          <Image
+                            src={getTokenImageURL(item.bank.meta.tokenSymbol)}
+                            alt={`${item.bank.meta.tokenSymbol} logo`}
+                            width={24}
+                            height={24}
+                            className="rounded-full"
+                          />
+                          <p className="text-xs md:text-sm">
+                            <strong className="font-medium mr-1.5">{item.bank.meta.tokenSymbol}</strong>
+                            {item.text || "now available on marginfi"}
+                          </p>
+                          <IconArrowRight size={20} className="ml-auto text-muted-foreground" />
+                        </div>
+                      ),
+                      title: "Deposit",
+                    }}
+                  />
                 ) : (
                   <div className="flex items-center gap-2.5 md:gap-3 w-full font-normal">
                     {typeof item.image === "string" ? (
