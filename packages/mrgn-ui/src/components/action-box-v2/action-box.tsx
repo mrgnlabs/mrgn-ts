@@ -2,9 +2,12 @@ import React from "react";
 
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
+import { ActionComplete } from "~/components";
+
 import { LendBox, LendBoxProps, RepayCollatBox, RepayCollatBoxProps } from "./actions";
 import { ActionDialogWrapper, ActionBoxWrapper, ActionBoxNavigator } from "./components";
 import { useActionBoxContext } from "./contexts";
+import { useActionBoxStore } from "./store";
 import {
   ActionBoxComponent,
   ActionBoxProps,
@@ -17,21 +20,48 @@ import {
 } from "./types";
 
 const ActionBox: ActionBoxComponent = (props) => {
+  const [isActionComplete, previousTxn, setIsActionComplete, setPreviousTxn] = useActionBoxStore((state) => [
+    state.isActionComplete,
+    state.previousTxn,
+    state.setIsActionComplete,
+    state.setPreviousTxn,
+  ]);
+
   if (isDialogWrapperProps(props)) {
     const dialogProps = props.dialogProps;
 
     return (
-      <ActionDialogWrapper
-        title={dialogProps.title}
-        trigger={dialogProps.trigger}
-        isTriggered={dialogProps.isTriggered}
-      >
-        {props.children}
-      </ActionDialogWrapper>
+      <>
+        <ActionDialogWrapper
+          title={dialogProps.title}
+          trigger={dialogProps.trigger}
+          isTriggered={dialogProps.isTriggered}
+        >
+          {props.children}
+        </ActionDialogWrapper>
+        {previousTxn && isActionComplete && (
+          <ActionComplete
+            isActionComplete={isActionComplete}
+            setIsActionComplete={setIsActionComplete}
+            previousTxn={previousTxn}
+          />
+        )}
+      </>
     );
   }
 
-  return <>{props.children}</>;
+  return (
+    <>
+      {props.children}
+      {previousTxn && isActionComplete && (
+        <ActionComplete
+          isActionComplete={isActionComplete}
+          setIsActionComplete={setIsActionComplete}
+          previousTxn={previousTxn}
+        />
+      )}
+    </>
+  );
 };
 
 const Lend = (props: ActionBoxProps & { lendProps: RequiredLendBoxProps | LendBoxProps; useProvider?: boolean }) => {

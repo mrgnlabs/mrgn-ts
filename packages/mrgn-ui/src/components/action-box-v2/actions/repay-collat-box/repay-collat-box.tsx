@@ -112,7 +112,7 @@ export const RepayCollatBox = ({
     return () => {
       refreshState();
     };
-  }, []);
+  }, [refreshState]);
 
   const accountSummary = React.useMemo(() => {
     return (
@@ -129,11 +129,6 @@ export const RepayCollatBox = ({
     actionMode: ActionType.RepayCollat,
     maxAmountCollateral,
   });
-
-  // debouncedAmount ?? 0,
-  // selectedAccount,
-  // marginfiClient,
-  // accountSummary
 
   const { actionSummary } = useRepayCollatSimulation({
     debouncedAmount: debouncedAmount ?? 0,
@@ -224,7 +219,18 @@ export const RepayCollatBox = ({
 
     await action();
     setAmountRaw("");
-  }, []);
+  }, [
+    actionTxns,
+    amount,
+    captureEvent,
+    marginfiClient,
+    nativeSolBalance,
+    onComplete,
+    selectedAccount,
+    selectedBank,
+    setAmountRaw,
+    setIsLoading,
+  ]);
 
   return (
     <>

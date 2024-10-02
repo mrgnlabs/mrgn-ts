@@ -1,2 +1,2 @@
-export * from "./simulationUtils";
-export * from "./statsPreviewUtils";
+export * from "./simulation.utils";
+export * from "./stats-preview.utils";
