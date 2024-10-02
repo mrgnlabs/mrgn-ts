@@ -3,12 +3,13 @@ import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { aprToApy, numeralFormatter, percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
+import { IconAlertTriangle, IconExternalLink } from "@tabler/icons-react";
 
 import { cn } from "@mrgnlabs/mrgn-utils";
 import { IMAGE_CDN_URL } from "~/config/constants";
 
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
-import { IconAlertTriangle, IconExternalLink, IconPyth, IconSwitchboard } from "~/components/ui/icons";
+import { IconPyth, IconSwitchboard } from "~/components/ui/icons";
 
 import {
   AssetData,

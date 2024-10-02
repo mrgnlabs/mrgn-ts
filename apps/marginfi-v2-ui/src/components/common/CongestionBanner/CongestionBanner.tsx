@@ -3,10 +3,10 @@ import React from "react";
 import Link from "next/link";
 
 import { isBankOracleStale } from "@mrgnlabs/mrgn-utils";
+import { IconAlertTriangle, IconX } from "@tabler/icons-react";
 
 import { useMrgnlendStore, useUiStore } from "~/store";
 
-import { IconAlertTriangle, IconX } from "~/components/ui/icons";
 import { Button } from "~/components/ui/button";
 
 export const CONGESTION_THRESHOLD = 5;

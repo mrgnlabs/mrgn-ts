@@ -12,7 +12,7 @@ import {
   IconMessage,
 } from "@tabler/icons-react";
 
-import { IconBrandSubstack } from "~/components/ui/icons";
+import { IconSubstack } from "~/components/ui/icons";
 
 const footerLinks = [
   {
@@ -25,7 +25,7 @@ const footerLinks = [
   },
   {
     href: "https://mrgn.substack.com/",
-    icon: <IconBrandSubstack />,
+    icon: <IconSubstack />,
   },
   {
     href: "https://github.com/mrgnlabs",

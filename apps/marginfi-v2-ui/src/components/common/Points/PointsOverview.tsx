@@ -1,7 +1,7 @@
 import React from "react";
 
 import Link from "next/link";
-import { CopyToClipboard } from "react-copy-to-clipboard";
+import { IconInfoCircleFilled } from "@tabler/icons-react";
 
 import { numeralFormatter, groupedNumberFormatterDyn } from "@mrgnlabs/mrgn-common";
 import { UserPointsData } from "@mrgnlabs/marginfi-v2-ui-state";
@@ -9,8 +9,7 @@ import { useUiStore } from "~/store";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
-import { Button } from "~/components/ui/button";
-import { IconInfoCircleFilled, IconCopy, IconCheck, IconBackpackWallet, IconStarFilled } from "~/components/ui/icons";
+import { IconBackpackWallet } from "~/components/ui/icons";
 
 interface PointsOverviewProps {
   userPointsData: UserPointsData;

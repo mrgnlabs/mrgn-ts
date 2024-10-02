@@ -3,6 +3,7 @@ import React from "react";
 import Image from "next/image";
 import { Swiper, SwiperSlide, useSwiper } from "swiper/react";
 import { Autoplay } from "swiper/modules";
+import { IconArrowRight } from "@tabler/icons-react";
 
 import { LendingModes, cn } from "@mrgnlabs/mrgn-utils";
 import { ExtendedBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
@@ -10,7 +11,6 @@ import { ExtendedBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
 import { ActionBoxDialog } from "~/components/common/ActionBox";
-import { IconArrowRight } from "~/components/ui/icons";
 
 import "swiper/css";
 import "swiper/css/autoplay";

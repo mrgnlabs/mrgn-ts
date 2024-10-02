@@ -2,6 +2,7 @@ import React from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 
+import { IconInfoCircle } from "@tabler/icons-react";
 import { numeralFormatter } from "@mrgnlabs/mrgn-common";
 import { usdFormatter, usdFormatterDyn } from "@mrgnlabs/mrgn-common";
 import { ActiveBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
@@ -11,7 +12,6 @@ import { useActionBoxStore } from "~/hooks/useActionBoxStore";
 
 import { PortfolioUserStats, PortfolioAssetCard, PortfolioAssetCardSkeleton } from "~/components/common/Portfolio";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
-import { IconInfoCircle } from "~/components/ui/icons";
 
 export const LendingPortfolio = () => {
   const router = useRouter();

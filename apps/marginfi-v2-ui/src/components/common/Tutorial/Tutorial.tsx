@@ -5,13 +5,7 @@ import Link from "next/link";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Pagination } from "swiper/modules";
 import { useSwiper } from "swiper/react";
-
-import { useIsMobile } from "~/hooks/use-is-mobile";
-
-import { Dialog, DialogContent } from "~/components/ui/dialog";
-import { Button } from "~/components/ui/button";
 import {
-  IconMrgn,
   IconCheck,
   IconChevronRight,
   IconExternalLink,
@@ -19,8 +13,13 @@ import {
   IconBrandDiscordFilled,
   IconMoneybag,
   IconBuildingBank,
-  IconBrandSubstack,
-} from "~/components/ui/icons";
+} from "@tabler/icons-react";
+
+import { useIsMobile } from "~/hooks/use-is-mobile";
+
+import { Dialog, DialogContent } from "~/components/ui/dialog";
+import { Button } from "~/components/ui/button";
+import { IconMrgn, IconSubstack } from "~/components/ui/icons";
 
 type TutorialSlideProps = {
   icon?: React.ReactNode;
@@ -243,7 +242,7 @@ export const Tutorial = () => {
                       </li>
                       <li className="p-4 rounded-full bg-muted">
                         <a href="https://mrgn.substack.com/" target="_blank" rel="noreferrer">
-                          <IconBrandSubstack />
+                          <IconSubstack />
                         </a>
                       </li>
                     </ul>

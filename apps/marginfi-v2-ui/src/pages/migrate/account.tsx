@@ -8,18 +8,19 @@ import { PublicKey } from "@solana/web3.js";
 import { shortenAddress } from "@mrgnlabs/mrgn-common";
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 import { extractErrorString, MultiStepToastHandle } from "@mrgnlabs/mrgn-utils";
+import { IconAlertTriangle, IconTransfer, IconX, IconExternalLink } from "@tabler/icons-react";
 
 import { useMrgnlendStore } from "~/store";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
-import { WalletButton } from "~/components/common/Wallet";
+import { WalletButton } from "~/components/wallet-v2";
 import { Badge } from "~/components/ui/badge";
 import { Input } from "~/components/ui/input";
 import { Loader } from "~/components/ui/loader";
 import { Button } from "~/components/ui/button";
 import { Alert, AlertTitle } from "~/components/ui/alert";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
-import { IconAlertTriangle, IconTransfer, IconX, IconLink, IconExternalLink, IconMrgn } from "~/components/ui/icons";
+import { IconMrgn } from "~/components/ui/icons";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger } from "~/components/ui/select";
 
 export default function MigrateAccountPage() {

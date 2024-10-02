@@ -7,12 +7,12 @@ import { cn } from "@mrgnlabs/mrgn-utils";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { useActionBoxStore } from "~/hooks/useActionBoxStore";
 import { LendingModes, PoolTypes } from "@mrgnlabs/mrgn-utils";
+import { IconFilter, IconSearch, IconX } from "@tabler/icons-react";
 
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
 import { Switch } from "~/components/ui/switch";
 import { Label } from "~/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
-import { IconFilter, IconSearch, IconX } from "~/components/ui/icons";
 import { Input } from "~/components/ui/input";
 
 export const AssetListFilters = () => {

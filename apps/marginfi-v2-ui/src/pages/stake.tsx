@@ -10,7 +10,7 @@ import { useLstStore, useMrgnlendStore, useUiStore } from "~/store";
 import { LST_MINT } from "~/store/lstStore";
 
 import { ActionComplete } from "~/components/common/ActionComplete";
-import { IconYBX, IconLST, IconSol, IconUsd } from "~/components/ui/icons";
+import { IconYBX, IconSol, IconLST, IconUsd } from "~/components/ui/icons";
 import { Loader } from "~/components/ui/loader";
 import { YbxDialogNotifications } from "~/components/common/Mint/YbxDialogNotifications";
 import {

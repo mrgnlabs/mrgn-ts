@@ -13,6 +13,7 @@ import {
   UserPointsData,
 } from "@mrgnlabs/marginfi-v2-ui-state";
 import { groupedNumberFormatter, shortenAddress } from "@mrgnlabs/mrgn-common";
+import { IconSearch, IconSortAscending, IconSortDescending, IconX } from "@tabler/icons-react";
 
 import { useConnection } from "~/hooks/use-connection";
 import { cn } from "@mrgnlabs/mrgn-utils";
@@ -21,14 +22,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Loader } from "~/components/ui/loader";
-import {
-  IconSearch,
-  IconSortAscending,
-  IconSortDescending,
-  IconLoader,
-  IconX,
-  IconBackpackWallet,
-} from "~/components/ui/icons";
+import { IconLoader } from "~/components/ui/icons";
 
 type PointsTableProps = {
   userPointsData: UserPointsData;

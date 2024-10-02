@@ -2,6 +2,7 @@ import React from "react";
 
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { Desktop, Mobile } from "@mrgnlabs/mrgn-utils";
+import { IconArrowLeft } from "@tabler/icons-react";
 
 import { useIsMobile } from "~/hooks/use-is-mobile";
 import { ActionBox } from "~/components/common/ActionBox";
@@ -15,7 +16,6 @@ import {
   DialogTitle,
   DialogDescription,
 } from "~/components/ui/dialog";
-import { IconArrowLeft } from "~/components/ui/icons";
 import { useMrgnlendStore } from "~/store";
 
 type ActionBoxDialogProps = {

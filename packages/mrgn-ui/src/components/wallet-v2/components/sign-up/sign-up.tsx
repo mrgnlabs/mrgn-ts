@@ -12,6 +12,7 @@ import { useWalletStore } from "~/components/wallet-v2/store/wallet.store";
 import { Progress } from "~/components/ui/progress";
 
 type AuthDialogProps = {
+  onboardingEnabled?: boolean;
   mrgnState?: {
     marginfiClient: MarginfiClient | null;
     selectedAccount: MarginfiAccountWrapper | null;
@@ -20,7 +21,7 @@ type AuthDialogProps = {
   };
 };
 
-export const AuthDialog = ({ mrgnState }: AuthDialogProps) => {
+export const AuthDialog = ({ mrgnState, onboardingEnabled = true }: AuthDialogProps) => {
   const [isWalletAuthDialogOpen, setIsWalletAuthDialogOpen] = useWalletStore((state) => [
     state.isWalletSignUpOpen,
     state.setIsWalletSignUpOpen,
@@ -50,7 +51,7 @@ export const AuthDialog = ({ mrgnState }: AuthDialogProps) => {
       return onboardingFlow as AuthFlowType;
     }
 
-    return isOnboarded !== null ? "RETURNING_USER" : "ONBOARD_MAIN";
+    return isOnboarded !== null || !onboardingEnabled ? "RETURNING_USER" : "ONBOARD_MAIN";
   }, []);
 
   const [flow, setFlow] = React.useState<AuthFlowType>(mainFlow);
@@ -141,9 +142,13 @@ export const AuthDialog = ({ mrgnState }: AuthDialogProps) => {
   };
 
   const onSelectWallet = (selectedWallet: string | null) => {
+    console.log("onSelectWallet", selectedWallet);
+    console.log("onSelectWallet", selectedWallet);
+    console.log("here");
     if (!selectedWallet) return;
     setIsLoading(true);
     setIsActiveLoading(selectedWallet);
+    // console.log("selectedWallet", selectedWallet);
     walletContextState.select(selectedWallet as any);
     localStorage.setItem("isOnboarded", "true");
   };

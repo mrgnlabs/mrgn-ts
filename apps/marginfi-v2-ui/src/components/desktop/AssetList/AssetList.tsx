@@ -2,6 +2,7 @@ import React from "react";
 import Image from "next/image";
 import { getCoreRowModel, flexRender, useReactTable, SortingState, getSortedRowModel } from "@tanstack/react-table";
 import { useHotkeys } from "react-hotkeys-hook";
+import { IconAlertTriangle } from "@tabler/icons-react";
 
 import { ExtendedBankInfo, ActiveBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { LendingModes } from "@mrgnlabs/mrgn-utils";
@@ -20,7 +21,6 @@ import {
 } from "~/components/common/AssetList";
 import { Table, TableBody, TableHead, TableHeader, TableRow } from "~/components/ui/table";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
-import { IconAlertTriangle } from "~/components/ui/icons";
 
 import { AssetListModel, generateColumns, makeData } from "./utils";
 import { AssetRow } from "./components";
