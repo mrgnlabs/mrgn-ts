@@ -8,14 +8,15 @@ import { useWindowSize } from "@uidotdev/usehooks";
 import { PublicKey } from "@solana/web3.js";
 import { ActionType, ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { percentFormatterDyn, shortenAddress, percentFormatter } from "@mrgnlabs/mrgn-common";
+import { IconConfetti, IconExternalLink, IconArrowDown, IconArrowUp } from "@tabler/icons-react";
+import { cn } from "@mrgnlabs/mrgn-utils";
 
-import { LSTS_SOLANA_COMPASS_MAP, calcLstYield, calcNetLoopingApy, cn } from "~/utils";
+import { LSTS_SOLANA_COMPASS_MAP, calcLstYield, calcNetLoopingApy } from "~/utils";
 import { useUiStore, useLstStore, useMrgnlendStore } from "~/store";
 import { useAssetItemData } from "~/hooks/useAssetItemData";
 import { useIsMobile } from "~/hooks/use-is-mobile";
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "~/components/ui/dialog";
-import { IconConfetti, IconExternalLink, IconArrowDown, IconArrowUp } from "~/components/ui/icons";
 import { Button } from "~/components/ui/button";
 
 export const ActionComplete = () => {
