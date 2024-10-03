@@ -142,13 +142,9 @@ export const AuthDialog = ({ mrgnState, onboardingEnabled = true }: AuthDialogPr
   };
 
   const onSelectWallet = (selectedWallet: string | null) => {
-    console.log("onSelectWallet", selectedWallet);
-    console.log("onSelectWallet", selectedWallet);
-    console.log("here");
     if (!selectedWallet) return;
     setIsLoading(true);
     setIsActiveLoading(selectedWallet);
-    // console.log("selectedWallet", selectedWallet);
     walletContextState.select(selectedWallet as any);
     localStorage.setItem("isOnboarded", "true");
   };

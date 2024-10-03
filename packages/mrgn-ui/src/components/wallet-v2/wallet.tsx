@@ -167,8 +167,6 @@ const Wallet = ({
       0
     );
 
-    console.log(totalBalance);
-
     setWalletData({
       address: wallet?.publicKey.toString(),
       shortAddress: shortenAddress(wallet?.publicKey.toString()),

@@ -43,18 +43,14 @@ export const ReturningUser = ({
 
   const onSelectWallet = React.useCallback(
     (selectedWallet: ExtendedWallet) => {
-      console.log("HERE");
       if (!selectedWallet) return;
       const connectionMethod = getWalletConnectionMethod(selectedWallet, { isPWA, isPhone, browser });
-
-      console.log(connectionMethod);
 
       if (connectionMethod === "INSTALL") {
         window.open(selectedWallet.installLink, "_blank");
       } else if (connectionMethod === "DEEPLINK") {
         window.open(selectedWallet.deeplink);
       } else {
-        console.log("SELECTING");
         select(selectedWallet.adapter.name);
       }
     },

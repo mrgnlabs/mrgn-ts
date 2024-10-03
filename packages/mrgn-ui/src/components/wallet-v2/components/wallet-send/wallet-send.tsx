@@ -130,7 +130,6 @@ export const WalletSend = ({
 
   const handleTransfer = React.useCallback(
     async (recipientAddress: string, token: ExtendedBankInfo, amount: number) => {
-      console.log(connection);
       if (!wallet.publicKey) {
         console.log("Wallet is not connected");
         return;
