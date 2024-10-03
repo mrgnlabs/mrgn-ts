@@ -49,7 +49,7 @@ export const YbxDialogNotifications: React.FC<YbxDialogProps> = ({
               <IconCheck size={18} className="text-success" /> You are signed up!
             </p>
             <Button
-              variant="outline"
+              variant="outline-dark"
               onClick={() => {
                 onHandleChangeMintPage(MintPageState.DEFAULT);
                 onClose();

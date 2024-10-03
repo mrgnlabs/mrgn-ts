@@ -74,7 +74,7 @@ const TutorialSlide = ({
       {docs && (
         <div className="flex flex-col md:flex-row items-center justify-center gap-4">
           <Link href="https://docs.marginfi.com/" target="_blank" rel="noreferrer" className="block w-full md:w-auto">
-            <Button variant="outline" className="w-full md:w-auto">
+            <Button variant="outline-dark" className="w-full md:w-auto">
               Read docs <IconExternalLink size={16} />
             </Button>
           </Link>
@@ -93,7 +93,7 @@ const TutorialSlide = ({
       )}
       {showSkip && (
         <Button
-          variant="outline"
+          variant="outline-dark"
           className="mt-4 w-full md:hidden"
           onClick={() => {
             if (closeDialog) closeDialog();

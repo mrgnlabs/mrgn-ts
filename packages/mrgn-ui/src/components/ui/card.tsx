@@ -7,7 +7,7 @@ import { cn } from "@mrgnlabs/mrgn-utils";
 const cardVariants = cva("rounded-xl shadow", {
   variants: {
     variant: {
-      default: "bg-background-gray border border-muted-foreground/10",
+      default: "bg-background/80 backdrop-blur-sm border",
       secondary: "bg-primary text-primary-foreground",
       gradient: "bg-card text-card-foreground",
     },

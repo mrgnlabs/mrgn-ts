@@ -143,7 +143,7 @@ export const PortfolioAssetCard = ({ bank, isInLendingMode, isBorrower = true }:
           <div className="flex w-full gap-3">
             <PortfolioAction
               requestedBank={bank}
-              buttonVariant="outline"
+              buttonVariant="outline-dark"
               requestedAction={isInLendingMode ? ActionType.Withdraw : ActionType.Repay}
             />
             <PortfolioAction

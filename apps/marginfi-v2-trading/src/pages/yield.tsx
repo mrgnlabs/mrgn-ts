@@ -13,7 +13,7 @@ import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
 import { PageHeading } from "~/components/common/PageHeading";
 import { ActionComplete } from "~/components/common/ActionComplete";
-import { Loader } from "~/components/ui/loader";
+import { Loader } from "~/components/common/Loader";
 import { Input } from "~/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
 import { YieldRow } from "~/components/common/Yield";

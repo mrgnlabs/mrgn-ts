@@ -1,7 +1,7 @@
 import { IconArrowLeft } from "@tabler/icons-react";
 
 import { DialogDescription, DialogHeader, DialogTitle } from "~/components/ui/dialog";
-import { IconMrgn } from "~/components/ui/icons";
+import { IconMrgn, IconArena } from "~/components/ui/icons";
 import { cn } from "@mrgnlabs/mrgn-utils";
 
 interface props {
@@ -19,7 +19,7 @@ export const OnboardHeader = ({ onPrev, title, description, size = "lg" }: props
           <IconArrowLeft />
         </div>
       )}
-      <IconMrgn size={48} />
+      {process.env.NEXT_PUBLIC_APP_ID === "marginfi-v2-ui" ? <IconMrgn size={48} /> : <IconArena size={48} />}
       <DialogTitle className={cn(size === "lg" ? "text-3xl" : "text-2xl", "pt-2")}>{title}</DialogTitle>
       {description && <DialogDescription>{description}</DialogDescription>}
     </DialogHeader>

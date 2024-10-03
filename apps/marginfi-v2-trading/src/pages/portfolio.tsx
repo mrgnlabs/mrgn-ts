@@ -12,7 +12,7 @@ import { useTradeStore, useUiStore } from "~/store";
 import { PageHeading } from "~/components/common/PageHeading";
 import { PositionCard, LpPositionList } from "~/components/common/Portfolio";
 import { ActionComplete } from "~/components/common/ActionComplete";
-import { Loader } from "~/components/ui/loader";
+import { Loader } from "~/components/common/Loader";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 
 export default function PortfolioPage() {

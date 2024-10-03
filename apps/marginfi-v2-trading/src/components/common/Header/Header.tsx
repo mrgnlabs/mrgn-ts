@@ -90,7 +90,7 @@ export const Header = () => {
             })}
           </ul>
         </nav>
-        <div className={cn("flex items-center", process.env.NEXT_PUBLIC_ENABLE_BANK_SCRIPT && "gap-6")}>
+        <div className={cn("flex items-center", process.env.NEXT_PUBLIC_ENABLE_BANK_SCRIPT && "gap-2")}>
           {
             // eslint-disable-next-line turbo/no-undeclared-env-vars
             process.env.NEXT_PUBLIC_ENABLE_BANK_SCRIPT && (
@@ -105,7 +105,7 @@ export const Header = () => {
               </div>
             )
           }
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-4">
             {!isMobile && (
               <div className="flex items-center">
                 <CreatePoolSoon

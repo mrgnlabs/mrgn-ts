@@ -357,7 +357,7 @@ export const PointsTable = ({ userPointsData }: PointsTableProps) => {
             )}
           </p>
           <Button
-            variant="outline"
+            variant="outline-dark"
             size="sm"
             className="ml-auto"
             disabled={leaderboardSettings.currentPage === 1 || pointsTableState !== PointsTableState.Ready}
@@ -374,7 +374,7 @@ export const PointsTable = ({ userPointsData }: PointsTableProps) => {
             <span className="-translate-y-[1px]">&laquo;</span>
           </Button>
           <Button
-            variant="outline"
+            variant="outline-dark"
             size="sm"
             disabled={leaderboardSettings.currentPage === 1 || pointsTableState !== PointsTableState.Ready}
             onClick={() => {
@@ -390,7 +390,7 @@ export const PointsTable = ({ userPointsData }: PointsTableProps) => {
             Previous
           </Button>
           <Button
-            variant="outline"
+            variant="outline-dark"
             size="sm"
             disabled={
               leaderboardSettings.currentPage === Math.ceil(leaderboardCount / leaderboardSettings.pageSize) ||

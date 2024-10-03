@@ -11,7 +11,7 @@ import { TVWidget } from "~/components/common/TVWidget";
 import { TradingBox } from "~/components/common/TradingBox";
 import { PositionList } from "~/components/common/Portfolio";
 import { PoolTradeHeader } from "~/components/common/Pool/PoolTradeHeader";
-import { Loader } from "~/components/ui/loader";
+import { Loader } from "~/components/common/Loader";
 
 export default function TradeSymbolPage() {
   const isMobile = useIsMobile();

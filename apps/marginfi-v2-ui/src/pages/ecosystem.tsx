@@ -339,14 +339,14 @@ export default function Ecosystem() {
               <CardFooter className="flex gap-3 justify-between">
                 {project.github && (
                   <Link href={project.github} target="_blank" rel="noreferrer" className="w-1/2">
-                    <Button variant="outline" className="w-full">
+                    <Button variant="outline-dark" className="w-full">
                       <IconBrandGithubFilled size={16} /> GitHub
                     </Button>
                   </Link>
                 )}
                 {project.url && (
                   <Link href={project.url} target="_blank" rel="noreferrer" className="w-1/2">
-                    <Button variant="outline" className="w-full">
+                    <Button variant="outline-dark" className="w-full">
                       <IconExternalLink size={16} />
                       Demo
                     </Button>

@@ -87,7 +87,7 @@ export const MintCardWrapper: React.FC<MintCardWrapperProps> = ({ mintCard, ...p
                 Stake {mintCard.title}
               </Button>
               <Button
-                variant="outline"
+                variant="outline-dark"
                 size="lg"
                 className="mt-4 hover:text-primary"
                 onClick={() => {

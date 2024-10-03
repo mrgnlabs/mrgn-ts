@@ -4,14 +4,14 @@ import { cn } from "@mrgnlabs/mrgn-utils";
 import { cva, type VariantProps } from "class-variance-authority";
 
 const toggleVariants = cva(
-  "inline-flex items-center justify-center rounded-sm text-sm font-normal transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 data-[state=on]:bg-background data-[state=on]:text-white",
+  "inline-flex items-center justify-center rounded-sm text-sm font-normal transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 data-[state=on]:bg-accent data-[state=on]:text-primary",
   {
     variants: {
       variant: {
         actionBox:
-          "data-[state=on]:bg-background-gray-light text-muted-foreground data-[state=on]:text-white data-[state=on]:font-medium",
+          "data-[state=on]:bg-accent text-muted-foreground data-[state=on]:text-white data-[state=on]:font-medium",
         default: "bg-transparent",
-        outline: "border border-input bg-transparent shadow-sm hover:bg-accent hover:text-white",
+        outline: "border border-input bg-transparent shadow-sm hover:bg-accent hover:text-primary",
       },
       size: {
         default: "h-8 px-3",

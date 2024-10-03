@@ -59,7 +59,14 @@ export const ReturningUser = ({
 
   return (
     <>
-      <OnboardHeader title={"Sign in to marginfi"} description={"Earn yield, permissionlessly."} />
+      <OnboardHeader
+        title={process.env.NEXT_PUBLIC_APP_ID === "marginfi-v2-ui" ? "Sign in to marginfi" : "Enrter The Arena"}
+        description={
+          process.env.NEXT_PUBLIC_APP_ID === "marginfi-v2-ui"
+            ? "Earn yield, permissionlessly."
+            : "Memecoin trading, with leverage."
+        }
+      />
 
       <Accordion className="flex flex-col gap-4 mt-10 w-full" type="single" collapsible>
         <AccordionItem

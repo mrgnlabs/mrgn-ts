@@ -81,7 +81,7 @@ export const PoolCard = ({ groupData }: PoolCardProps) => {
           </div>
         </CardTitle>
       </CardHeader>
-      <CardContent className="md:pb-0">
+      <CardContent className="pt-4 pb-6">
         {groupData.pool.token.tokenData && (
           <dl className="grid grid-cols-2 gap-1.5 text-sm text-muted-foreground w-full mt-2">
             <dt className="">Price</dt>

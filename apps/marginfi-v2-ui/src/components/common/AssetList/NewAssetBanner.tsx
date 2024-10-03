@@ -54,7 +54,7 @@ export const NewAssetBanner = ({ bankInfo }: NewAssetBannerProps) => {
                 dialogProps={{
                   title: `Deposit ${bankInfo.meta.tokenSymbol}`,
                   trigger: (
-                    <Button variant="outline" size="sm" className="w-full">
+                    <Button variant="outline-dark" size="sm" className="w-full">
                       Deposit ${bankInfo.meta.tokenSymbol}
                     </Button>
                   ),
@@ -76,7 +76,7 @@ export const NewAssetBanner = ({ bankInfo }: NewAssetBannerProps) => {
                 dialogProps={{
                   title: `Deposit ${bankInfo.meta.tokenSymbol}`,
                   trigger: (
-                    <Button variant="outline" size="sm" className="w-full">
+                    <Button variant="outline-dark" size="sm" className="w-full">
                       Borrow ${bankInfo.meta.tokenSymbol}
                     </Button>
                   ),
