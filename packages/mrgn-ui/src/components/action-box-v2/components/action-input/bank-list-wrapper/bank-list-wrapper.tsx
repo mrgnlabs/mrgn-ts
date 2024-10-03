@@ -2,7 +2,14 @@ import React from "react";
 
 import { Desktop, Mobile } from "@mrgnlabs/mrgn-utils";
 
-import { Dialog, DialogContent, DialogTrigger } from "~/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogTrigger,
+} from "~/components/ui/dialog";
 import { Drawer, DrawerContent, DrawerTrigger } from "~/components/ui/drawer";
 
 type BankListWrapperProps = {
@@ -34,6 +41,10 @@ export const BankListWrapper = ({
             size="sm"
             position="top"
           >
+            <DialogHeader className="sr-only">
+              <DialogTitle>{label}</DialogTitle>
+              <DialogDescription>Select a token to add to your wallet</DialogDescription>
+            </DialogHeader>
             <div className="h-[500px] relative overflow-auto">{Content}</div>
           </DialogContent>
         </Dialog>
