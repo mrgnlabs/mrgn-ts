@@ -397,7 +397,8 @@ const Wallet = ({
                               setWalletTokenState(WalletState.SEND);
                             }}
                             onCancel={() => {
-                              setWalletTokenState(WalletState.TOKEN);
+                              setWalletTokenState(WalletState.DEFAULT);
+                              setActiveToken(null);
                             }}
                             onComplete={() => {
                               refreshState();
@@ -421,7 +422,7 @@ const Wallet = ({
                     {walletTokenState === WalletState.SELECT && (
                       <TabWrapper resetWalletState={resetWalletState}>
                         <WalletTokens
-                          className="h-[calc(100vh-235px)]"
+                          className="h-[calc(100vh-210px)] mt-8"
                           tokens={walletData.tokens}
                           onTokenClick={(token) => {
                             setActiveToken(token);
