@@ -2,8 +2,9 @@ import React from "react";
 
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
+import { WalletButton } from "~/components/wallet-v2";
 import { PageHeading } from "~/components/common/PageHeading";
-import { WalletButton } from "~/components/common/Wallet";
+
 interface PortfolioHeaderProps {
   netValue?: string;
   points?: string;

@@ -1,6 +1,6 @@
 import React from "react";
 
-import { WalletButton } from "~/components/common/Wallet";
+import { WalletButton } from "~/components/wallet-v2";
 
 export const PointsConnectWallet = () => {
   return (

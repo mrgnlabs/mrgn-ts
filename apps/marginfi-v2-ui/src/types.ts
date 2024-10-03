@@ -6,7 +6,7 @@ import { ActionType, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { QuoteResponseMeta, SwapResult } from "@jup-ag/react-hook";
 import { createStore } from "zustand";
 import { SwapMode } from "@jup-ag/api";
-import { WalletContextStateOverride } from "./hooks/useWalletContext";
+import { WalletContextStateOverride } from "~/components/wallet-v2";
 import { WalletContextState } from "@solana/wallet-adapter-react";
 
 // ----------------------------------------------------------------------------

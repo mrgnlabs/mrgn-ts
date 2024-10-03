@@ -1,5 +1,5 @@
 import { firebaseApi } from "@mrgnlabs/marginfi-v2-ui-state";
-import { WalletInfo } from "~/hooks/useWalletContext";
+import { WalletInfo } from "~/components/wallet-v2/";
 import { onAuthStateChanged } from "firebase/auth";
 import { useEffect, useMemo } from "react";
 import { useRouter } from "next/router";

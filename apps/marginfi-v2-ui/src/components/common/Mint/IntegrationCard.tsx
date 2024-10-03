@@ -1,14 +1,15 @@
 import { usdFormatter } from "@mrgnlabs/mrgn-common";
 import Image from "next/image";
 import Link from "next/link";
+import { IconExternalLink } from "@tabler/icons-react";
 
 import { IntegrationsData } from "~/utils";
 import { IMAGE_CDN_URL } from "~/config/constants";
 
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
-import { IconExternalLink, IconOrca, IconMeteora, IconRaydium } from "~/components/ui/icons";
 import { Skeleton } from "~/components/ui/skeleton";
+import { IconOrca, IconMeteora, IconRaydium } from "~/components/ui/icons";
 
 interface IntegrationCardProps {
   integrationsData: IntegrationsData;
