@@ -56,7 +56,7 @@ export const ActionBoxDialog = ({
         <DialogTrigger asChild>{children}</DialogTrigger>
         <DialogContent
           hideClose={true}
-          className="mt-20 justify-start flex md:max-w-[520px] md:py-3 md:px-5 p-0 sm:rounded-2xl border-none z-50"
+          className="mt-16 justify-start flex md:max-w-[520px] p-0 pt-2 md:py-3 md:px-5 sm:rounded-2xl border-none z-50"
         >
           <DialogHeader className="sr-only">
             <DialogTitle>{titleText}</DialogTitle>
@@ -64,7 +64,7 @@ export const ActionBoxDialog = ({
           </DialogHeader>
           <div>
             <div
-              className="flex gap-2 items-center capitalize pl-2 cursor-pointer hover:underline"
+              className="flex gap-2 items-center capitalize px-4 cursor-pointer hover:underline"
               onClick={() => setIsDialogOpen(false)}
             >
               <IconArrowLeft /> {titleText}
