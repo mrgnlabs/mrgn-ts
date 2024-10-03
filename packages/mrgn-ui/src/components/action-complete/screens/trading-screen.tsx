@@ -62,7 +62,7 @@ export const TradingScreen = ({
         <dd className="text-right">
           <Link
             href={`https://solscan.io/tx/${txn}`}
-            className="flex items-center justify-end gap-1.5 text-foreground text-sm underline hover:no-underline"
+            className="flex items-center justify-end gap-1.5 text-chartreuse text-sm"
             target="_blank"
             rel="noopener noreferrer"
           >

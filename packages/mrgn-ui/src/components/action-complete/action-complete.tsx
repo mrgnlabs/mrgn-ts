@@ -1,7 +1,8 @@
 import React from "react";
+import Link from "next/link";
 
 import Confetti from "react-confetti";
-import { IconConfetti } from "@tabler/icons-react";
+import { IconConfetti, IconExternalLink } from "@tabler/icons-react";
 import { useWindowSize } from "@uidotdev/usehooks";
 
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
@@ -92,9 +93,22 @@ export const ActionComplete = ({ isActionComplete, previousTxn, setIsActionCompl
             )}
           </div>
           <DialogFooter className="mt-6">
-            <Button className="w-full mx-auto" onClick={handleClose}>
-              Done
-            </Button>
+            <div className="space-y-4 w-full">
+              <Button className="w-full mx-auto" onClick={handleClose}>
+                Done
+              </Button>
+              <div className="flex flex-col sm:flex-row text-sm items-center justify-center text-center">
+                <p className="opacity-60">Get daily alerts on your position using</p>
+                <Link
+                  href="https://t.me/AsgardWatchBot"
+                  className="flex items-center gap-1.5 text-chartreuse sm:ml-1.5"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  AsgardWatchBot <IconExternalLink size={14} className="-translate-y-[1px]" />
+                </Link>
+              </div>
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>
