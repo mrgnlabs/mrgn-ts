@@ -78,6 +78,7 @@ export const ActionInput = ({
             <BankSelect
               actionMode={ActionType.Deposit}
               selectedBank={selectedBank}
+              otherBank={selectedSecondaryBank}
               banks={banks}
               nativeSolBalance={nativeSolBalance}
               setTokenBank={(bank) => setSelectedBank(bank)}
@@ -114,6 +115,7 @@ export const ActionInput = ({
               <BankSelect
                 actionMode={ActionType.Borrow}
                 selectedBank={selectedSecondaryBank}
+                otherBank={selectedBank}
                 banks={banks}
                 nativeSolBalance={nativeSolBalance}
                 setTokenBank={(bank) => setSelectedSecondaryBank(bank)}

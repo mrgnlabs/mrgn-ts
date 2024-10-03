@@ -9,6 +9,7 @@ import { BankList, BankTrigger } from "./components";
 
 interface BankSelectProps {
   selectedBank: ExtendedBankInfo | null;
+  otherBank: ExtendedBankInfo | null;
   banks: ExtendedBankInfo[];
   nativeSolBalance: number;
   actionMode: ActionType;
@@ -16,14 +17,24 @@ interface BankSelectProps {
   setTokenBank: (selectedTokenBank: ExtendedBankInfo | null) => void;
 }
 
-export const BankSelect = ({ selectedBank, banks, nativeSolBalance, actionMode, setTokenBank }: BankSelectProps) => {
+export const BankSelect = ({
+  selectedBank,
+  otherBank,
+  banks,
+  nativeSolBalance,
+  actionMode,
+  setTokenBank,
+}: BankSelectProps) => {
   // idea check list if banks[] == 1 make it unselectable
   const isSelectable = React.useMemo(() => true, []);
   const [isOpen, setIsOpen] = React.useState(false);
 
-  const calculateRate = React.useCallback((bank: ExtendedBankInfo) => {
-    return computeBankRate(bank, LendingModes.BORROW);
-  }, []);
+  const calculateRate = React.useCallback(
+    (bank: ExtendedBankInfo) => {
+      return computeBankRate(bank, actionMode === ActionType.Borrow ? LendingModes.BORROW : LendingModes.LEND);
+    },
+    [actionMode]
+  );
 
   return (
     <>
@@ -43,7 +54,7 @@ export const BankSelect = ({ selectedBank, banks, nativeSolBalance, actionMode, 
         <BankListWrapper
           isOpen={isOpen}
           setIsOpen={setIsOpen}
-          Trigger={<BankTrigger bank={selectedBank} isOpen={isOpen} />}
+          Trigger={<BankTrigger bank={selectedBank} isOpen={isOpen} actionMode={actionMode} />}
           Content={
             <BankList
               banks={banks}
@@ -53,6 +64,7 @@ export const BankSelect = ({ selectedBank, banks, nativeSolBalance, actionMode, 
               onClose={() => setIsOpen(false)}
               onSetSelectedBank={(bank) => setTokenBank(bank)}
               selectedBank={selectedBank}
+              otherBank={otherBank}
             />
           }
         />

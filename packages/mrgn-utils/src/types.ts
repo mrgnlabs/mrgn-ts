@@ -23,6 +23,18 @@ interface PreviousTxnLending {
   };
 }
 
+interface PreviousTxnLoop {
+  txn: string;
+  txnType: "LOOP";
+  loopOptions: {
+    depositBank: ActiveBankInfo;
+    borrowBank: ActiveBankInfo;
+    depositAmount: number;
+    borrowAmount: number;
+    leverage: number;
+  };
+}
+
 interface PreviousTxnPositionClosed {
   txn: string;
   txnType: "CLOSE_POSITION";
@@ -50,4 +62,4 @@ interface PreviousTxnTrading {
   tradingOptions: PreviousTxnTradingOptions;
 }
 
-export type PreviousTxn = PreviousTxnLending | PreviousTxnTrading | PreviousTxnPositionClosed;
+export type PreviousTxn = PreviousTxnLoop | PreviousTxnLending | PreviousTxnTrading | PreviousTxnPositionClosed;

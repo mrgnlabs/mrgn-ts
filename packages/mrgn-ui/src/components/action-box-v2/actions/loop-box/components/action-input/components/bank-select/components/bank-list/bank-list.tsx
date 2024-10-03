@@ -11,6 +11,7 @@ import { WSOL_MINT } from "@mrgnlabs/mrgn-common";
 
 type BankListProps = {
   selectedBank: ExtendedBankInfo | null;
+  otherBank: ExtendedBankInfo | null;
   banks: ExtendedBankInfo[];
   nativeSolBalance: number;
   isOpen: boolean;
@@ -22,6 +23,7 @@ type BankListProps = {
 
 export const BankList = ({
   selectedBank,
+  otherBank,
   banks,
   nativeSolBalance,
   isOpen,
@@ -32,9 +34,12 @@ export const BankList = ({
 }: BankListProps) => {
   const [searchQuery, setSearchQuery] = React.useState("");
 
-  const calculateRate = React.useCallback((bank: ExtendedBankInfo) => {
-    return computeBankRate(bank, LendingModes.BORROW);
-  }, []);
+  const calculateRate = React.useCallback(
+    (bank: ExtendedBankInfo) => {
+      return computeBankRate(bank, actionMode === ActionType.Borrow ? LendingModes.BORROW : LendingModes.LEND);
+    },
+    [actionMode]
+  );
 
   const loopingBanks = React.useMemo(() => {
     return banks.filter((bank) => {
@@ -76,7 +81,7 @@ export const BankList = ({
               className="cursor-pointer h-[55px] px-3 font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white"
               disabled={
                 actionMode === ActionType.Borrow
-                  ? selectedBank?.address.equals(bank.address)
+                  ? otherBank?.address.equals(bank.address)
                   : bank.info.state.mint.equals(WSOL_MINT)
                   ? nativeSolBalance === 0
                   : bank.userInfo.tokenAccount.balance === 0
@@ -84,7 +89,7 @@ export const BankList = ({
             >
               <BankItem
                 rate={calculateRate(bank)}
-                lendingMode={LendingModes.BORROW}
+                lendingMode={actionMode === ActionType.Borrow ? LendingModes.BORROW : LendingModes.LEND}
                 bank={bank}
                 showBalanceOverride={
                   bank.info.state.mint.equals(WSOL_MINT) ? nativeSolBalance > 0 : bank.userInfo.tokenAccount.balance > 0

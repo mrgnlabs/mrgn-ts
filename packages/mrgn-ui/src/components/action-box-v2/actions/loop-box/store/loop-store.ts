@@ -1,12 +1,9 @@
 import { create, StateCreator } from "zustand";
 import BigNumber from "bignumber.js";
 
-import { QuoteResponse } from "@jup-ag/api";
-import { Transaction, VersionedTransaction } from "@solana/web3.js";
-
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { SimulationResult } from "@mrgnlabs/marginfi-client-v2";
-import { ActionMethod, calcLstYield, LoopActionTxns, LSTS_SOLANA_COMPASS_MAP } from "@mrgnlabs/mrgn-utils";
+import { ActionMethod, calculateLstYield, LoopActionTxns, LSTS_SOLANA_COMPASS_MAP } from "@mrgnlabs/mrgn-utils";
 
 interface LoopBoxState {
   // State
@@ -234,17 +231,6 @@ const stateCreator: StateCreator<LoopBoxState, [], []> = (set, get) => ({
     }
   },
 });
-
-const calculateLstYield = async (bank: ExtendedBankInfo) => {
-  const solanaCompassKey = LSTS_SOLANA_COMPASS_MAP[bank.meta.tokenSymbol];
-  if (!solanaCompassKey) return 0;
-
-  const response = await fetch(`/api/lst?solanaCompassKey=${solanaCompassKey}`);
-  if (!response.ok) return 0;
-
-  const solanaCompassPrices = await response.json();
-  return calcLstYield(solanaCompassPrices);
-};
 
 export { createLoopBoxStore };
 export type { LoopBoxState };

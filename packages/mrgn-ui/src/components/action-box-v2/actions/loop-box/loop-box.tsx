@@ -232,11 +232,13 @@ export const LoopBox = ({
           setIsActionComplete(true);
           setPreviousTxn({
             txn: txnSigs.pop() ?? "",
-            txnType: "LEND",
-            lendingOptions: {
-              amount: amount,
-              type: ActionType.Loop,
-              bank: selectedBank as ActiveBankInfo,
+            txnType: "LOOP",
+            loopOptions: {
+              depositBank: selectedBank as ActiveBankInfo,
+              borrowBank: selectedSecondaryBank as ActiveBankInfo,
+              depositAmount: actionTxns.actualDepositAmount,
+              borrowAmount: actionTxns.borrowAmount.toNumber(),
+              leverage: leverage,
             },
           });
 
@@ -262,6 +264,7 @@ export const LoopBox = ({
     actionTxns,
     amount,
     captureEvent,
+    leverage,
     marginfiClient,
     nativeSolBalance,
     onComplete,

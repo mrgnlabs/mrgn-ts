@@ -44,6 +44,8 @@ export const ActionComplete = ({ isActionComplete, previousTxn, setIsActionCompl
       } else {
         return "Shorting Completed!";
       }
+    } else if (previousTxn?.txnType === "LOOP") {
+      return "Loop Completed!";
     } else {
       return "Action Completed!";
     }
@@ -84,6 +86,9 @@ export const ActionComplete = ({ isActionComplete, previousTxn, setIsActionCompl
             )}
             {previousTxn.txnType === "CLOSE_POSITION" && (
               <screens.ClosePositionScreen {...previousTxn.positionClosedOptions} txn={previousTxn.txn} />
+            )}
+            {previousTxn.txnType === "LOOP" && (
+              <screens.LoopScreen {...previousTxn.loopOptions} txn={previousTxn.txn} />
             )}
           </div>
           <DialogFooter className="mt-6">
