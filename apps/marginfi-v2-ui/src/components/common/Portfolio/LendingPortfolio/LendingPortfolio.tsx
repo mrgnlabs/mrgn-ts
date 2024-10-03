@@ -204,7 +204,7 @@ export const LendingPortfolio = () => {
                 ))}
               </div>
             ) : (
-              <div color="#868E95" className="font-aeonik font-[300] text-sm flex gap-1">
+              <div color="#868E95" className="font-aeonik font-[300] text-sm md:flex gap-1">
                 No borrow positions found.{" "}
                 <button
                   className="border-b border-primary/50 transition-colors hover:border-primary"

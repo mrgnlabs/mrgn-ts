@@ -178,7 +178,7 @@ export const Navbar: FC = () => {
 
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-10 w-10">
+                  <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0">
                     <IconBell size={20} />
                   </Button>
                 </PopoverTrigger>
