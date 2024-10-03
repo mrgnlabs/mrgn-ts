@@ -2,7 +2,8 @@ import { IconArrowLeft } from "@tabler/icons-react";
 import React from "react";
 
 import { Dialog, DialogTrigger, DialogContent } from "~/components/ui/dialog";
-import { useIsMobile } from "@mrgnlabs/mrgn-utils";
+import { useIsMobile, usePrevious } from "@mrgnlabs/mrgn-utils";
+import { useActionBoxStore } from "../../store";
 
 export interface ActionDialogProps {
   trigger: React.ReactNode;
@@ -16,7 +17,15 @@ interface ActionDialogWrapperProps extends ActionDialogProps {
 
 export const ActionDialogWrapper = ({ trigger, children, title, isTriggered = false }: ActionDialogWrapperProps) => {
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
+  const [isActionComplete] = useActionBoxStore((state) => [state.isActionComplete]);
+  const prevIsActionComplete = usePrevious(isActionComplete);
   const isMobile = useIsMobile();
+
+  React.useEffect(() => {
+    if (!prevIsActionComplete && isActionComplete) {
+      setIsDialogOpen(false);
+    }
+  }, [prevIsActionComplete, isActionComplete]);
 
   React.useEffect(() => {
     setIsDialogOpen(isTriggered);
