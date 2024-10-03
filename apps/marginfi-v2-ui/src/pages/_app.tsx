@@ -63,7 +63,6 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
     extendedBankInfos,
     nativeSolBalance,
     accountSummary,
-    fetchMrgnlendState,
   ] = useMrgnlendStore((state) => [
     state.initialized,
     state.isRefreshingStore,
@@ -72,7 +71,6 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
     state.extendedBankInfos,
     state.nativeSolBalance,
     state.accountSummary,
-    state.fetchMrgnlendState,
   ]);
 
   const [isLstStoreInitialised, isRefreshingLstStore] = useLstStore((state) => [
@@ -80,7 +78,7 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
     state.isRefreshingStore,
   ]);
 
-  const { query, isReady, asPath } = useRouter();
+  const { query, isReady } = useRouter();
 
   // enable matomo heartbeat
   React.useEffect(() => {
@@ -168,7 +166,7 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
         </ConnectionProvider>
       )}
 
-      {process.env.NEXT_PUBLIC_ANALYTICS === "true" && isReady && (
+      {process.env.NEXT_PUBLIC_ANALYTICS === "true" && ready && (
         <>
           <GoogleAnalytics gaId="G-0ZTQRWVG02" />
           <SpeedInsights />
