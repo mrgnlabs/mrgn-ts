@@ -1,5 +1,5 @@
 import React from "react";
-import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { OnrampScreenProps } from "~/components/wallet-v2/components/sign-up/sign-up.utils";
 import { ActionBox } from "~/components/action-box-v2";

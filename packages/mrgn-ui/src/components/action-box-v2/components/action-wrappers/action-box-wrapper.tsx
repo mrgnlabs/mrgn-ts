@@ -9,10 +9,11 @@ import { useActionBoxStore } from "../../store";
 interface ActionBoxWrapperProps {
   actionMode: ActionType;
   isDialog?: boolean;
+  showSettings?: boolean;
   children: React.ReactNode;
 }
 
-export const ActionBoxWrapper = ({ children, isDialog, actionMode }: ActionBoxWrapperProps) => {
+export const ActionBoxWrapper = ({ children, isDialog, actionMode, showSettings = true }: ActionBoxWrapperProps) => {
   const [priorityFee, slippage, isSettingsDialogOpen, setIsSettingsDialogOpen, setPriorityFee, setSlippageBps] =
     useActionBoxStore((state) => [
       state.priorityFee,
@@ -26,9 +27,18 @@ export const ActionBoxWrapper = ({ children, isDialog, actionMode }: ActionBoxWr
   const isActionDisabled = React.useMemo(() => {
     const blockedActions = getBlockedActions();
     if (blockedActions?.find((value) => value === actionMode)) return true;
-
     return false;
   }, [actionMode]);
+
+  const isSlippageEnabled = React.useMemo(
+    () =>
+      actionMode === ActionType.Repay ||
+      actionMode === ActionType.RepayCollat ||
+      actionMode === ActionType.MintLST ||
+      actionMode === ActionType.UnstakeLST ||
+      actionMode === ActionType.Loop,
+    [actionMode]
+  );
 
   if (isActionDisabled) {
     return (
@@ -54,10 +64,10 @@ export const ActionBoxWrapper = ({ children, isDialog, actionMode }: ActionBoxWr
             isDialog && "py-5 border border-background-gray-light/50"
           )}
         >
-          {isSettingsDialogOpen ? (
+          {isSettingsDialogOpen && showSettings ? (
             <ActionSettings
               priorityFee={priorityFee}
-              slippage={slippage}
+              slippage={isSlippageEnabled ? slippage : undefined}
               changePriorityFee={setPriorityFee}
               changeSlippage={setSlippageBps}
               toggleSettings={(value) => setIsSettingsDialogOpen(value)}

@@ -193,7 +193,7 @@ export const LendBox = ({
       params: {
         bank: selectedBank,
         marginfiAccount: selectedAccount,
-        priorityFee,
+        priorityFee: 0,
       },
       captureEvent: (event, properties) => {
         captureEvent && captureEvent(event, properties);
@@ -253,6 +253,7 @@ export const LendBox = ({
         marginfiAccount: selectedAccount,
         walletContextState,
         actionTxns,
+        priorityFee: 0,
       } as MarginfiActionParams;
 
       await handleExecuteLendingAction({
@@ -359,7 +360,7 @@ export const LendBox = ({
         />
       </div>
 
-      <ActionSettingsButton setIsSettingsActive={setIsSettingsDialogOpen} />
+      {/* <ActionSettingsButton setIsSettingsActive={setIsSettingsDialogOpen} /> */}
 
       <Preview actionSummary={actionSummary} selectedBank={selectedBank} isLoading={isLoading} lendMode={lendMode} />
 

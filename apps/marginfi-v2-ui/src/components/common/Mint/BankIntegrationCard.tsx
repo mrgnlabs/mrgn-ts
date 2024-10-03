@@ -67,7 +67,7 @@ export const BankIntegrationCard = ({ bank, isInLendingMode }: IntegrationCardPr
             requestedBank: bank,
           }}
           dialogProps={{
-            title: `Deposit ${bank.meta.tokenSymbol}`,
+            title: `${isInLendingMode ? "Deposit" : "Borrow"} ${bank.meta.tokenSymbol}`,
             trigger: (
               <Button variant="default" size="lg" className="mt-4 w-full">
                 {isInLendingMode ? "Deposit" : "Borrow"}

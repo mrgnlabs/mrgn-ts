@@ -12,8 +12,8 @@ import { Form, FormControl, FormField, FormItem, FormMessage } from "~/component
 import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group";
 
 type SlippageProps = {
-  slippageBps: number;
-  setSlippageBps: (value: number) => void;
+  slippagePct: number;
+  setSlippagePct: (value: number) => void;
   toggleSettings: (mode: boolean) => void;
 };
 
@@ -35,24 +35,24 @@ const slippageOptions = [
 ];
 
 interface SlippageForm {
-  slippageBps: number;
+  slippagePct: number;
 }
 
-export const Slippage = ({ slippageBps, setSlippageBps, toggleSettings }: SlippageProps) => {
+export const Slippage = ({ slippagePct, setSlippagePct, toggleSettings }: SlippageProps) => {
   const form = useForm<SlippageForm>({
     defaultValues: {
-      slippageBps: slippageBps,
+      slippagePct: slippagePct,
     },
   });
   const formWatch = form.watch();
 
   const isCustomSlippage = React.useMemo(
-    () => (slippageOptions.find((value) => value.value === formWatch.slippageBps) ? false : true),
-    [formWatch.slippageBps]
+    () => (slippageOptions.find((value) => value.value === formWatch.slippagePct) ? false : true),
+    [formWatch.slippagePct]
   );
 
   function onSubmit(data: SlippageForm) {
-    setSlippageBps(data.slippageBps);
+    setSlippagePct(data.slippagePct);
     toggleSettings(false);
   }
 
@@ -78,7 +78,7 @@ export const Slippage = ({ slippageBps, setSlippageBps, toggleSettings }: Slippa
           </h2>
           <FormField
             control={form.control}
-            name="slippageBps"
+            name="slippagePct"
             render={({ field }) => (
               <FormItem className="space-y-3">
                 <FormControl>
@@ -119,7 +119,7 @@ export const Slippage = ({ slippageBps, setSlippageBps, toggleSettings }: Slippa
 
           <FormField
             control={form.control}
-            name="slippageBps"
+            name="slippagePct"
             render={({ field }) => (
               <FormItem>
                 <FormControl>

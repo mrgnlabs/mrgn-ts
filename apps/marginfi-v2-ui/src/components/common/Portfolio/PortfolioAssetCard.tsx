@@ -206,7 +206,7 @@ const PortfolioAction = ({
               {buttonText}
             </Button>
           ),
-          title: "Repay",
+          title: `${requestedAction} ${requestedBank?.meta.tokenSymbol}`,
         }}
       />
     );
@@ -230,7 +230,7 @@ const PortfolioAction = ({
               {buttonText}
             </Button>
           ),
-          title: "Repay",
+          title: `${requestedAction} ${requestedBank?.meta.tokenSymbol}`,
         }}
       />
     );

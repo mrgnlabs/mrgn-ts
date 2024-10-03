@@ -112,6 +112,12 @@ export const LoopBox = ({
     state.setIsLoading,
   ]);
 
+  const [setIsSettingsDialogOpen, setPreviousTxn, setIsActionComplete] = useActionBoxStore((state) => [
+    state.setIsSettingsDialogOpen,
+    state.setPreviousTxn,
+    state.setIsActionComplete,
+  ]);
+
   const { isRefreshTxn, blockProgress } = usePollBlockHeight(
     marginfiClient?.provider.connection,
     actionTxns.lastValidBlockHeight
@@ -128,12 +134,6 @@ export const LoopBox = ({
       accountSummaryArg ?? (selectedAccount ? computeAccountSummary(selectedAccount, banks) : DEFAULT_ACCOUNT_SUMMARY)
     );
   }, [accountSummaryArg, selectedAccount, banks]);
-
-  const [setIsSettingsDialogOpen, setPreviousTxn, setIsActionComplete] = useActionBoxStore((state) => [
-    state.setIsSettingsDialogOpen,
-    state.setPreviousTxn,
-    state.setIsActionComplete,
-  ]);
 
   const { amount, debouncedAmount, walletAmount, maxAmount } = useActionAmounts({
     amountRaw,

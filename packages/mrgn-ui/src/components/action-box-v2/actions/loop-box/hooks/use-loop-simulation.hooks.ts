@@ -142,7 +142,7 @@ export function useLoopSimulation({
           amount,
           slippageBps,
           marginfiClient.provider.connection,
-          priorityFee
+          0 //priorityFee
         );
 
         if (loopingObject && "loopingTxn" in loopingObject) {

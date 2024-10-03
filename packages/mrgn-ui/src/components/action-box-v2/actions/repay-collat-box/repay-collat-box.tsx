@@ -107,6 +107,12 @@ export const RepayCollatBox = ({
     actionTxns.lastValidBlockHeight
   );
 
+  const [setIsSettingsDialogOpen, setPreviousTxn, setIsActionComplete] = useActionBoxStore((state) => [
+    state.setIsSettingsDialogOpen,
+    state.setPreviousTxn,
+    state.setIsActionComplete,
+  ]);
+
   React.useEffect(() => {
     return () => {
       refreshState();
@@ -118,12 +124,6 @@ export const RepayCollatBox = ({
       accountSummaryArg ?? (selectedAccount ? computeAccountSummary(selectedAccount, banks) : DEFAULT_ACCOUNT_SUMMARY)
     );
   }, [accountSummaryArg, selectedAccount, banks]);
-
-  const [setIsSettingsDialogOpen, setPreviousTxn, setIsActionComplete] = useActionBoxStore((state) => [
-    state.setIsSettingsDialogOpen,
-    state.setPreviousTxn,
-    state.setIsActionComplete,
-  ]);
 
   const { amount, debouncedAmount, walletAmount, maxAmount } = useActionAmounts({
     amountRaw,

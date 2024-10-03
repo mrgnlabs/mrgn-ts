@@ -2,7 +2,7 @@ import React from "react";
 
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { LendBox, LendBoxProps, LoopBox, LoopBoxProps, RepayCollatBox, RepayCollatBoxProps } from "./actions";
+import { LendBox, LendBoxProps, LoopBox, LoopBoxProps, RepayCollatBox } from "./actions";
 import { ActionDialogWrapper, ActionBoxWrapper, ActionBoxNavigator } from "./components";
 import { useActionBoxContext } from "./contexts";
 import {
@@ -52,7 +52,7 @@ const Lend = (props: ActionBoxProps & { lendProps: RequiredLendBoxProps | LendBo
 
   return (
     <ActionBox {...actionBoxProps}>
-      <ActionBoxWrapper isDialog={props.isDialog} actionMode={props.lendProps.requestedLendType}>
+      <ActionBoxWrapper showSettings={false} isDialog={props.isDialog} actionMode={props.lendProps.requestedLendType}>
         <ActionBoxNavigator selectedAction={props.lendProps.requestedLendType}>
           <LendBox {...combinedProps} isDialog={props.isDialog} />
         </ActionBoxNavigator>
@@ -86,7 +86,7 @@ const BorrowLend = (
 
   return (
     <ActionBox {...actionBoxProps}>
-      <ActionBoxWrapper isDialog={actionBoxProps.isDialog} actionMode={ActionType.Deposit}>
+      <ActionBoxWrapper showSettings={false} isDialog={actionBoxProps.isDialog} actionMode={ActionType.Deposit}>
         <ActionBoxNavigator
           selectedAction={selectedAction}
           onSelectAction={setSelectedAction}
@@ -121,7 +121,7 @@ const Repay = (
 
   return (
     <ActionBox {...actionBoxProps}>
-      <ActionBoxWrapper isDialog={actionBoxProps.isDialog} actionMode={ActionType.Repay}>
+      <ActionBoxWrapper showSettings={true} isDialog={actionBoxProps.isDialog} actionMode={ActionType.Repay}>
         <ActionBoxNavigator
           selectedAction={selectedAction}
           onSelectAction={setSelectedAction}
@@ -153,7 +153,7 @@ const Loop = (props: ActionBoxProps & { loopProps: RequiredLoopBoxProps | LoopBo
 
   return (
     <ActionBox {...actionBoxProps}>
-      <ActionBoxWrapper isDialog={props.isDialog} actionMode={ActionType.Loop}>
+      <ActionBoxWrapper showSettings={true} isDialog={props.isDialog} actionMode={ActionType.Loop}>
         <ActionBoxNavigator selectedAction={ActionType.Loop}>
           <LoopBox {...combinedProps} isDialog={props.isDialog} />
         </ActionBoxNavigator>

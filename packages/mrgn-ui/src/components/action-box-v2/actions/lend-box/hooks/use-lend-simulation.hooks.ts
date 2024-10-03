@@ -114,7 +114,7 @@ export function useLendSimulation({
           selectedBank,
           lendMode,
           amount,
-          priorityFee
+          0 //priorityFee
         );
 
         if (lendingObject && "actionTxn" in lendingObject) {
@@ -133,7 +133,7 @@ export function useLendSimulation({
       //   setIsLoading(false);
       // }
     },
-    [selectedAccount, selectedBank, lendMode, priorityFee, setActionTxns, setErrorMessage, setIsLoading]
+    [selectedAccount, selectedBank, lendMode, setActionTxns, setErrorMessage, setIsLoading]
   );
 
   React.useEffect(() => {

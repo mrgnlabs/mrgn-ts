@@ -120,7 +120,7 @@ export function useRepayCollatSimulation({
           amount,
           slippageBps,
           marginfiClient.provider.connection,
-          priorityFee
+          0 //priorityFee
         );
 
         if (repayObject && "repayTxn" in repayObject) {
@@ -146,15 +146,15 @@ export function useRepayCollatSimulation({
       }
     },
     [
+      selectedAccount,
+      marginfiClient,
       selectedBank,
       selectedSecondaryBank,
-      selectedAccount,
       setIsLoading,
-      slippageBps,
-      marginfiClient,
-      priorityFee,
-      setRepayAmount,
       setActionTxns,
+      setSimulationResult,
+      slippageBps,
+      setRepayAmount,
       setErrorMessage,
     ]
   );

@@ -313,7 +313,7 @@ const ActionBoxCell = ({
           requestedBank: bank,
         }}
         dialogProps={{
-          title: "Repay",
+          title: `${currentAction} ${bank.meta.tokenSymbol}`,
           trigger: (
             <Button variant="secondary" className="w-full max-w-[140px] hover:bg-primary hover:text-primary-foreground">
               {showCloseBalance ? "Close" : currentAction}
@@ -334,7 +334,7 @@ const ActionBoxCell = ({
           walletContextState,
         }}
         dialogProps={{
-          title: "Deposit",
+          title: `${currentAction} ${bank.meta.tokenSymbol}`,
           trigger: (
             <Button variant="secondary" className="w-full max-w-[140px] hover:bg-primary hover:text-primary-foreground">
               {showCloseBalance ? "Close" : currentAction}

@@ -137,7 +137,7 @@ export const Announcements = ({ items }: AnnouncementsProps) => {
                           <IconArrowRight size={20} className="ml-auto text-muted-foreground" />
                         </div>
                       ),
-                      title: "Deposit",
+                      title: `Supply ${item.bank.meta.tokenSymbol}`,
                     }}
                   />
                 ) : (
