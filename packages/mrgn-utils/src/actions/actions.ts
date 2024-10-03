@@ -102,36 +102,15 @@ export async function executeLendingAction(params: MarginfiActionParams) {
   return txnSig;
 }
 
-export async function executeLoopingAction({
-  marginfiClient,
-  actionType,
-  bank,
-  amount,
-  marginfiAccount,
-  priorityFee,
-  loopingOptions,
-  theme = "dark",
-}: MarginfiActionParams) {
+export async function executeLoopingAction(params: MarginfiActionParams) {
   let txnSig: string[] | undefined;
 
-  if (!marginfiAccount) {
+  if (!params.marginfiAccount) {
     showErrorToast("Marginfi account not ready.");
     return;
   }
 
-  if (actionType === ActionType.Loop) {
-    if (loopingOptions) {
-      txnSig = await looping({
-        marginfiClient,
-        marginfiAccount,
-        bank,
-        depositAmount: amount,
-        priorityFee,
-        options: loopingOptions,
-        theme,
-      });
-    }
-  }
+  txnSig = await looping(params);
 
   return txnSig;
 }

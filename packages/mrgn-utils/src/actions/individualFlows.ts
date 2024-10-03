@@ -283,21 +283,13 @@ export async function looping({
   marginfiClient,
   marginfiAccount,
   bank,
-  depositAmount,
-  options,
+  amount,
+  actionTxns,
+  loopingOptions,
   priorityFee,
   isTxnSplit = false,
   theme,
-}: {
-  marginfiClient: MarginfiClient | null;
-  marginfiAccount: MarginfiAccountWrapper;
-  bank: ExtendedBankInfo;
-  depositAmount: number;
-  options: LoopingOptions;
-  priorityFee?: number;
-  isTxnSplit?: boolean;
-  theme?: "light" | "dark";
-}) {
+}: MarginfiActionParams & { isTxnSplit?: boolean }) {
   if (marginfiClient === null) {
     showErrorToast({ message: "Marginfi client not ready", theme });
     return;
@@ -305,7 +297,7 @@ export async function looping({
 
   const multiStepToast = new MultiStepToastHandle(
     "Looping",
-    [{ label: `Executing looping ${bank.meta.tokenSymbol} with ${options.loopingBank.meta.tokenSymbol}` }],
+    [{ label: `Executing looping ${bank.meta.tokenSymbol} with ${loopingOptions?.loopingBank.meta.tokenSymbol}` }],
     theme
   );
   multiStepToast.start();
@@ -313,17 +305,24 @@ export async function looping({
   try {
     let sigs: string[] = [];
 
-    if (options.loopingTxn) {
-      sigs = await marginfiClient.processTransactions([...options.feedCrankTxs, options.loopingTxn]);
+    if (actionTxns?.actionTxn) {
+      sigs = await marginfiClient.processTransactions([...actionTxns.additionalTxns, actionTxns.actionTxn]);
+    } else if (loopingOptions) {
+      console.log("loopingOptions", loopingOptions);
+      if (loopingOptions?.loopingTxn) {
+        sigs = await marginfiClient.processTransactions([...loopingOptions.feedCrankTxs, loopingOptions.loopingTxn]);
+      } else {
+        const { flashloanTx, feedCrankTxs } = await loopingBuilder({
+          marginfiAccount: marginfiAccount!,
+          bank,
+          depositAmount: amount,
+          options: loopingOptions,
+          priorityFee,
+        });
+        sigs = await marginfiClient.processTransactions([...feedCrankTxs, flashloanTx]);
+      }
     } else {
-      const { flashloanTx, feedCrankTxs } = await loopingBuilder({
-        marginfiAccount,
-        bank,
-        depositAmount,
-        options,
-        priorityFee,
-      });
-      sigs = await marginfiClient.processTransactions([...feedCrankTxs, flashloanTx]);
+      throw new Error("Invalid options provided for looping, please contact support.");
     }
 
     multiStepToast.setSuccessAndNext();
@@ -370,6 +369,10 @@ export async function repayWithCollat({
     } else if (repayWithCollatOptions) {
       // deprecated
       if (repayWithCollatOptions.repayCollatTxn) {
+        sigs = await marginfiClient.processTransactions([
+          ...repayWithCollatOptions.feedCrankTxs,
+          repayWithCollatOptions.repayCollatTxn,
+        ]);
       } else {
         const { flashloanTx, feedCrankTxs } = await repayWithCollatBuilder({
           marginfiAccount,

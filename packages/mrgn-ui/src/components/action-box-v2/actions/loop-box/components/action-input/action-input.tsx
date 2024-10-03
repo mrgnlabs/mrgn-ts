@@ -1,6 +1,6 @@
 import React from "react";
 
-import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { cn, formatAmount, LoopActionTxns } from "@mrgnlabs/mrgn-utils";
 
 import { Input } from "~/components/ui/input";
@@ -76,6 +76,7 @@ export const ActionInput = ({
         <div className="flex justify-center gap-1 items-center font-medium text-3xl">
           <div className="w-full flex-auto max-w-[162px]">
             <BankSelect
+              actionMode={ActionType.Deposit}
               selectedBank={selectedBank}
               banks={banks}
               nativeSolBalance={nativeSolBalance}
@@ -111,6 +112,7 @@ export const ActionInput = ({
           <div className="flex gap-1 items-center font-medium text-3xl">
             <div className={cn("w-full flex-auto max-w-[162px]", !selectedBank && "opacity-60")}>
               <BankSelect
+                actionMode={ActionType.Borrow}
                 selectedBank={selectedSecondaryBank}
                 banks={banks}
                 nativeSolBalance={nativeSolBalance}

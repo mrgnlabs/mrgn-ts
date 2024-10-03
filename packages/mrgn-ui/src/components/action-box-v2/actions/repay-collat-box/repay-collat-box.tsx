@@ -197,6 +197,7 @@ export const RepayCollatBox = ({
         nativeSolBalance,
         marginfiAccount: selectedAccount,
         actionTxns,
+        priorityFee: 0,
       } as MarginfiActionParams;
 
       await handleExecuteRepayCollatAction({
@@ -244,7 +245,9 @@ export const RepayCollatBox = ({
     selectedAccount,
     selectedBank,
     setAmountRaw,
+    setIsActionComplete,
     setIsLoading,
+    setPreviousTxn,
   ]);
 
   return (

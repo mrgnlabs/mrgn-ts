@@ -1,6 +1,6 @@
 import React from "react";
 
-import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { cn, computeBankRate, LendingModes } from "@mrgnlabs/mrgn-utils";
 
 import { CommandEmpty, CommandGroup, CommandItem } from "~/components/ui/command";
@@ -14,6 +14,7 @@ type BankListProps = {
   banks: ExtendedBankInfo[];
   nativeSolBalance: number;
   isOpen: boolean;
+  actionMode: ActionType;
 
   onSetSelectedBank: (selectedTokenBank: ExtendedBankInfo | null) => void;
   onClose: () => void;
@@ -24,6 +25,7 @@ export const BankList = ({
   banks,
   nativeSolBalance,
   isOpen,
+  actionMode,
 
   onSetSelectedBank,
   onClose,
@@ -71,10 +73,14 @@ export const BankList = ({
                 );
                 onClose();
               }}
-              className={cn(
-                "cursor-pointer font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white py-2",
-                "opacity-100"
-              )}
+              className="cursor-pointer h-[55px] px-3 font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white"
+              disabled={
+                actionMode === ActionType.Borrow
+                  ? selectedBank?.address.equals(bank.address)
+                  : bank.info.state.mint.equals(WSOL_MINT)
+                  ? nativeSolBalance === 0
+                  : bank.userInfo.tokenAccount.balance === 0
+              }
             >
               <BankItem
                 rate={calculateRate(bank)}

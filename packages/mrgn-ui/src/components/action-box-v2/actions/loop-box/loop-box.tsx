@@ -112,7 +112,8 @@ export const LoopBox = ({
     state.setIsLoading,
   ]);
 
-  const [setIsSettingsDialogOpen, setPreviousTxn, setIsActionComplete] = useActionBoxStore((state) => [
+  const [slippage, setIsSettingsDialogOpen, setPreviousTxn, setIsActionComplete] = useActionBoxStore((state) => [
+    state.slippageBps,
     state.setIsSettingsDialogOpen,
     state.setPreviousTxn,
     state.setIsActionComplete,
@@ -210,6 +211,16 @@ export const LoopBox = ({
         nativeSolBalance,
         marginfiAccount: selectedAccount,
         actionTxns,
+        loopingOptions: {
+          loopingQuote: actionTxns.actionQuote,
+          feedCrankTxs: actionTxns.additionalTxns,
+          loopingTxn: actionTxns.actionTxn,
+          borrowAmount: actionTxns.borrowAmount,
+          loopingBank: selectedSecondaryBank,
+          connection: marginfiClient?.provider.connection!,
+        },
+        priorityFee: 0,
+        slippage: slippage,
       } as MarginfiActionParams;
 
       await handleExecuteLoopAction({
@@ -256,10 +267,12 @@ export const LoopBox = ({
     onComplete,
     selectedAccount,
     selectedBank,
+    selectedSecondaryBank,
     setAmountRaw,
     setIsActionComplete,
     setIsLoading,
     setPreviousTxn,
+    slippage,
   ]);
 
   return (
@@ -335,6 +348,7 @@ export const LoopBox = ({
           handleAction={() => {
             handleLoopAction();
           }}
+          loaderType="INFINITE"
           handleConnect={() => onConnect && onConnect()}
           buttonLabel={"Loop"}
         />

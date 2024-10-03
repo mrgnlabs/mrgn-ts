@@ -7,8 +7,7 @@ import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import {
   ActionMethod,
   calculateLoopingParams,
-  calculateRepayCollateralParams,
-  executeLendingAction,
+  executeLoopingAction,
   LoopingObject,
   MarginfiActionParams,
 } from "@mrgnlabs/mrgn-utils";
@@ -38,7 +37,7 @@ export const handleExecuteLoopAction = async ({
     priorityFee,
   });
 
-  const txnSig = await executeLendingAction(params);
+  const txnSig = await executeLoopingAction(params);
 
   setIsLoading(false);
 
