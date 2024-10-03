@@ -2,12 +2,9 @@ import React from "react";
 
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { ActionComplete } from "~/components";
-
-import { LendBox, LendBoxProps, RepayCollatBox, RepayCollatBoxProps } from "./actions";
+import { LendBox, LendBoxProps, LoopBox, LoopBoxProps, RepayCollatBox, RepayCollatBoxProps } from "./actions";
 import { ActionDialogWrapper, ActionBoxWrapper, ActionBoxNavigator } from "./components";
 import { useActionBoxContext } from "./contexts";
-import { useActionBoxStore } from "./store";
 import {
   ActionBoxComponent,
   ActionBoxProps,
@@ -15,6 +12,7 @@ import {
   isDialogWrapperProps,
   RequiredLendBoxProps,
   RequiredRepayBoxProps,
+  RequiredLoopBoxProps,
 } from "./types";
 
 const ActionBox: ActionBoxComponent = (props) => {
@@ -137,6 +135,33 @@ const Repay = (
   );
 };
 ActionBox.Repay = Repay;
+
+const Loop = (props: ActionBoxProps & { loopProps: RequiredLoopBoxProps | LoopBoxProps; useProvider?: boolean }) => {
+  const contextProps = useActionBoxContext();
+  const { loopProps, useProvider, ...actionBoxProps } = props;
+
+  let combinedProps: LoopBoxProps;
+
+  if (useProvider && contextProps) {
+    combinedProps = {
+      ...contextProps,
+      ...(loopProps as RequiredLoopBoxProps),
+    };
+  } else {
+    combinedProps = loopProps as LoopBoxProps;
+  }
+
+  return (
+    <ActionBox {...actionBoxProps}>
+      <ActionBoxWrapper isDialog={props.isDialog} actionMode={ActionType.Loop}>
+        <ActionBoxNavigator selectedAction={ActionType.Loop}>
+          <LoopBox {...combinedProps} isDialog={props.isDialog} />
+        </ActionBoxNavigator>
+      </ActionBoxWrapper>
+    </ActionBox>
+  );
+};
+ActionBox.Loop = Loop;
 
 ActionBox.displayName = "ActionBox";
 

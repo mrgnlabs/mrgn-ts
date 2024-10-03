@@ -6,7 +6,7 @@ import { Transaction, VersionedTransaction } from "@solana/web3.js";
 
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { SimulationResult } from "@mrgnlabs/marginfi-client-v2";
-import { ActionMethod, LoopActionTxns } from "@mrgnlabs/mrgn-utils";
+import { ActionMethod, calcLstYield, LoopActionTxns, LSTS_SOLANA_COMPASS_MAP } from "@mrgnlabs/mrgn-utils";
 
 interface LoopBoxState {
   // State
@@ -14,6 +14,8 @@ interface LoopBoxState {
 
   leverage: number;
   maxLeverage: number;
+  depositLstApy: number | null;
+  borrowLstApy: number | null;
 
   selectedBank: ExtendedBankInfo | null;
   selectedSecondaryBank: ExtendedBankInfo | null;
@@ -38,6 +40,8 @@ interface LoopBoxState {
   setErrorMessage: (errorMessage: ActionMethod | null) => void;
   setSelectedBank: (bank: ExtendedBankInfo | null) => void;
   setSelectedSecondaryBank: (bank: ExtendedBankInfo | null) => void;
+  setDepositLstApy: (bank: ExtendedBankInfo) => void;
+  setBorrowLstApy: (bank: ExtendedBankInfo) => void;
 
   setIsLoading: (isLoading: boolean) => void;
 }
@@ -50,6 +54,8 @@ const initialState = {
   amountRaw: "",
   leverage: 0,
   loopingAmounts: null,
+  depositLstApy: null,
+  borrowLstApy: null,
   maxLeverage: 0,
   selectedBank: null,
   selectedSecondaryBank: null,
@@ -127,6 +133,7 @@ const stateCreator: StateCreator<LoopBoxState, [], []> = (set, get) => ({
   },
 
   setErrorMessage(errorMessage) {
+    console.log("errorMessage", errorMessage);
     set({ errorMessage });
   },
 
@@ -161,11 +168,14 @@ const stateCreator: StateCreator<LoopBoxState, [], []> = (set, get) => ({
     }
   },
 
-  async setSelectedBank(tokenBank) {
+  setSelectedBank(tokenBank) {
     const selectedBank = get().selectedBank;
     const hasBankChanged = !tokenBank || !selectedBank || !tokenBank.address.equals(selectedBank.address);
 
     if (hasBankChanged) {
+      if (tokenBank) {
+        get().setDepositLstApy(tokenBank);
+      }
       set({
         selectedBank: tokenBank,
         amountRaw: "",
@@ -181,12 +191,15 @@ const stateCreator: StateCreator<LoopBoxState, [], []> = (set, get) => ({
     set({ isLoading });
   },
 
-  async setSelectedSecondaryBank(secondaryBank) {
+  setSelectedSecondaryBank(secondaryBank) {
     const selectedSecondaryBank = get().selectedSecondaryBank;
     const hasBankChanged =
       !secondaryBank || !selectedSecondaryBank || !secondaryBank.address.equals(selectedSecondaryBank.address);
 
     if (hasBankChanged) {
+      if (secondaryBank) {
+        get().setBorrowLstApy(secondaryBank);
+      }
       set({
         selectedSecondaryBank: secondaryBank,
         amountRaw: "",
@@ -198,7 +211,40 @@ const stateCreator: StateCreator<LoopBoxState, [], []> = (set, get) => ({
       set({ selectedSecondaryBank: secondaryBank });
     }
   },
+
+  async setDepositLstApy(bank: ExtendedBankInfo) {
+    const lstsArr = Object.keys(LSTS_SOLANA_COMPASS_MAP);
+    if (!lstsArr.includes(bank.meta.tokenSymbol)) {
+      set({ depositLstApy: null });
+      return;
+    } else {
+      const depositLstApy = await calculateLstYield(bank);
+      set({ depositLstApy });
+    }
+  },
+
+  async setBorrowLstApy(bank: ExtendedBankInfo) {
+    const lstsArr = Object.keys(LSTS_SOLANA_COMPASS_MAP);
+    if (!lstsArr.includes(bank.meta.tokenSymbol)) {
+      set({ borrowLstApy: null });
+      return;
+    } else {
+      const borrowLstApy = await calculateLstYield(bank);
+      set({ borrowLstApy });
+    }
+  },
 });
+
+const calculateLstYield = async (bank: ExtendedBankInfo) => {
+  const solanaCompassKey = LSTS_SOLANA_COMPASS_MAP[bank.meta.tokenSymbol];
+  if (!solanaCompassKey) return 0;
+
+  const response = await fetch(`/api/lst?solanaCompassKey=${solanaCompassKey}`);
+  if (!response.ok) return 0;
+
+  const solanaCompassPrices = await response.json();
+  return calcLstYield(solanaCompassPrices);
+};
 
 export { createLoopBoxStore };
 export type { LoopBoxState };

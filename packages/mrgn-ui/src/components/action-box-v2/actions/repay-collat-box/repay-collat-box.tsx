@@ -165,7 +165,7 @@ export const RepayCollatBox = ({
   }, [requestedBank, fetchActionBoxState]);
 
   React.useEffect(() => {
-    if (errorMessage !== null && errorMessage.description) {
+    if (errorMessage && errorMessage.description) {
       showErrorToast(errorMessage?.description);
       setAdditionalActionMethods([errorMessage]);
     }

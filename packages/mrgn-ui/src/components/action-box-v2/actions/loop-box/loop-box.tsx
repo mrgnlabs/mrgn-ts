@@ -8,25 +8,31 @@ import {
   DEFAULT_ACCOUNT_SUMMARY,
   ActiveBankInfo,
 } from "@mrgnlabs/marginfi-v2-ui-state";
+import { WalletContextState } from "@solana/wallet-adapter-react";
 import { ActionMethod, MarginfiActionParams, PreviousTxn, showErrorToast } from "@mrgnlabs/mrgn-utils";
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 
+import { useAmountDebounce } from "~/hooks/useAmountDebounce";
+import { WalletContextStateOverride } from "~/components/wallet-v2";
 import { CircularProgress } from "~/components/ui/circular-progress";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { ActionButton, ActionMessage, ActionSettingsButton } from "~/components/action-box-v2/components";
 import { useActionAmounts, usePollBlockHeight } from "~/components/action-box-v2/hooks";
 
+import { useActionBoxStore } from "../../store";
+
 import { checkActionAvailable, handleExecuteLoopAction } from "./utils";
-import { Collateral, ActionInput, Preview } from "./components";
+import { ActionInput, Preview } from "./components";
 import { useLoopBoxStore } from "./store";
 import { useLoopSimulation } from "./hooks";
-
-import { useActionBoxStore } from "../../store";
+import { LeverageSlider } from "./components/leverage-slider";
+import { ApyStat } from "./components/apy-stat";
 
 // error handling
 export type LoopBoxProps = {
   nativeSolBalance: number;
   // tokenAccountMap: TokenAccountMap;
+  walletContextState?: WalletContextStateOverride | WalletContextState;
   connected: boolean;
 
   marginfiClient: MarginfiClient | null;
@@ -68,6 +74,8 @@ export const LoopBox = ({
     isLoading,
     simulationResult,
     actionTxns,
+    depositLstApy,
+    borrowLstApy,
     refreshState,
     setSimulationResult,
     setActionTxns,
@@ -89,6 +97,8 @@ export const LoopBox = ({
     state.isLoading,
     state.simulationResult,
     state.actionTxns,
+    state.depositLstApy,
+    state.borrowLstApy,
     state.refreshState,
     state.setSimulationResult,
     state.setActionTxns,
@@ -129,11 +139,14 @@ export const LoopBox = ({
     amountRaw,
     selectedBank,
     nativeSolBalance,
-    actionMode: ActionType.RepayCollat,
+    actionMode: ActionType.Loop,
   });
+
+  const debouncedLeverage = useAmountDebounce<number | null>(leverage, 1000);
 
   const { actionSummary } = useLoopSimulation({
     debouncedAmount: debouncedAmount ?? 0,
+    debouncedLeverage: debouncedLeverage ?? 0,
     selectedAccount,
     marginfiClient,
     accountSummary,
@@ -142,7 +155,6 @@ export const LoopBox = ({
     actionTxns,
     simulationResult,
     isRefreshTxn,
-    leverage,
     setMaxLeverage,
     setSimulationResult,
     setActionTxns,
@@ -164,9 +176,11 @@ export const LoopBox = ({
   }, [requestedBank, fetchActionBoxState]);
 
   React.useEffect(() => {
-    if (errorMessage !== null && errorMessage.description) {
+    if (errorMessage && errorMessage.description) {
       showErrorToast(errorMessage?.description);
       setAdditionalActionMethods([errorMessage]);
+    } else {
+      setAdditionalActionMethods([]);
     }
   }, [errorMessage]);
 
@@ -182,7 +196,7 @@ export const LoopBox = ({
     [amount, connected, selectedBank, selectedSecondaryBank, actionTxns.actionQuote]
   );
 
-  const handleRepayCollatAction = React.useCallback(async () => {
+  const handleLoopAction = React.useCallback(async () => {
     if (!selectedBank || !amount) {
       return;
     }
@@ -190,7 +204,7 @@ export const LoopBox = ({
     const action = async () => {
       const params = {
         marginfiClient,
-        actionType: ActionType.RepayCollat,
+        actionType: ActionType.Loop,
         bank: selectedBank,
         amount,
         nativeSolBalance,
@@ -210,7 +224,7 @@ export const LoopBox = ({
             txnType: "LEND",
             lendingOptions: {
               amount: amount,
-              type: ActionType.RepayCollat,
+              type: ActionType.Loop,
               bank: selectedBank as ActiveBankInfo,
             },
           });
@@ -221,7 +235,7 @@ export const LoopBox = ({
               txnType: "LEND",
               lendingOptions: {
                 amount: amount,
-                type: ActionType.RepayCollat,
+                type: ActionType.Loop,
                 bank: selectedBank as ActiveBankInfo,
               },
             });
@@ -268,7 +282,7 @@ export const LoopBox = ({
         </div>
       )}
       <div className="mb-6">
-        {/* <ActionInput
+        <ActionInput
           banks={banks}
           nativeSolBalance={nativeSolBalance}
           amountRaw={amountRaw}
@@ -280,9 +294,30 @@ export const LoopBox = ({
           setSelectedSecondaryBank={(bank) => {
             setSelectedSecondaryBank(bank);
           }}
-        /> */}
+          isLoading={isLoading}
+          walletAmount={walletAmount}
+          actionTxns={actionTxns}
+        />
       </div>
 
+      <div className="px-1 space-y-6 mb-4">
+        <LeverageSlider
+          selectedBank={selectedBank}
+          selectedSecondaryBank={selectedSecondaryBank}
+          amountRaw={amountRaw}
+          leverageAmount={leverage}
+          maxLeverage={maxLeverage}
+          setLeverageAmount={setLeverage}
+        />
+
+        <ApyStat
+          selectedBank={selectedBank}
+          selectedSecondaryBank={selectedSecondaryBank}
+          leverageAmount={leverage}
+          depositLstApy={depositLstApy}
+          borrowLstApy={borrowLstApy}
+        />
+      </div>
       {additionalActionMethods.concat(actionMethods).map(
         (actionMethod, idx) =>
           actionMethod.description && (
@@ -292,20 +327,16 @@ export const LoopBox = ({
           )
       )}
 
-      <div className="mb-6">
-        <Collateral selectedAccount={selectedAccount} actionSummary={actionSummary} />
-      </div>
-
       <div className="mb-3">
         <ActionButton
           isLoading={isLoading}
           isEnabled={!additionalActionMethods.concat(actionMethods).filter((value) => value.isEnabled === false).length}
           connected={connected}
           handleAction={() => {
-            handleRepayCollatAction();
+            handleLoopAction();
           }}
           handleConnect={() => onConnect && onConnect()}
-          buttonLabel={"Repay"}
+          buttonLabel={"Loop"}
         />
       </div>
 

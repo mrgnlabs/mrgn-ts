@@ -1,6 +1,6 @@
 import React from "react";
 import { Transaction, VersionedTransaction } from "@solana/web3.js";
-import { QuoteResponse } from "@jup-ag/api";
+import BigNumber from "bignumber.js";
 
 import {
   computeMaxLeverage,
@@ -10,7 +10,6 @@ import {
 } from "@mrgnlabs/marginfi-client-v2";
 import {
   ActionMethod,
-  calculateMaxRepayableCollateral,
   DYNAMIC_SIMULATION_ERRORS,
   LoopActionTxns,
   STATIC_SIMULATION_ERRORS,
@@ -20,10 +19,10 @@ import { AccountSummary, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state
 
 import { useActionBoxStore } from "../../../store";
 import { calculateLooping, calculateSummary, getSimulationResult } from "../utils";
-import BigNumber from "bignumber.js";
 
 type LoopSimulationProps = {
   debouncedAmount: number;
+  debouncedLeverage: number;
   selectedAccount: MarginfiAccountWrapper | null;
   marginfiClient: MarginfiClient | null;
   accountSummary?: AccountSummary;
@@ -32,7 +31,6 @@ type LoopSimulationProps = {
   actionTxns: LoopActionTxns;
   simulationResult: SimulationResult | null;
   isRefreshTxn: boolean;
-  leverage: number;
 
   setSimulationResult: (simulationResult: SimulationResult | null) => void;
   setActionTxns: (actionTxns: LoopActionTxns) => void;
@@ -43,6 +41,7 @@ type LoopSimulationProps = {
 
 export function useLoopSimulation({
   debouncedAmount,
+  debouncedLeverage,
   selectedAccount,
   marginfiClient,
   accountSummary,
@@ -51,7 +50,6 @@ export function useLoopSimulation({
   actionTxns,
   simulationResult,
   isRefreshTxn,
-  leverage,
 
   setSimulationResult,
   setActionTxns,
@@ -62,6 +60,7 @@ export function useLoopSimulation({
   const [slippageBps, priorityFee] = useActionBoxStore((state) => [state.slippageBps, state.priorityFee]);
 
   const prevDebouncedAmount = usePrevious(debouncedAmount);
+  const prevDebouncedLeverage = usePrevious(debouncedLeverage);
   const prevSelectedSecondaryBank = usePrevious(selectedSecondaryBank);
   const prevActionTxn = usePrevious(actionTxns?.actionTxn);
 
@@ -86,7 +85,7 @@ export function useLoopSimulation({
         setIsLoading(false);
       }
     },
-    [selectedAccount, selectedBank, setSimulationResult]
+    [selectedAccount, selectedBank, setIsLoading, setSimulationResult]
   );
 
   const handleActionSummary = React.useCallback(
@@ -104,11 +103,19 @@ export function useLoopSimulation({
   );
 
   const fetchLoopingTxn = React.useCallback(
-    async (amount: number) => {
-      if (!selectedAccount || !marginfiClient || !selectedBank || !selectedSecondaryBank || amount === 0) {
+    async (amount: number, leverage: number) => {
+      if (
+        !selectedAccount ||
+        !marginfiClient ||
+        !selectedBank ||
+        !selectedSecondaryBank ||
+        amount === 0 ||
+        leverage === 0
+      ) {
         const missingParams = [];
         if (!selectedAccount) missingParams.push("account is null");
         if (amount === 0) missingParams.push("amount is 0");
+        if (leverage === 0) missingParams.push("leverage is 0");
         if (!selectedBank) missingParams.push("bank is null");
 
         setActionTxns({
@@ -122,6 +129,8 @@ export function useLoopSimulation({
         setSimulationResult(null);
         return;
       }
+
+      console.log("simulating");
 
       setIsLoading(true);
       try {
@@ -150,45 +159,46 @@ export function useLoopSimulation({
           const errorMessage =
             loopingObject ??
             DYNAMIC_SIMULATION_ERRORS.REPAY_COLLAT_FAILED_CHECK(selectedSecondaryBank.meta.tokenSymbol);
+
           setErrorMessage(errorMessage);
         }
       } catch (error) {
+        console.error({ error });
         setErrorMessage(STATIC_SIMULATION_ERRORS.REPAY_COLLAT_FAILED);
       } finally {
         setIsLoading(false);
       }
     },
     [
-      leverage,
+      selectedAccount,
+      marginfiClient,
       selectedBank,
       selectedSecondaryBank,
-      selectedAccount,
       setIsLoading,
-      slippageBps,
-      marginfiClient,
-      priorityFee,
       setActionTxns,
+      setSimulationResult,
+      slippageBps,
+      priorityFee,
       setErrorMessage,
     ]
   );
 
   const fetchMaxLeverage = React.useCallback(async () => {
     if (selectedBank && selectedSecondaryBank) {
-      setIsLoading(true);
       const { maxLeverage, ltv } = computeMaxLeverage(selectedBank.info.rawBank, selectedSecondaryBank.info.rawBank);
-      const maxAmount = await calculateMaxRepayableCollateral(selectedBank, selectedSecondaryBank, slippageBps);
 
-      if (!maxAmount) {
+      if (!maxLeverage) {
         const errorMessage = DYNAMIC_SIMULATION_ERRORS.REPAY_COLLAT_FAILED_CHECK(
           selectedSecondaryBank.meta.tokenSymbol
         );
 
+        console.log("fetchMaxLeverage", errorMessage);
         setErrorMessage(errorMessage);
       } else {
-        setMaxLeverage(maxAmount);
+        setMaxLeverage(maxLeverage);
       }
     }
-  }, [selectedBank, selectedSecondaryBank, slippageBps, setIsLoading, setErrorMessage, setMaxLeverage]);
+  }, [selectedBank, selectedSecondaryBank, setErrorMessage, setMaxLeverage]);
 
   React.useEffect(() => {
     if (isRefreshTxn) {
@@ -205,15 +215,16 @@ export function useLoopSimulation({
   }, [isRefreshTxn]);
 
   React.useEffect(() => {
-    // only simulate when amount changes
-    if (prevDebouncedAmount !== debouncedAmount) {
-      fetchLoopingTxn(debouncedAmount ?? 0);
+    // only simulate when amount or leverage changes
+    if (prevDebouncedAmount !== debouncedAmount || prevDebouncedLeverage !== debouncedLeverage) {
+      fetchLoopingTxn(debouncedAmount, debouncedLeverage);
     }
 
+    // manually trigger simulation when refresh txn is true
     if (isRefreshTxn) {
-      fetchLoopingTxn(debouncedAmount ?? 0);
+      fetchLoopingTxn(debouncedAmount, debouncedLeverage);
     }
-  }, [prevDebouncedAmount, isRefreshTxn, debouncedAmount, fetchLoopingTxn]);
+  }, [prevDebouncedAmount, isRefreshTxn, debouncedAmount, debouncedLeverage, fetchLoopingTxn, prevDebouncedLeverage]);
 
   React.useEffect(() => {
     handleSimulation([

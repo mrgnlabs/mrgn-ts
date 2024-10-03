@@ -4,14 +4,13 @@ import BigNumber from "bignumber.js";
 import Image from "next/image";
 
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { formatAmount } from "@mrgnlabs/mrgn-utils";
+import { formatAmount, calcLstYield, LSTS_SOLANA_COMPASS_MAP, calcNetLoopingApy } from "@mrgnlabs/mrgn-utils";
 import { percentFormatter } from "@mrgnlabs/mrgn-common";
 import { IconChevronDown } from "@tabler/icons-react";
 
 import { useActionBoxStore } from "~/hooks/useActionBoxStore";
 import { useConnection } from "~/hooks/use-connection";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
-import { calcLstYield, LSTS_SOLANA_COMPASS_MAP, calcNetLoopingApy } from "~/utils";
 
 import { ActionBoxTokens } from "~/components/common/ActionBox/components";
 import { InputAction } from "~/components/common/ActionBox/components/ActionBoxInput/Components/InputAction";

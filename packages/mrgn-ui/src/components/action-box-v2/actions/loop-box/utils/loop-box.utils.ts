@@ -1,7 +1,7 @@
 import { QuoteResponse } from "@jup-ag/api";
 
-import { ActionMethod, canBeRepaidCollat } from "@mrgnlabs/mrgn-utils";
-import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActionMethod, canBeLooped } from "@mrgnlabs/mrgn-utils";
+import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 interface CheckActionAvailableProps {
   amount: number | null;
@@ -28,8 +28,8 @@ export function checkActionAvailable({
 
   // allert checks
   if (selectedBank) {
-    const repayChecks = canBeRepaidCollat(selectedBank, selectedSecondaryBank, [], actionQuote);
-    if (repayChecks) checks.push(...repayChecks);
+    const loopChecks = canBeLooped(selectedBank, selectedSecondaryBank, actionQuote);
+    if (loopChecks.length) checks.push(...loopChecks);
   }
 
   if (checks.length === 0)

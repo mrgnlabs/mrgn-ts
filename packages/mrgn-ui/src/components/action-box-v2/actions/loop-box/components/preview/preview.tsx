@@ -25,7 +25,7 @@ interface PreviewProps {
 
 export const Preview = ({ actionSummary, selectedBank, isLoading }: PreviewProps) => {
   const stats = React.useMemo(
-    () => (actionSummary && selectedBank ? generateRepayCollatStats(actionSummary, selectedBank, isLoading) : null),
+    () => (actionSummary && selectedBank ? generateLoopStats(actionSummary, selectedBank, isLoading) : null),
     [actionSummary, isLoading, selectedBank]
   );
 
@@ -55,16 +55,9 @@ export const Preview = ({ actionSummary, selectedBank, isLoading }: PreviewProps
   );
 };
 
-function generateRepayCollatStats(summary: ActionSummary, bank: ExtendedBankInfo, isLoading: boolean) {
+function generateLoopStats(summary: ActionSummary, bank: ExtendedBankInfo, isLoading: boolean) {
   const stats = [];
 
-  stats.push(
-    getAmountStat(
-      summary.actionPreview.positionAmount,
-      bank.meta.tokenSymbol,
-      summary.simulationPreview?.positionAmount
-    )
-  );
   if (summary.actionPreview.priceImpactPct) stats.push(getPriceImpactStat(summary.actionPreview.priceImpactPct));
   if (summary.actionPreview.slippageBps) stats.push(getSlippageStat(summary.actionPreview.slippageBps));
 
@@ -73,7 +66,6 @@ function generateRepayCollatStats(summary: ActionSummary, bank: ExtendedBankInfo
   if (summary.simulationPreview?.liquidationPrice && bank.isActive)
     stats.push(getLiquidationStat(bank, false, summary.simulationPreview?.liquidationPrice));
 
-  if (summary.actionPreview.bankCap) stats.push(getPoolSizeStat(summary.actionPreview.bankCap, bank, false));
   stats.push(getBankTypeStat(bank));
   stats.push(getOracleStat(bank));
 

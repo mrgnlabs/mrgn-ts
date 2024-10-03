@@ -6,23 +6,24 @@ import { ActionSummary } from "~/components/action-box-v2/utils";
 import { ActionProgressBar } from "~/components/action-box-v2/components";
 import { cn } from "@mrgnlabs/mrgn-utils";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { Slider } from "~/components/ui/slider";
 
-interface LeverageSliderProps {
+type LeverageSliderProps = {
   selectedBank: ExtendedBankInfo | null;
   selectedSecondaryBank: ExtendedBankInfo | null;
   amountRaw: string;
   leverageAmount: number;
-  setLeverageAmount: (amount: number) => void;
   maxLeverage: number;
-}
+  setLeverageAmount: (amount: number) => void;
+};
 
 export const LeverageSlider = ({
   selectedBank,
   selectedSecondaryBank,
   amountRaw,
   leverageAmount,
-  setLeverageAmount,
   maxLeverage,
+  setLeverageAmount,
 }: LeverageSliderProps) => {
   const bothBanksSelected = React.useMemo(
     () => Boolean(selectedBank && selectedSecondaryBank),
@@ -33,7 +34,7 @@ export const LeverageSlider = ({
     <>
       <div
         className={cn(
-          "space-y-6 py-4 px-1",
+          "space-y-6",
           (!bothBanksSelected || !amountRaw) && "pointer-events-none cursor-default opacity-50"
         )}
       >
@@ -41,7 +42,7 @@ export const LeverageSlider = ({
           <div className="flex items-center justify-between">
             <p className="text-sm font-normal text-muted-foreground">Loop ➰</p>
           </div>
-          {/* <Slider
+          <Slider
             defaultValue={[1]}
             max={maxLeverage === 0 ? 1 : maxLeverage}
             min={1}
@@ -52,7 +53,7 @@ export const LeverageSlider = ({
               setLeverageAmount(value[0]);
             }}
             disabled={!bothBanksSelected || !amountRaw}
-          /> */}
+          />
           <div className="flex items-center justify-between">
             <p className="text-sm font-normal text-muted-foreground">
               {leverageAmount > 1 && `${leverageAmount.toFixed(2)}x leverage`}

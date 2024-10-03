@@ -156,7 +156,7 @@ export const LendBox = ({
   }, [requestedLendType, requestedBank, fetchActionBoxState]);
 
   React.useEffect(() => {
-    if (errorMessage !== null && errorMessage.description) {
+    if (errorMessage && errorMessage.description) {
       setAdditionalActionMethods([errorMessage]);
     }
   }, [errorMessage]);
@@ -226,7 +226,17 @@ export const LendBox = ({
     });
 
     setAmountRaw("");
-  }, [selectedBank, selectedAccount, setAmountRaw, captureEvent, onComplete, setIsLoading]);
+  }, [
+    selectedBank,
+    selectedAccount,
+    priorityFee,
+    setAmountRaw,
+    captureEvent,
+    setIsActionComplete,
+    setPreviousTxn,
+    onComplete,
+    setIsLoading,
+  ]);
 
   const handleLendingAction = React.useCallback(async () => {
     if (!selectedBank || !amount) {

@@ -1,4 +1,4 @@
-import { LendBoxProps, RepayCollatBoxProps } from "~/components/action-box-v2/actions";
+import { LendBoxProps, LoopBoxProps, RepayCollatBoxProps } from "~/components/action-box-v2/actions";
 import { ActionDialogProps } from "~/components/action-box-v2/components";
 
 type ActionBoxDialogProps = {
@@ -53,11 +53,25 @@ interface RequiredRepayBoxProps
     "onComplete" | "captureEvent" | "onConnect" | "requestedBank" | "walletContextState" | "connected"
   > {}
 
+interface RequiredLoopBoxProps
+  extends Pick<
+    LoopBoxProps,
+    "onComplete" | "captureEvent" | "onConnect" | "requestedBank" | "walletContextState" | "connected"
+  > {}
+
 interface ActionBoxComponent extends React.FC<ActionBoxProps & ActionBoxComponentProps> {
   Lend: React.FC<ActionBoxProps & { lendProps: LendBoxProps | RequiredLendBoxProps; useProvider?: boolean }>;
   BorrowLend: React.FC<ActionBoxProps & { lendProps: LendBoxProps | RequiredLendBoxProps; useProvider?: boolean }>;
   Repay: React.FC<ActionBoxProps & { repayProps: RepayBoxProps | RequiredRepayBoxProps; useProvider?: boolean }>;
+  Loop: React.FC<ActionBoxProps & { loopProps: LoopBoxProps | RequiredLoopBoxProps; useProvider?: boolean }>;
 }
 
-export type { ActionBoxProps, ActionBoxComponent, RequiredLendBoxProps, RepayBoxProps, RequiredRepayBoxProps };
+export type {
+  ActionBoxProps,
+  ActionBoxComponent,
+  RequiredLendBoxProps,
+  RepayBoxProps,
+  RequiredRepayBoxProps,
+  RequiredLoopBoxProps,
+};
 export { isDialogWrapperProps };
