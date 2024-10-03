@@ -164,7 +164,7 @@ const PortfolioAction = ({
 }: {
   requestedBank: ExtendedBankInfo | null;
   requestedAction: ActionType;
-  buttonVariant?: "default" | "outline";
+  buttonVariant?: "default" | "outline" | "outline-dark";
 }) => {
   const { walletContextState, connected } = useWallet();
   const [setIsWalletAuthDialogOpen] = useUiStore((state) => [state.setIsWalletAuthDialogOpen]);
