@@ -11,7 +11,7 @@ import { percentFormatterDyn, shortenAddress, percentFormatter } from "@mrgnlabs
 import { IconConfetti, IconExternalLink, IconArrowDown, IconArrowUp } from "@tabler/icons-react";
 import { cn } from "@mrgnlabs/mrgn-utils";
 
-import { LSTS_SOLANA_COMPASS_MAP, calcLstYield, calcNetLoopingApy } from "~/utils";
+import { LSTS_SOLANA_COMPASS_MAP, calcLstYield, calcNetLoopingApy } from "@mrgnlabs/mrgn-utils";
 import { useUiStore, useLstStore, useMrgnlendStore } from "~/store";
 import { useAssetItemData } from "~/hooks/useAssetItemData";
 import { useIsMobile } from "~/hooks/use-is-mobile";
