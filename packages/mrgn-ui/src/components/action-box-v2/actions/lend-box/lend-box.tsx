@@ -316,6 +316,7 @@ export const LendBox = ({
           connected={connected}
           selectedBank={selectedBank}
           lendMode={lendMode}
+          isDialog={isDialog}
           setAmountRaw={setAmountRaw}
           setSelectedBank={setSelectedBank}
         />

@@ -25,6 +25,8 @@ export const AssetListFilters = () => {
     setIsWalletAuthDialogOpen,
     assetListSearch,
     setAssetListSearch,
+    lendingMode,
+    setLendingMode,
   ] = useUiStore((state) => [
     state.poolFilter,
     state.setPoolFilter,
@@ -33,19 +35,14 @@ export const AssetListFilters = () => {
     state.setIsWalletAuthDialogOpen,
     state.assetListSearch,
     state.setAssetListSearch,
+    state.lendingMode,
+    state.setLendingMode,
   ]);
-
-  const [actionMode, setActionMode] = useActionBoxStore()((state) => [state.actionMode, state.setActionMode]);
 
   const [denominationUSD, setDenominationUSD] = useUserProfileStore((state) => [
     state.denominationUSD,
     state.setDenominationUSD,
   ]);
-
-  const lendingMode = React.useMemo(
-    () => (actionMode === ActionType.Deposit ? LendingModes.LEND : LendingModes.BORROW),
-    [actionMode]
-  );
 
   const searchRef = React.useRef<HTMLInputElement>(null);
 
@@ -57,9 +54,13 @@ export const AssetListFilters = () => {
             type="single"
             variant={"actionBox"}
             value={lendingMode}
-            onValueChange={() =>
-              setActionMode(lendingMode === LendingModes.LEND ? ActionType.Borrow : ActionType.Deposit)
-            }
+            onValueChange={(value) => {
+              if (value === LendingModes.LEND) {
+                setLendingMode(LendingModes.LEND);
+              } else if (value === LendingModes.BORROW) {
+                setLendingMode(LendingModes.BORROW);
+              }
+            }}
             className="bg-background-gray/70 rounded-lg"
           >
             <ToggleGroupItem value="lend" aria-label="Lend">

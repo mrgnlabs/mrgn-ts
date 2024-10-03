@@ -34,18 +34,15 @@ export const AssetsList = () => {
     state.selectedAccount,
   ]);
   const [denominationUSD, setShowBadges] = useUserProfileStore((state) => [state.denominationUSD, state.setShowBadges]);
-  const [poolFilter, isFilteredUserPositions, sortOption] = useUiStore((state) => [
+  const [poolFilter, isFilteredUserPositions, sortOption, lendingMode, setLendingMode] = useUiStore((state) => [
     state.poolFilter,
     state.isFilteredUserPositions,
     state.sortOption,
+    state.lendingMode,
+    state.setLendingMode,
   ]);
   const [actionMode, setActionMode] = useActionBoxStore()((state) => [state.actionMode, state.setActionMode]);
   const { connected, walletContextState } = useWallet();
-
-  const lendingMode = React.useMemo(
-    () => (actionMode === ActionType.Deposit ? LendingModes.LEND : LendingModes.BORROW),
-    [actionMode]
-  );
 
   const inputRefs = React.useRef<Record<string, HTMLInputElement | null>>({});
   const [isHotkeyMode, setIsHotkeyMode] = React.useState(false);

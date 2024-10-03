@@ -4,7 +4,7 @@ import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
 
 import { shortenAddress } from "@mrgnlabs/mrgn-common";
-import { capture, Desktop, Mobile } from "@mrgnlabs/mrgn-utils";
+import { capture, Desktop, LendingModes, Mobile } from "@mrgnlabs/mrgn-utils";
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { ActionBox } from "@mrgnlabs/mrgn-ui";
 
@@ -34,15 +34,15 @@ const AssetsList = dynamic(async () => (await import("~/components/desktop/Asset
 export default function HomePage() {
   const router = useRouter();
   const { walletContextState, walletAddress, isOverride, connected } = useWallet();
-  const [previousTxn, setIsWalletOpen, setIsWalletAuthDialogOpen, setPreviousTxn, setIsActionComplete] = useUiStore(
-    (state) => [
+  const [previousTxn, lendingMode, setIsWalletOpen, setIsWalletAuthDialogOpen, setPreviousTxn, setIsActionComplete] =
+    useUiStore((state) => [
       state.previousTxn,
+      state.lendingMode,
       state.setIsWalletOpen,
       state.setIsWalletAuthDialogOpen,
       state.setPreviousTxn,
       state.setIsActionComplete,
-    ]
-  );
+    ]);
   const [
     marginfiClient,
     isStoreInitialized,
@@ -62,6 +62,7 @@ export default function HomePage() {
   ]);
 
   const [actionMode, refreshState] = useActionBoxStore()((state) => [state.actionMode, state.refreshState]);
+
   const [isStateReset, setIsStateReset] = React.useState(false);
 
   const annoucements = React.useMemo(() => {
@@ -86,12 +87,12 @@ export default function HomePage() {
 
   // reset actionbox state (except for deposit / borrow)
   // this allows for linking to lend page with action mode preset
-  React.useEffect(() => {
-    if (actionMode !== ActionType.Deposit && actionMode !== ActionType.Borrow && !isStateReset) {
-      refreshState();
-      setIsStateReset(true);
-    }
-  }, [actionMode, refreshState, isStateReset]);
+  // React.useEffect(() => {
+  //   if (actionMode !== ActionType.Deposit && actionMode !== ActionType.Borrow && !isStateReset) {
+  //     refreshState();
+  //     setIsStateReset(true);
+  //   }
+  // }, [actionMode, refreshState, isStateReset]);
 
   return (
     <>
@@ -114,6 +115,7 @@ export default function HomePage() {
                 <ActionBox.BorrowLend
                   useProvider={true}
                   lendProps={{
+                    requestedLendType: lendingMode === LendingModes.LEND ? ActionType.Deposit : ActionType.Borrow,
                     connected: connected,
                     walletContextState: walletContextState,
                     captureEvent: (event, properties) => {
@@ -142,6 +144,7 @@ export default function HomePage() {
               <ActionBox.BorrowLend
                 useProvider={true}
                 lendProps={{
+                  requestedLendType: lendingMode === LendingModes.LEND ? ActionType.Deposit : ActionType.Borrow,
                   connected: connected,
                   walletContextState: walletContextState,
                   onConnect: () => setIsWalletAuthDialogOpen(true),

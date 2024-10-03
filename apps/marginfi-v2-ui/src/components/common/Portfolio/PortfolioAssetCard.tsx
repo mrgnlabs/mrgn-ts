@@ -6,7 +6,7 @@ import { IconAlertTriangle } from "@tabler/icons-react";
 import { usdFormatter, numeralFormatter } from "@mrgnlabs/mrgn-common";
 import { ActiveBankInfo, ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { capture } from "@mrgnlabs/mrgn-utils";
-import { ActionBox } from "@mrgnlabs/mrgn-ui";
+import { ActionBox, WalletContextStateOverride } from "@mrgnlabs/mrgn-ui";
 
 import { cn } from "@mrgnlabs/mrgn-utils";
 import { useAssetItemData } from "~/hooks/useAssetItemData";
@@ -25,23 +25,8 @@ interface PortfolioAssetCardProps {
 
 export const PortfolioAssetCard = ({ bank, isInLendingMode, isBorrower = true }: PortfolioAssetCardProps) => {
   const { rateAP } = useAssetItemData({ bank, isInLendingMode });
-  const { walletContextState, connected } = useWallet();
-  const [previousTxn, setIsWalletOpen, setIsWalletAuthDialogOpen, setPreviousTxn, setIsActionComplete] = useUiStore(
-    (state) => [
-      state.previousTxn,
-      state.setIsWalletOpen,
-      state.setIsWalletAuthDialogOpen,
-      state.setPreviousTxn,
-      state.setIsActionComplete,
-    ]
-  );
-
-  const [requestedAction, setRequestedAction] = React.useState<ActionType>();
-  const [requestedBank, setRequestedBank] = React.useState<ExtendedBankInfo | null>(null);
 
   const isIsolated = React.useMemo(() => bank.info.state.isIsolated, [bank]);
-
-  const isDust = React.useMemo(() => bank?.isActive && bank?.position.isDust, [bank]);
 
   const isUserPositionPoorHealth = React.useMemo(() => {
     if (!bank || !bank?.position?.liquidationPrice) {
@@ -156,92 +141,100 @@ export const PortfolioAssetCard = ({ bank, isInLendingMode, isBorrower = true }:
             </dl>
           </div>
           <div className="flex w-full gap-3">
-            <ActionBox.Repay
-              useProvider={true}
-              repayProps={{
-                requestedBank: requestedBank ?? undefined,
-                walletContextState: walletContextState,
-                connected: connected,
-                onComplete: (previousTxn) => {
-                  // TODO refactor previousTxn to be more like tradingui
-                  if (previousTxn.txnType !== "LEND") return;
-                  setIsActionComplete(true);
-
-                  setPreviousTxn({
-                    type: previousTxn.lendingOptions.type,
-                    bank: previousTxn.lendingOptions.bank,
-                    amount: previousTxn.lendingOptions.amount,
-                    txn: previousTxn.txn,
-                  });
-                },
-                captureEvent: (event, properties) => {
-                  capture(event, properties);
-                },
-                onConnect: () => setIsWalletAuthDialogOpen(true),
-              }}
-              isDialog={true}
-              dialogProps={{
-                trigger: (
-                  <Button
-                    onClick={() => {
-                      setRequestedAction(isInLendingMode ? ActionType.Withdraw : ActionType.Repay);
-                      setRequestedBank(bank);
-                    }}
-                    className="flex-1 h-12"
-                    variant="outline"
-                  >
-                    {isInLendingMode ? (isDust ? "Close" : "Withdraw") : "Repay"}
-                  </Button>
-                ),
-                title: "Repay",
-              }}
+            <PortfolioAction
+              requestedBank={bank}
+              buttonVariant="outline"
+              requestedAction={isInLendingMode ? ActionType.Withdraw : ActionType.Repay}
             />
-            <ActionBox.Lend
-              useProvider={true}
-              lendProps={{
-                requestedLendType: isInLendingMode ? ActionType.Deposit : ActionType.Borrow,
-                requestedBank: requestedBank ?? undefined,
-                walletContextState: walletContextState,
-                connected: connected,
-                onComplete: (previousTxn) => {
-                  // TODO refactor previousTxn to be more like tradingui
-                  if (previousTxn.txnType !== "LEND") return;
-                  setIsActionComplete(true);
-
-                  setPreviousTxn({
-                    type: previousTxn.lendingOptions.type,
-                    bank: previousTxn.lendingOptions.bank,
-                    amount: previousTxn.lendingOptions.amount,
-                    txn: previousTxn.txn,
-                  });
-                },
-                captureEvent: (event, properties) => {
-                  capture(event, properties);
-                },
-                onConnect: () => setIsWalletAuthDialogOpen(true),
-              }}
-              isDialog={true}
-              dialogProps={{
-                trigger: (
-                  <Button
-                    onClick={() => {
-                      setRequestedAction(isInLendingMode ? ActionType.Deposit : ActionType.Borrow);
-                      setRequestedBank(bank);
-                    }}
-                    className="flex-1 h-12"
-                    variant="default"
-                  >
-                    {isInLendingMode ? "Supply more" : "Borrow more"}
-                  </Button>
-                ),
-                title: "Repay",
-              }}
-            />{" "}
+            <PortfolioAction
+              requestedBank={bank}
+              requestedAction={isInLendingMode ? ActionType.Deposit : ActionType.Borrow}
+            />
           </div>
         </AccordionContent>
       </AccordionItem>
     </Accordion>
   );
+};
+
+const PortfolioAction = ({
+  requestedBank,
+  requestedAction,
+  buttonVariant = "default",
+}: {
+  requestedBank: ExtendedBankInfo | null;
+  requestedAction: ActionType;
+  buttonVariant?: "default" | "outline";
+}) => {
+  const { walletContextState, connected } = useWallet();
+  const [setIsWalletAuthDialogOpen] = useUiStore((state) => [state.setIsWalletAuthDialogOpen]);
+  const isDust = React.useMemo(() => requestedBank?.isActive && requestedBank?.position.isDust, [requestedBank]);
+
+  const buttonText = React.useMemo(() => {
+    switch (requestedAction) {
+      case ActionType.Deposit:
+        return "Supply more";
+      case ActionType.Borrow:
+        return "Borrow more";
+      case ActionType.Repay:
+        return "Repay";
+      case ActionType.Withdraw:
+        return isDust ? "Close" : "Withdraw";
+      default:
+        return "";
+    }
+  }, [requestedAction, isDust]);
+
+  if (requestedAction !== ActionType.Repay) {
+    return (
+      <ActionBox.Lend
+        useProvider={true}
+        lendProps={{
+          requestedLendType: requestedAction,
+          requestedBank: requestedBank ?? undefined,
+          walletContextState: walletContextState,
+          connected: connected,
+          captureEvent: (event, properties) => {
+            capture(event, properties);
+          },
+          onConnect: () => setIsWalletAuthDialogOpen(true),
+        }}
+        isDialog={true}
+        dialogProps={{
+          trigger: (
+            <Button className="flex-1 h-12" variant={buttonVariant}>
+              {buttonText}
+            </Button>
+          ),
+          title: "Repay",
+        }}
+      />
+    );
+  } else {
+    return (
+      <ActionBox.Repay
+        useProvider={true}
+        repayProps={{
+          requestedBank: requestedBank ?? undefined,
+          walletContextState: walletContextState,
+          connected: connected,
+          captureEvent: (event, properties) => {
+            capture(event, properties);
+          },
+          onConnect: () => setIsWalletAuthDialogOpen(true),
+        }}
+        isDialog={true}
+        dialogProps={{
+          trigger: (
+            <Button className="flex-1 h-12" variant={buttonVariant}>
+              {buttonText}
+            </Button>
+          ),
+          title: "Repay",
+        }}
+      />
+    );
+  }
 };
 
 export const PortfolioAssetCardSkeleton = () => {

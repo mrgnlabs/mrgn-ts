@@ -13,6 +13,7 @@ type BankSelectProps = {
   nativeSolBalance: number;
   lendMode: ActionType;
   connected: boolean;
+  isSelectable?: boolean;
 
   setSelectedBank: (selectedBank: ExtendedBankInfo | null) => void;
 };
@@ -23,10 +24,11 @@ export const BankSelect = ({
   nativeSolBalance,
   lendMode,
   connected,
+  isSelectable = true,
+
   setSelectedBank,
 }: BankSelectProps) => {
   // idea check list if banks[] == 1 make it unselectable
-  const isSelectable = React.useMemo(() => true, []);
   const [isOpen, setIsOpen] = React.useState(false);
 
   const lendingMode = React.useMemo(

@@ -11,22 +11,13 @@ import { useActionBoxStore } from "./store";
 import {
   ActionBoxComponent,
   ActionBoxProps,
-  BorrowLendBoxProps,
   RepayBoxProps,
   isDialogWrapperProps,
-  RequiredBorrowLendBoxProps,
   RequiredLendBoxProps,
   RequiredRepayBoxProps,
 } from "./types";
 
 const ActionBox: ActionBoxComponent = (props) => {
-  const [isActionComplete, previousTxn, setIsActionComplete, setPreviousTxn] = useActionBoxStore((state) => [
-    state.isActionComplete,
-    state.previousTxn,
-    state.setIsActionComplete,
-    state.setPreviousTxn,
-  ]);
-
   if (isDialogWrapperProps(props)) {
     const dialogProps = props.dialogProps;
 
@@ -39,29 +30,11 @@ const ActionBox: ActionBoxComponent = (props) => {
         >
           {props.children}
         </ActionDialogWrapper>
-        {previousTxn && isActionComplete && (
-          <ActionComplete
-            isActionComplete={isActionComplete}
-            setIsActionComplete={setIsActionComplete}
-            previousTxn={previousTxn}
-          />
-        )}
       </>
     );
   }
 
-  return (
-    <>
-      {props.children}
-      {previousTxn && isActionComplete && (
-        <ActionComplete
-          isActionComplete={isActionComplete}
-          setIsActionComplete={setIsActionComplete}
-          previousTxn={previousTxn}
-        />
-      )}
-    </>
-  );
+  return <>{props.children}</>;
 };
 
 const Lend = (props: ActionBoxProps & { lendProps: RequiredLendBoxProps | LendBoxProps; useProvider?: boolean }) => {
@@ -92,21 +65,25 @@ const Lend = (props: ActionBoxProps & { lendProps: RequiredLendBoxProps | LendBo
 ActionBox.Lend = Lend;
 
 const BorrowLend = (
-  props: ActionBoxProps & { lendProps: RequiredBorrowLendBoxProps | BorrowLendBoxProps; useProvider?: boolean }
+  props: ActionBoxProps & { lendProps: RequiredLendBoxProps | LendBoxProps; useProvider?: boolean }
 ) => {
   const contextProps = useActionBoxContext();
   const [selectedAction, setSelectedAction] = React.useState(ActionType.Deposit);
   const { lendProps, useProvider, ...actionBoxProps } = props;
 
-  let combinedProps: BorrowLendBoxProps;
+  React.useEffect(() => {
+    setSelectedAction(lendProps.requestedLendType);
+  }, [lendProps.requestedLendType]);
+
+  let combinedProps: LendBoxProps;
 
   if (useProvider && contextProps) {
     combinedProps = {
       ...contextProps,
-      ...(lendProps as RequiredBorrowLendBoxProps),
+      ...(lendProps as RequiredLendBoxProps),
     };
   } else {
-    combinedProps = lendProps as BorrowLendBoxProps;
+    combinedProps = lendProps as LendBoxProps;
   }
 
   return (
@@ -138,10 +115,10 @@ const Repay = (
   if (useProvider && contextProps) {
     combinedProps = {
       ...contextProps,
-      ...(repayProps as RequiredBorrowLendBoxProps),
+      ...(repayProps as RequiredRepayBoxProps),
     };
   } else {
-    combinedProps = repayProps as BorrowLendBoxProps;
+    combinedProps = repayProps as RepayBoxProps;
   }
 
   return (

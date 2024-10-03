@@ -3,12 +3,13 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 
 import { IconInfoCircle } from "@tabler/icons-react";
+
 import { numeralFormatter } from "@mrgnlabs/mrgn-common";
 import { usdFormatter, usdFormatterDyn } from "@mrgnlabs/mrgn-common";
 import { ActiveBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
+import { LendingModes } from "@mrgnlabs/mrgn-utils";
 
-import { useMrgnlendStore, useUserProfileStore } from "~/store";
-import { useActionBoxStore } from "~/hooks/useActionBoxStore";
+import { useMrgnlendStore, useUiStore, useUserProfileStore } from "~/store";
 
 import { PortfolioUserStats, PortfolioAssetCard, PortfolioAssetCardSkeleton } from "~/components/common/Portfolio";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
@@ -22,8 +23,9 @@ export const LendingPortfolio = () => {
     state.accountSummary,
   ]);
 
+  const [setLendingMode] = useUiStore((state) => [state.setLendingMode]);
+
   const [userPointsData] = useUserProfileStore((state) => [state.userPointsData]);
-  const [setActionMode] = useActionBoxStore()((state) => [state.setActionMode]);
 
   const lendingBanks = React.useMemo(
     () =>
@@ -207,7 +209,7 @@ export const LendingPortfolio = () => {
                 <button
                   className="border-b border-primary/50 transition-colors hover:border-primary"
                   onClick={() => {
-                    setActionMode(ActionType.Borrow);
+                    setLendingMode(LendingModes.BORROW);
                     router.push("/");
                   }}
                 >

@@ -30,14 +30,8 @@ interface RequiredLendBoxProps
     | "connected"
   > {}
 
-interface RequiredBorrowLendBoxProps
-  extends Pick<
-    BorrowLendBoxProps,
-    "onComplete" | "captureEvent" | "onConnect" | "requestedBank" | "walletContextState" | "connected"
-  > {}
-
 // all props except for requestedLendType
-interface BorrowLendBoxProps
+interface RepayBoxProps
   extends Pick<
     LendBoxProps,
     | "nativeSolBalance"
@@ -53,29 +47,17 @@ interface BorrowLendBoxProps
     | "captureEvent"
   > {}
 
-interface RepayBoxProps extends BorrowLendBoxProps {}
-
 interface RequiredRepayBoxProps
   extends Pick<
-    BorrowLendBoxProps,
+    RepayBoxProps,
     "onComplete" | "captureEvent" | "onConnect" | "requestedBank" | "walletContextState" | "connected"
   > {}
 
 interface ActionBoxComponent extends React.FC<ActionBoxProps & ActionBoxComponentProps> {
   Lend: React.FC<ActionBoxProps & { lendProps: LendBoxProps | RequiredLendBoxProps; useProvider?: boolean }>;
-  BorrowLend: React.FC<
-    ActionBoxProps & { lendProps: BorrowLendBoxProps | RequiredBorrowLendBoxProps; useProvider?: boolean }
-  >;
+  BorrowLend: React.FC<ActionBoxProps & { lendProps: LendBoxProps | RequiredLendBoxProps; useProvider?: boolean }>;
   Repay: React.FC<ActionBoxProps & { repayProps: RepayBoxProps | RequiredRepayBoxProps; useProvider?: boolean }>;
 }
 
-export type {
-  ActionBoxProps,
-  ActionBoxComponent,
-  BorrowLendBoxProps,
-  RequiredBorrowLendBoxProps,
-  RequiredLendBoxProps,
-  RepayBoxProps,
-  RequiredRepayBoxProps,
-};
+export type { ActionBoxProps, ActionBoxComponent, RequiredLendBoxProps, RepayBoxProps, RequiredRepayBoxProps };
 export { isDialogWrapperProps };

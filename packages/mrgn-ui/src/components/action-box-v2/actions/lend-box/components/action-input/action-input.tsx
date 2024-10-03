@@ -69,6 +69,7 @@ export const ActionInput = ({
             setSelectedBank={(bank) => {
               setSelectedBank(bank);
             }}
+            isSelectable={!isDialog}
             banks={banks}
             nativeSolBalance={nativeSolBalance}
             lendMode={lendMode}

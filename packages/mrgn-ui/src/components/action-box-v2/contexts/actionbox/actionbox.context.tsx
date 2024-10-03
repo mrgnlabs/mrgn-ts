@@ -6,6 +6,9 @@ import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-clien
 
 import { WalletContextStateOverride } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
+import { useActionBoxStore } from "../../store";
+import { ActionComplete } from "~/components/action-complete";
+
 type ActionBoxContextType = {
   banks: ExtendedBankInfo[];
   nativeSolBalance: number;
@@ -22,7 +25,25 @@ export const ActionBoxProvider: React.FC<ActionBoxContextType & { children: Reac
   children,
   ...props
 }) => {
-  return <ActionBoxContext.Provider value={props}>{children}</ActionBoxContext.Provider>;
+  const [isActionComplete, previousTxn, setIsActionComplete, setPreviousTxn] = useActionBoxStore((state) => [
+    state.isActionComplete,
+    state.previousTxn,
+    state.setIsActionComplete,
+    state.setPreviousTxn,
+  ]);
+
+  return (
+    <ActionBoxContext.Provider value={props}>
+      {children}
+      {previousTxn && isActionComplete && (
+        <ActionComplete
+          isActionComplete={isActionComplete}
+          setIsActionComplete={setIsActionComplete}
+          previousTxn={previousTxn}
+        />
+      )}
+    </ActionBoxContext.Provider>
+  );
 };
 
 export const useActionBoxContext = () => {
