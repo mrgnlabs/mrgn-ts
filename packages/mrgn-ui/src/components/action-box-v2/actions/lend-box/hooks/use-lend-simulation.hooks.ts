@@ -32,7 +32,7 @@ type LendSimulationProps = {
     actionTxn: VersionedTransaction | Transaction | null;
     additionalTxns: (VersionedTransaction | Transaction)[];
   }) => void;
-  setErrorMessage: (error: ActionMethod) => void;
+  setErrorMessage: (error: ActionMethod | null) => void;
   setIsLoading: (isLoading: boolean) => void;
 };
 
@@ -64,8 +64,13 @@ export function useLendSimulation({
             amount: debouncedAmount,
             txns,
           });
-          console.log("simulationResult", simulationResult);
-          setSimulationResult(simulationResult.simulationResult);
+          if (simulationResult.actionMethod) {
+            setErrorMessage(simulationResult.actionMethod);
+            setSimulationResult(null);
+          } else {
+            setErrorMessage(null);
+            setSimulationResult(simulationResult.simulationResult);
+          }
         } else {
           setSimulationResult(null);
         }
@@ -76,7 +81,7 @@ export function useLendSimulation({
         setIsLoading(false);
       }
     },
-    [selectedAccount, selectedBank, lendMode, debouncedAmount, setSimulationResult, setIsLoading]
+    [selectedAccount, selectedBank, lendMode, debouncedAmount, setErrorMessage, setSimulationResult, setIsLoading]
   );
 
   const handleActionSummary = React.useCallback(
