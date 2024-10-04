@@ -86,13 +86,13 @@ function parseOraclePriceData(oracleSetup: OracleSetup, rawData: Buffer): Oracle
         const exponent = new BigNumber(10 ** data.priceMessage.exponent);
 
         const priceRealTime = new BigNumber(Number(data.priceMessage.price)).times(exponent);
-        const confidenceRealTime = new BigNumber(Number(data.priceMessage.conf)).times(exponent);
+        const confidenceRealTime = new BigNumber(Number(data.priceMessage.conf)).times(exponent).times(PYTH_PRICE_CONF_INTERVALS);
         const cappedConfidenceRealTime = capConfidenceInterval(priceRealTime, confidenceRealTime, MAX_CONFIDENCE_INTERVAL_RATIO);
         const lowestPriceRealTime = priceRealTime.minus(cappedConfidenceRealTime);
         const highestPriceRealTime = priceRealTime.plus(cappedConfidenceRealTime);
 
         const priceTimeWeighted = new BigNumber(Number(data.priceMessage.emaPrice)).times(exponent);
-        const confidenceTimeWeighted = new BigNumber(Number(data.priceMessage.emaConf)).times(exponent);
+        const confidenceTimeWeighted = new BigNumber(Number(data.priceMessage.emaConf)).times(exponent).times(PYTH_PRICE_CONF_INTERVALS);
         const cappedConfidenceWeighted = capConfidenceInterval(priceTimeWeighted, confidenceTimeWeighted, MAX_CONFIDENCE_INTERVAL_RATIO);
         const lowestPriceWeighted = priceTimeWeighted.minus(cappedConfidenceWeighted);
         const highestPriceWeighted = priceTimeWeighted.plus(cappedConfidenceWeighted);
