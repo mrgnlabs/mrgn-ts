@@ -1,4 +1,11 @@
-import { TransactionError, PublicKey, SimulatedTransactionResponse, RpcResponseAndContext, VersionedTransaction, Connection } from "@solana/web3.js";
+import {
+  TransactionError,
+  PublicKey,
+  SimulatedTransactionResponse,
+  RpcResponseAndContext,
+  VersionedTransaction,
+  Connection,
+} from "@solana/web3.js";
 
 export interface JsonRpcContext {
   apiVersion: number;
@@ -10,51 +17,54 @@ export interface JsonRpcError {
   message: string;
 }
 
-export type JsonRpcResponse<T> = {
-  id: number;
-  jsonrpc: string;
-  result: RpcResponseAndContext<T>;
-} | {
-  id: number;
-  jsonrpc: string;
-  error: JsonRpcError;
-}
+export type JsonRpcResponse<T> =
+  | {
+      id: number;
+      jsonrpc: string;
+      result: RpcResponseAndContext<T>;
+    }
+  | {
+      id: number;
+      jsonrpc: string;
+      error: JsonRpcError;
+    };
 
 export interface RpcSimulateBundleResult {
-  summary: "succeeded" | {
-    failed: {
-      error: any,
-      txSignature?: string,
-    }
-  },
-  transactionResults: RpcSimulateBundleTransactionResult[],
+  summary:
+    | "succeeded"
+    | {
+        failed: {
+          error: any;
+          txSignature?: string;
+        };
+      };
+  transactionResults: RpcSimulateBundleTransactionResult[];
 }
 
 export interface RpcSimulateBundleTransactionResult {
-  err?: TransactionError,
-  logs: string[],
-  preExecutionAccounts?: any, //UiAccount[],
-  postExecutionAccounts?: any, //UiAccount[],
-  unitsConsumed?: string,
-  returnData?: any, //UiTransactionReturnData,
+  err?: TransactionError;
+  logs: string[];
+  preExecutionAccounts?: any; //UiAccount[],
+  postExecutionAccounts?: any; //UiAccount[],
+  unitsConsumed?: string;
+  returnData?: any; //UiTransactionReturnData,
 }
 
 export interface RpcSimulateBundleConfig {
-  preExecutionAccountsConfigs: (RpcSimulateTransactionAccountsConfig | undefined)[],
-  postExecutionAccountsConfigs: (RpcSimulateTransactionAccountsConfig | undefined)[],
-  transactionEncoding?: any,
-  simulationBank?: SimulationSlotConfig,
-  skipSigVerify?: boolean,
-  replaceRecentBlockhash?: boolean,
+  preExecutionAccountsConfigs: (RpcSimulateTransactionAccountsConfig | undefined)[];
+  postExecutionAccountsConfigs: (RpcSimulateTransactionAccountsConfig | undefined)[];
+  transactionEncoding?: any;
+  simulationBank?: SimulationSlotConfig;
+  skipSigVerify?: boolean;
+  replaceRecentBlockhash?: boolean;
 }
 
 export interface RpcSimulateTransactionAccountsConfig {
-  encoding?: any, // UiAccountEncoding,
-  addresses: string[],
+  encoding?: any; // UiAccountEncoding,
+  addresses: string[];
 }
 
 export type SimulationSlotConfig = "confirmed" | "processed" | number;
-
 
 export async function simulateBundle(
   rpcEndpoint: string,
@@ -72,10 +82,10 @@ export async function simulateBundle(
   let postExecutionAccountsConfigs = transactions.map((_, index) => {
     if (index === transactions.length - 1) {
       return {
-        addresses: includeAccounts ? includeAccounts.map((account) => account.toBase58()) : []
+        addresses: includeAccounts ? includeAccounts.map((account) => account.toBase58()) : [],
       };
     } else {
-      return ({ addresses: [] })
+      return { addresses: [] };
     }
   });
 
@@ -99,7 +109,7 @@ export async function simulateBundle(
     }),
   });
 
-  const response = await responseRaw.json() as JsonRpcResponse<RpcSimulateBundleResult>;
+  const response = (await responseRaw.json()) as JsonRpcResponse<RpcSimulateBundleResult>;
   if ("error" in response) {
     throw new Error(response.error.message);
   }
@@ -113,7 +123,7 @@ export async function simulateBundle(
     value: {
       err,
       logs: value.transactionResults.flatMap((tx) => tx.logs),
-      accounts: value.transactionResults[value.transactionResults.length - 1].postExecutionAccounts,
+      accounts: value.transactionResults[value.transactionResults.length - 1]?.postExecutionAccounts,
     },
-  }
+  };
 }
