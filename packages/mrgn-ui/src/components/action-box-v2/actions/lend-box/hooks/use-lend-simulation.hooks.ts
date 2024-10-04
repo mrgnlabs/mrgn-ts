@@ -76,7 +76,7 @@ export function useLendSimulation({
         setIsLoading(false);
       }
     },
-    [selectedAccount, debouncedAmount, selectedBank, lendMode, setSimulationResult]
+    [selectedAccount, selectedBank, lendMode, debouncedAmount, setSimulationResult, setIsLoading]
   );
 
   const handleActionSummary = React.useCallback(
@@ -148,6 +148,7 @@ export function useLendSimulation({
       ...(actionTxns?.actionTxn ? [actionTxns?.actionTxn] : []),
       ...(actionTxns?.additionalTxns ?? []),
     ]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [actionTxns]);
 
   const actionSummary = React.useMemo(() => {

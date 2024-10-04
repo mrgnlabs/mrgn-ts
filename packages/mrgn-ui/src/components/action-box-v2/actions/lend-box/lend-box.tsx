@@ -229,7 +229,6 @@ export const LendBox = ({
   }, [
     selectedBank,
     selectedAccount,
-    priorityFee,
     setAmountRaw,
     captureEvent,
     setIsActionComplete,
