@@ -48,6 +48,7 @@ export async function calculateRepayCollateralParams(
       feedCrankTxs: VersionedTransaction[];
       quote: QuoteResponse;
       amount: number;
+      lastValidBlockHeight?: number;
     }
   | ActionMethod
 > {
@@ -59,7 +60,7 @@ export async function calculateRepayCollateralParams(
   let firstQuote;
 
   for (const maxAccounts of maxAccountsArr) {
-    const isTxnSplit = maxAccounts === 30;
+    const isTxnSplit = true; // maxAccounts === 30;
     const quoteParams = {
       amount: uiToNative(amount, repayBank.info.state.mintDecimals).toNumber(),
       inputMint: repayBank.info.state.mint.toBase58(),
@@ -70,7 +71,7 @@ export async function calculateRepayCollateralParams(
       platformFeeBps: platformFeeBps,
     } as QuoteGetRequest;
     try {
-      const swapQuote = await getSwapQuoteWithRetry(quoteParams);
+      const swapQuote = await getSwapQuoteWithRetry(quoteParams, 2, 1000);
 
       if (!maxAccounts) {
         firstQuote = swapQuote;
@@ -94,7 +95,13 @@ export async function calculateRepayCollateralParams(
           isTxnSplit
         );
         if (txn.flashloanTx) {
-          return { repayTxn: txn.flashloanTx, feedCrankTxs: txn.feedCrankTxs, quote: swapQuote, amount: amountToRepay };
+          return {
+            repayTxn: txn.flashloanTx,
+            feedCrankTxs: txn.feedCrankTxs,
+            quote: swapQuote,
+            amount: amountToRepay,
+            lastValidBlockHeight: txn?.lastValidBlockHeight,
+          };
         } else if (txn.error && maxAccounts === maxAccountsArr[maxAccountsArr.length - 1]) {
           return txn.error;
         }
@@ -479,6 +486,7 @@ export async function repayWithCollatBuilder({
 
   const swapLUTs: AddressLookupTableAccount[] = [];
   swapLUTs.push(...(await getAdressLookupTableAccounts(options.connection, addressLookupTableAddresses)));
+  const { blockhash, lastValidBlockHeight } = await options.connection.getLatestBlockhash("confirmed");
 
   const { flashloanTx, feedCrankTxs, addressLookupTableAccounts } = await marginfiAccount.makeRepayWithCollatTx(
     amount,
@@ -490,10 +498,11 @@ export async function repayWithCollatBuilder({
     [swapIx],
     swapLUTs,
     priorityFee,
-    isTxnSplit
+    isTxnSplit,
+    blockhash
   );
 
-  return { flashloanTx, feedCrankTxs, addressLookupTableAccounts };
+  return { flashloanTx, feedCrankTxs, addressLookupTableAccounts, lastValidBlockHeight };
 }
 
 /*

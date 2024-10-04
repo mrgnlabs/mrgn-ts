@@ -5,13 +5,13 @@ import Script from "next/script";
 import { useRouter } from "next/router";
 
 import { WSOL_MINT, LST_MINT } from "@mrgnlabs/mrgn-common";
+import { capture } from "@mrgnlabs/mrgn-utils";
 import { PublicKey } from "@solana/web3.js";
 
 import config from "~/config";
-import { capture } from "~/utils";
 import { useTradeStore } from "~/store";
-import { useWalletContext } from "~/hooks/useWalletContext";
-import { useConnection } from "~/hooks/useConnection";
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
+import { useConnection } from "~/hooks/use-connection";
 
 type SwapProps = {
   onLoad?: () => void;
@@ -19,7 +19,7 @@ type SwapProps = {
 };
 
 export const Swap = ({ onLoad, initialInputMint }: SwapProps) => {
-  const { walletContextState, wallet } = useWalletContext();
+  const { walletContextState, wallet } = useWallet();
   const { connection } = useConnection();
   const [loadTimestamp, setLoadTimestamp] = React.useState(0);
   const [fetchTradeState] = useTradeStore((state) => [state.fetchTradeState]);

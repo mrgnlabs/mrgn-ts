@@ -6,7 +6,6 @@ import Link from "next/link";
 import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { numeralFormatter, tokenPriceFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 
-import { getTokenImageURL } from "~/utils";
 import { useTradeStore } from "~/store";
 
 import { PositionActionButtons } from "~/components/common/Portfolio";

@@ -1,14 +1,15 @@
 import { usdFormatter } from "@mrgnlabs/mrgn-common";
-import { getTokenImageURL } from "@mrgnlabs/mrgn-utils";
 import Image from "next/image";
 import Link from "next/link";
+import { IconExternalLink } from "@tabler/icons-react";
+
+import { IntegrationsData } from "~/utils";
+import { IMAGE_CDN_URL } from "~/config/constants";
 
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
-import { IconExternalLink, IconOrca, IconMeteora, IconRaydium } from "~/components/ui/icons";
 import { Skeleton } from "~/components/ui/skeleton";
-
-import { IntegrationsData } from "~/utils";
+import { IconOrca, IconMeteora, IconRaydium } from "~/components/ui/icons";
 
 interface IntegrationCardProps {
   integrationsData: IntegrationsData;
@@ -41,7 +42,7 @@ export const IntegrationCard = ({ integrationsData }: IntegrationCardProps) => {
           <div className="flex items-center translate-x-2">
             <Image
               alt={integrationsData.base.symbol}
-              src={getTokenImageURL(integrationsData.base.symbol)}
+              src={`${IMAGE_CDN_URL}/${integrationsData.base.address}.png`}
               width={40}
               height={40}
               className="z-10 w-10 h-10 rounded-full"
@@ -49,7 +50,7 @@ export const IntegrationCard = ({ integrationsData }: IntegrationCardProps) => {
 
             <Image
               alt={integrationsData.quote.symbol}
-              src={getTokenImageURL(integrationsData.quote.symbol)}
+              src={`${IMAGE_CDN_URL}/${integrationsData.quote.address}.png`}
               width={40}
               height={40}
               className="z-10 w-10 h-10 rounded-full -translate-x-5"

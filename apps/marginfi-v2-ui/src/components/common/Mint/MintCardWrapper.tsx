@@ -2,11 +2,11 @@ import React from "react";
 
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { getBlockedActions } from "@mrgnlabs/mrgn-utils";
+import { IconCheck, IconBell } from "@tabler/icons-react";
 
 import { MintCardProps } from "~/utils";
 import { useMrgnlendStore } from "~/store";
 
-import { IconCheck, IconBell } from "~/components/ui/icons";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { ActionBoxDialog } from "~/components/common/ActionBox";
@@ -87,7 +87,7 @@ export const MintCardWrapper: React.FC<MintCardWrapperProps> = ({ mintCard, ...p
                 Stake {mintCard.title}
               </Button>
               <Button
-                variant="outline"
+                variant="outline-dark"
                 size="lg"
                 className="mt-4 hover:text-primary"
                 onClick={() => {

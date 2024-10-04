@@ -1,14 +1,14 @@
 import React from "react";
 import Image from "next/image";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { numeralFormatter, percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
+import { ActionBox } from "@mrgnlabs/mrgn-ui";
 
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { getDepositsData, getRateData } from "~/components/desktop/AssetList/utils";
-import { ActionBoxDialog } from "~/components/common/ActionBox";
-
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { IconMrgn } from "~/components/ui/icons";
-import { numeralFormatter, percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 import { Skeleton } from "~/components/ui/skeleton";
 
 interface IntegrationCardProps {
@@ -17,6 +17,7 @@ interface IntegrationCardProps {
 }
 
 export const BankIntegrationCard = ({ bank, isInLendingMode }: IntegrationCardProps) => {
+  const { connected } = useWallet();
   const depositData = React.useMemo(() => getDepositsData(bank, isInLendingMode, true), [bank, isInLendingMode]);
   const rateData = React.useMemo(() => getRateData(bank, isInLendingMode), [bank, isInLendingMode]);
 
@@ -57,14 +58,23 @@ export const BankIntegrationCard = ({ bank, isInLendingMode }: IntegrationCardPr
           )}
         </ul>
 
-        <ActionBoxDialog
-          requestedAction={isInLendingMode ? ActionType.Deposit : ActionType.Borrow}
-          requestedBank={bank}
-        >
-          <Button variant="default" size="lg" className="mt-4 w-full">
-            {isInLendingMode ? "Deposit" : "Borrow"}
-          </Button>
-        </ActionBoxDialog>
+        <ActionBox.Lend
+          isDialog={true}
+          useProvider={true}
+          lendProps={{
+            connected: connected,
+            requestedLendType: isInLendingMode ? ActionType.Deposit : ActionType.Borrow,
+            requestedBank: bank,
+          }}
+          dialogProps={{
+            title: `${isInLendingMode ? "Deposit" : "Borrow"} ${bank.meta.tokenSymbol}`,
+            trigger: (
+              <Button variant="default" size="lg" className="mt-4 w-full">
+                {isInLendingMode ? "Deposit" : "Borrow"}
+              </Button>
+            ),
+          }}
+        />
 
         <div className="flex items-center gap-2 mt-4 justify-center">
           <IconMrgn size={22} />

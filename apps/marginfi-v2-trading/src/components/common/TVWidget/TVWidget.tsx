@@ -1,6 +1,6 @@
 import React from "react";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { usePrevious } from "~/utils";
+import { usePrevious } from "@mrgnlabs/mrgn-utils";
 
 import { ChartingLibraryFeatureset } from "../../../../public/tradingview";
 

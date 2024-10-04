@@ -2,8 +2,8 @@ import React from "react";
 
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { nativeToUi, numeralFormatter, clampedNumeralFormatter } from "@mrgnlabs/mrgn-common";
+import { IconArrowRight } from "@tabler/icons-react";
 
-import { IconArrowRight } from "~/components/ui/icons";
 import { useActionBoxStore } from "~/hooks/useActionBoxStore";
 import { RepayType } from "@mrgnlabs/mrgn-utils";
 

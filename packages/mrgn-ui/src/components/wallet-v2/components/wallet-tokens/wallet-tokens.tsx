@@ -48,12 +48,12 @@ export const WalletTokens = ({ tokens, onTokenClick, className }: WalletTokensPr
           onChange={(e) => setSearch(e.currentTarget.value)}
         />
       </div>
-      <div className="space-y-2 overflow-auto h-full">
+      <div className="space-y-2 overflow-auto h-full pb-12">
         {filteredTokens.map((token, index) => (
           <button
             key={index}
             className={cn(
-              "flex items-center justify-between font-normal bg-background-gray-dark p-3 rounded-md gap-4 w-full text-left transition-colors hover:bg-background-gray",
+              "flex items-center justify-between font-normal bg-accent/50 p-3 rounded-md gap-4 w-full text-left transition-colors hover:bg-accent",
               onTokenClick && "cursor-pointer"
             )}
             onClick={() => onTokenClick?.(token)}

@@ -13,22 +13,16 @@ import {
   UserPointsData,
 } from "@mrgnlabs/marginfi-v2-ui-state";
 import { groupedNumberFormatter, shortenAddress } from "@mrgnlabs/mrgn-common";
+import { IconSearch, IconSortAscending, IconSortDescending, IconX } from "@tabler/icons-react";
 
 import { useConnection } from "~/hooks/use-connection";
-import { cn } from "~/utils";
+import { cn } from "@mrgnlabs/mrgn-utils";
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Loader } from "~/components/ui/loader";
-import {
-  IconSearch,
-  IconSortAscending,
-  IconSortDescending,
-  IconLoader,
-  IconX,
-  IconBackpackWallet,
-} from "~/components/ui/icons";
+import { IconLoader } from "~/components/ui/icons";
 
 type PointsTableProps = {
   userPointsData: UserPointsData;
@@ -363,7 +357,7 @@ export const PointsTable = ({ userPointsData }: PointsTableProps) => {
             )}
           </p>
           <Button
-            variant="outline"
+            variant="outline-dark"
             size="sm"
             className="ml-auto"
             disabled={leaderboardSettings.currentPage === 1 || pointsTableState !== PointsTableState.Ready}
@@ -380,7 +374,7 @@ export const PointsTable = ({ userPointsData }: PointsTableProps) => {
             <span className="-translate-y-[1px]">&laquo;</span>
           </Button>
           <Button
-            variant="outline"
+            variant="outline-dark"
             size="sm"
             disabled={leaderboardSettings.currentPage === 1 || pointsTableState !== PointsTableState.Ready}
             onClick={() => {
@@ -396,7 +390,7 @@ export const PointsTable = ({ userPointsData }: PointsTableProps) => {
             Previous
           </Button>
           <Button
-            variant="outline"
+            variant="outline-dark"
             size="sm"
             disabled={
               leaderboardSettings.currentPage === Math.ceil(leaderboardCount / leaderboardSettings.pageSize) ||

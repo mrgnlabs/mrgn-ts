@@ -5,14 +5,14 @@ import Link from "next/link";
 
 import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { groupedNumberFormatterDyn, usdFormatter } from "@mrgnlabs/mrgn-common";
+import { cn } from "@mrgnlabs/mrgn-utils";
 
 import { useTradeStore, useUiStore } from "~/store";
-import { getTokenImageURL, cn } from "~/utils";
 
 import { PageHeading } from "~/components/common/PageHeading";
 import { PositionCard, LpPositionList } from "~/components/common/Portfolio";
 import { ActionComplete } from "~/components/common/ActionComplete";
-import { Loader } from "~/components/ui/loader";
+import { Loader } from "~/components/common/Loader";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 
 export default function PortfolioPage() {
@@ -86,7 +86,7 @@ export default function PortfolioPage() {
                               {portfolioCombined.slice(0, 5).map((group, index) => (
                                 <li key={index} className="rounded-full bg-white">
                                   <Image
-                                    src={getTokenImageURL(group.pool.token.info.state.mint.toBase58())}
+                                    src={group.pool.token.meta.tokenLogoUri}
                                     alt={group.pool.token.meta.tokenSymbol}
                                     width={24}
                                     height={24}

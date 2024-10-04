@@ -2,18 +2,20 @@ import React from "react";
 
 import Image from "next/image";
 
+import { IconAlertTriangle } from "@tabler/icons-react";
 import { usdFormatter, numeralFormatter } from "@mrgnlabs/mrgn-common";
 import { ActiveBankInfo, ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { getTokenImageURL } from "@mrgnlabs/mrgn-utils";
+import { capture } from "@mrgnlabs/mrgn-utils";
+import { ActionBox, WalletContextStateOverride } from "@mrgnlabs/mrgn-ui";
 
-import { cn } from "~/utils";
+import { cn } from "@mrgnlabs/mrgn-utils";
 import { useAssetItemData } from "~/hooks/useAssetItemData";
 
-import { ActionBoxDialog } from "~/components/common/ActionBox";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "~/components/ui/accordion";
 import { Button } from "~/components/ui/button";
-import { IconAlertTriangle } from "~/components/ui/icons";
 import { Skeleton } from "~/components/ui/skeleton";
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
+import { useUiStore } from "~/store";
 
 interface PortfolioAssetCardProps {
   bank: ActiveBankInfo;
@@ -24,12 +26,7 @@ interface PortfolioAssetCardProps {
 export const PortfolioAssetCard = ({ bank, isInLendingMode, isBorrower = true }: PortfolioAssetCardProps) => {
   const { rateAP } = useAssetItemData({ bank, isInLendingMode });
 
-  const [requestedAction, setRequestedAction] = React.useState<ActionType>();
-  const [requestedBank, setRequestedBank] = React.useState<ExtendedBankInfo | null>(null);
-
   const isIsolated = React.useMemo(() => bank.info.state.isIsolated, [bank]);
-
-  const isDust = React.useMemo(() => bank?.isActive && bank?.position.isDust, [bank]);
 
   const isUserPositionPoorHealth = React.useMemo(() => {
     if (!bank || !bank?.position?.liquidationPrice) {
@@ -60,7 +57,7 @@ export const PortfolioAssetCard = ({ bank, isInLendingMode, isBorrower = true }:
               <div className="flex text-left gap-3">
                 <div className="flex items-center">
                   <Image
-                    src={getTokenImageURL(bank.meta.tokenSymbol)}
+                    src={bank.meta.tokenLogoUri}
                     className="rounded-full"
                     alt={bank.meta.tokenSymbol}
                     height={40}
@@ -117,7 +114,6 @@ export const PortfolioAssetCard = ({ bank, isInLendingMode, isBorrower = true }:
               </div>
             </div>
           )}
-
           <div className="bg-background/60 py-3 px-4 rounded-lg">
             <dl className="grid grid-cols-2 gap-y-0.5">
               <dt className="text-muted-foreground">USD value</dt>
@@ -144,34 +140,101 @@ export const PortfolioAssetCard = ({ bank, isInLendingMode, isBorrower = true }:
               )}
             </dl>
           </div>
-          <ActionBoxDialog requestedAction={requestedAction} requestedBank={requestedBank}>
-            <div className="flex w-full gap-3">
-              <Button
-                onClick={() => {
-                  setRequestedAction(isInLendingMode ? ActionType.Withdraw : ActionType.Repay);
-                  setRequestedBank(bank);
-                }}
-                className="flex-1 h-12"
-                variant="outline"
-              >
-                {isInLendingMode ? (isDust ? "Close" : "Withdraw") : "Repay"}
-              </Button>
-              <Button
-                onClick={() => {
-                  setRequestedAction(isInLendingMode ? ActionType.Deposit : ActionType.Borrow);
-                  setRequestedBank(bank);
-                }}
-                className="flex-1 h-12"
-                variant="default"
-              >
-                {isInLendingMode ? "Supply more" : "Borrow more"}
-              </Button>
-            </div>
-          </ActionBoxDialog>
+          <div className="flex w-full gap-3">
+            <PortfolioAction
+              requestedBank={bank}
+              buttonVariant="outline-dark"
+              requestedAction={isInLendingMode ? ActionType.Withdraw : ActionType.Repay}
+            />
+            <PortfolioAction
+              requestedBank={bank}
+              requestedAction={isInLendingMode ? ActionType.Deposit : ActionType.Borrow}
+            />
+          </div>
         </AccordionContent>
       </AccordionItem>
     </Accordion>
   );
+};
+
+const PortfolioAction = ({
+  requestedBank,
+  requestedAction,
+  buttonVariant = "default",
+}: {
+  requestedBank: ExtendedBankInfo | null;
+  requestedAction: ActionType;
+  buttonVariant?: "default" | "outline" | "outline-dark";
+}) => {
+  const { walletContextState, connected } = useWallet();
+  const [setIsWalletAuthDialogOpen] = useUiStore((state) => [state.setIsWalletAuthDialogOpen]);
+  const isDust = React.useMemo(() => requestedBank?.isActive && requestedBank?.position.isDust, [requestedBank]);
+
+  const buttonText = React.useMemo(() => {
+    switch (requestedAction) {
+      case ActionType.Deposit:
+        return "Supply more";
+      case ActionType.Borrow:
+        return "Borrow more";
+      case ActionType.Repay:
+        return "Repay";
+      case ActionType.Withdraw:
+        return isDust ? "Close" : "Withdraw";
+      default:
+        return "";
+    }
+  }, [requestedAction, isDust]);
+
+  if (requestedAction !== ActionType.Repay) {
+    return (
+      <ActionBox.Lend
+        useProvider={true}
+        lendProps={{
+          requestedLendType: requestedAction,
+          requestedBank: requestedBank ?? undefined,
+          walletContextState: walletContextState,
+          connected: connected,
+          captureEvent: (event, properties) => {
+            capture(event, properties);
+          },
+          onConnect: () => setIsWalletAuthDialogOpen(true),
+        }}
+        isDialog={true}
+        dialogProps={{
+          trigger: (
+            <Button className="flex-1 h-12" variant={buttonVariant}>
+              {buttonText}
+            </Button>
+          ),
+          title: `${requestedAction} ${requestedBank?.meta.tokenSymbol}`,
+        }}
+      />
+    );
+  } else {
+    return (
+      <ActionBox.Repay
+        useProvider={true}
+        repayProps={{
+          requestedBank: requestedBank ?? undefined,
+          walletContextState: walletContextState,
+          connected: connected,
+          captureEvent: (event, properties) => {
+            capture(event, properties);
+          },
+          onConnect: () => setIsWalletAuthDialogOpen(true),
+        }}
+        isDialog={true}
+        dialogProps={{
+          trigger: (
+            <Button className="flex-1 h-12" variant={buttonVariant}>
+              {buttonText}
+            </Button>
+          ),
+          title: `${requestedAction} ${requestedBank?.meta.tokenSymbol}`,
+        }}
+      />
+    );
+  }
 };
 
 export const PortfolioAssetCardSkeleton = () => {

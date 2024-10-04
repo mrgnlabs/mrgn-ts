@@ -2,6 +2,7 @@ import React from "react";
 import Image from "next/image";
 import { getCoreRowModel, flexRender, useReactTable, SortingState, getSortedRowModel } from "@tanstack/react-table";
 import { useHotkeys } from "react-hotkeys-hook";
+import { IconAlertTriangle } from "@tabler/icons-react";
 
 import { ExtendedBankInfo, ActiveBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { LendingModes } from "@mrgnlabs/mrgn-utils";
@@ -20,10 +21,10 @@ import {
 } from "~/components/common/AssetList";
 import { Table, TableBody, TableHead, TableHeader, TableRow } from "~/components/ui/table";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
-import { IconAlertTriangle } from "~/components/ui/icons";
 
 import { AssetListModel, generateColumns, makeData } from "./utils";
 import { AssetRow } from "./components";
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
 export const AssetsList = () => {
   const [isStoreInitialized, extendedBankInfos, nativeSolBalance, selectedAccount] = useMrgnlendStore((state) => [
@@ -33,17 +34,15 @@ export const AssetsList = () => {
     state.selectedAccount,
   ]);
   const [denominationUSD, setShowBadges] = useUserProfileStore((state) => [state.denominationUSD, state.setShowBadges]);
-  const [poolFilter, isFilteredUserPositions, sortOption] = useUiStore((state) => [
+  const [poolFilter, isFilteredUserPositions, sortOption, lendingMode, setLendingMode] = useUiStore((state) => [
     state.poolFilter,
     state.isFilteredUserPositions,
     state.sortOption,
+    state.lendingMode,
+    state.setLendingMode,
   ]);
   const [actionMode, setActionMode] = useActionBoxStore()((state) => [state.actionMode, state.setActionMode]);
-
-  const lendingMode = React.useMemo(
-    () => (actionMode === ActionType.Deposit ? LendingModes.LEND : LendingModes.BORROW),
-    [actionMode]
-  );
+  const { connected, walletContextState } = useWallet();
 
   const inputRefs = React.useRef<Record<string, HTMLInputElement | null>>({});
   const [isHotkeyMode, setIsHotkeyMode] = React.useState(false);
@@ -160,13 +159,36 @@ export const AssetsList = () => {
   const [sorting, setSorting] = React.useState<SortingState>([]);
 
   const globalPoolTableData = React.useMemo(() => {
-    return makeData(globalBanks, isInLendingMode, denominationUSD, nativeSolBalance, selectedAccount);
-  }, [globalBanks, isInLendingMode, denominationUSD, nativeSolBalance, selectedAccount]);
+    return makeData(
+      globalBanks,
+      isInLendingMode,
+      denominationUSD,
+      nativeSolBalance,
+      selectedAccount,
+      connected,
+      walletContextState
+    );
+  }, [connected, walletContextState, globalBanks, isInLendingMode, denominationUSD, nativeSolBalance, selectedAccount]);
 
   const isolatedPoolTableData = React.useMemo(() => {
-    const data = makeData(isolatedBanks, isInLendingMode, denominationUSD, nativeSolBalance, selectedAccount);
-    return data;
-  }, [isolatedBanks, isInLendingMode, denominationUSD, nativeSolBalance, selectedAccount]);
+    return makeData(
+      isolatedBanks,
+      isInLendingMode,
+      denominationUSD,
+      nativeSolBalance,
+      selectedAccount,
+      connected,
+      walletContextState
+    );
+  }, [
+    connected,
+    walletContextState,
+    isolatedBanks,
+    isInLendingMode,
+    denominationUSD,
+    nativeSolBalance,
+    selectedAccount,
+  ]);
 
   const tableColumns = React.useMemo(() => {
     return generateColumns(isInLendingMode);

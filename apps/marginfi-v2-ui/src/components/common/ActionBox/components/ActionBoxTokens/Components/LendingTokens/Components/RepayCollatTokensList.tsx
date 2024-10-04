@@ -5,7 +5,7 @@ import { PublicKey } from "@solana/web3.js";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { useMrgnlendStore, useUiStore } from "~/store";
-import { cn } from "~/utils";
+import { cn } from "@mrgnlabs/mrgn-utils";
 
 import { CommandEmpty, CommandGroup, CommandItem } from "~/components/ui/command";
 import { BuyWithMoonpay, ActionBoxItem } from "~/components/common/ActionBox/components";

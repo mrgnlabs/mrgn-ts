@@ -1,7 +1,7 @@
 import React from "react";
 import Image from "next/image";
 import { IconPlus } from "@tabler/icons-react";
-import { ExtendedWallet } from "@mrgnlabs/mrgn-utils";
+import { cn, ExtendedWallet } from "@mrgnlabs/mrgn-utils";
 
 import { walletIcons } from "~/components/wallet-v2/components/sign-up/sign-up.utils";
 import { WalletAuthButton } from "~/components/wallet-v2/components/sign-up/components";
@@ -43,12 +43,12 @@ export const WalletAuthWrapper = ({ isLoading, isActiveLoading, wallets, onClick
       })}
       {isOverflow && (
         <Popover>
-          <PopoverTrigger>
+          <PopoverTrigger className="group">
             <div className="flex justify-center items-center w-14 h-14 rounded-full transition-colors bg-accent hover:bg-accent-highlight">
-              <IconPlus />
+              <IconPlus className="transition-transform group-data-[state=open]:rotate-45" />
             </div>
           </PopoverTrigger>
-          <PopoverContent className="w-auto rounded-3xl">
+          <PopoverContent className="w-auto rounded-lg bg-accent/90 border-0">
             <ul className="flex flex-wrap items-start justify-center gap-4 overflow-auto">
               {overflowedWallets.map((wallet, i) => {
                 const img = walletIcons[wallet.adapter.name] || (

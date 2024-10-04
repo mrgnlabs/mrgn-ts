@@ -3,16 +3,16 @@ import React from "react";
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { useUiStore, useUserProfileStore } from "~/store";
-import { cn } from "~/utils";
+import { cn } from "@mrgnlabs/mrgn-utils";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { useActionBoxStore } from "~/hooks/useActionBoxStore";
 import { LendingModes, PoolTypes } from "@mrgnlabs/mrgn-utils";
+import { IconFilter, IconSearch, IconX } from "@tabler/icons-react";
 
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
 import { Switch } from "~/components/ui/switch";
 import { Label } from "~/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
-import { IconFilter, IconSearch, IconX } from "~/components/ui/icons";
 import { Input } from "~/components/ui/input";
 
 export const AssetListFilters = () => {
@@ -25,6 +25,8 @@ export const AssetListFilters = () => {
     setIsWalletAuthDialogOpen,
     assetListSearch,
     setAssetListSearch,
+    lendingMode,
+    setLendingMode,
   ] = useUiStore((state) => [
     state.poolFilter,
     state.setPoolFilter,
@@ -33,19 +35,14 @@ export const AssetListFilters = () => {
     state.setIsWalletAuthDialogOpen,
     state.assetListSearch,
     state.setAssetListSearch,
+    state.lendingMode,
+    state.setLendingMode,
   ]);
-
-  const [actionMode, setActionMode] = useActionBoxStore()((state) => [state.actionMode, state.setActionMode]);
 
   const [denominationUSD, setDenominationUSD] = useUserProfileStore((state) => [
     state.denominationUSD,
     state.setDenominationUSD,
   ]);
-
-  const lendingMode = React.useMemo(
-    () => (actionMode === ActionType.Deposit ? LendingModes.LEND : LendingModes.BORROW),
-    [actionMode]
-  );
 
   const searchRef = React.useRef<HTMLInputElement>(null);
 
@@ -57,9 +54,13 @@ export const AssetListFilters = () => {
             type="single"
             variant={"actionBox"}
             value={lendingMode}
-            onValueChange={() =>
-              setActionMode(lendingMode === LendingModes.LEND ? ActionType.Borrow : ActionType.Deposit)
-            }
+            onValueChange={(value) => {
+              if (value === LendingModes.LEND) {
+                setLendingMode(LendingModes.LEND);
+              } else if (value === LendingModes.BORROW) {
+                setLendingMode(LendingModes.BORROW);
+              }
+            }}
             className="bg-background-gray/70 rounded-lg"
           >
             <ToggleGroupItem value="lend" aria-label="Lend">

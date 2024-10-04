@@ -4,19 +4,19 @@ import { useRouter } from "next/router";
 
 import { IconSortAscending, IconSortDescending, IconSparkles, IconGridDots, IconList } from "@tabler/icons-react";
 import { motion } from "framer-motion";
+import { capture } from "@mrgnlabs/mrgn-utils";
 
 import { useTradeStore, useUiStore } from "~/store";
 import { TradePoolFilterStates } from "~/store/tradeStore";
 import { POOLS_PER_PAGE } from "~/config/trade";
-import { useIsMobile } from "~/hooks/useIsMobile";
-import { capture } from "~/utils";
+import { useIsMobile } from "~/hooks/use-is-mobile";
 
 import { PageHeading } from "~/components/common/PageHeading";
 import { PoolCard, PoolListItem } from "~/components/common/Pool";
 import { ActionComplete } from "~/components/common/ActionComplete";
 import { PoolSearch } from "~/components/common/Pool";
 import { Button } from "~/components/ui/button";
-import { Loader } from "~/components/ui/loader";
+import { Loader } from "~/components/common/Loader";
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
 
@@ -100,7 +100,12 @@ export default function HomePage() {
               >
                 <PoolSearch showNoResults={false} />
 
-                <Button variant="outline" onClick={handleFeelingLucky} size={isMobile ? "sm" : "default"}>
+                <Button
+                  variant="outline"
+                  onClick={handleFeelingLucky}
+                  size={isMobile ? "sm" : "default"}
+                  className="bg-transparent"
+                >
                   <IconSparkles size={isMobile ? 16 : 18} /> I&apos;m feeling lucky
                 </Button>
               </motion.div>
@@ -136,14 +141,14 @@ export default function HomePage() {
                     setSortBy(value as TradePoolFilterStates);
                   }}
                 >
-                  <SelectTrigger className="w-[210px] justify-start gap-2">
+                  <SelectTrigger className="w-[210px] justify-start gap-2 bg-background border border-border">
                     {dir === "desc" && <IconSortDescending size={16} />}
                     {dir === "asc" && <IconSortAscending size={16} />}
                     <SelectValue placeholder="Sort pools" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-background">
                     {sortOptions.map((option, i) => (
-                      <SelectItem key={i} value={option.value}>
+                      <SelectItem key={i} value={option.value} className="focus:bg-accent">
                         {option.label}
                       </SelectItem>
                     ))}

@@ -5,7 +5,7 @@ import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 import { Desktop, Mobile } from "@mrgnlabs/mrgn-utils";
 
-import { useIsMobile } from "~/hooks/useIsMobile";
+import { useIsMobile } from "~/hooks/use-is-mobile";
 import { GroupData } from "~/store/tradeStore";
 import { useActionBoxStore } from "~/hooks/useActionBoxStore";
 import { ActionBox } from "~/components/common/ActionBox";

@@ -4,10 +4,9 @@ import Image from "next/image";
 import { IconChevronDown } from "@tabler/icons-react";
 
 import { percentFormatter, tokenPriceFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
-import { Desktop, Mobile } from "@mrgnlabs/mrgn-utils";
+import { Desktop, Mobile, cn } from "@mrgnlabs/mrgn-utils";
 
 import { useTradeStore } from "~/store";
-import { getTokenImageURL, cn } from "~/utils";
 
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "~/components/ui/command";
 import { Button } from "~/components/ui/button";
@@ -70,7 +69,7 @@ export const TokenCombobox = ({ selected, setSelected, children }: TokenCombobox
                         }}
                       >
                         <Image
-                          src={getTokenImageURL(group.pool.token.info.state.mint.toBase58())}
+                          src={group.pool.token.meta.tokenLogoUri}
                           width={32}
                           height={32}
                           alt={group.pool.token.meta.tokenName}
@@ -133,7 +132,7 @@ export const TokenCombobox = ({ selected, setSelected, children }: TokenCombobox
                       }}
                     >
                       <Image
-                        src={getTokenImageURL(group.pool.token.info.state.mint.toBase58())}
+                        src={group.pool.token.meta.tokenLogoUri}
                         width={32}
                         height={32}
                         alt={group.pool.token.meta.tokenName}
@@ -173,7 +172,7 @@ const TokenTrigger = ({ selected }: { selected: GroupData | null }) => {
       {selected !== null ? (
         <>
           <Image
-            src={getTokenImageURL(selected.pool.token.info.state.mint.toBase58())}
+            src={selected.pool.token.meta.tokenLogoUri}
             width={24}
             height={24}
             alt={`Pool ${selected}`}

@@ -2,8 +2,7 @@ import React from "react";
 
 import { IconWallet } from "@tabler/icons-react";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-
-import { clampedNumeralFormatter } from "~/utils";
+import { clampedNumeralFormatter } from "@mrgnlabs/mrgn-common";
 
 interface InputHeaderActionProps {
   actionMode: ActionType;

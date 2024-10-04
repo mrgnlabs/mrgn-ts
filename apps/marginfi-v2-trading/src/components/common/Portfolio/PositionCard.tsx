@@ -6,7 +6,7 @@ import Link from "next/link";
 import { IconInfoCircle } from "@tabler/icons-react";
 import { numeralFormatter, tokenPriceFormatter, percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 
-import { getTokenImageURL, cn } from "~/utils";
+import { cn } from "@mrgnlabs/mrgn-utils";
 import { useGroupBanks, useGroupPosition } from "~/hooks/arenaHooks";
 
 import { PositionActionButtons } from "~/components/common/Portfolio";
@@ -52,7 +52,7 @@ export const PositionCard = ({ size = "lg", groupData }: PositionCardProps) => {
             className="flex items-center gap-4 font-medium text-muted-foreground"
           >
             <Image
-              src={getTokenImageURL(groupData.pool.token.info.state.mint.toBase58())}
+              src={groupData.pool.token.meta.tokenLogoUri}
               alt={groupData.pool.token.meta.tokenSymbol}
               width={56}
               height={56}

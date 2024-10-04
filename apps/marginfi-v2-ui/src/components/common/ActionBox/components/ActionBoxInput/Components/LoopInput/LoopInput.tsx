@@ -4,21 +4,20 @@ import BigNumber from "bignumber.js";
 import Image from "next/image";
 
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { formatAmount, getTokenImageURL } from "@mrgnlabs/mrgn-utils";
+import { formatAmount, calcLstYield, LSTS_SOLANA_COMPASS_MAP, calcNetLoopingApy } from "@mrgnlabs/mrgn-utils";
 import { percentFormatter } from "@mrgnlabs/mrgn-common";
+import { IconChevronDown } from "@tabler/icons-react";
 
 import { useActionBoxStore } from "~/hooks/useActionBoxStore";
 import { useConnection } from "~/hooks/use-connection";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
-import { calcLstYield, LSTS_SOLANA_COMPASS_MAP, calcNetLoopingApy } from "~/utils";
 
 import { ActionBoxTokens } from "~/components/common/ActionBox/components";
 import { InputAction } from "~/components/common/ActionBox/components/ActionBoxInput/Components/InputAction";
 import { Input } from "~/components/ui/input";
 import { Slider } from "~/components/ui/slider";
 import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
-import { IconChevronDown } from "~/components/ui/icons";
-import { cn } from "~/utils";
+import { cn } from "@mrgnlabs/mrgn-utils";
 
 import { useMrgnlendStore, useUiStore } from "~/store";
 import { useDebounce } from "~/hooks/useDebounce";
@@ -376,7 +375,7 @@ export const LoopInput = ({
                             <li key={bank.meta.tokenSymbol} className="flex items-center gap-8 justify-between text-xs">
                               <div className="flex items-center gap-2">
                                 <Image
-                                  src={getTokenImageURL(bank.meta.tokenSymbol)}
+                                  src={bank.meta.tokenLogoUri}
                                   width={16}
                                   height={16}
                                   alt={bank.meta.tokenName}
@@ -395,7 +394,7 @@ export const LoopInput = ({
                               <li className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
                                   <Image
-                                    src={getTokenImageURL(bank.meta.tokenSymbol)}
+                                    src={bank.meta.tokenLogoUri}
                                     width={16}
                                     height={16}
                                     alt={bank.meta.tokenName}
@@ -415,7 +414,7 @@ export const LoopInput = ({
                               <li className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
                                   <Image
-                                    src={getTokenImageURL(bank.meta.tokenSymbol)}
+                                    src={bank.meta.tokenLogoUri}
                                     width={16}
                                     height={16}
                                     alt={bank.meta.tokenName}

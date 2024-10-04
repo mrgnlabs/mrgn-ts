@@ -4,7 +4,7 @@ import { Connection, PublicKey } from "@solana/web3.js";
 import { create, StateCreator } from "zustand";
 import * as solanaStakePool from "@solana/spl-stake-pool";
 import { StakeData } from "@mrgnlabs/mrgn-utils";
-import { PERIOD, calcYield, fetchAndParsePricesCsv, getPriceRangeFromPeriod } from "~/utils";
+import { PERIOD, calcYield, fetchAndParsePricesCsv, getPriceRangeFromPeriod } from "@mrgnlabs/mrgn-utils";
 import { TokenAccount, TokenAccountMap, fetchBirdeyePrices } from "@mrgnlabs/marginfi-v2-ui-state";
 import { persist } from "zustand/middleware";
 import BN from "bn.js";

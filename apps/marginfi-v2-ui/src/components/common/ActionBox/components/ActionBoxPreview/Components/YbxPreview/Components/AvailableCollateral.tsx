@@ -1,8 +1,8 @@
 import React from "react";
 import { usdFormatterDyn } from "@mrgnlabs/mrgn-common";
+import { IconInfoCircle } from "@tabler/icons-react";
 
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
-import { IconInfoCircle } from "~/components/ui/icons";
 import { Skeleton } from "~/components/ui/skeleton";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "~/components/ui/collapsible";
 import { ChevronDownIcon } from "@radix-ui/react-icons";

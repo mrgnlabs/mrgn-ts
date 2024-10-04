@@ -3,10 +3,10 @@ import React from "react";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { useMrgnlendStore } from "~/store";
-import { cn } from "~/utils";
+import { cn } from "@mrgnlabs/mrgn-utils";
+import { IconArrowRight } from "@tabler/icons-react";
 
 import { Skeleton } from "~/components/ui/skeleton";
-import { IconArrowRight } from "~/components/ui/icons";
 
 import { AvailableCollateral } from "./Components/AvailableCollateral";
 

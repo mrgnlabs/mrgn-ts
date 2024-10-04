@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import { motion } from "framer-motion";
 
-import { cn } from "~/utils";
+import { cn } from "@mrgnlabs/mrgn-utils";
 
 interface PageHeadingProps {
   heading: JSX.Element | string;

@@ -15,11 +15,11 @@ import {
 } from "@mrgnlabs/mrgn-utils";
 import { ActionType, ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
+import { cn, capture } from "@mrgnlabs/mrgn-utils";
 
 import { useUiStore, useTradeStore } from "~/store";
-import { cn, capture } from "~/utils";
-import { useWalletContext } from "~/hooks/useWalletContext";
-import { useConnection } from "~/hooks/useConnection";
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
+import { useConnection } from "~/hooks/use-connection";
 import { useActionBoxStore } from "~/hooks/useActionBoxStore";
 
 import { checkActionAvailable } from "~/utils/actionBoxUtils";
@@ -117,7 +117,7 @@ export const ActionBox = ({
     state.setPreviousTxn,
   ]);
 
-  const { walletContextState, connected, wallet } = useWalletContext();
+  const { walletContextState, connected, wallet } = useWallet();
   const { connection } = useConnection();
 
   const [isSettingsMode, setIsSettingsMode] = React.useState<boolean>(false);
@@ -221,7 +221,7 @@ export const ActionBox = ({
 
   const executeLendingActionCb = React.useCallback(
     async ({
-      mfiClient,
+      marginfiClient,
       actionType: currentAction,
       bank,
       amount: borrowOrLendAmount,
@@ -233,7 +233,7 @@ export const ActionBox = ({
       setIsLoading(true);
 
       const txnSig = await executeLendingAction({
-        mfiClient,
+        marginfiClient,
         actionType: currentAction,
         bank,
         amount: borrowOrLendAmount,
@@ -369,7 +369,7 @@ export const ActionBox = ({
 
     const action = async () => {
       const params = {
-        mfiClient: activeGroup.client,
+        marginfiClient: activeGroup.client,
         actionType: actionMode,
         bank: selectedBank,
         amount,

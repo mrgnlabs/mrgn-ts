@@ -1,7 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom";
 
-import { MultiStepToastHandle, showWarningToast } from "@mrgnlabs/mrgn-utils";
+import { MultiStepToastHandle, showWarningToast, cn } from "@mrgnlabs/mrgn-utils";
 
 import Confetti from "react-confetti";
 import { useWindowSize } from "@uidotdev/usehooks";
@@ -9,8 +9,7 @@ import { IconPlus } from "@tabler/icons-react";
 import { PublicKey } from "@solana/web3.js";
 
 import { useTradeStore } from "~/store";
-import { cn } from "~/utils";
-import { useIsMobile } from "~/hooks/useIsMobile";
+import { useIsMobile } from "~/hooks/use-is-mobile";
 
 import { Dialog, DialogContent, DialogTrigger } from "~/components/ui/dialog";
 import { Button } from "~/components/ui/button";

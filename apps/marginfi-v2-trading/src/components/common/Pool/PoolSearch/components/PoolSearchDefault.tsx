@@ -3,9 +3,8 @@ import React from "react";
 import Image from "next/image";
 
 import { tokenPriceFormatter, numeralFormatter, percentFormatter } from "@mrgnlabs/mrgn-common";
+import { cn } from "@mrgnlabs/mrgn-utils";
 import { IconCommand, IconX } from "@tabler/icons-react";
-
-import { cn, getTokenImageURL } from "~/utils";
 
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "~/components/ui/command";
 import { Button } from "~/components/ui/button";
@@ -61,7 +60,11 @@ export const PoolSearchDefault = ({
 
   return (
     <div className="relative w-full px-4 md:px-0">
-      <Command shouldFilter={false} onKeyDown={(event) => event.key === "Escape" && resetSearch()}>
+      <Command
+        className="bg-transparent"
+        shouldFilter={false}
+        onKeyDown={(event) => event.key === "Escape" && resetSearch()}
+      >
         <div
           className={cn(
             "border border-muted-foreground/25 rounded-full px-2 transition-colors",
@@ -106,7 +109,7 @@ export const PoolSearchDefault = ({
         </div>
         <div className={cn(size === "lg" && "absolute top-10 w-full z-20 md:top-14")}>
           {searchResults.length > 0 && (
-            <CommandGroup className={cn(size === "lg" && "shadow-lg md:w-4/5 md:mx-auto")}>
+            <CommandGroup className={cn("bg-background", size === "lg" && "shadow-lg md:w-4/5 md:mx-auto")}>
               {searchResults.slice(0, maxResults).map((result) => {
                 const group = result.item;
                 const address = group.groupPk.toBase58();
@@ -121,7 +124,7 @@ export const PoolSearchDefault = ({
                   >
                     <div className="flex items-center gap-3">
                       <Image
-                        src={getTokenImageURL(tokenBank.info.state.mint.toBase58())}
+                        src={tokenBank.meta.tokenLogoUri}
                         width={size === "sm" ? 28 : 32}
                         height={size === "sm" ? 28 : 32}
                         alt={tokenBank.meta.tokenSymbol}

@@ -1,10 +1,11 @@
 import React from "react";
 import { useRouter } from "next/router";
 
+import { identify } from "@mrgnlabs/mrgn-utils";
+
 import { useTradeStore } from "~/store";
-import { useConnection } from "~/hooks/useConnection";
-import { useWalletContext } from "~/hooks/useWalletContext";
-import { identify } from "~/utils";
+import { useConnection } from "~/hooks/use-connection";
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
 // @ts-ignore - Safe because context hook checks for null
 const TradeContext = React.createContext<>();
@@ -14,7 +15,7 @@ export const TradePovider: React.FC<{
 }> = ({ children }) => {
   const router = useRouter();
   const debounceId = React.useRef<NodeJS.Timeout | null>(null);
-  const { wallet, isOverride, connected } = useWalletContext();
+  const { wallet, isOverride, connected } = useWallet();
   const { connection } = useConnection();
   const [fetchTradeState, setIsRefreshingStore] = useTradeStore((state) => [
     state.fetchTradeState,

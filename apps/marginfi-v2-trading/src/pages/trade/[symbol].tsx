@@ -4,14 +4,14 @@ import { useRouter } from "next/router";
 
 import { useTradeStore, useUiStore } from "~/store";
 import { GroupData } from "~/store/tradeStore";
-import { useIsMobile } from "~/hooks/useIsMobile";
+import { useIsMobile } from "~/hooks/use-is-mobile";
 
 import { ActionComplete } from "~/components/common/ActionComplete";
 import { TVWidget } from "~/components/common/TVWidget";
 import { TradingBox } from "~/components/common/TradingBox";
 import { PositionList } from "~/components/common/Portfolio";
 import { PoolTradeHeader } from "~/components/common/Pool/PoolTradeHeader";
-import { Loader } from "~/components/ui/loader";
+import { Loader } from "~/components/common/Loader";
 
 export default function TradeSymbolPage() {
   const isMobile = useIsMobile();

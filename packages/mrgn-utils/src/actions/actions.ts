@@ -51,110 +51,66 @@ export async function createAccountAction({
   return txnSig;
 }
 
-export async function executeLendingAction({
-  mfiClient,
-  actionType,
-  bank,
-  amount,
-  nativeSolBalance,
-  marginfiAccount,
-  walletContextState,
-  priorityFee,
-  repayWithCollatOptions,
-  actionTxns,
-  theme = "dark",
-}: MarginfiActionParams) {
+export async function executeLendingAction(params: MarginfiActionParams) {
   let txnSig: string | string[] | undefined;
 
-  if (nativeSolBalance < FEE_MARGIN) {
+  if (params.nativeSolBalance < FEE_MARGIN) {
     showErrorToast("Not enough sol for fee.");
     return;
   }
 
-  if (actionType === ActionType.Deposit) {
-    if (marginfiAccount) {
-      txnSig = await deposit({ marginfiAccount, bank, amount, priorityFee, theme });
+  if (params.actionType === ActionType.Deposit) {
+    if (params.marginfiAccount) {
+      txnSig = await deposit(params);
     } else {
-      txnSig = await createAccountAndDeposit({ mfiClient, bank, amount, walletContextState, priorityFee, theme });
+      txnSig = await createAccountAndDeposit(params);
     }
     return txnSig;
   }
 
-  if (!marginfiAccount) {
-    showErrorToast({ message: "Marginfi account not ready.", theme });
+  if (!params.marginfiAccount) {
+    showErrorToast({ message: "Marginfi account not ready.", theme: params.theme });
     return;
   }
 
-  if (actionType === ActionType.Repay) {
-    if (repayWithCollatOptions) {
-      txnSig = await repayWithCollat({
-        marginfiClient: mfiClient,
-        marginfiAccount,
-        bank,
-        amount,
-        priorityFee,
-        options: repayWithCollatOptions,
-        theme,
-      });
+  if (params.actionType === ActionType.RepayCollat) {
+    txnSig = await repayWithCollat(params);
+  }
+
+  if (params.actionType === ActionType.Repay) {
+    if (params.repayWithCollatOptions) {
+      // deprecated
+      txnSig = await repayWithCollat(params);
     } else {
-      txnSig = await repay({ marginfiAccount, bank, amount, priorityFee, theme });
+      txnSig = await repay(params);
     }
   }
 
-  if (!mfiClient) {
-    showErrorToast({ message: "Client not ready.", theme });
+  if (!params.marginfiClient) {
+    showErrorToast({ message: "Client not ready.", theme: params.theme });
     return;
   }
 
-  if (actionType === ActionType.Borrow) {
-    txnSig = await borrow({ marginfiClient: mfiClient, marginfiAccount, bank, amount, priorityFee, actionTxns, theme });
+  if (params.actionType === ActionType.Borrow) {
+    txnSig = await borrow(params);
   }
 
-  if (actionType === ActionType.Withdraw) {
-    txnSig = await withdraw({
-      marginfiClient: mfiClient,
-      marginfiAccount,
-      bank,
-      amount,
-      priorityFee,
-      actionTxns,
-      theme,
-    });
+  if (params.actionType === ActionType.Withdraw) {
+    txnSig = await withdraw(params);
   }
 
   return txnSig;
 }
 
-export async function executeLoopingAction({
-  mfiClient,
-  actionType,
-  bank,
-  amount,
-  marginfiAccount,
-  priorityFee,
-  loopingOptions,
-  theme = "dark",
-}: MarginfiActionParams) {
+export async function executeLoopingAction(params: MarginfiActionParams) {
   let txnSig: string[] | undefined;
 
-  if (!marginfiAccount) {
+  if (!params.marginfiAccount) {
     showErrorToast("Marginfi account not ready.");
     return;
   }
 
-  if (actionType === ActionType.Loop) {
-    if (loopingOptions) {
-      txnSig = await looping({
-        marginfiClient: mfiClient,
-        marginfiAccount,
-        bank,
-        depositAmount: amount,
-        priorityFee,
-        options: loopingOptions,
-        theme,
-      });
-    }
-  }
+  txnSig = await looping(params);
 
   return txnSig;
 }

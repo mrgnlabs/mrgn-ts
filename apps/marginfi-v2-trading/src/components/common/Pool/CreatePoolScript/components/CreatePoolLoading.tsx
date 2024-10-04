@@ -11,11 +11,11 @@ import {
   RiskTier,
   getConfig,
 } from "@mrgnlabs/marginfi-client-v2";
-import { showErrorToast } from "@mrgnlabs/mrgn-utils";
+import { showErrorToast, cn } from "@mrgnlabs/mrgn-utils";
 import { NodeWallet } from "@mrgnlabs/mrgn-common";
 
-import { useConnection } from "~/hooks/useConnection";
-import { cn, createMarginfiGroup, createPermissionlessBank, createPoolLookupTable } from "~/utils";
+import { useConnection } from "~/hooks/use-connection";
+import { createMarginfiGroup, createPermissionlessBank, createPoolLookupTable } from "~/utils";
 import { Button } from "~/components/ui/button";
 import { useUiStore } from "~/store";
 
@@ -132,7 +132,7 @@ type PoolCreationState = {
 };
 
 export const CreatePoolLoading = ({ poolCreatedData, setIsOpen, setIsCompleted }: CreatePoolLoadingProps) => {
-  // const { wallet } = useWalletContext();
+  // const { wallet } = useWallet();
   const { connection } = useConnection();
   const [priorityFee] = useUiStore((state) => [state.priorityFee]);
   const [activeStep, setActiveStep] = React.useState<number>(0);

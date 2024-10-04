@@ -1,11 +1,12 @@
 import React from "react";
 import { useRouter } from "next/router";
 
+import { identify } from "@mrgnlabs/mrgn-utils";
+
 import config from "~/config/marginfi";
 import { useMrgnlendStore } from "~/store";
 import { useConnection } from "~/hooks/use-connection";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
-import { identify } from "~/utils";
 
 // @ts-ignore - Safe because context hook checks for null
 const MrgnlendContext = React.createContext<>();

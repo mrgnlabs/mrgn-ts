@@ -8,17 +8,15 @@ import { PublicKey } from "@solana/web3.js";
 import LipAccount from "@mrgnlabs/lip-client/src/account";
 import { IconBell, IconBrandTelegram } from "@tabler/icons-react";
 
-import { collectRewardsBatch } from "@mrgnlabs/mrgn-utils";
+import { collectRewardsBatch, capture, cn } from "@mrgnlabs/mrgn-utils";
 import { Wallet } from "@mrgnlabs/mrgn-ui";
 
 import { useMrgnlendStore, useUiStore, useUserProfileStore } from "~/store";
 import { useLipClient } from "~/context";
-import { cn } from "~/utils";
 import { useFirebaseAccount } from "~/hooks/useFirebaseAccount";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { useConnection } from "~/hooks/use-connection";
-import { useIsMobile } from "~/hooks/useIsMobile";
-import { capture } from "~/utils/analytics";
+import { useIsMobile } from "~/hooks/use-is-mobile";
 
 import { EMISSION_MINT_INFO_MAP } from "~/components/desktop/AssetList/components";
 import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
@@ -180,7 +178,7 @@ export const Navbar: FC = () => {
 
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-10 w-10">
+                  <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0">
                     <IconBell size={20} />
                   </Button>
                 </PopoverTrigger>

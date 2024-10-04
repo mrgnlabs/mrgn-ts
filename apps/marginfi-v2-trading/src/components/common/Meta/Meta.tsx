@@ -11,7 +11,7 @@ const GCP_URL = "https://storage.googleapis.com/mrgn-public/mrgn-trade-token-sha
 
 export const Meta = ({ path, bank }: MrgnProps) => {
   let title = "The Arena";
-  let description = "Memecoin trading, with leverage";
+  let description = "Memecoin trading, with leverage.";
   let image = GCP_URL + "/default.jpg";
   const pageTitlePart = path.split("/").pop();
   const pageTitle = pageTitlePart ? pageTitlePart.charAt(0).toUpperCase() + pageTitlePart.slice(1) : "";

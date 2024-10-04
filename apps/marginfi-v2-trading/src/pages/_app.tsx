@@ -11,20 +11,20 @@ import { TipLinkWalletAutoConnect } from "@tiplink/wallet-adapter-react-ui";
 import { ToastContainer } from "react-toastify";
 import { Analytics } from "@vercel/analytics/react";
 import { BankMetadataRaw } from "@mrgnlabs/mrgn-common";
-import { Desktop, Mobile } from "@mrgnlabs/mrgn-utils";
+import { Desktop, Mobile, init as initAnalytics } from "@mrgnlabs/mrgn-utils";
+import { AuthDialog } from "@mrgnlabs/mrgn-ui";
 
 import config from "~/config";
+import { useTradeStore } from "~/store";
 import { MrgnlendProvider, TradePovider } from "~/context";
 import { WALLET_ADAPTERS } from "~/config/wallets";
 import { BANK_METADATA_MAP } from "~/config/trade";
-import { WalletProvider as MrgnWalletProvider } from "~/hooks/useWalletContext";
-import { ConnectionProvider } from "~/hooks/useConnection";
-import { init as initAnalytics } from "~/utils/analytics";
+import { WalletProvider as MrgnWalletProvider } from "~/components/wallet-v2/hooks/use-wallet.hook";
+import { ConnectionProvider } from "~/hooks/use-connection";
 
 import { Meta } from "~/components/common/Meta";
 import { MobileNavbar } from "~/components/mobile/MobileNavbar";
 import { Tutorial } from "~/components/common/Tutorial";
-import { WalletAuthDialog } from "~/components/common/Wallet";
 import { Header } from "~/components/common/Header";
 import { Footer } from "~/components/desktop/Footer";
 
@@ -75,7 +75,7 @@ export default function MrgnApp({ Component, pageProps, path, bank }: AppProps &
                       </Mobile>
                       <Analytics />
 
-                      <WalletAuthDialog />
+                      <AuthDialog onboardingEnabled={false} />
                       <ToastContainer position="bottom-left" theme="light" />
                     </div>
                   </TradePovider>

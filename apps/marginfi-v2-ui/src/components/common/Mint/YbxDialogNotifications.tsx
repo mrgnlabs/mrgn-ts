@@ -1,9 +1,11 @@
 import React from "react";
 
+import { IconCheck } from "@tabler/icons-react";
+
 import { MintPageState, signUpYbx } from "~/utils";
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "~/components/ui/dialog";
-import { IconYBX, IconCheck } from "~/components/ui/icons";
+import { IconYBX } from "~/components/ui/icons";
 import { Button } from "~/components/ui/button";
 import { DialogDescription, DialogProps } from "@radix-ui/react-dialog";
 import { Input } from "~/components/ui/input";
@@ -47,7 +49,7 @@ export const YbxDialogNotifications: React.FC<YbxDialogProps> = ({
               <IconCheck size={18} className="text-success" /> You are signed up!
             </p>
             <Button
-              variant="outline"
+              variant="outline-dark"
               onClick={() => {
                 onHandleChangeMintPage(MintPageState.DEFAULT);
                 onClose();

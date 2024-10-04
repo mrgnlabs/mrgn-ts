@@ -59,16 +59,23 @@ export const ReturningUser = ({
 
   return (
     <>
-      <OnboardHeader title={"Sign in to marginfi"} description={"Earn yield, permissionlessly."} />
+      <OnboardHeader
+        title={process.env.NEXT_PUBLIC_APP_ID === "marginfi-v2-ui" ? "Sign in to marginfi" : "Enrter The Arena"}
+        description={
+          process.env.NEXT_PUBLIC_APP_ID === "marginfi-v2-ui"
+            ? "Earn yield, permissionlessly."
+            : "Memecoin trading, with leverage."
+        }
+      />
 
       <Accordion className="flex flex-col gap-4 mt-10 w-full" type="single" collapsible>
         <AccordionItem
-          className="relative bg-muted hover:bg-muted-highlight text-muted-foreground transition-all duration-300 w-full px-6 py-4 rounded-lg overflow-hidden"
+          className="relative bg-accent/50 text-muted-foreground transition-all duration-300 w-full px-6 py-4 rounded-lg overflow-hidden"
           value="social"
         >
-          <AccordionTrigger variant="wallet" className="text-left hover:bg-muted-highlight rounded-lg items-start">
+          <AccordionTrigger variant="wallet" className="text-left rounded-lg items-start">
             <div className="flex flex-col gap-3 w-4/5">
-              <h2 className="font-medium text-2xl text-white leading-none">Mobile friendly account</h2>
+              <h2 className="font-medium text-2xl text-primary leading-none">Mobile friendly account</h2>
               <p className="font-normal">
                 Sign in with email to download marginfi&apos;s mobile app directly from the web.
               </p>
@@ -105,15 +112,12 @@ export const ReturningUser = ({
           </AccordionContent>
         </AccordionItem>
         <AccordionItem
-          className="relative bg-muted hover:bg-muted-highlight text-muted-foreground transition-all duration-300 w-full px-6 py-4 rounded-lg overflow-hidden"
+          className="relative bg-accent/50 text-muted-foreground transition-all duration-300 w-full px-6 py-4 rounded-lg overflow-hidden"
           value="wallet"
         >
-          <AccordionTrigger
-            variant="wallet"
-            className={cn("text-left hover:bg-muted-highlight rounded-lg items-start")}
-          >
+          <AccordionTrigger variant="wallet" className="text-left rounded-lg items-start">
             <div className="flex flex-col gap-3 w-3/4">
-              <h2 className="font-medium text-2xl text-white leading-none">Use a wallet</h2>
+              <h2 className="font-medium text-2xl text-primary leading-none">Use a wallet</h2>
               <p className="font-normal">If you&apos;re a pro, connect your wallet.</p>
             </div>
           </AccordionTrigger>
@@ -129,10 +133,12 @@ export const ReturningUser = ({
               </ul>
             )}
 
-            <div className="flex items-center gap-1 justify-center text-sm">
-              <IconStarFilled className="text-yellow-400" size={16} /> 5% points boost for{" "}
-              <IconBackpackWallet size={16} /> <strong className="text-white font-medium">Backpack</strong> users
-            </div>
+            {process.env.NEXT_PUBLIC_APP_ID && process.env.NEXT_PUBLIC_APP_ID === "marginfi-v2-ui" && (
+              <div className="flex items-center gap-1 justify-center text-sm">
+                <IconStarFilled className="text-yellow-400" size={16} /> 5% points boost for{" "}
+                <IconBackpackWallet size={16} /> <strong className="text-white font-medium">Backpack</strong> users
+              </div>
+            )}
           </AccordionContent>
         </AccordionItem>
       </Accordion>

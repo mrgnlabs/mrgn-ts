@@ -24,13 +24,12 @@ import {
   MultiStepToastHandle,
   showErrorToast,
   STATIC_SIMULATION_ERRORS,
+  extractErrorString,
 } from "@mrgnlabs/mrgn-utils";
 import { ExtendedBankInfo, clearAccountCache, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { TradeSide } from "~/components/common/TradingBox/tradingBox.utils";
-import { WalletContextStateOverride } from "~/hooks/useWalletContext";
-
-import { extractErrorString } from "./mrgnUtils";
+import { WalletContextStateOverride } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
 export async function createMarginfiGroup({
   marginfiClient,

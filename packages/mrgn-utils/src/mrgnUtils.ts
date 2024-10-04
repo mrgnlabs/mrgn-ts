@@ -45,8 +45,8 @@ export function computeBankRateRaw(bank: ExtendedBankInfo, lendingMode: LendingM
       ? bank.info.state.emissionsRate
       : 0
     : bank.info.state.emissions == Emissions.Borrowing
-      ? bank.info.state.emissionsRate
-      : 0;
+    ? bank.info.state.emissionsRate
+    : 0;
 
   const aprRate = interestRate + emissionRate;
   const apyRate = aprToApy(aprRate);
@@ -114,7 +114,6 @@ export function getLiquidationPriceColor(currentPrice: number, liquidationPrice:
 
 export function extractErrorString(error: any, fallback?: string): string {
   const errorCode = handleError(error, null, false);
-  console.log({ error });
 
   if (errorCode?.description) {
     return errorCode.description;
@@ -127,8 +126,8 @@ export function extractErrorString(error: any, fallback?: string): string {
   return fallback ?? "Unrecognized error";
 }
 
-export function getTokenImageURL(tokenSymbol: string): string {
-  return `https://storage.googleapis.com/mrgn-public/mrgn-token-icons/${tokenSymbol}.png`;
+export function getTokenImageURL(bank: ExtendedBankInfo): string {
+  return `https://storage.googleapis.com/mrgn-public/mrgn-token-icons/${bank.info.rawBank.mint.toBase58()}.png`;
 }
 
 export function isBankOracleStale(bank: ExtendedBankInfo) {

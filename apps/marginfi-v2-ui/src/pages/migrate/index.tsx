@@ -20,7 +20,7 @@ export default function MigrateAccountPage() {
             <CardContent></CardContent>
             <CardFooter>
               <Link href="/migrate/account">
-                <Button variant="outline">Start account migration</Button>
+                <Button variant="outline-dark">Start account migration</Button>
               </Link>
             </CardFooter>
           </Card>
@@ -32,7 +32,7 @@ export default function MigrateAccountPage() {
             <CardContent></CardContent>
             <CardFooter>
               <Link href="/migrate/points">
-                <Button variant="outline">Start points migration</Button>
+                <Button variant="outline-dark">Start points migration</Button>
               </Link>
             </CardFooter>
           </Card>

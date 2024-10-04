@@ -97,8 +97,8 @@ export const WalletOnramp = ({ showAmountBackButton = true }: WalletOnrampProps)
                   <li key={idx}>
                     <Button
                       className={cn(
-                        "gap-0.5 h-auto py-4 w-full border border-transparent bg-background transition-colors hover:bg-background-gray-hover",
-                        amount === option.value && "bg-background-gray-hover border-chartreuse"
+                        "gap-0.5 h-auto py-4 w-full border border-transparent bg-background transition-colors hover:bg-accent",
+                        amount === option.value && "bg-accent border-border"
                       )}
                       variant="secondary"
                       onClick={() => {
@@ -119,7 +119,7 @@ export const WalletOnramp = ({ showAmountBackButton = true }: WalletOnrampProps)
                   onChange={(e) => setAmountRaw(e.target.value)}
                   placeholder="Custom amount"
                   className={cn(
-                    "h-auto bg-background py-3 px-4 border-0 w-full text-white transition-colors focus-visible:ring-0",
+                    "h-auto bg-accent py-3 px-4 border-0 w-full text-primary transition-colors focus-visible:ring-0",
                     !amountOptions.find((value) => value.value === amount) && "border-chartreuse"
                   )}
                 />

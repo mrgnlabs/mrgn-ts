@@ -12,11 +12,11 @@ import {
   IconHelpCircle,
   IconPlus,
 } from "@tabler/icons-react";
+import { cn } from "@mrgnlabs/mrgn-utils";
 
 import { useUiStore } from "~/store";
 import { useFirebaseAccount } from "~/hooks/useFirebaseAccount";
-import { useOs } from "~/hooks/useOs";
-import { cn } from "~/utils/themeUtils";
+import { useOs } from "~/hooks/use-os";
 
 import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
 

@@ -8,11 +8,10 @@ import Confetti from "react-confetti";
 import { useWindowSize } from "@uidotdev/usehooks";
 import { IconConfetti, IconPlus } from "@tabler/icons-react";
 
-import { showErrorToast } from "@mrgnlabs/mrgn-utils";
+import { showErrorToast, capture, cn } from "@mrgnlabs/mrgn-utils";
 
 import { useTradeStore } from "~/store";
-import { capture, cn } from "~/utils";
-import { useIsMobile } from "~/hooks/useIsMobile";
+import { useIsMobile } from "~/hooks/use-is-mobile";
 
 import { Dialog, DialogContent, DialogTrigger } from "~/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "~/components/ui/form";

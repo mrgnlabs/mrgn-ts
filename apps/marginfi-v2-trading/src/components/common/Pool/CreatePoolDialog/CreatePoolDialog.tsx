@@ -8,10 +8,10 @@ import Confetti from "react-confetti";
 import { useWindowSize } from "@uidotdev/usehooks";
 import { IconPlus } from "@tabler/icons-react";
 import { PublicKey } from "@solana/web3.js";
+import { cn } from "@mrgnlabs/mrgn-utils";
 
 import { useTradeStore } from "~/store";
-import { cn } from "~/utils";
-import { useIsMobile } from "~/hooks/useIsMobile";
+import { useIsMobile } from "~/hooks/use-is-mobile";
 
 import {
   CreatePoolSearch,

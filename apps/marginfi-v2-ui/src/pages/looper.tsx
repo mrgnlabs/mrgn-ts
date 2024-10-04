@@ -1,17 +1,19 @@
 import React from "react";
-
-import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActionBox as ActionBoxV2 } from "@mrgnlabs/mrgn-ui";
+import { capture } from "@mrgnlabs/mrgn-utils";
 import { useMrgnlendStore, useUiStore } from "~/store";
 
-import { ActionBox } from "~/components/common/ActionBox";
 import { ActionComplete } from "~/components/common/ActionComplete";
 import { PageHeading } from "~/components/common/PageHeading";
 
 import { Loader } from "~/components/ui/loader";
+import { useWallet } from "~/components/wallet-v2";
 
 export default function LooperPage() {
   const [initialized] = useMrgnlendStore((state) => [state.initialized, state.extendedBankInfos]);
   const [previousTxn] = useUiStore((state) => [state.previousTxn]);
+
+  const { connected, walletContextState } = useWallet();
 
   return (
     <>
@@ -20,7 +22,16 @@ export default function LooperPage() {
       {initialized && (
         <div className="w-full max-w-7xl mx-auto mb-20 px-5">
           <PageHeading heading="mrgnloop ➰" body={<p>Leverage your deposits to maximize yield.</p>} />
-          <ActionBox requestedAction={ActionType.Loop} />
+          <ActionBoxV2.Loop
+            useProvider={true}
+            loopProps={{
+              connected: connected,
+              walletContextState: walletContextState,
+              captureEvent: (event, properties) => {
+                capture(event, properties);
+              },
+            }}
+          />
         </div>
       )}
 

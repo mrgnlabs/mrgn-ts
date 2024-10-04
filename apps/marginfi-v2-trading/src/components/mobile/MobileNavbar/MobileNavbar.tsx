@@ -3,10 +3,10 @@ import React, { ReactNode } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { IconChartPie, IconShovelPitchforks, IconSearch, IconPlus } from "@tabler/icons-react";
+import { cn } from "@mrgnlabs/mrgn-utils";
 
 import { useUiStore } from "~/store";
-import { useOs } from "~/hooks/useOs";
-import { cn } from "~/utils/themeUtils";
+import { useOs } from "~/hooks/use-os";
 
 import { CreatePoolSoon } from "~/components/common/Pool/CreatePoolSoon";
 

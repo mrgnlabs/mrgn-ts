@@ -6,7 +6,7 @@ import { useUiStore } from "~/store";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
 import { Button } from "~/components/ui/button";
-import { IconInfiniteLoader, IconLoader } from "~/components/ui/icons";
+import { IconLoader } from "~/components/ui/icons";
 
 type ActionBoxActionsProps = {
   isLoading: boolean;
@@ -38,7 +38,7 @@ export const ActionBoxActions = ({
 
   return (
     <Button disabled={isLoading || !isEnabled} className="w-full py-5" onClick={handleAction}>
-      {isLoading ? actionMode === ActionType.Loop ? <IconInfiniteLoader /> : <IconLoader /> : buttonLabel}
+      {isLoading ? actionMode === ActionType.Loop ? <IconLoader /> : <IconLoader /> : buttonLabel}
     </Button>
   );
 };

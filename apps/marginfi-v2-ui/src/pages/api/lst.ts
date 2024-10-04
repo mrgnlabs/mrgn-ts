@@ -45,7 +45,7 @@ const fetchAndParsePricesCsv = async (url: string) => {
   return prices;
 };
 
-const myCache = new NodeCache({ stdTTL: 600 }); // Cache for 1 hour
+const myCache = new NodeCache({ stdTTL: 1800 }); // Cache for 1 hour
 const SOLANA_COMPASS_BASE_URL = "https://raw.githubusercontent.com/glitchful-dev/sol-stake-pool-apy/master/db/";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {

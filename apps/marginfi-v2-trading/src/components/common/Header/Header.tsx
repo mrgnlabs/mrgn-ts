@@ -5,27 +5,21 @@ import React from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { motion, useAnimate } from "framer-motion";
-import {
-  IconTrendingUp,
-  IconCoins,
-  IconChartPie,
-  IconPlus,
-  IconShovelPitchforks,
-  IconCommand,
-  IconRefresh,
-} from "@tabler/icons-react";
+import { IconPlus, IconCopy, IconCheck } from "@tabler/icons-react";
+import { CopyToClipboard } from "react-copy-to-clipboard";
+import { cn } from "@mrgnlabs/mrgn-utils";
 
-import { useTradeStore, useUiStore } from "~/store";
-import { WalletState } from "~/store/uiStore";
-import { cn } from "~/utils/themeUtils";
-import { useWalletContext } from "~/hooks/useWalletContext";
-import { useIsMobile } from "~/hooks/useIsMobile";
+import { useTradeStore } from "~/store";
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
+import { useIsMobile } from "~/hooks/use-is-mobile";
+import { useConnection } from "~/hooks/use-connection";
 
-import { WalletButton } from "~/components/common/Wallet";
+import { Wallet } from "~/components/wallet-v2";
 import { CreatePoolScriptDialog } from "../Pool/CreatePoolScript";
+import { CreatePoolSoon } from "../Pool/CreatePoolSoon";
 import { Button } from "~/components/ui/button";
 import { IconArena } from "~/components/ui/icons";
-import { CreatePoolSoon } from "../Pool/CreatePoolSoon";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 
 const navItems = [
   { label: "Discover", href: "/" },
@@ -34,12 +28,25 @@ const navItems = [
 ];
 
 export const Header = () => {
-  const [initialized] = useTradeStore((state) => [state.initialized]);
-  const [setIsWalletOpen, setWalletState] = useUiStore((state) => [state.setIsWalletOpen, state.setWalletState]);
-  const { asPath, isReady } = useRouter();
-  const { connected } = useWalletContext();
+  const { connection } = useConnection();
+  const [initialized, groupMap, nativeSolBalance, fetchTradeState, referralCode] = useTradeStore((state) => [
+    state.initialized,
+    state.groupMap,
+    state.nativeSolBalance,
+    state.fetchTradeState,
+    state.referralCode,
+  ]);
+  const { wallet } = useWallet();
+  const { asPath } = useRouter();
   const isMobile = useIsMobile();
   const [scope, animate] = useAnimate();
+
+  const [isReferralCopied, setIsReferralCopied] = React.useState(false);
+
+  const extendedBankInfos = React.useMemo(() => {
+    const goups = [...groupMap.values()];
+    return goups.map((group) => group.pool.token);
+  }, [groupMap]);
 
   React.useEffect(() => {
     if (!initialized) return;
@@ -83,7 +90,7 @@ export const Header = () => {
             })}
           </ul>
         </nav>
-        <div className={cn("flex items-center", process.env.NEXT_PUBLIC_ENABLE_BANK_SCRIPT && "gap-6")}>
+        <div className={cn("flex items-center", process.env.NEXT_PUBLIC_ENABLE_BANK_SCRIPT && "gap-2")}>
           {
             // eslint-disable-next-line turbo/no-undeclared-env-vars
             process.env.NEXT_PUBLIC_ENABLE_BANK_SCRIPT && (
@@ -98,7 +105,7 @@ export const Header = () => {
               </div>
             )
           }
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-4">
             {!isMobile && (
               <div className="flex items-center">
                 <CreatePoolSoon
@@ -108,21 +115,56 @@ export const Header = () => {
                     </Button>
                   }
                 />
-                {/* <TooltipProvider>
-                <Tooltip delayDuration={0}>
-                  <TooltipTrigger asChild>
-                    <Button size={isMobile ? "sm" : "default"} className="opacity-50">
-                      <IconPlus size={isMobile ? 14 : 18} /> Create Pools
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Permissionless pools coming soon...</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider> */}
               </div>
             )}
-            <WalletButton />
+            <Wallet
+              connection={connection}
+              initialized={initialized}
+              extendedBankInfos={extendedBankInfos}
+              nativeSolBalance={nativeSolBalance}
+              refreshState={() =>
+                fetchTradeState({
+                  connection,
+                  wallet,
+                })
+              }
+              headerComponent={
+                <div className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center gap-2">
+                  <CopyToClipboard
+                    text={referralCode ?? ""}
+                    onCopy={() => {
+                      setIsReferralCopied(true);
+                      setTimeout(() => {
+                        setIsReferralCopied(false);
+                      }, 2000);
+                    }}
+                  >
+                    <Button size="sm" variant="secondary" className="cursor-not-allowed opacity-75">
+                      <TooltipProvider>
+                        <Tooltip delayDuration={0}>
+                          <TooltipTrigger className="flex items-center gap-2 cursor-not-allowed">
+                            {isReferralCopied ? (
+                              <>
+                                <p>Copied!</p>
+                                <IconCheck size={16} />
+                              </>
+                            ) : (
+                              <>
+                                <p>Copy referrral link</p>
+                                <IconCopy size={16} />
+                              </>
+                            )}
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Referral program coming soon.</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </Button>
+                  </CopyToClipboard>
+                </div>
+              }
+            />
           </div>
         </div>
       </motion.header>

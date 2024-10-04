@@ -3,10 +3,10 @@ import React from "react";
 import Image from "next/image";
 
 import { numeralFormatter, usdFormatter, WSOL_MINT } from "@mrgnlabs/mrgn-common";
-import { LendingModes, getTokenImageURL } from "@mrgnlabs/mrgn-utils";
+import { LendingModes } from "@mrgnlabs/mrgn-utils";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { cn } from "~/utils";
+import { cn } from "@mrgnlabs/mrgn-utils";
 
 type ActionBoxItemProps = {
   bank: ExtendedBankInfo;
@@ -56,13 +56,7 @@ export const ActionBoxItem = ({
   return (
     <>
       <div className="flex items-center gap-3">
-        <Image
-          src={getTokenImageURL(bank.meta.tokenSymbol)}
-          alt={bank.meta.tokenName}
-          width={28}
-          height={28}
-          className="rounded-full"
-        />
+        <Image src={bank.meta.tokenLogoUri} alt={bank.meta.tokenName} width={28} height={28} className="rounded-full" />
         <div>
           <p className="flex items-center">
             {bank.meta.tokenSymbol}

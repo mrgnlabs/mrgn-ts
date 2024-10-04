@@ -4,13 +4,14 @@ import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
 
 import { shortenAddress } from "@mrgnlabs/mrgn-common";
-import { capture, Desktop, Mobile } from "@mrgnlabs/mrgn-utils";
+import { capture, Desktop, LendingModes, Mobile } from "@mrgnlabs/mrgn-utils";
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { ActionBox } from "@mrgnlabs/mrgn-ui";
 
 import { useMrgnlendStore, useUiStore } from "~/store";
 import { useActionBoxStore } from "~/hooks/useActionBoxStore";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
+import { IconBook, IconTrophy } from "@tabler/icons-react";
 
 import { Banner } from "~/components/desktop/Banner";
 import { ActionBoxLendWrapper } from "~/components/common/ActionBox";
@@ -23,7 +24,7 @@ import {
 } from "~/components/common/Announcements";
 
 import { OverlaySpinner } from "~/components/ui/overlay-spinner";
-import { IconBackpackWallet, IconBook, IconTrophy, IconYBX } from "~/components/ui/icons";
+import { IconYBX, IconBackpackWallet } from "~/components/ui/icons";
 import { Loader } from "~/components/ui/loader";
 
 const AssetsList = dynamic(async () => (await import("~/components/desktop/AssetList")).AssetsList, {
@@ -33,15 +34,15 @@ const AssetsList = dynamic(async () => (await import("~/components/desktop/Asset
 export default function HomePage() {
   const router = useRouter();
   const { walletContextState, walletAddress, isOverride, connected } = useWallet();
-  const [previousTxn, setIsWalletOpen, setIsWalletAuthDialogOpen, setPreviousTxn, setIsActionComplete] = useUiStore(
-    (state) => [
+  const [previousTxn, lendingMode, setIsWalletOpen, setIsWalletAuthDialogOpen, setPreviousTxn, setIsActionComplete] =
+    useUiStore((state) => [
       state.previousTxn,
+      state.lendingMode,
       state.setIsWalletOpen,
       state.setIsWalletAuthDialogOpen,
       state.setPreviousTxn,
       state.setIsActionComplete,
-    ]
-  );
+    ]);
   const [
     marginfiClient,
     isStoreInitialized,
@@ -61,6 +62,7 @@ export default function HomePage() {
   ]);
 
   const [actionMode, refreshState] = useActionBoxStore()((state) => [state.actionMode, state.refreshState]);
+
   const [isStateReset, setIsStateReset] = React.useState(false);
 
   const annoucements = React.useMemo(() => {
@@ -85,12 +87,12 @@ export default function HomePage() {
 
   // reset actionbox state (except for deposit / borrow)
   // this allows for linking to lend page with action mode preset
-  React.useEffect(() => {
-    if (actionMode !== ActionType.Deposit && actionMode !== ActionType.Borrow && !isStateReset) {
-      refreshState();
-      setIsStateReset(true);
-    }
-  }, [actionMode, refreshState, isStateReset]);
+  // React.useEffect(() => {
+  //   if (actionMode !== ActionType.Deposit && actionMode !== ActionType.Borrow && !isStateReset) {
+  //     refreshState();
+  //     setIsStateReset(true);
+  //   }
+  // }, [actionMode, refreshState, isStateReset]);
 
   return (
     <>
@@ -110,28 +112,12 @@ export default function HomePage() {
               <Announcements items={annoucements} />
               <AnnouncementsDialog />
               <div className="p-4 space-y-4 w-full">
-                <ActionBox.LendBorrow
+                <ActionBox.BorrowLend
+                  useProvider={true}
                   lendProps={{
-                    marginfiClient,
-                    nativeSolBalance: nativeSolBalance,
-                    selectedAccount,
-                    banks: extendedBankInfos,
-                    accountSummaryArg: accountSummary,
-                    walletContextState: walletContextState,
+                    requestedLendType: lendingMode === LendingModes.LEND ? ActionType.Deposit : ActionType.Borrow,
                     connected: connected,
-
-                    onComplete: (previousTxn) => {
-                      // TODO refactor previousTxn to be more like tradingui
-                      if (previousTxn.txnType !== "LEND") return;
-                      setIsActionComplete(true);
-
-                      setPreviousTxn({
-                        type: previousTxn.lendingOptions.type,
-                        bank: previousTxn.lendingOptions.bank,
-                        amount: previousTxn.lendingOptions.amount,
-                        txn: previousTxn.txn,
-                      });
-                    },
+                    walletContextState: walletContextState,
                     captureEvent: (event, properties) => {
                       capture(event, properties);
                     },
@@ -155,31 +141,12 @@ export default function HomePage() {
             <Announcements items={annoucements} />
             <AnnouncementsDialog />
             <div className="p-4 space-y-4 w-full">
-              <ActionBox.LendBorrow
+              <ActionBox.BorrowLend
+                useProvider={true}
                 lendProps={{
-                  marginfiClient,
-                  nativeSolBalance: nativeSolBalance,
-                  selectedAccount,
-                  banks: extendedBankInfos,
-                  accountSummaryArg: accountSummary,
-                  walletContextState: walletContextState,
+                  requestedLendType: lendingMode === LendingModes.LEND ? ActionType.Deposit : ActionType.Borrow,
                   connected: connected,
-
-                  onComplete: (previousTxn) => {
-                    // TODO refactor previousTxn to be more like tradingui
-                    if (previousTxn.txnType !== "LEND") return;
-                    setIsActionComplete(true);
-
-                    setPreviousTxn({
-                      type: previousTxn.lendingOptions.type,
-                      bank: previousTxn.lendingOptions.bank,
-                      amount: previousTxn.lendingOptions.amount,
-                      txn: previousTxn.txn,
-                    });
-                  },
-                  captureEvent: (event, properties) => {
-                    capture(event, properties);
-                  },
+                  walletContextState: walletContextState,
                   onConnect: () => setIsWalletAuthDialogOpen(true),
                 }}
               />

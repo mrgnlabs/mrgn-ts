@@ -23,7 +23,7 @@ import {
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { ExtendedBankInfo, UserPointsData, AccountSummary } from "@mrgnlabs/marginfi-v2-ui-state";
 import { shortenAddress, usdFormatter, numeralFormatter, groupedNumberFormatterDyn } from "@mrgnlabs/mrgn-common";
-import { getTokenImageURL, showErrorToast, useIsMobile, cn } from "@mrgnlabs/mrgn-utils";
+import { useIsMobile, cn } from "@mrgnlabs/mrgn-utils";
 
 import { useWalletStore } from "~/components/wallet-v2/store/wallet.store";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
@@ -50,14 +50,15 @@ import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
 type WalletProps = {
   connection: Connection;
   initialized: boolean;
-  mfiClient: MarginfiClient | null;
-  marginfiAccounts: MarginfiAccountWrapper[];
-  selectedAccount: MarginfiAccountWrapper | null;
+  mfiClient?: MarginfiClient | null;
+  marginfiAccounts?: MarginfiAccountWrapper[];
+  selectedAccount?: MarginfiAccountWrapper | null;
   extendedBankInfos: ExtendedBankInfo[];
   nativeSolBalance: number;
-  userPointsData: UserPointsData;
-  accountSummary: AccountSummary;
+  userPointsData?: UserPointsData;
+  accountSummary?: AccountSummary;
   refreshState: () => void;
+  headerComponent?: JSX.Element;
 };
 
 enum WalletState {
@@ -84,6 +85,7 @@ const Wallet = ({
   userPointsData,
   accountSummary,
   refreshState,
+  headerComponent,
 }: WalletProps) => {
   const router = useRouter();
   const [isWalletOpen, setIsWalletOpen] = useWalletStore((state) => [state.isWalletOpen, state.setIsWalletOpen]);
@@ -130,17 +132,22 @@ const Wallet = ({
     const userTokens = userBanks
       .map((bank) => {
         const isSolBank = bank.meta.tokenSymbol === "SOL";
-        const value = isSolBank
+        let value = isSolBank
           ? nativeSolBalance + bank.userInfo.tokenAccount.balance
           : bank.userInfo.tokenAccount.balance;
-        const valueUSD =
+        let valueUSD =
           (isSolBank ? nativeSolBalance + bank.userInfo.tokenAccount.balance : bank.userInfo.tokenAccount.balance) *
           bank.info.state.price;
+
+        if (Number.isNaN(value) || Number.isNaN(valueUSD)) {
+          value = 0;
+          valueUSD = 0;
+        }
 
         return {
           address: bank.address,
           name: isSolBank ? "Solana" : bank.meta.tokenName,
-          image: getTokenImageURL(bank.meta.tokenSymbol),
+          image: bank.meta.tokenLogoUri,
           symbol: bank.meta.tokenSymbol,
           value: value,
           valueUSD: valueUSD,
@@ -155,7 +162,10 @@ const Wallet = ({
         );
       });
 
-    const totalBalance = userTokens.reduce((acc, token) => acc + token.valueUSD, 0);
+    const totalBalance = userTokens.reduce(
+      (acc, token) => acc + (typeof token.valueUSD === "number" ? token.valueUSD : 0),
+      0
+    );
 
     setWalletData({
       address: wallet?.publicKey.toString(),
@@ -166,7 +176,7 @@ const Wallet = ({
   }, [wallet?.publicKey, extendedBankInfos, nativeSolBalance, isWalletBalanceErrorShown]);
 
   React.useEffect(() => {
-    if (!walletData.address) {
+    if (!walletData.tokens.length) {
       getWalletData();
       return;
     }
@@ -185,34 +195,37 @@ const Wallet = ({
         <Sheet open={isWalletOpen} onOpenChange={(open) => setIsWalletOpen(open)}>
           <SheetTrigger asChild>
             {walletData.address && (
-              <button className="flex items-center gap-2 hover:bg-background-gray-light transition-colors rounded-full py-0.5 pr-2 pl-1 text-sm text-muted-foreground">
+              <button className="flex items-center gap-2 hover:bg-accent/50 transition-colors rounded-full py-0.5 pr-2 pl-1 text-sm text-muted-foreground">
                 <WalletAvatar pfp={pfp} address={walletData.address} size="sm" />
                 {walletData.shortAddress}
                 <IconChevronDown size={16} />
               </button>
             )}
           </SheetTrigger>
-          <SheetContent className="outline-none z-[50] px-4 bg-background border-0">
+          <SheetContent className="outline-none z-[50] px-4 bg-background border-0 pt-2">
             <SheetHeader className="sr-only">
               <SheetTitle>marginfi wallet</SheetTitle>
               <SheetDescription>Manage your marginfi wallet.</SheetDescription>
             </SheetHeader>
             {walletData.address ? (
               <div className="max-h-full">
-                <header className="flex items-center gap-2">
+                <header className="flex items-center gap-2 h-12">
                   <WalletAvatar pfp={pfp} address={walletData.address} size="md" className="absolute left-2" />
 
-                  <div className="mx-auto">
-                    <WalletAuthAccounts
-                      initialized={initialized}
-                      mfiClient={mfiClient}
-                      marginfiAccounts={marginfiAccounts}
-                      selectedAccount={selectedAccount}
-                      fetchMrgnlendState={function (): Promise<void> {
-                        throw new Error("Function not implemented.");
-                      }}
-                    />
-                  </div>
+                  {!headerComponent && mfiClient && marginfiAccounts && selectedAccount && (
+                    <div className="mx-auto">
+                      <WalletAuthAccounts
+                        initialized={initialized}
+                        mfiClient={mfiClient}
+                        marginfiAccounts={marginfiAccounts}
+                        selectedAccount={selectedAccount}
+                        fetchMrgnlendState={refreshState}
+                      />
+                    </div>
+                  )}
+
+                  {headerComponent && headerComponent}
+
                   <div className="absolute right-2 flex items-center md:gap-1">
                     {web3AuthConncected && (
                       <Button
@@ -251,21 +264,23 @@ const Wallet = ({
                     <TabsList className="flex items-center gap-4 bg-transparent px-16 mx-auto">
                       <TabsTrigger
                         value="tokens"
-                        className="group w-1/3 bg-transparent data-[state=active]:bg-transparent"
+                        className="group w-1/3 bg-transparent data-[state=active]:shadow-none data-[state=active]:bg-transparent"
                         onClick={() => resetWalletState()}
                       >
-                        <span className="group-data-[state=active]:bg-background-gray-light hover:bg-background-gray-light/75 py-1.5 px-3 rounded-md">
+                        <span className="group-data-[state=active]:bg-accent hover:bg-accent py-1.5 px-3 rounded-md">
                           Tokens
                         </span>
                       </TabsTrigger>
-                      <TabsTrigger
-                        value="points"
-                        className="group w-1/3 bg-transparent data-[state=active]:bg-transparent"
-                      >
-                        <span className="group-data-[state=active]:bg-background-gray-light hover:bg-background-gray-light/75 py-1.5 px-3 rounded-md">
-                          Points
-                        </span>
-                      </TabsTrigger>
+                      {userPointsData && (
+                        <TabsTrigger
+                          value="points"
+                          className="group w-1/3 bg-transparent data-[state=active]:bg-transparent"
+                        >
+                          <span className="group-data-[state=active]:bg-background-gray-light hover:bg-background-gray-light/75 py-1.5 px-3 rounded-md">
+                            Points
+                          </span>
+                        </TabsTrigger>
+                      )}
                       <div className="cursor-help w-1/3 inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow">
                         <TooltipProvider>
                           <Tooltip>
@@ -298,22 +313,24 @@ const Wallet = ({
                               </Tooltip>
                             </TooltipProvider>
                           </p>
-                          <p className="flex items-center gap-1.5 text-muted-foreground text-sm">
-                            Portfolio balance
-                            <span className="flex items-center gap-1 text-primary">
-                              <strong className="font-medium">{usdFormatter.format(accountSummary.balance)}</strong>{" "}
-                              <TooltipProvider>
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <IconInfoCircleFilled className="text-muted-foreground" size={14} />
-                                  </TooltipTrigger>
-                                  <TooltipContent>
-                                    <p>Your current marginfi portfolio balance.</p>
-                                  </TooltipContent>
-                                </Tooltip>
-                              </TooltipProvider>
-                            </span>
-                          </p>
+                          {accountSummary && (
+                            <p className="flex items-center gap-1.5 text-muted-foreground text-sm">
+                              Portfolio balance
+                              <span className="flex items-center gap-1 text-primary">
+                                <strong className="font-medium">{usdFormatter.format(accountSummary.balance)}</strong>{" "}
+                                <TooltipProvider>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <IconInfoCircleFilled className="text-muted-foreground" size={14} />
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      <p>Your current marginfi portfolio balance.</p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
+                              </span>
+                            </p>
+                          )}
                         </div>
 
                         <div className="mt-8 space-y-6">
@@ -335,7 +352,7 @@ const Wallet = ({
                       <TabWrapper resetWalletState={resetWalletState}>
                         <div className="gap-2 text-center flex flex-col items-center">
                           <Image
-                            src={getTokenImageURL(activeToken.symbol)}
+                            src={activeToken.image}
                             alt={activeToken.symbol}
                             width={60}
                             height={60}
@@ -380,7 +397,8 @@ const Wallet = ({
                               setWalletTokenState(WalletState.SEND);
                             }}
                             onCancel={() => {
-                              setWalletTokenState(WalletState.TOKEN);
+                              setWalletTokenState(WalletState.DEFAULT);
+                              setActiveToken(null);
                             }}
                             onComplete={() => {
                               refreshState();
@@ -404,7 +422,7 @@ const Wallet = ({
                     {walletTokenState === WalletState.SELECT && (
                       <TabWrapper resetWalletState={resetWalletState}>
                         <WalletTokens
-                          className="h-[calc(100vh-235px)]"
+                          className="h-[calc(100vh-210px)] mt-8"
                           tokens={walletData.tokens}
                           onTokenClick={(token) => {
                             setActiveToken(token);
@@ -429,14 +447,14 @@ const Wallet = ({
                             if (!value || value === bridgeType) return;
                             setBridgeType(value as "mayan" | "debridge");
                           }}
-                          className="w-full md:w-4/5 mx-auto mt-4 gap-1.5 mb-4 bg-background-gray-light/50"
+                          className="w-full md:w-4/5 mx-auto mt-4 gap-1.5 mb-4 bg-accent px-1"
                         >
                           <ToggleGroupItem
                             value="mayan"
                             aria-label="lend"
                             className={cn(
                               "w-1/2 text-xs gap-1.5 capitalize",
-                              bridgeType === "mayan" && "data-[state=on]:bg-background-gray-light"
+                              bridgeType === "mayan" && "data-[state=on]:bg-background"
                             )}
                           >
                             <span className="flex items-center gap-2">
@@ -455,7 +473,7 @@ const Wallet = ({
                             aria-label="borrow"
                             className={cn(
                               "w-1/2 text-xs gap-1.5",
-                              bridgeType === "debridge" && "data-[state=on]:bg-background-gray-light"
+                              bridgeType === "debridge" && "data-[state=on]:bg-background"
                             )}
                           >
                             <span className="flex items-center gap-2">
@@ -487,55 +505,57 @@ const Wallet = ({
                       </TabWrapper>
                     )}
                   </TabsContent>
-                  <TabsContent value="points">
-                    <div className="flex flex-col items-center pt-8">
-                      <p className="font-medium text-4xl flex flex-col justify-center items-center text-center">
-                        <span className="text-sm font-normal text-chartreuse text-center">Your points</span>
-                        {groupedNumberFormatterDyn.format(Math.round(userPointsData.totalPoints))}
-                      </p>
-                      {userPointsData.userRank && (
-                        <div className="flex flex-col items-center justify-center text-xl p-4 bg-background-gray-dark/40 rounded-lg font-medium leading-tight">
-                          <span className="text-sm font-normal text-chartreuse">Your rank</span> #
-                          {groupedNumberFormatterDyn.format(userPointsData.userRank)}
-                        </div>
-                      )}
-                      <ul className="space-y-2 mt-4">
-                        <li>
-                          <Button
-                            variant="outline"
-                            className="w-full justify-start"
-                            onClick={() => {
-                              setIsWalletOpen(false);
-                              router.push("/points");
-                            }}
-                          >
-                            <IconTrophy size={16} /> Points Leaderboard
-                          </Button>
-                        </li>
-                        <li>
-                          <CopyToClipboard
-                            text={`https://www.mfi.gg/refer/${userPointsData.referralLink}`}
-                            onCopy={() => {
-                              if (userPointsData.referralLink && userPointsData.referralLink.length > 0) {
-                                setIsReferralCopied(true);
-                                setTimeout(() => setIsReferralCopied(false), 2000);
-                              }
-                            }}
-                          >
-                            <Button variant="outline" className="w-full justify-start">
-                              {isReferralCopied ? (
-                                <div className="text-center w-full">Link copied!</div>
-                              ) : (
-                                <>
-                                  <IconCopy size={16} /> Copy referral code
-                                </>
-                              )}
+                  {userPointsData && (
+                    <TabsContent value="points">
+                      <div className="flex flex-col items-center pt-8">
+                        <p className="font-medium text-4xl flex flex-col justify-center items-center text-center">
+                          <span className="text-sm font-normal text-chartreuse text-center">Your points</span>
+                          {groupedNumberFormatterDyn.format(Math.round(userPointsData.totalPoints))}
+                        </p>
+                        {userPointsData.userRank && (
+                          <div className="flex flex-col items-center justify-center text-xl p-4 bg-background-gray-dark/40 rounded-lg font-medium leading-tight">
+                            <span className="text-sm font-normal text-chartreuse">Your rank</span> #
+                            {groupedNumberFormatterDyn.format(userPointsData.userRank)}
+                          </div>
+                        )}
+                        <ul className="space-y-2 mt-4">
+                          <li>
+                            <Button
+                              variant="outline"
+                              className="w-full justify-start"
+                              onClick={() => {
+                                setIsWalletOpen(false);
+                                router.push("/points");
+                              }}
+                            >
+                              <IconTrophy size={16} /> Points Leaderboard
                             </Button>
-                          </CopyToClipboard>
-                        </li>
-                      </ul>
-                    </div>
-                  </TabsContent>
+                          </li>
+                          <li>
+                            <CopyToClipboard
+                              text={`https://www.mfi.gg/refer/${userPointsData.referralLink}`}
+                              onCopy={() => {
+                                if (userPointsData.referralLink && userPointsData.referralLink.length > 0) {
+                                  setIsReferralCopied(true);
+                                  setTimeout(() => setIsReferralCopied(false), 2000);
+                                }
+                              }}
+                            >
+                              <Button variant="outline" className="w-full justify-start">
+                                {isReferralCopied ? (
+                                  <div className="text-center w-full">Link copied!</div>
+                                ) : (
+                                  <>
+                                    <IconCopy size={16} /> Copy referral code
+                                  </>
+                                )}
+                              </Button>
+                            </CopyToClipboard>
+                          </li>
+                        </ul>
+                      </div>
+                    </TabsContent>
+                  )}
                 </Tabs>
               </div>
             ) : (
@@ -570,75 +590,64 @@ type TokenOptionsProps = {
 };
 
 function TokenOptions({ setState, setToken }: TokenOptionsProps) {
+  const items = [
+    {
+      label: "Send",
+      icon: IconArrowUp,
+      state: WalletState.SEND,
+      onClick: () => {
+        if (!setToken && !setToken) {
+          setState(WalletState.SELECT);
+          return;
+        }
+
+        if (setToken) setToken();
+        setState(WalletState.SEND);
+      },
+    },
+    {
+      label: "Receive",
+      icon: IconArrowDown,
+      state: WalletState.RECEIVE,
+      onClick: () => {
+        setState(WalletState.RECEIVE);
+      },
+    },
+    {
+      label: "Swap",
+      icon: IconRefresh,
+      state: WalletState.SWAP,
+      onClick: () => {
+        setState(WalletState.SWAP);
+      },
+    },
+    {
+      label: "Bridge",
+      icon: IconArrowsExchange,
+      state: WalletState.BRIDGE,
+      onClick: () => {
+        setState(WalletState.BRIDGE);
+      },
+    },
+    {
+      label: "Buy",
+      icon: IconCreditCardPay,
+      state: WalletState.BUY,
+      onClick: () => {
+        setState(WalletState.BUY);
+      },
+    },
+  ];
   return (
     <div className="flex items-center justify-center gap-4 text-xs">
-      <button
-        className="flex flex-col gap-1 font-medium items-center"
-        onClick={() => {
-          if (!setToken && !setToken) {
-            setState(WalletState.SELECT);
-            return;
-          }
-
-          if (setToken) setToken();
-          setState(WalletState.SEND);
-        }}
-      >
-        <div className="rounded-full flex items-center justify-center h-10 w-10 bg-background-gray transition-colors hover:bg-background-gray-hover">
-          <IconArrowUp size={20} />
-        </div>
-        Send
-      </button>
-      <button
-        className="flex flex-col gap-1 font-medium items-center"
-        onClick={() => {
-          if (!setToken && !setToken) {
-            setState(WalletState.RECEIVE);
-            return;
-          }
-
-          if (setToken) setToken();
-          setState(WalletState.RECEIVE);
-        }}
-      >
-        <div className="rounded-full flex items-center justify-center h-10 w-10 bg-background-gray transition-colors hover:bg-background-gray-hover">
-          <IconArrowDown size={20} />
-        </div>
-        Receive
-      </button>
-      <button
-        className="flex flex-col gap-1 font-medium items-center"
-        onClick={() => {
-          setState(WalletState.SWAP);
-        }}
-      >
-        <div className="rounded-full flex items-center justify-center h-10 w-10 bg-background-gray transition-colors hover:bg-background-gray-hover">
-          <IconRefresh size={20} />
-        </div>
-        Swap
-      </button>
-      <button
-        className="flex flex-col gap-1 font-medium items-center"
-        onClick={() => {
-          setState(WalletState.BRIDGE);
-        }}
-      >
-        <div className="rounded-full flex items-center justify-center h-10 w-10 bg-background-gray transition-colors hover:bg-background-gray-hover">
-          <IconArrowsExchange size={20} />
-        </div>
-        Bridge
-      </button>
-      <button
-        className="flex flex-col gap-1 font-medium items-center"
-        onClick={() => {
-          setState(WalletState.BUY);
-        }}
-      >
-        <div className="rounded-full flex items-center justify-center h-10 w-10 bg-background-gray transition-colors hover:bg-background-gray-hover">
-          <IconCreditCardPay size={20} />
-        </div>
-        Buy
-      </button>
+      {items.map((item) => (
+        <button key={item.state} className="flex flex-col gap-1 font-medium items-center" onClick={item.onClick}>
+          <div className="rounded-full flex items-center justify-center h-10 w-10 bg-accent/50 transition-colors hover:bg-accent">
+            <item.icon size={20} />
+          </div>
+          {item.label}
+        </button>
+      ))}
     </div>
   );
 }

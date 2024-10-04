@@ -4,7 +4,7 @@ import { cn } from "@mrgnlabs/mrgn-utils";
 import { cva, type VariantProps } from "class-variance-authority";
 
 const labelVariants = cva(
-  "text-sm text-white font-normal leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+  "text-sm text-primary font-normal leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
 );
 
 const Label = React.forwardRef<

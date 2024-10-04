@@ -7,13 +7,13 @@ import { Desktop, Mobile } from "@mrgnlabs/mrgn-utils";
 
 import { useTradeStore, useUiStore } from "~/store";
 import { GroupData, TradePoolFilterStates } from "~/store/tradeStore";
-import { cn } from "~/utils";
-import { useIsMobile } from "~/hooks/useIsMobile";
-import { useWalletContext } from "~/hooks/useWalletContext";
+import { cn } from "@mrgnlabs/mrgn-utils";
+import { useIsMobile } from "~/hooks/use-is-mobile";
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
 import { PageHeading } from "~/components/common/PageHeading";
 import { ActionComplete } from "~/components/common/ActionComplete";
-import { Loader } from "~/components/ui/loader";
+import { Loader } from "~/components/common/Loader";
 import { Input } from "~/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
 import { YieldRow } from "~/components/common/Yield";
@@ -41,7 +41,7 @@ export default function PortfolioPage() {
   ]);
   const [previousTxn] = useUiStore((state) => [state.previousTxn]);
   const isMobile = useIsMobile();
-  const { connected } = useWalletContext();
+  const { connected } = useWallet();
   const [search, setSearch] = React.useState("");
   const groups = Array.from(groupMap.values());
   const searchRef = React.useRef<HTMLDivElement>(null);

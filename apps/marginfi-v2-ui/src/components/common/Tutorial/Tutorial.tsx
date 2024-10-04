@@ -5,13 +5,7 @@ import Link from "next/link";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Pagination } from "swiper/modules";
 import { useSwiper } from "swiper/react";
-
-import { useIsMobile } from "~/hooks/useIsMobile";
-
-import { Dialog, DialogContent } from "~/components/ui/dialog";
-import { Button } from "~/components/ui/button";
 import {
-  IconMrgn,
   IconCheck,
   IconChevronRight,
   IconExternalLink,
@@ -19,8 +13,13 @@ import {
   IconBrandDiscordFilled,
   IconMoneybag,
   IconBuildingBank,
-  IconBrandSubstack,
-} from "~/components/ui/icons";
+} from "@tabler/icons-react";
+
+import { useIsMobile } from "~/hooks/use-is-mobile";
+
+import { Dialog, DialogContent } from "~/components/ui/dialog";
+import { Button } from "~/components/ui/button";
+import { IconMrgn, IconSubstack } from "~/components/ui/icons";
 
 type TutorialSlideProps = {
   icon?: React.ReactNode;
@@ -75,7 +74,7 @@ const TutorialSlide = ({
       {docs && (
         <div className="flex flex-col md:flex-row items-center justify-center gap-4">
           <Link href="https://docs.marginfi.com/" target="_blank" rel="noreferrer" className="block w-full md:w-auto">
-            <Button variant="outline" className="w-full md:w-auto">
+            <Button variant="outline-dark" className="w-full md:w-auto">
               Read docs <IconExternalLink size={16} />
             </Button>
           </Link>
@@ -94,7 +93,7 @@ const TutorialSlide = ({
       )}
       {showSkip && (
         <Button
-          variant="outline"
+          variant="outline-dark"
           className="mt-4 w-full md:hidden"
           onClick={() => {
             if (closeDialog) closeDialog();
@@ -243,7 +242,7 @@ export const Tutorial = () => {
                       </li>
                       <li className="p-4 rounded-full bg-muted">
                         <a href="https://mrgn.substack.com/" target="_blank" rel="noreferrer">
-                          <IconBrandSubstack />
+                          <IconSubstack />
                         </a>
                       </li>
                     </ul>

@@ -4,15 +4,15 @@ import { ExtendedBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { MarginRequirementType, OperationalState } from "@mrgnlabs/marginfi-client-v2";
 import { WSOL_MINT } from "@mrgnlabs/mrgn-common";
 import { computeBankRate, LendingModes } from "@mrgnlabs/mrgn-utils";
+import { IconChevronDown } from "@tabler/icons-react";
 
-import { cn } from "~/utils";
+import { cn } from "@mrgnlabs/mrgn-utils";
 import { useMrgnlendStore } from "~/store";
 import { useActionBoxStore } from "~/hooks/useActionBoxStore";
 
 import { ActionBoxItem } from "~/components/common/ActionBox/components";
 import { CommandEmpty, CommandItem } from "~/components/ui/command";
 import { Button } from "~/components/ui/button";
-import { IconChevronDown } from "~/components/ui/icons";
 
 import { TokenListWrapper, TokenListCommand, SelectedBankItem } from "../SharedComponents";
 
