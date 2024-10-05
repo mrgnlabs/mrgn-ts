@@ -30,7 +30,7 @@
     "@solana/web3.js": "^1.91.3",
     "bignumber.js": "^9.1.1",
     "bn.js": "5.2.1",
-    "cookie": "^0.4.1",
+    "cookie": "^0.7.0",
     "cron": "~2.0.0",
     "cross-fetch": "^4.0.0",
     "decimal.js": "10.4.2",
