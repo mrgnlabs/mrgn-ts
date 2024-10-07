@@ -57,6 +57,8 @@ export async function getAdressLookupTableAccounts(
   }, new Array<AddressLookupTableAccount>());
 }
 
+export const TOKEN_2022_MINTS = ["2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo"];
+
 export const getFeeAccount = (mint: PublicKey) => {
   const referralProgramPubkey = new PublicKey("REFER4ZgmyYx9c6He5XfaTMiGfdLwRnkV4RPp9t9iF3");
   const referralAccountPubkey = new PublicKey("Mm7HcujSK2JzPW4eX7g4oqTXbWYDuFxapNMHXe8yp1B");

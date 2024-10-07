@@ -1,14 +1,22 @@
 import { createJupiterApiClient, QuoteGetRequest, QuoteResponse } from "@jup-ag/api";
-import { AddressLookupTableAccount, Connection, PublicKey, VersionedTransaction } from "@solana/web3.js";
+import { AccountInfo, AddressLookupTableAccount, Connection, PublicKey, VersionedTransaction } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { LUT_PROGRAM_AUTHORITY_INDEX, nativeToUi, uiToNative } from "@mrgnlabs/mrgn-common";
 
-import { deserializeInstruction, getAdressLookupTableAccounts, getFeeAccount, getSwapQuoteWithRetry } from "../helpers";
+import {
+  deserializeInstruction,
+  getAdressLookupTableAccounts,
+  getFeeAccount,
+  getSwapQuoteWithRetry,
+  TOKEN_2022_MINTS,
+} from "../helpers";
 import { isWholePosition } from "../../mrgnUtils";
 import { ActionMethod, LoopingObject, LoopingOptions, RepayWithCollatOptions } from "../types";
+import { STATIC_SIMULATION_ERRORS } from "../../errors";
+
 import {
   calculateMaxRepayableCollateral,
   getLoopingParamsForAccount,
@@ -17,7 +25,6 @@ import {
   verifyTxSizeCollat,
   verifyTxSizeLooping,
 } from "./helpers";
-import { STATIC_SIMULATION_ERRORS } from "../../errors";
 
 // ------------------------------------------------------------------//
 // Builders //
@@ -408,13 +415,14 @@ export async function loopingBuilder({
   addressLookupTableAccounts: AddressLookupTableAccount[];
 }> {
   const jupiterQuoteApi = createJupiterApiClient();
+  let feeAccountInfo: AccountInfo<any> | null = null;
 
-  // get fee account for original borrow mint
   const feeMint =
     options.loopingQuote.swapMode === "ExactIn" ? options.loopingQuote.outputMint : options.loopingQuote.inputMint;
-  // get fee account for original borrow mint
   const feeAccount = getFeeAccount(new PublicKey(feeMint));
-  const feeAccountInfo = await options.connection.getAccountInfo(new PublicKey(feeAccount));
+  if (!TOKEN_2022_MINTS.includes(feeMint)) {
+    feeAccountInfo = await options.connection.getAccountInfo(new PublicKey(feeAccount));
+  }
 
   const { swapInstruction, addressLookupTableAddresses } = await jupiterQuoteApi.swapInstructionsPost({
     swapRequest: {
@@ -471,15 +479,23 @@ export async function repayWithCollatBuilder({
   isTxnSplit: boolean;
 }) {
   const jupiterQuoteApi = createJupiterApiClient();
+  let feeAccountInfo: AccountInfo<any> | null = null;
 
-  // get fee account for original borrow mint
-  // const feeAccount = await getFeeAccount(bank.info.state.mint);
+  const feeMint =
+    options.repayCollatQuote.swapMode === "ExactIn"
+      ? options.repayCollatQuote.outputMint
+      : options.repayCollatQuote.inputMint;
+  const feeAccount = getFeeAccount(new PublicKey(feeMint));
+  if (!TOKEN_2022_MINTS.includes(feeMint)) {
+    feeAccountInfo = await options.connection.getAccountInfo(new PublicKey(feeAccount));
+  }
 
   const { swapInstruction, addressLookupTableAddresses } = await jupiterQuoteApi.swapInstructionsPost({
     swapRequest: {
       quoteResponse: options.repayCollatQuote,
       userPublicKey: marginfiAccount.authority.toBase58(),
       programAuthorityId: LUT_PROGRAM_AUTHORITY_INDEX,
+      feeAccount: feeAccountInfo ? feeAccount : undefined,
     },
   });
   const swapIx = deserializeInstruction(swapInstruction);
@@ -526,12 +542,13 @@ export async function closePositionBuilder({
   priorityFee?: number;
 }) {
   const jupiterQuoteApi = createJupiterApiClient();
+  let feeAccountInfo: AccountInfo<any> | null = null;
 
   const feeMint = quote.swapMode === "ExactIn" ? quote.outputMint : quote.inputMint;
-  // get fee account for original borrow mint
   const feeAccount = getFeeAccount(new PublicKey(feeMint));
-  const feeAccountInfo = await connection.getAccountInfo(new PublicKey(feeAccount));
-
+  if (!TOKEN_2022_MINTS.includes(feeMint)) {
+    feeAccountInfo = await connection.getAccountInfo(new PublicKey(feeAccount));
+  }
   const { swapInstruction, addressLookupTableAddresses } = await jupiterQuoteApi.swapInstructionsPost({
     swapRequest: {
       quoteResponse: quote,
