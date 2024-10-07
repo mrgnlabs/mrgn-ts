@@ -21,8 +21,8 @@ import { Button } from "~/components/ui/button";
 
 const launchLinks = [
   { label: "Lend", icon: IconBuildingBank, href: "https://app.marginfi.com" },
-  { label: "Mint", icon: IconBox, href: "https://app.marginfi.com/mint" },
-  { label: "Swap", icon: IconArrowsLeftRight, href: "https://app.marginfi.com/swap" },
+  { label: "Stake", icon: IconBox, href: "https://app.marginfi.com/stake" },
+  { label: "Loop", icon: IconArrowsLeftRight, href: "https://app.marginfi.com/looper" },
   { label: "Launch", icon: IconExternalLink, href: "https://app.marginfi.com/" },
 ];
 
