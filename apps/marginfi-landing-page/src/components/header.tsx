@@ -34,7 +34,7 @@ const CONTENT = {
   launchLinks: [
     { label: "Lend", icon: IconBuildingBank, href: "https://app.marginfi.com" },
     { label: "Mint", icon: IconBox, href: "https://app.marginfi.com/mint" },
-    { label: "Swap", icon: IconArrowsLeftRight, href: "https://app.marginfi.com/swap" },
+    { label: "Looper", icon: IconArrowsLeftRight, href: "https://app.marginfi.com/looper" },
     { label: "Launch", icon: IconExternalLink, href: "https://app.marginfi.com/" },
   ],
   hamburger: {
