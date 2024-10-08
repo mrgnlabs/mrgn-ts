@@ -9,6 +9,7 @@ import {
   computeAccountSummary,
   DEFAULT_ACCOUNT_SUMMARY,
   AccountSummary,
+  fetchGroupData,
 } from "@mrgnlabs/marginfi-v2-ui-state";
 import {
   MarginfiClient,
@@ -526,6 +527,7 @@ async function getGroupData({
     connection,
     {
       preloadedBankAddresses: bankKeys,
+      fetchGroupDataOverride: fetchGroupData,
     }
   );
 
