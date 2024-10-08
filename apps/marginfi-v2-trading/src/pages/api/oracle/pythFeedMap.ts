@@ -12,8 +12,13 @@ import { Connection, PublicKey } from "@solana/web3.js";
 import { NextApiRequest, NextApiResponse } from "next";
 import config from "~/config/marginfi";
 
-export default async function handler(_req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
+    const groupPk = req.query.groupPk;
+    if (!groupPk || typeof groupPk !== "string") {
+      return res.status(400).json({ error: "Invalid input: expected a groupPk string." });
+    }
+
     const connection = new Connection(
       process.env.PRIVATE_RPC_ENDPOINT_OVERRIDE || process.env.NEXT_PUBLIC_MARGINFI_RPC_ENDPOINT_OVERRIDE || ""
     );
@@ -26,7 +31,7 @@ export default async function handler(_req: NextApiRequest, res: NextApiResponse
 
     let bankAddresses = (
       await connection.getProgramAccounts(config.mfiConfig.programId, {
-        filters: [{ memcmp: { offset: 8 + 32 + 1, bytes: config.mfiConfig.groupPk.toBase58() } }],
+        filters: [{ memcmp: { offset: 8 + 32 + 1, bytes: groupPk } }],
         dataSlice: { length: 0, offset: 0 },
       })
     ).map((bank) => bank.pubkey.toBase58());
