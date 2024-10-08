@@ -16,7 +16,7 @@ import { AuthDialog } from "@mrgnlabs/mrgn-ui";
 
 import config from "~/config";
 import { useTradeStore } from "~/store";
-import { MrgnlendProvider, TradePovider } from "~/context";
+import { TradePovider } from "~/context";
 import { WALLET_ADAPTERS } from "~/config/wallets";
 import { BANK_METADATA_MAP } from "~/config/trade";
 import { WalletProvider as MrgnWalletProvider } from "~/components/wallet-v2/hooks/use-wallet.hook";
@@ -53,33 +53,31 @@ export default function MrgnApp({ Component, pageProps, path, bank }: AppProps &
           <TipLinkWalletAutoConnect isReady={isReady} query={query}>
             <WalletProvider wallets={WALLET_ADAPTERS} autoConnect={true}>
               <MrgnWalletProvider>
-                <MrgnlendProvider>
-                  <TradePovider>
-                    <div className="mrgn-bg-gradient">
-                      <Header />
+                <TradePovider>
+                  <div className="mrgn-bg-gradient">
+                    <Header />
 
-                      <Desktop>
-                        <WalletModalProvider>
-                          <div className="w-full flex flex-col justify-center items-center">
-                            <Component {...pageProps} />
-                          </div>
-                          <Footer />
-                        </WalletModalProvider>
-                      </Desktop>
-
-                      <Mobile>
-                        <MobileNavbar />
+                    <Desktop>
+                      <WalletModalProvider>
                         <div className="w-full flex flex-col justify-center items-center">
                           <Component {...pageProps} />
                         </div>
-                      </Mobile>
-                      <Analytics />
+                        <Footer />
+                      </WalletModalProvider>
+                    </Desktop>
 
-                      <AuthDialog onboardingEnabled={false} />
-                      <ToastContainer position="bottom-left" theme="light" />
-                    </div>
-                  </TradePovider>
-                </MrgnlendProvider>
+                    <Mobile>
+                      <MobileNavbar />
+                      <div className="w-full flex flex-col justify-center items-center">
+                        <Component {...pageProps} />
+                      </div>
+                    </Mobile>
+                    <Analytics />
+
+                    <AuthDialog onboardingEnabled={false} />
+                    <ToastContainer position="bottom-left" theme="light" />
+                  </div>
+                </TradePovider>
               </MrgnWalletProvider>
             </WalletProvider>
           </TipLinkWalletAutoConnect>
