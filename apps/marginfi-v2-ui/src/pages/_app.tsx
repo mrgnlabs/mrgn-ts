@@ -152,7 +152,7 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
         </ConnectionProvider>
       )}
 
-      {process.env.NEXT_PUBLIC_ANALYTICS === "true" && isReady && (
+      {process.env.NEXT_PUBLIC_ANALYTICS === "true" && ready && (
         <>
           <GoogleAnalytics gaId="G-0ZTQRWVG02" />
           <SpeedInsights />
