@@ -101,8 +101,8 @@ function computeAccountSummary(marginfiAccount: MarginfiAccountWrapper, banks: E
 
 function makeBankInfo(bank: Bank, oraclePrice: OraclePrice, emissionTokenData?: TokenPrice): BankState {
   const { lendingRate, borrowingRate } = bank.computeInterestRates();
-  const totalDeposits = nativeToUi(bank.getTotalAssetQuantity(), bank.mintDecimals);
-  const totalBorrows = nativeToUi(bank.getTotalLiabilityQuantity(), bank.mintDecimals);
+  const totalDeposits = nativeToUi(bank.totalAssetShares, bank.mintDecimals);
+  const totalBorrows = nativeToUi(bank.totalLiabilityShares, bank.mintDecimals);
   const liquidity = totalDeposits - totalBorrows;
   const utilizationRate = bank.computeUtilizationRate().times(100).toNumber();
 
