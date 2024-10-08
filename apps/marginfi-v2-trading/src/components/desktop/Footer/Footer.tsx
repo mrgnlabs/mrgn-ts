@@ -2,7 +2,7 @@ import React from "react";
 
 import Link from "next/link";
 
-import { IconBrandX, IconBrandGithubFilled, IconBook } from "@tabler/icons-react";
+import { IconBrandX, IconBrandGithubFilled, IconBook, IconMessage } from "@tabler/icons-react";
 import { motion } from "framer-motion";
 
 const footerLinks = [
@@ -31,6 +31,14 @@ export const Footer = () => {
       animate={{ opacity: 1 }}
       transition={{ delay: 4 }}
     >
+      <Link
+        href="https://support.marginfi.com/"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex items-center gap-2 text-sm font-medium"
+      >
+        <IconMessage size={18} /> help &amp; support
+      </Link>
       <p className="text-xs text-primary/80">
         <span className="inline-block translate-y-[1px] mr-0.5 animate-pulsate">◼️</span> built by{" "}
         <Link href="https://www.marginfi.com" target="_blank">
