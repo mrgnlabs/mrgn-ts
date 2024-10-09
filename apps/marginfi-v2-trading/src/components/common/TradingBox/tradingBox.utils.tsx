@@ -482,12 +482,13 @@ function canBeLooped(activeGroup: GroupData, loopingObject: LoopingObject, trade
     }
   }
 
-  if (
-    (activeGroup.pool.token && isBankOracleStale(activeGroup.pool.token)) ||
-    (activeGroup.pool.quoteTokens[0] && isBankOracleStale(activeGroup.pool.quoteTokens[0]))
-  ) {
-    checks.push(STATIC_SIMULATION_ERRORS.STALE_TRADING);
-  }
+  // Banks will always be stale for now
+  // if (
+  //   (activeGroup.pool.token && isBankOracleStale(activeGroup.pool.token)) ||
+  //   (activeGroup.pool.quoteTokens[0] && isBankOracleStale(activeGroup.pool.quoteTokens[0]))
+  // ) {
+  //   checks.push(STATIC_SIMULATION_ERRORS.STALE_TRADING);
+  // }
 
   return checks;
 }
