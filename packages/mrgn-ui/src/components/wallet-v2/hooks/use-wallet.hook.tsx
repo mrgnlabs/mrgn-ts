@@ -180,7 +180,13 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
       };
     } else if (isPhantomConnected) {
       return {
-        wallet: window.phantom.solana,
+        wallet: {
+          ...window.phantom.solana,
+          publicKey: new PublicKey(window.phantom.solana.publicKey) as PublicKey,
+          signMessage: window.phantom.solana.signMessage,
+          signTransaction: window.phantom.solana.signTransaction,
+          signAllTransactions: window.phantom.solana.signAllTransactions,
+        },
         isOverride: false,
       };
     } else {
@@ -212,7 +218,7 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
       return {
         wallet: {
           ...anchorWallet,
-          publicKey: walletContextState.publicKey || PublicKey.default,
+          publicKey: walletContextState.publicKey,
           signMessage: walletContextState?.signMessage,
           signTransaction: walletContextState?.signTransaction as <T extends Transaction | VersionedTransaction>(
             transactions: T
