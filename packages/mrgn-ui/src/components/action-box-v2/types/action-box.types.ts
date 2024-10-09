@@ -1,4 +1,4 @@
-import { LendBoxProps, LoopBoxProps, RepayCollatBoxProps } from "~/components/action-box-v2/actions";
+import { LendBoxProps, LoopBoxProps, RepayCollatBoxProps, StakeBoxProps } from "~/components/action-box-v2/actions";
 import { ActionDialogProps } from "~/components/action-box-v2/components";
 
 type ActionBoxDialogProps = {
@@ -51,6 +51,7 @@ interface ActionBoxComponent extends React.FC<ActionBoxProps & ActionBoxComponen
   BorrowLend: React.FC<ActionBoxProps & { lendProps: LendBoxProps | RequiredLendBoxProps; useProvider?: boolean }>;
   Repay: React.FC<ActionBoxProps & { repayProps: RepayBoxProps | RequiredRepayBoxProps; useProvider?: boolean }>;
   Loop: React.FC<ActionBoxProps & { loopProps: LoopBoxProps | RequiredLoopBoxProps; useProvider?: boolean }>;
+  Stake: React.FC<ActionBoxProps & { stakeProps: StakeBoxProps; useProvider?: boolean }>; // TODO: requiredStakeBoxProps?
 }
 
 export type {
