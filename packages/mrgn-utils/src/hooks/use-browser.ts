@@ -21,7 +21,7 @@ export const useBrowser = () => {
   const { isAndroid, isIOS, isPWA } = useOs();
   const isInAppPhantom = React.useMemo(
     () =>
-      (localStorage.getItem("walletName")?.includes("Solflare") || window?.phantom?.solana?.isPhantom) &&
+      (localStorage.getItem("walletName")?.includes("Phantom") || window?.phantom?.solana?.isPhantom) &&
       (isIOS || isAndroid),
     [isAndroid, isIOS]
   );
