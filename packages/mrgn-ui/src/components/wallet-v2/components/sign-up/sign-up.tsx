@@ -58,7 +58,7 @@ export const AuthDialog = ({ mrgnState, onboardingEnabled = true }: AuthDialogPr
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const [isActiveLoading, setIsActiveLoading] = React.useState<string>("");
   const [progress, setProgress] = React.useState<number>(0);
-  const { loginWeb3Auth, connecting, connected, walletContextState } = useWallet();
+  const { loginWeb3Auth, connecting, connected, select, walletContextState } = useWallet();
   const { query, replace, pathname } = useRouter();
 
   // if user has PWA force social login
@@ -112,7 +112,7 @@ export const AuthDialog = ({ mrgnState, onboardingEnabled = true }: AuthDialogPr
 
       setIsLoading(true);
       setIsActiveLoading(selectedWallet);
-      walletContextState.select(selectedWallet as any);
+      select(selectedWallet as any);
 
       const newQuery = { ...query };
       delete newQuery.onramp;
@@ -126,7 +126,7 @@ export const AuthDialog = ({ mrgnState, onboardingEnabled = true }: AuthDialogPr
         { shallow: true }
       );
     }
-  }, [pathname, query, query.onramp, replace, walletContextState.select]);
+  }, [pathname, query, query.onramp, replace, select, walletContextState]);
 
   // reset on force close
   React.useEffect(() => {
@@ -145,7 +145,7 @@ export const AuthDialog = ({ mrgnState, onboardingEnabled = true }: AuthDialogPr
     if (!selectedWallet) return;
     setIsLoading(true);
     setIsActiveLoading(selectedWallet);
-    walletContextState.select(selectedWallet as any);
+    select(selectedWallet as any);
     localStorage.setItem("isOnboarded", "true");
   };
 

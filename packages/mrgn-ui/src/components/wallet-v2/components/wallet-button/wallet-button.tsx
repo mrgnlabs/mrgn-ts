@@ -30,7 +30,7 @@ const web3AuthIconMap: { [key in Web3AuthProvider]: { icon: JSX.Element } } = {
 };
 
 export const WalletButton = () => {
-  const { connected, isLoading, loginWeb3Auth, walletContextState } = useWallet();
+  const { connected, isLoading, loginWeb3Auth, select, walletContextState } = useWallet();
   const [setIsWalletSignUpOpen] = useWalletStore((state) => [state.setIsWalletSignUpOpen]);
 
   const walletInfo = useMemo(() => JSON.parse(localStorage.getItem("walletInfo") ?? "null") as WalletInfo, []);
@@ -64,12 +64,12 @@ export const WalletButton = () => {
           loginWeb3Auth(walletInfo.name);
         }
       } else {
-        walletContextState.select(walletInfo.name as any);
+        select(walletInfo.name as any);
       }
     } catch (error) {
       setIsWalletSignUpOpen(true);
     }
-  }, [walletInfo, setIsWalletSignUpOpen, walletContextState.select, loginWeb3Auth]);
+  }, [walletInfo, setIsWalletSignUpOpen, select, loginWeb3Auth]);
 
   return (
     <Button className={`gap-1.5 py-0 ${walletInfo ? "pr-2" : "pr-4"}`}>

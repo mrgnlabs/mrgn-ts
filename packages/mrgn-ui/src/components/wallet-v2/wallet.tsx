@@ -121,6 +121,7 @@ const Wallet = ({
   }, []);
 
   const getWalletData = React.useCallback(async () => {
+    console.log("getting wallet data", wallet);
     if (!wallet?.publicKey || !extendedBankInfos || isNaN(nativeSolBalance)) return;
 
     const userBanks = extendedBankInfos.filter(
