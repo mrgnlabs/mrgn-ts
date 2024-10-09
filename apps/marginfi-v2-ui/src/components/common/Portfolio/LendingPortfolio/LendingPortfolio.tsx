@@ -20,7 +20,6 @@ import { Loader } from "~/components/ui/loader";
 export const LendingPortfolio = () => {
   const router = useRouter();
   const { connected } = useWallet();
-  // State to track if the wallet just connected, used to handle store refresh
   const [walletConnectionDelay, setWalletConnectionDelay] = React.useState(false);
 
   const [isStoreInitialized, sortedBanks, accountSummary, isRefreshingStore] = useMrgnlendStore((state) => [
@@ -100,6 +99,7 @@ export const LendingPortfolio = () => {
     }
   }, [accountSummary.healthFactor]);
 
+  // Introduced this useEffect to show the loader for 2 seconds after wallet connection. This is to avoid the flickering of the loader, since the isRefreshingStore isnt set immediately after the wallet connection.
   useEffect(() => {
     if (connected) {
       setWalletConnectionDelay(true);
@@ -110,10 +110,6 @@ export const LendingPortfolio = () => {
       return () => clearTimeout(timer);
     }
   }, [connected]);
-
-  useEffect(() => {
-    console.log(accountSummary);
-  }, [accountSummary]);
 
   if (isStoreInitialized && !connected) {
     return <WalletButton />;
