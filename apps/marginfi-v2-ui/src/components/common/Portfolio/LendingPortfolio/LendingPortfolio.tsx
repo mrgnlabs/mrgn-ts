@@ -13,6 +13,12 @@ import { useMrgnlendStore, useUiStore, useUserProfileStore } from "~/store";
 
 import { PortfolioUserStats, PortfolioAssetCard, PortfolioAssetCardSkeleton } from "~/components/common/Portfolio";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
+import { ActionBox } from "@mrgnlabs/mrgn-ui";
+
+/// XXX
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
+
+/// YYY
 
 export const LendingPortfolio = () => {
   const router = useRouter();
@@ -93,6 +99,12 @@ export const LendingPortfolio = () => {
     }
   }, [accountSummary.healthFactor]);
 
+  // XXX
+
+  const { connected } = useWallet();
+
+  /// YYY
+
   if (!lendingBanks.length && !borrowingBanks.length && isStoreInitialized) {
     return (
       <p className="text-center mt-4 text-muted-foreground">
@@ -157,6 +169,18 @@ export const LendingPortfolio = () => {
           borrowed={accountBorrowed}
           netValue={accountNetValue}
           points={numeralFormatter(userPointsData.totalPoints)}
+        />
+        <ActionBox.Stake
+          isDialog={true}
+          useProvider={true}
+          stakeProps={{
+            connected: connected,
+            requestedActionType: ActionType.MintLST,
+          }}
+          dialogProps={{
+            trigger: <div className="flex items-center gap-2 w-full">Dit is een trigger</div>,
+            title: "test",
+          }}
         />
       </div>
       <div className="flex flex-col md:flex-row justify-between flex-wrap gap-8 md:gap-20">
