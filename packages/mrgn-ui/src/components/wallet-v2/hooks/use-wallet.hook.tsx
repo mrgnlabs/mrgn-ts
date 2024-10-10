@@ -151,7 +151,12 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
     const currentInfo = JSON.parse(localStorage.getItem("walletInfo") || "{}");
     if (web3Auth?.connected && web3AuthWalletData) {
       setWalletContextState(makeweb3AuthWalletContextState(web3AuthWalletData));
-    } else if (currentInfo?.name === "Phantom" && window.phantom.solana && !window.phantom.solana.isConnected) {
+    } else if (
+      currentInfo?.name === "Phantom" &&
+      window?.phantom &&
+      window?.phantom?.solana &&
+      !window?.phantom?.solana?.isConnected
+    ) {
       window.phantom.solana.connect();
     } else if (walletContextStateDefault.wallet) {
       const walletInfo: WalletInfo = {
