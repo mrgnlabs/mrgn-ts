@@ -137,7 +137,6 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
   const anchorWallet = useAnchorWallet();
 
   const [web3Auth, setweb3Auth] = React.useState<Web3AuthNoModal | null>(null);
-  const [isPhantomConnected, setIsPhantomConnected] = React.useState<boolean>(false);
   const [web3AuthWalletData, setWeb3AuthWalletData] = React.useState<Wallet>();
   const [pfp, setPfp] = React.useState<string>("");
   const [web3AuthLoginType, setWeb3AuthLoginType] = React.useState<string>("");
@@ -152,15 +151,13 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
   React.useEffect(() => {
     if (web3Auth?.connected && web3AuthWalletData) {
       setWalletContextState(makeweb3AuthWalletContextState(web3AuthWalletData));
-    } else {
-      if (walletContextStateDefault.wallet) {
-        const walletInfo: WalletInfo = {
-          name: walletContextStateDefault.wallet.adapter.name,
-          icon: walletContextStateDefault.wallet.adapter.icon,
-          web3Auth: false,
-        };
-        localStorage.setItem("walletInfo", JSON.stringify(walletInfo));
-      }
+    } else if (walletContextStateDefault.wallet) {
+      const walletInfo: WalletInfo = {
+        name: walletContextStateDefault.wallet.adapter.name,
+        icon: walletContextStateDefault.wallet.adapter.icon,
+        web3Auth: false,
+      };
+      localStorage.setItem("walletInfo", JSON.stringify(walletInfo));
       setWalletContextState(walletContextStateDefault);
     }
 
@@ -178,7 +175,7 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
         wallet: web3AuthWalletData,
         isOverride: false,
       };
-    } else if (isPhantomConnected) {
+    } else if (window.phantom.solana.isConnected) {
       return {
         wallet: {
           ...window.phantom.solana,
@@ -232,7 +229,7 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
         isOverride: false,
       };
     }
-  }, [anchorWallet, web3AuthWalletData, query, web3Auth?.connected, walletContextState, isPhantomConnected]);
+  }, [anchorWallet, web3AuthWalletData, query, web3Auth?.connected, walletContextState]);
 
   // login to web3auth with specified social provider
   const loginWeb3Auth = React.useCallback(
@@ -274,6 +271,8 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
     if (web3Auth?.connected && web3Auth) {
       await web3Auth.logout();
       setWeb3AuthWalletData(undefined);
+    } else if (window.phantom.solana.isConnected) {
+      await window.phantom.solana.disconnect();
     } else {
       await walletContextState?.disconnect();
     }
@@ -287,7 +286,7 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
     setIsWalletOpen(false);
     setIsLoading(false);
     setPfp("");
-  }, [web3Auth, asPath, setIsWalletSignUpOpen, walletContextState, replace]);
+  }, [web3Auth, asPath, setIsWalletOpen, walletContextState, replace]);
 
   // called when user requests private key
   // stores short lived cookie and forces login
@@ -414,9 +413,11 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
 
       if (window.phantom?.solana) {
         window.phantom.solana.on("connect", async () => {
-          console.log("connected!", window.phantom.solana);
           setWalletContextState(makeweb3AuthWalletContextState(window.phantom.solana));
-          setIsPhantomConnected(true);
+        });
+
+        window.phantom.solana.on("disconnect", async () => {
+          setWalletContextState(walletContextStateDefault);
         });
       }
 
@@ -428,7 +429,7 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
     } finally {
       setIsLoading(false);
     }
-  }, [makeweb3AuthWalletData]);
+  }, [makeweb3AuthWalletData, walletContextStateDefault]);
 
   // initialize web3auth sdk on page load
   React.useEffect(() => {
