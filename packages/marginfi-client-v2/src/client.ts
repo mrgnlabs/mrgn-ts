@@ -680,6 +680,8 @@ class MarginfiClient {
 
     const keypair = seed ?? Keypair.generate();
 
+    const bundleTipIx = makeBundleTipIx(admin);
+
     const priorityFeeIx = priorityFee ? makePriorityFeeIx(priorityFee) : [];
 
     const bankIxs = await this.group.makePoolAddBankIx(this.program, keypair.publicKey, mint, bankConfig, {
@@ -689,7 +691,7 @@ class MarginfiClient {
 
     const signers = [...bankIxs.keys, keypair];
 
-    const tx = new Transaction().add(...priorityFeeIx, ...bankIxs.instructions);
+    const tx = new Transaction().add(bundleTipIx, ...priorityFeeIx, ...bankIxs.instructions);
 
     const sig = await this.processTransaction(tx, signers, opts);
     dbg("Created Marginfi group %s", sig);
@@ -711,9 +713,11 @@ class MarginfiClient {
 
     const accountKeypair = seed ?? Keypair.generate();
 
+    const bundleTipIx = makeBundleTipIx(this.provider.publicKey);
+
     const ixs = await this.makeCreateMarginfiGroupIx(accountKeypair.publicKey);
     const signers = [...ixs.keys, accountKeypair];
-    const tx = new Transaction().add(...ixs.instructions, ...(additionalIxs ?? []));
+    const tx = new Transaction().add(bundleTipIx, ...ixs.instructions, ...(additionalIxs ?? []));
     const sig = await this.processTransaction(tx, signers, opts);
     dbg("Created Marginfi group %s", sig);
 

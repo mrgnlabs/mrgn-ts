@@ -17,6 +17,7 @@ import { useConnection } from "~/hooks/use-connection";
 import { Wallet } from "~/components/wallet-v2";
 import { CreatePoolScriptDialog } from "../Pool/CreatePoolScript";
 import { CreatePoolSoon } from "../Pool/CreatePoolSoon";
+import { CreatePoolDialog } from "../Pool/CreatePoolDialog";
 import { Button } from "~/components/ui/button";
 import { IconArena } from "~/components/ui/icons";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
@@ -108,7 +109,7 @@ export const Header = () => {
           <div className="flex items-center gap-4">
             {!isMobile && (
               <div className="flex items-center">
-                <CreatePoolSoon
+                <CreatePoolDialog
                   trigger={
                     <Button disabled={false}>
                       <IconPlus size={16} /> Create Pool
