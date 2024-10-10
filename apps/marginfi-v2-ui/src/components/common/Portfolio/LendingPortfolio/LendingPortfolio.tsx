@@ -17,6 +17,11 @@ import { WalletButton } from "~/components/wallet-v2";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { Loader } from "~/components/ui/loader";
 
+/// XXX
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
+
+/// YYY
+
 export const LendingPortfolio = () => {
   const router = useRouter();
   const { connected } = useWallet();
@@ -200,7 +205,10 @@ export const LendingPortfolio = () => {
         <ActionBox.Stake
           isDialog={true}
           useProvider={true}
-          stakeProps={{}}
+          stakeProps={{
+            connected: connected,
+            requestedActionType: ActionType.MintLST,
+          }}
           dialogProps={{
             trigger: <div className="flex items-center gap-2 w-full">Dit is een trigger</div>,
             title: "test",

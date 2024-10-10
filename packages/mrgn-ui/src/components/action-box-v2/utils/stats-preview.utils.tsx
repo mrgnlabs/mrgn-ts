@@ -238,3 +238,61 @@ export function getOracleStat(bank: ExtendedBankInfo): PreviewStat {
     ),
   };
 }
+
+export function getSupplyStat(supply: number, isLoading: boolean, simulationSupply?: number): PreviewStat {
+  return {
+    label: "Supply",
+    value: () => (
+      <>
+        {supply && numeralFormatter(supply)}
+        {simulationSupply ? <IconArrowRight width={12} height={12} /> : ""}
+        {isLoading ? (
+          <Skeleton className="h-4 w-[45px] bg-[#373F45]" />
+        ) : simulationSupply ? (
+          numeralFormatter(simulationSupply)
+        ) : (
+          ""
+        )}
+      </>
+    ),
+  };
+}
+
+export function getProjectedAPYStat(projectedApy: number, isLoading: boolean, simulationApy?: number): PreviewStat {
+  return {
+    label: "Projected APY",
+    value: () => (
+      <>
+        {projectedApy}
+        {simulationApy ? <IconArrowRight width={12} height={12} /> : ""}
+        {isLoading ? <Skeleton className="h-4 w-[45px] bg-[#373F45]" /> : simulationApy ? simulationApy : ""}
+      </>
+    ),
+  };
+}
+
+export function getCurrentPriceStat(currentPrice: number, isLoading: boolean, simulationPrice?: number): PreviewStat {
+  return {
+    label: "Current Price",
+    value: () => (
+      <>
+        {currentPrice && numeralFormatter(currentPrice)}
+        {simulationPrice ? <IconArrowRight width={12} height={12} /> : ""}
+        {isLoading ? (
+          <Skeleton className="h-4 w-[45px] bg-[#373F45]" />
+        ) : simulationPrice ? (
+          numeralFormatter(simulationPrice)
+        ) : (
+          ""
+        )}
+      </>
+    ),
+  };
+}
+
+export function getCommissionStat(commission: number): PreviewStat {
+  return {
+    label: "Commission",
+    value: () => <>{commission}%</>,
+  };
+}
