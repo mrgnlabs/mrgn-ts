@@ -11,6 +11,7 @@ import {
   RepayBoxProps,
   isDialogWrapperProps,
   RequiredLendBoxProps,
+  RequiredStakeBoxProps,
   RequiredRepayBoxProps,
   RequiredLoopBoxProps,
 } from "./types";
@@ -163,7 +164,9 @@ const Loop = (props: ActionBoxProps & { loopProps: RequiredLoopBoxProps | LoopBo
 };
 ActionBox.Loop = Loop;
 
-const Stake = (props: ActionBoxProps & { stakeProps: StakeBoxProps; useProvider?: boolean }) => {
+const Stake = (
+  props: ActionBoxProps & { stakeProps: StakeBoxProps | RequiredStakeBoxProps; useProvider?: boolean }
+) => {
   const contextProps = useActionBoxContext();
   const { stakeProps, useProvider, ...actionBoxProps } = props;
 
@@ -172,15 +175,15 @@ const Stake = (props: ActionBoxProps & { stakeProps: StakeBoxProps; useProvider?
   if (useProvider && contextProps) {
     combinedProps = {
       ...contextProps,
-      ...(stakeProps as StakeBoxProps),
+      ...(stakeProps as RequiredStakeBoxProps),
     };
   } else {
     combinedProps = stakeProps as StakeBoxProps;
   }
   return (
     <ActionBox {...actionBoxProps}>
-      <ActionBoxWrapper showSettings={true} isDialog={props.isDialog} actionMode={ActionType.Stake}>
-        <ActionBoxNavigator selectedAction={ActionType.Stake}>
+      <ActionBoxWrapper showSettings={true} isDialog={props.isDialog} actionMode={ActionType.MintLST}>
+        <ActionBoxNavigator selectedAction={ActionType.MintLST}>
           <StakeBox {...combinedProps} isDialog={props.isDialog} />
         </ActionBoxNavigator>
       </ActionBoxWrapper>
