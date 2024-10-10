@@ -18,7 +18,7 @@ export const InAppSignIn = ({ isLoading, select, update, onClose }: props) => {
       return {
         icon: <IconPhantomWallet size={24} />,
         description: "Sign in with Phantom",
-        connect: select("Phantom" as any),
+        connect: () => select("Phantom" as any),
       };
     } else if (browser === "Backpack") {
       return {
