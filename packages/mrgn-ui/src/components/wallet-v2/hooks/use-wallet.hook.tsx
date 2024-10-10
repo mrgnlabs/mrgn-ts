@@ -177,7 +177,7 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
         wallet: web3AuthWalletData,
         isOverride: false,
       };
-    } else if (window.phantom.solana.isConnected) {
+    } else if (window?.phantom && window?.phantom?.solana?.isConnected) {
       return {
         wallet: {
           ...window.phantom.solana,
@@ -273,7 +273,7 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
     if (web3Auth?.connected && web3Auth) {
       await web3Auth.logout();
       setWeb3AuthWalletData(undefined);
-    } else if (window.phantom.solana.isConnected) {
+    } else if (window.phantom && window?.phantom?.solana?.isConnected) {
       await window.phantom.solana.disconnect();
       setWalletContextState(walletContextStateDefault);
     } else {
@@ -420,7 +420,7 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
         await makeweb3AuthWalletData(provider);
       });
 
-      if (window.phantom?.solana) {
+      if (window?.phantom && window?.phantom?.solana) {
         window.phantom.solana.on("connect", async () => {
           setWalletContextState(makeweb3AuthWalletContextState(window.phantom.solana));
         });
@@ -448,7 +448,7 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
   }, [init, web3Auth]);
 
   const select = (walletName: string) => {
-    if (walletName === "Phantom" && window.phantom?.solana) {
+    if (walletName === "Phantom" && window?.phantom && window?.phantom?.solana) {
       window.phantom?.solana.connect();
       const walletInfo: WalletInfo = {
         name: "Phantom",
