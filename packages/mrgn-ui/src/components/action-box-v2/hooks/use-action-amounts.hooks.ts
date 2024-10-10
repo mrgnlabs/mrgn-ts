@@ -51,6 +51,10 @@ export function useActionAmounts({
         return selectedBank?.userInfo.maxDeposit ?? 0;
       case ActionType.RepayCollat:
         return maxAmountCollateral ?? 0;
+      case ActionType.MintLST:
+        return selectedBank?.userInfo.maxDeposit ?? 0;
+      case ActionType.UnstakeLST:
+        return selectedBank?.userInfo.maxWithdraw ?? 0;
       default:
         return 0;
     }

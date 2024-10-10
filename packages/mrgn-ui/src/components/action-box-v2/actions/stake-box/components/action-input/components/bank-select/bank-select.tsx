@@ -9,44 +9,30 @@ import { BankList, BankTrigger } from "./components";
 
 interface BankSelectProps {
   selectedBank: ExtendedBankInfo | null;
-  otherBank: ExtendedBankInfo | null;
   banks: ExtendedBankInfo[];
   nativeSolBalance: number;
   actionMode: ActionType;
+  connected: boolean;
 
-  setTokenBank: (selectedTokenBank: ExtendedBankInfo | null) => void;
+  setSelectedBank: (selectedTokenBank: ExtendedBankInfo | null) => void;
 }
 
 export const BankSelect = ({
   selectedBank,
-  otherBank,
   banks,
   nativeSolBalance,
   actionMode,
-  setTokenBank,
+  connected,
+
+  setSelectedBank,
 }: BankSelectProps) => {
   const isSelectable = React.useMemo(() => true, []);
   const [isOpen, setIsOpen] = React.useState(false);
 
-  const calculateRate = React.useCallback(
-    (bank: ExtendedBankInfo) => {
-      return computeBankRate(bank, actionMode === ActionType.Borrow ? LendingModes.BORROW : LendingModes.LEND);
-    },
-    [actionMode]
-  );
-
   return (
     <>
       {!isSelectable && (
-        <div className="flex gap-3 w-full items-center">
-          {selectedBank && (
-            <SelectedBankItem
-              bank={selectedBank}
-              lendingMode={LendingModes.BORROW}
-              rate={calculateRate(selectedBank)}
-            />
-          )}
-        </div>
+        <div className="flex gap-3 w-full items-center">{selectedBank && <SelectedBankItem bank={selectedBank} />}</div>
       )}
 
       {isSelectable && (
@@ -56,14 +42,14 @@ export const BankSelect = ({
           Trigger={<BankTrigger bank={selectedBank} isOpen={isOpen} actionMode={actionMode} />}
           Content={
             <BankList
-              banks={banks}
-              nativeSolBalance={nativeSolBalance}
-              actionMode={actionMode}
               isOpen={isOpen}
               onClose={() => setIsOpen(false)}
-              onSetSelectedBank={(bank) => setTokenBank(bank)}
               selectedBank={selectedBank}
-              otherBank={otherBank}
+              onSetSelectedBank={setSelectedBank}
+              actionMode={actionMode}
+              banks={banks}
+              nativeSolBalance={nativeSolBalance}
+              connected={connected}
             />
           }
         />
