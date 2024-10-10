@@ -149,12 +149,15 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
 
   // if web3auth is connected, override wallet adapter context, otherwise use default
   React.useEffect(() => {
+    const currentInfo = JSON.parse(localStorage.getItem("walletInfo") || "{}");
     if (web3Auth?.connected && web3AuthWalletData) {
       setWalletContextState(makeweb3AuthWalletContextState(web3AuthWalletData));
+    } else if (currentInfo?.name === "Phantom" && window.phantom.solana) {
+      window.phantom.solana.connect();
     } else if (walletContextStateDefault.wallet) {
       const walletInfo: WalletInfo = {
-        name: walletContextStateDefault.wallet.adapter.name,
-        icon: walletContextStateDefault.wallet.adapter.icon,
+        name: walletContextStateDefault.wallet?.adapter.name,
+        icon: walletContextStateDefault.wallet?.adapter.icon,
         web3Auth: false,
       };
       localStorage.setItem("walletInfo", JSON.stringify(walletInfo));
@@ -169,6 +172,7 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
   // update wallet object, 3 potential sources: web3auth, anchor, override
   const { wallet, isOverride }: { wallet: Wallet; isOverride: boolean } = React.useMemo(() => {
     const override = query?.wallet as string;
+    console.log("wallet data", walletContextState, window.phantom.solana.isConnected);
     // web3auth wallet
     if (web3AuthWalletData && web3Auth?.connected) {
       return {
@@ -268,13 +272,18 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
 
   // logout of web3auth or solana wallet adapter
   const logout = React.useCallback(async () => {
+    console.log("logging out", window.phantom.solana.isConnected);
     if (web3Auth?.connected && web3Auth) {
       await web3Auth.logout();
       setWeb3AuthWalletData(undefined);
     } else if (window.phantom.solana.isConnected) {
       await window.phantom.solana.disconnect();
+      setWalletContextState(walletContextStateDefault);
     } else {
-      await walletContextState?.disconnect();
+      console.log("here", walletContextState.disconnect);
+      await walletContextState.disconnect();
+      await walletContextStateDefault.disconnect();
+      setWalletContextState(walletContextStateDefault);
     }
 
     if (asPath.includes("#")) {
@@ -286,13 +295,15 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
     setIsWalletOpen(false);
     setIsLoading(false);
     setPfp("");
-  }, [web3Auth, asPath, setIsWalletOpen, walletContextState, replace]);
+  }, [asPath, replace, setIsWalletOpen, walletContextState, walletContextStateDefault, web3Auth]);
 
   // called when user requests private key
   // stores short lived cookie and forces login
   const requestPrivateKey = React.useCallback(async () => {
     if (!web3AuthLoginType || !web3Auth) return;
-    setWeb3AuthPkCookie("mrgnPrivateKeyRequested", true, { expires: new Date(Date.now() + 5 * 60 * 1000) });
+    setWeb3AuthPkCookie("mrgnPrivateKeyRequested", true, {
+      expires: new Date(Date.now() + 5 * 60 * 1000),
+    });
     await web3Auth.logout();
     await loginWeb3Auth(web3AuthLoginType, {
       login_hint: web3AuthLoginType === "email_passwordless" ? web3AuthEmail : undefined,
@@ -398,7 +409,9 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
         web3AuthNetwork: "sapphire_mainnet",
       });
 
-      const privateKeyProvider = new SolanaPrivateKeyProvider({ config: { chainConfig: web3AuthChainConfig } });
+      const privateKeyProvider = new SolanaPrivateKeyProvider({
+        config: { chainConfig: web3AuthChainConfig },
+      });
 
       const openloginAdapter = new OpenloginAdapter({
         privateKeyProvider,
@@ -438,6 +451,23 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
     init();
   }, [init, web3Auth]);
 
+  const select = (walletName: string) => {
+    console.log("select", walletName);
+    if (walletName === "Phantom" && window.phantom?.solana) {
+      window.phantom?.solana.connect();
+      const walletInfo: WalletInfo = {
+        name: "Phantom",
+        icon: `/phantom.png`,
+        web3Auth: false,
+      };
+      localStorage.setItem("walletInfo", JSON.stringify(walletInfo));
+    } else {
+      console.log("selecting", walletName, walletContextState.select, walletContextStateDefault.select);
+      walletContextStateDefault.select(walletName as any);
+      localStorage.removeItem("walletInfo");
+    }
+  };
+
   return (
     <WalletContext.Provider
       value={{
@@ -446,13 +476,7 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
         web3AuthConncected: web3Auth?.connected,
         wallet,
         walletAddress: wallet?.publicKey as PublicKey,
-        select: (walletName: string) => {
-          if (walletName === "Phantom" && window.phantom?.solana) {
-            window.phantom?.solana.connect();
-          } else {
-            walletContextState?.select(walletName as any);
-          }
-        },
+        select,
         walletContextState,
         isOverride,
         isLoading,
