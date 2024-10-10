@@ -97,7 +97,6 @@ const web3AuthOpenLoginAdapterSettings = {
 
 // create a wallet adapter context state from web3auth wallet
 const makeweb3AuthWalletContextState = (wallet: Wallet): WalletContextStateOverride => {
-  console.log("making wallet data with", wallet.publicKey.toString());
   const walletProps: WalletContextOverride = {
     connected: true,
     connecting: false,
@@ -172,7 +171,6 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
   // update wallet object, 3 potential sources: web3auth, anchor, override
   const { wallet, isOverride }: { wallet: Wallet; isOverride: boolean } = React.useMemo(() => {
     const override = query?.wallet as string;
-    console.log("wallet data", walletContextState, window.phantom.solana.isConnected);
     // web3auth wallet
     if (web3AuthWalletData && web3Auth?.connected) {
       return {
@@ -272,7 +270,6 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
 
   // logout of web3auth or solana wallet adapter
   const logout = React.useCallback(async () => {
-    console.log("logging out", window.phantom.solana.isConnected);
     if (web3Auth?.connected && web3Auth) {
       await web3Auth.logout();
       setWeb3AuthWalletData(undefined);
@@ -280,7 +277,6 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
       await window.phantom.solana.disconnect();
       setWalletContextState(walletContextStateDefault);
     } else {
-      console.log("here", walletContextState.disconnect);
       await walletContextState.disconnect();
       await walletContextStateDefault.disconnect();
       setWalletContextState(walletContextStateDefault);
@@ -452,7 +448,6 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
   }, [init, web3Auth]);
 
   const select = (walletName: string) => {
-    console.log("select", walletName);
     if (walletName === "Phantom" && window.phantom?.solana) {
       window.phantom?.solana.connect();
       const walletInfo: WalletInfo = {
@@ -462,7 +457,6 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
       };
       localStorage.setItem("walletInfo", JSON.stringify(walletInfo));
     } else {
-      console.log("selecting", walletName, walletContextState.select, walletContextStateDefault.select);
       walletContextStateDefault.select(walletName as any);
       localStorage.removeItem("walletInfo");
     }
