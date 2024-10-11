@@ -247,7 +247,8 @@ export async function executeLeverageAction({
       if ("loopingTxn" in result) {
         loopingObject = result;
       } else {
-        throw new Error(result.description ?? "Something went wrong, please try again.");
+        multiStepToast.setFailed(result.description ?? "Something went wrong, please try again.");
+        return;
       }
       multiStepToast.setSuccessAndNext();
     } catch (error) {
@@ -260,6 +261,7 @@ export async function executeLeverageAction({
     }
   }
 
+  console.log("loopingObject", loopingObject);
   try {
     if (loopingObject.loopingTxn) {
       let txnSig: string[] = [];
