@@ -349,10 +349,10 @@ export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }:
 
       const tokenDetails = responseBody.data as TokenData;
 
-      tokenBankConfig.borrowLimit = new BigNumber(Math.pow(tokenDetails.price, 100_000)).multipliedBy(
+      tokenBankConfig.borrowLimit = new BigNumber(100_000 / tokenDetails.price).multipliedBy(
         Math.pow(10, poolData.decimals)
       );
-      tokenBankConfig.depositLimit = new BigNumber(Math.pow(tokenDetails.price, 10_000)).multipliedBy(
+      tokenBankConfig.depositLimit = new BigNumber(10_000 / tokenDetails.price).multipliedBy(
         Math.pow(10, poolData.decimals)
       );
       tokenBankConfig.oracle = {
