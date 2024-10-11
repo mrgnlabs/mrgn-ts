@@ -6,16 +6,11 @@ import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-clien
 import { ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { LUT_PROGRAM_AUTHORITY_INDEX, nativeToUi, uiToNative } from "@mrgnlabs/mrgn-common";
 
-import {
-  deserializeInstruction,
-  getAdressLookupTableAccounts,
-  getFeeAccount,
-  getSwapQuoteWithRetry,
-  TOKEN_2022_MINTS,
-} from "../helpers";
+import { deserializeInstruction, getAdressLookupTableAccounts, getSwapQuoteWithRetry } from "../helpers";
 import { isWholePosition } from "../../mrgnUtils";
 import { ActionMethod, LoopingObject, LoopingOptions, RepayWithCollatOptions } from "../types";
 import { STATIC_SIMULATION_ERRORS } from "../../errors";
+import { TOKEN_2022_MINTS, getFeeAccount } from "../../jup-referral.utils";
 
 import {
   calculateMaxRepayableCollateral,

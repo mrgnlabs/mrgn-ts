@@ -1,20 +1,20 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 const AUTH_URL = "http://202.8.10.73:3000/auth/jwt";
-const USERNAME = "your_username"; // Replace with the actual username
-const PASSWORD = "your_password"; // Replace with the actual password
+const USERNAME = process.env.API_AUTH_USERNAME;
+const PASSWORD = process.env.API_AUTH_PASSWORD;
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
+    const encodedCredentials = Buffer.from(`${USERNAME}:${PASSWORD}`).toString("base64");
+
     const response = await fetch(AUTH_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Basic ${encodedCredentials}`, // Basic Auth Header
       },
-      body: JSON.stringify({
-        username: USERNAME,
-        password: PASSWORD,
-      }),
+      body: JSON.stringify({}),
     });
 
     if (!response.ok) {
@@ -22,7 +22,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     const data = await response.json();
-    const token = data.token;
+    const token = data.jwt;
 
     res.status(200).json({ token });
   } catch (error) {
