@@ -9,9 +9,13 @@ import { useActionAmounts } from "~/components/action-box-v2/hooks";
 import { AmountPreview } from "./components/amount-preview";
 import { ActionButton } from "../../components";
 import { StatsPreview } from "./components/stats-preview";
+import { WalletContextStateOverride } from "~/components/wallet-v2/hooks/use-wallet.hook";
+import { WalletContextState } from "@solana/wallet-adapter-react";
+import { useStakeSimulation } from "./hooks";
 
 export type StakeBoxProps = {
   nativeSolBalance: number;
+  walletContextState?: WalletContextStateOverride | WalletContextState;
   connected: boolean;
 
   marginfiClient: MarginfiClient | null;
@@ -81,6 +85,8 @@ export const StakeBox = ({
     nativeSolBalance,
     actionMode,
   });
+
+  const {} = useStakeSimulation({});
 
   return (
     <>
