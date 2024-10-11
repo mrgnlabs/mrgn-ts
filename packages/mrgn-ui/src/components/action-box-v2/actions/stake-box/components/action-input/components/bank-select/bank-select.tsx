@@ -13,6 +13,7 @@ interface BankSelectProps {
   nativeSolBalance: number;
   actionMode: ActionType;
   connected: boolean;
+  isSelectable?: boolean;
 
   setSelectedBank: (selectedTokenBank: ExtendedBankInfo | null) => void;
 }
@@ -23,10 +24,10 @@ export const BankSelect = ({
   nativeSolBalance,
   actionMode,
   connected,
+  isSelectable,
 
   setSelectedBank,
 }: BankSelectProps) => {
-  const isSelectable = React.useMemo(() => true, []);
   const [isOpen, setIsOpen] = React.useState(false);
 
   return (
@@ -50,6 +51,7 @@ export const BankSelect = ({
               banks={banks}
               nativeSolBalance={nativeSolBalance}
               connected={connected}
+              isSelectable={isSelectable}
             />
           }
         />

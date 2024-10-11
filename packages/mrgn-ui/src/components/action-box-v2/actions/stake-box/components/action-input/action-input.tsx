@@ -20,7 +20,7 @@ type ActionInputProps = {
   showCloseBalance?: boolean;
   isDialog?: boolean;
   isMini?: boolean;
-
+  isSelectable?: boolean;
   setAmountRaw: (amount: string) => void;
   setSelectedBank: (bank: ExtendedBankInfo | null) => void;
 };
@@ -33,7 +33,7 @@ export const ActionInput = ({
   showCloseBalance,
   connected,
   isDialog,
-
+  isSelectable,
   amountRaw,
   selectedBank,
   lendMode,
@@ -73,6 +73,7 @@ export const ActionInput = ({
             nativeSolBalance={nativeSolBalance}
             actionMode={lendMode}
             connected={connected}
+            isSelectable={isSelectable}
           />
         </div>
         <div className="flex-auto">

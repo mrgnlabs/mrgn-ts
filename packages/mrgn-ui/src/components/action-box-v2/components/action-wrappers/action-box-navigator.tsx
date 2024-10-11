@@ -1,6 +1,6 @@
 import React from "react";
 
-import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
 import { IconSparkles } from "@tabler/icons-react";
 
@@ -9,6 +9,7 @@ interface ActionBoxNavigatorProps {
   actionTypes?: ActionType[];
   onSelectAction?: (action: ActionType) => void;
   children: React.ReactNode;
+  bank?: ExtendedBankInfo | null;
 }
 
 const actionTitles: { [key in ActionType]?: string } = {
@@ -17,7 +18,7 @@ const actionTitles: { [key in ActionType]?: string } = {
   [ActionType.Withdraw]: "You withdraw",
   [ActionType.Repay]: "You repay",
   [ActionType.RepayCollat]: "You repay with collateral",
-  [ActionType.MintLST]: "You stake",
+  [ActionType.MintLST]: "You swap",
   [ActionType.UnstakeLST]: "You unstake",
   [ActionType.Loop]: "You deposit",
 };
@@ -40,6 +41,7 @@ export const ActionBoxNavigator = ({
   selectedAction,
   onSelectAction,
   children,
+  bank,
 }: ActionBoxNavigatorProps) => {
   const childrenArray = React.Children.toArray(children);
   const isNavigator = React.useMemo(() => actionTypes && actionTypes.length > 1, [actionTypes]);
@@ -57,6 +59,15 @@ export const ActionBoxNavigator = ({
       text: toggleTitles[actionType] || "",
     }));
   }, [actionTypes, isNavigator]);
+
+  const isSolBank = React.useMemo(() => bank?.meta.tokenSymbol === "SOL", [bank]); // TODO: fix this, bank not set when sol currently
+  const titleText = React.useMemo(() => {
+    const title = actionTitles[selectedAction];
+    if (isSolBank && selectedAction === ActionType.MintLST) {
+      return "You stake";
+    }
+    return title || "";
+  }, [selectedAction, isSolBank]); //
 
   return (
     <>
@@ -96,7 +107,7 @@ export const ActionBoxNavigator = ({
               </ToggleGroup>
             </div>
           ) : (
-            <span className="text-sm font-normal text-muted-foreground">{actionTitles[selectedAction]}</span>
+            <span className="text-sm font-normal text-muted-foreground">{titleText}</span>
           )}
         </div>
       </div>

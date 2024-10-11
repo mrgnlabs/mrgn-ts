@@ -1,9 +1,9 @@
-import React from "react";
+import React, { useEffect } from "react";
 
 import { ActionInput } from "./components/action-input";
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { AccountSummary, ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { PreviousTxn } from "@mrgnlabs/mrgn-utils";
+import { LstData, PreviousTxn } from "@mrgnlabs/mrgn-utils";
 import { useStakeBoxStore } from "./store";
 import { useActionAmounts } from "~/components/action-box-v2/hooks";
 import { AmountPreview } from "./components/amount-preview";
@@ -12,6 +12,9 @@ import { StatsPreview } from "./components/stats-preview";
 import { WalletContextStateOverride } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { WalletContextState } from "@solana/wallet-adapter-react";
 import { useStakeSimulation } from "./hooks";
+
+import { useConnection } from "~/hooks/use-connection";
+import { Connection } from "@solana/web3.js";
 
 export type StakeBoxProps = {
   nativeSolBalance: number;
@@ -79,6 +82,8 @@ export const StakeBox = ({
     state.setErrorMessage,
   ]);
 
+  const isSelectable = React.useMemo(() => (requestedBank?.meta.tokenSymbol === "LST" ? false : true), [requestedBank]);
+
   const { amount, debouncedAmount, walletAmount, maxAmount } = useActionAmounts({
     amountRaw,
     selectedBank,
@@ -98,11 +103,12 @@ export const StakeBox = ({
           amountRaw={amountRaw}
           maxAmount={maxAmount}
           connected={connected}
-          selectedBank={selectedBank}
-          lendMode={ActionType.MintLST}
-          isDialog={true}
+          selectedBank={requestedBank ?? selectedBank}
+          lendMode={actionMode}
+          isDialog={isDialog}
           setAmountRaw={setAmountRaw}
           setSelectedBank={setSelectedBank}
+          isSelectable={isSelectable}
         />
       </div>
       <div className="mb-6">
@@ -122,22 +128,6 @@ export const StakeBox = ({
           handleAction={() => {}}
           handleConnect={() => {}}
           buttonLabel={ActionType.MintLST ? "Mint LST" : "Unstake LST"}
-        />
-      </div>
-
-      <div>
-        <StatsPreview
-          actionSummary={{
-            actionPreview: {
-              commission: 0,
-              currentPrice: 0,
-              projectedApy: 0,
-              supply: 0,
-            },
-          }}
-          actionMode={actionMode}
-          isLoading={isLoading}
-          selectedBank={selectedBank}
         />
       </div>
     </>

@@ -180,10 +180,11 @@ const Stake = (
   } else {
     combinedProps = stakeProps as StakeBoxProps;
   }
+
   return (
     <ActionBox {...actionBoxProps}>
       <ActionBoxWrapper showSettings={true} isDialog={props.isDialog} actionMode={ActionType.MintLST}>
-        <ActionBoxNavigator selectedAction={ActionType.MintLST}>
+        <ActionBoxNavigator selectedAction={ActionType.MintLST} bank={combinedProps.requestedBank}>
           <StakeBox {...combinedProps} isDialog={props.isDialog} />
         </ActionBoxNavigator>
       </ActionBoxWrapper>
