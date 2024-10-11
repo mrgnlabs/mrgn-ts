@@ -334,7 +334,7 @@ export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }:
 
       let tokenBankConfig = DEFAULT_TOKEN_BANK_CONFIG;
 
-      const response = await fetch(`/api/birdeye/overview?token=${poolData.mint}`, {
+      const response = await fetch(`/api/birdeye/token?address=${poolData.mint.toBase58()}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -343,16 +343,18 @@ export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }:
 
       const responseBody = await response.json();
 
-      if (!responseBody.success) {
+      console.log("responseBody", responseBody);
+
+      if (!responseBody) {
         throw new Error("Failed to fetch token details");
       }
 
-      const tokenDetails = responseBody.data as TokenData;
+      const tokenDetails = responseBody as TokenData;
 
-      tokenBankConfig.borrowLimit = new BigNumber(100_000 / tokenDetails.price).multipliedBy(
+      tokenBankConfig.borrowLimit = new BigNumber(Math.floor(100_000 / tokenDetails.price)).multipliedBy(
         Math.pow(10, poolData.decimals)
       );
-      tokenBankConfig.depositLimit = new BigNumber(10_000 / tokenDetails.price).multipliedBy(
+      tokenBankConfig.depositLimit = new BigNumber(Math.floor(10_000 / tokenDetails.price)).multipliedBy(
         Math.pow(10, poolData.decimals)
       );
       tokenBankConfig.oracle = {
