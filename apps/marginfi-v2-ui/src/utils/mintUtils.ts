@@ -86,7 +86,6 @@ export async function fetchMintOverview(mint: string): Promise<MintOverview> {
   });
 
   const responseBody = await response.json();
-  console.log({ responseBody });
   if (responseBody.success) {
     const volume = responseBody.data.v24h;
     const volumeUsd = responseBody.data.v24hUSD;

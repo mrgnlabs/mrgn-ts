@@ -23,7 +23,7 @@ import {
   getConfig,
   makeBundleTipIx,
 } from "@mrgnlabs/marginfi-client-v2";
-import { cn } from "@mrgnlabs/mrgn-utils";
+import { cn, getBearerToken, getFeeAccount, createReferalTokenAccount } from "@mrgnlabs/mrgn-utils";
 
 import { useUiStore, useTradeStore } from "~/store";
 import { Button } from "~/components/ui/button";
@@ -33,6 +33,7 @@ import { createPoolLookupTable } from "~/utils";
 
 import { PoolData, CreatePoolState } from "../types";
 import { cp } from "fs";
+import { TokenData } from "~/types";
 
 const USDC_MINT = new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
 
@@ -245,15 +246,6 @@ export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }:
 
         const pullFeedIx = await pullFeed.initIx(conf);
 
-        // const pullFeedTx = await sb.asV0Tx({
-        //   connection,
-        //   ixs: [pullFeedIx],
-        //   payer: wallet.publicKey,
-        //   signers: [feedSeed],
-        //   computeUnitPrice: 75_000,
-        //   computeUnitLimitMultiple: 1.3,
-        // });
-
         if (!feedPubkey) throw new Error();
         console.log("feedPubkey", feedPubkey.toBase58());
         return { feedPubkey, pullFeedIx, feedSeed };
@@ -265,174 +257,248 @@ export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }:
     [connection, wallet]
   );
 
+  const savePermissionlessPool = async (poolObject: { group: string; asset: string; quote: string; lut: string }) => {
+    try {
+      const token = await getBearerToken();
+
+      const response = await fetch("/api/pool/create", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(poolObject),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log("Pool added:", data);
+        return data;
+      } else {
+        console.error("Failed to add pool");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+    }
+  };
+
   const createPermissionlessBankBundle = React.useCallback(async () => {
-    setActiveStep(0);
+    try {
+      setActiveStep(0);
 
-    if (!poolData) return;
+      if (!poolData) return;
 
-    setStatus("loading");
+      setStatus("loading");
 
-    // create client
-    const client = await initializeClient();
+      // create client
+      const client = await initializeClient();
 
-    // create seeds
-    const seeds = createSeeds();
+      // create seeds
+      const seeds = createSeeds();
 
-    // create bundle tip ix
-    const bundleTipIx = makeBundleTipIx(wallet.publicKey);
+      // create bundle tip ix
+      const bundleTipIx = makeBundleTipIx(wallet.publicKey);
 
-    // create oracle ix
-    const oracleCreation = await createOracleIx(poolData.mint, poolData.symbol, client);
+      // create oracle ix
+      const oracleCreation = await createOracleIx(poolData.mint, poolData.symbol, client);
 
-    if (!oracleCreation) throw new Error("Oracle creation failed");
+      if (!oracleCreation) throw new Error("Oracle creation failed");
 
-    setActiveStep(1);
+      setActiveStep(1);
 
-    // create group ix
-    const groupIxWrapped = await client.makeCreateMarginfiGroupIx(seeds.marginfiGroupSeed.publicKey);
+      // create group ix
+      const groupIxWrapped = await client.makeCreateMarginfiGroupIx(seeds.marginfiGroupSeed.publicKey);
 
-    // create lut ix
-    const oracleKeys = [oracleCreation.feedPubkey, ...(DEFAULT_USDC_BANK_CONFIG.oracle?.keys ?? [])];
-    const bankKeys = [seeds.stableBankSeed.publicKey, seeds.tokenBankSeed.publicKey];
-    const { lutAddress, createLutIx, extendLutIx } = await createPoolLookupTable({
-      client,
-      oracleKeys,
-      bankKeys,
-      groupKey: seeds.marginfiGroupSeed.publicKey,
-      walletKey: wallet.publicKey,
-    });
+      // create lut ix
+      const oracleKeys = [oracleCreation.feedPubkey, ...(DEFAULT_USDC_BANK_CONFIG.oracle?.keys ?? [])];
+      const bankKeys = [seeds.stableBankSeed.publicKey, seeds.tokenBankSeed.publicKey];
+      const { lutAddress, createLutIx, extendLutIx } = await createPoolLookupTable({
+        client,
+        oracleKeys,
+        bankKeys,
+        groupKey: seeds.marginfiGroupSeed.publicKey,
+        walletKey: wallet.publicKey,
+      });
 
-    // create bank ix wrapper (stable)
-    const stableBankIxWrapper = await client.group.makePoolAddBankIx(
-      client.program,
-      seeds.stableBankSeed.publicKey,
-      USDC_MINT,
-      DEFAULT_USDC_BANK_CONFIG,
-      {
-        admin: wallet.publicKey,
-        groupAddress: seeds.marginfiGroupSeed.publicKey,
+      // create bank ix wrapper (stable)
+      const stableBankIxWrapper = await client.group.makePoolAddBankIx(
+        client.program,
+        seeds.stableBankSeed.publicKey,
+        USDC_MINT,
+        DEFAULT_USDC_BANK_CONFIG,
+        {
+          admin: wallet.publicKey,
+          groupAddress: seeds.marginfiGroupSeed.publicKey,
+        }
+      );
+
+      let tokenBankConfig = DEFAULT_TOKEN_BANK_CONFIG;
+
+      const response = await fetch(`/api/birdeye/overview?token=${poolData.mint}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      const responseBody = await response.json();
+
+      if (!responseBody.success) {
+        throw new Error("Failed to fetch token details");
       }
-    );
 
-    let tokenBankConfig = DEFAULT_TOKEN_BANK_CONFIG;
+      const tokenDetails = responseBody.data as TokenData;
 
-    // TODO: create switchboard pull oracle
-    // TODO: update limits according to oracle price / token decimals (currently using Retardio data)
-    tokenBankConfig.borrowLimit = new BigNumber(11481056).multipliedBy(1e6);
-    tokenBankConfig.depositLimit = new BigNumber(252870264).multipliedBy(1e6);
-    tokenBankConfig.oracle = {
-      setup: OracleSetup.SwitchboardPull,
-      keys: [oracleCreation.feedPubkey],
-    };
+      tokenBankConfig.borrowLimit = new BigNumber(Math.pow(tokenDetails.price, 100_000)).multipliedBy(
+        Math.pow(10, poolData.decimals)
+      );
+      tokenBankConfig.depositLimit = new BigNumber(Math.pow(tokenDetails.price, 10_000)).multipliedBy(
+        Math.pow(10, poolData.decimals)
+      );
+      tokenBankConfig.oracle = {
+        setup: OracleSetup.SwitchboardPull,
+        keys: [oracleCreation.feedPubkey],
+      };
 
-    // create bank ix wrapper (token)
-    const tokenBankIxWrapper = await client.group.makePoolAddBankIx(
-      client.program,
-      seeds.tokenBankSeed.publicKey,
-      poolData.mint,
-      tokenBankConfig,
-      {
-        admin: wallet.publicKey,
-        groupAddress: seeds.marginfiGroupSeed.publicKey,
+      // create bank ix wrapper (token)
+      const tokenBankIxWrapper = await client.group.makePoolAddBankIx(
+        client.program,
+        seeds.tokenBankSeed.publicKey,
+        poolData.mint,
+        tokenBankConfig,
+        {
+          admin: wallet.publicKey,
+          groupAddress: seeds.marginfiGroupSeed.publicKey,
+        }
+      );
+
+      // transactions
+      const transactions: VersionedTransaction[] = [];
+      const {
+        value: { blockhash },
+      } = await connection.getLatestBlockhashAndContext();
+
+      // bundle tip & create oracle transaction
+      transactions.push(
+        await createTransaction(
+          [bundleTipIx, oracleCreation.pullFeedIx],
+          wallet.publicKey,
+          connection,
+          [oracleCreation.feedSeed],
+          blockhash
+        )
+      );
+
+      const feeAccount = getFeeAccount(poolData.mint);
+
+      if (!feeAccount) {
+        const feeAccountCreationLegacyTx = await createReferalTokenAccount(connection, wallet.publicKey, poolData.mint);
+        const feeAccountCreationMessage = new TransactionMessage({
+          instructions: feeAccountCreationLegacyTx.instructions,
+          payerKey: wallet.publicKey,
+          recentBlockhash: blockhash,
+        }).compileToV0Message([]);
+        const feeAccountCreationTx = new VersionedTransaction(feeAccountCreationMessage);
+        transactions.push(feeAccountCreationTx);
       }
-    );
 
-    // transactions
-    const transactions: VersionedTransaction[] = [];
-    const {
-      value: { blockhash },
-    } = await connection.getLatestBlockhashAndContext();
+      // create lut & create group transaction
+      transactions.push(
+        await createTransaction(
+          [createLutIx, extendLutIx, ...groupIxWrapped.instructions],
+          wallet.publicKey,
+          connection,
+          [seeds.marginfiGroupSeed],
+          blockhash
+        )
+      );
 
-    console.log("bundleTipIx", bundleTipIx);
-    console.log("oracleCreation", oracleCreation);
+      // stable bank transaction
+      transactions.push(
+        await createTransaction(
+          [...stableBankIxWrapper.instructions],
+          wallet.publicKey,
+          connection,
+          [seeds.stableBankSeed, ...stableBankIxWrapper.keys],
+          blockhash
+        )
+      );
 
-    // bundle tip & create oracle transaction
-    transactions.push(
-      await createTransaction(
-        [bundleTipIx, oracleCreation.pullFeedIx],
-        wallet.publicKey,
+      // token bank transaction
+      transactions.push(
+        await createTransaction(
+          [...tokenBankIxWrapper.instructions],
+          wallet.publicKey,
+          connection,
+          [seeds.tokenBankSeed, ...tokenBankIxWrapper.keys],
+          blockhash
+        )
+      );
+
+      setActiveStep(2);
+
+      // transaction execution
+      const sigs = await client.processTransactions(transactions);
+
+      if (!sigs) throw new Error("Transaction execution failed");
+
+      setActiveStep(3);
+
+      try {
+        const response = await savePermissionlessPool({
+          group: seeds.marginfiGroupSeed.publicKey.toBase58(),
+          asset: seeds.tokenBankSeed.publicKey.toBase58(),
+          quote: seeds.stableBankSeed.publicKey.toBase58(),
+          lut: lutAddress.toBase58(),
+        });
+        console.log("Pool saved:", response);
+      } catch (error) {
+        console.error("Failed to save pool");
+        console.error(error);
+        throw error;
+      }
+
+      // update LUT GCP
+      // const cacheData = {
+      //   groupAddress: seeds.marginfiGroupSeed.publicKey.toBase58(),
+      //   lutAddress: lutAddress.toBase58(),
+      //   usdcBankAddress: seeds.stableBankSeed.publicKey.toBase58(),
+      //   tokenBankAddress: seeds.tokenBankSeed.publicKey.toBase58(),
+      //   tokenName: poolData.name,
+      //   tokenMint: poolData.mint,
+      //   tokenSymbol: poolData.symbol,
+      //   tokenImage: poolData.icon,
+      //   tokenDecimals: poolData.decimals,
+      // };
+      // console.log("cache data", cacheData);
+      // const lutUpdateRes = await fetch(`/api/pool/create`, {
+      //   method: "POST",
+      //   body: JSON.stringify(cacheData),
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      // });
+
+      // if (!lutUpdateRes.ok) {
+      //   console.error("Failed to update GCP caches");
+      //   return;
+      // }
+
+      setPoolData((state) => {
+        if (!state) return null;
+        return { ...state, group: seeds.marginfiGroupSeed.publicKey };
+      });
+      setCreatePoolState(CreatePoolState.SUCCESS);
+      fetchTradeState({
         connection,
-        [oracleCreation.feedSeed],
-        blockhash
-      )
-    );
-
-    // create lut & create group transaction
-    transactions.push(
-      await createTransaction(
-        [createLutIx, extendLutIx, ...groupIxWrapped.instructions],
-        wallet.publicKey,
-        connection,
-        [seeds.marginfiGroupSeed],
-        blockhash
-      )
-    );
-
-    // stable bank transaction
-    transactions.push(
-      await createTransaction(
-        [...stableBankIxWrapper.instructions],
-        wallet.publicKey,
-        connection,
-        [seeds.stableBankSeed, ...stableBankIxWrapper.keys],
-        blockhash
-      )
-    );
-
-    // token bank transaction
-    transactions.push(
-      await createTransaction(
-        [...tokenBankIxWrapper.instructions],
-        wallet.publicKey,
-        connection,
-        [seeds.tokenBankSeed, ...tokenBankIxWrapper.keys],
-        blockhash
-      )
-    );
-
-    setActiveStep(2);
-
-    // transaction execution
-    const sigs = await client.processTransactions(transactions);
-
-    setActiveStep(3);
-
-    // update LUT GCP
-    // const cacheData = {
-    //   groupAddress: seeds.marginfiGroupSeed.publicKey.toBase58(),
-    //   lutAddress: lutAddress.toBase58(),
-    //   usdcBankAddress: seeds.stableBankSeed.publicKey.toBase58(),
-    //   tokenBankAddress: seeds.tokenBankSeed.publicKey.toBase58(),
-    //   tokenName: poolData.name,
-    //   tokenMint: poolData.mint,
-    //   tokenSymbol: poolData.symbol,
-    //   tokenImage: poolData.icon,
-    //   tokenDecimals: poolData.decimals,
-    // };
-    // console.log("cache data", cacheData);
-    // const lutUpdateRes = await fetch(`/api/pool/create`, {
-    //   method: "POST",
-    //   body: JSON.stringify(cacheData),
-    //   headers: {
-    //     "Content-Type": "application/json",
-    //   },
-    // });
-
-    // if (!lutUpdateRes.ok) {
-    //   console.error("Failed to update GCP caches");
-    //   return;
-    // }
-
-    setPoolData((state) => {
-      if (!state) return null;
-      return { ...state, group: seeds.marginfiGroupSeed.publicKey };
-    });
-    setCreatePoolState(CreatePoolState.SUCCESS);
-    fetchTradeState({
-      connection,
-      wallet,
-      refresh: true,
-    });
+        wallet,
+        refresh: true,
+      });
+    } catch (error) {
+      setStatus("error");
+      console.error("Failed to create permissionless pool");
+      console.error(error);
+    }
   }, [
     connection,
     createOracleIx,
