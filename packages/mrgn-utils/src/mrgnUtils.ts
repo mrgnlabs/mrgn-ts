@@ -3,6 +3,7 @@ import numeral from "numeral";
 import { PublicKey, TransactionInstruction } from "@solana/web3.js";
 import BN from "bn.js";
 
+import { OracleSetup } from "@mrgnlabs/marginfi-client-v2";
 import { TOKEN_PROGRAM_ID, aprToApy, ceil, floor, percentFormatter } from "@mrgnlabs/mrgn-common";
 import { ActiveBankInfo, Emissions, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
@@ -131,6 +132,11 @@ export function getTokenImageURL(bank: ExtendedBankInfo): string {
 }
 
 export function isBankOracleStale(bank: ExtendedBankInfo) {
+  // switchboard pull oracles are UI cranked so should never be stale
+  if (bank.info.rawBank.config.oracleSetup === OracleSetup.SwitchboardPull) {
+    return false;
+  }
+
   const maxAge = bank.info.rawBank.config.oracleMaxAge;
   const currentTime = Math.round(Date.now() / 1000);
   const oracleTime = Math.round(
