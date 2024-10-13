@@ -527,6 +527,7 @@ async function getGroupData({
     connection,
     {
       preloadedBankAddresses: bankKeys,
+      bankMetadataMap: bankMetadataCache,
       fetchGroupDataOverride: fetchGroupData,
     }
   );
