@@ -39,13 +39,6 @@ export const Footer = () => {
       >
         <IconMessage size={18} /> help &amp; support
       </Link>
-      <p className="text-xs text-primary/80">
-        <span className="inline-block translate-y-[1px] mr-0.5 animate-pulsate">◼️</span> built by{" "}
-        <Link href="https://www.marginfi.com" target="_blank">
-          mrgn
-        </Link>
-        .
-      </p>
       <Link
         href="https://github.com/mrgnlabs/marginfi-v2/tree/main/audits"
         target="blank"
