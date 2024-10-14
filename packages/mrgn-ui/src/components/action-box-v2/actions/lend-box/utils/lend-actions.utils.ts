@@ -133,7 +133,7 @@ export async function calculateLendingTransaction(
       });
       return {
         actionTxn: borrowTxObject.borrowTx,
-        additionalTxns: [],
+        additionalTxns: borrowTxObject.feedCrankTxs,
       };
     case ActionType.Withdraw:
       const withdrawTxObject = await marginfiAccount.makeWithdrawTx(
@@ -143,7 +143,7 @@ export async function calculateLendingTransaction(
       );
       return {
         actionTxn: withdrawTxObject.withdrawTx,
-        additionalTxns: [],
+        additionalTxns: withdrawTxObject.feedCrankTxs,
       };
     case ActionType.Repay:
       const repayTx = await marginfiAccount.makeRepayTx(
