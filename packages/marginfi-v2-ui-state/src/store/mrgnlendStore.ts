@@ -211,6 +211,7 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
         preloadedBankAddresses: bankAddresses,
         readOnly: isReadOnly,
         bundleSimRpcEndpoint,
+        bankMetadataMap: bankMetadataMap,
         fetchGroupDataOverride: fetchGroupData,
       });
       const clientBanks = [...marginfiClient.banks.values()];
