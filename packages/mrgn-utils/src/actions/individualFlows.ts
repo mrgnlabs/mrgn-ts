@@ -24,6 +24,15 @@ import { loopingBuilder, repayWithCollatBuilder } from "./flashloans";
 import { getMaybeSquadsOptions } from "./helpers";
 import { RepayWithCollatOptions, LoopingOptions, LstData, StakeData, ActionTxns, MarginfiActionParams } from "./types";
 
+const captureException = (error: any, msg: string, tags: Record<string, string | undefined>) => {
+  if (msg.includes("User rejected")) return;
+  Sentry.setTags({
+    ...tags,
+    customMessage: msg,
+  });
+  Sentry.captureException(error);
+};
+
 // ------------------------------------------------------------------//
 // Individual action flows - non-throwing - for use in UI components //
 // ------------------------------------------------------------------//
@@ -54,12 +63,12 @@ export async function createAccount({
     multiStepToast.setSuccessAndNext();
   } catch (error: any) {
     const msg = extractErrorString(error);
-    Sentry.setTags({
+
+    captureException(error, msg, {
       action: "createAccount",
       wallet: walletContextState?.publicKey?.toBase58(),
-      customMessage: msg,
     });
-    Sentry.captureException(error);
+
     multiStepToast.setFailed(msg);
     console.log(`Error while depositing: ${msg}`);
     console.log(error);
@@ -97,12 +106,12 @@ export async function createAccountAndDeposit({
     multiStepToast.setSuccessAndNext();
   } catch (error: any) {
     const msg = extractErrorString(error);
-    Sentry.setTags({
+
+    captureException(error, msg, {
       action: "createAccount",
       wallet: walletContextState?.publicKey?.toBase58(),
-      customMessage: msg,
     });
-    Sentry.captureException(error);
+
     multiStepToast.setFailed(msg);
     console.log(`Error while depositing: ${msg}`);
     console.log(error);
@@ -115,13 +124,13 @@ export async function createAccountAndDeposit({
     return txnSig;
   } catch (error: any) {
     const msg = extractErrorString(error);
-    Sentry.setTags({
+
+    captureException(error, msg, {
       action: "deposit",
       wallet: walletContextState?.publicKey?.toBase58(),
       bank: bank.meta.tokenSymbol,
-      customMessage: msg,
     });
-    Sentry.captureException(error);
+
     multiStepToast.setFailed(msg);
     console.log(`Error while depositing: ${msg}`);
     console.log(error);
@@ -159,13 +168,13 @@ export async function deposit({
     return txnSig;
   } catch (error: any) {
     const msg = extractErrorString(error);
-    Sentry.setTags({
+
+    captureException(error, msg, {
       action: "deposit",
       wallet: marginfiAccount?.authority?.toBase58(),
       bank: bank.meta.tokenSymbol,
-      customMessage: msg,
     });
-    Sentry.captureException(error);
+
     multiStepToast.setFailed(msg);
     console.log(`Error while depositing: ${msg}`);
     console.log(error);
@@ -203,13 +212,13 @@ export async function borrow({
     return sigs;
   } catch (error: any) {
     const msg = extractErrorString(error);
-    Sentry.setTags({
+
+    captureException(error, msg, {
       action: "borrow",
       wallet: marginfiAccount?.authority?.toBase58(),
       bank: bank.meta.tokenSymbol,
-      customMessage: msg,
     });
-    Sentry.captureException(error);
+
     multiStepToast.setFailed(msg);
     console.log(`Error while borrowing: ${msg}`);
     console.log(error);
@@ -249,13 +258,13 @@ export async function withdraw({
     return sigs;
   } catch (error: any) {
     const msg = extractErrorString(error);
-    Sentry.setTags({
+
+    captureException(error, msg, {
       action: "withdraw",
       wallet: marginfiAccount?.authority?.toBase58(),
       bank: bank.meta.tokenSymbol,
-      customMessage: msg,
     });
-    Sentry.captureException(error);
+
     multiStepToast.setFailed(msg);
     console.log(`Error while withdrawing: ${msg}`);
     console.log(error);
@@ -294,13 +303,13 @@ export async function repay({
     return txnSig;
   } catch (error: any) {
     const msg = extractErrorString(error);
-    Sentry.setTags({
+
+    captureException(error, msg, {
       action: "repay",
       wallet: marginfiAccount?.authority?.toBase58(),
       bank: bank.meta.tokenSymbol,
-      customMessage: msg,
     });
-    Sentry.captureException(error);
+
     multiStepToast.setFailed(msg);
     console.log(`Error while repaying: ${msg}`);
     console.log(error);
@@ -369,14 +378,14 @@ export async function looping({
     return sigs;
   } catch (error: any) {
     const msg = extractErrorString(error);
-    Sentry.setTags({
+
+    captureException(error, msg, {
       action: "looping",
       wallet: marginfiAccount?.authority?.toBase58(),
       bank: bank.meta.tokenSymbol,
       loopingBank: loopingOptions?.loopingBank.meta.tokenSymbol,
-      customMessage: msg,
     });
-    Sentry.captureException(error);
+
     multiStepToast.setFailed(msg);
     console.log(`Error while looping: ${msg}`);
     console.log(error);
@@ -439,14 +448,14 @@ export async function repayWithCollat({
     return sigs;
   } catch (error: any) {
     const msg = extractErrorString(error);
-    Sentry.setTags({
+
+    captureException(error, msg, {
       action: "repayWithCollat",
       wallet: marginfiAccount?.authority?.toBase58(),
       bank: bank.meta.tokenSymbol,
       repayWithCollatBank: repayWithCollatOptions?.depositBank.meta.tokenSymbol,
-      customMessage: msg,
     });
-    Sentry.captureException(error);
+
     multiStepToast.setFailed(msg);
     console.log(`Error while repaying: ${msg}`);
     console.log(error);
@@ -469,12 +478,12 @@ export async function collectRewardsBatch(
     return txnSig;
   } catch (error: any) {
     const msg = extractErrorString(error);
-    Sentry.setTags({
+
+    captureException(error, msg, {
       action: "collectRewardsBatch",
       wallet: marginfiAccount?.authority?.toBase58(),
-      customMessage: msg,
     });
-    Sentry.captureException(error);
+
     multiStepToast.setFailed(msg);
     console.log(`Error while collecting rewards: ${msg}`);
     console.log(error);
@@ -520,13 +529,13 @@ export const closeBalance = async ({
     return txnSig;
   } catch (error: any) {
     const msg = extractErrorString(error);
-    Sentry.setTags({
+
+    captureException(error, msg, {
       action: "closeBalance",
       wallet: marginfiAccount?.authority?.toBase58(),
       bank: bank.meta.tokenSymbol,
-      customMessage: msg,
     });
-    Sentry.captureException(error);
+
     multiStepToast.setFailed(msg);
     console.log(`Error while closing balance`);
     console.log(error);
@@ -586,12 +595,12 @@ export async function mintLstStakeToStake({
     return txnSig;
   } catch (error: any) {
     const msg = extractErrorString(error);
-    Sentry.setTags({
+
+    captureException(error, msg, {
       action: "mintLstStakeToStake",
       wallet: wallet.publicKey.toBase58(),
-      customMessage: msg,
     });
-    Sentry.captureException(error);
+
     multiStepToast.setFailed(msg);
     console.log(`Error while minting lst: ${msg}`);
     console.log(error);
@@ -657,12 +666,12 @@ export async function mintLstNative({
     return txnSig;
   } catch (error: any) {
     const msg = extractErrorString(error);
-    Sentry.setTags({
+
+    captureException(error, msg, {
       action: "mintLstNative",
       wallet: wallet.publicKey.toBase58(),
-      customMessage: msg,
     });
-    Sentry.captureException(error);
+
     multiStepToast.setFailed(msg);
     console.log(`Error while minting lst: ${msg}`);
     console.log(error);
@@ -738,12 +747,12 @@ export async function mintLstToken({
     return swapSig;
   } catch (error: any) {
     const msg = extractErrorString(error);
-    Sentry.setTags({
+
+    captureException(error, msg, {
       action: "mintLstToken",
       wallet: wallet.publicKey.toBase58(),
-      customMessage: msg,
     });
-    Sentry.captureException(error);
+
     multiStepToast.setFailed(msg);
     console.log(`Error while minting lst: ${msg}`);
     console.log(error);
