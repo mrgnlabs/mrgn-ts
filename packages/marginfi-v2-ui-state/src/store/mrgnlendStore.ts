@@ -182,7 +182,10 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
       let tokenMetadataMap: { [symbol: string]: TokenMetadata };
 
       if (marginfiConfig.environment === "production") {
-        let results = await Promise.all([loadBankMetadatas(), loadTokenMetadatas()]);
+        let results = await Promise.all([
+          loadBankMetadatas(process.env.NEXT_PUBLIC_BANKS_MAP),
+          loadTokenMetadatas(process.env.NEXT_PUBLIC_TOKENS_MAP),
+        ]);
         bankMetadataMap = results[0];
         tokenMetadataMap = results[1];
       } else if (marginfiConfig.environment === "staging") {
