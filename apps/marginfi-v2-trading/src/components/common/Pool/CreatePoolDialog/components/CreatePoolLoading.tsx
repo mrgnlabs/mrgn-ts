@@ -189,10 +189,13 @@ export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }:
 
         const feedPubkey = feedSeed.publicKey;
 
-        const oracleTasks = sb.OracleJob.Task.create({
+        const valueTask = sb.OracleJob.Task.create({
           valueTask: {
             big: "1",
           },
+        });
+
+        const divideTask = sb.OracleJob.Task.create({
           divideTask: {
             job: {
               tasks: [
@@ -206,12 +209,16 @@ export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }:
               ],
             },
           },
+        });
+
+        const multiplyTask = sb.OracleJob.Task.create({
           multiplyTask: {
             job: {
               tasks: [
                 {
                   oracleTask: {
                     pythAddress: "Gnt27xtC473ZT2Mw5u8wZ68Z3gULkSTb5DuxJy7eJotD", // PYTH USDC oracle
+                    pythAllowedConfidenceInterval: 5,
                   },
                 },
               ],
@@ -223,11 +230,10 @@ export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }:
         const queue = queueAccount.pubkey;
 
         const oracleJob = sb.OracleJob.create({
-          tasks: [oracleTasks],
+          tasks: [valueTask, divideTask, multiplyTask],
         });
 
         const feedHash = (await crossbarClient.store(queue.toString(), [oracleJob])).feedHash;
-        console.log("feedHash", feedHash);
 
         const feedHashBuffer = decodeString(feedHash);
 
