@@ -150,8 +150,8 @@ export function useLendSimulation({
 
   React.useEffect(() => {
     handleSimulation([
-      ...(actionTxns?.actionTxn ? [actionTxns?.actionTxn] : []),
       ...(actionTxns?.additionalTxns ?? []),
+      ...(actionTxns?.actionTxn ? [actionTxns?.actionTxn] : []),
     ]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [actionTxns]);

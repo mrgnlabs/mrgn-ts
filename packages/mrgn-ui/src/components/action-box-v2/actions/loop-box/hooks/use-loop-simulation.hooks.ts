@@ -228,8 +228,8 @@ export function useLoopSimulation({
 
   React.useEffect(() => {
     handleSimulation([
-      ...(actionTxns?.actionTxn ? [actionTxns?.actionTxn] : []),
       ...(actionTxns?.additionalTxns ?? []),
+      ...(actionTxns?.actionTxn ? [actionTxns?.actionTxn] : []),
     ]);
   }, [actionTxns]);
 
