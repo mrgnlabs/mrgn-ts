@@ -73,6 +73,7 @@ export type MarginfiClientOptions = {
   readOnly?: boolean;
   preloadedBankAddresses?: PublicKey[];
   bundleSimRpcEndpoint?: string;
+  bankMetadataMap?: BankMetadataMap;
   fetchGroupDataOverride?: (
     program: MarginfiProgram,
     groupAddress: PublicKey,
@@ -169,9 +170,11 @@ class MarginfiClient {
 
     const program = new Program(idl, provider) as any as MarginfiProgram;
 
-    let bankMetadataMap: BankMetadataMap | undefined = undefined;
+    let bankMetadataMap: BankMetadataMap | undefined = clientOptions?.bankMetadataMap;
     try {
-      bankMetadataMap = await loadBankMetadatas();
+      if (!bankMetadataMap) {
+        bankMetadataMap = await loadBankMetadatas();
+      }
     } catch (error) {
       console.error("Failed to load bank metadatas. Convenience getter by symbol will not be available", error);
     }
