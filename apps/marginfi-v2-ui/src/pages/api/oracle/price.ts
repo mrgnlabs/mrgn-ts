@@ -31,6 +31,10 @@ interface OracleData {
   maxAge: number;
 }
 
+interface OracleDataWithTimestamp extends OracleData {
+  timestamp: BigNumber;
+}
+
 interface PriceWithConfidenceString {
   price: string;
   confidence: string;
@@ -94,7 +98,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const oracleAis = await chunkedGetRawMultipleAccountInfoOrdered(connection, [
       ...requestedOraclesData.map((oracleData) => oracleData.oracleKey),
     ]);
-    let swbPullOraclesStale: { data: OracleData; feedHash: string }[] = [];
+    let swbPullOraclesStale: { data: OracleDataWithTimestamp; feedHash: string }[] = [];
     for (const index in requestedOraclesData) {
       const oracleData = requestedOraclesData[index];
       const priceDataRaw = oracleAis[index];
@@ -107,7 +111,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // If on-chain data is recent enough, use it even for SwitchboardPull oracles
       if (oracleData.oracleSetup === OracleSetup.SwitchboardPull && isStale) {
         swbPullOraclesStale.push({
-          data: oracleData,
+          data: { ...oracleData, timestamp: oraclePrice.timestamp },
           feedHash: Buffer.from(decodeSwitchboardPullFeedData(priceDataRaw.data).feed_hash).toString("hex"),
         });
         continue;
@@ -122,21 +126,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const crossbarPrices = await fetchCrossbarPrices(feedHashes);
 
       for (const {
-        data: { oracleKey },
+        data: { oracleKey, timestamp },
         feedHash,
       } of swbPullOraclesStale) {
         const crossbarPrice = crossbarPrices.get(feedHash);
         if (!crossbarPrice) {
           throw new Error(`Crossbar didn't return data for ${feedHash}`);
         }
+        const updatedOraclePrice = { ...crossbarPrice, timestamp } as OraclePrice;
 
-        updatedOraclePrices.set(oracleKey, crossbarPrice);
+        updatedOraclePrices.set(oracleKey, updatedOraclePrice);
       }
     }
 
     const updatedOraclePricesSorted = requestedOraclesData.map((value) => updatedOraclePrices.get(value.oracleKey)!);
 
-    res.setHeader("Cache-Control", "s-maxage=20, stale-while-revalidate=59");
+    res.setHeader("Cache-Control", "s-maxage=5, stale-while-revalidate=59");
     return res.status(200).json(updatedOraclePricesSorted.map(stringifyOraclePrice));
   } catch (error) {
     console.error("Error:", error);
