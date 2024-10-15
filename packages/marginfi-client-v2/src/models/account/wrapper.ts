@@ -405,7 +405,7 @@ class MarginfiAccountWrapper {
     );
 
     // assumes only one tx
-    const sigs = await this.client.processTransactions([flashloanTx, ...feedCrankTxs]);
+    const sigs = await this.client.processTransactions([...feedCrankTxs, flashloanTx]);
     debug("Repay with collateral successful %s", sigs.pop() ?? "");
 
     return sigs;
