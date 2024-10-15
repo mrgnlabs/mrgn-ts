@@ -152,6 +152,7 @@ type TradeStoreState = {
 const { programId } = getConfig();
 
 const USDC_MINT = new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
+const LST_MINT = new PublicKey("LSTxxxnJzKDFSLr4dUkPcmCf5VyryEqzPLz5j4bpxFp");
 
 let fuse: Fuse<GroupData> | null = null;
 
@@ -604,8 +605,12 @@ async function getGroupData({
   );
 
   // change this logic when adding more collateral banks
-  const tokenBanks = extendedBankInfos.filter((bank) => !bank.info.rawBank.mint.equals(USDC_MINT));
-  const collateralBanks = extendedBankInfos.filter((bank) => bank.info.rawBank.mint.equals(USDC_MINT));
+  const tokenBanks = extendedBankInfos.filter(
+    (bank) => !bank.info.rawBank.mint.equals(USDC_MINT) && !bank.info.rawBank.mint.equals(LST_MINT)
+  );
+  const collateralBanks = extendedBankInfos.filter(
+    (bank) => bank.info.rawBank.mint.equals(USDC_MINT) || bank.info.rawBank.mint.equals(LST_MINT)
+  );
 
   if (tokenBanks.length > 1) console.error("Inconsitency in token banks!");
 
