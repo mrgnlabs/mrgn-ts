@@ -8,12 +8,14 @@ import { capture } from "@mrgnlabs/mrgn-utils";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { Button } from "~/components/ui/button";
+import { useMrgnlendStore } from "~/store";
 
 type NewAssetBannerProps = {
   bankInfo: ExtendedBankInfo;
 };
 
 export const NewAssetBanner = ({ bankInfo }: NewAssetBannerProps) => {
+  const [fetchMrgnlendState] = useMrgnlendStore((state) => [state.fetchMrgnlendState]);
   const { connected } = useWallet();
   const [isBannerVisible, setIsBannerVisible] = React.useState(false);
 
@@ -50,6 +52,9 @@ export const NewAssetBanner = ({ bankInfo }: NewAssetBannerProps) => {
                   captureEvent: (event, properties) => {
                     capture(event, properties);
                   },
+                  onComplete: () => {
+                    fetchMrgnlendState();
+                  },
                 }}
                 dialogProps={{
                   title: `Deposit ${bankInfo.meta.tokenSymbol}`,
@@ -71,6 +76,9 @@ export const NewAssetBanner = ({ bankInfo }: NewAssetBannerProps) => {
                   requestedBank: bankInfo,
                   captureEvent: (event, properties) => {
                     capture(event, properties);
+                  },
+                  onComplete: () => {
+                    fetchMrgnlendState();
                   },
                 }}
                 dialogProps={{

@@ -292,11 +292,13 @@ const ActionBoxCell = ({
   isInLendingMode,
   connected,
   walletContextState,
+  fetchMrgnlendState,
 }: {
   bank: ExtendedBankInfo;
   isInLendingMode: boolean;
   connected: boolean;
   walletContextState: WalletContextStateOverride | WalletContextState;
+  fetchMrgnlendState: () => void;
 }) => {
   const currentAction = getCurrentAction(isInLendingMode, bank);
   const isDust = bank.isActive && bank.position.isDust;
@@ -311,6 +313,9 @@ const ActionBoxCell = ({
           connected: connected,
           walletContextState,
           requestedBank: bank,
+          onComplete: () => {
+            fetchMrgnlendState();
+          },
         }}
         dialogProps={{
           title: `${currentAction} ${bank.meta.tokenSymbol}`,
@@ -332,6 +337,9 @@ const ActionBoxCell = ({
           requestedLendType: currentAction,
           connected: connected,
           walletContextState,
+          onComplete: () => {
+            fetchMrgnlendState();
+          },
         }}
         dialogProps={{
           title: `${currentAction} ${bank.meta.tokenSymbol}`,
@@ -351,7 +359,8 @@ export const getAction = (
   isInLendingMode: boolean,
   marginfiAccount: MarginfiAccountWrapper | null,
   connected: boolean,
-  walletContextState: WalletContextStateOverride | WalletContextState
+  walletContextState: WalletContextStateOverride | WalletContextState,
+  fetchMrgnlendState: () => void
 ) => {
   const currentAction = getCurrentAction(isInLendingMode, bank);
   const isDust = bank.isActive && bank.position.isDust;
@@ -369,6 +378,7 @@ export const getAction = (
                   isInLendingMode={isInLendingMode}
                   connected={connected}
                   walletContextState={walletContextState}
+                  fetchMrgnlendState={fetchMrgnlendState}
                 />
               </div>
             </TooltipTrigger>
@@ -384,6 +394,7 @@ export const getAction = (
             isInLendingMode={isInLendingMode}
             connected={connected}
             walletContextState={walletContextState}
+            fetchMrgnlendState={fetchMrgnlendState}
           />
         </div>
       )}
