@@ -35,7 +35,8 @@ export const makeData = (
   nativeSolBalance: number,
   marginfiAccount: MarginfiAccountWrapper | null,
   connected: boolean,
-  walletContextState: WalletContextStateOverride | WalletContextState
+  walletContextState: WalletContextStateOverride | WalletContextState,
+  fetchMrgnlendState: () => void
 ) => {
   return data.map(
     (bank) =>
@@ -48,7 +49,14 @@ export const makeData = (
         bankCap: assetUtils.getBankCapData(bank, isInLendingMode, denominationUSD),
         utilization: assetUtils.getUtilizationData(bank),
         position: assetUtils.getPositionData(bank, denominationUSD, nativeSolBalance, isInLendingMode),
-        action: assetUtils.getAction(bank, isInLendingMode, marginfiAccount, connected, walletContextState),
+        action: assetUtils.getAction(
+          bank,
+          isInLendingMode,
+          marginfiAccount,
+          connected,
+          walletContextState,
+          fetchMrgnlendState
+        ),
       } as AssetListModel)
   );
 };

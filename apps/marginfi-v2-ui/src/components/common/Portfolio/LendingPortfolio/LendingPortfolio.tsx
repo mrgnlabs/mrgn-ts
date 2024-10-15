@@ -6,8 +6,8 @@ import { IconInfoCircle } from "@tabler/icons-react";
 
 import { numeralFormatter } from "@mrgnlabs/mrgn-common";
 import { usdFormatter, usdFormatterDyn } from "@mrgnlabs/mrgn-common";
-import { ActiveBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
-import { borrow, LendingModes } from "@mrgnlabs/mrgn-utils";
+import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { LendingModes } from "@mrgnlabs/mrgn-utils";
 
 import { useMrgnlendStore, useUiStore, useUserProfileStore } from "~/store";
 
@@ -99,6 +99,17 @@ export const LendingPortfolio = () => {
     }
   }, [accountSummary.healthFactor]);
 
+  const isLoading = React.useMemo(
+    () =>
+      (!isStoreInitialized ||
+        walletConnectionDelay ||
+        isRefreshingStore ||
+        (!isStoreInitialized && accountSummary.balance === 0)) &&
+      !lendingBanks.length &&
+      !borrowingBanks.length,
+    [isStoreInitialized, walletConnectionDelay, isRefreshingStore, accountSummary.balance, lendingBanks, borrowingBanks]
+  );
+
   // Introduced this useEffect to show the loader for 2 seconds after wallet connection. This is to avoid the flickering of the loader, since the isRefreshingStore isnt set immediately after the wallet connection.
   useEffect(() => {
     if (connected) {
@@ -115,14 +126,7 @@ export const LendingPortfolio = () => {
     return <WalletButton />;
   }
 
-  if (
-    (!isStoreInitialized ||
-      walletConnectionDelay ||
-      isRefreshingStore ||
-      (!isStoreInitialized && accountSummary.balance === 0)) &&
-    !lendingBanks.length &&
-    !borrowingBanks.length
-  ) {
+  if (isLoading) {
     return <Loader label={connected ? "Loading positions" : "Loading"} />;
   }
 

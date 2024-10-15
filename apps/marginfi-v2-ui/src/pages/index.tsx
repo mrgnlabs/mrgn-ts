@@ -34,32 +34,19 @@ const AssetsList = dynamic(async () => (await import("~/components/desktop/Asset
 export default function HomePage() {
   const router = useRouter();
   const { walletContextState, walletAddress, isOverride, connected } = useWallet();
-  const [previousTxn, lendingMode, setIsWalletOpen, setIsWalletAuthDialogOpen, setPreviousTxn, setIsActionComplete] =
-    useUiStore((state) => [
-      state.previousTxn,
-      state.lendingMode,
-      state.setIsWalletOpen,
-      state.setIsWalletAuthDialogOpen,
-      state.setPreviousTxn,
-      state.setIsActionComplete,
-    ]);
-  const [
-    marginfiClient,
-    isStoreInitialized,
-    isRefreshingStore,
-    selectedAccount,
-    extendedBankInfos,
-    accountSummary,
-    nativeSolBalance,
-  ] = useMrgnlendStore((state) => [
-    state.marginfiClient,
-    state.initialized,
-    state.isRefreshingStore,
-    state.selectedAccount,
-    state.extendedBankInfos,
-    state.accountSummary,
-    state.nativeSolBalance,
+  const [previousTxn, lendingMode, setIsWalletAuthDialogOpen] = useUiStore((state) => [
+    state.previousTxn,
+    state.lendingMode,
+    state.setIsWalletAuthDialogOpen,
   ]);
+  const [isStoreInitialized, isRefreshingStore, selectedAccount, extendedBankInfos, fetchMrgnlendState] =
+    useMrgnlendStore((state) => [
+      state.initialized,
+      state.isRefreshingStore,
+      state.selectedAccount,
+      state.extendedBankInfos,
+      state.fetchMrgnlendState,
+    ]);
 
   const [actionMode, refreshState] = useActionBoxStore()((state) => [state.actionMode, state.refreshState]);
 
@@ -121,6 +108,9 @@ export default function HomePage() {
                     captureEvent: (event, properties) => {
                       capture(event, properties);
                     },
+                    onComplete: () => {
+                      fetchMrgnlendState();
+                    },
                     onConnect: () => setIsWalletAuthDialogOpen(true),
                   }}
                 />
@@ -147,6 +137,9 @@ export default function HomePage() {
                   requestedLendType: lendingMode === LendingModes.LEND ? ActionType.Deposit : ActionType.Borrow,
                   connected: connected,
                   walletContextState: walletContextState,
+                  onComplete: () => {
+                    fetchMrgnlendState();
+                  },
                   onConnect: () => setIsWalletAuthDialogOpen(true),
                 }}
               />

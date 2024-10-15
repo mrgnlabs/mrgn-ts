@@ -15,7 +15,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "~/
 import { Button } from "~/components/ui/button";
 import { Skeleton } from "~/components/ui/skeleton";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
-import { useUiStore } from "~/store";
+import { useMrgnlendStore, useUiStore } from "~/store";
 
 interface PortfolioAssetCardProps {
   bank: ActiveBankInfo;
@@ -168,6 +168,7 @@ const PortfolioAction = ({
 }) => {
   const { walletContextState, connected } = useWallet();
   const [setIsWalletAuthDialogOpen] = useUiStore((state) => [state.setIsWalletAuthDialogOpen]);
+  const [fetchMrgnlendState] = useMrgnlendStore((state) => [state.fetchMrgnlendState]);
   const isDust = React.useMemo(() => requestedBank?.isActive && requestedBank?.position.isDust, [requestedBank]);
 
   const buttonText = React.useMemo(() => {
@@ -197,6 +198,9 @@ const PortfolioAction = ({
           captureEvent: (event, properties) => {
             capture(event, properties);
           },
+          onComplete: () => {
+            fetchMrgnlendState();
+          },
           onConnect: () => setIsWalletAuthDialogOpen(true),
         }}
         isDialog={true}
@@ -220,6 +224,9 @@ const PortfolioAction = ({
           connected: connected,
           captureEvent: (event, properties) => {
             capture(event, properties);
+          },
+          onComplete: () => {
+            fetchMrgnlendState();
           },
           onConnect: () => setIsWalletAuthDialogOpen(true),
         }}

@@ -10,6 +10,7 @@ import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { IconMrgn } from "~/components/ui/icons";
 import { Skeleton } from "~/components/ui/skeleton";
+import { useMrgnlendStore } from "~/store";
 
 interface IntegrationCardProps {
   bank: ExtendedBankInfo;
@@ -18,6 +19,7 @@ interface IntegrationCardProps {
 
 export const BankIntegrationCard = ({ bank, isInLendingMode }: IntegrationCardProps) => {
   const { connected } = useWallet();
+  const [fetchMrgnlendState] = useMrgnlendStore((state) => [state.fetchMrgnlendState]);
   const depositData = React.useMemo(() => getDepositsData(bank, isInLendingMode, true), [bank, isInLendingMode]);
   const rateData = React.useMemo(() => getRateData(bank, isInLendingMode), [bank, isInLendingMode]);
 
@@ -65,6 +67,9 @@ export const BankIntegrationCard = ({ bank, isInLendingMode }: IntegrationCardPr
             connected: connected,
             requestedLendType: isInLendingMode ? ActionType.Deposit : ActionType.Borrow,
             requestedBank: bank,
+            onComplete: () => {
+              fetchMrgnlendState();
+            },
           }}
           dialogProps={{
             title: `${isInLendingMode ? "Deposit" : "Borrow"} ${bank.meta.tokenSymbol}`,

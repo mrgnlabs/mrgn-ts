@@ -27,12 +27,14 @@ import { AssetRow } from "./components";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
 export const AssetsList = () => {
-  const [isStoreInitialized, extendedBankInfos, nativeSolBalance, selectedAccount] = useMrgnlendStore((state) => [
-    state.initialized,
-    state.extendedBankInfos,
-    state.nativeSolBalance,
-    state.selectedAccount,
-  ]);
+  const [isStoreInitialized, extendedBankInfos, nativeSolBalance, selectedAccount, fetchMrgnlendState] =
+    useMrgnlendStore((state) => [
+      state.initialized,
+      state.extendedBankInfos,
+      state.nativeSolBalance,
+      state.selectedAccount,
+      state.fetchMrgnlendState,
+    ]);
   const [denominationUSD, setShowBadges] = useUserProfileStore((state) => [state.denominationUSD, state.setShowBadges]);
   const [poolFilter, isFilteredUserPositions, sortOption, lendingMode, setLendingMode] = useUiStore((state) => [
     state.poolFilter,
@@ -166,9 +168,19 @@ export const AssetsList = () => {
       nativeSolBalance,
       selectedAccount,
       connected,
-      walletContextState
+      walletContextState,
+      fetchMrgnlendState
     );
-  }, [connected, walletContextState, globalBanks, isInLendingMode, denominationUSD, nativeSolBalance, selectedAccount]);
+  }, [
+    connected,
+    walletContextState,
+    globalBanks,
+    isInLendingMode,
+    denominationUSD,
+    nativeSolBalance,
+    selectedAccount,
+    fetchMrgnlendState,
+  ]);
 
   const isolatedPoolTableData = React.useMemo(() => {
     return makeData(
@@ -178,7 +190,8 @@ export const AssetsList = () => {
       nativeSolBalance,
       selectedAccount,
       connected,
-      walletContextState
+      walletContextState,
+      fetchMrgnlendState
     );
   }, [
     connected,
@@ -188,6 +201,7 @@ export const AssetsList = () => {
     denominationUSD,
     nativeSolBalance,
     selectedAccount,
+    fetchMrgnlendState,
   ]);
 
   const tableColumns = React.useMemo(() => {
