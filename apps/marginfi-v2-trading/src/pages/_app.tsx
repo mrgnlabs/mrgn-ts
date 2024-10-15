@@ -4,7 +4,7 @@ import App, { AppContext, AppInitialProps, AppProps } from "next/app";
 import { useRouter } from "next/router";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
-import { GoogleAnalytics } from "@next/third-parties/google";
+import { GoogleAnalytics, GoogleTagManager } from "@next/third-parties/google";
 import { WalletProvider } from "@solana/wallet-adapter-react";
 import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
 import { TipLinkWalletAutoConnect } from "@tiplink/wallet-adapter-react-ui";
@@ -87,6 +87,7 @@ export default function MrgnApp({ Component, pageProps, path, bank }: AppProps &
       {process.env.NEXT_PUBLIC_ANALYTICS === "true" && (
         <>
           <GoogleAnalytics gaId="G-T5B2WRLKL9" />
+          <GoogleTagManager gtmId="GTM-WFBC4RZ7" />
           <SpeedInsights />
         </>
       )}

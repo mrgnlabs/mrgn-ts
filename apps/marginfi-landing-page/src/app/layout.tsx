@@ -1,5 +1,5 @@
 import { SpeedInsights } from "@vercel/speed-insights/next";
-import { GoogleAnalytics } from "@next/third-parties/google";
+import { GoogleAnalytics, GoogleTagManager } from "@next/third-parties/google";
 
 import { Header } from "~/components/header";
 
@@ -26,6 +26,7 @@ export default function RootLayout({
         {process.env.NEXT_PUBLIC_ANALYTICS === "true" && (
           <>
             <GoogleAnalytics gaId="G-TS0DF3DM7G" />
+            <GoogleTagManager gtmId="GTM-53CZ2GG8" />
             <SpeedInsights />
           </>
         )}

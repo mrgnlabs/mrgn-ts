@@ -2,7 +2,7 @@ import React from "react";
 
 import App, { AppContext, AppInitialProps, AppProps } from "next/app";
 import { SpeedInsights } from "@vercel/speed-insights/next";
-import { GoogleAnalytics } from "@next/third-parties/google";
+import { GoogleAnalytics, GoogleTagManager } from "@next/third-parties/google";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
 
@@ -169,6 +169,7 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
       {process.env.NEXT_PUBLIC_ANALYTICS === "true" && ready && (
         <>
           <GoogleAnalytics gaId="G-0ZTQRWVG02" />
+          <GoogleTagManager gtmId="GTM-KJJ3CR6Q" />
           <SpeedInsights />
         </>
       )}
