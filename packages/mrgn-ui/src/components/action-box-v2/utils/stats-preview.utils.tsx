@@ -3,7 +3,13 @@ import { IconArrowRight, IconAlertTriangle } from "@tabler/icons-react";
 
 import { getPriceWithConfidence } from "@mrgnlabs/marginfi-client-v2";
 import { ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { clampedNumeralFormatter, numeralFormatter, percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
+import {
+  clampedNumeralFormatter,
+  numeralFormatter,
+  percentFormatter,
+  percentFormatterDyn,
+  usdFormatter,
+} from "@mrgnlabs/mrgn-common";
 import { cn } from "@mrgnlabs/mrgn-utils";
 
 import { Skeleton } from "~/components/ui/skeleton";
@@ -258,35 +264,24 @@ export function getSupplyStat(supply: number, isLoading: boolean, simulationSupp
   };
 }
 
-export function getProjectedAPYStat(projectedApy: number, isLoading: boolean, simulationApy?: number): PreviewStat {
+export function getLstSupplyStat(supply: number): PreviewStat {
   return {
-    label: "Projected APY",
-    value: () => (
-      <>
-        {projectedApy}
-        {simulationApy ? <IconArrowRight width={12} height={12} /> : ""}
-        {isLoading ? <Skeleton className="h-4 w-[45px] bg-[#373F45]" /> : simulationApy ? simulationApy : ""}
-      </>
-    ),
+    label: "Supply",
+    value: () => <>{supply && numeralFormatter(supply)}</>,
   };
 }
 
-export function getCurrentPriceStat(currentPrice: number, isLoading: boolean, simulationPrice?: number): PreviewStat {
+export function getProjectedAPYStat(projectedApy: number): PreviewStat {
+  return {
+    label: "Projected APY",
+    value: () => <>{percentFormatterDyn.format(projectedApy)}</>,
+  };
+}
+
+export function getCurrentPriceStat(currentPrice: number): PreviewStat {
   return {
     label: "Current Price",
-    value: () => (
-      <>
-        {currentPrice && numeralFormatter(currentPrice)}
-        {simulationPrice ? <IconArrowRight width={12} height={12} /> : ""}
-        {isLoading ? (
-          <Skeleton className="h-4 w-[45px] bg-[#373F45]" />
-        ) : simulationPrice ? (
-          numeralFormatter(simulationPrice)
-        ) : (
-          ""
-        )}
-      </>
-    ),
+    value: () => <>1 $LST = {currentPrice && numeralFormatter(currentPrice)} SOL</>,
   };
 }
 

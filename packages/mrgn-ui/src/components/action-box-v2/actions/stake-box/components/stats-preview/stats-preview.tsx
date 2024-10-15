@@ -7,10 +7,10 @@ import { ActionStatItem } from "~/components/action-box-v2/components";
 import {
   getPriceImpactStat,
   getSlippageStat,
-  getSupplyStat,
   getProjectedAPYStat,
   getCurrentPriceStat,
   getCommissionStat,
+  getLstSupplyStat,
 } from "~/components/action-box-v2/utils";
 
 interface StakeActionSummary {
@@ -84,9 +84,9 @@ function generateStakeStats(
     stats.push(getSlippageStat(summary.simulationPreview?.splippage));
   }
 
-  stats.push(getSupplyStat(summary.actionPreview.supply, false, bank.info.state.totalBorrows));
-  stats.push(getProjectedAPYStat(summary.actionPreview.projectedApy, false));
-  stats.push(getCurrentPriceStat(summary.actionPreview.currentPrice, false));
+  stats.push(getLstSupplyStat(summary.actionPreview.supply));
+  stats.push(getProjectedAPYStat(summary.actionPreview.projectedApy));
+  stats.push(getCurrentPriceStat(summary.actionPreview.currentPrice));
   stats.push(getCommissionStat(summary.actionPreview.commission));
 
   return stats;

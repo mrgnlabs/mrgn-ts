@@ -14,6 +14,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { ActionBoxDialog } from "~/components/common/ActionBox";
 import { LST_MINT } from "~/store/lstStore";
 
+/// XXX
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
+
+/// YYY
+
 interface MintCardWrapperProps {
   mintCard: MintCardProps;
 }
@@ -31,6 +36,13 @@ export const MintCardWrapper: React.FC<MintCardWrapperProps> = ({ mintCard, ...p
       null,
     [extendedBankInfos]
   );
+
+  // XXX
+
+  const { connected } = useWallet();
+
+  /// YYY
+
   return (
     <Card variant="default" className="relative">
       <CardHeader className="pt-8">
@@ -73,33 +85,41 @@ export const MintCardWrapper: React.FC<MintCardWrapperProps> = ({ mintCard, ...p
         )}
 
         {mintCard.title === "LST" ? (
-          <ActionBoxDialog
-            requestedAction={requestedAction}
-            requestedBank={requestedAction === ActionType.UnstakeLST ? requestedBank : null}
-          >
-            <div className="flex items-center gap-2">
-              <Button
-                variant="secondary"
-                size="lg"
-                className="mt-4"
-                onClick={() => {
-                  setRequestedAction(ActionType.MintLST);
-                }}
-              >
-                Stake {mintCard.title}
-              </Button>
-              <Button
-                variant="outline-dark"
-                size="lg"
-                className="mt-4 hover:text-primary"
-                onClick={() => {
-                  setRequestedAction(ActionType.UnstakeLST);
-                }}
-              >
-                Unstake {mintCard.title}
-              </Button>
-            </div>
-          </ActionBoxDialog>
+          <div className="flex items-center gap-2">
+            <ActionBox.Stake
+              isDialog={true}
+              useProvider={true}
+              stakeProps={{
+                connected: connected,
+                requestedActionType: ActionType.MintLST,
+              }}
+              dialogProps={{
+                trigger: (
+                  <Button variant="secondary" size="lg" className="mt-4">
+                    Stake {mintCard.title}
+                  </Button>
+                ),
+                title: "Mint LST",
+              }}
+            />
+            <ActionBox.Stake
+              isDialog={true}
+              useProvider={true}
+              stakeProps={{
+                connected: connected,
+                requestedActionType: ActionType.UnstakeLST,
+                requestedBank: extendedBankInfos.find((bank) => bank?.info?.state?.mint.equals(LST_MINT)),
+              }}
+              dialogProps={{
+                trigger: (
+                  <Button variant="outline-dark" size="lg" className="mt-4 hover:text-primary">
+                    Unstake {mintCard.title}
+                  </Button>
+                ),
+                title: "Unstake LST",
+              }}
+            />
+          </div>
         ) : transformedActionGate?.find((value) => value === ActionType.MintYBX) ? (
           <div className="flex items-center gap-2">
             <Button

@@ -23,11 +23,13 @@ export const BankSelect = ({
   nativeSolBalance,
   actionMode,
   connected,
+  // isSelectable = true,
 
   setSelectedBank,
 }: BankSelectProps) => {
-  const isSelectable = React.useMemo(() => true, []);
   const [isOpen, setIsOpen] = React.useState(false);
+
+  const isSelectable = React.useMemo(() => selectedBank === null || selectedBank === undefined, [selectedBank]);
 
   return (
     <>
