@@ -109,11 +109,15 @@ async function getCachedMarginfiAccountsForAuthority(
       try {
         const publicKey = new PublicKey(address);
         validAddresses.push(publicKey);
+        return validAddresses;
       } catch (error) {
         console.warn(`Invalid public key: ${address}. Skipping.`);
+        return validAddresses;
       }
-      return validAddresses;
     }, []);
+
+    // Update local storage with valid addresses only
+    window.localStorage.setItem(cacheKey, JSON.stringify(accountAddresses.map((addr) => addr.toString())));
     debug("Loading ", accountAddresses.length, "accounts from cache");
     return client.getMultipleMarginfiAccounts(accountAddresses);
   } else {
