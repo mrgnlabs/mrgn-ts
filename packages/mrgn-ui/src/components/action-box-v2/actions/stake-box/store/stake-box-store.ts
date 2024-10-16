@@ -1,7 +1,7 @@
 import { create, StateCreator } from "zustand";
 
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { ActionMethod, ActionTxns, LstData } from "@mrgnlabs/mrgn-utils";
+import { ActionMethod, LstData, StakeActionTxns } from "@mrgnlabs/mrgn-utils";
 import { SimulationResult } from "@mrgnlabs/marginfi-client-v2";
 
 interface StateBoxState {
@@ -12,7 +12,7 @@ interface StateBoxState {
   selectedBank: ExtendedBankInfo | null;
 
   simulationResult: SimulationResult | null;
-  actionTxns: ActionTxns;
+  actionTxns: StakeActionTxns;
 
   errorMessage: ActionMethod | null;
   isLoading: boolean;
@@ -25,7 +25,7 @@ interface StateBoxState {
   setActionMode: (actionMode: ActionType) => void;
   setAmountRaw: (amountRaw: string, maxAmount?: number) => void;
   setSimulationResult: (simulationResult: SimulationResult | null) => void;
-  setActionTxns: (actionTxns: ActionTxns) => void;
+  setActionTxns: (actionTxns: StakeActionTxns) => void;
   setSelectedBank: (bank: ExtendedBankInfo | null) => void;
   setIsLoading: (isLoading: boolean) => void;
   setErrorMessage: (errorMessage: ActionMethod | null) => void;
@@ -41,7 +41,7 @@ const initialState = {
   simulationResult: null,
   actionMode: ActionType.MintLST,
   selectedBank: null,
-  actionTxns: { actionTxn: null, additionalTxns: [] },
+  actionTxns: { actionTxn: null, additionalTxns: [], actionQuote: null },
   errorMessage: null,
   isLoading: false,
   lstData: null,

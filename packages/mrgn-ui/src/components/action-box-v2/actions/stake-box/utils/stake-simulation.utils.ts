@@ -1,6 +1,7 @@
 import { Wallet } from "@coral-xyz/anchor";
 import { MarginfiClient, Bank, MarginfiAccountWrapper, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
 import { ExtendedBankInfo, AccountSummary } from "@mrgnlabs/marginfi-v2-ui-state";
+import { LST_MINT, getAssociatedTokenAddressSync } from "@mrgnlabs/mrgn-common";
 import { AddressLookupTableAccount, Connection, PublicKey, Transaction, VersionedTransaction } from "@solana/web3.js";
 import {
   ActionPreview,
@@ -69,44 +70,46 @@ export const getSimulationResult = async ({
   selectedBank,
   selectedAccount,
 }: SimulateActionProps) => {
-  const [mfiAccountData, bankData] = await marginfiClient.simulateTransactions(txns, [
-    marginfiClient.wallet.publicKey,
-    selectedBank.address,
-  ]);
+  // ata van LST
+  // wallet.publickey -> sol change
 
-  if (!mfiAccountData || !bankData) throw new Error("Failed to simulate stake transaction");
+  const ataLst = getAssociatedTokenAddressSync(LST_MINT, marginfiClient.wallet.publicKey);
 
-  const previewBanks = marginfiClient.banks;
-  previewBanks.set(
-    selectedBank.address.toBase58(),
-    Bank.fromBuffer(selectedBank.address, bankData, marginfiClient.program.idl, marginfiClient.feedIdMap)
-  );
+  const [lstAta] = await marginfiClient.simulateTransactions(txns, [ataLst]); // can we detect lst balance difference?
 
-  const previewClient = new MarginfiClient(
-    marginfiClient.config,
-    marginfiClient.program,
-    {} as Wallet,
-    true,
-    marginfiClient.group,
-    marginfiClient.banks,
-    marginfiClient.oraclePrices,
-    marginfiClient.mintDatas,
-    marginfiClient.feedIdMap
-  );
+  if (!lstAta) throw new Error("Failed to simulate stake transaction");
 
-  const previewMarginfiAccount = MarginfiAccountWrapper.fromAccountDataRaw(
-    selectedAccount.address,
-    previewClient,
-    mfiAccountData,
-    marginfiClient.program.idl
-  );
+  return;
 
-  const simulationResult = {
-    banks: previewBanks,
-    marginfiAccount: previewMarginfiAccount,
-  } as SimulationResult;
+  // const previewBanks = marginfiClient.banks;
+  // previewBanks.set(
+  //   selectedBank.address.toBase58(),
+  //   Bank.fromBuffer(selectedBank.address, bankData, marginfiClient.program.idl, marginfiClient.feedIdMap)
+  // );
 
-  return { simulationResult }; // TODO: also return action method? Why
+  // const previewClient = new MarginfiClient(
+  //   marginfiClient.config,
+  //   marginfiClient.program,
+  //   {} as Wallet,
+  //   true,
+  //   marginfiClient.group,
+  //   marginfiClient.banks,
+  //   marginfiClient.oraclePrices,
+  //   marginfiClient.mintDatas,
+  //   marginfiClient.feedIdMap
+  // );
+
+  // const previewMarginfiAccount = MarginfiAccountWrapper.fromAccountDataRaw(
+  //   selectedAccount.address,
+  //   previewClient,
+  //   mfiAccountData,
+  //   marginfiClient.program.idl
+  // );
+
+  // const simulationResult = {
+  //   banks: previewBanks,
+  //   marginfiAccount: previewMarginfiAccount,
+  // } as SimulationResult;
 };
 
 export const getAdressLookupTableAccounts = async (
