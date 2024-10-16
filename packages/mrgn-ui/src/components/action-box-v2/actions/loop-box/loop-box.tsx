@@ -43,7 +43,6 @@ export type LoopBoxProps = {
 
   isDialog?: boolean;
 
-  onConnect?: () => void;
   onComplete?: (previousTxn: PreviousTxn) => void;
   captureEvent?: (event: string, properties?: Record<string, any>) => void;
 };
@@ -58,7 +57,6 @@ export const LoopBox = ({
   accountSummaryArg,
   requestedBank,
   isDialog,
-  onConnect,
   onComplete,
   captureEvent,
 }: LoopBoxProps) => {
@@ -352,7 +350,6 @@ export const LoopBox = ({
             handleLoopAction();
           }}
           loaderType="INFINITE"
-          handleConnect={() => onConnect && onConnect()}
           buttonLabel={"Loop"}
         />
       </div>

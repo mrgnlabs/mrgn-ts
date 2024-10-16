@@ -37,7 +37,6 @@ export type RepayCollatBoxProps = {
 
   isDialog?: boolean;
 
-  onConnect?: () => void;
   onComplete?: (previousTxn: PreviousTxn) => void;
   captureEvent?: (event: string, properties?: Record<string, any>) => void;
 };
@@ -52,7 +51,6 @@ export const RepayCollatBox = ({
   accountSummaryArg,
   requestedBank,
   isDialog,
-  onConnect,
   onComplete,
   captureEvent,
 }: RepayCollatBoxProps) => {
@@ -307,7 +305,6 @@ export const RepayCollatBox = ({
           handleAction={() => {
             handleRepayCollatAction();
           }}
-          handleConnect={() => onConnect && onConnect()}
           buttonLabel={"Repay"}
         />
       </div>

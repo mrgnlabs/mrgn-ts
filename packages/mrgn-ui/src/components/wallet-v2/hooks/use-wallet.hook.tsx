@@ -440,7 +440,7 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
         });
 
         window.phantom.solana.on("disconnect", async () => {
-          if (!walletContextState.connected) return;
+          // if (!walletContextState.connected) return;
           setWalletContextState(walletContextStateDefault);
         });
       }

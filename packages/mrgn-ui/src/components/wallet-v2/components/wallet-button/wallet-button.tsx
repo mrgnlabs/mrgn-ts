@@ -29,7 +29,12 @@ const web3AuthIconMap: { [key in Web3AuthProvider]: { icon: JSX.Element } } = {
   },
 };
 
-export const WalletButton = () => {
+type WalletButtonProps = {
+  className?: string;
+  showWalletInfo?: boolean;
+};
+
+export const WalletButton = ({ className, showWalletInfo = true }: WalletButtonProps) => {
   const { connected, isLoading, loginWeb3Auth, select, walletContextState } = useWallet();
   const [setIsWalletSignUpOpen] = useWalletStore((state) => [state.setIsWalletSignUpOpen]);
 
@@ -72,11 +77,11 @@ export const WalletButton = () => {
   }, [walletInfo, setIsWalletSignUpOpen, select, loginWeb3Auth]);
 
   return (
-    <Button className={`gap-1.5 py-0 ${walletInfo ? "pr-2" : "pr-4"}`}>
+    <Button className={cn("gap-1.5 py-0", walletInfo ? "px-2" : "px-4", className)}>
       <div className="flex flex-row relative h-full gap-4">
         <div onClick={() => handleWalletConnect()} className="inline-flex items-center gap-2">
           Sign in
-          {walletInfo && (
+          {showWalletInfo && walletInfo && (
             <>
               {" "}
               with
@@ -84,7 +89,7 @@ export const WalletButton = () => {
             </>
           )}
         </div>
-        {walletInfo && (
+        {showWalletInfo && walletInfo && (
           <div
             onClick={() => setIsWalletSignUpOpen(true)}
             className="pl-2 border-l border-border inline-flex items-center"
