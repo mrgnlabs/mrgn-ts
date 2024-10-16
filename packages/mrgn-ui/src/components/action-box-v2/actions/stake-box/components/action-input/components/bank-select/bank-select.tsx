@@ -29,7 +29,12 @@ export const BankSelect = ({
 }: BankSelectProps) => {
   const [isOpen, setIsOpen] = React.useState(false);
 
-  const isSelectable = React.useMemo(() => selectedBank === null || selectedBank === undefined, [selectedBank]);
+  const isSelectable = React.useMemo(() => {
+    if (!selectedBank || selectedBank.meta.tokenSymbol !== "LST") {
+      return true;
+    }
+    return false;
+  }, [selectedBank]); // TODO: check if this is correct, not sure if this is the correct way to check if it is selectable
 
   return (
     <>

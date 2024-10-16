@@ -14,6 +14,7 @@ import {
 } from "@solana/web3.js";
 
 import {
+  Bank,
   makeBundleTipIx,
   MarginfiAccount,
   MarginfiAccountWrapper,
@@ -30,12 +31,14 @@ import {
   TOKEN_2022_MINTS,
   usePrevious,
 } from "@mrgnlabs/mrgn-utils";
-import { getSimulationResult } from "../utils";
+import { calculateSummary, getAdressLookupTableAccounts, getSimulationResult } from "../utils";
 import {
   createAssociatedTokenAccountIdempotentInstruction,
   getAssociatedTokenAddressSync,
+  LST_MINT,
   NATIVE_MINT as SOL_MINT,
   uiToNative,
+  Wallet,
 } from "@mrgnlabs/mrgn-common";
 import { createJupiterApiClient, QuoteResponse } from "@jup-ag/api";
 import * as solanaStakePool from "@solana/spl-stake-pool";
@@ -89,113 +92,62 @@ export function useStakeSimulation({
     async (txns: (VersionedTransaction | Transaction)[]) => {
       try {
         if (selectedAccount && selectedBank && txns.length > 0) {
-          const simulationResult = await getSimulationResult({
-            actionMode: actionMode,
-            account: selectedAccount,
-            bank: selectedBank,
-            amount: debouncedAmount,
+          const { simulationResult } = await getSimulationResult({
+            marginfiClient: marginfiClient as MarginfiClient,
             txns,
+            selectedBank,
+            selectedAccount,
           });
+
+          setSimulationResult(simulationResult);
         } else {
           setSimulationResult(null);
         }
-      } catch (error) {}
+      } catch (error) {
+        console.error("Error simulating transaction", error);
+      }
     },
-    [selectedAccount, selectedBank, setSimulationResult, actionMode, debouncedAmount]
+    [marginfiClient, selectedBank, selectedAccount, setSimulationResult]
   );
 
-  const handleActionSummary = React.useCallback(() => {}, []);
+  const handleActionSummary = React.useCallback(
+    (summary?: AccountSummary, result?: SimulationResult) => {
+      if (selectedAccount && summary && selectedBank) {
+        return calculateSummary({
+          simulationResult: result ?? undefined,
+          bank: selectedBank,
+          accountSummary: summary,
+          actionTxns: actionTxns,
+        });
+      }
+    },
+    [selectedAccount, selectedBank, actionTxns]
+  );
 
-  const fetchSwapTxn = React.useCallback(
+  const fetchStakeTxs = React.useCallback(
     async (amount: number) => {
       const connection = marginfiClient?.provider.connection;
 
-      // TODO: add error handling
       if (amount === 0 || !selectedBank || !selectedAccount || !connection || !lstData) {
         return;
       }
 
-      // setIsLoading(true);
       try {
-        const swapObject = await getSwapQuoteWithRetry(
-          {
-            amount: uiToNative(amount, selectedBank.info.state.mintDecimals).toNumber(),
-            inputMint: selectedBank?.info.state.mint.toBase58(),
-            outputMint: SOL_MINT.toBase58(),
-            platformFeeBps: 0, // TODO: update with correct value
-            slippageBps: slippageBps,
-            swapMode: "ExactIn",
-          },
-          2,
-          1000
-        );
+        const swapObject = await getSwapQuoteWithRetry({
+          amount: uiToNative(amount, selectedBank.info.state.mintDecimals).toNumber(),
+          inputMint: selectedBank.info.state.mint.toBase58(),
+          outputMint: SOL_MINT.toBase58(),
+          platformFeeBps: 0, // TODO: fill
+          slippageBps: slippageBps,
+          swapMode: "ExactIn",
+        });
+
+        console.log("swapObject", swapObject);
 
         if (!swapObject) return;
 
-        // const swapObject = {
-        //   inputMint: "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
-        //   inAmount: "100000000",
-        //   outputMint: "So11111111111111111111111111111111111111112",
-        //   outAmount: "149705",
-        //   otherAmountThreshold: "148208",
-        //   swapMode: "ExactIn",
-        //   slippageBps: 100,
-        //   platformFee: {
-        //     amount: "0",
-        //     feeBps: 0,
-        //   },
-        //   priceImpactPct: "0",
-        //   routePlan: [
-        //     {
-        //       swapInfo: {
-        //         ammKey: "D3gZwng2MgZGjktYcKpbR8Bz8653i4qCgzHCf5E4TcZb",
-        //         label: "OpenBook V2",
-        //         inputMint: "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
-        //         outputMint: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-        //         inAmount: "100000000",
-        //         outAmount: "23309",
-        //         feeAmount: "0",
-        //         feeMint: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-        //       },
-        //       percent: 100,
-        //     },
-        //     {
-        //       swapInfo: {
-        //         ammKey: "HfgjZDmexhFVD28Vkb1NbQwWeXP3uDcVTLPjSGHmRHhL",
-        //         label: "Meteora DLMM",
-        //         inputMint: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-        //         outputMint: "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
-        //         inAmount: "23309",
-        //         outAmount: "26626",
-        //         feeAmount: "24",
-        //         feeMint: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-        //       },
-        //       percent: 100,
-        //     },
-        //     {
-        //       swapInfo: {
-        //         ammKey: "8ZBbyDGErfqvY65fRZnm6dtQBe3REuAPqzRN7819fzeW",
-        //         label: "Meteora DLMM",
-        //         inputMint: "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
-        //         outputMint: "So11111111111111111111111111111111111111112",
-        //         inAmount: "26626",
-        //         outAmount: "149705",
-        //         feeAmount: "14",
-        //         feeMint: "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
-        //       },
-        //       percent: 100,
-        //     },
-        //   ],
-        //   contextSlot: 295697757,
-        //   timeTaken: 1.105756338,
-        // } as QuoteResponse;
-
-        console.log("swapobject", swapObject);
-
         const jupiterQuoteApi = createJupiterApiClient();
         const blockhash = (await connection.getLatestBlockhash("confirmed")).blockhash;
-
-        console.log(blockhash);
 
         let feeAccountInfo: AccountInfo<any> | null = null;
         const feeMint = swapObject.outputMint;
@@ -203,6 +155,7 @@ export function useStakeSimulation({
         if (!TOKEN_2022_MINTS.includes(feeMint)) {
           feeAccountInfo = await connection.getAccountInfo(new PublicKey(feeAccount));
         }
+
         const { swapInstruction, setupInstructions, addressLookupTableAddresses } =
           await jupiterQuoteApi.swapInstructionsPost({
             swapRequest: {
@@ -210,12 +163,13 @@ export function useStakeSimulation({
               userPublicKey: selectedAccount.authority.toBase58(),
               feeAccount: feeAccountInfo ? feeAccount : undefined,
             },
-          }); // Might have to use setupInstructions
+          });
+
+        console.log("swapInstruction", swapInstruction);
+
         const swapIx = deserializeInstruction(swapInstruction);
         const setupInstructionsIx = setupInstructions.map((value) => deserializeInstruction(value));
         const AddressLookupAccounts = await getAdressLookupTableAccounts(connection, addressLookupTableAddresses);
-
-        console.log({ swapIx, setupInstructionsIx, AddressLookupAccounts });
 
         const swapMessage = new TransactionMessage({
           payerKey: marginfiClient.wallet.publicKey,
@@ -224,8 +178,7 @@ export function useStakeSimulation({
         });
         const swapTx = new VersionedTransaction(swapMessage.compileToV0Message(AddressLookupAccounts));
 
-        console.log("4", swapTx);
-
+        console.log("swapTx", swapTx);
         const userSolTransfer = new Keypair();
         const signers: Signer[] = [userSolTransfer];
         const stakeIx: TransactionInstruction[] = [];
@@ -238,9 +191,7 @@ export function useStakeSimulation({
           })
         );
 
-        console.log("5", stakeIx);
-
-        let destinationTokenAccount; // TODO: check if destination token account exists, not sure how, also not done in current code (always undefined)
+        let destinationTokenAccount;
         if (!destinationTokenAccount) {
           const associatedAddress = getAssociatedTokenAddressSync(
             lstData.accountData.poolMint,
@@ -258,12 +209,13 @@ export function useStakeSimulation({
           destinationTokenAccount = associatedAddress;
         }
 
-        console.log("6", stakeIx);
+        console.log("destinationTokenAccount", destinationTokenAccount);
 
         const [withdrawAuthority] = PublicKey.findProgramAddressSync(
           [lstData.poolAddress.toBuffer(), Buffer.from("withdraw")],
           solanaStakePool.STAKE_POOL_PROGRAM_ID
         );
+        console.log("withdrawAuthority", withdrawAuthority);
 
         stakeIx.push(
           solanaStakePool.StakePoolInstruction.depositSol({
@@ -279,75 +231,113 @@ export function useStakeSimulation({
           })
         );
 
-        console.log(stakeIx);
+        console.log("stakeIx", stakeIx);
 
         const bundleTipIx = makeBundleTipIx(marginfiClient.wallet.publicKey);
 
-        console.log("7", bundleTipIx);
-
+        console.log("bundleTipIx", bundleTipIx);
         const stakeMessage = new TransactionMessage({
           payerKey: marginfiClient.wallet.publicKey,
           recentBlockhash: blockhash,
           instructions: [bundleTipIx, ...stakeIx],
         });
 
-        console.log("8", stakeMessage);
-
         const stakeTx = new VersionedTransaction(stakeMessage.compileToV0Message([]));
         stakeTx.sign(signers);
 
-        const xxx = await marginfiClient.simulateTransactions(
-          [swapTx],
-          [marginfiClient.wallet.publicKey, selectedBank.address]
-        );
-
-        console.log("9", xxx);
+        console.log("stakeTx", stakeTx);
+        setActionTxns({
+          actionTxn: swapTx,
+          additionalTxns: [],
+          // additionalTxns: [stakeTx],
+        });
       } catch (error) {
-        console.log(error);
+        console.error("Error fetching transactions", error);
       }
     },
-    [marginfiClient, selectedBank, selectedAccount, lstData, slippageBps]
+    [marginfiClient, selectedBank, selectedAccount, slippageBps, lstData, setActionTxns]
   );
 
-  const fetchStakeTxn = React.useCallback(async (amount: number) => {}, []);
+  const fetchUnstakeTxs = React.useCallback(async (amount: number) => {
+    const connection = marginfiClient?.provider.connection;
+    const jupiterQuoteApi = createJupiterApiClient();
+
+    if (amount === 0 || !selectedBank || !selectedAccount || !connection || !lstData) {
+      return;
+    }
+    try {
+      const blockhash = (await connection.getLatestBlockhash("confirmed")).blockhash;
+
+      const swapObject = await getSwapQuoteWithRetry({
+        amount: uiToNative(amount, selectedBank.info.state.mintDecimals).toNumber(),
+        inputMint: LST_MINT.toBase58(),
+        outputMint: SOL_MINT.toBase58(),
+        platformFeeBps: 0,
+        slippageBps: slippageBps,
+        swapMode: "ExactIn",
+      });
+
+      if (!swapObject) return; // TODO: proper error handling
+
+      let feeAccountInfo: AccountInfo<any> | null = null;
+      const feeMint = swapObject.outputMint; // TODO: output or input?
+      const feeAccount = getFeeAccount(new PublicKey(feeMint));
+      if (!TOKEN_2022_MINTS.includes(feeMint)) {
+        feeAccountInfo = await connection.getAccountInfo(new PublicKey(feeAccount));
+      }
+
+      const { swapInstruction, setupInstructions, addressLookupTableAddresses } =
+        await jupiterQuoteApi.swapInstructionsPost({
+          swapRequest: {
+            quoteResponse: swapObject,
+            userPublicKey: selectedAccount.authority.toBase58(),
+            feeAccount: feeAccountInfo ? feeAccount : undefined,
+          },
+        });
+
+      const swapIx = deserializeInstruction(swapInstruction);
+      const setupInstructionsIx = setupInstructions.map((value) => deserializeInstruction(value));
+      const AddressLookupAccounts = await getAdressLookupTableAccounts(connection, addressLookupTableAddresses);
+
+      const swapMessage = new TransactionMessage({
+        payerKey: marginfiClient.wallet.publicKey,
+        recentBlockhash: blockhash,
+        instructions: [...setupInstructionsIx, swapIx],
+      });
+      const swapTx = new VersionedTransaction(swapMessage.compileToV0Message(AddressLookupAccounts));
+      console.log("swapTx", swapTx);
+
+      setActionTxns({
+        actionTxn: swapTx,
+        additionalTxns: [],
+      });
+    } catch (error) {
+      console.log(error); // TODO: proper error handling
+    }
+  }, []);
 
   React.useEffect(() => {
     if (prevDebouncedAmount !== debouncedAmount) {
-      fetchSwapTxn(debouncedAmount ?? 0);
-      fetchStakeTxn(debouncedAmount ?? 0); // TODO move to one function
-    }
-
-    // if (isRefreshTxn) {
-    //   fetchSwapTxn(debouncedAmount ?? 0);
-    //   fetchStakeTxn(debouncedAmount ?? 0);
-    // } TODO: add refresh logic
-  }, [prevDebouncedAmount, isRefreshTxn, debouncedAmount, fetchSwapTxn, fetchStakeTxn]);
-
-  const actionSummary = "x";
-
-  const getAdressLookupTableAccounts = async (
-    connection: Connection,
-    keys: string[]
-  ): Promise<AddressLookupTableAccount[]> => {
-    const addressLookupTableAccountInfos = await connection.getMultipleAccountsInfo(
-      keys.map((key) => new PublicKey(key))
-    );
-
-    return addressLookupTableAccountInfos.reduce((acc, accountInfo, index) => {
-      const addressLookupTableAddress = keys[index];
-      if (accountInfo) {
-        const addressLookupTableAccount = new AddressLookupTableAccount({
-          key: new PublicKey(addressLookupTableAddress),
-          state: AddressLookupTableAccount.deserialize(accountInfo.data),
-        });
-        acc.push(addressLookupTableAccount);
+      if (actionMode === ActionType.MintLST) {
+        fetchStakeTxs(debouncedAmount ?? 0);
+      } else if (actionMode === ActionType.UnstakeLST) {
+        fetchUnstakeTxs(debouncedAmount ?? 0);
       }
+    }
+  }, [prevDebouncedAmount, debouncedAmount, fetchStakeTxs]);
 
-      return acc;
-    }, new Array<AddressLookupTableAccount>());
-  };
+  React.useEffect(() => {
+    handleSimulation([
+      ...(actionTxns?.actionTxn ? [actionTxns?.actionTxn] : []),
+      ...(actionTxns?.additionalTxns ?? []),
+    ]);
+  }, [actionTxns]);
+
+  const actionSimulationSummary = React.useMemo(() => {
+    return handleActionSummary(accountSummary, simulationResult ?? undefined);
+  }, [accountSummary, simulationResult, handleActionSummary]);
 
   return {
-    actionSummary,
+    actionSimulationSummary,
   };
 }

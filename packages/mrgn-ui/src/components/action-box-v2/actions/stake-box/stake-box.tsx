@@ -55,7 +55,7 @@ export const StakeBox = ({
     actionTxns,
     errorMessage,
     isLoading,
-
+    lstData,
     refreshState,
     refreshSelectedBanks,
     fetchActionBoxState,
@@ -66,6 +66,7 @@ export const StakeBox = ({
     setSelectedBank,
     setIsLoading,
     setErrorMessage,
+    setLstData,
   ] = useStakeBoxStore(isDialog)((state) => [
     state.amountRaw,
     state.actionMode,
@@ -74,6 +75,7 @@ export const StakeBox = ({
     state.actionTxns,
     state.errorMessage,
     state.isLoading,
+    state.lstData,
     state.refreshState,
     state.refreshSelectedBanks,
     state.fetchActionBoxState,
@@ -84,6 +86,7 @@ export const StakeBox = ({
     state.setSelectedBank,
     state.setIsLoading,
     state.setErrorMessage,
+    state.setLstData,
   ]);
 
   const { amount, debouncedAmount, walletAmount, maxAmount } = useActionAmounts({
@@ -99,8 +102,6 @@ export const StakeBox = ({
     state.setPreviousTxn,
     state.setIsActionComplete,
   ]);
-  // TODO: save in stake-box-store
-  const [lstData, setLstdata] = React.useState<LstData>();
 
   const solUsdValue = React.useMemo(() => {
     const bank = banks.find((bank) => bank.info.state.mint.equals(SOL_MINT));
@@ -109,13 +110,12 @@ export const StakeBox = ({
 
   useEffect(() => {
     const _fetchLstData = async (connection: Connection) => {
-      setLstdata(await fetchLstData(connection));
+      setLstData(await fetchLstData(connection));
     };
 
     const connection = new Connection(process.env.NEXT_PUBLIC_MARGINFI_RPC_ENDPOINT_OVERRIDE!, "confirmed");
-
     if (connection) _fetchLstData(connection);
-  }, []);
+  }, [setLstData]);
 
   const [actionSummary, setActionSummary] = React.useState<{
     supply: number;
@@ -134,9 +134,8 @@ export const StakeBox = ({
       });
     }
   }, [lstData, solUsdValue]);
-  // END TODO
 
-  const { actionSummary: x } = useStakeSimulation({
+  const { actionSimulationSummary } = useStakeSimulation({
     debouncedAmount: debouncedAmount ?? 0,
     selectedAccount,
     selectedBank,
@@ -152,6 +151,10 @@ export const StakeBox = ({
     marginfiClient,
     lstData: lstData ?? null,
   });
+
+  React.useEffect(() => {
+    console.log(actionSimulationSummary);
+  }, [actionSimulationSummary]);
 
   React.useEffect(() => {
     fetchActionBoxState({ requestedLendType: requestedActionType, requestedBank });
