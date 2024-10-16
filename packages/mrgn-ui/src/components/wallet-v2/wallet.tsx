@@ -173,7 +173,7 @@ const Wallet = ({
       balanceUSD: usdFormatter.format(totalBalance),
       tokens: (userTokens || []) as TokenType[],
     });
-  }, [wallet?.publicKey, extendedBankInfos, nativeSolBalance, isWalletBalanceErrorShown]);
+  }, [wallet?.publicKey, extendedBankInfos, nativeSolBalance]);
 
   React.useEffect(() => {
     if (!walletData.tokens.length) {
@@ -185,7 +185,7 @@ const Wallet = ({
       getWalletData();
     }
     prevIsWalletOpenRef.current = isWalletOpen;
-  }, [isWalletOpen, getWalletData, walletData.address]);
+  }, [isWalletOpen, getWalletData, walletData]);
 
   return (
     <>
@@ -194,10 +194,10 @@ const Wallet = ({
       {!isLoading && connected && (
         <Sheet open={isWalletOpen} onOpenChange={(open) => setIsWalletOpen(open)}>
           <SheetTrigger asChild>
-            {walletData.address && (
+            {wallet?.publicKey && (
               <button className="flex items-center gap-2 hover:bg-accent/50 transition-colors rounded-full py-0.5 pr-2 pl-1 text-sm text-muted-foreground">
-                <WalletAvatar pfp={pfp} address={walletData.address} size="sm" />
-                {walletData.shortAddress}
+                <WalletAvatar pfp={pfp} address={wallet?.publicKey.toBase58()} size="sm" />
+                {shortenAddress(wallet?.publicKey)}
                 <IconChevronDown size={16} />
               </button>
             )}

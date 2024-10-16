@@ -148,24 +148,35 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
 
   // if web3auth is connected, override wallet adapter context, otherwise use default
   React.useEffect(() => {
+    console.log("walletContextStateDefault", walletContextStateDefault);
     const currentInfo = JSON.parse(localStorage.getItem("walletInfo") || "{}");
     if (web3Auth?.connected && web3AuthWalletData) {
+      console.log("setting walletContextState", 1);
       setWalletContextState(makeweb3AuthWalletContextState(web3AuthWalletData));
     } else if (
       currentInfo?.name === "Phantom" &&
       window?.phantom &&
       window?.phantom?.solana &&
-      !window?.phantom?.solana?.isConnected
+      !window?.phantom?.solana?.isConnected &&
+      !walletContextStateDefault.connected
     ) {
-      window.phantom.solana.connect();
-    } else if (walletContextStateDefault.wallet) {
-      const walletInfo: WalletInfo = {
-        name: walletContextStateDefault.wallet?.adapter.name,
-        icon: walletContextStateDefault.wallet?.adapter.icon,
-        web3Auth: false,
-      };
-      localStorage.setItem("walletInfo", JSON.stringify(walletInfo));
+      window.phantom.solana.connect({ onlyIfTrusted: true });
+      console.log("setting walletContextState", 2);
+    } else if (walletContextStateDefault.connected && !window?.phantom?.solana?.isConnected) {
+      console.log("walletContextStateDefault", walletContextStateDefault);
+      if (walletContextStateDefault.wallet) {
+        const walletInfo: WalletInfo = {
+          name: walletContextStateDefault.wallet?.adapter.name,
+          icon: walletContextStateDefault.wallet?.adapter.icon,
+          web3Auth: false,
+        };
+        localStorage.setItem("walletInfo", JSON.stringify(walletInfo));
+      }
       setWalletContextState(walletContextStateDefault);
+      console.log("setting walletContextState", 3);
+    } else if (!window?.phantom?.solana?.isConnected) {
+      setWalletContextState(walletContextStateDefault);
+      console.log("setting walletContextState", 4);
     }
 
     // intentionally do not include walletContextStateDefault
@@ -280,11 +291,8 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
       setWeb3AuthWalletData(undefined);
     } else if (window.phantom && window?.phantom?.solana?.isConnected) {
       await window.phantom.solana.disconnect();
-      setWalletContextState(walletContextStateDefault);
     } else {
-      await walletContextState.disconnect();
       await walletContextStateDefault.disconnect();
-      setWalletContextState(walletContextStateDefault);
     }
 
     if (asPath.includes("#")) {
@@ -296,7 +304,7 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
     setIsWalletOpen(false);
     setIsLoading(false);
     setPfp("");
-  }, [asPath, replace, setIsWalletOpen, walletContextState, walletContextStateDefault, web3Auth]);
+  }, [asPath, replace, setIsWalletOpen, walletContextStateDefault, web3Auth]);
 
   // called when user requests private key
   // stores short lived cookie and forces login
@@ -427,10 +435,12 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
 
       if (window?.phantom && window?.phantom?.solana) {
         window.phantom.solana.on("connect", async () => {
+          if (walletContextState.connected) return;
           setWalletContextState(makeweb3AuthWalletContextState(window.phantom.solana));
         });
 
         window.phantom.solana.on("disconnect", async () => {
+          if (!walletContextState.connected) return;
           setWalletContextState(walletContextStateDefault);
         });
       }
@@ -443,7 +453,7 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
     } finally {
       setIsLoading(false);
     }
-  }, [makeweb3AuthWalletData, walletContextStateDefault]);
+  }, [makeweb3AuthWalletData, walletContextStateDefault, walletContextState]);
 
   // initialize web3auth sdk on page load
   React.useEffect(() => {
@@ -463,7 +473,6 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
       localStorage.setItem("walletInfo", JSON.stringify(walletInfo));
     } else {
       walletContextStateDefault.select(walletName as any);
-      localStorage.removeItem("walletInfo");
     }
   };
 
