@@ -182,8 +182,8 @@ const Stake = (
   }
   return (
     <ActionBox {...actionBoxProps}>
-      <ActionBoxWrapper showSettings={true} isDialog={props.isDialog} actionMode={ActionType.MintLST}>
-        <ActionBoxNavigator selectedAction={ActionType.MintLST}>
+      <ActionBoxWrapper showSettings={true} isDialog={props.isDialog} actionMode={stakeProps.requestedActionType}>
+        <ActionBoxNavigator selectedAction={stakeProps.requestedActionType}>
           <StakeBox {...combinedProps} isDialog={props.isDialog} />
         </ActionBoxNavigator>
       </ActionBoxWrapper>

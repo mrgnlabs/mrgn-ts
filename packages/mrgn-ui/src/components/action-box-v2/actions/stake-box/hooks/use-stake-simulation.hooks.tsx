@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 
 import {
   AccountInfo,
@@ -18,11 +18,11 @@ import { AccountSummary, ExtendedBankInfo, ActionType } from "@mrgnlabs/marginfi
 import {
   ActionMethod,
   deserializeInstruction,
-  getFeeAccount,
   getSwapQuoteWithRetry,
+  handleError,
   LstData,
   StakeActionTxns,
-  TOKEN_2022_MINTS,
+  STATIC_SIMULATION_ERRORS,
   usePrevious,
 } from "@mrgnlabs/mrgn-utils";
 import { calculateSummary, fetchLstData, getAdressLookupTableAccounts, getSimulationResult } from "../utils";
@@ -94,10 +94,9 @@ export function useStakeSimulation({
   const handleFetchLstData = React.useCallback(async () => {
     // TODO: this is more of a refactor across all actionboxes, find a better way to feed connection
     const connection = new Connection(process.env.NEXT_PUBLIC_MARGINFI_RPC_ENDPOINT_OVERRIDE!, "confirmed");
-
     if (connection) {
       const lstData = await fetchLstData(connection);
-      setLstData(lstData);
+      setLstData(lstData as LstData);
     }
   }, [setLstData]);
 
@@ -118,9 +117,11 @@ export function useStakeSimulation({
         }
       } catch (error) {
         console.error("Error simulating transaction", error);
+      } finally {
+        setIsLoading(false);
       }
     },
-    [selectedAccount, selectedBank, marginfiClient, setSimulationResult, simulationResult]
+    [selectedAccount, selectedBank, marginfiClient, setSimulationResult, simulationResult, setIsLoading]
   );
 
   const fetchStakeTxs = React.useCallback(
@@ -128,11 +129,23 @@ export function useStakeSimulation({
       const connection = marginfiClient?.provider.connection;
 
       if (amount === 0 || !selectedBank || !connection || !lstData) {
+        const missingParams = [];
+        if (amount === 0) missingParams.push("amount");
+        if (!selectedBank) missingParams.push("selectedBank");
+        if (!connection) missingParams.push("connection");
+        if (!lstData) missingParams.push("lstData");
+
+        setActionTxns({
+          actionTxn: null,
+          additionalTxns: [],
+          actionQuote: null,
+        });
         return;
       }
 
+      setIsLoading(true);
       try {
-        const swapObject = await getSwapQuoteWithRetry({
+        const swapQuote = await getSwapQuoteWithRetry({
           amount: uiToNative(amount, selectedBank.info.state.mintDecimals).toNumber(),
           inputMint: selectedBank.info.state.mint.toBase58(),
           outputMint: SOL_MINT.toBase58(),
@@ -141,45 +154,22 @@ export function useStakeSimulation({
           swapMode: "ExactIn",
         });
 
-        // console.log("swapObject", swapObject);
-
-        if (!swapObject) return;
+        if (!swapQuote) {
+          return;
+        }
 
         const jupiterQuoteApi = createJupiterApiClient();
         const blockhash = (await connection.getLatestBlockhash()).blockhash;
 
-        // let feeAccountInfo: AccountInfo<any> | null = null;
-        // const feeMint = swapObject.outputMint;
-        // const feeAccount = getFeeAccount(new PublicKey(feeMint));
-        // if (!TOKEN_2022_MINTS.includes(feeMint)) {
-        //   feeAccountInfo = await connection.getAccountInfo(new PublicKey(feeAccount));
-        // }
-
         const { computeBudgetInstructions, swapInstruction, setupInstructions, addressLookupTableAddresses } =
           await jupiterQuoteApi.swapInstructionsPost({
             swapRequest: {
-              quoteResponse: swapObject,
+              quoteResponse: swapQuote,
               userPublicKey: marginfiClient.wallet.publicKey.toBase58(),
               feeAccount: undefined,
               programAuthorityId: LUT_PROGRAM_AUTHORITY_INDEX,
             },
           });
-
-        const { swapTransaction: swapTransactionRaw } = await jupiterQuoteApi.swapPost({
-          swapRequest: {
-            quoteResponse: swapObject,
-            userPublicKey: marginfiClient.wallet.publicKey.toBase58(),
-            feeAccount: undefined,
-            programAuthorityId: LUT_PROGRAM_AUTHORITY_INDEX,
-          },
-        });
-
-        const swapTransactionBuf = Buffer.from(swapTransactionRaw, "base64");
-        const swapTransaction = VersionedTransaction.deserialize(swapTransactionBuf);
-
-        // console.log(selectedAccount.authority.toString());
-
-        // console.log("swapInstruction", swapInstruction);
 
         const swapIx = deserializeInstruction(swapInstruction);
         const setupInstructionsIxs = setupInstructions.map((value) => deserializeInstruction(value));
@@ -201,7 +191,7 @@ export function useStakeSimulation({
           SystemProgram.transfer({
             fromPubkey: marginfiClient.wallet.publicKey,
             toPubkey: userSolTransfer.publicKey,
-            lamports: Number(swapObject.outAmount),
+            lamports: Number(swapQuote.outAmount),
           })
         );
 
@@ -237,7 +227,7 @@ export function useStakeSimulation({
             managerFeeAccount: lstData.accountData.managerFeeAccount,
             referralPoolAccount: destinationTokenAccount,
             poolMint: lstData.accountData.poolMint,
-            lamports: Number(swapObject.outAmount),
+            lamports: Number(swapQuote.outAmount),
             withdrawAuthority,
           })
         );
@@ -255,14 +245,16 @@ export function useStakeSimulation({
 
         setActionTxns({
           actionTxn: stakeTx,
-          actionQuote: swapObject, // TODO: update name
+          actionQuote: swapQuote,
           additionalTxns: [swapTx],
         });
       } catch (error) {
-        console.error("Error fetching transactions", error);
+        // handleError(error, selectedBank) // TODO: implement this
+        setErrorMessage(STATIC_SIMULATION_ERRORS.STAKE_FAILED);
+        setIsLoading(false);
       }
     },
-    [marginfiClient, selectedBank, slippageBps, lstData, setActionTxns]
+    [marginfiClient, selectedBank, slippageBps, lstData, setActionTxns, setIsLoading, setErrorMessage]
   );
 
   const fetchUnstakeTxs = React.useCallback(
@@ -273,66 +265,55 @@ export function useStakeSimulation({
       if (amount === 0 || !selectedBank || !selectedAccount || !connection || !lstData) {
         return;
       }
-      try {
-        const blockhash = (await connection.getLatestBlockhash("confirmed")).blockhash;
+      setIsLoading(true);
 
-        const swapObject = await getSwapQuoteWithRetry({
+      try {
+        const blockhash = (await connection.getLatestBlockhash()).blockhash;
+
+        const swapQuote = await getSwapQuoteWithRetry({
           amount: uiToNative(amount, selectedBank.info.state.mintDecimals).toNumber(),
           inputMint: LST_MINT.toBase58(),
           outputMint: SOL_MINT.toBase58(),
-          platformFeeBps: 0,
+          // platformFeeBps: 0,
           slippageBps: slippageBps,
           swapMode: "ExactIn",
         });
 
-        if (!swapObject) return; // TODO: proper error handling
+        if (!swapQuote) return; // TODO: proper error handling
 
-        let feeAccountInfo: AccountInfo<any> | null = null;
-        const feeMint = swapObject.outputMint; // TODO: output or input?
-        const feeAccount = getFeeAccount(new PublicKey(feeMint));
-        if (!TOKEN_2022_MINTS.includes(feeMint)) {
-          feeAccountInfo = await connection.getAccountInfo(new PublicKey(feeAccount));
-        }
-
-        const { swapInstruction, setupInstructions, addressLookupTableAddresses } =
+        const { computeBudgetInstructions, swapInstruction, setupInstructions, addressLookupTableAddresses } =
           await jupiterQuoteApi.swapInstructionsPost({
             swapRequest: {
-              quoteResponse: swapObject,
-              userPublicKey: selectedAccount.authority.toBase58(),
-              feeAccount: feeAccountInfo ? feeAccount : undefined,
+              quoteResponse: swapQuote,
+              userPublicKey: marginfiClient.wallet.publicKey.toBase58(),
+              feeAccount: undefined,
+              programAuthorityId: LUT_PROGRAM_AUTHORITY_INDEX,
             },
           });
 
         const swapIx = deserializeInstruction(swapInstruction);
-        const setupInstructionsIx = setupInstructions.map((value) => deserializeInstruction(value));
+        const setupInstructionsIxs = setupInstructions.map((value) => deserializeInstruction(value));
+        const cuInstructionsIxs = computeBudgetInstructions.map((value) => deserializeInstruction(value));
         const AddressLookupAccounts = await getAdressLookupTableAccounts(connection, addressLookupTableAddresses);
 
         const swapMessage = new TransactionMessage({
           payerKey: marginfiClient.wallet.publicKey,
           recentBlockhash: blockhash,
-          instructions: [...setupInstructionsIx, swapIx],
+          instructions: [...cuInstructionsIxs, ...setupInstructionsIxs, swapIx],
         });
         const swapTx = new VersionedTransaction(swapMessage.compileToV0Message(AddressLookupAccounts));
-        console.log("swapTx", swapTx);
-
         setActionTxns({
           actionTxn: swapTx,
           additionalTxns: [],
-          actionQuote: swapObject, // TODO: rename
+          actionQuote: swapQuote,
         });
       } catch (error) {
-        console.log(error); // TODO: proper error handling
+        // handleError(error, selectedBank) // TODO: implement this
+        setErrorMessage(STATIC_SIMULATION_ERRORS.UNSTAKE_FAILED);
+        setIsLoading(false);
       }
     },
-    [
-      lstData,
-      marginfiClient?.provider.connection,
-      marginfiClient?.wallet.publicKey,
-      selectedAccount,
-      selectedBank,
-      setActionTxns,
-      slippageBps,
-    ]
+    [lstData, marginfiClient, selectedAccount, selectedBank, setActionTxns, setIsLoading, slippageBps, setErrorMessage]
   );
 
   React.useEffect(() => {

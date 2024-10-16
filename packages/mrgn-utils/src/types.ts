@@ -23,6 +23,16 @@ interface PreviousTxnLending {
   };
 }
 
+interface PreviousTxnStake {
+  txn: string;
+  txnType: "STAKE" | "UNSTAKE";
+  stakingOptions: {
+    amount: number;
+    type: ActionType;
+    bank: ActiveBankInfo;
+  };
+}
+
 interface PreviousTxnLoop {
   txn: string;
   txnType: "LOOP";
@@ -62,4 +72,9 @@ interface PreviousTxnTrading {
   tradingOptions: PreviousTxnTradingOptions;
 }
 
-export type PreviousTxn = PreviousTxnLoop | PreviousTxnLending | PreviousTxnTrading | PreviousTxnPositionClosed;
+export type PreviousTxn =
+  | PreviousTxnLoop
+  | PreviousTxnLending
+  | PreviousTxnTrading
+  | PreviousTxnPositionClosed
+  | PreviousTxnStake;

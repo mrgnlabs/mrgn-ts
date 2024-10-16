@@ -14,7 +14,7 @@ import { cn } from "@mrgnlabs/mrgn-utils";
 
 import { Skeleton } from "~/components/ui/skeleton";
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "~/components/ui/tooltip";
-import { IconPyth, IconSwitchboard } from "~/components/ui/icons";
+import { IconLoader, IconPyth, IconSwitchboard } from "~/components/ui/icons";
 
 export const REDUCE_ONLY_BANKS = ["stSOL", "RLB"];
 
