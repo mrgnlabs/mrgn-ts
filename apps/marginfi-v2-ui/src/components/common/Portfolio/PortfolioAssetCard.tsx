@@ -201,7 +201,6 @@ const PortfolioAction = ({
           onComplete: () => {
             fetchMrgnlendState();
           },
-          onConnect: () => setIsWalletAuthDialogOpen(true),
         }}
         isDialog={true}
         dialogProps={{
@@ -228,7 +227,6 @@ const PortfolioAction = ({
           onComplete: () => {
             fetchMrgnlendState();
           },
-          onConnect: () => setIsWalletAuthDialogOpen(true),
         }}
         isDialog={true}
         dialogProps={{
