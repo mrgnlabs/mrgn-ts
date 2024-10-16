@@ -96,10 +96,24 @@ async function getCachedMarginfiAccountsForAuthority(
   }
 
   const cacheKey = createLocalStorageKey(authority);
-  const cachedAccounts = window.localStorage.getItem(cacheKey);
+  const cachedAccountsStr = window.localStorage.getItem(cacheKey);
+  let cachedAccounts: string[] = [];
+
+  if (cachedAccountsStr) {
+    cachedAccounts = JSON.parse(cachedAccountsStr);
+  }
+
   debug("cachedAccounts", cachedAccounts);
-  if (cachedAccounts) {
-    const accountAddresses: PublicKey[] = JSON.parse(cachedAccounts).map((address: string) => new PublicKey(address));
+  if (cachedAccounts && cachedAccounts.length > 0) {
+    const accountAddresses: PublicKey[] = cachedAccounts.reduce((validAddresses: PublicKey[], address: string) => {
+      try {
+        const publicKey = new PublicKey(address);
+        validAddresses.push(publicKey);
+      } catch (error) {
+        console.warn(`Invalid public key: ${address}. Skipping.`);
+      }
+      return validAddresses;
+    }, []);
     debug("Loading ", accountAddresses.length, "accounts from cache");
     return client.getMultipleMarginfiAccounts(accountAddresses);
   } else {
