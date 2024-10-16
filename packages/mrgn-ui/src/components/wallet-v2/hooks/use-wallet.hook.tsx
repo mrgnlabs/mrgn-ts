@@ -158,7 +158,8 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
       window?.phantom &&
       window?.phantom?.solana &&
       !window?.phantom?.solana?.isConnected &&
-      !walletContextStateDefault.connected
+      !walletContextStateDefault.connected &&
+      !window.localStorage.getItem("phantomLogout")
     ) {
       window.phantom.solana.connect({ onlyIfTrusted: true });
       console.log("setting walletContextState", 2);
@@ -291,6 +292,7 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
       setWeb3AuthWalletData(undefined);
     } else if (window.phantom && window?.phantom?.solana?.isConnected) {
       await window.phantom.solana.disconnect();
+      localStorage.setItem("phantomLogout", "true");
     } else {
       await walletContextStateDefault.disconnect();
     }
@@ -437,6 +439,7 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
         window.phantom.solana.on("connect", async () => {
           if (walletContextState.connected) return;
           setWalletContextState(makeweb3AuthWalletContextState(window.phantom.solana));
+          window.localStorage.removeItem("phantomLogout");
         });
 
         window.phantom.solana.on("disconnect", async () => {
