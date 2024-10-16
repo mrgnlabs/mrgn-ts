@@ -779,7 +779,7 @@ class MarginfiClient {
       lastValidBlockHeight = getLatestBlockhashAndContext.value.lastValidBlockHeight;
 
       for (const transaction of transactions) {
-        if (transaction instanceof VersionedTransaction) {
+        if (transaction && "message" in transaction) {
           versionedTransactions.push(transaction);
         } else {
           const versionedMessage = new TransactionMessage({
@@ -939,7 +939,9 @@ class MarginfiClient {
       blockhash = getLatestBlockhashAndContext.value.blockhash;
       lastValidBlockHeight = getLatestBlockhashAndContext.value.lastValidBlockHeight;
 
-      if (transaction instanceof Transaction) {
+      if (transaction && "message" in transaction) {
+        versionedTransaction = transaction;
+      } else {
         const versionedMessage = new TransactionMessage({
           instructions: transaction.instructions,
           payerKey: this.provider.publicKey,
@@ -947,8 +949,6 @@ class MarginfiClient {
         });
 
         versionedTransaction = new VersionedTransaction(versionedMessage.compileToV0Message(this.addressLookupTables));
-      } else {
-        versionedTransaction = transaction;
       }
 
       if (signers) versionedTransaction.sign(signers);
