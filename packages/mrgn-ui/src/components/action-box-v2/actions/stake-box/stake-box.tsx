@@ -166,6 +166,7 @@ export const StakeBox = ({
         actionTxns,
         marginfiClient,
       };
+      console.log(params);
 
       await handleExecuteStakeAction({
         params,
@@ -207,9 +208,7 @@ export const StakeBox = ({
     amount,
     captureEvent,
     marginfiClient,
-    nativeSolBalance,
     onComplete,
-    selectedAccount,
     selectedBank,
     setAmountRaw,
     setIsActionComplete,
