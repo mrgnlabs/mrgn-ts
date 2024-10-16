@@ -21,8 +21,8 @@ interface StakeActionSummary {
     commission: number;
   };
   simulationPreview?: {
-    priceImpact: number;
-    splippage: number;
+    priceImpact?: number;
+    splippage?: number;
   };
 }
 
@@ -40,9 +40,8 @@ export const StatsPreview = ({ actionSummary, selectedBank, isLoading, actionMod
   );
 
   const stats = React.useMemo(
-    () =>
-      actionSummary && selectedBank ? generateStakeStats(actionSummary, selectedBank, isLending, isLoading) : null,
-    [actionSummary, selectedBank, isLending, isLoading]
+    () => (actionSummary && selectedBank ? generateStakeStats(actionSummary, isLoading) : null),
+    [actionSummary, selectedBank, isLoading]
   );
 
   return (
@@ -71,16 +70,14 @@ export const StatsPreview = ({ actionSummary, selectedBank, isLoading, actionMod
   );
 };
 
-function generateStakeStats(
-  summary: StakeActionSummary,
-  bank: ExtendedBankInfo,
-  isLending: boolean,
-  isLoading: boolean
-) {
+function generateStakeStats(summary: StakeActionSummary, isLoading: boolean) {
   const stats = [];
 
-  if (summary.simulationPreview) {
+  if (summary.simulationPreview?.priceImpact) {
     stats.push(getPriceImpactStat(summary.simulationPreview?.priceImpact));
+  }
+
+  if (summary.simulationPreview?.splippage) {
     stats.push(getSlippageStat(summary.simulationPreview?.splippage));
   }
 

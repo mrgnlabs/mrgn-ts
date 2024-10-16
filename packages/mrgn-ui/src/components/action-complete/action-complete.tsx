@@ -47,6 +47,10 @@ export const ActionComplete = ({ isActionComplete, previousTxn, setIsActionCompl
       }
     } else if (previousTxn?.txnType === "LOOP") {
       return "Loop Completed!";
+    } else if (previousTxn.txnType === "STAKE") {
+      return "Stake Completed!";
+    } else if (previousTxn.txnType === "UNSTAKE") {
+      return "Unstake Completed!";
     } else {
       return "Action Completed!";
     }
@@ -90,6 +94,9 @@ export const ActionComplete = ({ isActionComplete, previousTxn, setIsActionCompl
             )}
             {previousTxn.txnType === "LOOP" && (
               <screens.LoopScreen {...previousTxn.loopOptions} txn={previousTxn.txn} />
+            )}
+            {(previousTxn.txnType === "STAKE" || previousTxn.txnType === "UNSTAKE") && (
+              <screens.StakingScreen {...previousTxn.stakingOptions} txn={previousTxn.txn} />
             )}
           </div>
           <DialogFooter className="mt-6">

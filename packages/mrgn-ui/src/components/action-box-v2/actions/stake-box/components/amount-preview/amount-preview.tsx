@@ -16,35 +16,31 @@ import { StakeData } from "@mrgnlabs/mrgn-utils";
 import { cn } from "@mrgnlabs/mrgn-utils";
 
 import { Skeleton } from "~/components/ui/skeleton";
+import { Loader } from "~/components/ui/loader";
+import { IconInfiniteLoader, IconLoader } from "~/components/ui/icons";
 
 interface AmountPreviewProps {
-  selectedBank: ExtendedBankInfo | null;
-
   actionMode: ActionType;
-  isEnabled: boolean;
-  amount: number;
-  slippageBps: number;
+  amount?: number;
+  isLoading?: boolean;
 }
 
-export const AmountPreview = ({
-  selectedBank,
-
-  actionMode,
-  isEnabled,
-  amount,
-  slippageBps,
-}: AmountPreviewProps) => {
-  const [isLoading, setIsLoading] = React.useState<boolean>(false);
-
-  React.useEffect(() => {
-    setIsLoading(true);
-  }, [amount]);
-
+export const AmountPreview = ({ actionMode, amount, isLoading }: AmountPreviewProps) => {
   return (
     <div className="flex flex-col gap-6">
       <dl className="grid grid-cols-2 gap-y-2 text-sm text-white">
         <Stat label="You will receive">
-          {amount !== null ? (amount < 0.01 && amount > 0 ? "< 0.01" : numeralFormatter(amount)) : "-"}{" "}
+          {isLoading ? (
+            <IconLoader size={16} />
+          ) : amount ? (
+            amount < 0.01 && amount > 0 ? (
+              "< 0.01"
+            ) : (
+              numeralFormatter(amount)
+            )
+          ) : (
+            "-"
+          )}{" "}
           {actionMode === ActionType.MintLST ? "$LST" : "SOL"}
         </Stat>
       </dl>

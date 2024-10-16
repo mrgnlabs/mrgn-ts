@@ -1,23 +1,20 @@
 import React, { useEffect } from "react";
 
-// TODO: sort imports
 import { ActionInput } from "./components/action-input";
 import { getPriceWithConfidence, MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { AccountSummary, ActionType, ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { LstData, MarginfiActionParams, PreviousTxn, useConnection } from "@mrgnlabs/mrgn-utils";
+import { ActionMethod, PreviousTxn, showErrorToast } from "@mrgnlabs/mrgn-utils";
 import { useStakeBoxStore } from "./store";
 import { useActionAmounts } from "~/components/action-box-v2/hooks";
 import { AmountPreview } from "./components/amount-preview";
-import { ActionButton } from "../../components";
+import { ActionButton, ActionSettingsButton } from "../../components";
 import { StatsPreview } from "./components/stats-preview";
 import { WalletContextStateOverride } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { WalletContextState } from "@solana/wallet-adapter-react";
 import { useStakeSimulation } from "./hooks";
-import { Connection, PublicKey } from "@solana/web3.js";
-import { fetchLstData } from "./utils";
-import { NATIVE_MINT as SOL_MINT } from "@mrgnlabs/mrgn-common";
+import { nativeToUi, NATIVE_MINT as SOL_MINT } from "@mrgnlabs/mrgn-common";
 import { useActionBoxStore } from "../../store";
-import { handleExecuteStakeAction } from "./utils/stake-action.utils";
+import { handleExecuteLstAction } from "./utils/stake-action.utils";
 
 export type StakeBoxProps = {
   nativeSolBalance: number;
@@ -102,6 +99,8 @@ export const StakeBox = ({
     state.setIsActionComplete,
   ]);
 
+  const [additionalActionMethods, setAdditionalActionMethods] = React.useState<ActionMethod[]>([]);
+
   const solPriceUsd = React.useMemo(() => {
     const bank = banks.find((bank) => bank.info.state.mint.equals(SOL_MINT));
     return bank ? getPriceWithConfidence(bank.info.oraclePrice, false).price.toNumber() : 0;
@@ -123,19 +122,21 @@ export const StakeBox = ({
     solPriceUsd,
   });
 
-  const handleStakeAction = React.useCallback(async () => {
+  const handleLstAction = React.useCallback(async () => {
     if (!selectedBank || !amount || !marginfiClient) {
       return;
     }
+
+    try {
+    } catch (error) {}
 
     const action = async () => {
       const params = {
         actionTxns,
         marginfiClient,
       };
-      console.log(params);
 
-      await handleExecuteStakeAction({
+      await handleExecuteLstAction({
         params,
         captureEvent: (event, properties) => {
           captureEvent && captureEvent(event, properties);
@@ -144,10 +145,10 @@ export const StakeBox = ({
           setIsActionComplete(true);
           setPreviousTxn({
             txn: txnSigs.pop() ?? "",
-            txnType: "LEND",
-            lendingOptions: {
-              amount: amount,
-              type: ActionType.RepayCollat,
+            txnType: requestedActionType === ActionType.MintLST ? "STAKE" : "UNSTAKE",
+            stakingOptions: {
+              amount: Number(actionTxns.actionQuote?.outAmount) ?? 0,
+              type: requestedActionType,
               bank: selectedBank as ActiveBankInfo,
             },
           }); // TODO: update
@@ -155,16 +156,17 @@ export const StakeBox = ({
           onComplete &&
             onComplete({
               txn: txnSigs.pop() ?? "",
-              txnType: "LEND",
-              lendingOptions: {
-                amount: amount,
-                type: ActionType.RepayCollat,
+              txnType: requestedActionType === ActionType.MintLST ? "STAKE" : "UNSTAKE",
+              stakingOptions: {
+                amount: Number(actionTxns.actionQuote?.outAmount) ?? 0,
+                type: requestedActionType,
                 bank: selectedBank as ActiveBankInfo,
               },
             }); // TODO: update
         },
         setIsError: () => {},
         setIsLoading: (isLoading) => setIsLoading(isLoading),
+        actionType: requestedActionType,
       });
     };
 
@@ -181,11 +183,19 @@ export const StakeBox = ({
     setIsActionComplete,
     setIsLoading,
     setPreviousTxn,
+    requestedActionType,
   ]);
 
   React.useEffect(() => {
     fetchActionBoxState({ requestedLendType: requestedActionType, requestedBank });
   }, [requestedActionType, requestedBank, fetchActionBoxState]);
+
+  React.useEffect(() => {
+    if (errorMessage && errorMessage.description) {
+      showErrorToast(errorMessage?.description);
+      setAdditionalActionMethods([errorMessage]);
+    }
+  }, [errorMessage]);
 
   return (
     <>
@@ -207,10 +217,16 @@ export const StakeBox = ({
       <div className="mb-6">
         <AmountPreview
           actionMode={actionMode}
-          amount={amount}
-          selectedBank={selectedBank}
-          isEnabled={amount > 0}
-          slippageBps={0}
+          amount={
+            actionTxns.actionQuote?.outAmount
+              ? nativeToUi(
+                  actionTxns.actionQuote?.outAmount,
+                  banks.find((bank) => bank.info.state.mint.toString() === actionTxns.actionQuote?.outputMint)?.info
+                    .state.mintDecimals ?? 0
+                )
+              : undefined
+          } // Is this okay to do?
+          isLoading={isLoading}
         />
       </div>
       <div className="mb-3">
@@ -218,17 +234,27 @@ export const StakeBox = ({
           isLoading={isLoading}
           isEnabled={true}
           connected={connected}
-          handleAction={handleStakeAction}
+          handleAction={handleLstAction}
           handleConnect={() => {}}
-          buttonLabel={ActionType.MintLST ? "Mint LST" : "Unstake LST"}
+          buttonLabel={requestedActionType === ActionType.MintLST ? "Mint LST" : "Unstake LST"}
         />
       </div>
+
+      <ActionSettingsButton setIsSettingsActive={setIsSettingsDialogOpen} />
 
       {actionSummary && (
         <div>
           <StatsPreview
             actionSummary={{
               actionPreview: actionSummary,
+              simulationPreview: {
+                priceImpact: actionTxns?.actionQuote?.priceImpactPct
+                  ? Number(actionTxns?.actionQuote?.priceImpactPct)
+                  : undefined,
+                splippage: actionTxns?.actionQuote?.slippageBps
+                  ? Number(actionTxns?.actionQuote?.slippageBps)
+                  : undefined,
+              },
             }}
             actionMode={actionMode}
             isLoading={isLoading}

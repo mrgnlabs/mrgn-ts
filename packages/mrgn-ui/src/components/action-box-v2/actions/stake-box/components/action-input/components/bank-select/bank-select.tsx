@@ -34,7 +34,7 @@ export const BankSelect = ({
       return true;
     }
     return false;
-  }, [selectedBank]); // TODO: check if this is correct, not sure if this is the correct way to check if it is selectable
+  }, [selectedBank]);
 
   return (
     <>
