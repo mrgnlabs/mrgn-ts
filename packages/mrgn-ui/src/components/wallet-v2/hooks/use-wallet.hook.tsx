@@ -486,7 +486,7 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
 
     // intentionally do not include walletContextStateDefault to avoid infinite re-renders
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [web3Auth?.connected, web3AuthWalletData]);
+  }, [web3Auth?.connected, web3AuthWalletData, walletContextStateDefault.connected]);
 
   // open wallet signup modal if onramp is true
   React.useEffect(() => {
