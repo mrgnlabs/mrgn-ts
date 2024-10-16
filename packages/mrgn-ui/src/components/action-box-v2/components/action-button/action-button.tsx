@@ -1,6 +1,7 @@
 import { IconLoader2 } from "@tabler/icons-react";
 import React from "react";
 
+import { WalletButton } from "~/components/wallet-v2";
 import { Button } from "~/components/ui/button";
 import { IconInfiniteLoader } from "~/components/ui/icons";
 
@@ -11,7 +12,6 @@ type ActionButtonProps = {
   loaderType?: "INFINITE" | "DEFAULT";
   connected?: boolean;
   handleAction: () => void;
-  handleConnect: () => void;
 };
 
 export const ActionButton = ({
@@ -21,7 +21,6 @@ export const ActionButton = ({
   loaderType = "DEFAULT",
   connected = false,
   handleAction,
-  handleConnect,
 }: ActionButtonProps) => {
   const Loader = React.useMemo(() => {
     switch (loaderType) {
@@ -35,11 +34,7 @@ export const ActionButton = ({
   }, [loaderType]);
 
   if (!connected) {
-    return (
-      <Button className="w-full py-5" onClick={() => handleConnect()}>
-        Sign in
-      </Button>
-    );
+    return <WalletButton className="w-full py-5" showWalletInfo={false} />;
   }
 
   return (

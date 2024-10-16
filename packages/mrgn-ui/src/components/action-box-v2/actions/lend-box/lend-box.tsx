@@ -41,7 +41,6 @@ export type LendBoxProps = {
   accountSummaryArg?: AccountSummary;
   isDialog?: boolean;
 
-  onConnect?: () => void;
   onComplete?: (previousTxn: PreviousTxn) => void;
   captureEvent?: (event: string, properties?: Record<string, any>) => void;
 };
@@ -58,7 +57,6 @@ export const LendBox = ({
   isDialog,
   requestedLendType,
   requestedBank,
-  onConnect,
   onComplete,
   captureEvent,
 }: LendBoxProps) => {
@@ -354,7 +352,6 @@ export const LendBox = ({
           handleAction={() => {
             showCloseBalance ? handleCloseBalance() : handleLendingAction();
           }}
-          handleConnect={() => onConnect && onConnect()}
           buttonLabel={buttonLabel}
         />
       </div>
