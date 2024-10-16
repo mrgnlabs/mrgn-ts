@@ -111,7 +111,6 @@ export default function HomePage() {
                     onComplete: () => {
                       fetchMrgnlendState();
                     },
-                    onConnect: () => setIsWalletAuthDialogOpen(true),
                   }}
                 />
               </div>
@@ -140,7 +139,6 @@ export default function HomePage() {
                   onComplete: () => {
                     fetchMrgnlendState();
                   },
-                  onConnect: () => setIsWalletAuthDialogOpen(true),
                 }}
               />
             </div>
