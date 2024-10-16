@@ -14,5 +14,6 @@ export type PoolData = {
   symbol: string;
   icon: string;
   decimals: number;
+  quoteBank: "USDC" | "LST";
   group?: PublicKey;
 };

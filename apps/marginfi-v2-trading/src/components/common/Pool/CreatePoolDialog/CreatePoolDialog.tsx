@@ -63,6 +63,7 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
         symbol: tokenInfo.symbol,
         icon: tokenInfo.imageUrl,
         decimals: tokenInfo.decimals,
+        quoteBank: "USDC",
       });
 
       setIsSearchingToken(false);
