@@ -100,27 +100,29 @@ export const BankList = ({
         )}
         <CommandEmpty>No tokens found.</CommandEmpty>
 
-        <CommandGroup heading="Available in your wallet">
-          {filteredBanksUserOwns
-            .slice(0, searchQuery.length === 0 ? filteredBanksUserOwns.length : 3)
-            .map((bank, index) => {
-              return (
-                <CommandItem
-                  key={index}
-                  value={bank?.address?.toString().toLowerCase()}
-                  onSelect={(currentValue) => {
-                    onSetSelectedBank(
-                      banks.find((bankInfo) => bankInfo.address.toString().toLowerCase() === currentValue) ?? null
-                    );
-                    onClose();
-                  }}
-                  className="cursor-pointer h-[55px] px-3 font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white"
-                >
-                  <BankItem bank={bank} showBalanceOverride={true} nativeSolBalance={nativeSolBalance} />
-                </CommandItem>
-              );
-            })}
-        </CommandGroup>
+        {filteredBanksUserOwns.length > 0 && onSetSelectedBank && (
+          <CommandGroup heading="Available in your wallet">
+            {filteredBanksUserOwns
+              .slice(0, searchQuery.length === 0 ? filteredBanksUserOwns.length : 3)
+              .map((bank, index) => {
+                return (
+                  <CommandItem
+                    key={index}
+                    value={bank?.address?.toString().toLowerCase()}
+                    onSelect={(currentValue) => {
+                      onSetSelectedBank(
+                        banks.find((bankInfo) => bankInfo.address.toString().toLowerCase() === currentValue) ?? null
+                      );
+                      onClose();
+                    }}
+                    className="cursor-pointer h-[55px] px-3 font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white"
+                  >
+                    <BankItem bank={bank} showBalanceOverride={true} nativeSolBalance={nativeSolBalance} />
+                  </CommandItem>
+                );
+              })}
+          </CommandGroup>
+        )}
       </BankListCommand>
     </>
   );

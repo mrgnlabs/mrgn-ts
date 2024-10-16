@@ -54,7 +54,7 @@ export function useActionAmounts({
       case ActionType.MintLST:
         return selectedBank?.userInfo.maxDeposit ?? 0;
       case ActionType.UnstakeLST:
-        return selectedBank?.userInfo.maxWithdraw ?? 0;
+        return selectedBank?.userInfo.maxDeposit ?? 0;
       default:
         return 0;
     }
