@@ -21,13 +21,7 @@ type ActionBoxComponentProps = {
 interface RequiredLendBoxProps
   extends Pick<
     LendBoxProps,
-    | "onComplete"
-    | "captureEvent"
-    | "onConnect"
-    | "requestedBank"
-    | "requestedLendType"
-    | "walletContextState"
-    | "connected"
+    "onComplete" | "captureEvent" | "requestedBank" | "requestedLendType" | "walletContextState" | "connected"
   > {}
 
 // all props except for requestedLendType
@@ -42,22 +36,15 @@ interface RepayBoxProps
     | "banks"
     | "requestedBank"
     | "accountSummaryArg"
-    | "onConnect"
     | "onComplete"
     | "captureEvent"
   > {}
 
 interface RequiredRepayBoxProps
-  extends Pick<
-    RepayBoxProps,
-    "onComplete" | "captureEvent" | "onConnect" | "requestedBank" | "walletContextState" | "connected"
-  > {}
+  extends Pick<RepayBoxProps, "onComplete" | "captureEvent" | "requestedBank" | "walletContextState" | "connected"> {}
 
 interface RequiredLoopBoxProps
-  extends Pick<
-    LoopBoxProps,
-    "onComplete" | "captureEvent" | "onConnect" | "requestedBank" | "walletContextState" | "connected"
-  > {}
+  extends Pick<LoopBoxProps, "onComplete" | "captureEvent" | "requestedBank" | "walletContextState" | "connected"> {}
 
 interface ActionBoxComponent extends React.FC<ActionBoxProps & ActionBoxComponentProps> {
   Lend: React.FC<ActionBoxProps & { lendProps: LendBoxProps | RequiredLendBoxProps; useProvider?: boolean }>;
