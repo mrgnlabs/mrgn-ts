@@ -51,5 +51,7 @@ export async function fetchLstData(connection: Connection): Promise<LstData> {
     solDepositFee,
     accountData: stakePool,
     validatorList: stakePoolInfo.validatorList.map((v) => new PublicKey(v.voteAccountAddress)),
+    updateRequired: stakePoolInfo.details.updateRequired,
+    lastUpdateEpoch: stakePoolInfo.lastUpdateEpoch,
   };
 }

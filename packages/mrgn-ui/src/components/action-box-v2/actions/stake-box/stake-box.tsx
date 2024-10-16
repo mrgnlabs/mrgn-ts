@@ -59,7 +59,6 @@ export const StakeBox = ({
     actionTxns,
     errorMessage,
     isLoading,
-    lstData,
     refreshState,
     refreshSelectedBanks,
     fetchActionBoxState,
@@ -70,7 +69,6 @@ export const StakeBox = ({
     setSelectedBank,
     setIsLoading,
     setErrorMessage,
-    setLstData,
   ] = useStakeBoxStore(isDialog)((state) => [
     state.amountRaw,
     state.actionMode,
@@ -79,7 +77,6 @@ export const StakeBox = ({
     state.actionTxns,
     state.errorMessage,
     state.isLoading,
-    state.lstData,
     state.refreshState,
     state.refreshSelectedBanks,
     state.fetchActionBoxState,
@@ -90,7 +87,6 @@ export const StakeBox = ({
     state.setSelectedBank,
     state.setIsLoading,
     state.setErrorMessage,
-    state.setLstData,
   ]);
 
   const { amount, debouncedAmount, walletAmount, maxAmount } = useActionAmounts({
@@ -100,46 +96,18 @@ export const StakeBox = ({
     actionMode,
   });
 
-  const [slippage, setIsSettingsDialogOpen, setPreviousTxn, setIsActionComplete] = useActionBoxStore((state) => [
-    state.slippageBps,
+  const [setIsSettingsDialogOpen, setPreviousTxn, setIsActionComplete] = useActionBoxStore((state) => [
     state.setIsSettingsDialogOpen,
     state.setPreviousTxn,
     state.setIsActionComplete,
   ]);
 
-  const solUsdValue = React.useMemo(() => {
+  const solPriceUsd = React.useMemo(() => {
     const bank = banks.find((bank) => bank.info.state.mint.equals(SOL_MINT));
     return bank ? getPriceWithConfidence(bank.info.oraclePrice, false).price.toNumber() : 0;
   }, [banks]);
 
-  useEffect(() => {
-    const _fetchLstData = async (connection: Connection) => {
-      setLstData(await fetchLstData(connection));
-    };
-
-    const connection = new Connection(process.env.NEXT_PUBLIC_MARGINFI_RPC_ENDPOINT_OVERRIDE!, "confirmed");
-    if (connection) _fetchLstData(connection);
-  }, [setLstData]);
-
-  const [actionSummary, setActionSummary] = React.useState<{
-    supply: number;
-    projectedApy: number;
-    currentPrice: number;
-    commission: number;
-  }>();
-
-  useEffect(() => {
-    if (lstData && solUsdValue) {
-      setActionSummary({
-        commission: lstData.solDepositFee,
-        currentPrice: lstData.lstSolValue,
-        projectedApy: lstData.projectedApy,
-        supply: lstData.tvl * solUsdValue,
-      });
-    }
-  }, [lstData, solUsdValue]);
-
-  const { actionSimulationSummary } = useStakeSimulation({
+  const { actionSummary } = useStakeSimulation({
     debouncedAmount: debouncedAmount ?? 0,
     selectedAccount,
     selectedBank,
@@ -151,9 +119,8 @@ export const StakeBox = ({
     setErrorMessage,
     setIsLoading,
     isRefreshTxn: true, // TODO: fill, see repay-collat-box
-    slippageBps: slippage,
     marginfiClient,
-    lstData: lstData ?? null,
+    solPriceUsd,
   });
 
   const handleStakeAction = React.useCallback(async () => {
@@ -215,9 +182,6 @@ export const StakeBox = ({
     setIsLoading,
     setPreviousTxn,
   ]);
-  React.useEffect(() => {
-    console.log(actionSimulationSummary);
-  }, [actionSimulationSummary]);
 
   React.useEffect(() => {
     fetchActionBoxState({ requestedLendType: requestedActionType, requestedBank });

@@ -16,7 +16,6 @@ interface StateBoxState {
 
   errorMessage: ActionMethod | null;
   isLoading: boolean;
-  lstData: LstData | null;
 
   // Actions
   refreshState: (actionMode?: ActionType) => void;
@@ -29,7 +28,6 @@ interface StateBoxState {
   setSelectedBank: (bank: ExtendedBankInfo | null) => void;
   setIsLoading: (isLoading: boolean) => void;
   setErrorMessage: (errorMessage: ActionMethod | null) => void;
-  setLstData: (lstData: LstData | null) => void;
 }
 
 function createStakeBoxStore() {
@@ -150,10 +148,6 @@ const stateCreator: StateCreator<StateBoxState, [], []> = (set, get) => ({
 
   setErrorMessage(errorMessage) {
     set({ errorMessage });
-  },
-
-  setLstData(lstData) {
-    set({ lstData });
   },
 });
 
