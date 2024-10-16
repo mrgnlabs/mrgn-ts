@@ -79,7 +79,7 @@ export const getSimulationResult = async ({
 
   if (!lstAta) throw new Error("Failed to simulate stake transaction");
 
-  return;
+  return true;
 
   // const previewBanks = marginfiClient.banks;
   // previewBanks.set(

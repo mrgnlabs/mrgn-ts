@@ -13,14 +13,7 @@ import {
   VersionedTransaction,
 } from "@solana/web3.js";
 
-import {
-  Bank,
-  makeBundleTipIx,
-  MarginfiAccount,
-  MarginfiAccountWrapper,
-  MarginfiClient,
-  SimulationResult,
-} from "@mrgnlabs/marginfi-client-v2";
+import { makeBundleTipIx, MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { AccountSummary, ExtendedBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import {
   ActionMethod,
@@ -32,7 +25,7 @@ import {
   TOKEN_2022_MINTS,
   usePrevious,
 } from "@mrgnlabs/mrgn-utils";
-import { calculateSummary, getAdressLookupTableAccounts, getSimulationResult } from "../utils";
+import { calculateSummary, fetchLstData, getAdressLookupTableAccounts, getSimulationResult } from "../utils";
 import {
   createAssociatedTokenAccountIdempotentInstruction,
   getAssociatedTokenAddressSync,
@@ -42,9 +35,10 @@ import {
   uiToNative,
   Wallet,
 } from "@mrgnlabs/mrgn-common";
-import { createJupiterApiClient, QuoteResponse } from "@jup-ag/api";
+import { createJupiterApiClient } from "@jup-ag/api";
 import * as solanaStakePool from "@solana/spl-stake-pool";
-import { AddressLookupTableAccount } from "@solana/web3.js";
+
+import { useActionBoxStore } from "../../../store"; //always import actionbox like this
 
 type StakeSimulationProps = {
   debouncedAmount: number;
@@ -55,9 +49,8 @@ type StakeSimulationProps = {
   actionTxns: StakeActionTxns;
   simulationResult: any | null;
   isRefreshTxn: boolean;
-  slippageBps: number;
   marginfiClient: MarginfiClient | null;
-  lstData: LstData | null;
+  solPriceUsd: number;
 
   setSimulationResult: (result: any | null) => void;
   setActionTxns: (actionTxns: StakeActionTxns) => void;
@@ -74,15 +67,39 @@ export function useStakeSimulation({
   actionTxns,
   simulationResult,
   isRefreshTxn,
-  slippageBps,
   marginfiClient,
+  solPriceUsd,
+
   setSimulationResult,
-  lstData,
   setActionTxns,
   setErrorMessage,
   setIsLoading,
 }: StakeSimulationProps) {
+  const [slippageBps, priorityFee] = useActionBoxStore((state) => [state.slippageBps, state.priorityFee]);
+
   const prevDebouncedAmount = usePrevious(debouncedAmount);
+  const [lstData, setLstData] = React.useState<LstData | null>(null);
+
+  const actionSummary = React.useMemo(() => {
+    if (lstData && solPriceUsd) {
+      return {
+        commission: lstData.solDepositFee,
+        currentPrice: lstData.lstSolValue,
+        projectedApy: lstData.projectedApy,
+        supply: lstData.tvl * solPriceUsd,
+      };
+    }
+  }, [lstData, solPriceUsd]);
+
+  const handleFetchLstData = React.useCallback(async () => {
+    // TODO: this is more of a refactor across all actionboxes, find a better way to feed connection
+    const connection = new Connection(process.env.NEXT_PUBLIC_MARGINFI_RPC_ENDPOINT_OVERRIDE!, "confirmed");
+
+    if (connection) {
+      const lstData = await fetchLstData(connection);
+      setLstData(lstData);
+    }
+  }, [setLstData]);
 
   const handleSimulation = React.useCallback(
     async (txns: (VersionedTransaction | Transaction)[]) => {
@@ -106,33 +123,13 @@ export function useStakeSimulation({
     [selectedAccount, selectedBank, marginfiClient, setSimulationResult, simulationResult]
   );
 
-  // const handleActionSummary = React.useCallback(
-  //   (summary?: AccountSummary, result?: SimulationResult) => {
-  //     if (selectedAccount && summary && selectedBank) {
-  //       return calculateSummary({
-  //         simulationResult: result ?? undefined,
-  //         bank: selectedBank,
-  //         accountSummary: summary,
-  //         actionTxns: actionTxns,
-  //       });
-  //     }
-  //   },
-  //   [selectedAccount, selectedBank, actionTxns]
-  // );
-
   const fetchStakeTxs = React.useCallback(
     async (amount: number) => {
       const connection = marginfiClient?.provider.connection;
 
-      console.log("fetchStakeTxs1");
-
-      console.log({ amount });
-
       if (amount === 0 || !selectedBank || !connection || !lstData) {
         return;
       }
-
-      console.log("fetchStakeTxs");
 
       try {
         const swapObject = await getSwapQuoteWithRetry({
@@ -196,10 +193,6 @@ export function useStakeSimulation({
         });
         const swapTx = new VersionedTransaction(swapMessage.compileToV0Message(AddressLookupAccounts));
 
-        const simulation = await connection.simulateTransaction(swapTx);
-        // console.log({ simulation });
-
-        // console.log("swapTx", swapTx);
         const userSolTransfer = new Keypair();
         const signers: Signer[] = [userSolTransfer];
         const stakeIxs: TransactionInstruction[] = [];
@@ -218,8 +211,6 @@ export function useStakeSimulation({
           true
         );
         const ataData = await connection.getAccountInfo(destinationTokenAccount);
-        console.log({ destinationTokenAccount });
-        console.log({ poolmint: lstData.accountData.poolMint.toString() });
 
         if (!ataData) {
           stakeIxs.push(
@@ -232,15 +223,10 @@ export function useStakeSimulation({
           );
         }
 
-        console.log("destinationTokenAccount", destinationTokenAccount);
-
         const [withdrawAuthority] = PublicKey.findProgramAddressSync(
           [lstData.poolAddress.toBuffer(), Buffer.from("withdraw")],
           solanaStakePool.STAKE_POOL_PROGRAM_ID
         );
-
-        console.log({ poolAddress: lstData.poolAddress });
-        console.log("withdrawAuthority", withdrawAuthority);
 
         stakeIxs.push(
           solanaStakePool.StakePoolInstruction.depositSol({
@@ -256,11 +242,8 @@ export function useStakeSimulation({
           })
         );
 
-        console.log("stakeIx", stakeIxs);
-
         const bundleTipIx = makeBundleTipIx(marginfiClient.wallet.publicKey);
 
-        console.log("bundleTipIx", bundleTipIx);
         const stakeMessage = new TransactionMessage({
           payerKey: marginfiClient.wallet.publicKey,
           recentBlockhash: blockhash,
@@ -270,10 +253,8 @@ export function useStakeSimulation({
         const stakeTx = new VersionedTransaction(stakeMessage.compileToV0Message([]));
         stakeTx.sign(signers);
 
-        console.log("stakeTx", stakeTx);
         setActionTxns({
           actionTxn: stakeTx,
-          // additionalTxns: [],
           actionQuote: swapObject, // TODO: update name
           additionalTxns: [swapTx],
         });
@@ -355,6 +336,10 @@ export function useStakeSimulation({
   );
 
   React.useEffect(() => {
+    handleFetchLstData();
+  }, [handleFetchLstData]);
+
+  React.useEffect(() => {
     if (prevDebouncedAmount !== debouncedAmount) {
       if (actionMode === ActionType.MintLST) {
         fetchStakeTxs(debouncedAmount ?? 0);
@@ -369,6 +354,7 @@ export function useStakeSimulation({
       ...(actionTxns?.additionalTxns ?? []),
       ...(actionTxns?.actionTxn ? [actionTxns?.actionTxn] : []),
     ]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [actionTxns]);
 
   // const actionSimulationSummary = React.useMemo(() => {
@@ -376,6 +362,6 @@ export function useStakeSimulation({
   // }, [accountSummary, simulationResult, handleActionSummary]);
 
   return {
-    actionSimulationSummary: undefined, // TODO: in future we can return lstAta data to display exact lst output amount
+    actionSummary, // TODO: in future we can return lstAta data to display exact lst output amount
   };
 }

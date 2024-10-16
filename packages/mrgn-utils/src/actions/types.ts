@@ -57,6 +57,8 @@ export interface LstData {
   solDepositFee: number;
   accountData: solanaStakePool.StakePool;
   validatorList: PublicKey[];
+  updateRequired: boolean;
+  lastUpdateEpoch: string;
 }
 
 export interface ActionTxns {
