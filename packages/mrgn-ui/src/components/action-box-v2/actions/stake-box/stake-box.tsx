@@ -3,8 +3,8 @@ import React, { useEffect } from "react";
 // TODO: sort imports
 import { ActionInput } from "./components/action-input";
 import { getPriceWithConfidence, MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
-import { AccountSummary, ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { LstData, PreviousTxn, useConnection } from "@mrgnlabs/mrgn-utils";
+import { AccountSummary, ActionType, ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { LstData, MarginfiActionParams, PreviousTxn, useConnection } from "@mrgnlabs/mrgn-utils";
 import { useStakeBoxStore } from "./store";
 import { useActionAmounts } from "~/components/action-box-v2/hooks";
 import { AmountPreview } from "./components/amount-preview";
@@ -17,6 +17,7 @@ import { Connection, PublicKey } from "@solana/web3.js";
 import { fetchLstData } from "./utils";
 import { NATIVE_MINT as SOL_MINT } from "@mrgnlabs/mrgn-common";
 import { useActionBoxStore } from "../../store";
+import { handleExecuteStakeAction } from "./utils/stake-action.utils";
 
 export type StakeBoxProps = {
   nativeSolBalance: number;
@@ -46,6 +47,9 @@ export const StakeBox = ({
   connected,
   isDialog,
   requestedActionType,
+  captureEvent,
+  onComplete,
+  onConnect,
 }: StakeBoxProps) => {
   const [
     amountRaw,
@@ -152,6 +156,66 @@ export const StakeBox = ({
     lstData: lstData ?? null,
   });
 
+  const handleStakeAction = React.useCallback(async () => {
+    if (!selectedBank || !amount || !marginfiClient) {
+      return;
+    }
+
+    const action = async () => {
+      const params = {
+        actionTxns,
+        marginfiClient,
+      };
+
+      await handleExecuteStakeAction({
+        params,
+        captureEvent: (event, properties) => {
+          captureEvent && captureEvent(event, properties);
+        },
+        setIsComplete: (txnSigs) => {
+          setIsActionComplete(true);
+          setPreviousTxn({
+            txn: txnSigs.pop() ?? "",
+            txnType: "LEND",
+            lendingOptions: {
+              amount: amount,
+              type: ActionType.RepayCollat,
+              bank: selectedBank as ActiveBankInfo,
+            },
+          }); // TODO: update
+
+          onComplete &&
+            onComplete({
+              txn: txnSigs.pop() ?? "",
+              txnType: "LEND",
+              lendingOptions: {
+                amount: amount,
+                type: ActionType.RepayCollat,
+                bank: selectedBank as ActiveBankInfo,
+              },
+            }); // TODO: update
+        },
+        setIsError: () => {},
+        setIsLoading: (isLoading) => setIsLoading(isLoading),
+      });
+    };
+
+    await action();
+    setAmountRaw("");
+  }, [
+    actionTxns,
+    amount,
+    captureEvent,
+    marginfiClient,
+    nativeSolBalance,
+    onComplete,
+    selectedAccount,
+    selectedBank,
+    setAmountRaw,
+    setIsActionComplete,
+    setIsLoading,
+    setPreviousTxn,
+  ]);
   React.useEffect(() => {
     console.log(actionSimulationSummary);
   }, [actionSimulationSummary]);
@@ -191,7 +255,7 @@ export const StakeBox = ({
           isLoading={isLoading}
           isEnabled={true}
           connected={connected}
-          handleAction={() => {}}
+          handleAction={handleStakeAction}
           handleConnect={() => {}}
           buttonLabel={ActionType.MintLST ? "Mint LST" : "Unstake LST"}
         />
