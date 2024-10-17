@@ -137,6 +137,13 @@ export const STATIC_SIMULATION_ERRORS: { [key: string]: ActionMethod } = {
     isEnabled: false,
     actionMethod: "WARNING",
   },
+  STAKE_SIMULATION_FAILED: {
+    description: "Stake simulation failed, please try again.",
+    link: "https://support.marginfi.com/",
+    linkText: "Contact support",
+    isEnabled: false,
+    actionMethod: "WARNING",
+  },
 };
 
 const createRepayCollatFailedCheck = (tokenSymbol?: string): ActionMethod => ({
