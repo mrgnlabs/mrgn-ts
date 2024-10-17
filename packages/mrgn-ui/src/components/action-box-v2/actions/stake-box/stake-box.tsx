@@ -48,6 +48,7 @@ export const StakeBox = ({
   connected,
   isDialog,
   requestedActionType,
+  onConnect,
   captureEvent,
   onComplete,
 }: StakeBoxProps) => {
@@ -272,7 +273,7 @@ export const StakeBox = ({
           isEnabled={true}
           connected={connected}
           handleAction={handleLstAction}
-          handleConnect={() => {}}
+          handleConnect={() => onConnect && onConnect()}
           buttonLabel={requestedActionType === ActionType.MintLST ? "Mint LST" : "Unstake LST"}
         />
       </div>
