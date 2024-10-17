@@ -31,8 +31,6 @@ export const ActionInput = ({
   walletAmount,
   maxAmount,
   showCloseBalance,
-  connected,
-  isDialog,
 
   amountRaw,
   selectedBank,
@@ -41,7 +39,6 @@ export const ActionInput = ({
   setSelectedBank,
 }: ActionInputProps) => {
   const amountInputRef = React.useRef<HTMLInputElement>(null);
-
   const numberFormater = React.useMemo(() => new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 }), []);
 
   const isInputDisabled = React.useMemo(() => maxAmount === 0 && !showCloseBalance, [maxAmount, showCloseBalance]);
@@ -72,7 +69,6 @@ export const ActionInput = ({
             banks={banks}
             nativeSolBalance={nativeSolBalance}
             actionMode={lendMode}
-            connected={connected}
           />
         </div>
         <div className="flex-auto">

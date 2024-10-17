@@ -27,11 +27,11 @@ export const BankSelect = ({
   const [isOpen, setIsOpen] = React.useState(false);
 
   const isSelectable = React.useMemo(() => {
-    if (!selectedBank || selectedBank.meta.tokenSymbol !== "LST") {
-      return true;
+    if (actionMode === ActionType.UnstakeLST) {
+      return false;
     }
-    return false;
-  }, [selectedBank]);
+    return true;
+  }, [actionMode]);
 
   return (
     <>

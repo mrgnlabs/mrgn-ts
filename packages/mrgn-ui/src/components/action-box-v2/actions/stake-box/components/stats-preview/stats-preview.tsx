@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { cn } from "@mrgnlabs/mrgn-utils";
@@ -14,7 +14,7 @@ import {
 } from "~/components/action-box-v2/utils";
 
 interface StakeActionSummary {
-  actionPreview: {
+  actionPreview?: {
     supply: number;
     projectedApy: number;
     currentPrice: number;
@@ -34,19 +34,14 @@ interface StatsPreviewProps {
 }
 
 export const StatsPreview = ({ actionSummary, selectedBank, isLoading, actionMode }: StatsPreviewProps) => {
-  const isLending = React.useMemo(
-    () => actionMode === ActionType.Deposit || actionMode === ActionType.Withdraw,
-    [actionMode]
-  );
-
   const stats = React.useMemo(
-    () => (actionSummary && selectedBank ? generateStakeStats(actionSummary, isLoading) : null),
-    [actionSummary, selectedBank, isLoading]
+    () => actionSummary && generateStakeStats(actionSummary, isLoading),
+    [actionSummary, isLoading]
   );
 
   return (
     <>
-      {stats && selectedBank && (
+      {stats && (
         <dl className={cn("grid grid-cols-2 gap-y-2 pt-6 text-xs text-white")}>
           {stats.map((stat, idx) => (
             <ActionStatItem
@@ -81,10 +76,12 @@ function generateStakeStats(summary: StakeActionSummary, isLoading: boolean) {
     stats.push(getSlippageStat(summary.simulationPreview?.splippage));
   }
 
-  stats.push(getLstSupplyStat(summary.actionPreview.supply));
-  stats.push(getProjectedAPYStat(summary.actionPreview.projectedApy));
-  stats.push(getCurrentPriceStat(summary.actionPreview.currentPrice));
-  stats.push(getCommissionStat(summary.actionPreview.commission));
+  if (summary.actionPreview) {
+    stats.push(getLstSupplyStat(summary.actionPreview.supply));
+    stats.push(getProjectedAPYStat(summary.actionPreview.projectedApy));
+    stats.push(getCurrentPriceStat(summary.actionPreview.currentPrice));
+    stats.push(getCommissionStat(summary.actionPreview.commission));
+  }
 
   return stats;
 }
