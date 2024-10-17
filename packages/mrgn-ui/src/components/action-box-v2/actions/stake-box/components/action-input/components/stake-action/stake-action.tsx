@@ -1,13 +1,11 @@
 import React from "react";
 
-import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { clampedNumeralFormatter } from "@mrgnlabs/mrgn-common";
 
 type StakingActionProps = {
   walletAmount: number | undefined;
   maxAmount: number;
-  showStakingHeader?: boolean;
-  actionMode: ActionType;
   selectedBank: ExtendedBankInfo | null;
 
   onSetAmountRaw: (amount: string) => void;

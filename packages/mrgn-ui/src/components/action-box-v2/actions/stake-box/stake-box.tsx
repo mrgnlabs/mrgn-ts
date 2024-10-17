@@ -1,20 +1,23 @@
-import React, { useEffect } from "react";
+import React from "react";
 
-import { ActionInput } from "./components/action-input";
+import { WalletContextState } from "@solana/wallet-adapter-react";
+
 import { getPriceWithConfidence, MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
-import { AccountSummary, ActionType, ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { AccountSummary, ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { ActionMethod, LstData, PreviousTxn, showErrorToast, STATIC_SIMULATION_ERRORS } from "@mrgnlabs/mrgn-utils";
-import { useStakeBoxStore } from "./store";
+import { nativeToUi, NATIVE_MINT as SOL_MINT } from "@mrgnlabs/mrgn-common";
+
 import { useActionAmounts, usePollBlockHeight } from "~/components/action-box-v2/hooks";
+import { WalletContextStateOverride } from "~/components/wallet-v2/hooks/use-wallet.hook";
+
+import { useStakeBoxStore } from "./store";
 import { AmountPreview } from "./components/amount-preview";
 import { ActionButton, ActionSettingsButton } from "../../components";
 import { StatsPreview } from "./components/stats-preview";
-import { WalletContextStateOverride } from "~/components/wallet-v2/hooks/use-wallet.hook";
-import { WalletContextState } from "@solana/wallet-adapter-react";
 import { useStakeSimulation } from "./hooks";
-import { nativeToUi, NATIVE_MINT as SOL_MINT } from "@mrgnlabs/mrgn-common";
 import { useActionBoxStore, useStakeBoxContextStore } from "../../store";
 import { handleExecuteLstAction } from "./utils/stake-action.utils";
+import { ActionInput } from "./components/action-input";
 
 export type StakeBoxProps = {
   nativeSolBalance: number;
@@ -40,7 +43,6 @@ export const StakeBox = ({
   banks,
   marginfiClient,
   selectedAccount,
-  accountSummaryArg,
   requestedBank,
   nativeSolBalance,
   connected,
@@ -48,7 +50,6 @@ export const StakeBox = ({
   requestedActionType,
   captureEvent,
   onComplete,
-  onConnect,
 }: StakeBoxProps) => {
   const [
     amountRaw,
@@ -137,9 +138,8 @@ export const StakeBox = ({
     setActionTxns,
     setErrorMessage,
     setIsLoading,
-    isRefreshTxn,
     marginfiClient,
-    solPriceUsd,
+    lstData,
   });
 
   const actionSummary = React.useMemo(() => {

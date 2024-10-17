@@ -2,8 +2,8 @@ import React from "react";
 
 import { numeralFormatter } from "@mrgnlabs/mrgn-common";
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
-
 import { cn } from "@mrgnlabs/mrgn-utils";
+
 import { IconLoader } from "~/components/ui/icons";
 
 interface AmountPreviewProps {

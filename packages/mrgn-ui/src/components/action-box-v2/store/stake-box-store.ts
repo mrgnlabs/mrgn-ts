@@ -1,6 +1,7 @@
 import { create, StateCreator } from "zustand";
 import { persist } from "zustand/middleware";
-import { LstData, PreviousTxn } from "@mrgnlabs/mrgn-utils";
+
+import { LstData } from "@mrgnlabs/mrgn-utils";
 
 interface StakeBoxState {
   // State

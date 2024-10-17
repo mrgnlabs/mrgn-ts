@@ -1,12 +1,11 @@
-import React, { useEffect } from "react";
+import React from "react";
 import Link from "next/link";
-import Image from "next/image";
-
 import { IconExternalLink } from "@tabler/icons-react";
-import { ActionType, ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+
+import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { numeralFormatter, shortenAddress } from "@mrgnlabs/mrgn-common";
-import { cn, computeBankRate, formatAmount, LendingModes } from "@mrgnlabs/mrgn-utils";
-import { IconYBX, IconSol, IconLST, IconUsd } from "~/components/ui/icons";
+
+import { IconSol, IconLST } from "~/components/ui/icons";
 
 interface Props {
   amount: number;
