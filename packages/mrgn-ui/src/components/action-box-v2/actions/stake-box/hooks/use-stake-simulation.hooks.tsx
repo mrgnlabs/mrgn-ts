@@ -208,22 +208,12 @@ export function useStakeSimulation({
           });
         }
       } catch (error) {
-        handleError(actionType);
+        setErrorMessage(STATIC_SIMULATION_ERRORS.STAKE_SIMULATION_FAILED);
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [marginfiClient, selectedBank, slippageBps, lstData, setActionTxns, setIsLoading, platformFeeBps]
   );
-
-  function handleError(actionType: ActionType) {
-    const errorMessage =
-      actionType === ActionType.MintLST
-        ? STATIC_SIMULATION_ERRORS.STAKE_FAILED
-        : STATIC_SIMULATION_ERRORS.UNSTAKE_FAILED;
-
-    setErrorMessage(errorMessage);
-    setIsLoading({ type: "SIMULATION", state: false });
-  }
 
   React.useEffect(() => {
     handleFetchLstData();

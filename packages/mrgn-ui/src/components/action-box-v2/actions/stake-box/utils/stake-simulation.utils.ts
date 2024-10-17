@@ -99,7 +99,6 @@ export const getSimulationResult = async ({
   // wallet.publickey -> sol change
 
   const ataLst = getAssociatedTokenAddressSync(LST_MINT, marginfiClient.wallet.publicKey);
-  console.log(ataLst.toString());
   const [lstAta] = await marginfiClient.simulateTransactions(txns, [ataLst]); // can we detect lst balance difference?
 
   if (!lstAta) throw new Error("Failed to simulate stake transaction");

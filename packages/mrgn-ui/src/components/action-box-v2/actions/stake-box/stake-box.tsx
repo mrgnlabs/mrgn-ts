@@ -111,6 +111,21 @@ export const StakeBox = ({
   }, [banks]);
   const { isRefreshTxn } = usePollBlockHeight(marginfiClient?.provider.connection, actionTxns.lastValidBlockHeight);
 
+  const receiveAmount = React.useMemo(() => {
+    if (selectedBank && debouncedAmount && lstData) {
+      if (requestedActionType === ActionType.MintLST) {
+        if (selectedBank.meta.tokenSymbol === "SOL") {
+          return nativeToUi(debouncedAmount / lstData.lstSolValue, 9);
+        } else if (selectedBank.meta.tokenSymbol !== "SOL" && actionTxns?.actionQuote?.outAmount && lstData) {
+          return nativeToUi(Number(actionTxns?.actionQuote?.outAmount) / lstData?.lstSolValue, 9);
+        }
+      } else if (requestedActionType === ActionType.UnstakeLST) {
+        return nativeToUi(Number(actionTxns?.actionQuote?.outAmount), 9);
+      }
+    }
+    return 0; // Default value if conditions are not met
+  }, [selectedBank, debouncedAmount, lstData, actionTxns, requestedActionType]);
+
   useStakeSimulation({
     debouncedAmount: debouncedAmount ?? 0,
     selectedAccount,
@@ -160,7 +175,7 @@ export const StakeBox = ({
               txn: txnSigs[txnSigs.length - 1] ?? "",
               txnType: requestedActionType === ActionType.MintLST ? "STAKE" : "UNSTAKE",
               stakingOptions: {
-                amount: nativeToUi(Number(actionTxns.actionQuote?.outAmount) ?? 0, 9),
+                amount: receiveAmount,
                 type: requestedActionType,
                 originDetails: {
                   amount,
@@ -174,7 +189,7 @@ export const StakeBox = ({
                 txn: txnSigs[txnSigs.length - 1] ?? "",
                 txnType: requestedActionType === ActionType.MintLST ? "STAKE" : "UNSTAKE",
                 stakingOptions: {
-                  amount: nativeToUi(Number(actionTxns.actionQuote?.outAmount) ?? 0, 9),
+                  amount: receiveAmount,
                   type: requestedActionType,
                   originDetails: {
                     amount,
@@ -207,6 +222,7 @@ export const StakeBox = ({
     setAmountRaw,
     actionTxns,
     requestedActionType,
+    receiveAmount,
     captureEvent,
     setIsActionComplete,
     setPreviousTxn,
@@ -225,21 +241,6 @@ export const StakeBox = ({
       setAdditionalActionMethods([errorMessage]);
     }
   }, [errorMessage]);
-
-  const receiveAmount = React.useMemo(() => {
-    if (selectedBank && debouncedAmount) {
-      if (selectedBank.meta.tokenSymbol === "SOL" && lstData) {
-        return nativeToUi(debouncedAmount / lstData.lstSolValue, 9);
-      } else if (selectedBank.meta.tokenSymbol !== "SOL" && actionTxns?.actionQuote?.outAmount && lstData) {
-        return nativeToUi(Number(actionTxns?.actionQuote?.outAmount) / lstData?.lstSolValue, 9);
-      }
-    }
-    return 0; // Default value if conditions are not met
-  }, [selectedBank, debouncedAmount, lstData, actionTxns]);
-
-  useEffect(() => {
-    console.log(receiveAmount);
-  }, [receiveAmount]);
 
   return (
     <>
