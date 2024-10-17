@@ -13,13 +13,7 @@ type StakingActionProps = {
   onSetAmountRaw: (amount: string) => void;
 };
 
-export const StakingAction = ({
-  maxAmount,
-  walletAmount,
-  onSetAmountRaw,
-  selectedBank,
-  actionMode,
-}: StakingActionProps) => {
+export const StakingAction = ({ maxAmount, walletAmount, onSetAmountRaw, selectedBank }: StakingActionProps) => {
   const numberFormater = React.useMemo(() => new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 }), []);
 
   const maxLabel = React.useMemo((): {

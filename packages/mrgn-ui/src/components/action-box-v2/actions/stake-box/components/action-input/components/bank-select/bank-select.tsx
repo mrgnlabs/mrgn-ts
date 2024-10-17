@@ -12,7 +12,6 @@ interface BankSelectProps {
   banks: ExtendedBankInfo[];
   nativeSolBalance: number;
   actionMode: ActionType;
-  connected: boolean;
 
   setSelectedBank: (selectedTokenBank: ExtendedBankInfo | null) => void;
 }
@@ -22,8 +21,6 @@ export const BankSelect = ({
   banks,
   nativeSolBalance,
   actionMode,
-  connected,
-  // isSelectable = true,
 
   setSelectedBank,
 }: BankSelectProps) => {
@@ -53,10 +50,8 @@ export const BankSelect = ({
               onClose={() => setIsOpen(false)}
               selectedBank={selectedBank}
               onSetSelectedBank={setSelectedBank}
-              actionMode={actionMode}
               banks={banks}
               nativeSolBalance={nativeSolBalance}
-              connected={connected}
             />
           }
         />

@@ -29,7 +29,10 @@ interface PreviousTxnStake {
   stakingOptions: {
     amount: number;
     type: ActionType;
-    bank: ActiveBankInfo;
+    originDetails: {
+      amount: number;
+      bank: ExtendedBankInfo;
+    };
   };
 }
 

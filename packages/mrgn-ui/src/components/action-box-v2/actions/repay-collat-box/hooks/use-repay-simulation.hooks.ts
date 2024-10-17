@@ -1,6 +1,5 @@
 import React from "react";
 import { Transaction, VersionedTransaction } from "@solana/web3.js";
-import { QuoteResponse } from "@jup-ag/api";
 
 import { MarginfiAccountWrapper, MarginfiClient, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
 import {
