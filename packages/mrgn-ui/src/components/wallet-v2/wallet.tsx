@@ -115,21 +115,15 @@ const Wallet = ({
     return extendedBankInfos.find((bank) => bank.address.equals(activeToken.address));
   }, [activeToken, extendedBankInfos]);
 
-  const resetWalletState = React.useCallback(() => {
-    setWalletTokenState(WalletState.DEFAULT);
-    setActiveToken(null);
-  }, []);
-
-  const getWalletData = React.useCallback(async () => {
-    if (!wallet?.publicKey || !extendedBankInfos || isNaN(nativeSolBalance)) return;
+  const getUserTokens = React.useCallback(() => {
+    if (isNaN(nativeSolBalance) || !extendedBankInfos) return [];
+    const prioritizedSymbols = ["SOL", "LST"];
 
     const userBanks = extendedBankInfos.filter(
       (bank) => bank.userInfo.tokenAccount.balance !== 0 || bank.meta.tokenSymbol === "SOL"
     );
 
-    const prioritizedSymbols = ["SOL", "LST"];
-
-    const userTokens = userBanks
+    return userBanks
       .map((bank) => {
         const isSolBank = bank.meta.tokenSymbol === "SOL";
         let value = isSolBank
@@ -161,6 +155,18 @@ const Wallet = ({
           b.valueUSD - a.valueUSD
         );
       });
+  }, [extendedBankInfos, nativeSolBalance]);
+
+  const resetWalletState = React.useCallback(() => {
+    setWalletTokenState(WalletState.DEFAULT);
+    setActiveToken(null);
+  }, []);
+
+  const getWalletData = React.useCallback(async () => {
+    if (!wallet?.publicKey) return;
+    const userTokens = getUserTokens();
+
+    if (!userTokens) return;
 
     const totalBalance = userTokens.reduce(
       (acc, token) => acc + (typeof token.valueUSD === "number" ? token.valueUSD : 0),
@@ -173,19 +179,18 @@ const Wallet = ({
       balanceUSD: usdFormatter.format(totalBalance),
       tokens: (userTokens || []) as TokenType[],
     });
-  }, [wallet?.publicKey, extendedBankInfos, nativeSolBalance]);
+  }, [wallet?.publicKey, getUserTokens]);
 
   React.useEffect(() => {
-    if (!walletData.tokens.length) {
-      getWalletData();
-      return;
-    }
+    getWalletData();
+  }, [getWalletData]);
 
+  React.useEffect(() => {
     if (isWalletOpen && isWalletOpen !== prevIsWalletOpenRef.current) {
       getWalletData();
     }
     prevIsWalletOpenRef.current = isWalletOpen;
-  }, [isWalletOpen, getWalletData, walletData]);
+  }, [isWalletOpen, getWalletData]);
 
   return (
     <>
