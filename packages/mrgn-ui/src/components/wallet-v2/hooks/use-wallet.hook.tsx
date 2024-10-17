@@ -143,7 +143,10 @@ const WalletContext = React.createContext<WalletContextProps | undefined>(undefi
 const WalletProvider = ({ children }: { children: React.ReactNode }) => {
   const { query, asPath, replace } = useRouter();
   const [web3AuthPkCookie, setWeb3AuthPkCookie] = useCookies(["mrgnPrivateKeyRequested"]);
-  const [setIsWalletSignUpOpen] = useWalletStore((state) => [state.setIsWalletSignUpOpen]);
+  const [setIsWalletSignUpOpen, setIsWalletOpen] = useWalletStore((state) => [
+    state.setIsWalletSignUpOpen,
+    state.setIsWalletOpen,
+  ]);
 
   const walletContextStateDefault = useWalletAdapter();
   const anchorWallet = useAnchorWallet();
@@ -286,9 +289,10 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
       replace(newUrl);
     }
 
+    setIsWalletOpen(false);
     setIsLoading(false);
     setPfp("");
-  }, [asPath, replace, walletContextStateDefault, web3Auth]);
+  }, [asPath, replace, walletContextStateDefault, web3Auth, setIsWalletOpen, setIsLoading]);
 
   // select wallet from wallet button
   // handles both wallet adapter and phantom wallet
