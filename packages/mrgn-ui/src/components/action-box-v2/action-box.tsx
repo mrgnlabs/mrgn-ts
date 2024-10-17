@@ -4,7 +4,7 @@ import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { LendBox, LendBoxProps, LoopBox, LoopBoxProps, RepayCollatBox, StakeBox, StakeBoxProps } from "./actions";
 import { ActionDialogWrapper, ActionBoxWrapper, ActionBoxNavigator } from "./components";
-import { useActionBoxContext } from "./contexts";
+import { useActionBoxContext, useStakeBoxContext } from "./contexts";
 import {
   ActionBoxComponent,
   ActionBoxProps,
@@ -168,6 +168,7 @@ const Stake = (
   props: ActionBoxProps & { stakeProps: StakeBoxProps | RequiredStakeBoxProps; useProvider?: boolean }
 ) => {
   const contextProps = useActionBoxContext();
+  const stakeContextProps = useStakeBoxContext();
   const { stakeProps, useProvider, ...actionBoxProps } = props;
 
   let combinedProps: StakeBoxProps;
@@ -176,6 +177,7 @@ const Stake = (
     combinedProps = {
       ...contextProps,
       ...(stakeProps as RequiredStakeBoxProps),
+      ...stakeContextProps,
     };
   } else {
     combinedProps = stakeProps as StakeBoxProps;

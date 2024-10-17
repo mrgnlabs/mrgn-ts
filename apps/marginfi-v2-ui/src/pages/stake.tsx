@@ -20,6 +20,7 @@ import {
 } from "~/components/common/Mint";
 import { IntegrationsData, MintCardProps, MintOverview, MintPageState, fetchMintOverview } from "~/utils";
 import { PageHeading } from "~/components/common/PageHeading";
+import { StakeBoxProvider } from "@mrgnlabs/mrgn-ui";
 
 export default function MintPage() {
   const { connection } = useConnection();
@@ -107,7 +108,7 @@ export default function MintPage() {
   }, []);
 
   return (
-    <>
+    <StakeBoxProvider>
       <div className="w-full max-w-8xl mx-auto px-4 md:px-8 space-y-20 pb-28">
         <>
           <div className="w-full max-w-4xl mx-auto px-4 md:px-0">
@@ -186,6 +187,6 @@ export default function MintPage() {
         }}
       />
       {previousTxn && <ActionComplete />}
-    </>
+    </StakeBoxProvider>
   );
 }

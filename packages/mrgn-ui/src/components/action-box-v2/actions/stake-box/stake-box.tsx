@@ -3,7 +3,7 @@ import React, { useEffect } from "react";
 import { ActionInput } from "./components/action-input";
 import { getPriceWithConfidence, MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { AccountSummary, ActionType, ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { ActionMethod, PreviousTxn, showErrorToast } from "@mrgnlabs/mrgn-utils";
+import { ActionMethod, LstData, PreviousTxn, showErrorToast, STATIC_SIMULATION_ERRORS } from "@mrgnlabs/mrgn-utils";
 import { useStakeBoxStore } from "./store";
 import { useActionAmounts, usePollBlockHeight } from "~/components/action-box-v2/hooks";
 import { AmountPreview } from "./components/amount-preview";
@@ -13,7 +13,7 @@ import { WalletContextStateOverride } from "~/components/wallet-v2/hooks/use-wal
 import { WalletContextState } from "@solana/wallet-adapter-react";
 import { useStakeSimulation } from "./hooks";
 import { nativeToUi, NATIVE_MINT as SOL_MINT } from "@mrgnlabs/mrgn-common";
-import { useActionBoxStore } from "../../store";
+import { useActionBoxStore, useStakeBoxContextStore } from "../../store";
 import { handleExecuteLstAction } from "./utils/stake-action.utils";
 
 export type StakeBoxProps = {
@@ -28,6 +28,8 @@ export type StakeBoxProps = {
   accountSummaryArg?: AccountSummary;
   isDialog?: boolean;
   requestedActionType: ActionType;
+
+  lstData?: LstData | null;
 
   onConnect?: () => void;
   onComplete?: (previousTxn: PreviousTxn) => void;
@@ -99,6 +101,8 @@ export const StakeBox = ({
     state.setIsActionComplete,
   ]);
 
+  const [lstData] = useStakeBoxContextStore((state) => [state.lstData]);
+
   const [additionalActionMethods, setAdditionalActionMethods] = React.useState<ActionMethod[]>([]);
 
   const solPriceUsd = React.useMemo(() => {
@@ -107,7 +111,7 @@ export const StakeBox = ({
   }, [banks]);
   const { isRefreshTxn } = usePollBlockHeight(marginfiClient?.provider.connection, actionTxns.lastValidBlockHeight);
 
-  const { actionSummary, lstData } = useStakeSimulation({
+  useStakeSimulation({
     debouncedAmount: debouncedAmount ?? 0,
     selectedAccount,
     selectedBank,
@@ -123,42 +127,36 @@ export const StakeBox = ({
     solPriceUsd,
   });
 
+  const actionSummary = React.useMemo(() => {
+    if (!lstData) return;
+    return {
+      commission: lstData.solDepositFee,
+      currentPrice: lstData.lstSolValue,
+      projectedApy: lstData.projectedApy,
+      supply: lstData.tvl * solPriceUsd,
+    };
+  }, [lstData, solPriceUsd]);
+
   const handleLstAction = React.useCallback(async () => {
     if (!selectedBank || !amount || !marginfiClient) {
       return;
     }
 
     try {
-    } catch (error) {}
+      const action = async () => {
+        const params = {
+          actionTxns,
+          marginfiClient,
+        };
 
-    const action = async () => {
-      const params = {
-        actionTxns,
-        marginfiClient,
-      };
-
-      await handleExecuteLstAction({
-        params,
-        captureEvent: (event, properties) => {
-          captureEvent && captureEvent(event, properties);
-        },
-        setIsComplete: (txnSigs) => {
-          setIsActionComplete(true);
-          setPreviousTxn({
-            txn: txnSigs[txnSigs.length - 1] ?? "",
-            txnType: requestedActionType === ActionType.MintLST ? "STAKE" : "UNSTAKE",
-            stakingOptions: {
-              amount: nativeToUi(Number(actionTxns.actionQuote?.outAmount) ?? 0, 9),
-              type: requestedActionType,
-              originDetails: {
-                amount,
-                bank: selectedBank,
-              },
-            },
-          });
-
-          onComplete &&
-            onComplete({
+        await handleExecuteLstAction({
+          params,
+          captureEvent: (event, properties) => {
+            captureEvent && captureEvent(event, properties);
+          },
+          setIsComplete: (txnSigs) => {
+            setIsActionComplete(true);
+            setPreviousTxn({
               txn: txnSigs[txnSigs.length - 1] ?? "",
               txnType: requestedActionType === ActionType.MintLST ? "STAKE" : "UNSTAKE",
               stakingOptions: {
@@ -170,27 +168,51 @@ export const StakeBox = ({
                 },
               },
             });
-        },
-        setIsError: () => {},
-        setIsLoading: (isLoading) => setIsLoading({ type: "TRANSACTION", state: isLoading }),
-        actionType: requestedActionType,
-      });
-    };
 
-    await action();
-    setAmountRaw("");
+            onComplete &&
+              onComplete({
+                txn: txnSigs[txnSigs.length - 1] ?? "",
+                txnType: requestedActionType === ActionType.MintLST ? "STAKE" : "UNSTAKE",
+                stakingOptions: {
+                  amount: nativeToUi(Number(actionTxns.actionQuote?.outAmount) ?? 0, 9),
+                  type: requestedActionType,
+                  originDetails: {
+                    amount,
+                    bank: selectedBank,
+                  },
+                },
+              });
+          },
+          setIsError: () => {},
+          setIsLoading: (isLoading) => setIsLoading({ type: "TRANSACTION", state: isLoading }),
+          actionType: requestedActionType,
+        });
+      };
+
+      await action();
+      setAmountRaw("");
+    } catch (error) {
+      const errorMessage =
+        requestedActionType === ActionType.MintLST
+          ? STATIC_SIMULATION_ERRORS.STAKE_FAILED
+          : STATIC_SIMULATION_ERRORS.UNSTAKE_FAILED;
+
+      setErrorMessage(errorMessage);
+      setIsLoading({ type: "SIMULATION", state: false });
+    }
   }, [
-    actionTxns,
-    amount,
-    captureEvent,
-    marginfiClient,
-    onComplete,
     selectedBank,
+    amount,
+    marginfiClient,
     setAmountRaw,
-    setIsActionComplete,
-    setIsLoading,
-    setPreviousTxn,
+    actionTxns,
     requestedActionType,
+    captureEvent,
+    setIsActionComplete,
+    setPreviousTxn,
+    onComplete,
+    setIsLoading,
+    setErrorMessage,
   ]);
 
   React.useEffect(() => {
@@ -204,28 +226,20 @@ export const StakeBox = ({
     }
   }, [errorMessage]);
 
-  // const receiveAmount = React.useMemo(() => {
-  //   console.log({
-  //     selectedBank,
-  //     debouncedAmount,
-  //     lstData,
-  //     actionTxns,
-  //   });
-  //   if (selectedBank && debouncedAmount) {
-  //     if (selectedBank.meta.tokenSymbol === "SOL" && lstData) {
-  //       // Calculate the received amount based on SOL
-  //       return debouncedAmount / lstData.lstSolValue; // lstData.currentPrice represents the amount of SOL per 1 LST
-  //     } else if (selectedBank.meta.tokenSymbol !== "SOL" && actionTxns?.actionQuote?.outAmount && lstData) {
-  //       // Calculate the received amount based on the action quote outAmount
-  //       return Number(actionTxns?.actionQuote?.outAmount) / lstData?.lstSolValue;
-  //     }
-  //   }
-  //   return 0; // Default value if conditions are not met
-  // }, [selectedBank, debouncedAmount, lstData, actionTxns?.actionQuote?.outAmount]);
+  const receiveAmount = React.useMemo(() => {
+    if (selectedBank && debouncedAmount) {
+      if (selectedBank.meta.tokenSymbol === "SOL" && lstData) {
+        return nativeToUi(debouncedAmount / lstData.lstSolValue, 9);
+      } else if (selectedBank.meta.tokenSymbol !== "SOL" && actionTxns?.actionQuote?.outAmount && lstData) {
+        return nativeToUi(Number(actionTxns?.actionQuote?.outAmount) / lstData?.lstSolValue, 9);
+      }
+    }
+    return 0; // Default value if conditions are not met
+  }, [selectedBank, debouncedAmount, lstData, actionTxns]);
 
-  // React.useEffect(() => {
-  //   console.log(receiveAmount);
-  // }, [receiveAmount]);
+  useEffect(() => {
+    console.log(receiveAmount);
+  }, [receiveAmount]);
 
   return (
     <>
@@ -238,7 +252,7 @@ export const StakeBox = ({
           maxAmount={maxAmount}
           connected={connected}
           selectedBank={selectedBank}
-          lendMode={ActionType.MintLST}
+          lendMode={requestedActionType}
           isDialog={isDialog}
           setAmountRaw={setAmountRaw}
           setSelectedBank={setSelectedBank}
@@ -247,7 +261,7 @@ export const StakeBox = ({
       <div className="mb-6">
         <AmountPreview
           actionMode={actionMode}
-          amount={0} // Is this okay to do?
+          amount={receiveAmount}
           isLoading={isLoading.type === "SIMULATION" ? isLoading.state : false}
         />
       </div>
@@ -264,26 +278,24 @@ export const StakeBox = ({
 
       <ActionSettingsButton setIsSettingsActive={setIsSettingsDialogOpen} />
 
-      {actionSummary && (
-        <div>
-          <StatsPreview
-            actionSummary={{
-              actionPreview: actionSummary,
-              simulationPreview: {
-                priceImpact: actionTxns?.actionQuote?.priceImpactPct
-                  ? Number(actionTxns?.actionQuote?.priceImpactPct)
-                  : undefined,
-                splippage: actionTxns?.actionQuote?.slippageBps
-                  ? Number(actionTxns?.actionQuote?.slippageBps)
-                  : undefined,
-              },
-            }}
-            actionMode={actionMode}
-            isLoading={isLoading.type === "SIMULATION" ? isLoading.state : false}
-            selectedBank={selectedBank}
-          />
-        </div>
-      )}
+      <div>
+        <StatsPreview
+          actionSummary={{
+            actionPreview: actionSummary,
+            simulationPreview: {
+              priceImpact: actionTxns?.actionQuote?.priceImpactPct
+                ? Number(actionTxns?.actionQuote?.priceImpactPct)
+                : undefined,
+              splippage: actionTxns?.actionQuote?.slippageBps
+                ? Number(actionTxns?.actionQuote?.slippageBps)
+                : undefined,
+            },
+          }}
+          actionMode={actionMode}
+          isLoading={isLoading.type === "SIMULATION" ? isLoading.state : false}
+          selectedBank={selectedBank}
+        />
+      </div>
     </>
   );
 };
