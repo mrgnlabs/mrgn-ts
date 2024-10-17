@@ -1,23 +1,10 @@
 import React from "react";
 
-import JSBI from "jsbi";
-import { SwapMode, useJupiter } from "@jup-ag/react-hook";
-
-import { getPriceWithConfidence } from "@mrgnlabs/marginfi-client-v2";
-import {
-  percentFormatter,
-  numeralFormatter,
-  percentFormatterDyn,
-  clampedNumeralFormatter,
-} from "@mrgnlabs/mrgn-common";
-import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { StakeData } from "@mrgnlabs/mrgn-utils";
+import { numeralFormatter } from "@mrgnlabs/mrgn-common";
+import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { cn } from "@mrgnlabs/mrgn-utils";
-
-import { Skeleton } from "~/components/ui/skeleton";
-import { Loader } from "~/components/ui/loader";
-import { IconInfiniteLoader, IconLoader } from "~/components/ui/icons";
+import { IconLoader } from "~/components/ui/icons";
 
 interface AmountPreviewProps {
   actionMode: ActionType;

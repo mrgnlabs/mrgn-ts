@@ -12,9 +12,7 @@ type BankListProps = {
   banks: ExtendedBankInfo[];
   nativeSolBalance: number;
   isOpen: boolean;
-  actionMode: ActionType;
-  connected: boolean;
-  isSelectable?: boolean;
+
   onSetSelectedBank: (selectedTokenBank: ExtendedBankInfo | null) => void;
   onClose: () => void;
 };
@@ -23,12 +21,10 @@ export const BankList = ({
   selectedBank,
   banks,
   nativeSolBalance,
-  actionMode,
-  connected,
+
   onSetSelectedBank,
   isOpen,
   onClose,
-  isSelectable, // TODO: implement
 }: BankListProps) => {
   const [searchQuery, setSearchQuery] = React.useState("");
 

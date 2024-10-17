@@ -3,46 +3,39 @@ import Link from "next/link";
 import Image from "next/image";
 
 import { IconExternalLink } from "@tabler/icons-react";
-import { ActionType, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { shortenAddress } from "@mrgnlabs/mrgn-common";
-import { cn, computeBankRate, LendingModes } from "@mrgnlabs/mrgn-utils";
+import { ActionType, ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { numeralFormatter, shortenAddress } from "@mrgnlabs/mrgn-common";
+import { cn, computeBankRate, formatAmount, LendingModes } from "@mrgnlabs/mrgn-utils";
+import { IconYBX, IconSol, IconLST, IconUsd } from "~/components/ui/icons";
 
 interface Props {
   amount: number;
-  bank: ActiveBankInfo;
   type: ActionType;
   txn: string;
+  originDetails: {
+    amount: number;
+    bank: ExtendedBankInfo;
+  };
 }
 
-export const StakingScreen = ({ amount, bank, type, txn }: Props) => {
+export const StakingScreen = ({ amount, type, txn, originDetails }: Props) => {
   return (
     <>
       <div className="flex flex-col items-center gap-2 border-b border-border pb-10">
         <div className="flex items-center justify-center gap-2">
           <h3 className="text-4xl font-medium">
-            {amount} {type === ActionType.MintLST ? "LST" : "SOL"}
+            {amount <= 0.01 ? "<0.01" : numeralFormatter(amount)} {type === ActionType.MintLST ? "LST" : "SOL"}
           </h3>
-          {bank && (
-            <Image
-              className="rounded-full w-9 h-9"
-              src={bank.meta.tokenLogoUri}
-              alt={(bank?.meta.tokenSymbol || "Token") + "  logo"}
-              width={36}
-              height={36}
-            />
-          )}
+          {type === ActionType.MintLST ? <IconLST size={32} /> : <IconSol />}
         </div>
       </div>
       <dl className="grid grid-cols-2 w-full text-muted-foreground gap-x-8 gap-y-2">
-        {bank?.position && (
-          <>
-            <dt>Total {bank.meta.tokenSymbol} Deposits</dt>
-            <dd className="text-right">
-              {bank.position.amount} {bank.meta.tokenSymbol}
-            </dd>
-          </>
-        )}
-        <dt>Transaction</dt>
+        <dt>Paid</dt>
+        <dt className="text-right">
+          {numeralFormatter(originDetails?.amount)} {originDetails?.bank.meta.tokenSymbol}
+        </dt>
+
+        <dd>Transaction</dd>
         <dd className="text-right">
           <Link
             href={`https://solscan.io/tx/${txn}`}

@@ -7,6 +7,7 @@ interface ActionBoxState {
   isSettingsDialogOpen: boolean;
   priorityFee: number;
   slippageBps: number;
+  platformFeeBps: number;
   isActionComplete: boolean;
   previousTxn: PreviousTxn | null;
 
@@ -16,6 +17,7 @@ interface ActionBoxState {
   setIsSettingsDialogOpen: (isOpen: boolean) => void;
   setPriorityFee: (priorityFee: number) => void;
   setSlippageBps: (slippageBps: number) => void;
+  setPlatformFeeBps: (platformFeeBps: number) => void;
 }
 
 function createActionBoxStore() {
@@ -37,6 +39,7 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
   isSettingsDialogOpen: false,
   slippageBps: 100,
   priorityFee: 0,
+  platformFeeBps: 30,
   isActionComplete: false,
   previousTxn: null,
 
@@ -46,6 +49,7 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
   setSlippageBps: (slippageBps: number) => set({ slippageBps: slippageBps }),
   setIsActionComplete: (isActionSuccess: boolean) => set({ isActionComplete: isActionSuccess }),
   setPreviousTxn: (previousTxn: PreviousTxn) => set({ previousTxn: previousTxn }),
+  setPlatformFeeBps: (platformFeeBps: number) => set({ platformFeeBps: platformFeeBps }),
 });
 
 export { createActionBoxStore };
