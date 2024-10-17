@@ -87,8 +87,6 @@ export const ActionInput = ({
       <StakingAction
         walletAmount={walletAmount}
         maxAmount={maxAmount}
-        showStakingHeader={true}
-        actionMode={lendMode}
         selectedBank={selectedBank}
         onSetAmountRaw={setAmountRaw}
       />

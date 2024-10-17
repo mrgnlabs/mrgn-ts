@@ -1,9 +1,11 @@
 import React from "react";
 
+import { Connection } from "@solana/web3.js";
+
+import { LstData } from "@mrgnlabs/mrgn-utils";
+
 import { useStakeBoxContextStore } from "../../store";
 import { fetchLstData } from "../../utils";
-import { Connection } from "@solana/web3.js";
-import { LstData } from "@mrgnlabs/mrgn-utils";
 
 type StakeBoxContextType = {
   lstData: LstData | null;

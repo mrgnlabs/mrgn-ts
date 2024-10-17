@@ -1,21 +1,10 @@
 import React from "react";
 
-import {
-  Connection,
-  Keypair,
-  PublicKey,
-  Signer,
-  SystemProgram,
-  Transaction,
-  TransactionInstruction,
-  TransactionMessage,
-  VersionedTransaction,
-} from "@solana/web3.js";
-import { createJupiterApiClient, QuoteResponse } from "@jup-ag/api";
-import * as solanaStakePool from "@solana/spl-stake-pool";
+import { Transaction, TransactionMessage, VersionedTransaction } from "@solana/web3.js";
+import { createJupiterApiClient } from "@jup-ag/api";
 
 import { makeBundleTipIx, MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
-import { AccountSummary, ExtendedBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import {
   ActionMethod,
   deserializeInstruction,
@@ -25,29 +14,21 @@ import {
   STATIC_SIMULATION_ERRORS,
   usePrevious,
 } from "@mrgnlabs/mrgn-utils";
-import {
-  createAssociatedTokenAccountIdempotentInstruction,
-  getAssociatedTokenAddressSync,
-  LST_MINT,
-  LUT_PROGRAM_AUTHORITY_INDEX,
-  NATIVE_MINT as SOL_MINT,
-  uiToNative,
-} from "@mrgnlabs/mrgn-common";
+import { LST_MINT, LUT_PROGRAM_AUTHORITY_INDEX, NATIVE_MINT as SOL_MINT, uiToNative } from "@mrgnlabs/mrgn-common";
 
-import { fetchLstData, getAdressLookupTableAccounts, getSimulationResult, handleStakeTx } from "../utils";
+import { getAdressLookupTableAccounts, getSimulationResult, handleStakeTx } from "../utils";
 import { useActionBoxStore } from "../../../store";
 
 type StakeSimulationProps = {
   debouncedAmount: number;
   selectedAccount: MarginfiAccountWrapper | null;
+  lstData: LstData | null;
 
   selectedBank: ExtendedBankInfo | null;
   actionMode: ActionType;
   actionTxns: StakeActionTxns;
   simulationResult: any | null;
-  isRefreshTxn: boolean;
   marginfiClient: MarginfiClient | null;
-  solPriceUsd: number;
   setSimulationResult: (result: any | null) => void;
   setActionTxns: (actionTxns: StakeActionTxns) => void;
   setErrorMessage: (error: ActionMethod | null) => void;
@@ -57,14 +38,12 @@ type StakeSimulationProps = {
 export function useStakeSimulation({
   debouncedAmount,
   selectedAccount,
-
+  lstData,
   selectedBank,
   actionMode,
   actionTxns,
   simulationResult,
-  isRefreshTxn,
   marginfiClient,
-  solPriceUsd,
 
   setSimulationResult,
   setActionTxns,
@@ -74,27 +53,6 @@ export function useStakeSimulation({
   const [slippageBps, platformFeeBps] = useActionBoxStore((state) => [state.slippageBps, state.platformFeeBps]);
 
   const prevDebouncedAmount = usePrevious(debouncedAmount);
-  const [lstData, setLstData] = React.useState<LstData | null>(null);
-
-  const actionSummary = React.useMemo(() => {
-    if (lstData && solPriceUsd) {
-      return {
-        commission: lstData.solDepositFee,
-        currentPrice: lstData.lstSolValue,
-        projectedApy: lstData.projectedApy,
-        supply: lstData.tvl * solPriceUsd,
-      };
-    }
-  }, [lstData, solPriceUsd]);
-
-  const handleFetchLstData = React.useCallback(async () => {
-    // TODO: this is more of a refactor across all actionboxes, find a better way to feed connection
-    const connection = new Connection(process.env.NEXT_PUBLIC_MARGINFI_RPC_ENDPOINT_OVERRIDE!, "confirmed");
-    if (connection) {
-      const lstData = await fetchLstData(connection);
-      setLstData(lstData as LstData);
-    }
-  }, [setLstData]);
 
   const handleSimulation = React.useCallback(
     async (txns: (VersionedTransaction | Transaction)[]) => {
@@ -147,7 +105,6 @@ export function useStakeSimulation({
         let swapQuote = null;
         let swapTx = null;
 
-        // Determine if swap is needed based on action type or mint type
         if (actionType === ActionType.UnstakeLST || selectedBank.info.state.mint.toBase58() !== SOL_MINT.toBase58()) {
           swapQuote = await getSwapQuoteWithRetry({
             amount: uiToNative(amount, selectedBank.info.state.mintDecimals).toNumber(),
@@ -187,7 +144,6 @@ export function useStakeSimulation({
           swapTx = new VersionedTransaction(swapMessage.compileToV0Message(AddressLookupAccounts));
         }
 
-        // Separate stake and unstake transaction handling
         if (actionType === ActionType.MintLST) {
           const _actionTxns = await handleStakeTx(
             blockhash,
@@ -212,12 +168,8 @@ export function useStakeSimulation({
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [marginfiClient, selectedBank, slippageBps, lstData, setActionTxns, setIsLoading, platformFeeBps]
+    [marginfiClient, selectedBank, slippageBps, setActionTxns, setIsLoading, platformFeeBps]
   );
-
-  React.useEffect(() => {
-    handleFetchLstData();
-  }, [handleFetchLstData]);
 
   React.useEffect(() => {
     if (prevDebouncedAmount !== debouncedAmount) {
@@ -233,8 +185,5 @@ export function useStakeSimulation({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [actionTxns]);
 
-  return {
-    lstData,
-    actionSummary, // TODO: in future we can return lstAta data to display exact lst output amount
-  };
+  return {};
 }
