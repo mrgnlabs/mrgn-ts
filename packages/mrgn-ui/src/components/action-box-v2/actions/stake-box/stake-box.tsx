@@ -12,12 +12,13 @@ import { WalletContextStateOverride } from "~/components/wallet-v2/hooks/use-wal
 
 import { useStakeBoxStore } from "./store";
 import { AmountPreview } from "./components/amount-preview";
-import { ActionButton, ActionSettingsButton } from "../../components";
+import { ActionButton, ActionMessage, ActionSettingsButton } from "../../components";
 import { StatsPreview } from "./components/stats-preview";
 import { useStakeSimulation } from "./hooks";
 import { useActionBoxStore, useStakeBoxContextStore } from "../../store";
 import { handleExecuteLstAction } from "./utils/stake-action.utils";
 import { ActionInput } from "./components/action-input";
+import { checkActionAvailable } from "./utils";
 
 export type StakeBoxProps = {
   nativeSolBalance: number;
@@ -208,6 +209,7 @@ export const StakeBox = ({
           setIsError: () => {},
           setIsLoading: (isLoading) => setIsLoading({ type: "TRANSACTION", state: isLoading }),
           actionType: requestedActionType,
+          nativeSolBalance,
         });
       };
 
@@ -236,7 +238,20 @@ export const StakeBox = ({
     onComplete,
     setIsLoading,
     setErrorMessage,
+    nativeSolBalance,
   ]);
+
+  const actionMethods = React.useMemo(
+    () =>
+      checkActionAvailable({
+        amount,
+        connected,
+        selectedBank,
+        actionQuote: actionTxns.actionQuote,
+        lstData,
+      }),
+    [amount, connected, selectedBank, actionTxns.actionQuote, lstData]
+  );
 
   React.useEffect(() => {
     fetchActionBoxState({ requestedLendType: requestedActionType, requestedBank });
@@ -273,10 +288,18 @@ export const StakeBox = ({
           isLoading={isLoading.type === "SIMULATION" ? isLoading.state : false}
         />
       </div>
+      {additionalActionMethods.concat(actionMethods).map(
+        (actionMethod, idx) =>
+          actionMethod.description && (
+            <div className="pb-6" key={idx}>
+              <ActionMessage actionMethod={actionMethod} />
+            </div>
+          )
+      )}
       <div className="mb-3">
         <ActionButton
           isLoading={isLoading.state}
-          isEnabled={true}
+          isEnabled={!additionalActionMethods.concat(actionMethods).filter((value) => value.isEnabled === false).length}
           connected={connected}
           handleAction={handleLstAction}
           handleConnect={() => onConnect && onConnect()}
