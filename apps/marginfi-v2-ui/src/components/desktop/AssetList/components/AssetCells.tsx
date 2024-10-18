@@ -5,22 +5,21 @@ import Link from "next/link";
 import { aprToApy, numeralFormatter, percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 import { IconAlertTriangle, IconExternalLink } from "@tabler/icons-react";
 
-import { cn } from "@mrgnlabs/mrgn-utils";
-import { IMAGE_CDN_URL } from "~/config/constants";
-
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
-import { IconPyth, IconSwitchboard } from "~/components/ui/icons";
-
 import {
   AssetData,
   AssetPriceData,
   AssetWeightData,
   BankCapData,
+  cn,
   DepositsData,
   PositionData,
   RateData,
   UtilizationData,
-} from "../utils";
+} from "@mrgnlabs/mrgn-utils";
+
+import { IMAGE_CDN_URL } from "~/config/constants";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
+import { IconPyth, IconSwitchboard } from "~/components/ui/icons";
 
 export const EMISSION_MINT_INFO_MAP = new Map<string, { tokenSymbol: string; tokenLogoUri: string }>([
   [
