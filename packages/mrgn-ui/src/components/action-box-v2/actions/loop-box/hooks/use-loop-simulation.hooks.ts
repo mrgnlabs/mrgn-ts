@@ -57,7 +57,11 @@ export function useLoopSimulation({
   setIsLoading,
   setMaxLeverage,
 }: LoopSimulationProps) {
-  const [slippageBps, priorityFee] = useActionBoxStore((state) => [state.slippageBps, state.priorityFee]);
+  const [slippageBps, priorityFee, platformFeeBps] = useActionBoxStore((state) => [
+    state.slippageBps,
+    state.priorityFee,
+    state.platformFeeBps,
+  ]);
 
   const prevDebouncedAmount = usePrevious(debouncedAmount);
   const prevDebouncedLeverage = usePrevious(debouncedLeverage);
@@ -142,7 +146,8 @@ export function useLoopSimulation({
           amount,
           slippageBps,
           marginfiClient.provider.connection,
-          0 //priorityFee
+          0,
+          platformFeeBps
         );
 
         if (loopingObject && "loopingTxn" in loopingObject) {
