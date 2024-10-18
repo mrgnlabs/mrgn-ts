@@ -53,7 +53,11 @@ export function useRepayCollatSimulation({
   setIsLoading,
   setMaxAmountCollateral,
 }: RepayCollatSimulationProps) {
-  const [slippageBps, priorityFee] = useActionBoxStore((state) => [state.slippageBps, state.priorityFee]);
+  const [slippageBps, priorityFee, platformFeeBps] = useActionBoxStore((state) => [
+    state.slippageBps,
+    state.priorityFee,
+    state.platformFeeBps,
+  ]);
 
   const prevDebouncedAmount = usePrevious(debouncedAmount);
   const prevSelectedSecondaryBank = usePrevious(selectedSecondaryBank);
@@ -120,7 +124,8 @@ export function useRepayCollatSimulation({
           amount,
           slippageBps,
           marginfiClient.provider.connection,
-          0 //priorityFee
+          0, //priorityFee,
+          platformFeeBps
         );
 
         if (repayObject && "repayTxn" in repayObject) {
@@ -154,6 +159,7 @@ export function useRepayCollatSimulation({
       setActionTxns,
       setSimulationResult,
       slippageBps,
+      platformFeeBps,
       setRepayAmount,
       setErrorMessage,
     ]

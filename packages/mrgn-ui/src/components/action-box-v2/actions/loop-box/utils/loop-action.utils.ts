@@ -64,7 +64,8 @@ export async function calculateLooping(
   amount: number,
   slippageBps: number,
   connection: Connection,
-  priorityFee: number
+  priorityFee: number,
+  platformFeeBps: number
 ): Promise<LoopingObject | ActionMethod> {
   // TODO setup logging again
   // capture("looper", {
@@ -84,6 +85,7 @@ export async function calculateLooping(
     slippageBps,
     connection,
     priorityFee,
+    platformFeeBps,
   });
 
   return result;
