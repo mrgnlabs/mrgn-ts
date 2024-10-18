@@ -161,7 +161,7 @@ export const StakeBox = ({
   }, [lstData, solPriceUsd]);
 
   const handleLstAction = React.useCallback(async () => {
-    if (!selectedBank || !amount || !marginfiClient) {
+    if (!selectedBank || !amount || !marginfiClient || !selectedAccount) {
       return;
     }
 
@@ -210,6 +210,7 @@ export const StakeBox = ({
           setIsLoading: (isLoading) => setIsLoading({ type: "TRANSACTION", state: isLoading }),
           actionType: requestedActionType,
           nativeSolBalance,
+          selectedAccount: selectedAccount,
         });
       };
 
