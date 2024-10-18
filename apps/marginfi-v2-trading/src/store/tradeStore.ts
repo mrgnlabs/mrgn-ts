@@ -26,6 +26,7 @@ import {
   loadBankMetadatas,
   getValueInsensitive,
   BankMetadata,
+  LST_MINT,
 } from "@mrgnlabs/mrgn-common";
 
 import { TRADE_GROUPS_MAP, TOKEN_METADATA_MAP, BANK_METADATA_MAP, POOLS_PER_PAGE } from "~/config/trade";
@@ -604,8 +605,12 @@ async function getGroupData({
   );
 
   // change this logic when adding more collateral banks
-  const tokenBanks = extendedBankInfos.filter((bank) => !bank.info.rawBank.mint.equals(USDC_MINT));
-  const collateralBanks = extendedBankInfos.filter((bank) => bank.info.rawBank.mint.equals(USDC_MINT));
+  const tokenBanks = extendedBankInfos.filter(
+    (bank) => !bank.info.rawBank.mint.equals(USDC_MINT) && !bank.info.rawBank.mint.equals(LST_MINT)
+  );
+  const collateralBanks = extendedBankInfos.filter(
+    (bank) => bank.info.rawBank.mint.equals(USDC_MINT) || bank.info.rawBank.mint.equals(LST_MINT)
+  );
 
   if (tokenBanks.length > 1) console.error("Inconsitency in token banks!");
 
