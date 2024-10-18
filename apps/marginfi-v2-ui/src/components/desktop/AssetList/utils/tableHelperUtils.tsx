@@ -4,6 +4,24 @@ import { createColumnHelper } from "@tanstack/react-table";
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { WalletContextStateOverride } from "@mrgnlabs/mrgn-ui";
+import {
+  AssetData,
+  AssetPriceData,
+  RateData,
+  AssetWeightData,
+  DepositsData,
+  BankCapData,
+  UtilizationData,
+  PositionData,
+  getAssetData,
+  getAssetPriceData,
+  getRateData,
+  getAssetWeightData,
+  getBankCapData,
+  getUtilizationData,
+  getDepositsData,
+  getPositionData,
+} from "@mrgnlabs/mrgn-utils";
 
 import {
   HeaderWrapper,
@@ -15,17 +33,17 @@ import {
   getRateCell,
   getUtilizationCell,
 } from "../components";
-import * as assetUtils from ".";
+import { getAction } from "./columnDataUtils";
 
 export interface AssetListModel {
-  asset: assetUtils.AssetData;
-  price: assetUtils.AssetPriceData;
-  rate: assetUtils.RateData;
-  weight: assetUtils.AssetWeightData;
-  deposits: assetUtils.DepositsData;
-  bankCap: assetUtils.BankCapData;
-  utilization: assetUtils.UtilizationData;
-  position: assetUtils.PositionData;
+  asset: AssetData;
+  price: AssetPriceData;
+  rate: RateData;
+  weight: AssetWeightData;
+  deposits: DepositsData;
+  bankCap: BankCapData;
+  utilization: UtilizationData;
+  position: PositionData;
   action: React.JSX.Element;
 }
 export const makeData = (
@@ -41,22 +59,15 @@ export const makeData = (
   return data.map(
     (bank) =>
       ({
-        asset: assetUtils.getAssetData(bank.meta),
-        price: assetUtils.getAssetPriceData(bank),
-        rate: assetUtils.getRateData(bank, isInLendingMode),
-        weight: assetUtils.getAssetWeightData(bank, isInLendingMode),
-        deposits: assetUtils.getDepositsData(bank, isInLendingMode, denominationUSD),
-        bankCap: assetUtils.getBankCapData(bank, isInLendingMode, denominationUSD),
-        utilization: assetUtils.getUtilizationData(bank),
-        position: assetUtils.getPositionData(bank, denominationUSD, nativeSolBalance, isInLendingMode),
-        action: assetUtils.getAction(
-          bank,
-          isInLendingMode,
-          marginfiAccount,
-          connected,
-          walletContextState,
-          fetchMrgnlendState
-        ),
+        asset: getAssetData(bank.meta),
+        price: getAssetPriceData(bank),
+        rate: getRateData(bank, isInLendingMode),
+        weight: getAssetWeightData(bank, isInLendingMode),
+        deposits: getDepositsData(bank, isInLendingMode, denominationUSD),
+        bankCap: getBankCapData(bank, isInLendingMode, denominationUSD),
+        utilization: getUtilizationData(bank),
+        position: getPositionData(bank, denominationUSD, nativeSolBalance, isInLendingMode),
+        action: getAction(bank, isInLendingMode, marginfiAccount, connected, walletContextState, fetchMrgnlendState),
       } as AssetListModel)
   );
 };

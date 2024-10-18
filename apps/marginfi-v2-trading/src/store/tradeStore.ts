@@ -26,6 +26,7 @@ import {
   loadBankMetadatas,
   getValueInsensitive,
   BankMetadata,
+  LST_MINT,
 } from "@mrgnlabs/mrgn-common";
 
 import { TRADE_GROUPS_MAP, TOKEN_METADATA_MAP, BANK_METADATA_MAP, POOLS_PER_PAGE } from "~/config/trade";
