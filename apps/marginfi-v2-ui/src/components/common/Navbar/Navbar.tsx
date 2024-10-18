@@ -5,7 +5,7 @@ import Image from "next/image";
 import { useRouter } from "next/router";
 
 import { PublicKey } from "@solana/web3.js";
-import LipAccount from "@mrgnlabs/lip-client/src/account";
+// import LipAccount from "@mrgnlabs/lip-client/src/account";
 import { IconBell, IconBrandTelegram } from "@tabler/icons-react";
 
 import { collectRewardsBatch, capture, cn } from "@mrgnlabs/mrgn-utils";
@@ -60,7 +60,7 @@ export const Navbar: FC = () => {
 
   const [userPointsData] = useUserProfileStore((state) => [state.userPointsData]);
 
-  const [lipAccount, setLipAccount] = useState<LipAccount | null>(null);
+  // const [lipAccount, setLipAccount] = useState<LipAccount | null>(null);
 
   useEffect(() => {
     if (!walletAddress && lendUserDataFetched) {
@@ -78,13 +78,13 @@ export const Navbar: FC = () => {
       .filter((address) => address !== undefined) as PublicKey[];
   }, [selectedAccount, extendedBankInfos]);
 
-  useEffect(() => {
-    (async function () {
-      if (!mfiClient || !lipClient || !walletAddress) return;
-      const lipAccount = await LipAccount.fetch(walletAddress, lipClient, mfiClient);
-      setLipAccount(lipAccount);
-    })();
-  }, [lipClient, mfiClient, walletAddress]);
+  // useEffect(() => {
+  //   (async function () {
+  //     if (!mfiClient || !lipClient || !walletAddress) return;
+  //     const lipAccount = await LipAccount.fetch(walletAddress, lipClient, mfiClient);
+  //     setLipAccount(lipAccount);
+  //   })();
+  // }, [lipClient, mfiClient, walletAddress]);
 
   return (
     <header className="h-[64px] mb-4 md:mb-8 lg:mb-14">
@@ -135,7 +135,7 @@ export const Navbar: FC = () => {
                 portfolio
               </Link>
 
-              {lipAccount && lipAccount.deposits.length > 0 && (
+              {/* {lipAccount && lipAccount.deposits.length > 0 && (
                 <Link
                   href={"/earn"}
                   className={
@@ -144,7 +144,7 @@ export const Navbar: FC = () => {
                 >
                   earn
                 </Link>
-              )}
+              )} */}
 
               <Link
                 href="/ecosystem"
