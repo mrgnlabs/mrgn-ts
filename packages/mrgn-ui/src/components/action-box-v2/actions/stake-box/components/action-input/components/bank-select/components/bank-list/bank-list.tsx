@@ -64,6 +64,7 @@ export const BankList = ({
       banks
         .filter(balanceFilter)
         .filter(searchFilter)
+        .filter((bank) => bank.meta.tokenSymbol !== "LST")
         // .filter((bank) => positionFilter(bank, true))
         .sort((a, b) => {
           const isFirstWSOL = a.info.state.mint?.equals ? a.info.state.mint.equals(WSOL_MINT) : false;
