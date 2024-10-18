@@ -5,7 +5,7 @@ import { WalletContextState } from "@solana/wallet-adapter-react";
 import { getPriceWithConfidence, MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { AccountSummary, ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { ActionMethod, LstData, PreviousTxn, showErrorToast, STATIC_SIMULATION_ERRORS } from "@mrgnlabs/mrgn-utils";
-import { nativeToUi, NATIVE_MINT as SOL_MINT } from "@mrgnlabs/mrgn-common";
+import { nativeToUi, NATIVE_MINT as SOL_MINT, uiToNative } from "@mrgnlabs/mrgn-common";
 
 import { useActionAmounts, usePollBlockHeight } from "~/components/action-box-v2/hooks";
 import { WalletContextStateOverride } from "~/components/wallet-v2/hooks/use-wallet.hook";
@@ -111,13 +111,13 @@ export const StakeBox = ({
     const bank = banks.find((bank) => bank.info.state.mint.equals(SOL_MINT));
     return bank ? getPriceWithConfidence(bank.info.oraclePrice, false).price.toNumber() : 0;
   }, [banks]);
-  const { isRefreshTxn } = usePollBlockHeight(marginfiClient?.provider.connection, actionTxns.lastValidBlockHeight);
 
   const receiveAmount = React.useMemo(() => {
     if (selectedBank && debouncedAmount && lstData) {
       if (requestedActionType === ActionType.MintLST) {
         if (selectedBank.meta.tokenSymbol === "SOL") {
-          return nativeToUi(debouncedAmount / lstData.lstSolValue, 9);
+          const _debouncedAmount = uiToNative(debouncedAmount, 9).toNumber();
+          return nativeToUi(_debouncedAmount / lstData.lstSolValue, 9);
         } else if (selectedBank.meta.tokenSymbol !== "SOL" && actionTxns?.actionQuote?.outAmount && lstData) {
           return nativeToUi(Number(actionTxns?.actionQuote?.outAmount) / lstData?.lstSolValue, 9);
         }
@@ -127,6 +127,12 @@ export const StakeBox = ({
     }
     return 0; // Default value if conditions are not met
   }, [selectedBank, debouncedAmount, lstData, actionTxns, requestedActionType]);
+
+  React.useEffect(() => {
+    return () => {
+      refreshState();
+    };
+  }, [refreshState]);
 
   useStakeSimulation({
     debouncedAmount: debouncedAmount ?? 0,
