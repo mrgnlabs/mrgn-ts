@@ -1,8 +1,11 @@
-import { MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
-import { StakeActionTxns } from "@mrgnlabs/mrgn-utils";
-import { ExecuteActionsCallbackProps } from "~/components/action-box-v2/types";
+import * as Sentry from "@sentry/nextjs";
 import { v4 as uuidv4 } from "uuid";
-import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
+
+import { ActionType, ExtendedBankInfo, FEE_MARGIN } from "@mrgnlabs/marginfi-v2-ui-state";
+import { MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
+import { extractErrorString, MultiStepToastHandle, showErrorToast, StakeActionTxns } from "@mrgnlabs/mrgn-utils";
+
+import { ExecuteActionsCallbackProps } from "~/components/action-box-v2/types";
 
 interface ExecuteStakeActionProps extends ExecuteActionsCallbackProps {
   params: {
@@ -10,6 +13,7 @@ interface ExecuteStakeActionProps extends ExecuteActionsCallbackProps {
     marginfiClient: MarginfiClient;
   };
   actionType: ActionType;
+  nativeSolBalance: number;
 }
 
 export const handleExecuteLstAction = async ({
@@ -19,6 +23,7 @@ export const handleExecuteLstAction = async ({
   setIsComplete,
   setIsError,
   actionType,
+  nativeSolBalance,
 }: ExecuteStakeActionProps) => {
   const { actionTxns, marginfiClient } = params;
 
@@ -32,7 +37,12 @@ export const handleExecuteLstAction = async ({
 
   // if actionTxn -> button disabled
 
-  const txnSig = executeLstAction()
+  const txnSig = await executeLstAction({
+    marginfiClient,
+    actionTxns,
+    actionType,
+    nativeSolBalance,
+  });
 
   setIsLoading(false);
 
@@ -40,46 +50,47 @@ export const handleExecuteLstAction = async ({
     setIsComplete(Array.isArray(txnSig) ? txnSig : [txnSig]);
     captureEvent(`user_${actionType.toLowerCase()}`, {
       uuid: attemptUuid,
-      tokenSymbol: bank.meta.tokenSymbol,
-      tokenName: bank.meta.tokenName,
-      amount: amount,
-      txn: txnSig!,
-      priorityFee,
+      tokenSymbol: actionType === ActionType.MintLST ? "LST" : "SOL",
+      amount: actionTxns.actionQuote?.inAmount,
     });
   } else {
     setIsError("Transaction not landed");
   }
 };
 
-const executeLstAction =(/* params die nodig zijn*/)  =>{
-  if (params.nativeSolBalance < FEE_MARGIN) {
+const executeLstAction = async ({
+  marginfiClient,
+  actionTxns,
+  actionType,
+  nativeSolBalance,
+}: {
+  marginfiClient: MarginfiClient;
+  actionTxns: any;
+  actionType: ActionType;
+  nativeSolBalance: number;
+}) => {
+  if (nativeSolBalance < FEE_MARGIN) {
     showErrorToast("Not enough sol for fee.");
     return;
   }
 
-  const multiStepToast = new MultiStepToastHandle("// actiontype", [{ label: `Executing flashloan repayment` }], theme);
+  const multiStepToast = new MultiStepToastHandle(
+    actionType === ActionType.MintLST ? "Staking" : "Unstaking ",
+    [{ label: `Executing ${actionType === ActionType.MintLST ? "stake" : "unstake"}` }],
+    "dark"
+  );
   multiStepToast.start();
 
   try {
-
     const txnSig = await marginfiClient.processTransactions([actionTxns.actionTxn, ...actionTxns.additionalTxns]);
     multiStepToast.setSuccessAndNext();
 
     return txnSig;
   } catch (error) {
     const msg = extractErrorString(error);
-
-    captureException(error, msg, {
-      action: //actiontype,
-      wallet: marginfiAccount?.authority?.toBase58(),
-      bank: bank.meta.tokenSymbol,
-      repayWithCollatBank: repayWithCollatOptions?.depositBank.meta.tokenSymbol,
-    });
-
     multiStepToast.setFailed(msg);
     console.log(`Error while actiontype: ${msg}`);
     console.log(error);
     return;
   }
-
-}
+};
