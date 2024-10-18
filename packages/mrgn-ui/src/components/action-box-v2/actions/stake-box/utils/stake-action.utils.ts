@@ -30,13 +30,9 @@ export const handleExecuteLstAction = async ({
     amount: actionTxns.actionQuote?.inAmount,
   });
 
-  if (!actionTxns.actionTxn) {
-    setIsError("Transaction not landed");
-    setIsLoading(false);
-    return;
-  }
+  // if actionTxn -> button disabled
 
-  const txnSig = await marginfiClient.processTransactions([actionTxns.actionTxn, ...actionTxns.additionalTxns]);
+  const txnSig = executeLstAction()
 
   setIsLoading(false);
 
@@ -44,11 +40,46 @@ export const handleExecuteLstAction = async ({
     setIsComplete(Array.isArray(txnSig) ? txnSig : [txnSig]);
     captureEvent(`user_${actionType.toLowerCase()}`, {
       uuid: attemptUuid,
-      tokenSymbol: actionType === ActionType.MintLST ? "LST" : "SOL",
-      amount: actionTxns.actionQuote?.inAmount,
+      tokenSymbol: bank.meta.tokenSymbol,
+      tokenName: bank.meta.tokenName,
+      amount: amount,
       txn: txnSig!,
+      priorityFee,
     });
   } else {
     setIsError("Transaction not landed");
   }
 };
+
+const executeLstAction =(/* params die nodig zijn*/)  =>{
+  if (params.nativeSolBalance < FEE_MARGIN) {
+    showErrorToast("Not enough sol for fee.");
+    return;
+  }
+
+  const multiStepToast = new MultiStepToastHandle("// actiontype", [{ label: `Executing flashloan repayment` }], theme);
+  multiStepToast.start();
+
+  try {
+
+    const txnSig = await marginfiClient.processTransactions([actionTxns.actionTxn, ...actionTxns.additionalTxns]);
+    multiStepToast.setSuccessAndNext();
+
+    return txnSig;
+  } catch (error) {
+    const msg = extractErrorString(error);
+
+    captureException(error, msg, {
+      action: //actiontype,
+      wallet: marginfiAccount?.authority?.toBase58(),
+      bank: bank.meta.tokenSymbol,
+      repayWithCollatBank: repayWithCollatOptions?.depositBank.meta.tokenSymbol,
+    });
+
+    multiStepToast.setFailed(msg);
+    console.log(`Error while actiontype: ${msg}`);
+    console.log(error);
+    return;
+  }
+
+}
