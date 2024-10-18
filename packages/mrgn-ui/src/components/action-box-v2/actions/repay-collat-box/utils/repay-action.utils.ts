@@ -62,7 +62,8 @@ export async function calculateRepayCollateral(
   amount: number,
   slippageBps: number,
   connection: Connection,
-  priorityFee: number
+  priorityFee: number,
+  platformFeeBps: number
 ): Promise<
   | {
       repayTxn: VersionedTransaction;
@@ -89,7 +90,8 @@ export async function calculateRepayCollateral(
     amount,
     slippageBps,
     connection,
-    priorityFee
+    priorityFee,
+    platformFeeBps
   );
 
   return result;
