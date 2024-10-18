@@ -1,12 +1,10 @@
 import React from "react";
 
-import { JupiterProvider } from "@jup-ag/react-hook";
-
 import { groupedNumberFormatterDyn, clampedNumeralFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 
 import { useConnection } from "~/hooks/use-connection";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
-import { useLstStore, useMrgnlendStore, useUiStore } from "~/store";
+import { useMrgnlendStore, useUiStore } from "~/store";
 import { LST_MINT } from "~/store/lstStore";
 
 import { ActionComplete } from "~/components/common/ActionComplete";
@@ -22,6 +20,7 @@ import {
 } from "~/components/common/Mint";
 import { IntegrationsData, MintCardProps, MintOverview, MintPageState, fetchMintOverview } from "~/utils";
 import { PageHeading } from "~/components/common/PageHeading";
+import { StakeBoxProvider } from "@mrgnlabs/mrgn-ui";
 
 export default function MintPage() {
   const { connection } = useConnection();
@@ -36,12 +35,6 @@ export default function MintPage() {
   const debounceId = React.useRef<NodeJS.Timeout | null>(null);
 
   const [previousTxn] = useUiStore((state) => [state.previousTxn]);
-
-  const [fetchLstState, initialized, setIsRefreshingStore] = useLstStore((state) => [
-    state.fetchLstState,
-    state.initialized,
-    state.setIsRefreshingStore,
-  ]);
 
   const [extendedBankInfos] = useMrgnlendStore((state) => [state.extendedBankInfos]);
 
@@ -62,37 +55,6 @@ export default function MintPage() {
       console.error("Something went wrong fetching LST volume");
     }
   };
-
-  React.useEffect(() => {
-    const fetchData = () => {
-      setIsRefreshingStore(true);
-      fetchLstState({ connection, wallet }).catch(console.error);
-    };
-
-    if (debounceId.current) {
-      clearTimeout(debounceId.current);
-    }
-
-    debounceId.current = setTimeout(() => {
-      fetchData();
-
-      const id = setInterval(() => {
-        setIsRefreshingStore(true);
-        fetchLstState().catch(console.error);
-      }, 30_000);
-
-      return () => {
-        clearInterval(id);
-        clearTimeout(debounceId.current!);
-      };
-    }, 1000);
-
-    return () => {
-      if (debounceId.current) {
-        clearTimeout(debounceId.current);
-      }
-    };
-  }, [wallet]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const cards = React.useMemo(
     () => [
@@ -146,90 +108,85 @@ export default function MintPage() {
   }, []);
 
   return (
-    <>
-      <JupiterProvider connection={connection} wrapUnwrapSOL={false} platformFeeAndAccounts={undefined}>
-        <div className="w-full max-w-8xl mx-auto px-4 md:px-8 space-y-20 pb-28">
-          {!initialized && <Loader label="Loading YBX / LST..." className="mt-8" />}
-          {initialized && (
-            <>
-              <div className="w-full max-w-4xl mx-auto px-4 md:px-0">
-                <PageHeading
-                  heading={
-                    <>
-                      <span className="leading-normal">Inflation protected</span>
-                      <div className="text-3xl leading-normal flex items-center gap-2 pb-2 justify-center">
-                        <IconSol size={32} />
-                        <p>SOL</p>
-                        <p className="mx-2">and</p>
-                        <IconUsd size={32} />
-                        <p>USD</p>
-                      </div>
-                    </>
-                  }
-                  body={
-                    <p>
-                      The two most important assets on Solana are SOL and USD.
-                      <br className="hidden lg:block" /> Capture inflation automatically with LST and YBX.
-                    </p>
-                  }
-                />
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 md:gap-11 mt-8">
-                  {cards.map((item, idx) => (
-                    <MintCardWrapper mintCard={item} key={idx} />
-                  ))}
-                </div>
-              </div>
-
-              <div className="w-full py-4 px-4 md:px-10 xl:px-16 text-center">
-                <h2 className="text-3xl font-medium mb-3">Integrations</h2>
-                <p className="text-muted-foreground">
-                  Ready to integrate YBX?{" "}
-                  <button
-                    className="border-b border-primary text-primary transition-colors hover:text-chartreuse hover:border-chartreuse"
-                    onClick={() => setYbxPartnerDialogOpen(true)}
-                  >
-                    Become a launch partner.
-                  </button>
+    <StakeBoxProvider>
+      <div className="w-full max-w-8xl mx-auto px-4 md:px-8 space-y-20 pb-28">
+        <>
+          <div className="w-full max-w-4xl mx-auto px-4 md:px-0">
+            <PageHeading
+              heading={
+                <>
+                  <span className="leading-normal">Inflation protected</span>
+                  <div className="text-3xl leading-normal flex items-center gap-2 pb-2 justify-center">
+                    <IconSol size={32} />
+                    <p>SOL</p>
+                    <p className="mx-2">and</p>
+                    <IconUsd size={32} />
+                    <p>USD</p>
+                  </div>
+                </>
+              }
+              body={
+                <p>
+                  The two most important assets on Solana are SOL and USD.
+                  <br className="hidden lg:block" /> Capture inflation automatically with LST and YBX.
                 </p>
-                <div className="flex items-center justify-center flex-wrap gap-8 mt-10 w-full">
-                  {lstBank?.length > 0 ? (
-                    <>
-                      <BankIntegrationCard bank={lstBank[0]} isInLendingMode={true} />
-                    </>
-                  ) : (
-                    <IntegrationCardSkeleton />
-                  )}
-                  {integrations?.length > 0
-                    ? integrations.map((item, i) => <IntegrationCard integrationsData={item} key={i} />)
-                    : [...new Array(5)].map((_, index) => <IntegrationCardSkeleton key={index} />)}
-                </div>
-              </div>
-            </>
-          )}
-        </div>
-        <YbxDialogNotifications
-          onClose={() => setYbxNotificationsDialogOpen(false)}
-          mintPageState={mintPageState}
-          onHandleChangeMintPage={(state) => setMintPageState(state)}
-          open={ybxNotificationsDialogOpen}
-          onOpenChange={(open) => {
-            setMintPageState(MintPageState.DEFAULT);
-            setYbxNotificationsDialogOpen(open);
-          }}
-        />
-        <YbxDialogPartner
-          onClose={() => setYbxPartnerDialogOpen(false)}
-          mintPageState={mintPageState}
-          onHandleChangeMintPage={(state) => setMintPageState(state)}
-          open={ybxPartnerDialogOpen}
-          onOpenChange={(open) => {
-            setMintPageState(MintPageState.DEFAULT);
-            setYbxPartnerDialogOpen(open);
-          }}
-        />
-      </JupiterProvider>
-      {initialized && previousTxn && <ActionComplete />}
-    </>
+              }
+            />
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 md:gap-11 mt-8">
+              {cards.map((item, idx) => (
+                <MintCardWrapper mintCard={item} key={idx} />
+              ))}
+            </div>
+          </div>
+
+          <div className="w-full py-4 px-4 md:px-10 xl:px-16 text-center">
+            <h2 className="text-3xl font-medium mb-3">Integrations</h2>
+            <p className="text-muted-foreground">
+              Ready to integrate YBX?{" "}
+              <button
+                className="border-b border-primary text-primary transition-colors hover:text-chartreuse hover:border-chartreuse"
+                onClick={() => setYbxPartnerDialogOpen(true)}
+              >
+                Become a launch partner.
+              </button>
+            </p>
+            <div className="flex items-center justify-center flex-wrap gap-8 mt-10 w-full">
+              {lstBank?.length > 0 ? (
+                <>
+                  <BankIntegrationCard bank={lstBank[0]} isInLendingMode={true} />
+                </>
+              ) : (
+                <IntegrationCardSkeleton />
+              )}
+              {integrations?.length > 0
+                ? integrations.map((item, i) => <IntegrationCard integrationsData={item} key={i} />)
+                : [...new Array(5)].map((_, index) => <IntegrationCardSkeleton key={index} />)}
+            </div>
+          </div>
+        </>
+      </div>
+      <YbxDialogNotifications
+        onClose={() => setYbxNotificationsDialogOpen(false)}
+        mintPageState={mintPageState}
+        onHandleChangeMintPage={(state) => setMintPageState(state)}
+        open={ybxNotificationsDialogOpen}
+        onOpenChange={(open) => {
+          setMintPageState(MintPageState.DEFAULT);
+          setYbxNotificationsDialogOpen(open);
+        }}
+      />
+      <YbxDialogPartner
+        onClose={() => setYbxPartnerDialogOpen(false)}
+        mintPageState={mintPageState}
+        onHandleChangeMintPage={(state) => setMintPageState(state)}
+        open={ybxPartnerDialogOpen}
+        onOpenChange={(open) => {
+          setMintPageState(MintPageState.DEFAULT);
+          setYbxPartnerDialogOpen(open);
+        }}
+      />
+      {previousTxn && <ActionComplete />}
+    </StakeBoxProvider>
   );
 }
