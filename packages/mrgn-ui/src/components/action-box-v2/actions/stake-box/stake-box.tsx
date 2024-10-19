@@ -136,7 +136,7 @@ export const StakeBox = ({
     };
   }, [refreshState]);
 
-  useStakeSimulation({
+  const { handleSimulation } = useStakeSimulation({
     debouncedAmount: debouncedAmount ?? 0,
     selectedAccount,
     selectedBank,
@@ -231,7 +231,6 @@ export const StakeBox = ({
     setPreviousTxn,
     onComplete,
     setIsLoading,
-    setErrorMessage,
     nativeSolBalance,
     selectedAccount,
   ]);
@@ -249,6 +248,10 @@ export const StakeBox = ({
   );
 
   React.useEffect(() => {
+    console.log(actionMethods);
+  }, [actionMethods]);
+
+  React.useEffect(() => {
     fetchActionBoxState({ requestedLendType: requestedActionType, requestedBank });
   }, [requestedActionType, requestedBank, fetchActionBoxState]);
 
@@ -258,6 +261,14 @@ export const StakeBox = ({
       setAdditionalActionMethods([errorMessage]);
     }
   }, [errorMessage]);
+
+  React.useEffect(() => {
+    handleSimulation([
+      ...(actionTxns?.additionalTxns ?? []),
+      ...(actionTxns?.actionTxn ? [actionTxns?.actionTxn] : []),
+    ]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [actionTxns]);
 
   return (
     <>

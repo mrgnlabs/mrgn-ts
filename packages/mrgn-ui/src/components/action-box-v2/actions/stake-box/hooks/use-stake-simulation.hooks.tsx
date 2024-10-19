@@ -177,13 +177,5 @@ export function useStakeSimulation({
     }
   }, [prevDebouncedAmount, debouncedAmount, fetchTxs, actionMode]);
 
-  React.useEffect(() => {
-    handleSimulation([
-      ...(actionTxns?.additionalTxns ?? []),
-      ...(actionTxns?.actionTxn ? [actionTxns?.actionTxn] : []),
-    ]);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [actionTxns]);
-
-  return {};
+  return { handleSimulation };
 }
