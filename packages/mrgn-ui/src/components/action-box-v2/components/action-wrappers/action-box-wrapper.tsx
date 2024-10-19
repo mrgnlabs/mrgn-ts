@@ -45,8 +45,8 @@ export const ActionBoxWrapper = ({ children, isDialog, actionMode, showSettings 
       <div className="flex flex-col items-center">
         <div
           className={cn(
-            "p-4 md:p-6 bg-background-gray text-white w-full max-w-[480px] rounded-lg relative",
-            isDialog && "py-5 border border-background-gray-light/50"
+            "bg-mfi-action-box-background p-4 md:p-6 text-bg-mfi-action-box-foreground w-full max-w-[480px] rounded-lg relative",
+            isDialog && "py-5 border border-border"
           )}
         >
           Action is temporary disabled. <br /> Visit our socials for more information.
@@ -60,8 +60,8 @@ export const ActionBoxWrapper = ({ children, isDialog, actionMode, showSettings 
       <div className="flex flex-col items-center">
         <div
           className={cn(
-            "p-2 md:p-3 bg-background-gray text-white w-full max-w-[480px] rounded-lg relative",
-            isDialog && "py-5 border border-background-gray-light/50"
+            "bg-mfi-action-box-background p-2 md:p-3 text-bg-mfi-action-box-foreground w-full max-w-[480px] rounded-lg relative",
+            isDialog && "py-5"
           )}
         >
           {isSettingsDialogOpen && showSettings ? (

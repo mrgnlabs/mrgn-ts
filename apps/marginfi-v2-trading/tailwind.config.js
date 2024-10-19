@@ -81,6 +81,7 @@ module.exports = {
         },
         accent: {
           DEFAULT: "hsl(var(--accent))",
+          secondary: "hsl(var(--accent-secondary))",
           highlight: "hsl(var(--accent-highlight))",
           foreground: "hsl(var(--accent-foreground))",
         },
@@ -100,6 +101,14 @@ module.exports = {
           success: "#75ba80",
           warning: "#daa204",
           error: "#e07d6f",
+        },
+        mfi: {
+          "action-box": {
+            background: "hsl(var(--mfi-action-box-background))",
+            foreground: "hsl(var(--mfi-action-box-foreground))",
+            accent: "hsl(var(--mfi-action-box-accent))",
+            accentForeground: "hsl(var(--mfi-action-box-accent-foreground))",
+          },
         },
       },
       screens: {

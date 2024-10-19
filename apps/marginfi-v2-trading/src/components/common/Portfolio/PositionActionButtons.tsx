@@ -379,6 +379,50 @@ export const PositionActionButtons = ({
             </Button>
           </ActionBoxDialog>
         )}
+
+        {!isBorrowing && (
+          <ActionBox.Lend
+            isDialog={true}
+            useProvider={true}
+            lendProps={{
+              connected: connected,
+              requestedLendType: ActionType.Withdraw,
+              requestedBank: activeGroup.pool.token ?? undefined,
+              captureEvent: () => {
+                capture("position_withdraw_btn_click", {
+                  group: activeGroup?.groupPk?.toBase58(),
+                  token: activeGroup.pool.token.meta.tokenSymbol,
+                });
+              },
+              onComplete: () => {
+                fetchTradeState({
+                  connection,
+                  wallet,
+                });
+              },
+            }}
+            dialogProps={{
+              trigger: (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-1 min-w-16"
+                  onClick={() => {
+                    capture("position_add_btn_click", {
+                      group: activeGroup?.groupPk?.toBase58(),
+                      token: activeGroup.pool.token.meta.tokenSymbol,
+                    });
+                  }}
+                >
+                  <IconPlus size={14} />
+                  Withdraw
+                </Button>
+              ),
+              title: `Withdraw ${activeGroup.pool.token.meta.tokenSymbol}`,
+            }}
+          />
+        )}
+
         <Button
           onClick={() => closeTransaction()}
           disabled={isClosing}

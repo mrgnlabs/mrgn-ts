@@ -69,7 +69,9 @@ export const ActionBoxNavigator = ({
               <ToggleGroup
                 variant="actionBox"
                 type="single"
-                className="bg-background"
+                style={{
+                  backgroundColor: "var(--mfi-action-box-background)",
+                }}
                 value={selectedAction}
                 onValueChange={(value) => {
                   if (value !== "") {
