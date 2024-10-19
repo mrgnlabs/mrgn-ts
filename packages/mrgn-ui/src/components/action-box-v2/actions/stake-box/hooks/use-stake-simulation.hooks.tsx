@@ -58,24 +58,39 @@ export function useStakeSimulation({
     async (txns: (VersionedTransaction | Transaction)[]) => {
       try {
         if (selectedAccount && selectedBank && txns.length > 0) {
-          await getSimulationResult({
+          const { actionMethod } = await getSimulationResult({
             marginfiClient: marginfiClient as MarginfiClient,
             txns,
             selectedBank,
             selectedAccount,
           });
 
-          setSimulationResult(simulationResult);
+          if (actionMethod) {
+            setErrorMessage(actionMethod);
+            setSimulationResult(null);
+          } else {
+            setErrorMessage(null);
+            setSimulationResult(simulationResult);
+          }
         } else {
           setSimulationResult(null);
         }
       } catch (error) {
         console.error("Error simulating transaction", error);
+        setSimulationResult(null);
       } finally {
         setIsLoading({ type: "SIMULATION", state: false });
       }
     },
-    [selectedAccount, selectedBank, marginfiClient, setSimulationResult, simulationResult, setIsLoading]
+    [
+      selectedAccount,
+      selectedBank,
+      marginfiClient,
+      setSimulationResult,
+      simulationResult,
+      setIsLoading,
+      setErrorMessage,
+    ]
   );
 
   const fetchTxs = React.useCallback(

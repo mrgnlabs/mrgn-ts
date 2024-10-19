@@ -13,7 +13,7 @@ import {
   getAssociatedTokenAddressSync,
   uiToNative,
 } from "@mrgnlabs/mrgn-common";
-import { LstData } from "@mrgnlabs/mrgn-utils";
+import { ActionMethod, handleSimulationError, LstData } from "@mrgnlabs/mrgn-utils";
 import {
   AddressLookupTableAccount,
   Connection,
@@ -96,11 +96,19 @@ export const getSimulationResult = async ({
   selectedAccount,
 }: SimulateActionProps) => {
   const ataLst = getAssociatedTokenAddressSync(LST_MINT, marginfiClient.wallet.publicKey);
-  const [lstAta] = await marginfiClient.simulateTransactions(txns, [ataLst]); // can we detect lst balance difference?
+  let actionMethod: ActionMethod | undefined = undefined;
+  let simulationSucceeded = false;
 
-  if (!lstAta) throw new Error("Failed to simulate stake transaction");
+  try {
+    const [lstAta] = await marginfiClient.simulateTransactions(txns, [ataLst]); // can we detect lst balance difference?
+    if (!lstAta) throw new Error("Failed to simulate stake transaction");
 
-  return true;
+    simulationSucceeded = true;
+  } catch (error) {
+    actionMethod = handleSimulationError(error, selectedBank, false, "stake");
+  }
+
+  return { simulationSucceeded, actionMethod };
 };
 
 export const getAdressLookupTableAccounts = async (

@@ -235,17 +235,16 @@ export const StakeBox = ({
     selectedAccount,
   ]);
 
-  const actionMethods = React.useMemo(
-    () =>
-      checkActionAvailable({
-        amount,
-        connected,
-        selectedBank,
-        actionQuote: actionTxns.actionQuote,
-        lstData,
-      }),
-    [amount, connected, selectedBank, actionTxns.actionQuote, lstData]
-  );
+  const actionMethods = React.useMemo(() => {
+    setAdditionalActionMethods([]);
+    return checkActionAvailable({
+      amount,
+      connected,
+      selectedBank,
+      actionQuote: actionTxns.actionQuote,
+      lstData,
+    });
+  }, [amount, connected, selectedBank, actionTxns.actionQuote, lstData]);
 
   React.useEffect(() => {
     console.log(actionMethods);
@@ -257,7 +256,6 @@ export const StakeBox = ({
 
   React.useEffect(() => {
     if (errorMessage && errorMessage.description) {
-      showErrorToast(errorMessage?.description);
       setAdditionalActionMethods([errorMessage]);
     }
   }, [errorMessage]);
