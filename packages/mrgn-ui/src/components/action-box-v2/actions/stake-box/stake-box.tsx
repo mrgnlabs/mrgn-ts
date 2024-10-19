@@ -247,10 +247,6 @@ export const StakeBox = ({
   }, [amount, connected, selectedBank, actionTxns.actionQuote, lstData]);
 
   React.useEffect(() => {
-    console.log(actionMethods);
-  }, [actionMethods]);
-
-  React.useEffect(() => {
     fetchActionBoxState({ requestedLendType: requestedActionType, requestedBank });
   }, [requestedActionType, requestedBank, fetchActionBoxState]);
 

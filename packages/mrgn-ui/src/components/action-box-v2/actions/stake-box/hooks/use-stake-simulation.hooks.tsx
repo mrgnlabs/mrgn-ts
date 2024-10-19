@@ -3,7 +3,7 @@ import React from "react";
 import { Transaction, TransactionMessage, VersionedTransaction } from "@solana/web3.js";
 import { createJupiterApiClient } from "@jup-ag/api";
 
-import { makeBundleTipIx, MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
+import { makeBundleTipIx, makeUnwrapSolIx, MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { ExtendedBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import {
   ActionMethod,
@@ -133,27 +133,32 @@ export function useStakeSimulation({
 
           if (!swapQuote) return; // TODO: proper error handling
 
-          const { computeBudgetInstructions, swapInstruction, setupInstructions, addressLookupTableAddresses } =
-            await jupiterQuoteApi.swapInstructionsPost({
-              swapRequest: {
-                quoteResponse: swapQuote,
-                userPublicKey: marginfiClient.wallet.publicKey.toBase58(),
-                feeAccount: undefined,
-                programAuthorityId: LUT_PROGRAM_AUTHORITY_INDEX,
-              },
-            });
+          const {
+            computeBudgetInstructions,
+            swapInstruction,
+            setupInstructions,
+            cleanupInstruction,
+            addressLookupTableAddresses,
+          } = await jupiterQuoteApi.swapInstructionsPost({
+            swapRequest: {
+              quoteResponse: swapQuote,
+              userPublicKey: marginfiClient.wallet.publicKey.toBase58(),
+              feeAccount: undefined,
+              programAuthorityId: LUT_PROGRAM_AUTHORITY_INDEX,
+            },
+          });
 
           const swapIx = deserializeInstruction(swapInstruction);
           const setupInstructionsIxs = setupInstructions.map((value) => deserializeInstruction(value));
+          const cleanupInstructionIx = deserializeInstruction(cleanupInstruction);
           const cuInstructionsIxs = computeBudgetInstructions.map((value) => deserializeInstruction(value));
           const AddressLookupAccounts = await getAdressLookupTableAccounts(connection, addressLookupTableAddresses);
-
-          const bundleTipIx = makeBundleTipIx(marginfiClient.wallet.publicKey);
+          const unwrapSolIx = makeUnwrapSolIx(marginfiClient.wallet.publicKey);
 
           const swapMessage = new TransactionMessage({
             payerKey: marginfiClient.wallet.publicKey,
             recentBlockhash: blockhash,
-            instructions: [bundleTipIx, ...cuInstructionsIxs, ...setupInstructionsIxs, swapIx],
+            instructions: [...cuInstructionsIxs, ...setupInstructionsIxs, swapIx, unwrapSolIx],
           });
 
           swapTx = new VersionedTransaction(swapMessage.compileToV0Message(AddressLookupAccounts));
