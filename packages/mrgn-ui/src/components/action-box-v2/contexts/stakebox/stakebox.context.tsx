@@ -4,7 +4,6 @@ import { Connection } from "@solana/web3.js";
 
 import { LstData } from "@mrgnlabs/mrgn-utils";
 
-import { useStakeBoxContextStore } from "../../store";
 import { fetchLstData } from "../../utils";
 
 type StakeBoxContextType = {
@@ -17,7 +16,7 @@ export const StakeBoxProvider: React.FC<{
   children: React.ReactNode;
 }> = ({ children }) => {
   const debounceId = React.useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [lstData, setLstData] = useStakeBoxContextStore((state) => [state.lstData, state.setLstData]);
+  const [lstData, setLstData] = React.useState<LstData | null>(null);
 
   React.useEffect(() => {
     let intervalId: ReturnType<typeof setInterval> | null = null;
@@ -59,7 +58,4 @@ export const StakeBoxProvider: React.FC<{
   return <StakeBoxContext.Provider value={{ lstData }}>{children}</StakeBoxContext.Provider>;
 };
 
-export const useStakeBoxContext = () => {
-  const context = React.useContext(StakeBoxContext);
-  return context;
-};
+export const useStakeBoxContext = () => React.useContext(StakeBoxContext);

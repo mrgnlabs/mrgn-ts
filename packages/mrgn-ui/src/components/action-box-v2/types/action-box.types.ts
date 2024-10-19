@@ -54,7 +54,7 @@ interface ActionBoxComponent extends React.FC<ActionBoxProps & ActionBoxComponen
   BorrowLend: React.FC<ActionBoxProps & { lendProps: LendBoxProps | RequiredLendBoxProps; useProvider?: boolean }>;
   Repay: React.FC<ActionBoxProps & { repayProps: RepayBoxProps | RequiredRepayBoxProps; useProvider?: boolean }>;
   Loop: React.FC<ActionBoxProps & { loopProps: LoopBoxProps | RequiredLoopBoxProps; useProvider?: boolean }>;
-  Stake: React.FC<ActionBoxProps & { stakeProps: StakeBoxProps | RequiredStakeBoxProps; useProvider?: boolean }>; // TODO: requiredStakeBoxProps?
+  Stake: React.FC<ActionBoxProps & { stakeProps: StakeBoxProps | RequiredStakeBoxProps; useProvider?: boolean }>;
 }
 
 export type {

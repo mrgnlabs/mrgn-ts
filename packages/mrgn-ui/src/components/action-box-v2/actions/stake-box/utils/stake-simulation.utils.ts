@@ -95,45 +95,12 @@ export const getSimulationResult = async ({
   selectedBank,
   selectedAccount,
 }: SimulateActionProps) => {
-  // ata van LST
-  // wallet.publickey -> sol change
-
   const ataLst = getAssociatedTokenAddressSync(LST_MINT, marginfiClient.wallet.publicKey);
   const [lstAta] = await marginfiClient.simulateTransactions(txns, [ataLst]); // can we detect lst balance difference?
 
   if (!lstAta) throw new Error("Failed to simulate stake transaction");
 
   return true;
-
-  // const previewBanks = marginfiClient.banks;
-  // previewBanks.set(
-  //   selectedBank.address.toBase58(),
-  //   Bank.fromBuffer(selectedBank.address, bankData, marginfiClient.program.idl, marginfiClient.feedIdMap)
-  // );
-
-  // const previewClient = new MarginfiClient(
-  //   marginfiClient.config,
-  //   marginfiClient.program,
-  //   {} as Wallet,
-  //   true,
-  //   marginfiClient.group,
-  //   marginfiClient.banks,
-  //   marginfiClient.oraclePrices,
-  //   marginfiClient.mintDatas,
-  //   marginfiClient.feedIdMap
-  // );
-
-  // const previewMarginfiAccount = MarginfiAccountWrapper.fromAccountDataRaw(
-  //   selectedAccount.address,
-  //   previewClient,
-  //   mfiAccountData,
-  //   marginfiClient.program.idl
-  // );
-
-  // const simulationResult = {
-  //   banks: previewBanks,
-  //   marginfiAccount: previewMarginfiAccount,
-  // } as SimulationResult;
 };
 
 export const getAdressLookupTableAccounts = async (

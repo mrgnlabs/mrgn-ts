@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 
 import { WalletContextState } from "@solana/wallet-adapter-react";
 
@@ -15,10 +15,11 @@ import { AmountPreview } from "./components/amount-preview";
 import { ActionButton, ActionMessage, ActionSettingsButton } from "../../components";
 import { StatsPreview } from "./components/stats-preview";
 import { useStakeSimulation } from "./hooks";
-import { useActionBoxStore, useStakeBoxContextStore } from "../../store";
+import { useActionBoxStore } from "../../store";
 import { handleExecuteLstAction } from "./utils/stake-action.utils";
 import { ActionInput } from "./components/action-input";
 import { checkActionAvailable } from "./utils";
+import { useStakeBoxContext } from "../../contexts";
 
 export type StakeBoxProps = {
   nativeSolBalance: number;
@@ -104,7 +105,7 @@ export const StakeBox = ({
     state.setIsActionComplete,
   ]);
 
-  const [lstData] = useStakeBoxContextStore((state) => [state.lstData]);
+  const { lstData } = useStakeBoxContext()!;
 
   const [additionalActionMethods, setAdditionalActionMethods] = React.useState<ActionMethod[]>([]);
 
@@ -165,21 +166,34 @@ export const StakeBox = ({
       return;
     }
 
-    try {
-      const action = async () => {
-        const params = {
-          actionTxns,
-          marginfiClient,
-        };
+    const action = async () => {
+      const params = {
+        actionTxns,
+        marginfiClient,
+      };
 
-        await handleExecuteLstAction({
-          params,
-          captureEvent: (event, properties) => {
-            captureEvent && captureEvent(event, properties);
-          },
-          setIsComplete: (txnSigs) => {
-            setIsActionComplete(true);
-            setPreviousTxn({
+      await handleExecuteLstAction({
+        params,
+        captureEvent: (event, properties) => {
+          captureEvent && captureEvent(event, properties);
+        },
+        setIsComplete: (txnSigs) => {
+          setIsActionComplete(true);
+          setPreviousTxn({
+            txn: txnSigs[txnSigs.length - 1] ?? "",
+            txnType: requestedActionType === ActionType.MintLST ? "STAKE" : "UNSTAKE",
+            stakingOptions: {
+              amount: receiveAmount,
+              type: requestedActionType,
+              originDetails: {
+                amount,
+                bank: selectedBank,
+              },
+            },
+          });
+
+          onComplete &&
+            onComplete({
               txn: txnSigs[txnSigs.length - 1] ?? "",
               txnType: requestedActionType === ActionType.MintLST ? "STAKE" : "UNSTAKE",
               stakingOptions: {
@@ -191,40 +205,19 @@ export const StakeBox = ({
                 },
               },
             });
+        },
+        setIsError: () => {},
+        setIsLoading: (isLoading) => setIsLoading({ type: "TRANSACTION", state: isLoading }),
+        actionType: requestedActionType,
+        nativeSolBalance,
+        selectedAccount: selectedAccount,
+      });
+    };
 
-            onComplete &&
-              onComplete({
-                txn: txnSigs[txnSigs.length - 1] ?? "",
-                txnType: requestedActionType === ActionType.MintLST ? "STAKE" : "UNSTAKE",
-                stakingOptions: {
-                  amount: receiveAmount,
-                  type: requestedActionType,
-                  originDetails: {
-                    amount,
-                    bank: selectedBank,
-                  },
-                },
-              });
-          },
-          setIsError: () => {},
-          setIsLoading: (isLoading) => setIsLoading({ type: "TRANSACTION", state: isLoading }),
-          actionType: requestedActionType,
-          nativeSolBalance,
-          selectedAccount: selectedAccount,
-        });
-      };
+    await action();
+    setAmountRaw("");
 
-      await action();
-      setAmountRaw("");
-    } catch (error) {
-      const errorMessage =
-        requestedActionType === ActionType.MintLST
-          ? STATIC_SIMULATION_ERRORS.STAKE_FAILED
-          : STATIC_SIMULATION_ERRORS.UNSTAKE_FAILED;
-
-      setErrorMessage(errorMessage);
-      setIsLoading({ type: "SIMULATION", state: false });
-    }
+    setIsLoading({ type: "SIMULATION", state: false });
   }, [
     selectedBank,
     amount,
@@ -240,6 +233,7 @@ export const StakeBox = ({
     setIsLoading,
     setErrorMessage,
     nativeSolBalance,
+    selectedAccount,
   ]);
 
   const actionMethods = React.useMemo(

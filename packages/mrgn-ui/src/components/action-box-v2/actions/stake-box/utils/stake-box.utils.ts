@@ -1,7 +1,8 @@
 import { QuoteResponse } from "@jup-ag/api";
 
-import { ActionMethod, LstData } from "@mrgnlabs/mrgn-utils";
+import { ActionMethod, DYNAMIC_SIMULATION_ERRORS, LstData } from "@mrgnlabs/mrgn-utils";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { IconAdjustmentsQuestion } from "@tabler/icons-react";
 
 interface CheckActionAvailableProps {
   amount: number | null;
@@ -27,6 +28,14 @@ export function checkActionAvailable({
   if (generalChecks) checks.push(...generalChecks);
 
   if (!actionQuote) checks.push({ isEnabled: false });
+
+  if (actionQuote?.priceImpactPct && Number(actionQuote.priceImpactPct) > 0.01) {
+    if (actionQuote?.priceImpactPct && Number(actionQuote.priceImpactPct) > 0.05) {
+      checks.push(DYNAMIC_SIMULATION_ERRORS.PRICE_IMPACT_ERROR_CHECK(Number(actionQuote.priceImpactPct)));
+    } else {
+      checks.push(DYNAMIC_SIMULATION_ERRORS.PRICE_IMPACT_WARNING_CHECK(Number(actionQuote.priceImpactPct)));
+    }
+  }
 
   if (lstData && lstData?.updateRequired)
     checks.push({
