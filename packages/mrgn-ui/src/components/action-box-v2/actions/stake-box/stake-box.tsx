@@ -306,7 +306,6 @@ export const StakeBox = ({
           isEnabled={!additionalActionMethods.concat(actionMethods).filter((value) => value.isEnabled === false).length}
           connected={connected}
           handleAction={handleLstAction}
-          handleConnect={() => onConnect && onConnect()}
           buttonLabel={requestedActionType === ActionType.MintLST ? "Mint LST" : "Unstake LST"}
         />
       </div>
