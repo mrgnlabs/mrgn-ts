@@ -123,20 +123,7 @@ export const STATIC_SIMULATION_ERRORS: { [key: string]: ActionMethod } = {
     isEnabled: false,
     actionMethod: "WARNING",
   },
-  STAKE_FAILED: {
-    description: "Staking failed, please open a ticket.",
-    link: "https://support.marginfi.com/",
-    linkText: "Contact support",
-    isEnabled: false,
-    actionMethod: "WARNING",
-  },
-  UNSTAKE_FAILED: {
-    description: "Unstaking failed, please open a ticket.",
-    link: "https://support.marginfi.com/",
-    linkText: "Contact support",
-    isEnabled: false,
-    actionMethod: "WARNING",
-  },
+
   STAKE_SIMULATION_FAILED: {
     description: "Stake simulation failed, please try again.",
     link: "https://support.marginfi.com/",
