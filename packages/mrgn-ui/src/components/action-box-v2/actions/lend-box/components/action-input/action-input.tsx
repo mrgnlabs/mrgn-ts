@@ -61,7 +61,7 @@ export const ActionInput = ({
   );
 
   return (
-    <div className="bg-background rounded-lg p-2.5">
+    <div className="rounded-lg p-2.5 bg-mfi-action-box-accent">
       <div className="flex justify-center gap-1 items-center font-medium text-3xl">
         <div className="w-full flex-auto max-w-[162px]">
           <BankSelect

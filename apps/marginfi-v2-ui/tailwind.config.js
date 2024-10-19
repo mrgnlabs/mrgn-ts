@@ -81,6 +81,7 @@ module.exports = {
         },
         accent: {
           DEFAULT: "hsl(var(--accent))",
+          secondary: "hsl(var(--accent-secondary))",
           highlight: "hsl(var(--accent-highlight))",
           foreground: "hsl(var(--accent-foreground))",
         },
@@ -91,6 +92,14 @@ module.exports = {
         card: {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
+        },
+        mfi: {
+          actionBox: {
+            background: "hsl(var(--mfi-action-box-background))",
+            foreground: "hsl(var(--mfi-action-box-foreground))",
+            accent: "hsl(var(--mfi-action-box-accent))",
+            accentForeground: "hsl(var(--mfi-action-box-accent-foreground))",
+          },
         },
       },
       screens: {

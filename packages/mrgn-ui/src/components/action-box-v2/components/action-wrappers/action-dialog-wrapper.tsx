@@ -2,7 +2,7 @@ import { IconArrowLeft } from "@tabler/icons-react";
 import React from "react";
 
 import { Dialog, DialogTrigger, DialogContent } from "~/components/ui/dialog";
-import { useIsMobile, usePrevious } from "@mrgnlabs/mrgn-utils";
+import { useIsMobile, usePrevious, cn } from "@mrgnlabs/mrgn-utils";
 import { useActionBoxStore } from "../../store";
 
 export interface ActionDialogProps {
@@ -36,12 +36,13 @@ export const ActionDialogWrapper = ({ trigger, children, title, isTriggered = fa
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent
         hideClose={isMobile}
-        className={`${
+        className={cn(
+          "shadow-none overflow-visible",
           isMobile
             ? "mt-20 justify-start flex md:max-w-[520px] md:py-3 md:px-5 p-0 sm:rounded-2xl border-none z-50"
             : "md:flex md:max-w-[520px] md:py-3 md:px-5 p-0 sm:rounded-2xl bg-transparent border-none"
-        }`}
-        closeClassName={!isMobile ? "top-2 right-2" : undefined}
+        )}
+        closeClassName={!isMobile ? "-top-1 -right-1" : undefined}
       >
         <div>
           {isMobile && (
@@ -52,7 +53,11 @@ export const ActionDialogWrapper = ({ trigger, children, title, isTriggered = fa
               <IconArrowLeft /> {title}
             </div>
           )}
-          <div className={`${isMobile ? "p-4 h-screen mb-8" : "p-4"}`}>{children}</div>
+          <div
+            className={cn("bg-mfi-action-box-background shadow-lg rounded-lg", isMobile ? "p-4 h-screen mb-8" : "p-2")}
+          >
+            {children}
+          </div>
         </div>
       </DialogContent>
     </Dialog>

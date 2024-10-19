@@ -22,6 +22,7 @@
     --muted-foreground: 240 3.8% 46.1%;
     --accent: 240 4.8% 95.9%;
     --accent-foreground: 240 5.9% 10%;
+    --accent-secondary: 0 0% 100%;
     --destructive: 7 65% 66%;
     --destructive-foreground: 0 0% 98%;
     --border: 240 5.9% 90%;
@@ -40,6 +41,11 @@
     --mrgn-chartreuse: 66 75% 64%;
     --mrgn-gold: 33 16% 67%;
     --mrgn-slate: 72 3% 32%;
+
+    --mfi-action-box-background: 0 0% 100%;
+    --mfi-action-box-foreground: 240 10% 3.9%;
+    --mfi-action-box-accent: 240 4.8% 95.9%;
+    --mfi-action-box-accent-foreground: 240 5.9% 10%;
   }
 }
 
