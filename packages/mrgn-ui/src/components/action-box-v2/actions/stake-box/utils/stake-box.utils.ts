@@ -27,7 +27,7 @@ export function checkActionAvailable({
   const generalChecks = getGeneralChecks(amount ?? 0);
   if (generalChecks) checks.push(...generalChecks);
 
-  if (!actionQuote) checks.push({ isEnabled: false });
+  if (selectedBank?.meta.tokenSymbol !== "SOL" && !actionQuote) checks.push({ isEnabled: false });
 
   if (actionQuote?.priceImpactPct && Number(actionQuote.priceImpactPct) > 0.01) {
     if (actionQuote?.priceImpactPct && Number(actionQuote.priceImpactPct) > 0.05) {
