@@ -539,7 +539,7 @@ const Wallet = ({
                           </li>
                           <li>
                             <CopyToClipboard
-                              text={`https://www.mfi.gg/refer/${userPointsData.referralLink}`}
+                              text={`https://app.marginfi.com/refer/${userPointsData.referralLink}`}
                               onCopy={() => {
                                 if (userPointsData.referralLink && userPointsData.referralLink.length > 0) {
                                   setIsReferralCopied(true);
