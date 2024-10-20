@@ -264,7 +264,8 @@ async function signAccountLabelMemo(wallet: Wallet, account: string, label: stri
     if (signatureResult instanceof Uint8Array) {
       signatureArray = signatureResult;
     } else {
-      signatureArray = new Uint8Array(signatureResult.signature);
+      const phantomSignatureResult = signatureResult as { signature: ArrayBuffer };
+      signatureArray = new Uint8Array(phantomSignatureResult.signature);
     }
 
     const signedData = JSON.stringify({

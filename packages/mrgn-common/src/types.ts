@@ -13,9 +13,7 @@ export type Amount = BigNumber | number | string;
 
 export type Wallet = Pick<SignerWalletAdapter, "signAllTransactions" | "signTransaction"> & {
   publicKey: PublicKey;
-  // phantom window provider returns { signature: ArrayBuffer }
-  // wallet adapter returns Uint8Array
-  signMessage?: (message: Uint8Array) => Promise<Uint8Array | { signature: ArrayBuffer }>;
+  signMessage?: (message: Uint8Array) => Promise<Uint8Array>;
 };
 
 export interface TransactionOptions extends ConfirmOptions {
