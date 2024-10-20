@@ -4,9 +4,9 @@ import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-clien
 import { clearAccountCache, firebaseApi } from "@mrgnlabs/marginfi-v2-ui-state";
 import { getMaybeSquadsOptions, MultiStepToastHandle, capture } from "@mrgnlabs/mrgn-utils";
 import { IconChevronDown, IconUserPlus, IconPencil, IconAlertTriangle } from "@tabler/icons-react";
+import { Connection } from "@solana/web3.js";
 
 import { cn } from "@mrgnlabs/mrgn-utils";
-import { useConnection } from "@mrgnlabs/mrgn-utils";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
 import { Button } from "~/components/ui/button";
@@ -28,6 +28,7 @@ enum WalletAuthAccountsState {
 type WalletAuthAccountsProps = {
   initialized: boolean;
   mfiClient: MarginfiClient | null;
+  connection: Connection;
   marginfiAccounts: MarginfiAccountWrapper[];
   selectedAccount: MarginfiAccountWrapper | null;
   fetchMrgnlendState: () => void;
@@ -36,12 +37,12 @@ type WalletAuthAccountsProps = {
 export const WalletAuthAccounts = ({
   initialized,
   mfiClient,
+  connection,
   marginfiAccounts,
   selectedAccount,
   fetchMrgnlendState,
 }: WalletAuthAccountsProps) => {
   const { wallet, walletContextState } = useWallet();
-  const { connection } = useConnection();
   const [isActivatingAccount, setIsActivatingAccount] = React.useState<number | null>(null);
   const [isActivatingAccountDelay, setIsActivatingAccountDelay] = React.useState<number | null>(null);
   const [walletAuthAccountsState, setWalletAuthAccountsState] = React.useState<WalletAuthAccountsState>(
