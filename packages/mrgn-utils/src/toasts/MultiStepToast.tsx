@@ -44,7 +44,7 @@ export const MultiStepToast = ({ title, steps, theme = "dark" }: MultiStepToastP
             >
               <div className="flex items-center space-x-2">
                 <h3>
-                  {steps.length > 0 && <>{index + 1}</>}. {step.label}
+                  {steps.length > 1 && <>{index + 1}</>}. {step.label}
                 </h3>
                 {step.status === "success" && <IconCheck size={18} className="text-green-400" />}
                 {step.status === "error" && <IconAlertTriangle size={18} className="text-red-400" />}

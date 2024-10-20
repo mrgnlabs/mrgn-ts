@@ -211,6 +211,10 @@ export const StakeBox = ({
         actionType: requestedActionType,
         nativeSolBalance,
         selectedAccount: selectedAccount,
+        originDetails: {
+          amount,
+          tokenSymbol: selectedBank.meta.tokenSymbol,
+        },
       });
     };
 

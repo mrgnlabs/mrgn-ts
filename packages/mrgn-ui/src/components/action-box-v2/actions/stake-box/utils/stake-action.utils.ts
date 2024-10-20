@@ -1,11 +1,12 @@
 import * as Sentry from "@sentry/nextjs";
 import { v4 as uuidv4 } from "uuid";
 
-import { ActionType, ExtendedBankInfo, FEE_MARGIN } from "@mrgnlabs/marginfi-v2-ui-state";
-import { MarginfiAccount, MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
+import { ActionType, FEE_MARGIN } from "@mrgnlabs/marginfi-v2-ui-state";
+import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { extractErrorString, MultiStepToastHandle, showErrorToast, StakeActionTxns } from "@mrgnlabs/mrgn-utils";
 
 import { ExecuteActionsCallbackProps } from "~/components/action-box-v2/types";
+import { numeralFormatter } from "@mrgnlabs/mrgn-common";
 
 interface ExecuteStakeActionProps extends ExecuteActionsCallbackProps {
   params: {
@@ -15,6 +16,10 @@ interface ExecuteStakeActionProps extends ExecuteActionsCallbackProps {
   actionType: ActionType;
   nativeSolBalance: number;
   selectedAccount: MarginfiAccountWrapper;
+  originDetails: {
+    amount: number;
+    tokenSymbol: string;
+  };
 }
 
 export const handleExecuteLstAction = async ({
@@ -26,6 +31,7 @@ export const handleExecuteLstAction = async ({
   actionType,
   nativeSolBalance,
   selectedAccount,
+  originDetails,
 }: ExecuteStakeActionProps) => {
   const { actionTxns, marginfiClient } = params;
 
@@ -37,14 +43,13 @@ export const handleExecuteLstAction = async ({
     amount: actionTxns.actionQuote?.inAmount,
   });
 
-  // if actionTxn -> button disabled
-
   const txnSig = await executeLstAction({
     marginfiClient,
     actionTxns,
     actionType,
     nativeSolBalance,
     selectedAccount,
+    originDetails,
   });
 
   setIsLoading(false);
@@ -76,12 +81,17 @@ const executeLstAction = async ({
   actionType,
   nativeSolBalance,
   selectedAccount,
+  originDetails,
 }: {
   marginfiClient: MarginfiClient;
   actionTxns: any;
   actionType: ActionType;
   nativeSolBalance: number;
   selectedAccount: MarginfiAccountWrapper;
+  originDetails: {
+    amount: number;
+    tokenSymbol: string;
+  };
 }) => {
   if (nativeSolBalance < FEE_MARGIN) {
     showErrorToast("Not enough sol for fee.");
@@ -89,7 +99,9 @@ const executeLstAction = async ({
   }
 
   const multiStepToast = new MultiStepToastHandle(
-    actionType === ActionType.MintLST ? "Staking" : "Unstaking ",
+    actionType === ActionType.MintLST
+      ? `Staking ${numeralFormatter(originDetails.amount)} ${originDetails.tokenSymbol}`
+      : `Unstaking ${originDetails.amount} ${originDetails.tokenSymbol}`,
     [{ label: `Executing ${actionType === ActionType.MintLST ? "stake" : "unstake"}` }],
     "dark"
   );
