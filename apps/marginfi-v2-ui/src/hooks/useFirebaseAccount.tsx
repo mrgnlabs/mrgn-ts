@@ -6,6 +6,7 @@ import { useRouter } from "next/router";
 
 import { toast } from "react-toastify";
 import { useUserProfileStore } from "~/store";
+import { useMrgnlendStore } from "~/store";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import React from "react";
 
@@ -15,6 +16,8 @@ const useFirebaseAccount = () => {
 
   const [isLogged, setIsLogged] = React.useState(false);
   const referralCode = React.useMemo(() => routerQuery.referralCode as string | undefined, [routerQuery.referralCode]);
+
+  const [initialized] = useMrgnlendStore((state) => [state.initialized]);
 
   const [checkForFirebaseUser, setFirebaseUser, signoutFirebaseUser, fetchPoints, resetPoints, hasUser] =
     useUserProfileStore((state) => [
@@ -30,6 +33,7 @@ const useFirebaseAccount = () => {
   const walletId = walletInfo && walletInfo?.name ? walletInfo.name : "";
 
   useEffect(() => {
+    if (!initialized) return;
     // NOTE: if more point-specific logic is added, move this to a separate hook
     const unsubscribe = onAuthStateChanged(firebaseApi.auth, (newUser) => {
       if (newUser) {
@@ -41,7 +45,7 @@ const useFirebaseAccount = () => {
       }
     });
     return () => unsubscribe();
-  }, [fetchPoints, setFirebaseUser, resetPoints]);
+  }, [fetchPoints, setFirebaseUser, resetPoints, initialized]);
 
   // Wallet connection side effect (auto-login attempt)
   useEffect(() => {
