@@ -254,13 +254,22 @@ async function signAccountLabelMemo(wallet: Wallet, account: string, label: stri
 
   try {
     const encodedMessage = new TextEncoder().encode(JSON.stringify({ account, label }));
-    const signature = await wallet.signMessage(encodedMessage);
+    const signatureResult = await wallet.signMessage(encodedMessage);
 
-    if (!signature) return false;
+    if (!signatureResult) return false;
+
+    // phantom window provider returns { signature: ArrayBuffer }
+    // wallet adapter returns Uint8Array
+    let signatureArray: Uint8Array;
+    if (signatureResult instanceof Uint8Array) {
+      signatureArray = signatureResult;
+    } else {
+      signatureArray = new Uint8Array(signatureResult.signature);
+    }
 
     const signedData = JSON.stringify({
       data: { account, label },
-      signature: base58.encode(signature as Uint8Array),
+      signature: base58.encode(signatureArray),
       signer: wallet.publicKey.toBase58(),
     });
 

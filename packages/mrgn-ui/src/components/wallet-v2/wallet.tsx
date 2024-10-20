@@ -222,6 +222,7 @@ const Wallet = ({
                       <WalletAuthAccounts
                         initialized={initialized}
                         mfiClient={mfiClient}
+                        connection={connection}
                         marginfiAccounts={marginfiAccounts}
                         selectedAccount={selectedAccount}
                         fetchMrgnlendState={refreshState}
