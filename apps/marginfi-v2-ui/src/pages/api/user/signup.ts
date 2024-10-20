@@ -35,11 +35,9 @@ export default async function handler(req: NextApiRequest<SignupRequest>, res: a
   try {
     const user = await getFirebaseUserByWallet(walletAddress);
     if (user) {
-      Sentry.captureException({ message: "User already exists" });
       return res.status(STATUS_BAD_REQUEST).json({ error: "User already exists" });
     }
   } catch (error: any) {
-    Sentry.captureException(error);
     return res.status(STATUS_INTERNAL_ERROR).json({ error: error.message }); // An unexpected error occurred
   }
 
