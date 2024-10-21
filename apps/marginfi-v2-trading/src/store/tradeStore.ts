@@ -26,6 +26,7 @@ import {
   loadBankMetadatas,
   getValueInsensitive,
   BankMetadata,
+  LST_MINT,
 } from "@mrgnlabs/mrgn-common";
 
 import { TRADE_GROUPS_MAP, TOKEN_METADATA_MAP, BANK_METADATA_MAP, POOLS_PER_PAGE } from "~/config/trade";
@@ -152,7 +153,6 @@ type TradeStoreState = {
 const { programId } = getConfig();
 
 const USDC_MINT = new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
-const LST_MINT = new PublicKey("LSTxxxnJzKDFSLr4dUkPcmCf5VyryEqzPLz5j4bpxFp");
 
 let fuse: Fuse<GroupData> | null = null;
 

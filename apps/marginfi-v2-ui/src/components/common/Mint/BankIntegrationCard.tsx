@@ -1,11 +1,12 @@
 import React from "react";
 import Image from "next/image";
+
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { numeralFormatter, percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 import { ActionBox } from "@mrgnlabs/mrgn-ui";
+import { getDepositsData, getRateData } from "@mrgnlabs/mrgn-utils";
 
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
-import { getDepositsData, getRateData } from "~/components/desktop/AssetList/utils";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { IconMrgn } from "~/components/ui/icons";

@@ -7,7 +7,6 @@ import { IconCheck, IconBell } from "@tabler/icons-react";
 import { MintCardProps } from "~/utils";
 import { useMrgnlendStore } from "~/store";
 import { ActionBox } from "@mrgnlabs/mrgn-ui";
-import { capture } from "@mrgnlabs/mrgn-utils";
 
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
