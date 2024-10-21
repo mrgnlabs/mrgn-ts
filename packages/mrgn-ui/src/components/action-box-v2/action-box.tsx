@@ -2,15 +2,16 @@ import React from "react";
 
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { LendBox, LendBoxProps, LoopBox, LoopBoxProps, RepayCollatBox } from "./actions";
+import { LendBox, LendBoxProps, LoopBox, LoopBoxProps, RepayCollatBox, StakeBox, StakeBoxProps } from "./actions";
 import { ActionDialogWrapper, ActionBoxWrapper, ActionBoxNavigator } from "./components";
-import { useActionBoxContext } from "./contexts";
+import { useActionBoxContext, useStakeBoxContext } from "./contexts";
 import {
   ActionBoxComponent,
   ActionBoxProps,
   RepayBoxProps,
   isDialogWrapperProps,
   RequiredLendBoxProps,
+  RequiredStakeBoxProps,
   RequiredRepayBoxProps,
   RequiredLoopBoxProps,
 } from "./types";
@@ -162,6 +163,37 @@ const Loop = (props: ActionBoxProps & { loopProps: RequiredLoopBoxProps | LoopBo
   );
 };
 ActionBox.Loop = Loop;
+
+const Stake = (
+  props: ActionBoxProps & { stakeProps: StakeBoxProps | RequiredStakeBoxProps; useProvider?: boolean }
+) => {
+  const contextProps = useActionBoxContext();
+  const stakeContextProps = useStakeBoxContext();
+  const { stakeProps, useProvider, ...actionBoxProps } = props;
+
+  let combinedProps: StakeBoxProps;
+
+  if (useProvider && contextProps) {
+    combinedProps = {
+      ...contextProps,
+      ...(stakeProps as RequiredStakeBoxProps),
+      ...stakeContextProps,
+    };
+  } else {
+    combinedProps = stakeProps as StakeBoxProps;
+  }
+  return (
+    <ActionBox {...actionBoxProps}>
+      <ActionBoxWrapper showSettings={true} isDialog={props.isDialog} actionMode={stakeProps.requestedActionType}>
+        <ActionBoxNavigator selectedAction={stakeProps.requestedActionType}>
+          <StakeBox {...combinedProps} isDialog={props.isDialog} />
+        </ActionBoxNavigator>
+      </ActionBoxWrapper>
+    </ActionBox>
+  );
+};
+
+ActionBox.Stake = Stake;
 
 ActionBox.displayName = "ActionBox";
 

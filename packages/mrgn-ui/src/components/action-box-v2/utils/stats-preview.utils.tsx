@@ -3,12 +3,18 @@ import { IconArrowRight, IconAlertTriangle } from "@tabler/icons-react";
 
 import { getPriceWithConfidence } from "@mrgnlabs/marginfi-client-v2";
 import { ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { clampedNumeralFormatter, numeralFormatter, percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
+import {
+  clampedNumeralFormatter,
+  numeralFormatter,
+  percentFormatter,
+  percentFormatterDyn,
+  usdFormatter,
+} from "@mrgnlabs/mrgn-common";
 import { cn } from "@mrgnlabs/mrgn-utils";
 
 import { Skeleton } from "~/components/ui/skeleton";
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "~/components/ui/tooltip";
-import { IconPyth, IconSwitchboard } from "~/components/ui/icons";
+import { IconLoader, IconPyth, IconSwitchboard } from "~/components/ui/icons";
 
 export const REDUCE_ONLY_BANKS = ["stSOL", "RLB"];
 
@@ -236,5 +242,52 @@ export function getOracleStat(bank: ExtendedBankInfo): PreviewStat {
         {oracle === "Pyth" ? <IconPyth size={14} /> : <IconSwitchboard size={14} />}
       </>
     ),
+  };
+}
+
+export function getSupplyStat(supply: number, isLoading: boolean, simulationSupply?: number): PreviewStat {
+  return {
+    label: "Supply",
+    value: () => (
+      <>
+        {supply && numeralFormatter(supply)}
+        {simulationSupply ? <IconArrowRight width={12} height={12} /> : ""}
+        {isLoading ? (
+          <Skeleton className="h-4 w-[45px] bg-[#373F45]" />
+        ) : simulationSupply ? (
+          numeralFormatter(simulationSupply)
+        ) : (
+          ""
+        )}
+      </>
+    ),
+  };
+}
+
+export function getLstSupplyStat(supply: number): PreviewStat {
+  return {
+    label: "Supply",
+    value: () => <>{supply && numeralFormatter(supply)}</>,
+  };
+}
+
+export function getProjectedAPYStat(projectedApy: number): PreviewStat {
+  return {
+    label: "Projected APY",
+    value: () => <>{percentFormatterDyn.format(projectedApy)}</>,
+  };
+}
+
+export function getCurrentPriceStat(currentPrice: number): PreviewStat {
+  return {
+    label: "Current Price",
+    value: () => <>1 $LST = {currentPrice && numeralFormatter(currentPrice)} SOL</>,
+  };
+}
+
+export function getCommissionStat(commission: number): PreviewStat {
+  return {
+    label: "Commission",
+    value: () => <>{commission}%</>,
   };
 }

@@ -9,7 +9,7 @@ export interface MultiStepToastProps {
 }
 
 export interface ToastStep {
-  label: string;
+  label: string | string[];
 }
 
 export type ToastStatus = "todo" | "pending" | "success" | "error" | "canceled";
@@ -42,13 +42,30 @@ export const MultiStepToast = ({ title, steps, theme = "dark" }: MultiStepToastP
               )}
               key={index}
             >
-              <div className="flex items-center space-x-2">
-                <h3>
-                  {steps.length > 0 && <>{index + 1}</>}. {step.label}
-                </h3>
-                {step.status === "success" && <IconCheck size={18} className="text-green-400" />}
-                {step.status === "error" && <IconAlertTriangle size={18} className="text-red-400" />}
-                {step.status === "pending" && <IconLoader2 size={18} className="animate-spin" />}
+              <div className="flex items-start space-x-2">
+                <h3 className="pt-0.5">{steps.length > 1 && <>{`${index + 1}.`}</>}</h3>
+                {Array.isArray(step.label) ? (
+                  <ul className="list-disc list-inside">
+                    {step.label.map((label, idx) => (
+                      <li key={idx} className="flex items-center space-x-2">
+                        <span className="w-2 h-2 bg-gray-400 rounded-full inline-block"></span>
+                        <span>{label}</span>
+                        {step.status === "success" && <IconCheck size={18} className="text-green-400 flex-shrink-0" />}
+                        {step.status === "error" && (
+                          <IconAlertTriangle size={18} className="text-red-400 flex-shrink-0" />
+                        )}
+                        {step.status === "pending" && <IconLoader2 size={18} className="animate-spin flex-shrink-0" />}
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <div className="flex items-center space-x-2">
+                    <span>{step.label}</span>
+                    {step.status === "success" && <IconCheck size={18} className="text-green-400" />}
+                    {step.status === "error" && <IconAlertTriangle size={18} className="text-red-400" />}
+                    {step.status === "pending" && <IconLoader2 size={18} className="animate-spin" />}
+                  </div>
+                )}
               </div>
               {step.message && (
                 <p className="bg-destructive py-3 px-4 rounded-xl mt-2.5 text-destructive-foreground">{step.message}</p>

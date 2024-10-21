@@ -552,19 +552,20 @@ export const ActionBox = ({
       });
     }
 
-    const txnSig = await executeLstAction({
-      actionMode,
-      marginfiClient: mfiClient,
-      amount,
-      connection,
-      wallet,
-      lstData,
-      bank: selectedBank,
-      nativeSolBalance,
-      selectedStakingAccount,
-      quoteResponseMeta: lstQuoteMeta as any, // TODO: fix type
-      priorityFee,
-    });
+    // const txnSig = await executeLstAction({
+    //   actionMode,
+    //   marginfiClient: mfiClient,
+    //   amount,
+    //   connection,
+    //   wallet,
+    //   lstData,
+    //   bank: selectedBank,
+    //   nativeSolBalance,
+    //   selectedStakingAccount,
+    //   quoteResponseMeta: lstQuoteMeta as any, // TODO: fix type
+    //   priorityFee,
+    // }); // TODO: This was causing build errors but since this is deprecated code I've commented it out
+    let txnSig = "";
 
     console.log("executer loop action");
 

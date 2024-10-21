@@ -6,11 +6,14 @@ import { IconCheck, IconBell } from "@tabler/icons-react";
 
 import { MintCardProps } from "~/utils";
 import { useMrgnlendStore } from "~/store";
+import { ActionBox } from "@mrgnlabs/mrgn-ui";
+import { capture } from "@mrgnlabs/mrgn-utils";
 
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { ActionBoxDialog } from "~/components/common/ActionBox";
 import { LST_MINT } from "~/store/lstStore";
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
 interface MintCardWrapperProps {
   mintCard: MintCardProps;
@@ -19,16 +22,10 @@ interface MintCardWrapperProps {
 export const MintCardWrapper: React.FC<MintCardWrapperProps> = ({ mintCard, ...props }) => {
   const [extendedBankInfos] = useMrgnlendStore((state) => [state.extendedBankInfos]);
 
-  const [requestedAction, setRequestedAction] = React.useState<ActionType>(ActionType.MintLST);
-
   const transformedActionGate = React.useMemo(() => getBlockedActions(), []);
 
-  const requestedBank = React.useMemo(
-    () =>
-      extendedBankInfos.find((bank) => bank?.info?.state?.mint.equals && bank?.info?.state?.mint.equals(LST_MINT)) ??
-      null,
-    [extendedBankInfos]
-  );
+  const { connected } = useWallet();
+
   return (
     <Card variant="default" className="relative">
       <CardHeader className="pt-8">
@@ -71,33 +68,41 @@ export const MintCardWrapper: React.FC<MintCardWrapperProps> = ({ mintCard, ...p
         )}
 
         {mintCard.title === "LST" ? (
-          <ActionBoxDialog
-            requestedAction={requestedAction}
-            requestedBank={requestedAction === ActionType.UnstakeLST ? requestedBank : null}
-          >
-            <div className="flex items-center gap-2">
-              <Button
-                variant="secondary"
-                size="lg"
-                className="mt-4"
-                onClick={() => {
-                  setRequestedAction(ActionType.MintLST);
-                }}
-              >
-                Stake {mintCard.title}
-              </Button>
-              <Button
-                variant="outline-dark"
-                size="lg"
-                className="mt-4 hover:text-primary"
-                onClick={() => {
-                  setRequestedAction(ActionType.UnstakeLST);
-                }}
-              >
-                Unstake {mintCard.title}
-              </Button>
-            </div>
-          </ActionBoxDialog>
+          <div className="flex items-center gap-2">
+            <ActionBox.Stake
+              isDialog={true}
+              useProvider={true}
+              stakeProps={{
+                connected: connected,
+                requestedActionType: ActionType.MintLST,
+              }}
+              dialogProps={{
+                trigger: (
+                  <Button variant="secondary" size="lg" className="mt-4">
+                    Mint {mintCard.title}
+                  </Button>
+                ),
+                title: "Mint LST",
+              }}
+            />
+            <ActionBox.Stake
+              isDialog={true}
+              useProvider={true}
+              stakeProps={{
+                connected: connected,
+                requestedActionType: ActionType.UnstakeLST,
+                requestedBank: extendedBankInfos.find((bank) => bank?.info?.state?.mint.equals(LST_MINT)),
+              }}
+              dialogProps={{
+                trigger: (
+                  <Button variant="outline-dark" size="lg" className="mt-4 hover:text-primary">
+                    Unstake {mintCard.title}
+                  </Button>
+                ),
+                title: "Unstake LST",
+              }}
+            />
+          </div>
         ) : transformedActionGate?.find((value) => value === ActionType.MintYBX) ? (
           <div className="flex items-center gap-2">
             <Button
@@ -114,11 +119,7 @@ export const MintCardWrapper: React.FC<MintCardWrapperProps> = ({ mintCard, ...p
             </Button>
           </div>
         ) : (
-          <ActionBoxDialog
-            requestedAction={ActionType.MintYBX}
-            requestedBank={null}
-            //requestedToken={new PublicKey("2s37akK2eyBbp8DZgCm7RtsaEz8eJP3Nxd4urLHQv7yB")}
-          >
+          <ActionBoxDialog requestedAction={ActionType.MintYBX} requestedBank={null}>
             <div className="flex items-center gap-2">
               <Button variant="secondary" size="lg" className="mt-4">
                 Stake

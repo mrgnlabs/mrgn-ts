@@ -57,6 +57,8 @@ export interface LstData {
   solDepositFee: number;
   accountData: solanaStakePool.StakePool;
   validatorList: PublicKey[];
+  updateRequired: boolean;
+  lastUpdateEpoch: string;
 }
 
 export interface ActionTxns {
@@ -74,7 +76,12 @@ export interface LoopActionTxns extends ActionTxns {
 export interface RepayCollatActionTxns extends ActionTxns {
   actionQuote: QuoteResponse | null;
   lastValidBlockHeight?: number;
-}
+} //
+
+export interface StakeActionTxns extends ActionTxns {
+  actionQuote: QuoteResponse | null;
+  lastValidBlockHeight?: number;
+} // TOOD: implement this as actionSummary type
 
 export type RepayWithCollatOptions = {
   repayCollatQuote: QuoteResponse;
