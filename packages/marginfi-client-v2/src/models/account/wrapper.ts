@@ -1294,7 +1294,7 @@ export function makeBundleTipIx(feePayer: PublicKey): TransactionInstruction {
   return SystemProgram.transfer({
     fromPubkey: feePayer,
     toPubkey: new PublicKey(randomTipAccount),
-    lamports: 10_000, // 1000 lamports = 0.000001 SOL
+    lamports: 100_000, // 100_000 lamports = 0.0001 SOL
   });
 }
 
