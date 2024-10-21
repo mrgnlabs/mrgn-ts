@@ -10,7 +10,7 @@ export const ActionSettingsButton = ({ setIsSettingsActive }: ActionSettingsButt
       <div className="flex justify-end gap-2 ml-auto">
         <button
           onClick={() => setIsSettingsActive(true)}
-          className="text-xs gap-1 h-6 px-2 flex items-center rounded-full border border-background-gray-light bg-transparent hover:bg-background-gray-light text-muted-foreground"
+          className="text-xs gap-1 h-6 px-2 flex items-center rounded-full bg-mfi-action-box-accent hover:bg-mfi-action-box-accent/80"
         >
           Settings <IconSettings size={16} />
         </button>
