@@ -1,8 +1,10 @@
 import { PublicKey, TransactionInstruction, Connection, AddressLookupTableAccount } from "@solana/web3.js";
-import { WalletContextState } from "@solana/wallet-adapter-react";
-import { WalletContextStateOverride } from "../wallet";
-import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { createJupiterApiClient, QuoteGetRequest } from "@jup-ag/api";
+import { WalletContextState } from "@solana/wallet-adapter-react";
+import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+
+import { WalletContextStateOverride } from "../wallet";
+import { REFERRAL_ACCOUNT_PUBKEY, REFERRAL_PROGRAM_ID } from "../jup-referral.utils";
 
 // ------------------------------------------------------------------//
 // Helpers //
@@ -56,19 +58,6 @@ export async function getAdressLookupTableAccounts(
     return acc;
   }, new Array<AddressLookupTableAccount>());
 }
-
-export const TOKEN_2022_MINTS = ["2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo"];
-
-export const getFeeAccount = (mint: PublicKey) => {
-  const referralProgramPubkey = new PublicKey("REFER4ZgmyYx9c6He5XfaTMiGfdLwRnkV4RPp9t9iF3");
-  const referralAccountPubkey = new PublicKey("Mm7HcujSK2JzPW4eX7g4oqTXbWYDuFxapNMHXe8yp1B");
-
-  const [feeAccount] = PublicKey.findProgramAddressSync(
-    [Buffer.from("referral_ata"), referralAccountPubkey.toBuffer(), mint.toBuffer()],
-    referralProgramPubkey
-  );
-  return feeAccount.toBase58();
-};
 
 export const formatAmount = (
   newAmount: string,

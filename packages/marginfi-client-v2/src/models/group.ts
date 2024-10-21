@@ -193,7 +193,8 @@ class MarginfiGroup {
         bankMint: bankMint,
         bank: bankPubkey,
         tokenProgram: TOKEN_PROGRAM_ID,
-        oracleKey: rawBankConfigCompact.oracleKey,
+        // if two oracle keys: first is feed id, second is oracle key
+        oracleKey: rawBankConfig.oracle?.keys[1] || rawBankConfigCompact.oracleKey,
       },
       {
         bankConfig: rawBankConfigCompact,
