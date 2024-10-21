@@ -17,6 +17,7 @@ import {
   RepayWithCollatOptions,
   deserializeInstruction,
   getAdressLookupTableAccounts,
+  REDUCE_ONLY_BANKS,
 } from "@mrgnlabs/mrgn-utils";
 import {
   Bank,
@@ -33,7 +34,6 @@ import { IconAlertTriangle, IconArrowRight } from "@tabler/icons-react";
 import { IconPyth, IconSwitchboard } from "~/components/ui/icons";
 import { Skeleton } from "~/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
-import { REDUCE_ONLY_BANKS } from "~/components/desktop/AssetList/utils";
 import { calculateBorrowLend } from "~/store/actionBoxStore";
 
 export interface SimulateActionProps {

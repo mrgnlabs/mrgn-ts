@@ -1,31 +1,12 @@
 import React from "react";
 
-import { useRouter } from "next/router";
-
-import { useTradeStore, useUiStore } from "~/store";
+import { useTradeStore } from "~/store";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
-import { GroupData } from "~/store/tradeStore";
-import { useIsMobile } from "~/hooks/use-is-mobile";
-
-import { Wallet } from "~/components/wallet-v2";
-import { ActionComplete } from "~/components/common/ActionComplete";
-import { TVWidget } from "~/components/common/TVWidget";
-import { TradingBox } from "~/components/common/TradingBox";
-import { PositionList } from "~/components/common/Portfolio";
-import { PoolTradeHeader } from "~/components/common/Pool/PoolTradeHeader";
 import { Loader } from "~/components/common/Loader";
-import { ManagePoolCard } from "~/components/common/admin";
+import { AdminPoolCard } from "~/components/common/admin";
 
 export default function AdminPage() {
-  const [initialized, groupMap, currentPage, totalPages, setCurrentPage, sortBy, setSortBy] = useTradeStore((state) => [
-    state.initialized,
-    state.groupMap,
-    state.currentPage,
-    state.totalPages,
-    state.setCurrentPage,
-    state.sortBy,
-    state.setSortBy,
-  ]);
+  const [initialized, groupMap] = useTradeStore((state) => [state.initialized, state.groupMap]);
   const { wallet } = useWallet();
 
   const ownPools = React.useMemo(() => {
@@ -52,7 +33,7 @@ export default function AdminPage() {
               </div>
               <div className="bg-background border rounded-xl px-4 py-1">
                 {ownPools.map((group, i) => (
-                  <ManagePoolCard key={i} groupData={group} last={i === ownPools.length - 1} />
+                  <AdminPoolCard key={i} groupData={group} last={i === ownPools.length - 1} />
                 ))}
               </div>
             </div>

@@ -2,59 +2,19 @@ import React from "react";
 
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/router";
 
-import {
-  percentFormatter,
-  numeralFormatter,
-  tokenPriceFormatter,
-  usdFormatter,
-  shortenAddress,
-  aprToApy,
-} from "@mrgnlabs/mrgn-common";
-import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
-import { Desktop, Mobile, cn } from "@mrgnlabs/mrgn-utils";
-import { IconChevronDown, IconExternalLink } from "@tabler/icons-react";
+import { percentFormatter, numeralFormatter, tokenPriceFormatter, shortenAddress } from "@mrgnlabs/mrgn-common";
+import { cn } from "@mrgnlabs/mrgn-utils";
+import { IconExternalLink } from "@tabler/icons-react";
 
-import { useTradeStore } from "~/store";
 import { GroupData } from "~/store/tradeStore";
-
-import { TokenCombobox } from "~/components/common/TokenCombobox";
-import { PoolShare } from "~/components/common/Pool/PoolShare";
-import { ActionBoxDialog } from "~/components/common/ActionBox";
-import { PositionCard } from "~/components/common/Portfolio";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "~/components/ui/dropdown-menu";
-import { Button } from "~/components/ui/button";
 
-export const ManagePoolDetailHeader = ({ activeGroup }: { activeGroup: GroupData }) => {
-  const router = useRouter();
+type AdminPoolDetailHeaderProps = {
+  activeGroup: GroupData;
+};
 
-  const [portfolio] = useTradeStore((state) => [state.portfolio]);
-
-  const lpPosition = React.useMemo(() => {
-    if (!portfolio) return null;
-    const tokenLpPosition = portfolio.lpPositions.find((lp) =>
-      activeGroup?.pool.token.info.rawBank.address
-        ? lp.pool.token.info.rawBank.address.equals(activeGroup?.pool.token.info.rawBank.address)
-        : null
-    );
-    const quoteTokenLpPosition = portfolio.lpPositions.find((lp) =>
-      activeGroup?.pool.quoteTokens[0].info.rawBank.address
-        ? lp.pool.quoteTokens[0].info.rawBank.address.equals(activeGroup?.pool.quoteTokens[0].info.rawBank.address)
-        : null
-    );
-    return {
-      token: tokenLpPosition,
-      quoteToken: quoteTokenLpPosition,
-    };
-  }, [portfolio, activeGroup]);
-
+export const AdminPoolDetailHeader = ({ activeGroup }: AdminPoolDetailHeaderProps) => {
   return (
     <div className="px-4 pb-10 lg:px-8 lg:py-10 lg:bg-background lg:border lg:rounded-xl">
       <div className="flex flex-col lg:flex-row items-center justify-between gap-8">

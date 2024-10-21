@@ -3,31 +3,19 @@ import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 
-import { IconInfoCircle } from "@tabler/icons-react";
-import {
-  numeralFormatter,
-  tokenPriceFormatter,
-  percentFormatter,
-  usdFormatter,
-  shortenAddress,
-} from "@mrgnlabs/mrgn-common";
-
+import { numeralFormatter, tokenPriceFormatter, percentFormatter } from "@mrgnlabs/mrgn-common";
 import { cn } from "@mrgnlabs/mrgn-utils";
-import { useGroupBanks, useGroupPosition } from "~/hooks/arenaHooks";
 
-import { PositionActionButtons } from "~/components/common/Portfolio";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
-
 import type { GroupData } from "~/store/tradeStore";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 
-type PoolDetailHeaderProps = {
+type AdminPoolCardProps = {
   groupData: GroupData;
   last?: boolean;
 };
 
-export const PoolDetailHeader = ({ groupData, last }: PoolDetailHeaderProps) => {
+export const AdminPoolCard = ({ groupData, last }: AdminPoolCardProps) => {
   return (
     <div className={cn("grid grid-cols-7 py-2 w-full items-center", !last && "border-b pb-3 mb-2")}>
       <div className="flex items-center gap-2">
@@ -93,7 +81,7 @@ export const PoolDetailHeader = ({ groupData, last }: PoolDetailHeaderProps) => 
         </TooltipProvider>
       </div>
       <div className="flex items-center gap-2 justify-end">
-        <Link href={`/admin/${groupData.client.group.address.toBase58()}?side=long`} className="w-full">
+        <Link href={`/admin/${groupData.client.group.address.toBase58()}`} className="w-full">
           <Button variant="default" className="w-full">
             Details
           </Button>

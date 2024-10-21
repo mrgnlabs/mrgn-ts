@@ -97,11 +97,13 @@ export const Header = () => {
           </ul>
         </nav>
         <div className={cn("flex items-center gap-2")}>
-          <Link href="/admin">
-            <Button variant="outline" size={isMobile ? "sm" : "default"}>
-              <IconPlus size={isMobile ? 14 : 18} /> Manage pools
-            </Button>
-          </Link>
+          {ownPools.length > 0 && (
+            <Link href="/admin">
+              <Button variant="outline" size={isMobile ? "sm" : "default"}>
+                <IconPlus size={isMobile ? 14 : 18} /> Manage pools
+              </Button>
+            </Link>
+          )}
           {
             // eslint-disable-next-line turbo/no-undeclared-env-vars
             process.env.NEXT_PUBLIC_ENABLE_BANK_SCRIPT && (
