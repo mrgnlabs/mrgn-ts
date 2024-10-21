@@ -328,7 +328,7 @@ export const handleError = (
       }
 
       if (
-        error.messgae?.toLowerCase()?.includes("block height exceeded") ||
+        error.message?.toLowerCase()?.includes("block height exceeded") ||
         error.message === "BlockhashNotFound" || // Exact match
         error.message?.toLowerCase()?.includes("blockhashnotfound") || // Contains 'BlockhashNotFound'
         error.message?.includes('"BlockhashNotFound"') || // Contains '"BlockhashNotFound"'
