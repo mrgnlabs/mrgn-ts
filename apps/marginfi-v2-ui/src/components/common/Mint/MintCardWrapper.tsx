@@ -96,7 +96,7 @@ export const MintCardWrapper: React.FC<MintCardWrapperProps> = ({ mintCard, ...p
               dialogProps={{
                 trigger: (
                   <Button variant="secondary" size="lg" className="mt-4">
-                    Stake {mintCard.title}
+                    Mint {mintCard.title}
                   </Button>
                 ),
                 title: "Mint LST",

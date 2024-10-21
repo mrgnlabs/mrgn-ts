@@ -95,15 +95,25 @@ const executeLstAction = async ({
     return;
   }
 
+  console.log(actionTxns.actionQuote?.outAmount);
+
   const toastLabels =
     actionTxns.actionQuote && actionTxns.additionalTxns.length > 0
       ? [
-          `Swapping ${numeralFormatter(Number(originDetails.amount))} ${originDetails.tokenSymbol} `,
-          `Staking ${numeralFormatter(nativeToUi(Number(actionTxns.actionQuote.outAmount), 9))} SOL`,
+          `Swapping ${Number(originDetails.amount) < 0.01 ? "<0.01" : numeralFormatter(Number(originDetails.amount))} ${
+            originDetails.tokenSymbol
+          } `,
+          `Staking ${
+            nativeToUi(Number(actionTxns.actionQuote.outAmount), 9) < 0.01
+              ? "<0.01"
+              : numeralFormatter(nativeToUi(Number(actionTxns.actionQuote.outAmount), 9))
+          } SOL`,
         ]
       : actionType === ActionType.MintLST
       ? `Staking ${Number(originDetails.amount) < 0.01 ? "<0.01" : numeralFormatter(Number(originDetails.amount))} SOL`
-      : `Unstaking ${numeralFormatter(Number(originDetails.amount))} LST`;
+      : `Unstaking ${
+          Number(originDetails.amount) < 0.01 ? "<0.01" : numeralFormatter(Number(originDetails.amount))
+        } LST`;
 
   const multiStepToast = new MultiStepToastHandle(
     actionType === ActionType.MintLST ? `Minting LST` : `Unstaking LST`,

@@ -45,7 +45,7 @@ export const MultiStepToast = ({ title, steps, theme = "dark" }: MultiStepToastP
               <div className="flex items-start space-x-2">
                 <h3 className="pt-0.5">{steps.length > 1 && <>{`${index + 1}.`}</>}</h3>
                 {Array.isArray(step.label) ? (
-                  <ul className="list-disc list-inside pl-4">
+                  <ul className="list-disc list-inside">
                     {step.label.map((label, idx) => (
                       <li key={idx} className="flex items-center space-x-2">
                         <span className="w-2 h-2 bg-gray-400 rounded-full inline-block"></span>
