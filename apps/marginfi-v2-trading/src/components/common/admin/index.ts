@@ -1,3 +1,2 @@
-export * from "./manage-pool-card";
-export * from "./manage-pool-detail/pool-detail-header";
-export * from "./manage-pool-detail/pool-detail";
+export * from "./admin-pool-card";
+export * from "./admin-pool-detail";
