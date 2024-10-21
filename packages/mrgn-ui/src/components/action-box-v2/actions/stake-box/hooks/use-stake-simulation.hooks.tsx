@@ -8,6 +8,7 @@ import { ExtendedBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import {
   ActionMethod,
   deserializeInstruction,
+  extractErrorString,
   getSwapQuoteWithRetry,
   LstData,
   StakeActionTxns,
@@ -120,7 +121,10 @@ export function useStakeSimulation({
             swapMode: "ExactIn",
           });
 
-          if (!swapQuote) return; // TODO: proper error handling
+          if (!swapQuote) {
+            setErrorMessage(STATIC_SIMULATION_ERRORS.STAKE_SWAP_SIMULATION_FAILED);
+            return;
+          }
 
           const {
             computeBudgetInstructions,
@@ -173,6 +177,8 @@ export function useStakeSimulation({
           });
         }
       } catch (error) {
+        const msg = extractErrorString(error);
+        console.error(`Error while simulating stake action: ${msg}`);
         setErrorMessage(STATIC_SIMULATION_ERRORS.STAKE_SIMULATION_FAILED);
       }
     },

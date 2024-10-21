@@ -123,12 +123,16 @@ export const STATIC_SIMULATION_ERRORS: { [key: string]: ActionMethod } = {
     isEnabled: false,
     actionMethod: "WARNING",
   },
-
   STAKE_SIMULATION_FAILED: {
-    description: "Stake simulation failed, please try again.",
+    description: "Transaction failed to build. Please try again",
     link: "https://support.marginfi.com/",
     linkText: "Contact support",
     isEnabled: false,
+    actionMethod: "WARNING",
+  },
+  STAKE_SWAP_SIMULATION_FAILED: {
+    description: "Failed to fetch Jupiter qoute. Please try again",
+    isEnabled: true,
     actionMethod: "WARNING",
   },
 };
