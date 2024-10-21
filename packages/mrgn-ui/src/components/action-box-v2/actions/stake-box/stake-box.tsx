@@ -27,7 +27,6 @@ export type StakeBoxProps = {
   connected: boolean;
 
   marginfiClient: MarginfiClient | null;
-  selectedAccount: MarginfiAccountWrapper | null;
   banks: ExtendedBankInfo[];
   requestedBank?: ExtendedBankInfo;
   accountSummaryArg?: AccountSummary;
@@ -44,7 +43,6 @@ export type StakeBoxProps = {
 export const StakeBox = ({
   banks,
   marginfiClient,
-  selectedAccount,
   requestedBank,
   nativeSolBalance,
   connected,
@@ -138,7 +136,6 @@ export const StakeBox = ({
 
   const { handleSimulation } = useStakeSimulation({
     debouncedAmount: debouncedAmount ?? 0,
-    selectedAccount,
     selectedBank,
     actionMode,
     actionTxns,
@@ -162,7 +159,7 @@ export const StakeBox = ({
   }, [lstData, solPriceUsd]);
 
   const handleLstAction = React.useCallback(async () => {
-    if (!selectedBank || !amount || !marginfiClient || !selectedAccount) {
+    if (!selectedBank || !amount || !marginfiClient) {
       return;
     }
 
@@ -210,7 +207,6 @@ export const StakeBox = ({
         setIsLoading: (isLoading) => setIsLoading({ type: "TRANSACTION", state: isLoading }),
         actionType: requestedActionType,
         nativeSolBalance,
-        selectedAccount: selectedAccount,
         originDetails: {
           amount,
           tokenSymbol: selectedBank.meta.tokenSymbol,
@@ -236,7 +232,6 @@ export const StakeBox = ({
     onComplete,
     setIsLoading,
     nativeSolBalance,
-    selectedAccount,
   ]);
 
   const actionMethods = React.useMemo(() => {
@@ -256,7 +251,7 @@ export const StakeBox = ({
 
   React.useEffect(() => {
     if (errorMessage && errorMessage.description) {
-      setAdditionalActionMethods([errorMessage]);
+      setAdditionalActionMethods([{ ...errorMessage, isEnabled: false }]);
     }
   }, [errorMessage]);
 

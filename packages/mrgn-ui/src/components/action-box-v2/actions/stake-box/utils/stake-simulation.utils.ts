@@ -39,7 +39,6 @@ export interface SimulateActionProps {
   marginfiClient: MarginfiClient;
   txns: (VersionedTransaction | Transaction)[];
   selectedBank: ExtendedBankInfo;
-  selectedAccount: MarginfiAccountWrapper;
 }
 
 export interface CalculatePreviewProps {
@@ -89,12 +88,7 @@ function calculateActionPreview(
   } as ActionPreview;
 }
 
-export const getSimulationResult = async ({
-  marginfiClient,
-  txns,
-  selectedBank,
-  selectedAccount,
-}: SimulateActionProps) => {
+export const getSimulationResult = async ({ marginfiClient, txns, selectedBank }: SimulateActionProps) => {
   const ataLst = getAssociatedTokenAddressSync(LST_MINT, marginfiClient.wallet.publicKey);
   let actionMethod: ActionMethod | undefined = undefined;
   let simulationSucceeded = false;

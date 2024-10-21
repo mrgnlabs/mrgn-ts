@@ -21,7 +21,6 @@ import { useActionBoxStore } from "../../../store";
 
 type StakeSimulationProps = {
   debouncedAmount: number;
-  selectedAccount: MarginfiAccountWrapper | null;
   lstData: LstData | null;
 
   selectedBank: ExtendedBankInfo | null;
@@ -37,7 +36,6 @@ type StakeSimulationProps = {
 
 export function useStakeSimulation({
   debouncedAmount,
-  selectedAccount,
   lstData,
   selectedBank,
   actionMode,
@@ -57,12 +55,11 @@ export function useStakeSimulation({
   const handleSimulation = React.useCallback(
     async (txns: (VersionedTransaction | Transaction)[]) => {
       try {
-        if (selectedAccount && selectedBank && txns.length > 0) {
+        if (selectedBank && txns.length > 0) {
           const { actionMethod } = await getSimulationResult({
             marginfiClient: marginfiClient as MarginfiClient,
             txns,
             selectedBank,
-            selectedAccount,
           });
 
           if (actionMethod) {
@@ -82,15 +79,7 @@ export function useStakeSimulation({
         setIsLoading({ type: "SIMULATION", state: false });
       }
     },
-    [
-      selectedAccount,
-      selectedBank,
-      marginfiClient,
-      setSimulationResult,
-      simulationResult,
-      setIsLoading,
-      setErrorMessage,
-    ]
+    [selectedBank, marginfiClient, setSimulationResult, simulationResult, setIsLoading, setErrorMessage]
   );
 
   const fetchTxs = React.useCallback(

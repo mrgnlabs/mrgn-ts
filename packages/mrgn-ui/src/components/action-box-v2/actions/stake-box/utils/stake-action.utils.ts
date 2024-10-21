@@ -6,7 +6,7 @@ import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-clien
 import { extractErrorString, MultiStepToastHandle, showErrorToast, StakeActionTxns } from "@mrgnlabs/mrgn-utils";
 
 import { ExecuteActionsCallbackProps } from "~/components/action-box-v2/types";
-import { numeralFormatter } from "@mrgnlabs/mrgn-common";
+import { numeralFormatter, nativeToUi } from "@mrgnlabs/mrgn-common";
 
 interface ExecuteStakeActionProps extends ExecuteActionsCallbackProps {
   params: {
@@ -15,7 +15,7 @@ interface ExecuteStakeActionProps extends ExecuteActionsCallbackProps {
   };
   actionType: ActionType;
   nativeSolBalance: number;
-  selectedAccount: MarginfiAccountWrapper;
+  selectedAccount?: MarginfiAccountWrapper;
   originDetails: {
     amount: number;
     tokenSymbol: string;
@@ -30,7 +30,6 @@ export const handleExecuteLstAction = async ({
   setIsError,
   actionType,
   nativeSolBalance,
-  selectedAccount,
   originDetails,
 }: ExecuteStakeActionProps) => {
   const { actionTxns, marginfiClient } = params;
@@ -48,7 +47,6 @@ export const handleExecuteLstAction = async ({
     actionTxns,
     actionType,
     nativeSolBalance,
-    selectedAccount,
     originDetails,
   });
 
@@ -80,29 +78,40 @@ const executeLstAction = async ({
   actionTxns,
   actionType,
   nativeSolBalance,
-  selectedAccount,
   originDetails,
 }: {
   marginfiClient: MarginfiClient;
-  actionTxns: any;
+  actionTxns: StakeActionTxns;
   actionType: ActionType;
   nativeSolBalance: number;
-  selectedAccount: MarginfiAccountWrapper;
   originDetails: {
     amount: number;
     tokenSymbol: string;
   };
 }) => {
+  if (!actionTxns.actionTxn) return;
   if (nativeSolBalance < FEE_MARGIN) {
     showErrorToast("Not enough sol for fee.");
     return;
   }
 
+  const toastLabels =
+    actionTxns.actionQuote && actionTxns.additionalTxns.length > 0
+      ? [
+          `Swapping ${numeralFormatter(Number(originDetails.amount))} ${originDetails.tokenSymbol} `,
+          `Staking ${numeralFormatter(nativeToUi(Number(actionTxns.actionQuote.outAmount), 9))} SOL`,
+        ]
+      : actionType === ActionType.MintLST
+      ? `Staking ${Number(originDetails.amount) < 0.01 ? "<0.01" : numeralFormatter(Number(originDetails.amount))} SOL`
+      : `Unstaking ${numeralFormatter(Number(originDetails.amount))} LST`;
+
   const multiStepToast = new MultiStepToastHandle(
-    actionType === ActionType.MintLST
-      ? `Staking ${numeralFormatter(originDetails.amount)} ${originDetails.tokenSymbol}`
-      : `Unstaking ${originDetails.amount} ${originDetails.tokenSymbol}`,
-    [{ label: `Executing ${actionType === ActionType.MintLST ? "stake" : "unstake"}` }],
+    actionType === ActionType.MintLST ? `Minting LST` : `Unstaking LST`,
+    [
+      {
+        label: toastLabels,
+      },
+    ],
     "dark"
   );
   multiStepToast.start();
@@ -118,9 +127,11 @@ const executeLstAction = async ({
     console.log(`Error while actiontype: ${msg}`);
     console.log(error);
 
+    const walletAddress = marginfiClient.wallet.publicKey.toBase58();
+
     captureException(error, msg, {
       action: actionType,
-      wallet: selectedAccount?.authority?.toBase58(),
+      wallet: walletAddress,
     });
     return;
   }
