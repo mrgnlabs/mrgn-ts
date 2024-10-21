@@ -40,6 +40,7 @@ export type LendBoxProps = {
   requestedBank?: ExtendedBankInfo;
   accountSummaryArg?: AccountSummary;
   isDialog?: boolean;
+  showAvailableCollateral?: boolean;
 
   onComplete?: (previousTxn: PreviousTxn) => void;
   captureEvent?: (event: string, properties?: Record<string, any>) => void;
@@ -55,6 +56,7 @@ export const LendBox = ({
   selectedAccount,
   accountSummaryArg,
   isDialog,
+  showAvailableCollateral = true,
   requestedLendType,
   requestedBank,
   onComplete,
@@ -339,9 +341,11 @@ export const LendBox = ({
           )
       )}
 
-      <div className="mb-6">
-        <Collateral selectedAccount={selectedAccount} actionSummary={actionSummary} />
-      </div>
+      {showAvailableCollateral && (
+        <div className="mb-6">
+          <Collateral selectedAccount={selectedAccount} actionSummary={actionSummary} />
+        </div>
+      )}
 
       <div className="mb-3">
         <ActionButton

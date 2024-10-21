@@ -69,9 +69,7 @@ export const ActionBoxNavigator = ({
               <ToggleGroup
                 variant="actionBox"
                 type="single"
-                style={{
-                  backgroundColor: "var(--mfi-action-box-background)",
-                }}
+                className="bg-mfi-action-box-background-dark"
                 value={selectedAction}
                 onValueChange={(value) => {
                   if (value !== "") {
@@ -84,7 +82,7 @@ export const ActionBoxNavigator = ({
                     key={idx}
                     value={toggle.value}
                     aria-label={toggle.value}
-                    className="data-[state=on]:bg-background-gray-light hover:bg-background-gray-light/25 capitalize h-[1.65rem]"
+                    className="data-[state=on]:bg-mfi-action-box-accent data-[state=on]:text-mfi-action-box-accent-foreground hover:bg-mfi-action-box-accent/50 capitalize h-[1.65rem]"
                   >
                     {newFeatures.includes(toggle.value) ? (
                       <div className="flex items-center gap-2">

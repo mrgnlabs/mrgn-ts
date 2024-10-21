@@ -15,7 +15,7 @@ interface AmountPreviewProps {
 export const AmountPreview = ({ actionMode, amount, isLoading }: AmountPreviewProps) => {
   return (
     <div className="flex flex-col gap-6">
-      <dl className="grid grid-cols-2 gap-y-2 text-sm text-white">
+      <dl className="grid grid-cols-2 gap-y-2 text-sm">
         <Stat label="You will receive">
           {isLoading ? (
             <IconLoader size={16} />

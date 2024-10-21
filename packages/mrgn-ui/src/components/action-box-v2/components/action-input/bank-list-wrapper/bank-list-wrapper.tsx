@@ -35,7 +35,7 @@ export const BankListWrapper = ({
             <div>{Trigger}</div>
           </DialogTrigger>
           <DialogContent
-            className="p-4 bg-background-gray m-0"
+            className="p-4 bg-mfi-action-box-background m-0"
             hideClose={true}
             hidePadding={true}
             size="sm"
@@ -55,7 +55,7 @@ export const BankListWrapper = ({
             <div>{Trigger}</div>
           </DrawerTrigger>
           <DrawerContent className="h-full z-[55] mt-0" hideTopTrigger={true}>
-            <div className="pt-7 px-2 bg-background-gray h-full">
+            <div className="pt-7 px-2 bg-mfi-action-box-background h-full">
               <h3 className="text-2xl pl-3 mb-4 font-semibold">{label}</h3>
               {Content}
             </div>

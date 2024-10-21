@@ -258,6 +258,7 @@ export const PositionActionButtons = ({
             connected: connected,
             requestedLendType: ActionType.Deposit,
             requestedBank: activeGroup.pool.token ?? undefined,
+            showAvailableCollateral: false,
             captureEvent: () => {
               capture("position_add_btn_click", {
                 group: activeGroup?.groupPk?.toBase58(),
@@ -320,6 +321,7 @@ export const PositionActionButtons = ({
             repayProps={{
               requestedBank: borrowBank,
               connected: connected,
+              showAvailableCollateral: false,
               captureEvent: (event, properties) => {
                 capture("position_reduce_btn_click", {
                   group: activeGroup?.groupPk?.toBase58(),

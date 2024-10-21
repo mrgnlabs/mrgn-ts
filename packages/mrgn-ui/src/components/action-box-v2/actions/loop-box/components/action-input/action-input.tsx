@@ -93,7 +93,7 @@ export const ActionInput = ({
               disabled={isInputDisabled}
               onChange={(e) => handleInputChange(e.target.value)}
               placeholder="0"
-              className="bg-transparent min-w-[130px] text-right outline-none focus-visible:outline-none focus-visible:ring-0 border-none text-base font-medium"
+              className="bg-transparent shadow-none min-w-[130px] text-right outline-none focus-visible:outline-none focus-visible:ring-0 border-none text-base font-medium"
             />
           </div>
         </div>
