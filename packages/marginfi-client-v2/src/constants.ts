@@ -20,11 +20,12 @@ export const ADDRESS_LOOKUP_TABLE_FOR_GROUP: { [key: string]: PublicKey[] } = {
     new PublicKey("HGmknUTUmeovMc9ryERNWG6UFZDFDVr9xrum3ZhyL4fC"),
     new PublicKey("5FuKF7C1tJji2mXZuJ14U9oDb37is5mmvYLf4KwojoF1"),
   ], // Main pool
-  "FCPfpHA69EbS8f9KKSreTRkXbzFpunsKuYf5qNmnJjpo": [new PublicKey("HxPy7b58KLKSU7w4LUW9xwYQ1NPyRNQkYYk2f7SmYAip")], // staging
+  FCPfpHA69EbS8f9KKSreTRkXbzFpunsKuYf5qNmnJjpo: [new PublicKey("HxPy7b58KLKSU7w4LUW9xwYQ1NPyRNQkYYk2f7SmYAip")], // staging
   EnQoeGVqbgZ78Hj8XghiYu5L29L1zYwZp2YEQ63RmUD8: [new PublicKey("86kn22MeV1bCqE9tT9ATcHYR1hYrQHUGigLgSvvDSGRL")], // MOTHER
   "6FDHo1Z3W1GvurvAZhDAuPpMYbUR3jgq9VuCBmFDx2wM": [new PublicKey("LCuK5xWuTbCp6vUnvTzTAbKKF5UnxU9ENy5rjHx7Ldw")], // BODEN
   CRBQpH41XWrUiBp6Bf5hjf7r7rspVZNVaCd6mGewFhLZ: [new PublicKey("2njqwPa2yoeRonwkNAXrzyabq4qaQsYbEKDkB1CGG8xf")], // QUAC
   HW6FTYrm8JZ4ayZzYUW3WVbzL2xLr7krFZP8VbN4Tq6N: [new PublicKey("4imCax5w4h5uxmwN9mTXytsSo3NFX7BzbiLB3LQrBYic")], // WEN
+  AnCJqqmpunfbodQbJp9YN7zPSD9s6cAEfbJHuyaWY3Bs: [new PublicKey("8z85ZpSWyUyqgVvpDuRDRCFhTmA19uZUHSDXsLGccuLP")], // FWOG LST
 };
 
 export const DISABLED_FLAG: number = 1 << 0;
