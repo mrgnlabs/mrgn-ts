@@ -3,12 +3,13 @@ import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 
-import { numeralFormatter, tokenPriceFormatter, percentFormatter } from "@mrgnlabs/mrgn-common";
+import { numeralFormatter, tokenPriceFormatter, percentFormatter, shortenAddress } from "@mrgnlabs/mrgn-common";
 import { cn } from "@mrgnlabs/mrgn-utils";
 
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import type { GroupData } from "~/store/tradeStore";
 import { Button } from "~/components/ui/button";
+import { IconExternalLink } from "@tabler/icons-react";
 
 type AdminPoolCardProps = {
   groupData: GroupData;
@@ -61,24 +62,15 @@ export const AdminPoolCard = ({ groupData, last }: AdminPoolCardProps) => {
         </>
       )}
       <div className="pl-5">
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Link href="https://x.com/marginfi" target="_blank">
-                <Image
-                  src="https://pbs.twimg.com/profile_images/1791110026456633344/VGViq-CJ_400x400.jpg"
-                  width={20}
-                  height={20}
-                  alt="marginfi"
-                  className="rounded-full"
-                />
-              </Link>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Pool created by marginfi</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        <Link
+          href={`https://solscan.io/account/${groupData.client.group.admin}`}
+          className="flex items-center gap-1.5"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {shortenAddress(groupData.client.group.admin || "")}{" "}
+          <IconExternalLink size={15} className="-translate-y-[1px]" />
+        </Link>
       </div>
       <div className="flex items-center gap-2 justify-end">
         <Link href={`/admin/${groupData.client.group.address.toBase58()}`} className="w-full">

@@ -153,7 +153,6 @@ type TradeStoreState = {
 const { programId } = getConfig();
 
 const USDC_MINT = new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
-const LST_MINT = new PublicKey("LSTxxxnJzKDFSLr4dUkPcmCf5VyryEqzPLz5j4bpxFp");
 
 let fuse: Fuse<GroupData> | null = null;
 
