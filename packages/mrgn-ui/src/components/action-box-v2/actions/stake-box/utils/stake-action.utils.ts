@@ -95,8 +95,6 @@ const executeLstAction = async ({
     return;
   }
 
-  console.log(actionTxns.actionQuote?.outAmount);
-
   const toastLabels =
     actionTxns.actionQuote && actionTxns.additionalTxns.length > 0
       ? [

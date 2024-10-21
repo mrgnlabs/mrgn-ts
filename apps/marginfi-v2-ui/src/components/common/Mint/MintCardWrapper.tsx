@@ -13,11 +13,7 @@ import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { ActionBoxDialog } from "~/components/common/ActionBox";
 import { LST_MINT } from "~/store/lstStore";
-
-/// XXX
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
-
-/// YYY
 
 interface MintCardWrapperProps {
   mintCard: MintCardProps;
@@ -26,22 +22,9 @@ interface MintCardWrapperProps {
 export const MintCardWrapper: React.FC<MintCardWrapperProps> = ({ mintCard, ...props }) => {
   const [extendedBankInfos] = useMrgnlendStore((state) => [state.extendedBankInfos]);
 
-  const [requestedAction, setRequestedAction] = React.useState<ActionType>(ActionType.MintLST);
-
   const transformedActionGate = React.useMemo(() => getBlockedActions(), []);
 
-  const requestedBank = React.useMemo(
-    () =>
-      extendedBankInfos.find((bank) => bank?.info?.state?.mint.equals && bank?.info?.state?.mint.equals(LST_MINT)) ??
-      null,
-    [extendedBankInfos]
-  );
-
-  // XXX
-
   const { connected } = useWallet();
-
-  /// YYY
 
   return (
     <Card variant="default" className="relative">
@@ -136,11 +119,7 @@ export const MintCardWrapper: React.FC<MintCardWrapperProps> = ({ mintCard, ...p
             </Button>
           </div>
         ) : (
-          <ActionBoxDialog
-            requestedAction={ActionType.MintYBX}
-            requestedBank={null}
-            //requestedToken={new PublicKey("2s37akK2eyBbp8DZgCm7RtsaEz8eJP3Nxd4urLHQv7yB")}
-          >
+          <ActionBoxDialog requestedAction={ActionType.MintYBX} requestedBank={null}>
             <div className="flex items-center gap-2">
               <Button variant="secondary" size="lg" className="mt-4">
                 Stake
