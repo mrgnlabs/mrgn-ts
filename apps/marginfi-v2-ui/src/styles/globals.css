@@ -41,9 +41,11 @@
     --radius: 0.5rem;
 
     --mfi-action-box-background: 204 13% 8%;
+    --mfi-action-box-background-dark: 180 5% 4%;
     --mfi-action-box-foreground: 0 0% 98%;
-    --mfi-action-box-accent: 180 5% 4%;
+    --mfi-action-box-accent: 197 11% 12%;
     --mfi-action-box-accent-foreground: 0 0% 98%;
+    --mfi-action-box-highlight: 65 75% 64%;
   }
 }
 

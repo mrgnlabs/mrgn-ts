@@ -94,11 +94,13 @@ module.exports = {
           foreground: "hsl(var(--card-foreground))",
         },
         mfi: {
-          actionBox: {
+          "action-box": {
             background: "hsl(var(--mfi-action-box-background))",
+            "background-dark": "hsl(var(--mfi-action-box-background-dark))",
             foreground: "hsl(var(--mfi-action-box-foreground))",
             accent: "hsl(var(--mfi-action-box-accent))",
-            accentForeground: "hsl(var(--mfi-action-box-accent-foreground))",
+            "accent-foreground": "hsl(var(--mfi-action-box-accent-foreground))",
+            highlight: "hsl(var(--mfi-action-box-highlight))",
           },
         },
       },

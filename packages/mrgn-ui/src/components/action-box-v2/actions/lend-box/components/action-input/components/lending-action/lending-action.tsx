@@ -87,7 +87,7 @@ export const LendingAction = ({
               <div>{maxLabel.amount}</div>
 
               <button
-                className="cursor-pointer text-chartreuse border-b border-transparent transition hover:border-chartreuse"
+                className="cursor-pointer border-b border-transparent transition text-mfi-action-box-highlight hover:border-mfi-action-box-highlight"
                 disabled={maxAmount === 0}
                 onClick={() => onSetAmountRaw(numberFormater.format(maxAmount))}
               >

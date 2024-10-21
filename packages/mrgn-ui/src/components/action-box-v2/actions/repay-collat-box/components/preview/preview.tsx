@@ -32,7 +32,7 @@ export const Preview = ({ actionSummary, selectedBank, isLoading }: PreviewProps
   return (
     <>
       {stats && selectedBank && (
-        <dl className={cn("grid grid-cols-2 gap-y-2 pt-6 text-xs text-white")}>
+        <dl className={cn("grid grid-cols-2 gap-y-2 pt-6 text-xs")}>
           {stats.map((stat, idx) => (
             <ActionStatItem
               key={idx}

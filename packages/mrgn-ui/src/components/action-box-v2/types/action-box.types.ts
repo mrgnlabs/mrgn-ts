@@ -38,6 +38,7 @@ interface RepayBoxProps
     | "accountSummaryArg"
     | "onComplete"
     | "captureEvent"
+    | "showAvailableCollateral"
   > {}
 
 interface RequiredRepayBoxProps

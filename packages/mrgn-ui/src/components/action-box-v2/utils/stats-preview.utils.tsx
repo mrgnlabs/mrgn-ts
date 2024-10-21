@@ -133,7 +133,7 @@ export function getPoolSizeStat(bankCap: number, bank: ExtendedBankInfo, isLendi
           <TooltipTrigger asChild>
             <span
               className={cn(
-                "flex items-center justify-end gap-1.5 text-white",
+                "flex items-center justify-end gap-1.5",
                 (isReduceOnly || isBankHigh) && "text-warning",
                 isBankFilled && "text-destructive-foreground"
               )}

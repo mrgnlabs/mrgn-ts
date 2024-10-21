@@ -42,7 +42,7 @@ export const StatsPreview = ({ actionSummary, selectedBank, isLoading, actionMod
   return (
     <>
       {stats && (
-        <dl className={cn("grid grid-cols-2 gap-y-2 pt-6 text-xs text-white")}>
+        <dl className={cn("grid grid-cols-2 gap-y-2 pt-6 text-xs")}>
           {stats.map((stat, idx) => (
             <ActionStatItem
               key={idx}

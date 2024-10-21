@@ -67,8 +67,8 @@ module.exports = {
           foreground: "hsl(33 96% 61%)",
         },
         info: {
-          DEFAULT: "hsl(218 27% 12%)",
-          foreground: "hsl(220 95% 75%)",
+          DEFAULT: "hsl(240 4.8% 95.9%)",
+          foreground: "hsl(220 95% 73%)",
         },
         destructive: {
           DEFAULT: "hsl(var(--destructive))",
@@ -105,9 +105,11 @@ module.exports = {
         mfi: {
           "action-box": {
             background: "hsl(var(--mfi-action-box-background))",
+            "background-dark": "hsl(var(--mfi-action-box-background-dark))",
             foreground: "hsl(var(--mfi-action-box-foreground))",
             accent: "hsl(var(--mfi-action-box-accent))",
-            accentForeground: "hsl(var(--mfi-action-box-accent-foreground))",
+            "accent-foreground": "hsl(var(--mfi-action-box-accent-foreground))",
+            highlight: "hsl(var(--mfi-action-box-highlight))",
           },
         },
       },

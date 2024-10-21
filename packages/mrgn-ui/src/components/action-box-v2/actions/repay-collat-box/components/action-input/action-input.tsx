@@ -59,7 +59,7 @@ export const ActionInput = ({
   return (
     <>
       {/* Contains 'max' button and input title */}
-      <div className="bg-background rounded-lg p-2.5 mb-6">
+      <div className="bg-mfi-action-box-background-dark rounded-lg p-2.5 mb-6">
         <div className="flex justify-center gap-1 items-center font-medium text-3xl">
           <div className="w-full flex-auto max-w-[162px]">
             <BankSelect
@@ -82,7 +82,7 @@ export const ActionInput = ({
               disabled={isInputDisabled}
               onChange={(e) => handleInputChange(e.target.value)}
               placeholder="0"
-              className="bg-transparent min-w-[130px] text-right outline-none focus-visible:outline-none focus-visible:ring-0 border-none text-base font-medium"
+              className="bg-transparent shadow-none min-w-[130px] text-right outline-none focus-visible:outline-none focus-visible:ring-0 border-none text-base font-medium"
             />
           </div>
         </div>
