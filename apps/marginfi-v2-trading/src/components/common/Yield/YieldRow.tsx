@@ -188,6 +188,7 @@ const YieldItem = ({
             selectedAccount={group.selectedAccount}
             connected={connected}
             accountSummaryArg={group.accountSummary}
+            showActionComplete={false}
           >
             {bank.isActive && !isLeveraged && bank.position.isLending && group.selectedAccount && (
               <>

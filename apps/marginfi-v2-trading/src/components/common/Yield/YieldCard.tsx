@@ -172,6 +172,7 @@ const YieldItem = ({
         selectedAccount={group.selectedAccount}
         connected={connected}
         accountSummaryArg={group.accountSummary}
+        showActionComplete={false}
       >
         <div className="flex flex-col gap-2 md:flex-row">
           {bank.isActive && !isLeveraged && bank.position.isLending && group.selectedAccount && (

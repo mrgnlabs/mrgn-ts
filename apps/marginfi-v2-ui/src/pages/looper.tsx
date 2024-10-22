@@ -1,9 +1,8 @@
 import React from "react";
 import { ActionBox as ActionBoxV2 } from "@mrgnlabs/mrgn-ui";
 import { capture } from "@mrgnlabs/mrgn-utils";
-import { useMrgnlendStore, useUiStore } from "~/store";
+import { useMrgnlendStore } from "~/store";
 
-import { ActionComplete } from "~/components/common/ActionComplete";
 import { PageHeading } from "~/components/common/PageHeading";
 
 import { Loader } from "~/components/ui/loader";
@@ -11,8 +10,6 @@ import { useWallet } from "~/components/wallet-v2";
 
 export default function LooperPage() {
   const [initialized] = useMrgnlendStore((state) => [state.initialized, state.extendedBankInfos]);
-  const [previousTxn] = useUiStore((state) => [state.previousTxn]);
-
   const { connected, walletContextState } = useWallet();
 
   return (
@@ -34,8 +31,6 @@ export default function LooperPage() {
           />
         </div>
       )}
-
-      {initialized && previousTxn && <ActionComplete />}
     </>
   );
 }

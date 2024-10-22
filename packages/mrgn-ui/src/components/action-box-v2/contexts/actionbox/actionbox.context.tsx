@@ -15,6 +15,7 @@ type ActionBoxContextType = {
   connected: boolean;
   marginfiClient: MarginfiClient | null;
   selectedAccount: MarginfiAccountWrapper | null;
+  showActionComplete?: boolean;
   walletContextState?: WalletContextStateOverride | WalletContextState;
   accountSummaryArg?: AccountSummary;
 };
@@ -23,6 +24,7 @@ const ActionBoxContext = React.createContext<ActionBoxContextType | null>(null);
 
 export const ActionBoxProvider: React.FC<ActionBoxContextType & { children: React.ReactNode }> = ({
   children,
+  showActionComplete = true,
   ...props
 }) => {
   const [isActionComplete, previousTxn, setIsActionComplete, setPreviousTxn] = useActionBoxStore((state) => [
@@ -35,7 +37,7 @@ export const ActionBoxProvider: React.FC<ActionBoxContextType & { children: Reac
   return (
     <ActionBoxContext.Provider value={props}>
       {children}
-      {previousTxn && isActionComplete && (
+      {previousTxn && isActionComplete && showActionComplete && (
         <ActionComplete
           isActionComplete={isActionComplete}
           setIsActionComplete={setIsActionComplete}

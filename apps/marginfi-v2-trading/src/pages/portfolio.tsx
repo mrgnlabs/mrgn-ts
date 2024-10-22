@@ -3,12 +3,13 @@ import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 
-import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { useActionBoxStore } from "~/components/action-box-v2/store";
 import { groupedNumberFormatterDyn, usdFormatter } from "@mrgnlabs/mrgn-common";
 import { cn } from "@mrgnlabs/mrgn-utils";
 
-import { useTradeStore, useUiStore } from "~/store";
+import { useTradeStore } from "~/store";
 
+import { ActionComplete } from "~/components/action-complete";
 import { PageHeading } from "~/components/common/PageHeading";
 import { PositionCard, LpPositionList } from "~/components/common/Portfolio";
 import { Loader } from "~/components/common/Loader";
@@ -16,7 +17,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 
 export default function PortfolioPage() {
   const [initialized, portfolio] = useTradeStore((state) => [state.initialized, state.portfolio]);
-  const [previousTxn] = useUiStore((state) => [state.previousTxn]);
+  const [isActionComplete, previousTxn, setIsActionComplete] = useActionBoxStore((state) => [
+    state.isActionComplete,
+    state.previousTxn,
+    state.setIsActionComplete,
+  ]);
 
   const totalLong = React.useMemo(() => {
     return (
@@ -134,6 +139,13 @@ export default function PortfolioPage() {
           </div>
         )}
       </div>
+      {initialized && previousTxn && (
+        <ActionComplete
+          isActionComplete={isActionComplete}
+          setIsActionComplete={setIsActionComplete}
+          previousTxn={previousTxn}
+        />
+      )}
     </>
   );
 }

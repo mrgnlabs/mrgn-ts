@@ -7,9 +7,7 @@ import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { useMrgnlendStore, useUiStore } from "~/store";
 import { LST_MINT } from "~/store/lstStore";
 
-import { ActionComplete } from "~/components/common/ActionComplete";
 import { IconYBX, IconSol, IconLST, IconUsd } from "~/components/ui/icons";
-import { Loader } from "~/components/ui/loader";
 import { YbxDialogNotifications } from "~/components/common/Mint/YbxDialogNotifications";
 import {
   BankIntegrationCard,
@@ -23,18 +21,12 @@ import { PageHeading } from "~/components/common/PageHeading";
 import { StakeBoxProvider } from "@mrgnlabs/mrgn-ui";
 
 export default function MintPage() {
-  const { connection } = useConnection();
-  const { wallet } = useWallet();
   const [mintPageState, setMintPageState] = React.useState<MintPageState>(MintPageState.DEFAULT);
   const [ybxNotificationsDialogOpen, setYbxNotificationsDialogOpen] = React.useState(false);
   const [ybxPartnerDialogOpen, setYbxPartnerDialogOpen] = React.useState(false);
   const [lstDialogOpen, setLSTDialogOpen] = React.useState(false);
   const [integrations, setIntegrations] = React.useState<IntegrationsData[]>([]);
   const [lstOverview, setLstOverview] = React.useState<MintOverview>();
-
-  const debounceId = React.useRef<NodeJS.Timeout | null>(null);
-
-  const [previousTxn] = useUiStore((state) => [state.previousTxn]);
 
   const [extendedBankInfos] = useMrgnlendStore((state) => [state.extendedBankInfos]);
 
@@ -186,7 +178,6 @@ export default function MintPage() {
           setYbxPartnerDialogOpen(open);
         }}
       />
-      {previousTxn && <ActionComplete />}
     </StakeBoxProvider>
   );
 }
