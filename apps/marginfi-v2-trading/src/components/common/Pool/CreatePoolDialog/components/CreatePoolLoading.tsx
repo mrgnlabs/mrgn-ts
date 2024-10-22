@@ -34,8 +34,44 @@ import { createPoolLookupTable } from "~/utils";
 import { PoolData, CreatePoolState } from "../types";
 import { cp } from "fs";
 import { TokenData } from "~/types";
+import { SUPPORTED_QUOTE_BANKS } from "../CreatePoolDialog";
+import { LST_MINT } from "@mrgnlabs/mrgn-common";
 
 const USDC_MINT = new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
+
+const DEFAULT_LST_BANK_CONFIG: BankConfigOpt = {
+  assetWeightInit: new BigNumber(0.65),
+  assetWeightMaint: new BigNumber(0.8),
+
+  liabilityWeightInit: new BigNumber(1.3),
+  liabilityWeightMaint: new BigNumber(1.2),
+
+  depositLimit: new BigNumber(10000).multipliedBy(1e6), // 1,000,000 USDC
+  borrowLimit: new BigNumber(2500).multipliedBy(1e6), // 250,000 USDC
+  riskTier: RiskTier.Collateral,
+
+  totalAssetValueInitLimit: new BigNumber(0),
+  interestRateConfig: {
+    // Curve Params
+    optimalUtilizationRate: new BigNumber(0.8),
+    plateauInterestRate: new BigNumber(0.1),
+    maxInterestRate: new BigNumber(3),
+
+    // Fees
+    insuranceFeeFixedApr: new BigNumber(0),
+    insuranceIrFee: new BigNumber(0),
+    protocolFixedFeeApr: new BigNumber(0.01),
+    protocolIrFee: new BigNumber(0.3),
+  },
+  operationalState: OperationalState.Operational,
+
+  oracle: {
+    setup: OracleSetup.PythLegacy,
+    keys: [new PublicKey("2H6gWKxJuoFjBS4REqNm4XRa7uVFf9n9yKEowpwh7LML")],
+  },
+  oracleMaxAge: 300,
+  permissionlessBadDebtSettlement: null,
+};
 
 const DEFAULT_USDC_BANK_CONFIG: BankConfigOpt = {
   assetWeightInit: new BigNumber(0.9),
@@ -105,7 +141,7 @@ const DEFAULT_TOKEN_BANK_CONFIG: BankConfigOpt = {
     setup: OracleSetup.SwitchboardV2,
     keys: [new PublicKey("8pMJw6N3e1FDexoTMx1T1ComSB91tmQydFrmhmmnXZuV")],
   },
-  oracleMaxAge: null,
+  oracleMaxAge: 300,
   permissionlessBadDebtSettlement: null,
 };
 
@@ -121,6 +157,7 @@ const iconMap: IconMap = {
 };
 
 interface CreatePoolLoadingProps {
+  quoteBank: SUPPORTED_QUOTE_BANKS;
   poolData: PoolData | null;
   setPoolData: React.Dispatch<React.SetStateAction<PoolData | null>>;
   setCreatePoolState: React.Dispatch<React.SetStateAction<CreatePoolState>>;
@@ -140,7 +177,7 @@ type PoolCreationState = {
   oraclePk?: PublicKey;
 };
 
-export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }: CreatePoolLoadingProps) => {
+export const CreatePoolLoading = ({ quoteBank, poolData, setPoolData, setCreatePoolState }: CreatePoolLoadingProps) => {
   const { wallet } = useWallet();
   const { connection } = useConnection();
   const [fetchTradeState] = useTradeStore((state) => [state.fetchTradeState]);
@@ -316,7 +353,18 @@ export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }:
       const groupIxWrapped = await client.makeCreateMarginfiGroupIx(seeds.marginfiGroupSeed.publicKey);
 
       // create lut ix
-      const oracleKeys = [oracleCreation.feedPubkey, ...(DEFAULT_USDC_BANK_CONFIG.oracle?.keys ?? [])];
+      const [quoteBankOracleConfig, quoteBankMint] = (() => {
+        switch (quoteBank) {
+          case "USDC":
+            return [DEFAULT_USDC_BANK_CONFIG, USDC_MINT];
+          case "LST":
+            return [DEFAULT_LST_BANK_CONFIG, LST_MINT];
+          default:
+            return [DEFAULT_USDC_BANK_CONFIG, USDC_MINT];
+        }
+      })();
+
+      const oracleKeys = [oracleCreation.feedPubkey, ...(quoteBankOracleConfig.oracle?.keys ?? [])];
       const bankKeys = [seeds.stableBankSeed.publicKey, seeds.tokenBankSeed.publicKey];
       const { lutAddress, createLutIx, extendLutIx } = await createPoolLookupTable({
         client,
@@ -330,8 +378,8 @@ export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }:
       const stableBankIxWrapper = await client.group.makePoolAddBankIx(
         client.program,
         seeds.stableBankSeed.publicKey,
-        USDC_MINT,
-        DEFAULT_USDC_BANK_CONFIG,
+        quoteBankMint,
+        quoteBankOracleConfig,
         {
           admin: wallet.publicKey,
           groupAddress: seeds.marginfiGroupSeed.publicKey,
@@ -348,8 +396,6 @@ export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }:
       });
 
       const responseBody = await response.json();
-
-      console.log("responseBody", responseBody);
 
       if (!responseBody) {
         throw new Error("Failed to fetch token details");
@@ -513,6 +559,7 @@ export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }:
     fetchTradeState,
     initializeClient,
     poolData,
+    quoteBank,
     setCreatePoolState,
     setPoolData,
     wallet,

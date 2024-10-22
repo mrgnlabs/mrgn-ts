@@ -179,7 +179,7 @@ class MarginfiGroup {
       ...rawBankConfig,
       oracleKey: rawBankConfig.oracle?.keys[0],
       oracleSetup: rawBankConfig.oracle?.setup,
-      oracleMaxAge: 120,
+      oracleMaxAge: bankConfig.oracleMaxAge,
       auto_padding_0: [0],
       auto_padding_1: [0],
     } as BankConfigCompactRaw;
