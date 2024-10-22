@@ -6,7 +6,6 @@ import { useTradeStore, useUiStore } from "~/store";
 import { GroupData } from "~/store/tradeStore";
 import { useIsMobile } from "~/hooks/use-is-mobile";
 
-import { ActionComplete } from "~/components/common/ActionComplete";
 import { TVWidget } from "~/components/common/TVWidget";
 import { TradingBox } from "~/components/common/TradingBox";
 import { PositionList } from "~/components/common/Portfolio";
@@ -67,7 +66,6 @@ export default function TradeSymbolPage() {
           </div>
         )}
       </div>
-      {previousTxn && <ActionComplete />}
     </>
   );
 }

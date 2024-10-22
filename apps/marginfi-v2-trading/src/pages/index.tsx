@@ -13,7 +13,6 @@ import { useIsMobile } from "~/hooks/use-is-mobile";
 
 import { PageHeading } from "~/components/common/PageHeading";
 import { PoolCard, PoolListItem } from "~/components/common/Pool";
-import { ActionComplete } from "~/components/common/ActionComplete";
 import { PoolSearch } from "~/components/common/Pool";
 import { Button } from "~/components/ui/button";
 import { Loader } from "~/components/common/Loader";
@@ -221,8 +220,6 @@ export default function HomePage() {
           </>
         )}
       </div>
-
-      {initialized && previousTxn && <ActionComplete />}
     </>
   );
 }

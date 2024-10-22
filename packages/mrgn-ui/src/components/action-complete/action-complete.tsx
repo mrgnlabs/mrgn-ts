@@ -69,7 +69,7 @@ export const ActionComplete = ({ isActionComplete, previousTxn, setIsActionCompl
         height={height! * 2}
         recycle={false}
         opacity={0.4}
-        className={"z-[80]"}
+        className="z-[80]"
         // className={cn(isMobile ? "z-[80]" : "z-[60]")}
       />
       <Dialog open={isActionComplete} onOpenChange={(open) => setIsActionComplete(open)}>
@@ -108,11 +108,12 @@ export const ActionComplete = ({ isActionComplete, previousTxn, setIsActionCompl
                 <p className="opacity-60">Get daily alerts on your position using</p>
                 <Link
                   href="https://t.me/AsgardWatchBot"
-                  className="flex items-center gap-1.5 text-chartreuse sm:ml-1.5"
+                  className="flex items-center gap-1.5 text-primary sm:ml-1.5"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  AsgardWatchBot <IconExternalLink size={14} className="-translate-y-[1px]" />
+                  <span className="border-b border-border">AsgardWatchBot</span>{" "}
+                  <IconExternalLink size={14} className="-translate-y-[1px]" />
                 </Link>
               </div>
             </div>
