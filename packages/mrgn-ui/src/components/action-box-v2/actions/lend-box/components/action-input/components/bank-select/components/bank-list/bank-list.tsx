@@ -184,7 +184,7 @@ export const BankList = ({
                   onClose();
                 }}
                 className={cn(
-                  "cursor-pointer font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white py-2"
+                  "cursor-pointer font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-mfi-action-box-accent data-[selected=true]:text-mfi-action-box-accent-foreground py-2"
                 )}
               >
                 <BankItem
@@ -213,7 +213,7 @@ export const BankList = ({
                   onClose();
                 }}
                 className={cn(
-                  "cursor-pointer font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white"
+                  "cursor-pointer font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-mfi-action-box-accent data-[selected=true]:text-mfi-action-box-accent-foreground"
                 )}
               >
                 <BankItem
@@ -243,7 +243,7 @@ export const BankList = ({
                     onClose();
                   }}
                   className={cn(
-                    "cursor-pointer font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white",
+                    "cursor-pointer font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-mfi-action-box-accent data-[selected=true]:text-mfi-action-box-accent-foreground hover:bg-mfi-action-box-accent hover:text-mfi-action-box-accent-foreground",
                     lendingMode === LendingModes.LEND && "py-2",
                     lendingMode === LendingModes.BORROW && "h-[60px]"
                   )}
@@ -274,7 +274,7 @@ export const BankList = ({
                     onClose();
                   }}
                   className={cn(
-                    "cursor-pointer font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white",
+                    "cursor-pointer font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-mfi-action-box-accent data-[selected=true]:text-mfi-action-box-accent-foreground hover:bg-mfi-action-box-accent hover:text-mfi-action-box-accent-foreground",
                     lendingMode === LendingModes.LEND && "py-2",
                     lendingMode === LendingModes.BORROW && "h-[60px]"
                   )}

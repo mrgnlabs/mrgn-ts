@@ -41,11 +41,11 @@ export const ActionProgressBar = ({
             </TooltipProvider>
           )}
         </dt>
-        <dd className="text-sm font-medium text-white">
+        <dd className="text-sm font-medium">
           {isLoading ? <Skeleton className="h-4 w-[45px] bg-[#373F45]" /> : usdFormatterDyn.format(amount)}
         </dd>
       </dl>
-      <div className="h-1.5 mb-2 bg-background-gray-dark rounded-full">
+      <div className="h-1.5 mb-2 bg-mfi-action-box-background-dark rounded-full">
         <div
           className="h-1.5 rounded-full"
           style={{
