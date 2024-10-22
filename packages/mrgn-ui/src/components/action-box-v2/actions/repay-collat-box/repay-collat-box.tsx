@@ -34,8 +34,8 @@ export type RepayCollatBoxProps = {
   banks: ExtendedBankInfo[];
   requestedBank?: ExtendedBankInfo;
   accountSummaryArg?: AccountSummary;
-
   isDialog?: boolean;
+  showAvailableCollateral?: boolean;
 
   onComplete?: (previousTxn: PreviousTxn) => void;
   captureEvent?: (event: string, properties?: Record<string, any>) => void;
@@ -51,6 +51,7 @@ export const RepayCollatBox = ({
   accountSummaryArg,
   requestedBank,
   isDialog,
+  showAvailableCollateral,
   onComplete,
   captureEvent,
 }: RepayCollatBoxProps) => {
@@ -299,9 +300,11 @@ export const RepayCollatBox = ({
           )
       )}
 
-      <div className="mb-6">
-        <Collateral selectedAccount={selectedAccount} actionSummary={actionSummary} />
-      </div>
+      {showAvailableCollateral && (
+        <div className="mb-6">
+          <Collateral selectedAccount={selectedAccount} actionSummary={actionSummary} />
+        </div>
+      )}
 
       <div className="mb-3">
         <ActionButton

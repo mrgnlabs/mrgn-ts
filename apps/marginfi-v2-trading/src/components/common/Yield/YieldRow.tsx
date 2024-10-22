@@ -4,16 +4,20 @@ import Link from "next/link";
 import Image from "next/image";
 
 import { IconArrowRight } from "@tabler/icons-react";
+import { Connection } from "@solana/web3.js";
 import { aprToApy, numeralFormatter, percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { cn, capture } from "@mrgnlabs/mrgn-utils";
+import { Wallet } from "@mrgnlabs/mrgn-common";
 
 import { useTradeStore } from "~/store";
 import { ArenaBank, GroupData } from "~/store/tradeStore";
 import { getGroupPositionInfo } from "~/utils";
+import { useConnection } from "~/hooks/use-connection";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
 import { ActionBoxDialog } from "~/components/common/ActionBox";
+import { ActionBox, ActionBoxProvider } from "~/components/action-box-v2";
 import { Button } from "~/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 
@@ -22,8 +26,13 @@ interface props {
 }
 
 export const YieldRow = ({ group }: props) => {
-  const { connected } = useWallet();
-  const { portfolio } = useTradeStore();
+  const { connection } = useConnection();
+  const { connected, wallet } = useWallet();
+  const [fetchTradeState, nativeSolBalance, portfolio] = useTradeStore((state) => [
+    state.fetchTradeState,
+    state.nativeSolBalance,
+    state.portfolio,
+  ]);
   const positionInfo = React.useMemo(() => getGroupPositionInfo({ group }), [group]);
 
   const isLeveraged = React.useMemo(() => positionInfo === "LONG" || positionInfo === "SHORT", [positionInfo]);
@@ -79,6 +88,10 @@ export const YieldRow = ({ group }: props) => {
         connected={connected}
         isLeveraged={isLeveraged}
         isLPPosition={isLPPosition(group.pool.token)}
+        connection={connection}
+        wallet={wallet}
+        nativeSolBalance={nativeSolBalance}
+        fetchTradeState={fetchTradeState}
       />
 
       <YieldItem
@@ -88,6 +101,10 @@ export const YieldRow = ({ group }: props) => {
         connected={connected}
         isLeveraged={isLeveraged}
         isLPPosition={isLPPosition(collateralBank)}
+        connection={connection}
+        wallet={wallet}
+        nativeSolBalance={nativeSolBalance}
+        fetchTradeState={fetchTradeState}
       />
     </div>
   );
@@ -100,6 +117,10 @@ const YieldItem = ({
   className,
   isLeveraged,
   isLPPosition,
+  connection,
+  wallet,
+  nativeSolBalance,
+  fetchTradeState,
 }: {
   group: GroupData;
   bank: ArenaBank;
@@ -107,6 +128,10 @@ const YieldItem = ({
   className?: string;
   isLeveraged?: boolean;
   isLPPosition?: boolean;
+  connection: Connection;
+  wallet: Wallet;
+  nativeSolBalance: number;
+  fetchTradeState: (args: { connection: Connection; wallet: Wallet }) => void;
 }) => {
   return (
     <div className={cn("grid gap-4items-center", className, connected ? "grid-cols-7" : "grid-cols-6")}>
@@ -156,32 +181,74 @@ const YieldItem = ({
       )}
       <TooltipProvider>
         <div className="flex justify-end gap-2">
-          {bank.isActive && !isLeveraged && bank.position.isLending && group.selectedAccount && (
-            <ActionBoxDialog
-              activeGroupArg={group}
-              requestedBank={bank}
-              requestedAction={ActionType.Withdraw}
-              requestedAccount={group.selectedAccount}
-            >
-              <Button
-                className="bg-background border text-foreground hover:bg-accent"
-                onClick={() => {
-                  capture("yield_withdraw_btn_click", {
-                    group: group.client.group.address.toBase58(),
-                    bank: bank.meta.tokenSymbol,
-                  });
-                }}
-              >
-                Withdraw
-              </Button>
-            </ActionBoxDialog>
-          )}
-          <ActionBoxDialog
-            activeGroupArg={group}
-            requestedBank={bank}
-            requestedAction={ActionType.Deposit}
-            requestedAccount={group.selectedAccount ?? undefined}
+          <ActionBoxProvider
+            banks={[bank]}
+            nativeSolBalance={nativeSolBalance}
+            marginfiClient={group.client}
+            selectedAccount={group.selectedAccount}
+            connected={connected}
+            accountSummaryArg={group.accountSummary}
           >
+            {bank.isActive && !isLeveraged && bank.position.isLending && group.selectedAccount && (
+              <>
+                <ActionBox.Lend
+                  isDialog={true}
+                  useProvider={true}
+                  lendProps={{
+                    connected: connected,
+                    requestedLendType: ActionType.Withdraw,
+                    requestedBank: bank,
+                    showAvailableCollateral: false,
+                    captureEvent: () => {
+                      capture("yield_withdraw_btn_click", {
+                        group: group.client.group.address.toBase58(),
+                        bank: bank.meta.tokenSymbol,
+                      });
+                    },
+                    onComplete: () => {
+                      fetchTradeState({
+                        connection,
+                        wallet,
+                      });
+                    },
+                  }}
+                  dialogProps={{
+                    trigger: (
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          capture("position_add_btn_click", {
+                            group: group.client.group.address.toBase58(),
+                            bank: bank.meta.tokenSymbol,
+                          });
+                        }}
+                      >
+                        Withdraw
+                      </Button>
+                    ),
+                    title: `Withdraw ${bank.meta.tokenSymbol}`,
+                  }}
+                />
+                <ActionBoxDialog
+                  activeGroupArg={group}
+                  requestedBank={bank}
+                  requestedAction={ActionType.Withdraw}
+                  requestedAccount={group.selectedAccount}
+                >
+                  <Button
+                    className="bg-background border text-foreground hover:bg-accent"
+                    onClick={() => {
+                      capture("yield_withdraw_btn_click", {
+                        group: group.client.group.address.toBase58(),
+                        bank: bank.meta.tokenSymbol,
+                      });
+                    }}
+                  >
+                    Withdraw (old)
+                  </Button>
+                </ActionBoxDialog>
+              </>
+            )}
             {isLeveraged ? (
               <Tooltip>
                 <TooltipTrigger className="cursor-default" asChild>
@@ -203,19 +270,87 @@ const YieldItem = ({
                 </TooltipContent>
               </Tooltip>
             ) : (
-              <Button
-                className="bg-background border text-foreground hover:bg-accent"
-                onClick={() => {
-                  capture("yield_supply_btn_click", {
-                    group: group.client.group.address.toBase58(),
-                    bank: bank.meta.tokenSymbol,
-                  });
+              <ActionBox.Lend
+                isDialog={true}
+                useProvider={true}
+                lendProps={{
+                  connected: connected,
+                  requestedLendType: ActionType.Deposit,
+                  requestedBank: bank,
+                  showAvailableCollateral: false,
+                  captureEvent: () => {
+                    capture("position_add_btn_click", {
+                      group: group.client.group.address.toBase58(),
+                      bank: bank.meta.tokenSymbol,
+                    });
+                  },
+                  onComplete: () => {
+                    fetchTradeState({
+                      connection,
+                      wallet,
+                    });
+                  },
                 }}
-              >
-                Supply
-              </Button>
+                dialogProps={{
+                  trigger: (
+                    <Button
+                      variant="outline"
+                      className="gap-1 min-w-16"
+                      onClick={() => {
+                        capture("position_add_btn_click", {
+                          group: group.client.group.address.toBase58(),
+                          bank: bank.meta.tokenSymbol,
+                        });
+                      }}
+                    >
+                      Supply
+                    </Button>
+                  ),
+                  title: `Supply ${bank.meta.tokenSymbol}`,
+                }}
+              />
             )}
-          </ActionBoxDialog>
+            <ActionBoxDialog
+              activeGroupArg={group}
+              requestedBank={bank}
+              requestedAction={ActionType.Deposit}
+              requestedAccount={group.selectedAccount ?? undefined}
+            >
+              {isLeveraged ? (
+                <Tooltip>
+                  <TooltipTrigger className="cursor-default" asChild>
+                    <Button disabled className="bg-background border text-foreground hover:bg-accent">
+                      Supply
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <div>
+                      You cannot provide liquidity with an open trade. <br />
+                      <Link
+                        className="underline"
+                        href={"https://docs.marginfi.com/the-arena#supply-liquidity-and-earn-yield"}
+                        target="_blank"
+                      >
+                        learn more
+                      </Link>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+              ) : (
+                <Button
+                  className="bg-background border text-foreground hover:bg-accent"
+                  onClick={() => {
+                    capture("yield_supply_btn_click", {
+                      group: group.client.group.address.toBase58(),
+                      bank: bank.meta.tokenSymbol,
+                    });
+                  }}
+                >
+                  Supply (old)
+                </Button>
+              )}
+            </ActionBoxDialog>
+          </ActionBoxProvider>
         </div>
       </TooltipProvider>
     </div>
