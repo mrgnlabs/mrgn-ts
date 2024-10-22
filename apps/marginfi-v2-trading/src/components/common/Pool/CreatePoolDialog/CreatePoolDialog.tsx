@@ -27,6 +27,8 @@ type CreatePoolDialogProps = {
   trigger?: React.ReactNode;
 };
 
+export type SUPPORTED_QUOTE_BANKS = "USDC" | "LST";
+
 export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
   const [resetSearchResults, searchBanks] = useTradeStore((state) => [state.resetSearchResults, state.searchBanks]);
   const [isOpen, setIsOpen] = React.useState(false);
@@ -36,6 +38,7 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
   const [searchQuery, setSearchQuery] = React.useState("");
   const [mintAddress, setMintAddress] = React.useState("");
   const [poolData, setPoolData] = React.useState<PoolData | null>(null);
+  const [quoteBank, setQuoteBank] = React.useState<SUPPORTED_QUOTE_BANKS>("USDC");
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   const { width, height } = useWindowSize();
@@ -139,6 +142,8 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
           )}
           {createPoolState === CreatePoolState.FORM && (
             <CreatePoolForm
+              quoteBank={quoteBank}
+              setQuoteBank={setQuoteBank}
               isTokenFetchingError={isTokenFetchingError}
               poolData={poolData}
               setCreatePoolState={setCreatePoolState}
@@ -147,7 +152,12 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
           )}
 
           {createPoolState === CreatePoolState.LOADING && (
-            <CreatePoolLoading poolData={poolData} setPoolData={setPoolData} setCreatePoolState={setCreatePoolState} />
+            <CreatePoolLoading
+              quoteBank={quoteBank}
+              poolData={poolData}
+              setPoolData={setPoolData}
+              setCreatePoolState={setCreatePoolState}
+            />
           )}
 
           {createPoolState === CreatePoolState.SUCCESS && (

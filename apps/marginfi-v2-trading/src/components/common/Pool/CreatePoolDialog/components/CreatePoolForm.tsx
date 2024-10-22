@@ -1,7 +1,7 @@
 import React from "react";
 import { IconChevronLeft } from "@tabler/icons-react";
 
-import { CreatePoolState } from "~/components/common/Pool/CreatePoolDialog";
+import { CreatePoolState, SUPPORTED_QUOTE_BANKS } from "~/components/common/Pool/CreatePoolDialog";
 
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -9,15 +9,25 @@ import { Loader } from "~/components/ui/loader";
 import { Label } from "~/components/ui/label";
 
 import type { PoolData } from "../types";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
 
 type CreatePoolFormProps = {
   isTokenFetchingError: boolean;
   poolData: PoolData | null;
   setCreatePoolState: React.Dispatch<React.SetStateAction<CreatePoolState>>;
+  quoteBank: SUPPORTED_QUOTE_BANKS;
+  setQuoteBank: React.Dispatch<React.SetStateAction<SUPPORTED_QUOTE_BANKS>>;
   reset: () => void;
 };
 
-export const CreatePoolForm = ({ isTokenFetchingError, poolData, setCreatePoolState, reset }: CreatePoolFormProps) => {
+export const CreatePoolForm = ({
+  isTokenFetchingError,
+  poolData,
+  setCreatePoolState,
+  quoteBank,
+  setQuoteBank,
+  reset,
+}: CreatePoolFormProps) => {
   if (!poolData) return null;
   return (
     <>
@@ -69,13 +79,31 @@ export const CreatePoolForm = ({ isTokenFetchingError, poolData, setCreatePoolSt
               <Label className="font-medium text-xs">Token name</Label>
               <Input value={poolData.name} disabled={true} />
             </div>
-            <div className="space-y-1">
-              <Label className="font-medium text-xs">Token symbol</Label>
-              <Input value={poolData.symbol} disabled={true} />
+            <div className="flex w-full gap-2">
+              <div className="space-y-1 flex-1">
+                <Label className="font-medium text-xs">Token symbol</Label>
+                <Input value={poolData.symbol} disabled={true} />
+              </div>
+              <div className="space-y-1 flex-1">
+                <Label className="font-medium text-xs">Token decimals</Label>
+                <Input type="number" value={poolData.decimals} disabled={true} />
+              </div>
             </div>
             <div className="space-y-1">
-              <Label className="font-medium text-xs">Token decimals</Label>
-              <Input type="number" value={poolData.decimals} disabled={true} />
+              <Label className="font-medium text-xs">Quote bank</Label>
+              <Select value={quoteBank} onValueChange={(value) => setQuoteBank(value as SUPPORTED_QUOTE_BANKS)}>
+                <SelectTrigger className="w-full z-[999]">
+                  <SelectValue placeholder="Select a quote bank" />
+                </SelectTrigger>
+                <SelectContent className="cursor-pointer z-[999]">
+                  <SelectItem className="focus:text-white hover:text-white" value="USDC">
+                    USDC
+                  </SelectItem>
+                  <SelectItem className="focus:text-white hover:text-white" value="LST">
+                    LST
+                  </SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <Button
               className="w-full"
