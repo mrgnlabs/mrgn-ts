@@ -255,7 +255,13 @@ export const RepayCollatBox = ({
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger>
-                <CircularProgress size={18} strokeWidth={3} value={blockProgress * 100} />
+                <CircularProgress
+                  size={18}
+                  strokeWidth={3}
+                  value={blockProgress * 100}
+                  strokeColor="stroke-mfi-action-box-accent-foreground"
+                  backgroundColor="stroke-mfi-action-box-background-dark"
+                />
               </TooltipTrigger>
               <TooltipContent side="left">
                 <div className="space-y-2">
