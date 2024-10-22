@@ -256,7 +256,6 @@ export async function executeLeverageAction({
     }
   }
 
-  console.log("loopingObject", loopingObject);
   try {
     if (loopingObject.loopingTxn) {
       let txnSig: string[] = [];
