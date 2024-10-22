@@ -62,11 +62,11 @@ export const TradingScreen = ({
         <dd className="text-right">
           <Link
             href={`https://solscan.io/tx/${txn}`}
-            className="flex items-center justify-end gap-1.5 text-chartreuse text-sm"
+            className="flex items-center justify-end gap-1.5 text-primary text-sm"
             target="_blank"
             rel="noopener noreferrer"
           >
-            <span className="border-b">{shortenAddress(txn || "")}</span>{" "}
+            <span className="border-b border-border">{shortenAddress(txn || "")}</span>{" "}
             <IconExternalLink size={15} className="-translate-y-[1px]" />
           </Link>
         </dd>

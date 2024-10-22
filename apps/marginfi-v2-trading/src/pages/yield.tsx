@@ -12,7 +12,6 @@ import { useIsMobile } from "~/hooks/use-is-mobile";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
 import { PageHeading } from "~/components/common/PageHeading";
-import { ActionComplete } from "~/components/common/ActionComplete";
 import { Loader } from "~/components/common/Loader";
 import { Input } from "~/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
@@ -246,8 +245,6 @@ export default function PortfolioPage() {
           </>
         )}
       </div>
-
-      {initialized && previousTxn && <ActionComplete />}
     </>
   );
 }
