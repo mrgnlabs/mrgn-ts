@@ -4,7 +4,7 @@ import { useRouter } from "next/router";
 
 import { IconInfoCircle } from "@tabler/icons-react";
 
-import { numeralFormatter } from "@mrgnlabs/mrgn-common";
+import { nativeToUi, numeralFormatter, Wallet } from "@mrgnlabs/mrgn-common";
 import { usdFormatter, usdFormatterDyn } from "@mrgnlabs/mrgn-common";
 import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { LendingModes } from "@mrgnlabs/mrgn-utils";
@@ -16,22 +16,184 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/comp
 import { WalletButton } from "~/components/wallet-v2";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { Loader } from "~/components/ui/loader";
+import { RewardsDialog } from "../rewards";
+import { ActionComplete } from "~/components/common/ActionComplete";
+import {
+  PublicKey,
+  Transaction,
+  TransactionInstruction,
+  TransactionMessage,
+  VersionedTransaction,
+} from "@solana/web3.js";
+import { EMISSION_MINT_INFO_MAP } from "~/components/desktop/AssetList/components";
+import { Balance, Bank, makeBundleTipIx, MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
+import BigNumber from "bignumber.js";
+import { margin } from "@mui/system";
+
+export type rewardsType = {
+  totalReward: number;
+  rewards: { bank: string; amount: number }[];
+};
 
 export const LendingPortfolio = () => {
   const router = useRouter();
   const { connected } = useWallet();
   const [walletConnectionDelay, setWalletConnectionDelay] = React.useState(false);
 
-  const [isStoreInitialized, sortedBanks, accountSummary, isRefreshingStore] = useMrgnlendStore((state) => [
+  const [
+    isStoreInitialized,
+    sortedBanks,
+    accountSummary,
+    isRefreshingStore,
+    marginfiClient,
+    selectedAccount,
+    extendedBankInfos,
+  ] = useMrgnlendStore((state) => [
     state.initialized,
     state.extendedBankInfos,
     state.accountSummary,
     state.isRefreshingStore,
+    state.marginfiClient,
+    state.selectedAccount,
+    state.extendedBankInfos,
   ]);
 
   const [setLendingMode] = useUiStore((state) => [state.setLendingMode]);
 
   const [userPointsData] = useUserProfileStore((state) => [state.userPointsData]);
+
+  const bankAddressesWithEmissions: PublicKey[] = React.useMemo(() => {
+    if (!selectedAccount) return [];
+    return [...EMISSION_MINT_INFO_MAP.keys()]
+      .map((bankMintSymbol) => {
+        const bankInfo = extendedBankInfos?.find((b) => b.address && b.meta.tokenSymbol === bankMintSymbol);
+        if (bankInfo?.info.state.emissions.toString() === "1") return bankInfo?.address;
+      })
+      .filter((address) => address !== undefined) as PublicKey[];
+  }, [selectedAccount, extendedBankInfos]); // TODO: confirm this is correct. I'm not sure, but some info.state.emissions are 0 and some are 1. For now i'm assuming that the banks with emissions are the ones with state.emissions = 1
+
+  const [collectTxn, setCollectTxn] = React.useState<VersionedTransaction | null>(null);
+
+  const generateCollectTransaction = React.useCallback(async () => {
+    if (!marginfiClient || !selectedAccount) return;
+
+    const ixs: TransactionInstruction[] = [];
+    const bundleTipIx = makeBundleTipIx(marginfiClient?.wallet.publicKey);
+    const priorityFeeIx = selectedAccount?.makePriorityFeeIx(0); // TODO: set priorityfee
+    const connection = marginfiClient?.provider.connection; // TODO: fix
+    if (!connection) return; // TODO: handle
+    const blockhash = (await connection.getLatestBlockhash()).blockhash;
+
+    for (let bankAddress of bankAddressesWithEmissions) {
+      const ix = await selectedAccount?.makeWithdrawEmissionsIx(bankAddress);
+      if (!ix) continue;
+      ixs.push(...ix.instructions);
+    } // TODO: promise.all
+
+    const tx = new VersionedTransaction(
+      new TransactionMessage({
+        instructions: [bundleTipIx, ...priorityFeeIx, ...ixs],
+        payerKey: selectedAccount?.authority,
+        recentBlockhash: blockhash,
+      }).compileToV0Message()
+    );
+
+    setCollectTxn(tx);
+  }, [marginfiClient, selectedAccount, setCollectTxn, bankAddressesWithEmissions]);
+
+  const simulateCollectTransaction = React.useCallback(async () => {
+    if (!collectTxn || !marginfiClient || !selectedAccount) return; // TODO: handle
+
+    const balancesBeforeSimulation = selectedAccount.balances.filter((balance) =>
+      bankAddressesWithEmissions.map((b) => b.toBase58()).includes(balance.bankPk.toBase58())
+    );
+
+    console.log(balancesBeforeSimulation[0].emissionsOutstanding.toNumber());
+
+    const simulationResults = await marginfiClient.simulateTransactions(
+      [collectTxn],
+      [selectedAccount.address, ...bankAddressesWithEmissions]
+    );
+
+    if (!simulationResults || simulationResults.length === 0) return; // TODO: handle
+
+    const [mfiAccountData, ...banksData] = simulationResults; // The first element is the account data, rest are the banks
+
+    if (banksData.length !== bankAddressesWithEmissions.length) return; // TODO: handle
+
+    const previewBanks = marginfiClient.banks;
+    for (let i = 0; i < bankAddressesWithEmissions.length; i++) {
+      const bankAddress = bankAddressesWithEmissions[i];
+      const bankData = banksData[i];
+      if (!bankData) continue;
+      previewBanks.set(
+        bankAddress.toBase58(),
+        Bank.fromBuffer(bankAddress, bankData, marginfiClient.program.idl, marginfiClient.feedIdMap)
+      );
+    }
+
+    const previewClient = new MarginfiClient(
+      marginfiClient.config,
+      marginfiClient.program,
+      {} as Wallet,
+      true,
+      marginfiClient.group,
+      previewBanks,
+      marginfiClient.oraclePrices,
+      marginfiClient.mintDatas,
+      marginfiClient.feedIdMap
+    );
+
+    if (!mfiAccountData) return;
+
+    const previewMarginfiAccount = MarginfiAccountWrapper.fromAccountDataRaw(
+      selectedAccount.address,
+      previewClient,
+      mfiAccountData,
+      marginfiClient.program.idl
+    );
+
+    const balancesAfterSimulation = previewMarginfiAccount.balances.filter((balance) =>
+      bankAddressesWithEmissions.map((b) => b.toBase58()).includes(balance.bankPk.toBase58())
+    );
+    console.log(balancesAfterSimulation[0].emissionsOutstanding.toNumber());
+
+    compareBankBalancesForEmissions(previewMarginfiAccount);
+  }, [marginfiClient, selectedAccount, collectTxn, bankAddressesWithEmissions]);
+
+  const compareBankBalancesForEmissions = (originalAccount: MarginfiAccountWrapper) => {
+    const banksWithOustandingEmissions = originalAccount.balances.filter((b) =>
+      b.emissionsOutstanding.isGreaterThan(0)
+    );
+
+    const outstandingRewards = banksWithOustandingEmissions.map((b) => {
+      const bank = marginfiClient?.getBankByPk(b.bankPk);
+
+      return {
+        bank: bank,
+        amount: b.emissionsOutstanding.toNumber(),
+      };
+    });
+
+    // console.log(outstandingRewards);
+  };
+
+  const handleCollectAction = async () => {
+    if (!collectTxn || !marginfiClient) return;
+
+    const sig = await marginfiClient.processTransaction(collectTxn);
+
+    // console.log(sig);
+  };
+
+  useEffect(() => {
+    simulateCollectTransaction();
+  }, [collectTxn, marginfiClient, bankAddressesWithEmissions, selectedAccount]);
+
+  useEffect(() => {
+    generateCollectTransaction();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bankAddressesWithEmissions, marginfiClient, selectedAccount]);
 
   const lendingBanks = React.useMemo(
     () =>
@@ -110,6 +272,31 @@ export const LendingPortfolio = () => {
     [isStoreInitialized, walletConnectionDelay, isRefreshingStore, accountSummary.balance, lendingBanks, borrowingBanks]
   );
 
+  const [rewards, setRewards] = React.useState<rewardsType>({
+    totalReward: 100,
+    rewards: [
+      {
+        bank: "JitoSOL",
+        amount: 10,
+      },
+      {
+        bank: "SOL",
+        amount: 10,
+      },
+      {
+        bank: "SOL",
+        amount: 10,
+      },
+      {
+        bank: "SOL",
+        amount: 10,
+      },
+    ],
+  });
+
+  const [rewardsDialogOpen, setRewardsDialogOpen] = React.useState(false);
+  const [previousTxn] = useUiStore((state) => [state.previousTxn]);
+
   // Introduced this useEffect to show the loader for 2 seconds after wallet connection. This is to avoid the flickering of the loader, since the isRefreshingStore isnt set immediately after the wallet connection.
   useEffect(() => {
     if (connected) {
@@ -147,7 +334,17 @@ export const LendingPortfolio = () => {
 
   return (
     <div className="p-4 md:p-6 rounded-xl space-y-3 w-full mb-10  bg-background-gray-dark">
-      <h2 className="font-medium text-xl">Lend/borrow</h2>
+      <div className="flex justify-between w-full">
+        <h2 className="font-medium text-xl">Lend/borrow</h2>
+        <span
+          className="cursor-pointer hover:text-[#AAA] underline"
+          onClick={() => {
+            setRewardsDialogOpen(true);
+          }}
+        >
+          Collect Rewards
+        </span>
+      </div>
       <div className="text-muted-foreground">
         <dl className="flex justify-between items-center gap-2">
           <dt className="flex items-center gap-1.5 text-sm">
@@ -262,6 +459,18 @@ export const LendingPortfolio = () => {
           )}
         </div>
       </div>
+      <RewardsDialog
+        availableRewards={rewards}
+        onClose={() => {
+          setRewardsDialogOpen(false);
+        }}
+        open={rewardsDialogOpen}
+        onOpenChange={(open) => {
+          setRewardsDialogOpen(open);
+        }}
+        onCollect={handleCollectAction}
+      />
+      {previousTxn && <ActionComplete />}
     </div>
   );
 };
