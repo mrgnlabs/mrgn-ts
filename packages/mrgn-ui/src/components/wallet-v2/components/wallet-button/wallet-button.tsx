@@ -35,12 +35,10 @@ type WalletButtonProps = {
 };
 
 export const WalletButton = ({ className, showWalletInfo = true }: WalletButtonProps) => {
-  const { connected, isLoading, loginWeb3Auth, select, walletContextState } = useWallet();
+  const { loginWeb3Auth, select } = useWallet();
   const [setIsWalletSignUpOpen] = useWalletStore((state) => [state.setIsWalletSignUpOpen]);
 
   const walletInfo = useMemo(() => JSON.parse(localStorage.getItem("walletInfo") ?? "null") as WalletInfo, []);
-
-  const isMoongate = useMemo(() => walletInfo?.name === "Ethereum Wallet", [walletInfo]);
 
   const WalletIcon = useMemo(() => {
     if (walletInfo?.icon) {
