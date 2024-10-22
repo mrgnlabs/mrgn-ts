@@ -2,10 +2,12 @@ import React from "react";
 
 import { useRouter } from "next/router";
 
-import { useTradeStore, useUiStore } from "~/store";
+import { useTradeStore } from "~/store";
 import { GroupData } from "~/store/tradeStore";
+import { useActionBoxStore } from "~/components/action-box-v2/store";
 import { useIsMobile } from "~/hooks/use-is-mobile";
 
+import { ActionComplete } from "~/components/action-complete";
 import { TVWidget } from "~/components/common/TVWidget";
 import { TradingBox } from "~/components/common/TradingBox";
 import { PositionList } from "~/components/common/Portfolio";
@@ -17,7 +19,11 @@ export default function TradeSymbolPage() {
   const router = useRouter();
   const side = router.query.side as "long" | "short";
   const [initialized, groupMap] = useTradeStore((state) => [state.initialized, state.groupMap]);
-  const [previousTxn] = useUiStore((state) => [state.previousTxn]);
+  const [isActionComplete, previousTxn, setIsActionComplete] = useActionBoxStore((state) => [
+    state.isActionComplete,
+    state.previousTxn,
+    state.setIsActionComplete,
+  ]);
   const [activeGroup, setActiveGroup] = React.useState<GroupData | null>(null);
 
   React.useEffect(() => {
@@ -66,6 +72,14 @@ export default function TradeSymbolPage() {
           </div>
         )}
       </div>
+
+      {initialized && previousTxn && (
+        <ActionComplete
+          isActionComplete={isActionComplete}
+          setIsActionComplete={setIsActionComplete}
+          previousTxn={previousTxn}
+        />
+      )}
     </>
   );
 }

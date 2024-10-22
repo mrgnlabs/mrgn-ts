@@ -5,12 +5,14 @@ import { IconSortDescending, IconSortAscending, IconSearch } from "@tabler/icons
 
 import { Desktop, Mobile } from "@mrgnlabs/mrgn-utils";
 
-import { useTradeStore, useUiStore } from "~/store";
+import { useTradeStore } from "~/store";
 import { GroupData, TradePoolFilterStates } from "~/store/tradeStore";
+import { useActionBoxStore } from "~/components/action-box-v2/store";
 import { cn } from "@mrgnlabs/mrgn-utils";
 import { useIsMobile } from "~/hooks/use-is-mobile";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
+import { ActionComplete } from "~/components/action-complete";
 import { PageHeading } from "~/components/common/PageHeading";
 import { Loader } from "~/components/common/Loader";
 import { Input } from "~/components/ui/input";
@@ -38,7 +40,11 @@ export default function PortfolioPage() {
     state.sortBy,
     state.setSortBy,
   ]);
-  const [previousTxn] = useUiStore((state) => [state.previousTxn]);
+  const [isActionComplete, previousTxn, setIsActionComplete] = useActionBoxStore((state) => [
+    state.isActionComplete,
+    state.previousTxn,
+    state.setIsActionComplete,
+  ]);
   const isMobile = useIsMobile();
   const { connected } = useWallet();
   const [search, setSearch] = React.useState("");
@@ -245,6 +251,14 @@ export default function PortfolioPage() {
           </>
         )}
       </div>
+
+      {initialized && previousTxn && (
+        <ActionComplete
+          isActionComplete={isActionComplete}
+          setIsActionComplete={setIsActionComplete}
+          previousTxn={previousTxn}
+        />
+      )}
     </>
   );
 }

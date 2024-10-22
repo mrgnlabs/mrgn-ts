@@ -8,8 +8,10 @@ import { capture } from "@mrgnlabs/mrgn-utils";
 
 import { useTradeStore, useUiStore } from "~/store";
 import { TradePoolFilterStates } from "~/store/tradeStore";
+import { useActionBoxStore } from "~/components/action-box-v2/store";
 import { POOLS_PER_PAGE } from "~/config/trade";
 import { useIsMobile } from "~/hooks/use-is-mobile";
+import { ActionComplete } from "~/components/action-complete";
 
 import { PageHeading } from "~/components/common/PageHeading";
 import { PoolCard, PoolListItem } from "~/components/common/Pool";
@@ -39,17 +41,17 @@ enum View {
 export default function HomePage() {
   const router = useRouter();
   const isMobile = useIsMobile();
-  const [initialized, groupMap, currentPage, totalPages, setCurrentPage, sortBy, setSortBy] = useTradeStore((state) => [
+  const [initialized, groupMap, sortBy, setSortBy] = useTradeStore((state) => [
     state.initialized,
     state.groupMap,
-    state.currentPage,
-    state.totalPages,
-    state.setCurrentPage,
     state.sortBy,
     state.setSortBy,
   ]);
-
-  const [previousTxn] = useUiStore((state) => [state.previousTxn]);
+  const [isActionComplete, previousTxn, setIsActionComplete] = useActionBoxStore((state) => [
+    state.isActionComplete,
+    state.previousTxn,
+    state.setIsActionComplete,
+  ]);
 
   const [view, setView] = React.useState<View>(View.GRID);
 
@@ -220,6 +222,13 @@ export default function HomePage() {
           </>
         )}
       </div>
+      {initialized && previousTxn && (
+        <ActionComplete
+          isActionComplete={isActionComplete}
+          setIsActionComplete={setIsActionComplete}
+          previousTxn={previousTxn}
+        />
+      )}
     </>
   );
 }

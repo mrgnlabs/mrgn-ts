@@ -89,17 +89,13 @@ export const PositionActionButtons = ({
     if (!activeGroup.selectedAccount || (!borrowBank && !depositBanks[0])) return;
     setIsClosing(true);
 
-    const multiStepToast = new MultiStepToastHandle(
-      "Closing position",
-      [
-        {
-          label: `Closing ${depositBanks[0].meta.tokenSymbol}${
-            borrowBank ? "/" + borrowBank?.meta.tokenSymbol : ""
-          } position.`,
-        },
-      ],
-      "light"
-    );
+    const multiStepToast = new MultiStepToastHandle("Closing position", [
+      {
+        label: `Closing ${depositBanks[0].meta.tokenSymbol}${
+          borrowBank ? "/" + borrowBank?.meta.tokenSymbol : ""
+        } position.`,
+      },
+    ]);
 
     multiStepToast.start();
 
@@ -133,19 +129,7 @@ export const PositionActionButtons = ({
       setMultiStepToast(multiStepToast);
     }
     setIsClosing(false);
-  }, [
-    activeGroup,
-    slippageBps,
-    connection,
-    priorityFee,
-    platformFeeBps,
-    wallet,
-    setIsRefreshingStore,
-    refreshGroup,
-    borrowBank,
-    depositBanks,
-    setIsClosing,
-  ]);
+  }, [activeGroup, slippageBps, connection, priorityFee, platformFeeBps, borrowBank, depositBanks, setIsClosing]);
 
   const processTransaction = React.useCallback(async () => {
     try {
@@ -209,7 +193,17 @@ export const PositionActionButtons = ({
       setActionTransaction(null);
       setMultiStepToast(null);
     }
-  }, [actionTransaction, multiStepToast, activeGroup]);
+  }, [
+    actionTransaction,
+    multiStepToast,
+    activeGroup,
+    refreshGroup,
+    setIsRefreshingStore,
+    wallet,
+    connection,
+    setIsActionComplete,
+    setPreviousTxn,
+  ]);
 
   const onClose = React.useCallback(() => {
     if (multiStepToast) {
@@ -228,6 +222,7 @@ export const PositionActionButtons = ({
       selectedAccount={activeGroup.selectedAccount}
       connected={connected}
       accountSummaryArg={activeGroup.accountSummary}
+      showActionComplete={false}
     >
       <div className="flex gap-3 w-full">
         <ActionBoxDialog
@@ -257,7 +252,7 @@ export const PositionActionButtons = ({
           lendProps={{
             connected: connected,
             requestedLendType: ActionType.Deposit,
-            requestedBank: activeGroup.pool.token ?? undefined,
+            requestedBank: depositBanks[0] ?? undefined,
             showAvailableCollateral: false,
             captureEvent: () => {
               capture("position_add_btn_click", {
