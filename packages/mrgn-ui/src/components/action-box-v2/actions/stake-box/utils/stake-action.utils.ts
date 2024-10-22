@@ -119,8 +119,7 @@ const executeLstAction = async ({
       {
         label: toastLabels,
       },
-    ],
-    "dark"
+    ]
   );
   multiStepToast.start();
 

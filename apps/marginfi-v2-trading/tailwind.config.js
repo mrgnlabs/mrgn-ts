@@ -63,7 +63,7 @@ module.exports = {
           foreground: "hsl(var(--secondary-foreground))",
         },
         alert: {
-          DEFAULT: "hsl(35 14% 17%)",
+          DEFAULT: "hsl(240 4.8% 95.9%)",
           foreground: "hsl(33 96% 61%)",
         },
         info: {
