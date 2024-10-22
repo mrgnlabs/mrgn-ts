@@ -17,7 +17,6 @@ import { useConnection } from "~/hooks/use-connection";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
 import { ActionBox, ActionBoxProvider } from "~/components/action-box-v2";
-import { ActionBoxDialog } from "~/components/common/ActionBox";
 import { Button } from "~/components/ui/button";
 
 interface YieldCardProps {
@@ -215,19 +214,6 @@ const YieldItem = ({
                   title: `Withdraw ${bank.meta.tokenSymbol}`,
                 }}
               />
-              <ActionBoxDialog activeGroupArg={group} requestedBank={bank} requestedAction={ActionType.Withdraw}>
-                <Button
-                  className="w-full bg-background border text-foreground hover:bg-accent"
-                  onClick={() => {
-                    capture("yield_withdraw_btn_click", {
-                      group: group.client.group.address.toBase58(),
-                      bank: bank.meta.tokenSymbol,
-                    });
-                  }}
-                >
-                  Withdraw {bank.meta.tokenSymbol} (old)
-                </Button>
-              </ActionBoxDialog>
             </>
           )}
 
@@ -288,38 +274,6 @@ const YieldItem = ({
               }}
             />
           )}
-
-          <ActionBoxDialog activeGroupArg={group} requestedBank={bank} requestedAction={ActionType.Deposit}>
-            {isLeveraged ? (
-              <div>
-                <p className="text-xs text-muted-foreground mb-2">
-                  You cannot provide liquidity with an open trade.{" "}
-                  <Link
-                    className="underline"
-                    href={"https://docs.marginfi.com/the-arena#supply-liquidity-and-earn-yield"}
-                    target="_blank"
-                  >
-                    learn more
-                  </Link>
-                </p>
-                <Button disabled className="w-full bg-background border text-foreground hover:bg-accent">
-                  Supply {bank.meta.tokenSymbol} (old)
-                </Button>
-              </div>
-            ) : (
-              <Button
-                className="w-full bg-background border text-foreground hover:bg-accent"
-                onClick={() => {
-                  capture("yield_supply_btn_click", {
-                    group: group.client.group.address.toBase58(),
-                    bank: bank.meta.tokenSymbol,
-                  });
-                }}
-              >
-                Supply {bank.meta.tokenSymbol} (old)
-              </Button>
-            )}
-          </ActionBoxDialog>
         </div>
       </ActionBoxProvider>
     </div>

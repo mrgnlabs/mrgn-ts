@@ -14,7 +14,6 @@ import { GroupData } from "~/store/tradeStore";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { calculateClosePositions } from "~/utils";
 
-import { ActionBoxDialog } from "~/components/common/ActionBox";
 import { ActionBox, ActionBoxProvider } from "~/components/action-box-v2";
 import { Button } from "~/components/ui/button";
 import {
@@ -225,27 +224,6 @@ export const PositionActionButtons = ({
       showActionComplete={false}
     >
       <div className="flex gap-3 w-full">
-        <ActionBoxDialog
-          requestedBank={depositBanks[0]}
-          requestedAction={ActionType.Deposit}
-          requestedAccount={activeGroup.selectedAccount ?? undefined}
-          activeGroupArg={activeGroup}
-        >
-          <Button
-            variant="outline"
-            size="sm"
-            className="gap-1 min-w-16"
-            onClick={() => {
-              capture("position_add_btn_click", {
-                group: activeGroup?.groupPk?.toBase58(),
-                token: activeGroup.pool.token.meta.tokenSymbol,
-              });
-            }}
-          >
-            <IconPlus size={14} />
-            Add (old)
-          </Button>
-        </ActionBoxDialog>
         <ActionBox.Lend
           isDialog={true}
           useProvider={true}
@@ -288,29 +266,6 @@ export const PositionActionButtons = ({
           }}
         />
         {borrowBank && isBorrowing && (
-          <ActionBoxDialog
-            requestedBank={borrowBank}
-            requestedAction={ActionType.Repay}
-            requestedAccount={activeGroup.selectedAccount ?? undefined}
-            activeGroupArg={activeGroup}
-          >
-            <Button
-              variant="outline"
-              size="sm"
-              className="gap-1 min-w-16"
-              onClick={() => {
-                capture("position_reduce_btn_click", {
-                  group: activeGroup?.groupPk?.toBase58(),
-                  token: activeGroup.pool.token.meta.tokenSymbol,
-                });
-              }}
-            >
-              <IconMinus size={14} />
-              Reduce (old)
-            </Button>
-          </ActionBoxDialog>
-        )}
-        {borrowBank && isBorrowing && (
           <ActionBox.Repay
             useProvider={true}
             repayProps={{
@@ -352,31 +307,6 @@ export const PositionActionButtons = ({
             }}
           />
         )}
-        {!isBorrowing && (
-          <ActionBoxDialog
-            activeGroupArg={activeGroup}
-            requestedBank={depositBanks[0]}
-            requestedAction={ActionType.Withdraw}
-            requestedAccount={activeGroup.selectedAccount ?? undefined}
-            requestedCollateralBank={depositBanks.length > 1 ? depositBanks[1] : undefined}
-          >
-            <Button
-              variant="outline"
-              size="sm"
-              className="gap-1 min-w-16"
-              onClick={() => {
-                capture("position_withdraw_btn_click", {
-                  group: activeGroup?.groupPk?.toBase58(),
-                  token: activeGroup.pool.token.meta.tokenSymbol,
-                });
-              }}
-            >
-              <IconMinus size={14} />
-              Withdraw
-            </Button>
-          </ActionBoxDialog>
-        )}
-
         {!isBorrowing && (
           <ActionBox.Lend
             isDialog={true}
