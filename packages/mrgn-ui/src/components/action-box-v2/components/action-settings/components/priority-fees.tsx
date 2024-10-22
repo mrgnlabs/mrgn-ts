@@ -89,8 +89,8 @@ export const PriorityFees = ({ toggleSettings, priorityFee, setPriorityFee }: Pr
                       <div
                         key={option.label}
                         className={cn(
-                          "w-full font-light border border-transparent rounded p-3 bg-background/50 transition-colors hover:bg-background-gray-hover",
-                          field.value === option.value && "bg-background-gray-hover border-chartreuse"
+                          "w-full font-light border border-transparent rounded p-3 bg-mfi-action-box-background-dark transition-colors hover:bg-mfi-action-box-background-dark/80",
+                          field.value === option.value && "border-mfi-action-box-highlight"
                         )}
                       >
                         <RadioGroupItem
@@ -129,8 +129,8 @@ export const PriorityFees = ({ toggleSettings, priorityFee, setPriorityFee }: Pr
                       placeholder={isCustomSlippage ? field.value.toString() : "0"}
                       onChange={(e) => field.onChange(e)}
                       className={cn(
-                        "h-auto bg-background/50 py-3 px-4 border border-transparent text-white transition-colors focus-visible:ring-0",
-                        isCustomSlippage && "border-chartreuse"
+                        "h-auto bg-mfi-action-box-background-dark py-3 px-4 border border-transparent transition-colors focus-visible:ring-0",
+                        isCustomSlippage && "border-mfi-action-box-highlight"
                       )}
                     />
                     <span className="absolute inset-y-0 right-3 text-sm flex items-center">SOL</span>
