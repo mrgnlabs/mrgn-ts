@@ -16,7 +16,6 @@ import { getGroupPositionInfo } from "~/utils";
 import { useConnection } from "~/hooks/use-connection";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
-import { ActionBoxDialog } from "~/components/common/ActionBox";
 import { ActionBox, ActionBoxProvider } from "~/components/action-box-v2";
 import { Button } from "~/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
@@ -230,24 +229,6 @@ const YieldItem = ({
                     title: `Withdraw ${bank.meta.tokenSymbol}`,
                   }}
                 />
-                <ActionBoxDialog
-                  activeGroupArg={group}
-                  requestedBank={bank}
-                  requestedAction={ActionType.Withdraw}
-                  requestedAccount={group.selectedAccount}
-                >
-                  <Button
-                    className="bg-background border text-foreground hover:bg-accent"
-                    onClick={() => {
-                      capture("yield_withdraw_btn_click", {
-                        group: group.client.group.address.toBase58(),
-                        bank: bank.meta.tokenSymbol,
-                      });
-                    }}
-                  >
-                    Withdraw (old)
-                  </Button>
-                </ActionBoxDialog>
               </>
             )}
             {isLeveraged ? (
@@ -311,46 +292,6 @@ const YieldItem = ({
                 }}
               />
             )}
-            <ActionBoxDialog
-              activeGroupArg={group}
-              requestedBank={bank}
-              requestedAction={ActionType.Deposit}
-              requestedAccount={group.selectedAccount ?? undefined}
-            >
-              {isLeveraged ? (
-                <Tooltip>
-                  <TooltipTrigger className="cursor-default" asChild>
-                    <Button disabled className="bg-background border text-foreground hover:bg-accent">
-                      Supply
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <div>
-                      You cannot provide liquidity with an open trade. <br />
-                      <Link
-                        className="underline"
-                        href={"https://docs.marginfi.com/the-arena#supply-liquidity-and-earn-yield"}
-                        target="_blank"
-                      >
-                        learn more
-                      </Link>
-                    </div>
-                  </TooltipContent>
-                </Tooltip>
-              ) : (
-                <Button
-                  className="bg-background border text-foreground hover:bg-accent"
-                  onClick={() => {
-                    capture("yield_supply_btn_click", {
-                      group: group.client.group.address.toBase58(),
-                      bank: bank.meta.tokenSymbol,
-                    });
-                  }}
-                >
-                  Supply (old)
-                </Button>
-              )}
-            </ActionBoxDialog>
           </ActionBoxProvider>
         </div>
       </TooltipProvider>
