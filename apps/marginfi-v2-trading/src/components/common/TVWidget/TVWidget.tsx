@@ -6,9 +6,10 @@ import { ChartingLibraryFeatureset } from "../../../../public/tradingview";
 
 interface props {
   token: ExtendedBankInfo;
+  quote: ExtendedBankInfo;
 }
 
-export const TVWidget = ({ token }: props) => {
+export const TVWidget = ({ token, quote }: props) => {
   const container = React.useRef<HTMLDivElement>(null);
   const prevToken = usePrevious(token);
 
@@ -94,7 +95,7 @@ export const TVWidget = ({ token }: props) => {
           },
           resolveSymbol: (symbolName, onSymbolResolvedCallback, onResolveErrorCallback) => {
             fetch(
-              `/api/datafeed?action=resolve&requested=${symbolName}&symbol=${token.meta.tokenSymbol}&address=${token.info.state.mint}`
+              `/api/datafeed?action=resolve&requested=${symbolName}&symbol=${token.meta.tokenSymbol}&address=${token.info.state.mint}&quoteSymbol=${quote.meta.tokenSymbol}`
             )
               .then((response) => response.json())
               .then((data) => onSymbolResolvedCallback(data))
@@ -105,7 +106,7 @@ export const TVWidget = ({ token }: props) => {
               const response = await fetch(
                 `/api/datafeed?action=history&symbol=${symbolInfo.name}&resolution=${resolution}&from=${
                   periodParams.from
-                }&to=${periodParams.to}&address=${(symbolInfo as any)?.address}&firstDataRequest=${
+                }&to=${periodParams.to}&quote=${quote.info.state.mint.toBase58()}&address=${(symbolInfo as any)?.address}&firstDataRequest=${
                   periodParams.firstDataRequest
                 }`
               );
