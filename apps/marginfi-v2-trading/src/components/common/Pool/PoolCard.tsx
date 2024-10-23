@@ -26,6 +26,22 @@ type PoolCardProps = {
 };
 
 export const PoolCard = ({ groupData }: PoolCardProps) => {
+  const isLstQuote = React.useMemo(() => {
+    return groupData.pool.quoteTokens[0].meta.tokenSymbol === "LST";
+  }, [groupData]);
+
+  const tokenPrice = React.useMemo(() => {
+    if (isLstQuote) {
+      const lstPrice = groupData.pool.quoteTokens[0].info.oraclePrice.priceRealtime.price.toNumber();
+      return `${tokenPriceFormatter(
+        groupData.pool.token.info.oraclePrice.priceRealtime.price.toNumber() / lstPrice,
+        "decimal"
+      )} ${groupData.pool.quoteTokens[0].meta.tokenSymbol}`;
+    }
+
+    return tokenPriceFormatter(groupData.pool.token.info.oraclePrice.priceRealtime.price.toNumber());
+  }, [isLstQuote, groupData]);
+
   return (
     <Card>
       <CardHeader className="md:pb-0">
@@ -86,17 +102,27 @@ export const PoolCard = ({ groupData }: PoolCardProps) => {
           <dl className="grid grid-cols-2 gap-1.5 text-sm text-muted-foreground w-full mt-2">
             <dt className="">Price</dt>
             <dd className="text-right text-primary tracking-wide">
-              {tokenPriceFormatter(groupData.pool.token.info.oraclePrice.priceRealtime.price.toNumber())}
-              {groupData.pool.token.tokenData.priceChange24hr && (
-                <span
-                  className={cn(
-                    "text-xs ml-2",
-                    groupData.pool.token.tokenData.priceChange24hr > 0 ? "text-mrgn-success" : "text-mrgn-error"
+              {tokenPrice}
+              {isLstQuote ? (
+                <span className="text-xs ml-1 text-muted-foreground">
+                  ($
+                  {tokenPriceFormatter(
+                    Number(groupData.pool.token.info.oraclePrice.priceRealtime.price.toNumber().toFixed(4))
                   )}
-                >
-                  {groupData.pool.token.tokenData.priceChange24hr > 0 && "+"}
-                  {percentFormatter.format(groupData.pool.token.tokenData.priceChange24hr / 100)}
+                  )
                 </span>
+              ) : (
+                groupData.pool.token.tokenData.priceChange24hr && (
+                  <span
+                    className={cn(
+                      "text-xs ml-2",
+                      groupData.pool.token.tokenData.priceChange24hr > 0 ? "text-mrgn-success" : "text-mrgn-error"
+                    )}
+                  >
+                    {groupData.pool.token.tokenData.priceChange24hr > 0 && "+"}
+                    {percentFormatter.format(groupData.pool.token.tokenData.priceChange24hr / 100)}
+                  </span>
+                )
               )}
             </dd>
             <dt className="">24hr vol</dt>
