@@ -4,7 +4,7 @@ import { useMrgnlendStore, useUiStore } from "~/store";
 
 import { LendingPortfolio } from "~/components/common/Portfolio";
 import { ActionComplete } from "~/components/common/ActionComplete";
-import { PortfolioHeader } from "~/components/common/Portfolio/PortfolioHeader";
+import { PortfolioHeader } from "~/components/common/Portfolio/components/portfolio-header";
 
 export default function PortfolioPage() {
   const [initialized] = useMrgnlendStore((state) => [state.initialized]);
