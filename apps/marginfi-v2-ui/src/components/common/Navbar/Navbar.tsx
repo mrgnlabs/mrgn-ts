@@ -156,25 +156,6 @@ export const Navbar: FC = () => {
           </div>
           {initialized && (
             <div className="h-full w-1/2 flex justify-end items-center z-10 gap-4 lg:gap-4 text-[#868E95]">
-              <div
-                className={`whitespace-nowrap inline-flex mr-4 md: mr-0 ${
-                  bankAddressesWithEmissions.length > 0 ? "cursor-pointer hover:text-[#AAA]" : "cursor-not-allowed"
-                }`}
-                onClick={async () => {
-                  if (!wallet || !selectedAccount || bankAddressesWithEmissions.length === 0) return;
-                  const priorityFee = 0; // code has been removed on new collect rewards so temporary placeholder
-                  await collectRewardsBatch(selectedAccount, bankAddressesWithEmissions, priorityFee);
-                }}
-              >
-                {!isMobile && "collect"} rewards
-                {bankAddressesWithEmissions.length > 0 && (
-                  <span className="relative flex h-1 w-1">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#DCE85D] opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-1 w-1 bg-[#DCE85DAA]"></span>
-                  </span>
-                )}
-              </div>
-
               <Popover>
                 <PopoverTrigger asChild>
                   <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0">

@@ -4,15 +4,23 @@ import { DialogDescription, DialogProps } from "@radix-ui/react-dialog";
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "~/components/ui/dialog";
 import { Button } from "~/components/ui/button";
+import { IconLoader } from "~/components/ui/icons";
 
 import { rewardsType } from "../../types";
 interface RewardsDialogProps extends DialogProps {
   availableRewards: rewardsType | null;
   onClose: () => void;
   onCollect: () => void;
+  isLoading: boolean;
 }
 
-export const RewardsDialog: React.FC<RewardsDialogProps> = ({ availableRewards, onClose, onCollect, ...props }) => {
+export const RewardsDialog: React.FC<RewardsDialogProps> = ({
+  availableRewards,
+  onClose,
+  onCollect,
+  isLoading,
+  ...props
+}) => {
   return (
     <Dialog {...props}>
       <DialogContent className="md:flex md:gap-6 text-muted-foreground">
@@ -30,7 +38,9 @@ export const RewardsDialog: React.FC<RewardsDialogProps> = ({ availableRewards, 
             </li>
           ))}
         </ul>
-        <Button onClick={onCollect}>Collect rewards</Button>
+        <Button disabled={isLoading} onClick={onCollect}>
+          {isLoading ? <IconLoader size={24} /> : "Collect rewards"}
+        </Button>
       </DialogContent>
     </Dialog>
   );
