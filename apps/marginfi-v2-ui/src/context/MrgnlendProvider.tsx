@@ -6,7 +6,7 @@ import { identify } from "@mrgnlabs/mrgn-utils";
 import config from "~/config/marginfi";
 import { useMrgnlendStore } from "~/store";
 import { useConnection } from "~/hooks/use-connection";
-import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
+import { useWallet } from "~/components/wallet-v2";
 
 // @ts-ignore - Safe because context hook checks for null
 const MrgnlendContext = React.createContext<>();
@@ -16,11 +16,13 @@ export const MrgnlendProvider: React.FC<{
 }> = ({ children }) => {
   const router = useRouter();
   const debounceId = React.useRef<NodeJS.Timeout | null>(null);
-  const { wallet, isOverride } = useWallet();
+  const { wallet, isOverride, connected } = useWallet();
   const { connection } = useConnection();
-  const [fetchMrgnlendState, setIsRefreshingStore] = useMrgnlendStore((state) => [
+  const [fetchMrgnlendState, setIsRefreshingStore, resetUserData, userDataFetched] = useMrgnlendStore((state) => [
     state.fetchMrgnlendState,
     state.setIsRefreshingStore,
+    state.resetUserData,
+    state.userDataFetched,
   ]);
 
   // identify user if logged in
@@ -85,6 +87,12 @@ export const MrgnlendProvider: React.FC<{
   }, [wallet, isOverride]); // eslint-disable-line react-hooks/exhaustive-deps
   // ^ crucial to omit both `connection` and `fetchMrgnlendState` from the dependency array
   // TODO: fix...
+
+  React.useEffect(() => {
+    if (!connected) {
+      resetUserData();
+    }
+  }, [connected, resetUserData]);
 
   return <MrgnlendContext.Provider value={{}}>{children}</MrgnlendContext.Provider>;
 };
