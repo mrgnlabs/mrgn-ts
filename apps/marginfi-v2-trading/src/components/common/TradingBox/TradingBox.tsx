@@ -26,7 +26,7 @@ import { executeLeverageAction } from "~/utils";
 import { useTradeStore, useUiStore } from "~/store";
 import { GroupData } from "~/store/tradeStore";
 import { WalletState } from "~/store/uiStore";
-import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
+import { useWallet, useWalletStore } from "~/components/wallet-v2";
 import { useConnection } from "~/hooks/use-connection";
 
 import { TokenCombobox } from "../TokenCombobox/TokenCombobox";
@@ -73,25 +73,18 @@ export const TradingBox = ({ activeGroup, side = "long" }: TradingBoxProps) => {
     state.refreshGroup,
   ]);
 
-  const [
-    setWalletState,
-    setIsWalletOpen,
-    slippageBps,
-    priorityFee,
-    platformFeeBps,
-    setSlippageBps,
-    setIsActionComplete,
-    setPreviousTxn,
-  ] = useUiStore((state) => [
-    state.setWalletState,
-    state.setIsWalletOpen,
-    state.slippageBps,
-    state.priorityFee,
-    state.platformFeeBps,
-    state.setSlippageBps,
-    state.setIsActionComplete,
-    state.setPreviousTxn,
-  ]);
+  const [slippageBps, priorityFee, platformFeeBps, setSlippageBps, setIsActionComplete, setPreviousTxn] = useUiStore(
+    (state) => [
+      state.slippageBps,
+      state.priorityFee,
+      state.platformFeeBps,
+      state.setSlippageBps,
+      state.setIsActionComplete,
+      state.setPreviousTxn,
+    ]
+  );
+
+  const [setIsWalletOpen] = useWalletStore((state) => [state.setIsWalletOpen]);
 
   React.useEffect(() => {
     if (tradeState !== prevTradeState) {
@@ -530,15 +523,16 @@ export const TradingBox = ({ activeGroup, side = "long" }: TradingBoxProps) => {
               <div className="space-y-1">
                 <p>
                   You need to hold {activeGroup?.pool.token.meta.tokenSymbol} to open a long position.{" "}
-                  <button
-                    className="border-b border-alert-foreground hover:border-transparent"
-                    onClick={() => {
-                      setWalletState(WalletState.SWAP);
-                      setIsWalletOpen(true);
-                    }}
-                  >
-                    Swap tokens.
-                  </button>
+                  {connected && (
+                    <button
+                      className="border-b border-alert-foreground hover:border-transparent"
+                      onClick={() => {
+                        setIsWalletOpen(true);
+                      }}
+                    >
+                      Swap tokens.
+                    </button>
+                  )}
                 </p>
               </div>
             </div>
@@ -549,15 +543,16 @@ export const TradingBox = ({ activeGroup, side = "long" }: TradingBoxProps) => {
               <div className="space-y-1">
                 <p>
                   You need to hold {activeGroup?.pool.quoteTokens[0].meta.tokenSymbol} to open a short position.{" "}
-                  <button
-                    className="border-b border-alert-foreground hover:border-transparent"
-                    onClick={() => {
-                      setWalletState(WalletState.SWAP);
-                      setIsWalletOpen(true);
-                    }}
-                  >
-                    Swap tokens.
-                  </button>
+                  {connected && (
+                    <button
+                      className="border-b border-alert-foreground hover:border-transparent"
+                      onClick={() => {
+                        setIsWalletOpen(true);
+                      }}
+                    >
+                      Swap tokens.
+                    </button>
+                  )}
                 </p>
               </div>
             </div>
