@@ -41,6 +41,22 @@ export const PositionCard = ({ size = "lg", groupData }: PositionCardProps) => {
     }
   }, [groupData]);
 
+  const isLstQuote = React.useMemo(() => {
+    return groupData.pool.quoteTokens[0].meta.tokenSymbol === "LST";
+  }, [groupData]);
+
+  const tokenPrice = React.useMemo(() => {
+    if (isLstQuote) {
+      const lstPrice = groupData.pool.quoteTokens[0].info.oraclePrice.priceRealtime.price.toNumber();
+      return `${tokenPriceFormatter(
+        groupData.pool.token.info.oraclePrice.priceRealtime.price.toNumber() / lstPrice,
+        "decimal"
+      )} ${groupData.pool.quoteTokens[0].meta.tokenSymbol}`;
+    }
+
+    return tokenPriceFormatter(groupData.pool.token.info.oraclePrice.priceRealtime.price.toNumber());
+  }, [isLstQuote, groupData]);
+
   if (!groupData.pool.token.isActive) return null;
 
   return (
@@ -60,7 +76,7 @@ export const PositionCard = ({ size = "lg", groupData }: PositionCardProps) => {
             />
             <div className="leading-none space-y-0.5">
               <h2 className="text-lg text-primary">{groupData.pool.token.meta.tokenName}</h2>
-              <h3>{groupData.pool.token.meta.tokenSymbol}</h3>
+              <h3>{`${groupData.pool.token.meta.tokenSymbol}/${groupData.pool.quoteTokens[0].meta.tokenSymbol}`}</h3>
             </div>
           </Link>
         </div>
@@ -82,7 +98,13 @@ export const PositionCard = ({ size = "lg", groupData }: PositionCardProps) => {
 
           <dt>Price</dt>
           <dd className="text-right text-primary">
-            {tokenPriceFormatter(groupData.pool.token.info.oraclePrice.priceRealtime.price.toNumber())}
+            {tokenPrice}
+            <span className="text-xs ml-1 text-muted-foreground">
+              {isLstQuote &&
+                `(${tokenPriceFormatter(
+                  Number(groupData.pool.token.info.oraclePrice.priceRealtime.price.toNumber().toFixed(4))
+                )})`}
+            </span>
           </dd>
           {groupData.pool.token.position.liquidationPrice && (
             <>

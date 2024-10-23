@@ -72,7 +72,7 @@ const clampedNumeralFormatter = (value: number) => {
   }
 };
 
-const tokenPriceFormatter = (price: number) => {
+const tokenPriceFormatter = (price: number, style: "currency" | "decimal" = "currency") => {
   const reformatNum = Number(price.toFixed(20));
 
   if (reformatNum < 0.00000001) {
@@ -87,7 +87,7 @@ const tokenPriceFormatter = (price: number) => {
       : { minFractionDigits: 7, maxFractionDigits: 10 };
 
   const formatter = new Intl.NumberFormat("en-US", {
-    style: "currency",
+    style: style,
     currency: "USD",
     minimumFractionDigits: minFractionDigits,
     maximumFractionDigits: maxFractionDigits,

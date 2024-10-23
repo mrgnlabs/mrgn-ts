@@ -65,6 +65,22 @@ export const PoolTradeHeader = ({ activeGroup }: { activeGroup: GroupData }) => 
     return long || short;
   }, [portfolio, activeGroup]);
 
+  const isLstQuote = React.useMemo(() => {
+    return activeGroup.pool.quoteTokens[0].meta.tokenSymbol === "LST";
+  }, [activeGroup]);
+
+  const tokenPrice = React.useMemo(() => {
+    if (isLstQuote) {
+      const lstPrice = activeGroup.pool.quoteTokens[0].info.oraclePrice.priceRealtime.price.toNumber();
+      return `${tokenPriceFormatter(
+        activeGroup.pool.token.info.oraclePrice.priceRealtime.price.toNumber() / lstPrice,
+        "decimal"
+      )} ${activeGroup.pool.quoteTokens[0].meta.tokenSymbol}`;
+    }
+
+    return tokenPriceFormatter(activeGroup.pool.token.info.oraclePrice.priceRealtime.price.toNumber());
+  }, [isLstQuote, activeGroup]);
+
   return (
     <div className="px-4 pb-10 lg:px-8 lg:py-10 lg:bg-background lg:border lg:rounded-xl">
       <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
@@ -116,16 +132,24 @@ export const PoolTradeHeader = ({ activeGroup }: { activeGroup: GroupData }) => 
               <div className="grid grid-cols-2 lg:block">
                 <p className="text-sm text-muted-foreground">Price</p>
                 <p className="text-sm text-right lg:text-left lg:text-2xl">
-                  {tokenPriceFormatter(activeGroup.pool.token.info.oraclePrice.priceRealtime.price.toNumber())}
-                  <span
-                    className={cn(
-                      "text-sm ml-1",
-                      activeGroup.pool.token.tokenData.priceChange24hr > 0 ? "text-mrgn-success" : "text-mrgn-error"
-                    )}
-                  >
-                    {activeGroup.pool.token.tokenData.priceChange24hr > 0 && "+"}
-                    {percentFormatter.format(activeGroup.pool.token.tokenData.priceChange24hr / 100)}
-                  </span>
+                  {tokenPrice}
+                  {isLstQuote ? (
+                    <span className="text-sm ml-1 text-muted-foreground">
+                      {`(${tokenPriceFormatter(
+                        Number(activeGroup.pool.token.info.oraclePrice.priceRealtime.price.toNumber().toFixed(4)),
+                      )})`}
+                    </span>
+                  ) : (
+                    <span
+                      className={cn(
+                        "text-sm ml-1",
+                        activeGroup.pool.token.tokenData.priceChange24hr > 0 ? "text-mrgn-success" : "text-mrgn-error"
+                      )}
+                    >
+                      {activeGroup.pool.token.tokenData.priceChange24hr > 0 && "+"}
+                      {percentFormatter.format(activeGroup.pool.token.tokenData.priceChange24hr / 100)}
+                    </span>
+                  )}
                 </p>
               </div>
               <div className="grid grid-cols-2 lg:block">
