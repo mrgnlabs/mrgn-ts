@@ -1,21 +1,13 @@
-import React, { useEffect } from "react";
+import React from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 
-import { IconInfoCircle, IconMoneybag } from "@tabler/icons-react";
+import { VersionedTransaction } from "@solana/web3.js";
 
-import {
-  AccountLayout,
-  getAssociatedTokenAddressSync,
-  nativeToUi,
-  numeralFormatter,
-  TOKEN_2022_PROGRAM_ID,
-  TOKEN_PROGRAM_ID,
-  Wallet,
-} from "@mrgnlabs/mrgn-common";
+import { numeralFormatter } from "@mrgnlabs/mrgn-common";
 import { usdFormatter, usdFormatterDyn } from "@mrgnlabs/mrgn-common";
 import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { LendingModes, TOKEN_2022_MINTS } from "@mrgnlabs/mrgn-utils";
+import { LendingModes } from "@mrgnlabs/mrgn-utils";
 
 import { useMrgnlendStore, useUiStore, useUserProfileStore } from "~/store";
 
@@ -25,16 +17,8 @@ import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { Loader } from "~/components/ui/loader";
 import { RewardsDialog } from "./components/rewards";
 import { ActionComplete } from "~/components/common/ActionComplete";
-import {
-  PublicKey,
-  Transaction,
-  TransactionInstruction,
-  TransactionMessage,
-  VersionedTransaction,
-} from "@solana/web3.js";
-import { EMISSION_MINT_INFO_MAP } from "~/components/desktop/AssetList/components";
-import { Balance, Bank, makeBundleTipIx } from "@mrgnlabs/marginfi-client-v2";
-import { IconLoader } from "~/components/ui/icons";
+import { IconInfoCircle, IconLoader } from "~/components/ui/icons";
+
 import { PortfolioAssetCard, PortfolioAssetCardSkeleton, PortfolioUserStats } from "./components";
 import { rewardsType } from "./types";
 import { useRewardSimulation } from "./hooks";
@@ -62,15 +46,14 @@ export const LendingPortfolio = () => {
     state.selectedAccount,
     state.extendedBankInfos,
   ]);
-
   const [setLendingMode] = useUiStore((state) => [state.setLendingMode]);
-
   const [userPointsData] = useUserProfileStore((state) => [state.userPointsData]);
 
+  // Rewards
   const [rewards, setRewards] = React.useState<rewardsType | null>(null);
   const [rewardsDialogOpen, setRewardsDialogOpen] = React.useState(false);
   const [actionTxn, setActionTxn] = React.useState<VersionedTransaction | null>(null);
-
+  const [rewardsLoading, setRewardsLoading] = React.useState(false);
   const { handleSimulation } = useRewardSimulation({
     simulationResult: rewards,
     actionTxn,
@@ -80,16 +63,15 @@ export const LendingPortfolio = () => {
     setSimulationResult: setRewards,
     setActionTxn,
     setErrorMessage: () => {},
-    setIsLoading: () => {},
   });
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (actionTxn) handleSimulation();
   }, [actionTxn]);
 
   const handleCollectExectuion = React.useCallback(async () => {
     if (!marginfiClient || !actionTxn) return;
-    const signature = await executeCollectTxn(marginfiClient, actionTxn);
+    const signature = await executeCollectTxn(marginfiClient, actionTxn, setRewardsLoading);
   }, [marginfiClient, actionTxn]);
 
   const lendingBanks = React.useMemo(
@@ -172,7 +154,7 @@ export const LendingPortfolio = () => {
   const [previousTxn] = useUiStore((state) => [state.previousTxn]);
 
   // Introduced this useEffect to show the loader for 2 seconds after wallet connection. This is to avoid the flickering of the loader, since the isRefreshingStore isnt set immediately after the wallet connection.
-  useEffect(() => {
+  React.useEffect(() => {
     if (connected) {
       setWalletConnectionDelay(true);
       const timer = setTimeout(() => {
@@ -229,7 +211,7 @@ export const LendingPortfolio = () => {
             )
           ) : (
             <span className="flex gap-1 items-center">
-              Rewards loading <IconLoader size={16} />
+              Calculating rewards <IconLoader size={16} />
             </span>
           )}{" "}
           {rewards && (
@@ -376,6 +358,7 @@ export const LendingPortfolio = () => {
           setRewardsDialogOpen(open);
         }}
         onCollect={handleCollectExectuion}
+        isLoading={rewardsLoading}
       />
       {previousTxn && <ActionComplete />}
     </div>

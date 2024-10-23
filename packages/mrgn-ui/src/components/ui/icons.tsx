@@ -1,5 +1,5 @@
 import { cn } from "@mrgnlabs/mrgn-utils";
-import { IconLoader2 } from "@tabler/icons-react";
+import { IconLoader2, IconInfoCircle as _IconInfoCircle } from "@tabler/icons-react";
 
 export type IconProps = {
   size?: number;
@@ -419,6 +419,8 @@ const IconLoader = ({ size = 24, className }: IconProps) => (
   <IconLoader2 size={size} className={cn("animate-spin", className)} />
 );
 
+const IconInfoCircle = ({ size = 24, className }: IconProps) => <_IconInfoCircle size={size} className={className} />;
+
 const IconArena = ({ size = 48, className }: IconProps) => (
   <svg
     width={size}
@@ -730,4 +732,5 @@ export {
   IconOrca,
   IconMeteora,
   IconRaydium,
+  IconInfoCircle,
 };

@@ -6,7 +6,7 @@ import { IconAlertTriangle } from "@tabler/icons-react";
 import { usdFormatter, numeralFormatter } from "@mrgnlabs/mrgn-common";
 import { ActiveBankInfo, ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { capture } from "@mrgnlabs/mrgn-utils";
-import { ActionBox, WalletContextStateOverride } from "@mrgnlabs/mrgn-ui";
+import { ActionBox } from "@mrgnlabs/mrgn-ui";
 
 import { cn } from "@mrgnlabs/mrgn-utils";
 import { useAssetItemData } from "~/hooks/useAssetItemData";
