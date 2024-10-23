@@ -77,9 +77,9 @@ export const WalletButton = ({ className, showWalletInfo = true }: WalletButtonP
   }, [walletInfo, setIsWalletSignUpOpen, select, loginWeb3Auth]);
 
   return (
-    <Button className={cn("gap-1.5 py-0", walletInfo ? "px-2" : "px-4", className)}>
+    <Button className={cn("gap-1.5 py-0", walletInfo ? "px-2 pl-3" : "px-4", className)} onClick={() => handleWalletConnect()}>
       <div className="flex flex-row relative h-full gap-4">
-        <div onClick={() => handleWalletConnect()} className="inline-flex items-center gap-2">
+        <div className="inline-flex items-center gap-2">
           Sign in
           {showWalletInfo && walletInfo && (
             <>
@@ -91,7 +91,10 @@ export const WalletButton = ({ className, showWalletInfo = true }: WalletButtonP
         </div>
         {showWalletInfo && walletInfo && (
           <div
-            onClick={() => setIsWalletSignUpOpen(true)}
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsWalletSignUpOpen(true);
+            }}
             className="pl-2 border-l border-border inline-flex items-center"
           >
             <IconChevronDown size={20} />

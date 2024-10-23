@@ -8,6 +8,7 @@ import { motion, useAnimate } from "framer-motion";
 import { IconPlus, IconCopy, IconCheck } from "@tabler/icons-react";
 import { CopyToClipboard } from "react-copy-to-clipboard";
 import { cn } from "@mrgnlabs/mrgn-utils";
+import { USDC_MINT } from "@mrgnlabs/mrgn-common";
 
 import { useTradeStore } from "~/store";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
@@ -30,13 +31,16 @@ const navItems = [
 
 export const Header = () => {
   const { connection } = useConnection();
-  const [initialized, groupMap, nativeSolBalance, fetchTradeState, referralCode] = useTradeStore((state) => [
-    state.initialized,
-    state.groupMap,
-    state.nativeSolBalance,
-    state.fetchTradeState,
-    state.referralCode,
-  ]);
+  const [initialized, userDataFetched, groupMap, nativeSolBalance, fetchTradeState, referralCode] = useTradeStore(
+    (state) => [
+      state.initialized,
+      state.userDataFetched,
+      state.groupMap,
+      state.nativeSolBalance,
+      state.fetchTradeState,
+      state.referralCode,
+    ]
+  );
   const { wallet } = useWallet();
   const { asPath } = useRouter();
   const isMobile = useIsMobile();
@@ -45,8 +49,13 @@ export const Header = () => {
   const [isReferralCopied, setIsReferralCopied] = React.useState(false);
 
   const extendedBankInfos = React.useMemo(() => {
-    const goups = [...groupMap.values()];
-    return goups.map((group) => group.pool.token);
+    const groups = [...groupMap.values()];
+    const tokens = groups.map((group) => group.pool.token);
+    const usdc = groups.find((group) => group.pool.quoteTokens[0].info.rawBank.mint.equals(USDC_MINT));
+
+    if (!usdc) return tokens;
+
+    return [usdc.pool.quoteTokens[0], ...tokens];
   }, [groupMap]);
 
   const ownPools = React.useMemo(() => {
@@ -134,6 +143,7 @@ export const Header = () => {
             <Wallet
               connection={connection}
               initialized={initialized}
+              userDataFetched={userDataFetched}
               extendedBankInfos={extendedBankInfos}
               nativeSolBalance={nativeSolBalance}
               refreshState={() =>

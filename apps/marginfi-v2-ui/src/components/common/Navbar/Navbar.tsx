@@ -32,6 +32,7 @@ export const Navbar: FC = () => {
   const router = useRouter();
   const [
     initialized,
+    userDataFetched,
     mfiClient,
     marginfiAccounts,
     selectedAccount,
@@ -41,6 +42,7 @@ export const Navbar: FC = () => {
     fetchMrgnlendState,
   ] = useMrgnlendStore((state) => [
     state.initialized,
+    state.userDataFetched,
     state.marginfiClient,
     state.marginfiAccounts,
     state.selectedAccount,
@@ -204,6 +206,7 @@ export const Navbar: FC = () => {
               <Wallet
                 connection={connection}
                 initialized={initialized}
+                userDataFetched={userDataFetched}
                 mfiClient={mfiClient}
                 marginfiAccounts={marginfiAccounts}
                 selectedAccount={selectedAccount}
