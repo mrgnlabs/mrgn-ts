@@ -69,7 +69,7 @@ export async function executeLendingAction(params: MarginfiActionParams) {
   }
 
   if (!params.marginfiAccount) {
-    showErrorToast({ message: "Marginfi account not ready.", theme: params.theme });
+    showErrorToast({ message: "Marginfi account not ready." });
     return;
   }
 
@@ -87,7 +87,7 @@ export async function executeLendingAction(params: MarginfiActionParams) {
   }
 
   if (!params.marginfiClient) {
-    showErrorToast({ message: "Client not ready.", theme: params.theme });
+    showErrorToast({ message: "Client not ready." });
     return;
   }
 
