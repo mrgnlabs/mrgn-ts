@@ -10,7 +10,6 @@ import { ActionBox } from "@mrgnlabs/mrgn-ui";
 
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
-import { ActionBoxDialog } from "~/components/common/ActionBox";
 import { LST_MINT } from "~/store/lstStore";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
@@ -66,7 +65,7 @@ export const MintCardWrapper: React.FC<MintCardWrapperProps> = ({ mintCard, ...p
           </ul>
         )}
 
-        {mintCard.title === "LST" ? (
+        {mintCard.title === "LST" && (
           <div className="flex items-center gap-2">
             <ActionBox.Stake
               isDialog={true}
@@ -74,6 +73,9 @@ export const MintCardWrapper: React.FC<MintCardWrapperProps> = ({ mintCard, ...p
               stakeProps={{
                 connected: connected,
                 requestedActionType: ActionType.MintLST,
+                captureEvent: (event, properties) => {
+                  capture("stake_button_click", properties);
+                },
               }}
               dialogProps={{
                 trigger: (
@@ -91,6 +93,9 @@ export const MintCardWrapper: React.FC<MintCardWrapperProps> = ({ mintCard, ...p
                 connected: connected,
                 requestedActionType: ActionType.UnstakeLST,
                 requestedBank: extendedBankInfos.find((bank) => bank?.info?.state?.mint.equals(LST_MINT)),
+                captureEvent: (event, properties) => {
+                  capture("unstake_button_click", properties);
+                },
               }}
               dialogProps={{
                 trigger: (
@@ -102,7 +107,9 @@ export const MintCardWrapper: React.FC<MintCardWrapperProps> = ({ mintCard, ...p
               }}
             />
           </div>
-        ) : transformedActionGate?.find((value) => value === ActionType.MintYBX) ? (
+        )}
+
+        {transformedActionGate?.find((value) => value === ActionType.MintYBX) && (
           <div className="flex items-center gap-2">
             <Button
               variant="secondary"
@@ -117,14 +124,6 @@ export const MintCardWrapper: React.FC<MintCardWrapperProps> = ({ mintCard, ...p
               <IconBell size={16} /> Early Access
             </Button>
           </div>
-        ) : (
-          <ActionBoxDialog requestedAction={ActionType.MintYBX} requestedBank={null}>
-            <div className="flex items-center gap-2">
-              <Button variant="secondary" size="lg" className="mt-4">
-                Stake
-              </Button>
-            </div>
-          </ActionBoxDialog>
         )}
       </CardContent>
     </Card>

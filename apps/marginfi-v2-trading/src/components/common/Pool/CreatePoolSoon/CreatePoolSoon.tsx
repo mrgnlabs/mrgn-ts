@@ -58,7 +58,7 @@ export const CreatePoolSoon = ({ trigger }: CreatePoolDialogProps) => {
           mint: values.mint,
         });
       } else {
-        showErrorToast({ message: "Pool submission failed.", theme: "light" });
+        showErrorToast({ message: "Pool submission failed."});
       }
       setIsSubmitting(false);
     },

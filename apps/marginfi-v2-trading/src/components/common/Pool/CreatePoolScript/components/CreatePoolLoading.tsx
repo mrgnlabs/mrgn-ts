@@ -156,7 +156,7 @@ export const CreatePoolLoading = ({ poolCreatedData, setIsOpen, setIsCompleted }
     const keypair = process.env.NEXT_PUBLIC_WALLET_KEY;
     // console.log({ por: process.env });
     if (!keypair) {
-      showErrorToast({ message: "NEXT_PUBLIC_WALLET_KEY env var not defined", theme: "light" });
+      showErrorToast({ message: "NEXT_PUBLIC_WALLET_KEY env var not defined" });
       return;
     }
     return new NodeWallet(Keypair.fromSecretKey(new Uint8Array(JSON.parse(keypair))));
