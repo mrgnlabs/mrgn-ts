@@ -43,7 +43,7 @@ export const PoolCard = ({ groupData }: PoolCardProps) => {
                 className="rounded-full border"
               />{" "}
               <div className="flex flex-col space-y-0.5">
-                <h2>{groupData.pool.token.meta.tokenSymbol}</h2>
+                <h2>{`${groupData.pool.token.meta.tokenSymbol}/${groupData.pool.quoteTokens[0].meta.tokenSymbol}`}</h2>
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
