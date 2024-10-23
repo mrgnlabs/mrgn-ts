@@ -41,7 +41,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(200).json([]);
 
     case "resolve":
-      const { symbol, address, requested } = req.query;
+      const { symbol, address, requested, quoteSymbol } = req.query;
       try {
         if (address !== requested) {
           throw new Error("Cannot resolve symbol");
@@ -63,7 +63,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           address: address,
           ticker: address,
           name: symbol,
-          description: symbol + "/USD",
+          description: symbol + "/" + quoteSymbol,
           type: undefined,
           session: "24x7",
           timezone: "Etc/UTC",
@@ -90,10 +90,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         resolution,
         address: historyAddress,
         firstDataRequest,
+        quote,
       } = req.query as any;
 
       const urlParameters = {
-        address: historyAddress,
+        base_address: historyAddress,
+        type: parseResolution(resolution),
+        time_from: from,
+        time_to: to,
+      };
+
+
+      const urlParametersQuote = {
+        address: quote,
         type: parseResolution(resolution),
         time_from: from,
         time_to: to,
@@ -103,15 +112,40 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         .map((name) => `${name}=${encodeURIComponent((urlParameters as any)[name])}`)
         .join("&");
 
+      const birdeyeQuoteQuery = Object.keys(urlParametersQuote)
+        .map((name) => `${name}=${encodeURIComponent((urlParametersQuote as any)[name])}`)
+        .join("&");
+
       try {
-        const data = await makeApiRequest(`defi/ohlcv?${birdeyeQuery}`);
+        const data: DataOhlcvResponse = await makeApiRequest(`defi/ohlcv?${birdeyeQuery}`);
+        const dataQuote: DataOhlcvResponse = await makeApiRequest(`defi/ohlcv?${birdeyeQuoteQuery}`);
 
         if (!data.success || data.data.items.length === 0) {
           // "noData" should be set if there is no data in the requested period.
           return res.status(200).json({ noData: true, success: true });
         }
-        let bars: any[] = [];
-        data.data.items.forEach((bar: any) => {
+
+        if (!dataQuote.success || dataQuote.data.items.length === 0) {
+          // "noData" should be set if there is no data in the requested period.
+          return res.status(200).json({ noData: true, success: true });
+        }
+
+        const combinedItems = data.data.items.map((bar: any, index: number) => {
+          const quoteBar = dataQuote.data.items[index];
+          return {
+            address: bar.address,
+            unixTime: bar.unixTime,
+            l:bar.l / quoteBar.l,
+            h: bar.h / quoteBar.h,
+            o: bar.o / quoteBar.o,
+            c: bar.c / quoteBar.c,
+            type: bar.type,
+            v: bar.v,
+          };
+        });
+
+        let bars: OhlcvBar[] = [];
+        combinedItems.forEach((bar: OhlcvBarData) => {
           if (bar.unixTime >= from && bar.unixTime < to) {
             bars = [
               ...bars,
@@ -146,4 +180,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     default:
       return res.status(404).json({ error: "Invalid action" });
   }
+}
+
+interface OhlcvBar {
+  time: number;
+  low: number;
+  high: number;
+  open: number;
+  close: number;
+}
+
+interface OhlcvBarData {
+  address: string;
+  unixTime: number;
+  l: number;
+  h: number;
+  o: number;
+  c: number;
+  type: string;
+  v: number;
+}
+
+interface DataOhlcvResponse {
+  success: boolean;
+  data: {
+    items: OhlcvBarData[];
+  };
 }

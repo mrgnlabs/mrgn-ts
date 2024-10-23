@@ -51,7 +51,7 @@ export default function TradeSymbolPage() {
               <div className="flex relative w-full">
                 <div className="flex flex-col-reverse w-full gap-4 lg:flex-row">
                   <div className="flex-4 border rounded-xl bg-background overflow-hidden w-full">
-                    <TVWidget token={activeGroup.pool.token} />
+                    <TVWidget token={activeGroup.pool.token} quote={activeGroup.pool.quoteTokens[0]} />
                   </div>
                   <div className="flex lg:max-w-sm w-full lg:ml-auto">
                     <TradingBox activeGroup={activeGroup} side={side} />
