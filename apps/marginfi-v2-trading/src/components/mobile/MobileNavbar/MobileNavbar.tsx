@@ -19,7 +19,7 @@ export interface NavLinkInfo {
 }
 
 const CreatePoolTrigger = (children: ReactNode) => {
-  return <CreatePoolSoon />;
+  return <CreatePoolSoon trigger={children} />;
   // <CreatePoolDialog trigger={children} />;
 };
 
