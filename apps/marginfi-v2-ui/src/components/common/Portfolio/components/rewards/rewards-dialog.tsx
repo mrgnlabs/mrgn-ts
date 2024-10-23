@@ -3,10 +3,11 @@ import React from "react";
 import { DialogDescription, DialogProps } from "@radix-ui/react-dialog";
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "~/components/ui/dialog";
-import { rewardsType } from "..";
 import { Button } from "~/components/ui/button";
+
+import { rewardsType } from "../../types";
 interface RewardsDialogProps extends DialogProps {
-  availableRewards: rewardsType;
+  availableRewards: rewardsType | null;
   onClose: () => void;
   onCollect: () => void;
 }
@@ -14,16 +15,19 @@ interface RewardsDialogProps extends DialogProps {
 export const RewardsDialog: React.FC<RewardsDialogProps> = ({ availableRewards, onClose, onCollect, ...props }) => {
   return (
     <Dialog {...props}>
-      <DialogContent className="md:flex">
+      <DialogContent className="md:flex md:gap-6 text-muted-foreground">
         <DialogHeader>
-          <DialogTitle className="text-2xl">Reward overview</DialogTitle>
+          <DialogTitle className="text-2xl font-normal">Reward overview</DialogTitle>
           <DialogDescription>
             Here you find an overview of which assets have earned rewards. Click the button below to collect them.
           </DialogDescription>
         </DialogHeader>
-        <ul>
-          {availableRewards.rewards.map((reward) => (
-            <li>{`${reward.amount} -> ${reward.bank}`}</li>
+        <ul className="list-disc list-inside text-h4">
+          {availableRewards?.rewards.map((reward, idx) => (
+            <li key={idx} className="flex items-center space-x-2">
+              <span className="w-2 h-2 bg-gray-400 rounded-full inline-block" />
+              <span className="text-lg font-medium">{`${reward.amount} ${reward.bank}`}</span>
+            </li>
           ))}
         </ul>
         <Button onClick={onCollect}>Collect rewards</Button>

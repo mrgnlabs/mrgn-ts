@@ -49,7 +49,11 @@ export function useStakeSimulation({
   setErrorMessage,
   setIsLoading,
 }: StakeSimulationProps) {
-  const [slippageBps, platformFeeBps] = useActionBoxStore((state) => [state.slippageBps, state.platformFeeBps]);
+  const [slippageBps, platformFeeBps] = useActionBoxStore((state) => [
+    state.slippageBps,
+    state.platformFeeBps,
+    state.priorityFee,
+  ]);
 
   const prevDebouncedAmount = usePrevious(debouncedAmount);
 
