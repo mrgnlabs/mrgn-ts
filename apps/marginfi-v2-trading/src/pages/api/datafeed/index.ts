@@ -94,12 +94,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       } = req.query as any;
 
       const urlParameters = {
-        base_address: historyAddress,
+        address: historyAddress,
         type: parseResolution(resolution),
         time_from: from,
         time_to: to,
       };
-
 
       const urlParametersQuote = {
         address: quote,
@@ -122,11 +121,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         if (!data.success || data.data.items.length === 0) {
           // "noData" should be set if there is no data in the requested period.
+          console.log("no data");
           return res.status(200).json({ noData: true, success: true });
         }
 
         if (!dataQuote.success || dataQuote.data.items.length === 0) {
           // "noData" should be set if there is no data in the requested period.
+          console.log("no data quote");
           return res.status(200).json({ noData: true, success: true });
         }
 
@@ -135,7 +136,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           return {
             address: bar.address,
             unixTime: bar.unixTime,
-            l:bar.l / quoteBar.l,
+            l: bar.l / quoteBar.l,
             h: bar.h / quoteBar.h,
             o: bar.o / quoteBar.o,
             c: bar.c / quoteBar.c,
