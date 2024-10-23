@@ -41,6 +41,7 @@ export type LendBoxProps = {
   accountSummaryArg?: AccountSummary;
   isDialog?: boolean;
   showAvailableCollateral?: boolean;
+  showTokenSelection?: boolean;
 
   onComplete?: (previousTxn: PreviousTxn) => void;
   captureEvent?: (event: string, properties?: Record<string, any>) => void;
@@ -56,6 +57,7 @@ export const LendBox = ({
   selectedAccount,
   accountSummaryArg,
   isDialog,
+  showTokenSelection,
   showAvailableCollateral = true,
   requestedLendType,
   requestedBank,
@@ -327,6 +329,7 @@ export const LendBox = ({
           selectedBank={selectedBank}
           lendMode={lendMode}
           isDialog={isDialog}
+          showTokenSelection={showTokenSelection}
           setAmountRaw={setAmountRaw}
           setSelectedBank={setSelectedBank}
         />

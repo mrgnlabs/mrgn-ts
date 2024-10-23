@@ -19,6 +19,7 @@ type ActionInputProps = {
   connected: boolean;
   showCloseBalance?: boolean;
   isDialog?: boolean;
+  showTokenSelection?: boolean;
   isMini?: boolean;
 
   setAmountRaw: (amount: string) => void;
@@ -33,6 +34,7 @@ export const ActionInput = ({
   showCloseBalance,
   connected,
   isDialog,
+  showTokenSelection,
 
   amountRaw,
   selectedBank,
@@ -60,6 +62,11 @@ export const ActionInput = ({
     [formatAmountCb, setAmountRaw, selectedBank]
   );
 
+  const isTokenSelectionAvailable = React.useMemo(() => {
+    if (showTokenSelection === undefined) return !isDialog;
+    else return showTokenSelection;
+  }, [showTokenSelection, isDialog]);
+
   return (
     <div className="rounded-lg p-2.5 bg-mfi-action-box-background-dark">
       <div className="flex justify-center gap-1 items-center font-medium text-3xl">
@@ -69,7 +76,7 @@ export const ActionInput = ({
             setSelectedBank={(bank) => {
               setSelectedBank(bank);
             }}
-            isSelectable={!isDialog}
+            isSelectable={isTokenSelectionAvailable}
             banks={banks}
             nativeSolBalance={nativeSolBalance}
             lendMode={lendMode}

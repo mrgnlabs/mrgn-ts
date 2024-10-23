@@ -21,7 +21,7 @@ type ActionBoxComponentProps = {
 interface RequiredLendBoxProps
   extends Pick<
     LendBoxProps,
-    "onComplete" | "captureEvent" | "requestedBank" | "requestedLendType" | "walletContextState" | "connected"
+    "onComplete" | "captureEvent" | "requestedBank" | "requestedLendType" | "walletContextState" | "connected" | "showTokenSelection"
   > {}
 
 // all props except for requestedLendType
