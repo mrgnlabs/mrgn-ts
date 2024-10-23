@@ -3,11 +3,14 @@ import React from "react";
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { IconMinus, IconPlus } from "@tabler/icons-react";
-import { cn } from "@mrgnlabs/mrgn-utils";
+import { cn, capture } from "@mrgnlabs/mrgn-utils";
 
+import { useConnection } from "~/hooks/use-connection";
+import { useWallet } from "~/components/wallet-v2";
+import { useTradeStore } from "~/store";
 import { GroupData } from "~/store/tradeStore";
 
-import { ActionBoxDialog } from "~/components/common/ActionBox";
+import { ActionBox, ActionBoxProvider } from "~/components/action-box-v2";
 import { Button } from "~/components/ui/button";
 
 type LpActionButtonsProps = {
@@ -17,6 +20,10 @@ type LpActionButtonsProps = {
 };
 
 export const LpActionButtons = ({ size = "sm", marginfiAccount, activeGroup }: LpActionButtonsProps) => {
+  const { connection } = useConnection();
+  const { connected, wallet } = useWallet();
+  const [fetchTradeState, nativeSolBalance] = useTradeStore((state) => [state.fetchTradeState, state.nativeSolBalance]);
+
   const lendingBank = React.useMemo(() => {
     if (activeGroup?.pool?.token.isActive && activeGroup?.pool?.token.position.isLending)
       return [activeGroup?.pool?.token];
@@ -29,36 +36,99 @@ export const LpActionButtons = ({ size = "sm", marginfiAccount, activeGroup }: L
   }, [activeGroup?.pool?.quoteTokens, activeGroup?.pool?.token]);
 
   return (
-    <div className={cn("flex gap-3 w-full", size === "sm" && "justify-end")}>
-      <ActionBoxDialog
-        requestedBank={activeGroup.pool.quoteTokens[0]}
-        requestedAction={ActionType.Deposit}
-        requestedAccount={marginfiAccount}
-        activeGroupArg={activeGroup}
-        isTokenSelectable={true}
-      >
-        <Button variant="outline" size="sm" className={cn("gap-1 min-w-16", size === "lg" && "w-full")}>
-          <IconPlus size={14} />
-          Add
-        </Button>
-      </ActionBoxDialog>
+    <ActionBoxProvider
+      banks={[activeGroup.pool.token, activeGroup.pool.quoteTokens[0]]}
+      nativeSolBalance={nativeSolBalance}
+      marginfiClient={activeGroup.client}
+      selectedAccount={activeGroup.selectedAccount}
+      connected={connected}
+      accountSummaryArg={activeGroup.accountSummary}
+      showActionComplete={false}
+    >
+      <div className={cn("flex gap-3 w-full", size === "sm" && "justify-end")}>
+        <ActionBox.Lend
+          isDialog={true}
+          useProvider={true}
+          lendProps={{
+            connected: connected,
+            requestedLendType: ActionType.Deposit,
+            showAvailableCollateral: false,
+            captureEvent: () => {
+              capture("position_add_btn_click", {
+                group: activeGroup?.groupPk?.toBase58(),
+                token: activeGroup.pool.token.meta.tokenSymbol,
+              });
+            },
+            onComplete: () => {
+              fetchTradeState({
+                connection,
+                wallet,
+              });
+            },
+          }}
+          dialogProps={{
+            trigger: (
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1 min-w-16"
+                onClick={() => {
+                  capture("position_add_btn_click", {
+                    group: activeGroup?.groupPk?.toBase58(),
+                    token: activeGroup.pool.token.meta.tokenSymbol,
+                  });
+                }}
+              >
+                <IconPlus size={14} />
+                Add
+              </Button>
+            ),
+            title: `Supply ${activeGroup.pool.token.meta.tokenSymbol}`,
+          }}
+        />
 
-      <ActionBoxDialog
-        activeGroupArg={activeGroup}
-        requestedBank={lendingBank ? lendingBank[0] : null}
-        requestedAction={ActionType.Withdraw}
-        requestedAccount={marginfiAccount}
-      >
-        <Button
-          variant="outline"
-          size="sm"
-          className={cn("gap-1 min-w-16", size === "lg" && "w-full")}
-          disabled={!lendingBank}
-        >
-          <IconMinus size={14} />
-          Withdraw
-        </Button>
-      </ActionBoxDialog>
-    </div>
+        {lendingBank && (
+          <ActionBox.Lend
+            isDialog={true}
+            useProvider={true}
+            lendProps={{
+              connected: connected,
+              requestedLendType: ActionType.Withdraw,
+              captureEvent: () => {
+                capture("position_withdraw_btn_click", {
+                  group: activeGroup?.groupPk?.toBase58(),
+                  token: lendingBank[0].meta.tokenSymbol,
+                });
+              },
+              onComplete: () => {
+                fetchTradeState({
+                  connection,
+                  wallet,
+                });
+              },
+            }}
+            dialogProps={{
+              trigger: (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-1 min-w-16"
+                  onClick={() => {
+                    capture("position_withdraw_btn_click", {
+                      group: activeGroup?.groupPk?.toBase58(),
+                      token: lendingBank[0].meta.tokenSymbol,
+                    });
+                  }}
+                >
+                  <IconMinus size={14} />
+                  Withdraw
+                </Button>
+              ),
+              title: `Withdraw ${lendingBank[0].meta.tokenSymbol}`,
+            }}
+          />
+        )}
+      </div>
+    </ActionBoxProvider>
   );
 };
