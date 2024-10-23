@@ -13,15 +13,17 @@ import {
   aprToApy,
 } from "@mrgnlabs/mrgn-common";
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
-import { Desktop, Mobile, cn } from "@mrgnlabs/mrgn-utils";
+import { Desktop, Mobile, cn, capture } from "@mrgnlabs/mrgn-utils";
 import { IconChevronDown, IconExternalLink } from "@tabler/icons-react";
 
+import { useConnection } from "~/hooks/use-connection";
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { useTradeStore } from "~/store";
 import { GroupData } from "~/store/tradeStore";
 
+import { ActionBox, ActionBoxProvider } from "~/components/action-box-v2";
 import { TokenCombobox } from "~/components/common/TokenCombobox";
 import { PoolShare } from "~/components/common/Pool/PoolShare";
-import { ActionBoxDialog } from "~/components/common/ActionBox";
 import { PositionCard } from "~/components/common/Portfolio";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import {
@@ -34,8 +36,14 @@ import { Button } from "~/components/ui/button";
 
 export const PoolTradeHeader = ({ activeGroup }: { activeGroup: GroupData }) => {
   const router = useRouter();
+  const { connection } = useConnection();
+  const { connected, wallet } = useWallet();
 
-  const [portfolio] = useTradeStore((state) => [state.portfolio]);
+  const [fetchTradeState, nativeSolBalance, portfolio] = useTradeStore((state) => [
+    state.fetchTradeState,
+    state.nativeSolBalance,
+    state.portfolio,
+  ]);
 
   const lpPosition = React.useMemo(() => {
     if (!portfolio) return null;
@@ -82,16 +90,25 @@ export const PoolTradeHeader = ({ activeGroup }: { activeGroup: GroupData }) => 
   }, [isLstQuote, activeGroup]);
 
   return (
-    <div className="px-4 pb-10 lg:px-8 lg:py-10 lg:bg-background lg:border lg:rounded-xl">
-      <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
-        <div className="flex flex-col items-center px-8 w-full lg:w-1/4 xl:w-1/2">
-          <Image
-            src={activeGroup.pool.token.meta.tokenLogoUri}
-            alt={activeGroup.pool.token.meta.tokenSymbol}
-            width={72}
-            height={72}
-            className="bg-background border rounded-full mb-2 lg:mb-0"
-          />
+    <ActionBoxProvider
+      banks={[activeGroup.pool.token, activeGroup.pool.quoteTokens[0]]}
+      nativeSolBalance={nativeSolBalance}
+      marginfiClient={activeGroup.client}
+      selectedAccount={activeGroup.selectedAccount}
+      connected={connected}
+      accountSummaryArg={activeGroup.accountSummary}
+      showActionComplete={false}
+    >
+      <div className="px-4 pb-10 lg:px-8 lg:py-10 lg:bg-background lg:border lg:rounded-xl">
+        <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
+          <div className="flex flex-col items-center px-8 w-full lg:w-1/4 xl:w-1/2">
+            <Image
+              src={activeGroup.pool.token.meta.tokenLogoUri}
+              alt={activeGroup.pool.token.meta.tokenSymbol}
+              width={72}
+              height={72}
+              className="bg-background border rounded-full mb-2 lg:mb-0"
+            />
 
           <TokenCombobox
             selected={activeGroup}
@@ -175,64 +192,350 @@ export const PoolTradeHeader = ({ activeGroup }: { activeGroup: GroupData }) => 
                 <div className="grid grid-cols-2 lg:hidden">
                   <p className="text-sm text-muted-foreground">Lending pool liquidity</p>
                   <p className="text-sm text-right lg:text-left lg:text-2xl">
-                    ${numeralFormatter(activeGroup.pool.poolData.totalLiquidity)}
+                    {tokenPriceFormatter(activeGroup.pool.token.info.oraclePrice.priceRealtime.price.toNumber())}
+                    <span
+                      className={cn(
+                        "text-sm ml-1",
+                        activeGroup.pool.token.tokenData.priceChange24hr > 0 ? "text-mrgn-success" : "text-mrgn-error"
+                      )}
+                    >
+                      {activeGroup.pool.token.tokenData.priceChange24hr > 0 && "+"}
+                      {percentFormatter.format(activeGroup.pool.token.tokenData.priceChange24hr / 100)}
+                    </span>
                   </p>
                 </div>
-              )}
-            </div>
-          )}
-          <div className="w-full grid gap-4 max-w-md mx-auto lg:gap-16 lg:max-w-none lg:grid-cols-3">
-            <div className="border-y border-border py-6 lg:border-b-0 lg:py-0 lg:border-t-0">
-              <div className="flex flex-row justify-between space-y-2 lg:block">
-                <div className="flex items-start gap-2 translate-y-0.5">
-                  <Image
-                    src={activeGroup.pool.token.meta.tokenLogoUri}
-                    alt={activeGroup.pool.token.meta.tokenSymbol}
-                    width={32}
-                    height={32}
-                    className="bg-background border rounded-full"
-                  />
-                  <div className="leading-tight text-sm">
-                    <p>
-                      Total Deposits
-                      <br />({activeGroup.pool.token.meta.tokenSymbol})
+                <div className="grid grid-cols-2 lg:block">
+                  <p className="text-sm text-muted-foreground">24hr Volume</p>
+                  <p className="text-sm text-right lg:text-left lg:text-2xl">
+                    ${numeralFormatter(activeGroup.pool.token.tokenData.volume24hr)}
+                    <span
+                      className={cn(
+                        "text-sm ml-1",
+                        activeGroup.pool.token.tokenData.volumeChange24hr > 0 ? "text-mrgn-success" : "text-mrgn-error"
+                      )}
+                    >
+                      {activeGroup.pool.token.tokenData.volumeChange24hr > 0 && "+"}
+                      {percentFormatter.format(activeGroup.pool.token.tokenData.volumeChange24hr / 100)}
+                    </span>
+                  </p>
+                </div>
+                <div className="grid grid-cols-2 lg:block">
+                  <p className="text-sm text-muted-foreground">Market cap</p>
+                  <p className="text-sm text-right lg:text-left lg:text-2xl">
+                    ${numeralFormatter(activeGroup.pool.token.tokenData.marketCap)}
+                  </p>
+                </div>
+                {activeGroup.pool.poolData && (
+                  <div className="grid grid-cols-2 lg:hidden">
+                    <p className="text-sm text-muted-foreground">Lending pool liquidity</p>
+                    <p className="text-sm text-right lg:text-left lg:text-2xl">
+                      ${numeralFormatter(activeGroup.pool.poolData.totalLiquidity)}
                     </p>
-                    <p className="text-mrgn-success">
-                      {percentFormatter.format(aprToApy(activeGroup.pool.token.info.state.lendingRate))} APY
+                  </div>
+                )}
+              </div>
+            )}
+            <div className="w-full grid gap-4 max-w-md mx-auto lg:gap-16 lg:max-w-none lg:grid-cols-3">
+              <div className="border-y border-border py-6 lg:border-b-0 lg:py-0 lg:border-t-0">
+                <div className="flex flex-row justify-between space-y-2 lg:block">
+                  <div className="flex items-start gap-2 translate-y-0.5">
+                    <Image
+                      src={activeGroup.pool.token.meta.tokenLogoUri}
+                      alt={activeGroup.pool.token.meta.tokenSymbol}
+                      width={32}
+                      height={32}
+                      className="bg-background border rounded-full"
+                    />
+                    <div className="leading-tight text-sm">
+                      <p>
+                        Total Deposits
+                        <br />({activeGroup.pool.token.meta.tokenSymbol})
+                      </p>
+                      <p className="text-mrgn-success">
+                        {percentFormatter.format(aprToApy(activeGroup.pool.token.info.state.lendingRate))} APY
+                      </p>
+                      {!hasTradePosition &&
+                        lpPosition?.token &&
+                        lpPosition.token.pool.token.isActive &&
+                        activeGroup.selectedAccount && <p className="mt-2 lg:hidden">Supplied</p>}
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-2 lg:items-start lg:justify-start">
+                    <p className="text-right lg:text-left lg:text-2xl">
+                      {usdFormatter.format(
+                        activeGroup.pool.token.info.state.totalDeposits *
+                          activeGroup.pool.token.info.oraclePrice.priceRealtime.price.toNumber()
+                      )}
                     </p>
                     {!hasTradePosition &&
                       lpPosition?.token &&
                       lpPosition.token.pool.token.isActive &&
+                      activeGroup.selectedAccount && (
+                        <p className="mt-5 text-right lg:text-left lg:hidden">
+                          {usdFormatter.format(lpPosition.token.pool.token.position.amount)}
+                        </p>
+                      )}
+                    <Desktop>
+                      {!hasTradePosition &&
+                      lpPosition?.token &&
+                      lpPosition.token.pool.token.isActive &&
+                      activeGroup.selectedAccount ? (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger
+                            className="focus:outline-none focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                            asChild
+                          >
+                            <Button size="sm" variant="outline" className="px-2 py-1.5 h-auto lg:px-4 lg:py-2">
+                              Supplied {numeralFormatter(lpPosition.token.pool.token.position.amount)}
+                              <div className="border-l pl-2 ml-1">
+                                <IconChevronDown size={14} />
+                              </div>
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent style={{ width: "var(--radix-dropdown-menu-trigger-width)" }}>
+                            <DropdownMenuItem className="text-xs" onSelect={(e) => e.preventDefault()}>
+                              <ActionBox.Lend
+                                isDialog={true}
+                                useProvider={true}
+                                lendProps={{
+                                  connected: connected,
+                                  requestedLendType: ActionType.Deposit,
+                                  requestedBank: activeGroup.pool.token,
+                                  showAvailableCollateral: false,
+                                  captureEvent: () => {
+                                    capture("trade_supply_btn_click", {
+                                      group: activeGroup.client.group.address.toBase58(),
+                                      bank: activeGroup.pool.token.meta.tokenSymbol,
+                                    });
+                                  },
+                                  onComplete: () => {
+                                    fetchTradeState({
+                                      connection,
+                                      wallet,
+                                    });
+                                  },
+                                }}
+                                dialogProps={{
+                                  trigger: <p>Supply more</p>,
+                                  title: `Supply ${activeGroup.pool.token.meta.tokenSymbol}`,
+                                }}
+                              />
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="text-xs" onSelect={(e) => e.preventDefault()}>
+                              <ActionBox.Lend
+                                isDialog={true}
+                                useProvider={true}
+                                lendProps={{
+                                  connected: connected,
+                                  requestedLendType: ActionType.Withdraw,
+                                  requestedBank: activeGroup.pool.token,
+                                  showAvailableCollateral: false,
+                                  captureEvent: () => {
+                                    capture("trade_withdraw_btn_click", {
+                                      group: activeGroup.client.group.address.toBase58(),
+                                      bank: activeGroup.pool.token.meta.tokenSymbol,
+                                    });
+                                  },
+                                  onComplete: () => {
+                                    fetchTradeState({
+                                      connection,
+                                      wallet,
+                                    });
+                                  },
+                                }}
+                                dialogProps={{
+                                  trigger: <p>Withdraw</p>,
+                                  title: `Withdraw ${activeGroup.pool.token.meta.tokenSymbol}`,
+                                }}
+                              />
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      ) : (
+                        !hasTradePosition && (
+                          <ActionBox.Lend
+                            isDialog={true}
+                            useProvider={true}
+                            lendProps={{
+                              connected: connected,
+                              requestedLendType: ActionType.Deposit,
+                              requestedBank: activeGroup.pool.token,
+                              showAvailableCollateral: false,
+                              captureEvent: () => {
+                                capture("trade_supply_btn_click", {
+                                  group: activeGroup.client.group.address.toBase58(),
+                                  bank: activeGroup.pool.token.meta.tokenSymbol,
+                                });
+                              },
+                              onComplete: () => {
+                                fetchTradeState({
+                                  connection,
+                                  wallet,
+                                });
+                              },
+                            }}
+                            dialogProps={{
+                              trigger: (
+                                <Button variant="outline" size="sm">
+                                  Supply
+                                </Button>
+                              ),
+                              title: `Supply ${activeGroup.pool.token.meta.tokenSymbol}`,
+                            }}
+                          />
+                        )
+                      )}
+                    </Desktop>
+                  </div>
+                </div>
+                <Mobile>
+                  {!hasTradePosition &&
+                  lpPosition?.token &&
+                  lpPosition.token.pool.token.isActive &&
+                  activeGroup.selectedAccount ? (
+                    <div className="mt-4">
+                      <div className="flex gap-4">
+                        <ActionBox.Lend
+                          isDialog={true}
+                          useProvider={true}
+                          lendProps={{
+                            connected: connected,
+                            requestedLendType: ActionType.Deposit,
+                            requestedBank: activeGroup.pool.token,
+                            showAvailableCollateral: false,
+                            captureEvent: () => {
+                              capture("trade_supply_btn_click", {
+                                group: activeGroup.client.group.address.toBase58(),
+                                bank: activeGroup.pool.token.meta.tokenSymbol,
+                              });
+                            },
+                            onComplete: () => {
+                              fetchTradeState({
+                                connection,
+                                wallet,
+                              });
+                            },
+                          }}
+                          dialogProps={{
+                            trigger: (
+                              <Button variant="outline" className="gap-1 min-w-16">
+                                Supply more
+                              </Button>
+                            ),
+                            title: `Supply ${activeGroup.pool.token.meta.tokenSymbol}`,
+                          }}
+                        />
+                        <ActionBox.Lend
+                          isDialog={true}
+                          useProvider={true}
+                          lendProps={{
+                            connected: connected,
+                            requestedLendType: ActionType.Withdraw,
+                            requestedBank: activeGroup.pool.token,
+                            showAvailableCollateral: false,
+                            captureEvent: () => {
+                              capture("trade_withdraw_btn_click", {
+                                group: activeGroup.client.group.address.toBase58(),
+                                bank: activeGroup.pool.token.meta.tokenSymbol,
+                              });
+                            },
+                            onComplete: () => {
+                              fetchTradeState({
+                                connection,
+                                wallet,
+                              });
+                            },
+                          }}
+                          dialogProps={{
+                            trigger: "Withdraw",
+                            title: `Withdraw ${activeGroup.pool.token.meta.tokenSymbol}`,
+                          }}
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    !hasTradePosition && (
+                      <ActionBox.Lend
+                        isDialog={true}
+                        useProvider={true}
+                        lendProps={{
+                          connected: connected,
+                          requestedLendType: ActionType.Deposit,
+                          requestedBank: activeGroup.pool.token,
+                          showAvailableCollateral: false,
+                          captureEvent: () => {
+                            capture("trade_supply_btn_click", {
+                              group: activeGroup.client.group.address.toBase58(),
+                              bank: activeGroup.pool.token.meta.tokenSymbol,
+                            });
+                          },
+                          onComplete: () => {
+                            fetchTradeState({
+                              connection,
+                              wallet,
+                            });
+                          },
+                        }}
+                        dialogProps={{
+                          trigger: (
+                            <Button variant="outline" size="sm">
+                              Supply
+                            </Button>
+                          ),
+                          title: `Supply ${activeGroup.pool.token.meta.tokenSymbol}`,
+                        }}
+                      />
+                    )
+                  )}
+                </Mobile>
+              </div>
+              <div className="flex flex-row justify-between space-y-2 lg:block">
+                <div className="flex items-start gap-2">
+                  <Image
+                    src={activeGroup.pool.quoteTokens[0].meta.tokenLogoUri}
+                    alt={activeGroup.pool.quoteTokens[0].meta.tokenSymbol}
+                    width={32}
+                    height={32}
+                    className="bg-background border rounded-full translate-y-0.5"
+                  />
+                  <div className="leading-tight text-sm">
+                    <p>
+                      Total Deposits
+                      <br />({activeGroup.pool.quoteTokens[0].meta.tokenSymbol})
+                    </p>
+                    <p className="text-mrgn-success">
+                      {percentFormatter.format(aprToApy(activeGroup.pool.quoteTokens[0].info.state.lendingRate))}
+                    </p>
+                    {!hasTradePosition &&
+                      lpPosition?.quoteToken &&
+                      lpPosition.quoteToken.pool.quoteTokens[0].isActive &&
                       activeGroup.selectedAccount && <p className="mt-2 lg:hidden">Supplied</p>}
                   </div>
                 </div>
                 <div className="flex flex-col gap-2 lg:items-start lg:justify-start">
                   <p className="text-right lg:text-left lg:text-2xl">
                     {usdFormatter.format(
-                      activeGroup.pool.token.info.state.totalDeposits *
-                        activeGroup.pool.token.info.oraclePrice.priceRealtime.price.toNumber()
+                      activeGroup.pool.quoteTokens[0].info.state.totalDeposits *
+                        activeGroup.pool.quoteTokens[0].info.oraclePrice.priceRealtime.price.toNumber()
                     )}
                   </p>
                   {!hasTradePosition &&
-                    lpPosition?.token &&
-                    lpPosition.token.pool.token.isActive &&
+                    lpPosition?.quoteToken &&
+                    lpPosition.quoteToken.pool.quoteTokens[0].isActive &&
                     activeGroup.selectedAccount && (
                       <p className="mt-5 text-right lg:text-left lg:hidden">
-                        {usdFormatter.format(lpPosition.token.pool.token.position.amount)}
+                        {usdFormatter.format(lpPosition.quoteToken.pool.quoteTokens[0].position.amount)}
                       </p>
                     )}
                   <Desktop>
                     {!hasTradePosition &&
-                    lpPosition?.token &&
-                    lpPosition.token.pool.token.isActive &&
+                    lpPosition?.quoteToken &&
+                    lpPosition.quoteToken.pool.quoteTokens[0].isActive &&
                     activeGroup.selectedAccount ? (
                       <DropdownMenu>
-                        <DropdownMenuTrigger
-                          className="focus:outline-none focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
-                          asChild
-                        >
+                        <DropdownMenuTrigger className="focus:outline-none focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0">
                           <Button size="sm" variant="outline" className="px-2 py-1.5 h-auto lg:px-4 lg:py-2">
-                            Supplied {numeralFormatter(lpPosition.token.pool.token.position.amount)}
+                            Supplied {numeralFormatter(lpPosition.quoteToken.pool.quoteTokens[0].position.amount)}
                             <div className="border-l pl-2 ml-1">
                               <IconChevronDown size={14} />
                             </div>
@@ -240,39 +543,95 @@ export const PoolTradeHeader = ({ activeGroup }: { activeGroup: GroupData }) => 
                         </DropdownMenuTrigger>
                         <DropdownMenuContent style={{ width: "var(--radix-dropdown-menu-trigger-width)" }}>
                           <DropdownMenuItem className="text-xs" onSelect={(e) => e.preventDefault()}>
-                            <ActionBoxDialog
-                              requestedBank={activeGroup.pool.token}
-                              requestedAction={ActionType.Deposit}
-                              requestedAccount={activeGroup.selectedAccount}
-                              activeGroupArg={activeGroup}
-                            >
-                              <p>Supply more</p>
-                            </ActionBoxDialog>
+                            <ActionBox.Lend
+                              isDialog={true}
+                              useProvider={true}
+                              lendProps={{
+                                connected: connected,
+                                requestedLendType: ActionType.Deposit,
+                                requestedBank: activeGroup.pool.quoteTokens[0],
+                                showAvailableCollateral: false,
+                                captureEvent: () => {
+                                  capture("trade_supply_btn_click", {
+                                    group: activeGroup.client.group.address.toBase58(),
+                                    bank: activeGroup.pool.quoteTokens[0].meta.tokenSymbol,
+                                  });
+                                },
+                                onComplete: () => {
+                                  fetchTradeState({
+                                    connection,
+                                    wallet,
+                                  });
+                                },
+                              }}
+                              dialogProps={{
+                                trigger: <p>Supply more</p>,
+                                title: `Supply ${activeGroup.pool.quoteTokens[0].meta.tokenSymbol}`,
+                              }}
+                            />
                           </DropdownMenuItem>
                           <DropdownMenuItem className="text-xs" onSelect={(e) => e.preventDefault()}>
-                            <ActionBoxDialog
-                              requestedBank={activeGroup.pool.token}
-                              requestedAction={ActionType.Withdraw}
-                              requestedAccount={activeGroup.selectedAccount}
-                              activeGroupArg={activeGroup}
-                            >
-                              <p>Withdraw</p>
-                            </ActionBoxDialog>
+                            <ActionBox.Lend
+                              isDialog={true}
+                              useProvider={true}
+                              lendProps={{
+                                connected: connected,
+                                requestedLendType: ActionType.Withdraw,
+                                requestedBank: activeGroup.pool.quoteTokens[0],
+                                showAvailableCollateral: false,
+                                captureEvent: () => {
+                                  capture("trade_withdraw_btn_click", {
+                                    group: activeGroup.client.group.address.toBase58(),
+                                    bank: activeGroup.pool.quoteTokens[0].meta.tokenSymbol,
+                                  });
+                                },
+                                onComplete: () => {
+                                  fetchTradeState({
+                                    connection,
+                                    wallet,
+                                  });
+                                },
+                              }}
+                              dialogProps={{
+                                trigger: <p>Withdraw</p>,
+                                title: `Withdraw ${activeGroup.pool.quoteTokens[0].meta.tokenSymbol}`,
+                              }}
+                            />
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     ) : (
                       !hasTradePosition && (
-                        <ActionBoxDialog
-                          requestedBank={activeGroup.pool.token}
-                          requestedAction={ActionType.Deposit}
-                          requestedAccount={activeGroup.selectedAccount || undefined}
-                          activeGroupArg={activeGroup}
-                        >
-                          <Button size="sm" variant="outline" className="px-2 py-1.5 h-auto lg:px-4 lg:py-2">
-                            Supply
-                          </Button>
-                        </ActionBoxDialog>
+                        <ActionBox.Lend
+                          isDialog={true}
+                          useProvider={true}
+                          lendProps={{
+                            connected: connected,
+                            requestedLendType: ActionType.Deposit,
+                            requestedBank: activeGroup.pool.quoteTokens[0],
+                            showAvailableCollateral: false,
+                            captureEvent: () => {
+                              capture("trade_supply_btn_click", {
+                                group: activeGroup.client.group.address.toBase58(),
+                                bank: activeGroup.pool.quoteTokens[0].meta.tokenSymbol,
+                              });
+                            },
+                            onComplete: () => {
+                              fetchTradeState({
+                                connection,
+                                wallet,
+                              });
+                            },
+                          }}
+                          dialogProps={{
+                            trigger: (
+                              <Button variant="outline" className="gap-1 min-w-16">
+                                Supply
+                              </Button>
+                            ),
+                            title: `Supply ${activeGroup.pool.quoteTokens[0].meta.tokenSymbol}`,
+                          }}
+                        />
                       )
                     )}
                   </Desktop>
@@ -280,203 +639,131 @@ export const PoolTradeHeader = ({ activeGroup }: { activeGroup: GroupData }) => 
               </div>
               <Mobile>
                 {!hasTradePosition &&
-                lpPosition?.token &&
-                lpPosition.token.pool.token.isActive &&
+                lpPosition?.quoteToken &&
+                lpPosition.quoteToken.pool.quoteTokens[0].isActive &&
                 activeGroup.selectedAccount ? (
-                  <div className="mt-4">
+                  <div>
                     <div className="flex gap-4">
-                      <ActionBoxDialog
-                        requestedBank={activeGroup.pool.token}
-                        requestedAction={ActionType.Deposit}
-                        requestedAccount={activeGroup.selectedAccount}
-                        activeGroupArg={activeGroup}
-                      >
-                        <Button size="sm" variant="outline" className="px-2 py-1.5 w-full h-auto lg:px-4 lg:py-2">
-                          Supply more
-                        </Button>
-                      </ActionBoxDialog>
-                      <ActionBoxDialog
-                        requestedBank={activeGroup.pool.token}
-                        requestedAction={ActionType.Withdraw}
-                        requestedAccount={activeGroup.selectedAccount}
-                        activeGroupArg={activeGroup}
-                      >
-                        <Button size="sm" variant="outline" className="px-2 py-1.5 w-full h-auto lg:px-4 lg:py-2">
-                          Withdraw
-                        </Button>
-                      </ActionBoxDialog>
+                      <ActionBox.Lend
+                        isDialog={true}
+                        useProvider={true}
+                        lendProps={{
+                          connected: connected,
+                          requestedLendType: ActionType.Deposit,
+                          requestedBank: activeGroup.pool.quoteTokens[0],
+                          showAvailableCollateral: false,
+                          captureEvent: () => {
+                            capture("trade_supply_btn_click", {
+                              group: activeGroup.client.group.address.toBase58(),
+                              bank: activeGroup.pool.quoteTokens[0].meta.tokenSymbol,
+                            });
+                          },
+                          onComplete: () => {
+                            fetchTradeState({
+                              connection,
+                              wallet,
+                            });
+                          },
+                        }}
+                        dialogProps={{
+                          trigger: (
+                            <Button variant="outline" className="gap-1 min-w-16">
+                              Supply more
+                            </Button>
+                          ),
+                          title: `Supply ${activeGroup.pool.quoteTokens[0].meta.tokenSymbol}`,
+                        }}
+                      />
+                      <ActionBox.Lend
+                        isDialog={true}
+                        useProvider={true}
+                        lendProps={{
+                          connected: connected,
+                          requestedLendType: ActionType.Withdraw,
+                          requestedBank: activeGroup.pool.quoteTokens[0],
+                          showAvailableCollateral: false,
+                          captureEvent: () => {
+                            capture("trade_withdraw_btn_click", {
+                              group: activeGroup.client.group.address.toBase58(),
+                              bank: activeGroup.pool.quoteTokens[0].meta.tokenSymbol,
+                            });
+                          },
+                          onComplete: () => {
+                            fetchTradeState({
+                              connection,
+                              wallet,
+                            });
+                          },
+                        }}
+                        dialogProps={{
+                          trigger: (
+                            <Button variant="outline" className="gap-1 min-w-16">
+                              Withdraw
+                            </Button>
+                          ),
+                          title: `Withdraw ${activeGroup.pool.quoteTokens[0].meta.tokenSymbol}`,
+                        }}
+                      />
                     </div>
                   </div>
                 ) : (
                   !hasTradePosition && (
-                    <ActionBoxDialog
-                      requestedBank={activeGroup.pool.token}
-                      requestedAction={ActionType.Deposit}
-                      requestedAccount={activeGroup.selectedAccount || undefined}
-                      activeGroupArg={activeGroup}
-                    >
-                      <Button size="sm" variant="outline" className="px-2 py-1.5 h-auto w-full lg:px-4 lg:py-2 mt-4">
-                        Supply
-                      </Button>
-                    </ActionBoxDialog>
+                    <ActionBox.Lend
+                      isDialog={true}
+                      useProvider={true}
+                      lendProps={{
+                        connected: connected,
+                        requestedLendType: ActionType.Deposit,
+                        requestedBank: activeGroup.pool.quoteTokens[0],
+                        showAvailableCollateral: false,
+                        captureEvent: () => {
+                          capture("trade_supply_btn_click", {
+                            group: activeGroup.client.group.address.toBase58(),
+                            bank: activeGroup.pool.quoteTokens[0].meta.tokenSymbol,
+                          });
+                        },
+                        onComplete: () => {
+                          fetchTradeState({
+                            connection,
+                            wallet,
+                          });
+                        },
+                      }}
+                      dialogProps={{
+                        trigger: (
+                          <Button variant="outline" className="gap-1 min-w-16">
+                            Supply
+                          </Button>
+                        ),
+                        title: `Supply ${activeGroup.pool.quoteTokens[0].meta.tokenSymbol}`,
+                      }}
+                    />
                   )
                 )}
               </Mobile>
             </div>
-            <div className="flex flex-row justify-between space-y-2 lg:block">
-              <div className="flex items-start gap-2">
-                <Image
-                  src={activeGroup.pool.quoteTokens[0].meta.tokenLogoUri}
-                  alt={activeGroup.pool.quoteTokens[0].meta.tokenSymbol}
-                  width={32}
-                  height={32}
-                  className="bg-background border rounded-full translate-y-0.5"
-                />
-                <div className="leading-tight text-sm">
-                  <p>
-                    Total Deposits
-                    <br />({activeGroup.pool.quoteTokens[0].meta.tokenSymbol})
-                  </p>
-                  <p className="text-mrgn-success">
-                    {percentFormatter.format(aprToApy(activeGroup.pool.quoteTokens[0].info.state.lendingRate))}
-                  </p>
-                  {!hasTradePosition &&
-                    lpPosition?.quoteToken &&
-                    lpPosition.quoteToken.pool.quoteTokens[0].isActive &&
-                    activeGroup.selectedAccount && <p className="mt-2 lg:hidden">Supplied</p>}
-                </div>
-              </div>
-              <div className="flex flex-col gap-2 lg:items-start lg:justify-start">
-                <p className="text-right lg:text-left lg:text-2xl">
-                  {usdFormatter.format(
-                    activeGroup.pool.quoteTokens[0].info.state.totalDeposits *
-                      activeGroup.pool.quoteTokens[0].info.oraclePrice.priceRealtime.price.toNumber()
-                  )}
-                </p>
-                {!hasTradePosition &&
-                  lpPosition?.quoteToken &&
-                  lpPosition.quoteToken.pool.quoteTokens[0].isActive &&
-                  activeGroup.selectedAccount && (
-                    <p className="mt-5 text-right lg:text-left lg:hidden">
-                      {usdFormatter.format(lpPosition.quoteToken.pool.quoteTokens[0].position.amount)}
-                    </p>
-                  )}
-                <Desktop>
-                  {!hasTradePosition &&
-                  lpPosition?.quoteToken &&
-                  lpPosition.quoteToken.pool.quoteTokens[0].isActive &&
-                  activeGroup.selectedAccount ? (
-                    <DropdownMenu>
-                      <DropdownMenuTrigger className="focus:outline-none focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0">
-                        <Button size="sm" variant="outline" className="px-2 py-1.5 h-auto lg:px-4 lg:py-2">
-                          Supplied {numeralFormatter(lpPosition.quoteToken.pool.quoteTokens[0].position.amount)}
-                          <div className="border-l pl-2 ml-1">
-                            <IconChevronDown size={14} />
-                          </div>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent style={{ width: "var(--radix-dropdown-menu-trigger-width)" }}>
-                        <DropdownMenuItem className="text-xs" onSelect={(e) => e.preventDefault()}>
-                          <ActionBoxDialog
-                            requestedBank={activeGroup.pool.quoteTokens[0]}
-                            requestedAction={ActionType.Deposit}
-                            requestedAccount={activeGroup.selectedAccount}
-                            activeGroupArg={activeGroup}
-                          >
-                            <p>Supply more</p>
-                          </ActionBoxDialog>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem className="text-xs" onSelect={(e) => e.preventDefault()}>
-                          <ActionBoxDialog
-                            requestedBank={activeGroup.pool.quoteTokens[0]}
-                            requestedAction={ActionType.Withdraw}
-                          >
-                            <p>Withdraw</p>
-                          </ActionBoxDialog>
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  ) : (
-                    !hasTradePosition && (
-                      <ActionBoxDialog
-                        requestedBank={activeGroup.pool.quoteTokens[0]}
-                        requestedAction={ActionType.Deposit}
-                        requestedAccount={activeGroup.selectedAccount || undefined}
-                        activeGroupArg={activeGroup}
-                      >
-                        <Button size="sm" variant="outline" className="px-2 py-1.5 h-auto lg:px-4 lg:py-2">
-                          Supply
-                        </Button>
-                      </ActionBoxDialog>
-                    )
-                  )}
-                </Desktop>
-              </div>
-            </div>
-            <Mobile>
-              {!hasTradePosition &&
-              lpPosition?.quoteToken &&
-              lpPosition.quoteToken.pool.quoteTokens[0].isActive &&
-              activeGroup.selectedAccount ? (
-                <div>
-                  <div className="flex gap-4">
-                    <ActionBoxDialog
-                      requestedBank={activeGroup.pool.quoteTokens[0]}
-                      requestedAction={ActionType.Deposit}
-                      requestedAccount={activeGroup.selectedAccount}
-                      activeGroupArg={activeGroup}
-                    >
-                      <Button size="sm" variant="outline" className="px-2 py-1.5 w-full h-auto lg:px-4 lg:py-2">
-                        Supply more
-                      </Button>
-                    </ActionBoxDialog>
-                    <ActionBoxDialog
-                      requestedBank={activeGroup.pool.quoteTokens[0]}
-                      requestedAction={ActionType.Withdraw}
-                    >
-                      <Button size="sm" variant="outline" className="px-2 py-1.5 w-full h-auto lg:px-4 lg:py-2">
-                        Withdraw
-                      </Button>
-                    </ActionBoxDialog>
-                  </div>
-                </div>
-              ) : (
-                !hasTradePosition && (
-                  <ActionBoxDialog
-                    requestedBank={activeGroup.pool.quoteTokens[0]}
-                    requestedAction={ActionType.Deposit}
-                    requestedAccount={activeGroup.selectedAccount || undefined}
-                    activeGroupArg={activeGroup}
-                  >
-                    <Button size="sm" variant="outline" className="px-2 py-1.5 w-full h-auto lg:px-4 lg:py-2">
-                      Supply
-                    </Button>
-                  </ActionBoxDialog>
-                )
-              )}
-            </Mobile>
           </div>
         </div>
+        {hasTradePosition && (
+          <Mobile>
+            <div className="mt-8 space-y-2">
+              <p className="flex items-center text-sm">
+                <span
+                  className={cn(
+                    "flex w-2.5 h-2.5 rounded-full mr-2",
+                    activeGroup.pool.token.isActive && activeGroup.pool.token.position.isLending
+                      ? "bg-mrgn-green"
+                      : "bg-mrgn-error"
+                  )}
+                ></span>
+                Open {activeGroup.pool.token.isActive && activeGroup.pool.token.position.isLending ? "long " : "short "}
+                position
+              </p>
+              <PositionCard groupData={activeGroup} size="sm" />
+            </div>
+          </Mobile>
+        )}
       </div>
-      {hasTradePosition && (
-        <Mobile>
-          <div className="mt-8 space-y-2">
-            <p className="flex items-center text-sm">
-              <span
-                className={cn(
-                  "flex w-2.5 h-2.5 rounded-full mr-2",
-                  activeGroup.pool.token.isActive && activeGroup.pool.token.position.isLending
-                    ? "bg-mrgn-green"
-                    : "bg-mrgn-error"
-                )}
-              ></span>
-              Open {activeGroup.pool.token.isActive && activeGroup.pool.token.position.isLending ? "long " : "short "}
-              position
-            </p>
-            <PositionCard groupData={activeGroup} size="sm" />
-          </div>
-        </Mobile>
-      )}
-    </div>
+    </ActionBoxProvider>
   );
 };
