@@ -29,9 +29,9 @@ import { WalletState } from "~/store/uiStore";
 import { useWallet, useWalletStore } from "~/components/wallet-v2";
 import { useConnection } from "~/hooks/use-connection";
 
+import { ActionBox, ActionBoxProvider } from "~/components/action-box-v2";
 import { TokenCombobox } from "../TokenCombobox/TokenCombobox";
 import { TradingBoxSettingsDialog } from "./components/TradingBoxSettings/TradingBoxSettingsDialog";
-import { ActionBoxDialog } from "~/components/common/ActionBox";
 import { Card, CardContent, CardFooter } from "~/components/ui/card";
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
 import { Slider } from "~/components/ui/slider";
@@ -68,7 +68,9 @@ export const TradingBox = ({ activeGroup, side = "long" }: TradingBoxProps) => {
     }
   }, [tradeState, loopingObject]);
 
-  const [setIsRefreshingStore, refreshGroup] = useTradeStore((state) => [
+  const [fetchTradeState, nativeSolBalance, setIsRefreshingStore, refreshGroup] = useTradeStore((state) => [
+    state.fetchTradeState,
+    state.nativeSolBalance,
     state.setIsRefreshingStore,
     state.refreshGroup,
   ]);
@@ -517,133 +519,185 @@ export const TradingBox = ({ activeGroup, side = "long" }: TradingBoxProps) => {
           )}
         </CardContent>
         <CardFooter className="flex-col gap-5 md:pt-0">
-          {tradeState === "long" && activeGroup?.pool.token.userInfo.tokenAccount.balance === 0 && (
-            <div className="w-full flex space-x-2 py-2.5 px-3.5 rounded-lg gap-1 text-sm bg-accent text-alert-foreground">
-              <IconAlertTriangle className="shrink-0 translate-y-0.5" size={16} />
-              <div className="space-y-1">
-                <p>
-                  You need to hold {activeGroup?.pool.token.meta.tokenSymbol} to open a long position.{" "}
-                  {connected && (
+          <ActionBoxProvider
+            banks={[activeGroup.pool.token, activeGroup.pool.quoteTokens[0]]}
+            nativeSolBalance={nativeSolBalance}
+            marginfiClient={activeGroup.client}
+            selectedAccount={activeGroup.selectedAccount}
+            connected={connected}
+            accountSummaryArg={activeGroup.accountSummary}
+            showActionComplete={false}
+          >
+            {tradeState === "long" && activeGroup?.pool.token.userInfo.tokenAccount.balance === 0 && (
+              <div className="w-full flex space-x-2 py-2.5 px-3.5 rounded-lg gap-1 text-sm bg-accent text-alert-foreground">
+                <IconAlertTriangle className="shrink-0 translate-y-0.5" size={16} />
+                <div className="space-y-1">
+                  <p>
+                    You need to hold {activeGroup?.pool.token.meta.tokenSymbol} to open a long position.{" "}
                     <button
                       className="border-b border-alert-foreground hover:border-transparent"
                       onClick={() => {
+                        setWalletState(WalletState.SWAP);
                         setIsWalletOpen(true);
                       }}
                     >
                       Swap tokens.
                     </button>
-                  )}
-                </p>
+                  </p>
+                </div>
               </div>
-            </div>
-          )}
-          {tradeState === "short" && activeGroup?.pool.quoteTokens[0].userInfo.tokenAccount.balance === 0 && (
-            <div className="w-full flex space-x-2 py-2.5 px-3.5 rounded-lg gap-1 text-sm bg-accent text-alert-foreground">
-              <IconAlertTriangle className="shrink-0 translate-y-0.5" size={16} />
-              <div className="space-y-1">
-                <p>
-                  You need to hold {activeGroup?.pool.quoteTokens[0].meta.tokenSymbol} to open a short position.{" "}
-                  {connected && (
+            )}
+            {tradeState === "short" && activeGroup?.pool.quoteTokens[0].userInfo.tokenAccount.balance === 0 && (
+              <div className="w-full flex space-x-2 py-2.5 px-3.5 rounded-lg gap-1 text-sm bg-accent text-alert-foreground">
+                <IconAlertTriangle className="shrink-0 translate-y-0.5" size={16} />
+                <div className="space-y-1">
+                  <p>
+                    You need to hold {activeGroup?.pool.quoteTokens[0].meta.tokenSymbol} to open a short position.{" "}
                     <button
                       className="border-b border-alert-foreground hover:border-transparent"
                       onClick={() => {
+                        setWalletState(WalletState.SWAP);
                         setIsWalletOpen(true);
                       }}
                     >
                       Swap tokens.
                     </button>
-                  )}
-                </p>
+                  </p>
+                </div>
               </div>
-            </div>
-          )}
-          {isActiveWithCollat ? (
-            <>
-              <div className="gap-1 w-full flex flex-col items-center">
-                {actionMethods.concat(additionalChecks ?? []).map(
-                  (actionMethod, idx) =>
-                    actionMethod.description && (
-                      <div className="pb-6 w-full" key={idx}>
-                        <div
-                          className={cn(
-                            "flex space-x-2 py-2.5 px-3.5 rounded-lg gap-1 text-sm",
-                            actionMethod.actionMethod === "INFO" && "bg-accent text-info-foreground",
-                            (!actionMethod.actionMethod || actionMethod.actionMethod === "WARNING") &&
-                              "bg-accent text-alert-foreground",
-                            actionMethod.actionMethod === "ERROR" && "bg-[#990000] text-white"
-                          )}
-                        >
-                          <IconAlertTriangle className="shrink-0 translate-y-0.5" size={16} />
-                          <div className="space-y-1">
-                            <p>{actionMethod.description}</p>
-                            {actionMethod.action && (
-                              <ActionBoxDialog
-                                activeGroupArg={activeGroup}
-                                requestedAction={actionMethod.action.type}
-                                requestedBank={actionMethod.action.bank}
-                              >
-                                <p className="underline hover:no-underline cursor-pointer">
-                                  {actionMethod.action.type} {actionMethod.action.bank.meta.tokenSymbol}
+            )}
+            {isActiveWithCollat ? (
+              <>
+                <div className="gap-1 w-full flex flex-col items-center">
+                  {actionMethods.concat(additionalChecks ?? []).map(
+                    (actionMethod, idx) =>
+                      actionMethod.description && (
+                        <div className="pb-6 w-full" key={idx}>
+                          <div
+                            className={cn(
+                              "flex space-x-2 py-2.5 px-3.5 rounded-lg gap-1 text-sm",
+                              actionMethod.actionMethod === "INFO" && "bg-accent text-info-foreground",
+                              (!actionMethod.actionMethod || actionMethod.actionMethod === "WARNING") &&
+                                "bg-accent text-alert-foreground",
+                              actionMethod.actionMethod === "ERROR" && "bg-[#990000] text-white"
+                            )}
+                          >
+                            <IconAlertTriangle className="shrink-0 translate-y-0.5" size={16} />
+                            <div className="space-y-1">
+                              <p>{actionMethod.description}</p>
+                              {actionMethod.action && (
+                                <ActionBox.Lend
+                                  isDialog={true}
+                                  useProvider={true}
+                                  lendProps={{
+                                    connected: connected,
+                                    requestedLendType: ActionType.Deposit,
+                                    requestedBank: actionMethod.action.bank ?? undefined,
+                                    showAvailableCollateral: false,
+                                    captureEvent: () => {
+                                      capture("position_add_btn_click", {
+                                        group: activeGroup?.groupPk?.toBase58(),
+                                        token: actionMethod.action?.bank.meta.tokenSymbol,
+                                      });
+                                    },
+                                    onComplete: () => {
+                                      fetchTradeState({
+                                        connection,
+                                        wallet,
+                                      });
+                                    },
+                                  }}
+                                  dialogProps={{
+                                    trigger: (
+                                      <Button variant="outline" size="sm" className="gap-1 min-w-16">
+                                        ${actionMethod.action.type}
+                                      </Button>
+                                    ),
+                                    title: `${actionMethod.action.type} ${actionMethod.action.bank.meta.tokenSymbol}`,
+                                  }}
+                                />
+                              )}
+                              {actionMethod.link && (
+                                <p>
+                                  {/* <span className="hidden md:inline">-</span>{" "} */}
+                                  <Link
+                                    href={actionMethod.link}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="underline hover:no-underline"
+                                  >
+                                    <IconExternalLink size={14} className="inline -translate-y-[1px]" />{" "}
+                                    {actionMethod.linkText || "Read more"}
+                                  </Link>
                                 </p>
-                              </ActionBoxDialog>
-                            )}
-                            {actionMethod.link && (
-                              <p>
-                                {/* <span className="hidden md:inline">-</span>{" "} */}
-                                <Link
-                                  href={actionMethod.link}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="underline hover:no-underline"
-                                >
-                                  <IconExternalLink size={14} className="inline -translate-y-[1px]" />{" "}
-                                  {actionMethod.linkText || "Read more"}
-                                </Link>
-                              </p>
-                            )}
+                              )}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    )
-                )}
-                <Button
-                  onClick={() => handleLeverageAction()}
-                  disabled={
-                    !!actionMethods.concat(additionalChecks ?? []).filter((value) => value.isEnabled === false)
-                      .length || isLoading
-                  }
-                  className={cn("w-full", tradeState === "long" && "bg-success", tradeState === "short" && "bg-error")}
-                >
-                  {isLoading ? (
-                    <IconLoader2 className="animate-spin" />
-                  ) : (
-                    <>
-                      {capitalize(tradeState)} {activeGroup.pool.token.meta.tokenSymbol}
-                    </>
+                      )
                   )}
-                </Button>
-                <TradingBoxSettingsDialog
-                  setSlippageBps={(value) => setSlippageBps(value * 100)}
-                  slippageBps={slippageBps / 100}
-                >
-                  <div className="flex justify-end gap-2 mt-2 ml-auto">
-                    <button className="text-xs gap-1 h-6 px-2 flex items-center rounded-full border bg-transparent hover:bg-accent text-muted-foreground">
-                      Settings <IconSettings size={16} />
-                    </button>
-                  </div>
-                </TradingBoxSettingsDialog>
-              </div>
-              {Stats}
-            </>
-          ) : (
-            <ActionBoxDialog
-              activeGroupArg={activeGroup}
-              requestedAction={ActionType.Deposit}
-              requestedBank={activeGroup.pool.quoteTokens[0]}
-            >
-              <Button className="w-full">Deposit Collateral</Button>
-            </ActionBoxDialog>
-          )}
+                  <Button
+                    onClick={() => handleLeverageAction()}
+                    disabled={
+                      !!actionMethods.concat(additionalChecks ?? []).filter((value) => value.isEnabled === false)
+                        .length || isLoading
+                    }
+                    className={cn(
+                      "w-full",
+                      tradeState === "long" && "bg-success",
+                      tradeState === "short" && "bg-error"
+                    )}
+                  >
+                    {isLoading ? (
+                      <IconLoader2 className="animate-spin" />
+                    ) : (
+                      <>
+                        {capitalize(tradeState)} {activeGroup.pool.token.meta.tokenSymbol}
+                      </>
+                    )}
+                  </Button>
+                  <TradingBoxSettingsDialog
+                    setSlippageBps={(value) => setSlippageBps(value * 100)}
+                    slippageBps={slippageBps / 100}
+                  >
+                    <div className="flex justify-end gap-2 mt-2 ml-auto">
+                      <button className="text-xs gap-1 h-6 px-2 flex items-center rounded-full border bg-transparent hover:bg-accent text-muted-foreground">
+                        Settings <IconSettings size={16} />
+                      </button>
+                    </div>
+                  </TradingBoxSettingsDialog>
+                </div>
+                {Stats}
+              </>
+            ) : (
+              <ActionBox.Lend
+                isDialog={true}
+                useProvider={true}
+                lendProps={{
+                  connected: connected,
+                  requestedLendType: ActionType.Deposit,
+                  requestedBank: activeGroup.pool.quoteTokens[0],
+                  showAvailableCollateral: false,
+                  captureEvent: () => {
+                    capture("position_add_btn_click", {
+                      group: activeGroup?.groupPk?.toBase58(),
+                      token: activeGroup.pool.quoteTokens[0].meta.tokenSymbol,
+                    });
+                  },
+                  onComplete: () => {
+                    fetchTradeState({
+                      connection,
+                      wallet,
+                    });
+                  },
+                }}
+                dialogProps={{
+                  trigger: <Button className="w-full">Deposit Collateral</Button>,
+                  title: `Supply ${activeGroup.pool.quoteTokens[0].meta.tokenSymbol}`,
+                }}
+              />
+            )}
+          </ActionBoxProvider>
         </CardFooter>
       </Card>
     </>
