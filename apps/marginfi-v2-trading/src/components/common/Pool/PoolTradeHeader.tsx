@@ -134,10 +134,8 @@ export const PoolTradeHeader = ({ activeGroup }: { activeGroup: GroupData }) => 
                 <p className="text-sm text-right lg:text-left lg:text-2xl">
                   {tokenPrice}
                   {isLstQuote ? (
-                    <span className="text-sm ml-1 text-muted-foreground">
-                      {`(${tokenPriceFormatter(
-                        Number(activeGroup.pool.token.info.oraclePrice.priceRealtime.price.toNumber().toFixed(4)),
-                      )})`}
+                    <span className="text-sm text-muted-foreground block">
+                      {tokenPriceFormatter(activeGroup.pool.token.info.oraclePrice.priceRealtime.price.toNumber())} USD
                     </span>
                   ) : (
                     <span

@@ -157,7 +157,7 @@ export default function HomePage() {
               </motion.div>
               {view === View.GRID && (
                 <motion.div
-                  className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8"
+                  className="grid md:grid-cols-2 xl:grid-cols-3 gap-8"
                   initial="hidden"
                   animate="visible"
                   variants={{
