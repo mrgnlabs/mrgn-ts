@@ -194,7 +194,6 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
     try {
       // fetch groups
       let userDataFetched = false;
-      let walletChanged = false;
 
       const connection = args.connection ?? get().connection;
       const argWallet = args.wallet;
@@ -286,6 +285,7 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
         }
 
         portfolio = getPorfolioData(groupMap);
+        userDataFetched = true;
 
         // fetch / create referral code
         // if (!referralCode) {
@@ -336,12 +336,12 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
         groupMap: sortedGroups,
         totalPages,
         currentPage,
-        nativeSolBalance: nativeSolBalance,
-        tokenAccountMap: tokenAccountMap,
-        wallet: wallet,
-        connection: connection,
-        userDataFetched: userDataFetched,
-        portfolio: portfolio,
+        nativeSolBalance,
+        tokenAccountMap,
+        wallet,
+        connection,
+        userDataFetched,
+        portfolio,
         referralCode,
       });
     } catch (error) {
@@ -490,7 +490,14 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
 
     // update groupMap stored on state with the updated group data above
     const groupMap = new Map(updatedGroups.map((group) => [group.client.group.address.toBase58(), group]));
-    set({ groupMap, portfolio: null, nativeSolBalance: 0, tokenAccountMap: null, wallet: null });
+    set({
+      groupMap,
+      portfolio: null,
+      nativeSolBalance: 0,
+      tokenAccountMap: null,
+      wallet: null,
+      userDataFetched: false,
+    });
   },
 });
 

@@ -50,6 +50,7 @@ import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
 type WalletProps = {
   connection: Connection;
   initialized: boolean;
+  userDataFetched: boolean;
   mfiClient?: MarginfiClient | null;
   marginfiAccounts?: MarginfiAccountWrapper[];
   selectedAccount?: MarginfiAccountWrapper | null;
@@ -77,6 +78,7 @@ enum WalletState {
 const Wallet = ({
   connection,
   initialized,
+  userDataFetched,
   mfiClient,
   marginfiAccounts,
   selectedAccount,
@@ -198,12 +200,20 @@ const Wallet = ({
 
       {!isLoading && connected && (
         <Sheet open={isWalletOpen} onOpenChange={(open) => setIsWalletOpen(open)}>
-          <SheetTrigger asChild>
+          <SheetTrigger asChild disabled={!userDataFetched}>
             {wallet?.publicKey && (
-              <button className="flex items-center gap-2 hover:bg-accent/50 transition-colors rounded-full py-0.5 pr-2 pl-1 text-sm text-muted-foreground">
+              <button
+                disabled={!userDataFetched}
+                className="flex items-center gap-2 hover:bg-accent/50 transition-colors rounded-full py-0.5 pr-2 pl-1 text-sm text-muted-foreground"
+              >
                 <WalletAvatar pfp={pfp} address={wallet?.publicKey.toBase58()} size="sm" />
-                {shortenAddress(wallet?.publicKey)}
-                <IconChevronDown size={16} />
+                {userDataFetched && wallet?.publicKey ? (
+                  <>
+                    {shortenAddress(wallet?.publicKey)} <IconChevronDown size={16} />
+                  </>
+                ) : (
+                  "Loading..."
+                )}
               </button>
             )}
           </SheetTrigger>
