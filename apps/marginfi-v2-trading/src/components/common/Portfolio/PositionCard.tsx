@@ -6,7 +6,7 @@ import Link from "next/link";
 import { IconInfoCircle } from "@tabler/icons-react";
 import { numeralFormatter, tokenPriceFormatter, percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 
-import { cn } from "@mrgnlabs/mrgn-utils";
+import { cn, useIsMobile } from "@mrgnlabs/mrgn-utils";
 import { useGroupBanks, useGroupPosition } from "~/hooks/arenaHooks";
 
 import { PositionActionButtons } from "~/components/common/Portfolio";
@@ -20,6 +20,7 @@ type PositionCardProps = {
 };
 
 export const PositionCard = ({ size = "lg", groupData }: PositionCardProps) => {
+  const isMobile = useIsMobile();
   const { borrowBank } = useGroupBanks({ group: groupData });
   const { positionSizeUsd, totalUsdValue, leverage } = useGroupPosition({ group: groupData });
 
@@ -99,12 +100,19 @@ export const PositionCard = ({ size = "lg", groupData }: PositionCardProps) => {
           <dt>Price</dt>
           <dd className="text-right text-primary">
             {tokenPrice}
-            <span className="text-xs ml-1 text-muted-foreground">
-              {isLstQuote &&
-                `(${tokenPriceFormatter(
-                  Number(groupData.pool.token.info.oraclePrice.priceRealtime.price.toNumber().toFixed(4))
-                )})`}
-            </span>
+            {isLstQuote && (
+              <>
+                {isMobile ? (
+                  <span className="text-xs ml-1 text-muted-foreground block">
+                    {tokenPriceFormatter(groupData.pool.token.info.oraclePrice.priceRealtime.price.toNumber())} USD
+                  </span>
+                ) : (
+                  <span className="text-xs ml-1 text-muted-foreground">
+                    ({tokenPriceFormatter(groupData.pool.token.info.oraclePrice.priceRealtime.price.toNumber())})
+                  </span>
+                )}
+              </>
+            )}
           </dd>
           {groupData.pool.token.position.liquidationPrice && (
             <>

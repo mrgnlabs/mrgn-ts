@@ -11,9 +11,7 @@ import {
   shortenAddress,
 } from "@mrgnlabs/mrgn-common";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { cn } from "@mrgnlabs/mrgn-utils";
-
-import { useTradeStore } from "~/store";
+import { cn, useIsMobile } from "@mrgnlabs/mrgn-utils";
 
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "~/components/ui/card";
@@ -26,6 +24,7 @@ type PoolCardProps = {
 };
 
 export const PoolCard = ({ groupData }: PoolCardProps) => {
+  const isMobile = useIsMobile();
   const isLstQuote = React.useMemo(() => {
     return groupData.pool.quoteTokens[0].meta.tokenSymbol === "LST";
   }, [groupData]);
@@ -100,17 +99,21 @@ export const PoolCard = ({ groupData }: PoolCardProps) => {
       <CardContent className="pt-4 pb-6">
         {groupData.pool.token.tokenData && (
           <dl className="grid grid-cols-2 gap-1.5 text-sm text-muted-foreground w-full mt-2">
-            <dt className="">Price</dt>
+            <dt>Price</dt>
             <dd className="text-right text-primary tracking-wide">
               {tokenPrice}
               {isLstQuote ? (
-                <span className="text-xs ml-1 text-muted-foreground">
-                  ($
-                  {tokenPriceFormatter(
-                    Number(groupData.pool.token.info.oraclePrice.priceRealtime.price.toNumber().toFixed(4))
+                <>
+                  {isMobile ? (
+                    <span className="text-xs ml-1 text-muted-foreground block">
+                      {tokenPriceFormatter(groupData.pool.token.info.oraclePrice.priceRealtime.price.toNumber())} USD
+                    </span>
+                  ) : (
+                    <span className="text-xs ml-1 text-muted-foreground">
+                      ({tokenPriceFormatter(groupData.pool.token.info.oraclePrice.priceRealtime.price.toNumber())})
+                    </span>
                   )}
-                  )
-                </span>
+                </>
               ) : (
                 groupData.pool.token.tokenData.priceChange24hr && (
                   <span

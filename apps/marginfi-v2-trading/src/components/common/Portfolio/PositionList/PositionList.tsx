@@ -42,7 +42,7 @@ export const PositionList = ({ activeGroupPk }: { activeGroupPk: PublicKey }) =>
             <TableHead className="w-[14%]">Value</TableHead>
             <TableHead className="w-[14%]">Leverage</TableHead>
             <TableHead className="w-[14%]">Size</TableHead>
-            <TableHead className="w-[14%]">Price</TableHead>
+            <TableHead className="w-[14%]">Price (USD)</TableHead>
             <TableHead className="w-[14%]">Liquidation price</TableHead>
             <TableHead className="w-[14%]"></TableHead>
           </TableRow>
