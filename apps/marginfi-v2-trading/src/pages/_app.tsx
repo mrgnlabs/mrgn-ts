@@ -16,7 +16,6 @@ import { Desktop, Mobile, init as initAnalytics } from "@mrgnlabs/mrgn-utils";
 import { AuthDialog } from "@mrgnlabs/mrgn-ui";
 
 import config from "~/config";
-import { useTradeStore } from "~/store";
 import { TradePovider } from "~/context";
 import { WALLET_ADAPTERS } from "~/config/wallets";
 import { BANK_METADATA_MAP } from "~/config/trade";
@@ -38,7 +37,6 @@ type MrgnAppProps = { path: string; bank: BankMetadataRaw | null };
 
 export default function MrgnApp({ Component, pageProps, path, bank }: AppProps & MrgnAppProps) {
   const { query, isReady } = useRouter();
-
   const [ready, setReady] = React.useState(false);
 
   React.useEffect(() => {

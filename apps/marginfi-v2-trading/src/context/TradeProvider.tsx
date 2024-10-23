@@ -5,7 +5,7 @@ import { identify } from "@mrgnlabs/mrgn-utils";
 
 import { useTradeStore } from "~/store";
 import { useConnection } from "~/hooks/use-connection";
-import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
+import { useWallet } from "~/components/wallet-v2";
 
 // @ts-ignore - Safe because context hook checks for null
 const TradeContext = React.createContext<>();
@@ -17,9 +17,10 @@ export const TradePovider: React.FC<{
   const debounceId = React.useRef<NodeJS.Timeout | null>(null);
   const { wallet, isOverride, connected } = useWallet();
   const { connection } = useConnection();
-  const [fetchTradeState, setIsRefreshingStore] = useTradeStore((state) => [
+  const [fetchTradeState, setIsRefreshingStore, resetUserData] = useTradeStore((state) => [
     state.fetchTradeState,
     state.setIsRefreshingStore,
+    state.resetUserData,
   ]);
   const [isLoggedIn, setIsLoggedIn] = React.useState(false);
 
@@ -93,6 +94,12 @@ export const TradePovider: React.FC<{
   }, [wallet, isOverride]); // eslint-disable-line react-hooks/exhaustive-deps
   // ^ crucial to omit both `connection` and `fetchMrgnlendState` from the dependency array
   // TODO: fix...
+
+  React.useEffect(() => {
+    if (!connected && resetUserData) {
+      resetUserData();
+    }
+  }, [connected, resetUserData]);
 
   return <TradeContext.Provider value={{}}>{children}</TradeContext.Provider>;
 };

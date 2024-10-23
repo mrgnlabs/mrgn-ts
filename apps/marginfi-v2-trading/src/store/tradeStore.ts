@@ -148,6 +148,7 @@ type TradeStoreState = {
   resetSearchResults: () => void;
   setCurrentPage: (page: number) => void;
   setSortBy: (sortBy: TradePoolFilterStates) => void;
+  resetUserData: () => void;
 };
 
 const { programId } = getConfig();
@@ -448,6 +449,48 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
         groupMap,
       };
     });
+  },
+
+  resetUserData: () => {
+    const groups = [...get().groupMap.values()];
+    const updatedGroups = groups.map((group) => ({
+      ...group,
+      pool: {
+        ...group.pool,
+        quoteTokens: group.pool.quoteTokens.map((quoteToken) => ({
+          ...quoteToken,
+          userInfo: {
+            tokenAccount: {
+              created: false,
+              mint: quoteToken.info.state.mint,
+              balance: 0,
+            },
+            maxDeposit: 0,
+            maxRepay: 0,
+            maxWithdraw: 0,
+            maxBorrow: 0,
+          },
+        })),
+        token: {
+          ...group.pool.token,
+          userInfo: {
+            tokenAccount: {
+              created: false,
+              mint: group.pool.token.info.state.mint,
+              balance: 0,
+            },
+            maxDeposit: 0,
+            maxRepay: 0,
+            maxWithdraw: 0,
+            maxBorrow: 0,
+          },
+        },
+      },
+    }));
+
+    // update groupMap stored on state with the updated group data above
+    const groupMap = new Map(updatedGroups.map((group) => [group.client.group.address.toBase58(), group]));
+    set({ groupMap, portfolio: null, nativeSolBalance: 0, tokenAccountMap: null, wallet: null });
   },
 });
 

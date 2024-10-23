@@ -12,7 +12,6 @@ import { collectRewardsBatch, capture, cn } from "@mrgnlabs/mrgn-utils";
 import { Wallet } from "@mrgnlabs/mrgn-ui";
 
 import { useMrgnlendStore, useUiStore, useUserProfileStore } from "~/store";
-import { useLipClient } from "~/context";
 import { useFirebaseAccount } from "~/hooks/useFirebaseAccount";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { useConnection } from "~/hooks/use-connection";
@@ -29,17 +28,14 @@ export const Navbar: FC = () => {
 
   const { connection } = useConnection();
   const isMobile = useIsMobile();
-  const { wallet, walletAddress } = useWallet();
+  const { wallet } = useWallet();
   const router = useRouter();
-  const { lipClient } = useLipClient();
   const [
     initialized,
     mfiClient,
     marginfiAccounts,
     selectedAccount,
     extendedBankInfos,
-    lendUserDataFetched,
-    resetLendUserData,
     nativeSolBalance,
     accountSummary,
     fetchMrgnlendState,
@@ -49,8 +45,6 @@ export const Navbar: FC = () => {
     state.marginfiAccounts,
     state.selectedAccount,
     state.extendedBankInfos,
-    state.userDataFetched,
-    state.resetUserData,
     state.nativeSolBalance,
     state.accountSummary,
     state.fetchMrgnlendState,
@@ -61,12 +55,6 @@ export const Navbar: FC = () => {
   const [userPointsData] = useUserProfileStore((state) => [state.userPointsData]);
 
   // const [lipAccount, setLipAccount] = useState<LipAccount | null>(null);
-
-  useEffect(() => {
-    if (!walletAddress && lendUserDataFetched) {
-      resetLendUserData();
-    }
-  }, [walletAddress, lendUserDataFetched, resetLendUserData]);
 
   const bankAddressesWithEmissions: PublicKey[] = useMemo(() => {
     if (!selectedAccount) return [];
