@@ -81,7 +81,7 @@ const tokenPriceFormatter = (price: number, style: "currency" | "decimal" = "cur
 
   const { minFractionDigits, maxFractionDigits } =
     reformatNum > 1
-      ? { minFractionDigits: 0, maxFractionDigits: 2 }
+      ? { minFractionDigits: 2, maxFractionDigits: 2 }
       : reformatNum > 0.000001
       ? { minFractionDigits: 2, maxFractionDigits: 7 }
       : { minFractionDigits: 7, maxFractionDigits: 10 };
