@@ -80,7 +80,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // restrict host to app domain if not swb stage link
     let host = IS_SWB_STAGE
-      ? "http://localhost:3006"
+      ? process.env.SWITCHBOARD_STAGE_URL
       : extractHost(req.headers.origin) || extractHost(req.headers.referer);
     if (!host) {
       return res.status(400).json({ error: "Invalid input: expected a valid host." });
