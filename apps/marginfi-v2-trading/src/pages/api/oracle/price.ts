@@ -23,7 +23,8 @@ import BigNumber from "bignumber.js";
 import { NextApiRequest, NextApiResponse } from "next";
 import config from "~/config/marginfi";
 
-const SWITCHBOARD_CROSSSBAR_API = "https://crossbar.switchboard.xyz";
+const SWITCHBOARD_CROSSSBAR_API = process.env.SWITCHBOARD_CROSSSBAR_API || "https://crossbar.switchboard.xyz";
+const IS_SWB_STAGE = SWITCHBOARD_CROSSSBAR_API === "https://staging.crossbar.switchboard.xyz";
 
 interface OracleData {
   oracleKey: string;
@@ -77,10 +78,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       data: Bank.decodeBankRaw(account.data, program.idl),
     }));
 
-    const host = extractHost(req.headers.origin) || extractHost(req.headers.referer);
+    // restrict host to app domain if not swb stage link
+    let host = IS_SWB_STAGE
+      ? "http://localhost:3006"
+      : extractHost(req.headers.origin) || extractHost(req.headers.referer);
     if (!host) {
       return res.status(400).json({ error: "Invalid input: expected a valid host." });
     }
+
     const feedIdMapRaw: Record<string, string> = await fetch(
       `${host}/api/oracle/pythFeedMap?groupPk=${banksMap[0].data.group.toBase58()}`
     ).then((response) => response.json());
