@@ -20,6 +20,22 @@ type PoolListItemProps = {
 };
 
 export const PoolListItem = ({ groupData, last }: PoolListItemProps) => {
+  const isLstQuote = React.useMemo(() => {
+    return groupData.pool.quoteTokens[0].meta.tokenSymbol === "LST";
+  }, [groupData]);
+
+  const tokenPrice = React.useMemo(() => {
+    if (isLstQuote) {
+      const lstPrice = groupData.pool.quoteTokens[0].info.oraclePrice.priceRealtime.price.toNumber();
+      return `${tokenPriceFormatter(
+        groupData.pool.token.info.oraclePrice.priceRealtime.price.toNumber() / lstPrice,
+        "decimal"
+      )} ${groupData.pool.quoteTokens[0].meta.tokenSymbol}`;
+    }
+
+    return tokenPriceFormatter(groupData.pool.token.info.oraclePrice.priceRealtime.price.toNumber());
+  }, [isLstQuote, groupData]);
+
   return (
     <div className={cn("grid grid-cols-7 py-2 w-full items-center", !last && "border-b pb-3 mb-2")}>
       <div className="flex items-center gap-2">
@@ -34,16 +50,27 @@ export const PoolListItem = ({ groupData, last }: PoolListItemProps) => {
       </div>
       {groupData.pool.token.tokenData && (
         <>
-          <div>
-            {tokenPriceFormatter(groupData.pool.token.info.oraclePrice.priceRealtime.price.toNumber())}{" "}
+          <div className="flex items-center gap-2">
+            <div className="flex flex-col">
+              {tokenPrice}
+              {isLstQuote && (
+                <span className="text-xs text-muted-foreground block">
+                  {tokenPriceFormatter(groupData.pool.token.info.oraclePrice.priceRealtime.price.toNumber())} USD
+                </span>
+              )}
+            </div>
             <span
               className={cn(
-                "text-xs ml-2",
+                "text-xs",
                 groupData.pool.token.tokenData.priceChange24hr > 0 ? "text-mrgn-success" : "text-mrgn-error"
               )}
             >
-              {groupData.pool.token.tokenData.priceChange24hr > 0 && "+"}
-              {percentFormatter.format(groupData.pool.token.tokenData.priceChange24hr / 100)}
+              {!isLstQuote && (
+                <>
+                  {groupData.pool.token.tokenData.priceChange24hr > 0 && "+"}
+                  {percentFormatter.format(groupData.pool.token.tokenData.priceChange24hr / 100)}
+                </>
+              )}
             </span>
           </div>
           <div>
