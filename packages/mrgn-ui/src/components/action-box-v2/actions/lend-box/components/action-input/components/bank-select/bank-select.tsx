@@ -14,7 +14,7 @@ type BankSelectProps = {
   lendMode: ActionType;
   connected: boolean;
   isSelectable?: boolean;
-
+  showTokenSelectionGroups?: boolean;
   setSelectedBank: (selectedBank: ExtendedBankInfo | null) => void;
 };
 
@@ -25,7 +25,7 @@ export const BankSelect = ({
   lendMode,
   connected,
   isSelectable = true,
-
+  showTokenSelectionGroups,
   setSelectedBank,
 }: BankSelectProps) => {
   // idea check list if banks[] == 1 make it unselectable
@@ -69,6 +69,7 @@ export const BankSelect = ({
               banks={banks}
               nativeSolBalance={nativeSolBalance}
               connected={connected}
+              showTokenSelectionGroups={showTokenSelectionGroups}
             />
           }
         />
