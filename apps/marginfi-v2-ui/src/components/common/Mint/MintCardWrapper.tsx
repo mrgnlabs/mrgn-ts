@@ -109,7 +109,7 @@ export const MintCardWrapper: React.FC<MintCardWrapperProps> = ({ mintCard, ...p
           </div>
         )}
 
-        {transformedActionGate?.find((value) => value === ActionType.MintYBX) && (
+        {transformedActionGate?.find((value) => value === ActionType.MintYBX && mintCard.title === "YBX") && (
           <div className="flex items-center gap-2">
             <Button
               variant="secondary"
