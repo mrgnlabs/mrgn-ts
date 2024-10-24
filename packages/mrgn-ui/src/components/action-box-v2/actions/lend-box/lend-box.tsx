@@ -25,6 +25,7 @@ import { checkActionAvailable, handleExecuteCloseBalance, handleExecuteLendingAc
 import { Collateral, ActionInput, Preview } from "./components";
 import { useLendSimulation } from "./hooks";
 import { useActionBoxStore } from "../../store";
+import { HidePoolStats } from "../../contexts/actionbox/actionbox.context";
 
 // error handling
 export type LendBoxProps = {
@@ -43,7 +44,7 @@ export type LendBoxProps = {
   showAvailableCollateral?: boolean;
   showTokenSelection?: boolean;
   showTokenSelectionGroups?: boolean;
-  hidePoolStats?: Array<"amount" | "health" | "size" | "type" | "oracle" | "liquidation">;
+  hidePoolStats?: HidePoolStats;
 
   onComplete?: (previousTxn: PreviousTxn) => void;
   captureEvent?: (event: string, properties?: Record<string, any>) => void;

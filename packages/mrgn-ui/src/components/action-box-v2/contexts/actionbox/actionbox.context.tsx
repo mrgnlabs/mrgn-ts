@@ -9,7 +9,7 @@ import { WalletContextStateOverride } from "~/components/wallet-v2/hooks/use-wal
 import { useActionBoxStore } from "../../store";
 import { ActionComplete } from "~/components/action-complete";
 
-export type HidePoolState = Array<"amount" | "health" | "size" | "type" | "oracle" | "liquidation">;
+export type HidePoolStats = Array<"amount" | "health" | "size" | "type" | "oracle" | "liquidation">;
 
 type ActionBoxContextType = {
   banks: ExtendedBankInfo[];
@@ -20,7 +20,7 @@ type ActionBoxContextType = {
   showActionComplete?: boolean;
   walletContextState?: WalletContextStateOverride | WalletContextState;
   accountSummaryArg?: AccountSummary;
-  hidePoolStats?: HidePoolState;
+  hidePoolStats?: HidePoolStats;
 };
 
 const ActionBoxContext = React.createContext<ActionBoxContextType | null>(null);
