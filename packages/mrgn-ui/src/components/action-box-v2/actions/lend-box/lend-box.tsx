@@ -369,7 +369,7 @@ export const LendBox = ({
         />
       </div>
 
-      {/* <ActionSettingsButton setIsSettingsActive={setIsSettingsDialogOpen} /> */}
+      <ActionSettingsButton setIsSettingsActive={setIsSettingsDialogOpen} />
 
       <Preview
         actionSummary={actionSummary}
