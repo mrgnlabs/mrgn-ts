@@ -1,8 +1,8 @@
-import React, { useEffect } from "react";
+import React from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 
-import { IconInfoCircle } from "@tabler/icons-react";
+import { VersionedTransaction } from "@solana/web3.js";
 
 import { numeralFormatter } from "@mrgnlabs/mrgn-common";
 import { usdFormatter, usdFormatterDyn } from "@mrgnlabs/mrgn-common";
@@ -11,27 +11,68 @@ import { LendingModes } from "@mrgnlabs/mrgn-utils";
 
 import { useMrgnlendStore, useUiStore, useUserProfileStore } from "~/store";
 
-import { PortfolioUserStats, PortfolioAssetCard, PortfolioAssetCardSkeleton } from "~/components/common/Portfolio";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { WalletButton } from "~/components/wallet-v2";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { Loader } from "~/components/ui/loader";
+import { RewardsDialog } from "./components/rewards";
+import { ActionComplete } from "~/components/common/ActionComplete";
+import { IconInfoCircle, IconLoader } from "~/components/ui/icons";
+
+import { PortfolioAssetCard, PortfolioAssetCardSkeleton, PortfolioUserStats } from "./components";
+import { rewardsType } from "./types";
+import { useRewardSimulation } from "./hooks";
+import { executeCollectTxn } from "./utils";
 
 export const LendingPortfolio = () => {
   const router = useRouter();
   const { connected } = useWallet();
   const [walletConnectionDelay, setWalletConnectionDelay] = React.useState(false);
 
-  const [isStoreInitialized, sortedBanks, accountSummary, isRefreshingStore] = useMrgnlendStore((state) => [
+  const [
+    isStoreInitialized,
+    sortedBanks,
+    accountSummary,
+    isRefreshingStore,
+    marginfiClient,
+    selectedAccount,
+    extendedBankInfos,
+  ] = useMrgnlendStore((state) => [
     state.initialized,
     state.extendedBankInfos,
     state.accountSummary,
     state.isRefreshingStore,
+    state.marginfiClient,
+    state.selectedAccount,
+    state.extendedBankInfos,
   ]);
-
   const [setLendingMode] = useUiStore((state) => [state.setLendingMode]);
-
   const [userPointsData] = useUserProfileStore((state) => [state.userPointsData]);
+
+  // Rewards
+  const [rewards, setRewards] = React.useState<rewardsType | null>(null);
+  const [rewardsDialogOpen, setRewardsDialogOpen] = React.useState(false);
+  const [actionTxn, setActionTxn] = React.useState<VersionedTransaction | null>(null);
+  const [rewardsLoading, setRewardsLoading] = React.useState(false);
+  const { handleSimulation } = useRewardSimulation({
+    simulationResult: rewards,
+    actionTxn,
+    marginfiClient,
+    selectedAccount,
+    extendedBankInfos,
+    setSimulationResult: setRewards,
+    setActionTxn,
+    setErrorMessage: () => {},
+  });
+
+  React.useEffect(() => {
+    if (actionTxn) handleSimulation();
+  }, [actionTxn]);
+
+  const handleCollectExectuion = React.useCallback(async () => {
+    if (!marginfiClient || !actionTxn) return;
+    const signature = await executeCollectTxn(marginfiClient, actionTxn, setRewardsLoading);
+  }, [marginfiClient, actionTxn]);
 
   const lendingBanks = React.useMemo(
     () =>
@@ -110,8 +151,10 @@ export const LendingPortfolio = () => {
     [isStoreInitialized, walletConnectionDelay, isRefreshingStore, accountSummary.balance, lendingBanks, borrowingBanks]
   );
 
+  const [previousTxn] = useUiStore((state) => [state.previousTxn]);
+
   // Introduced this useEffect to show the loader for 2 seconds after wallet connection. This is to avoid the flickering of the loader, since the isRefreshingStore isnt set immediately after the wallet connection.
-  useEffect(() => {
+  React.useEffect(() => {
     if (connected) {
       setWalletConnectionDelay(true);
       const timer = setTimeout(() => {
@@ -147,7 +190,50 @@ export const LendingPortfolio = () => {
 
   return (
     <div className="p-4 md:p-6 rounded-xl space-y-3 w-full mb-10  bg-background-gray-dark">
-      <h2 className="font-medium text-xl">Lend/borrow</h2>
+      <div className="flex justify-between w-full">
+        <h2 className="font-medium text-xl">Lend/borrow</h2>
+
+        <div className="flex text-lg items-center gap-1.5 text-sm">
+          {rewards ? (
+            rewards.totalReward > 0 ? (
+              <button
+                className="cursor-pointer hover:text-[#AAA] underline"
+                onClick={() => {
+                  setRewardsDialogOpen(true);
+                }}
+              >
+                Collect rewards
+              </button>
+            ) : (
+              <button disabled className="cursor-not-allowed underline">
+                No outstanding rewards
+              </button>
+            )
+          ) : (
+            <span className="flex gap-1 items-center">
+              Calculating rewards <IconLoader size={16} />
+            </span>
+          )}{" "}
+          {rewards && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <IconInfoCircle size={16} />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <span className="">
+                    {rewards && rewards.totalReward > 0
+                      ? `You are earning rewards on the following banks: ${rewards.rewards
+                          .map((r) => r.bank)
+                          .join(", ")}`
+                      : "No outstanding rewards. you can earn rewards on the following banks: PYUSD, BSOL and UXD"}
+                  </span>{" "}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+        </div>
+      </div>
       <div className="text-muted-foreground">
         <dl className="flex justify-between items-center gap-2">
           <dt className="flex items-center gap-1.5 text-sm">
@@ -262,6 +348,19 @@ export const LendingPortfolio = () => {
           )}
         </div>
       </div>
+      <RewardsDialog
+        availableRewards={rewards}
+        onClose={() => {
+          setRewardsDialogOpen(false);
+        }}
+        open={rewardsDialogOpen}
+        onOpenChange={(open) => {
+          setRewardsDialogOpen(open);
+        }}
+        onCollect={handleCollectExectuion}
+        isLoading={rewardsLoading}
+      />
+      {previousTxn && <ActionComplete />}
     </div>
   );
 };
