@@ -529,7 +529,7 @@ export const TradingBox = ({ activeGroup, side = "long" }: TradingBoxProps) => {
             showActionComplete={false}
             hidePoolStats={["type"]}
           >
-            {tradeState === "long" && activeGroup?.pool.token.userInfo.tokenAccount.balance === 0 && (
+            {connected && tradeState === "long" && activeGroup?.pool.token.userInfo.tokenAccount.balance === 0 && (
               <div className="w-full flex space-x-2 py-2.5 px-3.5 rounded-lg gap-1 text-sm bg-accent text-alert-foreground">
                 <IconAlertTriangle className="shrink-0 translate-y-0.5" size={16} />
                 <div className="space-y-1">
@@ -547,7 +547,7 @@ export const TradingBox = ({ activeGroup, side = "long" }: TradingBoxProps) => {
                 </div>
               </div>
             )}
-            {tradeState === "short" && activeGroup?.pool.quoteTokens[0].userInfo.tokenAccount.balance === 0 && (
+            {connected && tradeState === "short" && activeGroup?.pool.quoteTokens[0].userInfo.tokenAccount.balance === 0 && (
               <div className="w-full flex space-x-2 py-2.5 px-3.5 rounded-lg gap-1 text-sm bg-accent text-alert-foreground">
                 <IconAlertTriangle className="shrink-0 translate-y-0.5" size={16} />
                 <div className="space-y-1">
