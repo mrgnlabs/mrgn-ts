@@ -4,7 +4,7 @@ import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { cn } from "@mrgnlabs/mrgn-utils";
 
 import { ActionStatItem } from "~/components/action-box-v2/components";
-import type { LendBoxProps } from "~/components/action-box-v2/actions/lend-box/lend-box";
+import type { HidePoolStats } from "~/components/action-box-v2";
 import {
   getAmountStat,
   getHealthStat,
@@ -15,14 +15,12 @@ import {
   ActionSummary,
 } from "~/components/action-box-v2/utils";
 
-type HidePoolState = LendBoxProps["hidePoolStats"];
-
 interface PreviewProps {
   selectedBank: ExtendedBankInfo | null;
   isLoading: boolean;
   lendMode: ActionType;
   actionSummary?: ActionSummary;
-  hidePoolStats?: HidePoolState;
+  hidePoolStats?: HidePoolStats;
 }
 
 export const Preview = ({ actionSummary, selectedBank, isLoading, lendMode, hidePoolStats }: PreviewProps) => {
@@ -70,7 +68,7 @@ function generateLendingStats(
   bank: ExtendedBankInfo,
   isLending: boolean,
   isLoading: boolean,
-  hidePoolStats?: HidePoolState
+  hidePoolStats?: HidePoolStats
 ) {
   const stats = [];
 
