@@ -538,7 +538,6 @@ export const TradingBox = ({ activeGroup, side = "long" }: TradingBoxProps) => {
                     <button
                       className="border-b border-alert-foreground hover:border-transparent"
                       onClick={() => {
-                        setWalletState(WalletState.SWAP);
                         setIsWalletOpen(true);
                       }}
                     >
@@ -557,7 +556,6 @@ export const TradingBox = ({ activeGroup, side = "long" }: TradingBoxProps) => {
                     <button
                       className="border-b border-alert-foreground hover:border-transparent"
                       onClick={() => {
-                        setWalletState(WalletState.SWAP);
                         setIsWalletOpen(true);
                       }}
                     >

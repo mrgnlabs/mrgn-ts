@@ -21,15 +21,16 @@ import {
   getRateData,
   getAssetWeightData,
   getUtilizationData,
+  useConnection,
 } from "@mrgnlabs/mrgn-utils";
 
 import { useTradeStore } from "~/store";
 import { ArenaBank, GroupData } from "~/store/tradeStore";
 import { getGroupPositionInfo } from "~/utils";
 
-import { ActionBoxDialog } from "~/components/common/ActionBox";
 import { Button } from "~/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
+import { ActionBox, ActionBoxProvider, useWallet } from "@mrgnlabs/mrgn-ui";
 
 type AdminPoolDetailCardProps = {
   group: GroupData;
@@ -141,6 +142,10 @@ const YieldItem = ({
       utilization,
     };
   }, [bank]);
+
+  const [nativeSolBalance, fetchTradeState] = useTradeStore((state) => [state.nativeSolBalance, state.fetchTradeState]);
+  const { wallet, connected } = useWallet();
+  const { connection } = useConnection();
 
   return (
     <div className={cn("items-center space-y-2 px-2 py-4", className)}>
@@ -329,36 +334,98 @@ const YieldItem = ({
           )}
         </div>
       )}
-      <div className="flex flex-col gap-2 md:flex-row">
-        {bank.isActive && bank.position.isLending && group.selectedAccount && (
-          <ActionBoxDialog activeGroupArg={group} requestedBank={bank} requestedAction={ActionType.Withdraw}>
-            <Button
-              className="w-full bg-background border text-foreground hover:bg-accent"
-              onClick={() => {
-                capture("yield_withdraw_btn_click", {
+      <ActionBoxProvider
+        banks={[bank]}
+        nativeSolBalance={nativeSolBalance}
+        marginfiClient={group.client}
+        selectedAccount={group.selectedAccount}
+        connected={connected}
+        accountSummaryArg={group.accountSummary}
+        showActionComplete={false}
+        hidePoolStats={["type"]}
+      >
+        <div className="flex flex-col gap-2 md:flex-row">
+          {bank.isActive && bank.position.isLending && group.selectedAccount && (
+            <ActionBox.Lend
+              isDialog={true}
+              useProvider={true}
+              lendProps={{
+                connected: connected,
+                requestedLendType: ActionType.Withdraw,
+                requestedBank: bank,
+                showAvailableCollateral: false,
+                captureEvent: () => {
+                  capture("yield_withdraw_btn_click", {
+                    group: group.client.group.address.toBase58(),
+                    bank: bank.meta.tokenSymbol,
+                  });
+                },
+                onComplete: () => {
+                  fetchTradeState({
+                    connection,
+                    wallet,
+                  });
+                },
+              }}
+              dialogProps={{
+                trigger: (
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      capture("position_add_btn_click", {
+                        group: group.client.group.address.toBase58(),
+                        bank: bank.meta.tokenSymbol,
+                      });
+                    }}
+                  >
+                    Withdraw ${bank.meta.tokenSymbol}
+                  </Button>
+                ),
+                title: `Withdraw ${bank.meta.tokenSymbol}`,
+              }}
+            />
+          )}
+          <ActionBox.Lend
+            isDialog={true}
+            useProvider={true}
+            lendProps={{
+              connected: connected,
+              requestedLendType: ActionType.Deposit,
+              requestedBank: bank,
+              showAvailableCollateral: false,
+              captureEvent: () => {
+                capture("position_add_btn_click", {
                   group: group.client.group.address.toBase58(),
                   bank: bank.meta.tokenSymbol,
                 });
-              }}
-            >
-              Withdraw {bank.meta.tokenSymbol}
-            </Button>
-          </ActionBoxDialog>
-        )}
-        <ActionBoxDialog activeGroupArg={group} requestedBank={bank} requestedAction={ActionType.Deposit}>
-          <Button
-            className="w-full bg-background border text-foreground hover:bg-accent"
-            onClick={() => {
-              capture("yield_supply_btn_click", {
-                group: group.client.group.address.toBase58(),
-                bank: bank.meta.tokenSymbol,
-              });
+              },
+              onComplete: () => {
+                fetchTradeState({
+                  connection,
+                  wallet,
+                });
+              },
             }}
-          >
-            Supply {bank.meta.tokenSymbol}
-          </Button>
-        </ActionBoxDialog>
-      </div>
+            dialogProps={{
+              trigger: (
+                <Button
+                  variant="outline"
+                  className="gap-1 min-w-16"
+                  onClick={() => {
+                    capture("position_add_btn_click", {
+                      group: group.client.group.address.toBase58(),
+                      bank: bank.meta.tokenSymbol,
+                    });
+                  }}
+                >
+                  Supply {bank.meta.tokenSymbol}
+                </Button>
+              ),
+              title: `Supply ${bank.meta.tokenSymbol}`,
+            }}
+          />
+        </div>
+      </ActionBoxProvider>
     </div>
   );
 };

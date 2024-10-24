@@ -111,98 +111,62 @@ export const PoolTradeHeader = ({ activeGroup }: { activeGroup: GroupData }) => 
               className="bg-background border rounded-full mb-2 lg:mb-0"
             />
 
-          <TokenCombobox
-            selected={activeGroup}
-            setSelected={(group) => {
-              router.push(`/trade/${group.client.group.address.toBase58()}`);
-            }}
-          >
-            <h1 className="text-lg font-medium mt-2 flex items-center gap-1 px-2 py-1 pl-3 rounded-md cursor-pointer transition-colors hover:bg-accent translate-x-1.5">
-              {activeGroup.pool.token.meta.tokenName} <IconChevronDown size={18} />
-            </h1>
-          </TokenCombobox>
-          <p className="text-sm text-muted-foreground mt-2 lg:mt-0">{activeGroup.pool.token.meta.tokenSymbol}</p>
-          <p className="text-sm text-muted-foreground">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger>
-                  <Link
-                    href={`https://solscan.io/token/${activeGroup.pool.token.info.state.mint.toBase58()}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-primary text-xs flex items-center gap-1"
-                  >
-                    {shortenAddress(activeGroup.pool.token.info.state.mint.toBase58())}
-                    <IconExternalLink size={12} />
-                  </Link>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>{activeGroup.pool.token.info.state.mint.toBase58()}</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </p>
-          <PoolShare activeGroup={activeGroup} />
-        </div>
-        <div className="w-full space-y-10">
-          {activeGroup.pool.token.tokenData && (
-            <div className="grid w-full max-w-md mx-auto gap-1 lg:gap-16 lg:max-w-none lg:grid-cols-3">
-              <div className="grid grid-cols-2 lg:block">
-                <p className="text-sm text-muted-foreground">Price</p>
-                <p className="text-sm text-right lg:text-left lg:text-2xl">
-                  {tokenPrice}
-                  {isLstQuote ? (
-                    <span className="text-sm text-muted-foreground block">
-                      {tokenPriceFormatter(activeGroup.pool.token.info.oraclePrice.priceRealtime.price.toNumber())} USD
-                    </span>
-                  ) : (
-                    <span
-                      className={cn(
-                        "text-sm ml-1",
-                        activeGroup.pool.token.tokenData.priceChange24hr > 0 ? "text-mrgn-success" : "text-mrgn-error"
-                      )}
+            <TokenCombobox
+              selected={activeGroup}
+              setSelected={(group) => {
+                router.push(`/trade/${group.client.group.address.toBase58()}`);
+              }}
+            >
+              <h1 className="text-lg font-medium mt-2 flex items-center gap-1 px-2 py-1 pl-3 rounded-md cursor-pointer transition-colors hover:bg-accent translate-x-1.5">
+                {activeGroup.pool.token.meta.tokenName} <IconChevronDown size={18} />
+              </h1>
+            </TokenCombobox>
+            <p className="text-sm text-muted-foreground mt-2 lg:mt-0">{activeGroup.pool.token.meta.tokenSymbol}</p>
+            <p className="text-sm text-muted-foreground">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Link
+                      href={`https://solscan.io/token/${activeGroup.pool.token.info.state.mint.toBase58()}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-primary text-xs flex items-center gap-1"
                     >
-                      {activeGroup.pool.token.tokenData.priceChange24hr > 0 && "+"}
-                      {percentFormatter.format(activeGroup.pool.token.tokenData.priceChange24hr / 100)}
-                    </span>
-                  )}
-                </p>
-              </div>
-              <div className="grid grid-cols-2 lg:block">
-                <p className="text-sm text-muted-foreground">24hr Volume</p>
-                <p className="text-sm text-right lg:text-left lg:text-2xl">
-                  ${numeralFormatter(activeGroup.pool.token.tokenData.volume24hr)}
-                  <span
-                    className={cn(
-                      "text-sm ml-1",
-                      activeGroup.pool.token.tokenData.volumeChange24hr > 0 ? "text-mrgn-success" : "text-mrgn-error"
-                    )}
-                  >
-                    {activeGroup.pool.token.tokenData.volumeChange24hr > 0 && "+"}
-                    {percentFormatter.format(activeGroup.pool.token.tokenData.volumeChange24hr / 100)}
-                  </span>
-                </p>
-              </div>
-              <div className="grid grid-cols-2 lg:block">
-                <p className="text-sm text-muted-foreground">Market cap</p>
-                <p className="text-sm text-right lg:text-left lg:text-2xl">
-                  ${numeralFormatter(activeGroup.pool.token.tokenData.marketCap)}
-                </p>
-              </div>
-              {activeGroup.pool.poolData && (
-                <div className="grid grid-cols-2 lg:hidden">
-                  <p className="text-sm text-muted-foreground">Lending pool liquidity</p>
+                      {shortenAddress(activeGroup.pool.token.info.state.mint.toBase58())}
+                      <IconExternalLink size={12} />
+                    </Link>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{activeGroup.pool.token.info.state.mint.toBase58()}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </p>
+            <PoolShare activeGroup={activeGroup} />
+          </div>
+          <div className="w-full space-y-10">
+            {activeGroup.pool.token.tokenData && (
+              <div className="grid w-full max-w-md mx-auto gap-1 lg:gap-16 lg:max-w-none lg:grid-cols-3">
+                <div className="grid grid-cols-2 lg:block">
+                  <p className="text-sm text-muted-foreground">Price</p>
                   <p className="text-sm text-right lg:text-left lg:text-2xl">
-                    {tokenPriceFormatter(activeGroup.pool.token.info.oraclePrice.priceRealtime.price.toNumber())}
-                    <span
-                      className={cn(
-                        "text-sm ml-1",
-                        activeGroup.pool.token.tokenData.priceChange24hr > 0 ? "text-mrgn-success" : "text-mrgn-error"
-                      )}
-                    >
-                      {activeGroup.pool.token.tokenData.priceChange24hr > 0 && "+"}
-                      {percentFormatter.format(activeGroup.pool.token.tokenData.priceChange24hr / 100)}
-                    </span>
+                    {tokenPrice}
+                    {isLstQuote ? (
+                      <span className="text-sm text-muted-foreground block">
+                        {tokenPriceFormatter(activeGroup.pool.token.info.oraclePrice.priceRealtime.price.toNumber())}{" "}
+                        USD
+                      </span>
+                    ) : (
+                      <span
+                        className={cn(
+                          "text-sm ml-1",
+                          activeGroup.pool.token.tokenData.priceChange24hr > 0 ? "text-mrgn-success" : "text-mrgn-error"
+                        )}
+                      >
+                        {activeGroup.pool.token.tokenData.priceChange24hr > 0 && "+"}
+                        {percentFormatter.format(activeGroup.pool.token.tokenData.priceChange24hr / 100)}
+                      </span>
+                    )}
                   </p>
                 </div>
                 <div className="grid grid-cols-2 lg:block">
