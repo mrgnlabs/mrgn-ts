@@ -1,12 +1,13 @@
 import { create, StateCreator } from "zustand";
 import { persist } from "zustand/middleware";
-import { PreviousTxn } from "@mrgnlabs/mrgn-utils";
+import { PreviousTxn, DEFAULT_BUNDLE_TIP_LAMPORTS } from "@mrgnlabs/mrgn-utils";
 
 interface ActionBoxState {
   // State
   isSettingsDialogOpen: boolean;
   priorityFee: number;
   slippageBps: number;
+  bundleTip: number;
   platformFeeBps: number;
   isActionComplete: boolean;
   previousTxn: PreviousTxn | null;
@@ -18,6 +19,7 @@ interface ActionBoxState {
   setPriorityFee: (priorityFee: number) => void;
   setSlippageBps: (slippageBps: number) => void;
   setPlatformFeeBps: (platformFeeBps: number) => void;
+  setBundleTip: (bundleTip: number) => void;
 }
 
 function createActionBoxStore() {
@@ -42,6 +44,7 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
   platformFeeBps: 30,
   isActionComplete: false,
   previousTxn: null,
+  bundleTip: DEFAULT_BUNDLE_TIP_LAMPORTS, // 100_000 lamports = 0.0001 SOL
 
   // Actions
   setIsSettingsDialogOpen: (isOpen: boolean) => set({ isSettingsDialogOpen: isOpen }),
@@ -50,6 +53,7 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
   setIsActionComplete: (isActionSuccess: boolean) => set({ isActionComplete: isActionSuccess }),
   setPreviousTxn: (previousTxn: PreviousTxn) => set({ previousTxn: previousTxn }),
   setPlatformFeeBps: (platformFeeBps: number) => set({ platformFeeBps: platformFeeBps }),
+  setBundleTip: (bundleTip: number) => set({ bundleTip: bundleTip }),
 });
 
 export { createActionBoxStore };
