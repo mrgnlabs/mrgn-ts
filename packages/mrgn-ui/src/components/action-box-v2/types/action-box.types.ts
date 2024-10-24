@@ -21,7 +21,13 @@ type ActionBoxComponentProps = {
 interface RequiredLendBoxProps
   extends Pick<
     LendBoxProps,
-    "onComplete" | "captureEvent" | "requestedBank" | "requestedLendType" | "walletContextState" | "connected" | "showTokenSelection"
+    | "onComplete"
+    | "captureEvent"
+    | "requestedBank"
+    | "requestedLendType"
+    | "walletContextState"
+    | "connected"
+    | "showTokenSelection"
   > {}
 
 // all props except for requestedLendType
@@ -39,6 +45,7 @@ interface RepayBoxProps
     | "onComplete"
     | "captureEvent"
     | "showAvailableCollateral"
+    | "hidePoolStats"
   > {}
 
 interface RequiredRepayBoxProps

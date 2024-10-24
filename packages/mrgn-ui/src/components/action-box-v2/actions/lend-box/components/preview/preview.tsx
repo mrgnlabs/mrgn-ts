@@ -4,6 +4,7 @@ import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { cn } from "@mrgnlabs/mrgn-utils";
 
 import { ActionStatItem } from "~/components/action-box-v2/components";
+import type { LendBoxProps } from "~/components/action-box-v2/actions/lend-box/lend-box";
 import {
   getAmountStat,
   getHealthStat,
@@ -14,14 +15,17 @@ import {
   ActionSummary,
 } from "~/components/action-box-v2/utils";
 
+type HidePoolState = LendBoxProps["hidePoolStats"];
+
 interface PreviewProps {
   selectedBank: ExtendedBankInfo | null;
   isLoading: boolean;
   lendMode: ActionType;
   actionSummary?: ActionSummary;
+  hidePoolStats?: HidePoolState;
 }
 
-export const Preview = ({ actionSummary, selectedBank, isLoading, lendMode }: PreviewProps) => {
+export const Preview = ({ actionSummary, selectedBank, isLoading, lendMode, hidePoolStats }: PreviewProps) => {
   const isLending = React.useMemo(
     () => lendMode === ActionType.Deposit || lendMode === ActionType.Withdraw,
     [lendMode]
@@ -29,8 +33,10 @@ export const Preview = ({ actionSummary, selectedBank, isLoading, lendMode }: Pr
 
   const stats = React.useMemo(
     () =>
-      actionSummary && selectedBank ? generateLendingStats(actionSummary, selectedBank, isLending, isLoading) : null,
-    [actionSummary, selectedBank, isLending, isLoading]
+      actionSummary && selectedBank
+        ? generateLendingStats(actionSummary, selectedBank, isLending, isLoading, hidePoolStats)
+        : null,
+    [actionSummary, selectedBank, isLending, isLoading, hidePoolStats]
   );
 
   return (
@@ -59,25 +65,44 @@ export const Preview = ({ actionSummary, selectedBank, isLoading, lendMode }: Pr
   );
 };
 
-function generateLendingStats(summary: ActionSummary, bank: ExtendedBankInfo, isLending: boolean, isLoading: boolean) {
+function generateLendingStats(
+  summary: ActionSummary,
+  bank: ExtendedBankInfo,
+  isLending: boolean,
+  isLoading: boolean,
+  hidePoolStats?: HidePoolState
+) {
   const stats = [];
 
-  stats.push(
-    getAmountStat(
-      summary.actionPreview.positionAmount,
-      bank.meta.tokenSymbol,
-      summary.simulationPreview?.positionAmount
-    )
-  );
+  if (!hidePoolStats?.includes("amount")) {
+    stats.push(
+      getAmountStat(
+        summary.actionPreview.positionAmount,
+        bank.meta.tokenSymbol,
+        summary.simulationPreview?.positionAmount
+      )
+    );
+  }
 
-  stats.push(getHealthStat(summary.actionPreview.health, false, summary.simulationPreview?.health));
+  if (!hidePoolStats?.includes("health")) {
+    stats.push(getHealthStat(summary.actionPreview.health, false, summary.simulationPreview?.health));
+  }
 
-  if (summary.simulationPreview?.liquidationPrice && bank.isActive)
+  if (summary.simulationPreview?.liquidationPrice && bank.isActive && !hidePoolStats?.includes("liquidation")) {
     stats.push(getLiquidationStat(bank, false, summary.simulationPreview?.liquidationPrice));
+  }
 
-  if (summary.actionPreview.bankCap) stats.push(getPoolSizeStat(summary.actionPreview.bankCap, bank, isLending));
-  stats.push(getBankTypeStat(bank));
-  stats.push(getOracleStat(bank));
+  if (summary.actionPreview.bankCap && !hidePoolStats?.includes("size")) {
+    stats.push(getPoolSizeStat(summary.actionPreview.bankCap, bank, isLending));
+  }
+
+  if (!hidePoolStats?.includes("type")) {
+    stats.push(getBankTypeStat(bank));
+  }
+
+  if (!hidePoolStats?.includes("oracle")) {
+    stats.push(getOracleStat(bank));
+  }
 
   return stats;
 }

@@ -172,6 +172,7 @@ const YieldItem = ({
         connected={connected}
         accountSummaryArg={group.accountSummary}
         showActionComplete={false}
+        hidePoolStats={["type"]}
       >
         <div className="flex flex-col gap-2 md:flex-row">
           {bank.isActive && !isLeveraged && bank.position.isLending && group.selectedAccount && (
