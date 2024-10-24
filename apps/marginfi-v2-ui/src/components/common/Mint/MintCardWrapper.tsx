@@ -1,7 +1,7 @@
 import React from "react";
 
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
-import { getBlockedActions } from "@mrgnlabs/mrgn-utils";
+import { capture, getBlockedActions } from "@mrgnlabs/mrgn-utils";
 import { IconCheck, IconBell } from "@tabler/icons-react";
 
 import { MintCardProps } from "~/utils";
