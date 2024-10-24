@@ -98,6 +98,7 @@ export const PoolTradeHeader = ({ activeGroup }: { activeGroup: GroupData }) => 
       connected={connected}
       accountSummaryArg={activeGroup.accountSummary}
       showActionComplete={false}
+      hidePoolStats={["type"]}
     >
       <div className="px-4 pb-10 lg:px-8 lg:py-10 lg:bg-background lg:border lg:rounded-xl">
         <div className="flex flex-col lg:flex-row items-center justify-between gap-8">

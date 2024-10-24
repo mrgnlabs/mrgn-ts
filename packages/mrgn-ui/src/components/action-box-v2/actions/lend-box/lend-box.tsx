@@ -43,6 +43,7 @@ export type LendBoxProps = {
   showAvailableCollateral?: boolean;
   showTokenSelection?: boolean;
   showTokenSelectionGroups?: boolean;
+  hidePoolStats?: Array<"amount" | "health" | "size" | "type" | "oracle" | "liquidation">;
 
   onComplete?: (previousTxn: PreviousTxn) => void;
   captureEvent?: (event: string, properties?: Record<string, any>) => void;
@@ -65,6 +66,7 @@ export const LendBox = ({
   requestedBank,
   onComplete,
   captureEvent,
+  hidePoolStats,
 }: LendBoxProps) => {
   const [
     amountRaw,
@@ -368,7 +370,13 @@ export const LendBox = ({
 
       {/* <ActionSettingsButton setIsSettingsActive={setIsSettingsDialogOpen} /> */}
 
-      <Preview actionSummary={actionSummary} selectedBank={selectedBank} isLoading={isLoading} lendMode={lendMode} />
+      <Preview
+        actionSummary={actionSummary}
+        selectedBank={selectedBank}
+        isLoading={isLoading}
+        lendMode={lendMode}
+        hidePoolStats={hidePoolStats}
+      />
 
       <LSTDialog
         variant={selectedBank?.meta.tokenSymbol as LSTDialogVariants}

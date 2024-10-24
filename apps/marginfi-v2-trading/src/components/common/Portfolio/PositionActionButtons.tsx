@@ -222,6 +222,7 @@ export const PositionActionButtons = ({
       connected={connected}
       accountSummaryArg={activeGroup.accountSummary}
       showActionComplete={false}
+      hidePoolStats={["type"]}
     >
       <div className="flex gap-3 w-full">
         <ActionBox.Lend

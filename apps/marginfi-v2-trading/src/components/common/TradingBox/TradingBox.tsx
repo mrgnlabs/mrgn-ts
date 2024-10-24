@@ -527,6 +527,7 @@ export const TradingBox = ({ activeGroup, side = "long" }: TradingBoxProps) => {
             connected={connected}
             accountSummaryArg={activeGroup.accountSummary}
             showActionComplete={false}
+            hidePoolStats={["type"]}
           >
             {tradeState === "long" && activeGroup?.pool.token.userInfo.tokenAccount.balance === 0 && (
               <div className="w-full flex space-x-2 py-2.5 px-3.5 rounded-lg gap-1 text-sm bg-accent text-alert-foreground">

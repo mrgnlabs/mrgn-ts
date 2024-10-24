@@ -44,6 +44,7 @@ export const LpActionButtons = ({ size = "sm", marginfiAccount, activeGroup }: L
       connected={connected}
       accountSummaryArg={activeGroup.accountSummary}
       showActionComplete={false}
+      hidePoolStats={["type"]}
     >
       <div className={cn("flex gap-3 w-full", size === "sm" && "justify-end")}>
         <ActionBox.Lend
