@@ -55,6 +55,7 @@ export const LpActionButtons = ({ size = "sm", marginfiAccount, activeGroup }: L
             showTokenSelection: true,
             requestedBank: activeGroup.pool.token,
             showAvailableCollateral: false,
+            showTokenSelectionGroups: false,
             captureEvent: () => {
               capture("position_add_btn_click", {
                 group: activeGroup?.groupPk?.toBase58(),
@@ -98,6 +99,7 @@ export const LpActionButtons = ({ size = "sm", marginfiAccount, activeGroup }: L
               requestedLendType: ActionType.Withdraw,
               showTokenSelection: true,
               requestedBank: lendingBank[0],
+              showTokenSelectionGroups: false,
               captureEvent: () => {
                 capture("position_withdraw_btn_click", {
                   group: activeGroup?.groupPk?.toBase58(),

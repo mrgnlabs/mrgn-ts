@@ -20,6 +20,7 @@ type ActionInputProps = {
   showCloseBalance?: boolean;
   isDialog?: boolean;
   showTokenSelection?: boolean;
+  showTokenSelectionGroups?: boolean;
   isMini?: boolean;
 
   setAmountRaw: (amount: string) => void;
@@ -35,7 +36,7 @@ export const ActionInput = ({
   connected,
   isDialog,
   showTokenSelection,
-
+  showTokenSelectionGroups,
   amountRaw,
   selectedBank,
   lendMode,
@@ -77,6 +78,7 @@ export const ActionInput = ({
               setSelectedBank(bank);
             }}
             isSelectable={isTokenSelectionAvailable}
+            showTokenSelectionGroups={showTokenSelectionGroups}
             banks={banks}
             nativeSolBalance={nativeSolBalance}
             lendMode={lendMode}
