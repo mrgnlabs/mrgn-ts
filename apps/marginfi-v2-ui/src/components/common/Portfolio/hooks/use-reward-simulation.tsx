@@ -169,5 +169,6 @@ export const useRewardSimulation = ({
   return {
     handleSimulation,
     generateTxn,
+    bankAddressesWithEmissions,
   };
 };

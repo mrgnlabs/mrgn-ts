@@ -2,12 +2,12 @@ import React from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 
-import { VersionedTransaction } from "@solana/web3.js";
+import { PublicKey, VersionedTransaction } from "@solana/web3.js";
 
 import { numeralFormatter } from "@mrgnlabs/mrgn-common";
 import { usdFormatter, usdFormatterDyn } from "@mrgnlabs/mrgn-common";
 import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { LendingModes } from "@mrgnlabs/mrgn-utils";
+import { LendingModes, MultiStepToastHandle } from "@mrgnlabs/mrgn-utils";
 
 import { useMrgnlendStore, useUiStore, useUserProfileStore } from "~/store";
 
@@ -17,12 +17,14 @@ import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { Loader } from "~/components/ui/loader";
 import { RewardsDialog } from "./components/rewards";
 import { ActionComplete } from "~/components/common/ActionComplete";
-import { IconInfoCircle, IconLoader } from "~/components/ui/icons";
+import { IconLoader } from "~/components/ui/icons";
+import { IconInfoCircle } from "@tabler/icons-react";
 
 import { PortfolioAssetCard, PortfolioAssetCardSkeleton, PortfolioUserStats } from "./components";
 import { rewardsType } from "./types";
 import { useRewardSimulation } from "./hooks";
 import { executeCollectTxn } from "./utils";
+import { Select, SelectContent, SelectItem, SelectTrigger } from "~/components/ui/select";
 
 export const LendingPortfolio = () => {
   const router = useRouter();
@@ -37,6 +39,8 @@ export const LendingPortfolio = () => {
     marginfiClient,
     selectedAccount,
     extendedBankInfos,
+    marginfiAccounts,
+    fetchMrgnlendState,
   ] = useMrgnlendStore((state) => [
     state.initialized,
     state.extendedBankInfos,
@@ -45,6 +49,8 @@ export const LendingPortfolio = () => {
     state.marginfiClient,
     state.selectedAccount,
     state.extendedBankInfos,
+    state.marginfiAccounts,
+    state.fetchMrgnlendState,
   ]);
   const [setLendingMode] = useUiStore((state) => [state.setLendingMode]);
   const [userPointsData] = useUserProfileStore((state) => [state.userPointsData]);
@@ -54,7 +60,7 @@ export const LendingPortfolio = () => {
   const [rewardsDialogOpen, setRewardsDialogOpen] = React.useState(false);
   const [actionTxn, setActionTxn] = React.useState<VersionedTransaction | null>(null);
   const [rewardsLoading, setRewardsLoading] = React.useState(false);
-  const { handleSimulation } = useRewardSimulation({
+  const { handleSimulation, bankAddressesWithEmissions } = useRewardSimulation({
     simulationResult: rewards,
     actionTxn,
     marginfiClient,
@@ -71,7 +77,9 @@ export const LendingPortfolio = () => {
 
   const handleCollectExectuion = React.useCallback(async () => {
     if (!marginfiClient || !actionTxn) return;
-    const signature = await executeCollectTxn(marginfiClient, actionTxn, setRewardsLoading);
+    await executeCollectTxn(marginfiClient, actionTxn, setRewardsLoading, setActionTxn, () => {
+      setRewardsDialogOpen(false);
+    });
   }, [marginfiClient, actionTxn]);
 
   const lendingBanks = React.useMemo(
@@ -165,6 +173,33 @@ export const LendingPortfolio = () => {
     }
   }, [connected]);
 
+  // Switching account logic
+  const [isSwitchingAccount, setIsSwitchingAccount] = React.useState<boolean>(false);
+
+  const hasMultipleAccount = React.useMemo(() => marginfiAccounts.length > 1, [marginfiAccounts]);
+
+  const handleSwitchAccount = React.useCallback(
+    async (value: PublicKey) => {
+      if (selectedAccount?.address.toBase58() === value.toBase58()) return;
+      setIsSwitchingAccount(true);
+      const multiStepToast = new MultiStepToastHandle("Switching account", [{ label: "Fetching account data" }]);
+      try {
+        multiStepToast.start();
+        const account = marginfiAccounts.find((account) => account.address.toBase58() === value.toBase58());
+        if (!account) return;
+        localStorage.setItem("mfiAccount", account.address.toBase58());
+        await fetchMrgnlendState();
+        multiStepToast.setSuccessAndNext();
+      } catch (error) {
+        console.error(error);
+        multiStepToast.setFailed("Failed to switch account");
+      } finally {
+        setIsSwitchingAccount(false);
+      }
+    },
+    [marginfiAccounts, selectedAccount]
+  );
+
   if (isStoreInitialized && !connected) {
     return <WalletButton />;
   }
@@ -190,6 +225,33 @@ export const LendingPortfolio = () => {
 
   return (
     <div className="p-4 md:p-6 rounded-xl space-y-3 w-full mb-10  bg-background-gray-dark">
+      <div className="flex items-center gap-2">
+        {hasMultipleAccount && (
+          <>
+            <p>Current account:</p>
+            <Select
+              onValueChange={(value) => {
+                handleSwitchAccount(new PublicKey(value));
+              }}
+              disabled={isSwitchingAccount}
+            >
+              <SelectTrigger className="w-max">
+                Account{" "}
+                {marginfiAccounts.findIndex(
+                  (account) => account.address.toBase58() === selectedAccount?.address.toBase58()
+                ) + 1}
+              </SelectTrigger>
+              <SelectContent>
+                {marginfiAccounts.map((account, i) => (
+                  <SelectItem key={i} value={account.address.toBase58()}>
+                    Account {i + 1}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </>
+        )}
+      </div>
       <div className="flex justify-between w-full">
         <h2 className="font-medium text-xl">Lend/borrow</h2>
 
@@ -205,7 +267,7 @@ export const LendingPortfolio = () => {
                 Collect rewards
               </button>
             ) : (
-              <button disabled className="cursor-not-allowed underline">
+              <button disabled className="cursor-not-allowed text-muted-foreground">
                 No outstanding rewards
               </button>
             )
@@ -218,7 +280,7 @@ export const LendingPortfolio = () => {
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <IconInfoCircle size={16} />
+                  <IconInfoCircle size={16} className="text-muted-foreground" />
                 </TooltipTrigger>
                 <TooltipContent>
                   <span className="">
@@ -226,7 +288,13 @@ export const LendingPortfolio = () => {
                       ? `You are earning rewards on the following banks: ${rewards.rewards
                           .map((r) => r.bank)
                           .join(", ")}`
-                      : "No outstanding rewards. you can earn rewards on the following banks: PYUSD, BSOL and UXD"}
+                      : `You do not have any outstanding rewards. Deposit into a bank with emissions to earn additional rewards on top of yield. Banks with emissions: ${bankAddressesWithEmissions
+                          ?.map(
+                            (bank) =>
+                              extendedBankInfos.find((b) => b.meta.address.toBase58() === bank.toBase58())?.meta
+                                .tokenSymbol
+                          )
+                          .join(", ")}`}
                   </span>{" "}
                 </TooltipContent>
               </Tooltip>
