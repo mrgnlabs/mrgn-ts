@@ -7,7 +7,7 @@ import { usdFormatter, numeralFormatter, dynamicNumeralFormatter } from "@mrgnla
 import { ActiveBankInfo, ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { capture } from "@mrgnlabs/mrgn-utils";
 import { ActionBox } from "@mrgnlabs/mrgn-ui";
-
+import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { cn } from "@mrgnlabs/mrgn-utils";
 import { useAssetItemData } from "~/hooks/useAssetItemData";
 
@@ -15,7 +15,16 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "~/
 import { Button } from "~/components/ui/button";
 import { Skeleton } from "~/components/ui/skeleton";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
-import { useMrgnlendStore } from "~/store";
+import { useMrgnlendStore, useUiStore } from "~/store";
+import {
+  Dialog,
+  DialogContent,
+  DialogTrigger,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "~/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger } from "~/components/ui/select";
 
 interface PortfolioAssetCardProps {
   bank: ActiveBankInfo;
@@ -25,7 +34,11 @@ interface PortfolioAssetCardProps {
 
 export const PortfolioAssetCard = ({ bank, isInLendingMode, isBorrower = true }: PortfolioAssetCardProps) => {
   const { rateAP } = useAssetItemData({ bank, isInLendingMode });
-
+  const [selectedAccount, marginfiAccounts, marginfiClient] = useMrgnlendStore((state) => [
+    state.selectedAccount,
+    state.marginfiAccounts,
+    state.marginfiClient,
+  ]);
   const isIsolated = React.useMemo(() => bank.info.state.isIsolated, [bank]);
 
   const isUserPositionPoorHealth = React.useMemo(() => {
@@ -42,6 +55,8 @@ export const PortfolioAssetCard = ({ bank, isInLendingMode, isBorrower = true }:
     }
   }, [bank]);
 
+  const [isMovePositionDialogOpen, setIsMovePositionDialogOpen] = React.useState<boolean>(false);
+  const postionMovingPossible = React.useMemo(() => marginfiAccounts.length > 1, marginfiAccounts);
   return (
     <Accordion type="single" collapsible>
       <AccordionItem
@@ -158,6 +173,29 @@ export const PortfolioAssetCard = ({ bank, isInLendingMode, isBorrower = true }:
               requestedAction={isInLendingMode ? ActionType.Deposit : ActionType.Borrow}
             />
           </div>
+
+          {postionMovingPossible && (
+            <Button
+              onClick={() => {
+                setIsMovePositionDialogOpen(true);
+              }}
+              variant={"ghost"}
+              className="w-max self-center underline"
+            >
+              Move position to another account
+            </Button>
+          )}
+
+          {isMovePositionDialogOpen && (
+            <MovePositionDialog
+              isOpen={isMovePositionDialogOpen}
+              setIsOpen={setIsMovePositionDialogOpen}
+              selectedAccount={selectedAccount}
+              marginfiAccounts={marginfiAccounts}
+              bank={bank}
+              marginfiClient={marginfiClient}
+            />
+          )}
         </AccordionContent>
       </AccordionItem>
     </Accordion>
@@ -260,5 +298,97 @@ export const PortfolioAssetCardSkeleton = () => {
       </div>
       <Skeleton className="h-6 w-[80px] " />
     </div>
+  );
+};
+
+export const MovePositionDialog = ({
+  selectedAccount,
+  marginfiAccounts,
+  isOpen,
+  setIsOpen,
+  bank,
+  marginfiClient,
+}: {
+  selectedAccount: MarginfiAccountWrapper | null;
+  marginfiAccounts: MarginfiAccountWrapper[];
+  isOpen: boolean;
+  setIsOpen: (isOpen: boolean) => void;
+  bank: ActiveBankInfo;
+  marginfiClient: MarginfiClient | null;
+}) => {
+  const [accountToMoveTo, setAccountToMoveTo] = React.useState<MarginfiAccountWrapper | null | undefined>(
+    selectedAccount
+  );
+
+  const handleMovePosition = React.useCallback(async () => {
+    if (!marginfiClient || !accountToMoveTo) {
+      return;
+    }
+
+    const connection = marginfiClient.provider.connection;
+    // selectedAccount.simulate
+  }, [marginfiClient, accountToMoveTo, marginfiAccounts, selectedAccount, bank]);
+
+  return (
+    <Dialog
+      open={isOpen}
+      onOpenChange={(value) => {
+        setIsOpen(value);
+      }}
+    >
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Move position to another account</DialogTitle>
+          <DialogDescription>Move your position to another account</DialogDescription>
+        </DialogHeader>
+
+        <div className=" py-3 px-4 gap-4 flex flex-col ">
+          <dl className="grid grid-cols-2 gap-y-0.5">
+            <dt className="text-muted-foreground">Token value:</dt>
+            <dd className="text-right text-white">
+              {bank.position.amount < 0.01 ? "< $0.01" : numeralFormatter(bank.position.amount)}
+              {" " + bank.meta.tokenSymbol}
+            </dd>
+            <dt className="text-muted-foreground">USD value</dt>
+            <dd className="text-right text-white">
+              {bank.position.usdValue < 0.01 ? "< $0.01" : usdFormatter.format(bank.position.usdValue)}
+            </dd>
+          </dl>
+          <div className="flex justify-between w-full items-center">
+            <span className="text-muted-foreground">Select account to move position to:</span>
+            <Select
+              onValueChange={(value) => {
+                setAccountToMoveTo(marginfiAccounts.find((account) => account.address.toBase58() === value));
+              }}
+            >
+              <SelectTrigger className="w-max">
+                Account{" "}
+                {marginfiAccounts.findIndex(
+                  (account) => account.address.toBase58() === accountToMoveTo?.address.toBase58()
+                ) + 1}
+              </SelectTrigger>
+              <SelectContent>
+                {marginfiAccounts.map((account, i) => (
+                  <SelectItem key={i} value={account.address.toBase58()}>
+                    Account {i + 1}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex justify-between w-full items-center">
+            <span className="text-muted-foreground">Account address:</span>
+            <div className="flex flex-col">
+              <span className="text-muted-foreground ">
+                {`${accountToMoveTo?.address.toBase58().slice(0, 8)}
+                  ...${accountToMoveTo?.address.toBase58().slice(-8)}`}
+              </span>
+            </div>
+          </div>{" "}
+        </div>
+
+        <Button onClick={handleMovePosition}>Move position</Button>
+      </DialogContent>
+    </Dialog>
   );
 };

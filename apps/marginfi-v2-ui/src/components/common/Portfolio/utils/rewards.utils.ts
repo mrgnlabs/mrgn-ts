@@ -17,7 +17,9 @@ const captureException = (error: any, msg: string, tags: Record<string, string |
 export const executeCollectTxn = async (
   marginfiClient: MarginfiClient,
   actionTxn: VersionedTransaction,
-  setIsLoading: (isLoading: boolean) => void
+  setIsLoading: (isLoading: boolean) => void,
+  setActionTxn: (actionTxn: VersionedTransaction | null) => void,
+  closeDialog: () => void
 ) => {
   setIsLoading(true);
   const multiStepToast = new MultiStepToastHandle("Collecting rewards", [
@@ -30,7 +32,8 @@ export const executeCollectTxn = async (
   try {
     const sig = await marginfiClient.processTransaction(actionTxn);
     multiStepToast.setSuccessAndNext();
-
+    setActionTxn(null);
+    closeDialog();
     return sig;
   } catch (error) {
     const msg = extractErrorString(error);
