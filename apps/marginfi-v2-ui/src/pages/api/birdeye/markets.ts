@@ -71,10 +71,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
     const data = await response.json();
     const items = data.data.items || [];
-    const supportedMarkets = ["Orca", "Raydium Clamm", "Meteora", "Meteora Dlmm"];
+    const supportedMarkets = ["Orca", "Raydium Clamm", "Meteora"];
     const markets: IntegrationsData[] = items
       .filter((market: MarketInfo) => supportedMarkets.includes(market.source))
-      .slice(0, 5)
+      .slice(0, 4)
       .map((market: MarketInfo) => ({
         title: market.name,
         poolInfo: {

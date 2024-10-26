@@ -108,24 +108,7 @@ export const MintCardWrapper: React.FC<MintCardWrapperProps> = ({ mintCard, ...p
             />
           </div>
         )}
-
-        {transformedActionGate?.find((value) => value === ActionType.MintYBX && mintCard.title === "YBX") && (
-          <div className="flex items-center gap-2">
-            <Button
-              variant="secondary"
-              size="lg"
-              className="mt-4"
-              onClick={() => {
-                if (mintCard.action) {
-                  mintCard.action();
-                }
-              }}
-            >
-              <IconBell size={16} /> Early Access
-            </Button>
-          </div>
-        )}
-      </CardContent>
+</CardContent>
     </Card>
   );
 };

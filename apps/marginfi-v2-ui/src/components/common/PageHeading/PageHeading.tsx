@@ -1,7 +1,9 @@
 import Link from "next/link";
+import { cn } from "@mrgnlabs/mrgn-utils";
 
 interface PageHeadingProps {
   heading: string | JSX.Element;
+  size?: "md" | "lg";
   body?: JSX.Element;
   links?: {
     href: string;
@@ -10,11 +12,16 @@ interface PageHeadingProps {
   button?: JSX.Element;
 }
 
-export const PageHeading = ({ heading, body, links, button }: PageHeadingProps) => {
+export const PageHeading = ({ heading, body, links, button, size = "md" }: PageHeadingProps) => {
   return (
-    <div className="text-muted-foreground text-base md:text-lg text-center px-2 pt-4 pb-12 md:pt-0 md:px-0 space-y-3">
-      <h1 className="text-4xl font-medium text-primary">{heading}</h1>
-      <div className="max-w-2xl w-full mx-auto">{body}</div>
+    <div
+      className={cn(
+        "text-muted-foreground text-center px-8 pt-4 pb-12 text-base space-y-4 md:pt-0 md:px-0",
+        size === "lg" ? "md:text-xl md:space-y-6" : "md:text-lg"
+      )}
+    >
+      <h1 className={cn("font-medium text-primary text-4xl", size === "lg" && "md:text-5xl")}>{heading}</h1>
+      <div className={cn("w-full mx-auto leading-relaxed", size === "lg" ? "max-w-3xl" : "max-w-2xl")}>{body}</div>
 
       {links && links.length > 0 && (
         <ul className="flex items-center gap-4 justify-center pt-2">
