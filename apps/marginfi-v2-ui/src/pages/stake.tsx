@@ -6,7 +6,7 @@ import { StakeBoxProvider } from "@mrgnlabs/mrgn-ui";
 import { useMrgnlendStore } from "~/store";
 import { useWallet } from "~/components/wallet-v2";
 import { LST_MINT } from "~/store/lstStore";
-import { IntegrationsData, MintOverview, fetchMintOverview } from "~/components/common/Stake/utils/stake-utils";
+import { IntegrationsData, LSTOverview, fetchLSTOverview } from "~/components/common/Stake/utils/stake-utils";
 
 import { Button } from "~/components/ui/button";
 import { IconArena } from "~/components/ui/icons";
@@ -20,11 +20,11 @@ import {
   ArenaIntegrationCard,
 } from "~/components/common/Stake";
 
-export default function MintPage() {
+export default function StakePage() {
   const { connected } = useWallet();
   const [fetchMrgnlendState] = useMrgnlendStore((state) => [state.fetchMrgnlendState]);
   const [integrations, setIntegrations] = React.useState<IntegrationsData[]>([]);
-  const [lstOverview, setLstOverview] = React.useState<MintOverview>();
+  const [lstOverview, setLstOverview] = React.useState<LSTOverview>();
 
   const [extendedBankInfos] = useMrgnlendStore((state) => [state.extendedBankInfos]);
 
@@ -52,7 +52,7 @@ export default function MintPage() {
   React.useEffect(() => {
     const fetchVolumeData = async () => {
       try {
-        const overview = await fetchMintOverview(LST_MINT.toString());
+        const overview = await fetchLSTOverview(LST_MINT.toString());
         setLstOverview(overview);
       } catch (error) {
         console.error("Something went wrong fetching LST volume");
