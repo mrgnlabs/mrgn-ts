@@ -1,5 +1,5 @@
 import React from "react";
-import Link from 'next/link'
+import Link from "next/link";
 
 import { groupedNumberFormatterDyn, clampedNumeralFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 import { IconCheck } from "@tabler/icons-react";
@@ -74,107 +74,109 @@ export default function MintPage() {
 
   return (
     <StakeBoxProvider>
-      <div className="w-full max-w-8xl mx-auto">
-        <PageHeading
-          heading="Stake and Earn Instantly"
-          size="lg"
-          body={
-            <p>
-              <strong className="text-chartreuse">Earn extra yield</strong> and{" "}
-              <strong className="text-chartreuse">compound your returns</strong> in just a few clicks. Lend and borrow
-              against your position, stay flexible, and engage with the{" "}
-              <strong className="text-chartreuse">best opportunities in DeFi</strong>.
-            </p>
-          }
-        />
+      <div className="flex flex-col items-center justify-center min-h-[800px] h-[calc(100vh-140px)]">
+        <div className="w-full max-w-8xl mx-auto relative -translate-y-10 md:-translate-y-12">
+          <PageHeading
+            heading="Stake and Earn Instantly"
+            size="lg"
+            body={
+              <p>
+                <strong className="text-chartreuse">Earn extra yield</strong> and{" "}
+                <strong className="text-chartreuse">compound your returns</strong> in just a few clicks. Lend and borrow
+                against your position, stay flexible, and engage with the{" "}
+                <strong className="text-chartreuse">best opportunities in DeFi</strong>.
+              </p>
+            }
+          />
 
-        <div className="px-4 md:mt-2">
-          <Card variant="gradient" className="w-full max-w-xl mx-auto py-4">
-            <CardHeader className="items-center text-center gap-3">
-              <IconLST size={56} />
-              <CardTitle className="text-2xl">
-                Stake with mrgn validators
-                <br /> and mint LST
-              </CardTitle>
-              <CardDescription className="sr-only">Stake with mrgn validators and mint LST.</CardDescription>
-            </CardHeader>
-            <CardContent className="flex flex-col items-center">
-              <ul className="space-y-2.5 mb-8 md:text-lg">
-                <li className="flex items-center gap-1.5 text-muted-foreground">
-                  <IconCheck className="text-success" />
-                  ~9% natural APY
-                </li>
-                <li className="flex items-center gap-1.5 text-muted-foreground">
-                  <IconCheck className="text-success" />
-                  0% commissions
-                </li>
-                <li className="flex items-center gap-1.5 text-muted-foreground">
-                  <IconCheck className="text-success" />
-                  Capture MEV rewards
-                </li>
-              </ul>
+          <div className="px-4 md:mt-2">
+            <Card variant="gradient" className="w-full max-w-xl mx-auto py-2 md:py-4">
+              <CardHeader className="items-center text-center gap-3">
+                <IconLST size={56} />
+                <CardTitle className="text-2xl">
+                  Stake with mrgn validators
+                  <br /> and mint LST
+                </CardTitle>
+                <CardDescription className="sr-only">Stake with mrgn validators and mint LST.</CardDescription>
+              </CardHeader>
+              <CardContent className="flex flex-col items-center">
+                <ul className="space-y-2.5 mb-4 md:mb-8 md:text-lg">
+                  <li className="flex items-center gap-1.5 text-muted-foreground">
+                    <IconCheck className="text-success" />
+                    ~9% natural APY
+                  </li>
+                  <li className="flex items-center gap-1.5 text-muted-foreground">
+                    <IconCheck className="text-success" />
+                    0% commissions
+                  </li>
+                  <li className="flex items-center gap-1.5 text-muted-foreground">
+                    <IconCheck className="text-success" />
+                    Capture MEV rewards
+                  </li>
+                </ul>
 
-              <ul className="flex gap-2 text-sm md:text-base">
-                {lstOverview?.tvl && (
-                  <>
-                    <li className="text-muted-foreground">TVL</li>
-                    <li>{usdFormatter.format(lstOverview.tvl)}</li>
-                  </>
-                )}
-                {lstOverview?.volumeUsd && (
-                  <>
-                    <li className="text-muted-foreground ml-4">Volume</li>
-                    <li>{usdFormatter.format(lstOverview.volumeUsd)}</li>
-                  </>
-                )}
-              </ul>
-            </CardContent>
-            <CardFooter className="flex flex-row justify-center gap-4 pt-4">
-              <ActionBox.Stake
-                isDialog={true}
-                useProvider={true}
-                stakeProps={{
-                  connected: connected,
-                  requestedActionType: ActionType.MintLST,
-                  captureEvent: (event, properties) => {
-                    capture("stake_button_click", properties);
-                  },
-                }}
-                dialogProps={{
-                  trigger: (
-                    <Button size="lg" className="text-lg h-12 border-none">
-                      Stake
-                    </Button>
-                  ),
-                  title: "Stake",
-                }}
-              />
-              <ActionBox.Stake
-                isDialog={true}
-                useProvider={true}
-                stakeProps={{
-                  connected: connected,
-                  requestedActionType: ActionType.UnstakeLST,
-                  requestedBank: extendedBankInfos.find((bank) => bank?.info?.state?.mint.equals(LST_MINT)),
-                  captureEvent: (event, properties) => {
-                    capture("unstake_button_click", properties);
-                  },
-                }}
-                dialogProps={{
-                  trigger: (
-                    <Button variant="secondary" size="lg" className="text-lg h-12">
-                      Unstake
-                    </Button>
-                  ),
-                  title: "Unstake",
-                }}
-              />
-            </CardFooter>
-          </Card>
+                <ul className="flex gap-2 text-sm md:text-base">
+                  {lstOverview?.tvl && (
+                    <>
+                      <li className="text-muted-foreground">TVL</li>
+                      <li>{usdFormatter.format(lstOverview.tvl)}</li>
+                    </>
+                  )}
+                  {lstOverview?.volumeUsd && (
+                    <>
+                      <li className="text-muted-foreground ml-4">Volume</li>
+                      <li>{usdFormatter.format(lstOverview.volumeUsd)}</li>
+                    </>
+                  )}
+                </ul>
+              </CardContent>
+              <CardFooter className="flex flex-row justify-center gap-4 pt-2 md:pt-4">
+                <ActionBox.Stake
+                  isDialog={true}
+                  useProvider={true}
+                  stakeProps={{
+                    connected: connected,
+                    requestedActionType: ActionType.MintLST,
+                    captureEvent: (event, properties) => {
+                      capture("stake_button_click", properties);
+                    },
+                  }}
+                  dialogProps={{
+                    trigger: (
+                      <Button size="lg" className="text-lg h-12 border-none">
+                        Stake
+                      </Button>
+                    ),
+                    title: "Stake",
+                  }}
+                />
+                <ActionBox.Stake
+                  isDialog={true}
+                  useProvider={true}
+                  stakeProps={{
+                    connected: connected,
+                    requestedActionType: ActionType.UnstakeLST,
+                    requestedBank: extendedBankInfos.find((bank) => bank?.info?.state?.mint.equals(LST_MINT)),
+                    captureEvent: (event, properties) => {
+                      capture("unstake_button_click", properties);
+                    },
+                  }}
+                  dialogProps={{
+                    trigger: (
+                      <Button variant="secondary" size="lg" className="text-lg h-12">
+                        Unstake
+                      </Button>
+                    ),
+                    title: "Unstake",
+                  }}
+                />
+              </CardFooter>
+            </Card>
+          </div>
         </div>
       </div>
 
-      <div className="flex flex-col items-center justify-center gap-4 my-16 w-full bg-background-gray border-y border-border pt-12 pb-14 px-8 md:px-0">
+      <div className="flex flex-col items-center justify-center gap-4 mb-24 w-full bg-background-gray/50 border-y border-border pt-12 pb-14 px-8 md:px-0">
         <IconArena size={56} className="text-white" />
         <h2 className="text-3xl font-medium">LST in The Arena</h2>
         <p className="text-muted-foreground w-full max-w-2xl mx-auto text-center text-lg">
@@ -182,13 +184,14 @@ export default function MintPage() {
           Solana. With full support for LST as collateral.
         </p>
 
-<Link href="https://www.thearena.trade" target="_blank" rel="noreferrer">
-        <Button className="mt-4" size="lg">
-          <IconArena size={18} /> Enter The Arena
-        </Button></Link>
+        <Link href="https://www.thearena.trade" target="_blank" rel="noreferrer">
+          <Button className="mt-4" size="lg">
+            <IconArena size={18} /> Enter The Arena
+          </Button>
+        </Link>
       </div>
 
-      <div className="w-full max-w-8xl mx-auto pb-24">
+      <div className="w-full max-w-8xl mx-auto pb-32">
         <div className="w-full max-w-6xl mx-auto py-4 px-4 md:px-10 xl:px-16 text-center">
           <h2 className="text-3xl font-medium mb-3">LST Integrations</h2>
           <p className="text-muted-foreground">
