@@ -33,6 +33,7 @@ import BigNumber from "bignumber.js";
 import { BankConfig, BankConfigRaw, OracleSetup, parseOracleSetup } from ".";
 import { readBigUInt64LE } from "./vendor/pyth_legacy/readBig";
 import { func } from "superstruct";
+import { parsePriceInfo } from "./vendor";
 
 export function getBankVaultSeeds(type: BankVaultType): Buffer {
   switch (type) {
@@ -136,7 +137,7 @@ export function makePriorityFeeIx(priorityFeeUi?: number): TransactionInstructio
 }
 
 export function feedIdToString(feedId: PublicKey): string {
-  return feedId.toBuffer().toString('hex');
+  return feedId.toBuffer().toString("hex");
 }
 
 export type PythPushFeedIdMap = Map<string, PublicKey>;
@@ -144,15 +145,19 @@ export type PythPushFeedIdMap = Map<string, PublicKey>;
 export async function buildFeedIdMap(bankConfigs: BankConfigRaw[], connection: Connection): Promise<PythPushFeedIdMap> {
   const feedIdMap: PythPushFeedIdMap = new Map<string, PublicKey>();
 
-  const feedIdsWithAddresses = bankConfigs.filter((bankConfig) => parseOracleSetup(bankConfig.oracleSetup) == OracleSetup.PythPushOracle).map((bankConfig) => {
-    let feedId = bankConfig.oracleKeys[0].toBuffer();
-    return {
-      feedId, addresses: [
-        findPythPushOracleAddress(feedId, PYTH_PUSH_ORACLE_ID, PYTH_SPONSORED_SHARD_ID),
-        findPythPushOracleAddress(feedId, PYTH_PUSH_ORACLE_ID, MARGINFI_SPONSORED_SHARD_ID),
-      ]
-    }
-  }).flat();
+  const feedIdsWithAddresses = bankConfigs
+    .filter((bankConfig) => parseOracleSetup(bankConfig.oracleSetup) == OracleSetup.PythPushOracle)
+    .map((bankConfig) => {
+      let feedId = bankConfig.oracleKeys[0].toBuffer();
+      return {
+        feedId,
+        addresses: [
+          findPythPushOracleAddress(feedId, PYTH_PUSH_ORACLE_ID, PYTH_SPONSORED_SHARD_ID),
+          findPythPushOracleAddress(feedId, PYTH_PUSH_ORACLE_ID, MARGINFI_SPONSORED_SHARD_ID),
+        ],
+      };
+    })
+    .flat();
 
   const addressess = feedIdsWithAddresses.map((feedIdWithAddress) => feedIdWithAddress.addresses).flat();
   const accountInfos = [];
@@ -170,12 +175,25 @@ export async function buildFeedIdMap(bankConfigs: BankConfigRaw[], connection: C
     const pythSponsoredOracle = accountInfos[oraclesStartIndex];
     const mfiSponsoredOracle = accountInfos[oraclesStartIndex + 1];
 
-    const feedId = feedIdsWithAddresses[i].feedId.toString('hex');
+    const feedId = feedIdsWithAddresses[i].feedId.toString("hex");
 
-    if (mfiSponsoredOracle) {
-      feedIdMap.set(feedId, feedIdsWithAddresses[i].addresses[1]);
+    if (mfiSponsoredOracle && pythSponsoredOracle) {
+      console.log();
+      let pythPriceAccount = parsePriceInfo(pythSponsoredOracle.data.slice(8));
+      let pythPublishTime = pythPriceAccount.priceMessage.publishTime;
+
+      let mfiPriceAccount = parsePriceInfo(mfiSponsoredOracle.data.slice(8));
+      let mfiPublishTime = mfiPriceAccount.priceMessage.publishTime;
+
+      if (pythPublishTime > mfiPublishTime) {
+        feedIdMap.set(feedId, feedIdsWithAddresses[i].addresses[0]);
+      } else {
+        feedIdMap.set(feedId, feedIdsWithAddresses[i].addresses[1]);
+      }
     } else if (pythSponsoredOracle) {
       feedIdMap.set(feedId, feedIdsWithAddresses[i].addresses[0]);
+    } else if (mfiSponsoredOracle) {
+      feedIdMap.set(feedId, feedIdsWithAddresses[i].addresses[1]);
     } else {
       throw new Error(`No oracle found for feedId: ${feedId}, either Pyth or MFI sponsored oracle must exist`);
     }
