@@ -1,4 +1,5 @@
 import React from "react";
+import Link from 'next/link'
 
 import { groupedNumberFormatterDyn, clampedNumeralFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 import { IconCheck } from "@tabler/icons-react";
@@ -181,9 +182,10 @@ export default function MintPage() {
           Solana. With full support for LST as collateral.
         </p>
 
+<Link href="https://www.thearena.trade" target="_blank" rel="noreferrer">
         <Button className="mt-4" size="lg">
           <IconArena size={18} /> Enter The Arena
-        </Button>
+        </Button></Link>
       </div>
 
       <div className="w-full max-w-8xl mx-auto pb-24">
