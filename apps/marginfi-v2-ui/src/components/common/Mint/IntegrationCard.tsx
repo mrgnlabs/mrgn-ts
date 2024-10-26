@@ -61,12 +61,12 @@ export const IntegrationCard = ({ integrationsData }: IntegrationCardProps) => {
       </CardHeader>
       <CardContent>
         <ul className="space-y-2">
-          {integrationsData.info?.tvl && (
+          {integrationsData.info?.tvl > 0 && (
             <li className="flex items-center justify-between gap-1">
               <span className="text-muted-foreground">TVL:</span> {usdFormatter.format(integrationsData.info.tvl)}
             </li>
           )}
-          {integrationsData.info?.vol && (
+          {integrationsData.info?.vol > 0 && (
             <li className="flex items-center justify-between gap-1">
               <span className="text-muted-foreground">24hr Vol:</span> {usdFormatter.format(integrationsData.info.vol)}
             </li>
