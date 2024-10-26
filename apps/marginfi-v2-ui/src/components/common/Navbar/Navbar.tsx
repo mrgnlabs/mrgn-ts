@@ -6,7 +6,7 @@ import { useRouter } from "next/router";
 
 import { PublicKey } from "@solana/web3.js";
 // import LipAccount from "@mrgnlabs/lip-client/src/account";
-import { IconBell, IconBrandTelegram } from "@tabler/icons-react";
+import { IconBell, IconBrandTelegram, IconSettings } from "@tabler/icons-react";
 
 import { collectRewardsBatch, capture, cn } from "@mrgnlabs/mrgn-utils";
 import { Wallet } from "@mrgnlabs/mrgn-ui";
@@ -21,6 +21,7 @@ import { EMISSION_MINT_INFO_MAP } from "~/components/desktop/AssetList/component
 import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
 import { Button } from "~/components/ui/button";
 import { IconMrgn } from "~/components/ui/icons";
+import { SettingsWrapper } from "../settings/settings-wrapper";
 
 // @todo implement second pretty navbar row
 export const Navbar: FC = () => {
@@ -199,6 +200,19 @@ export const Navbar: FC = () => {
                         <IconBrandTelegram size={18} /> Open in Telegram
                       </Button>
                     </Link>
+                  </div>
+                </PopoverContent>
+              </Popover>
+
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0">
+                    <IconSettings size={20} />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-80">
+                  <div>
+                    <SettingsWrapper />
                   </div>
                 </PopoverContent>
               </Popover>
