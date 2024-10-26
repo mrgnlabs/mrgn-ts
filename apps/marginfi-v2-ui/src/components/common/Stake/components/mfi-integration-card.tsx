@@ -6,12 +6,10 @@ import { numeralFormatter, percentFormatter, usdFormatter } from "@mrgnlabs/mrgn
 import { ActionBox } from "@mrgnlabs/mrgn-ui";
 import { getDepositsData, getRateData } from "@mrgnlabs/mrgn-utils";
 
-import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { IconMrgn } from "~/components/ui/icons";
 import { Skeleton } from "~/components/ui/skeleton";
-import { useMrgnlendStore } from "~/store";
 
 interface MfiIntegrationCardProps {
   lstBank: ExtendedBankInfo;

@@ -4,7 +4,7 @@ import { ActionBox } from "@mrgnlabs/mrgn-ui";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { usdFormatter } from "@mrgnlabs/mrgn-common";
 import { capture } from "@mrgnlabs/mrgn-utils";
-import { MintOverview } from "~/utils";
+import { MintOverview } from "~/components/common/Stake/utils/stake-utils";
 
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "~/components/ui/card";
 import { IconLST } from "~/components/ui/icons";

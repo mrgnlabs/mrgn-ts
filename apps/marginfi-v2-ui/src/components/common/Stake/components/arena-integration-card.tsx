@@ -1,18 +1,15 @@
 import React from "react";
 import Image from "next/image";
 
-import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { numeralFormatter, percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
-import { ActionBox } from "@mrgnlabs/mrgn-ui";
+import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 import { getDepositsData, getRateData, getTokenImageURL } from "@mrgnlabs/mrgn-utils";
 import { PublicKey } from "@solana/web3.js";
 
-import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
+import { useWallet } from "~/components/wallet-v2";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { IconArena, IconLST } from "~/components/ui/icons";
-import { Skeleton } from "~/components/ui/skeleton";
-import { useMrgnlendStore } from "~/store";
 
 type ArenaIntegrationCardProps = {
   lstBank?: ExtendedBankInfo;

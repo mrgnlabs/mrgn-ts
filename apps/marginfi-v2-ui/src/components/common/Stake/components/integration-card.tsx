@@ -1,15 +1,16 @@
-import { usdFormatter } from "@mrgnlabs/mrgn-common";
 import Image from "next/image";
 import Link from "next/link";
+
+import { usdFormatter } from "@mrgnlabs/mrgn-common";
 import { IconExternalLink } from "@tabler/icons-react";
 
-import { IntegrationsData } from "~/utils";
 import { IMAGE_CDN_URL } from "~/config/constants";
+import { IntegrationsData } from "~/components/common/Stake/utils/stake-utils";
 
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
-import { Skeleton } from "~/components/ui/skeleton";
 import { IconOrca, IconMeteora, IconRaydium } from "~/components/ui/icons";
+import { Skeleton } from "~/components/ui/skeleton";
 
 interface IntegrationCardProps {
   integrationsData: IntegrationsData;
@@ -30,7 +31,7 @@ function getDexIcon(dex: string) {
   }
 }
 
-export const IntegrationCard = ({ integrationsData }: IntegrationCardProps) => {
+const IntegrationCard = ({ integrationsData }: IntegrationCardProps) => {
   if (!integrationsData.info?.tvl && !integrationsData.info?.vol) {
     return null;
   }
@@ -88,7 +89,7 @@ export const IntegrationCard = ({ integrationsData }: IntegrationCardProps) => {
   );
 };
 
-export const IntegrationCardSkeleton = () => {
+const IntegrationCardSkeleton = () => {
   return (
     <Card variant="default" className="min-w-[300px]">
       <CardHeader>
@@ -120,3 +121,5 @@ export const IntegrationCardSkeleton = () => {
     </Card>
   );
 };
+
+export { IntegrationCard, IntegrationCardSkeleton };

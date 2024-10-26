@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { IntegrationsData } from "~/utils/mintUtils";
+import { IntegrationsData } from "~/components/common/Stake/utils/stake-utils";
 
 type AssetInfo = {
   address: string;
