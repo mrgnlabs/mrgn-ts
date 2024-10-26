@@ -1,22 +1,17 @@
 import React from "react";
 import Link from "next/link";
 
-import { IconCheck } from "@tabler/icons-react";
+import { StakeBoxProvider } from "@mrgnlabs/mrgn-ui";
 
-import { usdFormatter } from "@mrgnlabs/mrgn-common";
-import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
-import { capture } from "@mrgnlabs/mrgn-utils";
-import { StakeBoxProvider, ActionBox } from "@mrgnlabs/mrgn-ui";
-
-import { useConnection } from "~/hooks/use-connection";
 import { useMrgnlendStore } from "~/store";
 import { useWallet } from "~/components/wallet-v2";
 import { LST_MINT } from "~/store/lstStore";
-import { IntegrationsData, MintOverview, MintPageState, fetchMintOverview } from "~/utils";
+import { IntegrationsData, MintOverview, fetchMintOverview } from "~/components/common/Stake/utils/stake-utils";
 
 import { Button } from "~/components/ui/button";
-import { IconLST, IconArena } from "~/components/ui/icons";
+import { IconArena } from "~/components/ui/icons";
 import { PageHeading } from "~/components/common/PageHeading";
+
 import {
   StakeCard,
   IntegrationCard,
@@ -26,7 +21,7 @@ import {
 } from "~/components/common/Stake";
 
 export default function MintPage() {
-  const { connected, wallet } = useWallet();
+  const { connected } = useWallet();
   const [fetchMrgnlendState] = useMrgnlendStore((state) => [state.fetchMrgnlendState]);
   const [integrations, setIntegrations] = React.useState<IntegrationsData[]>([]);
   const [lstOverview, setLstOverview] = React.useState<MintOverview>();
@@ -43,7 +38,6 @@ export default function MintPage() {
       try {
         const res = await fetch(`/api/birdeye/markets?token=` + LST_MINT);
         if (!res.ok) {
-          // throw new Error("Failed to fetch integrations");
           return;
         }
         const data = await res.json();
