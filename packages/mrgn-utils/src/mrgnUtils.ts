@@ -127,8 +127,9 @@ export function extractErrorString(error: any, fallback?: string): string {
   return fallback ?? "Unrecognized error";
 }
 
-export function getTokenImageURL(bank: ExtendedBankInfo): string {
-  return `https://storage.googleapis.com/mrgn-public/mrgn-token-icons/${bank.info.rawBank.mint.toBase58()}.png`;
+export function getTokenImageURL(bank: ExtendedBankInfo | PublicKey): string {
+  const mintAddress = (bank as ExtendedBankInfo).info?.rawBank.mint || bank;
+  return `https://storage.googleapis.com/mrgn-public/mrgn-token-icons/${mintAddress.toBase58()}.png`;
 }
 
 export function isBankOracleStale(bank: ExtendedBankInfo) {

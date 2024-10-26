@@ -13,26 +13,25 @@ import { IconMrgn } from "~/components/ui/icons";
 import { Skeleton } from "~/components/ui/skeleton";
 import { useMrgnlendStore } from "~/store";
 
-interface IntegrationCardProps {
-  bank: ExtendedBankInfo;
-  isInLendingMode: boolean;
+interface MfiIntegrationCardProps {
+  lstBank: ExtendedBankInfo;
+  connected: boolean;
+  fetchMrgnlendState: () => void;
 }
 
-export const BankIntegrationCard = ({ bank, isInLendingMode }: IntegrationCardProps) => {
-  const { connected } = useWallet();
-  const [fetchMrgnlendState] = useMrgnlendStore((state) => [state.fetchMrgnlendState]);
-  const depositData = React.useMemo(() => getDepositsData(bank, isInLendingMode, true), [bank, isInLendingMode]);
-  const rateData = React.useMemo(() => getRateData(bank, isInLendingMode), [bank, isInLendingMode]);
+const MfiIntegrationCard = ({ lstBank, connected, fetchMrgnlendState }: MfiIntegrationCardProps) => {
+  const depositData = React.useMemo(() => getDepositsData(lstBank, true, true), [lstBank]);
+  const rateData = React.useMemo(() => getRateData(lstBank, true), [lstBank]);
 
   return (
     <Card variant="default" className="min-w-[300px]">
       <CardHeader>
         <CardTitle className="flex items-center justify-center gap-3 text-xl">
           <div className="flex items-center">
-            {bank.meta.tokenLogoUri ? (
+            {lstBank.meta.tokenLogoUri ? (
               <Image
-                alt={bank.meta.tokenLogoUri}
-                src={bank.meta.tokenLogoUri}
+                alt={lstBank.meta.tokenLogoUri}
+                src={lstBank.meta.tokenLogoUri}
                 width={40}
                 height={40}
                 className="w-10 h-10 rounded-full"
@@ -41,7 +40,7 @@ export const BankIntegrationCard = ({ bank, isInLendingMode }: IntegrationCardPr
               <Skeleton className="w-10 h-10 rounded-full" />
             )}
           </div>
-          {bank.meta.tokenSymbol}
+          {lstBank.meta.tokenSymbol}
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -53,7 +52,7 @@ export const BankIntegrationCard = ({ bank, isInLendingMode }: IntegrationCardPr
           )}
           {depositData && (
             <li className="flex items-center justify-between gap-1">
-              <span className="text-muted-foreground">{isInLendingMode ? "Deposits:" : "Available:"}</span>{" "}
+              <span className="text-muted-foreground">Deposits:</span>{" "}
               {depositData.denominationUSD
                 ? usdFormatter.format(depositData.bankDeposits)
                 : numeralFormatter(depositData.bankDeposits)}
@@ -66,17 +65,17 @@ export const BankIntegrationCard = ({ bank, isInLendingMode }: IntegrationCardPr
           useProvider={true}
           lendProps={{
             connected: connected,
-            requestedLendType: isInLendingMode ? ActionType.Deposit : ActionType.Borrow,
-            requestedBank: bank,
+            requestedLendType: ActionType.Deposit,
+            requestedBank: lstBank,
             onComplete: () => {
               fetchMrgnlendState();
             },
           }}
           dialogProps={{
-            title: `${isInLendingMode ? "Deposit" : "Borrow"} ${bank.meta.tokenSymbol}`,
+            title: `Deposit ${lstBank.meta.tokenSymbol}`,
             trigger: (
               <Button variant="default" size="lg" className="mt-4 w-full">
-                {isInLendingMode ? "Deposit" : "Borrow"}
+                Deposit
               </Button>
             ),
           }}
@@ -90,3 +89,5 @@ export const BankIntegrationCard = ({ bank, isInLendingMode }: IntegrationCardPr
     </Card>
   );
 };
+
+export { MfiIntegrationCard };
