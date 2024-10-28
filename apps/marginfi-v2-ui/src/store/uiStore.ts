@@ -2,7 +2,7 @@ import { create, StateCreator } from "zustand";
 import { persist } from "zustand/middleware";
 
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
-import { LendingModes, PoolTypes } from "@mrgnlabs/mrgn-utils";
+import { LendingModes, PoolTypes, TransactionBroadcastType, TransactionPriorityType } from "@mrgnlabs/mrgn-utils";
 
 import { SortType, sortDirection, SortAssetOption, PreviousTxn } from "~/types";
 
@@ -35,6 +35,12 @@ const SORT_OPTIONS_MAP: { [key in SortType]: SortAssetOption } = {
   },
 };
 
+type TransactionSettings = {
+  broadcastType: TransactionBroadcastType;
+  priorityType: TransactionPriorityType;
+  maxCap: number;
+};
+
 interface UiState {
   // State
   isMenuDrawerOpen: boolean;
@@ -44,8 +50,10 @@ interface UiState {
   lendingMode: LendingModes;
   poolFilter: PoolTypes;
   sortOption: SortAssetOption;
-  priorityFee: number;
   assetListSearch: string;
+  broadcastType: TransactionBroadcastType;
+  priorityType: TransactionPriorityType;
+  maxCap: number;
 
   // Actions
   setIsMenuDrawerOpen: (isOpen: boolean) => void;
@@ -55,8 +63,8 @@ interface UiState {
   setLendingMode: (lendingMode: LendingModes) => void;
   setPoolFilter: (poolType: PoolTypes) => void;
   setSortOption: (sortOption: SortAssetOption) => void;
-  setPriorityFee: (priorityFee: number) => void;
   setAssetListSearch: (search: string) => void;
+  setTransactionSettings: (settings: TransactionSettings) => void;
 }
 
 function createUiStore() {
@@ -65,9 +73,9 @@ function createUiStore() {
       name: "uiStore",
       onRehydrateStorage: () => (state) => {
         // overwrite priority fee
-        if (process.env.NEXT_PUBLIC_INIT_PRIO_FEE && process.env.NEXT_PUBLIC_INIT_PRIO_FEE !== "0") {
-          state?.setPriorityFee(Number(process.env.NEXT_PUBLIC_INIT_PRIO_FEE));
-        }
+        // if (process.env.NEXT_PUBLIC_INIT_PRIO_FEE && process.env.NEXT_PUBLIC_INIT_PRIO_FEE !== "0") {
+        //   state?.setPriorityFee(Number(process.env.NEXT_PUBLIC_INIT_PRIO_FEE));
+        // }
       },
     })
   );
@@ -82,8 +90,10 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
   lendingMode: LendingModes.LEND,
   poolFilter: PoolTypes.ALL,
   sortOption: SORT_OPTIONS_MAP[SortType.TVL_DESC],
-  priorityFee: 0,
   assetListSearch: "",
+  broadcastType: "BUNDLE",
+  priorityType: "NORMAL",
+  maxCap: 0,
 
   // Actions
   setIsMenuDrawerOpen: (isOpen: boolean) => set({ isMenuDrawerOpen: isOpen }),
@@ -97,8 +107,8 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
   setIsOraclesStale: (isOraclesStale: boolean) => set({ isOraclesStale: isOraclesStale }),
   setPoolFilter: (poolType: PoolTypes) => set({ poolFilter: poolType }),
   setSortOption: (sortOption: SortAssetOption) => set({ sortOption: sortOption }),
-  setPriorityFee: (priorityFee: number) => set({ priorityFee: priorityFee }),
   setAssetListSearch: (search: string) => set({ assetListSearch: search }),
+  setTransactionSettings: (settings: TransactionSettings) => set({ ...settings }),
 });
 
 export { createUiStore, SORT_OPTIONS_MAP };

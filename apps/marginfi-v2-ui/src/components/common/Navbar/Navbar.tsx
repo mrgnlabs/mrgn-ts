@@ -21,7 +21,7 @@ import { EMISSION_MINT_INFO_MAP } from "~/components/desktop/AssetList/component
 import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
 import { Button } from "~/components/ui/button";
 import { IconMrgn } from "~/components/ui/icons";
-import { SettingsWrapper } from "../settings/settings-wrapper";
+import { SettingsPopover } from "~/components/common/settings";
 
 // @todo implement second pretty navbar row
 export const Navbar: FC = () => {
@@ -53,7 +53,7 @@ export const Navbar: FC = () => {
     state.fetchMrgnlendState,
   ]);
 
-  const [isOraclesStale, priorityFee] = useUiStore((state) => [state.isOraclesStale, state.priorityFee]);
+  const [isOraclesStale] = useUiStore((state) => [state.isOraclesStale]);
 
   const [userPointsData] = useUserProfileStore((state) => [state.userPointsData]);
 
@@ -155,6 +155,7 @@ export const Navbar: FC = () => {
                 }`}
                 onClick={async () => {
                   if (!wallet || !selectedAccount || bankAddressesWithEmissions.length === 0) return;
+                  const priorityFee = 0; // TODO: get priority fee from settings
                   await collectRewardsBatch(selectedAccount, bankAddressesWithEmissions, priorityFee);
                 }}
               >
@@ -204,18 +205,7 @@ export const Navbar: FC = () => {
                 </PopoverContent>
               </Popover>
 
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0">
-                    <IconSettings size={20} />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-80">
-                  <div>
-                    <SettingsWrapper />
-                  </div>
-                </PopoverContent>
-              </Popover>
+              <SettingsPopover />
 
               <Wallet
                 connection={connection}

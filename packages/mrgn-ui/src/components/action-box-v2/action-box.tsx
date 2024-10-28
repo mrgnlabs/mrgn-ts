@@ -4,7 +4,7 @@ import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { LendBox, LendBoxProps, LoopBox, LoopBoxProps, RepayCollatBox, StakeBox, StakeBoxProps } from "./actions";
 import { ActionDialogWrapper, ActionBoxWrapper, ActionBoxNavigator } from "./components";
-import { useActionBoxContext, useStakeBoxContext } from "./contexts";
+import { useActionBoxContext, useStakeBoxContext, useActionContext } from "./contexts";
 import {
   ActionBoxComponent,
   ActionBoxProps,

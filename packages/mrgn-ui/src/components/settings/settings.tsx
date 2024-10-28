@@ -167,9 +167,13 @@ export const Settings = ({
               )}
             />
           </div>
-          <Button type="submit" className="w-full py-5">
-            Save Settings
-          </Button>
+          <div>
+            <Button type="submit" className="w-full">
+              Save Settings
+            </Button>
+            {form.formState.isDirty && <div className="text-warning text-xs mt-2">You have unsaved changes.</div>}
+            {form.formState.isSubmitted && <div className="text-success text-xs mt-2">Settings saved!</div>}
+          </div>
         </form>
       </Form>
     </div>
