@@ -105,6 +105,8 @@ interface InterestRateConfigRaw {
   insuranceIrFee: WrappedI80F48;
   protocolFixedFeeApr: WrappedI80F48;
   protocolIrFee: WrappedI80F48;
+
+  protocolOriginationFee: WrappedI80F48;
 }
 
 type OracleSetupRaw = { none: {} } | { pythLegacy: {} } | { switchboardV2: {} } | { pythPushOracle: {} };
