@@ -4,3 +4,4 @@ export * from "./LSTDialog";
 export * from "./action-complete";
 export * from "./action-message";
 export * from "./settings";
+export * from "./stake-calculator";
