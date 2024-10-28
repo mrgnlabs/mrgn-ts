@@ -2,9 +2,7 @@ import React from "react";
 
 import { groupedNumberFormatterDyn, clampedNumeralFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 
-import { useConnection } from "~/hooks/use-connection";
-import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
-import { useMrgnlendStore, useUiStore } from "~/store";
+import { useMrgnlendStore } from "~/store";
 import { LST_MINT } from "~/store/lstStore";
 
 import { IconYBX, IconSol, IconLST, IconUsd } from "~/components/ui/icons";

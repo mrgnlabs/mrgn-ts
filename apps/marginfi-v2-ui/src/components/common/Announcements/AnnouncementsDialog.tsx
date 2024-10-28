@@ -4,9 +4,6 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { IMAGE_CDN_URL } from "~/config/constants";
-import { useUiStore } from "~/store";
-import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
-
 import { Button } from "~/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "~/components/ui/dialog";
 
@@ -14,8 +11,6 @@ const announcementLabel = "rlb-notice" as const;
 
 export const AnnouncementsDialog = () => {
   const [isOpen, setIsOpen] = React.useState(false);
-  const { connected } = useWallet();
-  const [isWalletOpen] = useUiStore((state) => [state.isWalletOpen]);
 
   const closeDialog = React.useCallback(() => {
     localStorage.setItem("mrgnAnnouncementPopup", announcementLabel);

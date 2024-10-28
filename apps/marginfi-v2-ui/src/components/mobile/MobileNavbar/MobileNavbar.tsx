@@ -75,10 +75,9 @@ const MobileNavbar = () => {
   useFirebaseAccount();
 
   const router = useRouter();
-  const [isMenuModalOpen, setIsMenuModalOpen, isActionBoxInputFocussed] = useUiStore((state) => [
+  const [isMenuModalOpen, setIsMenuModalOpen] = useUiStore((state) => [
     state.isMenuDrawerOpen,
     state.setIsMenuDrawerOpen,
-    state.isActionBoxInputFocussed,
   ]);
 
   const { isIOS, isPWA } = useOs();
@@ -87,8 +86,6 @@ const MobileNavbar = () => {
     const activeLinkIndex = mobileLinks.findIndex((link) => link.href === router.pathname);
     return activeLinkIndex >= 0 ? `link${activeLinkIndex}` : "linknone";
   }, [router.pathname]);
-
-  if (isActionBoxInputFocussed) return null;
 
   return (
     <footer>

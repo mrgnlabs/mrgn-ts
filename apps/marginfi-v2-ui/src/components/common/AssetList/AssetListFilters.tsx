@@ -1,13 +1,11 @@
 import React from "react";
 
-import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
-
-import { useUiStore, useUserProfileStore } from "~/store";
 import { cn } from "@mrgnlabs/mrgn-utils";
-import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
-import { useActionBoxStore } from "~/hooks/useActionBoxStore";
 import { LendingModes, PoolTypes } from "@mrgnlabs/mrgn-utils";
 import { IconFilter, IconSearch, IconX } from "@tabler/icons-react";
+
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
+import { useUiStore, useUserProfileStore } from "~/store";
 
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
 import { Switch } from "~/components/ui/switch";
@@ -22,7 +20,6 @@ export const AssetListFilters = () => {
     setPoolFilter,
     isFilteredUserPositions,
     setIsFilteredUserPositions,
-    setIsWalletAuthDialogOpen,
     assetListSearch,
     setAssetListSearch,
     lendingMode,
@@ -32,7 +29,6 @@ export const AssetListFilters = () => {
     state.setPoolFilter,
     state.isFilteredUserPositions,
     state.setIsFilteredUserPositions,
-    state.setIsWalletAuthDialogOpen,
     state.assetListSearch,
     state.setAssetListSearch,
     state.lendingMode,
@@ -96,7 +92,6 @@ export const AssetListFilters = () => {
           onClick={(e) => {
             e.stopPropagation();
             if (connected) return;
-            setIsWalletAuthDialogOpen(true);
           }}
         >
           <Switch
@@ -122,7 +117,6 @@ export const AssetListFilters = () => {
           onClick={(e) => {
             e.stopPropagation();
             if (connected) return;
-            setIsWalletAuthDialogOpen(true);
           }}
         >
           <Switch
