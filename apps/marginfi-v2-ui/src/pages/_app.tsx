@@ -20,7 +20,6 @@ import config from "~/config";
 import { MrgnlendProvider, LipClientProvider } from "~/context";
 import { WALLET_ADAPTERS } from "~/config/wallets";
 import { useMrgnlendStore, useUiStore } from "~/store";
-import { useLstStore } from "~/store";
 import { WalletProvider as MrgnWalletProvider } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { ConnectionProvider } from "~/hooks/use-connection";
 import { cn } from "@mrgnlabs/mrgn-utils";
@@ -73,11 +72,6 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
     state.accountSummary,
   ]);
 
-  const [isLstStoreInitialised, isRefreshingLstStore] = useLstStore((state) => [
-    state.initialized,
-    state.isRefreshingStore,
-  ]);
-
   const { query, isReady } = useRouter();
 
   // enable matomo heartbeat
@@ -90,15 +84,9 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
   }, []);
 
   React.useEffect(() => {
-    const isFetchingData = isRefreshingMrgnlendStore || isRefreshingLstStore;
+    const isFetchingData = isRefreshingMrgnlendStore;
     setIsFetchingData(isFetchingData);
-  }, [
-    isLstStoreInitialised,
-    isMrgnlendStoreInitialized,
-    isRefreshingLstStore,
-    isRefreshingMrgnlendStore,
-    setIsFetchingData,
-  ]);
+  }, [isMrgnlendStoreInitialized, isRefreshingMrgnlendStore, setIsFetchingData]);
 
   const [ready, setReady] = React.useState(false);
 

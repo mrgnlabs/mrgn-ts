@@ -6,7 +6,7 @@ import { IconAlertTriangle } from "@tabler/icons-react";
 import { usdFormatter, numeralFormatter } from "@mrgnlabs/mrgn-common";
 import { ActiveBankInfo, ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { capture } from "@mrgnlabs/mrgn-utils";
-import { ActionBox, WalletContextStateOverride } from "@mrgnlabs/mrgn-ui";
+import { ActionBox } from "@mrgnlabs/mrgn-ui";
 
 import { cn } from "@mrgnlabs/mrgn-utils";
 import { useAssetItemData } from "~/hooks/useAssetItemData";
@@ -15,7 +15,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "~/
 import { Button } from "~/components/ui/button";
 import { Skeleton } from "~/components/ui/skeleton";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
-import { useMrgnlendStore, useUiStore } from "~/store";
+import { useMrgnlendStore } from "~/store";
 
 interface PortfolioAssetCardProps {
   bank: ActiveBankInfo;
@@ -167,7 +167,6 @@ const PortfolioAction = ({
   buttonVariant?: "default" | "outline" | "outline-dark";
 }) => {
   const { walletContextState, connected } = useWallet();
-  const [setIsWalletAuthDialogOpen] = useUiStore((state) => [state.setIsWalletAuthDialogOpen]);
   const [fetchMrgnlendState] = useMrgnlendStore((state) => [state.fetchMrgnlendState]);
   const isDust = React.useMemo(() => requestedBank?.isActive && requestedBank?.position.isDust, [requestedBank]);
 

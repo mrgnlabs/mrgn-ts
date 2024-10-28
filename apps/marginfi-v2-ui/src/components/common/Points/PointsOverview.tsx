@@ -5,7 +5,6 @@ import { IconInfoCircleFilled } from "@tabler/icons-react";
 
 import { numeralFormatter, groupedNumberFormatterDyn } from "@mrgnlabs/mrgn-common";
 import { UserPointsData } from "@mrgnlabs/marginfi-v2-ui-state";
-import { useUiStore } from "~/store";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
@@ -17,7 +16,6 @@ interface PointsOverviewProps {
 
 export const PointsOverview = ({ userPointsData }: PointsOverviewProps) => {
   const { wallet } = useWallet();
-  const [setIsWalletAuthDialogOpen] = useUiStore((state) => [state.setIsWalletAuthDialogOpen]);
   const [isReferralCopied, setIsReferralCopied] = React.useState(false);
   const [lastUsedWallet, setLastUsedWallet] = React.useState<string>("");
 
