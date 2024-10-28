@@ -1,7 +1,7 @@
 import React from "react";
 import Link from "next/link";
 
-import { StakeBoxProvider } from "@mrgnlabs/mrgn-ui";
+import { StakeBoxProvider, StakeCalculator } from "@mrgnlabs/mrgn-ui";
 
 import { useMrgnlendStore } from "~/store";
 import { useWallet } from "~/components/wallet-v2";
@@ -84,6 +84,8 @@ const Stake = () => {
           </div>
         </div>
       </div>
+
+      <StakeCalculator />
 
       <div className="flex flex-col items-center justify-center gap-4 mb-24 w-full bg-background-gray/50 border-y border-border pt-12 pb-14 px-8 md:px-0">
         <IconArena size={56} className="text-white" />
