@@ -1,6 +1,6 @@
 import {
   ActionMethod,
-  ActionMethodType,
+  ActionMessageUIType,
   canBeBorrowed,
   canBeLent,
   canBeRepaid,
@@ -13,7 +13,7 @@ import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 import { createJupiterApiClient, QuoteGetRequest, QuoteResponse } from "@jup-ag/api";
 import { PublicKey } from "@solana/web3.js";
 
-export function getColorForActionMethodType(type?: ActionMethodType) {
+export function getColorForActionMessageUIType(type?: ActionMessageUIType) {
   if (type === "INFO") {
     return "info";
   } else if (type === "WARNING") {

@@ -1,6 +1,6 @@
 import {
-  ActionMethod,
-  ActionMethodType,
+  ActionMessageUIType,
+  ActionMessageType,
   canBeBorrowed,
   canBeLent,
   canBeRepaidCollat,
@@ -14,7 +14,7 @@ import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 import { QuoteResponse } from "@jup-ag/api";
 
-export function getColorForActionMethodType(type?: ActionMethodType) {
+export function getColorForActionMessageUIType(type?: ActionMessageUIType) {
   if (type === "INFO") {
     return "info";
   } else if (type === "WARNING") {
@@ -52,8 +52,8 @@ export function checkLendActionAvailable({
   banks,
   marginfiAccount,
   lendMode,
-}: CheckLendActionAvailableProps): ActionMethod[] {
-  let checks: ActionMethod[] = [];
+}: CheckLendActionAvailableProps): ActionMessageType[] {
+  let checks: ActionMessageType[] = [];
 
   const requiredCheck = getRequiredCheck(connected, selectedBank);
   if (requiredCheck) return [requiredCheck];
@@ -105,8 +105,8 @@ export function checkLoopActionAvailable({
   selectedBank,
   selectedSecondaryBank,
   actionQuote,
-}: CheckLoopActionAvailableProps): ActionMethod[] {
-  let checks: ActionMethod[] = [];
+}: CheckLoopActionAvailableProps): ActionMessageType[] {
+  let checks: ActionMessageType[] = [];
 
   const requiredCheck = getRequiredCheck(connected, selectedBank);
   if (requiredCheck) return [requiredCheck];
@@ -134,8 +134,8 @@ export function checkRepayCollatActionAvailable({
   selectedBank,
   selectedSecondaryBank,
   actionQuote,
-}: CheckActionAvailableProps): ActionMethod[] {
-  let checks: ActionMethod[] = [];
+}: CheckActionAvailableProps): ActionMessageType[] {
+  let checks: ActionMessageType[] = [];
 
   const requiredCheck = getRequiredCheck(connected, selectedBank);
   if (requiredCheck) return [requiredCheck];
@@ -157,7 +157,7 @@ export function checkRepayCollatActionAvailable({
   return checks;
 }
 
-function getRequiredCheck(connected: boolean, selectedBank: ExtendedBankInfo | null): ActionMethod | null {
+function getRequiredCheck(connected: boolean, selectedBank: ExtendedBankInfo | null): ActionMessageType | null {
   if (!connected) {
     return { isEnabled: false };
   }
@@ -168,8 +168,8 @@ function getRequiredCheck(connected: boolean, selectedBank: ExtendedBankInfo | n
   return null;
 }
 
-function getGeneralChecks(amount: number = 0, showCloseBalance?: boolean): ActionMethod[] {
-  let checks: ActionMethod[] = [];
+function getGeneralChecks(amount: number = 0, showCloseBalance?: boolean): ActionMessageType[] {
+  let checks: ActionMessageType[] = [];
   if (showCloseBalance) {
     checks.push({ actionMethod: "INFO", description: "Close lending balance.", isEnabled: true });
   } // TODO: only for lend and withdraw
@@ -195,8 +195,8 @@ export function checkStakeActionAvailable({
   selectedBank,
   actionQuote,
   lstData,
-}: CheckStakeActionAvailableProps): ActionMethod[] {
-  let checks: ActionMethod[] = [];
+}: CheckStakeActionAvailableProps): ActionMessageType[] {
+  let checks: ActionMessageType[] = [];
 
   const requiredCheck = getRequiredCheck(connected, selectedBank);
   if (requiredCheck) return [requiredCheck];

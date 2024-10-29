@@ -49,7 +49,7 @@ export const MovePositionDialog = ({
     setIsLoading,
   });
 
-  const actionMethods = React.useMemo(() => {
+  const actionMessages = React.useMemo(() => {
     const withdrawActionResult = checkLendActionAvailable({
       amount: bank.position.amount,
       connected: true,
@@ -75,10 +75,10 @@ export const MovePositionDialog = ({
 
   const isButtonDisabled = React.useMemo(() => {
     if (!accountToMoveTo) return true;
-    if (actionMethods && actionMethods.filter((value) => value.isEnabled === false).length > 0) return true;
+    if (actionMessages && actionMessages.filter((value) => value.isEnabled === false).length > 0) return true;
     if (isLoading) return true;
     return false;
-  }, [accountToMoveTo, actionMethods, isLoading]);
+  }, [accountToMoveTo, actionMessages, isLoading]);
 
   const handleMovePosition = React.useCallback(async () => {
     if (!marginfiClient || !accountToMoveTo || !actionTxns) {
@@ -181,11 +181,11 @@ export const MovePositionDialog = ({
           )}
         </div>
 
-        {actionMethods.map(
-          (actionMethod, idx) =>
-            actionMethod.description && (
+        {actionMessages.map(
+          (actionMessage, idx) =>
+            actionMessage.description && (
               <div className="pb-6" key={idx}>
-                <ActionMessage actionMethod={actionMethod} />
+                <ActionMessage _actionMessage={actionMessage} />
               </div>
             )
         )}
