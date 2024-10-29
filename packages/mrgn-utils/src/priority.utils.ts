@@ -39,7 +39,7 @@ export const uiToMicroLamports = (ui: number, limitCU: number = 1_400_000) => {
 export const microLamportsToUi = (microLamports: number, limitCU: number = 1_400_000) => {
   const priorityFeeMicroLamports = microLamports * limitCU;
   const priorityFeeUi = priorityFeeMicroLamports / (LAMPORTS_PER_SOL * 1_000_000);
-  return priorityFeeUi;
+  return Math.trunc(priorityFeeUi * LAMPORTS_PER_SOL) / LAMPORTS_PER_SOL;
 };
 
 export const getBundleTip = async (priorityType: TransactionPriorityType) => {
@@ -74,7 +74,7 @@ export const getBundleTip = async (priorityType: TransactionPriorityType) => {
         : ema_landed_tips_50th_percentile;
   }
 
-  return priorityFee;
+  return Math.trunc(priorityFee * LAMPORTS_PER_SOL) / LAMPORTS_PER_SOL;
 };
 
 export const getRpcPriorityFeeMicroLamports = async (connection: Connection, priorityType: TransactionPriorityType) => {

@@ -12,7 +12,7 @@ import { TipLinkWalletAutoConnect } from "@tiplink/wallet-adapter-react-ui";
 import { init, push } from "@socialgouv/matomo-next";
 import { ToastContainer } from "react-toastify";
 import { Analytics } from "@vercel/analytics/react";
-import { Desktop, Mobile } from "@mrgnlabs/mrgn-utils";
+import { DEFAULT_PRIORITY_FEE_MAX_CAP, Desktop, Mobile } from "@mrgnlabs/mrgn-utils";
 import { ActionBoxProvider, ActionProvider, AuthDialog } from "@mrgnlabs/mrgn-ui";
 import { init as initAnalytics } from "@mrgnlabs/mrgn-utils";
 
@@ -111,7 +111,11 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
               <MrgnWalletProvider>
                 <MrgnlendProvider>
                   <LipClientProvider>
-                    <ActionProvider broadcastType={broadcastType} priorityType={priorityType} maxCap={maxCap}>
+                    <ActionProvider
+                      broadcastType={broadcastType}
+                      priorityType={priorityType}
+                      maxCap={maxCap || DEFAULT_PRIORITY_FEE_MAX_CAP}
+                    >
                       <ActionBoxProvider
                         banks={extendedBankInfos}
                         nativeSolBalance={nativeSolBalance}

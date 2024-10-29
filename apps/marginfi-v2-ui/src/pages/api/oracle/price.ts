@@ -153,7 +153,7 @@ async function fetchCrossbarPrices(feedHashes: string[]): Promise<Map<string, Or
   const controller = new AbortController();
   const timeoutId = setTimeout(() => {
     controller.abort();
-  }, 5000);
+  }, 8000);
 
   try {
     const feedHashesString = feedHashes.join(",");

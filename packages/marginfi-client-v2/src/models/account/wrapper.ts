@@ -721,7 +721,7 @@ class MarginfiAccountWrapper {
       broadcastType
     );
     const ixs = await this.makeDepositIx(amount, bankAddress, opt);
-    const tx = new Transaction().add(bundleTipIx ?? priorityFeeIx, ...ixs.instructions);
+    const tx = new Transaction().add(priorityFeeIx, ...(bundleTipIx ? [bundleTipIx] : []), ...ixs.instructions);
     return tx;
   }
 
@@ -821,7 +821,7 @@ class MarginfiAccountWrapper {
     );
 
     const ixs = await this.makeRepayIx(amount, bankAddress, repayAll, opt);
-    const tx = new Transaction().add(bundleTipIx ?? priorityFeeIx, ...ixs.instructions);
+    const tx = new Transaction().add(priorityFeeIx, ...(bundleTipIx ? [bundleTipIx] : []), ...ixs.instructions);
     return tx;
   }
 
@@ -875,7 +875,7 @@ class MarginfiAccountWrapper {
     for (const bank of banks) {
       ixs.push(...(await this.makeWithdrawIx(bank.amount, bank.bankAddress, true, opt)).instructions);
     }
-    const tx = new Transaction().add(bundleTipIx ?? priorityFeeIx, ...cuRequestIxs, ...ixs);
+    const tx = new Transaction().add(...cuRequestIxs, priorityFeeIx, ...(bundleTipIx ? [bundleTipIx] : []), ...ixs);
     return tx;
   }
 
@@ -944,7 +944,7 @@ class MarginfiAccountWrapper {
 
     const withdrawTx = new VersionedTransaction(
       new TransactionMessage({
-        instructions: [bundleTipIx ?? priorityFeeIx, ...cuRequestIxs, ...ixs.instructions],
+        instructions: [priorityFeeIx, ...(bundleTipIx ? [bundleTipIx] : []), ...cuRequestIxs, ...ixs.instructions],
         payerKey: this.authority,
         recentBlockhash: blockhash,
       }).compileToV0Message([...this.client.addressLookupTables])
@@ -1033,7 +1033,7 @@ class MarginfiAccountWrapper {
 
     const borrowTx = new VersionedTransaction(
       new TransactionMessage({
-        instructions: [bundleTipIx ?? priorityFeeIx, ...cuRequestIxs, ...ixs.instructions],
+        instructions: [...cuRequestIxs, priorityFeeIx, ...(bundleTipIx ? [bundleTipIx] : []), ...ixs.instructions],
         payerKey: this.authority,
         recentBlockhash: blockhash,
       }).compileToV0Message([...this.client.addressLookupTables])
@@ -1080,7 +1080,7 @@ class MarginfiAccountWrapper {
       ixs.push(...ix.instructions);
       signers.push(ix.keys);
     }
-    const tx = new Transaction().add(bundleTipIx ?? priorityFeeIx, ...ixs);
+    const tx = new Transaction().add(priorityFeeIx, ...(bundleTipIx ? [bundleTipIx] : []), ...ixs);
     const sig = await this.client.processTransaction(tx, []);
     debug("Withdrawing emission successful %s", sig);
     return sig;
@@ -1302,10 +1302,10 @@ export function makeTxPriorityIx(
   broadcastType: TransactionBroadcastType = "BUNDLE"
 ) {
   let bundleTipIx: TransactionInstruction | undefined = undefined;
-  let priorityFeeIx: TransactionInstruction = makePriorityFeeIx(0)[0];
+  let priorityFeeIx: TransactionInstruction = makePriorityFeeIx()[0];
 
   if (broadcastType === "BUNDLE") {
-    bundleTipIx = makeBundleTipIx(feePayer, priorityFeeUi * LAMPORTS_PER_SOL);
+    bundleTipIx = makeBundleTipIx(feePayer, Math.trunc(priorityFeeUi * LAMPORTS_PER_SOL));
   } else {
     priorityFeeIx = makePriorityFeeIx(priorityFeeUi)[0];
   }

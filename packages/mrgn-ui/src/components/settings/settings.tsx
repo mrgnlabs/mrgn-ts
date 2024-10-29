@@ -1,7 +1,7 @@
 import { useForm } from "react-hook-form";
 import { IconSparkles } from "@tabler/icons-react";
 
-import { cn } from "@mrgnlabs/mrgn-utils";
+import { cn, DEFAULT_PRIORITY_FEE_MAX_CAP } from "@mrgnlabs/mrgn-utils";
 import { TransactionBroadcastType, TransactionPriorityType } from "@mrgnlabs/mrgn-common";
 
 import { Form, FormControl, FormField, FormItem } from "~/components/ui/form";
@@ -48,7 +48,6 @@ export const Settings = ({
       maxCap,
     },
   });
-  const formWatch = form.watch();
 
   function onSubmit(data: SettingsForm) {
     onChange(data);
@@ -139,7 +138,9 @@ export const Settings = ({
             <h4 className="font-normal text-sm">Set Priority Fee Cap</h4>
             <p className="text-xs text-muted-foreground">
               Set the maximum fee you are willing to pay for a transaction.
-              <span className="text-xs ext-muted-foreground italic pl-1">(Default: 0.01 SOL)</span>
+              <span className="text-xs ext-muted-foreground italic pl-1">
+                (Default: {DEFAULT_PRIORITY_FEE_MAX_CAP} SOL)
+              </span>
             </p>
 
             <FormField

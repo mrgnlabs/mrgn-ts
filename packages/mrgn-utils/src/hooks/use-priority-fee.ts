@@ -4,7 +4,12 @@ import { Connection } from "@solana/web3.js";
 import { TransactionBroadcastType, TransactionPriorityType } from "@mrgnlabs/mrgn-common";
 
 import { usePrevious } from "../mrgnUtils";
-import { getBundleTip, getRpcPriorityFeeMicroLamports, microLamportsToUi } from "../priority.utils";
+import {
+  DEFAULT_PRIORITY_FEE_MAX_CAP,
+  getBundleTip,
+  getRpcPriorityFeeMicroLamports,
+  microLamportsToUi,
+} from "../priority.utils";
 
 export const usePriorityFee = (
   priorityType: TransactionPriorityType,
@@ -34,10 +39,11 @@ export const usePriorityFee = (
       };
 
       const priorityFeeUi = await fetchPriorityFee();
-      if (priorityFeeUi > maxCap) {
-        return maxCap;
+
+      if (priorityFeeUi > (maxCap || DEFAULT_PRIORITY_FEE_MAX_CAP)) {
+        setPriorityFee(maxCap || DEFAULT_PRIORITY_FEE_MAX_CAP);
       }
-      return priorityFeeUi;
+      setPriorityFee(priorityFeeUi);
     },
     [setPriorityFee]
   );
@@ -47,10 +53,18 @@ export const usePriorityFee = (
       connection &&
       (prevPriorityType !== priorityType || prevBroadcastType !== broadcastType || prevMaxCap !== maxCap)
     ) {
-      console.log("hit");
       calculatePriorityFeeUi(priorityType, broadcastType, maxCap, connection);
     }
-  }, [connection, priorityType, broadcastType, maxCap, calculatePriorityFeeUi]);
+  }, [
+    connection,
+    prevBroadcastType,
+    priorityType,
+    prevBroadcastType,
+    broadcastType,
+    prevMaxCap,
+    maxCap,
+    calculatePriorityFeeUi,
+  ]);
 
   return priorityFee;
 };

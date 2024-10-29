@@ -625,7 +625,7 @@ class MarginfiClient {
     // If there was no newAccountKey provided, we need to sign with the ephemeraKeypair we generated.
     if (!createOpts?.newAccountKey) signers.push(accountKeypair);
 
-    const tx = new Transaction().add(bundleTipIx ?? priorityFeeIx, ...ixs.instructions);
+    const tx = new Transaction().add(priorityFeeIx, ...(bundleTipIx ? [bundleTipIx] : []), ...ixs.instructions);
     const sig = await this.processTransaction(tx, signers, opts);
 
     dbg("Created Marginfi account %s", sig);
@@ -1103,7 +1103,7 @@ class MarginfiClient {
           return signature;
         }
 
-        await sleep(500); // Wait before retrying
+        await sleep(1000); // Wait before retrying
       }
     } catch (error) {
       console.error(error);

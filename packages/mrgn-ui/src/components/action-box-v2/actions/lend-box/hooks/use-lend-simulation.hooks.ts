@@ -132,6 +132,7 @@ export function useLendSimulation({
           setErrorMessage(errorMessage);
         }
       } catch (error) {
+        console.log(error);
         setErrorMessage(STATIC_SIMULATION_ERRORS.BUILDING_LENDING_TX);
         setIsLoading(false);
       }
