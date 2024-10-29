@@ -1,6 +1,5 @@
 export * from "./action-input";
 export * from "./action-stats";
-export * from "./action-message";
 export * from "./action-settings";
 export * from "./action-button";
 export * from "./action-wrappers";

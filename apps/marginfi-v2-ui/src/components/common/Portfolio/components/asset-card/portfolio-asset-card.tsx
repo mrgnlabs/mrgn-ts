@@ -1,33 +1,22 @@
 import React from "react";
 
 import Image from "next/image";
+import { IconAlertTriangle } from "@tabler/icons-react";
 
-import { IconAlertTriangle, IconInfoCircle } from "@tabler/icons-react";
 import { usdFormatter, numeralFormatter } from "@mrgnlabs/mrgn-common";
 import { ActiveBankInfo, ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { capture, MultiStepToastHandle } from "@mrgnlabs/mrgn-utils";
+import { capture } from "@mrgnlabs/mrgn-utils";
 import { ActionBox } from "@mrgnlabs/mrgn-ui";
-import { makeBundleTipIx, MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { cn } from "@mrgnlabs/mrgn-utils";
-import { useAssetItemData } from "~/hooks/useAssetItemData";
 
+import { useAssetItemData } from "~/hooks/useAssetItemData";
+import { useMrgnlendStore, useUiStore } from "~/store";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "~/components/ui/accordion";
 import { Button } from "~/components/ui/button";
 import { Skeleton } from "~/components/ui/skeleton";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
-import { useMrgnlendStore, useUiStore } from "~/store";
-import {
-  Dialog,
-  DialogContent,
-  DialogTrigger,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "~/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger } from "~/components/ui/select";
-import { TransactionMessage, VersionedTransaction } from "@solana/web3.js";
-import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "~/components/ui/tooltip";
-import { IconLoader } from "~/components/ui/icons";
+
+import { MovePositionDialog } from "../move-position";
 
 interface PortfolioAssetCardProps {
   bank: ActiveBankInfo;
@@ -37,12 +26,15 @@ interface PortfolioAssetCardProps {
 
 export const PortfolioAssetCard = ({ bank, isInLendingMode, isBorrower = true }: PortfolioAssetCardProps) => {
   const { rateAP } = useAssetItemData({ bank, isInLendingMode });
-  const [selectedAccount, marginfiAccounts, marginfiClient, fetchMrgnlendState] = useMrgnlendStore((state) => [
-    state.selectedAccount,
-    state.marginfiAccounts,
-    state.marginfiClient,
-    state.fetchMrgnlendState,
-  ]);
+  const [selectedAccount, marginfiAccounts, marginfiClient, fetchMrgnlendState, extendedBankInfos] = useMrgnlendStore(
+    (state) => [
+      state.selectedAccount,
+      state.marginfiAccounts,
+      state.marginfiClient,
+      state.fetchMrgnlendState,
+      state.extendedBankInfos,
+    ]
+  );
   const isIsolated = React.useMemo(() => bank.info.state.isIsolated, [bank]);
 
   const isUserPositionPoorHealth = React.useMemo(() => {
@@ -192,6 +184,7 @@ export const PortfolioAssetCard = ({ bank, isInLendingMode, isBorrower = true }:
               bank={bank}
               marginfiClient={marginfiClient}
               fetchMrgnlendState={fetchMrgnlendState}
+              extendedBankInfos={extendedBankInfos}
             />
           )}
         </AccordionContent>
@@ -296,162 +289,5 @@ export const PortfolioAssetCardSkeleton = () => {
       </div>
       <Skeleton className="h-6 w-[80px] " />
     </div>
-  );
-};
-
-export const MovePositionDialog = ({
-  selectedAccount,
-  marginfiAccounts,
-  isOpen,
-  setIsOpen,
-  bank,
-  marginfiClient,
-  fetchMrgnlendState,
-}: {
-  selectedAccount: MarginfiAccountWrapper | null;
-  marginfiAccounts: MarginfiAccountWrapper[];
-  isOpen: boolean;
-  setIsOpen: (isOpen: boolean) => void;
-  bank: ActiveBankInfo;
-  marginfiClient: MarginfiClient | null;
-  fetchMrgnlendState: () => void;
-}) => {
-  const [accountToMoveTo, setAccountToMoveTo] = React.useState<MarginfiAccountWrapper | null | undefined>(
-    selectedAccount
-  );
-  const buttonDisabledState = React.useMemo(() => {
-    if (accountToMoveTo?.address.toBase58() === selectedAccount?.address.toBase58())
-      return "Please select a different account";
-    return "active";
-  }, [accountToMoveTo, selectedAccount, marginfiAccounts, bank]);
-
-  const [isLoading, setIsLoading] = React.useState<boolean>(false);
-
-  const handleMovePosition = React.useCallback(async () => {
-    if (!marginfiClient || !accountToMoveTo) {
-      return;
-    }
-
-    const multiStepToast = new MultiStepToastHandle("Moving position", [
-      {
-        label: `Moving to account ${`${accountToMoveTo?.address.toBase58().slice(0, 8)}
-        ...${accountToMoveTo?.address.toBase58().slice(-8)}`}`,
-      },
-    ]);
-    multiStepToast.start();
-
-    try {
-      setIsLoading(true);
-      const connection = marginfiClient.provider.connection;
-      const blockHash = await connection.getLatestBlockhash();
-      const withdrawIx = await selectedAccount?.makeWithdrawIx(bank.position.amount, bank.address);
-      if (!withdrawIx) return;
-      const withdrawMessage = new TransactionMessage({
-        payerKey: marginfiClient.wallet.publicKey,
-        recentBlockhash: blockHash.blockhash,
-        instructions: [...withdrawIx.instructions],
-      });
-      const withdrawTx = new VersionedTransaction(withdrawMessage.compileToV0Message());
-
-      const bundleTipIx = makeBundleTipIx(marginfiClient?.wallet.publicKey);
-      const depositIx = await accountToMoveTo.makeDepositIx(bank.position.amount, bank.address);
-      if (!depositIx) return;
-      const depositInstruction = new TransactionMessage({
-        payerKey: marginfiClient.wallet.publicKey,
-        recentBlockhash: blockHash.blockhash,
-        instructions: [...depositIx.instructions, bundleTipIx],
-      });
-      const depositTx = new VersionedTransaction(depositInstruction.compileToV0Message());
-
-      await marginfiClient.processTransactions([withdrawTx, depositTx]);
-      await fetchMrgnlendState();
-      multiStepToast.setSuccessAndNext();
-      setIsOpen(false);
-    } catch (error) {
-      console.error("Error moving position between accounts", error);
-      multiStepToast.setFailed("Error moving position between accounts");
-    } finally {
-      setIsLoading(false);
-    }
-  }, [marginfiClient, accountToMoveTo, marginfiAccounts, selectedAccount, bank]);
-
-  return (
-    <Dialog
-      open={isOpen}
-      onOpenChange={(value) => {
-        setIsOpen(value);
-      }}
-    >
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Move position to another account</DialogTitle>
-          <DialogDescription>Move your position to another account</DialogDescription>
-        </DialogHeader>
-
-        <div className=" py-3 px-4 gap-4 flex flex-col ">
-          <dl className="grid grid-cols-2 gap-y-0.5">
-            <dt className="text-muted-foreground">Token value:</dt>
-            <dd className="text-right text-white">
-              {bank.position.amount < 0.01 ? "< $0.01" : numeralFormatter(bank.position.amount)}
-              {" " + bank.meta.tokenSymbol}
-            </dd>
-            <dt className="text-muted-foreground">USD value</dt>
-            <dd className="text-right text-white">
-              {bank.position.usdValue < 0.01 ? "< $0.01" : usdFormatter.format(bank.position.usdValue)}
-            </dd>
-          </dl>
-          <div className="flex justify-between w-full items-center">
-            <span className="text-muted-foreground">Select account to move position to:</span>
-            <Select
-              onValueChange={(value) => {
-                setAccountToMoveTo(marginfiAccounts.find((account) => account.address.toBase58() === value));
-              }}
-            >
-              <SelectTrigger className="w-max">
-                Account{" "}
-                {marginfiAccounts.findIndex(
-                  (account) => account.address.toBase58() === accountToMoveTo?.address.toBase58()
-                ) + 1}
-              </SelectTrigger>
-              <SelectContent>
-                {marginfiAccounts.map((account, i) => (
-                  <SelectItem key={i} value={account.address.toBase58()}>
-                    Account {i + 1}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="flex justify-between w-full items-center">
-            <span className="text-muted-foreground">Account address:</span>
-            <div className="flex gap-1 items-center">
-              <span className="text-muted-foreground ">
-                {`${accountToMoveTo?.address.toBase58().slice(0, 8)}
-                  ...${accountToMoveTo?.address.toBase58().slice(-8)}`}
-              </span>
-            </div>
-          </div>{" "}
-        </div>
-
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger className="w-full">
-              <Button className="w-full" onClick={handleMovePosition} disabled={buttonDisabledState !== "active"}>
-                {isLoading ? <IconLoader /> : "Move position"}
-              </Button>
-            </TooltipTrigger>
-            {buttonDisabledState !== "active" && (
-              <TooltipContent side="top" className="z-50">
-                <span>{buttonDisabledState}</span>
-              </TooltipContent>
-            )}
-          </Tooltip>
-        </TooltipProvider>
-        <div className=" text-xs text-muted-foreground text-center">
-          The transaction will say that there are no balance changes found. The position/funds will be moved between
-          marginfi accounts, but will remain on the same wallet.
-        </div>
-      </DialogContent>
-    </Dialog>
   );
 };

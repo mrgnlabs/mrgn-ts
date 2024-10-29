@@ -11,17 +11,18 @@ import {
   computeAccountSummary,
   DEFAULT_ACCOUNT_SUMMARY,
 } from "@mrgnlabs/marginfi-v2-ui-state";
-import { ActionMethod, MarginfiActionParams, PreviousTxn } from "@mrgnlabs/mrgn-utils";
+import { ActionMethod, checkLendActionAvailable, MarginfiActionParams, PreviousTxn } from "@mrgnlabs/mrgn-utils";
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 
-import { ActionButton, ActionMessage, ActionSettingsButton } from "~/components/action-box-v2/components";
+import { ActionButton } from "~/components/action-box-v2/components";
 
 import { useActionAmounts } from "~/components/action-box-v2/hooks";
 import { LSTDialog, LSTDialogVariants } from "~/components/LSTDialog";
 import { WalletContextStateOverride } from "~/components/wallet-v2/hooks/use-wallet.hook";
+import { ActionMessage } from "~/components";
 
 import { useLendBoxStore } from "./store";
-import { checkActionAvailable, handleExecuteCloseBalance, handleExecuteLendingAction } from "./utils";
+import { handleExecuteCloseBalance, handleExecuteLendingAction } from "./utils";
 import { Collateral, ActionInput, Preview } from "./components";
 import { useLendSimulation } from "./hooks";
 import { useActionBoxStore } from "../../store";
@@ -176,7 +177,7 @@ export const LendBox = ({
 
   const actionMethods = React.useMemo(
     () =>
-      checkActionAvailable({
+      checkLendActionAvailable({
         amount,
         connected,
         showCloseBalance,

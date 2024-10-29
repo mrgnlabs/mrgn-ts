@@ -9,19 +9,26 @@ import {
   ActiveBankInfo,
 } from "@mrgnlabs/marginfi-v2-ui-state";
 import { WalletContextState } from "@solana/wallet-adapter-react";
-import { ActionMethod, MarginfiActionParams, PreviousTxn, showErrorToast } from "@mrgnlabs/mrgn-utils";
+import {
+  ActionMethod,
+  checkLoopActionAvailable,
+  MarginfiActionParams,
+  PreviousTxn,
+  showErrorToast,
+} from "@mrgnlabs/mrgn-utils";
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 
 import { useAmountDebounce } from "~/hooks/useAmountDebounce";
 import { WalletContextStateOverride } from "~/components/wallet-v2";
 import { CircularProgress } from "~/components/ui/circular-progress";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
-import { ActionButton, ActionMessage, ActionSettingsButton } from "~/components/action-box-v2/components";
+import { ActionButton, ActionSettingsButton } from "~/components/action-box-v2/components";
 import { useActionAmounts, usePollBlockHeight } from "~/components/action-box-v2/hooks";
+import { ActionMessage } from "~/components";
 
 import { useActionBoxStore } from "../../store";
 
-import { checkActionAvailable, handleExecuteLoopAction } from "./utils";
+import { handleExecuteLoopAction } from "./utils";
 import { ActionInput, Preview } from "./components";
 import { useLoopBoxStore } from "./store";
 import { useLoopSimulation } from "./hooks";
@@ -185,7 +192,7 @@ export const LoopBox = ({
 
   const actionMethods = React.useMemo(
     () =>
-      checkActionAvailable({
+      checkLoopActionAvailable({
         amount,
         connected,
         selectedBank,

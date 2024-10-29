@@ -25,6 +25,7 @@ import { rewardsType } from "./types";
 import { useRewardSimulation } from "./hooks";
 import { executeCollectTxn } from "./utils";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "~/components/ui/select";
+import { EMISSION_MINT_INFO_MAP } from "~/components/desktop/AssetList/components";
 
 export const LendingPortfolio = () => {
   const router = useRouter();
@@ -224,8 +225,8 @@ export const LendingPortfolio = () => {
   }
 
   return (
-    <div className="p-4 md:p-6 rounded-xl space-y-3 w-full mb-10  bg-background-gray-dark">
-      <div className="flex items-center gap-2">
+    <div className="p-4 md:p-6 flex flex-col w-full mb-10 gap-2">
+      <div className="flex items-center gap-1">
         {hasMultipleAccount && (
           <>
             <p>Current account:</p>
@@ -252,183 +253,181 @@ export const LendingPortfolio = () => {
           </>
         )}
       </div>
-      <div className="flex justify-between w-full">
-        <h2 className="font-medium text-xl">Lend/borrow</h2>
+      <div className="rounded-xl space-y-3 w-full bg-background-gray-dark">
+        <div className="flex justify-between w-full">
+          <h2 className="font-medium text-xl">Lend/borrow</h2>
 
-        <div className="flex text-lg items-center gap-1.5 text-sm">
-          {rewards ? (
-            rewards.totalReward > 0 ? (
-              <button
-                className="cursor-pointer hover:text-[#AAA] underline"
-                onClick={() => {
-                  setRewardsDialogOpen(true);
-                }}
-              >
-                Collect rewards
-              </button>
-            ) : (
-              <button disabled className="cursor-not-allowed text-muted-foreground">
-                No outstanding rewards
-              </button>
-            )
-          ) : (
-            <span className="flex gap-1 items-center">
-              Calculating rewards <IconLoader size={16} />
-            </span>
-          )}{" "}
-          {rewards && (
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <IconInfoCircle size={16} className="text-muted-foreground" />
-                </TooltipTrigger>
-                <TooltipContent>
-                  <span className="">
-                    {rewards && rewards.totalReward > 0
-                      ? `You are earning rewards on the following banks: ${rewards.rewards
-                          .map((r) => r.bank)
-                          .join(", ")}`
-                      : `You do not have any outstanding rewards. Deposit into a bank with emissions to earn additional rewards on top of yield. Banks with emissions: ${bankAddressesWithEmissions
-                          ?.map(
-                            (bank) =>
-                              extendedBankInfos.find((b) => b.meta.address.toBase58() === bank.toBase58())?.meta
-                                .tokenSymbol
-                          )
-                          .join(", ")}`}
-                  </span>{" "}
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          )}
-        </div>
-      </div>
-      <div className="text-muted-foreground">
-        <dl className="flex justify-between items-center gap-2">
-          <dt className="flex items-center gap-1.5 text-sm">
-            Lend/borrow health factor
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <IconInfoCircle size={16} />
-                </TooltipTrigger>
-                <TooltipContent side="right">
-                  <div className="flex flex-col gap-2 pb-2">
-                    <p>
-                      Health factor is based off <b>price biased</b> and <b>weighted</b> asset and liability values.
-                    </p>
-                    <div className="font-medium">
-                      When your account health reaches 0% or below, you are exposed to liquidation.
-                    </div>
-                    <p>The formula is:</p>
-                    <p className="text-sm italic text-center">{"(assets - liabilities) / (assets)"}</p>
-                    <p>Your math is:</p>
-                    <p className="text-sm italic text-center">{`(${usdFormatter.format(
-                      accountSummary.lendingAmountWithBiasAndWeighted
-                    )} - ${usdFormatter.format(
-                      accountSummary.borrowingAmountWithBiasAndWeighted
-                    )}) / (${usdFormatter.format(accountSummary.lendingAmountWithBiasAndWeighted)})`}</p>
-                  </div>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </dt>
-          <dd className="text-xl md:text-2xl font-medium" style={{ color: healthColor }}>
-            {numeralFormatter(accountSummary.healthFactor * 100)}%
-          </dd>
-        </dl>
-        <div className="h-2 bg-background-gray-light rounded-full">
-          <div
-            className="h-2 rounded-full"
-            style={{
-              backgroundColor: healthColor,
-              width: `${accountSummary.healthFactor * 100}%`,
-            }}
-          />
-        </div>
-        <PortfolioUserStats
-          supplied={accountSupplied}
-          borrowed={accountBorrowed}
-          netValue={accountNetValue}
-          points={numeralFormatter(userPointsData.totalPoints)}
-        />
-      </div>
-      <div className="flex flex-col md:flex-row justify-between flex-wrap gap-8 md:gap-20">
-        <div className="flex flex-col flex-1 gap-4 md:min-w-[340px]">
-          <dl className="flex justify-between items-center gap-2 ">
-            <dt className="text-xl font-medium">Supplied</dt>
-            <dt className="text-muted-foreground">{accountSupplied}</dt>
-          </dl>
-          {isStoreInitialized ? (
-            lendingBanks.length > 0 ? (
-              <div className="flex flex-col gap-4">
-                {lendingBanks.map((bank) => (
-                  <PortfolioAssetCard
-                    key={bank.meta.tokenSymbol}
-                    bank={bank}
-                    isInLendingMode={true}
-                    isBorrower={borrowingBanks.length > 0}
-                  />
-                ))}
-              </div>
-            ) : (
-              <div color="#868E95" className="font-aeonik font-[300] text-sm flex gap-1">
-                No lending positions found.
-              </div>
-            )
-          ) : (
-            <PortfolioAssetCardSkeleton />
-          )}
-        </div>
-        <div className="flex flex-col flex-1 gap-4 md:min-w-[340px]">
-          <dl className="flex justify-between items-center gap-2">
-            <dt className="text-xl font-medium">Borrowed</dt>
-            <dt className="text-muted-foreground">{accountBorrowed}</dt>
-          </dl>
-          {isStoreInitialized ? (
-            borrowingBanks.length > 0 ? (
-              <div className="flex flex-col gap-4">
-                {borrowingBanks.map((bank) => (
-                  <PortfolioAssetCard
-                    key={bank.meta.tokenSymbol}
-                    bank={bank}
-                    isInLendingMode={false}
-                    isBorrower={borrowingBanks.length > 0}
-                  />
-                ))}
-              </div>
-            ) : (
-              <div color="#868E95" className="font-aeonik font-[300] text-sm flex gap-1">
-                No borrow positions found.{" "}
+          <div className="flex text-lg items-center gap-1.5 text-sm">
+            {rewards ? (
+              rewards.totalReward > 0 ? (
                 <button
-                  className="border-b border-primary/50 transition-colors hover:border-primary"
+                  className="cursor-pointer hover:text-[#AAA] underline"
                   onClick={() => {
-                    setLendingMode(LendingModes.BORROW);
-                    router.push("/");
+                    setRewardsDialogOpen(true);
                   }}
                 >
-                  Search the pools
-                </button>{" "}
-                and open a new borrow.
-              </div>
-            )
-          ) : (
-            <PortfolioAssetCardSkeleton />
-          )}
+                  Collect rewards
+                </button>
+              ) : (
+                <button disabled className="cursor-not-allowed text-muted-foreground">
+                  No outstanding rewards
+                </button>
+              )
+            ) : (
+              <span className="flex gap-1 items-center">
+                Calculating rewards <IconLoader size={16} />
+              </span>
+            )}{" "}
+            {rewards && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <IconInfoCircle size={16} className="text-muted-foreground" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <span className="">
+                      {rewards && rewards.totalReward > 0
+                        ? `You are earning rewards on the following banks: ${rewards.rewards
+                            .map((r) => r.bank)
+                            .join(", ")}`
+                        : `You do not have any outstanding rewards. Deposit into a bank with emissions to earn additional rewards on top of yield. Banks with emissions: ${[
+                            ...EMISSION_MINT_INFO_MAP.keys(),
+                          ].join(", ")}`}
+                    </span>{" "}
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
+          </div>
         </div>
+        <div className="text-muted-foreground">
+          <dl className="flex justify-between items-center gap-2">
+            <dt className="flex items-center gap-1.5 text-sm">
+              Lend/borrow health factor
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <IconInfoCircle size={16} />
+                  </TooltipTrigger>
+                  <TooltipContent side="right">
+                    <div className="flex flex-col gap-2 pb-2">
+                      <p>
+                        Health factor is based off <b>price biased</b> and <b>weighted</b> asset and liability values.
+                      </p>
+                      <div className="font-medium">
+                        When your account health reaches 0% or below, you are exposed to liquidation.
+                      </div>
+                      <p>The formula is:</p>
+                      <p className="text-sm italic text-center">{"(assets - liabilities) / (assets)"}</p>
+                      <p>Your math is:</p>
+                      <p className="text-sm italic text-center">{`(${usdFormatter.format(
+                        accountSummary.lendingAmountWithBiasAndWeighted
+                      )} - ${usdFormatter.format(
+                        accountSummary.borrowingAmountWithBiasAndWeighted
+                      )}) / (${usdFormatter.format(accountSummary.lendingAmountWithBiasAndWeighted)})`}</p>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </dt>
+            <dd className="text-xl md:text-2xl font-medium" style={{ color: healthColor }}>
+              {numeralFormatter(accountSummary.healthFactor * 100)}%
+            </dd>
+          </dl>
+          <div className="h-2 bg-background-gray-light rounded-full">
+            <div
+              className="h-2 rounded-full"
+              style={{
+                backgroundColor: healthColor,
+                width: `${accountSummary.healthFactor * 100}%`,
+              }}
+            />
+          </div>
+          <PortfolioUserStats
+            supplied={accountSupplied}
+            borrowed={accountBorrowed}
+            netValue={accountNetValue}
+            points={numeralFormatter(userPointsData.totalPoints)}
+          />
+        </div>
+        <div className="flex flex-col md:flex-row justify-between flex-wrap gap-8 md:gap-20">
+          <div className="flex flex-col flex-1 gap-4 md:min-w-[340px]">
+            <dl className="flex justify-between items-center gap-2 ">
+              <dt className="text-xl font-medium">Supplied</dt>
+              <dt className="text-muted-foreground">{accountSupplied}</dt>
+            </dl>
+            {isStoreInitialized ? (
+              lendingBanks.length > 0 ? (
+                <div className="flex flex-col gap-4">
+                  {lendingBanks.map((bank) => (
+                    <PortfolioAssetCard
+                      key={bank.meta.tokenSymbol}
+                      bank={bank}
+                      isInLendingMode={true}
+                      isBorrower={borrowingBanks.length > 0}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div color="#868E95" className="font-aeonik font-[300] text-sm flex gap-1">
+                  No lending positions found.
+                </div>
+              )
+            ) : (
+              <PortfolioAssetCardSkeleton />
+            )}
+          </div>
+          <div className="flex flex-col flex-1 gap-4 md:min-w-[340px]">
+            <dl className="flex justify-between items-center gap-2">
+              <dt className="text-xl font-medium">Borrowed</dt>
+              <dt className="text-muted-foreground">{accountBorrowed}</dt>
+            </dl>
+            {isStoreInitialized ? (
+              borrowingBanks.length > 0 ? (
+                <div className="flex flex-col gap-4">
+                  {borrowingBanks.map((bank) => (
+                    <PortfolioAssetCard
+                      key={bank.meta.tokenSymbol}
+                      bank={bank}
+                      isInLendingMode={false}
+                      isBorrower={borrowingBanks.length > 0}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div color="#868E95" className="font-aeonik font-[300] text-sm flex gap-1">
+                  No borrow positions found.{" "}
+                  <button
+                    className="border-b border-primary/50 transition-colors hover:border-primary"
+                    onClick={() => {
+                      setLendingMode(LendingModes.BORROW);
+                      router.push("/");
+                    }}
+                  >
+                    Search the pools
+                  </button>{" "}
+                  and open a new borrow.
+                </div>
+              )
+            ) : (
+              <PortfolioAssetCardSkeleton />
+            )}
+          </div>
+        </div>
+        <RewardsDialog
+          availableRewards={rewards}
+          onClose={() => {
+            setRewardsDialogOpen(false);
+          }}
+          open={rewardsDialogOpen}
+          onOpenChange={(open) => {
+            setRewardsDialogOpen(open);
+          }}
+          onCollect={handleCollectExectuion}
+          isLoading={rewardsLoading}
+        />
+        {previousTxn && <ActionComplete />}
       </div>
-      <RewardsDialog
-        availableRewards={rewards}
-        onClose={() => {
-          setRewardsDialogOpen(false);
-        }}
-        open={rewardsDialogOpen}
-        onOpenChange={(open) => {
-          setRewardsDialogOpen(open);
-        }}
-        onCollect={handleCollectExectuion}
-        isLoading={rewardsLoading}
-      />
-      {previousTxn && <ActionComplete />}
     </div>
   );
 };
