@@ -30,6 +30,7 @@ import {
   NodeWallet,
   simulateBundle,
   sleep,
+  TransactionBroadcastType,
   TransactionOptions,
   Wallet,
 } from "@mrgnlabs/mrgn-common";
@@ -47,6 +48,7 @@ import {
   BankConfigOpt,
   BankConfig,
   makeBundleTipIx,
+  makeTxPriorityIx,
 } from ".";
 import { MarginfiAccountWrapper } from "./models/account/wrapper";
 import {
@@ -607,20 +609,23 @@ class MarginfiClient {
    */
   async createMarginfiAccount(
     opts?: TransactionOptions,
-    createOpts?: { newAccountKey?: PublicKey | undefined }
+    createOpts?: { newAccountKey?: PublicKey | undefined },
+    priorityFeeUi?: number,
+    broadcastType?: TransactionBroadcastType
   ): Promise<MarginfiAccountWrapper> {
     const dbg = require("debug")("mfi:client");
 
     const accountKeypair = Keypair.generate();
     const newAccountKey = createOpts?.newAccountKey ?? accountKeypair.publicKey;
 
-    const bundleTipIx = makeBundleTipIx(this.provider.publicKey);
+    const { bundleTipIx, priorityFeeIx } = makeTxPriorityIx(this.provider.publicKey, priorityFeeUi, broadcastType);
+
     const ixs = await this.makeCreateMarginfiAccountIx(newAccountKey);
     const signers = [...ixs.keys];
     // If there was no newAccountKey provided, we need to sign with the ephemeraKeypair we generated.
     if (!createOpts?.newAccountKey) signers.push(accountKeypair);
 
-    const tx = new Transaction().add(bundleTipIx, ...ixs.instructions);
+    const tx = new Transaction().add(bundleTipIx ?? priorityFeeIx, ...ixs.instructions);
     const sig = await this.processTransaction(tx, signers, opts);
 
     dbg("Created Marginfi account %s", sig);

@@ -1,11 +1,18 @@
 import { Connection, LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
-import { getRecentPrioritizationFeesByPercentile, PriotitizationFeeLevels } from "./grpf";
-import { TransactionPriorityType } from "./types";
+import {
+  getRecentPrioritizationFeesByPercentile,
+  TransactionBroadcastType,
+  TransactionPriorityType,
+} from "@mrgnlabs/mrgn-common";
 
-export const DEFAULT_BUNDLE_TIP_LAMPORTS = 0.0001; // 100_000 lamports = 0.0001 SOL
-export const DEFAULT_BUNDLE_TIP_UPPER_BOUND = 0.003; // 1_000_000 lamports = 0.003 SOL
+const enum PriotitizationFeeLevels {
+  LOW = 2500,
+  MEDIAN = 5000,
+  HIGH = 7500,
+  MAX = 10000,
+}
 
-export interface TipFloorDataResponse {
+interface TipFloorDataResponse {
   time: string;
   landed_tips_25th_percentile: number;
   landed_tips_50th_percentile: number;
@@ -14,6 +21,14 @@ export interface TipFloorDataResponse {
   landed_tips_99th_percentile: number;
   ema_landed_tips_50th_percentile: number;
 }
+
+export const DEFAULT_PRIORITY_FEE_MAX_CAP = 0.004; // 4_000_000 lamports = 0.004 SOL
+
+export const DEFAULT_PRIORITY_SETTINGS = {
+  priorityType: "NORMAL" as TransactionPriorityType,
+  broadcastType: "BUNDLE" as TransactionBroadcastType,
+  maxCap: DEFAULT_PRIORITY_FEE_MAX_CAP,
+};
 
 export const uiToMicroLamports = (ui: number, limitCU: number = 1_400_000) => {
   const priorityFeeMicroLamports = ui * LAMPORTS_PER_SOL * 1_000_000;

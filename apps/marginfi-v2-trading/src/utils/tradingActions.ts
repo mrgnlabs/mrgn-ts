@@ -237,6 +237,7 @@ export async function executeLeverageAction({
         loopObject: loopingObject,
         priorityFee,
         isTrading: true,
+        broadcastType: "BUNDLE",
       });
 
       if ("loopingTxn" in result) {

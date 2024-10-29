@@ -1,13 +1,15 @@
 import React from "react";
 
-import { TransactionBroadcastType } from "@mrgnlabs/mrgn-utils";
+import { TransactionBroadcastType, TransactionPriorityType } from "@mrgnlabs/mrgn-common";
+import { DEFAULT_PRIORITY_SETTINGS } from "@mrgnlabs/mrgn-utils";
 
 type ActionContextType = {
+  priorityType: TransactionPriorityType;
   broadcastType: TransactionBroadcastType;
-  priorityFee: number;
+  maxCap: number;
 };
 
-const ActionContext = React.createContext<ActionContextType | null>(null);
+const ActionContext = React.createContext<ActionContextType>({ ...DEFAULT_PRIORITY_SETTINGS });
 
 export const ActionProvider: React.FC<ActionContextType & { children: React.ReactNode }> = ({ children, ...props }) => {
   return <ActionContext.Provider value={props}>{children}</ActionContext.Provider>;

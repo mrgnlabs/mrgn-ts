@@ -8,7 +8,14 @@ import {
   DEFAULT_ACCOUNT_SUMMARY,
   ActiveBankInfo,
 } from "@mrgnlabs/marginfi-v2-ui-state";
-import { ActionMethod, MarginfiActionParams, PreviousTxn, showErrorToast } from "@mrgnlabs/mrgn-utils";
+import {
+  ActionMethod,
+  MarginfiActionParams,
+  PreviousTxn,
+  showErrorToast,
+  useConnection,
+  usePriorityFee,
+} from "@mrgnlabs/mrgn-utils";
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 
 import { CircularProgress } from "~/components/ui/circular-progress";
@@ -22,6 +29,7 @@ import { useRepayCollatBoxStore } from "./store";
 import { useRepayCollatSimulation } from "./hooks";
 
 import { useActionBoxStore } from "../../store";
+import { useActionContext } from "../../contexts";
 
 // error handling
 export type RepayCollatBoxProps = {
@@ -55,8 +63,6 @@ export const RepayCollatBox = ({
   onComplete,
   captureEvent,
 }: RepayCollatBoxProps) => {
-  const priorityFee = 0;
-
   const [
     maxAmountCollateral,
     repayAmount,
@@ -101,6 +107,9 @@ export const RepayCollatBox = ({
     state.setIsLoading,
   ]);
 
+  const { priorityType, broadcastType, maxCap } = useActionContext();
+  const priorityFee = usePriorityFee(priorityType, broadcastType, maxCap, marginfiClient?.provider.connection);
+
   const { isRefreshTxn, blockProgress } = usePollBlockHeight(
     marginfiClient?.provider.connection,
     actionTxns.lastValidBlockHeight
@@ -142,6 +151,8 @@ export const RepayCollatBox = ({
     actionTxns,
     simulationResult,
     isRefreshTxn,
+    priorityFee,
+    broadcastType,
     setSimulationResult,
     setActionTxns,
     setErrorMessage,
@@ -196,7 +207,8 @@ export const RepayCollatBox = ({
         nativeSolBalance,
         marginfiAccount: selectedAccount,
         actionTxns,
-        priorityFee: 0,
+        priorityFee,
+        broadcastType,
       } as MarginfiActionParams;
 
       await handleExecuteRepayCollatAction({
@@ -237,10 +249,12 @@ export const RepayCollatBox = ({
   }, [
     actionTxns,
     amount,
+    broadcastType,
     captureEvent,
     marginfiClient,
     nativeSolBalance,
     onComplete,
+    priorityFee,
     selectedAccount,
     selectedBank,
     setAmountRaw,

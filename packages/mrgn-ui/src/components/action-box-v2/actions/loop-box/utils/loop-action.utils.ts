@@ -4,6 +4,7 @@ import { Connection, VersionedTransaction } from "@solana/web3.js";
 
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { TransactionBroadcastType } from "@mrgnlabs/mrgn-common";
 import {
   ActionMethod,
   calculateLoopingParams,
@@ -65,7 +66,8 @@ export async function calculateLooping(
   slippageBps: number,
   connection: Connection,
   priorityFee: number,
-  platformFeeBps: number
+  platformFeeBps: number,
+  broadcastType: TransactionBroadcastType
 ): Promise<LoopingObject | ActionMethod> {
   // TODO setup logging again
   // capture("looper", {
@@ -86,6 +88,7 @@ export async function calculateLooping(
     connection,
     priorityFee,
     platformFeeBps,
+    broadcastType,
   });
 
   return result;

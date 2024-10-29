@@ -13,7 +13,7 @@ import { init, push } from "@socialgouv/matomo-next";
 import { ToastContainer } from "react-toastify";
 import { Analytics } from "@vercel/analytics/react";
 import { Desktop, Mobile } from "@mrgnlabs/mrgn-utils";
-import { ActionBoxProvider, AuthDialog } from "@mrgnlabs/mrgn-ui";
+import { ActionBoxProvider, ActionProvider, AuthDialog } from "@mrgnlabs/mrgn-ui";
 import { init as initAnalytics } from "@mrgnlabs/mrgn-utils";
 
 import config from "~/config";
@@ -53,7 +53,13 @@ const MATOMO_URL = "https://mrgn.matomo.cloud";
 type MrgnAppProps = { path: string };
 
 export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnAppProps) {
-  const [setIsFetchingData, isOraclesStale] = useUiStore((state) => [state.setIsFetchingData, state.isOraclesStale]);
+  const [priorityType, broadcastType, maxCap, setIsFetchingData, isOraclesStale] = useUiStore((state) => [
+    state.priorityType,
+    state.broadcastType,
+    state.maxCap,
+    state.setIsFetchingData,
+    state.isOraclesStale,
+  ]);
   const [
     isMrgnlendStoreInitialized,
     isRefreshingMrgnlendStore,
@@ -105,47 +111,52 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
               <MrgnWalletProvider>
                 <MrgnlendProvider>
                   <LipClientProvider>
-                    <ActionBoxProvider
-                      banks={extendedBankInfos}
-                      nativeSolBalance={nativeSolBalance}
-                      marginfiClient={marginfiClient}
-                      selectedAccount={selectedAccount}
-                      connected={false}
-                      accountSummaryArg={accountSummary}
-                    >
-                      <CongestionBanner />
-                      <Navbar />
+                    <ActionProvider broadcastType={broadcastType} priorityType={priorityType} maxCap={maxCap}>
+                      <ActionBoxProvider
+                        banks={extendedBankInfos}
+                        nativeSolBalance={nativeSolBalance}
+                        marginfiClient={marginfiClient}
+                        selectedAccount={selectedAccount}
+                        connected={false}
+                        accountSummaryArg={accountSummary}
+                      >
+                        <CongestionBanner />
+                        <Navbar />
 
-                      <Desktop>
-                        <WalletModalProvider>
+                        <Desktop>
+                          <WalletModalProvider>
+                            <div
+                              className={cn(
+                                "w-full flex flex-col justify-center items-center",
+                                isOraclesStale && "pt-10"
+                              )}
+                            >
+                              <Component {...pageProps} />
+                            </div>
+                            <Footer />
+                          </WalletModalProvider>
+                        </Desktop>
+
+                        <Mobile>
                           <div
                             className={cn(
                               "w-full flex flex-col justify-center items-center",
-                              isOraclesStale && "pt-10"
+                              isOraclesStale && "pt-16"
                             )}
                           >
                             <Component {...pageProps} />
                           </div>
-                          <Footer />
-                        </WalletModalProvider>
-                      </Desktop>
+                          <MobileNavbar />
+                        </Mobile>
 
-                      <Mobile>
-                        <div
-                          className={cn("w-full flex flex-col justify-center items-center", isOraclesStale && "pt-16")}
-                        >
-                          <Component {...pageProps} />
-                        </div>
-                        <MobileNavbar />
-                      </Mobile>
-
-                      <Analytics />
-                      <Tutorial />
-                      <AuthDialog
-                        mrgnState={{ marginfiClient, selectedAccount, extendedBankInfos, nativeSolBalance }}
-                      />
-                      <ToastContainer position="bottom-left" theme="dark" />
-                    </ActionBoxProvider>
+                        <Analytics />
+                        <Tutorial />
+                        <AuthDialog
+                          mrgnState={{ marginfiClient, selectedAccount, extendedBankInfos, nativeSolBalance }}
+                        />
+                        <ToastContainer position="bottom-left" theme="dark" />
+                      </ActionBoxProvider>
+                    </ActionProvider>
                   </LipClientProvider>
                 </MrgnlendProvider>
               </MrgnWalletProvider>

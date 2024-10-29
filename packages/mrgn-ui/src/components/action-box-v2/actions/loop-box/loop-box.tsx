@@ -9,7 +9,14 @@ import {
   ActiveBankInfo,
 } from "@mrgnlabs/marginfi-v2-ui-state";
 import { WalletContextState } from "@solana/wallet-adapter-react";
-import { ActionMethod, MarginfiActionParams, PreviousTxn, showErrorToast } from "@mrgnlabs/mrgn-utils";
+import {
+  ActionMethod,
+  MarginfiActionParams,
+  PreviousTxn,
+  showErrorToast,
+  useConnection,
+  usePriorityFee,
+} from "@mrgnlabs/mrgn-utils";
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 
 import { useAmountDebounce } from "~/hooks/useAmountDebounce";
@@ -27,6 +34,7 @@ import { useLoopBoxStore } from "./store";
 import { useLoopSimulation } from "./hooks";
 import { LeverageSlider } from "./components/leverage-slider";
 import { ApyStat } from "./components/apy-stat";
+import { useActionContext } from "../../contexts";
 
 // error handling
 export type LoopBoxProps = {
@@ -60,8 +68,6 @@ export const LoopBox = ({
   onComplete,
   captureEvent,
 }: LoopBoxProps) => {
-  const priorityFee = 0;
-
   const [
     leverage,
     maxLeverage,
@@ -110,6 +116,10 @@ export const LoopBox = ({
     state.setIsLoading,
   ]);
 
+  const { priorityType, broadcastType, maxCap } = useActionContext();
+
+  const priorityFee = usePriorityFee(priorityType, broadcastType, maxCap, marginfiClient?.provider.connection);
+
   const [slippage, setIsSettingsDialogOpen, setPreviousTxn, setIsActionComplete] = useActionBoxStore((state) => [
     state.slippageBps,
     state.setIsSettingsDialogOpen,
@@ -154,6 +164,8 @@ export const LoopBox = ({
     actionTxns,
     simulationResult,
     isRefreshTxn,
+    priorityFee,
+    broadcastType,
     setMaxLeverage,
     setSimulationResult,
     setActionTxns,
@@ -217,7 +229,8 @@ export const LoopBox = ({
           loopingBank: selectedSecondaryBank,
           connection: marginfiClient?.provider.connection!,
         },
-        priorityFee: 0,
+        priorityFee,
+        broadcastType,
         slippage: slippage,
       } as MarginfiActionParams;
 
@@ -261,11 +274,13 @@ export const LoopBox = ({
   }, [
     actionTxns,
     amount,
+    broadcastType,
     captureEvent,
     leverage,
     marginfiClient,
     nativeSolBalance,
     onComplete,
+    priorityFee,
     selectedAccount,
     selectedBank,
     selectedSecondaryBank,

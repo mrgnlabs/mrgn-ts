@@ -1,7 +1,7 @@
 import React from "react";
 
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
-import { getBlockedActions, cn, TipFloorDataResponse, handleBundleTip } from "@mrgnlabs/mrgn-utils";
+import { getBlockedActions, cn } from "@mrgnlabs/mrgn-utils";
 
 import { ActionSettings } from "../action-settings";
 import { useActionBoxStore } from "../../store";
@@ -14,48 +14,12 @@ interface ActionBoxWrapperProps {
 }
 
 export const ActionBoxWrapper = ({ children, isDialog, actionMode, showSettings = true }: ActionBoxWrapperProps) => {
-  const [
-    priorityFee,
-    slippage,
-    isSettingsDialogOpen,
-    setIsSettingsDialogOpen,
-    setPriorityFee,
-    setSlippageBps,
-    bundleTip,
-    setBundleTip,
-  ] = useActionBoxStore((state) => [
-    state.priorityFee,
+  const [slippage, isSettingsDialogOpen, setIsSettingsDialogOpen, setSlippageBps] = useActionBoxStore((state) => [
     state.slippageBps,
     state.isSettingsDialogOpen,
     state.setIsSettingsDialogOpen,
-    state.setPriorityFee,
     state.setSlippageBps,
-    state.bundleTip,
-    state.setBundleTip,
   ]);
-
-  const fetchBundleTip = React.useCallback(async () => {
-    const response = await fetch("/api/bundles/tip", {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json; charset=utf-8",
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error("Failed to fetch bundle tip");
-    }
-
-    const bundleTipData: TipFloorDataResponse = await response.json();
-
-    const { isCongested, bundleTip } = handleBundleTip(bundleTipData);
-
-    setBundleTip(bundleTip);
-  }, [setBundleTip]);
-
-  React.useEffect(() => {
-    fetchBundleTip();
-  }, [fetchBundleTip]);
 
   const isActionDisabled = React.useMemo(() => {
     const blockedActions = getBlockedActions();
@@ -99,12 +63,8 @@ export const ActionBoxWrapper = ({ children, isDialog, actionMode, showSettings 
         >
           {isSettingsDialogOpen && showSettings ? (
             <ActionSettings
-              priorityFee={priorityFee}
-              bundleTip={bundleTip}
               slippage={isSlippageEnabled ? slippage : undefined}
-              changePriorityFee={setPriorityFee}
               changeSlippage={setSlippageBps}
-              changeBundleTip={setBundleTip}
               toggleSettings={(value) => setIsSettingsDialogOpen(value)}
             />
           ) : (

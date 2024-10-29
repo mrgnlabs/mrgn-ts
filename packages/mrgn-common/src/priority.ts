@@ -1,6 +1,10 @@
 import type { RecentPrioritizationFees } from "@solana/web3.js";
 import { Connection, type GetRecentPrioritizationFeesConfig } from "@solana/web3.js";
 
+export type TransactionBroadcastType = "BUNDLE" | "RPC";
+
+export type TransactionPriorityType = "NORMAL" | "HIGH" | "MAMAS";
+
 // easy to use values for user convenience
 export const enum PriotitizationFeeLevels {
   LOW = 2500,

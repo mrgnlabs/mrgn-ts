@@ -4,13 +4,9 @@ import { IconArrowLeft } from "@tabler/icons-react";
 import { BundleTip, Slippage } from "./components";
 
 interface ActionSettingsProps {
-  priorityFee?: number;
   slippage?: number;
-  bundleTip?: number;
 
-  changePriorityFee: (value: number) => void;
   changeSlippage: (value: number) => void;
-  changeBundleTip: (value: number) => void;
   toggleSettings: (value: boolean) => void;
   returnLabel?: string;
 }
@@ -21,12 +17,8 @@ enum SettingsState {
 }
 
 export const ActionSettings = ({
-  priorityFee,
   slippage,
-  bundleTip,
-  changePriorityFee,
   changeSlippage,
-  changeBundleTip,
 
   toggleSettings,
   returnLabel = "Back",
@@ -65,9 +57,7 @@ export const ActionSettings = ({
             setSlippagePct={(value) => changeSlippage(value * 100)}
           />
         )}
-        {bundleTip !== undefined && (
-          <BundleTip toggleSettings={toggleSettings} bundleTip={bundleTip} changeBundleTip={changeBundleTip} />
-        )}
+
         {/* {priorityFee !== undefined && settingsMode === SettingsState.PriorityFee && (
           <PriorityFees toggleSettings={toggleSettings} priorityFee={priorityFee} setPriorityFee={changePriorityFee} />
         )} */}

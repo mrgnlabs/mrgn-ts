@@ -11,7 +11,7 @@ import {
   computeAccountSummary,
   DEFAULT_ACCOUNT_SUMMARY,
 } from "@mrgnlabs/marginfi-v2-ui-state";
-import { ActionMethod, MarginfiActionParams, PreviousTxn } from "@mrgnlabs/mrgn-utils";
+import { ActionMethod, MarginfiActionParams, PreviousTxn, useConnection, usePriorityFee } from "@mrgnlabs/mrgn-utils";
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 
 import { ActionButton, ActionMessage, ActionSettingsButton } from "~/components/action-box-v2/components";
@@ -26,6 +26,7 @@ import { Collateral, ActionInput, Preview } from "./components";
 import { useLendSimulation } from "./hooks";
 import { useActionBoxStore } from "../../store";
 import { HidePoolStats } from "../../contexts/actionbox/actionbox.context";
+import { useActionContext } from "../../contexts";
 
 // error handling
 export type LendBoxProps = {
@@ -109,15 +110,18 @@ export const LendBox = ({
     state.setErrorMessage,
   ]);
 
+  const { priorityType, broadcastType, maxCap } = useActionContext();
+
+  const priorityFee = usePriorityFee(priorityType, broadcastType, maxCap, marginfiClient?.provider.connection);
+
   const accountSummary = React.useMemo(() => {
     return (
       accountSummaryArg ?? (selectedAccount ? computeAccountSummary(selectedAccount, banks) : DEFAULT_ACCOUNT_SUMMARY)
     );
   }, [accountSummaryArg, selectedAccount, banks]);
 
-  const [setIsSettingsDialogOpen, priorityFee, setPreviousTxn, setIsActionComplete] = useActionBoxStore((state) => [
+  const [setIsSettingsDialogOpen, setPreviousTxn, setIsActionComplete] = useActionBoxStore((state) => [
     state.setIsSettingsDialogOpen,
-    state.priorityFee,
     state.setPreviousTxn,
     state.setIsActionComplete,
   ]);
@@ -136,6 +140,8 @@ export const LendBox = ({
     lendMode,
     actionTxns,
     simulationResult,
+    priorityFee,
+    broadcastType,
     setSimulationResult,
     setActionTxns,
     setErrorMessage,
@@ -200,7 +206,8 @@ export const LendBox = ({
       params: {
         bank: selectedBank,
         marginfiAccount: selectedAccount,
-        priorityFee: 0,
+        priorityFee,
+        broadcastType,
       },
       captureEvent: (event, properties) => {
         captureEvent && captureEvent(event, properties);
@@ -236,6 +243,8 @@ export const LendBox = ({
   }, [
     selectedBank,
     selectedAccount,
+    priorityFee,
+    broadcastType,
     setAmountRaw,
     captureEvent,
     setIsActionComplete,
@@ -259,7 +268,8 @@ export const LendBox = ({
         marginfiAccount: selectedAccount,
         walletContextState,
         actionTxns,
-        priorityFee: 0,
+        priorityFee,
+        broadcastType,
       } as MarginfiActionParams;
 
       await handleExecuteLendingAction({
@@ -314,6 +324,8 @@ export const LendBox = ({
     selectedAccount,
     walletContextState,
     actionTxns,
+    priorityFee,
+    broadcastType,
     captureEvent,
     setIsActionComplete,
     setPreviousTxn,

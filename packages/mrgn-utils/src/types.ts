@@ -81,7 +81,3 @@ export type PreviousTxn =
   | PreviousTxnTrading
   | PreviousTxnPositionClosed
   | PreviousTxnStake;
-
-export type TransactionBroadcastType = "BUNDLE" | "RPC";
-
-export type TransactionPriorityType = "NORMAL" | "HIGH" | "MAMAS";

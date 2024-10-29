@@ -10,7 +10,13 @@ import {
   SimulationResult,
 } from "@mrgnlabs/marginfi-client-v2";
 import { AccountSummary, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { Wallet, percentFormatter, tokenPriceFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
+import {
+  TransactionBroadcastType,
+  Wallet,
+  percentFormatter,
+  tokenPriceFormatter,
+  usdFormatter,
+} from "@mrgnlabs/mrgn-common";
 import {
   ActionMethod,
   DYNAMIC_SIMULATION_ERRORS,
@@ -19,10 +25,8 @@ import {
   LoopingOptions,
   showErrorToast,
   MultiStepToastHandle,
-  STATIC_SIMULATION_ERRORS,
   cn,
   extractErrorString,
-  isBankOracleStale,
 } from "@mrgnlabs/mrgn-utils";
 
 import { IconPyth, IconSwitchboard } from "~/components/ui/icons";
@@ -37,25 +41,24 @@ export async function looping({
   depositAmount,
   options,
   priorityFee,
-  isTxnSplit = false,
+  broadcastType,
 }: {
   marginfiClient: MarginfiClient | null;
   marginfiAccount: MarginfiAccountWrapper;
   bank: ExtendedBankInfo;
   depositAmount: number;
   options: LoopingOptions;
-  priorityFee?: number;
-  isTxnSplit?: boolean;
+  priorityFee: number;
+  broadcastType: TransactionBroadcastType;
 }) {
   if (marginfiClient === null) {
     showErrorToast({ message: "Marginfi client not ready" });
     return;
   }
 
-  const multiStepToast = new MultiStepToastHandle(
-    "Looping",
-    [{ label: `Executing looping ${bank.meta.tokenSymbol} with ${options.loopingBank.meta.tokenSymbol}` }]
-  );
+  const multiStepToast = new MultiStepToastHandle("Looping", [
+    { label: `Executing looping ${bank.meta.tokenSymbol} with ${options.loopingBank.meta.tokenSymbol}` },
+  ]);
   multiStepToast.start();
 
   try {
@@ -70,7 +73,7 @@ export async function looping({
         depositAmount,
         options,
         priorityFee,
-        // isTxnSplit,
+        broadcastType,
       });
       sigs = await marginfiClient.processTransactions([...feedCrankTxs, flashloanTx]);
     }

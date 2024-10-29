@@ -2,7 +2,8 @@ import { create, StateCreator } from "zustand";
 import { persist } from "zustand/middleware";
 
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
-import { LendingModes, PoolTypes, TransactionBroadcastType, TransactionPriorityType } from "@mrgnlabs/mrgn-utils";
+import { TransactionBroadcastType, TransactionPriorityType } from "@mrgnlabs/mrgn-common";
+import { LendingModes, PoolTypes, DEFAULT_PRIORITY_SETTINGS } from "@mrgnlabs/mrgn-utils";
 
 import { SortType, sortDirection, SortAssetOption, PreviousTxn } from "~/types";
 
@@ -91,9 +92,7 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
   poolFilter: PoolTypes.ALL,
   sortOption: SORT_OPTIONS_MAP[SortType.TVL_DESC],
   assetListSearch: "",
-  broadcastType: "BUNDLE",
-  priorityType: "NORMAL",
-  maxCap: 0,
+  ...DEFAULT_PRIORITY_SETTINGS,
 
   // Actions
   setIsMenuDrawerOpen: (isOpen: boolean) => set({ isMenuDrawerOpen: isOpen }),

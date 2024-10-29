@@ -13,7 +13,7 @@ import * as Sentry from "@sentry/nextjs";
 
 import { ExtendedBankInfo, clearAccountCache } from "@mrgnlabs/marginfi-v2-ui-state";
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
-import { Wallet, uiToNative } from "@mrgnlabs/mrgn-common";
+import { TransactionBroadcastType, Wallet, uiToNative } from "@mrgnlabs/mrgn-common";
 
 import { WalletContextStateOverride } from "../wallet";
 import { showErrorToast, MultiStepToastHandle } from "../toasts";
@@ -82,6 +82,7 @@ export async function createAccountAndDeposit({
   amount,
   walletContextState,
   priorityFee,
+  broadcastType,
   theme,
 }: MarginfiActionParams) {
   if (marginfiClient === null) {
@@ -98,7 +99,7 @@ export async function createAccountAndDeposit({
   let marginfiAccount: MarginfiAccountWrapper;
   try {
     const squadsOptions = await getMaybeSquadsOptions(walletContextState);
-    marginfiAccount = await marginfiClient.createMarginfiAccount(undefined, squadsOptions);
+    marginfiAccount = await marginfiClient.createMarginfiAccount(undefined, squadsOptions, priorityFee, broadcastType);
 
     clearAccountCache(marginfiClient.provider.publicKey);
 
@@ -118,7 +119,7 @@ export async function createAccountAndDeposit({
   }
 
   try {
-    const txnSig = await marginfiAccount.deposit(amount, bank.address, { priorityFeeUi: priorityFee });
+    const txnSig = await marginfiAccount.deposit(amount, bank.address, { priorityFeeUi: priorityFee }, broadcastType);
     multiStepToast.setSuccessAndNext();
     return txnSig;
   } catch (error: any) {
@@ -316,7 +317,7 @@ export async function looping({
   actionTxns,
   loopingOptions,
   priorityFee,
-  isTxnSplit = false,
+  broadcastType,
   theme,
 }: MarginfiActionParams & { isTxnSplit?: boolean }) {
   if (marginfiClient === null) {
@@ -345,6 +346,7 @@ export async function looping({
           depositAmount: amount,
           options: loopingOptions,
           priorityFee,
+          broadcastType,
         });
         sigs = await marginfiClient.processTransactions([...feedCrankTxs, flashloanTx]);
       }
@@ -378,7 +380,7 @@ export async function repayWithCollat({
   amount,
   repayWithCollatOptions,
   priorityFee,
-  isTxnSplit = false,
+  broadcastType,
   theme,
   actionTxns,
 }: MarginfiActionParams & { isTxnSplit?: boolean }) {
@@ -414,7 +416,7 @@ export async function repayWithCollat({
           amount,
           options: repayWithCollatOptions,
           priorityFee,
-          isTxnSplit,
+          broadcastType,
         });
 
         sigs = await marginfiClient.processTransactions([...feedCrankTxs, flashloanTx]);
@@ -473,11 +475,13 @@ export const closeBalance = async ({
   bank,
   marginfiAccount,
   priorityFee,
+  broadcastType,
   theme,
 }: {
   bank: ExtendedBankInfo;
   marginfiAccount: MarginfiAccountWrapper | null | undefined;
   priorityFee?: number;
+  broadcastType?: TransactionBroadcastType;
   theme?: "light" | "dark";
 }) => {
   if (!marginfiAccount) {
@@ -497,9 +501,11 @@ export const closeBalance = async ({
   try {
     let txnSig = "";
     if (bank.position.isLending) {
-      txnSig = (await marginfiAccount.withdraw(0, bank.address, true, { priorityFeeUi: priorityFee })).pop() ?? "";
+      txnSig =
+        (await marginfiAccount.withdraw(0, bank.address, true, { priorityFeeUi: priorityFee }, broadcastType)).pop() ??
+        "";
     } else {
-      txnSig = await marginfiAccount.repay(0, bank.address, true, { priorityFeeUi: priorityFee });
+      txnSig = await marginfiAccount.repay(0, bank.address, true, { priorityFeeUi: priorityFee }, broadcastType);
     }
     multiStepToast.setSuccessAndNext();
     return txnSig;

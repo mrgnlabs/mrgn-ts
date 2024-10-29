@@ -4,6 +4,7 @@ import { Connection, VersionedTransaction } from "@solana/web3.js";
 
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { TransactionBroadcastType } from "@mrgnlabs/mrgn-common";
 import {
   ActionMethod,
   calculateRepayCollateralParams,
@@ -63,7 +64,8 @@ export async function calculateRepayCollateral(
   slippageBps: number,
   connection: Connection,
   priorityFee: number,
-  platformFeeBps: number
+  platformFeeBps: number,
+  broadcastType: TransactionBroadcastType
 ): Promise<
   | {
       repayTxn: VersionedTransaction;
@@ -91,7 +93,8 @@ export async function calculateRepayCollateral(
     slippageBps,
     connection,
     priorityFee,
-    platformFeeBps
+    platformFeeBps,
+    broadcastType
   );
 
   return result;
