@@ -16,14 +16,22 @@ import {
   useConnection,
   usePriorityFee,
 } from "@mrgnlabs/mrgn-utils";
+import {
+  ActionMethod,
+  checkRepayCollatActionAvailable,
+  MarginfiActionParams,
+  PreviousTxn,
+  showErrorToast,
+} from "@mrgnlabs/mrgn-utils";
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 
 import { CircularProgress } from "~/components/ui/circular-progress";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
-import { ActionButton, ActionMessage, ActionSettingsButton } from "~/components/action-box-v2/components";
+import { ActionButton, ActionSettingsButton } from "~/components/action-box-v2/components";
 import { useActionAmounts, usePollBlockHeight } from "~/components/action-box-v2/hooks";
+import { ActionMessage } from "~/components";
 
-import { checkActionAvailable, handleExecuteRepayCollatAction } from "./utils";
+import { handleExecuteRepayCollatAction } from "./utils";
 import { Collateral, ActionInput, Preview } from "./components";
 import { useRepayCollatBoxStore } from "./store";
 import { useRepayCollatSimulation } from "./hooks";
@@ -189,7 +197,7 @@ export const RepayCollatBox = ({
 
   const actionMethods = React.useMemo(
     () =>
-      checkActionAvailable({
+      checkRepayCollatActionAvailable({
         amount,
         connected,
         selectedBank,
@@ -344,3 +352,12 @@ export const RepayCollatBox = ({
     </>
   );
 };
+function checkRepayColatActionAvailable(arg0: {
+  amount: number;
+  connected: boolean;
+  selectedBank: ExtendedBankInfo | null;
+  selectedSecondaryBank: ExtendedBankInfo | null;
+  actionQuote: import("@jup-ag/api").QuoteResponse | null;
+}): any {
+  throw new Error("Function not implemented.");
+}

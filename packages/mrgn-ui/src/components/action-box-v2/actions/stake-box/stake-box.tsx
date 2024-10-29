@@ -2,8 +2,9 @@ import React, { useEffect } from "react";
 
 import { WalletContextState } from "@solana/wallet-adapter-react";
 
-import { getPriceWithConfidence, MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
+import { getPriceWithConfidence, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { AccountSummary, ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActionMethod, checkStakeActionAvailable, LstData, PreviousTxn } from "@mrgnlabs/mrgn-utils";
 import {
   ActionMethod,
   LstData,
@@ -14,17 +15,19 @@ import {
 } from "@mrgnlabs/mrgn-utils";
 import { nativeToUi, NATIVE_MINT as SOL_MINT, uiToNative } from "@mrgnlabs/mrgn-common";
 
-import { useActionAmounts, usePollBlockHeight } from "~/components/action-box-v2/hooks";
+import { useActionAmounts } from "~/components/action-box-v2/hooks";
 import { WalletContextStateOverride } from "~/components/wallet-v2/hooks/use-wallet.hook";
+import { ActionMessage } from "~/components";
 
 import { useStakeBoxStore } from "./store";
 import { AmountPreview } from "./components/amount-preview";
-import { ActionButton, ActionMessage, ActionSettingsButton } from "../../components";
+import { ActionButton, ActionSettingsButton } from "../../components";
 import { StatsPreview } from "./components/stats-preview";
 import { useStakeSimulation } from "./hooks";
 import { useActionBoxStore } from "../../store";
 import { handleExecuteLstAction } from "./utils/stake-action.utils";
 import { ActionInput } from "./components/action-input";
+import { useStakeBoxContext } from "../../contexts";
 import { checkActionAvailable } from "./utils";
 import { useActionContext, useStakeBoxContext } from "../../contexts";
 
@@ -257,7 +260,7 @@ export const StakeBox = ({
 
   const actionMethods = React.useMemo(() => {
     setAdditionalActionMethods([]);
-    return checkActionAvailable({
+    return checkStakeActionAvailable({
       amount,
       connected,
       selectedBank,
