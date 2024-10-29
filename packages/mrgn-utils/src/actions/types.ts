@@ -29,10 +29,10 @@ export enum YbxType {
   RepayYbx = "Repay",
 }
 
-export type ActionMethodType = "WARNING" | "ERROR" | "INFO";
-export interface ActionMethod {
+export type ActionMessageUIType = "WARNING" | "ERROR" | "INFO";
+export interface ActionMessageType {
   isEnabled: boolean;
-  actionMethod?: ActionMethodType;
+  actionMethod?: ActionMessageUIType;
   description?: string;
   link?: string;
   linkText?: string;

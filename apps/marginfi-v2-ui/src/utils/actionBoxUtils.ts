@@ -4,7 +4,7 @@ import { PublicKey } from "@solana/web3.js";
 
 import {
   ActionMethod,
-  ActionMethodType,
+  ActionMessageUIType,
   canBeBorrowed,
   canBeLent,
   canBeLooped,
@@ -18,7 +18,7 @@ import {
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 
-export function getColorForActionMethodType(type?: ActionMethodType) {
+export function getColorForActionMessageUIType(type?: ActionMessageUIType) {
   if (type === "INFO") {
     return "info";
   } else if (type === "WARNING") {

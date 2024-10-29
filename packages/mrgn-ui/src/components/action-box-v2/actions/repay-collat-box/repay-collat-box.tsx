@@ -9,7 +9,7 @@ import {
   ActiveBankInfo,
 } from "@mrgnlabs/marginfi-v2-ui-state";
 import {
-  ActionMethod,
+  ActionMessageType,
   checkRepayCollatActionAvailable,
   MarginfiActionParams,
   PreviousTxn,
@@ -157,7 +157,7 @@ export const RepayCollatBox = ({
     setMaxAmountCollateral,
   });
 
-  const [additionalActionMethods, setAdditionalActionMethods] = React.useState<ActionMethod[]>([]);
+  const [additionalActionMessages, setAdditionalActionMessages] = React.useState<ActionMessageType[]>([]);
 
   // Cleanup the store when the wallet disconnects
   React.useEffect(() => {
@@ -173,11 +173,11 @@ export const RepayCollatBox = ({
   React.useEffect(() => {
     if (errorMessage && errorMessage.description) {
       showErrorToast(errorMessage?.description);
-      setAdditionalActionMethods([errorMessage]);
+      setAdditionalActionMessages([errorMessage]);
     }
   }, [errorMessage]);
 
-  const actionMethods = React.useMemo(
+  const actionMessages = React.useMemo(
     () =>
       checkRepayCollatActionAvailable({
         amount,
@@ -298,11 +298,11 @@ export const RepayCollatBox = ({
         />
       </div>
 
-      {additionalActionMethods.concat(actionMethods).map(
-        (actionMethod, idx) =>
-          actionMethod.description && (
+      {additionalActionMessages.concat(actionMessages).map(
+        (actionMessage, idx) =>
+          actionMessage.description && (
             <div className="pb-6" key={idx}>
-              <ActionMessage actionMethod={actionMethod} />
+              <ActionMessage _actionMessage={actionMessage} />
             </div>
           )
       )}
@@ -316,7 +316,9 @@ export const RepayCollatBox = ({
       <div className="mb-3">
         <ActionButton
           isLoading={isLoading}
-          isEnabled={!additionalActionMethods.concat(actionMethods).filter((value) => value.isEnabled === false).length}
+          isEnabled={
+            !additionalActionMessages.concat(actionMessages).filter((value) => value.isEnabled === false).length
+          }
           connected={connected}
           handleAction={() => {
             handleRepayCollatAction();

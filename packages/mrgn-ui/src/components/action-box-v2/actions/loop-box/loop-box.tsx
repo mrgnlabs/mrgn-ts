@@ -10,7 +10,7 @@ import {
 } from "@mrgnlabs/marginfi-v2-ui-state";
 import { WalletContextState } from "@solana/wallet-adapter-react";
 import {
-  ActionMethod,
+  ActionMessageType,
   checkLoopActionAvailable,
   MarginfiActionParams,
   PreviousTxn,
@@ -168,7 +168,7 @@ export const LoopBox = ({
     setIsLoading,
   });
 
-  const [additionalActionMethods, setAdditionalActionMethods] = React.useState<ActionMethod[]>([]);
+  const [additionalActionMessages, setAdditionalActionMessages] = React.useState<ActionMessageType[]>([]);
 
   // Cleanup the store when the wallet disconnects
   React.useEffect(() => {
@@ -184,13 +184,13 @@ export const LoopBox = ({
   React.useEffect(() => {
     if (errorMessage && errorMessage.description) {
       showErrorToast(errorMessage?.description);
-      setAdditionalActionMethods([errorMessage]);
+      setAdditionalActionMessages([errorMessage]);
     } else {
-      setAdditionalActionMethods([]);
+      setAdditionalActionMessages([]);
     }
   }, [errorMessage]);
 
-  const actionMethods = React.useMemo(
+  const actionMessages = React.useMemo(
     () =>
       checkLoopActionAvailable({
         amount,
@@ -339,11 +339,11 @@ export const LoopBox = ({
           borrowLstApy={borrowLstApy}
         />
       </div>
-      {additionalActionMethods.concat(actionMethods).map(
-        (actionMethod, idx) =>
-          actionMethod.description && (
+      {additionalActionMessages.concat(actionMessages).map(
+        (actionMessage, idx) =>
+          actionMessage.description && (
             <div className="pb-6" key={idx}>
-              <ActionMessage actionMethod={actionMethod} />
+              <ActionMessage _actionMessage={actionMessage} />
             </div>
           )
       )}
@@ -351,7 +351,9 @@ export const LoopBox = ({
       <div className="mb-3">
         <ActionButton
           isLoading={isLoading}
-          isEnabled={!additionalActionMethods.concat(actionMethods).filter((value) => value.isEnabled === false).length}
+          isEnabled={
+            !additionalActionMessages.concat(actionMessages).filter((value) => value.isEnabled === false).length
+          }
           connected={connected}
           handleAction={() => {
             handleLoopAction();

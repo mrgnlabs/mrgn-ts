@@ -4,7 +4,7 @@ import { WalletContextState } from "@solana/wallet-adapter-react";
 
 import { getPriceWithConfidence, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { AccountSummary, ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { ActionMethod, checkStakeActionAvailable, LstData, PreviousTxn } from "@mrgnlabs/mrgn-utils";
+import { ActionMessageType, checkStakeActionAvailable, LstData, PreviousTxn } from "@mrgnlabs/mrgn-utils";
 import { nativeToUi, NATIVE_MINT as SOL_MINT, uiToNative } from "@mrgnlabs/mrgn-common";
 
 import { useActionAmounts } from "~/components/action-box-v2/hooks";
@@ -105,7 +105,7 @@ export const StakeBox = ({
 
   const { lstData } = useStakeBoxContext()!;
 
-  const [additionalActionMethods, setAdditionalActionMethods] = React.useState<ActionMethod[]>([]);
+  const [additionalActionMessages, setAdditionalActionMessages] = React.useState<ActionMessageType[]>([]);
 
   const solPriceUsd = React.useMemo(() => {
     const bank = banks.find((bank) => bank.info.state.mint.equals(SOL_MINT));
@@ -234,8 +234,8 @@ export const StakeBox = ({
     nativeSolBalance,
   ]);
 
-  const actionMethods = React.useMemo(() => {
-    setAdditionalActionMethods([]);
+  const actionMessages = React.useMemo(() => {
+    setAdditionalActionMessages([]);
     return checkStakeActionAvailable({
       amount,
       connected,
@@ -251,7 +251,7 @@ export const StakeBox = ({
 
   React.useEffect(() => {
     if (errorMessage && errorMessage.description) {
-      setAdditionalActionMethods([{ ...errorMessage, isEnabled: false }]);
+      setAdditionalActionMessages([{ ...errorMessage, isEnabled: false }]);
     }
   }, [errorMessage]);
 
@@ -287,18 +287,20 @@ export const StakeBox = ({
           isLoading={isLoading.type === "SIMULATION" ? isLoading.state : false}
         />
       </div>
-      {additionalActionMethods.concat(actionMethods).map(
-        (actionMethod, idx) =>
-          actionMethod.description && (
+      {additionalActionMessages.concat(actionMessages).map(
+        (actionMessage, idx) =>
+          actionMessage.description && (
             <div className="pb-6" key={idx}>
-              <ActionMessage actionMethod={actionMethod} />
+              <ActionMessage _actionMessage={actionMessage} />
             </div>
           )
       )}
       <div className="mb-3">
         <ActionButton
           isLoading={isLoading.state}
-          isEnabled={!additionalActionMethods.concat(actionMethods).filter((value) => value.isEnabled === false).length}
+          isEnabled={
+            !additionalActionMessages.concat(actionMessages).filter((value) => value.isEnabled === false).length
+          }
           connected={connected}
           handleAction={handleLstAction}
           buttonLabel={requestedActionType === ActionType.MintLST ? "Mint LST" : "Unstake LST"}
