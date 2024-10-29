@@ -7,7 +7,7 @@ import { useRouter } from "next/router";
 import { ActionType, ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { numeralFormatter } from "@mrgnlabs/mrgn-common";
 import {
-  ActionMethod,
+  ActionMessageType,
   calculateLoopingParams,
   handleSimulationError,
   LoopingObject,
@@ -55,7 +55,7 @@ export const TradingBox = ({ activeGroup, side = "long" }: TradingBoxProps) => {
   const [leverage, setLeverage] = React.useState(0);
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const [Stats, setStats] = React.useState<React.JSX.Element>(<></>);
-  const [additionalChecks, setAdditionalChecks] = React.useState<ActionMethod>();
+  const [additionalChecks, setAdditionalChecks] = React.useState<ActionMessageType>();
 
   const debouncedLeverage = useDebounce(leverage, 1000);
   const debouncedAmount = useDebounce(amount, 1000);
@@ -547,24 +547,26 @@ export const TradingBox = ({ activeGroup, side = "long" }: TradingBoxProps) => {
                 </div>
               </div>
             )}
-            {connected && tradeState === "short" && activeGroup?.pool.quoteTokens[0].userInfo.tokenAccount.balance === 0 && (
-              <div className="w-full flex space-x-2 py-2.5 px-3.5 rounded-lg gap-1 text-sm bg-accent text-alert-foreground">
-                <IconAlertTriangle className="shrink-0 translate-y-0.5" size={16} />
-                <div className="space-y-1">
-                  <p>
-                    You need to hold {activeGroup?.pool.quoteTokens[0].meta.tokenSymbol} to open a short position.{" "}
-                    <button
-                      className="border-b border-alert-foreground hover:border-transparent"
-                      onClick={() => {
-                        setIsWalletOpen(true);
-                      }}
-                    >
-                      Swap tokens.
-                    </button>
-                  </p>
+            {connected &&
+              tradeState === "short" &&
+              activeGroup?.pool.quoteTokens[0].userInfo.tokenAccount.balance === 0 && (
+                <div className="w-full flex space-x-2 py-2.5 px-3.5 rounded-lg gap-1 text-sm bg-accent text-alert-foreground">
+                  <IconAlertTriangle className="shrink-0 translate-y-0.5" size={16} />
+                  <div className="space-y-1">
+                    <p>
+                      You need to hold {activeGroup?.pool.quoteTokens[0].meta.tokenSymbol} to open a short position.{" "}
+                      <button
+                        className="border-b border-alert-foreground hover:border-transparent"
+                        onClick={() => {
+                          setIsWalletOpen(true);
+                        }}
+                      >
+                        Swap tokens.
+                      </button>
+                    </p>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
             {isActiveWithCollat ? (
               <>
                 <div className="gap-1 w-full flex flex-col items-center">

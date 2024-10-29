@@ -5,7 +5,7 @@ import { Connection, VersionedTransaction } from "@solana/web3.js";
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import {
-  ActionMethod,
+  ActionMessageType,
   calculateLoopingParams,
   executeLoopingAction,
   LoopingObject,
@@ -66,7 +66,7 @@ export async function calculateLooping(
   connection: Connection,
   priorityFee: number,
   platformFeeBps: number
-): Promise<LoopingObject | ActionMethod> {
+): Promise<LoopingObject | ActionMessageType> {
   // TODO setup logging again
   // capture("looper", {
   //   amountIn: uiToNative(amount, loopBank.info.state.mintDecimals).toNumber(),

@@ -5,7 +5,7 @@ import { Connection, VersionedTransaction } from "@solana/web3.js";
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import {
-  ActionMethod,
+  ActionMessageType,
   calculateRepayCollateralParams,
   executeLendingAction,
   MarginfiActionParams,
@@ -72,7 +72,7 @@ export async function calculateRepayCollateral(
       amount: number;
       lastValidBlockHeight?: number;
     }
-  | ActionMethod
+  | ActionMessageType
 > {
   // TODO setup logging again
   // capture("repay_with_collat", {

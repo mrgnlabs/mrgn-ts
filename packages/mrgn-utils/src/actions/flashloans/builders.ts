@@ -8,7 +8,7 @@ import { LUT_PROGRAM_AUTHORITY_INDEX, nativeToUi, uiToNative } from "@mrgnlabs/m
 
 import { deserializeInstruction, getAdressLookupTableAccounts, getSwapQuoteWithRetry } from "../helpers";
 import { isWholePosition } from "../../mrgnUtils";
-import { ActionMethod, LoopingObject, LoopingOptions, RepayWithCollatOptions } from "../types";
+import { ActionMessageType, LoopingObject, LoopingOptions, RepayWithCollatOptions } from "../types";
 import { STATIC_SIMULATION_ERRORS } from "../../errors";
 import { TOKEN_2022_MINTS, getFeeAccount } from "../../jup-referral.utils";
 
@@ -52,7 +52,7 @@ export async function calculateRepayCollateralParams(
       amount: number;
       lastValidBlockHeight?: number;
     }
-  | ActionMethod
+  | ActionMessageType
 > {
   const maxRepayAmount = bank.isActive ? bank?.position.amount : 0;
 
@@ -143,7 +143,7 @@ export async function calculateBorrowLendPositionParams({
       feedCrankTxs: VersionedTransaction[];
       quote: QuoteResponse;
     }
-  | ActionMethod
+  | ActionMessageType
 > {
   let firstQuote;
   const maxAccountsArr = [undefined, 50, 40, 30];
@@ -226,7 +226,7 @@ export async function calculateLoopingParams({
   priorityFee: number;
   platformFeeBps?: number;
   isTrading?: boolean;
-}): Promise<LoopingObject | ActionMethod> {
+}): Promise<LoopingObject | ActionMessageType> {
   if (!marginfiAccount && !marginfiClient) {
     return STATIC_SIMULATION_ERRORS.NOT_INITIALIZED;
   }
@@ -294,7 +294,7 @@ export async function calculateLoopingParams({
           flashloanTx: VersionedTransaction | null;
           feedCrankTxs: VersionedTransaction[];
           addressLookupTableAccounts: AddressLookupTableAccount[];
-          error?: ActionMethod;
+          error?: ActionMessageType;
         } = {
           flashloanTx: null,
           feedCrankTxs: [],
@@ -355,7 +355,7 @@ export async function calculateLoopingTransaction({
   priorityFee: number;
   loopObject?: LoopingObject;
   isTrading?: boolean;
-}): Promise<ActionMethod | LoopingObject> {
+}): Promise<ActionMessageType | LoopingObject> {
   if (loopObject && marginfiAccount) {
     const txn = await verifyTxSizeLooping(
       marginfiAccount,

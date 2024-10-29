@@ -3,7 +3,6 @@ import React from "react";
 import { TransactionMessage, VersionedTransaction } from "@solana/web3.js";
 
 import { makeBundleTipIx, MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
-import { ActionMethod } from "@mrgnlabs/mrgn-utils";
 import { ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 type MovePositionSimulationProps = {

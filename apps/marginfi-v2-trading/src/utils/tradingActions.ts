@@ -17,7 +17,7 @@ import { BankConfigOpt, MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs
 import {
   calculateLoopingTransaction,
   LoopingObject,
-  ActionMethod,
+  ActionMessageType,
   calculateBorrowLendPositionParams,
   getMaybeSquadsOptions,
   ToastStep,
@@ -303,7 +303,7 @@ export async function calculateClosePositions({
       feedCrankTxs: VersionedTransaction[];
       quote?: QuoteResponse;
     }
-  | ActionMethod
+  | ActionMessageType
 > {
   // user is borrowing and depositing
   if (borrowBank && depositBanks.length === 1) {

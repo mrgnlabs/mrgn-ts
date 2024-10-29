@@ -6,7 +6,7 @@ import { createJupiterApiClient } from "@jup-ag/api";
 import { makeBundleTipIx, makeUnwrapSolIx, MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { ExtendedBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import {
-  ActionMethod,
+  ActionMessageType,
   deserializeInstruction,
   extractErrorString,
   getSwapQuoteWithRetry,
@@ -31,7 +31,7 @@ type StakeSimulationProps = {
   marginfiClient: MarginfiClient | null;
   setSimulationResult: (result: any | null) => void;
   setActionTxns: (actionTxns: StakeActionTxns) => void;
-  setErrorMessage: (error: ActionMethod | null) => void;
+  setErrorMessage: (error: ActionMessageType | null) => void;
   setIsLoading: ({ state, type }: { state: boolean; type: string | null }) => void;
 };
 

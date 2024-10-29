@@ -1,5 +1,5 @@
 import { floor, percentFormatter, WSOL_MINT } from "@mrgnlabs/mrgn-common";
-import { ActionMethod } from "./types";
+import { ActionMessageType } from "./types";
 import { QuoteResponse } from "@jup-ag/api";
 import {
   MarginfiAccountWrapper,
@@ -27,8 +27,8 @@ export { canBeWithdrawn, canBeRepaid, canBeRepaidCollat, canBeLooped, canBeBorro
 function canBeWithdrawn(
   targetBankInfo: ExtendedBankInfo,
   marginfiAccount: MarginfiAccountWrapper | null
-): ActionMethod[] {
-  let checks: ActionMethod[] = [];
+): ActionMessageType[] {
+  let checks: ActionMessageType[] = [];
   const isPaused = targetBankInfo.info.rawBank.config.operationalState === OperationalState.Paused;
   if (isPaused) {
     checks.push(DYNAMIC_SIMULATION_ERRORS.BANK_PAUSED_CHECK(targetBankInfo.info.rawBank.tokenSymbol));
@@ -54,8 +54,8 @@ function canBeWithdrawn(
   return checks;
 }
 
-function canBeRepaid(targetBankInfo: ExtendedBankInfo): ActionMethod[] {
-  let checks: ActionMethod[] = [];
+function canBeRepaid(targetBankInfo: ExtendedBankInfo): ActionMessageType[] {
+  let checks: ActionMessageType[] = [];
   const isPaused = targetBankInfo.info.rawBank.config.operationalState === OperationalState.Paused;
   if (isPaused) {
     checks.push(DYNAMIC_SIMULATION_ERRORS.BANK_PAUSED_CHECK(targetBankInfo.info.rawBank.tokenSymbol));
@@ -81,8 +81,8 @@ function canBeRepaidCollat(
   repayBankInfo: ExtendedBankInfo | null,
   blacklistRoutes: PublicKey[] | null,
   swapQuote: QuoteResponse | null
-): ActionMethod[] {
-  let checks: ActionMethod[] = [];
+): ActionMessageType[] {
+  let checks: ActionMessageType[] = [];
   const isPaused = targetBankInfo.info.rawBank.config.operationalState === OperationalState.Paused;
 
   if (isPaused) {
@@ -125,8 +125,8 @@ function canBeLooped(
   targetBankInfo: ExtendedBankInfo,
   repayBankInfo: ExtendedBankInfo | null,
   swapQuote: QuoteResponse | null
-): ActionMethod[] {
-  let checks: ActionMethod[] = [];
+): ActionMessageType[] {
+  let checks: ActionMessageType[] = [];
   const isTargetBankPaused = targetBankInfo.info.rawBank.config.operationalState === OperationalState.Paused;
   const isRepayBankPaused = repayBankInfo?.info.rawBank.config.operationalState === OperationalState.Paused;
 
@@ -164,8 +164,8 @@ function canBeBorrowed(
   targetBankInfo: ExtendedBankInfo,
   extendedBankInfos: ExtendedBankInfo[],
   marginfiAccount: MarginfiAccountWrapper | null
-): ActionMethod[] {
-  let checks: ActionMethod[] = [];
+): ActionMessageType[] {
+  let checks: ActionMessageType[] = [];
   const isPaused = targetBankInfo.info.rawBank.config.operationalState === OperationalState.Paused;
   if (isPaused) {
     checks.push(DYNAMIC_SIMULATION_ERRORS.BANK_PAUSED_CHECK(targetBankInfo.info.rawBank.tokenSymbol));
@@ -228,8 +228,8 @@ function canBeBorrowed(
   return checks;
 }
 
-function canBeLent(targetBankInfo: ExtendedBankInfo, nativeSolBalance: number): ActionMethod[] {
-  let checks: ActionMethod[] = [];
+function canBeLent(targetBankInfo: ExtendedBankInfo, nativeSolBalance: number): ActionMessageType[] {
+  let checks: ActionMessageType[] = [];
   const isPaused = targetBankInfo.info.rawBank.config.operationalState === OperationalState.Paused;
 
   if (isPaused) {
@@ -280,8 +280,8 @@ function canBeLent(targetBankInfo: ExtendedBankInfo, nativeSolBalance: number): 
   return checks;
 }
 
-function canBeLstStaked(lstQuoteMeta: QuoteResponseMeta | null): ActionMethod[] {
-  let checks: ActionMethod[] = [];
+function canBeLstStaked(lstQuoteMeta: QuoteResponseMeta | null): ActionMessageType[] {
+  let checks: ActionMessageType[] = [];
 
   if (lstQuoteMeta?.quoteResponse?.priceImpactPct && Number(lstQuoteMeta?.quoteResponse.priceImpactPct) > 0.01) {
     if (lstQuoteMeta?.quoteResponse?.priceImpactPct && Number(lstQuoteMeta?.quoteResponse.priceImpactPct) > 0.05) {

@@ -3,7 +3,7 @@ import { Transaction, VersionedTransaction } from "@solana/web3.js";
 
 import { MarginfiAccountWrapper, MarginfiClient, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
 import {
-  ActionMethod,
+  ActionMessageType,
   calculateMaxRepayableCollateral,
   DYNAMIC_SIMULATION_ERRORS,
   RepayCollatActionTxns,
@@ -28,7 +28,7 @@ type RepayCollatSimulationProps = {
 
   setSimulationResult: (simulationResult: SimulationResult | null) => void;
   setActionTxns: (actionTxns: RepayCollatActionTxns) => void;
-  setErrorMessage: (error: ActionMethod) => void;
+  setErrorMessage: (error: ActionMessageType) => void;
   setRepayAmount: (repayAmount: number) => void;
   setIsLoading: (isLoading: boolean) => void;
   setMaxAmountCollateral: (maxAmountCollateral: number) => void;

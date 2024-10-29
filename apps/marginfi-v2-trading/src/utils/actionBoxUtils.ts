@@ -1,5 +1,5 @@
 import {
-  ActionMethod,
+  ActionMessageType,
   ActionMessageUIType,
   canBeBorrowed,
   canBeLent,
@@ -53,8 +53,8 @@ export function checkActionAvailable({
   blacklistRoutes,
   repayMode,
   repayCollatQuote,
-}: CheckActionAvailableProps): ActionMethod[] {
-  let checks: ActionMethod[] = [];
+}: CheckActionAvailableProps): ActionMessageType[] {
+  let checks: ActionMessageType[] = [];
 
   const requiredCheck = getRequiredCheck(connected, selectedBank);
   if (requiredCheck) return [requiredCheck];
@@ -97,7 +97,7 @@ export function checkActionAvailable({
   return checks;
 }
 
-function getRequiredCheck(connected: boolean, selectedBank: ExtendedBankInfo | null): ActionMethod | null {
+function getRequiredCheck(connected: boolean, selectedBank: ExtendedBankInfo | null): ActionMessageType | null {
   if (!connected) {
     return { isEnabled: false };
   }
@@ -108,8 +108,12 @@ function getRequiredCheck(connected: boolean, selectedBank: ExtendedBankInfo | n
   return null;
 }
 
-function getGeneralChecks(amount: number = 0, repayAmount: number = 0, showCloseBalance?: boolean): ActionMethod[] {
-  let checks: ActionMethod[] = [];
+function getGeneralChecks(
+  amount: number = 0,
+  repayAmount: number = 0,
+  showCloseBalance?: boolean
+): ActionMessageType[] {
+  let checks: ActionMessageType[] = [];
   if (showCloseBalance) {
     checks.push({ actionMethod: "INFO", description: "Close lending balance.", isEnabled: true });
   }

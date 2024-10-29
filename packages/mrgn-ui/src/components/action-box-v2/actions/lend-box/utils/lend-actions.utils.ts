@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from "uuid";
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import {
-  ActionMethod,
+  ActionMessageType,
   closeBalance,
   executeLendingAction,
   isWholePosition,
@@ -116,7 +116,7 @@ export async function calculateLendingTransaction(
       actionTxn: VersionedTransaction | Transaction;
       additionalTxns: VersionedTransaction[];
     }
-  | ActionMethod
+  | ActionMessageType
 > {
   switch (actionMode) {
     case ActionType.Deposit:

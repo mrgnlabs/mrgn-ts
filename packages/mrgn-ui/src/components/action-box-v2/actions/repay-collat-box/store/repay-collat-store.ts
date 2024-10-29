@@ -5,7 +5,7 @@ import { Transaction, VersionedTransaction } from "@solana/web3.js";
 
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { SimulationResult } from "@mrgnlabs/marginfi-client-v2";
-import { ActionMethod, RepayCollatActionTxns } from "@mrgnlabs/mrgn-utils";
+import { ActionMessageType, RepayCollatActionTxns } from "@mrgnlabs/mrgn-utils";
 
 interface RepayCollatBoxState {
   // State
@@ -20,7 +20,7 @@ interface RepayCollatBoxState {
 
   actionTxns: RepayCollatActionTxns;
 
-  errorMessage: ActionMethod | null;
+  errorMessage: ActionMessageType | null;
   isLoading: boolean;
 
   // Actions
@@ -33,7 +33,7 @@ interface RepayCollatBoxState {
   setSimulationResult: (simulationResult: SimulationResult | null) => void;
 
   setActionTxns: (actionTxns: RepayCollatActionTxns) => void;
-  setErrorMessage: (errorMessage: ActionMethod | null) => void;
+  setErrorMessage: (errorMessage: ActionMessageType | null) => void;
   setSelectedBank: (bank: ExtendedBankInfo | null) => void;
   setSelectedSecondaryBank: (bank: ExtendedBankInfo | null) => void;
 

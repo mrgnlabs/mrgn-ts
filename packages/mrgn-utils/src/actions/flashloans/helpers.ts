@@ -6,7 +6,7 @@ import BigNumber from "bignumber.js";
 import { QuoteGetRequest, QuoteResponse } from "@jup-ag/api";
 
 import { STATIC_SIMULATION_ERRORS } from "../../errors";
-import { ActionMethod } from "../types";
+import { ActionMessageType } from "../types";
 import { closePositionBuilder, loopingBuilder, repayWithCollatBuilder } from "./builders";
 import { getSwapQuoteWithRetry } from "../helpers";
 import { nativeToUi, uiToNative } from "@mrgnlabs/mrgn-common";
@@ -37,7 +37,7 @@ export async function verifyTxSizeLooping(
   flashloanTx: VersionedTransaction | null;
   feedCrankTxs: VersionedTransaction[];
   addressLookupTableAccounts: AddressLookupTableAccount[];
-  error?: ActionMethod;
+  error?: ActionMessageType;
 }> {
   try {
     const builder = await loopingBuilder({
@@ -86,7 +86,7 @@ export async function verifyTxSizeCloseBorrowLendPosition(
   flashloanTx: VersionedTransaction | null;
   feedCrankTxs: VersionedTransaction[];
   addressLookupTableAccounts: AddressLookupTableAccount[];
-  error?: ActionMethod;
+  error?: ActionMessageType;
 }> {
   try {
     if (quoteResponse.slippageBps > 150) {
@@ -139,7 +139,7 @@ export async function verifyTxSizeCollat(
   flashloanTx: VersionedTransaction | null;
   feedCrankTxs: VersionedTransaction[];
   addressLookupTableAccounts: AddressLookupTableAccount[];
-  error?: ActionMethod;
+  error?: ActionMessageType;
   lastValidBlockHeight?: number;
 }> {
   try {
@@ -184,7 +184,7 @@ export const verifyFlashloanTxSize = (builder: {
   feedCrankTxs: VersionedTransaction[];
   addressLookupTableAccounts: AddressLookupTableAccount[];
   lastValidBlockHeight?: number;
-  error?: ActionMethod;
+  error?: ActionMessageType;
 } => {
   try {
     const totalSize = builder.flashloanTx.message.serialize().length;
