@@ -3,10 +3,10 @@ import { JUPITER_PROGRAM_V6_ID } from "@jup-ag/react-hook";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { percentFormatter } from "@mrgnlabs/mrgn-common";
-import { ActionMethod } from "./actions";
+import { ActionMessageType } from "./actions";
 
 // Static errors that are not expected to change
-export const STATIC_SIMULATION_ERRORS: { [key: string]: ActionMethod } = {
+export const STATIC_SIMULATION_ERRORS: { [key: string]: ActionMessageType } = {
   NOT_INITIALIZED: {
     isEnabled: false,
     actionMethod: "WARNING",
@@ -137,63 +137,63 @@ export const STATIC_SIMULATION_ERRORS: { [key: string]: ActionMethod } = {
   },
 };
 
-const createRepayCollatFailedCheck = (tokenSymbol?: string): ActionMethod => ({
+const createRepayCollatFailedCheck = (tokenSymbol?: string): ActionMessageType => ({
   description: `Unable to repay using ${tokenSymbol}, please select another collateral.`,
   isEnabled: false,
 });
 
-const createInsufficientBalanceCheck = (tokenSymbol?: string): ActionMethod => ({
+const createInsufficientBalanceCheck = (tokenSymbol?: string): ActionMessageType => ({
   description: `Insufficient ${tokenSymbol} in wallet.`,
   isEnabled: false,
 });
 
-const createExistingIsolatedBorrowCheck = (tokenSymbol?: string): ActionMethod => ({
+const createExistingIsolatedBorrowCheck = (tokenSymbol?: string): ActionMessageType => ({
   description: `You have an active isolated borrow (${tokenSymbol}). You cannot borrow another asset while you do.`,
   isEnabled: false,
 });
 
-const createBorrowCapacityCheck = (tokenSymbol?: string): ActionMethod => ({
+const createBorrowCapacityCheck = (tokenSymbol?: string): ActionMessageType => ({
   description: `The ${tokenSymbol} bank is at borrow capacity.`,
   isEnabled: false,
 });
 
-const createBankRetiredCheck = (tokenSymbol?: string): ActionMethod => ({
+const createBankRetiredCheck = (tokenSymbol?: string): ActionMessageType => ({
   description: `The ${tokenSymbol}  bank is being retired. You may only withdraw a deposit or repay a loan.`,
   isEnabled: false,
 });
 
-const createReduceOnlyCheck = (tokenSymbol?: string): ActionMethod => ({
+const createReduceOnlyCheck = (tokenSymbol?: string): ActionMessageType => ({
   description: `The ${tokenSymbol} bank is in reduce-only mode. You may only withdraw a deposit or repay a loan.`,
   isEnabled: false,
 });
 
-const createWalletRapayCheck = (tokenSymbol?: string): ActionMethod => ({
+const createWalletRapayCheck = (tokenSymbol?: string): ActionMessageType => ({
   description: `You have ${tokenSymbol} in your wallet and can repay without using collateral.`,
   isEnabled: true,
   actionMethod: "INFO",
 });
 
-const createSufficientLiqCheck = (tokenSymbol?: string): ActionMethod => ({
+const createSufficientLiqCheck = (tokenSymbol?: string): ActionMessageType => ({
   description: `Insufficient ${tokenSymbol} in wallet for loan repayment.`,
   isEnabled: false,
 });
 
-const createIfBorrowingCheck = (tokenSymbol?: string): ActionMethod => ({
+const createIfBorrowingCheck = (tokenSymbol?: string): ActionMessageType => ({
   description: `You&apos;re not borrowing ${tokenSymbol}.`,
   isEnabled: false,
 });
 
-const createIfLendingCheck = (tokenSymbol?: string): ActionMethod => ({
+const createIfLendingCheck = (tokenSymbol?: string): ActionMessageType => ({
   description: `You&apos;re not lending ${tokenSymbol}.`,
   isEnabled: false,
 });
 
-const createBankPausedCheck = (tokenSymbol?: string): ActionMethod => ({
+const createBankPausedCheck = (tokenSymbol?: string): ActionMessageType => ({
   description: `The ${tokenSymbol} bank is paused at this time.`,
   isEnabled: false,
 });
 
-const createStaleCheck = (action: string): ActionMethod => ({
+const createStaleCheck = (action: string): ActionMessageType => ({
   isEnabled: true,
   actionMethod: "WARNING",
   description: `${action} from this bank may fail due to network congestion preventing oracles from updating price data.`,
@@ -205,7 +205,7 @@ const createWithdrawCheck = (
   tradeSide: string,
   stableBank: ExtendedBankInfo,
   tokenBank: ExtendedBankInfo
-): ActionMethod => ({
+): ActionMessageType => ({
   isEnabled: false,
   description: `Before you can ${tradeSide} this asset, you'll need to withdraw your supplied ${
     tradeSide === "long" ? stableBank.meta.tokenSymbol : tokenBank.meta.tokenSymbol
@@ -220,7 +220,7 @@ const createRepayCheck = (
   tradeSide: string,
   stableBank: ExtendedBankInfo,
   tokenBank: ExtendedBankInfo
-): ActionMethod => ({
+): ActionMessageType => ({
   isEnabled: false,
   description: `Before you can ${tradeSide} this asset, you'll need to repay your borrowed ${
     tradeSide === "long" ? tokenBank : stableBank
@@ -235,7 +235,7 @@ const createLoopCheck = (
   tradeSide: string,
   stableBank: ExtendedBankInfo,
   tokenBank: ExtendedBankInfo
-): ActionMethod => ({
+): ActionMessageType => ({
   isEnabled: false,
   description: `You are already ${tradeSide} this asset, you need to close that position before you can go ${
     tradeSide === "long" ? "short" : "long"
@@ -246,7 +246,7 @@ const createLoopCheck = (
   },
 });
 
-const createPriceImpactErrorCheck = (priceImpactPct: number): ActionMethod => {
+const createPriceImpactErrorCheck = (priceImpactPct: number): ActionMessageType => {
   return {
     description: `Price impact is ${percentFormatter.format(priceImpactPct)}.`,
     actionMethod: "ERROR",
@@ -254,7 +254,7 @@ const createPriceImpactErrorCheck = (priceImpactPct: number): ActionMethod => {
   };
 };
 
-const createPriceImpactWarningCheck = (priceImpactPct: number): ActionMethod => {
+const createPriceImpactWarningCheck = (priceImpactPct: number): ActionMessageType => {
   return {
     description: `Price impact is ${percentFormatter.format(Number(priceImpactPct))}.`,
     isEnabled: true,
@@ -286,7 +286,7 @@ export const DYNAMIC_SIMULATION_ERRORS = {
   REPAY_COLLAT_FAILED_CHECK: createRepayCollatFailedCheck,
 };
 
-const createCustomError = (description: string): ActionMethod => ({
+const createCustomError = (description: string): ActionMessageType => ({
   isEnabled: true,
   actionMethod: "WARNING",
   description,
@@ -297,7 +297,7 @@ export const handleError = (
   bank: ExtendedBankInfo | null,
   isArena: boolean = false,
   action?: string
-): ActionMethod | null => {
+): ActionMessageType | null => {
   try {
     // JUPITER ERRORS
     if (error?.programId === JUPITER_PROGRAM_V6_ID.toBase58()) {
@@ -399,7 +399,7 @@ export const handleTransactionError = (
   error: any,
   bank: ExtendedBankInfo | null,
   isArena: boolean = false
-): ActionMethod | undefined => {
+): ActionMessageType | undefined => {
   try {
     const action = handleError(error, bank, isArena);
     if (action) {
@@ -417,7 +417,7 @@ export const handleSimulationError = (
   bank: ExtendedBankInfo | null,
   isArena: boolean = false,
   actionString?: string
-): ActionMethod | undefined => {
+): ActionMessageType | undefined => {
   try {
     const action = handleError(error, bank, isArena, actionString);
     if (action) {

@@ -11,7 +11,7 @@ import {
   LstType,
   RepayType,
   YbxType,
-  ActionMethod,
+  ActionMessageType,
   calculateMaxRepayableCollateral,
   calculateRepayCollateralParams,
   DYNAMIC_SIMULATION_ERRORS,
@@ -40,7 +40,7 @@ interface ActionBoxState {
     feedCrankTxs: VersionedTransaction[];
   };
 
-  errorMessage: ActionMethod | null;
+  errorMessage: ActionMessageType | null;
   isLoading: boolean;
 
   // Actions

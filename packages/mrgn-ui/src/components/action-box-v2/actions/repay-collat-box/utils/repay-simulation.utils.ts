@@ -2,7 +2,7 @@ import { Transaction, VersionedTransaction } from "@solana/web3.js";
 
 import { ExtendedBankInfo, AccountSummary } from "@mrgnlabs/marginfi-v2-ui-state";
 import { nativeToUi } from "@mrgnlabs/mrgn-common";
-import { ActionMethod, handleSimulationError } from "@mrgnlabs/mrgn-utils";
+import { ActionMessageType, handleSimulationError } from "@mrgnlabs/mrgn-utils";
 import { MarginfiAccountWrapper, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
 
 import {
@@ -48,7 +48,7 @@ export function calculateSummary({
 }
 
 export const getSimulationResult = async (props: SimulateActionProps) => {
-  let actionMethod: ActionMethod | undefined = undefined;
+  let actionMethod: ActionMessageType | undefined = undefined;
   let simulationResult: SimulationResult | null = null;
 
   try {

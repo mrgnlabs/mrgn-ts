@@ -16,7 +16,6 @@ import { WalletButton } from "~/components/wallet-v2";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { Loader } from "~/components/ui/loader";
 import { RewardsDialog } from "./components/rewards";
-import { ActionComplete } from "~/components/common/ActionComplete";
 import { IconLoader } from "~/components/ui/icons";
 import { IconInfoCircle } from "@tabler/icons-react";
 
@@ -26,6 +25,7 @@ import { useRewardSimulation } from "./hooks";
 import { executeCollectTxn } from "./utils";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "~/components/ui/select";
 import { EMISSION_MINT_INFO_MAP } from "~/components/desktop/AssetList/components";
+import { ActionComplete } from "~/components";
 
 export const LendingPortfolio = () => {
   const router = useRouter();
@@ -159,8 +159,6 @@ export const LendingPortfolio = () => {
       !borrowingBanks.length,
     [isStoreInitialized, walletConnectionDelay, isRefreshingStore, accountSummary.balance, lendingBanks, borrowingBanks]
   );
-
-  const [previousTxn] = useUiStore((state) => [state.previousTxn]);
 
   // Introduced this useEffect to show the loader for 2 seconds after wallet connection. This is to avoid the flickering of the loader, since the isRefreshingStore isnt set immediately after the wallet connection.
   React.useEffect(() => {
@@ -426,7 +424,6 @@ export const LendingPortfolio = () => {
           onCollect={handleCollectExectuion}
           isLoading={rewardsLoading}
         />
-        {previousTxn && <ActionComplete />}
       </div>
     </div>
   );

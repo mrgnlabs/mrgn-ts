@@ -18,7 +18,7 @@ import {
   usdFormatter,
 } from "@mrgnlabs/mrgn-common";
 import {
-  ActionMethod,
+  ActionMessageType,
   DYNAMIC_SIMULATION_ERRORS,
   loopingBuilder,
   LoopingObject,
@@ -375,8 +375,8 @@ export function checkLoopingActionAvailable({
   activeGroup,
   loopingObject,
   tradeSide,
-}: CheckActionAvailableProps): ActionMethod[] {
-  let checks: ActionMethod[] = [];
+}: CheckActionAvailableProps): ActionMessageType[] {
+  let checks: ActionMessageType[] = [];
 
   const requiredCheck = getRequiredCheck(connected, activeGroup, loopingObject);
   if (requiredCheck) return [requiredCheck];
@@ -402,7 +402,7 @@ function getRequiredCheck(
   connected: boolean,
   activeGroup: GroupData | null,
   loopingObject: LoopingObject | null
-): ActionMethod | null {
+): ActionMessageType | null {
   if (!connected) {
     return { isEnabled: false };
   }
@@ -416,8 +416,8 @@ function getRequiredCheck(
   return null;
 }
 
-function getGeneralChecks(amount: string): ActionMethod[] {
-  let checks: ActionMethod[] = [];
+function getGeneralChecks(amount: string): ActionMessageType[] {
+  let checks: ActionMessageType[] = [];
 
   try {
     if (Number(amount) === 0) {
@@ -430,8 +430,8 @@ function getGeneralChecks(amount: string): ActionMethod[] {
   }
 }
 
-function canBeLooped(activeGroup: GroupData, loopingObject: LoopingObject, tradeSide: TradeSide): ActionMethod[] {
-  let checks: ActionMethod[] = [];
+function canBeLooped(activeGroup: GroupData, loopingObject: LoopingObject, tradeSide: TradeSide): ActionMessageType[] {
+  let checks: ActionMessageType[] = [];
   const isUsdcBankPaused =
     activeGroup.pool.quoteTokens[0].info.rawBank.config.operationalState === OperationalState.Paused;
   const isTokenBankPaused = activeGroup.pool.token.info.rawBank.config.operationalState === OperationalState.Paused;

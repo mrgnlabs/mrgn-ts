@@ -7,7 +7,7 @@ import { useRouter } from "next/router";
 import { ActionType, ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { numeralFormatter } from "@mrgnlabs/mrgn-common";
 import {
-  ActionMethod,
+  ActionMessageType,
   calculateLoopingParams,
   handleSimulationError,
   LoopingObject,
@@ -56,7 +56,7 @@ export const TradingBox = ({ activeGroup, side = "long" }: TradingBoxProps) => {
   const [leverage, setLeverage] = React.useState(0);
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const [Stats, setStats] = React.useState<React.JSX.Element>(<></>);
-  const [additionalChecks, setAdditionalChecks] = React.useState<ActionMethod>();
+  const [additionalChecks, setAdditionalChecks] = React.useState<ActionMessageType>();
 
   const debouncedLeverage = useDebounce(leverage, 1000);
   const debouncedAmount = useDebounce(amount, 1000);
