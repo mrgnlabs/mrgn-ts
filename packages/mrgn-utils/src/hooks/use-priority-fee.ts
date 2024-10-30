@@ -1,25 +1,22 @@
 import React from "react";
 import { Connection } from "@solana/web3.js";
 
-import { TransactionBroadcastType, TransactionPriorityType } from "@mrgnlabs/mrgn-common";
+import { MaxCapType, TransactionBroadcastType, TransactionPriorityType } from "@mrgnlabs/mrgn-common";
 
 import { usePrevious } from "../mrgnUtils";
-import {
-  DEFAULT_PRIORITY_FEE_MAX_CAP,
-  getBundleTip,
-  getRpcPriorityFeeMicroLamports,
-  microLamportsToUi,
-} from "../priority.utils";
+import { DEFAULT_MAX_CAP, getBundleTip, getRpcPriorityFeeMicroLamports, fetchPriorityFee } from "../priority.utils";
 
 export const usePriorityFee = (
   priorityType: TransactionPriorityType,
   broadcastType: TransactionBroadcastType,
+  maxCapType: MaxCapType,
   maxCap: number,
   connection?: Connection
 ): number => {
   const prevPriorityType = usePrevious(priorityType);
   const prevBroadcastType = usePrevious(broadcastType);
   const prevMaxCap = usePrevious(maxCap);
+  const prevMaxCapType = usePrevious(maxCapType);
   const [priorityFee, setPriorityFee] = React.useState(0);
 
   const calculatePriorityFeeUi = React.useCallback(
@@ -27,22 +24,11 @@ export const usePriorityFee = (
       priorityType: TransactionPriorityType,
       broadcastType: TransactionBroadcastType,
       maxCap: number,
+      maxCapType: MaxCapType,
       connection: Connection
     ) => {
-      const fetchPriorityFee = async () => {
-        if (broadcastType === "BUNDLE") {
-          return await getBundleTip(priorityType);
-        } else {
-          const priorityFeeMicroLamports = await getRpcPriorityFeeMicroLamports(connection, priorityType);
-          return microLamportsToUi(priorityFeeMicroLamports);
-        }
-      };
+      const priorityFeeUi = await fetchPriorityFee(maxCapType, maxCap, broadcastType, priorityType, connection);
 
-      const priorityFeeUi = await fetchPriorityFee();
-
-      if (priorityFeeUi > (maxCap || DEFAULT_PRIORITY_FEE_MAX_CAP)) {
-        setPriorityFee(maxCap || DEFAULT_PRIORITY_FEE_MAX_CAP);
-      }
       setPriorityFee(priorityFeeUi);
     },
     [setPriorityFee]
@@ -51,9 +37,12 @@ export const usePriorityFee = (
   React.useEffect(() => {
     if (
       connection &&
-      (prevPriorityType !== priorityType || prevBroadcastType !== broadcastType || prevMaxCap !== maxCap)
+      (prevPriorityType !== priorityType ||
+        prevBroadcastType !== broadcastType ||
+        prevMaxCap !== maxCap ||
+        prevMaxCapType !== maxCapType)
     ) {
-      calculatePriorityFeeUi(priorityType, broadcastType, maxCap, connection);
+      calculatePriorityFeeUi(priorityType, broadcastType, maxCap, maxCapType, connection);
     }
   }, [
     connection,
@@ -63,6 +52,8 @@ export const usePriorityFee = (
     broadcastType,
     prevMaxCap,
     maxCap,
+    maxCapType,
+    prevMaxCapType,
     calculatePriorityFeeUi,
   ]);
 

@@ -110,9 +110,15 @@ export const LendBox = ({
     state.setErrorMessage,
   ]);
 
-  const { priorityType, broadcastType, maxCap } = useActionContext();
+  const { priorityType, broadcastType, maxCap, maxCapType } = useActionContext();
 
-  const priorityFee = usePriorityFee(priorityType, broadcastType, maxCap, marginfiClient?.provider.connection);
+  const priorityFee = usePriorityFee(
+    priorityType,
+    broadcastType,
+    maxCapType,
+    maxCap,
+    marginfiClient?.provider.connection
+  );
 
   const accountSummary = React.useMemo(() => {
     return (
@@ -256,6 +262,9 @@ export const LendBox = ({
     if (!selectedBank || !amount) {
       return;
     }
+
+    console.log("priorityFee", priorityFee);
+    console.log("broadcastType", broadcastType);
 
     const action = async () => {
       const params = {

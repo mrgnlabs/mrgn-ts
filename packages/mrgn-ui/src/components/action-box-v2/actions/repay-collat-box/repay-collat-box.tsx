@@ -107,8 +107,14 @@ export const RepayCollatBox = ({
     state.setIsLoading,
   ]);
 
-  const { priorityType, broadcastType, maxCap } = useActionContext();
-  const priorityFee = usePriorityFee(priorityType, broadcastType, maxCap, marginfiClient?.provider.connection);
+  const { priorityType, broadcastType, maxCap, maxCapType } = useActionContext();
+  const priorityFee = usePriorityFee(
+    priorityType,
+    broadcastType,
+    maxCapType,
+    maxCap,
+    marginfiClient?.provider.connection
+  );
 
   const { isRefreshTxn, blockProgress } = usePollBlockHeight(
     marginfiClient?.provider.connection,

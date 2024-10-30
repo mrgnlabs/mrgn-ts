@@ -116,9 +116,15 @@ export const LoopBox = ({
     state.setIsLoading,
   ]);
 
-  const { priorityType, broadcastType, maxCap } = useActionContext();
+  const { priorityType, broadcastType, maxCap, maxCapType } = useActionContext();
 
-  const priorityFee = usePriorityFee(priorityType, broadcastType, maxCap, marginfiClient?.provider.connection);
+  const priorityFee = usePriorityFee(
+    priorityType,
+    broadcastType,
+    maxCapType,
+    maxCap,
+    marginfiClient?.provider.connection
+  );
 
   const [slippage, setIsSettingsDialogOpen, setPreviousTxn, setIsActionComplete] = useActionBoxStore((state) => [
     state.slippageBps,

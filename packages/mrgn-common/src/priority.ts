@@ -5,6 +5,8 @@ export type TransactionBroadcastType = "BUNDLE" | "RPC";
 
 export type TransactionPriorityType = "NORMAL" | "HIGH" | "MAMAS";
 
+export type MaxCapType = "DYNAMIC" | "MANUAL";
+
 // easy to use values for user convenience
 export const enum PriotitizationFeeLevels {
   LOW = 2500,
@@ -25,6 +27,42 @@ interface RpcResponse {
   result?: [];
   error?: any;
 }
+
+export const getCalculatedPrioritizationFeeByPercentile = async (
+  connection: Connection,
+  config: GetRecentPrioritizationFeesByPercentileConfig,
+  slotsToReturn?: number
+) => {
+  const fees = await getRecentPrioritizationFeesByPercentile(connection, config, slotsToReturn);
+
+  // Calculate min, max, mean
+  const { min, max, sum } = fees.reduce(
+    (acc, fee) => ({
+      min: fee.prioritizationFee < acc.min.prioritizationFee ? fee : acc.min,
+      max: fee.prioritizationFee > acc.max.prioritizationFee ? fee : acc.max,
+      sum: acc.sum + fee.prioritizationFee,
+    }),
+    { min: fees[0], max: fees[0], sum: 0 }
+  );
+
+  const mean = Math.ceil(sum / fees.length);
+
+  // Calculate median
+  const sortedFees = [...fees].sort((a, b) => a.prioritizationFee - b.prioritizationFee);
+  const midIndex = Math.floor(fees.length / 2);
+
+  const median =
+    fees.length % 2 === 0
+      ? Math.ceil((sortedFees[midIndex - 1].prioritizationFee + sortedFees[midIndex].prioritizationFee) / 2)
+      : sortedFees[midIndex].prioritizationFee;
+
+  return {
+    min,
+    max,
+    mean,
+    median,
+  };
+};
 
 export const getMinPrioritizationFeeByPercentile = async (
   connection: Connection,

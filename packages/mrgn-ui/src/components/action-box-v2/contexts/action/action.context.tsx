@@ -1,12 +1,13 @@
 import React from "react";
 
-import { TransactionBroadcastType, TransactionPriorityType } from "@mrgnlabs/mrgn-common";
+import { MaxCapType, TransactionBroadcastType, TransactionPriorityType } from "@mrgnlabs/mrgn-common";
 import { DEFAULT_PRIORITY_SETTINGS } from "@mrgnlabs/mrgn-utils";
 
 type ActionContextType = {
   priorityType: TransactionPriorityType;
   broadcastType: TransactionBroadcastType;
   maxCap: number;
+  maxCapType: MaxCapType;
 };
 
 const ActionContext = React.createContext<ActionContextType>({ ...DEFAULT_PRIORITY_SETTINGS });

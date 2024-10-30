@@ -2,7 +2,7 @@ import { create, StateCreator } from "zustand";
 import { persist } from "zustand/middleware";
 
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
-import { TransactionBroadcastType, TransactionPriorityType } from "@mrgnlabs/mrgn-common";
+import { MaxCapType, TransactionBroadcastType, TransactionPriorityType } from "@mrgnlabs/mrgn-common";
 import { LendingModes, PoolTypes, DEFAULT_PRIORITY_SETTINGS } from "@mrgnlabs/mrgn-utils";
 
 import { SortType, sortDirection, SortAssetOption, PreviousTxn } from "~/types";
@@ -40,6 +40,7 @@ type TransactionSettings = {
   broadcastType: TransactionBroadcastType;
   priorityType: TransactionPriorityType;
   maxCap: number;
+  maxCapType: MaxCapType;
 };
 
 interface UiState {
@@ -55,6 +56,7 @@ interface UiState {
   broadcastType: TransactionBroadcastType;
   priorityType: TransactionPriorityType;
   maxCap: number;
+  maxCapType: MaxCapType;
 
   // Actions
   setIsMenuDrawerOpen: (isOpen: boolean) => void;

@@ -4,7 +4,14 @@ import { WalletContextState } from "@solana/wallet-adapter-react";
 
 import { getPriceWithConfidence, MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { AccountSummary, ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { ActionMethod, LstData, PreviousTxn, showErrorToast, STATIC_SIMULATION_ERRORS } from "@mrgnlabs/mrgn-utils";
+import {
+  ActionMethod,
+  LstData,
+  PreviousTxn,
+  showErrorToast,
+  STATIC_SIMULATION_ERRORS,
+  usePriorityFee,
+} from "@mrgnlabs/mrgn-utils";
 import { nativeToUi, NATIVE_MINT as SOL_MINT, uiToNative } from "@mrgnlabs/mrgn-common";
 
 import { useActionAmounts, usePollBlockHeight } from "~/components/action-box-v2/hooks";
@@ -19,7 +26,7 @@ import { useActionBoxStore } from "../../store";
 import { handleExecuteLstAction } from "./utils/stake-action.utils";
 import { ActionInput } from "./components/action-input";
 import { checkActionAvailable } from "./utils";
-import { useStakeBoxContext } from "../../contexts";
+import { useActionContext, useStakeBoxContext } from "../../contexts";
 
 export type StakeBoxProps = {
   nativeSolBalance: number;
@@ -97,6 +104,16 @@ export const StakeBox = ({
     actionMode,
   });
 
+  const { priorityType, broadcastType, maxCap, maxCapType } = useActionContext();
+
+  const priorityFee = usePriorityFee(
+    priorityType,
+    broadcastType,
+    maxCapType,
+    maxCap,
+    marginfiClient?.provider.connection
+  );
+
   const [setIsSettingsDialogOpen, setPreviousTxn, setIsActionComplete] = useActionBoxStore((state) => [
     state.setIsSettingsDialogOpen,
     state.setPreviousTxn,
@@ -146,6 +163,8 @@ export const StakeBox = ({
     setIsLoading,
     marginfiClient,
     lstData,
+    priorityFee,
+    broadcastType,
   });
 
   const actionSummary = React.useMemo(() => {
@@ -167,6 +186,13 @@ export const StakeBox = ({
       const params = {
         actionTxns,
         marginfiClient,
+        actionType: requestedActionType,
+        nativeSolBalance,
+        broadcastType,
+        originDetails: {
+          amount,
+          tokenSymbol: selectedBank.meta.tokenSymbol,
+        },
       };
 
       await handleExecuteLstAction({
@@ -205,12 +231,6 @@ export const StakeBox = ({
         },
         setIsError: () => {},
         setIsLoading: (isLoading) => setIsLoading({ type: "TRANSACTION", state: isLoading }),
-        actionType: requestedActionType,
-        nativeSolBalance,
-        originDetails: {
-          amount,
-          tokenSymbol: selectedBank.meta.tokenSymbol,
-        },
       });
     };
 
@@ -223,15 +243,16 @@ export const StakeBox = ({
     amount,
     marginfiClient,
     setAmountRaw,
+    setIsLoading,
     actionTxns,
     requestedActionType,
-    receiveAmount,
+    nativeSolBalance,
+    broadcastType,
     captureEvent,
     setIsActionComplete,
     setPreviousTxn,
+    receiveAmount,
     onComplete,
-    setIsLoading,
-    nativeSolBalance,
   ]);
 
   const actionMethods = React.useMemo(() => {

@@ -366,8 +366,7 @@ class MarginfiAccountWrapper {
     swapIxs: TransactionInstruction[],
     swapLookupTables: AddressLookupTableAccount[],
     priorityFeeUi?: number,
-    bundleTip?: number,
-    transactionBroadcastType: TransactionBroadcastType = "BUNDLE"
+    broadcastType: TransactionBroadcastType = "BUNDLE"
   ): Promise<string[]> {
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:repay`);
     debug("Repaying %s into marginfi account (bank: %s), repay all: %s", repayAmount, borrowBankAddress, repayAll);
@@ -384,8 +383,12 @@ class MarginfiAccountWrapper {
       priorityFeeUi
     );
 
-    // assumes only one tx
-    const sigs = await this.client.processTransactions([...feedCrankTxs, flashloanTx]);
+    const sigs = await this.client.processTransactions(
+      [...feedCrankTxs, flashloanTx],
+      undefined,
+      undefined,
+      broadcastType
+    );
     debug("Repay with collateral successful %s", sigs.pop() ?? "");
 
     return sigs;
@@ -633,6 +636,7 @@ class MarginfiAccountWrapper {
 
     const setupIxs = createAtas ? await this.makeSetupIx([depositBankAddress, borrowBankAddress]) : [];
     const cuRequestIxs = this.makeComputeBudgetIx();
+
     const { bundleTipIx, priorityFeeIx } = makeTxPriorityIx(
       this.client.provider.publicKey,
       priorityFeeUi,
@@ -894,7 +898,12 @@ class MarginfiAccountWrapper {
     );
 
     // process multiple transactions if feed updates required
-    const sigs = await this.client.processTransactions([...feedCrankTxs, withdrawTx]);
+    const sigs = await this.client.processTransactions(
+      [...feedCrankTxs, withdrawTx],
+      undefined,
+      undefined,
+      broadcastType
+    );
 
     debug("Withdrawing successful %s", sigs.pop());
     return sigs;
@@ -985,7 +994,12 @@ class MarginfiAccountWrapper {
     const { feedCrankTxs, borrowTx } = await this.makeBorrowTx(amount, bankAddress, opt);
 
     // process multiple transactions if feed updates required
-    const sigs = await this.client.processTransactions([...feedCrankTxs, borrowTx]);
+    const sigs = await this.client.processTransactions(
+      [...feedCrankTxs, borrowTx],
+      undefined,
+      undefined,
+      broadcastType
+    );
     debug("Borrowing successful %s", sigs);
     return sigs;
   }

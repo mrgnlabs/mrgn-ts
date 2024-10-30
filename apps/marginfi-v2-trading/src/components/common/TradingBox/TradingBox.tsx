@@ -15,6 +15,7 @@ import {
   capture,
   extractErrorString,
   usePrevious,
+  usePriorityFee,
 } from "@mrgnlabs/mrgn-utils";
 import { MarginfiAccountWrapper, SimulationResult, computeMaxLeverage } from "@mrgnlabs/marginfi-client-v2";
 import { IconAlertTriangle, IconExternalLink, IconLoader2, IconSettings, IconWallet } from "@tabler/icons-react";
@@ -75,16 +76,29 @@ export const TradingBox = ({ activeGroup, side = "long" }: TradingBoxProps) => {
     state.refreshGroup,
   ]);
 
-  const [slippageBps, priorityFee, platformFeeBps, setSlippageBps, setIsActionComplete, setPreviousTxn] = useUiStore(
-    (state) => [
-      state.slippageBps,
-      state.priorityFee,
-      state.platformFeeBps,
-      state.setSlippageBps,
-      state.setIsActionComplete,
-      state.setPreviousTxn,
-    ]
-  );
+  const [
+    slippageBps,
+    platformFeeBps,
+    priorityType,
+    broadcastType,
+    maxCap,
+    maxCapType,
+    setSlippageBps,
+    setIsActionComplete,
+    setPreviousTxn,
+  ] = useUiStore((state) => [
+    state.slippageBps,
+    state.platformFeeBps,
+    state.priorityType,
+    state.broadcastType,
+    state.maxCap,
+    state.maxCapType,
+    state.setSlippageBps,
+    state.setIsActionComplete,
+    state.setPreviousTxn,
+  ]);
+
+  const priorityFee = usePriorityFee(priorityType, broadcastType, maxCapType, maxCap, connection);
 
   const [setIsWalletOpen] = useWalletStore((state) => [state.setIsWalletOpen]);
 
@@ -236,7 +250,7 @@ export const TradingBox = ({ activeGroup, side = "long" }: TradingBoxProps) => {
           connection,
           platformFeeBps,
           isTrading: true,
-          broadcastType: "BUNDLE",
+          broadcastType: broadcastType,
         });
 
         let loopingObject: LoopingObject | null = null;
@@ -264,10 +278,11 @@ export const TradingBox = ({ activeGroup, side = "long" }: TradingBoxProps) => {
     amount,
     leverage,
     tradeState,
-    slippageBps,
     priorityFee,
+    slippageBps,
     connection,
     platformFeeBps,
+    broadcastType,
     handleSimulation,
   ]);
 
@@ -299,12 +314,23 @@ export const TradingBox = ({ activeGroup, side = "long" }: TradingBoxProps) => {
         loopingObject,
         priorityFee,
         slippageBps: slippageBps,
+        broadcastType: broadcastType,
         connection,
       });
 
       return sig;
     },
-    [amount, connection, loopingObject, priorityFee, activeGroup, slippageBps, tradeState, walletContextState]
+    [
+      amount,
+      connection,
+      loopingObject,
+      priorityFee,
+      activeGroup,
+      slippageBps,
+      tradeState,
+      broadcastType,
+      walletContextState,
+    ]
   );
 
   const handleLeverageAction = React.useCallback(async () => {

@@ -16,12 +16,13 @@ import { useIsMobile } from "~/hooks/use-is-mobile";
 import { useConnection } from "~/hooks/use-connection";
 
 import { Wallet } from "~/components/wallet-v2";
-import { CreatePoolScriptDialog } from "../Pool/CreatePoolScript";
-import { CreatePoolSoon } from "../Pool/CreatePoolSoon";
-import { CreatePoolDialog } from "../Pool/CreatePoolDialog";
 import { Button } from "~/components/ui/button";
 import { IconArena } from "~/components/ui/icons";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
+
+import { CreatePoolScriptDialog } from "../Pool/CreatePoolScript";
+import { CreatePoolSoon } from "../Pool/CreatePoolSoon";
+import { SettingsPopover } from "../settings";
 
 const navItems = [
   { label: "Discover", href: "/" },
@@ -140,6 +141,7 @@ export const Header = () => {
                 /> */}
               </div>
             )}
+            <SettingsPopover />
             <Wallet
               connection={connection}
               initialized={initialized}

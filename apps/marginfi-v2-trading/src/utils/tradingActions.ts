@@ -30,6 +30,7 @@ import { ExtendedBankInfo, clearAccountCache, ActiveBankInfo } from "@mrgnlabs/m
 
 import { TradeSide } from "~/components/common/TradingBox/tradingBox.utils";
 import { WalletContextStateOverride } from "~/components/wallet-v2/hooks/use-wallet.hook";
+import { TransactionBroadcastType } from "@mrgnlabs/mrgn-common";
 
 export async function createMarginfiGroup({
   marginfiClient,
@@ -163,6 +164,7 @@ export async function executeLeverageAction({
   loopingObject: _loopingObject,
   priorityFee,
   slippageBps,
+  broadcastType,
 }: {
   marginfiClient: MarginfiClient | null;
   marginfiAccount: MarginfiAccountWrapper | null;
@@ -175,6 +177,7 @@ export async function executeLeverageAction({
   loopingObject: LoopingObject | null;
   priorityFee: number;
   slippageBps: number;
+  broadcastType: TransactionBroadcastType;
 }) {
   if (marginfiClient === null) {
     showErrorToast("Marginfi client not ready");
@@ -237,7 +240,7 @@ export async function executeLeverageAction({
         loopObject: loopingObject,
         priorityFee,
         isTrading: true,
-        broadcastType: "BUNDLE",
+        broadcastType: broadcastType,
       });
 
       if ("loopingTxn" in result) {
@@ -262,7 +265,13 @@ export async function executeLeverageAction({
       let txnSig: string[] = [];
 
       if (loopingObject.feedCrankTxs) {
-        txnSig = await marginfiClient.processTransactions([...loopingObject.feedCrankTxs, loopingObject.loopingTxn]);
+        txnSig = await marginfiClient.processTransactions(
+          [...loopingObject.feedCrankTxs, loopingObject.loopingTxn],
+          undefined,
+          undefined,
+          broadcastType,
+          true
+        );
       } else {
         txnSig = [await marginfiClient.processTransaction(loopingObject.loopingTxn)];
       }

@@ -1,6 +1,8 @@
 import { Connection, LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
 import {
   getRecentPrioritizationFeesByPercentile,
+  getCalculatedPrioritizationFeeByPercentile,
+  MaxCapType,
   TransactionBroadcastType,
   TransactionPriorityType,
 } from "@mrgnlabs/mrgn-common";
@@ -22,12 +24,13 @@ interface TipFloorDataResponse {
   ema_landed_tips_50th_percentile: number;
 }
 
-export const DEFAULT_PRIORITY_FEE_MAX_CAP = 0.004; // 4_000_000 lamports = 0.004 SOL
+export const DEFAULT_MAX_CAP = 0.01;
 
 export const DEFAULT_PRIORITY_SETTINGS = {
   priorityType: "NORMAL" as TransactionPriorityType,
   broadcastType: "BUNDLE" as TransactionBroadcastType,
-  maxCap: DEFAULT_PRIORITY_FEE_MAX_CAP,
+  maxCap: DEFAULT_MAX_CAP,
+  maxCapType: "DYNAMIC" as MaxCapType,
 };
 
 export const uiToMicroLamports = (ui: number, limitCU: number = 1_400_000) => {
@@ -42,7 +45,58 @@ export const microLamportsToUi = (microLamports: number, limitCU: number = 1_400
   return Math.trunc(priorityFeeUi * LAMPORTS_PER_SOL) / LAMPORTS_PER_SOL;
 };
 
-export const getBundleTip = async (priorityType: TransactionPriorityType) => {
+export const calculateBundleTipCap = (
+  bundleTipData: TipFloorDataResponse,
+  userMaxCap: number,
+  multiplier: number = 2
+) => {
+  const { ema_landed_tips_50th_percentile, landed_tips_95th_percentile } = bundleTipData;
+
+  const maxCap = Math.min(landed_tips_95th_percentile, ema_landed_tips_50th_percentile * multiplier);
+
+  return Math.min(userMaxCap, Math.trunc(maxCap * LAMPORTS_PER_SOL) / LAMPORTS_PER_SOL);
+};
+
+export const calculatePriorityFeeCap = async (connection: Connection, userMaxCap: number, multiplier: number = 3) => {
+  const { min, max, mean, median } = await getCalculatedPrioritizationFeeByPercentile(
+    connection,
+    {
+      lockedWritableAccounts: [], // TODO: investigate this
+      percentile: PriotitizationFeeLevels.MEDIAN,
+      fallback: false,
+    },
+    20
+  );
+
+  return Math.min(userMaxCap, microLamportsToUi(Math.max(median * multiplier, max.prioritizationFee)));
+};
+
+interface TipFloorDataResponse {
+  time: string;
+  landed_tips_25th_percentile: number;
+  landed_tips_50th_percentile: number;
+  landed_tips_75th_percentile: number;
+  landed_tips_95th_percentile: number;
+  landed_tips_99th_percentile: number;
+  ema_landed_tips_50th_percentile: number;
+}
+
+export const fetchPriorityFee = async (
+  maxCapType: MaxCapType,
+  maxCap: number,
+  broadcastType: TransactionBroadcastType,
+  priorityType: TransactionPriorityType,
+  connection: Connection
+) => {
+  const finalMaxCap = maxCapType === "DYNAMIC" ? DEFAULT_MAX_CAP : maxCap;
+  if (broadcastType === "BUNDLE") {
+    return await getBundleTip(priorityType, finalMaxCap);
+  } else {
+    return await getRpcPriorityFeeMicroLamports(connection, priorityType, finalMaxCap);
+  }
+};
+
+export const getBundleTip = async (priorityType: TransactionPriorityType, userMaxCap: number) => {
   const response = await fetch("/api/bundles/tip", {
     method: "GET",
     headers: {
@@ -55,30 +109,34 @@ export const getBundleTip = async (priorityType: TransactionPriorityType) => {
   }
 
   const bundleTipData: TipFloorDataResponse = await response.json();
+  const maxCap = calculateBundleTipCap(bundleTipData, userMaxCap);
 
   const { ema_landed_tips_50th_percentile, landed_tips_50th_percentile, landed_tips_75th_percentile } = bundleTipData;
 
   let priorityFee = 0;
 
   if (priorityType === "HIGH") {
-    priorityFee =
-      ema_landed_tips_50th_percentile > landed_tips_50th_percentile
-        ? ema_landed_tips_50th_percentile
-        : landed_tips_50th_percentile;
+    priorityFee = Math.max(ema_landed_tips_50th_percentile, landed_tips_50th_percentile);
   } else if (priorityType === "MAMAS") {
     priorityFee = landed_tips_75th_percentile;
   } else {
-    priorityFee =
-      ema_landed_tips_50th_percentile > landed_tips_50th_percentile
-        ? landed_tips_50th_percentile
-        : ema_landed_tips_50th_percentile;
+    // NORMAL
+    priorityFee = Math.min(ema_landed_tips_50th_percentile, landed_tips_50th_percentile);
   }
 
-  return Math.trunc(priorityFee * LAMPORTS_PER_SOL) / LAMPORTS_PER_SOL;
+  console.log("priorityFee", priorityFee);
+  console.log("maxCap", maxCap);
+  console.log("final value", Math.min(maxCap, Math.trunc(priorityFee * LAMPORTS_PER_SOL) / LAMPORTS_PER_SOL));
+
+  return Math.min(maxCap, Math.trunc(priorityFee * LAMPORTS_PER_SOL) / LAMPORTS_PER_SOL);
 };
 
-export const getRpcPriorityFeeMicroLamports = async (connection: Connection, priorityType: TransactionPriorityType) => {
-  const recentPrioritizationFees = await getRecentPrioritizationFeesByPercentile(
+export const getRpcPriorityFeeMicroLamports = async (
+  connection: Connection,
+  priorityType: TransactionPriorityType,
+  userMaxCap: number
+) => {
+  const { min, max, mean, median } = await getCalculatedPrioritizationFeeByPercentile(
     connection,
     {
       lockedWritableAccounts: [], // TODO: investigate this
@@ -88,28 +146,24 @@ export const getRpcPriorityFeeMicroLamports = async (connection: Connection, pri
     20
   );
 
-  const { min, max, sum } = recentPrioritizationFees.reduce(
-    (acc, current) => {
-      return {
-        min: Math.min(acc.min, current.prioritizationFee),
-        max: Math.max(acc.max, current.prioritizationFee),
-        sum: acc.sum + current.prioritizationFee,
-      };
-    },
-    { min: recentPrioritizationFees[0].prioritizationFee, max: recentPrioritizationFees[0].prioritizationFee, sum: 0 }
-  );
-
-  const average = sum / recentPrioritizationFees.length;
+  const maxCap = await calculatePriorityFeeCap(connection, userMaxCap);
 
   let priorityFee = 0;
 
   if (priorityType === "HIGH") {
-    priorityFee = average;
+    priorityFee = mean;
   } else if (priorityType === "MAMAS") {
-    priorityFee = max;
+    priorityFee = max.prioritizationFee;
   } else {
-    priorityFee = min;
+    priorityFee = min.prioritizationFee;
   }
 
-  return priorityFee;
+  console.log("priorityFee", microLamportsToUi(priorityFee));
+  console.log("maxCap", maxCap);
+  console.log(
+    "final value",
+    Math.min(maxCap, Math.trunc(microLamportsToUi(priorityFee) * LAMPORTS_PER_SOL) / LAMPORTS_PER_SOL)
+  );
+
+  return Math.min(maxCap, priorityFee);
 };

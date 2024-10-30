@@ -13,7 +13,7 @@ import { ToastContainer } from "react-toastify";
 import { Analytics } from "@vercel/analytics/react";
 import { registerMoonGateWallet } from "@moongate/moongate-adapter";
 
-import { cn, DEFAULT_PRIORITY_FEE_MAX_CAP, Desktop, Mobile, init as initAnalytics } from "@mrgnlabs/mrgn-utils";
+import { cn, DEFAULT_MAX_CAP, Desktop, Mobile, init as initAnalytics } from "@mrgnlabs/mrgn-utils";
 import { ActionBoxProvider, ActionProvider, AuthDialog } from "@mrgnlabs/mrgn-ui";
 
 import config from "~/config";
@@ -50,9 +50,10 @@ const MATOMO_URL = "https://mrgn.matomo.cloud";
 type MrgnAppProps = { path: string };
 
 export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnAppProps) {
-  const [priorityType, broadcastType, maxCap, setIsFetchingData, isOraclesStale] = useUiStore((state) => [
+  const [priorityType, broadcastType, maxCapType, maxCap, setIsFetchingData, isOraclesStale] = useUiStore((state) => [
     state.priorityType,
     state.broadcastType,
+    state.maxCapType,
     state.maxCap,
     state.setIsFetchingData,
     state.isOraclesStale,
@@ -111,7 +112,8 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
                     <ActionProvider
                       broadcastType={broadcastType}
                       priorityType={priorityType}
-                      maxCap={maxCap || DEFAULT_PRIORITY_FEE_MAX_CAP}
+                      maxCap={maxCap || DEFAULT_MAX_CAP}
+                      maxCapType={maxCapType}
                     >
                       <ActionBoxProvider
                         banks={extendedBankInfos}

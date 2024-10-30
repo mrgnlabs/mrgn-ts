@@ -770,7 +770,9 @@ class MarginfiClient {
   async processTransactions(
     transactions: (VersionedTransaction | Transaction)[],
     signers?: Array<Signer>,
-    opts?: TransactionOptions
+    opts?: TransactionOptions,
+    broadcastType: TransactionBroadcastType = "BUNDLE",
+    isSequentialTxs: boolean = true
   ): Promise<TransactionSignature[]> {
     let signatures: TransactionSignature[] = [""];
 
@@ -873,10 +875,26 @@ class MarginfiClient {
           });
         }
 
-        signatures = await this.sendTransactionAsBundle(base58Txs).catch(
-          async () =>
+        let sendTxsRpc = async (versionedTransaction: VersionedTransaction[]): Promise<string[]> => [];
+
+        if (isSequentialTxs) {
+          sendTxsRpc = async (txs: VersionedTransaction[]) => {
+            let sigs = [];
+            for (const tx of txs) {
+              const signature = await connection.sendTransaction(tx, {
+                // minContextSlot: mergedOpts.minContextSlot,
+                skipPreflight: mergedOpts.skipPreflight,
+                preflightCommitment: mergedOpts.preflightCommitment,
+                maxRetries: mergedOpts.maxRetries,
+              });
+              sigs.push(signature);
+            }
+            return sigs;
+          };
+        } else {
+          sendTxsRpc = async (txs: VersionedTransaction[]) =>
             await Promise.all(
-              versionedTransactions.map(async (versionedTransaction) => {
+              txs.map(async (versionedTransaction) => {
                 const signature = await connection.sendTransaction(versionedTransaction, {
                   // minContextSlot: mergedOpts.minContextSlot,
                   skipPreflight: mergedOpts.skipPreflight,
@@ -885,8 +903,16 @@ class MarginfiClient {
                 });
                 return signature;
               })
-            )
-        );
+            );
+        }
+
+        if (broadcastType === "BUNDLE") {
+          signatures = await this.sendTransactionAsBundle(base58Txs).catch(
+            async () => await sendTxsRpc(versionedTransactions)
+          );
+        } else {
+          signatures = await sendTxsRpc(versionedTransactions);
+        }
 
         await Promise.all(
           signatures.map(async (signature) => {
