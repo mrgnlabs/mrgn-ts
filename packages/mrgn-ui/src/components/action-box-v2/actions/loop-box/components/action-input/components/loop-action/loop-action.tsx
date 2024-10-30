@@ -18,11 +18,9 @@ type LoopActionProps = {
 export const LoopAction = ({
   walletAmount,
   maxAmount,
-  amountRaw,
   selectedBank,
   selectedSecondaryBank,
   onSetAmountRaw,
-  loopActionTxns,
 }: LoopActionProps) => {
   const numberFormater = React.useMemo(() => new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 }), []);
 
@@ -45,8 +43,6 @@ export const LoopAction = ({
           <li className="flex justify-between items-center gap-1.5">
             <strong className="mr-auto">{maxLabel.label}</strong>
             <div className="flex space-x-1">
-              {selectedBank?.isActive && <div>{clampedNumeralFormatter(selectedBank.position.amount)}</div>}
-              {selectedBank?.isActive && <IconArrowRight width={12} height={12} />}
               <div>{maxLabel.amount}</div>
               <button
                 className="cursor-pointer border-b border-transparent transition text-mfi-action-box-highlight hover:border-mfi-action-box-highlight"
@@ -57,15 +53,6 @@ export const LoopAction = ({
               </button>
             </div>
           </li>
-          {loopActionTxns.actualDepositAmount > 0 && (
-            <li className="flex justify-between items-center gap-1.5">
-              <strong>Leveraged deposit:</strong>
-
-              <div className="flex space-x-1.5 items-center">
-                {`${Number(loopActionTxns?.actualDepositAmount.toFixed(4)) ?? "-"} ${selectedBank.meta.tokenSymbol}`}
-              </div>
-            </li>
-          )}
         </ul>
       )}
     </>
