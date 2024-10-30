@@ -124,10 +124,6 @@ export const getBundleTip = async (priorityType: TransactionPriorityType, userMa
     priorityFee = Math.min(ema_landed_tips_50th_percentile, landed_tips_50th_percentile);
   }
 
-  console.log("priorityFee", priorityFee);
-  console.log("maxCap", maxCap);
-  console.log("final value", Math.min(maxCap, Math.trunc(priorityFee * LAMPORTS_PER_SOL) / LAMPORTS_PER_SOL));
-
   return Math.min(maxCap, Math.trunc(priorityFee * LAMPORTS_PER_SOL) / LAMPORTS_PER_SOL);
 };
 
@@ -157,13 +153,6 @@ export const getRpcPriorityFeeMicroLamports = async (
   } else {
     priorityFee = min.prioritizationFee;
   }
-
-  console.log("priorityFee", microLamportsToUi(priorityFee));
-  console.log("maxCap", maxCap);
-  console.log(
-    "final value",
-    Math.min(maxCap, Math.trunc(microLamportsToUi(priorityFee) * LAMPORTS_PER_SOL) / LAMPORTS_PER_SOL)
-  );
 
   return Math.min(maxCap, priorityFee);
 };
