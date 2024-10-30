@@ -77,7 +77,7 @@ export const Settings = ({
                 <FormItem className="space-y-3 pb-2">
                   <FormControl>
                     <RadioGroup
-                      onValueChange={(value) => field.onChange(value)}
+                      onValueChange={(value) => value === "BUNDLE" && field.onChange(value)}
                       defaultValue={field.value.toString()}
                       className="flex justify-between"
                     >
@@ -91,7 +91,10 @@ export const Settings = ({
                         >
                           <RadioGroupItem value={option.type} id={option.type} className="hidden" />
                           <Label
-                            className={"flex flex-col p-3 gap-2 h-auto w-full text-center cursor-pointer"}
+                            className={cn(
+                              "flex flex-col p-3 gap-2 h-auto w-full text-center cursor-pointer",
+                              option.type === "RPC" && "cursor-not-allowed opacity-50"
+                            )}
                             htmlFor={option.type}
                           >
                             {option.label}

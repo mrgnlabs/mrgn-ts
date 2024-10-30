@@ -887,6 +887,14 @@ class MarginfiClient {
                 preflightCommitment: mergedOpts.preflightCommitment,
                 maxRetries: mergedOpts.maxRetries,
               });
+              await connection.confirmTransaction(
+                {
+                  blockhash,
+                  lastValidBlockHeight,
+                  signature,
+                },
+                "confirmed"
+              );
               sigs.push(signature);
             }
             return sigs;
