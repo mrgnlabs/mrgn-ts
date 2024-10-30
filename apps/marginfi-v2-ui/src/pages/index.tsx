@@ -5,7 +5,7 @@ import { useRouter } from "next/router";
 
 import { shortenAddress } from "@mrgnlabs/mrgn-common";
 import { capture, Desktop, LendingModes, Mobile } from "@mrgnlabs/mrgn-utils";
-import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { ActionBox } from "@mrgnlabs/mrgn-ui";
 
 import { useMrgnlendStore, useUiStore } from "~/store";
@@ -33,22 +33,35 @@ export default function HomePage() {
   const { walletContextState, walletAddress, isOverride, connected } = useWallet();
   const [lendingMode] = useUiStore((state) => [state.lendingMode]);
 
-  const [isStoreInitialized, isRefreshingStore, selectedAccount, extendedBankInfos, fetchMrgnlendState] =
-    useMrgnlendStore((state) => [
-      state.initialized,
-      state.isRefreshingStore,
-      state.selectedAccount,
-      state.extendedBankInfos,
-      state.fetchMrgnlendState,
-    ]);
+  const [
+    isStoreInitialized,
+    isRefreshingStore,
+    selectedAccount,
+    extendedBankInfos,
+    fetchMrgnlendState,
+    marginfiClient,
+  ] = useMrgnlendStore((state) => [
+    state.initialized,
+    state.isRefreshingStore,
+    state.selectedAccount,
+    state.extendedBankInfos,
+    state.fetchMrgnlendState,
+    state.marginfiClient,
+  ]);
 
   const annoucements = React.useMemo(() => {
-    const mother = extendedBankInfos.find((bank) => bank.meta.tokenSymbol === "MOTHER");
-    const hSOL = extendedBankInfos.find((bank) => bank.meta.tokenSymbol === "hSOL");
+    let banks: (ExtendedBankInfo | undefined)[] = [];
+    banks.push(extendedBankInfos.find((bank) => bank.meta.tokenSymbol === "hSOL"));
+    if (marginfiClient?.banks) {
+      const latestBankKey = Array.from(marginfiClient.banks.keys())[0];
+      banks.push(extendedBankInfos.find((bank) => bank.address.toString() === latestBankKey.toString()));
+    }
 
+    banks = banks.filter((bank): bank is ExtendedBankInfo => bank !== undefined);
     return [
-      { bank: mother },
-      { bank: hSOL },
+      ...banks.map((bank) => ({
+        bank: bank,
+      })),
       {
         image: <IconBook size={22} />,
         text: "New documentation now available!",
@@ -60,7 +73,7 @@ export default function HomePage() {
         onClick: () => router.push("/points"),
       },
     ] as (AnnouncementBankItem | AnnouncementCustomItem)[];
-  }, [extendedBankInfos, router]);
+  }, [extendedBankInfos, router, marginfiClient]);
 
   return (
     <>
