@@ -934,7 +934,7 @@ class MarginfiAccountWrapper {
       feedCrankTxs.push(
         new VersionedTransaction(
           new TransactionMessage({
-            instructions: updateFeedIxs,
+            instructions: [priorityFeeIx, ...updateFeedIxs],
             payerKey: this.authority,
             recentBlockhash: blockhash,
           }).compileToV0Message([...feedLuts])
