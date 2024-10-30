@@ -28,6 +28,38 @@ const numeralFormatter = (value: number) => {
   }
 };
 
+interface dynamicNumeralFormatterOptions {
+  minDisplay?: number;
+  tokenPrice?: number;
+}
+
+export const dynamicNumeralFormatter = (value: number, options: dynamicNumeralFormatterOptions = {}) => {
+  const { minDisplay = 0.00001, tokenPrice } = options;
+
+  if (value === 0) return "0";
+
+  if (Math.abs(value) < minDisplay) {
+    return `< ${minDisplay}`;
+  }
+
+  if (Math.abs(value) >= 0.01) {
+    return numeral(value).format("0.00a");
+  }
+
+  if (tokenPrice) {
+    const minUsdDisplay = 0.01;
+    const smallestUnit = minUsdDisplay / tokenPrice;
+
+    const requiredDecimals = Math.max(2, Math.ceil(-Math.log10(smallestUnit)) + 1);
+
+    const decimalPlaces = Math.min(requiredDecimals, 8);
+
+    return value.toFixed(decimalPlaces).replace(/\.?0+$/, "");
+  }
+
+  return "0";
+};
+
 const groupedNumberFormatterDyn = new Intl.NumberFormat("en-US", {
   useGrouping: true,
   minimumFractionDigits: 0,

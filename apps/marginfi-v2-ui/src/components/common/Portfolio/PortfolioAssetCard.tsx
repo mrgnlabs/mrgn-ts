@@ -3,7 +3,7 @@ import React from "react";
 import Image from "next/image";
 
 import { IconAlertTriangle } from "@tabler/icons-react";
-import { usdFormatter, numeralFormatter } from "@mrgnlabs/mrgn-common";
+import { usdFormatter, numeralFormatter, dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
 import { ActiveBankInfo, ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { capture } from "@mrgnlabs/mrgn-utils";
 import { ActionBox } from "@mrgnlabs/mrgn-ui";
@@ -72,7 +72,14 @@ export const PortfolioAssetCard = ({ bank, isInLendingMode, isBorrower = true }:
                 </dl>
               </div>
               <div className="font-medium text-lg mr-2">
-                {bank.position.amount < 0.01 ? "< $0.01" : numeralFormatter(bank.position.amount)}
+                {/* {bank.position.amount < 0.01
+                  ? "< $0.01"
+                  : dynamicNumeralFormatter(bank.position.amount, {
+                      tokenPrice: bank.info.oraclePrice.priceRealtime.price.toNumber(),
+                    })} */}
+                {dynamicNumeralFormatter(0.002466, {
+                  tokenPrice: 75000,
+                })}
                 {" " + bank.meta.tokenSymbol}
               </div>
             </div>
