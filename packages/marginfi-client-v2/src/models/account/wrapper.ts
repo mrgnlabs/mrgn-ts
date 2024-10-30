@@ -491,17 +491,13 @@ class MarginfiAccountWrapper {
 
     let feedCrankTxs: VersionedTransaction[] = [];
 
-    // isTxnSplit forced set to true as we're always splitting now
-    const isTxnSplit = true; //isTxnSplitParam
-    if (isTxnSplit) {
-      const message = new TransactionMessage({
-        payerKey: this.client.wallet.publicKey,
-        recentBlockhash: blockhash,
-        instructions: [bundleTipIx ?? priorityFeeIx, ...updateFeedIxs],
-      }).compileToV0Message([...addressLookupTableAccounts, ...feedLuts]);
+    const message = new TransactionMessage({
+      payerKey: this.client.wallet.publicKey,
+      recentBlockhash: blockhash,
+      instructions: [priorityFeeIx, ...(bundleTipIx ? [bundleTipIx] : []), ...updateFeedIxs],
+    }).compileToV0Message([...addressLookupTableAccounts, ...feedLuts]);
 
-      feedCrankTxs = [new VersionedTransaction(message)];
-    }
+    feedCrankTxs = [new VersionedTransaction(message)];
 
     const flashloanTx = await this.buildFlashLoanTx({
       ixs: [
@@ -661,7 +657,7 @@ class MarginfiAccountWrapper {
     const message = new TransactionMessage({
       payerKey: this.client.wallet.publicKey,
       recentBlockhash: blockhash,
-      instructions: [bundleTipIx ?? priorityFeeIx, ...updateFeedIxs, ...setupIxs],
+      instructions: [priorityFeeIx, ...(bundleTipIx ? [bundleTipIx] : []), ...updateFeedIxs, ...setupIxs],
     }).compileToV0Message([...clientLookupTables, ...feedLuts]);
 
     const feedCrankTxs = [new VersionedTransaction(message)];
@@ -1023,7 +1019,7 @@ class MarginfiAccountWrapper {
       feedCrankTxs.push(
         new VersionedTransaction(
           new TransactionMessage({
-            instructions: updateFeedIxs,
+            instructions: [priorityFeeIx, ...updateFeedIxs],
             payerKey: this.authority,
             recentBlockhash: blockhash,
           }).compileToV0Message([...feedLuts])

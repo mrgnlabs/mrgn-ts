@@ -5,16 +5,16 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import { GoogleAnalytics, GoogleTagManager } from "@next/third-parties/google";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
-
 import { WalletProvider } from "@solana/wallet-adapter-react";
 import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
 import { TipLinkWalletAutoConnect } from "@tiplink/wallet-adapter-react-ui";
 import { init, push } from "@socialgouv/matomo-next";
 import { ToastContainer } from "react-toastify";
 import { Analytics } from "@vercel/analytics/react";
-import { DEFAULT_PRIORITY_FEE_MAX_CAP, Desktop, Mobile } from "@mrgnlabs/mrgn-utils";
+import { registerMoonGateWallet } from "@moongate/moongate-adapter";
+
+import { cn, DEFAULT_PRIORITY_FEE_MAX_CAP, Desktop, Mobile, init as initAnalytics } from "@mrgnlabs/mrgn-utils";
 import { ActionBoxProvider, ActionProvider, AuthDialog } from "@mrgnlabs/mrgn-ui";
-import { init as initAnalytics } from "@mrgnlabs/mrgn-utils";
 
 import config from "~/config";
 import { MrgnlendProvider, LipClientProvider } from "~/context";
@@ -22,7 +22,6 @@ import { WALLET_ADAPTERS } from "~/config/wallets";
 import { useMrgnlendStore, useUiStore } from "~/store";
 import { WalletProvider as MrgnWalletProvider } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { ConnectionProvider } from "~/hooks/use-connection";
-import { cn } from "@mrgnlabs/mrgn-utils";
 
 import { Meta } from "~/components/common/Meta";
 import { MobileNavbar } from "~/components/mobile/MobileNavbar";
@@ -32,8 +31,6 @@ import { CongestionBanner } from "~/components/common/CongestionBanner";
 import "swiper/css";
 import "swiper/css/pagination";
 import "react-toastify/dist/ReactToastify.min.css";
-
-import { registerMoonGateWallet } from "@moongate/moongate-adapter";
 
 registerMoonGateWallet({ authMode: "Google", position: "bottom-right" });
 registerMoonGateWallet({ authMode: "Ethereum", position: "bottom-right" });

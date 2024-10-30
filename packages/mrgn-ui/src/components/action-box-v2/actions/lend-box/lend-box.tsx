@@ -120,8 +120,7 @@ export const LendBox = ({
     );
   }, [accountSummaryArg, selectedAccount, banks]);
 
-  const [setIsSettingsDialogOpen, setPreviousTxn, setIsActionComplete] = useActionBoxStore((state) => [
-    state.setIsSettingsDialogOpen,
+  const [setPreviousTxn, setIsActionComplete] = useActionBoxStore((state) => [
     state.setPreviousTxn,
     state.setIsActionComplete,
   ]);
@@ -380,8 +379,6 @@ export const LendBox = ({
           buttonLabel={buttonLabel}
         />
       </div>
-
-      <ActionSettingsButton setIsSettingsActive={setIsSettingsDialogOpen} />
 
       <Preview
         actionSummary={actionSummary}

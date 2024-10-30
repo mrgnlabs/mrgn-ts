@@ -155,7 +155,7 @@ export const Navbar: FC = () => {
                 }`}
                 onClick={async () => {
                   if (!wallet || !selectedAccount || bankAddressesWithEmissions.length === 0) return;
-                  const priorityFee = 0; // TODO: get priority fee from settings
+                  const priorityFee = 0; // code has been removed on new collect rewards so temporary placeholder
                   await collectRewardsBatch(selectedAccount, bankAddressesWithEmissions, priorityFee);
                 }}
               >
