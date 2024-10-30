@@ -1,8 +1,8 @@
 import React from "react";
 
-import { DialogDescription, DialogProps } from "@radix-ui/react-dialog";
+import { DialogProps } from "@radix-ui/react-dialog";
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "~/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "~/components/ui/dialog";
 import { Button } from "~/components/ui/button";
 import { IconLoader } from "~/components/ui/icons";
 

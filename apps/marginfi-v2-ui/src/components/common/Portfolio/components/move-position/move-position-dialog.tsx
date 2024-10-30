@@ -3,7 +3,7 @@ import React from "react";
 import Image from "next/image";
 import { TransactionMessage, VersionedTransaction } from "@solana/web3.js";
 
-import { usdFormatter, numeralFormatter } from "@mrgnlabs/mrgn-common";
+import { usdFormatter, numeralFormatter, shortenAddress } from "@mrgnlabs/mrgn-common";
 import { ActiveBankInfo, ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { checkLendActionAvailable, MultiStepToastHandle } from "@mrgnlabs/mrgn-utils";
 import { makeBundleTipIx, MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
@@ -15,6 +15,18 @@ import { IconLoader } from "~/components/ui/icons";
 import { useMoveSimulation } from "../../hooks";
 import { ActionMessage } from "~/components";
 
+interface MovePositionDialogProps {
+  selectedAccount: MarginfiAccountWrapper | null;
+  marginfiAccounts: MarginfiAccountWrapper[];
+  isOpen: boolean;
+  setIsOpen: (isOpen: boolean) => void;
+  bank: ActiveBankInfo;
+  marginfiClient: MarginfiClient | null;
+  fetchMrgnlendState: () => Promise<void>;
+  extendedBankInfos: ExtendedBankInfo[];
+  nativeSolBalance: number;
+}
+
 export const MovePositionDialog = ({
   selectedAccount,
   marginfiAccounts,
@@ -24,17 +36,9 @@ export const MovePositionDialog = ({
   marginfiClient,
   fetchMrgnlendState,
   extendedBankInfos,
-}: {
-  selectedAccount: MarginfiAccountWrapper | null;
-  marginfiAccounts: MarginfiAccountWrapper[];
-  isOpen: boolean;
-  setIsOpen: (isOpen: boolean) => void;
-  bank: ActiveBankInfo;
-  marginfiClient: MarginfiClient | null;
-  fetchMrgnlendState: () => void;
-  extendedBankInfos: ExtendedBankInfo[];
-}) => {
-  const [accountToMoveTo, setAccountToMoveTo] = React.useState<MarginfiAccountWrapper | undefined>(undefined);
+  nativeSolBalance,
+}: MovePositionDialogProps) => {
+  const [accountToMoveTo, setAccountToMoveTo] = React.useState<MarginfiAccountWrapper | null>(null);
   const [actionTxns, setActionTxns] = React.useState<VersionedTransaction[]>([]);
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
 
@@ -54,7 +58,7 @@ export const MovePositionDialog = ({
       amount: bank.position.amount,
       connected: true,
       selectedBank: bank,
-      nativeSolBalance: 0,
+      nativeSolBalance: nativeSolBalance,
       banks: extendedBankInfos,
       lendMode: ActionType.Withdraw,
       marginfiAccount: selectedAccount,
@@ -64,14 +68,14 @@ export const MovePositionDialog = ({
       amount: bank.position.amount,
       connected: true,
       selectedBank: bank,
-      nativeSolBalance: 0,
+      nativeSolBalance: nativeSolBalance,
       banks: extendedBankInfos,
       lendMode: ActionType.Deposit,
       marginfiAccount: accountToMoveTo!,
     });
 
     return [...withdrawActionResult, ...depositActionResult];
-  }, [bank, selectedAccount, extendedBankInfos, accountToMoveTo]);
+  }, [bank, selectedAccount, extendedBankInfos, accountToMoveTo, nativeSolBalance]);
 
   const isButtonDisabled = React.useMemo(() => {
     if (!accountToMoveTo) return true;
@@ -87,8 +91,7 @@ export const MovePositionDialog = ({
 
     const multiStepToast = new MultiStepToastHandle("Moving position", [
       {
-        label: `Moving to account ${`${accountToMoveTo?.address.toBase58().slice(0, 8)}
-          ...${accountToMoveTo?.address.toBase58().slice(-8)}`}`,
+        label: `Moving to account ${shortenAddress(accountToMoveTo?.address.toBase58(), 8)}`,
       },
     ]);
     multiStepToast.start();
@@ -104,14 +107,12 @@ export const MovePositionDialog = ({
     } finally {
       setIsLoading(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [marginfiClient, accountToMoveTo, selectedAccount, bank]);
+  }, [marginfiClient, accountToMoveTo, actionTxns, fetchMrgnlendState, setIsOpen]);
 
   React.useEffect(() => {
     if (!accountToMoveTo) return;
     handleSimulateTxns();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [accountToMoveTo]);
+  }, [accountToMoveTo, handleSimulateTxns]);
 
   return (
     <Dialog
@@ -142,7 +143,7 @@ export const MovePositionDialog = ({
             <span className="text-muted-foreground">Select account to move position to:</span>
             <Select
               onValueChange={(value) => {
-                setAccountToMoveTo(marginfiAccounts.find((account) => account.address.toBase58() === value));
+                setAccountToMoveTo(marginfiAccounts.find((account) => account.address.toBase58() === value) || null);
               }}
             >
               <SelectTrigger className="w-max">

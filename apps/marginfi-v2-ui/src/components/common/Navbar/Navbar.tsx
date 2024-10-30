@@ -1,4 +1,4 @@
-import { FC, useEffect, useMemo, useState } from "react";
+import { FC } from "react";
 
 import Link from "next/link";
 import Image from "next/image";
@@ -6,17 +6,18 @@ import { useRouter } from "next/router";
 
 import { PublicKey } from "@solana/web3.js";
 import { IconBell, IconBrandTelegram, IconSettings } from "@tabler/icons-react";
+import { IconBell, IconBrandTelegram } from "@tabler/icons-react";
 
 import { collectRewardsBatch, capture, cn } from "@mrgnlabs/mrgn-utils";
 import { Settings, Wallet } from "@mrgnlabs/mrgn-ui";
+import { capture, cn } from "@mrgnlabs/mrgn-utils";
+import { Wallet } from "@mrgnlabs/mrgn-ui";
 
 import { useMrgnlendStore, useUiStore, useUserProfileStore } from "~/store";
 import { useFirebaseAccount } from "~/hooks/useFirebaseAccount";
-import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
-import { useConnection } from "~/hooks/use-connection";
-import { useIsMobile } from "~/hooks/use-is-mobile";
 
-import { EMISSION_MINT_INFO_MAP } from "~/components/desktop/AssetList/components";
+import { useConnection } from "~/hooks/use-connection";
+
 import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
 import { Button } from "~/components/ui/button";
 import { IconMrgn } from "~/components/ui/icons";
@@ -26,8 +27,6 @@ export const Navbar: FC = () => {
   useFirebaseAccount();
 
   const { connection } = useConnection();
-  const isMobile = useIsMobile();
-  const { wallet } = useWallet();
   const router = useRouter();
   const [
     initialized,
@@ -61,28 +60,9 @@ export const Navbar: FC = () => {
       setTransactionSettings: state.setTransactionSettings,
     })
   );
+  const [isOraclesStale] = useUiStore((state) => [state.isOraclesStale, state.priorityFee]);
 
   const [userPointsData] = useUserProfileStore((state) => [state.userPointsData]);
-
-  // const [lipAccount, setLipAccount] = useState<LipAccount | null>(null);
-
-  const bankAddressesWithEmissions: PublicKey[] = useMemo(() => {
-    if (!selectedAccount) return [];
-    return [...EMISSION_MINT_INFO_MAP.keys()]
-      .map((bankMintSymbol) => {
-        const uxdBankInfo = extendedBankInfos?.find((b) => b.isActive && b.meta.tokenSymbol === bankMintSymbol);
-        return uxdBankInfo?.address;
-      })
-      .filter((address) => address !== undefined) as PublicKey[];
-  }, [selectedAccount, extendedBankInfos]);
-
-  // useEffect(() => {
-  //   (async function () {
-  //     if (!mfiClient || !lipClient || !walletAddress) return;
-  //     const lipAccount = await LipAccount.fetch(walletAddress, lipClient, mfiClient);
-  //     setLipAccount(lipAccount);
-  //   })();
-  // }, [lipClient, mfiClient, walletAddress]);
 
   return (
     <header className="h-[64px] mb-4 md:mb-8 lg:mb-14">

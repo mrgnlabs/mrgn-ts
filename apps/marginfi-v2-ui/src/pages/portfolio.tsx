@@ -2,7 +2,7 @@ import React from "react";
 
 import { LendingPortfolio } from "~/components/common/Portfolio";
 
-import { PortfolioHeader } from "~/components/common/Portfolio/components/header/portfolio-header";
+import { PortfolioHeader } from "~/components/common/Portfolio/components";
 
 export default function PortfolioPage() {
   return (
