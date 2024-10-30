@@ -9,7 +9,7 @@ type MovePositionSimulationProps = {
   actionTxns: VersionedTransaction[] | null;
   marginfiClient: MarginfiClient | null;
   selectedAccount: MarginfiAccountWrapper | null;
-  accountToMoveTo: MarginfiAccountWrapper | undefined;
+  accountToMoveTo: MarginfiAccountWrapper | null;
   extendedBankInfos: ExtendedBankInfo[];
   activeBank: ActiveBankInfo;
 
@@ -55,8 +55,7 @@ export const useMoveSimulation = ({
     } catch (error) {
       console.error("Error creating transactions", error);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [marginfiClient, accountToMoveTo, selectedAccount, activeBank]);
+  }, [marginfiClient, accountToMoveTo, setIsLoading, selectedAccount, activeBank.position.amount, activeBank.address]);
 
   const handleSimulateTxns = React.useCallback(async () => {
     try {
@@ -71,8 +70,7 @@ export const useMoveSimulation = ({
     } finally {
       setIsLoading(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [generateTxns]);
+  }, [generateTxns, marginfiClient, setActionTxns, setIsLoading]);
 
   return {
     handleSimulateTxns,

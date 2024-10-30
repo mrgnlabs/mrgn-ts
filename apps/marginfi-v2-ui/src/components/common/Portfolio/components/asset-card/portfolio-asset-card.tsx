@@ -26,15 +26,15 @@ interface PortfolioAssetCardProps {
 
 export const PortfolioAssetCard = ({ bank, isInLendingMode, isBorrower = true }: PortfolioAssetCardProps) => {
   const { rateAP } = useAssetItemData({ bank, isInLendingMode });
-  const [selectedAccount, marginfiAccounts, marginfiClient, fetchMrgnlendState, extendedBankInfos] = useMrgnlendStore(
-    (state) => [
+  const [selectedAccount, marginfiAccounts, marginfiClient, fetchMrgnlendState, extendedBankInfos, nativeSolBalance] =
+    useMrgnlendStore((state) => [
       state.selectedAccount,
       state.marginfiAccounts,
       state.marginfiClient,
       state.fetchMrgnlendState,
       state.extendedBankInfos,
-    ]
-  );
+      state.nativeSolBalance,
+    ]);
   const isIsolated = React.useMemo(() => bank.info.state.isIsolated, [bank]);
 
   const isUserPositionPoorHealth = React.useMemo(() => {
@@ -175,18 +175,17 @@ export const PortfolioAssetCard = ({ bank, isInLendingMode, isBorrower = true }:
             </Button>
           )}
 
-          {isMovePositionDialogOpen && (
-            <MovePositionDialog
-              isOpen={isMovePositionDialogOpen}
-              setIsOpen={setIsMovePositionDialogOpen}
-              selectedAccount={selectedAccount}
-              marginfiAccounts={marginfiAccounts}
-              bank={bank}
-              marginfiClient={marginfiClient}
-              fetchMrgnlendState={fetchMrgnlendState}
-              extendedBankInfos={extendedBankInfos}
-            />
-          )}
+          <MovePositionDialog
+            isOpen={isMovePositionDialogOpen}
+            setIsOpen={setIsMovePositionDialogOpen}
+            selectedAccount={selectedAccount}
+            marginfiAccounts={marginfiAccounts}
+            bank={bank}
+            marginfiClient={marginfiClient}
+            fetchMrgnlendState={fetchMrgnlendState}
+            extendedBankInfos={extendedBankInfos}
+            nativeSolBalance={nativeSolBalance}
+          />
         </AccordionContent>
       </AccordionItem>
     </Accordion>

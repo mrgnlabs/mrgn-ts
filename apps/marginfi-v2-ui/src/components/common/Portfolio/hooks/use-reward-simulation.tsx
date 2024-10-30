@@ -39,7 +39,7 @@ export const useRewardSimulation = ({
   const bankAddressesWithEmissions: PublicKey[] = React.useMemo(() => {
     if (!extendedBankInfos) return [];
     return extendedBankInfos.filter((bank) => bank.info.state.emissionsRate > 0).map((bank) => bank.meta.address);
-  }, [extendedBankInfos, selectedAccount]);
+  }, [extendedBankInfos]);
 
   const handleSimulation = React.useCallback(async () => {
     try {
@@ -164,7 +164,7 @@ export const useRewardSimulation = ({
 
   React.useEffect(() => {
     generateTxn();
-  }, [marginfiClient, bankAddressesWithEmissions, selectedAccount]);
+  }, [marginfiClient, bankAddressesWithEmissions, selectedAccount, generateTxn]);
 
   return {
     handleSimulation,
