@@ -39,7 +39,7 @@ export const ActionButton = ({
 
   return (
     <Button disabled={isLoading || !isEnabled} className="w-full py-5" onClick={handleAction}>
-      {isLoading ? <Loader className="animate-spin" /> : buttonLabel}
+      {isLoading ? <Loader className={`${loaderType === "DEFAULT" && "animate-spin"}`} /> : buttonLabel}
     </Button>
   );
 };
