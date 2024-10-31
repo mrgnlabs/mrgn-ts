@@ -48,6 +48,7 @@ export const MovePositionDialog = ({
   const [actionTxns, setActionTxns] = React.useState<VersionedTransaction[]>([]);
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const [errorMessage, setErrorMessage] = React.useState<ActionMessageType | null>(null);
+  const [additionalActionMessages, setAdditionalActionMessages] = React.useState<ActionMessageType[]>([]);
   const { handleSimulateTxns } = useMoveSimulation({
     actionTxns,
     marginfiClient,
@@ -84,7 +85,6 @@ export const MovePositionDialog = ({
 
     return [...withdrawActionResult, ...depositActionResult];
   }, [bank, selectedAccount, extendedBankInfos, accountToMoveTo, nativeSolBalance]);
-  const [additionalActionMessages, setAdditionalActionMessages] = React.useState<ActionMessageType[]>([]);
 
   React.useEffect(() => {
     if (errorMessage && errorMessage.description) {

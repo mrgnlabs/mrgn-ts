@@ -74,7 +74,9 @@ export const LendingPortfolio = () => {
   });
 
   React.useEffect(() => {
-    if (actionTxn) handleSimulation();
+    if (actionTxn) {
+      handleSimulation();
+    }
   }, [actionTxn]);
 
   const handleCollectExectuion = React.useCallback(async () => {
@@ -197,7 +199,7 @@ export const LendingPortfolio = () => {
         setIsSwitchingAccount(false);
       }
     },
-    [marginfiAccounts, selectedAccount]
+    [fetchMrgnlendState, marginfiAccounts, selectedAccount?.address]
   );
 
   if (isStoreInitialized && !connected) {

@@ -5,6 +5,9 @@ import Image from "next/image";
 import { useRouter } from "next/router";
 import { IconBell, IconBrandTelegram, IconSettings } from "@tabler/icons-react";
 
+import { cn, capture } from "@mrgnlabs/mrgn-utils";
+import { Settings, Wallet } from "@mrgnlabs/mrgn-ui";
+
 import { useMrgnlendStore, useUiStore, useUserProfileStore } from "~/store";
 import { useFirebaseAccount } from "~/hooks/useFirebaseAccount";
 
@@ -13,8 +16,6 @@ import { useConnection } from "~/hooks/use-connection";
 import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
 import { Button } from "~/components/ui/button";
 import { IconMrgn } from "~/components/ui/icons";
-import { cn, capture } from "@mrgnlabs/mrgn-utils";
-import { Settings, Wallet } from "~/components";
 
 // @todo implement second pretty navbar row
 export const Navbar: FC = () => {
