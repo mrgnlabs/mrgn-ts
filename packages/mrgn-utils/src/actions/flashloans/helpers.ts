@@ -1,15 +1,15 @@
 import { AddressLookupTableAccount, Connection, VersionedTransaction } from "@solana/web3.js";
+import BigNumber from "bignumber.js";
+import { QuoteGetRequest, QuoteResponse } from "@jup-ag/api";
 
 import { computeLoopingParams, MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import BigNumber from "bignumber.js";
-import { QuoteGetRequest, QuoteResponse } from "@jup-ag/api";
+import { nativeToUi, TransactionBroadcastType, uiToNative } from "@mrgnlabs/mrgn-common";
 
 import { STATIC_SIMULATION_ERRORS } from "../../errors";
 import { ActionMethod } from "../types";
 import { closePositionBuilder, loopingBuilder, repayWithCollatBuilder } from "./builders";
 import { getSwapQuoteWithRetry } from "../helpers";
-import { nativeToUi, uiToNative } from "@mrgnlabs/mrgn-common";
 
 // ------------------------------------------------------------------//
 // Helpers //
@@ -31,8 +31,8 @@ export async function verifyTxSizeLooping(
   borrowAmount: BigNumber,
   quoteResponse: QuoteResponse,
   connection: Connection,
-  // isTxnSplit: boolean = false,
-  priorityFee: number
+  priorityFee: number,
+  broadcastType: TransactionBroadcastType
 ): Promise<{
   flashloanTx: VersionedTransaction | null;
   feedCrankTxs: VersionedTransaction[];
@@ -52,8 +52,8 @@ export async function verifyTxSizeLooping(
         loopingTxn: null,
         feedCrankTxs: [],
       },
-      // isTxnSplit,
       priorityFee,
+      broadcastType,
     });
 
     const txCheck = verifyFlashloanTxSize(builder);
@@ -134,7 +134,7 @@ export async function verifyTxSizeCollat(
   quoteResponse: QuoteResponse,
   connection: Connection,
   priorityFee: number,
-  isTxnSplit: boolean = false
+  broadcastType: TransactionBroadcastType = "BUNDLE"
 ): Promise<{
   flashloanTx: VersionedTransaction | null;
   feedCrankTxs: VersionedTransaction[];
@@ -156,7 +156,7 @@ export async function verifyTxSizeCollat(
         feedCrankTxs: [],
       },
       priorityFee,
-      isTxnSplit,
+      broadcastType,
     });
 
     const txCheck = verifyFlashloanTxSize(builder);

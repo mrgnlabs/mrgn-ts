@@ -15,7 +15,13 @@ import {
   STATIC_SIMULATION_ERRORS,
   usePrevious,
 } from "@mrgnlabs/mrgn-utils";
-import { LST_MINT, LUT_PROGRAM_AUTHORITY_INDEX, NATIVE_MINT as SOL_MINT, uiToNative } from "@mrgnlabs/mrgn-common";
+import {
+  LST_MINT,
+  LUT_PROGRAM_AUTHORITY_INDEX,
+  NATIVE_MINT as SOL_MINT,
+  TransactionBroadcastType,
+  uiToNative,
+} from "@mrgnlabs/mrgn-common";
 
 import { getAdressLookupTableAccounts, getSimulationResult, handleStakeTx } from "../utils";
 import { useActionBoxStore } from "../../../store";
@@ -29,6 +35,8 @@ type StakeSimulationProps = {
   actionTxns: StakeActionTxns;
   simulationResult: any | null;
   marginfiClient: MarginfiClient | null;
+  priorityFee: number;
+  broadcastType: TransactionBroadcastType;
   setSimulationResult: (result: any | null) => void;
   setActionTxns: (actionTxns: StakeActionTxns) => void;
   setErrorMessage: (error: ActionMethod | null) => void;
@@ -43,6 +51,8 @@ export function useStakeSimulation({
   actionTxns,
   simulationResult,
   marginfiClient,
+  priorityFee,
+  broadcastType,
 
   setSimulationResult,
   setActionTxns,
@@ -166,7 +176,9 @@ export function useStakeSimulation({
             selectedBank,
             marginfiClient,
             connection,
-            lstData
+            lstData,
+            priorityFee,
+            broadcastType
           );
           setActionTxns(_actionTxns);
         } else {

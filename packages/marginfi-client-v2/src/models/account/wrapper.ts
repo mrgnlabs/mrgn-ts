@@ -7,6 +7,8 @@ import {
   createAssociatedTokenAccountIdempotentInstruction,
   getAssociatedTokenAddressSync,
   shortenAddress,
+  TransactionPriorityType,
+  TransactionBroadcastType,
 } from "@mrgnlabs/mrgn-common";
 import * as sb from "@switchboard-xyz/on-demand";
 import { Address, BorshCoder, Idl, translateAddress } from "@coral-xyz/anchor";
@@ -28,6 +30,7 @@ import BigNumber from "bignumber.js";
 import {
   MakeBorrowIxOpts,
   MakeDepositIxOpts,
+  makePriorityFeeIx,
   MakeRepayIxOpts,
   MakeWithdrawIxOpts,
   MarginfiClient,
@@ -291,31 +294,6 @@ class MarginfiAccountWrapper {
     return computeLoopingParams(principal, targetLeverage, depositBank, borrowBank, depositPriceInfo, borrowPriceInfo);
   }
 
-  makePriorityFeeIx(priorityFeeUi?: number): TransactionInstruction[] {
-    const priorityFeeIx: TransactionInstruction[] = [];
-    const limitCU = 1_400_000;
-
-    let microLamports: number = 1;
-
-    if (priorityFeeUi) {
-      // if priority fee is above 0.2 SOL discard it for safety reasons
-      const isAbsurdPriorityFee = priorityFeeUi > 0.2;
-
-      if (!isAbsurdPriorityFee) {
-        const priorityFeeMicroLamports = priorityFeeUi * LAMPORTS_PER_SOL * 1_000_000;
-        microLamports = Math.round(priorityFeeMicroLamports / limitCU);
-      }
-    }
-
-    priorityFeeIx.push(
-      ComputeBudgetProgram.setComputeUnitPrice({
-        microLamports,
-      })
-    );
-
-    return priorityFeeIx;
-  }
-
   makeComputeBudgetIx(): TransactionInstruction[] {
     // Add additional CU request if necessary
     let cuRequestIxs: TransactionInstruction[] = [];
@@ -387,7 +365,8 @@ class MarginfiAccountWrapper {
     repayAll: boolean = false,
     swapIxs: TransactionInstruction[],
     swapLookupTables: AddressLookupTableAccount[],
-    priorityFeeUi?: number
+    priorityFeeUi?: number,
+    broadcastType: TransactionBroadcastType = "BUNDLE"
   ): Promise<string[]> {
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:repay`);
     debug("Repaying %s into marginfi account (bank: %s), repay all: %s", repayAmount, borrowBankAddress, repayAll);
@@ -404,8 +383,12 @@ class MarginfiAccountWrapper {
       priorityFeeUi
     );
 
-    // assumes only one tx
-    const sigs = await this.client.processTransactions([...feedCrankTxs, flashloanTx]);
+    const sigs = await this.client.processTransactions(
+      [...feedCrankTxs, flashloanTx],
+      undefined,
+      undefined,
+      broadcastType
+    );
     debug("Repay with collateral successful %s", sigs.pop() ?? "");
 
     return sigs;
@@ -476,7 +459,8 @@ class MarginfiAccountWrapper {
     swapLookupTables: AddressLookupTableAccount[],
     priorityFeeUi?: number,
     isTxnSplitParam?: boolean,
-    blockhashArg?: string
+    blockhashArg?: string,
+    broadcastType: TransactionBroadcastType = "BUNDLE"
   ): Promise<{
     flashloanTx: VersionedTransaction;
     feedCrankTxs: VersionedTransaction[];
@@ -486,7 +470,11 @@ class MarginfiAccountWrapper {
       blockhashArg ?? (await this._program.provider.connection.getLatestBlockhash("confirmed")).blockhash;
     const setupIxs = await this.makeSetupIx([borrowBankAddress, depositBankAddress]);
     const cuRequestIxs = this.makeComputeBudgetIx();
-    const priorityFeeIx = this.makePriorityFeeIx(priorityFeeUi);
+    const { bundleTipIx, priorityFeeIx } = makeTxPriorityIx(
+      this.client.provider.publicKey,
+      priorityFeeUi,
+      broadcastType
+    );
     const withdrawIxs = await this.makeWithdrawIx(withdrawAmount, depositBankAddress, withdrawAll, {
       createAtas: false,
       wrapAndUnwrapSol: false,
@@ -495,7 +483,6 @@ class MarginfiAccountWrapper {
       createAtas: false,
       wrapAndUnwrapSol: false,
     });
-    const bundleTipIx = makeBundleTipIx(this.client.provider.publicKey);
     const lookupTables = this.client.addressLookupTables;
 
     const { instructions: updateFeedIxs, luts: feedLuts } = await this.makeUpdateFeedIx([
@@ -507,23 +494,18 @@ class MarginfiAccountWrapper {
 
     let feedCrankTxs: VersionedTransaction[] = [];
 
-    // isTxnSplit forced set to true as we're always splitting now
-    const isTxnSplit = true; //isTxnSplitParam
-    if (isTxnSplit) {
-      const message = new TransactionMessage({
-        payerKey: this.client.wallet.publicKey,
-        recentBlockhash: blockhash,
-        instructions: [bundleTipIx, ...updateFeedIxs],
-      }).compileToV0Message([...addressLookupTableAccounts, ...feedLuts]);
+    const message = new TransactionMessage({
+      payerKey: this.client.wallet.publicKey,
+      recentBlockhash: blockhash,
+      instructions: [priorityFeeIx, ...(bundleTipIx ? [bundleTipIx] : []), ...updateFeedIxs],
+    }).compileToV0Message([...addressLookupTableAccounts, ...feedLuts]);
 
-      feedCrankTxs = [new VersionedTransaction(message)];
-    }
+    feedCrankTxs = [new VersionedTransaction(message)];
 
     const flashloanTx = await this.buildFlashLoanTx({
       ixs: [
-        ...priorityFeeIx,
+        ...[priorityFeeIx],
         ...cuRequestIxs,
-        ...(isTxnSplit ? [] : [bundleTipIx]),
         ...setupIxs,
         ...withdrawIxs.instructions,
         ...swapIxs,
@@ -640,8 +622,8 @@ class MarginfiAccountWrapper {
     swapIxs: TransactionInstruction[],
     swapLookupTables: AddressLookupTableAccount[],
     priorityFeeUi?: number,
-    createAtas?: boolean
-    // isTxnSplitParam?: boolean
+    createAtas?: boolean,
+    broadcastType: TransactionBroadcastType = "BUNDLE"
   ): Promise<{
     flashloanTx: VersionedTransaction;
     feedCrankTxs: VersionedTransaction[];
@@ -654,7 +636,12 @@ class MarginfiAccountWrapper {
 
     const setupIxs = createAtas ? await this.makeSetupIx([depositBankAddress, borrowBankAddress]) : [];
     const cuRequestIxs = this.makeComputeBudgetIx();
-    const priorityFeeIx = this.makePriorityFeeIx(priorityFeeUi);
+
+    const { bundleTipIx, priorityFeeIx } = makeTxPriorityIx(
+      this.client.provider.publicKey,
+      priorityFeeUi,
+      broadcastType
+    );
     const borrowIxs = await this.makeBorrowIx(borrowAmount, borrowBankAddress, {
       createAtas: true,
       wrapAndUnwrapSol: false,
@@ -662,7 +649,6 @@ class MarginfiAccountWrapper {
     const depositIxs = await this.makeDepositIx(depositAmount, depositBankAddress, {
       wrapAndUnwrapSol: true,
     });
-    const bundleTipIx = makeBundleTipIx(this.client.provider.publicKey);
     const clientLookupTables = this.client.addressLookupTables;
 
     const { instructions: updateFeedIxs, luts: feedLuts } = await this.makeUpdateFeedIx([
@@ -675,13 +661,13 @@ class MarginfiAccountWrapper {
     const message = new TransactionMessage({
       payerKey: this.client.wallet.publicKey,
       recentBlockhash: blockhash,
-      instructions: [bundleTipIx, ...updateFeedIxs, ...setupIxs],
+      instructions: [priorityFeeIx, ...(bundleTipIx ? [bundleTipIx] : []), ...updateFeedIxs, ...setupIxs],
     }).compileToV0Message([...clientLookupTables, ...feedLuts]);
 
     const feedCrankTxs = [new VersionedTransaction(message)];
 
     const flashloanTx = await this.buildFlashLoanTx({
-      ixs: [...priorityFeeIx, ...cuRequestIxs, ...borrowIxs.instructions, ...swapIxs, ...depositIxs.instructions],
+      ixs: [...[priorityFeeIx], ...cuRequestIxs, ...borrowIxs.instructions, ...swapIxs, ...depositIxs.instructions],
       addressLookupTableAccounts: [...clientLookupTables, ...swapLookupTables],
     });
 
@@ -707,22 +693,35 @@ class MarginfiAccountWrapper {
     );
   }
 
-  async deposit(amount: Amount, bankAddress: PublicKey, opt: MakeDepositIxOpts = {}): Promise<string> {
+  async deposit(
+    amount: Amount,
+    bankAddress: PublicKey,
+    opt: MakeDepositIxOpts = {},
+    broadcastType: TransactionBroadcastType = "BUNDLE"
+  ): Promise<string> {
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:deposit`);
     debug("Depositing %s into marginfi account (bank: %s)", amount, shortenAddress(bankAddress));
 
-    const tx = await this.makeDepositTx(amount, bankAddress, opt);
+    const tx = await this.makeDepositTx(amount, bankAddress, opt, broadcastType);
 
     const sig = await this.client.processTransaction(tx, []);
     debug("Depositing successful %s", sig);
     return sig;
   }
 
-  async makeDepositTx(amount: Amount, bankAddress: PublicKey, opt: MakeDepositIxOpts = {}): Promise<Transaction> {
-    const priorityFeeIx = this.makePriorityFeeIx(opt.priorityFeeUi);
-    const bundleTipIx = makeBundleTipIx(this.client.provider.publicKey);
+  async makeDepositTx(
+    amount: Amount,
+    bankAddress: PublicKey,
+    opt: MakeDepositIxOpts = {},
+    broadcastType: TransactionBroadcastType = "BUNDLE"
+  ): Promise<Transaction> {
+    const { bundleTipIx, priorityFeeIx } = makeTxPriorityIx(
+      this.client.provider.publicKey,
+      opt.priorityFeeUi,
+      broadcastType
+    );
     const ixs = await this.makeDepositIx(amount, bankAddress, opt);
-    const tx = new Transaction().add(bundleTipIx, ...priorityFeeIx, ...ixs.instructions);
+    const tx = new Transaction().add(priorityFeeIx, ...(bundleTipIx ? [bundleTipIx] : []), ...ixs.instructions);
     return tx;
   }
 
@@ -794,12 +793,13 @@ class MarginfiAccountWrapper {
     amount: Amount,
     bankAddress: PublicKey,
     repayAll: boolean = false,
-    opt: MakeRepayIxOpts = {}
+    opt: MakeRepayIxOpts = {},
+    broadcastType: TransactionBroadcastType = "BUNDLE"
   ): Promise<string> {
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:repay`);
     debug("Repaying %s into marginfi account (bank: %s), repay all: %s", amount, bankAddress, repayAll);
 
-    const tx = await this.makeRepayTx(amount, bankAddress, repayAll, opt);
+    const tx = await this.makeRepayTx(amount, bankAddress, repayAll, opt, broadcastType);
 
     const sig = await this.client.processTransaction(tx, []);
     debug("Depositing successful %s", sig);
@@ -811,12 +811,17 @@ class MarginfiAccountWrapper {
     amount: Amount,
     bankAddress: PublicKey,
     repayAll: boolean = false,
-    opt: MakeRepayIxOpts = {}
+    opt: MakeRepayIxOpts = {},
+    broadcastType: TransactionBroadcastType = "BUNDLE"
   ): Promise<Transaction> {
-    const priorityFeeIx = this.makePriorityFeeIx(opt.priorityFeeUi);
-    const bundleTipIx = makeBundleTipIx(this.client.provider.publicKey);
+    const { priorityFeeIx, bundleTipIx } = makeTxPriorityIx(
+      this.client.provider.publicKey,
+      opt.priorityFeeUi,
+      broadcastType
+    );
+
     const ixs = await this.makeRepayIx(amount, bankAddress, repayAll, opt);
-    const tx = new Transaction().add(bundleTipIx, ...priorityFeeIx, ...ixs.instructions);
+    const tx = new Transaction().add(priorityFeeIx, ...(bundleTipIx ? [bundleTipIx] : []), ...ixs.instructions);
     return tx;
   }
 
@@ -855,17 +860,22 @@ class MarginfiAccountWrapper {
       amount: Amount;
       bankAddress: PublicKey;
     }[],
-    opt: MakeWithdrawIxOpts = {}
+    opt: MakeWithdrawIxOpts = {},
+    broadcastType: TransactionBroadcastType = "BUNDLE"
   ): Promise<Transaction> {
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:withdraw`);
     debug("Withdrawing all from marginfi account");
-    const priorityFeeIx = this.makePriorityFeeIx(opt.priorityFeeUi);
+    const { priorityFeeIx, bundleTipIx } = makeTxPriorityIx(
+      this.client.provider.publicKey,
+      opt.priorityFeeUi,
+      broadcastType
+    );
     const cuRequestIxs = this.makeComputeBudgetIx();
     let ixs = [];
     for (const bank of banks) {
       ixs.push(...(await this.makeWithdrawIx(bank.amount, bank.bankAddress, true, opt)).instructions);
     }
-    const tx = new Transaction().add(...priorityFeeIx, ...cuRequestIxs, ...ixs);
+    const tx = new Transaction().add(...cuRequestIxs, priorityFeeIx, ...(bundleTipIx ? [bundleTipIx] : []), ...ixs);
     return tx;
   }
 
@@ -873,15 +883,27 @@ class MarginfiAccountWrapper {
     amount: Amount,
     bankAddress: PublicKey,
     withdrawAll: boolean = false,
-    opt: MakeWithdrawIxOpts = {}
+    opt: MakeWithdrawIxOpts = {},
+    broadcastType: TransactionBroadcastType = "BUNDLE"
   ): Promise<string[]> {
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:withdraw`);
     debug("Withdrawing %s from marginfi account", amount);
 
-    const { feedCrankTxs, withdrawTx } = await this.makeWithdrawTx(amount, bankAddress, withdrawAll, opt);
+    const { feedCrankTxs, withdrawTx } = await this.makeWithdrawTx(
+      amount,
+      bankAddress,
+      withdrawAll,
+      opt,
+      broadcastType
+    );
 
     // process multiple transactions if feed updates required
-    const sigs = await this.client.processTransactions([...feedCrankTxs, withdrawTx]);
+    const sigs = await this.client.processTransactions(
+      [...feedCrankTxs, withdrawTx],
+      undefined,
+      undefined,
+      broadcastType
+    );
 
     debug("Withdrawing successful %s", sigs.pop());
     return sigs;
@@ -891,14 +913,18 @@ class MarginfiAccountWrapper {
     amount: Amount,
     bankAddress: PublicKey,
     withdrawAll: boolean = false,
-    opt: MakeWithdrawIxOpts = {}
+    opt: MakeWithdrawIxOpts = {},
+    broadcastType: TransactionBroadcastType = "BUNDLE"
   ): Promise<{
     feedCrankTxs: VersionedTransaction[];
     withdrawTx: VersionedTransaction;
     addressLookupTableAccounts: AddressLookupTableAccount[];
   }> {
-    const bundleTipIx = makeBundleTipIx(this.client.provider.publicKey);
-    const priorityFeeIxs = this.makePriorityFeeIx(opt.priorityFeeUi);
+    const { bundleTipIx, priorityFeeIx } = makeTxPriorityIx(
+      this.client.provider.publicKey,
+      opt.priorityFeeUi,
+      broadcastType
+    );
     const cuRequestIxs = this.makeComputeBudgetIx();
     const { instructions: updateFeedIxs, luts: feedLuts } = await this.makeUpdateFeedIx([]);
     const ixs = await this.makeWithdrawIx(amount, bankAddress, withdrawAll, opt);
@@ -913,7 +939,7 @@ class MarginfiAccountWrapper {
       feedCrankTxs.push(
         new VersionedTransaction(
           new TransactionMessage({
-            instructions: updateFeedIxs,
+            instructions: [priorityFeeIx, ...updateFeedIxs],
             payerKey: this.authority,
             recentBlockhash: blockhash,
           }).compileToV0Message([...feedLuts])
@@ -923,7 +949,7 @@ class MarginfiAccountWrapper {
 
     const withdrawTx = new VersionedTransaction(
       new TransactionMessage({
-        instructions: [bundleTipIx, ...cuRequestIxs, ...priorityFeeIxs, ...ixs.instructions],
+        instructions: [priorityFeeIx, ...(bundleTipIx ? [bundleTipIx] : []), ...cuRequestIxs, ...ixs.instructions],
         payerKey: this.authority,
         recentBlockhash: blockhash,
       }).compileToV0Message([...this.client.addressLookupTables])
@@ -956,14 +982,24 @@ class MarginfiAccountWrapper {
     );
   }
 
-  async borrow(amount: Amount, bankAddress: PublicKey, opt: MakeBorrowIxOpts = {}): Promise<string[]> {
+  async borrow(
+    amount: Amount,
+    bankAddress: PublicKey,
+    opt: MakeBorrowIxOpts = {},
+    broadcastType: TransactionBroadcastType = "BUNDLE"
+  ): Promise<string[]> {
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:borrow`);
     debug("Borrowing %s from marginfi account", amount);
 
     const { feedCrankTxs, borrowTx } = await this.makeBorrowTx(amount, bankAddress, opt);
 
     // process multiple transactions if feed updates required
-    const sigs = await this.client.processTransactions([...feedCrankTxs, borrowTx]);
+    const sigs = await this.client.processTransactions(
+      [...feedCrankTxs, borrowTx],
+      undefined,
+      undefined,
+      broadcastType
+    );
     debug("Borrowing successful %s", sigs);
     return sigs;
   }
@@ -971,14 +1007,18 @@ class MarginfiAccountWrapper {
   async makeBorrowTx(
     amount: Amount,
     bankAddress: PublicKey,
-    opt: MakeBorrowIxOpts = {}
+    opt: MakeBorrowIxOpts = {},
+    broadcastType: TransactionBroadcastType = "BUNDLE"
   ): Promise<{
     feedCrankTxs: VersionedTransaction[];
     borrowTx: VersionedTransaction;
     addressLookupTableAccounts: AddressLookupTableAccount[];
   }> {
-    const bundleTipIx = makeBundleTipIx(this.client.provider.publicKey);
-    const priorityFeeIxs = this.makePriorityFeeIx(opt.priorityFeeUi);
+    const { bundleTipIx, priorityFeeIx } = makeTxPriorityIx(
+      this.client.provider.publicKey,
+      opt.priorityFeeUi,
+      broadcastType
+    );
     const cuRequestIxs = this.makeComputeBudgetIx();
     const { instructions: updateFeedIxs, luts: feedLuts } = await this.makeUpdateFeedIx([bankAddress]);
     const ixs = await this.makeBorrowIx(amount, bankAddress, opt);
@@ -993,7 +1033,7 @@ class MarginfiAccountWrapper {
       feedCrankTxs.push(
         new VersionedTransaction(
           new TransactionMessage({
-            instructions: updateFeedIxs,
+            instructions: [priorityFeeIx, ...updateFeedIxs],
             payerKey: this.authority,
             recentBlockhash: blockhash,
           }).compileToV0Message([...feedLuts])
@@ -1003,7 +1043,7 @@ class MarginfiAccountWrapper {
 
     const borrowTx = new VersionedTransaction(
       new TransactionMessage({
-        instructions: [bundleTipIx, ...cuRequestIxs, ...priorityFeeIxs, ...ixs.instructions],
+        instructions: [...cuRequestIxs, priorityFeeIx, ...(bundleTipIx ? [bundleTipIx] : []), ...ixs.instructions],
         payerKey: this.authority,
         recentBlockhash: blockhash,
       }).compileToV0Message([...this.client.addressLookupTables])
@@ -1031,11 +1071,18 @@ class MarginfiAccountWrapper {
     );
   }
 
-  async withdrawEmissions(bankAddresses: PublicKey[], priorityFeeUi?: number): Promise<string> {
+  async withdrawEmissions(
+    bankAddresses: PublicKey[],
+    priorityFeeUi?: number,
+    broadcastType: TransactionBroadcastType = "BUNDLE"
+  ): Promise<string> {
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:withdraw-emissions`);
     debug("Withdrawing emission from marginfi account (bank: %s)", bankAddresses.map((b) => b.toBase58()).join(", "));
-    const bundleTipIx = makeBundleTipIx(this.client.provider.publicKey);
-    const priorityFeeIx = this.makePriorityFeeIx(priorityFeeUi);
+    const { bundleTipIx, priorityFeeIx } = makeTxPriorityIx(
+      this.client.provider.publicKey,
+      priorityFeeUi,
+      broadcastType
+    );
     const ixs: TransactionInstruction[] = [];
     const signers = [];
     for (const bankAddress of bankAddresses) {
@@ -1043,7 +1090,7 @@ class MarginfiAccountWrapper {
       ixs.push(...ix.instructions);
       signers.push(ix.keys);
     }
-    const tx = new Transaction().add(bundleTipIx, ...priorityFeeIx, ...ixs);
+    const tx = new Transaction().add(priorityFeeIx, ...(bundleTipIx ? [bundleTipIx] : []), ...ixs);
     const sig = await this.client.processTransaction(tx, []);
     debug("Withdrawing emission successful %s", sig);
     return sig;
@@ -1259,7 +1306,27 @@ class MarginfiAccountWrapper {
   }
 }
 
-export function makeBundleTipIx(feePayer: PublicKey): TransactionInstruction {
+export function makeTxPriorityIx(
+  feePayer: PublicKey,
+  priorityFeeUi: number = 0,
+  broadcastType: TransactionBroadcastType = "BUNDLE"
+) {
+  let bundleTipIx: TransactionInstruction | undefined = undefined;
+  let priorityFeeIx: TransactionInstruction = makePriorityFeeIx()[0];
+
+  if (broadcastType === "BUNDLE") {
+    bundleTipIx = makeBundleTipIx(feePayer, Math.trunc(priorityFeeUi * LAMPORTS_PER_SOL));
+  } else {
+    priorityFeeIx = makePriorityFeeIx(priorityFeeUi)[0];
+  }
+
+  return {
+    bundleTipIx,
+    priorityFeeIx,
+  };
+}
+
+export function makeBundleTipIx(feePayer: PublicKey, bundleTip: number = 100_000): TransactionInstruction {
   // they have remained constant so function not used (for now)
   const getTipAccounts = async () => {
     const response = await fetch("https://mainnet.block-engine.jito.wtf/api/v1/bundles", {
@@ -1294,7 +1361,7 @@ export function makeBundleTipIx(feePayer: PublicKey): TransactionInstruction {
   return SystemProgram.transfer({
     fromPubkey: feePayer,
     toPubkey: new PublicKey(randomTipAccount),
-    lamports: 100_000, // 100_000 lamports = 0.0001 SOL
+    lamports: bundleTip, // 100_000 lamports = 0.0001 SOL
   });
 }
 

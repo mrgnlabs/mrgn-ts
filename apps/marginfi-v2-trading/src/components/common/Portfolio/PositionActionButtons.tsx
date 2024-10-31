@@ -5,7 +5,7 @@ import Image from "next/image";
 import { IconMinus, IconX, IconPlus, IconLoader2 } from "@tabler/icons-react";
 import { Transaction, VersionedTransaction } from "@solana/web3.js";
 
-import { MultiStepToastHandle, cn, extractErrorString, capture } from "@mrgnlabs/mrgn-utils";
+import { MultiStepToastHandle, cn, extractErrorString, capture, fetchPriorityFee } from "@mrgnlabs/mrgn-utils";
 import { ActiveBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { useConnection } from "~/hooks/use-connection";
@@ -56,12 +56,16 @@ export const PositionActionButtons = ({
     state.setIsRefreshingStore,
     state.nativeSolBalance,
   ]);
-  const [slippageBps, priorityFee, setIsActionComplete, setPreviousTxn] = useUiStore((state) => [
-    state.slippageBps,
-    state.priorityFee,
-    state.setIsActionComplete,
-    state.setPreviousTxn,
-  ]);
+  const [slippageBps, priorityType, broadcastType, maxCap, maxCapType, setIsActionComplete, setPreviousTxn] =
+    useUiStore((state) => [
+      state.slippageBps,
+      state.priorityType,
+      state.broadcastType,
+      state.maxCap,
+      state.maxCapType,
+      state.setIsActionComplete,
+      state.setPreviousTxn,
+    ]);
 
   const depositBanks = React.useMemo(() => {
     const tokenBank = activeGroup.pool.token.isActive ? activeGroup.pool.token : null;
@@ -103,13 +107,15 @@ export const PositionActionButtons = ({
         throw new Error("Invalid client");
       }
 
+      const priorityFeeUi = await fetchPriorityFee(maxCapType, maxCap, broadcastType, priorityType, connection);
+
       const txns = await calculateClosePositions({
         marginfiAccount: activeGroup.selectedAccount,
         depositBanks: depositBanks,
         borrowBank: borrowBank,
         slippageBps,
         connection: connection,
-        priorityFee,
+        priorityFee: priorityFeeUi,
         platformFeeBps,
       });
 
@@ -128,7 +134,18 @@ export const PositionActionButtons = ({
       setMultiStepToast(multiStepToast);
     }
     setIsClosing(false);
-  }, [activeGroup, slippageBps, connection, priorityFee, platformFeeBps, borrowBank, depositBanks, setIsClosing]);
+  }, [
+    activeGroup,
+    borrowBank,
+    depositBanks,
+    maxCapType,
+    maxCap,
+    broadcastType,
+    priorityType,
+    connection,
+    slippageBps,
+    platformFeeBps,
+  ]);
 
   const processTransaction = React.useCallback(async () => {
     try {
@@ -140,10 +157,13 @@ export const PositionActionButtons = ({
         txnSig = await activeGroup.client.processTransaction(actionTransaction.closeTxn);
         multiStepToast.setSuccessAndNext();
       } else {
-        txnSig = await activeGroup.client.processTransactions([
-          ...actionTransaction.feedCrankTxs,
-          actionTransaction.closeTxn,
-        ]);
+        txnSig = await activeGroup.client.processTransactions(
+          [...actionTransaction.feedCrankTxs, actionTransaction.closeTxn],
+          undefined,
+          undefined,
+          broadcastType,
+          true
+        );
         multiStepToast.setSuccessAndNext();
       }
 
@@ -202,6 +222,7 @@ export const PositionActionButtons = ({
     connection,
     setIsActionComplete,
     setPreviousTxn,
+    broadcastType,
   ]);
 
   const onClose = React.useCallback(() => {

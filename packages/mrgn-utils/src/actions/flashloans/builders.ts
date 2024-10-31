@@ -4,7 +4,7 @@ import BigNumber from "bignumber.js";
 
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { LUT_PROGRAM_AUTHORITY_INDEX, nativeToUi, uiToNative } from "@mrgnlabs/mrgn-common";
+import { LUT_PROGRAM_AUTHORITY_INDEX, nativeToUi, TransactionBroadcastType, uiToNative } from "@mrgnlabs/mrgn-common";
 
 import { deserializeInstruction, getAdressLookupTableAccounts, getSwapQuoteWithRetry } from "../helpers";
 import { isWholePosition } from "../../mrgnUtils";
@@ -43,7 +43,8 @@ export async function calculateRepayCollateralParams(
   slippageBps: number,
   connection: Connection,
   priorityFee: number,
-  platformFeeBps?: number
+  platformFeeBps: number,
+  broadcastType: TransactionBroadcastType
 ): Promise<
   | {
       repayTxn: VersionedTransaction;
@@ -94,7 +95,7 @@ export async function calculateRepayCollateralParams(
           swapQuote,
           connection,
           priorityFee,
-          isTxnSplit
+          broadcastType
         );
         if (txn.flashloanTx) {
           return {
@@ -213,7 +214,7 @@ export async function calculateLoopingParams({
   connection,
   priorityFee,
   platformFeeBps,
-  isTrading,
+  broadcastType,
 }: {
   marginfiAccount: MarginfiAccountWrapper | null;
   marginfiClient?: MarginfiClient;
@@ -226,6 +227,7 @@ export async function calculateLoopingParams({
   priorityFee: number;
   platformFeeBps?: number;
   isTrading?: boolean;
+  broadcastType: TransactionBroadcastType;
 }): Promise<LoopingObject | ActionMethod> {
   if (!marginfiAccount && !marginfiClient) {
     return STATIC_SIMULATION_ERRORS.NOT_INITIALIZED;
@@ -311,8 +313,8 @@ export async function calculateLoopingParams({
             borrowAmount,
             swapQuote,
             connection,
-            // isTxnSplit,
-            priorityFee
+            priorityFee,
+            broadcastType
           );
         }
         if (txn.flashloanTx || !marginfiAccount) {
@@ -347,6 +349,7 @@ export async function calculateLoopingTransaction({
   priorityFee,
   loopObject,
   isTrading,
+  broadcastType,
 }: {
   marginfiAccount: MarginfiAccountWrapper | null;
   borrowBank: ExtendedBankInfo;
@@ -355,6 +358,7 @@ export async function calculateLoopingTransaction({
   priorityFee: number;
   loopObject?: LoopingObject;
   isTrading?: boolean;
+  broadcastType: TransactionBroadcastType;
 }): Promise<ActionMethod | LoopingObject> {
   if (loopObject && marginfiAccount) {
     const txn = await verifyTxSizeLooping(
@@ -365,8 +369,8 @@ export async function calculateLoopingTransaction({
       loopObject.borrowAmount,
       loopObject.quote,
       connection,
-      // false,
-      priorityFee
+      priorityFee,
+      broadcastType
     );
 
     if (!txn) {
@@ -396,14 +400,15 @@ export async function loopingBuilder({
   depositAmount,
   options,
   priorityFee,
+  broadcastType,
 }: // isTxnSplit,
 {
   marginfiAccount: MarginfiAccountWrapper;
   bank: ExtendedBankInfo;
   depositAmount: number;
   options: LoopingOptions;
-  priorityFee?: number;
-  // isTxnSplit: boolean;
+  priorityFee: number;
+  broadcastType: TransactionBroadcastType;
 }): Promise<{
   flashloanTx: VersionedTransaction;
   feedCrankTxs: VersionedTransaction[];
@@ -448,8 +453,8 @@ export async function loopingBuilder({
     [swapIx],
     swapLUTs,
     priorityFee,
-    true
-    // isTxnSplit
+    true, // deprecated remove
+    broadcastType
   );
 
   return { flashloanTx, feedCrankTxs, addressLookupTableAccounts };
@@ -464,14 +469,14 @@ export async function repayWithCollatBuilder({
   amount,
   options,
   priorityFee,
-  isTxnSplit,
+  broadcastType,
 }: {
   marginfiAccount: MarginfiAccountWrapper;
   bank: ExtendedBankInfo;
   amount: number;
   options: RepayWithCollatOptions;
-  priorityFee?: number;
-  isTxnSplit: boolean;
+  priorityFee: number;
+  broadcastType: TransactionBroadcastType;
 }) {
   const jupiterQuoteApi = createJupiterApiClient();
   let feeAccountInfo: AccountInfo<any> | null = null;
@@ -509,8 +514,9 @@ export async function repayWithCollatBuilder({
     [swapIx],
     swapLUTs,
     priorityFee,
-    isTxnSplit,
-    blockhash
+    false,
+    blockhash,
+    broadcastType
   );
 
   return { flashloanTx, feedCrankTxs, addressLookupTableAccounts, lastValidBlockHeight };

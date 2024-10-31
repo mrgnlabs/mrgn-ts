@@ -5,3 +5,4 @@ export * from "./use-ios-version";
 export * from "./use-os";
 export * from "./use-available-wallets";
 export * from "./use-is-mobile";
+export * from "./use-priority-fee";

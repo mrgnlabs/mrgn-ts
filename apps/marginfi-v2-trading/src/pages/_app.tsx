@@ -12,10 +12,11 @@ import { TipLinkWalletAutoConnect } from "@tiplink/wallet-adapter-react-ui";
 import { ToastContainer } from "react-toastify";
 import { Analytics } from "@vercel/analytics/react";
 import { BankMetadataRaw } from "@mrgnlabs/mrgn-common";
-import { Desktop, Mobile, init as initAnalytics } from "@mrgnlabs/mrgn-utils";
-import { AuthDialog } from "@mrgnlabs/mrgn-ui";
+import { DEFAULT_MAX_CAP, Desktop, Mobile, init as initAnalytics } from "@mrgnlabs/mrgn-utils";
+import { ActionProvider, AuthDialog } from "@mrgnlabs/mrgn-ui";
 
 import config from "~/config";
+import { useUiStore } from "~/store";
 import { TradePovider } from "~/context";
 import { WALLET_ADAPTERS } from "~/config/wallets";
 import { BANK_METADATA_MAP } from "~/config/trade";
@@ -39,6 +40,13 @@ export default function MrgnApp({ Component, pageProps, path, bank }: AppProps &
   const { query, isReady } = useRouter();
   const [ready, setReady] = React.useState(false);
 
+  const [broadcastType, priorityType, maxCap, maxCapType] = useUiStore((state) => [
+    state.broadcastType,
+    state.priorityType,
+    state.maxCap,
+    state.maxCapType,
+  ]);
+
   React.useEffect(() => {
     setReady(true);
     initAnalytics();
@@ -52,31 +60,38 @@ export default function MrgnApp({ Component, pageProps, path, bank }: AppProps &
           <TipLinkWalletAutoConnect isReady={isReady} query={query}>
             <WalletProvider wallets={WALLET_ADAPTERS} autoConnect={true}>
               <MrgnWalletProvider>
-                <TradePovider>
-                  <div className="mrgn-bg-gradient">
-                    <Header />
+                <ActionProvider
+                  broadcastType={broadcastType}
+                  priorityType={priorityType}
+                  maxCap={maxCap || DEFAULT_MAX_CAP}
+                  maxCapType={maxCapType}
+                >
+                  <TradePovider>
+                    <div className="mrgn-bg-gradient">
+                      <Header />
 
-                    <Desktop>
-                      <WalletModalProvider>
+                      <Desktop>
+                        <WalletModalProvider>
+                          <div className="w-full flex flex-col justify-center items-center">
+                            <Component {...pageProps} />
+                          </div>
+                          <Footer />
+                        </WalletModalProvider>
+                      </Desktop>
+
+                      <Mobile>
+                        <MobileNavbar />
                         <div className="w-full flex flex-col justify-center items-center">
                           <Component {...pageProps} />
                         </div>
-                        <Footer />
-                      </WalletModalProvider>
-                    </Desktop>
+                      </Mobile>
+                      <Analytics />
 
-                    <Mobile>
-                      <MobileNavbar />
-                      <div className="w-full flex flex-col justify-center items-center">
-                        <Component {...pageProps} />
-                      </div>
-                    </Mobile>
-                    <Analytics />
-
-                    <AuthDialog onboardingEnabled={false} />
-                    <ToastContainer position="bottom-left" theme="light" />
-                  </div>
-                </TradePovider>
+                      <AuthDialog onboardingEnabled={false} />
+                      <ToastContainer position="bottom-left" theme="light" />
+                    </div>
+                  </TradePovider>
+                </ActionProvider>
               </MrgnWalletProvider>
             </WalletProvider>
           </TipLinkWalletAutoConnect>

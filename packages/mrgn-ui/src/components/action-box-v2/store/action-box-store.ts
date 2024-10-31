@@ -5,7 +5,6 @@ import { PreviousTxn } from "@mrgnlabs/mrgn-utils";
 interface ActionBoxState {
   // State
   isSettingsDialogOpen: boolean;
-  priorityFee: number;
   slippageBps: number;
   platformFeeBps: number;
   isActionComplete: boolean;
@@ -15,7 +14,6 @@ interface ActionBoxState {
   setIsActionComplete: (isActionSuccess: boolean) => void;
   setPreviousTxn: (previousTxn: PreviousTxn) => void;
   setIsSettingsDialogOpen: (isOpen: boolean) => void;
-  setPriorityFee: (priorityFee: number) => void;
   setSlippageBps: (slippageBps: number) => void;
   setPlatformFeeBps: (platformFeeBps: number) => void;
 }
@@ -24,12 +22,7 @@ function createActionBoxStore() {
   return create<ActionBoxState>()(
     persist(stateCreator, {
       name: "actionBoxStore",
-      onRehydrateStorage: () => (state) => {
-        // overwrite priority fee
-        if (process.env.NEXT_PUBLIC_INIT_PRIO_FEE && process.env.NEXT_PUBLIC_INIT_PRIO_FEE !== "0") {
-          state?.setPriorityFee(Number(process.env.NEXT_PUBLIC_INIT_PRIO_FEE));
-        }
-      },
+      onRehydrateStorage: () => (state) => {},
     })
   );
 }
@@ -45,7 +38,6 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
 
   // Actions
   setIsSettingsDialogOpen: (isOpen: boolean) => set({ isSettingsDialogOpen: isOpen }),
-  setPriorityFee: (priorityFee: number) => set({ priorityFee: priorityFee }),
   setSlippageBps: (slippageBps: number) => set({ slippageBps: slippageBps }),
   setIsActionComplete: (isActionSuccess: boolean) => set({ isActionComplete: isActionSuccess }),
   setPreviousTxn: (previousTxn: PreviousTxn) => set({ previousTxn: previousTxn }),

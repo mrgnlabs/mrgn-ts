@@ -5,23 +5,25 @@ import React from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { motion, useAnimate } from "framer-motion";
-import { IconPlus, IconCopy, IconCheck } from "@tabler/icons-react";
+import { IconPlus, IconCopy, IconCheck, IconSettings } from "@tabler/icons-react";
 import { CopyToClipboard } from "react-copy-to-clipboard";
 import { cn } from "@mrgnlabs/mrgn-utils";
 import { USDC_MINT } from "@mrgnlabs/mrgn-common";
+import { Settings } from "@mrgnlabs/mrgn-ui";
 
-import { useTradeStore } from "~/store";
+import { useTradeStore, useUiStore } from "~/store";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { useIsMobile } from "~/hooks/use-is-mobile";
 import { useConnection } from "~/hooks/use-connection";
 
 import { Wallet } from "~/components/wallet-v2";
-import { CreatePoolScriptDialog } from "../Pool/CreatePoolScript";
-import { CreatePoolSoon } from "../Pool/CreatePoolSoon";
-import { CreatePoolDialog } from "../Pool/CreatePoolDialog";
 import { Button } from "~/components/ui/button";
 import { IconArena } from "~/components/ui/icons";
+import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
+
+import { CreatePoolScriptDialog } from "../Pool/CreatePoolScript";
+import { CreatePoolSoon } from "../Pool/CreatePoolSoon";
 
 const navItems = [
   { label: "Discover", href: "/" },
@@ -41,6 +43,13 @@ export const Header = () => {
       state.referralCode,
     ]
   );
+  const { priorityType, broadcastType, maxCap, maxCapType, setTransactionSettings } = useUiStore((state) => ({
+    priorityType: state.priorityType,
+    broadcastType: state.broadcastType,
+    maxCap: state.maxCap,
+    maxCapType: state.maxCapType,
+    setTransactionSettings: state.setTransactionSettings,
+  }));
   const { wallet } = useWallet();
   const { asPath } = useRouter();
   const isMobile = useIsMobile();
@@ -140,6 +149,22 @@ export const Header = () => {
                 /> */}
               </div>
             )}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0">
+                  <IconSettings size={20} />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80">
+                <Settings
+                  onChange={setTransactionSettings}
+                  broadcastType={broadcastType}
+                  priorityType={priorityType}
+                  maxCap={maxCap}
+                  maxCapType={maxCapType}
+                />
+              </PopoverContent>
+            </Popover>
             <Wallet
               connection={connection}
               initialized={initialized}

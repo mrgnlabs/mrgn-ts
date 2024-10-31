@@ -5,11 +5,10 @@ import Image from "next/image";
 import { useRouter } from "next/router";
 
 import { PublicKey } from "@solana/web3.js";
-// import LipAccount from "@mrgnlabs/lip-client/src/account";
-import { IconBell, IconBrandTelegram } from "@tabler/icons-react";
+import { IconBell, IconBrandTelegram, IconSettings } from "@tabler/icons-react";
 
 import { collectRewardsBatch, capture, cn } from "@mrgnlabs/mrgn-utils";
-import { Wallet } from "@mrgnlabs/mrgn-ui";
+import { Settings, Wallet } from "@mrgnlabs/mrgn-ui";
 
 import { useMrgnlendStore, useUiStore, useUserProfileStore } from "~/store";
 import { useFirebaseAccount } from "~/hooks/useFirebaseAccount";
@@ -52,7 +51,16 @@ export const Navbar: FC = () => {
     state.fetchMrgnlendState,
   ]);
 
-  const [isOraclesStale, priorityFee] = useUiStore((state) => [state.isOraclesStale, state.priorityFee]);
+  const { isOraclesStale, priorityType, broadcastType, maxCap, maxCapType, setTransactionSettings } = useUiStore(
+    (state) => ({
+      isOraclesStale: state.isOraclesStale,
+      priorityType: state.priorityType,
+      broadcastType: state.broadcastType,
+      maxCap: state.maxCap,
+      maxCapType: state.maxCapType,
+      setTransactionSettings: state.setTransactionSettings,
+    })
+  );
 
   const [userPointsData] = useUserProfileStore((state) => [state.userPointsData]);
 
@@ -154,6 +162,7 @@ export const Navbar: FC = () => {
                 }`}
                 onClick={async () => {
                   if (!wallet || !selectedAccount || bankAddressesWithEmissions.length === 0) return;
+                  const priorityFee = 0; // code has been removed on new collect rewards so temporary placeholder
                   await collectRewardsBatch(selectedAccount, bankAddressesWithEmissions, priorityFee);
                 }}
               >
@@ -200,6 +209,23 @@ export const Navbar: FC = () => {
                       </Button>
                     </Link>
                   </div>
+                </PopoverContent>
+              </Popover>
+
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0">
+                    <IconSettings size={20} />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-80">
+                  <Settings
+                    onChange={setTransactionSettings}
+                    broadcastType={broadcastType}
+                    priorityType={priorityType}
+                    maxCap={maxCap}
+                    maxCapType={maxCapType}
+                  />
                 </PopoverContent>
               </Popover>
 

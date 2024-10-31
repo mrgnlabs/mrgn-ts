@@ -6,19 +6,20 @@ import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-clien
 import { extractErrorString, MultiStepToastHandle, showErrorToast, StakeActionTxns } from "@mrgnlabs/mrgn-utils";
 
 import { ExecuteActionsCallbackProps } from "~/components/action-box-v2/types";
-import { numeralFormatter, nativeToUi } from "@mrgnlabs/mrgn-common";
+import { numeralFormatter, nativeToUi, TransactionBroadcastType } from "@mrgnlabs/mrgn-common";
 
 interface ExecuteStakeActionProps extends ExecuteActionsCallbackProps {
   params: {
     actionTxns: StakeActionTxns;
     marginfiClient: MarginfiClient;
-  };
-  actionType: ActionType;
-  nativeSolBalance: number;
-  selectedAccount?: MarginfiAccountWrapper;
-  originDetails: {
-    amount: number;
-    tokenSymbol: string;
+    actionType: ActionType;
+    nativeSolBalance: number;
+    selectedAccount?: MarginfiAccountWrapper;
+    originDetails: {
+      amount: number;
+      tokenSymbol: string;
+    };
+    broadcastType: TransactionBroadcastType;
   };
 }
 
@@ -28,11 +29,8 @@ export const handleExecuteLstAction = async ({
   setIsLoading,
   setIsComplete,
   setIsError,
-  actionType,
-  nativeSolBalance,
-  originDetails,
 }: ExecuteStakeActionProps) => {
-  const { actionTxns, marginfiClient } = params;
+  const { actionTxns, marginfiClient, actionType, nativeSolBalance, originDetails, broadcastType } = params;
 
   setIsLoading(true);
   const attemptUuid = uuidv4();
@@ -48,6 +46,7 @@ export const handleExecuteLstAction = async ({
     actionType,
     nativeSolBalance,
     originDetails,
+    broadcastType,
   });
 
   setIsLoading(false);
@@ -79,6 +78,7 @@ const executeLstAction = async ({
   actionType,
   nativeSolBalance,
   originDetails,
+  broadcastType,
 }: {
   marginfiClient: MarginfiClient;
   actionTxns: StakeActionTxns;
@@ -88,6 +88,7 @@ const executeLstAction = async ({
     amount: number;
     tokenSymbol: string;
   };
+  broadcastType: TransactionBroadcastType;
 }) => {
   if (!actionTxns.actionTxn) return;
   if (nativeSolBalance < FEE_MARGIN) {
@@ -113,18 +114,20 @@ const executeLstAction = async ({
           Number(originDetails.amount) < 0.01 ? "<0.01" : numeralFormatter(Number(originDetails.amount))
         } LST`;
 
-  const multiStepToast = new MultiStepToastHandle(
-    actionType === ActionType.MintLST ? `Minting LST` : `Unstaking LST`,
-    [
-      {
-        label: toastLabels,
-      },
-    ]
-  );
+  const multiStepToast = new MultiStepToastHandle(actionType === ActionType.MintLST ? `Minting LST` : `Unstaking LST`, [
+    {
+      label: toastLabels,
+    },
+  ]);
   multiStepToast.start();
 
   try {
-    const txnSig = await marginfiClient.processTransactions([actionTxns.actionTxn, ...actionTxns.additionalTxns]);
+    const txnSig = await marginfiClient.processTransactions(
+      [actionTxns.actionTxn, ...actionTxns.additionalTxns],
+      undefined,
+      undefined,
+      broadcastType
+    );
     multiStepToast.setSuccessAndNext();
 
     return txnSig;

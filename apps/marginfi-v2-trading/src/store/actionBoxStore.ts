@@ -70,7 +70,7 @@ interface ActionBoxState {
     slippageBps: number,
     connection: Connection,
     priorityFee: number,
-    platformFeeBps?: number
+    platformFeeBps: number
   ) => void;
   setIsLoading: (isLoading: boolean) => void;
 }
@@ -226,7 +226,8 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
       slippageBps,
       connection,
       priorityFee,
-      platformFeeBps
+      platformFeeBps,
+      "BUNDLE"
     );
 
     if (repayCollat && "repayTxn" in repayCollat) {

@@ -9,6 +9,7 @@ import {
 import { ExtendedBankInfo, AccountSummary } from "@mrgnlabs/marginfi-v2-ui-state";
 import {
   LST_MINT,
+  TransactionBroadcastType,
   createAssociatedTokenAccountIdempotentInstruction,
   getAssociatedTokenAddressSync,
   uiToNative,
@@ -135,7 +136,9 @@ export async function handleStakeTx(
   selectedBank: ExtendedBankInfo,
   marginfiClient: MarginfiClient,
   connection: Connection,
-  lstData: LstData
+  lstData: LstData,
+  priorityFee: number,
+  broadcastType: TransactionBroadcastType
 ) {
   const stakeAmount = swapQuote
     ? Number(swapQuote.outAmount)
@@ -190,7 +193,7 @@ export async function handleStakeTx(
     })
   );
 
-  const bundleTipIx = makeBundleTipIx(marginfiClient.wallet.publicKey);
+  const bundleTipIx = makeBundleTipIx(marginfiClient.wallet.publicKey, priorityFee);
 
   const stakeMessage = new TransactionMessage({
     payerKey: marginfiClient.wallet.publicKey,

@@ -10,4 +10,5 @@ export * from "./formatters";
 export * from "./conversion";
 export * from "./accounting";
 export * from "./spl";
+export * from "./priority";
 export { NodeWallet };

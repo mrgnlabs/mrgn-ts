@@ -14,15 +14,12 @@ interface ActionBoxWrapperProps {
 }
 
 export const ActionBoxWrapper = ({ children, isDialog, actionMode, showSettings = true }: ActionBoxWrapperProps) => {
-  const [priorityFee, slippage, isSettingsDialogOpen, setIsSettingsDialogOpen, setPriorityFee, setSlippageBps] =
-    useActionBoxStore((state) => [
-      state.priorityFee,
-      state.slippageBps,
-      state.isSettingsDialogOpen,
-      state.setIsSettingsDialogOpen,
-      state.setPriorityFee,
-      state.setSlippageBps,
-    ]);
+  const [slippage, isSettingsDialogOpen, setIsSettingsDialogOpen, setSlippageBps] = useActionBoxStore((state) => [
+    state.slippageBps,
+    state.isSettingsDialogOpen,
+    state.setIsSettingsDialogOpen,
+    state.setSlippageBps,
+  ]);
 
   const isActionDisabled = React.useMemo(() => {
     const blockedActions = getBlockedActions();
@@ -66,9 +63,7 @@ export const ActionBoxWrapper = ({ children, isDialog, actionMode, showSettings 
         >
           {isSettingsDialogOpen && showSettings ? (
             <ActionSettings
-              priorityFee={priorityFee}
               slippage={isSlippageEnabled ? slippage : undefined}
-              changePriorityFee={setPriorityFee}
               changeSlippage={setSlippageBps}
               toggleSettings={(value) => setIsSettingsDialogOpen(value)}
             />

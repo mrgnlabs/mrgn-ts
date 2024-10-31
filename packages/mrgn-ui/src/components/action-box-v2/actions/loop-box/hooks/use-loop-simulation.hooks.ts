@@ -15,6 +15,7 @@ import {
   STATIC_SIMULATION_ERRORS,
   usePrevious,
 } from "@mrgnlabs/mrgn-utils";
+import { TransactionBroadcastType } from "@mrgnlabs/mrgn-common";
 import { AccountSummary, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { useActionBoxStore } from "../../../store";
@@ -31,6 +32,8 @@ type LoopSimulationProps = {
   actionTxns: LoopActionTxns;
   simulationResult: SimulationResult | null;
   isRefreshTxn: boolean;
+  priorityFee: number;
+  broadcastType: TransactionBroadcastType;
 
   setSimulationResult: (simulationResult: SimulationResult | null) => void;
   setActionTxns: (actionTxns: LoopActionTxns) => void;
@@ -50,6 +53,8 @@ export function useLoopSimulation({
   actionTxns,
   simulationResult,
   isRefreshTxn,
+  priorityFee,
+  broadcastType,
 
   setSimulationResult,
   setActionTxns,
@@ -57,11 +62,7 @@ export function useLoopSimulation({
   setIsLoading,
   setMaxLeverage,
 }: LoopSimulationProps) {
-  const [slippageBps, priorityFee, platformFeeBps] = useActionBoxStore((state) => [
-    state.slippageBps,
-    state.priorityFee,
-    state.platformFeeBps,
-  ]);
+  const [slippageBps, platformFeeBps] = useActionBoxStore((state) => [state.slippageBps, state.platformFeeBps]);
 
   const prevDebouncedAmount = usePrevious(debouncedAmount);
   const prevDebouncedLeverage = usePrevious(debouncedLeverage);
@@ -146,8 +147,9 @@ export function useLoopSimulation({
           amount,
           slippageBps,
           marginfiClient.provider.connection,
-          0,
-          platformFeeBps
+          priorityFee,
+          platformFeeBps,
+          broadcastType
         );
 
         if (loopingObject && "loopingTxn" in loopingObject) {
@@ -184,6 +186,8 @@ export function useLoopSimulation({
       setSimulationResult,
       slippageBps,
       priorityFee,
+      platformFeeBps,
+      broadcastType,
       setErrorMessage,
     ]
   );

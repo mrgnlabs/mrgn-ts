@@ -6,7 +6,7 @@ import { Connection, PublicKey, Transaction, VersionedTransaction } from "@solan
 import * as solanaStakePool from "@solana/spl-stake-pool";
 import BigNumber from "bignumber.js";
 
-import { Wallet } from "@mrgnlabs/mrgn-common";
+import { TransactionBroadcastType, Wallet } from "@mrgnlabs/mrgn-common";
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
@@ -112,7 +112,8 @@ export type MarginfiActionParams = {
   repayWithCollatOptions?: RepayWithCollatOptions; // deprecated
   loopingOptions?: LoopingOptions; // deprecated
   walletContextState?: WalletContextState | WalletContextStateOverride;
-  priorityFee?: number;
+  priorityFee: number;
+  broadcastType: TransactionBroadcastType;
   theme?: "light" | "dark";
 };
 

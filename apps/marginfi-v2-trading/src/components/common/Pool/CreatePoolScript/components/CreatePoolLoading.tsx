@@ -134,7 +134,6 @@ type PoolCreationState = {
 export const CreatePoolLoading = ({ poolCreatedData, setIsOpen, setIsCompleted }: CreatePoolLoadingProps) => {
   // const { wallet } = useWallet();
   const { connection } = useConnection();
-  const [priorityFee] = useUiStore((state) => [state.priorityFee]);
   const [activeStep, setActiveStep] = React.useState<number>(0);
   const [status, setStatus] = React.useState<StepperStatus>("default");
 
@@ -208,7 +207,7 @@ export const CreatePoolLoading = ({ poolCreatedData, setIsOpen, setIsCompleted }
           group,
           admin: wallet.publicKey,
           seed,
-          priorityFee,
+          priorityFee: 0, // todo
         });
 
         if (!sig) throw new Error();
@@ -218,7 +217,7 @@ export const CreatePoolLoading = ({ poolCreatedData, setIsOpen, setIsCompleted }
         setStatus("error");
       }
     },
-    [priorityFee, setStatus]
+    [setStatus]
   );
 
   const createSeeds = React.useCallback(() => {

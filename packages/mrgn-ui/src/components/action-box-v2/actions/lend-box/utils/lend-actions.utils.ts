@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { TransactionBroadcastType } from "@mrgnlabs/mrgn-common";
 import {
   ActionMethod,
   closeBalance,
@@ -24,7 +25,7 @@ export const handleExecuteLendingAction = async ({
   setIsComplete,
   setIsError,
 }: ExecuteLendingActionsProps) => {
-  const { actionType, bank, amount, priorityFee } = params;
+  const { actionType, bank, amount, priorityFee, broadcastType } = params;
 
   setIsLoading(true);
   const attemptUuid = uuidv4();
@@ -34,6 +35,7 @@ export const handleExecuteLendingAction = async ({
     tokenName: bank.meta.tokenName,
     amount,
     priorityFee,
+    broadcastType,
   });
 
   const txnSig = await executeLendingAction(params);
@@ -60,6 +62,7 @@ interface HandleCloseBalanceProps extends ExecuteActionsCallbackProps {
     bank: ExtendedBankInfo;
     marginfiAccount: MarginfiAccountWrapper | null;
     priorityFee?: number;
+    broadcastType: TransactionBroadcastType;
   };
 }
 
@@ -70,7 +73,7 @@ export const handleExecuteCloseBalance = async ({
   setIsComplete,
   setIsError,
 }: HandleCloseBalanceProps) => {
-  const { bank, marginfiAccount, priorityFee } = params;
+  const { bank, marginfiAccount, priorityFee, broadcastType } = params;
 
   setIsLoading(true);
   const attemptUuid = uuidv4();
@@ -83,7 +86,7 @@ export const handleExecuteCloseBalance = async ({
   });
 
   // const { txnSig, error } = await closeBalance({ marginfiAccount: marginfiAccount, bank: bank, priorityFee });
-  const txnSig = await closeBalance({ marginfiAccount: marginfiAccount, bank: bank, priorityFee });
+  const txnSig = await closeBalance({ marginfiAccount: marginfiAccount, bank: bank, priorityFee, broadcastType });
   setIsLoading(false);
 
   // if (error) {
@@ -110,7 +113,8 @@ export async function calculateLendingTransaction(
   bank: ExtendedBankInfo,
   actionMode: ActionType,
   amount: number,
-  priorityFee: number
+  priorityFee: number,
+  broadcastType: TransactionBroadcastType
 ): Promise<
   | {
       actionTxn: VersionedTransaction | Transaction;
@@ -120,17 +124,27 @@ export async function calculateLendingTransaction(
 > {
   switch (actionMode) {
     case ActionType.Deposit:
-      const depositTx = await marginfiAccount.makeDepositTx(amount, bank.address, { priorityFeeUi: priorityFee });
+      const depositTx = await marginfiAccount.makeDepositTx(
+        amount,
+        bank.address,
+        { priorityFeeUi: priorityFee },
+        broadcastType
+      );
       return {
         actionTxn: depositTx,
         additionalTxns: [], // bundle tip ix is in depositTx
       };
     case ActionType.Borrow:
-      const borrowTxObject = await marginfiAccount.makeBorrowTx(amount, bank.address, {
-        createAtas: true,
-        wrapAndUnwrapSol: false,
-        priorityFeeUi: priorityFee,
-      });
+      const borrowTxObject = await marginfiAccount.makeBorrowTx(
+        amount,
+        bank.address,
+        {
+          createAtas: true,
+          wrapAndUnwrapSol: false,
+          priorityFeeUi: priorityFee,
+        },
+        broadcastType
+      );
       return {
         actionTxn: borrowTxObject.borrowTx,
         additionalTxns: borrowTxObject.feedCrankTxs,
@@ -139,7 +153,9 @@ export async function calculateLendingTransaction(
       const withdrawTxObject = await marginfiAccount.makeWithdrawTx(
         amount,
         bank.address,
-        bank.isActive && isWholePosition(bank, amount)
+        bank.isActive && isWholePosition(bank, amount),
+        { priorityFeeUi: priorityFee },
+        broadcastType
       );
       return {
         actionTxn: withdrawTxObject.withdrawTx,
@@ -150,7 +166,8 @@ export async function calculateLendingTransaction(
         amount,
         bank.address,
         bank.isActive && isWholePosition(bank, amount),
-        { priorityFeeUi: priorityFee }
+        { priorityFeeUi: priorityFee },
+        broadcastType
       );
       return {
         actionTxn: repayTx,

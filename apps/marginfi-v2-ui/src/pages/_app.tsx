@@ -5,16 +5,16 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import { GoogleAnalytics, GoogleTagManager } from "@next/third-parties/google";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
-
 import { WalletProvider } from "@solana/wallet-adapter-react";
 import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
 import { TipLinkWalletAutoConnect } from "@tiplink/wallet-adapter-react-ui";
 import { init, push } from "@socialgouv/matomo-next";
 import { ToastContainer } from "react-toastify";
 import { Analytics } from "@vercel/analytics/react";
-import { Desktop, Mobile } from "@mrgnlabs/mrgn-utils";
-import { ActionBoxProvider, AuthDialog } from "@mrgnlabs/mrgn-ui";
-import { init as initAnalytics } from "@mrgnlabs/mrgn-utils";
+import { registerMoonGateWallet } from "@moongate/moongate-adapter";
+
+import { cn, DEFAULT_MAX_CAP, Desktop, Mobile, init as initAnalytics } from "@mrgnlabs/mrgn-utils";
+import { ActionBoxProvider, ActionProvider, AuthDialog } from "@mrgnlabs/mrgn-ui";
 
 import config from "~/config";
 import { MrgnlendProvider, LipClientProvider } from "~/context";
@@ -22,7 +22,6 @@ import { WALLET_ADAPTERS } from "~/config/wallets";
 import { useMrgnlendStore, useUiStore } from "~/store";
 import { WalletProvider as MrgnWalletProvider } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { ConnectionProvider } from "~/hooks/use-connection";
-import { cn } from "@mrgnlabs/mrgn-utils";
 
 import { Meta } from "~/components/common/Meta";
 import { MobileNavbar } from "~/components/mobile/MobileNavbar";
@@ -32,8 +31,6 @@ import { CongestionBanner } from "~/components/common/CongestionBanner";
 import "swiper/css";
 import "swiper/css/pagination";
 import "react-toastify/dist/ReactToastify.min.css";
-
-import { registerMoonGateWallet } from "@moongate/moongate-adapter";
 
 registerMoonGateWallet({ authMode: "Google", position: "bottom-right" });
 registerMoonGateWallet({ authMode: "Ethereum", position: "bottom-right" });
@@ -53,7 +50,14 @@ const MATOMO_URL = "https://mrgn.matomo.cloud";
 type MrgnAppProps = { path: string };
 
 export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnAppProps) {
-  const [setIsFetchingData, isOraclesStale] = useUiStore((state) => [state.setIsFetchingData, state.isOraclesStale]);
+  const [priorityType, broadcastType, maxCapType, maxCap, setIsFetchingData, isOraclesStale] = useUiStore((state) => [
+    state.priorityType,
+    state.broadcastType,
+    state.maxCapType,
+    state.maxCap,
+    state.setIsFetchingData,
+    state.isOraclesStale,
+  ]);
   const [
     isMrgnlendStoreInitialized,
     isRefreshingMrgnlendStore,
@@ -105,47 +109,57 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
               <MrgnWalletProvider>
                 <MrgnlendProvider>
                   <LipClientProvider>
-                    <ActionBoxProvider
-                      banks={extendedBankInfos}
-                      nativeSolBalance={nativeSolBalance}
-                      marginfiClient={marginfiClient}
-                      selectedAccount={selectedAccount}
-                      connected={false}
-                      accountSummaryArg={accountSummary}
+                    <ActionProvider
+                      broadcastType={broadcastType}
+                      priorityType={priorityType}
+                      maxCap={maxCap || DEFAULT_MAX_CAP}
+                      maxCapType={maxCapType}
                     >
-                      <CongestionBanner />
-                      <Navbar />
+                      <ActionBoxProvider
+                        banks={extendedBankInfos}
+                        nativeSolBalance={nativeSolBalance}
+                        marginfiClient={marginfiClient}
+                        selectedAccount={selectedAccount}
+                        connected={false}
+                        accountSummaryArg={accountSummary}
+                      >
+                        <CongestionBanner />
+                        <Navbar />
 
-                      <Desktop>
-                        <WalletModalProvider>
+                        <Desktop>
+                          <WalletModalProvider>
+                            <div
+                              className={cn(
+                                "w-full flex flex-col justify-center items-center",
+                                isOraclesStale && "pt-10"
+                              )}
+                            >
+                              <Component {...pageProps} />
+                            </div>
+                            <Footer />
+                          </WalletModalProvider>
+                        </Desktop>
+
+                        <Mobile>
                           <div
                             className={cn(
                               "w-full flex flex-col justify-center items-center",
-                              isOraclesStale && "pt-10"
+                              isOraclesStale && "pt-16"
                             )}
                           >
                             <Component {...pageProps} />
                           </div>
-                          <Footer />
-                        </WalletModalProvider>
-                      </Desktop>
+                          <MobileNavbar />
+                        </Mobile>
 
-                      <Mobile>
-                        <div
-                          className={cn("w-full flex flex-col justify-center items-center", isOraclesStale && "pt-16")}
-                        >
-                          <Component {...pageProps} />
-                        </div>
-                        <MobileNavbar />
-                      </Mobile>
-
-                      <Analytics />
-                      <Tutorial />
-                      <AuthDialog
-                        mrgnState={{ marginfiClient, selectedAccount, extendedBankInfos, nativeSolBalance }}
-                      />
-                      <ToastContainer position="bottom-left" theme="dark" />
-                    </ActionBoxProvider>
+                        <Analytics />
+                        <Tutorial />
+                        <AuthDialog
+                          mrgnState={{ marginfiClient, selectedAccount, extendedBankInfos, nativeSolBalance }}
+                        />
+                        <ToastContainer position="bottom-left" theme="dark" />
+                      </ActionBoxProvider>
+                    </ActionProvider>
                   </LipClientProvider>
                 </MrgnlendProvider>
               </MrgnWalletProvider>

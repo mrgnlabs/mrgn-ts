@@ -10,6 +10,7 @@ import {
   STATIC_SIMULATION_ERRORS,
   usePrevious,
 } from "@mrgnlabs/mrgn-utils";
+import { TransactionBroadcastType } from "@mrgnlabs/mrgn-common";
 import { AccountSummary, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { useActionBoxStore } from "../../../store";
@@ -25,6 +26,8 @@ type RepayCollatSimulationProps = {
   actionTxns: RepayCollatActionTxns;
   simulationResult: SimulationResult | null;
   isRefreshTxn: boolean;
+  priorityFee: number;
+  broadcastType: TransactionBroadcastType;
 
   setSimulationResult: (simulationResult: SimulationResult | null) => void;
   setActionTxns: (actionTxns: RepayCollatActionTxns) => void;
@@ -44,6 +47,8 @@ export function useRepayCollatSimulation({
   actionTxns,
   simulationResult,
   isRefreshTxn,
+  priorityFee,
+  broadcastType,
 
   setSimulationResult,
   setActionTxns,
@@ -52,11 +57,7 @@ export function useRepayCollatSimulation({
   setIsLoading,
   setMaxAmountCollateral,
 }: RepayCollatSimulationProps) {
-  const [slippageBps, priorityFee, platformFeeBps] = useActionBoxStore((state) => [
-    state.slippageBps,
-    state.priorityFee,
-    state.platformFeeBps,
-  ]);
+  const [slippageBps, platformFeeBps] = useActionBoxStore((state) => [state.slippageBps, state.platformFeeBps]);
 
   const prevDebouncedAmount = usePrevious(debouncedAmount);
   const prevSelectedSecondaryBank = usePrevious(selectedSecondaryBank);
@@ -123,8 +124,9 @@ export function useRepayCollatSimulation({
           amount,
           slippageBps,
           marginfiClient.provider.connection,
-          0, //priorityFee,
-          platformFeeBps
+          priorityFee,
+          platformFeeBps,
+          broadcastType
         );
 
         if (repayObject && "repayTxn" in repayObject) {
@@ -158,7 +160,9 @@ export function useRepayCollatSimulation({
       setActionTxns,
       setSimulationResult,
       slippageBps,
+      priorityFee,
       platformFeeBps,
+      broadcastType,
       setRepayAmount,
       setErrorMessage,
     ]

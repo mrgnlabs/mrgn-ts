@@ -181,7 +181,6 @@ export const CreatePoolLoading = ({ quoteBank, poolData, setPoolData, setCreateP
   const { wallet } = useWallet();
   const { connection } = useConnection();
   const [fetchTradeState] = useTradeStore((state) => [state.fetchTradeState]);
-  const [priorityFee] = useUiStore((state) => [state.priorityFee]);
   const [activeStep, setActiveStep] = React.useState<number>(0);
   const [status, setStatus] = React.useState<StepperStatus>("default");
 

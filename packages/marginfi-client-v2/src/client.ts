@@ -30,6 +30,7 @@ import {
   NodeWallet,
   simulateBundle,
   sleep,
+  TransactionBroadcastType,
   TransactionOptions,
   Wallet,
 } from "@mrgnlabs/mrgn-common";
@@ -47,6 +48,7 @@ import {
   BankConfigOpt,
   BankConfig,
   makeBundleTipIx,
+  makeTxPriorityIx,
 } from ".";
 import { MarginfiAccountWrapper } from "./models/account/wrapper";
 import {
@@ -607,20 +609,23 @@ class MarginfiClient {
    */
   async createMarginfiAccount(
     opts?: TransactionOptions,
-    createOpts?: { newAccountKey?: PublicKey | undefined }
+    createOpts?: { newAccountKey?: PublicKey | undefined },
+    priorityFeeUi?: number,
+    broadcastType?: TransactionBroadcastType
   ): Promise<MarginfiAccountWrapper> {
     const dbg = require("debug")("mfi:client");
 
     const accountKeypair = Keypair.generate();
     const newAccountKey = createOpts?.newAccountKey ?? accountKeypair.publicKey;
 
-    const bundleTipIx = makeBundleTipIx(this.provider.publicKey);
+    const { bundleTipIx, priorityFeeIx } = makeTxPriorityIx(this.provider.publicKey, priorityFeeUi, broadcastType);
+
     const ixs = await this.makeCreateMarginfiAccountIx(newAccountKey);
     const signers = [...ixs.keys];
     // If there was no newAccountKey provided, we need to sign with the ephemeraKeypair we generated.
     if (!createOpts?.newAccountKey) signers.push(accountKeypair);
 
-    const tx = new Transaction().add(bundleTipIx, ...ixs.instructions);
+    const tx = new Transaction().add(priorityFeeIx, ...(bundleTipIx ? [bundleTipIx] : []), ...ixs.instructions);
     const sig = await this.processTransaction(tx, signers, opts);
 
     dbg("Created Marginfi account %s", sig);
@@ -765,7 +770,9 @@ class MarginfiClient {
   async processTransactions(
     transactions: (VersionedTransaction | Transaction)[],
     signers?: Array<Signer>,
-    opts?: TransactionOptions
+    opts?: TransactionOptions,
+    broadcastType: TransactionBroadcastType = "BUNDLE",
+    isSequentialTxs: boolean = true
   ): Promise<TransactionSignature[]> {
     let signatures: TransactionSignature[] = [""];
 
@@ -868,10 +875,34 @@ class MarginfiClient {
           });
         }
 
-        signatures = await this.sendTransactionAsBundle(base58Txs).catch(
-          async () =>
+        let sendTxsRpc = async (versionedTransaction: VersionedTransaction[]): Promise<string[]> => [];
+
+        if (isSequentialTxs) {
+          sendTxsRpc = async (txs: VersionedTransaction[]) => {
+            let sigs = [];
+            for (const tx of txs) {
+              const signature = await connection.sendTransaction(tx, {
+                // minContextSlot: mergedOpts.minContextSlot,
+                skipPreflight: mergedOpts.skipPreflight,
+                preflightCommitment: mergedOpts.preflightCommitment,
+                maxRetries: mergedOpts.maxRetries,
+              });
+              await connection.confirmTransaction(
+                {
+                  blockhash,
+                  lastValidBlockHeight,
+                  signature,
+                },
+                "confirmed"
+              );
+              sigs.push(signature);
+            }
+            return sigs;
+          };
+        } else {
+          sendTxsRpc = async (txs: VersionedTransaction[]) =>
             await Promise.all(
-              versionedTransactions.map(async (versionedTransaction) => {
+              txs.map(async (versionedTransaction) => {
                 const signature = await connection.sendTransaction(versionedTransaction, {
                   // minContextSlot: mergedOpts.minContextSlot,
                   skipPreflight: mergedOpts.skipPreflight,
@@ -880,8 +911,16 @@ class MarginfiClient {
                 });
                 return signature;
               })
-            )
-        );
+            );
+        }
+
+        if (broadcastType === "BUNDLE") {
+          signatures = await this.sendTransactionAsBundle(base58Txs).catch(
+            async () => await sendTxsRpc(versionedTransactions)
+          );
+        } else {
+          signatures = await sendTxsRpc(versionedTransactions);
+        }
 
         await Promise.all(
           signatures.map(async (signature) => {
