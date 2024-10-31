@@ -3,6 +3,7 @@ import React from "react";
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 
 import { formatAmount } from "@mrgnlabs/mrgn-utils";
+import { numeralFormatter, groupedNumberFormatterDyn } from "@mrgnlabs/mrgn-common";
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "~/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
@@ -28,6 +29,11 @@ const StakeCalculator = () => {
   const [duration, setDuration] = React.useState(5);
 
   const handleAmountChange = (value: string) => {
+    if (!value) {
+      setAmountFormatted("1");
+      setAmount(1);
+      return;
+    }
     setAmountFormatted(formatAmount(value, null, null, new Intl.NumberFormat()));
     setAmount(parseInt(value.replace(/,/g, "")));
   };
@@ -51,10 +57,18 @@ const StakeCalculator = () => {
   }, [amount, duration]);
 
   return (
-    <Card>
+    <Card className="bg-transparent">
       <CardHeader>
-        <CardTitle>Stake Calculator</CardTitle>
-        <CardDescription>
+        <CardTitle className="text-xl">
+          Your{" "}
+          <strong className="text-chartreuse">{groupedNumberFormatterDyn.format(amount).replace(".00", "")}</strong> SOL
+          will grow to{" "}
+          <strong className="text-chartreuse">
+            {groupedNumberFormatterDyn.format(chartData[chartData.length - 1].staked).replace(".00", "")}
+          </strong>{" "}
+          SOL after {duration} years
+        </CardTitle>
+        <CardDescription className="sr-only">
           Calculate your potential yield by staking with mrgn validators and minting LST.
         </CardDescription>
       </CardHeader>
@@ -105,33 +119,31 @@ const StakeCalculator = () => {
             />
           </AreaChart>
         </ChartContainer>
-        <form className="flex flex-col gap-4">
-          <div className="flex gap-4 pt-4">
-            <div className="space-y-1 w-full">
-              <Label className="text-muted-foreground">Amount to stake</Label>
-              <Input
-                type="text"
-                inputMode="decimal"
-                value={amountFormatted}
-                onChange={(e) => handleAmountChange(e.target.value)}
-                className="border-border"
-              />
-            </div>
-            <div className="space-y-1 w-full">
-              <Label className="text-muted-foreground">Stake duration</Label>
-              <Select value={duration.toString()} onValueChange={(value) => setDuration(parseInt(value))}>
-                <SelectTrigger className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {[...Array(10)].map((_, i) => (
-                    <SelectItem key={i + 1} value={(i + 1).toString()}>
-                      {i + 1} years
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+        <form className="flex text-left gap-4 pt-4">
+          <div className="space-y-1 w-full">
+            <Label className="text-muted-foreground">Amount to stake</Label>
+            <Input
+              type="text"
+              inputMode="decimal"
+              value={amountFormatted}
+              onChange={(e) => handleAmountChange(e.target.value)}
+              className="border-border"
+            />
+          </div>
+          <div className="space-y-1 w-full">
+            <Label className="text-muted-foreground">Stake duration</Label>
+            <Select value={duration.toString()} onValueChange={(value) => setDuration(parseInt(value))}>
+              <SelectTrigger className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {[...Array(10)].map((_, i) => (
+                  <SelectItem key={i + 1} value={(i + 1).toString()}>
+                    {i + 1} years
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </form>
       </CardContent>
