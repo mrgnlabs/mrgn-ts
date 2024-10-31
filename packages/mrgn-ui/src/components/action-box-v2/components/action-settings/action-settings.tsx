@@ -1,7 +1,7 @@
 import React from "react";
 import { IconArrowLeft } from "@tabler/icons-react";
 
-import { BundleTip, Slippage } from "./components";
+import { Slippage } from "./components";
 
 interface ActionSettingsProps {
   slippage?: number;

@@ -222,6 +222,7 @@ export const PositionActionButtons = ({
     connection,
     setIsActionComplete,
     setPreviousTxn,
+    broadcastType,
   ]);
 
   const onClose = React.useCallback(() => {
