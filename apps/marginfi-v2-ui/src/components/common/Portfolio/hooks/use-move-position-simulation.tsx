@@ -4,6 +4,8 @@ import { TransactionMessage, VersionedTransaction } from "@solana/web3.js";
 
 import { makeBundleTipIx, MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { getSimulationResult } from "../utils/move-position.utils";
+import { ActionMessageType } from "@mrgnlabs/mrgn-utils";
 
 type MovePositionSimulationProps = {
   actionTxns: VersionedTransaction[] | null;
@@ -15,6 +17,7 @@ type MovePositionSimulationProps = {
 
   setActionTxns: (actionTxn: VersionedTransaction[]) => void;
   setIsLoading: (isLoading: boolean) => void;
+  setErrorMessage: (error: ActionMessageType | null) => void;
 };
 
 export const useMoveSimulation = ({
@@ -24,6 +27,7 @@ export const useMoveSimulation = ({
   activeBank,
   setActionTxns,
   setIsLoading,
+  setErrorMessage,
 }: MovePositionSimulationProps) => {
   const generateTxns = React.useCallback(async () => {
     if (!marginfiClient || !accountToMoveTo) {
@@ -60,17 +64,26 @@ export const useMoveSimulation = ({
   const handleSimulateTxns = React.useCallback(async () => {
     try {
       const txns = await generateTxns();
-      if (!txns) return;
+      if (!txns || !marginfiClient) return;
 
-      const simulationResult = await marginfiClient?.simulateTransactions(txns, []);
+      const { actionMethod } = await getSimulationResult({
+        marginfiClient,
+        txns,
+        selectedBank: activeBank,
+      });
 
-      if (!simulationResult) return;
-      setActionTxns(txns);
+      if (actionMethod) {
+        setErrorMessage(actionMethod);
+        setActionTxns([]);
+      } else {
+        setErrorMessage(null);
+        setActionTxns(txns);
+      }
     } catch (error) {
     } finally {
       setIsLoading(false);
     }
-  }, [generateTxns, marginfiClient, setActionTxns, setIsLoading]);
+  }, [generateTxns, marginfiClient, activeBank, setErrorMessage, setActionTxns, setIsLoading]);
 
   return {
     handleSimulateTxns,

@@ -1,18 +1,7 @@
-import * as Sentry from "@sentry/nextjs";
-
 import { VersionedTransaction } from "@solana/web3.js";
 
 import { MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
-import { extractErrorString, MultiStepToastHandle } from "@mrgnlabs/mrgn-utils";
-
-const captureException = (error: any, msg: string, tags: Record<string, string | undefined>) => {
-  if (msg.includes("User rejected")) return;
-  Sentry.setTags({
-    ...tags,
-    customMessage: msg,
-  });
-  Sentry.captureException(error);
-};
+import { extractErrorString, MultiStepToastHandle, captureSentryException } from "@mrgnlabs/mrgn-utils";
 
 export const executeCollectTxn = async (
   marginfiClient: MarginfiClient,
@@ -43,7 +32,7 @@ export const executeCollectTxn = async (
 
     const walletAddress = marginfiClient.wallet.publicKey.toBase58();
 
-    captureException(error, msg, {
+    captureSentryException(error, msg, {
       action: "Collect rewards",
       wallet: walletAddress,
     });

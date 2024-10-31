@@ -5,7 +5,13 @@ import { TransactionMessage, VersionedTransaction } from "@solana/web3.js";
 
 import { usdFormatter, numeralFormatter, shortenAddress } from "@mrgnlabs/mrgn-common";
 import { ActiveBankInfo, ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { checkLendActionAvailable, MultiStepToastHandle } from "@mrgnlabs/mrgn-utils";
+import {
+  ActionMessageType,
+  captureSentryException,
+  checkLendActionAvailable,
+  extractErrorString,
+  MultiStepToastHandle,
+} from "@mrgnlabs/mrgn-utils";
 import { makeBundleTipIx, MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 
 import { Button } from "~/components/ui/button";
@@ -41,7 +47,7 @@ export const MovePositionDialog = ({
   const [accountToMoveTo, setAccountToMoveTo] = React.useState<MarginfiAccountWrapper | null>(null);
   const [actionTxns, setActionTxns] = React.useState<VersionedTransaction[]>([]);
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
-
+  const [errorMessage, setErrorMessage] = React.useState<ActionMessageType | null>(null);
   const { handleSimulateTxns } = useMoveSimulation({
     actionTxns,
     marginfiClient,
@@ -51,9 +57,11 @@ export const MovePositionDialog = ({
     extendedBankInfos,
     setActionTxns,
     setIsLoading,
+    setErrorMessage,
   });
 
   const actionMessages = React.useMemo(() => {
+    setAdditionalActionMessages([]);
     const withdrawActionResult = checkLendActionAvailable({
       amount: bank.position.amount,
       connected: true,
@@ -76,6 +84,13 @@ export const MovePositionDialog = ({
 
     return [...withdrawActionResult, ...depositActionResult];
   }, [bank, selectedAccount, extendedBankInfos, accountToMoveTo, nativeSolBalance]);
+  const [additionalActionMessages, setAdditionalActionMessages] = React.useState<ActionMessageType[]>([]);
+
+  React.useEffect(() => {
+    if (errorMessage && errorMessage.description) {
+      setAdditionalActionMessages([{ ...errorMessage, isEnabled: false }]);
+    }
+  }, [errorMessage]);
 
   const isButtonDisabled = React.useMemo(() => {
     if (!accountToMoveTo) return true;
@@ -102,8 +117,13 @@ export const MovePositionDialog = ({
       multiStepToast.setSuccessAndNext();
       setIsOpen(false);
     } catch (error) {
-      console.error("Error moving position between accounts", error);
-      multiStepToast.setFailed("Error moving position between accounts"); // TODO: update
+      const msg = extractErrorString(error);
+      console.error("Error moving position between accounts", msg);
+      multiStepToast.setFailed(msg);
+      captureSentryException(error, msg, {
+        action: "movePosition",
+        wallet: marginfiClient?.wallet.publicKey.toBase58(),
+      });
     } finally {
       setIsLoading(false);
     }
@@ -182,7 +202,7 @@ export const MovePositionDialog = ({
           )}
         </div>
 
-        {actionMessages.map(
+        {additionalActionMessages.concat(actionMessages).map(
           (actionMessage, idx) =>
             actionMessage.description && (
               <div className="pb-6" key={idx}>

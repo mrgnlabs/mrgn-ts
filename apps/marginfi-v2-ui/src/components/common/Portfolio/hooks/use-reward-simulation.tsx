@@ -3,7 +3,7 @@ import React from "react";
 import { PublicKey, TransactionInstruction, TransactionMessage, VersionedTransaction } from "@solana/web3.js";
 
 import { makeBundleTipIx, MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
-import { ActionMessageType, TOKEN_2022_MINTS } from "@mrgnlabs/mrgn-utils";
+import { ActionMessageType, captureSentryException, TOKEN_2022_MINTS } from "@mrgnlabs/mrgn-utils";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import {
   AccountLayout,
@@ -123,6 +123,11 @@ export const useRewardSimulation = ({
 
       setSimulationResult(rewards);
     } catch (error) {
+      console.error("Error simulating emissions transactions", error);
+      captureSentryException(error, "Error simulating emissions transactions", {
+        action: "rewardSimulation",
+        walletAddress: selectedAccount?.address.toBase58(),
+      });
       setSimulationResult({
         totalReward: 0,
         rewards: [],
@@ -132,35 +137,13 @@ export const useRewardSimulation = ({
 
   const generateTxn = React.useCallback(async () => {
     try {
-      const connection = marginfiClient?.provider.connection;
-      if (!marginfiClient || !selectedAccount || !connection || !bankAddressesWithEmissions) return;
-
-      const ixs: TransactionInstruction[] = [];
-      const bundleTipIx = makeBundleTipIx(marginfiClient?.wallet.publicKey);
-      const priorityFeeIx = selectedAccount?.makePriorityFeeIx(0); // TODO: set priorityfee
-      const blockhash = (await connection.getLatestBlockhash()).blockhash;
-
-      await Promise.all(
-        bankAddressesWithEmissions.map(async (bankAddress) => {
-          const ix = await selectedAccount?.makeWithdrawEmissionsIx(bankAddress);
-          if (!ix) return;
-          ixs.push(...ix.instructions);
-        })
-      );
-
-      const tx = new VersionedTransaction(
-        new TransactionMessage({
-          instructions: [bundleTipIx, ...priorityFeeIx, ...ixs],
-          payerKey: selectedAccount?.authority,
-          recentBlockhash: blockhash,
-        }).compileToV0Message()
-      );
-
+      const tx = await selectedAccount?.makeWithdrawEmissionsTx(bankAddressesWithEmissions);
+      if (!tx) return;
       setActionTxn(tx);
     } catch (error) {
       setActionTxn(null);
     }
-  }, [bankAddressesWithEmissions, marginfiClient, selectedAccount, setActionTxn]);
+  }, [bankAddressesWithEmissions, selectedAccount, setActionTxn]);
 
   React.useEffect(() => {
     generateTxn();

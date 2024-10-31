@@ -15,3 +15,4 @@ export * from "./jup-referral.utils";
 export * from "./bank-data.utils";
 export * from "./priority.utils";
 export * from "./action-message.utils";
+export * from "./sentry.utils";
