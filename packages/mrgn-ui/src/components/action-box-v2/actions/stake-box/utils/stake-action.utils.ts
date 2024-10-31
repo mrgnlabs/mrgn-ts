@@ -3,7 +3,13 @@ import { v4 as uuidv4 } from "uuid";
 
 import { ActionType, FEE_MARGIN } from "@mrgnlabs/marginfi-v2-ui-state";
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
-import { extractErrorString, MultiStepToastHandle, showErrorToast, StakeActionTxns } from "@mrgnlabs/mrgn-utils";
+import {
+  captureSentryException,
+  extractErrorString,
+  MultiStepToastHandle,
+  showErrorToast,
+  StakeActionTxns,
+} from "@mrgnlabs/mrgn-utils";
 
 import { ExecuteActionsCallbackProps } from "~/components/action-box-v2/types";
 import { numeralFormatter, nativeToUi } from "@mrgnlabs/mrgn-common";
@@ -64,15 +70,6 @@ export const handleExecuteLstAction = async ({
   }
 };
 
-const captureException = (error: any, msg: string, tags: Record<string, string | undefined>) => {
-  if (msg.includes("User rejected")) return;
-  Sentry.setTags({
-    ...tags,
-    customMessage: msg,
-  });
-  Sentry.captureException(error);
-};
-
 const executeLstAction = async ({
   marginfiClient,
   actionTxns,
@@ -113,14 +110,11 @@ const executeLstAction = async ({
           Number(originDetails.amount) < 0.01 ? "<0.01" : numeralFormatter(Number(originDetails.amount))
         } LST`;
 
-  const multiStepToast = new MultiStepToastHandle(
-    actionType === ActionType.MintLST ? `Minting LST` : `Unstaking LST`,
-    [
-      {
-        label: toastLabels,
-      },
-    ]
-  );
+  const multiStepToast = new MultiStepToastHandle(actionType === ActionType.MintLST ? `Minting LST` : `Unstaking LST`, [
+    {
+      label: toastLabels,
+    },
+  ]);
   multiStepToast.start();
 
   try {
@@ -136,7 +130,7 @@ const executeLstAction = async ({
 
     const walletAddress = marginfiClient.wallet.publicKey.toBase58();
 
-    captureException(error, msg, {
+    captureSentryException(error, msg, {
       action: actionType,
       wallet: walletAddress,
     });

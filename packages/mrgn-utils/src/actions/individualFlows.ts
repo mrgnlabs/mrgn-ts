@@ -23,15 +23,7 @@ import { makeDepositSolToStakePoolIx, makeDepositStakeToStakePoolIx } from "../l
 import { loopingBuilder, repayWithCollatBuilder } from "./flashloans";
 import { getMaybeSquadsOptions } from "./helpers";
 import { RepayWithCollatOptions, LoopingOptions, LstData, StakeData, ActionTxns, MarginfiActionParams } from "./types";
-
-const captureException = (error: any, msg: string, tags: Record<string, string | undefined>) => {
-  if (msg.includes("User rejected")) return;
-  Sentry.setTags({
-    ...tags,
-    customMessage: msg,
-  });
-  Sentry.captureException(error);
-};
+import { captureSentryException } from "../sentry.utils";
 
 // ------------------------------------------------------------------//
 // Individual action flows - non-throwing - for use in UI components //
@@ -64,7 +56,7 @@ export async function createAccount({
   } catch (error: any) {
     const msg = extractErrorString(error);
 
-    captureException(error, msg, {
+    captureSentryException(error, msg, {
       action: "createAccount",
       wallet: walletContextState?.publicKey?.toBase58(),
     });
@@ -106,7 +98,7 @@ export async function createAccountAndDeposit({
   } catch (error: any) {
     const msg = extractErrorString(error);
 
-    captureException(error, msg, {
+    captureSentryException(error, msg, {
       action: "createAccount",
       wallet: walletContextState?.publicKey?.toBase58(),
     });
@@ -124,7 +116,7 @@ export async function createAccountAndDeposit({
   } catch (error: any) {
     const msg = extractErrorString(error);
 
-    captureException(error, msg, {
+    captureSentryException(error, msg, {
       action: "deposit",
       wallet: walletContextState?.publicKey?.toBase58(),
       bank: bank.meta.tokenSymbol,
@@ -166,7 +158,7 @@ export async function deposit({
   } catch (error: any) {
     const msg = extractErrorString(error);
 
-    captureException(error, msg, {
+    captureSentryException(error, msg, {
       action: "deposit",
       wallet: marginfiAccount?.authority?.toBase58(),
       bank: bank.meta.tokenSymbol,
@@ -208,7 +200,7 @@ export async function borrow({
   } catch (error: any) {
     const msg = extractErrorString(error);
 
-    captureException(error, msg, {
+    captureSentryException(error, msg, {
       action: "borrow",
       wallet: marginfiAccount?.authority?.toBase58(),
       bank: bank.meta.tokenSymbol,
@@ -252,7 +244,7 @@ export async function withdraw({
   } catch (error: any) {
     const msg = extractErrorString(error);
 
-    captureException(error, msg, {
+    captureSentryException(error, msg, {
       action: "withdraw",
       wallet: marginfiAccount?.authority?.toBase58(),
       bank: bank.meta.tokenSymbol,
@@ -295,7 +287,7 @@ export async function repay({
   } catch (error: any) {
     const msg = extractErrorString(error);
 
-    captureException(error, msg, {
+    captureSentryException(error, msg, {
       action: "repay",
       wallet: marginfiAccount?.authority?.toBase58(),
       bank: bank.meta.tokenSymbol,
@@ -357,7 +349,7 @@ export async function looping({
   } catch (error: any) {
     const msg = extractErrorString(error);
 
-    captureException(error, msg, {
+    captureSentryException(error, msg, {
       action: "looping",
       wallet: marginfiAccount?.authority?.toBase58(),
       bank: bank.meta.tokenSymbol,
@@ -427,7 +419,7 @@ export async function repayWithCollat({
   } catch (error: any) {
     const msg = extractErrorString(error);
 
-    captureException(error, msg, {
+    captureSentryException(error, msg, {
       action: "repayWithCollat",
       wallet: marginfiAccount?.authority?.toBase58(),
       bank: bank.meta.tokenSymbol,
@@ -457,7 +449,7 @@ export async function collectRewardsBatch(
   } catch (error: any) {
     const msg = extractErrorString(error);
 
-    captureException(error, msg, {
+    captureSentryException(error, msg, {
       action: "collectRewardsBatch",
       wallet: marginfiAccount?.authority?.toBase58(),
     });
@@ -506,7 +498,7 @@ export const closeBalance = async ({
   } catch (error: any) {
     const msg = extractErrorString(error);
 
-    captureException(error, msg, {
+    captureSentryException(error, msg, {
       action: "closeBalance",
       wallet: marginfiAccount?.authority?.toBase58(),
       bank: bank.meta.tokenSymbol,
@@ -572,7 +564,7 @@ export async function mintLstStakeToStake({
   } catch (error: any) {
     const msg = extractErrorString(error);
 
-    captureException(error, msg, {
+    captureSentryException(error, msg, {
       action: "mintLstStakeToStake",
       wallet: wallet.publicKey.toBase58(),
     });
@@ -641,7 +633,7 @@ export async function mintLstNative({
   } catch (error: any) {
     const msg = extractErrorString(error);
 
-    captureException(error, msg, {
+    captureSentryException(error, msg, {
       action: "mintLstNative",
       wallet: wallet.publicKey.toBase58(),
     });
@@ -722,7 +714,7 @@ export async function mintLstToken({
   } catch (error: any) {
     const msg = extractErrorString(error);
 
-    captureException(error, msg, {
+    captureSentryException(error, msg, {
       action: "mintLstToken",
       wallet: wallet.publicKey.toBase58(),
     });

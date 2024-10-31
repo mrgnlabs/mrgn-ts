@@ -1031,6 +1031,29 @@ class MarginfiAccountWrapper {
     );
   }
 
+  async makeWithdrawEmissionsTx(bankAddresses: PublicKey[]): Promise<VersionedTransaction> {
+    const bundleTipIx = makeBundleTipIx(this.client.provider.publicKey);
+    const priorityFeeIx = this.makePriorityFeeIx(0); // TODO: set priorityfee
+    const blockhash = (await this._program.provider.connection.getLatestBlockhash()).blockhash;
+
+    const ixs: TransactionInstruction[] = [];
+    await Promise.all(
+      bankAddresses.map(async (bankAddress) => {
+        const ix = await this.makeWithdrawEmissionsIx(bankAddress);
+        if (!ix) return;
+        ixs.push(...ix.instructions);
+      })
+    );
+
+    return new VersionedTransaction(
+      new TransactionMessage({
+        instructions: [bundleTipIx, ...priorityFeeIx, ...ixs],
+        payerKey: this.authority,
+        recentBlockhash: blockhash,
+      }).compileToV0Message()
+    );
+  }
+
   async withdrawEmissions(bankAddresses: PublicKey[], priorityFeeUi?: number): Promise<string> {
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:withdraw-emissions`);
     debug("Withdrawing emission from marginfi account (bank: %s)", bankAddresses.map((b) => b.toBase58()).join(", "));
