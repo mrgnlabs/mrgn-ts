@@ -11,10 +11,15 @@ import {
   computeAccountSummary,
   DEFAULT_ACCOUNT_SUMMARY,
 } from "@mrgnlabs/marginfi-v2-ui-state";
-import { ActionMessageType, checkLendActionAvailable, MarginfiActionParams, PreviousTxn } from "@mrgnlabs/mrgn-utils";
-import { ActionMethod, MarginfiActionParams, PreviousTxn, useConnection, usePriorityFee } from "@mrgnlabs/mrgn-utils";
-import { ActionMethod, checkLendActionAvailable, MarginfiActionParams, PreviousTxn } from "@mrgnlabs/mrgn-utils";
+
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
+import {
+  ActionMessageType,
+  checkLendActionAvailable,
+  MarginfiActionParams,
+  PreviousTxn,
+  usePriorityFee,
+} from "@mrgnlabs/mrgn-utils";
 
 import { ActionButton } from "~/components/action-box-v2/components";
 

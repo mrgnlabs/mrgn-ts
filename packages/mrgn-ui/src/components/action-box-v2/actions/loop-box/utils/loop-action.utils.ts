@@ -68,8 +68,6 @@ export async function calculateLooping(
   priorityFee: number,
   platformFeeBps: number,
   broadcastType: TransactionBroadcastType
-): Promise<LoopingObject | ActionMethod> {
-  platformFeeBps: number
 ): Promise<LoopingObject | ActionMessageType> {
   // TODO setup logging again
   // capture("looper", {

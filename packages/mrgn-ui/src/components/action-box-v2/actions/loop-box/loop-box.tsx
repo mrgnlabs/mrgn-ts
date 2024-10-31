@@ -9,23 +9,16 @@ import {
   ActiveBankInfo,
 } from "@mrgnlabs/marginfi-v2-ui-state";
 import { WalletContextState } from "@solana/wallet-adapter-react";
+
+import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import {
-  ActionMethod,
-  MarginfiActionParams,
-  PreviousTxn,
-  showErrorToast,
-  useConnection,
-  usePriorityFee,
-} from "@mrgnlabs/mrgn-utils";
-import {
-  ActionMethod,
   ActionMessageType,
   checkLoopActionAvailable,
   MarginfiActionParams,
   PreviousTxn,
   showErrorToast,
+  usePriorityFee,
 } from "@mrgnlabs/mrgn-utils";
-import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 
 import { useAmountDebounce } from "~/hooks/useAmountDebounce";
 import { WalletContextStateOverride } from "~/components/wallet-v2";

@@ -228,7 +228,6 @@ export async function calculateLoopingParams({
   platformFeeBps?: number;
   isTrading?: boolean;
   broadcastType: TransactionBroadcastType;
-}): Promise<LoopingObject | ActionMethod> {
 }): Promise<LoopingObject | ActionMessageType> {
   if (!marginfiAccount && !marginfiClient) {
     return STATIC_SIMULATION_ERRORS.NOT_INITIALIZED;
@@ -360,7 +359,6 @@ export async function calculateLoopingTransaction({
   loopObject?: LoopingObject;
   isTrading?: boolean;
   broadcastType: TransactionBroadcastType;
-}): Promise<ActionMethod | LoopingObject> {
 }): Promise<ActionMessageType | LoopingObject> {
   if (loopObject && marginfiAccount) {
     const txn = await verifyTxSizeLooping(

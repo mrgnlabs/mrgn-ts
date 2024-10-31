@@ -1,5 +1,4 @@
 import { create, StateCreator } from "zustand";
-import { Transaction, VersionedTransaction } from "@solana/web3.js";
 
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { ActionMessageType, ActionTxns } from "@mrgnlabs/mrgn-utils";

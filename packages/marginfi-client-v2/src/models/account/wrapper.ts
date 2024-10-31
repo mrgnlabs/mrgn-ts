@@ -1071,14 +1071,16 @@ class MarginfiAccountWrapper {
     );
   }
 
-  async withdrawEmissions(
+  async makeWithdrawEmissionsTx(
     bankAddresses: PublicKey[],
     priorityFeeUi?: number,
     broadcastType: TransactionBroadcastType = "BUNDLE"
-  ): Promise<string> {
-  async makeWithdrawEmissionsTx(bankAddresses: PublicKey[]): Promise<VersionedTransaction> {
-    const bundleTipIx = makeBundleTipIx(this.client.provider.publicKey);
-    const priorityFeeIx = this.makePriorityFeeIx(0); // TODO: set priorityfee
+  ): Promise<VersionedTransaction> {
+    const { bundleTipIx, priorityFeeIx } = makeTxPriorityIx(
+      this.client.provider.publicKey,
+      priorityFeeUi,
+      broadcastType
+    );
     const blockhash = (await this._program.provider.connection.getLatestBlockhash()).blockhash;
 
     const ixs: TransactionInstruction[] = [];
@@ -1092,14 +1094,18 @@ class MarginfiAccountWrapper {
 
     return new VersionedTransaction(
       new TransactionMessage({
-        instructions: [bundleTipIx, ...priorityFeeIx, ...ixs],
+        instructions: [priorityFeeIx, ...(bundleTipIx ? [bundleTipIx] : []), ...ixs],
         payerKey: this.authority,
         recentBlockhash: blockhash,
       }).compileToV0Message()
     );
   }
 
-  async withdrawEmissions(bankAddresses: PublicKey[], priorityFeeUi?: number): Promise<string> {
+  async withdrawEmissions(
+    bankAddresses: PublicKey[],
+    priorityFeeUi?: number,
+    broadcastType: TransactionBroadcastType = "BUNDLE"
+  ): Promise<string> {
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:withdraw-emissions`);
     debug("Withdrawing emission from marginfi account (bank: %s)", bankAddresses.map((b) => b.toBase58()).join(", "));
     const { bundleTipIx, priorityFeeIx } = makeTxPriorityIx(

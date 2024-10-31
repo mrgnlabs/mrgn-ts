@@ -3,15 +3,7 @@ import { FC } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/router";
-
-import { PublicKey } from "@solana/web3.js";
 import { IconBell, IconBrandTelegram, IconSettings } from "@tabler/icons-react";
-import { IconBell, IconBrandTelegram } from "@tabler/icons-react";
-
-import { collectRewardsBatch, capture, cn } from "@mrgnlabs/mrgn-utils";
-import { Settings, Wallet } from "@mrgnlabs/mrgn-ui";
-import { capture, cn } from "@mrgnlabs/mrgn-utils";
-import { Wallet } from "@mrgnlabs/mrgn-ui";
 
 import { useMrgnlendStore, useUiStore, useUserProfileStore } from "~/store";
 import { useFirebaseAccount } from "~/hooks/useFirebaseAccount";
@@ -21,6 +13,8 @@ import { useConnection } from "~/hooks/use-connection";
 import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
 import { Button } from "~/components/ui/button";
 import { IconMrgn } from "~/components/ui/icons";
+import { cn, capture } from "@mrgnlabs/mrgn-utils";
+import { Settings, Wallet } from "~/components";
 
 // @todo implement second pretty navbar row
 export const Navbar: FC = () => {
@@ -60,7 +54,6 @@ export const Navbar: FC = () => {
       setTransactionSettings: state.setTransactionSettings,
     })
   );
-  const [isOraclesStale] = useUiStore((state) => [state.isOraclesStale, state.priorityFee]);
 
   const [userPointsData] = useUserProfileStore((state) => [state.userPointsData]);
 
