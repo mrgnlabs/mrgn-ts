@@ -87,7 +87,7 @@ const Stake = () => {
 
       <StakeCalculator />
 
-      <div className="flex flex-col items-center justify-center gap-4 mb-24 w-full bg-background-gray/50 border-y border-border pt-12 pb-14 px-8 md:px-0">
+      <div className="flex flex-col items-center justify-center gap-4 my-24 w-full bg-background-gray/50 border-y border-border pt-12 pb-14 px-8 md:px-0">
         <IconArena size={56} className="text-white" />
         <h2 className="text-3xl font-medium">LST in The Arena</h2>
         <p className="text-muted-foreground w-full max-w-2xl mx-auto text-center text-lg">
