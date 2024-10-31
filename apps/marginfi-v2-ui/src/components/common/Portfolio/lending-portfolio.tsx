@@ -24,11 +24,14 @@ import { rewardsType } from "./types";
 import { useRewardSimulation } from "./hooks";
 import { executeCollectTxn } from "./utils";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "~/components/ui/select";
+import { Button } from "~/components/ui/button";
+import { useWalletStore } from "~/components/wallet-v2/store/wallet.store";
 
 export const LendingPortfolio = () => {
   const router = useRouter();
   const { connected } = useWallet();
   const [walletConnectionDelay, setWalletConnectionDelay] = React.useState(false);
+  const [setIsWalletOpen] = useWalletStore((state) => [state.setIsWalletOpen]);
 
   const [
     isStoreInitialized,
@@ -221,8 +224,8 @@ export const LendingPortfolio = () => {
   }
 
   return (
-    <div className="p-4 md:p-6 flex flex-col w-full mb-10 gap-2">
-      <div className="flex items-center gap-1">
+    <div className="py-4 md:py-6 flex flex-col w-full mb-10 gap-2">
+      <div className="px-4 md:px-6 flex items-center gap-1">
         {hasMultipleAccount && (
           <>
             <p>Current account:</p>
@@ -244,45 +247,58 @@ export const LendingPortfolio = () => {
                     Account {i + 1}
                   </SelectItem>
                 ))}
+                <Button
+                  onClick={() => {
+                    setIsWalletOpen(true);
+                  }}
+                  className="w-full font-light h-[32px] py-1.5 pl-2 pr-8 text-sm cursor-pointer hover:bg-background-gray-dark hover:text-primary"
+                  variant="ghost"
+                >
+                  Add account
+                </Button>
               </SelectContent>
             </Select>
           </>
         )}
       </div>
-      <div className="rounded-xl space-y-3 w-full bg-background-gray-dark">
+      <div className="px-4 md:px-6 rounded-xl space-y-3 w-full bg-background-gray-dark">
         <div className="flex justify-between w-full">
           <h2 className="font-medium text-xl">Lend/borrow</h2>
 
           <div className="flex text-lg items-center gap-1.5 text-sm">
-            {rewards ? (
-              rewards.totalReward > 0 ? (
-                <button
-                  className="cursor-pointer hover:text-[#AAA] underline"
-                  onClick={() => {
-                    setRewardsDialogOpen(true);
-                  }}
-                >
-                  Collect rewards
-                </button>
-              ) : (
-                <button disabled className="cursor-not-allowed text-muted-foreground">
-                  No outstanding rewards
-                </button>
-              )
-            ) : (
-              <span className="flex gap-1 items-center">
-                Calculating rewards <IconLoader size={16} />
-              </span>
-            )}{" "}
             {rewards && (
               <TooltipProvider>
                 <Tooltip>
-                  <TooltipTrigger asChild>
-                    <IconInfoCircle size={16} className="text-muted-foreground" />
+                  <TooltipTrigger>
+                    <div className="flex items-center gap-1">
+                      {rewards ? (
+                        rewards.totalReward > 0 ? (
+                          <button
+                            className="cursor-pointer hover:text-[#AAA] underline"
+                            onClick={() => {
+                              setRewardsDialogOpen(true);
+                            }}
+                          >
+                            Collect rewards
+                          </button>
+                        ) : (
+                          <button disabled className="cursor-not-allowed text-muted-foreground">
+                            No outstanding rewards
+                          </button>
+                        )
+                      ) : (
+                        <span className="flex gap-1 items-center">
+                          Calculating rewards <IconLoader size={16} />
+                        </span>
+                      )}{" "}
+                      <IconInfoCircle size={16} className="text-muted-foreground" />
+                    </div>
                   </TooltipTrigger>
                   <TooltipContent>
                     <span className="">
-                      {rewards && rewards.totalReward > 0
+                      {EMISSION_MINT_INFO_MAP.size === 0
+                        ? "There are currently no banks that are outputting rewards."
+                        : rewards && rewards.totalReward > 0
                         ? `You are earning rewards on the following banks: ${rewards.rewards
                             .map((r) => r.bank)
                             .join(", ")}`
