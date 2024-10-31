@@ -263,7 +263,7 @@ export const LendingPortfolio = () => {
           </>
         )}
       </div>
-      <div className="px-4 md:px-6 rounded-xl space-y-3 w-full bg-background-gray-dark">
+      <div className="p-4 md:p-6 rounded-xl space-y-3 w-full bg-background-gray-dark">
         <div className="flex justify-between w-full">
           <h2 className="font-medium text-xl">Lend/borrow</h2>
 
