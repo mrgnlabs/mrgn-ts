@@ -4,7 +4,12 @@ import { persist } from "zustand/middleware";
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { LendingModes, PreviousTxn } from "~/types";
-import { MaxCapType, TransactionBroadcastType, TransactionPriorityType } from "@mrgnlabs/mrgn-common";
+import {
+  MaxCapType,
+  TransactionBroadcastType,
+  TransactionPriorityType,
+  TransactionSettings,
+} from "@mrgnlabs/mrgn-common";
 import { DEFAULT_PRIORITY_SETTINGS } from "@mrgnlabs/mrgn-utils";
 
 export enum WalletState {
@@ -16,13 +21,6 @@ export enum WalletState {
   BRIDGE = "bridge",
   BUY = "buy",
 }
-
-type TransactionSettings = {
-  broadcastType: TransactionBroadcastType;
-  priorityType: TransactionPriorityType;
-  maxCapType: MaxCapType;
-  maxCap: number;
-};
 
 interface UiState {
   // State
@@ -59,11 +57,6 @@ function createUiStore() {
     persist(stateCreator, {
       name: "uiStore",
       onRehydrateStorage: () => (state) => {
-        // overwrite priority fee
-        // if (process.env.NEXT_PUBLIC_INIT_PRIO_FEE && process.env.NEXT_PUBLIC_INIT_PRIO_FEE !== "0") {
-        //   state?.setPriorityFee(Number(process.env.NEXT_PUBLIC_INIT_PRIO_FEE));
-        // }
-
         // overwrite wallet on mobile
         // covers private key export modal when open
         if (window.innerWidth < 768) {

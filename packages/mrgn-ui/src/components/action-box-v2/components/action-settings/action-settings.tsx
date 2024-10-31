@@ -11,11 +11,6 @@ interface ActionSettingsProps {
   returnLabel?: string;
 }
 
-enum SettingsState {
-  Slippage = "slippage",
-  PriorityFee = "priority-fee",
-}
-
 export const ActionSettings = ({
   slippage,
   changeSlippage,
@@ -23,14 +18,13 @@ export const ActionSettings = ({
   toggleSettings,
   returnLabel = "Back",
 }: ActionSettingsProps) => {
-  const [settingsMode, setSettingsMode] = React.useState<SettingsState>(SettingsState.PriorityFee);
-
   return (
     <div className="space-y-6">
       <div className="space-y-3">
         <button className="flex items-center gap-1.5 text-sm" onClick={() => toggleSettings(false)}>
           <IconArrowLeft size={18} /> {returnLabel}
         </button>
+        {/* Navigator logic if we have more settings */}
         {/* {slippage !== undefined && (
           <ToggleGroup
             value={settingsMode}
@@ -44,10 +38,10 @@ export const ActionSettings = ({
             </ToggleGroupItem>
 
             <ToggleGroupItem value="priority-fee" className="w-1/2 text-xs gap-1.5">
-              Priority Fee
+              Setting 2
             </ToggleGroupItem>
           </ToggleGroup>
-        )} */}
+        )}  */}
       </div>
       <div>
         {slippage !== undefined && (
@@ -57,10 +51,6 @@ export const ActionSettings = ({
             setSlippagePct={(value) => changeSlippage(value * 100)}
           />
         )}
-
-        {/* {priorityFee !== undefined && settingsMode === SettingsState.PriorityFee && (
-          <PriorityFees toggleSettings={toggleSettings} priorityFee={priorityFee} setPriorityFee={changePriorityFee} />
-        )} */}
       </div>
     </div>
   );

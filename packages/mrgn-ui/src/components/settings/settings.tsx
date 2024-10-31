@@ -1,5 +1,5 @@
+import React from "react";
 import { useForm } from "react-hook-form";
-import { IconSparkles } from "@tabler/icons-react";
 
 import { cn } from "@mrgnlabs/mrgn-utils";
 import { MaxCapType, TransactionBroadcastType, TransactionPriorityType } from "@mrgnlabs/mrgn-common";
@@ -40,34 +40,24 @@ interface SettingsProps extends SettingsOptions {
   onChange: (options: SettingsOptions) => void;
 }
 
-export const Settings = ({
-  onChange,
-  broadcastType,
-  priorityType,
-  maxCap,
-  maxCapType,
-  recommendedBroadcastType = "BUNDLE",
-}: SettingsProps) => {
+export const Settings = ({ onChange, recommendedBroadcastType = "BUNDLE", ...props }: SettingsProps) => {
   const form = useForm<SettingsForm>({
-    defaultValues: {
-      broadcastType,
-      priorityType,
-      maxCap,
-      maxCapType,
-    },
+    defaultValues: props,
   });
 
   const formValues = form.watch();
 
   function onSubmit(data: SettingsForm) {
     onChange(data);
+    form.reset(data);
   }
 
   return (
     <div>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <div className="space-y-2">
+          {/* Add this again if sequential transaction are more stabel */}
+          {/* <div className="space-y-2">
             <h3 className="font-normal ">Transaction Method</h3>
             <p className="text-xs text-muted-foreground">Choose how transactions are broadcasted to the network.</p>
             <FormField
@@ -111,8 +101,8 @@ export const Settings = ({
                 </FormItem>
               )}
             />
-          </div>
-          <div className="w-full border-b border-accent" />
+          </div> */}
+          {/* <div className="w-full border-b border-accent" /> */}
           <div className="space-y-2">
             <h3 className="font-normal ">Transaction Priority</h3>
             <FormField
@@ -189,41 +179,42 @@ export const Settings = ({
               )}
             />
 
-            {formValues.maxCapType === "MANUAL" && (
-              <FormField
-                control={form.control}
-                name="maxCap"
-                rules={{ max: { value: 0.2, message: "Maximum priority fee is 0.2 SOL." } }}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <div className="relative">
-                        <Input
-                          type="decimal"
-                          min={0}
-                          max={0.2}
-                          value={field.value}
-                          placeholder={field.value.toString()}
-                          onChange={(e) => field.onChange(e)}
-                          className={cn(
-                            "h-auto bg-mfi-action-box-background-dark py-3 px-4 border border-transparent transition-colors focus-visible:ring-0",
-                            "focussed:border-mfi-action-box-highlight"
-                          )}
-                        />
-                        <span className="absolute inset-y-0 right-3 text-sm flex items-center">SOL</span>
-                      </div>
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-            )}
+            <FormField
+              control={form.control}
+              name="maxCap"
+              rules={{ max: { value: 0.2, message: "Maximum priority fee is 0.2 SOL." } }}
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <div className={cn("relative", formValues.maxCapType === "DYNAMIC" && "hidden")}>
+                      <Input
+                        type="decimal"
+                        min={0}
+                        max={0.2}
+                        value={field.value}
+                        placeholder={field.value.toString()}
+                        onChange={(e) => field.onChange(e)}
+                        className={cn(
+                          "h-auto bg-mfi-action-box-background-dark py-3 px-4 border border-transparent transition-colors focus-visible:ring-0",
+                          "focussed:border-mfi-action-box-highlight"
+                        )}
+                      />
+                      <span className="absolute inset-y-0 right-3 text-sm flex items-center">SOL</span>
+                    </div>
+                  </FormControl>
+                </FormItem>
+              )}
+            />
           </div>
           <div>
             <Button type="submit" className="w-full">
               Save Settings
             </Button>
-            {form.formState.isDirty && <div className="text-warning text-xs mt-2">You have unsaved changes.</div>}
-            {form.formState.isSubmitted && <div className="text-success text-xs mt-2">Settings saved!</div>}
+            {form.formState.isDirty ? (
+              <div className="text-warning text-xs mt-2">You have unsaved changes.</div>
+            ) : (
+              form.formState.isSubmitted && <div className="text-success text-xs mt-2">Settings saved!</div>
+            )}
           </div>
         </form>
       </Form>

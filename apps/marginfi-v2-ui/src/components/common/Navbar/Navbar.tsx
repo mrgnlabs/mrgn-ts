@@ -5,11 +5,10 @@ import Image from "next/image";
 import { useRouter } from "next/router";
 
 import { PublicKey } from "@solana/web3.js";
-// import LipAccount from "@mrgnlabs/lip-client/src/account";
 import { IconBell, IconBrandTelegram, IconSettings } from "@tabler/icons-react";
 
 import { collectRewardsBatch, capture, cn } from "@mrgnlabs/mrgn-utils";
-import { Wallet } from "@mrgnlabs/mrgn-ui";
+import { Settings, Wallet } from "@mrgnlabs/mrgn-ui";
 
 import { useMrgnlendStore, useUiStore, useUserProfileStore } from "~/store";
 import { useFirebaseAccount } from "~/hooks/useFirebaseAccount";
@@ -21,7 +20,6 @@ import { EMISSION_MINT_INFO_MAP } from "~/components/desktop/AssetList/component
 import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
 import { Button } from "~/components/ui/button";
 import { IconMrgn } from "~/components/ui/icons";
-import { SettingsPopover } from "~/components/common/settings";
 
 // @todo implement second pretty navbar row
 export const Navbar: FC = () => {
@@ -53,7 +51,16 @@ export const Navbar: FC = () => {
     state.fetchMrgnlendState,
   ]);
 
-  const [isOraclesStale] = useUiStore((state) => [state.isOraclesStale]);
+  const { isOraclesStale, priorityType, broadcastType, maxCap, maxCapType, setTransactionSettings } = useUiStore(
+    (state) => ({
+      isOraclesStale: state.isOraclesStale,
+      priorityType: state.priorityType,
+      broadcastType: state.broadcastType,
+      maxCap: state.maxCap,
+      maxCapType: state.maxCapType,
+      setTransactionSettings: state.setTransactionSettings,
+    })
+  );
 
   const [userPointsData] = useUserProfileStore((state) => [state.userPointsData]);
 
@@ -205,7 +212,22 @@ export const Navbar: FC = () => {
                 </PopoverContent>
               </Popover>
 
-              <SettingsPopover />
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0">
+                    <IconSettings size={20} />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-80">
+                  <Settings
+                    onChange={setTransactionSettings}
+                    broadcastType={broadcastType}
+                    priorityType={priorityType}
+                    maxCap={maxCap}
+                    maxCapType={maxCapType}
+                  />
+                </PopoverContent>
+              </Popover>
 
               <Wallet
                 connection={connection}

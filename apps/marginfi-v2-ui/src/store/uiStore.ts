@@ -1,11 +1,15 @@
 import { create, StateCreator } from "zustand";
 import { persist } from "zustand/middleware";
 
-import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
-import { MaxCapType, TransactionBroadcastType, TransactionPriorityType } from "@mrgnlabs/mrgn-common";
+import {
+  MaxCapType,
+  TransactionBroadcastType,
+  TransactionPriorityType,
+  TransactionSettings,
+} from "@mrgnlabs/mrgn-common";
 import { LendingModes, PoolTypes, DEFAULT_PRIORITY_SETTINGS } from "@mrgnlabs/mrgn-utils";
 
-import { SortType, sortDirection, SortAssetOption, PreviousTxn } from "~/types";
+import { SortType, sortDirection, SortAssetOption } from "~/types";
 
 const SORT_OPTIONS_MAP: { [key in SortType]: SortAssetOption } = {
   APY_DESC: {
@@ -34,13 +38,6 @@ const SORT_OPTIONS_MAP: { [key in SortType]: SortAssetOption } = {
     field: "TVL",
     direction: sortDirection.ASC,
   },
-};
-
-type TransactionSettings = {
-  broadcastType: TransactionBroadcastType;
-  priorityType: TransactionPriorityType;
-  maxCap: number;
-  maxCapType: MaxCapType;
 };
 
 interface UiState {
@@ -74,12 +71,7 @@ function createUiStore() {
   return create<UiState>()(
     persist(stateCreator, {
       name: "uiStore",
-      onRehydrateStorage: () => (state) => {
-        // overwrite priority fee
-        // if (process.env.NEXT_PUBLIC_INIT_PRIO_FEE && process.env.NEXT_PUBLIC_INIT_PRIO_FEE !== "0") {
-        //   state?.setPriorityFee(Number(process.env.NEXT_PUBLIC_INIT_PRIO_FEE));
-        // }
-      },
+      onRehydrateStorage: () => (state) => {},
     })
   );
 }

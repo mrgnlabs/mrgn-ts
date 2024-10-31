@@ -7,6 +7,13 @@ export type TransactionPriorityType = "NORMAL" | "HIGH" | "MAMAS";
 
 export type MaxCapType = "DYNAMIC" | "MANUAL";
 
+export type TransactionSettings = {
+  broadcastType: TransactionBroadcastType;
+  priorityType: TransactionPriorityType;
+  maxCapType: MaxCapType;
+  maxCap: number;
+};
+
 // easy to use values for user convenience
 export const enum PriotitizationFeeLevels {
   LOW = 2500,

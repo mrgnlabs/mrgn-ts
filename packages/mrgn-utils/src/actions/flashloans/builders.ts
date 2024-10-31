@@ -94,7 +94,8 @@ export async function calculateRepayCollateralParams(
           amount,
           swapQuote,
           connection,
-          priorityFee
+          priorityFee,
+          broadcastType
         );
         if (txn.flashloanTx) {
           return {

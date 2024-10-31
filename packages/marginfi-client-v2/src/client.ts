@@ -1137,7 +1137,7 @@ class MarginfiClient {
           return signature;
         }
 
-        await sleep(1000); // Wait before retrying
+        await sleep(500); // Wait before retrying
       }
     } catch (error) {
       console.error(error);

@@ -4,7 +4,7 @@ import { Connection } from "@solana/web3.js";
 import { MaxCapType, TransactionBroadcastType, TransactionPriorityType } from "@mrgnlabs/mrgn-common";
 
 import { usePrevious } from "../mrgnUtils";
-import { DEFAULT_MAX_CAP, getBundleTip, getRpcPriorityFeeMicroLamports, fetchPriorityFee } from "../priority.utils";
+import { fetchPriorityFee } from "../priority.utils";
 
 export const usePriorityFee = (
   priorityType: TransactionPriorityType,
