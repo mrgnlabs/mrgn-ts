@@ -11,17 +11,25 @@ import {
   computeAccountSummary,
   DEFAULT_ACCOUNT_SUMMARY,
 } from "@mrgnlabs/marginfi-v2-ui-state";
-import { ActionMethod, MarginfiActionParams, PreviousTxn, useConnection, usePriorityFee } from "@mrgnlabs/mrgn-utils";
-import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 
-import { ActionButton, ActionMessage, ActionSettingsButton } from "~/components/action-box-v2/components";
+import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
+import {
+  ActionMessageType,
+  checkLendActionAvailable,
+  MarginfiActionParams,
+  PreviousTxn,
+  usePriorityFee,
+} from "@mrgnlabs/mrgn-utils";
+
+import { ActionButton } from "~/components/action-box-v2/components";
 
 import { useActionAmounts } from "~/components/action-box-v2/hooks";
 import { LSTDialog, LSTDialogVariants } from "~/components/LSTDialog";
 import { WalletContextStateOverride } from "~/components/wallet-v2/hooks/use-wallet.hook";
+import { ActionMessage } from "~/components";
 
 import { useLendBoxStore } from "./store";
-import { checkActionAvailable, handleExecuteCloseBalance, handleExecuteLendingAction } from "./utils";
+import { handleExecuteCloseBalance, handleExecuteLendingAction } from "./utils";
 import { Collateral, ActionInput, Preview } from "./components";
 import { useLendSimulation } from "./hooks";
 import { useActionBoxStore } from "../../store";
@@ -154,7 +162,7 @@ export const LendBox = ({
   });
 
   const [lstDialogCallback, setLSTDialogCallback] = React.useState<(() => void) | null>(null);
-  const [additionalActionMethods, setAdditionalActionMethods] = React.useState<ActionMethod[]>([]);
+  const [additionalActionMessages, setAdditionalActionMessages] = React.useState<ActionMessageType[]>([]);
 
   // Cleanup the store when the wallet disconnects
   React.useEffect(() => {
@@ -175,7 +183,7 @@ export const LendBox = ({
 
   React.useEffect(() => {
     if (errorMessage && errorMessage.description) {
-      setAdditionalActionMethods([errorMessage]);
+      setAdditionalActionMessages([errorMessage]);
     }
   }, [errorMessage]);
 
@@ -185,9 +193,9 @@ export const LendBox = ({
     [lendMode, isDust]
   );
 
-  const actionMethods = React.useMemo(
+  const actionMessages = React.useMemo(
     () =>
-      checkActionAvailable({
+      checkLendActionAvailable({
         amount,
         connected,
         showCloseBalance,
@@ -361,11 +369,11 @@ export const LendBox = ({
         />
       </div>
 
-      {additionalActionMethods.concat(actionMethods).map(
-        (actionMethod, idx) =>
-          actionMethod.description && (
+      {additionalActionMessages.concat(actionMessages).map(
+        (actionMessage, idx) =>
+          actionMessage.description && (
             <div className="pb-6" key={idx}>
-              <ActionMessage actionMethod={actionMethod} />
+              <ActionMessage _actionMessage={actionMessage} />
             </div>
           )
       )}
@@ -379,7 +387,9 @@ export const LendBox = ({
       <div className="mb-3">
         <ActionButton
           isLoading={isLoading}
-          isEnabled={!additionalActionMethods.concat(actionMethods).filter((value) => value.isEnabled === false).length}
+          isEnabled={
+            !additionalActionMessages.concat(actionMessages).filter((value) => value.isEnabled === false).length
+          }
           connected={connected}
           // showCloseBalance={showCloseBalance}
           handleAction={() => {

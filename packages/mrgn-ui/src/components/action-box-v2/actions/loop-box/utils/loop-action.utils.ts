@@ -6,7 +6,7 @@ import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { TransactionBroadcastType } from "@mrgnlabs/mrgn-common";
 import {
-  ActionMethod,
+  ActionMessageType,
   calculateLoopingParams,
   executeLoopingAction,
   LoopingObject,
@@ -68,7 +68,7 @@ export async function calculateLooping(
   priorityFee: number,
   platformFeeBps: number,
   broadcastType: TransactionBroadcastType
-): Promise<LoopingObject | ActionMethod> {
+): Promise<LoopingObject | ActionMessageType> {
   // TODO setup logging again
   // capture("looper", {
   //   amountIn: uiToNative(amount, loopBank.info.state.mintDecimals).toNumber(),

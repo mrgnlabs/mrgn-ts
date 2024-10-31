@@ -4,8 +4,8 @@ import { Transaction, VersionedTransaction } from "@solana/web3.js";
 
 import { AccountSummary, ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { MarginfiAccountWrapper, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
-import { ActionMethod, STATIC_SIMULATION_ERRORS, usePrevious } from "@mrgnlabs/mrgn-utils";
 import { TransactionBroadcastType } from "@mrgnlabs/mrgn-common";
+import { ActionMessageType, usePrevious, STATIC_SIMULATION_ERRORS } from "@mrgnlabs/mrgn-utils";
 
 import { calculateLendingTransaction, calculateSummary, getSimulationResult } from "../utils";
 
@@ -34,7 +34,7 @@ type LendSimulationProps = {
     actionTxn: VersionedTransaction | Transaction | null;
     additionalTxns: (VersionedTransaction | Transaction)[];
   }) => void;
-  setErrorMessage: (error: ActionMethod | null) => void;
+  setErrorMessage: (error: ActionMessageType | null) => void;
   setIsLoading: (isLoading: boolean) => void;
 };
 

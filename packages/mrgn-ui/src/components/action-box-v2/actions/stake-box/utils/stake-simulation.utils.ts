@@ -14,7 +14,7 @@ import {
   getAssociatedTokenAddressSync,
   uiToNative,
 } from "@mrgnlabs/mrgn-common";
-import { ActionMethod, handleSimulationError, LstData } from "@mrgnlabs/mrgn-utils";
+import { ActionMessageType, handleSimulationError, LstData } from "@mrgnlabs/mrgn-utils";
 import {
   AddressLookupTableAccount,
   Connection,
@@ -91,7 +91,7 @@ function calculateActionPreview(
 
 export const getSimulationResult = async ({ marginfiClient, txns, selectedBank }: SimulateActionProps) => {
   const ataLst = getAssociatedTokenAddressSync(LST_MINT, marginfiClient.wallet.publicKey);
-  let actionMethod: ActionMethod | undefined = undefined;
+  let actionMethod: ActionMessageType | undefined = undefined;
   let simulationSucceeded = false;
 
   try {

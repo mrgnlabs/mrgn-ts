@@ -1,7 +1,7 @@
 import { create, StateCreator } from "zustand";
 
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { ActionMethod, LstData, StakeActionTxns } from "@mrgnlabs/mrgn-utils";
+import { ActionMessageType, LstData, StakeActionTxns } from "@mrgnlabs/mrgn-utils";
 import { SimulationResult } from "@mrgnlabs/marginfi-client-v2";
 
 interface StateBoxState {
@@ -14,7 +14,7 @@ interface StateBoxState {
   simulationResult: SimulationResult | null;
   actionTxns: StakeActionTxns;
 
-  errorMessage: ActionMethod | null;
+  errorMessage: ActionMessageType | null;
   isLoading: { state: boolean; type: string | null };
 
   // Actions
@@ -27,7 +27,7 @@ interface StateBoxState {
   setActionTxns: (actionTxns: StakeActionTxns) => void;
   setSelectedBank: (bank: ExtendedBankInfo | null) => void;
   setIsLoading: ({ state, type }: { state: boolean; type: string | null }) => void;
-  setErrorMessage: (errorMessage: ActionMethod | null) => void;
+  setErrorMessage: (errorMessage: ActionMessageType | null) => void;
 }
 
 function createStakeBoxStore() {

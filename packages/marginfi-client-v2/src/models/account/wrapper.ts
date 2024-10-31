@@ -1071,6 +1071,36 @@ class MarginfiAccountWrapper {
     );
   }
 
+  async makeWithdrawEmissionsTx(
+    bankAddresses: PublicKey[],
+    priorityFeeUi?: number,
+    broadcastType: TransactionBroadcastType = "BUNDLE"
+  ): Promise<VersionedTransaction> {
+    const { bundleTipIx, priorityFeeIx } = makeTxPriorityIx(
+      this.client.provider.publicKey,
+      priorityFeeUi,
+      broadcastType
+    );
+    const blockhash = (await this._program.provider.connection.getLatestBlockhash()).blockhash;
+
+    const ixs: TransactionInstruction[] = [];
+    await Promise.all(
+      bankAddresses.map(async (bankAddress) => {
+        const ix = await this.makeWithdrawEmissionsIx(bankAddress);
+        if (!ix) return;
+        ixs.push(...ix.instructions);
+      })
+    );
+
+    return new VersionedTransaction(
+      new TransactionMessage({
+        instructions: [priorityFeeIx, ...(bundleTipIx ? [bundleTipIx] : []), ...ixs],
+        payerKey: this.authority,
+        recentBlockhash: blockhash,
+      }).compileToV0Message()
+    );
+  }
+
   async withdrawEmissions(
     bankAddresses: PublicKey[],
     priorityFeeUi?: number,

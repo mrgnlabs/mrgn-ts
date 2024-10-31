@@ -3,7 +3,7 @@ import BigNumber from "bignumber.js";
 
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { SimulationResult } from "@mrgnlabs/marginfi-client-v2";
-import { ActionMethod, calculateLstYield, LoopActionTxns, LSTS_SOLANA_COMPASS_MAP } from "@mrgnlabs/mrgn-utils";
+import { ActionMessageType, calculateLstYield, LoopActionTxns, LSTS_SOLANA_COMPASS_MAP } from "@mrgnlabs/mrgn-utils";
 
 interface LoopBoxState {
   // State
@@ -21,7 +21,7 @@ interface LoopBoxState {
 
   actionTxns: LoopActionTxns;
 
-  errorMessage: ActionMethod | null;
+  errorMessage: ActionMessageType | null;
   isLoading: boolean;
 
   // Actions
@@ -34,7 +34,7 @@ interface LoopBoxState {
   setSimulationResult: (simulationResult: SimulationResult | null) => void;
 
   setActionTxns: (actionTxns: LoopActionTxns) => void;
-  setErrorMessage: (errorMessage: ActionMethod | null) => void;
+  setErrorMessage: (errorMessage: ActionMessageType | null) => void;
   setSelectedBank: (bank: ExtendedBankInfo | null) => void;
   setSelectedSecondaryBank: (bank: ExtendedBankInfo | null) => void;
   setDepositLstApy: (bank: ExtendedBankInfo) => void;

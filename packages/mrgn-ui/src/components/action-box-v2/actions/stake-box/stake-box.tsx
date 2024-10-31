@@ -2,30 +2,31 @@ import React, { useEffect } from "react";
 
 import { WalletContextState } from "@solana/wallet-adapter-react";
 
-import { getPriceWithConfidence, MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
+import { getPriceWithConfidence, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { AccountSummary, ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+
+import { nativeToUi, NATIVE_MINT as SOL_MINT, uiToNative } from "@mrgnlabs/mrgn-common";
 import {
-  ActionMethod,
   LstData,
   PreviousTxn,
-  showErrorToast,
-  STATIC_SIMULATION_ERRORS,
   usePriorityFee,
+  ActionMessageType,
+  checkStakeActionAvailable,
 } from "@mrgnlabs/mrgn-utils";
-import { nativeToUi, NATIVE_MINT as SOL_MINT, uiToNative } from "@mrgnlabs/mrgn-common";
 
-import { useActionAmounts, usePollBlockHeight } from "~/components/action-box-v2/hooks";
+import { useActionAmounts } from "~/components/action-box-v2/hooks";
 import { WalletContextStateOverride } from "~/components/wallet-v2/hooks/use-wallet.hook";
+import { ActionMessage } from "~/components";
 
 import { useStakeBoxStore } from "./store";
 import { AmountPreview } from "./components/amount-preview";
-import { ActionButton, ActionMessage, ActionSettingsButton } from "../../components";
+import { ActionButton, ActionSettingsButton } from "../../components";
 import { StatsPreview } from "./components/stats-preview";
 import { useStakeSimulation } from "./hooks";
 import { useActionBoxStore } from "../../store";
 import { handleExecuteLstAction } from "./utils/stake-action.utils";
 import { ActionInput } from "./components/action-input";
-import { checkActionAvailable } from "./utils";
+
 import { useActionContext, useStakeBoxContext } from "../../contexts";
 
 export type StakeBoxProps = {
@@ -122,7 +123,7 @@ export const StakeBox = ({
 
   const { lstData } = useStakeBoxContext()!;
 
-  const [additionalActionMethods, setAdditionalActionMethods] = React.useState<ActionMethod[]>([]);
+  const [additionalActionMessages, setAdditionalActionMessages] = React.useState<ActionMessageType[]>([]);
 
   const solPriceUsd = React.useMemo(() => {
     const bank = banks.find((bank) => bank.info.state.mint.equals(SOL_MINT));
@@ -255,9 +256,9 @@ export const StakeBox = ({
     onComplete,
   ]);
 
-  const actionMethods = React.useMemo(() => {
-    setAdditionalActionMethods([]);
-    return checkActionAvailable({
+  const actionMessages = React.useMemo(() => {
+    setAdditionalActionMessages([]);
+    return checkStakeActionAvailable({
       amount,
       connected,
       selectedBank,
@@ -272,7 +273,7 @@ export const StakeBox = ({
 
   React.useEffect(() => {
     if (errorMessage && errorMessage.description) {
-      setAdditionalActionMethods([{ ...errorMessage, isEnabled: false }]);
+      setAdditionalActionMessages([{ ...errorMessage, isEnabled: false }]);
     }
   }, [errorMessage]);
 
@@ -308,18 +309,20 @@ export const StakeBox = ({
           isLoading={isLoading.type === "SIMULATION" ? isLoading.state : false}
         />
       </div>
-      {additionalActionMethods.concat(actionMethods).map(
-        (actionMethod, idx) =>
-          actionMethod.description && (
+      {additionalActionMessages.concat(actionMessages).map(
+        (actionMessage, idx) =>
+          actionMessage.description && (
             <div className="pb-6" key={idx}>
-              <ActionMessage actionMethod={actionMethod} />
+              <ActionMessage _actionMessage={actionMessage} />
             </div>
           )
       )}
       <div className="mb-3">
         <ActionButton
           isLoading={isLoading.state}
-          isEnabled={!additionalActionMethods.concat(actionMethods).filter((value) => value.isEnabled === false).length}
+          isEnabled={
+            !additionalActionMessages.concat(actionMessages).filter((value) => value.isEnabled === false).length
+          }
           connected={connected}
           handleAction={handleLstAction}
           buttonLabel={requestedActionType === ActionType.MintLST ? "Mint LST" : "Unstake LST"}

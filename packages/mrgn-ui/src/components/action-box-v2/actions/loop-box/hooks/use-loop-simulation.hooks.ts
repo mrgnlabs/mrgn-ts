@@ -9,7 +9,7 @@ import {
   SimulationResult,
 } from "@mrgnlabs/marginfi-client-v2";
 import {
-  ActionMethod,
+  ActionMessageType,
   DYNAMIC_SIMULATION_ERRORS,
   LoopActionTxns,
   STATIC_SIMULATION_ERRORS,
@@ -37,7 +37,7 @@ type LoopSimulationProps = {
 
   setSimulationResult: (simulationResult: SimulationResult | null) => void;
   setActionTxns: (actionTxns: LoopActionTxns) => void;
-  setErrorMessage: (error: ActionMethod) => void;
+  setErrorMessage: (error: ActionMessageType) => void;
   setIsLoading: (isLoading: boolean) => void;
   setMaxLeverage: (maxLeverage: number) => void;
 };

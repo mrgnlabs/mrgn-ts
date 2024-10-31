@@ -3,8 +3,8 @@ import { QuoteResponse } from "@jup-ag/api";
 import { PublicKey } from "@solana/web3.js";
 
 import {
-  ActionMethod,
-  ActionMethodType,
+  ActionMessageType,
+  ActionMessageUIType,
   canBeBorrowed,
   canBeLent,
   canBeLooped,
@@ -18,7 +18,7 @@ import {
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 
-export function getColorForActionMethodType(type?: ActionMethodType) {
+export function getColorForActionMessageUIType(type?: ActionMessageUIType) {
   if (type === "INFO") {
     return "info";
   } else if (type === "WARNING") {
@@ -62,8 +62,8 @@ export function checkActionAvailable({
   repayMode,
   repayCollatQuote,
   lstQuoteMeta,
-}: CheckActionAvailableProps): ActionMethod[] {
-  let checks: ActionMethod[] = [];
+}: CheckActionAvailableProps): ActionMessageType[] {
+  let checks: ActionMessageType[] = [];
 
   const requiredCheck = getRequiredCheck(connected, selectedBank, selectedStakingAccount);
   if (requiredCheck) return [requiredCheck];
@@ -126,7 +126,7 @@ function getRequiredCheck(
   connected: boolean,
   selectedBank: ExtendedBankInfo | null,
   selectedStakingAccount: StakeData | null
-): ActionMethod | null {
+): ActionMessageType | null {
   if (!connected) {
     return { isEnabled: false };
   }
@@ -137,8 +137,12 @@ function getRequiredCheck(
   return null;
 }
 
-function getGeneralChecks(amount: number = 0, repayAmount: number = 0, showCloseBalance?: boolean): ActionMethod[] {
-  let checks: ActionMethod[] = [];
+function getGeneralChecks(
+  amount: number = 0,
+  repayAmount: number = 0,
+  showCloseBalance?: boolean
+): ActionMessageType[] {
+  let checks: ActionMessageType[] = [];
   if (showCloseBalance) {
     checks.push({ actionMethod: "INFO", description: "Close lending balance.", isEnabled: true });
   }

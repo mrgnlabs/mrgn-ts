@@ -1,33 +1,26 @@
-import { FC, useEffect, useMemo, useState } from "react";
+import { FC } from "react";
 
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/router";
-
-import { PublicKey } from "@solana/web3.js";
 import { IconBell, IconBrandTelegram, IconSettings } from "@tabler/icons-react";
-
-import { collectRewardsBatch, capture, cn } from "@mrgnlabs/mrgn-utils";
-import { Settings, Wallet } from "@mrgnlabs/mrgn-ui";
 
 import { useMrgnlendStore, useUiStore, useUserProfileStore } from "~/store";
 import { useFirebaseAccount } from "~/hooks/useFirebaseAccount";
-import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
-import { useConnection } from "~/hooks/use-connection";
-import { useIsMobile } from "~/hooks/use-is-mobile";
 
-import { EMISSION_MINT_INFO_MAP } from "~/components/desktop/AssetList/components";
+import { useConnection } from "~/hooks/use-connection";
+
 import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
 import { Button } from "~/components/ui/button";
 import { IconMrgn } from "~/components/ui/icons";
+import { cn, capture } from "@mrgnlabs/mrgn-utils";
+import { Settings, Wallet } from "~/components";
 
 // @todo implement second pretty navbar row
 export const Navbar: FC = () => {
   useFirebaseAccount();
 
   const { connection } = useConnection();
-  const isMobile = useIsMobile();
-  const { wallet } = useWallet();
   const router = useRouter();
   const [
     initialized,
@@ -63,26 +56,6 @@ export const Navbar: FC = () => {
   );
 
   const [userPointsData] = useUserProfileStore((state) => [state.userPointsData]);
-
-  // const [lipAccount, setLipAccount] = useState<LipAccount | null>(null);
-
-  const bankAddressesWithEmissions: PublicKey[] = useMemo(() => {
-    if (!selectedAccount) return [];
-    return [...EMISSION_MINT_INFO_MAP.keys()]
-      .map((bankMintSymbol) => {
-        const uxdBankInfo = extendedBankInfos?.find((b) => b.isActive && b.meta.tokenSymbol === bankMintSymbol);
-        return uxdBankInfo?.address;
-      })
-      .filter((address) => address !== undefined) as PublicKey[];
-  }, [selectedAccount, extendedBankInfos]);
-
-  // useEffect(() => {
-  //   (async function () {
-  //     if (!mfiClient || !lipClient || !walletAddress) return;
-  //     const lipAccount = await LipAccount.fetch(walletAddress, lipClient, mfiClient);
-  //     setLipAccount(lipAccount);
-  //   })();
-  // }, [lipClient, mfiClient, walletAddress]);
 
   return (
     <header className="h-[64px] mb-4 md:mb-8 lg:mb-14">
@@ -156,25 +129,6 @@ export const Navbar: FC = () => {
           </div>
           {initialized && (
             <div className="h-full w-1/2 flex justify-end items-center z-10 gap-4 lg:gap-4 text-[#868E95]">
-              <div
-                className={`whitespace-nowrap inline-flex mr-4 md: mr-0 ${
-                  bankAddressesWithEmissions.length > 0 ? "cursor-pointer hover:text-[#AAA]" : "cursor-not-allowed"
-                }`}
-                onClick={async () => {
-                  if (!wallet || !selectedAccount || bankAddressesWithEmissions.length === 0) return;
-                  const priorityFee = 0; // code has been removed on new collect rewards so temporary placeholder
-                  await collectRewardsBatch(selectedAccount, bankAddressesWithEmissions, priorityFee);
-                }}
-              >
-                {!isMobile && "collect"} rewards
-                {bankAddressesWithEmissions.length > 0 && (
-                  <span className="relative flex h-1 w-1">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#DCE85D] opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-1 w-1 bg-[#DCE85DAA]"></span>
-                  </span>
-                )}
-              </div>
-
               <Popover>
                 <PopoverTrigger asChild>
                   <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0">

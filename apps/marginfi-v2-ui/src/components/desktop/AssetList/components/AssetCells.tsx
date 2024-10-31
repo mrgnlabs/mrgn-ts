@@ -15,28 +15,12 @@ import {
   PositionData,
   RateData,
   UtilizationData,
+  EMISSION_MINT_INFO_MAP,
 } from "@mrgnlabs/mrgn-utils";
 
 import { IMAGE_CDN_URL } from "~/config/constants";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { IconPyth, IconSwitchboard } from "~/components/ui/icons";
-
-export const EMISSION_MINT_INFO_MAP = new Map<string, { tokenSymbol: string; tokenLogoUri: string }>([
-  [
-    "UXD",
-    {
-      tokenSymbol: "UXP",
-      tokenLogoUri: "/uxp-icon-white.png",
-    },
-  ],
-  [
-    "bSOL",
-    {
-      tokenSymbol: "BLZE",
-      tokenLogoUri: "/blze.png",
-    },
-  ],
-]);
 
 export const getAssetCell = (asset: AssetData) => (
   <div className="flex gap-4 justify-start items-center">

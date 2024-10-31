@@ -1,21 +1,22 @@
 import React from "react";
 
 import Image from "next/image";
-
 import { IconAlertTriangle } from "@tabler/icons-react";
-import { usdFormatter, numeralFormatter, dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
+
+import { usdFormatter, dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
 import { ActiveBankInfo, ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { capture } from "@mrgnlabs/mrgn-utils";
 import { ActionBox } from "@mrgnlabs/mrgn-ui";
-
 import { cn } from "@mrgnlabs/mrgn-utils";
-import { useAssetItemData } from "~/hooks/useAssetItemData";
 
+import { useAssetItemData } from "~/hooks/useAssetItemData";
+import { useMrgnlendStore, useUiStore } from "~/store";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "~/components/ui/accordion";
 import { Button } from "~/components/ui/button";
 import { Skeleton } from "~/components/ui/skeleton";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
-import { useMrgnlendStore } from "~/store";
+
+import { MovePositionDialog } from "../move-position";
 
 interface PortfolioAssetCardProps {
   bank: ActiveBankInfo;
@@ -25,7 +26,15 @@ interface PortfolioAssetCardProps {
 
 export const PortfolioAssetCard = ({ bank, isInLendingMode, isBorrower = true }: PortfolioAssetCardProps) => {
   const { rateAP } = useAssetItemData({ bank, isInLendingMode });
-
+  const [selectedAccount, marginfiAccounts, marginfiClient, fetchMrgnlendState, extendedBankInfos, nativeSolBalance] =
+    useMrgnlendStore((state) => [
+      state.selectedAccount,
+      state.marginfiAccounts,
+      state.marginfiClient,
+      state.fetchMrgnlendState,
+      state.extendedBankInfos,
+      state.nativeSolBalance,
+    ]);
   const isIsolated = React.useMemo(() => bank.info.state.isIsolated, [bank]);
 
   const isUserPositionPoorHealth = React.useMemo(() => {
@@ -42,6 +51,8 @@ export const PortfolioAssetCard = ({ bank, isInLendingMode, isBorrower = true }:
     }
   }, [bank]);
 
+  const [isMovePositionDialogOpen, setIsMovePositionDialogOpen] = React.useState<boolean>(false);
+  const postionMovingPossible = React.useMemo(() => marginfiAccounts.length > 1, marginfiAccounts);
   return (
     <Accordion type="single" collapsible>
       <AccordionItem
@@ -158,6 +169,30 @@ export const PortfolioAssetCard = ({ bank, isInLendingMode, isBorrower = true }:
               requestedAction={isInLendingMode ? ActionType.Deposit : ActionType.Borrow}
             />
           </div>
+
+          {postionMovingPossible && (
+            <Button
+              onClick={() => {
+                setIsMovePositionDialogOpen(true);
+              }}
+              variant={"ghost"}
+              className="w-max self-center underline"
+            >
+              Move position to another account
+            </Button>
+          )}
+
+          <MovePositionDialog
+            isOpen={isMovePositionDialogOpen}
+            setIsOpen={setIsMovePositionDialogOpen}
+            selectedAccount={selectedAccount}
+            marginfiAccounts={marginfiAccounts}
+            bank={bank}
+            marginfiClient={marginfiClient}
+            fetchMrgnlendState={fetchMrgnlendState}
+            extendedBankInfos={extendedBankInfos}
+            nativeSolBalance={nativeSolBalance}
+          />
         </AccordionContent>
       </AccordionItem>
     </Accordion>

@@ -9,26 +9,28 @@ import {
   ActiveBankInfo,
 } from "@mrgnlabs/marginfi-v2-ui-state";
 import { WalletContextState } from "@solana/wallet-adapter-react";
+
+import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import {
-  ActionMethod,
+  ActionMessageType,
+  checkLoopActionAvailable,
   MarginfiActionParams,
   PreviousTxn,
   showErrorToast,
-  useConnection,
   usePriorityFee,
 } from "@mrgnlabs/mrgn-utils";
-import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 
 import { useAmountDebounce } from "~/hooks/useAmountDebounce";
 import { WalletContextStateOverride } from "~/components/wallet-v2";
 import { CircularProgress } from "~/components/ui/circular-progress";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
-import { ActionButton, ActionMessage, ActionSettingsButton } from "~/components/action-box-v2/components";
+import { ActionButton, ActionSettingsButton } from "~/components/action-box-v2/components";
 import { useActionAmounts, usePollBlockHeight } from "~/components/action-box-v2/hooks";
+import { ActionMessage } from "~/components";
 
 import { useActionBoxStore } from "../../store";
 
-import { checkActionAvailable, handleExecuteLoopAction } from "./utils";
+import { handleExecuteLoopAction } from "./utils";
 import { ActionInput, Preview } from "./components";
 import { useLoopBoxStore } from "./store";
 import { useLoopSimulation } from "./hooks";
@@ -179,7 +181,7 @@ export const LoopBox = ({
     setIsLoading,
   });
 
-  const [additionalActionMethods, setAdditionalActionMethods] = React.useState<ActionMethod[]>([]);
+  const [additionalActionMessages, setAdditionalActionMessages] = React.useState<ActionMessageType[]>([]);
 
   // Cleanup the store when the wallet disconnects
   React.useEffect(() => {
@@ -195,15 +197,15 @@ export const LoopBox = ({
   React.useEffect(() => {
     if (errorMessage && errorMessage.description) {
       showErrorToast(errorMessage?.description);
-      setAdditionalActionMethods([errorMessage]);
+      setAdditionalActionMessages([errorMessage]);
     } else {
-      setAdditionalActionMethods([]);
+      setAdditionalActionMessages([]);
     }
   }, [errorMessage]);
 
-  const actionMethods = React.useMemo(
+  const actionMessages = React.useMemo(
     () =>
-      checkActionAvailable({
+      checkLoopActionAvailable({
         amount,
         connected,
         selectedBank,
@@ -353,11 +355,11 @@ export const LoopBox = ({
           borrowLstApy={borrowLstApy}
         />
       </div>
-      {additionalActionMethods.concat(actionMethods).map(
-        (actionMethod, idx) =>
-          actionMethod.description && (
+      {additionalActionMessages.concat(actionMessages).map(
+        (actionMessage, idx) =>
+          actionMessage.description && (
             <div className="pb-6" key={idx}>
-              <ActionMessage actionMethod={actionMethod} />
+              <ActionMessage _actionMessage={actionMessage} />
             </div>
           )
       )}
@@ -365,7 +367,9 @@ export const LoopBox = ({
       <div className="mb-3">
         <ActionButton
           isLoading={isLoading}
-          isEnabled={!additionalActionMethods.concat(actionMethods).filter((value) => value.isEnabled === false).length}
+          isEnabled={
+            !additionalActionMessages.concat(actionMessages).filter((value) => value.isEnabled === false).length
+          }
           connected={connected}
           handleAction={() => {
             handleLoopAction();

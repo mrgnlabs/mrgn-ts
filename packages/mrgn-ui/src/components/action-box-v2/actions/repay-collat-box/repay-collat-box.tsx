@@ -8,22 +8,24 @@ import {
   DEFAULT_ACCOUNT_SUMMARY,
   ActiveBankInfo,
 } from "@mrgnlabs/marginfi-v2-ui-state";
-import {
-  ActionMethod,
-  MarginfiActionParams,
-  PreviousTxn,
-  showErrorToast,
-  useConnection,
-  usePriorityFee,
-} from "@mrgnlabs/mrgn-utils";
+
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
+import {
+  PreviousTxn,
+  usePriorityFee,
+  ActionMessageType,
+  showErrorToast,
+  checkRepayCollatActionAvailable,
+  MarginfiActionParams,
+} from "@mrgnlabs/mrgn-utils";
 
 import { CircularProgress } from "~/components/ui/circular-progress";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
-import { ActionButton, ActionMessage, ActionSettingsButton } from "~/components/action-box-v2/components";
+import { ActionButton, ActionSettingsButton } from "~/components/action-box-v2/components";
 import { useActionAmounts, usePollBlockHeight } from "~/components/action-box-v2/hooks";
+import { ActionMessage } from "~/components";
 
-import { checkActionAvailable, handleExecuteRepayCollatAction } from "./utils";
+import { handleExecuteRepayCollatAction } from "./utils";
 import { Collateral, ActionInput, Preview } from "./components";
 import { useRepayCollatBoxStore } from "./store";
 import { useRepayCollatSimulation } from "./hooks";
@@ -167,7 +169,7 @@ export const RepayCollatBox = ({
     setMaxAmountCollateral,
   });
 
-  const [additionalActionMethods, setAdditionalActionMethods] = React.useState<ActionMethod[]>([]);
+  const [additionalActionMessages, setAdditionalActionMessages] = React.useState<ActionMessageType[]>([]);
 
   // Cleanup the store when the wallet disconnects
   React.useEffect(() => {
@@ -183,13 +185,13 @@ export const RepayCollatBox = ({
   React.useEffect(() => {
     if (errorMessage && errorMessage.description) {
       showErrorToast(errorMessage?.description);
-      setAdditionalActionMethods([errorMessage]);
+      setAdditionalActionMessages([errorMessage]);
     }
   }, [errorMessage]);
 
-  const actionMethods = React.useMemo(
+  const actionMessages = React.useMemo(
     () =>
-      checkActionAvailable({
+      checkRepayCollatActionAvailable({
         amount,
         connected,
         selectedBank,
@@ -311,11 +313,11 @@ export const RepayCollatBox = ({
         />
       </div>
 
-      {additionalActionMethods.concat(actionMethods).map(
-        (actionMethod, idx) =>
-          actionMethod.description && (
+      {additionalActionMessages.concat(actionMessages).map(
+        (actionMessage, idx) =>
+          actionMessage.description && (
             <div className="pb-6" key={idx}>
-              <ActionMessage actionMethod={actionMethod} />
+              <ActionMessage _actionMessage={actionMessage} />
             </div>
           )
       )}
@@ -329,7 +331,9 @@ export const RepayCollatBox = ({
       <div className="mb-3">
         <ActionButton
           isLoading={isLoading}
-          isEnabled={!additionalActionMethods.concat(actionMethods).filter((value) => value.isEnabled === false).length}
+          isEnabled={
+            !additionalActionMessages.concat(actionMessages).filter((value) => value.isEnabled === false).length
+          }
           connected={connected}
           handleAction={() => {
             handleRepayCollatAction();
@@ -344,3 +348,12 @@ export const RepayCollatBox = ({
     </>
   );
 };
+function checkRepayColatActionAvailable(arg0: {
+  amount: number;
+  connected: boolean;
+  selectedBank: ExtendedBankInfo | null;
+  selectedSecondaryBank: ExtendedBankInfo | null;
+  actionQuote: import("@jup-ag/api").QuoteResponse | null;
+}): any {
+  throw new Error("Function not implemented.");
+}
