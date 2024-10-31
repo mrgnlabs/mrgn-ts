@@ -3,7 +3,7 @@ import React from "react";
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 
 import { formatAmount } from "@mrgnlabs/mrgn-utils";
-import { numeralFormatter, groupedNumberFormatterDyn } from "@mrgnlabs/mrgn-common";
+import { groupedNumberFormatterDyn } from "@mrgnlabs/mrgn-common";
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "~/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
@@ -38,6 +38,10 @@ const StakeCalculator = () => {
     setAmount(parseInt(value.replace(/,/g, "")));
   };
 
+  const formatNumber = (value: number) => {
+    return groupedNumberFormatterDyn.format(value).replace(".00", "");
+  };
+
   const chartData = React.useMemo(() => {
     const years = [...Array(duration)].map((_, i) => i + 1);
     const APY = 0.09; // 9% annual yield
@@ -60,13 +64,9 @@ const StakeCalculator = () => {
     <Card className="bg-transparent">
       <CardHeader>
         <CardTitle className="text-xl">
-          Your{" "}
-          <strong className="text-chartreuse">{groupedNumberFormatterDyn.format(amount).replace(".00", "")}</strong> SOL
-          will grow to{" "}
-          <strong className="text-chartreuse">
-            {groupedNumberFormatterDyn.format(chartData[chartData.length - 1].staked).replace(".00", "")}
-          </strong>{" "}
-          SOL after {duration} years
+          Your <strong className="text-chartreuse">{formatNumber(amount)}</strong> SOL will grow to{" "}
+          <strong className="text-chartreuse">{formatNumber(chartData[chartData.length - 1].staked)}</strong> SOL after{" "}
+          {duration} years
         </CardTitle>
         <CardDescription className="sr-only">
           Calculate your potential yield by staking with mrgn validators and minting LST.
