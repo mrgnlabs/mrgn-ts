@@ -1,8 +1,8 @@
 import React from "react";
 
-import { PublicKey, TransactionInstruction, TransactionMessage, VersionedTransaction } from "@solana/web3.js";
+import { PublicKey, VersionedTransaction } from "@solana/web3.js";
 
-import { makeBundleTipIx, MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
+import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { ActionMessageType, captureSentryException, TOKEN_2022_MINTS } from "@mrgnlabs/mrgn-utils";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import {

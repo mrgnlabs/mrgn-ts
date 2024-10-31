@@ -3,7 +3,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 
 import { PublicKey, VersionedTransaction } from "@solana/web3.js";
-import { IconInfoCircle } from "@tabler/icons-react";
+import { IconInfoCircle, IconUserPlus } from "@tabler/icons-react";
 
 import { numeralFormatter } from "@mrgnlabs/mrgn-common";
 import { usdFormatter, usdFormatterDyn } from "@mrgnlabs/mrgn-common";
@@ -253,9 +253,10 @@ export const LendingPortfolio = () => {
                   onClick={() => {
                     setIsWalletOpen(true);
                   }}
-                  className="w-full font-light h-[32px] py-1.5 pl-2 pr-8 text-sm cursor-pointer hover:bg-background-gray-dark hover:text-primary"
-                  variant="ghost"
+                  className="flex items-center mt-1 w-full font-light h-[32px] py-1.5 pl-2 pr-8 text-sm cursor-pointer hover:bg-background-gray-dark hover:text-primary"
+                  variant="outline"
                 >
+                  <IconUserPlus size={16} />
                   Add account
                 </Button>
               </SelectContent>
@@ -284,20 +285,18 @@ export const LendingPortfolio = () => {
                             Collect rewards
                           </button>
                         ) : (
-                          <button disabled className="cursor-not-allowed text-muted-foreground">
-                            No outstanding rewards
-                          </button>
+                          <button className="cursor-default text-muted-foreground">No outstanding rewards</button>
                         )
                       ) : (
                         <span className="flex gap-1 items-center">
                           Calculating rewards <IconLoader size={16} />
                         </span>
-                      )}{" "}
+                      )}
                       <IconInfoCircle size={16} className="text-muted-foreground" />
                     </div>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <span className="">
+                    <span>
                       {EMISSION_MINT_INFO_MAP.size === 0
                         ? "There are currently no banks that are outputting rewards."
                         : rewards && rewards.totalReward > 0
@@ -307,7 +306,7 @@ export const LendingPortfolio = () => {
                         : `You do not have any outstanding rewards. Deposit into a bank with emissions to earn additional rewards on top of yield. Banks with emissions: ${[
                             ...EMISSION_MINT_INFO_MAP.keys(),
                           ].join(", ")}`}
-                    </span>{" "}
+                    </span>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
