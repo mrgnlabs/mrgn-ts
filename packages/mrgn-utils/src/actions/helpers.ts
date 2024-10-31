@@ -61,7 +61,7 @@ export async function getAdressLookupTableAccounts(
 
 export const formatAmount = (
   newAmount: string,
-  maxAmount: number,
+  maxAmount: number | null,
   bank: ExtendedBankInfo | null,
   numberFormater: Intl.NumberFormat
 ) => {
@@ -87,7 +87,7 @@ export const formatAmount = (
     formattedAmount = numberFormater.format(amount).split(".")[0].concat(decimalPart);
   }
 
-  if (amount > maxAmount) {
+  if (maxAmount && amount > maxAmount) {
     return numberFormater.format(maxAmount);
   } else {
     return formattedAmount;
