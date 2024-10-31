@@ -3,11 +3,12 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 
 import { PublicKey, VersionedTransaction } from "@solana/web3.js";
+import { IconInfoCircle } from "@tabler/icons-react";
 
 import { numeralFormatter } from "@mrgnlabs/mrgn-common";
 import { usdFormatter, usdFormatterDyn } from "@mrgnlabs/mrgn-common";
 import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { LendingModes, MultiStepToastHandle } from "@mrgnlabs/mrgn-utils";
+import { LendingModes, MultiStepToastHandle, EMISSION_MINT_INFO_MAP } from "@mrgnlabs/mrgn-utils";
 
 import { useMrgnlendStore, useUiStore, useUserProfileStore } from "~/store";
 
@@ -17,15 +18,12 @@ import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { Loader } from "~/components/ui/loader";
 import { RewardsDialog } from "./components/rewards";
 import { IconLoader } from "~/components/ui/icons";
-import { IconInfoCircle } from "@tabler/icons-react";
 
 import { PortfolioAssetCard, PortfolioAssetCardSkeleton, PortfolioUserStats } from "./components";
 import { rewardsType } from "./types";
 import { useRewardSimulation } from "./hooks";
 import { executeCollectTxn } from "./utils";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "~/components/ui/select";
-import { EMISSION_MINT_INFO_MAP } from "~/components/desktop/AssetList/components";
-import { ActionComplete } from "~/components";
 
 export const LendingPortfolio = () => {
   const router = useRouter();
