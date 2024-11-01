@@ -2,6 +2,7 @@ import React from "react";
 import Link from "next/link";
 
 import { StakeBoxProvider, StakeCalculator } from "@mrgnlabs/mrgn-ui";
+import { IconCheck } from "@tabler/icons-react";
 
 import { useMrgnlendStore } from "~/store";
 import { useWallet } from "~/components/wallet-v2";
@@ -72,17 +73,24 @@ const Stake = () => {
   return (
     <StakeBoxProvider>
       <div className="flex flex-col items-center justify-center min-h-[800px] h-[calc(100vh-140px)]">
-        <div className="w-full max-w-8xl mx-auto relative -translate-y-10 md:-translate-y-12">
+        <div className="w-full mx-auto relative -translate-y-10 md:-translate-y-12">
           <PageHeading
             heading="Stake and Earn Instantly"
             size="lg"
             body={
-              <p>
-                <strong className="text-chartreuse">Earn extra yield</strong> and{" "}
-                <strong className="text-chartreuse">compound your returns</strong> in just a few clicks. Lend and borrow
-                against your position, stay flexible, and engage with the{" "}
-                <strong className="text-chartreuse">best opportunities in DeFi</strong>.
-              </p>
+              <div className="space-y-2">
+                <p>
+                  <strong className="text-chartreuse">Earn extra yield</strong> and{" "}
+                  <strong className="text-chartreuse">compound your returns</strong> in just a few clicks. Lend and
+                  borrow against your position, stay flexible, and engage with the{" "}
+                  <strong className="text-chartreuse">best opportunities in DeFi</strong>.
+                </p>
+                <p>
+                  <strong className="font-medium">
+                    By staking your crypto on marginfi, you earn yield instantly to grow your portfolio faster.
+                  </strong>
+                </p>
+              </div>
             }
           />
 
@@ -92,14 +100,28 @@ const Stake = () => {
         </div>
       </div>
 
-      <div className="w-full max-w-2xl mx-auto text-center space-y-8">
-        <div className="space-y-1">
-          <h2 className="text-3xl font-medium">Stake Calculator</h2>
-          <p className="text-muted-foreground text-lg">
-            Calculate your potential yield by staking with mrgn validators and minting LST.
-          </p>
+      <div className="w-full max-w-2xl mx-auto text-center">
+        <h2 className="text-3xl font-medium">Crypto Staking Calculator</h2>
+        <p className="text-muted-foreground text-lg mt-3">
+          Calculate your future earnings with our crypto staking calculator.
+        </p>
+        <ul className="flex gap-8 items-center justify-center mt-3 text-chartreuse">
+          <li className="flex items-center gap-2">
+            <IconCheck size={18} className="text-chartreuse" />
+            Maximize rewards
+          </li>
+          <li className="flex items-center gap-2">
+            <IconCheck size={18} className="text-chartreuse" />
+            Earn passive income
+          </li>
+          <li className="flex items-center gap-2">
+            <IconCheck size={18} className="text-chartreuse" />
+            Protect wealth against inflation
+          </li>
+        </ul>
+        <div className="mt-12">
+          <StakeCalculator solPrice={solPrice} />
         </div>
-        <StakeCalculator solPrice={solPrice} />
       </div>
 
       <div className="flex flex-col items-center justify-center gap-4 mt-28 mb-24 w-full bg-background-gray/50 border-y border-border pt-12 pb-14 px-8 md:px-0">
