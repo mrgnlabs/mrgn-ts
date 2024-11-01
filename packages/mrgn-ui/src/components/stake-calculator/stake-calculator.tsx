@@ -1,14 +1,16 @@
 import React from "react";
 
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
+import { useDebounce } from "@uidotdev/usehooks";
 
 import { formatAmount } from "@mrgnlabs/mrgn-utils";
-import { groupedNumberFormatterDyn } from "@mrgnlabs/mrgn-common";
+import { groupedNumberFormatterDyn, usdFormatter } from "@mrgnlabs/mrgn-common";
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "~/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
+import { Switch } from "~/components/ui/switch";
 
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "~/components/ui/chart";
 
@@ -23,10 +25,19 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-const StakeCalculator = () => {
+type StakeCalculatorProps = {
+  solPrice: number;
+};
+
+const StakeCalculator = ({ solPrice }: StakeCalculatorProps) => {
   const [amount, setAmount] = React.useState(1000);
   const [amountFormatted, setAmountFormatted] = React.useState("1,000");
   const [duration, setDuration] = React.useState(5);
+  const [pricePrediction, setPricePrediction] = React.useState(0);
+  const [isUsdDenominated, setIsUsdDenominated] = React.useState(false);
+  const debouncedAmount = useDebounce(amount, 500);
+  const debouncedPricePrediction = useDebounce(pricePrediction, 500);
+  const prevPricePredictionRef = React.useRef(debouncedPricePrediction);
 
   const handleAmountChange = (value: string) => {
     if (!value) {
@@ -46,27 +57,63 @@ const StakeCalculator = () => {
     const years = [...Array(duration)].map((_, i) => i + 1);
     const APY = 0.09; // 9% annual yield
 
+    // calculate yearly price change rate to reach prediction
+    const priceGrowthRate = Math.pow(debouncedPricePrediction / solPrice, 1 / duration) - 1;
+
     return [
       {
         year: "0 years",
-        staked: amount,
-        unstaked: amount,
+        staked: isUsdDenominated ? debouncedAmount * solPrice : debouncedAmount,
+        unstaked: isUsdDenominated ? debouncedAmount * solPrice : debouncedAmount,
       },
-      ...years.map((year) => ({
-        year: `${year} year${year > 1 ? "s" : ""}`,
-        staked: amount * Math.pow(1 + APY, year), // Compound interest formula: A = P(1 + r)^t
-        unstaked: amount,
-      })),
+      ...years.map((year) => {
+        // calculate interpolated price for this year
+        const priceAtYear = solPrice * Math.pow(1 + priceGrowthRate, year);
+
+        return {
+          year: `${year} year${year > 1 ? "s" : ""}`,
+          staked: isUsdDenominated
+            ? debouncedAmount * Math.pow(1 + APY, year) * priceAtYear
+            : debouncedAmount * Math.pow(1 + APY, year),
+          unstaked: isUsdDenominated ? debouncedAmount * priceAtYear : debouncedAmount,
+        };
+      }),
     ];
-  }, [amount, duration]);
+  }, [debouncedAmount, duration, isUsdDenominated, debouncedPricePrediction, solPrice]);
+
+  React.useEffect(() => {
+    if (!isUsdDenominated && debouncedPricePrediction && prevPricePredictionRef.current !== debouncedPricePrediction) {
+      setIsUsdDenominated(true);
+    }
+    prevPricePredictionRef.current = debouncedPricePrediction;
+  }, [debouncedPricePrediction, isUsdDenominated]);
+
+  React.useEffect(() => {
+    if (pricePrediction) return;
+    setPricePrediction(Number(solPrice.toFixed(2)));
+  }, [pricePrediction, solPrice]);
 
   return (
     <Card className="bg-transparent">
       <CardHeader>
-        <CardTitle className="text-xl">
-          Your <strong className="text-chartreuse">{formatNumber(amount)}</strong> SOL will grow to{" "}
-          <strong className="text-chartreuse">{formatNumber(chartData[chartData.length - 1].staked)}</strong> SOL after{" "}
-          {duration} years
+        <CardTitle className="flex flex-col gap-4 items-center text-xl">
+          <div className="text-sm font-normal flex items-center gap-2 text-muted-foreground">
+            <Switch id="usd-denominated" checked={isUsdDenominated} onCheckedChange={setIsUsdDenominated} />{" "}
+            <Label htmlFor="usd-denominated">USD denominated</Label>
+          </div>
+          <div>
+            Your{" "}
+            <strong className="text-chartreuse">
+              {isUsdDenominated ? "$" : ""}
+              {formatNumber(isUsdDenominated ? debouncedAmount * solPrice : debouncedAmount)}
+            </strong>{" "}
+            {!isUsdDenominated && "SOL"} will grow to{" "}
+            <strong className="text-chartreuse">
+              {isUsdDenominated ? "$" : ""}
+              {formatNumber(chartData[chartData.length - 1].staked)}
+            </strong>{" "}
+            {!isUsdDenominated && "SOL"} after {duration} years
+          </div>
         </CardTitle>
         <CardDescription className="sr-only">
           Calculate your potential yield by staking with mrgn validators and minting LST.
@@ -90,7 +137,13 @@ const StakeCalculator = () => {
               tickMargin={8}
               tickFormatter={(value) => value.slice(0, 3)}
             />
-            <YAxis domain={[amount * 0.95, "auto"]} hide />
+            <YAxis
+              domain={[
+                isUsdDenominated ? debouncedAmount * debouncedPricePrediction * 0.95 : debouncedAmount * 0.95,
+                "auto",
+              ]}
+              hide
+            />
             <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
             <defs>
               <linearGradient id="fillStaked" x1="0" y1="0" x2="0" y2="1">
@@ -144,6 +197,21 @@ const StakeCalculator = () => {
                 ))}
               </SelectContent>
             </Select>
+          </div>
+          <div className="space-y-1 w-full">
+            <Label className="text-muted-foreground">
+              Price prediction <span className="text-xs">({usdFormatter.format(solPrice)})</span>
+            </Label>
+            <div className="flex items-center gap-1">
+              <span className="text-sm">$</span>
+              <Input
+                type="text"
+                inputMode="decimal"
+                value={pricePrediction.toString()}
+                onChange={(e) => setPricePrediction(parseFloat(e.target.value))}
+                className="border-border px-1"
+              />
+            </div>
           </div>
         </form>
       </CardContent>

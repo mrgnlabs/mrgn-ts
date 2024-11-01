@@ -5,7 +5,7 @@ import { StakeBoxProvider, StakeCalculator } from "@mrgnlabs/mrgn-ui";
 
 import { useMrgnlendStore } from "~/store";
 import { useWallet } from "~/components/wallet-v2";
-import { LST_MINT } from "~/store/lstStore";
+import { LST_MINT, SOL_MINT } from "~/store/lstStore";
 import { IntegrationsData, LSTOverview, fetchLSTOverview } from "~/components/common/Stake/utils/stake-utils";
 
 import { Button } from "~/components/ui/button";
@@ -22,15 +22,22 @@ import {
 
 const Stake = () => {
   const { connected } = useWallet();
-  const [fetchMrgnlendState] = useMrgnlendStore((state) => [state.fetchMrgnlendState]);
+  const [fetchMrgnlendState, extendedBankInfos] = useMrgnlendStore((state) => [
+    state.fetchMrgnlendState,
+    state.extendedBankInfos,
+  ]);
   const [integrations, setIntegrations] = React.useState<IntegrationsData[]>([]);
   const [lstOverview, setLstOverview] = React.useState<LSTOverview>();
-
-  const [extendedBankInfos] = useMrgnlendStore((state) => [state.extendedBankInfos]);
 
   const lstBank = React.useMemo(() => {
     const bank = extendedBankInfos.filter((bank) => bank.info.state.mint.equals(LST_MINT));
     return bank.length > 0 ? bank[0] : undefined;
+  }, [extendedBankInfos]);
+
+  const solPrice = React.useMemo(() => {
+    const bank = extendedBankInfos.filter((bank) => bank.info.state.mint.equals(SOL_MINT));
+    console.log(bank);
+    return bank.length > 0 ? bank[0].info.state.price : 0;
   }, [extendedBankInfos]);
 
   React.useEffect(() => {
@@ -92,7 +99,7 @@ const Stake = () => {
             Calculate your potential yield by staking with mrgn validators and minting LST.
           </p>
         </div>
-        <StakeCalculator />
+        <StakeCalculator solPrice={solPrice} />
       </div>
 
       <div className="flex flex-col items-center justify-center gap-4 mt-28 mb-24 w-full bg-background-gray/50 border-y border-border pt-12 pb-14 px-8 md:px-0">
