@@ -37,7 +37,6 @@ const Stake = () => {
 
   const solPrice = React.useMemo(() => {
     const bank = extendedBankInfos.filter((bank) => bank.info.state.mint.equals(SOL_MINT));
-    console.log(bank);
     return bank.length > 0 ? bank[0].info.state.price : 0;
   }, [extendedBankInfos]);
 
