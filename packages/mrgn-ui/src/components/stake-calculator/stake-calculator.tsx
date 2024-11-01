@@ -63,8 +63,8 @@ const StakeCalculator = ({ solPrice }: StakeCalculatorProps) => {
     return [
       {
         year: "0 years",
-        staked: isUsdDenominated ? debouncedAmount * solPrice : debouncedAmount,
-        unstaked: isUsdDenominated ? debouncedAmount * solPrice : debouncedAmount,
+        staked: Math.round(isUsdDenominated ? debouncedAmount * solPrice : debouncedAmount),
+        unstaked: Math.round(isUsdDenominated ? debouncedAmount * solPrice : debouncedAmount),
       },
       ...years.map((year) => {
         // calculate interpolated price for this year
@@ -72,10 +72,12 @@ const StakeCalculator = ({ solPrice }: StakeCalculatorProps) => {
 
         return {
           year: `${year} year${year > 1 ? "s" : ""}`,
-          staked: isUsdDenominated
-            ? debouncedAmount * Math.pow(1 + APY, year) * priceAtYear
-            : debouncedAmount * Math.pow(1 + APY, year),
-          unstaked: isUsdDenominated ? debouncedAmount * priceAtYear : debouncedAmount,
+          staked: Math.round(
+            isUsdDenominated
+              ? debouncedAmount * Math.pow(1 + APY, year) * priceAtYear
+              : debouncedAmount * Math.pow(1 + APY, year)
+          ),
+          unstaked: Math.round(isUsdDenominated ? debouncedAmount * priceAtYear : debouncedAmount),
         };
       }),
     ];
