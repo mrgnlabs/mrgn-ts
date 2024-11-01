@@ -51,10 +51,14 @@ export default function HomePage() {
 
   const annoucements = React.useMemo(() => {
     let banks: (ExtendedBankInfo | undefined)[] = [];
-    banks.push(extendedBankInfos.find((bank) => bank.meta.tokenSymbol === "hSOL"));
+
     if (marginfiClient?.banks) {
-      const latestBankKey = Array.from(marginfiClient.banks.keys())[0];
-      banks.push(extendedBankInfos.find((bank) => bank.address.toString() === latestBankKey.toString()));
+      const latestBankKeys = Array.from(marginfiClient.banks.keys()).splice(0, 2);
+      banks.push(
+        ...latestBankKeys
+          .map((bankKey) => extendedBankInfos.find((bank) => bank.address.toBase58() === bankKey))
+          .filter((bank): bank is ExtendedBankInfo => bank !== undefined)
+      );
     }
 
     banks = banks.filter((bank): bank is ExtendedBankInfo => bank !== undefined);
