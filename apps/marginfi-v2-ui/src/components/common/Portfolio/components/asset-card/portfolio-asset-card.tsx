@@ -52,7 +52,7 @@ export const PortfolioAssetCard = ({ bank, isInLendingMode, isBorrower = true }:
   }, [bank]);
 
   const [isMovePositionDialogOpen, setIsMovePositionDialogOpen] = React.useState<boolean>(false);
-  const postionMovingPossible = React.useMemo(() => marginfiAccounts.length > 1, marginfiAccounts);
+  const postionMovingPossible = React.useMemo(() => marginfiAccounts.length > 1, [marginfiAccounts.length]);
   return (
     <Accordion type="single" collapsible>
       <AccordionItem
