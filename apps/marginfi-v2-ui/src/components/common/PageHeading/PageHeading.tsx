@@ -21,7 +21,9 @@ export const PageHeading = ({ heading, body, links, button, size = "md" }: PageH
       )}
     >
       <h1 className={cn("font-medium text-primary text-4xl", size === "lg" && "md:text-5xl")}>{heading}</h1>
-      <div className={cn("w-full mx-auto leading-relaxed", size === "lg" ? "max-w-3xl" : "max-w-2xl")}>{body}</div>
+      <div className={cn("w-full mx-auto leading-relaxed", size === "lg" ? "max-w-[49.5rem]" : "max-w-2xl")}>
+        {body}
+      </div>
 
       {links && links.length > 0 && (
         <ul className="flex items-center gap-4 justify-center pt-2">

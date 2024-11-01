@@ -1,4 +1,7 @@
+import React from "react";
+
 import { IconCheck } from "@tabler/icons-react";
+import { useWindowSize } from "@uidotdev/usehooks";
 
 import { ActionBox } from "@mrgnlabs/mrgn-ui";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
@@ -17,6 +20,16 @@ type StakeCardProps = {
 };
 
 const StakeCard = ({ lstBank, lstOverview, connected }: StakeCardProps) => {
+  const { height } = useWindowSize();
+
+  const scrollPageDown = React.useCallback(() => {
+    if (!height) return;
+    window.scrollTo({
+      top: height - 135,
+      behavior: "smooth",
+    });
+  }, [height]);
+
   return (
     <Card variant="gradient" className="w-full max-w-xl mx-auto py-2 md:py-4">
       <CardHeader className="items-center text-center gap-3">
@@ -53,46 +66,57 @@ const StakeCard = ({ lstBank, lstOverview, connected }: StakeCardProps) => {
         )}
       </CardContent>
 
-      <CardFooter className="flex flex-row justify-center gap-4 pt-2 md:pt-4">
-        <ActionBox.Stake
-          isDialog={true}
-          useProvider={true}
-          stakeProps={{
-            connected: connected,
-            requestedActionType: ActionType.MintLST,
-            captureEvent: (event, properties) => {
-              capture("stake_button_click", properties);
-            },
-          }}
-          dialogProps={{
-            trigger: (
-              <Button size="lg" className="text-lg h-12 border-none">
-                Stake
-              </Button>
-            ),
-            title: "Stake",
-          }}
-        />
-        <ActionBox.Stake
-          isDialog={true}
-          useProvider={true}
-          stakeProps={{
-            connected: connected,
-            requestedActionType: ActionType.UnstakeLST,
-            requestedBank: lstBank,
-            captureEvent: (event, properties) => {
-              capture("unstake_button_click", properties);
-            },
-          }}
-          dialogProps={{
-            trigger: (
-              <Button variant="secondary" size="lg" className="text-lg h-12">
-                Unstake
-              </Button>
-            ),
-            title: "Unstake",
-          }}
-        />
+      <CardFooter className="flex flex-col gap-4 pt-2 md:pt-4 pb-2">
+        <div className="flex flex-row justify-center gap-4">
+          <ActionBox.Stake
+            isDialog={true}
+            useProvider={true}
+            stakeProps={{
+              connected: connected,
+              requestedActionType: ActionType.MintLST,
+              captureEvent: (event, properties) => {
+                capture("stake_button_click", properties);
+              },
+            }}
+            dialogProps={{
+              trigger: (
+                <Button size="lg" className="text-lg h-12 border-none">
+                  Stake
+                </Button>
+              ),
+              title: "Stake",
+            }}
+          />
+          <ActionBox.Stake
+            isDialog={true}
+            useProvider={true}
+            stakeProps={{
+              connected: connected,
+              requestedActionType: ActionType.UnstakeLST,
+              requestedBank: lstBank,
+              captureEvent: (event, properties) => {
+                capture("unstake_button_click", properties);
+              },
+            }}
+            dialogProps={{
+              trigger: (
+                <Button variant="secondary" size="lg" className="text-lg h-12">
+                  Unstake
+                </Button>
+              ),
+              title: "Unstake",
+            }}
+          />
+        </div>
+        {height && (
+          <Button
+            variant="link"
+            className="text-muted-foreground font-normal underline hover:no-underline"
+            onClick={scrollPageDown}
+          >
+            Try our stake calculator
+          </Button>
+        )}
       </CardFooter>
     </Card>
   );
