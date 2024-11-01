@@ -137,6 +137,7 @@ export const useRewardSimulation = ({
 
   const generateTxn = React.useCallback(async () => {
     try {
+      if (!bankAddressesWithEmissions.length) return;
       const tx = await selectedAccount?.makeWithdrawEmissionsTx(bankAddressesWithEmissions);
       if (!tx) return;
       setActionTxn(tx);

@@ -52,7 +52,9 @@ export const PortfolioAssetCard = ({ bank, isInLendingMode, isBorrower = true }:
   }, [bank]);
 
   const [isMovePositionDialogOpen, setIsMovePositionDialogOpen] = React.useState<boolean>(false);
-  const postionMovingPossible = React.useMemo(() => marginfiAccounts.length > 1, [marginfiAccounts.length]);
+  // const postionMovingPossible = React.useMemo(() => marginfiAccounts.length > 1, [marginfiAccounts.length]);
+  const postionMovingPossible = false;
+
   return (
     <Accordion type="single" collapsible>
       <AccordionItem
@@ -88,8 +90,8 @@ export const PortfolioAssetCard = ({ bank, isInLendingMode, isBorrower = true }:
                   : dynamicNumeralFormatter(bank.position.amount, {
                       tokenPrice: bank.info.oraclePrice.priceRealtime.price.toNumber(),
                     })} */}
-                {dynamicNumeralFormatter(0.002466, {
-                  tokenPrice: 75000,
+                {dynamicNumeralFormatter(bank.position.amount, {
+                  tokenPrice: bank.info.oraclePrice.priceRealtime.price.toNumber(),
                 })}
                 {" " + bank.meta.tokenSymbol}
               </div>
