@@ -38,6 +38,12 @@ const StakeCalculator = ({ solPrice }: StakeCalculatorProps) => {
   const debouncedAmount = useDebounce(amount, 500);
   const debouncedPricePrediction = useDebounce(pricePrediction, 500);
   const prevPricePredictionRef = React.useRef(debouncedPricePrediction);
+  const isUserInputRef = React.useRef(false);
+
+  const handlePricePredictionChange = (value: string) => {
+    isUserInputRef.current = true;
+    setPricePrediction(Number(value));
+  };
 
   const handleAmountChange = (value: string) => {
     if (!value) {
@@ -84,16 +90,22 @@ const StakeCalculator = ({ solPrice }: StakeCalculatorProps) => {
   }, [debouncedAmount, duration, isUsdDenominated, debouncedPricePrediction, solPrice]);
 
   React.useEffect(() => {
-    if (!isUsdDenominated && debouncedPricePrediction && prevPricePredictionRef.current !== debouncedPricePrediction) {
+    if (
+      !isUsdDenominated &&
+      debouncedPricePrediction &&
+      prevPricePredictionRef.current !== debouncedPricePrediction &&
+      isUserInputRef.current
+    ) {
       setIsUsdDenominated(true);
     }
     prevPricePredictionRef.current = debouncedPricePrediction;
   }, [debouncedPricePrediction, isUsdDenominated]);
 
+  // Reset the user input flag when the prop updates
   React.useEffect(() => {
-    if (pricePrediction) return;
-    setPricePrediction(Number(solPrice.toFixed(2)));
-  }, [pricePrediction, solPrice]);
+    setPricePrediction(parseFloat(solPrice.toFixed(2)));
+    isUserInputRef.current = false;
+  }, [solPrice]);
 
   return (
     <Card className="bg-transparent">
@@ -174,7 +186,7 @@ const StakeCalculator = ({ solPrice }: StakeCalculatorProps) => {
             />
           </AreaChart>
         </ChartContainer>
-        <form className="flex text-left gap-4 pt-4">
+        <form className="flex flex-col md:flex-row text-left gap-4 pt-4">
           <div className="space-y-1 w-full">
             <Label className="text-muted-foreground">Amount to stake</Label>
             <Input
@@ -210,7 +222,7 @@ const StakeCalculator = ({ solPrice }: StakeCalculatorProps) => {
                 type="text"
                 inputMode="decimal"
                 value={pricePrediction.toString()}
-                onChange={(e) => setPricePrediction(parseFloat(e.target.value))}
+                onChange={(e) => handlePricePredictionChange(e.target.value)}
                 className="border-border px-1"
               />
             </div>
