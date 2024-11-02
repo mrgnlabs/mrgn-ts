@@ -71,8 +71,8 @@ const Stake = () => {
 
   return (
     <StakeBoxProvider>
-      <div className="flex flex-col items-center justify-center min-h-[800px] h-[calc(100vh-140px)]">
-        <div className="w-full mx-auto relative -translate-y-10 md:-translate-y-12">
+      <div className="flex flex-col items-center justify-center md:min-h-[800px] md:h-[calc(100vh-140px)]">
+        <div className="w-full mx-auto relative md:-translate-y-12">
           <PageHeading
             heading="Stake and Earn Instantly"
             size="lg"
@@ -84,9 +84,9 @@ const Stake = () => {
                   borrow against your position, stay flexible, and engage with the{" "}
                   <strong className="text-chartreuse">best opportunities in DeFi</strong>.
                 </p>
-                <p>
+                <p className="hidden md:block">
                   <strong className="font-medium">
-                    By staking your crypto on marginfi, you earn yield instantly to grow your portfolio faster.
+                    By staking your crypto with marginfi, you earn yield instantly to grow your portfolio faster.
                   </strong>
                 </p>
               </div>
@@ -99,12 +99,12 @@ const Stake = () => {
         </div>
       </div>
 
-      <div className="w-full max-w-2xl mx-auto text-center">
-        <h2 className="text-3xl font-medium">Crypto Staking Calculator</h2>
-        <p className="text-muted-foreground text-lg mt-3">
+      <div className="w-full max-w-2xl mx-auto text-center mt-12 md:mt-0" id="stake-calculator">
+        <h2 className="text-2xl font-medium md:text-43xl">Crypto Staking Calculator</h2>
+        <p className="text-muted-foreground px-8 text-lg mt-3 md:px-0">
           Calculate your future earnings with our crypto staking calculator.
         </p>
-        <ul className="flex gap-8 items-center justify-center mt-3 text-chartreuse">
+        <ul className="flex flex-col gap-2 items-center justify-center mt-6 text-chartreuse text-sm md:mt-3 md:text-base md:flex-row md:gap-8">
           <li className="flex items-center gap-2">
             <IconCheck size={18} className="text-chartreuse" />
             Maximize rewards
