@@ -1,13 +1,13 @@
 import React from "react";
 
 import { IconCheck } from "@tabler/icons-react";
-import { useWindowSize } from "@uidotdev/usehooks";
 
 import { ActionBox } from "@mrgnlabs/mrgn-ui";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { usdFormatter } from "@mrgnlabs/mrgn-common";
 import { capture } from "@mrgnlabs/mrgn-utils";
 import { LSTOverview } from "~/components/common/Stake/utils/stake-utils";
+import { useIsMobile } from "~/hooks/use-is-mobile";
 
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "~/components/ui/card";
 import { IconLST } from "~/components/ui/icons";
@@ -20,21 +20,23 @@ type StakeCardProps = {
 };
 
 const StakeCard = ({ lstBank, lstOverview, connected }: StakeCardProps) => {
-  const { height } = useWindowSize();
+  const isMobile = useIsMobile();
 
-  const scrollPageDown = React.useCallback(() => {
-    if (!height) return;
+  const scrollPageDown = () => {
+    const stakeCalculator = document.getElementById("stake-calculator");
+    if (!stakeCalculator) return;
+    const rect = stakeCalculator.getBoundingClientRect();
     window.scrollTo({
-      top: height - 135,
+      top: rect.top - (isMobile ? 80 : 135),
       behavior: "smooth",
     });
-  }, [height]);
+  };
 
   return (
     <Card variant="gradient" className="w-full max-w-xl mx-auto py-2 md:py-4">
-      <CardHeader className="items-center text-center gap-3">
+      <CardHeader className="items-center text-center gap-3 pb-4 md:pb-6">
         <IconLST size={56} />
-        <CardTitle className="text-2xl">
+        <CardTitle className="text-xl md:text-2xl">
           Stake with mrgn validators
           <br /> and mint LST
         </CardTitle>
@@ -43,15 +45,15 @@ const StakeCard = ({ lstBank, lstOverview, connected }: StakeCardProps) => {
       <CardContent className="flex flex-col items-center">
         <ul className="space-y-2.5 mb-4 md:mb-8 md:text-lg">
           <li className="flex items-center gap-1.5 text-muted-foreground">
-            <IconCheck className="text-success" />
+            <IconCheck className="text-success" size={isMobile ? 18 : 24} />
             ~9% natural APY
           </li>
           <li className="flex items-center gap-1.5 text-muted-foreground">
-            <IconCheck className="text-success" />
+            <IconCheck className="text-success" size={isMobile ? 18 : 24} />
             0% commissions
           </li>
           <li className="flex items-center gap-1.5 text-muted-foreground">
-            <IconCheck className="text-success" />
+            <IconCheck className="text-success" size={isMobile ? 18 : 24} />
             Capture MEV rewards
           </li>
         </ul>
@@ -66,7 +68,7 @@ const StakeCard = ({ lstBank, lstOverview, connected }: StakeCardProps) => {
         )}
       </CardContent>
 
-      <CardFooter className="flex flex-col gap-4 pt-2 md:pt-4 pb-2">
+      <CardFooter className="flex flex-col gap-4 pt-0 pb-2 md:pt-4">
         <div className="flex flex-row justify-center gap-4">
           <ActionBox.Stake
             isDialog={true}
@@ -80,7 +82,7 @@ const StakeCard = ({ lstBank, lstOverview, connected }: StakeCardProps) => {
             }}
             dialogProps={{
               trigger: (
-                <Button size="lg" className="text-lg h-12 border-none">
+                <Button size="lg" className="md:text-lg md:h-12 border-none">
                   Stake
                 </Button>
               ),
@@ -100,7 +102,7 @@ const StakeCard = ({ lstBank, lstOverview, connected }: StakeCardProps) => {
             }}
             dialogProps={{
               trigger: (
-                <Button variant="secondary" size="lg" className="text-lg h-12">
+                <Button variant="secondary" size="lg" className="md:text-lg md:h-12">
                   Unstake
                 </Button>
               ),
@@ -108,15 +110,13 @@ const StakeCard = ({ lstBank, lstOverview, connected }: StakeCardProps) => {
             }}
           />
         </div>
-        {height && (
-          <Button
-            variant="link"
-            className="text-muted-foreground font-normal underline hover:no-underline"
-            onClick={scrollPageDown}
-          >
-            Try our stake calculator
-          </Button>
-        )}
+        <Button
+          variant="link"
+          className="text-muted-foreground font-normal underline hover:no-underline"
+          onClick={scrollPageDown}
+        >
+          Try our stake calculator
+        </Button>
       </CardFooter>
     </Card>
   );
