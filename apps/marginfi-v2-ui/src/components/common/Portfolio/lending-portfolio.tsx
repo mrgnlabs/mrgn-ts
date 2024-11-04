@@ -31,6 +31,7 @@ export const LendingPortfolio = () => {
   const router = useRouter();
   const { connected } = useWallet();
   const [walletConnectionDelay, setWalletConnectionDelay] = React.useState(false);
+  const [isAccountSelectOpen, setIsAccountSelectOpen] = React.useState(false);
   const [setIsWalletOpen] = useWalletStore((state) => [state.setIsWalletOpen]);
 
   const [
@@ -62,6 +63,7 @@ export const LendingPortfolio = () => {
   const [rewardsDialogOpen, setRewardsDialogOpen] = React.useState(false);
   const [actionTxn, setActionTxn] = React.useState<VersionedTransaction | null>(null);
   const [rewardsLoading, setRewardsLoading] = React.useState(false);
+
   const { handleSimulation, bankAddressesWithEmissions } = useRewardSimulation({
     simulationResult: rewards,
     actionTxn,
@@ -236,6 +238,11 @@ export const LendingPortfolio = () => {
                 handleSwitchAccount(new PublicKey(value));
               }}
               disabled={isSwitchingAccount}
+              open={isAccountSelectOpen}
+              onOpenChange={(open) => {
+                setIsAccountSelectOpen(open);
+              }}
+              value={selectedAccount?.address.toBase58()}
             >
               <SelectTrigger className="w-max">
                 Account{" "}
@@ -252,6 +259,7 @@ export const LendingPortfolio = () => {
                 <Button
                   onClick={() => {
                     setIsWalletOpen(true);
+                    setIsAccountSelectOpen(false);
                   }}
                   className="flex items-center mt-1 w-full font-light h-[32px] py-1.5 pl-2 pr-8 text-sm cursor-pointer hover:bg-background-gray-dark hover:text-primary"
                   variant="outline"
