@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 
 import { TransactionMessage, VersionedTransaction } from "@solana/web3.js";
 
@@ -16,7 +16,7 @@ type MovePositionSimulationProps = {
   activeBank: ActiveBankInfo;
 
   setActionTxns: (actionTxn: VersionedTransaction[]) => void;
-  setIsLoading: (isLoading: boolean) => void;
+  setIsLoading: (state: boolean) => void;
   setErrorMessage: (error: ActionMessageType | null) => void;
 };
 
@@ -37,15 +37,17 @@ export const useMoveSimulation = ({
       setIsLoading(true);
       const connection = marginfiClient.provider.connection;
       const blockHash = await connection.getLatestBlockhash();
-      const withdrawIx = await selectedAccount?.makeWithdrawIx(activeBank.position.amount, activeBank.address);
+      const lookupTables = marginfiClient.addressLookupTables;
+
+      const withdrawIx = await selectedAccount?.makeWithdrawIx(activeBank.position.amount, activeBank.address, true);
+
       if (!withdrawIx) return;
       const withdrawMessage = new TransactionMessage({
         payerKey: marginfiClient.wallet.publicKey,
         recentBlockhash: blockHash.blockhash,
         instructions: [...withdrawIx.instructions],
       });
-      const withdrawTx = new VersionedTransaction(withdrawMessage.compileToV0Message());
-
+      const withdrawTx = new VersionedTransaction(withdrawMessage.compileToV0Message(lookupTables));
       const bundleTipIx = makeBundleTipIx(marginfiClient?.wallet.publicKey);
       const depositIx = await accountToMoveTo.makeDepositIx(activeBank.position.amount, activeBank.address);
       if (!depositIx) return;
@@ -54,7 +56,7 @@ export const useMoveSimulation = ({
         recentBlockhash: blockHash.blockhash,
         instructions: [...depositIx.instructions, bundleTipIx],
       });
-      const depositTx = new VersionedTransaction(depositInstruction.compileToV0Message());
+      const depositTx = new VersionedTransaction(depositInstruction.compileToV0Message(lookupTables));
       return [withdrawTx, depositTx];
     } catch (error) {
       console.error("Error creating transactions", error);
