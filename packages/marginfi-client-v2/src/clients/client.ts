@@ -778,155 +778,44 @@ class MarginfiClient {
     txOpts?: TransactionOptions,
     processOpts?: ProcessTransactionsClientOpts
   ): Promise<TransactionSignature[]> {
-    return processTransactions({
+    const options = {
+      ...processOpts,
+      isReadOnly: this.isReadOnly,
+      programId: this.program.programId,
+      bundleSimRpcEndpoint: this.bundleSimRpcEndpoint,
+    } as ProcessTransactionOpts;
+
+    return await processTransactions({
       transactions,
       connection: this.provider.connection,
       wallet: this.provider.wallet,
       txOpts,
-      processOpts,
+      processOpts: options,
     });
   }
 
   async processTransaction(
-    transaction: Transaction | VersionedTransaction,
-    signers?: Array<Signer>,
-    opts?: TransactionOptions
+    transaction: SolanaTransaction,
+    txOpts?: TransactionOptions,
+    processOpts?: ProcessTransactionsClientOpts
   ): Promise<TransactionSignature> {
-    let versionedTransaction: VersionedTransaction;
-    const connection = new Connection(this.provider.connection.rpcEndpoint, this.provider.opts);
-    let minContextSlot: number;
-    let blockhash: string;
-    let lastValidBlockHeight: number;
+    // this.addressLookupTables
+    const options = {
+      ...processOpts,
+      isReadOnly: this.isReadOnly,
+      programId: this.program.programId,
+      bundleSimRpcEndpoint: this.bundleSimRpcEndpoint,
+    } as ProcessTransactionOpts;
 
-    try {
-      const getLatestBlockhashAndContext = await connection.getLatestBlockhashAndContext("confirmed");
-
-      minContextSlot = getLatestBlockhashAndContext.context.slot - 4;
-      blockhash = getLatestBlockhashAndContext.value.blockhash;
-      lastValidBlockHeight = getLatestBlockhashAndContext.value.lastValidBlockHeight;
-
-      if (transaction && "message" in transaction) {
-        versionedTransaction = transaction;
-      } else {
-        const versionedMessage = new TransactionMessage({
-          instructions: transaction.instructions,
-          payerKey: this.provider.publicKey,
-          recentBlockhash: blockhash,
-        });
-
-        versionedTransaction = new VersionedTransaction(versionedMessage.compileToV0Message(this.addressLookupTables));
-      }
-
-      if (signers) versionedTransaction.sign(signers);
-    } catch (error: any) {
-      console.log("Failed to build the transaction", error);
-      throw new ProcessTransactionError(error.message, ProcessTransactionErrorType.TransactionBuildingError);
-    }
-
-    try {
-      if (opts?.dryRun || this.isReadOnly) {
-        const response = await connection.simulateTransaction(
-          versionedTransaction,
-          opts ?? { minContextSlot, sigVerify: false }
-        );
-        console.log(
-          response.value.err ? `❌ Error: ${response.value.err}` : `✅ Success - ${response.value.unitsConsumed} CU`
-        );
-        console.log("------ Logs 👇 ------");
-        if (response.value.logs) {
-          for (const log of response.value.logs) {
-            console.log(log);
-          }
-        }
-
-        const signaturesEncoded = encodeURIComponent(
-          JSON.stringify(versionedTransaction.signatures.map((s) => bs58.encode(s)))
-        );
-        const messageEncoded = encodeURIComponent(
-          Buffer.from(versionedTransaction.message.serialize()).toString("base64")
-        );
-
-        const urlEscaped = `https://explorer.solana.com/tx/inspector?cluster=${this.config.cluster}&signatures=${signaturesEncoded}&message=${messageEncoded}`;
-        console.log("------ Inspect 👇 ------");
-        console.log(urlEscaped);
-
-        if (response.value.err)
-          throw new SendTransactionError({
-            action: "simulate",
-            signature: "",
-            transactionMessage: JSON.stringify(response.value.err),
-            logs: response.value.logs ?? [],
-          });
-
-        return versionedTransaction.signatures[0].toString();
-      } else {
-        let signature: TransactionSignature = "";
-        let bundleSignature: string = "";
-
-        versionedTransaction = await this.wallet.signTransaction(versionedTransaction);
-        const base58Tx = bs58.encode(versionedTransaction.serialize());
-
-        let mergedOpts: ConfirmOptions = {
-          ...DEFAULT_CONFIRM_OPTS,
-          commitment: connection.commitment ?? DEFAULT_CONFIRM_OPTS.commitment,
-          preflightCommitment: connection.commitment ?? DEFAULT_CONFIRM_OPTS.commitment,
-          minContextSlot,
-          ...opts,
-        };
-
-        try {
-          bundleSignature = await this.sendTransactionAsGrpcBundle([base58Tx]);
-        } catch (e) {
-          try {
-            bundleSignature = await this.sendTransactionAsBundle([base58Tx]);
-          } catch (e) {
-            signature = await connection.sendTransaction(versionedTransaction, {
-              minContextSlot: mergedOpts.minContextSlot,
-              skipPreflight: mergedOpts.skipPreflight,
-              preflightCommitment: mergedOpts.preflightCommitment,
-              maxRetries: mergedOpts.maxRetries,
-            });
-          }
-        }
-
-        if (signature !== "") {
-          await connection.confirmTransaction(
-            {
-              blockhash,
-              lastValidBlockHeight,
-              signature,
-            },
-            mergedOpts.commitment
-          );
-          return signature;
-        } else {
-          return bundleSignature;
-        }
-      }
-    } catch (error: any) {
-      const parsedError = parseTransactionError(error, this.config.programId);
-
-      if (error?.logs?.length > 0) {
-        console.log("------ Logs 👇 ------");
-        console.log(error.logs.join("\n"));
-        if (parsedError) {
-          console.log("Parsed:", parsedError);
-          throw new ProcessTransactionError(
-            parsedError.description,
-            ProcessTransactionErrorType.SimulationError,
-            error.logs,
-            parsedError.programId
-          );
-        }
-      }
-      console.log("fallthrough error", error);
-      throw new ProcessTransactionError(
-        parsedError?.description ?? "Something went wrong",
-        ProcessTransactionErrorType.SimulationError,
-        error.logs,
-        parsedError.programId
-      );
-    }
+    return (
+      await processTransactions({
+        transactions: [transaction],
+        connection: this.provider.connection,
+        wallet: this.provider.wallet,
+        txOpts,
+        processOpts,
+      })
+    )[0];
   }
 
   private async sendTransactionAsGrpcBundle(base58Txs: string[]): Promise<string> {

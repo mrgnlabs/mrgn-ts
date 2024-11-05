@@ -23,7 +23,6 @@ import { parseTransactionError, ProcessTransactionError, ProcessTransactionError
 import { formatTransactions, sendTransactionAsBundle } from "./transaction.helper";
 
 export interface ProcessTransactionOpts extends ProcessTransactionsClientOpts {
-  isSequentialTxs?: boolean;
   isReadOnly?: boolean;
   programId?: PublicKey;
   bundleSimRpcEndpoint?: string;
@@ -32,6 +31,7 @@ export interface ProcessTransactionOpts extends ProcessTransactionsClientOpts {
 export type ProcessTransactionsClientOpts = {
   broadcastType?: TransactionBroadcastType;
   priorityFeeUi?: number;
+  isSequentialTxs?: boolean;
 };
 
 export type SolanaTransaction = (VersionedTransaction | Transaction) & {
