@@ -147,8 +147,10 @@ export const useRewardSimulation = ({
   }, [bankAddressesWithEmissions, selectedAccount, setActionTxn]);
 
   React.useEffect(() => {
-    generateTxn();
-  }, [marginfiClient, bankAddressesWithEmissions, selectedAccount, generateTxn]);
+    if (bankAddressesWithEmissions.length) {
+      generateTxn();
+    }
+  }, [bankAddressesWithEmissions, generateTxn]);
 
   return {
     handleSimulation,
