@@ -160,9 +160,7 @@ export const PositionActionButtons = ({
         txnSig = await activeGroup.client.processTransactions(
           [...actionTransaction.feedCrankTxs, actionTransaction.closeTxn],
           undefined,
-          undefined,
-          broadcastType,
-          true
+          { broadcastType: broadcastType } // todo: add priority fee
         );
         multiStepToast.setSuccessAndNext();
       }

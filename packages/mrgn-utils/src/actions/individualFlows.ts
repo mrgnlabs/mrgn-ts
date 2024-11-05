@@ -116,7 +116,7 @@ export async function createAccountAndDeposit({
   }
 
   try {
-    const txnSig = await marginfiAccount.deposit(amount, bank.address, { priorityFeeUi: priorityFee }, broadcastType);
+    const txnSig = await marginfiAccount.deposit(amount, bank.address, { priorityFeeUi: priorityFee });
     multiStepToast.setSuccessAndNext();
     return txnSig;
   } catch (error: any) {
@@ -156,7 +156,7 @@ export async function deposit({
     if (actionTxns?.actionTxn && marginfiClient) {
       txnSig = await marginfiClient.processTransaction(actionTxns.actionTxn);
     } else if (marginfiAccount) {
-      txnSig = await marginfiAccount.deposit(amount, bank.address, { priorityFeeUi: priorityFee }, broadcastType);
+      txnSig = await marginfiAccount.deposit(amount, bank.address, { priorityFeeUi: priorityFee });
     } else {
       throw new Error("Marginfi account not ready.");
     }
@@ -197,14 +197,9 @@ export async function borrow({
 
   try {
     if (actionTxns?.actionTxn && marginfiClient) {
-      sigs = await marginfiClient.processTransactions(
-        [...actionTxns.additionalTxns, actionTxns.actionTxn],
-        undefined,
-        undefined,
-        broadcastType
-      );
+      sigs = await marginfiClient.processTransactions([...actionTxns.additionalTxns, actionTxns.actionTxn]);
     } else if (marginfiAccount) {
-      sigs = await marginfiAccount.borrow(amount, bank.address, { priorityFeeUi: priorityFee }, broadcastType);
+      sigs = await marginfiAccount.borrow(amount, bank.address, { priorityFeeUi: priorityFee });
     } else {
       throw new Error("Marginfi account not ready.");
     }
@@ -245,22 +240,11 @@ export async function withdraw({
 
   try {
     if (actionTxns?.actionTxn && marginfiClient) {
-      sigs = await marginfiClient.processTransactions(
-        [...actionTxns.additionalTxns, actionTxns.actionTxn],
-        undefined,
-        undefined,
-        broadcastType
-      );
+      sigs = await marginfiClient.processTransactions([...actionTxns.additionalTxns, actionTxns.actionTxn]);
     } else if (marginfiAccount) {
-      sigs = await marginfiAccount.withdraw(
-        amount,
-        bank.address,
-        bank.isActive && isWholePosition(bank, amount),
-        {
-          priorityFeeUi: priorityFee,
-        },
-        broadcastType
-      );
+      sigs = await marginfiAccount.withdraw(amount, bank.address, bank.isActive && isWholePosition(bank, amount), {
+        priorityFeeUi: priorityFee,
+      });
     } else {
       throw new Error("Marginfi account not ready.");
     }
@@ -302,15 +286,9 @@ export async function repay({
     if (actionTxns?.actionTxn && marginfiClient) {
       txnSig = await marginfiClient.processTransaction(actionTxns.actionTxn);
     } else if (marginfiAccount) {
-      txnSig = await marginfiAccount.repay(
-        amount,
-        bank.address,
-        bank.isActive && isWholePosition(bank, amount),
-        {
-          priorityFeeUi: priorityFee,
-        },
-        broadcastType
-      );
+      txnSig = await marginfiAccount.repay(amount, bank.address, bank.isActive && isWholePosition(bank, amount), {
+        priorityFeeUi: priorityFee,
+      });
     } else {
       throw new Error("Marginfi account not ready.");
     }
@@ -357,21 +335,11 @@ export async function looping({
     let sigs: string[] = [];
 
     if (actionTxns?.actionTxn) {
-      sigs = await marginfiClient.processTransactions(
-        [...actionTxns.additionalTxns, actionTxns.actionTxn],
-        undefined,
-        undefined,
-        broadcastType
-      );
+      sigs = await marginfiClient.processTransactions([...actionTxns.additionalTxns, actionTxns.actionTxn]);
     } else if (loopingOptions) {
       console.log("loopingOptions", loopingOptions);
       if (loopingOptions?.loopingTxn) {
-        sigs = await marginfiClient.processTransactions(
-          [...loopingOptions.feedCrankTxs, loopingOptions.loopingTxn],
-          undefined,
-          undefined,
-          broadcastType
-        );
+        sigs = await marginfiClient.processTransactions([...loopingOptions.feedCrankTxs, loopingOptions.loopingTxn]);
       } else {
         const { flashloanTx, feedCrankTxs } = await loopingBuilder({
           marginfiAccount: marginfiAccount!,
@@ -381,12 +349,7 @@ export async function looping({
           priorityFee,
           broadcastType,
         });
-        sigs = await marginfiClient.processTransactions(
-          [...feedCrankTxs, flashloanTx],
-          undefined,
-          undefined,
-          broadcastType
-        );
+        sigs = await marginfiClient.processTransactions([...feedCrankTxs, flashloanTx]);
       }
     } else {
       throw new Error("Invalid options provided for looping, please contact support.");
@@ -439,21 +402,14 @@ export async function repayWithCollat({
     let sigs: string[] = [];
 
     if (actionTxns?.actionTxn) {
-      sigs = await marginfiClient.processTransactions(
-        [...actionTxns.additionalTxns, actionTxns.actionTxn],
-        undefined,
-        undefined,
-        broadcastType
-      );
+      sigs = await marginfiClient.processTransactions([...actionTxns.additionalTxns, actionTxns.actionTxn]);
     } else if (repayWithCollatOptions) {
       // deprecated
       if (repayWithCollatOptions.repayCollatTxn) {
-        sigs = await marginfiClient.processTransactions(
-          [...repayWithCollatOptions.feedCrankTxs, repayWithCollatOptions.repayCollatTxn],
-          undefined,
-          undefined,
-          broadcastType
-        );
+        sigs = await marginfiClient.processTransactions([
+          ...repayWithCollatOptions.feedCrankTxs,
+          repayWithCollatOptions.repayCollatTxn,
+        ]);
       } else {
         const { flashloanTx, feedCrankTxs } = await repayWithCollatBuilder({
           marginfiAccount,
@@ -464,12 +420,7 @@ export async function repayWithCollat({
           broadcastType,
         });
 
-        sigs = await marginfiClient.processTransactions(
-          [...feedCrankTxs, flashloanTx],
-          undefined,
-          undefined,
-          broadcastType
-        );
+        sigs = await marginfiClient.processTransactions([...feedCrankTxs, flashloanTx]);
       }
     } else {
       throw new Error("Invalid options provided for repay, please contact support.");
@@ -551,11 +502,9 @@ export const closeBalance = async ({
   try {
     let txnSig = "";
     if (bank.position.isLending) {
-      txnSig =
-        (await marginfiAccount.withdraw(0, bank.address, true, { priorityFeeUi: priorityFee }, broadcastType)).pop() ??
-        "";
+      txnSig = (await marginfiAccount.withdraw(0, bank.address, true, { priorityFeeUi: priorityFee })).pop() ?? "";
     } else {
-      txnSig = await marginfiAccount.repay(0, bank.address, true, { priorityFeeUi: priorityFee }, broadcastType);
+      txnSig = await marginfiAccount.repay(0, bank.address, true, { priorityFeeUi: priorityFee });
     }
     multiStepToast.setSuccessAndNext();
     return txnSig;

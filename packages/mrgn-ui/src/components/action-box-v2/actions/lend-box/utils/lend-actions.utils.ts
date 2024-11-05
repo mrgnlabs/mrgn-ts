@@ -124,27 +124,17 @@ export async function calculateLendingTransaction(
 > {
   switch (actionMode) {
     case ActionType.Deposit:
-      const depositTx = await marginfiAccount.makeDepositTx(
-        amount,
-        bank.address,
-        { priorityFeeUi: priorityFee },
-        broadcastType
-      );
+      const depositTx = await marginfiAccount.makeDepositTx(amount, bank.address, { priorityFeeUi: priorityFee });
       return {
         actionTxn: depositTx,
         additionalTxns: [], // bundle tip ix is in depositTx
       };
     case ActionType.Borrow:
-      const borrowTxObject = await marginfiAccount.makeBorrowTx(
-        amount,
-        bank.address,
-        {
-          createAtas: true,
-          wrapAndUnwrapSol: false,
-          priorityFeeUi: priorityFee,
-        },
-        broadcastType
-      );
+      const borrowTxObject = await marginfiAccount.makeBorrowTx(amount, bank.address, {
+        createAtas: true,
+        wrapAndUnwrapSol: false,
+        priorityFeeUi: priorityFee,
+      });
       return {
         actionTxn: borrowTxObject.borrowTx,
         additionalTxns: borrowTxObject.feedCrankTxs,
@@ -154,8 +144,7 @@ export async function calculateLendingTransaction(
         amount,
         bank.address,
         bank.isActive && isWholePosition(bank, amount),
-        { priorityFeeUi: priorityFee },
-        broadcastType
+        { priorityFeeUi: priorityFee }
       );
       return {
         actionTxn: withdrawTxObject.withdrawTx,
@@ -166,8 +155,7 @@ export async function calculateLendingTransaction(
         amount,
         bank.address,
         bank.isActive && isWholePosition(bank, amount),
-        { priorityFeeUi: priorityFee },
-        broadcastType
+        { priorityFeeUi: priorityFee }
       );
       return {
         actionTxn: repayTx,

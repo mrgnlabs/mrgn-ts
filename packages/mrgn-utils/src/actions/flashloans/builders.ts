@@ -2,7 +2,7 @@ import { createJupiterApiClient, QuoteGetRequest, QuoteResponse } from "@jup-ag/
 import { AccountInfo, AddressLookupTableAccount, Connection, PublicKey, VersionedTransaction } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 
-import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
+import { MarginfiAccountWrapper, MarginfiClient, SolanaTransaction } from "@mrgnlabs/marginfi-client-v2";
 import { ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { LUT_PROGRAM_AUTHORITY_INDEX, nativeToUi, TransactionBroadcastType, uiToNative } from "@mrgnlabs/mrgn-common";
 

@@ -1,7 +1,7 @@
 import { Address, BN } from "@coral-xyz/anchor";
 import BigNumber from "bignumber.js";
 import { Decimal } from "decimal.js";
-import { Amount, WrappedI80F48 } from "./types";
+import { Amount, WrappedI80F48 } from "../types";
 
 const I80F48_FRACTIONAL_BYTES = 6;
 const I80F48_TOTAL_BYTES = 16;

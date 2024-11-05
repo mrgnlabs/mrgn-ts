@@ -122,8 +122,7 @@ const executeLstAction = async ({
     const txnSig = await marginfiClient.processTransactions(
       [actionTxns.actionTxn, ...actionTxns.additionalTxns],
       undefined,
-      undefined,
-      broadcastType
+      { broadcastType: broadcastType } // todo: add priority fee
     );
     multiStepToast.setSuccessAndNext();
 

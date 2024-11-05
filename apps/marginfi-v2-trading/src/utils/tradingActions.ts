@@ -268,9 +268,7 @@ export async function executeLeverageAction({
         txnSig = await marginfiClient.processTransactions(
           [...loopingObject.feedCrankTxs, loopingObject.loopingTxn],
           undefined,
-          undefined,
-          broadcastType,
-          true
+          { broadcastType: broadcastType } // todo: add priority fee
         );
       } else {
         txnSig = [await marginfiClient.processTransaction(loopingObject.loopingTxn)];
