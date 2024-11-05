@@ -7,11 +7,8 @@ import {
   createAssociatedTokenAccountIdempotentInstruction,
   getAssociatedTokenAddressSync,
   shortenAddress,
-  TransactionPriorityType,
   TransactionBroadcastType,
-  TOKEN_PROGRAM_ID,
 } from "@mrgnlabs/mrgn-common";
-import { TOKEN_2022_MINTS } from "@mrgnlabs/mrgn-utils";
 import * as sb from "@switchboard-xyz/on-demand";
 import { Address, BorshCoder, Idl, translateAddress } from "@coral-xyz/anchor";
 import {
