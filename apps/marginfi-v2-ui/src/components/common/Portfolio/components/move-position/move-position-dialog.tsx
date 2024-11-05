@@ -46,7 +46,8 @@ export const MovePositionDialog = ({
 }: MovePositionDialogProps) => {
   const [accountToMoveTo, setAccountToMoveTo] = React.useState<MarginfiAccountWrapper | null>(null);
   const [actionTxns, setActionTxns] = React.useState<VersionedTransaction[]>([]);
-  const [isLoading, setIsLoading] = React.useState<boolean>(false);
+  const [isExecutionLoading, setIsExecutionLoading] = React.useState<boolean>(false);
+  const [isSimulationLoading, setIsSimulationLoading] = React.useState<boolean>(false);
   const [errorMessage, setErrorMessage] = React.useState<ActionMessageType | null>(null);
   const [additionalActionMessages, setAdditionalActionMessages] = React.useState<ActionMessageType[]>([]);
   const { handleSimulateTxns } = useMoveSimulation({
@@ -57,7 +58,7 @@ export const MovePositionDialog = ({
     activeBank: bank,
     extendedBankInfos,
     setActionTxns,
-    setIsLoading,
+    setIsLoading: setIsSimulationLoading,
     setErrorMessage,
   });
 
@@ -95,9 +96,10 @@ export const MovePositionDialog = ({
   const isButtonDisabled = React.useMemo(() => {
     if (!accountToMoveTo) return true;
     if (actionMessages && actionMessages.filter((value) => value.isEnabled === false).length > 0) return true;
-    if (isLoading) return true;
+    if (isSimulationLoading) return true;
+    if (isExecutionLoading) return true;
     return false;
-  }, [accountToMoveTo, actionMessages, isLoading]);
+  }, [accountToMoveTo, actionMessages, isSimulationLoading, isExecutionLoading]);
 
   const handleMovePosition = React.useCallback(async () => {
     if (!marginfiClient || !accountToMoveTo || !actionTxns) {
@@ -110,7 +112,7 @@ export const MovePositionDialog = ({
       },
     ]);
     multiStepToast.start();
-    setIsLoading(true);
+    setIsExecutionLoading(true);
     try {
       await marginfiClient.processTransactions(actionTxns);
       await fetchMrgnlendState();
@@ -125,7 +127,7 @@ export const MovePositionDialog = ({
         wallet: marginfiClient?.wallet.publicKey.toBase58(),
       });
     } finally {
-      setIsLoading(false);
+      setIsExecutionLoading(false);
     }
   }, [marginfiClient, accountToMoveTo, actionTxns, fetchMrgnlendState, setIsOpen]);
 
@@ -212,7 +214,7 @@ export const MovePositionDialog = ({
         )}
 
         <Button className="w-full" onClick={handleMovePosition} disabled={isButtonDisabled}>
-          {isLoading ? <IconLoader /> : "Move position"}
+          {isExecutionLoading || isSimulationLoading ? <IconLoader /> : "Move position"}
         </Button>
 
         <div className=" text-xs text-muted-foreground text-center">

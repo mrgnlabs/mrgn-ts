@@ -9,7 +9,9 @@ import {
   shortenAddress,
   TransactionPriorityType,
   TransactionBroadcastType,
+  TOKEN_PROGRAM_ID,
 } from "@mrgnlabs/mrgn-common";
+import { TOKEN_2022_MINTS } from "@mrgnlabs/mrgn-utils";
 import * as sb from "@switchboard-xyz/on-demand";
 import { Address, BorshCoder, Idl, translateAddress } from "@coral-xyz/anchor";
 import {
@@ -1084,8 +1086,30 @@ class MarginfiAccountWrapper {
     const blockhash = (await this._program.provider.connection.getLatestBlockhash()).blockhash;
 
     const ixs: TransactionInstruction[] = [];
+
     await Promise.all(
       bankAddresses.map(async (bankAddress) => {
+        // const bank = this.client.getBankByPk(bankAddress);
+        // if (!bank) return;
+
+        // const tokenMint = bank.emissionsMint;
+        // if (!tokenMint) return;
+
+        // const programId = TOKEN_2022_MINTS.includes(tokenMint.toString()) ? TOKEN_2022_PROGRAM_ID : TOKEN_PROGRAM_ID;
+        // const ata = getAssociatedTokenAddressSync(tokenMint, this.client.wallet.publicKey, true, programId);
+
+        // const ataInfo = await this._program.provider.connection.getAccountInfo(ata);
+        // if (!ataInfo) {
+        //   const createAtaIx = createAssociatedTokenAccountIdempotentInstruction(
+        //     this.authority,
+        //     ata,
+        //     this.client.wallet.publicKey,
+        //     tokenMint,
+        //     programId
+        //   );
+        //   ixs.push(createAtaIx);
+        // } TODO: uncomment once able to fully test this
+
         const ix = await this.makeWithdrawEmissionsIx(bankAddress);
         if (!ix) return;
         ixs.push(...ix.instructions);
@@ -1100,7 +1124,6 @@ class MarginfiAccountWrapper {
       }).compileToV0Message()
     );
   }
-
   async withdrawEmissions(
     bankAddresses: PublicKey[],
     priorityFeeUi?: number,

@@ -64,7 +64,7 @@ export const LendingPortfolio = () => {
   const [actionTxn, setActionTxn] = React.useState<VersionedTransaction | null>(null);
   const [rewardsLoading, setRewardsLoading] = React.useState(false);
 
-  const { handleSimulation, bankAddressesWithEmissions } = useRewardSimulation({
+  const { handleSimulation } = useRewardSimulation({
     simulationResult: rewards,
     actionTxn,
     marginfiClient,
