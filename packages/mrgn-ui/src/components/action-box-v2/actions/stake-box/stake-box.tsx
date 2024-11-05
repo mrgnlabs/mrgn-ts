@@ -325,7 +325,7 @@ export const StakeBox = ({
           }
           connected={connected}
           handleAction={handleLstAction}
-          buttonLabel={requestedActionType === ActionType.MintLST ? "Mint LST" : "Unstake LST"}
+          buttonLabel={requestedActionType === ActionType.MintLST ? "Stake" : "Unstake"}
         />
       </div>
 
