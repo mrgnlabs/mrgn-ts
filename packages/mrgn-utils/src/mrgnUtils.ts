@@ -128,7 +128,7 @@ export function extractErrorString(error: any, fallback?: string): string {
 }
 
 export function getTokenImageURL(bank: ExtendedBankInfo | PublicKey): string {
-  const mintAddress = (bank as ExtendedBankInfo).info?.rawBank.mint || bank;
+  const mintAddress = bank instanceof PublicKey ? bank : bank.info.rawBank.mint;
   return `https://storage.googleapis.com/mrgn-public/mrgn-token-icons/${mintAddress.toBase58()}.png`;
 }
 
