@@ -6,6 +6,7 @@ import {
   DEFAULT_CONFIRM_OPTS,
   MARGINFI_PROGRAM,
   Wallet,
+  SolanaTransaction,
 } from "@mrgnlabs/mrgn-common";
 import {
   VersionedTransaction,
@@ -32,11 +33,6 @@ export type ProcessTransactionsClientOpts = {
   broadcastType?: TransactionBroadcastType;
   priorityFeeUi?: number;
   isSequentialTxs?: boolean;
-};
-
-export type SolanaTransaction = (VersionedTransaction | Transaction) & {
-  signers?: Array<Signer>;
-  addressLookupTables?: AddressLookupTableAccount[];
 };
 
 type ProcessTransactionsProps = {

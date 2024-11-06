@@ -2,11 +2,13 @@ import { BorshInstructionCoder, Idl, Instruction } from "@coral-xyz/anchor";
 import {
   AddressLookupTableAccount,
   PublicKey,
+  Signer,
   Transaction,
   TransactionInstruction,
   TransactionMessage,
   VersionedTransaction,
 } from "@solana/web3.js";
+import { SolanaTransaction } from "./transaction.types";
 
 /**
  * Determines if a given transaction is a VersionedTransaction.
@@ -132,4 +134,23 @@ export function updateV0Tx(transaction: VersionedTransaction, opts?: UpdateTxOpt
     recentBlockhash: blockhash,
   });
   return new VersionedTransaction(versionedMessage.compileToV0Message(addressLookupTables));
+}
+
+/**
+ * Enhances a given transaction with additional metadata.
+ *
+ * @param transaction - The transaction to be enhanced, can be either VersionedTransaction or Transaction.
+ * @param options - An object containing optional metadata:
+ *   - signers: An array of Signer objects that are associated with the transaction.
+ *   - addressLookupTables: An array of AddressLookupTableAccount objects for address resolution.
+ * @returns A SolanaTransaction object that includes the original transaction and the additional metadata.
+ */
+export function addTransactionMetadata(
+  transaction: VersionedTransaction | Transaction,
+  options: { signers?: Array<Signer>; addressLookupTables?: AddressLookupTableAccount[] }
+): SolanaTransaction {
+  return {
+    ...transaction,
+    ...options,
+  } as SolanaTransaction;
 }

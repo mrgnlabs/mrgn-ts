@@ -20,6 +20,7 @@ import { getConfig } from "../config";
 import instructions from "../instructions";
 import { MarginRequirementType } from "../models/account";
 import {
+  addTransactionMetadata,
   BankMetadataMap,
   chunkedGetRawMultipleAccountInfoOrdered,
   DEFAULT_COMMITMENT,
@@ -30,6 +31,7 @@ import {
   NodeWallet,
   simulateBundle,
   sleep,
+  SolanaTransaction,
   TransactionBroadcastType,
   TransactionOptions,
   Wallet,
@@ -47,8 +49,6 @@ import {
   MarginfiIdlType,
   BankConfigOpt,
   BankConfig,
-  makeBundleTipIx,
-  makeTxPriorityIx,
 } from "..";
 import { MarginfiAccountWrapper } from "../models/account/wrapper";
 import {
@@ -58,12 +58,7 @@ import {
   parseTransactionError,
 } from "../errors";
 import { findOracleKey, makePriorityFeeIx, PythPushFeedIdMap, buildFeedIdMap } from "../utils";
-import {
-  ProcessTransactionOpts,
-  ProcessTransactionsClientOpts,
-  SolanaTransaction,
-  processTransactions,
-} from "../services";
+import { ProcessTransactionOpts, ProcessTransactionsClientOpts, processTransactions } from "../services";
 
 export type BankMap = Map<string, Bank>;
 export type OraclePriceMap = Map<string, OraclePrice>;
@@ -614,31 +609,29 @@ class MarginfiClient {
    * @returns MarginfiAccount instance
    */
   async createMarginfiAccount(
-    opts?: TransactionOptions,
+    txOpts?: TransactionOptions,
     createOpts?: { newAccountKey?: PublicKey | undefined },
-    priorityFeeUi?: number,
-    broadcastType?: TransactionBroadcastType
+    processOpts?: ProcessTransactionsClientOpts
   ): Promise<MarginfiAccountWrapper> {
     const dbg = require("debug")("mfi:client");
 
     const accountKeypair = Keypair.generate();
     const newAccountKey = createOpts?.newAccountKey ?? accountKeypair.publicKey;
 
-    const { bundleTipIx, priorityFeeIx } = makeTxPriorityIx(this.provider.publicKey, priorityFeeUi, broadcastType);
-
     const ixs = await this.makeCreateMarginfiAccountIx(newAccountKey);
     const signers = [...ixs.keys];
     // If there was no newAccountKey provided, we need to sign with the ephemeraKeypair we generated.
     if (!createOpts?.newAccountKey) signers.push(accountKeypair);
 
-    const tx = new Transaction().add(priorityFeeIx, ...(bundleTipIx ? [bundleTipIx] : []), ...ixs.instructions);
-    const sig = await this.processTransaction(tx, signers, opts);
+    const tx = new Transaction().add(...ixs.instructions);
+    const solanaTx = addTransactionMetadata(tx, { signers, addressLookupTables: this.addressLookupTables });
+    const sig = await this.processTransaction(solanaTx, txOpts, processOpts);
 
     dbg("Created Marginfi account %s", sig);
 
-    return opts?.dryRun || createOpts?.newAccountKey
+    return txOpts?.dryRun || createOpts?.newAccountKey
       ? Promise.resolve(undefined as unknown as MarginfiAccountWrapper)
-      : MarginfiAccountWrapper.fetch(newAccountKey, this, opts?.commitment);
+      : MarginfiAccountWrapper.fetch(newAccountKey, this, txOpts?.commitment);
   }
 
   /**
@@ -665,9 +658,17 @@ class MarginfiClient {
   }
 
   /**
-   * Create a new marginfi bank under the authority of the user.
+   * Initiates a new permissionless marginfi bank under the authority of the user.
    *
-   * @returns String signature
+   * @param {Object} params - The parameters for creating a permissionless bank.
+   * @param {PublicKey} params.mint - The public key of the mint for the bank.
+   * @param {BankConfigOpt} params.bankConfig - The configuration options for the bank.
+   * @param {PublicKey} params.group - The public key of the group to which the bank belongs.
+   * @param {PublicKey} params.admin - The public key of the admin who will have authority over the bank.
+   * @param {Keypair} [params.seed] - An optional keypair used as a seed for generating the bank account.
+   * @param {TransactionOptions} [params.txOpts] - Optional transaction options for processing.
+   * @param {ProcessTransactionsClientOpts} [params.processOpts] - Optional processing options for transactions.
+   * @returns {Promise<TransactionSignature>} A promise that resolves to the transaction signature as a string.
    */
   async createPermissionlessBank({
     mint,
@@ -675,26 +676,20 @@ class MarginfiClient {
     group,
     admin,
     seed,
-    priorityFee,
-    opts,
+    txOpts,
+    processOpts,
   }: {
     mint: PublicKey;
     bankConfig: BankConfigOpt;
     group: PublicKey;
     admin: PublicKey;
     seed?: Keypair;
-    priorityFee?: number;
-
-    opts?: TransactionOptions;
-  }) {
+    txOpts?: TransactionOptions;
+    processOpts?: ProcessTransactionsClientOpts;
+  }): Promise<TransactionSignature> {
     const dbg = require("debug")("mfi:client");
 
     const keypair = seed ?? Keypair.generate();
-
-    const bundleTipIx = makeBundleTipIx(admin);
-
-    const priorityFeeIx = priorityFee ? makePriorityFeeIx(priorityFee) : [];
-
     const bankIxs = await this.group.makePoolAddBankIx(this.program, keypair.publicKey, mint, bankConfig, {
       admin,
       groupAddress: group,
@@ -702,60 +697,71 @@ class MarginfiClient {
 
     const signers = [...bankIxs.keys, keypair];
 
-    const tx = new Transaction().add(bundleTipIx, ...priorityFeeIx, ...bankIxs.instructions);
+    const tx = new Transaction().add(...bankIxs.instructions);
 
-    const sig = await this.processTransaction(tx, signers, opts);
+    const solanaTx = addTransactionMetadata(tx, { signers, addressLookupTables: this.addressLookupTables });
+    const sig = await this.processTransaction(solanaTx, txOpts, processOpts);
     dbg("Created Marginfi group %s", sig);
 
     return sig;
   }
 
   /**
-   * Create a new marginfi group under the authority of the user.
+   * Initializes a new marginfi group with the specified parameters.
    *
-   * @returns MarginfiGroup instance
+   * @param seed - Optional keypair used for generating the group account.
+   * @param additionalIxs - Optional array of additional transaction instructions to include.
+   * @param txOpts - Optional transaction options for processing.
+   * @param processOpts - Optional processing options for transactions.
+   * @returns The public key of the newly created marginfi group.
    */
   async createMarginfiGroup(
     seed?: Keypair,
     additionalIxs?: TransactionInstruction[],
-    opts?: TransactionOptions
+    txOpts?: TransactionOptions,
+    processOpts?: ProcessTransactionsClientOpts
   ): Promise<PublicKey> {
     const dbg = require("debug")("mfi:client");
 
     const accountKeypair = seed ?? Keypair.generate();
 
-    const bundleTipIx = makeBundleTipIx(this.provider.publicKey);
-
     const ixs = await this.makeCreateMarginfiGroupIx(accountKeypair.publicKey);
     const signers = [...ixs.keys, accountKeypair];
-    const tx = new Transaction().add(bundleTipIx, ...ixs.instructions, ...(additionalIxs ?? []));
-    const sig = await this.processTransaction(tx, signers, opts);
+    const tx = new Transaction().add(...ixs.instructions, ...(additionalIxs ?? []));
+    const solanaTx = addTransactionMetadata(tx, { signers, addressLookupTables: this.addressLookupTables });
+    const sig = await this.processTransaction(solanaTx, txOpts, processOpts);
     dbg("Created Marginfi group %s", sig);
 
     return Promise.resolve(accountKeypair.publicKey);
   }
 
   /**
-   * Create a new lending pool.
+   * Create a new bank under the authority of the user.
    *
-   * @returns bank address and transaction signature
+   * @param bankMint - The public key of the token mint for the bank.
+   * @param bankConfig - Configuration options for the bank.
+   * @param seed - Optional keypair for the bank.
+   * @param txOpts - Optional transaction options for processing.
+   * @param processOpts - Optional processing options for transactions.
+   * @returns The bank's public key and the transaction signature
    */
   async createLendingPool(
     bankMint: PublicKey,
     bankConfig: BankConfigOpt,
-    opts?: TransactionOptions
+    seed?: Keypair,
+    txOpts?: TransactionOptions,
+    processOpts?: ProcessTransactionsClientOpts
   ): Promise<{ bankAddress: PublicKey; signature: TransactionSignature }> {
     const dbg = require("debug")("mfi:client");
 
-    const bankKeypair = Keypair.generate();
+    const bankKeypair = seed ?? Keypair.generate();
 
     const ixs = await this.group.makePoolAddBankIx(this.program, bankKeypair.publicKey, bankMint, bankConfig, {});
     const signers = [...ixs.keys, bankKeypair];
-    const priorityFeeIx = makePriorityFeeIx(0.001);
+    const tx = new Transaction().add(...ixs.instructions);
 
-    const tx = new Transaction().add(...priorityFeeIx, ...ixs.instructions);
-
-    const sig = await this.processTransaction(tx, signers, opts);
+    const solanaTx = addTransactionMetadata(tx, { signers, addressLookupTables: this.addressLookupTables });
+    const sig = await this.processTransaction(solanaTx, txOpts, processOpts);
     dbg("Created new lending pool %s", sig);
 
     return Promise.resolve({
@@ -769,9 +775,15 @@ class MarginfiClient {
   // --------------------------------------------------------------------------
 
   /**
-   * Process a transaction, sign it and send it to the network.
+   * Processes multiple Solana transactions by signing and sending them to the network.
    *
-   * @throws ProcessTransactionError
+   * @param {SolanaTransaction[]} transactions - An array of transactions to be processed.
+   * @param {TransactionOptions} [txOpts] - Optional transaction options for processing.
+   * @param {ProcessTransactionsClientOpts} [processOpts] - Optional processing options for transactions.
+   *
+   * @returns {Promise<TransactionSignature[]>} - A promise that resolves to an array of transaction signatures.
+   *
+   * @throws {ProcessTransactionError} - Throws an error if transaction processing fails.
    */
   async processTransactions(
     transactions: SolanaTransaction[],
@@ -794,28 +806,40 @@ class MarginfiClient {
     });
   }
 
+  /**
+   * Processes a single Solana transaction by signing and sending it to the network.
+   *
+   * @param {SolanaTransaction} transaction - The transaction to be processed.
+   * @param {TransactionOptions} [txOpts] - Optional transaction options.
+   * @param {ProcessTransactionsClientOpts} [processOpts] - Optional processing options.
+   *
+   * @returns {Promise<TransactionSignature>} - A promise that resolves to the transaction signature.
+   *
+   * @throws {ProcessTransactionError} - Throws an error if transaction processing fails.
+   */
   async processTransaction(
     transaction: SolanaTransaction,
     txOpts?: TransactionOptions,
     processOpts?: ProcessTransactionsClientOpts
   ): Promise<TransactionSignature> {
-    // this.addressLookupTables
-    const options = {
+    transaction.addressLookupTables = transaction.addressLookupTables || this.addressLookupTables;
+
+    const options: ProcessTransactionOpts = {
       ...processOpts,
       isReadOnly: this.isReadOnly,
       programId: this.program.programId,
       bundleSimRpcEndpoint: this.bundleSimRpcEndpoint,
-    } as ProcessTransactionOpts;
+    };
 
-    return (
-      await processTransactions({
-        transactions: [transaction],
-        connection: this.provider.connection,
-        wallet: this.provider.wallet,
-        txOpts,
-        processOpts,
-      })
-    )[0];
+    const [signature] = await processTransactions({
+      transactions: [transaction],
+      connection: this.provider.connection,
+      wallet: this.provider.wallet,
+      txOpts,
+      processOpts: options,
+    });
+
+    return signature;
   }
 
   private async sendTransactionAsGrpcBundle(base58Txs: string[]): Promise<string> {

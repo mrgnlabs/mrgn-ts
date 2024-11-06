@@ -8,6 +8,8 @@ import {
   getAssociatedTokenAddressSync,
   shortenAddress,
   TransactionBroadcastType,
+  addTransactionMetadata,
+  TransactionOptions,
 } from "@mrgnlabs/mrgn-common";
 import * as sb from "@switchboard-xyz/on-demand";
 import { Address, BorshCoder, Idl, translateAddress } from "@coral-xyz/anchor";
@@ -36,12 +38,14 @@ import {
   MarginfiGroup,
   MarginfiIdlType,
   OracleSetup,
+  ProcessTransactionsClientOpts,
 } from "../..";
 import { AccountType, MarginfiConfig, MarginfiProgram } from "../../types";
 import { MarginfiAccount, MarginRequirementType, MarginfiAccountRaw } from "./pure";
 import { Bank, computeLoopingParams } from "../bank";
 import { Balance } from "../balance";
 import { getSwitchboardProgram } from "../../vendor";
+import { TransactionSignature } from "@solana/web3.js";
 
 export interface SimulationResult {
   banks: Map<string, Bank>;
@@ -541,7 +545,7 @@ class MarginfiAccountWrapper {
     );
 
     // TODO: Check why different than repayWithCollat
-    const sig = await this.client.processTransaction(flashloanTx, []);
+    const sig = await this.client.processTransaction(flashloanTx);
     debug("Repay with collateral successful %s", sig);
 
     return sig;
@@ -684,13 +688,19 @@ class MarginfiAccountWrapper {
     );
   }
 
-  async deposit(amount: Amount, bankAddress: PublicKey, ixOpts: MakeDepositIxOpts = {}): Promise<string> {
+  async deposit(
+    amount: Amount,
+    bankAddress: PublicKey,
+    depositOpts: MakeDepositIxOpts = {},
+    txOpts?: TransactionOptions,
+    processOpts?: ProcessTransactionsClientOpts
+  ): Promise<TransactionSignature> {
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:deposit`);
     debug("Depositing %s into marginfi account (bank: %s)", amount, shortenAddress(bankAddress));
 
-    const tx = await this.makeDepositTx(amount, bankAddress, ixOpts);
+    const tx = await this.makeDepositTx(amount, bankAddress, depositOpts);
 
-    const sig = await this.client.processTransaction(tx, []);
+    const sig = await this.client.processTransaction(tx, txOpts, processOpts);
     debug("Depositing successful %s", sig);
     return sig;
   }
@@ -772,14 +782,18 @@ class MarginfiAccountWrapper {
     amount: Amount,
     bankAddress: PublicKey,
     repayAll: boolean = false,
-    opt: MakeRepayIxOpts = {}
+    repayOpts: MakeRepayIxOpts = {},
+    txOpts?: TransactionOptions,
+    processOpts?: ProcessTransactionsClientOpts
   ): Promise<string> {
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:repay`);
     debug("Repaying %s into marginfi account (bank: %s), repay all: %s", amount, bankAddress, repayAll);
 
-    const tx = await this.makeRepayTx(amount, bankAddress, repayAll, opt);
+    const tx = await this.makeRepayTx(amount, bankAddress, repayAll, repayOpts);
+    const solanaTx = addTransactionMetadata(tx, { addressLookupTables: this.client.addressLookupTables });
 
-    const sig = await this.client.processTransaction(tx, []);
+    const sig = await this.client.processTransaction(solanaTx, txOpts, processOpts);
+
     debug("Depositing successful %s", sig);
 
     return sig;
@@ -834,14 +848,14 @@ class MarginfiAccountWrapper {
       amount: Amount;
       bankAddress: PublicKey;
     }[],
-    opt: MakeWithdrawIxOpts = {}
+    withdrawOpts: MakeWithdrawIxOpts = {}
   ): Promise<Transaction> {
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:withdraw`);
     debug("Withdrawing all from marginfi account");
     const cuRequestIxs = this.makeComputeBudgetIx();
     let ixs = [];
     for (const bank of banks) {
-      ixs.push(...(await this.makeWithdrawIx(bank.amount, bank.bankAddress, true, opt)).instructions);
+      ixs.push(...(await this.makeWithdrawIx(bank.amount, bank.bankAddress, true, withdrawOpts)).instructions);
     }
     const tx = new Transaction().add(...cuRequestIxs, ...ixs);
     return tx;
