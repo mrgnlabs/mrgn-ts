@@ -6,6 +6,8 @@ import { useDebounce } from "@uidotdev/usehooks";
 import { formatAmount } from "@mrgnlabs/mrgn-utils";
 import { groupedNumberFormatterDyn, usdFormatter } from "@mrgnlabs/mrgn-common";
 
+import { cn } from "@mrgnlabs/mrgn-utils";
+
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "~/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
 import { Input } from "~/components/ui/input";
@@ -111,9 +113,25 @@ const StakeCalculator = ({ solPrice }: StakeCalculatorProps) => {
     <Card className="bg-transparent">
       <CardHeader>
         <CardTitle className="flex flex-col gap-4 items-center text-xl">
-          <div className="text-sm font-normal flex items-center gap-2 text-muted-foreground">
-            <Switch id="usd-denominated" checked={isUsdDenominated} onCheckedChange={setIsUsdDenominated} />{" "}
-            <Label htmlFor="usd-denominated">USD denominated</Label>
+          <div className="text-sm font-normal flex items-center gap-2">
+            <Label
+              onClick={() => setIsUsdDenominated(false)}
+              className={cn(isUsdDenominated && "text-muted-foreground")}
+            >
+              SOL
+            </Label>
+            <Switch
+              id="usd-denominated"
+              checked={isUsdDenominated}
+              onCheckedChange={setIsUsdDenominated}
+              className="data-[state=checked]:bg-accent-highlight"
+            />{" "}
+            <Label
+              onClick={() => setIsUsdDenominated(true)}
+              className={cn(!isUsdDenominated && "text-muted-foreground")}
+            >
+              USD
+            </Label>
           </div>
           <div>
             Your{" "}
@@ -214,7 +232,7 @@ const StakeCalculator = ({ solPrice }: StakeCalculatorProps) => {
           </div>
           <div className="space-y-1 w-full">
             <Label className="text-muted-foreground">
-              Price prediction <span className="text-xs">({usdFormatter.format(solPrice)})</span>
+              Price prediction <span className="text-xs">(${solPrice})</span>
             </Label>
             <div className="flex items-center gap-1">
               <span className="text-sm">$</span>

@@ -27,7 +27,7 @@ const StakeCard = ({ lstBank, lstOverview, connected }: StakeCardProps) => {
     if (!stakeCalculator) return;
     const rect = stakeCalculator.getBoundingClientRect();
     window.scrollTo({
-      top: rect.top - (isMobile ? 80 : 135),
+      top: rect.top - (isMobile ? 80 : 150),
       behavior: "smooth",
     });
   };
@@ -37,10 +37,11 @@ const StakeCard = ({ lstBank, lstOverview, connected }: StakeCardProps) => {
       <CardHeader className="items-center text-center gap-3 pb-4 md:pb-6">
         <IconLST size={56} />
         <CardTitle className="text-xl md:text-2xl">
-          Stake with mrgn validators
-          <br /> and mint LST
+          Stake your SOL with marginfi validators and mint our liquid staking token LST
         </CardTitle>
-        <CardDescription className="sr-only">Stake with mrgn validators and mint LST.</CardDescription>
+        <CardDescription className="sr-only">
+          Stake your SOL with marginfi validators and mint our liquid staking token LST
+        </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col items-center">
         <ul className="space-y-2.5 mb-4 md:mb-8 md:text-lg">
@@ -60,9 +61,9 @@ const StakeCard = ({ lstBank, lstOverview, connected }: StakeCardProps) => {
 
         {lstOverview && (
           <ul className="flex gap-2 text-sm md:text-base">
-            <li className="text-muted-foreground">TVL</li>
+            <li className="text-muted-foreground">LST TVL</li>
             <li>{usdFormatter.format(lstOverview.tvl)}</li>
-            <li className="text-muted-foreground ml-4">Volume</li>
+            <li className="text-muted-foreground ml-4">LST Volume</li>
             <li>{usdFormatter.format(lstOverview.volumeUsd)}</li>
           </ul>
         )}

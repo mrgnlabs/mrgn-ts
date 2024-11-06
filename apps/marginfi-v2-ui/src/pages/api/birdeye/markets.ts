@@ -74,7 +74,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const supportedMarkets = ["Orca", "Raydium Clamm", "Meteora"];
     const markets: IntegrationsData[] = items
       .filter((market: MarketInfo) => supportedMarkets.includes(market.source))
-      .slice(0, 4)
+      .slice(0, 5)
       .map((market: MarketInfo) => ({
         title: market.name,
         poolInfo: {
