@@ -37,7 +37,7 @@ const Stake = () => {
 
   const solPrice = React.useMemo(() => {
     const bank = extendedBankInfos.filter((bank) => bank.info.state.mint.equals(SOL_MINT));
-    return bank.length > 0 ? bank[0].info.state.price : 0;
+    return bank.length > 0 ? Math.round(bank[0].info.state.price) : 0;
   }, [extendedBankInfos]);
 
   React.useEffect(() => {
@@ -142,7 +142,7 @@ const Stake = () => {
         <div className="w-full max-w-6xl mx-auto py-4 px-4 md:px-10 xl:px-16 text-center">
           <h2 className="text-3xl font-medium mb-3">LST Integrations</h2>
           <p className="text-muted-foreground text-lg">
-            Lend and borrow against your position with and engage with the{" "}
+            Lend and borrow against your staked SOL and engage with the{" "}
             <strong className="text-chartreuse">best opportunities in DeFi</strong>.
           </p>
           <div className="flex items-center justify-center flex-wrap gap-8 mt-10 w-full">
@@ -151,7 +151,10 @@ const Stake = () => {
             ) : (
               <IntegrationCardSkeleton />
             )}
-            <ArenaIntegrationCard connected={connected} />
+            {/* 
+            // TODO: Enable Arena integration once it's ready
+            <ArenaIntegrationCard connected={connected} /> 
+            */}
             {integrations?.length > 0
               ? integrations.map((item, i) => <IntegrationCard integrationsData={item} key={i} />)
               : [...new Array(5)].map((_, index) => <IntegrationCardSkeleton key={index} />)}
