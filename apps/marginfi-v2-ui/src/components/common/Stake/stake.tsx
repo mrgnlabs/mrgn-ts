@@ -100,7 +100,7 @@ const Stake = () => {
       </div>
 
       <div className="w-full max-w-2xl mx-auto text-center mt-12 md:mt-0" id="stake-calculator">
-        <h2 className="text-2xl font-medium md:text-43xl">Crypto Staking Calculator</h2>
+        <h2 className="text-2xl font-medium md:text-3xl">Crypto Staking Calculator</h2>
         <p className="text-muted-foreground px-8 text-lg mt-3 md:px-0">
           Calculate your future earnings with our crypto staking calculator.
         </p>
