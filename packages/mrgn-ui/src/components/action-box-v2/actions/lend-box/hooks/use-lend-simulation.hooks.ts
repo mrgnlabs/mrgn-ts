@@ -5,7 +5,7 @@ import { Transaction, VersionedTransaction } from "@solana/web3.js";
 import { AccountSummary, ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { MarginfiAccountWrapper, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
 import { TransactionBroadcastType } from "@mrgnlabs/mrgn-common";
-import { ActionMessageType, usePrevious, STATIC_SIMULATION_ERRORS } from "@mrgnlabs/mrgn-utils";
+import { ActionMessageType, usePrevious, STATIC_SIMULATION_ERRORS, ActionTxns } from "@mrgnlabs/mrgn-utils";
 
 import { calculateLendingTransaction, calculateSummary, getSimulationResult } from "../utils";
 
@@ -22,18 +22,10 @@ type LendSimulationProps = {
   accountSummary?: AccountSummary;
   selectedBank: ExtendedBankInfo | null;
   lendMode: ActionType;
-  actionTxns: {
-    actionTxn: VersionedTransaction | Transaction | null;
-    additionalTxns: (VersionedTransaction | Transaction)[];
-  };
+  actionTxns: ActionTxns;
   simulationResult: SimulationResult | null;
-  priorityFee: number;
-  broadcastType: TransactionBroadcastType;
   setSimulationResult: (result: SimulationResult | null) => void;
-  setActionTxns: (actionTxns: {
-    actionTxn: VersionedTransaction | Transaction | null;
-    additionalTxns: (VersionedTransaction | Transaction)[];
-  }) => void;
+  setActionTxns: (actionTxns: ActionTxns) => void;
   setErrorMessage: (error: ActionMessageType | null) => void;
   setIsLoading: (isLoading: boolean) => void;
 };
@@ -46,8 +38,6 @@ export function useLendSimulation({
   lendMode,
   actionTxns,
   simulationResult,
-  priorityFee,
-  broadcastType,
   setSimulationResult,
   setActionTxns,
   setErrorMessage,
@@ -116,14 +106,7 @@ export function useLendSimulation({
 
       setIsLoading(true);
       try {
-        const lendingObject = await calculateLendingTransaction(
-          selectedAccount,
-          selectedBank,
-          lendMode,
-          amount,
-          priorityFee,
-          broadcastType
-        );
+        const lendingObject = await calculateLendingTransaction(selectedAccount, selectedBank, lendMode, amount);
 
         if (lendingObject && "actionTxn" in lendingObject) {
           setActionTxns({ actionTxn: lendingObject.actionTxn, additionalTxns: lendingObject.additionalTxns });
@@ -142,7 +125,7 @@ export function useLendSimulation({
       //   setIsLoading(false);
       // }
     },
-    [selectedAccount, selectedBank, setIsLoading, setActionTxns, lendMode, priorityFee, broadcastType, setErrorMessage]
+    [selectedAccount, selectedBank, lendMode, setIsLoading, setActionTxns, setErrorMessage]
   );
 
   React.useEffect(() => {

@@ -65,11 +65,10 @@ export async function looping({
     let sigs: string[] = [];
 
     if (options.loopingTxn) {
-      sigs = await marginfiClient.processTransactions(
-        [...options.feedCrankTxs, options.loopingTxn],
-        undefined,
-        { broadcastType: broadcastType } // todo: add priority fee
-      );
+      sigs = await marginfiClient.processTransactions([...options.feedCrankTxs, options.loopingTxn], {
+        broadcastType: broadcastType,
+        priorityFeeUi: priorityFee,
+      });
     } else {
       const { flashloanTx, feedCrankTxs } = await loopingBuilder({
         marginfiAccount,
@@ -79,11 +78,10 @@ export async function looping({
         priorityFee,
         broadcastType,
       });
-      sigs = await marginfiClient.processTransactions(
-        [...feedCrankTxs, flashloanTx],
-        undefined,
-        { broadcastType: broadcastType } // todo: add priority fee
-      );
+      sigs = await marginfiClient.processTransactions([...feedCrankTxs, flashloanTx], {
+        broadcastType: broadcastType,
+        priorityFeeUi: priorityFee,
+      });
     }
     multiStepToast.setSuccessAndNext();
     return sigs;

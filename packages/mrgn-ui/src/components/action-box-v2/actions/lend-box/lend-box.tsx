@@ -153,8 +153,6 @@ export const LendBox = ({
     lendMode,
     actionTxns,
     simulationResult,
-    priorityFee,
-    broadcastType,
     setSimulationResult,
     setActionTxns,
     setErrorMessage,
@@ -219,8 +217,7 @@ export const LendBox = ({
       params: {
         bank: selectedBank,
         marginfiAccount: selectedAccount,
-        priorityFee,
-        broadcastType,
+        processOpts: { priorityFeeUi: priorityFee, broadcastType },
       },
       captureEvent: (event, properties) => {
         captureEvent && captureEvent(event, properties);

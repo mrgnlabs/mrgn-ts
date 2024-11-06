@@ -186,7 +186,8 @@ export const WalletAuthAccounts = ({
     setIsSubmitting(true);
 
     const squadsOptions = await getMaybeSquadsOptions(walletContextState);
-    const mfiAccount = await mfiClient.createMarginfiAccount(undefined, squadsOptions);
+    // todo add priority fee & broadcast type
+    const mfiAccount = await mfiClient.createMarginfiAccount(squadsOptions);
 
     if (!mfiAccount) {
       multiStepToast.setFailed("Error creating new account");

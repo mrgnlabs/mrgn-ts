@@ -2,7 +2,7 @@ import * as Sentry from "@sentry/nextjs";
 import { v4 as uuidv4 } from "uuid";
 
 import { ActionType, FEE_MARGIN } from "@mrgnlabs/marginfi-v2-ui-state";
-import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
+import { MarginfiAccountWrapper, MarginfiClient, ProcessTransactionsClientOpts } from "@mrgnlabs/marginfi-client-v2";
 import {
   captureSentryException,
   extractErrorString,
@@ -25,7 +25,7 @@ interface ExecuteStakeActionProps extends ExecuteActionsCallbackProps {
       amount: number;
       tokenSymbol: string;
     };
-    broadcastType: TransactionBroadcastType;
+    processOpts: ProcessTransactionsClientOpts;
   };
 }
 
@@ -36,7 +36,7 @@ export const handleExecuteLstAction = async ({
   setIsComplete,
   setIsError,
 }: ExecuteStakeActionProps) => {
-  const { actionTxns, marginfiClient, actionType, nativeSolBalance, originDetails, broadcastType } = params;
+  const { actionTxns, marginfiClient, actionType, nativeSolBalance, originDetails, processOpts } = params;
 
   setIsLoading(true);
   const attemptUuid = uuidv4();
@@ -52,7 +52,7 @@ export const handleExecuteLstAction = async ({
     actionType,
     nativeSolBalance,
     originDetails,
-    broadcastType,
+    processOpts,
   });
 
   setIsLoading(false);
@@ -75,7 +75,7 @@ const executeLstAction = async ({
   actionType,
   nativeSolBalance,
   originDetails,
-  broadcastType,
+  processOpts,
 }: {
   marginfiClient: MarginfiClient;
   actionTxns: StakeActionTxns;
@@ -85,7 +85,7 @@ const executeLstAction = async ({
     amount: number;
     tokenSymbol: string;
   };
-  broadcastType: TransactionBroadcastType;
+  processOpts: ProcessTransactionsClientOpts;
 }) => {
   if (!actionTxns.actionTxn) return;
   if (nativeSolBalance < FEE_MARGIN) {
@@ -121,8 +121,7 @@ const executeLstAction = async ({
   try {
     const txnSig = await marginfiClient.processTransactions(
       [actionTxns.actionTxn, ...actionTxns.additionalTxns],
-      undefined,
-      { broadcastType: broadcastType } // todo: add priority fee
+      processOpts
     );
     multiStepToast.setSuccessAndNext();
 

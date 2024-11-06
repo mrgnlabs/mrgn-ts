@@ -207,7 +207,7 @@ export const CreatePoolLoading = ({ poolCreatedData, setIsOpen, setIsCompleted }
           group,
           admin: wallet.publicKey,
           seed,
-          priorityFee: 0, // todo
+          processOpts: { priorityFeeUi: 0 }, // todo
         });
 
         if (!sig) throw new Error();

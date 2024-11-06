@@ -25,7 +25,7 @@ export const handleExecuteRepayCollatAction = async ({
   setIsComplete,
   setIsError,
 }: ExecuteLendingActionsProps) => {
-  const { actionType, bank, amount, priorityFee } = params;
+  const { actionType, bank, amount, processOpts } = params;
 
   setIsLoading(true);
   const attemptUuid = uuidv4();
@@ -34,7 +34,7 @@ export const handleExecuteRepayCollatAction = async ({
     tokenSymbol: bank.meta.tokenSymbol,
     tokenName: bank.meta.tokenName,
     amount,
-    priorityFee,
+    priorityFee: processOpts?.priorityFeeUi,
   });
 
   const txnSig = await executeLendingAction(params);
@@ -49,7 +49,7 @@ export const handleExecuteRepayCollatAction = async ({
       tokenName: bank.meta.tokenName,
       amount: amount,
       txn: txnSig!,
-      priorityFee,
+      priorityFee: processOpts?.priorityFeeUi ?? 0,
     });
   } else {
     setIsError("Transaction not landed");

@@ -194,6 +194,10 @@ export const StakeBox = ({
           amount,
           tokenSymbol: selectedBank.meta.tokenSymbol,
         },
+        processOpts: {
+          broadcastType,
+          priorityFeeUi: priorityFee,
+        },
       };
 
       await handleExecuteLstAction({
@@ -249,6 +253,7 @@ export const StakeBox = ({
     requestedActionType,
     nativeSolBalance,
     broadcastType,
+    priorityFee,
     captureEvent,
     setIsActionComplete,
     setPreviousTxn,

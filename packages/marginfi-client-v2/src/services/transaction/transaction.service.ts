@@ -4,7 +4,7 @@ import {
   TransactionBroadcastType,
   simulateBundle,
   DEFAULT_CONFIRM_OPTS,
-  MARGINFI_PROGRAM,
+  // MARGINFI_PROGRAM,
   Wallet,
   SolanaTransaction,
 } from "@mrgnlabs/mrgn-common";
@@ -22,6 +22,9 @@ import {
 } from "@solana/web3.js";
 import { parseTransactionError, ProcessTransactionError, ProcessTransactionErrorType } from "../../errors";
 import { formatTransactions, sendTransactionAsBundle } from "./transaction.helper";
+
+// TEMPORARY
+export const MARGINFI_PROGRAM = new PublicKey("MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA");
 
 export interface ProcessTransactionOpts extends ProcessTransactionsClientOpts {
   isReadOnly?: boolean;

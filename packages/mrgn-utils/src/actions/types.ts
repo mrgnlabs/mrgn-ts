@@ -6,8 +6,8 @@ import { Connection, PublicKey, Transaction, VersionedTransaction } from "@solan
 import * as solanaStakePool from "@solana/spl-stake-pool";
 import BigNumber from "bignumber.js";
 
-import { TransactionBroadcastType, Wallet } from "@mrgnlabs/mrgn-common";
-import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
+import { SolanaTransaction, TransactionBroadcastType, TransactionOptions, Wallet } from "@mrgnlabs/mrgn-common";
+import { MarginfiAccountWrapper, MarginfiClient, ProcessTransactionsClientOpts } from "@mrgnlabs/marginfi-client-v2";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { WalletContextStateOverride } from "../wallet";
@@ -62,8 +62,8 @@ export interface LstData {
 }
 
 export interface ActionTxns {
-  actionTxn: VersionedTransaction | Transaction | null;
-  additionalTxns: (VersionedTransaction | Transaction)[];
+  actionTxn: SolanaTransaction | null;
+  additionalTxns: SolanaTransaction[];
 }
 
 export interface LoopActionTxns extends ActionTxns {
@@ -112,9 +112,8 @@ export type MarginfiActionParams = {
   repayWithCollatOptions?: RepayWithCollatOptions; // deprecated
   loopingOptions?: LoopingOptions; // deprecated
   walletContextState?: WalletContextState | WalletContextStateOverride;
-  priorityFee: number;
-  broadcastType: TransactionBroadcastType;
-  theme?: "light" | "dark";
+  processOpts?: ProcessTransactionsClientOpts;
+  txOpts?: TransactionOptions;
 };
 
 export type LstActionParams = {

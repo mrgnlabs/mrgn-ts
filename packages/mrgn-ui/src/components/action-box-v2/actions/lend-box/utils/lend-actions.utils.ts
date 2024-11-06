@@ -1,9 +1,9 @@
 import { Transaction, VersionedTransaction } from "@solana/web3.js";
 import { v4 as uuidv4 } from "uuid";
 
-import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
+import { MarginfiAccountWrapper, ProcessTransactionsClientOpts } from "@mrgnlabs/marginfi-client-v2";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { TransactionBroadcastType } from "@mrgnlabs/mrgn-common";
+import { SolanaTransaction, TransactionBroadcastType } from "@mrgnlabs/mrgn-common";
 import {
   ActionMessageType,
   closeBalance,
@@ -25,7 +25,7 @@ export const handleExecuteLendingAction = async ({
   setIsComplete,
   setIsError,
 }: ExecuteLendingActionsProps) => {
-  const { actionType, bank, amount, priorityFee, broadcastType } = params;
+  const { actionType, bank, amount, processOpts } = params;
 
   setIsLoading(true);
   const attemptUuid = uuidv4();
@@ -34,8 +34,7 @@ export const handleExecuteLendingAction = async ({
     tokenSymbol: bank.meta.tokenSymbol,
     tokenName: bank.meta.tokenName,
     amount,
-    priorityFee,
-    broadcastType,
+    processOpts: processOpts?.priorityFeeUi,
   });
 
   const txnSig = await executeLendingAction(params);
@@ -50,7 +49,7 @@ export const handleExecuteLendingAction = async ({
       tokenName: bank.meta.tokenName,
       amount: amount,
       txn: txnSig!,
-      priorityFee,
+      priorityFee: processOpts?.priorityFeeUi,
     });
   } else {
     setIsError("Transaction not landed");
@@ -61,8 +60,7 @@ interface HandleCloseBalanceProps extends ExecuteActionsCallbackProps {
   params: {
     bank: ExtendedBankInfo;
     marginfiAccount: MarginfiAccountWrapper | null;
-    priorityFee?: number;
-    broadcastType: TransactionBroadcastType;
+    processOpts?: ProcessTransactionsClientOpts;
   };
 }
 
@@ -73,7 +71,7 @@ export const handleExecuteCloseBalance = async ({
   setIsComplete,
   setIsError,
 }: HandleCloseBalanceProps) => {
-  const { bank, marginfiAccount, priorityFee, broadcastType } = params;
+  const { bank, marginfiAccount, processOpts } = params;
 
   setIsLoading(true);
   const attemptUuid = uuidv4();
@@ -82,11 +80,11 @@ export const handleExecuteCloseBalance = async ({
     tokenSymbol: bank.meta.tokenSymbol,
     tokenName: bank.meta.tokenName,
     amount: 0,
-    priorityFee,
+    priorityFee: processOpts?.priorityFeeUi,
   });
 
   // const { txnSig, error } = await closeBalance({ marginfiAccount: marginfiAccount, bank: bank, priorityFee });
-  const txnSig = await closeBalance({ marginfiAccount: marginfiAccount, bank: bank, priorityFee, broadcastType });
+  const txnSig = await closeBalance({ marginfiAccount: marginfiAccount, bank: bank, processOpts });
   setIsLoading(false);
 
   // if (error) {
@@ -101,7 +99,7 @@ export const handleExecuteCloseBalance = async ({
       tokenName: bank.meta.tokenName,
       amount: 0,
       txn: txnSig!,
-      priorityFee,
+      priorityFee: processOpts?.priorityFeeUi,
     });
   } else {
     setIsError("Transaction failed to land");
@@ -112,19 +110,17 @@ export async function calculateLendingTransaction(
   marginfiAccount: MarginfiAccountWrapper,
   bank: ExtendedBankInfo,
   actionMode: ActionType,
-  amount: number,
-  priorityFee: number,
-  broadcastType: TransactionBroadcastType
+  amount: number
 ): Promise<
   | {
-      actionTxn: VersionedTransaction | Transaction;
-      additionalTxns: VersionedTransaction[];
+      actionTxn: SolanaTransaction;
+      additionalTxns: SolanaTransaction[];
     }
   | ActionMessageType
 > {
   switch (actionMode) {
     case ActionType.Deposit:
-      const depositTx = await marginfiAccount.makeDepositTx(amount, bank.address, { priorityFeeUi: priorityFee });
+      const depositTx = await marginfiAccount.makeDepositTx(amount, bank.address);
       return {
         actionTxn: depositTx,
         additionalTxns: [], // bundle tip ix is in depositTx
@@ -133,7 +129,6 @@ export async function calculateLendingTransaction(
       const borrowTxObject = await marginfiAccount.makeBorrowTx(amount, bank.address, {
         createAtas: true,
         wrapAndUnwrapSol: false,
-        priorityFeeUi: priorityFee,
       });
       return {
         actionTxn: borrowTxObject.borrowTx,
@@ -143,8 +138,7 @@ export async function calculateLendingTransaction(
       const withdrawTxObject = await marginfiAccount.makeWithdrawTx(
         amount,
         bank.address,
-        bank.isActive && isWholePosition(bank, amount),
-        { priorityFeeUi: priorityFee }
+        bank.isActive && isWholePosition(bank, amount)
       );
       return {
         actionTxn: withdrawTxObject.withdrawTx,
@@ -154,8 +148,7 @@ export async function calculateLendingTransaction(
       const repayTx = await marginfiAccount.makeRepayTx(
         amount,
         bank.address,
-        bank.isActive && isWholePosition(bank, amount),
-        { priorityFeeUi: priorityFee }
+        bank.isActive && isWholePosition(bank, amount)
       );
       return {
         actionTxn: repayTx,

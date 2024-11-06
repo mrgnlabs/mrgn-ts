@@ -606,12 +606,16 @@ class MarginfiClient {
   /**
    * Create a new marginfi account under the authority of the user.
    *
-   * @returns MarginfiAccount instance
+   * @param createOpts - Options for creating the account
+   * @param createOpts.newAccountKey - Optional public key to use for the new account. If not provided, a new keypair will be generated.
+   * @param processOpts - Options for processing the transaction
+   * @param txOpts - Transaction options
+   * @returns Object containing the transaction signature and the created MarginfiAccount instance
    */
   async createMarginfiAccount(
-    txOpts?: TransactionOptions,
     createOpts?: { newAccountKey?: PublicKey | undefined },
-    processOpts?: ProcessTransactionsClientOpts
+    processOpts?: ProcessTransactionsClientOpts,
+    txOpts?: TransactionOptions
   ): Promise<MarginfiAccountWrapper> {
     const dbg = require("debug")("mfi:client");
 
@@ -625,7 +629,7 @@ class MarginfiClient {
 
     const tx = new Transaction().add(...ixs.instructions);
     const solanaTx = addTransactionMetadata(tx, { signers, addressLookupTables: this.addressLookupTables });
-    const sig = await this.processTransaction(solanaTx, txOpts, processOpts);
+    const sig = await this.processTransaction(solanaTx, processOpts, txOpts);
 
     dbg("Created Marginfi account %s", sig);
 
@@ -684,8 +688,8 @@ class MarginfiClient {
     group: PublicKey;
     admin: PublicKey;
     seed?: Keypair;
-    txOpts?: TransactionOptions;
     processOpts?: ProcessTransactionsClientOpts;
+    txOpts?: TransactionOptions;
   }): Promise<TransactionSignature> {
     const dbg = require("debug")("mfi:client");
 
@@ -700,7 +704,7 @@ class MarginfiClient {
     const tx = new Transaction().add(...bankIxs.instructions);
 
     const solanaTx = addTransactionMetadata(tx, { signers, addressLookupTables: this.addressLookupTables });
-    const sig = await this.processTransaction(solanaTx, txOpts, processOpts);
+    const sig = await this.processTransaction(solanaTx, processOpts, txOpts);
     dbg("Created Marginfi group %s", sig);
 
     return sig;
@@ -718,8 +722,8 @@ class MarginfiClient {
   async createMarginfiGroup(
     seed?: Keypair,
     additionalIxs?: TransactionInstruction[],
-    txOpts?: TransactionOptions,
-    processOpts?: ProcessTransactionsClientOpts
+    processOpts?: ProcessTransactionsClientOpts,
+    txOpts?: TransactionOptions
   ): Promise<PublicKey> {
     const dbg = require("debug")("mfi:client");
 
@@ -729,7 +733,7 @@ class MarginfiClient {
     const signers = [...ixs.keys, accountKeypair];
     const tx = new Transaction().add(...ixs.instructions, ...(additionalIxs ?? []));
     const solanaTx = addTransactionMetadata(tx, { signers, addressLookupTables: this.addressLookupTables });
-    const sig = await this.processTransaction(solanaTx, txOpts, processOpts);
+    const sig = await this.processTransaction(solanaTx, processOpts, txOpts);
     dbg("Created Marginfi group %s", sig);
 
     return Promise.resolve(accountKeypair.publicKey);
@@ -749,8 +753,8 @@ class MarginfiClient {
     bankMint: PublicKey,
     bankConfig: BankConfigOpt,
     seed?: Keypair,
-    txOpts?: TransactionOptions,
-    processOpts?: ProcessTransactionsClientOpts
+    processOpts?: ProcessTransactionsClientOpts,
+    txOpts?: TransactionOptions
   ): Promise<{ bankAddress: PublicKey; signature: TransactionSignature }> {
     const dbg = require("debug")("mfi:client");
 
@@ -761,7 +765,7 @@ class MarginfiClient {
     const tx = new Transaction().add(...ixs.instructions);
 
     const solanaTx = addTransactionMetadata(tx, { signers, addressLookupTables: this.addressLookupTables });
-    const sig = await this.processTransaction(solanaTx, txOpts, processOpts);
+    const sig = await this.processTransaction(solanaTx, processOpts, txOpts);
     dbg("Created new lending pool %s", sig);
 
     return Promise.resolve({
@@ -787,8 +791,8 @@ class MarginfiClient {
    */
   async processTransactions(
     transactions: SolanaTransaction[],
-    txOpts?: TransactionOptions,
-    processOpts?: ProcessTransactionsClientOpts
+    processOpts?: ProcessTransactionsClientOpts,
+    txOpts?: TransactionOptions
   ): Promise<TransactionSignature[]> {
     const options = {
       ...processOpts,
@@ -801,8 +805,8 @@ class MarginfiClient {
       transactions,
       connection: this.provider.connection,
       wallet: this.provider.wallet,
-      txOpts,
       processOpts: options,
+      txOpts,
     });
   }
 
@@ -819,8 +823,8 @@ class MarginfiClient {
    */
   async processTransaction(
     transaction: SolanaTransaction,
-    txOpts?: TransactionOptions,
-    processOpts?: ProcessTransactionsClientOpts
+    processOpts?: ProcessTransactionsClientOpts,
+    txOpts?: TransactionOptions
   ): Promise<TransactionSignature> {
     transaction.addressLookupTables = transaction.addressLookupTables || this.addressLookupTables;
 
@@ -835,8 +839,8 @@ class MarginfiClient {
       transactions: [transaction],
       connection: this.provider.connection,
       wallet: this.provider.wallet,
-      txOpts,
       processOpts: options,
+      txOpts,
     });
 
     return signature;

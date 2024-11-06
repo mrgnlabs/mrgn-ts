@@ -154,13 +154,15 @@ export const PositionActionButtons = ({
 
       if (!actionTransaction || !multiStepToast) throw new Error("Action not ready");
       if (actionTransaction.closeTxn instanceof Transaction) {
-        txnSig = await activeGroup.client.processTransaction(actionTransaction.closeTxn);
+        txnSig = await activeGroup.client.processTransaction(actionTransaction.closeTxn, {
+          broadcastType: broadcastType,
+        });
         multiStepToast.setSuccessAndNext();
       } else {
+        const priorityFeeUi = await fetchPriorityFee(maxCapType, maxCap, broadcastType, priorityType, connection);
         txnSig = await activeGroup.client.processTransactions(
           [...actionTransaction.feedCrankTxs, actionTransaction.closeTxn],
-          undefined,
-          { broadcastType: broadcastType } // todo: add priority fee
+          { broadcastType: broadcastType, priorityFeeUi: priorityFeeUi }
         );
         multiStepToast.setSuccessAndNext();
       }
@@ -213,14 +215,20 @@ export const PositionActionButtons = ({
   }, [
     actionTransaction,
     multiStepToast,
-    activeGroup,
-    refreshGroup,
-    setIsRefreshingStore,
-    wallet,
+    activeGroup.client,
+    activeGroup.pool.token,
+    activeGroup.pool.quoteTokens,
+    activeGroup?.groupPk,
+    broadcastType,
+    maxCapType,
+    maxCap,
+    priorityType,
     connection,
     setIsActionComplete,
     setPreviousTxn,
-    broadcastType,
+    setIsRefreshingStore,
+    refreshGroup,
+    wallet,
   ]);
 
   const onClose = React.useCallback(() => {

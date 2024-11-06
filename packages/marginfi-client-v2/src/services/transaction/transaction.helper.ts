@@ -7,11 +7,11 @@ import {
   legacyTxToV0Tx,
   updateV0Tx,
   sleep,
+  SolanaTransaction,
 } from "@mrgnlabs/mrgn-common";
 import { PublicKey, VersionedTransaction, TransactionInstruction } from "@solana/web3.js";
 import { MARGINFI_IDL, MarginfiIdlType } from "../../idl";
 import { makeTxPriorityIx } from "../../models/account";
-import { SolanaTransaction } from "./transaction.service";
 
 const MAX_TX_SIZE = 1232;
 const BUNDLE_TX_SIZE = 30; // TODO look for the exact size

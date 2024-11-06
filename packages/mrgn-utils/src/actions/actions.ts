@@ -34,21 +34,18 @@ export async function createAccountAction({
   marginfiClient,
   nativeSolBalance,
   walletContextState,
-  theme = "dark",
 }: {
   marginfiClient: MarginfiClient | null;
   nativeSolBalance: number;
   walletContextState?: WalletContextState | WalletContextStateOverride;
-  theme?: "light" | "dark";
 }) {
   if (nativeSolBalance < FEE_MARGIN) {
     showErrorToast("Not enough sol for fee.");
     return;
   }
 
-  const txnSig = await createAccount({ mfiClient: marginfiClient, walletContextState, theme });
-
-  return txnSig;
+  const marginfiAccount = await createAccount({ mfiClient: marginfiClient, walletContextState });
+  return marginfiAccount;
 }
 
 export async function executeLendingAction(params: MarginfiActionParams) {

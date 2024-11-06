@@ -13,7 +13,12 @@ import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { WalletContextState } from "@solana/wallet-adapter-react";
 import { QuoteResponse } from "@jup-ag/api";
 
-import { BankConfigOpt, MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
+import {
+  BankConfigOpt,
+  MarginfiAccountWrapper,
+  MarginfiClient,
+  ProcessTransactionsClientOpts,
+} from "@mrgnlabs/marginfi-client-v2";
 import {
   calculateLoopingTransaction,
   LoopingObject,
@@ -118,7 +123,7 @@ export async function createPermissionlessBank({
   bankConfig,
   admin,
   seed,
-  priorityFee,
+  processOpts,
 }: {
   marginfiClient: MarginfiClient;
   mint: PublicKey;
@@ -126,7 +131,7 @@ export async function createPermissionlessBank({
   bankConfig: BankConfigOpt;
   admin: PublicKey;
   seed?: Keypair;
-  priorityFee?: number;
+  processOpts?: ProcessTransactionsClientOpts;
 }) {
   const multiStepToast = new MultiStepToastHandle("Bank Creation", [{ label: `Creating permissionless bank` }]);
   multiStepToast.start();
@@ -138,7 +143,7 @@ export async function createPermissionlessBank({
       group,
       admin,
       seed,
-      priorityFee,
+      processOpts,
     });
     multiStepToast.setSuccessAndNext();
     return txnSig;
@@ -215,7 +220,7 @@ export async function executeLeverageAction({
   if (!marginfiAccount) {
     try {
       const squadsOptions = await getMaybeSquadsOptions(walletContextState);
-      marginfiAccount = await marginfiClient.createMarginfiAccount(undefined, squadsOptions, priorityFee, broadcastType);
+      marginfiAccount = await marginfiClient.createMarginfiAccount(squadsOptions);
 
       clearAccountCache(marginfiClient.provider.publicKey);
 
@@ -267,8 +272,7 @@ export async function executeLeverageAction({
       if (loopingObject.feedCrankTxs) {
         txnSig = await marginfiClient.processTransactions(
           [...loopingObject.feedCrankTxs, loopingObject.loopingTxn],
-          undefined,
-          { broadcastType: broadcastType } // todo: add priority fee
+          { priorityFeeUi: priorityFee, broadcastType } // todo: add priority fee
         );
       } else {
         txnSig = [await marginfiClient.processTransaction(loopingObject.loopingTxn)];

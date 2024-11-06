@@ -10,6 +10,8 @@ import {
   TransactionBroadcastType,
   addTransactionMetadata,
   TransactionOptions,
+  ExtendedTransaction,
+  ExtendedV0Transaction,
 } from "@mrgnlabs/mrgn-common";
 import * as sb from "@switchboard-xyz/on-demand";
 import { Address, BorshCoder, Idl, translateAddress } from "@coral-xyz/anchor";
@@ -359,6 +361,21 @@ class MarginfiAccountWrapper {
     }
   }
 
+  /**
+   * @deprecated Use repayWithCollatV2 instead.
+   *
+   * Repay a loan using collateral from another bank by executing a flashloan.
+   *
+   * @param repayAmount - Amount to repay
+   * @param withdrawAmount - Amount of collateral to withdraw
+   * @param borrowBankAddress - Address of the bank where the loan is being repaid
+   * @param depositBankAddress - Address of the bank where collateral is being withdrawn from
+   * @param withdrawAll - Whether to withdraw all collateral from the deposit bank
+   * @param repayAll - Whether to repay the entire loan amount
+   * @param swapIxs - Instructions for swapping the withdrawn collateral into repayment asset
+   * @param swapLookupTables - Address lookup tables needed for swap instructions
+   * @returns Array of transaction signatures
+   */
   async repayWithCollat(
     repayAmount: Amount,
     withdrawAmount: Amount,
@@ -443,6 +460,24 @@ class MarginfiAccountWrapper {
     };
   }
 
+  /**
+   * Creates a transaction for repaying a loan using collateral.
+   *
+   * @param repayAmount Amount to repay
+   * @param withdrawAmount Amount of collateral to withdraw
+   * @param borrowBankAddress Bank address where loan is being repaid
+   * @param depositBankAddress Bank address where collateral is being withdrawn from
+   * @param withdrawAll Whether to withdraw all collateral from deposit bank
+   * @param repayAll Whether to repay entire loan amount
+   * @param swapIxs Instructions for swapping withdrawn collateral to repayment asset
+   * @param swapLookupTables Address lookup tables needed for swap instructions
+   * @param priorityFeeUi Optional priority fee in native units
+   * @param isTxnSplitParam Whether to split transaction
+   * @param blockhashArg Optional recent blockhash
+   * @param broadcastType Transaction broadcast type
+   * @returns Object containing flash loan transaction, feed crank transactions, and lookup tables
+   * @deprecated Use makeRepayWithCollatTxV2 instead.
+   */
   async makeRepayWithCollatTx(
     repayAmount: Amount,
     withdrawAmount: Amount,
@@ -505,6 +540,95 @@ class MarginfiAccountWrapper {
         ...withdrawIxs.instructions,
         ...swapIxs,
         ...depositIxs.instructions,
+      ],
+      addressLookupTableAccounts,
+      blockhash,
+    });
+
+    return { flashloanTx, feedCrankTxs, addressLookupTableAccounts };
+  }
+
+  async makeRepayWithCollatTxV2({
+    repayAmount,
+    withdrawAmount,
+    borrowBankAddress,
+    depositBankAddress,
+    withdrawAll = false,
+    repayAll = false,
+    swapOpts,
+    blockhash: blockhashArg,
+    withdrawOpts,
+    repayOpts,
+  }: {
+    repayAmount: Amount;
+    withdrawAmount: Amount;
+    borrowBankAddress: PublicKey;
+    depositBankAddress: PublicKey;
+    withdrawAll: boolean;
+    repayAll: boolean;
+    swapOpts: {
+      swapIxs: TransactionInstruction[];
+      swapLookupTables: AddressLookupTableAccount[];
+    };
+    blockhash?: string;
+    withdrawOpts?: MakeWithdrawIxOpts;
+    repayOpts?: MakeRepayIxOpts;
+  }): Promise<{
+    flashloanTx: VersionedTransaction;
+    feedCrankTxs: VersionedTransaction[];
+    addressLookupTableAccounts: AddressLookupTableAccount[];
+  }> {
+    const blockhash =
+      blockhashArg ?? (await this._program.provider.connection.getLatestBlockhash("confirmed")).blockhash;
+
+    const setupIxs = await this.makeSetupIx([borrowBankAddress, depositBankAddress]);
+    const cuRequestIxs = this.makeComputeBudgetIx();
+    const { priorityFeeIx } = makeTxPriorityIx(this.client.provider.publicKey);
+    const withdrawIxs = await this.makeWithdrawIx(
+      withdrawAmount,
+      depositBankAddress,
+      withdrawAll,
+      withdrawOpts ?? {
+        createAtas: false,
+        wrapAndUnwrapSol: false,
+      }
+    );
+    const repayIxs = await this.makeRepayIx(
+      repayAmount,
+      borrowBankAddress,
+      repayAll,
+      repayOpts ?? {
+        createAtas: false,
+        wrapAndUnwrapSol: false,
+      }
+    );
+    const { instructions: updateFeedIxs, luts: feedLuts } = await this.makeUpdateFeedIx([
+      depositBankAddress,
+      borrowBankAddress,
+    ]);
+
+    const clientLuts = this.client.addressLookupTables;
+
+    const addressLookupTableAccounts = [...clientLuts, ...swapOpts.swapLookupTables];
+
+    let feedCrankTxs: VersionedTransaction[] = [];
+
+    const message = new TransactionMessage({
+      payerKey: this.client.wallet.publicKey,
+      recentBlockhash: blockhash,
+      instructions: [...updateFeedIxs],
+    }).compileToV0Message([...addressLookupTableAccounts, ...feedLuts]);
+
+    feedCrankTxs = [new VersionedTransaction(message)];
+
+    const flashloanTx = await this.buildFlashLoanTx({
+      ixs: [
+        ...[priorityFeeIx],
+        ...cuRequestIxs,
+        ...setupIxs,
+        ...withdrawIxs.instructions,
+        ...swapOpts.swapIxs,
+        ...repayIxs.instructions,
       ],
       addressLookupTableAccounts,
       blockhash,
@@ -673,10 +797,18 @@ class MarginfiAccountWrapper {
     };
   }
 
+  /**
+   * Creates instructions for depositing tokens into a marginfi bank account.
+   *
+   * @param amount - The amount of tokens to deposit, can be a number or Amount object
+   * @param bankAddress - The public key of the bank to deposit into
+   * @param depositOpts - Optional deposit configuration parameters
+   * @returns An InstructionsWrapper containing the deposit instructions
+   */
   async makeDepositIx(
     amount: Amount,
     bankAddress: PublicKey,
-    opt: MakeDepositIxOpts = {}
+    depositOpts: MakeDepositIxOpts = {}
   ): Promise<InstructionsWrapper> {
     return this._marginfiAccount.makeDepositIx(
       this._program,
@@ -684,31 +816,57 @@ class MarginfiAccountWrapper {
       this.client.mintDatas,
       amount,
       bankAddress,
-      opt
+      depositOpts
     );
   }
 
+  /**
+   * Deposits tokens into a marginfi bank account.
+   *
+   * @param amount - The amount of tokens to deposit, can be a number or Amount object
+   * @param bankAddress - The public key of the bank to deposit into
+   * @param depositOpts - Optional deposit configuration parameters
+   * @param processOpts - Optional transaction processing configuration
+   * @param txOpts - Optional transaction options
+   * @returns The transaction signature of the deposit
+   */
   async deposit(
     amount: Amount,
     bankAddress: PublicKey,
     depositOpts: MakeDepositIxOpts = {},
-    txOpts?: TransactionOptions,
-    processOpts?: ProcessTransactionsClientOpts
+    processOpts?: ProcessTransactionsClientOpts,
+    txOpts?: TransactionOptions
   ): Promise<TransactionSignature> {
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:deposit`);
     debug("Depositing %s into marginfi account (bank: %s)", amount, shortenAddress(bankAddress));
 
     const tx = await this.makeDepositTx(amount, bankAddress, depositOpts);
 
-    const sig = await this.client.processTransaction(tx, txOpts, processOpts);
+    const sig = await this.client.processTransaction(tx, processOpts, txOpts);
     debug("Depositing successful %s", sig);
     return sig;
   }
 
-  async makeDepositTx(amount: Amount, bankAddress: PublicKey, opt: MakeDepositIxOpts = {}): Promise<Transaction> {
-    const ixs = await this.makeDepositIx(amount, bankAddress, opt);
+  /**
+   * Creates a transaction for depositing tokens into a marginfi bank account.
+   *
+   * @param amount - The amount of tokens to deposit, can be a number or Amount object
+   * @param bankAddress - The public key of the bank to deposit into
+   * @param depositOpts - Optional deposit configuration parameters
+   * @returns A transaction object ready to be signed and sent
+   */
+  async makeDepositTx(
+    amount: Amount,
+    bankAddress: PublicKey,
+    depositOpts: MakeDepositIxOpts = {}
+  ): Promise<ExtendedTransaction> {
+    const ixs = await this.makeDepositIx(amount, bankAddress, depositOpts);
     const tx = new Transaction().add(...ixs.instructions);
-    return tx;
+    const solanaTx = addTransactionMetadata(tx, {
+      signers: ixs.keys,
+      addressLookupTables: this.client.addressLookupTables,
+    });
+    return solanaTx;
   }
 
   /**
@@ -724,11 +882,25 @@ class MarginfiAccountWrapper {
     }
   }
 
+  /**
+   * Simulates a mrgnlend transaction to preview its effects.
+   *
+   * @param txs - Array of transactions to simulate, can be either VersionedTransaction or Transaction
+   * @param bankAddress - The public key of the bank to inspect
+   * @param additionalAccountsToInspect - Optional array of additional account public keys to inspect during simulation
+   * @returns A SimulationResult containing the preview state of both the marginfi account and bank
+   * @throws Will throw an error if simulation fails
+   */
   async simulateBorrowLendTransaction(
     txs: (VersionedTransaction | Transaction)[],
-    bankAddress: PublicKey
+    bankAddress: PublicKey,
+    additionalAccountsToInspect: PublicKey[] = []
   ): Promise<SimulationResult> {
-    const [mfiAccountData, bankData] = await this.client.simulateTransactions(txs, [this.address, bankAddress]);
+    const [mfiAccountData, bankData] = await this.client.simulateTransactions(txs, [
+      this.address,
+      bankAddress,
+      ...additionalAccountsToInspect,
+    ]);
     if (!mfiAccountData || !bankData) throw new Error("Failed to simulate");
     const previewBanks = this.client.banks;
     previewBanks.set(
@@ -758,11 +930,21 @@ class MarginfiAccountWrapper {
     };
   }
 
+  /**
+   * Creates a transaction instruction for repaying a loan.
+   *
+   * @param amount - The amount to repay, can be a number or Amount object
+   * @param bankAddress - The public key of the bank to repay to
+   * @param repayAll - Whether to repay the entire loan balance, defaults to false
+   * @param repayOpts - Optional parameters for the repay instruction
+   * @returns An InstructionsWrapper containing the deposit instructions
+   * @throws Will throw an error if the repay mint is not found
+   */
   async makeRepayIx(
     amount: Amount,
     bankAddress: PublicKey,
     repayAll: boolean = false,
-    opt: MakeRepayIxOpts = {}
+    repayOpts: MakeRepayIxOpts = {}
   ): Promise<InstructionsWrapper> {
     const tokenProgramAddress = this.client.mintDatas.get(bankAddress.toBase58())?.tokenProgram;
     if (!tokenProgramAddress) throw Error("Repay mint not found");
@@ -774,40 +956,63 @@ class MarginfiAccountWrapper {
       amount,
       bankAddress,
       repayAll,
-      opt
+      repayOpts
     );
   }
 
+  /**
+   * Repays a loan in a marginfi bank account.
+   *
+   * @param amount - The amount to repay, can be a number or Amount object
+   * @param bankAddress - The public key of the bank to repay to
+   * @param repayAll - Whether to repay the entire loan balance, defaults to false
+   * @param repayOpts - Optional parameters for the repay instruction
+   * @param processOpts - Optional transaction processing configuration
+   * @param txOpts - Optional transaction options
+   * @returns The transaction signature of the repayment
+   */
   async repay(
     amount: Amount,
     bankAddress: PublicKey,
     repayAll: boolean = false,
     repayOpts: MakeRepayIxOpts = {},
-    txOpts?: TransactionOptions,
-    processOpts?: ProcessTransactionsClientOpts
-  ): Promise<string> {
+    processOpts?: ProcessTransactionsClientOpts,
+    txOpts?: TransactionOptions
+  ): Promise<TransactionSignature> {
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:repay`);
     debug("Repaying %s into marginfi account (bank: %s), repay all: %s", amount, bankAddress, repayAll);
 
     const tx = await this.makeRepayTx(amount, bankAddress, repayAll, repayOpts);
-    const solanaTx = addTransactionMetadata(tx, { addressLookupTables: this.client.addressLookupTables });
 
-    const sig = await this.client.processTransaction(solanaTx, txOpts, processOpts);
+    const sig = await this.client.processTransaction(tx, processOpts, txOpts);
 
     debug("Depositing successful %s", sig);
 
     return sig;
   }
 
+  /**
+   * Creates a transaction for repaying a loan in a marginfi bank account.
+   *
+   * @param amount - The amount to repay, can be a number or Amount object
+   * @param bankAddress - The public key of the bank to repay to
+   * @param repayAll - Whether to repay the entire loan balance, defaults to false
+   * @param repayOpts - Optional parameters for the repay instruction
+   * @returns A transaction object containing the repay instructions
+   */
   async makeRepayTx(
     amount: Amount,
     bankAddress: PublicKey,
     repayAll: boolean = false,
-    opt: MakeRepayIxOpts = {}
-  ): Promise<Transaction> {
-    const ixs = await this.makeRepayIx(amount, bankAddress, repayAll, opt);
+    repayOpts: MakeRepayIxOpts = {}
+  ): Promise<ExtendedTransaction> {
+    const ixs = await this.makeRepayIx(amount, bankAddress, repayAll, repayOpts);
     const tx = new Transaction().add(...ixs.instructions);
-    return tx;
+    const solanaTx = addTransactionMetadata(tx, {
+      signers: ixs.keys,
+      addressLookupTables: this.client.addressLookupTables,
+    });
+    return solanaTx;
   }
 
   /**
@@ -823,11 +1028,21 @@ class MarginfiAccountWrapper {
     }
   }
 
+  /**
+   * Creates instructions for withdrawing tokens from a marginfi bank account.
+   *
+   * @param amount - The amount of tokens to withdraw, can be a number or Amount object
+   * @param bankAddress - The public key of the bank to withdraw from
+   * @param withdrawAll - Whether to withdraw the entire balance, defaults to false
+   * @param withdrawOpts - Optional parameters for the withdraw instruction
+   * @returns An InstructionsWrapper containing the withdraw instructions and signers
+   * @throws Will throw an error if the withdraw mint is not found
+   */
   async makeWithdrawIx(
     amount: Amount,
     bankAddress: PublicKey,
     withdrawAll: boolean = false,
-    opt: MakeWithdrawIxOpts = {}
+    withdrawOpts: MakeWithdrawIxOpts = {}
   ): Promise<InstructionsWrapper> {
     const tokenProgramAddress = this.client.mintDatas.get(bankAddress.toBase58())?.tokenProgram;
     if (!tokenProgramAddress) throw Error("Withdraw mint not found");
@@ -839,89 +1054,140 @@ class MarginfiAccountWrapper {
       amount,
       bankAddress,
       withdrawAll,
-      opt
+      withdrawOpts
     );
   }
 
+  /**
+   * Creates a transaction for withdrawing all tokens from multiple marginfi banks.
+   *
+   * @param banks - Array of objects containing amount and bank address for each withdrawal
+   * @param withdrawOpts - Optional parameters for the withdraw instructions
+   * @returns A transaction object ready to be signed and sent
+   */
   async makeWithdrawAllTx(
     banks: {
       amount: Amount;
       bankAddress: PublicKey;
     }[],
     withdrawOpts: MakeWithdrawIxOpts = {}
-  ): Promise<Transaction> {
+  ): Promise<ExtendedTransaction> {
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:withdraw`);
     debug("Withdrawing all from marginfi account");
     const cuRequestIxs = this.makeComputeBudgetIx();
-    let ixs = [];
-    for (const bank of banks) {
-      ixs.push(...(await this.makeWithdrawIx(bank.amount, bank.bankAddress, true, withdrawOpts)).instructions);
-    }
-    const tx = new Transaction().add(...cuRequestIxs, ...ixs);
-    return tx;
+
+    const withdrawIxsPromises = banks.map((bank) =>
+      this.makeWithdrawIx(bank.amount, bank.bankAddress, true, withdrawOpts)
+    );
+    const withdrawIxsWrapped = await Promise.all(withdrawIxsPromises);
+
+    const withdrawIxs = withdrawIxsWrapped.map((ix) => ix.instructions).flat();
+    // make sure all signers are unique
+    const filteredSigners = withdrawIxsWrapped
+      .map((ix) => ix.keys)
+      .flat()
+      .filter((key, index, self) => index === self.findIndex((k) => k.publicKey.equals(key.publicKey)));
+
+    const tx = new Transaction().add(...cuRequestIxs, ...withdrawIxs);
+
+    const solanaTx = addTransactionMetadata(tx, {
+      signers: filteredSigners,
+      addressLookupTables: this.client.addressLookupTables,
+    });
+    return solanaTx;
   }
 
+  /**
+   * Withdraws tokens from a marginfi bank account.
+   *
+   * @param amount - The amount of tokens to withdraw, can be a number or Amount object
+   * @param bankAddress - The public key of the bank to withdraw from
+   * @param withdrawAll - If true, withdraws entire balance from the bank
+   * @param withdrawOpts - Optional withdraw configuration parameters
+   * @param processOpts - Optional transaction processing configuration
+   * @param txOpts - Optional transaction options
+   * @returns Array of transaction signatures - includes signatures for any required oracle feed updates followed by the withdraw transaction
+   */
   async withdraw(
     amount: Amount,
     bankAddress: PublicKey,
     withdrawAll: boolean = false,
-    opt: MakeWithdrawIxOpts = {}
-  ): Promise<string[]> {
+    withdrawOpts: MakeWithdrawIxOpts = {},
+    processOpts?: ProcessTransactionsClientOpts,
+    txOpts?: TransactionOptions
+  ): Promise<TransactionSignature[]> {
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:withdraw`);
     debug("Withdrawing %s from marginfi account", amount);
 
-    const { feedCrankTxs, withdrawTx } = await this.makeWithdrawTx(amount, bankAddress, withdrawAll, opt);
+    const { feedCrankTxs, withdrawTx } = await this.makeWithdrawTx(amount, bankAddress, withdrawAll, withdrawOpts);
 
     // process multiple transactions if feed updates required
-    const sigs = await this.client.processTransactions([...feedCrankTxs, withdrawTx]);
+    const sigs = await this.client.processTransactions([...feedCrankTxs, withdrawTx], processOpts, txOpts);
 
     debug("Withdrawing successful %s", sigs.pop());
     return sigs;
   }
 
+  /**
+   * Creates a versioned transaction for withdrawing tokens from a marginfi bank account.
+   *
+   * @param amount - The amount of tokens to withdraw, can be a number or Amount object
+   * @param bankAddress - The public key of the bank to withdraw from
+   * @param withdrawAll - If true, withdraws entire balance from the bank
+   * @param withdrawOpts - Optional withdraw configuration parameters
+   * @returns Object containing feed crank transactions and the withdraw transaction
+   */
   async makeWithdrawTx(
     amount: Amount,
     bankAddress: PublicKey,
     withdrawAll: boolean = false,
-    opt: MakeWithdrawIxOpts = {}
+    withdrawOpts: MakeWithdrawIxOpts = {}
   ): Promise<{
-    feedCrankTxs: VersionedTransaction[];
-    withdrawTx: VersionedTransaction;
-    addressLookupTableAccounts: AddressLookupTableAccount[];
+    feedCrankTxs: ExtendedV0Transaction[];
+    withdrawTx: ExtendedV0Transaction;
   }> {
     const cuRequestIxs = this.makeComputeBudgetIx();
     const { instructions: updateFeedIxs, luts: feedLuts } = await this.makeUpdateFeedIx([]);
-    const ixs = await this.makeWithdrawIx(amount, bankAddress, withdrawAll, opt);
+    const withdrawIxs = await this.makeWithdrawIx(amount, bankAddress, withdrawAll, withdrawOpts);
 
     const {
       value: { blockhash },
     } = await this._program.provider.connection.getLatestBlockhashAndContext("confirmed");
 
-    let feedCrankTxs: VersionedTransaction[] = [];
+    let feedCrankTxs: ExtendedV0Transaction[] = [];
 
     if (updateFeedIxs.length > 0) {
       feedCrankTxs.push(
-        new VersionedTransaction(
-          new TransactionMessage({
-            instructions: [...updateFeedIxs],
-            payerKey: this.authority,
-            recentBlockhash: blockhash,
-          }).compileToV0Message([...feedLuts])
+        addTransactionMetadata(
+          new VersionedTransaction(
+            new TransactionMessage({
+              instructions: [...updateFeedIxs],
+              payerKey: this.authority,
+              recentBlockhash: blockhash,
+            }).compileToV0Message(feedLuts)
+          ),
+          {
+            addressLookupTables: feedLuts,
+          }
         )
       );
     }
 
-    const withdrawTx = new VersionedTransaction(
-      new TransactionMessage({
-        instructions: [...cuRequestIxs, ...ixs.instructions],
-        payerKey: this.authority,
-        recentBlockhash: blockhash,
-      }).compileToV0Message([...this.client.addressLookupTables])
+    const withdrawTx = addTransactionMetadata(
+      new VersionedTransaction(
+        new TransactionMessage({
+          instructions: [...cuRequestIxs, ...withdrawIxs.instructions],
+          payerKey: this.authority,
+          recentBlockhash: blockhash,
+        }).compileToV0Message(this.client.addressLookupTables)
+      ),
+      {
+        signers: withdrawIxs.keys,
+        addressLookupTables: this.client.addressLookupTables,
+      }
     );
 
-    const addressLookupTableAccounts = [...this.client.addressLookupTables, ...feedLuts];
-
-    return { feedCrankTxs, withdrawTx, addressLookupTableAccounts };
+    return { feedCrankTxs, withdrawTx };
   }
 
   /**
@@ -935,7 +1201,19 @@ class MarginfiAccountWrapper {
     }
   }
 
-  async makeBorrowIx(amount: Amount, bankAddress: PublicKey, opt: MakeBorrowIxOpts = {}): Promise<InstructionsWrapper> {
+  /**
+   * Creates instructions for borrowing tokens from a marginfi bank account.
+   *
+   * @param amount - The amount of tokens to borrow, can be a number or Amount object
+   * @param bankAddress - The public key of the bank to borrow from
+   * @param borrowOpts - Optional borrow configuration parameters
+   * @returns An InstructionsWrapper containing the borrow instructions
+   */
+  async makeBorrowIx(
+    amount: Amount,
+    bankAddress: PublicKey,
+    borrowOpts: MakeBorrowIxOpts = {}
+  ): Promise<InstructionsWrapper> {
     const tokenProgramAddress = this.client.mintDatas.get(bankAddress.toBase58())?.tokenProgram;
     if (!tokenProgramAddress) throw Error("Borrow mint not found");
 
@@ -945,36 +1223,58 @@ class MarginfiAccountWrapper {
       this.client.mintDatas,
       amount,
       bankAddress,
-      opt
+      borrowOpts
     );
   }
 
-  async borrow(amount: Amount, bankAddress: PublicKey, opt: MakeBorrowIxOpts = {}): Promise<string[]> {
+  /**
+   * Borrows tokens from a marginfi bank account.
+   *
+   * @param amount - The amount of tokens to borrow, can be a number or Amount object
+   * @param bankAddress - The public key of the bank to borrow from
+   * @param borrowOpts - Optional borrow configuration parameters
+   * @param processOpts - Optional transaction processing configuration
+   * @param txOpts - Optional transaction configuration parameters
+   * @returns Array of transaction signatures from the borrow operation
+   */
+  async borrow(
+    amount: Amount,
+    bankAddress: PublicKey,
+    borrowOpts: MakeBorrowIxOpts = {},
+    processOpts?: ProcessTransactionsClientOpts,
+    txOpts?: TransactionOptions
+  ): Promise<TransactionSignature[]> {
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:borrow`);
     debug("Borrowing %s from marginfi account", amount);
 
-    const { feedCrankTxs, borrowTx } = await this.makeBorrowTx(amount, bankAddress, opt);
+    const { feedCrankTxs, borrowTx } = await this.makeBorrowTx(amount, bankAddress, borrowOpts);
 
-    // process multiple transactions if feed updates required
-    const sigs = await this.client.processTransactions([...feedCrankTxs, borrowTx], undefined, undefined);
+    const sigs = await this.client.processTransactions([...feedCrankTxs, borrowTx], processOpts, txOpts);
     debug("Borrowing successful %s", sigs);
     return sigs;
   }
 
+  /**
+   * Creates a versioned transaction for borrowing tokens from a marginfi bank account.
+   *
+   * @param amount - The amount of tokens to borrow, can be a number or Amount object
+   * @param bankAddress - The public key of the bank to borrow from
+   * @param borrowOpts - Optional borrow configuration parameters
+   * @returns Object containing feed crank transactions and the borrow transaction
+   */
   async makeBorrowTx(
     amount: Amount,
     bankAddress: PublicKey,
-    opt: MakeBorrowIxOpts = {}
+    borrowOpts: MakeBorrowIxOpts = {}
   ): Promise<{
-    feedCrankTxs: VersionedTransaction[];
-    borrowTx: VersionedTransaction;
-    addressLookupTableAccounts: AddressLookupTableAccount[];
+    feedCrankTxs: ExtendedV0Transaction[];
+    borrowTx: ExtendedV0Transaction;
   }> {
     const cuRequestIxs = this.makeComputeBudgetIx();
 
     // if banks are stale and using switchboard pull, we need to crank the feed
     const { instructions: updateFeedIxs, luts: feedLuts } = await this.makeUpdateFeedIx([bankAddress]);
-    const ixs = await this.makeBorrowIx(amount, bankAddress, opt);
+    const borrowIxs = await this.makeBorrowIx(amount, bankAddress, borrowOpts);
 
     const {
       value: { blockhash },
@@ -984,27 +1284,36 @@ class MarginfiAccountWrapper {
 
     if (updateFeedIxs.length > 0) {
       feedCrankTxs.push(
-        new VersionedTransaction(
-          new TransactionMessage({
-            instructions: [...updateFeedIxs],
-            payerKey: this.authority,
-            recentBlockhash: blockhash,
-          }).compileToV0Message([...feedLuts])
+        addTransactionMetadata(
+          new VersionedTransaction(
+            new TransactionMessage({
+              instructions: updateFeedIxs,
+              payerKey: this.authority,
+              recentBlockhash: blockhash,
+            }).compileToV0Message(feedLuts)
+          ),
+          {
+            addressLookupTables: feedLuts,
+          }
         )
       );
     }
 
-    const borrowTx = new VersionedTransaction(
-      new TransactionMessage({
-        instructions: [...cuRequestIxs, ...ixs.instructions],
-        payerKey: this.authority,
-        recentBlockhash: blockhash,
-      }).compileToV0Message([...this.client.addressLookupTables])
+    const borrowTx = addTransactionMetadata(
+      new VersionedTransaction(
+        new TransactionMessage({
+          instructions: [...cuRequestIxs, ...borrowIxs.instructions],
+          payerKey: this.authority,
+          recentBlockhash: blockhash,
+        }).compileToV0Message(this.client.addressLookupTables)
+      ),
+      {
+        signers: borrowIxs.keys,
+        addressLookupTables: this.client.addressLookupTables,
+      }
     );
 
-    const addressLookupTableAccounts = [...this.client.addressLookupTables, ...feedLuts];
-
-    return { feedCrankTxs, borrowTx, addressLookupTableAccounts };
+    return { feedCrankTxs, borrowTx };
   }
 
   /**
@@ -1018,6 +1327,12 @@ class MarginfiAccountWrapper {
     }
   }
 
+  /**
+   * Creates instructions for withdrawing emissions rewards from a marginfi bank account.
+   *
+   * @param bankAddress - The public key of the bank to withdraw emissions from
+   * @returns An InstructionsWrapper containing the withdraw emissions instructions
+   */
   async makeWithdrawEmissionsIx(bankAddress: PublicKey): Promise<InstructionsWrapper> {
     return this._marginfiAccount.makeWithdrawEmissionsIx(
       this._program,
@@ -1027,11 +1342,18 @@ class MarginfiAccountWrapper {
     );
   }
 
-  async makeWithdrawEmissionsTx(bankAddresses: PublicKey[], priorityFeeUi?: number): Promise<VersionedTransaction> {
-    const blockhash = (await this._program.provider.connection.getLatestBlockhash()).blockhash;
+  /**
+   * Creates a versioned transaction for withdrawing emissions rewards from multiple marginfi bank accounts.
+   *
+   * @param bankAddresses - Array of public keys for the banks to withdraw emissions from
+   * @returns A versioned transaction containing the withdraw emissions instructions
+   */
+  async makeWithdrawEmissionsTx(bankAddresses: PublicKey[]): Promise<ExtendedV0Transaction> {
+    const {
+      value: { blockhash },
+    } = await this._program.provider.connection.getLatestBlockhashAndContext("confirmed");
 
-    const ixs: TransactionInstruction[] = [];
-
+    const withdrawEmissionsIxs: InstructionsWrapper[] = [];
     await Promise.all(
       bankAddresses.map(async (bankAddress) => {
         // const bank = this.client.getBankByPk(bankAddress);
@@ -1057,36 +1379,56 @@ class MarginfiAccountWrapper {
 
         const ix = await this.makeWithdrawEmissionsIx(bankAddress);
         if (!ix) return;
-        ixs.push(...ix.instructions);
+        withdrawEmissionsIxs.push(ix);
       })
     );
 
-    return new VersionedTransaction(
-      new TransactionMessage({
-        instructions: [...ixs],
-        payerKey: this.authority,
-        recentBlockhash: blockhash,
-      }).compileToV0Message()
+    return addTransactionMetadata(
+      new VersionedTransaction(
+        new TransactionMessage({
+          instructions: withdrawEmissionsIxs.map((ix) => ix.instructions).flat(),
+          payerKey: this.authority,
+          recentBlockhash: blockhash,
+        }).compileToV0Message(this.client.addressLookupTables)
+      ),
+      {
+        signers: withdrawEmissionsIxs.map((ix) => ix.keys).flat(),
+        addressLookupTables: this.client.addressLookupTables,
+      }
     );
   }
 
-  async withdrawEmissions(bankAddresses: PublicKey[], priorityFeeUi?: number): Promise<string> {
+  /**
+   * Withdraws emissions rewards from multiple marginfi bank accounts.
+   *
+   * @param bankAddresses - Array of public keys for the banks to withdraw emissions from
+   * @param processOpts - Optional processing options for the transaction
+   * @param txOpts - Optional transaction options
+   * @returns The transaction signature of the withdraw emissions transaction
+   */
+  async withdrawEmissions(
+    bankAddresses: PublicKey[],
+    processOpts?: ProcessTransactionsClientOpts,
+    txOpts?: TransactionOptions
+  ): Promise<TransactionSignature> {
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:withdraw-emissions`);
     debug("Withdrawing emission from marginfi account (bank: %s)", bankAddresses.map((b) => b.toBase58()).join(", "));
 
-    const ixs: TransactionInstruction[] = [];
-    const signers = [];
-    for (const bankAddress of bankAddresses) {
-      const ix = await this.makeWithdrawEmissionsIx(bankAddress);
-      ixs.push(...ix.instructions);
-      signers.push(ix.keys);
-    }
-    const tx = new Transaction().add(...ixs);
-    const sig = await this.client.processTransaction(tx, []);
+    const withdrawEmissionsTx = await this.makeWithdrawEmissionsTx(bankAddresses);
+    const sig = await this.client.processTransaction(withdrawEmissionsTx, processOpts, txOpts);
     debug("Withdrawing emission successful %s", sig);
     return sig;
   }
 
+  /**
+   * Creates an instruction wrapper for liquidating a lending account position.
+   *
+   * @param liquidateeMarginfiAccount - The marginfi account to be liquidated
+   * @param assetBankAddress - Public key of the bank containing the asset to receive in liquidation
+   * @param assetQuantityUi - Amount of the asset to receive, in UI units
+   * @param liabBankAddress - Public key of the bank containing the liability to repay
+   * @returns An instruction wrapper containing the liquidation instructions
+   */
   public async makeLendingAccountLiquidateIx(
     liquidateeMarginfiAccount: MarginfiAccount,
     assetBankAddress: PublicKey,
@@ -1107,40 +1449,73 @@ class MarginfiAccountWrapper {
     );
   }
 
+  /**
+   * Liquidates a lending account position.
+   *
+   * @param liquidateeMarginfiAccount - The marginfi account to be liquidated
+   * @param assetBankAddress - Public key of the bank containing the asset to receive in liquidation
+   * @param assetQuantityUi - Amount of the asset to receive, in UI units
+   * @param liabBankAddress - Public key of the bank containing the liability to repay
+   * @param processOpts - Optional processing options for the transaction
+   * @param txOpts - Optional transaction options
+   * @returns The transaction signature of the liquidation transaction
+   */
   public async lendingAccountLiquidate(
     liquidateeMarginfiAccount: MarginfiAccount,
     assetBankAddress: PublicKey,
     assetQuantityUi: Amount,
-    liabBankAddress: PublicKey
-  ): Promise<string> {
+    liabBankAddress: PublicKey,
+    processOpts?: ProcessTransactionsClientOpts,
+    txOpts?: TransactionOptions
+  ): Promise<TransactionSignature> {
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:liquidation`);
     debug("Liquidating marginfi account %s", liquidateeMarginfiAccount.address.toBase58());
-    const ixw = await this.makeLendingAccountLiquidateIx(
+    const liquidationIxs = await this.makeLendingAccountLiquidateIx(
       liquidateeMarginfiAccount,
       assetBankAddress,
       assetQuantityUi,
       liabBankAddress
     );
-    const tx = new Transaction().add(...ixw.instructions);
-    const sig = await this.client.processTransaction(tx, []);
+    const tx = new Transaction().add(...liquidationIxs.instructions);
+    const solanaTx = addTransactionMetadata(tx, {
+      signers: liquidationIxs.keys,
+      addressLookupTables: this.client.addressLookupTables,
+    });
+    const sig = await this.client.processTransaction(solanaTx, processOpts, txOpts);
     debug("Liquidation successful %s", sig);
     return sig;
   }
 
+  /**
+   * Creates an instruction to begin a flash loan operation.
+   *
+   * @param endIndex - The index where the flash loan instructions end in the transaction
+   * @returns An InstructionsWrapper containing the begin flash loan instruction
+   */
   public async makeBeginFlashLoanIx(endIndex: number): Promise<InstructionsWrapper> {
     return this._marginfiAccount.makeBeginFlashLoanIx(this._program, endIndex);
   }
 
+  /**
+   * Creates an instruction to end a flash loan operation.
+   *
+   * @param projectedActiveBalances - Array of PublicKeys representing the projected active balance accounts after flash loan
+   * @returns An InstructionsWrapper containing the end flash loan instruction
+   */
   public async makeEndFlashLoanIx(projectedActiveBalances: PublicKey[]): Promise<InstructionsWrapper> {
     return this._marginfiAccount.makeEndFlashLoanIx(this._program, this.client.banks, projectedActiveBalances);
   }
 
-  public async flashLoan(args: FlashLoanArgs): Promise<string> {
+  public async flashLoan(
+    args: FlashLoanArgs,
+    processOpts?: ProcessTransactionsClientOpts,
+    txOpts?: TransactionOptions
+  ): Promise<TransactionSignature> {
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:flashLoan`);
     debug("Executing flashloan from marginfi account");
     const lookupTables = this.client.addressLookupTables;
     const tx = await this.buildFlashLoanTx(args, lookupTables);
-    const sig = await this.client.processTransaction(tx, []);
+    const sig = await this.client.processTransaction(tx, processOpts, txOpts);
     debug("Flashloan successful %s", sig);
     return sig;
   }
@@ -1148,7 +1523,7 @@ class MarginfiAccountWrapper {
   public async buildFlashLoanTx(
     args: FlashLoanArgs,
     lookupTables?: AddressLookupTableAccount[]
-  ): Promise<VersionedTransaction> {
+  ): Promise<ExtendedV0Transaction> {
     const endIndex = args.ixs.length + 1;
 
     const projectedActiveBalances: PublicKey[] = this._marginfiAccount.projectActiveBalancesNoCpi(
@@ -1159,17 +1534,20 @@ class MarginfiAccountWrapper {
     const beginFlashLoanIx = await this.makeBeginFlashLoanIx(endIndex);
     const endFlashLoanIx = await this.makeEndFlashLoanIx(projectedActiveBalances);
 
-    const ixs = [...beginFlashLoanIx.instructions, ...args.ixs, ...endFlashLoanIx.instructions];
+    const flashloanIxs = [...beginFlashLoanIx.instructions, ...args.ixs, ...endFlashLoanIx.instructions];
+    const totalLookupTables = [...(lookupTables ?? []), ...(args.addressLookupTableAccounts ?? [])];
 
     const blockhash =
       args.blockhash ?? (await this._program.provider.connection.getLatestBlockhash("confirmed")).blockhash;
     const message = new TransactionMessage({
       payerKey: this.client.wallet.publicKey,
       recentBlockhash: blockhash,
-      instructions: ixs,
-    }).compileToV0Message([...(lookupTables ?? []), ...(args.addressLookupTableAccounts ?? [])]);
+      instructions: flashloanIxs,
+    }).compileToV0Message(totalLookupTables);
 
-    const tx = new VersionedTransaction(message);
+    const tx = addTransactionMetadata(new VersionedTransaction(message), {
+      addressLookupTables: totalLookupTables,
+    });
 
     if (args.signers) {
       tx.sign(args.signers);
@@ -1182,12 +1560,16 @@ class MarginfiAccountWrapper {
     return this._marginfiAccount.makeAccountAuthorityTransferIx(this._program, newAccountAuthority);
   }
 
-  async transferAccountAuthority(newAccountAuthority: PublicKey): Promise<string> {
+  async transferAccountAuthority(
+    newAccountAuthority: PublicKey,
+    processOpts?: ProcessTransactionsClientOpts,
+    txOpts?: TransactionOptions
+  ): Promise<string> {
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:transfer-authority`);
     debug("Transferring account %s to %s", this.address.toBase58(), newAccountAuthority.toBase58());
     const ixs = await this.makeTransferAccountAuthorityIx(newAccountAuthority);
     const tx = new Transaction().add(...ixs.instructions);
-    const sig = await this.client.processTransaction(tx, []);
+    const sig = await this.client.processTransaction(tx, processOpts, txOpts);
     debug("Transfer successful %s", sig);
     return sig;
   }

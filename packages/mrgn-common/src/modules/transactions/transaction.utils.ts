@@ -145,12 +145,12 @@ export function updateV0Tx(transaction: VersionedTransaction, opts?: UpdateTxOpt
  *   - addressLookupTables: An array of AddressLookupTableAccount objects for address resolution.
  * @returns A SolanaTransaction object that includes the original transaction and the additional metadata.
  */
-export function addTransactionMetadata(
-  transaction: VersionedTransaction | Transaction,
+export function addTransactionMetadata<T extends Transaction | VersionedTransaction>(
+  transaction: T,
   options: { signers?: Array<Signer>; addressLookupTables?: AddressLookupTableAccount[] }
-): SolanaTransaction {
+): T & { signers?: Array<Signer>; addressLookupTables?: AddressLookupTableAccount[] } {
   return {
     ...transaction,
     ...options,
-  } as SolanaTransaction;
+  } as T & { signers?: Array<Signer>; addressLookupTables?: AddressLookupTableAccount[] };
 }
