@@ -19,37 +19,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     apy: 0,
   };
 
-  try {
-    const validatorResponse = await fetch(process.env.VALIDATOR_API_URL!);
+  const validatorResponse = await fetch(process.env.VALIDATOR_API_URL!);
 
-    if (validatorResponse.ok) {
-      const validatorData = await validatorResponse.json();
-      data.apy = validatorData.total_apy || 0;
-    }
-  } catch (error) {
-    return res.status(500).json({ error: (error as Error).message || "Validator API error" });
+  if (validatorResponse.ok) {
+    const validatorData = await validatorResponse.json();
+    data.apy = validatorData.total_apy || 0;
   }
 
-  try {
-    const birdeyeResponse = await fetch(
-      `https://public-api.birdeye.so/defi/token_overview?address=${LST_MINT.toBase58()}`,
-      {
-        headers: {
-          Accept: "application/json",
-          "x-chain": "solana",
-          "X-Api-Key": process.env.BIRDEYE_API_KEY || "",
-        },
-      }
-    );
-
-    if (birdeyeResponse.ok) {
-      const birdeyeData = await birdeyeResponse.json();
-      data.volume = birdeyeData.data.v24h || 0;
-      data.volumeUsd = birdeyeData.data.v24hUSD || 0;
-      data.tvl = birdeyeData.data.liquidity || 0;
+  const birdeyeResponse = await fetch(
+    `https://public-api.birdeye.so/defi/token_overview?address=${LST_MINT.toBase58()}`,
+    {
+      headers: {
+        Accept: "application/json",
+        "x-chain": "solana",
+        "X-Api-Key": process.env.BIRDEYE_API_KEY || "",
+      },
     }
-  } catch (error) {
-    return res.status(500).json({ error: (error as Error).message || "Birdeye API error" });
+  );
+
+  if (birdeyeResponse.ok) {
+    const birdeyeData = await birdeyeResponse.json();
+    data.volume = birdeyeData.data.v24h || 0;
+    data.volumeUsd = birdeyeData.data.v24hUSD || 0;
+    data.tvl = birdeyeData.data.liquidity || 0;
   }
 
   res.setHeader("Cache-Control", "public, max-age=14400");
