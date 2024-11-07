@@ -58,6 +58,10 @@ const CONTENT = {
             href: "https://github.com/mrgnlabs/",
             label: "GitHub",
           },
+          {
+            href: "https://marginfi.com/blog",
+            label: "Blog",
+          },
         ],
       },
       {
