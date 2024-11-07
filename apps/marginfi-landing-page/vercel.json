@@ -1,0 +1,58 @@
+{
+    "rewrites": [
+        {
+            "source": "/blog",
+            "destination": "https://marginfi.feather.blog/blog"
+        },
+        {
+            "source": "/blog/:path*",
+            "destination": "https://marginfi.feather.blog/blog/:path*"
+        },
+        {
+            "source": "/_feather",
+            "destination": "https://marginfi.feather.blog/_feather"
+        },
+        {
+            "source": "/_feather/:path*",
+            "destination": "https://marginfi.feather.blog/_feather/:path*"
+        }
+    ],
+    "headers": [
+        {
+            "source": "/blog",
+            "headers": [
+                {
+                    "key": "X-Forwarded-Host",
+                    "value": "www.marginfi.com"
+                }
+            ]
+        },
+        {
+            "source": "/blog/:slug*",
+            "headers": [
+                {
+                    "key": "X-Forwarded-Host",
+                    "value": "www.marginfi.com"
+                }
+            ]
+        },
+        {
+            "source": "/_feather",
+            "headers": [
+                {
+                    "key": "X-Forwarded-Host",
+                    "value": "www.marginfi.com"
+                }
+            ]
+        },
+        {
+            "source": "/_feather/:slug*",
+            "headers": [
+                {
+                    "key": "X-Forwarded-Host",
+                    "value": "www.marginfi.com"
+                }
+            ]
+        }
+    ]
+}
