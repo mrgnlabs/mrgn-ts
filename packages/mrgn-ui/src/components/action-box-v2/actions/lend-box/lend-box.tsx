@@ -268,11 +268,8 @@ export const LendBox = ({
       return;
     }
 
-    console.log("priorityFee", priorityFee);
-    console.log("broadcastType", broadcastType);
-
     const action = async () => {
-      const params = {
+      const params: MarginfiActionParams = {
         marginfiClient,
         actionType: lendMode,
         bank: selectedBank,
@@ -281,9 +278,8 @@ export const LendBox = ({
         marginfiAccount: selectedAccount,
         walletContextState,
         actionTxns,
-        priorityFee,
-        broadcastType,
-      } as MarginfiActionParams;
+        processOpts: { priorityFeeUi: priorityFee, broadcastType },
+      };
 
       await handleExecuteLendingAction({
         params,

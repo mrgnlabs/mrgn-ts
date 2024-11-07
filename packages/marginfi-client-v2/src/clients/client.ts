@@ -783,8 +783,8 @@ class MarginfiClient {
    * Processes multiple Solana transactions by signing and sending them to the network.
    *
    * @param {SolanaTransaction[]} transactions - An array of transactions to be processed.
-   * @param {TransactionOptions} [txOpts] - Optional transaction options for processing.
    * @param {ProcessTransactionsClientOpts} [processOpts] - Optional processing options for transactions.
+   * @param {TransactionOptions} [txOpts] - Optional transaction options for processing.
    *
    * @returns {Promise<TransactionSignature[]>} - A promise that resolves to an array of transaction signatures.
    *

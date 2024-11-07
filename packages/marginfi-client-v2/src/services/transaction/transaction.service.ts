@@ -74,12 +74,14 @@ export async function processTransactions({
 }: ProcessTransactionsProps): Promise<TransactionSignature[]> {
   let signatures: TransactionSignature[] = [""];
 
-  // TODO add priofee check
-
   const processOpts = {
     ...DEFAULT_PROCESS_TX_OPTS,
     ...processOptsArgs,
   };
+
+  if (processOpts?.broadcastType === "BUNDLE" && processOpts?.priorityFeeUi === 0) {
+    throw new Error("A bundle tip is required for a bundled transactions");
+  }
 
   let versionedTransactions: VersionedTransaction[] = [];
   let minContextSlot: number;
@@ -156,8 +158,6 @@ export async function processTransactions({
         ...txOpts,
       };
 
-      console.log("checkpoint 1");
-
       const response = await simulateBundle(
         processOpts?.bundleSimRpcEndpoint ?? connection.rpcEndpoint,
         versionedTransactions
@@ -169,8 +169,6 @@ export async function processTransactions({
           logs: [],
         });
       });
-
-      console.log("checkpoint 2", response);
 
       if (response.value.err) {
         throw new SendTransactionError({
@@ -220,15 +218,10 @@ export async function processTransactions({
       //     );
       // }
 
-      console.log("checkpoint 3", processOpts);
-
       if (processOpts?.broadcastType === "BUNDLE") {
-        console.log("hi");
         signatures = await sendTransactionAsBundle(base58Txs).catch(
           async () => await sendTxsRpc(versionedTransactions)
         );
-
-        console.log("signatures", signatures);
       } else {
         signatures = await sendTxsRpc(versionedTransactions);
       }

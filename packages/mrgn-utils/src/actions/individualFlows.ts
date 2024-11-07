@@ -150,7 +150,7 @@ export async function deposit({
     let txnSig: string;
 
     if (actionTxns?.actionTxn && marginfiClient) {
-      txnSig = await marginfiClient.processTransaction(actionTxns.actionTxn);
+      txnSig = await marginfiClient.processTransaction(actionTxns.actionTxn, processOpts, txOpts);
     } else if (marginfiAccount) {
       txnSig = await marginfiAccount.deposit(amount, bank.address, {}, processOpts, txOpts);
     } else {

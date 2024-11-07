@@ -154,29 +154,59 @@ export async function sendTransactionAsBundle(base58Txs: string[]): Promise<stri
 
     await sleep(500);
 
-    for (let attempt = 0; attempt < 5; attempt++) {
-      const getBundleStatusResponse = await fetch("https://mainnet.block-engine.jito.wtf/api/v1/bundles", {
+    for (let attempt = 0; attempt < 10; attempt++) {
+      const getBundleStatusInFlightResponse = await fetch("https://mainnet.block-engine.jito.wtf/api/v1/bundles", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           jsonrpc: "2.0",
           id: 1,
-          method: "getBundleStatuses",
+          method: "getInflightBundleStatuses",
           params: [[bundleId]],
         }),
       });
 
-      const getBundleStatusResult = await getBundleStatusResponse.json();
+      const getBundleStatusInFlightResult = await getBundleStatusInFlightResponse.json();
 
-      if (getBundleStatusResult.error) throw new Error(getBundleStatusResult.error.message);
+      if (getBundleStatusInFlightResult.error) throw new Error(getBundleStatusInFlightResult.error.message);
 
-      const signature = getBundleStatusResult?.result?.value[0]?.transactions;
+      const status = getBundleStatusInFlightResult?.result?.value[0]?.status;
 
-      if (signature) {
-        return signature;
+      /**
+       * Bundle status values:
+       * - Failed: All regions marked bundle as failed, not forwarded
+       * - Pending: Bundle has not failed, landed, or been deemed invalid
+       * - Landed: Bundle successfully landed on-chain (verified via RPC/bundles_landed table)
+       * - Invalid: Bundle is no longer in the system
+       */
+      if (status === "Failed") {
+        throw new Error("Bundle failed");
+      } else if (status === "Landed") {
+        break;
       }
 
       await sleep(500); // Wait before retrying
+    }
+
+    const getBundleStatusResponse = await fetch("https://mainnet.block-engine.jito.wtf/api/v1/bundles", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        jsonrpc: "2.0",
+        id: 1,
+        method: "getBundleStatuses",
+        params: [[bundleId]],
+      }),
+    });
+
+    const getBundleStatusResult = await getBundleStatusResponse.json();
+
+    if (getBundleStatusResult.error) throw new Error(getBundleStatusResult.error.message);
+
+    const signature = getBundleStatusResult?.result?.value[0]?.transactions;
+
+    if (signature) {
+      return signature;
     }
   } catch (error) {
     console.error(error);

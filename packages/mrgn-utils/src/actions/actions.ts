@@ -89,6 +89,7 @@ export async function executeLendingAction(params: MarginfiActionParams) {
   }
 
   if (params.actionType === ActionType.Borrow) {
+    console.log("borrowing", params);
     txnSig = await borrow(params);
   }
 
