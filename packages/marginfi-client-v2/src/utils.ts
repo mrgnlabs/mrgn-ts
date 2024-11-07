@@ -237,3 +237,11 @@ function u16ToArrayBufferLE(value: number): Uint8Array {
   // Return the buffer
   return new Uint8Array(buffer);
 }
+
+/// Derive the global FeeState account, which is unique per-program and uses a static pda seed.
+export const deriveGlobalFeeState = (programId: PublicKey) => {
+  return PublicKey.findProgramAddressSync(
+    [Buffer.from("feestate", "utf-8")],
+    programId
+  );
+};
