@@ -104,11 +104,21 @@ export const getBundleTip = async (priorityType: TransactionPriorityType, userMa
     },
   });
 
+  let bundleTipData: TipFloorDataResponse = {
+    time: "",
+    landed_tips_25th_percentile: 0.00001,
+    landed_tips_50th_percentile: 0.00005,
+    landed_tips_75th_percentile: 0.0001,
+    landed_tips_95th_percentile: 0.001,
+    landed_tips_99th_percentile: 0.001,
+    ema_landed_tips_50th_percentile: 0.00005,
+  };
   if (!response.ok) {
-    throw new Error("Failed to fetch bundle tip");
+    console.error("Failed to fetch bundle tip");
+  } else {
+    bundleTipData = await response.json();
   }
 
-  const bundleTipData: TipFloorDataResponse = await response.json();
   const maxCap = calculateBundleTipCap(bundleTipData, userMaxCap);
 
   const { ema_landed_tips_50th_percentile, landed_tips_50th_percentile, landed_tips_75th_percentile } = bundleTipData;

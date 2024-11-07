@@ -36,11 +36,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!response.ok) {
       throw new Error("Network response was not ok");
     }
-    const data: TipFloorDataResponse = (await response.json())[0];
+    const data: TipFloorDataResponse[] = await response.json();
+
+    if (!data.length) {
+      throw new Error("No data found");
+    }
 
     // cache for 4 minutes
     res.setHeader("Cache-Control", "s-maxage=240, stale-while-revalidate=59");
-    res.status(200).json(data);
+    res.status(200).json(data[0]);
   } catch (error) {
     console.error("Error:", error);
     res.status(500).json({ error: "Error fetching data" });
