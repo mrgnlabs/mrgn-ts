@@ -1,3 +1,5 @@
+import { PublicKey } from "@solana/web3.js";
+
 export interface IntegrationsData {
   title: string;
   poolInfo: {
@@ -23,27 +25,30 @@ export interface LSTOverview {
   volume: number;
   volumeUsd: number;
   tvl: number;
+  apy: number;
 }
 
-export async function fetchLSTOverview(mint: string): Promise<LSTOverview> {
-  const response = await fetch(`/api/birdeye/overview?token=${mint}`, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
+export const LST_MINT = new PublicKey("LSTxxxnJzKDFSLr4dUkPcmCf5VyryEqzPLz5j4bpxFp");
 
-  const responseBody = await response.json();
-  if (responseBody.success) {
-    const volume = responseBody.data.v24h;
-    const volumeUsd = responseBody.data.v24hUSD;
-    const tvl = responseBody.data.liquidity;
-    return {
-      volume,
-      volumeUsd,
-      tvl,
-    };
+export async function fetchLSTOverview(): Promise<LSTOverview> {
+  const response = await fetch("/api/lst");
+
+  const data: LSTOverview = {
+    volume: 0,
+    volumeUsd: 0,
+    tvl: 0,
+    apy: 0,
+  };
+
+  if (!response.ok) {
+    return data;
   }
 
-  throw new Error("Failed to fetch token overview");
+  const responseBody = await response.json();
+
+  if (responseBody.error) {
+    return data;
+  }
+
+  return responseBody.data;
 }
