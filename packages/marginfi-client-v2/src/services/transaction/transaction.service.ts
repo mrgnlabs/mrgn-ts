@@ -4,7 +4,6 @@ import {
   TransactionBroadcastType,
   simulateBundle,
   DEFAULT_CONFIRM_OPTS,
-  // MARGINFI_PROGRAM,
   Wallet,
   SolanaTransaction,
 } from "@mrgnlabs/mrgn-common";
@@ -26,6 +25,12 @@ import { formatTransactions, sendTransactionAsBundle } from "./transaction.helpe
 // TEMPORARY
 export const MARGINFI_PROGRAM = new PublicKey("MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA");
 
+export const DEFAULT_PROCESS_TX_OPTS = {
+  broadcastType: "BUNDLE" as TransactionBroadcastType,
+  priorityFeeUi: 0,
+  isSequentialTxs: true,
+  isReadOnly: false,
+};
 export interface ProcessTransactionOpts extends ProcessTransactionsClientOpts {
   isReadOnly?: boolean;
   programId?: PublicKey;
@@ -53,8 +58,8 @@ type ProcessTransactionsProps = {
  * @param {SolanaTransaction[]} props.transactions - The transactions to be processed.
  * @param {Connection} props.connection - The connection to the Solana network.
  * @param {Wallet} props.wallet - The wallet used to sign the transactions.
- * @param {TransactionOptions} [props.txOpts] - Optional transaction options.
  * @param {ProcessTransactionOpts} [props.processOpts] - Optional processing options.
+ * @param {TransactionOptions} [props.txOpts] - Optional transaction options.
  *
  * @returns {Promise<TransactionSignature[]>} - A promise that resolves to an array of transaction signatures.
  *
@@ -64,10 +69,17 @@ export async function processTransactions({
   transactions,
   connection,
   wallet,
+  processOpts: processOptsArgs,
   txOpts,
-  processOpts,
 }: ProcessTransactionsProps): Promise<TransactionSignature[]> {
   let signatures: TransactionSignature[] = [""];
+
+  // TODO add priofee check
+
+  const processOpts = {
+    ...DEFAULT_PROCESS_TX_OPTS,
+    ...processOptsArgs,
+  };
 
   let versionedTransactions: VersionedTransaction[] = [];
   let minContextSlot: number;
@@ -83,8 +95,8 @@ export async function processTransactions({
 
     versionedTransactions = formatTransactions(
       transactions,
-      processOpts?.broadcastType ?? "BUNDLE",
-      processOpts?.priorityFeeUi ?? 0,
+      processOpts.broadcastType,
+      processOpts.priorityFeeUi,
       wallet.publicKey,
       blockhash
     );
@@ -124,7 +136,9 @@ export async function processTransactions({
 
       if (!!wallet.signAllTransactions) {
         versionedTransactions = await wallet.signAllTransactions(versionedTransactions);
+        console.log("versionedTransactions", versionedTransactions);
         base58Txs = versionedTransactions.map((signedTx) => bs58.encode(signedTx.serialize()));
+        console.log("base58Txs", base58Txs);
       } else {
         for (let i = 0; i < versionedTransactions.length; i++) {
           const signedTx = await wallet.signTransaction(versionedTransactions[i]);
@@ -142,6 +156,8 @@ export async function processTransactions({
         ...txOpts,
       };
 
+      console.log("checkpoint 1");
+
       const response = await simulateBundle(
         processOpts?.bundleSimRpcEndpoint ?? connection.rpcEndpoint,
         versionedTransactions
@@ -153,6 +169,8 @@ export async function processTransactions({
           logs: [],
         });
       });
+
+      console.log("checkpoint 2", response);
 
       if (response.value.err) {
         throw new SendTransactionError({
@@ -202,10 +220,15 @@ export async function processTransactions({
       //     );
       // }
 
+      console.log("checkpoint 3", processOpts);
+
       if (processOpts?.broadcastType === "BUNDLE") {
+        console.log("hi");
         signatures = await sendTransactionAsBundle(base58Txs).catch(
           async () => await sendTxsRpc(versionedTransactions)
         );
+
+        console.log("signatures", signatures);
       } else {
         signatures = await sendTxsRpc(versionedTransactions);
       }

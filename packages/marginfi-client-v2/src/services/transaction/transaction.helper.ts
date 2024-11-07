@@ -58,7 +58,15 @@ export function formatTransactions(
   blockhash: string
 ): VersionedTransaction[] {
   let formattedTransactions: VersionedTransaction[] = [];
+
   const flashloanIndex = getFlashloanIndex(transactions);
+  transactions.forEach((tx) => {
+    if (!isV0Tx(tx)) {
+      tx.recentBlockhash = blockhash;
+      tx.feePayer = feePayer;
+    }
+  });
+
   const txSizes: number[] = transactions.map((tx) => getTxSize(tx));
 
   const { bundleTipIx, priorityFeeIx } = makeTxPriorityIx(feePayer, priorityFeeUi, broadcastType);
@@ -105,7 +113,7 @@ export function formatTransactions(
 
     let newTransaction: VersionedTransaction;
 
-    if (transaction && "message" in transaction) {
+    if (isV0Tx(transaction)) {
       newTransaction = updateV0Tx(transaction, {
         addressLookupTables,
         additionalIxs: requiredIxs,

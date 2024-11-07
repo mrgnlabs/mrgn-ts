@@ -26,6 +26,7 @@ import {
   DEFAULT_COMMITMENT,
   DEFAULT_CONFIRM_OPTS,
   InstructionsWrapper,
+  isV0Tx,
   loadBankMetadatas,
   loadKeypair,
   NodeWallet,
@@ -975,7 +976,9 @@ class MarginfiClient {
       blockhash = getLatestBlockhashAndContext.value.blockhash;
 
       for (const transaction of transactions) {
-        if (transaction instanceof Transaction) {
+        if (isV0Tx(transaction)) {
+          versionedTransactions.push(transaction);
+        } else {
           const versionedMessage = new TransactionMessage({
             instructions: transaction.instructions,
             payerKey: this.provider.publicKey,
@@ -985,8 +988,6 @@ class MarginfiClient {
           versionedTransactions.push(
             new VersionedTransaction(versionedMessage.compileToV0Message(this.addressLookupTables))
           );
-        } else {
-          versionedTransactions.push(transaction);
         }
       }
     } catch (error: any) {

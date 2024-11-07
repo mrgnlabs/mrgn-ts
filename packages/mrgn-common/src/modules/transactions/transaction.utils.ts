@@ -149,8 +149,5 @@ export function addTransactionMetadata<T extends Transaction | VersionedTransact
   transaction: T,
   options: { signers?: Array<Signer>; addressLookupTables?: AddressLookupTableAccount[] }
 ): T & { signers?: Array<Signer>; addressLookupTables?: AddressLookupTableAccount[] } {
-  return {
-    ...transaction,
-    ...options,
-  } as T & { signers?: Array<Signer>; addressLookupTables?: AddressLookupTableAccount[] };
+  return Object.assign(transaction, options);
 }

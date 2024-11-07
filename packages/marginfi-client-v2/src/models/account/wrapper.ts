@@ -12,6 +12,7 @@ import {
   TransactionOptions,
   ExtendedTransaction,
   ExtendedV0Transaction,
+  getTxSize,
 } from "@mrgnlabs/mrgn-common";
 import * as sb from "@switchboard-xyz/on-demand";
 import { Address, BorshCoder, Idl, translateAddress } from "@coral-xyz/anchor";
@@ -532,6 +533,32 @@ class MarginfiAccountWrapper {
 
     feedCrankTxs = [new VersionedTransaction(message)];
 
+    const flashloanPromises = [
+      this.buildFlashLoanTx({
+        ixs: [
+          ...[priorityFeeIx],
+          ...cuRequestIxs,
+          ...setupIxs,
+          ...withdrawIxs.instructions,
+          ...swapIxs,
+          ...depositIxs.instructions,
+        ],
+        addressLookupTableAccounts,
+        blockhash,
+      }),
+      this.buildFlashLoanTx({
+        ixs: [...cuRequestIxs, ...setupIxs, ...withdrawIxs.instructions, ...swapIxs, ...depositIxs.instructions],
+        addressLookupTableAccounts,
+        blockhash,
+      }),
+    ];
+
+    const flashloanTxs = await Promise.all(flashloanPromises);
+
+    const flashloanTxSizes = flashloanTxs.map((tx) => getTxSize(tx));
+
+    console.log("flashloanTxSizes", flashloanTxSizes);
+
     const flashloanTx = await this.buildFlashLoanTx({
       ixs: [
         ...[priorityFeeIx],
@@ -866,6 +893,7 @@ class MarginfiAccountWrapper {
       signers: ixs.keys,
       addressLookupTables: this.client.addressLookupTables,
     });
+
     return solanaTx;
   }
 
