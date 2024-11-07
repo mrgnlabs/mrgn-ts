@@ -47,7 +47,7 @@ const StakeCard = ({ lstBank, lstOverview, connected }: StakeCardProps) => {
         <ul className="space-y-2.5 mb-4 md:mb-8 md:text-lg">
           <li className="flex items-center gap-1.5 text-muted-foreground">
             <IconCheck className="text-success" size={isMobile ? 18 : 24} />
-            ~9% natural APY
+            {lstOverview?.apy ? lstOverview.apy : "~8.5"}% APY
           </li>
           <li className="flex items-center gap-1.5 text-muted-foreground">
             <IconCheck className="text-success" size={isMobile ? 18 : 24} />

@@ -29,9 +29,10 @@ const chartConfig = {
 
 type StakeCalculatorProps = {
   solPrice: number;
+  apy: number;
 };
 
-const StakeCalculator = ({ solPrice }: StakeCalculatorProps) => {
+const StakeCalculator = ({ solPrice, apy = 8.5 }: StakeCalculatorProps) => {
   const [amount, setAmount] = React.useState(1000);
   const [amountFormatted, setAmountFormatted] = React.useState("1,000");
   const [duration, setDuration] = React.useState(5);
@@ -63,7 +64,7 @@ const StakeCalculator = ({ solPrice }: StakeCalculatorProps) => {
 
   const chartData = React.useMemo(() => {
     const years = [...Array(duration)].map((_, i) => i + 1);
-    const APY = 0.09; // 9% annual yield
+    const APY = apy / 100;
 
     // calculate yearly price change rate to reach prediction
     const priceGrowthRate = Math.pow(debouncedPricePrediction / solPrice, 1 / duration) - 1;

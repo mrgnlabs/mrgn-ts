@@ -59,7 +59,7 @@ const Stake = () => {
   React.useEffect(() => {
     const fetchVolumeData = async () => {
       try {
-        const overview = await fetchLSTOverview(LST_MINT.toString());
+        const overview = await fetchLSTOverview();
         setLstOverview(overview);
       } catch (error) {
         console.error("Something went wrong fetching LST volume");
@@ -119,7 +119,7 @@ const Stake = () => {
           </li>
         </ul>
         <div className="mt-12">
-          <StakeCalculator solPrice={solPrice} />
+          <StakeCalculator solPrice={solPrice} apy={lstOverview?.apy || 8.5} />
         </div>
       </div>
 
@@ -142,7 +142,7 @@ const Stake = () => {
         <div className="w-full max-w-6xl mx-auto py-4 px-4 md:px-10 xl:px-16 text-center">
           <h2 className="text-3xl font-medium mb-3">LST Integrations</h2>
           <p className="text-muted-foreground text-lg">
-            Lend and borrow against your staked SOL and engage with the{" "}
+            Earn {lstOverview?.apy || 8.5}% APY, lend and borrow against your staked SOL, and engage with the{" "}
             <strong className="text-chartreuse">best opportunities in DeFi</strong>.
           </p>
           <div className="flex items-center justify-center flex-wrap gap-8 mt-10 w-full">

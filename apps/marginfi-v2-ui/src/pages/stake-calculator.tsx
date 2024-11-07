@@ -2,16 +2,20 @@ import React from "react";
 
 import { IconCheck } from "@tabler/icons-react";
 import { StakeCalculator } from "@mrgnlabs/mrgn-ui";
-import { SOL_MINT } from "~/store/lstStore";
 import { useMrgnlendStore } from "~/store";
-
-import { PageHeading } from "~/components/common/PageHeading";
+import { WSOL_MINT } from "@mrgnlabs/mrgn-common";
+import { IntegrationsData, LSTOverview, fetchLSTOverview } from "~/components/common/Stake/utils/stake-utils";
 
 export default function StakeCalculatorPage() {
   const [extendedBankInfos] = useMrgnlendStore((state) => [state.extendedBankInfos]);
+  const [lstOverview, setLstOverview] = React.useState<LSTOverview>();
+
+  React.useEffect(() => {
+    fetchLSTOverview().then(setLstOverview);
+  }, []);
 
   const solPrice = React.useMemo(() => {
-    const bank = extendedBankInfos.filter((bank) => bank.info.state.mint.equals(SOL_MINT));
+    const bank = extendedBankInfos.filter((bank) => bank.info.state.mint.equals(WSOL_MINT));
     return bank.length > 0 ? Math.round(bank[0].info.state.price) : 0;
   }, [extendedBankInfos]);
 
@@ -25,7 +29,7 @@ export default function StakeCalculatorPage() {
         <ul className="flex flex-col gap-2 items-center justify-center mt-6 text-chartreuse text-sm md:mt-3 md:text-base md:flex-row md:gap-8">
           <li className="flex items-center gap-2">
             <IconCheck size={18} className="text-chartreuse" />
-            Maximize rewards
+            {lstOverview?.apy ? lstOverview.apy : "~8.5"}% APY
           </li>
           <li className="flex items-center gap-2">
             <IconCheck size={18} className="text-chartreuse" />
@@ -37,7 +41,7 @@ export default function StakeCalculatorPage() {
           </li>
         </ul>
         <div className="mt-12">
-          <StakeCalculator solPrice={solPrice} />
+          <StakeCalculator solPrice={solPrice} apy={lstOverview?.apy || 8.5} />
         </div>
       </div>
     </div>
