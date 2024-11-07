@@ -12,8 +12,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     return res.status(405).json({ error: "Method not allowed" });
   }
 
+  const data = {
+    volume: 0,
+    volumeUsd: 0,
+    tvl: 0,
+    apy: 0,
+  };
+
   try {
     const validatorResponse = await fetch(process.env.VALIDATOR_API_URL!);
+
+    if (validatorResponse.ok) {
+      const validatorData = await validatorResponse.json();
+      data.apy = validatorData.total_apy || 0;
+    }
+  } catch (error) {
+    return res.status(500).json({ error: (error as Error).message || "Validator API error" });
+  }
+
+  try {
     const birdeyeResponse = await fetch(
       `https://public-api.birdeye.so/defi/token_overview?address=${LST_MINT.toBase58()}`,
       {
@@ -25,30 +42,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       }
     );
 
-    const data = {
-      volume: 0,
-      volumeUsd: 0,
-      tvl: 0,
-      apy: 0,
-    };
-
     if (birdeyeResponse.ok) {
       const birdeyeData = await birdeyeResponse.json();
       data.volume = birdeyeData.data.v24h || 0;
       data.volumeUsd = birdeyeData.data.v24hUSD || 0;
       data.tvl = birdeyeData.data.liquidity || 0;
     }
-
-    if (validatorResponse.ok) {
-      const validatorData = await validatorResponse.json();
-      data.apy = validatorData.total_apy || 0;
-    }
-
-    res.setHeader("Cache-Control", "public, max-age=14400");
-    return res.status(200).json({
-      data,
-    });
   } catch (error) {
-    return res.status(500).json({ error: (error as Error).message || "Internal server error" });
+    return res.status(500).json({ error: (error as Error).message || "Birdeye API error" });
   }
+
+  res.setHeader("Cache-Control", "public, max-age=14400");
+  return res.status(200).json({
+    data,
+  });
 }
