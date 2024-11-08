@@ -8,14 +8,18 @@ import {
   updateV0Tx,
   sleep,
   SolanaTransaction,
+  // PRIORITY_TX_SIZE,
+  // BUNDLE_TX_SIZE,
+  // MAX_TX_SIZE,
 } from "@mrgnlabs/mrgn-common";
 import { PublicKey, VersionedTransaction, TransactionInstruction } from "@solana/web3.js";
 import { MARGINFI_IDL, MarginfiIdlType } from "../../idl";
 import { makeTxPriorityIx } from "../../models/account";
 
-const MAX_TX_SIZE = 1232;
-const BUNDLE_TX_SIZE = 30; // TODO look for the exact size
-const PRIORITY_TX_SIZE = 20; // TODO look for the exact size
+// Temporary imports
+export const MAX_TX_SIZE = 1232;
+export const BUNDLE_TX_SIZE = 81;
+export const PRIORITY_TX_SIZE = 44;
 
 export function isFlashloan(tx: SolanaTransaction): boolean {
   if (isV0Tx(tx)) {

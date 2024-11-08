@@ -32,6 +32,7 @@ import {
 } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 import {
+  LoopTxProps,
   MakeBorrowIxOpts,
   MakeDepositIxOpts,
   makePriorityFeeIx,
@@ -42,6 +43,9 @@ import {
   MarginfiIdlType,
   OracleSetup,
   ProcessTransactionsClientOpts,
+  RepayWithCollateralProps,
+  FlashloanActionResult,
+  LoopProps,
 } from "../..";
 import { AccountType, MarginfiConfig, MarginfiProgram } from "../../types";
 import { MarginfiAccount, MarginRequirementType, MarginfiAccountRaw } from "./pure";
@@ -49,6 +53,11 @@ import { Bank, computeLoopingParams } from "../bank";
 import { Balance } from "../balance";
 import { getSwitchboardProgram } from "../../vendor";
 import { TransactionSignature } from "@solana/web3.js";
+
+// Temporary imports
+export const MAX_TX_SIZE = 1232;
+export const BUNDLE_TX_SIZE = 81;
+export const PRIORITY_TX_SIZE = 44;
 
 export interface SimulationResult {
   banks: Map<string, Bank>;
@@ -363,218 +372,62 @@ class MarginfiAccountWrapper {
   }
 
   /**
-   * @deprecated Use repayWithCollatV2 instead.
+   * Repays a loan using collateral from another bank by:
+   * 1. Withdrawing collateral from one bank
+   * 2. Swapping it to the repayment asset
+   * 3. Repaying the loan in another bank
    *
-   * Repay a loan using collateral from another bank by executing a flashloan.
-   *
-   * @param repayAmount - Amount to repay
-   * @param withdrawAmount - Amount of collateral to withdraw
-   * @param borrowBankAddress - Address of the bank where the loan is being repaid
-   * @param depositBankAddress - Address of the bank where collateral is being withdrawn from
-   * @param withdrawAll - Whether to withdraw all collateral from the deposit bank
-   * @param repayAll - Whether to repay the entire loan amount
-   * @param swapIxs - Instructions for swapping the withdrawn collateral into repayment asset
-   * @param swapLookupTables - Address lookup tables needed for swap instructions
-   * @returns Array of transaction signatures
+   * @param {RepayWithCollateralProps} props - Parameters for the repay with collateral transaction
+   * @param {Amount} props.repayAmount - Amount to repay
+   * @param {Amount} props.withdrawAmount - Amount of collateral to withdraw
+   * @param {PublicKey} props.borrowBankAddress - Bank address where the loan is being repaid
+   * @param {PublicKey} props.depositBankAddress - Bank address where collateral is being withdrawn from
+   * @param {boolean} [props.withdrawAll=false] - Whether to withdraw all collateral from deposit bank
+   * @param {boolean} [props.repayAll=false] - Whether to repay entire loan amount
+   * @param {Object} props.swap - Swap configuration with instructions and lookup tables
+   * @param {ProcessTransactionsClientOpts} [props.processOpts] - Optional transaction processing configuration
+   * @param {TransactionOptions} [props.txOpts] - Optional transaction options
+   * @returns {Promise<TransactionSignature[]>} Array of transaction signatures
    */
-  async repayWithCollat(
-    repayAmount: Amount,
-    withdrawAmount: Amount,
-    borrowBankAddress: PublicKey,
-    depositBankAddress: PublicKey,
-    withdrawAll: boolean = false,
-    repayAll: boolean = false,
-    swapIxs: TransactionInstruction[],
-    swapLookupTables: AddressLookupTableAccount[]
-  ): Promise<string[]> {
+  async repayWithCollatV2(props: RepayWithCollateralProps): Promise<TransactionSignature[]> {
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:repay`);
-    debug("Repaying %s into marginfi account (bank: %s), repay all: %s", repayAmount, borrowBankAddress, repayAll);
-
-    const { flashloanTx, feedCrankTxs } = await this.makeRepayWithCollatTx(
-      repayAmount,
-      withdrawAmount,
-      borrowBankAddress,
-      depositBankAddress,
-      withdrawAll,
-      repayAll,
-      swapIxs,
-      swapLookupTables
+    debug(
+      "Repaying %s into marginfi account (bank: %s), repay all: %s",
+      props.repayAmount,
+      props.borrowBankAddress,
+      props.repayAll
     );
 
-    const sigs = await this.client.processTransactions([...feedCrankTxs, flashloanTx]);
+    const { processOpts, txOpts, ...txProps } = props;
+    const { flashloanTx, additionalTxs } = await this.makeRepayWithCollatTxV2({
+      ...txProps,
+    });
+
+    const sigs = await this.client.processTransactions([...additionalTxs, flashloanTx], processOpts, txOpts);
     debug("Repay with collateral successful %s", sigs.pop() ?? "");
 
     return sigs;
   }
 
-  async simulateRepayWithCollat(
-    repayAmount: Amount,
-    withdrawAmount: Amount,
-    borrowBankAddress: PublicKey,
-    depositBankAddress: PublicKey,
-    withdrawAll: boolean = false,
-    repayAll: boolean = false,
-    swapIxs: TransactionInstruction[],
-    addressLookupTableAccounts: AddressLookupTableAccount[]
-  ): Promise<SimulationResult> {
-    const { flashloanTx } = await this.makeRepayWithCollatTx(
-      repayAmount,
-      withdrawAmount,
-      borrowBankAddress,
-      depositBankAddress,
-      withdrawAll,
-      repayAll,
-      swapIxs,
-      addressLookupTableAccounts
-    );
-
-    const [mfiAccountData, bankData] = await this.client.simulateTransactions(
-      [flashloanTx],
-      [this.address, borrowBankAddress]
-    );
-    if (!mfiAccountData || !bankData) throw new Error("Failed to simulate repay w/ collat");
-    const previewBanks = this.client.banks;
-    previewBanks.set(
-      borrowBankAddress.toBase58(),
-      Bank.fromBuffer(borrowBankAddress, bankData, this._program.idl, this.client.feedIdMap)
-    );
-    const previewClient = new MarginfiClient(
-      this._config,
-      this.client.program,
-      {} as Wallet,
-      true,
-      this.client.group,
-      this.client.banks,
-      this.client.oraclePrices,
-      this.client.mintDatas,
-      this.client.feedIdMap
-    );
-    const previewMarginfiAccount = MarginfiAccountWrapper.fromAccountDataRaw(
-      this.address,
-      previewClient,
-      mfiAccountData,
-      this._program.idl
-    );
-    return {
-      banks: previewBanks,
-      marginfiAccount: previewMarginfiAccount,
-    };
-  }
-
   /**
-   * Creates a transaction for repaying a loan using collateral.
+   * Creates a transaction to repay a loan using collateral by:
+   * 1. Withdrawing collateral from one bank
+   * 2. Swapping it to the repayment asset
+   * 3. Repaying the loan in another bank
    *
-   * @param repayAmount Amount to repay
-   * @param withdrawAmount Amount of collateral to withdraw
-   * @param borrowBankAddress Bank address where loan is being repaid
-   * @param depositBankAddress Bank address where collateral is being withdrawn from
-   * @param withdrawAll Whether to withdraw all collateral from deposit bank
-   * @param repayAll Whether to repay entire loan amount
-   * @param swapIxs Instructions for swapping withdrawn collateral to repayment asset
-   * @param swapLookupTables Address lookup tables needed for swap instructions
-   * @param priorityFeeUi Optional priority fee in native units
-   * @param isTxnSplitParam Whether to split transaction
-   * @param blockhashArg Optional recent blockhash
-   * @param broadcastType Transaction broadcast type
-   * @returns Object containing flash loan transaction, feed crank transactions, and lookup tables
-   * @deprecated Use makeRepayWithCollatTxV2 instead.
+   * @param {RepayWithCollateralProps} params - Parameters for the repay with collateral transaction
+   * @param {Amount} params.repayAmount - Amount to repay
+   * @param {Amount} params.withdrawAmount - Amount of collateral to withdraw
+   * @param {PublicKey} params.borrowBankAddress - Bank address where the loan is being repaid
+   * @param {PublicKey} params.depositBankAddress - Bank address where collateral is being withdrawn from
+   * @param {boolean} [params.withdrawAll=false] - Whether to withdraw all collateral from deposit bank
+   * @param {boolean} [params.repayAll=false] - Whether to repay entire loan amount
+   * @param {Object} params.swap - Swap configuration with instructions and lookup tables
+   * @param {string} [params.blockhash] - Optional recent blockhash
+   * @param {MakeWithdrawIxOpts} [params.withdrawOpts] - Optional withdraw configuration
+   * @param {MakeRepayIxOpts} [params.repayOpts] - Optional repay configuration
+   * @returns {Promise<RepayWithCollateralResult>} Result containing feed crank and flashloan transactions
    */
-  async makeRepayWithCollatTx(
-    repayAmount: Amount,
-    withdrawAmount: Amount,
-    borrowBankAddress: PublicKey,
-    depositBankAddress: PublicKey,
-    withdrawAll: boolean = false,
-    repayAll: boolean = false,
-    swapIxs: TransactionInstruction[],
-    swapLookupTables: AddressLookupTableAccount[],
-    priorityFeeUi?: number,
-    isTxnSplitParam?: boolean,
-    blockhashArg?: string,
-    broadcastType: TransactionBroadcastType = "BUNDLE"
-  ): Promise<{
-    flashloanTx: VersionedTransaction;
-    feedCrankTxs: VersionedTransaction[];
-    addressLookupTableAccounts: AddressLookupTableAccount[];
-  }> {
-    const blockhash =
-      blockhashArg ?? (await this._program.provider.connection.getLatestBlockhash("confirmed")).blockhash;
-    const setupIxs = await this.makeSetupIx([borrowBankAddress, depositBankAddress]);
-    const cuRequestIxs = this.makeComputeBudgetIx();
-    const { bundleTipIx, priorityFeeIx } = makeTxPriorityIx(
-      this.client.provider.publicKey,
-      priorityFeeUi,
-      broadcastType
-    );
-    const withdrawIxs = await this.makeWithdrawIx(withdrawAmount, depositBankAddress, withdrawAll, {
-      createAtas: false,
-      wrapAndUnwrapSol: false,
-    });
-    const depositIxs = await this.makeRepayIx(repayAmount, borrowBankAddress, repayAll, {
-      createAtas: false,
-      wrapAndUnwrapSol: false,
-    });
-    const lookupTables = this.client.addressLookupTables;
-
-    const { instructions: updateFeedIxs, luts: feedLuts } = await this.makeUpdateFeedIx([
-      depositBankAddress,
-      borrowBankAddress,
-    ]);
-
-    const addressLookupTableAccounts = [...lookupTables, ...swapLookupTables];
-
-    let feedCrankTxs: VersionedTransaction[] = [];
-
-    const message = new TransactionMessage({
-      payerKey: this.client.wallet.publicKey,
-      recentBlockhash: blockhash,
-      instructions: [priorityFeeIx, ...(bundleTipIx ? [bundleTipIx] : []), ...updateFeedIxs],
-    }).compileToV0Message([...addressLookupTableAccounts, ...feedLuts]);
-
-    feedCrankTxs = [new VersionedTransaction(message)];
-
-    const flashloanPromises = [
-      this.buildFlashLoanTx({
-        ixs: [
-          ...[priorityFeeIx],
-          ...cuRequestIxs,
-          ...setupIxs,
-          ...withdrawIxs.instructions,
-          ...swapIxs,
-          ...depositIxs.instructions,
-        ],
-        addressLookupTableAccounts,
-        blockhash,
-      }),
-      this.buildFlashLoanTx({
-        ixs: [...cuRequestIxs, ...setupIxs, ...withdrawIxs.instructions, ...swapIxs, ...depositIxs.instructions],
-        addressLookupTableAccounts,
-        blockhash,
-      }),
-    ];
-
-    const flashloanTxs = await Promise.all(flashloanPromises);
-
-    const flashloanTxSizes = flashloanTxs.map((tx) => getTxSize(tx));
-
-    console.log("flashloanTxSizes", flashloanTxSizes);
-
-    const flashloanTx = await this.buildFlashLoanTx({
-      ixs: [
-        ...[priorityFeeIx],
-        ...cuRequestIxs,
-        ...setupIxs,
-        ...withdrawIxs.instructions,
-        ...swapIxs,
-        ...depositIxs.instructions,
-      ],
-      addressLookupTableAccounts,
-      blockhash,
-    });
-
-    return { flashloanTx, feedCrankTxs, addressLookupTableAccounts };
-  }
-
   async makeRepayWithCollatTxV2({
     repayAmount,
     withdrawAmount,
@@ -582,35 +435,19 @@ class MarginfiAccountWrapper {
     depositBankAddress,
     withdrawAll = false,
     repayAll = false,
-    swapOpts,
+    swap,
     blockhash: blockhashArg,
     withdrawOpts,
     repayOpts,
-  }: {
-    repayAmount: Amount;
-    withdrawAmount: Amount;
-    borrowBankAddress: PublicKey;
-    depositBankAddress: PublicKey;
-    withdrawAll: boolean;
-    repayAll: boolean;
-    swapOpts: {
-      swapIxs: TransactionInstruction[];
-      swapLookupTables: AddressLookupTableAccount[];
-    };
-    blockhash?: string;
-    withdrawOpts?: MakeWithdrawIxOpts;
-    repayOpts?: MakeRepayIxOpts;
-  }): Promise<{
-    flashloanTx: VersionedTransaction;
-    feedCrankTxs: VersionedTransaction[];
-    addressLookupTableAccounts: AddressLookupTableAccount[];
-  }> {
+  }: RepayWithCollateralProps): Promise<FlashloanActionResult> {
     const blockhash =
       blockhashArg ?? (await this._program.provider.connection.getLatestBlockhash("confirmed")).blockhash;
 
+    // creates atas if needed
     const setupIxs = await this.makeSetupIx([borrowBankAddress, depositBankAddress]);
     const cuRequestIxs = this.makeComputeBudgetIx();
-    const { priorityFeeIx } = makeTxPriorityIx(this.client.provider.publicKey);
+    // tiny priority fee just in case bundle fails
+    const [priorityFeeIx] = makePriorityFeeIx(0.00001);
     const withdrawIxs = await this.makeWithdrawIx(
       withdrawAmount,
       depositBankAddress,
@@ -633,195 +470,205 @@ class MarginfiAccountWrapper {
       depositBankAddress,
       borrowBankAddress,
     ]);
+    const { lookupTables: swapLookupTables, instructions: swapIxs } = swap;
 
-    const clientLuts = this.client.addressLookupTables;
+    let additionalTxs: ExtendedV0Transaction[] = [];
+    let flashloanTx: ExtendedV0Transaction;
+    let txOverflown = false;
 
-    const addressLookupTableAccounts = [...clientLuts, ...swapOpts.swapLookupTables];
+    // if atas are needed, add them
+    if (setupIxs.length > 0) {
+      const message = new TransactionMessage({
+        payerKey: this.client.wallet.publicKey,
+        recentBlockhash: blockhash,
+        instructions: setupIxs,
+      }).compileToLegacyMessage();
 
-    let feedCrankTxs: VersionedTransaction[] = [];
+      additionalTxs.push(new VersionedTransaction(message));
+    }
 
-    const message = new TransactionMessage({
-      payerKey: this.client.wallet.publicKey,
-      recentBlockhash: blockhash,
-      instructions: [...updateFeedIxs],
-    }).compileToV0Message([...addressLookupTableAccounts, ...feedLuts]);
+    // if crank is needed, add it
+    if (updateFeedIxs.length > 0) {
+      const message = new TransactionMessage({
+        payerKey: this.client.wallet.publicKey,
+        recentBlockhash: blockhash,
+        instructions: updateFeedIxs,
+      }).compileToV0Message(feedLuts);
 
-    feedCrankTxs = [new VersionedTransaction(message)];
+      additionalTxs.push(
+        addTransactionMetadata(new VersionedTransaction(message), {
+          addressLookupTables: feedLuts,
+        })
+      );
+    }
 
-    const flashloanTx = await this.buildFlashLoanTx({
-      ixs: [
-        ...[priorityFeeIx],
-        ...cuRequestIxs,
-        ...setupIxs,
-        ...withdrawIxs.instructions,
-        ...swapOpts.swapIxs,
-        ...repayIxs.instructions,
-      ],
-      addressLookupTableAccounts,
-      blockhash,
-    });
+    const addressLookupTableAccounts = [...this.client.addressLookupTables, ...swapLookupTables];
+    if (cuRequestIxs) {
+      // if cuRequestIxs are present, no priority fee ix is needed
+      flashloanTx = await this.buildFlashLoanTx({
+        ixs: [...cuRequestIxs, ...setupIxs, ...withdrawIxs.instructions, ...swapIxs, ...repayIxs.instructions],
+        addressLookupTableAccounts,
+        blockhash,
+      });
+    } else {
+      // if cuRequestIxs are not present, priority fee ix is needed
+      // wallets add a priority fee ix by default breaking the flashloan tx so we need to add a placeholder priority fee ix
+      // docs: https://docs.phantom.app/developer-powertools/solana-priority-fees
+      flashloanTx = await this.buildFlashLoanTx({
+        ixs: [priorityFeeIx, ...withdrawIxs.instructions, ...swapIxs, ...repayIxs.instructions],
+        addressLookupTableAccounts,
+        blockhash,
+      });
 
-    return { flashloanTx, feedCrankTxs, addressLookupTableAccounts };
+      const txSize = getTxSize(flashloanTx);
+      const txToBig = txSize > MAX_TX_SIZE;
+      const canBeDownsized = txToBig && txSize - PRIORITY_TX_SIZE <= MAX_TX_SIZE;
+
+      if (canBeDownsized) {
+        // wallets won't add a priority fee if tx space is limited
+        flashloanTx = await this.buildFlashLoanTx({
+          ixs: [...withdrawIxs.instructions, ...swapIxs, ...repayIxs.instructions],
+          addressLookupTableAccounts,
+          blockhash,
+        });
+      } else {
+        txOverflown = true;
+      }
+    }
+
+    return { flashloanTx, additionalTxs, txOverflown };
   }
 
-  async loop(
-    depositAmount: Amount,
-    borrowAmount: Amount,
-    depositBankAddress: PublicKey,
-    borrowBankAddress: PublicKey,
-    swapIxs: TransactionInstruction[],
-    swapLookupTables: AddressLookupTableAccount[],
-    priorityFeeUi?: number
-  ): Promise<string | { flashloanTx: VersionedTransaction; addressLookupTableAccounts: AddressLookupTableAccount[] }> {
-    const depositBank = this.client.banks.get(depositBankAddress.toBase58());
-    if (!depositBank) throw Error("Deposit bank not found");
-    const borrowBank = this.client.banks.get(borrowBankAddress.toBase58());
-    if (!borrowBank) throw Error("Borrow bank not found");
-
+  async loopV2(props: LoopProps): Promise<TransactionSignature[]> {
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:repay`);
     debug(
-      `Looping ${depositAmount} ${depositBank.tokenSymbol} against ${borrowAmount} ${
-        borrowBank.tokenSymbol
-      } into marginfi account (banks: ${depositBankAddress.toBase58()} / ${borrowBankAddress.toBase58()})`
+      `Looping ${props.depositAmount} ${props.depositBankAddress.toBase58()} against ${
+        props.borrowAmount
+      } ${props.borrowBankAddress.toBase58()} into marginfi account (banks: ${props.depositBankAddress.toBase58()} / ${props.borrowBankAddress.toBase58()})`
     );
 
-    const { flashloanTx, feedCrankTxs } = await this.makeLoopTx(
-      depositAmount,
-      borrowAmount,
-      depositBankAddress,
-      borrowBankAddress,
-      swapIxs,
-      swapLookupTables,
-      priorityFeeUi
-    );
+    const depositBank = this.client.banks.get(props.depositBankAddress.toBase58());
+    if (!depositBank) throw Error("Deposit bank not found");
+    const borrowBank = this.client.banks.get(props.borrowBankAddress.toBase58());
+    if (!borrowBank) throw Error("Borrow bank not found");
 
-    // TODO: Check why different than repayWithCollat
-    const sig = await this.client.processTransaction(flashloanTx);
-    debug("Repay with collateral successful %s", sig);
+    const { processOpts, txOpts, ...txProps } = props;
 
-    return sig;
+    const { flashloanTx, additionalTxs } = await this.makeLoopTxV2(txProps);
+
+    const sigs = await this.client.processTransactions([flashloanTx, ...additionalTxs], processOpts, txOpts);
+    debug("Loop successful %s", sigs.pop() ?? "");
+
+    return sigs;
   }
 
-  async simulateLoop(
-    depositAmount: Amount,
-    borrowAmount: Amount,
-    depositBankAddress: PublicKey,
-    borrowBankAddress: PublicKey,
-    swapIxs: TransactionInstruction[],
-    swapLookupTables: AddressLookupTableAccount[],
-    priorityFeeUi?: number
-  ): Promise<SimulationResult> {
-    const { flashloanTx } = await this.makeLoopTx(
-      depositAmount,
-      borrowAmount,
-      depositBankAddress,
-      borrowBankAddress,
-      swapIxs,
-      swapLookupTables,
-      priorityFeeUi
-    );
-
-    const [mfiAccountData, depositBankData, borrowBankData] = await this.client.simulateTransactions(
-      [flashloanTx],
-      [this.address, depositBankAddress, borrowBankAddress]
-    );
-    if (!mfiAccountData || !depositBankData || !borrowBankData) throw new Error("Failed to simulate repay w/ collat");
-    const previewBanks = this.client.banks;
-    previewBanks.set(
-      depositBankAddress.toBase58(),
-      Bank.fromBuffer(depositBankAddress, depositBankData, this._program.idl, this.client.feedIdMap)
-    );
-    previewBanks.set(
-      borrowBankAddress.toBase58(),
-      Bank.fromBuffer(borrowBankAddress, borrowBankData, this._program.idl, this.client.feedIdMap)
-    );
-
-    const previewClient = new MarginfiClient(
-      this._config,
-      this.client.program,
-      {} as Wallet,
-      true,
-      this.client.group,
-      this.client.banks,
-      this.client.oraclePrices,
-      this.client.mintDatas,
-      this.client.feedIdMap
-    );
-    const previewMarginfiAccount = MarginfiAccountWrapper.fromAccountDataRaw(
-      this.address,
-      previewClient,
-      mfiAccountData,
-      this._program.idl
-    );
-
-    return {
-      banks: previewBanks,
-      marginfiAccount: previewMarginfiAccount,
-    };
-  }
-
-  async makeLoopTx(
-    depositAmount: Amount,
-    borrowAmount: Amount,
-    depositBankAddress: PublicKey,
-    borrowBankAddress: PublicKey,
-    swapIxs: TransactionInstruction[],
-    swapLookupTables: AddressLookupTableAccount[],
-    priorityFeeUi?: number,
-    createAtas?: boolean,
-    broadcastType: TransactionBroadcastType = "BUNDLE"
-  ): Promise<{
-    flashloanTx: VersionedTransaction;
-    feedCrankTxs: VersionedTransaction[];
-    addressLookupTableAccounts: AddressLookupTableAccount[];
-  }> {
+  async makeLoopTxV2({
+    depositAmount,
+    borrowAmount,
+    depositBankAddress,
+    borrowBankAddress,
+    swap,
+    blockhash: blockhashArg,
+    depositOpts,
+    borrowOpts,
+  }: LoopTxProps): Promise<FlashloanActionResult> {
     const depositBank = this.client.banks.get(depositBankAddress.toBase58());
     if (!depositBank) throw Error("Deposit bank not found");
     const borrowBank = this.client.banks.get(borrowBankAddress.toBase58());
     if (!borrowBank) throw Error("Borrow bank not found");
 
-    const setupIxs = createAtas ? await this.makeSetupIx([depositBankAddress, borrowBankAddress]) : [];
+    const blockhash =
+      blockhashArg ?? (await this._program.provider.connection.getLatestBlockhash("confirmed")).blockhash;
+
+    // creates atas if needed
+    const setupIxs = await this.makeSetupIx([borrowBankAddress, depositBankAddress]);
     const cuRequestIxs = this.makeComputeBudgetIx();
-
-    const { bundleTipIx, priorityFeeIx } = makeTxPriorityIx(
-      this.client.provider.publicKey,
-      priorityFeeUi,
-      broadcastType
+    // tiny priority fee just in case bundle fails
+    const [priorityFeeIx] = makePriorityFeeIx(0.00001);
+    const borrowIxs = await this.makeBorrowIx(
+      borrowAmount,
+      borrowBankAddress,
+      borrowOpts ?? {
+        createAtas: false,
+        wrapAndUnwrapSol: false,
+      }
     );
-    const borrowIxs = await this.makeBorrowIx(borrowAmount, borrowBankAddress, {
-      createAtas: true,
-      wrapAndUnwrapSol: false,
-    });
-    const depositIxs = await this.makeDepositIx(depositAmount, depositBankAddress, {
-      wrapAndUnwrapSol: true,
-    });
-    const clientLookupTables = this.client.addressLookupTables;
-
+    const depositIxs = await this.makeDepositIx(
+      depositAmount,
+      depositBankAddress,
+      depositOpts ?? {
+        wrapAndUnwrapSol: false,
+      }
+    );
     const { instructions: updateFeedIxs, luts: feedLuts } = await this.makeUpdateFeedIx([
       depositBankAddress,
       borrowBankAddress,
     ]);
+    const { lookupTables: swapLookupTables, instructions: swapIxs } = swap;
 
-    // isTxnSplit forced set to true as we're always splitting now
-    const { blockhash } = await this._program.provider.connection.getLatestBlockhash("confirmed");
-    const message = new TransactionMessage({
-      payerKey: this.client.wallet.publicKey,
-      recentBlockhash: blockhash,
-      instructions: [priorityFeeIx, ...(bundleTipIx ? [bundleTipIx] : []), ...updateFeedIxs, ...setupIxs],
-    }).compileToV0Message([...clientLookupTables, ...feedLuts]);
+    let additionalTxs: ExtendedV0Transaction[] = [];
+    let flashloanTx: ExtendedV0Transaction;
+    let txOverflown = false;
 
-    const feedCrankTxs = [new VersionedTransaction(message)];
+    if (setupIxs.length > 0) {
+      const message = new TransactionMessage({
+        payerKey: this.client.wallet.publicKey,
+        recentBlockhash: blockhash,
+        instructions: setupIxs,
+      }).compileToLegacyMessage();
 
-    const flashloanTx = await this.buildFlashLoanTx({
-      ixs: [...[priorityFeeIx], ...cuRequestIxs, ...borrowIxs.instructions, ...swapIxs, ...depositIxs.instructions],
-      addressLookupTableAccounts: [...clientLookupTables, ...swapLookupTables],
-    });
+      additionalTxs.push(new VersionedTransaction(message));
+    }
 
-    return {
-      flashloanTx,
-      feedCrankTxs,
-      addressLookupTableAccounts: [...clientLookupTables, ...swapLookupTables, ...feedLuts],
-    };
+    if (updateFeedIxs.length > 0) {
+      const message = new TransactionMessage({
+        payerKey: this.client.wallet.publicKey,
+        recentBlockhash: blockhash,
+        instructions: updateFeedIxs,
+      }).compileToV0Message(feedLuts);
+
+      additionalTxs.push(
+        addTransactionMetadata(new VersionedTransaction(message), {
+          addressLookupTables: feedLuts,
+        })
+      );
+    }
+
+    const addressLookupTableAccounts = [...this.client.addressLookupTables, ...swapLookupTables];
+    if (cuRequestIxs) {
+      // if cuRequestIxs are present, no priority fee ix is needed
+      flashloanTx = await this.buildFlashLoanTx({
+        ixs: [...cuRequestIxs, ...setupIxs, ...borrowIxs.instructions, ...swapIxs, ...depositIxs.instructions],
+        addressLookupTableAccounts,
+        blockhash,
+      });
+    } else {
+      // if cuRequestIxs are not present, priority fee ix is needed
+      // wallets add a priority fee ix by default breaking the flashloan tx so we need to add a placeholder priority fee ix
+      // docs: https://docs.phantom.app/developer-powertools/solana-priority-fees
+      flashloanTx = await this.buildFlashLoanTx({
+        ixs: [priorityFeeIx, ...borrowIxs.instructions, ...swapIxs, ...depositIxs.instructions],
+        addressLookupTableAccounts,
+        blockhash,
+      });
+
+      const txSize = getTxSize(flashloanTx);
+      const txToBig = txSize > MAX_TX_SIZE;
+      const canBeDownsized = txToBig && txSize - PRIORITY_TX_SIZE <= MAX_TX_SIZE;
+
+      if (canBeDownsized) {
+        // wallets won't add a priority fee if tx space is limited
+        flashloanTx = await this.buildFlashLoanTx({
+          ixs: [...borrowIxs.instructions, ...swapIxs, ...depositIxs.instructions],
+          addressLookupTableAccounts,
+          blockhash,
+        });
+      } else {
+        txOverflown = true;
+      }
+    }
+
+    return { flashloanTx, additionalTxs, txOverflown };
   }
 
   /**
@@ -898,19 +745,6 @@ class MarginfiAccountWrapper {
   }
 
   /**
-   * @deprecated This method is deprecated. Please use simulateBorrowLendTransaction instead.
-   */
-  async simulateDeposit(amount: Amount, bankAddress: PublicKey): Promise<SimulationResult> {
-    const ixs = await this.makeDepositIx(amount, bankAddress);
-    const tx = new Transaction().add(...ixs.instructions);
-    try {
-      return this.simulateBorrowLendTransaction([tx], bankAddress);
-    } catch (e) {
-      throw new Error("Failed to simulate deposit");
-    }
-  }
-
-  /**
    * Simulates a mrgnlend transaction to preview its effects.
    *
    * @param txs - Array of transactions to simulate, can be either VersionedTransaction or Transaction
@@ -921,20 +755,24 @@ class MarginfiAccountWrapper {
    */
   async simulateBorrowLendTransaction(
     txs: (VersionedTransaction | Transaction)[],
-    bankAddress: PublicKey,
-    additionalAccountsToInspect: PublicKey[] = []
+    banksToInspect: PublicKey[]
   ): Promise<SimulationResult> {
-    const [mfiAccountData, bankData] = await this.client.simulateTransactions(txs, [
+    const [mfiAccountData, ...bankData] = await this.client.simulateTransactions(txs, [
       this.address,
-      bankAddress,
-      ...additionalAccountsToInspect,
+      ...banksToInspect,
     ]);
     if (!mfiAccountData || !bankData) throw new Error("Failed to simulate");
     const previewBanks = this.client.banks;
-    previewBanks.set(
-      bankAddress.toBase58(),
-      Bank.fromBuffer(bankAddress, bankData, this._program.idl, this.client.feedIdMap)
-    );
+
+    banksToInspect.forEach((bankAddress, idx) => {
+      const data = bankData[idx];
+      if (!data) throw new Error("Failed to simulate");
+      previewBanks.set(
+        bankAddress.toBase58(),
+        Bank.fromBuffer(bankAddress, data, this._program.idl, this.client.feedIdMap)
+      );
+    });
+
     const previewClient = new MarginfiClient(
       this._config,
       this.client.program,
@@ -1044,19 +882,6 @@ class MarginfiAccountWrapper {
   }
 
   /**
-   * @deprecated This method is deprecated. Please use simulateBorrowLendTransaction instead.
-   */
-  async simulateRepay(amount: Amount, bankAddress: PublicKey, repayAll: boolean = false): Promise<SimulationResult> {
-    const ixs = await this.makeRepayIx(amount, bankAddress, repayAll);
-    const tx = new Transaction().add(...ixs.instructions);
-    try {
-      return this.simulateBorrowLendTransaction([tx], bankAddress);
-    } catch (e) {
-      throw new Error("Failed to simulate repay");
-    }
-  }
-
-  /**
    * Creates instructions for withdrawing tokens from a marginfi bank account.
    *
    * @param amount - The amount of tokens to withdraw, can be a number or Amount object
@@ -1103,6 +928,8 @@ class MarginfiAccountWrapper {
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:withdraw`);
     debug("Withdrawing all from marginfi account");
     const cuRequestIxs = this.makeComputeBudgetIx();
+
+    // TODO add crank
 
     const withdrawIxsPromises = banks.map((bank) =>
       this.makeWithdrawIx(bank.amount, bank.bankAddress, true, withdrawOpts)
@@ -1219,17 +1046,6 @@ class MarginfiAccountWrapper {
   }
 
   /**
-   * @deprecated This method is deprecated. Please use simulateBorrowLendTransaction instead.
-   */
-  async simulateWithdraw(bankAddress: PublicKey, txs: VersionedTransaction[]): Promise<SimulationResult> {
-    try {
-      return this.simulateBorrowLendTransaction(txs, bankAddress);
-    } catch (e) {
-      throw new Error("Failed to simulate withdraw");
-    }
-  }
-
-  /**
    * Creates instructions for borrowing tokens from a marginfi bank account.
    *
    * @param amount - The amount of tokens to borrow, can be a number or Amount object
@@ -1342,17 +1158,6 @@ class MarginfiAccountWrapper {
     );
 
     return { feedCrankTxs, borrowTx };
-  }
-
-  /**
-   * @deprecated This method is deprecated. Please use simulateBorrowLendTransaction instead.
-   */
-  async simulateBorrow(bankAddress: PublicKey, txs: VersionedTransaction[]): Promise<SimulationResult> {
-    try {
-      return this.simulateBorrowLendTransaction(txs, bankAddress);
-    } catch (e) {
-      throw new Error("Failed to simulate borrow");
-    }
   }
 
   /**
@@ -1704,6 +1509,390 @@ class MarginfiAccountWrapper {
 
   public describe(): string {
     return this._marginfiAccount.describe(this.client.banks, this.client.oraclePrices);
+  }
+
+  // --------------------------------------------------------------------------
+  // DEPRECATED METHODS
+  // --------------------------------------------------------------------------
+
+  /**
+   * @deprecated This method is deprecated. Please use simulateBorrowLendTransaction instead.
+   */
+  async simulateDeposit(amount: Amount, bankAddress: PublicKey): Promise<SimulationResult> {
+    const ixs = await this.makeDepositIx(amount, bankAddress);
+    const tx = new Transaction().add(...ixs.instructions);
+    try {
+      return this.simulateBorrowLendTransaction([tx], [bankAddress]);
+    } catch (e) {
+      throw new Error("Failed to simulate deposit");
+    }
+  }
+
+  /**
+   * @deprecated This method is deprecated. Please use simulateBorrowLendTransaction instead.
+   */
+  async simulateWithdraw(bankAddress: PublicKey, txs: VersionedTransaction[]): Promise<SimulationResult> {
+    try {
+      return this.simulateBorrowLendTransaction(txs, [bankAddress]);
+    } catch (e) {
+      throw new Error("Failed to simulate withdraw");
+    }
+  }
+
+  /**
+   * @deprecated This method is deprecated. Please use simulateBorrowLendTransaction instead.
+   */
+  async simulateBorrow(bankAddress: PublicKey, txs: VersionedTransaction[]): Promise<SimulationResult> {
+    try {
+      return this.simulateBorrowLendTransaction(txs, [bankAddress]);
+    } catch (e) {
+      throw new Error("Failed to simulate borrow");
+    }
+  }
+
+  /**
+   * @deprecated This method is deprecated. Please use simulateBorrowLendTransaction instead.
+   */
+  async simulateRepay(amount: Amount, bankAddress: PublicKey, repayAll: boolean = false): Promise<SimulationResult> {
+    const ixs = await this.makeRepayIx(amount, bankAddress, repayAll);
+    const tx = new Transaction().add(...ixs.instructions);
+    try {
+      return this.simulateBorrowLendTransaction([tx], [bankAddress]);
+    } catch (e) {
+      throw new Error("Failed to simulate repay");
+    }
+  }
+
+  /**
+   * @deprecated This method is deprecated. Please use simulateBorrowLendTransaction instead.
+   */
+  async simulateLoop(
+    depositAmount: Amount,
+    borrowAmount: Amount,
+    depositBankAddress: PublicKey,
+    borrowBankAddress: PublicKey,
+    swapIxs: TransactionInstruction[],
+    swapLookupTables: AddressLookupTableAccount[],
+    priorityFeeUi?: number
+  ): Promise<SimulationResult> {
+    const { flashloanTx } = await this.makeLoopTx(
+      depositAmount,
+      borrowAmount,
+      depositBankAddress,
+      borrowBankAddress,
+      swapIxs,
+      swapLookupTables,
+      priorityFeeUi
+    );
+
+    const [mfiAccountData, depositBankData, borrowBankData] = await this.client.simulateTransactions(
+      [flashloanTx],
+      [this.address, depositBankAddress, borrowBankAddress]
+    );
+    if (!mfiAccountData || !depositBankData || !borrowBankData) throw new Error("Failed to simulate repay w/ collat");
+    const previewBanks = this.client.banks;
+    previewBanks.set(
+      depositBankAddress.toBase58(),
+      Bank.fromBuffer(depositBankAddress, depositBankData, this._program.idl, this.client.feedIdMap)
+    );
+    previewBanks.set(
+      borrowBankAddress.toBase58(),
+      Bank.fromBuffer(borrowBankAddress, borrowBankData, this._program.idl, this.client.feedIdMap)
+    );
+
+    const previewClient = new MarginfiClient(
+      this._config,
+      this.client.program,
+      {} as Wallet,
+      true,
+      this.client.group,
+      this.client.banks,
+      this.client.oraclePrices,
+      this.client.mintDatas,
+      this.client.feedIdMap
+    );
+    const previewMarginfiAccount = MarginfiAccountWrapper.fromAccountDataRaw(
+      this.address,
+      previewClient,
+      mfiAccountData,
+      this._program.idl
+    );
+
+    return {
+      banks: previewBanks,
+      marginfiAccount: previewMarginfiAccount,
+    };
+  }
+
+  /**
+   * @deprecated This method is deprecated. Please use loopV2 instead.
+   */
+  async loop(
+    depositAmount: Amount,
+    borrowAmount: Amount,
+    depositBankAddress: PublicKey,
+    borrowBankAddress: PublicKey,
+    swapIxs: TransactionInstruction[],
+    swapLookupTables: AddressLookupTableAccount[],
+    priorityFeeUi?: number
+  ): Promise<string | { flashloanTx: VersionedTransaction; addressLookupTableAccounts: AddressLookupTableAccount[] }> {
+    const depositBank = this.client.banks.get(depositBankAddress.toBase58());
+    if (!depositBank) throw Error("Deposit bank not found");
+    const borrowBank = this.client.banks.get(borrowBankAddress.toBase58());
+    if (!borrowBank) throw Error("Borrow bank not found");
+
+    const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:repay`);
+    debug(
+      `Looping ${depositAmount} ${depositBank.tokenSymbol} against ${borrowAmount} ${
+        borrowBank.tokenSymbol
+      } into marginfi account (banks: ${depositBankAddress.toBase58()} / ${borrowBankAddress.toBase58()})`
+    );
+
+    const { flashloanTx, feedCrankTxs } = await this.makeLoopTx(
+      depositAmount,
+      borrowAmount,
+      depositBankAddress,
+      borrowBankAddress,
+      swapIxs,
+      swapLookupTables,
+      priorityFeeUi
+    );
+
+    // TODO: Check why different than repayWithCollat
+    const sig = await this.client.processTransaction(flashloanTx);
+    debug("Repay with collateral successful %s", sig);
+
+    return sig;
+  }
+
+  /**
+   * @deprecated This method is deprecated. Please use makeLoopTxV2 instead.
+   */
+  async makeLoopTx(
+    depositAmount: Amount,
+    borrowAmount: Amount,
+    depositBankAddress: PublicKey,
+    borrowBankAddress: PublicKey,
+    swapIxs: TransactionInstruction[],
+    swapLookupTables: AddressLookupTableAccount[],
+    priorityFeeUi?: number,
+    createAtas?: boolean,
+    broadcastType: TransactionBroadcastType = "BUNDLE"
+  ): Promise<{
+    flashloanTx: VersionedTransaction;
+    feedCrankTxs: VersionedTransaction[];
+    addressLookupTableAccounts: AddressLookupTableAccount[];
+  }> {
+    const depositBank = this.client.banks.get(depositBankAddress.toBase58());
+    if (!depositBank) throw Error("Deposit bank not found");
+    const borrowBank = this.client.banks.get(borrowBankAddress.toBase58());
+    if (!borrowBank) throw Error("Borrow bank not found");
+
+    const setupIxs = createAtas ? await this.makeSetupIx([depositBankAddress, borrowBankAddress]) : [];
+    const cuRequestIxs = this.makeComputeBudgetIx();
+
+    const { bundleTipIx, priorityFeeIx } = makeTxPriorityIx(
+      this.client.provider.publicKey,
+      priorityFeeUi,
+      broadcastType
+    );
+    const borrowIxs = await this.makeBorrowIx(borrowAmount, borrowBankAddress, {
+      createAtas: true,
+      wrapAndUnwrapSol: false,
+    });
+    const depositIxs = await this.makeDepositIx(depositAmount, depositBankAddress, {
+      wrapAndUnwrapSol: true,
+    });
+    const clientLookupTables = this.client.addressLookupTables;
+
+    const { instructions: updateFeedIxs, luts: feedLuts } = await this.makeUpdateFeedIx([
+      depositBankAddress,
+      borrowBankAddress,
+    ]);
+
+    // isTxnSplit forced set to true as we're always splitting now
+    const { blockhash } = await this._program.provider.connection.getLatestBlockhash("confirmed");
+    const message = new TransactionMessage({
+      payerKey: this.client.wallet.publicKey,
+      recentBlockhash: blockhash,
+      instructions: [priorityFeeIx, ...(bundleTipIx ? [bundleTipIx] : []), ...updateFeedIxs, ...setupIxs],
+    }).compileToV0Message([...clientLookupTables, ...feedLuts]);
+
+    const feedCrankTxs = [new VersionedTransaction(message)];
+
+    const flashloanTx = await this.buildFlashLoanTx({
+      ixs: [...[priorityFeeIx], ...cuRequestIxs, ...borrowIxs.instructions, ...swapIxs, ...depositIxs.instructions],
+      addressLookupTableAccounts: [...clientLookupTables, ...swapLookupTables],
+    });
+
+    return {
+      flashloanTx,
+      feedCrankTxs,
+      addressLookupTableAccounts: [...clientLookupTables, ...swapLookupTables, ...feedLuts],
+    };
+  }
+
+  /**
+   * @deprecated This method is deprecated. Please use repayWithCollatV2 instead.
+   */
+  async repayWithCollat(
+    repayAmount: Amount,
+    withdrawAmount: Amount,
+    borrowBankAddress: PublicKey,
+    depositBankAddress: PublicKey,
+    withdrawAll: boolean = false,
+    repayAll: boolean = false,
+    swapIxs: TransactionInstruction[],
+    swapLookupTables: AddressLookupTableAccount[]
+  ): Promise<TransactionSignature[]> {
+    const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:repay`);
+    debug("Repaying %s into marginfi account (bank: %s), repay all: %s", repayAmount, borrowBankAddress, repayAll);
+
+    const { flashloanTx, feedCrankTxs } = await this.makeRepayWithCollatTx(
+      repayAmount,
+      withdrawAmount,
+      borrowBankAddress,
+      depositBankAddress,
+      withdrawAll,
+      repayAll,
+      swapIxs,
+      swapLookupTables
+    );
+
+    const sigs = await this.client.processTransactions([...feedCrankTxs, flashloanTx]);
+    debug("Repay with collateral successful %s", sigs.pop() ?? "");
+
+    return sigs;
+  }
+
+  /**
+   * @deprecated This method is deprecated. Please use simulateBorrowLendTransaction instead.
+   */
+  async simulateRepayWithCollat(
+    repayAmount: Amount,
+    withdrawAmount: Amount,
+    borrowBankAddress: PublicKey,
+    depositBankAddress: PublicKey,
+    withdrawAll: boolean = false,
+    repayAll: boolean = false,
+    swapIxs: TransactionInstruction[],
+    addressLookupTableAccounts: AddressLookupTableAccount[]
+  ): Promise<SimulationResult> {
+    const { flashloanTx } = await this.makeRepayWithCollatTx(
+      repayAmount,
+      withdrawAmount,
+      borrowBankAddress,
+      depositBankAddress,
+      withdrawAll,
+      repayAll,
+      swapIxs,
+      addressLookupTableAccounts
+    );
+
+    const [mfiAccountData, bankData] = await this.client.simulateTransactions(
+      [flashloanTx],
+      [this.address, borrowBankAddress]
+    );
+    if (!mfiAccountData || !bankData) throw new Error("Failed to simulate repay w/ collat");
+    const previewBanks = this.client.banks;
+    previewBanks.set(
+      borrowBankAddress.toBase58(),
+      Bank.fromBuffer(borrowBankAddress, bankData, this._program.idl, this.client.feedIdMap)
+    );
+    const previewClient = new MarginfiClient(
+      this._config,
+      this.client.program,
+      {} as Wallet,
+      true,
+      this.client.group,
+      this.client.banks,
+      this.client.oraclePrices,
+      this.client.mintDatas,
+      this.client.feedIdMap
+    );
+    const previewMarginfiAccount = MarginfiAccountWrapper.fromAccountDataRaw(
+      this.address,
+      previewClient,
+      mfiAccountData,
+      this._program.idl
+    );
+    return {
+      banks: previewBanks,
+      marginfiAccount: previewMarginfiAccount,
+    };
+  }
+
+  /**
+   * @deprecated This method is deprecated. Please use makeRepayWithCollatTxV2 instead.
+   */
+  async makeRepayWithCollatTx(
+    repayAmount: Amount,
+    withdrawAmount: Amount,
+    borrowBankAddress: PublicKey,
+    depositBankAddress: PublicKey,
+    withdrawAll: boolean = false,
+    repayAll: boolean = false,
+    swapIxs: TransactionInstruction[],
+    swapLookupTables: AddressLookupTableAccount[],
+    priorityFeeUi?: number,
+    isTxnSplitParam?: boolean,
+    blockhashArg?: string,
+    broadcastType: TransactionBroadcastType = "BUNDLE"
+  ): Promise<{
+    flashloanTx: VersionedTransaction;
+    feedCrankTxs: VersionedTransaction[];
+    addressLookupTableAccounts: AddressLookupTableAccount[];
+  }> {
+    const blockhash =
+      blockhashArg ?? (await this._program.provider.connection.getLatestBlockhash("confirmed")).blockhash;
+    const setupIxs = await this.makeSetupIx([borrowBankAddress, depositBankAddress]);
+    const cuRequestIxs = this.makeComputeBudgetIx();
+    const { bundleTipIx, priorityFeeIx } = makeTxPriorityIx(
+      this.client.provider.publicKey,
+      priorityFeeUi,
+      broadcastType
+    );
+    const withdrawIxs = await this.makeWithdrawIx(withdrawAmount, depositBankAddress, withdrawAll, {
+      createAtas: false,
+      wrapAndUnwrapSol: false,
+    });
+    const depositIxs = await this.makeRepayIx(repayAmount, borrowBankAddress, repayAll, {
+      createAtas: false,
+      wrapAndUnwrapSol: false,
+    });
+    const lookupTables = this.client.addressLookupTables;
+
+    const { instructions: updateFeedIxs, luts: feedLuts } = await this.makeUpdateFeedIx([
+      depositBankAddress,
+      borrowBankAddress,
+    ]);
+
+    const addressLookupTableAccounts = [...lookupTables, ...swapLookupTables];
+
+    let feedCrankTxs: VersionedTransaction[] = [];
+
+    const message = new TransactionMessage({
+      payerKey: this.client.wallet.publicKey,
+      recentBlockhash: blockhash,
+      instructions: [priorityFeeIx, ...(bundleTipIx ? [bundleTipIx] : []), ...updateFeedIxs],
+    }).compileToV0Message([...addressLookupTableAccounts, ...feedLuts]);
+
+    feedCrankTxs = [new VersionedTransaction(message)];
+
+    const flashloanTx = await this.buildFlashLoanTx({
+      ixs: [
+        ...[priorityFeeIx],
+        ...cuRequestIxs,
+        ...setupIxs,
+        ...withdrawIxs.instructions,
+        ...swapIxs,
+        ...depositIxs.instructions,
+      ],
+      addressLookupTableAccounts,
+      blockhash,
+    });
+
+    return { flashloanTx, feedCrankTxs, addressLookupTableAccounts };
   }
 }
 

@@ -1,15 +1,11 @@
-import { QuoteResponse } from "@jup-ag/api";
 import { v4 as uuidv4 } from "uuid";
-import { Connection, VersionedTransaction } from "@solana/web3.js";
-
-import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
-import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { TransactionBroadcastType } from "@mrgnlabs/mrgn-common";
 import {
   ActionMessageType,
   calculateRepayCollateralParams,
   executeLendingAction,
   MarginfiActionParams,
+  RepayCollatActionTxns,
+  RepayWithCollatProps,
 } from "@mrgnlabs/mrgn-utils";
 
 import { ExecuteActionsCallbackProps } from "~/components/action-box-v2/types";
@@ -56,23 +52,15 @@ export const handleExecuteRepayCollatAction = async ({
   }
 };
 
-export async function calculateRepayCollateral(
-  marginfiAccount: MarginfiAccountWrapper,
-  bank: ExtendedBankInfo, // borrow
-  repayBank: ExtendedBankInfo, // deposit
-  amount: number,
-  slippageBps: number,
-  connection: Connection,
-  priorityFee: number,
-  platformFeeBps: number,
-  broadcastType: TransactionBroadcastType
-): Promise<
+interface CalculateRepayCollateralProps extends RepayWithCollatProps {
+  slippageBps: number;
+  platformFeeBps: number;
+}
+
+export async function calculateRepayCollateral(props: CalculateRepayCollateralProps): Promise<
   | {
-      repayTxn: VersionedTransaction;
-      feedCrankTxs: VersionedTransaction[];
-      quote: QuoteResponse;
+      repayCollatObject: RepayCollatActionTxns;
       amount: number;
-      lastValidBlockHeight?: number;
     }
   | ActionMessageType
 > {
@@ -85,17 +73,7 @@ export async function calculateRepayCollateral(
   //   outputMint: bank.info.state.mint.toBase58(),
   // });
 
-  const result = await calculateRepayCollateralParams(
-    marginfiAccount,
-    bank,
-    repayBank,
-    amount,
-    slippageBps,
-    connection,
-    priorityFee,
-    platformFeeBps,
-    broadcastType
-  );
+  const result = await calculateRepayCollateralParams(props);
 
   return result;
 }

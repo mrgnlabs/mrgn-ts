@@ -117,17 +117,17 @@ export function useRepayCollatSimulation({
 
       setIsLoading(true);
       try {
-        const repayObject = await calculateRepayCollateral(
-          selectedAccount,
-          selectedBank,
-          selectedSecondaryBank,
-          amount,
+        const repayObject = await calculateRepayCollateral({
+          marginfiAccount: selectedAccount,
+          borrowBank: selectedBank,
+          depositBank: selectedSecondaryBank,
+          withdrawAmount: amount,
           slippageBps,
-          marginfiClient.provider.connection,
-          priorityFee,
+          connection: marginfiClient.provider.connection,
           platformFeeBps,
-          broadcastType
-        );
+          repayAmount: amount,
+          quote: actionTxns.actionQuote,
+        });
 
         if (repayObject && "repayTxn" in repayObject) {
           const actionTxns = {

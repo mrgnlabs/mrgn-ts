@@ -76,41 +76,42 @@ export interface LoopActionTxns extends ActionTxns {
 export interface RepayCollatActionTxns extends ActionTxns {
   actionQuote: QuoteResponse | null;
   lastValidBlockHeight?: number;
-} //
+}
 
 export interface StakeActionTxns extends ActionTxns {
   actionQuote: QuoteResponse | null;
   lastValidBlockHeight?: number;
 } // TOOD: implement this as actionSummary type
 
-export type RepayWithCollatOptions = {
-  repayCollatQuote: QuoteResponse;
-  feedCrankTxs: VersionedTransaction[];
-  repayCollatTxn: VersionedTransaction | null;
-  withdrawAmount: number;
+export type RepayWithCollatProps = {
+  marginfiAccount: MarginfiAccountWrapper;
+  repayAmount: number;
+  withdrawAmount: number; // previously amount
+  borrowBank: ExtendedBankInfo; // previously bank
   depositBank: ExtendedBankInfo;
+  quote: QuoteResponse;
   connection: Connection;
 };
 
-export type LoopingOptions = {
-  loopingQuote: QuoteResponse;
-  feedCrankTxs: VersionedTransaction[];
-  loopingTxn: VersionedTransaction | null;
-  borrowAmount: BigNumber;
-  loopingBank: ExtendedBankInfo;
+export type LoopingProps = {
+  marginfiAccount: MarginfiAccountWrapper | null;
+  depositAmount: number;
+  borrowAmount: number;
+  depositBank: ExtendedBankInfo; // previously bank
+  borrowBank: ExtendedBankInfo;
+  quote: QuoteResponse;
   connection: Connection;
 };
 
 export type MarginfiActionParams = {
   marginfiClient: MarginfiClient | null;
+  marginfiAccount: MarginfiAccountWrapper | null;
   bank: ExtendedBankInfo;
   actionType: ActionType;
   amount: number;
   nativeSolBalance: number;
-  marginfiAccount: MarginfiAccountWrapper | null;
+
   actionTxns?: ActionTxns;
-  repayWithCollatOptions?: RepayWithCollatOptions; // deprecated
-  loopingOptions?: LoopingOptions; // deprecated
   walletContextState?: WalletContextState | WalletContextStateOverride;
   processOpts?: ProcessTransactionsClientOpts;
   txOpts?: TransactionOptions;
@@ -130,12 +131,3 @@ export type LstActionParams = {
   priorityFee?: number;
   theme?: "light" | "dark";
 };
-
-export interface LoopingObject {
-  loopingTxn: VersionedTransaction | null;
-  feedCrankTxs: VersionedTransaction[];
-  quote: QuoteResponse;
-  actualDepositAmount: number;
-  borrowAmount: BigNumber;
-  priorityFee: number;
-}

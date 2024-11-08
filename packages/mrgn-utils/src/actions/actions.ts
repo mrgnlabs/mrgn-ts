@@ -75,12 +75,7 @@ export async function executeLendingAction(params: MarginfiActionParams) {
   }
 
   if (params.actionType === ActionType.Repay) {
-    if (params.repayWithCollatOptions) {
-      // deprecated
-      txnSig = await repayWithCollat(params);
-    } else {
-      txnSig = await repay(params);
-    }
+    txnSig = await repay(params);
   }
 
   if (!params.marginfiClient) {

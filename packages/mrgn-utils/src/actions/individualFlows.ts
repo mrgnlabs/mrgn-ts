@@ -9,21 +9,20 @@ import {
   VersionedTransaction,
 } from "@solana/web3.js";
 import { WalletContextState } from "@solana/wallet-adapter-react";
-import * as Sentry from "@sentry/nextjs";
 
 import { ExtendedBankInfo, clearAccountCache } from "@mrgnlabs/marginfi-v2-ui-state";
 import { MarginfiAccountWrapper, MarginfiClient, ProcessTransactionsClientOpts } from "@mrgnlabs/marginfi-client-v2";
-import { TransactionBroadcastType, TransactionOptions, Wallet, uiToNative } from "@mrgnlabs/mrgn-common";
+import { TransactionOptions, Wallet, uiToNative } from "@mrgnlabs/mrgn-common";
 
 import { WalletContextStateOverride } from "../wallet";
 import { showErrorToast, MultiStepToastHandle } from "../toasts";
 import { extractErrorString, isWholePosition } from "../mrgnUtils";
 import { makeDepositSolToStakePoolIx, makeDepositStakeToStakePoolIx } from "../lstUtils";
 
-import { loopingBuilder, repayWithCollatBuilder } from "./flashloans";
 import { getMaybeSquadsOptions } from "./helpers";
-import { RepayWithCollatOptions, LoopingOptions, LstData, StakeData, ActionTxns, MarginfiActionParams } from "./types";
+import { LstData, StakeData, MarginfiActionParams, LoopingProps, ActionTxns, RepayWithCollatProps } from "./types";
 import { captureSentryException } from "../sentry.utils";
+import { loopingBuilder, repayWithCollatBuilder } from "./flashloans";
 
 // ------------------------------------------------------------------//
 // Individual action flows - non-throwing - for use in UI components //
@@ -328,23 +327,23 @@ export async function repay({
   }
 }
 
-export async function looping({
-  marginfiClient,
-  marginfiAccount,
-  bank,
-  amount,
-  actionTxns,
-  loopingOptions,
-  processOpts,
-  txOpts,
-}: MarginfiActionParams & { isTxnSplit?: boolean }) {
+interface LoopingFnProps extends LoopingProps {
+  marginfiClient: MarginfiClient;
+  actionTxns: ActionTxns;
+  processOpts: ProcessTransactionsClientOpts;
+  txOpts: TransactionOptions;
+}
+
+export async function looping({ marginfiClient, actionTxns, processOpts, txOpts, ...loopingProps }: LoopingFnProps) {
   if (marginfiClient === null) {
     showErrorToast({ message: "Marginfi client not ready" });
     return;
   }
 
   const multiStepToast = new MultiStepToastHandle("Looping", [
-    { label: `Executing looping ${bank.meta.tokenSymbol} with ${loopingOptions?.loopingBank.meta.tokenSymbol}` },
+    {
+      label: `Executing looping ${loopingProps.depositBank.meta.tokenSymbol} with ${loopingProps.borrowBank.meta.tokenSymbol}.`,
+    },
   ]);
   multiStepToast.start();
 
@@ -357,28 +356,17 @@ export async function looping({
         processOpts,
         txOpts
       );
-    } else if (loopingOptions) {
-      console.log("loopingOptions", loopingOptions);
-      if (loopingOptions?.loopingTxn) {
-        sigs = await marginfiClient.processTransactions(
-          [...loopingOptions.feedCrankTxs, loopingOptions.loopingTxn],
-          processOpts,
-          txOpts
-        );
-      } else {
-        // TODO fix flashloan builder to use processOpts
-        const { flashloanTx, feedCrankTxs } = await loopingBuilder({
-          marginfiAccount: marginfiAccount!,
-          bank,
-          depositAmount: amount,
-          options: loopingOptions,
-          priorityFee: processOpts?.priorityFeeUi ?? 0,
-          broadcastType: processOpts?.broadcastType ?? "BUNDLE",
-        });
-        sigs = await marginfiClient.processTransactions([...feedCrankTxs, flashloanTx], processOpts, txOpts);
-      }
     } else {
-      throw new Error("Invalid options provided for looping, please contact support.");
+      // TODO fix flashloan builder to use processOpts
+      const { flashloanTx, feedCrankTxs } = await loopingBuilder({
+        marginfiAccount: marginfiAccount!,
+        bank,
+        depositAmount: amount,
+        options: loopingOptions,
+        priorityFee: processOpts?.priorityFeeUi ?? 0,
+        broadcastType: processOpts?.broadcastType ?? "BUNDLE",
+      });
+      sigs = await marginfiClient.processTransactions([...feedCrankTxs, flashloanTx], processOpts, txOpts);
     }
 
     multiStepToast.setSuccessAndNext();
@@ -390,7 +378,7 @@ export async function looping({
       action: "looping",
       wallet: marginfiAccount?.authority?.toBase58(),
       bank: bank.meta.tokenSymbol,
-      loopingBank: loopingOptions?.loopingBank.meta.tokenSymbol,
+      amount: amount.toString(),
     });
 
     multiStepToast.setFailed(msg);
@@ -400,22 +388,26 @@ export async function looping({
   }
 }
 
+interface RepayWithCollatFnProps extends RepayWithCollatProps {
+  marginfiClient: MarginfiClient;
+  actionTxns: ActionTxns;
+  processOpts: ProcessTransactionsClientOpts;
+  txOpts: TransactionOptions;
+}
+
 export async function repayWithCollat({
   marginfiClient,
-  marginfiAccount,
-  bank,
-  amount,
-  repayWithCollatOptions,
+  actionTxns,
   processOpts,
   txOpts,
-  actionTxns,
-}: MarginfiActionParams & { isTxnSplit?: boolean }) {
+  ...repayProps
+}: RepayWithCollatFnProps) {
   if (marginfiClient === null) {
     showErrorToast({ message: "Marginfi client not ready" });
     return;
   }
 
-  if (!marginfiAccount) {
+  if (!repayProps.marginfiAccount) {
     showErrorToast({ message: "Marginfi account not ready" });
     return;
   }
@@ -432,29 +424,14 @@ export async function repayWithCollat({
         processOpts,
         txOpts
       );
-    } else if (repayWithCollatOptions) {
-      // deprecated
-      if (repayWithCollatOptions.repayCollatTxn) {
-        sigs = await marginfiClient.processTransactions(
-          [...repayWithCollatOptions.feedCrankTxs, repayWithCollatOptions.repayCollatTxn],
-          processOpts,
-          txOpts
-        );
-      } else {
-        // TODO fix flashloan builder to use processOpts
-        const { flashloanTx, feedCrankTxs } = await repayWithCollatBuilder({
-          marginfiAccount,
-          bank,
-          amount,
-          options: repayWithCollatOptions,
-          priorityFee: processOpts?.priorityFeeUi ?? 0,
-          broadcastType: processOpts?.broadcastType ?? "BUNDLE",
-        });
-
-        sigs = await marginfiClient.processTransactions([...feedCrankTxs, flashloanTx], processOpts, txOpts);
-      }
     } else {
-      throw new Error("Invalid options provided for repay, please contact support.");
+      const { flashloanTx, additionalTxs } = await repayWithCollatBuilder(repayProps);
+
+      if (!flashloanTx) {
+        throw new Error("Repay with collateral failed.");
+      }
+
+      sigs = await marginfiClient.processTransactions([...additionalTxs, flashloanTx], processOpts, txOpts);
     }
     multiStepToast.setSuccessAndNext();
     return sigs;
@@ -463,9 +440,9 @@ export async function repayWithCollat({
 
     captureSentryException(error, msg, {
       action: "repayWithCollat",
-      wallet: marginfiAccount?.authority?.toBase58(),
-      bank: bank.meta.tokenSymbol,
-      repayWithCollatBank: repayWithCollatOptions?.depositBank.meta.tokenSymbol,
+      wallet: repayProps.marginfiAccount?.authority?.toBase58(),
+      bank: repayProps.borrowBank.meta.tokenSymbol,
+      amount: repayProps.repayAmount.toString(),
     });
 
     multiStepToast.setFailed(msg);
