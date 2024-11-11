@@ -28,17 +28,20 @@ const CONTENT = {
           <p className="text-primary">All developers can build on:</p>
           <ul className="list-disc space-y-2 ml-4 text-sm">
             <li>
-              <strong className="font-medium">mrgnlend</strong>: one of crypto&apos;s most used lend/borrow venues
+              <strong className="font-medium">mrgnlend</strong>: One of crypto&apos;s most used lend/borrow venues
             </li>
             <li>
-              <strong className="font-medium">LST</strong>: solana&apos;s highest yielding liquid staking SOL token
+              <strong className="font-medium">LST</strong>: Solana&apos;s highest yielding liquid staking SOL token
             </li>
             <li>
+              <strong className="font-medium">The Arena</strong>: Solana&apos;s first spot leverage platform for shorting and longing memecoins
+            </li>
+            {/* <li>
               <strong className="font-medium">YBX</strong>: solana&apos;s decentralized, yield accruing stable-asset
             </li>
             <li>
               <strong className="font-medium">mrgnswap</strong>: crypto&apos;s exciting new integrated stableswap
-            </li>
+            </li> */}
           </ul>
         </>
       ),
