@@ -90,7 +90,7 @@ const StakeCalculator = ({ solPrice, apy = 8.5 }: StakeCalculatorProps) => {
         };
       }),
     ];
-  }, [debouncedAmount, duration, isUsdDenominated, debouncedPricePrediction, solPrice]);
+  }, [debouncedAmount, duration, isUsdDenominated, debouncedPricePrediction, solPrice, apy]);
 
   React.useEffect(() => {
     if (
