@@ -33,19 +33,19 @@ const CONTENT = {
       },
     },
     {
-      heading: "LST / YBX",
-      subHeading: "Solana's highest yield accruing SOL token and stable-asset",
+      heading: "$LST",
+      subHeading: "Solana's highest yielding liquid staking token",
       cta: {
-        href: "https://app.marginfi.com/mint",
+        href: "https://app.marginfi.com/stake",
         label: "Mint LST",
       },
     },
     {
-      heading: "mrgnswap",
-      subHeading: "Crypto's first ever integrated stableswap",
+      heading: "The Arena",
+      subHeading: "Spot leverage platform for longing and shorting memecoins",
       cta: {
-        href: "#",
-        label: "Coming soon...",
+        href: "https://thearena.trade",
+        label: "Start trading",
       },
     },
   ],

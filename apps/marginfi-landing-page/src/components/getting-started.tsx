@@ -16,16 +16,16 @@ const CONTENT = {
   heading: "Getting started with marginfi",
   articles: [
     {
-      url: "https://mrgn.substack.com/p/introducing-ybx",
+      url: "https://open.substack.com/pub/mrgn/p/welcome-to-the-arena?r=47s7st&utm_campaign=post&utm_medium=web",
       image: `/images/articles/ybx-introducing.jpg`,
-      title: "Introducing $YBX",
-      description: "Solana's inflation protected, decentralized stable-asset",
+      title: "Welcome to The Arena",
+      description: "Go long or short on any Solana asset, with leverage",
     },
     {
-      url: "https://docs.marginfi.com/ybx",
+      url: "https://open.substack.com/pub/mrgn/p/lst-highest-sustainable-yield-on?r=47s7st&utm_campaign=post&utm_medium=web",
       image: `/images/articles/ybx-whitepaper.jpg`,
-      title: "$YBX v1 - Whitepaper",
-      description: "A stable-asset to capture blockchain monetary policy",
+      title: "$LST: Highest Sustainable Yield on Solana",
+      description: "$LST captures more inflation and block rewards than any other liquid staking token",
     },
     {
       url: "https://medium.com/marginfi/exploring-mrgnlend-a-guide-to-decentralized-lending-and-borrowing-1e05a422a505",
