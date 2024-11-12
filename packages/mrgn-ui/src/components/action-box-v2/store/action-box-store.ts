@@ -22,7 +22,11 @@ function createActionBoxStore() {
   return create<ActionBoxState>()(
     persist(stateCreator, {
       name: "actionBoxStore",
-      onRehydrateStorage: () => (state) => {},
+      onRehydrateStorage: () => (state) => {
+        if (state?.slippageBps && (state.slippageBps < 0 || state.slippageBps > 500)) {
+          state.slippageBps = 100;
+        }
+      },
     })
   );
 }
