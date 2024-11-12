@@ -6,7 +6,6 @@ import { IconCheck } from "@tabler/icons-react";
 
 import { useMrgnlendStore } from "~/store";
 import { useWallet } from "~/components/wallet-v2";
-import { LST_MINT, SOL_MINT } from "~/store/lstStore";
 import { IntegrationsData, LSTOverview, fetchLSTOverview } from "~/components/common/Stake/utils/stake-utils";
 
 import { Button } from "~/components/ui/button";
@@ -20,6 +19,10 @@ import {
   MfiIntegrationCard,
   ArenaIntegrationCard,
 } from "~/components/common/Stake";
+import { PublicKey } from "@solana/web3.js";
+
+const SOL_MINT = new PublicKey("So11111111111111111111111111111111111111112");
+const LST_MINT = new PublicKey("LSTxxxnJzKDFSLr4dUkPcmCf5VyryEqzPLz5j4bpxFp");
 
 const Stake = () => {
   const { connected } = useWallet();
