@@ -1113,6 +1113,8 @@ class MarginfiClient {
 
       const bundleId = sendBundleResult.result;
 
+      console.log("bundleId", bundleId);
+
       await sleep(500);
 
       for (let attempt = 0; attempt < 5; attempt++) {
