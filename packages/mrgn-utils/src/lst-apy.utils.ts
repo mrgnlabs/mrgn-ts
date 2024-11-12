@@ -32,7 +32,7 @@ export const calculateLstYield = async (bank: ExtendedBankInfo) => {
   const solanaCompassKey = LSTS_SOLANA_COMPASS_MAP[bank.meta.tokenSymbol];
   if (!solanaCompassKey) return 0;
 
-  const response = await fetch(`/api/lst?solanaCompassKey=${solanaCompassKey}`);
+  const response = await fetch(`/api/stakingApy?solanaCompassKey=${solanaCompassKey}`);
   if (!response.ok) return 0;
 
   const solanaCompassPrices = await response.json();

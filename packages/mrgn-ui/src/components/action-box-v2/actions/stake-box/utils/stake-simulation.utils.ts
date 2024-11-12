@@ -19,6 +19,7 @@ import {
   AddressLookupTableAccount,
   Connection,
   Keypair,
+  LAMPORTS_PER_SOL,
   PublicKey,
   Signer,
   SystemProgram,
@@ -193,7 +194,7 @@ export async function handleStakeTx(
     })
   );
 
-  const bundleTipIx = makeBundleTipIx(marginfiClient.wallet.publicKey, priorityFee);
+  const bundleTipIx = makeBundleTipIx(marginfiClient.wallet.publicKey, Math.trunc(priorityFee * LAMPORTS_PER_SOL));
 
   const stakeMessage = new TransactionMessage({
     payerKey: marginfiClient.wallet.publicKey,

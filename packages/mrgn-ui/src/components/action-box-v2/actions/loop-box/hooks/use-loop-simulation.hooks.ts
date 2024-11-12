@@ -135,8 +135,6 @@ export function useLoopSimulation({
         return;
       }
 
-      console.log("simulating");
-
       setIsLoading(true);
       try {
         const loopingObject = await calculateLooping(
