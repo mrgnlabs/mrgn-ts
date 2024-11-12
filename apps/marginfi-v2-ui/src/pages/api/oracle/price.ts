@@ -89,11 +89,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       Object.entries(feedIdMapRaw).map(([key, value]) => [key, new PublicKey(value)])
     );
 
-    const mintMap = new Map<string, PublicKey>();
+    const oracleMintMap = new Map<string, PublicKey>();
+    const feedHashMintMap = new Map<string, PublicKey>();
 
     const requestedOraclesData = banksMap.map((b) => {
       const oracleKey = findOracleKey(BankConfig.fromAccountParsed(b.data.config), feedIdMap).toBase58();
-      mintMap.set(oracleKey, b.data.mint);
+      oracleMintMap.set(oracleKey, b.data.mint);
 
       return {
         oracleKey,
@@ -110,18 +111,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     for (const index in requestedOraclesData) {
       const oracleData = requestedOraclesData[index];
       const priceDataRaw = oracleAis[index];
+      const mintData = oracleMintMap.get(oracleData.oracleKey)!;
       let oraclePrice = parsePriceInfo(oracleData.oracleSetup, priceDataRaw.data);
 
       if (oraclePrice.priceRealtime.price.isNaN()) {
         oraclePrice = {
           ...oraclePrice,
           priceRealtime: {
-            ...oraclePrice.priceRealtime,
             price: new BigNumber(0),
+            confidence: new BigNumber(0),
+            lowestPrice: new BigNumber(0),
+            highestPrice: new BigNumber(0),
           },
           priceWeighted: {
-            ...oraclePrice.priceWeighted,
             price: new BigNumber(0),
+            confidence: new BigNumber(0),
+            lowestPrice: new BigNumber(0),
+            highestPrice: new BigNumber(0),
           },
         };
       }
@@ -131,10 +137,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const isStale = currentTime - oracleTime > oracleData.maxAge;
 
       // If on-chain data is recent enough, use it even for SwitchboardPull oracles
-      if (oracleData.oracleSetup === OracleSetup.SwitchboardPull && !isStale) {
+      if (oracleData.oracleSetup === OracleSetup.SwitchboardPull && isStale) {
+        const feedHash = Buffer.from(decodeSwitchboardPullFeedData(priceDataRaw.data).feed_hash).toString("hex");
+        feedHashMintMap.set(feedHash, mintData);
         swbPullOraclesStale.push({
           data: { ...oracleData, timestamp: oraclePrice.timestamp },
-          feedHash: Buffer.from(decodeSwitchboardPullFeedData(priceDataRaw.data).feed_hash).toString("hex"),
+          feedHash: feedHash,
         });
         continue;
       }
@@ -145,27 +153,36 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (swbPullOraclesStale.length > 0) {
       // Batch-fetch and cache price data from Crossbar for stale SwitchboardPull oracles
       const feedHashes = swbPullOraclesStale.map((value) => value.feedHash);
-      const crossbarPrices = await handleFetchCrossbarPrices(feedHashes, mintMap);
+      let crossbarPrices = await handleFetchCrossbarPrices(feedHashes, feedHashMintMap);
 
       for (const {
         data: { oracleKey, timestamp },
         feedHash,
       } of swbPullOraclesStale) {
-        const crossbarPrice = crossbarPrices.get(feedHash);
+        let crossbarPrice = crossbarPrices.get(feedHash);
         if (!crossbarPrice) {
           throw new Error(`Crossbar didn't return data for ${feedHash}`);
         }
-        let updatedOraclePrice = { ...crossbarPrice, timestamp } as OraclePrice;
-
-        if (updatedOraclePrice.priceRealtime.price.isNaN()) {
-          updatedOraclePrice = {
-            ...updatedOraclePrice,
+        if (crossbarPrice.priceRealtime.price.isNaN()) {
+          crossbarPrice = {
+            ...crossbarPrice,
             priceRealtime: {
-              ...updatedOraclePrice.priceRealtime,
               price: new BigNumber(0),
+              confidence: new BigNumber(0),
+              lowestPrice: new BigNumber(0),
+              highestPrice: new BigNumber(0),
+            },
+            priceWeighted: {
+              price: new BigNumber(0),
+              confidence: new BigNumber(0),
+              lowestPrice: new BigNumber(0),
+              highestPrice: new BigNumber(0),
             },
           };
         }
+
+        let updatedOraclePrice = { ...crossbarPrice, timestamp } as OraclePrice;
+
         updatedOraclePrices.set(oracleKey, updatedOraclePrice);
       }
     }
@@ -192,6 +209,7 @@ async function handleFetchCrossbarPrices(
       feedHashes,
       SWITCHBOARD_CROSSSBAR_API
     );
+
     payload.push(...mainPayload);
 
     if (!mainBrokenFeeds.length) {
@@ -204,7 +222,6 @@ async function handleFetchCrossbarPrices(
         mainBrokenFeeds,
         process.env.SWITCHBOARD_CROSSSBAR_API_FALLBACK
       );
-
       payload.push(...fallbackPayload);
 
       if (!fallbackBrokenFeeds.length) {
@@ -213,11 +230,16 @@ async function handleFetchCrossbarPrices(
     }
 
     // birdeye as last resort
-    const birdeyePayload = await fetchBirdeyePrices(feedHashes, mintMap);
-
-    console.log("birdeyePayload", birdeyePayload);
+    const { payload: birdeyePayload, brokenFeeds: birdeyeBrokenFeeds } = await fetchBirdeyePrices(feedHashes, mintMap);
 
     payload.push(...birdeyePayload);
+
+    birdeyeBrokenFeeds.forEach((feed) => {
+      payload.push({
+        feedHash: feed,
+        results: [0],
+      });
+    });
 
     return crossbarPayloadToOraclePricePerFeedHash(payload);
   } catch (error) {
@@ -226,42 +248,27 @@ async function handleFetchCrossbarPrices(
   }
 }
 
-interface BirdeyeTokenPrice {
-  value: number;
-  updateUnixTime: number;
-  updateHumanTime: string;
-  priceChange24h: number;
-}
-
-interface BirdeyePriceResponse {
-  success: boolean;
-  data: {
-    [tokenAddress: string]: BirdeyeTokenPrice;
-  };
-}
-
 async function fetchBirdeyePrices(
   feedHashes: string[],
   mintMap: Map<string, PublicKey>
-): Promise<CrossbarSimulatePayload> {
-  // TODO: implement
+): Promise<{ payload: CrossbarSimulatePayload; brokenFeeds: string[] }> {
   try {
-    const tokens = feedHashes.map((feedHash) => mintMap.get(feedHash)!.toBase58());
+    const brokenFeeds: string[] = [];
 
-    const response = await fetch(`/api/birdeye/multiPrice?tokens=${tokens.join(",")}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+    const tokens = feedHashes
+      .map((feedHash) => {
+        const mint = mintMap.get(feedHash)?.toBase58();
+        if (!mint) {
+          console.error("Error:", `Mint not found for feedHash ${feedHash}`);
+          brokenFeeds.push(feedHash);
+        }
+        return mint;
+      })
+      .filter((mint): mint is string => mint !== undefined);
 
-    if (!response.ok) {
-      throw new Error("Failed to fetch oracle prices");
-    }
+    const response = await fetchMultiPrice(tokens);
 
-    const responseBody = (await response.json()) as BirdeyePriceResponse;
-
-    const priceData = responseBody.data;
+    const priceData = response.data;
 
     const finalPayload: CrossbarSimulatePayload = feedHashes.map((feedHash) => {
       const tokenAddress = mintMap.get(feedHash)!.toBase58();
@@ -272,10 +279,10 @@ async function fetchBirdeyePrices(
       };
     });
 
-    return finalPayload;
+    return { payload: finalPayload, brokenFeeds };
   } catch (error) {
     console.error("Error:", error);
-    throw new Error("Couldn't fetch from birdeye");
+    return { payload: [], brokenFeeds: feedHashes };
   }
 }
 
@@ -314,7 +321,7 @@ async function fetchCrossbarPrices(
 
     const brokenFeeds = payload.filter((feed) => feed.results[0] === null).map((feed) => feed.feedHash);
 
-    return { payload, brokenFeeds };
+    return { payload: payload, brokenFeeds: brokenFeeds };
   } catch (error) {
     console.error("Error:", error);
     return { payload: [], brokenFeeds: feedHashes };
@@ -378,4 +385,51 @@ function extractHost(referer: string | undefined): string | undefined {
   }
   const url = new URL(referer);
   return url.origin;
+}
+
+const BIRDEYE_API = "https://public-api.birdeye.so";
+
+interface BirdeyeTokenPrice {
+  value: number;
+  updateUnixTime: number;
+  updateHumanTime: string;
+  priceChange24h: number;
+}
+
+interface BirdeyePriceResponse {
+  success: boolean;
+  data: {
+    [tokenAddress: string]: BirdeyeTokenPrice;
+  };
+}
+
+async function fetchMultiPrice(tokens: string[]): Promise<BirdeyePriceResponse> {
+  if (!tokens) {
+    throw new Error("No tokens provided");
+  }
+
+  // use abort controller to restrict fetch to 10 seconds
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => {
+    controller.abort();
+  }, 5000);
+
+  // Fetch from API and update cache
+  try {
+    const response = await fetch(`${BIRDEYE_API}/defi/multi_price?list_address=${tokens.join("%2C")}`, {
+      headers: {
+        Accept: "application/json",
+        "x-chain": "solana",
+        "X-Api-Key": process.env.BIRDEYE_API_KEY || "",
+      },
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+
+    const data = (await response.json()) as BirdeyePriceResponse;
+    return data;
+  } catch (error) {
+    console.error("Error:", error);
+    throw new Error("Error fetching birdey prices");
+  }
 }
