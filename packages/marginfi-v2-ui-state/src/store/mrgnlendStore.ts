@@ -1,4 +1,4 @@
-import { getValueInsensitive, toBigNumber } from "@mrgnlabs/mrgn-common";
+import { getValueInsensitive } from "@mrgnlabs/mrgn-common";
 import { Connection, PublicKey } from "@solana/web3.js";
 import {
   DEFAULT_ACCOUNT_SUMMARY,
@@ -293,16 +293,9 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
       }[] = [];
 
       banks.forEach((bank) => {
-        let oraclePrice = marginfiClient.getOraclePriceByBank(bank.address);
+        const oraclePrice = marginfiClient.getOraclePriceByBank(bank.address);
         if (!oraclePrice) {
           return;
-        }
-
-        if (Number.isNaN(oraclePrice.priceRealtime.price.toNumber())) {
-          oraclePrice = {
-            ...oraclePrice,
-            priceRealtime: { ...oraclePrice.priceRealtime, price: toBigNumber(0) },
-          };
         }
 
         const bankMetadata = bankMetadataMap[bank.address.toBase58()];
