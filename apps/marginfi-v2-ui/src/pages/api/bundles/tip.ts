@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 
-const JITO_API = "http://bundles-api-rest.jito.wtf";
+const JITO_API = "https://bundles.jito.wtf";
 
 export interface TipFloorDataResponse {
   time: string;
