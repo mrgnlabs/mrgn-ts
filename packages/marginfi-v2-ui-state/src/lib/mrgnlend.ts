@@ -122,7 +122,9 @@ function makeBankInfo(bank: Bank, oraclePrice: OraclePrice, emissionTokenData?: 
   }
 
   return {
-    price: bank.getPrice(oraclePrice, PriceBias.None).toNumber(),
+    price: Number.isNaN(bank.getPrice(oraclePrice, PriceBias.None).toNumber())
+      ? 0
+      : bank.getPrice(oraclePrice, PriceBias.None).toNumber(),
     mint: bank.mint,
     mintDecimals: bank.mintDecimals,
     lendingRate: isNaN(lendingRate.toNumber()) ? 0 : lendingRate.toNumber(),
