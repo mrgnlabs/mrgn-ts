@@ -113,7 +113,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       let oraclePrice = parsePriceInfo(oracleData.oracleSetup, priceDataRaw.data);
 
       if (oraclePrice.priceRealtime.price.isNaN()) {
-        oraclePrice.priceRealtime.price = new BigNumber(0);
+        oraclePrice = {
+          ...oraclePrice,
+          priceRealtime: {
+            ...oraclePrice.priceRealtime,
+            price: new BigNumber(0),
+          },
+          priceWeighted: {
+            ...oraclePrice.priceWeighted,
+            price: new BigNumber(0),
+          },
+        };
       }
 
       const currentTime = Math.round(Date.now() / 1000);
@@ -146,6 +156,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           throw new Error(`Crossbar didn't return data for ${feedHash}`);
         }
         let updatedOraclePrice = { ...crossbarPrice, timestamp } as OraclePrice;
+
+        if (updatedOraclePrice.priceRealtime.price.isNaN()) {
+          updatedOraclePrice = {
+            ...updatedOraclePrice,
+            priceRealtime: {
+              ...updatedOraclePrice.priceRealtime,
+              price: new BigNumber(0),
+            },
+          };
+        }
         updatedOraclePrices.set(oracleKey, updatedOraclePrice);
       }
     }
