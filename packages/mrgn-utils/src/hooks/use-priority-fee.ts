@@ -17,7 +17,7 @@ export const usePriorityFee = (
   const prevBroadcastType = usePrevious(broadcastType);
   const prevMaxCap = usePrevious(maxCap);
   const prevMaxCapType = usePrevious(maxCapType);
-  const [priorityFee, setPriorityFee] = React.useState(0);
+  const [priorityFee, setPriorityFee] = React.useState(0.0005);
 
   const calculatePriorityFeeUi = React.useCallback(
     async (

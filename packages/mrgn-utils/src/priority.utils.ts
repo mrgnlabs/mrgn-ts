@@ -52,7 +52,7 @@ export const calculateBundleTipCap = (
 ) => {
   const { ema_landed_tips_50th_percentile, landed_tips_95th_percentile } = bundleTipData;
 
-  const maxCap = Math.min(landed_tips_95th_percentile, ema_landed_tips_50th_percentile * multiplier);
+  const maxCap = 0.005; //Math.min(landed_tips_95th_percentile, ema_landed_tips_50th_percentile * multiplier);
 
   return Math.min(userMaxCap, Math.trunc(maxCap * LAMPORTS_PER_SOL) / LAMPORTS_PER_SOL);
 };
@@ -126,12 +126,15 @@ export const getBundleTip = async (priorityType: TransactionPriorityType, userMa
   let priorityFee = 0;
 
   if (priorityType === "HIGH") {
-    priorityFee = Math.max(ema_landed_tips_50th_percentile, landed_tips_50th_percentile);
+    priorityFee = landed_tips_75th_percentile * 1.2;
+    // priorityFee = Math.max(ema_landed_tips_50th_percentile, landed_tips_50th_percentile);
   } else if (priorityType === "MAMAS") {
-    priorityFee = landed_tips_75th_percentile;
+    // priorityFee = landed_tips_75th_percentile;
+    priorityFee = landed_tips_75th_percentile * 1.3;
   } else {
     // NORMAL
-    priorityFee = Math.min(ema_landed_tips_50th_percentile, landed_tips_50th_percentile);
+    priorityFee = landed_tips_75th_percentile;
+    // priorityFee = Math.min(ema_landed_tips_50th_percentile, landed_tips_50th_percentile);
   }
 
   return Math.min(maxCap, Math.trunc(priorityFee * LAMPORTS_PER_SOL) / LAMPORTS_PER_SOL);
