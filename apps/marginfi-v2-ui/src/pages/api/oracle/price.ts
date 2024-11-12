@@ -220,7 +220,9 @@ async function handleFetchCrossbarPrices(
       // fallback crossbar
       const { payload: fallbackPayload, brokenFeeds: fallbackBrokenFeeds } = await fetchCrossbarPrices(
         mainBrokenFeeds,
-        process.env.SWITCHBOARD_CROSSSBAR_API_FALLBACK
+        process.env.SWITCHBOARD_CROSSSBAR_API_FALLBACK,
+        process.env.SWITCHBOARD_CROSSSBAR_API_FALLBACK_USERNAME,
+        process.env.SWITCHBOARD_CROSSSBAR_API_FALLBACK_BEARER
       );
       payload.push(...fallbackPayload);
 
