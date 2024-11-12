@@ -12,7 +12,7 @@ type CollateralProps = {
 
 export const Collateral = ({ selectedAccount, actionSummary }: CollateralProps) => {
   const availableCollateral = React.useMemo(() => {
-    if (!selectedAccount || !actionSummary) return null;
+    if (!selectedAccount) return null;
 
     if (actionSummary?.simulationPreview?.availableCollateral) {
       return actionSummary.simulationPreview.availableCollateral;
