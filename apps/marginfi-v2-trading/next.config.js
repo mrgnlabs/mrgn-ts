@@ -38,6 +38,8 @@ let config = withBundleAnalyzer({
       tls: false,
       child_process: false,
       request: false,
+      dns: false,
+      http2: false,
     };
     return config;
   },
