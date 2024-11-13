@@ -337,7 +337,7 @@ export const WalletSend = ({
                 )}
                 onClick={(e) => {
                   e.preventDefault();
-                  setAmountRaw(numberFormater.format(maxAmount));
+                  handleInputChange(numberFormater.format(maxAmount));
                 }}
                 disabled={maxAmount === 0}
               >
