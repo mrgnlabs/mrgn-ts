@@ -913,13 +913,15 @@ class MarginfiClient {
               })
             );
         }
+        console.log("ello");
 
         if (broadcastType === "BUNDLE") {
-          signatures = await this.sendTransactionAsBundle(base58Txs).catch(
-            async () => await sendTxsRpc(versionedTransactions)
-          );
+          signatures = await this.sendTransactionAsBundle(base58Txs)
+            .catch
+            // async () => await sendTxsRpc(versionedTransactions)
+            ();
         } else {
-          signatures = await sendTxsRpc(versionedTransactions);
+          // signatures = await sendTxsRpc(versionedTransactions);
         }
 
         await Promise.all(
@@ -1050,12 +1052,12 @@ class MarginfiClient {
 
         signature = (
           await this.sendTransactionAsBundle([base58Tx]).catch(async () => [
-            await connection.sendTransaction(versionedTransaction, {
-              // minContextSlot: mergedOpts.minContextSlot,
-              skipPreflight: mergedOpts.skipPreflight,
-              preflightCommitment: mergedOpts.preflightCommitment,
-              maxRetries: mergedOpts.maxRetries,
-            }),
+            // await connection.sendTransaction(versionedTransaction, {
+            //   // minContextSlot: mergedOpts.minContextSlot,
+            //   skipPreflight: mergedOpts.skipPreflight,
+            //   preflightCommitment: mergedOpts.preflightCommitment,
+            //   maxRetries: mergedOpts.maxRetries,
+            // }),
           ])
         )[0];
         await connection.confirmTransaction(
@@ -1097,18 +1099,20 @@ class MarginfiClient {
 
   private async sendTransactionAsBundle(base58Txs: string[]): Promise<string[]> {
     try {
-      const sendBundleResponse = await fetch("https://mainnet.block-engine.jito.wtf/api/v1/bundles", {
+      console.log("base58Txs", base58Txs);
+      const sendBundleResponse = await fetch("/api/bundles/sendBundle", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           jsonrpc: "2.0",
           id: 1,
           method: "sendBundle",
-          params: [base58Txs],
+          transactions: base58Txs,
         }),
       });
 
       const sendBundleResult = await sendBundleResponse.json();
+      console.log("sendBundleResult", sendBundleResult);
       if (sendBundleResult.error) throw new Error(sendBundleResult.error.message);
 
       const bundleId = sendBundleResult.result;
