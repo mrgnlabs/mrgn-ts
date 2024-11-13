@@ -47,20 +47,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const bundleId = await grpcClient.sendBundle(b);
 
       const onBundleResult = new Promise<void>((resolve, reject) => {
+        let reset = () => {};
         const successCallback = (bundleResult: BundleResult) => {
           console.log("Bundle Result:", bundleResult);
           if (bundleResult.accepted || bundleResult.finalized || bundleResult.processed) {
             res.status(200).json({ bundleId: bundleResult.bundleId });
+            reset();
             resolve();
           } else if (bundleResult.rejected) {
             res.status(500).json({ error: "Bundle rejected by the block-engine." });
-            resolve();
+            reset();
+            reject(new Error("Bundle rejected by the block-engine."));
           } else if (bundleResult.dropped) {
             res.status(500).json({ error: "Bundle was accepted but never landed on-chain." });
-            resolve();
+            reset();
+            reject(new Error("Bundle was accepted but never landed on-chain."));
           } else {
             res.status(500).json({ error: "Unknown error sending bundle" });
-            resolve();
+            reset();
+            reject(new Error("Unknown error sending bundle"));
           }
         };
 
@@ -69,7 +74,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           res.status(500).json({ error: error.message });
           reject(error);
         };
-        grpcClient.onBundleResult(successCallback, errorCallback);
+
+        const timeout = setTimeout(() => {
+          console.error("Timeout: No bundle result received within 10 seconds.");
+          res.status(500).json({ error: "Timeout: No bundle result received within 10 seconds." });
+          reset();
+          reject(new Error("Timeout: No bundle result received within 10 seconds."));
+        }, 10000);
+
+        reset = grpcClient.onBundleResult(
+          (bundleResult) => {
+            clearTimeout(timeout);
+            successCallback(bundleResult);
+          },
+          (error) => {
+            clearTimeout(timeout);
+            errorCallback(error);
+          }
+        );
       });
 
       await onBundleResult; // Await the promise to handle the bundle result

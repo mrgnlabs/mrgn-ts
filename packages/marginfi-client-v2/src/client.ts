@@ -913,7 +913,7 @@ class MarginfiClient {
         }
 
         let signatures: TransactionSignature[] = [];
-        let bundleSignatures: string[] = [];
+        let bundleSignatures: string = "";
 
         if (broadcastType === "BUNDLE") {
           try {
@@ -928,6 +928,9 @@ class MarginfiClient {
         } else {
           signatures = await sendTxsRpc(versionedTransactions);
         }
+
+        console.log("bundleSignatures:", bundleSignatures);
+        console.log("signatures:", signatures);
 
         if (signatures.length === 0) {
           await Promise.all(
@@ -944,7 +947,7 @@ class MarginfiClient {
           );
           return signatures;
         } else {
-          return bundleSignatures;
+          return [bundleSignatures];
         }
       }
     } catch (error: any) {
@@ -1115,7 +1118,7 @@ class MarginfiClient {
     }
   }
 
-  private async sendTransactionAsGrpcBundle(base58Txs: string[]): Promise<string[]> {
+  private async sendTransactionAsGrpcBundle(base58Txs: string[]): Promise<string> {
     try {
       const sendBundleResponse = await fetch("/api/bundles/sendBundle", {
         method: "POST",
@@ -1132,16 +1135,18 @@ class MarginfiClient {
       if (sendBundleResult.error) throw new Error(sendBundleResult.error.message);
       console.log("sendBundleResult:", sendBundleResult);
 
-      const bundleId = sendBundleResult.response;
+      const bundleId = sendBundleResult.bundleId;
 
-      return [bundleId];
+      console.log("bundleId:", bundleId);
+
+      return bundleId;
     } catch (error) {
       console.error(error);
       throw new Error("Bundle failed");
     }
   }
 
-  private async sendTransactionAsBundle(base58Txs: string[]): Promise<string[]> {
+  private async sendTransactionAsBundle(base58Txs: string[]): Promise<string> {
     try {
       const sendBundleResponse = await fetch("api/bundles/sendBundle", {
         method: "POST",
