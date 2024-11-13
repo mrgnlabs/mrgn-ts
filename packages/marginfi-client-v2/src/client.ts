@@ -58,9 +58,6 @@ import {
   parseTransactionError,
 } from "./errors";
 import { findOracleKey, makePriorityFeeIx, PythPushFeedIdMap, buildFeedIdMap } from "./utils";
-import { Bundle } from "./vendor/jito/sdk/block-engine/types";
-import { isError } from "./vendor/jito/sdk/block-engine/utils";
-import { searcherClient } from "./vendor/jito/sdk/block-engine/searcher";
 
 export type BankMap = Map<string, Bank>;
 export type OraclePriceMap = Map<string, OraclePrice>;
@@ -918,7 +915,7 @@ class MarginfiClient {
         }
 
         if (broadcastType === "BUNDLE") {
-          signatures = await this.sendTransactionAsBundleGrpc(versionedTransactions).catch(
+          signatures = await this.sendTransactionAsBundle(base58Txs).catch(
             async () => await sendTxsRpc(versionedTransactions)
           );
         } else {
@@ -1041,7 +1038,7 @@ class MarginfiClient {
         return versionedTransaction.signatures[0].toString();
       } else {
         versionedTransaction = await this.wallet.signTransaction(versionedTransaction);
-        // const base58Tx = bs58.encode(versionedTransaction.serialize());
+        const base58Tx = bs58.encode(versionedTransaction.serialize());
 
         let mergedOpts: ConfirmOptions = {
           ...DEFAULT_CONFIRM_OPTS,
@@ -1052,7 +1049,7 @@ class MarginfiClient {
         };
 
         signature = (
-          await this.sendTransactionAsBundleGrpc([versionedTransaction]).catch(async () => [
+          await this.sendTransactionAsBundle([base58Tx]).catch(async () => [
             await connection.sendTransaction(versionedTransaction, {
               // minContextSlot: mergedOpts.minContextSlot,
               skipPreflight: mergedOpts.skipPreflight,
@@ -1151,37 +1148,37 @@ class MarginfiClient {
     throw new Error("Bundle failed");
   }
 
-  private async sendTransactionAsBundleGrpc(transactions: VersionedTransaction[]): Promise<string[]> {
-    try {
-      const grpcClient = searcherClient("mainnet.block-engine.jito.wtf");
-      let isLeaderSlot = false;
-      while (!isLeaderSlot) {
-        const next_leader = await grpcClient.getNextScheduledLeader();
-        const num_slots = next_leader.nextLeaderSlot - next_leader.currentSlot;
-        isLeaderSlot = num_slots <= 2;
-        console.log(`next jito leader slot in ${num_slots} slots`);
-        await new Promise((r) => setTimeout(r, 500));
-      }
+  // private async sendTransactionAsBundleGrpc(transactions: VersionedTransaction[]): Promise<string[]> {
+  //   try {
+  //     const grpcClient = searcherClient("mainnet.block-engine.jito.wtf");
+  //     let isLeaderSlot = false;
+  //     while (!isLeaderSlot) {
+  //       const next_leader = await grpcClient.getNextScheduledLeader();
+  //       const num_slots = next_leader.nextLeaderSlot - next_leader.currentSlot;
+  //       isLeaderSlot = num_slots <= 2;
+  //       console.log(`next jito leader slot in ${num_slots} slots`);
+  //       await new Promise((r) => setTimeout(r, 500));
+  //     }
 
-      const b = new Bundle([], 5);
-      let maybeBundle = b.addTransactions(...transactions);
-      if (isError(maybeBundle)) {
-        throw maybeBundle;
-      }
+  //     const b = new Bundle([], 5);
+  //     let maybeBundle = b.addTransactions(...transactions);
+  //     if (isError(maybeBundle)) {
+  //       throw maybeBundle;
+  //     }
 
-      try {
-        const resp = await grpcClient.sendBundle(b);
-        console.log("resp:", resp);
-        return [];
-      } catch (e) {
-        console.error("error sending bundle:", e);
-      }
-    } catch (error) {
-      console.error(error);
-    }
+  //     try {
+  //       const resp = await grpcClient.sendBundle(b);
+  //       console.log("resp:", resp);
+  //       return [];
+  //     } catch (e) {
+  //       console.error("error sending bundle:", e);
+  //     }
+  //   } catch (error) {
+  //     console.error(error);
+  //   }
 
-    throw new Error("Bundle failed");
-  }
+  //   throw new Error("Bundle failed");
+  // }
 
   async simulateTransactions(
     transactions: (Transaction | VersionedTransaction)[],

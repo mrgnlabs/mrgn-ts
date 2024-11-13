@@ -25,14 +25,7 @@
     "borsh": "^2.0.0",
     "bs58": "^6.0.0",
     "decimal.js": "^10.4.3",
-    "superstruct": "^1.0.4",
-    "@grpc/grpc-js": "^1.8.13",
-    "@noble/ed25519": "^1.7.1",
-    "@types/bs58": "^4.0.4",
-    "agentkeepalive": "^4.3.0",
-    "jayson": "^4.0.0",
-    "node-fetch": "^2.6.7",
-    "rpc-websockets": "7.10.0"
+    "superstruct": "^1.0.4"
   },
   "devDependencies": {
     "@jup-ag/api": "^6.0.23",

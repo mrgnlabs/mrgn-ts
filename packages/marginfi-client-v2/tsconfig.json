@@ -4,12 +4,6 @@
     "resolveJsonModule": true,
     "outDir": "dist"
   },
-  "include": [
-    "."
-  ],
-  "exclude": [
-    "dist",
-    "node_modules",
-    "examples"
-  ]
+  "include": [".", "../../apps/marginfi-v2-ui/src/pages/api/bundles/jito"],
+  "exclude": ["dist", "node_modules", "examples"]
 }
