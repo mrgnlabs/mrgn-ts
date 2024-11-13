@@ -32,20 +32,32 @@ const CONTENT = {
         label: "Start earning",
       },
     },
-    {
-      heading: "$LST",
-      subHeading: "Solana's highest yielding liquid staking token",
-      cta: {
-        href: "https://app.marginfi.com/stake",
-        label: "Mint LST",
-      },
-    },
+
     {
       heading: "The Arena",
-      subHeading: "Spot leverage platform for longing and shorting memecoins",
+      subHeading: (
+        <span>
+          Permissionless memecoin
+          <br className="hidden xl:block" />
+          trading with leverage
+        </span>
+      ),
       cta: {
         href: "https://thearena.trade",
         label: "Start trading",
+      },
+    },
+    {
+      heading: "LST",
+      subHeading: (
+        <span>
+          Solana&apos;s highest yielding
+          <br className="hidden xl:block" /> liquid staking token
+        </span>
+      ),
+      cta: {
+        href: "https://app.marginfi.com/stake",
+        label: "Mint LST",
       },
     },
   ],
