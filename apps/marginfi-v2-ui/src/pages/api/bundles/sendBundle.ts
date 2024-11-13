@@ -3,6 +3,8 @@ import { searcherClient } from "./jito/sdk/block-engine/searcher";
 import { Bundle } from "./jito/sdk/block-engine/types";
 import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
 import { VersionedTransaction } from "@solana/web3.js";
+import { isError } from "./jito/sdk/block-engine/utils";
+import { BundleResult } from "./jito/gen/block-engine/bundle";
 // import { searcherClient } from "jito-ts/src/sdk/block-engine/searcher";
 // import { Bundle } from "jito-ts/src/sdk/block-engine/types";
 
@@ -17,8 +19,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   const { transactions } = req.body;
-
-  console.log("transactions", transactions.length);
 
   if (!Array.isArray(transactions) || transactions.some((tx) => typeof tx !== "string")) {
     return res.status(400).json({ error: "Invalid transactions format" });
@@ -39,14 +39,40 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const b = new Bundle([], 5);
     let maybeBundle = b.addTransactions(...txs);
-    // if (vendor.isError(maybeBundle)) {
-    //   throw maybeBundle;
-    // }
+    if (isError(maybeBundle)) {
+      throw maybeBundle;
+    }
 
     try {
-      const resp = await grpcClient.sendBundle(b);
-      console.log("resp:", resp);
-      return res.status(200).json({ message: "Bundle sent successfully", response: resp });
+      const bundleId = await grpcClient.sendBundle(b);
+
+      const onBundleResult = new Promise<void>((resolve, reject) => {
+        const successCallback = (bundleResult: BundleResult) => {
+          console.log("Bundle Result:", bundleResult);
+          if (bundleResult.accepted || bundleResult.finalized || bundleResult.processed) {
+            res.status(200).json({ bundleId: bundleResult.bundleId });
+            resolve();
+          } else if (bundleResult.rejected) {
+            res.status(500).json({ error: "Bundle rejected by the block-engine." });
+            resolve();
+          } else if (bundleResult.dropped) {
+            res.status(500).json({ error: "Bundle was accepted but never landed on-chain." });
+            resolve();
+          } else {
+            res.status(500).json({ error: "Unknown error sending bundle" });
+            resolve();
+          }
+        };
+
+        const errorCallback = (error: Error) => {
+          console.error("Stream error:", error);
+          res.status(500).json({ error: error.message });
+          reject(error);
+        };
+        grpcClient.onBundleResult(successCallback, errorCallback);
+      });
+
+      await onBundleResult; // Await the promise to handle the bundle result
     } catch (e) {
       console.error("error sending bundle:", e);
       return res.status(500).json({ error: "Error sending bundle" });

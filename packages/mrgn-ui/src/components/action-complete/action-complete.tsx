@@ -29,6 +29,17 @@ type ActionCompleteProps = {
 export const ActionComplete = ({ isActionComplete, previousTxn, setIsActionComplete }: ActionCompleteProps) => {
   const { width, height } = useWindowSize();
 
+  const isBase58Txn = React.useMemo(() => {
+    const base58Pattern = /^[1-9A-HJ-NP-Za-km-z]+$/;
+    return base58Pattern.test(previousTxn.txn);
+  }, [previousTxn.txn]);
+
+  const txnLink = React.useMemo(() => {
+    return isBase58Txn
+      ? `https://solscan.io/tx/${previousTxn.txn}`
+      : `https://explorer.jito.wtf/bundle/${previousTxn.txn}`;
+  }, [isBase58Txn, previousTxn.txn]);
+
   const headerText = React.useMemo(() => {
     if (previousTxn?.txnType === "LEND") {
       switch (previousTxn.lendingOptions.type) {
@@ -84,19 +95,23 @@ export const ActionComplete = ({ isActionComplete, previousTxn, setIsActionCompl
           </DialogHeader>
           <div className="space-y-12 w-full">
             {previousTxn.txnType === "LEND" && (
-              <screens.LendingScreen {...previousTxn.lendingOptions} txn={previousTxn.txn} />
+              <screens.LendingScreen {...previousTxn.lendingOptions} txn={previousTxn.txn} txnLink={txnLink} />
             )}
             {previousTxn.txnType === "TRADING" && (
-              <screens.TradingScreen {...previousTxn.tradingOptions} txn={previousTxn.txn} />
+              <screens.TradingScreen {...previousTxn.tradingOptions} txn={previousTxn.txn} txnLink={txnLink} />
             )}
             {previousTxn.txnType === "CLOSE_POSITION" && (
-              <screens.ClosePositionScreen {...previousTxn.positionClosedOptions} txn={previousTxn.txn} />
+              <screens.ClosePositionScreen
+                {...previousTxn.positionClosedOptions}
+                txn={previousTxn.txn}
+                txnLink={txnLink}
+              />
             )}
             {previousTxn.txnType === "LOOP" && (
-              <screens.LoopScreen {...previousTxn.loopOptions} txn={previousTxn.txn} />
+              <screens.LoopScreen {...previousTxn.loopOptions} txn={previousTxn.txn} txnLink={txnLink} />
             )}
             {(previousTxn.txnType === "STAKE" || previousTxn.txnType === "UNSTAKE") && (
-              <screens.StakingScreen {...previousTxn.stakingOptions} txn={previousTxn.txn} />
+              <screens.StakingScreen {...previousTxn.stakingOptions} txn={previousTxn.txn} txnLink={txnLink} />
             )}
           </div>
           <DialogFooter className="mt-6">

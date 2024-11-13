@@ -15,9 +15,10 @@ interface Props {
     amount: number;
     bank: ExtendedBankInfo;
   };
+  txnLink?: string;
 }
 
-export const StakingScreen = ({ amount, type, txn, originDetails }: Props) => {
+export const StakingScreen = ({ amount, type, txn, originDetails, txnLink }: Props) => {
   return (
     <>
       <div className="flex flex-col items-center gap-2 border-b border-border pb-10">
@@ -37,12 +38,13 @@ export const StakingScreen = ({ amount, type, txn, originDetails }: Props) => {
         <dd>Transaction</dd>
         <dd className="text-right">
           <Link
-            href={`https://solscan.io/tx/${txn}`}
+            href={txnLink || `https://solscan.io/tx/${txn}`}
             className="flex items-center justify-end gap-1.5 text-primary text-sm"
             target="_blank"
             rel="noopener noreferrer"
           >
-            <span className="border-b border-border">{shortenAddress(txn || "")}</span> <IconExternalLink size={15} className="-translate-y-[1px]" />
+            <span className="border-b border-border">{shortenAddress(txn || "")}</span>{" "}
+            <IconExternalLink size={15} className="-translate-y-[1px]" />
           </Link>
         </dd>
       </dl>
