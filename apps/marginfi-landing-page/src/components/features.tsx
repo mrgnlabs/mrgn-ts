@@ -34,14 +34,8 @@ const CONTENT = {
               <strong className="font-medium">LST</strong>: Solana&apos;s highest yielding liquid staking SOL token
             </li>
             <li>
-              <strong className="font-medium">The Arena</strong>: Solana&apos;s first spot leverage platform for shorting and longing memecoins
+              <strong className="font-medium">The Arena</strong>: Permissionless memecoin trading with leverage
             </li>
-            {/* <li>
-              <strong className="font-medium">YBX</strong>: solana&apos;s decentralized, yield accruing stable-asset
-            </li>
-            <li>
-              <strong className="font-medium">mrgnswap</strong>: crypto&apos;s exciting new integrated stableswap
-            </li> */}
           </ul>
         </>
       ),
