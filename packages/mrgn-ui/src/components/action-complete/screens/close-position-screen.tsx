@@ -10,9 +10,10 @@ interface Props {
   tokenBank: ExtendedBankInfo;
   collateralBank: ExtendedBankInfo;
   txn: string;
+  txnLink?: string;
 }
 
-export const ClosePositionScreen = ({ tokenBank, collateralBank, txn }: Props) => {
+export const ClosePositionScreen = ({ tokenBank, collateralBank, txn, txnLink }: Props) => {
   return (
     <>
       <div className="flex flex-col items-center gap-2 border-b border-border pb-10">
@@ -53,7 +54,7 @@ export const ClosePositionScreen = ({ tokenBank, collateralBank, txn }: Props) =
         <dt>Transaction</dt>
         <dd className="text-right">
           <Link
-            href={`https://solscan.io/tx/${txn}`}
+            href={txnLink || `https://solscan.io/tx/${txn}`}
             className="flex items-center justify-end gap-1.5 text-foreground text-sm underline hover:no-underline"
             target="_blank"
             rel="noopener noreferrer"

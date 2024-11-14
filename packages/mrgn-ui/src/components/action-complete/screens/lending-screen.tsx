@@ -12,9 +12,10 @@ interface Props {
   bank: ActiveBankInfo;
   type: ActionType;
   txn: string;
+  txnLink?: string;
 }
 
-export const LendingScreen = ({ amount, bank, type, txn }: Props) => {
+export const LendingScreen = ({ amount, bank, type, txn, txnLink }: Props) => {
   const actionTextColor = React.useMemo(() => {
     const successTypes = [ActionType.Deposit, ActionType.Withdraw, ActionType.MintLST];
     const warningTypes = [ActionType.Borrow, ActionType.Repay];
@@ -59,7 +60,7 @@ export const LendingScreen = ({ amount, bank, type, txn }: Props) => {
         <dt>Transaction</dt>
         <dd className="text-right">
           <Link
-            href={`https://solscan.io/tx/${txn}`}
+            href={txnLink || `https://solscan.io/tx/${txn}`}
             className="flex items-center justify-end gap-1.5 text-primary text-sm"
             target="_blank"
             rel="noopener noreferrer"

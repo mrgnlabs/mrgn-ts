@@ -14,6 +14,7 @@ type LoopScreenProps = {
   borrowAmount: number;
   leverage: number;
   txn: string;
+  txnLink?: string;
 };
 
 export const LoopScreen = ({
@@ -23,6 +24,7 @@ export const LoopScreen = ({
   borrowAmount,
   leverage,
   txn,
+  txnLink,
 }: LoopScreenProps) => {
   const [loopApy, setLoopApy] = React.useState<{ netApy: number; totalDepositApy: number; totalBorrowApy: number }>({
     netApy: 0,
@@ -102,7 +104,7 @@ export const LoopScreen = ({
         <dt>Transaction</dt>
         <dd className="text-right">
           <Link
-            href={`https://solscan.io/tx/${txn}`}
+            href={txnLink || `https://solscan.io/tx/${txn}`}
             className="flex items-center justify-end gap-1.5 text-primary text-sm"
             target="_blank"
             rel="noopener noreferrer"

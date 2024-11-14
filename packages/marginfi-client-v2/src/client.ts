@@ -774,8 +774,6 @@ class MarginfiClient {
     broadcastType: TransactionBroadcastType = "BUNDLE",
     isSequentialTxs: boolean = true
   ): Promise<TransactionSignature[]> {
-    let signatures: TransactionSignature[] = [""];
-
     let versionedTransactions: VersionedTransaction[] = [];
     const connection = new Connection(this.provider.connection.rpcEndpoint, this.provider.opts);
     let minContextSlot: number;
@@ -914,28 +912,44 @@ class MarginfiClient {
             );
         }
 
+        let signatures: TransactionSignature[] = [];
+        let bundleSignatures: string = "";
+
         if (broadcastType === "BUNDLE") {
-          signatures = await this.sendTransactionAsBundle(base58Txs).catch(
-            async () => await sendTxsRpc(versionedTransactions)
-          );
+          try {
+            bundleSignatures = await this.sendTransactionAsGrpcBundle(base58Txs);
+          } catch (e) {
+            try {
+              bundleSignatures = await this.sendTransactionAsBundle(base58Txs);
+            } catch (e) {
+              signatures = await sendTxsRpc(versionedTransactions);
+            }
+          }
         } else {
           signatures = await sendTxsRpc(versionedTransactions);
         }
 
-        await Promise.all(
-          signatures.map(async (signature) => {
-            await connection.confirmTransaction(
-              {
-                blockhash,
-                lastValidBlockHeight,
-                signature,
-              },
-              mergedOpts.commitment
-            );
-          })
-        );
+        console.log("bundleSignatures:", bundleSignatures);
+        console.log("signatures:", signatures);
+
+        if (signatures.length !== 0) {
+          await Promise.all(
+            signatures.map(async (signature) => {
+              await connection.confirmTransaction(
+                {
+                  blockhash,
+                  lastValidBlockHeight,
+                  signature,
+                },
+                mergedOpts.commitment
+              );
+            })
+          );
+          return signatures;
+        } else {
+          return [bundleSignatures];
+        }
       }
-      return signatures;
     } catch (error: any) {
       const parsedError = parseTransactionError(error, this.config.programId);
 
@@ -967,8 +981,6 @@ class MarginfiClient {
     signers?: Array<Signer>,
     opts?: TransactionOptions
   ): Promise<TransactionSignature> {
-    let signature: TransactionSignature = "";
-
     let versionedTransaction: VersionedTransaction;
     const connection = new Connection(this.provider.connection.rpcEndpoint, this.provider.opts);
     let minContextSlot: number;
@@ -1037,6 +1049,9 @@ class MarginfiClient {
 
         return versionedTransaction.signatures[0].toString();
       } else {
+        let signature: TransactionSignature = "";
+        let bundleSignature: string = "";
+
         versionedTransaction = await this.wallet.signTransaction(versionedTransaction);
         const base58Tx = bs58.encode(versionedTransaction.serialize());
 
@@ -1048,27 +1063,35 @@ class MarginfiClient {
           ...opts,
         };
 
-        signature = (
-          await this.sendTransactionAsBundle([base58Tx]).catch(async () => [
-            await connection.sendTransaction(versionedTransaction, {
-              // minContextSlot: mergedOpts.minContextSlot,
-              skipPreflight: mergedOpts.skipPreflight,
-              preflightCommitment: mergedOpts.preflightCommitment,
-              maxRetries: mergedOpts.maxRetries,
-            }),
-          ])
-        )[0];
-        await connection.confirmTransaction(
-          {
-            blockhash,
-            lastValidBlockHeight,
-            signature,
-          },
-          mergedOpts.commitment
-        );
-      }
+        try {
+          bundleSignature = (await this.sendTransactionAsGrpcBundle([base58Tx]))[0];
+        } catch (e) {
+          // try {
+          //   bundleSignature = (await this.sendTransactionAsBundle([base58Tx]))[0];
+          // } catch (e) {
+          //   signature = await connection.sendTransaction(versionedTransaction, {
+          //     // minContextSlot: mergedOpts.minContextSlot,
+          //     skipPreflight: mergedOpts.skipPreflight,
+          //     preflightCommitment: mergedOpts.preflightCommitment,
+          //     maxRetries: mergedOpts.maxRetries,
+          //   });
+          // }
+        }
 
-      return signature;
+        if (signature !== "") {
+          await connection.confirmTransaction(
+            {
+              blockhash,
+              lastValidBlockHeight,
+              signature,
+            },
+            mergedOpts.commitment
+          );
+          return signature;
+        } else {
+          return bundleSignature;
+        }
+      }
     } catch (error: any) {
       const parsedError = parseTransactionError(error, this.config.programId);
 
@@ -1095,7 +1118,32 @@ class MarginfiClient {
     }
   }
 
-  private async sendTransactionAsBundle(base58Txs: string[]): Promise<string[]> {
+  private async sendTransactionAsGrpcBundle(base58Txs: string[]): Promise<string> {
+    try {
+      const sendBundleResponse = await fetch("/api/bundles/sendBundle", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          transactions: base58Txs,
+        }),
+      });
+
+      const sendBundleResult = await sendBundleResponse.json();
+      if (sendBundleResult.error) throw new Error(sendBundleResult.error.message);
+      console.log("sendBundleResult:", sendBundleResult);
+
+      const bundleId = sendBundleResult.bundleId;
+
+      console.log("bundleId:", bundleId);
+
+      return bundleId;
+    } catch (error) {
+      console.error(error);
+      throw new Error("Bundle failed");
+    }
+  }
+
+  private async sendTransactionAsBundle(base58Txs: string[]): Promise<string> {
     try {
       const sendBundleResponse = await fetch("https://mainnet.block-engine.jito.wtf/api/v1/bundles", {
         method: "POST",
@@ -1112,31 +1160,37 @@ class MarginfiClient {
       if (sendBundleResult.error) throw new Error(sendBundleResult.error.message);
 
       const bundleId = sendBundleResult.result;
-
-      console.log("bundleId", bundleId);
-
       await sleep(500);
 
-      for (let attempt = 0; attempt < 5; attempt++) {
-        const getBundleStatusResponse = await fetch("https://mainnet.block-engine.jito.wtf/api/v1/bundles", {
+      for (let attempt = 0; attempt < 10; attempt++) {
+        const getBundleStatusInFlightResponse = await fetch("https://mainnet.block-engine.jito.wtf/api/v1/bundles", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             jsonrpc: "2.0",
             id: 1,
-            method: "getBundleStatuses",
+            method: "getInflightBundleStatuses",
             params: [[bundleId]],
           }),
         });
 
-        const getBundleStatusResult = await getBundleStatusResponse.json();
+        const getBundleStatusInFlightResult = await getBundleStatusInFlightResponse.json();
 
-        if (getBundleStatusResult.error) throw new Error(getBundleStatusResult.error.message);
+        if (getBundleStatusInFlightResult.error) throw new Error(getBundleStatusInFlightResult.error.message);
 
-        const signature = getBundleStatusResult?.result?.value[0]?.transactions;
+        const status = getBundleStatusInFlightResult?.result?.value[0]?.status;
 
-        if (signature) {
-          return signature;
+        /**
+          Bundle status values:
+          Failed: All regions marked bundle as failed, not forwarded
+          Pending: Bundle has not failed, landed, or been deemed invalid
+          Landed: Bundle successfully landed on-chain (verified via RPC/bundles_landed table)
+          Invalid: Bundle is no longer in the system
+          */
+        if (status === "Failed") {
+          throw new Error("Bundle failed");
+        } else if (status === "Landed") {
+          return bundleId;
         }
 
         await sleep(500); // Wait before retrying
@@ -1147,6 +1201,38 @@ class MarginfiClient {
 
     throw new Error("Bundle failed");
   }
+
+  // private async sendTransactionAsBundleGrpc(transactions: VersionedTransaction[]): Promise<string[]> {
+  //   try {
+  //     const grpcClient = searcherClient("mainnet.block-engine.jito.wtf");
+  //     let isLeaderSlot = false;
+  //     while (!isLeaderSlot) {
+  //       const next_leader = await grpcClient.getNextScheduledLeader();
+  //       const num_slots = next_leader.nextLeaderSlot - next_leader.currentSlot;
+  //       isLeaderSlot = num_slots <= 2;
+  //       console.log(`next jito leader slot in ${num_slots} slots`);
+  //       await new Promise((r) => setTimeout(r, 500));
+  //     }
+
+  //     const b = new Bundle([], 5);
+  //     let maybeBundle = b.addTransactions(...transactions);
+  //     if (isError(maybeBundle)) {
+  //       throw maybeBundle;
+  //     }
+
+  //     try {
+  //       const resp = await grpcClient.sendBundle(b);
+  //       console.log("resp:", resp);
+  //       return [];
+  //     } catch (e) {
+  //       console.error("error sending bundle:", e);
+  //     }
+  //   } catch (error) {
+  //     console.error(error);
+  //   }
+
+  //   throw new Error("Bundle failed");
+  // }
 
   async simulateTransactions(
     transactions: (Transaction | VersionedTransaction)[],

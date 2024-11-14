@@ -9,6 +9,7 @@ import { cn, PreviousTxnTradingOptions } from "@mrgnlabs/mrgn-utils";
 
 interface TradingScreenProps extends PreviousTxnTradingOptions {
   txn: string;
+  txnLink?: string;
 }
 
 export const TradingScreen = ({
@@ -22,6 +23,7 @@ export const TradingScreen = ({
   borrowAmount,
   leverage,
   quote,
+  txnLink,
 }: TradingScreenProps) => {
   const tokenBank = React.useMemo(() => (type === "long" ? depositBank : borrowBank), [type, depositBank, borrowBank]);
 
@@ -61,7 +63,7 @@ export const TradingScreen = ({
         <dt>Transaction</dt>
         <dd className="text-right">
           <Link
-            href={`https://solscan.io/tx/${txn}`}
+            href={txnLink || `https://solscan.io/tx/${txn}`}
             className="flex items-center justify-end gap-1.5 text-primary text-sm"
             target="_blank"
             rel="noopener noreferrer"
