@@ -192,7 +192,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const updatedOraclePricesSorted = requestedOraclesData.map((value) => updatedOraclePrices.get(value.oracleKey)!);
 
-    res.setHeader("Cache-Control", "s-maxage=5, stale-while-revalidate=59");
+    res.setHeader("Cache-Control", "s-maxage=10, stale-while-revalidate=59");
     return res.status(200).json(updatedOraclePricesSorted.map(stringifyOraclePrice));
   } catch (error) {
     console.error("Error:", error);
