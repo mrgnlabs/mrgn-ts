@@ -29,7 +29,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     const txs = transactions.map((tx) => VersionedTransaction.deserialize(bs58.decode(tx)));
-    const bundle = new Bundle([], 5);
+    const bundle = new Bundle([], txs.length);
 
     if (isError(bundle.addTransactions(...txs))) {
       throw new Error("Error adding transactions to bundle");
