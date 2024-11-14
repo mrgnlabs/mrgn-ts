@@ -8,7 +8,7 @@ import { BundleResult } from "./jito/gen/block-engine/bundle";
 import { sleep } from "@mrgnlabs/mrgn-common";
 
 const JITO_ENDPOINT = "mainnet.block-engine.jito.wtf";
-const TIMEOUT_DURATION = 15000;
+const TIMEOUT_DURATION = 25000;
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
@@ -56,7 +56,7 @@ function setTimeoutPromise(duration: number, message: string): Promise<Error> {
 
 async function sendBundleWithRetry(bundle: Bundle): Promise<string> {
   let attempts = 0;
-  const maxAttempts = 5; // Limit retries to prevent infinite loops
+  const maxAttempts = 10; // Limit retries to prevent infinite loops
   const grpcClient = searcherClient(JITO_ENDPOINT);
   let bundleId = "";
 
@@ -66,6 +66,22 @@ async function sendBundleWithRetry(bundle: Bundle): Promise<string> {
     try {
       const newBundleId = await grpcClient.sendBundle(bundle);
       if (newBundleId) {
+        const getBundleStatusResponse = await fetch("https://mainnet.block-engine.jito.wtf/api/v1/bundles", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            jsonrpc: "2.0",
+            id: 1,
+            method: "getInflightBundleStatuses",
+            params: [[bundleId]],
+          }),
+        }).catch(() => console.log("error getting bundle status"));
+
+        if (getBundleStatusResponse) {
+          const getBundleStatusResult = await getBundleStatusResponse.json();
+          console.log("getBundleStatusResult", getBundleStatusResult.result.value);
+        }
+
         bundleId = newBundleId;
       }
 
