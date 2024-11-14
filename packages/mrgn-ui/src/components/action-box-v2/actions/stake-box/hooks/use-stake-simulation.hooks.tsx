@@ -1,6 +1,6 @@
 import React from "react";
 
-import { Transaction, TransactionMessage, VersionedTransaction } from "@solana/web3.js";
+import { LAMPORTS_PER_SOL, Transaction, TransactionMessage, VersionedTransaction } from "@solana/web3.js";
 import { createJupiterApiClient } from "@jup-ag/api";
 
 import { makeBundleTipIx, makeUnwrapSolIx, MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
@@ -158,12 +158,23 @@ export function useStakeSimulation({
           const AddressLookupAccounts = await getAdressLookupTableAccounts(connection, addressLookupTableAddresses);
           const unwrapSolIx = makeUnwrapSolIx(marginfiClient.wallet.publicKey);
 
+          let bundleTipIx = null;
+
+          if (actionType === ActionType.UnstakeLST) {
+            bundleTipIx = makeBundleTipIx(marginfiClient.wallet.publicKey, Math.trunc(priorityFee * LAMPORTS_PER_SOL));
+          }
+
           const swapMessage = new TransactionMessage({
             payerKey: marginfiClient.wallet.publicKey,
             recentBlockhash: blockhash,
-            instructions: [...cuInstructionsIxs, ...setupInstructionsIxs, swapIx, unwrapSolIx],
+            instructions: [
+              ...cuInstructionsIxs,
+              ...setupInstructionsIxs,
+              ...(bundleTipIx ? [bundleTipIx] : []),
+              swapIx,
+              unwrapSolIx,
+            ],
           });
-
           swapTx = new VersionedTransaction(swapMessage.compileToV0Message(AddressLookupAccounts));
         }
 
