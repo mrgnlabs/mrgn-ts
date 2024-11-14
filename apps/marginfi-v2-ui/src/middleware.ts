@@ -16,9 +16,7 @@ const allowedOrigins = [
 
 export function middleware(req: NextRequest) {
   if (req.nextUrl.pathname.startsWith("/api/rpc")) {
-    // Check the origin from the request
     const origin = req.headers.get("origin") ?? "";
-    const isAllowedOrigin = allowedOrigins.includes(origin);
 
     if (!allowedOrigins.includes(origin)) {
       return new Response("Access Denied", {
