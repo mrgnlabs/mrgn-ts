@@ -1148,14 +1148,14 @@ class MarginfiClient {
 
   private async sendTransactionAsBundle(base58Txs: string[]): Promise<string> {
     try {
-      const sendBundleResponse = await fetch("api/bundles/sendBundle", {
+      const sendBundleResponse = await fetch("https://mainnet.block-engine.jito.wtf/api/v1/bundles", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           jsonrpc: "2.0",
           id: 1,
           method: "sendBundle",
-          transactions: [base58Txs],
+          params: [base58Txs],
         }),
       });
 

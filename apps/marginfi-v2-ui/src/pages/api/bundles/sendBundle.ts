@@ -6,21 +6,14 @@ import { VersionedTransaction } from "@solana/web3.js";
 import { isError } from "./jito/sdk/block-engine/utils";
 import { BundleResult } from "./jito/gen/block-engine/bundle";
 import { sleep } from "@mrgnlabs/mrgn-common";
-// import { searcherClient } from "jito-ts/src/sdk/block-engine/searcher";
-// import { Bundle } from "jito-ts/src/sdk/block-engine/types";
 
 const JITO_ENDPOINT = "mainnet.block-engine.jito.wtf";
+const TIMEOUT_DURATION = 15000;
 
-/**
- * Post an array of transaction strings to the JITO API
- */
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
-  }
+  if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
   const { transactions } = req.body;
-
   if (!Array.isArray(transactions) || transactions.some((tx) => typeof tx !== "string")) {
     return res.status(400).json({ error: "Invalid transactions format" });
   }
@@ -28,73 +21,79 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     const grpcClient = searcherClient(JITO_ENDPOINT);
 
-    await waitForLeaderSlot(grpcClient);
+    const next_leader = await grpcClient.getNextScheduledLeader();
+    const num_slots = next_leader.nextLeaderSlot - next_leader.currentSlot;
+
+    if (num_slots > 50) {
+      throw new Error("Timeout: No leader slot found within 50 slots.");
+    }
 
     const txs = transactions.map((tx) => VersionedTransaction.deserialize(bs58.decode(tx)));
+    const bundle = new Bundle([], 5);
 
-    const b = new Bundle([], 5);
-    let maybeBundle = b.addTransactions(...txs);
-    if (isError(maybeBundle)) {
-      throw maybeBundle;
+    if (isError(bundle.addTransactions(...txs))) {
+      throw new Error("Error adding transactions to bundle");
     }
+
+    const bundleResult = await Promise.race([
+      sendBundleWithRetry(bundle),
+      setTimeoutPromise(TIMEOUT_DURATION, `Timeout: Stopped after ${TIMEOUT_DURATION / 1000} seconds.`),
+    ]);
+
+    if (bundleResult instanceof Error) {
+      throw bundleResult;
+    }
+
+    return res.status(200).json({ bundleId: bundleResult });
+  } catch (error) {
+    return res.status(500).json({ error: error instanceof Error ? error.message : "Unknown error" });
+  }
+}
+
+function setTimeoutPromise(duration: number, message: string): Promise<Error> {
+  return new Promise((_, reject) => setTimeout(() => reject(new Error(message)), duration));
+}
+
+async function sendBundleWithRetry(bundle: Bundle): Promise<string> {
+  let attempts = 0;
+  const maxAttempts = 5; // Limit retries to prevent infinite loops
+  const grpcClient = searcherClient(JITO_ENDPOINT);
+  let bundleId = "";
+
+  while (attempts < maxAttempts) {
+    attempts += 1;
 
     try {
-      let whileLoop = true;
-      let timedOut = false;
-
-      setTimeout(() => {
-        timedOut = true;
-      }, 15000);
-
-      while (whileLoop) {
-        if (timedOut) {
-          throw new Error("Timeout: Stopped after 15 seconds of trying to get bundle result.");
-        }
-
-        const grpcClient = searcherClient(JITO_ENDPOINT);
-
-        let bundleId = "";
-        try {
-          bundleId = await grpcClient.sendBundle(b);
-        } catch (error) {
-          console.error(error);
-          // @ts-ignore
-          if (error.details.includes("already processed transaction")) {
-            console.log("bundle already processed, sending res");
-            res.status(200).json({ bundleId });
-            break;
-          } else {
-            throw error;
-          }
-        }
-
-        console.log("bundleId:", bundleId);
-
-        try {
-          const bundleResult = await getBundleResult(grpcClient);
-          res.status(200).json({ bundleId: bundleResult });
-          break;
-        } catch (error) {
-          if (error instanceof BundleError && error.code === "timeout") {
-            console.log("Timeout error in getBundleResult; retrying...");
-          } else {
-            console.error("error getting bundle result:", error);
-            throw error;
-          }
-        }
-
-        await sleep(500);
+      const newBundleId = await grpcClient.sendBundle(bundle);
+      if (newBundleId) {
+        bundleId = newBundleId;
       }
 
-      console.log("while ended without sending res");
-    } catch (e) {
-      console.error("error sending bundle:", e);
-      return res.status(500).json({ error: "Error sending bundle" });
+      await getBundleResult(grpcClient);
+      return bundleId;
+    } catch (error) {
+      if (isAlreadyProcessedError(error)) {
+        return bundleId;
+      } else if (error instanceof BundleError && error.code === "timeout") {
+        console.log("Timeout error in getBundleResult; retrying...");
+      } else {
+        throw error;
+      }
     }
-  } catch (error) {
-    console.error("Error:", error);
-    return res.status(500).json({ error: "Error processing transactions" });
+
+    await sleep(500);
   }
+
+  throw new Error("Failed to send bundle after multiple attempts.");
+}
+
+function isAlreadyProcessedError(error: unknown): boolean {
+  return (
+    error instanceof Object &&
+    "details" in error &&
+    typeof error.details === "string" &&
+    error.details.includes("already processed transaction")
+  );
 }
 
 async function waitForLeaderSlot(grpcClient: SearcherClient): Promise<void> {
@@ -147,7 +146,7 @@ export function getBundleResult(grpcClient: SearcherClient) {
 
     const timeout = setTimeout(() => {
       reset();
-      reject(new BundleError("Timeout: No bundle result received within 10 seconds.", "timeout"));
+      reject(new BundleError("Timeout: No bundle result received within 3 seconds.", "timeout"));
     }, 3000);
 
     reset = grpcClient.onBundleResult(
