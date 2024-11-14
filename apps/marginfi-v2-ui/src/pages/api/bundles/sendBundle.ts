@@ -50,21 +50,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         let reset = () => {};
         const successCallback = (bundleResult: BundleResult) => {
           console.log("Bundle Result:", bundleResult);
+          reset();
           if (bundleResult.accepted || bundleResult.finalized || bundleResult.processed) {
             res.status(200).json({ bundleId: bundleResult.bundleId });
-            reset();
             resolve();
           } else if (bundleResult.rejected) {
             res.status(500).json({ error: "Bundle rejected by the block-engine." });
-            reset();
             reject(new Error("Bundle rejected by the block-engine."));
           } else if (bundleResult.dropped) {
             res.status(500).json({ error: "Bundle was accepted but never landed on-chain." });
-            reset();
             reject(new Error("Bundle was accepted but never landed on-chain."));
           } else {
             res.status(500).json({ error: "Unknown error sending bundle" });
-            reset();
             reject(new Error("Unknown error sending bundle"));
           }
         };
@@ -78,8 +75,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const timeout = setTimeout(() => {
           console.error("Timeout: No bundle result received within 10 seconds.");
           res.status(500).json({ error: "Timeout: No bundle result received within 10 seconds." });
-          reset();
           reject(new Error("Timeout: No bundle result received within 10 seconds."));
+          reset();
         }, 10000);
 
         reset = grpcClient.onBundleResult(
@@ -94,7 +91,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         );
       });
 
-      await onBundleResult; // Await the promise to handle the bundle result
+      await onBundleResult;
     } catch (e) {
       console.error("error sending bundle:", e);
       return res.status(500).json({ error: "Error sending bundle" });
