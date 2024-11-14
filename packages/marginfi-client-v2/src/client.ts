@@ -932,7 +932,7 @@ class MarginfiClient {
         console.log("bundleSignatures:", bundleSignatures);
         console.log("signatures:", signatures);
 
-        if (signatures.length != 0) {
+        if (signatures.length !== 0) {
           await Promise.all(
             signatures.map(async (signature) => {
               await connection.confirmTransaction(
@@ -1078,7 +1078,7 @@ class MarginfiClient {
           // }
         }
 
-        if (signature === "") {
+        if (signature !== "") {
           await connection.confirmTransaction(
             {
               blockhash,
