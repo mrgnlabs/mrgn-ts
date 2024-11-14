@@ -26,7 +26,7 @@ export function middleware(req: NextRequest) {
     }
 
     // Handle simple requests
-    return NextResponse.rewrite(new URL(process.env.NEXT_PUBLIC_MARGINFI_RPC_ENDPOINT_OVERRIDE_REROUTE ?? ""));
+    return NextResponse.rewrite(new URL(process.env.PRIVATE_RPC_ENDPOINT_OVERRIDE ?? ""));
   } else {
     const basicAuth = req.headers.get("authorization");
     const url = req.nextUrl;

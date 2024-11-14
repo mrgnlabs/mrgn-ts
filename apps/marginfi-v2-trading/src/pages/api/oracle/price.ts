@@ -58,9 +58,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const requestedBanks = requestedBanksRaw.split(",").map((bankAddress) => bankAddress.trim());
 
-  const connection = new Connection(
-    process.env.PRIVATE_RPC_ENDPOINT_OVERRIDE || process.env.NEXT_PUBLIC_MARGINFI_RPC_ENDPOINT_OVERRIDE_REROUTE || ""
-  );
+  const connection = new Connection(process.env.PRIVATE_RPC_ENDPOINT_OVERRIDE || "");
   const idl = { ...MARGINFI_IDL, address: config.mfiConfig.programId.toBase58() } as unknown as MarginfiIdlType;
   const provider = new AnchorProvider(connection, {} as Wallet, {
     ...AnchorProvider.defaultOptions(),
