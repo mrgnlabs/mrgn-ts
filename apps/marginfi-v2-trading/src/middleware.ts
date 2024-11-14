@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export const config = {
-  matcher: ["/", "/index", "/yield", "/portfolio", "/trade/:path*", "/api/rpc"],
+  matcher: ["/", "/index", "/yield", "/portfolio", "/trade/:path*", "/api/proxy"],
 };
 
 const restrictedCountries = ["US", "VE", "CU", "IR", "KP", "SY"];
@@ -9,7 +9,7 @@ const restrictedCountries = ["US", "VE", "CU", "IR", "KP", "SY"];
 const allowedOrigins = ["https://www.thearena.trade", "https://staging.thearena.trade", "http://localhost:3006"];
 
 export function middleware(req: NextRequest) {
-  if (req.nextUrl.pathname.startsWith("/api/rpc")) {
+  if (req.nextUrl.pathname.startsWith("/api/proxy")) {
     const origin = req.headers.get("origin") ?? "";
 
     if (!allowedOrigins.includes(origin)) {

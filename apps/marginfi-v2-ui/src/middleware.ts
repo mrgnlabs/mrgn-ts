@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export const config = {
-  matcher: ["/", "/index", "/stake", "/swap", "/bridge", "/earn", "/points", "/looper", "/api/rpc"],
+  matcher: ["/", "/index", "/stake", "/swap", "/bridge", "/earn", "/points", "/looper", "/api/proxy"],
 };
 
 const restrictedCountries = ["VE", "CU", "IR", "KP", "SY"];
@@ -15,7 +15,7 @@ const allowedOrigins = [
 ];
 
 export function middleware(req: NextRequest) {
-  if (req.nextUrl.pathname.startsWith("/api/rpc")) {
+  if (req.nextUrl.pathname.startsWith("/api/proxy")) {
     const origin = req.headers.get("origin") ?? "";
 
     if (!allowedOrigins.includes(origin)) {
