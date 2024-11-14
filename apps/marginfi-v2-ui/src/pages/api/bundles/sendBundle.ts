@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { searcherClient } from "./jito/sdk/block-engine/searcher";
+import { SearcherClient, searcherClient } from "./jito/sdk/block-engine/searcher";
 import { Bundle } from "./jito/sdk/block-engine/types";
 import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
 import { VersionedTransaction } from "@solana/web3.js";
@@ -28,7 +28,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     const grpcClient = searcherClient(JITO_ENDPOINT);
     let isLeaderSlot = false;
-    //timeout after 5 seconds
+    //timeout after 10 seconds
     while (!isLeaderSlot) {
       const next_leader = await grpcClient.getNextScheduledLeader();
       const num_slots = next_leader.nextLeaderSlot - next_leader.currentSlot;
@@ -58,59 +58,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         console.log("bundleId:", bundleId);
 
-        const onBundleResult = new Promise<void>((resolve, reject) => {
-          let reset = () => {};
-          const successCallback = (bundleResult: BundleResult) => {
-            console.log("Bundle Result:", bundleResult);
-            reset();
-            console.log("BREAKING LOOP");
-            whileLoop = false;
-            if (bundleResult.accepted || bundleResult.finalized || bundleResult.processed) {
-              res.status(200).json({ bundleId: bundleResult.bundleId });
-              resolve();
-            } else if (bundleResult.rejected) {
-              res.status(500).json({ error: "Bundle rejected by the block-engine." });
-              reject(new Error("Bundle rejected by the block-engine."));
-            } else if (bundleResult.dropped) {
-              res.status(500).json({ error: "Bundle was accepted but never landed on-chain." });
-              reject(new Error("Bundle was accepted but never landed on-chain."));
-            } else {
-              res.status(500).json({ error: "Unknown error sending bundle" });
-              reject(new Error("Unknown error sending bundle"));
-            }
-          };
-
-          const errorCallback = (error: Error) => {
-            console.error("Stream error:", error);
-            console.log("Error message:", error.message);
-            if (error.message.includes("CANCELLED")) {
-              console.log("CANCELLED");
-            } else {
-              res.status(500).json({ error: error.message });
-              reject(error);
-            }
-          };
-
-          const timeout = setTimeout(() => {
-            console.error("Timeout: No bundle result received within 10 seconds.");
-            // res.status(500).json({ error: "Timeout: No bundle result received within 10 seconds." });
-            // reject(new Error("Timeout: No bundle result received within 10 seconds."));
-            reset();
-          }, 2000);
-
-          reset = grpcClient.onBundleResult(
-            (bundleResult) => {
-              clearTimeout(timeout);
-              successCallback(bundleResult);
-            },
-            (error) => {
-              clearTimeout(timeout);
-              errorCallback(error);
-            }
-          );
-        });
-
-        await onBundleResult;
+        await getBundleResult(grpcClient);
 
         await sleep(500);
       }
@@ -122,4 +70,45 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     console.error("Error:", error);
     return res.status(500).json({ error: "Error processing transactions" });
   }
+}
+
+export function getBundleResult(grpcClient: SearcherClient) {
+  return new Promise<string>((resolve, reject) => {
+    let reset = () => {};
+    const successCallback = (bundleResult: BundleResult) => {
+      console.log("Bundle Result:", bundleResult);
+      reset();
+      if (bundleResult.accepted || bundleResult.finalized || bundleResult.processed) {
+        resolve(bundleResult.bundleId);
+      } else if (bundleResult.rejected) {
+        reject(new Error("Bundle rejected by the block-engine."));
+      } else if (bundleResult.dropped) {
+        reject(new Error("Bundle was accepted but never landed on-chain."));
+      } else {
+        reject(new Error("Unknown error sending bundle"));
+      }
+    };
+
+    const errorCallback = (error: Error) => {
+      if (!error.message.includes("CANCELLED")) {
+        reject(error);
+      }
+    };
+
+    const timeout = setTimeout(() => {
+      reject(new Error("Timeout: No bundle result received within 10 seconds."));
+      reset();
+    }, 2000);
+
+    reset = grpcClient.onBundleResult(
+      (bundleResult) => {
+        clearTimeout(timeout);
+        successCallback(bundleResult);
+      },
+      (error) => {
+        clearTimeout(timeout);
+        errorCallback(error);
+      }
+    );
+  });
 }
