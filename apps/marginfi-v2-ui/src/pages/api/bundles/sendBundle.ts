@@ -28,7 +28,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     const grpcClient = searcherClient(JITO_ENDPOINT);
     let isLeaderSlot = false;
-    //timeout after 10 seconds
+    // timeout after 10 seconds and return an error
     while (!isLeaderSlot) {
       const next_leader = await grpcClient.getNextScheduledLeader();
       const num_slots = next_leader.nextLeaderSlot - next_leader.currentSlot;
@@ -36,11 +36,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       console.log(`next jito leader slot in ${num_slots} slots`);
       await new Promise((r) => setTimeout(r, 500));
     }
-
-    // if leader is > 15 return 500
-    // if (num_slots > 15) {
-    //   return res.status(500).json({ error: "Leader slot is too far away" });
-    // }
 
     const txs = transactions.map((tx) => VersionedTransaction.deserialize(bs58.decode(tx)));
 
@@ -52,13 +47,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     try {
       let whileLoop = true;
+
+      // timeout in while loop 15sec
       while (whileLoop) {
-        console.log("WIEEE_____________________________________%");
+        const grpcClient = searcherClient(JITO_ENDPOINT);
+        // details: 'bundle contains an already processed transaction',
         const bundleId = await grpcClient.sendBundle(b);
 
         console.log("bundleId:", bundleId);
 
-        await getBundleResult(grpcClient);
+        try {
+          const bundleResult = await getBundleResult(grpcClient);
+          res.status(200).json({ bundleId: bundleResult });
+          whileLoop = false;
+        } catch (error) {
+          // if timeout error continue
+          console.error("error getting bundle result:", error);
+        }
 
         await sleep(500);
       }
@@ -96,9 +101,9 @@ export function getBundleResult(grpcClient: SearcherClient) {
     };
 
     const timeout = setTimeout(() => {
-      reject(new Error("Timeout: No bundle result received within 10 seconds."));
       reset();
-    }, 2000);
+      reject(new Error("Timeout: No bundle result received within 10 seconds."));
+    }, 3000);
 
     reset = grpcClient.onBundleResult(
       (bundleResult) => {
