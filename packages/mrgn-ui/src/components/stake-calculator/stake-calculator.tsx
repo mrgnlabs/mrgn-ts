@@ -49,11 +49,6 @@ const StakeCalculator = ({ solPrice, apy = 8.5 }: StakeCalculatorProps) => {
   };
 
   const handleAmountChange = (value: string) => {
-    if (!value) {
-      setAmountFormatted("1");
-      setAmount(1);
-      return;
-    }
     setAmountFormatted(formatAmount(value, null, null, new Intl.NumberFormat()));
     setAmount(parseInt(value.replace(/,/g, "")));
   };
@@ -191,14 +186,14 @@ const StakeCalculator = ({ solPrice, apy = 8.5 }: StakeCalculatorProps) => {
 
             <Area
               dataKey="staked"
-              type="natural"
+              type="monotone"
               fill="url(#fillStaked)"
               fillOpacity={0.4}
               stroke="var(--color-staked)"
             />
             <Area
               dataKey="unstaked"
-              type="natural"
+              type="monotone"
               fill="url(#fillUnstaked)"
               fillOpacity={0.4}
               stroke="var(--color-unstaked)"
