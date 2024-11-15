@@ -5,7 +5,7 @@ import {
   executeLendingAction,
   MarginfiActionParams,
   RepayCollatActionTxns,
-  RepayWithCollatProps,
+  CalculateRepayCollateralProps,
 } from "@mrgnlabs/mrgn-utils";
 
 import { ExecuteActionsCallbackProps } from "~/components/action-box-v2/types";
@@ -51,11 +51,6 @@ export const handleExecuteRepayCollatAction = async ({
     setIsError("Transaction not landed");
   }
 };
-
-interface CalculateRepayCollateralProps extends RepayWithCollatProps {
-  slippageBps: number;
-  platformFeeBps: number;
-}
 
 export async function calculateRepayCollateral(props: CalculateRepayCollateralProps): Promise<
   | {

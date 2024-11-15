@@ -83,6 +83,23 @@ export interface StakeActionTxns extends ActionTxns {
   lastValidBlockHeight?: number;
 } // TOOD: implement this as actionSummary type
 
+export interface CalculateLoopingProps
+  extends Pick<LoopingProps, "marginfiAccount" | "borrowBank" | "depositBank" | "depositAmount" | "connection"> {
+  targetLeverage: number;
+  marginfiClient: MarginfiClient;
+  slippageBps: number;
+  platformFeeBps: number;
+}
+
+export interface CalculateRepayCollateralProps
+  extends Pick<
+    RepayWithCollatProps,
+    "marginfiAccount" | "borrowBank" | "depositBank" | "withdrawAmount" | "connection"
+  > {
+  slippageBps: number;
+  platformFeeBps: number;
+}
+
 export type RepayWithCollatProps = {
   marginfiAccount: MarginfiAccountWrapper;
   repayAmount: number;
@@ -93,10 +110,21 @@ export type RepayWithCollatProps = {
   connection: Connection;
 };
 
+// deprecated
+export interface LoopingObject {
+  loopingTxn: VersionedTransaction | null;
+  feedCrankTxs: VersionedTransaction[];
+  quote: QuoteResponse;
+  actualDepositAmount: number;
+  borrowAmount: BigNumber;
+  priorityFee: number;
+}
+
 export type LoopingProps = {
   marginfiAccount: MarginfiAccountWrapper | null;
   depositAmount: number;
-  borrowAmount: number;
+  borrowAmount: BigNumber;
+  actualDepositAmount: number;
   depositBank: ExtendedBankInfo; // previously bank
   borrowBank: ExtendedBankInfo;
   quote: QuoteResponse;

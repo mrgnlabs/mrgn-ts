@@ -122,6 +122,7 @@ export function useLoopSimulation({
         if (amount === 0) missingParams.push("amount is 0");
         if (leverage === 0) missingParams.push("leverage is 0");
         if (!selectedBank) missingParams.push("bank is null");
+        // console.error(`Can't simulate transaction: ${missingParams.join(", ")}`);
 
         setActionTxns({
           actionTxn: null,
@@ -137,32 +138,23 @@ export function useLoopSimulation({
 
       setIsLoading(true);
       try {
-        const loopingObject = await calculateLooping(
-          selectedAccount,
-          selectedBank,
-          selectedSecondaryBank,
-          leverage,
-          amount,
+        const loopingResult = await calculateLooping({
+          marginfiClient,
+          marginfiAccount: selectedAccount,
+          depositBank: selectedBank,
+          borrowBank: selectedSecondaryBank,
+          targetLeverage: leverage,
+          depositAmount: amount,
           slippageBps,
-          marginfiClient.provider.connection,
-          priorityFee,
+          connection: marginfiClient.provider.connection,
           platformFeeBps,
-          broadcastType
-        );
+        });
 
-        if (loopingObject && "loopingTxn" in loopingObject) {
-          const actionTxns = {
-            actionTxn: loopingObject.loopingTxn,
-            additionalTxns: loopingObject.feedCrankTxs,
-            actionQuote: loopingObject.quote,
-            actualDepositAmount: loopingObject.actualDepositAmount,
-            borrowAmount: loopingObject.borrowAmount,
-          };
-
-          setActionTxns(actionTxns);
+        if (loopingResult && "actionQuote" in loopingResult) {
+          setActionTxns(loopingResult);
         } else {
           const errorMessage =
-            loopingObject ??
+            loopingResult ??
             DYNAMIC_SIMULATION_ERRORS.REPAY_COLLAT_FAILED_CHECK(selectedSecondaryBank.meta.tokenSymbol);
 
           setErrorMessage(errorMessage);

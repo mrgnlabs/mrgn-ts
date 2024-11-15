@@ -21,12 +21,11 @@ import {
   ActionMessageType,
   DYNAMIC_SIMULATION_ERRORS,
   loopingBuilder,
-  LoopingObject,
-  LoopingOptions,
   showErrorToast,
   MultiStepToastHandle,
   cn,
   extractErrorString,
+  LoopActionTxns,
 } from "@mrgnlabs/mrgn-utils";
 
 import { IconPyth, IconSwitchboard } from "~/components/ui/icons";
@@ -70,15 +69,17 @@ export async function looping({
         priorityFeeUi: priorityFee,
       });
     } else {
-      const { flashloanTx, feedCrankTxs } = await loopingBuilder({
+      const loopingResult = await loopingBuilder({
         marginfiAccount,
-        bank,
+        depositBank: bank,
         depositAmount,
-        options,
-        priorityFee,
-        broadcastType,
+        borrowBank: options.loopingBank,
+        quote: options.actionQuote,
+        connection: marginfiClient.provider.connection,
+        borrowAmount: options,
+        actualDepositAmount: depositAmount,
       });
-      sigs = await marginfiClient.processTransactions([...feedCrankTxs, flashloanTx], {
+      sigs = await marginfiClient.processTransactions([...loopingResult.feedCrankTxs, loopingResult.loopingTxn], {
         broadcastType: broadcastType,
         priorityFeeUi: priorityFee,
       });
@@ -359,7 +360,7 @@ interface CheckActionAvailableProps {
   amount: string;
   connected: boolean;
   activeGroup: GroupData | null;
-  loopingObject: LoopingObject | null;
+  loopActionsTxns: LoopActionTxns | null;
   tradeSide: TradeSide;
 }
 
@@ -367,20 +368,20 @@ export function checkLoopingActionAvailable({
   amount,
   connected,
   activeGroup,
-  loopingObject,
+  loopActionsTxns,
   tradeSide,
 }: CheckActionAvailableProps): ActionMessageType[] {
   let checks: ActionMessageType[] = [];
 
-  const requiredCheck = getRequiredCheck(connected, activeGroup, loopingObject);
+  const requiredCheck = getRequiredCheck(connected, activeGroup, loopActionsTxns);
   if (requiredCheck) return [requiredCheck];
 
   const generalChecks = getGeneralChecks(amount);
   if (generalChecks) checks.push(...generalChecks);
 
   // allert checks
-  if (activeGroup && loopingObject) {
-    const lentChecks = canBeLooped(activeGroup, loopingObject, tradeSide);
+  if (activeGroup && loopActionsTxns) {
+    const lentChecks = canBeLooped(activeGroup, loopActionsTxns, tradeSide);
     if (lentChecks.length) checks.push(...lentChecks);
   }
 
@@ -395,7 +396,7 @@ export function checkLoopingActionAvailable({
 function getRequiredCheck(
   connected: boolean,
   activeGroup: GroupData | null,
-  loopingObject: LoopingObject | null
+  loopActionsTxns: LoopActionTxns | null
 ): ActionMessageType | null {
   if (!connected) {
     return { isEnabled: false };
@@ -403,7 +404,7 @@ function getRequiredCheck(
   if (!activeGroup) {
     return { isEnabled: false };
   }
-  if (!loopingObject) {
+  if (!loopActionsTxns) {
     return { isEnabled: false };
   }
 
@@ -424,7 +425,11 @@ function getGeneralChecks(amount: string): ActionMessageType[] {
   }
 }
 
-function canBeLooped(activeGroup: GroupData, loopingObject: LoopingObject, tradeSide: TradeSide): ActionMessageType[] {
+function canBeLooped(
+  activeGroup: GroupData,
+  loopActionsTxns: LoopActionTxns,
+  tradeSide: TradeSide
+): ActionMessageType[] {
   let checks: ActionMessageType[] = [];
   const isUsdcBankPaused =
     activeGroup.pool.quoteTokens[0].info.rawBank.config.operationalState === OperationalState.Paused;
@@ -460,7 +465,7 @@ function canBeLooped(activeGroup: GroupData, loopingObject: LoopingObject, trade
     });
   }
 
-  if (wrongPositionActive && loopingObject.loopingTxn) {
+  if (wrongPositionActive && loopActionsTxns.actionTxn) {
     const wrongSupplied = tradeSide === "long" ? usdcPosition === "lending" : tokenPosition === "lending";
     const wrongBorrowed = tradeSide === "long" ? tokenPosition === "borrowing" : usdcPosition === "borrowing";
 
@@ -479,7 +484,7 @@ function canBeLooped(activeGroup: GroupData, loopingObject: LoopingObject, trade
     }
   }
 
-  const priceImpactPct = loopingObject.quote.priceImpactPct;
+  const priceImpactPct = loopActionsTxns.actionQuote?.priceImpactPct;
 
   if (priceImpactPct && Number(priceImpactPct) > 0.01) {
     //invert

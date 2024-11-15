@@ -21,7 +21,6 @@ import {
 } from "@mrgnlabs/marginfi-client-v2";
 import {
   calculateLoopingTransaction,
-  LoopingObject,
   ActionMessageType,
   calculateBorrowLendPositionParams,
   getMaybeSquadsOptions,
@@ -179,7 +178,7 @@ export async function executeLeverageAction({
   walletContextState?: WalletContextState | WalletContextStateOverride;
   depositAmount: number;
   tradeState: TradeSide;
-  loopingObject: LoopingObject | null;
+  loopingObject: LoopingProps | null;
   priorityFee: number;
   slippageBps: number;
   broadcastType: TransactionBroadcastType;
@@ -242,10 +241,10 @@ export async function executeLeverageAction({
         borrowBank,
         depositBank,
         connection,
-        loopObject: loopingObject,
-        priorityFee,
-        isTrading: true,
-        broadcastType: broadcastType,
+        depositAmount,
+        borrowAmount: loopingObject.borrowAmount,
+        quote: loopingObject.quote,
+        // isTrading: true,
       });
 
       if ("loopingTxn" in result) {

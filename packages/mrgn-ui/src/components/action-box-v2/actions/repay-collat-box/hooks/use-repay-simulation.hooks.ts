@@ -84,7 +84,7 @@ export function useRepayCollatSimulation({
         setIsLoading(false);
       }
     },
-    [selectedAccount, selectedBank, setSimulationResult]
+    [selectedAccount, selectedBank, setIsLoading, setSimulationResult]
   );
 
   const handleActionSummary = React.useCallback(
@@ -108,8 +108,8 @@ export function useRepayCollatSimulation({
         if (!selectedAccount) missingParams.push("account is null");
         if (amount === 0) missingParams.push("amount is 0");
         if (!selectedBank) missingParams.push("bank is null");
-
         // console.error(`Can't simulate transaction: ${missingParams.join(", ")}`);
+
         setActionTxns({ actionTxn: null, additionalTxns: [], actionQuote: null, lastValidBlockHeight: undefined });
         setSimulationResult(null);
         return;
@@ -117,32 +117,22 @@ export function useRepayCollatSimulation({
 
       setIsLoading(true);
       try {
-        const repayObject = await calculateRepayCollateral({
+        const repayResult = await calculateRepayCollateral({
           marginfiAccount: selectedAccount,
           borrowBank: selectedBank,
           depositBank: selectedSecondaryBank,
           withdrawAmount: amount,
-          slippageBps,
           connection: marginfiClient.provider.connection,
           platformFeeBps,
-          repayAmount: amount,
-          quote: actionTxns.actionQuote,
+          slippageBps,
         });
 
-        if (repayObject && "repayTxn" in repayObject) {
-          const actionTxns = {
-            actionTxn: repayObject.repayTxn,
-            additionalTxns: repayObject.feedCrankTxs,
-            actionQuote: repayObject.quote,
-            lastValidBlockHeight: repayObject.lastValidBlockHeight,
-          };
-          const amountRaw = repayObject.amount;
-
-          setRepayAmount(amountRaw);
-          setActionTxns(actionTxns);
+        if (repayResult && "repayCollatObject" in repayResult) {
+          setRepayAmount(repayResult.amount);
+          setActionTxns(repayResult.repayCollatObject);
         } else {
           const errorMessage =
-            repayObject ?? DYNAMIC_SIMULATION_ERRORS.REPAY_COLLAT_FAILED_CHECK(selectedSecondaryBank.meta.tokenSymbol);
+            repayResult ?? DYNAMIC_SIMULATION_ERRORS.REPAY_COLLAT_FAILED_CHECK(selectedSecondaryBank.meta.tokenSymbol);
           setErrorMessage(errorMessage);
         }
       } catch (error) {
@@ -160,9 +150,7 @@ export function useRepayCollatSimulation({
       setActionTxns,
       setSimulationResult,
       slippageBps,
-      priorityFee,
       platformFeeBps,
-      broadcastType,
       setRepayAmount,
       setErrorMessage,
     ]

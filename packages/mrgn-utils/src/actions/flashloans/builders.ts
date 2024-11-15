@@ -14,7 +14,16 @@ import {
 
 import { deserializeInstruction, getAdressLookupTableAccounts, getSwapQuoteWithRetry } from "../helpers";
 import { isWholePosition } from "../../mrgnUtils";
-import { ActionMessageType, LoopActionTxns, LoopingProps, RepayCollatActionTxns, RepayWithCollatProps } from "../types";
+import {
+  ActionMessageType,
+  CalculateLoopingProps,
+  CalculateRepayCollateralProps,
+  LoopActionTxns,
+  LoopingObject,
+  LoopingProps,
+  RepayCollatActionTxns,
+  RepayWithCollatProps,
+} from "../types";
 import { STATIC_SIMULATION_ERRORS } from "../../errors";
 import { TOKEN_2022_MINTS, getFeeAccount } from "../../jup-referral.utils";
 
@@ -36,15 +45,6 @@ import {
  */
 // ------------------------------------------------------------------//
 
-interface CalculateRepayCollateralParamsProps
-  extends Pick<
-    RepayWithCollatProps,
-    "marginfiAccount" | "borrowBank" | "depositBank" | "withdrawAmount" | "connection"
-  > {
-  slippageBps: number;
-  platformFeeBps: number;
-}
-
 /*
  * Calculates the parameters for a repay with collateral flashloan
  *
@@ -53,7 +53,7 @@ export async function calculateRepayCollateralParams({
   slippageBps,
   platformFeeBps,
   ...repayProps
-}: CalculateRepayCollateralParamsProps): Promise<
+}: CalculateRepayCollateralProps): Promise<
   | {
       repayCollatObject: RepayCollatActionTxns;
       amount: number;
@@ -219,7 +219,7 @@ export async function calculateLoopingParams({
   slippageBps,
   platformFeeBps,
   ...loopingProps
-}: CalculateLoopingParamsProps): Promise<LoopActionTxns | ActionMessageType> {
+}: CalculateLoopingProps): Promise<LoopActionTxns | ActionMessageType> {
   if (!loopingProps.marginfiAccount && !marginfiClient) {
     return STATIC_SIMULATION_ERRORS.NOT_INITIALIZED;
   }
@@ -246,6 +246,7 @@ export async function calculateLoopingParams({
       loopingProps.depositAmount,
       slippageBps
     );
+
     borrowAmount = params.borrowAmount;
     depositAmount = params.depositAmount;
     borrowAmountNative = params.borrowAmountNative;
@@ -256,13 +257,11 @@ export async function calculateLoopingParams({
   // const maxLoopAmount = depositBank.isActive ? depositBank?.position.amount : 0;
 
   // decreased maxAccounts from [undefined, 50, 40, 30] to [40, 30]
-  const maxAccountsArr = [40, 25];
+  const maxAccountsArr = [40, 30];
 
   let firstQuote;
 
   for (const maxAccounts of maxAccountsArr) {
-    // const isTxnSplit = maxAccounts === 30;
-
     const quoteParams = {
       amount: borrowAmountNative,
       inputMint: loopingProps.borrowBank.info.state.mint.toBase58(), // borrow
@@ -296,7 +295,12 @@ export async function calculateLoopingParams({
         };
 
         if (loopingProps.marginfiAccount) {
-          txn = await verifyTxSizeLooping(loopingProps);
+          txn = await verifyTxSizeLooping({
+            ...loopingProps,
+            quote: swapQuote,
+            borrowAmount: borrowAmount,
+            actualDepositAmount: actualDepositAmountUi,
+          });
         }
         if (txn.flashloanTx || !loopingProps.marginfiAccount) {
           return {
@@ -322,7 +326,7 @@ export async function calculateLoopingParams({
   return STATIC_SIMULATION_ERRORS.FL_FAILED;
 }
 
-export async function calculateLoopingTransaction(props: LoopingProps): Promise<ActionMessageType | LoopingObject> {
+export async function calculateLoopingTransaction(props: LoopingProps): Promise<LoopActionTxns | ActionMessageType> {
   if (props.marginfiAccount) {
     const txn = await verifyTxSizeLooping(props);
 
@@ -332,11 +336,12 @@ export async function calculateLoopingTransaction(props: LoopingProps): Promise<
       return txn.error;
     } else {
       return {
-        loopingTxn: txn.flashloanTx,
-        additionalTxs: txn.additionalTxs,
-        quote: txn.quote,
-        borrowAmount: txn.borrowAmount,
-        actualDepositAmount: txn.actualDepositAmount,
+        actionTxn: txn.flashloanTx,
+        additionalTxns: txn.additionalTxs,
+        actionQuote: props.quote,
+        lastValidBlockHeight: txn.lastValidBlockHeight,
+        actualDepositAmount: props.actualDepositAmount,
+        borrowAmount: props.borrowAmount,
       };
     }
   }

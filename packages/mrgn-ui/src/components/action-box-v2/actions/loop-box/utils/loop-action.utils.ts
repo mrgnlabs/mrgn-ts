@@ -1,15 +1,10 @@
-import { QuoteResponse } from "@jup-ag/api";
 import { v4 as uuidv4 } from "uuid";
-import { Connection, VersionedTransaction } from "@solana/web3.js";
-
-import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
-import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { TransactionBroadcastType } from "@mrgnlabs/mrgn-common";
 import {
   ActionMessageType,
   calculateLoopingParams,
+  CalculateLoopingProps,
   executeLoopingAction,
-  LoopingObject,
+  LoopActionTxns,
   MarginfiActionParams,
 } from "@mrgnlabs/mrgn-utils";
 
@@ -57,18 +52,7 @@ export const handleExecuteLoopAction = async ({
   }
 };
 
-export async function calculateLooping(
-  marginfiAccount: MarginfiAccountWrapper,
-  bank: ExtendedBankInfo, // deposit
-  loopBank: ExtendedBankInfo, // borrow
-  targetLeverage: number,
-  amount: number,
-  slippageBps: number,
-  connection: Connection,
-  priorityFee: number,
-  platformFeeBps: number,
-  broadcastType: TransactionBroadcastType
-): Promise<LoopingObject | ActionMessageType> {
+export async function calculateLooping(props: CalculateLoopingProps): Promise<LoopActionTxns | ActionMessageType> {
   // TODO setup logging again
   // capture("looper", {
   //   amountIn: uiToNative(amount, loopBank.info.state.mintDecimals).toNumber(),
@@ -78,18 +62,7 @@ export async function calculateLooping(
   //   outputMint: bank.info.state.mint.toBase58(),
   // });
 
-  const result = await calculateLoopingParams({
-    marginfiAccount,
-    depositBank: bank,
-    borrowBank: loopBank,
-    targetLeverage,
-    amount,
-    slippageBps,
-    connection,
-    priorityFee,
-    platformFeeBps,
-    broadcastType,
-  });
+  const result = await calculateLoopingParams(props);
 
   return result;
 }
