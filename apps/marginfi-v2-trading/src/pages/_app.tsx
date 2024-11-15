@@ -11,7 +11,7 @@ import { TipLinkWalletAutoConnect } from "@tiplink/wallet-adapter-react-ui";
 import { ToastContainer } from "react-toastify";
 import { Analytics } from "@vercel/analytics/react";
 import { BankMetadataRaw } from "@mrgnlabs/mrgn-common";
-import { DEFAULT_MAX_CAP, Desktop, Mobile, init as initAnalytics } from "@mrgnlabs/mrgn-utils";
+import { generateEndpoint, DEFAULT_MAX_CAP, Desktop, Mobile, init as initAnalytics } from "@mrgnlabs/mrgn-utils";
 import { ActionProvider, AuthDialog } from "@mrgnlabs/mrgn-ui";
 
 import config from "~/config";
@@ -38,6 +38,7 @@ type MrgnAppProps = { path: string; bank: BankMetadataRaw | null };
 export default function MrgnApp({ Component, pageProps, path, bank }: AppProps & MrgnAppProps) {
   const { query, isReady } = useRouter();
   const [ready, setReady] = React.useState(false);
+  const [rpcEndpoint, setRpcEndpoint] = React.useState("");
 
   const [broadcastType, priorityType, maxCap, maxCapType] = useUiStore((state) => [
     state.broadcastType,
@@ -47,15 +48,21 @@ export default function MrgnApp({ Component, pageProps, path, bank }: AppProps &
   ]);
 
   React.useEffect(() => {
-    setReady(true);
-    initAnalytics();
+    const init = async () => {
+      const rpcEndpoint = await generateEndpoint(config.rpcEndpoint);
+      setRpcEndpoint(rpcEndpoint);
+      setReady(true);
+      initAnalytics();
+    };
+
+    init();
   }, []);
 
   return (
     <>
       <Meta path={path} bank={bank} />
-      {ready && (
-        <ConnectionProvider endpoint={config.rpcEndpoint}>
+      {ready && rpcEndpoint && (
+        <ConnectionProvider endpoint={rpcEndpoint}>
           <TipLinkWalletAutoConnect isReady={isReady} query={query}>
             <WalletProvider wallets={WALLET_ADAPTERS} autoConnect={true}>
               <MrgnWalletProvider>

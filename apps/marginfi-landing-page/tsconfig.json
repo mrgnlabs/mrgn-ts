@@ -6,7 +6,7 @@
     "esModuleInterop": true,
     "downlevelIteration": true,
     "paths": {
-      "~/*": ["./src/*"]
+      "~/*": ["./src/*", "../../packages/mrgn-ui/src/*", "../../packages/mrgn-utils/src/*"]
     },
     "plugins": [
       {

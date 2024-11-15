@@ -6,6 +6,7 @@ import { Connection, PublicKey } from "@solana/web3.js";
 import * as solanaStakePool from "@solana/spl-stake-pool";
 import { MarginfiClient, getConfig, Bank, OraclePrice, getPriceWithConfidence } from "@mrgnlabs/marginfi-client-v2";
 import { loadBankMetadatas, nativeToUi } from "@mrgnlabs/mrgn-common";
+import { generateEndpoint } from "@mrgnlabs/mrgn-utils";
 
 type UseProtocolStats = {
   stats: Stats;
@@ -33,7 +34,8 @@ export const useProtocolStats = (): UseProtocolStats => {
 
   React.useEffect(() => {
     const init = async () => {
-      const connection = new Connection(process.env.NEXT_PUBLIC_MARGINFI_RPC_ENDPOINT_OVERRIDE!);
+      const rpcEndpoint = await generateEndpoint(process.env.NEXT_PUBLIC_MARGINFI_RPC_ENDPOINT_OVERRIDE ?? "");
+      const connection = new Connection(rpcEndpoint);
       const [bankMetadataMap] = await Promise.all([loadBankMetadatas()]);
       const bankAddresses = Object.keys(bankMetadataMap).map((address) => new PublicKey(address));
 
