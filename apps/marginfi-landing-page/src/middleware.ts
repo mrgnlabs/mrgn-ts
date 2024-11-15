@@ -3,7 +3,7 @@ import { generateEndpoint } from "~/rpc.utils";
 
 const allowedOrigins = [
   "https://www.marginfi.com",
-  "https://marginfi-landing-page-v2.vercel.app/",
+  "https://marginfi-landing-page-v2.vercel.app",
   "http://localhost:3005",
 ];
 
