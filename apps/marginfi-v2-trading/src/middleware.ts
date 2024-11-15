@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { generateEndpoint } from "~/mrgnUtils";
+import { generateEndpoint } from "~/rpc.utils";
 
 export const config = {
   matcher: ["/", "/index", "/yield", "/portfolio", "/trade/:path*", "/api/proxy/:path*"],
