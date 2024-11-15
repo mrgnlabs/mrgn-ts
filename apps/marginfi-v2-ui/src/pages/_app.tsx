@@ -11,7 +11,7 @@ import { ToastContainer } from "react-toastify";
 import { Analytics } from "@vercel/analytics/react";
 import { registerMoonGateWallet } from "@moongate/moongate-adapter";
 
-import { cn, DEFAULT_MAX_CAP, Desktop, Mobile, init as initAnalytics } from "@mrgnlabs/mrgn-utils";
+import { cn, generateEndpoint, DEFAULT_MAX_CAP, Desktop, Mobile, init as initAnalytics } from "@mrgnlabs/mrgn-utils";
 import { ActionBoxProvider, ActionProvider, AuthDialog } from "@mrgnlabs/mrgn-ui";
 
 import config from "~/config";
@@ -76,12 +76,6 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
   const [ready, setReady] = React.useState(false);
   const [rpcEndpoint, setRpcEndpoint] = React.useState("");
 
-  const fetchRpcEndpoint = async () => {
-    const res = await fetch(`/api/endpoint?url=${config.rpcEndpoint}`);
-    const data = await res.json();
-    return data.url;
-  };
-
   React.useEffect(() => {
     const isFetchingData = isRefreshingMrgnlendStore;
     setIsFetchingData(isFetchingData);
@@ -89,7 +83,7 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
 
   React.useEffect(() => {
     const init = async () => {
-      const rpcEndpoint = await fetchRpcEndpoint();
+      const rpcEndpoint = await generateEndpoint(config.rpcEndpoint);
       setRpcEndpoint(rpcEndpoint);
       setReady(true);
       initAnalytics();
