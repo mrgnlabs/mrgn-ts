@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+import { generateEndpoint } from "~/mrgnUtils";
 
 export const config = {
-  matcher: ["/", "/index", "/stake", "/swap", "/bridge", "/earn", "/points", "/looper", "/api/proxy"],
+  matcher: ["/", "/index", "/stake", "/swap", "/bridge", "/earn", "/points", "/looper", "/api/proxy/:path*"],
 };
 
 const restrictedCountries = ["VE", "CU", "IR", "KP", "SY"];
@@ -14,8 +15,13 @@ const allowedOrigins = [
   "http://localhost:3004",
 ];
 
-export function middleware(req: NextRequest) {
-  if (req.nextUrl.pathname.startsWith("/api/proxy")) {
+export async function middleware(req: NextRequest) {
+  const fullRpcProxy = await generateEndpoint(
+    process.env.NEXT_PUBLIC_MARGINFI_RPC_ENDPOINT_OVERRIDE ?? "",
+    process.env.RPC_PROXY_SALT ?? ""
+  );
+
+  if (req.nextUrl.toString() === fullRpcProxy) {
     const origin = req.headers.get("origin") ?? "";
 
     if (!allowedOrigins.includes(origin)) {

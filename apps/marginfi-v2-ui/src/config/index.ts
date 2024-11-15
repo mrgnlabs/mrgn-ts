@@ -1,6 +1,5 @@
 const environment = process.env.NEXT_PUBLIC_MARGINFI_ENVIRONMENT;
 const rpcEndpointOverride = process.env.NEXT_PUBLIC_MARGINFI_RPC_ENDPOINT_OVERRIDE;
-const dialectDappAddress = process.env.NEXT_PUBLIC_DIALECT_DAPP_ADDRESS;
 
 let rpcEndpoint;
 switch (environment) {
@@ -22,7 +21,6 @@ switch (environment) {
 
 const config = {
   rpcEndpoint,
-  dialectDappAddress,
 };
 
 export default config;
