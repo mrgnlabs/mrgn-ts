@@ -7,7 +7,6 @@ import { useRouter } from "next/router";
 import { WalletProvider } from "@solana/wallet-adapter-react";
 import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
 import { TipLinkWalletAutoConnect } from "@tiplink/wallet-adapter-react-ui";
-import { init, push } from "@socialgouv/matomo-next";
 import { ToastContainer } from "react-toastify";
 import { Analytics } from "@vercel/analytics/react";
 import { registerMoonGateWallet } from "@moongate/moongate-adapter";
@@ -44,8 +43,6 @@ const Navbar = dynamic(async () => (await import("~/components/common/Navbar")).
 
 const Footer = dynamic(async () => (await import("~/components/desktop/Footer")).Footer, { ssr: false });
 
-const MATOMO_URL = "https://mrgn.matomo.cloud";
-
 type MrgnAppProps = { path: string };
 
 export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnAppProps) {
@@ -76,33 +73,36 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
   ]);
 
   const { query, isReady } = useRouter();
+  const [ready, setReady] = React.useState(false);
+  const [rpcEndpoint, setRpcEndpoint] = React.useState("");
 
-  // enable matomo heartbeat
-  React.useEffect(() => {
-    if (process.env.NEXT_PUBLIC_MARGINFI_ENVIRONMENT === "alpha") {
-      init({ url: MATOMO_URL, siteId: "1" });
-      // accurately measure the time spent in the visit
-      push(["enableHeartBeatTimer"]);
-    }
-  }, []);
+  const fetchRpcEndpoint = async () => {
+    const res = await fetch(`/api/endpoint?url=${config.rpcEndpoint}`);
+    const data = await res.json();
+    return data.url;
+  };
 
   React.useEffect(() => {
     const isFetchingData = isRefreshingMrgnlendStore;
     setIsFetchingData(isFetchingData);
   }, [isMrgnlendStoreInitialized, isRefreshingMrgnlendStore, setIsFetchingData]);
 
-  const [ready, setReady] = React.useState(false);
-
   React.useEffect(() => {
-    setReady(true);
-    initAnalytics();
+    const init = async () => {
+      const rpcEndpoint = await fetchRpcEndpoint();
+      setRpcEndpoint(rpcEndpoint);
+      setReady(true);
+      initAnalytics();
+    };
+
+    init();
   }, []);
 
   return (
     <>
       <Meta path={path} />
-      {ready && (
-        <ConnectionProvider endpoint={config.rpcEndpoint}>
+      {ready && rpcEndpoint && (
+        <ConnectionProvider endpoint={rpcEndpoint}>
           <TipLinkWalletAutoConnect isReady={isReady} query={query}>
             <WalletProvider wallets={WALLET_ADAPTERS} autoConnect={true}>
               <MrgnWalletProvider>

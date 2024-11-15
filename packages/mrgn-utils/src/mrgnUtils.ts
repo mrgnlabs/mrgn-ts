@@ -1,5 +1,4 @@
 import { useEffect, useRef } from "react";
-import numeral from "numeral";
 import { PublicKey, TransactionInstruction } from "@solana/web3.js";
 import BN from "bn.js";
 
@@ -146,4 +145,16 @@ export function isBankOracleStale(bank: ExtendedBankInfo) {
   const isStale = currentTime - oracleTime > maxAge;
 
   return isStale;
+}
+
+export async function generateEndpoint(endpoint: string, salt: string) {
+  const now = new Date();
+  const midnight = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1));
+  const timestamp = Math.floor(midnight.getTime() / 1000);
+  const msgUint8 = new TextEncoder().encode(`${endpoint}-${timestamp}-${salt}`);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", msgUint8);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  const hash = hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+
+  return `${endpoint}/${hash}`;
 }
