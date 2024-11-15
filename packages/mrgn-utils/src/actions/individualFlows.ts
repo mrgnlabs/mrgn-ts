@@ -32,10 +32,14 @@ export async function createAccount({
   mfiClient,
   walletContextState,
   theme,
+  priorityFee,
+  broadcastType,
 }: {
   mfiClient: MarginfiClient | null;
   walletContextState?: WalletContextState | WalletContextStateOverride;
   theme?: "light" | "dark";
+  priorityFee?: number;
+  broadcastType?: TransactionBroadcastType;
 }) {
   if (mfiClient === null) {
     showErrorToast({ message: "Marginfi client not ready" });
@@ -48,7 +52,8 @@ export async function createAccount({
   let marginfiAccount: MarginfiAccountWrapper;
   try {
     const squadsOptions = await getMaybeSquadsOptions(walletContextState);
-    marginfiAccount = await mfiClient.createMarginfiAccount(undefined, squadsOptions);
+    
+    marginfiAccount = await mfiClient.createMarginfiAccount(undefined, squadsOptions,priorityFee, broadcastType);
 
     clearAccountCache(mfiClient.provider.publicKey);
 
