@@ -11,8 +11,9 @@ import { ToastContainer } from "react-toastify";
 import { Analytics } from "@vercel/analytics/react";
 import { registerMoonGateWallet } from "@moongate/moongate-adapter";
 
-import { cn, generateEndpoint, DEFAULT_MAX_CAP, Desktop, Mobile, init as initAnalytics } from "@mrgnlabs/mrgn-utils";
+import { cn, DEFAULT_MAX_CAP, Desktop, Mobile, init as initAnalytics } from "@mrgnlabs/mrgn-utils";
 import { ActionBoxProvider, ActionProvider, AuthDialog } from "@mrgnlabs/mrgn-ui";
+import { generateEndpoint } from "~/rpc.utils";
 
 import config from "~/config";
 import { MrgnlendProvider, LipClientProvider } from "~/context";

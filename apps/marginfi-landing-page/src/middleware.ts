@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { generateEndpoint } from "~/mrgnUtils";
+import { generateEndpoint } from "~/rpc.utils";
 
 const allowedOrigins = [
   "https://www.marginfi.com",

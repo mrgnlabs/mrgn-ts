@@ -6,7 +6,7 @@ import { Connection, PublicKey } from "@solana/web3.js";
 import * as solanaStakePool from "@solana/spl-stake-pool";
 import { MarginfiClient, getConfig, Bank, OraclePrice, getPriceWithConfidence } from "@mrgnlabs/marginfi-client-v2";
 import { loadBankMetadatas, nativeToUi } from "@mrgnlabs/mrgn-common";
-import { generateEndpoint } from "@mrgnlabs/mrgn-utils";
+import { generateEndpoint } from "~/rpc.utils";
 
 type UseProtocolStats = {
   stats: Stats;
