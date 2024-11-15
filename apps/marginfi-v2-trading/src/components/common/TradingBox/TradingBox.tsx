@@ -16,6 +16,7 @@ import {
   extractErrorString,
   usePrevious,
   usePriorityFee,
+  LoopActionTxns,
 } from "@mrgnlabs/mrgn-utils";
 import { MarginfiAccountWrapper, SimulationResult, computeMaxLeverage } from "@mrgnlabs/marginfi-client-v2";
 import { IconAlertTriangle, IconExternalLink, IconLoader2, IconSettings, IconWallet } from "@tabler/icons-react";
@@ -52,7 +53,7 @@ export const TradingBox = ({ activeGroup, side = "long" }: TradingBoxProps) => {
   const [tradeState, setTradeState] = React.useState<TradeSide>(side as TradeSide);
   const prevTradeState = usePrevious(tradeState);
   const [amount, setAmount] = React.useState<string>("");
-  const [loopingObject, setLoopingObject] = React.useState<LoopingObject | null>(null);
+  const [loopActionsTxns, setLoopActionsTxns] = React.useState<LoopActionTxns | null>(null);
   const [leverage, setLeverage] = React.useState(0);
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const [Stats, setStats] = React.useState<React.JSX.Element>(<></>);
@@ -63,11 +64,11 @@ export const TradingBox = ({ activeGroup, side = "long" }: TradingBoxProps) => {
 
   const leveragedAmount = React.useMemo(() => {
     if (tradeState === "long") {
-      return loopingObject?.actualDepositAmount;
+      return loopActionsTxns?.actualDepositAmount;
     } else {
-      return loopingObject?.borrowAmount.toNumber();
+      return loopActionsTxns?.borrowAmount.toNumber();
     }
-  }, [tradeState, loopingObject]);
+  }, [tradeState, loopActionsTxns]);
 
   const [fetchTradeState, nativeSolBalance, setIsRefreshingStore, refreshGroup] = useTradeStore((state) => [
     state.fetchTradeState,
@@ -110,7 +111,7 @@ export const TradingBox = ({ activeGroup, side = "long" }: TradingBoxProps) => {
 
   const clearStates = () => {
     setAmount("");
-    setLoopingObject(null);
+    setLoopActionsTxns(null);
     setLeverage(1);
     setAdditionalChecks(undefined);
   };
@@ -155,10 +156,10 @@ export const TradingBox = ({ activeGroup, side = "long" }: TradingBoxProps) => {
         amount,
         connected,
         activeGroup,
-        loopingObject,
+        loopActionsTxns,
         tradeSide: tradeState,
       }),
-    [amount, connected, activeGroup, loopingObject, tradeState]
+    [amount, connected, activeGroup, loopActionsTxns, tradeState]
   );
 
   const walletAmount = React.useMemo(() => {
