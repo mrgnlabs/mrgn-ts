@@ -5,47 +5,45 @@ import {
   CalculateLoopingProps,
   executeLoopingAction,
   LoopActionTxns,
-  MarginfiActionParams,
+  ExecuteLoopingActionProps,
 } from "@mrgnlabs/mrgn-utils";
 
 import { ExecuteActionsCallbackProps } from "~/components/action-box-v2/types";
 
 interface ExecuteLendingActionsProps extends ExecuteActionsCallbackProps {
-  params: MarginfiActionParams;
+  props: ExecuteLoopingActionProps;
 }
 
 export const handleExecuteLoopAction = async ({
-  params,
+  props,
   captureEvent,
   setIsLoading,
   setIsComplete,
   setIsError,
 }: ExecuteLendingActionsProps) => {
-  const { actionType, bank, amount, processOpts } = params;
-
   setIsLoading(true);
   const attemptUuid = uuidv4();
-  captureEvent(`user_${actionType.toLowerCase()}_initiate`, {
+  captureEvent(`user_loop_initiate`, {
     uuid: attemptUuid,
-    tokenSymbol: bank.meta.tokenSymbol,
-    tokenName: bank.meta.tokenName,
-    amount,
-    priorityFee: processOpts?.priorityFeeUi ?? 0,
+    tokenSymbol: props.borrowBank.meta.tokenSymbol,
+    tokenName: props.borrowBank.meta.tokenName,
+    amount: props.depositAmount,
+    priorityFee: props.processOpts?.priorityFeeUi ?? 0,
   });
 
-  const txnSig = await executeLoopingAction(params);
+  const txnSig = await executeLoopingAction(props);
 
   setIsLoading(false);
 
   if (txnSig) {
     setIsComplete(Array.isArray(txnSig) ? txnSig : [txnSig]);
-    captureEvent(`user_${actionType.toLowerCase()}`, {
+    captureEvent(`user_loop`, {
       uuid: attemptUuid,
-      tokenSymbol: bank.meta.tokenSymbol,
-      tokenName: bank.meta.tokenName,
-      amount: amount,
+      tokenSymbol: props.borrowBank.meta.tokenSymbol,
+      tokenName: props.borrowBank.meta.tokenName,
+      amount: props.depositAmount,
       txn: txnSig!,
-      priorityFee: processOpts?.priorityFeeUi ?? 0,
+      priorityFee: props.processOpts?.priorityFeeUi ?? 0,
     });
   } else {
     setIsError("Transaction not landed");

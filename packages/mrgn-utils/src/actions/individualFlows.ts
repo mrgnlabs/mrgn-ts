@@ -358,15 +358,10 @@ export async function looping({ marginfiClient, actionTxns, processOpts, txOpts,
       );
     } else {
       // TODO fix flashloan builder to use processOpts
-      const { flashloanTx, feedCrankTxs } = await loopingBuilder({
-        marginfiAccount: marginfiAccount!,
-        bank,
-        depositAmount: amount,
-        options: loopingOptions,
-        priorityFee: processOpts?.priorityFeeUi ?? 0,
-        broadcastType: processOpts?.broadcastType ?? "BUNDLE",
+      const { flashloanTx, additionalTxs } = await loopingBuilder({
+        ...loopingProps
       });
-      sigs = await marginfiClient.processTransactions([...feedCrankTxs, flashloanTx], processOpts, txOpts);
+      sigs = await marginfiClient.processTransactions([...additionalTxs, flashloanTx], processOpts, txOpts);
     }
 
     multiStepToast.setSuccessAndNext();
@@ -376,9 +371,9 @@ export async function looping({ marginfiClient, actionTxns, processOpts, txOpts,
 
     captureSentryException(error, msg, {
       action: "looping",
-      wallet: marginfiAccount?.authority?.toBase58(),
-      bank: bank.meta.tokenSymbol,
-      amount: amount.toString(),
+      wallet: loopingProps.marginfiAccount?.authority?.toBase58(),
+      bank: loopingProps.borrowBank.meta.tokenSymbol,
+      amount: loopingProps.borrowAmount.toString(),
     });
 
     multiStepToast.setFailed(msg);

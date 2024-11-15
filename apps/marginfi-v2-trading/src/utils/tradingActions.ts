@@ -29,6 +29,7 @@ import {
   showErrorToast,
   STATIC_SIMULATION_ERRORS,
   extractErrorString,
+  LoopActionTxns,
 } from "@mrgnlabs/mrgn-utils";
 import { ExtendedBankInfo, clearAccountCache, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
@@ -165,7 +166,7 @@ export async function executeLeverageAction({
   connection,
   depositAmount,
   tradeState,
-  loopingObject: _loopingObject,
+  loopActionTxns,
   priorityFee,
   slippageBps,
   broadcastType,
@@ -178,7 +179,7 @@ export async function executeLeverageAction({
   walletContextState?: WalletContextState | WalletContextStateOverride;
   depositAmount: number;
   tradeState: TradeSide;
-  loopingObject: LoopingProps | null;
+  loopActionTxns: LoopActionTxns | null;
   priorityFee: number;
   slippageBps: number;
   broadcastType: TransactionBroadcastType;
@@ -188,7 +189,7 @@ export async function executeLeverageAction({
     return;
   }
 
-  if (_loopingObject === null) {
+  if (loopActionTxns === null) {
     showErrorToast("Leverage routing not ready");
     return;
   }
@@ -200,7 +201,7 @@ export async function executeLeverageAction({
     toastSteps.push(...[{ label: "Creating account" }]);
   }
 
-  if (!_loopingObject.loopingTxn) {
+  if (!loopActionTxns.actionTxn) {
     toastSteps.push(...[{ label: `Generating transaction` }]);
   }
 
@@ -214,7 +215,6 @@ export async function executeLeverageAction({
   multiStepToast.start();
 
   let marginfiAccount: MarginfiAccountWrapper | null = _marginfiAccount;
-  let loopingObject: LoopingObject | null = _loopingObject;
 
   if (!marginfiAccount) {
     try {
@@ -234,7 +234,9 @@ export async function executeLeverageAction({
     }
   }
 
-  if (!loopingObject.loopingTxn) {
+  let loopingObject = loopActionTxns
+
+  if (!loopActionTxns.actionTxn && loopActionTxns.actionQuote) {
     try {
       const result = await calculateLoopingTransaction({
         marginfiAccount,
@@ -242,12 +244,12 @@ export async function executeLeverageAction({
         depositBank,
         connection,
         depositAmount,
-        borrowAmount: loopingObject.borrowAmount,
-        quote: loopingObject.quote,
-        // isTrading: true,
+        borrowAmount: loopActionTxns.borrowAmount,
+        quote: loopActionTxns.actionQuote,
+            actualDepositAmount: loopActionTxns.actualDepositAmount
       });
 
-      if ("loopingTxn" in result) {
+      if ("actionTxn" in result) {
         loopingObject = result;
       } else {
         multiStepToast.setFailed(result.description ?? "Something went wrong, please try again.");
@@ -265,16 +267,16 @@ export async function executeLeverageAction({
   }
 
   try {
-    if (loopingObject.loopingTxn) {
+    if (loopingObject.actionTxn) {
       let txnSig: string[] = [];
 
-      if (loopingObject.feedCrankTxs) {
+      if (loopingObject.actionTxn) {
         txnSig = await marginfiClient.processTransactions(
-          [...loopingObject.feedCrankTxs, loopingObject.loopingTxn],
+          [...loopingObject.additionalTxns, loopingObject.actionTxn],
           { priorityFeeUi: priorityFee, broadcastType } // todo: add priority fee
         );
       } else {
-        txnSig = [await marginfiClient.processTransaction(loopingObject.loopingTxn)];
+        throw new Error("Something went wrong, please try again.");
       }
 
       multiStepToast.setSuccessAndNext();

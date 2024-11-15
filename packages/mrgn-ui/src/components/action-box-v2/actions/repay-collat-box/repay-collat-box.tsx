@@ -17,6 +17,7 @@ import {
   showErrorToast,
   checkRepayCollatActionAvailable,
   MarginfiActionParams,
+  ExecuteRepayWithCollatActionProps,
 } from "@mrgnlabs/mrgn-utils";
 
 import { CircularProgress } from "~/components/ui/circular-progress";
@@ -204,25 +205,31 @@ export const RepayCollatBox = ({
   );
 
   const handleRepayCollatAction = React.useCallback(async () => {
-    if (!selectedBank || !amount) {
+    if (!selectedBank || !amount || !marginfiClient || !selectedAccount || !selectedSecondaryBank || !actionTxns.actionQuote) {
       return;
     }
 
     const action = async () => {
-      const params = {
+      const props: ExecuteRepayWithCollatActionProps = {
         marginfiClient,
-        actionType: ActionType.RepayCollat,
-        bank: selectedBank,
-        amount,
-        nativeSolBalance,
-        marginfiAccount: selectedAccount,
         actionTxns,
-        priorityFee,
-        broadcastType,
-      } as MarginfiActionParams;
+        processOpts: {
+          priorityFeeUi: priorityFee,
+          broadcastType,
+        },
+        txOpts: {},
+
+        marginfiAccount: selectedAccount,
+        borrowBank: selectedBank,
+        withdrawAmount: amount,
+        repayAmount,
+        depositBank: selectedSecondaryBank,
+        quote: actionTxns.actionQuote!,
+        connection: marginfiClient.provider.connection,
+      } ;
 
       await handleExecuteRepayCollatAction({
-        params,
+        props,
         captureEvent: (event, properties) => {
           captureEvent && captureEvent(event, properties);
         },

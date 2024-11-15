@@ -2,50 +2,48 @@ import { v4 as uuidv4 } from "uuid";
 import {
   ActionMessageType,
   calculateRepayCollateralParams,
-  executeLendingAction,
-  MarginfiActionParams,
   RepayCollatActionTxns,
   CalculateRepayCollateralProps,
+  executeRepayWithCollatAction,
+  ExecuteRepayWithCollatActionProps
 } from "@mrgnlabs/mrgn-utils";
 
 import { ExecuteActionsCallbackProps } from "~/components/action-box-v2/types";
 
-interface ExecuteLendingActionsProps extends ExecuteActionsCallbackProps {
-  params: MarginfiActionParams;
+interface HandleExecuteRepayCollatActionProps extends ExecuteActionsCallbackProps {
+  props: ExecuteRepayWithCollatActionProps;
 }
 
 export const handleExecuteRepayCollatAction = async ({
-  params,
+  props,
   captureEvent,
   setIsLoading,
   setIsComplete,
   setIsError,
-}: ExecuteLendingActionsProps) => {
-  const { actionType, bank, amount, processOpts } = params;
-
+}: HandleExecuteRepayCollatActionProps) => {
+  
   setIsLoading(true);
   const attemptUuid = uuidv4();
-  captureEvent(`user_${actionType.toLowerCase()}_initiate`, {
+  captureEvent(`user_repay_with_collat_initiate`, {
     uuid: attemptUuid,
-    tokenSymbol: bank.meta.tokenSymbol,
-    tokenName: bank.meta.tokenName,
-    amount,
-    priorityFee: processOpts?.priorityFeeUi,
+    depositTokenName: props.depositBank.meta.tokenName,
+    borrowTokenName: props.borrowBank.meta.tokenName,
+    repayAmount: props.repayAmount,
+    withdrawAmount: props.withdrawAmount,
   });
 
-  const txnSig = await executeLendingAction(params);
+  const txnSig = await executeRepayWithCollatAction(props);
 
   setIsLoading(false);
 
   if (txnSig) {
     setIsComplete(Array.isArray(txnSig) ? txnSig : [txnSig]);
-    captureEvent(`user_${actionType.toLowerCase()}`, {
+    captureEvent(`user_repay_with_collat`, {
       uuid: attemptUuid,
-      tokenSymbol: bank.meta.tokenSymbol,
-      tokenName: bank.meta.tokenName,
-      amount: amount,
-      txn: txnSig!,
-      priorityFee: processOpts?.priorityFeeUi ?? 0,
+      depositTokenName: props.depositBank.meta.tokenName,
+      borrowTokenName: props.borrowBank.meta.tokenName,
+      repayAmount: props.repayAmount,
+      withdrawAmount: props.withdrawAmount,
     });
   } else {
     setIsError("Transaction not landed");

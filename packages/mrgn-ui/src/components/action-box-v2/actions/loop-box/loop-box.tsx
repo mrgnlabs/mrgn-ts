@@ -14,6 +14,7 @@ import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-clien
 import {
   ActionMessageType,
   checkLoopActionAvailable,
+  ExecuteLoopingActionProps,
   MarginfiActionParams,
   PreviousTxn,
   showErrorToast,
@@ -218,34 +219,32 @@ export const LoopBox = ({
   );
 
   const handleLoopAction = React.useCallback(async () => {
-    if (!selectedBank || !amount) {
+    if (!selectedBank || !amount || !marginfiClient || !selectedSecondaryBank) {
       return;
     }
 
     const action = async () => {
-      const params = {
+      const props: ExecuteLoopingActionProps = {
         marginfiClient,
-        actionType: ActionType.Loop,
-        bank: selectedBank,
-        amount,
-        nativeSolBalance,
-        marginfiAccount: selectedAccount,
         actionTxns,
-        loopingOptions: {
-          loopingQuote: actionTxns.actionQuote,
-          feedCrankTxs: actionTxns.additionalTxns,
-          loopingTxn: actionTxns.actionTxn,
-          borrowAmount: actionTxns.borrowAmount,
-          loopingBank: selectedSecondaryBank,
-          connection: marginfiClient?.provider.connection!,
+        processOpts: {
+          priorityFeeUi: priorityFee,
+          broadcastType,
         },
-        priorityFee,
-        broadcastType,
-        slippage: slippage,
-      } as MarginfiActionParams;
+        txOpts: {},
+
+        marginfiAccount: selectedAccount,
+        depositAmount: amount,
+        borrowAmount: actionTxns.borrowAmount,
+        actualDepositAmount: actionTxns.actualDepositAmount,
+        depositBank: selectedBank,
+        borrowBank: selectedSecondaryBank,
+        quote: actionTxns.actionQuote!,
+        connection: marginfiClient.provider.connection,
+      } ;
 
       await handleExecuteLoopAction({
-        params,
+        props,
         captureEvent: (event, properties) => {
           captureEvent && captureEvent(event, properties);
         },

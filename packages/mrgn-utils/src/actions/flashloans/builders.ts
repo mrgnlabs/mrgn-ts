@@ -203,13 +203,6 @@ export async function calculateBorrowLendPositionParams({
   return STATIC_SIMULATION_ERRORS.CLOSE_POSITIONS_FL_FAILED;
 }
 
-interface CalculateLoopingParamsProps extends LoopingProps {
-  marginfiClient: MarginfiClient;
-  targetLeverage: number;
-  slippageBps: number;
-  platformFeeBps: number;
-}
-
 /*
  * Calculates the parameters for a looper flashloan
  */
@@ -411,7 +404,7 @@ export async function loopingBuilder({
 }
 
 type FlashloanBuilderResponse = {
-  flashloanTx: ExtendedV0Transaction | null;
+  flashloanTx: ExtendedV0Transaction;
   additionalTxs: ExtendedV0Transaction[];
   lastValidBlockHeight?: number;
   txOverflown: boolean;
