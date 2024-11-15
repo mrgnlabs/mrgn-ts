@@ -16,10 +16,7 @@ const allowedOrigins = [
 ];
 
 export async function middleware(req: NextRequest) {
-  const fullRpcProxy = await generateEndpoint(
-    process.env.NEXT_PUBLIC_MARGINFI_RPC_ENDPOINT_OVERRIDE ?? "",
-    process.env.RPC_PROXY_SALT ?? ""
-  );
+  const fullRpcProxy = await generateEndpoint(process.env.NEXT_PUBLIC_MARGINFI_RPC_ENDPOINT_OVERRIDE ?? "");
 
   if (req.nextUrl.toString() === fullRpcProxy) {
     const origin = req.headers.get("origin") ?? "";
