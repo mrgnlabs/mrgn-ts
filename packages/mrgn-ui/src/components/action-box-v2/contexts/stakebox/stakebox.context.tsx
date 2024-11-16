@@ -2,7 +2,7 @@ import React from "react";
 
 import { Connection } from "@solana/web3.js";
 
-import { LstData } from "@mrgnlabs/mrgn-utils";
+import { LstData, generateEndpoint } from "@mrgnlabs/mrgn-utils";
 
 import { fetchLstData } from "../../utils";
 
@@ -22,7 +22,8 @@ export const StakeBoxProvider: React.FC<{
     let intervalId: ReturnType<typeof setInterval> | null = null;
 
     const fetchData = async () => {
-      const connection = new Connection(process.env.NEXT_PUBLIC_MARGINFI_RPC_ENDPOINT_OVERRIDE!, "confirmed");
+      const rpcEndpoint = await generateEndpoint(process.env.NEXT_PUBLIC_MARGINFI_RPC_ENDPOINT_OVERRIDE ?? "");
+      const connection = new Connection(rpcEndpoint, "confirmed");
       const lstData = await fetchLstData(connection);
       lstData && setLstData(lstData);
     };
