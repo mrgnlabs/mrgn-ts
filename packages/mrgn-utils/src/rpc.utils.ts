@@ -1,11 +1,9 @@
-export async function generateEndpoint(endpoint: string) {
+export function generateEndpoint(endpoint: string) {
   const now = new Date();
   const midnight = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1));
   const timestamp = Math.floor(midnight.getTime() / 1000);
-  const msgUint8 = new TextEncoder().encode(`${endpoint}-${timestamp}`);
-  const hashBuffer = await crypto.subtle.digest("SHA-256", msgUint8);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  const hash = hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+  const key = `${endpoint}-${timestamp}`;
+  const hash = Buffer.from(key).toString("base64").replace(/[/+=]/g, "").slice(0, 32);
 
   return `${endpoint}/${hash}`;
 }
