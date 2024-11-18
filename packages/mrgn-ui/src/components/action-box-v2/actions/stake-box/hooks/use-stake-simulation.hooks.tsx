@@ -35,8 +35,6 @@ type StakeSimulationProps = {
   actionTxns: StakeActionTxns;
   simulationResult: any | null;
   marginfiClient: MarginfiClient | null;
-  priorityFee: number;
-  broadcastType: TransactionBroadcastType;
   setSimulationResult: (result: any | null) => void;
   setActionTxns: (actionTxns: StakeActionTxns) => void;
   setErrorMessage: (error: ActionMessageType | null) => void;
@@ -51,8 +49,6 @@ export function useStakeSimulation({
   actionTxns,
   simulationResult,
   marginfiClient,
-  priorityFee,
-  broadcastType,
 
   setSimulationResult,
   setActionTxns,
@@ -158,22 +154,10 @@ export function useStakeSimulation({
           const AddressLookupAccounts = await getAdressLookupTableAccounts(connection, addressLookupTableAddresses);
           const unwrapSolIx = makeUnwrapSolIx(marginfiClient.wallet.publicKey);
 
-          let bundleTipIx = null;
-
-          if (actionType === ActionType.UnstakeLST) {
-            bundleTipIx = makeBundleTipIx(marginfiClient.wallet.publicKey, Math.trunc(priorityFee * LAMPORTS_PER_SOL));
-          }
-
           const swapMessage = new TransactionMessage({
             payerKey: marginfiClient.wallet.publicKey,
             recentBlockhash: blockhash,
-            instructions: [
-              ...cuInstructionsIxs,
-              ...setupInstructionsIxs,
-              ...(bundleTipIx ? [bundleTipIx] : []),
-              swapIx,
-              unwrapSolIx,
-            ],
+            instructions: [...cuInstructionsIxs, ...setupInstructionsIxs, swapIx, unwrapSolIx],
           });
           swapTx = new VersionedTransaction(swapMessage.compileToV0Message(AddressLookupAccounts));
         }
@@ -187,9 +171,7 @@ export function useStakeSimulation({
             selectedBank,
             marginfiClient,
             connection,
-            lstData,
-            priorityFee,
-            broadcastType
+            lstData
           );
           setActionTxns(_actionTxns);
         } else {

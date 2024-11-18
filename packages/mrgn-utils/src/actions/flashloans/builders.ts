@@ -2,7 +2,7 @@ import { createJupiterApiClient, QuoteGetRequest, QuoteResponse } from "@jup-ag/
 import { AccountInfo, AddressLookupTableAccount, Connection, PublicKey, VersionedTransaction } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 
-import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
+import { MarginfiAccountWrapper, MarginfiClient, PriorityFees } from "@mrgnlabs/marginfi-client-v2";
 import { ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import {
   ExtendedV0Transaction,
@@ -131,7 +131,7 @@ export async function calculateBorrowLendPositionParams({
   depositBank,
   slippageBps,
   connection,
-  priorityFee,
+  priorityFees,
   platformFeeBps,
 }: {
   marginfiAccount: MarginfiAccountWrapper;
@@ -139,7 +139,7 @@ export async function calculateBorrowLendPositionParams({
   depositBank: ActiveBankInfo;
   slippageBps: number;
   connection: Connection;
-  priorityFee: number;
+  priorityFees: PriorityFees;
   platformFeeBps?: number;
 }): Promise<
   | {
@@ -184,7 +184,7 @@ export async function calculateBorrowLendPositionParams({
           swapQuote,
           connection,
           isTxnSplit,
-          priorityFee
+          priorityFees
         );
 
         if (txn.flashloanTx) {
@@ -474,7 +474,7 @@ export async function closePositionBuilder({
   quote,
   connection,
   isTxnSplit,
-  priorityFee,
+  priorityFees,
 }: {
   marginfiAccount: MarginfiAccountWrapper;
   depositBank: ActiveBankInfo;
@@ -482,7 +482,7 @@ export async function closePositionBuilder({
   quote: QuoteResponse;
   connection: Connection;
   isTxnSplit?: boolean;
-  priorityFee?: number;
+  priorityFees: PriorityFees;
 }) {
   const jupiterQuoteApi = createJupiterApiClient();
   let feeAccountInfo: AccountInfo<any> | null = null;
@@ -509,6 +509,7 @@ export async function closePositionBuilder({
   const swapLUTs: AddressLookupTableAccount[] = [];
   swapLUTs.push(...(await getAdressLookupTableAccounts(connection, addressLookupTableAddresses)));
 
+  // TODO: refactor
   const { flashloanTx, feedCrankTxs, addressLookupTableAccounts } = await marginfiAccount.makeRepayWithCollatTx(
     borrowBank.position.amount,
     depositBank.position.amount,
@@ -518,7 +519,7 @@ export async function closePositionBuilder({
     true,
     [swapIx],
     swapLUTs,
-    priorityFee,
+    priorityFees.bundleTipUi ?? priorityFees.priorityFeeUi,
     isTxnSplit
   );
 

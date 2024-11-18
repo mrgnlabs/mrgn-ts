@@ -113,7 +113,7 @@ export const RepayCollatBox = ({
   ]);
 
   const { priorityType, broadcastType, maxCap, maxCapType } = useActionContext();
-  const priorityFee = usePriorityFee(
+  const priorityFees = usePriorityFee(
     priorityType,
     broadcastType,
     maxCapType,
@@ -162,8 +162,6 @@ export const RepayCollatBox = ({
     actionTxns,
     simulationResult,
     isRefreshTxn,
-    priorityFee,
-    broadcastType,
     setSimulationResult,
     setActionTxns,
     setErrorMessage,
@@ -205,7 +203,14 @@ export const RepayCollatBox = ({
   );
 
   const handleRepayCollatAction = React.useCallback(async () => {
-    if (!selectedBank || !amount || !marginfiClient || !selectedAccount || !selectedSecondaryBank || !actionTxns.actionQuote) {
+    if (
+      !selectedBank ||
+      !amount ||
+      !marginfiClient ||
+      !selectedAccount ||
+      !selectedSecondaryBank ||
+      !actionTxns.actionQuote
+    ) {
       return;
     }
 
@@ -214,7 +219,7 @@ export const RepayCollatBox = ({
         marginfiClient,
         actionTxns,
         processOpts: {
-          priorityFeeUi: priorityFee,
+          ...priorityFees,
           broadcastType,
         },
         txOpts: {},
@@ -226,7 +231,7 @@ export const RepayCollatBox = ({
         depositBank: selectedSecondaryBank,
         quote: actionTxns.actionQuote!,
         connection: marginfiClient.provider.connection,
-      } ;
+      };
 
       await handleExecuteRepayCollatAction({
         props,
@@ -269,11 +274,12 @@ export const RepayCollatBox = ({
     broadcastType,
     captureEvent,
     marginfiClient,
-    nativeSolBalance,
     onComplete,
-    priorityFee,
+    priorityFees,
+    repayAmount,
     selectedAccount,
     selectedBank,
+    selectedSecondaryBank,
     setAmountRaw,
     setIsActionComplete,
     setIsLoading,

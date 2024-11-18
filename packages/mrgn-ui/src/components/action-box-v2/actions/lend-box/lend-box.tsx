@@ -120,7 +120,7 @@ export const LendBox = ({
 
   const { priorityType, broadcastType, maxCap, maxCapType } = useActionContext();
 
-  const priorityFee = usePriorityFee(
+  const priorityFees = usePriorityFee(
     priorityType,
     broadcastType,
     maxCapType,
@@ -217,7 +217,7 @@ export const LendBox = ({
       params: {
         bank: selectedBank,
         marginfiAccount: selectedAccount,
-        processOpts: { priorityFeeUi: priorityFee, broadcastType },
+        processOpts: { ...priorityFees, broadcastType },
       },
       captureEvent: (event, properties) => {
         captureEvent && captureEvent(event, properties);
@@ -253,7 +253,7 @@ export const LendBox = ({
   }, [
     selectedBank,
     selectedAccount,
-    priorityFee,
+    priorityFees,
     broadcastType,
     setAmountRaw,
     captureEvent,
@@ -278,7 +278,7 @@ export const LendBox = ({
         marginfiAccount: selectedAccount,
         walletContextState,
         actionTxns,
-        processOpts: { priorityFeeUi: priorityFee, broadcastType },
+        processOpts: { ...priorityFees, broadcastType },
       };
 
       await handleExecuteLendingAction({
@@ -333,7 +333,7 @@ export const LendBox = ({
     selectedAccount,
     walletContextState,
     actionTxns,
-    priorityFee,
+    priorityFees,
     broadcastType,
     captureEvent,
     setIsActionComplete,

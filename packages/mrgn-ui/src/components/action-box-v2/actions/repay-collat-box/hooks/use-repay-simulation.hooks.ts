@@ -26,8 +26,6 @@ type RepayCollatSimulationProps = {
   actionTxns: RepayCollatActionTxns;
   simulationResult: SimulationResult | null;
   isRefreshTxn: boolean;
-  priorityFee: number;
-  broadcastType: TransactionBroadcastType;
 
   setSimulationResult: (simulationResult: SimulationResult | null) => void;
   setActionTxns: (actionTxns: RepayCollatActionTxns) => void;
@@ -47,8 +45,6 @@ export function useRepayCollatSimulation({
   actionTxns,
   simulationResult,
   isRefreshTxn,
-  priorityFee,
-  broadcastType,
 
   setSimulationResult,
   setActionTxns,

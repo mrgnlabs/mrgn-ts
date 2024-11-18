@@ -1,7 +1,7 @@
 import type { RecentPrioritizationFees } from "@solana/web3.js";
 import { Connection, type GetRecentPrioritizationFeesConfig } from "@solana/web3.js";
 
-export type TransactionBroadcastType = "BUNDLE" | "RPC";
+export type TransactionBroadcastType = "BUNDLE" | "RPC" | "DYNAMIC";
 
 export type TransactionPriorityType = "NORMAL" | "HIGH" | "MAMAS";
 

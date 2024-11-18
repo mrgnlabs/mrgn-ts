@@ -137,9 +137,7 @@ export async function handleStakeTx(
   selectedBank: ExtendedBankInfo,
   marginfiClient: MarginfiClient,
   connection: Connection,
-  lstData: LstData,
-  priorityFee: number,
-  broadcastType: TransactionBroadcastType
+  lstData: LstData
 ) {
   const stakeAmount = swapQuote
     ? Number(swapQuote.outAmount)
@@ -194,12 +192,10 @@ export async function handleStakeTx(
     })
   );
 
-  const bundleTipIx = makeBundleTipIx(marginfiClient.wallet.publicKey, Math.trunc(priorityFee * LAMPORTS_PER_SOL));
-
   const stakeMessage = new TransactionMessage({
     payerKey: marginfiClient.wallet.publicKey,
     recentBlockhash: blockhash,
-    instructions: [bundleTipIx, ...stakeIxs],
+    instructions: [...stakeIxs],
   });
 
   const stakeTx = new VersionedTransaction(stakeMessage.compileToV0Message([]));

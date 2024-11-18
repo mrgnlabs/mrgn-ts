@@ -87,12 +87,18 @@ export const fetchPriorityFee = async (
   broadcastType: TransactionBroadcastType,
   priorityType: TransactionPriorityType,
   connection: Connection
-) => {
+): Promise<{ bundleTipUi?: number; priorityFeeUi?: number }> => {
   const finalMaxCap = maxCapType === "DYNAMIC" ? DEFAULT_MAX_CAP : maxCap;
   if (broadcastType === "BUNDLE") {
-    return await getBundleTip(priorityType, finalMaxCap);
+    const bundleTipUi = await getBundleTip(priorityType, finalMaxCap);
+    return { bundleTipUi };
+  } else if (broadcastType === "RPC") {
+    const priorityFeeUi = await getRpcPriorityFeeMicroLamports(connection, priorityType, finalMaxCap);
+    return { priorityFeeUi };
   } else {
-    return await getRpcPriorityFeeMicroLamports(connection, priorityType, finalMaxCap);
+    const bundleTipUi = await getBundleTip(priorityType, finalMaxCap);
+    const priorityFeeUi = await getRpcPriorityFeeMicroLamports(connection, priorityType, finalMaxCap);
+    return { bundleTipUi, priorityFeeUi };
   }
 };
 

@@ -2,7 +2,12 @@ import { AddressLookupTableAccount, Connection, VersionedTransaction } from "@so
 import BigNumber from "bignumber.js";
 import { QuoteGetRequest, QuoteResponse } from "@jup-ag/api";
 
-import { computeLoopingParams, MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
+import {
+  computeLoopingParams,
+  MarginfiAccountWrapper,
+  MarginfiClient,
+  PriorityFees,
+} from "@mrgnlabs/marginfi-client-v2";
 import { ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { ExtendedV0Transaction, nativeToUi, TransactionBroadcastType, uiToNative } from "@mrgnlabs/mrgn-common";
 
@@ -58,7 +63,7 @@ export async function verifyTxSizeCloseBorrowLendPosition(
   quoteResponse: QuoteResponse,
   connection: Connection,
   isTxnSplit: boolean = false,
-  priorityFee: number
+  priorityFees: PriorityFees
 ): Promise<{
   flashloanTx: VersionedTransaction | null;
   feedCrankTxs: VersionedTransaction[];
@@ -81,7 +86,7 @@ export async function verifyTxSizeCloseBorrowLendPosition(
       quote: quoteResponse,
       connection,
       isTxnSplit,
-      priorityFee,
+      priorityFees,
     });
 
     const txCheck = verifyFlashloanTxSize(builder);

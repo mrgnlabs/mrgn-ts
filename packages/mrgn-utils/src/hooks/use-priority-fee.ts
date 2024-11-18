@@ -12,12 +12,15 @@ export const usePriorityFee = (
   maxCapType: MaxCapType,
   maxCap: number,
   connection?: Connection
-): number => {
+): { bundleTipUi?: number; priorityFeeUi?: number } => {
   const prevPriorityType = usePrevious(priorityType);
   const prevBroadcastType = usePrevious(broadcastType);
   const prevMaxCap = usePrevious(maxCap);
   const prevMaxCapType = usePrevious(maxCapType);
-  const [priorityFee, setPriorityFee] = React.useState(0.0005);
+  const [priorityFee, setPriorityFee] = React.useState<{ bundleTipUi?: number; priorityFeeUi?: number }>({
+    bundleTipUi: 0.0005,
+    priorityFeeUi: 0.0005,
+  });
 
   const calculatePriorityFeeUi = React.useCallback(
     async (
@@ -27,9 +30,9 @@ export const usePriorityFee = (
       maxCapType: MaxCapType,
       connection: Connection
     ) => {
-      const priorityFeeUi = await fetchPriorityFee(maxCapType, maxCap, broadcastType, priorityType, connection);
+      const priorityFees = await fetchPriorityFee(maxCapType, maxCap, broadcastType, priorityType, connection);
 
-      setPriorityFee(priorityFeeUi);
+      setPriorityFee(priorityFees);
     },
     [setPriorityFee]
   );

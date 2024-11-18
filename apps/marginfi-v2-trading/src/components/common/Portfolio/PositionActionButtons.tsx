@@ -107,7 +107,7 @@ export const PositionActionButtons = ({
         throw new Error("Invalid client");
       }
 
-      const priorityFeeUi = await fetchPriorityFee(maxCapType, maxCap, broadcastType, priorityType, connection);
+      const priorityFees = await fetchPriorityFee(maxCapType, maxCap, broadcastType, priorityType, connection);
 
       const txns = await calculateClosePositions({
         marginfiAccount: activeGroup.selectedAccount,
@@ -115,7 +115,7 @@ export const PositionActionButtons = ({
         borrowBank: borrowBank,
         slippageBps,
         connection: connection,
-        priorityFee: priorityFeeUi,
+        priorityFees,
         platformFeeBps,
       });
 
@@ -159,10 +159,10 @@ export const PositionActionButtons = ({
         });
         multiStepToast.setSuccessAndNext();
       } else {
-        const priorityFeeUi = await fetchPriorityFee(maxCapType, maxCap, broadcastType, priorityType, connection);
+        const priorityFees = await fetchPriorityFee(maxCapType, maxCap, broadcastType, priorityType, connection);
         txnSig = await activeGroup.client.processTransactions(
           [...actionTransaction.feedCrankTxs, actionTransaction.closeTxn],
-          { broadcastType: broadcastType, priorityFeeUi: priorityFeeUi }
+          { broadcastType: broadcastType, ...priorityFees }
         );
         multiStepToast.setSuccessAndNext();
       }

@@ -34,11 +34,16 @@ export interface ProcessTransactionOpts extends ProcessTransactionsClientOpts {
   bundleSimRpcEndpoint?: string;
 }
 
-export type ProcessTransactionsClientOpts = {
-  broadcastType?: TransactionBroadcastType;
+export type PriorityFees = {
+  bundleTipUi?: number;
   priorityFeeUi?: number;
-  isSequentialTxs?: boolean;
 };
+
+export interface ProcessTransactionsClientOpts extends PriorityFees {
+  broadcastType?: TransactionBroadcastType;
+  preferredBroadcastType?: Extract<TransactionBroadcastType, "BUNDLE" | "RPC">;
+  isSequentialTxs?: boolean;
+}
 
 type ProcessTransactionsProps = {
   transactions: SolanaTransaction[];
@@ -80,6 +85,18 @@ export async function processTransactions({
     throw new Error("A bundle tip is required for a bundled transactions");
   }
 
+  let broadcastType = processOpts.broadcastType;
+
+  if (processOpts?.broadcastType === "DYNAMIC") {
+    const preferredBroadcastType = processOpts.preferredBroadcastType ?? "RPC"; // change this through env variable
+
+    if (transactions.length < 1) {
+      broadcastType = preferredBroadcastType;
+    } else {
+      broadcastType = "BUNDLE";
+    }
+  }
+
   let versionedTransactions: VersionedTransaction[] = [];
   let minContextSlot: number;
   let blockhash: string;
@@ -94,7 +111,7 @@ export async function processTransactions({
 
     versionedTransactions = formatTransactions(
       transactions,
-      processOpts.broadcastType,
+      broadcastType,
       processOpts.priorityFeeUi,
       wallet.publicKey,
       blockhash

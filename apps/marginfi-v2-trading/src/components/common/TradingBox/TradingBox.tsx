@@ -98,7 +98,7 @@ export const TradingBox = ({ activeGroup, side = "long" }: TradingBoxProps) => {
     state.setPreviousTxn,
   ]);
 
-  const priorityFee = usePriorityFee(priorityType, broadcastType, maxCapType, maxCap, connection);
+  const priorityFees = usePriorityFee(priorityType, broadcastType, maxCapType, maxCap, connection);
 
   const [setIsWalletOpen] = useWalletStore((state) => [state.setIsWalletOpen]);
 
@@ -270,18 +270,7 @@ export const TradingBox = ({ activeGroup, side = "long" }: TradingBoxProps) => {
         setIsLoading(false);
       }
     }
-  }, [
-    activeGroup,
-    amount,
-    leverage,
-    tradeState,
-    priorityFee,
-    slippageBps,
-    connection,
-    platformFeeBps,
-    broadcastType,
-    handleSimulation,
-  ]);
+  }, [activeGroup, amount, leverage, tradeState, slippageBps, connection, platformFeeBps, handleSimulation]);
 
   React.useEffect(() => {
     if (activeGroup) {
@@ -308,7 +297,7 @@ export const TradingBox = ({ activeGroup, side = "long" }: TradingBoxProps) => {
         walletContextState,
         depositAmount: Number(amount),
         tradeState,
-        priorityFee,
+        priorityFees,
         slippageBps: slippageBps,
         broadcastType: broadcastType,
         connection,
@@ -318,19 +307,21 @@ export const TradingBox = ({ activeGroup, side = "long" }: TradingBoxProps) => {
       return sig;
     },
     [
-      amount,
-      connection,
-      priorityFee,
-      activeGroup,
-      slippageBps,
-      tradeState,
-      broadcastType,
+      activeGroup?.client,
+      activeGroup?.selectedAccount,
       walletContextState,
+      amount,
+      tradeState,
+      priorityFees,
+      slippageBps,
+      broadcastType,
+      connection,
+      loopActionTxns,
     ]
   );
 
   const handleLeverageAction = React.useCallback(async () => {
-      if (loopActionTxns && activeGroup?.client && collateralBank) {
+    if (loopActionTxns && activeGroup?.client && collateralBank) {
       try {
         setIsLoading(true);
         let depositBank: ExtendedBankInfo, borrowBank: ExtendedBankInfo;

@@ -17,6 +17,7 @@ import {
   BankConfigOpt,
   MarginfiAccountWrapper,
   MarginfiClient,
+  PriorityFees,
   ProcessTransactionsClientOpts,
 } from "@mrgnlabs/marginfi-client-v2";
 import {
@@ -167,7 +168,7 @@ export async function executeLeverageAction({
   depositAmount,
   tradeState,
   loopActionTxns,
-  priorityFee,
+  priorityFees,
   slippageBps,
   broadcastType,
 }: {
@@ -180,7 +181,7 @@ export async function executeLeverageAction({
   depositAmount: number;
   tradeState: TradeSide;
   loopActionTxns: LoopActionTxns | null;
-  priorityFee: number;
+  priorityFees: PriorityFees;
   slippageBps: number;
   broadcastType: TransactionBroadcastType;
 }) {
@@ -234,7 +235,7 @@ export async function executeLeverageAction({
     }
   }
 
-  let loopingObject = loopActionTxns
+  let loopingObject = loopActionTxns;
 
   if (!loopActionTxns.actionTxn && loopActionTxns.actionQuote) {
     try {
@@ -246,7 +247,7 @@ export async function executeLeverageAction({
         depositAmount,
         borrowAmount: loopActionTxns.borrowAmount,
         quote: loopActionTxns.actionQuote,
-            actualDepositAmount: loopActionTxns.actualDepositAmount
+        actualDepositAmount: loopActionTxns.actualDepositAmount,
       });
 
       if ("actionTxn" in result) {
@@ -271,10 +272,10 @@ export async function executeLeverageAction({
       let txnSig: string[] = [];
 
       if (loopingObject.actionTxn) {
-        txnSig = await marginfiClient.processTransactions(
-          [...loopingObject.additionalTxns, loopingObject.actionTxn],
-          { priorityFeeUi: priorityFee, broadcastType } // todo: add priority fee
-        );
+        txnSig = await marginfiClient.processTransactions([...loopingObject.additionalTxns, loopingObject.actionTxn], {
+          ...priorityFees,
+          broadcastType,
+        });
       } else {
         throw new Error("Something went wrong, please try again.");
       }
@@ -300,7 +301,7 @@ export async function calculateClosePositions({
   depositBanks,
   slippageBps,
   connection,
-  priorityFee,
+  priorityFees,
   platformFeeBps,
 }: {
   marginfiAccount: MarginfiAccountWrapper;
@@ -308,7 +309,7 @@ export async function calculateClosePositions({
   depositBanks: ActiveBankInfo[];
   slippageBps: number;
   connection: Connection;
-  priorityFee: number;
+  priorityFees: PriorityFees;
   platformFeeBps?: number;
 }): Promise<
   | {
@@ -326,7 +327,7 @@ export async function calculateClosePositions({
       depositBank: depositBanks[0],
       slippageBps,
       connection,
-      priorityFee,
+      priorityFees,
       platformFeeBps,
     });
   }

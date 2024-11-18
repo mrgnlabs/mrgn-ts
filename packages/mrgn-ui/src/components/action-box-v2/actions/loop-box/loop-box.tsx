@@ -123,7 +123,7 @@ export const LoopBox = ({
 
   const { priorityType, broadcastType, maxCap, maxCapType } = useActionContext();
 
-  const priorityFee = usePriorityFee(
+  const priorityFees = usePriorityFee(
     priorityType,
     broadcastType,
     maxCapType,
@@ -175,8 +175,6 @@ export const LoopBox = ({
     actionTxns,
     simulationResult,
     isRefreshTxn,
-    priorityFee,
-    broadcastType,
     setMaxLeverage,
     setSimulationResult,
     setActionTxns,
@@ -228,7 +226,7 @@ export const LoopBox = ({
         marginfiClient,
         actionTxns,
         processOpts: {
-          priorityFeeUi: priorityFee,
+          ...priorityFees,
           broadcastType,
         },
         txOpts: {},
@@ -241,7 +239,7 @@ export const LoopBox = ({
         borrowBank: selectedSecondaryBank,
         quote: actionTxns.actionQuote!,
         connection: marginfiClient.provider.connection,
-      } ;
+      };
 
       await handleExecuteLoopAction({
         props,
@@ -287,9 +285,8 @@ export const LoopBox = ({
     captureEvent,
     leverage,
     marginfiClient,
-    nativeSolBalance,
     onComplete,
-    priorityFee,
+    priorityFees,
     selectedAccount,
     selectedBank,
     selectedSecondaryBank,
@@ -297,7 +294,6 @@ export const LoopBox = ({
     setIsActionComplete,
     setIsLoading,
     setPreviousTxn,
-    slippage,
   ]);
 
   React.useEffect(() => {

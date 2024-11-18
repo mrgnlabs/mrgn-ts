@@ -78,8 +78,6 @@ export function formatTransactions(
   let bundleTipIndex = broadcastType === "BUNDLE" ? -1 : null; // if index is -1 in the end, then add bundle tx
   const priorityFeeIndexes: number[] = [];
 
-  // check if the tx is a flashloan
-
   for (let i = 0; i < txSizes.length; i++) {
     if (flashloanIndex !== i) {
       let baseTxSize = txSizes[i];

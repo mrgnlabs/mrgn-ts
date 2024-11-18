@@ -9,9 +9,9 @@ import { nativeToUi, NATIVE_MINT as SOL_MINT, uiToNative } from "@mrgnlabs/mrgn-
 import {
   LstData,
   PreviousTxn,
-  usePriorityFee,
   ActionMessageType,
   checkStakeActionAvailable,
+  usePriorityFee,
 } from "@mrgnlabs/mrgn-utils";
 
 import { useActionAmounts } from "~/components/action-box-v2/hooks";
@@ -107,7 +107,7 @@ export const StakeBox = ({
 
   const { priorityType, broadcastType, maxCap, maxCapType } = useActionContext();
 
-  const priorityFee = usePriorityFee(
+  const priorityFees = usePriorityFee(
     priorityType,
     broadcastType,
     maxCapType,
@@ -164,8 +164,6 @@ export const StakeBox = ({
     setIsLoading,
     marginfiClient,
     lstData,
-    priorityFee,
-    broadcastType,
   });
 
   const actionSummary = React.useMemo(() => {
@@ -196,7 +194,7 @@ export const StakeBox = ({
         },
         processOpts: {
           broadcastType,
-          priorityFeeUi: priorityFee,
+          ...priorityFees,
         },
       };
 
@@ -253,7 +251,7 @@ export const StakeBox = ({
     requestedActionType,
     nativeSolBalance,
     broadcastType,
-    priorityFee,
+    priorityFees,
     captureEvent,
     setIsActionComplete,
     setPreviousTxn,

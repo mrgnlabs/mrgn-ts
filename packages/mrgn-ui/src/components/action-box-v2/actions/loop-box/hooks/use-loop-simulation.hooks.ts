@@ -6,6 +6,7 @@ import {
   computeMaxLeverage,
   MarginfiAccountWrapper,
   MarginfiClient,
+  PriorityFees,
   SimulationResult,
 } from "@mrgnlabs/marginfi-client-v2";
 import {
@@ -32,8 +33,6 @@ type LoopSimulationProps = {
   actionTxns: LoopActionTxns;
   simulationResult: SimulationResult | null;
   isRefreshTxn: boolean;
-  priorityFee: number;
-  broadcastType: TransactionBroadcastType;
 
   setSimulationResult: (simulationResult: SimulationResult | null) => void;
   setActionTxns: (actionTxns: LoopActionTxns) => void;
@@ -53,8 +52,6 @@ export function useLoopSimulation({
   actionTxns,
   simulationResult,
   isRefreshTxn,
-  priorityFee,
-  broadcastType,
 
   setSimulationResult,
   setActionTxns,
@@ -175,9 +172,7 @@ export function useLoopSimulation({
       setActionTxns,
       setSimulationResult,
       slippageBps,
-      priorityFee,
       platformFeeBps,
-      broadcastType,
       setErrorMessage,
     ]
   );
