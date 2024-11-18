@@ -10,7 +10,10 @@ const restrictedCountries = ["US", "VE", "CU", "IR", "KP", "SY"];
 const allowedOrigins = ["https://www.thearena.trade", "https://staging.thearena.trade", "http://localhost:3006"];
 
 export async function middleware(req: NextRequest) {
-  const fullRpcProxy = await generateEndpoint(process.env.NEXT_PUBLIC_MARGINFI_RPC_ENDPOINT_OVERRIDE ?? "");
+  const fullRpcProxy = await generateEndpoint(
+    process.env.NEXT_PUBLIC_MARGINFI_RPC_ENDPOINT_OVERRIDE ?? "",
+    process.env.NEXT_PUBLIC_RPC_PROXY_KEY ?? ""
+  );
 
   if (req.nextUrl.toString() === fullRpcProxy) {
     const origin = req.headers.get("origin") ?? "";

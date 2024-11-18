@@ -22,7 +22,10 @@ export const StakeBoxProvider: React.FC<{
     let intervalId: ReturnType<typeof setInterval> | null = null;
 
     const fetchData = async () => {
-      const rpcEndpoint = await generateEndpoint(process.env.NEXT_PUBLIC_MARGINFI_RPC_ENDPOINT_OVERRIDE ?? "");
+      const rpcEndpoint = await generateEndpoint(
+        process.env.NEXT_PUBLIC_MARGINFI_RPC_ENDPOINT_OVERRIDE ?? "",
+        process.env.NEXT_PUBLIC_RPC_PROXY_KEY ?? ""
+      );
       const connection = new Connection(rpcEndpoint, "confirmed");
       const lstData = await fetchLstData(connection);
       lstData && setLstData(lstData);
