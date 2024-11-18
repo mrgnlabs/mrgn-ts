@@ -12,7 +12,7 @@ import { Web3AuthNoModal } from "@web3auth/no-modal";
 import { OpenloginAdapter } from "@web3auth/openlogin-adapter";
 import { SolanaWallet, SolanaPrivateKeyProvider } from "@web3auth/solana-provider";
 
-import { showErrorToast } from "@mrgnlabs/mrgn-utils";
+import { showErrorToast, generateEndpoint } from "@mrgnlabs/mrgn-utils";
 import type { Wallet } from "@mrgnlabs/mrgn-common";
 
 import { useWalletStore } from "~/components/wallet-v2/store/wallet.store";
@@ -97,7 +97,7 @@ const web3AuthChainConfig = {
   blockExplorer: "https://explorer.solana.com",
   ticker: "SOL",
   tickerName: "Solana",
-} as const;
+};
 
 const web3AuthOpenLoginAdapterSettings = {
   uxMode: "redirect",
@@ -404,6 +404,10 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
   // initialize web3auth sdk and phantom wallet event handlers
   const init = React.useCallback(async () => {
     try {
+      // generate proxy rpc url
+      const rpcEndpoint = await generateEndpoint(process.env.NEXT_PUBLIC_MARGINFI_RPC_ENDPOINT_OVERRIDE || "");
+      web3AuthChainConfig.rpcTarget = rpcEndpoint;
+
       const web3AuthInstance = new Web3AuthNoModal({
         clientId: process.env.NEXT_PUBLIC_WEB3_AUTH_CLIENT_ID!,
         chainConfig: web3AuthChainConfig,
