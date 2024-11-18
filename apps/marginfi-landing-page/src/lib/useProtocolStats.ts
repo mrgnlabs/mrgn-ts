@@ -34,7 +34,10 @@ export const useProtocolStats = (): UseProtocolStats => {
 
   React.useEffect(() => {
     const init = async () => {
-      const rpcEndpoint = await generateEndpoint(process.env.NEXT_PUBLIC_MARGINFI_RPC_ENDPOINT_OVERRIDE ?? "");
+      const rpcEndpoint = await generateEndpoint(
+        process.env.NEXT_PUBLIC_MARGINFI_RPC_ENDPOINT_OVERRIDE ?? "",
+        process.env.NEXT_PUBLIC_RPC_PROXY_KEY ?? ""
+      );
       const connection = new Connection(rpcEndpoint);
       const [bankMetadataMap] = await Promise.all([loadBankMetadatas()]);
       const bankAddresses = Object.keys(bankMetadataMap).map((address) => new PublicKey(address));

@@ -84,7 +84,7 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
 
   React.useEffect(() => {
     const init = async () => {
-      const rpcEndpoint = await generateEndpoint(config.rpcEndpoint);
+      const rpcEndpoint = await generateEndpoint(config.rpcEndpoint, process.env.NEXT_PUBLIC_RPC_PROXY_KEY ?? "");
       setRpcEndpoint(rpcEndpoint);
       setReady(true);
       initAnalytics();

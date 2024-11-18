@@ -405,7 +405,10 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
   const init = React.useCallback(async () => {
     try {
       // generate proxy rpc url
-      const rpcEndpoint = await generateEndpoint(process.env.NEXT_PUBLIC_MARGINFI_RPC_ENDPOINT_OVERRIDE || "");
+      const rpcEndpoint = await generateEndpoint(
+        process.env.NEXT_PUBLIC_MARGINFI_RPC_ENDPOINT_OVERRIDE || "",
+        process.env.NEXT_PUBLIC_RPC_PROXY_KEY ?? ""
+      );
       web3AuthChainConfig.rpcTarget = rpcEndpoint;
 
       const web3AuthInstance = new Web3AuthNoModal({
