@@ -117,7 +117,7 @@ export const getBundleTip = async (priorityType: TransactionPriorityType, userMa
     headers: {
       "Content-Type": "application/json; charset=utf-8",
     },
-  });
+  }).catch((err) => {});
 
   let bundleTipData: TipFloorDataResponse = {
     time: "",
@@ -128,7 +128,7 @@ export const getBundleTip = async (priorityType: TransactionPriorityType, userMa
     landed_tips_99th_percentile: 0.001,
     ema_landed_tips_50th_percentile: 0.00005,
   };
-  if (!response.ok) {
+  if (!response || !response.ok) {
     console.error("Failed to fetch bundle tip");
   } else {
     bundleTipData = await response.json();

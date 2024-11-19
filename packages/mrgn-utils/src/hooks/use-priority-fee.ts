@@ -20,7 +20,7 @@ export const usePriorityFee = (
   const prevMaxCapType = usePrevious(maxCapType);
   const [priorityFee, setPriorityFee] = React.useState<PriorityFees>({
     bundleTipUi: 0.0005,
-    priorityFeeMicro: 0.0005, // TODO: adjust this
+    priorityFeeMicro: 1, // TODO: adjust this
   });
 
   const calculatePriorityFeeUi = React.useCallback(

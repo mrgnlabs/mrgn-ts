@@ -9,6 +9,8 @@ import {
   sleep,
   SolanaTransaction,
   TransactionOptions,
+  decodeComputeBudgetInstruction,
+  getComputeBudgetUnits,
   // PRIORITY_TX_SIZE,
   // BUNDLE_TX_SIZE,
   // MAX_TX_SIZE,
@@ -33,7 +35,6 @@ import { makePriorityFeeMicroIx } from "../../utils";
 export const MAX_TX_SIZE = 1232;
 export const BUNDLE_TX_SIZE = 81;
 export const PRIORITY_TX_SIZE = 44;
-export const DEFAULT_COMPUTE_BUDGET_IX = 200_000;
 
 export function isFlashloan(tx: SolanaTransaction): boolean {
   if (isV0Tx(tx)) {
@@ -45,56 +46,6 @@ export function isFlashloan(tx: SolanaTransaction): boolean {
   }
   //TODO: add legacy tx check
   return false;
-}
-
-function getComputeBudgetUnits(tx: SolanaTransaction): number | undefined {
-  let instructions: TransactionInstruction[] = [];
-
-  if (isV0Tx(tx)) {
-    const addressLookupTableAccounts = tx.addressLookupTables ?? [];
-    const message = decompileV0Transaction(tx, addressLookupTableAccounts);
-    instructions = message.instructions;
-  } else {
-    instructions = tx.instructions;
-  }
-
-  const ix = instructions.find((ix) => ix.programId.equals(ComputeBudgetProgram.programId));
-
-  if (!ix) {
-    return instructions.length * DEFAULT_COMPUTE_BUDGET_IX;
-  } else {
-    const decoded = decodeComputeBudgetInstruction(ix);
-    if (decoded.type === "RequestUnits") {
-      return decoded.units;
-    } else {
-      return decoded.heapFrameSize;
-    }
-  }
-}
-
-function decodeComputeBudgetInstruction(instruction: TransactionInstruction) {
-  const data = Buffer.from(instruction.data);
-  const tag = data[0];
-
-  switch (tag) {
-    case 0x01: // RequestUnits
-      if (data.length < 9) {
-        throw new Error("Invalid instruction data length for RequestUnits");
-      }
-      const units = data.readUInt32LE(1);
-      const additionalFee = data.readUInt32LE(5);
-      return { type: "RequestUnits", units, additionalFee };
-
-    case 0x02: // RequestHeapFrame
-      if (data.length < 5) {
-        throw new Error("Invalid instruction data length for RequestHeapFrame");
-      }
-      const heapFrameSize = data.readUInt32LE(1);
-      return { type: "RequestHeapFrame", heapFrameSize };
-
-    default:
-      throw new Error(`Unknown ComputeBudget instruction tag: ${tag}`);
-  }
 }
 
 export function hasBundleTip(tx: SolanaTransaction): boolean {
@@ -177,14 +128,14 @@ export function formatTransactions(
     const signers = transaction.signers ?? [];
     const addressLookupTables = transaction.addressLookupTables ?? [];
 
-    if (isTxFlashloan) {
-      if (isV0Tx(transaction)) {
-        formattedTransactions.push(transaction);
-      } else {
-        formattedTransactions.push(legacyTxToV0Tx(transaction, { blockhash, addressLookupTables }));
-      }
-      continue;
-    }
+    // if (isTxFlashloan) {
+    //   if (isV0Tx(transaction)) {
+    //     formattedTransactions.push(transaction);
+    //   } else {
+    //     formattedTransactions.push(legacyTxToV0Tx(transaction, { blockhash, addressLookupTables }));
+    //   }
+    //   continue;
+    // }
     const requiredIxs: TransactionInstruction[] = [
       ...(bundleTipIndex === index && bundleTipIx ? [bundleTipIx] : []),
       ...(priorityFeeIndexes.includes(index) ? [priorityIxs[index]] : []),
@@ -199,12 +150,14 @@ export function formatTransactions(
         addressLookupTables,
         additionalIxs: requiredIxs,
         blockhash,
+        replaceOnly: isTxFlashloan,
       });
     } else {
       newTransaction = legacyTxToV0Tx(transaction, {
         addressLookupTables,
         additionalIxs: requiredIxs,
         blockhash,
+        replaceOnly: isTxFlashloan,
       });
     }
 

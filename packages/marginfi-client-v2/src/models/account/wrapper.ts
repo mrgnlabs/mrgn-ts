@@ -13,6 +13,7 @@ import {
   ExtendedTransaction,
   ExtendedV0Transaction,
   getTxSize,
+  getAccountKeys,
 } from "@mrgnlabs/mrgn-common";
 import * as sb from "@switchboard-xyz/on-demand";
 import { Address, BorshCoder, Idl, translateAddress } from "@coral-xyz/anchor";
@@ -56,6 +57,7 @@ import { TransactionSignature } from "@solana/web3.js";
 
 // Temporary imports
 export const MAX_TX_SIZE = 1232;
+export const MAX_ACCOUNT_KEYS = 64;
 export const BUNDLE_TX_SIZE = 81;
 export const PRIORITY_TX_SIZE = 44;
 
@@ -503,37 +505,40 @@ class MarginfiAccountWrapper {
     }
 
     const addressLookupTableAccounts = [...this.client.addressLookupTables, ...swapLookupTables];
-    if (cuRequestIxs) {
-      // if cuRequestIxs are present, no priority fee ix is needed
+
+    // if cuRequestIxs are not present, priority fee ix is needed
+    // wallets add a priority fee ix by default breaking the flashloan tx so we need to add a placeholder priority fee ix
+    // docs: https://docs.phantom.app/developer-powertools/solana-priority-fees
+    flashloanTx = await this.buildFlashLoanTx({
+      ixs: [...cuRequestIxs, priorityFeeIx, ...withdrawIxs.instructions, ...swapIxs, ...repayIxs.instructions],
+      addressLookupTableAccounts,
+      blockhash,
+    });
+
+    const txSize = getTxSize(flashloanTx);
+    const accountKeys = getAccountKeys(flashloanTx, addressLookupTableAccounts);
+    const txToManyKeys = accountKeys > MAX_ACCOUNT_KEYS;
+    const txToBig = txSize > MAX_TX_SIZE;
+    const canBeDownsized = txToManyKeys && txToBig && txSize - PRIORITY_TX_SIZE <= MAX_TX_SIZE;
+
+    if (canBeDownsized) {
+      // wallets won't add a priority fee if tx space is limited
+      // this will decrease landing rate for non-rpc calls
       flashloanTx = await this.buildFlashLoanTx({
-        ixs: [...cuRequestIxs, ...setupIxs, ...withdrawIxs.instructions, ...swapIxs, ...repayIxs.instructions],
-        addressLookupTableAccounts,
-        blockhash,
-      });
-    } else {
-      // if cuRequestIxs are not present, priority fee ix is needed
-      // wallets add a priority fee ix by default breaking the flashloan tx so we need to add a placeholder priority fee ix
-      // docs: https://docs.phantom.app/developer-powertools/solana-priority-fees
-      flashloanTx = await this.buildFlashLoanTx({
-        ixs: [priorityFeeIx, ...withdrawIxs.instructions, ...swapIxs, ...repayIxs.instructions],
+        ixs: [...cuRequestIxs, ...withdrawIxs.instructions, ...swapIxs, ...repayIxs.instructions],
         addressLookupTableAccounts,
         blockhash,
       });
 
       const txSize = getTxSize(flashloanTx);
       const txToBig = txSize > MAX_TX_SIZE;
-      const canBeDownsized = txToBig && txSize - PRIORITY_TX_SIZE <= MAX_TX_SIZE;
 
-      if (canBeDownsized) {
-        // wallets won't add a priority fee if tx space is limited
-        flashloanTx = await this.buildFlashLoanTx({
-          ixs: [...withdrawIxs.instructions, ...swapIxs, ...repayIxs.instructions],
-          addressLookupTableAccounts,
-          blockhash,
-        });
-      } else {
+      // this shouldn't trigger, but just in case
+      if (txToBig) {
         txOverflown = true;
       }
+    } else if (txToBig || txToManyKeys) {
+      txOverflown = true;
     }
 
     return { flashloanTx, additionalTxs, txOverflown };

@@ -125,6 +125,7 @@ export async function verifyTxSizeCollat(props: RepayWithCollatProps): Promise<V
         error: STATIC_SIMULATION_ERRORS.TX_SIZE,
       };
     } else {
+      console.log("builder", builder);
       return {
         ...builder,
       };

@@ -105,9 +105,8 @@ export async function processTransactions({
 
   let broadcastType = processOpts.broadcastType;
 
+  const strategy = processOpts.dynamicStrategy ?? DEFAULT_PROCESS_TX_STRATEGY;
   if (processOpts?.broadcastType === "DYNAMIC") {
-    const strategy = processOpts.dynamicStrategy ?? DEFAULT_PROCESS_TX_STRATEGY;
-
     if (transactions.length > 1) {
       broadcastType = strategy.multiTx;
     } else {

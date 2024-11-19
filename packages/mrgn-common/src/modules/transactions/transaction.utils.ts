@@ -1,6 +1,7 @@
 import { BorshInstructionCoder, Idl, Instruction } from "@coral-xyz/anchor";
 import {
   AddressLookupTableAccount,
+  ComputeBudgetProgram,
   PublicKey,
   Signer,
   Transaction,
@@ -43,6 +44,21 @@ export function getTxSize(tx: VersionedTransaction | Transaction): number {
   return baseTxSize + feePayerSize + signaturesSize;
 }
 
+export function getAccountKeys(
+  tx: VersionedTransaction | Transaction,
+  lookupTableAccounts: AddressLookupTableAccount[]
+): number {
+  const isVersioned = isV0Tx(tx);
+
+  if (isVersioned) {
+    const message = TransactionMessage.decompile(tx.message, { addressLookupTableAccounts: lookupTableAccounts });
+    return message.compileToLegacyMessage().getAccountKeys().length;
+    // return tx.message.getAccountKeys().length;
+  } else {
+    return tx.compileMessage().getAccountKeys().length;
+  }
+}
+
 /**
  * Decodes a Solana transaction instruction using the provided Interface Definition Language (IDL).
  * This function utilizes the BorshInstructionCoder to interpret the encoded instruction data.
@@ -79,6 +95,7 @@ type UpdateTxOptions = {
   blockhash?: string;
   addressLookupTables?: AddressLookupTableAccount[];
   additionalIxs?: TransactionInstruction[];
+  replaceOnly?: boolean;
 };
 
 /**
@@ -123,17 +140,75 @@ export function legacyTxToV0Tx(transaction: Transaction, opts?: UpdateTxOptions)
 export function updateV0Tx(transaction: VersionedTransaction, opts?: UpdateTxOptions): VersionedTransaction {
   const additionalIxs = opts?.additionalIxs ?? [];
   const addressLookupTables = opts?.addressLookupTables ?? [];
+  let instructions: TransactionInstruction[] = [];
 
   const message = decompileV0Transaction(transaction, addressLookupTables);
   const feePayer = opts?.feePayer ?? message.payerKey;
   const blockhash = opts?.blockhash ?? message.recentBlockhash;
 
+  if (additionalIxs.length > 0) {
+    instructions = replaceV0TxInstructions(additionalIxs, message.instructions, opts?.replaceOnly);
+  } else {
+    instructions = message.instructions;
+  }
+
   const versionedMessage = new TransactionMessage({
-    instructions: [...additionalIxs, ...message.instructions],
+    instructions,
     payerKey: feePayer,
     recentBlockhash: blockhash,
   });
   return new VersionedTransaction(versionedMessage.compileToV0Message(addressLookupTables));
+}
+
+/**
+ * Checks if two transaction instructions are identical by comparing their data, program IDs, and account keys.
+ *
+ * @param ix1 - First transaction instruction to compare
+ * @param ix2 - Second transaction instruction to compare
+ * @returns True if instructions are identical, false otherwise
+ */
+export function compareInstructions(ix1: TransactionInstruction, ix2: TransactionInstruction): boolean {
+  const dataCompare = ix1.data.equals(ix2.data);
+  const programIdCompare = ix1.programId.equals(ix2.programId);
+  const keysCompare =
+    ix1.keys.length === ix2.keys.length &&
+    ix1.keys.every((key, index) => {
+      const key2 = ix2.keys[index];
+      return key.pubkey.equals(key2.pubkey) && key.isSigner === key2.isSigner && key.isWritable === key2.isWritable;
+    });
+
+  // Instructions are identical only if all components match
+  return dataCompare && programIdCompare && keysCompare;
+}
+
+export function replaceV0TxInstructions(
+  additionalInstructions: TransactionInstruction[],
+  instructions: TransactionInstruction[],
+  replaceOnly?: boolean
+): TransactionInstruction[] {
+  let updatedAdditionalIxs: TransactionInstruction[] = [];
+  const updatedInstructions = instructions.map((ix) => {
+    const programId = ix.programId;
+    const additionalIxs = additionalInstructions.filter((a) => a.programId.equals(programId));
+
+    if (additionalIxs.length > 0) {
+      // TODO add bundle tip check
+      if (ix.programId.equals(ComputeBudgetProgram.programId)) {
+        const decoded = decodeComputeBudgetInstruction(ix);
+        const updatedIx = additionalIxs.find(
+          (a) => decodeComputeBudgetInstruction(a).instructionType === "SetComputeUnitPrice"
+        );
+        if (decoded.instructionType === "SetComputeUnitPrice" && updatedIx) {
+          //subtract the additional instruction from the additional instructions array
+          updatedAdditionalIxs = updatedAdditionalIxs.filter((a) => !compareInstructions(a, updatedIx));
+          return updatedIx;
+        }
+      }
+    }
+    return ix;
+  });
+
+  return [...(replaceOnly ? [] : updatedAdditionalIxs), ...updatedInstructions];
 }
 
 /**
@@ -150,4 +225,112 @@ export function addTransactionMetadata<T extends Transaction | VersionedTransact
   options: { signers?: Array<Signer>; addressLookupTables?: AddressLookupTableAccount[] }
 ): T & { signers?: Array<Signer>; addressLookupTables?: AddressLookupTableAccount[] } {
   return Object.assign(transaction, options);
+}
+
+type ComputeBudgetInstructionType =
+  | "RequestUnits"
+  | "RequestHeapFrame"
+  | "SetComputeUnitLimit"
+  | "SetComputeUnitPrice"
+  | "SetLoadedAccountsDataSizeLimit";
+
+function identifyComputeBudgetInstruction(data: Buffer): ComputeBudgetInstructionType {
+  const discriminator = data.readUInt8(0); // First byte identifies the instruction type
+
+  switch (discriminator) {
+    case 0:
+      return "RequestUnits";
+    case 1:
+      return "RequestHeapFrame";
+    case 2:
+      return "SetComputeUnitLimit";
+    case 3:
+      return "SetComputeUnitPrice";
+    case 4:
+      return "SetLoadedAccountsDataSizeLimit";
+    default:
+      throw new Error("Unknown ComputeBudget instruction discriminator.");
+  }
+}
+
+/**
+ * Decodes a ComputeBudget program instruction into a readable format.
+ *
+ * @param instruction - The ComputeBudget program instruction to decode
+ * @returns An object containing the decoded instruction data with fields depending on the instruction type:
+ *   - RequestUnits: { instructionType: string, units: number, additionalFee: number }
+ *   - RequestHeapFrame: { instructionType: string, bytes: number }
+ *   - SetComputeUnitLimit: { instructionType: string, units: number }
+ *   - SetComputeUnitPrice: { instructionType: string, microLamports: string }
+ *   - SetLoadedAccountsDataSizeLimit: { instructionType: string, accountDataSizeLimit: number }
+ * @throws Error if the instruction data is invalid or the instruction type is unknown
+ */
+export function decodeComputeBudgetInstruction(instruction: TransactionInstruction) {
+  const data = Buffer.from(instruction.data || instruction);
+  const instructionType = identifyComputeBudgetInstruction(data);
+  switch (instructionType) {
+    case "RequestUnits": {
+      if (data.length !== 9) {
+        throw new Error("Invalid data length for RequestUnits");
+      }
+      const units = data.readUInt32LE(1);
+      const additionalFee = data.readUInt32LE(5);
+      return { instructionType, units, additionalFee };
+    }
+    case "RequestHeapFrame": {
+      if (data.length !== 5) {
+        throw new Error("Invalid data length for RequestHeapFrame");
+      }
+      const bytes = data.readUInt32LE(1);
+      return { instructionType, bytes };
+    }
+    case "SetComputeUnitLimit": {
+      if (data.length !== 5) {
+        throw new Error("Invalid data length for SetComputeUnitLimit");
+      }
+      const units = data.readUInt32LE(1);
+      return { instructionType, units };
+    }
+    case "SetComputeUnitPrice": {
+      if (data.length !== 9) {
+        throw new Error("Invalid data length for SetComputeUnitPrice");
+      }
+      const microLamports = data.readBigUInt64LE(1);
+      return { instructionType, microLamports: microLamports.toString() };
+    }
+    case "SetLoadedAccountsDataSizeLimit": {
+      if (data.length !== 5) {
+        throw new Error("Invalid data length for SetLoadedAccountsDataSizeLimit");
+      }
+      const accountDataSizeLimit = data.readUInt32LE(1);
+      return { instructionType, accountDataSizeLimit };
+    }
+    default:
+      throw new Error("Unknown ComputeBudget instruction type.");
+  }
+}
+
+const DEFAULT_COMPUTE_BUDGET_IX = 200_000;
+
+export function getComputeBudgetUnits(tx: SolanaTransaction): number | undefined {
+  let instructions: TransactionInstruction[] = [];
+
+  if (isV0Tx(tx)) {
+    const addressLookupTableAccounts = tx.addressLookupTables ?? [];
+    const message = decompileV0Transaction(tx, addressLookupTableAccounts);
+    instructions = message.instructions;
+  } else {
+    instructions = tx.instructions;
+  }
+
+  const computeBudgetIxs = instructions.filter((ix) => ix.programId.equals(ComputeBudgetProgram.programId));
+
+  if (computeBudgetIxs.length === 0) {
+    return instructions.length * DEFAULT_COMPUTE_BUDGET_IX;
+  }
+
+  const decoded = computeBudgetIxs.map((ix) => decodeComputeBudgetInstruction(ix));
+  const limit = decoded.find((ix) => ix.instructionType === "SetComputeUnitLimit");
+
+  return limit?.units ?? instructions.length * DEFAULT_COMPUTE_BUDGET_IX;
 }

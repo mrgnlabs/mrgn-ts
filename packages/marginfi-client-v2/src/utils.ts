@@ -110,20 +110,15 @@ export async function makeVersionedTransaction(
 
   return new VersionedTransaction(versionedMessage);
 }
-
 /**
  * Creates a compute budget instruction to set the priority fee for a transaction.
  * The priority fee is specified in micro-lamports per compute unit.
  *
  * @param priorityFeeMicro - Priority fee in micro-lamports per compute unit. If not provided, defaults to 1.
  * @param computeUnitsLimit - Maximum compute units allowed for the transaction. Defaults to 1.4M units.
- * @returns Array containing the compute budget instruction with the specified priority fee
+ * @returns A compute budget instruction with the specified priority fee
  */
-export function makePriorityFeeMicroIx(
-  priorityFeeMicro?: number,
-  computeUnitsLimit?: number
-): TransactionInstruction[] {
-  const priorityFeeIx: TransactionInstruction[] = [];
+export function makePriorityFeeMicroIx(priorityFeeMicro?: number, computeUnitsLimit?: number): TransactionInstruction {
   const limit = computeUnitsLimit ?? 1_400_000;
 
   let microLamports = 1;
@@ -133,13 +128,9 @@ export function makePriorityFeeMicroIx(
     microLamports = Math.round(priorityFeeMicro / limit);
   }
 
-  priorityFeeIx.push(
-    ComputeBudgetProgram.setComputeUnitPrice({
-      microLamports: priorityFeeMicro ?? 1,
-    })
-  );
-
-  return priorityFeeIx;
+  return ComputeBudgetProgram.setComputeUnitPrice({
+    microLamports: priorityFeeMicro ?? 1,
+  });
 }
 
 /*

@@ -68,6 +68,7 @@ export async function calculateRepayCollateralParams({
   let firstQuote;
 
   for (const maxAccounts of maxAccountsArr) {
+    console.log("maxAccounts", maxAccounts);
     const quoteParams = {
       amount: uiToNative(repayProps.withdrawAmount, repayProps.depositBank.info.state.mintDecimals).toNumber(),
       inputMint: repayProps.depositBank.info.state.mint.toBase58(),
@@ -98,6 +99,7 @@ export async function calculateRepayCollateralParams({
           quote: swapQuote,
           repayAmount: amountToRepay,
         });
+        console.log("txn", txn);
         if (txn.flashloanTx) {
           return {
             repayCollatObject: {
