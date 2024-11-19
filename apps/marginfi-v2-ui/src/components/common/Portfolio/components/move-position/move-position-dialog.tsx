@@ -1,10 +1,9 @@
 import React from "react";
 
-import Image from "next/image";
-import { TransactionMessage, VersionedTransaction } from "@solana/web3.js";
+import { Transaction, VersionedTransaction } from "@solana/web3.js";
 
-import { usdFormatter, numeralFormatter, shortenAddress } from "@mrgnlabs/mrgn-common";
-import { ActiveBankInfo, ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { usdFormatter, numeralFormatter, shortenAddress, percentFormatter } from "@mrgnlabs/mrgn-common";
+import { AccountSummary, ActiveBankInfo, ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import {
   ActionMessageType,
   captureSentryException,
@@ -12,7 +11,7 @@ import {
   extractErrorString,
   MultiStepToastHandle,
 } from "@mrgnlabs/mrgn-utils";
-import { makeBundleTipIx, MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
+import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 
 import { Button } from "~/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "~/components/ui/dialog";
@@ -20,6 +19,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger } from "~/components/u
 import { IconLoader } from "~/components/ui/icons";
 import { useMoveSimulation } from "../../hooks";
 import { ActionMessage } from "~/components";
+import { IconArrowRight } from "@tabler/icons-react";
 
 interface MovePositionDialogProps {
   selectedAccount: MarginfiAccountWrapper | null;
@@ -31,6 +31,7 @@ interface MovePositionDialogProps {
   fetchMrgnlendState: () => Promise<void>;
   extendedBankInfos: ExtendedBankInfo[];
   nativeSolBalance: number;
+  accountSummary: AccountSummary | null;
 }
 
 export const MovePositionDialog = ({
@@ -43,20 +44,22 @@ export const MovePositionDialog = ({
   fetchMrgnlendState,
   extendedBankInfos,
   nativeSolBalance,
+  accountSummary,
 }: MovePositionDialogProps) => {
   const [accountToMoveTo, setAccountToMoveTo] = React.useState<MarginfiAccountWrapper | null>(null);
-  const [actionTxns, setActionTxns] = React.useState<VersionedTransaction[]>([]);
+  const [actionTxns, setActionTxns] = React.useState<(Transaction | VersionedTransaction)[]>([]);
   const [isExecutionLoading, setIsExecutionLoading] = React.useState<boolean>(false);
   const [isSimulationLoading, setIsSimulationLoading] = React.useState<boolean>(false);
   const [errorMessage, setErrorMessage] = React.useState<ActionMessageType | null>(null);
   const [additionalActionMessages, setAdditionalActionMessages] = React.useState<ActionMessageType[]>([]);
-  const { handleSimulateTxns } = useMoveSimulation({
+  const { handleSimulateTxns, actionSummary, setActionSummary } = useMoveSimulation({
     actionTxns,
     marginfiClient,
     accountToMoveTo,
     selectedAccount,
     activeBank: bank,
     extendedBankInfos,
+    accountSummary,
     setActionTxns,
     setIsLoading: setIsSimulationLoading,
     setErrorMessage,
@@ -98,8 +101,9 @@ export const MovePositionDialog = ({
     if (actionMessages && actionMessages.filter((value) => value.isEnabled === false).length > 0) return true;
     if (isSimulationLoading) return true;
     if (isExecutionLoading) return true;
+    if (errorMessage?.isEnabled) return true;
     return false;
-  }, [accountToMoveTo, actionMessages, isSimulationLoading, isExecutionLoading]);
+  }, [accountToMoveTo, actionMessages, isSimulationLoading, isExecutionLoading, errorMessage]);
 
   const handleMovePosition = React.useCallback(async () => {
     if (!marginfiClient || !accountToMoveTo || !actionTxns) {
@@ -141,6 +145,15 @@ export const MovePositionDialog = ({
       open={isOpen}
       onOpenChange={(value) => {
         setIsOpen(value);
+        if (!value) {
+          setTimeout(() => {
+            setAccountToMoveTo(null);
+            setActionTxns([]);
+            setErrorMessage(null);
+            setAdditionalActionMessages([]);
+            setActionSummary(null);
+          }, 100);
+        }
       }}
     >
       <DialogContent>
@@ -202,12 +215,31 @@ export const MovePositionDialog = ({
               </div>
             </div>
           )}
+          {actionSummary && (
+            <dl className="grid grid-cols-2 gap-y-2 ">
+              <dt className="text-muted-foreground">Health:</dt>
+              <dd
+                className={`flex justify-end text-right items-center gap-2 text-right  ${
+                  actionSummary.health >= 0.5
+                    ? "text-success"
+                    : actionSummary.health >= 0.25
+                    ? "text-alert-foreground"
+                    : "text-destructive-foreground"
+                }`}
+              >
+                <>
+                  {accountSummary?.healthFactor && percentFormatter.format(accountSummary?.healthFactor)}
+                  {actionSummary.health ? <IconArrowRight width={12} height={12} /> : ""}
+                  {percentFormatter.format(actionSummary.health)}
+                </>
+              </dd>
+            </dl>
+          )}
         </div>
-
         {additionalActionMessages.concat(actionMessages).map(
           (actionMessage, idx) =>
             actionMessage.description && (
-              <div className="pb-6" key={idx}>
+              <div key={idx}>
                 <ActionMessage _actionMessage={actionMessage} />
               </div>
             )
