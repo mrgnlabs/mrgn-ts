@@ -43,7 +43,13 @@ export const useRewardSimulation = ({
 
   const handleSimulation = React.useCallback(async () => {
     try {
-      if (!actionTxn || !marginfiClient || !selectedAccount) return;
+      if (!actionTxn || !marginfiClient || !selectedAccount) {
+        setSimulationResult({
+          rewards: [],
+          totalReward: 0,
+        });
+        return;
+      }
 
       const beforeAmounts = new Map<PublicKey, { amount: string; tokenSymbol: string; mintDecimals: number }>();
       const afterAmounts = new Map<PublicKey, { amount: string; tokenSymbol: string; mintDecimals: number }>();
