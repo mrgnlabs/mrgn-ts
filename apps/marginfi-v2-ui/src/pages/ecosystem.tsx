@@ -18,18 +18,28 @@ import { PageHeading } from "~/components/common/PageHeading";
 
 const projects = shuffle([
   {
-    title: "WRTHY",
-    description: "On-chain credit systems",
+    title: "Exponent",
+    description: "Trade volatile marginfi pool yields and earn fixed-rates for $USDC, $PYUSD and $USDT.",
     url: "https://trustless.engineering",
     author: {
-      name: "WRTHY",
-      avatar: "https://storage.googleapis.com/mrgn-public/ecosystem-images/wrthy.png",
-      url: "https://trustless.engineering",
+      name: "Exponent",
+      avatar: "https://storage.googleapis.com/mrgn-public/ecosystem-images/exponent.jpg",
+      url: "https://www.exponent.finance/income",
     },
   },
+  // {
+  //   title: "WRTHY",
+  //   description: "On-chain credit systems",
+  //   url: "https://trustless.engineering",
+  //   author: {
+  //     name: "WRTHY",
+  //     avatar: "https://storage.googleapis.com/mrgn-public/ecosystem-images/wrthy.png",
+  //     url: "https://trustless.engineering",
+  //   },
+  // },
   {
     title: "Carrot",
-    description: "Auto-adjusting yield bearing token",
+    description: "Carrot is building an auto-adjusting yield bearing token and using marginfi to rebalance user deposits.",
     url: "https://deficarrot.com/",
     author: {
       name: "Carrot",
@@ -39,7 +49,7 @@ const projects = shuffle([
   },
   {
     title: "Mantis SVM",
-    description: "The first Solana L2 with native yield",
+    description: "The first Solana L2, using marginfi to giver users lending yield + staking yield + re-staking yield.",
     url: "https://www.mantis.app/",
     author: {
       name: "Mantis",
@@ -59,102 +69,102 @@ const projects = shuffle([
       url: "https://marginfi.com",
     },
   },
-  {
-    title: "marginfi v2",
-    description: "V2 of the marginfi protocol",
-    url: "https://app.marginfi.com",
-    github: "https://github.com/mrgnlabs/marginfi-v2",
-    repo: "mrgnlabs/marginfi-v2",
-    author: {
-      name: "marginfi",
-      avatar: "https://storage.googleapis.com/mrgn-public/ecosystem-images/mrgn_logo_192.png",
-      url: "https://marginfi.com",
-    },
-  },
-  {
-    title: "marginfi ui",
-    description: "The official marginfi UI",
-    url: "https://app.marginfi.com",
-    github: "https://github.com/mrgnlabs/mrgn-ts/tree/main/apps/marginfi-v2-ui",
-    repo: "mrgnlabs/mrgn-ts",
-    author: {
-      name: "marginfi",
-      avatar: "https://storage.googleapis.com/mrgn-public/ecosystem-images/mrgn_logo_192.png",
-      url: "https://marginfi.com",
-    },
-  },
-  {
-    title: "marginfi xnft",
-    description: "The official marginfi xNFT",
-    url: "https://www.xnft.gg/app/DoXjr5LKZp9uxiwEUhffBwCQrf2xdkiDYeitGGvfcyXm",
-    github: "https://github.com/mrgnlabs/mrgn-ts/tree/main/apps/marginfi-v2-xnft",
-    repo: "mrgnlabs/mrgn-ts",
-    author: {
-      name: "marginfi",
-      avatar: "https://storage.googleapis.com/mrgn-public/ecosystem-images/mrgn_logo_192.png",
-      url: "https://marginfi.com",
-    },
-  },
-  {
-    title: "marginfi liquidator",
-    description: "Example liquidator",
-    github: "https://github.com/mrgnlabs/mrgn-ts/tree/main/apps/alpha-liquidator",
-    repo: "mrgnlabs/mrgn-ts",
-    author: {
-      name: "marginfi",
-      avatar: "https://storage.googleapis.com/mrgn-public/ecosystem-images/mrgn_logo_192.png",
-      url: "https://marginfi.com",
-    },
-  },
-  {
-    title: "dune analytics",
-    description: "MarginFi Dune Analytics dashboard",
-    url: "https://dune.com/man0s/marginfi/",
-    author: {
-      name: "man0s",
-      avatar: "https://storage.googleapis.com/mrgn-public/ecosystem-images/manos.jpg",
-      url: "https://twitter.com/losman0s",
-    },
-  },
-  {
-    title: "account search",
-    description: "Search accounts by wallet or .sol domain",
-    url: "https://mrgn-account-search.vercel.app/",
-    github: "https://github.com/mrgnlabs/mrgn-account-search",
-    repo: "mrgnlabs/mrgn-account-search",
-    author: {
-      name: "chambaz",
-      avatar: "https://storage.googleapis.com/mrgn-public/ecosystem-images/chambaz.jpg",
-      url: "https://twitter.com/chambaz",
-    },
-  },
-  {
-    title: "borrow caps",
-    description: "Borrow availability for major assets",
-    url: "https://marginfi-borrow-caps.vercel.app/",
-    github: "https://github.com/gohyun14/marginfi-borrow-caps",
-    repo: "gohyun14/marginfi-borrow-caps",
-    author: {
-      name: "0xCosmic",
-      avatar: "https://storage.googleapis.com/mrgn-public/ecosystem-images/cosmic.jpg",
-      url: "https://twitter.com/0xCosmic_",
-    },
-  },
-  {
-    title: "health check",
-    description: "Account health tracker / simulator",
-    url: "https://marginfi-borrow-caps.vercel.app/health",
-    github: "https://github.com/gohyun14/marginfi-borrow-caps",
-    repo: "gohyun14/marginfi-borrow-caps",
-    author: {
-      name: "0xCosmic",
-      avatar: "https://storage.googleapis.com/mrgn-public/ecosystem-images/cosmic.jpg",
-      url: "https://twitter.com/0xCosmic_",
-    },
-  },
+  // {
+  //   title: "marginfi v2",
+  //   description: "V2 of the marginfi protocol",
+  //   url: "https://app.marginfi.com",
+  //   github: "https://github.com/mrgnlabs/marginfi-v2",
+  //   repo: "mrgnlabs/marginfi-v2",
+  //   author: {
+  //     name: "marginfi",
+  //     avatar: "https://storage.googleapis.com/mrgn-public/ecosystem-images/mrgn_logo_192.png",
+  //     url: "https://marginfi.com",
+  //   },
+  // },
+  // {
+  //   title: "marginfi ui",
+  //   description: "The official marginfi UI",
+  //   url: "https://app.marginfi.com",
+  //   github: "https://github.com/mrgnlabs/mrgn-ts/tree/main/apps/marginfi-v2-ui",
+  //   repo: "mrgnlabs/mrgn-ts",
+  //   author: {
+  //     name: "marginfi",
+  //     avatar: "https://storage.googleapis.com/mrgn-public/ecosystem-images/mrgn_logo_192.png",
+  //     url: "https://marginfi.com",
+  //   },
+  // },
+  // {
+  //   title: "marginfi xnft",
+  //   description: "The official marginfi xNFT",
+  //   url: "https://www.xnft.gg/app/DoXjr5LKZp9uxiwEUhffBwCQrf2xdkiDYeitGGvfcyXm",
+  //   github: "https://github.com/mrgnlabs/mrgn-ts/tree/main/apps/marginfi-v2-xnft",
+  //   repo: "mrgnlabs/mrgn-ts",
+  //   author: {
+  //     name: "marginfi",
+  //     avatar: "https://storage.googleapis.com/mrgn-public/ecosystem-images/mrgn_logo_192.png",
+  //     url: "https://marginfi.com",
+  //   },
+  // },
+  // {
+  //   title: "marginfi liquidator",
+  //   description: "Example liquidator",
+  //   github: "https://github.com/mrgnlabs/mrgn-ts/tree/main/apps/alpha-liquidator",
+  //   repo: "mrgnlabs/mrgn-ts",
+  //   author: {
+  //     name: "marginfi",
+  //     avatar: "https://storage.googleapis.com/mrgn-public/ecosystem-images/mrgn_logo_192.png",
+  //     url: "https://marginfi.com",
+  //   },
+  // },
+  // {
+  //   title: "dune analytics",
+  //   description: "MarginFi Dune Analytics dashboard",
+  //   url: "https://dune.com/man0s/marginfi/",
+  //   author: {
+  //     name: "man0s",
+  //     avatar: "https://storage.googleapis.com/mrgn-public/ecosystem-images/manos.jpg",
+  //     url: "https://twitter.com/losman0s",
+  //   },
+  // },
+  // {
+  //   title: "account search",
+  //   description: "Search accounts by wallet or .sol domain",
+  //   url: "https://mrgn-account-search.vercel.app/",
+  //   github: "https://github.com/mrgnlabs/mrgn-account-search",
+  //   repo: "mrgnlabs/mrgn-account-search",
+  //   author: {
+  //     name: "chambaz",
+  //     avatar: "https://storage.googleapis.com/mrgn-public/ecosystem-images/chambaz.jpg",
+  //     url: "https://twitter.com/chambaz",
+  //   },
+  // },
+  // {
+  //   title: "borrow caps",
+  //   description: "Borrow availability for major assets",
+  //   url: "https://marginfi-borrow-caps.vercel.app/",
+  //   github: "https://github.com/gohyun14/marginfi-borrow-caps",
+  //   repo: "gohyun14/marginfi-borrow-caps",
+  //   author: {
+  //     name: "0xCosmic",
+  //     avatar: "https://storage.googleapis.com/mrgn-public/ecosystem-images/cosmic.jpg",
+  //     url: "https://twitter.com/0xCosmic_",
+  //   },
+  // },
+  // {
+  //   title: "health check",
+  //   description: "Account health tracker / simulator",
+  //   url: "https://marginfi-borrow-caps.vercel.app/health",
+  //   github: "https://github.com/gohyun14/marginfi-borrow-caps",
+  //   repo: "gohyun14/marginfi-borrow-caps",
+  //   author: {
+  //     name: "0xCosmic",
+  //     avatar: "https://storage.googleapis.com/mrgn-public/ecosystem-images/cosmic.jpg",
+  //     url: "https://twitter.com/0xCosmic_",
+  //   },
+  // },
   {
     title: "Juicer",
-    description: "Discover yield opportunities on Solana",
+    description: "Juicer is building on marginfi to give their users exposure to competitive lending rates.",
     url: "https://beta.juicer.fi/borrow-lend",
     author: {
       name: "juicerfi",
@@ -173,8 +183,8 @@ const projects = shuffle([
     },
   },
   {
-    title: "Fluxbot",
-    description: "Solana's #1 Telegram Trading Bot",
+    title: "Fluxbeam",
+    description: "Solana's premier Telegram trading bot is using marginfi to give their users access to liquidity for their trading strategies.",
     url: "https://fluxbot.xyz/",
     author: {
       name: "FluxBeam",
@@ -228,24 +238,24 @@ const projects = shuffle([
       avatar: "https://storage.googleapis.com/mrgn-public/ecosystem-images/meteora.jpg",
     },
   },
-  {
-    title: "Step Finance",
-    description: "Portfolio Dashboard & Analytics for Solana",
-    url: "https://www.step.finance/",
-    author: {
-      name: "Step Finance",
-      avatar: "https://storage.googleapis.com/mrgn-public/ecosystem-images/step.jpg",
-    },
-  },
-  {
-    title: "SonarWatch",
-    description: "Empowering your journey on web3 with a powerful tracking tool, multichain and open-source",
-    url: "https://sonar.watch/",
-    author: {
-      name: "SonarWatch",
-      avatar: "https://storage.googleapis.com/mrgn-public/ecosystem-images/sonar.jpg",
-    },
-  },
+  // {
+  //   title: "Step Finance",
+  //   description: "Portfolio Dashboard & Analytics for Solana",
+  //   url: "https://www.step.finance/",
+  //   author: {
+  //     name: "Step Finance",
+  //     avatar: "https://storage.googleapis.com/mrgn-public/ecosystem-images/step.jpg",
+  //   },
+  // },
+  // {
+  //   title: "SonarWatch",
+  //   description: "Empowering your journey on web3 with a powerful tracking tool, multichain and open-source",
+  //   url: "https://sonar.watch/",
+  //   author: {
+  //     name: "SonarWatch",
+  //     avatar: "https://storage.googleapis.com/mrgn-public/ecosystem-images/sonar.jpg",
+  //   },
+  // },
   {
     title: "AssetDash",
     description: "The best portfolio tracker and rewards program in crypto",
@@ -293,7 +303,7 @@ export default function Ecosystem() {
           heading={<span className="text-4xl font-medium text-primary">Ecosystem</span>}
           body={
             <p>
-              Official and community projects powered by the marginfi SDK. <br className="hidden lg:block" />
+              Production applications, powered by marginfi. <br className="hidden lg:block" />
               <Link
                 href="https://docs.marginfi.com/"
                 target="_blank"
