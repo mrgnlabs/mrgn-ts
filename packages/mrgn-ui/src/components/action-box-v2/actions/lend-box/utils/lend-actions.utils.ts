@@ -34,7 +34,7 @@ export const handleExecuteLendingAction = async ({
     tokenSymbol: bank.meta.tokenSymbol,
     tokenName: bank.meta.tokenName,
     amount,
-    processOpts: processOpts?.priorityFeeUi,
+    processOpts: processOpts?.priorityFeeMicro,
   });
 
   const txnSig = await executeLendingAction(params);
@@ -49,7 +49,7 @@ export const handleExecuteLendingAction = async ({
       tokenName: bank.meta.tokenName,
       amount: amount,
       txn: txnSig!,
-      priorityFee: processOpts?.priorityFeeUi,
+      priorityFee: processOpts?.priorityFeeMicro,
     });
   } else {
     setIsError("Transaction not landed");
@@ -80,7 +80,7 @@ export const handleExecuteCloseBalance = async ({
     tokenSymbol: bank.meta.tokenSymbol,
     tokenName: bank.meta.tokenName,
     amount: 0,
-    priorityFee: processOpts?.priorityFeeUi,
+    priorityFee: processOpts?.priorityFeeMicro,
   });
 
   // const { txnSig, error } = await closeBalance({ marginfiAccount: marginfiAccount, bank: bank, priorityFee });
@@ -99,7 +99,7 @@ export const handleExecuteCloseBalance = async ({
       tokenName: bank.meta.tokenName,
       amount: 0,
       txn: txnSig!,
-      priorityFee: processOpts?.priorityFeeUi,
+      priorityFee: processOpts?.priorityFeeMicro,
     });
   } else {
     setIsError("Transaction failed to land");

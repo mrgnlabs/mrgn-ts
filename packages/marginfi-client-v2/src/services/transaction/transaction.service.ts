@@ -17,14 +17,13 @@ import {
 } from "@solana/web3.js";
 
 import { parseTransactionError, ProcessTransactionError, ProcessTransactionErrorType } from "../../errors";
-import { formatTransactions, sendTransactionAsBundle } from "./transaction.helper";
+import { formatTransactions, sendTransactionAsBundle, sendTransactionAsBundleRpc } from "./transaction.helper";
 
 // TEMPORARY
 export const MARGINFI_PROGRAM = new PublicKey("MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA");
 
 export const DEFAULT_PROCESS_TX_OPTS = {
   broadcastType: "BUNDLE" as TransactionBroadcastType,
-  priorityFeeUi: 0,
   isSequentialTxs: true,
   isReadOnly: false,
 };
@@ -36,13 +35,30 @@ export interface ProcessTransactionOpts extends ProcessTransactionsClientOpts {
 
 export type PriorityFees = {
   bundleTipUi?: number;
-  priorityFeeUi?: number;
+  priorityFeeMicro?: number;
+};
+
+type BroadcastMethodType = Extract<TransactionBroadcastType, "BUNDLE" | "RPC">;
+
+export type SpecificBroadcastMethodType = "GRPC_BUNDLE" | "API_BUNDLE" | "RPC_BUNDLE" | "RPC_SEQUENTIAL";
+
+export type ProcessTransactionStrategy = {
+  singleTx: BroadcastMethodType;
+  multiTx: BroadcastMethodType;
+  fallbackSequence: SpecificBroadcastMethodType[];
+};
+
+export const DEFAULT_PROCESS_TX_STRATEGY: ProcessTransactionStrategy = {
+  singleTx: "RPC",
+  multiTx: "BUNDLE",
+  fallbackSequence: ["GRPC_BUNDLE", "API_BUNDLE", "RPC_BUNDLE", "RPC_SEQUENTIAL"],
 };
 
 export interface ProcessTransactionsClientOpts extends PriorityFees {
   broadcastType?: TransactionBroadcastType;
-  preferredBroadcastType?: Extract<TransactionBroadcastType, "BUNDLE" | "RPC">;
+  dynamicStrategy?: ProcessTransactionStrategy;
   isSequentialTxs?: boolean;
+  callback?: (index: number, success: boolean, signature?: string) => void;
 }
 
 type ProcessTransactionsProps = {
@@ -81,19 +97,21 @@ export async function processTransactions({
     ...processOptsArgs,
   };
 
-  if (processOpts?.broadcastType === "BUNDLE" && processOpts?.priorityFeeUi === 0) {
+  console.log("processOpts", processOpts);
+
+  if (processOpts?.broadcastType === "BUNDLE" && processOpts?.bundleTipUi === 0) {
     throw new Error("A bundle tip is required for a bundled transactions");
   }
 
   let broadcastType = processOpts.broadcastType;
 
   if (processOpts?.broadcastType === "DYNAMIC") {
-    const preferredBroadcastType = processOpts.preferredBroadcastType ?? "RPC"; // change this through env variable
+    const strategy = processOpts.dynamicStrategy ?? DEFAULT_PROCESS_TX_STRATEGY;
 
-    if (transactions.length < 1) {
-      broadcastType = preferredBroadcastType;
+    if (transactions.length > 1) {
+      broadcastType = strategy.multiTx;
     } else {
-      broadcastType = "BUNDLE";
+      broadcastType = strategy.singleTx;
     }
   }
 
@@ -112,7 +130,8 @@ export async function processTransactions({
     versionedTransactions = formatTransactions(
       transactions,
       broadcastType,
-      processOpts.priorityFeeUi,
+      processOpts.priorityFeeMicro ?? 0,
+      processOpts.bundleTipUi ?? 0,
       wallet.publicKey,
       blockhash
     );
@@ -125,36 +144,13 @@ export async function processTransactions({
 
   try {
     if (txOpts?.dryRun || processOpts?.isReadOnly) {
-      const response = await simulateBundle(
-        processOpts?.bundleSimRpcEndpoint ?? connection.rpcEndpoint,
-        versionedTransactions
-      );
-      console.log(
-        response.value.err ? `❌ Error: ${response.value.err}` : `✅ Success - ${response.value.unitsConsumed} CU`
-      );
-      console.log("------ Logs 👇 ------");
-      if (response.value.logs) {
-        for (const log of response.value.logs) {
-          console.log(log);
-        }
-      }
-
-      if (response.value.err)
-        throw new SendTransactionError({
-          action: "simulate",
-          signature: "",
-          transactionMessage: JSON.stringify(response.value.err),
-          logs: response.value.logs ?? [],
-        });
-      return [];
+      return await dryRunTransaction(processOpts, connection, versionedTransactions);
     } else {
       let base58Txs: string[] = [];
 
       if (!!wallet.signAllTransactions) {
         versionedTransactions = await wallet.signAllTransactions(versionedTransactions);
-        console.log("versionedTransactions", versionedTransactions);
         base58Txs = versionedTransactions.map((signedTx) => bs58.encode(signedTx.serialize()));
-        console.log("base58Txs", base58Txs);
       } else {
         for (let i = 0; i < versionedTransactions.length; i++) {
           const signedTx = await wallet.signTransaction(versionedTransactions[i]);
@@ -193,65 +189,30 @@ export async function processTransactions({
         });
       }
 
-      let sendTxsRpc = async (versionedTransaction: VersionedTransaction[]): Promise<string[]> => [];
-
-      // if (processOpts?.isSequentialTxs) {
-      //   sendTxsRpc = async (txs: VersionedTransaction[]) => {
-      //     let sigs = [];
-      //     for (const tx of txs) {
-      //       const signature = await connection.sendTransaction(tx, {
-      //         // minContextSlot: mergedOpts.minContextSlot,
-      //         skipPreflight: mergedOpts.skipPreflight,
-      //         preflightCommitment: mergedOpts.preflightCommitment,
-      //         maxRetries: mergedOpts.maxRetries,
-      //       });
-      //       await connection.confirmTransaction(
-      //         {
-      //           blockhash,
-      //           lastValidBlockHeight,
-      //           signature,
-      //         },
-      //         "confirmed"
-      //       );
-      //       sigs.push(signature);
-      //     }
-      //     return sigs;
-      //   };
-      // } else {
-      //   sendTxsRpc = async (txs: VersionedTransaction[]) =>
-      //     await Promise.all(
-      //       txs.map(async (versionedTransaction) => {
-      //         const signature = await connection.sendTransaction(versionedTransaction, {
-      //           // minContextSlot: mergedOpts.minContextSlot,
-      //           skipPreflight: mergedOpts.skipPreflight,
-      //           preflightCommitment: mergedOpts.preflightCommitment,
-      //           maxRetries: mergedOpts.maxRetries,
-      //         });
-      //         return signature;
-      //       })
-      //     );
-      // }
-
       if (processOpts?.broadcastType === "BUNDLE") {
         signatures = await sendTransactionAsBundle(base58Txs).catch(
-          async () => await sendTxsRpc(versionedTransactions)
+          async () =>
+            await sendTransactionAsBundleRpc({
+              versionedTransactions,
+              txOpts,
+              connection,
+              onCallback: processOpts.callback,
+              blockStrategy: { blockhash, lastValidBlockHeight },
+              confirmCommitment: mergedOpts.commitment,
+              isSequentialTxs: processOpts.isSequentialTxs,
+            })
         );
       } else {
-        signatures = await sendTxsRpc(versionedTransactions);
+        signatures = await sendTransactionAsBundleRpc({
+          versionedTransactions,
+          txOpts,
+          connection,
+          onCallback: processOpts.callback,
+          blockStrategy: { blockhash, lastValidBlockHeight },
+          confirmCommitment: "processed",
+          isSequentialTxs: processOpts.isSequentialTxs,
+        });
       }
-
-      await Promise.all(
-        signatures.map(async (signature) => {
-          await connection.confirmTransaction(
-            {
-              blockhash,
-              lastValidBlockHeight,
-              signature,
-            },
-            mergedOpts.commitment
-          );
-        })
-      );
     }
     return signatures;
   } catch (error: any) {
@@ -279,5 +240,34 @@ export async function processTransactions({
     );
   }
 }
+
+const dryRunTransaction = async (
+  processOpts: ProcessTransactionOpts,
+  connection: Connection,
+  versionedTransactions: VersionedTransaction[]
+): Promise<TransactionSignature[]> => {
+  const response = await simulateBundle(
+    processOpts?.bundleSimRpcEndpoint ?? connection.rpcEndpoint,
+    versionedTransactions
+  );
+  console.log(
+    response.value.err ? `❌ Error: ${response.value.err}` : `✅ Success - ${response.value.unitsConsumed} CU`
+  );
+  console.log("------ Logs 👇 ------");
+  if (response.value.logs) {
+    for (const log of response.value.logs) {
+      console.log(log);
+    }
+  }
+
+  if (response.value.err)
+    throw new SendTransactionError({
+      action: "simulate",
+      signature: "",
+      transactionMessage: JSON.stringify(response.value.err),
+      logs: response.value.logs ?? [],
+    });
+  return [];
+};
 
 // expo

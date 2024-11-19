@@ -5,6 +5,7 @@ import { MaxCapType, TransactionBroadcastType, TransactionPriorityType } from "@
 
 import { usePrevious } from "../mrgnUtils";
 import { fetchPriorityFee } from "../priority.utils";
+import { PriorityFees } from "@mrgnlabs/marginfi-client-v2";
 
 export const usePriorityFee = (
   priorityType: TransactionPriorityType,
@@ -12,14 +13,14 @@ export const usePriorityFee = (
   maxCapType: MaxCapType,
   maxCap: number,
   connection?: Connection
-): { bundleTipUi?: number; priorityFeeUi?: number } => {
+): PriorityFees => {
   const prevPriorityType = usePrevious(priorityType);
   const prevBroadcastType = usePrevious(broadcastType);
   const prevMaxCap = usePrevious(maxCap);
   const prevMaxCapType = usePrevious(maxCapType);
-  const [priorityFee, setPriorityFee] = React.useState<{ bundleTipUi?: number; priorityFeeUi?: number }>({
+  const [priorityFee, setPriorityFee] = React.useState<PriorityFees>({
     bundleTipUi: 0.0005,
-    priorityFeeUi: 0.0005,
+    priorityFeeMicro: 0.0005, // TODO: adjust this
   });
 
   const calculatePriorityFeeUi = React.useCallback(

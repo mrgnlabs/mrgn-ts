@@ -12,7 +12,7 @@ import { WalletContextState } from "@solana/wallet-adapter-react";
 
 import { ExtendedBankInfo, clearAccountCache } from "@mrgnlabs/marginfi-v2-ui-state";
 import { MarginfiAccountWrapper, MarginfiClient, ProcessTransactionsClientOpts } from "@mrgnlabs/marginfi-client-v2";
-import { TransactionOptions, Wallet, uiToNative } from "@mrgnlabs/mrgn-common";
+import { MRGN_TX_TYPE_TOAST_MAP, TransactionOptions, Wallet, uiToNative } from "@mrgnlabs/mrgn-common";
 
 import { WalletContextStateOverride } from "../wallet";
 import { showErrorToast, MultiStepToastHandle } from "../toasts";
@@ -182,7 +182,13 @@ export async function borrow({
   processOpts,
   txOpts,
 }: MarginfiActionParams) {
+  const additionalSteps =
+    actionTxns?.additionalTxns.map((tx) => ({
+      label: MRGN_TX_TYPE_TOAST_MAP[tx.type ?? "CRANK"],
+    })) ?? [];
+
   const multiStepToast = new MultiStepToastHandle("Borrow", [
+    ...additionalSteps,
     { label: `Borrowing ${amount} ${bank.meta.tokenSymbol}` },
   ]);
 
@@ -193,7 +199,7 @@ export async function borrow({
     if (actionTxns?.actionTxn && marginfiClient) {
       sigs = await marginfiClient.processTransactions(
         [...actionTxns.additionalTxns, actionTxns.actionTxn],
-        processOpts,
+        { ...processOpts, callback: (index, success, sig) => success && multiStepToast.setSuccessAndNext() },
         txOpts
       );
     } else if (marginfiAccount) {
@@ -201,7 +207,6 @@ export async function borrow({
     } else {
       throw new Error("Marginfi account not ready.");
     }
-    multiStepToast.setSuccessAndNext();
     return sigs;
   } catch (error: any) {
     const msg = extractErrorString(error);
@@ -228,7 +233,13 @@ export async function withdraw({
   processOpts,
   txOpts,
 }: MarginfiActionParams) {
+  const additionalSteps =
+    actionTxns?.additionalTxns.map((tx) => ({
+      label: MRGN_TX_TYPE_TOAST_MAP[tx.type ?? "CRANK"],
+    })) ?? [];
+
   const multiStepToast = new MultiStepToastHandle("Withdrawal", [
+    ...additionalSteps,
     { label: `Withdrawing ${amount} ${bank.meta.tokenSymbol}` },
   ]);
   multiStepToast.start();
@@ -239,7 +250,7 @@ export async function withdraw({
     if (actionTxns?.actionTxn && marginfiClient) {
       sigs = await marginfiClient.processTransactions(
         [...actionTxns.additionalTxns, actionTxns.actionTxn],
-        processOpts,
+        { ...processOpts, callback: (index, success, sig) => success && multiStepToast.setSuccessAndNext() },
         txOpts
       );
     } else if (marginfiAccount) {
@@ -281,7 +292,13 @@ export async function repay({
   processOpts,
   txOpts,
 }: MarginfiActionParams) {
+  const additionalSteps =
+    actionTxns?.additionalTxns.map((tx) => ({
+      label: MRGN_TX_TYPE_TOAST_MAP[tx.type ?? "CRANK"],
+    })) ?? [];
+
   const multiStepToast = new MultiStepToastHandle("Repayment", [
+    ...additionalSteps,
     { label: `Repaying ${amount} ${bank.meta.tokenSymbol}` },
   ]);
   multiStepToast.start();
@@ -293,7 +310,7 @@ export async function repay({
         (
           await marginfiClient.processTransactions(
             [...actionTxns.additionalTxns, actionTxns.actionTxn],
-            processOpts,
+            { ...processOpts, callback: (index, success, sig) => success && multiStepToast.setSuccessAndNext() },
             txOpts
           )
         ).pop() ?? "";
@@ -340,7 +357,13 @@ export async function looping({ marginfiClient, actionTxns, processOpts, txOpts,
     return;
   }
 
+  const additionalSteps =
+    actionTxns?.additionalTxns.map((tx) => ({
+      label: MRGN_TX_TYPE_TOAST_MAP[tx.type ?? "CRANK"],
+    })) ?? [];
+
   const multiStepToast = new MultiStepToastHandle("Looping", [
+    ...additionalSteps,
     {
       label: `Executing looping ${loopingProps.depositBank.meta.tokenSymbol} with ${loopingProps.borrowBank.meta.tokenSymbol}.`,
     },
@@ -353,13 +376,13 @@ export async function looping({ marginfiClient, actionTxns, processOpts, txOpts,
     if (actionTxns?.actionTxn) {
       sigs = await marginfiClient.processTransactions(
         [...actionTxns.additionalTxns, actionTxns.actionTxn],
-        processOpts,
+        { ...processOpts, callback: (index, success, sig) => success && multiStepToast.setSuccessAndNext() },
         txOpts
       );
     } else {
       // TODO fix flashloan builder to use processOpts
       const { flashloanTx, additionalTxs } = await loopingBuilder({
-        ...loopingProps
+        ...loopingProps,
       });
       sigs = await marginfiClient.processTransactions([...additionalTxs, flashloanTx], processOpts, txOpts);
     }
@@ -416,7 +439,7 @@ export async function repayWithCollat({
     if (actionTxns?.actionTxn) {
       sigs = await marginfiClient.processTransactions(
         [...actionTxns.additionalTxns, actionTxns.actionTxn],
-        processOpts,
+        { ...processOpts, callback: (index, success, sig) => success && multiStepToast.setSuccessAndNext() },
         txOpts
       );
     } else {

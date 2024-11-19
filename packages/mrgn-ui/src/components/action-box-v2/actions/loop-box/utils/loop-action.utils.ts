@@ -28,7 +28,7 @@ export const handleExecuteLoopAction = async ({
     tokenSymbol: props.borrowBank.meta.tokenSymbol,
     tokenName: props.borrowBank.meta.tokenName,
     amount: props.depositAmount,
-    priorityFee: props.processOpts?.priorityFeeUi ?? 0,
+    priorityFee: props.processOpts?.priorityFeeMicro ?? 0,
   });
 
   const txnSig = await executeLoopingAction(props);
@@ -43,7 +43,7 @@ export const handleExecuteLoopAction = async ({
       tokenName: props.borrowBank.meta.tokenName,
       amount: props.depositAmount,
       txn: txnSig!,
-      priorityFee: props.processOpts?.priorityFeeUi ?? 0,
+      priorityFee: props.processOpts?.priorityFeeMicro ?? 0,
     });
   } else {
     setIsError("Transaction not landed");

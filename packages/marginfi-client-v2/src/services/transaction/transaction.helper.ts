@@ -8,18 +8,32 @@ import {
   updateV0Tx,
   sleep,
   SolanaTransaction,
+  TransactionOptions,
   // PRIORITY_TX_SIZE,
   // BUNDLE_TX_SIZE,
   // MAX_TX_SIZE,
 } from "@mrgnlabs/mrgn-common";
-import { PublicKey, VersionedTransaction, TransactionInstruction } from "@solana/web3.js";
+import {
+  PublicKey,
+  VersionedTransaction,
+  TransactionInstruction,
+  TransactionSignature,
+  Connection,
+  TransactionConfirmationStrategy,
+  Commitment,
+  ComputeBudgetProgram,
+  LAMPORTS_PER_SOL,
+} from "@solana/web3.js";
 import { MARGINFI_IDL, MarginfiIdlType } from "../../idl";
 import { makeTxPriorityIx } from "../../models/account";
+import { SystemProgram } from "@solana/web3.js";
+import { makePriorityFeeMicroIx } from "../../utils";
 
 // Temporary imports
 export const MAX_TX_SIZE = 1232;
 export const BUNDLE_TX_SIZE = 81;
 export const PRIORITY_TX_SIZE = 44;
+export const DEFAULT_COMPUTE_BUDGET_IX = 200_000;
 
 export function isFlashloan(tx: SolanaTransaction): boolean {
   if (isV0Tx(tx)) {
@@ -31,6 +45,56 @@ export function isFlashloan(tx: SolanaTransaction): boolean {
   }
   //TODO: add legacy tx check
   return false;
+}
+
+function getComputeBudgetUnits(tx: SolanaTransaction): number | undefined {
+  let instructions: TransactionInstruction[] = [];
+
+  if (isV0Tx(tx)) {
+    const addressLookupTableAccounts = tx.addressLookupTables ?? [];
+    const message = decompileV0Transaction(tx, addressLookupTableAccounts);
+    instructions = message.instructions;
+  } else {
+    instructions = tx.instructions;
+  }
+
+  const ix = instructions.find((ix) => ix.programId.equals(ComputeBudgetProgram.programId));
+
+  if (!ix) {
+    return instructions.length * DEFAULT_COMPUTE_BUDGET_IX;
+  } else {
+    const decoded = decodeComputeBudgetInstruction(ix);
+    if (decoded.type === "RequestUnits") {
+      return decoded.units;
+    } else {
+      return decoded.heapFrameSize;
+    }
+  }
+}
+
+function decodeComputeBudgetInstruction(instruction: TransactionInstruction) {
+  const data = Buffer.from(instruction.data);
+  const tag = data[0];
+
+  switch (tag) {
+    case 0x01: // RequestUnits
+      if (data.length < 9) {
+        throw new Error("Invalid instruction data length for RequestUnits");
+      }
+      const units = data.readUInt32LE(1);
+      const additionalFee = data.readUInt32LE(5);
+      return { type: "RequestUnits", units, additionalFee };
+
+    case 0x02: // RequestHeapFrame
+      if (data.length < 5) {
+        throw new Error("Invalid instruction data length for RequestHeapFrame");
+      }
+      const heapFrameSize = data.readUInt32LE(1);
+      return { type: "RequestHeapFrame", heapFrameSize };
+
+    default:
+      throw new Error(`Unknown ComputeBudget instruction tag: ${tag}`);
+  }
 }
 
 export function hasBundleTip(tx: SolanaTransaction): boolean {
@@ -53,11 +117,18 @@ function getFlashloanIndex(transactions: SolanaTransaction[]): number | null {
   return null;
 }
 
+const microLamportsToUi = (microLamports: number, limitCU: number = 1_400_000) => {
+  const priorityFeeMicroLamports = microLamports * limitCU;
+  const priorityFeeUi = priorityFeeMicroLamports / (LAMPORTS_PER_SOL * 1_000_000);
+  return Math.trunc(priorityFeeUi * LAMPORTS_PER_SOL) / LAMPORTS_PER_SOL;
+};
+
 // TODO: add bundle tip tx if fails, measure the size
 export function formatTransactions(
   transactions: SolanaTransaction[],
   broadcastType: TransactionBroadcastType,
-  priorityFeeUi: number,
+  priorityFeeMicro: number,
+  bundleTipUi: number,
   feePayer: PublicKey,
   blockhash: string
 ): VersionedTransaction[] {
@@ -73,7 +144,13 @@ export function formatTransactions(
 
   const txSizes: number[] = transactions.map((tx) => getTxSize(tx));
 
-  const { bundleTipIx, priorityFeeIx } = makeTxPriorityIx(feePayer, priorityFeeUi, broadcastType);
+  const priorityIxs = transactions.map((tx) => {
+    const cu = getComputeBudgetUnits(tx);
+    const priorityFeeUi = microLamportsToUi(priorityFeeMicro, cu);
+    return makePriorityFeeMicroIx(priorityFeeMicro, cu);
+  });
+
+  const { bundleTipIx } = makeTxPriorityIx(feePayer, bundleTipUi, broadcastType);
 
   let bundleTipIndex = broadcastType === "BUNDLE" ? -1 : null; // if index is -1 in the end, then add bundle tx
   const priorityFeeIndexes: number[] = [];
@@ -110,8 +187,10 @@ export function formatTransactions(
     }
     const requiredIxs: TransactionInstruction[] = [
       ...(bundleTipIndex === index && bundleTipIx ? [bundleTipIx] : []),
-      ...(priorityFeeIndexes.includes(index) ? [priorityFeeIx] : []),
+      ...(priorityFeeIndexes.includes(index) ? [priorityIxs[index]] : []),
     ];
+
+    console.log("requiredIxs", requiredIxs);
 
     let newTransaction: VersionedTransaction;
 
@@ -134,6 +213,144 @@ export function formatTransactions(
   }
 
   return formattedTransactions;
+}
+
+type SendTransactionAsRpcProps = {
+  versionedTransactions: VersionedTransaction[];
+  connection: Connection;
+  blockStrategy: {
+    blockhash: string;
+    lastValidBlockHeight: number;
+  };
+  isSequentialTxs: boolean;
+  confirmCommitment?: Commitment;
+  txOpts?: TransactionOptions;
+  onCallback?: (index: number, success: boolean, sig: string) => void;
+};
+
+export async function sendTransactionAsBundleRpc({
+  versionedTransactions,
+  txOpts,
+  connection,
+  onCallback,
+  blockStrategy,
+  confirmCommitment,
+  isSequentialTxs,
+}: SendTransactionAsRpcProps): Promise<TransactionSignature[]> {
+  let signatures: TransactionSignature[] = [];
+  if (isSequentialTxs) {
+    for (const [index, tx] of versionedTransactions.entries()) {
+      console.log("length", versionedTransactions.length);
+      console.log("index", index);
+      const signature = await connection.sendTransaction(tx, txOpts);
+      console.log("signature", signature);
+      const result = await connection.confirmTransaction(
+        {
+          ...blockStrategy,
+          signature,
+        },
+        confirmCommitment
+      );
+      console.log("result", signature);
+
+      if (result.value.err) {
+        onCallback?.(index, false, signature);
+        throw result.value.err;
+      } else {
+        onCallback?.(index, true, signature);
+      }
+      signatures.push(signature);
+    }
+  } else {
+    signatures = await Promise.all(
+      versionedTransactions.map(async (versionedTransaction) => {
+        const signature = await connection.sendTransaction(versionedTransaction, txOpts);
+        return signature;
+      })
+    );
+
+    await Promise.all(
+      signatures.map(async (signature, index) => {
+        const result = await connection.confirmTransaction(
+          {
+            ...blockStrategy,
+            signature,
+          },
+          confirmCommitment
+        );
+        if (result.value.err) {
+          onCallback?.(index, false, signature);
+          throw result.value.err;
+        } else {
+          onCallback?.(index, true, signature);
+        }
+        return result;
+      })
+    );
+  }
+
+  return signatures;
+}
+
+export async function sendTransactionAsSequentialRpc({
+  versionedTransactions,
+  txOpts,
+  connection,
+  onCallback,
+  blockStrategy,
+  confirmCommitment,
+  isSequentialTxs,
+}: SendTransactionAsRpcProps): Promise<TransactionSignature[]> {
+  let signatures: TransactionSignature[] = [];
+  if (isSequentialTxs) {
+    for (const [index, tx] of versionedTransactions.entries()) {
+      const signature = await connection.sendTransaction(tx, txOpts);
+      const result = await connection.confirmTransaction(
+        {
+          ...blockStrategy,
+          signature,
+        },
+        confirmCommitment
+      );
+      console.log("result", signature);
+
+      if (result.value.err) {
+        onCallback?.(index, false, signature);
+        throw result.value.err;
+      } else {
+        onCallback?.(index, true, signature);
+      }
+      signatures.push(signature);
+    }
+  } else {
+    signatures = await Promise.all(
+      versionedTransactions.map(async (versionedTransaction) => {
+        const signature = await connection.sendTransaction(versionedTransaction, txOpts);
+        return signature;
+      })
+    );
+
+    await Promise.all(
+      signatures.map(async (signature, index) => {
+        const result = await connection.confirmTransaction(
+          {
+            ...blockStrategy,
+            signature,
+          },
+          confirmCommitment
+        );
+        if (result.value.err) {
+          onCallback?.(index, false, signature);
+          throw result.value.err;
+        } else {
+          onCallback?.(index, true, signature);
+        }
+        return result;
+      })
+    );
+  }
+
+  return signatures;
 }
 
 export async function sendTransactionAsBundle(base58Txs: string[]): Promise<string[]> {

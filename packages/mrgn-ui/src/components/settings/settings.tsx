@@ -17,9 +17,10 @@ type SettingsOptions = {
   maxCap: number;
 };
 
-const broadcastTypes: { type: TransactionBroadcastType; label: string }[] = [
-  { type: "BUNDLE", label: "Jito Bundles" },
-  { type: "RPC", label: "RPC Priority Fees" },
+const broadcastTypes: { type: TransactionBroadcastType; label: string; isDisabled: boolean }[] = [
+  { type: "DYNAMIC", label: "Dynamic", isDisabled: false },
+  { type: "BUNDLE", label: "Bundles", isDisabled: false },
+  { type: "RPC", label: "RPC", isDisabled: false },
 ];
 
 const maxCapTypes: { type: MaxCapType; label: string }[] = [
@@ -57,7 +58,7 @@ export const Settings = ({ onChange, recommendedBroadcastType = "BUNDLE", ...pro
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           {/* Add this again if sequential transaction are more stabel */}
-          {/* <div className="space-y-2">
+          <div className="space-y-2">
             <h3 className="font-normal ">Transaction Method</h3>
             <p className="text-xs text-muted-foreground">Choose how transactions are broadcasted to the network.</p>
             <FormField
@@ -67,7 +68,7 @@ export const Settings = ({ onChange, recommendedBroadcastType = "BUNDLE", ...pro
                 <FormItem className="space-y-3 pb-2">
                   <FormControl>
                     <RadioGroup
-                      onValueChange={(value) => value === "BUNDLE" && field.onChange(value)}
+                      onValueChange={(value) => field.onChange(value)}
                       defaultValue={field.value.toString()}
                       className="flex justify-between"
                     >
@@ -83,17 +84,17 @@ export const Settings = ({ onChange, recommendedBroadcastType = "BUNDLE", ...pro
                           <Label
                             className={cn(
                               "flex flex-col p-3 gap-2 h-auto w-full text-center cursor-pointer",
-                              option.type === "RPC" && "cursor-not-allowed opacity-50"
+                              option.isDisabled && "cursor-not-allowed opacity-50"
                             )}
                             htmlFor={option.type}
                           >
                             {option.label}
                           </Label>
-                          {option.type === recommendedBroadcastType && (
+                          {/* {option.type === recommendedBroadcastType && (
                             <span className="absolute translate-y-6 bottom-0 left-0 border border-accent rounded-full text-muted-foreground bg-mfi-action-box-background-dark px-1 text-xs flex items-center gap-1">
                               <IconSparkles size={12} /> Suggested
                             </span>
-                          )}
+                          )} */}
                         </div>
                       ))}
                     </RadioGroup>
@@ -101,8 +102,8 @@ export const Settings = ({ onChange, recommendedBroadcastType = "BUNDLE", ...pro
                 </FormItem>
               )}
             />
-          </div> */}
-          {/* <div className="w-full border-b border-accent" /> */}
+          </div>
+          <div className="w-full border-b border-accent" />
           <div className="space-y-2">
             <h3 className="font-normal ">Transaction Priority</h3>
             <FormField

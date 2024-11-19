@@ -519,7 +519,7 @@ export async function closePositionBuilder({
     true,
     [swapIx],
     swapLUTs,
-    priorityFees.bundleTipUi ?? priorityFees.priorityFeeUi,
+    priorityFees.bundleTipUi ?? priorityFees.priorityFeeMicro,
     isTxnSplit
   );
 

@@ -69,7 +69,7 @@ export async function looping({
     if (options.actionTxn) {
       sigs = await marginfiClient.processTransactions([...options.additionalTxns, options.actionTxn], {
         broadcastType: broadcastType,
-        priorityFeeUi: priorityFee,
+        priorityFeeMicro: priorityFee,
       });
     } else {
       if (!options.actionQuote) {
@@ -87,7 +87,7 @@ export async function looping({
       });
       sigs = await marginfiClient.processTransactions([...loopingResult.additionalTxs, loopingResult.flashloanTx], {
         broadcastType: broadcastType,
-        priorityFeeUi: priorityFee,
+        priorityFeeMicro: priorityFee,
       });
     }
     multiStepToast.setSuccessAndNext();
@@ -174,7 +174,9 @@ export function generateStats(
 
   const priceImpactPct = looping?.actionQuote ? Number(looping.actionQuote.priceImpactPct) : undefined;
   const slippageBps = looping?.actionQuote ? Number(looping.actionQuote.slippageBps) : undefined;
-  const platformFeeBps = looping?.actionQuote?.platformFee ? Number(looping.actionQuote.platformFee?.feeBps) : undefined;
+  const platformFeeBps = looping?.actionQuote?.platformFee
+    ? Number(looping.actionQuote.platformFee?.feeBps)
+    : undefined;
 
   const currentLiqPrice = currentStats.liquidationPrice ? usdFormatter.format(currentStats.liquidationPrice) : null;
   const simulatedLiqPrice = simStats?.liquidationPrice ? usdFormatter.format(simStats?.liquidationPrice) : null;

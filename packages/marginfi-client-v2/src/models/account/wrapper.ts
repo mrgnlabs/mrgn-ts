@@ -1898,16 +1898,17 @@ class MarginfiAccountWrapper {
 
 export function makeTxPriorityIx(
   feePayer: PublicKey,
-  priorityFeeUi: number = 0,
-  broadcastType: TransactionBroadcastType = "BUNDLE"
+  feeUi: number = 0,
+  broadcastType: TransactionBroadcastType = "BUNDLE",
+  computeUnitsLimit?: number
 ) {
   let bundleTipIx: TransactionInstruction | undefined = undefined;
   let priorityFeeIx: TransactionInstruction = makePriorityFeeIx()[0];
 
   if (broadcastType === "BUNDLE") {
-    bundleTipIx = makeBundleTipIx(feePayer, Math.trunc(priorityFeeUi * LAMPORTS_PER_SOL));
+    bundleTipIx = makeBundleTipIx(feePayer, Math.trunc(feeUi * LAMPORTS_PER_SOL));
   } else {
-    priorityFeeIx = makePriorityFeeIx(priorityFeeUi)[0];
+    priorityFeeIx = makePriorityFeeIx(feeUi, computeUnitsLimit)[0];
   }
 
   return {
