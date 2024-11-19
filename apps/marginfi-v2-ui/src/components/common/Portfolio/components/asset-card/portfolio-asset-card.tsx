@@ -26,15 +26,23 @@ interface PortfolioAssetCardProps {
 
 export const PortfolioAssetCard = ({ bank, isInLendingMode, isBorrower = true }: PortfolioAssetCardProps) => {
   const { rateAP } = useAssetItemData({ bank, isInLendingMode });
-  const [selectedAccount, marginfiAccounts, marginfiClient, fetchMrgnlendState, extendedBankInfos, nativeSolBalance] =
-    useMrgnlendStore((state) => [
-      state.selectedAccount,
-      state.marginfiAccounts,
-      state.marginfiClient,
-      state.fetchMrgnlendState,
-      state.extendedBankInfos,
-      state.nativeSolBalance,
-    ]);
+  const [
+    selectedAccount,
+    marginfiAccounts,
+    marginfiClient,
+    fetchMrgnlendState,
+    extendedBankInfos,
+    nativeSolBalance,
+    accountSummary,
+  ] = useMrgnlendStore((state) => [
+    state.selectedAccount,
+    state.marginfiAccounts,
+    state.marginfiClient,
+    state.fetchMrgnlendState,
+    state.extendedBankInfos,
+    state.nativeSolBalance,
+    state.accountSummary,
+  ]);
   const isIsolated = React.useMemo(() => bank.info.state.isIsolated, [bank]);
 
   const isUserPositionPoorHealth = React.useMemo(() => {
@@ -196,6 +204,7 @@ export const PortfolioAssetCard = ({ bank, isInLendingMode, isBorrower = true }:
             fetchMrgnlendState={fetchMrgnlendState}
             extendedBankInfos={extendedBankInfos}
             nativeSolBalance={nativeSolBalance}
+            accountSummary={accountSummary}
           />
         </AccordionContent>
       </AccordionItem>
