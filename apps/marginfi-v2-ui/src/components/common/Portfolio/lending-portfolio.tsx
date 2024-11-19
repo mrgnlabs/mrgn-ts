@@ -76,9 +76,7 @@ export const LendingPortfolio = () => {
   });
 
   React.useEffect(() => {
-    if (actionTxn) {
-      handleSimulation();
-    }
+    handleSimulation();
   }, [actionTxn]);
 
   const handleCollectExectuion = React.useCallback(async () => {
