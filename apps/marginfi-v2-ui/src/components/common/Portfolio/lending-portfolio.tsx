@@ -275,7 +275,20 @@ export const LendingPortfolio = () => {
           <h2 className="font-medium text-xl">Lend/borrow</h2>
 
           <div className="flex text-lg items-center gap-1.5 text-sm">
-            {rewards && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger>
+                  <div className="flex items-center gap-1">
+                    <button className="cursor-default text-muted-foreground">No outstanding rewards</button>
+                    <IconInfoCircle size={16} className="text-muted-foreground" />
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <span>There are currently no banks that are outputting rewards.</span>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            {/* {rewards && (
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger>
@@ -316,7 +329,7 @@ export const LendingPortfolio = () => {
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
-            )}
+            )} */}
           </div>
         </div>
         <div className="text-muted-foreground">
