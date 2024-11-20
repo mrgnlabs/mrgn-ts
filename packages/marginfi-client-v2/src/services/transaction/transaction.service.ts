@@ -17,7 +17,12 @@ import {
 } from "@solana/web3.js";
 
 import { parseTransactionError, ProcessTransactionError, ProcessTransactionErrorType } from "../../errors";
-import { formatTransactions, sendTransactionAsBundle, sendTransactionAsBundleRpc } from "./transaction.helper";
+import {
+  formatTransactions,
+  sendTransactionAsBundle,
+  sendTransactionAsBundleRpc,
+  sendTransactionAsGrpcBundle,
+} from "./transaction.helper";
 
 // TEMPORARY
 export const MARGINFI_PROGRAM = new PublicKey("MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA");
@@ -42,16 +47,31 @@ type BroadcastMethodType = Extract<TransactionBroadcastType, "BUNDLE" | "RPC">;
 
 export type SpecificBroadcastMethodType = "GRPC_BUNDLE" | "API_BUNDLE" | "RPC_BUNDLE" | "RPC_SEQUENTIAL";
 
+export type SpecificBroadcastMethod = {
+  method: SpecificBroadcastMethodType;
+  broadcastType: BroadcastMethodType;
+};
+
 export type ProcessTransactionStrategy = {
-  singleTx: BroadcastMethodType;
-  multiTx: BroadcastMethodType;
-  fallbackSequence: SpecificBroadcastMethodType[];
+  splitExecutionsStrategy?: {
+    singleTx: BroadcastMethodType;
+    multiTx: BroadcastMethodType;
+  };
+  fallbackSequence: SpecificBroadcastMethod[];
 };
 
 export const DEFAULT_PROCESS_TX_STRATEGY: ProcessTransactionStrategy = {
-  singleTx: "RPC",
-  multiTx: "BUNDLE",
-  fallbackSequence: ["GRPC_BUNDLE", "API_BUNDLE", "RPC_BUNDLE", "RPC_SEQUENTIAL"],
+  splitExecutionsStrategy: {
+    singleTx: "RPC",
+    multiTx: "BUNDLE",
+  },
+  // if splitExecutionsStrategy is provided, the fallbackSequence will prioritize the first relevant broadcast method in the array
+  fallbackSequence: [
+    { method: "GRPC_BUNDLE", broadcastType: "BUNDLE" },
+    { method: "API_BUNDLE", broadcastType: "BUNDLE" },
+    { method: "RPC_BUNDLE", broadcastType: "RPC" },
+    { method: "RPC_SEQUENTIAL", broadcastType: "RPC" },
+  ],
 };
 
 export interface ProcessTransactionsClientOpts extends PriorityFees {
@@ -90,8 +110,6 @@ export async function processTransactions({
   processOpts: processOptsArgs,
   txOpts,
 }: ProcessTransactionsProps): Promise<TransactionSignature[]> {
-  let signatures: TransactionSignature[] = [""];
-
   const processOpts = {
     ...DEFAULT_PROCESS_TX_OPTS,
     ...processOptsArgs,
@@ -103,15 +121,28 @@ export async function processTransactions({
     throw new Error("A bundle tip is required for a bundled transactions");
   }
 
-  let broadcastType = processOpts.broadcastType;
+  let broadcastType: BroadcastMethodType;
+  let finalFallbackMethod: SpecificBroadcastMethod[];
 
   const strategy = processOpts.dynamicStrategy ?? DEFAULT_PROCESS_TX_STRATEGY;
   if (processOpts?.broadcastType === "DYNAMIC") {
-    if (transactions.length > 1) {
-      broadcastType = strategy.multiTx;
+    if (strategy.splitExecutionsStrategy) {
+      if (transactions.length > 1) {
+        broadcastType = strategy.splitExecutionsStrategy.multiTx;
+      } else {
+        broadcastType = strategy.splitExecutionsStrategy.singleTx;
+      }
     } else {
-      broadcastType = strategy.singleTx;
+      broadcastType = strategy.fallbackSequence[0].broadcastType;
     }
+  } else {
+    broadcastType = processOpts.broadcastType;
+  }
+
+  if (broadcastType === "RPC") {
+    finalFallbackMethod = strategy.fallbackSequence.filter((method) => method.broadcastType === "RPC");
+  } else {
+    finalFallbackMethod = strategy.fallbackSequence.filter((method) => method.broadcastType === "BUNDLE");
   }
 
   let versionedTransactions: VersionedTransaction[] = [];
@@ -167,53 +198,78 @@ export async function processTransactions({
         ...txOpts,
       };
 
-      const response = await simulateBundle(
-        processOpts?.bundleSimRpcEndpoint ?? connection.rpcEndpoint,
-        versionedTransactions
-      ).catch((error) => {
-        throw new SendTransactionError({
-          action: "simulate",
-          signature: "",
-          transactionMessage: JSON.stringify(error),
-          logs: [],
-        });
-      });
-
-      if (response.value.err) {
-        throw new SendTransactionError({
-          action: "simulate",
-          signature: "",
-          transactionMessage: JSON.stringify(response.value.err),
-          logs: response.value.logs ?? [],
-        });
-      }
-
-      if (processOpts?.broadcastType === "BUNDLE") {
-        signatures = await sendTransactionAsBundle(base58Txs).catch(
-          async () =>
-            await sendTransactionAsBundleRpc({
-              versionedTransactions,
-              txOpts,
-              connection,
-              onCallback: processOpts.callback,
-              blockStrategy: { blockhash, lastValidBlockHeight },
-              confirmCommitment: mergedOpts.commitment,
-              isSequentialTxs: processOpts.isSequentialTxs,
-            })
-        );
-      } else {
-        signatures = await sendTransactionAsBundleRpc({
+      const simulateTxs = async () => await simulateTransactions(processOpts, connection, versionedTransactions);
+      const sendTxBundleGrpc = async (isLast: boolean) => await sendTransactionAsGrpcBundle(base58Txs, isLast);
+      const sendTxBundleApi = async (isLast: boolean) => await sendTransactionAsBundle(base58Txs, isLast);
+      const sendTxBundleRpc = async () =>
+        await sendTransactionAsBundleRpc({
           versionedTransactions,
           txOpts,
           connection,
           onCallback: processOpts.callback,
           blockStrategy: { blockhash, lastValidBlockHeight },
-          confirmCommitment: "processed",
+          confirmCommitment: mergedOpts.commitment,
           isSequentialTxs: processOpts.isSequentialTxs,
+          throwError: true,
         });
+
+      let signatures: TransactionSignature[] = [];
+      let bundleSignature: string | undefined;
+
+      for (const [idx, method] of finalFallbackMethod.entries()) {
+        const isLast = idx === finalFallbackMethod.length - 1;
+        if (idx === 0) {
+          await simulateTxs();
+        }
+
+        let sig: string | undefined;
+        let sigs: string[] | undefined;
+        switch (method.method) {
+          case "GRPC_BUNDLE":
+            sig = await sendTxBundleGrpc(isLast);
+            if (sig) bundleSignature = sig;
+            break;
+          case "API_BUNDLE":
+            sig = await sendTxBundleApi(isLast);
+            if (sig) bundleSignature = sig;
+            break;
+          case "RPC_BUNDLE":
+            sigs = await sendTxBundleRpc();
+            if (sigs) signatures = sigs;
+            break;
+          case "RPC_SEQUENTIAL":
+            console.log("implement");
+            break;
+        }
+
+        if (sig || sigs) {
+          break;
+        }
+      }
+
+      console.log("bundleSignatures:", bundleSignature);
+      console.log("signatures:", signatures);
+
+      if (!signatures || !bundleSignature) throw new Error("Transactions failed to land");
+
+      if (signatures.length !== 0) {
+        // await Promise.all(
+        //   signatures.map(async (signature) => {
+        //     await connection.confirmTransaction(
+        //       {
+        //         blockhash,
+        //         lastValidBlockHeight,
+        //         signature,
+        //       },
+        //       mergedOpts.commitment
+        //     );
+        //   })
+        // );
+        return signatures;
+      } else {
+        return [bundleSignature];
       }
     }
-    return signatures;
   } catch (error: any) {
     const parsedError = parseTransactionError(error, processOpts?.programId ?? MARGINFI_PROGRAM);
 
@@ -239,6 +295,49 @@ export async function processTransactions({
     );
   }
 }
+
+const simulateTransactions = async (
+  processOpts: ProcessTransactionOpts,
+  connection: Connection,
+  versionedTransactions: VersionedTransaction[]
+): Promise<TransactionSignature[]> => {
+  if (versionedTransactions.length > 1) {
+    const response = await simulateBundle(
+      processOpts?.bundleSimRpcEndpoint ?? connection.rpcEndpoint,
+      versionedTransactions
+    ).catch((error) => {
+      throw new SendTransactionError({
+        action: "simulate",
+        signature: "",
+        transactionMessage: JSON.stringify(error),
+        logs: [],
+      });
+    });
+
+    if (response.value.err) {
+      throw new SendTransactionError({
+        action: "simulate",
+        signature: "",
+        transactionMessage: JSON.stringify(response.value.err),
+        logs: response.value.logs ?? [],
+      });
+    }
+  } else {
+    const response = await connection.simulateTransaction(versionedTransactions[0], {
+      sigVerify: false,
+    });
+    if (response.value.err) {
+      throw new SendTransactionError({
+        action: "simulate",
+        signature: "",
+        transactionMessage: JSON.stringify(response.value.err),
+        logs: response.value.logs ?? [],
+      });
+    }
+  }
+
+  return [];
+};
 
 const dryRunTransaction = async (
   processOpts: ProcessTransactionOpts,

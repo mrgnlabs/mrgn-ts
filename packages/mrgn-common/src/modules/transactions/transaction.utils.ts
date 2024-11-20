@@ -2,6 +2,7 @@ import { BorshInstructionCoder, Idl, Instruction } from "@coral-xyz/anchor";
 import {
   AddressLookupTableAccount,
   ComputeBudgetProgram,
+  MessageV0,
   PublicKey,
   Signer,
   Transaction,
@@ -209,6 +210,12 @@ export function replaceV0TxInstructions(
   });
 
   return [...(replaceOnly ? [] : updatedAdditionalIxs), ...updatedInstructions];
+}
+
+export function replaceV0TxBlockhash(transaction: VersionedTransaction, blockhash: string): VersionedTransaction {
+  let message = transaction.message;
+  message.recentBlockhash = blockhash;
+  return new VersionedTransaction(message);
 }
 
 /**

@@ -178,6 +178,7 @@ type SendTransactionAsRpcProps = {
   isSequentialTxs: boolean;
   confirmCommitment?: Commitment;
   txOpts?: TransactionOptions;
+  throwError?: boolean;
   onCallback?: (index: number, success: boolean, sig: string) => void;
 };
 
@@ -189,6 +190,7 @@ export async function sendTransactionAsBundleRpc({
   blockStrategy,
   confirmCommitment,
   isSequentialTxs,
+  throwError = false,
 }: SendTransactionAsRpcProps): Promise<TransactionSignature[]> {
   let signatures: TransactionSignature[] = [];
   if (isSequentialTxs) {
@@ -306,7 +308,35 @@ export async function sendTransactionAsSequentialRpc({
   return signatures;
 }
 
-export async function sendTransactionAsBundle(base58Txs: string[]): Promise<string[]> {
+export async function sendTransactionAsGrpcBundle(
+  base58Txs: string[],
+  throwError = false
+): Promise<string | undefined> {
+  try {
+    const sendBundleResponse = await fetch("/api/bundles/sendBundle", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        transactions: base58Txs,
+      }),
+    });
+
+    const sendBundleResult = await sendBundleResponse.json();
+    if (sendBundleResult.error) throw new Error(sendBundleResult.error.message);
+    console.log("sendBundleResult:", sendBundleResult);
+
+    const bundleId = sendBundleResult.bundleId;
+
+    console.log("bundleId:", bundleId);
+
+    return bundleId;
+  } catch (error) {
+    console.error(error);
+    if (throwError) throw new Error("Bundle failed");
+  }
+}
+
+export async function sendTransactionAsBundle(base58Txs: string[], throwError = false): Promise<string | undefined> {
   try {
     const sendBundleResponse = await fetch("https://mainnet.block-engine.jito.wtf/api/v1/bundles", {
       method: "POST",
@@ -322,8 +352,7 @@ export async function sendTransactionAsBundle(base58Txs: string[]): Promise<stri
     const sendBundleResult = await sendBundleResponse.json();
     if (sendBundleResult.error) throw new Error(sendBundleResult.error.message);
 
-    const bundleId = sendBundleResult.result;
-
+    const bundleId = sendBundleResult.result as string;
     await sleep(500);
 
     for (let attempt = 0; attempt < 10; attempt++) {
@@ -354,35 +383,15 @@ export async function sendTransactionAsBundle(base58Txs: string[]): Promise<stri
       if (status === "Failed") {
         throw new Error("Bundle failed");
       } else if (status === "Landed") {
-        break;
+        return bundleId;
       }
 
       await sleep(500); // Wait before retrying
     }
-
-    const getBundleStatusResponse = await fetch("https://mainnet.block-engine.jito.wtf/api/v1/bundles", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        jsonrpc: "2.0",
-        id: 1,
-        method: "getBundleStatuses",
-        params: [[bundleId]],
-      }),
-    });
-
-    const getBundleStatusResult = await getBundleStatusResponse.json();
-
-    if (getBundleStatusResult.error) throw new Error(getBundleStatusResult.error.message);
-
-    const signature = getBundleStatusResult?.result?.value[0]?.transactions;
-
-    if (signature) {
-      return signature;
-    }
   } catch (error) {
     console.error(error);
+    if (throwError) throw new Error("Bundle failed");
   }
 
-  throw new Error("Bundle failed");
+  if (throwError) throw new Error("Bundle failed");
 }

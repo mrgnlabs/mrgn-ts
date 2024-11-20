@@ -4,7 +4,7 @@ import { useRouter } from "next/router";
 import { identify } from "@mrgnlabs/mrgn-utils";
 
 import config from "~/config/marginfi";
-import { useMrgnlendStore } from "~/store";
+import { useMrgnlendStore, useUiStore } from "~/store";
 import { useConnection } from "~/hooks/use-connection";
 import { useWallet } from "~/components/wallet-v2";
 
@@ -23,6 +23,13 @@ export const MrgnlendProvider: React.FC<{
     state.setIsRefreshingStore,
     state.resetUserData,
     state.userDataFetched,
+  ]);
+  const [priorityType, broadcastType, maxCapType, maxCap, fetchPriorityFee] = useUiStore((state) => [
+    state.priorityType,
+    state.broadcastType,
+    state.maxCapType,
+    state.maxCap,
+    state.fetchPriorityFee,
   ]);
 
   // identify user if logged in
@@ -50,6 +57,7 @@ export const MrgnlendProvider: React.FC<{
   React.useEffect(() => {
     const fetchData = () => {
       setIsRefreshingStore(true);
+      fetchPriorityFee(connection);
       fetchMrgnlendState({
         marginfiConfig: config.mfiConfig,
         stageTokens: process.env.NEXT_PUBLIC_STAGE_TOKENS
@@ -70,6 +78,7 @@ export const MrgnlendProvider: React.FC<{
 
       const id = setInterval(() => {
         setIsRefreshingStore(true);
+        fetchPriorityFee(connection);
         fetchMrgnlendState().catch(console.error);
       }, 30_000);
 

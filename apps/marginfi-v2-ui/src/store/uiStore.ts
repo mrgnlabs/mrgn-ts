@@ -7,9 +7,11 @@ import {
   TransactionPriorityType,
   TransactionSettings,
 } from "@mrgnlabs/mrgn-common";
-import { LendingModes, PoolTypes, DEFAULT_PRIORITY_SETTINGS } from "@mrgnlabs/mrgn-utils";
+import { LendingModes, PoolTypes, DEFAULT_PRIORITY_SETTINGS, fetchPriorityFee } from "@mrgnlabs/mrgn-utils";
 
 import { SortType, sortDirection, SortAssetOption } from "~/types";
+import { Connection } from "@solana/web3.js";
+import { PriorityFees } from "@mrgnlabs/marginfi-client-v2";
 
 const SORT_OPTIONS_MAP: { [key in SortType]: SortAssetOption } = {
   APY_DESC: {
@@ -54,6 +56,7 @@ interface UiState {
   priorityType: TransactionPriorityType;
   maxCap: number;
   maxCapType: MaxCapType;
+  priorityFees: PriorityFees;
 
   // Actions
   setIsMenuDrawerOpen: (isOpen: boolean) => void;
@@ -65,6 +68,7 @@ interface UiState {
   setSortOption: (sortOption: SortAssetOption) => void;
   setAssetListSearch: (search: string) => void;
   setTransactionSettings: (settings: TransactionSettings) => void;
+  fetchPriorityFee: (connection: Connection) => void;
 }
 
 function createUiStore() {
@@ -87,6 +91,7 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
   sortOption: SORT_OPTIONS_MAP[SortType.TVL_DESC],
   assetListSearch: "",
   ...DEFAULT_PRIORITY_SETTINGS,
+  priorityFees: {},
 
   // Actions
   setIsMenuDrawerOpen: (isOpen: boolean) => set({ isMenuDrawerOpen: isOpen }),
@@ -102,6 +107,15 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
   setSortOption: (sortOption: SortAssetOption) => set({ sortOption: sortOption }),
   setAssetListSearch: (search: string) => set({ assetListSearch: search }),
   setTransactionSettings: (settings: TransactionSettings) => set({ ...settings }),
+  fetchPriorityFee: async (connection: Connection) => {
+    const { maxCapType, maxCap, broadcastType, priorityType } = get();
+    try {
+      const priorityFees = await fetchPriorityFee(maxCapType, maxCap, broadcastType, priorityType, connection);
+      set({ priorityFees });
+    } catch (error) {
+      console.error(error);
+    }
+  },
 });
 
 export { createUiStore, SORT_OPTIONS_MAP };

@@ -14,7 +14,6 @@ import {
   capture,
   extractErrorString,
   usePrevious,
-  usePriorityFee,
   LoopActionTxns,
 } from "@mrgnlabs/mrgn-utils";
 import { MarginfiAccountWrapper, SimulationResult, computeMaxLeverage } from "@mrgnlabs/marginfi-client-v2";
@@ -77,28 +76,22 @@ export const TradingBox = ({ activeGroup, side = "long" }: TradingBoxProps) => {
   ]);
 
   const [
+    priorityFees,
     slippageBps,
     platformFeeBps,
-    priorityType,
     broadcastType,
-    maxCap,
-    maxCapType,
     setSlippageBps,
     setIsActionComplete,
     setPreviousTxn,
   ] = useUiStore((state) => [
+    state.priorityFees,
     state.slippageBps,
     state.platformFeeBps,
-    state.priorityType,
     state.broadcastType,
-    state.maxCap,
-    state.maxCapType,
     state.setSlippageBps,
     state.setIsActionComplete,
     state.setPreviousTxn,
   ]);
-
-  const priorityFees = usePriorityFee(priorityType, broadcastType, maxCapType, maxCap, connection);
 
   const [setIsWalletOpen] = useWalletStore((state) => [state.setIsWalletOpen]);
 
@@ -321,7 +314,7 @@ export const TradingBox = ({ activeGroup, side = "long" }: TradingBoxProps) => {
   );
 
   const handleLeverageAction = React.useCallback(async () => {
-    if (loopActionTxns && activeGroup?.client && collateralBank) {
+    if (loopActionTxns && activeGroup?.client && collateralBank && priorityFees) {
       try {
         setIsLoading(true);
         let depositBank: ExtendedBankInfo, borrowBank: ExtendedBankInfo;

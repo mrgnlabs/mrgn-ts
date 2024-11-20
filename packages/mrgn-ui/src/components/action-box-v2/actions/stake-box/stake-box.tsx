@@ -6,13 +6,7 @@ import { getPriceWithConfidence, MarginfiClient } from "@mrgnlabs/marginfi-clien
 import { AccountSummary, ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { nativeToUi, NATIVE_MINT as SOL_MINT, uiToNative } from "@mrgnlabs/mrgn-common";
-import {
-  LstData,
-  PreviousTxn,
-  ActionMessageType,
-  checkStakeActionAvailable,
-  usePriorityFee,
-} from "@mrgnlabs/mrgn-utils";
+import { LstData, PreviousTxn, ActionMessageType, checkStakeActionAvailable } from "@mrgnlabs/mrgn-utils";
 
 import { useActionAmounts } from "~/components/action-box-v2/hooks";
 import { WalletContextStateOverride } from "~/components/wallet-v2/hooks/use-wallet.hook";
@@ -105,15 +99,7 @@ export const StakeBox = ({
     actionMode,
   });
 
-  const { priorityType, broadcastType, maxCap, maxCapType } = useActionContext();
-
-  const priorityFees = usePriorityFee(
-    priorityType,
-    broadcastType,
-    maxCapType,
-    maxCap,
-    marginfiClient?.provider.connection
-  );
+  const { broadcastType, priorityFees } = useActionContext() || { broadcastType: null, priorityFees: null };
 
   const [setIsSettingsDialogOpen, setPreviousTxn, setIsActionComplete] = useActionBoxStore((state) => [
     state.setIsSettingsDialogOpen,
@@ -177,7 +163,7 @@ export const StakeBox = ({
   }, [lstData, solPriceUsd]);
 
   const handleLstAction = React.useCallback(async () => {
-    if (!selectedBank || !amount || !marginfiClient) {
+    if (!selectedBank || !amount || !marginfiClient || !broadcastType || !priorityFees) {
       return;
     }
 

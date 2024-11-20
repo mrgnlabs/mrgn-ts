@@ -15,10 +15,8 @@ import {
   ActionMessageType,
   checkLoopActionAvailable,
   ExecuteLoopingActionProps,
-  MarginfiActionParams,
   PreviousTxn,
   showErrorToast,
-  usePriorityFee,
 } from "@mrgnlabs/mrgn-utils";
 
 import { useAmountDebounce } from "~/hooks/useAmountDebounce";
@@ -121,15 +119,7 @@ export const LoopBox = ({
     state.refreshSelectedBanks,
   ]);
 
-  const { priorityType, broadcastType, maxCap, maxCapType } = useActionContext();
-
-  const priorityFees = usePriorityFee(
-    priorityType,
-    broadcastType,
-    maxCapType,
-    maxCap,
-    marginfiClient?.provider.connection
-  );
+  const { broadcastType, priorityFees } = useActionContext() || { broadcastType: null, priorityFees: null };
 
   const [slippage, setIsSettingsDialogOpen, setPreviousTxn, setIsActionComplete] = useActionBoxStore((state) => [
     state.slippageBps,
@@ -217,7 +207,7 @@ export const LoopBox = ({
   );
 
   const handleLoopAction = React.useCallback(async () => {
-    if (!selectedBank || !amount || !marginfiClient || !selectedSecondaryBank) {
+    if (!selectedBank || !amount || !marginfiClient || !selectedSecondaryBank || !broadcastType || !priorityFees) {
       return;
     }
 

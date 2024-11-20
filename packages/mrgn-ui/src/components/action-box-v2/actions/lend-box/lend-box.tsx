@@ -13,13 +13,7 @@ import {
 } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
-import {
-  ActionMessageType,
-  checkLendActionAvailable,
-  MarginfiActionParams,
-  PreviousTxn,
-  usePriorityFee,
-} from "@mrgnlabs/mrgn-utils";
+import { ActionMessageType, checkLendActionAvailable, MarginfiActionParams, PreviousTxn } from "@mrgnlabs/mrgn-utils";
 
 import { ActionButton } from "~/components/action-box-v2/components";
 
@@ -118,15 +112,7 @@ export const LendBox = ({
     state.setErrorMessage,
   ]);
 
-  const { priorityType, broadcastType, maxCap, maxCapType } = useActionContext();
-
-  const priorityFees = usePriorityFee(
-    priorityType,
-    broadcastType,
-    maxCapType,
-    maxCap,
-    marginfiClient?.provider.connection
-  );
+  const { broadcastType, priorityFees } = useActionContext() || { broadcastType: null, priorityFees: null };
 
   const accountSummary = React.useMemo(() => {
     return (
@@ -209,7 +195,7 @@ export const LendBox = ({
   const buttonLabel = React.useMemo(() => (showCloseBalance ? "Close" : lendMode), [showCloseBalance, lendMode]);
 
   const handleCloseBalance = React.useCallback(async () => {
-    if (!selectedBank || !selectedAccount) {
+    if (!selectedBank || !selectedAccount || !broadcastType || !priorityFees) {
       return;
     }
 
@@ -264,7 +250,7 @@ export const LendBox = ({
   ]);
 
   const handleLendingAction = React.useCallback(async () => {
-    if (!selectedBank || !amount) {
+    if (!selectedBank || !amount || !broadcastType || !priorityFees) {
       return;
     }
 

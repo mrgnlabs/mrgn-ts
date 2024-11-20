@@ -41,12 +41,7 @@ export default function MrgnApp({ Component, pageProps, path, bank }: AppProps &
   const [ready, setReady] = React.useState(false);
   const [rpcEndpoint, setRpcEndpoint] = React.useState("");
 
-  const [broadcastType, priorityType, maxCap, maxCapType] = useUiStore((state) => [
-    state.broadcastType,
-    state.priorityType,
-    state.maxCap,
-    state.maxCapType,
-  ]);
+  const [broadcastType, priorityFees] = useUiStore((state) => [state.broadcastType, state.priorityFees]);
 
   React.useEffect(() => {
     const init = async () => {
@@ -67,13 +62,8 @@ export default function MrgnApp({ Component, pageProps, path, bank }: AppProps &
           <TipLinkWalletAutoConnect isReady={isReady} query={query}>
             <WalletProvider wallets={WALLET_ADAPTERS} autoConnect={true}>
               <MrgnWalletProvider>
-                <ActionProvider
-                  broadcastType={broadcastType}
-                  priorityType={priorityType}
-                  maxCap={maxCap || DEFAULT_MAX_CAP}
-                  maxCapType={maxCapType}
-                >
-                  <TradePovider>
+                <TradePovider>
+                  <ActionProvider broadcastType={broadcastType} priorityFees={priorityFees}>
                     <div className="mrgn-bg-gradient">
                       <Header />
 
@@ -97,8 +87,8 @@ export default function MrgnApp({ Component, pageProps, path, bank }: AppProps &
                       <AuthDialog onboardingEnabled={false} />
                       <ToastContainer position="bottom-left" theme="light" />
                     </div>
-                  </TradePovider>
-                </ActionProvider>
+                  </ActionProvider>
+                </TradePovider>
               </MrgnWalletProvider>
             </WalletProvider>
           </TipLinkWalletAutoConnect>

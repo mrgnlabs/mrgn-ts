@@ -10,7 +10,9 @@ import {
   TransactionPriorityType,
   TransactionSettings,
 } from "@mrgnlabs/mrgn-common";
-import { DEFAULT_PRIORITY_SETTINGS } from "@mrgnlabs/mrgn-utils";
+import { DEFAULT_PRIORITY_SETTINGS, fetchPriorityFee } from "@mrgnlabs/mrgn-utils";
+import { PriorityFees } from "@mrgnlabs/marginfi-client-v2";
+import { Connection } from "@solana/web3.js";
 
 export enum WalletState {
   DEFAULT = "default",
@@ -38,6 +40,7 @@ interface UiState {
   priorityType: TransactionPriorityType;
   maxCapType: MaxCapType;
   maxCap: number;
+  priorityFees: PriorityFees;
 
   // Actions
   setIsWalletAuthDialogOpen: (isOpen: boolean) => void;
@@ -50,6 +53,7 @@ interface UiState {
   setIsActionBoxInputFocussed: (isFocussed: boolean) => void;
   setIsOnrampActive: (isOnrampActive: boolean) => void;
   setTransactionSettings: (settings: TransactionSettings) => void;
+  fetchPriorityFee: (connection: Connection) => void;
 }
 
 function createUiStore() {
@@ -82,6 +86,7 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
   walletState: WalletState.DEFAULT,
   isOnrampActive: false,
   ...DEFAULT_PRIORITY_SETTINGS,
+  priorityFees: {},
 
   // Actions
   setIsWalletAuthDialogOpen: (isOpen: boolean) => set({ isWalletAuthDialogOpen: isOpen }),
@@ -97,6 +102,15 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
   setIsActionBoxInputFocussed: (isFocussed: boolean) => set({ isActionBoxInputFocussed: isFocussed }),
   setIsOnrampActive: (isOnrampActive: boolean) => set({ isOnrampActive: isOnrampActive }),
   setTransactionSettings: (settings: TransactionSettings) => set({ ...settings }),
+  fetchPriorityFee: async (connection: Connection) => {
+    const { maxCapType, maxCap, broadcastType, priorityType } = get();
+    try {
+      const priorityFees = await fetchPriorityFee(maxCapType, maxCap, broadcastType, priorityType, connection);
+      set({ priorityFees });
+    } catch (error) {
+      console.error(error);
+    }
+  },
 });
 
 export { createUiStore };

@@ -1,16 +1,14 @@
 import React from "react";
 
-import { MaxCapType, TransactionBroadcastType, TransactionPriorityType } from "@mrgnlabs/mrgn-common";
-import { DEFAULT_PRIORITY_SETTINGS } from "@mrgnlabs/mrgn-utils";
+import { TransactionBroadcastType } from "@mrgnlabs/mrgn-common";
+import { PriorityFees } from "@mrgnlabs/marginfi-client-v2";
 
 type ActionContextType = {
-  priorityType: TransactionPriorityType;
   broadcastType: TransactionBroadcastType;
-  maxCap: number;
-  maxCapType: MaxCapType;
+  priorityFees: PriorityFees;
 };
 
-const ActionContext = React.createContext<ActionContextType>({ ...DEFAULT_PRIORITY_SETTINGS });
+const ActionContext = React.createContext<ActionContextType | null>(null);
 
 export const ActionProvider: React.FC<ActionContextType & { children: React.ReactNode }> = ({ children, ...props }) => {
   return <ActionContext.Provider value={props}>{children}</ActionContext.Provider>;

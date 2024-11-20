@@ -12,11 +12,9 @@ import {
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import {
   PreviousTxn,
-  usePriorityFee,
   ActionMessageType,
   showErrorToast,
   checkRepayCollatActionAvailable,
-  MarginfiActionParams,
   ExecuteRepayWithCollatActionProps,
 } from "@mrgnlabs/mrgn-utils";
 
@@ -112,14 +110,7 @@ export const RepayCollatBox = ({
     state.refreshSelectedBanks,
   ]);
 
-  const { priorityType, broadcastType, maxCap, maxCapType } = useActionContext();
-  const priorityFees = usePriorityFee(
-    priorityType,
-    broadcastType,
-    maxCapType,
-    maxCap,
-    marginfiClient?.provider.connection
-  );
+  const { broadcastType, priorityFees } = useActionContext() || { broadcastType: null, priorityFees: null };
 
   const { isRefreshTxn, blockProgress } = usePollBlockHeight(
     marginfiClient?.provider.connection,
@@ -209,7 +200,9 @@ export const RepayCollatBox = ({
       !marginfiClient ||
       !selectedAccount ||
       !selectedSecondaryBank ||
-      !actionTxns.actionQuote
+      !actionTxns.actionQuote ||
+      !broadcastType ||
+      !priorityFees
     ) {
       return;
     }

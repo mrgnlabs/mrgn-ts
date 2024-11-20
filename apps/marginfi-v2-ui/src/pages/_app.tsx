@@ -47,13 +47,11 @@ const Footer = dynamic(async () => (await import("~/components/desktop/Footer"))
 type MrgnAppProps = { path: string };
 
 export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnAppProps) {
-  const [priorityType, broadcastType, maxCapType, maxCap, setIsFetchingData, isOraclesStale] = useUiStore((state) => [
-    state.priorityType,
+  const [broadcastType, priorityFees, isOraclesStale, setIsFetchingData] = useUiStore((state) => [
     state.broadcastType,
-    state.maxCapType,
-    state.maxCap,
-    state.setIsFetchingData,
+    state.priorityFees,
     state.isOraclesStale,
+    state.setIsFetchingData,
   ]);
   const [
     isMrgnlendStoreInitialized,
@@ -103,12 +101,7 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
               <MrgnWalletProvider>
                 <MrgnlendProvider>
                   <LipClientProvider>
-                    <ActionProvider
-                      broadcastType={broadcastType}
-                      priorityType={priorityType}
-                      maxCap={maxCap || DEFAULT_MAX_CAP}
-                      maxCapType={maxCapType}
-                    >
+                    <ActionProvider broadcastType={broadcastType} priorityFees={priorityFees}>
                       <ActionBoxProvider
                         banks={extendedBankInfos}
                         nativeSolBalance={nativeSolBalance}
