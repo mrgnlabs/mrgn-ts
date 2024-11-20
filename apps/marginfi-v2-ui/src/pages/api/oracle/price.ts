@@ -26,6 +26,9 @@ import config from "~/config/marginfi";
 
 const SWITCHBOARD_CROSSSBAR_API = "https://crossbar.switchboard.xyz";
 
+const S_MAXAGE_TIME = 10;
+const STALE_WHILE_REVALIDATE_TIME = 15;
+
 interface OracleData {
   oracleKey: string;
   oracleSetup: OracleSetup;
@@ -132,7 +135,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       const currentTime = Math.round(Date.now() / 1000);
       const oracleTime = oraclePrice.timestamp.toNumber();
-      const isStale = currentTime - oracleTime > oracleData.maxAge;
+      const maxAge = oracleData.maxAge + S_MAXAGE_TIME; // add some buffer to maxAge to account for api route cache
+      const isStale = currentTime - oracleTime > maxAge;
 
       // If on-chain data is recent enough, use it even for SwitchboardPull oracles
       if (oracleData.oracleSetup === OracleSetup.SwitchboardPull && isStale) {
@@ -187,7 +191,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const updatedOraclePricesSorted = requestedOraclesData.map((value) => updatedOraclePrices.get(value.oracleKey)!);
 
-    res.setHeader("Cache-Control", "s-maxage=10, stale-while-revalidate=59");
+    res.setHeader("Cache-Control", `s-maxage=${S_MAXAGE_TIME}, stale-while-revalidate=${STALE_WHILE_REVALIDATE_TIME}`);
     return res.status(200).json(updatedOraclePricesSorted.map(stringifyOraclePrice));
   } catch (error) {
     console.error("Error:", error);
