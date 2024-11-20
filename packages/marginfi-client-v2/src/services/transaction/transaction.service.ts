@@ -145,6 +145,9 @@ export async function processTransactions({
     finalFallbackMethod = strategy.fallbackSequence.filter((method) => method.broadcastType === "BUNDLE");
   }
 
+  console.log("decided broadcast type:", broadcastType);
+  console.log("decided fallback methods:", finalFallbackMethod);
+
   let versionedTransactions: VersionedTransaction[] = [];
   let minContextSlot: number;
   let blockhash: string;
@@ -250,8 +253,6 @@ export async function processTransactions({
       console.log("bundleSignatures:", bundleSignature);
       console.log("signatures:", signatures);
 
-      if (!signatures || !bundleSignature) throw new Error("Transactions failed to land");
-
       if (signatures.length !== 0) {
         // await Promise.all(
         //   signatures.map(async (signature) => {
@@ -267,6 +268,7 @@ export async function processTransactions({
         // );
         return signatures;
       } else {
+        if (!bundleSignature) throw new Error("Transactions failed to land");
         return [bundleSignature];
       }
     }

@@ -187,7 +187,8 @@ export function replaceV0TxInstructions(
   instructions: TransactionInstruction[],
   replaceOnly?: boolean
 ): TransactionInstruction[] {
-  let updatedAdditionalIxs: TransactionInstruction[] = [];
+  let updatedAdditionalIxs: TransactionInstruction[] = additionalInstructions;
+
   const updatedInstructions = instructions.map((ix) => {
     const programId = ix.programId;
     const additionalIxs = additionalInstructions.filter((a) => a.programId.equals(programId));

@@ -67,8 +67,8 @@ interface UiState {
   setPoolFilter: (poolType: PoolTypes) => void;
   setSortOption: (sortOption: SortAssetOption) => void;
   setAssetListSearch: (search: string) => void;
-  setTransactionSettings: (settings: TransactionSettings) => void;
-  fetchPriorityFee: (connection: Connection) => void;
+  setTransactionSettings: (settings: TransactionSettings, connection: Connection) => void;
+  fetchPriorityFee: (connection: Connection, settings?: TransactionSettings) => void;
 }
 
 function createUiStore() {
@@ -106,9 +106,12 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
   setPoolFilter: (poolType: PoolTypes) => set({ poolFilter: poolType }),
   setSortOption: (sortOption: SortAssetOption) => set({ sortOption: sortOption }),
   setAssetListSearch: (search: string) => set({ assetListSearch: search }),
-  setTransactionSettings: (settings: TransactionSettings) => set({ ...settings }),
-  fetchPriorityFee: async (connection: Connection) => {
-    const { maxCapType, maxCap, broadcastType, priorityType } = get();
+  setTransactionSettings: (settings: TransactionSettings, connection: Connection) => {
+    set({ ...settings });
+    get().fetchPriorityFee(connection, settings);
+  },
+  fetchPriorityFee: async (connection: Connection, settings?: TransactionSettings) => {
+    const { maxCapType, maxCap, broadcastType, priorityType } = settings ?? get();
     try {
       const priorityFees = await fetchPriorityFee(maxCapType, maxCap, broadcastType, priorityType, connection);
       set({ priorityFees });

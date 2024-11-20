@@ -68,6 +68,11 @@ function getFlashloanIndex(transactions: SolanaTransaction[]): number | null {
   return null;
 }
 
+const uiToMicroLamports = (ui: number, limitCU: number = 1_400_000) => {
+  const priorityFeeMicroLamports = ui * LAMPORTS_PER_SOL * 1_000_000;
+  return priorityFeeMicroLamports / limitCU;
+};
+
 const microLamportsToUi = (microLamports: number, limitCU: number = 1_400_000) => {
   const priorityFeeMicroLamports = microLamports * limitCU;
   const priorityFeeUi = priorityFeeMicroLamports / (LAMPORTS_PER_SOL * 1_000_000);
@@ -94,11 +99,23 @@ export function formatTransactions(
   });
 
   const txSizes: number[] = transactions.map((tx) => getTxSize(tx));
+  const dummyPriorityFeeIx = makePriorityFeeMicroIx(1);
 
   const priorityIxs = transactions.map((tx) => {
+    if (broadcastType === "BUNDLE") {
+      return dummyPriorityFeeIx;
+    }
+
     const cu = getComputeBudgetUnits(tx);
     const priorityFeeUi = microLamportsToUi(priorityFeeMicro, cu);
-    return makePriorityFeeMicroIx(priorityFeeMicro, cu);
+
+    let updatedFees = priorityFeeMicro;
+    // don't want to pay more than 0.008 SOL in fees
+    if (priorityFeeUi > 0.008) {
+      updatedFees = uiToMicroLamports(0.008, cu);
+    }
+
+    return makePriorityFeeMicroIx(updatedFees, cu);
   });
 
   const { bundleTipIx } = makeTxPriorityIx(feePayer, bundleTipUi, broadcastType);
@@ -107,22 +124,22 @@ export function formatTransactions(
   const priorityFeeIndexes: number[] = [];
 
   for (let i = 0; i < txSizes.length; i++) {
-    if (flashloanIndex !== i) {
-      let baseTxSize = txSizes[i];
+    let baseTxSize = txSizes[i];
 
+    if (flashloanIndex !== i) {
       if (bundleTipIndex === -1 && txSizes[i] + BUNDLE_TX_SIZE < MAX_TX_SIZE) {
         baseTxSize += BUNDLE_TX_SIZE;
         bundleTipIndex = i;
       }
+    }
 
-      if (baseTxSize + PRIORITY_TX_SIZE < MAX_TX_SIZE) {
-        priorityFeeIndexes.push(i);
-      }
+    if (flashloanIndex === i || baseTxSize + PRIORITY_TX_SIZE < MAX_TX_SIZE) {
+      priorityFeeIndexes.push(i);
     }
   }
 
   for (const [index, transaction] of transactions.entries()) {
-    const hasFlashloan = !!flashloanIndex; // check if there is a flashloan
+    const hasFlashloan = flashloanIndex !== null; // check if there is a flashloan
     const isTxFlashloan = hasFlashloan && flashloanIndex === index; // check if the tx is the flashloan tx
 
     const signers = transaction.signers ?? [];
@@ -140,8 +157,6 @@ export function formatTransactions(
       ...(bundleTipIndex === index && bundleTipIx ? [bundleTipIx] : []),
       ...(priorityFeeIndexes.includes(index) ? [priorityIxs[index]] : []),
     ];
-
-    console.log("requiredIxs", requiredIxs);
 
     let newTransaction: VersionedTransaction;
 
@@ -195,10 +210,7 @@ export async function sendTransactionAsBundleRpc({
   let signatures: TransactionSignature[] = [];
   if (isSequentialTxs) {
     for (const [index, tx] of versionedTransactions.entries()) {
-      console.log("length", versionedTransactions.length);
-      console.log("index", index);
       const signature = await connection.sendTransaction(tx, txOpts);
-      console.log("signature", signature);
       const result = await connection.confirmTransaction(
         {
           ...blockStrategy,
@@ -206,7 +218,6 @@ export async function sendTransactionAsBundleRpc({
         },
         confirmCommitment
       );
-      console.log("result", signature);
 
       if (result.value.err) {
         onCallback?.(index, false, signature);
@@ -331,7 +342,7 @@ export async function sendTransactionAsGrpcBundle(
 
     return bundleId;
   } catch (error) {
-    console.error(error);
+    console.log("GRCP BUNDLE FAILED");
     if (throwError) throw new Error("Bundle failed");
   }
 }
@@ -350,7 +361,13 @@ export async function sendTransactionAsBundle(base58Txs: string[], throwError = 
     });
 
     const sendBundleResult = await sendBundleResponse.json();
-    if (sendBundleResult.error) throw new Error(sendBundleResult.error.message);
+    if (sendBundleResult.error) {
+      if (sendBundleResult.error.message.includes("already processed")) {
+        return "0x0"; // todo add proper bundle id
+      }
+
+      throw new Error(sendBundleResult.error.message);
+    }
 
     const bundleId = sendBundleResult.result as string;
     await sleep(500);
@@ -389,7 +406,7 @@ export async function sendTransactionAsBundle(base58Txs: string[], throwError = 
       await sleep(500); // Wait before retrying
     }
   } catch (error) {
-    console.error(error);
+    console.log("API BUNDLE FAILED");
     if (throwError) throw new Error("Bundle failed");
   }
 

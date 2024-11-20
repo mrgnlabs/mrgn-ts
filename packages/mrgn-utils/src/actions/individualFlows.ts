@@ -155,7 +155,7 @@ export async function deposit({
     } else {
       throw new Error("Marginfi account not ready.");
     }
-    multiStepToast.setSuccessAndNext();
+    multiStepToast.setSuccess();
     return txnSig;
   } catch (error: any) {
     const msg = extractErrorString(error);
@@ -207,6 +207,7 @@ export async function borrow({
     } else {
       throw new Error("Marginfi account not ready.");
     }
+    multiStepToast.setSuccess();
     return sigs;
   } catch (error: any) {
     const msg = extractErrorString(error);
@@ -265,7 +266,7 @@ export async function withdraw({
     } else {
       throw new Error("Marginfi account not ready.");
     }
-    multiStepToast.setSuccessAndNext();
+    multiStepToast.setSuccess();
     return sigs;
   } catch (error: any) {
     const msg = extractErrorString(error);
@@ -326,7 +327,7 @@ export async function repay({
     } else {
       throw new Error("Marginfi account not ready.");
     }
-    multiStepToast.setSuccessAndNext();
+    multiStepToast.setSuccess();
     return txnSig;
   } catch (error: any) {
     const msg = extractErrorString(error);
@@ -387,7 +388,7 @@ export async function looping({ marginfiClient, actionTxns, processOpts, txOpts,
       sigs = await marginfiClient.processTransactions([...additionalTxs, flashloanTx], processOpts, txOpts);
     }
 
-    multiStepToast.setSuccessAndNext();
+    multiStepToast.setSuccess();
     return sigs;
   } catch (error: any) {
     const msg = extractErrorString(error);
@@ -451,7 +452,7 @@ export async function repayWithCollat({
 
       sigs = await marginfiClient.processTransactions([...additionalTxs, flashloanTx], processOpts, txOpts);
     }
-    multiStepToast.setSuccessAndNext();
+    multiStepToast.setSuccess();
     return sigs;
   } catch (error: any) {
     const msg = extractErrorString(error);

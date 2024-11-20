@@ -24,13 +24,7 @@ export const MrgnlendProvider: React.FC<{
     state.resetUserData,
     state.userDataFetched,
   ]);
-  const [priorityType, broadcastType, maxCapType, maxCap, fetchPriorityFee] = useUiStore((state) => [
-    state.priorityType,
-    state.broadcastType,
-    state.maxCapType,
-    state.maxCap,
-    state.fetchPriorityFee,
-  ]);
+  const [fetchPriorityFee] = useUiStore((state) => [state.fetchPriorityFee]);
 
   // identify user if logged in
   React.useEffect(() => {
