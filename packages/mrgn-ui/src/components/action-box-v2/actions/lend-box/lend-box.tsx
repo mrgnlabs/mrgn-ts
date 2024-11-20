@@ -163,6 +163,7 @@ export const LendBox = ({
 
   const [lstDialogCallback, setLSTDialogCallback] = React.useState<(() => void) | null>(null);
   const [additionalActionMessages, setAdditionalActionMessages] = React.useState<ActionMessageType[]>([]);
+  const [allowRefresh, setAllowRefresh] = React.useState(false);
 
   // Cleanup the store when the wallet disconnects
   React.useEffect(() => {
@@ -247,6 +248,7 @@ export const LendBox = ({
               bank: selectedBank as ActiveBankInfo,
             },
           });
+        setAllowRefresh(true);
       },
       setIsError: () => {},
       setIsLoading: (isLoading) => setIsLoading(isLoading),
@@ -314,6 +316,7 @@ export const LendBox = ({
                 bank: selectedBank as ActiveBankInfo,
               },
             });
+          setAllowRefresh(true);
         },
         setIsError: () => {},
         setIsLoading: (isLoading) => setIsLoading(isLoading),
@@ -348,6 +351,14 @@ export const LendBox = ({
     onComplete,
     setIsLoading,
   ]);
+
+  React.useEffect(() => {
+    if (allowRefresh) {
+      refreshSelectedBanks(banks);
+      setAllowRefresh(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [marginfiClient]);
 
   return (
     <>
