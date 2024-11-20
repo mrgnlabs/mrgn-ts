@@ -93,7 +93,7 @@ async function fetchLeaderboardData(connection: Connection, settings: Leaderboar
   }
 
   const pointsQuery = query(
-    collection(firebaseApi.db, "points"),
+    collection(firebaseApi.db, "migrated_points"),
     ...(settings.search
       ? searchQ
       : [
@@ -146,7 +146,7 @@ async function fetchLeaderboardData(connection: Connection, settings: Leaderboar
 }
 
 async function fetchTotalLeaderboardCount() {
-  const q = query(collection(firebaseApi.db, "points"), where("total_points", ">=", 1));
+  const q = query(collection(firebaseApi.db, "migrated_points"), where("total_points", ">=", 1));
   const qCount = await getCountFromServer(q);
   const count = qCount.data().count;
   return count;
@@ -166,7 +166,7 @@ async function fetchLeaderboardDataOld({
   orderCol?: string;
   orderDir?: "desc" | "asc";
 }): Promise<LeaderboardRow[]> {
-  const pointsCollection = collection(firebaseApi.db, "points");
+  const pointsCollection = collection(firebaseApi.db, "migrated_points");
 
   const pointsQuery: Query<DocumentData> = query(
     pointsCollection,
@@ -214,7 +214,7 @@ async function fetchLeaderboardDataOld({
 // Firebase query is very constrained, so we calculate the number of users with more points
 // as the the count of users with more points inclusive of corrupted rows - the count of corrupted rows
 async function fetchUserRank(address: string): Promise<number> {
-  const q = query(collection(firebaseApi.db, "points"), where("owner", "==", address));
+  const q = query(collection(firebaseApi.db, "migrated_points"), where("owner", "==", address));
 
   const data = await getDocs(q);
 
@@ -226,8 +226,8 @@ async function fetchUserRank(address: string): Promise<number> {
 }
 
 async function fetchTotalUserCount() {
-  const q1 = query(collection(firebaseApi.db, "points"));
-  const q2 = query(collection(firebaseApi.db, "points"), where("owner", "==", null));
+  const q1 = query(collection(firebaseApi.db, "migrated_points"));
+  const q2 = query(collection(firebaseApi.db, "migrated_points"), where("owner", "==", null));
   const q1Count = await getCountFromServer(q1);
   const q2Count = await getCountFromServer(q2);
   return q1Count.data().count - q2Count.data().count;
@@ -258,7 +258,7 @@ const DEFAULT_USER_POINTS_DATA: UserPointsData = {
 const getPointsDataForUser = async (wallet: string | undefined): Promise<UserPointsData> => {
   if (!wallet) return DEFAULT_USER_POINTS_DATA;
 
-  const userPointsDoc = doc(firebaseApi.db, "points", wallet);
+  const userPointsDoc = doc(firebaseApi.db, "migrated_points", wallet);
   const userPublicProfileDoc = doc(firebaseApi.db, "users_public", wallet);
 
   let userPointsSnap;
