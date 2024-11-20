@@ -615,6 +615,7 @@ class MarginfiAccountWrapper {
     let flashloanTx: ExtendedV0Transaction;
     let txOverflown = false;
 
+    // if atas are needed, add them
     if (setupIxs.length > 0) {
       const message = new TransactionMessage({
         payerKey: this.client.wallet.publicKey,
@@ -625,6 +626,7 @@ class MarginfiAccountWrapper {
       additionalTxs.push(new VersionedTransaction(message));
     }
 
+    // if crank is needed, add it
     if (updateFeedIxs.length > 0) {
       const message = new TransactionMessage({
         payerKey: this.client.wallet.publicKey,
@@ -640,37 +642,39 @@ class MarginfiAccountWrapper {
     }
 
     const addressLookupTableAccounts = [...this.client.addressLookupTables, ...swapLookupTables];
-    if (cuRequestIxs) {
-      // if cuRequestIxs are present, no priority fee ix is needed
-      flashloanTx = await this.buildFlashLoanTx({
-        ixs: [...cuRequestIxs, ...setupIxs, ...borrowIxs.instructions, ...swapIxs, ...depositIxs.instructions],
-        addressLookupTableAccounts,
-        blockhash,
-      });
-    } else {
-      // if cuRequestIxs are not present, priority fee ix is needed
-      // wallets add a priority fee ix by default breaking the flashloan tx so we need to add a placeholder priority fee ix
-      // docs: https://docs.phantom.app/developer-powertools/solana-priority-fees
-      flashloanTx = await this.buildFlashLoanTx({
-        ixs: [priorityFeeIx, ...borrowIxs.instructions, ...swapIxs, ...depositIxs.instructions],
-        addressLookupTableAccounts,
-        blockhash,
-      });
 
+    // if cuRequestIxs are not present, priority fee ix is needed
+    // wallets add a priority fee ix by default breaking the flashloan tx so we need to add a placeholder priority fee ix
+    // docs: https://docs.phantom.app/developer-powertools/solana-priority-fees
+    flashloanTx = await this.buildFlashLoanTx({
+      ixs: [...cuRequestIxs, priorityFeeIx, ...borrowIxs.instructions, ...swapIxs, ...depositIxs.instructions],
+      addressLookupTableAccounts,
+      blockhash,
+    });
+
+    const txSize = getTxSize(flashloanTx);
+    const accountKeys = getAccountKeys(flashloanTx, addressLookupTableAccounts);
+    const txToManyKeys = accountKeys > MAX_ACCOUNT_KEYS;
+    const txToBig = txSize > MAX_TX_SIZE;
+    const canBeDownsized = txToManyKeys && txToBig && txSize - PRIORITY_TX_SIZE <= MAX_TX_SIZE;
+
+    if (canBeDownsized) {
+      // wallets won't add a priority fee if tx space is limited
+      // this will decrease landing rate for non-rpc calls
+      flashloanTx = await this.buildFlashLoanTx({
+        ixs: [...cuRequestIxs, ...borrowIxs.instructions, ...swapIxs, ...depositIxs.instructions],
+        addressLookupTableAccounts,
+        blockhash,
+      });
       const txSize = getTxSize(flashloanTx);
       const txToBig = txSize > MAX_TX_SIZE;
-      const canBeDownsized = txToBig && txSize - PRIORITY_TX_SIZE <= MAX_TX_SIZE;
 
-      if (canBeDownsized) {
-        // wallets won't add a priority fee if tx space is limited
-        flashloanTx = await this.buildFlashLoanTx({
-          ixs: [...borrowIxs.instructions, ...swapIxs, ...depositIxs.instructions],
-          addressLookupTableAccounts,
-          blockhash,
-        });
-      } else {
+      // this shouldn't trigger, but just in case
+      if (txToBig) {
         txOverflown = true;
       }
+    } else if (txToBig || txToManyKeys) {
+      txOverflown = true;
     }
 
     return { flashloanTx, additionalTxs, txOverflown };
