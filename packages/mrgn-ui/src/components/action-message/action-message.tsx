@@ -14,7 +14,8 @@ export const ActionMessage = ({ _actionMessage }: ActionMessageProps) => {
         "flex space-x-2 py-2.5 px-3.5 rounded-lg gap-1 text-sm",
         _actionMessage.actionMethod === "INFO" && "bg-info text-info-foreground",
         (!_actionMessage.actionMethod || _actionMessage.actionMethod === "WARNING") && "bg-alert text-alert-foreground",
-        _actionMessage.actionMethod === "ERROR" && "bg-[#990000] text-primary"
+        _actionMessage.actionMethod === "ERROR" &&
+          "bg-destructive border border-destructive-foreground/10 text-destructive-foreground"
       )}
     >
       <IconAlertTriangle className="shrink-0 translate-y-0.5" size={16} />

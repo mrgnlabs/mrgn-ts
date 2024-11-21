@@ -1,7 +1,7 @@
 import React from "react";
 
 import Image from "next/image";
-import { IconAlertTriangle } from "@tabler/icons-react";
+import { IconAlertTriangle, IconFolderShare } from "@tabler/icons-react";
 
 import { usdFormatter, dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
 import { ActiveBankInfo, ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
@@ -183,15 +183,14 @@ export const PortfolioAssetCard = ({ bank, isInLendingMode, isBorrower = true }:
           </div>
 
           {postionMovingPossible && (
-            <Button
+            <button
               onClick={() => {
                 setIsMovePositionDialogOpen(true);
               }}
-              variant={"ghost"}
-              className="w-max self-center underline"
+              className="my-2 w-max self-center text-muted-foreground/75 font-normal text-xs flex items-center gap-1 transition-opacity hover:text-muted-foreground/100"
             >
-              Move position to another account
-            </Button>
+              <IconFolderShare size={14} /> Move position
+            </button>
           )}
 
           <MovePositionDialog

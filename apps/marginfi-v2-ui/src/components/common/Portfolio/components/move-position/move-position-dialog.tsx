@@ -66,6 +66,7 @@ export const MovePositionDialog = ({
   });
 
   const [accountLabels, setAccountLabels] = React.useState<Record<string, string>>({});
+  const [actionBlocked, setActionBlocked] = React.useState<boolean>(false);
 
   const fetchAccountLabels = React.useCallback(async () => {
     const fetchAccountLabel = async (account: MarginfiAccountWrapper) => {
@@ -95,6 +96,7 @@ export const MovePositionDialog = ({
         actionMethod: "ERROR",
         description: "Moving this position is blocked to prevent poor account health.",
       });
+      setActionBlocked(true);
       return [];
     }
 
@@ -198,7 +200,7 @@ export const MovePositionDialog = ({
     >
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Move position to another account</DialogTitle>
+          <DialogTitle>Move position</DialogTitle>
           <DialogDescription>Move your position to another account</DialogDescription>
         </DialogHeader>
 
@@ -214,50 +216,41 @@ export const MovePositionDialog = ({
               {bank.position.usdValue < 0.01 ? "< $0.01" : usdFormatter.format(bank.position.usdValue)}
             </dd>
           </dl>
-          <div className="flex justify-between w-full items-center">
-            <span className="text-muted-foreground">Select account to move position to:</span>
-            <Select
-              onValueChange={(value) => {
-                setAccountToMoveTo(marginfiAccounts.find((account) => account.address.toBase58() === value) || null);
-              }}
-            >
-              <SelectTrigger className="w-max">
-                {accountToMoveTo
-                  ? accountLabels[accountToMoveTo?.address.toBase58()]
-                    ? accountLabels[accountToMoveTo?.address.toBase58()]
-                    : `Account ${
-                        marginfiAccounts.findIndex(
-                          (acc) => acc.address.toBase58() === accountToMoveTo?.address.toBase58()
-                        ) + 1
-                      }`
-                  : "Select account"}
-              </SelectTrigger>
-              <SelectContent>
-                {marginfiAccounts
-                  ?.filter((acc) => acc.address.toBase58() !== selectedAccount?.address.toBase58())
-                  .map((account, i) => (
-                    <SelectItem key={i} value={account.address.toBase58()}>
-                      {accountLabels[account.address.toBase58()]
-                        ? accountLabels[account.address.toBase58()]
-                        : `Account ${
-                            marginfiAccounts.findIndex(
-                              (_acc) => _acc.address.toBase58() === account?.address.toBase58()
-                            ) + 1
-                          }`}
-                    </SelectItem>
-                  ))}
-              </SelectContent>
-            </Select>
-          </div>
-          {accountToMoveTo && (
+          {!actionBlocked && (
             <div className="flex justify-between w-full items-center">
-              <span className="text-muted-foreground">Account address:</span>
-              <div className="flex gap-1 items-center">
-                <span className="text-muted-foreground ">
-                  {`${accountToMoveTo?.address.toBase58().slice(0, 8)}
-                    ...${accountToMoveTo?.address.toBase58().slice(-8)}`}
-                </span>
-              </div>
+              <span className="text-muted-foreground">Select account to move position to:</span>
+              <Select
+                onValueChange={(value) => {
+                  setAccountToMoveTo(marginfiAccounts.find((account) => account.address.toBase58() === value) || null);
+                }}
+              >
+                <SelectTrigger className="w-max">
+                  {accountToMoveTo
+                    ? accountLabels[accountToMoveTo?.address.toBase58()]
+                      ? accountLabels[accountToMoveTo?.address.toBase58()]
+                      : `Account ${
+                          marginfiAccounts.findIndex(
+                            (acc) => acc.address.toBase58() === accountToMoveTo?.address.toBase58()
+                          ) + 1
+                        }`
+                    : "Select account"}
+                </SelectTrigger>
+                <SelectContent>
+                  {marginfiAccounts
+                    ?.filter((acc) => acc.address.toBase58() !== selectedAccount?.address.toBase58())
+                    .map((account, i) => (
+                      <SelectItem key={i} value={account.address.toBase58()}>
+                        {accountLabels[account.address.toBase58()]
+                          ? accountLabels[account.address.toBase58()]
+                          : `Account ${
+                              marginfiAccounts.findIndex(
+                                (_acc) => _acc.address.toBase58() === account?.address.toBase58()
+                              ) + 1
+                            }`}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
             </div>
           )}
           {actionSummary && (
@@ -295,8 +288,8 @@ export const MovePositionDialog = ({
         </Button>
 
         <div className=" text-xs text-muted-foreground text-center">
-          The transaction will look like there are no balance changes for this position. The position/funds will be
-          moved between marginfi accounts, but will remain on the same wallet.
+          The transaction will show no balance changes. The position will be moved between marginfi accounts owned by
+          the same wallet.
         </div>
       </DialogContent>
     </Dialog>
