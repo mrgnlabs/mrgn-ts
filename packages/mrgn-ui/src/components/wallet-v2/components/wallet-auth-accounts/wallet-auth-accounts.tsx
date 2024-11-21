@@ -34,6 +34,7 @@ type WalletAuthAccountsProps = {
   fetchMrgnlendState: () => void;
   closeOnSwitch?: boolean;
   popoverContentAlign?: "start" | "end" | "center";
+  showAddAccountButton?: boolean;
 };
 
 export const WalletAuthAccounts = ({
@@ -45,6 +46,7 @@ export const WalletAuthAccounts = ({
   fetchMrgnlendState,
   closeOnSwitch = false,
   popoverContentAlign = "center",
+  showAddAccountButton = true,
 }: WalletAuthAccountsProps) => {
   const [popoverOpen, setPopoverOpen] = React.useState(false);
   const { wallet, walletContextState } = useWallet();
@@ -328,19 +330,21 @@ export const WalletAuthAccounts = ({
                   );
                 })}
               </div>
-              <Button
-                variant="outline"
-                className="w-full"
-                onClick={() => {
-                  if (!newAccountName) {
-                    setNewAccountName(`Account ${marginfiAccounts.length + 1}`);
-                  }
-                  setWalletAuthAccountsState(WalletAuthAccountsState.ADD_ACCOUNT);
-                }}
-              >
-                <IconUserPlus size={16} className="mr-2" />
-                Add account
-              </Button>
+              {showAddAccountButton && (
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => {
+                    if (!newAccountName) {
+                      setNewAccountName(`Account ${marginfiAccounts.length + 1}`);
+                    }
+                    setWalletAuthAccountsState(WalletAuthAccountsState.ADD_ACCOUNT);
+                  }}
+                >
+                  <IconUserPlus size={16} className="mr-2" />
+                  Add account
+                </Button>
+              )}
             </div>
           )}
 
