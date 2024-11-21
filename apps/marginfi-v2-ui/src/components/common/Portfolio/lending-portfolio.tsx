@@ -190,26 +190,14 @@ export const LendingPortfolio = () => {
             and make your first deposit
             {hasMultipleAccount && " or select a different account from the dropdown below"}.
           </p>
-          {hasMultipleAccount && (
-            <WalletAuthAccounts
-              initialized={true}
-              mfiClient={marginfiClient}
-              connection={marginfiClient?.provider.connection ?? null}
-              marginfiAccounts={marginfiAccounts}
-              selectedAccount={selectedAccount}
-              fetchMrgnlendState={fetchMrgnlendState}
-              closeOnSwitch={true}
-              popoverContentAlign="center"
-            />
-          )}
         </div>
       );
     }
   }
 
   return (
-    <div className="py-4 md:py-6 flex flex-col w-full mb-10 gap-2">
-      <div className="px-4 md:px-6 flex items-center gap-1">
+    <div className="py-4 md:py-6 flex flex-col w-full mb-10 gap-4">
+      <div className="px-4 md:px-6 flex items-center">
         {hasMultipleAccount && (
           <WalletAuthAccounts
             initialized={true}
@@ -220,6 +208,7 @@ export const LendingPortfolio = () => {
             fetchMrgnlendState={fetchMrgnlendState}
             closeOnSwitch={true}
             popoverContentAlign="start"
+            showAddAccountButton={false}
           />
         )}
       </div>
