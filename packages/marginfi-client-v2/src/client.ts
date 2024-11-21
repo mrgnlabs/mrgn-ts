@@ -1064,18 +1064,18 @@ class MarginfiClient {
         };
 
         try {
-          bundleSignature = (await this.sendTransactionAsGrpcBundle([base58Tx]))[0];
+          bundleSignature = await this.sendTransactionAsGrpcBundle([base58Tx]);
         } catch (e) {
-          // try {
-          //   bundleSignature = (await this.sendTransactionAsBundle([base58Tx]))[0];
-          // } catch (e) {
-          //   signature = await connection.sendTransaction(versionedTransaction, {
-          //     // minContextSlot: mergedOpts.minContextSlot,
-          //     skipPreflight: mergedOpts.skipPreflight,
-          //     preflightCommitment: mergedOpts.preflightCommitment,
-          //     maxRetries: mergedOpts.maxRetries,
-          //   });
-          // }
+          try {
+            bundleSignature = await this.sendTransactionAsBundle([base58Tx]);
+          } catch (e) {
+            signature = await connection.sendTransaction(versionedTransaction, {
+              minContextSlot: mergedOpts.minContextSlot,
+              skipPreflight: mergedOpts.skipPreflight,
+              preflightCommitment: mergedOpts.preflightCommitment,
+              maxRetries: mergedOpts.maxRetries,
+            });
+          }
         }
 
         if (signature !== "") {
