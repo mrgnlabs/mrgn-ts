@@ -398,7 +398,7 @@ export function makeLendingPosition(
   const amounts = balance.computeQuantity(bank);
   const usdValues = balance.computeUsdValue(bank, oraclePrice, MarginRequirementType.Equity);
   const weightedUSDValues = balance.getUsdValueWithPriceBias(bank, oraclePrice, MarginRequirementType.Maintenance);
-  const isLending = balance.liabilityShares.isZero();
+  const isLending = balance.assetShares.gt(balance.liabilityShares);
 
   const amount = isLending
     ? nativeToUi(amounts.assets.integerValue(BigNumber.ROUND_DOWN).toNumber(), bankInfo.mintDecimals)
