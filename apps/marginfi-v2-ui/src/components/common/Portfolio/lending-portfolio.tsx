@@ -180,14 +180,29 @@ export const LendingPortfolio = () => {
   if (isStoreInitialized && connected) {
     if (!lendingBanks.length && !borrowingBanks.length) {
       return (
-        <p className="text-center mt-4 text-muted-foreground">
-          You do not have any open positions.
-          <br className="md:hidden" />{" "}
-          <Link href="/" className="border-b border-muted-foreground transition-colors hover:border-transparent">
-            Explore the pools
-          </Link>{" "}
-          and make your first deposit!
-        </p>
+        <div className="flex flex-col items-center justify-center gap-4">
+          <p className="text-center mt-4 text-muted-foreground">
+            You do not have any open positions.
+            <br className="md:hidden" />{" "}
+            <Link href="/" className="border-b border-muted-foreground transition-colors hover:border-transparent">
+              Explore the pools
+            </Link>{" "}
+            and make your first deposit
+            {hasMultipleAccount && " or select a different account from the dropdown below"}.
+          </p>
+          {hasMultipleAccount && (
+            <WalletAuthAccounts
+              initialized={true}
+              mfiClient={marginfiClient}
+              connection={marginfiClient?.provider.connection ?? null}
+              marginfiAccounts={marginfiAccounts}
+              selectedAccount={selectedAccount}
+              fetchMrgnlendState={fetchMrgnlendState}
+              closeOnSwitch={true}
+              popoverContentAlign="center"
+            />
+          )}
+        </div>
       );
     }
   }
