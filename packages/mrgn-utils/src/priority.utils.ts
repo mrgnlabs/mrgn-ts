@@ -168,8 +168,6 @@ export const getRpcPriorityFeeMicroLamports = async (connection: Connection, pri
 
   let priorityFee = 0;
 
-  console.log({ min, max, mean, median });
-
   if (priorityType === "HIGH") {
     priorityFee = mean;
   } else if (priorityType === "MAMAS") {
