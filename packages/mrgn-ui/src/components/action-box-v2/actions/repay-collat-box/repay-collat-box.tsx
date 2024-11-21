@@ -86,6 +86,7 @@ export const RepayCollatBox = ({
     setRepayAmount,
     setMaxAmountCollateral,
     setIsLoading,
+    refreshSelectedBanks,
   ] = useRepayCollatBoxStore((state) => [
     state.maxAmountCollateral,
     state.repayAmount,
@@ -107,6 +108,7 @@ export const RepayCollatBox = ({
     state.setRepayAmount,
     state.setMaxAmountCollateral,
     state.setIsLoading,
+    state.refreshSelectedBanks,
   ]);
 
   const { priorityType, broadcastType, maxCap, maxCapType } = useActionContext();
@@ -270,6 +272,12 @@ export const RepayCollatBox = ({
     setIsLoading,
     setPreviousTxn,
   ]);
+
+  React.useEffect(() => {
+    if (marginfiClient) {
+      refreshSelectedBanks(banks);
+    }
+  }, [marginfiClient, banks, refreshSelectedBanks]);
 
   return (
     <>

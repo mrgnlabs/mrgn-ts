@@ -93,6 +93,7 @@ export const LoopBox = ({
     setMaxLeverage,
     setLeverage,
     setIsLoading,
+    refreshSelectedBanks,
   ] = useLoopBoxStore((state) => [
     state.leverage,
     state.maxLeverage,
@@ -116,6 +117,7 @@ export const LoopBox = ({
     state.setMaxLeverage,
     state.setLeverage,
     state.setIsLoading,
+    state.refreshSelectedBanks,
   ]);
 
   const { priorityType, broadcastType, maxCap, maxCapType } = useActionContext();
@@ -298,6 +300,12 @@ export const LoopBox = ({
     setPreviousTxn,
     slippage,
   ]);
+
+  React.useEffect(() => {
+    if (marginfiClient) {
+      refreshSelectedBanks(banks);
+    }
+  }, [marginfiClient, banks, refreshSelectedBanks]);
 
   return (
     <>
