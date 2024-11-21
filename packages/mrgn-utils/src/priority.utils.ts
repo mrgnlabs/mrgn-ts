@@ -166,16 +166,16 @@ export const getRpcPriorityFeeMicroLamports = async (connection: Connection, pri
     20
   );
 
-  // const maxCap = await calculatePriorityFeeCap(connection, userMaxCap);
-
   let priorityFee = 0;
+
+  console.log({ min, max, mean, median });
 
   if (priorityType === "HIGH") {
     priorityFee = mean;
   } else if (priorityType === "MAMAS") {
     priorityFee = max.prioritizationFee;
   } else {
-    priorityFee = min.prioritizationFee;
+    priorityFee = Math.min(median, mean);
   }
 
   return priorityFee;
