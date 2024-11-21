@@ -226,7 +226,7 @@ export const LendingPortfolio = () => {
                   </div>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <span>There are currently no banks that are outputting rewards.</span>
+                  <span>Additional rewards from bank emissions can be collected here when available.</span>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
