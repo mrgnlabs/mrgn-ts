@@ -285,6 +285,12 @@ export const StakeBox = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [actionTxns]);
 
+  React.useEffect(() => {
+    if (marginfiClient) {
+      refreshSelectedBanks(banks);
+    }
+  }, [marginfiClient, banks, refreshSelectedBanks]);
+
   return (
     <>
       <div className="mb-6">
