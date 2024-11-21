@@ -31,7 +31,7 @@ export const DEFAULT_MAX_CAP = 0.008;
 
 export const DEFAULT_PRIORITY_SETTINGS = {
   priorityType: "NORMAL" as TransactionPriorityType,
-  broadcastType: "BUNDLE" as TransactionBroadcastType,
+  broadcastType: "DYNAMIC" as TransactionBroadcastType,
   maxCap: DEFAULT_MAX_CAP,
   maxCapType: "DYNAMIC" as MaxCapType,
 };
