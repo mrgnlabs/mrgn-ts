@@ -44,15 +44,7 @@ export const useMoveSimulation = ({
   const [actionSummary, setActionSummary] = React.useState<ActionSummary | null>(null);
 
   const generateTxns = React.useCallback(async () => {
-    if (!marginfiClient || !accountToMoveTo) {
-      return;
-    }
-    if (activeBank.userInfo.maxWithdraw < activeBank.position.amount) {
-      setErrorMessage({
-        isEnabled: true,
-        actionMethod: "ERROR",
-        description: "Cannot move position, insufficient collateral.",
-      });
+    if (!marginfiClient || !accountToMoveTo || activeBank.userInfo.maxWithdraw < activeBank.position.amount) {
       return;
     }
 

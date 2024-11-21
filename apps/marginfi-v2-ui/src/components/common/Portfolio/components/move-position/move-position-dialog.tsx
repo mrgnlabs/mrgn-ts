@@ -65,7 +65,39 @@ export const MovePositionDialog = ({
     setErrorMessage,
   });
 
+  const [accountLabels, setAccountLabels] = React.useState<Record<string, string>>({});
+
+  const fetchAccountLabels = React.useCallback(async () => {
+    const fetchAccountLabel = async (account: MarginfiAccountWrapper) => {
+      const accountLabelReq = await fetch(`/api/user/account-label?account=${account.address.toBase58()}`);
+
+      if (!accountLabelReq.ok) {
+        console.error("Error fetching account labels");
+        return;
+      }
+
+      const accountLabelData = await accountLabelReq.json();
+      let accountLabel = `Account ${marginfiAccounts.findIndex((acc) => acc.address.equals(account.address)) + 1}`;
+
+      setAccountLabels((prev) => ({
+        ...prev,
+        [account.address.toBase58()]: accountLabelData.data.label || accountLabel,
+      }));
+    };
+
+    marginfiAccounts.forEach(fetchAccountLabel);
+  }, [marginfiAccounts, setAccountLabels]);
+
   const actionMessages = React.useMemo(() => {
+    if (bank.userInfo.maxWithdraw < bank.position.amount) {
+      setErrorMessage({
+        isEnabled: true,
+        actionMethod: "ERROR",
+        description: "Moving this position is blocked to prevent poor account health.",
+      });
+      return [];
+    }
+
     setAdditionalActionMessages([]);
     const withdrawActionResult = checkLendActionAvailable({
       amount: bank.position.amount,
@@ -85,7 +117,8 @@ export const MovePositionDialog = ({
       banks: extendedBankInfos,
       lendMode: ActionType.Deposit,
       marginfiAccount: accountToMoveTo!,
-    });
+    }).filter((result) => !/^Insufficient .* in wallet\.$/.test(result.description ?? ""));
+    // filtering out insufficient balance messages since the user will always have enough balance after withdrawing
 
     return [...withdrawActionResult, ...depositActionResult];
   }, [bank, selectedAccount, extendedBankInfos, accountToMoveTo, nativeSolBalance]);
@@ -102,6 +135,7 @@ export const MovePositionDialog = ({
     if (isSimulationLoading) return true;
     if (isExecutionLoading) return true;
     if (errorMessage?.isEnabled) return true;
+    if (actionMessages.some((actionMessage) => actionMessage.actionMethod === "ERROR")) return true;
     return false;
   }, [accountToMoveTo, actionMessages, isSimulationLoading, isExecutionLoading, errorMessage]);
 
@@ -138,7 +172,13 @@ export const MovePositionDialog = ({
   React.useEffect(() => {
     if (!accountToMoveTo) return;
     handleSimulateTxns();
-  }, [accountToMoveTo, handleSimulateTxns]);
+  }, [accountToMoveTo]);
+
+  React.useEffect(() => {
+    if (marginfiAccounts.length > 0) {
+      fetchAccountLabels();
+    }
+  }, [marginfiAccounts, fetchAccountLabels]);
 
   return (
     <Dialog
@@ -183,12 +223,13 @@ export const MovePositionDialog = ({
             >
               <SelectTrigger className="w-max">
                 {accountToMoveTo
-                  ? `Account 
-                  ${
-                    marginfiAccounts.findIndex(
-                      (account) => account.address.toBase58() === accountToMoveTo?.address.toBase58()
-                    ) + 1
-                  }`
+                  ? accountLabels[accountToMoveTo?.address.toBase58()]
+                    ? accountLabels[accountToMoveTo?.address.toBase58()]
+                    : `Account ${
+                        marginfiAccounts.findIndex(
+                          (acc) => acc.address.toBase58() === accountToMoveTo?.address.toBase58()
+                        ) + 1
+                      }`
                   : "Select account"}
               </SelectTrigger>
               <SelectContent>
@@ -196,9 +237,13 @@ export const MovePositionDialog = ({
                   ?.filter((acc) => acc.address.toBase58() !== selectedAccount?.address.toBase58())
                   .map((account, i) => (
                     <SelectItem key={i} value={account.address.toBase58()}>
-                      Account{" "}
-                      {marginfiAccounts.findIndex((_acc) => _acc.address.toBase58() === account?.address.toBase58()) +
-                        1}
+                      {accountLabels[account.address.toBase58()]
+                        ? accountLabels[account.address.toBase58()]
+                        : `Account ${
+                            marginfiAccounts.findIndex(
+                              (_acc) => _acc.address.toBase58() === account?.address.toBase58()
+                            ) + 1
+                          }`}
                     </SelectItem>
                   ))}
               </SelectContent>
@@ -229,7 +274,7 @@ export const MovePositionDialog = ({
               >
                 <>
                   {accountSummary?.healthFactor && percentFormatter.format(accountSummary?.healthFactor)}
-                  {actionSummary.health ? <IconArrowRight width={12} height={12} /> : ""}
+                  <IconArrowRight width={12} height={12} />
                   {percentFormatter.format(actionSummary.health)}
                 </>
               </dd>

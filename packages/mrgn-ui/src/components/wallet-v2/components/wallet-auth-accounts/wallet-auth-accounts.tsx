@@ -28,10 +28,12 @@ enum WalletAuthAccountsState {
 type WalletAuthAccountsProps = {
   initialized: boolean;
   mfiClient: MarginfiClient | null;
-  connection: Connection;
+  connection: Connection | null;
   marginfiAccounts: MarginfiAccountWrapper[];
   selectedAccount: MarginfiAccountWrapper | null;
   fetchMrgnlendState: () => void;
+  closeOnSwitch?: boolean;
+  popoverContentAlign?: "start" | "end" | "center";
 };
 
 export const WalletAuthAccounts = ({
@@ -41,7 +43,10 @@ export const WalletAuthAccounts = ({
   marginfiAccounts,
   selectedAccount,
   fetchMrgnlendState,
+  closeOnSwitch = false,
+  popoverContentAlign = "center",
 }: WalletAuthAccountsProps) => {
+  const [popoverOpen, setPopoverOpen] = React.useState(false);
   const { wallet, walletContextState } = useWallet();
   const [isActivatingAccount, setIsActivatingAccount] = React.useState<number | null>(null);
   const [isActivatingAccountDelay, setIsActivatingAccountDelay] = React.useState<number | null>(null);
@@ -72,9 +77,13 @@ export const WalletAuthAccounts = ({
       setIsActivatingAccountDelay(null);
       capture("account_switched", { wallet: account.authority.toBase58(), account: account.address.toBase58() });
 
+      if (closeOnSwitch) {
+        setPopoverOpen(false);
+      }
+
       return () => clearTimeout(switchingLabelTimer);
     },
-    [fetchMrgnlendState, selectedAccount]
+    [fetchMrgnlendState, selectedAccount, closeOnSwitch]
   );
 
   const fetchAccountLabels = React.useCallback(async () => {
@@ -113,6 +122,7 @@ export const WalletAuthAccounts = ({
 
   const editAccount = React.useCallback(async () => {
     if (
+      !connection ||
       !editingAccount ||
       !editingAccountName ||
       editingAccountName === accountLabels[editingAccount.address.toBase58()]
@@ -160,7 +170,7 @@ export const WalletAuthAccounts = ({
   }, [editingAccount, editingAccountName, fetchAccountLabels, accountLabels, connection, wallet, useAuthTxn]);
 
   const createNewAccount = React.useCallback(async () => {
-    if (!newAccountName || !mfiClient || !wallet.publicKey || newAccountName.length > 20) {
+    if (!connection || !newAccountName || !mfiClient || !wallet.publicKey || newAccountName.length > 20) {
       return;
     }
 
@@ -239,7 +249,9 @@ export const WalletAuthAccounts = ({
           if (open) {
             checkAndClearAccountCache();
           }
+          setPopoverOpen(open);
         }}
+        open={popoverOpen}
       >
         {selectedAccount && accountLabels[selectedAccount.address.toBase58()] && (
           <PopoverTrigger asChild>
@@ -252,7 +264,7 @@ export const WalletAuthAccounts = ({
           </PopoverTrigger>
         )}
         {/* TODO: fix this z-index mess */}
-        <PopoverContent className="w-80 z-50">
+        <PopoverContent className="w-80 z-50" align={popoverContentAlign}>
           {walletAuthAccountsState === WalletAuthAccountsState.DEFAULT && (
             <div className="grid gap-4 w-[80]">
               <div className="space-y-2">

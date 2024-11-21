@@ -90,5 +90,6 @@ export function simulatedHealthFactor(simulationResult: SimulationResult) {
   );
 
   const health = assets.minus(liabilities).dividedBy(assets).toNumber();
-  return health;
+
+  return isNaN(health) ? 0 : health;
 }

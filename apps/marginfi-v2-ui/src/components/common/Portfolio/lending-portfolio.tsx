@@ -2,37 +2,30 @@ import React from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 
-import { PublicKey, VersionedTransaction } from "@solana/web3.js";
-import { IconInfoCircle, IconUserPlus } from "@tabler/icons-react";
+import { VersionedTransaction } from "@solana/web3.js";
+import { IconInfoCircle } from "@tabler/icons-react";
 
 import { numeralFormatter } from "@mrgnlabs/mrgn-common";
 import { usdFormatter, usdFormatterDyn } from "@mrgnlabs/mrgn-common";
 import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { LendingModes, MultiStepToastHandle, EMISSION_MINT_INFO_MAP } from "@mrgnlabs/mrgn-utils";
+import { LendingModes } from "@mrgnlabs/mrgn-utils";
 
 import { useMrgnlendStore, useUiStore, useUserProfileStore } from "~/store";
 
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
-import { WalletButton } from "~/components/wallet-v2";
+import { WalletAuthAccounts, WalletButton } from "~/components/wallet-v2";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { Loader } from "~/components/ui/loader";
 import { RewardsDialog } from "./components/rewards";
-import { IconLoader } from "~/components/ui/icons";
 
 import { PortfolioAssetCard, PortfolioAssetCardSkeleton, PortfolioUserStats } from "./components";
 import { rewardsType } from "./types";
 import { useRewardSimulation } from "./hooks";
 import { executeCollectTxn } from "./utils";
-import { Select, SelectContent, SelectItem, SelectTrigger } from "~/components/ui/select";
-import { Button } from "~/components/ui/button";
-import { useWalletStore } from "~/components/wallet-v2/store/wallet.store";
-
 export const LendingPortfolio = () => {
   const router = useRouter();
   const { connected } = useWallet();
   const [walletConnectionDelay, setWalletConnectionDelay] = React.useState(false);
-  const [isAccountSelectOpen, setIsAccountSelectOpen] = React.useState(false);
-  const [setIsWalletOpen] = useWalletStore((state) => [state.setIsWalletOpen]);
 
   const [
     isStoreInitialized,
@@ -63,6 +56,7 @@ export const LendingPortfolio = () => {
   const [rewardsDialogOpen, setRewardsDialogOpen] = React.useState(false);
   const [actionTxn, setActionTxn] = React.useState<VersionedTransaction | null>(null);
   const [rewardsLoading, setRewardsLoading] = React.useState(false);
+  const hasMultipleAccount = React.useMemo(() => marginfiAccounts.length > 1, [marginfiAccounts]);
 
   const { handleSimulation } = useRewardSimulation({
     simulationResult: rewards,
@@ -175,33 +169,6 @@ export const LendingPortfolio = () => {
     }
   }, [connected]);
 
-  // Switching account logic
-  const [isSwitchingAccount, setIsSwitchingAccount] = React.useState<boolean>(false);
-
-  const hasMultipleAccount = React.useMemo(() => marginfiAccounts.length > 1, [marginfiAccounts]);
-
-  const handleSwitchAccount = React.useCallback(
-    async (value: PublicKey) => {
-      if (selectedAccount?.address.toBase58() === value.toBase58()) return;
-      setIsSwitchingAccount(true);
-      const multiStepToast = new MultiStepToastHandle("Switching account", [{ label: "Fetching account data" }]);
-      try {
-        multiStepToast.start();
-        const account = marginfiAccounts.find((account) => account.address.toBase58() === value.toBase58());
-        if (!account) return;
-        localStorage.setItem("mfiAccount", account.address.toBase58());
-        await fetchMrgnlendState();
-        multiStepToast.setSuccessAndNext();
-      } catch (error) {
-        console.error(error);
-        multiStepToast.setFailed("Failed to switch account");
-      } finally {
-        setIsSwitchingAccount(false);
-      }
-    },
-    [fetchMrgnlendState, marginfiAccounts, selectedAccount?.address]
-  );
-
   if (isStoreInitialized && !connected) {
     return <WalletButton />;
   }
@@ -229,45 +196,16 @@ export const LendingPortfolio = () => {
     <div className="py-4 md:py-6 flex flex-col w-full mb-10 gap-2">
       <div className="px-4 md:px-6 flex items-center gap-1">
         {hasMultipleAccount && (
-          <>
-            <p>Current account:</p>
-            <Select
-              onValueChange={(value) => {
-                handleSwitchAccount(new PublicKey(value));
-              }}
-              disabled={isSwitchingAccount}
-              open={isAccountSelectOpen}
-              onOpenChange={(open) => {
-                setIsAccountSelectOpen(open);
-              }}
-              value={selectedAccount?.address.toBase58()}
-            >
-              <SelectTrigger className="w-max">
-                Account{" "}
-                {marginfiAccounts.findIndex(
-                  (account) => account.address.toBase58() === selectedAccount?.address.toBase58()
-                ) + 1}
-              </SelectTrigger>
-              <SelectContent>
-                {marginfiAccounts.map((account, i) => (
-                  <SelectItem key={i} value={account.address.toBase58()}>
-                    Account {i + 1}
-                  </SelectItem>
-                ))}
-                <Button
-                  onClick={() => {
-                    setIsWalletOpen(true);
-                    setIsAccountSelectOpen(false);
-                  }}
-                  className="flex items-center mt-1 w-full font-light h-[32px] py-1.5 pl-2 pr-8 text-sm cursor-pointer hover:bg-background-gray-dark hover:text-primary"
-                  variant="outline"
-                >
-                  <IconUserPlus size={16} />
-                  Add account
-                </Button>
-              </SelectContent>
-            </Select>
-          </>
+          <WalletAuthAccounts
+            initialized={true}
+            mfiClient={marginfiClient}
+            connection={marginfiClient?.provider.connection ?? null}
+            marginfiAccounts={marginfiAccounts}
+            selectedAccount={selectedAccount}
+            fetchMrgnlendState={fetchMrgnlendState}
+            closeOnSwitch={true}
+            popoverContentAlign="start"
+          />
         )}
       </div>
       <div className="p-4 md:p-6 rounded-xl space-y-3 w-full bg-background-gray-dark">
@@ -427,10 +365,10 @@ export const LendingPortfolio = () => {
                   ))}
                 </div>
               ) : (
-                <div color="#868E95" className="font-aeonik font-[300] text-sm flex gap-1">
+                <div color="#868E95" className="inline font-aeonik font-[300]  text-sm">
                   No borrow positions found.{" "}
                   <button
-                    className="border-b border-primary/50 transition-colors hover:border-primary"
+                    className="border-b border-primary/50 transition-colors hover:border-primary "
                     onClick={() => {
                       setLendingMode(LendingModes.BORROW);
                       router.push("/");
