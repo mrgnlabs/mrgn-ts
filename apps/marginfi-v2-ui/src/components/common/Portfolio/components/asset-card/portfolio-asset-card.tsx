@@ -3,7 +3,7 @@ import React from "react";
 import Image from "next/image";
 import { IconAlertTriangle } from "@tabler/icons-react";
 
-import { usdFormatter, dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
+import { usdFormatter, dynamicNumeralFormatter, groupedNumberFormatter } from "@mrgnlabs/mrgn-common";
 import { ActiveBankInfo, ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { capture } from "@mrgnlabs/mrgn-utils";
 import { ActionBox } from "@mrgnlabs/mrgn-ui";
@@ -85,11 +85,6 @@ export const PortfolioAssetCard = ({ bank, isInLendingMode, isBorrower = true }:
                 </dl>
               </div>
               <div className="font-medium text-lg mr-2">
-                {/* {bank.position.amount < 0.01
-                  ? "< $0.01"
-                  : dynamicNumeralFormatter(bank.position.amount, {
-                      tokenPrice: bank.info.oraclePrice.priceRealtime.price.toNumber(),
-                    })} */}
                 {dynamicNumeralFormatter(bank.position.amount, {
                   tokenPrice: bank.info.oraclePrice.priceRealtime.price.toNumber(),
                 })}
@@ -136,6 +131,11 @@ export const PortfolioAssetCard = ({ bank, isInLendingMode, isBorrower = true }:
           )}
           <div className="bg-background/60 py-3 px-4 rounded-lg">
             <dl className="grid grid-cols-2 gap-y-0.5">
+              <dt className="text-muted-foreground">Value</dt>
+              <dd className="text-right text-white">
+                {bank.position.amount < 0.01 ? "< $0.01" : groupedNumberFormatter.format(bank.position.amount)}
+                {" " + bank.meta.tokenSymbol}
+              </dd>
               <dt className="text-muted-foreground">USD value</dt>
               <dd className="text-right text-white">
                 {bank.position.usdValue < 0.01 ? "< $0.01" : usdFormatter.format(bank.position.usdValue)}
