@@ -38,6 +38,10 @@ export function chunks<T>(array: T[], size: number): T[][] {
   );
 }
 
+export function setTimeoutPromise(duration: number, message: string): Promise<Error> {
+  return new Promise((_, reject) => setTimeout(() => reject(new Error(message)), duration));
+}
+
 interface Result {
   jsonrpc: string;
   result: {

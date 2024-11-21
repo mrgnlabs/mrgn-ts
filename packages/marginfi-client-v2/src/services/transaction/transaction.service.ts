@@ -6,6 +6,8 @@ import {
   DEFAULT_CONFIRM_OPTS,
   Wallet,
   SolanaTransaction,
+  sleep,
+  setTimeoutPromise,
 } from "@mrgnlabs/mrgn-common";
 import {
   VersionedTransaction,
@@ -14,6 +16,7 @@ import {
   SendTransactionError,
   ConfirmOptions,
   PublicKey,
+  Commitment,
 } from "@solana/web3.js";
 
 import { parseTransactionError, ProcessTransactionError, ProcessTransactionErrorType } from "../../errors";
@@ -114,6 +117,7 @@ export async function processTransactions({
     ...DEFAULT_PROCESS_TX_OPTS,
     ...processOptsArgs,
   };
+  const commitment = connection.commitment ?? DEFAULT_CONFIRM_OPTS.commitment;
 
   console.log("processOpts", processOpts);
 
@@ -154,7 +158,7 @@ export async function processTransactions({
   let lastValidBlockHeight: number;
 
   try {
-    const getLatestBlockhashAndContext = await connection.getLatestBlockhashAndContext("confirmed");
+    const getLatestBlockhashAndContext = await connection.getLatestBlockhashAndContext(commitment);
 
     minContextSlot = getLatestBlockhashAndContext.context.slot - 4;
     blockhash = getLatestBlockhashAndContext.value.blockhash;
@@ -175,6 +179,14 @@ export async function processTransactions({
     throw new ProcessTransactionError(error.message, ProcessTransactionErrorType.TransactionBuildingError);
   }
 
+  let mergedOpts: ConfirmOptions = {
+    ...DEFAULT_CONFIRM_OPTS,
+    commitment,
+    preflightCommitment: commitment,
+    minContextSlot,
+    ...txOpts,
+  };
+
   try {
     if (txOpts?.dryRun || processOpts?.isReadOnly) {
       return await dryRunTransaction(processOpts, connection, versionedTransactions);
@@ -193,15 +205,8 @@ export async function processTransactions({
         }
       }
 
-      let mergedOpts: ConfirmOptions = {
-        ...DEFAULT_CONFIRM_OPTS,
-        commitment: connection.commitment ?? DEFAULT_CONFIRM_OPTS.commitment,
-        preflightCommitment: connection.commitment ?? DEFAULT_CONFIRM_OPTS.commitment,
-        minContextSlot,
-        ...txOpts,
-      };
-
-      const simulateTxs = async () => await simulateTransactions(processOpts, connection, versionedTransactions);
+      const simulateTxs = async () =>
+        await simulateTransactions(processOpts, connection, versionedTransactions, mergedOpts);
       const sendTxBundleGrpc = async (isLast: boolean) => await sendTransactionAsGrpcBundle(base58Txs, isLast);
       const sendTxBundleApi = async (isLast: boolean) => await sendTransactionAsBundle(base58Txs, isLast);
       const sendTxBundleRpc = async () =>
@@ -301,7 +306,8 @@ export async function processTransactions({
 const simulateTransactions = async (
   processOpts: ProcessTransactionOpts,
   connection: Connection,
-  versionedTransactions: VersionedTransaction[]
+  versionedTransactions: VersionedTransaction[],
+  confirmOpts?: ConfirmOptions
 ): Promise<TransactionSignature[]> => {
   if (versionedTransactions.length > 1) {
     const response = await simulateBundle(
@@ -327,6 +333,9 @@ const simulateTransactions = async (
   } else {
     const response = await connection.simulateTransaction(versionedTransactions[0], {
       sigVerify: false,
+      commitment: confirmOpts?.commitment,
+      replaceRecentBlockhash: false,
+      minContextSlot: confirmOpts?.minContextSlot,
     });
     if (response.value.err) {
       throw new SendTransactionError({
@@ -371,3 +380,47 @@ const dryRunTransaction = async (
 };
 
 // expo
+
+export async function confirmTransaction(
+  connection: Connection,
+  signature: string,
+  commitment: Commitment = "confirmed"
+) {
+  const getStatus = async () => {
+    const commitmentArray: Commitment[] = ["processed", "confirmed", "finalized"];
+    const index: number = commitmentArray.indexOf(commitment);
+    if (index === -1) throw new Error("Invalid commitment");
+
+    let attempts = 0;
+    const maxAttempts = 10;
+
+    while (attempts < maxAttempts) {
+      attempts += 1;
+
+      const status = await connection.getSignatureStatus(signature);
+
+      if (status?.value?.err) {
+        throw status.value.err;
+      }
+
+      if (status?.value && status.value.confirmationStatus) {
+        const confirmationStatusIndex = commitmentArray.indexOf(status.value.confirmationStatus);
+        if (confirmationStatusIndex >= index) {
+          return status.value;
+        }
+      }
+
+      await sleep(500);
+    }
+
+    throw new Error("Transaction failed to confirm in time.");
+  };
+
+  const result = await Promise.race([getStatus(), setTimeoutPromise(20000, `Transaction failed to confirm in time.`)]);
+
+  if (result instanceof Error) {
+    throw result;
+  }
+
+  return result;
+}

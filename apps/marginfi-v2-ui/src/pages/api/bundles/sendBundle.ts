@@ -5,7 +5,7 @@ import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
 import { VersionedTransaction } from "@solana/web3.js";
 import { isError } from "./jito/sdk/block-engine/utils";
 import { BundleResult } from "./jito/gen/block-engine/bundle";
-import { sleep } from "@mrgnlabs/mrgn-common";
+import { setTimeoutPromise, sleep } from "@mrgnlabs/mrgn-common";
 
 const JITO_ENDPOINT = "mainnet.block-engine.jito.wtf";
 const TIMEOUT_DURATION = 25000;
@@ -48,10 +48,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   } catch (error) {
     return res.status(500).json({ error: error instanceof Error ? error.message : "Unknown error" });
   }
-}
-
-function setTimeoutPromise(duration: number, message: string): Promise<Error> {
-  return new Promise((_, reject) => setTimeout(() => reject(new Error(message)), duration));
 }
 
 async function sendBundleWithRetry(bundle: Bundle): Promise<string> {

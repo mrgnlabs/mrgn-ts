@@ -57,8 +57,10 @@ export class MultiStepToastHandle {
   setSuccess() {
     if (!this._toastId) return;
 
-    for (let i = 0; i <= this._stepsWithStatus.length; i++) {
-      this._stepsWithStatus[i].status = "success";
+    for (let i = 0; i < this._stepsWithStatus.length; i++) {
+      if (this._stepsWithStatus[i]) {
+        this._stepsWithStatus[i].status = "success";
+      }
     }
     toast.update(this._toastId, {
       render: () => <MultiStepToast title={this._title} steps={this._stepsWithStatus} />,

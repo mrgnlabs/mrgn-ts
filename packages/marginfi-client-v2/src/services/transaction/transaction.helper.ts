@@ -30,6 +30,7 @@ import { MARGINFI_IDL, MarginfiIdlType } from "../../idl";
 import { makeTxPriorityIx } from "../../models/account";
 import { SystemProgram } from "@solana/web3.js";
 import { makePriorityFeeMicroIx } from "../../utils";
+import { confirmTransaction } from "./transaction.service";
 
 // Temporary imports
 export const MAX_TX_SIZE = 1232;
@@ -211,19 +212,13 @@ export async function sendTransactionAsBundleRpc({
   if (isSequentialTxs) {
     for (const [index, tx] of versionedTransactions.entries()) {
       const signature = await connection.sendTransaction(tx, txOpts);
-      const result = await connection.confirmTransaction(
-        {
-          ...blockStrategy,
-          signature,
-        },
-        confirmCommitment
-      );
 
-      if (result.value.err) {
-        onCallback?.(index, false, signature);
-        throw result.value.err;
-      } else {
+      try {
+        await confirmTransaction(connection, signature, confirmCommitment);
         onCallback?.(index, true, signature);
+      } catch (error) {
+        onCallback?.(index, false, signature);
+        throw error;
       }
       signatures.push(signature);
     }
@@ -237,81 +232,14 @@ export async function sendTransactionAsBundleRpc({
 
     await Promise.all(
       signatures.map(async (signature, index) => {
-        const result = await connection.confirmTransaction(
-          {
-            ...blockStrategy,
-            signature,
-          },
-          confirmCommitment
-        );
-        if (result.value.err) {
-          onCallback?.(index, false, signature);
-          throw result.value.err;
-        } else {
+        try {
+          const result = await confirmTransaction(connection, signature, confirmCommitment);
           onCallback?.(index, true, signature);
-        }
-        return result;
-      })
-    );
-  }
-
-  return signatures;
-}
-
-export async function sendTransactionAsSequentialRpc({
-  versionedTransactions,
-  txOpts,
-  connection,
-  onCallback,
-  blockStrategy,
-  confirmCommitment,
-  isSequentialTxs,
-}: SendTransactionAsRpcProps): Promise<TransactionSignature[]> {
-  let signatures: TransactionSignature[] = [];
-  if (isSequentialTxs) {
-    for (const [index, tx] of versionedTransactions.entries()) {
-      const signature = await connection.sendTransaction(tx, txOpts);
-      const result = await connection.confirmTransaction(
-        {
-          ...blockStrategy,
-          signature,
-        },
-        confirmCommitment
-      );
-      console.log("result", signature);
-
-      if (result.value.err) {
-        onCallback?.(index, false, signature);
-        throw result.value.err;
-      } else {
-        onCallback?.(index, true, signature);
-      }
-      signatures.push(signature);
-    }
-  } else {
-    signatures = await Promise.all(
-      versionedTransactions.map(async (versionedTransaction) => {
-        const signature = await connection.sendTransaction(versionedTransaction, txOpts);
-        return signature;
-      })
-    );
-
-    await Promise.all(
-      signatures.map(async (signature, index) => {
-        const result = await connection.confirmTransaction(
-          {
-            ...blockStrategy,
-            signature,
-          },
-          confirmCommitment
-        );
-        if (result.value.err) {
+          return result;
+        } catch (error) {
           onCallback?.(index, false, signature);
-          throw result.value.err;
-        } else {
-          onCallback?.(index, true, signature);
+          throw error;
         }
-        return result;
       })
     );
   }
@@ -334,8 +262,6 @@ export async function sendTransactionAsGrpcBundle(
 
     const sendBundleResult = await sendBundleResponse.json();
     if (sendBundleResult.error) throw new Error(sendBundleResult.error.message);
-    console.log("sendBundleResult:", sendBundleResult);
-
     const bundleId = sendBundleResult.bundleId;
 
     console.log("bundleId:", bundleId);
