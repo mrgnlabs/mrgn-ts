@@ -39,7 +39,7 @@ export const ActionDialogWrapper = ({ trigger, children, title, isTriggered = fa
         className={cn(
           "shadow-none overflow-visible",
           isMobile
-            ? "mt-20 justify-start flex md:max-w-[520px] md:py-3 md:px-5 p-0 sm:rounded-2xl border-none z-50"
+            ? "mt-[60px] justify-start flex md:max-w-[520px] md:py-3 md:px-5 p-0 pt-6 sm:rounded-2xl border-none z-50"
             : "md:flex md:max-w-[520px] md:py-3 md:px-5 p-0 sm:rounded-2xl bg-transparent border-none"
         )}
         closeClassName={!isMobile ? "-top-1 -right-1" : undefined}
@@ -54,7 +54,10 @@ export const ActionDialogWrapper = ({ trigger, children, title, isTriggered = fa
             </div>
           )}
           <div
-            className={cn("bg-mfi-action-box-background shadow-lg rounded-lg", isMobile ? "p-4 h-screen mb-8" : "p-2")}
+            className={cn(
+              "bg-mfi-action-box-background shadow-lg rounded-lg",
+              isMobile ? "p-4 pt-0 h-screen mb-8 mt-5" : "p-2"
+            )}
           >
             {children}
           </div>
