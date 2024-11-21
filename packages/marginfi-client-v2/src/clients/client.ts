@@ -1007,10 +1007,15 @@ class MarginfiClient {
         }
       } else {
         response = await simulateBundle(this.bundleSimRpcEndpoint, versionedTransactions, accountsToInspect);
-        if (response.value.err === null) {
-          return response.value.accounts?.map((a) => (a ? Buffer.from(a.data[0], "base64") : null)) ?? [];
+        const value = response.result.value;
+
+        const err = value.summary !== "succeeded" ? JSON.stringify(value.summary.failed.error) : null;
+
+        if (err === null) {
+          const accounts = value.transactionResults[value.transactionResults.length - 1]?.postExecutionAccounts;
+          return accounts?.map((a: any) => (a ? Buffer.from(a.data[0], "base64") : null)) ?? [];
         }
-        throw new Error(JSON.stringify(response.value.err));
+        throw new Error(err);
       }
     } catch (error: any) {
       const parsedError = parseTransactionError(error, this.config.programId);

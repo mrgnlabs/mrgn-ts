@@ -8,6 +8,9 @@ import {
   SolanaTransaction,
   sleep,
   setTimeoutPromise,
+  legacyTxToV0Tx,
+  isV0Tx,
+  addTransactionMetadata,
 } from "@mrgnlabs/mrgn-common";
 import {
   VersionedTransaction,
@@ -163,9 +166,33 @@ export async function processTransactions({
     minContextSlot = getLatestBlockhashAndContext.context.slot - 4;
     blockhash = getLatestBlockhashAndContext.value.blockhash;
     lastValidBlockHeight = getLatestBlockhashAndContext.value.lastValidBlockHeight;
+  } catch (error) {
+    throw new Error("Failed to get latest blockhash and context");
+  }
+
+  let mergedOpts: ConfirmOptions = {
+    ...DEFAULT_CONFIRM_OPTS,
+    commitment,
+    preflightCommitment: commitment,
+    minContextSlot,
+    ...txOpts,
+  };
+
+  try {
+    const unitsConsumed = await simulateTransactions(processOpts, connection, transactions, mergedOpts, {
+      feePayer: wallet.publicKey,
+      blockhash,
+    });
+
+    const updatedTransactions = transactions.map((tx, idx) =>
+      addTransactionMetadata(tx, {
+        ...tx,
+        unitsConsumed: unitsConsumed[idx],
+      })
+    );
 
     versionedTransactions = formatTransactions(
-      transactions,
+      updatedTransactions,
       broadcastType,
       processOpts.priorityFeeMicro ?? 0,
       processOpts.bundleTipUi ?? 0,
@@ -178,14 +205,6 @@ export async function processTransactions({
     console.log("Failed to build the transaction", error);
     throw new ProcessTransactionError(error.message, ProcessTransactionErrorType.TransactionBuildingError);
   }
-
-  let mergedOpts: ConfirmOptions = {
-    ...DEFAULT_CONFIRM_OPTS,
-    commitment,
-    preflightCommitment: commitment,
-    minContextSlot,
-    ...txOpts,
-  };
 
   try {
     if (txOpts?.dryRun || processOpts?.isReadOnly) {
@@ -306,32 +325,45 @@ export async function processTransactions({
 const simulateTransactions = async (
   processOpts: ProcessTransactionOpts,
   connection: Connection,
-  versionedTransactions: VersionedTransaction[],
-  confirmOpts?: ConfirmOptions
-): Promise<TransactionSignature[]> => {
-  if (versionedTransactions.length > 1) {
-    const response = await simulateBundle(
-      processOpts?.bundleSimRpcEndpoint ?? connection.rpcEndpoint,
-      versionedTransactions
-    ).catch((error) => {
-      throw new SendTransactionError({
-        action: "simulate",
-        signature: "",
-        transactionMessage: JSON.stringify(error),
-        logs: [],
-      });
-    });
+  solanaTransactions: SolanaTransaction[],
+  confirmOpts?: ConfirmOptions,
+  txOpts?: {
+    feePayer: PublicKey;
+    blockhash: string;
+  }
+): Promise<(number | undefined)[]> => {
+  const v0Txs = solanaTransactions.map((tx) => (isV0Tx(tx) ? tx : legacyTxToV0Tx(tx, txOpts)));
+  if (v0Txs.length > 1) {
+    const response = await simulateBundle(processOpts?.bundleSimRpcEndpoint ?? connection.rpcEndpoint, v0Txs).catch(
+      (error) => {
+        throw new SendTransactionError({
+          action: "simulate",
+          signature: "",
+          transactionMessage: JSON.stringify(error),
+          logs: [],
+        });
+      }
+    );
 
-    if (response.value.err) {
+    const value = response.result.value;
+
+    const err = value.summary !== "succeeded" ? JSON.stringify(value.summary.failed.error) : null;
+    const logs = value.transactionResults.flatMap((tx) => tx.logs);
+    const unitsConsumed = value.transactionResults.map((tx) =>
+      tx.unitsConsumed ? Number.parseInt(tx.unitsConsumed) : undefined
+    );
+
+    if (err) {
       throw new SendTransactionError({
         action: "simulate",
         signature: "",
-        transactionMessage: JSON.stringify(response.value.err),
-        logs: response.value.logs ?? [],
+        transactionMessage: JSON.stringify(err),
+        logs: logs ?? [],
       });
     }
+    return unitsConsumed ? unitsConsumed : [];
   } else {
-    const response = await connection.simulateTransaction(versionedTransactions[0], {
+    const response = await connection.simulateTransaction(v0Txs[0], {
       sigVerify: false,
       commitment: confirmOpts?.commitment,
       replaceRecentBlockhash: false,
@@ -345,9 +377,8 @@ const simulateTransactions = async (
         logs: response.value.logs ?? [],
       });
     }
+    return [response.value.unitsConsumed];
   }
-
-  return [];
 };
 
 const dryRunTransaction = async (
@@ -359,22 +390,26 @@ const dryRunTransaction = async (
     processOpts?.bundleSimRpcEndpoint ?? connection.rpcEndpoint,
     versionedTransactions
   );
-  console.log(
-    response.value.err ? `❌ Error: ${response.value.err}` : `✅ Success - ${response.value.unitsConsumed} CU`
-  );
+  const value = response.result.value;
+
+  const err = value.summary !== "succeeded" ? JSON.stringify(value.summary.failed.error) : null;
+  const logs = value.transactionResults.flatMap((tx) => tx.logs);
+  const unitsConsumed = value.transactionResults[value.transactionResults.length - 1]?.unitsConsumed;
+
+  console.log(err ? `❌ Error: ${err}` : `✅ Success - ${unitsConsumed} CU`);
   console.log("------ Logs 👇 ------");
-  if (response.value.logs) {
-    for (const log of response.value.logs) {
+  if (logs) {
+    for (const log of logs) {
       console.log(log);
     }
   }
 
-  if (response.value.err)
+  if (err)
     throw new SendTransactionError({
       action: "simulate",
       signature: "",
-      transactionMessage: JSON.stringify(response.value.err),
-      logs: response.value.logs ?? [],
+      transactionMessage: JSON.stringify(err),
+      logs: logs ?? [],
     });
   return [];
 };

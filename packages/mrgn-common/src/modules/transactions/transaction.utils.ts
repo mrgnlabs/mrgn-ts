@@ -10,7 +10,7 @@ import {
   TransactionMessage,
   VersionedTransaction,
 } from "@solana/web3.js";
-import { SolanaTransaction } from "./transaction.types";
+import { MRGN_TX_TYPES, SolanaTransaction } from "./transaction.types";
 
 /**
  * Determines if a given transaction is a VersionedTransaction.
@@ -230,8 +230,18 @@ export function replaceV0TxBlockhash(transaction: VersionedTransaction, blockhas
  */
 export function addTransactionMetadata<T extends Transaction | VersionedTransaction>(
   transaction: T,
-  options: { signers?: Array<Signer>; addressLookupTables?: AddressLookupTableAccount[] }
-): T & { signers?: Array<Signer>; addressLookupTables?: AddressLookupTableAccount[] } {
+  options: {
+    signers?: Array<Signer>;
+    addressLookupTables?: AddressLookupTableAccount[];
+    type?: MRGN_TX_TYPES;
+    unitsConsumed?: number;
+  }
+): T & {
+  signers?: Array<Signer>;
+  addressLookupTables?: AddressLookupTableAccount[];
+  type?: MRGN_TX_TYPES;
+  unitsConsumed?: number;
+} {
   return Object.assign(transaction, options);
 }
 
@@ -334,7 +344,7 @@ export function getComputeBudgetUnits(tx: SolanaTransaction): number | undefined
   const computeBudgetIxs = instructions.filter((ix) => ix.programId.equals(ComputeBudgetProgram.programId));
 
   if (computeBudgetIxs.length === 0) {
-    return instructions.length * DEFAULT_COMPUTE_BUDGET_IX;
+    return Math.min(instructions.length * DEFAULT_COMPUTE_BUDGET_IX, 1_400_000);
   }
 
   const decoded = computeBudgetIxs.map((ix) => decodeComputeBudgetInstruction(ix));

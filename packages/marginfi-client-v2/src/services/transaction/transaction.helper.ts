@@ -102,12 +102,11 @@ export function formatTransactions(
   const txSizes: number[] = transactions.map((tx) => getTxSize(tx));
   const dummyPriorityFeeIx = makePriorityFeeMicroIx(1);
 
-  const priorityIxs = transactions.map((tx) => {
-    if (broadcastType === "BUNDLE") {
-      return dummyPriorityFeeIx;
-    }
+  const priorityIxs: TransactionInstruction[] = [];
+  const cuLimitIxs: (TransactionInstruction | undefined)[] = [];
 
-    const cu = getComputeBudgetUnits(tx);
+  transactions.forEach((tx, idx) => {
+    const cu = tx.unitsConsumed ? Math.min(tx.unitsConsumed + 50_000, 1_400_000) : getComputeBudgetUnits(tx);
     const priorityFeeUi = microLamportsToUi(priorityFeeMicro, cu);
 
     let updatedFees = priorityFeeMicro;
@@ -116,7 +115,8 @@ export function formatTransactions(
       updatedFees = uiToMicroLamports(0.008, cu);
     }
 
-    return makePriorityFeeMicroIx(updatedFees, cu);
+    priorityIxs.push(broadcastType === "BUNDLE" ? dummyPriorityFeeIx : makePriorityFeeMicroIx(updatedFees, cu));
+    cuLimitIxs.push(cu ? ComputeBudgetProgram.setComputeUnitLimit({ units: cu }) : undefined);
   });
 
   const { bundleTipIx } = makeTxPriorityIx(feePayer, bundleTipUi, broadcastType);
@@ -157,6 +157,7 @@ export function formatTransactions(
     const requiredIxs: TransactionInstruction[] = [
       ...(bundleTipIndex === index && bundleTipIx ? [bundleTipIx] : []),
       ...(priorityFeeIndexes.includes(index) ? [priorityIxs[index]] : []),
+      ...(cuLimitIxs[index] ? [cuLimitIxs[index]] : []),
     ];
 
     let newTransaction: VersionedTransaction;

@@ -70,7 +70,7 @@ export async function simulateBundle(
   rpcEndpoint: string,
   transactions: VersionedTransaction[],
   includeAccounts?: Array<PublicKey>
-): Promise<RpcResponseAndContext<SimulatedTransactionResponse>> {
+) {
   if (transactions.length === 0) {
     throw new Error("Empty bundle");
   }
@@ -117,13 +117,18 @@ export async function simulateBundle(
   const context = response.result.context;
   const value = response.result.value;
 
-  const err = value.summary !== "succeeded" ? JSON.stringify(value.summary.failed.error) : null;
-  return {
+  // const err = value.summary !== "succeeded" ? JSON.stringify(value.summary.failed.error) : null;
+  return response;
+
+  //old return
+  /*
+  {
     context,
     value: {
       err,
       logs: value.transactionResults.flatMap((tx) => tx.logs),
       accounts: value.transactionResults[value.transactionResults.length - 1]?.postExecutionAccounts,
+      unitsConsumed: value.transactionResults[value.transactionResults.length - 1]?.unitsConsumed,
     },
-  };
+  };*/
 }

@@ -13,12 +13,14 @@ export type ExtendedTransaction = Transaction & {
   signers?: Array<Signer>;
   addressLookupTables?: AddressLookupTableAccount[];
   type?: MRGN_TX_TYPES;
+  unitsConsumed?: number;
 };
 
 export type ExtendedV0Transaction = VersionedTransaction & {
   signers?: Array<Signer>;
   addressLookupTables?: AddressLookupTableAccount[];
   type?: MRGN_TX_TYPES;
+  unitsConsumed?: number;
 };
 
 export type SolanaTransaction = ExtendedTransaction | ExtendedV0Transaction;
