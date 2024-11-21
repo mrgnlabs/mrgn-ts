@@ -66,6 +66,7 @@ async function sendBundleWithRetry(bundle: Bundle): Promise<string> {
     try {
       const newBundleId = await grpcClient.sendBundle(bundle);
       if (newBundleId) {
+        console.log("Bundle sent with id:", bundleId);
         bundleId = newBundleId;
       }
 
