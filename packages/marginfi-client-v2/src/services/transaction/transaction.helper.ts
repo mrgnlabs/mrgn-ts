@@ -146,14 +146,6 @@ export function formatTransactions(
     const signers = transaction.signers ?? [];
     const addressLookupTables = transaction.addressLookupTables ?? [];
 
-    // if (isTxFlashloan) {
-    //   if (isV0Tx(transaction)) {
-    //     formattedTransactions.push(transaction);
-    //   } else {
-    //     formattedTransactions.push(legacyTxToV0Tx(transaction, { blockhash, addressLookupTables }));
-    //   }
-    //   continue;
-    // }
     const requiredIxs: TransactionInstruction[] = [
       ...(bundleTipIndex === index && bundleTipIx ? [bundleTipIx] : []),
       ...(priorityFeeIndexes.includes(index) ? [priorityIxs[index]] : []),

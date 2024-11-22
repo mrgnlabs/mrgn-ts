@@ -120,7 +120,7 @@ const executeLstAction = async ({
 
   try {
     const txnSig = await marginfiClient.processTransactions(
-      [actionTxns.actionTxn, ...actionTxns.additionalTxns],
+      [...actionTxns.additionalTxns, actionTxns.actionTxn],
       processOpts
     );
     multiStepToast.setSuccessAndNext();

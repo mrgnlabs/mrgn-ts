@@ -27,7 +27,7 @@ interface TipFloorDataResponse {
   ema_landed_tips_50th_percentile: number;
 }
 
-export const DEFAULT_MAX_CAP = 0.008;
+export const DEFAULT_MAX_CAP = 0.01;
 
 export const DEFAULT_PRIORITY_SETTINGS = {
   priorityType: "NORMAL" as TransactionPriorityType,
@@ -71,8 +71,6 @@ export const calculatePriorityFeeCap = async (connection: Connection, userMaxCap
     20
   );
 
-  console.log("max", max.prioritizationFee);
-
   return Math.min(
     // ABSOLUTE_MAX_PRIORITY_FEE,
     userMaxCap,
@@ -97,7 +95,8 @@ export const fetchPriorityFee = async (
   priorityType: TransactionPriorityType,
   connection: Connection
 ): Promise<PriorityFees> => {
-  const finalMaxCap = maxCapType === "DYNAMIC" ? DEFAULT_MAX_CAP : maxCap;
+  const finalMaxCap =
+    maxCapType === "DYNAMIC" || Number.isNaN(maxCap) || Number(maxCap) === 0 ? DEFAULT_MAX_CAP : maxCap;
   if (broadcastType === "BUNDLE") {
     const bundleTipUi = await getBundleTip(priorityType, finalMaxCap);
     return { bundleTipUi };
@@ -150,6 +149,10 @@ export const getBundleTip = async (priorityType: TransactionPriorityType, userMa
     // NORMAL
     priorityFee = landed_tips_75th_percentile;
     // priorityFee = Math.min(ema_landed_tips_50th_percentile, landed_tips_50th_percentile);
+  }
+
+  if (priorityFee === 0) {
+    priorityFee = 0.00001;
   }
 
   return Math.min(maxCap, Math.trunc(priorityFee * LAMPORTS_PER_SOL) / LAMPORTS_PER_SOL);

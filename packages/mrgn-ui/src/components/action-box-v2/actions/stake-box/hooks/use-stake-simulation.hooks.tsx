@@ -19,11 +19,12 @@ import {
   LST_MINT,
   LUT_PROGRAM_AUTHORITY_INDEX,
   NATIVE_MINT as SOL_MINT,
+  SolanaTransaction,
   TransactionBroadcastType,
   uiToNative,
 } from "@mrgnlabs/mrgn-common";
 
-import { getAdressLookupTableAccounts, getSimulationResult, handleStakeTx } from "../utils";
+import { createStakeLstTx, createUnstakeLstTx, getSimulationResult } from "../utils";
 import { useActionBoxStore } from "../../../store";
 
 type StakeSimulationProps = {
@@ -92,7 +93,6 @@ export function useStakeSimulation({
   const fetchTxs = React.useCallback(
     async (amount: number, actionType: ActionType) => {
       const connection = marginfiClient?.provider.connection;
-      const jupiterQuoteApi = createJupiterApiClient();
 
       if (amount === 0 || !selectedBank || !connection || !lstData) {
         const missingParams = [];
@@ -112,74 +112,43 @@ export function useStakeSimulation({
       setIsLoading({ type: "SIMULATION", state: true });
 
       try {
-        const blockhash = (await connection.getLatestBlockhash()).blockhash;
         let swapQuote = null;
-        let swapTx = null;
+        let swapTx: SolanaTransaction | null = null;
 
-        if (actionType === ActionType.UnstakeLST || selectedBank.info.state.mint.toBase58() !== SOL_MINT.toBase58()) {
-          swapQuote = await getSwapQuoteWithRetry({
-            amount: uiToNative(amount, selectedBank.info.state.mintDecimals).toNumber(),
-            inputMint:
-              actionType === ActionType.UnstakeLST ? LST_MINT.toBase58() : selectedBank.info.state.mint.toBase58(),
-            outputMint: SOL_MINT.toBase58(),
-            platformFeeBps,
-            slippageBps,
-            swapMode: "ExactIn",
-          });
-
-          if (!swapQuote) {
-            setErrorMessage(STATIC_SIMULATION_ERRORS.STAKE_SWAP_SIMULATION_FAILED);
-            return;
-          }
-
-          const {
-            computeBudgetInstructions,
-            swapInstruction,
-            setupInstructions,
-            cleanupInstruction,
-            addressLookupTableAddresses,
-          } = await jupiterQuoteApi.swapInstructionsPost({
-            swapRequest: {
-              quoteResponse: swapQuote,
-              userPublicKey: marginfiClient.wallet.publicKey.toBase58(),
-              feeAccount: undefined,
-              programAuthorityId: LUT_PROGRAM_AUTHORITY_INDEX,
+        if (actionType === ActionType.UnstakeLST) {
+          const _actionTxns = await createUnstakeLstTx({
+            amount,
+            feepayer: marginfiClient.wallet.publicKey,
+            connection,
+            jupOpts: {
+              slippageBps,
+              platformFeeBps,
             },
           });
 
-          const swapIx = deserializeInstruction(swapInstruction);
-          const setupInstructionsIxs = setupInstructions.map((value) => deserializeInstruction(value));
-          const cleanupInstructionIx = deserializeInstruction(cleanupInstruction);
-          const cuInstructionsIxs = computeBudgetInstructions.map((value) => deserializeInstruction(value));
-          const AddressLookupAccounts = await getAdressLookupTableAccounts(connection, addressLookupTableAddresses);
-          const unwrapSolIx = makeUnwrapSolIx(marginfiClient.wallet.publicKey);
-
-          const swapMessage = new TransactionMessage({
-            payerKey: marginfiClient.wallet.publicKey,
-            recentBlockhash: blockhash,
-            instructions: [...cuInstructionsIxs, ...setupInstructionsIxs, swapIx, unwrapSolIx],
-          });
-          swapTx = new VersionedTransaction(swapMessage.compileToV0Message(AddressLookupAccounts));
-        }
-
-        if (actionType === ActionType.MintLST) {
-          const _actionTxns = await handleStakeTx(
-            blockhash,
-            amount,
-            swapQuote,
-            swapTx,
-            selectedBank,
-            marginfiClient,
-            connection,
-            lstData
-          );
-          setActionTxns(_actionTxns);
+          if ("actionTxn" in _actionTxns) {
+            setActionTxns(_actionTxns);
+          } else {
+            setErrorMessage(_actionTxns);
+          }
         } else {
-          setActionTxns({
-            actionTxn: swapTx,
-            additionalTxns: [],
-            actionQuote: swapQuote,
+          const _actionTxns = await createStakeLstTx({
+            amount,
+            selectedBank,
+            feepayer: marginfiClient.wallet.publicKey,
+            connection,
+            lstData,
+            jupOpts: {
+              slippageBps,
+              platformFeeBps,
+            },
           });
+
+          if ("actionTxn" in _actionTxns) {
+            setActionTxns(_actionTxns);
+          } else {
+            setErrorMessage(_actionTxns);
+          }
         }
       } catch (error) {
         const msg = extractErrorString(error);

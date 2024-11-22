@@ -197,13 +197,26 @@ export function replaceV0TxInstructions(
       // TODO add bundle tip check
       if (ix.programId.equals(ComputeBudgetProgram.programId)) {
         const decoded = decodeComputeBudgetInstruction(ix);
-        const updatedIx = additionalIxs.find(
+        const updatedCuPriceIx = additionalIxs.find(
           (a) => decodeComputeBudgetInstruction(a).instructionType === "SetComputeUnitPrice"
         );
-        if (decoded.instructionType === "SetComputeUnitPrice" && updatedIx) {
+
+        const updatedCuLimitIx = additionalIxs.find(
+          (a) => decodeComputeBudgetInstruction(a).instructionType === "SetComputeUnitLimit"
+        );
+
+        // replace priority fee instruction
+        if (decoded.instructionType === "SetComputeUnitPrice" && updatedCuPriceIx) {
           //subtract the additional instruction from the additional instructions array
-          updatedAdditionalIxs = updatedAdditionalIxs.filter((a) => !compareInstructions(a, updatedIx));
-          return updatedIx;
+          updatedAdditionalIxs = updatedAdditionalIxs.filter((a) => !compareInstructions(a, updatedCuPriceIx));
+          return updatedCuPriceIx;
+        }
+
+        // replace compute budget instruction
+        if (decoded.instructionType === "SetComputeUnitLimit" && updatedCuLimitIx) {
+          //subtract the additional instruction from the additional instructions array
+          updatedAdditionalIxs = updatedAdditionalIxs.filter((a) => !compareInstructions(a, updatedCuLimitIx));
+          return updatedCuLimitIx;
         }
       }
     }
