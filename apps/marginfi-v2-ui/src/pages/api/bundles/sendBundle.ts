@@ -17,6 +17,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!Array.isArray(transactions) || transactions.some((tx) => typeof tx !== "string")) {
     return res.status(400).json({ error: "Invalid transactions format" });
   }
+  let bundleId = "";
 
   try {
     const grpcClient = searcherClient(JITO_ENDPOINT);
@@ -35,6 +36,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       throw new Error("Error adding transactions to bundle");
     }
 
+    bundleId = await grpcClient.sendBundle(bundle);
+
     const bundleResult = await Promise.race([
       sendBundleWithRetry(bundle),
       setTimeoutPromise(TIMEOUT_DURATION, `Timeout: Stopped after ${TIMEOUT_DURATION / 1000} seconds.`),
@@ -46,7 +49,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     return res.status(200).json({ bundleId: bundleResult });
   } catch (error) {
-    return res.status(500).json({ error: error instanceof Error ? error.message : "Unknown error" });
+    return res.status(500).json({ error: error instanceof Error ? error.message : "Unknown error", bundleId });
   }
 }
 

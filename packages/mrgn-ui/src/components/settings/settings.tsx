@@ -1,10 +1,11 @@
 import React from "react";
 import { useForm } from "react-hook-form";
+import { useDebounce } from "@uidotdev/usehooks";
 
-import { cn } from "@mrgnlabs/mrgn-utils";
+import { cn, usePrevious } from "@mrgnlabs/mrgn-utils";
 import { MaxCapType, TransactionBroadcastType, TransactionPriorityType } from "@mrgnlabs/mrgn-common";
 
-import { Form, FormControl, FormField, FormItem } from "~/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormMessage } from "~/components/ui/form";
 import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group";
 import { Label } from "~/components/ui/label";
 import { Button } from "~/components/ui/button";
@@ -24,8 +25,8 @@ const broadcastTypes: { type: TransactionBroadcastType; label: string; isDisable
 ];
 
 const maxCapTypes: { type: MaxCapType; label: string }[] = [
-  { type: "DYNAMIC", label: "Dynamic" },
   { type: "MANUAL", label: "Manual" },
+  { type: "DYNAMIC", label: "Dynamic" },
 ];
 
 const priorityTypes: { type: TransactionPriorityType; label: string }[] = [
@@ -42,16 +43,32 @@ interface SettingsProps extends SettingsOptions {
 }
 
 export const Settings = ({ onChange, recommendedBroadcastType = "BUNDLE", ...props }: SettingsProps) => {
+  const [isReadyToSubmit, setIsReadyToSubmit] = React.useState(false);
   const form = useForm<SettingsForm>({
     defaultValues: props,
   });
 
+  const prevIsDirty = usePrevious(form.formState.isDirty);
+
   const formValues = form.watch();
 
-  function onSubmit(data: SettingsForm) {
-    onChange(data);
-    form.reset(data);
-  }
+  const onSubmit = React.useCallback(
+    (data: SettingsForm) => {
+      onChange(data);
+      form.reset(data);
+    },
+    [form, onChange]
+  );
+
+  const handleOnSubmit = React.useCallback(() => {
+    form.handleSubmit(onSubmit)();
+  }, [form, onSubmit]);
+
+  React.useEffect(() => {
+    if (form.formState.isDirty && !prevIsDirty) {
+      handleOnSubmit();
+    }
+  }, [form.formState.isDirty, prevIsDirty, handleOnSubmit]);
 
   return (
     <div>
@@ -146,15 +163,16 @@ export const Settings = ({ onChange, recommendedBroadcastType = "BUNDLE", ...pro
               Set the maximum fee you are willing to pay for a transaction.
             </p>
 
+            {/* For maxCapType */}
             <FormField
               control={form.control}
               name="maxCapType"
               render={({ field }) => (
-                <FormItem className="space-y-3 pb-2">
+                <FormItem className="space-y-3">
                   <FormControl>
                     <RadioGroup
                       onValueChange={(value) => field.onChange(value)}
-                      defaultValue={field.value?.toString()}
+                      defaultValue={field.value}
                       className="flex justify-between"
                     >
                       {maxCapTypes.map((option) => (
@@ -167,7 +185,12 @@ export const Settings = ({ onChange, recommendedBroadcastType = "BUNDLE", ...pro
                         >
                           <RadioGroupItem value={option.type} id={option.type} className="hidden" />
                           <Label
-                            className={"flex flex-col p-3 gap-2 h-auto w-full text-center cursor-pointer"}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              field.onChange(option.type);
+                            }}
+                            className="flex p-3 flex-col gap-2 h-auto w-full text-center cursor-pointer"
                             htmlFor={option.type}
                           >
                             {option.label}
@@ -203,19 +226,10 @@ export const Settings = ({ onChange, recommendedBroadcastType = "BUNDLE", ...pro
                       <span className="absolute inset-y-0 right-3 text-sm flex items-center">SOL</span>
                     </div>
                   </FormControl>
+                  <FormMessage className="text-xs text-warning" />
                 </FormItem>
               )}
             />
-          </div>
-          <div>
-            <Button type="submit" className="w-full">
-              Save Settings
-            </Button>
-            {form.formState.isDirty ? (
-              <div className="text-warning text-xs mt-2">You have unsaved changes.</div>
-            ) : (
-              form.formState.isSubmitted && <div className="text-success text-xs mt-2">Settings saved!</div>
-            )}
           </div>
         </form>
       </Form>

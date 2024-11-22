@@ -248,6 +248,18 @@ export async function sendTransactionAsBundleRpc({
   return signatures;
 }
 
+export class GrpcBundleError extends Error {
+  public readonly bundleId: string;
+
+  constructor(message: string, bundleId: string) {
+    super(message);
+    Object.setPrototypeOf(this, new.target.prototype); // Restore prototype chain
+    this.bundleId = bundleId;
+
+    Error.captureStackTrace(this, this.constructor);
+  }
+}
+
 export async function sendTransactionAsGrpcBundle(
   base58Txs: string[],
   throwError = false
@@ -262,7 +274,7 @@ export async function sendTransactionAsGrpcBundle(
     });
 
     const sendBundleResult = await sendBundleResponse.json();
-    if (sendBundleResult.error) throw new Error(sendBundleResult.error.message);
+    if (sendBundleResult.error) throw new GrpcBundleError(sendBundleResult.error.message, sendBundleResult?.bundleId);
     const bundleId = sendBundleResult.bundleId;
 
     console.log("bundleId:", bundleId);
@@ -270,11 +282,20 @@ export async function sendTransactionAsGrpcBundle(
     return bundleId;
   } catch (error) {
     console.log("GRCP BUNDLE FAILED");
+
+    if (error instanceof GrpcBundleError) {
+      throw error;
+    }
+
     if (throwError) throw new Error("Bundle failed");
   }
 }
 
-export async function sendTransactionAsBundle(base58Txs: string[], throwError = false): Promise<string | undefined> {
+export async function sendTransactionAsBundle(
+  base58Txs: string[],
+  throwError = false,
+  tempBundleId?: string
+): Promise<string | undefined> {
   try {
     const sendBundleResponse = await fetch("https://mainnet.block-engine.jito.wtf/api/v1/bundles", {
       method: "POST",
@@ -290,7 +311,7 @@ export async function sendTransactionAsBundle(base58Txs: string[], throwError = 
     const sendBundleResult = await sendBundleResponse.json();
     if (sendBundleResult.error) {
       if (sendBundleResult.error.message.includes("already processed")) {
-        return "0x0"; // todo add proper bundle id
+        return tempBundleId ?? "0x0"; // todo add proper bundle id
       }
 
       throw new Error(sendBundleResult.error.message);

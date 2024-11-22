@@ -25,6 +25,7 @@ import {
 import { parseTransactionError, ProcessTransactionError, ProcessTransactionErrorType } from "../../errors";
 import {
   formatTransactions,
+  GrpcBundleError,
   sendTransactionAsBundle,
   sendTransactionAsBundleRpc,
   sendTransactionAsGrpcBundle,
@@ -227,7 +228,8 @@ export async function processTransactions({
       const simulateTxs = async () =>
         await simulateTransactions(processOpts, connection, versionedTransactions, mergedOpts);
       const sendTxBundleGrpc = async (isLast: boolean) => await sendTransactionAsGrpcBundle(base58Txs, isLast);
-      const sendTxBundleApi = async (isLast: boolean) => await sendTransactionAsBundle(base58Txs, isLast);
+      const sendTxBundleApi = async (isLast: boolean, bundleId?: string) =>
+        await sendTransactionAsBundle(base58Txs, isLast, bundleId);
       const sendTxBundleRpc = async () =>
         await sendTransactionAsBundleRpc({
           versionedTransactions,
@@ -249,15 +251,23 @@ export async function processTransactions({
           await simulateTxs();
         }
 
+        let temporaryBundleSignature: string | undefined;
         let sig: string | undefined;
         let sigs: string[] | undefined;
         switch (method.method) {
           case "GRPC_BUNDLE":
-            sig = await sendTxBundleGrpc(isLast);
+            sig = await sendTxBundleGrpc(isLast).catch((error) => {
+              if (error instanceof GrpcBundleError) {
+                temporaryBundleSignature = error.bundleId;
+              } else {
+                throw error;
+              }
+              return undefined;
+            });
             if (sig) bundleSignature = sig;
             break;
           case "API_BUNDLE":
-            sig = await sendTxBundleApi(isLast);
+            sig = await sendTxBundleApi(isLast, temporaryBundleSignature);
             if (sig) bundleSignature = sig;
             break;
           case "RPC_BUNDLE":
