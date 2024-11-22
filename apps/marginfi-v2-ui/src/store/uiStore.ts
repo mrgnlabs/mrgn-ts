@@ -52,7 +52,7 @@ interface UiState {
   poolFilter: PoolTypes;
   sortOption: SortAssetOption;
   assetListSearch: string;
-  broadcastType: TransactionBroadcastType;
+  txBroadcastType: TransactionBroadcastType;
   priorityType: TransactionPriorityType;
   maxCap: number;
   maxCapType: MaxCapType;
@@ -111,9 +111,11 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
     get().fetchPriorityFee(connection, settings);
   },
   fetchPriorityFee: async (connection: Connection, settings?: TransactionSettings) => {
-    const { maxCapType, maxCap, broadcastType, priorityType } = settings ?? get();
+    const { maxCapType, maxCap, priorityType } = settings ?? get();
+    const txBroadcastType = settings?.broadcastType ?? get().txBroadcastType;
+
     try {
-      const priorityFees = await fetchPriorityFee(maxCapType, maxCap, broadcastType, priorityType, connection);
+      const priorityFees = await fetchPriorityFee(maxCapType, maxCap, txBroadcastType, priorityType, connection);
       set({ priorityFees });
     } catch (error) {
       console.error(error);

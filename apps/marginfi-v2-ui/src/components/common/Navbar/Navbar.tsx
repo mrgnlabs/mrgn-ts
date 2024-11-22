@@ -49,7 +49,7 @@ export const Navbar: FC = () => {
     (state) => ({
       isOraclesStale: state.isOraclesStale,
       priorityType: state.priorityType,
-      broadcastType: state.broadcastType,
+      broadcastType: state.txBroadcastType,
       maxCap: state.maxCap,
       maxCapType: state.maxCapType,
       setTransactionSettings: state.setTransactionSettings,
