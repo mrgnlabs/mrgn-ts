@@ -1905,6 +1905,9 @@ class MarginfiAccountWrapper {
   }
 }
 
+/**
+ * @deprecated This method is deprecated.
+ */
 export function makeTxPriorityIx(
   feePayer: PublicKey,
   feeUi: number = 0,
