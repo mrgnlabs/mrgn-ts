@@ -115,7 +115,6 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
 
     try {
       const priorityFees = await fetchPriorityFee(maxCapType, maxCap, broadcastType, priorityType, connection);
-      console.log("priorityFees", priorityFees);
       set({ priorityFees });
     } catch (error) {
       console.error(error);

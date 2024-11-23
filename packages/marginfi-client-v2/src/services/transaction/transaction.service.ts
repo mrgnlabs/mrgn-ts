@@ -437,7 +437,7 @@ export async function confirmTransaction(
     if (index === -1) throw new Error("Invalid commitment");
 
     let attempts = 0;
-    const maxAttempts = 10;
+    const maxAttempts = 8;
 
     while (attempts < maxAttempts) {
       attempts += 1;
@@ -445,6 +445,7 @@ export async function confirmTransaction(
       const status = await connection.getSignatureStatus(signature);
 
       if (status?.value?.err) {
+        console.error("❌ Error:", status.value.err);
         throw status.value.err;
       }
 
@@ -455,9 +456,11 @@ export async function confirmTransaction(
         }
       }
 
-      await sleep(500);
-    }
+      console.log("🔄 Waiting for confirmation...");
 
+      await sleep(2000);
+    }
+    console.log("❌ Transaction failed to confirm in time.");
     throw new Error("Transaction failed to confirm in time.");
   };
 
