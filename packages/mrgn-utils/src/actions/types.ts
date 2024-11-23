@@ -37,6 +37,8 @@ export interface ActionMessageType {
   description?: string;
   link?: string;
   linkText?: string;
+  retry?: boolean;
+  code?: number;
   action?: {
     bank: ExtendedBankInfo;
     type: ActionType;

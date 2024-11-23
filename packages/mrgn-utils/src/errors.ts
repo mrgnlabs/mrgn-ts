@@ -16,6 +16,8 @@ export const STATIC_SIMULATION_ERRORS: { [key: string]: ActionMessageType } = {
     isEnabled: false,
     actionMethod: "WARNING",
     description: "Slippage tolerance exceeded. Please increase the slippage tolerance in the settings and try again.",
+    retry: true,
+    code: 102,
   },
   TX_SIZE: {
     isEnabled: false,

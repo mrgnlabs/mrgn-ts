@@ -32,10 +32,13 @@ import { ActionMessage } from "~/components";
 import { useLendBoxStore } from "./store";
 import { HandleCloseBalanceParamsProps, handleExecuteCloseBalance, handleExecuteLendingAction } from "./utils";
 import { Collateral, ActionInput, Preview } from "./components";
-import { useLendSimulation } from "./hooks";
+import { useLendSimulation, SimulationStatus } from "./hooks";
 import { useActionBoxStore } from "../../store";
 import { HidePoolStats } from "../../contexts/actionbox/actionbox.context";
 import { useActionContext } from "../../contexts";
+import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
+import { IconLoader } from "~/components/ui/icons";
+import { IconCheck } from "@tabler/icons-react";
 
 // error handling
 export type LendBoxProps = {
@@ -119,6 +122,8 @@ export const LendBox = ({
     state.setErrorMessage,
   ]);
 
+  const [hasLoaded, setHasLoaded] = React.useState(false);
+
   const { broadcastType, priorityFees } = useActionContext() || { broadcastType: null, priorityFees: null };
 
   const accountSummary = React.useMemo(() => {
@@ -138,7 +143,7 @@ export const LendBox = ({
     nativeSolBalance,
     actionMode: lendMode,
   });
-  const { actionSummary } = useLendSimulation({
+  const { actionSummary, refreshSimulation, simulationStatus } = useLendSimulation({
     debouncedAmount: debouncedAmount ?? 0,
     selectedAccount,
     accountSummary,
@@ -154,6 +159,14 @@ export const LendBox = ({
 
   const [lstDialogCallback, setLSTDialogCallback] = React.useState<(() => void) | null>(null);
   const [additionalActionMessages, setAdditionalActionMessages] = React.useState<ActionMessageType[]>([]);
+
+  React.useEffect(() => {
+    if (isLoading) {
+      setHasLoaded(false);
+    } else if (!isLoading && !hasLoaded) {
+      setHasLoaded(true);
+    }
+  }, [isLoading, hasLoaded]);
 
   // Cleanup the store when the wallet disconnects
   React.useEffect(() => {
@@ -175,6 +188,8 @@ export const LendBox = ({
   React.useEffect(() => {
     if (errorMessage && errorMessage.description) {
       setAdditionalActionMessages([errorMessage]);
+    } else {
+      setAdditionalActionMessages([]);
     }
   }, [errorMessage]);
 
@@ -454,9 +469,11 @@ export const LendBox = ({
     }
   }, [marginfiClient, banks, refreshSelectedBanks]);
 
+  console.log("simulationStatus", simulationStatus);
+
   return (
     <>
-      <div className="mb-6">
+      <div className="mb-4">
         <ActionInput
           banks={banks}
           nativeSolBalance={nativeSolBalance}
@@ -478,7 +495,11 @@ export const LendBox = ({
         (actionMessage, idx) =>
           actionMessage.description && (
             <div className="pb-6" key={idx}>
-              <ActionMessage _actionMessage={actionMessage} />
+              <ActionMessage
+                _actionMessage={actionMessage}
+                retry={refreshSimulation}
+                isRetrying={simulationStatus === SimulationStatus.SIMULATING}
+              />
             </div>
           )
       )}
@@ -491,8 +512,9 @@ export const LendBox = ({
 
       <div className="mb-3">
         <ActionButton
-          isLoading={isLoading}
+          isLoading={simulationStatus === SimulationStatus.SIMULATING}
           isEnabled={
+            simulationStatus === SimulationStatus.COMPLETE &&
             !additionalActionMessages.concat(actionMessages).filter((value) => value.isEnabled === false).length
           }
           connected={connected}
