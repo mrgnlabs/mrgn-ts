@@ -34,11 +34,13 @@ import { useLendBoxStore } from "./store";
 import { HandleCloseBalanceParamsProps, handleExecuteCloseBalance, handleExecuteLendingAction } from "./utils";
 import { ActionSimulationStatus } from "../../components";
 import { Collateral, ActionInput, Preview } from "./components";
-import { useLendSimulation } from "./hooks";
-import { SimulationStatus } from "../../utils/simulation.utils";
+import { useLendSimulation, SimulationStatus } from "./hooks";
 import { useActionBoxStore } from "../../store";
 import { HidePoolStats } from "../../contexts/actionbox/actionbox.context";
 import { useActionContext } from "../../contexts";
+import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
+import { IconLoader } from "~/components/ui/icons";
+import { IconCheck } from "@tabler/icons-react";
 
 // error handling
 export type LendBoxProps = {

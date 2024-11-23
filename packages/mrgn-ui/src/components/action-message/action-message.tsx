@@ -18,7 +18,7 @@ export const ActionMessage = ({ _actionMessage, isRetrying = false, retry }: Act
     <div
       className={cn(
         "relative flex space-x-2 py-2.5 px-3.5 rounded-lg gap-1 text-sm",
-        _actionMessage.actionMethod === "INFO" && "bg-info border text-info-foreground border-info-foreground/20",
+        _actionMessage.actionMethod === "INFO" && "bg-info text-info-foreground",
         (!_actionMessage.actionMethod || _actionMessage.actionMethod === "WARNING") &&
           "bg-alert border border-alert-foreground/20 text-alert-foreground",
         _actionMessage.actionMethod === "ERROR" &&
@@ -26,11 +26,11 @@ export const ActionMessage = ({ _actionMessage, isRetrying = false, retry }: Act
       )}
     >
       <IconAlertTriangle className="shrink-0 translate-y-0.5" size={16} />
-      <div className="w-full">
+      <div>
         {_actionMessage.actionMethod !== "INFO" && (
           <h3 className="font-normal capitalize mb-1.5">{(_actionMessage.actionMethod || "WARNING").toLowerCase()}</h3>
         )}
-        <div className={cn("space-y-2.5 text-sm w-4/5", _actionMessage.actionMethod !== "INFO" && "text-primary/50 ")}>
+        <div className={cn("space-y-2.5 text-sm", _actionMessage.actionMethod !== "INFO" && "text-primary/50 w-4/5")}>
           <p>{_actionMessage.description}</p>
           {_actionMessage.link && (
             <p>
