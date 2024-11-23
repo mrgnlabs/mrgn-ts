@@ -30,7 +30,7 @@ export const ActionMessage = ({ _actionMessage, isRetrying = false, retry }: Act
         {_actionMessage.actionMethod !== "INFO" && (
           <h3 className="font-normal capitalize mb-1.5">{(_actionMessage.actionMethod || "WARNING").toLowerCase()}</h3>
         )}
-        <div className={cn("space-y-2.5 text-sm", _actionMessage.actionMethod !== "INFO" && "text-primary/50 w-4/5")}>
+        <div className={cn("space-y-2.5 text-sm w-4/5", _actionMessage.actionMethod !== "INFO" && "text-primary/50 ")}>
           <p>{_actionMessage.description}</p>
           {_actionMessage.link && (
             <p>
