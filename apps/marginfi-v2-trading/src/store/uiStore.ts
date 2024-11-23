@@ -85,7 +85,7 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
   isActionBoxInputFocussed: false,
   walletState: WalletState.DEFAULT,
   isOnrampActive: false,
-  broadcastType: DEFAULT_PRIORITY_SETTINGS.txBroadcastType,
+  broadcastType: DEFAULT_PRIORITY_SETTINGS.broadcastType,
   priorityType: DEFAULT_PRIORITY_SETTINGS.priorityType,
   maxCapType: DEFAULT_PRIORITY_SETTINGS.maxCapType,
   maxCap: DEFAULT_PRIORITY_SETTINGS.maxCap,

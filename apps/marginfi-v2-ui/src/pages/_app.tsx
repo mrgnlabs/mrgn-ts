@@ -48,7 +48,7 @@ type MrgnAppProps = { path: string };
 
 export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnAppProps) {
   const [broadcastType, priorityFees, isOraclesStale, setIsFetchingData] = useUiStore((state) => [
-    state.txBroadcastType,
+    state.broadcastType,
     state.priorityFees,
     state.isOraclesStale,
     state.setIsFetchingData,

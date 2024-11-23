@@ -1,6 +1,6 @@
 import React from "react";
 
-import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
+import { MarginfiAccountWrapper, MarginfiClient, ProcessTransactionsClientOpts } from "@mrgnlabs/marginfi-client-v2";
 import { clearAccountCache, firebaseApi } from "@mrgnlabs/marginfi-v2-ui-state";
 import { getMaybeSquadsOptions, MultiStepToastHandle, capture } from "@mrgnlabs/mrgn-utils";
 import { IconChevronDown, IconUserPlus, IconPencil, IconAlertTriangle } from "@tabler/icons-react";
@@ -32,6 +32,7 @@ type WalletAuthAccountsProps = {
   marginfiAccounts: MarginfiAccountWrapper[];
   selectedAccount: MarginfiAccountWrapper | null;
   fetchMrgnlendState: () => void;
+  processOpts?: ProcessTransactionsClientOpts;
   closeOnSwitch?: boolean;
   popoverContentAlign?: "start" | "end" | "center";
   showAddAccountButton?: boolean;
@@ -47,6 +48,7 @@ export const WalletAuthAccounts = ({
   closeOnSwitch = false,
   popoverContentAlign = "center",
   showAddAccountButton = true,
+  processOpts,
 }: WalletAuthAccountsProps) => {
   const [popoverOpen, setPopoverOpen] = React.useState(false);
   const { wallet, walletContextState } = useWallet();
@@ -185,47 +187,50 @@ export const WalletAuthAccounts = ({
     multiStepToast.start();
     setIsSubmitting(true);
 
-    const squadsOptions = await getMaybeSquadsOptions(walletContextState);
-    // todo add priority fee & broadcast type
-    const mfiAccount = await mfiClient.createMarginfiAccount(squadsOptions);
+    try {
+      const squadsOptions = await getMaybeSquadsOptions(walletContextState);
+      const mfiAccount = await mfiClient.createMarginfiAccount(squadsOptions, processOpts);
 
-    if (!mfiAccount) {
+      if (!mfiAccount) {
+        multiStepToast.setFailed("Error creating new account");
+        setIsSubmitting(false);
+        return;
+      }
+
+      clearAccountCache(mfiClient.provider.publicKey);
+      multiStepToast.setSuccessAndNext();
+
+      const blockhashInfo = await connection.getLatestBlockhash();
+
+      const res = await firebaseApi.setAccountLabel(
+        useAuthTxn ? "tx" : "memo",
+        blockhashInfo,
+        wallet,
+        mfiAccount.address.toBase58(),
+        newAccountName
+      );
+
+      if (!res) {
+        multiStepToast.setFailed("Error creating account label");
+        setIsSubmitting(false);
+        return;
+      }
+
+      multiStepToast.setSuccessAndNext();
+      setIsSubmitting(false);
+      setWalletAuthAccountsState(WalletAuthAccountsState.DEFAULT);
+      await fetchAccountLabels();
+      activateAccount(mfiAccount, marginfiAccounts.length - 1);
+      setNewAccountName(`Account ${marginfiAccounts.length + 1}`);
+
+      capture("account_created", {
+        wallet: mfiAccount.authority.toBase58(),
+        account: mfiAccount.address.toBase58(),
+        label: newAccountName,
+      });
+    } catch (error) {
       multiStepToast.setFailed("Error creating new account");
-      setIsSubmitting(false);
-      return;
     }
-
-    clearAccountCache(mfiClient.provider.publicKey);
-    multiStepToast.setSuccessAndNext();
-
-    const blockhashInfo = await connection.getLatestBlockhash();
-
-    const res = await firebaseApi.setAccountLabel(
-      useAuthTxn ? "tx" : "memo",
-      blockhashInfo,
-      wallet,
-      mfiAccount.address.toBase58(),
-      newAccountName
-    );
-
-    if (!res) {
-      multiStepToast.setFailed("Error creating account label");
-      setIsSubmitting(false);
-      return;
-    }
-
-    multiStepToast.setSuccessAndNext();
-    setIsSubmitting(false);
-    setWalletAuthAccountsState(WalletAuthAccountsState.DEFAULT);
-    await fetchAccountLabels();
-    activateAccount(mfiAccount, marginfiAccounts.length - 1);
-    setNewAccountName(`Account ${marginfiAccounts.length + 1}`);
-
-    capture("account_created", {
-      wallet: mfiAccount.authority.toBase58(),
-      account: mfiAccount.address.toBase58(),
-      label: newAccountName,
-    });
   }, [
     newAccountName,
     mfiClient,

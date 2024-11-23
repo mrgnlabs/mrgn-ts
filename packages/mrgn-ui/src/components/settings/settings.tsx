@@ -84,11 +84,7 @@ export const Settings = ({ onChange, recommendedBroadcastType = "BUNDLE", ...pro
               render={({ field }) => (
                 <FormItem className="space-y-3 pb-2">
                   <FormControl>
-                    <RadioGroup
-                      onValueChange={(value) => field.onChange(value)}
-                      defaultValue={field.value.toString()}
-                      className="flex justify-between"
-                    >
+                    <RadioGroup defaultValue={field.value.toString()} className="flex justify-between">
                       {broadcastTypes.map((option) => (
                         <div
                           key={option.type}
@@ -99,6 +95,11 @@ export const Settings = ({ onChange, recommendedBroadcastType = "BUNDLE", ...pro
                         >
                           <RadioGroupItem value={option.type} id={option.type} className="hidden" />
                           <Label
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              field.onChange(option.type);
+                            }}
                             className={cn(
                               "flex flex-col p-3 gap-2 h-auto w-full text-center cursor-pointer",
                               option.isDisabled && "cursor-not-allowed opacity-50"
@@ -129,11 +130,7 @@ export const Settings = ({ onChange, recommendedBroadcastType = "BUNDLE", ...pro
               render={({ field }) => (
                 <FormItem className="space-y-3">
                   <FormControl>
-                    <RadioGroup
-                      onValueChange={(value) => field.onChange(value)}
-                      defaultValue={field.value.toString()}
-                      className="flex justify-between"
-                    >
+                    <RadioGroup defaultValue={field.value.toString()} className="flex justify-between">
                       {priorityTypes.map((option) => (
                         <div
                           key={option.type}
@@ -144,6 +141,11 @@ export const Settings = ({ onChange, recommendedBroadcastType = "BUNDLE", ...pro
                         >
                           <RadioGroupItem value={option.type} id={option.type} className="hidden" />
                           <Label
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              field.onChange(option.type);
+                            }}
                             className={"flex p-3 flex-col gap-2 h-auto w-full text-center cursor-pointer"}
                             htmlFor={option.type}
                           >
@@ -170,11 +172,7 @@ export const Settings = ({ onChange, recommendedBroadcastType = "BUNDLE", ...pro
               render={({ field }) => (
                 <FormItem className="space-y-3">
                   <FormControl>
-                    <RadioGroup
-                      onValueChange={(value) => field.onChange(value)}
-                      defaultValue={field.value}
-                      className="flex justify-between"
-                    >
+                    <RadioGroup defaultValue={field.value} className="flex justify-between">
                       {maxCapTypes.map((option) => (
                         <div
                           key={option.type}

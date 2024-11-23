@@ -42,8 +42,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       throw new Error("No data found");
     }
 
-    // cache for 4 minutes
-    res.setHeader("Cache-Control", "s-maxage=240, stale-while-revalidate=59");
+    // cache for 1 minutes
+    res.setHeader("Cache-Control", "s-maxage=60, stale-while-revalidate=59");
     res.status(200).json(data[0]);
   } catch (error) {
     console.error("Error:", error);

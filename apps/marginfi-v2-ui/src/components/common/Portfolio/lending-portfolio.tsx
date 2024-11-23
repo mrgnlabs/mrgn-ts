@@ -48,7 +48,11 @@ export const LendingPortfolio = () => {
     state.marginfiAccounts,
     state.fetchMrgnlendState,
   ]);
-  const [setLendingMode] = useUiStore((state) => [state.setLendingMode]);
+  const [setLendingMode, priorityFees, broadcastType] = useUiStore((state) => [
+    state.setLendingMode,
+    state.priorityFees,
+    state.broadcastType,
+  ]);
   const [userPointsData] = useUserProfileStore((state) => [state.userPointsData]);
 
   // Rewards
@@ -209,6 +213,10 @@ export const LendingPortfolio = () => {
             closeOnSwitch={true}
             popoverContentAlign="start"
             showAddAccountButton={false}
+            processOpts={{
+              ...priorityFees,
+              broadcastType,
+            }}
           />
         )}
       </div>

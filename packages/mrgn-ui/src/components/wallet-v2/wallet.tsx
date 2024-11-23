@@ -20,7 +20,7 @@ import {
   IconArrowDown,
 } from "@tabler/icons-react";
 
-import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
+import { MarginfiAccountWrapper, MarginfiClient, ProcessTransactionsClientOpts } from "@mrgnlabs/marginfi-client-v2";
 import { ExtendedBankInfo, UserPointsData, AccountSummary } from "@mrgnlabs/marginfi-v2-ui-state";
 import { shortenAddress, usdFormatter, numeralFormatter, groupedNumberFormatterDyn } from "@mrgnlabs/mrgn-common";
 import { useIsMobile, cn } from "@mrgnlabs/mrgn-utils";
@@ -60,6 +60,7 @@ type WalletProps = {
   accountSummary?: AccountSummary;
   refreshState: () => void;
   headerComponent?: JSX.Element;
+  processOpts?: ProcessTransactionsClientOpts;
 };
 
 enum WalletState {
@@ -88,6 +89,7 @@ const Wallet = ({
   accountSummary,
   refreshState,
   headerComponent,
+  processOpts,
 }: WalletProps) => {
   const router = useRouter();
   const [isWalletOpen, setIsWalletOpen] = useWalletStore((state) => [state.isWalletOpen, state.setIsWalletOpen]);
@@ -236,6 +238,7 @@ const Wallet = ({
                         marginfiAccounts={marginfiAccounts}
                         selectedAccount={selectedAccount}
                         fetchMrgnlendState={refreshState}
+                        processOpts={processOpts}
                       />
                     </div>
                   )}

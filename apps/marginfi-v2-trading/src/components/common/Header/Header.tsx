@@ -43,13 +43,16 @@ export const Header = () => {
       state.referralCode,
     ]
   );
-  const { priorityType, broadcastType, maxCap, maxCapType, setTransactionSettings } = useUiStore((state) => ({
-    priorityType: state.priorityType,
-    broadcastType: state.broadcastType,
-    maxCap: state.maxCap,
-    maxCapType: state.maxCapType,
-    setTransactionSettings: state.setTransactionSettings,
-  }));
+  const { priorityType, broadcastType, priorityFees, maxCap, maxCapType, setTransactionSettings } = useUiStore(
+    (state) => ({
+      priorityType: state.priorityType,
+      broadcastType: state.broadcastType,
+      priorityFees: state.priorityFees,
+      maxCap: state.maxCap,
+      maxCapType: state.maxCapType,
+      setTransactionSettings: state.setTransactionSettings,
+    })
+  );
   const { wallet } = useWallet();
   const { asPath } = useRouter();
   const isMobile = useIsMobile();
@@ -177,6 +180,10 @@ export const Header = () => {
                   wallet,
                 })
               }
+              processOpts={{
+                ...priorityFees,
+                broadcastType,
+              }}
               headerComponent={
                 <div className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center gap-2">
                   <CopyToClipboard

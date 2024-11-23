@@ -45,16 +45,16 @@ export const Navbar: FC = () => {
     state.fetchMrgnlendState,
   ]);
 
-  const { isOraclesStale, priorityType, broadcastType, maxCap, maxCapType, setTransactionSettings } = useUiStore(
-    (state) => ({
+  const { isOraclesStale, priorityType, broadcastType, priorityFees, maxCap, maxCapType, setTransactionSettings } =
+    useUiStore((state) => ({
       isOraclesStale: state.isOraclesStale,
       priorityType: state.priorityType,
-      broadcastType: state.txBroadcastType,
+      broadcastType: state.broadcastType,
+      priorityFees: state.priorityFees,
       maxCap: state.maxCap,
       maxCapType: state.maxCapType,
       setTransactionSettings: state.setTransactionSettings,
-    })
-  );
+    }));
 
   const [userPointsData] = useUserProfileStore((state) => [state.userPointsData]);
 
@@ -196,6 +196,10 @@ export const Navbar: FC = () => {
                 userPointsData={userPointsData}
                 accountSummary={accountSummary}
                 refreshState={fetchMrgnlendState}
+                processOpts={{
+                  ...priorityFees,
+                  broadcastType,
+                }}
               />
             </div>
           )}

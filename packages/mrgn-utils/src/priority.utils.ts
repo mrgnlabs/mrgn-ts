@@ -1,4 +1,4 @@
-import { Connection, LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
+import { Connection, LAMPORTS_PER_SOL, PublicKey, RecentPrioritizationFees } from "@solana/web3.js";
 import {
   getRecentPrioritizationFeesByPercentile,
   getCalculatedPrioritizationFeeByPercentile,
@@ -31,7 +31,7 @@ export const DEFAULT_MAX_CAP = 0.01;
 
 export const DEFAULT_PRIORITY_SETTINGS = {
   priorityType: "NORMAL" as TransactionPriorityType,
-  txBroadcastType: "DYNAMIC" as TransactionBroadcastType,
+  broadcastType: "DYNAMIC" as TransactionBroadcastType,
   maxCap: DEFAULT_MAX_CAP,
   maxCapType: "DYNAMIC" as MaxCapType,
 };
@@ -111,6 +111,8 @@ export const fetchPriorityFee = async (
 };
 
 export const getBundleTip = async (priorityType: TransactionPriorityType, userMaxCap: number) => {
+  const MIN_PRIORITY_FEE = 0.00001;
+
   const response = await fetch("/api/bundles/tip", {
     method: "GET",
     headers: {
@@ -152,33 +154,62 @@ export const getBundleTip = async (priorityType: TransactionPriorityType, userMa
   }
 
   if (priorityFee === 0) {
-    priorityFee = 0.00001;
+    priorityFee = MIN_PRIORITY_FEE;
   }
 
   return Math.min(maxCap, Math.trunc(priorityFee * LAMPORTS_PER_SOL) / LAMPORTS_PER_SOL);
 };
 
+type PriorityFeesPercentile = {
+  min: RecentPrioritizationFees;
+  mean: number;
+  median: number;
+  max: RecentPrioritizationFees;
+};
+
 export const getRpcPriorityFeeMicroLamports = async (connection: Connection, priorityType: TransactionPriorityType) => {
-  const { min, max, mean, median } = await getCalculatedPrioritizationFeeByPercentile(
-    connection,
-    {
-      lockedWritableAccounts: [], // TODO: investigate this
-      percentile: PriotitizationFeeLevels.HIGH,
-      fallback: false,
+  const MIN_PRIORITY_FEE = 0.00001;
+
+  const response = await fetch("/api/priorityFees", {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json; charset=utf-8",
     },
-    20
-  );
+  }).catch((err) => {});
+
+  let priorityFees: PriorityFeesPercentile = {
+    min: {
+      prioritizationFee: 50,
+      slot: 0,
+    },
+    mean: 1000000,
+    median: 128352,
+    max: {
+      prioritizationFee: 13281448,
+      slot: 0,
+    },
+  };
+
+  if (!response || !response.ok) {
+    console.error("Failed to fetch priority fees");
+    return MIN_PRIORITY_FEE;
+  } else {
+    priorityFees = await response.json();
+  }
 
   let priorityFee = 0;
 
   if (priorityType === "HIGH") {
-    priorityFee = mean;
+    priorityFee = priorityFees.mean;
   } else if (priorityType === "MAMAS") {
-    priorityFee = max.prioritizationFee;
+    priorityFee = priorityFees.max.prioritizationFee;
   } else {
-    priorityFee = Math.min(median, mean);
+    priorityFee = Math.min(priorityFees.median, priorityFees.mean);
+  }
+
+  if (priorityFee === 0) {
+    priorityFee = MIN_PRIORITY_FEE;
   }
 
   return priorityFee;
-  // return Math.min(maxCap, priorityFee);
 };
