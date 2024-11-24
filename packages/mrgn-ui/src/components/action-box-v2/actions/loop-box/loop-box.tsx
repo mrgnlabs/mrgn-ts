@@ -40,8 +40,9 @@ import { useLoopBoxStore } from "./store";
 import { useLoopSimulation } from "./hooks";
 import { LeverageSlider } from "./components/leverage-slider";
 import { ApyStat } from "./components/apy-stat";
-import { useActionContext } from "../../contexts";
+import { ActionSimulationStatus } from "../../components/action-simulation-status";
 import { IconLoader } from "~/components/ui/icons";
+import { useActionContext } from "../../contexts";
 
 // error handling
 export type LoopBoxProps = {
@@ -347,15 +348,6 @@ export const LoopBox = ({
   ]);
 
   React.useEffect(() => {
-    if (simulationStatus === SimulationStatus.COMPLETE && additionalActionMessages.length === 0) {
-      setShowSimSuccess(true);
-      setTimeout(() => {
-        setShowSimSuccess(false);
-      }, 3000);
-    }
-  }, [simulationStatus, additionalActionMessages]);
-
-  React.useEffect(() => {
     if (marginfiClient) {
       refreshSelectedBanks(banks);
     }
@@ -445,20 +437,11 @@ export const LoopBox = ({
         />
       </div>
 
-      <div className="flex items-center justify-end">
-        {(simulationStatus === SimulationStatus.SIMULATING || simulationStatus === SimulationStatus.PREPARING) && (
-          <p className="text-xs text-muted-foreground/75 flex items-center gap-1 mr-auto">
-            <IconLoader size={14} /> Simulating transaction...
-          </p>
-        )}
-        <p
-          className={cn(
-            "text-xs text-muted-foreground/75 flex items-center gap-1 mr-auto text-success opacity-0 transition-colors",
-            showSimSuccess && "opacity-100"
-          )}
-        >
-          <IconCheck size={14} /> Simulation complete!
-        </p>
+      <div className="flex items-center justify-between">
+        <ActionSimulationStatus
+          simulationStatus={simulationStatus}
+          hasErrorMessages={additionalActionMessages.length > 0}
+        />
         <ActionSettingsButton setIsSettingsActive={setIsSettingsDialogOpen} />
       </div>
 
