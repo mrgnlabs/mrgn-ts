@@ -27,6 +27,7 @@ import { useStakeSimulation } from "./hooks";
 import { useActionBoxStore } from "../../store";
 import { ExecuteLstActionParams, handleExecuteLstAction } from "./utils/stake-action.utils";
 import { ActionInput } from "./components/action-input";
+import { ActionSimulationStatus } from "~/components/action-box-v2/components";
 
 import { useActionContext, useStakeBoxContext } from "../../contexts";
 
@@ -145,7 +146,7 @@ export const StakeBox = ({
     };
   }, [refreshState]);
 
-  const { handleSimulation } = useStakeSimulation({
+  const { handleSimulation, refreshSimulation, simulationStatus } = useStakeSimulation({
     debouncedAmount: debouncedAmount ?? 0,
     selectedBank,
     actionMode,
@@ -366,7 +367,7 @@ export const StakeBox = ({
         (actionMessage, idx) =>
           actionMessage.description && (
             <div className="pb-6" key={idx}>
-              <ActionMessage _actionMessage={actionMessage} />
+              <ActionMessage _actionMessage={actionMessage} retry={refreshSimulation} isRetrying={isLoading.state} />
             </div>
           )
       )}
@@ -382,7 +383,13 @@ export const StakeBox = ({
         />
       </div>
 
-      <ActionSettingsButton setIsSettingsActive={setIsSettingsDialogOpen} />
+      <div className="flex items-center justify-between">
+        <ActionSimulationStatus
+          simulationStatus={simulationStatus}
+          hasErrorMessages={additionalActionMessages.length > 0}
+        />
+        <ActionSettingsButton setIsSettingsActive={setIsSettingsDialogOpen} />
+      </div>
 
       <div>
         <StatsPreview
