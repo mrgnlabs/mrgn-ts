@@ -8,7 +8,7 @@ import { TransactionBroadcastType } from "@mrgnlabs/mrgn-common";
 import { ActionMessageType, usePrevious, STATIC_SIMULATION_ERRORS, ActionTxns } from "@mrgnlabs/mrgn-utils";
 
 import { calculateLendingTransaction, calculateSummary, getSimulationResult } from "../utils";
-
+import { SimulationStatus } from "../../../utils/simulation.utils";
 /*
 How lending action simulation works:
 1) If the debounced amount differs from the previous amount, generate an action transaction (actionTxn).
@@ -29,13 +29,6 @@ type LendSimulationProps = {
   setErrorMessage: (error: ActionMessageType | null) => void;
   setIsLoading: (isLoading: boolean) => void;
 };
-
-export enum SimulationStatus {
-  IDLE = "idle",
-  PREPARING = "preparing",
-  SIMULATING = "simulating",
-  COMPLETE = "complete",
-}
 
 export function useLendSimulation({
   debouncedAmount,

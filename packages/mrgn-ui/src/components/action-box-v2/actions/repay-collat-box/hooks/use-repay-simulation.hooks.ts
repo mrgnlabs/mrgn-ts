@@ -14,6 +14,7 @@ import { TransactionBroadcastType } from "@mrgnlabs/mrgn-common";
 import { AccountSummary, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { useActionBoxStore } from "../../../store";
+import { SimulationStatus } from "../../../utils/simulation.utils";
 import { calculateRepayCollateral, calculateSummary, getSimulationResult } from "../utils";
 
 type RepayCollatSimulationProps = {
@@ -54,6 +55,7 @@ export function useRepayCollatSimulation({
   setMaxAmountCollateral,
 }: RepayCollatSimulationProps) {
   const [slippageBps, platformFeeBps] = useActionBoxStore((state) => [state.slippageBps, state.platformFeeBps]);
+  const [simulationStatus, setSimulationStatus] = React.useState<SimulationStatus>(SimulationStatus.IDLE);
 
   const prevDebouncedAmount = usePrevious(debouncedAmount);
   const prevSelectedSecondaryBank = usePrevious(selectedSecondaryBank);
@@ -62,6 +64,7 @@ export function useRepayCollatSimulation({
   const handleSimulation = React.useCallback(
     async (txns: (VersionedTransaction | Transaction)[]) => {
       try {
+        setSimulationStatus(SimulationStatus.SIMULATING);
         if (selectedAccount && selectedBank && txns.length > 0) {
           const simulationResult = await getSimulationResult({
             account: selectedAccount,
@@ -78,6 +81,7 @@ export function useRepayCollatSimulation({
         setSimulationResult(null);
       } finally {
         setIsLoading(false);
+        setSimulationStatus(SimulationStatus.COMPLETE);
       }
     },
     [selectedAccount, selectedBank, setIsLoading, setSimulationResult]
@@ -99,6 +103,7 @@ export function useRepayCollatSimulation({
 
   const fetchRepayTxn = React.useCallback(
     async (amount: number) => {
+      setSimulationStatus(SimulationStatus.PREPARING);
       if (!selectedAccount || !marginfiClient || !selectedBank || !selectedSecondaryBank || amount === 0) {
         const missingParams = [];
         if (!selectedAccount) missingParams.push("account is null");
@@ -168,6 +173,10 @@ export function useRepayCollatSimulation({
     }
   }, [selectedBank, selectedSecondaryBank, slippageBps, setErrorMessage, setMaxAmountCollateral]);
 
+  const refreshSimulation = React.useCallback(async () => {
+    await fetchRepayTxn(debouncedAmount ?? 0);
+  }, [fetchRepayTxn, debouncedAmount]);
+
   React.useEffect(() => {
     if (isRefreshTxn) {
       setActionTxns({ actionTxn: null, additionalTxns: [], actionQuote: null, lastValidBlockHeight: undefined });
@@ -176,6 +185,8 @@ export function useRepayCollatSimulation({
   }, [isRefreshTxn]);
 
   React.useEffect(() => {
+    // Reset simulation status when amount changes
+    setSimulationStatus(SimulationStatus.PREPARING);
     // only simulate when amount changes
     if (prevDebouncedAmount !== debouncedAmount) {
       fetchRepayTxn(debouncedAmount ?? 0);
@@ -186,11 +197,19 @@ export function useRepayCollatSimulation({
     }
   }, [prevDebouncedAmount, isRefreshTxn, debouncedAmount, fetchRepayTxn]);
 
+  // Update simulation effect to check for transactions
   React.useEffect(() => {
-    handleSimulation([
-      ...(actionTxns?.additionalTxns ?? []),
-      ...(actionTxns?.actionTxn ? [actionTxns?.actionTxn] : []),
-    ]);
+    // Only run simulation if we have transactions to simulate
+    if (actionTxns?.actionTxn || (actionTxns?.additionalTxns?.length ?? 0) > 0) {
+      handleSimulation([
+        ...(actionTxns?.additionalTxns ?? []),
+        ...(actionTxns?.actionTxn ? [actionTxns?.actionTxn] : []),
+      ]);
+    } else {
+      // If no transactions, move back to idle state
+      setSimulationStatus(SimulationStatus.IDLE);
+      setIsLoading(false);
+    }
   }, [actionTxns]);
 
   // Fetch max repayable collateral or max leverage based when the secondary bank changes
@@ -211,5 +230,7 @@ export function useRepayCollatSimulation({
 
   return {
     actionSummary,
+    refreshSimulation,
+    simulationStatus,
   };
 }

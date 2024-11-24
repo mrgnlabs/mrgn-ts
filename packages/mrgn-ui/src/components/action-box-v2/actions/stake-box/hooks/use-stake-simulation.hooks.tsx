@@ -25,6 +25,7 @@ import {
 } from "@mrgnlabs/mrgn-common";
 
 import { createStakeLstTx, createUnstakeLstTx, getSimulationResult } from "../utils";
+import { SimulationStatus } from "../../../utils/simulation.utils";
 import { useActionBoxStore } from "../../../store";
 
 type StakeSimulationProps = {
@@ -50,19 +51,19 @@ export function useStakeSimulation({
   actionTxns,
   simulationResult,
   marginfiClient,
-
   setSimulationResult,
   setActionTxns,
   setErrorMessage,
   setIsLoading,
 }: StakeSimulationProps) {
   const [slippageBps, platformFeeBps] = useActionBoxStore((state) => [state.slippageBps, state.platformFeeBps]);
-
+  const [simulationStatus, setSimulationStatus] = React.useState<SimulationStatus>(SimulationStatus.IDLE);
   const prevDebouncedAmount = usePrevious(debouncedAmount);
 
   const handleSimulation = React.useCallback(
     async (txns: (VersionedTransaction | Transaction)[]) => {
       try {
+        setSimulationStatus(SimulationStatus.SIMULATING);
         if (selectedBank && txns.length > 0) {
           const { actionMethod } = await getSimulationResult({
             marginfiClient: marginfiClient as MarginfiClient,
@@ -85,6 +86,7 @@ export function useStakeSimulation({
         setSimulationResult(null);
       } finally {
         setIsLoading({ type: "SIMULATION", state: false });
+        setSimulationStatus(SimulationStatus.COMPLETE);
       }
     },
     [selectedBank, marginfiClient, setSimulationResult, simulationResult, setIsLoading, setErrorMessage]
@@ -92,6 +94,7 @@ export function useStakeSimulation({
 
   const fetchTxs = React.useCallback(
     async (amount: number, actionType: ActionType) => {
+      setSimulationStatus(SimulationStatus.PREPARING);
       const connection = marginfiClient?.provider.connection;
 
       if (amount === 0 || !selectedBank || !connection || !lstData) {
@@ -160,11 +163,18 @@ export function useStakeSimulation({
     [marginfiClient, selectedBank, slippageBps, setActionTxns, setIsLoading, platformFeeBps]
   );
 
+  const refreshSimulation = React.useCallback(async () => {
+    await fetchTxs(debouncedAmount ?? 0, actionMode);
+  }, [fetchTxs, debouncedAmount, actionMode]);
+
   React.useEffect(() => {
+    // Reset simulation status when amount changes
+    setSimulationStatus(SimulationStatus.PREPARING);
+    // only simulate when amount changes
     if (prevDebouncedAmount !== debouncedAmount) {
       fetchTxs(debouncedAmount ?? 0, actionMode);
     }
   }, [prevDebouncedAmount, debouncedAmount, fetchTxs, actionMode]);
 
-  return { handleSimulation };
+  return { handleSimulation, refreshSimulation, simulationStatus };
 }
