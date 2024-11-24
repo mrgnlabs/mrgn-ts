@@ -40,7 +40,7 @@ import { useLoopBoxStore } from "./store";
 import { useLoopSimulation } from "./hooks";
 import { LeverageSlider } from "./components/leverage-slider";
 import { ApyStat } from "./components/apy-stat";
-import { ActionSimulationStatus } from "../../components/action-simulation-status";
+import { ActionSimulationStatus } from "../../components";
 import { IconLoader } from "~/components/ui/icons";
 import { useActionContext } from "../../contexts";
 

@@ -200,8 +200,6 @@ export function useLoopSimulation({
     }
   }, [selectedBank, selectedSecondaryBank, setErrorMessage, setMaxLeverage]);
 
-  console.log("simulationStatus", simulationStatus);
-
   React.useEffect(() => {
     if (isRefreshTxn) {
       setActionTxns({

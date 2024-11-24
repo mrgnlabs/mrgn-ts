@@ -45,8 +45,6 @@ export function useLendSimulation({
 }: LendSimulationProps) {
   const prevDebouncedAmount = usePrevious(debouncedAmount);
   const [simulationStatus, setSimulationStatus] = React.useState<SimulationStatus>(SimulationStatus.IDLE);
-  // for testing purposes, we want to show the slippage error on the first time
-  const [isFirstTime, setIsFirstTime] = React.useState(true);
 
   const handleSimulation = React.useCallback(
     async (txns: (VersionedTransaction | Transaction)[]) => {
@@ -64,16 +62,8 @@ export function useLendSimulation({
             setErrorMessage(simulationResult.actionMethod);
             setSimulationResult(null);
           } else {
-            // for testing purposes, we want to show the slippage error on the first time
-            // and then on second attempt remove so we can simulate a successful retry
-            if (isFirstTime) {
-              setErrorMessage(STATIC_SIMULATION_ERRORS.SLIPPAGE);
-              setSimulationResult(null);
-              setIsFirstTime(false);
-            } else {
-              setErrorMessage(null);
+            setErrorMessage(null);
               setSimulationResult(simulationResult.simulationResult);
-            }
           }
         } else {
           setSimulationResult(null);
@@ -94,7 +84,6 @@ export function useLendSimulation({
       setErrorMessage,
       setSimulationResult,
       setIsLoading,
-      isFirstTime,
     ]
   );
 

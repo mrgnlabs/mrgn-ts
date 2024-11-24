@@ -28,11 +28,31 @@ const ActionSimulationStatus = ({ simulationStatus, hasErrorMessages }: ActionSi
       setSimulationCompleteStatus(SimulationCompleteStatus.ERROR);
     } else if (simulationStatus === SimulationStatus.SIMULATING || simulationStatus === SimulationStatus.PREPARING) {
       setSimulationCompleteStatus(SimulationCompleteStatus.LOADING);
-    }
-    if (simulationStatus === SimulationStatus.COMPLETE) {
+    } else if (simulationStatus === SimulationStatus.COMPLETE) {
       setSimulationCompleteStatus(SimulationCompleteStatus.SUCCESS);
     }
-  }, [simulationStatus, simulationCompleteStatus, hasErrorMessages]);
+  }, [simulationStatus, hasErrorMessages]);
+
+  React.useEffect(() => {
+    if (
+      simulationCompleteStatus === SimulationCompleteStatus.SUCCESS ||
+      simulationCompleteStatus === SimulationCompleteStatus.ERROR
+    ) {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+
+      timeoutRef.current = window.setTimeout(() => {
+        setSimulationCompleteStatus(SimulationCompleteStatus.NULL);
+      }, 3000);
+    }
+
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, [simulationCompleteStatus]);
 
   return (
     <div>

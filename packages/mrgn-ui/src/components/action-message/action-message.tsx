@@ -18,7 +18,7 @@ export const ActionMessage = ({ _actionMessage, isRetrying = false, retry }: Act
     <div
       className={cn(
         "relative flex space-x-2 py-2.5 px-3.5 rounded-lg gap-1 text-sm",
-        _actionMessage.actionMethod === "INFO" && "bg-info text-info-foreground",
+        _actionMessage.actionMethod === "INFO" && "bg-info border text-info-foreground border-info-foreground/20",
         (!_actionMessage.actionMethod || _actionMessage.actionMethod === "WARNING") &&
           "bg-alert border border-alert-foreground/20 text-alert-foreground",
         _actionMessage.actionMethod === "ERROR" &&
