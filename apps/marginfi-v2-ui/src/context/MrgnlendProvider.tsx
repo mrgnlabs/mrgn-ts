@@ -1,7 +1,7 @@
 import React from "react";
 import { useRouter } from "next/router";
 
-import { identify } from "@mrgnlabs/mrgn-utils";
+import { getTransactionStrategy, identify } from "@mrgnlabs/mrgn-utils";
 
 import config from "~/config/marginfi";
 import { useMrgnlendStore, useUiStore } from "~/store";
@@ -60,6 +60,7 @@ export const MrgnlendProvider: React.FC<{
         connection,
         wallet,
         isOverride,
+        processTransactionStrategy: getTransactionStrategy(),
       }).catch(console.error);
     };
 

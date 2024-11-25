@@ -21,7 +21,7 @@ import { persist } from "zustand/middleware";
 
 import { Bank, getPriceWithConfidence, OraclePrice } from "@mrgnlabs/marginfi-client-v2";
 import type { Wallet, BankMetadataMap, TokenMetadataMap, TokenMetadata, BankMetadata } from "@mrgnlabs/mrgn-common";
-import type { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
+import type { MarginfiAccountWrapper, ProcessTransactionStrategy } from "@mrgnlabs/marginfi-client-v2";
 import type { MarginfiClient, MarginfiConfig } from "@mrgnlabs/marginfi-client-v2";
 
 interface ProtocolStats {
@@ -50,6 +50,7 @@ interface MrgnlendState {
   birdEyeApiKey: string;
   bundleSimRpcEndpoint: string | null;
   stageTokens: string[] | null;
+  processTransactionStrategy: ProcessTransactionStrategy | null;
 
   // Actions
   fetchMrgnlendState: (args?: {
@@ -60,6 +61,7 @@ interface MrgnlendState {
     birdEyeApiKey?: string;
     bundleSimRpcEndpoint?: string;
     stageTokens?: string[];
+    processTransactionStrategy?: ProcessTransactionStrategy;
   }) => Promise<void>;
   setIsRefreshingStore: (isRefreshingStore: boolean) => void;
   resetUserData: () => void;
@@ -166,6 +168,7 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
   emissionTokenMap: {},
   bundleSimRpcEndpoint: null,
   stageTokens: null,
+  processTransactionStrategy: null,
 
   // Actions
   fetchMrgnlendState: async (args?: {
@@ -176,6 +179,7 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
     birdEyeApiKey?: string;
     bundleSimRpcEndpoint?: string;
     stageTokens?: string[];
+    processTransactionStrategy?: ProcessTransactionStrategy;
   }) => {
     try {
       const { MarginfiClient } = await import("@mrgnlabs/marginfi-client-v2");
@@ -195,6 +199,8 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
 
       const isReadOnly = args?.isOverride !== undefined ? args.isOverride : get().marginfiClient?.isReadOnly ?? false;
       const bundleSimRpcEndpoint = args?.bundleSimRpcEndpoint ?? get().bundleSimRpcEndpoint ?? undefined;
+      const processTransactionStrategy =
+        args?.processTransactionStrategy ?? get().processTransactionStrategy ?? undefined;
 
       let bankMetadataMap: { [address: string]: BankMetadata };
       let tokenMetadataMap: { [symbol: string]: TokenMetadata };
@@ -225,11 +231,13 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
       }
 
       const bankAddresses = Object.keys(bankMetadataMap).map((address) => new PublicKey(address));
+
       const marginfiClient = await MarginfiClient.fetch(marginfiConfig, wallet ?? ({} as any), connection, {
         preloadedBankAddresses: bankAddresses,
         readOnly: isReadOnly,
         bundleSimRpcEndpoint,
         bankMetadataMap: bankMetadataMap,
+        processTransactionStrategy: args?.processTransactionStrategy,
         fetchGroupDataOverride: fetchGroupData,
       });
       const clientBanks = [...marginfiClient.banks.values()];
@@ -388,6 +396,7 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
         accountSummary,
         birdEyeApiKey,
         bundleSimRpcEndpoint,
+        processTransactionStrategy,
         stageTokens: stageTokens ?? null,
       });
 

@@ -50,7 +50,7 @@ export type PriorityFees = {
   priorityFeeMicro?: number;
 };
 
-type BroadcastMethodType = Extract<TransactionBroadcastType, "BUNDLE" | "RPC">;
+export type BroadcastMethodType = Extract<TransactionBroadcastType, "BUNDLE" | "RPC">;
 
 export type SpecificBroadcastMethodType = "GRPC_BUNDLE" | "API_BUNDLE" | "RPC_BUNDLE" | "RPC_SEQUENTIAL";
 

@@ -59,7 +59,12 @@ import {
   parseTransactionError,
 } from "../errors";
 import { findOracleKey, makePriorityFeeIx, PythPushFeedIdMap, buildFeedIdMap } from "../utils";
-import { ProcessTransactionOpts, ProcessTransactionsClientOpts, processTransactions } from "../services";
+import {
+  ProcessTransactionOpts,
+  ProcessTransactionStrategy,
+  ProcessTransactionsClientOpts,
+  processTransactions,
+} from "../services";
 
 export type BankMap = Map<string, Bank>;
 export type OraclePriceMap = Map<string, OraclePrice>;
@@ -77,6 +82,7 @@ export type MarginfiClientOptions = {
   readOnly?: boolean;
   preloadedBankAddresses?: PublicKey[];
   bundleSimRpcEndpoint?: string;
+  processTransactionStrategy?: ProcessTransactionStrategy;
   bankMetadataMap?: BankMetadataMap;
   fetchGroupDataOverride?: (
     program: MarginfiProgram,
@@ -105,6 +111,7 @@ class MarginfiClient {
   public feedIdMap: PythPushFeedIdMap;
   private preloadedBankAddresses?: PublicKey[];
   private bundleSimRpcEndpoint: string;
+  private processTransactionStrategy?: ProcessTransactionStrategy;
 
   // --------------------------------------------------------------------------
   // Factories
@@ -123,7 +130,8 @@ class MarginfiClient {
     addressLookupTables?: AddressLookupTableAccount[],
     preloadedBankAddresses?: PublicKey[],
     readonly bankMetadataMap?: BankMetadataMap,
-    bundleSimRpcEndpoint?: string
+    bundleSimRpcEndpoint?: string,
+    processTransactionStrategy?: ProcessTransactionStrategy
   ) {
     this.group = group;
     this.banks = banks;
@@ -133,6 +141,7 @@ class MarginfiClient {
     this.preloadedBankAddresses = preloadedBankAddresses;
     this.feedIdMap = feedIdMap;
     this.bundleSimRpcEndpoint = bundleSimRpcEndpoint ?? program.provider.connection.rpcEndpoint;
+    this.processTransactionStrategy = processTransactionStrategy;
   }
 
   /**
@@ -237,7 +246,9 @@ class MarginfiClient {
       feedIdMap,
       addressLookupTables,
       preloadedBankAddresses,
-      bankMetadataMap
+      bankMetadataMap,
+      clientOptions?.bundleSimRpcEndpoint,
+      clientOptions?.processTransactionStrategy
     );
   }
 
@@ -795,12 +806,13 @@ class MarginfiClient {
     processOpts?: ProcessTransactionsClientOpts,
     txOpts?: TransactionOptions
   ): Promise<TransactionSignature[]> {
-    const options = {
+    const options: ProcessTransactionOpts = {
       ...processOpts,
       isReadOnly: this.isReadOnly,
       programId: this.program.programId,
       bundleSimRpcEndpoint: this.bundleSimRpcEndpoint,
-    } as ProcessTransactionOpts;
+      dynamicStrategy: processOpts?.dynamicStrategy ?? this.processTransactionStrategy,
+    };
 
     return await processTransactions({
       transactions,
@@ -834,6 +846,7 @@ class MarginfiClient {
       isReadOnly: this.isReadOnly,
       programId: this.program.programId,
       bundleSimRpcEndpoint: this.bundleSimRpcEndpoint,
+      dynamicStrategy: processOpts?.dynamicStrategy ?? this.processTransactionStrategy,
     };
 
     const [signature] = await processTransactions({

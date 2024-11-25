@@ -32,6 +32,7 @@ import {
 import { TRADE_GROUPS_MAP, TOKEN_METADATA_MAP, BANK_METADATA_MAP, POOLS_PER_PAGE } from "~/config/trade";
 import { TokenData } from "~/types";
 import { getGroupPositionInfo } from "~/utils";
+import { getTransactionStrategy } from "@mrgnlabs/mrgn-utils";
 
 type TradeGroupsCache = {
   [group: string]: [string, string];
@@ -579,6 +580,7 @@ async function getGroupData({
     {
       preloadedBankAddresses: bankKeys,
       bankMetadataMap: bankMetadataCache,
+      processTransactionStrategy: getTransactionStrategy(),
       fetchGroupDataOverride: fetchGroupData,
     }
   );
