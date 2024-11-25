@@ -1,4 +1,15 @@
 import {
+  PublicKey,
+  VersionedTransaction,
+  TransactionInstruction,
+  TransactionSignature,
+  Connection,
+  Commitment,
+  ComputeBudgetProgram,
+  LAMPORTS_PER_SOL,
+  TransactionMessage,
+} from "@solana/web3.js";
+import {
   isV0Tx,
   decompileV0Transaction,
   decodeInstruction,
@@ -9,26 +20,14 @@ import {
   sleep,
   SolanaTransaction,
   TransactionOptions,
-  decodeComputeBudgetInstruction,
   getComputeBudgetUnits,
   // PRIORITY_TX_SIZE,
   // BUNDLE_TX_SIZE,
   // MAX_TX_SIZE,
 } from "@mrgnlabs/mrgn-common";
-import {
-  PublicKey,
-  VersionedTransaction,
-  TransactionInstruction,
-  TransactionSignature,
-  Connection,
-  TransactionConfirmationStrategy,
-  Commitment,
-  ComputeBudgetProgram,
-  LAMPORTS_PER_SOL,
-} from "@solana/web3.js";
+
 import { MARGINFI_IDL, MarginfiIdlType } from "../../idl";
 import { makeTxPriorityIx } from "../../models/account";
-import { SystemProgram } from "@solana/web3.js";
 import { makePriorityFeeMicroIx } from "../../utils";
 import { confirmTransaction } from "./transaction.service";
 
@@ -80,7 +79,6 @@ const microLamportsToUi = (microLamports: number, limitCU: number = 1_400_000) =
   return Math.trunc(priorityFeeUi * LAMPORTS_PER_SOL) / LAMPORTS_PER_SOL;
 };
 
-// TODO: add bundle tip tx if fails, measure the size
 export function formatTransactions(
   transactions: SolanaTransaction[],
   broadcastType: TransactionBroadcastType,
@@ -137,6 +135,17 @@ export function formatTransactions(
     if (flashloanIndex === i || baseTxSize + PRIORITY_TX_SIZE < MAX_TX_SIZE) {
       priorityFeeIndexes.push(i);
     }
+  }
+
+  // no space for bundle tip, so add seperate tx
+  if (bundleTipIndex === -1 && bundleTipIx) {
+    const bundleTipMessage = new TransactionMessage({
+      instructions: [bundleTipIx],
+      payerKey: feePayer,
+      recentBlockhash: blockhash,
+    });
+
+    formattedTransactions.push(new VersionedTransaction(bundleTipMessage.compileToV0Message()));
   }
 
   for (const [index, transaction] of transactions.entries()) {
