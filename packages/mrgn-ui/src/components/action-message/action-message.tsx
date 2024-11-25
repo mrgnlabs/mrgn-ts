@@ -26,7 +26,7 @@ export const ActionMessage = ({ _actionMessage, isRetrying = false, retry }: Act
       )}
     >
       <IconAlertTriangle className="shrink-0 translate-y-0.5" size={16} />
-      <div>
+      <div className="w-full">
         {_actionMessage.actionMethod !== "INFO" && (
           <h3 className="font-normal capitalize mb-1.5">{(_actionMessage.actionMethod || "WARNING").toLowerCase()}</h3>
         )}
