@@ -12,6 +12,8 @@ const restrictedRoute = "/looper";
 const allowedOrigins = [
   "https://app.marginfi.com",
   "https://marginfi-v2-ui-git-staging-mrgn.vercel.app",
+  "https://marginfi-v2-ui-git-staging2-mrgn.vercel.app",
+  "https://marginfi-v2-ui-git-test-mrgn.vercel.app",
   "http://localhost:3004",
 ];
 
