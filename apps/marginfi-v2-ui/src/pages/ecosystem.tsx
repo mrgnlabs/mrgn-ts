@@ -20,11 +20,11 @@ const projects = shuffle([
   {
     title: "Exponent",
     description: "Trade volatile marginfi pool yields and earn fixed-rates for $USDC, $PYUSD and $USDT.",
-    url: "https://trustless.engineering",
+    url: "https://www.exponent.finance",
     author: {
       name: "Exponent",
       avatar: "https://storage.googleapis.com/mrgn-public/ecosystem-images/exponent.jpg",
-      url: "https://www.exponent.finance/income",
+      url: "https://www.exponent.finance",
     },
   },
   // {
