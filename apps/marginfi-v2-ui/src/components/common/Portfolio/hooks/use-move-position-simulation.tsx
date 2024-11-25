@@ -56,20 +56,19 @@ export const useMoveSimulation = ({
 
       const withdrawTx = await selectedAccount?.makeWithdrawTx(activeBank.position.amount, activeBank.address, true);
       if (!withdrawTx) return;
-      const bundleTipIx = makeBundleTipIx(marginfiClient?.wallet.publicKey);
       const depositIx = await accountToMoveTo.makeDepositIx(activeBank.position.amount, activeBank.address);
       if (!depositIx) return;
       const depositInstruction = new TransactionMessage({
         payerKey: marginfiClient.wallet.publicKey,
         recentBlockhash: blockHash.blockhash,
-        instructions: [...depositIx.instructions, bundleTipIx],
+        instructions: [...depositIx.instructions],
       });
       const depositTx = new VersionedTransaction(depositInstruction.compileToV0Message(lookupTables));
       return [...withdrawTx.feedCrankTxs, withdrawTx.withdrawTx, depositTx];
     } catch (error) {
       console.error("Error creating transactions", error);
     }
-  }, [marginfiClient, accountToMoveTo, activeBank, setErrorMessage, setIsLoading, selectedAccount]);
+  }, [marginfiClient, accountToMoveTo, activeBank, setIsLoading, selectedAccount]);
 
   const handleSimulateTxns = React.useCallback(async () => {
     try {
