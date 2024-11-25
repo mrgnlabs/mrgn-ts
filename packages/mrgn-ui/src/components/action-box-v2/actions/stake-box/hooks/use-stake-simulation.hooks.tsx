@@ -77,10 +77,8 @@ export function useStakeSimulation({
             setErrorMessage(actionMethod);
             setSimulationResult(null);
           } else {
-            setErrorMessage(STATIC_SIMULATION_ERRORS.STAKE_SIMULATION_FAILED);
-            setSimulationResult(null);
-            // setErrorMessage(null);
-            // setSimulationResult(simulationResult);
+            setErrorMessage(null);
+            setSimulationResult(simulationResult);
           }
         } else {
           setSimulationResult(null);

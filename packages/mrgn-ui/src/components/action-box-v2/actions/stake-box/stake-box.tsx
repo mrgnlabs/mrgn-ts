@@ -383,13 +383,7 @@ export const StakeBox = ({
         />
       </div>
 
-      <div className="flex items-center justify-between">
-        <ActionSimulationStatus
-          simulationStatus={simulationStatus}
-          hasErrorMessages={additionalActionMessages.length > 0}
-        />
-        <ActionSettingsButton setIsSettingsActive={setIsSettingsDialogOpen} />
-      </div>
+      <ActionSettingsButton setIsSettingsActive={setIsSettingsDialogOpen} />
 
       <div>
         <StatsPreview

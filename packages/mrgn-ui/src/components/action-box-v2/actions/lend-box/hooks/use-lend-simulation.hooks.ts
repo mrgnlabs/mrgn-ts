@@ -63,7 +63,7 @@ export function useLendSimulation({
             setSimulationResult(null);
           } else {
             setErrorMessage(null);
-              setSimulationResult(simulationResult.simulationResult);
+            setSimulationResult(simulationResult.simulationResult);
           }
         } else {
           setSimulationResult(null);
@@ -76,15 +76,7 @@ export function useLendSimulation({
         setSimulationStatus(SimulationStatus.COMPLETE);
       }
     },
-    [
-      selectedAccount,
-      selectedBank,
-      lendMode,
-      debouncedAmount,
-      setErrorMessage,
-      setSimulationResult,
-      setIsLoading,
-    ]
+    [selectedAccount, selectedBank, lendMode, debouncedAmount, setErrorMessage, setSimulationResult, setIsLoading]
   );
 
   const handleActionSummary = React.useCallback(

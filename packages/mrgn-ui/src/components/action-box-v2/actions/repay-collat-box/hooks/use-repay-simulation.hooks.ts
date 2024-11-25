@@ -197,7 +197,6 @@ export function useRepayCollatSimulation({
     }
   }, [prevDebouncedAmount, isRefreshTxn, debouncedAmount, fetchRepayTxn]);
 
-  // Update simulation effect to check for transactions
   React.useEffect(() => {
     // Only run simulation if we have transactions to simulate
     if (actionTxns?.actionTxn || (actionTxns?.additionalTxns?.length ?? 0) > 0) {
