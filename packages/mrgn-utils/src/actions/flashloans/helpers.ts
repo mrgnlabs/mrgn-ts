@@ -12,7 +12,7 @@ import { ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state
 import { ExtendedV0Transaction, nativeToUi, TransactionBroadcastType, uiToNative } from "@mrgnlabs/mrgn-common";
 
 import { STATIC_SIMULATION_ERRORS } from "../../errors";
-import { ActionMessageType, LoopingProps, RepayWithCollatProps } from "../types";
+import { ActionMessageType, ClosePositionProps, LoopingProps, RepayWithCollatProps } from "../types";
 import { closePositionBuilder, loopingBuilder, repayWithCollatBuilder } from "./builders";
 import { getSwapQuoteWithRetry } from "../helpers";
 
@@ -57,49 +57,36 @@ export async function verifyTxSizeLooping(props: LoopingProps): Promise<VerifyTx
  * Builds and verifies the size of the Looping transaction.
  */
 export async function verifyTxSizeCloseBorrowLendPosition(
-  marginfiAccount: MarginfiAccountWrapper,
-  depositBank: ActiveBankInfo,
-  borrowBank: ActiveBankInfo,
-  quoteResponse: QuoteResponse,
-  connection: Connection,
-  isTxnSplit: boolean = false,
-  priorityFees: PriorityFees
-): Promise<{
-  flashloanTx: VersionedTransaction | null;
-  feedCrankTxs: VersionedTransaction[];
-  addressLookupTableAccounts: AddressLookupTableAccount[];
-  error?: ActionMessageType;
-}> {
+  props: ClosePositionProps
+): Promise<VerifyTxSizeFlashloanResponse> {
   try {
-    if (quoteResponse.slippageBps > 150) {
+    if (props.quote.slippageBps > 150) {
       throw Error("Slippage too high");
     }
 
-    if (Number(quoteResponse.priceImpactPct) > 0.05) {
+    if (Number(props.quote.priceImpactPct) > 0.05) {
       throw Error("Price impact too high");
     }
 
-    const builder = await closePositionBuilder({
-      marginfiAccount,
-      depositBank,
-      borrowBank,
-      quote: quoteResponse,
-      connection,
-      isTxnSplit,
-      priorityFees,
-    });
+    const builder = await closePositionBuilder(props);
 
-    const txCheck = verifyFlashloanTxSize(builder);
-    if (!txCheck) throw Error("this should not happen");
-
-    return txCheck;
+    if (builder.txOverflown) {
+      return {
+        flashloanTx: null,
+        additionalTxs: [],
+        error: STATIC_SIMULATION_ERRORS.TX_SIZE,
+      };
+    } else {
+      return {
+        ...builder,
+      };
+    }
   } catch (error) {
     console.error(error);
     return {
       flashloanTx: null,
-      feedCrankTxs: [],
-      addressLookupTableAccounts: [],
-      error: STATIC_SIMULATION_ERRORS.CLOSE_POSITIONS_FL_FAILED,
+      additionalTxs: [],
+      error: STATIC_SIMULATION_ERRORS.TX_SIZE,
     };
   }
 }
@@ -125,7 +112,6 @@ export async function verifyTxSizeCollat(props: RepayWithCollatProps): Promise<V
         error: STATIC_SIMULATION_ERRORS.TX_SIZE,
       };
     } else {
-      console.log("builder", builder);
       return {
         ...builder,
       };

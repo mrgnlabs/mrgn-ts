@@ -16,5 +16,9 @@ export const ActionProvider: React.FC<ActionContextType & { children: React.Reac
 
 export const useActionContext = () => {
   const context = React.useContext(ActionContext);
+
+  if (!context) {
+    console.warn("useActionContext called outside provider or with null context");
+  }
   return context;
 };

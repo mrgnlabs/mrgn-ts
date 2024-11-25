@@ -447,7 +447,10 @@ class MarginfiAccountWrapper {
 
     // creates atas if needed
     const setupIxs = await this.makeSetupIx([borrowBankAddress, depositBankAddress]);
-    const cuRequestIxs = this.makeComputeBudgetIx();
+    const cuRequestIxs =
+      this.makeComputeBudgetIx().length > 0
+        ? this.makeComputeBudgetIx()
+        : [ComputeBudgetProgram.setComputeUnitLimit({ units: 500_000 })];
     // tiny priority fee just in case bundle fails
     const [priorityFeeIx] = makePriorityFeeIx(0.00001);
     const withdrawIxs = await this.makeWithdrawIx(
@@ -587,7 +590,10 @@ class MarginfiAccountWrapper {
 
     // creates atas if needed
     const setupIxs = await this.makeSetupIx([borrowBankAddress, depositBankAddress]);
-    const cuRequestIxs = this.makeComputeBudgetIx();
+    const cuRequestIxs =
+      this.makeComputeBudgetIx().length > 0
+        ? this.makeComputeBudgetIx()
+        : [ComputeBudgetProgram.setComputeUnitLimit({ units: 500_000 })];
     // tiny priority fee just in case bundle fails
     const [priorityFeeIx] = makePriorityFeeIx(0.00001);
     const borrowIxs = await this.makeBorrowIx(

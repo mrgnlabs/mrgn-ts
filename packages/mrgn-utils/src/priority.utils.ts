@@ -168,7 +168,7 @@ type PriorityFeesPercentile = {
 };
 
 export const getRpcPriorityFeeMicroLamports = async (connection: Connection, priorityType: TransactionPriorityType) => {
-  const MIN_PRIORITY_FEE = 0.00001;
+  const MIN_PRIORITY_FEE = 50_000;
 
   const response = await fetch("/api/priorityFees", {
     method: "GET",
@@ -192,7 +192,6 @@ export const getRpcPriorityFeeMicroLamports = async (connection: Connection, pri
 
   if (!response || !response.ok) {
     console.error("Failed to fetch priority fees");
-    return MIN_PRIORITY_FEE;
   } else {
     priorityFees = await response.json();
   }

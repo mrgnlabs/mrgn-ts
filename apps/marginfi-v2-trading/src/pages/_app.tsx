@@ -12,7 +12,7 @@ import { ToastContainer } from "react-toastify";
 import { Analytics } from "@vercel/analytics/react";
 import { BankMetadataRaw } from "@mrgnlabs/mrgn-common";
 import { DEFAULT_MAX_CAP, Desktop, Mobile, init as initAnalytics } from "@mrgnlabs/mrgn-utils";
-import { ActionProvider, AuthDialog } from "@mrgnlabs/mrgn-ui";
+import { ActionProvider } from "~/components/action-box-v2";
 import { generateEndpoint } from "~/rpc.utils";
 
 import config from "~/config";
@@ -30,6 +30,7 @@ import { Header } from "~/components/common/Header";
 import { Footer } from "~/components/desktop/Footer";
 
 import "react-toastify/dist/ReactToastify.min.css";
+import { AuthDialog } from "~/components/wallet-v2";
 
 require("~/styles/globals.css");
 require("~/styles/fonts.css");

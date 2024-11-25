@@ -8,7 +8,7 @@ import BigNumber from "bignumber.js";
 
 import { SolanaTransaction, TransactionBroadcastType, TransactionOptions, Wallet } from "@mrgnlabs/mrgn-common";
 import { MarginfiAccountWrapper, MarginfiClient, ProcessTransactionsClientOpts } from "@mrgnlabs/marginfi-client-v2";
-import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActionType, ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { WalletContextStateOverride } from "../wallet";
 
@@ -73,6 +73,10 @@ export interface LoopActionTxns extends ActionTxns {
   borrowAmount: BigNumber;
 }
 
+export interface ClosePositionActionTxns extends ActionTxns {
+  actionQuote: QuoteResponse | null;
+}
+
 export interface RepayCollatActionTxns extends ActionTxns {
   actionQuote: QuoteResponse | null;
   lastValidBlockHeight?: number;
@@ -99,6 +103,20 @@ export interface CalculateRepayCollateralProps
   slippageBps: number;
   platformFeeBps: number;
 }
+
+export interface CalculateClosePositionProps
+  extends Pick<ClosePositionProps, "marginfiAccount" | "depositBank" | "borrowBank" | "connection"> {
+  slippageBps: number;
+  platformFeeBps: number;
+}
+
+export type ClosePositionProps = {
+  marginfiAccount: MarginfiAccountWrapper;
+  depositBank: ActiveBankInfo;
+  borrowBank: ActiveBankInfo;
+  quote: QuoteResponse;
+  connection: Connection;
+};
 
 export type RepayWithCollatProps = {
   marginfiAccount: MarginfiAccountWrapper;

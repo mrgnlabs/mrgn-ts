@@ -204,7 +204,6 @@ export function replaceV0TxInstructions(
         const updatedCuLimitIx = additionalIxs.find(
           (a) => decodeComputeBudgetInstruction(a).instructionType === "SetComputeUnitLimit"
         );
-
         // replace priority fee instruction
         if (decoded.instructionType === "SetComputeUnitPrice" && updatedCuPriceIx) {
           //subtract the additional instruction from the additional instructions array

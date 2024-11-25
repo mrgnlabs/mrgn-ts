@@ -31,6 +31,7 @@ import {
   STATIC_SIMULATION_ERRORS,
   extractErrorString,
   LoopActionTxns,
+  ClosePositionActionTxns,
 } from "@mrgnlabs/mrgn-utils";
 import { ExtendedBankInfo, clearAccountCache, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
@@ -301,7 +302,6 @@ export async function calculateClosePositions({
   depositBanks,
   slippageBps,
   connection,
-  priorityFees,
   platformFeeBps,
 }: {
   marginfiAccount: MarginfiAccountWrapper;
@@ -309,25 +309,16 @@ export async function calculateClosePositions({
   depositBanks: ActiveBankInfo[];
   slippageBps: number;
   connection: Connection;
-  priorityFees: PriorityFees;
-  platformFeeBps?: number;
-}): Promise<
-  | {
-      closeTxn: VersionedTransaction | Transaction;
-      feedCrankTxs: VersionedTransaction[];
-      quote?: QuoteResponse;
-    }
-  | ActionMessageType
-> {
+  platformFeeBps: number;
+}): Promise<ClosePositionActionTxns | ActionMessageType> {
   // user is borrowing and depositing
   if (borrowBank && depositBanks.length === 1) {
     return calculateBorrowLendPositionParams({
       marginfiAccount,
       borrowBank,
       depositBank: depositBanks[0],
-      slippageBps,
       connection,
-      priorityFees,
+      slippageBps,
       platformFeeBps,
     });
   }
@@ -341,8 +332,9 @@ export async function calculateClosePositions({
       }))
     );
     return {
-      closeTxn: txn,
-      feedCrankTxs: [],
+      actionTxn: txn,
+      additionalTxns: [],
+      actionQuote: null,
     };
   }
 

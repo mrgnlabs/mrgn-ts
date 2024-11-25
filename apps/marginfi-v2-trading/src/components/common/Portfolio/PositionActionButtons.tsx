@@ -5,7 +5,7 @@ import Image from "next/image";
 import { IconMinus, IconX, IconPlus, IconLoader2 } from "@tabler/icons-react";
 import { Transaction, VersionedTransaction } from "@solana/web3.js";
 
-import { MultiStepToastHandle, cn, extractErrorString, capture, fetchPriorityFee } from "@mrgnlabs/mrgn-utils";
+import { MultiStepToastHandle, cn, extractErrorString, capture, ClosePositionActionTxns } from "@mrgnlabs/mrgn-utils";
 import { ActiveBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { useConnection } from "~/hooks/use-connection";
@@ -41,11 +41,8 @@ export const PositionActionButtons = ({
   const { connection } = useConnection();
   const { wallet, connected } = useWallet();
   const [platformFeeBps] = useUiStore((state) => [state.platformFeeBps]);
-  const [actionTransaction, setActionTransaction] = React.useState<{
-    closeTxn: VersionedTransaction | Transaction;
-    feedCrankTxs: VersionedTransaction[];
-    quote?: QuoteResponse;
-  } | null>(null);
+  const [actionTransaction, setActionTransaction] = React.useState<ClosePositionActionTxns | null>(null);
+
   const [isLoading, setIsLoading] = React.useState(false);
   const [multiStepToast, setMultiStepToast] = React.useState<MultiStepToastHandle | null>(null);
   const [isClosing, setIsClosing] = React.useState(false);
@@ -56,16 +53,13 @@ export const PositionActionButtons = ({
     state.setIsRefreshingStore,
     state.nativeSolBalance,
   ]);
-  const [slippageBps, priorityType, broadcastType, maxCap, maxCapType, setIsActionComplete, setPreviousTxn] =
-    useUiStore((state) => [
-      state.slippageBps,
-      state.priorityType,
-      state.broadcastType,
-      state.maxCap,
-      state.maxCapType,
-      state.setIsActionComplete,
-      state.setPreviousTxn,
-    ]);
+  const [slippageBps, priorityFees, broadcastType, setIsActionComplete, setPreviousTxn] = useUiStore((state) => [
+    state.slippageBps,
+    state.priorityFees,
+    state.broadcastType,
+    state.setIsActionComplete,
+    state.setPreviousTxn,
+  ]);
 
   const depositBanks = React.useMemo(() => {
     const tokenBank = activeGroup.pool.token.isActive ? activeGroup.pool.token : null;
@@ -107,21 +101,18 @@ export const PositionActionButtons = ({
         throw new Error("Invalid client");
       }
 
-      const priorityFees = await fetchPriorityFee(maxCapType, maxCap, broadcastType, priorityType, connection);
-
       const txns = await calculateClosePositions({
         marginfiAccount: activeGroup.selectedAccount,
         depositBanks: depositBanks,
         borrowBank: borrowBank,
         slippageBps,
         connection: connection,
-        priorityFees,
         platformFeeBps,
       });
 
       if ("description" in txns) {
         throw new Error(txns?.description ?? "Something went wrong.");
-      } else if ("closeTxn" in txns) {
+      } else if ("actionTxn" in txns) {
         setActionTransaction(txns);
       }
     } catch (error: any) {
@@ -134,38 +125,19 @@ export const PositionActionButtons = ({
       setMultiStepToast(multiStepToast);
     }
     setIsClosing(false);
-  }, [
-    activeGroup,
-    borrowBank,
-    depositBanks,
-    maxCapType,
-    maxCap,
-    broadcastType,
-    priorityType,
-    connection,
-    slippageBps,
-    platformFeeBps,
-  ]);
+  }, [activeGroup, borrowBank, depositBanks, connection, slippageBps, platformFeeBps]);
 
   const processTransaction = React.useCallback(async () => {
     try {
       setIsLoading(true);
       let txnSig: string | string[] = "";
 
-      if (!actionTransaction || !multiStepToast) throw new Error("Action not ready");
-      if (actionTransaction.closeTxn instanceof Transaction) {
-        txnSig = await activeGroup.client.processTransaction(actionTransaction.closeTxn, {
-          broadcastType: broadcastType,
-        });
-        multiStepToast.setSuccessAndNext();
-      } else {
-        const priorityFees = await fetchPriorityFee(maxCapType, maxCap, broadcastType, priorityType, connection);
-        txnSig = await activeGroup.client.processTransactions(
-          [...actionTransaction.feedCrankTxs, actionTransaction.closeTxn],
-          { broadcastType: broadcastType, ...priorityFees }
-        );
-        multiStepToast.setSuccessAndNext();
-      }
+      if (!actionTransaction?.actionTxn || !multiStepToast) throw new Error("Action not ready");
+      txnSig = await activeGroup.client.processTransactions(
+        [...actionTransaction.additionalTxns, actionTransaction.actionTxn],
+        { broadcastType: broadcastType, ...priorityFees }
+      );
+      multiStepToast.setSuccessAndNext();
 
       if (txnSig) {
         setActionTransaction(null);
@@ -220,14 +192,12 @@ export const PositionActionButtons = ({
     activeGroup.pool.quoteTokens,
     activeGroup?.groupPk,
     broadcastType,
-    maxCapType,
-    maxCap,
-    priorityType,
-    connection,
+    priorityFees,
     setIsActionComplete,
     setPreviousTxn,
     setIsRefreshingStore,
     refreshGroup,
+    connection,
     wallet,
   ]);
 
@@ -431,40 +401,43 @@ export const PositionActionButtons = ({
                 </>
               )}
 
-              {actionTransaction?.quote?.priceImpactPct && (
+              {actionTransaction?.actionQuote?.priceImpactPct && (
                 <>
                   <dt>Price impact</dt>
                   <dd
                     className={cn(
-                      Number(actionTransaction.quote.priceImpactPct) > 0.05
+                      Number(actionTransaction.actionQuote.priceImpactPct) > 0.05
                         ? "text-mrgn-error"
-                        : Number(actionTransaction.quote.priceImpactPct) > 0.01
+                        : Number(actionTransaction.actionQuote.priceImpactPct) > 0.01
                         ? "text-alert-foreground"
                         : "text-mrgn-success",
                       "text-right"
                     )}
                   >
-                    {percentFormatter.format(Number(actionTransaction.quote.priceImpactPct))}
+                    {percentFormatter.format(Number(actionTransaction.actionQuote.priceImpactPct))}
                   </dd>
                 </>
               )}
 
-              {actionTransaction?.quote?.slippageBps && (
+              {actionTransaction?.actionQuote?.slippageBps && (
                 <>
                   <dt>Slippage</dt>
                   <dd
-                    className={cn(actionTransaction.quote.slippageBps > 500 && "text-alert-foreground", "text-right")}
+                    className={cn(
+                      actionTransaction.actionQuote.slippageBps > 500 && "text-alert-foreground",
+                      "text-right"
+                    )}
                   >
-                    {percentFormatter.format(Number(actionTransaction.quote.slippageBps) / 10000)}
+                    {percentFormatter.format(Number(actionTransaction.actionQuote.slippageBps) / 10000)}
                   </dd>
                 </>
               )}
 
               <dt>Platform fee</dt>
-              {actionTransaction?.quote?.platformFee?.feeBps && (
+              {actionTransaction?.actionQuote?.platformFee?.feeBps && (
                 <>
                   <dd className="text-right">
-                    {percentFormatter.format(actionTransaction.quote.platformFee.feeBps / 10000)}
+                    {percentFormatter.format(actionTransaction.actionQuote.platformFee.feeBps / 10000)}
                   </dd>
                 </>
               )}

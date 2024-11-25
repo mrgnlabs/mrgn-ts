@@ -105,6 +105,7 @@ export function formatTransactions(
 
   transactions.forEach((tx, idx) => {
     const cu = tx.unitsConsumed ? Math.min(tx.unitsConsumed + 50_000, 1_400_000) : getComputeBudgetUnits(tx);
+
     const priorityFeeUi = microLamportsToUi(priorityFeeMicro, cu);
 
     let updatedFees = priorityFeeMicro;
