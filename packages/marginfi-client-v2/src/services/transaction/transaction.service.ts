@@ -257,6 +257,8 @@ export async function processTransactions({
         }
       }
 
+      processOpts.callback?.(0, true); // Updating 'sign in wallet' step in toast
+
       const simulateTxs = async () =>
         await simulateTransactions(processOpts, connection, versionedTransactions, mergedOpts);
       const sendTxBundleGrpc = async (throwError: boolean) => await sendTransactionAsGrpcBundle(base58Txs, throwError);

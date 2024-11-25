@@ -10,6 +10,7 @@ import {
   executeLendingAction,
   isWholePosition,
   MarginfiActionParams,
+  MultiStepToastHandle,
 } from "@mrgnlabs/mrgn-utils";
 
 import { ExecuteActionsCallbackProps } from "~/components/action-box-v2/types";
@@ -23,36 +24,38 @@ export const handleExecuteLendingAction = async ({
   captureEvent,
   setIsLoading,
   setIsComplete,
-  setIsError,
+  setError,
 }: ExecuteLendingActionsProps) => {
-  const { actionType, bank, amount, processOpts } = params;
+  try {
+    const { actionType, bank, amount, processOpts } = params;
 
-  setIsLoading(true);
-  const attemptUuid = uuidv4();
-  captureEvent(`user_${actionType.toLowerCase()}_initiate`, {
-    uuid: attemptUuid,
-    tokenSymbol: bank.meta.tokenSymbol,
-    tokenName: bank.meta.tokenName,
-    amount,
-    processOpts: processOpts?.priorityFeeMicro,
-  });
-
-  const txnSig = await executeLendingAction(params);
-
-  setIsLoading(false);
-
-  if (txnSig) {
-    setIsComplete(Array.isArray(txnSig) ? txnSig : [txnSig]);
-    captureEvent(`user_${actionType.toLowerCase()}`, {
+    setIsLoading(true);
+    const attemptUuid = uuidv4();
+    captureEvent(`user_${actionType.toLowerCase()}_initiate`, {
       uuid: attemptUuid,
       tokenSymbol: bank.meta.tokenSymbol,
       tokenName: bank.meta.tokenName,
-      amount: amount,
-      txn: txnSig!,
-      priorityFee: processOpts?.priorityFeeMicro,
+      amount,
+      processOpts: processOpts?.priorityFeeMicro,
     });
-  } else {
-    setIsError("Transaction not landed");
+
+    const txnSig = await executeLendingAction(params);
+
+    setIsLoading(false);
+
+    if (txnSig) {
+      setIsComplete(Array.isArray(txnSig) ? txnSig : [txnSig]);
+      captureEvent(`user_${actionType.toLowerCase()}`, {
+        uuid: attemptUuid,
+        tokenSymbol: bank.meta.tokenSymbol,
+        tokenName: bank.meta.tokenName,
+        amount: amount,
+        txn: txnSig!,
+        priorityFee: processOpts?.priorityFeeMicro,
+      });
+    }
+  } catch (error) {
+    setError(error);
   }
 };
 
@@ -69,7 +72,7 @@ export const handleExecuteCloseBalance = async ({
   captureEvent,
   setIsLoading,
   setIsComplete,
-  setIsError,
+  setError,
 }: HandleCloseBalanceProps) => {
   const { bank, marginfiAccount, processOpts } = params;
 
@@ -102,7 +105,7 @@ export const handleExecuteCloseBalance = async ({
       priorityFee: processOpts?.priorityFeeMicro,
     });
   } else {
-    setIsError("Transaction failed to land");
+    setError("Transaction failed to land");
   }
 };
 

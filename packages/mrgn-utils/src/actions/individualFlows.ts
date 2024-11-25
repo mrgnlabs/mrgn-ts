@@ -24,6 +24,19 @@ import { LstData, StakeData, MarginfiActionParams, LoopingProps, ActionTxns, Rep
 import { captureSentryException } from "../sentry.utils";
 import { loopingBuilder, repayWithCollatBuilder } from "./flashloans";
 
+// ----------------------//
+// Local utils functions //
+// ----------------------//
+
+function getSteps(actionTxns?: ActionTxns) {
+  return [
+    { label: "Sign in wallet" },
+    ...(actionTxns?.additionalTxns.map((tx) => ({
+      label: MRGN_TX_TYPE_TOAST_MAP[tx.type ?? "CRANK"],
+    })) ?? []),
+  ];
+}
+
 // ------------------------------------------------------------------//
 // Individual action flows - non-throwing - for use in UI components //
 // ------------------------------------------------------------------//
@@ -233,17 +246,19 @@ export async function withdraw({
   actionTxns,
   processOpts,
   txOpts,
+  multiStepToast,
 }: MarginfiActionParams) {
-  const additionalSteps =
-    actionTxns?.additionalTxns.map((tx) => ({
-      label: MRGN_TX_TYPE_TOAST_MAP[tx.type ?? "CRANK"],
-    })) ?? [];
+  const steps = getSteps(actionTxns);
 
-  const multiStepToast = new MultiStepToastHandle("Withdrawal", [
-    ...additionalSteps,
-    { label: `Withdrawing ${amount} ${bank.meta.tokenSymbol}` },
-  ]);
-  multiStepToast.start();
+  if (!multiStepToast) {
+    multiStepToast = new MultiStepToastHandle("Withdrawal", [
+      ...steps,
+      { label: `Withdrawing ${amount} ${bank.meta.tokenSymbol}` },
+    ]); // TODO: toast has two tx steps, should look like they are executing at the same time if broadcasttype is set to bundle. Also set signature
+    multiStepToast.start();
+  } else {
+    multiStepToast.resetAndStart();
+  }
 
   let sigs: string[] = [];
 
@@ -276,11 +291,11 @@ export async function withdraw({
       wallet: marginfiAccount?.authority?.toBase58(),
       bank: bank.meta.tokenSymbol,
     });
-
-    multiStepToast.setFailed(msg);
-    console.log(`Error while withdrawing: ${msg}`);
-    console.log(error);
-    return;
+    throw {
+      errorMessage: msg,
+      multiStepToast,
+      actionTxns, // TODO: this will be updated with correct transactions after error refactor
+    }; // TODO: create a type for this
   }
 }
 

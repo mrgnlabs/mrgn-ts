@@ -8,8 +8,9 @@ export class MultiStepToastHandle {
   private _stepIndex: number;
   private _stepsWithStatus: ToastStepWithStatus[];
   private _toastId: Id | undefined = undefined;
+  private _onClose?: () => void;
 
-  constructor(title: string, steps: ToastStep[]) {
+  constructor(title: string, steps: ToastStep[], onClose?: () => void) {
     this._title = title;
     this._stepIndex = 0;
     this._stepsWithStatus = steps.map((step, index) => {
@@ -19,6 +20,7 @@ export class MultiStepToastHandle {
 
       return { ...step, status: "todo" };
     });
+    this._onClose = onClose;
   }
 
   start() {
@@ -30,11 +32,19 @@ export class MultiStepToastHandle {
         height: "100%",
         bottom: "12px",
       },
+      closeOnClick: false,
       className: "bg-background rounded-md pt-3 pb-2 px-3.5",
+    });
+
+    toast.onChange((toastInfo) => {
+      if (toastInfo.id === this._toastId && toastInfo.status === "removed") {
+        if (this._onClose) this._onClose();
+      }
     });
   }
 
-  setSuccessAndNext() {
+  setSuccessAndNext(signature?: string) {
+    // TODO: handle signature to display in toast
     if (!this._toastId) return;
 
     if (this._stepIndex >= this._stepsWithStatus.length - 1) {
@@ -68,13 +78,35 @@ export class MultiStepToastHandle {
     });
   }
 
-  setFailed(message: string) {
+  setFailed(message: string | React.ReactNode, retry?: () => void) {
     if (!this._toastId) return;
+
     this._stepsWithStatus[this._stepIndex].status = "error";
     this._stepsWithStatus[this._stepIndex].message = message;
+
     for (let i = this._stepIndex + 1; i < this._stepsWithStatus.length; i++) {
       this._stepsWithStatus[i].status = "canceled";
     }
+
+    toast.update(this._toastId, {
+      render: () => <MultiStepToast title={this._title} steps={this._stepsWithStatus} retry={retry} />,
+      autoClose: false,
+    });
+  }
+
+  resetAndStart() {
+    if (!this._toastId) return;
+
+    if (this._stepsWithStatus[this._stepIndex].status === "error") {
+      this._stepsWithStatus[this._stepIndex].status = "pending";
+      this._stepsWithStatus[this._stepIndex].message = undefined;
+    }
+
+    for (let i = this._stepIndex + 1; i < this._stepsWithStatus.length; i++) {
+      this._stepsWithStatus[i].status = "todo";
+      this._stepsWithStatus[i].message = undefined;
+    }
+
     toast.update(this._toastId, {
       render: () => <MultiStepToast title={this._title} steps={this._stepsWithStatus} />,
       autoClose: false,
