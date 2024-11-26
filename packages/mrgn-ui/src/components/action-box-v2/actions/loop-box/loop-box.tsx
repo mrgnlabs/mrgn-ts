@@ -295,11 +295,17 @@ export const LoopBox = ({
   return (
     <>
       {actionTxns.lastValidBlockHeight && blockProgress !== 0 && (
-        <div className="absolute top-5 right-4 z-50">
+        <div className="absolute top-3 right-4 z-50">
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger>
-                <CircularProgress size={18} strokeWidth={3} value={blockProgress * 100} />
+                <CircularProgress
+                  size={18}
+                  strokeWidth={3}
+                  value={blockProgress * 100}
+                  strokeColor="stroke-mfi-action-box-accent-foreground"
+                  backgroundColor="stroke-mfi-action-box-background-dark"
+                />
               </TooltipTrigger>
               <TooltipContent side="left">
                 <div className="space-y-2">
