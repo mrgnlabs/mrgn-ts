@@ -55,6 +55,7 @@ export const handleExecuteLendingAction = async ({
       });
     }
   } catch (error) {
+    // TODO: add type here
     setError(error);
   }
 };
