@@ -61,15 +61,15 @@ export const ActionBoxWrapper = ({ children, isDialog, actionMode, showSettings 
             isDialog && "py-5"
           )}
         >
-          {isSettingsDialogOpen && showSettings ? (
+          {isSettingsDialogOpen && showSettings && (
             <ActionSettings
               slippage={isSlippageEnabled ? slippage : undefined}
               changeSlippage={setSlippageBps}
               toggleSettings={(value) => setIsSettingsDialogOpen(value)}
             />
-          ) : (
-            <>{children}</>
           )}
+
+          <div className={cn(isSettingsDialogOpen && "hidden")}>{children}</div>
         </div>
       </div>
     </>
