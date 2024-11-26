@@ -355,6 +355,7 @@ export const LendBox = ({
             });
         },
         setError: (error) => {
+          // TODO: update type
           const toast = error.multiStepToast as MultiStepToastHandle;
           const txs = error.actionTxns as ActionTxns;
           const errorMessage = error.errorMessage;

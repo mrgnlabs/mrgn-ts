@@ -18,7 +18,8 @@ export type ToastStatus = "todo" | "pending" | "success" | "error" | "canceled";
 export interface ToastStepWithStatus extends ToastStep {
   status: ToastStatus;
   message?: string | React.ReactNode;
-  signature?: string; // New field for the transaction signature
+  signature?: string;
+  explorerUrl?: string;
 }
 
 export const MultiStepToast = ({ title, steps, retry }: MultiStepToastProps) => {
@@ -30,7 +31,7 @@ export const MultiStepToast = ({ title, steps, retry }: MultiStepToastProps) => 
       <div className="pb-3 pt-6 space-y-2">
         {steps.map((step, index) => {
           const isLastFailed = index === lastFailedIndex;
-
+          console.log(step.explorerUrl);
           return (
             <div className="text-muted-foreground" key={index}>
               <div className="flex items-start space-x-2">
@@ -55,9 +56,9 @@ export const MultiStepToast = ({ title, steps, retry }: MultiStepToastProps) => 
                       Retry
                     </button>
                   )}
-                  {step.signature && (
+                  {step.signature && step.explorerUrl && (
                     <a
-                      href={`https://solscan.io/tx/${step.signature}`}
+                      href={step.explorerUrl}
                       className="flex items-center justify-end gap-1.5 text-primary text-sm"
                       target="_blank"
                       rel="noopener noreferrer"

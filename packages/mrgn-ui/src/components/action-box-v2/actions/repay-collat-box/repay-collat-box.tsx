@@ -239,7 +239,13 @@ export const RepayCollatBox = ({
               },
             });
         },
-        setError: () => {},
+        setError: (error) => {
+          // TODO: update type
+          const toast = error.multiStepToast as MultiStepToastHandle;
+          const txs = error.actionTxns as ActionTxns;
+          const errorMessage = error.errorMessage;
+          toast.setFailed(errorMessage, () => callbacks.retryCallback(txs, toast));
+        },
         setIsLoading: (isLoading) => callbacks.setIsLoading(isLoading),
       });
     };

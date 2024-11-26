@@ -43,12 +43,15 @@ export class MultiStepToastHandle {
     });
   }
 
-  setSuccessAndNext(stepsToAdvance: number = 1, signature?: string) {
+  setSuccessAndNext(stepsToAdvance: number = 1, signature?: string, explorerUrl?: string) {
     if (!this._toastId) return;
 
     this._stepsWithStatus[this._stepIndex].status = "success";
     if (signature) {
       this._stepsWithStatus[this._stepIndex].signature = signature;
+    }
+    if (explorerUrl) {
+      this._stepsWithStatus[this._stepIndex].explorerUrl = explorerUrl;
     }
 
     const nextStepIndex = this._stepIndex + stepsToAdvance;
@@ -74,7 +77,7 @@ export class MultiStepToastHandle {
     }
   }
 
-  setSuccess(signature?: string) {
+  setSuccess(signature?: string, explorerUrl?: string) {
     if (!this._toastId) return;
 
     for (let i = 0; i < this._stepsWithStatus.length; i++) {
@@ -84,6 +87,11 @@ export class MultiStepToastHandle {
     if (signature) {
       const lastIndex = this._stepsWithStatus.length - 1;
       this._stepsWithStatus[lastIndex].signature = signature;
+    }
+
+    if (explorerUrl) {
+      const lastIndex = this._stepsWithStatus.length - 1;
+      this._stepsWithStatus[lastIndex].explorerUrl = explorerUrl;
     }
 
     toast.update(this._toastId, {
