@@ -373,24 +373,31 @@ interface LoopingFnProps extends LoopingProps {
   txOpts: TransactionOptions;
 }
 
-export async function looping({ marginfiClient, actionTxns, processOpts, txOpts, ...loopingProps }: LoopingFnProps) {
+export async function looping({
+  marginfiClient,
+  actionTxns,
+  processOpts,
+  txOpts,
+  multiStepToast,
+  ...loopingProps
+}: LoopingFnProps) {
+  const steps = getSteps(actionTxns);
   if (marginfiClient === null) {
     showErrorToast({ message: "Marginfi client not ready" });
     return;
   }
 
-  const additionalSteps =
-    actionTxns?.additionalTxns.map((tx) => ({
-      label: MRGN_TX_TYPE_TOAST_MAP[tx.type ?? "CRANK"],
-    })) ?? [];
-
-  const multiStepToast = new MultiStepToastHandle("Looping", [
-    ...additionalSteps,
-    {
-      label: `Executing looping ${loopingProps.depositBank.meta.tokenSymbol} with ${loopingProps.borrowBank.meta.tokenSymbol}.`,
-    },
-  ]);
-  multiStepToast.start();
+  if (!multiStepToast) {
+    multiStepToast = new MultiStepToastHandle("Looping", [
+      ...steps,
+      {
+        label: `Executing looping ${loopingProps.depositBank.meta.tokenSymbol} with ${loopingProps.borrowBank.meta.tokenSymbol}.`,
+      },
+    ]);
+    multiStepToast.start();
+  } else {
+    multiStepToast.resetAndStart();
+  }
 
   try {
     let sigs: string[] = [];
@@ -409,7 +416,7 @@ export async function looping({ marginfiClient, actionTxns, processOpts, txOpts,
       sigs = await marginfiClient.processTransactions([...additionalTxs, flashloanTx], processOpts, txOpts);
     }
 
-    multiStepToast.setSuccess();
+    multiStepToast.setSuccess(sigs[sigs.length - 1]);
     return sigs;
   } catch (error: any) {
     const msg = extractErrorString(error);
@@ -424,7 +431,11 @@ export async function looping({ marginfiClient, actionTxns, processOpts, txOpts,
     multiStepToast.setFailed(msg);
     console.log(`Error while looping: ${msg}`);
     console.log(error);
-    return;
+    throw {
+      errorMessage: msg,
+      multiStepToast,
+      actionTxns, // TODO: this will be updated with correct transactions after error refactor
+    };
   }
 }
 

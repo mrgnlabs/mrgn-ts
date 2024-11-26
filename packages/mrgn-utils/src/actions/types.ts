@@ -148,6 +148,8 @@ export type LoopingProps = {
   borrowBank: ExtendedBankInfo;
   quote: QuoteResponse;
   connection: Connection;
+
+  multiStepToast?: MultiStepToastHandle;
 };
 
 export type MarginfiActionParams = {
