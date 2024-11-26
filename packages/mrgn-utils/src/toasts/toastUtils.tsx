@@ -28,7 +28,7 @@ export class MultiStepToastHandle {
       hideProgressBar: true,
       autoClose: false,
       style: {
-        width: "100%",
+        width: "max-content",
         height: "100%",
         bottom: "12px",
       },
@@ -43,20 +43,30 @@ export class MultiStepToastHandle {
     });
   }
 
-  setSuccessAndNext(signature?: string) {
-    // TODO: handle signature to display in toast
+  setSuccessAndNext(stepsToAdvance: number = 1, signature?: string) {
     if (!this._toastId) return;
 
-    if (this._stepIndex >= this._stepsWithStatus.length - 1) {
-      this._stepsWithStatus[this._stepIndex].status = "success";
+    this._stepsWithStatus[this._stepIndex].status = "success";
+    if (signature) {
+      this._stepsWithStatus[this._stepIndex].signature = signature;
+    }
+
+    const nextStepIndex = this._stepIndex + stepsToAdvance;
+    if (nextStepIndex >= this._stepsWithStatus.length) {
+      for (let i = this._stepIndex + 1; i < this._stepsWithStatus.length; i++) {
+        this._stepsWithStatus[i].status = "success";
+      }
       toast.update(this._toastId, {
         render: () => <MultiStepToast title={this._title} steps={this._stepsWithStatus} />,
-        autoClose: 2000,
+        autoClose: false, // change
       });
     } else {
-      this._stepsWithStatus[this._stepIndex].status = "success";
-      this._stepIndex++;
-      this._stepsWithStatus[this._stepIndex].status = "pending";
+      for (let i = this._stepIndex + 1; i <= nextStepIndex; i++) {
+        if (this._stepsWithStatus[i]) {
+          this._stepsWithStatus[i].status = "pending";
+        }
+      }
+      this._stepIndex = nextStepIndex;
       toast.update(this._toastId, {
         render: () => <MultiStepToast title={this._title} steps={this._stepsWithStatus} />,
         autoClose: false,
@@ -64,17 +74,19 @@ export class MultiStepToastHandle {
     }
   }
 
-  setSuccess() {
+  setSuccess(signature?: string) {
     if (!this._toastId) return;
 
+    // Mark all steps as success and add the signature to all
     for (let i = 0; i < this._stepsWithStatus.length; i++) {
-      if (this._stepsWithStatus[i]) {
-        this._stepsWithStatus[i].status = "success";
+      this._stepsWithStatus[i].status = "success";
+      if (signature) {
+        this._stepsWithStatus[i].signature = signature;
       }
     }
     toast.update(this._toastId, {
       render: () => <MultiStepToast title={this._title} steps={this._stepsWithStatus} />,
-      autoClose: false,
+      autoClose: false, // change
     });
   }
 

@@ -266,7 +266,11 @@ export async function withdraw({
     if (actionTxns?.actionTxn && marginfiClient) {
       sigs = await marginfiClient.processTransactions(
         [...actionTxns.additionalTxns, actionTxns.actionTxn],
-        { ...processOpts, callback: (index, success, sig) => success && multiStepToast.setSuccessAndNext() },
+        {
+          ...processOpts,
+          callback: (index, success, sig, stepsToAdvance) =>
+            success && multiStepToast.setSuccessAndNext(stepsToAdvance, sig),
+        },
         txOpts
       );
     } else if (marginfiAccount) {
