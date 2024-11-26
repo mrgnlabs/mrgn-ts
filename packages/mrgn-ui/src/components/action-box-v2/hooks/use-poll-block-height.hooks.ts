@@ -33,7 +33,8 @@ export const usePollBlockHeight = (connection?: Connection, lastValidBlockHeight
       }
     };
 
-    intervalId = setInterval(pollBlockHeight, 3000) as any; // Poll every second
+    intervalId = setInterval(pollBlockHeight, 3000) as any;
+    pollBlockHeight();
 
     return () => {
       clearInterval(intervalId);
