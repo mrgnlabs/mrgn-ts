@@ -24,16 +24,12 @@ import {
   BankMetadataMap,
   chunkedGetRawMultipleAccountInfoOrdered,
   DEFAULT_COMMITMENT,
-  DEFAULT_CONFIRM_OPTS,
   InstructionsWrapper,
   isV0Tx,
   loadBankMetadatas,
   loadKeypair,
   NodeWallet,
-  simulateBundle,
-  sleep,
   SolanaTransaction,
-  TransactionBroadcastType,
   TransactionOptions,
   Wallet,
 } from "@mrgnlabs/mrgn-common";
@@ -65,6 +61,7 @@ import {
   ProcessTransactionsClientOpts,
   processTransactions,
 } from "../services";
+import { BundleSimulationError, simulateBundle } from "../services/transaction/helpers";
 
 export type BankMap = Map<string, Bank>;
 export type OraclePriceMap = Map<string, OraclePrice>;
@@ -888,8 +885,10 @@ class MarginfiClient {
         }
       }
     } catch (error: any) {
-      console.log("Failed to build the transaction", error);
-      throw new ProcessTransactionError(error.message, ProcessTransactionErrorType.TransactionBuildingError);
+      throw new ProcessTransactionError({
+        message: error.message,
+        type: ProcessTransactionErrorType.TransactionBuildingError,
+      });
     }
 
     let response;
@@ -899,68 +898,64 @@ class MarginfiClient {
           sigVerify: false,
           accounts: { encoding: "base64", addresses: accountsToInspect.map((a) => a.toBase58()) },
         });
-        if (response.value.err === null) {
-          return response.value.accounts?.map((a) => (a ? Buffer.from(a.data[0], "base64") : null)) ?? [];
+        if (response.value.err) {
+          const error = response.value.err;
+          const parsedError = parseTransactionError(error, this.config.programId);
+          throw new ProcessTransactionError({
+            message: parsedError.description ?? JSON.stringify(response.value.err),
+            type: ProcessTransactionErrorType.SimulationError,
+            logs: response.value.logs ?? [],
+            programId: parsedError.programId,
+          });
         }
+        return response.value.accounts?.map((a) => (a ? Buffer.from(a.data[0], "base64") : null)) ?? [];
       } else {
-        response = await simulateBundle(this.bundleSimRpcEndpoint, versionedTransactions, accountsToInspect);
-        const value = response.result.value;
+        const simulationResult = await simulateBundle(
+          this.bundleSimRpcEndpoint,
+          versionedTransactions,
+          accountsToInspect
+        );
+        const value = simulationResult[simulationResult.length - 1];
 
-        const err = value.summary !== "succeeded" ? JSON.stringify(value.summary.failed.error) : null;
-
-        if (err === null) {
-          const accounts = value.transactionResults[value.transactionResults.length - 1]?.postExecutionAccounts;
-          return accounts?.map((a: any) => (a ? Buffer.from(a.data[0], "base64") : null)) ?? [];
-        }
-        throw new Error(err);
+        const accounts = value.postExecutionAccounts;
+        return accounts?.map((a: any) => (a ? Buffer.from(a.data[0], "base64") : null)) ?? [];
       }
     } catch (error: any) {
+      if (error instanceof ProcessTransactionError) throw error;
+
       const parsedError = parseTransactionError(error, this.config.programId);
+
+      if (error instanceof BundleSimulationError) {
+        throw new ProcessTransactionError({
+          message: parsedError.description,
+          type: ProcessTransactionErrorType.SimulationError,
+          logs: error.logs,
+          programId: parsedError.programId,
+        });
+      }
 
       if (error?.logs?.length > 0) {
         console.log("------ Logs 👇 ------");
         console.log(error.logs.join("\n"));
         if (parsedError) {
           console.log("Parsed:", parsedError);
-          throw new ProcessTransactionError(
-            parsedError.description,
-            ProcessTransactionErrorType.FallthroughError,
-            error.logs,
-            parsedError.programId
-          );
+          throw new ProcessTransactionError({
+            message: parsedError.description,
+            type: ProcessTransactionErrorType.SimulationError,
+            logs: error.logs,
+            programId: parsedError.programId,
+          });
         }
       }
 
       console.log("fallthrough error", error);
-      throw new ProcessTransactionError(
-        parsedError?.description ?? "Something went wrong",
-        ProcessTransactionErrorType.FallthroughError,
-        error.logs,
-        parsedError.programId
-      );
+      throw new ProcessTransactionError({
+        message: parsedError?.description ?? "Something went wrong",
+        type: ProcessTransactionErrorType.FallthroughError,
+        logs: error.logs,
+        programId: parsedError.programId,
+      });
     }
-
-    const error = response.value;
-    if (error.logs) {
-      console.log("------ Logs 👇 ------");
-      console.log(error.logs.join("\n"));
-      const errorParsed = parseErrorFromLogs(error.logs, this.config.programId);
-      if (errorParsed) {
-        console.log("Parsed:", errorParsed);
-        throw new ProcessTransactionError(
-          errorParsed.description,
-          ProcessTransactionErrorType.SimulationError,
-          error.logs,
-          errorParsed.programId
-        );
-      }
-    }
-    console.log("fallthrough error", error);
-    throw new ProcessTransactionError(
-      "Something went wrong",
-      ProcessTransactionErrorType.FallthroughError,
-      error?.logs ?? []
-    );
   }
 }
 
