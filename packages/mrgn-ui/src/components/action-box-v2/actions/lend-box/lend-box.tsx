@@ -256,34 +256,26 @@ export const LendBox = ({
     setIsLoading,
   ]);
 
-  const handleLendingAction = React.useCallback(
-    async (_actionTxns?: ActionTxns, multiStepToast?: MultiStepToastHandle) => {
-      if (!selectedBank || !amount || !broadcastType || !priorityFees) {
-        return;
-      }
-
-      const action = async () => {
-        const params: MarginfiActionParams = {
-          marginfiClient,
-          actionType: lendMode,
-          bank: selectedBank,
-          amount,
-          nativeSolBalance,
-          marginfiAccount: selectedAccount,
-          walletContextState,
-          actionTxns: _actionTxns ?? actionTxns,
-          processOpts: { ...priorityFees, broadcastType },
-          multiStepToast,
-        };
-
-        await handleExecuteLendingAction({
-          params,
-          captureEvent: (event, properties) => {
-            captureEvent && captureEvent(event, properties);
-          },
-          setIsComplete: (txnSigs) => {
-            setIsActionComplete(true);
-            setPreviousTxn({
+  const executeAction = async (params: MarginfiActionParams, selectedBank: ExtendedBankInfo) => {
+    const action = async (params: MarginfiActionParams) => {
+      await handleExecuteLendingAction({
+        params,
+        captureEvent: (event, properties) => {
+          captureEvent && captureEvent(event, properties);
+        },
+        setIsComplete: (txnSigs) => {
+          setIsActionComplete(true);
+          setPreviousTxn({
+            txn: txnSigs.pop() ?? "",
+            txnType: "LEND",
+            lendingOptions: {
+              amount: amount,
+              type: lendMode,
+              bank: selectedBank as ActiveBankInfo,
+            },
+          });
+          onComplete &&
+            onComplete({
               txn: txnSigs.pop() ?? "",
               txnType: "LEND",
               lendingOptions: {
@@ -292,43 +284,60 @@ export const LendBox = ({
                 bank: selectedBank as ActiveBankInfo,
               },
             });
-            onComplete &&
-              onComplete({
-                txn: txnSigs.pop() ?? "",
-                txnType: "LEND",
-                lendingOptions: {
-                  amount: amount,
-                  type: lendMode,
-                  bank: selectedBank as ActiveBankInfo,
-                },
-              });
-          },
-          setError: (error) => {
-            const toast = error.multiStepToast as MultiStepToastHandle;
-            const txs = error.actionTxns as ActionTxns;
-            const errorMessage = error.errorMessage;
-            toast.setFailed(errorMessage, () => handleLendingAction(txs, toast));
-          },
-          setIsLoading: (isLoading) => setIsLoading(isLoading),
-        });
-      };
+        },
+        setError: (error) => {
+          const toast = error.multiStepToast as MultiStepToastHandle;
+          const txs = error.actionTxns as ActionTxns;
+          const errorMessage = error.errorMessage;
+          toast.setFailed(errorMessage, () =>
+            retryLendingAction({ ...params, actionTxns: txs, multiStepToast: toast }, selectedBank)
+          );
+        },
+        setIsLoading: (isLoading) => setIsLoading(isLoading),
+      });
+    };
 
-      if (
-        lendMode === ActionType.Deposit &&
-        (selectedBank.meta.tokenSymbol === "SOL" || selectedBank.meta.tokenSymbol === "stSOL")
-      ) {
-        setLSTDialogCallback(() => action);
+    if (
+      lendMode === ActionType.Deposit &&
+      (selectedBank.meta.tokenSymbol === "SOL" || selectedBank.meta.tokenSymbol === "stSOL")
+    ) {
+      setLSTDialogCallback(() => action);
+      return;
+    }
+
+    await action(params);
+    setAmountRaw("");
+  };
+
+  const retryLendingAction = React.useCallback((params: MarginfiActionParams, selectedBank: ExtendedBankInfo) => {
+    executeAction(params, selectedBank);
+  }, []);
+
+  const handleLendingAction = React.useCallback(
+    async (_actionTxns?: ActionTxns, multiStepToast?: MultiStepToastHandle) => {
+      if (!selectedBank || !amount || !broadcastType || !priorityFees) {
         return;
       }
 
-      await action();
-      setAmountRaw("");
+      const params: MarginfiActionParams = {
+        marginfiClient,
+        actionType: lendMode,
+        bank: selectedBank,
+        amount,
+        nativeSolBalance,
+        marginfiAccount: selectedAccount,
+        walletContextState,
+        actionTxns: _actionTxns ?? actionTxns,
+        processOpts: { ...priorityFees, broadcastType },
+        multiStepToast,
+      };
+
+      executeAction(params, selectedBank);
     },
     [
       selectedBank,
       amount,
       lendMode,
-      setAmountRaw,
       marginfiClient,
       nativeSolBalance,
       selectedAccount,
@@ -336,11 +345,6 @@ export const LendBox = ({
       actionTxns,
       priorityFees,
       broadcastType,
-      captureEvent,
-      setIsActionComplete,
-      setPreviousTxn,
-      onComplete,
-      setIsLoading,
     ]
   );
 
