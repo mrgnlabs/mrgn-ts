@@ -31,9 +31,10 @@ export class MultiStepToastHandle {
         width: "max-content",
         height: "100%",
         bottom: "12px",
+        background: "#ff0000",
       },
       closeOnClick: false,
-      className: "bg-background rounded-md pt-3 pb-2 px-3.5",
+      className: "bg-mfi-toast-background rounded-md py-2 px-3",
     });
 
     toast.onChange((toastInfo) => {
@@ -61,7 +62,8 @@ export class MultiStepToastHandle {
       }
       toast.update(this._toastId, {
         render: () => <MultiStepToast title={this._title} steps={this._stepsWithStatus} />,
-        autoClose: 4000,
+        autoClose: false,
+        // autoClose: 4000,
       });
     } else {
       for (let i = this._stepIndex + 1; i <= nextStepIndex; i++) {
