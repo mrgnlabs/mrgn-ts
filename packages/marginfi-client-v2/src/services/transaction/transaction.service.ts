@@ -130,8 +130,6 @@ export async function processTransactions({
   };
   const commitment = connection.commitment ?? DEFAULT_CONFIRM_OPTS.commitment;
 
-  console.log("processOpts", processOpts);
-
   if (processOpts?.broadcastType === "BUNDLE" && processOpts?.bundleTipUi === 0) {
     throw new Error("A bundle tip is required for a bundled transactions");
   }
@@ -193,7 +191,7 @@ export async function processTransactions({
     ...txOpts,
   };
 
-  let updatedTransactions: SolanaTransaction[] = [];
+  let updatedTransactions: SolanaTransaction[] = transactions;
 
   try {
     const simulationResult = await simulateTransactions(processOpts, connection, transactions, mergedOpts, {
