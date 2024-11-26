@@ -24,9 +24,9 @@ import { LstData, StakeData, MarginfiActionParams, LoopingProps, ActionTxns, Rep
 import { captureSentryException } from "../sentry.utils";
 import { loopingBuilder, repayWithCollatBuilder } from "./flashloans";
 
-// ----------------------//
+//-----------------------//
 // Local utils functions //
-// ----------------------//
+//-----------------------//
 
 function getSteps(actionTxns?: ActionTxns) {
   return [
@@ -90,17 +90,22 @@ export async function createAccountAndDeposit({
   walletContextState,
   processOpts,
   txOpts,
+  multiStepToast,
 }: MarginfiActionParams) {
   if (marginfiClient === null) {
     showErrorToast({ message: "Marginfi client not ready" });
     return;
   }
-
-  const multiStepToast = new MultiStepToastHandle("Initial deposit", [
-    { label: "Creating account" },
-    { label: `Depositing ${amount} ${bank.meta.tokenSymbol}` },
-  ]);
-  multiStepToast.start();
+  const steps = getSteps();
+  if (!multiStepToast) {
+    multiStepToast = new MultiStepToastHandle("Initial deposit", [
+      ...steps,
+      { label: `Depositing ${amount} ${bank.meta.tokenSymbol}` },
+    ]);
+    multiStepToast.start();
+  } else {
+    multiStepToast.resetAndStart();
+  }
 
   let marginfiAccount: MarginfiAccountWrapper;
   try {
@@ -118,15 +123,18 @@ export async function createAccountAndDeposit({
       wallet: walletContextState?.publicKey?.toBase58(),
     });
 
-    multiStepToast.setFailed(msg);
     console.log(`Error while depositing: ${msg}`);
     console.log(error);
-    return;
+    throw {
+      errorMessage: msg,
+      multiStepToast,
+      actionTxns: undefined, // TODO: handle this
+    };
   }
 
   try {
     const txnSig = await marginfiAccount.deposit(amount, bank.address, {}, processOpts, txOpts);
-    multiStepToast.setSuccessAndNext();
+    multiStepToast.setSuccessAndNext(undefined, txnSig);
     return txnSig;
   } catch (error: any) {
     const msg = extractErrorString(error);
@@ -137,10 +145,13 @@ export async function createAccountAndDeposit({
       bank: bank.meta.tokenSymbol,
     });
 
-    multiStepToast.setFailed(msg);
     console.log(`Error while depositing: ${msg}`);
     console.log(error);
-    return;
+    throw {
+      errorMessage: msg,
+      multiStepToast,
+      actionTxns: undefined, // TODO: handle this
+    };
   }
 }
 
@@ -152,11 +163,19 @@ export async function deposit({
   actionTxns,
   processOpts,
   txOpts,
+  multiStepToast,
 }: MarginfiActionParams) {
-  const multiStepToast = new MultiStepToastHandle("Deposit", [
-    { label: `Depositing ${amount} ${bank.meta.tokenSymbol}` },
-  ]);
-  multiStepToast.start();
+  const steps = getSteps(actionTxns);
+
+  if (!multiStepToast) {
+    multiStepToast = new MultiStepToastHandle("Deposit", [
+      ...steps,
+      { label: `Depositing ${amount} ${bank.meta.tokenSymbol}` },
+    ]);
+    multiStepToast.start();
+  } else {
+    multiStepToast.resetAndStart();
+  }
 
   try {
     let txnSig: string;
@@ -168,7 +187,7 @@ export async function deposit({
     } else {
       throw new Error("Marginfi account not ready.");
     }
-    multiStepToast.setSuccess();
+    multiStepToast.setSuccess(txnSig);
     return txnSig;
   } catch (error: any) {
     const msg = extractErrorString(error);
@@ -194,21 +213,23 @@ export async function borrow({
   actionTxns,
   processOpts,
   txOpts,
+  multiStepToast,
 }: MarginfiActionParams) {
-  const additionalSteps =
-    actionTxns?.additionalTxns.map((tx) => ({
-      label: MRGN_TX_TYPE_TOAST_MAP[tx.type ?? "CRANK"],
-    })) ?? [];
+  const steps = getSteps(actionTxns);
 
-  const multiStepToast = new MultiStepToastHandle("Borrow", [
-    ...additionalSteps,
-    { label: `Borrowing ${amount} ${bank.meta.tokenSymbol}` },
-  ]);
-
-  multiStepToast.start();
-  let sigs: string[] = [];
+  if (!multiStepToast) {
+    multiStepToast = new MultiStepToastHandle("Borrow", [
+      ...steps,
+      { label: `Borrowing ${amount} ${bank.meta.tokenSymbol}` },
+    ]);
+    multiStepToast.start();
+  } else {
+    multiStepToast.resetAndStart();
+  }
 
   try {
+    let sigs: string[] = [];
+
     if (actionTxns?.actionTxn && marginfiClient) {
       sigs = await marginfiClient.processTransactions(
         [...actionTxns.additionalTxns, actionTxns.actionTxn],
@@ -220,7 +241,7 @@ export async function borrow({
     } else {
       throw new Error("Marginfi account not ready.");
     }
-    multiStepToast.setSuccess();
+    multiStepToast.setSuccess(sigs[sigs.length - 1]);
     return sigs;
   } catch (error: any) {
     const msg = extractErrorString(error);
@@ -231,10 +252,13 @@ export async function borrow({
       bank: bank.meta.tokenSymbol,
     });
 
-    multiStepToast.setFailed(msg);
     console.log(`Error while borrowing: ${msg}`);
     console.log(error);
-    return;
+    throw {
+      errorMessage: msg,
+      multiStepToast,
+      actionTxns, // TODO: this will be updated with correct transactions after error refactor
+    };
   }
 }
 
@@ -313,17 +337,19 @@ export async function repay({
   actionTxns,
   processOpts,
   txOpts,
+  multiStepToast,
 }: MarginfiActionParams) {
-  const additionalSteps =
-    actionTxns?.additionalTxns.map((tx) => ({
-      label: MRGN_TX_TYPE_TOAST_MAP[tx.type ?? "CRANK"],
-    })) ?? [];
+  const steps = getSteps(actionTxns);
 
-  const multiStepToast = new MultiStepToastHandle("Repayment", [
-    ...additionalSteps,
-    { label: `Repaying ${amount} ${bank.meta.tokenSymbol}` },
-  ]);
-  multiStepToast.start();
+  if (!multiStepToast) {
+    multiStepToast = new MultiStepToastHandle("Repayment", [
+      ...steps,
+      { label: `Repaying ${amount} ${bank.meta.tokenSymbol}` },
+    ]);
+    multiStepToast.start();
+  } else {
+    multiStepToast.resetAndStart();
+  }
 
   try {
     let txnSig: string;
@@ -348,7 +374,7 @@ export async function repay({
     } else {
       throw new Error("Marginfi account not ready.");
     }
-    multiStepToast.setSuccess();
+    multiStepToast.setSuccess(txnSig);
     return txnSig;
   } catch (error: any) {
     const msg = extractErrorString(error);
@@ -359,10 +385,13 @@ export async function repay({
       bank: bank.meta.tokenSymbol,
     });
 
-    multiStepToast.setFailed(msg);
     console.log(`Error while repaying: ${msg}`);
     console.log(error);
-    return;
+    throw {
+      errorMessage: msg,
+      multiStepToast,
+      actionTxns, // TODO: this will be updated with correct transactions after error refactor
+    };
   }
 }
 
