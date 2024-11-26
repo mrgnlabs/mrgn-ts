@@ -5,6 +5,7 @@ import { ActionType, ExtendedBankInfo, FEE_MARGIN } from "@mrgnlabs/marginfi-v2-
 import { MarginfiAccountWrapper, MarginfiClient, ProcessTransactionsClientOpts } from "@mrgnlabs/marginfi-client-v2";
 import {
   captureSentryException,
+  composeExplorerUrl,
   extractErrorString,
   getSteps,
   MultiStepToastHandle,
@@ -159,9 +160,10 @@ const executeLstAction = async ({
     const txnSig = await marginfiClient.processTransactions([...actionTxns.additionalTxns, actionTxns.actionTxn], {
       ...processOpts,
       callback: (index, success, sig, stepsToAdvance) =>
-        success && multiStepToast.setSuccessAndNext(stepsToAdvance, sig),
+        success &&
+        multiStepToast.setSuccessAndNext(stepsToAdvance, sig, composeExplorerUrl(sig, processOpts?.broadcastType)),
     });
-    multiStepToast.setSuccess(txnSig.pop());
+    multiStepToast.setSuccess(txnSig.pop(), composeExplorerUrl(txnSig.pop(), processOpts?.broadcastType));
 
     return txnSig;
   } catch (error) {
