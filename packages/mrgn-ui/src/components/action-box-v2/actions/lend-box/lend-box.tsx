@@ -30,7 +30,7 @@ import { WalletContextStateOverride } from "~/components/wallet-v2/hooks/use-wal
 import { ActionMessage } from "~/components";
 
 import { useLendBoxStore } from "./store";
-import { handleExecuteCloseBalance, handleExecuteLendingAction } from "./utils";
+import { HandleCloseBalanceParamsProps, handleExecuteCloseBalance, handleExecuteLendingAction } from "./utils";
 import { Collateral, ActionInput, Preview } from "./components";
 import { useLendSimulation } from "./hooks";
 import { useActionBoxStore } from "../../store";
@@ -201,17 +201,9 @@ export const LendBox = ({
 
   const buttonLabel = React.useMemo(() => (showCloseBalance ? "Close" : lendMode), [showCloseBalance, lendMode]);
 
-  const handleCloseBalance = React.useCallback(async () => {
-    if (!selectedBank || !selectedAccount || !broadcastType || !priorityFees) {
-      return;
-    }
-
+  const closeBalanceAction = async (params: HandleCloseBalanceParamsProps) => {
     await handleExecuteCloseBalance({
-      params: {
-        bank: selectedBank,
-        marginfiAccount: selectedAccount,
-        processOpts: { ...priorityFees, broadcastType },
-      },
+      params,
       captureEvent: (event, properties) => {
         captureEvent && captureEvent(event, properties);
       },
@@ -238,23 +230,36 @@ export const LendBox = ({
             },
           });
       },
-      setError: () => {},
+      setError: (error: any) => {
+        // todo: replace any type
+        const toast = error.multiStepToast as MultiStepToastHandle;
+        const txs = error.actionTxns as ActionTxns;
+        const errorMessage = error.errorMessage;
+        toast.setFailed(errorMessage, () => retryCloseBalanceAction({ ...params, multiStepToast: toast }));
+      },
       setIsLoading: (isLoading) => setIsLoading(isLoading),
     });
 
     setAmountRaw("");
-  }, [
-    selectedBank,
-    selectedAccount,
-    priorityFees,
-    broadcastType,
-    setAmountRaw,
-    captureEvent,
-    setIsActionComplete,
-    setPreviousTxn,
-    onComplete,
-    setIsLoading,
-  ]);
+  };
+
+  const retryCloseBalanceAction = async (params: HandleCloseBalanceParamsProps) => {
+    closeBalanceAction(params);
+  };
+
+  const handleCloseBalance = React.useCallback(async () => {
+    if (!selectedBank || !selectedAccount || !broadcastType || !priorityFees) {
+      return;
+    }
+
+    const params = {
+      bank: selectedBank,
+      marginfiAccount: selectedAccount,
+      processOpts: { ...priorityFees, broadcastType },
+    };
+
+    closeBalanceAction(params);
+  }, []);
 
   const executeAction = async (params: MarginfiActionParams, selectedBank: ExtendedBankInfo) => {
     const action = async (params: MarginfiActionParams) => {
@@ -334,18 +339,7 @@ export const LendBox = ({
 
       executeAction(params, selectedBank);
     },
-    [
-      selectedBank,
-      amount,
-      lendMode,
-      marginfiClient,
-      nativeSolBalance,
-      selectedAccount,
-      walletContextState,
-      actionTxns,
-      priorityFees,
-      broadcastType,
-    ]
+    []
   );
 
   React.useEffect(() => {

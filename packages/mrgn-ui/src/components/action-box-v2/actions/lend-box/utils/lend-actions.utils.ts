@@ -59,12 +59,15 @@ export const handleExecuteLendingAction = async ({
   }
 };
 
+export interface HandleCloseBalanceParamsProps {
+  bank: ExtendedBankInfo;
+  marginfiAccount: MarginfiAccountWrapper | null;
+  processOpts?: ProcessTransactionsClientOpts;
+  multiStepToast?: MultiStepToastHandle;
+}
+
 interface HandleCloseBalanceProps extends ExecuteActionsCallbackProps {
-  params: {
-    bank: ExtendedBankInfo;
-    marginfiAccount: MarginfiAccountWrapper | null;
-    processOpts?: ProcessTransactionsClientOpts;
-  };
+  params: HandleCloseBalanceParamsProps;
 }
 
 export const handleExecuteCloseBalance = async ({
@@ -74,38 +77,40 @@ export const handleExecuteCloseBalance = async ({
   setIsComplete,
   setError,
 }: HandleCloseBalanceProps) => {
-  const { bank, marginfiAccount, processOpts } = params;
+  try {
+    const { bank, marginfiAccount, processOpts } = params;
 
-  setIsLoading(true);
-  const attemptUuid = uuidv4();
-  captureEvent(`user_close_balance_initiate`, {
-    uuid: attemptUuid,
-    tokenSymbol: bank.meta.tokenSymbol,
-    tokenName: bank.meta.tokenName,
-    amount: 0,
-    priorityFee: processOpts?.priorityFeeMicro,
-  });
-
-  // const { txnSig, error } = await closeBalance({ marginfiAccount: marginfiAccount, bank: bank, priorityFee });
-  const txnSig = await closeBalance({ marginfiAccount: marginfiAccount, bank: bank, processOpts });
-  setIsLoading(false);
-
-  // if (error) {
-  //   setIsError(error);
-  // }
-
-  if (txnSig) {
-    setIsComplete([...txnSig]);
-    captureEvent(`user_close_balance`, {
+    setIsLoading(true);
+    const attemptUuid = uuidv4();
+    captureEvent(`user_close_balance_initiate`, {
       uuid: attemptUuid,
       tokenSymbol: bank.meta.tokenSymbol,
       tokenName: bank.meta.tokenName,
       amount: 0,
-      txn: txnSig!,
       priorityFee: processOpts?.priorityFeeMicro,
     });
-  } else {
-    setError("Transaction failed to land");
+
+    const txnSig = await closeBalance({
+      marginfiAccount: marginfiAccount,
+      bank: bank,
+      processOpts,
+      multiStepToast: params.multiStepToast,
+    });
+    setIsLoading(false);
+
+    if (txnSig) {
+      setIsComplete([...txnSig]);
+      captureEvent(`user_close_balance`, {
+        uuid: attemptUuid,
+        tokenSymbol: bank.meta.tokenSymbol,
+        tokenName: bank.meta.tokenName,
+        amount: 0,
+        txn: txnSig!,
+        priorityFee: processOpts?.priorityFeeMicro,
+      });
+    }
+  } catch (error) {
+    setError(error);
   }
 };
 

@@ -254,7 +254,7 @@ export async function withdraw({
     multiStepToast = new MultiStepToastHandle("Withdrawal", [
       ...steps,
       { label: `Withdrawing ${amount} ${bank.meta.tokenSymbol}` },
-    ]); // TODO: toast has two tx steps, should look like they are executing at the same time if broadcasttype is set to bundle. Also set signature
+    ]);
     multiStepToast.start();
   } else {
     multiStepToast.resetAndStart();
@@ -295,11 +295,13 @@ export async function withdraw({
       wallet: marginfiAccount?.authority?.toBase58(),
       bank: bank.meta.tokenSymbol,
     });
+    console.log(`Error while withdrawing`);
+    console.log(error);
     throw {
       errorMessage: msg,
       multiStepToast,
       actionTxns, // TODO: this will be updated with correct transactions after error refactor
-    }; // TODO: create a type for this
+    };
   }
 }
 
@@ -524,11 +526,13 @@ export const closeBalance = async ({
   marginfiAccount,
   processOpts,
   txOpts,
+  multiStepToast,
 }: {
   bank: ExtendedBankInfo;
   marginfiAccount: MarginfiAccountWrapper | null | undefined;
   processOpts?: ProcessTransactionsClientOpts;
   txOpts?: TransactionOptions;
+  multiStepToast?: MultiStepToastHandle;
 }) => {
   if (!marginfiAccount) {
     showErrorToast({ message: "marginfi account not ready." });
@@ -539,10 +543,17 @@ export const closeBalance = async ({
     return;
   }
 
-  const multiStepToast = new MultiStepToastHandle("Closing balance", [
-    { label: `Closing ${bank.position.isLending ? "lending" : "borrow"} balance for ${bank.meta.tokenSymbol}` },
-  ]);
-  multiStepToast.start();
+  const steps = getSteps();
+
+  if (!multiStepToast) {
+    multiStepToast = new MultiStepToastHandle("Closing balance", [
+      ...steps,
+      { label: `Closing ${bank.position.isLending ? "lending" : "borrow"} balance for ${bank.meta.tokenSymbol}` },
+    ]);
+    multiStepToast.start();
+  } else {
+    multiStepToast.resetAndStart();
+  }
 
   try {
     let txnSig = "";
@@ -551,7 +562,7 @@ export const closeBalance = async ({
     } else {
       txnSig = await marginfiAccount.repay(0, bank.address, true, {}, processOpts, txOpts);
     }
-    multiStepToast.setSuccessAndNext();
+    multiStepToast.setSuccessAndNext(undefined, txnSig);
     return txnSig;
   } catch (error: any) {
     const msg = extractErrorString(error);
@@ -561,10 +572,13 @@ export const closeBalance = async ({
       wallet: marginfiAccount?.authority?.toBase58(),
       bank: bank.meta.tokenSymbol,
     });
-
-    multiStepToast.setFailed(msg);
     console.log(`Error while closing balance`);
     console.log(error);
+
+    throw {
+      errorMessage: msg,
+      multiStepToast,
+    };
   }
 };
 
