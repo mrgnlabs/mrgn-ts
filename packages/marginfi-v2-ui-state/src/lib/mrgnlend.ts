@@ -398,7 +398,12 @@ export function makeLendingPosition(
   const amounts = balance.computeQuantity(bank);
   const usdValues = balance.computeUsdValue(bank, oraclePrice, MarginRequirementType.Equity);
   const weightedUSDValues = balance.getUsdValueWithPriceBias(bank, oraclePrice, MarginRequirementType.Maintenance);
-  const isLending = balance.assetShares.gt(balance.liabilityShares);
+
+  // default to checking against usdValues to account for active positions with zero asset / liab shares
+  // if token has been sunset and oracle set to 0 check against shares instead
+  const isLending = oraclePrice.priceRealtime.price.isZero()
+    ? balance.assetShares.gt(balance.liabilityShares)
+    : usdValues.liabilities.isZero();
 
   const amount = isLending
     ? nativeToUi(amounts.assets.integerValue(BigNumber.ROUND_DOWN).toNumber(), bankInfo.mintDecimals)
