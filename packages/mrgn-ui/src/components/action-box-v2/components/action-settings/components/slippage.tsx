@@ -69,8 +69,10 @@ export const Slippage = ({ slippagePct, setSlippagePct, toggleSettings }: Slippa
                 </TooltipTrigger>
                 <TooltipContent>
                   <div className="space-y-2">
-                    <p>Priority fees are paid to the Solana network.</p>
-                    <p>This additional fee helps boost how a transaction is prioritized.</p>
+                    <p>
+                      Slippage is the maximum price difference you&apos;re willing to accept between placing a trade and
+                      its execution
+                    </p>
                   </div>
                 </TooltipContent>
               </Tooltip>
