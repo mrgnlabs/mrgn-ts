@@ -58,7 +58,7 @@ export class MultiStepToastHandle {
       }
       toast.update(this._toastId, {
         render: () => <MultiStepToast title={this._title} steps={this._stepsWithStatus} />,
-        autoClose: false, // change
+        autoClose: 4000,
       });
     } else {
       for (let i = this._stepIndex + 1; i <= nextStepIndex; i++) {
@@ -77,19 +77,20 @@ export class MultiStepToastHandle {
   setSuccess(signature?: string) {
     if (!this._toastId) return;
 
-    // Mark all steps as success and add the signature to all
     for (let i = 0; i < this._stepsWithStatus.length; i++) {
       this._stepsWithStatus[i].status = "success";
-      if (signature) {
-        this._stepsWithStatus[i].signature = signature;
-      }
     }
+
+    if (signature) {
+      const lastIndex = this._stepsWithStatus.length - 1;
+      this._stepsWithStatus[lastIndex].signature = signature;
+    }
+
     toast.update(this._toastId, {
       render: () => <MultiStepToast title={this._title} steps={this._stepsWithStatus} />,
-      autoClose: false, // change
+      autoClose: 4000,
     });
   }
-
   setFailed(message: string | React.ReactNode, retry?: () => void) {
     if (!this._toastId) return;
 

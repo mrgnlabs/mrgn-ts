@@ -285,7 +285,7 @@ export async function withdraw({
     } else {
       throw new Error("Marginfi account not ready.");
     }
-    multiStepToast.setSuccess();
+    multiStepToast.setSuccess(sigs[sigs.length - 1]); // TODO: signature isnt returned from processTransactions sometimes. Fix
     return sigs;
   } catch (error: any) {
     const msg = extractErrorString(error);
