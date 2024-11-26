@@ -52,11 +52,11 @@ const CONTENT: {
           href: "https://twitter.com/marginfi",
           label: "X",
         },
-        {
-          icon: <IconBrandDiscordFilled />,
-          href: "https://discord.gg/mrgn",
-          label: "Discord",
-        },
+        // {
+        //   icon: <IconBrandDiscordFilled />,
+        //   href: "https://discord.gg/mrgn",
+        //   label: "Discord",
+        // },
         {
           icon: <IconBrandGithub />,
           href: "https://github.com/mrgnlabs/",
