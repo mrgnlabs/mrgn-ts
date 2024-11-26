@@ -127,6 +127,8 @@ export type RepayWithCollatProps = {
   depositBank: ExtendedBankInfo;
   quote: QuoteResponse;
   connection: Connection;
+
+  multiStepToast?: MultiStepToastHandle;
 };
 
 // deprecated

@@ -284,9 +284,9 @@ export async function withdraw({
     multiStepToast.resetAndStart();
   }
 
-  let sigs: string[] = [];
-
   try {
+    let sigs: string[] = [];
+
     if (actionTxns?.actionTxn && marginfiClient) {
       sigs = await marginfiClient.processTransactions(
         [...actionTxns.additionalTxns, actionTxns.actionTxn],
@@ -480,6 +480,7 @@ export async function repayWithCollat({
   actionTxns,
   processOpts,
   txOpts,
+  multiStepToast,
   ...repayProps
 }: RepayWithCollatFnProps) {
   if (marginfiClient === null) {
@@ -492,8 +493,14 @@ export async function repayWithCollat({
     return;
   }
 
-  const multiStepToast = new MultiStepToastHandle("Repayment", [{ label: `Executing flashloan repayment` }]);
-  multiStepToast.start();
+  const steps = getSteps(actionTxns);
+
+  if (!multiStepToast) {
+    multiStepToast = new MultiStepToastHandle("Repayment", [...steps, { label: `Executing flashloan repayment` }]);
+    multiStepToast.start();
+  } else {
+    multiStepToast.resetAndStart();
+  }
 
   try {
     let sigs: string[] = [];
@@ -513,7 +520,7 @@ export async function repayWithCollat({
 
       sigs = await marginfiClient.processTransactions([...additionalTxs, flashloanTx], processOpts, txOpts);
     }
-    multiStepToast.setSuccess();
+    multiStepToast.setSuccess(sigs[sigs.length - 1]);
     return sigs;
   } catch (error: any) {
     const msg = extractErrorString(error);
@@ -525,10 +532,13 @@ export async function repayWithCollat({
       amount: repayProps.repayAmount.toString(),
     });
 
-    multiStepToast.setFailed(msg);
     console.log(`Error while repaying: ${msg}`);
     console.log(error);
-    return;
+    throw {
+      errorMessage: msg,
+      multiStepToast,
+      actionTxns, // TODO: this will be updated with correct transactions after error refactor
+    };
   }
 }
 

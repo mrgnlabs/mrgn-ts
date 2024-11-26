@@ -376,6 +376,8 @@ export const LendBox = ({
     callbacks.setAmountRaw("");
   };
 
+  // TODO: remove selectedBank, use params.bank instead
+
   const retryLendingAction = React.useCallback(
     (params: MarginfiActionParams, selectedBank: ExtendedBankInfo) => {
       executeAction(params, selectedBank, {
