@@ -1,5 +1,7 @@
 import React from "react";
 import Link from "next/link";
+import Image from "next/image";
+
 import { IconExternalLink } from "@tabler/icons-react";
 
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
@@ -21,18 +23,50 @@ interface Props {
 export const StakingScreen = ({ amount, type, txn, originDetails, txnLink }: Props) => {
   return (
     <>
-      <div className="flex flex-col items-center gap-2 border-b border-border pb-10">
-        <div className="flex items-center justify-center gap-2">
-          <h3 className="text-4xl font-medium">
-            {dynamicNumeralFormatter(amount)} {type === ActionType.MintLST ? "LST" : "SOL"}
-          </h3>
-          {type === ActionType.MintLST ? <IconLST size={32} /> : <IconSol />}
+      <div className="flex flex-col items-center gap-4 border-b border-border pb-10">
+        <div className="flex items-center">
+          <Image
+            className="rounded-full"
+            src={originDetails.bank.meta.tokenLogoUri}
+            alt={(originDetails.bank.meta.tokenLogoUri || "Token") + "  logo"}
+            width={48}
+            height={48}
+          />
+          {type === ActionType.MintLST ? (
+            <IconLST size={48} className="-ml-2 relative z-10" />
+          ) : (
+            <IconSol size={48} className="-ml-2 relative z-10" />
+          )}
         </div>
+        <h3 className="text-2xl font-medium">
+          {/* {dynamicNumeralFormatter(amount)} {type === ActionType.MintLST ? "LST" : "SOL"} */}
+          {type === ActionType.MintLST
+            ? `You staked ${dynamicNumeralFormatter(originDetails.amount, {
+                minDisplay: 0.01,
+              })} ${originDetails.bank.meta.tokenSymbol.toUpperCase()} for ${dynamicNumeralFormatter(amount, {
+                minDisplay: 0.01,
+              })} LST`
+            : `You swapped ${dynamicNumeralFormatter(originDetails.amount, {
+                minDisplay: 0.01,
+              })} LST for ${dynamicNumeralFormatter(amount, {
+                minDisplay: 0.01,
+              })} SOL`}
+        </h3>
       </div>
       <dl className="grid grid-cols-2 w-full text-muted-foreground gap-x-8 gap-y-2">
         <dt>Paid</dt>
         <dt className="text-right">
-          {dynamicNumeralFormatter(originDetails?.amount)} {originDetails?.bank.meta.tokenSymbol}
+          {dynamicNumeralFormatter(originDetails?.amount, {
+            minDisplay: 0.01,
+          })}{" "}
+          {originDetails?.bank.meta.tokenSymbol}
+        </dt>
+        <dt>Received</dt>
+        <dt className="text-right">
+          {dynamicNumeralFormatter(amount, {
+            minDisplay: 0.01,
+          })}{" "}
+          {type === ActionType.MintLST ? "LST" : "SOL"}
         </dt>
 
         <dd>Transaction</dd>
