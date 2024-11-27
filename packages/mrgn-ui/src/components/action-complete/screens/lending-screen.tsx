@@ -13,9 +13,14 @@ interface Props {
   type: ActionType;
   txn: string;
   txnLink?: string;
+  collatRepay?: {
+    borrowBank: ActiveBankInfo;
+    withdrawBank: ActiveBankInfo;
+    withdrawAmount: number;
+  };
 }
 
-export const LendingScreen = ({ amount, bank, type, txn, txnLink }: Props) => {
+export const LendingScreen = ({ amount, bank, type, txn, txnLink, collatRepay }: Props) => {
   const actionTextColor = React.useMemo(() => {
     const successTypes = [ActionType.Deposit, ActionType.Withdraw, ActionType.MintLST];
     const warningTypes = [ActionType.Borrow, ActionType.Repay];
@@ -42,7 +47,16 @@ export const LendingScreen = ({ amount, bank, type, txn, txnLink }: Props) => {
         )}
         <div className="flex items-center justify-center gap-2">
           <h3 className="text-2xl font-medium">
-            You {type === ActionType.Deposit ? "deposited" : "borrowed"} {amount} {bank?.meta.tokenSymbol}
+            {type === ActionType.RepayCollat ? (
+              <>
+                You repaid {amount} {bank?.meta.tokenSymbol} with {collatRepay?.withdrawAmount}{" "}
+                {collatRepay?.withdrawBank.meta.tokenSymbol}
+              </>
+            ) : (
+              <>
+                You {type === ActionType.Deposit ? "deposited" : "borrowed"} {amount} {bank?.meta.tokenSymbol}
+              </>
+            )}
           </h3>
         </div>
       </div>

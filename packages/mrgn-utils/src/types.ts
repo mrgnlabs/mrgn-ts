@@ -20,6 +20,11 @@ interface PreviousTxnLending {
     amount: number;
     type: ActionType;
     bank: ActiveBankInfo;
+    collatRepay?: {
+      borrowBank: ActiveBankInfo;
+      withdrawBank: ActiveBankInfo;
+      withdrawAmount: number;
+    };
   };
 }
 
