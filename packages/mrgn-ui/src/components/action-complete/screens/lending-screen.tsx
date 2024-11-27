@@ -46,7 +46,7 @@ export const LendingScreen = ({ amount, bank, type, txn, txnLink, collatRepay }:
               height={48}
             />
             <Image
-              className="rounded-full -ml-3 relative z-10"
+              className="rounded-full -ml-5 relative z-10"
               src={collatRepay.withdrawBank.meta.tokenLogoUri}
               alt={(collatRepay.withdrawBank?.meta.tokenSymbol || "Token") + "  logo"}
               width={48}
@@ -66,7 +66,7 @@ export const LendingScreen = ({ amount, bank, type, txn, txnLink, collatRepay }:
         )}
 
         <div className="flex items-center justify-center gap-2">
-          <h3 className="text-2xl font-medium">
+          <h3 className="text-2xl font-medium text-center">
             {type === ActionType.RepayCollat ? (
               <>
                 You repaid {dynamicNumeralFormatter(amount, { minDisplay: 0.01 })}{" "}
