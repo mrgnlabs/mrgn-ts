@@ -421,7 +421,7 @@ export const LoopBox = ({
               <ActionMessage
                 _actionMessage={actionMessage}
                 retry={refreshSimulation}
-                isRetrying={isSimulating.status === SimulationStatus.SIMULATING}
+                isRetrying={isSimulating.isLoading}
               />
             </div>
           )

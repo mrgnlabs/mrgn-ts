@@ -157,7 +157,7 @@ export const StakeBox = ({
     };
   }, [refreshState]);
 
-  const { handleSimulation, refreshSimulation, simulationStatus } = useStakeSimulation({
+  const { handleSimulation, refreshSimulation } = useStakeSimulation({
     debouncedAmount: debouncedAmount ?? 0,
     selectedBank,
     actionMode,
@@ -374,7 +374,7 @@ export const StakeBox = ({
               <ActionMessage
                 _actionMessage={actionMessage}
                 retry={refreshSimulation}
-                isRetrying={isSimulating.status === SimulationStatus.SIMULATING}
+                isRetrying={isSimulating.isLoading}
               />
             </div>
           )
@@ -393,7 +393,7 @@ export const StakeBox = ({
 
       <div className="flex items-center justify-between">
         <ActionSimulationStatus
-          simulationStatus={simulationStatus}
+          simulationStatus={isSimulating.status}
           hasErrorMessages={additionalActionMessages.length > 0}
           isActive={selectedBank && amount > 0 ? true : false}
         />

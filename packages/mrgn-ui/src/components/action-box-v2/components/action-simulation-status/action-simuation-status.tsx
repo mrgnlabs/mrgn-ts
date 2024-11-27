@@ -35,11 +35,11 @@ const ActionSimulationStatus = ({
     //   clearTimeout(timeoutRef.current);
     // }
 
-    if (hasErrorMessages && !isNewSimulation) {
-      setSimulationCompleteStatus(SimulationCompleteStatus.ERROR);
-    } else if (simulationStatus === SimulationStatus.SIMULATING || simulationStatus === SimulationStatus.PREPARING) {
+    if (simulationStatus === SimulationStatus.SIMULATING || simulationStatus === SimulationStatus.PREPARING) {
       setSimulationCompleteStatus(SimulationCompleteStatus.LOADING);
       setIsNewSimulation(false);
+    } else if (hasErrorMessages && !isNewSimulation) {
+      setSimulationCompleteStatus(SimulationCompleteStatus.ERROR);
     } else if (simulationStatus === SimulationStatus.COMPLETE && !isNewSimulation) {
       setSimulationCompleteStatus(SimulationCompleteStatus.SUCCESS);
     }

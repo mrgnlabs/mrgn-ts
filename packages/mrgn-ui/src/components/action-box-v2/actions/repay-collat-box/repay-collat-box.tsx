@@ -414,10 +414,7 @@ export const RepayCollatBox = ({
               <ActionMessage
                 _actionMessage={actionMessage}
                 retry={refreshSimulation}
-                isRetrying={
-                  isSimulating.status === SimulationStatus.SIMULATING ||
-                  isSimulating.status === SimulationStatus.PREPARING
-                }
+                isRetrying={isSimulating.isLoading}
               />
             </div>
           )

@@ -495,7 +495,7 @@ export const LendBox = ({
               <ActionMessage
                 _actionMessage={actionMessage}
                 retry={refreshSimulation}
-                isRetrying={isSimulating.status === SimulationStatus.SIMULATING}
+                isRetrying={isSimulating.isLoading}
               />
             </div>
           )

@@ -1,28 +1,17 @@
 import React from "react";
 
-import { LAMPORTS_PER_SOL, Transaction, TransactionMessage, VersionedTransaction } from "@solana/web3.js";
-import { createJupiterApiClient } from "@jup-ag/api";
+import { Transaction, VersionedTransaction } from "@solana/web3.js";
 
-import { makeBundleTipIx, makeUnwrapSolIx, MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
+import { MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { ExtendedBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import {
   ActionMessageType,
-  deserializeInstruction,
   extractErrorString,
-  getSwapQuoteWithRetry,
   LstData,
   StakeActionTxns,
   STATIC_SIMULATION_ERRORS,
   usePrevious,
 } from "@mrgnlabs/mrgn-utils";
-import {
-  LST_MINT,
-  LUT_PROGRAM_AUTHORITY_INDEX,
-  NATIVE_MINT as SOL_MINT,
-  SolanaTransaction,
-  TransactionBroadcastType,
-  uiToNative,
-} from "@mrgnlabs/mrgn-common";
 
 import { createStakeLstTx, createUnstakeLstTx, getSimulationResult } from "../utils";
 import { SimulationStatus } from "../../../utils/simulation.utils";
@@ -57,7 +46,6 @@ export function useStakeSimulation({
   setIsLoading,
 }: StakeSimulationProps) {
   const [slippageBps, platformFeeBps] = useActionBoxStore((state) => [state.slippageBps, state.platformFeeBps]);
-  const [simulationStatus, setSimulationStatus] = React.useState<SimulationStatus>(SimulationStatus.IDLE);
   const prevDebouncedAmount = usePrevious(debouncedAmount);
   const [hasUserInteracted, setHasUserInteracted] = React.useState(false);
 
@@ -104,7 +92,6 @@ export function useStakeSimulation({
   const fetchTxs = React.useCallback(
     async (amount: number, actionType: ActionType) => {
       setHasUserInteracted(true);
-      setSimulationStatus(SimulationStatus.PREPARING);
       const connection = marginfiClient?.provider.connection;
 
       if (amount === 0 || !selectedBank || !connection || !lstData) {
@@ -180,11 +167,7 @@ export function useStakeSimulation({
     if (prevDebouncedAmount !== debouncedAmount) {
       // Only set to PREPARING if we're actually going to simulate
       if (debouncedAmount > 0) {
-        setSimulationStatus(SimulationStatus.PREPARING);
         fetchTxs(debouncedAmount, actionMode);
-      } else {
-        // If amount is 0, move back to idle
-        setSimulationStatus(SimulationStatus.IDLE);
       }
     }
   }, [prevDebouncedAmount, debouncedAmount, fetchTxs, actionMode, hasUserInteracted]);
@@ -204,5 +187,5 @@ export function useStakeSimulation({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [actionTxns]);
 
-  return { handleSimulation, refreshSimulation, simulationStatus };
+  return { handleSimulation, refreshSimulation };
 }
