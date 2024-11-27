@@ -30,7 +30,7 @@ const AccordionTrigger = React.forwardRef<
       {...props}
     >
       {children}
-      <div className={cn(variant === "default" && "", variant === "portfolio" && "h-full pt-4")}>
+      <div className={cn(variant === "default" && "", variant === "portfolio" && "h-full pt-2")}>
         <ChevronDown
           className={cn("shrink-0 transition-transform duration-200", variant === "wallet" ? "h-6 w-6" : "h-4 w-4")}
         />
