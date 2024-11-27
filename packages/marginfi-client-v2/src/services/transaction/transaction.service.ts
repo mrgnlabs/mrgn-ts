@@ -92,7 +92,7 @@ export interface ProcessTransactionsClientOpts extends PriorityFees {
   broadcastType?: TransactionBroadcastType;
   dynamicStrategy?: ProcessTransactionStrategy;
   isSequentialTxs?: boolean;
-  callback?: (index: number, success: boolean, signature?: string) => void;
+  callback?: (index: number, success: boolean, signature?: string, stepsToAdvance?: number) => void;
 }
 
 type ProcessTransactionsProps = {
@@ -255,6 +255,15 @@ export async function processTransactions({
           base58Txs.push(base58Tx);
           versionedTransactions[i] = signedTx;
         }
+      }
+
+      // Updating after 'sign in wallet' step in toast
+      // If the transactions are bundled, we need to advance the toast by the number of transactions.
+      if (broadcastType === "BUNDLE") {
+        const stepsToAdvance = versionedTransactions.length;
+        processOpts.callback?.(0, true, undefined, stepsToAdvance);
+      } else {
+        processOpts.callback?.(0, true);
       }
 
       const simulateTxs = async () =>

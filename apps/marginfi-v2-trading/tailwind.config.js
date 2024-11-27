@@ -111,6 +111,9 @@ module.exports = {
             "accent-foreground": "hsl(var(--mfi-action-box-accent-foreground))",
             highlight: "hsl(var(--mfi-action-box-highlight))",
           },
+          toast: {
+            background: "hsl(var(--mfi-toast-background))",
+          },
         },
       },
       screens: {

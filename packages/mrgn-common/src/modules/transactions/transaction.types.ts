@@ -3,7 +3,7 @@ import { VersionedTransaction, Transaction, Signer, AddressLookupTableAccount } 
 export type MRGN_TX_TYPES = "CRANK" | "SETUP" | "BUNDLE_TIP" | "MRGN_ACCOUNT_CREATION";
 
 export const MRGN_TX_TYPE_TOAST_MAP: Record<MRGN_TX_TYPES, string> = {
-  CRANK: "Cranking positions",
+  CRANK: "Updating latest prices",
   SETUP: "Setting up token accounts",
   BUNDLE_TIP: "Sending bundle tip",
   MRGN_ACCOUNT_CREATION: "Creating marginfi account",

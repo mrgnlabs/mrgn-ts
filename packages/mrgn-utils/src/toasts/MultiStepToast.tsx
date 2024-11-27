@@ -1,10 +1,12 @@
-import { IconLoader2, IconCheck, IconAlertTriangle } from "@tabler/icons-react";
-
+import { IconLoader2, IconCheck, IconExternalLink, IconX } from "@tabler/icons-react";
 import { cn } from "./themeUtils";
+import React from "react";
+import { shortenAddress } from "@mrgnlabs/mrgn-common";
 
 export interface MultiStepToastProps {
   title: string;
   steps: ToastStepWithStatus[];
+  retry?: () => void;
 }
 
 export interface ToastStep {
@@ -15,44 +17,73 @@ export type ToastStatus = "todo" | "pending" | "success" | "error" | "canceled";
 
 export interface ToastStepWithStatus extends ToastStep {
   status: ToastStatus;
-  message?: string;
+  message?: string | React.ReactNode;
+  signature?: string;
+  explorerUrl?: string;
 }
 
-export const MultiStepToast = ({ title, steps }: MultiStepToastProps) => {
+export const MultiStepToast = ({ title, steps, retry }: MultiStepToastProps) => {
+  const lastFailedIndex = steps.map((step) => step.status).lastIndexOf("error");
+
   return (
-    <div className="w-full h-full rounded-md z-50 bg-background text-foreground">
-      <h2 className="text-xl font-medium">{title}</h2>
-      <div className="pb-3 pt-6 space-y-2">
+    <div className="w-full h-full rounded-md z-50 md:min-w-[340px]">
+      <h2 className="text-lg mb-5 font-medium">{title}</h2>
+      <div className="space-y-2.5">
         {steps.map((step, index) => {
+          const isLastFailed = index === lastFailedIndex;
           return (
-            <div className="text-muted-foreground" key={index}>
-              <div className="flex items-center space-x-2">
-                {steps.length > 1 && <h3>{`${index + 1}.`}</h3>}
-                {Array.isArray(step.label) ? (
-                  <ul className="list-disc ml-0">
-                    {step.label.map((label, idx) => (
-                      <li key={idx} className="flex items-center space-x-2">
-                        <span className="w-2 h-2 bg-gray-400 rounded-full inline-block"></span>
-                        <span className={cn(step.status === "canceled" && "line-through")}>{label}</span>
-                        {step.status === "success" && <IconCheck size={18} className="text-green-400 flex-shrink-0" />}
-                        {step.status === "error" && (
-                          <IconAlertTriangle size={18} className="text-red-400 flex-shrink-0" />
-                        )}
-                        {step.status === "pending" && <IconLoader2 size={18} className="animate-spin flex-shrink-0" />}
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <div className="flex items-center space-x-2">
-                    <span className={cn(step.status === "canceled" && "line-through")}>{step.label}</span>
-                    {step.status === "success" && <IconCheck size={18} className="text-green-400" />}
-                    {step.status === "error" && <IconAlertTriangle size={18} className="text-red-400" />}
-                    {step.status === "pending" && <IconLoader2 size={18} className="animate-spin" />}
-                  </div>
-                )}
+            <div className="text-muted-foreground text-sm" key={index}>
+              <div className="flex items-start space-x-2">
+                <div className="flex items-center space-x-2 md:w-max">
+                  {step.status === "success" && <IconCheck size={16} className="text-success flex-shrink-0" />}
+                  {(step.status === "error" || step.status === "canceled") && (
+                    <IconX
+                      size={16}
+                      className={cn(
+                        "flex-shrink-0",
+                        step.status === "error" && "text-mrgn-error",
+                        step.status === "canceled" && "text-muted-foreground/50"
+                      )}
+                    />
+                  )}
+                  {step.status === "pending" && <IconLoader2 size={16} className="animate-spin flex-shrink-0" />}
+                  <span
+                    className={cn(
+                      step.status === "success" && "text-primary",
+                      step.status === "error" && "text-error",
+                      step.status === "todo" && "ml-6 text-muted-foreground/50",
+                      step.status === "canceled" && "ml-6 text-muted-foreground/50"
+                    )}
+                  >
+                    {step.label}
+                  </span>
+                  {step.status === "error" && isLastFailed && (
+                    <button
+                      onClick={retry}
+                      className="ml-2 relative inline-flex gap-2 items-center justify-center whitespace-nowrap rounded-md text-[10px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gray-600 bg-accent text-primary px-2 py-0.5 shadow-sm hover:bg-accent/80"
+                    >
+                      Retry
+                    </button>
+                  )}
+                </div>
               </div>
+              {step.signature && step.explorerUrl && (
+                <div className="py-1.5 px-6 text-xs max-w-xs text-muted-foreground">
+                  <a
+                    href={step.explorerUrl}
+                    className="flex items-center gap-1 text-[10px]"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <IconExternalLink size={12} className="-translate-y-[1px]" />
+                    <span className="border-b border-border">{shortenAddress(step.signature)}</span>{" "}
+                  </a>
+                </div>
+              )}
               {step.message && (
-                <p className="bg-destructive py-3 px-4 rounded-xl mt-2.5 text-destructive-foreground">{step.message}</p>
+                <div className="py-3 px-6 text-xs max-w-xs text-muted-foreground">
+                  {typeof step.message === "string" ? <p>{step.message}</p> : step.message}
+                </div>
               )}
             </div>
           );

@@ -11,6 +11,7 @@ import { MarginfiAccountWrapper, MarginfiClient, ProcessTransactionsClientOpts }
 import { ActionType, ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { WalletContextStateOverride } from "../wallet";
+import { MultiStepToastHandle } from "../toasts/toastUtils";
 
 export enum RepayType {
   RepayRaw = "Repay",
@@ -126,6 +127,8 @@ export type RepayWithCollatProps = {
   depositBank: ExtendedBankInfo;
   quote: QuoteResponse;
   connection: Connection;
+
+  multiStepToast?: MultiStepToastHandle;
 };
 
 // deprecated
@@ -147,6 +150,8 @@ export type LoopingProps = {
   borrowBank: ExtendedBankInfo;
   quote: QuoteResponse;
   connection: Connection;
+
+  multiStepToast?: MultiStepToastHandle;
 };
 
 export type MarginfiActionParams = {
@@ -161,6 +166,8 @@ export type MarginfiActionParams = {
   walletContextState?: WalletContextState | WalletContextStateOverride;
   processOpts?: ProcessTransactionsClientOpts;
   txOpts?: TransactionOptions;
+
+  multiStepToast?: MultiStepToastHandle;
 };
 
 export type LstActionParams = {

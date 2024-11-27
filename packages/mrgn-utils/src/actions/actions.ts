@@ -4,7 +4,7 @@ import { MarginfiClient, ProcessTransactionsClientOpts } from "@mrgnlabs/marginf
 import { FEE_MARGIN, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { TransactionOptions, WSOL_MINT } from "@mrgnlabs/mrgn-common";
 
-import { showErrorToast } from "../toasts";
+import { MultiStepToastHandle, showErrorToast } from "../toasts";
 import { MarginfiActionParams, LstActionParams, ActionTxns, RepayWithCollatProps, LoopingProps } from "./types";
 import { WalletContextStateOverride } from "../wallet";
 import {
@@ -70,7 +70,6 @@ export async function executeLendingAction(params: MarginfiActionParams) {
     return;
   }
 
-
   if (params.actionType === ActionType.Repay) {
     txnSig = await repay(params);
   }
@@ -92,14 +91,14 @@ export async function executeLendingAction(params: MarginfiActionParams) {
   return txnSig;
 }
 
-
 export interface ExecuteRepayWithCollatActionProps extends RepayWithCollatProps {
   marginfiClient: MarginfiClient;
   actionTxns: ActionTxns;
   processOpts: ProcessTransactionsClientOpts;
   txOpts: TransactionOptions;
-}
 
+  multiStepToast?: MultiStepToastHandle;
+}
 
 export async function executeRepayWithCollatAction(params: ExecuteRepayWithCollatActionProps) {
   let txnSig: string[] | undefined;
@@ -113,7 +112,6 @@ export interface ExecuteLoopingActionProps extends LoopingProps {
   processOpts: ProcessTransactionsClientOpts;
   txOpts: TransactionOptions;
 }
-
 
 export async function executeLoopingAction(params: ExecuteLoopingActionProps) {
   let txnSig: string[] | undefined;

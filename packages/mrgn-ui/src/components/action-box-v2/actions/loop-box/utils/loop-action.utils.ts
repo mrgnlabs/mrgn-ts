@@ -19,34 +19,37 @@ export const handleExecuteLoopAction = async ({
   captureEvent,
   setIsLoading,
   setIsComplete,
-  setIsError,
+  setError,
 }: ExecuteLendingActionsProps) => {
-  setIsLoading(true);
-  const attemptUuid = uuidv4();
-  captureEvent(`user_loop_initiate`, {
-    uuid: attemptUuid,
-    tokenSymbol: props.borrowBank.meta.tokenSymbol,
-    tokenName: props.borrowBank.meta.tokenName,
-    amount: props.depositAmount,
-    priorityFee: props.processOpts?.priorityFeeMicro ?? 0,
-  });
-
-  const txnSig = await executeLoopingAction(props);
-
-  setIsLoading(false);
-
-  if (txnSig) {
-    setIsComplete(Array.isArray(txnSig) ? txnSig : [txnSig]);
-    captureEvent(`user_loop`, {
+  try {
+    setIsLoading(true);
+    const attemptUuid = uuidv4();
+    captureEvent(`user_loop_initiate`, {
       uuid: attemptUuid,
       tokenSymbol: props.borrowBank.meta.tokenSymbol,
       tokenName: props.borrowBank.meta.tokenName,
       amount: props.depositAmount,
-      txn: txnSig!,
       priorityFee: props.processOpts?.priorityFeeMicro ?? 0,
     });
-  } else {
-    setIsError("Transaction not landed");
+
+    const txnSig = await executeLoopingAction(props);
+
+    setIsLoading(false);
+
+    if (txnSig) {
+      setIsComplete(Array.isArray(txnSig) ? txnSig : [txnSig]);
+      captureEvent(`user_loop`, {
+        uuid: attemptUuid,
+        tokenSymbol: props.borrowBank.meta.tokenSymbol,
+        tokenName: props.borrowBank.meta.tokenName,
+        amount: props.depositAmount,
+        txn: txnSig!,
+        priorityFee: props.processOpts?.priorityFeeMicro ?? 0,
+      });
+    }
+  } catch (error) {
+    // TODO: add type here
+    setError(error);
   }
 };
 

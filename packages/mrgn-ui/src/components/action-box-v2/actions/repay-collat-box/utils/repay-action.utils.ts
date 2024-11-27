@@ -5,7 +5,7 @@ import {
   RepayCollatActionTxns,
   CalculateRepayCollateralProps,
   executeRepayWithCollatAction,
-  ExecuteRepayWithCollatActionProps
+  ExecuteRepayWithCollatActionProps,
 } from "@mrgnlabs/mrgn-utils";
 
 import { ExecuteActionsCallbackProps } from "~/components/action-box-v2/types";
@@ -19,34 +19,36 @@ export const handleExecuteRepayCollatAction = async ({
   captureEvent,
   setIsLoading,
   setIsComplete,
-  setIsError,
+  setError,
 }: HandleExecuteRepayCollatActionProps) => {
-  
-  setIsLoading(true);
-  const attemptUuid = uuidv4();
-  captureEvent(`user_repay_with_collat_initiate`, {
-    uuid: attemptUuid,
-    depositTokenName: props.depositBank.meta.tokenName,
-    borrowTokenName: props.borrowBank.meta.tokenName,
-    repayAmount: props.repayAmount,
-    withdrawAmount: props.withdrawAmount,
-  });
-
-  const txnSig = await executeRepayWithCollatAction(props);
-
-  setIsLoading(false);
-
-  if (txnSig) {
-    setIsComplete(Array.isArray(txnSig) ? txnSig : [txnSig]);
-    captureEvent(`user_repay_with_collat`, {
+  try {
+    setIsLoading(true);
+    const attemptUuid = uuidv4();
+    captureEvent(`user_repay_with_collat_initiate`, {
       uuid: attemptUuid,
       depositTokenName: props.depositBank.meta.tokenName,
       borrowTokenName: props.borrowBank.meta.tokenName,
       repayAmount: props.repayAmount,
       withdrawAmount: props.withdrawAmount,
     });
-  } else {
-    setIsError("Transaction not landed");
+
+    const txnSig = await executeRepayWithCollatAction(props);
+
+    setIsLoading(false);
+
+    if (txnSig) {
+      setIsComplete(Array.isArray(txnSig) ? txnSig : [txnSig]);
+      captureEvent(`user_repay_with_collat`, {
+        uuid: attemptUuid,
+        depositTokenName: props.depositBank.meta.tokenName,
+        borrowTokenName: props.borrowBank.meta.tokenName,
+        repayAmount: props.repayAmount,
+        withdrawAmount: props.withdrawAmount,
+      });
+    }
+  } catch (error) {
+    // TODO: add type here
+    setError(error);
   }
 };
 

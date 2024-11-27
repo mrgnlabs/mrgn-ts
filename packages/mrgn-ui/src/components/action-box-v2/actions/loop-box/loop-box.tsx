@@ -13,8 +13,10 @@ import { WalletContextState } from "@solana/wallet-adapter-react";
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import {
   ActionMessageType,
+  ActionTxns,
   checkLoopActionAvailable,
   ExecuteLoopingActionProps,
+  MultiStepToastHandle,
   PreviousTxn,
   showErrorToast,
 } from "@mrgnlabs/mrgn-utils";
@@ -206,68 +208,119 @@ export const LoopBox = ({
     [amount, connected, selectedBank, selectedSecondaryBank, actionTxns.actionQuote]
   );
 
+  /////////////////////
+  // Looping Actions //
+  /////////////////////
+  const executeAction = async (
+    params: ExecuteLoopingActionProps,
+    leverage: number,
+    callbacks: {
+      captureEvent?: (event: string, properties?: Record<string, any>) => void;
+      setIsActionComplete: (isComplete: boolean) => void;
+      setPreviousTxn: (previousTxn: PreviousTxn) => void;
+      onComplete?: (txn: PreviousTxn) => void;
+      setIsLoading: (isLoading: boolean) => void;
+      setAmountRaw: (amountRaw: string) => void;
+      retryCallback: (txs: ActionTxns, toast: MultiStepToastHandle) => void;
+    }
+  ) => {
+    const action = async (params: ExecuteLoopingActionProps) => {
+      await handleExecuteLoopAction({
+        props: params,
+        captureEvent: (event, properties) => {
+          callbacks.captureEvent && callbacks.captureEvent(event, properties);
+        },
+        setIsComplete: (txnSigs) => {
+          callbacks.setIsActionComplete(true);
+          callbacks.setPreviousTxn({
+            txn: txnSigs.pop() ?? "",
+            txnType: "LOOP",
+            loopOptions: {
+              depositBank: params.depositBank as ActiveBankInfo,
+              borrowBank: params.borrowBank as ActiveBankInfo,
+              depositAmount: params.actualDepositAmount,
+              borrowAmount: params.borrowAmount.toNumber(),
+              leverage: leverage,
+            },
+          });
+
+          callbacks.onComplete &&
+            callbacks.onComplete({
+              txn: txnSigs.pop() ?? "",
+              txnType: "LEND",
+              lendingOptions: {
+                amount: params.depositAmount,
+                type: ActionType.Loop,
+                bank: params.depositBank as ActiveBankInfo,
+              },
+            });
+        },
+        setError: (error: any) => {
+          const toast = error.multiStepToast as MultiStepToastHandle;
+          const txs = error.actionTxns as ActionTxns;
+          const errorMessage = error.errorMessage;
+          toast.setFailed(errorMessage, () => callbacks.retryCallback(txs, toast));
+        },
+        setIsLoading: (isLoading) => callbacks.setIsLoading(isLoading),
+      });
+    };
+
+    await action(params);
+    callbacks.setAmountRaw("");
+  };
+
+  const retryLoopAction = React.useCallback(
+    (params: ExecuteLoopingActionProps, leverage: number) => {
+      executeAction(params, leverage, {
+        captureEvent,
+        setIsActionComplete,
+        setPreviousTxn,
+        onComplete,
+        setIsLoading,
+        setAmountRaw,
+        retryCallback: (txns: ActionTxns, multiStepToast: MultiStepToastHandle) => {
+          retryLoopAction({ ...params, actionTxns: txns, multiStepToast }, leverage);
+        },
+      });
+    },
+    [captureEvent, onComplete, setAmountRaw, setIsActionComplete, setIsLoading, setPreviousTxn]
+  );
+
   const handleLoopAction = React.useCallback(async () => {
     if (!selectedBank || !amount || !marginfiClient || !selectedSecondaryBank || !broadcastType || !priorityFees) {
       return;
     }
 
-    const action = async () => {
-      const props: ExecuteLoopingActionProps = {
-        marginfiClient,
-        actionTxns,
-        processOpts: {
-          ...priorityFees,
-          broadcastType,
-        },
-        txOpts: {},
+    const params: ExecuteLoopingActionProps = {
+      marginfiClient,
+      actionTxns,
+      processOpts: {
+        ...priorityFees,
+        broadcastType,
+      },
+      txOpts: {},
 
-        marginfiAccount: selectedAccount,
-        depositAmount: amount,
-        borrowAmount: actionTxns.borrowAmount,
-        actualDepositAmount: actionTxns.actualDepositAmount,
-        depositBank: selectedBank,
-        borrowBank: selectedSecondaryBank,
-        quote: actionTxns.actionQuote!,
-        connection: marginfiClient.provider.connection,
-      };
-
-      await handleExecuteLoopAction({
-        props,
-        captureEvent: (event, properties) => {
-          captureEvent && captureEvent(event, properties);
-        },
-        setIsComplete: (txnSigs) => {
-          setIsActionComplete(true);
-          setPreviousTxn({
-            txn: txnSigs.pop() ?? "",
-            txnType: "LOOP",
-            loopOptions: {
-              depositBank: selectedBank as ActiveBankInfo,
-              borrowBank: selectedSecondaryBank as ActiveBankInfo,
-              depositAmount: actionTxns.actualDepositAmount,
-              borrowAmount: actionTxns.borrowAmount.toNumber(),
-              leverage: leverage,
-            },
-          });
-
-          onComplete &&
-            onComplete({
-              txn: txnSigs.pop() ?? "",
-              txnType: "LEND",
-              lendingOptions: {
-                amount: amount,
-                type: ActionType.Loop,
-                bank: selectedBank as ActiveBankInfo,
-              },
-            });
-        },
-        setIsError: () => {},
-        setIsLoading: (isLoading) => setIsLoading(isLoading),
-      });
+      marginfiAccount: selectedAccount,
+      depositAmount: amount,
+      borrowAmount: actionTxns.borrowAmount,
+      actualDepositAmount: actionTxns.actualDepositAmount,
+      depositBank: selectedBank,
+      borrowBank: selectedSecondaryBank,
+      quote: actionTxns.actionQuote!,
+      connection: marginfiClient.provider.connection,
     };
 
-    await action();
-    setAmountRaw("");
+    executeAction(params, leverage, {
+      captureEvent,
+      setIsActionComplete,
+      setPreviousTxn,
+      onComplete,
+      setIsLoading,
+      setAmountRaw,
+      retryCallback: (txns: ActionTxns, multiStepToast: MultiStepToastHandle) => {
+        retryLoopAction({ ...params, actionTxns: txns, multiStepToast }, leverage);
+      },
+    });
   }, [
     actionTxns,
     amount,
@@ -277,6 +330,7 @@ export const LoopBox = ({
     marginfiClient,
     onComplete,
     priorityFees,
+    retryLoopAction,
     selectedAccount,
     selectedBank,
     selectedSecondaryBank,
