@@ -2,7 +2,6 @@ import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
 import {
   TransactionOptions,
   TransactionBroadcastType,
-  simulateBundle,
   DEFAULT_CONFIRM_OPTS,
   Wallet,
   SolanaTransaction,
@@ -11,6 +10,8 @@ import {
   legacyTxToV0Tx,
   isV0Tx,
   addTransactionMetadata,
+  microLamportsToUi,
+  getComputeBudgetUnits,
 } from "@mrgnlabs/mrgn-common";
 import {
   VersionedTransaction,
@@ -20,16 +21,22 @@ import {
   ConfirmOptions,
   PublicKey,
   Commitment,
+  SimulatedTransactionResponse,
+  SolanaJSONRPCError,
 } from "@solana/web3.js";
 
 import { parseTransactionError, ProcessTransactionError, ProcessTransactionErrorType } from "../../errors";
 import {
   formatTransactions,
-  GrpcBundleError,
+  sendTransactionAsGrpcBundle,
   sendTransactionAsBundle,
   sendTransactionAsBundleRpc,
-  sendTransactionAsGrpcBundle,
-} from "./transaction.helper";
+  simulateBundle,
+  RpcSimulateBundleTransactionResult,
+  isSimulatedTransactionResponse,
+  BundleSimulationError,
+  SendBundleError,
+} from "./helpers";
 
 // TEMPORARY
 export const MARGINFI_PROGRAM = new PublicKey("MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA");
@@ -123,8 +130,6 @@ export async function processTransactions({
   };
   const commitment = connection.commitment ?? DEFAULT_CONFIRM_OPTS.commitment;
 
-  console.log("processOpts", processOpts);
-
   if (processOpts?.broadcastType === "BUNDLE" && processOpts?.bundleTipUi === 0) {
     throw new Error("A bundle tip is required for a bundled transactions");
   }
@@ -153,9 +158,6 @@ export async function processTransactions({
     finalFallbackMethod = strategy.fallbackSequence.filter((method) => method.broadcastType === "BUNDLE");
   }
 
-  console.log("decided broadcast type:", broadcastType);
-  console.log("decided fallback methods:", finalFallbackMethod);
-
   let versionedTransactions: VersionedTransaction[] = [];
   let minContextSlot: number;
   let blockhash: string;
@@ -168,7 +170,17 @@ export async function processTransactions({
     blockhash = getLatestBlockhashAndContext.value.blockhash;
     lastValidBlockHeight = getLatestBlockhashAndContext.value.lastValidBlockHeight;
   } catch (error) {
-    throw new Error("Failed to get latest blockhash and context");
+    console.error("Failed to get latest blockhash and context", error);
+
+    if (error instanceof SolanaJSONRPCError) {
+      throw error;
+    }
+
+    throw new ProcessTransactionError({
+      message: "Failed to get latest blockhash and context.",
+      type: ProcessTransactionErrorType.TransactionBuildingError,
+      failedTxs: transactions,
+    });
   }
 
   let mergedOpts: ConfirmOptions = {
@@ -179,33 +191,53 @@ export async function processTransactions({
     ...txOpts,
   };
 
+  let updatedTransactions: SolanaTransaction[] = transactions;
+
   try {
-    const unitsConsumed = await simulateTransactions(processOpts, connection, transactions, mergedOpts, {
+    const simulationResult = await simulateTransactions(processOpts, connection, transactions, mergedOpts, {
       feePayer: wallet.publicKey,
       blockhash,
     });
 
-    const updatedTransactions = transactions.map((tx, idx) =>
+    const unitsConsumed = isSimulatedTransactionResponse(simulationResult)
+      ? [simulationResult.unitsConsumed]
+      : simulationResult.map((tx) => (tx.unitsConsumed ? Number(tx.unitsConsumed) : undefined));
+
+    updatedTransactions = transactions.map((tx, idx) =>
       addTransactionMetadata(tx, {
         ...tx,
         unitsConsumed: unitsConsumed[idx],
       })
     );
-
-    versionedTransactions = formatTransactions(
-      updatedTransactions,
-      broadcastType,
-      processOpts.priorityFeeMicro ?? 0,
-      processOpts.bundleTipUi ?? 0,
-      wallet.publicKey,
-      blockhash
-    );
-
-    if (versionedTransactions.length === 0) throw new Error();
-  } catch (error: any) {
-    console.log("Failed to build the transaction", error);
-    throw new ProcessTransactionError(error.message, ProcessTransactionErrorType.TransactionBuildingError);
+  } catch {
+    // only to estimate compute units, final simulation is done just before sending
   }
+
+  console.log("------ Transaction Details 👇 ------");
+  console.log(`📝 Executing ${transactions.length} transaction${transactions.length > 1 ? "s" : ""}`);
+  console.log(`📡 Broadcast type: ${broadcastType}`);
+  if (broadcastType === "BUNDLE") {
+    console.log(`💸 Bundle tip: ${processOpts.bundleTipUi} SOL`);
+  } else {
+    updatedTransactions.forEach((tx, idx) => {
+      const cu = tx.unitsConsumed ? Math.min(tx.unitsConsumed + 50_000, 1_400_000) : getComputeBudgetUnits(tx);
+      const priorityFeeUi = processOpts.priorityFeeMicro ? microLamportsToUi(processOpts.priorityFeeMicro, cu) : 0;
+      console.log(`💸 Priority fee for tx ${idx}: ${priorityFeeUi} SOL`);
+    });
+  }
+  console.log("--------------------------------");
+
+  versionedTransactions = formatTransactions(
+    updatedTransactions,
+    broadcastType,
+    processOpts.priorityFeeMicro ?? 0,
+    processOpts.bundleTipUi ?? 0,
+    wallet.publicKey,
+    blockhash
+  );
+
+  let signatures: TransactionSignature[] = [];
+  let bundleSignature: string | undefined;
 
   try {
     if (txOpts?.dryRun || processOpts?.isReadOnly) {
@@ -227,9 +259,9 @@ export async function processTransactions({
 
       const simulateTxs = async () =>
         await simulateTransactions(processOpts, connection, versionedTransactions, mergedOpts);
-      const sendTxBundleGrpc = async (isLast: boolean) => await sendTransactionAsGrpcBundle(base58Txs, isLast);
-      const sendTxBundleApi = async (isLast: boolean, bundleId?: string) =>
-        await sendTransactionAsBundle(base58Txs, isLast, bundleId);
+      const sendTxBundleGrpc = async (throwError: boolean) => await sendTransactionAsGrpcBundle(base58Txs, throwError);
+      const sendTxBundleApi = async (throwError: boolean, bundleId?: string) =>
+        await sendTransactionAsBundle(base58Txs, throwError, bundleId);
       const sendTxBundleRpc = async () =>
         await sendTransactionAsBundleRpc({
           versionedTransactions,
@@ -242,9 +274,6 @@ export async function processTransactions({
           throwError: true,
         });
 
-      let signatures: TransactionSignature[] = [];
-      let bundleSignature: string | undefined;
-
       for (const [idx, method] of finalFallbackMethod.entries()) {
         const isLast = idx === finalFallbackMethod.length - 1;
         if (idx === 0) {
@@ -256,12 +285,13 @@ export async function processTransactions({
         let sigs: string[] | undefined;
         switch (method.method) {
           case "GRPC_BUNDLE":
-            sig = await sendTxBundleGrpc(isLast).catch((error) => {
-              if (error instanceof GrpcBundleError) {
+            // always throw error, this is temporary as bundle already processed isn't catched well
+            sig = await sendTxBundleGrpc(true).catch((error) => {
+              if (error instanceof SendBundleError) {
                 temporaryBundleSignature = error.bundleId;
-              } else {
-                throw error;
               }
+
+              if (isLast) throw error;
               return undefined;
             });
             if (sig) bundleSignature = sig;
@@ -284,29 +314,45 @@ export async function processTransactions({
         }
       }
 
-      console.log("bundleSignatures:", bundleSignature);
-      console.log("signatures:", signatures);
+      if (bundleSignature || signatures.length > 0) {
+        console.log("------ Transaction Success ✅ ------");
+        if (bundleSignature) {
+          console.log("Bundle signature:", bundleSignature);
+        }
+        if (signatures.length > 0) {
+          console.log("Transaction signatures:", signatures.join(", "));
+        }
+        console.log("--------------------------------");
+      }
 
       if (signatures.length !== 0) {
-        // await Promise.all(
-        //   signatures.map(async (signature) => {
-        //     await connection.confirmTransaction(
-        //       {
-        //         blockhash,
-        //         lastValidBlockHeight,
-        //         signature,
-        //       },
-        //       mergedOpts.commitment
-        //     );
-        //   })
-        // );
         return signatures;
       } else {
-        if (!bundleSignature) throw new Error("Transactions failed to land");
+        if (!bundleSignature) throw new Error("API bundle failed: unknown error");
         return [bundleSignature];
       }
     }
   } catch (error: any) {
+    const failedTxs = transactions.splice(signatures.length);
+
+    if (error instanceof SolanaJSONRPCError) {
+      throw error;
+    }
+
+    if (error instanceof ProcessTransactionError) {
+      throw ProcessTransactionError.withFailedTransactions(error, failedTxs);
+    }
+
+    if (error instanceof SendBundleError) {
+      // the bundle failed to land not much info we can gather from failing bundles
+      throw new ProcessTransactionError({
+        message: error.message,
+        type: ProcessTransactionErrorType.TransactionSendingError,
+        programId: MARGINFI_PROGRAM.toBase58(),
+        failedTxs: failedTxs,
+      });
+    }
+
     const parsedError = parseTransactionError(error, processOpts?.programId ?? MARGINFI_PROGRAM);
 
     if (error?.logs?.length > 0) {
@@ -314,25 +360,25 @@ export async function processTransactions({
       console.log(error.logs.join("\n"));
       if (parsedError) {
         console.log("Parsed:", parsedError);
-        throw new ProcessTransactionError(
-          parsedError.description,
-          ProcessTransactionErrorType.SimulationError,
-          error.logs,
-          parsedError.programId
-        );
+        throw new ProcessTransactionError({
+          message: parsedError.description,
+          type: ProcessTransactionErrorType.TransactionSendingError,
+          logs: error.logs,
+          programId: parsedError.programId,
+        });
       }
     }
     console.log("fallthrough error", error);
-    throw new ProcessTransactionError(
-      parsedError?.description ?? "Something went wrong",
-      ProcessTransactionErrorType.SimulationError,
-      error.logs,
-      parsedError.programId
-    );
+    throw new ProcessTransactionError({
+      message: parsedError?.description ?? "Something went wrong",
+      type: ProcessTransactionErrorType.FallthroughError,
+      logs: error.logs,
+      programId: parsedError.programId,
+    });
   }
 }
 
-const simulateTransactions = async (
+export const simulateTransactions = async (
   processOpts: ProcessTransactionOpts,
   connection: Connection,
   solanaTransactions: SolanaTransaction[],
@@ -341,53 +387,44 @@ const simulateTransactions = async (
     feePayer: PublicKey;
     blockhash: string;
   }
-): Promise<(number | undefined)[]> => {
+): Promise<SimulatedTransactionResponse | RpcSimulateBundleTransactionResult[]> => {
   const v0Txs = solanaTransactions.map((tx) => (isV0Tx(tx) ? tx : legacyTxToV0Tx(tx, txOpts)));
-  if (v0Txs.length > 1) {
-    const response = await simulateBundle(processOpts?.bundleSimRpcEndpoint ?? connection.rpcEndpoint, v0Txs).catch(
-      (error) => {
-        throw new SendTransactionError({
-          action: "simulate",
-          signature: "",
-          transactionMessage: JSON.stringify(error),
-          logs: [],
+
+  try {
+    if (v0Txs.length > 1) {
+      const response = await simulateBundle(processOpts?.bundleSimRpcEndpoint ?? connection.rpcEndpoint, v0Txs);
+      return response;
+    } else {
+      const response = await connection.simulateTransaction(v0Txs[0], {
+        sigVerify: false,
+        commitment: confirmOpts?.commitment,
+        replaceRecentBlockhash: false,
+        minContextSlot: confirmOpts?.minContextSlot,
+      });
+      if (response.value.err) {
+        const error = response.value.err;
+        const parsedError = parseTransactionError(error, processOpts?.programId ?? MARGINFI_PROGRAM);
+        throw new ProcessTransactionError({
+          message: parsedError.description ?? JSON.stringify(response.value.err),
+          type: ProcessTransactionErrorType.SimulationError,
+          logs: response.value.logs ?? [],
+          programId: parsedError.programId,
         });
       }
-    );
-
-    const value = response.result.value;
-
-    const err = value.summary !== "succeeded" ? JSON.stringify(value.summary.failed.error) : null;
-    const logs = value.transactionResults.flatMap((tx) => tx.logs);
-    const unitsConsumed = value.transactionResults.map((tx) =>
-      tx.unitsConsumed ? Number.parseInt(tx.unitsConsumed) : undefined
-    );
-
-    if (err) {
-      throw new SendTransactionError({
-        action: "simulate",
-        signature: "",
-        transactionMessage: JSON.stringify(err),
-        logs: logs ?? [],
+      return response.value;
+    }
+  } catch (error) {
+    if (error instanceof BundleSimulationError) {
+      const parsedError = parseTransactionError(error, processOpts?.programId ?? MARGINFI_PROGRAM);
+      throw new ProcessTransactionError({
+        message: parsedError.description,
+        type: ProcessTransactionErrorType.SimulationError,
+        logs: error.logs,
+        programId: parsedError.programId,
       });
     }
-    return unitsConsumed ? unitsConsumed : [];
-  } else {
-    const response = await connection.simulateTransaction(v0Txs[0], {
-      sigVerify: false,
-      commitment: confirmOpts?.commitment,
-      replaceRecentBlockhash: false,
-      minContextSlot: confirmOpts?.minContextSlot,
-    });
-    if (response.value.err) {
-      throw new SendTransactionError({
-        action: "simulate",
-        signature: "",
-        transactionMessage: JSON.stringify(response.value.err),
-        logs: response.value.logs ?? [],
-      });
-    }
-    return [response.value.unitsConsumed];
+
+    throw error;
   }
 };
 
@@ -396,31 +433,34 @@ const dryRunTransaction = async (
   connection: Connection,
   versionedTransactions: VersionedTransaction[]
 ): Promise<TransactionSignature[]> => {
-  const response = await simulateBundle(
-    processOpts?.bundleSimRpcEndpoint ?? connection.rpcEndpoint,
-    versionedTransactions
-  );
-  const value = response.result.value;
+  try {
+    const response = await simulateBundle(
+      processOpts?.bundleSimRpcEndpoint ?? connection.rpcEndpoint,
+      versionedTransactions
+    );
 
-  const err = value.summary !== "succeeded" ? JSON.stringify(value.summary.failed.error) : null;
-  const logs = value.transactionResults.flatMap((tx) => tx.logs);
-  const unitsConsumed = value.transactionResults[value.transactionResults.length - 1]?.unitsConsumed;
-
-  console.log(err ? `❌ Error: ${err}` : `✅ Success - ${unitsConsumed} CU`);
-  console.log("------ Logs 👇 ------");
-  if (logs) {
-    for (const log of logs) {
-      console.log(log);
+    console.log("------ Units Consumed 👇 ------");
+    for (const tx of response) {
+      console.log(`✅ Success - ${tx.unitsConsumed} CU`);
     }
+
+    console.log("------ Logs 👇 ------");
+    for (const tx of response) {
+      console.log(tx.logs);
+    }
+  } catch (error) {
+    if (error instanceof BundleSimulationError) {
+      console.log(`❌ Error: ${error.message}`);
+      console.log("------ Logs 👇 ------");
+      if (error.logs) {
+        for (const log of error.logs) {
+          console.log(log);
+        }
+      }
+    }
+    throw error;
   }
 
-  if (err)
-    throw new SendTransactionError({
-      action: "simulate",
-      signature: "",
-      transactionMessage: JSON.stringify(err),
-      logs: logs ?? [],
-    });
   return [];
 };
 

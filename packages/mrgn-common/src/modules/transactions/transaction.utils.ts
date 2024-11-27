@@ -2,6 +2,7 @@ import { BorshInstructionCoder, Idl, Instruction } from "@coral-xyz/anchor";
 import {
   AddressLookupTableAccount,
   ComputeBudgetProgram,
+  LAMPORTS_PER_SOL,
   MessageV0,
   PublicKey,
   Signer,
@@ -364,3 +365,26 @@ export function getComputeBudgetUnits(tx: SolanaTransaction): number | undefined
 
   return limit?.units ?? instructions.length * DEFAULT_COMPUTE_BUDGET_IX;
 }
+
+/**
+ * Converts a priority fee from UI units (SOL) to micro-lamports per compute unit
+ * @param ui - Priority fee amount in SOL
+ * @param limitCU - Compute unit limit, defaults to 1.4M CU
+ * @returns Priority fee in micro-lamports per compute unit
+ */
+export const uiToMicroLamports = (ui: number, limitCU: number = 1_400_000) => {
+  const priorityFeeMicroLamports = ui * LAMPORTS_PER_SOL * 1_000_000;
+  return priorityFeeMicroLamports / limitCU;
+};
+
+/**
+ * Converts a priority fee from micro-lamports per compute unit to UI units (SOL)
+ * @param microLamports - Priority fee in micro-lamports per compute unit
+ * @param limitCU - Compute unit limit, defaults to 1.4M CU
+ * @returns Priority fee amount in SOL, truncated to 9 decimal places
+ */
+export const microLamportsToUi = (microLamports: number, limitCU: number = 1_400_000) => {
+  const priorityFeeMicroLamports = microLamports * limitCU;
+  const priorityFeeUi = priorityFeeMicroLamports / (LAMPORTS_PER_SOL * 1_000_000);
+  return Math.trunc(priorityFeeUi * LAMPORTS_PER_SOL) / LAMPORTS_PER_SOL;
+};

@@ -1,6 +1,5 @@
 import { NodeWallet } from "./nodeWallet";
 
-export * from "./bundles";
 export * from "./cache";
 export * from "./types";
 export * from "./misc";
