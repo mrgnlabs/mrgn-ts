@@ -163,7 +163,10 @@ const executeLstAction = async ({
         success &&
         multiStepToast.setSuccessAndNext(stepsToAdvance, sig, composeExplorerUrl(sig, processOpts?.broadcastType)),
     });
-    multiStepToast.setSuccess(txnSig.pop(), composeExplorerUrl(txnSig.pop(), processOpts?.broadcastType));
+    multiStepToast.setSuccess(
+      txnSig[txnSig.length - 1],
+      composeExplorerUrl(txnSig[txnSig.length - 1], processOpts?.broadcastType)
+    );
 
     return txnSig;
   } catch (error) {
