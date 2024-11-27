@@ -22,7 +22,6 @@ import {
   MultiStepToastHandle,
   PreviousTxn,
 } from "@mrgnlabs/mrgn-utils";
-import { IconCheck } from "@tabler/icons-react";
 
 import { ActionButton } from "~/components/action-box-v2/components";
 import { useActionAmounts } from "~/components/action-box-v2/hooks";
@@ -34,13 +33,11 @@ import { useLendBoxStore } from "./store";
 import { HandleCloseBalanceParamsProps, handleExecuteCloseBalance, handleExecuteLendingAction } from "./utils";
 import { ActionSimulationStatus } from "../../components";
 import { Collateral, ActionInput, Preview } from "./components";
-import { useLendSimulation, SimulationStatus } from "./hooks";
+import { SimulationStatus } from "../../utils";
+import { useLendSimulation } from "./hooks";
 import { useActionBoxStore } from "../../store";
 import { HidePoolStats } from "../../contexts/actionbox/actionbox.context";
 import { useActionContext } from "../../contexts";
-import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
-import { IconLoader } from "~/components/ui/icons";
-import { IconCheck } from "@tabler/icons-react";
 
 // error handling
 export type LendBoxProps = {
