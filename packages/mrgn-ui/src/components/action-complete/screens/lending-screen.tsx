@@ -34,6 +34,7 @@ export const LendingScreen = ({ amount, bank, type, txn, txnLink, collatRepay }:
   }, [bank, type]);
 
   const updatedBankAmount = React.useMemo(() => {
+    if (!amount || !bank.position) return 0;
     switch (type) {
       case ActionType.Deposit:
         return bank.position.amount + amount;
@@ -46,7 +47,7 @@ export const LendingScreen = ({ amount, bank, type, txn, txnLink, collatRepay }:
       default:
         return bank.position.amount;
     }
-  }, [amount, bank.position.amount, type]);
+  }, [amount, bank, type]);
 
   return (
     <>
@@ -84,7 +85,7 @@ export const LendingScreen = ({ amount, bank, type, txn, txnLink, collatRepay }:
           <h3 className="text-2xl font-medium text-center">
             {type === ActionType.RepayCollat ? (
               <>
-                You repaid {dynamicNumeralFormatter(amount, { minDisplay: 0.01 })}{" "}
+                You repaid {dynamicNumeralFormatter(amount ?? 0, { minDisplay: 0.01 })}{" "}
                 {bank?.meta.tokenSymbol.toUpperCase()} with{" "}
                 {dynamicNumeralFormatter(collatRepay?.withdrawAmount ?? 0, { minDisplay: 0.01 })}{" "}
                 {collatRepay?.withdrawBank.meta.tokenSymbol.toUpperCase()}
