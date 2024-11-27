@@ -249,6 +249,7 @@ export const StakeBox = ({
           const txs = error.actionTxns as ActionTxns;
           const errorMessage = error.errorMessage;
           toast.setFailed(errorMessage, () => callbacks.retryCallback(txs, toast));
+          callbacks.setIsLoading(false);
         },
         setIsLoading: (isLoading) => callbacks.setIsLoading(isLoading),
       });

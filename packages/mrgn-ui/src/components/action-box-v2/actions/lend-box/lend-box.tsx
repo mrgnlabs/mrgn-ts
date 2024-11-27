@@ -264,6 +264,7 @@ export const LendBox = ({
         const toast = error.multiStepToast as MultiStepToastHandle;
         const txs = error.actionTxns as ActionTxns;
         const errorMessage = error.errorMessage;
+        callbacks.setIsLoading(false);
         toast.setFailed(errorMessage, () => callbacks.retryCallback(toast));
       },
       setIsLoading: (isLoading) => callbacks.setIsLoading(isLoading),
@@ -373,6 +374,7 @@ export const LendBox = ({
           const toast = error.multiStepToast as MultiStepToastHandle;
           const txs = error.actionTxns as ActionTxns;
           const errorMessage = error.errorMessage;
+          callbacks.setIsLoading(false);
           toast.setFailed(errorMessage, () => callbacks.retryCallback(txs, toast));
         },
         setIsLoading: callbacks.setIsLoading,

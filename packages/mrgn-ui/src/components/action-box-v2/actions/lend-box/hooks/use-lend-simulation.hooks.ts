@@ -147,6 +147,7 @@ export function useLendSimulation({
       ]);
     } else {
       // If no transactions, move back to idle state
+      setSimulationResult(null);
       setIsLoading({ isLoading: false, status: SimulationStatus.IDLE });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
