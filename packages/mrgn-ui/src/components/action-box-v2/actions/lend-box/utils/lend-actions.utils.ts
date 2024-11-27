@@ -8,6 +8,7 @@ import {
   ActionMessageType,
   closeBalance,
   executeLendingAction,
+  IndividualFlowError,
   isWholePosition,
   MarginfiActionParams,
   MultiStepToastHandle,
@@ -55,8 +56,7 @@ export const handleExecuteLendingAction = async ({
       });
     }
   } catch (error) {
-    // TODO: add type here
-    setError(error);
+    setError(error as IndividualFlowError);
   }
 };
 
@@ -111,7 +111,7 @@ export const handleExecuteCloseBalance = async ({
       });
     }
   } catch (error) {
-    setError(error);
+    setError(error as IndividualFlowError);
   }
 };
 

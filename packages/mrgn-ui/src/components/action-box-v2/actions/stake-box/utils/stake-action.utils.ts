@@ -2,12 +2,19 @@ import * as Sentry from "@sentry/nextjs";
 import { v4 as uuidv4 } from "uuid";
 
 import { ActionType, ExtendedBankInfo, FEE_MARGIN } from "@mrgnlabs/marginfi-v2-ui-state";
-import { MarginfiAccountWrapper, MarginfiClient, ProcessTransactionsClientOpts } from "@mrgnlabs/marginfi-client-v2";
+import {
+  MarginfiAccountWrapper,
+  MarginfiClient,
+  ProcessTransactionError,
+  ProcessTransactionsClientOpts,
+} from "@mrgnlabs/marginfi-client-v2";
 import {
   captureSentryException,
   composeExplorerUrl,
   extractErrorString,
   getSteps,
+  handleIndividualFlowError,
+  IndividualFlowError,
   MultiStepToastHandle,
   showErrorToast,
   StakeActionTxns,
@@ -15,6 +22,7 @@ import {
 
 import { ExecuteActionsCallbackProps } from "~/components/action-box-v2/types";
 import { numeralFormatter, nativeToUi, TransactionBroadcastType } from "@mrgnlabs/mrgn-common";
+import { SolanaJSONRPCError } from "@solana/web3.js";
 
 export interface ExecuteLstActionParams {
   actionTxns: StakeActionTxns;
@@ -73,7 +81,7 @@ export const handleExecuteLstAction = async ({
       });
     }
   } catch (error) {
-    setError(error);
+    setError(error as IndividualFlowError);
   }
 };
 
@@ -169,23 +177,23 @@ const executeLstAction = async ({
     );
 
     return txnSig;
-  } catch (error) {
-    const msg = extractErrorString(error);
-
-    console.log(`Error while actiontype: ${msg}`);
+  } catch (error: any) {
+    console.log(`Error while actiontype: `);
     console.log(error);
 
     const walletAddress = marginfiClient.wallet.publicKey.toBase58();
 
-    captureSentryException(error, msg, {
-      action: actionType,
-      wallet: walletAddress,
-    });
+    if (!(error instanceof ProcessTransactionError || error instanceof SolanaJSONRPCError)) {
+      captureSentryException(error, JSON.stringify(error), {
+        action: actionType,
+        wallet: walletAddress,
+      });
 
-    throw {
-      errorMessage: msg,
-      multiStepToast,
-      actionTxns, // TODO: this will be updated with correct transactions after error refactor
-    };
+      handleIndividualFlowError({
+        error,
+        actionTxns,
+        multiStepToast,
+      });
+    }
   }
 };

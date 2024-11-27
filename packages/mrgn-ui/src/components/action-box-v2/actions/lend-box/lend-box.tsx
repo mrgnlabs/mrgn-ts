@@ -17,6 +17,7 @@ import {
   ActionMessageType,
   ActionTxns,
   checkLendActionAvailable,
+  IndividualFlowError,
   MarginfiActionParams,
   MultiStepToastHandle,
   PreviousTxn,
@@ -250,7 +251,7 @@ export const LendBox = ({
       setIsComplete: (txnSigs) => {
         callbacks.setIsActionComplete(true);
         callbacks.setPreviousTxn({
-          txn: txnSigs.pop() ?? "",
+          txn: txnSigs[txnSigs.length - 1] ?? "",
           txnType: "LEND",
           lendingOptions: {
             amount: 0,
@@ -261,7 +262,7 @@ export const LendBox = ({
 
         callbacks.onComplete &&
           callbacks.onComplete({
-            txn: txnSigs.pop() ?? "",
+            txn: txnSigs[txnSigs.length - 1] ?? "",
             txnType: "LEND",
             lendingOptions: {
               amount: 0,
@@ -270,13 +271,14 @@ export const LendBox = ({
             },
           });
       },
-      setError: (error: any) => {
-        // todo: replace any type
+      setError: (error: IndividualFlowError) => {
         const toast = error.multiStepToast as MultiStepToastHandle;
-        const txs = error.actionTxns as ActionTxns;
-        const errorMessage = error.errorMessage;
         callbacks.setIsLoading(false);
-        toast.setFailed(errorMessage, () => callbacks.retryCallback(toast));
+        let retry = undefined;
+        if (error.retry) {
+          retry = () => callbacks.retryCallback(toast);
+        }
+        toast.setFailed(error.message, retry);
       },
       setIsLoading: (isLoading) => callbacks.setIsLoading(isLoading),
     });
@@ -380,12 +382,10 @@ export const LendBox = ({
               },
             });
         },
-        setError: (error) => {
-          // TODO: update type
+        setError: (error: IndividualFlowError) => {
           const toast = error.multiStepToast as MultiStepToastHandle;
           const txs = error.actionTxns as ActionTxns;
           const errorMessage = error.errorMessage;
-          callbacks.setIsLoading(false);
           toast.setFailed(errorMessage, () => callbacks.retryCallback(txs, toast));
         },
         setIsLoading: callbacks.setIsLoading,
@@ -416,8 +416,9 @@ export const LendBox = ({
         setIsLoading: setIsTransactionExecuting,
         setLSTDialogCallback: setLSTDialogCallback,
         setAmountRaw: setAmountRaw,
-        retryCallback: (txns: ActionTxns, multiStepToast: MultiStepToastHandle) =>
-          retryLendingAction({ ...params, actionTxns: txns, multiStepToast }, selectedBank),
+        retryCallback: (txns: ActionTxns, multiStepToast: MultiStepToastHandle) => {
+          retryLendingAction({ ...params, actionTxns: txns, multiStepToast }, selectedBank);
+        },
       });
     },
     [captureEvent, setIsActionComplete, setPreviousTxn, onComplete, setIsTransactionExecuting, setAmountRaw]
@@ -450,8 +451,9 @@ export const LendBox = ({
         setIsLoading: setIsTransactionExecuting,
         setLSTDialogCallback: setLSTDialogCallback,
         setAmountRaw: setAmountRaw,
-        retryCallback: (txns: ActionTxns, multiStepToast: MultiStepToastHandle) =>
-          retryLendingAction({ ...params, actionTxns: txns, multiStepToast }, selectedBank),
+        retryCallback: (txns: ActionTxns, multiStepToast: MultiStepToastHandle) => {
+          retryLendingAction({ ...params, actionTxns: txns, multiStepToast }, selectedBank);
+        },
       });
     },
     [

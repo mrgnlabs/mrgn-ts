@@ -186,3 +186,26 @@ export type LstActionParams = {
   priorityFee?: number;
   theme?: "light" | "dark";
 };
+
+export class IndividualFlowError extends Error {
+  public readonly actionTxns?: ActionTxns;
+  public readonly multiStepToast?: MultiStepToastHandle;
+  public readonly retry: boolean;
+
+  constructor(
+    message: string,
+    options?: {
+      failedTxns?: ActionTxns;
+      multiStepToast?: MultiStepToastHandle;
+      retry?: boolean;
+    }
+  ) {
+    super(message);
+    this.name = "IndividualFlowError";
+    this.actionTxns = options?.failedTxns;
+    this.multiStepToast = options?.multiStepToast;
+    this.retry = options?.retry ?? false;
+
+    Object.setPrototypeOf(this, IndividualFlowError.prototype);
+  }
+}

@@ -6,6 +6,7 @@ import {
   CalculateRepayCollateralProps,
   executeRepayWithCollatAction,
   ExecuteRepayWithCollatActionProps,
+  IndividualFlowError,
 } from "@mrgnlabs/mrgn-utils";
 
 import { ExecuteActionsCallbackProps } from "~/components/action-box-v2/types";
@@ -48,7 +49,7 @@ export const handleExecuteRepayCollatAction = async ({
     }
   } catch (error) {
     // TODO: add type here
-    setError(error);
+    setError(error as IndividualFlowError);
   }
 };
 
