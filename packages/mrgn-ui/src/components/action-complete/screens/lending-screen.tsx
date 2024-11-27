@@ -36,21 +36,43 @@ export const LendingScreen = ({ amount, bank, type, txn, txnLink, collatRepay }:
   return (
     <>
       <div className="flex flex-col items-center gap-4 border-b border-border pb-10">
-        {bank && (
-          <Image
-            className="rounded-full"
-            src={bank.meta.tokenLogoUri}
-            alt={(bank?.meta.tokenSymbol || "Token") + "  logo"}
-            width={48}
-            height={48}
-          />
+        {collatRepay ? (
+          <div className="flex items-center">
+            <Image
+              className="rounded-full"
+              src={collatRepay.borrowBank.meta.tokenLogoUri}
+              alt={(collatRepay.borrowBank?.meta.tokenSymbol || "Token") + "  logo"}
+              width={48}
+              height={48}
+            />
+            <Image
+              className="rounded-full -ml-3 relative z-10"
+              src={collatRepay.withdrawBank.meta.tokenLogoUri}
+              alt={(collatRepay.withdrawBank?.meta.tokenSymbol || "Token") + "  logo"}
+              width={48}
+              height={48}
+            />
+          </div>
+        ) : (
+          bank && (
+            <Image
+              className="rounded-full"
+              src={bank.meta.tokenLogoUri}
+              alt={(bank?.meta.tokenSymbol || "Token") + "  logo"}
+              width={48}
+              height={48}
+            />
+          )
         )}
+
         <div className="flex items-center justify-center gap-2">
           <h3 className="text-2xl font-medium">
             {type === ActionType.RepayCollat ? (
               <>
-                You repaid {amount} {bank?.meta.tokenSymbol} with {collatRepay?.withdrawAmount}{" "}
-                {collatRepay?.withdrawBank.meta.tokenSymbol}
+                You repaid {dynamicNumeralFormatter(amount, { minDisplay: 0.01 })}{" "}
+                {bank?.meta.tokenSymbol.toUpperCase()} with{" "}
+                {dynamicNumeralFormatter(collatRepay?.withdrawAmount ?? 0, { minDisplay: 0.01 })}{" "}
+                {collatRepay?.withdrawBank.meta.tokenSymbol.toUpperCase()}
               </>
             ) : (
               <>
