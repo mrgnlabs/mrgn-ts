@@ -101,8 +101,6 @@ export function useStakeSimulation({
     ]
   );
 
-  console.log("simulationStatus", simulationStatus);
-
   const fetchTxs = React.useCallback(
     async (amount: number, actionType: ActionType) => {
       setHasUserInteracted(true);

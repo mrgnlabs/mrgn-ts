@@ -468,8 +468,6 @@ export const LendBox = ({
     }
   }, [marginfiClient, banks, refreshSelectedBanks]);
 
-  console.log("simulationStatus", simulationStatus);
-
   return (
     <>
       <div className="mb-4">

@@ -269,7 +269,10 @@ export async function borrow({
     } else {
       throw new Error("Marginfi account not ready.");
     }
-    multiStepToast.setSuccess(sigs.pop(), composeExplorerUrl(sigs.pop(), processOpts?.broadcastType));
+    multiStepToast.setSuccess(
+      sigs[sigs.length - 1],
+      composeExplorerUrl(sigs[sigs.length - 1], processOpts?.broadcastType)
+    );
     return sigs;
   } catch (error: any) {
     const msg = extractErrorString(error);
@@ -338,7 +341,10 @@ export async function withdraw({
     } else {
       throw new Error("Marginfi account not ready.");
     }
-    multiStepToast.setSuccess(sigs.pop(), composeExplorerUrl(sigs.pop(), processOpts?.broadcastType));
+    multiStepToast.setSuccess(
+      sigs[sigs.length - 1],
+      composeExplorerUrl(sigs[sigs.length - 1], processOpts?.broadcastType)
+    );
     return sigs;
   } catch (error: any) {
     const msg = extractErrorString(error);
@@ -492,7 +498,10 @@ export async function looping({
       sigs = await marginfiClient.processTransactions([...additionalTxs, flashloanTx], processOpts, txOpts);
     }
 
-    multiStepToast.setSuccess(sigs.pop(), composeExplorerUrl(sigs.pop(), processOpts?.broadcastType));
+    multiStepToast.setSuccess(
+      sigs[sigs.length - 1],
+      composeExplorerUrl(sigs[sigs.length - 1], processOpts?.broadcastType)
+    );
     return sigs;
   } catch (error: any) {
     const msg = extractErrorString(error);
@@ -573,7 +582,10 @@ export async function repayWithCollat({
 
       sigs = await marginfiClient.processTransactions([...additionalTxs, flashloanTx], processOpts, txOpts);
     }
-    multiStepToast.setSuccess(sigs.pop(), composeExplorerUrl(sigs.pop(), processOpts?.broadcastType));
+    multiStepToast.setSuccess(
+      sigs[sigs.length - 1],
+      composeExplorerUrl(sigs[sigs.length - 1], processOpts?.broadcastType)
+    );
     return sigs;
   } catch (error: any) {
     const msg = extractErrorString(error);
