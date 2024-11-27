@@ -39,7 +39,7 @@ export const dynamicNumeralFormatter = (value: number, options: dynamicNumeralFo
   if (value === 0) return "0";
 
   if (Math.abs(value) < minDisplay) {
-    return `< ${minDisplay}`;
+    return `<${minDisplay}`;
   }
 
   if (Math.abs(value) >= 0.01) {

@@ -4,8 +4,8 @@ import Image from "next/image";
 
 import { IconExternalLink } from "@tabler/icons-react";
 import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { percentFormatter, shortenAddress } from "@mrgnlabs/mrgn-common";
-import { calcNetLoopingApy, calculateLstYield, cn, computeBankRate, LendingModes } from "@mrgnlabs/mrgn-utils";
+import { dynamicNumeralFormatter, percentFormatter, shortenAddress } from "@mrgnlabs/mrgn-common";
+import { calcNetLoopingApy, calculateLstYield, cn } from "@mrgnlabs/mrgn-utils";
 
 type LoopScreenProps = {
   depositBank: ActiveBankInfo;
@@ -56,37 +56,31 @@ export const LoopScreen = ({
 
   return (
     <>
-      <div className="flex flex-col items-center justify-center text-center border-b border-border pb-16">
-        <div className="space-y-2">
-          <h4 className="text-base">Final deposit</h4>
-          <div className="flex items-center justify-center gap-2">
-            <h3 className="text-3xl font-medium">
-              {depositAmount.toFixed(4).replace(/\.?0+$/, "")} {depositBank.meta.tokenSymbol}
-            </h3>
-            <Image
-              className="rounded-full w-7 h-7"
-              src={depositBank.meta.tokenLogoUri}
-              alt={(depositBank.meta.tokenSymbol || "Token") + "  logo"}
-              width={28}
-              height={28}
-            />
-          </div>
+      <div className="flex flex-col items-center gap-4 border-b border-border pb-10">
+        <div className="flex items-center">
+          <Image
+            className="rounded-full"
+            src={depositBank.meta.tokenLogoUri}
+            alt={(depositBank?.meta.tokenSymbol || "Token") + "  logo"}
+            width={48}
+            height={48}
+          />
+          <Image
+            className="rounded-full -ml-3 relative z-10"
+            src={borrowBank.meta.tokenLogoUri}
+            alt={(borrowBank?.meta.tokenSymbol || "Token") + "  logo"}
+            width={48}
+            height={48}
+          />
         </div>
-        <div className="text-4xl my-4">➰</div>
-        <div className="space-y-2">
-          <h4 className="text-base">Final borrow</h4>
-          <div className="flex items-center justify-center gap-2">
-            <h3 className="text-3xl font-medium">
-              {borrowAmount.toFixed(4).replace(/\.?0+$/, "")} {borrowBank.meta.tokenSymbol}
-            </h3>
-            <Image
-              className="rounded-full w-7 h-7"
-              src={borrowBank.meta.tokenLogoUri}
-              alt={(borrowBank.meta.tokenSymbol || "Token") + "  logo"}
-              width={28}
-              height={28}
-            />
-          </div>
+
+        <div className="flex flex-col gap-1 justify-center items-center">
+          <h3 className="text-2xl font-medium">
+            You looped {dynamicNumeralFormatter(depositAmount, { minDisplay: 0.01 })}{" "}
+            {depositBank.meta.tokenSymbol.toUpperCase()} with{" "}
+            {dynamicNumeralFormatter(borrowAmount, { minDisplay: 0.01 })} {borrowBank.meta.tokenSymbol.toUpperCase()}
+          </h3>
+          <h4 className="text-md text-muted-foreground">Leverage: {leverage}x</h4>
         </div>
       </div>
       <dl className="grid grid-cols-2 w-full text-muted-foreground gap-x-8 gap-y-2">
