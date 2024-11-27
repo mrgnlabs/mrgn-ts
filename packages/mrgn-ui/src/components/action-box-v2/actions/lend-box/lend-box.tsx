@@ -385,8 +385,12 @@ export const LendBox = ({
         setError: (error: IndividualFlowError) => {
           const toast = error.multiStepToast as MultiStepToastHandle;
           const txs = error.actionTxns as ActionTxns;
-          const errorMessage = error.errorMessage;
-          toast.setFailed(errorMessage, () => callbacks.retryCallback(txs, toast));
+          const errorMessage = error.message;
+          let retry = undefined;
+          if (error.retry && toast && txs) {
+            retry = () => callbacks.retryCallback(txs, toast);
+          }
+          toast.setFailed(errorMessage, retry);
         },
         setIsLoading: callbacks.setIsLoading,
       });
