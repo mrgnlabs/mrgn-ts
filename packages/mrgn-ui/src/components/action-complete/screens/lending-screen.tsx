@@ -85,14 +85,23 @@ export const LendingScreen = ({ amount, bank, type, txn, txnLink, collatRepay }:
           <h3 className="text-2xl font-medium text-center">
             {type === ActionType.RepayCollat ? (
               <>
-                You repaid {dynamicNumeralFormatter(amount ?? 0, { minDisplay: 0.01 })}{" "}
+                You repaid{" "}
+                {dynamicNumeralFormatter(amount, {
+                  tokenPrice: collatRepay?.borrowBank.info.state.price,
+                })}{" "}
                 {bank?.meta.tokenSymbol.toUpperCase()} with{" "}
-                {dynamicNumeralFormatter(collatRepay?.withdrawAmount ?? 0, { minDisplay: 0.01 })}{" "}
+                {dynamicNumeralFormatter(collatRepay?.withdrawAmount ?? 0, {
+                  tokenPrice: collatRepay?.withdrawBank.info.state.price,
+                })}{" "}
                 {collatRepay?.withdrawBank.meta.tokenSymbol.toUpperCase()}
               </>
             ) : (
               <>
-                You {type === ActionType.Deposit ? "deposited" : "borrowed"} {amount} {bank?.meta.tokenSymbol}
+                You {type === ActionType.Deposit ? "deposited" : "borrowed"}{" "}
+                {dynamicNumeralFormatter(amount, {
+                  tokenPrice: bank?.info.state.price,
+                })}{" "}
+                {bank?.meta.tokenSymbol}
               </>
             )}
           </h3>

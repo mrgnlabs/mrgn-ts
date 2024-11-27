@@ -334,9 +334,9 @@ export const LendingPortfolio = () => {
         </div>
         <div className="flex flex-col md:flex-row justify-between flex-wrap gap-8 md:gap-20">
           <div className="flex flex-col flex-1 gap-4 md:min-w-[340px]">
-            <dl className="flex justify-between items-center gap-2 ">
-              <dt className="text-xl font-medium">Supplied</dt>
-              <dt className="text-muted-foreground">{accountSupplied}</dt>
+            <dl className="flex justify-between items-center gap-2 text-xl font-medium">
+              <dt>Supplied</dt>
+              <dd className="text-lg">{accountSupplied}</dd>
             </dl>
             {isStoreInitialized ? (
               lendingBanks.length > 0 ? (
@@ -360,9 +360,9 @@ export const LendingPortfolio = () => {
             )}
           </div>
           <div className="flex flex-col flex-1 gap-4 md:min-w-[340px]">
-            <dl className="flex justify-between items-center gap-2">
-              <dt className="text-xl font-medium">Borrowed</dt>
-              <dt className="text-muted-foreground">{accountBorrowed}</dt>
+            <dl className="flex justify-between items-center gap-2 text-xl font-medium">
+              <dt>Borrowed</dt>
+              <dd className="text-lg">{accountBorrowed}</dd>
             </dl>
             {isStoreInitialized ? (
               borrowingBanks.length > 0 ? (

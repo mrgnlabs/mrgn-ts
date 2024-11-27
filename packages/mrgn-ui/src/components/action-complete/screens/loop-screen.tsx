@@ -76,9 +76,9 @@ export const LoopScreen = ({
 
         <div className="flex flex-col gap-2 justify-center items-center">
           <h3 className="text-2xl font-medium">
-            You looped {dynamicNumeralFormatter(depositAmount, { minDisplay: 0.01 })}{" "}
+            You looped {dynamicNumeralFormatter(depositAmount)}{" "}
             {depositBank.meta.tokenSymbol.toUpperCase()} with{" "}
-            {dynamicNumeralFormatter(borrowAmount, { minDisplay: 0.01 })} {borrowBank.meta.tokenSymbol.toUpperCase()}
+            {dynamicNumeralFormatter(borrowAmount)} {borrowBank.meta.tokenSymbol.toUpperCase()}
           </h3>
           <h4 className="text-xl text-muted-foreground">Leverage: {leverage}x</h4>
         </div>
