@@ -25,6 +25,7 @@ import {
 } from "@mrgnlabs/mrgn-common";
 
 import { createStakeLstTx, createUnstakeLstTx, getSimulationResult } from "../utils";
+import { SimulationStatus } from "../../../utils/simulation.utils";
 import { useActionBoxStore } from "../../../store";
 
 type StakeSimulationProps = {
@@ -50,19 +51,21 @@ export function useStakeSimulation({
   actionTxns,
   simulationResult,
   marginfiClient,
-
   setSimulationResult,
   setActionTxns,
   setErrorMessage,
   setIsLoading,
 }: StakeSimulationProps) {
   const [slippageBps, platformFeeBps] = useActionBoxStore((state) => [state.slippageBps, state.platformFeeBps]);
-
+  const [simulationStatus, setSimulationStatus] = React.useState<SimulationStatus>(SimulationStatus.IDLE);
   const prevDebouncedAmount = usePrevious(debouncedAmount);
+  const [hasUserInteracted, setHasUserInteracted] = React.useState(false);
 
   const handleSimulation = React.useCallback(
     async (txns: (VersionedTransaction | Transaction)[]) => {
+      if (!hasUserInteracted) return;
       try {
+        setSimulationStatus(SimulationStatus.SIMULATING);
         if (selectedBank && txns.length > 0) {
           const { actionMethod } = await getSimulationResult({
             marginfiClient: marginfiClient as MarginfiClient,
@@ -87,11 +90,23 @@ export function useStakeSimulation({
         setIsLoading({ type: "SIMULATION", state: false });
       }
     },
-    [selectedBank, marginfiClient, setSimulationResult, simulationResult, setIsLoading, setErrorMessage]
+    [
+      selectedBank,
+      marginfiClient,
+      setSimulationResult,
+      simulationResult,
+      setIsLoading,
+      setErrorMessage,
+      hasUserInteracted,
+    ]
   );
+
+  console.log("simulationStatus", simulationStatus);
 
   const fetchTxs = React.useCallback(
     async (amount: number, actionType: ActionType) => {
+      setHasUserInteracted(true);
+      setSimulationStatus(SimulationStatus.PREPARING);
       const connection = marginfiClient?.provider.connection;
 
       if (amount === 0 || !selectedBank || !connection || !lstData) {
@@ -160,11 +175,38 @@ export function useStakeSimulation({
     [marginfiClient, selectedBank, slippageBps, setActionTxns, setIsLoading, platformFeeBps]
   );
 
-  React.useEffect(() => {
-    if (prevDebouncedAmount !== debouncedAmount) {
-      fetchTxs(debouncedAmount ?? 0, actionMode);
-    }
-  }, [prevDebouncedAmount, debouncedAmount, fetchTxs, actionMode]);
+  const refreshSimulation = React.useCallback(async () => {
+    await fetchTxs(debouncedAmount ?? 0, actionMode);
+  }, [fetchTxs, debouncedAmount, actionMode]);
 
-  return { handleSimulation };
+  React.useEffect(() => {
+    // only simulate when amount changes
+    if (prevDebouncedAmount !== debouncedAmount) {
+      // Only set to PREPARING if we're actually going to simulate
+      if (debouncedAmount > 0) {
+        setSimulationStatus(SimulationStatus.PREPARING);
+        fetchTxs(debouncedAmount, actionMode);
+      } else {
+        // If amount is 0, move back to idle
+        setSimulationStatus(SimulationStatus.IDLE);
+      }
+    }
+  }, [prevDebouncedAmount, debouncedAmount, fetchTxs, actionMode, hasUserInteracted]);
+
+  // Add transaction check effect
+  React.useEffect(() => {
+    // Only run simulation if user has interacted and we have transactions
+    if (actionTxns?.actionTxn || (actionTxns?.additionalTxns?.length ?? 0) > 0) {
+      handleSimulation([
+        ...(actionTxns?.additionalTxns ?? []),
+        ...(actionTxns?.actionTxn ? [actionTxns?.actionTxn] : []),
+      ]);
+    } else {
+      // If no transactions or no user interaction, stay in idle state
+      setSimulationStatus(SimulationStatus.IDLE);
+      setIsLoading({ type: "SIMULATION", state: false });
+    }
+  }, [actionTxns]);
+
+  return { handleSimulation, refreshSimulation, simulationStatus };
 }

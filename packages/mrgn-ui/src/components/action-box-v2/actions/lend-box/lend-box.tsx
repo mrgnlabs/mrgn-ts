@@ -21,9 +21,9 @@ import {
   MultiStepToastHandle,
   PreviousTxn,
 } from "@mrgnlabs/mrgn-utils";
+import { IconCheck } from "@tabler/icons-react";
 
 import { ActionButton } from "~/components/action-box-v2/components";
-
 import { useActionAmounts } from "~/components/action-box-v2/hooks";
 import { LSTDialog, LSTDialogVariants } from "~/components/LSTDialog";
 import { WalletContextStateOverride } from "~/components/wallet-v2/hooks/use-wallet.hook";
@@ -31,8 +31,10 @@ import { ActionMessage } from "~/components";
 
 import { useLendBoxStore } from "./store";
 import { HandleCloseBalanceParamsProps, handleExecuteCloseBalance, handleExecuteLendingAction } from "./utils";
+import { ActionSimulationStatus } from "../../components";
 import { Collateral, ActionInput, Preview } from "./components";
 import { useLendSimulation } from "./hooks";
+import { SimulationStatus } from "../../utils/simulation.utils";
 import { useActionBoxStore } from "../../store";
 import { HidePoolStats } from "../../contexts/actionbox/actionbox.context";
 import { useActionContext } from "../../contexts";
@@ -119,6 +121,8 @@ export const LendBox = ({
     state.setErrorMessage,
   ]);
 
+  const [hasLoaded, setHasLoaded] = React.useState(false);
+
   const { broadcastType, priorityFees } = useActionContext() || { broadcastType: null, priorityFees: null };
 
   const accountSummary = React.useMemo(() => {
@@ -138,7 +142,7 @@ export const LendBox = ({
     nativeSolBalance,
     actionMode: lendMode,
   });
-  const { actionSummary } = useLendSimulation({
+  const { actionSummary, refreshSimulation, simulationStatus } = useLendSimulation({
     debouncedAmount: debouncedAmount ?? 0,
     selectedAccount,
     accountSummary,
@@ -154,6 +158,14 @@ export const LendBox = ({
 
   const [lstDialogCallback, setLSTDialogCallback] = React.useState<(() => void) | null>(null);
   const [additionalActionMessages, setAdditionalActionMessages] = React.useState<ActionMessageType[]>([]);
+
+  React.useEffect(() => {
+    if (isLoading) {
+      setHasLoaded(false);
+    } else if (!isLoading && !hasLoaded) {
+      setHasLoaded(true);
+    }
+  }, [isLoading, hasLoaded]);
 
   // Cleanup the store when the wallet disconnects
   React.useEffect(() => {
@@ -175,6 +187,8 @@ export const LendBox = ({
   React.useEffect(() => {
     if (errorMessage && errorMessage.description) {
       setAdditionalActionMessages([errorMessage]);
+    } else {
+      setAdditionalActionMessages([]);
     }
   }, [errorMessage]);
 
@@ -454,9 +468,11 @@ export const LendBox = ({
     }
   }, [marginfiClient, banks, refreshSelectedBanks]);
 
+  console.log("simulationStatus", simulationStatus);
+
   return (
     <>
-      <div className="mb-6">
+      <div className="mb-4">
         <ActionInput
           banks={banks}
           nativeSolBalance={nativeSolBalance}
@@ -478,7 +494,11 @@ export const LendBox = ({
         (actionMessage, idx) =>
           actionMessage.description && (
             <div className="pb-6" key={idx}>
-              <ActionMessage _actionMessage={actionMessage} />
+              <ActionMessage
+                _actionMessage={actionMessage}
+                retry={refreshSimulation}
+                isRetrying={simulationStatus === SimulationStatus.SIMULATING}
+              />
             </div>
           )
       )}
@@ -491,8 +511,9 @@ export const LendBox = ({
 
       <div className="mb-3">
         <ActionButton
-          isLoading={isLoading}
+          isLoading={simulationStatus === SimulationStatus.SIMULATING}
           isEnabled={
+            simulationStatus === SimulationStatus.COMPLETE &&
             !additionalActionMessages.concat(actionMessages).filter((value) => value.isEnabled === false).length
           }
           connected={connected}
@@ -503,6 +524,12 @@ export const LendBox = ({
           buttonLabel={buttonLabel}
         />
       </div>
+
+      <ActionSimulationStatus
+        simulationStatus={simulationStatus}
+        hasErrorMessages={additionalActionMessages.length > 0}
+        isActive={selectedBank && amount > 0 ? true : false}
+      />
 
       <Preview
         actionSummary={actionSummary}

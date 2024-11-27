@@ -8,7 +8,6 @@ import {
   DEFAULT_ACCOUNT_SUMMARY,
   ActiveBankInfo,
 } from "@mrgnlabs/marginfi-v2-ui-state";
-
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import {
   PreviousTxn,
@@ -18,14 +17,19 @@ import {
   ExecuteRepayWithCollatActionProps,
   ActionTxns,
   MultiStepToastHandle,
+  cn,
 } from "@mrgnlabs/mrgn-utils";
+import { IconCheck } from "@tabler/icons-react";
 
 import { CircularProgress } from "~/components/ui/circular-progress";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { ActionButton, ActionSettingsButton } from "~/components/action-box-v2/components";
 import { useActionAmounts, usePollBlockHeight } from "~/components/action-box-v2/hooks";
 import { ActionMessage } from "~/components";
+import { IconLoader } from "~/components/ui/icons";
+import { ActionSimulationStatus } from "../../components";
 
+import { SimulationStatus } from "../../utils/simulation.utils";
 import { handleExecuteRepayCollatAction } from "./utils";
 import { Collateral, ActionInput, Preview } from "./components";
 import { useRepayCollatBoxStore } from "./store";
@@ -145,7 +149,7 @@ export const RepayCollatBox = ({
     maxAmountCollateral,
   });
 
-  const { actionSummary } = useRepayCollatSimulation({
+  const { actionSummary, refreshSimulation, simulationStatus } = useRepayCollatSimulation({
     debouncedAmount: debouncedAmount ?? 0,
     selectedAccount,
     marginfiClient,
@@ -164,6 +168,7 @@ export const RepayCollatBox = ({
   });
 
   const [additionalActionMessages, setAdditionalActionMessages] = React.useState<ActionMessageType[]>([]);
+  const [showSimSuccess, setShowSimSuccess] = React.useState(false);
 
   // Cleanup the store when the wallet disconnects
   React.useEffect(() => {
@@ -332,6 +337,15 @@ export const RepayCollatBox = ({
   ]);
 
   React.useEffect(() => {
+    if (simulationStatus === SimulationStatus.COMPLETE && additionalActionMessages.length === 0) {
+      setShowSimSuccess(true);
+      setTimeout(() => {
+        setShowSimSuccess(false);
+      }, 3000);
+    }
+  }, [simulationStatus, additionalActionMessages]);
+
+  React.useEffect(() => {
     if (marginfiClient) {
       refreshSelectedBanks(banks);
     }
@@ -383,7 +397,13 @@ export const RepayCollatBox = ({
         (actionMessage, idx) =>
           actionMessage.description && (
             <div className="pb-6" key={idx}>
-              <ActionMessage _actionMessage={actionMessage} />
+              <ActionMessage
+                _actionMessage={actionMessage}
+                retry={refreshSimulation}
+                isRetrying={
+                  simulationStatus === SimulationStatus.SIMULATING || simulationStatus === SimulationStatus.PREPARING
+                }
+              />
             </div>
           )
       )}
@@ -408,7 +428,14 @@ export const RepayCollatBox = ({
         />
       </div>
 
-      <ActionSettingsButton setIsSettingsActive={setIsSettingsDialogOpen} />
+      <div className="flex items-center justify-between">
+        <ActionSimulationStatus
+          simulationStatus={simulationStatus}
+          hasErrorMessages={additionalActionMessages.length > 0}
+          isActive={selectedBank && amount > 0 ? true : false}
+        />
+        <ActionSettingsButton setIsSettingsActive={setIsSettingsDialogOpen} />
+      </div>
 
       <Preview actionSummary={actionSummary} selectedBank={selectedBank} isLoading={isLoading} />
     </>

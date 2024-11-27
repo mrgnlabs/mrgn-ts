@@ -1,6 +1,13 @@
 import { MarginRequirementType, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
+export enum SimulationStatus {
+  IDLE = "idle",
+  PREPARING = "preparing",
+  SIMULATING = "simulating",
+  COMPLETE = "complete",
+}
+
 /*
   Calculates the health factor of a simulation result.
   The health factor is the ratio of the maintenance assets to the initial assets.

@@ -9,6 +9,7 @@ import {
   ActiveBankInfo,
 } from "@mrgnlabs/marginfi-v2-ui-state";
 import { WalletContextState } from "@solana/wallet-adapter-react";
+import { IconCheck } from "@tabler/icons-react";
 
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import {
@@ -19,6 +20,7 @@ import {
   MultiStepToastHandle,
   PreviousTxn,
   showErrorToast,
+  cn,
 } from "@mrgnlabs/mrgn-utils";
 
 import { useAmountDebounce } from "~/hooks/useAmountDebounce";
@@ -31,12 +33,15 @@ import { ActionMessage } from "~/components";
 
 import { useActionBoxStore } from "../../store";
 
+import { SimulationStatus } from "../../utils/simulation.utils";
 import { handleExecuteLoopAction } from "./utils";
 import { ActionInput, Preview } from "./components";
 import { useLoopBoxStore } from "./store";
 import { useLoopSimulation } from "./hooks";
 import { LeverageSlider } from "./components/leverage-slider";
 import { ApyStat } from "./components/apy-stat";
+import { ActionSimulationStatus } from "../../components";
+import { IconLoader } from "~/components/ui/icons";
 import { useActionContext } from "../../contexts";
 
 // error handling
@@ -156,7 +161,7 @@ export const LoopBox = ({
 
   const debouncedLeverage = useAmountDebounce<number | null>(leverage, 1000);
 
-  const { actionSummary } = useLoopSimulation({
+  const { actionSummary, refreshSimulation, simulationStatus } = useLoopSimulation({
     debouncedAmount: debouncedAmount ?? 0,
     debouncedLeverage: debouncedLeverage ?? 0,
     selectedAccount,
@@ -175,6 +180,8 @@ export const LoopBox = ({
   });
 
   const [additionalActionMessages, setAdditionalActionMessages] = React.useState<ActionMessageType[]>([]);
+
+  const [showSimSuccess, setShowSimSuccess] = React.useState(false);
 
   // Cleanup the store when the wallet disconnects
   React.useEffect(() => {
@@ -406,12 +413,16 @@ export const LoopBox = ({
         (actionMessage, idx) =>
           actionMessage.description && (
             <div className="pb-6" key={idx}>
-              <ActionMessage _actionMessage={actionMessage} />
+              <ActionMessage
+                _actionMessage={actionMessage}
+                retry={refreshSimulation}
+                isRetrying={simulationStatus === SimulationStatus.SIMULATING}
+              />
             </div>
           )
       )}
 
-      <div className="mb-3">
+      <div className="mb-3 space-y-2">
         <ActionButton
           isLoading={isLoading}
           isEnabled={
@@ -426,7 +437,14 @@ export const LoopBox = ({
         />
       </div>
 
-      <ActionSettingsButton setIsSettingsActive={setIsSettingsDialogOpen} />
+      <div className="flex items-center justify-between">
+        <ActionSimulationStatus
+          simulationStatus={simulationStatus}
+          hasErrorMessages={additionalActionMessages.length > 0}
+          isActive={selectedBank && amount > 0 ? true : false}
+        />
+        <ActionSettingsButton setIsSettingsActive={setIsSettingsDialogOpen} />
+      </div>
 
       <Preview actionSummary={actionSummary} selectedBank={selectedBank} isLoading={isLoading} />
     </>

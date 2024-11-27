@@ -8,7 +8,7 @@ import { TransactionBroadcastType } from "@mrgnlabs/mrgn-common";
 import { ActionMessageType, usePrevious, STATIC_SIMULATION_ERRORS, ActionTxns } from "@mrgnlabs/mrgn-utils";
 
 import { calculateLendingTransaction, calculateSummary, getSimulationResult } from "../utils";
-
+import { SimulationStatus } from "../../../utils/simulation.utils";
 /*
 How lending action simulation works:
 1) If the debounced amount differs from the previous amount, generate an action transaction (actionTxn).
@@ -44,10 +44,12 @@ export function useLendSimulation({
   setIsLoading,
 }: LendSimulationProps) {
   const prevDebouncedAmount = usePrevious(debouncedAmount);
+  const [simulationStatus, setSimulationStatus] = React.useState<SimulationStatus>(SimulationStatus.IDLE);
 
   const handleSimulation = React.useCallback(
     async (txns: (VersionedTransaction | Transaction)[]) => {
       try {
+        setSimulationStatus(SimulationStatus.SIMULATING);
         if (selectedAccount && selectedBank && txns.length > 0) {
           const simulationResult = await getSimulationResult({
             actionMode: lendMode,
@@ -71,6 +73,7 @@ export function useLendSimulation({
         setSimulationResult(null);
       } finally {
         setIsLoading(false);
+        setSimulationStatus(SimulationStatus.COMPLETE);
       }
     },
     [selectedAccount, selectedBank, lendMode, debouncedAmount, setErrorMessage, setSimulationResult, setIsLoading]
@@ -92,6 +95,7 @@ export function useLendSimulation({
 
   const fetchActionTxn = React.useCallback(
     async (amount: number) => {
+      setSimulationStatus(SimulationStatus.PREPARING);
       // account not ready for simulation
       if (!selectedAccount || !selectedBank || amount === 0) {
         const missingParams = [];
@@ -128,7 +132,13 @@ export function useLendSimulation({
     [selectedAccount, selectedBank, lendMode, setIsLoading, setActionTxns, setErrorMessage]
   );
 
+  const refreshSimulation = React.useCallback(async () => {
+    await fetchActionTxn(debouncedAmount ?? 0);
+  }, [fetchActionTxn, debouncedAmount]);
+
   React.useEffect(() => {
+    // Reset simulation status when amount changes
+    setSimulationStatus(SimulationStatus.PREPARING);
     // only simulate when amount changes
     if (prevDebouncedAmount !== debouncedAmount) {
       fetchActionTxn(debouncedAmount ?? 0);
@@ -136,10 +146,17 @@ export function useLendSimulation({
   }, [prevDebouncedAmount, debouncedAmount, fetchActionTxn]);
 
   React.useEffect(() => {
-    handleSimulation([
-      ...(actionTxns?.additionalTxns ?? []),
-      ...(actionTxns?.actionTxn ? [actionTxns?.actionTxn] : []),
-    ]);
+    // Only run simulation if we have transactions to simulate
+    if (actionTxns?.actionTxn || (actionTxns?.additionalTxns?.length ?? 0) > 0) {
+      handleSimulation([
+        ...(actionTxns?.additionalTxns ?? []),
+        ...(actionTxns?.actionTxn ? [actionTxns?.actionTxn] : []),
+      ]);
+    } else {
+      // If no transactions, move back to idle state
+      setSimulationStatus(SimulationStatus.IDLE);
+      setIsLoading(false);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [actionTxns]);
 
@@ -149,5 +166,7 @@ export function useLendSimulation({
 
   return {
     actionSummary,
+    refreshSimulation,
+    simulationStatus,
   };
 }
