@@ -17,6 +17,7 @@ import {
   TransactionBroadcastType,
   TransactionOptions,
   Wallet,
+  dynamicNumeralFormatter,
   uiToNative,
 } from "@mrgnlabs/mrgn-common";
 
@@ -36,7 +37,7 @@ import { loopingBuilder, repayWithCollatBuilder } from "./flashloans";
 
 export function getSteps(actionTxns?: ActionTxns) {
   return [
-    { label: "Sign in wallet" },
+    { label: "Signing transaction" },
     ...(actionTxns?.additionalTxns.map((tx) => ({
       label: MRGN_TX_TYPE_TOAST_MAP[tx.type ?? "CRANK"],
     })) ?? []),
@@ -302,7 +303,7 @@ export async function withdraw({
   const steps = getSteps(actionTxns);
 
   if (!multiStepToast) {
-    multiStepToast = new MultiStepToastHandle("Withdrawal", [
+    multiStepToast = new MultiStepToastHandle("Withdraw", [
       ...steps,
       { label: `Withdrawing ${amount} ${bank.meta.tokenSymbol}` },
     ]);
@@ -370,7 +371,7 @@ export async function repay({
   const steps = getSteps(actionTxns);
 
   if (!multiStepToast) {
-    multiStepToast = new MultiStepToastHandle("Repayment", [
+    multiStepToast = new MultiStepToastHandle("Repay", [
       ...steps,
       { label: `Repaying ${amount} ${bank.meta.tokenSymbol}` },
     ]);
@@ -457,7 +458,11 @@ export async function looping({
     multiStepToast = new MultiStepToastHandle("Looping", [
       ...steps,
       {
-        label: `Executing looping ${loopingProps.depositBank.meta.tokenSymbol} with ${loopingProps.borrowBank.meta.tokenSymbol}.`,
+        label: `Looping ${dynamicNumeralFormatter(loopingProps.depositAmount)} ${
+          loopingProps.depositBank.meta.tokenSymbol
+        } with ${dynamicNumeralFormatter(loopingProps.borrowAmount.toNumber())} ${
+          loopingProps.borrowBank.meta.tokenSymbol
+        }`,
       },
     ]);
     multiStepToast.start();
@@ -536,9 +541,10 @@ export async function repayWithCollat({
   }
 
   const steps = getSteps(actionTxns);
+  const label = `Repaying ${repayProps.repayAmount} ${repayProps.borrowBank.meta.tokenSymbol} with ${repayProps.withdrawAmount} ${repayProps.depositBank.meta.tokenSymbol}`;
 
   if (!multiStepToast) {
-    multiStepToast = new MultiStepToastHandle("Repayment", [...steps, { label: `Executing flashloan repayment` }]);
+    multiStepToast = new MultiStepToastHandle("Collateral Repay", [...steps, { label }]);
     multiStepToast.start();
   } else {
     multiStepToast.resetAndStart();

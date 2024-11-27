@@ -28,13 +28,12 @@ export class MultiStepToastHandle {
       hideProgressBar: true,
       autoClose: false,
       style: {
-        width: "max-content",
         height: "100%",
         bottom: "12px",
         background: "#ff0000",
       },
       closeOnClick: false,
-      className: "bg-mfi-toast-background rounded-md py-2 px-3",
+      className: "bg-mfi-toast-background rounded-md py-2 px-3 mx-2 md:w-max",
     });
 
     toast.onChange((toastInfo) => {

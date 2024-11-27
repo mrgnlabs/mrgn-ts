@@ -27,25 +27,32 @@ export const MultiStepToast = ({ title, steps, retry }: MultiStepToastProps) => 
 
   return (
     <div className="w-full h-full rounded-md z-50 md:min-w-[340px]">
-      <h2 className="text-lg mb-4 font-medium">{title}</h2>
-      <div className="space-y-2">
+      <h2 className="text-lg mb-5 font-medium">{title}</h2>
+      <div className="space-y-2.5">
         {steps.map((step, index) => {
           const isLastFailed = index === lastFailedIndex;
           return (
             <div className="text-muted-foreground text-sm" key={index}>
               <div className="flex items-start space-x-2">
-                <div className="flex items-center space-x-2 w-max">
+                <div className="flex items-center space-x-2 md:w-max">
                   {step.status === "success" && <IconCheck size={16} className="text-success flex-shrink-0" />}
                   {(step.status === "error" || step.status === "canceled") && (
-                    <IconX size={16} className={cn("flex-shrink-0", step.status === "error" && "text-mrgn-error")} />
+                    <IconX
+                      size={16}
+                      className={cn(
+                        "flex-shrink-0",
+                        step.status === "error" && "text-mrgn-error",
+                        step.status === "canceled" && "text-muted-foreground/50"
+                      )}
+                    />
                   )}
-                  {(step.status === "pending" || step.status === "todo") && (
-                    <IconLoader2 size={16} className="animate-spin flex-shrink-0" />
-                  )}
+                  {step.status === "pending" && <IconLoader2 size={16} className="animate-spin flex-shrink-0" />}
                   <span
                     className={cn(
-                      step.status === "success" && "text-mrgn-success",
-                      step.status === "error" && "text-error"
+                      step.status === "success" && "text-primary",
+                      step.status === "error" && "text-error",
+                      step.status === "todo" && "ml-6 text-muted-foreground/50",
+                      step.status === "canceled" && "ml-6 text-muted-foreground/50"
                     )}
                   >
                     {step.label}
@@ -61,7 +68,7 @@ export const MultiStepToast = ({ title, steps, retry }: MultiStepToastProps) => 
                 </div>
               </div>
               {step.signature && step.explorerUrl && (
-                <div className="py-1.5 px-6 text-xs max-w-xs text-primary">
+                <div className="py-1.5 px-6 text-xs max-w-xs text-muted-foreground">
                   <a
                     href={step.explorerUrl}
                     className="flex items-center gap-1 text-[10px]"
