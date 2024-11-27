@@ -66,7 +66,7 @@ export const LoopScreen = ({
             height={48}
           />
           <Image
-            className="rounded-full -ml-3 relative z-10"
+            className="rounded-full -ml-5 relative z-10"
             src={borrowBank.meta.tokenLogoUri}
             alt={(borrowBank?.meta.tokenSymbol || "Token") + "  logo"}
             width={48}
@@ -74,13 +74,13 @@ export const LoopScreen = ({
           />
         </div>
 
-        <div className="flex flex-col gap-1 justify-center items-center">
+        <div className="flex flex-col gap-2 justify-center items-center">
           <h3 className="text-2xl font-medium">
             You looped {dynamicNumeralFormatter(depositAmount, { minDisplay: 0.01 })}{" "}
             {depositBank.meta.tokenSymbol.toUpperCase()} with{" "}
             {dynamicNumeralFormatter(borrowAmount, { minDisplay: 0.01 })} {borrowBank.meta.tokenSymbol.toUpperCase()}
           </h3>
-          <h4 className="text-md text-muted-foreground">Leverage: {leverage}x</h4>
+          <h4 className="text-xl text-muted-foreground">Leverage: {leverage}x</h4>
         </div>
       </div>
       <dl className="grid grid-cols-2 w-full text-muted-foreground gap-x-8 gap-y-2">
