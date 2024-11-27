@@ -30,9 +30,9 @@ type RepayCollatSimulationProps = {
 
   setSimulationResult: (simulationResult: SimulationResult | null) => void;
   setActionTxns: (actionTxns: RepayCollatActionTxns) => void;
-  setErrorMessage: (error: ActionMessageType) => void;
+  setErrorMessage: (error: ActionMessageType | null) => void;
   setRepayAmount: (repayAmount: number) => void;
-  setIsLoading: (isLoading: boolean) => void;
+  setIsLoading: ({ isLoading, status }: { isLoading: boolean; status: SimulationStatus }) => void;
   setMaxAmountCollateral: (maxAmountCollateral: number) => void;
 };
 
@@ -64,27 +64,31 @@ export function useRepayCollatSimulation({
   const handleSimulation = React.useCallback(
     async (txns: (VersionedTransaction | Transaction)[]) => {
       try {
-        setSimulationStatus(SimulationStatus.SIMULATING);
+        setIsLoading({ isLoading: true, status: SimulationStatus.SIMULATING });
         if (selectedAccount && selectedBank && txns.length > 0) {
           const simulationResult = await getSimulationResult({
             account: selectedAccount,
             bank: selectedBank,
             txns,
           });
-
-          setSimulationResult(simulationResult.simulationResult);
+          if (simulationResult.actionMethod) {
+            setErrorMessage(simulationResult.actionMethod);
+            throw new Error(simulationResult.actionMethod.description);
+          } else {
+            setErrorMessage(null);
+            setSimulationResult(simulationResult.simulationResult);
+          }
         } else {
-          setSimulationResult(null);
+          throw new Error("account, bank or transactions are null");
         }
       } catch (error) {
-        console.error("Error simulating transaction", error);
+        console.error("Error simulating transaction:", error);
         setSimulationResult(null);
       } finally {
-        setIsLoading(false);
-        setSimulationStatus(SimulationStatus.COMPLETE);
+        setIsLoading({ isLoading: false, status: SimulationStatus.COMPLETE });
       }
     },
-    [selectedAccount, selectedBank, setIsLoading, setSimulationResult]
+    [selectedAccount, selectedBank, setErrorMessage, setIsLoading, setSimulationResult]
   );
 
   const handleActionSummary = React.useCallback(
@@ -116,7 +120,8 @@ export function useRepayCollatSimulation({
         return;
       }
 
-      setIsLoading(true);
+      setIsLoading({ isLoading: true, status: SimulationStatus.PREPARING });
+
       try {
         const repayResult = await calculateRepayCollateral({
           marginfiAccount: selectedAccount,
@@ -138,8 +143,6 @@ export function useRepayCollatSimulation({
         }
       } catch (error) {
         setErrorMessage(STATIC_SIMULATION_ERRORS.REPAY_COLLAT_FAILED);
-      } finally {
-        setIsLoading(false);
       }
     },
     [
@@ -206,9 +209,9 @@ export function useRepayCollatSimulation({
       ]);
     } else {
       // If no transactions, move back to idle state
-      setSimulationStatus(SimulationStatus.IDLE);
-      setIsLoading(false);
+      setIsLoading({ isLoading: false, status: SimulationStatus.IDLE });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [actionTxns]);
 
   // Fetch max repayable collateral or max leverage based when the secondary bank changes

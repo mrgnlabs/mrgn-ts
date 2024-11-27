@@ -22,6 +22,7 @@ export const STATIC_SIMULATION_ERRORS: { [key: string]: ActionMessageType } = {
     actionMethod: "WARNING",
     description:
       "The Jupiter routes for this swap cause the transaction to fail due to size restrictions. Please try again.",
+    retry: true,
   },
   FL_FAILED: {
     isEnabled: false,

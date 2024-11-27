@@ -77,7 +77,6 @@ export const RepayCollatBox = ({
     selectedBank,
     selectedSecondaryBank,
     errorMessage,
-    isLoading,
     simulationResult,
     actionTxns,
     refreshState,
@@ -90,7 +89,6 @@ export const RepayCollatBox = ({
     setSelectedSecondaryBank,
     setRepayAmount,
     setMaxAmountCollateral,
-    setIsLoading,
     refreshSelectedBanks,
   ] = useRepayCollatBoxStore((state) => [
     state.maxAmountCollateral,
@@ -99,7 +97,6 @@ export const RepayCollatBox = ({
     state.selectedBank,
     state.selectedSecondaryBank,
     state.errorMessage,
-    state.isLoading,
     state.simulationResult,
     state.actionTxns,
     state.refreshState,
@@ -112,9 +109,22 @@ export const RepayCollatBox = ({
     state.setSelectedSecondaryBank,
     state.setRepayAmount,
     state.setMaxAmountCollateral,
-    state.setIsLoading,
     state.refreshSelectedBanks,
   ]);
+
+  const [isTransactionExecuting, setIsTransactionExecuting] = React.useState(false);
+  const [isSimulating, setIsSimulating] = React.useState<{
+    isLoading: boolean;
+    status: SimulationStatus;
+  }>({
+    isLoading: false,
+    status: SimulationStatus.IDLE,
+  });
+
+  const isLoading = React.useMemo(
+    () => isTransactionExecuting || isSimulating.isLoading,
+    [isTransactionExecuting, isSimulating.isLoading]
+  );
 
   const { broadcastType, priorityFees } = useActionContext() || { broadcastType: null, priorityFees: null };
 
@@ -149,7 +159,7 @@ export const RepayCollatBox = ({
     maxAmountCollateral,
   });
 
-  const { actionSummary, refreshSimulation, simulationStatus } = useRepayCollatSimulation({
+  const { actionSummary, refreshSimulation } = useRepayCollatSimulation({
     debouncedAmount: debouncedAmount ?? 0,
     selectedAccount,
     marginfiClient,
@@ -163,7 +173,7 @@ export const RepayCollatBox = ({
     setActionTxns,
     setErrorMessage,
     setRepayAmount,
-    setIsLoading,
+    setIsLoading: setIsSimulating,
     setMaxAmountCollateral,
   });
 
@@ -271,13 +281,13 @@ export const RepayCollatBox = ({
         setIsActionComplete,
         setPreviousTxn,
         onComplete,
-        setIsLoading,
+        setIsLoading: setIsTransactionExecuting,
         retryCallback: (txns, multiStepToast) =>
           retryRepayColatAction({ ...params, actionTxns: txns, multiStepToast: multiStepToast }),
         setAmountRaw,
       });
     },
-    [captureEvent, onComplete, setAmountRaw, setIsActionComplete, setIsLoading, setPreviousTxn]
+    [captureEvent, onComplete, setAmountRaw, setIsActionComplete, setPreviousTxn]
   );
 
   const handleRepayCollatAction = React.useCallback(async () => {
@@ -317,7 +327,7 @@ export const RepayCollatBox = ({
       setIsActionComplete,
       setPreviousTxn,
       onComplete,
-      setIsLoading,
+      setIsLoading: setIsTransactionExecuting,
       retryCallback: (txns: ActionTxns, multiStepToast: MultiStepToastHandle) =>
         retryRepayColatAction({ ...props, actionTxns: txns, multiStepToast }),
       setAmountRaw,
@@ -337,18 +347,17 @@ export const RepayCollatBox = ({
     selectedSecondaryBank,
     setAmountRaw,
     setIsActionComplete,
-    setIsLoading,
     setPreviousTxn,
   ]);
 
   React.useEffect(() => {
-    if (simulationStatus === SimulationStatus.COMPLETE && additionalActionMessages.length === 0) {
+    if (isSimulating.status === SimulationStatus.COMPLETE && additionalActionMessages.length === 0) {
       setShowSimSuccess(true);
       setTimeout(() => {
         setShowSimSuccess(false);
       }, 3000);
     }
-  }, [simulationStatus, additionalActionMessages]);
+  }, [isSimulating.status, additionalActionMessages]);
 
   React.useEffect(() => {
     if (marginfiClient) {
@@ -406,7 +415,8 @@ export const RepayCollatBox = ({
                 _actionMessage={actionMessage}
                 retry={refreshSimulation}
                 isRetrying={
-                  simulationStatus === SimulationStatus.SIMULATING || simulationStatus === SimulationStatus.PREPARING
+                  isSimulating.status === SimulationStatus.SIMULATING ||
+                  isSimulating.status === SimulationStatus.PREPARING
                 }
               />
             </div>
@@ -435,7 +445,7 @@ export const RepayCollatBox = ({
 
       <div className="flex items-center justify-between">
         <ActionSimulationStatus
-          simulationStatus={simulationStatus}
+          simulationStatus={isSimulating.status}
           hasErrorMessages={additionalActionMessages.length > 0}
           isActive={selectedBank && amount > 0 ? true : false}
         />

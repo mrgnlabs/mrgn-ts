@@ -21,7 +21,6 @@ interface RepayCollatBoxState {
   actionTxns: RepayCollatActionTxns;
 
   errorMessage: ActionMessageType | null;
-  isLoading: boolean;
 
   // Actions
   refreshState: (actionMode?: ActionType) => void;
@@ -36,8 +35,6 @@ interface RepayCollatBoxState {
   setErrorMessage: (errorMessage: ActionMessageType | null) => void;
   setSelectedBank: (bank: ExtendedBankInfo | null) => void;
   setSelectedSecondaryBank: (bank: ExtendedBankInfo | null) => void;
-
-  setIsLoading: (isLoading: boolean) => void;
 }
 
 function createRepayCollatBoxStore() {
@@ -54,7 +51,6 @@ const initialState = {
 
   actionTxns: { actionTxn: null, additionalTxns: [], actionQuote: null, lastValidBlockHeight: undefined },
   errorMessage: null,
-  isLoading: false,
 };
 
 const stateCreator: StateCreator<RepayCollatBoxState, [], []> = (set, get) => ({
@@ -166,10 +162,6 @@ const stateCreator: StateCreator<RepayCollatBoxState, [], []> = (set, get) => ({
         errorMessage: null,
       });
     }
-  },
-
-  setIsLoading(isLoading) {
-    set({ isLoading });
   },
 
   async setSelectedSecondaryBank(secondaryBank) {

@@ -22,7 +22,6 @@ interface LoopBoxState {
   actionTxns: LoopActionTxns;
 
   errorMessage: ActionMessageType | null;
-  isLoading: boolean;
 
   // Actions
   refreshState: (actionMode?: ActionType) => void;
@@ -39,8 +38,6 @@ interface LoopBoxState {
   setSelectedSecondaryBank: (bank: ExtendedBankInfo | null) => void;
   setDepositLstApy: (bank: ExtendedBankInfo) => void;
   setBorrowLstApy: (bank: ExtendedBankInfo) => void;
-
-  setIsLoading: (isLoading: boolean) => void;
 }
 
 function createLoopBoxStore() {
@@ -67,7 +64,6 @@ const initialState = {
     borrowAmount: new BigNumber(0),
   },
   errorMessage: null,
-  isLoading: false,
 };
 
 const stateCreator: StateCreator<LoopBoxState, [], []> = (set, get) => ({
@@ -182,10 +178,6 @@ const stateCreator: StateCreator<LoopBoxState, [], []> = (set, get) => ({
         errorMessage: null,
       });
     }
-  },
-
-  setIsLoading(isLoading) {
-    set({ isLoading });
   },
 
   setSelectedSecondaryBank(secondaryBank) {

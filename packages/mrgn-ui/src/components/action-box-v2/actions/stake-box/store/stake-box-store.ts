@@ -15,7 +15,6 @@ interface StateBoxState {
   actionTxns: StakeActionTxns;
 
   errorMessage: ActionMessageType | null;
-  isLoading: { state: boolean; type: string | null };
 
   // Actions
   refreshState: (actionMode?: ActionType) => void;
@@ -26,7 +25,6 @@ interface StateBoxState {
   setSimulationResult: (simulationResult: SimulationResult | null) => void;
   setActionTxns: (actionTxns: StakeActionTxns) => void;
   setSelectedBank: (bank: ExtendedBankInfo | null) => void;
-  setIsLoading: ({ state, type }: { state: boolean; type: string | null }) => void;
   setErrorMessage: (errorMessage: ActionMessageType | null) => void;
 }
 
@@ -41,10 +39,6 @@ const initialState = {
   selectedBank: null,
   actionTxns: { actionTxn: null, additionalTxns: [], actionQuote: null },
   errorMessage: null,
-  isLoading: {
-    state: false,
-    type: "SIMULATION",
-  },
   lstData: null,
 };
 
@@ -143,10 +137,6 @@ const stateCreator: StateCreator<StateBoxState, [], []> = (set, get) => ({
 
   setSimulationResult(simulationResult) {
     set({ simulationResult });
-  },
-
-  setIsLoading(isLoading) {
-    set({ isLoading });
   },
 
   setErrorMessage(errorMessage) {

@@ -30,6 +30,7 @@ import { ActionInput } from "./components/action-input";
 import { ActionSimulationStatus } from "~/components/action-box-v2/components";
 
 import { useActionContext, useStakeBoxContext } from "../../contexts";
+import { SimulationStatus } from "../../utils";
 
 export type StakeBoxProps = {
   nativeSolBalance: number;
@@ -69,7 +70,6 @@ export const StakeBox = ({
     simulationResult,
     actionTxns,
     errorMessage,
-    isLoading,
     refreshState,
     refreshSelectedBanks,
     fetchActionBoxState,
@@ -78,7 +78,6 @@ export const StakeBox = ({
     setSimulationResult,
     setActionTxns,
     setSelectedBank,
-    setIsLoading,
     setErrorMessage,
   ] = useStakeBoxStore(isDialog)((state) => [
     state.amountRaw,
@@ -87,7 +86,6 @@ export const StakeBox = ({
     state.simulationResult,
     state.actionTxns,
     state.errorMessage,
-    state.isLoading,
     state.refreshState,
     state.refreshSelectedBanks,
     state.fetchActionBoxState,
@@ -96,9 +94,22 @@ export const StakeBox = ({
     state.setSimulationResult,
     state.setActionTxns,
     state.setSelectedBank,
-    state.setIsLoading,
     state.setErrorMessage,
   ]);
+
+  const [isTransactionExecuting, setIsTransactionExecuting] = React.useState(false);
+  const [isSimulating, setIsSimulating] = React.useState<{
+    isLoading: boolean;
+    status: SimulationStatus;
+  }>({
+    isLoading: false,
+    status: SimulationStatus.IDLE,
+  });
+
+  const isLoading = React.useMemo(
+    () => isTransactionExecuting || isSimulating.isLoading,
+    [isTransactionExecuting, isSimulating.isLoading]
+  );
 
   const { amount, debouncedAmount, walletAmount, maxAmount } = useActionAmounts({
     amountRaw,
@@ -155,7 +166,7 @@ export const StakeBox = ({
     setSimulationResult,
     setActionTxns,
     setErrorMessage,
-    setIsLoading,
+    setIsLoading: setIsSimulating,
     marginfiClient,
     lstData,
   });
@@ -192,7 +203,7 @@ export const StakeBox = ({
       setIsActionComplete: (isComplete: boolean) => void;
       setPreviousTxn: (previousTxn: PreviousTxn) => void;
       onComplete?: (previousTxn: PreviousTxn) => void;
-      setIsLoading: ({ state, type }: { state: boolean; type: string | null }) => void;
+      setIsLoading: (isLoading: boolean) => void;
       retryCallback: (txns: any, multiStepToast: MultiStepToastHandle) => void;
       setAmountRaw: (amountRaw: string) => void;
     }
@@ -239,14 +250,12 @@ export const StakeBox = ({
           const errorMessage = error.errorMessage;
           toast.setFailed(errorMessage, () => callbacks.retryCallback(txs, toast));
         },
-        setIsLoading: (isLoading) => callbacks.setIsLoading({ type: "TRANSACTION", state: isLoading }),
+        setIsLoading: (isLoading) => callbacks.setIsLoading(isLoading),
       });
     };
 
     await action(params, receiveAmount);
     callbacks.setAmountRaw("");
-
-    callbacks.setIsLoading({ type: "SIMULATION", state: false });
   };
 
   const retryLstAction = React.useCallback(
@@ -256,13 +265,13 @@ export const StakeBox = ({
         setIsActionComplete,
         setPreviousTxn,
         onComplete,
-        setIsLoading,
+        setIsLoading: setIsTransactionExecuting,
         retryCallback: (txns, multiStepToast) =>
           retryLstAction({ ...params, actionTxns: txns, multiStepToast }, receiveAmount),
         setAmountRaw,
       });
     },
-    [captureEvent, onComplete, setAmountRaw, setIsActionComplete, setIsLoading, setPreviousTxn]
+    [captureEvent, onComplete, setAmountRaw, setIsActionComplete, setIsTransactionExecuting, setPreviousTxn]
   );
 
   const handleLstAction = React.useCallback(async () => {
@@ -291,7 +300,7 @@ export const StakeBox = ({
       setIsActionComplete,
       setPreviousTxn,
       onComplete,
-      setIsLoading,
+      setIsLoading: setIsTransactionExecuting,
       retryCallback: (txns, multiStepToast) =>
         retryLstAction({ ...params, actionTxns: txns, multiStepToast }, receiveAmount),
       setAmountRaw,
@@ -311,7 +320,6 @@ export const StakeBox = ({
     selectedBank,
     setAmountRaw,
     setIsActionComplete,
-    setIsLoading,
     setPreviousTxn,
   ]);
 
@@ -357,23 +365,23 @@ export const StakeBox = ({
         />
       </div>
       <div className="mb-6">
-        <AmountPreview
-          actionMode={actionMode}
-          amount={receiveAmount}
-          isLoading={isLoading.type === "SIMULATION" ? isLoading.state : false}
-        />
+        <AmountPreview actionMode={actionMode} amount={receiveAmount} isLoading={isSimulating.isLoading} />
       </div>
       {additionalActionMessages.concat(actionMessages).map(
         (actionMessage, idx) =>
           actionMessage.description && (
             <div className="pb-6" key={idx}>
-              <ActionMessage _actionMessage={actionMessage} retry={refreshSimulation} isRetrying={isLoading.state} />
+              <ActionMessage
+                _actionMessage={actionMessage}
+                retry={refreshSimulation}
+                isRetrying={isSimulating.status === SimulationStatus.SIMULATING}
+              />
             </div>
           )
       )}
       <div className="mb-3">
         <ActionButton
-          isLoading={isLoading.state}
+          isLoading={isLoading}
           isEnabled={
             !additionalActionMessages.concat(actionMessages).filter((value) => value.isEnabled === false).length
           }
@@ -406,7 +414,7 @@ export const StakeBox = ({
             },
           }}
           actionMode={actionMode}
-          isLoading={isLoading.type === "SIMULATION" ? isLoading.state : false}
+          isLoading={isLoading}
           selectedBank={selectedBank}
         />
       </div>

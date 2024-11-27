@@ -31,9 +31,9 @@ const ActionSimulationStatus = ({
   const timeoutRef = React.useRef<number>();
 
   React.useEffect(() => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
+    // if (timeoutRef.current) {
+    //   clearTimeout(timeoutRef.current);
+    // }
 
     if (hasErrorMessages && !isNewSimulation) {
       setSimulationCompleteStatus(SimulationCompleteStatus.ERROR);
@@ -45,26 +45,26 @@ const ActionSimulationStatus = ({
     }
   }, [simulationStatus, hasErrorMessages, isNewSimulation]);
 
-  React.useEffect(() => {
-    if (
-      simulationCompleteStatus === SimulationCompleteStatus.SUCCESS ||
-      simulationCompleteStatus === SimulationCompleteStatus.ERROR
-    ) {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
+  // React.useEffect(() => {
+  //   if (
+  //     simulationCompleteStatus === SimulationCompleteStatus.SUCCESS ||
+  //     simulationCompleteStatus === SimulationCompleteStatus.ERROR
+  //   ) {
+  //     if (timeoutRef.current) {
+  //       clearTimeout(timeoutRef.current);
+  //     }
 
-      timeoutRef.current = window.setTimeout(() => {
-        setSimulationCompleteStatus(SimulationCompleteStatus.NULL);
-      }, 3000);
-    }
+  //     timeoutRef.current = window.setTimeout(() => {
+  //       setSimulationCompleteStatus(SimulationCompleteStatus.NULL);
+  //     }, 3000);
+  //   }
 
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-    };
-  }, [simulationCompleteStatus]);
+  //   return () => {
+  //     if (timeoutRef.current) {
+  //       clearTimeout(timeoutRef.current);
+  //     }
+  //   };
+  // }, [simulationCompleteStatus]);
 
   React.useEffect(() => {
     if (!isActive) {

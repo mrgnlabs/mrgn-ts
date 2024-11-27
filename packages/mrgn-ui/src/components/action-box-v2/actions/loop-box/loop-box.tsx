@@ -9,7 +9,6 @@ import {
   ActiveBankInfo,
 } from "@mrgnlabs/marginfi-v2-ui-state";
 import { WalletContextState } from "@solana/wallet-adapter-react";
-import { IconCheck } from "@tabler/icons-react";
 
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import {
@@ -20,7 +19,6 @@ import {
   MultiStepToastHandle,
   PreviousTxn,
   showErrorToast,
-  cn,
 } from "@mrgnlabs/mrgn-utils";
 
 import { useAmountDebounce } from "~/hooks/useAmountDebounce";
@@ -32,7 +30,6 @@ import { useActionAmounts, usePollBlockHeight } from "~/components/action-box-v2
 import { ActionMessage } from "~/components";
 
 import { useActionBoxStore } from "../../store";
-
 import { SimulationStatus } from "../../utils/simulation.utils";
 import { handleExecuteLoopAction } from "./utils";
 import { ActionInput, Preview } from "./components";
@@ -41,7 +38,6 @@ import { useLoopSimulation } from "./hooks";
 import { LeverageSlider } from "./components/leverage-slider";
 import { ApyStat } from "./components/apy-stat";
 import { ActionSimulationStatus } from "../../components";
-import { IconLoader } from "~/components/ui/icons";
 import { useActionContext } from "../../contexts";
 
 // error handling
@@ -66,7 +62,6 @@ export type LoopBoxProps = {
 export const LoopBox = ({
   nativeSolBalance,
   connected,
-  // tokenAccountMap,
   banks,
   marginfiClient,
   selectedAccount,
@@ -83,7 +78,6 @@ export const LoopBox = ({
     selectedBank,
     selectedSecondaryBank,
     errorMessage,
-    isLoading,
     simulationResult,
     actionTxns,
     depositLstApy,
@@ -98,7 +92,6 @@ export const LoopBox = ({
     setSelectedSecondaryBank,
     setMaxLeverage,
     setLeverage,
-    setIsLoading,
     refreshSelectedBanks,
   ] = useLoopBoxStore((state) => [
     state.leverage,
@@ -107,7 +100,6 @@ export const LoopBox = ({
     state.selectedBank,
     state.selectedSecondaryBank,
     state.errorMessage,
-    state.isLoading,
     state.simulationResult,
     state.actionTxns,
     state.depositLstApy,
@@ -122,7 +114,6 @@ export const LoopBox = ({
     state.setSelectedSecondaryBank,
     state.setMaxLeverage,
     state.setLeverage,
-    state.setIsLoading,
     state.refreshSelectedBanks,
   ]);
 
@@ -134,6 +125,20 @@ export const LoopBox = ({
     state.setPreviousTxn,
     state.setIsActionComplete,
   ]);
+
+  const [isTransactionExecuting, setIsTransactionExecuting] = React.useState(false);
+  const [isSimulating, setIsSimulating] = React.useState<{
+    isLoading: boolean;
+    status: SimulationStatus;
+  }>({
+    isLoading: false,
+    status: SimulationStatus.IDLE,
+  });
+
+  const isLoading = React.useMemo(
+    () => isTransactionExecuting || isSimulating.isLoading,
+    [isTransactionExecuting, isSimulating.isLoading]
+  );
 
   const { isRefreshTxn, blockProgress } = usePollBlockHeight(
     marginfiClient?.provider.connection,
@@ -161,7 +166,7 @@ export const LoopBox = ({
 
   const debouncedLeverage = useAmountDebounce<number | null>(leverage, 1000);
 
-  const { actionSummary, refreshSimulation, simulationStatus } = useLoopSimulation({
+  const { actionSummary, refreshSimulation } = useLoopSimulation({
     debouncedAmount: debouncedAmount ?? 0,
     debouncedLeverage: debouncedLeverage ?? 0,
     selectedAccount,
@@ -176,7 +181,7 @@ export const LoopBox = ({
     setSimulationResult,
     setActionTxns,
     setErrorMessage,
-    setIsLoading,
+    setIsLoading: setIsSimulating,
   });
 
   const [additionalActionMessages, setAdditionalActionMessages] = React.useState<ActionMessageType[]>([]);
@@ -283,14 +288,14 @@ export const LoopBox = ({
         setIsActionComplete,
         setPreviousTxn,
         onComplete,
-        setIsLoading,
+        setIsLoading: setIsTransactionExecuting,
         setAmountRaw,
         retryCallback: (txns: ActionTxns, multiStepToast: MultiStepToastHandle) => {
           retryLoopAction({ ...params, actionTxns: txns, multiStepToast }, leverage);
         },
       });
     },
-    [captureEvent, onComplete, setAmountRaw, setIsActionComplete, setIsLoading, setPreviousTxn]
+    [captureEvent, onComplete, setAmountRaw, setIsActionComplete, setIsTransactionExecuting, setPreviousTxn]
   );
 
   const handleLoopAction = React.useCallback(async () => {
@@ -322,7 +327,7 @@ export const LoopBox = ({
       setIsActionComplete,
       setPreviousTxn,
       onComplete,
-      setIsLoading,
+      setIsLoading: setIsTransactionExecuting,
       setAmountRaw,
       retryCallback: (txns: ActionTxns, multiStepToast: MultiStepToastHandle) => {
         retryLoopAction({ ...params, actionTxns: txns, multiStepToast }, leverage);
@@ -343,7 +348,7 @@ export const LoopBox = ({
     selectedSecondaryBank,
     setAmountRaw,
     setIsActionComplete,
-    setIsLoading,
+    setIsTransactionExecuting,
     setPreviousTxn,
   ]);
 
@@ -416,7 +421,7 @@ export const LoopBox = ({
               <ActionMessage
                 _actionMessage={actionMessage}
                 retry={refreshSimulation}
-                isRetrying={simulationStatus === SimulationStatus.SIMULATING}
+                isRetrying={isSimulating.status === SimulationStatus.SIMULATING}
               />
             </div>
           )
@@ -439,7 +444,7 @@ export const LoopBox = ({
 
       <div className="flex items-center justify-between">
         <ActionSimulationStatus
-          simulationStatus={simulationStatus}
+          simulationStatus={isSimulating.status}
           hasErrorMessages={additionalActionMessages.length > 0}
           isActive={selectedBank && amount > 0 ? true : false}
         />

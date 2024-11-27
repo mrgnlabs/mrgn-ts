@@ -40,7 +40,7 @@ type StakeSimulationProps = {
   setSimulationResult: (result: any | null) => void;
   setActionTxns: (actionTxns: StakeActionTxns) => void;
   setErrorMessage: (error: ActionMessageType | null) => void;
-  setIsLoading: ({ state, type }: { state: boolean; type: string | null }) => void;
+  setIsLoading: ({ isLoading, status }: { isLoading: boolean; status: SimulationStatus }) => void;
 };
 
 export function useStakeSimulation({
@@ -65,7 +65,7 @@ export function useStakeSimulation({
     async (txns: (VersionedTransaction | Transaction)[]) => {
       if (!hasUserInteracted) return;
       try {
-        setSimulationStatus(SimulationStatus.SIMULATING);
+        setIsLoading({ isLoading: true, status: SimulationStatus.SIMULATING });
         if (selectedBank && txns.length > 0) {
           const { actionMethod } = await getSimulationResult({
             marginfiClient: marginfiClient as MarginfiClient,
@@ -75,19 +75,19 @@ export function useStakeSimulation({
 
           if (actionMethod) {
             setErrorMessage(actionMethod);
-            setSimulationResult(null);
+            throw new Error(simulationResult.actionMethod.description);
           } else {
             setErrorMessage(null);
             setSimulationResult(simulationResult);
           }
         } else {
-          setSimulationResult(null);
+          throw new Error("account, bank or transactions are null");
         }
       } catch (error) {
         console.error("Error simulating transaction", error);
         setSimulationResult(null);
       } finally {
-        setIsLoading({ type: "SIMULATION", state: false });
+        setIsLoading({ isLoading: false, status: SimulationStatus.COMPLETE });
       }
     },
     [
@@ -122,12 +122,9 @@ export function useStakeSimulation({
         return;
       }
 
-      setIsLoading({ type: "SIMULATION", state: true });
+      setIsLoading({ isLoading: true, status: SimulationStatus.PREPARING });
 
       try {
-        let swapQuote = null;
-        let swapTx: SolanaTransaction | null = null;
-
         if (actionType === ActionType.UnstakeLST) {
           const _actionTxns = await createUnstakeLstTx({
             amount,
@@ -167,6 +164,7 @@ export function useStakeSimulation({
         const msg = extractErrorString(error);
         console.error(`Error while simulating stake action: ${msg}`);
         setErrorMessage(STATIC_SIMULATION_ERRORS.STAKE_SIMULATION_FAILED);
+        setIsLoading({ isLoading: false, status: SimulationStatus.COMPLETE });
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -201,9 +199,9 @@ export function useStakeSimulation({
       ]);
     } else {
       // If no transactions or no user interaction, stay in idle state
-      setSimulationStatus(SimulationStatus.IDLE);
-      setIsLoading({ type: "SIMULATION", state: false });
+      setIsLoading({ isLoading: false, status: SimulationStatus.IDLE });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [actionTxns]);
 
   return { handleSimulation, refreshSimulation, simulationStatus };
