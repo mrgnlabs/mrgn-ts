@@ -87,7 +87,7 @@ export const LendingScreen = ({ amount, bank, type, txn, txnLink, collatRepay }:
           <>
             <dt>Total {bank.meta.tokenSymbol} Deposits</dt>
             <dd className="text-right">
-              {dynamicNumeralFormatter(bank.position.amount)} {bank.meta.tokenSymbol}
+              {dynamicNumeralFormatter(bank.position.amount - amount)} {bank.meta.tokenSymbol}
             </dd>
           </>
         )}
