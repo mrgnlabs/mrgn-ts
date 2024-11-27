@@ -7,6 +7,7 @@ import { ActionStatItem } from "~/components/action-box-v2/components";
 import type { HidePoolStats } from "~/components/action-box-v2";
 import {
   getAmountStat,
+  getAmountUsdStat,
   getHealthStat,
   getLiquidationStat,
   getPoolSizeStat,
@@ -77,6 +78,12 @@ function generateLendingStats(
       getAmountStat(
         summary.actionPreview.positionAmount,
         bank.meta.tokenSymbol,
+        summary.simulationPreview?.positionAmount
+      ),
+      getAmountUsdStat(
+        summary.actionPreview.positionAmount,
+        bank.meta.tokenSymbol,
+        bank.info.oraclePrice.priceRealtime.price.toNumber(),
         summary.simulationPreview?.positionAmount
       )
     );

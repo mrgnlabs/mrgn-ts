@@ -105,6 +105,9 @@ const clampedNumeralFormatter = (value: number) => {
 };
 
 const tokenPriceFormatter = (price: number, style: "currency" | "decimal" = "currency") => {
+  if (price === 0) {
+    return 0;
+  }
   const reformatNum = Number(price.toFixed(20));
 
   if (reformatNum < 0.00000001) {
