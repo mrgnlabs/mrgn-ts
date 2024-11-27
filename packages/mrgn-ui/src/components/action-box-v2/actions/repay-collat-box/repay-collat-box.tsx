@@ -227,9 +227,14 @@ export const RepayCollatBox = ({
             txn: txnSigs.pop() ?? "",
             txnType: "LEND",
             lendingOptions: {
-              amount: props.withdrawAmount,
+              amount: repayAmount,
               type: ActionType.RepayCollat,
-              bank: props.borrowBank as ActiveBankInfo,
+              bank: selectedBank as ActiveBankInfo,
+              collatRepay: {
+                borrowBank: selectedBank as ActiveBankInfo,
+                withdrawBank: selectedSecondaryBank as ActiveBankInfo,
+                withdrawAmount: amount,
+              },
             },
           });
 
