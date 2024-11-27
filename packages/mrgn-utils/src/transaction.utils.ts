@@ -10,7 +10,7 @@ export function getTransactionStrategy(): ProcessTransactionStrategy | undefined
     !!process.env.NEXT_PUBLIC_TX_SINGLE_BROADCAST_TYPE ||
     !!process.env.NEXT_PUBLIC_TX_MULTI_BROADCAST_TYPE;
 
-  const test = hasStrategyDefined
+  return hasStrategyDefined
     ? {
         splitExecutionsStrategy: {
           singleTx: (process.env.NEXT_PUBLIC_TX_SINGLE_BROADCAST_TYPE ??
@@ -23,8 +23,4 @@ export function getTransactionStrategy(): ProcessTransactionStrategy | undefined
           : DEFAULT_PROCESS_TX_STRATEGY.fallbackSequence,
       }
     : undefined;
-
-  console.log("test: ", test);
-
-  return test;
 }
