@@ -44,26 +44,26 @@ export const ActionComplete = ({ isActionComplete, previousTxn, setIsActionCompl
     if (previousTxn?.txnType === "LEND") {
       switch (previousTxn.lendingOptions.type) {
         case ActionType.Deposit:
-          return "Deposit Completed!";
+          return "Deposit";
         case ActionType.MintLST:
-          return "LST Minted!";
+          return "LST Mint";
         default:
-          return `${previousTxn.lendingOptions.type} Completed!`;
+          return `${previousTxn.lendingOptions.type}!`;
       }
     } else if (previousTxn?.txnType === "TRADING") {
       if (previousTxn.tradingOptions.type === "long") {
-        return "Longing Completed!";
+        return "Long position opened";
       } else {
-        return "Shorting Completed!";
+        return "Short position opened";
       }
     } else if (previousTxn?.txnType === "LOOP") {
-      return "Loop Completed!";
+      return "Loop";
     } else if (previousTxn.txnType === "STAKE") {
-      return "Stake Completed!";
+      return "Stake";
     } else if (previousTxn.txnType === "UNSTAKE") {
-      return "Unstake Completed!";
+      return "Unstake";
     } else {
-      return "Action Completed!";
+      return "Action";
     }
   }, [previousTxn]);
 
@@ -85,13 +85,9 @@ export const ActionComplete = ({ isActionComplete, previousTxn, setIsActionCompl
       />
       <Dialog open={isActionComplete} onOpenChange={(open) => setIsActionComplete(open)}>
         <DialogContent className="z-[70] w-full">
-          {/* <div className="space-y-12 w-full"> */}
-          <DialogHeader>
-            <DialogTitle className="space-y-4 text-center flex flex-col items-center justify-center">
-              <IconConfetti size={48} />
-              <h2 className="font-medium text-xl">{headerText}</h2>
-            </DialogTitle>
-            <DialogDescription className="sr-only">{headerText}</DialogDescription>
+          <DialogHeader className="sr-only">
+            <DialogTitle>{headerText}</DialogTitle>
+            <DialogDescription>{headerText}</DialogDescription>
           </DialogHeader>
           <div className="space-y-12 w-full">
             {previousTxn.txnType === "LEND" && (
