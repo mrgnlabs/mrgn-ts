@@ -6,6 +6,7 @@ import {
   executeLoopingAction,
   LoopActionTxns,
   ExecuteLoopingActionProps,
+  IndividualFlowError,
 } from "@mrgnlabs/mrgn-utils";
 
 import { ExecuteActionsCallbackProps } from "~/components/action-box-v2/types";
@@ -48,8 +49,7 @@ export const handleExecuteLoopAction = async ({
       });
     }
   } catch (error) {
-    // TODO: add type here
-    setError(error);
+    setError(error as IndividualFlowError);
   }
 };
 

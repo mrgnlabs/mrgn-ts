@@ -13,6 +13,7 @@ import {
   checkStakeActionAvailable,
   MultiStepToastHandle,
   ActionTxns,
+  IndividualFlowError,
 } from "@mrgnlabs/mrgn-utils";
 
 import { useActionAmounts } from "~/components/action-box-v2/hooks";
@@ -243,12 +244,14 @@ export const StakeBox = ({
               },
             });
         },
-        setError: (error: any) => {
-          // TODO: update type
+        setError: (error: IndividualFlowError) => {
           const toast = error.multiStepToast as MultiStepToastHandle;
           const txs = error.actionTxns as ActionTxns;
-          const errorMessage = error.errorMessage;
-          toast.setFailed(errorMessage, () => callbacks.retryCallback(txs, toast));
+          let retry = undefined;
+          if (error.retry && txs && toast) {
+            retry = () => callbacks.retryCallback(txs, toast);
+          }
+          toast.setFailed(error.message, retry);
           callbacks.setIsLoading(false);
         },
         setIsLoading: (isLoading) => callbacks.setIsLoading(isLoading),

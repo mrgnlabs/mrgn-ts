@@ -57,7 +57,7 @@ export const MultiStepToast = ({ title, steps, retry }: MultiStepToastProps) => 
                   >
                     {step.label}
                   </span>
-                  {step.status === "error" && isLastFailed && (
+                  {step.status === "error" && isLastFailed && retry && (
                     <button
                       onClick={retry}
                       className="ml-2 relative inline-flex gap-2 items-center justify-center whitespace-nowrap rounded-md text-[10px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gray-600 bg-accent text-primary px-2 py-0.5 shadow-sm hover:bg-accent/80"

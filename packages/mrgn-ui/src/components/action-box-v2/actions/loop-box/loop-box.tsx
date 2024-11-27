@@ -19,6 +19,8 @@ import {
   MultiStepToastHandle,
   PreviousTxn,
   showErrorToast,
+  cn,
+  IndividualFlowError,
 } from "@mrgnlabs/mrgn-utils";
 
 import { useAmountDebounce } from "~/hooks/useAmountDebounce";
@@ -245,7 +247,7 @@ export const LoopBox = ({
         setIsComplete: (txnSigs) => {
           callbacks.setIsActionComplete(true);
           callbacks.setPreviousTxn({
-            txn: txnSigs.pop() ?? "",
+            txn: txnSigs[txnSigs.length - 1] ?? "",
             txnType: "LOOP",
             loopOptions: {
               depositBank: params.depositBank as ActiveBankInfo,
@@ -258,7 +260,7 @@ export const LoopBox = ({
 
           callbacks.onComplete &&
             callbacks.onComplete({
-              txn: txnSigs.pop() ?? "",
+              txn: txnSigs[txnSigs.length - 1] ?? "",
               txnType: "LEND",
               lendingOptions: {
                 amount: params.depositAmount,
@@ -267,11 +269,14 @@ export const LoopBox = ({
               },
             });
         },
-        setError: (error: any) => {
+        setError: (error: IndividualFlowError) => {
           const toast = error.multiStepToast as MultiStepToastHandle;
           const txs = error.actionTxns as ActionTxns;
-          const errorMessage = error.errorMessage;
-          toast.setFailed(errorMessage, () => callbacks.retryCallback(txs, toast));
+          let retry = undefined;
+          if (error.retry && toast && txs) {
+            retry = () => callbacks.retryCallback(txs, toast);
+          }
+          toast.setFailed(error.message, retry);
           callbacks.setIsLoading(false);
         },
         setIsLoading: (isLoading) => callbacks.setIsLoading(isLoading),

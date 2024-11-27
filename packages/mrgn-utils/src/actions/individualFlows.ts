@@ -5,15 +5,22 @@ import {
   Connection,
   LAMPORTS_PER_SOL,
   PublicKey,
+  SolanaJSONRPCError,
   TransactionMessage,
   VersionedTransaction,
 } from "@solana/web3.js";
 import { WalletContextState } from "@solana/wallet-adapter-react";
 
 import { ExtendedBankInfo, clearAccountCache } from "@mrgnlabs/marginfi-v2-ui-state";
-import { MarginfiAccountWrapper, MarginfiClient, ProcessTransactionsClientOpts } from "@mrgnlabs/marginfi-client-v2";
+import {
+  MarginfiAccountWrapper,
+  MarginfiClient,
+  ProcessTransactionError,
+  ProcessTransactionsClientOpts,
+} from "@mrgnlabs/marginfi-client-v2";
 import {
   MRGN_TX_TYPE_TOAST_MAP,
+  SolanaTransaction,
   TransactionBroadcastType,
   TransactionOptions,
   Wallet,
@@ -27,9 +34,18 @@ import { extractErrorString, isWholePosition } from "../mrgnUtils";
 import { makeDepositSolToStakePoolIx, makeDepositStakeToStakePoolIx } from "../lstUtils";
 
 import { getMaybeSquadsOptions } from "./helpers";
-import { LstData, StakeData, MarginfiActionParams, LoopingProps, ActionTxns, RepayWithCollatProps } from "./types";
+import {
+  LstData,
+  StakeData,
+  MarginfiActionParams,
+  LoopingProps,
+  ActionTxns,
+  RepayWithCollatProps,
+  IndividualFlowError,
+} from "./types";
 import { captureSentryException } from "../sentry.utils";
 import { loopingBuilder, repayWithCollatBuilder } from "./flashloans";
+import { handleError } from "../errors";
 
 //-----------------------//
 // Local utils functions //
@@ -51,9 +67,48 @@ export function composeExplorerUrl(signature?: string, broadcastType: Transactio
     : `https://solscan.io/tx/${signature}`;
 }
 
+interface handleIndividualFlowErrorParams {
+  error: Error;
+  actionTxns?: ActionTxns;
+  multiStepToast?: MultiStepToastHandle;
+}
+
+export function handleIndividualFlowError({
+  error,
+  actionTxns,
+  multiStepToast,
+}: handleIndividualFlowErrorParams): never {
+  if (error instanceof ProcessTransactionError) {
+    const message = extractErrorString(error);
+    let failedTxns: ActionTxns | undefined;
+
+    if (error.failedTxs && actionTxns) {
+      // Last transaction is always the action transaction
+      const lastIndex = error.failedTxs.length - 1;
+      failedTxns = {
+        ...actionTxns,
+        actionTxn: error.failedTxs[lastIndex],
+        additionalTxns: error.failedTxs.slice(0, lastIndex),
+      };
+    }
+
+    throw new IndividualFlowError(message, {
+      failedTxns,
+      multiStepToast,
+      retry: true, // TODO: decide which errors we want to allow retries
+    });
+  } else if (error instanceof SolanaJSONRPCError) {
+    throw new IndividualFlowError(error.message);
+  } else {
+    const message = extractErrorString(error);
+    throw new IndividualFlowError(message ?? JSON.stringify(error));
+  }
+}
+
 // ------------------------------------------------------------------//
 // Individual action flows - non-throwing - for use in UI components //
 // ------------------------------------------------------------------//
+
 export async function createAccount({
   mfiClient,
   walletContextState,
@@ -110,8 +165,9 @@ export async function createAccountAndDeposit({
     showErrorToast({ message: "Marginfi client not ready" });
     return;
   }
-  const steps = getSteps();
   if (!multiStepToast) {
+    const steps = getSteps();
+
     multiStepToast = new MultiStepToastHandle("Initial deposit", [
       ...steps,
       { label: `Depositing ${amount} ${bank.meta.tokenSymbol}` },
@@ -130,20 +186,21 @@ export async function createAccountAndDeposit({
 
     multiStepToast.setSuccessAndNext();
   } catch (error: any) {
-    const msg = extractErrorString(error);
-
-    captureSentryException(error, msg, {
-      action: "createAccount",
-      wallet: walletContextState?.publicKey?.toBase58(),
-    });
-
-    console.log(`Error while depositing: ${msg}`);
+    console.log(`Error while depositing`);
     console.log(error);
-    throw {
-      errorMessage: msg,
+
+    if (!(error instanceof ProcessTransactionError || error instanceof SolanaJSONRPCError)) {
+      captureSentryException(error, JSON.stringify(error), {
+        action: "createAccount",
+        wallet: walletContextState?.publicKey?.toBase58(),
+      });
+    }
+
+    handleIndividualFlowError({
+      error,
+      actionTxns: undefined,
       multiStepToast,
-      actionTxns: undefined, // TODO: handle this
-    };
+    });
   }
 
   try {
@@ -151,21 +208,21 @@ export async function createAccountAndDeposit({
     multiStepToast.setSuccessAndNext(undefined, txnSig, composeExplorerUrl(txnSig, processOpts?.broadcastType));
     return txnSig;
   } catch (error: any) {
-    const msg = extractErrorString(error);
-
-    captureSentryException(error, msg, {
-      action: "deposit",
-      wallet: walletContextState?.publicKey?.toBase58(),
-      bank: bank.meta.tokenSymbol,
-    });
-
-    console.log(`Error while depositing: ${msg}`);
+    console.log(`Error while depositing:`);
     console.log(error);
-    throw {
-      errorMessage: msg,
+    if (!(error instanceof ProcessTransactionError || error instanceof SolanaJSONRPCError)) {
+      captureSentryException(error, JSON.stringify(error), {
+        action: "deposit",
+        wallet: walletContextState?.publicKey?.toBase58(),
+        bank: bank.meta.tokenSymbol,
+      });
+    }
+
+    handleIndividualFlowError({
+      error,
+      actionTxns: undefined,
       multiStepToast,
-      actionTxns: undefined, // TODO: handle this
-    };
+    });
   }
 }
 
@@ -179,9 +236,9 @@ export async function deposit({
   txOpts,
   multiStepToast,
 }: MarginfiActionParams) {
-  const steps = getSteps(actionTxns);
-
   if (!multiStepToast) {
+    const steps = getSteps(actionTxns);
+
     multiStepToast = new MultiStepToastHandle("Deposit", [
       ...steps,
       { label: `Depositing ${amount} ${bank.meta.tokenSymbol}` },
@@ -213,18 +270,21 @@ export async function deposit({
     multiStepToast.setSuccess(txnSig, composeExplorerUrl(txnSig, processOpts?.broadcastType));
     return txnSig;
   } catch (error: any) {
-    const msg = extractErrorString(error);
-
-    captureSentryException(error, msg, {
-      action: "deposit",
-      wallet: marginfiAccount?.authority?.toBase58(),
-      bank: bank.meta.tokenSymbol,
-    });
-
-    multiStepToast.setFailed(msg);
-    console.log(`Error while depositing: ${msg}`);
+    console.log(`Error while Depositing`);
     console.log(error);
-    return;
+    if (!(error instanceof ProcessTransactionError || error instanceof SolanaJSONRPCError)) {
+      captureSentryException(error, JSON.stringify(error), {
+        action: "deposit",
+        wallet: marginfiAccount?.authority?.toBase58(),
+        bank: bank.meta.tokenSymbol,
+      });
+    }
+
+    handleIndividualFlowError({
+      error,
+      actionTxns,
+      multiStepToast,
+    });
   }
 }
 
@@ -238,9 +298,9 @@ export async function borrow({
   txOpts,
   multiStepToast,
 }: MarginfiActionParams) {
-  const steps = getSteps(actionTxns);
-
   if (!multiStepToast) {
+    const steps = getSteps(actionTxns);
+
     multiStepToast = new MultiStepToastHandle("Borrow", [
       ...steps,
       { label: `Borrowing ${amount} ${bank.meta.tokenSymbol}` },
@@ -275,21 +335,22 @@ export async function borrow({
     );
     return sigs;
   } catch (error: any) {
-    const msg = extractErrorString(error);
-
-    captureSentryException(error, msg, {
-      action: "borrow",
-      wallet: marginfiAccount?.authority?.toBase58(),
-      bank: bank.meta.tokenSymbol,
-    });
-
-    console.log(`Error while borrowing: ${msg}`);
+    console.log(`Error while borrowing`);
     console.log(error);
-    throw {
-      errorMessage: msg,
+
+    if (!(error instanceof ProcessTransactionError || error instanceof SolanaJSONRPCError)) {
+      captureSentryException(error, JSON.stringify(error), {
+        action: "borrow",
+        wallet: marginfiAccount?.authority?.toBase58(),
+        bank: bank.meta.tokenSymbol,
+      });
+    }
+
+    handleIndividualFlowError({
+      error,
+      actionTxns,
       multiStepToast,
-      actionTxns, // TODO: this will be updated with correct transactions after error refactor
-    };
+    });
   }
 }
 
@@ -303,9 +364,9 @@ export async function withdraw({
   txOpts,
   multiStepToast,
 }: MarginfiActionParams) {
-  const steps = getSteps(actionTxns);
-
   if (!multiStepToast) {
+    const steps = getSteps(actionTxns);
+
     multiStepToast = new MultiStepToastHandle("Withdraw", [
       ...steps,
       { label: `Withdrawing ${amount} ${bank.meta.tokenSymbol}` },
@@ -315,8 +376,17 @@ export async function withdraw({
     multiStepToast.resetAndStart();
   }
 
+  console.log(multiStepToast);
+
   try {
     let sigs: string[] = [];
+
+    console.log({
+      ...processOpts,
+      callback: (index: any, success: any, sig: any, stepsToAdvance: any) =>
+        success &&
+        multiStepToast.setSuccessAndNext(stepsToAdvance, sig, composeExplorerUrl(sig, processOpts?.broadcastType)),
+    });
 
     if (actionTxns?.actionTxn && marginfiClient) {
       sigs = await marginfiClient.processTransactions(
@@ -347,20 +417,22 @@ export async function withdraw({
     );
     return sigs;
   } catch (error: any) {
-    const msg = extractErrorString(error);
-
-    captureSentryException(error, msg, {
-      action: "withdraw",
-      wallet: marginfiAccount?.authority?.toBase58(),
-      bank: bank.meta.tokenSymbol,
-    });
     console.log(`Error while withdrawing`);
     console.log(error);
-    throw {
-      errorMessage: msg,
+
+    if (!(error instanceof ProcessTransactionError || error instanceof SolanaJSONRPCError)) {
+      captureSentryException(error, JSON.stringify(error), {
+        action: "withdraw",
+        wallet: marginfiAccount?.authority?.toBase58(),
+        bank: bank.meta.tokenSymbol,
+      });
+    }
+
+    handleIndividualFlowError({
+      error,
+      actionTxns,
       multiStepToast,
-      actionTxns, // TODO: this will be updated with correct transactions after error refactor
-    };
+    });
   }
 }
 
@@ -374,9 +446,9 @@ export async function repay({
   txOpts,
   multiStepToast,
 }: MarginfiActionParams) {
-  const steps = getSteps(actionTxns);
-
   if (!multiStepToast) {
+    const steps = getSteps(actionTxns);
+
     multiStepToast = new MultiStepToastHandle("Repay", [
       ...steps,
       { label: `Repaying ${amount} ${bank.meta.tokenSymbol}` },
@@ -421,21 +493,21 @@ export async function repay({
     multiStepToast.setSuccess(txnSig, composeExplorerUrl(txnSig, processOpts?.broadcastType));
     return txnSig;
   } catch (error: any) {
-    const msg = extractErrorString(error);
-
-    captureSentryException(error, msg, {
-      action: "repay",
-      wallet: marginfiAccount?.authority?.toBase58(),
-      bank: bank.meta.tokenSymbol,
-    });
-
-    console.log(`Error while repaying: ${msg}`);
+    console.log(`Error while repaying`);
     console.log(error);
-    throw {
-      errorMessage: msg,
+    if (!(error instanceof ProcessTransactionError || error instanceof SolanaJSONRPCError)) {
+      captureSentryException(error, JSON.stringify(error), {
+        action: "repay",
+        wallet: marginfiAccount?.authority?.toBase58(),
+        bank: bank.meta.tokenSymbol,
+      });
+    }
+
+    handleIndividualFlowError({
+      error,
+      actionTxns,
       multiStepToast,
-      actionTxns, // TODO: this will be updated with correct transactions after error refactor
-    };
+    });
   }
 }
 
@@ -454,13 +526,14 @@ export async function looping({
   multiStepToast,
   ...loopingProps
 }: LoopingFnProps) {
-  const steps = getSteps(actionTxns);
   if (marginfiClient === null) {
     showErrorToast({ message: "Marginfi client not ready" });
     return;
   }
 
   if (!multiStepToast) {
+    const steps = getSteps(actionTxns);
+
     multiStepToast = new MultiStepToastHandle("Looping", [
       ...steps,
       {
@@ -504,23 +577,22 @@ export async function looping({
     );
     return sigs;
   } catch (error: any) {
-    const msg = extractErrorString(error);
-
-    captureSentryException(error, msg, {
-      action: "looping",
-      wallet: loopingProps.marginfiAccount?.authority?.toBase58(),
-      bank: loopingProps.borrowBank.meta.tokenSymbol,
-      amount: loopingProps.borrowAmount.toString(),
-    });
-
-    multiStepToast.setFailed(msg);
-    console.log(`Error while looping: ${msg}`);
+    console.log(`Error while looping`);
     console.log(error);
-    throw {
-      errorMessage: msg,
+    if (!(error instanceof ProcessTransactionError || error instanceof SolanaJSONRPCError)) {
+      captureSentryException(error, JSON.stringify(error), {
+        action: "looping",
+        wallet: loopingProps.marginfiAccount?.authority?.toBase58(),
+        bank: loopingProps.borrowBank.meta.tokenSymbol,
+        amount: loopingProps.borrowAmount.toString(),
+      });
+    }
+
+    handleIndividualFlowError({
+      error,
+      actionTxns,
       multiStepToast,
-      actionTxns, // TODO: this will be updated with correct transactions after error refactor
-    };
+    });
   }
 }
 
@@ -549,10 +621,10 @@ export async function repayWithCollat({
     return;
   }
 
-  const steps = getSteps(actionTxns);
-  const label = `Repaying ${repayProps.repayAmount} ${repayProps.borrowBank.meta.tokenSymbol} with ${repayProps.withdrawAmount} ${repayProps.depositBank.meta.tokenSymbol}`;
-
   if (!multiStepToast) {
+    const steps = getSteps(actionTxns);
+    const label = `Repaying ${repayProps.repayAmount} ${repayProps.borrowBank.meta.tokenSymbol} with ${repayProps.withdrawAmount} ${repayProps.depositBank.meta.tokenSymbol}`;
+
     multiStepToast = new MultiStepToastHandle("Collateral Repay", [...steps, { label }]);
     multiStepToast.start();
   } else {
@@ -588,22 +660,22 @@ export async function repayWithCollat({
     );
     return sigs;
   } catch (error: any) {
-    const msg = extractErrorString(error);
-
-    captureSentryException(error, msg, {
-      action: "repayWithCollat",
-      wallet: repayProps.marginfiAccount?.authority?.toBase58(),
-      bank: repayProps.borrowBank.meta.tokenSymbol,
-      amount: repayProps.repayAmount.toString(),
-    });
-
-    console.log(`Error while repaying: ${msg}`);
+    console.log(`Error while repaying`);
     console.log(error);
-    throw {
-      errorMessage: msg,
+    if (!(error instanceof ProcessTransactionError || error instanceof SolanaJSONRPCError)) {
+      captureSentryException(error, JSON.stringify(error), {
+        action: "repayWithCollat",
+        wallet: repayProps.marginfiAccount?.authority?.toBase58(),
+        bank: repayProps.borrowBank.meta.tokenSymbol,
+        amount: repayProps.repayAmount.toString(),
+      });
+    }
+
+    handleIndividualFlowError({
+      error,
+      actionTxns,
       multiStepToast,
-      actionTxns, // TODO: this will be updated with correct transactions after error refactor
-    };
+    });
   }
 }
 
@@ -658,9 +730,9 @@ export const closeBalance = async ({
     return;
   }
 
-  const steps = getSteps();
-
   if (!multiStepToast) {
+    const steps = getSteps();
+
     multiStepToast = new MultiStepToastHandle("Closing balance", [
       ...steps,
       { label: `Closing ${bank.position.isLending ? "lending" : "borrow"} balance for ${bank.meta.tokenSymbol}` },
@@ -680,20 +752,21 @@ export const closeBalance = async ({
     multiStepToast.setSuccessAndNext(undefined, txnSig, composeExplorerUrl(txnSig, processOpts?.broadcastType));
     return txnSig;
   } catch (error: any) {
-    const msg = extractErrorString(error);
-
-    captureSentryException(error, msg, {
-      action: "closeBalance",
-      wallet: marginfiAccount?.authority?.toBase58(),
-      bank: bank.meta.tokenSymbol,
-    });
     console.log(`Error while closing balance`);
     console.log(error);
+    if (!(error instanceof ProcessTransactionError || error instanceof SolanaJSONRPCError)) {
+      captureSentryException(error, JSON.stringify(error), {
+        action: "closeBalance",
+        wallet: marginfiAccount?.authority?.toBase58(),
+        bank: bank.meta.tokenSymbol,
+      });
+    }
 
-    throw {
-      errorMessage: msg,
+    handleIndividualFlowError({
+      error,
+      actionTxns: undefined,
       multiStepToast,
-    };
+    });
   }
 };
 
