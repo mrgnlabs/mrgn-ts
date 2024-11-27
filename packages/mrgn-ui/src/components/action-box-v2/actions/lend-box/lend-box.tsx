@@ -180,6 +180,17 @@ export const LendBox = ({
     };
   }, [refreshState]);
 
+  //clean state
+  React.useEffect(() => {
+    console.log("debouncedAmount", debouncedAmount);
+    console.log("simulationResult", simulationResult);
+    if (debouncedAmount === 0 && simulationResult) {
+      console.log("clearing simulation result");
+      setActionTxns({ actionTxn: null, additionalTxns: [] });
+      setSimulationResult(null);
+    }
+  }, [simulationResult, debouncedAmount, setActionTxns, setSimulationResult]);
+
   React.useEffect(() => {
     fetchActionBoxState({ requestedLendType, requestedBank });
   }, [requestedLendType, requestedBank, fetchActionBoxState]);
