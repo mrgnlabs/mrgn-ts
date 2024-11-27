@@ -6,6 +6,7 @@ import { cn } from "@mrgnlabs/mrgn-utils";
 import { ActionStatItem } from "~/components/action-box-v2/components";
 import {
   getAmountStat,
+  getAmountUsdStat,
   getHealthStat,
   getLiquidationStat,
   getPoolSizeStat,
@@ -62,6 +63,14 @@ function generateRepayCollatStats(summary: ActionSummary, bank: ExtendedBankInfo
     getAmountStat(
       summary.actionPreview.positionAmount,
       bank.meta.tokenSymbol,
+      summary.simulationPreview?.positionAmount
+    )
+  );
+  stats.push(
+    getAmountUsdStat(
+      summary.actionPreview.positionAmount,
+      bank.meta.tokenSymbol,
+      bank.info.oraclePrice.priceRealtime.price.toNumber(),
       summary.simulationPreview?.positionAmount
     )
   );

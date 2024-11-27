@@ -476,6 +476,7 @@ export const LendBox = ({
           nativeSolBalance={nativeSolBalance}
           walletAmount={walletAmount}
           amountRaw={amountRaw}
+          amount={debouncedAmount}
           maxAmount={maxAmount}
           connected={connected}
           selectedBank={selectedBank}

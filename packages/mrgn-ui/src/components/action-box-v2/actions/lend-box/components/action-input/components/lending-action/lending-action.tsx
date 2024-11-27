@@ -1,7 +1,7 @@
 import React from "react";
 
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { clampedNumeralFormatter } from "@mrgnlabs/mrgn-common";
+import { dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
 
 type LendingActionProps = {
   walletAmount: number | undefined;
@@ -35,7 +35,7 @@ export const LendingAction = ({
     }
 
     const formatAmount = (amount?: number, symbol?: string) =>
-      amount !== undefined ? `${clampedNumeralFormatter(amount)} ${symbol}` : "-";
+      amount !== undefined ? `${dynamicNumeralFormatter(amount)} ${symbol}` : "-";
 
     switch (lendMode) {
       case ActionType.Deposit:
