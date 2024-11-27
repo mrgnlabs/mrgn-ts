@@ -33,6 +33,21 @@ export const LendingScreen = ({ amount, bank, type, txn, txnLink, collatRepay }:
     return computeBankRate(bank, type === ActionType.Deposit ? LendingModes.LEND : LendingModes.BORROW);
   }, [bank, type]);
 
+  const updatedBankAmount = React.useMemo(() => {
+    switch (type) {
+      case ActionType.Deposit:
+        return bank.position.amount + amount;
+      case ActionType.Withdraw:
+        return bank.position.amount - amount;
+      case ActionType.Borrow:
+        return bank.position.amount + amount;
+      case ActionType.Repay:
+        return bank.position.amount - amount;
+      default:
+        return bank.position.amount;
+    }
+  }, [amount, bank.position.amount, type]);
+
   return (
     <>
       <div className="flex flex-col items-center gap-4 border-b border-border pb-10">
@@ -87,7 +102,7 @@ export const LendingScreen = ({ amount, bank, type, txn, txnLink, collatRepay }:
           <>
             <dt>Total {bank.meta.tokenSymbol} Deposits</dt>
             <dd className="text-right">
-              {dynamicNumeralFormatter(bank.position.amount - amount)} {bank.meta.tokenSymbol}
+              {dynamicNumeralFormatter(updatedBankAmount)} {bank.meta.tokenSymbol}
             </dd>
           </>
         )}
