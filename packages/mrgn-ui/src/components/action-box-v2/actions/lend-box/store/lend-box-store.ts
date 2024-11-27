@@ -15,7 +15,6 @@ interface LendBoxState {
   actionTxns: ActionTxns;
 
   errorMessage: ActionMessageType | null;
-  isLoading: boolean;
 
   // Actions
   refreshState: (actionMode?: ActionType) => void;
@@ -26,7 +25,6 @@ interface LendBoxState {
   setSimulationResult: (simulationResult: SimulationResult | null) => void;
   setActionTxns: (actionTxns: ActionTxns) => void;
   setSelectedBank: (bank: ExtendedBankInfo | null) => void;
-  setIsLoading: (isLoading: boolean) => void;
   setErrorMessage: (errorMessage: ActionMessageType | null) => void;
 }
 
@@ -41,7 +39,6 @@ const initialState = {
   selectedBank: null,
   actionTxns: { actionTxn: null, additionalTxns: [] },
   errorMessage: null,
-  isLoading: false,
 };
 
 const stateCreator: StateCreator<LendBoxState, [], []> = (set, get) => ({
@@ -139,10 +136,6 @@ const stateCreator: StateCreator<LendBoxState, [], []> = (set, get) => ({
 
   setSimulationResult(simulationResult) {
     set({ simulationResult });
-  },
-
-  setIsLoading(isLoading) {
-    set({ isLoading });
   },
 
   setErrorMessage(errorMessage) {

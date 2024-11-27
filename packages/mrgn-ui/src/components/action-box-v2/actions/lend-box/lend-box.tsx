@@ -87,7 +87,6 @@ export const LendBox = ({
     actionTxns,
     selectedBank,
     simulationResult,
-    isLoading,
     errorMessage,
 
     refreshState,
@@ -98,7 +97,6 @@ export const LendBox = ({
     refreshSelectedBanks,
     setSimulationResult,
     setActionTxns,
-    setIsLoading,
     setErrorMessage,
   ] = useLendBoxStore(isDialog)((state) => [
     state.amountRaw,
@@ -106,7 +104,6 @@ export const LendBox = ({
     state.actionTxns,
     state.selectedBank,
     state.simulationResult,
-    state.isLoading,
     state.errorMessage,
 
     state.refreshState,
@@ -117,11 +114,22 @@ export const LendBox = ({
     state.refreshSelectedBanks,
     state.setSimulationResult,
     state.setActionTxns,
-    state.setIsLoading,
     state.setErrorMessage,
   ]);
 
-  const [hasLoaded, setHasLoaded] = React.useState(false);
+  const [isTransactionExecuting, setIsTransactionExecuting] = React.useState(false);
+  const [isSimulating, setIsSimulating] = React.useState<{
+    isLoading: boolean;
+    status: SimulationStatus;
+  }>({
+    isLoading: false,
+    status: SimulationStatus.IDLE,
+  });
+
+  const isLoading = React.useMemo(
+    () => isTransactionExecuting || isSimulating.isLoading,
+    [isTransactionExecuting, isSimulating.isLoading]
+  );
 
   const { broadcastType, priorityFees } = useActionContext() || { broadcastType: null, priorityFees: null };
 
@@ -142,7 +150,7 @@ export const LendBox = ({
     nativeSolBalance,
     actionMode: lendMode,
   });
-  const { actionSummary, refreshSimulation, simulationStatus } = useLendSimulation({
+  const { actionSummary, refreshSimulation } = useLendSimulation({
     debouncedAmount: debouncedAmount ?? 0,
     selectedAccount,
     accountSummary,
@@ -153,19 +161,11 @@ export const LendBox = ({
     setSimulationResult,
     setActionTxns,
     setErrorMessage,
-    setIsLoading,
+    setIsLoading: setIsSimulating,
   });
 
   const [lstDialogCallback, setLSTDialogCallback] = React.useState<(() => void) | null>(null);
   const [additionalActionMessages, setAdditionalActionMessages] = React.useState<ActionMessageType[]>([]);
-
-  React.useEffect(() => {
-    if (isLoading) {
-      setHasLoaded(false);
-    } else if (!isLoading && !hasLoaded) {
-      setHasLoaded(true);
-    }
-  }, [isLoading, hasLoaded]);
 
   // Cleanup the store when the wallet disconnects
   React.useEffect(() => {
@@ -278,14 +278,14 @@ export const LendBox = ({
         captureEvent: captureEvent,
         setIsActionComplete: setIsActionComplete,
         setPreviousTxn: setPreviousTxn,
-        setIsLoading: setIsLoading,
+        setIsLoading: setIsTransactionExecuting,
         onComplete: onComplete,
         retryCallback: (multiStepToast: MultiStepToastHandle) =>
           retryCloseBalanceAction({ ...params, multiStepToast }, selectedBank),
         setAmountRaw: setAmountRaw,
       });
     },
-    [captureEvent, onComplete, setAmountRaw, setIsActionComplete, setIsLoading, setPreviousTxn]
+    [captureEvent, onComplete, setAmountRaw, setIsActionComplete, setIsTransactionExecuting, setPreviousTxn]
   );
 
   const handleCloseBalance = React.useCallback(async () => {
@@ -303,7 +303,7 @@ export const LendBox = ({
       captureEvent: captureEvent,
       setIsActionComplete: setIsActionComplete,
       setPreviousTxn: setPreviousTxn,
-      setIsLoading: setIsLoading,
+      setIsLoading: setIsTransactionExecuting,
       onComplete: onComplete,
       retryCallback: (multiStepToast: MultiStepToastHandle) =>
         retryCloseBalanceAction({ ...params, multiStepToast }, selectedBank),
@@ -319,7 +319,7 @@ export const LendBox = ({
     selectedBank,
     setAmountRaw,
     setIsActionComplete,
-    setIsLoading,
+    setIsTransactionExecuting,
     setPreviousTxn,
   ]);
 
@@ -400,14 +400,14 @@ export const LendBox = ({
         setIsActionComplete: setIsActionComplete,
         setPreviousTxn: setPreviousTxn,
         onComplete: onComplete,
-        setIsLoading: setIsLoading,
+        setIsLoading: setIsTransactionExecuting,
         setLSTDialogCallback: setLSTDialogCallback,
         setAmountRaw: setAmountRaw,
         retryCallback: (txns: ActionTxns, multiStepToast: MultiStepToastHandle) =>
           retryLendingAction({ ...params, actionTxns: txns, multiStepToast }, selectedBank),
       });
     },
-    [captureEvent, setIsActionComplete, setPreviousTxn, onComplete, setIsLoading, setAmountRaw]
+    [captureEvent, setIsActionComplete, setPreviousTxn, onComplete, setIsTransactionExecuting, setAmountRaw]
   );
 
   const handleLendingAction = React.useCallback(
@@ -434,7 +434,7 @@ export const LendBox = ({
         setIsActionComplete: setIsActionComplete,
         setPreviousTxn: setPreviousTxn,
         onComplete: onComplete,
-        setIsLoading: setIsLoading,
+        setIsLoading: setIsTransactionExecuting,
         setLSTDialogCallback: setLSTDialogCallback,
         setAmountRaw: setAmountRaw,
         retryCallback: (txns: ActionTxns, multiStepToast: MultiStepToastHandle) =>
@@ -456,7 +456,7 @@ export const LendBox = ({
       selectedBank,
       setAmountRaw,
       setIsActionComplete,
-      setIsLoading,
+      setIsTransactionExecuting,
       setPreviousTxn,
       walletContextState,
     ]
@@ -495,7 +495,7 @@ export const LendBox = ({
               <ActionMessage
                 _actionMessage={actionMessage}
                 retry={refreshSimulation}
-                isRetrying={simulationStatus === SimulationStatus.SIMULATING}
+                isRetrying={isSimulating.isLoading}
               />
             </div>
           )
@@ -509,9 +509,8 @@ export const LendBox = ({
 
       <div className="mb-3">
         <ActionButton
-          isLoading={simulationStatus === SimulationStatus.SIMULATING}
+          isLoading={isLoading}
           isEnabled={
-            simulationStatus === SimulationStatus.COMPLETE &&
             !additionalActionMessages.concat(actionMessages).filter((value) => value.isEnabled === false).length
           }
           connected={connected}
@@ -524,7 +523,7 @@ export const LendBox = ({
       </div>
 
       <ActionSimulationStatus
-        simulationStatus={simulationStatus}
+        simulationStatus={isSimulating.status}
         hasErrorMessages={additionalActionMessages.length > 0}
         isActive={selectedBank && amount > 0 ? true : false}
       />

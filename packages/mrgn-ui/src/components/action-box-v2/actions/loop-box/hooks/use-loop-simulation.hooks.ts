@@ -16,7 +16,6 @@ import {
   STATIC_SIMULATION_ERRORS,
   usePrevious,
 } from "@mrgnlabs/mrgn-utils";
-import { TransactionBroadcastType } from "@mrgnlabs/mrgn-common";
 import { AccountSummary, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { useActionBoxStore } from "../../../store";
@@ -37,9 +36,9 @@ type LoopSimulationProps = {
 
   setSimulationResult: (simulationResult: SimulationResult | null) => void;
   setActionTxns: (actionTxns: LoopActionTxns) => void;
-  setErrorMessage: (error: ActionMessageType) => void;
-  setIsLoading: (isLoading: boolean) => void;
+  setErrorMessage: (error: ActionMessageType | null) => void;
   setMaxLeverage: (maxLeverage: number) => void;
+  setIsLoading: ({ isLoading, status }: { isLoading: boolean; status: SimulationStatus }) => void;
 };
 
 export function useLoopSimulation({
@@ -67,32 +66,34 @@ export function useLoopSimulation({
   const prevSelectedSecondaryBank = usePrevious(selectedSecondaryBank);
   const prevActionTxn = usePrevious(actionTxns?.actionTxn);
 
-  const [simulationStatus, setSimulationStatus] = React.useState<SimulationStatus>(SimulationStatus.IDLE);
-
   const handleSimulation = React.useCallback(
     async (txns: (VersionedTransaction | Transaction)[]) => {
       try {
-        setSimulationStatus(SimulationStatus.SIMULATING);
+        setIsLoading({ isLoading: true, status: SimulationStatus.SIMULATING });
         if (selectedAccount && selectedBank && txns.length > 0) {
           const simulationResult = await getSimulationResult({
             account: selectedAccount,
             bank: selectedBank,
             txns,
           });
-
-          setSimulationResult(simulationResult.simulationResult);
+          if (simulationResult.actionMethod) {
+            setErrorMessage(simulationResult.actionMethod);
+            throw new Error(simulationResult.actionMethod.description);
+          } else {
+            setErrorMessage(null);
+            setSimulationResult(simulationResult.simulationResult);
+          }
         } else {
-          setSimulationResult(null);
+          throw new Error("account, bank or transactions are null");
         }
       } catch (error) {
         console.error("Error simulating transaction", error);
         setSimulationResult(null);
       } finally {
-        setIsLoading(false);
-        setSimulationStatus(SimulationStatus.COMPLETE);
+        setIsLoading({ isLoading: false, status: SimulationStatus.COMPLETE });
       }
     },
-    [selectedAccount, selectedBank, setIsLoading, setSimulationResult]
+    [selectedAccount, selectedBank, setErrorMessage, setIsLoading, setSimulationResult]
   );
 
   const handleActionSummary = React.useCallback(
@@ -111,7 +112,6 @@ export function useLoopSimulation({
 
   const fetchLoopingTxn = React.useCallback(
     async (amount: number, leverage: number) => {
-      setSimulationStatus(SimulationStatus.PREPARING);
       if (
         !selectedAccount ||
         !marginfiClient ||
@@ -139,7 +139,8 @@ export function useLoopSimulation({
         return;
       }
 
-      setIsLoading(true);
+      setIsLoading({ isLoading: true, status: SimulationStatus.PREPARING });
+
       try {
         const loopingResult = await calculateLooping({
           marginfiClient,
@@ -161,12 +162,13 @@ export function useLoopSimulation({
             DYNAMIC_SIMULATION_ERRORS.REPAY_COLLAT_FAILED_CHECK(selectedSecondaryBank.meta.tokenSymbol);
 
           setErrorMessage(errorMessage);
+          console.error("Error building lending transaction: ", errorMessage.description);
+          setIsLoading({ isLoading: false, status: SimulationStatus.COMPLETE });
         }
       } catch (error) {
-        console.error({ error });
+        console.error("Error building lending transaction:", error);
         setErrorMessage(STATIC_SIMULATION_ERRORS.REPAY_COLLAT_FAILED);
-      } finally {
-        setIsLoading(false);
+        setIsLoading({ isLoading: false, status: SimulationStatus.COMPLETE });
       }
     },
     [
@@ -235,9 +237,9 @@ export function useLoopSimulation({
       ]);
     } else {
       // If no transactions, move back to idle state
-      setSimulationStatus(SimulationStatus.IDLE);
-      setIsLoading(false);
+      setIsLoading({ isLoading: false, status: SimulationStatus.IDLE });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [actionTxns]);
 
   // Fetch max repayable collateral or max leverage based when the secondary bank changes
@@ -262,6 +264,5 @@ export function useLoopSimulation({
   return {
     actionSummary,
     refreshSimulation,
-    simulationStatus,
   };
 }

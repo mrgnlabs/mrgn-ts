@@ -4,11 +4,11 @@ import { Transaction, VersionedTransaction } from "@solana/web3.js";
 
 import { AccountSummary, ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { MarginfiAccountWrapper, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
-import { TransactionBroadcastType } from "@mrgnlabs/mrgn-common";
 import { ActionMessageType, usePrevious, STATIC_SIMULATION_ERRORS, ActionTxns } from "@mrgnlabs/mrgn-utils";
 
 import { calculateLendingTransaction, calculateSummary, getSimulationResult } from "../utils";
 import { SimulationStatus } from "../../../utils/simulation.utils";
+
 /*
 How lending action simulation works:
 1) If the debounced amount differs from the previous amount, generate an action transaction (actionTxn).
@@ -27,7 +27,7 @@ type LendSimulationProps = {
   setSimulationResult: (result: SimulationResult | null) => void;
   setActionTxns: (actionTxns: ActionTxns) => void;
   setErrorMessage: (error: ActionMessageType | null) => void;
-  setIsLoading: (isLoading: boolean) => void;
+  setIsLoading: ({ isLoading, status }: { isLoading: boolean; status: SimulationStatus }) => void;
 };
 
 export function useLendSimulation({
@@ -44,12 +44,11 @@ export function useLendSimulation({
   setIsLoading,
 }: LendSimulationProps) {
   const prevDebouncedAmount = usePrevious(debouncedAmount);
-  const [simulationStatus, setSimulationStatus] = React.useState<SimulationStatus>(SimulationStatus.IDLE);
 
   const handleSimulation = React.useCallback(
     async (txns: (VersionedTransaction | Transaction)[]) => {
       try {
-        setSimulationStatus(SimulationStatus.SIMULATING);
+        setIsLoading({ isLoading: true, status: SimulationStatus.SIMULATING });
         if (selectedAccount && selectedBank && txns.length > 0) {
           const simulationResult = await getSimulationResult({
             actionMode: lendMode,
@@ -60,20 +59,19 @@ export function useLendSimulation({
           });
           if (simulationResult.actionMethod) {
             setErrorMessage(simulationResult.actionMethod);
-            setSimulationResult(null);
+            throw new Error(simulationResult.actionMethod.description);
           } else {
             setErrorMessage(null);
             setSimulationResult(simulationResult.simulationResult);
           }
         } else {
-          setSimulationResult(null);
+          throw new Error("account, bank or transactions are null");
         }
       } catch (error) {
-        console.error("Error simulating transaction", error);
+        console.error("Error simulating transaction:", error);
         setSimulationResult(null);
       } finally {
-        setIsLoading(false);
-        setSimulationStatus(SimulationStatus.COMPLETE);
+        setIsLoading({ isLoading: false, status: SimulationStatus.COMPLETE });
       }
     },
     [selectedAccount, selectedBank, lendMode, debouncedAmount, setErrorMessage, setSimulationResult, setIsLoading]
@@ -95,7 +93,6 @@ export function useLendSimulation({
 
   const fetchActionTxn = React.useCallback(
     async (amount: number) => {
-      setSimulationStatus(SimulationStatus.PREPARING);
       // account not ready for simulation
       if (!selectedAccount || !selectedBank || amount === 0) {
         const missingParams = [];
@@ -108,7 +105,8 @@ export function useLendSimulation({
         return;
       }
 
-      setIsLoading(true);
+      setIsLoading({ isLoading: true, status: SimulationStatus.PREPARING });
+
       try {
         const lendingObject = await calculateLendingTransaction(selectedAccount, selectedBank, lendMode, amount);
 
@@ -117,17 +115,14 @@ export function useLendSimulation({
         } else {
           const errorMessage = lendingObject ?? STATIC_SIMULATION_ERRORS.BUILDING_LENDING_TX;
           setErrorMessage(errorMessage);
+          console.error("Error building lending transaction: ", errorMessage.description);
+          setIsLoading({ isLoading: false, status: SimulationStatus.COMPLETE });
         }
       } catch (error) {
-        console.log(error);
+        console.error("Error building lending transaction:", error);
         setErrorMessage(STATIC_SIMULATION_ERRORS.BUILDING_LENDING_TX);
-        setIsLoading(false);
+        setIsLoading({ isLoading: false, status: SimulationStatus.COMPLETE });
       }
-
-      // is set to false in simulation
-      // finally {
-      //   setIsLoading(false);
-      // }
     },
     [selectedAccount, selectedBank, lendMode, setIsLoading, setActionTxns, setErrorMessage]
   );
@@ -137,8 +132,6 @@ export function useLendSimulation({
   }, [fetchActionTxn, debouncedAmount]);
 
   React.useEffect(() => {
-    // Reset simulation status when amount changes
-    setSimulationStatus(SimulationStatus.PREPARING);
     // only simulate when amount changes
     if (prevDebouncedAmount !== debouncedAmount) {
       fetchActionTxn(debouncedAmount ?? 0);
@@ -154,8 +147,7 @@ export function useLendSimulation({
       ]);
     } else {
       // If no transactions, move back to idle state
-      setSimulationStatus(SimulationStatus.IDLE);
-      setIsLoading(false);
+      setIsLoading({ isLoading: false, status: SimulationStatus.IDLE });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [actionTxns]);
@@ -167,6 +159,5 @@ export function useLendSimulation({
   return {
     actionSummary,
     refreshSimulation,
-    simulationStatus,
   };
 }
