@@ -61,7 +61,7 @@ export class MultiStepToastHandle {
       }
       toast.update(this._toastId, {
         render: () => <MultiStepToast title={this._title} steps={this._stepsWithStatus} />,
-        autoClose: 4000,
+        autoClose: 6000,
       });
     } else {
       for (let i = this._stepIndex + 1; i <= nextStepIndex; i++) {
@@ -96,7 +96,7 @@ export class MultiStepToastHandle {
 
     toast.update(this._toastId, {
       render: () => <MultiStepToast title={this._title} steps={this._stepsWithStatus} />,
-      autoClose: 4000,
+      autoClose: 6000,
     });
   }
   setFailed(message: string | React.ReactNode, retry?: () => void) {
