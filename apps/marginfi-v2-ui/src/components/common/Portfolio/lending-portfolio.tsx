@@ -26,7 +26,7 @@ export const LendingPortfolio = () => {
   const router = useRouter();
   const { connected } = useWallet();
   const [walletConnectionDelay, setWalletConnectionDelay] = React.useState(false);
-
+  const [accountLabels, setAccountLabels] = React.useState<Record<string, string>>({});
   const [
     isStoreInitialized,
     sortedBanks,
@@ -217,6 +217,7 @@ export const LendingPortfolio = () => {
               ...priorityFees,
               broadcastType,
             }}
+            _setAccountLabels={setAccountLabels}
           />
         )}
       </div>
@@ -347,6 +348,7 @@ export const LendingPortfolio = () => {
                       bank={bank}
                       isInLendingMode={true}
                       isBorrower={borrowingBanks.length > 0}
+                      accountLabels={accountLabels}
                     />
                   ))}
                 </div>

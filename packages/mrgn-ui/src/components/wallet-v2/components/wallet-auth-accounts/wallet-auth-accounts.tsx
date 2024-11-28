@@ -36,6 +36,7 @@ type WalletAuthAccountsProps = {
   closeOnSwitch?: boolean;
   popoverContentAlign?: "start" | "end" | "center";
   showAddAccountButton?: boolean;
+  _setAccountLabels?: (labels: Record<string, string>) => void;
 };
 
 export const WalletAuthAccounts = ({
@@ -49,6 +50,7 @@ export const WalletAuthAccounts = ({
   popoverContentAlign = "center",
   showAddAccountButton = true,
   processOpts,
+  _setAccountLabels,
 }: WalletAuthAccountsProps) => {
   const [popoverOpen, setPopoverOpen] = React.useState(false);
   const { wallet, walletContextState } = useWallet();
@@ -66,6 +68,7 @@ export const WalletAuthAccounts = ({
   const [useAuthTxn, setUseAuthTxn] = React.useState(false);
   const newAccountNameRef = React.useRef<HTMLInputElement>(null);
   const editAccountNameRef = React.useRef<HTMLInputElement>(null);
+  const [hasFetchedLabels, setHasFetchedLabels] = React.useState<boolean>(false);
 
   const activateAccount = React.useCallback(
     async (account: MarginfiAccountWrapper, index: number) => {
@@ -89,27 +92,35 @@ export const WalletAuthAccounts = ({
     },
     [fetchMrgnlendState, selectedAccount, closeOnSwitch]
   );
-
   const fetchAccountLabels = React.useCallback(async () => {
-    const fetchAccountLabel = async (account: MarginfiAccountWrapper) => {
-      const accountLabelReq = await fetch(`/api/user/account-label?account=${account.address.toBase58()}`);
+    const labels: Record<string, string> = {};
 
-      if (!accountLabelReq.ok) {
-        console.error("Error fetching account labels");
-        return;
+    const fetchLabel = async (account: MarginfiAccountWrapper) => {
+      try {
+        const response = await fetch(`/api/user/account-label?account=${account.address.toBase58()}`);
+        if (!response.ok) throw new Error("Error fetching account labels");
+
+        const { data } = await response.json();
+        const defaultLabel = `Account ${marginfiAccounts.findIndex((acc) => acc.address.equals(account.address)) + 1}`;
+        return data.label || defaultLabel;
+      } catch (error) {
+        console.error(error);
+        return `Account ${marginfiAccounts.findIndex((acc) => acc.address.equals(account.address)) + 1}`;
       }
-
-      const accountLabelData = await accountLabelReq.json();
-      let accountLabel = `Account ${marginfiAccounts.findIndex((acc) => acc.address.equals(account.address)) + 1}`;
-
-      setAccountLabels((prev) => ({
-        ...prev,
-        [account.address.toBase58()]: accountLabelData.data.label || accountLabel,
-      }));
     };
 
-    marginfiAccounts.forEach(fetchAccountLabel);
-  }, [marginfiAccounts, setAccountLabels]);
+    await Promise.all(
+      marginfiAccounts.map(async (account) => {
+        const label = await fetchLabel(account);
+        labels[account.address.toBase58()] = label;
+      })
+    );
+
+    setAccountLabels(labels);
+    if (_setAccountLabels) {
+      _setAccountLabels(labels);
+    }
+  }, [_setAccountLabels, marginfiAccounts]);
 
   const checkAndClearAccountCache = React.useCallback(() => {
     const cacheTimestamp = localStorage.getItem("mrgnClearedAccountCache");
@@ -244,7 +255,8 @@ export const WalletAuthAccounts = ({
   ]);
 
   React.useEffect(() => {
-    if (!initialized) return;
+    if (!initialized || hasFetchedLabels) return;
+    setHasFetchedLabels(true);
     fetchAccountLabels();
   }, [initialized, fetchAccountLabels]);
 
