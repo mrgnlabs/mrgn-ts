@@ -4,7 +4,7 @@ import { useRouter } from "next/router";
 import Script from "next/script";
 
 import { WSOL_MINT, LST_MINT } from "@mrgnlabs/mrgn-common";
-import { capture } from "@mrgnlabs/mrgn-utils";
+import { capture, generateEndpoint } from "@mrgnlabs/mrgn-utils";
 import { PublicKey } from "@solana/web3.js";
 import { QuoteResponseMeta, SwapResult } from "@jup-ag/react-hook";
 
@@ -52,7 +52,10 @@ export const Swap = ({ onLoad, onSuccess, initialInputMint, initialOutputMint }:
     window.Jupiter.init({
       displayMode: "integrated",
       integratedTargetId: "integrated-terminal",
-      endpoint: process.env.NEXT_PUBLIC_MARGINFI_RPC_ENDPOINT_OVERRIDE as string,
+      endpoint: generateEndpoint(
+        process.env.NEXT_PUBLIC_MARGINFI_RPC_ENDPOINT_OVERRIDE as string,
+        process.env.NEXT_PUBLIC_RPC_PROXY_KEY as string
+      ),
       enableWalletPassthrough: true,
       onSuccess: ({ ...props }) => {
         capture("user_swap", {
