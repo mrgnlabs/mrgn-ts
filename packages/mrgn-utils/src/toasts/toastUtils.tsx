@@ -135,22 +135,29 @@ export class MultiStepToastHandle {
   }
 }
 
-export function showErrorToast(msgOrOptions: string | { message: string }) {
+export function showErrorToast(msgOrOptions: string | { message: string; description?: string; code?: number }) {
   let msg: string;
+  let description: string | undefined;
+  let code: number | undefined;
   if (typeof msgOrOptions === "string") {
     msg = msgOrOptions;
+    description = undefined;
+    code = undefined;
   } else {
     msg = msgOrOptions.message;
+    description = msgOrOptions.description;
+    code = msgOrOptions.code;
   }
 
-  toast(() => <ErrorToast title={"Error"} message={msg} />, {
+  toast(() => <ErrorToast title={"Error"} message={msg} description={description} code={code} />, {
     hideProgressBar: true,
     autoClose: 3000,
     style: {
-      width: "100%",
       height: "100%",
+      bottom: "12px",
+      background: "#ff0000",
     },
-    className: "p-4 bottom-4 rounded-md bg-background",
+    className: "bg-mfi-toast-background rounded-md py-2 px-3 mx-2 md:w-max",
   });
 }
 
@@ -166,9 +173,10 @@ export function showWarningToast(msgOrOptions: string | { message: string }) {
     hideProgressBar: true,
     autoClose: 2000,
     style: {
-      width: "100%",
       height: "100%",
+      bottom: "12px",
+      background: "#ff0000",
     },
-    className: "p-4 bottom-4 rounded-md bg-background",
+    className: "bg-mfi-toast-background rounded-md py-2 px-3 mx-2 md:w-max",
   });
 }
