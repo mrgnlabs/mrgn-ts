@@ -614,7 +614,11 @@ export async function repayWithCollat({
 
   if (!multiStepToast) {
     const steps = getSteps(actionTxns);
-    const label = `Repaying ${repayProps.repayAmount} ${repayProps.borrowBank.meta.tokenSymbol} with ${repayProps.withdrawAmount} ${repayProps.depositBank.meta.tokenSymbol}`;
+    const label = `Repaying ${dynamicNumeralFormatter(repayProps.repayAmount, { minDisplay: 0.01 })} ${
+      repayProps.borrowBank.meta.tokenSymbol
+    } with ${dynamicNumeralFormatter(repayProps.withdrawAmount, { minDisplay: 0.01 })} ${
+      repayProps.depositBank.meta.tokenSymbol
+    }`;
 
     multiStepToast = new MultiStepToastHandle("Collateral Repay", [...steps, { label }]);
     multiStepToast.start();
