@@ -8,8 +8,9 @@ export class MultiStepToastHandle {
   private _stepIndex: number;
   private _stepsWithStatus: ToastStepWithStatus[];
   private _toastId: Id | undefined = undefined;
+  private _onClose?: () => void;
 
-  constructor(title: string, steps: ToastStep[]) {
+  constructor(title: string, steps: ToastStep[], onClose?: () => void) {
     this._title = title;
     this._stepIndex = 0;
     this._stepsWithStatus = steps.map((step, index) => {
@@ -19,6 +20,7 @@ export class MultiStepToastHandle {
 
       return { ...step, status: "todo" };
     });
+    this._onClose = onClose;
   }
 
   start() {
@@ -26,27 +28,48 @@ export class MultiStepToastHandle {
       hideProgressBar: true,
       autoClose: false,
       style: {
-        width: "100%",
         height: "100%",
         bottom: "12px",
+        background: "#ff0000",
       },
-      className: "bg-background rounded-md pt-3 pb-2 px-3.5",
+      closeOnClick: false,
+      className: "bg-mfi-toast-background rounded-md py-2 px-3 mx-2 md:w-max",
+    });
+
+    toast.onChange((toastInfo) => {
+      if (toastInfo.id === this._toastId && toastInfo.status === "removed") {
+        if (this._onClose) this._onClose();
+      }
     });
   }
 
-  setSuccessAndNext() {
+  setSuccessAndNext(stepsToAdvance: number = 1, signature?: string, explorerUrl?: string) {
     if (!this._toastId) return;
 
-    if (this._stepIndex >= this._stepsWithStatus.length - 1) {
-      this._stepsWithStatus[this._stepIndex].status = "success";
+    this._stepsWithStatus[this._stepIndex].status = "success";
+    if (signature) {
+      this._stepsWithStatus[this._stepIndex].signature = signature;
+    }
+    if (explorerUrl) {
+      this._stepsWithStatus[this._stepIndex].explorerUrl = explorerUrl;
+    }
+
+    const nextStepIndex = this._stepIndex + stepsToAdvance;
+    if (nextStepIndex >= this._stepsWithStatus.length) {
+      for (let i = this._stepIndex + 1; i < this._stepsWithStatus.length; i++) {
+        this._stepsWithStatus[i].status = "success";
+      }
       toast.update(this._toastId, {
         render: () => <MultiStepToast title={this._title} steps={this._stepsWithStatus} />,
-        autoClose: 2000,
+        autoClose: 6000,
       });
     } else {
-      this._stepsWithStatus[this._stepIndex].status = "success";
-      this._stepIndex++;
-      this._stepsWithStatus[this._stepIndex].status = "pending";
+      for (let i = this._stepIndex + 1; i <= nextStepIndex; i++) {
+        if (this._stepsWithStatus[i]) {
+          this._stepsWithStatus[i].status = "pending";
+        }
+      }
+      this._stepIndex = nextStepIndex;
       toast.update(this._toastId, {
         render: () => <MultiStepToast title={this._title} steps={this._stepsWithStatus} />,
         autoClose: false,
@@ -54,13 +77,57 @@ export class MultiStepToastHandle {
     }
   }
 
-  setFailed(message: string) {
+  setSuccess(signature?: string, explorerUrl?: string) {
     if (!this._toastId) return;
+
+    for (let i = 0; i < this._stepsWithStatus.length; i++) {
+      this._stepsWithStatus[i].status = "success";
+    }
+
+    if (signature) {
+      const lastIndex = this._stepsWithStatus.length - 1;
+      this._stepsWithStatus[lastIndex].signature = signature;
+    }
+
+    if (explorerUrl) {
+      const lastIndex = this._stepsWithStatus.length - 1;
+      this._stepsWithStatus[lastIndex].explorerUrl = explorerUrl;
+    }
+
+    toast.update(this._toastId, {
+      render: () => <MultiStepToast title={this._title} steps={this._stepsWithStatus} />,
+      autoClose: 6000,
+    });
+  }
+  setFailed(message: string | React.ReactNode, retry?: () => void) {
+    if (!this._toastId) return;
+
     this._stepsWithStatus[this._stepIndex].status = "error";
     this._stepsWithStatus[this._stepIndex].message = message;
+
     for (let i = this._stepIndex + 1; i < this._stepsWithStatus.length; i++) {
       this._stepsWithStatus[i].status = "canceled";
     }
+
+    toast.update(this._toastId, {
+      render: () => <MultiStepToast title={this._title} steps={this._stepsWithStatus} retry={retry} />,
+      autoClose: false,
+    });
+  }
+
+  resetAndStart() {
+    if (!this._toastId) return;
+
+    if (this._stepsWithStatus[this._stepIndex].status === "error") {
+      this._stepsWithStatus[this._stepIndex].status = "pending";
+      this._stepsWithStatus[this._stepIndex].message = undefined;
+    }
+
+    for (let i = this._stepIndex + 1; i < this._stepsWithStatus.length; i++) {
+      this._stepsWithStatus[i].status = "todo";
+      this._stepsWithStatus[i].message = undefined;
+    }
+
     toast.update(this._toastId, {
       render: () => <MultiStepToast title={this._title} steps={this._stepsWithStatus} />,
       autoClose: false,
@@ -68,22 +135,29 @@ export class MultiStepToastHandle {
   }
 }
 
-export function showErrorToast(msgOrOptions: string | { message: string }) {
+export function showErrorToast(msgOrOptions: string | { message: string; description?: string; code?: number }) {
   let msg: string;
+  let description: string | undefined;
+  let code: number | undefined;
   if (typeof msgOrOptions === "string") {
     msg = msgOrOptions;
+    description = undefined;
+    code = undefined;
   } else {
     msg = msgOrOptions.message;
+    description = msgOrOptions.description;
+    code = msgOrOptions.code;
   }
 
-  toast(() => <ErrorToast title={"Error"} message={msg} />, {
+  toast(() => <ErrorToast title={"Error"} message={msg} description={description} code={code} />, {
     hideProgressBar: true,
     autoClose: 3000,
     style: {
-      width: "100%",
       height: "100%",
+      bottom: "12px",
+      background: "#ff0000",
     },
-    className: "p-4 bottom-4 rounded-md bg-background",
+    className: "bg-mfi-toast-background rounded-md py-2 px-3 mx-2 md:w-max",
   });
 }
 
@@ -99,9 +173,10 @@ export function showWarningToast(msgOrOptions: string | { message: string }) {
     hideProgressBar: true,
     autoClose: 2000,
     style: {
-      width: "100%",
       height: "100%",
+      bottom: "12px",
+      background: "#ff0000",
     },
-    className: "p-4 bottom-4 rounded-md bg-background",
+    className: "bg-mfi-toast-background rounded-md py-2 px-3 mx-2 md:w-max",
   });
 }

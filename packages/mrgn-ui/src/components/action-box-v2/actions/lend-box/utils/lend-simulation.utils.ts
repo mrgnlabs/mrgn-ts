@@ -164,7 +164,7 @@ async function simulateAction({ actionMode, account, bank, amount, txns }: Simul
   switch (actionMode) {
     case ActionType.Deposit:
       if (txns.length > 0) {
-        simulationResult = await account.simulateBorrowLendTransaction(txns, bank.address);
+        simulationResult = await account.simulateBorrowLendTransaction(txns, [bank.address]);
       } else {
         console.error("descrepency in deposit simulateAction");
         simulationResult = await account.simulateDeposit(amount, bank.address);
@@ -172,21 +172,21 @@ async function simulateAction({ actionMode, account, bank, amount, txns }: Simul
       break;
     case ActionType.Withdraw:
       if (txns.length > 0) {
-        simulationResult = await account.simulateBorrowLendTransaction(txns, bank.address);
+        simulationResult = await account.simulateBorrowLendTransaction(txns, [bank.address]);
       } else {
         console.error("descrepency in withdraw simulateAction");
       }
       break;
     case ActionType.Borrow:
       if (txns.length > 0) {
-        simulationResult = await account.simulateBorrowLendTransaction(txns, bank.address);
+        simulationResult = await account.simulateBorrowLendTransaction(txns, [bank.address]);
       } else {
         console.error("descrepency in borrow simulateAction");
       }
       break;
     case ActionType.Repay:
       if (txns.length > 0) {
-        simulationResult = await account.simulateBorrowLendTransaction(txns, bank.address);
+        simulationResult = await account.simulateBorrowLendTransaction(txns, [bank.address]);
       } else {
         console.error("descrepency in repay simulateAction");
         simulationResult = await account.simulateRepay(

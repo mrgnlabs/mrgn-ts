@@ -32,6 +32,7 @@ import {
 import { TRADE_GROUPS_MAP, TOKEN_METADATA_MAP, BANK_METADATA_MAP, POOLS_PER_PAGE } from "~/config/trade";
 import { TokenData } from "~/types";
 import { getGroupPositionInfo } from "~/utils";
+import { getTransactionStrategy } from "@mrgnlabs/mrgn-utils";
 
 type TradeGroupsCache = {
   [group: string]: [string, string];
@@ -280,7 +281,7 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
         tokenAccountMap = tData.tokenAccountMap;
 
         for (const [id, group] of groupMap) {
-          const updatedPool = await getUpdatedGroupPool({ group, tokenAccountMap, nativeSolBalance });
+          const updatedPool = getUpdatedGroupPool({ group, tokenAccountMap, nativeSolBalance });
           groupMap.set(id, { ...group, pool: updatedPool });
         }
 
@@ -579,6 +580,7 @@ async function getGroupData({
     {
       preloadedBankAddresses: bankKeys,
       bankMetadataMap: bankMetadataCache,
+      processTransactionStrategy: getTransactionStrategy(),
       fetchGroupDataOverride: fetchGroupData,
     }
   );
@@ -695,7 +697,7 @@ async function getGroupData({
   return { groupData, extendedBankInfos, marginfiClient };
 }
 
-async function getUpdatedGroupPool({
+function getUpdatedGroupPool({
   group,
   tokenAccountMap,
   nativeSolBalance,

@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 
 import { identify } from "@mrgnlabs/mrgn-utils";
 
-import { useTradeStore } from "~/store";
+import { useTradeStore, useUiStore } from "~/store";
 import { useConnection } from "~/hooks/use-connection";
 import { useWallet } from "~/components/wallet-v2";
 
@@ -22,6 +22,7 @@ export const TradePovider: React.FC<{
     state.setIsRefreshingStore,
     state.resetUserData,
   ]);
+  const [fetchPriorityFee] = useUiStore((state) => [state.fetchPriorityFee]);
   const [isLoggedIn, setIsLoggedIn] = React.useState(false);
 
   React.useEffect(() => {
@@ -62,6 +63,7 @@ export const TradePovider: React.FC<{
   React.useEffect(() => {
     const fetchData = () => {
       setIsRefreshingStore(true);
+      fetchPriorityFee(connection);
       fetchTradeState({
         connection,
         wallet,
@@ -78,6 +80,7 @@ export const TradePovider: React.FC<{
       const id = setInterval(() => {
         setIsRefreshingStore(true);
         fetchTradeState({});
+        fetchPriorityFee(connection);
       }, 50_000);
 
       return () => {

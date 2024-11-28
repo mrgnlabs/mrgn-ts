@@ -1,11 +1,11 @@
 import { WalletContextState } from "@solana/wallet-adapter-react";
 
-import { MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
+import { MarginfiClient, ProcessTransactionsClientOpts } from "@mrgnlabs/marginfi-client-v2";
 import { FEE_MARGIN, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
-import { WSOL_MINT } from "@mrgnlabs/mrgn-common";
+import { TransactionOptions, WSOL_MINT } from "@mrgnlabs/mrgn-common";
 
-import { showErrorToast } from "../toasts";
-import { MarginfiActionParams, LstActionParams } from "./types";
+import { MultiStepToastHandle, showErrorToast } from "../toasts";
+import { MarginfiActionParams, LstActionParams, ActionTxns, RepayWithCollatProps, LoopingProps } from "./types";
 import { WalletContextStateOverride } from "../wallet";
 import {
   deposit,
@@ -34,21 +34,18 @@ export async function createAccountAction({
   marginfiClient,
   nativeSolBalance,
   walletContextState,
-  theme = "dark",
 }: {
   marginfiClient: MarginfiClient | null;
   nativeSolBalance: number;
   walletContextState?: WalletContextState | WalletContextStateOverride;
-  theme?: "light" | "dark";
 }) {
   if (nativeSolBalance < FEE_MARGIN) {
     showErrorToast("Not enough sol for fee.");
     return;
   }
 
-  const txnSig = await createAccount({ mfiClient: marginfiClient, walletContextState, theme });
-
-  return txnSig;
+  const marginfiAccount = await createAccount({ mfiClient: marginfiClient, walletContextState });
+  return marginfiAccount;
 }
 
 export async function executeLendingAction(params: MarginfiActionParams) {
@@ -73,17 +70,8 @@ export async function executeLendingAction(params: MarginfiActionParams) {
     return;
   }
 
-  if (params.actionType === ActionType.RepayCollat) {
-    txnSig = await repayWithCollat(params);
-  }
-
   if (params.actionType === ActionType.Repay) {
-    if (params.repayWithCollatOptions) {
-      // deprecated
-      txnSig = await repayWithCollat(params);
-    } else {
-      txnSig = await repay(params);
-    }
+    txnSig = await repay(params);
   }
 
   if (!params.marginfiClient) {
@@ -102,7 +90,29 @@ export async function executeLendingAction(params: MarginfiActionParams) {
   return txnSig;
 }
 
-export async function executeLoopingAction(params: MarginfiActionParams) {
+export interface ExecuteRepayWithCollatActionProps extends RepayWithCollatProps {
+  marginfiClient: MarginfiClient;
+  actionTxns: ActionTxns;
+  processOpts: ProcessTransactionsClientOpts;
+  txOpts: TransactionOptions;
+
+  multiStepToast?: MultiStepToastHandle;
+}
+
+export async function executeRepayWithCollatAction(params: ExecuteRepayWithCollatActionProps) {
+  let txnSig: string[] | undefined;
+  txnSig = await repayWithCollat(params);
+  return txnSig;
+}
+
+export interface ExecuteLoopingActionProps extends LoopingProps {
+  marginfiClient: MarginfiClient;
+  actionTxns: ActionTxns;
+  processOpts: ProcessTransactionsClientOpts;
+  txOpts: TransactionOptions;
+}
+
+export async function executeLoopingAction(params: ExecuteLoopingActionProps) {
   let txnSig: string[] | undefined;
 
   if (!params.marginfiAccount) {

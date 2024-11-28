@@ -44,32 +44,27 @@ export const useMoveSimulation = ({
   const [actionSummary, setActionSummary] = React.useState<ActionSummary | null>(null);
 
   const generateTxns = React.useCallback(async () => {
-    if (!marginfiClient || !accountToMoveTo || activeBank.userInfo.maxWithdraw < activeBank.position.amount) {
+    if (
+      !marginfiClient ||
+      !accountToMoveTo ||
+      activeBank.userInfo.maxWithdraw < activeBank.position.amount ||
+      !selectedAccount
+    ) {
       return;
     }
 
     try {
       setIsLoading(true);
-      const connection = marginfiClient.provider.connection;
-      const blockHash = await connection.getLatestBlockhash();
-      const lookupTables = marginfiClient.addressLookupTables;
-
-      const withdrawTx = await selectedAccount?.makeWithdrawTx(activeBank.position.amount, activeBank.address, true);
-      if (!withdrawTx) return;
-      const bundleTipIx = makeBundleTipIx(marginfiClient?.wallet.publicKey);
-      const depositIx = await accountToMoveTo.makeDepositIx(activeBank.position.amount, activeBank.address);
-      if (!depositIx) return;
-      const depositInstruction = new TransactionMessage({
-        payerKey: marginfiClient.wallet.publicKey,
-        recentBlockhash: blockHash.blockhash,
-        instructions: [...depositIx.instructions, bundleTipIx],
-      });
-      const depositTx = new VersionedTransaction(depositInstruction.compileToV0Message(lookupTables));
-      return [...withdrawTx.feedCrankTxs, withdrawTx.withdrawTx, depositTx];
+      const { feedCrankTxs, withdrawTx, depositTx } = await selectedAccount.makeMovePositionTx(
+        activeBank.position.amount,
+        activeBank.address,
+        accountToMoveTo
+      );
+      return [...feedCrankTxs, withdrawTx, depositTx];
     } catch (error) {
       console.error("Error creating transactions", error);
     }
-  }, [marginfiClient, accountToMoveTo, activeBank, setErrorMessage, setIsLoading, selectedAccount]);
+  }, [marginfiClient, accountToMoveTo, activeBank, setIsLoading, selectedAccount]);
 
   const handleSimulateTxns = React.useCallback(async () => {
     try {

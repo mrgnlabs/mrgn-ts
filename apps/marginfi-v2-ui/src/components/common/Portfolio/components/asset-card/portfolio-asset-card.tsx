@@ -3,7 +3,12 @@ import React from "react";
 import Image from "next/image";
 import { IconAlertTriangle, IconFolderShare } from "@tabler/icons-react";
 
-import { usdFormatter, dynamicNumeralFormatter, groupedNumberFormatter } from "@mrgnlabs/mrgn-common";
+import {
+  usdFormatter,
+  dynamicNumeralFormatter,
+  groupedNumberFormatter,
+  tokenPriceFormatter,
+} from "@mrgnlabs/mrgn-common";
 import { ActiveBankInfo, ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { capture } from "@mrgnlabs/mrgn-utils";
 import { ActionBox } from "@mrgnlabs/mrgn-ui";
@@ -22,9 +27,15 @@ interface PortfolioAssetCardProps {
   bank: ActiveBankInfo;
   isInLendingMode: boolean;
   isBorrower?: boolean;
+  accountLabels?: Record<string, string>;
 }
 
-export const PortfolioAssetCard = ({ bank, isInLendingMode, isBorrower = true }: PortfolioAssetCardProps) => {
+export const PortfolioAssetCard = ({
+  bank,
+  isInLendingMode,
+  isBorrower = true,
+  accountLabels,
+}: PortfolioAssetCardProps) => {
   const { rateAP } = useAssetItemData({ bank, isInLendingMode });
   const [
     selectedAccount,
@@ -94,11 +105,16 @@ export const PortfolioAssetCard = ({ bank, isInLendingMode, isBorrower = true }:
                   </dd>
                 </dl>
               </div>
-              <div className="font-medium text-lg mr-2">
-                {dynamicNumeralFormatter(bank.position.amount, {
-                  tokenPrice: bank.info.oraclePrice.priceRealtime.price.toNumber(),
-                })}
-                {" " + bank.meta.tokenSymbol}
+              <div className="flex flex-col items-end mr-2">
+                <div className="font-medium text-lg">
+                  {dynamicNumeralFormatter(bank.position.amount, {
+                    tokenPrice: bank.info.oraclePrice.priceRealtime.price.toNumber(),
+                  })}
+                  {" " + bank.meta.tokenSymbol}
+                </div>
+                <span className="text-muted-foreground font-normal text-sm">
+                  {usdFormatter.format(bank.position.usdValue)}
+                </span>
               </div>
             </div>
             <div className="flex flex-row w-full gap-2">
@@ -143,15 +159,17 @@ export const PortfolioAssetCard = ({ bank, isInLendingMode, isBorrower = true }:
             <dl className="grid grid-cols-2 gap-y-0.5">
               <dt className="text-muted-foreground">Value</dt>
               <dd className="text-right text-white">
-                {bank.position.amount < 0.01 ? "< $0.01" : groupedNumberFormatter.format(bank.position.amount)}
+                {bank.position.amount > 1000
+                  ? groupedNumberFormatter.format(bank.position.amount)
+                  : dynamicNumeralFormatter(bank.position.amount, {
+                      tokenPrice: bank.info.oraclePrice.priceRealtime.price.toNumber(),
+                    })}
                 {" " + bank.meta.tokenSymbol}
               </dd>
               <dt className="text-muted-foreground">USD value</dt>
-              <dd className="text-right text-white">
-                {bank.position.usdValue < 0.01 ? "< $0.01" : usdFormatter.format(bank.position.usdValue)}
-              </dd>
+              <dd className="text-right text-white">{usdFormatter.format(bank.position.usdValue)}</dd>
               <dt className="text-muted-foreground">Current price</dt>
-              <dd className="text-right text-white">{usdFormatter.format(bank.info.state.price)}</dd>
+              <dd className="text-right text-white">{tokenPriceFormatter(bank.info.state.price)}</dd>
               {bank.position.liquidationPrice && (
                 <>
                   <dt className="text-muted-foreground">Liquidation price</dt>
@@ -162,9 +180,7 @@ export const PortfolioAssetCard = ({ bank, isInLendingMode, isBorrower = true }:
                     )}
                   >
                     {isUserPositionPoorHealth && <IconAlertTriangle width={"16px"} height={"16px"} />}
-                    {bank.position.liquidationPrice > 0.01
-                      ? usdFormatter.format(bank.position.liquidationPrice)
-                      : `$${bank.position.liquidationPrice.toExponential(2)}`}
+                    {tokenPriceFormatter(bank.position.liquidationPrice)}
                   </dd>
                 </>
               )}
@@ -204,6 +220,7 @@ export const PortfolioAssetCard = ({ bank, isInLendingMode, isBorrower = true }:
             extendedBankInfos={extendedBankInfos}
             nativeSolBalance={nativeSolBalance}
             accountSummary={accountSummary}
+            accountLabels={accountLabels}
           />
         </AccordionContent>
       </AccordionItem>

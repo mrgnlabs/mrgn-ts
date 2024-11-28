@@ -1,4 +1,4 @@
-import { HOURS_PER_YEAR } from "./constants";
+import { HOURS_PER_YEAR } from "../constants";
 
 // ================ interest rate helpers ================
 
@@ -9,7 +9,7 @@ import { HOURS_PER_YEAR } from "./constants";
  * @param compoundingFrequency {Number} Compounding frequency (times a year)
  * @returns {Number} APR (i.e. 0.0582 for APY of 0.06)
  */
-const apyToApr = (apy: number, compoundingFrequency = HOURS_PER_YEAR) =>
+const apyToApr = (apy: number, compoundingFrequency: number = HOURS_PER_YEAR): number =>
   ((1 + apy) ** (1 / compoundingFrequency) - 1) * compoundingFrequency;
 
 /**
@@ -19,7 +19,7 @@ const apyToApr = (apy: number, compoundingFrequency = HOURS_PER_YEAR) =>
  * @param compoundingFrequency {Number} Compounding frequency (times a year)
  * @returns {Number} APY (i.e. 0.06 for APR of 0.0582)
  */
-const aprToApy = (apr: number, compoundingFrequency = HOURS_PER_YEAR) =>
+const aprToApy = (apr: number, compoundingFrequency: number = HOURS_PER_YEAR): number =>
   (1 + apr / compoundingFrequency) ** compoundingFrequency - 1;
 
 function calculateInterestFromApy(principal: number, durationInYears: number, apy: number): number {

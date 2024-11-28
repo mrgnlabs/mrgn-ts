@@ -10,12 +10,11 @@ import {
   ActionMessageType,
   calculateLoopingParams,
   handleSimulationError,
-  LoopingObject,
   cn,
   capture,
   extractErrorString,
   usePrevious,
-  usePriorityFee,
+  LoopActionTxns,
 } from "@mrgnlabs/mrgn-utils";
 import { MarginfiAccountWrapper, SimulationResult, computeMaxLeverage } from "@mrgnlabs/marginfi-client-v2";
 import { IconAlertTriangle, IconExternalLink, IconLoader2, IconSettings, IconWallet } from "@tabler/icons-react";
@@ -26,7 +25,6 @@ import { TradeSide, checkLoopingActionAvailable, generateStats, simulateLooping 
 import { executeLeverageAction } from "~/utils";
 import { useTradeStore, useUiStore } from "~/store";
 import { GroupData } from "~/store/tradeStore";
-import { WalletState } from "~/store/uiStore";
 import { useWallet, useWalletStore } from "~/components/wallet-v2";
 import { useConnection } from "~/hooks/use-connection";
 
@@ -52,7 +50,7 @@ export const TradingBox = ({ activeGroup, side = "long" }: TradingBoxProps) => {
   const [tradeState, setTradeState] = React.useState<TradeSide>(side as TradeSide);
   const prevTradeState = usePrevious(tradeState);
   const [amount, setAmount] = React.useState<string>("");
-  const [loopingObject, setLoopingObject] = React.useState<LoopingObject | null>(null);
+  const [loopActionTxns, setLoopActionTxns] = React.useState<LoopActionTxns | null>(null);
   const [leverage, setLeverage] = React.useState(0);
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const [Stats, setStats] = React.useState<React.JSX.Element>(<></>);
@@ -63,11 +61,11 @@ export const TradingBox = ({ activeGroup, side = "long" }: TradingBoxProps) => {
 
   const leveragedAmount = React.useMemo(() => {
     if (tradeState === "long") {
-      return loopingObject?.actualDepositAmount;
+      return loopActionTxns?.actualDepositAmount;
     } else {
-      return loopingObject?.borrowAmount.toNumber();
+      return loopActionTxns?.borrowAmount.toNumber();
     }
-  }, [tradeState, loopingObject]);
+  }, [tradeState, loopActionTxns]);
 
   const [fetchTradeState, nativeSolBalance, setIsRefreshingStore, refreshGroup] = useTradeStore((state) => [
     state.fetchTradeState,
@@ -77,28 +75,22 @@ export const TradingBox = ({ activeGroup, side = "long" }: TradingBoxProps) => {
   ]);
 
   const [
+    priorityFees,
     slippageBps,
     platformFeeBps,
-    priorityType,
     broadcastType,
-    maxCap,
-    maxCapType,
     setSlippageBps,
     setIsActionComplete,
     setPreviousTxn,
   ] = useUiStore((state) => [
+    state.priorityFees,
     state.slippageBps,
     state.platformFeeBps,
-    state.priorityType,
     state.broadcastType,
-    state.maxCap,
-    state.maxCapType,
     state.setSlippageBps,
     state.setIsActionComplete,
     state.setPreviousTxn,
   ]);
-
-  const priorityFee = usePriorityFee(priorityType, broadcastType, maxCapType, maxCap, connection);
 
   const [setIsWalletOpen] = useWalletStore((state) => [state.setIsWalletOpen]);
 
@@ -110,7 +102,7 @@ export const TradingBox = ({ activeGroup, side = "long" }: TradingBoxProps) => {
 
   const clearStates = () => {
     setAmount("");
-    setLoopingObject(null);
+    setLoopActionTxns(null);
     setLeverage(1);
     setAdditionalChecks(undefined);
   };
@@ -155,10 +147,10 @@ export const TradingBox = ({ activeGroup, side = "long" }: TradingBoxProps) => {
         amount,
         connected,
         activeGroup,
-        loopingObject,
+        loopActionTxns,
         tradeSide: tradeState,
       }),
-    [amount, connected, activeGroup, loopingObject, tradeState]
+    [amount, connected, activeGroup, loopActionTxns, tradeState]
   );
 
   const walletAmount = React.useMemo(() => {
@@ -168,7 +160,7 @@ export const TradingBox = ({ activeGroup, side = "long" }: TradingBoxProps) => {
   }, [tradeState, activeGroup]);
 
   const loadStats = React.useCallback(
-    async (simulationResult: SimulationResult | null, looping: LoopingObject, isAccountInitialized: boolean) => {
+    async (simulationResult: SimulationResult | null, looping: LoopActionTxns, isAccountInitialized: boolean) => {
       if (!activeGroup?.client || !activeGroup) {
         return;
       }
@@ -187,7 +179,7 @@ export const TradingBox = ({ activeGroup, side = "long" }: TradingBoxProps) => {
   );
 
   const handleSimulation = React.useCallback(
-    async (looping: LoopingObject, bank: ExtendedBankInfo, selectedAccount: MarginfiAccountWrapper | null) => {
+    async (looping: LoopActionTxns, bank: ExtendedBankInfo, selectedAccount: MarginfiAccountWrapper | null) => {
       if (!activeGroup?.client) {
         return;
       }
@@ -198,8 +190,8 @@ export const TradingBox = ({ activeGroup, side = "long" }: TradingBoxProps) => {
           marginfiClient: activeGroup.client,
           account: selectedAccount,
           bank: bank,
-          loopingTxn: looping.loopingTxn,
-          feedCrankTxs: looping.feedCrankTxs,
+          loopingTxn: looping.actionTxn,
+          feedCrankTxs: looping.additionalTxns,
         });
         setAdditionalChecks(undefined);
       } catch (error) {
@@ -244,47 +236,33 @@ export const TradingBox = ({ activeGroup, side = "long" }: TradingBoxProps) => {
           depositBank,
           borrowBank,
           targetLeverage: leverage,
-          amount: amountParsed,
+          depositAmount: amountParsed,
           slippageBps,
-          priorityFee,
           connection,
           platformFeeBps,
-          isTrading: true,
-          broadcastType: broadcastType,
         });
 
-        let loopingObject: LoopingObject | null = null;
+        let loopingObject: LoopActionTxns | null = null;
 
-        if ("quote" in result) {
+        if ("actionQuote" in result) {
           loopingObject = result;
-          setLoopingObject(result);
+          setLoopActionTxns(result);
         } else {
           // if txn couldn't be generated one cause could be that the account isn't created yet
           // most other causes are jupiter routing issues
           setAdditionalChecks(result);
         }
 
-        if (loopingObject && (loopingObject.loopingTxn || !activeGroup.selectedAccount)) {
+        if (loopingObject && (loopingObject.actionTxn || !activeGroup.selectedAccount)) {
           await handleSimulation(loopingObject, depositBank, activeGroup.selectedAccount);
         }
       } catch (error) {
-        setLoopingObject(null);
+        setLoopActionTxns(null);
       } finally {
         setIsLoading(false);
       }
     }
-  }, [
-    activeGroup,
-    amount,
-    leverage,
-    tradeState,
-    priorityFee,
-    slippageBps,
-    connection,
-    platformFeeBps,
-    broadcastType,
-    handleSimulation,
-  ]);
+  }, [activeGroup, amount, leverage, tradeState, slippageBps, connection, platformFeeBps, handleSimulation]);
 
   React.useEffect(() => {
     if (activeGroup) {
@@ -311,30 +289,31 @@ export const TradingBox = ({ activeGroup, side = "long" }: TradingBoxProps) => {
         walletContextState,
         depositAmount: Number(amount),
         tradeState,
-        loopingObject,
-        priorityFee,
+        priorityFees,
         slippageBps: slippageBps,
         broadcastType: broadcastType,
         connection,
+        loopActionTxns,
       });
 
       return sig;
     },
     [
-      amount,
-      connection,
-      loopingObject,
-      priorityFee,
-      activeGroup,
-      slippageBps,
-      tradeState,
-      broadcastType,
+      activeGroup?.client,
+      activeGroup?.selectedAccount,
       walletContextState,
+      amount,
+      tradeState,
+      priorityFees,
+      slippageBps,
+      broadcastType,
+      connection,
+      loopActionTxns,
     ]
   );
 
   const handleLeverageAction = React.useCallback(async () => {
-    if (loopingObject && activeGroup?.client && collateralBank) {
+    if (loopActionTxns && activeGroup?.client && collateralBank && priorityFees) {
       try {
         setIsLoading(true);
         let depositBank: ExtendedBankInfo, borrowBank: ExtendedBankInfo;
@@ -360,11 +339,11 @@ export const TradingBox = ({ activeGroup, side = "long" }: TradingBoxProps) => {
                 borrowBank: borrowBank as ActiveBankInfo,
                 initDepositAmount: amount,
                 entryPrice: activeGroup.pool.token.info.oraclePrice.priceRealtime.price.toNumber(),
-                depositAmount: loopingObject.actualDepositAmount,
-                borrowAmount: loopingObject.borrowAmount.toNumber(),
+                depositAmount: loopActionTxns.actualDepositAmount,
+                borrowAmount: loopActionTxns.borrowAmount.toNumber(),
                 leverage: leverage,
                 type: tradeState,
-                quote: loopingObject.quote,
+                quote: loopActionTxns.actionQuote!,
               },
             });
             capture(`open_position`, {
@@ -372,8 +351,8 @@ export const TradingBox = ({ activeGroup, side = "long" }: TradingBoxProps) => {
               txnSig: sig[sig.length - 1],
               token: depositBank.meta.tokenSymbol,
               entryPrice: activeGroup.pool.token.info.oraclePrice.priceRealtime.price.toNumber(),
-              depositAmount: loopingObject.actualDepositAmount,
-              borrowAmount: loopingObject.borrowAmount.toNumber(),
+              depositAmount: loopActionTxns.actualDepositAmount,
+              borrowAmount: loopActionTxns.borrowAmount.toNumber(),
               leverage: leverage,
               type: tradeState,
             });
@@ -381,7 +360,7 @@ export const TradingBox = ({ activeGroup, side = "long" }: TradingBoxProps) => {
         }
         // -------- Refresh state
         try {
-          setLoopingObject(null);
+          setLoopActionTxns(null);
           setIsRefreshingStore(true);
           await refreshGroup({
             connection,
@@ -412,7 +391,8 @@ export const TradingBox = ({ activeGroup, side = "long" }: TradingBoxProps) => {
     connection,
     leverage,
     leverageActionCb,
-    loopingObject,
+    loopActionTxns,
+    priorityFees,
     refreshGroup,
     setIsActionComplete,
     setIsRefreshingStore,

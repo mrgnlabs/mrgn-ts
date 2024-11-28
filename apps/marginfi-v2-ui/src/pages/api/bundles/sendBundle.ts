@@ -5,10 +5,11 @@ import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
 import { VersionedTransaction } from "@solana/web3.js";
 import { isError } from "./jito/sdk/block-engine/utils";
 import { BundleResult } from "./jito/gen/block-engine/bundle";
-import { sleep } from "@mrgnlabs/mrgn-common";
+import { setTimeoutPromise, sleep } from "@mrgnlabs/mrgn-common";
 
 const JITO_ENDPOINT = "mainnet.block-engine.jito.wtf";
 const TIMEOUT_DURATION = 25000;
+const ERROR_TAG = "GRPC bundle failed:";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
@@ -17,6 +18,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!Array.isArray(transactions) || transactions.some((tx) => typeof tx !== "string")) {
     return res.status(400).json({ error: "Invalid transactions format" });
   }
+  let bundleId = "";
 
   try {
     const grpcClient = searcherClient(JITO_ENDPOINT);
@@ -25,19 +27,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const num_slots = next_leader.nextLeaderSlot - next_leader.currentSlot;
 
     if (num_slots > 50) {
-      throw new Error("Timeout: No leader slot found within 50 slots.");
+      throw new BundleError(`${ERROR_TAG} no leader slot found within 50 slots.`, "no_leader_slot");
     }
 
     const txs = transactions.map((tx) => VersionedTransaction.deserialize(bs58.decode(tx)));
     const bundle = new Bundle([], txs.length);
 
     if (isError(bundle.addTransactions(...txs))) {
-      throw new Error("Error adding transactions to bundle");
+      throw new Error(`${ERROR_TAG} failed to add transactions`);
     }
+
+    bundleId = await grpcClient.sendBundle(bundle);
 
     const bundleResult = await Promise.race([
       sendBundleWithRetry(bundle),
-      setTimeoutPromise(TIMEOUT_DURATION, `Timeout: Stopped after ${TIMEOUT_DURATION / 1000} seconds.`),
+      setTimeoutPromise(TIMEOUT_DURATION, `${ERROR_TAG} timout after ${TIMEOUT_DURATION / 1000} seconds.`),
     ]);
 
     if (bundleResult instanceof Error) {
@@ -46,12 +50,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     return res.status(200).json({ bundleId: bundleResult });
   } catch (error) {
-    return res.status(500).json({ error: error instanceof Error ? error.message : "Unknown error" });
+    return res
+      .status(500)
+      .json({ error: error instanceof Error ? error.message : `${ERROR_TAG} unknown error`, bundleId });
   }
-}
-
-function setTimeoutPromise(duration: number, message: string): Promise<Error> {
-  return new Promise((_, reject) => setTimeout(() => reject(new Error(message)), duration));
 }
 
 async function sendBundleWithRetry(bundle: Bundle): Promise<string> {
@@ -76,7 +78,7 @@ async function sendBundleWithRetry(bundle: Bundle): Promise<string> {
       if (isAlreadyProcessedError(error)) {
         return bundleId;
       } else if (error instanceof BundleError && error.code === "timeout") {
-        console.log("Timeout error in getBundleResult; retrying...");
+        console.log(`${ERROR_TAG} timeout error in getBundleResult; retrying...`);
       } else {
         throw error;
       }
@@ -85,7 +87,7 @@ async function sendBundleWithRetry(bundle: Bundle): Promise<string> {
     await sleep(500);
   }
 
-  throw new Error("Failed to send bundle after multiple attempts.");
+  throw new Error(`${ERROR_TAG} multiple attempts failed.`);
 }
 
 function isAlreadyProcessedError(error: unknown): boolean {
@@ -131,11 +133,11 @@ export function getBundleResult(grpcClient: SearcherClient) {
       if (bundleResult.accepted || bundleResult.finalized || bundleResult.processed) {
         resolve(bundleResult.bundleId);
       } else if (bundleResult.rejected) {
-        reject(new BundleError("Bundle rejected by the block-engine.", "rejected"));
+        reject(new BundleError(`${ERROR_TAG} rejected by the block-engine.`, "rejected"));
       } else if (bundleResult.dropped) {
-        reject(new BundleError("Bundle was accepted but never landed on-chain.", "dropped"));
+        reject(new BundleError(`${ERROR_TAG} never landed on-chain.`, "dropped"));
       } else {
-        reject(new BundleError("Unknown error sending bundle", "unknown"));
+        reject(new BundleError(`${ERROR_TAG} unknown error.`, "unknown"));
       }
     };
 
@@ -147,7 +149,7 @@ export function getBundleResult(grpcClient: SearcherClient) {
 
     const timeout = setTimeout(() => {
       reset();
-      reject(new BundleError("Timeout: No bundle result received within 3 seconds.", "timeout"));
+      reject(new BundleError(`${ERROR_TAG} no bundle result received within 3 seconds.`, "timeout"));
     }, 3000);
 
     reset = grpcClient.onBundleResult(

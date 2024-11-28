@@ -1,74 +1,59 @@
-import { QuoteResponse } from "@jup-ag/api";
 import { v4 as uuidv4 } from "uuid";
-import { Connection, VersionedTransaction } from "@solana/web3.js";
-
-import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
-import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { TransactionBroadcastType } from "@mrgnlabs/mrgn-common";
 import {
   ActionMessageType,
   calculateLoopingParams,
+  CalculateLoopingProps,
   executeLoopingAction,
-  LoopingObject,
-  MarginfiActionParams,
+  LoopActionTxns,
+  ExecuteLoopingActionProps,
+  IndividualFlowError,
 } from "@mrgnlabs/mrgn-utils";
 
 import { ExecuteActionsCallbackProps } from "~/components/action-box-v2/types";
 
 interface ExecuteLendingActionsProps extends ExecuteActionsCallbackProps {
-  params: MarginfiActionParams;
+  props: ExecuteLoopingActionProps;
 }
 
 export const handleExecuteLoopAction = async ({
-  params,
+  props,
   captureEvent,
   setIsLoading,
   setIsComplete,
-  setIsError,
+  setError,
 }: ExecuteLendingActionsProps) => {
-  const { actionType, bank, amount, priorityFee } = params;
-
-  setIsLoading(true);
-  const attemptUuid = uuidv4();
-  captureEvent(`user_${actionType.toLowerCase()}_initiate`, {
-    uuid: attemptUuid,
-    tokenSymbol: bank.meta.tokenSymbol,
-    tokenName: bank.meta.tokenName,
-    amount,
-    priorityFee,
-  });
-
-  const txnSig = await executeLoopingAction(params);
-
-  setIsLoading(false);
-
-  if (txnSig) {
-    setIsComplete(Array.isArray(txnSig) ? txnSig : [txnSig]);
-    captureEvent(`user_${actionType.toLowerCase()}`, {
+  try {
+    setIsLoading(true);
+    const attemptUuid = uuidv4();
+    captureEvent(`user_loop_initiate`, {
       uuid: attemptUuid,
-      tokenSymbol: bank.meta.tokenSymbol,
-      tokenName: bank.meta.tokenName,
-      amount: amount,
-      txn: txnSig!,
-      priorityFee,
+      tokenSymbol: props.borrowBank.meta.tokenSymbol,
+      tokenName: props.borrowBank.meta.tokenName,
+      amount: props.depositAmount,
+      priorityFee: props.processOpts?.priorityFeeMicro ?? 0,
     });
-  } else {
-    setIsError("Transaction not landed");
+
+    const txnSig = await executeLoopingAction(props);
+
+    setIsLoading(false);
+
+    if (txnSig) {
+      setIsComplete(Array.isArray(txnSig) ? txnSig : [txnSig]);
+      captureEvent(`user_loop`, {
+        uuid: attemptUuid,
+        tokenSymbol: props.borrowBank.meta.tokenSymbol,
+        tokenName: props.borrowBank.meta.tokenName,
+        amount: props.depositAmount,
+        txn: txnSig!,
+        priorityFee: props.processOpts?.priorityFeeMicro ?? 0,
+      });
+    }
+  } catch (error) {
+    setError(error as IndividualFlowError);
   }
 };
 
-export async function calculateLooping(
-  marginfiAccount: MarginfiAccountWrapper,
-  bank: ExtendedBankInfo, // deposit
-  loopBank: ExtendedBankInfo, // borrow
-  targetLeverage: number,
-  amount: number,
-  slippageBps: number,
-  connection: Connection,
-  priorityFee: number,
-  platformFeeBps: number,
-  broadcastType: TransactionBroadcastType
-): Promise<LoopingObject | ActionMessageType> {
+export async function calculateLooping(props: CalculateLoopingProps): Promise<LoopActionTxns | ActionMessageType> {
   // TODO setup logging again
   // capture("looper", {
   //   amountIn: uiToNative(amount, loopBank.info.state.mintDecimals).toNumber(),
@@ -78,18 +63,7 @@ export async function calculateLooping(
   //   outputMint: bank.info.state.mint.toBase58(),
   // });
 
-  const result = await calculateLoopingParams({
-    marginfiAccount,
-    depositBank: bank,
-    borrowBank: loopBank,
-    targetLeverage,
-    amount,
-    slippageBps,
-    connection,
-    priorityFee,
-    platformFeeBps,
-    broadcastType,
-  });
+  const result = await calculateLoopingParams(props);
 
   return result;
 }

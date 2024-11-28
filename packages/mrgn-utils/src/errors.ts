@@ -10,182 +10,219 @@ export const STATIC_SIMULATION_ERRORS: { [key: string]: ActionMessageType } = {
   NOT_INITIALIZED: {
     isEnabled: false,
     actionMethod: "WARNING",
-    description: "Marginfi client or account not initialized. Please refresh and try again.",
+    description: "There was an issue with the marginfi client. Please refresh and try again.",
+    code: 101,
   },
   SLIPPAGE: {
     isEnabled: false,
     actionMethod: "WARNING",
-    description: "Slippage tolerance exceeded. Please increase the slippage tolerance in the settings and try again.",
+    description: "Max slippage was exceeeded, please increase your max slippage in settings and try again.",
+    retry: true,
+    code: 102,
   },
   TX_SIZE: {
     isEnabled: false,
     actionMethod: "WARNING",
-    description:
-      "The Jupiter routes for this swap cause the transaction to fail due to size restrictions. Please try again.",
+    description: "Unable to find Jupiter swap routes for this pair. Please try again.",
+    retry: true,
+    code: 103,
   },
   FL_FAILED: {
     isEnabled: false,
     actionMethod: "WARNING",
-    description: "Failed to fetch data. Please choose a different collateral option or refresh the page.",
+    description: "Failed to fetch Jupiter qoute for this swap. Please try again.",
+    retry: true,
+    code: 104,
   },
   CLOSE_POSITIONS_FL_FAILED: {
     isEnabled: false,
     actionMethod: "WARNING",
     description: "Failed to close position. Please try again or manually reduce your position size.",
+    retry: true,
+    code: 105,
   },
   KEY_SIZE: {
     isEnabled: false,
     actionMethod: "WARNING",
     description:
-      "This transaction fails due to account restrictions. Please decrease the positions on mrgnlend and try again.",
+      "You have too many open positions for this transaction to complete. Please move positions to sub accounts from your portfolio and try again.",
+    code: 106,
   },
   STALE_TRADING: {
-    isEnabled: true,
+    isEnabled: false,
     actionMethod: "WARNING",
-    description: "Trading may fail due to network congestion preventing oracles from updating price data.",
+    description: "Some oracles were found to be stale causing inacurate prices. Please try again.",
     link: "https://docs.marginfi.com/faqs#what-does-the-stale-oracles-error-mean",
     linkText: "Learn more about marginfi's decentralized oracles.",
+    code: 107,
+    retry: true,
   },
   STALE_TRADING_OR_HEALTH: {
-    isEnabled: true,
+    isEnabled: false,
     actionMethod: "WARNING",
-    description:
-      "Trading may fail due to poor account health or network congestion preventing oracles from updating price data.",
-    link: "https://docs.marginfi.com/faqs#what-does-the-stale-oracles-error-mean",
-    linkText: "Learn more about marginfi's decentralized oracles.",
+    description: "Transaction failed due to poor account health, please increase your collateral and try again.",
+    code: 108,
   },
   USER_REJECTED: {
     isEnabled: false,
     actionMethod: "WARNING",
-    description: "User rejected the transaction.",
+    description: "Transaction was cancelled.",
+    retry: true,
+    code: 109,
   },
   DEPOSIT_CAP_EXCEEDED: {
     isEnabled: false,
     actionMethod: "WARNING",
     description: "The maximum deposit capacity for this asset has been reached.",
+    code: 110,
   },
   UTILIZATION_RATIO_INVALID: {
     isEnabled: false,
     actionMethod: "WARNING",
-    description: "Insufficient liquidity for this trade.",
+    description: "There is insufficient liquidity in the pool to complete this trade.",
+    code: 111,
   },
   NO_POSITIONS: {
-    description: "No position found.",
     isEnabled: false,
+    actionMethod: "WARNING",
+    description: "This position could not be found. Please refresh and try again.",
+    code: 112,
   },
   HEALTH_LIQUIDATION_FAILED: {
-    isEnabled: true,
+    isEnabled: false,
     actionMethod: "WARNING",
     description: "Simulating transaction failed. Please try again.",
+    retry: true,
+    code: 113,
   },
   NO_COLLATERAL: {
-    description: "No available collateral.",
     isEnabled: false,
+    actionMethod: "WARNING",
+    description: "Insufficient collateral, you need to deposit funds first before you can borrow.",
+    code: 114,
   },
   ALREADY_LENDING: {
-    description: "You're already lending this asset, you need to close that position first to start borrowing.",
     isEnabled: false,
+    description: "You cannot borrow an asset you are already lending. Please withdraw first to start borrowing.",
+    code: 115,
   },
   ALREADY_BORROWING: {
-    description: "You are already borrowing this asset, you need to repay that position first to start lending.",
     isEnabled: false,
+    description: "You cannot lend an asset you are already borrowing. Please repay first to start lending.",
+    code: 116,
   },
   EXISTING_BORROW: {
-    description: "You cannot borrow an isolated asset with existing borrows.",
     isEnabled: false,
+    description:
+      "Borrows of isolated assets can not be combined with other borrows. Please create a new sub account to take out this borrow.",
+    code: 117,
   },
   TRANSACTION_EXPIRED: {
-    description:
-      "Transaction failed to land due to network congestion. This is a known issue that marginfi is actively working with Solana Labs to address. Please try again in a few moments.",
-    isEnabled: true,
-    actionMethod: "WARNING",
+    isEnabled: false,
+    description: "Transaction expired, please try again.",
+    retry: true,
+    code: 118,
   },
   INSUFICIENT_LAMPORTS: {
+    isEnabled: false,
+    actionMethod: "ERROR",
     description: "You do not have enough SOL to execute the transaction",
-    isEnabled: true,
-    actionMethod: "WARNING",
+    code: 119,
   },
   INSUFICIENT_FUNDS: {
-    description: "You do not have enough funds to execute the transaction",
-    isEnabled: true,
-    actionMethod: "WARNING",
+    isEnabled: false,
+    actionMethod: "ERROR",
+    description: "You do not have available funds to execute this transaction.",
+    code: 120,
   },
   INSUFICIENT_FUNDS_REPAY: {
-    description:
-      "Insufficient funds for the transaction, likely due to a bad Jupiter quote. Please select another amount and try again.",
-    isEnabled: true,
+    isEnabled: false,
     actionMethod: "WARNING",
+    description: "Insufficient funds for this quote. Please try again.",
+    retry: true,
+    code: 121,
   },
   BUILDING_LENDING_TX: {
-    description: "Transaction failed to build, please open a ticket.",
-    link: "https://support.marginfi.com/",
-    linkText: "Contact support",
     isEnabled: false,
     actionMethod: "WARNING",
+    description: "Transaction failed to build, please open a ticket.",
+    retry: true,
+    code: 122,
   },
   STAKE_SIMULATION_FAILED: {
-    description: "Transaction failed to build. Please try again",
-    link: "https://support.marginfi.com/",
-    linkText: "Contact support",
     isEnabled: false,
     actionMethod: "WARNING",
+    description: "Transaction failed to build. Please try again",
+    retry: true,
+    code: 123,
   },
   STAKE_SWAP_SIMULATION_FAILED: {
     description: "Failed to fetch Jupiter qoute. Please try again",
-    isEnabled: true,
+    isEnabled: false,
     actionMethod: "WARNING",
+    code: 124,
   },
 };
 
 const createRepayCollatFailedCheck = (tokenSymbol?: string): ActionMessageType => ({
   description: `Unable to repay using ${tokenSymbol}, please select another collateral.`,
   isEnabled: false,
+  code: 141,
 });
 
 const createInsufficientBalanceCheck = (tokenSymbol?: string): ActionMessageType => ({
   description: `Insufficient ${tokenSymbol} in wallet.`,
   isEnabled: false,
+  code: 140,
 });
 
 const createExistingIsolatedBorrowCheck = (tokenSymbol?: string): ActionMessageType => ({
-  description: `You have an active isolated borrow (${tokenSymbol}). You cannot borrow another asset while you do.`,
+  description: `You have an active isolated borrow (${tokenSymbol}) which cannot be combined with other borrows.`,
   isEnabled: false,
+  code: 139,
 });
 
 const createBorrowCapacityCheck = (tokenSymbol?: string): ActionMessageType => ({
   description: `The ${tokenSymbol} bank is at borrow capacity.`,
   isEnabled: false,
+  code: 138,
 });
 
 const createBankRetiredCheck = (tokenSymbol?: string): ActionMessageType => ({
   description: `The ${tokenSymbol}  bank is being retired. You may only withdraw a deposit or repay a loan.`,
   isEnabled: false,
+  code: 137,
 });
 
 const createReduceOnlyCheck = (tokenSymbol?: string): ActionMessageType => ({
   description: `The ${tokenSymbol} bank is in reduce-only mode. You may only withdraw a deposit or repay a loan.`,
   isEnabled: false,
+  code: 136,
 });
 
 const createWalletRapayCheck = (tokenSymbol?: string): ActionMessageType => ({
   description: `You have ${tokenSymbol} in your wallet and can repay without using collateral.`,
   isEnabled: true,
   actionMethod: "INFO",
+  code: 135,
 });
 
 const createSufficientLiqCheck = (tokenSymbol?: string): ActionMessageType => ({
   description: `Insufficient ${tokenSymbol} in wallet for loan repayment.`,
   isEnabled: false,
+  code: 134,
 });
 
 const createIfBorrowingCheck = (tokenSymbol?: string): ActionMessageType => ({
   description: `You&apos;re not borrowing ${tokenSymbol}.`,
   isEnabled: false,
+  code: 133,
 });
 
 const createIfLendingCheck = (tokenSymbol?: string): ActionMessageType => ({
   description: `You&apos;re not lending ${tokenSymbol}.`,
   isEnabled: false,
+  code: 132,
 });
 
 const createBankPausedCheck = (tokenSymbol?: string): ActionMessageType => ({
@@ -210,6 +247,7 @@ const createWithdrawCheck = (
   description: `Before you can ${tradeSide} this asset, you'll need to withdraw your supplied ${
     tradeSide === "long" ? stableBank.meta.tokenSymbol : tokenBank.meta.tokenSymbol
   }.`,
+  code: 125,
   action: {
     type: ActionType.Withdraw,
     bank: tradeSide === "long" ? stableBank : tokenBank,
@@ -225,6 +263,7 @@ const createRepayCheck = (
   description: `Before you can ${tradeSide} this asset, you'll need to repay your borrowed ${
     tradeSide === "long" ? tokenBank : stableBank
   }.`,
+  code: 126,
   action: {
     type: ActionType.Repay,
     bank: tradeSide === "long" ? tokenBank : stableBank,
@@ -240,6 +279,7 @@ const createLoopCheck = (
   description: `You are already ${tradeSide} this asset, you need to close that position before you can go ${
     tradeSide === "long" ? "short" : "long"
   }.`,
+  code: 127,
   action: {
     type: ActionType.Repay,
     bank: tradeSide === "long" ? tokenBank : stableBank,
@@ -249,6 +289,7 @@ const createLoopCheck = (
 const createPriceImpactErrorCheck = (priceImpactPct: number): ActionMessageType => {
   return {
     description: `Price impact is ${percentFormatter.format(priceImpactPct)}.`,
+    code: 128,
     actionMethod: "ERROR",
     isEnabled: true,
   };
@@ -258,6 +299,7 @@ const createPriceImpactWarningCheck = (priceImpactPct: number): ActionMessageTyp
   return {
     description: `Price impact is ${percentFormatter.format(Number(priceImpactPct))}.`,
     isEnabled: true,
+    code: 129,
   };
 };
 

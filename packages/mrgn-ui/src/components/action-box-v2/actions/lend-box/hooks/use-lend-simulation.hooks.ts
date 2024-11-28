@@ -4,10 +4,10 @@ import { Transaction, VersionedTransaction } from "@solana/web3.js";
 
 import { AccountSummary, ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { MarginfiAccountWrapper, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
-import { TransactionBroadcastType } from "@mrgnlabs/mrgn-common";
-import { ActionMessageType, usePrevious, STATIC_SIMULATION_ERRORS } from "@mrgnlabs/mrgn-utils";
+import { ActionMessageType, usePrevious, STATIC_SIMULATION_ERRORS, ActionTxns } from "@mrgnlabs/mrgn-utils";
 
 import { calculateLendingTransaction, calculateSummary, getSimulationResult } from "../utils";
+import { SimulationStatus } from "../../../utils/simulation.utils";
 
 /*
 How lending action simulation works:
@@ -22,20 +22,12 @@ type LendSimulationProps = {
   accountSummary?: AccountSummary;
   selectedBank: ExtendedBankInfo | null;
   lendMode: ActionType;
-  actionTxns: {
-    actionTxn: VersionedTransaction | Transaction | null;
-    additionalTxns: (VersionedTransaction | Transaction)[];
-  };
+  actionTxns: ActionTxns;
   simulationResult: SimulationResult | null;
-  priorityFee: number;
-  broadcastType: TransactionBroadcastType;
   setSimulationResult: (result: SimulationResult | null) => void;
-  setActionTxns: (actionTxns: {
-    actionTxn: VersionedTransaction | Transaction | null;
-    additionalTxns: (VersionedTransaction | Transaction)[];
-  }) => void;
+  setActionTxns: (actionTxns: ActionTxns) => void;
   setErrorMessage: (error: ActionMessageType | null) => void;
-  setIsLoading: (isLoading: boolean) => void;
+  setIsLoading: ({ isLoading, status }: { isLoading: boolean; status: SimulationStatus }) => void;
 };
 
 export function useLendSimulation({
@@ -46,8 +38,6 @@ export function useLendSimulation({
   lendMode,
   actionTxns,
   simulationResult,
-  priorityFee,
-  broadcastType,
   setSimulationResult,
   setActionTxns,
   setErrorMessage,
@@ -58,6 +48,7 @@ export function useLendSimulation({
   const handleSimulation = React.useCallback(
     async (txns: (VersionedTransaction | Transaction)[]) => {
       try {
+        setIsLoading({ isLoading: true, status: SimulationStatus.SIMULATING });
         if (selectedAccount && selectedBank && txns.length > 0) {
           const simulationResult = await getSimulationResult({
             actionMode: lendMode,
@@ -68,19 +59,19 @@ export function useLendSimulation({
           });
           if (simulationResult.actionMethod) {
             setErrorMessage(simulationResult.actionMethod);
-            setSimulationResult(null);
+            throw new Error(simulationResult.actionMethod.description);
           } else {
             setErrorMessage(null);
             setSimulationResult(simulationResult.simulationResult);
           }
         } else {
-          setSimulationResult(null);
+          throw new Error("account, bank or transactions are null");
         }
       } catch (error) {
-        console.error("Error simulating transaction", error);
+        console.error("Error simulating transaction:", error);
         setSimulationResult(null);
       } finally {
-        setIsLoading(false);
+        setIsLoading({ isLoading: false, status: SimulationStatus.COMPLETE });
       }
     },
     [selectedAccount, selectedBank, lendMode, debouncedAmount, setErrorMessage, setSimulationResult, setIsLoading]
@@ -114,36 +105,31 @@ export function useLendSimulation({
         return;
       }
 
-      setIsLoading(true);
+      setIsLoading({ isLoading: true, status: SimulationStatus.PREPARING });
+
       try {
-        const lendingObject = await calculateLendingTransaction(
-          selectedAccount,
-          selectedBank,
-          lendMode,
-          amount,
-          priorityFee,
-          broadcastType
-        );
+        const lendingObject = await calculateLendingTransaction(selectedAccount, selectedBank, lendMode, amount);
 
         if (lendingObject && "actionTxn" in lendingObject) {
           setActionTxns({ actionTxn: lendingObject.actionTxn, additionalTxns: lendingObject.additionalTxns });
         } else {
           const errorMessage = lendingObject ?? STATIC_SIMULATION_ERRORS.BUILDING_LENDING_TX;
           setErrorMessage(errorMessage);
+          console.error("Error building lending transaction: ", errorMessage.description);
+          setIsLoading({ isLoading: false, status: SimulationStatus.COMPLETE });
         }
       } catch (error) {
-        console.log(error);
+        console.error("Error building lending transaction:", error);
         setErrorMessage(STATIC_SIMULATION_ERRORS.BUILDING_LENDING_TX);
-        setIsLoading(false);
+        setIsLoading({ isLoading: false, status: SimulationStatus.COMPLETE });
       }
-
-      // is set to false in simulation
-      // finally {
-      //   setIsLoading(false);
-      // }
     },
-    [selectedAccount, selectedBank, setIsLoading, setActionTxns, lendMode, priorityFee, broadcastType, setErrorMessage]
+    [selectedAccount, selectedBank, lendMode, setIsLoading, setActionTxns, setErrorMessage]
   );
+
+  const refreshSimulation = React.useCallback(async () => {
+    await fetchActionTxn(debouncedAmount ?? 0);
+  }, [fetchActionTxn, debouncedAmount]);
 
   React.useEffect(() => {
     // only simulate when amount changes
@@ -153,10 +139,17 @@ export function useLendSimulation({
   }, [prevDebouncedAmount, debouncedAmount, fetchActionTxn]);
 
   React.useEffect(() => {
-    handleSimulation([
-      ...(actionTxns?.additionalTxns ?? []),
-      ...(actionTxns?.actionTxn ? [actionTxns?.actionTxn] : []),
-    ]);
+    // Only run simulation if we have transactions to simulate
+    if (actionTxns?.actionTxn || (actionTxns?.additionalTxns?.length ?? 0) > 0) {
+      handleSimulation([
+        ...(actionTxns?.additionalTxns ?? []),
+        ...(actionTxns?.actionTxn ? [actionTxns?.actionTxn] : []),
+      ]);
+    } else {
+      // If no transactions, move back to idle state
+      setSimulationResult(null);
+      setIsLoading({ isLoading: false, status: SimulationStatus.IDLE });
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [actionTxns]);
 
@@ -166,5 +159,6 @@ export function useLendSimulation({
 
   return {
     actionSummary,
+    refreshSimulation,
   };
 }

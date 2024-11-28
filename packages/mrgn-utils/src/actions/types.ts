@@ -6,11 +6,12 @@ import { Connection, PublicKey, Transaction, VersionedTransaction } from "@solan
 import * as solanaStakePool from "@solana/spl-stake-pool";
 import BigNumber from "bignumber.js";
 
-import { TransactionBroadcastType, Wallet } from "@mrgnlabs/mrgn-common";
-import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
-import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { SolanaTransaction, TransactionBroadcastType, TransactionOptions, Wallet } from "@mrgnlabs/mrgn-common";
+import { MarginfiAccountWrapper, MarginfiClient, ProcessTransactionsClientOpts } from "@mrgnlabs/marginfi-client-v2";
+import { ActionType, ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { WalletContextStateOverride } from "../wallet";
+import { MultiStepToastHandle } from "../toasts/toastUtils";
 
 export enum RepayType {
   RepayRaw = "Repay",
@@ -36,6 +37,8 @@ export interface ActionMessageType {
   description?: string;
   link?: string;
   linkText?: string;
+  retry?: boolean;
+  code?: number;
   action?: {
     bank: ExtendedBankInfo;
     type: ActionType;
@@ -62,8 +65,8 @@ export interface LstData {
 }
 
 export interface ActionTxns {
-  actionTxn: VersionedTransaction | Transaction | null;
-  additionalTxns: (VersionedTransaction | Transaction)[];
+  actionTxn: SolanaTransaction | null;
+  additionalTxns: SolanaTransaction[];
 }
 
 export interface LoopActionTxns extends ActionTxns {
@@ -73,48 +76,100 @@ export interface LoopActionTxns extends ActionTxns {
   borrowAmount: BigNumber;
 }
 
+export interface ClosePositionActionTxns extends ActionTxns {
+  actionQuote: QuoteResponse | null;
+}
+
 export interface RepayCollatActionTxns extends ActionTxns {
   actionQuote: QuoteResponse | null;
   lastValidBlockHeight?: number;
-} //
+}
 
 export interface StakeActionTxns extends ActionTxns {
   actionQuote: QuoteResponse | null;
   lastValidBlockHeight?: number;
 } // TOOD: implement this as actionSummary type
 
-export type RepayWithCollatOptions = {
-  repayCollatQuote: QuoteResponse;
-  feedCrankTxs: VersionedTransaction[];
-  repayCollatTxn: VersionedTransaction | null;
-  withdrawAmount: number;
-  depositBank: ExtendedBankInfo;
+export interface CalculateLoopingProps
+  extends Pick<LoopingProps, "marginfiAccount" | "borrowBank" | "depositBank" | "depositAmount" | "connection"> {
+  targetLeverage: number;
+  marginfiClient: MarginfiClient;
+  slippageBps: number;
+  platformFeeBps: number;
+}
+
+export interface CalculateRepayCollateralProps
+  extends Pick<
+    RepayWithCollatProps,
+    "marginfiAccount" | "borrowBank" | "depositBank" | "withdrawAmount" | "connection"
+  > {
+  slippageBps: number;
+  platformFeeBps: number;
+}
+
+export interface CalculateClosePositionProps
+  extends Pick<ClosePositionProps, "marginfiAccount" | "depositBank" | "borrowBank" | "connection"> {
+  slippageBps: number;
+  platformFeeBps: number;
+}
+
+export type ClosePositionProps = {
+  marginfiAccount: MarginfiAccountWrapper;
+  depositBank: ActiveBankInfo;
+  borrowBank: ActiveBankInfo;
+  quote: QuoteResponse;
   connection: Connection;
 };
 
-export type LoopingOptions = {
-  loopingQuote: QuoteResponse;
-  feedCrankTxs: VersionedTransaction[];
-  loopingTxn: VersionedTransaction | null;
-  borrowAmount: BigNumber;
-  loopingBank: ExtendedBankInfo;
+export type RepayWithCollatProps = {
+  marginfiAccount: MarginfiAccountWrapper;
+  repayAmount: number;
+  withdrawAmount: number; // previously amount
+  borrowBank: ExtendedBankInfo; // previously bank
+  depositBank: ExtendedBankInfo;
+  quote: QuoteResponse;
   connection: Connection;
+
+  multiStepToast?: MultiStepToastHandle;
+};
+
+// deprecated
+export interface LoopingObject {
+  loopingTxn: VersionedTransaction | null;
+  feedCrankTxs: VersionedTransaction[];
+  quote: QuoteResponse;
+  actualDepositAmount: number;
+  borrowAmount: BigNumber;
+  priorityFee: number;
+}
+
+export type LoopingProps = {
+  marginfiAccount: MarginfiAccountWrapper | null;
+  depositAmount: number;
+  borrowAmount: BigNumber;
+  actualDepositAmount: number;
+  depositBank: ExtendedBankInfo; // previously bank
+  borrowBank: ExtendedBankInfo;
+  quote: QuoteResponse;
+  connection: Connection;
+
+  multiStepToast?: MultiStepToastHandle;
 };
 
 export type MarginfiActionParams = {
   marginfiClient: MarginfiClient | null;
+  marginfiAccount: MarginfiAccountWrapper | null;
   bank: ExtendedBankInfo;
   actionType: ActionType;
   amount: number;
   nativeSolBalance: number;
-  marginfiAccount: MarginfiAccountWrapper | null;
+
   actionTxns?: ActionTxns;
-  repayWithCollatOptions?: RepayWithCollatOptions; // deprecated
-  loopingOptions?: LoopingOptions; // deprecated
   walletContextState?: WalletContextState | WalletContextStateOverride;
-  priorityFee: number;
-  broadcastType: TransactionBroadcastType;
-  theme?: "light" | "dark";
+  processOpts?: ProcessTransactionsClientOpts;
+  txOpts?: TransactionOptions;
+
+  multiStepToast?: MultiStepToastHandle;
 };
 
 export type LstActionParams = {
@@ -132,11 +187,25 @@ export type LstActionParams = {
   theme?: "light" | "dark";
 };
 
-export interface LoopingObject {
-  loopingTxn: VersionedTransaction | null;
-  feedCrankTxs: VersionedTransaction[];
-  quote: QuoteResponse;
-  actualDepositAmount: number;
-  borrowAmount: BigNumber;
-  priorityFee: number;
+export class IndividualFlowError extends Error {
+  public readonly actionTxns?: ActionTxns;
+  public readonly multiStepToast?: MultiStepToastHandle;
+  public readonly retry: boolean;
+
+  constructor(
+    message: string,
+    options?: {
+      failedTxns?: ActionTxns;
+      multiStepToast?: MultiStepToastHandle;
+      retry?: boolean;
+    }
+  ) {
+    super(message);
+    this.name = "IndividualFlowError";
+    this.actionTxns = options?.failedTxns;
+    this.multiStepToast = options?.multiStepToast;
+    this.retry = options?.retry ?? false;
+
+    Object.setPrototypeOf(this, IndividualFlowError.prototype);
+  }
 }

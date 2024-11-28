@@ -4,12 +4,6 @@
     "resolveJsonModule": true,
     "outDir": "dist"
   },
-  "include": [
-    "."
-  ],
-  "exclude": [
-    "dist",
-    "node_modules",
-    "*.spec.ts",
-  ]
+  "include": [".", "src/constants/constants.ts"],
+  "exclude": ["dist", "node_modules", "*.spec.ts"]
 }

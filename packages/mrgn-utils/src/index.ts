@@ -17,4 +17,5 @@ export * from "./priority.utils";
 export * from "./action-message.utils";
 export * from "./sentry.utils";
 export * from "./emissions.consts";
-export * from './rpc.utils'
+export * from "./rpc.utils";
+export * from "./transaction.utils";

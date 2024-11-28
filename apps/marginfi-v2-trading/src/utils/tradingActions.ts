@@ -13,10 +13,15 @@ import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { WalletContextState } from "@solana/wallet-adapter-react";
 import { QuoteResponse } from "@jup-ag/api";
 
-import { BankConfigOpt, MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
+import {
+  BankConfigOpt,
+  MarginfiAccountWrapper,
+  MarginfiClient,
+  PriorityFees,
+  ProcessTransactionsClientOpts,
+} from "@mrgnlabs/marginfi-client-v2";
 import {
   calculateLoopingTransaction,
-  LoopingObject,
   ActionMessageType,
   calculateBorrowLendPositionParams,
   getMaybeSquadsOptions,
@@ -25,6 +30,8 @@ import {
   showErrorToast,
   STATIC_SIMULATION_ERRORS,
   extractErrorString,
+  LoopActionTxns,
+  ClosePositionActionTxns,
 } from "@mrgnlabs/mrgn-utils";
 import { ExtendedBankInfo, clearAccountCache, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
@@ -118,7 +125,7 @@ export async function createPermissionlessBank({
   bankConfig,
   admin,
   seed,
-  priorityFee,
+  processOpts,
 }: {
   marginfiClient: MarginfiClient;
   mint: PublicKey;
@@ -126,7 +133,7 @@ export async function createPermissionlessBank({
   bankConfig: BankConfigOpt;
   admin: PublicKey;
   seed?: Keypair;
-  priorityFee?: number;
+  processOpts?: ProcessTransactionsClientOpts;
 }) {
   const multiStepToast = new MultiStepToastHandle("Bank Creation", [{ label: `Creating permissionless bank` }]);
   multiStepToast.start();
@@ -138,7 +145,7 @@ export async function createPermissionlessBank({
       group,
       admin,
       seed,
-      priorityFee,
+      processOpts,
     });
     multiStepToast.setSuccessAndNext();
     return txnSig;
@@ -161,8 +168,8 @@ export async function executeLeverageAction({
   connection,
   depositAmount,
   tradeState,
-  loopingObject: _loopingObject,
-  priorityFee,
+  loopActionTxns,
+  priorityFees,
   slippageBps,
   broadcastType,
 }: {
@@ -174,8 +181,8 @@ export async function executeLeverageAction({
   walletContextState?: WalletContextState | WalletContextStateOverride;
   depositAmount: number;
   tradeState: TradeSide;
-  loopingObject: LoopingObject | null;
-  priorityFee: number;
+  loopActionTxns: LoopActionTxns | null;
+  priorityFees: PriorityFees;
   slippageBps: number;
   broadcastType: TransactionBroadcastType;
 }) {
@@ -184,7 +191,7 @@ export async function executeLeverageAction({
     return;
   }
 
-  if (_loopingObject === null) {
+  if (loopActionTxns === null) {
     showErrorToast("Leverage routing not ready");
     return;
   }
@@ -196,7 +203,7 @@ export async function executeLeverageAction({
     toastSteps.push(...[{ label: "Creating account" }]);
   }
 
-  if (!_loopingObject.loopingTxn) {
+  if (!loopActionTxns.actionTxn) {
     toastSteps.push(...[{ label: `Generating transaction` }]);
   }
 
@@ -210,12 +217,11 @@ export async function executeLeverageAction({
   multiStepToast.start();
 
   let marginfiAccount: MarginfiAccountWrapper | null = _marginfiAccount;
-  let loopingObject: LoopingObject | null = _loopingObject;
 
   if (!marginfiAccount) {
     try {
       const squadsOptions = await getMaybeSquadsOptions(walletContextState);
-      marginfiAccount = await marginfiClient.createMarginfiAccount(undefined, squadsOptions, priorityFee, broadcastType);
+      marginfiAccount = await marginfiClient.createMarginfiAccount(squadsOptions);
 
       clearAccountCache(marginfiClient.provider.publicKey);
 
@@ -230,20 +236,22 @@ export async function executeLeverageAction({
     }
   }
 
-  if (!loopingObject.loopingTxn) {
+  let loopingObject = loopActionTxns;
+
+  if (!loopActionTxns.actionTxn && loopActionTxns.actionQuote) {
     try {
       const result = await calculateLoopingTransaction({
         marginfiAccount,
         borrowBank,
         depositBank,
         connection,
-        loopObject: loopingObject,
-        priorityFee,
-        isTrading: true,
-        broadcastType: broadcastType,
+        depositAmount,
+        borrowAmount: loopActionTxns.borrowAmount,
+        quote: loopActionTxns.actionQuote,
+        actualDepositAmount: loopActionTxns.actualDepositAmount,
       });
 
-      if ("loopingTxn" in result) {
+      if ("actionTxn" in result) {
         loopingObject = result;
       } else {
         multiStepToast.setFailed(result.description ?? "Something went wrong, please try again.");
@@ -261,19 +269,16 @@ export async function executeLeverageAction({
   }
 
   try {
-    if (loopingObject.loopingTxn) {
+    if (loopingObject.actionTxn) {
       let txnSig: string[] = [];
 
-      if (loopingObject.feedCrankTxs) {
-        txnSig = await marginfiClient.processTransactions(
-          [...loopingObject.feedCrankTxs, loopingObject.loopingTxn],
-          undefined,
-          undefined,
+      if (loopingObject.actionTxn) {
+        txnSig = await marginfiClient.processTransactions([...loopingObject.additionalTxns, loopingObject.actionTxn], {
+          ...priorityFees,
           broadcastType,
-          true
-        );
+        });
       } else {
-        txnSig = [await marginfiClient.processTransaction(loopingObject.loopingTxn)];
+        throw new Error("Something went wrong, please try again.");
       }
 
       multiStepToast.setSuccessAndNext();
@@ -297,7 +302,6 @@ export async function calculateClosePositions({
   depositBanks,
   slippageBps,
   connection,
-  priorityFee,
   platformFeeBps,
 }: {
   marginfiAccount: MarginfiAccountWrapper;
@@ -305,25 +309,16 @@ export async function calculateClosePositions({
   depositBanks: ActiveBankInfo[];
   slippageBps: number;
   connection: Connection;
-  priorityFee: number;
-  platformFeeBps?: number;
-}): Promise<
-  | {
-      closeTxn: VersionedTransaction | Transaction;
-      feedCrankTxs: VersionedTransaction[];
-      quote?: QuoteResponse;
-    }
-  | ActionMessageType
-> {
+  platformFeeBps: number;
+}): Promise<ClosePositionActionTxns | ActionMessageType> {
   // user is borrowing and depositing
   if (borrowBank && depositBanks.length === 1) {
     return calculateBorrowLendPositionParams({
       marginfiAccount,
       borrowBank,
       depositBank: depositBanks[0],
-      slippageBps,
       connection,
-      priorityFee,
+      slippageBps,
       platformFeeBps,
     });
   }
@@ -337,8 +332,9 @@ export async function calculateClosePositions({
       }))
     );
     return {
-      closeTxn: txn,
-      feedCrankTxs: [],
+      actionTxn: txn,
+      additionalTxns: [],
+      actionQuote: null,
     };
   }
 

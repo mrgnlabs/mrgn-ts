@@ -1,10 +1,10 @@
 import React from "react";
 import { useRouter } from "next/router";
 
-import { identify } from "@mrgnlabs/mrgn-utils";
+import { getTransactionStrategy, identify } from "@mrgnlabs/mrgn-utils";
 
 import config from "~/config/marginfi";
-import { useMrgnlendStore } from "~/store";
+import { useMrgnlendStore, useUiStore } from "~/store";
 import { useConnection } from "~/hooks/use-connection";
 import { useWallet } from "~/components/wallet-v2";
 
@@ -24,6 +24,7 @@ export const MrgnlendProvider: React.FC<{
     state.resetUserData,
     state.userDataFetched,
   ]);
+  const [fetchPriorityFee] = useUiStore((state) => [state.fetchPriorityFee]);
 
   // identify user if logged in
   React.useEffect(() => {
@@ -50,6 +51,7 @@ export const MrgnlendProvider: React.FC<{
   React.useEffect(() => {
     const fetchData = () => {
       setIsRefreshingStore(true);
+      fetchPriorityFee(connection);
       fetchMrgnlendState({
         marginfiConfig: config.mfiConfig,
         stageTokens: process.env.NEXT_PUBLIC_STAGE_TOKENS
@@ -58,6 +60,7 @@ export const MrgnlendProvider: React.FC<{
         connection,
         wallet,
         isOverride,
+        processTransactionStrategy: getTransactionStrategy(),
       }).catch(console.error);
     };
 
@@ -70,6 +73,7 @@ export const MrgnlendProvider: React.FC<{
 
       const id = setInterval(() => {
         setIsRefreshingStore(true);
+        fetchPriorityFee(connection);
         fetchMrgnlendState().catch(console.error);
       }, 30_000);
 

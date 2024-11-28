@@ -1,10 +1,11 @@
 import React from "react";
 import { useForm } from "react-hook-form";
+import { useDebounce } from "@uidotdev/usehooks";
 
-import { cn } from "@mrgnlabs/mrgn-utils";
+import { cn, usePrevious } from "@mrgnlabs/mrgn-utils";
 import { MaxCapType, TransactionBroadcastType, TransactionPriorityType } from "@mrgnlabs/mrgn-common";
 
-import { Form, FormControl, FormField, FormItem } from "~/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormMessage } from "~/components/ui/form";
 import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group";
 import { Label } from "~/components/ui/label";
 import { Button } from "~/components/ui/button";
@@ -17,14 +18,15 @@ type SettingsOptions = {
   maxCap: number;
 };
 
-const broadcastTypes: { type: TransactionBroadcastType; label: string }[] = [
-  { type: "BUNDLE", label: "Jito Bundles" },
-  { type: "RPC", label: "RPC Priority Fees" },
+const broadcastTypes: { type: TransactionBroadcastType; label: string; isDisabled: boolean }[] = [
+  { type: "DYNAMIC", label: "Dynamic", isDisabled: false },
+  { type: "BUNDLE", label: "Bundles", isDisabled: false },
+  { type: "RPC", label: "RPC", isDisabled: false },
 ];
 
 const maxCapTypes: { type: MaxCapType; label: string }[] = [
-  { type: "DYNAMIC", label: "Dynamic" },
   { type: "MANUAL", label: "Manual" },
+  { type: "DYNAMIC", label: "Dynamic" },
 ];
 
 const priorityTypes: { type: TransactionPriorityType; label: string }[] = [
@@ -41,23 +43,39 @@ interface SettingsProps extends SettingsOptions {
 }
 
 export const Settings = ({ onChange, recommendedBroadcastType = "BUNDLE", ...props }: SettingsProps) => {
+  const [isReadyToSubmit, setIsReadyToSubmit] = React.useState(false);
   const form = useForm<SettingsForm>({
     defaultValues: props,
   });
 
+  const prevIsDirty = usePrevious(form.formState.isDirty);
+
   const formValues = form.watch();
 
-  function onSubmit(data: SettingsForm) {
-    onChange(data);
-    form.reset(data);
-  }
+  const onSubmit = React.useCallback(
+    (data: SettingsForm) => {
+      onChange(data);
+      form.reset(data);
+    },
+    [form, onChange]
+  );
+
+  const handleOnSubmit = React.useCallback(() => {
+    form.handleSubmit(onSubmit)();
+  }, [form, onSubmit]);
+
+  React.useEffect(() => {
+    if (form.formState.isDirty && !prevIsDirty) {
+      handleOnSubmit();
+    }
+  }, [form.formState.isDirty, prevIsDirty, handleOnSubmit]);
 
   return (
     <div>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           {/* Add this again if sequential transaction are more stabel */}
-          {/* <div className="space-y-2">
+          <div className="space-y-2">
             <h3 className="font-normal ">Transaction Method</h3>
             <p className="text-xs text-muted-foreground">Choose how transactions are broadcasted to the network.</p>
             <FormField
@@ -66,11 +84,7 @@ export const Settings = ({ onChange, recommendedBroadcastType = "BUNDLE", ...pro
               render={({ field }) => (
                 <FormItem className="space-y-3 pb-2">
                   <FormControl>
-                    <RadioGroup
-                      onValueChange={(value) => value === "BUNDLE" && field.onChange(value)}
-                      defaultValue={field.value.toString()}
-                      className="flex justify-between"
-                    >
+                    <RadioGroup defaultValue={field.value.toString()} className="flex justify-between">
                       {broadcastTypes.map((option) => (
                         <div
                           key={option.type}
@@ -81,19 +95,24 @@ export const Settings = ({ onChange, recommendedBroadcastType = "BUNDLE", ...pro
                         >
                           <RadioGroupItem value={option.type} id={option.type} className="hidden" />
                           <Label
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              field.onChange(option.type);
+                            }}
                             className={cn(
                               "flex flex-col p-3 gap-2 h-auto w-full text-center cursor-pointer",
-                              option.type === "RPC" && "cursor-not-allowed opacity-50"
+                              option.isDisabled && "cursor-not-allowed opacity-50"
                             )}
                             htmlFor={option.type}
                           >
                             {option.label}
                           </Label>
-                          {option.type === recommendedBroadcastType && (
+                          {/* {option.type === recommendedBroadcastType && (
                             <span className="absolute translate-y-6 bottom-0 left-0 border border-accent rounded-full text-muted-foreground bg-mfi-action-box-background-dark px-1 text-xs flex items-center gap-1">
                               <IconSparkles size={12} /> Suggested
                             </span>
-                          )}
+                          )} */}
                         </div>
                       ))}
                     </RadioGroup>
@@ -101,8 +120,8 @@ export const Settings = ({ onChange, recommendedBroadcastType = "BUNDLE", ...pro
                 </FormItem>
               )}
             />
-          </div> */}
-          {/* <div className="w-full border-b border-accent" /> */}
+          </div>
+          <div className="w-full border-b border-accent" />
           <div className="space-y-2">
             <h3 className="font-normal ">Transaction Priority</h3>
             <FormField
@@ -111,11 +130,7 @@ export const Settings = ({ onChange, recommendedBroadcastType = "BUNDLE", ...pro
               render={({ field }) => (
                 <FormItem className="space-y-3">
                   <FormControl>
-                    <RadioGroup
-                      onValueChange={(value) => field.onChange(value)}
-                      defaultValue={field.value.toString()}
-                      className="flex justify-between"
-                    >
+                    <RadioGroup defaultValue={field.value.toString()} className="flex justify-between">
                       {priorityTypes.map((option) => (
                         <div
                           key={option.type}
@@ -126,6 +141,11 @@ export const Settings = ({ onChange, recommendedBroadcastType = "BUNDLE", ...pro
                         >
                           <RadioGroupItem value={option.type} id={option.type} className="hidden" />
                           <Label
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              field.onChange(option.type);
+                            }}
                             className={"flex p-3 flex-col gap-2 h-auto w-full text-center cursor-pointer"}
                             htmlFor={option.type}
                           >
@@ -145,17 +165,14 @@ export const Settings = ({ onChange, recommendedBroadcastType = "BUNDLE", ...pro
               Set the maximum fee you are willing to pay for a transaction.
             </p>
 
+            {/* For maxCapType */}
             <FormField
               control={form.control}
               name="maxCapType"
               render={({ field }) => (
-                <FormItem className="space-y-3 pb-2">
+                <FormItem className="space-y-3">
                   <FormControl>
-                    <RadioGroup
-                      onValueChange={(value) => field.onChange(value)}
-                      defaultValue={field.value?.toString()}
-                      className="flex justify-between"
-                    >
+                    <RadioGroup defaultValue={field.value} className="flex justify-between">
                       {maxCapTypes.map((option) => (
                         <div
                           key={option.type}
@@ -166,7 +183,12 @@ export const Settings = ({ onChange, recommendedBroadcastType = "BUNDLE", ...pro
                         >
                           <RadioGroupItem value={option.type} id={option.type} className="hidden" />
                           <Label
-                            className={"flex flex-col p-3 gap-2 h-auto w-full text-center cursor-pointer"}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              field.onChange(option.type);
+                            }}
+                            className="flex p-3 flex-col gap-2 h-auto w-full text-center cursor-pointer"
                             htmlFor={option.type}
                           >
                             {option.label}
@@ -202,19 +224,10 @@ export const Settings = ({ onChange, recommendedBroadcastType = "BUNDLE", ...pro
                       <span className="absolute inset-y-0 right-3 text-sm flex items-center">SOL</span>
                     </div>
                   </FormControl>
+                  <FormMessage className="text-xs text-warning" />
                 </FormItem>
               )}
             />
-          </div>
-          <div>
-            <Button type="submit" className="w-full">
-              Save Settings
-            </Button>
-            {form.formState.isDirty ? (
-              <div className="text-warning text-xs mt-2">You have unsaved changes.</div>
-            ) : (
-              form.formState.isSubmitted && <div className="text-success text-xs mt-2">Settings saved!</div>
-            )}
           </div>
         </form>
       </Form>

@@ -16,7 +16,7 @@ class CustomNumberFormat extends Intl.NumberFormat {
 
 const groupedNumberFormatter = new CustomNumberFormat("en-US", {
   useGrouping: true,
-  minimumFractionDigits: 2,
+  minimumFractionDigits: 0,
   maximumFractionDigits: 2,
 });
 
@@ -39,15 +39,19 @@ export const dynamicNumeralFormatter = (value: number, options: dynamicNumeralFo
   if (value === 0) return "0";
 
   if (Math.abs(value) < minDisplay) {
-    return `< ${minDisplay}`;
+    return `<${minDisplay}`;
+  }
+
+  if (Math.abs(value) > 10000) {
+    return numeral(value).format("0,0.[00]a");
   }
 
   if (Math.abs(value) >= 0.01) {
-    return numeral(value).format("0.00a");
+    return numeral(value).format("0,0.[0000]a");
   }
 
   if (tokenPrice) {
-    const minUsdDisplay = 0.01;
+    const minUsdDisplay = 0.00000001;
     const smallestUnit = minUsdDisplay / tokenPrice;
 
     const requiredDecimals = Math.max(2, Math.ceil(-Math.log10(smallestUnit)) + 1);
@@ -105,7 +109,14 @@ const clampedNumeralFormatter = (value: number) => {
 };
 
 const tokenPriceFormatter = (price: number, style: "currency" | "decimal" = "currency") => {
+  if (price === 0) {
+    return 0;
+  }
   const reformatNum = Number(price.toFixed(20));
+
+  if (price === 0) {
+    return 0;
+  }
 
   if (reformatNum < 0.00000001) {
     return price.toExponential(2);

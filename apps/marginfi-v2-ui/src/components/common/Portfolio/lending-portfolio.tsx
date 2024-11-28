@@ -26,7 +26,7 @@ export const LendingPortfolio = () => {
   const router = useRouter();
   const { connected } = useWallet();
   const [walletConnectionDelay, setWalletConnectionDelay] = React.useState(false);
-
+  const [accountLabels, setAccountLabels] = React.useState<Record<string, string>>({});
   const [
     isStoreInitialized,
     sortedBanks,
@@ -48,7 +48,11 @@ export const LendingPortfolio = () => {
     state.marginfiAccounts,
     state.fetchMrgnlendState,
   ]);
-  const [setLendingMode] = useUiStore((state) => [state.setLendingMode]);
+  const [setLendingMode, priorityFees, broadcastType] = useUiStore((state) => [
+    state.setLendingMode,
+    state.priorityFees,
+    state.broadcastType,
+  ]);
   const [userPointsData] = useUserProfileStore((state) => [state.userPointsData]);
 
   // Rewards
@@ -209,6 +213,11 @@ export const LendingPortfolio = () => {
             closeOnSwitch={true}
             popoverContentAlign="start"
             showAddAccountButton={false}
+            processOpts={{
+              ...priorityFees,
+              broadcastType,
+            }}
+            _setAccountLabels={setAccountLabels}
           />
         )}
       </div>
@@ -219,7 +228,7 @@ export const LendingPortfolio = () => {
           <div className="flex text-lg items-center gap-1.5 text-sm">
             <TooltipProvider>
               <Tooltip>
-                <TooltipTrigger>
+                <TooltipTrigger asChild>
                   <div className="flex items-center gap-1">
                     <button className="cursor-default text-muted-foreground">No outstanding rewards</button>
                     <IconInfoCircle size={16} className="text-muted-foreground" />
@@ -326,9 +335,9 @@ export const LendingPortfolio = () => {
         </div>
         <div className="flex flex-col md:flex-row justify-between flex-wrap gap-8 md:gap-20">
           <div className="flex flex-col flex-1 gap-4 md:min-w-[340px]">
-            <dl className="flex justify-between items-center gap-2 ">
-              <dt className="text-xl font-medium">Supplied</dt>
-              <dt className="text-muted-foreground">{accountSupplied}</dt>
+            <dl className="flex justify-between items-center gap-2 text-xl font-medium">
+              <dt>Supplied</dt>
+              <dd className="text-lg">{accountSupplied}</dd>
             </dl>
             {isStoreInitialized ? (
               lendingBanks.length > 0 ? (
@@ -339,6 +348,7 @@ export const LendingPortfolio = () => {
                       bank={bank}
                       isInLendingMode={true}
                       isBorrower={borrowingBanks.length > 0}
+                      accountLabels={accountLabels}
                     />
                   ))}
                 </div>
@@ -352,9 +362,9 @@ export const LendingPortfolio = () => {
             )}
           </div>
           <div className="flex flex-col flex-1 gap-4 md:min-w-[340px]">
-            <dl className="flex justify-between items-center gap-2">
-              <dt className="text-xl font-medium">Borrowed</dt>
-              <dt className="text-muted-foreground">{accountBorrowed}</dt>
+            <dl className="flex justify-between items-center gap-2 text-xl font-medium">
+              <dt>Borrowed</dt>
+              <dd className="text-lg">{accountBorrowed}</dd>
             </dl>
             {isStoreInitialized ? (
               borrowingBanks.length > 0 ? (

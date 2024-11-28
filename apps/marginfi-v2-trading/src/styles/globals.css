@@ -48,6 +48,8 @@
     --mfi-action-box-accent: 240 4.8% 98.9%;
     --mfi-action-box-accent-foreground: 240 5.9% 10%;
     --mfi-action-box-highlight: 240 10% 3.9%;
+
+    --mfi-toast-background: 0 0% 100%;
   }
 }
 

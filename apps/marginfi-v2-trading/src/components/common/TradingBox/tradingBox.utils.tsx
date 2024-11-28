@@ -11,6 +11,7 @@ import {
 } from "@mrgnlabs/marginfi-client-v2";
 import { AccountSummary, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import {
+  SolanaTransaction,
   TransactionBroadcastType,
   Wallet,
   percentFormatter,
@@ -21,12 +22,11 @@ import {
   ActionMessageType,
   DYNAMIC_SIMULATION_ERRORS,
   loopingBuilder,
-  LoopingObject,
-  LoopingOptions,
   showErrorToast,
   MultiStepToastHandle,
   cn,
   extractErrorString,
+  LoopActionTxns,
 } from "@mrgnlabs/mrgn-utils";
 
 import { IconPyth, IconSwitchboard } from "~/components/ui/icons";
@@ -37,7 +37,8 @@ export type TradeSide = "long" | "short";
 export async function looping({
   marginfiClient,
   marginfiAccount,
-  bank,
+  depositBank,
+  borrowBank,
   depositAmount,
   options,
   priorityFee,
@@ -45,9 +46,10 @@ export async function looping({
 }: {
   marginfiClient: MarginfiClient | null;
   marginfiAccount: MarginfiAccountWrapper;
-  bank: ExtendedBankInfo;
+  depositBank: ExtendedBankInfo;
+  borrowBank: ExtendedBankInfo;
   depositAmount: number;
-  options: LoopingOptions;
+  options: LoopActionTxns;
   priorityFee: number;
   broadcastType: TransactionBroadcastType;
 }) {
@@ -57,37 +59,36 @@ export async function looping({
   }
 
   const multiStepToast = new MultiStepToastHandle("Looping", [
-    { label: `Executing looping ${bank.meta.tokenSymbol} with ${options.loopingBank.meta.tokenSymbol}` },
+    { label: `Executing looping ${depositBank.meta.tokenSymbol} with ${borrowBank.meta.tokenSymbol}` },
   ]);
   multiStepToast.start();
 
   try {
     let sigs: string[] = [];
 
-    if (options.loopingTxn) {
-      sigs = await marginfiClient.processTransactions(
-        [...options.feedCrankTxs, options.loopingTxn],
-        undefined,
-        undefined,
-        broadcastType,
-        true
-      );
-    } else {
-      const { flashloanTx, feedCrankTxs } = await loopingBuilder({
-        marginfiAccount,
-        bank,
-        depositAmount,
-        options,
-        priorityFee,
-        broadcastType,
+    if (options.actionTxn) {
+      sigs = await marginfiClient.processTransactions([...options.additionalTxns, options.actionTxn], {
+        broadcastType: broadcastType,
+        priorityFeeMicro: priorityFee,
       });
-      sigs = await marginfiClient.processTransactions(
-        [...feedCrankTxs, flashloanTx],
-        undefined,
-        undefined,
-        broadcastType,
-        true
-      );
+    } else {
+      if (!options.actionQuote) {
+        throw new Error("No action quote found");
+      }
+      const loopingResult = await loopingBuilder({
+        marginfiAccount,
+        depositBank,
+        depositAmount,
+        borrowBank,
+        quote: options.actionQuote!,
+        connection: marginfiClient.provider.connection,
+        borrowAmount: options.borrowAmount,
+        actualDepositAmount: options.actualDepositAmount,
+      });
+      sigs = await marginfiClient.processTransactions([...loopingResult.additionalTxs, loopingResult.flashloanTx], {
+        broadcastType: broadcastType,
+        priorityFeeMicro: priorityFee,
+      });
     }
     multiStepToast.setSuccessAndNext();
     return sigs;
@@ -105,8 +106,8 @@ export interface SimulateLoopingActionProps {
   marginfiClient: MarginfiClient;
   account: MarginfiAccountWrapper | null;
   bank: ExtendedBankInfo;
-  loopingTxn: VersionedTransaction | null;
-  feedCrankTxs: VersionedTransaction[];
+  loopingTxn: SolanaTransaction | null;
+  feedCrankTxs: SolanaTransaction[];
 }
 
 export async function simulateLooping({
@@ -160,7 +161,7 @@ export function generateStats(
   tokenBank: ExtendedBankInfo,
   usdcBank: ExtendedBankInfo,
   simulationResult: SimulationResult | null,
-  looping: LoopingObject | null,
+  looping: LoopActionTxns | null,
   isAccountInitialized: boolean
 ) {
   let simStats: StatResult | null = null;
@@ -171,9 +172,11 @@ export function generateStats(
 
   const currentStats = getCurrentStats(accountSummary, tokenBank, usdcBank);
 
-  const priceImpactPct = looping ? Number(looping.quote.priceImpactPct) : undefined;
-  const slippageBps = looping ? Number(looping.quote.slippageBps) : undefined;
-  const platformFeeBps = looping?.quote.platformFee ? Number(looping.quote.platformFee?.feeBps) : undefined;
+  const priceImpactPct = looping?.actionQuote ? Number(looping.actionQuote.priceImpactPct) : undefined;
+  const slippageBps = looping?.actionQuote ? Number(looping.actionQuote.slippageBps) : undefined;
+  const platformFeeBps = looping?.actionQuote?.platformFee
+    ? Number(looping.actionQuote.platformFee?.feeBps)
+    : undefined;
 
   const currentLiqPrice = currentStats.liquidationPrice ? usdFormatter.format(currentStats.liquidationPrice) : null;
   const simulatedLiqPrice = simStats?.liquidationPrice ? usdFormatter.format(simStats?.liquidationPrice) : null;
@@ -365,7 +368,7 @@ interface CheckActionAvailableProps {
   amount: string;
   connected: boolean;
   activeGroup: GroupData | null;
-  loopingObject: LoopingObject | null;
+  loopActionTxns: LoopActionTxns | null;
   tradeSide: TradeSide;
 }
 
@@ -373,20 +376,20 @@ export function checkLoopingActionAvailable({
   amount,
   connected,
   activeGroup,
-  loopingObject,
+  loopActionTxns,
   tradeSide,
 }: CheckActionAvailableProps): ActionMessageType[] {
   let checks: ActionMessageType[] = [];
 
-  const requiredCheck = getRequiredCheck(connected, activeGroup, loopingObject);
+  const requiredCheck = getRequiredCheck(connected, activeGroup, loopActionTxns);
   if (requiredCheck) return [requiredCheck];
 
   const generalChecks = getGeneralChecks(amount);
   if (generalChecks) checks.push(...generalChecks);
 
   // allert checks
-  if (activeGroup && loopingObject) {
-    const lentChecks = canBeLooped(activeGroup, loopingObject, tradeSide);
+  if (activeGroup && loopActionTxns) {
+    const lentChecks = canBeLooped(activeGroup, loopActionTxns, tradeSide);
     if (lentChecks.length) checks.push(...lentChecks);
   }
 
@@ -401,7 +404,7 @@ export function checkLoopingActionAvailable({
 function getRequiredCheck(
   connected: boolean,
   activeGroup: GroupData | null,
-  loopingObject: LoopingObject | null
+  loopActionTxns: LoopActionTxns | null
 ): ActionMessageType | null {
   if (!connected) {
     return { isEnabled: false };
@@ -409,7 +412,7 @@ function getRequiredCheck(
   if (!activeGroup) {
     return { isEnabled: false };
   }
-  if (!loopingObject) {
+  if (!loopActionTxns) {
     return { isEnabled: false };
   }
 
@@ -430,7 +433,11 @@ function getGeneralChecks(amount: string): ActionMessageType[] {
   }
 }
 
-function canBeLooped(activeGroup: GroupData, loopingObject: LoopingObject, tradeSide: TradeSide): ActionMessageType[] {
+function canBeLooped(
+  activeGroup: GroupData,
+  loopActionTxns: LoopActionTxns,
+  tradeSide: TradeSide
+): ActionMessageType[] {
   let checks: ActionMessageType[] = [];
   const isUsdcBankPaused =
     activeGroup.pool.quoteTokens[0].info.rawBank.config.operationalState === OperationalState.Paused;
@@ -466,7 +473,7 @@ function canBeLooped(activeGroup: GroupData, loopingObject: LoopingObject, trade
     });
   }
 
-  if (wrongPositionActive && loopingObject.loopingTxn) {
+  if (wrongPositionActive && loopActionTxns.actionTxn) {
     const wrongSupplied = tradeSide === "long" ? usdcPosition === "lending" : tokenPosition === "lending";
     const wrongBorrowed = tradeSide === "long" ? tokenPosition === "borrowing" : usdcPosition === "borrowing";
 
@@ -485,7 +492,7 @@ function canBeLooped(activeGroup: GroupData, loopingObject: LoopingObject, trade
     }
   }
 
-  const priceImpactPct = loopingObject.quote.priceImpactPct;
+  const priceImpactPct = loopActionTxns.actionQuote?.priceImpactPct;
 
   if (priceImpactPct && Number(priceImpactPct) > 0.01) {
     //invert

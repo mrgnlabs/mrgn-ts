@@ -110,20 +110,45 @@ export async function makeVersionedTransaction(
 
   return new VersionedTransaction(versionedMessage);
 }
+/**
+ * Creates a compute budget instruction to set the priority fee for a transaction.
+ * The priority fee is specified in micro-lamports per compute unit.
+ *
+ * @param priorityFeeMicro - Priority fee in micro-lamports per compute unit. If not provided, defaults to 1.
+ * @param computeUnitsLimit - Maximum compute units allowed for the transaction. Defaults to 1.4M units.
+ * @returns A compute budget instruction with the specified priority fee
+ */
+export function makePriorityFeeMicroIx(priorityFeeMicro?: number, computeUnitsLimit?: number): TransactionInstruction {
+  const limit = computeUnitsLimit ?? 1_400_000;
 
-export function makePriorityFeeIx(priorityFeeUi?: number): TransactionInstruction[] {
+  let microLamports = 1;
+
+  if (priorityFeeMicro) {
+    // if priority fee is above 0.2 SOL discard it for safety reasons
+    microLamports = Math.round(priorityFeeMicro / limit);
+  }
+
+  return ComputeBudgetProgram.setComputeUnitPrice({
+    microLamports: priorityFeeMicro ?? 1,
+  });
+}
+
+/*
+  deprecated use makePriorityFeeMicroIx instead
+*/
+export function makePriorityFeeIx(priorityFeeUi?: number, computeUnitsLimit?: number): TransactionInstruction[] {
   const priorityFeeIx: TransactionInstruction[] = [];
-  const limitCU = 1_400_000;
+  const limit = computeUnitsLimit ?? 1_400_000;
 
   let microLamports: number = 1;
 
   if (priorityFeeUi) {
     // if priority fee is above 0.2 SOL discard it for safety reasons
-    const isAbsurdPriorityFee = priorityFeeUi > 0.2;
+    const isAbsurdPriorityFee = priorityFeeUi > 0.1;
 
     if (!isAbsurdPriorityFee) {
       const priorityFeeMicroLamports = priorityFeeUi * LAMPORTS_PER_SOL * 1_000_000;
-      microLamports = Math.round(priorityFeeMicroLamports / limitCU);
+      microLamports = Math.round(priorityFeeMicroLamports / limit);
     }
   }
 

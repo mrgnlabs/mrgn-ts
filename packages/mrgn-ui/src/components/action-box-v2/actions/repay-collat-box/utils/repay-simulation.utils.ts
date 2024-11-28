@@ -95,7 +95,7 @@ async function simulateFlashLoan({ account, bank, txns }: SimulateActionProps) {
   let simulationResult: SimulationResult;
 
   if (txns.length > 0) {
-    simulationResult = await account.simulateBorrowLendTransaction(txns, bank.address);
+    simulationResult = await account.simulateBorrowLendTransaction(txns, [bank.address]);
     return simulationResult;
   } else {
     console.error("Failed to simulate flashloan");

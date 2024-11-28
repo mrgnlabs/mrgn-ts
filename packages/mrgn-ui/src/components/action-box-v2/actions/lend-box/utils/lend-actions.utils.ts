@@ -1,15 +1,17 @@
 import { Transaction, VersionedTransaction } from "@solana/web3.js";
 import { v4 as uuidv4 } from "uuid";
 
-import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
+import { MarginfiAccountWrapper, ProcessTransactionsClientOpts } from "@mrgnlabs/marginfi-client-v2";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { TransactionBroadcastType } from "@mrgnlabs/mrgn-common";
+import { SolanaTransaction, TransactionBroadcastType } from "@mrgnlabs/mrgn-common";
 import {
   ActionMessageType,
   closeBalance,
   executeLendingAction,
+  IndividualFlowError,
   isWholePosition,
   MarginfiActionParams,
+  MultiStepToastHandle,
 } from "@mrgnlabs/mrgn-utils";
 
 import { ExecuteActionsCallbackProps } from "~/components/action-box-v2/types";
@@ -23,47 +25,50 @@ export const handleExecuteLendingAction = async ({
   captureEvent,
   setIsLoading,
   setIsComplete,
-  setIsError,
+  setError,
 }: ExecuteLendingActionsProps) => {
-  const { actionType, bank, amount, priorityFee, broadcastType } = params;
+  try {
+    const { actionType, bank, amount, processOpts } = params;
 
-  setIsLoading(true);
-  const attemptUuid = uuidv4();
-  captureEvent(`user_${actionType.toLowerCase()}_initiate`, {
-    uuid: attemptUuid,
-    tokenSymbol: bank.meta.tokenSymbol,
-    tokenName: bank.meta.tokenName,
-    amount,
-    priorityFee,
-    broadcastType,
-  });
-
-  const txnSig = await executeLendingAction(params);
-
-  setIsLoading(false);
-
-  if (txnSig) {
-    setIsComplete(Array.isArray(txnSig) ? txnSig : [txnSig]);
-    captureEvent(`user_${actionType.toLowerCase()}`, {
+    setIsLoading(true);
+    const attemptUuid = uuidv4();
+    captureEvent(`user_${actionType.toLowerCase()}_initiate`, {
       uuid: attemptUuid,
       tokenSymbol: bank.meta.tokenSymbol,
       tokenName: bank.meta.tokenName,
-      amount: amount,
-      txn: txnSig!,
-      priorityFee,
+      amount,
+      processOpts: processOpts?.priorityFeeMicro,
     });
-  } else {
-    setIsError("Transaction not landed");
+
+    const txnSig = await executeLendingAction(params);
+
+    setIsLoading(false);
+
+    if (txnSig) {
+      setIsComplete(Array.isArray(txnSig) ? txnSig : [txnSig]);
+      captureEvent(`user_${actionType.toLowerCase()}`, {
+        uuid: attemptUuid,
+        tokenSymbol: bank.meta.tokenSymbol,
+        tokenName: bank.meta.tokenName,
+        amount: amount,
+        txn: txnSig!,
+        priorityFee: processOpts?.priorityFeeMicro,
+      });
+    }
+  } catch (error) {
+    setError(error as IndividualFlowError);
   }
 };
 
+export interface HandleCloseBalanceParamsProps {
+  bank: ExtendedBankInfo;
+  marginfiAccount: MarginfiAccountWrapper | null;
+  processOpts?: ProcessTransactionsClientOpts;
+  multiStepToast?: MultiStepToastHandle;
+}
+
 interface HandleCloseBalanceProps extends ExecuteActionsCallbackProps {
-  params: {
-    bank: ExtendedBankInfo;
-    marginfiAccount: MarginfiAccountWrapper | null;
-    priorityFee?: number;
-    broadcastType: TransactionBroadcastType;
-  };
+  params: HandleCloseBalanceParamsProps;
 }
 
 export const handleExecuteCloseBalance = async ({
@@ -71,40 +76,42 @@ export const handleExecuteCloseBalance = async ({
   captureEvent,
   setIsLoading,
   setIsComplete,
-  setIsError,
+  setError,
 }: HandleCloseBalanceProps) => {
-  const { bank, marginfiAccount, priorityFee, broadcastType } = params;
+  try {
+    const { bank, marginfiAccount, processOpts } = params;
 
-  setIsLoading(true);
-  const attemptUuid = uuidv4();
-  captureEvent(`user_close_balance_initiate`, {
-    uuid: attemptUuid,
-    tokenSymbol: bank.meta.tokenSymbol,
-    tokenName: bank.meta.tokenName,
-    amount: 0,
-    priorityFee,
-  });
-
-  // const { txnSig, error } = await closeBalance({ marginfiAccount: marginfiAccount, bank: bank, priorityFee });
-  const txnSig = await closeBalance({ marginfiAccount: marginfiAccount, bank: bank, priorityFee, broadcastType });
-  setIsLoading(false);
-
-  // if (error) {
-  //   setIsError(error);
-  // }
-
-  if (txnSig) {
-    setIsComplete([...txnSig]);
-    captureEvent(`user_close_balance`, {
+    setIsLoading(true);
+    const attemptUuid = uuidv4();
+    captureEvent(`user_close_balance_initiate`, {
       uuid: attemptUuid,
       tokenSymbol: bank.meta.tokenSymbol,
       tokenName: bank.meta.tokenName,
       amount: 0,
-      txn: txnSig!,
-      priorityFee,
+      priorityFee: processOpts?.priorityFeeMicro,
     });
-  } else {
-    setIsError("Transaction failed to land");
+
+    const txnSig = await closeBalance({
+      marginfiAccount: marginfiAccount,
+      bank: bank,
+      processOpts,
+      multiStepToast: params.multiStepToast,
+    });
+    setIsLoading(false);
+
+    if (txnSig) {
+      setIsComplete([...txnSig]);
+      captureEvent(`user_close_balance`, {
+        uuid: attemptUuid,
+        tokenSymbol: bank.meta.tokenSymbol,
+        tokenName: bank.meta.tokenName,
+        amount: 0,
+        txn: txnSig!,
+        priorityFee: processOpts?.priorityFeeMicro,
+      });
+    }
+  } catch (error) {
+    setError(error as IndividualFlowError);
   }
 };
 
@@ -112,39 +119,26 @@ export async function calculateLendingTransaction(
   marginfiAccount: MarginfiAccountWrapper,
   bank: ExtendedBankInfo,
   actionMode: ActionType,
-  amount: number,
-  priorityFee: number,
-  broadcastType: TransactionBroadcastType
+  amount: number
 ): Promise<
   | {
-      actionTxn: VersionedTransaction | Transaction;
-      additionalTxns: VersionedTransaction[];
+      actionTxn: SolanaTransaction;
+      additionalTxns: SolanaTransaction[];
     }
   | ActionMessageType
 > {
   switch (actionMode) {
     case ActionType.Deposit:
-      const depositTx = await marginfiAccount.makeDepositTx(
-        amount,
-        bank.address,
-        { priorityFeeUi: priorityFee },
-        broadcastType
-      );
+      const depositTx = await marginfiAccount.makeDepositTx(amount, bank.address);
       return {
         actionTxn: depositTx,
         additionalTxns: [], // bundle tip ix is in depositTx
       };
     case ActionType.Borrow:
-      const borrowTxObject = await marginfiAccount.makeBorrowTx(
-        amount,
-        bank.address,
-        {
-          createAtas: true,
-          wrapAndUnwrapSol: false,
-          priorityFeeUi: priorityFee,
-        },
-        broadcastType
-      );
+      const borrowTxObject = await marginfiAccount.makeBorrowTx(amount, bank.address, {
+        createAtas: true,
+        wrapAndUnwrapSol: false,
+      });
       return {
         actionTxn: borrowTxObject.borrowTx,
         additionalTxns: borrowTxObject.feedCrankTxs,
@@ -153,9 +147,7 @@ export async function calculateLendingTransaction(
       const withdrawTxObject = await marginfiAccount.makeWithdrawTx(
         amount,
         bank.address,
-        bank.isActive && isWholePosition(bank, amount),
-        { priorityFeeUi: priorityFee },
-        broadcastType
+        bank.isActive && isWholePosition(bank, amount)
       );
       return {
         actionTxn: withdrawTxObject.withdrawTx,
@@ -165,9 +157,7 @@ export async function calculateLendingTransaction(
       const repayTx = await marginfiAccount.makeRepayTx(
         amount,
         bank.address,
-        bank.isActive && isWholePosition(bank, amount),
-        { priorityFeeUi: priorityFee },
-        broadcastType
+        bank.isActive && isWholePosition(bank, amount)
       );
       return {
         actionTxn: repayTx,

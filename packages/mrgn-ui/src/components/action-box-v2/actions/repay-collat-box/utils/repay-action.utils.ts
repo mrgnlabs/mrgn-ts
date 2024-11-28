@@ -1,78 +1,62 @@
-import { QuoteResponse } from "@jup-ag/api";
 import { v4 as uuidv4 } from "uuid";
-import { Connection, VersionedTransaction } from "@solana/web3.js";
-
-import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
-import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { TransactionBroadcastType } from "@mrgnlabs/mrgn-common";
 import {
   ActionMessageType,
   calculateRepayCollateralParams,
-  executeLendingAction,
-  MarginfiActionParams,
+  RepayCollatActionTxns,
+  CalculateRepayCollateralProps,
+  executeRepayWithCollatAction,
+  ExecuteRepayWithCollatActionProps,
+  IndividualFlowError,
 } from "@mrgnlabs/mrgn-utils";
 
 import { ExecuteActionsCallbackProps } from "~/components/action-box-v2/types";
 
-interface ExecuteLendingActionsProps extends ExecuteActionsCallbackProps {
-  params: MarginfiActionParams;
+interface HandleExecuteRepayCollatActionProps extends ExecuteActionsCallbackProps {
+  props: ExecuteRepayWithCollatActionProps;
 }
 
 export const handleExecuteRepayCollatAction = async ({
-  params,
+  props,
   captureEvent,
   setIsLoading,
   setIsComplete,
-  setIsError,
-}: ExecuteLendingActionsProps) => {
-  const { actionType, bank, amount, priorityFee } = params;
-
-  setIsLoading(true);
-  const attemptUuid = uuidv4();
-  captureEvent(`user_${actionType.toLowerCase()}_initiate`, {
-    uuid: attemptUuid,
-    tokenSymbol: bank.meta.tokenSymbol,
-    tokenName: bank.meta.tokenName,
-    amount,
-    priorityFee,
-  });
-
-  const txnSig = await executeLendingAction(params);
-
-  setIsLoading(false);
-
-  if (txnSig) {
-    setIsComplete(Array.isArray(txnSig) ? txnSig : [txnSig]);
-    captureEvent(`user_${actionType.toLowerCase()}`, {
+  setError,
+}: HandleExecuteRepayCollatActionProps) => {
+  try {
+    setIsLoading(true);
+    const attemptUuid = uuidv4();
+    captureEvent(`user_repay_with_collat_initiate`, {
       uuid: attemptUuid,
-      tokenSymbol: bank.meta.tokenSymbol,
-      tokenName: bank.meta.tokenName,
-      amount: amount,
-      txn: txnSig!,
-      priorityFee,
+      depositTokenName: props.depositBank.meta.tokenName,
+      borrowTokenName: props.borrowBank.meta.tokenName,
+      repayAmount: props.repayAmount,
+      withdrawAmount: props.withdrawAmount,
     });
-  } else {
-    setIsError("Transaction not landed");
+
+    const txnSig = await executeRepayWithCollatAction(props);
+
+    setIsLoading(false);
+
+    if (txnSig) {
+      setIsComplete(Array.isArray(txnSig) ? txnSig : [txnSig]);
+      captureEvent(`user_repay_with_collat`, {
+        uuid: attemptUuid,
+        depositTokenName: props.depositBank.meta.tokenName,
+        borrowTokenName: props.borrowBank.meta.tokenName,
+        repayAmount: props.repayAmount,
+        withdrawAmount: props.withdrawAmount,
+      });
+    }
+  } catch (error) {
+    // TODO: add type here
+    setError(error as IndividualFlowError);
   }
 };
 
-export async function calculateRepayCollateral(
-  marginfiAccount: MarginfiAccountWrapper,
-  bank: ExtendedBankInfo, // borrow
-  repayBank: ExtendedBankInfo, // deposit
-  amount: number,
-  slippageBps: number,
-  connection: Connection,
-  priorityFee: number,
-  platformFeeBps: number,
-  broadcastType: TransactionBroadcastType
-): Promise<
+export async function calculateRepayCollateral(props: CalculateRepayCollateralProps): Promise<
   | {
-      repayTxn: VersionedTransaction;
-      feedCrankTxs: VersionedTransaction[];
-      quote: QuoteResponse;
+      repayCollatObject: RepayCollatActionTxns;
       amount: number;
-      lastValidBlockHeight?: number;
     }
   | ActionMessageType
 > {
@@ -85,17 +69,7 @@ export async function calculateRepayCollateral(
   //   outputMint: bank.info.state.mint.toBase58(),
   // });
 
-  const result = await calculateRepayCollateralParams(
-    marginfiAccount,
-    bank,
-    repayBank,
-    amount,
-    slippageBps,
-    connection,
-    priorityFee,
-    platformFeeBps,
-    broadcastType
-  );
+  const result = await calculateRepayCollateralParams(props);
 
   return result;
 }

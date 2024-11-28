@@ -15,26 +15,25 @@ import {
   TransactionSignature,
   VersionedTransaction,
 } from "@solana/web3.js";
-import { AccountType, Environment, MarginfiConfig, MarginfiProgram } from "./types";
-import { getConfig } from "./config";
-import instructions from "./instructions";
-import { MarginRequirementType } from "./models/account";
+import { AccountType, Environment, MarginfiConfig, MarginfiProgram } from "../types";
+import { getConfig } from "../config";
+import instructions from "../instructions";
+import { MarginRequirementType } from "../models/account";
 import {
+  addTransactionMetadata,
   BankMetadataMap,
   chunkedGetRawMultipleAccountInfoOrdered,
   DEFAULT_COMMITMENT,
-  DEFAULT_CONFIRM_OPTS,
   InstructionsWrapper,
+  isV0Tx,
   loadBankMetadatas,
   loadKeypair,
   NodeWallet,
-  simulateBundle,
-  sleep,
-  TransactionBroadcastType,
+  SolanaTransaction,
   TransactionOptions,
   Wallet,
 } from "@mrgnlabs/mrgn-common";
-import { MarginfiGroup } from "./models/group";
+import { MarginfiGroup } from "../models/group";
 import {
   BankRaw,
   parseOracleSetup,
@@ -47,17 +46,22 @@ import {
   MarginfiIdlType,
   BankConfigOpt,
   BankConfig,
-  makeBundleTipIx,
-  makeTxPriorityIx,
-} from ".";
-import { MarginfiAccountWrapper } from "./models/account/wrapper";
+} from "..";
+import { MarginfiAccountWrapper } from "../models/account/wrapper";
 import {
   ProcessTransactionError,
   ProcessTransactionErrorType,
   parseErrorFromLogs,
   parseTransactionError,
-} from "./errors";
-import { findOracleKey, makePriorityFeeIx, PythPushFeedIdMap, buildFeedIdMap } from "./utils";
+} from "../errors";
+import { findOracleKey, makePriorityFeeIx, PythPushFeedIdMap, buildFeedIdMap } from "../utils";
+import {
+  ProcessTransactionOpts,
+  ProcessTransactionStrategy,
+  ProcessTransactionsClientOpts,
+  processTransactions,
+} from "../services";
+import { BundleSimulationError, simulateBundle } from "../services/transaction/helpers";
 
 export type BankMap = Map<string, Bank>;
 export type OraclePriceMap = Map<string, OraclePrice>;
@@ -75,6 +79,7 @@ export type MarginfiClientOptions = {
   readOnly?: boolean;
   preloadedBankAddresses?: PublicKey[];
   bundleSimRpcEndpoint?: string;
+  processTransactionStrategy?: ProcessTransactionStrategy;
   bankMetadataMap?: BankMetadataMap;
   fetchGroupDataOverride?: (
     program: MarginfiProgram,
@@ -103,6 +108,7 @@ class MarginfiClient {
   public feedIdMap: PythPushFeedIdMap;
   private preloadedBankAddresses?: PublicKey[];
   private bundleSimRpcEndpoint: string;
+  private processTransactionStrategy?: ProcessTransactionStrategy;
 
   // --------------------------------------------------------------------------
   // Factories
@@ -121,7 +127,8 @@ class MarginfiClient {
     addressLookupTables?: AddressLookupTableAccount[],
     preloadedBankAddresses?: PublicKey[],
     readonly bankMetadataMap?: BankMetadataMap,
-    bundleSimRpcEndpoint?: string
+    bundleSimRpcEndpoint?: string,
+    processTransactionStrategy?: ProcessTransactionStrategy
   ) {
     this.group = group;
     this.banks = banks;
@@ -131,6 +138,7 @@ class MarginfiClient {
     this.preloadedBankAddresses = preloadedBankAddresses;
     this.feedIdMap = feedIdMap;
     this.bundleSimRpcEndpoint = bundleSimRpcEndpoint ?? program.provider.connection.rpcEndpoint;
+    this.processTransactionStrategy = processTransactionStrategy;
   }
 
   /**
@@ -235,7 +243,9 @@ class MarginfiClient {
       feedIdMap,
       addressLookupTables,
       preloadedBankAddresses,
-      bankMetadataMap
+      bankMetadataMap,
+      clientOptions?.bundleSimRpcEndpoint,
+      clientOptions?.processTransactionStrategy
     );
   }
 
@@ -605,34 +615,36 @@ class MarginfiClient {
   /**
    * Create a new marginfi account under the authority of the user.
    *
-   * @returns MarginfiAccount instance
+   * @param createOpts - Options for creating the account
+   * @param createOpts.newAccountKey - Optional public key to use for the new account. If not provided, a new keypair will be generated.
+   * @param processOpts - Options for processing the transaction
+   * @param txOpts - Transaction options
+   * @returns Object containing the transaction signature and the created MarginfiAccount instance
    */
   async createMarginfiAccount(
-    opts?: TransactionOptions,
     createOpts?: { newAccountKey?: PublicKey | undefined },
-    priorityFeeUi?: number,
-    broadcastType?: TransactionBroadcastType
+    processOpts?: ProcessTransactionsClientOpts,
+    txOpts?: TransactionOptions
   ): Promise<MarginfiAccountWrapper> {
     const dbg = require("debug")("mfi:client");
 
     const accountKeypair = Keypair.generate();
     const newAccountKey = createOpts?.newAccountKey ?? accountKeypair.publicKey;
 
-    const { bundleTipIx, priorityFeeIx } = makeTxPriorityIx(this.provider.publicKey, priorityFeeUi, broadcastType);
-
     const ixs = await this.makeCreateMarginfiAccountIx(newAccountKey);
     const signers = [...ixs.keys];
     // If there was no newAccountKey provided, we need to sign with the ephemeraKeypair we generated.
     if (!createOpts?.newAccountKey) signers.push(accountKeypair);
 
-    const tx = new Transaction().add(priorityFeeIx, ...(bundleTipIx ? [bundleTipIx] : []), ...ixs.instructions);
-    const sig = await this.processTransaction(tx, signers, opts);
+    const tx = new Transaction().add(...ixs.instructions);
+    const solanaTx = addTransactionMetadata(tx, { signers, addressLookupTables: this.addressLookupTables });
+    const sig = await this.processTransaction(solanaTx, processOpts, txOpts);
 
     dbg("Created Marginfi account %s", sig);
 
-    return opts?.dryRun || createOpts?.newAccountKey
+    return txOpts?.dryRun || createOpts?.newAccountKey
       ? Promise.resolve(undefined as unknown as MarginfiAccountWrapper)
-      : MarginfiAccountWrapper.fetch(newAccountKey, this, opts?.commitment);
+      : MarginfiAccountWrapper.fetch(newAccountKey, this, txOpts?.commitment);
   }
 
   /**
@@ -659,9 +671,17 @@ class MarginfiClient {
   }
 
   /**
-   * Create a new marginfi bank under the authority of the user.
+   * Initiates a new permissionless marginfi bank under the authority of the user.
    *
-   * @returns String signature
+   * @param {Object} params - The parameters for creating a permissionless bank.
+   * @param {PublicKey} params.mint - The public key of the mint for the bank.
+   * @param {BankConfigOpt} params.bankConfig - The configuration options for the bank.
+   * @param {PublicKey} params.group - The public key of the group to which the bank belongs.
+   * @param {PublicKey} params.admin - The public key of the admin who will have authority over the bank.
+   * @param {Keypair} [params.seed] - An optional keypair used as a seed for generating the bank account.
+   * @param {TransactionOptions} [params.txOpts] - Optional transaction options for processing.
+   * @param {ProcessTransactionsClientOpts} [params.processOpts] - Optional processing options for transactions.
+   * @returns {Promise<TransactionSignature>} A promise that resolves to the transaction signature as a string.
    */
   async createPermissionlessBank({
     mint,
@@ -669,26 +689,20 @@ class MarginfiClient {
     group,
     admin,
     seed,
-    priorityFee,
-    opts,
+    txOpts,
+    processOpts,
   }: {
     mint: PublicKey;
     bankConfig: BankConfigOpt;
     group: PublicKey;
     admin: PublicKey;
     seed?: Keypair;
-    priorityFee?: number;
-
-    opts?: TransactionOptions;
-  }) {
+    processOpts?: ProcessTransactionsClientOpts;
+    txOpts?: TransactionOptions;
+  }): Promise<TransactionSignature> {
     const dbg = require("debug")("mfi:client");
 
     const keypair = seed ?? Keypair.generate();
-
-    const bundleTipIx = makeBundleTipIx(admin);
-
-    const priorityFeeIx = priorityFee ? makePriorityFeeIx(priorityFee) : [];
-
     const bankIxs = await this.group.makePoolAddBankIx(this.program, keypair.publicKey, mint, bankConfig, {
       admin,
       groupAddress: group,
@@ -696,60 +710,71 @@ class MarginfiClient {
 
     const signers = [...bankIxs.keys, keypair];
 
-    const tx = new Transaction().add(bundleTipIx, ...priorityFeeIx, ...bankIxs.instructions);
+    const tx = new Transaction().add(...bankIxs.instructions);
 
-    const sig = await this.processTransaction(tx, signers, opts);
+    const solanaTx = addTransactionMetadata(tx, { signers, addressLookupTables: this.addressLookupTables });
+    const sig = await this.processTransaction(solanaTx, processOpts, txOpts);
     dbg("Created Marginfi group %s", sig);
 
     return sig;
   }
 
   /**
-   * Create a new marginfi group under the authority of the user.
+   * Initializes a new marginfi group with the specified parameters.
    *
-   * @returns MarginfiGroup instance
+   * @param seed - Optional keypair used for generating the group account.
+   * @param additionalIxs - Optional array of additional transaction instructions to include.
+   * @param txOpts - Optional transaction options for processing.
+   * @param processOpts - Optional processing options for transactions.
+   * @returns The public key of the newly created marginfi group.
    */
   async createMarginfiGroup(
     seed?: Keypair,
     additionalIxs?: TransactionInstruction[],
-    opts?: TransactionOptions
+    processOpts?: ProcessTransactionsClientOpts,
+    txOpts?: TransactionOptions
   ): Promise<PublicKey> {
     const dbg = require("debug")("mfi:client");
 
     const accountKeypair = seed ?? Keypair.generate();
 
-    const bundleTipIx = makeBundleTipIx(this.provider.publicKey);
-
     const ixs = await this.makeCreateMarginfiGroupIx(accountKeypair.publicKey);
     const signers = [...ixs.keys, accountKeypair];
-    const tx = new Transaction().add(bundleTipIx, ...ixs.instructions, ...(additionalIxs ?? []));
-    const sig = await this.processTransaction(tx, signers, opts);
+    const tx = new Transaction().add(...ixs.instructions, ...(additionalIxs ?? []));
+    const solanaTx = addTransactionMetadata(tx, { signers, addressLookupTables: this.addressLookupTables });
+    const sig = await this.processTransaction(solanaTx, processOpts, txOpts);
     dbg("Created Marginfi group %s", sig);
 
     return Promise.resolve(accountKeypair.publicKey);
   }
 
   /**
-   * Create a new lending pool.
+   * Create a new bank under the authority of the user.
    *
-   * @returns bank address and transaction signature
+   * @param bankMint - The public key of the token mint for the bank.
+   * @param bankConfig - Configuration options for the bank.
+   * @param seed - Optional keypair for the bank.
+   * @param txOpts - Optional transaction options for processing.
+   * @param processOpts - Optional processing options for transactions.
+   * @returns The bank's public key and the transaction signature
    */
   async createLendingPool(
     bankMint: PublicKey,
     bankConfig: BankConfigOpt,
-    opts?: TransactionOptions
+    seed?: Keypair,
+    processOpts?: ProcessTransactionsClientOpts,
+    txOpts?: TransactionOptions
   ): Promise<{ bankAddress: PublicKey; signature: TransactionSignature }> {
     const dbg = require("debug")("mfi:client");
 
-    const bankKeypair = Keypair.generate();
+    const bankKeypair = seed ?? Keypair.generate();
 
     const ixs = await this.group.makePoolAddBankIx(this.program, bankKeypair.publicKey, bankMint, bankConfig, {});
     const signers = [...ixs.keys, bankKeypair];
-    const priorityFeeIx = makePriorityFeeIx(0.001);
+    const tx = new Transaction().add(...ixs.instructions);
 
-    const tx = new Transaction().add(...priorityFeeIx, ...ixs.instructions);
-
-    const sig = await this.processTransaction(tx, signers, opts);
+    const solanaTx = addTransactionMetadata(tx, { signers, addressLookupTables: this.addressLookupTables });
+    const sig = await this.processTransaction(solanaTx, processOpts, txOpts);
     dbg("Created new lending pool %s", sig);
 
     return Promise.resolve({
@@ -763,476 +788,74 @@ class MarginfiClient {
   // --------------------------------------------------------------------------
 
   /**
-   * Process a transaction, sign it and send it to the network.
+   * Processes multiple Solana transactions by signing and sending them to the network.
    *
-   * @throws ProcessTransactionError
+   * @param {SolanaTransaction[]} transactions - An array of transactions to be processed.
+   * @param {ProcessTransactionsClientOpts} [processOpts] - Optional processing options for transactions.
+   * @param {TransactionOptions} [txOpts] - Optional transaction options for processing.
+   *
+   * @returns {Promise<TransactionSignature[]>} - A promise that resolves to an array of transaction signatures.
+   *
+   * @throws {ProcessTransactionError} - Throws an error if transaction processing fails.
    */
   async processTransactions(
-    transactions: (VersionedTransaction | Transaction)[],
-    signers?: Array<Signer>,
-    opts?: TransactionOptions,
-    broadcastType: TransactionBroadcastType = "BUNDLE",
-    isSequentialTxs: boolean = true
+    transactions: SolanaTransaction[],
+    processOpts?: ProcessTransactionsClientOpts,
+    txOpts?: TransactionOptions
   ): Promise<TransactionSignature[]> {
-    let versionedTransactions: VersionedTransaction[] = [];
-    const connection = new Connection(this.provider.connection.rpcEndpoint, this.provider.opts);
-    let minContextSlot: number;
-    let blockhash: string;
-    let lastValidBlockHeight: number;
+    const options: ProcessTransactionOpts = {
+      ...processOpts,
+      isReadOnly: this.isReadOnly,
+      programId: this.program.programId,
+      bundleSimRpcEndpoint: this.bundleSimRpcEndpoint,
+      dynamicStrategy: processOpts?.dynamicStrategy ?? this.processTransactionStrategy,
+    };
 
-    try {
-      const getLatestBlockhashAndContext = await connection.getLatestBlockhashAndContext("confirmed");
-
-      minContextSlot = getLatestBlockhashAndContext.context.slot - 4;
-      blockhash = getLatestBlockhashAndContext.value.blockhash;
-      lastValidBlockHeight = getLatestBlockhashAndContext.value.lastValidBlockHeight;
-
-      for (const transaction of transactions) {
-        if (transaction && "message" in transaction) {
-          versionedTransactions.push(transaction);
-        } else {
-          const versionedMessage = new TransactionMessage({
-            instructions: transaction.instructions,
-            payerKey: this.provider.publicKey,
-            recentBlockhash: blockhash,
-          });
-          versionedTransactions.push(
-            new VersionedTransaction(versionedMessage.compileToV0Message(this.addressLookupTables))
-          );
-        }
-      }
-
-      if (versionedTransactions.length === 0) throw new Error();
-
-      // only signers for last tx
-      if (signers) versionedTransactions[versionedTransactions.length - 1].sign(signers);
-    } catch (error: any) {
-      console.log("Failed to build the transaction", error);
-      throw new ProcessTransactionError(error.message, ProcessTransactionErrorType.TransactionBuildingError);
-    }
-
-    try {
-      if (opts?.dryRun || this.isReadOnly) {
-        const response = await simulateBundle(this.bundleSimRpcEndpoint, versionedTransactions);
-        console.log(
-          response.value.err ? `❌ Error: ${response.value.err}` : `✅ Success - ${response.value.unitsConsumed} CU`
-        );
-        console.log("------ Logs 👇 ------");
-        if (response.value.logs) {
-          for (const log of response.value.logs) {
-            console.log(log);
-          }
-        }
-
-        if (response.value.err)
-          throw new SendTransactionError({
-            action: "simulate",
-            signature: "",
-            transactionMessage: JSON.stringify(response.value.err),
-            logs: response.value.logs ?? [],
-          });
-        return [];
-      } else {
-        let base58Txs: string[] = [];
-
-        if (!!this.wallet.signAllTransactions) {
-          versionedTransactions = await this.wallet.signAllTransactions(versionedTransactions);
-          base58Txs = versionedTransactions.map((signedTx) => bs58.encode(signedTx.serialize()));
-        } else {
-          for (let i = 0; i < versionedTransactions.length; i++) {
-            const signedTx = await this.wallet.signTransaction(versionedTransactions[i]);
-            const base58Tx = bs58.encode(signedTx.serialize());
-            base58Txs.push(base58Tx);
-            versionedTransactions[i] = signedTx;
-          }
-        }
-
-        let mergedOpts: ConfirmOptions = {
-          ...DEFAULT_CONFIRM_OPTS,
-          commitment: connection.commitment ?? DEFAULT_CONFIRM_OPTS.commitment,
-          preflightCommitment: connection.commitment ?? DEFAULT_CONFIRM_OPTS.commitment,
-          minContextSlot,
-          ...opts,
-        };
-
-        const response = await simulateBundle(this.bundleSimRpcEndpoint, versionedTransactions).catch((error) => {
-          throw new SendTransactionError({
-            action: "simulate",
-            signature: "",
-            transactionMessage: JSON.stringify(error),
-            logs: [],
-          });
-        });
-
-        if (response.value.err) {
-          throw new SendTransactionError({
-            action: "simulate",
-            signature: "",
-            transactionMessage: JSON.stringify(response.value.err),
-            logs: response.value.logs ?? [],
-          });
-        }
-
-        let sendTxsRpc = async (versionedTransaction: VersionedTransaction[]): Promise<string[]> => [];
-
-        if (isSequentialTxs) {
-          sendTxsRpc = async (txs: VersionedTransaction[]) => {
-            let sigs = [];
-            for (const tx of txs) {
-              const signature = await connection.sendTransaction(tx, {
-                // minContextSlot: mergedOpts.minContextSlot,
-                skipPreflight: mergedOpts.skipPreflight,
-                preflightCommitment: mergedOpts.preflightCommitment,
-                maxRetries: mergedOpts.maxRetries,
-              });
-              await connection.confirmTransaction(
-                {
-                  blockhash,
-                  lastValidBlockHeight,
-                  signature,
-                },
-                "confirmed"
-              );
-              sigs.push(signature);
-            }
-            return sigs;
-          };
-        } else {
-          sendTxsRpc = async (txs: VersionedTransaction[]) =>
-            await Promise.all(
-              txs.map(async (versionedTransaction) => {
-                const signature = await connection.sendTransaction(versionedTransaction, {
-                  // minContextSlot: mergedOpts.minContextSlot,
-                  skipPreflight: mergedOpts.skipPreflight,
-                  preflightCommitment: mergedOpts.preflightCommitment,
-                  maxRetries: mergedOpts.maxRetries,
-                });
-                return signature;
-              })
-            );
-        }
-
-        let signatures: TransactionSignature[] = [];
-        let bundleSignatures: string = "";
-
-        if (broadcastType === "BUNDLE") {
-          try {
-            bundleSignatures = await this.sendTransactionAsGrpcBundle(base58Txs);
-          } catch (e) {
-            try {
-              bundleSignatures = await this.sendTransactionAsBundle(base58Txs);
-            } catch (e) {
-              signatures = await sendTxsRpc(versionedTransactions);
-            }
-          }
-        } else {
-          signatures = await sendTxsRpc(versionedTransactions);
-        }
-
-        console.log("bundleSignatures:", bundleSignatures);
-        console.log("signatures:", signatures);
-
-        if (signatures.length !== 0) {
-          await Promise.all(
-            signatures.map(async (signature) => {
-              await connection.confirmTransaction(
-                {
-                  blockhash,
-                  lastValidBlockHeight,
-                  signature,
-                },
-                mergedOpts.commitment
-              );
-            })
-          );
-          return signatures;
-        } else {
-          return [bundleSignatures];
-        }
-      }
-    } catch (error: any) {
-      const parsedError = parseTransactionError(error, this.config.programId);
-
-      if (error?.logs?.length > 0) {
-        console.log("------ Logs 👇 ------");
-        console.log(error.logs.join("\n"));
-        if (parsedError) {
-          console.log("Parsed:", parsedError);
-          throw new ProcessTransactionError(
-            parsedError.description,
-            ProcessTransactionErrorType.SimulationError,
-            error.logs,
-            parsedError.programId
-          );
-        }
-      }
-      console.log("fallthrough error", error);
-      throw new ProcessTransactionError(
-        parsedError?.description ?? "Something went wrong",
-        ProcessTransactionErrorType.SimulationError,
-        error.logs,
-        parsedError.programId
-      );
-    }
+    return await processTransactions({
+      transactions,
+      connection: this.provider.connection,
+      wallet: this.provider.wallet,
+      processOpts: options,
+      txOpts,
+    });
   }
 
+  /**
+   * Processes a single Solana transaction by signing and sending it to the network.
+   *
+   * @param {SolanaTransaction} transaction - The transaction to be processed.
+   * @param {TransactionOptions} [txOpts] - Optional transaction options.
+   * @param {ProcessTransactionsClientOpts} [processOpts] - Optional processing options.
+   *
+   * @returns {Promise<TransactionSignature>} - A promise that resolves to the transaction signature.
+   *
+   * @throws {ProcessTransactionError} - Throws an error if transaction processing fails.
+   */
   async processTransaction(
-    transaction: Transaction | VersionedTransaction,
-    signers?: Array<Signer>,
-    opts?: TransactionOptions
+    transaction: SolanaTransaction,
+    processOpts?: ProcessTransactionsClientOpts,
+    txOpts?: TransactionOptions
   ): Promise<TransactionSignature> {
-    let versionedTransaction: VersionedTransaction;
-    const connection = new Connection(this.provider.connection.rpcEndpoint, this.provider.opts);
-    let minContextSlot: number;
-    let blockhash: string;
-    let lastValidBlockHeight: number;
+    transaction.addressLookupTables = transaction.addressLookupTables || this.addressLookupTables;
 
-    try {
-      const getLatestBlockhashAndContext = await connection.getLatestBlockhashAndContext("confirmed");
+    const options: ProcessTransactionOpts = {
+      ...processOpts,
+      isReadOnly: this.isReadOnly,
+      programId: this.program.programId,
+      bundleSimRpcEndpoint: this.bundleSimRpcEndpoint,
+      dynamicStrategy: processOpts?.dynamicStrategy ?? this.processTransactionStrategy,
+    };
 
-      minContextSlot = getLatestBlockhashAndContext.context.slot - 4;
-      blockhash = getLatestBlockhashAndContext.value.blockhash;
-      lastValidBlockHeight = getLatestBlockhashAndContext.value.lastValidBlockHeight;
+    const [signature] = await processTransactions({
+      transactions: [transaction],
+      connection: this.provider.connection,
+      wallet: this.provider.wallet,
+      processOpts: options,
+      txOpts,
+    });
 
-      if (transaction && "message" in transaction) {
-        versionedTransaction = transaction;
-      } else {
-        const versionedMessage = new TransactionMessage({
-          instructions: transaction.instructions,
-          payerKey: this.provider.publicKey,
-          recentBlockhash: blockhash,
-        });
-
-        versionedTransaction = new VersionedTransaction(versionedMessage.compileToV0Message(this.addressLookupTables));
-      }
-
-      if (signers) versionedTransaction.sign(signers);
-    } catch (error: any) {
-      console.log("Failed to build the transaction", error);
-      throw new ProcessTransactionError(error.message, ProcessTransactionErrorType.TransactionBuildingError);
-    }
-
-    try {
-      if (opts?.dryRun || this.isReadOnly) {
-        const response = await connection.simulateTransaction(
-          versionedTransaction,
-          opts ?? { minContextSlot, sigVerify: false }
-        );
-        console.log(
-          response.value.err ? `❌ Error: ${response.value.err}` : `✅ Success - ${response.value.unitsConsumed} CU`
-        );
-        console.log("------ Logs 👇 ------");
-        if (response.value.logs) {
-          for (const log of response.value.logs) {
-            console.log(log);
-          }
-        }
-
-        const signaturesEncoded = encodeURIComponent(
-          JSON.stringify(versionedTransaction.signatures.map((s) => bs58.encode(s)))
-        );
-        const messageEncoded = encodeURIComponent(
-          Buffer.from(versionedTransaction.message.serialize()).toString("base64")
-        );
-
-        const urlEscaped = `https://explorer.solana.com/tx/inspector?cluster=${this.config.cluster}&signatures=${signaturesEncoded}&message=${messageEncoded}`;
-        console.log("------ Inspect 👇 ------");
-        console.log(urlEscaped);
-
-        if (response.value.err)
-          throw new SendTransactionError({
-            action: "simulate",
-            signature: "",
-            transactionMessage: JSON.stringify(response.value.err),
-            logs: response.value.logs ?? [],
-          });
-
-        return versionedTransaction.signatures[0].toString();
-      } else {
-        let signature: TransactionSignature = "";
-        let bundleSignature: string = "";
-
-        versionedTransaction = await this.wallet.signTransaction(versionedTransaction);
-        const base58Tx = bs58.encode(versionedTransaction.serialize());
-
-        let mergedOpts: ConfirmOptions = {
-          ...DEFAULT_CONFIRM_OPTS,
-          commitment: connection.commitment ?? DEFAULT_CONFIRM_OPTS.commitment,
-          preflightCommitment: connection.commitment ?? DEFAULT_CONFIRM_OPTS.commitment,
-          minContextSlot,
-          ...opts,
-        };
-
-        try {
-          bundleSignature = await this.sendTransactionAsGrpcBundle([base58Tx]);
-        } catch (e) {
-          try {
-            bundleSignature = await this.sendTransactionAsBundle([base58Tx]);
-          } catch (e) {
-            signature = await connection.sendTransaction(versionedTransaction, {
-              minContextSlot: mergedOpts.minContextSlot,
-              skipPreflight: mergedOpts.skipPreflight,
-              preflightCommitment: mergedOpts.preflightCommitment,
-              maxRetries: mergedOpts.maxRetries,
-            });
-          }
-        }
-
-        if (signature !== "") {
-          await connection.confirmTransaction(
-            {
-              blockhash,
-              lastValidBlockHeight,
-              signature,
-            },
-            mergedOpts.commitment
-          );
-          return signature;
-        } else {
-          return bundleSignature;
-        }
-      }
-    } catch (error: any) {
-      const parsedError = parseTransactionError(error, this.config.programId);
-
-      if (error?.logs?.length > 0) {
-        console.log("------ Logs 👇 ------");
-        console.log(error.logs.join("\n"));
-        if (parsedError) {
-          console.log("Parsed:", parsedError);
-          throw new ProcessTransactionError(
-            parsedError.description,
-            ProcessTransactionErrorType.SimulationError,
-            error.logs,
-            parsedError.programId
-          );
-        }
-      }
-      console.log("fallthrough error", error);
-      throw new ProcessTransactionError(
-        parsedError?.description ?? "Something went wrong",
-        ProcessTransactionErrorType.SimulationError,
-        error.logs,
-        parsedError.programId
-      );
-    }
+    return signature;
   }
-
-  private async sendTransactionAsGrpcBundle(base58Txs: string[]): Promise<string> {
-    try {
-      const sendBundleResponse = await fetch("/api/bundles/sendBundle", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          transactions: base58Txs,
-        }),
-      });
-
-      const sendBundleResult = await sendBundleResponse.json();
-      if (sendBundleResult.error) throw new Error(sendBundleResult.error.message);
-      console.log("sendBundleResult:", sendBundleResult);
-
-      const bundleId = sendBundleResult.bundleId;
-
-      console.log("bundleId:", bundleId);
-
-      return bundleId;
-    } catch (error) {
-      console.error(error);
-      throw new Error("Bundle failed");
-    }
-  }
-
-  private async sendTransactionAsBundle(base58Txs: string[]): Promise<string> {
-    try {
-      const sendBundleResponse = await fetch("https://mainnet.block-engine.jito.wtf/api/v1/bundles", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          jsonrpc: "2.0",
-          id: 1,
-          method: "sendBundle",
-          params: [base58Txs],
-        }),
-      });
-
-      const sendBundleResult = await sendBundleResponse.json();
-      if (sendBundleResult.error) throw new Error(sendBundleResult.error.message);
-
-      const bundleId = sendBundleResult.result;
-      await sleep(500);
-
-      for (let attempt = 0; attempt < 10; attempt++) {
-        const getBundleStatusInFlightResponse = await fetch("https://mainnet.block-engine.jito.wtf/api/v1/bundles", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            jsonrpc: "2.0",
-            id: 1,
-            method: "getInflightBundleStatuses",
-            params: [[bundleId]],
-          }),
-        });
-
-        const getBundleStatusInFlightResult = await getBundleStatusInFlightResponse.json();
-
-        if (getBundleStatusInFlightResult.error) throw new Error(getBundleStatusInFlightResult.error.message);
-
-        const status = getBundleStatusInFlightResult?.result?.value[0]?.status;
-
-        /**
-          Bundle status values:
-          Failed: All regions marked bundle as failed, not forwarded
-          Pending: Bundle has not failed, landed, or been deemed invalid
-          Landed: Bundle successfully landed on-chain (verified via RPC/bundles_landed table)
-          Invalid: Bundle is no longer in the system
-          */
-        if (status === "Failed") {
-          throw new Error("Bundle failed");
-        } else if (status === "Landed") {
-          return bundleId;
-        }
-
-        await sleep(500); // Wait before retrying
-      }
-    } catch (error) {
-      console.error(error);
-    }
-
-    throw new Error("Bundle failed");
-  }
-
-  // private async sendTransactionAsBundleGrpc(transactions: VersionedTransaction[]): Promise<string[]> {
-  //   try {
-  //     const grpcClient = searcherClient("mainnet.block-engine.jito.wtf");
-  //     let isLeaderSlot = false;
-  //     while (!isLeaderSlot) {
-  //       const next_leader = await grpcClient.getNextScheduledLeader();
-  //       const num_slots = next_leader.nextLeaderSlot - next_leader.currentSlot;
-  //       isLeaderSlot = num_slots <= 2;
-  //       console.log(`next jito leader slot in ${num_slots} slots`);
-  //       await new Promise((r) => setTimeout(r, 500));
-  //     }
-
-  //     const b = new Bundle([], 5);
-  //     let maybeBundle = b.addTransactions(...transactions);
-  //     if (isError(maybeBundle)) {
-  //       throw maybeBundle;
-  //     }
-
-  //     try {
-  //       const resp = await grpcClient.sendBundle(b);
-  //       console.log("resp:", resp);
-  //       return [];
-  //     } catch (e) {
-  //       console.error("error sending bundle:", e);
-  //     }
-  //   } catch (error) {
-  //     console.error(error);
-  //   }
-
-  //   throw new Error("Bundle failed");
-  // }
 
   async simulateTransactions(
     transactions: (Transaction | VersionedTransaction)[],
@@ -1247,7 +870,9 @@ class MarginfiClient {
       blockhash = getLatestBlockhashAndContext.value.blockhash;
 
       for (const transaction of transactions) {
-        if (transaction instanceof Transaction) {
+        if (isV0Tx(transaction)) {
+          versionedTransactions.push(transaction);
+        } else {
           const versionedMessage = new TransactionMessage({
             instructions: transaction.instructions,
             payerKey: this.provider.publicKey,
@@ -1257,13 +882,13 @@ class MarginfiClient {
           versionedTransactions.push(
             new VersionedTransaction(versionedMessage.compileToV0Message(this.addressLookupTables))
           );
-        } else {
-          versionedTransactions.push(transaction);
         }
       }
     } catch (error: any) {
-      console.log("Failed to build the transaction", error);
-      throw new ProcessTransactionError(error.message, ProcessTransactionErrorType.TransactionBuildingError);
+      throw new ProcessTransactionError({
+        message: error.message,
+        type: ProcessTransactionErrorType.TransactionBuildingError,
+      });
     }
 
     let response;
@@ -1273,63 +898,64 @@ class MarginfiClient {
           sigVerify: false,
           accounts: { encoding: "base64", addresses: accountsToInspect.map((a) => a.toBase58()) },
         });
-        if (response.value.err === null) {
-          return response.value.accounts?.map((a) => (a ? Buffer.from(a.data[0], "base64") : null)) ?? [];
+        if (response.value.err) {
+          const error = response.value.err;
+          const parsedError = parseTransactionError(error, this.config.programId);
+          throw new ProcessTransactionError({
+            message: parsedError.description ?? JSON.stringify(response.value.err),
+            type: ProcessTransactionErrorType.SimulationError,
+            logs: response.value.logs ?? [],
+            programId: parsedError.programId,
+          });
         }
+        return response.value.accounts?.map((a) => (a ? Buffer.from(a.data[0], "base64") : null)) ?? [];
       } else {
-        response = await simulateBundle(this.bundleSimRpcEndpoint, versionedTransactions, accountsToInspect);
-        if (response.value.err === null) {
-          return response.value.accounts?.map((a) => (a ? Buffer.from(a.data[0], "base64") : null)) ?? [];
-        }
-        throw new Error(JSON.stringify(response.value.err));
+        const simulationResult = await simulateBundle(
+          this.bundleSimRpcEndpoint,
+          versionedTransactions,
+          accountsToInspect
+        );
+        const value = simulationResult[simulationResult.length - 1];
+
+        const accounts = value.postExecutionAccounts;
+        return accounts?.map((a: any) => (a ? Buffer.from(a.data[0], "base64") : null)) ?? [];
       }
     } catch (error: any) {
+      if (error instanceof ProcessTransactionError) throw error;
+
       const parsedError = parseTransactionError(error, this.config.programId);
+
+      if (error instanceof BundleSimulationError) {
+        throw new ProcessTransactionError({
+          message: parsedError.description,
+          type: ProcessTransactionErrorType.SimulationError,
+          logs: error.logs,
+          programId: parsedError.programId,
+        });
+      }
 
       if (error?.logs?.length > 0) {
         console.log("------ Logs 👇 ------");
         console.log(error.logs.join("\n"));
         if (parsedError) {
           console.log("Parsed:", parsedError);
-          throw new ProcessTransactionError(
-            parsedError.description,
-            ProcessTransactionErrorType.FallthroughError,
-            error.logs,
-            parsedError.programId
-          );
+          throw new ProcessTransactionError({
+            message: parsedError.description,
+            type: ProcessTransactionErrorType.SimulationError,
+            logs: error.logs,
+            programId: parsedError.programId,
+          });
         }
       }
 
       console.log("fallthrough error", error);
-      throw new ProcessTransactionError(
-        parsedError?.description ?? "Something went wrong",
-        ProcessTransactionErrorType.FallthroughError,
-        error.logs,
-        parsedError.programId
-      );
+      throw new ProcessTransactionError({
+        message: parsedError?.description ?? "Something went wrong",
+        type: ProcessTransactionErrorType.FallthroughError,
+        logs: error.logs,
+        programId: parsedError.programId,
+      });
     }
-
-    const error = response.value;
-    if (error.logs) {
-      console.log("------ Logs 👇 ------");
-      console.log(error.logs.join("\n"));
-      const errorParsed = parseErrorFromLogs(error.logs, this.config.programId);
-      if (errorParsed) {
-        console.log("Parsed:", errorParsed);
-        throw new ProcessTransactionError(
-          errorParsed.description,
-          ProcessTransactionErrorType.SimulationError,
-          error.logs,
-          errorParsed.programId
-        );
-      }
-    }
-    console.log("fallthrough error", error);
-    throw new ProcessTransactionError(
-      "Something went wrong",
-      ProcessTransactionErrorType.FallthroughError,
-      error?.logs ?? []
-    );
   }
 }
 

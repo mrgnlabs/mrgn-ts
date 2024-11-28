@@ -2,12 +2,17 @@ import { AddressLookupTableAccount, Connection, VersionedTransaction } from "@so
 import BigNumber from "bignumber.js";
 import { QuoteGetRequest, QuoteResponse } from "@jup-ag/api";
 
-import { computeLoopingParams, MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
+import {
+  computeLoopingParams,
+  MarginfiAccountWrapper,
+  MarginfiClient,
+  PriorityFees,
+} from "@mrgnlabs/marginfi-client-v2";
 import { ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { nativeToUi, TransactionBroadcastType, uiToNative } from "@mrgnlabs/mrgn-common";
+import { ExtendedV0Transaction, nativeToUi, TransactionBroadcastType, uiToNative } from "@mrgnlabs/mrgn-common";
 
 import { STATIC_SIMULATION_ERRORS } from "../../errors";
-import { ActionMessageType } from "../types";
+import { ActionMessageType, ClosePositionProps, LoopingProps, RepayWithCollatProps } from "../types";
 import { closePositionBuilder, loopingBuilder, repayWithCollatBuilder } from "./builders";
 import { getSwapQuoteWithRetry } from "../helpers";
 
@@ -23,49 +28,26 @@ import { getSwapQuoteWithRetry } from "../helpers";
 /*
  * Builds and verifies the size of the Looping transaction.
  */
-export async function verifyTxSizeLooping(
-  marginfiAccount: MarginfiAccountWrapper,
-  bank: ExtendedBankInfo,
-  loopingBank: ExtendedBankInfo,
-  depositAmount: number,
-  borrowAmount: BigNumber,
-  quoteResponse: QuoteResponse,
-  connection: Connection,
-  priorityFee: number,
-  broadcastType: TransactionBroadcastType
-): Promise<{
-  flashloanTx: VersionedTransaction | null;
-  feedCrankTxs: VersionedTransaction[];
-  addressLookupTableAccounts: AddressLookupTableAccount[];
-  error?: ActionMessageType;
-}> {
+export async function verifyTxSizeLooping(props: LoopingProps): Promise<VerifyTxSizeFlashloanResponse> {
   try {
-    const builder = await loopingBuilder({
-      marginfiAccount,
-      bank,
-      depositAmount,
-      options: {
-        loopingQuote: quoteResponse,
-        borrowAmount,
-        loopingBank,
-        connection,
-        loopingTxn: null,
-        feedCrankTxs: [],
-      },
-      priorityFee,
-      broadcastType,
-    });
+    const builder = await loopingBuilder(props);
 
-    const txCheck = verifyFlashloanTxSize(builder);
-    if (!txCheck) throw Error("this should not happen");
-
-    return txCheck;
+    if (builder.txOverflown) {
+      return {
+        flashloanTx: null,
+        additionalTxs: [],
+        error: STATIC_SIMULATION_ERRORS.TX_SIZE,
+      };
+    } else {
+      return {
+        ...builder,
+      };
+    }
   } catch (error) {
     console.error(error);
     return {
       flashloanTx: null,
-      feedCrankTxs: [],
-      addressLookupTableAccounts: [],
+      additionalTxs: [],
       error: STATIC_SIMULATION_ERRORS.TX_SIZE,
     };
   }
@@ -75,105 +57,76 @@ export async function verifyTxSizeLooping(
  * Builds and verifies the size of the Looping transaction.
  */
 export async function verifyTxSizeCloseBorrowLendPosition(
-  marginfiAccount: MarginfiAccountWrapper,
-  depositBank: ActiveBankInfo,
-  borrowBank: ActiveBankInfo,
-  quoteResponse: QuoteResponse,
-  connection: Connection,
-  isTxnSplit: boolean = false,
-  priorityFee: number
-): Promise<{
-  flashloanTx: VersionedTransaction | null;
-  feedCrankTxs: VersionedTransaction[];
-  addressLookupTableAccounts: AddressLookupTableAccount[];
-  error?: ActionMessageType;
-}> {
+  props: ClosePositionProps
+): Promise<VerifyTxSizeFlashloanResponse> {
   try {
-    if (quoteResponse.slippageBps > 150) {
+    if (props.quote.slippageBps > 150) {
       throw Error("Slippage too high");
     }
 
-    if (Number(quoteResponse.priceImpactPct) > 0.05) {
+    if (Number(props.quote.priceImpactPct) > 0.05) {
       throw Error("Price impact too high");
     }
 
-    const builder = await closePositionBuilder({
-      marginfiAccount,
-      depositBank,
-      borrowBank,
-      quote: quoteResponse,
-      connection,
-      isTxnSplit,
-      priorityFee,
-    });
+    const builder = await closePositionBuilder(props);
 
-    const txCheck = verifyFlashloanTxSize(builder);
-    if (!txCheck) throw Error("this should not happen");
-
-    return txCheck;
+    if (builder.txOverflown) {
+      return {
+        flashloanTx: null,
+        additionalTxs: [],
+        error: STATIC_SIMULATION_ERRORS.TX_SIZE,
+      };
+    } else {
+      return {
+        ...builder,
+      };
+    }
   } catch (error) {
     console.error(error);
     return {
       flashloanTx: null,
-      feedCrankTxs: [],
-      addressLookupTableAccounts: [],
-      error: STATIC_SIMULATION_ERRORS.CLOSE_POSITIONS_FL_FAILED,
-    };
-  }
-}
-
-/*
- * Builds and verifies the size of the Collat transaction.
- */
-export async function verifyTxSizeCollat(
-  marginfiAccount: MarginfiAccountWrapper,
-  bank: ExtendedBankInfo,
-  depositBank: ExtendedBankInfo,
-  amount: number,
-  withdrawAmount: number,
-  quoteResponse: QuoteResponse,
-  connection: Connection,
-  priorityFee: number,
-  broadcastType: TransactionBroadcastType = "BUNDLE"
-): Promise<{
-  flashloanTx: VersionedTransaction | null;
-  feedCrankTxs: VersionedTransaction[];
-  addressLookupTableAccounts: AddressLookupTableAccount[];
-  error?: ActionMessageType;
-  lastValidBlockHeight?: number;
-}> {
-  try {
-    const builder = await repayWithCollatBuilder({
-      marginfiAccount,
-      bank,
-      amount,
-      options: {
-        repayCollatQuote: quoteResponse,
-        withdrawAmount,
-        depositBank,
-        connection,
-        repayCollatTxn: null,
-        feedCrankTxs: [],
-      },
-      priorityFee,
-      broadcastType,
-    });
-
-    const txCheck = verifyFlashloanTxSize(builder);
-    if (!txCheck) throw Error("this should not happen");
-
-    return txCheck;
-  } catch (error) {
-    console.error(error);
-    return {
-      flashloanTx: null,
-      feedCrankTxs: [],
-      addressLookupTableAccounts: [],
+      additionalTxs: [],
       error: STATIC_SIMULATION_ERRORS.TX_SIZE,
     };
   }
 }
 
+type VerifyTxSizeFlashloanResponse = {
+  flashloanTx: ExtendedV0Transaction | null;
+  additionalTxs: ExtendedV0Transaction[];
+  error?: ActionMessageType;
+  lastValidBlockHeight?: number;
+};
+
+/*
+ * Builds and verifies the size of the Collat transaction.
+ */
+export async function verifyTxSizeCollat(props: RepayWithCollatProps): Promise<VerifyTxSizeFlashloanResponse> {
+  try {
+    const builder = await repayWithCollatBuilder(props);
+
+    if (builder.txOverflown) {
+      return {
+        flashloanTx: null,
+        additionalTxs: [],
+        error: STATIC_SIMULATION_ERRORS.TX_SIZE,
+      };
+    } else {
+      return {
+        ...builder,
+      };
+    }
+  } catch (error) {
+    console.error(error);
+    return {
+      flashloanTx: null,
+      additionalTxs: [],
+      error: STATIC_SIMULATION_ERRORS.TX_SIZE,
+    };
+  }
+}
+
+/** @deprecated */
 export const verifyFlashloanTxSize = (builder: {
   flashloanTx: VersionedTransaction;
   feedCrankTxs: VersionedTransaction[];

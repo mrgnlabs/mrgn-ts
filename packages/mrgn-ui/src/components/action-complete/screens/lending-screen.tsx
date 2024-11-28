@@ -4,7 +4,7 @@ import Image from "next/image";
 
 import { IconExternalLink } from "@tabler/icons-react";
 import { ActionType, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { shortenAddress } from "@mrgnlabs/mrgn-common";
+import { shortenAddress, dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
 import { cn, computeBankRate, LendingModes } from "@mrgnlabs/mrgn-utils";
 
 interface Props {
@@ -13,9 +13,14 @@ interface Props {
   type: ActionType;
   txn: string;
   txnLink?: string;
+  collatRepay?: {
+    borrowBank: ActiveBankInfo;
+    withdrawBank: ActiveBankInfo;
+    withdrawAmount: number;
+  };
 }
 
-export const LendingScreen = ({ amount, bank, type, txn, txnLink }: Props) => {
+export const LendingScreen = ({ amount, bank, type, txn, txnLink, collatRepay }: Props) => {
   const actionTextColor = React.useMemo(() => {
     const successTypes = [ActionType.Deposit, ActionType.Withdraw, ActionType.MintLST];
     const warningTypes = [ActionType.Borrow, ActionType.Repay];
@@ -28,30 +33,106 @@ export const LendingScreen = ({ amount, bank, type, txn, txnLink }: Props) => {
     return computeBankRate(bank, type === ActionType.Deposit ? LendingModes.LEND : LendingModes.BORROW);
   }, [bank, type]);
 
+  const updatedBankAmount = React.useMemo(() => {
+    if (!amount || !bank.position) return 0;
+    switch (type) {
+      case ActionType.Deposit:
+        return bank.position.amount + amount;
+      case ActionType.Withdraw:
+        return bank.position.amount - amount;
+      case ActionType.Borrow:
+        return bank.position.amount + amount;
+      case ActionType.Repay:
+        return bank.position.amount - amount;
+      default:
+        return bank.position.amount;
+    }
+  }, [amount, bank, type]);
+
+  const actionText: {
+    title: string;
+    details: string;
+  } = React.useMemo(() => {
+    switch (type) {
+      case ActionType.Deposit:
+        return { title: "deposited", details: "deposits" };
+      case ActionType.Withdraw:
+        return { title: "withdrew", details: "deposits" };
+      case ActionType.Borrow:
+        return { title: "borrowed", details: "borrow" };
+      case ActionType.Repay:
+        return { title: "repaid", details: "borrow" };
+      default:
+        return { title: "", details: "" };
+    }
+  }, [type]);
+
   return (
     <>
-      <div className="flex flex-col items-center gap-2 border-b border-border pb-10">
-        <div className="flex items-center justify-center gap-2">
-          <h3 className="text-4xl font-medium">
-            {amount} {bank?.meta.tokenSymbol}
-          </h3>
-          {bank && (
+      <div className="flex flex-col items-center gap-4 border-b border-border pb-10">
+        {collatRepay ? (
+          <div className="flex items-center">
             <Image
-              className="rounded-full w-9 h-9"
+              className="rounded-full"
+              src={collatRepay.borrowBank.meta.tokenLogoUri}
+              alt={(collatRepay.borrowBank?.meta.tokenSymbol || "Token") + "  logo"}
+              width={48}
+              height={48}
+            />
+            <Image
+              className="rounded-full -ml-5 relative z-10"
+              src={collatRepay.withdrawBank.meta.tokenLogoUri}
+              alt={(collatRepay.withdrawBank?.meta.tokenSymbol || "Token") + "  logo"}
+              width={48}
+              height={48}
+            />
+          </div>
+        ) : (
+          bank && (
+            <Image
+              className="rounded-full"
               src={bank.meta.tokenLogoUri}
               alt={(bank?.meta.tokenSymbol || "Token") + "  logo"}
-              width={36}
-              height={36}
+              width={48}
+              height={48}
             />
-          )}
+          )
+        )}
+
+        <div className="flex items-center justify-center gap-2">
+          <h3 className="text-2xl font-medium text-center">
+            {type === ActionType.RepayCollat ? (
+              <>
+                You repaid{" "}
+                {dynamicNumeralFormatter(amount, {
+                  tokenPrice: collatRepay?.borrowBank.info.state.price,
+                })}{" "}
+                {bank?.meta.tokenSymbol.toUpperCase()} with{" "}
+                {dynamicNumeralFormatter(collatRepay?.withdrawAmount ?? 0, {
+                  tokenPrice: collatRepay?.withdrawBank.info.state.price,
+                })}{" "}
+                {collatRepay?.withdrawBank.meta.tokenSymbol.toUpperCase()}
+              </>
+            ) : (
+              <>
+                You {actionText.title}{" "}
+                {dynamicNumeralFormatter(amount, {
+                  tokenPrice: bank?.info.state.price,
+                })}{" "}
+                {bank?.meta.tokenSymbol}
+              </>
+            )}
+          </h3>
         </div>
       </div>
       <dl className="grid grid-cols-2 w-full text-muted-foreground gap-x-8 gap-y-2">
         {bank?.position && (
           <>
-            <dt>Total {bank.meta.tokenSymbol} Deposits</dt>
+            <dt>
+              Total {bank.meta.tokenSymbol} {actionText.details}
+            </dt>
             <dd className="text-right">
-              {bank.position.amount} {bank.meta.tokenSymbol}
+              {dynamicNumeralFormatter(updatedBankAmount, { minDisplay: 0.01 })} {bank.meta.tokenSymbol}
             </dd>
           </>
         )}

@@ -5,10 +5,13 @@ import { getPriceWithConfidence } from "@mrgnlabs/marginfi-client-v2";
 import { ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import {
   clampedNumeralFormatter,
+  dynamicNumeralFormatter,
   numeralFormatter,
   percentFormatter,
   percentFormatterDyn,
+  tokenPriceFormatter,
   usdFormatter,
+  usdFormatterDyn,
 } from "@mrgnlabs/mrgn-common";
 import { cn } from "@mrgnlabs/mrgn-utils";
 
@@ -33,12 +36,30 @@ export function getJupFeeStat(platformFee: number): PreviewStat {
 
 export function getAmountStat(currentAmount: number, symbol: string, simulatedAmount?: number): PreviewStat {
   return {
-    label: "Your amount",
+    label: "Total",
     value: () => (
       <>
-        {clampedNumeralFormatter(currentAmount)} {symbol}
+        {dynamicNumeralFormatter(currentAmount)} {symbol}
         {simulatedAmount !== undefined ? <IconArrowRight width={12} height={12} /> : <></>}
-        {simulatedAmount !== undefined ? clampedNumeralFormatter(simulatedAmount) + " " + symbol : <></>}
+        {simulatedAmount !== undefined ? dynamicNumeralFormatter(simulatedAmount) + " " + symbol : <></>}
+      </>
+    ),
+  };
+}
+
+export function getAmountUsdStat(
+  currentAmount: number,
+  symbol: string,
+  price: number,
+  simulatedAmount?: number
+): PreviewStat {
+  return {
+    label: "USD Value",
+    value: () => (
+      <>
+        {tokenPriceFormatter(currentAmount)}
+        {simulatedAmount !== undefined ? <IconArrowRight width={12} height={12} /> : <></>}
+        {simulatedAmount !== undefined ? tokenPriceFormatter(simulatedAmount * price) : <></>}
       </>
     ),
   };

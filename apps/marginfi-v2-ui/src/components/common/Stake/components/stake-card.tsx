@@ -34,17 +34,18 @@ const StakeCard = ({ lstBank, lstOverview, connected }: StakeCardProps) => {
 
   return (
     <Card variant="gradient" className="w-full max-w-xl mx-auto py-2 md:py-4">
-      <CardHeader className="items-center text-center gap-3 pb-4 md:pb-6">
+      <CardHeader className="items-center text-center gap-3 pb-6">
         <IconLST size={56} />
-        <CardTitle className="text-xl md:text-2xl">
-          Stake your SOL with marginfi validators and mint our liquid staking token LST
+        <CardTitle className="text-lg md:text-xl">
+          Stake your SOL with marginfi validators
+          <br className="hidden md:block" /> and mint our liquid staking token LST
         </CardTitle>
         <CardDescription className="sr-only">
           Stake your SOL with marginfi validators and mint our liquid staking token LST
         </CardDescription>
       </CardHeader>
-      <CardContent className="flex flex-col items-center">
-        <ul className="space-y-2.5 mb-4 md:mb-8 md:text-lg">
+      <CardContent className="flex flex-col items-center text-sm md:text-base">
+        <ul className="space-y-2.5 mb-6 md:mb-8">
           <li className="flex items-center gap-1.5 text-muted-foreground">
             <IconCheck className="text-success" size={isMobile ? 18 : 24} />
             {lstOverview?.apy ? lstOverview.apy : "~8.5"}% APY
@@ -60,16 +61,16 @@ const StakeCard = ({ lstBank, lstOverview, connected }: StakeCardProps) => {
         </ul>
 
         {lstOverview && (
-          <ul className="flex gap-2 text-sm md:text-base">
-            <li className="text-muted-foreground">LST TVL</li>
-            <li>{usdFormatter.format(lstOverview.tvl)}</li>
-            <li className="text-muted-foreground ml-4">LST Volume</li>
+          <ul className="flex flex-col items-center md:items-start md:flex-row">
+            <li className="text-muted-foreground md:mr-2 md:mb-2">LST TVL</li>
+            <li className="mb-4 md:mb-0">{usdFormatter.format(lstOverview.tvl)}</li>
+            <li className="text-muted-foreground md:mr-2 md:ml-4 md:mb-2">LST Volume</li>
             <li>{usdFormatter.format(lstOverview.volumeUsd)}</li>
           </ul>
         )}
       </CardContent>
 
-      <CardFooter className="flex flex-col gap-4 pt-0 pb-2 md:pt-4">
+      <CardFooter className="flex flex-col gap-4 pb-2 pt-2 md:pt-4">
         <div className="flex flex-row justify-center gap-4">
           <ActionBox.Stake
             isDialog={true}
@@ -83,7 +84,7 @@ const StakeCard = ({ lstBank, lstOverview, connected }: StakeCardProps) => {
             }}
             dialogProps={{
               trigger: (
-                <Button size="lg" className="md:text-lg md:h-12 border-none">
+                <Button size="lg" className="border-none">
                   Stake
                 </Button>
               ),
@@ -103,7 +104,7 @@ const StakeCard = ({ lstBank, lstOverview, connected }: StakeCardProps) => {
             }}
             dialogProps={{
               trigger: (
-                <Button variant="secondary" size="lg" className="md:text-lg md:h-12">
+                <Button variant="secondary" size="lg">
                   Unstake
                 </Button>
               ),

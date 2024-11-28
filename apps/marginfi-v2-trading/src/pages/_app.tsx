@@ -12,7 +12,7 @@ import { ToastContainer } from "react-toastify";
 import { Analytics } from "@vercel/analytics/react";
 import { BankMetadataRaw } from "@mrgnlabs/mrgn-common";
 import { DEFAULT_MAX_CAP, Desktop, Mobile, init as initAnalytics } from "@mrgnlabs/mrgn-utils";
-import { ActionProvider, AuthDialog } from "@mrgnlabs/mrgn-ui";
+import { ActionProvider } from "~/components/action-box-v2";
 import { generateEndpoint } from "~/rpc.utils";
 
 import config from "~/config";
@@ -30,6 +30,7 @@ import { Header } from "~/components/common/Header";
 import { Footer } from "~/components/desktop/Footer";
 
 import "react-toastify/dist/ReactToastify.min.css";
+import { AuthDialog } from "~/components/wallet-v2";
 
 require("~/styles/globals.css");
 require("~/styles/fonts.css");
@@ -41,12 +42,7 @@ export default function MrgnApp({ Component, pageProps, path, bank }: AppProps &
   const [ready, setReady] = React.useState(false);
   const [rpcEndpoint, setRpcEndpoint] = React.useState("");
 
-  const [broadcastType, priorityType, maxCap, maxCapType] = useUiStore((state) => [
-    state.broadcastType,
-    state.priorityType,
-    state.maxCap,
-    state.maxCapType,
-  ]);
+  const [broadcastType, priorityFees] = useUiStore((state) => [state.broadcastType, state.priorityFees]);
 
   React.useEffect(() => {
     const init = async () => {
@@ -67,13 +63,8 @@ export default function MrgnApp({ Component, pageProps, path, bank }: AppProps &
           <TipLinkWalletAutoConnect isReady={isReady} query={query}>
             <WalletProvider wallets={WALLET_ADAPTERS} autoConnect={true}>
               <MrgnWalletProvider>
-                <ActionProvider
-                  broadcastType={broadcastType}
-                  priorityType={priorityType}
-                  maxCap={maxCap || DEFAULT_MAX_CAP}
-                  maxCapType={maxCapType}
-                >
-                  <TradePovider>
+                <TradePovider>
+                  <ActionProvider broadcastType={broadcastType} priorityFees={priorityFees}>
                     <div className="mrgn-bg-gradient">
                       <Header />
 
@@ -97,8 +88,8 @@ export default function MrgnApp({ Component, pageProps, path, bank }: AppProps &
                       <AuthDialog onboardingEnabled={false} />
                       <ToastContainer position="bottom-left" theme="light" />
                     </div>
-                  </TradePovider>
-                </ActionProvider>
+                  </ActionProvider>
+                </TradePovider>
               </MrgnWalletProvider>
             </WalletProvider>
           </TipLinkWalletAutoConnect>

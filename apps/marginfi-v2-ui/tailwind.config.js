@@ -54,6 +54,11 @@ module.exports = {
         "background-gray-dark": "#0C0F11",
         foreground: "hsl(var(--foreground))",
         chartreuse: "#DCE85D",
+        mrgn: {
+          success: "#75ba80",
+          warning: "#daa204",
+          error: "#e07d6f",
+        },
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
@@ -63,7 +68,7 @@ module.exports = {
           foreground: "hsl(var(--secondary-foreground))",
         },
         alert: {
-          DEFAULT: "hsl(35 14% 17%)",
+          DEFAULT: "hsl(35 14% 12%)",
           foreground: "hsl(33 96% 61%)",
         },
         info: {
@@ -101,6 +106,9 @@ module.exports = {
             accent: "hsl(var(--mfi-action-box-accent))",
             "accent-foreground": "hsl(var(--mfi-action-box-accent-foreground))",
             highlight: "hsl(var(--mfi-action-box-highlight))",
+          },
+          toast: {
+            background: "hsl(var(--mfi-toast-background))",
           },
         },
       },

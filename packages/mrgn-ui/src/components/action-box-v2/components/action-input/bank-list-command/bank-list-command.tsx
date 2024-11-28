@@ -16,6 +16,7 @@ type BankListCommandProps = {
 
 export const BankListCommand = ({ selectedBank, onSetSearchQuery, onClose, children }: BankListCommandProps) => {
   const isMobile = useIsMobile();
+
   return (
     <>
       <Command

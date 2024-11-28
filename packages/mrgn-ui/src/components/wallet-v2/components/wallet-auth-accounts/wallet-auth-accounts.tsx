@@ -1,6 +1,6 @@
 import React from "react";
 
-import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
+import { MarginfiAccountWrapper, MarginfiClient, ProcessTransactionsClientOpts } from "@mrgnlabs/marginfi-client-v2";
 import { clearAccountCache, firebaseApi } from "@mrgnlabs/marginfi-v2-ui-state";
 import { getMaybeSquadsOptions, MultiStepToastHandle, capture } from "@mrgnlabs/mrgn-utils";
 import { IconChevronDown, IconUserPlus, IconPencil, IconAlertTriangle } from "@tabler/icons-react";
@@ -32,9 +32,11 @@ type WalletAuthAccountsProps = {
   marginfiAccounts: MarginfiAccountWrapper[];
   selectedAccount: MarginfiAccountWrapper | null;
   fetchMrgnlendState: () => void;
+  processOpts?: ProcessTransactionsClientOpts;
   closeOnSwitch?: boolean;
   popoverContentAlign?: "start" | "end" | "center";
   showAddAccountButton?: boolean;
+  _setAccountLabels?: (labels: Record<string, string>) => void;
 };
 
 export const WalletAuthAccounts = ({
@@ -47,6 +49,8 @@ export const WalletAuthAccounts = ({
   closeOnSwitch = false,
   popoverContentAlign = "center",
   showAddAccountButton = true,
+  processOpts,
+  _setAccountLabels,
 }: WalletAuthAccountsProps) => {
   const [popoverOpen, setPopoverOpen] = React.useState(false);
   const { wallet, walletContextState } = useWallet();
@@ -64,6 +68,7 @@ export const WalletAuthAccounts = ({
   const [useAuthTxn, setUseAuthTxn] = React.useState(false);
   const newAccountNameRef = React.useRef<HTMLInputElement>(null);
   const editAccountNameRef = React.useRef<HTMLInputElement>(null);
+  const [hasFetchedLabels, setHasFetchedLabels] = React.useState<boolean>(false);
 
   const activateAccount = React.useCallback(
     async (account: MarginfiAccountWrapper, index: number) => {
@@ -87,27 +92,35 @@ export const WalletAuthAccounts = ({
     },
     [fetchMrgnlendState, selectedAccount, closeOnSwitch]
   );
-
   const fetchAccountLabels = React.useCallback(async () => {
-    const fetchAccountLabel = async (account: MarginfiAccountWrapper) => {
-      const accountLabelReq = await fetch(`/api/user/account-label?account=${account.address.toBase58()}`);
+    const labels: Record<string, string> = {};
 
-      if (!accountLabelReq.ok) {
-        console.error("Error fetching account labels");
-        return;
+    const fetchLabel = async (account: MarginfiAccountWrapper) => {
+      try {
+        const response = await fetch(`/api/user/account-label?account=${account.address.toBase58()}`);
+        if (!response.ok) throw new Error("Error fetching account labels");
+
+        const { data } = await response.json();
+        const defaultLabel = `Account ${marginfiAccounts.findIndex((acc) => acc.address.equals(account.address)) + 1}`;
+        return data.label || defaultLabel;
+      } catch (error) {
+        console.error(error);
+        return `Account ${marginfiAccounts.findIndex((acc) => acc.address.equals(account.address)) + 1}`;
       }
-
-      const accountLabelData = await accountLabelReq.json();
-      let accountLabel = `Account ${marginfiAccounts.findIndex((acc) => acc.address.equals(account.address)) + 1}`;
-
-      setAccountLabels((prev) => ({
-        ...prev,
-        [account.address.toBase58()]: accountLabelData.data.label || accountLabel,
-      }));
     };
 
-    marginfiAccounts.forEach(fetchAccountLabel);
-  }, [marginfiAccounts, setAccountLabels]);
+    await Promise.all(
+      marginfiAccounts.map(async (account) => {
+        const label = await fetchLabel(account);
+        labels[account.address.toBase58()] = label;
+      })
+    );
+
+    setAccountLabels(labels);
+    if (_setAccountLabels) {
+      _setAccountLabels(labels);
+    }
+  }, [_setAccountLabels, marginfiAccounts]);
 
   const checkAndClearAccountCache = React.useCallback(() => {
     const cacheTimestamp = localStorage.getItem("mrgnClearedAccountCache");
@@ -185,46 +198,50 @@ export const WalletAuthAccounts = ({
     multiStepToast.start();
     setIsSubmitting(true);
 
-    const squadsOptions = await getMaybeSquadsOptions(walletContextState);
-    const mfiAccount = await mfiClient.createMarginfiAccount(undefined, squadsOptions);
+    try {
+      const squadsOptions = await getMaybeSquadsOptions(walletContextState);
+      const mfiAccount = await mfiClient.createMarginfiAccount(squadsOptions, processOpts);
 
-    if (!mfiAccount) {
+      if (!mfiAccount) {
+        multiStepToast.setFailed("Error creating new account");
+        setIsSubmitting(false);
+        return;
+      }
+
+      clearAccountCache(mfiClient.provider.publicKey);
+      multiStepToast.setSuccessAndNext();
+
+      const blockhashInfo = await connection.getLatestBlockhash();
+
+      const res = await firebaseApi.setAccountLabel(
+        useAuthTxn ? "tx" : "memo",
+        blockhashInfo,
+        wallet,
+        mfiAccount.address.toBase58(),
+        newAccountName
+      );
+
+      if (!res) {
+        multiStepToast.setFailed("Error creating account label");
+        setIsSubmitting(false);
+        return;
+      }
+
+      multiStepToast.setSuccessAndNext();
+      setIsSubmitting(false);
+      setWalletAuthAccountsState(WalletAuthAccountsState.DEFAULT);
+      await fetchAccountLabels();
+      activateAccount(mfiAccount, marginfiAccounts.length - 1);
+      setNewAccountName(`Account ${marginfiAccounts.length + 1}`);
+
+      capture("account_created", {
+        wallet: mfiAccount.authority.toBase58(),
+        account: mfiAccount.address.toBase58(),
+        label: newAccountName,
+      });
+    } catch (error) {
       multiStepToast.setFailed("Error creating new account");
-      setIsSubmitting(false);
-      return;
     }
-
-    clearAccountCache(mfiClient.provider.publicKey);
-    multiStepToast.setSuccessAndNext();
-
-    const blockhashInfo = await connection.getLatestBlockhash();
-
-    const res = await firebaseApi.setAccountLabel(
-      useAuthTxn ? "tx" : "memo",
-      blockhashInfo,
-      wallet,
-      mfiAccount.address.toBase58(),
-      newAccountName
-    );
-
-    if (!res) {
-      multiStepToast.setFailed("Error creating account label");
-      setIsSubmitting(false);
-      return;
-    }
-
-    multiStepToast.setSuccessAndNext();
-    setIsSubmitting(false);
-    setWalletAuthAccountsState(WalletAuthAccountsState.DEFAULT);
-    await fetchAccountLabels();
-    activateAccount(mfiAccount, marginfiAccounts.length - 1);
-    setNewAccountName(`Account ${marginfiAccounts.length + 1}`);
-
-    capture("account_created", {
-      wallet: mfiAccount.authority.toBase58(),
-      account: mfiAccount.address.toBase58(),
-      label: newAccountName,
-    });
   }, [
     newAccountName,
     mfiClient,
@@ -238,7 +255,8 @@ export const WalletAuthAccounts = ({
   ]);
 
   React.useEffect(() => {
-    if (!initialized) return;
+    if (!initialized || hasFetchedLabels) return;
+    setHasFetchedLabels(true);
     fetchAccountLabels();
   }, [initialized, fetchAccountLabels]);
 

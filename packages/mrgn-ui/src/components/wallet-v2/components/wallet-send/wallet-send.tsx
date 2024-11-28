@@ -34,6 +34,7 @@ import { Label } from "~/components/ui/label";
 import { Input } from "~/components/ui/input";
 
 import { Token as TokenType } from "~/components/wallet-v2/components/wallet-tokens/wallet-tokens";
+import { confirmTransaction } from "@mrgnlabs/marginfi-client-v2";
 
 type WalletSendProps = {
   connection: Connection;
@@ -205,14 +206,15 @@ export const WalletSend = ({
 
         const signedTx = await wallet.signTransaction(versionedTx);
         const signature = await connection.sendTransaction(signedTx);
-        await connection.confirmTransaction(
-          {
-            blockhash,
-            lastValidBlockHeight,
-            signature: signature,
-          },
-          "confirmed"
-        );
+        await confirmTransaction(connection, signature, "confirmed");
+        // await connection.confirmTransaction(
+        //   {
+        //     blockhash,
+        //     lastValidBlockHeight,
+        //     signature: signature,
+        //   },
+        //   "confirmed"
+        // );
         multiStepToast.setSuccessAndNext();
         setSendingState(SendingState.SUCCESS);
         setSendSig(signature);

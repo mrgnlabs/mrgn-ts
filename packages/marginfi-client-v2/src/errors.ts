@@ -1,11 +1,13 @@
 import { LangErrorMessage } from "@coral-xyz/anchor";
-import { JUPITER_V6_PROGRAM, TOKEN_PROGRAM_ID } from "@mrgnlabs/mrgn-common";
+import { JUPITER_V6_PROGRAM, SolanaTransaction, TOKEN_PROGRAM_ID } from "@mrgnlabs/mrgn-common";
 import { MARGINFI_IDL } from "./idl";
 import { PublicKey } from "@solana/web3.js";
 
 export enum ProcessTransactionErrorType {
   TransactionBuildingError,
+  TransactionSendingError,
   SimulationError,
+
   FallthroughError,
   TimeoutError,
 }
@@ -14,12 +16,41 @@ export class ProcessTransactionError extends Error {
   logs?: string[];
   type: ProcessTransactionErrorType;
   programId?: string;
+  failedTxs?: SolanaTransaction[];
 
-  constructor(message: string, type: ProcessTransactionErrorType, logs?: string[], programId?: string) {
+  constructor({
+    message,
+    type,
+    logs,
+    programId,
+    code,
+    failedTxs,
+  }: {
+    message: string;
+    type: ProcessTransactionErrorType;
+    logs?: string[];
+    programId?: string;
+    code?: number;
+    failedTxs?: SolanaTransaction[];
+  }) {
     super(message);
     this.programId = programId;
     this.type = type;
     this.logs = logs;
+    this.failedTxs = failedTxs;
+  }
+
+  static withFailedTransactions(
+    error: ProcessTransactionError,
+    failedTxs: SolanaTransaction[]
+  ): ProcessTransactionError {
+    return new ProcessTransactionError({
+      message: error.message,
+      type: error.type,
+      logs: error.logs,
+      programId: error.programId,
+      failedTxs: failedTxs,
+    });
   }
 }
 

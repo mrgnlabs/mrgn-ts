@@ -2,7 +2,7 @@ import React from "react";
 import { IconArrowRight } from "@tabler/icons-react";
 
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { clampedNumeralFormatter, numeralFormatter } from "@mrgnlabs/mrgn-common";
+import { clampedNumeralFormatter, dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
 
 type RepayActionProps = {
   amountRaw: string;
@@ -28,7 +28,7 @@ export const RepayAction = ({
     showWalletIcon?: boolean;
     label?: string;
   } => {
-    const amountLeft = numeralFormatter(selectedBank?.isActive ? selectedBank.position.amount - repayAmount : 0);
+    const amountLeft = dynamicNumeralFormatter(selectedBank?.isActive ? selectedBank.position.amount - repayAmount : 0);
     return {
       amount: `${amountLeft} ${selectedBank?.meta.tokenSymbol}`,
       label: "Borrowed: ",
@@ -43,9 +43,13 @@ export const RepayAction = ({
         <ul className="flex flex-col gap-0.5 mt-4 text-xs w-full text-muted-foreground">
           <li className="flex justify-between items-center gap-1.5">
             <strong className="mr-auto">{maxLabel.label}</strong>
-            <div className="flex space-x-1">
+            <div className="flex space-x-1 items-center">
               {selectedBank?.isActive && !isUnchanged && (
-                <div>{clampedNumeralFormatter(selectedBank.position.amount)}</div>
+                <div>
+                  {dynamicNumeralFormatter(selectedBank.position.amount, {
+                    tokenPrice: selectedBank.info.oraclePrice.priceRealtime.price.toNumber(),
+                  })}
+                </div>
               )}
               {selectedBank?.isActive && !isUnchanged && <IconArrowRight width={12} height={12} />}
               <div>{maxLabel.amount}</div>
@@ -53,7 +57,13 @@ export const RepayAction = ({
                 <button
                   className="cursor-pointer border-b border-transparent transition text-mfi-action-box-highlight hover:border-mfi-action-box-highlight"
                   disabled={maxAmount === 0}
-                  onClick={() => onSetAmountRaw(numberFormater.format(maxAmount))}
+                  onClick={() =>
+                    onSetAmountRaw(
+                      dynamicNumeralFormatter(maxAmount, {
+                        tokenPrice: selectedBank.info.oraclePrice.priceRealtime.price.toNumber(),
+                      })
+                    )
+                  }
                 >
                   MAX
                 </button>
@@ -64,11 +74,15 @@ export const RepayAction = ({
             <strong>Deposited:</strong>
 
             <div className="flex space-x-1.5 items-center">
-              {selectedSecondaryBank?.isActive ? selectedSecondaryBank.position.amount : 0}
+              {selectedSecondaryBank?.isActive
+                ? dynamicNumeralFormatter(selectedSecondaryBank.position.amount, {
+                    tokenPrice: selectedSecondaryBank.info.oraclePrice.priceRealtime.price.toNumber(),
+                  })
+                : 0}
               {selectedSecondaryBank?.isActive && !isUnchanged && <IconArrowRight width={12} height={12} />}
               {selectedSecondaryBank?.isActive &&
                 !isUnchanged &&
-                selectedSecondaryBank.position.amount - Number(amountRaw)}{" "}
+                dynamicNumeralFormatter(selectedSecondaryBank.position.amount - Number(amountRaw))}{" "}
               {selectedSecondaryBank?.meta.tokenSymbol}
             </div>
           </li>

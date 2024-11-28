@@ -5,7 +5,7 @@ import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
 import { VersionedTransaction } from "@solana/web3.js";
 import { isError } from "./jito/sdk/block-engine/utils";
 import { BundleResult } from "./jito/gen/block-engine/bundle";
-import { sleep } from "@mrgnlabs/mrgn-common";
+import { setTimeoutPromise, sleep } from "@mrgnlabs/mrgn-common";
 
 const JITO_ENDPOINT = "mainnet.block-engine.jito.wtf";
 const TIMEOUT_DURATION = 25000;
@@ -17,6 +17,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!Array.isArray(transactions) || transactions.some((tx) => typeof tx !== "string")) {
     return res.status(400).json({ error: "Invalid transactions format" });
   }
+  let bundleId = "";
 
   try {
     const grpcClient = searcherClient(JITO_ENDPOINT);
@@ -35,6 +36,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       throw new Error("Error adding transactions to bundle");
     }
 
+    bundleId = await grpcClient.sendBundle(bundle);
+
     const bundleResult = await Promise.race([
       sendBundleWithRetry(bundle),
       setTimeoutPromise(TIMEOUT_DURATION, `Timeout: Stopped after ${TIMEOUT_DURATION / 1000} seconds.`),
@@ -46,12 +49,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     return res.status(200).json({ bundleId: bundleResult });
   } catch (error) {
-    return res.status(500).json({ error: error instanceof Error ? error.message : "Unknown error" });
+    return res.status(500).json({ error: error instanceof Error ? error.message : "Unknown error", bundleId });
   }
-}
-
-function setTimeoutPromise(duration: number, message: string): Promise<Error> {
-  return new Promise((_, reject) => setTimeout(() => reject(new Error(message)), duration));
 }
 
 async function sendBundleWithRetry(bundle: Bundle): Promise<string> {

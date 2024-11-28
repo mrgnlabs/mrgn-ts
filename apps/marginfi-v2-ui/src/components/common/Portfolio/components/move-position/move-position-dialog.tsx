@@ -8,6 +8,7 @@ import {
   ActionMessageType,
   captureSentryException,
   checkLendActionAvailable,
+  composeExplorerUrl,
   extractErrorString,
   MultiStepToastHandle,
 } from "@mrgnlabs/mrgn-utils";
@@ -18,8 +19,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Select, SelectContent, SelectItem, SelectTrigger } from "~/components/ui/select";
 import { IconLoader } from "~/components/ui/icons";
 import { useMoveSimulation } from "../../hooks";
-import { ActionMessage } from "~/components";
+import { ActionMessage, useActionContext } from "~/components";
 import { IconArrowRight } from "@tabler/icons-react";
+import { useUiStore } from "~/store";
 
 interface MovePositionDialogProps {
   selectedAccount: MarginfiAccountWrapper | null;
@@ -32,6 +34,7 @@ interface MovePositionDialogProps {
   extendedBankInfos: ExtendedBankInfo[];
   nativeSolBalance: number;
   accountSummary: AccountSummary | null;
+  accountLabels?: Record<string, string>;
 }
 
 export const MovePositionDialog = ({
@@ -45,6 +48,7 @@ export const MovePositionDialog = ({
   extendedBankInfos,
   nativeSolBalance,
   accountSummary,
+  accountLabels,
 }: MovePositionDialogProps) => {
   const [accountToMoveTo, setAccountToMoveTo] = React.useState<MarginfiAccountWrapper | null>(null);
   const [actionTxns, setActionTxns] = React.useState<(Transaction | VersionedTransaction)[]>([]);
@@ -64,30 +68,11 @@ export const MovePositionDialog = ({
     setIsLoading: setIsSimulationLoading,
     setErrorMessage,
   });
-
-  const [accountLabels, setAccountLabels] = React.useState<Record<string, string>>({});
+  const { broadcastType, priorityFees } = useUiStore((state) => ({
+    broadcastType: state.broadcastType,
+    priorityFees: state.priorityFees,
+  }));
   const [actionBlocked, setActionBlocked] = React.useState<boolean>(false);
-
-  const fetchAccountLabels = React.useCallback(async () => {
-    const fetchAccountLabel = async (account: MarginfiAccountWrapper) => {
-      const accountLabelReq = await fetch(`/api/user/account-label?account=${account.address.toBase58()}`);
-
-      if (!accountLabelReq.ok) {
-        console.error("Error fetching account labels");
-        return;
-      }
-
-      const accountLabelData = await accountLabelReq.json();
-      let accountLabel = `Account ${marginfiAccounts.findIndex((acc) => acc.address.equals(account.address)) + 1}`;
-
-      setAccountLabels((prev) => ({
-        ...prev,
-        [account.address.toBase58()]: accountLabelData.data.label || accountLabel,
-      }));
-    };
-
-    marginfiAccounts.forEach(fetchAccountLabel);
-  }, [marginfiAccounts, setAccountLabels]);
 
   const actionMessages = React.useMemo(() => {
     if (bank.userInfo.maxWithdraw < bank.position.amount) {
@@ -142,21 +127,29 @@ export const MovePositionDialog = ({
   }, [accountToMoveTo, actionMessages, isSimulationLoading, isExecutionLoading, errorMessage]);
 
   const handleMovePosition = React.useCallback(async () => {
-    if (!marginfiClient || !accountToMoveTo || !actionTxns) {
+    if (!marginfiClient || !accountToMoveTo || !actionTxns || !broadcastType || !priorityFees) {
       return;
     }
 
+    const processOpts = { ...priorityFees, broadcastType };
+
     const multiStepToast = new MultiStepToastHandle("Moving position", [
-      {
-        label: `Moving to account ${shortenAddress(accountToMoveTo?.address.toBase58(), 8)}`,
-      },
+      { label: "Signing transaction" },
+      { label: `Withdrawing from account ${shortenAddress(selectedAccount?.address.toBase58() ?? "", 8)}` },
+      { label: `Depositing to account ${shortenAddress(accountToMoveTo?.address.toBase58(), 8)}` },
+      { label: "Updating accounts" },
     ]);
     multiStepToast.start();
     setIsExecutionLoading(true);
     try {
-      await marginfiClient.processTransactions(actionTxns);
+      const sigs = await marginfiClient.processTransactions(actionTxns, {
+        ...processOpts,
+        callback: (index, success, sig, stepsToAdvance) =>
+          success &&
+          multiStepToast.setSuccessAndNext(stepsToAdvance, sig, composeExplorerUrl(sig, processOpts?.broadcastType)),
+      });
       await fetchMrgnlendState();
-      multiStepToast.setSuccessAndNext();
+      multiStepToast.setSuccess();
       setIsOpen(false);
     } catch (error) {
       const msg = extractErrorString(error);
@@ -169,18 +162,12 @@ export const MovePositionDialog = ({
     } finally {
       setIsExecutionLoading(false);
     }
-  }, [marginfiClient, accountToMoveTo, actionTxns, fetchMrgnlendState, setIsOpen]);
+  }, [marginfiClient, accountToMoveTo, actionTxns, broadcastType, priorityFees, fetchMrgnlendState, setIsOpen]);
 
   React.useEffect(() => {
     if (!accountToMoveTo) return;
     handleSimulateTxns();
   }, [accountToMoveTo]);
-
-  React.useEffect(() => {
-    if (marginfiAccounts.length > 0) {
-      fetchAccountLabels();
-    }
-  }, [marginfiAccounts, fetchAccountLabels]);
 
   return (
     <Dialog
@@ -226,7 +213,7 @@ export const MovePositionDialog = ({
               >
                 <SelectTrigger className="w-max">
                   {accountToMoveTo
-                    ? accountLabels[accountToMoveTo?.address.toBase58()]
+                    ? accountLabels?.[accountToMoveTo?.address.toBase58()]
                       ? accountLabels[accountToMoveTo?.address.toBase58()]
                       : `Account ${
                           marginfiAccounts.findIndex(
@@ -240,7 +227,7 @@ export const MovePositionDialog = ({
                     ?.filter((acc) => acc.address.toBase58() !== selectedAccount?.address.toBase58())
                     .map((account, i) => (
                       <SelectItem key={i} value={account.address.toBase58()}>
-                        {accountLabels[account.address.toBase58()]
+                        {accountLabels?.[account.address.toBase58()]
                           ? accountLabels[account.address.toBase58()]
                           : `Account ${
                               marginfiAccounts.findIndex(

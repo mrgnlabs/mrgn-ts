@@ -6,6 +6,7 @@ import {
   computeMaxLeverage,
   MarginfiAccountWrapper,
   MarginfiClient,
+  PriorityFees,
   SimulationResult,
 } from "@mrgnlabs/marginfi-client-v2";
 import {
@@ -15,10 +16,10 @@ import {
   STATIC_SIMULATION_ERRORS,
   usePrevious,
 } from "@mrgnlabs/mrgn-utils";
-import { TransactionBroadcastType } from "@mrgnlabs/mrgn-common";
 import { AccountSummary, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { useActionBoxStore } from "../../../store";
+import { SimulationStatus } from "../../../utils/simulation.utils";
 import { calculateLooping, calculateSummary, getSimulationResult } from "../utils";
 
 type LoopSimulationProps = {
@@ -32,14 +33,12 @@ type LoopSimulationProps = {
   actionTxns: LoopActionTxns;
   simulationResult: SimulationResult | null;
   isRefreshTxn: boolean;
-  priorityFee: number;
-  broadcastType: TransactionBroadcastType;
 
   setSimulationResult: (simulationResult: SimulationResult | null) => void;
   setActionTxns: (actionTxns: LoopActionTxns) => void;
-  setErrorMessage: (error: ActionMessageType) => void;
-  setIsLoading: (isLoading: boolean) => void;
+  setErrorMessage: (error: ActionMessageType | null) => void;
   setMaxLeverage: (maxLeverage: number) => void;
+  setIsLoading: ({ isLoading, status }: { isLoading: boolean; status: SimulationStatus }) => void;
 };
 
 export function useLoopSimulation({
@@ -53,8 +52,6 @@ export function useLoopSimulation({
   actionTxns,
   simulationResult,
   isRefreshTxn,
-  priorityFee,
-  broadcastType,
 
   setSimulationResult,
   setActionTxns,
@@ -72,25 +69,31 @@ export function useLoopSimulation({
   const handleSimulation = React.useCallback(
     async (txns: (VersionedTransaction | Transaction)[]) => {
       try {
+        setIsLoading({ isLoading: true, status: SimulationStatus.SIMULATING });
         if (selectedAccount && selectedBank && txns.length > 0) {
           const simulationResult = await getSimulationResult({
             account: selectedAccount,
             bank: selectedBank,
             txns,
           });
-
-          setSimulationResult(simulationResult.simulationResult);
+          if (simulationResult.actionMethod) {
+            setErrorMessage(simulationResult.actionMethod);
+            throw new Error(simulationResult.actionMethod.description);
+          } else {
+            setErrorMessage(null);
+            setSimulationResult(simulationResult.simulationResult);
+          }
         } else {
-          setSimulationResult(null);
+          throw new Error("account, bank or transactions are null");
         }
       } catch (error) {
         console.error("Error simulating transaction", error);
         setSimulationResult(null);
       } finally {
-        setIsLoading(false);
+        setIsLoading({ isLoading: false, status: SimulationStatus.COMPLETE });
       }
     },
-    [selectedAccount, selectedBank, setIsLoading, setSimulationResult]
+    [selectedAccount, selectedBank, setErrorMessage, setIsLoading, setSimulationResult]
   );
 
   const handleActionSummary = React.useCallback(
@@ -122,6 +125,7 @@ export function useLoopSimulation({
         if (amount === 0) missingParams.push("amount is 0");
         if (leverage === 0) missingParams.push("leverage is 0");
         if (!selectedBank) missingParams.push("bank is null");
+        // console.error(`Can't simulate transaction: ${missingParams.join(", ")}`);
 
         setActionTxns({
           actionTxn: null,
@@ -135,43 +139,36 @@ export function useLoopSimulation({
         return;
       }
 
-      setIsLoading(true);
+      setIsLoading({ isLoading: true, status: SimulationStatus.PREPARING });
+
       try {
-        const loopingObject = await calculateLooping(
-          selectedAccount,
-          selectedBank,
-          selectedSecondaryBank,
-          leverage,
-          amount,
+        const loopingResult = await calculateLooping({
+          marginfiClient,
+          marginfiAccount: selectedAccount,
+          depositBank: selectedBank,
+          borrowBank: selectedSecondaryBank,
+          targetLeverage: leverage,
+          depositAmount: amount,
           slippageBps,
-          marginfiClient.provider.connection,
-          priorityFee,
+          connection: marginfiClient.provider.connection,
           platformFeeBps,
-          broadcastType
-        );
+        });
 
-        if (loopingObject && "loopingTxn" in loopingObject) {
-          const actionTxns = {
-            actionTxn: loopingObject.loopingTxn,
-            additionalTxns: loopingObject.feedCrankTxs,
-            actionQuote: loopingObject.quote,
-            actualDepositAmount: loopingObject.actualDepositAmount,
-            borrowAmount: loopingObject.borrowAmount,
-          };
-
-          setActionTxns(actionTxns);
+        if (loopingResult && "actionQuote" in loopingResult) {
+          setActionTxns(loopingResult);
         } else {
           const errorMessage =
-            loopingObject ??
+            loopingResult ??
             DYNAMIC_SIMULATION_ERRORS.REPAY_COLLAT_FAILED_CHECK(selectedSecondaryBank.meta.tokenSymbol);
 
           setErrorMessage(errorMessage);
+          console.error("Error building looping transaction: ", errorMessage.description);
+          setIsLoading({ isLoading: false, status: SimulationStatus.IDLE });
         }
       } catch (error) {
-        console.error({ error });
+        console.error("Error building looping transaction:", error);
         setErrorMessage(STATIC_SIMULATION_ERRORS.REPAY_COLLAT_FAILED);
-      } finally {
-        setIsLoading(false);
+        setIsLoading({ isLoading: false, status: SimulationStatus.IDLE });
       }
     },
     [
@@ -183,9 +180,7 @@ export function useLoopSimulation({
       setActionTxns,
       setSimulationResult,
       slippageBps,
-      priorityFee,
       platformFeeBps,
-      broadcastType,
       setErrorMessage,
     ]
   );
@@ -234,10 +229,17 @@ export function useLoopSimulation({
   }, [prevDebouncedAmount, isRefreshTxn, debouncedAmount, debouncedLeverage, fetchLoopingTxn, prevDebouncedLeverage]);
 
   React.useEffect(() => {
-    handleSimulation([
-      ...(actionTxns?.additionalTxns ?? []),
-      ...(actionTxns?.actionTxn ? [actionTxns?.actionTxn] : []),
-    ]);
+    // Only run simulation if we have transactions to simulate
+    if (actionTxns?.actionTxn || (actionTxns?.additionalTxns?.length ?? 0) > 0) {
+      handleSimulation([
+        ...(actionTxns?.additionalTxns ?? []),
+        ...(actionTxns?.actionTxn ? [actionTxns?.actionTxn] : []),
+      ]);
+    } else {
+      // If no transactions, move back to idle state
+      setIsLoading({ isLoading: false, status: SimulationStatus.IDLE });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [actionTxns]);
 
   // Fetch max repayable collateral or max leverage based when the secondary bank changes
@@ -255,7 +257,12 @@ export function useLoopSimulation({
     return handleActionSummary(accountSummary, simulationResult ?? undefined);
   }, [accountSummary, simulationResult, handleActionSummary]);
 
+  const refreshSimulation = React.useCallback(async () => {
+    await fetchLoopingTxn(debouncedAmount ?? 0, debouncedLeverage ?? 0);
+  }, [fetchLoopingTxn, debouncedAmount, debouncedLeverage]);
+
   return {
     actionSummary,
+    refreshSimulation,
   };
 }
