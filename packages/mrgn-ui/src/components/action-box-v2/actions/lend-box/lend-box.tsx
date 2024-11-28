@@ -350,8 +350,8 @@ export const LendBox = ({
       retryCallback: (txns: ActionTxns, multiStepToast: MultiStepToastHandle) => void;
     }
   ) => {
-    const action = async (params: MarginfiActionParams) => {
-      await handleExecuteLendingAction({
+    const action = async (params: MarginfiActionParams) =>
+      handleExecuteLendingAction({
         params,
         captureEvent: (event, properties) => {
           callbacks.captureEvent && callbacks.captureEvent(event, properties);
@@ -391,24 +391,22 @@ export const LendBox = ({
         },
         setIsLoading: callbacks.setIsLoading,
       });
-    };
 
     if (
       params.actionType === ActionType.Deposit &&
       (selectedBank.meta.tokenSymbol === "SOL" || selectedBank.meta.tokenSymbol === "stSOL")
     ) {
-      callbacks.setLSTDialogCallback(() => action);
-      return;
+      const actionFn = () => action(params);
+      callbacks.setLSTDialogCallback(() => actionFn);
+    } else {
+      await action(params);
     }
-
-    await action(params);
-    callbacks.setAmountRaw("");
   };
 
   // TODO: remove selectedBank, use params.bank instead
 
   const retryLendingAction = React.useCallback(
-    (params: MarginfiActionParams, selectedBank: ExtendedBankInfo) => {
+    async (params: MarginfiActionParams, selectedBank: ExtendedBankInfo) =>
       executeAction(params, selectedBank, {
         captureEvent: captureEvent,
         setIsActionComplete: setIsActionComplete,
@@ -420,8 +418,7 @@ export const LendBox = ({
         retryCallback: (txns: ActionTxns, multiStepToast: MultiStepToastHandle) => {
           retryLendingAction({ ...params, actionTxns: txns, multiStepToast }, selectedBank);
         },
-      });
-    },
+      }),
     [captureEvent, setIsActionComplete, setPreviousTxn, onComplete, setIsTransactionExecuting, setAmountRaw]
   );
 
@@ -444,7 +441,7 @@ export const LendBox = ({
         multiStepToast,
       };
 
-      executeAction(params, selectedBank, {
+      return await executeAction(params, selectedBank, {
         captureEvent: captureEvent,
         setIsActionComplete: setIsActionComplete,
         setPreviousTxn: setPreviousTxn,
@@ -558,6 +555,7 @@ export const LendBox = ({
         open={!!lstDialogCallback}
         onClose={() => {
           if (lstDialogCallback) {
+            console.log("lstDialogCallback");
             lstDialogCallback();
             setLSTDialogCallback(null);
           }
