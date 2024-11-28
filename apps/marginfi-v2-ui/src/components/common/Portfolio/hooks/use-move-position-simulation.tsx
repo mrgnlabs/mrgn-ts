@@ -44,27 +44,23 @@ export const useMoveSimulation = ({
   const [actionSummary, setActionSummary] = React.useState<ActionSummary | null>(null);
 
   const generateTxns = React.useCallback(async () => {
-    if (!marginfiClient || !accountToMoveTo || activeBank.userInfo.maxWithdraw < activeBank.position.amount) {
+    if (
+      !marginfiClient ||
+      !accountToMoveTo ||
+      activeBank.userInfo.maxWithdraw < activeBank.position.amount ||
+      !selectedAccount
+    ) {
       return;
     }
 
     try {
       setIsLoading(true);
-      const connection = marginfiClient.provider.connection;
-      const blockHash = await connection.getLatestBlockhash();
-      const lookupTables = marginfiClient.addressLookupTables;
-
-      const withdrawTx = await selectedAccount?.makeWithdrawTx(activeBank.position.amount, activeBank.address, true);
-      if (!withdrawTx) return;
-      const depositIx = await accountToMoveTo.makeDepositIx(activeBank.position.amount, activeBank.address);
-      if (!depositIx) return;
-      const depositInstruction = new TransactionMessage({
-        payerKey: marginfiClient.wallet.publicKey,
-        recentBlockhash: blockHash.blockhash,
-        instructions: [...depositIx.instructions],
-      });
-      const depositTx = new VersionedTransaction(depositInstruction.compileToV0Message(lookupTables));
-      return [...withdrawTx.feedCrankTxs, withdrawTx.withdrawTx, depositTx];
+      const { feedCrankTxs, withdrawTx, depositTx } = await selectedAccount.makeMovePositionTx(
+        activeBank.position.amount,
+        activeBank.address,
+        accountToMoveTo
+      );
+      return [...feedCrankTxs, withdrawTx, depositTx];
     } catch (error) {
       console.error("Error creating transactions", error);
     }
