@@ -206,20 +206,19 @@ export const LendBox = ({
     [lendMode, isDust]
   );
 
-  const actionMessages = React.useMemo(
-    () =>
-      checkLendActionAvailable({
-        amount,
-        connected,
-        showCloseBalance,
-        selectedBank,
-        banks,
-        marginfiAccount: selectedAccount,
-        nativeSolBalance,
-        lendMode,
-      }),
-    [amount, connected, showCloseBalance, selectedBank, banks, selectedAccount, nativeSolBalance, lendMode]
-  );
+  const actionMessages = React.useMemo(() => {
+    setAdditionalActionMessages([]);
+    return checkLendActionAvailable({
+      amount,
+      connected,
+      showCloseBalance,
+      selectedBank,
+      banks,
+      marginfiAccount: selectedAccount,
+      nativeSolBalance,
+      lendMode,
+    });
+  }, [amount, connected, showCloseBalance, selectedBank, banks, selectedAccount, nativeSolBalance, lendMode]);
 
   const buttonLabel = React.useMemo(() => (showCloseBalance ? "Close" : lendMode), [showCloseBalance, lendMode]);
 

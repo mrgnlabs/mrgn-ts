@@ -196,20 +196,21 @@ export const RepayCollatBox = ({
     if (errorMessage && errorMessage.description) {
       showErrorToast(errorMessage?.description);
       setAdditionalActionMessages([errorMessage]);
+    } else {
+      setAdditionalActionMessages([]);
     }
   }, [errorMessage]);
 
-  const actionMessages = React.useMemo(
-    () =>
-      checkRepayCollatActionAvailable({
-        amount,
-        connected,
-        selectedBank,
-        selectedSecondaryBank,
-        actionQuote: actionTxns.actionQuote,
-      }),
-    [amount, connected, selectedBank, selectedSecondaryBank, actionTxns.actionQuote]
-  );
+  const actionMessages = React.useMemo(() => {
+    setAdditionalActionMessages([]);
+    return checkRepayCollatActionAvailable({
+      amount,
+      connected,
+      selectedBank,
+      selectedSecondaryBank,
+      actionQuote: actionTxns.actionQuote,
+    });
+  }, [amount, connected, selectedBank, selectedSecondaryBank, actionTxns.actionQuote]);
 
   /////////////////////////
   // Repay Collat Action //

@@ -210,17 +210,16 @@ export const LoopBox = ({
     }
   }, [errorMessage]);
 
-  const actionMessages = React.useMemo(
-    () =>
-      checkLoopActionAvailable({
-        amount,
-        connected,
-        selectedBank,
-        selectedSecondaryBank,
-        actionQuote: actionTxns.actionQuote,
-      }),
-    [amount, connected, selectedBank, selectedSecondaryBank, actionTxns.actionQuote]
-  );
+  const actionMessages = React.useMemo(() => {
+    setAdditionalActionMessages([]);
+    return checkLoopActionAvailable({
+      amount,
+      connected,
+      selectedBank,
+      selectedSecondaryBank,
+      actionQuote: actionTxns.actionQuote,
+    });
+  }, [amount, connected, selectedBank, selectedSecondaryBank, actionTxns.actionQuote]);
 
   /////////////////////
   // Looping Actions //
