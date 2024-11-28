@@ -42,6 +42,10 @@ export const dynamicNumeralFormatter = (value: number, options: dynamicNumeralFo
     return `<${minDisplay}`;
   }
 
+  if (Math.abs(value) > 10000) {
+    return numeral(value).format("0,0.[00]a");
+  }
+
   if (Math.abs(value) >= 0.01) {
     return numeral(value).format("0,0.[0000]a");
   }
