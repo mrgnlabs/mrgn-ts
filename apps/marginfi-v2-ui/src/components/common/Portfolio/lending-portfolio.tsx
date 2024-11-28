@@ -227,7 +227,7 @@ export const LendingPortfolio = () => {
           <div className="flex text-lg items-center gap-1.5 text-sm">
             <TooltipProvider>
               <Tooltip>
-                <TooltipTrigger>
+                <TooltipTrigger asChild>
                   <div className="flex items-center gap-1">
                     <button className="cursor-default text-muted-foreground">No outstanding rewards</button>
                     <IconInfoCircle size={16} className="text-muted-foreground" />
