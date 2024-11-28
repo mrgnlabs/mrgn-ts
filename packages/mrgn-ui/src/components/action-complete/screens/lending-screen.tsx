@@ -49,18 +49,21 @@ export const LendingScreen = ({ amount, bank, type, txn, txnLink, collatRepay }:
     }
   }, [amount, bank, type]);
 
-  const actionText = React.useMemo(() => {
+  const actionText: {
+    title: string;
+    details: string;
+  } = React.useMemo(() => {
     switch (type) {
       case ActionType.Deposit:
-        return "deposited";
+        return { title: "deposited", details: "deposits" };
       case ActionType.Withdraw:
-        return "withdrew";
+        return { title: "withdrew", details: "deposits" };
       case ActionType.Borrow:
-        return "borrowed";
+        return { title: "borrowed", details: "borrow" };
       case ActionType.Repay:
-        return "repaid";
+        return { title: "repaid", details: "borrow" };
       default:
-        return type;
+        return { title: "", details: "" };
     }
   }, [type]);
 
@@ -112,7 +115,7 @@ export const LendingScreen = ({ amount, bank, type, txn, txnLink, collatRepay }:
               </>
             ) : (
               <>
-                You {actionText}{" "}
+                You {actionText.title}{" "}
                 {dynamicNumeralFormatter(amount, {
                   tokenPrice: bank?.info.state.price,
                 })}{" "}
@@ -125,7 +128,9 @@ export const LendingScreen = ({ amount, bank, type, txn, txnLink, collatRepay }:
       <dl className="grid grid-cols-2 w-full text-muted-foreground gap-x-8 gap-y-2">
         {bank?.position && (
           <>
-            <dt>Total {bank.meta.tokenSymbol} Deposits</dt>
+            <dt>
+              Total {bank.meta.tokenSymbol} {actionText.details}
+            </dt>
             <dd className="text-right">
               {dynamicNumeralFormatter(updatedBankAmount)} {bank.meta.tokenSymbol}
             </dd>

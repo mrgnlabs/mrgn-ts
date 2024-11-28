@@ -244,6 +244,7 @@ export const LendBox = ({
         callbacks.captureEvent && callbacks.captureEvent(event, properties);
       },
       setIsComplete: (txnSigs) => {
+        console.log(selectedBank);
         callbacks.setIsActionComplete(true);
         callbacks.setPreviousTxn({
           txn: txnSigs[txnSigs.length - 1] ?? "",
