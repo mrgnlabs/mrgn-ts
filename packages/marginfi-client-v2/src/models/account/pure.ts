@@ -452,7 +452,7 @@ class MarginfiAccount {
         .minus(bank.getPrice(priceInfo, PriceBias.None, false));
       liquidationPrice = assets.minus(liabilities).div(liabQuantitiesUi.times(liabWeight)).minus(priceConfidence);
     }
-    if (liquidationPrice.isNaN() || liquidationPrice.lt(0)) return null;
+    if (liquidationPrice.isNaN() || liquidationPrice.lt(0) || !liquidationPrice.isFinite()) return null;
     return liquidationPrice.toNumber();
   }
 
