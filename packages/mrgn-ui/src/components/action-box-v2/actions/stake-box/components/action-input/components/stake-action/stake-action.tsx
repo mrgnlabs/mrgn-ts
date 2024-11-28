@@ -39,7 +39,7 @@ export const StakingAction = ({ maxAmount, walletAmount, onSetAmountRaw, selecte
   return (
     <>
       {selectedBank && (
-        <ul className="flex flex-col gap-0.5 mt-4 text-xs w-full text-muted-foreground">
+        <ul className="flex flex-col gap-0.5 mt-2 text-xs w-full text-muted-foreground">
           <li className="flex justify-between items-center gap-1.5">
             <strong className="mr-auto">{maxLabel.label}</strong>
             <div className="flex space-x-1">

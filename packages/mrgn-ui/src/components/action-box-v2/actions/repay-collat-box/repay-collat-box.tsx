@@ -380,7 +380,7 @@ export const RepayCollatBox = ({
                   size={18}
                   strokeWidth={3}
                   value={blockProgress * 100}
-                  strokeColor="stroke-mfi-action-box-accent-foreground"
+                  strokeColor="stroke-mfi-action-box-accent-foreground/50"
                   backgroundColor="stroke-mfi-action-box-background-dark"
                 />
               </TooltipTrigger>
@@ -398,6 +398,7 @@ export const RepayCollatBox = ({
         <ActionInput
           banks={banks}
           nativeSolBalance={nativeSolBalance}
+          amount={amount}
           amountRaw={amountRaw}
           maxAmount={maxAmount}
           repayAmount={repayAmount}

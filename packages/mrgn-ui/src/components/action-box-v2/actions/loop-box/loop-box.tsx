@@ -367,7 +367,7 @@ export const LoopBox = ({
   return (
     <>
       {actionTxns.lastValidBlockHeight && blockProgress !== 0 && (
-        <div className="absolute top-3 right-4 z-50">
+        <div className="absolute -top-7 right-4 z-50">
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger>
@@ -375,7 +375,7 @@ export const LoopBox = ({
                   size={18}
                   strokeWidth={3}
                   value={blockProgress * 100}
-                  strokeColor="stroke-mfi-action-box-accent-foreground"
+                  strokeColor="stroke-mfi-action-box-accent-foreground/50"
                   backgroundColor="stroke-mfi-action-box-background-dark"
                 />
               </TooltipTrigger>
@@ -393,6 +393,7 @@ export const LoopBox = ({
         <ActionInput
           banks={banks}
           nativeSolBalance={nativeSolBalance}
+          amount={amount}
           amountRaw={amountRaw}
           maxAmount={maxAmount}
           selectedBank={selectedBank}

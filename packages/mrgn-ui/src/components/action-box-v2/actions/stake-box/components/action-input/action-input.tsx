@@ -2,12 +2,14 @@ import React from "react";
 
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { formatAmount } from "@mrgnlabs/mrgn-utils";
+import { tokenPriceFormatter } from "@mrgnlabs/mrgn-common";
 
 import { Input } from "~/components/ui/input";
 
 import { StakingAction, BankSelect } from "./components";
 
 type ActionInputProps = {
+  amount: number | null;
   amountRaw: string;
   nativeSolBalance: number;
   walletAmount: number | undefined;
@@ -31,7 +33,7 @@ export const ActionInput = ({
   walletAmount,
   maxAmount,
   showCloseBalance,
-
+  amount,
   amountRaw,
   selectedBank,
   lendMode,
@@ -71,7 +73,7 @@ export const ActionInput = ({
             actionMode={lendMode}
           />
         </div>
-        <div className="flex-auto">
+        <div className="flex-auto flex flex-col gap-0 items-end">
           <Input
             type="text"
             ref={amountInputRef}
@@ -80,8 +82,13 @@ export const ActionInput = ({
             disabled={isInputDisabled}
             onChange={(e) => handleInputChange(e.target.value)}
             placeholder="0"
-            className="bg-transparent shadow-none min-w-[130px] text-right outline-none focus-visible:outline-none focus-visible:ring-0 border-none text-base font-medium"
+            className="bg-transparent shadow-none min-w-[130px] h-auto py-0 pr-0 text-right outline-none focus-visible:outline-none focus-visible:ring-0 border-none text-base font-medium"
           />
+          {amount !== null && amount > 0 && selectedBank && (
+            <span className="text-xs text-muted-foreground font-light">
+              {tokenPriceFormatter(amount * selectedBank.info.oraclePrice.priceRealtime.price.toNumber())}
+            </span>
+          )}
         </div>
       </div>
       <StakingAction
