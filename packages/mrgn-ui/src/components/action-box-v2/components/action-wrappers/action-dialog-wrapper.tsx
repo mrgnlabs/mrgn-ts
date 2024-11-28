@@ -59,7 +59,7 @@ export const ActionDialogWrapper = ({ trigger, children, title, isTriggered = fa
           <div
             className={cn(
               "bg-mfi-action-box-background shadow-lg rounded-lg",
-              isMobile ? "p-4 pt-0 h-screen mb-8 mt-5" : "p-2"
+              isMobile ? "p-4 pt-0 h-screen mb-8 mt-5" : "p-1"
             )}
           >
             {children}

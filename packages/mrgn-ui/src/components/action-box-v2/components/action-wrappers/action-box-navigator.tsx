@@ -11,16 +11,16 @@ interface ActionBoxNavigatorProps {
   children: React.ReactNode;
 }
 
-const actionTitles: { [key in ActionType]?: string } = {
-  [ActionType.Borrow]: "You borrow",
-  [ActionType.Deposit]: "You supply",
-  [ActionType.Withdraw]: "You withdraw",
-  [ActionType.Repay]: "You repay",
-  [ActionType.RepayCollat]: "You repay with collateral",
-  [ActionType.MintLST]: "You stake",
-  [ActionType.UnstakeLST]: "You unstake",
-  [ActionType.Loop]: "You deposit",
-};
+// const actionTitles: { [key in ActionType]?: string } = {
+//   [ActionType.Borrow]: "You borrow",
+//   [ActionType.Deposit]: "You supply",
+//   [ActionType.Withdraw]: "You withdraw",
+//   [ActionType.Repay]: "You repay",
+//   [ActionType.RepayCollat]: "You repay with collateral",
+//   [ActionType.MintLST]: "You stake",
+//   [ActionType.UnstakeLST]: "You unstake",
+//   [ActionType.Loop]: "You deposit",
+// };
 
 const toggleTitles: { [key in ActionType]?: string } = {
   [ActionType.Borrow]: "Borrow",
@@ -60,12 +60,12 @@ export const ActionBoxNavigator = ({
 
   return (
     <>
-      <div className="flex flex-row items-center justify-between mb-2">
+      <div className="flex flex-row items-center justify-between">
         {/* Title text */}
 
         <div className="text-lg font-normal flex items-center">
-          {isNavigator ? (
-            <div>
+          {isNavigator && (
+            <div className="mb-2">
               <ToggleGroup
                 variant="actionBox"
                 type="single"
@@ -95,8 +95,6 @@ export const ActionBoxNavigator = ({
                 ))}
               </ToggleGroup>
             </div>
-          ) : (
-            <span className="text-sm font-normal text-muted-foreground">{actionTitles[selectedAction]}</span>
           )}
         </div>
       </div>
