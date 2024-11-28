@@ -27,9 +27,15 @@ interface PortfolioAssetCardProps {
   bank: ActiveBankInfo;
   isInLendingMode: boolean;
   isBorrower?: boolean;
+  accountLabels?: Record<string, string>;
 }
 
-export const PortfolioAssetCard = ({ bank, isInLendingMode, isBorrower = true }: PortfolioAssetCardProps) => {
+export const PortfolioAssetCard = ({
+  bank,
+  isInLendingMode,
+  isBorrower = true,
+  accountLabels,
+}: PortfolioAssetCardProps) => {
   const { rateAP } = useAssetItemData({ bank, isInLendingMode });
   const [
     selectedAccount,
@@ -210,6 +216,7 @@ export const PortfolioAssetCard = ({ bank, isInLendingMode, isBorrower = true }:
             extendedBankInfos={extendedBankInfos}
             nativeSolBalance={nativeSolBalance}
             accountSummary={accountSummary}
+            accountLabels={accountLabels}
           />
         </AccordionContent>
       </AccordionItem>

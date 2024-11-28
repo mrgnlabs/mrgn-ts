@@ -34,6 +34,7 @@ interface MovePositionDialogProps {
   extendedBankInfos: ExtendedBankInfo[];
   nativeSolBalance: number;
   accountSummary: AccountSummary | null;
+  accountLabels?: Record<string, string>;
 }
 
 export const MovePositionDialog = ({
@@ -47,6 +48,7 @@ export const MovePositionDialog = ({
   extendedBankInfos,
   nativeSolBalance,
   accountSummary,
+  accountLabels,
 }: MovePositionDialogProps) => {
   const [accountToMoveTo, setAccountToMoveTo] = React.useState<MarginfiAccountWrapper | null>(null);
   const [actionTxns, setActionTxns] = React.useState<(Transaction | VersionedTransaction)[]>([]);
@@ -70,29 +72,7 @@ export const MovePositionDialog = ({
     broadcastType: state.broadcastType,
     priorityFees: state.priorityFees,
   }));
-  const [accountLabels, setAccountLabels] = React.useState<Record<string, string>>({});
   const [actionBlocked, setActionBlocked] = React.useState<boolean>(false);
-
-  const fetchAccountLabels = React.useCallback(async () => {
-    const fetchAccountLabel = async (account: MarginfiAccountWrapper) => {
-      const accountLabelReq = await fetch(`/api/user/account-label?account=${account.address.toBase58()}`);
-
-      if (!accountLabelReq.ok) {
-        console.error("Error fetching account labels");
-        return;
-      }
-
-      const accountLabelData = await accountLabelReq.json();
-      let accountLabel = `Account ${marginfiAccounts.findIndex((acc) => acc.address.equals(account.address)) + 1}`;
-
-      setAccountLabels((prev) => ({
-        ...prev,
-        [account.address.toBase58()]: accountLabelData.data.label || accountLabel,
-      }));
-    };
-
-    marginfiAccounts.forEach(fetchAccountLabel);
-  }, [marginfiAccounts, setAccountLabels]);
 
   const actionMessages = React.useMemo(() => {
     if (bank.userInfo.maxWithdraw < bank.position.amount) {
@@ -189,12 +169,6 @@ export const MovePositionDialog = ({
     handleSimulateTxns();
   }, [accountToMoveTo]);
 
-  React.useEffect(() => {
-    if (marginfiAccounts.length > 0 && Object.keys(accountLabels).length === 0) {
-      fetchAccountLabels();
-    }
-  }, [marginfiAccounts, fetchAccountLabels, accountLabels]);
-
   return (
     <Dialog
       open={isOpen}
@@ -239,7 +213,7 @@ export const MovePositionDialog = ({
               >
                 <SelectTrigger className="w-max">
                   {accountToMoveTo
-                    ? accountLabels[accountToMoveTo?.address.toBase58()]
+                    ? accountLabels?.[accountToMoveTo?.address.toBase58()]
                       ? accountLabels[accountToMoveTo?.address.toBase58()]
                       : `Account ${
                           marginfiAccounts.findIndex(
@@ -253,7 +227,7 @@ export const MovePositionDialog = ({
                     ?.filter((acc) => acc.address.toBase58() !== selectedAccount?.address.toBase58())
                     .map((account, i) => (
                       <SelectItem key={i} value={account.address.toBase58()}>
-                        {accountLabels[account.address.toBase58()]
+                        {accountLabels?.[account.address.toBase58()]
                           ? accountLabels[account.address.toBase58()]
                           : `Account ${
                               marginfiAccounts.findIndex(
