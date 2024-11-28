@@ -353,11 +353,12 @@ export const StakeBox = ({
 
   return (
     <>
-      <div className="mb-6">
+      <div className="mb-5">
         <ActionInput
           banks={banks}
           nativeSolBalance={nativeSolBalance}
           walletAmount={walletAmount}
+          amount={amount}
           amountRaw={amountRaw}
           maxAmount={maxAmount}
           connected={connected}
@@ -368,7 +369,7 @@ export const StakeBox = ({
           setSelectedBank={setSelectedBank}
         />
       </div>
-      <div className="mb-6">
+      <div className="mb-5">
         <AmountPreview actionMode={actionMode} amount={receiveAmount} isLoading={isSimulating.isLoading} />
       </div>
       {additionalActionMessages.concat(actionMessages).map(

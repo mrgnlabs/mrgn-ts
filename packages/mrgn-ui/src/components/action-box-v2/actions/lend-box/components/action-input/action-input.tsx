@@ -100,7 +100,7 @@ export const ActionInput = ({
             className="bg-transparent shadow-none min-w-[130px] text-right h-auto py-0 pr-0 outline-none focus-visible:outline-none focus-visible:ring-0 border-none text-base font-medium"
           />
           {amount !== null && amount > 0 && selectedBank && (
-            <span className="text-xs text-muted-foreground font-normal">
+            <span className="text-xs text-muted-foreground font-light">
               {tokenPriceFormatter(amount * selectedBank.info.oraclePrice.priceRealtime.price.toNumber())}
             </span>
           )}
