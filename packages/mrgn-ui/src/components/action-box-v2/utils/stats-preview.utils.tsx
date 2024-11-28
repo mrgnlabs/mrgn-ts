@@ -36,7 +36,7 @@ export function getJupFeeStat(platformFee: number): PreviewStat {
 
 export function getAmountStat(currentAmount: number, symbol: string, simulatedAmount?: number): PreviewStat {
   return {
-    label: "Your amount",
+    label: "Total",
     value: () => (
       <>
         {dynamicNumeralFormatter(currentAmount)} {symbol}
