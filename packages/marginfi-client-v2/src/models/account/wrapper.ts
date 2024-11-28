@@ -374,6 +374,106 @@ class MarginfiAccountWrapper {
   }
 
   /**
+   * Moves a position from one marginfi account to another by withdrawing from source account and depositing to destination account.
+   *
+   * @param amount - The amount of tokens to move, can be a number or Amount object
+   * @param bankAddress - The public key of the bank to move position from/to
+   * @param destinationAccount - The marginfi account to move the position to
+   * @param processOpts - Optional transaction processing configuration
+   * @param txOpts - Optional transaction options
+   * @returns Array of transaction signatures - includes signatures for any required oracle feed updates, withdraw transaction, and deposit transaction
+   */
+  async movePosition(
+    amount: Amount,
+    bankAddress: PublicKey,
+    destinationAccount: MarginfiAccountWrapper,
+    processOpts?: ProcessTransactionsClientOpts,
+    txOpts?: TransactionOptions
+  ): Promise<TransactionSignature[]> {
+    const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:move-position`);
+    debug("Moving position from %s marginfi account", this.address.toBase58());
+
+    const { feedCrankTxs, withdrawTx, depositTx } = await this.makeMovePositionTx(
+      amount,
+      bankAddress,
+      destinationAccount
+    );
+
+    const sigs = await this.client.processTransactions([...feedCrankTxs, withdrawTx, depositTx], processOpts, txOpts);
+
+    debug("Moving position successful %s", sigs[sigs.length - 1]);
+    return sigs;
+  }
+
+  /**
+   * Creates transactions for moving a position from one marginfi account to another.
+   *
+   * @param amount - The amount of tokens to move, can be a number or Amount object
+   * @param bankAddress - The public key of the bank to move position from/to
+   * @param destinationAccount - The marginfi account to move the position to
+   * @returns Object containing feed crank transactions, withdraw transaction, and deposit transaction
+   */
+  async makeMovePositionTx(
+    amount: Amount,
+    bankAddress: PublicKey,
+    destinationAccount: MarginfiAccountWrapper
+  ): Promise<{
+    feedCrankTxs: ExtendedV0Transaction[];
+    withdrawTx: ExtendedV0Transaction;
+    depositTx: ExtendedTransaction;
+  }> {
+    const cuRequestIxs = this.makeComputeBudgetIx();
+    const { instructions: updateFeedIxs, luts: feedLuts } = await this.makeUpdateFeedIx([]);
+    const withdrawIxs = await this.makeWithdrawIx(amount, bankAddress, true);
+
+    const {
+      value: { blockhash },
+    } = await this._program.provider.connection.getLatestBlockhashAndContext("confirmed");
+
+    let feedCrankTxs: ExtendedV0Transaction[] = [];
+
+    if (updateFeedIxs.length > 0) {
+      feedCrankTxs.push(
+        addTransactionMetadata(
+          new VersionedTransaction(
+            new TransactionMessage({
+              instructions: [...updateFeedIxs],
+              payerKey: this.authority,
+              recentBlockhash: blockhash,
+            }).compileToV0Message(feedLuts)
+          ),
+          {
+            addressLookupTables: feedLuts,
+          }
+        )
+      );
+    }
+
+    const withdrawTx = addTransactionMetadata(
+      new VersionedTransaction(
+        new TransactionMessage({
+          instructions: [...cuRequestIxs, ...withdrawIxs.instructions],
+          payerKey: this.authority,
+          recentBlockhash: blockhash,
+        }).compileToV0Message(this.client.addressLookupTables)
+      ),
+      {
+        signers: withdrawIxs.keys,
+        addressLookupTables: this.client.addressLookupTables,
+      }
+    );
+
+    const depositIx = await destinationAccount.makeDepositIx(amount, bankAddress);
+    const tx = new Transaction().add(...depositIx.instructions);
+    const depositTx = addTransactionMetadata(tx, {
+      signers: depositIx.keys,
+      addressLookupTables: this.client.addressLookupTables,
+    });
+
+    return { feedCrankTxs, withdrawTx, depositTx };
+  }
+
+  /**
    * Repays a loan using collateral from another bank by:
    * 1. Withdrawing collateral from one bank
    * 2. Swapping it to the repayment asset
@@ -406,7 +506,7 @@ class MarginfiAccountWrapper {
     });
 
     const sigs = await this.client.processTransactions([...additionalTxs, flashloanTx], processOpts, txOpts);
-    debug("Repay with collateral successful %s", sigs.pop() ?? "");
+    debug("Repay with collateral successful %s", sigs[sigs.length - 1] ?? "");
 
     return sigs;
   }
@@ -565,7 +665,7 @@ class MarginfiAccountWrapper {
     const { flashloanTx, additionalTxs } = await this.makeLoopTxV2(txProps);
 
     const sigs = await this.client.processTransactions([flashloanTx, ...additionalTxs], processOpts, txOpts);
-    debug("Loop successful %s", sigs.pop() ?? "");
+    debug("Loop successful %s", sigs[sigs.length - 1] ?? "");
 
     return sigs;
   }
@@ -994,7 +1094,7 @@ class MarginfiAccountWrapper {
     // process multiple transactions if feed updates required
     const sigs = await this.client.processTransactions([...feedCrankTxs, withdrawTx], processOpts, txOpts);
 
-    debug("Withdrawing successful %s", sigs.pop());
+    debug("Withdrawing successful %s", sigs[sigs.length - 1]);
     return sigs;
   }
 
@@ -1775,7 +1875,7 @@ class MarginfiAccountWrapper {
     );
 
     const sigs = await this.client.processTransactions([...feedCrankTxs, flashloanTx]);
-    debug("Repay with collateral successful %s", sigs.pop() ?? "");
+    debug("Repay with collateral successful %s", sigs[sigs.length - 1] ?? "");
 
     return sigs;
   }
