@@ -41,6 +41,7 @@ import { LeverageSlider } from "./components/leverage-slider";
 import { ApyStat } from "./components/apy-stat";
 import { ActionSimulationStatus } from "../../components";
 import { useActionContext } from "../../contexts";
+import BigNumber from "bignumber.js";
 
 // error handling
 export type LoopBoxProps = {
@@ -192,6 +193,19 @@ export const LoopBox = ({
 
   // Cleanup the store when the wallet disconnects
   React.useEffect(() => {
+    if (debouncedAmount === 0 && simulationResult) {
+      setActionTxns({
+        actionTxn: null,
+        additionalTxns: [],
+        actionQuote: null,
+        actualDepositAmount: 0,
+        borrowAmount: new BigNumber(0),
+      });
+      setSimulationResult(null);
+    }
+  }, [simulationResult, debouncedAmount, setActionTxns, setSimulationResult]);
+
+  React.useEffect(() => {
     if (!connected) {
       refreshState();
     }
@@ -211,7 +225,6 @@ export const LoopBox = ({
   }, [errorMessage]);
 
   const actionMessages = React.useMemo(() => {
-    setAdditionalActionMessages([]);
     return checkLoopActionAvailable({
       amount,
       connected,

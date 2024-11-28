@@ -71,7 +71,7 @@ export async function calculateRepayCollateralParams({
   let firstQuote;
 
   for (const maxAccounts of maxAccountsArr) {
-    console.log("maxAccounts", maxAccounts);
+    console.log("Reducing Jupiter maxAccounts to %s to optimize transaction size...", maxAccounts);
     const quoteParams = {
       amount: uiToNative(repayProps.withdrawAmount, repayProps.depositBank.info.state.mintDecimals).toNumber(),
       inputMint: repayProps.depositBank.info.state.mint.toBase58(),

@@ -181,6 +181,17 @@ export const RepayCollatBox = ({
   const [additionalActionMessages, setAdditionalActionMessages] = React.useState<ActionMessageType[]>([]);
   const [showSimSuccess, setShowSimSuccess] = React.useState(false);
 
+  React.useEffect(() => {
+    if (debouncedAmount === 0 && simulationResult) {
+      setActionTxns({
+        actionTxn: null,
+        additionalTxns: [],
+        actionQuote: null,
+      });
+      setSimulationResult(null);
+    }
+  }, [simulationResult, debouncedAmount, setActionTxns, setSimulationResult]);
+
   // Cleanup the store when the wallet disconnects
   React.useEffect(() => {
     if (!connected) {
@@ -202,7 +213,6 @@ export const RepayCollatBox = ({
   }, [errorMessage]);
 
   const actionMessages = React.useMemo(() => {
-    setAdditionalActionMessages([]);
     return checkRepayCollatActionAvailable({
       amount,
       connected,

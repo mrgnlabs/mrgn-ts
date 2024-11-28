@@ -162,13 +162,13 @@ export function useLoopSimulation({
             DYNAMIC_SIMULATION_ERRORS.REPAY_COLLAT_FAILED_CHECK(selectedSecondaryBank.meta.tokenSymbol);
 
           setErrorMessage(errorMessage);
-          console.error("Error building lending transaction: ", errorMessage.description);
-          setIsLoading({ isLoading: false, status: SimulationStatus.COMPLETE });
+          console.error("Error building looping transaction: ", errorMessage.description);
+          setIsLoading({ isLoading: false, status: SimulationStatus.IDLE });
         }
       } catch (error) {
-        console.error("Error building lending transaction:", error);
+        console.error("Error building looping transaction:", error);
         setErrorMessage(STATIC_SIMULATION_ERRORS.REPAY_COLLAT_FAILED);
-        setIsLoading({ isLoading: false, status: SimulationStatus.COMPLETE });
+        setIsLoading({ isLoading: false, status: SimulationStatus.IDLE });
       }
     },
     [

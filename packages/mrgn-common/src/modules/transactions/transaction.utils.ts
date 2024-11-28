@@ -39,11 +39,15 @@ export function getTxSize(tx: VersionedTransaction | Transaction): number {
   const feePayerSize = isVersioned || tx.feePayer ? 0 : 32;
   const signaturesSize = (numRequiredSignatures - numSigners) * 64 + 1;
 
-  const baseTxSize = isVersioned
-    ? tx.serialize().length
-    : tx.serialize({ requireAllSignatures: false, verifySignatures: false }).length;
-
-  return baseTxSize + feePayerSize + signaturesSize;
+  try {
+    const baseTxSize = isVersioned
+      ? tx.serialize().length
+      : tx.serialize({ requireAllSignatures: false, verifySignatures: false }).length;
+    return baseTxSize + feePayerSize + signaturesSize;
+  } catch (error) {
+    // tx is overflowing
+    return 9999;
+  }
 }
 
 export function getAccountKeys(
