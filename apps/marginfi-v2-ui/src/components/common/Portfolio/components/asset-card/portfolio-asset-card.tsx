@@ -153,7 +153,11 @@ export const PortfolioAssetCard = ({ bank, isInLendingMode, isBorrower = true }:
             <dl className="grid grid-cols-2 gap-y-0.5">
               <dt className="text-muted-foreground">Value</dt>
               <dd className="text-right text-white">
-                {groupedNumberFormatter.format(bank.position.amount)}
+                {bank.position.amount > 1000
+                  ? groupedNumberFormatter.format(bank.position.amount)
+                  : dynamicNumeralFormatter(bank.position.amount, {
+                      tokenPrice: bank.info.oraclePrice.priceRealtime.price.toNumber(),
+                    })}
                 {" " + bank.meta.tokenSymbol}
               </dd>
               <dt className="text-muted-foreground">USD value</dt>
