@@ -132,7 +132,7 @@ export const LendingScreen = ({ amount, bank, type, txn, txnLink, collatRepay }:
               Total {bank.meta.tokenSymbol} {actionText.details}
             </dt>
             <dd className="text-right">
-              {dynamicNumeralFormatter(updatedBankAmount)} {bank.meta.tokenSymbol}
+              {dynamicNumeralFormatter(updatedBankAmount, { minDisplay: 0.01 })} {bank.meta.tokenSymbol}
             </dd>
           </>
         )}
