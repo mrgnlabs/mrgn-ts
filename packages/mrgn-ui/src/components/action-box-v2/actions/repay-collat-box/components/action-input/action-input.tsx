@@ -87,9 +87,9 @@ export const ActionInput = ({
               placeholder="0"
               className="bg-transparent shadow-none min-w-[130px] h-auto py-0 pr-0 text-right outline-none focus-visible:outline-none focus-visible:ring-0 border-none text-base font-medium"
             />
-            {amount !== null && amount > 0 && selectedBank && (
+            {amount !== null && amount > 0 && selectedSecondaryBank && (
               <span className="text-xs text-muted-foreground font-light">
-                {tokenPriceFormatter(amount * selectedBank.info.oraclePrice.priceRealtime.price.toNumber())}
+                {tokenPriceFormatter(amount * selectedSecondaryBank.info.oraclePrice.priceRealtime.price.toNumber())}
               </span>
             )}
           </div>
