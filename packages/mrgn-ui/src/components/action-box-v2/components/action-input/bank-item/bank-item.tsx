@@ -5,6 +5,7 @@ import Image from "next/image";
 import { numeralFormatter, usdFormatter, WSOL_MINT } from "@mrgnlabs/mrgn-common";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { cn, LendingModes } from "@mrgnlabs/mrgn-utils";
+import { dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
 
 type BankItemProps = {
   bank: ExtendedBankInfo;
@@ -37,7 +38,7 @@ export const BankItem = ({
 
   const balancePrice = React.useMemo(
     () =>
-      balance * bank.info.state.price > 0.00001
+      balance * bank.info.state.price > 0.000001
         ? usdFormatter.format(balance * bank.info.state.price)
         : `$${(balance * bank.info.state.price).toExponential(2)}`,
     [bank, balance]
@@ -45,7 +46,7 @@ export const BankItem = ({
 
   const openPositionPrice = React.useMemo(
     () =>
-      openPosition * bank.info.state.price > 0.00001
+      openPosition * bank.info.state.price > 0.000001
         ? usdFormatter.format(openPosition * bank.info.state.price)
         : `$${(openPosition * bank.info.state.price).toExponential(2)}`,
     [bank, openPosition]
@@ -76,14 +77,20 @@ export const BankItem = ({
 
       {((!isRepay && lendingMode && lendingMode === LendingModes.BORROW && balance > 0) || showBalanceOverride) && (
         <div className="space-y-0.5 text-right font-normal text-sm">
-          <p>{balance > 0.00001 ? numeralFormatter(balance) : `$${balance.toExponential(2)}`}</p>
+          <p>
+            {dynamicNumeralFormatter(balance, { tokenPrice: bank.info.oraclePrice.priceRealtime.price.toNumber() })}
+          </p>
           <p className="text-xs text-muted-foreground">{balancePrice}</p>
         </div>
       )}
 
       {isRepay && openPosition > 0 && (
         <div className="space-y-0.5 text-right font-normal text-sm">
-          <p>{openPosition > 0.00001 ? numeralFormatter(openPosition) : `$${balance.toExponential(2)}`}</p>
+          <p>
+            {dynamicNumeralFormatter(openPosition, {
+              tokenPrice: bank.info.oraclePrice.priceRealtime.price.toNumber(),
+            })}
+          </p>
           <p className="text-xs text-muted-foreground">{openPositionPrice}</p>
         </div>
       )}
