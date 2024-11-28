@@ -49,6 +49,21 @@ export const LendingScreen = ({ amount, bank, type, txn, txnLink, collatRepay }:
     }
   }, [amount, bank, type]);
 
+  const actionText = React.useMemo(() => {
+    switch (type) {
+      case ActionType.Deposit:
+        return "deposited";
+      case ActionType.Withdraw:
+        return "withdrew";
+      case ActionType.Borrow:
+        return "borrowed";
+      case ActionType.Repay:
+        return "repaid";
+      default:
+        return type;
+    }
+  }, [type]);
+
   return (
     <>
       <div className="flex flex-col items-center gap-4 border-b border-border pb-10">
@@ -97,7 +112,7 @@ export const LendingScreen = ({ amount, bank, type, txn, txnLink, collatRepay }:
               </>
             ) : (
               <>
-                You {type === ActionType.Deposit ? "deposited" : "borrowed"}{" "}
+                You {actionText}{" "}
                 {dynamicNumeralFormatter(amount, {
                   tokenPrice: bank?.info.state.price,
                 })}{" "}
