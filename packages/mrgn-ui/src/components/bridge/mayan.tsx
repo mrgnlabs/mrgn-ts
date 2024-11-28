@@ -1,7 +1,7 @@
 import React from "react";
 import Script from "next/script";
 
-import { MultiStepToastHandle, capture } from "@mrgnlabs/mrgn-utils";
+import { MultiStepToastHandle, capture, generateEndpoint } from "@mrgnlabs/mrgn-utils";
 
 import { useWalletStore } from "~/components/wallet-v2/store/wallet.store";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
@@ -48,7 +48,10 @@ const colors: MayanWidgetColors = {
 };
 
 const rpcs = {
-  solana: process.env.NEXT_PUBLIC_MARGINFI_RPC_ENDPOINT_OVERRIDE as string,
+  solana: generateEndpoint(
+    process.env.NEXT_PUBLIC_MARGINFI_RPC_ENDPOINT_OVERRIDE as string,
+    process.env.NEXT_PUBLIC_RPC_PROXY_KEY as string
+  ),
 };
 const solanaReferrerAddress = "GhQ3NxahWcddaMa71rkDp1FdTfs2jBpjzCq3kzkv1mNZ";
 const evmReferrerAddress = "0x0bb342B595Dc30638524cab81138cDa9CAa2636D";
