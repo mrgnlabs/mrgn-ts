@@ -376,17 +376,8 @@ export async function withdraw({
     multiStepToast.resetAndStart();
   }
 
-  console.log(multiStepToast);
-
   try {
     let sigs: string[] = [];
-
-    console.log({
-      ...processOpts,
-      callback: (index: any, success: any, sig: any, stepsToAdvance: any) =>
-        success &&
-        multiStepToast.setSuccessAndNext(stepsToAdvance, sig, composeExplorerUrl(sig, processOpts?.broadcastType)),
-    });
 
     if (actionTxns?.actionTxn && marginfiClient) {
       sigs = await marginfiClient.processTransactions(
