@@ -528,9 +528,9 @@ export async function looping({
     multiStepToast = new MultiStepToastHandle("Looping", [
       ...steps,
       {
-        label: `Looping ${dynamicNumeralFormatter(loopingProps.depositAmount)} ${
+        label: `Looping ${dynamicNumeralFormatter(loopingProps.depositAmount, { minDisplay: 0.01 })} ${
           loopingProps.depositBank.meta.tokenSymbol
-        } with ${dynamicNumeralFormatter(loopingProps.borrowAmount.toNumber())} ${
+        } with ${dynamicNumeralFormatter(loopingProps.borrowAmount.toNumber(), { minDisplay: 0.01 })} ${
           loopingProps.borrowBank.meta.tokenSymbol
         }`,
       },
