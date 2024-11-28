@@ -25,7 +25,6 @@ import { TradeSide, checkLoopingActionAvailable, generateStats, simulateLooping 
 import { executeLeverageAction } from "~/utils";
 import { useTradeStore, useUiStore } from "~/store";
 import { GroupData } from "~/store/tradeStore";
-import { WalletState } from "~/store/uiStore";
 import { useWallet, useWalletStore } from "~/components/wallet-v2";
 import { useConnection } from "~/hooks/use-connection";
 
@@ -393,6 +392,7 @@ export const TradingBox = ({ activeGroup, side = "long" }: TradingBoxProps) => {
     leverage,
     leverageActionCb,
     loopActionTxns,
+    priorityFees,
     refreshGroup,
     setIsActionComplete,
     setIsRefreshingStore,

@@ -281,7 +281,7 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
         tokenAccountMap = tData.tokenAccountMap;
 
         for (const [id, group] of groupMap) {
-          const updatedPool = await getUpdatedGroupPool({ group, tokenAccountMap, nativeSolBalance });
+          const updatedPool = getUpdatedGroupPool({ group, tokenAccountMap, nativeSolBalance });
           groupMap.set(id, { ...group, pool: updatedPool });
         }
 
@@ -697,7 +697,7 @@ async function getGroupData({
   return { groupData, extendedBankInfos, marginfiClient };
 }
 
-async function getUpdatedGroupPool({
+function getUpdatedGroupPool({
   group,
   tokenAccountMap,
   nativeSolBalance,
