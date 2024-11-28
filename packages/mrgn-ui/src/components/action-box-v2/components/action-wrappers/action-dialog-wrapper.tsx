@@ -1,7 +1,14 @@
 import { IconArrowLeft } from "@tabler/icons-react";
 import React from "react";
 
-import { Dialog, DialogTrigger, DialogContent, DialogTitle, DialogHeader } from "~/components/ui/dialog";
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogTitle,
+  DialogHeader,
+  DialogDescription,
+} from "~/components/ui/dialog";
 import { useIsMobile, usePrevious, cn } from "@mrgnlabs/mrgn-utils";
 import { useActionBoxStore } from "../../store";
 
@@ -44,8 +51,9 @@ export const ActionDialogWrapper = ({ trigger, children, title, isTriggered = fa
         )}
         closeClassName={!isMobile ? "-top-1 -right-1" : undefined}
       >
-        <DialogHeader className="hidden">
-          <DialogTitle></DialogTitle>
+        <DialogHeader className="sr-only">
+          <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>{title}</DialogDescription>
         </DialogHeader>
         <div>
           {isMobile && (
