@@ -472,6 +472,7 @@ export const LoopBox = ({
           simulationStatus={isSimulating.status}
           hasErrorMessages={additionalActionMessages.length > 0}
           isActive={selectedBank && amount > 0 ? true : false}
+          actionType={ActionType.Loop}
         />
         <ActionSettingsButton setIsSettingsActive={setIsSettingsDialogOpen} />
       </div>

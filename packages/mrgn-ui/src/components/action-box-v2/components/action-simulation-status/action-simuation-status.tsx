@@ -2,14 +2,15 @@ import React from "react";
 
 import { IconCheck, IconX } from "@tabler/icons-react";
 
-import { useActionBoxStore } from "../../store";
 import { SimulationStatus } from "../../utils";
-import { IconLoader } from "~/components/ui/icons";
+import { IconInfiniteLoader, IconLoader } from "~/components/ui/icons";
+import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
 type ActionSimulationStatusProps = {
   simulationStatus: SimulationStatus;
   hasErrorMessages: boolean;
   isActive: boolean;
+  actionType?: ActionType;
 };
 
 enum SimulationCompleteStatus {
@@ -23,6 +24,7 @@ const ActionSimulationStatus = ({
   simulationStatus,
   hasErrorMessages = false,
   isActive = false,
+  actionType,
 }: ActionSimulationStatusProps) => {
   const [simulationCompleteStatus, setSimulationCompleteStatus] = React.useState<SimulationCompleteStatus>(
     SimulationCompleteStatus.NULL
@@ -81,7 +83,8 @@ const ActionSimulationStatus = ({
     <div>
       {simulationCompleteStatus === SimulationCompleteStatus.LOADING && (
         <p className="text-xs text-muted-foreground/75 flex items-center gap-1 mr-auto">
-          <IconLoader size={14} /> Simulating transaction...
+          {actionType === ActionType.Loop ? <IconInfiniteLoader size={14} /> : <IconLoader size={14} />} Simulating
+          transaction...
         </p>
       )}
 
