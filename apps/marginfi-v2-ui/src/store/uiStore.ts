@@ -11,7 +11,7 @@ import { LendingModes, PoolTypes, DEFAULT_PRIORITY_SETTINGS, fetchPriorityFee } 
 
 import { SortType, sortDirection, SortAssetOption } from "~/types";
 import { Connection } from "@solana/web3.js";
-import { PriorityFees } from "@mrgnlabs/marginfi-client-v2";
+import { MarginfiAccountWrapper, PriorityFees } from "@mrgnlabs/marginfi-client-v2";
 
 const SORT_OPTIONS_MAP: { [key in SortType]: SortAssetOption } = {
   APY_DESC: {
@@ -57,6 +57,7 @@ interface UiState {
   maxCap: number;
   maxCapType: MaxCapType;
   priorityFees: PriorityFees;
+  accountLabels: Record<string, string>;
 
   // Actions
   setIsMenuDrawerOpen: (isOpen: boolean) => void;
@@ -69,6 +70,7 @@ interface UiState {
   setAssetListSearch: (search: string) => void;
   setTransactionSettings: (settings: TransactionSettings, connection: Connection) => void;
   fetchPriorityFee: (connection: Connection, settings?: TransactionSettings) => void;
+  fetchAccountLabels: (accounts: MarginfiAccountWrapper[]) => Promise<void>;
 }
 
 function createUiStore() {
@@ -92,6 +94,7 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
   assetListSearch: "",
   ...DEFAULT_PRIORITY_SETTINGS,
   priorityFees: {},
+  accountLabels: {},
 
   // Actions
   setIsMenuDrawerOpen: (isOpen: boolean) => set({ isMenuDrawerOpen: isOpen }),
@@ -119,6 +122,31 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
     } catch (error) {
       console.error(error);
     }
+  },
+  fetchAccountLabels: async (accounts: MarginfiAccountWrapper[]) => {
+    const labels: Record<string, string> = {};
+
+    const fetchLabel = async (account: MarginfiAccountWrapper) => {
+      try {
+        const response = await fetch(`/api/user/account-label?account=${account.address.toBase58()}`);
+        if (!response.ok) throw new Error(`Error fetching account label for ${account.address.toBase58()}`);
+
+        const { data } = await response.json();
+        return data.label || `Account ${accounts.findIndex((acc) => acc.address.equals(account.address)) + 1}`;
+      } catch (error) {
+        console.error(error);
+        return `Account ${accounts.findIndex((acc) => acc.address.equals(account.address)) + 1}`;
+      }
+    };
+
+    await Promise.all(
+      accounts.map(async (account) => {
+        const label = await fetchLabel(account);
+        labels[account.address.toBase58()] = label;
+      })
+    );
+
+    set({ accountLabels: labels });
   },
 });
 

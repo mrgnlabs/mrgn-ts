@@ -35,7 +35,6 @@ export const LendingPortfolio = () => {
   const router = useRouter();
   const { connected } = useWallet();
   const [walletConnectionDelay, setWalletConnectionDelay] = React.useState(false);
-  const [accountLabels, setAccountLabels] = React.useState<Record<string, string>>({});
   const [
     isStoreInitialized,
     sortedBanks,
@@ -55,10 +54,12 @@ export const LendingPortfolio = () => {
     state.marginfiAccounts,
     state.fetchMrgnlendState,
   ]);
-  const [setLendingMode, priorityFees, broadcastType] = useUiStore((state) => [
+  const [setLendingMode, priorityFees, broadcastType, accountLabels, fetchAccountLabels] = useUiStore((state) => [
     state.setLendingMode,
     state.priorityFees,
     state.broadcastType,
+    state.accountLabels,
+    state.fetchAccountLabels,
   ]);
   const [userPointsData] = useUserProfileStore((state) => [state.userPointsData]);
 
@@ -237,7 +238,7 @@ export const LendingPortfolio = () => {
               ...priorityFees,
               broadcastType,
             }}
-            _setAccountLabels={setAccountLabels}
+            accountLabels={accountLabels}
           />
         )}
       </div>
