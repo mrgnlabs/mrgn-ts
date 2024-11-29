@@ -36,7 +36,8 @@ type WalletAuthAccountsProps = {
   closeOnSwitch?: boolean;
   popoverContentAlign?: "start" | "end" | "center";
   showAddAccountButton?: boolean;
-  _setAccountLabels?: (labels: Record<string, string>) => void;
+  accountLabels?: Record<string, string>;
+  fetchAccountLabels?: (accounts: MarginfiAccountWrapper[]) => Promise<void>;
 };
 
 export const WalletAuthAccounts = ({
@@ -50,7 +51,8 @@ export const WalletAuthAccounts = ({
   popoverContentAlign = "center",
   showAddAccountButton = true,
   processOpts,
-  _setAccountLabels,
+  accountLabels,
+  fetchAccountLabels,
 }: WalletAuthAccountsProps) => {
   const [popoverOpen, setPopoverOpen] = React.useState(false);
   const { wallet, walletContextState } = useWallet();
@@ -61,14 +63,12 @@ export const WalletAuthAccounts = ({
   );
   const [newAccountName, setNewAccountName] = React.useState<string>();
   const [editingAccount, setEditingAccount] = React.useState<MarginfiAccountWrapper | null>(null);
-  const [accountLabels, setAccountLabels] = React.useState<Record<string, string>>({});
   const [editingAccountName, setEditingAccountName] = React.useState<string>("");
   const [editAccountError, setEditAccountError] = React.useState<string>("");
   const [isSubmitting, setIsSubmitting] = React.useState<boolean>(false);
   const [useAuthTxn, setUseAuthTxn] = React.useState(false);
   const newAccountNameRef = React.useRef<HTMLInputElement>(null);
   const editAccountNameRef = React.useRef<HTMLInputElement>(null);
-  const [hasFetchedLabels, setHasFetchedLabels] = React.useState<boolean>(false);
 
   const activateAccount = React.useCallback(
     async (account: MarginfiAccountWrapper, index: number) => {
@@ -92,35 +92,6 @@ export const WalletAuthAccounts = ({
     },
     [fetchMrgnlendState, selectedAccount, closeOnSwitch]
   );
-  const fetchAccountLabels = React.useCallback(async () => {
-    const labels: Record<string, string> = {};
-
-    const fetchLabel = async (account: MarginfiAccountWrapper) => {
-      try {
-        const response = await fetch(`/api/user/account-label?account=${account.address.toBase58()}`);
-        if (!response.ok) throw new Error("Error fetching account labels");
-
-        const { data } = await response.json();
-        const defaultLabel = `Account ${marginfiAccounts.findIndex((acc) => acc.address.equals(account.address)) + 1}`;
-        return data.label || defaultLabel;
-      } catch (error) {
-        console.error(error);
-        return `Account ${marginfiAccounts.findIndex((acc) => acc.address.equals(account.address)) + 1}`;
-      }
-    };
-
-    await Promise.all(
-      marginfiAccounts.map(async (account) => {
-        const label = await fetchLabel(account);
-        labels[account.address.toBase58()] = label;
-      })
-    );
-
-    setAccountLabels(labels);
-    if (_setAccountLabels) {
-      _setAccountLabels(labels);
-    }
-  }, [_setAccountLabels, marginfiAccounts]);
 
   const checkAndClearAccountCache = React.useCallback(() => {
     const cacheTimestamp = localStorage.getItem("mrgnClearedAccountCache");
@@ -130,17 +101,17 @@ export const WalletAuthAccounts = ({
     if (!cacheTimestamp || now - parseInt(cacheTimestamp, 10) > FIFTEEN_MINUTES) {
       console.log("Clearing account cache and refetching accounts");
       clearAccountCache(wallet.publicKey);
-      fetchAccountLabels();
+      fetchAccountLabels?.(marginfiAccounts);
       localStorage.setItem("mrgnClearedAccountCache", now.toString());
     }
-  }, [wallet.publicKey, fetchAccountLabels]);
+  }, [wallet.publicKey, fetchAccountLabels, marginfiAccounts]);
 
   const editAccount = React.useCallback(async () => {
     if (
       !connection ||
       !editingAccount ||
       !editingAccountName ||
-      editingAccountName === accountLabels[editingAccount.address.toBase58()]
+      editingAccountName === accountLabels?.[editingAccount.address.toBase58()]
     ) {
       return;
     }
@@ -173,7 +144,7 @@ export const WalletAuthAccounts = ({
     setEditingAccount(null);
     setEditingAccountName("");
     setEditAccountError("");
-    fetchAccountLabels();
+    fetchAccountLabels?.(marginfiAccounts);
 
     setWalletAuthAccountsState(WalletAuthAccountsState.DEFAULT);
 
@@ -182,7 +153,16 @@ export const WalletAuthAccounts = ({
       account: editingAccount.address.toBase58(),
       label: editingAccountName,
     });
-  }, [editingAccount, editingAccountName, fetchAccountLabels, accountLabels, connection, wallet, useAuthTxn]);
+  }, [
+    connection,
+    editingAccount,
+    editingAccountName,
+    accountLabels,
+    useAuthTxn,
+    wallet,
+    fetchAccountLabels,
+    marginfiAccounts,
+  ]);
 
   const createNewAccount = React.useCallback(async () => {
     if (!connection || !newAccountName || !mfiClient || !wallet.publicKey || newAccountName.length > 20) {
@@ -230,7 +210,7 @@ export const WalletAuthAccounts = ({
       multiStepToast.setSuccessAndNext();
       setIsSubmitting(false);
       setWalletAuthAccountsState(WalletAuthAccountsState.DEFAULT);
-      await fetchAccountLabels();
+      await fetchAccountLabels?.(marginfiAccounts);
       activateAccount(mfiAccount, marginfiAccounts.length - 1);
       setNewAccountName(`Account ${marginfiAccounts.length + 1}`);
 
@@ -256,12 +236,6 @@ export const WalletAuthAccounts = ({
     marginfiAccounts,
   ]);
 
-  React.useEffect(() => {
-    if (!initialized || hasFetchedLabels) return;
-    setHasFetchedLabels(true);
-    fetchAccountLabels();
-  }, [initialized, fetchAccountLabels]);
-
   if (!initialized) return null;
 
   return (
@@ -275,11 +249,11 @@ export const WalletAuthAccounts = ({
         }}
         open={popoverOpen}
       >
-        {selectedAccount && accountLabels[selectedAccount.address.toBase58()] && (
+        {selectedAccount && accountLabels?.[selectedAccount.address.toBase58()] && (
           <PopoverTrigger asChild>
             <Button variant="secondary" size="sm" className="text-sm">
               <span className="max-w-[80px] lg:max-w-[120px] truncate">
-                {accountLabels[selectedAccount.address.toBase58()]}
+                {accountLabels?.[selectedAccount.address.toBase58()]}
               </span>{" "}
               <IconChevronDown size={16} />
             </Button>
@@ -296,7 +270,7 @@ export const WalletAuthAccounts = ({
               <div className={cn("grid gap-2", isActivatingAccount !== null && "pointer-events-none animate-pulsate")}>
                 {marginfiAccounts.map((account, index) => {
                   const isActiveAccount = selectedAccount && selectedAccount.address.equals(account.address);
-                  const accountLabel = accountLabels[account.address.toBase58()] || `Account ${index + 1}`;
+                  const accountLabel = accountLabels?.[account.address.toBase58()] || `Account ${index + 1}`;
                   return (
                     <Button
                       key={index}
@@ -339,7 +313,7 @@ export const WalletAuthAccounts = ({
                           onClick={(e) => {
                             e.stopPropagation();
                             setEditingAccount(account);
-                            setEditingAccountName(accountLabels[account.address.toBase58()]);
+                            setEditingAccountName(accountLabels?.[account.address.toBase58()] || "");
                             setWalletAuthAccountsState(WalletAuthAccountsState.EDIT_ACCOUNT);
                           }}
                         >

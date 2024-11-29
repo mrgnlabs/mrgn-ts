@@ -1,4 +1,4 @@
-import { FC } from "react";
+import React, { FC } from "react";
 
 import Link from "next/link";
 import Image from "next/image";
@@ -45,18 +45,37 @@ export const Navbar: FC = () => {
     state.fetchMrgnlendState,
   ]);
 
-  const { isOraclesStale, priorityType, broadcastType, priorityFees, maxCap, maxCapType, setTransactionSettings } =
-    useUiStore((state) => ({
-      isOraclesStale: state.isOraclesStale,
-      priorityType: state.priorityType,
-      broadcastType: state.broadcastType,
-      priorityFees: state.priorityFees,
-      maxCap: state.maxCap,
-      maxCapType: state.maxCapType,
-      setTransactionSettings: state.setTransactionSettings,
-    }));
+  const {
+    isOraclesStale,
+    priorityType,
+    broadcastType,
+    priorityFees,
+    maxCap,
+    maxCapType,
+    setTransactionSettings,
+    accountLabels,
+    fetchAccountLabels,
+  } = useUiStore((state) => ({
+    isOraclesStale: state.isOraclesStale,
+    priorityType: state.priorityType,
+    broadcastType: state.broadcastType,
+    priorityFees: state.priorityFees,
+    maxCap: state.maxCap,
+    maxCapType: state.maxCapType,
+    setTransactionSettings: state.setTransactionSettings,
+    accountLabels: state.accountLabels,
+    fetchAccountLabels: state.fetchAccountLabels,
+  }));
 
   const [userPointsData] = useUserProfileStore((state) => [state.userPointsData]);
+  const [hasFetchedAccountLabels, setHasFetchedAccountLabels] = React.useState(false);
+
+  React.useEffect(() => {
+    if (marginfiAccounts.length > 0 && !hasFetchedAccountLabels) {
+      setHasFetchedAccountLabels(true);
+      fetchAccountLabels(marginfiAccounts);
+    }
+  }, [marginfiAccounts, fetchAccountLabels, hasFetchedAccountLabels]);
 
   return (
     <header className="h-[64px] mb-4 md:mb-8 lg:mb-14">
@@ -200,6 +219,8 @@ export const Navbar: FC = () => {
                   ...priorityFees,
                   broadcastType,
                 }}
+                accountLabels={accountLabels}
+                fetchAccountLabels={fetchAccountLabels}
               />
             </div>
           )}
