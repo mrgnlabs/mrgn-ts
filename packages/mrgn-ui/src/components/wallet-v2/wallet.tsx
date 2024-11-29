@@ -61,6 +61,8 @@ type WalletProps = {
   refreshState: () => void;
   headerComponent?: JSX.Element;
   processOpts?: ProcessTransactionsClientOpts;
+  accountLabels?: Record<string, string>;
+  fetchAccountLabels?: (accounts: MarginfiAccountWrapper[]) => Promise<void>;
 };
 
 enum WalletState {
@@ -90,6 +92,8 @@ const Wallet = ({
   refreshState,
   headerComponent,
   processOpts,
+  accountLabels,
+  fetchAccountLabels,
 }: WalletProps) => {
   const router = useRouter();
   const [isWalletOpen, setIsWalletOpen] = useWalletStore((state) => [state.isWalletOpen, state.setIsWalletOpen]);
@@ -239,6 +243,8 @@ const Wallet = ({
                         selectedAccount={selectedAccount}
                         fetchMrgnlendState={refreshState}
                         processOpts={processOpts}
+                        accountLabels={accountLabels}
+                        fetchAccountLabels={fetchAccountLabels}
                       />
                     </div>
                   )}
