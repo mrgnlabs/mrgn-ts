@@ -8,7 +8,7 @@ import { IconInfoCircle } from "@tabler/icons-react";
 import { numeralFormatter, SolanaTransaction } from "@mrgnlabs/mrgn-common";
 import { usdFormatter, usdFormatterDyn } from "@mrgnlabs/mrgn-common";
 import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { LendingModes } from "@mrgnlabs/mrgn-utils";
+import { LendingModes, usePrevious } from "@mrgnlabs/mrgn-utils";
 
 import { useMrgnlendStore, useUiStore, useUserProfileStore } from "~/store";
 
@@ -19,10 +19,17 @@ import { Loader } from "~/components/ui/loader";
 import { RewardsDialog } from "./components/rewards";
 
 import { PortfolioAssetCard, PortfolioAssetCardSkeleton, PortfolioUserStats } from "./components";
-import { rewardsType } from "./types";
+import { RewardsType } from "./types";
 import { useRewardSimulation } from "./hooks";
 import { executeCollectTxn } from "./utils";
 import { IconLoader } from "~/components/ui/icons";
+
+const initialRewardsState: RewardsType = {
+  state: "NOT_FETCHED",
+  tooltipContent: "",
+  rewards: [],
+  totalRewardAmount: 0,
+};
 
 export const LendingPortfolio = () => {
   const router = useRouter();
@@ -56,19 +63,11 @@ export const LendingPortfolio = () => {
   const [userPointsData] = useUserProfileStore((state) => [state.userPointsData]);
 
   // Rewards
-  const [rewardsState, setRewardsState] = React.useState<rewardsType>({
-    state: "NOT_FETCHED",
-    tooltipContent: "Calculating rewards...",
-    rewards: {
-      totalReward: 0,
-      rewards: [],
-    },
-  });
+  const [rewardsState, setRewardsState] = React.useState<RewardsType>(initialRewardsState);
   const [rewardsDialogOpen, setRewardsDialogOpen] = React.useState(false);
   const [actionTxn, setActionTxn] = React.useState<SolanaTransaction | null>(null);
   const [rewardsLoading, setRewardsLoading] = React.useState(false);
   const hasMultipleAccount = React.useMemo(() => marginfiAccounts.length > 1, [marginfiAccounts]);
-  const [firstTimeFetchingRewards, setFirstTimeFetchingRewards] = React.useState(true);
 
   const { handleSimulation } = useRewardSimulation({
     simulationResult: rewardsState,
@@ -80,14 +79,25 @@ export const LendingPortfolio = () => {
     setActionTxn,
   });
 
+  ////////////////////////////
+  // handleSimulation logic //
+  ////////////////////////////
+  const [shouldFetchRewards, setShouldFetchRewards] = React.useState(true);
+  const prevSelectedAccount = usePrevious(selectedAccount);
   React.useEffect(() => {
-    if (selectedAccount && marginfiClient?.banks && firstTimeFetchingRewards) {
-      handleSimulation();
-      setFirstTimeFetchingRewards(false);
+    if (selectedAccount && prevSelectedAccount?.address.toBase58() !== selectedAccount.address.toBase58()) {
+      setShouldFetchRewards(true);
     }
-  }, [handleSimulation, marginfiClient, selectedAccount, firstTimeFetchingRewards]);
+  }, [selectedAccount, prevSelectedAccount]);
+  React.useEffect(() => {
+    if (selectedAccount && marginfiClient?.banks && shouldFetchRewards) {
+      setRewardsState(initialRewardsState);
+      handleSimulation();
+      setShouldFetchRewards(false);
+    }
+  }, [handleSimulation, marginfiClient, selectedAccount, shouldFetchRewards]);
 
-  const handleCollectExectuion = React.useCallback(async () => {
+  const handleCollectExecution = React.useCallback(async () => {
     if (!marginfiClient || !actionTxn) return;
     await executeCollectTxn(marginfiClient, actionTxn, { ...priorityFees, broadcastType }, setRewardsLoading, () => {
       setRewardsDialogOpen(false);
@@ -247,7 +257,7 @@ export const LendingPortfolio = () => {
                   {rewardsState.state === "NO_REWARDS" && (
                     <span className="cursor-default text-muted-foreground">No outstanding rewards</span>
                   )}
-                  {rewardsState.state === "REWARDS_FETCHED" && rewardsState.rewards.totalReward > 0 && (
+                  {rewardsState.state === "REWARDS_FETCHED" && rewardsState.totalRewardAmount > 0 && (
                     <button
                       className="cursor-pointer hover:text-[#AAA] underline"
                       onClick={() => {
@@ -395,7 +405,7 @@ export const LendingPortfolio = () => {
           onOpenChange={(open) => {
             setRewardsDialogOpen(open);
           }}
-          onCollect={handleCollectExectuion}
+          onCollect={handleCollectExecution}
           isLoading={rewardsLoading}
         />
       </div>

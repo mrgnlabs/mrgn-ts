@@ -6,9 +6,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from "~/components/ui/button";
 import { IconLoader } from "~/components/ui/icons";
 
-import { rewardsType } from "../../types";
+import { RewardsType } from "../../types";
 interface RewardsDialogProps extends DialogProps {
-  availableRewards: rewardsType;
+  availableRewards: RewardsType;
   onClose: () => void;
   onCollect: () => void;
   isLoading: boolean;
@@ -31,7 +31,7 @@ export const RewardsDialog: React.FC<RewardsDialogProps> = ({
           </DialogDescription>
         </DialogHeader>
         <ul className="list-disc list-inside text-h4">
-          {availableRewards?.rewards.rewards.map((reward, idx) => (
+          {availableRewards?.rewards.map((reward, idx) => (
             <li key={idx} className="flex items-center space-x-2">
               <span className="w-2 h-2 bg-gray-400 rounded-full inline-block" />
               <span className="text-lg font-medium">{`${reward.amount} ${reward.bank}`}</span>
