@@ -20,15 +20,15 @@ import {
   TOKEN_PROGRAM_ID,
 } from "@mrgnlabs/mrgn-common";
 
-import { rewardsType } from "../types";
+import { RewardsType } from "../types";
 
 type RewardSimulationProps = {
-  simulationResult: rewardsType | null;
+  simulationResult: RewardsType | null;
   marginfiClient: MarginfiClient | null;
   selectedAccount: MarginfiAccountWrapper | null;
   extendedBankInfos: ExtendedBankInfo[];
 
-  setSimulationResult: (result: rewardsType) => void;
+  setSimulationResult: (result: RewardsType) => void;
   setActionTxn: (actionTxn: SolanaTransaction) => void;
   setErrorMessage: (error: ActionMessageType | null) => void;
 };
@@ -60,23 +60,19 @@ export const useRewardSimulation = ({
         setSimulationResult({
           state: "ERROR",
           tooltipContent: "Error fetching rewards",
-          rewards: {
-            rewards: [],
-            totalReward: 0,
-          },
+          rewards: [],
+          totalRewardAmount: 0,
         });
         return;
-      } // TOOD: update this state
+      }
 
       const banksWithEmissions = extendedBankInfos.filter((bank) => bank.info.state.emissionsRate > 0);
       if (!banksWithEmissions.length) {
         setSimulationResult({
           state: "NO_REWARDS",
           tooltipContent: "There are currently no banks that are outputting rewards.",
-          rewards: {
-            totalReward: 0,
-            rewards: [],
-          },
+          rewards: [],
+          totalRewardAmount: 0,
         });
         return;
       }
@@ -89,10 +85,8 @@ export const useRewardSimulation = ({
           tooltipContent: `You do not have any outstanding rewards. Deposit into a bank with emissions to earn additional rewards on top of yield. Banks with emissions: ${[
             ...banksWithEmissions.map((bank) => bank.meta.tokenSymbol),
           ].join(", ")}`,
-          rewards: {
-            totalReward: 0,
-            rewards: [],
-          },
+          rewards: [],
+          totalRewardAmount: 0,
         });
         return;
       }
@@ -117,9 +111,11 @@ export const useRewardSimulation = ({
         atas.push(ata);
 
         const originData = await marginfiClient.provider.connection.getAccountInfo(ata);
-        if (!originData) continue;
+        let beforeAmount = "0";
+        if (originData) {
+          beforeAmount = AccountLayout.decode(originData.data).amount.toString();
+        }
 
-        const beforeAmount = AccountLayout.decode(originData.data).amount.toString();
         beforeAmounts.set(bank.meta.address, { amount: beforeAmount, tokenSymbol, mintDecimals });
       }
 
@@ -127,10 +123,8 @@ export const useRewardSimulation = ({
         setSimulationResult({
           state: "NO_REWARDS",
           tooltipContent: "",
-          rewards: {
-            totalReward: 0,
-            rewards: [],
-          },
+          rewards: [],
+          totalRewardAmount: 0,
         });
         return;
       }
@@ -154,13 +148,11 @@ export const useRewardSimulation = ({
         }
       });
 
-      let rewards: rewardsType = {
+      let rewards: RewardsType = {
         state: "REWARDS_FETCHED",
         tooltipContent: "",
-        rewards: {
-          totalReward: 0,
-          rewards: [],
-        },
+        rewards: [],
+        totalRewardAmount: 0,
       };
 
       beforeAmounts.forEach((beforeData, bankAddress) => {
@@ -172,11 +164,11 @@ export const useRewardSimulation = ({
           const rewardAmount = afterAmount - beforeAmount;
 
           if (rewardAmount > 0) {
-            rewards.rewards.rewards.push({
+            rewards.rewards.push({
               bank: beforeData.tokenSymbol,
               amount: rewardAmount < 0.01 ? "<0.01" : numeralFormatter(rewardAmount),
-            }); // TODO: fix this rewards.rewards.rewards ... shit
-            rewards.rewards.totalReward += rewardAmount;
+            });
+            rewards.totalRewardAmount += rewardAmount;
           }
         }
       });
@@ -192,10 +184,8 @@ export const useRewardSimulation = ({
       setSimulationResult({
         state: "NO_REWARDS",
         tooltipContent: "",
-        rewards: {
-          totalReward: 0,
-          rewards: [],
-        },
+        rewards: [],
+        totalRewardAmount: 0,
       });
     }
   }, [extendedBankInfos, marginfiClient, selectedAccount, setActionTxn, setSimulationResult]);
