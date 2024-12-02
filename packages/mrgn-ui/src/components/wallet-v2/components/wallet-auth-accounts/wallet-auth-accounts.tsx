@@ -241,17 +241,19 @@ export const WalletAuthAccounts = ({
       });
     } catch (error) {
       multiStepToast.setFailed("Error creating new account");
+      setIsSubmitting(false);
     }
   }, [
+    connection,
     newAccountName,
     mfiClient,
-    walletContextState,
-    fetchAccountLabels,
-    marginfiAccounts,
-    activateAccount,
-    connection,
     wallet,
+    walletContextState,
+    processOpts,
     useAuthTxn,
+    fetchAccountLabels,
+    activateAccount,
+    marginfiAccounts.length,
   ]);
 
   React.useEffect(() => {
