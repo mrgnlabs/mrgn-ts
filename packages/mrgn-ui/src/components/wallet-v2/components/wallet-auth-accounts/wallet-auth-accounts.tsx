@@ -253,7 +253,7 @@ export const WalletAuthAccounts = ({
     useAuthTxn,
     fetchAccountLabels,
     activateAccount,
-    marginfiAccounts,
+    marginfiAccounts.length,
   ]);
 
   React.useEffect(() => {
