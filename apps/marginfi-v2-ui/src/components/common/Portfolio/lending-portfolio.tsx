@@ -3,7 +3,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 
 import { VersionedTransaction } from "@solana/web3.js";
-import { IconInfoCircle } from "@tabler/icons-react";
+import { IconInfoCircle, IconLoader } from "@tabler/icons-react";
 
 import { numeralFormatter } from "@mrgnlabs/mrgn-common";
 import { usdFormatter, usdFormatterDyn } from "@mrgnlabs/mrgn-common";
@@ -22,6 +22,7 @@ import { PortfolioAssetCard, PortfolioAssetCardSkeleton, PortfolioUserStats } fr
 import { rewardsType } from "./types";
 import { useRewardSimulation } from "./hooks";
 import { executeCollectTxn } from "./utils";
+
 export const LendingPortfolio = () => {
   const router = useRouter();
   const { connected } = useWallet();
@@ -34,7 +35,6 @@ export const LendingPortfolio = () => {
     isRefreshingStore,
     marginfiClient,
     selectedAccount,
-    extendedBankInfos,
     marginfiAccounts,
     fetchMrgnlendState,
   ] = useMrgnlendStore((state) => [
@@ -44,7 +44,6 @@ export const LendingPortfolio = () => {
     state.isRefreshingStore,
     state.marginfiClient,
     state.selectedAccount,
-    state.extendedBankInfos,
     state.marginfiAccounts,
     state.fetchMrgnlendState,
   ]);
@@ -56,26 +55,38 @@ export const LendingPortfolio = () => {
   const [userPointsData] = useUserProfileStore((state) => [state.userPointsData]);
 
   // Rewards
-  const [rewards, setRewards] = React.useState<rewardsType | null>(null);
+  const [rewardsState, setRewardsState] = React.useState<rewardsType>({
+    state: "NOT_FETCHED",
+    tooltipContent: "",
+    rewards: {
+      totalReward: 0,
+      rewards: [],
+    },
+  });
   const [rewardsDialogOpen, setRewardsDialogOpen] = React.useState(false);
   const [actionTxn, setActionTxn] = React.useState<VersionedTransaction | null>(null);
   const [rewardsLoading, setRewardsLoading] = React.useState(false);
   const hasMultipleAccount = React.useMemo(() => marginfiAccounts.length > 1, [marginfiAccounts]);
 
   const { handleSimulation } = useRewardSimulation({
-    simulationResult: rewards,
+    simulationResult: rewardsState,
     actionTxn,
     marginfiClient,
     selectedAccount,
-    extendedBankInfos,
-    setSimulationResult: setRewards,
+    extendedBankInfos: sortedBanks,
+    setSimulationResult: setRewardsState,
     setActionTxn,
-    setErrorMessage: () => {},
+    setErrorMessage: () => {}, // No error handling, should fail silently since it is on page load.
   });
 
+  const [firstTimeFetchingRewards, setFirstTimeFetchingRewards] = React.useState(true);
   React.useEffect(() => {
-    handleSimulation();
-  }, [actionTxn]);
+    if (selectedAccount && marginfiClient?.banks && firstTimeFetchingRewards) {
+      console.log("hierzo 4");
+      handleSimulation();
+      setFirstTimeFetchingRewards(false);
+    }
+  }, [handleSimulation, marginfiClient, selectedAccount, firstTimeFetchingRewards]);
 
   const handleCollectExectuion = React.useCallback(async () => {
     if (!marginfiClient || !actionTxn) return;
@@ -173,6 +184,10 @@ export const LendingPortfolio = () => {
     }
   }, [connected]);
 
+  React.useEffect(() => {
+    console.log({ rewardsState });
+  }, [rewardsState]);
+
   if (isStoreInitialized && !connected) {
     return <WalletButton />;
   }
@@ -229,58 +244,27 @@ export const LendingPortfolio = () => {
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <div className="flex items-center gap-1">
+                  {rewardsState.state === "NOT_FETCHED" && <>not fetched rewards</>}
+                  {rewardsState.state === "NO_REWARDS" && (
                     <button className="cursor-default text-muted-foreground">No outstanding rewards</button>
-                    <IconInfoCircle size={16} className="text-muted-foreground" />
-                  </div>
+                  )}
+                  {rewardsState.state === "REWARDS_FETCHED" && rewardsState.rewards.totalReward > 0 && (
+                    <button
+                      className="cursor-pointer hover:text-[#AAA] underline"
+                      onClick={() => {
+                        setRewardsDialogOpen(true);
+                      }}
+                    >
+                      Collect rewards
+                    </button>
+                  )}
+                  <IconInfoCircle size={16} className="text-muted-foreground" />
                 </TooltipTrigger>
                 <TooltipContent>
-                  <span>Additional rewards from bank emissions can be collected here when available.</span>
+                  {rewardsState.state !== "NOT_FETCHED" && <span>{rewardsState.tooltipContent}</span>}
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
-            {/* {rewards && (
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <div className="flex items-center gap-1">
-                      {rewards ? (
-                        rewards.totalReward > 0 ? (
-                          <button
-                            className="cursor-pointer hover:text-[#AAA] underline"
-                            onClick={() => {
-                              setRewardsDialogOpen(true);
-                            }}
-                          >
-                            Collect rewards
-                          </button>
-                        ) : (
-                          <button className="cursor-default text-muted-foreground">No outstanding rewards</button>
-                        )
-                      ) : (
-                        <span className="flex gap-1 items-center">
-                          Calculating rewards <IconLoader size={16} />
-                        </span>
-                      )}
-                      <IconInfoCircle size={16} className="text-muted-foreground" />
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <span>
-                      {EMISSION_MINT_INFO_MAP.size === 0
-                        ? "There are currently no banks that are outputting rewards."
-                        : rewards && rewards.totalReward > 0
-                        ? `You are earning rewards on the following banks: ${rewards.rewards
-                            .map((r) => r.bank)
-                            .join(", ")}`
-                        : `You do not have any outstanding rewards. Deposit into a bank with emissions to earn additional rewards on top of yield. Banks with emissions: ${[
-                            ...EMISSION_MINT_INFO_MAP.keys(),
-                          ].join(", ")}`}
-                    </span>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            )} */}
           </div>
         </div>
         <div className="text-muted-foreground">
@@ -399,7 +383,7 @@ export const LendingPortfolio = () => {
           </div>
         </div>
         <RewardsDialog
-          availableRewards={rewards}
+          availableRewards={rewardsState}
           onClose={() => {
             setRewardsDialogOpen(false);
           }}

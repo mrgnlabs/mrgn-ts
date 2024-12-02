@@ -1331,7 +1331,7 @@ class MarginfiAccountWrapper {
       })
     );
 
-    return addTransactionMetadata(
+    const emissionsTx = addTransactionMetadata(
       new VersionedTransaction(
         new TransactionMessage({
           instructions: withdrawEmissionsIxs.map((ix) => ix.instructions).flat(),
@@ -1344,6 +1344,8 @@ class MarginfiAccountWrapper {
         addressLookupTables: this.client.addressLookupTables,
       }
     );
+
+    return emissionsTx;
   }
 
   /**
