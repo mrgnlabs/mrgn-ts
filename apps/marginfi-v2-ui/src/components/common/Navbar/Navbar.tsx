@@ -68,14 +68,6 @@ export const Navbar: FC = () => {
   }));
 
   const [userPointsData] = useUserProfileStore((state) => [state.userPointsData]);
-  const [hasFetchedAccountLabels, setHasFetchedAccountLabels] = React.useState(false);
-
-  React.useEffect(() => {
-    if (marginfiAccounts.length > 0 && !hasFetchedAccountLabels) {
-      setHasFetchedAccountLabels(true);
-      fetchAccountLabels(marginfiAccounts);
-    }
-  }, [marginfiAccounts, fetchAccountLabels, hasFetchedAccountLabels]);
 
   return (
     <header className="h-[64px] mb-4 md:mb-8 lg:mb-14">
