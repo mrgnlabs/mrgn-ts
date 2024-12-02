@@ -3,6 +3,7 @@ import {
   DEFAULT_COMMITMENT,
   InstructionsWrapper,
   TOKEN_2022_PROGRAM_ID,
+  TOKEN_PROGRAM_ID,
   Wallet,
   createAssociatedTokenAccountIdempotentInstruction,
   getAssociatedTokenAddressSync,
@@ -60,6 +61,7 @@ export const MAX_TX_SIZE = 1232;
 export const MAX_ACCOUNT_KEYS = 64;
 export const BUNDLE_TX_SIZE = 81;
 export const PRIORITY_TX_SIZE = 44;
+export const TOKEN_2022_MINTS = ["2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo"];
 
 export interface SimulationResult {
   banks: Map<string, Bank>;
@@ -1304,26 +1306,25 @@ class MarginfiAccountWrapper {
     const withdrawEmissionsIxs: InstructionsWrapper[] = [];
     await Promise.all(
       bankAddresses.map(async (bankAddress) => {
-        // const bank = this.client.getBankByPk(bankAddress);
-        // if (!bank) return;
+        const bank = this.client.getBankByPk(bankAddress);
+        if (!bank) return;
 
-        // const tokenMint = bank.emissionsMint;
-        // if (!tokenMint) return;
+        const tokenMint = bank.emissionsMint;
+        if (!tokenMint) return;
 
-        // const programId = TOKEN_2022_MINTS.includes(tokenMint.toString()) ? TOKEN_2022_PROGRAM_ID : TOKEN_PROGRAM_ID;
-        // const ata = getAssociatedTokenAddressSync(tokenMint, this.client.wallet.publicKey, true, programId);
-
-        // const ataInfo = await this._program.provider.connection.getAccountInfo(ata);
-        // if (!ataInfo) {
-        //   const createAtaIx = createAssociatedTokenAccountIdempotentInstruction(
-        //     this.authority,
-        //     ata,
-        //     this.client.wallet.publicKey,
-        //     tokenMint,
-        //     programId
-        //   );
-        //   ixs.push(createAtaIx);
-        // } TODO: uncomment once able to fully test this
+        const programId = TOKEN_2022_MINTS.includes(tokenMint.toString()) ? TOKEN_2022_PROGRAM_ID : TOKEN_PROGRAM_ID;
+        const ata = getAssociatedTokenAddressSync(tokenMint, this.client.wallet.publicKey, true, programId);
+        const ataInfo = await this._program.provider.connection.getAccountInfo(ata);
+        if (!ataInfo) {
+          const createAtaIx = createAssociatedTokenAccountIdempotentInstruction(
+            this.authority,
+            ata,
+            this.client.wallet.publicKey,
+            tokenMint,
+            programId
+          );
+          withdrawEmissionsIxs.push({ instructions: [createAtaIx], keys: [] });
+        }
 
         const ix = await this.makeWithdrawEmissionsIx(bankAddress);
         if (!ix) return;
