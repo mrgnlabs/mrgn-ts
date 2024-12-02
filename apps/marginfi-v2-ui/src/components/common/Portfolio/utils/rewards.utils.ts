@@ -1,41 +1,47 @@
-import { VersionedTransaction } from "@solana/web3.js";
+import { SolanaJSONRPCError, VersionedTransaction } from "@solana/web3.js";
 
-import { MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
+import { MarginfiClient, ProcessTransactionError, ProcessTransactionOpts } from "@mrgnlabs/marginfi-client-v2";
 import { extractErrorString, MultiStepToastHandle, captureSentryException } from "@mrgnlabs/mrgn-utils";
+import { SolanaTransaction } from "@mrgnlabs/mrgn-common";
 
 export const executeCollectTxn = async (
   marginfiClient: MarginfiClient,
-  actionTxn: VersionedTransaction,
+  actionTxn: SolanaTransaction,
+  processOpts: ProcessTransactionOpts,
   setIsLoading: (isLoading: boolean) => void,
-  setActionTxn: (actionTxn: VersionedTransaction | null) => void,
   closeDialog: () => void
 ) => {
   setIsLoading(true);
   const multiStepToast = new MultiStepToastHandle("Collecting rewards", [
+    { label: "Signing transaction" },
     {
-      label: "Executing transaction",
+      label: "Collecting rewards",
     },
   ]);
   multiStepToast.start();
 
   try {
-    const sig = await marginfiClient.processTransaction(actionTxn);
-    multiStepToast.setSuccessAndNext();
-    setActionTxn(null);
+    const sig = await marginfiClient.processTransactions([actionTxn], {
+      ...processOpts,
+      callback: (index, success, sig, stepsToAdvance) =>
+        success && multiStepToast.setSuccessAndNext(stepsToAdvance, sig),
+    });
+    multiStepToast.setSuccess();
     closeDialog();
     return sig;
   } catch (error) {
-    const msg = extractErrorString(error);
-    multiStepToast.setFailed(msg);
-    console.log(`Error while actiontype: ${msg}`);
+    console.log("error while collecting rewards");
     console.log(error);
 
-    const walletAddress = marginfiClient.wallet.publicKey.toBase58();
+    if (!(error instanceof ProcessTransactionError || error instanceof SolanaJSONRPCError)) {
+      captureSentryException(error, JSON.stringify(error), {
+        action: "Collect rewards",
+        wallet: marginfiClient.wallet.publicKey.toBase58(),
+      });
+    }
 
-    captureSentryException(error, msg, {
-      action: "Collect rewards",
-      wallet: walletAddress,
-    });
+    const msg = extractErrorString(error);
+    multiStepToast.setFailed(msg);
   } finally {
     setIsLoading(false);
   }

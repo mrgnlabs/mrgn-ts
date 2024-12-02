@@ -351,15 +351,6 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
       const sortedExtendedBankInfos = extendedBankInfos.sort(
         (a, b) => b.info.state.totalDeposits * b.info.state.price - a.info.state.totalDeposits * a.info.state.price
       );
-      sortedExtendedBankInfos[
-        Math.floor(Math.random() * sortedExtendedBankInfos.length)
-      ].info.state.emissionsRate = 1000;
-
-      console.log("sortedExtendedBankInfos", sortedExtendedBankInfos);
-      console.log(
-        "t",
-        extendedBankInfos.find((a) => a.info.state.emissionsRate > 0)
-      );
 
       const sortedExtendedBankMetadatas = extendedBankMetadatas.sort((am, bm) => {
         const a = sortedExtendedBankInfos.find((a) => a.address.equals(am.address))!;
