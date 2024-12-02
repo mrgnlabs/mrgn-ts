@@ -12,11 +12,8 @@ import { NextApiRequest, NextApiResponse } from "next";
 import config from "~/config/marginfi";
 import { TRADE_GROUPS_MAP } from "~/config/trade";
 
-const SWITCHBOARD_CROSSSBAR_API = process.env.SWITCHBOARD_CROSSSBAR_API || "https://crossbar.switchboard.xyz";
-const IS_SWB_STAGE = SWITCHBOARD_CROSSSBAR_API === "https://staging.crossbar.switchboard.xyz";
-
-const S_MAXAGE_TIME = 10;
-const STALE_WHILE_REVALIDATE_TIME = 15;
+const S_MAXAGE_TIME = 100;
+const STALE_WHILE_REVALIDATE_TIME = 150;
 
 type TradeGroupsCache = {
   [group: string]: [string, string];
@@ -54,8 +51,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           throw new Error(`Bank not found for group ${groupPk}`);
         }
 
-        const tokenBankSummary = formatBankSummary(tokenBank.data);
-        const quoteBankSummary = formatBankSummary(quoteBank.data);
+        const tokenBankSummary = formatBankSummary(tokenBank.data, tokenBankAddress);
+        const quoteBankSummary = formatBankSummary(quoteBank.data, quoteBankAddress);
 
         acc[groupPk] = {
           tokenBankSummary,
@@ -82,15 +79,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 }
 
 interface BankSummary {
+  bankPk: string;
+  mint: string;
   totalDeposits: number;
   totalBorrows: number;
   availableLiquidity: number;
 }
 
-const formatBankSummary = (bank: BankRaw) => {
+const formatBankSummary = (bank: BankRaw, bankPk: string) => {
   const totalAssetShares = wrappedI80F48toBigNumber(bank.totalAssetShares);
   const totalLiabilityShares = wrappedI80F48toBigNumber(bank.totalLiabilityShares);
   const summary: BankSummary = {
+    bankPk,
+    mint: bank.mint.toBase58(),
     totalDeposits: nativeToUi(totalAssetShares, bank.mintDecimals),
     totalBorrows: nativeToUi(totalLiabilityShares, bank.mintDecimals),
     availableLiquidity: nativeToUi(totalAssetShares.minus(totalLiabilityShares), bank.mintDecimals),
