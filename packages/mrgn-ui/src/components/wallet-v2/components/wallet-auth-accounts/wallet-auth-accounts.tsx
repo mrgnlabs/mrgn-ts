@@ -313,7 +313,7 @@ export const WalletAuthAccounts = ({
                           onClick={(e) => {
                             e.stopPropagation();
                             setEditingAccount(account);
-                            setEditingAccountName(accountLabels?.[account.address.toBase58()] || "");
+                            setEditingAccountName(accountLabel);
                             setWalletAuthAccountsState(WalletAuthAccountsState.EDIT_ACCOUNT);
                           }}
                         >
