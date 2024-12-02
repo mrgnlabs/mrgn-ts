@@ -18,13 +18,20 @@ export const MrgnlendProvider: React.FC<{
   const debounceId = React.useRef<NodeJS.Timeout | null>(null);
   const { wallet, isOverride, connected } = useWallet();
   const { connection } = useConnection();
-  const [fetchMrgnlendState, setIsRefreshingStore, resetUserData, userDataFetched] = useMrgnlendStore((state) => [
+  const [fetchMrgnlendState, setIsRefreshingStore, resetUserData, marginfiAccounts] = useMrgnlendStore((state) => [
     state.fetchMrgnlendState,
     state.setIsRefreshingStore,
     state.resetUserData,
-    state.userDataFetched,
+
+    state.marginfiAccounts,
   ]);
-  const [fetchPriorityFee] = useUiStore((state) => [state.fetchPriorityFee]);
+  const [fetchPriorityFee, fetchAccountLabels] = useUiStore((state) => [
+    state.fetchPriorityFee,
+    state.fetchAccountLabels,
+    state.accountLabels,
+  ]);
+
+  const [hasFetchedAccountLabels, setHasFetchedAccountLabels] = React.useState(false);
 
   // identify user if logged in
   React.useEffect(() => {
@@ -97,6 +104,14 @@ export const MrgnlendProvider: React.FC<{
       resetUserData();
     }
   }, [connected, resetUserData]);
+
+  // Fetch account labels
+  React.useEffect(() => {
+    if (marginfiAccounts.length > 0 && !hasFetchedAccountLabels) {
+      setHasFetchedAccountLabels(true);
+      fetchAccountLabels(marginfiAccounts);
+    }
+  }, [marginfiAccounts, fetchAccountLabels, hasFetchedAccountLabels]);
 
   return <MrgnlendContext.Provider value={{}}>{children}</MrgnlendContext.Provider>;
 };

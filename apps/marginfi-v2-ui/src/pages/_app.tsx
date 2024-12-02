@@ -47,12 +47,11 @@ const Footer = dynamic(async () => (await import("~/components/desktop/Footer"))
 type MrgnAppProps = { path: string };
 
 export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnAppProps) {
-  const [broadcastType, priorityFees, isOraclesStale, setIsFetchingData, fetchAccountLabels] = useUiStore((state) => [
+  const [broadcastType, priorityFees, isOraclesStale, setIsFetchingData] = useUiStore((state) => [
     state.broadcastType,
     state.priorityFees,
     state.isOraclesStale,
     state.setIsFetchingData,
-    state.fetchAccountLabels,
   ]);
   const [
     isMrgnlendStoreInitialized,
@@ -62,7 +61,6 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
     extendedBankInfos,
     nativeSolBalance,
     accountSummary,
-    marginfiAccounts,
   ] = useMrgnlendStore((state) => [
     state.initialized,
     state.isRefreshingStore,
@@ -71,13 +69,11 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
     state.extendedBankInfos,
     state.nativeSolBalance,
     state.accountSummary,
-    state.marginfiAccounts,
   ]);
 
   const { query, isReady } = useRouter();
   const [ready, setReady] = React.useState(false);
   const [rpcEndpoint, setRpcEndpoint] = React.useState("");
-  const [hasFetchedAccountLabels, setHasFetchedAccountLabels] = React.useState(false);
 
   React.useEffect(() => {
     const isFetchingData = isRefreshingMrgnlendStore;
@@ -94,13 +90,6 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
 
     init();
   }, []);
-
-  React.useEffect(() => {
-    if (marginfiAccounts.length > 0 && !hasFetchedAccountLabels) {
-      setHasFetchedAccountLabels(true);
-      fetchAccountLabels(marginfiAccounts);
-    }
-  }, [marginfiAccounts, fetchAccountLabels, hasFetchedAccountLabels]);
 
   return (
     <>
