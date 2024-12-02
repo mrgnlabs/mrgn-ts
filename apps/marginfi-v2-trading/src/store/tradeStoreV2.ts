@@ -24,6 +24,7 @@ import {
   MarginfiProgram,
   BankRaw,
   MarginfiGroup,
+  MarginfiAccount,
 } from "@mrgnlabs/marginfi-client-v2";
 import {
   Wallet,
@@ -499,6 +500,45 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
 
       return extendedArenaBank;
     });
+
+    let nativeSolBalance = 0;
+    let tokenAccountMap: TokenAccountMap | null = null;
+
+    if (!wallet.publicKey.equals(PublicKey.default)) {
+      const [tokenAccounts] = await Promise.all([
+        fetchTokenAccounts(
+          connection,
+          wallet.publicKey,
+          Object.values(banks).map((bank) => ({
+            mint: bank.info.rawBank.mint,
+            mintDecimals: bank.info.rawBank.mintDecimals,
+            bankAddress: bank.info.rawBank.address,
+          })),
+          tokenDatas
+        ),
+      ]);
+
+      nativeSolBalance = tokenAccounts.nativeSolBalance;
+      tokenAccountMap = tokenAccounts.tokenAccountMap;
+
+      const marginfiAccounts = new Map<string, MarginfiAccount[]>();
+
+      const accounts = await program.account.marginfiAccount.all([
+        {
+          memcmp: {
+            bytes: wallet.publicKey.toBase58(),
+            offset: 8 + 32,
+          },
+        },
+      ]);
+
+      accounts.forEach((a) => {
+        const groupKey = a.account.group.toBase58();
+        const accountList = marginfiAccounts.get(groupKey) || [];
+        accountList.push(new MarginfiAccount(a.publicKey, a.account));
+        marginfiAccounts.set(groupKey, accountList);
+      });
+    }
 
     // set({  extendedBankInfos });
 
@@ -1253,15 +1293,16 @@ export async function getMarginfiAccountsForAuthority(
 
   const program = new Program(idl, provider) as any as MarginfiProgram;
 
-  const marginfiAccounts = await program.account.marginfiAccount.all([
-    {
-      memcmp: {
-        bytes: wallet.publicKey.toBase58(),
-        offset: 8 + 32, // authority is the second field in the account after the authority, so offset by the discriminant and a pubkey
+  const marginfiAccounts = (
+    await program.account.marginfiAccount.all([
+      {
+        memcmp: {
+          bytes: wallet.publicKey.toBase58(),
+          offset: 8 + 32, // authority is the second field in the account after the authority, so offset by the discriminant and a pubkey
+        },
       },
-    },
-  ]);
-  // .map((a) => MarginfiAccountWrapper.fromAccountParsed(a.publicKey, this, a.account as MarginfiAccountRaw));
+    ])
+  ).map((a) => new MarginfiAccount(a.publicKey, a.account));
 
   console.log({ marginfiAccounts });
   // marginfiAccounts.sort((accountA, accountB) => {
