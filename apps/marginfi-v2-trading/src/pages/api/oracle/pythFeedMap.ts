@@ -7,16 +7,20 @@ import {
   MarginfiIdlType,
   MarginfiProgram,
 } from "@mrgnlabs/marginfi-client-v2";
-import { chunkedGetRawMultipleAccountInfoOrdered, Wallet } from "@mrgnlabs/mrgn-common";
+import { chunkedGetRawMultipleAccountInfoOrdered, loadBankMetadatas, Wallet } from "@mrgnlabs/mrgn-common";
 import { Connection, PublicKey } from "@solana/web3.js";
 import { NextApiRequest, NextApiResponse } from "next";
 import config from "~/config/marginfi";
+import { BANK_METADATA_MAP } from "~/config/trade";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
-    const groupPk = req.query.groupPk;
-    if (!groupPk || typeof groupPk !== "string") {
-      return res.status(400).json({ error: "Invalid input: expected a groupPk string." });
+    const bankMetadataResponse = await loadBankMetadatas(BANK_METADATA_MAP);
+
+    const requestedBanks = Object.keys(bankMetadataResponse);
+
+    if (!requestedBanks) {
+      return res.status(400).json({ error: "Invalid input: expected an array of bank base58-encoded addresses." });
     }
 
     const connection = new Connection(process.env.PRIVATE_RPC_ENDPOINT_OVERRIDE || "");
@@ -27,16 +31,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
     const program = new Program(idl, provider) as any as MarginfiProgram;
 
-    let bankAddresses = (
-      await connection.getProgramAccounts(config.mfiConfig.programId, {
-        filters: [{ memcmp: { offset: 8 + 32 + 1, bytes: groupPk } }],
-        dataSlice: { length: 0, offset: 0 },
-      })
-    ).map((bank) => bank.pubkey.toBase58());
-
-    const banksAis = await chunkedGetRawMultipleAccountInfoOrdered(connection, bankAddresses);
+    const banksAis = await chunkedGetRawMultipleAccountInfoOrdered(connection, requestedBanks);
     let banksMap: { address: PublicKey; data: BankRaw }[] = banksAis.map((account, index) => ({
-      address: new PublicKey(bankAddresses[index]),
+      address: new PublicKey(requestedBanks[index]),
       data: Bank.decodeBankRaw(account.data, program.idl),
     }));
 

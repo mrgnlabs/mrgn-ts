@@ -1,5 +1,6 @@
 import { create, StateCreator } from "zustand";
 import { Connection, PublicKey } from "@solana/web3.js";
+import { Address, AnchorProvider, BorshAccountsCoder, Program, translateAddress } from "@coral-xyz/anchor";
 import Fuse, { FuseResult } from "fuse.js";
 import {
   ExtendedBankInfo,
@@ -18,6 +19,11 @@ import {
   OraclePrice,
   MarginfiAccountWrapper,
   MintData,
+  MARGINFI_IDL,
+  MarginfiIdlType,
+  MarginfiProgram,
+  BankRaw,
+  MarginfiGroup,
 } from "@mrgnlabs/marginfi-client-v2";
 import {
   Wallet,
@@ -27,12 +33,14 @@ import {
   getValueInsensitive,
   BankMetadata,
   LST_MINT,
+  chunkedGetRawMultipleAccountInfoOrdered,
 } from "@mrgnlabs/mrgn-common";
 
 import { TRADE_GROUPS_MAP, TOKEN_METADATA_MAP, BANK_METADATA_MAP, POOLS_PER_PAGE } from "~/config/trade";
 import { TokenData } from "~/types";
 import { getGroupPositionInfo } from "~/utils";
 import { getTransactionStrategy } from "@mrgnlabs/mrgn-utils";
+import BigNumber from "bignumber.js";
 
 type TradeGroupsCache = {
   [group: string]: [string, string];
@@ -78,33 +86,62 @@ export interface GroupData {
   accountSummary: AccountSummary;
 }
 
-export type BankSummary = {
-  bankPk: PublicKey;
-  mint: PublicKey;
-  tokenName: string;
-  tokenSymbol: string;
-  tokenData: TokenData;
-};
-
-export type TokenData = {
-  price: number;
-  priceChange24hr: number;
-  volume24hr: number;
-  volumeChange24hr: number;
-  marketCap: number;
-};
-
-export type ArenaGroupSummary = {
-  groupPk: PublicKey;
-  quoteSummary: BankSummary;
-  tokenSummary: BankSummary;
-};
+// export type TokenData = {
+//   price: number;
+//   priceChange24hr: number;
+//   volume24hr: number;
+//   volumeChange24hr: number;
+//   marketCap: number;
+// };
 
 type Portfolio = {
   long: GroupData[];
   short: GroupData[];
   lpPositions: GroupData[];
 } | null;
+
+// new types
+export interface BankData {
+  totalDeposits: number;
+  totalBorrows: number;
+  availableLiquidity: number;
+}
+
+export type BankSummary = {
+  bankPk: PublicKey;
+  mint: PublicKey;
+  tokenName: string;
+  tokenSymbol: string;
+  bankData: BankData;
+  tokenData: TokenData;
+};
+
+export type ArenaPoolSummary = {
+  groupPk: PublicKey;
+  quoteSummary: BankSummary;
+  tokenSummary: BankSummary;
+};
+
+export type ArenaPoolV2 = {
+  tokenBankPk: PublicKey;
+  quoteBankPks: PublicKey[];
+  groupPk: PublicKey;
+};
+
+// api calls
+
+type PoolSummaryByGroupResponse = Record<
+  string,
+  {
+    tokenBankSummary: BankSummaryApiResponse;
+    quoteBankSummary: BankSummaryApiResponse;
+  }
+>;
+
+interface BankSummaryApiResponse extends BankData {
+  bankPk: string;
+  mint: string;
+}
 
 type TradeStoreState = {
   // keep track of store state
@@ -120,6 +157,13 @@ type TradeStoreState = {
   bankMetadataCache: {
     [symbol: string]: BankMetadata;
   };
+
+  // new objects
+  arenaPoolsSummary: Record<string, ArenaPoolSummary>;
+  arenaPools: Record<string, ArenaPoolV2>;
+  groupsByGroupPk: Record<string, MarginfiGroup>;
+  banksByBankPk: Record<string, ArenaBank>;
+  tokenDatasByMint: Record<string, TokenData>;
 
   // user token account map
   tokenAccountMap: TokenAccountMap | null;
@@ -139,7 +183,7 @@ type TradeStoreState = {
   nativeSolBalance: number;
 
   // wallet state
-  wallet: Wallet | null;
+  wallet: Wallet;
   connection: Connection | null;
 
   // user data
@@ -147,6 +191,18 @@ type TradeStoreState = {
   referralCode: string | null;
 
   /* Actions */
+  // fetch arena group summary
+  fetchArenaGroups: () => Promise<void>;
+  fetchExtendedArenaGroups: ({
+    connection,
+    wallet,
+    refresh,
+  }: {
+    connection?: Connection;
+    wallet?: Wallet;
+    refresh?: boolean;
+  }) => Promise<void>;
+
   // fetch groups / banks
   fetchTradeState: ({
     connection,
@@ -200,9 +256,20 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
   nativeSolBalance: 0,
   tokenAccountMap: null,
   connection: null,
-  wallet: null,
+  wallet: {
+    publicKey: PublicKey.default,
+    signMessage: (arg: any) => {},
+    signTransaction: (arg: any) => {},
+    signAllTransactions: (arg: any) => {},
+  } as Wallet,
   portfolio: null,
   referralCode: null,
+
+  arenaPoolsSummary: {},
+  arenaPools: {},
+  groupsByGroupPk: {},
+  banksByBankPk: {},
+  tokenDatasByMint: {},
 
   setIsRefreshingStore: (isRefreshing) => {
     set((state) => {
@@ -213,185 +280,412 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
     });
   },
 
-  fetchTradeState: async (args) => {
-    try {
-      // fetch groups
-      let userDataFetched = false;
+  fetchArenaGroups: async () => {
+    let { tokenMetadataCache, bankMetadataCache, groupsCache } = get();
 
-      const connection = args.connection ?? get().connection;
-      const argWallet = args.wallet;
-      const storeWallet = get().wallet;
-      const dummyWallet = {
-        publicKey: PublicKey.default,
-        signMessage: (arg: any) => {},
-        signTransaction: (arg: any) => {},
-        signAllTransactions: (arg: any) => {},
-      } as Wallet;
+    if (
+      !Object.keys(tokenMetadataCache).length ||
+      !Object.keys(bankMetadataCache).length ||
+      !Object.keys(groupsCache).length
+    ) {
+      try {
+        // Fetch all data in parallel using Promise.all
+        const [groupsData, tokenData, bankData] = await Promise.all([
+          fetch(TRADE_GROUPS_MAP).then((res) => res.json()),
+          loadTokenMetadatas(TOKEN_METADATA_MAP),
+          loadBankMetadatas(BANK_METADATA_MAP),
+        ]);
 
-      const wallet =
-        argWallet && argWallet.publicKey ? argWallet : storeWallet && storeWallet.publicKey ? storeWallet : dummyWallet;
-      if (!connection) throw new Error("Connection not found");
+        groupsCache = groupsData;
+        tokenMetadataCache = tokenData;
+        bankMetadataCache = bankData;
 
-      let { tokenMetadataCache, bankMetadataCache, groupsCache } = get();
+        set({ groupsCache, tokenMetadataCache, bankMetadataCache });
+      } catch (error) {
+        console.error("Failed to fetch cache data:", error);
+        return;
+      }
+    }
 
-      if (
-        !Object.keys(tokenMetadataCache).length ||
-        !Object.keys(bankMetadataCache).length ||
-        !Object.keys(groupsCache).length
-      ) {
-        try {
-          groupsCache = await fetch(TRADE_GROUPS_MAP).then((res) => res.json());
-          tokenMetadataCache = await loadTokenMetadatas(TOKEN_METADATA_MAP);
-          bankMetadataCache = await loadBankMetadatas(BANK_METADATA_MAP);
-        } catch (error) {
-          console.error(error);
+    const allBankMints = [...new Set(Object.values(bankMetadataCache).map((bank) => bank.tokenAddress))];
+
+    const bankSummaryByGroup: PoolSummaryByGroupResponse = await fetch("/api/pool/summary").then((res) => res.json());
+    const tokenDetails: TokenData[] = await Promise.all(
+      allBankMints.map((mint) => fetch(`/api/birdeye/token?address=${mint}`).then((res) => res.json()))
+    );
+
+    const tokenDetailsByMint = tokenDetails.reduce((acc, detail, index) => {
+      acc[allBankMints[index]] = detail;
+      return acc;
+    }, {} as Record<string, TokenData>);
+
+    const groupSummaryByGroup: Record<string, ArenaPoolSummary> = Object.entries(bankSummaryByGroup).reduce(
+      (acc, [groupPk, summary]) => {
+        const { bankPk: quoteBankPk, mint: quoteMint, ...quoteBankData } = summary.quoteBankSummary;
+        const { bankPk: tokenBankPk, mint: tokenMint, ...tokenBankData } = summary.tokenBankSummary;
+        const tokenDetailsQuote = tokenDetailsByMint[quoteMint];
+        const tokenDetailsToken = tokenDetailsByMint[tokenMint];
+
+        acc[groupPk] = {
+          groupPk: new PublicKey(groupPk),
+          tokenSummary: {
+            bankPk: new PublicKey(tokenBankPk),
+            mint: new PublicKey(tokenMint),
+            tokenName: tokenDetailsToken.name,
+            tokenSymbol: tokenDetailsToken.symbol,
+            bankData: tokenBankData,
+            tokenData: tokenDetailsToken,
+          },
+          quoteSummary: {
+            bankPk: new PublicKey(quoteBankPk),
+            mint: new PublicKey(quoteMint),
+            tokenName: tokenDetailsQuote.name,
+            tokenSymbol: tokenDetailsQuote.symbol,
+            bankData: quoteBankData,
+            tokenData: tokenDetailsQuote,
+          },
+        };
+        return acc;
+      },
+      {} as Record<string, ArenaPoolSummary>
+    );
+
+    set({ arenaPoolsSummary: groupSummaryByGroup, tokenDatasByMint: tokenDetailsByMint });
+  },
+
+  fetchExtendedArenaGroups: async (args) => {
+    const connection = args.connection || get().connection;
+    const wallet = args.wallet || get().wallet;
+    const { tokenDatasByMint, tokenMetadataCache, bankMetadataCache, groupsCache, arenaPoolsSummary } = get();
+
+    if (!connection) throw new Error("Connection not found");
+    if (!Object.keys(arenaPoolsSummary).length || !Object.keys(tokenDatasByMint).length) {
+      throw new Error("Not ready");
+    }
+
+    const provider = new AnchorProvider(connection, wallet, {
+      ...AnchorProvider.defaultOptions(),
+      commitment: connection.commitment ?? AnchorProvider.defaultOptions().commitment,
+    });
+    const idl = { ...(MARGINFI_IDL as unknown as MarginfiIdlType), address: programId.toBase58() };
+    const program = new Program(idl, provider) as any as MarginfiProgram;
+
+    const bankAddresses: PublicKey[] = [];
+    let bankDatasKeyed: { address: PublicKey; data: BankRaw }[] = [];
+
+    const groupAddresses: PublicKey[] = [];
+
+    for (const group of Object.values(arenaPoolsSummary)) {
+      bankAddresses.push(group.tokenSummary.bankPk, group.quoteSummary.bankPk);
+      groupAddresses.push(group.groupPk);
+    }
+
+    let bankAccountsData = await program.account.bank.fetchMultiple(bankAddresses);
+    for (let i = 0; i < bankAccountsData.length; i++) {
+      if (bankAccountsData[i] !== null) {
+        bankDatasKeyed.push({
+          address: bankAddresses[i],
+          data: bankAccountsData[i] as any as BankRaw,
+        });
+      }
+    }
+
+    const [feedIdMap, oraclePrices] = await Promise.all([fetchPythFeedMap(), fetchOraclePrices()]);
+
+    const mintKeys = bankDatasKeyed.map((b) => b.data.mint);
+    const emissionMintKeys = bankDatasKeyed
+      .map((b) => b.data.emissionsMint)
+      .filter((pk) => !pk.equals(PublicKey.default)) as PublicKey[];
+
+    // Batch-fetch the group account and all the oracle accounts as per the banks retrieved above
+    const allAis = await chunkedGetRawMultipleAccountInfoOrdered(program.provider.connection, [
+      ...groupAddresses.map((pk) => pk.toBase58()),
+      ...mintKeys.map((pk) => pk.toBase58()),
+      ...emissionMintKeys.map((pk) => pk.toBase58()),
+    ]); // NOTE: This will break if/when we start having more than 1 oracle key per bank
+
+    const groupAis = allAis.splice(0, groupAddresses.length);
+    const mintAis = allAis.splice(0, mintKeys.length);
+    const emissionMintAis = allAis.splice(0);
+
+    const marginfiGroups = groupAis.map((groupAi, index) => {
+      const groupAddress = groupAddresses[index];
+      if (!groupAddress) throw new Error(`Failed to fetch group data for ${groupAddresses[index]}`);
+      return MarginfiGroup.fromBuffer(groupAddress, groupAi.data, program.idl);
+    });
+
+    const banks = new Map(
+      bankDatasKeyed.map(({ address, data }) => {
+        const bankMetadata = bankMetadataCache ? bankMetadataCache[address.toBase58()] : undefined;
+        const bank = Bank.fromAccountParsed(address, data, feedIdMap, bankMetadata);
+
+        return [address.toBase58(), bank];
+      })
+    );
+
+    const tokenDatas = new Map(
+      bankDatasKeyed.map(({ address: bankAddress, data: bankData }, index) => {
+        const mintAddress = mintKeys[index];
+        const mintDataRaw = mintAis[index];
+        if (!mintDataRaw) throw new Error(`Failed to fetch mint account for bank ${bankAddress.toBase58()}`);
+        let emissionTokenProgram: PublicKey | null = null;
+        if (!bankData.emissionsMint.equals(PublicKey.default)) {
+          const emissionMintDataRawIndex = emissionMintKeys.findIndex((pk) => pk.equals(bankData.emissionsMint));
+          emissionTokenProgram = emissionMintDataRawIndex >= 0 ? emissionMintAis[emissionMintDataRawIndex].owner : null;
+        }
+        // TODO: parse extension data to see if there is a fee
+        return [
+          bankAddress.toBase58(),
+          { mint: mintAddress, tokenProgram: mintDataRaw.owner, feeBps: 0, emissionTokenProgram },
+        ];
+      })
+    );
+
+    const priceInfos = new Map(
+      bankDatasKeyed.map(({ address: bankAddress, data: bankData }, index) => {
+        const priceData = oraclePrices[index];
+        if (!priceData) throw new Error(`Failed to fetch price oracle account for bank ${bankAddress.toBase58()}`);
+        return [bankAddress.toBase58(), priceData as OraclePrice];
+      })
+    );
+
+    const banksWithPriceAndToken: {
+      bank: Bank;
+      oraclePrice: OraclePrice;
+      tokenMetadata: TokenMetadata;
+    }[] = [];
+
+    banks.forEach((bank) => {
+      const oraclePrice = priceInfos.get(bank.address.toBase58());
+      if (!oraclePrice) {
+        return;
+      }
+
+      const bankMetadata = bankMetadataCache[bank.address.toBase58()];
+      if (bankMetadata === undefined) {
+        return;
+      }
+
+      try {
+        const tokenMetadata = getValueInsensitive(tokenMetadataCache, bankMetadata.tokenSymbol);
+        if (!tokenMetadata) {
           return;
         }
 
-        set({ groupsCache, tokenMetadataCache, bankMetadataCache });
+        banksWithPriceAndToken.push({ bank, oraclePrice, tokenMetadata });
+      } catch (err) {
+        console.error("error fetching token metadata: ", err);
+      }
+    });
+
+    const extendedBankInfos = banksWithPriceAndToken.map(async ({ bank, oraclePrice, tokenMetadata }) => {
+      const extendedBankInfo = makeExtendedBankInfo(tokenMetadata, bank, oraclePrice);
+      const mintAddress = bank.mint.toBase58();
+      const tokenData = tokenDatasByMint[mintAddress];
+      if (!tokenData) {
+        console.error("Failed to parse token data");
       }
 
-      const groupSummaries: ArenaGroupSummary[] = [];
+      const extendedArenaBank = {
+        ...extendedBankInfo,
+        tokenData: {
+          price: tokenData.price,
+          priceChange24hr: tokenData.priceChange24h,
+          volume24hr: tokenData.volume24h,
+          volumeChange24hr: tokenData.volumeChange24h,
+          marketCap: tokenData.marketcap,
+        },
+      } as ArenaBank;
 
-      const groupsKeys = Object.keys(groupsCache).map((group) => new PublicKey(group));
+      return extendedArenaBank;
+    });
 
-      groupsKeys.forEach((group) => {
-        const groupCacheData = groupsCache[group.toBase58()];
-        const tokenBankKey = groupCacheData[0];
-        const quoteBankKey = groupCacheData[1];
+    // set({  extendedBankInfos });
 
-        const tokenBankMetadata = bankMetadataCache[tokenBankKey];
-        const tokenBankSummary: BankSummary = {
-          bankPk: new PublicKey(tokenBankKey),
-          mint: new PublicKey(tokenBankMetadata.tokenAddress),
-          tokenName: tokenBankMetadata.tokenName,
-          tokenSymbol: tokenBankMetadata.tokenSymbol,
-          tokenData: {},
-        };
-
-        const quoteBankMetadata = bankMetadataCache[quoteBankKey];
-      });
-
-      // const groups = Object.keys(groupsCache).map((group) => new PublicKey(group));
-      // const groupMap = get().groupMap;
-      // const allBanks: ExtendedBankInfo[] = [];
-
-      // const mintDatas: Map<string, MintData> = new Map();
-
-      // await Promise.all(
-      //   groups.map(async (group) => {
-      //     const bankKeys = groupsCache[group.toBase58()].map((bank) => new PublicKey(bank));
-
-      //     const { groupData, extendedBankInfos, marginfiClient } = await getGroupData({
-      //       groupPk: group,
-      //       wallet,
-      //       connection,
-      //       bankKeys,
-      //       bankMetadataCache,
-      //       tokenMetadataCache,
-      //     });
-
-      //     for (const [k, v] of marginfiClient.mintDatas) {
-      //       mintDatas.set(k, v);
-      //     }
-
-      //     allBanks.push(...extendedBankInfos);
-
-      //     groupMap.set(group.toBase58(), groupData);
-      //   })
-      // );
-
-      let nativeSolBalance = 0;
-      let tokenAccountMap: TokenAccountMap | null = null;
-      let portfolio: Portfolio | null = null;
-      let referralCode = get().referralCode;
-
-      if (!wallet.publicKey.equals(PublicKey.default)) {
-        const [tData] = await Promise.all([
-          fetchTokenAccounts(
-            connection,
-            wallet.publicKey,
-            allBanks.map((bank) => ({
-              mint: bank.info.rawBank.mint,
-              mintDecimals: bank.info.rawBank.mintDecimals,
-              bankAddress: bank.info.rawBank.address,
-            })),
-            mintDatas
-          ),
-        ]);
-
-        nativeSolBalance = tData.nativeSolBalance;
-        tokenAccountMap = tData.tokenAccountMap;
-
-        for (const [id, group] of groupMap) {
-          const updatedPool = getUpdatedGroupPool({ group, tokenAccountMap, nativeSolBalance });
-          groupMap.set(id, { ...group, pool: updatedPool });
-        }
-
-        portfolio = getPorfolioData(groupMap);
-        userDataFetched = true;
-
-        // fetch / create referral code
-        // if (!referralCode) {
-        //   const referralCodeRes = await fetch(`/api/user/referral/get-code`, {
-        //     method: "POST",
-        //     headers: {
-        //       "Content-Type": "application/json",
-        //     },
-        //     body: JSON.stringify({ wallet: wallet.publicKey.toBase58() }),
-        //   });
-
-        //   if (!referralCodeRes.ok) {
-        //     console.error("Error fetching referral code");
-        //   } else {
-        //     const referralCodeData = await referralCodeRes.json();
-        //     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.thearena.trade";
-        //     referralCode = `${baseUrl}/refer/${referralCodeData.referralCode}`;
-        //   }
-        // }
-      }
-
-      const sortedGroups = sortGroups(groupMap, get().sortBy, groupsCache);
-      const totalPages = Math.ceil(groupMap.entries.length / POOLS_PER_PAGE);
-      const currentPage = get().currentPage || 1;
-
-      fuse = new Fuse([...groupMap.values()], {
-        includeScore: true,
-        threshold: 0.2,
-        keys: [
-          {
-            name: "pool.token.meta.tokenSymbol",
-            weight: 0.7,
-          },
-          {
-            name: "pool.token.meta.tokenName",
-            weight: 0.3,
-          },
-          {
-            name: "pool.token.info.state.mint.toBase58()",
-            weight: 0.1,
-          },
-        ],
-      });
-
-      set({
-        initialized: true,
-        groupsCache: groupsCache,
-        groupMap: sortedGroups,
-        totalPages,
-        currentPage,
-        nativeSolBalance,
-        tokenAccountMap,
-        wallet,
-        connection,
-        userDataFetched,
-        portfolio,
-        referralCode,
-      });
-    } catch (error) {
-      console.error(error);
-    }
+    // fetch all bank data
   },
+
+  fetchTradeState: async (args) => {},
+
+  // fetchTradeState: async (args) => {
+  //   try {
+  //     // fetch groups
+  //     let userDataFetched = false;
+
+  //     const connection = args.connection ?? get().connection;
+  //     const argWallet = args.wallet;
+  //     const storeWallet = get().wallet;
+  //     const dummyWallet = {
+  //       publicKey: PublicKey.default,
+  //       signMessage: (arg: any) => {},
+  //       signTransaction: (arg: any) => {},
+  //       signAllTransactions: (arg: any) => {},
+  //     } as Wallet;
+
+  //     const wallet =
+  //       argWallet && argWallet.publicKey ? argWallet : storeWallet && storeWallet.publicKey ? storeWallet : dummyWallet;
+  //     if (!connection) throw new Error("Connection not found");
+
+  //     let { tokenMetadataCache, bankMetadataCache, groupsCache } = get();
+
+  //     if (
+  //       !Object.keys(tokenMetadataCache).length ||
+  //       !Object.keys(bankMetadataCache).length ||
+  //       !Object.keys(groupsCache).length
+  //     ) {
+  //       try {
+  //         groupsCache = await fetch(TRADE_GROUPS_MAP).then((res) => res.json());
+  //         tokenMetadataCache = await loadTokenMetadatas(TOKEN_METADATA_MAP);
+  //         bankMetadataCache = await loadBankMetadatas(BANK_METADATA_MAP);
+  //       } catch (error) {
+  //         console.error(error);
+  //         return;
+  //       }
+
+  //       set({ groupsCache, tokenMetadataCache, bankMetadataCache });
+  //     }
+
+  //     const groupSummaries: ArenaGroupSummary[] = [];
+
+  //     const groupsKeys = Object.keys(groupsCache).map((group) => new PublicKey(group));
+
+  //     groupsKeys.forEach((group) => {
+  //       const groupCacheData = groupsCache[group.toBase58()];
+  //       const tokenBankKey = groupCacheData[0];
+  //       const quoteBankKey = groupCacheData[1];
+
+  //       const tokenBankMetadata = bankMetadataCache[tokenBankKey];
+  //       const tokenBankSummary: BankSummary = {
+  //         bankPk: new PublicKey(tokenBankKey),
+  //         mint: new PublicKey(tokenBankMetadata.tokenAddress),
+  //         tokenName: tokenBankMetadata.tokenName,
+  //         tokenSymbol: tokenBankMetadata.tokenSymbol,
+  //         tokenData: {},
+  //       };
+
+  //       const quoteBankMetadata = bankMetadataCache[quoteBankKey];
+  //     });
+
+  //     // const groups = Object.keys(groupsCache).map((group) => new PublicKey(group));
+  //     // const groupMap = get().groupMap;
+  //     // const allBanks: ExtendedBankInfo[] = [];
+
+  //     // const mintDatas: Map<string, MintData> = new Map();
+
+  //     // await Promise.all(
+  //     //   groups.map(async (group) => {
+  //     //     const bankKeys = groupsCache[group.toBase58()].map((bank) => new PublicKey(bank));
+
+  //     //     const { groupData, extendedBankInfos, marginfiClient } = await getGroupData({
+  //     //       groupPk: group,
+  //     //       wallet,
+  //     //       connection,
+  //     //       bankKeys,
+  //     //       bankMetadataCache,
+  //     //       tokenMetadataCache,
+  //     //     });
+
+  //     //     for (const [k, v] of marginfiClient.mintDatas) {
+  //     //       mintDatas.set(k, v);
+  //     //     }
+
+  //     //     allBanks.push(...extendedBankInfos);
+
+  //     //     groupMap.set(group.toBase58(), groupData);
+  //     //   })
+  //     // );
+
+  //     let nativeSolBalance = 0;
+  //     let tokenAccountMap: TokenAccountMap | null = null;
+  //     let portfolio: Portfolio | null = null;
+  //     let referralCode = get().referralCode;
+
+  //     if (!wallet.publicKey.equals(PublicKey.default)) {
+  //       const [tData] = await Promise.all([
+  //         fetchTokenAccounts(
+  //           connection,
+  //           wallet.publicKey,
+  //           allBanks.map((bank) => ({
+  //             mint: bank.info.rawBank.mint,
+  //             mintDecimals: bank.info.rawBank.mintDecimals,
+  //             bankAddress: bank.info.rawBank.address,
+  //           })),
+  //           mintDatas
+  //         ),
+  //       ]);
+
+  //       nativeSolBalance = tData.nativeSolBalance;
+  //       tokenAccountMap = tData.tokenAccountMap;
+
+  //       for (const [id, group] of groupMap) {
+  //         const updatedPool = getUpdatedGroupPool({ group, tokenAccountMap, nativeSolBalance });
+  //         groupMap.set(id, { ...group, pool: updatedPool });
+  //       }
+
+  //       portfolio = getPorfolioData(groupMap);
+  //       userDataFetched = true;
+
+  //       // fetch / create referral code
+  //       // if (!referralCode) {
+  //       //   const referralCodeRes = await fetch(`/api/user/referral/get-code`, {
+  //       //     method: "POST",
+  //       //     headers: {
+  //       //       "Content-Type": "application/json",
+  //       //     },
+  //       //     body: JSON.stringify({ wallet: wallet.publicKey.toBase58() }),
+  //       //   });
+
+  //       //   if (!referralCodeRes.ok) {
+  //       //     console.error("Error fetching referral code");
+  //       //   } else {
+  //       //     const referralCodeData = await referralCodeRes.json();
+  //       //     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.thearena.trade";
+  //       //     referralCode = `${baseUrl}/refer/${referralCodeData.referralCode}`;
+  //       //   }
+  //       // }
+  //     }
+
+  //     const sortedGroups = sortGroups(groupMap, get().sortBy, groupsCache);
+  //     const totalPages = Math.ceil(groupMap.entries.length / POOLS_PER_PAGE);
+  //     const currentPage = get().currentPage || 1;
+
+  //     fuse = new Fuse([...groupMap.values()], {
+  //       includeScore: true,
+  //       threshold: 0.2,
+  //       keys: [
+  //         {
+  //           name: "pool.token.meta.tokenSymbol",
+  //           weight: 0.7,
+  //         },
+  //         {
+  //           name: "pool.token.meta.tokenName",
+  //           weight: 0.3,
+  //         },
+  //         {
+  //           name: "pool.token.info.state.mint.toBase58()",
+  //           weight: 0.1,
+  //         },
+  //       ],
+  //     });
+
+  //     set({
+  //       initialized: true,
+  //       groupsCache: groupsCache,
+  //       groupMap: sortedGroups,
+  //       totalPages,
+  //       currentPage,
+  //       nativeSolBalance,
+  //       tokenAccountMap,
+  //       wallet,
+  //       connection,
+  //       userDataFetched,
+  //       portfolio,
+  //       referralCode,
+  //     });
+  //   } catch (error) {
+  //     console.error(error);
+  //   }
+  // },
 
   refreshGroup: async (args: { groupPk: PublicKey; connection?: Connection; wallet?: Wallet }) => {
     try {
@@ -456,7 +750,7 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
 
   searchBanks: (searchQuery: string) => {
     if (!fuse) return;
-    const searchResults = fuse.search(searchQuery);
+    const searchResults = (fuse as any).search(searchQuery);
 
     set((state) => {
       return {
@@ -539,7 +833,12 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
       portfolio: null,
       nativeSolBalance: 0,
       tokenAccountMap: null,
-      wallet: null,
+      wallet: {
+        publicKey: PublicKey.default,
+        signMessage: (arg: any) => {},
+        signTransaction: (arg: any) => {},
+        signAllTransactions: (arg: any) => {},
+      } as Wallet,
       userDataFetched: false,
     });
   },
@@ -852,3 +1151,127 @@ function getPorfolioData(groupMap: Map<string, GroupData>) {
 
 export { createTradeStore };
 export type { TradeStoreState };
+
+async function fetchPythFeedMap() {
+  const feedIdMapRaw: Record<string, string> = await fetch(`/api/oracle/pythFeedMap`).then((response) =>
+    response.json()
+  );
+  const feedIdMap: Map<string, PublicKey> = new Map(
+    Object.entries(feedIdMapRaw).map(([key, value]) => [key, new PublicKey(value)])
+  );
+  return feedIdMap;
+}
+
+async function fetchOraclePrices() {
+  const response = await fetch(`/api/oracle/price`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch oracle prices");
+  }
+
+  const responseBody = await response.json();
+
+  if (!responseBody) {
+    throw new Error("Failed to fetch oracle prices");
+  }
+
+  const oraclePrices = responseBody.map((oraclePrice: any) => ({
+    priceRealtime: {
+      price: BigNumber(oraclePrice.priceRealtime.price),
+      confidence: BigNumber(oraclePrice.priceRealtime.confidence),
+      lowestPrice: BigNumber(oraclePrice.priceRealtime.lowestPrice),
+      highestPrice: BigNumber(oraclePrice.priceRealtime.highestPrice),
+    },
+    priceWeighted: {
+      price: BigNumber(oraclePrice.priceWeighted.price),
+      confidence: BigNumber(oraclePrice.priceWeighted.confidence),
+      lowestPrice: BigNumber(oraclePrice.priceWeighted.lowestPrice),
+      highestPrice: BigNumber(oraclePrice.priceWeighted.highestPrice),
+    },
+    timestamp: oraclePrice.timestamp ? BigNumber(oraclePrice.timestamp) : null,
+  })) as OraclePrice[];
+
+  return oraclePrices;
+}
+
+// async function getCachedMarginfiAccountsForAuthority(
+//   authority: PublicKey,
+//   client: MarginfiClient
+// ): Promise<MarginfiAccountWrapper[]> {
+//   const debug = require("debug")("mfi:getCachedMarginfiAccountsForAuthority");
+//   if (typeof window === "undefined") {
+//     return client.getMarginfiAccountsForAuthority(authority);
+//   }
+
+//   const cacheKey = createLocalStorageKey(authority);
+//   const cachedAccountsStr = window.localStorage.getItem(cacheKey);
+//   let cachedAccounts: string[] = [];
+
+//   if (cachedAccountsStr) {
+//     cachedAccounts = JSON.parse(cachedAccountsStr);
+//   }
+
+//   debug("cachedAccounts", cachedAccounts);
+//   if (cachedAccounts && cachedAccounts.length > 0) {
+//     const accountAddresses: PublicKey[] = cachedAccounts.reduce((validAddresses: PublicKey[], address: string) => {
+//       try {
+//         const publicKey = new PublicKey(address);
+//         validAddresses.push(publicKey);
+//         return validAddresses;
+//       } catch (error) {
+//         console.warn(`Invalid public key: ${address}. Skipping.`);
+//         return validAddresses;
+//       }
+//     }, []);
+
+//     // Update local storage with valid addresses only
+//     window.localStorage.setItem(cacheKey, JSON.stringify(accountAddresses.map((addr) => addr.toString())));
+//     debug("Loading ", accountAddresses.length, "accounts from cache");
+//     return client.getMultipleMarginfiAccounts(accountAddresses);
+//   } else {
+//     const accounts = await client.getMarginfiAccountsForAuthority(authority);
+//     const accountAddresses = accounts.map((account) => account.address.toString());
+//     window.localStorage.setItem(cacheKey, JSON.stringify(accountAddresses));
+//     return accounts;
+//   }
+// }
+
+export async function getMarginfiAccountsForAuthority(
+  wallet: Wallet,
+  connection: Connection
+): Promise<MarginfiAccountWrapper[]> {
+  const idl = { ...(MARGINFI_IDL as unknown as MarginfiIdlType), address: programId.toBase58() };
+  const provider = new AnchorProvider(connection, wallet, {
+    ...AnchorProvider.defaultOptions(),
+    commitment: connection.commitment ?? AnchorProvider.defaultOptions().commitment,
+  });
+
+  const program = new Program(idl, provider) as any as MarginfiProgram;
+
+  const marginfiAccounts = await program.account.marginfiAccount.all([
+    {
+      memcmp: {
+        bytes: wallet.publicKey.toBase58(),
+        offset: 8 + 32, // authority is the second field in the account after the authority, so offset by the discriminant and a pubkey
+      },
+    },
+  ]);
+  // .map((a) => MarginfiAccountWrapper.fromAccountParsed(a.publicKey, this, a.account as MarginfiAccountRaw));
+
+  console.log({ marginfiAccounts });
+  // marginfiAccounts.sort((accountA, accountB) => {
+  //   const assetsValueA = accountA.computeHealthComponents(MarginRequirementType.Equity).assets;
+  //   const assetsValueB = accountB.computeHealthComponents(MarginRequirementType.Equity).assets;
+
+  //   if (assetsValueA.eq(assetsValueB)) return 0;
+  //   return assetsValueA.gt(assetsValueB) ? -1 : 1;
+  // });
+
+  // return marginfiAccounts;
+  return [];
+}

@@ -17,11 +17,12 @@ import {
   decodeSwitchboardPullFeedData,
   FeedResponse,
 } from "@mrgnlabs/marginfi-client-v2/dist/vendor";
-import { chunkedGetRawMultipleAccountInfoOrdered, median, Wallet } from "@mrgnlabs/mrgn-common";
+import { chunkedGetRawMultipleAccountInfoOrdered, loadBankMetadatas, median, Wallet } from "@mrgnlabs/mrgn-common";
 import { Connection, PublicKey } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 import { NextApiRequest, NextApiResponse } from "next";
 import config from "~/config/marginfi";
+import { BANK_METADATA_MAP } from "~/config/trade";
 
 const SWITCHBOARD_CROSSSBAR_API = process.env.SWITCHBOARD_CROSSSBAR_API || "https://crossbar.switchboard.xyz";
 const IS_SWB_STAGE = SWITCHBOARD_CROSSSBAR_API === "https://staging.crossbar.switchboard.xyz";
@@ -53,13 +54,13 @@ interface OraclePriceString {
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const requestedBanksRaw = req.query.banks;
+  const bankMetadataResponse = await loadBankMetadatas(BANK_METADATA_MAP);
 
-  if (!requestedBanksRaw || typeof requestedBanksRaw !== "string") {
+  const requestedBanks = Object.keys(bankMetadataResponse);
+
+  if (!requestedBanks) {
     return res.status(400).json({ error: "Invalid input: expected an array of bank base58-encoded addresses." });
   }
-
-  const requestedBanks = requestedBanksRaw.split(",").map((bankAddress) => bankAddress.trim());
 
   const connection = new Connection(process.env.PRIVATE_RPC_ENDPOINT_OVERRIDE || "");
   const idl = { ...MARGINFI_IDL, address: config.mfiConfig.programId.toBase58() } as unknown as MarginfiIdlType;
