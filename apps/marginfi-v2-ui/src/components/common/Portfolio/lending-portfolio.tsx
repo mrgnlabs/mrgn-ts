@@ -3,9 +3,9 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 
 import { VersionedTransaction } from "@solana/web3.js";
-import { IconInfoCircle, IconLoader } from "@tabler/icons-react";
+import { IconInfoCircle } from "@tabler/icons-react";
 
-import { numeralFormatter } from "@mrgnlabs/mrgn-common";
+import { numeralFormatter, SolanaTransaction } from "@mrgnlabs/mrgn-common";
 import { usdFormatter, usdFormatterDyn } from "@mrgnlabs/mrgn-common";
 import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { LendingModes } from "@mrgnlabs/mrgn-utils";
@@ -22,6 +22,7 @@ import { PortfolioAssetCard, PortfolioAssetCardSkeleton, PortfolioUserStats } fr
 import { rewardsType } from "./types";
 import { useRewardSimulation } from "./hooks";
 import { executeCollectTxn } from "./utils";
+import { IconLoader } from "~/components/ui/icons";
 
 export const LendingPortfolio = () => {
   const router = useRouter();
@@ -57,32 +58,30 @@ export const LendingPortfolio = () => {
   // Rewards
   const [rewardsState, setRewardsState] = React.useState<rewardsType>({
     state: "NOT_FETCHED",
-    tooltipContent: "",
+    tooltipContent: "Calculating rewards...",
     rewards: {
       totalReward: 0,
       rewards: [],
     },
   });
   const [rewardsDialogOpen, setRewardsDialogOpen] = React.useState(false);
-  const [actionTxn, setActionTxn] = React.useState<VersionedTransaction | null>(null);
+  const [actionTxn, setActionTxn] = React.useState<SolanaTransaction | null>(null);
   const [rewardsLoading, setRewardsLoading] = React.useState(false);
   const hasMultipleAccount = React.useMemo(() => marginfiAccounts.length > 1, [marginfiAccounts]);
+  const [firstTimeFetchingRewards, setFirstTimeFetchingRewards] = React.useState(true);
 
   const { handleSimulation } = useRewardSimulation({
     simulationResult: rewardsState,
-    actionTxn,
     marginfiClient,
     selectedAccount,
     extendedBankInfos: sortedBanks,
     setSimulationResult: setRewardsState,
-    setActionTxn,
     setErrorMessage: () => {}, // No error handling, should fail silently since it is on page load.
+    setActionTxn,
   });
 
-  const [firstTimeFetchingRewards, setFirstTimeFetchingRewards] = React.useState(true);
   React.useEffect(() => {
     if (selectedAccount && marginfiClient?.banks && firstTimeFetchingRewards) {
-      console.log("hierzo 4");
       handleSimulation();
       setFirstTimeFetchingRewards(false);
     }
@@ -90,10 +89,10 @@ export const LendingPortfolio = () => {
 
   const handleCollectExectuion = React.useCallback(async () => {
     if (!marginfiClient || !actionTxn) return;
-    await executeCollectTxn(marginfiClient, actionTxn, setRewardsLoading, setActionTxn, () => {
+    await executeCollectTxn(marginfiClient, actionTxn, { ...priorityFees, broadcastType }, setRewardsLoading, () => {
       setRewardsDialogOpen(false);
     });
-  }, [marginfiClient, actionTxn]);
+  }, [marginfiClient, actionTxn, priorityFees, broadcastType]);
 
   const lendingBanks = React.useMemo(
     () =>
@@ -184,10 +183,6 @@ export const LendingPortfolio = () => {
     }
   }, [connected]);
 
-  React.useEffect(() => {
-    console.log({ rewardsState });
-  }, [rewardsState]);
-
   if (isStoreInitialized && !connected) {
     return <WalletButton />;
   }
@@ -243,10 +238,14 @@ export const LendingPortfolio = () => {
           <div className="flex text-lg items-center gap-1.5 text-sm">
             <TooltipProvider>
               <Tooltip>
-                <TooltipTrigger asChild>
-                  {rewardsState.state === "NOT_FETCHED" && <>not fetched rewards</>}
+                <TooltipTrigger className="inline-flex items-center gap-1">
+                  {rewardsState.state === "NOT_FETCHED" && (
+                    <span className="cursor-default text-muted-foreground flex gap-1 items-center">
+                      Calculating rewards <IconLoader size={16} />
+                    </span>
+                  )}
                   {rewardsState.state === "NO_REWARDS" && (
-                    <button className="cursor-default text-muted-foreground">No outstanding rewards</button>
+                    <span className="cursor-default text-muted-foreground">No outstanding rewards</span>
                   )}
                   {rewardsState.state === "REWARDS_FETCHED" && rewardsState.rewards.totalReward > 0 && (
                     <button
@@ -258,10 +257,15 @@ export const LendingPortfolio = () => {
                       Collect rewards
                     </button>
                   )}
-                  <IconInfoCircle size={16} className="text-muted-foreground" />
+                  {rewardsState.state === "ERROR" && (
+                    <span className="cursor-default text-muted-foreground">No outstanding rewards</span>
+                  )}
+                  {rewardsState.state !== "NOT_FETCHED" && (
+                    <IconInfoCircle size={16} className="text-muted-foreground" />
+                  )}
                 </TooltipTrigger>
                 <TooltipContent>
-                  {rewardsState.state !== "NOT_FETCHED" && <span>{rewardsState.tooltipContent}</span>}
+                  <span>{rewardsState.tooltipContent}</span>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
