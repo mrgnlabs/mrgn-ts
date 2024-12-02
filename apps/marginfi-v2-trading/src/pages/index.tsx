@@ -20,6 +20,7 @@ import { Button } from "~/components/ui/button";
 import { Loader } from "~/components/common/Loader";
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
+import { getMarginfiAccountsForAuthority } from "~/store/tradeStoreV2";
 
 const sortOptions: {
   value: TradePoolFilterStates;
