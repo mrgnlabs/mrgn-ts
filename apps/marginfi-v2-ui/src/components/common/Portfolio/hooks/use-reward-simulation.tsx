@@ -24,13 +24,12 @@ import { rewardsType } from "../types";
 
 type RewardSimulationProps = {
   simulationResult: rewardsType | null;
-  actionTxn: VersionedTransaction | null;
   marginfiClient: MarginfiClient | null;
   selectedAccount: MarginfiAccountWrapper | null;
   extendedBankInfos: ExtendedBankInfo[];
 
   setSimulationResult: (result: rewardsType) => void;
-  setActionTxn: (actionTxn: VersionedTransaction | null) => void;
+  setActionTxn: (actionTxn: SolanaTransaction) => void;
   setErrorMessage: (error: ActionMessageType | null) => void;
 };
 
@@ -39,6 +38,7 @@ export const useRewardSimulation = ({
   selectedAccount,
   extendedBankInfos,
   setSimulationResult,
+  setActionTxn,
 }: RewardSimulationProps) => {
   const generateTxn = async (
     banksWithEmissions: ExtendedBankInfo[],
@@ -59,13 +59,12 @@ export const useRewardSimulation = ({
       if (!marginfiClient || !selectedAccount) {
         setSimulationResult({
           state: "ERROR",
-          tooltipContent: "",
+          tooltipContent: "Error fetching rewards",
           rewards: {
             rewards: [],
             totalReward: 0,
           },
         });
-        console.log("hierzo");
         return;
       } // TOOD: update this state
 
@@ -79,8 +78,6 @@ export const useRewardSimulation = ({
             rewards: [],
           },
         });
-        console.log("hierzo 2");
-
         return;
       }
 
@@ -97,7 +94,6 @@ export const useRewardSimulation = ({
             rewards: [],
           },
         });
-        console.log("hierzo 3");
         return;
       }
 
@@ -186,6 +182,7 @@ export const useRewardSimulation = ({
       });
 
       setSimulationResult(rewards);
+      setActionTxn(txns);
     } catch (error) {
       console.error("Error simulating emissions transactions", error);
       captureSentryException(error, "Error simulating emissions transactions", {
@@ -201,7 +198,7 @@ export const useRewardSimulation = ({
         },
       });
     }
-  }, [extendedBankInfos, marginfiClient, selectedAccount, setSimulationResult]);
+  }, [extendedBankInfos, marginfiClient, selectedAccount, setActionTxn, setSimulationResult]);
 
   return {
     handleSimulation,
