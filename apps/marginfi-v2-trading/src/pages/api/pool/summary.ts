@@ -30,9 +30,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
     const program = new Program(idl, provider) as any as MarginfiProgram;
 
-    const groupsCache = (await fetch(TRADE_GROUPS_MAP)).json() as any as TradeGroupsCache;
+    const groupsCache = (await fetch(TRADE_GROUPS_MAP).then((res) => res.json())) as any as TradeGroupsCache;
 
     const bankAddresses = Object.values(groupsCache).flat();
+
     const banksAis = await chunkedGetRawMultipleAccountInfoOrdered(connection, bankAddresses);
     let banksMap: { address: PublicKey; data: BankRaw }[] = banksAis.map((account, index) => ({
       address: new PublicKey(bankAddresses[index]),
@@ -41,8 +42,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const groupSummaries = Object.entries(groupsCache).reduce(
       (acc, [groupPk, bankAddresses]) => {
-        const tokenBankAddress = bankAddresses[0];
-        const quoteBankAddress = bankAddresses[1];
+        const quoteBankAddress = bankAddresses[0];
+        const tokenBankAddress = bankAddresses[1];
 
         const tokenBank = banksMap.find((b) => b.address.toBase58() === tokenBankAddress);
         const quoteBank = banksMap.find((b) => b.address.toBase58() === quoteBankAddress);
