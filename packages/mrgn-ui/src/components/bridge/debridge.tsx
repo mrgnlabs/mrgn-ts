@@ -1,7 +1,6 @@
 import React from "react";
-
-import { useIsMobile, cn } from "@mrgnlabs/mrgn-utils";
-
+import Script from "next/script";
+import { useIsMobile } from "@mrgnlabs/mrgn-utils";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
 const Debridge = () => {
@@ -50,30 +49,28 @@ const Debridge = () => {
   }, []);
 
   React.useEffect(() => {
-    if (widget) {
-      widget.then((widget: any) => {
-        widget.on("order", (event: any, params: any) => {
-          console.log("order params", params);
-        });
-
-        widget.on("singleChainSwap", (event: any, params: any) => {
-          console.log("singleChainSwap params", params);
-        });
-      });
-    }
-  }, [widget]);
-
-  React.useEffect(() => {
     if (window.deBridge && isMounted && !(divRef.current && divRef.current.innerHTML)) {
       loadDeBridgeWidget();
     }
   }, [isMounted, loadDeBridgeWidget]);
 
   return (
-    <div
-      id="debridgeWidget"
-      className={cn("max-w-[420px] mx-auto w-full px-[1.35rem] max-h-[500px] transition-opacity font-aeonik")}
-    ></div>
+    <>
+      <Script
+        src="https://app.debridge.finance/assets/scripts/widget.js"
+        strategy="afterInteractive"
+        onLoad={() => {
+          if (isMounted) {
+            loadDeBridgeWidget();
+          }
+        }}
+      />
+      <div
+        id="debridgeWidget"
+        className="max-w-[420px] mx-auto w-full px-[1.35rem] max-h-[500px] transition-opacity font-aeonik"
+        ref={divRef}
+      />
+    </>
   );
 };
 
