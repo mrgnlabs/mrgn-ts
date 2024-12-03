@@ -27,7 +27,7 @@ export const ClosePositionScreen = ({ tokenBank, collateralBank, txn, txnLink }:
               height={36}
             />
           )}
-          <h3 className="text-4xl font-medium">{`${tokenBank?.meta.tokenSymbol}/${collateralBank?.meta.tokenSymbol}`}</h3>
+          <h3 className="text-4xl font-medium text-center">{`${tokenBank?.meta.tokenSymbol}/${collateralBank?.meta.tokenSymbol}`}</h3>
         </div>
       </div>
       <dl className="grid grid-cols-2 w-full text-muted-foreground gap-x-8 gap-y-2">
