@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 
 import { identify } from "@mrgnlabs/mrgn-utils";
 
-import { useTradeStore, useUiStore } from "~/store";
+import { useTradeStore, useTradeStoreV2, useUiStore } from "~/store";
 import { useConnection } from "~/hooks/use-connection";
 import { useWallet } from "~/components/wallet-v2";
 
@@ -22,8 +22,14 @@ export const TradePovider: React.FC<{
     state.setIsRefreshingStore,
     state.resetUserData,
   ]);
+  const [fetchArenaGroups] = useTradeStoreV2((state) => [state.fetchArenaGroups]);
+
   const [fetchPriorityFee] = useUiStore((state) => [state.fetchPriorityFee]);
   const [isLoggedIn, setIsLoggedIn] = React.useState(false);
+
+  React.useEffect(() => {
+    fetchArenaGroups();
+  }, [fetchArenaGroups]);
 
   React.useEffect(() => {
     const trackReferral = async (referralCode: string, walletAddress: string) => {
