@@ -74,8 +74,8 @@ export const LoopScreen = ({
           />
         </div>
 
-        <div className="flex flex-col gap-2 justify-center items-center">
-          <h3 className="text-2xl font-medium">
+        <div className="flex flex-col gap-2 justify-center items-center text-center">
+          <h3 className="text-2xl font-medium text-center">
             You looped {dynamicNumeralFormatter(depositAmount, { minDisplay: 0.01 })}{" "}
             {depositBank.meta.tokenSymbol.toUpperCase()} with{" "}
             {dynamicNumeralFormatter(borrowAmount, { minDisplay: 0.01 })} {borrowBank.meta.tokenSymbol.toUpperCase()}

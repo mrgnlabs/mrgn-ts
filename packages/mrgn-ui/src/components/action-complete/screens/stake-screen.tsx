@@ -38,7 +38,7 @@ export const StakingScreen = ({ amount, type, txn, originDetails, txnLink }: Pro
             <IconSol size={48} className="-ml-2 relative z-10" />
           )}
         </div>
-        <h3 className="text-2xl font-medium">
+        <h3 className="text-2xl font-medium text-center">
           {/* {dynamicNumeralFormatter(amount)} {type === ActionType.MintLST ? "LST" : "SOL"} */}
           {type === ActionType.MintLST
             ? `You staked ${dynamicNumeralFormatter(originDetails.amount, {
