@@ -31,6 +31,7 @@ import { Footer } from "~/components/desktop/Footer";
 
 import "react-toastify/dist/ReactToastify.min.css";
 import { AuthDialog } from "~/components/wallet-v2";
+import { BridgeScript } from "~/components/common/Bridge";
 
 require("~/styles/globals.css");
 require("~/styles/fonts.css");
@@ -65,6 +66,7 @@ export default function MrgnApp({ Component, pageProps, path, bank }: AppProps &
               <MrgnWalletProvider>
                 <TradePovider>
                   <ActionProvider broadcastType={broadcastType} priorityFees={priorityFees}>
+                    <BridgeScript />
                     <div className="mrgn-bg-gradient">
                       <Header />
 

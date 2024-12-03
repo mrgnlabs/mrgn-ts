@@ -21,6 +21,7 @@ import { WALLET_ADAPTERS } from "~/config/wallets";
 import { useMrgnlendStore, useUiStore } from "~/store";
 import { WalletProvider as MrgnWalletProvider } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { ConnectionProvider } from "~/hooks/use-connection";
+import { BridgeScript } from "~/components/common/Bridge";
 
 import { Meta } from "~/components/common/Meta";
 import { MobileNavbar } from "~/components/mobile/MobileNavbar";
@@ -110,6 +111,7 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
                         connected={false}
                         accountSummaryArg={accountSummary}
                       >
+                        <BridgeScript />
                         <CongestionBanner />
                         <Navbar />
 
