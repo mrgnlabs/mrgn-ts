@@ -6,10 +6,9 @@ import { IconSortAscending, IconSortDescending, IconSparkles, IconGridDots, Icon
 import { motion } from "framer-motion";
 import { capture } from "@mrgnlabs/mrgn-utils";
 
-import { useTradeStore, useTradeStoreV2, useUiStore } from "~/store";
+import { useTradeStoreV2 } from "~/store";
 import { TradePoolFilterStates } from "~/store/tradeStore";
 import { useActionBoxStore } from "~/components/action-box-v2/store";
-import { POOLS_PER_PAGE } from "~/config/trade";
 import { useIsMobile } from "~/hooks/use-is-mobile";
 import { ActionComplete } from "~/components/action-complete";
 
