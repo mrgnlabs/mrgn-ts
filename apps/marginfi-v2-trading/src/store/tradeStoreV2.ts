@@ -11,6 +11,7 @@ import {
   DEFAULT_ACCOUNT_SUMMARY,
   AccountSummary,
   fetchGroupData,
+  TokenAccount,
 } from "@mrgnlabs/marginfi-v2-ui-state";
 import {
   MarginfiClient,
@@ -123,10 +124,18 @@ export type ArenaPoolSummary = {
   tokenSummary: BankSummary;
 };
 
+export enum GroupStatus {
+  LP = "lp",
+  LONG = "long",
+  SHORT = "short",
+  EMPTY = "empty",
+}
+
 export type ArenaPoolV2 = {
-  tokenBankPk: PublicKey;
-  quoteBankPks: PublicKey[];
   groupPk: PublicKey;
+  tokenBankPk: PublicKey;
+  quoteBankPk: PublicKey;
+  status: GroupStatus;
 };
 
 // api calls
@@ -144,7 +153,7 @@ interface BankSummaryApiResponse extends BankData {
   mint: string;
 }
 
-type TradeStoreState = {
+type TradeStoreV2State = {
   // keep track of store state
   initialized: boolean;
   userDataFetched: boolean;
@@ -237,11 +246,11 @@ const USDC_MINT = new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
 
 let fuse: Fuse<GroupData> | null = null;
 
-function createTradeStore() {
-  return create<TradeStoreState>(stateCreator);
+function createTradeStoreV2() {
+  return create<TradeStoreV2State>(stateCreator);
 }
 
-const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
+const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
   initialized: false,
   userDataFetched: false,
   isRefreshingStore: false,
@@ -479,7 +488,7 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
       }
     });
 
-    const extendedBankInfos = banksWithPriceAndToken.map(async ({ bank, oraclePrice, tokenMetadata }) => {
+    let extendedBankInfos = banksWithPriceAndToken.map(({ bank, oraclePrice, tokenMetadata }) => {
       const extendedBankInfo = makeExtendedBankInfo(tokenMetadata, bank, oraclePrice);
       const mintAddress = bank.mint.toBase58();
       const tokenData = tokenDatasByMint[mintAddress];
@@ -521,7 +530,7 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
       nativeSolBalance = tokenAccounts.nativeSolBalance;
       tokenAccountMap = tokenAccounts.tokenAccountMap;
 
-      const marginfiAccounts = new Map<string, MarginfiAccount[]>();
+      const marginfiAccountsByGroupPk = new Map<string, MarginfiAccount>();
 
       const accounts = await program.account.marginfiAccount.all([
         {
@@ -534,13 +543,89 @@ const stateCreator: StateCreator<TradeStoreState, [], []> = (set, get) => ({
 
       accounts.forEach((a) => {
         const groupKey = a.account.group.toBase58();
-        const accountList = marginfiAccounts.get(groupKey) || [];
-        accountList.push(new MarginfiAccount(a.publicKey, a.account));
-        marginfiAccounts.set(groupKey, accountList);
+        const account = new MarginfiAccount(a.publicKey, a.account);
+        const existingAccount = marginfiAccountsByGroupPk.get(groupKey);
+
+        if (existingAccount) {
+          const isUpdateAccount = existingAccount.activeBalances.length < account.activeBalances.length;
+
+          if (isUpdateAccount) {
+            marginfiAccountsByGroupPk.set(groupKey, account);
+          }
+        } else {
+          marginfiAccountsByGroupPk.set(groupKey, account);
+        }
+      });
+
+      extendedBankInfos = extendedBankInfos.map((bankInfo) => {
+        const marginfiAccount = marginfiAccountsByGroupPk.get(bankInfo.info.rawBank.group.toBase58()) ?? null;
+        const tokenAccount = tokenAccountMap?.get(bankInfo.info.rawBank.mint.toBase58());
+
+        return updateBank(bankInfo, nativeSolBalance, marginfiAccount, banks, priceInfos, tokenAccount);
       });
     }
 
-    // set({  extendedBankInfos });
+    const arenaPools: Record<string, ArenaPoolV2> = {};
+
+    Object.entries(arenaPoolsSummary).map(([groupPk, group]) => {
+      const tokenBank = extendedBankInfos.find((b) => b.info.rawBank.address.equals(group.tokenSummary.bankPk));
+      const quoteBank = extendedBankInfos.find((b) => b.info.rawBank.address.equals(group.quoteSummary.bankPk));
+
+      if (!tokenBank || !quoteBank) {
+        throw new Error(`Failed to find token or quote bank for group ${groupPk}`);
+      }
+
+      let isLpPosition = true;
+      let hasAnyPosition = false;
+      let isLendingInAny = false;
+      let isLong = false;
+      let isShort = false;
+
+      if (tokenBank.isActive && tokenBank.position) {
+        hasAnyPosition = true;
+        if (tokenBank.position.isLending) {
+          isLendingInAny = true;
+        } else if (tokenBank.position.usdValue > 0) {
+          isShort = true;
+          isLpPosition = false;
+        }
+      }
+
+      if (quoteBank.isActive && quoteBank.position) {
+        hasAnyPosition = true;
+        if (quoteBank.position.isLending) {
+          isLendingInAny = true;
+        } else if (quoteBank.position.usdValue > 0) {
+          if (tokenBank.isActive && tokenBank.position && tokenBank.position.isLending) {
+            isLong = true;
+          }
+          isLpPosition = false;
+        }
+      }
+
+      let status = GroupStatus.EMPTY;
+
+      if (hasAnyPosition) {
+        if (isLpPosition && isLendingInAny) {
+          status = GroupStatus.LP;
+        } else if (isLong) {
+          status = GroupStatus.LONG;
+        } else if (isShort) {
+          status = GroupStatus.SHORT;
+        }
+      }
+
+      const arenaPool: ArenaPoolV2 = {
+        groupPk: group.groupPk,
+        tokenBankPk: group.tokenSummary.bankPk,
+        quoteBankPk: group.quoteSummary.bankPk,
+        status,
+      };
+
+      arenaPools[groupPk] = arenaPool;
+    });
+
+    set({ arenaPools });
 
     // fetch all bank data
   },
@@ -1189,8 +1274,8 @@ function getPorfolioData(groupMap: Map<string, GroupData>) {
   return portfolio;
 }
 
-export { createTradeStore };
-export type { TradeStoreState };
+export { createTradeStoreV2 };
+export type { TradeStoreV2State };
 
 async function fetchPythFeedMap() {
   const feedIdMapRaw: Record<string, string> = await fetch(`/api/oracle/pythFeedMap`).then((response) =>
@@ -1280,6 +1365,36 @@ async function fetchOraclePrices() {
 //     return accounts;
 //   }
 // }
+
+const updateBank = (
+  bank: ArenaBank,
+  nativeSolBalance: number,
+  account: MarginfiAccount | null,
+  banks: Map<string, Bank>,
+  oraclePrices: Map<string, OraclePrice>,
+  tokenAccount?: TokenAccount
+) => {
+  if (!tokenAccount) return bank;
+
+  const updatedBankInfo = makeExtendedBankInfo(
+    { icon: bank.meta.tokenLogoUri, name: bank.meta.tokenName, symbol: bank.meta.tokenSymbol },
+    bank.info.rawBank,
+    bank.info.oraclePrice,
+    undefined,
+    {
+      nativeSolBalance,
+      marginfiAccount: account,
+      tokenAccount,
+      banks,
+      oraclePrices,
+    }
+  );
+
+  return {
+    ...updatedBankInfo,
+    tokenData: bank.tokenData,
+  };
+};
 
 export async function getMarginfiAccountsForAuthority(
   wallet: Wallet,
