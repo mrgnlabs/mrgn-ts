@@ -45,7 +45,11 @@ export const LoopAction = ({
             <div className="flex space-x-1">
               <div>{maxLabel.amount}</div>
               <button
-                className="cursor-pointer border-b border-transparent transition text-mfi-action-box-highlight hover:border-mfi-action-box-highlight"
+                className={` border-b border-transparent transition ${
+                  maxAmount === 0 || !selectedSecondaryBank
+                    ? "text-muted-foreground"
+                    : "text-mfi-action-box-highlight cursor-pointer hover:border-mfi-action-box-highlight"
+                }`}
                 disabled={maxAmount === 0 || !selectedSecondaryBank}
                 onClick={() => onSetAmountRaw(numberFormater.format(maxAmount))}
               >
