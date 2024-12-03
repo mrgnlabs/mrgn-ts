@@ -6,7 +6,7 @@ import { IconSortAscending, IconSortDescending, IconSparkles, IconGridDots, Icon
 import { motion } from "framer-motion";
 import { capture } from "@mrgnlabs/mrgn-utils";
 
-import { useTradeStore, useUiStore } from "~/store";
+import { useTradeStore, useTradeStoreV2, useUiStore } from "~/store";
 import { TradePoolFilterStates } from "~/store/tradeStore";
 import { useActionBoxStore } from "~/components/action-box-v2/store";
 import { POOLS_PER_PAGE } from "~/config/trade";
@@ -20,7 +20,6 @@ import { Button } from "~/components/ui/button";
 import { Loader } from "~/components/common/Loader";
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
-import { getMarginfiAccountsForAuthority } from "~/store/tradeStoreV2";
 
 const sortOptions: {
   value: TradePoolFilterStates;
@@ -42,9 +41,10 @@ enum View {
 export default function HomePage() {
   const router = useRouter();
   const isMobile = useIsMobile();
-  const [initialized, groupMap, sortBy, setSortBy] = useTradeStore((state) => [
+
+  const [initialized, arenaPoolsSummary, sortBy, setSortBy] = useTradeStoreV2((state) => [
     state.initialized,
-    state.groupMap,
+    state.arenaPoolsSummary,
     state.sortBy,
     state.setSortBy,
   ]);
@@ -61,20 +61,20 @@ export default function HomePage() {
     return option?.dir || "desc";
   }, [sortBy]);
 
-  const groups = React.useMemo(() => {
-    return [...groupMap.values()];
-  }, [groupMap]);
+  const arenaPools = React.useMemo(() => {
+    return [...Object.values(arenaPoolsSummary)];
+  }, [arenaPoolsSummary]);
 
   const handleFeelingLucky = React.useCallback(() => {
-    const randomGroup = groups[Math.floor(Math.random() * groups.length)];
+    const randomGroup = arenaPools[Math.floor(Math.random() * arenaPools.length)];
     if (!randomGroup) return;
     capture("feeling_lucky", {
       groupAddress: randomGroup.groupPk.toBase58(),
-      tokenAddress: randomGroup.pool.token.info.state.mint.toString(),
-      tokenSymbol: randomGroup.pool.token.meta.tokenSymbol,
+      tokenAddress: randomGroup.tokenSummary.mint.toString(),
+      tokenSymbol: randomGroup.tokenSummary.tokenSymbol,
     });
     router.push(`/trade/${randomGroup.groupPk.toBase58()}`);
-  }, [groups, router]);
+  }, [arenaPools, router]);
 
   React.useEffect(() => {
     setSortBy(TradePoolFilterStates.PRICE_MOVEMENT_DESC);
@@ -171,8 +171,8 @@ export default function HomePage() {
                     },
                   }}
                 >
-                  {groups.length > 0 &&
-                    groups.map((group, i) => (
+                  {arenaPools.length > 0 &&
+                    arenaPools.map((pool, i) => (
                       <motion.div
                         key={i}
                         variants={{
@@ -181,7 +181,7 @@ export default function HomePage() {
                         }}
                         transition={{ duration: 0.5 }}
                       >
-                        <PoolCard groupData={group} />
+                        <PoolCard poolData={pool} />
                       </motion.div>
                     ))}
                 </motion.div>
@@ -198,9 +198,9 @@ export default function HomePage() {
                     <div />
                   </div>
                   <div className="bg-background border rounded-xl px-4 py-1">
-                    {groups.length > 0 &&
-                      groups.map((group, i) => (
-                        <PoolListItem key={i} groupData={group} last={i === groups.length - 1} />
+                    {arenaPools.length > 0 &&
+                      arenaPools.map((pool, i) => (
+                        <PoolListItem key={i} poolData={pool} last={i === arenaPools.length - 1} />
                       ))}
                   </div>
                 </div>

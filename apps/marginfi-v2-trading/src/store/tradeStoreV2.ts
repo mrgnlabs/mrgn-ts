@@ -114,6 +114,8 @@ export type BankSummary = {
   mint: PublicKey;
   tokenName: string;
   tokenSymbol: string;
+  tokenLogoUri: string;
+
   bankData: BankData;
   tokenData: TokenData;
 };
@@ -173,13 +175,10 @@ type TradeStoreV2State = {
   arenaPools: Record<string, ArenaPoolV2>;
   groupsByGroupPk: Record<string, MarginfiGroup>;
   banksByBankPk: Record<string, ArenaBank>;
-  tokenDatasByMint: Record<string, TokenData>;
+  tokenDataByMint: Record<string, TokenData>;
 
   // user token account map
   tokenAccountMap: TokenAccountMap | null;
-
-  // array of marginfi groups
-  groupMap: Map<string, GroupData>;
 
   // array of banks filtered by search query
   searchResults: FuseResult<GroupData>[];
@@ -279,7 +278,7 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
   arenaPools: {},
   groupsByGroupPk: {},
   banksByBankPk: {},
-  tokenDatasByMint: {},
+  tokenDataByMint: {},
 
   setIsRefreshingStore: (isRefreshing) => {
     set((state) => {
@@ -318,7 +317,6 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
     }
 
     const allBankMints = [...new Set(Object.values(bankMetadataCache).map((bank) => bank.tokenAddress))];
-
     const bankSummaryByGroup: PoolSummaryByGroupResponse = await fetch("/api/pool/summary").then((res) => res.json());
     const tokenDetails: TokenData[] = await Promise.all(
       allBankMints.map((mint) => fetch(`/api/birdeye/token?address=${mint}`).then((res) => res.json()))
@@ -345,6 +343,7 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
             tokenSymbol: tokenDetailsToken.symbol,
             bankData: tokenBankData,
             tokenData: tokenDetailsToken,
+            tokenLogoUri: `https://storage.googleapis.com/mrgn-public/mrgn-token-icons/${tokenMint}.png`,
           },
           quoteSummary: {
             bankPk: new PublicKey(quoteBankPk),
@@ -353,6 +352,7 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
             tokenSymbol: tokenDetailsQuote.symbol,
             bankData: quoteBankData,
             tokenData: tokenDetailsQuote,
+            tokenLogoUri: `https://storage.googleapis.com/mrgn-public/mrgn-token-icons/${quoteMint}.png`,
           },
         };
         return acc;
@@ -360,16 +360,16 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
       {} as Record<string, ArenaPoolSummary>
     );
 
-    set({ arenaPoolsSummary: groupSummaryByGroup, tokenDatasByMint: tokenDetailsByMint });
+    set({ arenaPoolsSummary: groupSummaryByGroup, tokenDataByMint: tokenDetailsByMint, initialized: true });
   },
 
   fetchExtendedArenaGroups: async (args) => {
     const connection = args.connection || get().connection;
     const wallet = args.wallet || get().wallet;
-    const { tokenDatasByMint, tokenMetadataCache, bankMetadataCache, groupsCache, arenaPoolsSummary } = get();
+    const { tokenDataByMint, tokenMetadataCache, bankMetadataCache, groupsCache, arenaPoolsSummary } = get();
 
     if (!connection) throw new Error("Connection not found");
-    if (!Object.keys(arenaPoolsSummary).length || !Object.keys(tokenDatasByMint).length) {
+    if (!Object.keys(arenaPoolsSummary).length || !Object.keys(tokenDataByMint).length) {
       throw new Error("Not ready");
     }
 
@@ -491,7 +491,7 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
     let extendedBankInfos = banksWithPriceAndToken.map(({ bank, oraclePrice, tokenMetadata }) => {
       const extendedBankInfo = makeExtendedBankInfo(tokenMetadata, bank, oraclePrice);
       const mintAddress = bank.mint.toBase58();
-      const tokenData = tokenDatasByMint[mintAddress];
+      const tokenData = tokenDataByMint[mintAddress];
       if (!tokenData) {
         console.error("Failed to parse token data");
       }
@@ -632,246 +632,7 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
 
   fetchTradeState: async (args) => {},
 
-  // fetchTradeState: async (args) => {
-  //   try {
-  //     // fetch groups
-  //     let userDataFetched = false;
-
-  //     const connection = args.connection ?? get().connection;
-  //     const argWallet = args.wallet;
-  //     const storeWallet = get().wallet;
-  //     const dummyWallet = {
-  //       publicKey: PublicKey.default,
-  //       signMessage: (arg: any) => {},
-  //       signTransaction: (arg: any) => {},
-  //       signAllTransactions: (arg: any) => {},
-  //     } as Wallet;
-
-  //     const wallet =
-  //       argWallet && argWallet.publicKey ? argWallet : storeWallet && storeWallet.publicKey ? storeWallet : dummyWallet;
-  //     if (!connection) throw new Error("Connection not found");
-
-  //     let { tokenMetadataCache, bankMetadataCache, groupsCache } = get();
-
-  //     if (
-  //       !Object.keys(tokenMetadataCache).length ||
-  //       !Object.keys(bankMetadataCache).length ||
-  //       !Object.keys(groupsCache).length
-  //     ) {
-  //       try {
-  //         groupsCache = await fetch(TRADE_GROUPS_MAP).then((res) => res.json());
-  //         tokenMetadataCache = await loadTokenMetadatas(TOKEN_METADATA_MAP);
-  //         bankMetadataCache = await loadBankMetadatas(BANK_METADATA_MAP);
-  //       } catch (error) {
-  //         console.error(error);
-  //         return;
-  //       }
-
-  //       set({ groupsCache, tokenMetadataCache, bankMetadataCache });
-  //     }
-
-  //     const groupSummaries: ArenaGroupSummary[] = [];
-
-  //     const groupsKeys = Object.keys(groupsCache).map((group) => new PublicKey(group));
-
-  //     groupsKeys.forEach((group) => {
-  //       const groupCacheData = groupsCache[group.toBase58()];
-  //       const tokenBankKey = groupCacheData[0];
-  //       const quoteBankKey = groupCacheData[1];
-
-  //       const tokenBankMetadata = bankMetadataCache[tokenBankKey];
-  //       const tokenBankSummary: BankSummary = {
-  //         bankPk: new PublicKey(tokenBankKey),
-  //         mint: new PublicKey(tokenBankMetadata.tokenAddress),
-  //         tokenName: tokenBankMetadata.tokenName,
-  //         tokenSymbol: tokenBankMetadata.tokenSymbol,
-  //         tokenData: {},
-  //       };
-
-  //       const quoteBankMetadata = bankMetadataCache[quoteBankKey];
-  //     });
-
-  //     // const groups = Object.keys(groupsCache).map((group) => new PublicKey(group));
-  //     // const groupMap = get().groupMap;
-  //     // const allBanks: ExtendedBankInfo[] = [];
-
-  //     // const mintDatas: Map<string, MintData> = new Map();
-
-  //     // await Promise.all(
-  //     //   groups.map(async (group) => {
-  //     //     const bankKeys = groupsCache[group.toBase58()].map((bank) => new PublicKey(bank));
-
-  //     //     const { groupData, extendedBankInfos, marginfiClient } = await getGroupData({
-  //     //       groupPk: group,
-  //     //       wallet,
-  //     //       connection,
-  //     //       bankKeys,
-  //     //       bankMetadataCache,
-  //     //       tokenMetadataCache,
-  //     //     });
-
-  //     //     for (const [k, v] of marginfiClient.mintDatas) {
-  //     //       mintDatas.set(k, v);
-  //     //     }
-
-  //     //     allBanks.push(...extendedBankInfos);
-
-  //     //     groupMap.set(group.toBase58(), groupData);
-  //     //   })
-  //     // );
-
-  //     let nativeSolBalance = 0;
-  //     let tokenAccountMap: TokenAccountMap | null = null;
-  //     let portfolio: Portfolio | null = null;
-  //     let referralCode = get().referralCode;
-
-  //     if (!wallet.publicKey.equals(PublicKey.default)) {
-  //       const [tData] = await Promise.all([
-  //         fetchTokenAccounts(
-  //           connection,
-  //           wallet.publicKey,
-  //           allBanks.map((bank) => ({
-  //             mint: bank.info.rawBank.mint,
-  //             mintDecimals: bank.info.rawBank.mintDecimals,
-  //             bankAddress: bank.info.rawBank.address,
-  //           })),
-  //           mintDatas
-  //         ),
-  //       ]);
-
-  //       nativeSolBalance = tData.nativeSolBalance;
-  //       tokenAccountMap = tData.tokenAccountMap;
-
-  //       for (const [id, group] of groupMap) {
-  //         const updatedPool = getUpdatedGroupPool({ group, tokenAccountMap, nativeSolBalance });
-  //         groupMap.set(id, { ...group, pool: updatedPool });
-  //       }
-
-  //       portfolio = getPorfolioData(groupMap);
-  //       userDataFetched = true;
-
-  //       // fetch / create referral code
-  //       // if (!referralCode) {
-  //       //   const referralCodeRes = await fetch(`/api/user/referral/get-code`, {
-  //       //     method: "POST",
-  //       //     headers: {
-  //       //       "Content-Type": "application/json",
-  //       //     },
-  //       //     body: JSON.stringify({ wallet: wallet.publicKey.toBase58() }),
-  //       //   });
-
-  //       //   if (!referralCodeRes.ok) {
-  //       //     console.error("Error fetching referral code");
-  //       //   } else {
-  //       //     const referralCodeData = await referralCodeRes.json();
-  //       //     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.thearena.trade";
-  //       //     referralCode = `${baseUrl}/refer/${referralCodeData.referralCode}`;
-  //       //   }
-  //       // }
-  //     }
-
-  //     const sortedGroups = sortGroups(groupMap, get().sortBy, groupsCache);
-  //     const totalPages = Math.ceil(groupMap.entries.length / POOLS_PER_PAGE);
-  //     const currentPage = get().currentPage || 1;
-
-  //     fuse = new Fuse([...groupMap.values()], {
-  //       includeScore: true,
-  //       threshold: 0.2,
-  //       keys: [
-  //         {
-  //           name: "pool.token.meta.tokenSymbol",
-  //           weight: 0.7,
-  //         },
-  //         {
-  //           name: "pool.token.meta.tokenName",
-  //           weight: 0.3,
-  //         },
-  //         {
-  //           name: "pool.token.info.state.mint.toBase58()",
-  //           weight: 0.1,
-  //         },
-  //       ],
-  //     });
-
-  //     set({
-  //       initialized: true,
-  //       groupsCache: groupsCache,
-  //       groupMap: sortedGroups,
-  //       totalPages,
-  //       currentPage,
-  //       nativeSolBalance,
-  //       tokenAccountMap,
-  //       wallet,
-  //       connection,
-  //       userDataFetched,
-  //       portfolio,
-  //       referralCode,
-  //     });
-  //   } catch (error) {
-  //     console.error(error);
-  //   }
-  // },
-
-  refreshGroup: async (args: { groupPk: PublicKey; connection?: Connection; wallet?: Wallet }) => {
-    try {
-      const connection = args.connection ?? get().connection;
-      const wallet = args?.wallet ?? get().wallet;
-      const activeGroup = args.groupPk;
-      const groupMap = get().groupMap;
-
-      if (!activeGroup) throw new Error("No group to refresh");
-      if (!groupMap) throw new Error("Groups not fetched");
-      if (!connection) throw new Error("Connection not found");
-      if (!wallet) throw new Error("Wallet not found");
-      const { groupsCache, tokenMetadataCache, bankMetadataCache } = get();
-
-      const bankKeys = groupsCache[activeGroup.toBase58()].map((bank) => new PublicKey(bank));
-      const { groupData, extendedBankInfos, marginfiClient } = await getGroupData({
-        groupPk: activeGroup,
-        wallet,
-        connection,
-        bankKeys,
-        bankMetadataCache,
-        tokenMetadataCache,
-      });
-
-      let portfolio: Portfolio | null = null;
-
-      groupMap.set(activeGroup.toBase58(), groupData);
-
-      if (!wallet.publicKey.equals(PublicKey.default)) {
-        const [tokenData] = await Promise.all([
-          fetchTokenAccounts(
-            connection,
-            wallet.publicKey,
-            extendedBankInfos.map((bank) => ({
-              mint: bank.info.rawBank.mint,
-              mintDecimals: bank.info.rawBank.mintDecimals,
-              bankAddress: bank.info.rawBank.address,
-            })),
-            marginfiClient.mintDatas
-          ),
-        ]);
-
-        const nativeSolBalance = tokenData.nativeSolBalance;
-        const tokenAccountMap = tokenData.tokenAccountMap;
-
-        const updatedPool = await getUpdatedGroupPool({ group: groupData, tokenAccountMap, nativeSolBalance });
-        groupMap.set(activeGroup.toBase58(), { ...groupData, pool: updatedPool });
-
-        portfolio = getPorfolioData(groupMap);
-      }
-
-      set({
-        portfolio,
-        groupMap,
-        wallet: wallet,
-        connection: connection,
-      });
-    } catch (error) {
-      console.error(error);
-    }
-  },
+  refreshGroup: async (args: { groupPk: PublicKey; connection?: Connection; wallet?: Wallet }) => {},
 
   searchBanks: (searchQuery: string) => {
     if (!fuse) return;
@@ -904,116 +665,80 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
   },
 
   setSortBy: (sortBy: TradePoolFilterStates) => {
-    const groupMap = sortGroups(get().groupMap, sortBy, get().groupsCache);
+    const arenaPoolsSummary = sortPools(get().arenaPoolsSummary, get().tokenDataByMint, sortBy, get().groupsCache);
     set((state) => {
       return {
         ...state,
         sortBy,
-        groupMap,
+        arenaPoolsSummary,
       };
     });
   },
 
-  resetUserData: () => {
-    const groups = [...get().groupMap.values()];
-    const updatedGroups = groups.map((group) => ({
-      ...group,
-      pool: {
-        ...group.pool,
-        quoteTokens: group.pool.quoteTokens.map((quoteToken) => ({
-          ...quoteToken,
-          userInfo: {
-            tokenAccount: {
-              created: false,
-              mint: quoteToken.info.state.mint,
-              balance: 0,
-            },
-            maxDeposit: 0,
-            maxRepay: 0,
-            maxWithdraw: 0,
-            maxBorrow: 0,
-          },
-        })),
-        token: {
-          ...group.pool.token,
-          userInfo: {
-            tokenAccount: {
-              created: false,
-              mint: group.pool.token.info.state.mint,
-              balance: 0,
-            },
-            maxDeposit: 0,
-            maxRepay: 0,
-            maxWithdraw: 0,
-            maxBorrow: 0,
-          },
-        },
-      },
-    }));
-
-    // update groupMap stored on state with the updated group data above
-    const groupMap = new Map(updatedGroups.map((group) => [group.client.group.address.toBase58(), group]));
-    set({
-      groupMap,
-      portfolio: null,
-      nativeSolBalance: 0,
-      tokenAccountMap: null,
-      wallet: {
-        publicKey: PublicKey.default,
-        signMessage: (arg: any) => {},
-        signTransaction: (arg: any) => {},
-        signAllTransactions: (arg: any) => {},
-      } as Wallet,
-      userDataFetched: false,
-    });
-  },
+  resetUserData: () => {},
 });
 
-const sortGroups = (groupMap: Map<string, GroupData>, sortBy: TradePoolFilterStates, groupsCache: TradeGroupsCache) => {
-  const groups = [...groupMap.values()];
+const sortPools = (
+  arenaPools: Record<string, ArenaPoolSummary>,
+  tokenDataByMint: Record<string, TokenData>,
+  sortBy: TradePoolFilterStates,
+  groupsCache: TradeGroupsCache
+) => {
+  const groups = [...Object.values(arenaPools)];
   const timestampOrder = Object.keys(groupsCache).reverse();
 
   const sortedGroups = groups.sort((a, b) => {
+    const aTokenData = tokenDataByMint[a.tokenSummary.mint.toBase58()];
+    const bTokenData = tokenDataByMint[b.tokenSummary.mint.toBase58()];
+
+    const aQuoteTokenData = tokenDataByMint[a.quoteSummary.mint.toBase58()];
+    const bQuoteTokenData = tokenDataByMint[b.quoteSummary.mint.toBase58()];
+
     if (sortBy === TradePoolFilterStates.TIMESTAMP) {
-      const aIndex = timestampOrder.indexOf(a.client.group.address.toBase58());
-      const bIndex = timestampOrder.indexOf(b.client.group.address.toBase58());
+      const aIndex = timestampOrder.indexOf(a.groupPk.toBase58());
+      const bIndex = timestampOrder.indexOf(b.groupPk.toBase58());
       return aIndex - bIndex;
     } else if (sortBy.startsWith("price-movement")) {
-      const aPrice = Math.abs(a.pool.token.tokenData?.priceChange24hr ?? 0);
-      const bPrice = Math.abs(b.pool.token.tokenData?.priceChange24hr ?? 0);
+      const aPrice = Math.abs(aTokenData.priceChange24h ?? 0);
+      const bPrice = Math.abs(bTokenData.priceChange24h ?? 0);
       return sortBy === TradePoolFilterStates.PRICE_MOVEMENT_ASC ? aPrice - bPrice : bPrice - aPrice;
     } else if (sortBy.startsWith("market-cap")) {
-      const aMarketCap = a.pool.token.tokenData?.marketCap ?? 0;
-      const bMarketCap = b.pool.token.tokenData?.marketCap ?? 0;
+      const aMarketCap = aTokenData.marketcap ?? 0;
+      const bMarketCap = bTokenData.marketcap ?? 0;
       return sortBy === TradePoolFilterStates.MARKET_CAP_ASC ? aMarketCap - bMarketCap : bMarketCap - aMarketCap;
     } else if (sortBy.startsWith("liquidity")) {
-      const aLiquidity = a.pool.poolData?.totalLiquidity ?? 0;
-      const bLiquidity = b.pool.poolData?.totalLiquidity ?? 0;
+      const aLiquidity = a.tokenSummary.bankData.totalDeposits ?? 0;
+      const bLiquidity = b.tokenSummary.bankData.totalDeposits ?? 0;
       return sortBy === TradePoolFilterStates.LIQUIDITY_ASC ? aLiquidity - bLiquidity : bLiquidity - aLiquidity;
     } else if (sortBy.startsWith("apy")) {
-      const getHighestLendingRate = (group: GroupData) => {
-        const rates = [
-          group.pool.token.info.state.lendingRate,
-          ...group.pool.quoteTokens.map((bank) => bank.info.state.lendingRate),
-        ];
-        return Math.max(...rates);
-      };
+      const aIndex = timestampOrder.indexOf(a.groupPk.toBase58());
+      const bIndex = timestampOrder.indexOf(b.groupPk.toBase58());
+      return aIndex - bIndex;
 
-      const aHighestRate = getHighestLendingRate(a);
-      const bHighestRate = getHighestLendingRate(b);
-      return sortBy === TradePoolFilterStates.APY_ASC ? aHighestRate - bHighestRate : bHighestRate - aHighestRate;
+      // todo add apy filter
+      // const getHighestLendingRate = (pool: ArenaPoolSummary) => {
+      //   const rates = [
+      //     pool.tokenSummary.bankData.lendingRate,
+      //     ...group.pool.quoteTokens.map((bank) => bank.info.state.lendingRate),
+      //   ];
+      //   return Math.max(...rates);
+      // };
+
+      // const aHighestRate = getHighestLendingRate(a);
+      // const bHighestRate = getHighestLendingRate(b);
+      // return sortBy === TradePoolFilterStates.APY_ASC ? aHighestRate - bHighestRate : bHighestRate - aHighestRate;
     }
 
     return 0;
   });
 
-  const sortedGroupMap = new Map<string, GroupData>();
+  const sortedPools: Record<string, ArenaPoolSummary> = {};
 
   sortedGroups.forEach((group) => {
-    sortedGroupMap.set(group.client.group.address.toBase58(), group);
+    sortedPools[group.groupPk.toBase58()] = group;
   });
 
-  return sortedGroupMap;
+  return sortedPools;
 };
 
 async function getGroupData({
@@ -1395,39 +1120,3 @@ const updateBank = (
     tokenData: bank.tokenData,
   };
 };
-
-export async function getMarginfiAccountsForAuthority(
-  wallet: Wallet,
-  connection: Connection
-): Promise<MarginfiAccountWrapper[]> {
-  const idl = { ...(MARGINFI_IDL as unknown as MarginfiIdlType), address: programId.toBase58() };
-  const provider = new AnchorProvider(connection, wallet, {
-    ...AnchorProvider.defaultOptions(),
-    commitment: connection.commitment ?? AnchorProvider.defaultOptions().commitment,
-  });
-
-  const program = new Program(idl, provider) as any as MarginfiProgram;
-
-  const marginfiAccounts = (
-    await program.account.marginfiAccount.all([
-      {
-        memcmp: {
-          bytes: wallet.publicKey.toBase58(),
-          offset: 8 + 32, // authority is the second field in the account after the authority, so offset by the discriminant and a pubkey
-        },
-      },
-    ])
-  ).map((a) => new MarginfiAccount(a.publicKey, a.account));
-
-  console.log({ marginfiAccounts });
-  // marginfiAccounts.sort((accountA, accountB) => {
-  //   const assetsValueA = accountA.computeHealthComponents(MarginRequirementType.Equity).assets;
-  //   const assetsValueB = accountB.computeHealthComponents(MarginRequirementType.Equity).assets;
-
-  //   if (assetsValueA.eq(assetsValueB)) return 0;
-  //   return assetsValueA.gt(assetsValueB) ? -1 : 1;
-  // });
-
-  // return marginfiAccounts;
-  return [];
-}

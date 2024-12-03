@@ -3,43 +3,40 @@ import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 
-import {
-  usdFormatter,
-  tokenPriceFormatter,
-  percentFormatter,
-  numeralFormatter,
-  shortenAddress,
-} from "@mrgnlabs/mrgn-common";
-import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { tokenPriceFormatter, percentFormatter, numeralFormatter, shortenAddress } from "@mrgnlabs/mrgn-common";
 import { cn, useIsMobile } from "@mrgnlabs/mrgn-utils";
 
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "~/components/ui/card";
 import { TooltipProvider, Tooltip, TooltipContent, TooltipTrigger } from "~/components/ui/tooltip";
 
-import type { GroupData } from "~/store/tradeStore";
+import { ArenaPoolSummary } from "~/store/tradeStoreV2";
+import { useTradeStoreV2 } from "~/store";
 
 type PoolCardProps = {
-  groupData: GroupData;
+  poolData: ArenaPoolSummary;
 };
 
-export const PoolCard = ({ groupData }: PoolCardProps) => {
+export const PoolCard = ({ poolData }: PoolCardProps) => {
+  const [tokenDataByMint] = useTradeStoreV2((state) => [state.tokenDataByMint]);
   const isMobile = useIsMobile();
   const isLstQuote = React.useMemo(() => {
-    return groupData.pool.quoteTokens[0].meta.tokenSymbol === "LST";
-  }, [groupData]);
+    return poolData.quoteSummary.tokenSymbol === "LST";
+  }, [poolData]);
+
+  const { tokenData, quoteTokenData } = React.useMemo(() => {
+    const tokenData = tokenDataByMint[poolData.tokenSummary.mint.toBase58()];
+    const quoteTokenData = tokenDataByMint[poolData.quoteSummary.mint.toBase58()];
+    return { tokenData, quoteTokenData };
+  }, [poolData, tokenDataByMint]);
 
   const tokenPrice = React.useMemo(() => {
     if (isLstQuote) {
-      const lstPrice = groupData.pool.quoteTokens[0].info.oraclePrice.priceRealtime.price.toNumber();
-      return `${tokenPriceFormatter(
-        groupData.pool.token.info.oraclePrice.priceRealtime.price.toNumber() / lstPrice,
-        "decimal"
-      )} ${groupData.pool.quoteTokens[0].meta.tokenSymbol}`;
+      const lstPrice = quoteTokenData.price;
+      return `${tokenPriceFormatter(tokenData.price / lstPrice, "decimal")} ${poolData.quoteSummary.tokenSymbol}`;
     }
-
-    return tokenPriceFormatter(groupData.pool.token.info.oraclePrice.priceRealtime.price.toNumber());
-  }, [isLstQuote, groupData]);
+    return tokenPriceFormatter(tokenData.price);
+  }, [isLstQuote, tokenData.price, quoteTokenData.price, poolData.quoteSummary.tokenSymbol]);
 
   return (
     <Card>
@@ -47,27 +44,27 @@ export const PoolCard = ({ groupData }: PoolCardProps) => {
         <CardTitle>
           <div className="flex items-center gap-2 justify-between">
             <Link
-              href={`/trade/${groupData.client.group.address.toBase58()}`}
+              href={`/trade/${poolData.groupPk.toBase58()}`}
               className="flex items-center gap-2 justify-between cursor-pointer"
             >
               <Image
-                src={groupData.pool.token.meta.tokenLogoUri}
+                src={poolData.tokenSummary.tokenLogoUri}
                 width={48}
                 height={48}
-                alt={groupData.pool.token.meta.tokenName}
+                alt={poolData.tokenSummary.tokenName}
                 className="rounded-full border"
               />{" "}
               <div className="flex flex-col space-y-0.5">
-                <h2>{`${groupData.pool.token.meta.tokenSymbol}/${groupData.pool.quoteTokens[0].meta.tokenSymbol}`}</h2>
+                <h2>{`${poolData.tokenSummary.tokenSymbol}/${poolData.quoteSummary.tokenSymbol}`}</h2>
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <span className="text-muted-foreground text-sm">
-                        {shortenAddress(groupData.pool.token.info.state.mint)}
+                        {shortenAddress(poolData.tokenSummary.mint)}
                       </span>
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>{groupData.pool.token.info.state.mint.toBase58()}</p>
+                      <p>{poolData.tokenSummary.mint.toBase58()}</p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
@@ -97,7 +94,7 @@ export const PoolCard = ({ groupData }: PoolCardProps) => {
         </CardTitle>
       </CardHeader>
       <CardContent className="pt-4 pb-6">
-        {groupData.pool.token.tokenData && (
+        {tokenData && (
           <dl className="grid grid-cols-2 gap-1.5 text-sm text-muted-foreground w-full mt-2">
             <dt>Price</dt>
             <dd className="text-right text-primary tracking-wide">
@@ -106,52 +103,48 @@ export const PoolCard = ({ groupData }: PoolCardProps) => {
                 <>
                   {isMobile ? (
                     <span className="text-xs ml-1 text-muted-foreground block">
-                      {tokenPriceFormatter(groupData.pool.token.info.oraclePrice.priceRealtime.price.toNumber())} USD
+                      {tokenPriceFormatter(tokenData.price)} USD
                     </span>
                   ) : (
-                    <span className="text-xs ml-1 text-muted-foreground">
-                      ({tokenPriceFormatter(groupData.pool.token.info.oraclePrice.priceRealtime.price.toNumber())})
-                    </span>
+                    <span className="text-xs ml-1 text-muted-foreground">({tokenPriceFormatter(tokenData.price)})</span>
                   )}
                 </>
               ) : (
-                groupData.pool.token.tokenData.priceChange24hr && (
+                tokenData.priceChange24h && (
                   <span
                     className={cn(
                       "text-xs ml-2",
-                      groupData.pool.token.tokenData.priceChange24hr > 0 ? "text-mrgn-success" : "text-mrgn-error"
+                      tokenData.priceChange24h > 0 ? "text-mrgn-success" : "text-mrgn-error"
                     )}
                   >
-                    {groupData.pool.token.tokenData.priceChange24hr > 0 && "+"}
-                    {percentFormatter.format(groupData.pool.token.tokenData.priceChange24hr / 100)}
+                    {tokenData.priceChange24h > 0 && "+"}
+                    {percentFormatter.format(tokenData.priceChange24h / 100)}
                   </span>
                 )
               )}
             </dd>
             <dt className="">24hr vol</dt>
             <dd className="text-right text-primary tracking-wide">
-              ${numeralFormatter(groupData.pool.token.tokenData.volume24hr)}
-              {groupData.pool.token.tokenData?.volumeChange24hr && (
+              ${numeralFormatter(tokenData.volume24h)}
+              {tokenData.volumeChange24h && (
                 <span
                   className={cn(
                     "text-xs ml-2",
-                    groupData.pool.token.tokenData.volumeChange24hr > 0 ? "text-mrgn-success" : "text-mrgn-error"
+                    tokenData.volumeChange24h > 0 ? "text-mrgn-success" : "text-mrgn-error"
                   )}
                 >
-                  {groupData.pool.token.tokenData.volumeChange24hr > 0 && "+"}
-                  {percentFormatter.format(groupData.pool.token.tokenData.volumeChange24hr / 100)}
+                  {tokenData.volumeChange24h > 0 && "+"}
+                  {percentFormatter.format(tokenData.volumeChange24h / 100)}
                 </span>
               )}
             </dd>
             <dt>Market cap</dt>
-            <dd className="text-right text-primary tracking-wide">
-              ${numeralFormatter(groupData.pool.token.tokenData.marketCap)}
-            </dd>
-            {groupData.pool.poolData && (
+            <dd className="text-right text-primary tracking-wide">${numeralFormatter(tokenData.marketcap)}</dd>
+            {poolData.tokenSummary.bankData && (
               <>
                 <dt>Lending pool liquidity</dt>
                 <dd className="text-right text-primary tracking-wide">
-                  ${numeralFormatter(groupData.pool.poolData.totalLiquidity)}
+                  ${numeralFormatter(poolData.tokenSummary.bankData.availableLiquidity)}
                 </dd>
               </>
             )}
@@ -160,12 +153,12 @@ export const PoolCard = ({ groupData }: PoolCardProps) => {
       </CardContent>
       <CardFooter>
         <div className="flex items-center gap-3 w-full">
-          <Link href={`/trade/${groupData.client.group.address.toBase58()}?side=long`} className="w-full">
+          <Link href={`/trade/${poolData.groupPk.toBase58()}?side=long`} className="w-full">
             <Button variant="long" className="w-full">
               Long
             </Button>
           </Link>
-          <Link href={`/trade/${groupData.client.group.address.toBase58()}?side=short`} className="w-full">
+          <Link href={`/trade/${poolData.groupPk.toBase58()}?side=short`} className="w-full">
             <Button variant="short" className="w-full">
               Short
             </Button>
