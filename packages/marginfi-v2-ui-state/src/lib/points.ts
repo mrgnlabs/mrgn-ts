@@ -57,7 +57,7 @@ let lastOrderDir: "desc" | "asc" | undefined;
 let prevPages: LeaderboardRow[][] = [];
 let lastSearch: string | undefined;
 
-const POINTS_DOCUMENT: string = "points";
+const POINTS_DOCUMENT: string = "migrated_points";
 
 async function fetchLeaderboardData(connection: Connection, settings: LeaderboardSettings): Promise<LeaderboardRow[]> {
   if (settings.pageDirection === "prev" && settings.currentPage > 1) {
@@ -96,7 +96,7 @@ async function fetchLeaderboardData(connection: Connection, settings: Leaderboar
 
   const pointsQuery = query(
     collection(firebaseApi.db, POINTS_DOCUMENT),
-
+    
     ...(settings.search
       ? searchQ
       : [
@@ -150,7 +150,7 @@ async function fetchLeaderboardData(connection: Connection, settings: Leaderboar
 
 async function fetchTotalLeaderboardCount() {
   const q = query(collection(firebaseApi.db, POINTS_DOCUMENT), where("total_points", ">=", 1));
-
+  
   const qCount = await getCountFromServer(q);
   const count = qCount.data().count;
   return count;
@@ -232,7 +232,7 @@ async function fetchUserRank(address: string): Promise<number> {
 async function fetchTotalUserCount() {
   const q1 = query(collection(firebaseApi.db, POINTS_DOCUMENT));
   const q2 = query(collection(firebaseApi.db, POINTS_DOCUMENT), where("owner", "==", null));
-
+  
   const q1Count = await getCountFromServer(q1);
   const q2Count = await getCountFromServer(q2);
   return q1Count.data().count - q2Count.data().count;
