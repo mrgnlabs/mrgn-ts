@@ -88,11 +88,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ error: "Invalid input: expected a valid host." });
     }
 
-    console.log("host", host);
-
-    const feedIdMapRaw: Record<string, string> = await fetch(
-      `http://localhost:3006/api/oracle/pythFeedMap?groupPk=${banksMap[0].data.group.toBase58()}`
-    ).then((response) => response.json());
+    const feedIdMapRaw: Record<string, string> = await fetch(`${host}/api/oracle/pythFeedMapV2`).then((response) =>
+      response.json()
+    );
     const feedIdMap: Map<string, PublicKey> = new Map(
       Object.entries(feedIdMapRaw).map(([key, value]) => [key, new PublicKey(value)])
     );

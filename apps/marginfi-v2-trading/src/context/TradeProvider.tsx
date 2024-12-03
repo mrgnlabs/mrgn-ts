@@ -22,7 +22,11 @@ export const TradePovider: React.FC<{
     state.setIsRefreshingStore,
     state.resetUserData,
   ]);
-  const [fetchArenaGroups] = useTradeStoreV2((state) => [state.fetchArenaGroups]);
+  const [fetchExtendedArenaGroups, fetchArenaGroups, initialized] = useTradeStoreV2((state) => [
+    state.fetchExtendedArenaGroups,
+    state.fetchArenaGroups,
+    state.initialized,
+  ]);
 
   const [fetchPriorityFee] = useUiStore((state) => [state.fetchPriorityFee]);
   const [isLoggedIn, setIsLoggedIn] = React.useState(false);
@@ -30,6 +34,13 @@ export const TradePovider: React.FC<{
   React.useEffect(() => {
     fetchArenaGroups();
   }, [fetchArenaGroups]);
+
+  // React.useEffect(() => {
+  //   if (initialized) {
+  //     fetchExtendedArenaGroups({ connection, wallet });
+  //   }
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [initialized, fetchExtendedArenaGroups]);
 
   React.useEffect(() => {
     const trackReferral = async (referralCode: string, walletAddress: string) => {
