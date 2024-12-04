@@ -156,8 +156,13 @@ type TradeStoreV2State = {
   // user token account map
   tokenAccountMap: TokenAccountMap | null;
 
+  // fuse
+  arenaPoolsSummaryFuse: Fuse<ArenaPoolSummary> | null;
+  arenaPoolsFuse: Fuse<ArenaPoolV2> | null;
+
   // array of banks filtered by search query
-  // searchResults: FuseResult<GroupData>[];
+  searchPoolSummaryResults: FuseResult<ArenaPoolSummary>[];
+  searchPoolResults: FuseResult<ArenaPoolV2>[];
 
   // pagination and sorting
   currentPage: number;
@@ -208,7 +213,8 @@ type TradeStoreV2State = {
     wallet?: Wallet;
   }) => Promise<void>;
   setIsRefreshingStore: (isRefreshing: boolean) => void;
-  searchBanks: (searchQuery: string) => void;
+  searchSummaryPools: (searchQuery: string) => void;
+  searchPools: (searchQuery: string) => void;
   resetSearchResults: () => void;
   setCurrentPage: (page: number) => void;
   setSortBy: (sortBy: TradePoolFilterStates) => void;
@@ -217,9 +223,7 @@ type TradeStoreV2State = {
 
 const { programId } = getConfig();
 
-const USDC_MINT = new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
-
-// let fuse: Fuse<GroupData> | null = null;
+// let fuse: Fuse<ArenaPoolSummary> | null = null;
 
 function createTradeStoreV2() {
   return create<TradeStoreV2State>(stateCreator);
@@ -254,6 +258,10 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
   groupsByGroupPk: {},
   banksByBankPk: {},
   tokenDataByMint: {},
+  arenaPoolsSummaryFuse: null,
+  arenaPoolsFuse: null,
+  searchPoolSummaryResults: [],
+  searchPoolResults: [],
 
   setIsRefreshingStore: (isRefreshing) => {
     set((state) => {
@@ -335,7 +343,38 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
       {} as Record<string, ArenaPoolSummary>
     );
 
-    set({ arenaPoolsSummary: groupSummaryByGroup, tokenDataByMint: tokenDetailsByMint, initialized: true });
+    const sortedGroups = sortPools(groupSummaryByGroup, tokenDetailsByMint, get().sortBy, groupsCache);
+
+    const totalPages = Math.ceil(Object.keys(sortedGroups).length / POOLS_PER_PAGE);
+    const currentPage = get().currentPage || 1;
+
+    const fuse = new Fuse([...Object.values(sortedGroups)], {
+      includeScore: true,
+      threshold: 0.2,
+      keys: [
+        {
+          name: "tokenSummary.tokenSymbol",
+          weight: 0.7,
+        },
+        {
+          name: "tokenSummary.tokenName",
+          weight: 0.3,
+        },
+        {
+          name: "tokenSummary.mint.toBase58()",
+          weight: 0.1,
+        },
+      ],
+    });
+
+    set({
+      arenaPoolsSummary: sortedGroups,
+      tokenDataByMint: tokenDetailsByMint,
+      arenaPoolsSummaryFuse: fuse,
+      initialized: true,
+      totalPages,
+      currentPage,
+    });
   },
 
   fetchExtendedArenaGroups: async (args) => {
@@ -611,15 +650,20 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
 
   refreshGroup: async (args: { groupPk: PublicKey; connection?: Connection; wallet?: Wallet }) => {},
 
-  searchBanks: (searchQuery: string) => {
-    // if (!fuse) return;
-    // const searchResults = (fuse as any).search(searchQuery);
-    // set((state) => {
-    //   return {
-    //     ...state,
-    //     searchResults,
-    //   };
-    // });
+  searchSummaryPools: (searchQuery: string) => {
+    const fuse = get().arenaPoolsSummaryFuse;
+    if (!fuse) return;
+    const searchResults = fuse.search(searchQuery);
+
+    set({ searchPoolSummaryResults: searchResults });
+  },
+
+  searchPools: (searchQuery: string) => {
+    const fuse = get().arenaPoolsFuse;
+    if (!fuse) return;
+    const searchResults = fuse.search(searchQuery);
+
+    set({ searchPoolResults: searchResults });
   },
 
   resetSearchResults: () => {
