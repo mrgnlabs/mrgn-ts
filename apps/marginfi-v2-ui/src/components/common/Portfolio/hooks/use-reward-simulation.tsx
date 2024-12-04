@@ -97,12 +97,11 @@ export const useRewardSimulation = ({
       const atas: PublicKey[] = [];
 
       for (let bank of banksWithEmissions) {
-        const _bank = marginfiClient.getBankByPk(bank.meta.address);
-        if (!_bank || !bank) continue;
+        if (!bank) continue;
 
-        const tokenMint = _bank.emissionsMint;
-        const tokenSymbol = _bank.tokenSymbol ?? "";
-        const mintDecimals = _bank.mintDecimals;
+        const tokenMint = bank.info.rawBank.emissionsMint;
+        const tokenSymbol = bank.info.rawBank.tokenSymbol ?? "";
+        const mintDecimals = bank.info.rawBank.mintDecimals;
         if (!tokenMint) continue;
 
         const programId = TOKEN_2022_MINTS.includes(tokenMint.toString()) ? TOKEN_2022_PROGRAM_ID : TOKEN_PROGRAM_ID;
