@@ -37,7 +37,6 @@ import { Slider } from "~/components/ui/slider";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
-import { getMarginfiAccountsForAuthority } from "~/store/tradeStoreV2";
 
 type TradingBoxProps = {
   activeGroup: GroupData;
@@ -57,11 +56,6 @@ export const TradingBox = ({ activeGroup, side = "long" }: TradingBoxProps) => {
   const [Stats, setStats] = React.useState<React.JSX.Element>(<></>);
   const [additionalChecks, setAdditionalChecks] = React.useState<ActionMessageType>();
 
-  React.useEffect(() => {
-    if (!wallet || !connection) return;
-    console.log("fetching marginfi accounts");
-    getMarginfiAccountsForAuthority(wallet, connection);
-  }, [wallet]);
   const debouncedLeverage = useDebounce(leverage, 1000);
   const debouncedAmount = useDebounce(amount, 1000);
 
