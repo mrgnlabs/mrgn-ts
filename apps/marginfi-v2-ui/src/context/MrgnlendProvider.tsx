@@ -56,7 +56,7 @@ export const MrgnlendProvider: React.FC<{
   }, [router.query]); // eslint-disable-line react-hooks/exhaustive-deps
 
   React.useEffect(() => {
-    const fetchData = () => {
+    const initializeAndFetch = () => {
       setIsRefreshingStore(true);
       fetchPriorityFee(connection);
       fetchMrgnlendState({
@@ -71,29 +71,27 @@ export const MrgnlendProvider: React.FC<{
       }).catch(console.error);
     };
 
+    const periodicFetch = () => {
+      console.log("🔄 Periodically fetching marginfi state");
+      setIsRefreshingStore(true);
+      fetchPriorityFee(connection);
+      fetchMrgnlendState().catch(console.error);
+    };
+
     if (debounceId.current) {
       clearTimeout(debounceId.current);
     }
 
-    debounceId.current = setTimeout(() => {
-      fetchData();
+    debounceId.current = setTimeout(initializeAndFetch, 1000);
 
-      const id = setInterval(() => {
-        setIsRefreshingStore(true);
-        fetchPriorityFee(connection);
-        fetchMrgnlendState().catch(console.error);
-      }, 30_000);
-
-      return () => {
-        clearInterval(id);
-        clearTimeout(debounceId.current!);
-      };
-    }, 1000);
+    // Periodic updates without needing full configuration
+    const intervalId = setInterval(periodicFetch, 30_000);
 
     return () => {
       if (debounceId.current) {
         clearTimeout(debounceId.current);
       }
+      clearInterval(intervalId);
     };
   }, [wallet, isOverride]); // eslint-disable-line react-hooks/exhaustive-deps
   // ^ crucial to omit both `connection` and `fetchMrgnlendState` from the dependency array

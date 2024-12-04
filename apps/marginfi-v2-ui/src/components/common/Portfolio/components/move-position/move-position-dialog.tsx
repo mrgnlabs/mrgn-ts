@@ -162,7 +162,16 @@ export const MovePositionDialog = ({
     } finally {
       setIsExecutionLoading(false);
     }
-  }, [marginfiClient, accountToMoveTo, actionTxns, broadcastType, priorityFees, fetchMrgnlendState, setIsOpen]);
+  }, [
+    marginfiClient,
+    accountToMoveTo,
+    actionTxns,
+    broadcastType,
+    priorityFees,
+    selectedAccount?.address,
+    fetchMrgnlendState,
+    setIsOpen,
+  ]);
 
   React.useEffect(() => {
     if (!accountToMoveTo) return;
