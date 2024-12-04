@@ -37,6 +37,10 @@ export const ActionBoxWrapper = ({ children, isDialog, actionMode, showSettings 
     [actionMode]
   );
 
+  React.useEffect(() => {
+    setIsSettingsDialogOpen(false);
+  }, [setIsSettingsDialogOpen]);
+
   if (isActionDisabled) {
     return (
       <div className="flex flex-col items-center">
@@ -69,7 +73,7 @@ export const ActionBoxWrapper = ({ children, isDialog, actionMode, showSettings 
             />
           )}
 
-          <div className={cn(isSettingsDialogOpen && "hidden")}>{children}</div>
+          <div className={cn(isSettingsDialogOpen && showSettings && "hidden")}>{children}</div>
         </div>
       </div>
     </>
