@@ -639,9 +639,17 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
       arenaPools[groupPk] = arenaPool;
     });
 
-    console.log("arenaPools", arenaPools);
+    const banksByBankPk = extendedBankInfos.reduce((acc, bank) => {
+      acc[bank.info.rawBank.address.toBase58()] = bank;
+      return acc;
+    }, {} as Record<string, ArenaBank>);
 
-    set({ arenaPools });
+    const groupsByGroupPk = marginfiGroups.reduce((acc, group) => {
+      acc[group.address.toBase58()] = group;
+      return acc;
+    }, {} as Record<string, MarginfiGroup>);
+
+    set({ arenaPools, banksByBankPk, groupsByGroupPk });
 
     // fetch all bank data
   },
