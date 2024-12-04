@@ -161,10 +161,10 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
   const [walletContextState, setWalletContextState] = React.useState<WalletContextStateOverride | WalletContextState>(
     walletContextStateDefault
   );
+  const walletQueryParam = query?.wallet as string;
 
   // update wallet object, 3 potential sources: web3auth, anchor, override
   const { wallet, isOverride }: { wallet: Wallet; isOverride: boolean } = React.useMemo(() => {
-    const override = query?.wallet as string;
     // web3auth wallet
     if (web3AuthWalletData && web3Auth?.connected) {
       return {
@@ -192,11 +192,11 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
 
       // wallet address override
       // e.g simulating a wallet using ?wallet= query string
-      if (override) {
+      if (walletQueryParam) {
         return {
           wallet: {
             ...anchorWallet,
-            publicKey: new PublicKey(override) as PublicKey,
+            publicKey: new PublicKey(walletQueryParam),
             signMessage: walletContextState?.signMessage,
             signTransaction: walletContextState?.signTransaction as <T extends Transaction | VersionedTransaction>(
               transactions: T
@@ -229,7 +229,7 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
         isOverride: false,
       };
     }
-  }, [anchorWallet, web3AuthWalletData, query, web3Auth?.connected, walletContextState]);
+  }, [anchorWallet, web3AuthWalletData, walletQueryParam, web3Auth?.connected, walletContextState]);
 
   // login to web3auth with specified social provider
   const loginWeb3Auth = React.useCallback(
