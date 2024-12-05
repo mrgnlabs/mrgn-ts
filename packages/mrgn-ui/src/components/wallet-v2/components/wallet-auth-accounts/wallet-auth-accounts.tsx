@@ -236,6 +236,12 @@ export const WalletAuthAccounts = ({
     marginfiAccounts,
   ]);
 
+  React.useEffect(() => {
+    if (walletAuthAccountsState === WalletAuthAccountsState.ADD_ACCOUNT) {
+      setNewAccountName(`Account ${marginfiAccounts.length + 1}`);
+    }
+  }, [walletAuthAccountsState, marginfiAccounts]);
+
   if (!initialized) return null;
 
   return (
@@ -268,61 +274,67 @@ export const WalletAuthAccounts = ({
                 <p className="text-sm text-muted-foreground">Select your marginfi account below.</p>
               </div>
               <div className={cn("grid gap-2", isActivatingAccount !== null && "pointer-events-none animate-pulsate")}>
-                {marginfiAccounts.map((account, index) => {
-                  const isActiveAccount = selectedAccount && selectedAccount.address.equals(account.address);
-                  const accountLabel = accountLabels?.[account.address.toBase58()] || `Account ${index + 1}`;
-                  return (
-                    <Button
-                      key={index}
-                      variant="ghost"
-                      className={cn(
-                        "w-full justify-start gap-4 pr-1 pl-2",
-                        isActiveAccount && "cursor-default hover:bg-transparent"
-                      )}
-                      onClick={() => {
-                        if (isActiveAccount) return;
-                        activateAccount(account, index);
-                      }}
-                    >
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Label htmlFor="width" className="md:w-[97px] truncate overflow-hidden text-left">
-                              {accountLabel}
-                            </Label>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>{accountLabel}</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
+                {marginfiAccounts
+                  .sort((a, b) => {
+                    const indexA = Object.keys(accountLabels || {}).indexOf(a.address.toBase58());
+                    const indexB = Object.keys(accountLabels || {}).indexOf(b.address.toBase58());
+                    return indexA - indexB;
+                  })
+                  .map((account, index) => {
+                    const isActiveAccount = selectedAccount && selectedAccount.address.equals(account.address);
+                    const accountLabel = accountLabels?.[account.address.toBase58()] || `Account ${index + 1}`;
+                    return (
+                      <Button
+                        key={index}
+                        variant="ghost"
+                        className={cn(
+                          "w-full justify-start gap-4 pr-1 pl-2",
+                          isActiveAccount && "cursor-default hover:bg-transparent"
+                        )}
+                        onClick={() => {
+                          if (isActiveAccount) return;
+                          activateAccount(account, index);
+                        }}
+                      >
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Label htmlFor="width" className="md:w-[97px] truncate overflow-hidden text-left">
+                                {accountLabel}
+                              </Label>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>{accountLabel}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
 
-                      <span className="text-muted-foreground text-[10px]">
-                        {isActivatingAccountDelay === index
-                          ? "Switching..."
-                          : shortenAddress(account.address.toBase58())}
-                      </span>
+                        <span className="text-muted-foreground text-[10px]">
+                          {isActivatingAccountDelay === index
+                            ? "Switching..."
+                            : shortenAddress(account.address.toBase58())}
+                        </span>
 
-                      {isActivatingAccount === null && isActiveAccount && (
-                        <Badge className="text-xs p-1 h-5">active</Badge>
-                      )}
+                        {isActivatingAccount === null && isActiveAccount && (
+                          <Badge className="text-xs p-1 h-5">active</Badge>
+                        )}
 
-                      <div className="flex items-center ml-auto">
-                        <div
-                          className="p-1.5 transition-colors rounded-lg hover:bg-background-gray-light"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setEditingAccount(account);
-                            setEditingAccountName(accountLabel);
-                            setWalletAuthAccountsState(WalletAuthAccountsState.EDIT_ACCOUNT);
-                          }}
-                        >
-                          <IconPencil size={16} />
+                        <div className="flex items-center ml-auto">
+                          <div
+                            className="p-1.5 transition-colors rounded-lg hover:bg-background-gray-light"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setEditingAccount(account);
+                              setEditingAccountName(accountLabel);
+                              setWalletAuthAccountsState(WalletAuthAccountsState.EDIT_ACCOUNT);
+                            }}
+                          >
+                            <IconPencil size={16} />
+                          </div>
                         </div>
-                      </div>
-                    </Button>
-                  );
-                })}
+                      </Button>
+                    );
+                  })}
               </div>
               {showAddAccountButton && (
                 <Button
