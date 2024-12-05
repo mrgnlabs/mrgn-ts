@@ -10,7 +10,7 @@ import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { cn, capture } from "@mrgnlabs/mrgn-utils";
 import { Wallet } from "@mrgnlabs/mrgn-common";
 
-import { useTradeStore } from "~/store";
+import { useTradeStore, useTradeStoreV2 } from "~/store";
 import { ArenaBank, GroupData } from "~/store/tradeStore";
 import { getGroupPositionInfo } from "~/utils";
 import { useConnection } from "~/hooks/use-connection";
@@ -19,60 +19,63 @@ import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { ActionBox, ActionBoxProvider } from "~/components/action-box-v2";
 import { Button } from "~/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
+import { ArenaPoolV2Extended, GroupStatus } from "~/store/tradeStoreV2";
 
 interface props {
-  group: GroupData;
+  pool: ArenaPoolV2Extended;
 }
 
-export const YieldRow = ({ group }: props) => {
+export const YieldRow = ({ pool }: props) => {
   const { connection } = useConnection();
   const { connected, wallet } = useWallet();
-  const [fetchTradeState, nativeSolBalance, portfolio] = useTradeStore((state) => [
-    state.fetchTradeState,
+  const [nativeSolBalance, fetchTradeState] = useTradeStoreV2((state) => [
     state.nativeSolBalance,
-    state.portfolio,
+    state.fetchTradeState,
   ]);
-  const positionInfo = React.useMemo(() => getGroupPositionInfo({ group }), [group]);
 
-  const isLeveraged = React.useMemo(() => positionInfo === "LONG" || positionInfo === "SHORT", [positionInfo]);
+  // const [fetchTradeState, nativeSolBalance, portfolio] = useTradeStore((state) => [
+  //   state.fetchTradeState,
+  //   state.nativeSolBalance,
+  //   state.portfolio,
+  // ]);
+  // const positionInfo = React.useMemo(() => getGroupPositionInfo({ group }), [group]);
 
-  const collateralBank = group.pool.quoteTokens[0];
+  // const isLeveraged = React.useMemo(() => positionInfo === "LONG" || positionInfo === "SHORT", [positionInfo]);
 
-  const isLPPosition = React.useCallback(
-    (bank: ArenaBank) => {
-      if (!portfolio) return false;
-      return portfolio.lpPositions.some((group) => group.groupPk.equals(bank.info.rawBank.group));
-    },
-    [portfolio]
-  );
+  // const collateralBank = group.pool.quoteTokens[0];
+
+  // const isLPPosition = React.useCallback(
+  //   (bank: ArenaBank) => {
+  //     if (!portfolio) return false;
+  //     return portfolio.lpPositions.some((group) => group.groupPk.equals(bank.info.rawBank.group));
+  //   },
+  //   [portfolio]
+  // );
 
   return (
-    <div
-      key={group.client.group.address.toBase58()}
-      className="relative bg-background border rounded-xl mb-12 pt-5 pb-2 px-4"
-    >
+    <div key={pool.groupPk.toBase58()} className="relative bg-background border rounded-xl mb-12 pt-5 pb-2 px-4">
       <Link
-        href={`/trade/${group.client.group.address.toBase58()}`}
+        href={`/trade/${pool.groupPk.toBase58()}`}
         className="group bg-background border rounded-xl absolute -top-5 left-3.5 px-2 py-1.5 flex items-center gap-2 transition-colors hover:bg-accent"
       >
         <div className="flex items-center -space-x-2.5">
           <Image
-            src={group.pool.token.meta.tokenLogoUri}
-            alt={group.pool.token.meta.tokenSymbol}
+            src={pool.tokenBank.meta.tokenLogoUri}
+            alt={pool.tokenBank.meta.tokenSymbol}
             width={24}
             height={24}
             className="rounded-full bg-background z-10"
           />
           <Image
-            src={collateralBank.meta.tokenLogoUri}
-            alt={collateralBank.meta.tokenSymbol}
+            src={pool.quoteBank.meta.tokenLogoUri}
+            alt={pool.quoteBank.meta.tokenSymbol}
             width={24}
             height={24}
             className="rounded-full"
           />
         </div>
         <span>
-          {group.pool.token.meta.tokenSymbol}/{collateralBank.meta.tokenSymbol}
+          {pool.tokenBank.meta.tokenSymbol}/{pool.quoteBank.meta.tokenSymbol}
         </span>
         <div className="flex items-center gap-1 text-mrgn-green">
           <span>Trade</span>
@@ -82,11 +85,8 @@ export const YieldRow = ({ group }: props) => {
 
       <YieldItem
         className="pt-2 pb-4 border-b"
-        group={group}
-        bank={group.pool.token}
+        pool={pool}
         connected={connected}
-        isLeveraged={isLeveraged}
-        isLPPosition={isLPPosition(group.pool.token)}
         connection={connection}
         wallet={wallet}
         nativeSolBalance={nativeSolBalance}
@@ -110,23 +110,17 @@ export const YieldRow = ({ group }: props) => {
 };
 
 const YieldItem = ({
-  group,
-  bank,
+  pool,
   connected,
   className,
-  isLeveraged,
-  isLPPosition,
   connection,
   wallet,
   nativeSolBalance,
   fetchTradeState,
 }: {
-  group: GroupData;
-  bank: ArenaBank;
+  pool: ArenaPoolV2Extended;
   connected: boolean;
   className?: string;
-  isLeveraged?: boolean;
-  isLPPosition?: boolean;
   connection: Connection;
   wallet: Wallet;
   nativeSolBalance: number;
@@ -136,26 +130,28 @@ const YieldItem = ({
     <div className={cn("grid gap-4items-center", className, connected ? "grid-cols-7" : "grid-cols-6")}>
       <div className="flex items-center gap-2">
         <Image
-          src={bank.meta.tokenLogoUri}
-          alt={bank.meta.tokenSymbol}
+          src={pool.tokenBank.meta.tokenLogoUri}
+          alt={pool.tokenBank.meta.tokenSymbol}
           width={24}
           height={24}
           className="rounded-full"
         />
-        {bank.meta.tokenSymbol}
+        {pool.tokenBank.meta.tokenSymbol}
       </div>
       <div className="flex flex-col xl:gap-2 xl:flex-row xl:items-baseline">
-        <span className="text-xl">{numeralFormatter(bank.info.state.totalDeposits)}</span>
+        <span className="text-xl">{numeralFormatter(pool.tokenBank.info.state.totalDeposits)}</span>
         <span className="text-sm text-muted-foreground">
-          {usdFormatter.format(bank.info.state.totalDeposits * bank.info.oraclePrice.priceRealtime.price.toNumber())}
+          {usdFormatter.format(
+            pool.tokenBank.info.state.totalDeposits * pool.tokenBank.info.oraclePrice.priceRealtime.price.toNumber()
+          )}
         </span>
       </div>
 
       <div className="text-mrgn-success text-right w-32">
-        {percentFormatter.format(aprToApy(bank.info.state.lendingRate))}
+        {percentFormatter.format(aprToApy(pool.tokenBank.info.state.lendingRate))}
       </div>
       <div className="text-mrgn-warning text-right w-32">
-        {percentFormatter.format(aprToApy(bank.info.state.borrowingRate))}
+        {percentFormatter.format(aprToApy(pool.tokenBank.info.state.borrowingRate))}
       </div>
       <div className="flex justify-center">
         <Link href="https://x.com/marginfi" target="_blank">
@@ -170,10 +166,10 @@ const YieldItem = ({
       </div>
       {connected && (
         <div className="pl-2 text-lg flex flex-col xl:gap-1 xl:flex-row xl:items-baseline">
-          {bank.isActive && bank.position.isLending && isLPPosition && (
+          {pool.tokenBank.isActive && pool.tokenBank.position.isLending && pool.status === GroupStatus.LP && (
             <>
-              {numeralFormatter(bank.position.amount)}
-              <span className="text-muted-foreground text-sm">{bank.meta.tokenSymbol}</span>
+              {numeralFormatter(pool.tokenBank.position.amount)}
+              <span className="text-muted-foreground text-sm">{pool.tokenBank.meta.tokenSymbol}</span>
             </>
           )}
         </div>
