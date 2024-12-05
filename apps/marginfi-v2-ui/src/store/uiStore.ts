@@ -139,12 +139,33 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
       }
     };
 
-    await Promise.all(
+    const accountLabelsWithAddresses = await Promise.all(
       accounts.map(async (account) => {
         const label = await fetchLabel(account);
-        labels[account.address.toBase58()] = label;
+        return { address: account.address.toBase58(), label };
       })
     );
+
+    // Sort labels by order: first anything that is not starting with "Account", then "Account 1", "Account 2", ...
+    accountLabelsWithAddresses.sort((a, b) => {
+      const isAAccountLabel = /^Account (\d+)$/.test(a.label);
+      const isBAccountLabel = /^Account (\d+)$/.test(b.label);
+
+      if (!isAAccountLabel && isBAccountLabel) return -1;
+      if (isAAccountLabel && !isBAccountLabel) return 1;
+
+      if (isAAccountLabel && isBAccountLabel) {
+        const numA = parseInt(a.label.match(/^Account (\d+)$/)[1], 10);
+        const numB = parseInt(b.label.match(/^Account (\d+)$/)[1], 10);
+        return numA - numB;
+      }
+
+      return a.label.localeCompare(b.label, undefined, { sensitivity: "base" });
+    });
+
+    accountLabelsWithAddresses.forEach(({ address, label }) => {
+      labels[address] = label;
+    });
 
     set({ accountLabels: labels });
   },
