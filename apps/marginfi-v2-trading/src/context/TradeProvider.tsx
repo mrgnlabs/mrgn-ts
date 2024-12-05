@@ -35,12 +35,13 @@ export const TradePovider: React.FC<{
     fetchArenaGroups();
   }, [fetchArenaGroups]);
 
-  // React.useEffect(() => {
-  //   if (initialized) {
-  //     fetchExtendedArenaGroups({ connection, wallet });
-  //   }
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, [initialized, fetchExtendedArenaGroups]);
+  React.useEffect(() => {
+    if (initialized) {
+      console.log("fetching extended arena groups");
+      fetchExtendedArenaGroups({ connection, wallet });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialized, wallet]);
 
   React.useEffect(() => {
     const trackReferral = async (referralCode: string, walletAddress: string) => {

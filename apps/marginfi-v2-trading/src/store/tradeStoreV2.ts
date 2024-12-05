@@ -1,31 +1,25 @@
 import { create, StateCreator } from "zustand";
-import { Connection, PublicKey } from "@solana/web3.js";
-import { Address, AnchorProvider, BorshAccountsCoder, Program, translateAddress } from "@coral-xyz/anchor";
+import { AddressLookupTableAccount, Connection, PublicKey, RpcResponseAndContext } from "@solana/web3.js";
+import { AnchorProvider, Program } from "@coral-xyz/anchor";
 import Fuse, { FuseResult } from "fuse.js";
 import {
   ExtendedBankInfo,
   makeExtendedBankInfo,
   fetchTokenAccounts,
   TokenAccountMap,
-  computeAccountSummary,
-  DEFAULT_ACCOUNT_SUMMARY,
-  AccountSummary,
-  fetchGroupData,
   TokenAccount,
 } from "@mrgnlabs/marginfi-v2-ui-state";
 import {
-  MarginfiClient,
   getConfig,
   Bank,
   OraclePrice,
-  MarginfiAccountWrapper,
-  MintData,
   MARGINFI_IDL,
   MarginfiIdlType,
   MarginfiProgram,
   BankRaw,
   MarginfiGroup,
   MarginfiAccount,
+  MintDataMap,
 } from "@mrgnlabs/marginfi-client-v2";
 import {
   Wallet,
@@ -34,14 +28,17 @@ import {
   loadBankMetadatas,
   getValueInsensitive,
   BankMetadata,
-  LST_MINT,
   chunkedGetRawMultipleAccountInfoOrdered,
 } from "@mrgnlabs/mrgn-common";
 
-import { TRADE_GROUPS_MAP, TOKEN_METADATA_MAP, BANK_METADATA_MAP, POOLS_PER_PAGE } from "~/config/trade";
+import {
+  TRADE_GROUPS_MAP,
+  TOKEN_METADATA_MAP,
+  BANK_METADATA_MAP,
+  POOLS_PER_PAGE,
+  LUT_GROUPS_MAP,
+} from "~/config/trade";
 import { TokenData } from "~/types";
-import { getGroupPositionInfo } from "~/utils";
-import { getTransactionStrategy } from "@mrgnlabs/mrgn-utils";
 import BigNumber from "bignumber.js";
 
 type TradeGroupsCache = {
@@ -113,6 +110,12 @@ export type ArenaPoolV2 = {
   groupPk: PublicKey;
   tokenBankPk: PublicKey;
   quoteBankPk: PublicKey;
+};
+
+export type ArenaPoolV2Extended = {
+  groupPk: PublicKey;
+  tokenBank: ArenaBank;
+  quoteBank: ArenaBank;
   status: GroupStatus;
 };
 
@@ -134,6 +137,7 @@ interface BankSummaryApiResponse extends BankData {
 type TradeStoreV2State = {
   // keep track of store state
   initialized: boolean;
+  poolsFetched: boolean;
   userDataFetched: boolean;
   isRefreshingStore: boolean;
 
@@ -145,6 +149,9 @@ type TradeStoreV2State = {
   bankMetadataCache: {
     [symbol: string]: BankMetadata;
   };
+  lutGroupsCache: {
+    [groupPk: string]: PublicKey;
+  };
 
   // new objects
   arenaPoolsSummary: Record<string, ArenaPoolSummary>;
@@ -152,6 +159,9 @@ type TradeStoreV2State = {
   groupsByGroupPk: Record<string, MarginfiGroup>;
   banksByBankPk: Record<string, ArenaBank>;
   tokenDataByMint: Record<string, TokenData>;
+  marginfiAccountsByGroupPk: Record<string, MarginfiAccount>;
+  lutByGroupPk: Record<string, AddressLookupTableAccount[]>;
+  mintDataByMint: MintDataMap;
 
   // user token account map
   tokenAccountMap: TokenAccountMap | null;
@@ -231,8 +241,10 @@ function createTradeStoreV2() {
 
 const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
   initialized: false,
+  poolsFetched: false,
   userDataFetched: false,
   isRefreshingStore: false,
+  lutGroupsCache: {},
   groupsCache: {},
   tokenMetadataCache: {},
   bankMetadataCache: {},
@@ -257,7 +269,10 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
   arenaPools: {},
   groupsByGroupPk: {},
   banksByBankPk: {},
+  marginfiAccountsByGroupPk: {},
   tokenDataByMint: {},
+  lutByGroupPk: {},
+  mintDataByMint: new Map(),
   arenaPoolsSummaryFuse: null,
   arenaPoolsFuse: null,
   searchPoolSummaryResults: [],
@@ -273,7 +288,7 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
   },
 
   fetchArenaGroups: async () => {
-    let { tokenMetadataCache, bankMetadataCache, groupsCache } = get();
+    let { lutGroupsCache, tokenMetadataCache, bankMetadataCache, groupsCache } = get();
 
     if (
       !Object.keys(tokenMetadataCache).length ||
@@ -282,17 +297,19 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
     ) {
       try {
         // Fetch all data in parallel using Promise.all
-        const [groupsData, tokenData, bankData] = await Promise.all([
+        const [lutData, groupsData, tokenData, bankData] = await Promise.all([
+          fetch(LUT_GROUPS_MAP).then((res) => res.json()),
           fetch(TRADE_GROUPS_MAP).then((res) => res.json()),
           loadTokenMetadatas(TOKEN_METADATA_MAP),
           loadBankMetadatas(BANK_METADATA_MAP),
         ]);
 
+        lutGroupsCache = lutData;
         groupsCache = groupsData;
         tokenMetadataCache = tokenData;
         bankMetadataCache = bankData;
 
-        set({ groupsCache, tokenMetadataCache, bankMetadataCache });
+        set({ lutGroupsCache, groupsCache, tokenMetadataCache, bankMetadataCache });
       } catch (error) {
         console.error("Failed to fetch cache data:", error);
         return;
@@ -380,7 +397,15 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
   fetchExtendedArenaGroups: async (args) => {
     const connection = args.connection || get().connection;
     const wallet = args.wallet || get().wallet;
-    const { tokenDataByMint, tokenMetadataCache, bankMetadataCache, groupsCache, arenaPoolsSummary } = get();
+    const {
+      lutGroupsCache,
+      lutByGroupPk,
+      tokenDataByMint,
+      tokenMetadataCache,
+      bankMetadataCache,
+      groupsCache,
+      arenaPoolsSummary,
+    } = get();
 
     if (!connection) throw new Error("Connection not found");
     if (!Object.keys(arenaPoolsSummary).length || !Object.keys(tokenDataByMint).length) {
@@ -526,6 +551,7 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
 
     let nativeSolBalance = 0;
     let tokenAccountMap: TokenAccountMap | null = null;
+    const marginfiAccountsByGroupPk: Record<string, MarginfiAccount> = {};
 
     if (wallet.publicKey && !wallet.publicKey.equals(PublicKey.default)) {
       const [tokenAccounts] = await Promise.all([
@@ -544,8 +570,6 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
       nativeSolBalance = tokenAccounts.nativeSolBalance;
       tokenAccountMap = tokenAccounts.tokenAccountMap;
 
-      const marginfiAccountsByGroupPk = new Map<string, MarginfiAccount>();
-
       const accounts = await program.account.marginfiAccount.all([
         {
           memcmp: {
@@ -558,21 +582,21 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
       accounts.forEach((a) => {
         const groupKey = a.account.group.toBase58();
         const account = new MarginfiAccount(a.publicKey, a.account);
-        const existingAccount = marginfiAccountsByGroupPk.get(groupKey);
+        const existingAccount = marginfiAccountsByGroupPk[groupKey];
 
         if (existingAccount) {
           const isUpdateAccount = existingAccount.activeBalances.length < account.activeBalances.length;
 
           if (isUpdateAccount) {
-            marginfiAccountsByGroupPk.set(groupKey, account);
+            marginfiAccountsByGroupPk[groupKey] = account;
           }
         } else {
-          marginfiAccountsByGroupPk.set(groupKey, account);
+          marginfiAccountsByGroupPk[groupKey] = account;
         }
       });
 
       extendedBankInfos = extendedBankInfos.map((bankInfo) => {
-        const marginfiAccount = marginfiAccountsByGroupPk.get(bankInfo.info.rawBank.group.toBase58()) ?? null;
+        const marginfiAccount = marginfiAccountsByGroupPk[bankInfo.info.rawBank.group.toBase58()] ?? null;
         const tokenAccount = tokenAccountMap?.get(bankInfo.info.rawBank.mint.toBase58());
 
         return updateBank(bankInfo, nativeSolBalance, marginfiAccount, banks, priceInfos, tokenAccount);
@@ -582,58 +606,10 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
     const arenaPools: Record<string, ArenaPoolV2> = {};
 
     Object.entries(arenaPoolsSummary).map(([groupPk, group]) => {
-      const tokenBank = extendedBankInfos.find((b) => b.info.rawBank.address.equals(group.tokenSummary.bankPk));
-      const quoteBank = extendedBankInfos.find((b) => b.info.rawBank.address.equals(group.quoteSummary.bankPk));
-
-      if (!tokenBank || !quoteBank) {
-        throw new Error(`Failed to find token or quote bank for group ${groupPk}`);
-      }
-
-      let isLpPosition = true;
-      let hasAnyPosition = false;
-      let isLendingInAny = false;
-      let isLong = false;
-      let isShort = false;
-
-      if (tokenBank.isActive && tokenBank.position) {
-        hasAnyPosition = true;
-        if (tokenBank.position.isLending) {
-          isLendingInAny = true;
-        } else if (tokenBank.position.usdValue > 0) {
-          isShort = true;
-          isLpPosition = false;
-        }
-      }
-
-      if (quoteBank.isActive && quoteBank.position) {
-        hasAnyPosition = true;
-        if (quoteBank.position.isLending) {
-          isLendingInAny = true;
-        } else if (quoteBank.position.usdValue > 0) {
-          if (tokenBank.isActive && tokenBank.position && tokenBank.position.isLending) {
-            isLong = true;
-          }
-          isLpPosition = false;
-        }
-      }
-
-      let status = GroupStatus.EMPTY;
-
-      if (hasAnyPosition) {
-        if (isLpPosition && isLendingInAny) {
-          status = GroupStatus.LP;
-        } else if (isLong) {
-          status = GroupStatus.LONG;
-        } else if (isShort) {
-          status = GroupStatus.SHORT;
-        }
-      }
-
       const arenaPool: ArenaPoolV2 = {
         groupPk: group.groupPk,
         tokenBankPk: group.tokenSummary.bankPk,
         quoteBankPk: group.quoteSummary.bankPk,
-        status,
       };
 
       arenaPools[groupPk] = arenaPool;
@@ -649,14 +625,58 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
       return acc;
     }, {} as Record<string, MarginfiGroup>);
 
-    set({ arenaPools, banksByBankPk, groupsByGroupPk });
+    if (!lutByGroupPk) {
+      const lutResults: Record<string, Promise<RpcResponseAndContext<AddressLookupTableAccount | null>>> = {};
+
+      // Create lookup promises for each group
+      Object.entries(lutGroupsCache).forEach(([groupPk, lutPk]) => {
+        lutResults[groupPk] = connection.getAddressLookupTable(new PublicKey(lutPk));
+      });
+
+      const results = await Promise.all(Object.values(lutResults));
+
+      const updatedLutByGroupPk = Object.keys(lutResults).reduce((acc, groupPk, index) => {
+        const lutAccount = results[index].value;
+        if (lutAccount) {
+          acc[groupPk] = [lutAccount];
+        }
+        return acc;
+      }, {} as Record<string, AddressLookupTableAccount[]>);
+
+      set({ lutByGroupPk: updatedLutByGroupPk });
+    }
+
+    set({
+      arenaPools,
+      banksByBankPk,
+      groupsByGroupPk,
+      marginfiAccountsByGroupPk,
+      tokenAccountMap,
+      nativeSolBalance,
+      mintDataByMint: tokenDatas,
+      wallet,
+      connection,
+    });
 
     // fetch all bank data
   },
 
   fetchTradeState: async (args) => {},
 
-  refreshGroup: async (args: { groupPk: PublicKey; connection?: Connection; wallet?: Wallet }) => {},
+  refreshGroup: async (args: { groupPk: PublicKey; connection?: Connection; wallet?: Wallet }) => {
+    const connection = args.connection || get().connection;
+    const wallet = args.wallet || get().wallet;
+    const arenaPools = get().arenaPools;
+    const arenaPool = arenaPools[args.groupPk.toBase58()];
+
+    if (!arenaPool) throw new Error("Arena pool not found");
+    if (!connection) throw new Error("Connection not found");
+    if (!wallet) throw new Error("Wallet not found");
+
+    const banksByBankPk = get().banksByBankPk;
+
+    // WIP
+  },
 
   searchSummaryPools: (searchQuery: string) => {
     const fuse = get().arenaPoolsSummaryFuse;
@@ -815,49 +835,6 @@ async function fetchOraclePrices() {
 
   return oraclePrices;
 }
-
-// async function getCachedMarginfiAccountsForAuthority(
-//   authority: PublicKey,
-//   client: MarginfiClient
-// ): Promise<MarginfiAccountWrapper[]> {
-//   const debug = require("debug")("mfi:getCachedMarginfiAccountsForAuthority");
-//   if (typeof window === "undefined") {
-//     return client.getMarginfiAccountsForAuthority(authority);
-//   }
-
-//   const cacheKey = createLocalStorageKey(authority);
-//   const cachedAccountsStr = window.localStorage.getItem(cacheKey);
-//   let cachedAccounts: string[] = [];
-
-//   if (cachedAccountsStr) {
-//     cachedAccounts = JSON.parse(cachedAccountsStr);
-//   }
-
-//   debug("cachedAccounts", cachedAccounts);
-//   if (cachedAccounts && cachedAccounts.length > 0) {
-//     const accountAddresses: PublicKey[] = cachedAccounts.reduce((validAddresses: PublicKey[], address: string) => {
-//       try {
-//         const publicKey = new PublicKey(address);
-//         validAddresses.push(publicKey);
-//         return validAddresses;
-//       } catch (error) {
-//         console.warn(`Invalid public key: ${address}. Skipping.`);
-//         return validAddresses;
-//       }
-//     }, []);
-
-//     // Update local storage with valid addresses only
-//     window.localStorage.setItem(cacheKey, JSON.stringify(accountAddresses.map((addr) => addr.toString())));
-//     debug("Loading ", accountAddresses.length, "accounts from cache");
-//     return client.getMultipleMarginfiAccounts(accountAddresses);
-//   } else {
-//     const accounts = await client.getMarginfiAccountsForAuthority(authority);
-//     const accountAddresses = accounts.map((account) => account.address.toString());
-//     window.localStorage.setItem(cacheKey, JSON.stringify(accountAddresses));
-//     return accounts;
-//   }
-// }
-
 const updateBank = (
   bank: ArenaBank,
   nativeSolBalance: number,
