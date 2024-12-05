@@ -123,26 +123,28 @@ const YieldItem = ({
     <div className={cn("grid gap-4items-center", className, connected ? "grid-cols-7" : "grid-cols-6")}>
       <div className="flex items-center gap-2">
         <Image
-          src={bank.meta.tokenLogoUri}
-          alt={bank.meta.tokenSymbol}
+          src={pool.tokenBank.meta.tokenLogoUri}
+          alt={pool.tokenBank.meta.tokenSymbol}
           width={24}
           height={24}
           className="rounded-full"
         />
-        {bank.meta.tokenSymbol}
+        {pool.tokenBank.meta.tokenSymbol}
       </div>
       <div className="flex flex-col xl:gap-2 xl:flex-row xl:items-baseline">
-        <span className="text-xl">{numeralFormatter(bank.info.state.totalDeposits)}</span>
+        <span className="text-xl">{numeralFormatter(pool.tokenBank.info.state.totalDeposits)}</span>
         <span className="text-sm text-muted-foreground">
-          {usdFormatter.format(bank.info.state.totalDeposits * bank.info.oraclePrice.priceRealtime.price.toNumber())}
+          {usdFormatter.format(
+            pool.tokenBank.info.state.totalDeposits * pool.tokenBank.info.oraclePrice.priceRealtime.price.toNumber()
+          )}
         </span>
       </div>
 
       <div className="text-mrgn-success text-right w-32">
-        {percentFormatter.format(aprToApy(bank.info.state.lendingRate))}
+        {percentFormatter.format(aprToApy(pool.tokenBank.info.state.lendingRate))}
       </div>
       <div className="text-mrgn-warning text-right w-32">
-        {percentFormatter.format(aprToApy(bank.info.state.borrowingRate))}
+        {percentFormatter.format(aprToApy(pool.tokenBank.info.state.borrowingRate))}
       </div>
       <div className="flex justify-center">
         <Link href="https://x.com/marginfi" target="_blank">
@@ -159,8 +161,8 @@ const YieldItem = ({
         <div className="pl-2 text-lg flex flex-col xl:gap-1 xl:flex-row xl:items-baseline">
           {isProvidingLiquidity && bank.isActive && (
             <>
-              {numeralFormatter(bank.position.amount)}
-              <span className="text-muted-foreground text-sm">{bank.meta.tokenSymbol}</span>
+              {numeralFormatter(pool.tokenBank.position.amount)}
+              <span className="text-muted-foreground text-sm">{pool.tokenBank.meta.tokenSymbol}</span>
             </>
           )}
         </div>
