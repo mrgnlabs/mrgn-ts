@@ -17,6 +17,7 @@ export const BankListCommand = ({ selectedBank, onSetSearchQuery, onClose, child
   const isMobile = useIsMobile();
 
   return (
+    // Using FocusOn to handle focus of command input but only on desktop
     <FocusOn onEscapeKey={onClose} onClickOutside={onClose} autoFocus={!isMobile}>
       <Command
         className="bg-mfi-action-box-background relative"
