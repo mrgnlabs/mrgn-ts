@@ -5,7 +5,7 @@ import { IconSortDescending, IconSortAscending, IconSearch } from "@tabler/icons
 
 import { Desktop, Mobile } from "@mrgnlabs/mrgn-utils";
 
-import { useTradeStore } from "~/store";
+import { useTradeStore, useTradeStoreV2 } from "~/store";
 import { GroupData, TradePoolFilterStates } from "~/store/tradeStore";
 import { useActionBoxStore } from "~/components/action-box-v2/store";
 import { cn } from "@mrgnlabs/mrgn-utils";
@@ -19,6 +19,8 @@ import { Input } from "~/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
 import { YieldRow } from "~/components/common/Yield";
 import { YieldCard } from "~/components/common/Yield/YieldCard";
+import { ArenaPoolV2Extended } from "~/store/tradeStoreV2";
+import { useExtendedPools } from "~/hooks/useExtendedPools";
 
 const sortOptions: {
   value: TradePoolFilterStates;
@@ -34,21 +36,64 @@ const sortOptions: {
 let fuse: Fuse<GroupData> | null = null;
 
 export default function PortfolioPage() {
-  const [initialized, groupMap, sortBy, setSortBy] = useTradeStore((state) => [
+  // const [initialized, groupMap, sortBy, setSortBy] = useTradeStore((state) => [
+  //   state.initialized,
+  //   state.groupMap,
+  //   state.sortBy,
+  //   state.setSortBy,
+  // ]);
+
+  const [initialized, sortBy, setSortBy] = useTradeStoreV2((state) => [
     state.initialized,
-    state.groupMap,
     state.sortBy,
     state.setSortBy,
   ]);
+
+  const extendedPools = useExtendedPools();
+
   const [isActionComplete, previousTxn, setIsActionComplete] = useActionBoxStore((state) => [
     state.isActionComplete,
     state.previousTxn,
     state.setIsActionComplete,
   ]);
+
+  const fuse = React.useMemo(() => {
+    return new Fuse(extendedPools, {
+      includeScore: true,
+      threshold: 0.2,
+      keys: [
+        {
+          name: "tokenBank.meta.tokenSymbol",
+          weight: 0.7,
+        },
+        {
+          name: "quoteBank.meta.tokenSymbol",
+          weight: 0.7,
+        },
+        {
+          name: "tokenBank.meta.tokenName",
+          weight: 0.3,
+        },
+        {
+          name: "quoteBank.meta.tokenName",
+          weight: 0.3,
+        },
+        {
+          name: "tokenBank.info.state.mint.toBase58()",
+          weight: 0.1,
+        },
+        {
+          name: "quoteBank.info.state.mint.toBase58()",
+          weight: 0.1,
+        },
+      ],
+    });
+  }, [extendedPools]);
+
   const isMobile = useIsMobile();
   const { connected } = useWallet();
   const [search, setSearch] = React.useState("");
-  const groups = Array.from(groupMap.values());
+
   const searchRef = React.useRef<HTMLDivElement>(null);
 
   const dir = React.useMemo(() => {
@@ -56,49 +101,16 @@ export default function PortfolioPage() {
     return option?.dir || "desc";
   }, [sortBy]);
 
-  React.useEffect(() => {
-    fuse = new Fuse(groups, {
-      includeScore: true,
-      threshold: 0.2,
-      keys: [
-        {
-          name: "pool.token.meta.tokenSymbol",
-          weight: 0.7,
-        },
-        {
-          name: "pool.quoteTokens[0].meta.tokenSymbol",
-          weight: 0.7,
-        },
-        {
-          name: "pool.token.meta.tokenName",
-          weight: 0.3,
-        },
-        {
-          name: "pool.quoteTokens[0].meta.tokenName",
-          weight: 0.3,
-        },
-        {
-          name: "pool.token.info.state.mint.toBase58()",
-          weight: 0.1,
-        },
-        {
-          name: "pool.quoteTokens[0].info.state.mint.toBase58()",
-          weight: 0.1,
-        },
-      ],
-    });
-  }, [groups]);
-
-  const filteredGroups = React.useMemo(() => {
-    if (!fuse) return groups;
+  const filteredPools = React.useMemo(() => {
+    if (!fuse) return extendedPools;
     const results = fuse.search(search).map((result) => result.item);
     if (!results.length && !search) {
-      return groups;
+      return extendedPools;
     } else if (!results) {
       return [];
     }
     return results;
-  }, [groups, search]);
+  }, [extendedPools, fuse, search]);
 
   React.useEffect(() => {
     setSortBy(TradePoolFilterStates.APY_DESC);
@@ -155,7 +167,7 @@ export default function PortfolioPage() {
             </div>
 
             <Desktop>
-              {filteredGroups && filteredGroups.length > 0 && (
+              {filteredPools && filteredPools.length > 0 && (
                 <div
                   className={cn(
                     "text-sm grid xl:text-base gap-4 text-muted-foreground mb-8 items-center",
@@ -207,9 +219,9 @@ export default function PortfolioPage() {
                 </div>
               )}
               <div>
-                {filteredGroups &&
-                  filteredGroups.length > 0 &&
-                  filteredGroups.map((group) => <YieldRow key={group.client.group.address.toBase58()} group={group} />)}
+                {filteredPools &&
+                  filteredPools.length > 0 &&
+                  filteredPools.map((pool) => <YieldRow key={pool.groupPk.toBase58()} pool={pool} />)}
               </div>
             </Desktop>
             <Mobile>
