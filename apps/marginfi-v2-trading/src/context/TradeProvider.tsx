@@ -37,7 +37,6 @@ export const TradePovider: React.FC<{
 
   React.useEffect(() => {
     if (initialized) {
-      console.log("fetching extended arena groups");
       fetchExtendedArenaGroups({ connection, wallet });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -78,41 +77,41 @@ export const TradePovider: React.FC<{
     }
   }, [router.asPath, wallet, connected, isLoggedIn]);
 
-  React.useEffect(() => {
-    const fetchData = () => {
-      setIsRefreshingStore(true);
-      fetchPriorityFee(connection);
-      fetchTradeState({
-        connection,
-        wallet,
-      });
-    };
+  // React.useEffect(() => {
+  //   const fetchData = () => {
+  //     setIsRefreshingStore(true);
+  //     fetchPriorityFee(connection);
+  //     fetchTradeState({
+  //       connection,
+  //       wallet,
+  //     });
+  //   };
 
-    if (debounceId.current) {
-      clearTimeout(debounceId.current);
-    }
+  //   if (debounceId.current) {
+  //     clearTimeout(debounceId.current);
+  //   }
 
-    debounceId.current = setTimeout(() => {
-      fetchData();
+  //   debounceId.current = setTimeout(() => {
+  //     fetchData();
 
-      const id = setInterval(() => {
-        setIsRefreshingStore(true);
-        fetchTradeState({});
-        fetchPriorityFee(connection);
-      }, 50_000);
+  //     const id = setInterval(() => {
+  //       setIsRefreshingStore(true);
+  //       fetchTradeState({});
+  //       fetchPriorityFee(connection);
+  //     }, 50_000);
 
-      return () => {
-        clearInterval(id);
-        clearTimeout(debounceId.current!);
-      };
-    }, 1000);
+  //     return () => {
+  //       clearInterval(id);
+  //       clearTimeout(debounceId.current!);
+  //     };
+  //   }, 1000);
 
-    return () => {
-      if (debounceId.current) {
-        clearTimeout(debounceId.current);
-      }
-    };
-  }, [wallet, isOverride]); // eslint-disable-line react-hooks/exhaustive-deps
+  //   return () => {
+  //     if (debounceId.current) {
+  //       clearTimeout(debounceId.current);
+  //     }
+  //   };
+  // }, [wallet, isOverride]); // eslint-disable-line react-hooks/exhaustive-deps
   // ^ crucial to omit both `connection` and `fetchMrgnlendState` from the dependency array
   // TODO: fix...
 
