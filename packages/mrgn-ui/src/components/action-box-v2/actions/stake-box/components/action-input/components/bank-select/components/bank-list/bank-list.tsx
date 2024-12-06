@@ -1,10 +1,11 @@
 import React from "react";
 
 import { WSOL_MINT } from "@mrgnlabs/mrgn-common";
-import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { CommandEmpty, CommandGroup, CommandItem } from "~/components/ui/command";
 import { BankItem, BankListCommand } from "~/components/action-box-v2/components";
+import { cn } from "@mrgnlabs/mrgn-utils";
 
 type BankListProps = {
   selectedBank: ExtendedBankInfo | null;
@@ -57,6 +58,12 @@ export const BankList = ({
     [searchQuery]
   );
 
+  const positionFilter = React.useCallback(
+    (bankInfo: ExtendedBankInfo, filterActive?: boolean) =>
+      bankInfo.isActive ? bankInfo.position.isLending : filterActive,
+    []
+  );
+
   /////// BANKS
   // wallet banks
   const filteredBanksUserOwns = React.useMemo(() => {
@@ -80,6 +87,23 @@ export const BankList = ({
     );
   }, [banks, balanceFilter, searchFilter, nativeSolBalance]);
 
+  const filteredBanksActive = React.useMemo(() => {
+    return banks
+      .filter(searchFilter)
+      .filter((bankInfo) => positionFilter(bankInfo, false))
+      .sort((a, b) => (b.isActive ? b?.position?.amount : 0) - (a.isActive ? a?.position?.amount : 0));
+  }, [banks, searchFilter, positionFilter]);
+
+  const filteredBanks = React.useMemo(() => {
+    return banks.filter(searchFilter);
+  }, [banks, searchFilter]);
+
+  const globalBanks = React.useMemo(() => filteredBanks.filter((bank) => !bank.info.state.isIsolated), [filteredBanks]);
+  const isolatedBanks = React.useMemo(
+    () => filteredBanks.filter((bank) => bank.info.state.isIsolated),
+    [filteredBanks]
+  );
+
   React.useEffect(() => {
     if (!isOpen) {
       setSearchQuery("");
@@ -88,6 +112,7 @@ export const BankList = ({
 
   return (
     <>
+      test
       <BankListCommand selectedBank={selectedBank} onClose={onClose} onSetSearchQuery={setSearchQuery}>
         {!hasTokens && (
           <div className="text-sm text-[#C0BFBF] font-normal p-3">
@@ -117,6 +142,53 @@ export const BankList = ({
                   </CommandItem>
                 );
               })}
+          </CommandGroup>
+        )}
+
+        {globalBanks.length > 0 && onSetSelectedBank && (
+          <CommandGroup heading="Global pools">
+            {globalBanks.map((bank, index) => {
+              return (
+                <CommandItem
+                  key={index}
+                  value={bank.address?.toString().toLowerCase()}
+                  onSelect={(currentValue) => {
+                    onSetSelectedBank(
+                      banks.find((bankInfo) => bankInfo.address.toString().toLowerCase() === currentValue) ?? null
+                    );
+                    onClose();
+                  }}
+                  className={cn(
+                    "cursor-pointer font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-mfi-action-box-accent data-[selected=true]:text-mfi-action-box-accent-foreground hover:bg-mfi-action-box-accent hover:text-mfi-action-box-accent-foreground"
+                  )}
+                >
+                  <BankItem bank={bank} showBalanceOverride={false} nativeSolBalance={nativeSolBalance} />
+                </CommandItem>
+              );
+            })}
+          </CommandGroup>
+        )}
+        {isolatedBanks.length > 0 && onSetSelectedBank && (
+          <CommandGroup heading="Isolated pools">
+            {isolatedBanks.map((bank, index) => {
+              return (
+                <CommandItem
+                  key={index}
+                  value={bank.address?.toString().toLowerCase()}
+                  onSelect={(currentValue) => {
+                    onSetSelectedBank(
+                      banks.find((bankInfo) => bankInfo.address.toString().toLowerCase() === currentValue) ?? null
+                    );
+                    onClose();
+                  }}
+                  className={cn(
+                    "cursor-pointer font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-mfi-action-box-accent data-[selected=true]:text-mfi-action-box-accent-foreground hover:bg-mfi-action-box-accent hover:text-mfi-action-box-accent-foreground"
+                  )}
+                >
+                  <BankItem bank={bank} showBalanceOverride={false} nativeSolBalance={nativeSolBalance} />
+                </CommandItem>
+              );
+            })}
           </CommandGroup>
         )}
       </BankListCommand>
