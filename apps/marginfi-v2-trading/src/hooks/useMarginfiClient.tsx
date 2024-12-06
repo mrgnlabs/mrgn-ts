@@ -56,7 +56,7 @@ export function useMarginfiClient({
   const { connection } = useConnection();
 
   const client = React.useMemo(() => {
-    console.log("client fetch triggered for group", groupPk.toBase58());
+    // console.log("client fetch triggered for group", groupPk.toBase58());
     const lut = lutByGroupPk[groupPk.toBase58()] ?? [];
     const group = groupsByGroupPk[groupPk.toBase58()];
     const pool = arenaPools[groupPk.toBase58()];
@@ -73,7 +73,12 @@ export function useMarginfiClient({
       return null;
     }
 
-    const mintData = new Map([tokenMint, quoteMint].map((mint) => [mint.mint.toBase58(), mint]));
+    const mintData = new Map(
+      [
+        { mintData: tokenMint, bankPk: pool.tokenBankPk.toBase58() },
+        { mintData: quoteMint, bankPk: pool.quoteBankPk.toBase58() },
+      ].map((data) => [data.bankPk, data.mintData])
+    );
     const banks = new Map(
       [tokenBank, quoteBank].map((bank) => [bank.info.rawBank.address.toBase58(), bank.info.rawBank])
     );

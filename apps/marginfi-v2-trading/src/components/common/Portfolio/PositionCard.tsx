@@ -12,17 +12,17 @@ import { useGroupBanks, useGroupPosition } from "~/hooks/arenaHooks";
 import { PositionActionButtons } from "~/components/common/Portfolio";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 
-import type { GroupData } from "~/store/tradeStore";
+import { ArenaPoolV2Extended } from "~/store/tradeStoreV2";
 
 type PositionCardProps = {
-  groupData: GroupData;
+  groupData: ArenaPoolV2Extended;
   size?: "sm" | "lg";
 };
 
 export const PositionCard = ({ size = "lg", groupData }: PositionCardProps) => {
   const isMobile = useIsMobile();
-  const { borrowBank } = useGroupBanks({ group: groupData });
-  const { positionSizeUsd, totalUsdValue, leverage } = useGroupPosition({ group: groupData });
+  // const { borrowBank } = useGroupBanks({ groupData: groupData });
+  // const { positionSizeUsd, totalUsdValue, leverage } = useGroupPosition({ group: groupData });
 
   const healthColor = React.useMemo(() => {
     if (groupData.accountSummary.healthFactor) {

@@ -86,11 +86,7 @@ class MarginfiAccountWrapper {
   /**
    * @internal
    */
-  private constructor(
-    marginfiAccountPk: PublicKey,
-    private readonly client: MarginfiClient,
-    marginfiAccount: MarginfiAccount
-  ) {
+  constructor(marginfiAccountPk: PublicKey, private readonly client: MarginfiClient, marginfiAccount: MarginfiAccount) {
     this.address = marginfiAccountPk;
     this._marginfiAccount = marginfiAccount;
   }
