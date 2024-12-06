@@ -282,7 +282,7 @@ export const WalletAuthAccounts = ({
                   })
                   .map((account, index) => {
                     const isActiveAccount = selectedAccount && selectedAccount.address.equals(account.address);
-                    const accountLabel = accountLabels?.[account.address.toBase58()] || `Account ${index + 1}`;
+                    const accountLabel = accountLabels?.[account.address.toBase58()] || `Account`;
                     return (
                       <Button
                         key={index}

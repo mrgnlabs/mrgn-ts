@@ -132,10 +132,10 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
         if (!response.ok) throw new Error(`Error fetching account label for ${account.address.toBase58()}`);
 
         const { data } = await response.json();
-        return data.label || `Account ${accounts.findIndex((acc) => acc.address.equals(account.address)) + 1}`;
+        return data.label || `Account`;
       } catch (error) {
         console.error(error);
-        return `Account ${accounts.findIndex((acc) => acc.address.equals(account.address)) + 1}`;
+        return `Account`;
       }
     };
 
