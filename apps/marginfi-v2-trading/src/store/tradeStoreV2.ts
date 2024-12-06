@@ -20,6 +20,7 @@ import {
   MarginfiGroup,
   MarginfiAccount,
   MintDataMap,
+  MintData,
 } from "@mrgnlabs/marginfi-client-v2";
 import {
   Wallet,
@@ -159,7 +160,7 @@ type TradeStoreV2State = {
   groupsByGroupPk: Record<string, MarginfiGroup>;
   banksByBankPk: Record<string, ArenaBank>;
   tokenDataByMint: Record<string, TokenData>;
-  marginfiAccountsByGroupPk: Record<string, MarginfiAccount>;
+  marginfiAccountByGroupPk: Record<string, MarginfiAccount>;
   lutByGroupPk: Record<string, AddressLookupTableAccount[]>;
   mintDataByMint: MintDataMap;
 
@@ -269,7 +270,7 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
   arenaPools: {},
   groupsByGroupPk: {},
   banksByBankPk: {},
-  marginfiAccountsByGroupPk: {},
+  marginfiAccountByGroupPk: {},
   tokenDataByMint: {},
   lutByGroupPk: {},
   mintDataByMint: new Map(),
@@ -360,7 +361,7 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
       {} as Record<string, ArenaPoolSummary>
     );
 
-    const sortedGroups = sortPools(groupSummaryByGroup, tokenDetailsByMint, get().sortBy, groupsCache);
+    const sortedGroups = sortSummaryPools(groupSummaryByGroup, tokenDetailsByMint, get().sortBy, groupsCache);
 
     const totalPages = Math.ceil(Object.keys(sortedGroups).length / POOLS_PER_PAGE);
     const currentPage = get().currentPage || 1;
@@ -472,7 +473,7 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
       })
     );
 
-    const tokenDatas = new Map(
+    const tokenDatas: Map<string, MintData> = new Map(
       bankDatasKeyed.map(({ address: bankAddress, data: bankData }, index) => {
         const mintAddress = mintKeys[index];
         const mintDataRaw = mintAis[index];
@@ -551,20 +552,17 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
 
     let nativeSolBalance = 0;
     let tokenAccountMap: TokenAccountMap | null = null;
-    const marginfiAccountsByGroupPk: Record<string, MarginfiAccount> = {};
+    const marginfiAccountByGroupPk: Record<string, MarginfiAccount> = {};
 
     if (wallet.publicKey && !wallet.publicKey.equals(PublicKey.default)) {
+      const bankInfos = [...banks.values()].map((bank) => ({
+        mint: bank.mint,
+        mintDecimals: bank.mintDecimals,
+        bankAddress: bank.address,
+      }));
+
       const [tokenAccounts] = await Promise.all([
-        fetchTokenAccounts(
-          connection,
-          wallet.publicKey,
-          Object.values(banks).map((bank) => ({
-            mint: bank.info.rawBank.mint,
-            mintDecimals: bank.info.rawBank.mintDecimals,
-            bankAddress: bank.info.rawBank.address,
-          })),
-          tokenDatas
-        ),
+        fetchTokenAccounts(connection, wallet.publicKey, bankInfos, tokenDatas),
       ]);
 
       nativeSolBalance = tokenAccounts.nativeSolBalance;
@@ -582,23 +580,22 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
       accounts.forEach((a) => {
         const groupKey = a.account.group.toBase58();
         const account = new MarginfiAccount(a.publicKey, a.account);
-        const existingAccount = marginfiAccountsByGroupPk[groupKey];
+        const existingAccount = marginfiAccountByGroupPk[groupKey];
 
         if (existingAccount) {
           const isUpdateAccount = existingAccount.activeBalances.length < account.activeBalances.length;
 
           if (isUpdateAccount) {
-            marginfiAccountsByGroupPk[groupKey] = account;
+            marginfiAccountByGroupPk[groupKey] = account;
           }
         } else {
-          marginfiAccountsByGroupPk[groupKey] = account;
+          marginfiAccountByGroupPk[groupKey] = account;
         }
       });
 
       extendedBankInfos = extendedBankInfos.map((bankInfo) => {
-        const marginfiAccount = marginfiAccountsByGroupPk[bankInfo.info.rawBank.group.toBase58()] ?? null;
+        const marginfiAccount = marginfiAccountByGroupPk[bankInfo.info.rawBank.group.toBase58()] ?? null;
         const tokenAccount = tokenAccountMap?.get(bankInfo.info.rawBank.mint.toBase58());
-
         return updateBank(bankInfo, nativeSolBalance, marginfiAccount, banks, priceInfos, tokenAccount);
       });
     }
@@ -650,7 +647,7 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
       arenaPools,
       banksByBankPk,
       groupsByGroupPk,
-      marginfiAccountsByGroupPk,
+      marginfiAccountByGroupPk,
       tokenAccountMap,
       nativeSolBalance,
       mintDataByMint: tokenDatas,
@@ -713,20 +710,78 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
   },
 
   setSortBy: (sortBy: TradePoolFilterStates) => {
-    const arenaPoolsSummary = sortPools(get().arenaPoolsSummary, get().tokenDataByMint, sortBy, get().groupsCache);
-    set((state) => {
-      return {
-        ...state,
-        sortBy,
-        arenaPoolsSummary,
-      };
-    });
+    const { arenaPoolsSummary, tokenDataByMint, arenaPools, banksByBankPk, groupsCache } = get();
+
+    const sortedPoolsSummary = sortSummaryPools(arenaPoolsSummary, tokenDataByMint, sortBy, groupsCache);
+    const sortedPools = sortPools(arenaPools, tokenDataByMint, banksByBankPk, sortBy, groupsCache);
+
+    set({ sortBy, arenaPoolsSummary: sortedPoolsSummary, arenaPools: sortedPools });
   },
 
   resetUserData: () => {},
 });
 
 const sortPools = (
+  arenaPools: Record<string, ArenaPoolV2>,
+  tokenDataByMint: Record<string, TokenData>,
+  banksByBankPk: Record<string, ArenaBank>,
+  sortBy: TradePoolFilterStates,
+  groupsCache: TradeGroupsCache
+) => {
+  const groups = [...Object.values(arenaPools)];
+  const timestampOrder = Object.keys(groupsCache).reverse();
+
+  const sortedGroups = groups.sort((a, b) => {
+    const aTokenData = tokenDataByMint[a.tokenBankPk.toBase58()];
+    const bTokenData = tokenDataByMint[b.tokenBankPk.toBase58()];
+
+    const aBankData = banksByBankPk[a.tokenBankPk.toBase58()];
+    const bBankData = banksByBankPk[b.tokenBankPk.toBase58()];
+
+    if (sortBy === TradePoolFilterStates.TIMESTAMP) {
+      const aIndex = timestampOrder.indexOf(a.groupPk.toBase58());
+      const bIndex = timestampOrder.indexOf(b.groupPk.toBase58());
+      return aIndex - bIndex;
+    } else if (sortBy.startsWith("price-movement")) {
+      const aPrice = Math.abs(aTokenData.priceChange24h ?? 0);
+      const bPrice = Math.abs(bTokenData.priceChange24h ?? 0);
+      return sortBy === TradePoolFilterStates.PRICE_MOVEMENT_ASC ? aPrice - bPrice : bPrice - aPrice;
+    } else if (sortBy.startsWith("market-cap")) {
+      const aMarketCap = aTokenData.marketcap ?? 0;
+      const bMarketCap = bTokenData.marketcap ?? 0;
+      return sortBy === TradePoolFilterStates.MARKET_CAP_ASC ? aMarketCap - bMarketCap : bMarketCap - aMarketCap;
+    } else if (sortBy.startsWith("liquidity")) {
+      const aLiquidity = aBankData.info.state.totalDeposits ?? 0;
+      const bLiquidity = bBankData.info.state.totalDeposits ?? 0;
+      return sortBy === TradePoolFilterStates.LIQUIDITY_ASC ? aLiquidity - bLiquidity : bLiquidity - aLiquidity;
+    } else if (sortBy.startsWith("apy")) {
+      // todo add apy filter
+      const getHighestLendingRate = (tokenBank: ArenaBank, quoteBank: ArenaBank) => {
+        const rates = [tokenBank.info.state.lendingRate, quoteBank.info.state.lendingRate];
+        return Math.max(...rates);
+      };
+
+      const aQuoteBank = banksByBankPk[a.quoteBankPk.toBase58()];
+      const bQuoteBank = banksByBankPk[b.quoteBankPk.toBase58()];
+
+      const aHighestRate = getHighestLendingRate(aBankData, aQuoteBank);
+      const bHighestRate = getHighestLendingRate(bBankData, bQuoteBank);
+      return sortBy === TradePoolFilterStates.APY_ASC ? aHighestRate - bHighestRate : bHighestRate - aHighestRate;
+    }
+
+    return 0;
+  });
+
+  const sortedPools: Record<string, ArenaPoolV2> = {};
+
+  sortedGroups.forEach((group) => {
+    sortedPools[group.groupPk.toBase58()] = group;
+  });
+
+  return sortedPools;
+};
+
+const sortSummaryPools = (
   arenaPools: Record<string, ArenaPoolSummary>,
   tokenDataByMint: Record<string, TokenData>,
   sortBy: TradePoolFilterStates,

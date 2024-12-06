@@ -35,10 +35,10 @@ const sortOptions: {
 
 let fuse: Fuse<GroupData> | null = null;
 
-export default function PortfolioPage() {
+export default function YieldPage() {
   // const [initialized, groupMap, sortBy, setSortBy] = useTradeStore((state) => [
   //   state.initialized,
-  //   state.groupMap,
+  //   state.groupMap,ikkij
   //   state.sortBy,
   //   state.setSortBy,
   // ]);
@@ -247,15 +247,15 @@ export default function PortfolioPage() {
                     </SelectContent>
                   </Select>
                 </div>
-                {filteredGroups &&
-                  filteredGroups.length > 0 &&
-                  filteredGroups.map((group) => {
-                    return <YieldCard key={group.client.group.address.toBase58()} group={group} />;
+                {filteredPools &&
+                  filteredPools.length > 0 &&
+                  filteredPools.map((pool) => {
+                    return <YieldCard key={pool.groupPk.toBase58()} pool={pool} />;
                   })}
               </div>
             </Mobile>
 
-            {filteredGroups.length === 0 && search.length > 0 && (
+            {filteredPools.length === 0 && search.length > 0 && (
               <div className="w-full flex items-center justify-center">
                 <p>No pools found</p>
               </div>

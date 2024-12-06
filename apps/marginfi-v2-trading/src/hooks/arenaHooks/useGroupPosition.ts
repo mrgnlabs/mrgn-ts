@@ -5,6 +5,7 @@ import { getGroupPositionInfo } from "~/utils";
 
 import { useGroupBanks } from "./useGroupBanks";
 import { numeralFormatter } from "@mrgnlabs/mrgn-common";
+import { ArenaPoolV2Extended, GroupStatus } from "~/store/tradeStoreV2";
 
 export function useGroupPosition({ group }: { group: GroupData }) {
   const { borrowBank, depositBank } = useGroupBanks({ group });
