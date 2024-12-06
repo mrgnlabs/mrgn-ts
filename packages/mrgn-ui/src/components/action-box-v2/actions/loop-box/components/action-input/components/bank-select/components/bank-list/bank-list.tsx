@@ -62,6 +62,30 @@ export const BankList = ({
     }
   }, [isOpen]);
 
+  const isDisabled = React.useCallback(
+    (bank: ExtendedBankInfo) => {
+      const isBorrowing = actionMode === ActionType.Borrow;
+
+      let isDisabled = false;
+      const noNativeBalance = bank?.info.state.mint.equals(WSOL_MINT)
+        ? nativeSolBalance === 0
+        : bank?.userInfo.tokenAccount.balance === 0;
+
+      if (isBorrowing) {
+        const isLending = bank.isActive && bank.position.isLending;
+        const isOtherBank = otherBank?.address.equals(bank.address) ?? false;
+
+        isDisabled = isOtherBank || isLending || noNativeBalance;
+      } else {
+        const isBorrowing = bank.isActive && !bank.position.isLending;
+        isDisabled = isBorrowing || noNativeBalance;
+      }
+
+      return isDisabled;
+    },
+    [actionMode, otherBank, nativeSolBalance]
+  );
+
   return (
     <>
       <BankListCommand selectedBank={selectedBank} onClose={onClose} onSetSearchQuery={setSearchQuery}>
@@ -79,13 +103,7 @@ export const BankList = ({
                 onClose();
               }}
               className="cursor-pointer h-[55px] px-3 font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-mfi-action-box-accent data-[selected=true]:text-mfi-action-box-accent-foreground"
-              disabled={
-                actionMode === ActionType.Borrow
-                  ? otherBank?.address.equals(bank.address)
-                  : bank.info.state.mint.equals(WSOL_MINT)
-                  ? nativeSolBalance === 0
-                  : bank.userInfo.tokenAccount.balance === 0
-              }
+              disabled={isDisabled(bank)}
             >
               <BankItem
                 rate={calculateRate(bank)}
