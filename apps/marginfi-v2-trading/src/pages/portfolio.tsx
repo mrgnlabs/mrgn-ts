@@ -7,49 +7,57 @@ import { useActionBoxStore } from "~/components/action-box-v2/store";
 import { groupedNumberFormatterDyn, usdFormatter } from "@mrgnlabs/mrgn-common";
 import { cn } from "@mrgnlabs/mrgn-utils";
 
-import { useTradeStore } from "~/store";
+import { useTradeStore, useTradeStoreV2 } from "~/store";
 
 import { ActionComplete } from "~/components/action-complete";
 import { PageHeading } from "~/components/common/PageHeading";
 import { PositionCard, LpPositionList } from "~/components/common/Portfolio";
 import { Loader } from "~/components/common/Loader";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+import { useExtendedPools } from "~/hooks/useExtendedPools";
+import { GroupStatus } from "~/store/tradeStoreV2";
 
 export default function PortfolioPage() {
-  const [initialized, portfolio] = useTradeStore((state) => [state.initialized, state.portfolio]);
+  const [initialized] = useTradeStoreV2((state) => [state.initialized]);
+  const extendedPools = useExtendedPools();
   const [isActionComplete, previousTxn, setIsActionComplete] = useActionBoxStore((state) => [
     state.isActionComplete,
     state.previousTxn,
     state.setIsActionComplete,
   ]);
 
+  const shortPositions = React.useMemo(
+    () => extendedPools.filter((pool) => pool.status === GroupStatus.SHORT),
+    [extendedPools]
+  );
+  const longPositions = React.useMemo(
+    () => extendedPools.filter((pool) => pool.status === GroupStatus.LONG),
+    [extendedPools]
+  );
+  const lpPositions = React.useMemo(
+    () => extendedPools.filter((pool) => pool.status === GroupStatus.LP),
+    [extendedPools]
+  );
+
   const totalLong = React.useMemo(() => {
-    return (
-      portfolio?.long.reduce(
-        (acc, group) => (group.pool.token.isActive ? acc + group.pool.token.position.usdValue : 0),
-        0
-      ) || 0
+    return longPositions.reduce(
+      (acc, pool) => (pool.tokenBank.isActive ? acc + pool.tokenBank.position.usdValue : 0),
+      0
     );
-  }, [portfolio]);
+  }, [longPositions]);
 
   const totalShort = React.useMemo(() => {
-    return (
-      portfolio?.short.reduce(
-        (acc, group) => (group.pool.token.isActive ? acc + group.pool.token.position.usdValue : 0),
-        0
-      ) || 0
+    return shortPositions.reduce(
+      (acc, pool) => (pool.tokenBank.isActive ? acc + pool.tokenBank.position.usdValue : 0),
+      0
     );
-  }, [portfolio]);
+  }, [shortPositions]);
 
   const portfolioCombined = React.useMemo(() => {
-    if (!portfolio) return null;
-
-    return [...portfolio.long, ...portfolio.short, ...portfolio.lpPositions].sort((a, b) =>
-      a.pool.token.isActive && b.pool.token.isActive
-        ? a.pool.token.position.usdValue - b.pool.token.position.usdValue
-        : 0
+    return [...longPositions, ...shortPositions, ...lpPositions].sort((a, b) =>
+      a.tokenBank.isActive && b.tokenBank.isActive ? a.tokenBank.position.usdValue - b.tokenBank.position.usdValue : 0
     );
-  }, [portfolio]);
+  }, [longPositions, shortPositions, lpPositions]);
 
   return (
     <>
@@ -60,7 +68,7 @@ export default function PortfolioPage() {
             <div className="w-full max-w-4xl mx-auto px-4 md:px-0">
               <PageHeading heading="Portfolio" body={<p>Manage your positions in the arena.</p>} links={[]} />
             </div>
-            {!portfolio || (!portfolio.long.length && !portfolio.short.length && !portfolio.lpPositions.length) ? (
+            {!shortPositions ? (
               <p className="text-center mt-4">
                 You do not have any open positions.
                 <br className="md:hidden" />{" "}
@@ -87,11 +95,11 @@ export default function PortfolioPage() {
                           <div className="flex items-center gap-4">
                             {groupedNumberFormatterDyn.format(portfolioCombined.length)}
                             <ul className="flex items-center -space-x-2">
-                              {portfolioCombined.slice(0, 5).map((group, index) => (
+                              {portfolioCombined.slice(0, 5).map((pool, index) => (
                                 <li key={index} className="rounded-full bg-white">
                                   <Image
-                                    src={group.pool.token.meta.tokenLogoUri}
-                                    alt={group.pool.token.meta.tokenSymbol}
+                                    src={pool.tokenBank.meta.tokenLogoUri}
+                                    alt={pool.tokenBank.meta.tokenSymbol}
                                     width={24}
                                     height={24}
                                     key={index}
@@ -110,12 +118,12 @@ export default function PortfolioPage() {
                   )}
                 </div>
                 <div className="grid grid-cols-1 gap-12 w-full md:grid-cols-2">
-                  {portfolio.long.length > 0 && (
+                  {longPositions.length > 0 && (
                     <div className="space-y-6">
                       <h2 className="text-2xl font-medium">Long positions</h2>
                       <div className="space-y-8">
-                        {portfolio.long.map((group, index) => (
-                          <PositionCard key={index} groupData={group} />
+                        {longPositions.map((pool, index) => (
+                          <PositionCard key={index} groupData={pool} />
                         ))}
                       </div>
                     </div>
