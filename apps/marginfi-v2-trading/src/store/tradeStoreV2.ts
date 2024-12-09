@@ -163,9 +163,11 @@ type TradeStoreV2State = {
   marginfiAccountByGroupPk: Record<string, MarginfiAccount>;
   lutByGroupPk: Record<string, AddressLookupTableAccount[]>;
   mintDataByMint: MintDataMap;
+  pythFeedIdMap: Map<string, PublicKey>;
+  oraclePrices: Record<string, OraclePrice>;
 
   // user token account map
-  tokenAccountMap: TokenAccountMap | null;
+  tokenAccountMap: TokenAccountMap;
 
   // fuse
   arenaPoolsSummaryFuse: Fuse<ArenaPoolSummary> | null;
@@ -216,10 +218,12 @@ type TradeStoreV2State = {
   }) => Promise<void>;
   refreshGroup: ({
     groupPk,
+    banks,
     connection,
     wallet,
   }: {
     groupPk: PublicKey;
+    banks: PublicKey[];
     connection?: Connection;
     wallet?: Wallet;
   }) => Promise<void>;
@@ -255,7 +259,7 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
   sortBy: TradePoolFilterStates.PRICE_MOVEMENT_DESC,
   activeGroup: null,
   nativeSolBalance: 0,
-  tokenAccountMap: null,
+  tokenAccountMap: new Map(),
   connection: null,
   wallet: {
     publicKey: PublicKey.default,
@@ -278,6 +282,8 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
   arenaPoolsFuse: null,
   searchPoolSummaryResults: [],
   searchPoolResults: [],
+  pythFeedIdMap: new Map(),
+  oraclePrices: {},
 
   setIsRefreshingStore: (isRefreshing) => {
     set((state) => {
@@ -493,7 +499,7 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
 
     const priceInfos = new Map(
       bankDatasKeyed.map(({ address: bankAddress, data: bankData }, index) => {
-        const priceData = oraclePrices[index];
+        const priceData = oraclePrices[bankAddress.toBase58()];
         if (!priceData) throw new Error(`Failed to fetch price oracle account for bank ${bankAddress.toBase58()}`);
         return [bankAddress.toBase58(), priceData as OraclePrice];
       })
@@ -553,6 +559,7 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
     let nativeSolBalance = 0;
     let tokenAccountMap: TokenAccountMap | null = null;
     const marginfiAccountByGroupPk: Record<string, MarginfiAccount> = {};
+    let isWalletFetched = false;
 
     if (wallet.publicKey && !wallet.publicKey.equals(PublicKey.default)) {
       const bankInfos = [...banks.values()].map((bank) => ({
@@ -598,6 +605,7 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
         const tokenAccount = tokenAccountMap?.get(bankInfo.info.rawBank.mint.toBase58());
         return updateBank(bankInfo, nativeSolBalance, marginfiAccount, banks, priceInfos, tokenAccount);
       });
+      isWalletFetched = true;
     }
 
     const arenaPools: Record<string, ArenaPoolV2> = {};
@@ -648,11 +656,14 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
       banksByBankPk,
       groupsByGroupPk,
       marginfiAccountByGroupPk,
-      tokenAccountMap,
+      tokenAccountMap: tokenAccountMap ?? new Map(),
       nativeSolBalance,
       mintDataByMint: tokenDatas,
       wallet,
       connection,
+      pythFeedIdMap: feedIdMap,
+      oraclePrices,
+      userDataFetched: isWalletFetched,
     });
 
     // fetch all bank data
@@ -660,19 +671,176 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
 
   fetchTradeState: async (args) => {},
 
-  refreshGroup: async (args: { groupPk: PublicKey; connection?: Connection; wallet?: Wallet }) => {
+  refreshGroup: async (args) => {
     const connection = args.connection || get().connection;
     const wallet = args.wallet || get().wallet;
-    const arenaPools = get().arenaPools;
-    const arenaPool = arenaPools[args.groupPk.toBase58()];
 
-    if (!arenaPool) throw new Error("Arena pool not found");
     if (!connection) throw new Error("Connection not found");
-    if (!wallet) throw new Error("Wallet not found");
 
-    const banksByBankPk = get().banksByBankPk;
+    const provider = new AnchorProvider(connection, wallet, {
+      ...AnchorProvider.defaultOptions(),
+      commitment: connection.commitment ?? AnchorProvider.defaultOptions().commitment,
+    });
+    const idl = { ...(MARGINFI_IDL as unknown as MarginfiIdlType), address: programId.toBase58() };
+    const program = new Program(idl, provider) as any as MarginfiProgram;
 
-    // WIP
+    let bankDatasKeyed: { address: PublicKey; data: BankRaw }[] = [];
+
+    let bankAccountsData = await program.account.bank.fetchMultiple(args.banks);
+    for (let i = 0; i < bankAccountsData.length; i++) {
+      if (bankAccountsData[i] !== null) {
+        bankDatasKeyed.push({
+          address: args.banks[i],
+          data: bankAccountsData[i] as any as BankRaw,
+        });
+      }
+    }
+
+    const { mintDataByMint, pythFeedIdMap, oraclePrices, bankMetadataCache, tokenMetadataCache, tokenDataByMint } =
+      get();
+
+    const banks = new Map(
+      bankDatasKeyed.map(({ address, data }) => {
+        const bankMetadata = bankMetadataCache ? bankMetadataCache[address.toBase58()] : undefined;
+        const bank = Bank.fromAccountParsed(address, data, pythFeedIdMap, bankMetadata);
+
+        return [address.toBase58(), bank];
+      })
+    );
+
+    const priceInfos = new Map(
+      bankDatasKeyed.map(({ address: bankAddress, data: bankData }, index) => {
+        const priceData = oraclePrices[bankAddress.toBase58()];
+        if (!priceData) throw new Error(`Failed to fetch price oracle account for bank ${bankAddress.toBase58()}`);
+        return [bankAddress.toBase58(), priceData as OraclePrice];
+      })
+    );
+
+    const banksWithPriceAndToken: {
+      bank: Bank;
+      oraclePrice: OraclePrice;
+      tokenMetadata: TokenMetadata;
+    }[] = [];
+
+    banks.forEach((bank) => {
+      const oraclePrice = priceInfos.get(bank.address.toBase58());
+      if (!oraclePrice) {
+        return;
+      }
+
+      const bankMetadata = bankMetadataCache[bank.address.toBase58()];
+      if (bankMetadata === undefined) {
+        return;
+      }
+
+      try {
+        const tokenMetadata = getValueInsensitive(tokenMetadataCache, bankMetadata.tokenSymbol);
+        if (!tokenMetadata) {
+          return;
+        }
+
+        banksWithPriceAndToken.push({ bank, oraclePrice, tokenMetadata });
+      } catch (err) {
+        console.error("error fetching token metadata: ", err);
+      }
+    });
+
+    let extendedBankInfos = banksWithPriceAndToken.map(({ bank, oraclePrice, tokenMetadata }) => {
+      const extendedBankInfo = makeExtendedBankInfo(tokenMetadata, bank, oraclePrice);
+      const mintAddress = bank.mint.toBase58();
+      const tokenData = tokenDataByMint[mintAddress];
+      if (!tokenData) {
+        console.error("Failed to parse token data");
+      }
+
+      const extendedArenaBank = {
+        ...extendedBankInfo,
+        tokenData: {
+          price: tokenData.price,
+          priceChange24hr: tokenData.priceChange24h,
+          volume24hr: tokenData.volume24h,
+          volumeChange24hr: tokenData.volumeChange24h,
+          marketCap: tokenData.marketcap,
+        },
+      } as ArenaBank;
+
+      return extendedArenaBank;
+    });
+
+    let nativeSolBalance = 0;
+    let tokenAccountMap: TokenAccountMap | null = null;
+    let marginfiAccount: MarginfiAccount | null = null;
+
+    if (wallet.publicKey && !wallet.publicKey.equals(PublicKey.default)) {
+      const bankInfos = [...banks.values()].map((bank) => ({
+        mint: bank.mint,
+        mintDecimals: bank.mintDecimals,
+        bankAddress: bank.address,
+      }));
+
+      const [tokenAccounts] = await Promise.all([
+        fetchTokenAccounts(connection, wallet.publicKey, bankInfos, mintDataByMint),
+      ]);
+
+      nativeSolBalance = tokenAccounts.nativeSolBalance;
+      tokenAccountMap = tokenAccounts.tokenAccountMap;
+
+      const accounts = await program.account.marginfiAccount.all([
+        {
+          memcmp: {
+            bytes: args.groupPk.toBase58(),
+            offset: 8, // marginfiGroup is the first field in the account, so only offset is the discriminant
+          },
+        },
+        {
+          memcmp: {
+            bytes: wallet.publicKey.toBase58(),
+            offset: 8 + 32,
+          },
+        },
+      ]);
+
+      accounts.forEach((a) => {
+        const groupKey = a.account.group.toBase58();
+        const account = new MarginfiAccount(a.publicKey, a.account);
+
+        if (marginfiAccount) {
+          const isUpdateAccount = marginfiAccount.activeBalances.length < account.activeBalances.length;
+
+          if (isUpdateAccount) {
+            marginfiAccount = account;
+          }
+        } else {
+          marginfiAccount = account;
+        }
+      });
+
+      extendedBankInfos = extendedBankInfos.map((bankInfo) => {
+        const tokenAccount = tokenAccountMap?.get(bankInfo.info.rawBank.mint.toBase58());
+        return updateBank(bankInfo, nativeSolBalance, marginfiAccount, banks, priceInfos, tokenAccount);
+      });
+    }
+
+    const { banksByBankPk, marginfiAccountByGroupPk, tokenAccountMap: _tokenAccountMap } = get();
+
+    extendedBankInfos.map((bank) => {
+      banksByBankPk[bank.address.toBase58()] = bank;
+    });
+
+    if (marginfiAccount) {
+      marginfiAccountByGroupPk[args.groupPk.toBase58()] = marginfiAccount;
+    }
+
+    tokenAccountMap?.forEach((value, key) => {
+      _tokenAccountMap.set(key, value);
+    });
+
+    set({
+      nativeSolBalance,
+      marginfiAccountByGroupPk,
+      banksByBankPk,
+      tokenAccountMap: _tokenAccountMap,
+    });
   },
 
   searchSummaryPools: (searchQuery: string) => {
@@ -799,16 +967,16 @@ const sortSummaryPools = (
       const bIndex = timestampOrder.indexOf(b.groupPk.toBase58());
       return aIndex - bIndex;
     } else if (sortBy.startsWith("price-movement")) {
-      const aPrice = Math.abs(aTokenData.priceChange24h ?? 0);
-      const bPrice = Math.abs(bTokenData.priceChange24h ?? 0);
+      const aPrice = Math.abs(aTokenData?.priceChange24h ?? 0);
+      const bPrice = Math.abs(bTokenData?.priceChange24h ?? 0);
       return sortBy === TradePoolFilterStates.PRICE_MOVEMENT_ASC ? aPrice - bPrice : bPrice - aPrice;
     } else if (sortBy.startsWith("market-cap")) {
-      const aMarketCap = aTokenData.marketcap ?? 0;
-      const bMarketCap = bTokenData.marketcap ?? 0;
+      const aMarketCap = aTokenData?.marketcap ?? 0;
+      const bMarketCap = bTokenData?.marketcap ?? 0;
       return sortBy === TradePoolFilterStates.MARKET_CAP_ASC ? aMarketCap - bMarketCap : bMarketCap - aMarketCap;
     } else if (sortBy.startsWith("liquidity")) {
-      const aLiquidity = a.tokenSummary.bankData.totalDeposits ?? 0;
-      const bLiquidity = b.tokenSummary.bankData.totalDeposits ?? 0;
+      const aLiquidity = a.tokenSummary?.bankData?.totalDeposits ?? 0;
+      const bLiquidity = b.tokenSummary?.bankData?.totalDeposits ?? 0;
       return sortBy === TradePoolFilterStates.LIQUIDITY_ASC ? aLiquidity - bLiquidity : bLiquidity - aLiquidity;
     } else if (sortBy.startsWith("apy")) {
       const aIndex = timestampOrder.indexOf(a.groupPk.toBase58());
@@ -866,27 +1034,32 @@ async function fetchOraclePrices() {
     throw new Error("Failed to fetch oracle prices");
   }
 
-  const responseBody = await response.json();
+  const responseBody: Record<string, any> = await response.json();
 
   if (!responseBody) {
     throw new Error("Failed to fetch oracle prices");
   }
 
-  const oraclePrices = responseBody.map((oraclePrice: any) => ({
-    priceRealtime: {
-      price: BigNumber(oraclePrice.priceRealtime.price),
-      confidence: BigNumber(oraclePrice.priceRealtime.confidence),
-      lowestPrice: BigNumber(oraclePrice.priceRealtime.lowestPrice),
-      highestPrice: BigNumber(oraclePrice.priceRealtime.highestPrice),
-    },
-    priceWeighted: {
-      price: BigNumber(oraclePrice.priceWeighted.price),
-      confidence: BigNumber(oraclePrice.priceWeighted.confidence),
-      lowestPrice: BigNumber(oraclePrice.priceWeighted.lowestPrice),
-      highestPrice: BigNumber(oraclePrice.priceWeighted.highestPrice),
-    },
-    timestamp: oraclePrice.timestamp ? BigNumber(oraclePrice.timestamp) : null,
-  })) as OraclePrice[];
+  const oraclePrices: Record<string, OraclePrice> = Object.fromEntries(
+    Object.entries(responseBody).map(([key, oraclePrice]: [string, any]) => [
+      key,
+      {
+        priceRealtime: {
+          price: BigNumber(oraclePrice.priceRealtime.price),
+          confidence: BigNumber(oraclePrice.priceRealtime.confidence),
+          lowestPrice: BigNumber(oraclePrice.priceRealtime.lowestPrice),
+          highestPrice: BigNumber(oraclePrice.priceRealtime.highestPrice),
+        },
+        priceWeighted: {
+          price: BigNumber(oraclePrice.priceWeighted.price),
+          confidence: BigNumber(oraclePrice.priceWeighted.confidence),
+          lowestPrice: BigNumber(oraclePrice.priceWeighted.lowestPrice),
+          highestPrice: BigNumber(oraclePrice.priceWeighted.highestPrice),
+        },
+        timestamp: oraclePrice.timestamp ? BigNumber(oraclePrice.timestamp) : BigNumber(0),
+      },
+    ])
+  );
 
   return oraclePrices;
 }

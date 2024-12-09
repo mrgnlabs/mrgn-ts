@@ -3,13 +3,22 @@ import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { usePrevious } from "@mrgnlabs/mrgn-utils";
 
 import { ChartingLibraryFeatureset } from "../../../../public/tradingview";
+import { useTradeStoreV2 } from "~/store";
+import { ArenaPoolV2 } from "~/store/tradeStoreV2";
 
 interface props {
-  token: ExtendedBankInfo;
-  quote: ExtendedBankInfo;
+  activePool: ArenaPoolV2;
 }
 
-export const TVWidget = ({ token, quote }: props) => {
+export const TVWidget = ({ activePool }: props) => {
+  const [banksByBankPk] = useTradeStoreV2((state) => [state.banksByBankPk]);
+
+  const { token, quote } = React.useMemo(() => {
+    const token = banksByBankPk[activePool.tokenBankPk.toBase58()];
+    const quote = banksByBankPk[activePool.quoteBankPk.toBase58()];
+    return { token, quote };
+  }, [banksByBankPk, activePool]);
+
   const container = React.useRef<HTMLDivElement>(null);
   const prevToken = usePrevious(token);
 
@@ -106,9 +115,9 @@ export const TVWidget = ({ token, quote }: props) => {
               const response = await fetch(
                 `/api/datafeed?action=history&symbol=${symbolInfo.name}&resolution=${resolution}&from=${
                   periodParams.from
-                }&to=${periodParams.to}&quote=${quote.info.state.mint.toBase58()}&address=${(symbolInfo as any)?.address}&firstDataRequest=${
-                  periodParams.firstDataRequest
-                }`
+                }&to=${periodParams.to}&quote=${quote.info.state.mint.toBase58()}&address=${
+                  (symbolInfo as any)?.address
+                }&firstDataRequest=${periodParams.firstDataRequest}`
               );
 
               const data = await response.json();
