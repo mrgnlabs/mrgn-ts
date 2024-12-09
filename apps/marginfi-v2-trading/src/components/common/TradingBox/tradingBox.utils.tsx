@@ -31,6 +31,7 @@ import {
 
 import { IconPyth, IconSwitchboard } from "~/components/ui/icons";
 import { GroupData } from "~/store/tradeStore";
+import { ArenaPoolV2Extended } from "~/store/tradeStoreV2";
 
 export type TradeSide = "long" | "short";
 
@@ -367,7 +368,7 @@ export function getCurrentStats(
 interface CheckActionAvailableProps {
   amount: string;
   connected: boolean;
-  activeGroup: GroupData | null;
+  activePoolExtended: ArenaPoolV2Extended | null;
   loopActionTxns: LoopActionTxns | null;
   tradeSide: TradeSide;
 }
@@ -375,21 +376,21 @@ interface CheckActionAvailableProps {
 export function checkLoopingActionAvailable({
   amount,
   connected,
-  activeGroup,
+  activePoolExtended,
   loopActionTxns,
   tradeSide,
 }: CheckActionAvailableProps): ActionMessageType[] {
   let checks: ActionMessageType[] = [];
 
-  const requiredCheck = getRequiredCheck(connected, activeGroup, loopActionTxns);
+  const requiredCheck = getRequiredCheck(connected, activePoolExtended, loopActionTxns);
   if (requiredCheck) return [requiredCheck];
 
   const generalChecks = getGeneralChecks(amount);
   if (generalChecks) checks.push(...generalChecks);
 
   // allert checks
-  if (activeGroup && loopActionTxns) {
-    const lentChecks = canBeLooped(activeGroup, loopActionTxns, tradeSide);
+  if (activePoolExtended && loopActionTxns) {
+    const lentChecks = canBeLooped(activePoolExtended, loopActionTxns, tradeSide);
     if (lentChecks.length) checks.push(...lentChecks);
   }
 
@@ -403,13 +404,13 @@ export function checkLoopingActionAvailable({
 
 function getRequiredCheck(
   connected: boolean,
-  activeGroup: GroupData | null,
+  activePoolExtended: ArenaPoolV2Extended | null,
   loopActionTxns: LoopActionTxns | null
 ): ActionMessageType | null {
   if (!connected) {
     return { isEnabled: false };
   }
-  if (!activeGroup) {
+  if (!activePoolExtended) {
     return { isEnabled: false };
   }
   if (!loopActionTxns) {
@@ -434,24 +435,25 @@ function getGeneralChecks(amount: string): ActionMessageType[] {
 }
 
 function canBeLooped(
-  activeGroup: GroupData,
+  activePoolExtended: ArenaPoolV2Extended,
   loopActionTxns: LoopActionTxns,
   tradeSide: TradeSide
 ): ActionMessageType[] {
   let checks: ActionMessageType[] = [];
   const isUsdcBankPaused =
-    activeGroup.pool.quoteTokens[0].info.rawBank.config.operationalState === OperationalState.Paused;
-  const isTokenBankPaused = activeGroup.pool.token.info.rawBank.config.operationalState === OperationalState.Paused;
+    activePoolExtended.quoteBank.info.rawBank.config.operationalState === OperationalState.Paused;
+  const isTokenBankPaused =
+    activePoolExtended.tokenBank.info.rawBank.config.operationalState === OperationalState.Paused;
 
   let tokenPosition,
     usdcPosition: "inactive" | "lending" | "borrowing" = "inactive";
 
-  if (activeGroup.pool.quoteTokens[0].isActive) {
-    usdcPosition = activeGroup.pool.quoteTokens[0].position.isLending ? "lending" : "borrowing";
+  if (activePoolExtended.quoteBank.isActive) {
+    usdcPosition = activePoolExtended.quoteBank.position.isLending ? "lending" : "borrowing";
   }
 
-  if (activeGroup.pool.token.isActive) {
-    tokenPosition = activeGroup.pool.token.position.isLending ? "lending" : "borrowing";
+  if (activePoolExtended.tokenBank.isActive) {
+    tokenPosition = activePoolExtended.tokenBank.position.isLending ? "lending" : "borrowing";
   }
 
   const wrongPositionActive =
@@ -461,14 +463,14 @@ function canBeLooped(
 
   if (isUsdcBankPaused) {
     checks.push({
-      description: `The ${activeGroup.pool.quoteTokens[0].info.rawBank.tokenSymbol} bank is paused at this time.`,
+      description: `The ${activePoolExtended.quoteBank.info.rawBank.tokenSymbol} bank is paused at this time.`,
       isEnabled: false,
     });
   }
 
   if (isTokenBankPaused) {
     checks.push({
-      description: `The ${activeGroup.pool.token.info.rawBank.tokenSymbol} bank is paused at this time.`,
+      description: `The ${activePoolExtended.tokenBank.info.rawBank.tokenSymbol} bank is paused at this time.`,
       isEnabled: false,
     });
   }
@@ -479,15 +481,15 @@ function canBeLooped(
 
     if (wrongSupplied && wrongBorrowed) {
       checks.push(
-        DYNAMIC_SIMULATION_ERRORS.LOOP_CHECK(tradeSide, activeGroup.pool.quoteTokens[0], activeGroup.pool.token)
+        DYNAMIC_SIMULATION_ERRORS.LOOP_CHECK(tradeSide, activePoolExtended.quoteBank, activePoolExtended.tokenBank)
       );
     } else if (wrongSupplied) {
       checks.push(
-        DYNAMIC_SIMULATION_ERRORS.WITHDRAW_CHECK(tradeSide, activeGroup.pool.quoteTokens[0], activeGroup.pool.token)
+        DYNAMIC_SIMULATION_ERRORS.WITHDRAW_CHECK(tradeSide, activePoolExtended.quoteBank, activePoolExtended.tokenBank)
       );
     } else if (wrongBorrowed) {
       checks.push(
-        DYNAMIC_SIMULATION_ERRORS.REPAY_CHECK(tradeSide, activeGroup.pool.quoteTokens[0], activeGroup.pool.token)
+        DYNAMIC_SIMULATION_ERRORS.REPAY_CHECK(tradeSide, activePoolExtended.quoteBank, activePoolExtended.tokenBank)
       );
     }
   }
