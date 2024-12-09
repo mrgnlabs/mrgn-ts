@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 
 import { identify } from "@mrgnlabs/mrgn-utils";
 
-import { useTradeStore, useTradeStoreV2, useUiStore } from "~/store";
+import { useTradeStoreV2, useUiStore } from "~/store";
 import { useConnection } from "~/hooks/use-connection";
 import { useWallet } from "~/components/wallet-v2";
 
@@ -17,11 +17,7 @@ export const TradePovider: React.FC<{
   const debounceId = React.useRef<NodeJS.Timeout | null>(null);
   const { wallet, isOverride, connected } = useWallet();
   const { connection } = useConnection();
-  const [fetchTradeState, setIsRefreshingStore, resetUserData] = useTradeStore((state) => [
-    state.fetchTradeState,
-    state.setIsRefreshingStore,
-    state.resetUserData,
-  ]);
+
   const [fetchExtendedArenaGroups, fetchArenaGroups, initialized] = useTradeStoreV2((state) => [
     state.fetchExtendedArenaGroups,
     state.fetchArenaGroups,
@@ -115,11 +111,11 @@ export const TradePovider: React.FC<{
   // ^ crucial to omit both `connection` and `fetchMrgnlendState` from the dependency array
   // TODO: fix...
 
-  React.useEffect(() => {
-    if (!connected && resetUserData) {
-      resetUserData();
-    }
-  }, [connected, resetUserData]);
+  // React.useEffect(() => {
+  //   if (!connected && resetUserData) {
+  //     resetUserData();
+  //   }
+  // }, [connected, resetUserData]);
 
   return <TradeContext.Provider value={{}}>{children}</TradeContext.Provider>;
 };

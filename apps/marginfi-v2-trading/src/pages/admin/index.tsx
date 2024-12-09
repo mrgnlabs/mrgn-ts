@@ -1,6 +1,6 @@
 import React from "react";
 
-import { useTradeStore, useTradeStoreV2 } from "~/store";
+import { useTradeStoreV2 } from "~/store";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { Loader } from "~/components/common/Loader";
 import { AdminPoolCard } from "~/components/common/admin";

@@ -3,10 +3,8 @@ import React from "react";
 import Image from "next/image";
 import { IconChevronDown } from "@tabler/icons-react";
 
-import { percentFormatter, tokenPriceFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
+import { percentFormatter, tokenPriceFormatter } from "@mrgnlabs/mrgn-common";
 import { Desktop, Mobile, cn } from "@mrgnlabs/mrgn-utils";
-
-import { useTradeStore, useTradeStoreV2 } from "~/store";
 
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "~/components/ui/command";
 import { Button } from "~/components/ui/button";
@@ -21,7 +19,6 @@ import {
 } from "~/components/ui/dialog";
 import { Drawer, DrawerContent, DrawerTrigger } from "~/components/ui/drawer";
 
-import type { GroupData } from "~/store/tradeStore";
 import { ArenaPoolV2Extended } from "~/store/tradeStoreV2";
 import { useExtendedPools } from "~/hooks/useExtendedPools";
 

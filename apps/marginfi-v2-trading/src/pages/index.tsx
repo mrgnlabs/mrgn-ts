@@ -7,7 +7,7 @@ import { motion } from "framer-motion";
 import { capture } from "@mrgnlabs/mrgn-utils";
 
 import { useTradeStoreV2 } from "~/store";
-import { TradePoolFilterStates } from "~/store/tradeStore";
+import { TradePoolFilterStates } from "~/store/tradeStoreV2";
 import { useActionBoxStore } from "~/components/action-box-v2/store";
 import { useIsMobile } from "~/hooks/use-is-mobile";
 import { ActionComplete } from "~/components/action-complete";

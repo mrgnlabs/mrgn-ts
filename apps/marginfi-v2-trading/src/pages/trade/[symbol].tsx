@@ -2,8 +2,7 @@ import React from "react";
 
 import { useRouter } from "next/router";
 
-import { useTradeStore, useTradeStoreV2, useUiStore } from "~/store";
-import { GroupData } from "~/store/tradeStore";
+import { useTradeStoreV2, useUiStore } from "~/store";
 import { useActionBoxStore } from "~/components/action-box-v2/store";
 import { useIsMobile } from "~/hooks/use-is-mobile";
 

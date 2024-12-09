@@ -10,7 +10,6 @@ import { ActiveBankInfo, ActionType, AccountSummary } from "@mrgnlabs/marginfi-v
 
 import { useConnection } from "~/hooks/use-connection";
 import { useTradeStoreV2, useUiStore } from "~/store";
-import { GroupData } from "~/store/tradeStore";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { calculateClosePositions } from "~/utils";
 

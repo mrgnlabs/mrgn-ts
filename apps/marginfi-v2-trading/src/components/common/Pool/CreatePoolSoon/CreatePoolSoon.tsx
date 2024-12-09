@@ -10,22 +10,19 @@ import { IconConfetti, IconPlus } from "@tabler/icons-react";
 
 import { showErrorToast, capture, cn } from "@mrgnlabs/mrgn-utils";
 
-import { useTradeStore } from "~/store";
 import { useIsMobile } from "~/hooks/use-is-mobile";
-
 import { Dialog, DialogContent, DialogTrigger } from "~/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "~/components/ui/form";
 import { Button } from "~/components/ui/button";
-import { TokenData } from "~/types";
-import { formSchema } from "./types";
 import { Input } from "~/components/ui/input";
+import { formSchema } from "./types";
 
 type CreatePoolDialogProps = {
   trigger?: React.ReactNode;
 };
 
 export const CreatePoolSoon = ({ trigger }: CreatePoolDialogProps) => {
-  const [resetSearchResults, searchBanks] = useTradeStore((state) => [state.resetSearchResults, state.searchBanks]);
+  // const [resetSearchResults, searchBanks] = useTradeStore((state) => [state.resetSearchResults, state.searchBanks]);
   const [isOpen, setIsOpen] = React.useState(false);
   const [createPoolState, setCreatePoolState] = React.useState<"FORM" | "SUCCESS">("FORM");
   const [formData, setFormData] = React.useState<z.infer<typeof formSchema>>();
@@ -58,7 +55,7 @@ export const CreatePoolSoon = ({ trigger }: CreatePoolDialogProps) => {
           mint: values.mint,
         });
       } else {
-        showErrorToast({ message: "Pool submission failed."});
+        showErrorToast({ message: "Pool submission failed." });
       }
       setIsSubmitting(false);
     },
@@ -81,7 +78,7 @@ export const CreatePoolSoon = ({ trigger }: CreatePoolDialogProps) => {
       <Dialog
         open={isOpen}
         onOpenChange={(open) => {
-          if (!open) resetSearchResults();
+          // if (!open) resetSearchResults();
           setIsOpen(open);
         }}
       >
