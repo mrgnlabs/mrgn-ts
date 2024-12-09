@@ -32,7 +32,7 @@ export const LpPositionList = () => {
               <TableRow className="hover:bg-transparent">
                 <TableHead className="w-[20%]">Pool</TableHead>
                 <TableHead className="w-[20%]">Token Size</TableHead>
-                <TableHead className="w-[20%]">USDC Size</TableHead>
+                <TableHead className="w-[20%]">Quote Size</TableHead>
                 <TableHead className="w-[20%]">Total (USD)</TableHead>
                 <TableHead className="w-[20%]"></TableHead>
               </TableRow>
@@ -71,6 +71,7 @@ export const LpPositionList = () => {
                           ? "0.01"
                           : numeralFormatter(pool.tokenBank.position.amount)
                         : 0}
+                      {" " + pool.tokenBank.meta.tokenSymbol}
                     </TableCell>
                     <TableCell>
                       {pool.quoteBank.isActive
@@ -78,6 +79,7 @@ export const LpPositionList = () => {
                           ? "0.01"
                           : numeralFormatter(pool.quoteBank.position.amount)
                         : 0}
+                      {" " + pool.quoteBank.meta.tokenSymbol}
                     </TableCell>
                     <TableCell>
                       {(pool.tokenBank.isActive || pool.quoteBank.isActive) &&
