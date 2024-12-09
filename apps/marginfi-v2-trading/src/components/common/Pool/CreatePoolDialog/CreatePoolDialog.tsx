@@ -7,7 +7,6 @@ import { IconPlus } from "@tabler/icons-react";
 import { PublicKey } from "@solana/web3.js";
 import { cn } from "@mrgnlabs/mrgn-utils";
 
-import { useTradeStore } from "~/store";
 import { useIsMobile } from "~/hooks/use-is-mobile";
 
 import {
@@ -30,7 +29,7 @@ type CreatePoolDialogProps = {
 export type SUPPORTED_QUOTE_BANKS = "USDC" | "LST";
 
 export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
-  const [resetSearchResults, searchBanks] = useTradeStore((state) => [state.resetSearchResults, state.searchBanks]);
+  // const [resetSearchResults, searchBanks] = useTradeStore((state) => [state.resetSearchResults, state.searchBanks]);
   const [isOpen, setIsOpen] = React.useState(false);
   const [createPoolState, setCreatePoolState] = React.useState<CreatePoolState>(CreatePoolState.MINT);
   const [isSearchingToken, setIsSearchingToken] = React.useState(false);
@@ -79,13 +78,13 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
     }
   }, [mintAddress]);
 
-  React.useEffect(() => {
-    if (!searchQuery.length) {
-      resetSearchResults();
-      return;
-    }
-    searchBanks(searchQuery);
-  }, [searchBanks, resetSearchResults, searchQuery]);
+  // React.useEffect(() => {
+  //   if (!searchQuery.length) {
+  //     resetSearchResults();
+  //     return;
+  //   }
+  //   searchBanks(searchQuery);
+  // }, [searchBanks, resetSearchResults, searchQuery]);
 
   const reset = React.useCallback(() => {
     setIsSearchingToken(false);
@@ -117,7 +116,7 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
       <Dialog
         open={isOpen}
         onOpenChange={(open) => {
-          if (!open) resetSearchResults();
+          // if (!open) resetSearchResults();
           setIsOpen(open);
         }}
       >

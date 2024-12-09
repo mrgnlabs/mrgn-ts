@@ -9,7 +9,7 @@ import { PositionActionButtons } from "~/components/common/Portfolio";
 import { TableCell, TableRow } from "~/components/ui/table";
 import { Badge } from "~/components/ui/badge";
 import { ArenaPoolV2Extended, GroupStatus } from "~/store/tradeStoreV2";
-import { useGroupBanks, useLeveragedPositionDetails } from "~/hooks/arenaHooks";
+import { useLeveragedPositionDetails } from "~/hooks/arenaHooks";
 import { useMarginfiClient } from "~/hooks/useMarginfiClient";
 import { useWrappedAccount } from "~/hooks/useWrappedAccount";
 interface props {

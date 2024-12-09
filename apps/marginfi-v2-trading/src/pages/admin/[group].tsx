@@ -2,22 +2,28 @@ import React from "react";
 
 import { useRouter } from "next/router";
 
-import { useTradeStore } from "~/store";
-import { GroupData } from "~/store/tradeStore";
+import { useTradeStoreV2 } from "~/store";
 
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { AdminPoolDetailHeader, AdminPoolDetailCard } from "~/components/common/admin";
+import { ArenaPoolV2 } from "~/store/tradeStoreV2";
 
 export default function AdminGroupDetailsPage() {
-  const [initialized, groupMap] = useTradeStore((state) => [state.initialized, state.groupMap]);
+  const [initialized, arenaPools, groupsByGroupPk] = useTradeStoreV2((state) => [
+    state.initialized,
+    state.arenaPools,
+    state.groupsByGroupPk,
+  ]);
   const { wallet } = useWallet();
   const router = useRouter();
-  const [activeGroup, setActiveGroup] = React.useState<GroupData | null>(null);
+  const [activePool, setActivePool] = React.useState<ArenaPoolV2 | null>(null);
 
   const ownPools = React.useMemo(() => {
-    const goups = [...groupMap.values()];
-    return goups.filter((group) => group.client.group.admin.equals(wallet.publicKey));
-  }, [groupMap, wallet]);
+    const pools = Object.values(arenaPools);
+    return pools.filter(
+      (pool) => groupsByGroupPk[pool.groupPk.toBase58()]?.admin.toBase58() === wallet.publicKey?.toBase58()
+    );
+  }, [arenaPools, groupsByGroupPk, wallet]);
 
   React.useEffect(() => {
     if (!router.isReady || !initialized) return;
@@ -29,20 +35,20 @@ export default function AdminGroupDetailsPage() {
       return;
     }
 
-    const groupData = ownPools.find((pool) => pool.groupPk.toBase58() === group);
-    if (!groupData) {
+    const data = ownPools.find((pool) => pool.groupPk.toBase58() === group);
+    if (!data) {
       router.push("/404");
       return;
     }
 
-    setActiveGroup(groupData);
-  }, [router, ownPools, setActiveGroup, initialized]);
+    setActivePool(data);
+  }, [router, ownPools, setActivePool, initialized]);
 
   return (
     <>
       <div className="w-full space-y-12 max-w-8xl mx-auto px-4 pb-16 pt-8 md:pt-14 min-h-[calc(100vh-100px)]">
-        {activeGroup && <AdminPoolDetailHeader activeGroup={activeGroup} />}
-        {activeGroup && <AdminPoolDetailCard key={activeGroup.client.group.address.toBase58()} group={activeGroup} />}
+        {activePool && <AdminPoolDetailHeader activePool={activePool} />}
+        {activePool && <AdminPoolDetailCard key={activePool.groupPk.toBase58()} activePool={activePool} />}
       </div>
     </>
   );

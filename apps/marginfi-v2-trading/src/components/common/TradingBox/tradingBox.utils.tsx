@@ -30,7 +30,6 @@ import {
 } from "@mrgnlabs/mrgn-utils";
 
 import { IconPyth, IconSwitchboard } from "~/components/ui/icons";
-import { GroupData } from "~/store/tradeStore";
 import { ArenaPoolV2Extended } from "~/store/tradeStoreV2";
 
 export type TradeSide = "long" | "short";

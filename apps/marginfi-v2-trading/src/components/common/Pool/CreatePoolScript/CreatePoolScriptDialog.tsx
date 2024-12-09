@@ -8,7 +8,6 @@ import { useWindowSize } from "@uidotdev/usehooks";
 import { IconPlus } from "@tabler/icons-react";
 import { PublicKey } from "@solana/web3.js";
 
-import { useTradeStore } from "~/store";
 import { useIsMobile } from "~/hooks/use-is-mobile";
 
 import { Dialog, DialogContent, DialogTrigger } from "~/components/ui/dialog";
@@ -26,7 +25,7 @@ type CreatePoolDialogProps = {
 };
 
 export const CreatePoolScriptDialog = ({ trigger }: CreatePoolDialogProps) => {
-  const [resetSearchResults, searchBanks] = useTradeStore((state) => [state.resetSearchResults, state.searchBanks]);
+  // const [resetSearchResults, searchBanks] = useTradeStore((state) => [state.resetSearchResults, state.searchBanks]);
   const [isOpen, setIsOpen] = React.useState(false);
   const [createPoolState, setCreatePoolState] = React.useState<CreatePoolState>(CreatePoolState.SETUP);
   const [currentIndex, setCurrentIndex] = React.useState<number>(0);
@@ -99,7 +98,7 @@ export const CreatePoolScriptDialog = ({ trigger }: CreatePoolDialogProps) => {
       <Dialog
         open={isOpen}
         onOpenChange={(open) => {
-          if (!open) resetSearchResults();
+          // if (!open) resetSearchResults();
           setIsOpen(open);
         }}
       >
