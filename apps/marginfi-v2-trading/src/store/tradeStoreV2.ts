@@ -911,16 +911,16 @@ const sortPools = (
       const bIndex = timestampOrder.indexOf(b.groupPk.toBase58());
       return aIndex - bIndex;
     } else if (sortBy.startsWith("price-movement")) {
-      const aPrice = Math.abs(aTokenData.priceChange24h ?? 0);
-      const bPrice = Math.abs(bTokenData.priceChange24h ?? 0);
+      const aPrice = Math.abs(aTokenData?.priceChange24h ?? 0);
+      const bPrice = Math.abs(bTokenData?.priceChange24h ?? 0);
       return sortBy === TradePoolFilterStates.PRICE_MOVEMENT_ASC ? aPrice - bPrice : bPrice - aPrice;
     } else if (sortBy.startsWith("market-cap")) {
-      const aMarketCap = aTokenData.marketcap ?? 0;
-      const bMarketCap = bTokenData.marketcap ?? 0;
+      const aMarketCap = aTokenData?.marketcap ?? 0;
+      const bMarketCap = bTokenData?.marketcap ?? 0;
       return sortBy === TradePoolFilterStates.MARKET_CAP_ASC ? aMarketCap - bMarketCap : bMarketCap - aMarketCap;
     } else if (sortBy.startsWith("liquidity")) {
-      const aLiquidity = aBankData.info.state.totalDeposits ?? 0;
-      const bLiquidity = bBankData.info.state.totalDeposits ?? 0;
+      const aLiquidity = aBankData?.info.state.totalDeposits ?? 0;
+      const bLiquidity = bBankData?.info.state.totalDeposits ?? 0;
       return sortBy === TradePoolFilterStates.LIQUIDITY_ASC ? aLiquidity - bLiquidity : bLiquidity - aLiquidity;
     } else if (sortBy.startsWith("apy")) {
       // todo add apy filter
