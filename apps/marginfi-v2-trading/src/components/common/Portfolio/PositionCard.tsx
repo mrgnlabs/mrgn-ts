@@ -32,8 +32,6 @@ export const PositionCard = ({ size = "lg", arenaPool }: PositionCardProps) => {
   });
 
   const { positionSizeUsd, totalUsdValue, leverage } = useLeveragedPositionDetails({ pool: arenaPool });
-  // const { borrowBank } = useGroupBanks({ groupData: groupData });
-  // const { positionSizeUsd, totalUsdValue, leverage } = useGroupPosition({ group: groupData });
 
   const healthColor = React.useMemo(() => {
     if (accountSummary?.healthFactor) {
@@ -53,20 +51,12 @@ export const PositionCard = ({ size = "lg", arenaPool }: PositionCardProps) => {
     }
   }, [accountSummary?.healthFactor]);
 
-  // const isLstQuote = React.useMemo(() => {
-  //   return groupData.pool.quoteTokens[0].meta.tokenSymbol === "LST";
-  // }, [groupData]);
-
   const tokenPrice = React.useMemo(() => {
-    // if (isLstQuote) {
     const lstPrice = arenaPool.quoteBank.info.oraclePrice.priceRealtime.price.toNumber();
     return `${tokenPriceFormatter(
       arenaPool.tokenBank.info.oraclePrice.priceRealtime.price.toNumber() / lstPrice,
       "decimal"
     )} ${arenaPool.quoteBank.meta.tokenSymbol}`;
-    // }
-
-    // return tokenPriceFormatter(groupData.pool.token.info.oraclePrice.priceRealtime.price.toNumber());
   }, [arenaPool]);
 
   if (!arenaPool.tokenBank.isActive) return null;
@@ -111,7 +101,6 @@ export const PositionCard = ({ size = "lg", arenaPool }: PositionCardProps) => {
           <dt>Price</dt>
           <dd className="text-right text-primary">
             {tokenPrice}
-            {/* {isLstQuote && ( */}
             <>
               {isMobile ? (
                 <span className="text-xs ml-1 text-muted-foreground block">
@@ -123,7 +112,6 @@ export const PositionCard = ({ size = "lg", arenaPool }: PositionCardProps) => {
                 </span>
               )}
             </>
-            {/* )} */}
           </dd>
           {arenaPool.tokenBank.position.liquidationPrice && (
             <>
