@@ -10,13 +10,15 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "
 import { Button } from "~/components/ui/button";
 
 import type { FuseResult } from "fuse.js";
-import type { GroupData } from "~/store/tradeStore";
+import { ArenaPoolV2 } from "~/store/tradeStoreV2";
+import { useExtendedPool } from "~/hooks/useExtendedPools";
+import { useTradeStoreV2 } from "~/store";
 
 type PoolSearchDefaultProps = {
   searchQuery: string;
   setSearchQuery: (query: string) => void;
   resetSearch: () => void;
-  searchResults: FuseResult<GroupData>[];
+  searchResults: FuseResult<ArenaPoolV2>[];
   size: "sm" | "lg";
   additionalContent: React.ReactNode;
   additionalContentQueryMin: number;
@@ -39,6 +41,7 @@ export const PoolSearchDefault = ({
 }: PoolSearchDefaultProps) => {
   const searchInputRef = React.useRef<HTMLInputElement>(null);
   const [isFocused, setIsFocused] = React.useState(false);
+  const [banksByBankPk] = useTradeStoreV2((state) => [state.banksByBankPk]);
 
   React.useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -111,9 +114,9 @@ export const PoolSearchDefault = ({
           {searchResults.length > 0 && (
             <CommandGroup className={cn("bg-background", size === "lg" && "shadow-lg md:w-4/5 md:mx-auto")}>
               {searchResults.slice(0, maxResults).map((result) => {
-                const group = result.item;
-                const address = group.groupPk.toBase58();
-                const tokenBank = group.pool.token;
+                const pool = result.item;
+                const address = pool.groupPk.toBase58();
+                const tokenBank = banksByBankPk[pool.tokenBankPk.toBase58()];
 
                 return (
                   <CommandItem

@@ -5,8 +5,8 @@ import { IconSortDescending, IconSortAscending, IconSearch } from "@tabler/icons
 
 import { Desktop, Mobile } from "@mrgnlabs/mrgn-utils";
 
-import { useTradeStore, useTradeStoreV2 } from "~/store";
-import { GroupData, TradePoolFilterStates } from "~/store/tradeStore";
+import { useTradeStoreV2 } from "~/store";
+import { TradePoolFilterStates } from "~/store/tradeStoreV2";
 import { useActionBoxStore } from "~/components/action-box-v2/store";
 import { cn } from "@mrgnlabs/mrgn-utils";
 import { useIsMobile } from "~/hooks/use-is-mobile";
@@ -33,16 +33,7 @@ const sortOptions: {
   { value: TradePoolFilterStates.LIQUIDITY_ASC, label: "Liquidity Asc", dir: "asc" },
 ];
 
-let fuse: Fuse<GroupData> | null = null;
-
 export default function YieldPage() {
-  // const [initialized, groupMap, sortBy, setSortBy] = useTradeStore((state) => [
-  //   state.initialized,
-  //   state.groupMap,ikkij
-  //   state.sortBy,
-  //   state.setSortBy,
-  // ]);
-
   const [initialized, sortBy, setSortBy] = useTradeStoreV2((state) => [
     state.initialized,
     state.sortBy,

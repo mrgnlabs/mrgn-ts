@@ -23,8 +23,7 @@ import { useDebounce } from "@uidotdev/usehooks";
 
 import { TradeSide, checkLoopingActionAvailable, generateStats, simulateLooping } from "./tradingBox.utils";
 import { executeLeverageAction } from "~/utils";
-import { useTradeStore, useTradeStoreV2, useUiStore } from "~/store";
-import { GroupData } from "~/store/tradeStore";
+import { useTradeStoreV2, useUiStore } from "~/store";
 import { useWallet, useWalletStore } from "~/components/wallet-v2";
 import { useConnection } from "~/hooks/use-connection";
 

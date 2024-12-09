@@ -4,15 +4,13 @@ import Link from "next/link";
 import Image from "next/image";
 
 import { IconArrowRight } from "@tabler/icons-react";
-import { Connection } from "@solana/web3.js";
+import { Connection, PublicKey } from "@solana/web3.js";
 import { aprToApy, numeralFormatter, percentFormatter, usdFormatter, USDC_MINT } from "@mrgnlabs/mrgn-common";
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { cn, capture } from "@mrgnlabs/mrgn-utils";
 import { Wallet } from "@mrgnlabs/mrgn-common";
 
-import { useTradeStore } from "~/store";
-import { ArenaBank, GroupData } from "~/store/tradeStore";
-import { getGroupPositionInfo } from "~/utils";
+import { useTradeStoreV2 } from "~/store";
 import { useConnection } from "~/hooks/use-connection";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
@@ -28,11 +26,7 @@ interface YieldCardProps {
 export const YieldCard = ({ pool }: YieldCardProps) => {
   const { connection } = useConnection();
   const { wallet, connected } = useWallet();
-  const [fetchTradeState, nativeSolBalance, portfolio] = useTradeStore((state) => [
-    state.fetchTradeState,
-    state.nativeSolBalance,
-    state.portfolio,
-  ]);
+  const [refreshGroup, nativeSolBalance] = useTradeStoreV2((state) => [state.refreshGroup, state.nativeSolBalance]);
 
   return (
     <div key={pool.groupPk.toBase58()} className="relative bg-background border rounded-xl mb-12 pt-5 pb-2 px-4">
@@ -72,7 +66,7 @@ export const YieldCard = ({ pool }: YieldCardProps) => {
         connection={connection}
         wallet={wallet}
         nativeSolBalance={nativeSolBalance}
-        fetchTradeState={fetchTradeState}
+        refreshGroup={refreshGroup}
       />
       <YieldItem
         className="pt-4 pb-2 items-center"
@@ -82,7 +76,7 @@ export const YieldCard = ({ pool }: YieldCardProps) => {
         connection={connection}
         wallet={wallet}
         nativeSolBalance={nativeSolBalance}
-        fetchTradeState={fetchTradeState}
+        refreshGroup={refreshGroup}
       />
     </div>
   );
@@ -96,7 +90,7 @@ const YieldItem = ({
   connection,
   wallet,
   nativeSolBalance,
-  fetchTradeState,
+  refreshGroup,
 }: {
   pool: ArenaPoolV2Extended;
   bankType: "COLLATERAL" | "TOKEN";
@@ -105,7 +99,7 @@ const YieldItem = ({
   connection: Connection;
   wallet: Wallet;
   nativeSolBalance: number;
-  fetchTradeState: (args: { connection: Connection; wallet: Wallet }) => void;
+  refreshGroup: (args: { groupPk: PublicKey; banks: PublicKey[]; connection: Connection; wallet: Wallet }) => void;
 }) => {
   const { marginfiClient, wrappedAccount, accountSummary } = useActionBoxProps(pool.groupPk, [
     pool.tokenBank,
@@ -183,7 +177,9 @@ const YieldItem = ({
                     });
                   },
                   onComplete: () => {
-                    fetchTradeState({
+                    refreshGroup({
+                      groupPk: pool.groupPk,
+                      banks: [pool.tokenBank.address, pool.quoteBank.address],
                       connection,
                       wallet,
                     });
@@ -241,7 +237,9 @@ const YieldItem = ({
                   });
                 },
                 onComplete: () => {
-                  fetchTradeState({
+                  refreshGroup({
+                    groupPk: pool.groupPk,
+                    banks: [pool.tokenBank.address, pool.quoteBank.address],
                     connection,
                     wallet,
                   });

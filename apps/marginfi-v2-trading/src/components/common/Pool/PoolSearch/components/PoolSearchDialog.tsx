@@ -1,23 +1,21 @@
 import React from "react";
 
 import Image from "next/image";
+import type { FuseResult } from "fuse.js";
 
+import { cn } from "@mrgnlabs/mrgn-utils";
 import { tokenPriceFormatter, numeralFormatter, percentFormatter } from "@mrgnlabs/mrgn-common";
 import { IconX, IconSearch } from "@tabler/icons-react";
 
-import { cn } from "@mrgnlabs/mrgn-utils";
-
-import { CommandDialog, Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "~/components/ui/command";
-import { Input } from "~/components/ui/input";
-
-import type { FuseResult } from "fuse.js";
-import type { GroupData } from "~/store/tradeStore";
+import { CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "~/components/ui/command";
+import { ArenaPoolV2 } from "~/store/tradeStoreV2";
+import { useTradeStoreV2 } from "~/store";
 
 type PoolSearchDialogProps = {
   searchQuery: string;
   setSearchQuery: (query: string) => void;
   resetSearch: () => void;
-  searchResults: FuseResult<GroupData>[];
+  searchResults: FuseResult<ArenaPoolV2>[];
   additionalContent: React.ReactNode;
   additionalContentQueryMin: number;
   showNoResults: boolean;
@@ -37,6 +35,8 @@ export const PoolSearchDialog = ({
   maxResults = 5,
 }: PoolSearchDialogProps) => {
   const [open, setOpen] = React.useState(false);
+  const [banksByBankPk] = useTradeStoreV2((state) => [state.banksByBankPk]);
+
   return (
     <div className="relative w-full">
       <button onClick={() => setOpen(true)} className="relative w-full text-muted-foreground">
@@ -68,9 +68,9 @@ export const PoolSearchDialog = ({
           {searchResults.length > 0 && (
             <CommandGroup>
               {searchResults.slice(0, maxResults).map((result) => {
-                const group = result.item;
-                const address = group.groupPk.toBase58();
-                const tokenBank = group.pool.token;
+                const pool = result.item;
+                const address = pool.groupPk.toBase58();
+                const tokenBank = banksByBankPk[pool.tokenBankPk.toBase58()];
 
                 return (
                   <CommandItem key={address} value={address} className="py-4" onSelect={onBankSelect}>

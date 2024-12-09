@@ -1,9 +1,5 @@
 import React from "react";
 
-import { GroupData } from "~/store/tradeStore";
-import { getGroupPositionInfo } from "~/utils";
-
-import { useGroupBanks } from "./useGroupBanks";
 import { numeralFormatter } from "@mrgnlabs/mrgn-common";
 import { ArenaPoolV2Extended, GroupStatus } from "~/store/tradeStoreV2";
 
