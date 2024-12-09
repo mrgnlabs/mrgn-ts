@@ -1,18 +1,26 @@
 import React from "react";
 
-import { useTradeStore } from "~/store";
+import { useTradeStore, useTradeStoreV2 } from "~/store";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { Loader } from "~/components/common/Loader";
 import { AdminPoolCard } from "~/components/common/admin";
+import { useExtendedPools } from "~/hooks/useExtendedPools";
 
 export default function AdminPage() {
-  const [initialized, groupMap] = useTradeStore((state) => [state.initialized, state.groupMap]);
+  const [initialized, arenaPools, groupsByGroupPk] = useTradeStoreV2((state) => [
+    state.initialized,
+    state.arenaPools,
+    state.groupsByGroupPk,
+  ]);
+
   const { wallet } = useWallet();
 
   const ownPools = React.useMemo(() => {
-    const goups = [...groupMap.values()];
-    return goups.filter((group) => group.client.group.admin.toBase58() === wallet.publicKey?.toBase58());
-  }, [groupMap, wallet]);
+    const pools = Object.values(arenaPools);
+    return pools.filter(
+      (pool) => groupsByGroupPk[pool.groupPk.toBase58()]?.admin.toBase58() === wallet.publicKey?.toBase58()
+    );
+  }, [arenaPools, groupsByGroupPk, wallet]);
 
   return (
     <>
@@ -32,8 +40,8 @@ export default function AdminPage() {
                 <div />
               </div>
               <div className="bg-background border rounded-xl px-4 py-1">
-                {ownPools.map((group, i) => (
-                  <AdminPoolCard key={i} groupData={group} last={i === ownPools.length - 1} />
+                {ownPools.map((pool, i) => (
+                  <AdminPoolCard key={i} pool={pool} last={i === ownPools.length - 1} />
                 ))}
               </div>
             </div>
