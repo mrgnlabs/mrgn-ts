@@ -9,7 +9,7 @@ import { capture } from "@mrgnlabs/mrgn-utils";
 import { PublicKey } from "@solana/web3.js";
 
 import config from "~/config";
-import { useTradeStore } from "~/store";
+import { useTradeStoreV2 } from "~/store";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { useConnection } from "~/hooks/use-connection";
 
@@ -22,7 +22,7 @@ export const Swap = ({ onLoad, initialInputMint }: SwapProps) => {
   const { walletContextState, wallet } = useWallet();
   const { connection } = useConnection();
   const [loadTimestamp, setLoadTimestamp] = React.useState(0);
-  const [fetchTradeState] = useTradeStore((state) => [state.fetchTradeState]);
+  const [fetchTradeState] = useTradeStoreV2((state) => [state.fetchTradeState]);
   const router = useRouter();
 
   const initialMint = React.useMemo(() => {

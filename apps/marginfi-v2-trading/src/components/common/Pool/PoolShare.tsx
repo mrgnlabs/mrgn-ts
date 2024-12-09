@@ -13,9 +13,6 @@ import {
 } from "@tabler/icons-react";
 import { CopyToClipboard } from "react-copy-to-clipboard";
 
-import { useTradeStore } from "~/store";
-import { GroupData } from "~/store/tradeStore";
-
 import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
 import { Button } from "~/components/ui/button";
 import { ArenaPoolV2 } from "~/store/tradeStoreV2";
