@@ -8,16 +8,25 @@ import { numeralFormatter, tokenPriceFormatter, usdFormatter } from "@mrgnlabs/m
 import { PositionActionButtons } from "~/components/common/Portfolio";
 import { TableCell, TableRow } from "~/components/ui/table";
 import { Badge } from "~/components/ui/badge";
-import { GroupData } from "~/store/tradeStore";
-import { useGroupBanks, useGroupPosition } from "~/hooks/arenaHooks";
+import { ArenaPoolV2Extended, GroupStatus } from "~/store/tradeStoreV2";
+import { useGroupBanks, useLeveragedPositionDetails } from "~/hooks/arenaHooks";
+import { useMarginfiClient } from "~/hooks/useMarginfiClient";
+import { useWrappedAccount } from "~/hooks/useWrappedAccount";
 interface props {
-  group: GroupData;
+  arenaPool: ArenaPoolV2Extended;
 }
 
-export const PositionListItem = ({ group }: props) => {
+export const PositionListItem = ({ arenaPool }: props) => {
   const router = useRouter();
-  const { borrowBank, depositBank } = useGroupBanks({ group });
-  const { positionSizeUsd, positionSizeToken, totalUsdValue, leverage } = useGroupPosition({ group });
+  const client = useMarginfiClient({ groupPk: arenaPool.groupPk });
+  const { accountSummary, wrappedAccount } = useWrappedAccount({
+    client,
+    groupPk: arenaPool.groupPk,
+    banks: [arenaPool.tokenBank, arenaPool.quoteBank],
+  });
+  const { positionSizeUsd, positionSizeToken, totalUsdValue, leverage } = useLeveragedPositionDetails({
+    pool: arenaPool,
+  });
 
   return (
     <TableRow
@@ -30,11 +39,11 @@ export const PositionListItem = ({ group }: props) => {
           (e.target instanceof Element && e.target.hasAttribute("data-state"))
         )
           return;
-        router.push(`/trade/${group.client.group.address.toBase58()}`);
+        router.push(`/trade/${arenaPool.groupPk.toBase58()}`);
       }}
     >
       <TableCell>
-        {group.pool.token.isActive && group.pool.token.position.isLending ? (
+        {arenaPool.status === GroupStatus.LONG ? (
           <Badge className="w-14 bg-success uppercase font-medium justify-center">long</Badge>
         ) : (
           <Badge className="w-14 bg-error uppercase font-medium justify-center">short</Badge>
@@ -43,29 +52,38 @@ export const PositionListItem = ({ group }: props) => {
       <TableCell>
         <span className="flex items-center gap-3">
           <Image
-            src={group.pool.token.meta.tokenLogoUri}
+            src={arenaPool.tokenBank.meta.tokenLogoUri}
             width={24}
             height={24}
-            alt={group.pool.token.meta.tokenSymbol}
+            alt={arenaPool.tokenBank.meta.tokenSymbol}
             className="rounded-full shrink-0"
           />{" "}
-          {group.pool.token.meta.tokenSymbol}
+          {arenaPool.tokenBank.meta.tokenSymbol}
         </span>
       </TableCell>
       <TableCell>{usdFormatter.format(totalUsdValue)}</TableCell>
       <TableCell>{`${leverage}x`}</TableCell>
       <TableCell>{positionSizeUsd < 0.01 ? "< 0.01" : usdFormatter.format(positionSizeUsd)}</TableCell>
-      <TableCell>{tokenPriceFormatter(group.pool.token.info.oraclePrice.priceRealtime.price.toNumber())}</TableCell>
+      <TableCell>{tokenPriceFormatter(arenaPool.tokenBank.info.oraclePrice.priceRealtime.price.toNumber())}</TableCell>
 
       <TableCell>
-        {group.pool.token.isActive && group.pool.token.position.liquidationPrice ? (
-          <>{tokenPriceFormatter(group.pool.token.position.liquidationPrice)}</>
+        {arenaPool.tokenBank.isActive && arenaPool.tokenBank.position.liquidationPrice ? (
+          <>{tokenPriceFormatter(arenaPool.tokenBank.position.liquidationPrice)}</>
         ) : (
           "n/a"
         )}
       </TableCell>
       <TableCell className="text-right">
-        {group.client && <PositionActionButtons isBorrowing={!!borrowBank} activeGroup={group} />}
+        {client && accountSummary && (
+          <PositionActionButtons
+            arenaPool={arenaPool}
+            isBorrowing={arenaPool.status === GroupStatus.SHORT || arenaPool.status === GroupStatus.LONG}
+            rightAlignFinalButton={true}
+            accountSummary={accountSummary}
+            client={client}
+            selectedAccount={wrappedAccount}
+          />
+        )}
       </TableCell>
     </TableRow>
   );

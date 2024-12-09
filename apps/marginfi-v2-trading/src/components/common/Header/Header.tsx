@@ -11,7 +11,7 @@ import { cn } from "@mrgnlabs/mrgn-utils";
 import { USDC_MINT } from "@mrgnlabs/mrgn-common";
 import { Settings } from "@mrgnlabs/mrgn-ui";
 
-import { useTradeStore, useUiStore } from "~/store";
+import { useTradeStoreV2, useUiStore } from "~/store";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { useIsMobile } from "~/hooks/use-is-mobile";
 import { useConnection } from "~/hooks/use-connection";
@@ -33,16 +33,15 @@ const navItems = [
 
 export const Header = () => {
   const { connection } = useConnection();
-  const [initialized, userDataFetched, groupMap, nativeSolBalance, fetchTradeState, referralCode] = useTradeStore(
-    (state) => [
+  const [initialized, userDataFetched, nativeSolBalance, fetchTradeState, referralCode, banksByBankPk] =
+    useTradeStoreV2((state) => [
       state.initialized,
       state.userDataFetched,
-      state.groupMap,
       state.nativeSolBalance,
       state.fetchTradeState,
       state.referralCode,
-    ]
-  );
+      state.banksByBankPk,
+    ]);
   const { priorityType, broadcastType, priorityFees, maxCap, maxCapType, setTransactionSettings } = useUiStore(
     (state) => ({
       priorityType: state.priorityType,
@@ -61,19 +60,13 @@ export const Header = () => {
   const [isReferralCopied, setIsReferralCopied] = React.useState(false);
 
   const extendedBankInfos = React.useMemo(() => {
-    const groups = [...groupMap.values()];
-    const tokens = groups.map((group) => group.pool.token);
-    const usdc = groups.find((group) => group.pool.quoteTokens[0].info.rawBank.mint.equals(USDC_MINT));
+    return Object.values(banksByBankPk);
+  }, [banksByBankPk]);
 
-    if (!usdc) return tokens;
-
-    return [usdc.pool.quoteTokens[0], ...tokens];
-  }, [groupMap]);
-
-  const ownPools = React.useMemo(() => {
-    const goups = [...groupMap.values()];
-    return goups.filter((group) => group?.client.group.admin?.toBase58() === wallet?.publicKey?.toBase58());
-  }, [groupMap, wallet]);
+  // const ownPools = React.useMemo(() => {
+  //   const goups = [...groupMap.values()];
+  //   return goups.filter((group) => group?.client.group.admin?.toBase58() === wallet?.publicKey?.toBase58());
+  // }, [groupMap, wallet]);
 
   React.useEffect(() => {
     if (!initialized) return;
@@ -118,13 +111,13 @@ export const Header = () => {
           </ul>
         </nav>
         <div className={cn("flex items-center gap-2")}>
-          {ownPools.length > 0 && (
+          {/* {ownPools.length > 0 && (
             <Link href="/admin">
               <Button variant="outline" size={isMobile ? "sm" : "default"}>
                 <IconPlus size={isMobile ? 14 : 18} /> Manage pools
               </Button>
             </Link>
-          )}
+          )} */}
           {
             // eslint-disable-next-line turbo/no-undeclared-env-vars
             process.env.NEXT_PUBLIC_ENABLE_BANK_SCRIPT && (
