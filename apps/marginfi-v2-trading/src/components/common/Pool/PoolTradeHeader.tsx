@@ -18,8 +18,7 @@ import { IconChevronDown, IconExternalLink } from "@tabler/icons-react";
 
 import { useConnection } from "~/hooks/use-connection";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
-import { useTradeStore, useTradeStoreV2 } from "~/store";
-import { ArenaPool, GroupData } from "~/store/tradeStore";
+import { useTradeStoreV2 } from "~/store";
 
 import { ActionBox, ActionBoxProvider } from "~/components/action-box-v2";
 import { TokenCombobox } from "~/components/common/TokenCombobox";

@@ -6,9 +6,6 @@ import { PublicKey } from "@solana/web3.js";
 
 import { cn, getTokenImageURL } from "@mrgnlabs/mrgn-utils";
 
-import { useTradeStore } from "~/store";
-import { GroupData } from "~/store/tradeStore";
-
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 
@@ -27,9 +24,9 @@ export const CreatePoolMint = ({
   setIsOpen,
   fetchTokenInfo,
 }: CreatePoolMintProps) => {
-  const [groupMap] = useTradeStore((state) => [state.groupMap]);
+  // const [groupMap] = useTradeStore((state) => [state.groupMap]);
   const [error, setError] = React.useState<string | null>(null);
-  const [poolExists, setPoolExists] = React.useState<GroupData | null>(null);
+  const [poolExists, setPoolExists] = React.useState<any | null>(null);
 
   const verifyPublickey = (key: string, allowPDA: boolean = false) => {
     try {
@@ -56,21 +53,21 @@ export const CreatePoolMint = ({
         return;
       }
 
-      const groups = [...groupMap.values()];
+      // const groups = []; //[...groupMap.values()];
 
-      // check if mint address is in groupMap it will be found at entry.pool.token.mint
-      const group = groups.find((group: GroupData) => {
-        return group.pool.token.info.rawBank.mint.equals(new PublicKey(mintAddress));
-      });
+      // // check if mint address is in groupMap it will be found at entry.pool.token.mint
+      // const group = groups.find((group: GroupData) => {
+      //   return group.pool.token.info.rawBank.mint.equals(new PublicKey(mintAddress));
+      // });
 
-      if (group) {
-        setPoolExists(group);
-        return;
-      }
+      // if (group) {
+      //   setPoolExists(group);
+      //   return;
+      // }
 
       fetchTokenInfo();
     },
-    [mintAddress, groupMap, fetchTokenInfo]
+    [mintAddress, fetchTokenInfo]
   );
 
   return (

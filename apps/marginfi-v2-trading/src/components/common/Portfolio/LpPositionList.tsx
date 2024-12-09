@@ -6,16 +6,19 @@ import Link from "next/link";
 import { numeralFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 import { Desktop, Mobile } from "@mrgnlabs/mrgn-utils";
 
-import { useTradeStore } from "~/store";
-
 import { LpActionButtons } from "~/components/common/Portfolio";
 import { Table, TableBody, TableHead, TableCell, TableHeader, TableRow } from "~/components/ui/table";
-import { Card, CardHeader, CardContent, CardFooter } from "~/components/ui/card";
+import { useExtendedPools } from "~/hooks/useExtendedPools";
+import { GroupStatus } from "~/store/tradeStoreV2";
 
 export const LpPositionList = () => {
-  const [portfolio] = useTradeStore((state) => [state.portfolio]);
+  const extendedPools = useExtendedPools();
 
-  if (!portfolio || !portfolio.lpPositions.length) {
+  const lpPositions = React.useMemo(() => {
+    return extendedPools.filter((pool) => pool.status === GroupStatus.LP);
+  }, [extendedPools]);
+
+  if (!lpPositions.length) {
     return null;
   }
 
@@ -35,59 +38,57 @@ export const LpPositionList = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {portfolio.lpPositions.map((group, i) => {
+              {lpPositions.map((pool, i) => {
                 return (
                   <TableRow key={i} className="even:bg-white/50 hover:even:bg-white/50">
                     <TableCell>
                       <Link
-                        href={`/trade/${group.client.group.address.toBase58()}`}
+                        href={`/trade/${pool.groupPk.toBase58()}`}
                         className="flex items-center gap-3 transition-colors shrink-0"
                       >
                         <div className="flex shrink-0">
                           <Image
-                            src={group.pool.token.meta.tokenLogoUri}
+                            src={pool.tokenBank.meta.tokenLogoUri}
                             width={24}
                             height={24}
-                            alt={group.pool.token.meta.tokenSymbol}
+                            alt={pool.tokenBank.meta.tokenSymbol}
                             className="rounded-full shrink-0 z-20 bg-background"
                           />
                           <Image
-                            src={group.pool.quoteTokens[0].meta.tokenLogoUri}
+                            src={pool.quoteBank.meta.tokenLogoUri}
                             width={24}
                             height={24}
-                            alt={group.pool.quoteTokens[0].meta.tokenSymbol}
+                            alt={pool.quoteBank.meta.tokenSymbol}
                             className="rounded-full shrink-0 ml-[-12px] z-10 bg-background"
                           />
                         </div>{" "}
-                        {`${group.pool.token.meta.tokenSymbol}/${group.pool.quoteTokens[0].meta.tokenSymbol} `}
+                        {`${pool.tokenBank.meta.tokenSymbol}/${pool.quoteBank.meta.tokenSymbol} `}
                       </Link>
                     </TableCell>
                     <TableCell>
-                      {group.pool.token.isActive
-                        ? group.pool.token.position.amount < 0.01
+                      {pool.tokenBank.isActive
+                        ? pool.tokenBank.position.amount < 0.01
                           ? "0.01"
-                          : numeralFormatter(group.pool.token.position.amount)
+                          : numeralFormatter(pool.tokenBank.position.amount)
                         : 0}
                     </TableCell>
                     <TableCell>
-                      {group.pool.quoteTokens[0].isActive
-                        ? group.pool.quoteTokens[0].position.amount < 0.01
+                      {pool.quoteBank.isActive
+                        ? pool.quoteBank.position.amount < 0.01
                           ? "0.01"
-                          : numeralFormatter(group.pool.quoteTokens[0].position.amount)
+                          : numeralFormatter(pool.quoteBank.position.amount)
                         : 0}
                     </TableCell>
                     <TableCell>
-                      {(group.pool.token.isActive || group.pool.quoteTokens[0].isActive) &&
+                      {(pool.tokenBank.isActive || pool.quoteBank.isActive) &&
                         usdFormatter.format(
-                          (group.pool.token.isActive ? group.pool.token.position.usdValue : 0) +
-                            (group.pool.quoteTokens[0].isActive ? group.pool.quoteTokens[0].position.usdValue : 0)
+                          (pool.tokenBank.isActive ? pool.tokenBank.position.usdValue : 0) +
+                            (pool.quoteBank.isActive ? pool.quoteBank.position.usdValue : 0)
                         )}
                     </TableCell>
 
                     <TableCell className="text-right">
-                      {group.selectedAccount && (
-                        <LpActionButtons marginfiAccount={group.selectedAccount} activeGroup={group} />
-                      )}
+                      <LpActionButtons activePool={pool} />
                     </TableCell>
                   </TableRow>
                 );
@@ -98,51 +99,51 @@ export const LpPositionList = () => {
       </Desktop>
       <Mobile>
         <div className="space-y-8">
-          {portfolio.lpPositions.map((group, i) => {
+          {lpPositions.map((pool, i) => {
             return (
               <div key={i} className="bg-background border border-border rounded-lg p-4 space-y-4">
                 <Link
-                  href={`/trade/${group.client.group.address.toBase58()}`}
+                  href={`/trade/${pool.groupPk.toBase58()}`}
                   className="flex items-center gap-3 transition-colors shrink-0"
                 >
                   <div className="flex shrink-0">
                     <Image
-                      src={group.pool.token.meta.tokenLogoUri}
+                      src={pool.tokenBank.meta.tokenLogoUri}
                       width={24}
                       height={24}
-                      alt={group.pool.token.meta.tokenSymbol}
+                      alt={pool.tokenBank.meta.tokenSymbol}
                       className="rounded-full shrink-0 z-20 bg-background"
                     />
                     <Image
-                      src={group.pool.quoteTokens[0].meta.tokenLogoUri}
+                      src={pool.quoteBank.meta.tokenLogoUri}
                       width={24}
                       height={24}
-                      alt={group.pool.quoteTokens[0].meta.tokenSymbol}
+                      alt={pool.quoteBank.meta.tokenSymbol}
                       className="rounded-full shrink-0 ml-[-12px] z-10 bg-background"
                     />
                   </div>{" "}
-                  {`${group.pool.token.meta.tokenSymbol}/${group.pool.quoteTokens[0].meta.tokenSymbol} `}
+                  {`${pool.tokenBank.meta.tokenSymbol}/${pool.quoteBank.meta.tokenSymbol} `}
                 </Link>
                 <div>
                   <div className="bg-accent rounded-lg p-2">
                     <p className="flex justify-between gap-2 text-muted-foreground">
-                      {group.pool.token.meta.tokenSymbol} supplied
+                      {pool.tokenBank.meta.tokenSymbol} supplied
                       <span className="text-primary">
                         {usdFormatter.format(
-                          group.pool.token.isActive
-                            ? group.pool.token.position.amount *
-                                group.pool.token.info.oraclePrice.priceRealtime.price.toNumber()
+                          pool.tokenBank.isActive
+                            ? pool.tokenBank.position.amount *
+                                pool.tokenBank.info.oraclePrice.priceRealtime.price.toNumber()
                             : 0
                         )}
                       </span>
                     </p>
                     <p className="flex justify-between gap-2 text-muted-foreground">
-                      {group.pool.quoteTokens[0].meta.tokenSymbol} supplied
+                      {pool.quoteBank.meta.tokenSymbol} supplied
                       <span className="text-primary">
                         {usdFormatter.format(
-                          group.pool.quoteTokens[0].isActive
-                            ? group.pool.quoteTokens[0].position.amount *
-                                group.pool.quoteTokens[0].info.oraclePrice.priceRealtime.price.toNumber()
+                          pool.quoteBank.isActive
+                            ? pool.quoteBank.position.amount *
+                                pool.quoteBank.info.oraclePrice.priceRealtime.price.toNumber()
                             : 0
                         )}
                       </span>
@@ -150,7 +151,7 @@ export const LpPositionList = () => {
                   </div>
                 </div>
                 <div>
-                  <LpActionButtons size="lg" marginfiAccount={group.selectedAccount || undefined} activeGroup={group} />
+                  <LpActionButtons size="lg" activePool={pool} />
                 </div>
               </div>
             );

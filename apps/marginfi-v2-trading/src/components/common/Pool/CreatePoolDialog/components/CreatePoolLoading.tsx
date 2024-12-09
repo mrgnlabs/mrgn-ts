@@ -25,7 +25,6 @@ import {
 } from "@mrgnlabs/marginfi-client-v2";
 import { cn, getBearerToken, getFeeAccount, createReferalTokenAccount } from "@mrgnlabs/mrgn-utils";
 
-import { useUiStore, useTradeStore } from "~/store";
 import { Button } from "~/components/ui/button";
 import { useConnection } from "~/hooks/use-connection";
 import { useWallet } from "~/components/wallet-v2";
@@ -180,7 +179,7 @@ type PoolCreationState = {
 export const CreatePoolLoading = ({ quoteBank, poolData, setPoolData, setCreatePoolState }: CreatePoolLoadingProps) => {
   const { wallet } = useWallet();
   const { connection } = useConnection();
-  const [fetchTradeState] = useTradeStore((state) => [state.fetchTradeState]);
+  // const [fetchTradeState] = useTradeStore((state) => [state.fetchTradeState]);
   const [activeStep, setActiveStep] = React.useState<number>(0);
   const [status, setStatus] = React.useState<StepperStatus>("default");
 
@@ -542,27 +541,17 @@ export const CreatePoolLoading = ({ quoteBank, poolData, setPoolData, setCreateP
         return { ...state, group: seeds.marginfiGroupSeed.publicKey };
       });
       setCreatePoolState(CreatePoolState.SUCCESS);
-      fetchTradeState({
-        connection,
-        wallet,
-        refresh: true,
-      });
+      // fetchTradeState({
+      //   connection,
+      //   wallet,
+      //   refresh: true,
+      // });
     } catch (error) {
       setStatus("error");
       console.error("Failed to create permissionless pool");
       console.error(error);
     }
-  }, [
-    connection,
-    createOracleIx,
-    fetchTradeState,
-    initializeClient,
-    poolData,
-    quoteBank,
-    setCreatePoolState,
-    setPoolData,
-    wallet,
-  ]);
+  }, [connection, createOracleIx, initializeClient, poolData, quoteBank, setCreatePoolState, setPoolData, wallet]);
 
   const createTransaction = async (
     ixs: TransactionInstruction[],

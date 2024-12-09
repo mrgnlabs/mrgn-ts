@@ -1,21 +1,10 @@
 import React from "react";
 
-import Image from "next/image";
-import Link from "next/link";
-
-import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { numeralFormatter, tokenPriceFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
-
-import { useTradeStore } from "~/store";
-
-import { PositionActionButtons } from "~/components/common/Portfolio";
 import { Table, TableBody, TableHead, TableCell, TableHeader, TableRow } from "~/components/ui/table";
-import { Badge } from "~/components/ui/badge";
-import { GroupData } from "~/store/tradeStore";
-import { PublicKey } from "@solana/web3.js";
+
 import { PositionListItem } from "./PositionListItem";
 import { ArenaPoolV2, ArenaPoolV2Extended, GroupStatus } from "~/store/tradeStoreV2";
-import { useExtendedPool, useExtendedPools } from "~/hooks/useExtendedPools";
+import { useExtendedPools } from "~/hooks/useExtendedPools";
 
 export const PositionList = ({ activePool }: { activePool: ArenaPoolV2 }) => {
   const extendedPools = useExtendedPools();
