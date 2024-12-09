@@ -1,6 +1,6 @@
 import { PublicKey } from "@solana/web3.js";
 import { useMarginfiClient } from "~/hooks/useMarginfiClient";
-import { useWrappedAccount } from "~/hooks/useAccountSummary";
+import { useWrappedAccount } from "~/hooks/useWrappedAccount";
 import { ArenaBank } from "~/store/tradeStoreV2";
 import { DEFAULT_ACCOUNT_SUMMARY } from "@mrgnlabs/marginfi-v2-ui-state";
 

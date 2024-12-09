@@ -7,30 +7,41 @@ import { IconInfoCircle } from "@tabler/icons-react";
 import { numeralFormatter, tokenPriceFormatter, percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 
 import { cn, useIsMobile } from "@mrgnlabs/mrgn-utils";
-import { useGroupBanks, useGroupPosition } from "~/hooks/arenaHooks";
+import { useLeveragedPositionDetails } from "~/hooks/arenaHooks";
 
 import { PositionActionButtons } from "~/components/common/Portfolio";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 
-import { ArenaPoolV2Extended } from "~/store/tradeStoreV2";
+import { ArenaPoolV2Extended, GroupStatus } from "~/store/tradeStoreV2";
+import { useMarginfiClient } from "~/hooks/useMarginfiClient";
+import { useWrappedAccount } from "~/hooks/useWrappedAccount";
 
 type PositionCardProps = {
-  groupData: ArenaPoolV2Extended;
+  arenaPool: ArenaPoolV2Extended;
   size?: "sm" | "lg";
 };
 
-export const PositionCard = ({ size = "lg", groupData }: PositionCardProps) => {
+export const PositionCard = ({ size = "lg", arenaPool }: PositionCardProps) => {
   const isMobile = useIsMobile();
+
+  const client = useMarginfiClient({ groupPk: arenaPool.groupPk });
+  const { accountSummary, wrappedAccount } = useWrappedAccount({
+    client,
+    groupPk: arenaPool.groupPk,
+    banks: [arenaPool.tokenBank, arenaPool.quoteBank],
+  });
+
+  const { positionSizeUsd, totalUsdValue, leverage } = useLeveragedPositionDetails({ pool: arenaPool });
   // const { borrowBank } = useGroupBanks({ groupData: groupData });
   // const { positionSizeUsd, totalUsdValue, leverage } = useGroupPosition({ group: groupData });
 
   const healthColor = React.useMemo(() => {
-    if (groupData.accountSummary.healthFactor) {
+    if (accountSummary?.healthFactor) {
       let color: string;
 
-      if (groupData.accountSummary.healthFactor >= 0.5) {
+      if (accountSummary.healthFactor >= 0.5) {
         color = "#75BA80";
-      } else if (groupData.accountSummary.healthFactor >= 0.25) {
+      } else if (accountSummary.healthFactor >= 0.25) {
         color = "#B8B45F";
       } else {
         color = "#CF6F6F";
@@ -40,44 +51,44 @@ export const PositionCard = ({ size = "lg", groupData }: PositionCardProps) => {
     } else {
       return "#fff";
     }
-  }, [groupData]);
+  }, [accountSummary?.healthFactor]);
 
-  const isLstQuote = React.useMemo(() => {
-    return groupData.pool.quoteTokens[0].meta.tokenSymbol === "LST";
-  }, [groupData]);
+  // const isLstQuote = React.useMemo(() => {
+  //   return groupData.pool.quoteTokens[0].meta.tokenSymbol === "LST";
+  // }, [groupData]);
 
   const tokenPrice = React.useMemo(() => {
-    if (isLstQuote) {
-      const lstPrice = groupData.pool.quoteTokens[0].info.oraclePrice.priceRealtime.price.toNumber();
-      return `${tokenPriceFormatter(
-        groupData.pool.token.info.oraclePrice.priceRealtime.price.toNumber() / lstPrice,
-        "decimal"
-      )} ${groupData.pool.quoteTokens[0].meta.tokenSymbol}`;
-    }
+    // if (isLstQuote) {
+    const lstPrice = arenaPool.quoteBank.info.oraclePrice.priceRealtime.price.toNumber();
+    return `${tokenPriceFormatter(
+      arenaPool.tokenBank.info.oraclePrice.priceRealtime.price.toNumber() / lstPrice,
+      "decimal"
+    )} ${arenaPool.quoteBank.meta.tokenSymbol}`;
+    // }
 
-    return tokenPriceFormatter(groupData.pool.token.info.oraclePrice.priceRealtime.price.toNumber());
-  }, [isLstQuote, groupData]);
+    // return tokenPriceFormatter(groupData.pool.token.info.oraclePrice.priceRealtime.price.toNumber());
+  }, [arenaPool]);
 
-  if (!groupData.pool.token.isActive) return null;
+  if (!arenaPool.tokenBank.isActive) return null;
 
   return (
     <div className={cn("space-y-4", size === "lg" && "bg-background border p-4 rounded-2xl")}>
       {size === "lg" && (
         <div className="flex items-center gap-4 justify-between">
           <Link
-            href={`/trade/${groupData.client.group.address.toBase58()}`}
+            href={`/trade/${arenaPool.groupPk.toBase58()}`}
             className="flex items-center gap-4 font-medium text-muted-foreground"
           >
             <Image
-              src={groupData.pool.token.meta.tokenLogoUri}
-              alt={groupData.pool.token.meta.tokenSymbol}
+              src={arenaPool.tokenBank.meta.tokenLogoUri}
+              alt={arenaPool.tokenBank.meta.tokenSymbol}
               width={56}
               height={56}
               className="rounded-full"
             />
             <div className="leading-none space-y-0.5">
-              <h2 className="text-lg text-primary">{groupData.pool.token.meta.tokenName}</h2>
-              <h3>{`${groupData.pool.token.meta.tokenSymbol}/${groupData.pool.quoteTokens[0].meta.tokenSymbol}`}</h3>
+              <h2 className="text-lg text-primary">{arenaPool.tokenBank.meta.tokenName}</h2>
+              <h3>{`${arenaPool.tokenBank.meta.tokenSymbol}/${arenaPool.quoteBank.meta.tokenSymbol}`}</h3>
             </div>
           </Link>
         </div>
@@ -86,7 +97,7 @@ export const PositionCard = ({ size = "lg", groupData }: PositionCardProps) => {
         <dl className="w-full grid grid-cols-2 text-sm text-muted-foreground gap-1">
           <dt>Token</dt>
           <dd className="text-right text-primary">
-            {numeralFormatter(groupData.pool.token.position.amount)} {groupData.pool.token.meta.tokenSymbol}
+            {numeralFormatter(arenaPool.tokenBank.position.amount)} {arenaPool.tokenBank.meta.tokenSymbol}
           </dd>
           <dt>Value</dt>
           <dd className="text-right text-primary">{usdFormatter.format(totalUsdValue)} USD</dd>
@@ -100,25 +111,25 @@ export const PositionCard = ({ size = "lg", groupData }: PositionCardProps) => {
           <dt>Price</dt>
           <dd className="text-right text-primary">
             {tokenPrice}
-            {isLstQuote && (
-              <>
-                {isMobile ? (
-                  <span className="text-xs ml-1 text-muted-foreground block">
-                    {tokenPriceFormatter(groupData.pool.token.info.oraclePrice.priceRealtime.price.toNumber())} USD
-                  </span>
-                ) : (
-                  <span className="text-xs ml-1 text-muted-foreground">
-                    ({tokenPriceFormatter(groupData.pool.token.info.oraclePrice.priceRealtime.price.toNumber())})
-                  </span>
-                )}
-              </>
-            )}
+            {/* {isLstQuote && ( */}
+            <>
+              {isMobile ? (
+                <span className="text-xs ml-1 text-muted-foreground block">
+                  {tokenPriceFormatter(arenaPool.tokenBank.info.oraclePrice.priceRealtime.price.toNumber())} USD
+                </span>
+              ) : (
+                <span className="text-xs ml-1 text-muted-foreground">
+                  ({tokenPriceFormatter(arenaPool.tokenBank.info.oraclePrice.priceRealtime.price.toNumber())})
+                </span>
+              )}
+            </>
+            {/* )} */}
           </dd>
-          {groupData.pool.token.position.liquidationPrice && (
+          {arenaPool.tokenBank.position.liquidationPrice && (
             <>
               <dt>Liquidation Price</dt>
               <dd className="text-right text-primary">
-                {tokenPriceFormatter(groupData.pool.token.position.liquidationPrice)}
+                {tokenPriceFormatter(arenaPool.tokenBank.position.liquidationPrice)}
               </dd>
             </>
           )}
@@ -144,13 +155,20 @@ export const PositionCard = ({ size = "lg", groupData }: PositionCardProps) => {
               color: healthColor,
             }}
           >
-            {percentFormatter.format(groupData.accountSummary.healthFactor)}
+            {accountSummary && percentFormatter.format(accountSummary.healthFactor)}
           </dd>
         </dl>
       </div>
       <div className="flex items-center justify-between gap-4">
-        {groupData.client && groupData.selectedAccount && (
-          <PositionActionButtons activeGroup={groupData} isBorrowing={!!borrowBank} rightAlignFinalButton={true} />
+        {client && accountSummary && (
+          <PositionActionButtons
+            arenaPool={arenaPool}
+            isBorrowing={arenaPool.status === GroupStatus.SHORT || arenaPool.status === GroupStatus.LONG}
+            rightAlignFinalButton={true}
+            accountSummary={accountSummary}
+            client={client}
+            selectedAccount={wrappedAccount}
+          />
         )}
       </div>
     </div>
