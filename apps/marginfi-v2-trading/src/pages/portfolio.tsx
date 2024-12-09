@@ -68,7 +68,7 @@ export default function PortfolioPage() {
             <div className="w-full max-w-4xl mx-auto px-4 md:px-0">
               <PageHeading heading="Portfolio" body={<p>Manage your positions in the arena.</p>} links={[]} />
             </div>
-            {!shortPositions ? (
+            {portfolioCombined.length === 0 ? (
               <p className="text-center mt-4">
                 You do not have any open positions.
                 <br className="md:hidden" />{" "}
