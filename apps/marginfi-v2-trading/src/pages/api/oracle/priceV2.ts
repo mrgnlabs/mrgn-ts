@@ -106,6 +106,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         oracleKey,
         oracleSetup: parseOracleSetup(b.data.config.oracleSetup),
         maxAge: b.data.config.oracleMaxAge,
+        bankPk: b.address,
       };
     });
     // Fetch on-chain data for all oracles
@@ -192,15 +193,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         updatedOraclePrices.set(oracleKey, updatedOraclePrice);
       }
     }
+    const bankPkMap = new Map<string, OraclePrice>();
 
-    const updatedOraclePricesSorted = requestedOraclesData.map((value) => updatedOraclePrices.get(value.oracleKey)!);
+    requestedOraclesData.forEach((oracleData) => {
+      const oraclePrice = updatedOraclePrices.get(oracleData.oracleKey)!;
+      bankPkMap.set(oracleData.bankPk.toBase58(), oraclePrice);
+    });
 
     res.setHeader("Cache-Control", `s-maxage=${S_MAXAGE_TIME}, stale-while-revalidate=${STALE_WHILE_REVALIDATE_TIME}`);
-    return res.status(200).json(updatedOraclePricesSorted.map(stringifyOraclePrice));
+    return res.status(200).json(stringifyOraclePriceMap(bankPkMap));
   } catch (error) {
     console.error("Error:", error);
     return res.status(500).json({ error: "Error fetching data" });
   }
+}
+
+function stringifyOraclePriceMap(oraclePriceMap: Map<string, OraclePrice>) {
+  let oraclePriceMap2: Record<string, OraclePriceString> = {};
+  oraclePriceMap.forEach((value, key) => {
+    oraclePriceMap2[key] = stringifyOraclePrice(value);
+  });
+  return oraclePriceMap2;
 }
 
 async function handleFetchCrossbarPrices(

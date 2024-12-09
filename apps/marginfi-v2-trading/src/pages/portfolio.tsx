@@ -7,7 +7,7 @@ import { useActionBoxStore } from "~/components/action-box-v2/store";
 import { groupedNumberFormatterDyn, usdFormatter } from "@mrgnlabs/mrgn-common";
 import { cn } from "@mrgnlabs/mrgn-utils";
 
-import { useTradeStore, useTradeStoreV2 } from "~/store";
+import { useTradeStoreV2 } from "~/store";
 
 import { ActionComplete } from "~/components/action-complete";
 import { PageHeading } from "~/components/common/PageHeading";
@@ -123,17 +123,17 @@ export default function PortfolioPage() {
                       <h2 className="text-2xl font-medium">Long positions</h2>
                       <div className="space-y-8">
                         {longPositions.map((pool, index) => (
-                          <PositionCard key={index} groupData={pool} />
+                          <PositionCard key={index} arenaPool={pool} />
                         ))}
                       </div>
                     </div>
                   )}
-                  {portfolio.short.length > 0 && (
+                  {shortPositions.length > 0 && (
                     <div className="space-y-6">
                       <h2 className="text-2xl font-medium">Short positions</h2>
                       <div className="space-y-8">
-                        {portfolio.short.map((group, index) => (
-                          <PositionCard key={index} groupData={group} />
+                        {shortPositions.map((pool, index) => (
+                          <PositionCard key={index} arenaPool={pool} />
                         ))}
                       </div>
                     </div>

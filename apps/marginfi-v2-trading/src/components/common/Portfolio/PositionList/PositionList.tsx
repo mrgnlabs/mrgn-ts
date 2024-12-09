@@ -14,23 +14,28 @@ import { Badge } from "~/components/ui/badge";
 import { GroupData } from "~/store/tradeStore";
 import { PublicKey } from "@solana/web3.js";
 import { PositionListItem } from "./PositionListItem";
+import { ArenaPoolV2, ArenaPoolV2Extended, GroupStatus } from "~/store/tradeStoreV2";
+import { useExtendedPool, useExtendedPools } from "~/hooks/useExtendedPools";
 
-export const PositionList = ({ activeGroupPk }: { activeGroupPk: PublicKey }) => {
-  const [portfolio] = useTradeStore((state) => [state.portfolio]);
+export const PositionList = ({ activePool }: { activePool: ArenaPoolV2 }) => {
+  const extendedPools = useExtendedPools();
 
   const portfolioCombined = React.useMemo(() => {
-    if (!portfolio) return [];
-    const isActiveGroupPosition = (item: GroupData) => item.groupPk.equals(activeGroupPk);
+    if (!extendedPools) return [];
+    const isActiveGroupPosition = (item: ArenaPoolV2Extended) => item.groupPk.equals(activePool.groupPk);
 
-    const activeGroupPosition = [...portfolio.long, ...portfolio.short].find(isActiveGroupPosition);
+    const longPositions = extendedPools.filter((pool) => pool.status === GroupStatus.LONG);
+    const shortPositions = extendedPools.filter((pool) => pool.status === GroupStatus.SHORT);
 
-    const sortedLongs = portfolio.long.filter((item) => !isActiveGroupPosition(item));
-    const sortedShorts = portfolio.short.filter((item) => !isActiveGroupPosition(item));
+    const activeGroupPosition = [...longPositions, ...shortPositions].find(isActiveGroupPosition);
+
+    const sortedLongs = longPositions.filter((item) => !isActiveGroupPosition(item));
+    const sortedShorts = shortPositions.filter((item) => !isActiveGroupPosition(item));
 
     return [...(activeGroupPosition ? [activeGroupPosition] : []), ...sortedLongs, ...sortedShorts];
-  }, [activeGroupPk, portfolio]);
+  }, [extendedPools, activePool]);
 
-  if (!portfolio) return null;
+  if (!portfolioCombined) return null;
 
   return (
     <div className="rounded-xl">
@@ -48,7 +53,7 @@ export const PositionList = ({ activeGroupPk }: { activeGroupPk: PublicKey }) =>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {portfolio.long.length === 0 && portfolio.short.length === 0 ? (
+          {portfolioCombined.length === 0 ? (
             <TableRow>
               <TableCell colSpan={7}>
                 <p className="text-sm text-muted-foreground pt-2">No positions found</p>
@@ -58,8 +63,8 @@ export const PositionList = ({ activeGroupPk }: { activeGroupPk: PublicKey }) =>
             <></>
           )}
 
-          {portfolioCombined.map((group, index) => {
-            return <PositionListItem key={index} group={group} />;
+          {portfolioCombined.map((pool, index) => {
+            return <PositionListItem key={index} arenaPool={pool} />;
           })}
         </TableBody>
       </Table>

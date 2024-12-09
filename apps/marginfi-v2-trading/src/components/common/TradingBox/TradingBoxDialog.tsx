@@ -9,16 +9,17 @@ import { GroupData } from "~/store/tradeStore";
 
 import { TradingBox } from "./TradingBox";
 import { Dialog, DialogTrigger, DialogContent } from "~/components/ui/dialog";
+import { ArenaPoolV2 } from "~/store/tradeStoreV2";
 
 type TradingBoxDialogProps = {
-  activeGroup: GroupData;
+  activePool: ArenaPoolV2;
   isTradingBoxTriggered?: boolean;
   title: string;
   children: React.ReactNode;
 };
 
 export const TradingBoxDialog = ({
-  activeGroup,
+  activePool,
   isTradingBoxTriggered = false,
   title,
   children,
@@ -47,7 +48,7 @@ export const TradingBoxDialog = ({
               <IconArrowLeft /> {`${title}`}
             </div>
             <div className="p-4 h-screen mb-8">
-              <TradingBox activeGroup={activeGroup} />
+              <TradingBox activePool={activePool} />
             </div>
           </div>
         </DialogContent>
@@ -60,7 +61,7 @@ export const TradingBoxDialog = ({
           closeClassName="top-2 right-2"
         >
           <div className="p-4">
-            <TradingBox activeGroup={activeGroup} />
+            <TradingBox activePool={activePool} />
           </div>
         </DialogContent>
       </Desktop>
