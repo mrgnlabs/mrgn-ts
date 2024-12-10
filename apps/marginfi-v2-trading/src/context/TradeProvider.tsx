@@ -15,21 +15,38 @@ export const TradePovider: React.FC<{
 }> = ({ children }) => {
   const router = useRouter();
   const debounceId = React.useRef<NodeJS.Timeout | null>(null);
-  const { wallet, isOverride, connected } = useWallet();
+  const { wallet, connected } = useWallet();
   const { connection } = useConnection();
 
-  const [fetchExtendedArenaGroups, fetchArenaGroups, initialized] = useTradeStoreV2((state) => [
-    state.fetchExtendedArenaGroups,
-    state.fetchArenaGroups,
-    state.initialized,
-  ]);
+  const [fetchExtendedArenaGroups, fetchArenaGroups, setHydrationComplete, initialized, hydrationComplete] =
+    useTradeStoreV2((state) => [
+      state.fetchExtendedArenaGroups,
+      state.fetchArenaGroups,
+      state.setHydrationComplete,
+      state.initialized,
+      state.hydrationComplete,
+    ]);
 
   const [fetchPriorityFee] = useUiStore((state) => [state.fetchPriorityFee]);
   const [isLoggedIn, setIsLoggedIn] = React.useState(false);
 
   React.useEffect(() => {
-    fetchArenaGroups();
-  }, [fetchArenaGroups]);
+    const hydrate = async () => {
+      if (!hydrationComplete) {
+        await fetchArenaGroups();
+        setHydrationComplete();
+      }
+    };
+
+    hydrate();
+  }, [fetchArenaGroups, hydrationComplete, setHydrationComplete]);
+
+  React.useEffect(() => {
+    if (!initialized) {
+      console.log("fetching arena groups");
+      fetchArenaGroups();
+    }
+  }, [fetchArenaGroups, initialized]);
 
   React.useEffect(() => {
     if (initialized) {

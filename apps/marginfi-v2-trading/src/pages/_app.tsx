@@ -45,14 +45,19 @@ export default function MrgnApp({ Component, pageProps, path, bank }: AppProps &
   const [broadcastType, priorityFees] = useUiStore((state) => [state.broadcastType, state.priorityFees]);
 
   React.useEffect(() => {
-    const init = async () => {
-      const rpcEndpoint = await generateEndpoint(config.rpcEndpoint, process.env.NEXT_PUBLIC_RPC_PROXY_KEY ?? "");
-      setRpcEndpoint(rpcEndpoint);
-      setReady(true);
-      initAnalytics();
+    const initializeApp = () => {
+      try {
+        const endpoint = generateEndpoint(config.rpcEndpoint, process.env.NEXT_PUBLIC_RPC_PROXY_KEY ?? "");
+
+        setRpcEndpoint(endpoint);
+        setReady(true);
+        initAnalytics();
+      } catch (error) {
+        console.error("Failed to initialize:", error);
+      }
     };
 
-    init();
+    initializeApp();
   }, []);
 
   return (
