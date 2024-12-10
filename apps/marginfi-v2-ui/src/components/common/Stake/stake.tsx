@@ -46,7 +46,7 @@ const Stake = () => {
   React.useEffect(() => {
     const fetchIntegrations = async () => {
       try {
-        const res = await fetch(`/api/birdeye/markets?token=` + LST_MINT);
+        const res = await fetch(`/api/tokens/markets?token=` + LST_MINT);
         if (!res.ok) {
           return;
         }
