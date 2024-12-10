@@ -32,8 +32,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
     const data = await response.json();
 
-    // cache for 4 minutes
-    res.setHeader("Cache-Control", "s-maxage=240, stale-while-revalidate=59");
+    // cache for 20 minutes
+    res.setHeader("Cache-Control", "s-maxage=1200, stale-while-revalidate=300");
     res.status(200).json(data);
   } catch (error) {
     console.error("Error:", error);
