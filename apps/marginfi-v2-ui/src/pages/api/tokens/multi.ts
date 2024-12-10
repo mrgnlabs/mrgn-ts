@@ -1,8 +1,14 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { BankMetadata, loadBankMetadatas } from "@mrgnlabs/mrgn-common";
+import {
+  BankMetadata,
+  loadBankMetadatas,
+  chunkedGetRawMultipleAccountInfoOrdered,
+  Wallet,
+} from "@mrgnlabs/mrgn-common";
 import { Connection, PublicKey } from "@solana/web3.js";
-import { MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
-import { getConfig } from "@mrgnlabs/marginfi-client-v2";
+import { Program, AnchorProvider } from "@coral-xyz/anchor";
+import { Bank, BankRaw, MARGINFI_IDL, MarginfiIdlType, MarginfiProgram } from "@mrgnlabs/marginfi-client-v2";
+import config from "~/config/marginfi";
 
 const BIRDEYE_API = "https://public-api.birdeye.so";
 
@@ -27,21 +33,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // load bank metadata
     bankMetadataCache = await loadBankMetadatas();
 
-    // init MarginfiClient to get banks with emissions
-    const connection = new Connection(process.env.PRIVATE_RPC_ENDPOINT_OVERRIDE!);
-    const bankAddresses = Object.keys(bankMetadataCache).map((address) => new PublicKey(address));
+    // fetch mfi banks to get emissions mints
+    const connection = new Connection(process.env.PRIVATE_RPC_ENDPOINT_OVERRIDE || "");
+    const idl = { ...MARGINFI_IDL, address: config.mfiConfig.programId.toBase58() } as unknown as MarginfiIdlType;
 
-    const marginfiClient = await MarginfiClient.fetch(getConfig("production"), {} as any, connection, {
-      preloadedBankAddresses: bankAddresses,
-      readOnly: true,
+    const provider = new AnchorProvider(connection, {} as Wallet, {
+      ...AnchorProvider.defaultOptions(),
+      commitment: connection.commitment ?? AnchorProvider.defaultOptions().commitment,
     });
+    const program = new Program(idl, provider) as any as MarginfiProgram;
+
+    const bankAddresses = Object.keys(bankMetadataCache);
+
+    const banksAis = await chunkedGetRawMultipleAccountInfoOrdered(connection, bankAddresses);
+    let banksMap: { address: PublicKey; data: BankRaw }[] = banksAis.map((account, index) => ({
+      address: new PublicKey(bankAddresses[index]),
+      data: Bank.decodeBankRaw(account.data, program.idl),
+    }));
 
     // all supported tokens, banks / emissions mints
     const allTokens = [
       ...new Set([
         ...Object.values(bankMetadataCache).map((bank) => bank.tokenAddress),
-        ...[...marginfiClient.banks.values()]
-          .map((bank) => bank.emissionsMint.toBase58())
+        ...banksMap
+          .map((bank) => bank.data.emissionsMint.toBase58())
           .filter((mint) => mint !== PublicKey.default.toBase58()),
       ]),
     ];
