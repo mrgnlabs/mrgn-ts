@@ -16,15 +16,32 @@ import { Loader } from "~/components/common/Loader";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { useExtendedPools } from "~/hooks/useExtendedPools";
 import { GroupStatus } from "~/store/tradeStoreV2";
+import { GetStaticProps } from "next";
+import { StaticArenaProps, getArenaStaticProps } from "~/utils";
 
-export default function PortfolioPage() {
-  const [initialized] = useTradeStoreV2((state) => [state.initialized]);
+export const getStaticProps: GetStaticProps<StaticArenaProps> = async (context) => {
+  return getArenaStaticProps(context);
+};
+
+export default function PortfolioPage({ initialData }: StaticArenaProps) {
+  const [initialized, fetchArenaGroups, setHydrationComplete] = useTradeStoreV2((state) => [
+    state.initialized,
+    state.fetchArenaGroups,
+    state.setHydrationComplete,
+  ]);
   const extendedPools = useExtendedPools();
   const [isActionComplete, previousTxn, setIsActionComplete] = useActionBoxStore((state) => [
     state.isActionComplete,
     state.previousTxn,
     state.setIsActionComplete,
   ]);
+
+  React.useEffect(() => {
+    if (initialData) {
+      fetchArenaGroups(initialData);
+      setHydrationComplete();
+    }
+  }, [initialData, fetchArenaGroups, setHydrationComplete]);
 
   const shortPositions = React.useMemo(
     () => extendedPools.filter((pool) => pool.status === GroupStatus.SHORT),

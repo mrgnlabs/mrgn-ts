@@ -41,6 +41,7 @@ import {
 } from "~/config/trade";
 import { TokenData } from "~/types";
 import BigNumber from "bignumber.js";
+import { fetchInitialArenaState, InitialArenaState } from "~/utils/trade-store.utils";
 
 type TradeGroupsCache = {
   [group: string]: [string, string];
@@ -77,6 +78,7 @@ export type ArenaBank = ExtendedBankInfo & {
 // };
 
 // new types
+
 export interface BankData {
   totalDeposits: number;
   totalBorrows: number;
@@ -122,19 +124,6 @@ export type ArenaPoolV2Extended = {
 
 // api calls
 
-type PoolSummaryByGroupResponse = Record<
-  string,
-  {
-    tokenBankSummary: BankSummaryApiResponse;
-    quoteBankSummary: BankSummaryApiResponse;
-  }
->;
-
-interface BankSummaryApiResponse extends BankData {
-  bankPk: string;
-  mint: string;
-}
-
 type TradeStoreV2State = {
   // keep track of store state
   initialized: boolean;
@@ -165,6 +154,7 @@ type TradeStoreV2State = {
   mintDataByMint: MintDataMap;
   pythFeedIdMap: Map<string, PublicKey>;
   oraclePrices: Record<string, OraclePrice>;
+  hydrationComplete: boolean;
 
   // user token account map
   tokenAccountMap: TokenAccountMap;
@@ -195,7 +185,7 @@ type TradeStoreV2State = {
 
   /* Actions */
   // fetch arena group summary
-  fetchArenaGroups: () => Promise<void>;
+  fetchArenaGroups: (initialArenaState?: InitialArenaState) => Promise<void>;
   fetchExtendedArenaGroups: ({
     connection,
     wallet,
@@ -234,6 +224,7 @@ type TradeStoreV2State = {
   setCurrentPage: (page: number) => void;
   setSortBy: (sortBy: TradePoolFilterStates) => void;
   resetUserData: () => void;
+  setHydrationComplete: () => void;
 };
 
 const { programId } = getConfig();
@@ -269,6 +260,7 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
   } as Wallet,
   portfolio: null,
   referralCode: null,
+  hydrationComplete: false,
 
   arenaPoolsSummary: {},
   arenaPools: {},
@@ -294,111 +286,104 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
     });
   },
 
-  fetchArenaGroups: async () => {
-    let { lutGroupsCache, tokenMetadataCache, bankMetadataCache, groupsCache } = get();
+  setHydrationComplete: () => set({ hydrationComplete: true }),
 
-    if (
-      !Object.keys(tokenMetadataCache).length ||
-      !Object.keys(bankMetadataCache).length ||
-      !Object.keys(groupsCache).length
-    ) {
+  fetchArenaGroups: async (initialArenaState?: InitialArenaState) => {
+    let { initialized } = get();
+
+    if (!initialized) {
       try {
         // Fetch all data in parallel using Promise.all
-        const [lutData, groupsData, tokenData, bankData] = await Promise.all([
-          fetch(LUT_GROUPS_MAP).then((res) => res.json()),
-          fetch(TRADE_GROUPS_MAP).then((res) => res.json()),
-          loadTokenMetadatas(TOKEN_METADATA_MAP),
-          loadBankMetadatas(BANK_METADATA_MAP),
-        ]);
+        const arenaState = initialArenaState || (await fetchInitialArenaState());
 
-        lutGroupsCache = lutData;
-        groupsCache = groupsData;
-        tokenMetadataCache = tokenData;
-        bankMetadataCache = bankData;
+        if (!arenaState) {
+          throw new Error("Failed to fetch arena state");
+        }
 
-        set({ lutGroupsCache, groupsCache, tokenMetadataCache, bankMetadataCache });
+        const tokenDetailsByMint = arenaState.tokenDetails.reduce((acc, detail, index) => {
+          acc[detail.address] = detail;
+          return acc;
+        }, {} as Record<string, TokenData>);
+
+        const groupSummaryByGroup: Record<string, ArenaPoolSummary> = Object.entries(
+          arenaState.bankSummaryByGroup
+        ).reduce((acc, [groupPk, summary]) => {
+          const { bankPk: quoteBankPk, mint: quoteMint, ...quoteBankData } = summary.quoteBankSummary;
+          const { bankPk: tokenBankPk, mint: tokenMint, ...tokenBankData } = summary.tokenBankSummary;
+          const tokenDetailsQuote = tokenDetailsByMint[quoteMint];
+          const tokenDetailsToken = tokenDetailsByMint[tokenMint];
+
+          acc[groupPk] = {
+            groupPk: new PublicKey(groupPk),
+            tokenSummary: {
+              bankPk: new PublicKey(tokenBankPk),
+              mint: new PublicKey(tokenMint),
+              tokenName: tokenDetailsToken.name,
+              tokenSymbol: tokenDetailsToken.symbol,
+              bankData: tokenBankData,
+              tokenData: tokenDetailsToken,
+              tokenLogoUri: `https://storage.googleapis.com/mrgn-public/mrgn-token-icons/${tokenMint}.png`,
+            },
+            quoteSummary: {
+              bankPk: new PublicKey(quoteBankPk),
+              mint: new PublicKey(quoteMint),
+              tokenName: tokenDetailsQuote.name,
+              tokenSymbol: tokenDetailsQuote.symbol,
+              bankData: quoteBankData,
+              tokenData: tokenDetailsQuote,
+              tokenLogoUri: `https://storage.googleapis.com/mrgn-public/mrgn-token-icons/${quoteMint}.png`,
+            },
+          };
+          return acc;
+        }, {} as Record<string, ArenaPoolSummary>);
+
+        const sortedGroups = sortSummaryPools(
+          groupSummaryByGroup,
+          tokenDetailsByMint,
+          get().sortBy,
+          arenaState.groupsCache
+        );
+
+        const totalPages = Math.ceil(Object.keys(sortedGroups).length / POOLS_PER_PAGE);
+        const currentPage = get().currentPage || 1;
+
+        const fuse = new Fuse([...Object.values(sortedGroups)], {
+          includeScore: true,
+          threshold: 0.2,
+          keys: [
+            {
+              name: "tokenSummary.tokenSymbol",
+              weight: 0.7,
+            },
+            {
+              name: "tokenSummary.tokenName",
+              weight: 0.3,
+            },
+            {
+              name: "tokenSummary.mint.toBase58()",
+              weight: 0.1,
+            },
+          ],
+        });
+
+        set({
+          lutGroupsCache: arenaState.lutGroupsCache,
+          groupsCache: arenaState.groupsCache,
+          tokenMetadataCache: arenaState.tokenMetadataCache,
+          bankMetadataCache: arenaState.bankMetadataCache,
+
+          arenaPoolsSummary: sortedGroups,
+          tokenDataByMint: tokenDetailsByMint,
+          arenaPoolsSummaryFuse: fuse,
+          initialized: true,
+          totalPages,
+          currentPage,
+        });
       } catch (error) {
         console.error("Failed to fetch cache data:", error);
         return;
       }
     }
-
-    const allBankMints = [...new Set(Object.values(bankMetadataCache).map((bank) => bank.tokenAddress))];
-    const bankSummaryByGroup: PoolSummaryByGroupResponse = await fetch("/api/pool/summary").then((res) => res.json());
-    const tokenDetails: TokenData[] = await Promise.all(
-      allBankMints.map((mint) => fetch(`/api/birdeye/token?address=${mint}`).then((res) => res.json()))
-    );
-
-    const tokenDetailsByMint = tokenDetails.reduce((acc, detail, index) => {
-      acc[allBankMints[index]] = detail;
-      return acc;
-    }, {} as Record<string, TokenData>);
-
-    const groupSummaryByGroup: Record<string, ArenaPoolSummary> = Object.entries(bankSummaryByGroup).reduce(
-      (acc, [groupPk, summary]) => {
-        const { bankPk: quoteBankPk, mint: quoteMint, ...quoteBankData } = summary.quoteBankSummary;
-        const { bankPk: tokenBankPk, mint: tokenMint, ...tokenBankData } = summary.tokenBankSummary;
-        const tokenDetailsQuote = tokenDetailsByMint[quoteMint];
-        const tokenDetailsToken = tokenDetailsByMint[tokenMint];
-
-        acc[groupPk] = {
-          groupPk: new PublicKey(groupPk),
-          tokenSummary: {
-            bankPk: new PublicKey(tokenBankPk),
-            mint: new PublicKey(tokenMint),
-            tokenName: tokenDetailsToken.name,
-            tokenSymbol: tokenDetailsToken.symbol,
-            bankData: tokenBankData,
-            tokenData: tokenDetailsToken,
-            tokenLogoUri: `https://storage.googleapis.com/mrgn-public/mrgn-token-icons/${tokenMint}.png`,
-          },
-          quoteSummary: {
-            bankPk: new PublicKey(quoteBankPk),
-            mint: new PublicKey(quoteMint),
-            tokenName: tokenDetailsQuote.name,
-            tokenSymbol: tokenDetailsQuote.symbol,
-            bankData: quoteBankData,
-            tokenData: tokenDetailsQuote,
-            tokenLogoUri: `https://storage.googleapis.com/mrgn-public/mrgn-token-icons/${quoteMint}.png`,
-          },
-        };
-        return acc;
-      },
-      {} as Record<string, ArenaPoolSummary>
-    );
-
-    const sortedGroups = sortSummaryPools(groupSummaryByGroup, tokenDetailsByMint, get().sortBy, groupsCache);
-
-    const totalPages = Math.ceil(Object.keys(sortedGroups).length / POOLS_PER_PAGE);
-    const currentPage = get().currentPage || 1;
-
-    const fuse = new Fuse([...Object.values(sortedGroups)], {
-      includeScore: true,
-      threshold: 0.2,
-      keys: [
-        {
-          name: "tokenSummary.tokenSymbol",
-          weight: 0.7,
-        },
-        {
-          name: "tokenSummary.tokenName",
-          weight: 0.3,
-        },
-        {
-          name: "tokenSummary.mint.toBase58()",
-          weight: 0.1,
-        },
-      ],
-    });
-
-    set({
-      arenaPoolsSummary: sortedGroups,
-      tokenDataByMint: tokenDetailsByMint,
-      arenaPoolsSummaryFuse: fuse,
-      initialized: true,
-      totalPages,
-      currentPage,
-    });
   },
 
   fetchExtendedArenaGroups: async (args) => {

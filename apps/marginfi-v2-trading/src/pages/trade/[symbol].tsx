@@ -14,12 +14,23 @@ import { PositionList } from "~/components/common/Portfolio";
 import { PoolTradeHeader } from "~/components/common/Pool/PoolTradeHeader";
 import { Loader } from "~/components/common/Loader";
 import { ArenaPoolV2 } from "~/store/tradeStoreV2";
+import { GetStaticProps } from "next";
+import { StaticArenaProps, getArenaStaticProps } from "~/utils";
 
-export default function TradeSymbolPage() {
+export const getStaticProps: GetStaticProps<StaticArenaProps> = async (context) => {
+  return getArenaStaticProps(context);
+};
+
+export default function TradeSymbolPage({ initialData }: StaticArenaProps) {
   const isMobile = useIsMobile();
   const router = useRouter();
   const side = router.query.side as "long" | "short";
-  const [initialized, arenaPools] = useTradeStoreV2((state) => [state.initialized, state.arenaPools]);
+  const [initialized, arenaPools, fetchArenaGroups, setHydrationComplete] = useTradeStoreV2((state) => [
+    state.initialized,
+    state.arenaPools,
+    state.fetchArenaGroups,
+    state.setHydrationComplete,
+  ]);
   const [isActionComplete, previousTxn, setIsActionComplete] = useActionBoxStore((state) => [
     state.isActionComplete,
     state.previousTxn,
@@ -27,6 +38,13 @@ export default function TradeSymbolPage() {
   ]);
   const [previousTxnUi] = useUiStore((state) => [state.previousTxn]);
   const [activePool, setActivePool] = React.useState<ArenaPoolV2 | null>(null);
+
+  React.useEffect(() => {
+    if (initialData) {
+      fetchArenaGroups(initialData);
+      setHydrationComplete();
+    }
+  }, [initialData, fetchArenaGroups, setHydrationComplete]);
 
   React.useEffect(() => {
     if (!router.isReady || !initialized) return;
