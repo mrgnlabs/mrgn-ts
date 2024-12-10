@@ -21,6 +21,8 @@ import { YieldRow } from "~/components/common/Yield";
 import { YieldCard } from "~/components/common/Yield/YieldCard";
 import { ArenaPoolV2Extended } from "~/store/tradeStoreV2";
 import { useExtendedPools } from "~/hooks/useExtendedPools";
+import { GetStaticProps } from "next";
+import { StaticArenaProps, getArenaStaticProps } from "~/utils";
 
 const sortOptions: {
   value: TradePoolFilterStates;
@@ -33,12 +35,25 @@ const sortOptions: {
   { value: TradePoolFilterStates.LIQUIDITY_ASC, label: "Liquidity Asc", dir: "asc" },
 ];
 
-export default function YieldPage() {
-  const [initialized, sortBy, setSortBy] = useTradeStoreV2((state) => [
+export const getStaticProps: GetStaticProps<StaticArenaProps> = async (context) => {
+  return getArenaStaticProps(context);
+};
+
+export default function YieldPage({ initialData }: StaticArenaProps) {
+  const [initialized, sortBy, setSortBy, fetchArenaGroups, setHydrationComplete] = useTradeStoreV2((state) => [
     state.initialized,
     state.sortBy,
     state.setSortBy,
+    state.fetchArenaGroups,
+    state.setHydrationComplete,
   ]);
+
+  React.useEffect(() => {
+    if (initialData) {
+      fetchArenaGroups(initialData);
+      setHydrationComplete();
+    }
+  }, [initialData, fetchArenaGroups, setHydrationComplete]);
 
   const extendedPools = useExtendedPools();
 

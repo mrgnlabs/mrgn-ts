@@ -1,6 +1,7 @@
 import React from "react";
 
 import { useRouter } from "next/router";
+import { GetStaticProps } from "next";
 
 import { IconSortAscending, IconSortDescending, IconSparkles, IconGridDots, IconList } from "@tabler/icons-react";
 import { motion } from "framer-motion";
@@ -19,6 +20,12 @@ import { Button } from "~/components/ui/button";
 import { Loader } from "~/components/common/Loader";
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
+import {
+  fetchInitialArenaState,
+  getArenaStaticProps,
+  InitialArenaState,
+  StaticArenaProps,
+} from "~/utils/trade-store.utils";
 
 const sortOptions: {
   value: TradePoolFilterStates;
@@ -37,21 +44,37 @@ enum View {
   LIST = "list",
 }
 
-export default function HomePage() {
+export const getStaticProps: GetStaticProps<StaticArenaProps> = async (context) => {
+  return getArenaStaticProps(context);
+};
+
+export default function HomePage({ initialData }: StaticArenaProps) {
   const router = useRouter();
   const isMobile = useIsMobile();
 
-  const [initialized, arenaPoolsSummary, sortBy, setSortBy] = useTradeStoreV2((state) => [
-    state.initialized,
-    state.arenaPoolsSummary,
-    state.sortBy,
-    state.setSortBy,
-  ]);
+  const [initialized, arenaPoolsSummary, sortBy, setSortBy, fetchArenaGroups, setHydrationComplete] = useTradeStoreV2(
+    (state) => [
+      state.initialized,
+      state.arenaPoolsSummary,
+      state.sortBy,
+      state.setSortBy,
+      state.fetchArenaGroups,
+      state.setHydrationComplete,
+    ]
+  );
+
   const [isActionComplete, previousTxn, setIsActionComplete] = useActionBoxStore((state) => [
     state.isActionComplete,
     state.previousTxn,
     state.setIsActionComplete,
   ]);
+
+  React.useEffect(() => {
+    if (initialData) {
+      fetchArenaGroups(initialData);
+      setHydrationComplete();
+    }
+  }, [initialData, fetchArenaGroups, setHydrationComplete]);
 
   const [view, setView] = React.useState<View>(View.GRID);
 
