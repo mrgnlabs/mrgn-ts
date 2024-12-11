@@ -8,7 +8,7 @@ import { IconInfoCircle } from "@tabler/icons-react";
 import { numeralFormatter, SolanaTransaction } from "@mrgnlabs/mrgn-common";
 import { usdFormatter, usdFormatterDyn } from "@mrgnlabs/mrgn-common";
 import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { LendingModes, usePrevious } from "@mrgnlabs/mrgn-utils";
+import { cn, LendingModes, usePrevious } from "@mrgnlabs/mrgn-utils";
 
 import { useMrgnlendStore, useUiStore, useUserProfileStore } from "~/store";
 
@@ -26,7 +26,7 @@ import { IconLoader } from "~/components/ui/icons";
 
 const initialRewardsState: RewardsType = {
   state: "NOT_FETCHED",
-  tooltipContent: "",
+  tooltipContent: "Fetching rewards...",
   rewards: [],
   totalRewardAmount: 0,
 };
@@ -103,7 +103,9 @@ export const LendingPortfolio = () => {
     await executeCollectTxn(marginfiClient, actionTxn, { ...priorityFees, broadcastType }, setRewardsLoading, () => {
       setRewardsDialogOpen(false);
     });
-  }, [marginfiClient, actionTxn, priorityFees, broadcastType]);
+    setRewardsState(initialRewardsState);
+    handleSimulation();
+  }, [marginfiClient, actionTxn, priorityFees, broadcastType, handleSimulation]);
 
   const lendingBanks = React.useMemo(
     () =>
@@ -258,9 +260,14 @@ export const LendingPortfolio = () => {
                   {rewardsState.state === "NO_REWARDS" && (
                     <span className="cursor-default text-muted-foreground">No outstanding rewards</span>
                   )}
-                  {rewardsState.state === "REWARDS_FETCHED" && rewardsState.totalRewardAmount > 0 && (
+                  {rewardsState.state === "REWARDS_FETCHED" && (
                     <button
-                      className="cursor-pointer hover:text-[#AAA] underline"
+                      className={cn(
+                        rewardsState.totalRewardAmount === 0
+                          ? "cursor-default text-muted-foreground"
+                          : "cursor-pointer underline hover:text-muted-foreground"
+                      )}
+                      disabled={rewardsState.totalRewardAmount === 0}
                       onClick={() => {
                         setRewardsDialogOpen(true);
                       }}
