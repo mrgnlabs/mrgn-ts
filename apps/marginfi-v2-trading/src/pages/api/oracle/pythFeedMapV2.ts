@@ -12,16 +12,22 @@ import { Connection, PublicKey } from "@solana/web3.js";
 import { NextApiRequest, NextApiResponse } from "next";
 import config from "~/config/marginfi";
 import { BANK_METADATA_MAP } from "~/config/trade";
+import { PoolApiResponse } from "~/types/api.types";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
-    const bankMetadataResponse = await loadBankMetadatas(BANK_METADATA_MAP);
+    let host = extractHost(req.headers.origin) || extractHost(req.headers.referer);
 
-    const requestedBanks = Object.keys(bankMetadataResponse);
-
-    if (!requestedBanks) {
-      return res.status(400).json({ error: "Invalid input: expected an array of bank base58-encoded addresses." });
+    if (!host) {
+      return res.status(400).json({ error: "Invalid input: expected a valid host." });
     }
+
+    const poolList: PoolApiResponse[] = await fetch(`${host}/api/pool/list`).then((response) => response.json());
+
+    const requestedTokenBanks = poolList.map((pool) => pool.base_bank.address);
+    const requestedQuoteBanks = poolList.map((pool) => pool.quote_banks[0].address);
+
+    const requestedBanks = [...requestedTokenBanks, ...requestedQuoteBanks];
 
     const connection = new Connection(process.env.PRIVATE_RPC_ENDPOINT_OVERRIDE || "");
     const idl = { ...MARGINFI_IDL, address: config.mfiConfig.programId.toBase58() } as unknown as MarginfiIdlType;
@@ -56,4 +62,12 @@ function stringifyFeedIdMap(feedIdMap: Map<string, PublicKey>) {
     feedIdMap2[key] = value.toBase58();
   });
   return feedIdMap2;
+}
+
+function extractHost(referer: string | undefined): string | undefined {
+  if (!referer) {
+    return undefined;
+  }
+  const url = new URL(referer);
+  return url.origin;
 }

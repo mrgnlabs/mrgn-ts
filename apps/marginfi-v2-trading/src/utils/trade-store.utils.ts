@@ -4,6 +4,7 @@ import { GetStaticProps } from "next";
 import { LUT_GROUPS_MAP, TRADE_GROUPS_MAP, TOKEN_METADATA_MAP, BANK_METADATA_MAP } from "~/config/trade";
 import { BankData } from "~/store/tradeStoreV2";
 import { TokenData } from "~/types";
+import { PoolApiResponse } from "~/types/api.types";
 
 type TradeGroupsCache = {
   [group: string]: [string, string];
@@ -23,14 +24,8 @@ interface BankSummaryApiResponse extends BankData {
 }
 
 export type InitialArenaState = {
-  lutGroupsCache: {
-    [groupPk: string]: PublicKey;
-  };
-  groupsCache: TradeGroupsCache;
-  tokenMetadataCache: TokenMetadataMap;
-  bankMetadataCache: BankMetadataMap;
   tokenDetails: TokenData[];
-  bankSummaryByGroup: PoolSummaryByGroupResponse;
+  poolData: PoolApiResponse[];
 };
 
 export interface StaticArenaProps {
@@ -39,12 +34,8 @@ export interface StaticArenaProps {
 
 export const getArenaStaticProps: GetStaticProps<StaticArenaProps> = async () => {
   const emptyState: InitialArenaState = {
-    lutGroupsCache: {},
-    groupsCache: {},
-    tokenMetadataCache: {},
-    bankMetadataCache: {},
+    poolData: [],
     tokenDetails: [],
-    bankSummaryByGroup: {},
   };
 
   try {
@@ -77,22 +68,15 @@ export const fetchInitialArenaState = async (host?: string): Promise<InitialAren
 
   try {
     // Fetch all data in parallel using Promise.all
-    const [lutData, groupsData, tokenData, bankData, tokenDetailsData, bankSummaryByGroup] = await Promise.all([
-      fetch(LUT_GROUPS_MAP).then((res) => res.json()),
-      fetch(TRADE_GROUPS_MAP).then((res) => res.json()),
-      loadTokenMetadatas(TOKEN_METADATA_MAP),
-      loadBankMetadatas(BANK_METADATA_MAP),
+    const [poolData, tokenDetailsData] = await Promise.all([
+      fetch(`${baseUrl}/api/pool/list`).then((res) => res.json() as Promise<PoolApiResponse[]>),
       fetch(`${baseUrl}/api/birdeye/arenaTokens`).then((res) => res.json()),
-      fetch(`${baseUrl}/api/pool/summary`).then((res) => res.json()),
+      // fetch(`${baseUrl}/api/pool/summary`).then((res) => res.json()),
     ]);
 
     arenaState = {
-      lutGroupsCache: lutData,
-      groupsCache: groupsData,
-      tokenMetadataCache: tokenData,
-      bankMetadataCache: bankData,
+      poolData,
       tokenDetails: tokenDetailsData,
-      bankSummaryByGroup: bankSummaryByGroup,
     };
 
     return arenaState;
