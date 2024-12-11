@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import * as React from "react";
+import { TokenCombobox } from "~/components/common/TokenCombobox";
 import { ArenaPoolV2Extended } from "~/store/tradeStoreV2";
 
 interface HeaderProps {
@@ -10,21 +11,29 @@ interface HeaderProps {
 }
 
 export const Header = ({ activePool }: HeaderProps) => {
-  // TODO: change styling of this, this isnt the best
+  const router = useRouter();
 
   return (
-    <div className="flex items-center justify-between bg-accent px-2 py-2 rounded-xl">
-      <Link className="flex items-center gap-1 text-2xl gap-2" href={`/trade/${activePool.groupPk.toBase58()}`}>
-        <Image
-          src={activePool.tokenBank.meta.tokenLogoUri}
-          alt={activePool.tokenBank.meta.tokenSymbol}
-          width={32}
-          height={32}
-          className="bg-background border rounded-full mb-2 lg:mb-0"
-        />
-        {activePool.tokenBank.meta.tokenSymbol}
-        <IconChevronDown size={16} />
-      </Link>
+    <div className="flex items-center justify-between p-2 border-b-2 border-border mb-2">
+      <TokenCombobox
+        selected={activePool}
+        setSelected={(pool) => {
+          router.push(`/trade/${pool.groupPk.toBase58()}`);
+        }}
+      >
+        <div className="flex items-center justify-center font-medium text-lg hover:bg-accent translate-x-1.5 transition-colors cursor-pointer rounded-md px-2 py-1 gap-2">
+          <Image
+            src={activePool.tokenBank.meta.tokenLogoUri}
+            alt={activePool.tokenBank.meta.tokenSymbol}
+            width={32}
+            height={32}
+            className="bg-background border rounded-full lg:mb-0"
+          />
+          <h1 className="flex items-center gap-1 ">
+            {activePool.tokenBank.meta.tokenName} <IconChevronDown size={18} />
+          </h1>
+        </div>
+      </TokenCombobox>
       <div className="flex items-center gap-2">
         <div className="flex flex-col items-end ">
           <span className="text-xs text-muted-foreground">Entry price</span>
