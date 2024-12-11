@@ -1,21 +1,39 @@
 import React from "react";
 import { ArenaPoolV2Extended } from "~/store/tradeStoreV2";
+import { generateTradeStats } from "./utils/stats-utils";
+import { cn, LoopActionTxns } from "@mrgnlabs/mrgn-utils";
+import { SimulationResult } from "@mrgnlabs/marginfi-client-v2";
+import { AccountSummary } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActionStatItem } from "~/components/action-box-v2/components/action-stats/action-stat-item";
 
 interface StatsProps {
   activePool: ArenaPoolV2Extended;
+  accountSummary: AccountSummary | null;
+  simulationResult: SimulationResult | null;
+  actionTxns: LoopActionTxns | null;
 }
-export const Stats = ({ activePool }: StatsProps) => {
-  React.useEffect(() => {
-    if (activePool) {
-      // generateStats(
-      //   activeGroup.accountSummary,
-      //   activeGroup.pool.token,
-      //   activeGroup.pool.quoteTokens[0],
-      //   null,
-      //   null,
-      //   false
-      // );
-    }
-  }, [activePool]);
-  return <div>Stats</div>;
+export const Stats = ({ activePool, accountSummary, simulationResult, actionTxns }: StatsProps) => {
+  const stats = React.useMemo(
+    () =>
+      generateTradeStats({
+        accountSummary: accountSummary,
+        extendedPool: activePool,
+        simulationResult: simulationResult,
+        actionTxns: actionTxns,
+      }),
+    [activePool, accountSummary, simulationResult, actionTxns]
+  );
+  return (
+    <>
+      {stats && (
+        <dl className={cn("grid grid-cols-2 gap-y-2 pt-6 text-xs")}>
+          {stats.map((stat, idx) => (
+            <ActionStatItem key={idx} label={stat.label}>
+              <stat.value />
+            </ActionStatItem>
+          ))}
+        </dl>
+      )}
+    </>
+  );
 };
