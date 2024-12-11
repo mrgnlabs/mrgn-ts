@@ -14,8 +14,15 @@ import { PositionList } from "~/components/common/Portfolio";
 import { PoolTradeHeader } from "~/components/common/Pool/PoolTradeHeader";
 import { Loader } from "~/components/common/Loader";
 import { ArenaPoolV2 } from "~/store/tradeStoreV2";
-import { GetStaticProps } from "next";
+import { GetStaticPaths, GetStaticProps } from "next";
 import { StaticArenaProps, getArenaStaticProps } from "~/utils";
+
+export const getStaticPaths: GetStaticPaths = async () => {
+  return {
+    paths: [], // no pre-rendered paths
+    fallback: "blocking", // generate pages on-demand
+  };
+};
 
 export const getStaticProps: GetStaticProps<StaticArenaProps> = async (context) => {
   return getArenaStaticProps(context);
