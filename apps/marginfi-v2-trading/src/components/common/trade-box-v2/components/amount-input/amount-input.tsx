@@ -3,11 +3,12 @@ import React from "react";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { Input } from "~/components/ui/input";
 import { MaxAction } from "./components";
+import { ArenaBank } from "~/store/tradeStoreV2";
 
 interface AmountInputProps {
   maxAmount: number;
   amount: string;
-  collateralBank?: ExtendedBankInfo;
+  collateralBank: ArenaBank | null;
 
   handleAmountChange: (value: string) => void;
 }
@@ -24,9 +25,8 @@ export const AmountInput = ({
   return (
     <div className="bg-background  p-2.5 border border-accent rounded-lg">
       <div className="flex justify-center gap-1 items-center font-medium ">
-        <span className="w-full flex-auto max-w-[162px] text-muted-foreground text-xl">
+        <span className="w-full flex-auto max-w-[162px] text-muted-foreground text-lg">
           {collateralBank?.meta.tokenSymbol.toUpperCase()}
-          {/* TODO: replace this with pool select */}
         </span>
         <div>
           <Input
