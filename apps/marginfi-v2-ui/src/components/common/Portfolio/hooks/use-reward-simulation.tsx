@@ -45,7 +45,6 @@ export const useRewardSimulation = ({
   const handleSimulation = React.useCallback(async () => {
     try {
       if (!marginfiClient || !selectedAccount) {
-        console.log("hit1");
         throw new Error("No marginfi client or selected account");
       }
 
@@ -82,7 +81,6 @@ export const useRewardSimulation = ({
       try {
         previewAtas = await marginfiClient.simulateTransactions([txns], atas);
       } catch (error) {
-        console.log("hit2");
         setSimulationResult(NO_REWARDS_USER);
         return;
       }
