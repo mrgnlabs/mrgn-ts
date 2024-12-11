@@ -221,7 +221,10 @@ export async function executeLeverageAction({
   if (!marginfiAccount) {
     try {
       const squadsOptions = await getMaybeSquadsOptions(walletContextState);
-      marginfiAccount = await marginfiClient.createMarginfiAccount(squadsOptions);
+      marginfiAccount = await marginfiClient.createMarginfiAccount(squadsOptions, {
+        ...priorityFees,
+        broadcastType,
+      });
 
       clearAccountCache(marginfiClient.provider.publicKey);
 

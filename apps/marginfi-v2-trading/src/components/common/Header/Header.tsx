@@ -160,7 +160,7 @@ export const Header = () => {
               </PopoverTrigger>
               <PopoverContent className="w-80">
                 <Settings
-                  onChange={setTransactionSettings}
+                  onChange={(settings) => setTransactionSettings(settings, connection)}
                   broadcastType={broadcastType}
                   priorityType={priorityType}
                   maxCap={maxCap}
