@@ -12,7 +12,10 @@ export const ActionToggle = ({ tradeState, setTradeState }: ActionToggleProps) =
       type="single"
       className="w-full gap-4"
       value={tradeState}
-      onValueChange={(value) => value && setTradeState(value as TradeSide)}
+      onValueChange={(value) => {
+        console.log("value", value);
+        value && setTradeState(value as TradeSide);
+      }}
     >
       <ToggleGroupItem className="w-full border" value="long" aria-label="Toggle long">
         Long
