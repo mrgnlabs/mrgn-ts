@@ -2,7 +2,7 @@
 
 import React from "react";
 import { computeMaxLeverage } from "@mrgnlabs/marginfi-client-v2";
-import { ActionMessageType, cn, formatAmount, LoopActionTxns, useConnection } from "@mrgnlabs/mrgn-utils";
+import { ActionMessageType, cn, formatAmount, LoopActionTxns, useConnection, usePrevious } from "@mrgnlabs/mrgn-utils";
 
 // import { GroupData } from "~/store/tradeStore";
 import { ArenaPoolV2 } from "~/store/tradeStoreV2";
@@ -50,7 +50,23 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
   const [tradeActionTxns, setTradeActionTxns] = React.useState<LoopActionTxns | null>(null);
   const [additionalChecks, setAdditionalChecks] = React.useState<ActionMessageType>();
 
+  const prevTradeState = usePrevious(tradeState);
+
+  React.useEffect(() => {
+    if (tradeState !== prevTradeState) {
+      clearStates();
+    }
+  }, [tradeState, prevTradeState]);
+
   const numberFormater = React.useMemo(() => new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 }), []); // The fuck is this lol?
+
+  const leveragedAmount = React.useMemo(() => {
+    if (tradeState === "long") {
+      return tradeActionTxns?.actualDepositAmount;
+    } else {
+      return tradeActionTxns?.borrowAmount.toNumber();
+    }
+  }, [tradeState, tradeActionTxns]);
 
   const collateralBank = React.useMemo(() => {
     if (activePoolExtended) {
@@ -82,7 +98,7 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
       return collateralBank.userInfo.maxDeposit;
     }
     return 0;
-  }, [collateralBank]); // Remove this and just use the collateralBank.userInfo.maxDeposit
+  }, [collateralBank]); // Remove this and just use the collateralBank.userInfo.maxDeposit?
 
   const actionMethods = React.useMemo(
     () =>
@@ -104,12 +120,19 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
     [maxAmount, collateralBank, numberFormater]
   );
 
+  const clearStates = () => {
+    setAmount("");
+    setTradeActionTxns(null);
+    setLeverage(1);
+    setAdditionalChecks(undefined);
+  };
+
   return (
     <Card className="shadow-none border-border w-full">
-      <CardHeader className="p-1">
+      <CardHeader className="p-0">
         <Header activePool={activePoolExtended} />
       </CardHeader>
-      <CardContent className="">
+      <CardContent>
         <div className="space-y-4">
           <ActionToggle tradeState={tradeState} setTradeState={setTradeState} />
           <AmountInput
@@ -120,21 +143,27 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
           />
           <LeverageSlider leverage={leverage} maxLeverage={maxLeverage} setLeverage={setLeverage} />
           <div className="flex items-center justify-between text-muted-foreground text-base">
-            <span>{tradeState === "long" ? "Long" : "Short"} amount</span>
-            <span>100 {collateralBank?.meta.tokenSymbol}</span>
+            <span>Size of {tradeState}</span>
+            <span>
+              {`${
+                leveragedAmount ? leveragedAmount.toFixed(activePoolExtended.tokenBank.info.state.mintDecimals) : 0
+              } ${collateralBank?.meta.tokenSymbol}`}
+            </span>
           </div>
-          <InfoMessages
-            connected={connected}
-            tradeState={tradeState}
-            activePool={activePoolExtended}
-            isActiveWithCollat={isActiveWithCollat}
-            actionMethods={actionMethods}
-            additionalChecks={additionalChecks}
-            setIsWalletOpen={setIsWalletOpen}
-            fetchTradeState={fetchTradeState}
-            connection={connection}
-            wallet={wallet}
-          />
+          {actionMethods && actionMethods.some((method) => method.description) && (
+            <InfoMessages
+              connected={connected}
+              tradeState={tradeState}
+              activePool={activePoolExtended}
+              isActiveWithCollat={isActiveWithCollat}
+              actionMethods={actionMethods}
+              additionalChecks={additionalChecks}
+              setIsWalletOpen={setIsWalletOpen}
+              fetchTradeState={fetchTradeState}
+              connection={connection}
+              wallet={wallet}
+            />
+          )}
           <Button className={cn("w-full", tradeState === "long" && "bg-success", tradeState === "short" && "bg-error")}>
             {tradeState === "long" ? "Long" : "Short"}
           </Button>
@@ -142,7 +171,7 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
             setSlippageBps={(value) => setSlippageBps(value * 100)}
             slippageBps={slippageBps / 100}
           >
-            <div className="flex justify-end gap-2 mt-2 ml-auto">
+            <div className="flex justify-end">
               <button className="text-xs gap-1 h-6 px-2 flex items-center rounded-full border bg-transparent hover:bg-accent text-muted-foreground">
                 Settings <IconSettings size={16} />
               </button>
