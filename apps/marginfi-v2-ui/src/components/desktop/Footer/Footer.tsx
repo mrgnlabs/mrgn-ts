@@ -20,7 +20,7 @@ const footerLinks = [
     icon: <IconBrandX />,
   },
   {
-    href: "https://discord.gg/mrgn",
+    href: "https://discord.gg/pJ3U7gHJFe",
     icon: <IconBrandDiscordFilled />,
   },
   {
