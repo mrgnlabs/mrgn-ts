@@ -165,7 +165,7 @@ const projects = shuffle([
 ]);
 
 const headerLinks = [
-  { href: "https://discord.gg/mrgn", icon: <IconBrandDiscordFilled size={20} /> },
+  { href: "https://discord.gg/pJ3U7gHJFe", icon: <IconBrandDiscordFilled size={20} /> },
   { href: "https://twitter.com/marginfi", icon: <IconBrandX size={20} /> },
   { href: "https://github.com/mrgnlabs", icon: <IconBrandGithubFilled size={20} /> },
   {

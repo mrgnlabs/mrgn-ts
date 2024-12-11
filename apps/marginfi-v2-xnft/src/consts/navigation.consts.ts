@@ -22,7 +22,7 @@ export interface QuickLink {
 // TODO
 // export const EXTERNAL_QUICK_LINKS: QuickLink[] = [
 //   {
-//     href: "https://discord.gg/mrgn",
+//     href: "https://discord.gg/pJ3U7gHJFe",
 //     Icon: Discord,
 //   },
 //   {

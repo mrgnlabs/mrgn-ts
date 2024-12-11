@@ -20,7 +20,7 @@ const CONTENT = {
           </Link>{" "}
           on GitHub. . We are currently working on overhauling our documentation so expect this to be improved soon. Any
           further questions please{" "}
-          <Link href="https://discord.gg/mrgn" className="mrgn-link" target="_blank" rel="noreferrer">
+          <Link href="https://discord.gg/pJ3U7gHJFe" className="mrgn-link" target="_blank" rel="noreferrer">
             join our Discord server
           </Link>
           .
@@ -92,7 +92,7 @@ export const FAQ = () => {
         <h2 className="text-4xl font-medium lg:text-5xl">{CONTENT.heading}</h2>
         <p className="text-muted-foreground">
           Below are some some common questions, please{" "}
-          <Link href="https://discord.gg/mrgn" target="_blank" rel="noreferrer">
+          <Link href="https://discord.gg/pJ3U7gHJFe" target="_blank" rel="noreferrer">
             join our Discord
           </Link>{" "}
           for more information.

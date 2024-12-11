@@ -86,7 +86,7 @@ const CONTENT = {
       },
       // {
       //   icon: <IconBrandDiscordFilled />,
-      //   href: "https://discord.gg/mrgn",
+      //   href: "https://discord.gg/pJ3U7gHJFe",
       //   label: "Discord",
       // },
       {
