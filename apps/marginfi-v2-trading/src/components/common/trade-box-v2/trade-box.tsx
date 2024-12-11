@@ -104,23 +104,6 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
     [maxAmount, collateralBank, numberFormater]
   );
 
-  const [Stats, setStats] = React.useState<React.JSX.Element>(<></>);
-
-  // React.useEffect(() => {
-  //   if (activePool) {
-  //     setStats(
-  //       generateStats(
-  //         activePool.accountSummary,
-  //         activePool.pool.token,
-  //         activePool.pool.quoteTokens[0],
-  //         null,
-  //         null,
-  //         false
-  //       )
-  //     );
-  //   }
-  // }, [activePool]);
-
   return (
     <Card className="shadow-none border-border w-full">
       <CardHeader className="p-1">
@@ -145,8 +128,7 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
             tradeState={tradeState}
             activePool={activePoolExtended}
             isActiveWithCollat={isActiveWithCollat}
-            // actionMethods={actionMethods}
-            actionMethods={[]}
+            actionMethods={actionMethods}
             additionalChecks={additionalChecks}
             setIsWalletOpen={setIsWalletOpen}
             fetchTradeState={fetchTradeState}
@@ -167,7 +149,12 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
             </div>
           </TradingBoxSettingsDialog>
         </div>
-        {/* <Stats /> */}
+        <Stats
+          activePool={activePoolExtended}
+          accountSummary={accountSummary}
+          simulationResult={null}
+          actionTxns={tradeActionTxns}
+        />
       </CardContent>
     </Card>
   );
