@@ -91,6 +91,7 @@ export type BankSummary = {
   tokenName: string;
   tokenSymbol: string;
   tokenLogoUri: string;
+  tokenProgram: PublicKey;
 
   bankData: BankData;
   tokenData: TokenData;
@@ -98,6 +99,7 @@ export type BankSummary = {
 
 export type ArenaPoolSummary = {
   groupPk: PublicKey;
+  luts?: PublicKey[];
   quoteSummary: BankSummary;
   tokenSummary: BankSummary;
 };
@@ -305,44 +307,47 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
           return acc;
         }, {} as Record<string, TokenData>);
 
-        const groupSummaryByGroup: Record<string, ArenaPoolSummary> = Object.entries(
-          arenaState.bankSummaryByGroup
-        ).reduce((acc, [groupPk, summary]) => {
-          const { bankPk: quoteBankPk, mint: quoteMint, ...quoteBankData } = summary.quoteBankSummary;
-          const { bankPk: tokenBankPk, mint: tokenMint, ...tokenBankData } = summary.tokenBankSummary;
-          const tokenDetailsQuote = tokenDetailsByMint[quoteMint];
-          const tokenDetailsToken = tokenDetailsByMint[tokenMint];
+        const groupSummaryByGroup: Record<string, ArenaPoolSummary> = arenaState.poolData.reduce((acc, pool) => {
+          const { address: quoteBankPk, mint: quoteMint, details: quoteBankData } = pool.quote_banks[0];
+          const { address: tokenBankPk, mint: tokenMint, details: tokenBankDetails } = pool.base_bank;
+          const tokenDetailsQuote = tokenDetailsByMint[quoteMint.address];
+          const tokenDetailsToken = tokenDetailsByMint[tokenMint.address];
 
-          acc[groupPk] = {
-            groupPk: new PublicKey(groupPk),
+          acc[pool.group] = {
+            groupPk: new PublicKey(pool.group),
             tokenSummary: {
               bankPk: new PublicKey(tokenBankPk),
-              mint: new PublicKey(tokenMint),
+              mint: new PublicKey(tokenMint.address),
               tokenName: tokenDetailsToken.name,
               tokenSymbol: tokenDetailsToken.symbol,
-              bankData: tokenBankData,
+              bankData: {
+                totalDeposits: tokenBankDetails.total_deposits,
+                totalBorrows: tokenBankDetails.total_borrows,
+                availableLiquidity: 0,
+              } as BankData,
               tokenData: tokenDetailsToken,
               tokenLogoUri: `https://storage.googleapis.com/mrgn-public/mrgn-token-icons/${tokenMint}.png`,
+              tokenProgram: new PublicKey(tokenMint.token_program),
             },
             quoteSummary: {
               bankPk: new PublicKey(quoteBankPk),
-              mint: new PublicKey(quoteMint),
+              mint: new PublicKey(quoteMint.address),
               tokenName: tokenDetailsQuote.name,
               tokenSymbol: tokenDetailsQuote.symbol,
-              bankData: quoteBankData,
+              bankData: {
+                totalDeposits: quoteBankData.total_deposits,
+                totalBorrows: quoteBankData.total_borrows,
+                availableLiquidity: 0,
+              } as BankData,
               tokenData: tokenDetailsQuote,
               tokenLogoUri: `https://storage.googleapis.com/mrgn-public/mrgn-token-icons/${quoteMint}.png`,
+              tokenProgram: new PublicKey(quoteMint.token_program),
             },
           };
           return acc;
         }, {} as Record<string, ArenaPoolSummary>);
 
-        const sortedGroups = sortSummaryPools(
-          groupSummaryByGroup,
-          tokenDetailsByMint,
-          get().sortBy,
-          arenaState.groupsCache
-        );
+        const sortedGroups = sortSummaryPools(groupSummaryByGroup, tokenDetailsByMint, get().sortBy);
 
         const totalPages = Math.ceil(Object.keys(sortedGroups).length / POOLS_PER_PAGE);
         const currentPage = get().currentPage || 1;
@@ -367,11 +372,6 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
         });
 
         set({
-          lutGroupsCache: arenaState.lutGroupsCache,
-          groupsCache: arenaState.groupsCache,
-          tokenMetadataCache: arenaState.tokenMetadataCache,
-          bankMetadataCache: arenaState.bankMetadataCache,
-
           arenaPoolsSummary: sortedGroups,
           tokenDataByMint: tokenDetailsByMint,
           arenaPoolsSummaryFuse: fuse,
@@ -389,18 +389,10 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
   fetchExtendedArenaGroups: async (args) => {
     const connection = args.connection || get().connection;
     const wallet = args.wallet || get().wallet;
-    const {
-      lutGroupsCache,
-      lutByGroupPk,
-      tokenDataByMint,
-      tokenMetadataCache,
-      bankMetadataCache,
-      groupsCache,
-      arenaPoolsSummary,
-    } = get();
+    const { arenaPoolsSummary, tokenDataByMint, lutByGroupPk } = get();
 
     if (!connection) throw new Error("Connection not found");
-    if (!Object.keys(arenaPoolsSummary).length || !Object.keys(tokenDataByMint).length) {
+    if (!Object.keys(arenaPoolsSummary).length) {
       throw new Error("Not ready");
     }
 
@@ -412,7 +404,7 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
     const program = new Program(idl, provider) as any as MarginfiProgram;
 
     const bankAddresses: PublicKey[] = [];
-    let bankDatasKeyed: { address: PublicKey; data: BankRaw }[] = [];
+    // let bankDatasKeyed: { address: PublicKey; data: BankRaw, meta: BankMetadata }[] = [];
 
     const groupAddresses: PublicKey[] = [];
 
@@ -422,31 +414,51 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
     }
 
     let bankAccountsData = await program.account.bank.fetchMultiple(bankAddresses);
-    for (let i = 0; i < bankAccountsData.length; i++) {
-      if (bankAccountsData[i] !== null) {
-        bankDatasKeyed.push({
-          address: bankAddresses[i],
-          data: bankAccountsData[i] as any as BankRaw,
-        });
-      }
-    }
 
     const [feedIdMap, oraclePrices] = await Promise.all([fetchPythFeedMap(), fetchOraclePrices()]);
 
-    const mintKeys = bankDatasKeyed.map((b) => b.data.mint);
-    const emissionMintKeys = bankDatasKeyed
-      .map((b) => b.data.emissionsMint)
+    const banksByBankPk = new Map(
+      bankAccountsData.map((bankAccount, idx) => {
+        const bankData = bankAccount as any as BankRaw;
+        const groupPk = bankData.group.toBase58();
+        const summary = arenaPoolsSummary[groupPk];
+        const bankAddress = bankAddresses[idx];
+
+        if (!summary) {
+          throw new Error(`Summary not found for group ${groupPk}`);
+        }
+
+        const isQuoteBank = bankAddress.equals(summary.quoteSummary.bankPk);
+
+        const bankSummary = isQuoteBank ? summary.quoteSummary : summary.tokenSummary;
+
+        const meta: BankMetadata = {
+          tokenAddress: bankSummary.mint.toBase58(),
+          tokenName: bankSummary.tokenName,
+          tokenSymbol: bankSummary.tokenSymbol,
+        };
+
+        const bank = Bank.fromAccountParsed(bankAddress, bankData, feedIdMap, meta);
+
+        return [bankAddress.toBase58(), bank];
+      })
+    );
+
+    const banks = Array.from(banksByBankPk.values());
+
+    // const mintKeys = Array.from(banks.values()).map((b) => b.mint);
+    const emissionMintKeys = banks
+      .map((b) => b.emissionsMint)
       .filter((pk) => !pk.equals(PublicKey.default)) as PublicKey[];
 
     // Batch-fetch the group account and all the oracle accounts as per the banks retrieved above
     const allAis = await chunkedGetRawMultipleAccountInfoOrdered(program.provider.connection, [
       ...groupAddresses.map((pk) => pk.toBase58()),
-      ...mintKeys.map((pk) => pk.toBase58()),
+      // ...mintKeys.map((pk) => pk.toBase58()),
       ...emissionMintKeys.map((pk) => pk.toBase58()),
     ]); // NOTE: This will break if/when we start having more than 1 oracle key per bank
 
     const groupAis = allAis.splice(0, groupAddresses.length);
-    const mintAis = allAis.splice(0, mintKeys.length);
     const emissionMintAis = allAis.splice(0);
 
     const marginfiGroups = groupAis.map((groupAi, index) => {
@@ -455,40 +467,7 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
       return MarginfiGroup.fromBuffer(groupAddress, groupAi.data, program.idl);
     });
 
-    const banks = new Map(
-      bankDatasKeyed.map(({ address, data }) => {
-        const bankMetadata = bankMetadataCache ? bankMetadataCache[address.toBase58()] : undefined;
-        const bank = Bank.fromAccountParsed(address, data, feedIdMap, bankMetadata);
-
-        return [address.toBase58(), bank];
-      })
-    );
-
-    const tokenDatas: Map<string, MintData> = new Map(
-      bankDatasKeyed.map(({ address: bankAddress, data: bankData }, index) => {
-        const mintAddress = mintKeys[index];
-        const mintDataRaw = mintAis[index];
-        if (!mintDataRaw) throw new Error(`Failed to fetch mint account for bank ${bankAddress.toBase58()}`);
-        let emissionTokenProgram: PublicKey | null = null;
-        if (!bankData.emissionsMint.equals(PublicKey.default)) {
-          const emissionMintDataRawIndex = emissionMintKeys.findIndex((pk) => pk.equals(bankData.emissionsMint));
-          emissionTokenProgram = emissionMintDataRawIndex >= 0 ? emissionMintAis[emissionMintDataRawIndex].owner : null;
-        }
-        // TODO: parse extension data to see if there is a fee
-        return [
-          bankAddress.toBase58(),
-          { mint: mintAddress, tokenProgram: mintDataRaw.owner, feeBps: 0, emissionTokenProgram },
-        ];
-      })
-    );
-
-    const priceInfos = new Map(
-      bankDatasKeyed.map(({ address: bankAddress, data: bankData }, index) => {
-        const priceData = oraclePrices[bankAddress.toBase58()];
-        if (!priceData) throw new Error(`Failed to fetch price oracle account for bank ${bankAddress.toBase58()}`);
-        return [bankAddress.toBase58(), priceData as OraclePrice];
-      })
-    );
+    const tokenDatas: Map<string, MintData> = new Map();
 
     const banksWithPriceAndToken: {
       bank: Bank;
@@ -496,27 +475,53 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
       tokenMetadata: TokenMetadata;
     }[] = [];
 
-    banks.forEach((bank) => {
-      const oraclePrice = priceInfos.get(bank.address.toBase58());
+    const priceInfos = new Map(
+      banks.map((bank) => {
+        const priceData = oraclePrices[bank.address.toBase58()];
+        if (!priceData) throw new Error(`Failed to fetch price oracle account for bank ${bank.address.toBase58()}`);
+        return [bank.address.toBase58(), priceData as OraclePrice];
+      })
+    );
+
+    banks.forEach((data, index) => {
+      const groupPk = data.group;
+      const bankAddress = data.address;
+      const mintAddress = data.mint;
+      const emissionMint = data.emissionsMint;
+
+      const oraclePrice = priceInfos.get(bankAddress.toBase58());
       if (!oraclePrice) {
-        return;
+        throw new Error(`Failed to fetch price oracle account for bank ${bankAddress.toBase58()}`);
       }
 
-      const bankMetadata = bankMetadataCache[bank.address.toBase58()];
-      if (bankMetadata === undefined) {
-        return;
+      const summary = arenaPoolsSummary[groupPk.toBase58()];
+      if (!summary) {
+        throw new Error(`Summary not found for group ${groupPk.toBase58()}`);
       }
 
-      try {
-        const tokenMetadata = getValueInsensitive(tokenMetadataCache, bankMetadata.tokenSymbol);
-        if (!tokenMetadata) {
-          return;
-        }
-
-        banksWithPriceAndToken.push({ bank, oraclePrice, tokenMetadata });
-      } catch (err) {
-        console.error("error fetching token metadata: ", err);
+      const bankSummary = [summary.tokenSummary, summary.quoteSummary].find((s) => s.bankPk.equals(bankAddress));
+      if (!bankSummary) {
+        throw new Error(`Bank summary not found for bank ${bankAddress.toBase58()}`);
       }
+
+      let emissionTokenProgram: PublicKey | null = null;
+      if (!emissionMint.equals(PublicKey.default)) {
+        const emissionMintDataRawIndex = emissionMintKeys.findIndex((pk) => pk.equals(emissionMint));
+        emissionTokenProgram = emissionMintDataRawIndex >= 0 ? emissionMintAis[emissionMintDataRawIndex].owner : null;
+      }
+      // TODO: parse extension data to see if there is a fee
+      tokenDatas.set(bankAddress.toBase58(), {
+        mint: mintAddress,
+        tokenProgram: bankSummary.tokenProgram,
+        feeBps: 0,
+        emissionTokenProgram,
+      });
+
+      banksWithPriceAndToken.push({
+        bank: data,
+        oraclePrice,
+        tokenMetadata: { icon: bankSummary.tokenLogoUri, name: bankSummary.tokenName, symbol: bankSummary.tokenSymbol },
+      });
     });
 
     let extendedBankInfos = banksWithPriceAndToken.map(({ bank, oraclePrice, tokenMetadata }) => {
@@ -588,7 +593,7 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
       extendedBankInfos = extendedBankInfos.map((bankInfo) => {
         const marginfiAccount = marginfiAccountByGroupPk[bankInfo.info.rawBank.group.toBase58()] ?? null;
         const tokenAccount = tokenAccountMap?.get(bankInfo.info.rawBank.mint.toBase58());
-        return updateBank(bankInfo, nativeSolBalance, marginfiAccount, banks, priceInfos, tokenAccount);
+        return updateBank(bankInfo, nativeSolBalance, marginfiAccount, banksByBankPk, priceInfos, tokenAccount);
       });
       isWalletFetched = true;
     }
@@ -605,7 +610,7 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
       arenaPools[groupPk] = arenaPool;
     });
 
-    const banksByBankPk = extendedBankInfos.reduce((acc, bank) => {
+    const extendedBanksByBankPk = extendedBankInfos.reduce((acc, bank) => {
       acc[bank.info.rawBank.address.toBase58()] = bank;
       return acc;
     }, {} as Record<string, ArenaBank>);
@@ -616,17 +621,17 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
     }, {} as Record<string, MarginfiGroup>);
 
     if (!lutByGroupPk) {
-      const lutResults: Record<string, Promise<RpcResponseAndContext<AddressLookupTableAccount | null>>> = {};
+      const lutResults: Record<string, Promise<RpcResponseAndContext<AddressLookupTableAccount | null>> | null> = {};
 
       // Create lookup promises for each group
-      Object.entries(lutGroupsCache).forEach(([groupPk, lutPk]) => {
-        lutResults[groupPk] = connection.getAddressLookupTable(new PublicKey(lutPk));
+      Object.entries(arenaPoolsSummary).forEach(([groupPk, summary]) => {
+        lutResults[groupPk] = summary.luts ? connection.getAddressLookupTable(new PublicKey(summary.luts[0])) : null;
       });
 
       const results = await Promise.all(Object.values(lutResults));
 
       const updatedLutByGroupPk = Object.keys(lutResults).reduce((acc, groupPk, index) => {
-        const lutAccount = results[index].value;
+        const lutAccount = results[index]?.value;
         if (lutAccount) {
           acc[groupPk] = [lutAccount];
         }
@@ -638,7 +643,7 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
 
     set({
       arenaPools,
-      banksByBankPk,
+      banksByBankPk: extendedBanksByBankPk,
       groupsByGroupPk,
       marginfiAccountByGroupPk,
       tokenAccountMap: tokenAccountMap ?? new Map(),
@@ -863,10 +868,10 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
   },
 
   setSortBy: (sortBy: TradePoolFilterStates) => {
-    const { arenaPoolsSummary, tokenDataByMint, arenaPools, banksByBankPk, groupsCache } = get();
+    const { arenaPoolsSummary, tokenDataByMint, arenaPools, banksByBankPk } = get();
 
-    const sortedPoolsSummary = sortSummaryPools(arenaPoolsSummary, tokenDataByMint, sortBy, groupsCache);
-    const sortedPools = sortPools(arenaPools, tokenDataByMint, banksByBankPk, sortBy, groupsCache);
+    const sortedPoolsSummary = sortSummaryPools(arenaPoolsSummary, tokenDataByMint, sortBy);
+    const sortedPools = sortPools(arenaPools, tokenDataByMint, banksByBankPk, sortBy);
 
     set({ sortBy, arenaPoolsSummary: sortedPoolsSummary, arenaPools: sortedPools });
   },
@@ -878,11 +883,10 @@ const sortPools = (
   arenaPools: Record<string, ArenaPoolV2>,
   tokenDataByMint: Record<string, TokenData>,
   banksByBankPk: Record<string, ArenaBank>,
-  sortBy: TradePoolFilterStates,
-  groupsCache: TradeGroupsCache
+  sortBy: TradePoolFilterStates
 ) => {
   const groups = [...Object.values(arenaPools)];
-  const timestampOrder = Object.keys(groupsCache).reverse();
+  const timestampOrder = Object.keys(arenaPools).reverse();
 
   const sortedGroups = groups.sort((a, b) => {
     const aTokenData = tokenDataByMint[a.tokenBankPk.toBase58()];
@@ -937,11 +941,10 @@ const sortPools = (
 const sortSummaryPools = (
   arenaPools: Record<string, ArenaPoolSummary>,
   tokenDataByMint: Record<string, TokenData>,
-  sortBy: TradePoolFilterStates,
-  groupsCache: TradeGroupsCache
+  sortBy: TradePoolFilterStates
 ) => {
   const groups = [...Object.values(arenaPools)];
-  const timestampOrder = Object.keys(groupsCache).reverse();
+  const timestampOrder = Object.keys(arenaPools).reverse();
 
   const sortedGroups = groups.sort((a, b) => {
     const aTokenData = tokenDataByMint[a.tokenSummary.mint.toBase58()];
