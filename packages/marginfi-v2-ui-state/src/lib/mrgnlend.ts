@@ -142,7 +142,7 @@ function makeBankInfo(bank: Bank, oraclePrice: OraclePrice, emissionTokenData?: 
 export async function fetchBirdeyePrices(mints: PublicKey[], apiKey?: string): Promise<BigNumber[]> {
   const mintList = mints.map((mint) => mint.toBase58()).join(",");
 
-  const response = await fetch(`/api/birdeye?mintList=${mintList}`, {
+  const response = await fetch(`/api/tokens/multi?mintList=${mintList}`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
