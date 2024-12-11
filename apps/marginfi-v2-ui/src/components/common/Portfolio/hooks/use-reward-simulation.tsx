@@ -12,6 +12,7 @@ import {
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import {
   AccountLayout,
+  ExtendedV0Transaction,
   getAssociatedTokenAddressSync,
   nativeToUi,
   numeralFormatter,
@@ -21,6 +22,7 @@ import {
 } from "@mrgnlabs/mrgn-common";
 
 import { RewardsType } from "../types";
+import { fetchAfterStateEmissions, fetchBeforeStateEmissions, generateWithdrawEmissionsTxn } from "../utils";
 
 type RewardSimulationProps = {
   simulationResult: RewardsType | null;
@@ -40,30 +42,11 @@ export const useRewardSimulation = ({
   setSimulationResult,
   setActionTxn,
 }: RewardSimulationProps) => {
-  const generateTxn = async (
-    banksWithEmissions: ExtendedBankInfo[],
-    selectedAccount: MarginfiAccountWrapper
-  ): Promise<SolanaTransaction | undefined> => {
-    try {
-      const bankAddressesWithEmissions = banksWithEmissions.map((bank) => bank.meta.address);
-      const tx = await selectedAccount?.makeWithdrawEmissionsTx(bankAddressesWithEmissions);
-      if (!tx) return;
-      return tx;
-    } catch (error) {
-      console.error("Error generating emissions transaction", error);
-    }
-  };
-
   const handleSimulation = React.useCallback(async () => {
     try {
       if (!marginfiClient || !selectedAccount) {
-        setSimulationResult({
-          state: "ERROR",
-          tooltipContent: "Error fetching rewards",
-          rewards: [],
-          totalRewardAmount: 0,
-        });
-        return;
+        console.log("hit1");
+        throw new Error("No marginfi client or selected account");
       }
 
       const banksWithEmissions = extendedBankInfos.filter((bank) => bank.info.state.emissionsRate > 0);
@@ -77,75 +60,39 @@ export const useRewardSimulation = ({
         return;
       }
 
-      const txns = await generateTxn(banksWithEmissions, selectedAccount);
+      const NO_REWARDS_USER: RewardsType = {
+        state: "NO_REWARDS",
+        tooltipContent: `You do not have any outstanding rewards. Deposit into a bank with emissions to earn additional rewards on top of yield. Banks with emissions: ${[
+          ...banksWithEmissions.map((bank) => bank.meta.tokenSymbol),
+        ].join(", ")}`,
+        rewards: [],
+        totalRewardAmount: 0,
+      };
+
+      const txns = await generateWithdrawEmissionsTxn(banksWithEmissions, selectedAccount);
 
       if (!txns) {
-        setSimulationResult({
-          state: "NO_REWARDS",
-          tooltipContent: `You do not have any outstanding rewards. Deposit into a bank with emissions to earn additional rewards on top of yield. Banks with emissions: ${[
-            ...banksWithEmissions.map((bank) => bank.meta.tokenSymbol),
-          ].join(", ")}`,
-          rewards: [],
-          totalRewardAmount: 0,
-        });
+        setSimulationResult(NO_REWARDS_USER);
         return;
       }
 
-      const beforeAmounts = new Map<PublicKey, { amount: string; tokenSymbol: string; mintDecimals: number }>();
-      const afterAmounts = new Map<PublicKey, { amount: string; tokenSymbol: string; mintDecimals: number }>();
+      const { atas, beforeAmounts } = await fetchBeforeStateEmissions(marginfiClient, banksWithEmissions);
 
-      const atas: PublicKey[] = [];
-
-      for (let bank of banksWithEmissions) {
-        if (!bank) continue;
-
-        const tokenMint = bank.info.rawBank.emissionsMint;
-        const tokenSymbol = bank.info.rawBank.tokenSymbol ?? "";
-        const mintDecimals = bank.info.rawBank.mintDecimals;
-        if (!tokenMint) continue;
-
-        const programId = TOKEN_2022_MINTS.includes(tokenMint.toString()) ? TOKEN_2022_PROGRAM_ID : TOKEN_PROGRAM_ID;
-        const ata = getAssociatedTokenAddressSync(tokenMint, marginfiClient.wallet.publicKey, true, programId);
-        if (!ata) continue;
-        atas.push(ata);
-
-        const originData = await marginfiClient.provider.connection.getAccountInfo(ata);
-        let beforeAmount = "0";
-        if (originData) {
-          beforeAmount = AccountLayout.decode(originData.data).amount.toString();
-        }
-
-        beforeAmounts.set(bank.meta.address, { amount: beforeAmount, tokenSymbol, mintDecimals });
-      }
-
-      if (beforeAmounts.size === 0) {
-        setSimulationResult({
-          state: "NO_REWARDS",
-          tooltipContent: "",
-          rewards: [],
-          totalRewardAmount: 0,
-        });
+      let previewAtas: (Buffer | null)[] = [];
+      try {
+        previewAtas = await marginfiClient.simulateTransactions([txns], atas);
+      } catch (error) {
+        console.log("hit2");
+        setSimulationResult(NO_REWARDS_USER);
         return;
       }
 
-      const previewAtas = await marginfiClient.simulateTransactions([txns], atas);
-      if (!previewAtas[0]) return;
+      if (!previewAtas[0]) {
+        setSimulationResult(NO_REWARDS_USER);
+        return;
+      }
 
-      previewAtas.forEach((ata, index) => {
-        if (!ata) return;
-
-        const afterAmount = AccountLayout.decode(ata).amount.toString();
-        const bankAddress = banksWithEmissions[index].meta.address;
-        const beforeData = beforeAmounts.get(bankAddress);
-
-        if (beforeData) {
-          afterAmounts.set(bankAddress, {
-            amount: afterAmount,
-            tokenSymbol: beforeData.tokenSymbol,
-            mintDecimals: beforeData.mintDecimals,
-          });
-        }
-      });
+      const afterAmounts = fetchAfterStateEmissions(previewAtas, banksWithEmissions, beforeAmounts);
 
       let rewards: RewardsType = {
         state: "REWARDS_FETCHED",
@@ -167,10 +114,15 @@ export const useRewardSimulation = ({
               bank: beforeData.tokenSymbol,
               amount: rewardAmount < 0.01 ? "<0.01" : numeralFormatter(rewardAmount),
             });
+            rewards.tooltipContent = "You have earned rewards, press 'collect rewards' to claim.";
             rewards.totalRewardAmount += rewardAmount;
           }
         }
       });
+
+      if (rewards.rewards.length === 0) {
+        rewards.tooltipContent = "You are currently earning rewards, come back later to collect.";
+      }
 
       setSimulationResult(rewards);
       setActionTxn(txns);
@@ -181,8 +133,8 @@ export const useRewardSimulation = ({
         walletAddress: selectedAccount?.address.toBase58(),
       });
       setSimulationResult({
-        state: "NO_REWARDS",
-        tooltipContent: "",
+        state: "ERROR",
+        tooltipContent: "Error fetching rewards",
         rewards: [],
         totalRewardAmount: 0,
       });
