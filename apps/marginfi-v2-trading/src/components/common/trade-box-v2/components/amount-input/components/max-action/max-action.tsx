@@ -1,10 +1,11 @@
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { clampedNumeralFormatter } from "@mrgnlabs/mrgn-common";
 import React from "react";
+import { ArenaBank } from "~/store/tradeStoreV2";
 
 interface TradeActionProps {
   maxAmount: number;
-  collateralBank: ExtendedBankInfo | undefined;
+  collateralBank: ArenaBank | null;
 
   setAmount: (amount: string) => void;
 }
