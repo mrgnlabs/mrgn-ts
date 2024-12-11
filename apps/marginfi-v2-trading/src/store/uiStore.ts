@@ -52,8 +52,8 @@ interface UiState {
   setWalletState: (walletState: WalletState) => void;
   setIsActionBoxInputFocussed: (isFocussed: boolean) => void;
   setIsOnrampActive: (isOnrampActive: boolean) => void;
-  setTransactionSettings: (settings: TransactionSettings) => void;
-  fetchPriorityFee: (connection: Connection) => void;
+  setTransactionSettings: (settings: TransactionSettings, connection: Connection) => void;
+  fetchPriorityFee: (connection: Connection, settings?: TransactionSettings) => void;
 }
 
 function createUiStore() {
