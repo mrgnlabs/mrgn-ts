@@ -40,7 +40,7 @@ export const TradePovider: React.FC<{
   }, [fetchArenaGroups, hydrationComplete, setHydrationComplete]);
 
   React.useEffect(() => {
-    if (initialized || connected) {
+    if (initialized && connected) {
       console.log("fetching extended arena groups");
       fetchExtendedArenaGroups({ connection, wallet });
     }
