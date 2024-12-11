@@ -1,4 +1,4 @@
-import { NextApiRequest, NextApiResponse } from "next";
+import { NextResponse } from "next/server";
 import {
   BankMetadata,
   loadBankMetadatas,
@@ -8,18 +8,23 @@ import {
 import { Connection, PublicKey } from "@solana/web3.js";
 import { Program, AnchorProvider } from "@coral-xyz/anchor";
 import { Bank, BankRaw, MARGINFI_IDL, MarginfiIdlType, MarginfiProgram } from "@mrgnlabs/marginfi-client-v2";
-import config from "~/config/marginfi";
+import marginfiConfig from "~/config/marginfi";
 
 const BIRDEYE_API = "https://public-api.birdeye.so";
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const { mintList } = req.query;
+export const config = {
+  runtime: "edge",
+};
+
+export default async function handler(req: Request) {
+  // Get query params from URL
+  const url = new URL(req.url);
+  const mintList = url.searchParams.get("mintList");
+
   if (!mintList) {
-    res.status(400).json({ error: "No mintList provided" });
-    return;
+    return NextResponse.json({ error: "No mintList provided" }, { status: 400 });
   }
 
-  // use abort controller to restrict fetch to 10 seconds
   const controller = new AbortController();
   const timeoutId = setTimeout(() => {
     controller.abort();
@@ -35,7 +40,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // fetch mfi banks to get emissions mints
     const connection = new Connection(process.env.PRIVATE_RPC_ENDPOINT_OVERRIDE || "");
-    const idl = { ...MARGINFI_IDL, address: config.mfiConfig.programId.toBase58() } as unknown as MarginfiIdlType;
+    const idl = {
+      ...MARGINFI_IDL,
+      address: marginfiConfig.mfiConfig.programId.toBase58(),
+    } as unknown as MarginfiIdlType;
 
     const provider = new AnchorProvider(connection, {} as Wallet, {
       ...AnchorProvider.defaultOptions(),
@@ -72,10 +80,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // if no supported tokens, return error
     if (supportedMints.length === 0) {
-      res.status(400).json({
-        error: "No supported tokens in request",
-      });
-      return;
+      return NextResponse.json(
+        {
+          error: "No supported tokens in request",
+        },
+        { status: 400 }
+      );
     }
 
     // continue with birdeye API call only for supported tokens
@@ -90,19 +100,28 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     clearTimeout(timeoutId);
 
     if (!response.ok) {
-      return res.status(response.status).json({
-        error: `Birdeye API error: ${response.status} ${response.statusText}`,
-      });
+      return NextResponse.json(
+        {
+          error: `Birdeye API error: ${response.status} ${response.statusText}`,
+        },
+        { status: response.status }
+      );
     }
     const data = await response.json();
 
-    // cache for 20 minutes
-    res.setHeader("Cache-Control", "s-maxage=1200, stale-while-revalidate=300");
-    res.status(200).json(data);
+    // return with cache headers
+    return NextResponse.json(data, {
+      headers: {
+        "Cache-Control": "public, s-maxage=300, stale-while-revalidate=0",
+      },
+    });
   } catch (error) {
     console.error("Error:", error);
-    res.status(500).json({
-      error: error instanceof Error ? error.message : "Error fetching data",
-    });
+    return NextResponse.json(
+      {
+        error: error instanceof Error ? error.message : "Error fetching data",
+      },
+      { status: 500 }
+    );
   }
 }
