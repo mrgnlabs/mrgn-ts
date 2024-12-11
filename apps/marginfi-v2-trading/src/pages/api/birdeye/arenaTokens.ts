@@ -3,21 +3,21 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { BANK_METADATA_MAP } from "~/config/trade";
 
 import type { TokenData } from "~/types";
+import { PoolApiResponse } from "~/types/api.types";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  let bankMetadataCache: {
-    [address: string]: BankMetadata;
-  } = {};
+  let host = extractHost(req.headers.origin) || extractHost(req.headers.referer);
 
-  try {
-    bankMetadataCache = await loadBankMetadatas(BANK_METADATA_MAP);
-  } catch (error) {
-    console.error("Error:", error);
-    res.status(500).json({ error: "Error fetching bank metadata" });
-    return;
+  if (!host) {
+    return res.status(400).json({ error: "Invalid input: expected a valid host." });
   }
 
-  const allTokens = [...new Set(Object.values(bankMetadataCache).map((bank) => bank.tokenAddress))];
+  const poolList: PoolApiResponse[] = await fetch(`${host}/api/pool/list`).then((response) => response.json());
+
+  const tokenMints = poolList.map((pool) => pool.base_bank.mint.address);
+  const quoteMints = poolList.map((pool) => pool.quote_banks[0].mint.address);
+
+  const allTokens = [...new Set([...tokenMints, ...quoteMints])];
 
   const batchSize = 50;
   const tokens = Array.from({ length: Math.ceil(allTokens.length / batchSize) }, (_, i) =>
@@ -169,3 +169,11 @@ type TokenMetaData = {
 type TokenMetaDataRaw = {
   data: TokenMetaData;
 };
+
+function extractHost(referer: string | undefined): string | undefined {
+  if (!referer) {
+    return undefined;
+  }
+  const url = new URL(referer);
+  return url.origin;
+}

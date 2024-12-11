@@ -23,6 +23,7 @@ import BigNumber from "bignumber.js";
 import { NextApiRequest, NextApiResponse } from "next";
 import config from "~/config/marginfi";
 import { BANK_METADATA_MAP } from "~/config/trade";
+import { PoolApiResponse } from "~/types/api.types";
 
 const SWITCHBOARD_CROSSSBAR_API = process.env.SWITCHBOARD_CROSSSBAR_API || "https://crossbar.switchboard.xyz";
 const IS_SWB_STAGE = SWITCHBOARD_CROSSSBAR_API === "https://staging.crossbar.switchboard.xyz";
@@ -54,13 +55,18 @@ interface OraclePriceString {
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const bankMetadataResponse = await loadBankMetadatas(BANK_METADATA_MAP);
+  let host = extractHost(req.headers.origin) || extractHost(req.headers.referer);
 
-  const requestedBanks = Object.keys(bankMetadataResponse);
-
-  if (!requestedBanks) {
-    return res.status(400).json({ error: "Invalid input: expected an array of bank base58-encoded addresses." });
+  if (!host) {
+    return res.status(400).json({ error: "Invalid input: expected a valid host." });
   }
+
+  const poolList: PoolApiResponse[] = await fetch(`${host}/api/pool/list`).then((response) => response.json());
+
+  const requestedTokenBanks = poolList.map((pool) => pool.base_bank.address);
+  const requestedQuoteBanks = poolList.map((pool) => pool.quote_banks[0].address);
+
+  const requestedBanks = [...requestedTokenBanks, ...requestedQuoteBanks];
 
   const connection = new Connection(process.env.PRIVATE_RPC_ENDPOINT_OVERRIDE || "");
   const idl = { ...MARGINFI_IDL, address: config.mfiConfig.programId.toBase58() } as unknown as MarginfiIdlType;
@@ -88,9 +94,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ error: "Invalid input: expected a valid host." });
     }
 
-    const feedIdMapRaw: Record<string, string> = await fetch(`${host}/api/oracle/pythFeedMapV2`).then((response) =>
-      response.json()
-    );
+    const feedIdMapRaw: Record<string, string> = await fetch(`${host}/api/oracle/pythFeedMapV2`, {
+      headers: {
+        origin: req.headers.origin || "",
+        referer: req.headers.referer || "",
+      },
+    }).then((response) => response.json());
+
     const feedIdMap: Map<string, PublicKey> = new Map(
       Object.entries(feedIdMapRaw).map(([key, value]) => [key, new PublicKey(value)])
     );
