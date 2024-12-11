@@ -153,19 +153,24 @@ export const InfoMessages = ({
   );
 
   const renderContent = () => {
+    console.log("actionMethods", actionMethods);
     if (!connected) return null;
 
     switch (true) {
       case tradeState === "long" && activePool?.tokenBank.userInfo.tokenAccount.balance === 0:
+        console.log("renderLongWarning");
         return renderLongWarning();
 
       case tradeState === "short" && activePool?.quoteBank.userInfo.tokenAccount.balance === 0:
+        console.log("renderShortWarning");
         return renderShortWarning();
 
       case isActiveWithCollat:
+        console.log("renderActionMethodMessages");
         return renderActionMethodMessages();
 
       default:
+        console.log("renderDepositCollateralDialog");
         return renderDepositCollateralDialog();
     }
   };
