@@ -412,22 +412,21 @@ async function fetchMultiPrice(tokens: string[]): Promise<BirdeyePriceResponse> 
     throw new Error("No tokens provided");
   }
 
-  // use abort controller to restrict fetch to 10 seconds
   const controller = new AbortController();
   const timeoutId = setTimeout(() => {
     controller.abort();
   }, 5000);
 
-  // Fetch from API and update cache
   try {
-    const response = await fetch(`${BIRDEYE_API}/defi/multi_price?list_address=${tokens.join("%2C")}`, {
-      headers: {
-        Accept: "application/json",
-        "x-chain": "solana",
-        "X-Api-Key": process.env.BIRDEYE_API_KEY || "",
-      },
-      signal: controller.signal,
-    });
+    // Use our cached endpoint instead of hitting Birdeye directly
+    const response = await fetch(
+      `${
+        process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3004"
+      }/api/tokens/multi?mintList=${tokens.join(",")}`,
+      {
+        signal: controller.signal,
+      }
+    );
     clearTimeout(timeoutId);
 
     const data = (await response.json()) as BirdeyePriceResponse;
