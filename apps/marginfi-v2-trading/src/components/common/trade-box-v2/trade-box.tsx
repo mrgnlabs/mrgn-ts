@@ -2,11 +2,22 @@
 
 import React from "react";
 
-import { ActionMessageType, formatAmount, showErrorToast, useConnection, usePrevious } from "@mrgnlabs/mrgn-utils";
+import {
+  ActionMessageType,
+  ActionTxns,
+  ExecuteLoopingActionProps,
+  formatAmount,
+  IndividualFlowError,
+  MultiStepToastHandle,
+  PreviousTxn,
+  showErrorToast,
+  useConnection,
+  usePrevious,
+} from "@mrgnlabs/mrgn-utils";
 import { IconSettings } from "@tabler/icons-react";
 
 import { ArenaPoolV2 } from "~/store/tradeStoreV2";
-import { TradeSide } from "~/components/common/trade-box-v2/utils";
+import { handleExecuteTradeAction, TradeSide } from "~/components/common/trade-box-v2/utils";
 import { Card, CardContent, CardHeader } from "~/components/ui/card";
 import { useTradeStoreV2, useUiStore } from "~/store";
 import { useWallet, useWalletStore } from "~/components/wallet-v2";
@@ -30,6 +41,9 @@ import {
 import { useTradeBoxStore } from "./store";
 import { checkTradeActionAvailable } from "./utils";
 import { useTradeSimulation, useActionAmounts } from "./hooks";
+import { ActionType, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { useActionContext } from "@mrgnlabs/mrgn-ui";
+import { UnderlineIcon } from "@radix-ui/react-icons";
 
 interface TradeBoxV2Props {
   activePool: ArenaPoolV2;
@@ -79,10 +93,12 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
     state.setSelectedSecondaryBank,
     state.setMaxLeverage,
   ]);
-  const [slippageBps, setSlippageBps, platformFeeBps] = useUiStore((state) => [
+  const [slippageBps, setSlippageBps, platformFeeBps, broadcastType, priorityFees] = useUiStore((state) => [
     state.slippageBps,
     state.setSlippageBps,
     state.platformFeeBps,
+    state.broadcastType,
+    state.priorityFees,
   ]);
   const [setIsWalletOpen] = useWalletStore((state) => [state.setIsWalletOpen]);
   const [fetchTradeState, nativeSolBalance, setIsRefreshingStore, refreshGroup] = useTradeStoreV2((state) => [
@@ -229,6 +245,126 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
     [maxAmount, selectedBank, numberFormater]
   );
 
+  /////////////////////
+  // Trading Actions //
+  /////////////////////
+  const executeAction = async (
+    params: ExecuteLoopingActionProps,
+    leverage: number,
+    callbacks: {
+      captureEvent?: (event: string, properties?: Record<string, any>) => void;
+      setIsActionComplete: (isComplete: boolean) => void;
+      setPreviousTxn: (previousTxn: PreviousTxn) => void;
+      onComplete?: (txn: PreviousTxn) => void;
+      setIsLoading: (isLoading: boolean) => void;
+      setAmountRaw: (amountRaw: string) => void;
+      retryCallback: (txs: ActionTxns, toast: MultiStepToastHandle) => void;
+    }
+  ) => {
+    const action = async (params: ExecuteLoopingActionProps) => {
+      await handleExecuteTradeAction({
+        props: params,
+        captureEvent: (event, properties) => {
+          callbacks.captureEvent && callbacks.captureEvent(event, properties);
+        },
+        setIsComplete: (txnSigs) => {
+          callbacks.setIsActionComplete(true);
+          callbacks.setPreviousTxn({
+            txn: txnSigs[txnSigs.length - 1] ?? "",
+            txnType: "LOOP",
+            loopOptions: {
+              depositBank: params.depositBank as ActiveBankInfo,
+              borrowBank: params.borrowBank as ActiveBankInfo,
+              depositAmount: params.actualDepositAmount,
+              borrowAmount: params.borrowAmount.toNumber(),
+              leverage: leverage,
+            },
+          });
+
+          callbacks.onComplete &&
+            callbacks.onComplete({
+              txn: txnSigs[txnSigs.length - 1] ?? "",
+              txnType: "LEND",
+              lendingOptions: {
+                amount: params.depositAmount,
+                type: ActionType.Loop,
+                bank: params.depositBank as ActiveBankInfo,
+              },
+            });
+        },
+        setError: (error: IndividualFlowError) => {
+          // TODO: update the messaging within the toast. Might need tailored functions in the sdk for trading
+          console.log("error", error);
+          const toast = error.multiStepToast as MultiStepToastHandle; // TODO: check if this works, not sure it does
+          const txs = error.actionTxns as ActionTxns;
+          let retry = undefined;
+          if (error.retry && toast && txs) {
+            retry = () => callbacks.retryCallback(txs, toast);
+          }
+          toast.setFailed(error.message, retry);
+          callbacks.setIsLoading(false);
+        },
+        setIsLoading: (isLoading) => callbacks.setIsLoading(isLoading),
+      });
+    };
+    await action(params);
+    callbacks.setAmountRaw("");
+  };
+
+  const retryTradeAction = React.useCallback(
+    (params: ExecuteLoopingActionProps, leverage: number) => {
+      executeAction(params, leverage, {
+        captureEvent: () => {}, // TODO: implement this
+        setIsActionComplete: () => {}, // TODO: implement this
+        setPreviousTxn: () => {}, // TODO: implement this
+        onComplete: () => {}, // TODO: implement this
+        setIsLoading: setIsTransactionExecuting,
+        setAmountRaw,
+        retryCallback: (txns: ActionTxns, multiStepToast: MultiStepToastHandle) => {
+          retryTradeAction({ ...params, actionTxns: txns, multiStepToast }, leverage);
+        },
+      });
+    },
+    [setAmountRaw, setIsTransactionExecuting]
+  );
+
+  const handleTradeAction = React.useCallback(async () => {
+    if (!client || !selectedBank || !selectedSecondaryBank || !actionTxns) {
+      return;
+    }
+
+    const params: ExecuteLoopingActionProps = {
+      marginfiClient: client,
+      actionTxns,
+      processOpts: {
+        ...priorityFees,
+        broadcastType,
+      },
+      txOpts: {},
+
+      marginfiAccount: wrappedAccount,
+      depositAmount: amount,
+      borrowAmount: actionTxns.borrowAmount,
+      actualDepositAmount: actionTxns.actualDepositAmount,
+      depositBank: selectedBank,
+      borrowBank: selectedSecondaryBank,
+      quote: actionTxns.actionQuote!,
+      connection: client.provider.connection,
+    };
+
+    executeAction(params, leverage, {
+      captureEvent: () => {}, // TODO: implement this
+      setIsActionComplete: () => {}, // TODO: implement this
+      setPreviousTxn: () => {}, // TODO: implement this
+      onComplete: () => {}, // TODO: implement this
+      setIsLoading: setIsTransactionExecuting,
+      setAmountRaw,
+      retryCallback: (txns: ActionTxns, multiStepToast: MultiStepToastHandle) => {
+        retryTradeAction({ ...params, actionTxns: txns, multiStepToast }, leverage);
+      },
+    });
+  }, []);
+
   return (
     <Card className="shadow-none border-border w-full">
       <CardHeader className="p-0">
@@ -280,7 +416,9 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
               !actionMethods.concat(additionalActionMessages).filter((value) => value.isEnabled === false).length
             }
             connected={connected}
-            handleAction={() => {}}
+            handleAction={() => {
+              handleTradeAction();
+            }}
             buttonLabel={tradeState === "long" ? "Long" : "Short"}
             tradeState={tradeState}
           />
