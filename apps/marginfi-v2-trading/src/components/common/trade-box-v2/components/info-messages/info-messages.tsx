@@ -1,8 +1,8 @@
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { Wallet } from "@mrgnlabs/mrgn-common";
-import { ActionMessageType } from "@mrgnlabs/mrgn-utils";
+import { ActionMessageType, cn } from "@mrgnlabs/mrgn-utils";
 import { Connection } from "@solana/web3.js";
-import { IconAlertTriangle, IconExternalLink } from "@tabler/icons-react";
+import { IconAlertTriangle, IconExternalLink, IconLoader } from "@tabler/icons-react";
 import Link from "next/link";
 import { ActionBox } from "~/components";
 import { Button } from "~/components/ui/button";
@@ -14,7 +14,7 @@ interface InfoMessagesProps {
   activePool: ArenaPoolV2Extended;
   isActiveWithCollat: boolean;
   actionMethods: ActionMessageType[];
-  additionalChecks?: ActionMessageType;
+  additionalChecks?: ActionMessageType[];
   setIsWalletOpen: (value: boolean) => void;
   fetchTradeState: ({
     connection,
@@ -25,8 +25,10 @@ interface InfoMessagesProps {
     wallet?: Wallet;
     refresh?: boolean;
   }) => Promise<void>;
+  refreshSimulation: () => void;
   connection: any;
   wallet: any;
+  isRetrying?: boolean;
 }
 
 export const InfoMessages = ({
@@ -40,58 +42,99 @@ export const InfoMessages = ({
   fetchTradeState,
   connection,
   wallet,
+  refreshSimulation,
+  isRetrying,
 }: InfoMessagesProps) => {
-  const renderLongWarning = () => (
-    <div className="w-full flex space-x-2 py-2.5 px-3.5 rounded-lg gap-1 text-sm bg-accent text-alert-foreground">
+  const renderWarning = (message: string, action: () => void) => (
+    <div
+      className={cn(
+        "relative flex space-x-2 py-2.5 px-3.5 rounded-lg gap-1 text-sm",
+        "bg-alert border border-alert-foreground/20 text-alert-foreground"
+      )}
+    >
       <IconAlertTriangle className="shrink-0 translate-y-0.5" size={16} />
-      <div className="space-y-1">
-        <p>
-          You need to hold {activePool?.tokenBank.meta.tokenSymbol} to open a long position.{" "}
-          <button
-            className="border-b border-alert-foreground hover:border-transparent"
-            onClick={() => setIsWalletOpen(true)}
-          >
-            Swap tokens.
-          </button>
-        </p>
+      <div className="space-y-2.5 w-full">
+        <p>{message}</p>
+        <Button
+          variant="outline"
+          size="sm"
+          className="border-b border-alert-foreground hover:border-transparent mt-2"
+          onClick={action}
+        >
+          Swap tokens
+        </Button>
       </div>
     </div>
   );
 
-  const renderShortWarning = () => (
-    <div className="w-full flex space-x-2 py-2.5 px-3.5 rounded-lg gap-1 text-sm bg-accent text-alert-foreground">
-      <IconAlertTriangle className="shrink-0 translate-y-0.5" size={16} />
-      <div className="space-y-1">
-        <p>
-          You need to hold {activePool?.quoteBank.meta.tokenSymbol} to open a short position.{" "}
-          <button
-            className="border-b border-alert-foreground hover:border-transparent"
-            onClick={() => setIsWalletOpen(true)}
-          >
-            Swap tokens.
-          </button>
-        </p>
-      </div>
-    </div>
-  );
+  const renderLongWarning = () =>
+    renderWarning(`You need to hold ${activePool?.tokenBank.meta.tokenSymbol} to open a long position.`, () =>
+      setIsWalletOpen(true)
+    );
 
-  const renderActionMethodMessages = () =>
-    actionMethods.concat(additionalChecks ?? []).map(
-      (actionMethod, idx) =>
-        actionMethod.description && (
-          <div className=" w-full" key={idx}>
+  const renderShortWarning = () =>
+    renderWarning(`You need to hold ${activePool?.quoteBank.meta.tokenSymbol} to open a short position.`, () =>
+      setIsWalletOpen(true)
+    );
+
+  const renderActionMethodMessages = () => (
+    <div className="flex flex-col gap-4">
+      {actionMethods.concat(additionalChecks ?? []).map(
+        (actionMethod, idx) =>
+          actionMethod.description && (
             <div
-              className={`flex space-x-2 py-2.5 px-3.5 rounded-lg gap-1 text-sm ${
-                actionMethod.actionMethod === "INFO"
-                  ? "bg-accent text-info-foreground"
-                  : actionMethod.actionMethod === "ERROR"
-                  ? "bg-[#990000] text-white"
-                  : "bg-accent text-alert-foreground"
-              }`}
+              className={cn(
+                "relative flex space-x-2 py-2.5 px-3.5 rounded-lg gap-1 text-sm ",
+                actionMethod.actionMethod === "INFO" && "bg-info text-info-foreground",
+                (!actionMethod.actionMethod || actionMethod.actionMethod === "WARNING") &&
+                  "bg-alert border border-alert-foreground/20 text-alert-foreground",
+                actionMethod.actionMethod === "ERROR" &&
+                  "bg-destructive border border-destructive-foreground/10 text-destructive-foreground"
+              )}
+              key={idx}
             >
               <IconAlertTriangle className="shrink-0 translate-y-0.5" size={16} />
-              <div className="space-y-1">
-                <p>{actionMethod.description}</p>
+              <div className="w-full">
+                {actionMethod.actionMethod !== "INFO" && (
+                  <h3 className="font-normal capitalize mb-1.5">
+                    {(actionMethod.actionMethod || "WARNING").toLowerCase()}
+                  </h3>
+                )}
+                <div
+                  className={cn("space-y-2.5 text-sm w-4/5", actionMethod.actionMethod !== "INFO" && "text-primary/50")}
+                >
+                  <p>{actionMethod.description}</p>
+                  {actionMethod.link && (
+                    <p>
+                      <Link
+                        href={actionMethod.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="underline hover:no-underline"
+                      >
+                        <IconExternalLink size={14} className="inline -translate-y-[1px]" />{" "}
+                        {actionMethod.linkText || "Read more"}
+                      </Link>
+                    </p>
+                  )}
+                  {actionMethod.retry && refreshSimulation && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="mt-4 h-7 text-primary"
+                      disabled={isRetrying}
+                      onClick={refreshSimulation}
+                    >
+                      {isRetrying ? (
+                        <>
+                          <IconLoader size={14} className="animate-spin" /> Retrying...
+                        </>
+                      ) : (
+                        "Retry"
+                      )}
+                    </Button>
+                  )}
+                </div>
                 {actionMethod.action && (
                   <ActionBox.Lend
                     isDialog
@@ -107,31 +150,21 @@ export const InfoMessages = ({
                     dialogProps={{
                       trigger: (
                         <Button variant="outline" size="sm" className="gap-1 min-w-16">
-                          ${actionMethod.action.type}
+                          {actionMethod.action.type}
                         </Button>
                       ),
                       title: `${actionMethod.action.type} ${actionMethod.action.bank.meta.tokenSymbol}`,
                     }}
                   />
                 )}
-                {actionMethod.link && (
-                  <p>
-                    <Link
-                      href={actionMethod.link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="underline hover:no-underline"
-                    >
-                      <IconExternalLink size={14} className="inline -translate-y-[1px]" />{" "}
-                      {actionMethod.linkText || "Read more"}
-                    </Link>
-                  </p>
-                )}
               </div>
             </div>
-          </div>
-        )
-    );
+          )
+      )}
+    </div>
+  );
+
+  // TODO: currently, often two warning messages are shown. We should decide if we want to do that, or if we want to show only one. if we want to show only one, we should add a 'priority' or something to decide which one to show.
 
   const renderDepositCollateralDialog = () => (
     <ActionBox.Lend
@@ -154,23 +187,21 @@ export const InfoMessages = ({
 
   const renderContent = () => {
     console.log("actionMethods", actionMethods);
+    console.log("additionalChecks", additionalChecks);
     if (!connected) return null;
 
     switch (true) {
       case tradeState === "long" && activePool?.tokenBank.userInfo.tokenAccount.balance === 0:
-        console.log("renderLongWarning");
         return renderLongWarning();
 
       case tradeState === "short" && activePool?.quoteBank.userInfo.tokenAccount.balance === 0:
-        console.log("renderShortWarning");
         return renderShortWarning();
 
       case isActiveWithCollat:
-        console.log("renderActionMethodMessages");
+        console.log("isActiveWithCollat", isActiveWithCollat);
         return renderActionMethodMessages();
 
       default:
-        console.log("renderDepositCollateralDialog");
         return renderDepositCollateralDialog();
     }
   };
