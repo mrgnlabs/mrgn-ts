@@ -32,9 +32,10 @@ export default function TradeSymbolPage({ initialData }: StaticArenaProps) {
   const isMobile = useIsMobile();
   const router = useRouter();
   const side = router.query.side as "long" | "short";
-  const [initialized, arenaPools, fetchArenaGroups, setHydrationComplete] = useTradeStoreV2((state) => [
+  const [initialized, arenaPools, poolsFetched, fetchArenaGroups, setHydrationComplete] = useTradeStoreV2((state) => [
     state.initialized,
     state.arenaPools,
+    state.poolsFetched,
     state.fetchArenaGroups,
     state.setHydrationComplete,
   ]);
@@ -54,7 +55,7 @@ export default function TradeSymbolPage({ initialData }: StaticArenaProps) {
   }, [initialData, fetchArenaGroups, setHydrationComplete]);
 
   React.useEffect(() => {
-    if (!router.isReady || !initialized) return;
+    if (!router.isReady || !initialized || !poolsFetched) return;
 
     const symbol = router.query.symbol as string;
 
@@ -70,13 +71,13 @@ export default function TradeSymbolPage({ initialData }: StaticArenaProps) {
     }
 
     setActivePool(group);
-  }, [router, arenaPools, setActivePool, initialized]);
+  }, [router, arenaPools, setActivePool, initialized, poolsFetched]);
 
   return (
     <>
       <div className="w-full max-w-8xl mx-auto px-4 pt-8 pb-24 mt:pt-8 md:px-8 min-h-[calc(100vh-100px)]">
-        {(!initialized || !activePool) && <Loader label="Loading the arena..." className="mt-8" />}
-        {initialized && activePool && (
+        {(!initialized || !poolsFetched || !activePool) && <Loader label="Loading the arena..." className="mt-8" />}
+        {initialized && poolsFetched && activePool && (
           <div className="w-full space-y-4">
             <PoolTradeHeader activePool={activePool} />
             <div className="rounded-xl space-y-4">
