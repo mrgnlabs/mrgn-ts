@@ -1,28 +1,35 @@
 "use client";
 
 import React from "react";
-import { computeMaxLeverage } from "@mrgnlabs/marginfi-client-v2";
-import { ActionMessageType, cn, formatAmount, LoopActionTxns, useConnection, usePrevious } from "@mrgnlabs/mrgn-utils";
 
-// import { GroupData } from "~/store/tradeStore";
+import { ActionMessageType, formatAmount, showErrorToast, useConnection, usePrevious } from "@mrgnlabs/mrgn-utils";
+import { IconSettings } from "@tabler/icons-react";
+
 import { ArenaPoolV2 } from "~/store/tradeStoreV2";
 import { TradeSide } from "~/components/common/trade-box-v2/utils";
-import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader } from "~/components/ui/card";
-
-import { ActionToggle, AmountInput, Header, LeverageSlider, Stats, TradingBoxSettingsDialog } from "./components";
 import { useTradeStoreV2, useUiStore } from "~/store";
-import { IconSettings } from "@tabler/icons-react";
-import { InfoMessages } from "./components/info-messages/info-messages";
 import { useWallet, useWalletStore } from "~/components/wallet-v2";
 import { useExtendedPool } from "~/hooks/useExtendedPools";
 import { useMarginfiClient } from "~/hooks/useMarginfiClient";
 import { useWrappedAccount } from "~/hooks/useWrappedAccount";
-import { useTradeSimulation, useActionAmounts } from "./hooks";
 import { SimulationStatus } from "~/components/action-box-v2/utils";
 import { useAmountDebounce } from "~/hooks/useAmountDebounce";
+
+import {
+  ActionButton,
+  ActionToggle,
+  AmountInput,
+  AmountPreview,
+  Header,
+  LeverageSlider,
+  Stats,
+  TradingBoxSettingsDialog,
+  InfoMessages,
+} from "./components";
 import { useTradeBoxStore } from "./store";
-import { checkLoopActionAvailable } from "./utils";
+import { checkTradeActionAvailable } from "./utils";
+import { useTradeSimulation, useActionAmounts } from "./hooks";
 
 interface TradeBoxV2Props {
   activePool: ArenaPoolV2;
@@ -30,6 +37,7 @@ interface TradeBoxV2Props {
 }
 
 export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
+  // Stores
   const [
     amountRaw,
     tradeState,
@@ -70,15 +78,7 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
     state.setSelectedBank,
     state.setSelectedSecondaryBank,
     state.setMaxLeverage,
-  ]); // TODO: figure out amount vs amountRaw, ask kobe
-  const activePoolExtended = useExtendedPool(activePool);
-  const client = useMarginfiClient({ groupPk: activePoolExtended.groupPk });
-  const { accountSummary, wrappedAccount } = useWrappedAccount({
-    client,
-    groupPk: activePoolExtended.groupPk,
-    banks: [activePoolExtended.tokenBank, activePoolExtended.quoteBank],
-  });
-  const { walletContextState, wallet, connected } = useWallet();
+  ]);
   const [slippageBps, setSlippageBps, platformFeeBps] = useUiStore((state) => [
     state.slippageBps,
     state.setSlippageBps,
@@ -91,32 +91,27 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
     state.setIsRefreshingStore,
     state.refreshGroup,
   ]);
+
+  // Hooks
+  const activePoolExtended = useExtendedPool(activePool);
+  const client = useMarginfiClient({ groupPk: activePoolExtended.groupPk });
+  const { accountSummary, wrappedAccount } = useWrappedAccount({
+    client,
+    groupPk: activePoolExtended.groupPk,
+    banks: [activePoolExtended.tokenBank, activePoolExtended.quoteBank],
+  });
+  const { walletContextState, wallet, connected } = useWallet();
   const { connection } = useConnection();
-
-  const [additionalChecks, setAdditionalChecks] = React.useState<ActionMessageType>();
-
-  const numberFormater = React.useMemo(() => new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 }), []); // The fuck is this lol?
-
-  React.useEffect(() => {
-    if (activePoolExtended) {
-      if (tradeState === "short") {
-        setSelectedBank(activePoolExtended.quoteBank);
-        setSelectedSecondaryBank(activePoolExtended.tokenBank);
-      } else {
-        setSelectedBank(activePoolExtended.tokenBank);
-        setSelectedSecondaryBank(activePoolExtended.quoteBank);
-      }
-    }
-  }, [activePoolExtended, tradeState]);
-
   const { amount, debouncedAmount, walletAmount, maxAmount } = useActionAmounts({
     amountRaw,
     activePool: activePoolExtended,
     collateralBank: selectedBank,
     nativeSolBalance,
   });
-
   const debouncedLeverage = useAmountDebounce<number>(leverage, 500);
+
+  // States
+  const [additionalActionMessages, setAdditionalActionMessages] = React.useState<ActionMessageType[]>([]);
 
   // Loading states
   const [isTransactionExecuting, setIsTransactionExecuting] = React.useState(false);
@@ -131,6 +126,44 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
     () => isTransactionExecuting || isSimulating.isLoading,
     [isTransactionExecuting, isSimulating.isLoading]
   );
+
+  // Memos
+  const numberFormater = React.useMemo(() => new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 }), []); // The fuck is this lol?
+
+  const leveragedAmount = React.useMemo(() => {
+    if (tradeState === "long") {
+      return actionTxns?.actualDepositAmount;
+    } else {
+      return actionTxns?.borrowAmount.toNumber();
+    }
+  }, [tradeState, actionTxns]);
+
+  // Effects
+  React.useEffect(() => {
+    if (activePoolExtended) {
+      if (tradeState === "short") {
+        setSelectedBank(activePoolExtended.quoteBank);
+        setSelectedSecondaryBank(activePoolExtended.tokenBank);
+      } else {
+        setSelectedBank(activePoolExtended.tokenBank);
+        setSelectedSecondaryBank(activePoolExtended.quoteBank);
+      }
+    }
+  }, [activePoolExtended, tradeState]);
+
+  React.useEffect(() => {
+    if (errorMessage && errorMessage.description) {
+      showErrorToast(errorMessage?.description);
+      setAdditionalActionMessages([errorMessage]);
+    } else {
+      setAdditionalActionMessages([]);
+    }
+  }, [errorMessage]);
+
+  // TODO: on load, reset everything
+  React.useEffect(() => {
+    refreshState();
+  }, []);
 
   const { actionSummary, refreshSimulation } = useTradeSimulation({
     debouncedAmount: debouncedAmount ?? 0,
@@ -147,29 +180,42 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
     setActionTxns: setActionTxns,
     setErrorMessage: setErrorMessage,
     setIsLoading: setIsSimulating,
-    setSimulationResult: () => {},
+    setSimulationResult,
     setMaxLeverage,
   });
 
-  const leveragedAmount = React.useMemo(() => {
-    if (tradeState === "long") {
-      return actionTxns?.actualDepositAmount;
-    } else {
-      return actionTxns?.borrowAmount.toNumber();
-    }
-  }, [tradeState, actionTxns]);
+  React.useEffect(() => {
+    console.log({
+      selectedBank: selectedBank?.meta.tokenSymbol,
+      selectedSecondaryBank: selectedSecondaryBank?.meta.tokenSymbol,
+    });
 
-  const isActiveWithCollat = true; // the fuuuuck?
+    let borrowBank, depositBank;
+
+    if (tradeState === "long") {
+      depositBank = activePoolExtended.tokenBank;
+      borrowBank = activePoolExtended.quoteBank;
+    } else {
+      depositBank = activePoolExtended.quoteBank;
+      borrowBank = activePoolExtended.tokenBank;
+    }
+
+    console.log({
+      depositBank: depositBank?.meta.tokenSymbol,
+      borrowBank: borrowBank?.meta.tokenSymbol,
+    });
+  }, [selectedBank, selectedSecondaryBank]);
+
+  const isActiveWithCollat = true; // TODO: figure out what this does?
 
   const actionMethods = React.useMemo(
     () =>
-      checkLoopActionAvailable({
+      checkTradeActionAvailable({
         amount,
         connected,
         collateralBank: selectedBank,
-        secondaryBank: tradeState === "long" ? activePoolExtended.quoteBank : activePoolExtended.tokenBank,
-        // TODO: fix this, have the collateralBank and secondary be in the same var
-        actionQuote: null,
+        secondaryBank: selectedSecondaryBank,
+        actionQuote: actionTxns.actionQuote,
       }),
 
     [amount, connected, activePoolExtended, actionTxns, tradeState]
@@ -197,32 +243,47 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
             handleAmountChange={handleAmountChange}
             collateralBank={selectedBank}
           />
-          <LeverageSlider leverage={leverage} maxLeverage={maxLeverage} setLeverage={setLeverage} />
-          <div className="flex items-center justify-between text-muted-foreground text-base">
-            <span>Size of {tradeState}</span>
-            <span>
-              {`${
-                leveragedAmount ? leveragedAmount.toFixed(activePoolExtended.tokenBank.info.state.mintDecimals) : 0
-              } ${selectedBank?.meta.tokenSymbol}`}
-            </span>
-          </div>
-          {actionMethods && actionMethods.some((method) => method.description) && (
+          <LeverageSlider
+            selectedBank={selectedBank}
+            selectedSecondaryBank={selectedSecondaryBank}
+            amountRaw={amountRaw}
+            leverageAmount={leverage}
+            maxLeverage={maxLeverage}
+            setLeverageAmount={setLeverage}
+          />
+          <AmountPreview
+            tradeSide={tradeState}
+            amount={leveragedAmount}
+            isLoading={isLoading}
+            selectedBank={activePoolExtended.tokenBank}
+          />
+          {actionMethods && actionMethods.concat(additionalActionMessages).some((method) => method.description) && (
             <InfoMessages
               connected={connected}
               tradeState={tradeState}
               activePool={activePoolExtended}
               isActiveWithCollat={isActiveWithCollat}
               actionMethods={actionMethods}
-              additionalChecks={additionalChecks}
+              additionalChecks={additionalActionMessages}
               setIsWalletOpen={setIsWalletOpen}
               fetchTradeState={fetchTradeState}
               connection={connection}
               wallet={wallet}
+              refreshSimulation={refreshSimulation}
+              isRetrying={isSimulating.isLoading}
             />
           )}
-          <Button className={cn("w-full", tradeState === "long" && "bg-success", tradeState === "short" && "bg-error")}>
-            {tradeState === "long" ? "Long" : "Short"}
-          </Button>
+
+          <ActionButton
+            isLoading={isLoading}
+            isEnabled={
+              !actionMethods.concat(additionalActionMessages).filter((value) => value.isEnabled === false).length
+            }
+            connected={connected}
+            handleAction={() => {}}
+            buttonLabel={tradeState === "long" ? "Long" : "Short"}
+            tradeState={tradeState}
+          />
           <TradingBoxSettingsDialog
             setSlippageBps={(value) => setSlippageBps(value * 100)}
             slippageBps={slippageBps / 100}
@@ -237,7 +298,7 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
         <Stats
           activePool={activePoolExtended}
           accountSummary={accountSummary}
-          simulationResult={null}
+          simulationResult={simulationResult}
           actionTxns={actionTxns}
         />
       </CardContent>

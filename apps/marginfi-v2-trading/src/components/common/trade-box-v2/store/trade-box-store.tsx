@@ -1,4 +1,5 @@
 import { ActionMessageType, calculateLstYield, LSTS_SOLANA_COMPASS_MAP } from "@mrgnlabs/mrgn-utils";
+import BigNumber from "bignumber.js";
 
 import { SimulationResult } from "@mrgnlabs/marginfi-client-v2";
 import { LoopActionTxns } from "@mrgnlabs/mrgn-utils";
@@ -20,7 +21,7 @@ interface TradeBoxState {
   selectedSecondaryBank: ArenaBank | null;
 
   simulationResult: SimulationResult | null;
-  actionTxns: LoopActionTxns | null;
+  actionTxns: LoopActionTxns;
 
   errorMessage: ActionMessageType | null;
 
@@ -31,7 +32,7 @@ interface TradeBoxState {
   setTradeState: (tradeState: TradeSide) => void;
   setLeverage: (leverage: number) => void;
   setSimulationResult: (result: SimulationResult | null) => void;
-  setActionTxns: (actionTxns: LoopActionTxns | null) => void;
+  setActionTxns: (actionTxns: LoopActionTxns) => void;
   setErrorMessage: (errorMessage: ActionMessageType | null) => void;
   setSelectedBank: (bank: ArenaBank | null) => void;
   setSelectedSecondaryBank: (bank: ArenaBank | null) => void;
@@ -43,15 +44,23 @@ interface TradeBoxState {
 const initialState = {
   amountRaw: "",
   leverageAmount: 0,
-  leverage: 1,
+  leverage: 0,
   simulationResult: null,
-  actionTxns: null,
   errorMessage: null,
   selectedBank: null,
   selectedSecondaryBank: null,
   maxLeverage: 0,
   depositLstApy: null,
   borrowLstApy: null,
+
+  actionTxns: {
+    actionTxn: null,
+    additionalTxns: [],
+    actionQuote: null,
+    lastValidBlockHeight: undefined,
+    actualDepositAmount: 0,
+    borrowAmount: new BigNumber(0),
+  },
 };
 
 function createTradeBoxStore() {
@@ -64,7 +73,14 @@ const stateCreator: StateCreator<TradeBoxState, [], []> = (set, get) => ({
   tradeState: "long" as TradeSide,
 
   refreshState() {
-    set(initialState);
+    set({
+      amountRaw: initialState.amountRaw,
+      leverage: initialState.leverage,
+      actionTxns: initialState.actionTxns,
+      errorMessage: null,
+      depositLstApy: initialState.depositLstApy, // TODO: can we remove? Not using anywhere
+      borrowLstApy: initialState.borrowLstApy, // TODO: can we remove? Not using anywhere
+    });
   },
 
   setAmountRaw(amountRaw, maxAmount) {
@@ -106,7 +122,7 @@ const stateCreator: StateCreator<TradeBoxState, [], []> = (set, get) => ({
     set({ simulationResult: result });
   },
 
-  setActionTxns(actionTxns: LoopActionTxns | null) {
+  setActionTxns(actionTxns: LoopActionTxns) {
     set({ actionTxns: actionTxns });
   },
 
