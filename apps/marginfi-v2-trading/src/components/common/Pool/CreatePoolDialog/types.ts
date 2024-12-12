@@ -1,19 +1,24 @@
 import { PublicKey } from "@solana/web3.js";
 
 export enum CreatePoolState {
-  MINT = "mint",
+  TOKEN = "token",
+  QUOTE = "quote",
   FORM = "form",
   LOADING = "loading",
   SUCCESS = "success",
   ERROR = "error",
 }
 
-export type PoolData = {
+export type PoolMintData = {
   mint: PublicKey;
   name: string;
   symbol: string;
   icon: string;
   decimals: number;
-  quoteBank: "USDC" | "LST";
+};
+
+export type PoolData = {
+  token: PoolMintData;
+  quoteToken?: PoolMintData;
   group?: PublicKey;
 };
