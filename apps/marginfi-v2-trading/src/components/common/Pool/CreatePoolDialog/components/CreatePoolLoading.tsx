@@ -341,7 +341,7 @@ export const CreatePoolLoading = ({ quoteBank, poolData, setPoolData, setCreateP
       const bundleTipIx = makeBundleTipIx(wallet.publicKey);
 
       // create oracle ix
-      const oracleCreation = await createOracleIx(poolData.mint, poolData.symbol, client);
+      const oracleCreation = await createOracleIx(poolData.token.mint, poolData.token.symbol, client);
 
       if (!oracleCreation) throw new Error("Oracle creation failed");
 
@@ -386,7 +386,7 @@ export const CreatePoolLoading = ({ quoteBank, poolData, setPoolData, setCreateP
 
       let tokenBankConfig = DEFAULT_TOKEN_BANK_CONFIG;
 
-      const response = await fetch(`/api/birdeye/token?address=${poolData.mint.toBase58()}`, {
+      const response = await fetch(`/api/birdeye/token?address=${poolData.token.mint.toBase58()}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -402,10 +402,10 @@ export const CreatePoolLoading = ({ quoteBank, poolData, setPoolData, setCreateP
       const tokenDetails = responseBody as TokenData;
 
       tokenBankConfig.borrowLimit = new BigNumber(Math.floor(100_000 / tokenDetails.price)).multipliedBy(
-        Math.pow(10, poolData.decimals)
+        Math.pow(10, poolData.token.decimals)
       );
       tokenBankConfig.depositLimit = new BigNumber(Math.floor(10_000 / tokenDetails.price)).multipliedBy(
-        Math.pow(10, poolData.decimals)
+        Math.pow(10, poolData.token.decimals)
       );
       tokenBankConfig.oracle = {
         setup: OracleSetup.SwitchboardPull,
@@ -416,7 +416,7 @@ export const CreatePoolLoading = ({ quoteBank, poolData, setPoolData, setCreateP
       const tokenBankIxWrapper = await client.group.makePoolAddBankIx(
         client.program,
         seeds.tokenBankSeed.publicKey,
-        poolData.mint,
+        poolData.token.mint,
         tokenBankConfig,
         {
           admin: wallet.publicKey,
@@ -441,10 +441,14 @@ export const CreatePoolLoading = ({ quoteBank, poolData, setPoolData, setCreateP
         )
       );
 
-      const feeAccount = getFeeAccount(poolData.mint);
+      const feeAccount = getFeeAccount(poolData.token.mint);
 
       if (!feeAccount) {
-        const feeAccountCreationLegacyTx = await createReferalTokenAccount(connection, wallet.publicKey, poolData.mint);
+        const feeAccountCreationLegacyTx = await createReferalTokenAccount(
+          connection,
+          wallet.publicKey,
+          poolData.token.mint
+        );
         const feeAccountCreationMessage = new TransactionMessage({
           instructions: feeAccountCreationLegacyTx.instructions,
           payerKey: wallet.publicKey,

@@ -10,17 +10,18 @@ import { cn } from "@mrgnlabs/mrgn-utils";
 import { useIsMobile } from "~/hooks/use-is-mobile";
 
 import {
-  CreatePoolMint,
   CreatePoolForm,
   CreatePoolSuccess,
   CreatePoolState,
+  CreatePoolToken,
 } from "~/components/common/Pool/CreatePoolDialog/";
 import { Dialog, DialogContent, DialogTrigger } from "~/components/ui/dialog";
 import { Button } from "~/components/ui/button";
 import type { TokenData } from "~/types";
 
-import type { PoolData } from "./types";
+import type { PoolData, PoolMintData } from "./types";
 import { CreatePoolLoading } from "./components/CreatePoolLoading";
+import { CreatePoolQuote } from "./components/CreatePoolQuote";
 
 type CreatePoolDialogProps = {
   trigger?: React.ReactNode;
@@ -31,11 +32,10 @@ export type SUPPORTED_QUOTE_BANKS = "USDC" | "LST";
 export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
   // const [resetSearchResults, searchBanks] = useTradeStore((state) => [state.resetSearchResults, state.searchBanks]);
   const [isOpen, setIsOpen] = React.useState(false);
-  const [createPoolState, setCreatePoolState] = React.useState<CreatePoolState>(CreatePoolState.MINT);
+  const [createPoolState, setCreatePoolState] = React.useState<CreatePoolState>(CreatePoolState.TOKEN);
   const [isSearchingToken, setIsSearchingToken] = React.useState(false);
   const [isTokenFetchingError, setIsTokenFetchingError] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState("");
-  const [mintAddress, setMintAddress] = React.useState("");
   const [poolData, setPoolData] = React.useState<PoolData | null>(null);
   const [quoteBank, setQuoteBank] = React.useState<SUPPORTED_QUOTE_BANKS>("USDC");
   const [isSubmitting, setIsSubmitting] = React.useState(false);
@@ -43,40 +43,56 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
   const { width, height } = useWindowSize();
   const isMobile = useIsMobile();
 
-  const fetchTokenInfo = React.useCallback(async () => {
-    setIsSearchingToken(true);
+  const fetchTokenInfo = React.useCallback(
+    async (mintAddress: string) => {
+      setIsSearchingToken(true);
 
-    try {
-      const mint = new PublicKey(mintAddress);
-      const fetchTokenReq = await fetch(`/api/birdeye/token?address=${mint.toBase58()}`);
+      try {
+        const mint = new PublicKey(mintAddress);
+        const fetchTokenReq = await fetch(`/api/birdeye/token?address=${mint.toBase58()}`);
 
-      if (!fetchTokenReq.ok) {
-        throw new Error("Failed to fetch token info");
+        if (!fetchTokenReq.ok) {
+          throw new Error("Failed to fetch token info");
+        }
+
+        const tokenInfo = (await fetchTokenReq.json()) as TokenData;
+        if (!tokenInfo) {
+          throw new Error("Could not find token info");
+        }
+
+        const mintData: PoolMintData = {
+          mint: new PublicKey(tokenInfo.address),
+          name: tokenInfo.name,
+          symbol: tokenInfo.symbol,
+          icon: tokenInfo.imageUrl,
+          decimals: tokenInfo.decimals,
+        };
+
+        setIsSearchingToken(false);
+        if (createPoolState === CreatePoolState.QUOTE) {
+          setPoolData((prev) => {
+            if (!prev) return null;
+            return {
+              ...prev,
+              quoteToken: mintData,
+            };
+          });
+          setCreatePoolState(CreatePoolState.FORM);
+        } else {
+          setPoolData({
+            token: mintData,
+          });
+          setCreatePoolState(CreatePoolState.QUOTE);
+        }
+      } catch (e) {
+        console.error(e);
+        setPoolData(null);
+        setIsTokenFetchingError(true);
+        setIsSearchingToken(false);
       }
-
-      const tokenInfo = (await fetchTokenReq.json()) as TokenData;
-      if (!tokenInfo) {
-        throw new Error("Could not find token info");
-      }
-
-      setPoolData({
-        mint: new PublicKey(tokenInfo.address),
-        name: tokenInfo.name,
-        symbol: tokenInfo.symbol,
-        icon: tokenInfo.imageUrl,
-        decimals: tokenInfo.decimals,
-        quoteBank: "USDC",
-      });
-
-      setIsSearchingToken(false);
-      setCreatePoolState(CreatePoolState.FORM);
-    } catch (e) {
-      console.error(e);
-      setPoolData(null);
-      setIsTokenFetchingError(true);
-      setIsSearchingToken(false);
-    }
-  }, [mintAddress]);
+    },
+    [createPoolState]
+  );
 
   // React.useEffect(() => {
   //   if (!searchQuery.length) {
@@ -96,9 +112,8 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
   React.useEffect(() => {
     reset();
     setSearchQuery("");
-    setMintAddress("");
-    setCreatePoolState(CreatePoolState.MINT);
-  }, [isOpen, reset, setSearchQuery, setMintAddress, setCreatePoolState]);
+    setCreatePoolState(CreatePoolState.TOKEN);
+  }, [isOpen, reset, setSearchQuery, setCreatePoolState]);
 
   return (
     <>
@@ -130,11 +145,17 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
           )}
         </DialogTrigger>
         <DialogContent className="w-full space-y-4 sm:max-w-4xl md:max-w-4xl z-[70]">
-          {createPoolState === CreatePoolState.MINT && (
-            <CreatePoolMint
-              mintAddress={mintAddress}
+          {createPoolState === CreatePoolState.TOKEN && (
+            <CreatePoolToken
               isSearchingToken={isSearchingToken}
-              setMintAddress={setMintAddress}
+              fetchTokenInfo={fetchTokenInfo}
+              setIsOpen={setIsOpen}
+            />
+          )}
+          {createPoolState === CreatePoolState.QUOTE && (
+            <CreatePoolQuote
+              tokenMintAddress={poolData?.token?.mint.toBase58() ?? ""}
+              isSearchingToken={isSearchingToken}
               fetchTokenInfo={fetchTokenInfo}
               setIsOpen={setIsOpen}
             />

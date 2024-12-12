@@ -29,6 +29,9 @@ export const CreatePoolForm = ({
   reset,
 }: CreatePoolFormProps) => {
   if (!poolData) return null;
+
+  if (!poolData.quoteToken) return null;
+
   return (
     <>
       <Button
@@ -36,14 +39,16 @@ export const CreatePoolForm = ({
         size="sm"
         className="gap-1 absolute top-2 left-1.5 text-muted-foreground"
         onClick={() => {
-          setCreatePoolState(CreatePoolState.MINT);
+          setCreatePoolState(CreatePoolState.TOKEN);
           reset();
         }}
       >
         <IconChevronLeft size={18} /> Back
       </Button>
-      <div className="text-center space-y-2 max-w-md mx-auto">
-        <h2 className="text-3xl font-medium">{isTokenFetchingError ? "Token details" : "Confirm token details"}</h2>
+      <div className="text-center space-y-2 max-w-lg mx-auto">
+        <h2 className="text-3xl font-medium">
+          Confirm token details for {`${poolData.token.symbol}/${poolData.quoteToken.symbol}`}
+        </h2>
         <p className="text-muted-foreground">
           {isTokenFetchingError
             ? "Please provide details about the token."
@@ -53,69 +58,58 @@ export const CreatePoolForm = ({
 
       <div className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="relative h-full flex flex-col gap-2 items-center justify-center bg-secondary/20 border border-input/50 rounded-lg py-8 px-12 text-muted-foreground hover:bg-secondary/20">
-            {poolData.icon && (
-              // using img as source unknown and not whitelisted in next config
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={poolData.icon}
-                alt="Preview"
-                className="max-w-full max-h-48 rounded-full relative z-20"
-                height={192}
-                width={192}
-              />
-            )}
-
-            <div className="absolute w-[192px] h-[192px] flex items-center justify-center top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-secondary rounded-full text-muted-foreground opacity-40 z-10">
-              <Loader label="Loading image..." className="text-xs" iconSize={24} />
-            </div>
-          </div>
           <div className="space-y-4 text-xs">
+            <h4 className="text-sm font-medium">Token details</h4>
             <div className="space-y-1">
               <Label className="font-medium text-xs">Mint address</Label>
-              <Input value={poolData.mint.toBase58()} disabled={true} />
+              <Input value={poolData.token.mint.toBase58()} disabled={true} />
             </div>
             <div className="space-y-1">
               <Label className="font-medium text-xs">Token name</Label>
-              <Input value={poolData.name} disabled={true} />
+              <Input value={poolData.token.name} disabled={true} />
             </div>
             <div className="flex w-full gap-2">
               <div className="space-y-1 flex-1">
                 <Label className="font-medium text-xs">Token symbol</Label>
-                <Input value={poolData.symbol} disabled={true} />
+                <Input value={poolData.token.symbol} disabled={true} />
               </div>
               <div className="space-y-1 flex-1">
                 <Label className="font-medium text-xs">Token decimals</Label>
-                <Input type="number" value={poolData.decimals} disabled={true} />
+                <Input type="number" value={poolData.token.decimals} disabled={true} />
               </div>
             </div>
+          </div>
+          <div className="space-y-4 text-xs">
+            <h4 className="text-sm font-medium">Quote token details</h4>
             <div className="space-y-1">
-              <Label className="font-medium text-xs">Quote bank</Label>
-              <Select value={quoteBank} onValueChange={(value) => setQuoteBank(value as SUPPORTED_QUOTE_BANKS)}>
-                <SelectTrigger className="w-full z-[999]">
-                  <SelectValue placeholder="Select a quote bank" />
-                </SelectTrigger>
-                <SelectContent className="cursor-pointer z-[999]">
-                  <SelectItem className="focus:text-white hover:text-white" value="USDC">
-                    USDC
-                  </SelectItem>
-                  <SelectItem className="focus:text-white hover:text-white" value="LST">
-                    LST
-                  </SelectItem>
-                </SelectContent>
-              </Select>
+              <Label className="font-medium text-xs">Mint address</Label>
+              <Input value={poolData.quoteToken.mint.toBase58()} disabled={true} />
             </div>
-            <Button
-              className="w-full"
-              type="button"
-              onClick={() => {
-                setCreatePoolState(CreatePoolState.LOADING);
-              }}
-            >
-              Create Pool
-            </Button>
+            <div className="space-y-1">
+              <Label className="font-medium text-xs">Token name</Label>
+              <Input value={poolData.quoteToken.name} disabled={true} />
+            </div>
+            <div className="flex w-full gap-2">
+              <div className="space-y-1 flex-1">
+                <Label className="font-medium text-xs">Token symbol</Label>
+                <Input value={poolData.quoteToken.symbol} disabled={true} />
+              </div>
+              <div className="space-y-1 flex-1">
+                <Label className="font-medium text-xs">Token decimals</Label>
+                <Input type="number" value={poolData.quoteToken.decimals} disabled={true} />
+              </div>
+            </div>
           </div>
         </div>
+        <Button
+          className="flex justify-center items-center px-20 mx-auto"
+          type="button"
+          onClick={() => {
+            setCreatePoolState(CreatePoolState.LOADING);
+          }}
+        >
+          Create Pool
+        </Button>
       </div>
     </>
   );

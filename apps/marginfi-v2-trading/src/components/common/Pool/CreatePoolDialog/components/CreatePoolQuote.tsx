@@ -8,25 +8,27 @@ import { cn, getTokenImageURL } from "@mrgnlabs/mrgn-utils";
 
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
+import { useTradeStoreV2 } from "~/store";
+import { ArenaPoolSummary } from "~/store/tradeStoreV2";
 
 type CreatePoolMintProps = {
-  mintAddress: string;
+  tokenMintAddress: string;
   isSearchingToken: boolean;
-  setMintAddress: React.Dispatch<React.SetStateAction<string>>;
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  fetchTokenInfo: () => void;
+  fetchTokenInfo: (mintAddress: string) => void;
 };
 
-export const CreatePoolMint = ({
-  mintAddress,
+export const CreatePoolQuote = ({
+  tokenMintAddress,
   isSearchingToken,
-  setMintAddress,
   setIsOpen,
   fetchTokenInfo,
 }: CreatePoolMintProps) => {
-  // const [groupMap] = useTradeStore((state) => [state.groupMap]);
+  const [arenaPoolsSummary] = useTradeStoreV2((state) => [state.arenaPoolsSummary]);
+
+  const [mintAddress, setMintAddress] = React.useState("");
   const [error, setError] = React.useState<string | null>(null);
-  const [poolExists, setPoolExists] = React.useState<any | null>(null);
+  const [poolExists, setPoolExists] = React.useState<ArenaPoolSummary | null>(null);
 
   const verifyPublickey = (key: string, allowPDA: boolean = false) => {
     try {
@@ -53,29 +55,35 @@ export const CreatePoolMint = ({
         return;
       }
 
-      // const groups = []; //[...groupMap.values()];
+      if (mintAddress === tokenMintAddress) {
+        setError("Quote token cannot be the same as the base token.");
+        return;
+      }
 
-      // // check if mint address is in groupMap it will be found at entry.pool.token.mint
-      // const group = groups.find((group: GroupData) => {
-      //   return group.pool.token.info.rawBank.mint.equals(new PublicKey(mintAddress));
-      // });
+      const pools = Object.values(arenaPoolsSummary).filter((summary) =>
+        summary.tokenSummary.mint.equals(new PublicKey(tokenMintAddress))
+      );
 
-      // if (group) {
-      //   setPoolExists(group);
-      //   return;
-      // }
+      if (pools.length) {
+        const quotePool = pools.find((pool) => pool.quoteSummary.mint.equals(new PublicKey(mintAddress)));
 
-      fetchTokenInfo();
+        if (quotePool) {
+          setPoolExists(quotePool);
+          return;
+        }
+      }
+
+      fetchTokenInfo(mintAddress);
     },
-    [mintAddress, fetchTokenInfo]
+    [mintAddress, arenaPoolsSummary, fetchTokenInfo, tokenMintAddress]
   );
 
   return (
     <>
       <div className="text-center space-y-2 w-full mx-auto">
-        <h2 className="text-3xl font-medium">Token mint address</h2>
+        <h2 className="text-3xl font-medium">Quote Mint</h2>
         <p className="text-lg text-muted-foreground">
-          Enter the mint address of the token you&apos;d like to create a pool for.
+          Enter the mint address of the quote token you&apos;d like to create a pool for.
         </p>
       </div>
       <form
@@ -103,29 +111,28 @@ export const CreatePoolMint = ({
         {poolExists ? (
           <div className="flex flex-col justify-center items-center w-full max-w-sm">
             <Image
-              src={getTokenImageURL(poolExists.pool.token)}
+              src={getTokenImageURL(new PublicKey(poolExists.tokenSummary.mint))}
               className="rounded-full"
               width={48}
               height={48}
-              alt={`${poolExists.pool.token.meta.tokenSymbol} icon`}
+              alt={`${poolExists.tokenSummary.tokenSymbol} icon`}
             />
             <h3 className="mt-2">
-              A pool already exists for{" "}
-              <strong className="font-medium">{poolExists.pool.token.meta.tokenSymbol}</strong>
+              A pool already exists for <strong className="font-medium">{poolExists.tokenSummary.tokenSymbol}</strong>
             </h3>
             <div className="flex gap-2 mt-4">
-              <Link href={`/trade/${poolExists.client.group.address.toBase58()}?side=long`} className="w-full">
+              <Link href={`/trade/${poolExists.groupPk.toBase58()}?side=long`} className="w-full">
                 <Button variant="long" onClick={() => setIsOpen(false)}>
-                  Long {poolExists.pool.token.meta.tokenSymbol}
+                  Long {poolExists.tokenSummary.tokenSymbol}
                 </Button>
               </Link>
-              <Link href={`/trade/${poolExists.client.group.address.toBase58()}?side=short`} className="w-full">
+              <Link href={`/trade/${poolExists.groupPk.toBase58()}?side=short`} className="w-full">
                 <Button variant="short" onClick={() => setIsOpen(false)}>
-                  Short {poolExists.pool.token.meta.tokenSymbol}
+                  Short {poolExists.tokenSummary.tokenSymbol}
                 </Button>
               </Link>
             </div>
-            <Button variant="link" className="text-muted-foreground mt-2" onClick={() => fetchTokenInfo()}>
+            <Button variant="link" className="text-muted-foreground mt-2" onClick={() => fetchTokenInfo(mintAddress)}>
               Create new pool
             </Button>
           </div>
