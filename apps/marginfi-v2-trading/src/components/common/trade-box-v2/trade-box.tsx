@@ -200,28 +200,6 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
     setMaxLeverage,
   });
 
-  React.useEffect(() => {
-    console.log({
-      selectedBank: selectedBank?.meta.tokenSymbol,
-      selectedSecondaryBank: selectedSecondaryBank?.meta.tokenSymbol,
-    });
-
-    let borrowBank, depositBank;
-
-    if (tradeState === "long") {
-      depositBank = activePoolExtended.tokenBank;
-      borrowBank = activePoolExtended.quoteBank;
-    } else {
-      depositBank = activePoolExtended.quoteBank;
-      borrowBank = activePoolExtended.tokenBank;
-    }
-
-    console.log({
-      depositBank: depositBank?.meta.tokenSymbol,
-      borrowBank: borrowBank?.meta.tokenSymbol,
-    });
-  }, [selectedBank, selectedSecondaryBank]);
-
   const isActiveWithCollat = true; // TODO: figure out what this does?
 
   const actionMethods = React.useMemo(
