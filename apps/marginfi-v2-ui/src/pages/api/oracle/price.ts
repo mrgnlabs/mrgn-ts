@@ -214,8 +214,6 @@ async function handleFetchCrossbarPrices(
 
     payload.push(...mainPayload);
 
-    console.log(process.env.VERCEL_ENV, process.env.VERCEL_PROJECT_PRODUCTION_URL, process.env.VERCEL_BRANCH_URL);
-
     if (!mainBrokenFeeds.length) {
       return crossbarPayloadToOraclePricePerFeedHash(payload);
     }
