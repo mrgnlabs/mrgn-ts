@@ -326,7 +326,7 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
                 availableLiquidity: 0,
               } as BankData,
               tokenData: tokenDetailsToken,
-              tokenLogoUri: `https://storage.googleapis.com/mrgn-public/mrgn-token-icons/${tokenMint}.png`,
+              tokenLogoUri: `https://storage.googleapis.com/mrgn-public/mrgn-token-icons/${tokenMint.address}.png`,
               tokenProgram: new PublicKey(tokenMint.token_program),
             },
             quoteSummary: {
@@ -340,7 +340,7 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
                 availableLiquidity: 0,
               } as BankData,
               tokenData: tokenDetailsQuote,
-              tokenLogoUri: `https://storage.googleapis.com/mrgn-public/mrgn-token-icons/${quoteMint}.png`,
+              tokenLogoUri: `https://storage.googleapis.com/mrgn-public/mrgn-token-icons/${quoteMint.address}.png`,
               tokenProgram: new PublicKey(quoteMint.token_program),
             },
           };
@@ -643,6 +643,7 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
 
     set({
       arenaPools,
+      poolsFetched: true,
       banksByBankPk: extendedBanksByBankPk,
       groupsByGroupPk,
       marginfiAccountByGroupPk,
