@@ -24,6 +24,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/comp
 
 import { CreatePoolScriptDialog } from "../Pool/CreatePoolScript";
 import { CreatePoolSoon } from "../Pool/CreatePoolSoon";
+import { CreatePoolDialog } from "../Pool/CreatePoolDialog";
 
 const navItems = [
   { label: "Discover", href: "/" },
