@@ -15,6 +15,7 @@ import {
   usePrevious,
 } from "@mrgnlabs/mrgn-utils";
 import { IconSettings } from "@tabler/icons-react";
+import { ActionType, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { ArenaPoolV2 } from "~/store/tradeStoreV2";
 import { handleExecuteTradeAction, TradeSide } from "~/components/common/trade-box-v2/utils";
@@ -24,7 +25,7 @@ import { useWallet, useWalletStore } from "~/components/wallet-v2";
 import { useExtendedPool } from "~/hooks/useExtendedPools";
 import { useMarginfiClient } from "~/hooks/useMarginfiClient";
 import { useWrappedAccount } from "~/hooks/useWrappedAccount";
-import { SimulationStatus } from "~/components/action-box-v2/utils";
+import { SimulationStatus } from "~/components/action-box-v2/utils"; // TODO
 import { useAmountDebounce } from "~/hooks/useAmountDebounce";
 
 import {
@@ -41,9 +42,7 @@ import {
 import { useTradeBoxStore } from "./store";
 import { checkTradeActionAvailable } from "./utils";
 import { useTradeSimulation, useActionAmounts } from "./hooks";
-import { ActionType, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { useActionContext } from "@mrgnlabs/mrgn-ui";
-import { UnderlineIcon } from "@radix-ui/react-icons";
+import { ActionSimulationStatus } from "./components";
 
 interface TradeBoxV2Props {
   activePool: ArenaPoolV2;
@@ -116,9 +115,9 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
     groupPk: activePoolExtended.groupPk,
     banks: [activePoolExtended.tokenBank, activePoolExtended.quoteBank],
   });
-  const { walletContextState, wallet, connected } = useWallet();
+  const { wallet, connected } = useWallet();
   const { connection } = useConnection();
-  const { amount, debouncedAmount, walletAmount, maxAmount } = useActionAmounts({
+  const { amount, debouncedAmount, maxAmount } = useActionAmounts({
     amountRaw,
     activePool: activePoolExtended,
     collateralBank: selectedBank,
@@ -176,12 +175,12 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
     }
   }, [errorMessage]);
 
-  // TODO: on load, reset everything
   React.useEffect(() => {
     refreshState();
   }, []);
 
   const { actionSummary, refreshSimulation } = useTradeSimulation({
+    // TODO: do we need actionSummary
     debouncedAmount: debouncedAmount ?? 0,
     debouncedLeverage: debouncedLeverage ?? 0,
     selectedBank: selectedBank,
@@ -274,6 +273,9 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
           // TODO: update the messaging within the toast. Might need tailored functions in the sdk for trading
           console.log("error", error);
           const toast = error.multiStepToast as MultiStepToastHandle; // TODO: check if this works, not sure it does
+          if (!toast) {
+            return;
+          }
           const txs = error.actionTxns as ActionTxns;
           let retry = undefined;
           if (error.retry && toast && txs) {
@@ -400,17 +402,23 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
             buttonLabel={tradeState === "long" ? "Long" : "Short"}
             tradeState={tradeState}
           />
-          <TradingBoxSettingsDialog
-            setSlippageBps={(value) => setSlippageBps(value * 100)}
-            slippageBps={slippageBps / 100}
-          >
-            <div className="flex justify-end">
+          <div className="flex items-center w-full justify-between">
+            <ActionSimulationStatus
+              simulationStatus={isSimulating.status}
+              hasErrorMessages={additionalActionMessages.length > 0}
+              isActive={selectedBank && amount > 0 ? true : false}
+            />
+            <TradingBoxSettingsDialog
+              setSlippageBps={(value) => setSlippageBps(value * 100)}
+              slippageBps={slippageBps / 100}
+            >
               <button className="text-xs gap-1 h-6 px-2 flex items-center rounded-full border bg-transparent hover:bg-accent text-muted-foreground">
                 Settings <IconSettings size={16} />
               </button>
-            </div>
-          </TradingBoxSettingsDialog>
+            </TradingBoxSettingsDialog>
+          </div>
         </div>
+
         <Stats
           activePool={activePoolExtended}
           accountSummary={accountSummary}
