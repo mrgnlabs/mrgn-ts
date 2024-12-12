@@ -70,7 +70,12 @@ export const fetchInitialArenaState = async (host?: string): Promise<InitialAren
     // Fetch all data in parallel using Promise.all
     const [poolData, tokenDetailsData] = await Promise.all([
       fetch(`${baseUrl}/api/pool/list`).then((res) => res.json() as Promise<PoolApiResponse[]>),
-      fetch(`${baseUrl}/api/birdeye/arenaTokens`).then((res) => res.json()),
+      fetch(`${baseUrl}/api/birdeye/arenaTokens`, {
+        headers: {
+          origin: baseUrl || "",
+          referer: baseUrl || "",
+        },
+      }).then((res) => res.json()),
       // fetch(`${baseUrl}/api/pool/summary`).then((res) => res.json()),
     ]);
 
