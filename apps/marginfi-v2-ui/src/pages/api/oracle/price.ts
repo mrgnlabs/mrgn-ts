@@ -214,7 +214,7 @@ async function handleFetchCrossbarPrices(
 
     payload.push(...mainPayload);
 
-    console.log(process.env.VERCEL_URL);
+    console.log(process.env.VERCEL_ENV, process.env.VERCEL_PROJECT_PRODUCTION_URL, process.env.VERCEL_BRANCH_URL);
 
     if (!mainBrokenFeeds.length) {
       return crossbarPayloadToOraclePricePerFeedHash(payload);
@@ -420,15 +420,16 @@ async function fetchMultiPrice(tokens: string[]): Promise<BirdeyePriceResponse> 
   }, 5000);
 
   try {
-    // Use our cached endpoint instead of hitting Birdeye directly
-    const response = await fetch(
-      `${
-        process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3004"
-      }/api/tokens/multi?mintList=${tokens.join(",")}`,
-      {
-        signal: controller.signal,
-      }
-    );
+    const baseUrl =
+      process.env.VERCEL_ENV === "production" && process.env.VERCEL_PROJECT_PRODUCTION_URL
+        ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+        : process.env.VERCEL_BRANCH_URL
+        ? `https://${process.env.VERCEL_BRANCH_URL}`
+        : "localhost:3004";
+
+    const response = await fetch(`${baseUrl}/api/tokens/multi?mintList=${tokens.join(",")}`, {
+      signal: controller.signal,
+    });
     clearTimeout(timeoutId);
 
     const data = (await response.json()) as BirdeyePriceResponse;
