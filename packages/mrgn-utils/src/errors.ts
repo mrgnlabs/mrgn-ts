@@ -62,7 +62,7 @@ export const STATIC_SIMULATION_ERRORS: { [key: string]: ActionMessageType } = {
     actionMethod: "WARNING",
     description: "Transaction failed due to poor account health, please increase your collateral and try again.",
     code: 108,
-  },
+  }, // We should add an action to deposit collateral here, this is quite often being thrown in the arena
   USER_REJECTED: {
     isEnabled: false,
     actionMethod: "WARNING",

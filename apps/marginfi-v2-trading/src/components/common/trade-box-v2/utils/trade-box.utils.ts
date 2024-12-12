@@ -1,9 +1,9 @@
-import { QuoteResponse } from "@jup-ag/react-hook";
+import { QuoteResponse } from "@jup-ag/api";
 import { OperationalState } from "@mrgnlabs/marginfi-client-v2";
 import { ActionMessageType, DYNAMIC_SIMULATION_ERRORS, isBankOracleStale } from "@mrgnlabs/mrgn-utils";
 import { ArenaBank } from "~/store/tradeStoreV2";
 
-interface CheckLoopActionAvailableProps {
+interface CheckTradeActionAvailableProps {
   amount: number | null;
   connected: boolean;
   collateralBank: ArenaBank | null;
@@ -11,13 +11,13 @@ interface CheckLoopActionAvailableProps {
   actionQuote: QuoteResponse | null;
 }
 
-export function checkLoopActionAvailable({
+export function checkTradeActionAvailable({
   amount,
   connected,
   collateralBank,
   secondaryBank,
   actionQuote,
-}: CheckLoopActionAvailableProps): ActionMessageType[] {
+}: CheckTradeActionAvailableProps): ActionMessageType[] {
   let checks: ActionMessageType[] = [];
 
   const requiredCheck = getRequiredCheck(connected, collateralBank);
@@ -28,8 +28,8 @@ export function checkLoopActionAvailable({
 
   // allert checks
   if (collateralBank) {
-    const loopChecks = canBeLooped(collateralBank, secondaryBank, actionQuote);
-    if (loopChecks.length) checks.push(...loopChecks);
+    const tradeChecks = canBeTraded(collateralBank, secondaryBank, actionQuote);
+    if (tradeChecks.length) checks.push(...tradeChecks);
   }
 
   if (checks.length === 0)
@@ -55,7 +55,7 @@ function getGeneralChecks(amount: number = 0, showCloseBalance?: boolean): Actio
   let checks: ActionMessageType[] = [];
   if (showCloseBalance) {
     checks.push({ actionMethod: "INFO", description: "Close lending balance.", isEnabled: true });
-  } // TODO: only for lend and withdraw
+  }
 
   if (amount === 0) {
     checks.push({ isEnabled: false });
@@ -64,7 +64,7 @@ function getGeneralChecks(amount: number = 0, showCloseBalance?: boolean): Actio
   return checks;
 }
 
-function canBeLooped(
+function canBeTraded(
   targetBankInfo: ArenaBank,
   repayBankInfo: ArenaBank | null,
   swapQuote: QuoteResponse | null
@@ -97,7 +97,7 @@ function canBeLooped(
   }
 
   if ((repayBankInfo && isBankOracleStale(repayBankInfo)) || (targetBankInfo && isBankOracleStale(targetBankInfo))) {
-    checks.push(DYNAMIC_SIMULATION_ERRORS.STALE_CHECK("Looping"));
+    checks.push(DYNAMIC_SIMULATION_ERRORS.STALE_CHECK("Trading"));
   }
 
   return checks;
