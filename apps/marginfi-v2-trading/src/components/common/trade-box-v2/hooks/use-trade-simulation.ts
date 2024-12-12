@@ -127,11 +127,6 @@ export function useTradeSimulation({
 
       setIsLoading({ isLoading: true, status: SimulationStatus.PREPARING });
 
-      console.log({
-        selectedBank,
-        selectedSecondaryBank,
-      });
-
       try {
         const loopingResult = await calculateLooping({
           marginfiClient: marginfiClient,
@@ -196,7 +191,6 @@ export function useTradeSimulation({
     if (prevDebouncedAmount !== debouncedAmount || prevDebouncedLeverage !== debouncedLeverage) {
       // Only set to PREPARING if we're actually going to simulate
       if (debouncedAmount > 0 && debouncedLeverage > 0) {
-        console.log("fetching trade txns");
         fetchTradeTxns(debouncedAmount, debouncedLeverage);
       }
     }

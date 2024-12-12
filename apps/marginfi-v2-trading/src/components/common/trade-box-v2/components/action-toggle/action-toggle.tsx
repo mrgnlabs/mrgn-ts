@@ -13,7 +13,6 @@ export const ActionToggle = ({ tradeState, setTradeState }: ActionToggleProps) =
       className="w-full gap-4"
       value={tradeState}
       onValueChange={(value) => {
-        console.log("value", value);
         value && setTradeState(value as TradeSide);
       }}
     >
