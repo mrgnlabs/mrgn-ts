@@ -42,7 +42,7 @@ import {
   ActionTxns,
   RepayWithCollatProps,
   IndividualFlowError,
-  LoopActionTxns,
+  TradeActionTxns,
 } from "./types";
 import { captureSentryException } from "../sentry.utils";
 import { loopingBuilder, repayWithCollatBuilder } from "./flashloans";
@@ -52,13 +52,24 @@ import { handleError } from "../errors";
 // Local utils functions //
 //-----------------------//
 
-export function getSteps(actionTxns?: ActionTxns) {
-  return [
-    { label: "Signing transaction" },
-    ...(actionTxns?.additionalTxns.map((tx) => ({
-      label: MRGN_TX_TYPE_TOAST_MAP[tx.type ?? "CRANK"],
-    })) ?? []),
-  ];
+export function getSteps(actionTxns?: ActionTxns, broadcastType?: TransactionBroadcastType) {
+  const steps = [];
+
+  steps.push({ label: "Signing transaction" });
+
+  if (actionTxns && typeof actionTxns === "object" && "accountCreationTx" in actionTxns) {
+    steps.push({ label: "Creating marginfi account" });
+
+    if (broadcastType !== "RPC") {
+      steps.push({ label: "Signing transaction" });
+    }
+  }
+
+  actionTxns?.additionalTxns.forEach((tx) => {
+    steps.push({ label: MRGN_TX_TYPE_TOAST_MAP[tx.type ?? "CRANK"] });
+  });
+
+  return steps;
 }
 
 export function composeExplorerUrl(signature?: string, broadcastType: TransactionBroadcastType = "RPC") {
@@ -590,7 +601,7 @@ export async function looping({
 
 interface TradeFnProps extends LoopingProps {
   marginfiClient: MarginfiClient;
-  actionTxns: LoopActionTxns;
+  actionTxns: TradeActionTxns;
   processOpts: ProcessTransactionsClientOpts;
   txOpts: TransactionOptions;
   tradeSide: "long" | "short";
@@ -607,11 +618,6 @@ export async function trade({
   if (marginfiClient === null) {
     showErrorToast({ message: "Marginfi client not ready" });
     return;
-  }
-
-  if (actionTxns?.accountCreationTx) {
-    const accountCreationTx = actionTxns.accountCreationTx;
-    //process seperatetly then execute next
   }
 
   if (!multiStepToast) {
@@ -636,8 +642,26 @@ export async function trade({
     let sigs: string[] = [];
 
     if (actionTxns?.actionTxn) {
+      const txns: SolanaTransaction[] = [...actionTxns.additionalTxns, actionTxns.actionTxn];
+      if (actionTxns.accountCreationTx) {
+        if (processOpts.broadcastType !== "RPC") {
+          await marginfiClient.processTransaction(actionTxns.accountCreationTx, {
+            ...processOpts,
+            callback: (index, success, sig, stepsToAdvance) =>
+              success &&
+              multiStepToast.setSuccessAndNext(
+                stepsToAdvance,
+                sig,
+                composeExplorerUrl(sig, processOpts?.broadcastType)
+              ),
+          }); // TODO: add sig saving & displaying
+        } else {
+          txns.push(actionTxns.accountCreationTx);
+        }
+      }
+
       sigs = await marginfiClient.processTransactions(
-        [...actionTxns.additionalTxns, actionTxns.actionTxn],
+        txns,
         {
           ...processOpts,
           callback: (index, success, sig, stepsToAdvance) =>

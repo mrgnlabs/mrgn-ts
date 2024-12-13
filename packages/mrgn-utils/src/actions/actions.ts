@@ -12,6 +12,7 @@ import {
   RepayWithCollatProps,
   LoopingProps,
   LoopActionTxns,
+  TradeActionTxns,
 } from "./types";
 import { WalletContextStateOverride } from "../wallet";
 import {
@@ -135,7 +136,7 @@ export async function executeLoopingAction(params: ExecuteLoopingActionProps) {
 
 export interface ExecuteTradeActionProps extends LoopingProps {
   marginfiClient: MarginfiClient;
-  actionTxns: LoopActionTxns;
+  actionTxns: TradeActionTxns;
   processOpts: ProcessTransactionsClientOpts;
   txOpts: TransactionOptions;
   tradeSide: "long" | "short";

@@ -1,7 +1,7 @@
 import React from "react";
 import { ArenaPoolV2Extended } from "~/store/tradeStoreV2";
 import { generateTradeStats } from "./utils/stats-utils";
-import { cn, LoopActionTxns } from "@mrgnlabs/mrgn-utils";
+import { cn, TradeActionTxns } from "@mrgnlabs/mrgn-utils";
 import { SimulationResult } from "@mrgnlabs/marginfi-client-v2";
 import { AccountSummary } from "@mrgnlabs/marginfi-v2-ui-state";
 import { ActionStatItem } from "~/components/action-box-v2/components/action-stats/action-stat-item";
@@ -10,7 +10,7 @@ interface StatsProps {
   activePool: ArenaPoolV2Extended;
   accountSummary: AccountSummary | null;
   simulationResult: SimulationResult | null;
-  actionTxns: LoopActionTxns | null;
+  actionTxns: TradeActionTxns | null;
 }
 export const Stats = ({ activePool, accountSummary, simulationResult, actionTxns }: StatsProps) => {
   const stats = React.useMemo(
