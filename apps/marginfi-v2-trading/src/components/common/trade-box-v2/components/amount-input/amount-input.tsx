@@ -1,10 +1,8 @@
 import React from "react";
 
-import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { Input } from "~/components/ui/input";
 import { MaxAction } from "./components";
 import { ArenaBank } from "~/store/tradeStoreV2";
-import { tokenPriceFormatter } from "@mrgnlabs/mrgn-common";
 
 interface AmountInputProps {
   maxAmount: number;
