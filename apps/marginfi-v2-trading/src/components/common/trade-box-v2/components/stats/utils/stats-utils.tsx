@@ -160,4 +160,4 @@ export function getSimulationStats(simulationResult: SimulationResult, extendedP
     healthFactor,
     liquidationPrice,
   };
-} // TODO: a lot of this code is copy pasted from old code, need to clean up
+}

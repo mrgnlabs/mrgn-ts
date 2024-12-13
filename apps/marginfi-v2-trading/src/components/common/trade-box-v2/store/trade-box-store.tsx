@@ -14,9 +14,6 @@ interface TradeBoxState {
   leverage: number;
   maxLeverage: number;
 
-  depositLstApy: number | null;
-  borrowLstApy: number | null;
-
   selectedBank: ArenaBank | null;
   selectedSecondaryBank: ArenaBank | null;
 
@@ -37,8 +34,6 @@ interface TradeBoxState {
   setSelectedBank: (bank: ArenaBank | null) => void;
   setSelectedSecondaryBank: (bank: ArenaBank | null) => void;
   setMaxLeverage: (maxLeverage: number) => void;
-  setDepositLstApy: (bank: ArenaBank) => void;
-  setBorrowLstApy: (bank: ArenaBank) => void;
 }
 
 const initialState = {
@@ -50,8 +45,6 @@ const initialState = {
   selectedBank: null,
   selectedSecondaryBank: null,
   maxLeverage: 0,
-  depositLstApy: null,
-  borrowLstApy: null,
 
   actionTxns: {
     actionTxn: null,
@@ -78,8 +71,6 @@ const stateCreator: StateCreator<TradeBoxState, [], []> = (set, get) => ({
       leverage: initialState.leverage,
       actionTxns: initialState.actionTxns,
       errorMessage: null,
-      depositLstApy: initialState.depositLstApy, // TODO: can we remove? Not using anywhere
-      borrowLstApy: initialState.borrowLstApy, // TODO: can we remove? Not using anywhere
     });
   },
 
@@ -135,9 +126,6 @@ const stateCreator: StateCreator<TradeBoxState, [], []> = (set, get) => ({
     const hasBankChanged = !tokenBank || !selectedBank || !tokenBank.address.equals(selectedBank.address);
 
     if (hasBankChanged) {
-      if (tokenBank) {
-        get().setDepositLstApy(tokenBank);
-      }
       set({
         selectedBank: tokenBank,
         amountRaw: initialState.amountRaw,
@@ -154,9 +142,6 @@ const stateCreator: StateCreator<TradeBoxState, [], []> = (set, get) => ({
       !secondaryBank || !selectedSecondaryBank || !secondaryBank.address.equals(selectedSecondaryBank.address);
 
     if (hasBankChanged) {
-      if (secondaryBank) {
-        get().setBorrowLstApy(secondaryBank);
-      }
       set({
         selectedSecondaryBank: secondaryBank,
         amountRaw: initialState.amountRaw,
@@ -171,28 +156,6 @@ const stateCreator: StateCreator<TradeBoxState, [], []> = (set, get) => ({
 
   setMaxLeverage(maxLeverage) {
     set({ maxLeverage });
-  },
-
-  async setDepositLstApy(bank: ArenaBank) {
-    const lstsArr = Object.keys(LSTS_SOLANA_COMPASS_MAP);
-    if (!lstsArr.includes(bank.meta.tokenSymbol)) {
-      set({ depositLstApy: null });
-      return;
-    } else {
-      const depositLstApy = await calculateLstYield(bank);
-      set({ depositLstApy });
-    }
-  },
-
-  async setBorrowLstApy(bank: ArenaBank) {
-    const lstsArr = Object.keys(LSTS_SOLANA_COMPASS_MAP);
-    if (!lstsArr.includes(bank.meta.tokenSymbol)) {
-      set({ borrowLstApy: null });
-      return;
-    } else {
-      const borrowLstApy = await calculateLstYield(bank);
-      set({ borrowLstApy });
-    }
   },
 });
 

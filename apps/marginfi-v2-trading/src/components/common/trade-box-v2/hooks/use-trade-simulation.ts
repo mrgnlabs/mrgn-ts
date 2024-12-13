@@ -120,7 +120,7 @@ export function useTradeSimulation({
           lastValidBlockHeight: undefined,
           actualDepositAmount: 0,
           borrowAmount: new BigNumber(0),
-        }); // TODO: create init state from this
+        });
         setSimulationResult(null);
         return;
       }
@@ -142,6 +142,10 @@ export function useTradeSimulation({
 
         if (loopingResult && "actionQuote" in loopingResult) {
           setActionTxns(loopingResult);
+          handleSimulation([
+            ...(actionTxns?.additionalTxns ?? []),
+            ...(actionTxns?.actionTxn ? [actionTxns?.actionTxn] : []),
+          ]);
         } else {
           const errorMessage =
             loopingResult ??
@@ -196,22 +200,7 @@ export function useTradeSimulation({
     }
   }, [debouncedAmount, debouncedLeverage, fetchTradeTxns, prevDebouncedAmount, prevDebouncedLeverage]);
 
-  React.useEffect(() => {
-    // Only run simulation if we have transactions to simulate
-    if (actionTxns?.actionTxn || (actionTxns?.additionalTxns?.length ?? 0) > 0) {
-      handleSimulation([
-        ...(actionTxns?.additionalTxns ?? []),
-        ...(actionTxns?.actionTxn ? [actionTxns?.actionTxn] : []),
-      ]);
-    } else {
-      // If no transactions, move back to idle state
-      setIsLoading({ isLoading: false, status: SimulationStatus.IDLE });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [actionTxns]);
-
   // Fetch max leverage based when the secondary bank changes
-  // Not needed rn i think but when we do pay with any token it will be needed
   React.useEffect(() => {
     if (!selectedSecondaryBank) {
       return;
