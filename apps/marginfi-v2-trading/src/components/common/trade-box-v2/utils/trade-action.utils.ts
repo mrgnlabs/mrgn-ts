@@ -1,18 +1,10 @@
 import { v4 as uuidv4 } from "uuid";
-import {
-  ActionMessageType,
-  calculateLoopingParams,
-  CalculateLoopingProps,
-  executeLoopingAction,
-  LoopActionTxns,
-  ExecuteLoopingActionProps,
-  IndividualFlowError,
-} from "@mrgnlabs/mrgn-utils";
+import { IndividualFlowError, executeTradeAction, ExecuteTradeActionProps } from "@mrgnlabs/mrgn-utils";
 
 import { ExecuteActionsCallbackProps } from "~/components/action-box-v2/types";
 
 interface ExecuteTradeActionsProps extends ExecuteActionsCallbackProps {
-  props: ExecuteLoopingActionProps;
+  props: ExecuteTradeActionProps;
 }
 
 export const handleExecuteTradeAction = async ({
@@ -33,7 +25,7 @@ export const handleExecuteTradeAction = async ({
       priorityFee: props.processOpts?.priorityFeeMicro ?? 0,
     });
 
-    const txnSig = await executeLoopingAction(props);
+    const txnSig = await executeTradeAction(props);
 
     setIsLoading(false);
 
