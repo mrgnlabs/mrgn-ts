@@ -25,50 +25,41 @@ export function generateTradeStats(props: generateTradeStatsProps) {
     value: () => <>{tokenPriceFormatter(props.extendedPool.tokenBank.info.state.price)}</>,
   });
 
-  // simulation stat
-  if (props.simulationResult) {
-    const simStats = getSimulationStats(props.simulationResult, props.extendedPool);
-    const currentLiquidationPrice =
-      props.extendedPool.tokenBank.isActive &&
-      props.extendedPool.tokenBank.position.liquidationPrice &&
-      props.extendedPool.tokenBank.position.liquidationPrice > 0.01
-        ? usdFormatter.format(props.extendedPool.tokenBank.position.liquidationPrice)
-        : null;
-    const simulatedLiqPrice = simStats?.liquidationPrice ? usdFormatter.format(simStats?.liquidationPrice) : null;
-    const showLiqComparison = currentLiquidationPrice && simulatedLiqPrice;
-    stats.push({
-      label: "Liquidation price",
-      value: () => (
-        <>
-          {currentLiquidationPrice && <span>{currentLiquidationPrice}</span>}
-          {showLiqComparison && <IconArrowRight width={12} height={12} />}
-          {simulatedLiqPrice && <span>{simulatedLiqPrice}</span>}
-        </>
-      ),
-    });
-  }
+  if (props.actionTxns) {
+    // slippage stat
+    const slippageBps = props.actionTxns?.actionQuote?.slippageBps;
+    if (slippageBps) {
+      stats.push({
+        label: "Slippage",
+        color: slippageBps > 500 ? "ALERT" : "SUCCESS",
+        value: () => <>{percentFormatter.format(slippageBps / 10000)}</>,
+      });
+    }
 
-  // platform fee stat
-  const platformFeeBps = props.actionTxns?.actionQuote?.platformFee
-    ? Number(props.actionTxns.actionQuote.platformFee?.feeBps)
-    : undefined;
-  if (platformFeeBps) {
-    stats.push({
-      label: "Platform fee",
-      value: () => <>{percentFormatter.format(platformFeeBps / 10000)}</>,
-    });
-  }
+    // platform fee stat
+    const platformFeeBps = props.actionTxns?.actionQuote?.platformFee
+      ? Number(props.actionTxns.actionQuote.platformFee?.feeBps)
+      : undefined;
 
-  // price impact stat
-  const priceImpactPct = props.actionTxns?.actionQuote
-    ? Number(props.actionTxns.actionQuote.priceImpactPct)
-    : undefined;
-  if (priceImpactPct) {
-    stats.push({
-      label: "Price impact",
-      color: priceImpactPct > 0.05 ? "DESTRUCTIVE" : priceImpactPct > 0.01 ? "ALERT" : "SUCCESS",
-      value: () => <>{percentFormatter.format(priceImpactPct)}</>,
-    });
+    if (platformFeeBps) {
+      stats.push({
+        label: "Platform fee",
+        value: () => <>{percentFormatter.format(platformFeeBps / 10000)}</>,
+      });
+    }
+
+    // price impact stat
+    const priceImpactPct = props.actionTxns?.actionQuote
+      ? Number(props.actionTxns.actionQuote.priceImpactPct)
+      : undefined;
+
+    if (priceImpactPct !== undefined) {
+      stats.push({
+        label: "Price impact",
+        color: priceImpactPct > 0.05 ? "DESTRUCTIVE" : priceImpactPct > 0.01 ? "ALERT" : "SUCCESS",
+        value: () => <>{percentFormatter.format(priceImpactPct)}</>,
+      });
+    }
   }
 
   // oracle stat
@@ -93,31 +84,6 @@ export function generateTradeStats(props: generateTradeStatsProps) {
       </>
     ),
   });
-
-  const accountSummary = props.accountSummary;
-  if (accountSummary) {
-    // total deposits stat
-    stats.push({
-      label: "Total deposits",
-      value: () => (
-        <>
-          {props.extendedPool.tokenBank.info.state.totalDeposits.toFixed(2)}{" "}
-          {props.extendedPool.tokenBank.meta.tokenSymbol}
-        </>
-      ),
-    });
-
-    // total borrows stat
-    stats.push({
-      label: "Total borrows",
-      value: () => (
-        <>
-          {props.extendedPool.tokenBank.info.state.totalBorrows.toFixed(2)}{" "}
-          {props.extendedPool.tokenBank.meta.tokenSymbol}
-        </>
-      ),
-    });
-  }
 
   return stats;
 }
