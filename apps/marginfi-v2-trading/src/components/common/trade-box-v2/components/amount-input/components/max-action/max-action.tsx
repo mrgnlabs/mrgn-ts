@@ -23,7 +23,7 @@ export const MaxAction = ({ maxAmount, collateralBank, setAmount }: TradeActionP
         amount: "-",
         showWalletIcon: false,
       };
-    } // TODO: is this necessary since collateralBank is defined?
+    }
 
     const formatAmount = (maxAmount?: number, symbol?: string) =>
       maxAmount !== undefined ? `${clampedNumeralFormatter(maxAmount)} ${symbol?.toUpperCase()}` : "-"; // TODO: use dynamicNumeralFormatter

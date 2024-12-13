@@ -5,27 +5,26 @@ import React from "react";
 import {
   ActionMessageType,
   ActionTxns,
+  capture,
   ExecuteLoopingActionProps,
   formatAmount,
   IndividualFlowError,
+  LoopActionTxns,
   MultiStepToastHandle,
-  PreviousTxn,
   showErrorToast,
   useConnection,
-  usePrevious,
 } from "@mrgnlabs/mrgn-utils";
 import { IconSettings } from "@tabler/icons-react";
 import { ActionType, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { ArenaPoolV2 } from "~/store/tradeStoreV2";
-import { handleExecuteTradeAction, TradeSide } from "~/components/common/trade-box-v2/utils";
+import { handleExecuteTradeAction, SimulationStatus, TradeSide } from "~/components/common/trade-box-v2/utils";
 import { Card, CardContent, CardHeader } from "~/components/ui/card";
 import { useTradeStoreV2, useUiStore } from "~/store";
 import { useWallet, useWalletStore } from "~/components/wallet-v2";
 import { useExtendedPool } from "~/hooks/useExtendedPools";
 import { useMarginfiClient } from "~/hooks/useMarginfiClient";
 import { useWrappedAccount } from "~/hooks/useWrappedAccount";
-import { SimulationStatus } from "~/components/action-box-v2/utils"; // TODO
 import { useAmountDebounce } from "~/hooks/useAmountDebounce";
 
 import {
@@ -43,6 +42,7 @@ import { useTradeBoxStore } from "./store";
 import { checkTradeActionAvailable } from "./utils";
 import { useTradeSimulation, useActionAmounts } from "./hooks";
 import { ActionSimulationStatus } from "./components";
+import { PreviousTxn } from "~/types";
 
 interface TradeBoxV2Props {
   activePool: ArenaPoolV2;
@@ -92,12 +92,22 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
     state.setSelectedSecondaryBank,
     state.setMaxLeverage,
   ]);
-  const [slippageBps, setSlippageBps, platformFeeBps, broadcastType, priorityFees] = useUiStore((state) => [
+  const [
+    slippageBps,
+    setSlippageBps,
+    platformFeeBps,
+    broadcastType,
+    priorityFees,
+    setIsActionComplete,
+    setPreviousTxn,
+  ] = useUiStore((state) => [
     state.slippageBps,
     state.setSlippageBps,
     state.platformFeeBps,
     state.broadcastType,
     state.priorityFees,
+    state.setIsActionComplete,
+    state.setPreviousTxn,
   ]);
   const [setIsWalletOpen] = useWalletStore((state) => [state.setIsWalletOpen]);
   const [fetchTradeState, nativeSolBalance, setIsRefreshingStore, refreshGroup] = useTradeStoreV2((state) => [
@@ -179,8 +189,7 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
     refreshState();
   }, []);
 
-  const { actionSummary, refreshSimulation } = useTradeSimulation({
-    // TODO: do we need actionSummary
+  const { refreshSimulation } = useTradeSimulation({
     debouncedAmount: debouncedAmount ?? 0,
     debouncedLeverage: debouncedLeverage ?? 0,
     selectedBank: selectedBank,
@@ -245,16 +254,21 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
           callbacks.captureEvent && callbacks.captureEvent(event, properties);
         },
         setIsComplete: (txnSigs) => {
+          const _actionTxns = params.actionTxns as LoopActionTxns;
           callbacks.setIsActionComplete(true);
           callbacks.setPreviousTxn({
+            txnType: "TRADING",
             txn: txnSigs[txnSigs.length - 1] ?? "",
-            txnType: "LOOP",
-            loopOptions: {
+            tradingOptions: {
               depositBank: params.depositBank as ActiveBankInfo,
               borrowBank: params.borrowBank as ActiveBankInfo,
+              initDepositAmount: params.depositAmount.toString(),
               depositAmount: params.actualDepositAmount,
               borrowAmount: params.borrowAmount.toNumber(),
               leverage: leverage,
+              type: tradeState,
+              quote: _actionTxns.actionQuote!,
+              entryPrice: activePoolExtended.tokenBank.info.oraclePrice.priceRealtime.price.toNumber(),
             },
           });
 
@@ -294,10 +308,22 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
   const retryTradeAction = React.useCallback(
     (params: ExecuteLoopingActionProps, leverage: number) => {
       executeAction(params, leverage, {
-        captureEvent: () => {}, // TODO: implement this
-        setIsActionComplete: () => {}, // TODO: implement this
-        setPreviousTxn: () => {}, // TODO: implement this
-        onComplete: () => {}, // TODO: implement this
+        captureEvent: () => {
+          capture("trade_action_retry", {
+            group: activePoolExtended.groupPk.toBase58(),
+            bank: selectedBank?.meta.tokenSymbol,
+          });
+        },
+        setIsActionComplete: setIsActionComplete,
+        setPreviousTxn,
+        onComplete: () => {
+          refreshGroup({
+            connection,
+            wallet,
+            groupPk: activePoolExtended.groupPk,
+            banks: [activePoolExtended.tokenBank.address, activePoolExtended.quoteBank.address],
+          });
+        },
         setIsLoading: setIsTransactionExecuting,
         setAmountRaw,
         retryCallback: (txns: ActionTxns, multiStepToast: MultiStepToastHandle) => {
@@ -305,7 +331,7 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
         },
       });
     },
-    [setAmountRaw, setIsTransactionExecuting]
+    [setAmountRaw, setIsTransactionExecuting, setIsActionComplete, setPreviousTxn]
   );
 
   const handleTradeAction = React.useCallback(async () => {
@@ -333,17 +359,42 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
     };
 
     executeAction(params, leverage, {
-      captureEvent: () => {}, // TODO: implement this
-      setIsActionComplete: () => {}, // TODO: implement this
-      setPreviousTxn: () => {}, // TODO: implement this
-      onComplete: () => {}, // TODO: implement this
+      captureEvent: () => {
+        capture("trade_action_execute", {
+          group: activePoolExtended.groupPk.toBase58(),
+          bank: selectedBank?.meta.tokenSymbol,
+        });
+      },
+      setIsActionComplete: setIsActionComplete,
+      setPreviousTxn,
+      onComplete: () => {
+        refreshGroup({
+          connection,
+          wallet,
+          groupPk: activePoolExtended.groupPk,
+          banks: [activePoolExtended.tokenBank.address, activePoolExtended.quoteBank.address],
+        });
+      },
       setIsLoading: setIsTransactionExecuting,
       setAmountRaw,
       retryCallback: (txns: ActionTxns, multiStepToast: MultiStepToastHandle) => {
         retryTradeAction({ ...params, actionTxns: txns, multiStepToast }, leverage);
       },
     });
-  }, []);
+  }, [
+    client,
+    selectedBank,
+    selectedSecondaryBank,
+    actionTxns,
+    priorityFees,
+    broadcastType,
+    wrappedAccount,
+    amount,
+    leverage,
+    setIsActionComplete,
+    setIsTransactionExecuting,
+    setAmountRaw,
+  ]);
 
   return (
     <Card className="shadow-none border-border w-full">
@@ -429,9 +480,3 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
     </Card>
   );
 };
-
-/*
-TODO: 
-- when wallet is connected but store is loading, show to user
-
-*/
