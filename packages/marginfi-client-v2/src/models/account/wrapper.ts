@@ -871,6 +871,7 @@ class MarginfiAccountWrapper {
     txs: (VersionedTransaction | Transaction)[],
     banksToInspect: PublicKey[]
   ): Promise<SimulationResult> {
+    console.log("txs", txs);
     const [mfiAccountData, ...bankData] = await this.client.simulateTransactions(txs, [
       this.address,
       ...banksToInspect,
