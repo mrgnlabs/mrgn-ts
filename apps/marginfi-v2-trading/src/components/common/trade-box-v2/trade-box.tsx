@@ -418,12 +418,14 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
             maxLeverage={maxLeverage}
             setLeverageAmount={setLeverage}
           />
-          <AmountPreview
-            tradeSide={tradeState}
-            amount={leveragedAmount}
-            isLoading={isLoading}
-            selectedBank={activePoolExtended.tokenBank}
-          />
+          {leveragedAmount > 0 && (
+            <AmountPreview
+              tradeSide={tradeState}
+              amount={leveragedAmount}
+              isLoading={isLoading}
+              selectedBank={activePoolExtended.tokenBank}
+            />
+          )}
           {actionMethods && actionMethods.concat(additionalActionMessages).some((method) => method.description) && (
             <InfoMessages
               connected={connected}
