@@ -587,6 +587,92 @@ export async function looping({
   }
 }
 
+interface TradeFnProps extends LoopingProps {
+  marginfiClient: MarginfiClient;
+  actionTxns: ActionTxns;
+  processOpts: ProcessTransactionsClientOpts;
+  txOpts: TransactionOptions;
+  tradeSide: "long" | "short";
+}
+
+export async function trade({
+  marginfiClient,
+  actionTxns,
+  processOpts,
+  txOpts,
+  multiStepToast,
+  ...tradingProps
+}: TradeFnProps) {
+  if (marginfiClient === null) {
+    showErrorToast({ message: "Marginfi client not ready" });
+    return;
+  }
+
+  if (!multiStepToast) {
+    const steps = getSteps(actionTxns);
+
+    multiStepToast = new MultiStepToastHandle("Trading", [
+      ...steps,
+      {
+        label: `${tradingProps.tradeSide === "long" ? "Longing" : "Shorting"} ${dynamicNumeralFormatter(
+          tradingProps.depositAmount
+        )} ${tradingProps.depositBank.meta.tokenSymbol} with ${dynamicNumeralFormatter(
+          tradingProps.borrowAmount.toNumber()
+        )} ${tradingProps.borrowBank.meta.tokenSymbol}`,
+      },
+    ]);
+    multiStepToast.start();
+  } else {
+    multiStepToast.resetAndStart();
+  }
+
+  try {
+    let sigs: string[] = [];
+
+    if (actionTxns?.actionTxn) {
+      sigs = await marginfiClient.processTransactions(
+        [...actionTxns.additionalTxns, actionTxns.actionTxn],
+        {
+          ...processOpts,
+          callback: (index, success, sig, stepsToAdvance) =>
+            success &&
+            multiStepToast.setSuccessAndNext(stepsToAdvance, sig, composeExplorerUrl(sig, processOpts?.broadcastType)),
+        },
+        txOpts
+      );
+    } else {
+      // TODO fix flashloan builder to use processOpts
+      const { flashloanTx, additionalTxs } = await loopingBuilder({
+        ...tradingProps,
+      });
+      sigs = await marginfiClient.processTransactions([...additionalTxs, flashloanTx], processOpts, txOpts);
+    }
+
+    multiStepToast.setSuccess(
+      sigs[sigs.length - 1],
+      composeExplorerUrl(sigs[sigs.length - 1], processOpts?.broadcastType)
+    );
+    return sigs;
+  } catch (error: any) {
+    console.log(`Error while looping`);
+    console.log(error);
+    if (!(error instanceof ProcessTransactionError || error instanceof SolanaJSONRPCError)) {
+      captureSentryException(error, JSON.stringify(error), {
+        action: "looping",
+        wallet: tradingProps.marginfiAccount?.authority?.toBase58(),
+        bank: tradingProps.borrowBank.meta.tokenSymbol,
+        amount: tradingProps.borrowAmount.toString(),
+      });
+    }
+
+    handleIndividualFlowError({
+      error,
+      actionTxns,
+      multiStepToast,
+    });
+  }
+}
+
 interface RepayWithCollatFnProps extends RepayWithCollatProps {
   marginfiClient: MarginfiClient;
   actionTxns: ActionTxns;
