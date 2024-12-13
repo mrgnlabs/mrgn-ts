@@ -153,7 +153,7 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
   );
 
   // Memos
-  const numberFormater = React.useMemo(() => new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 }), []); // The fuck is this lol?
+  const numberFormater = React.useMemo(() => new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 }), []);
 
   const leveragedAmount = React.useMemo(() => {
     if (tradeState === "long") {
@@ -162,6 +162,20 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
       return actionTxns?.borrowAmount.toNumber();
     }
   }, [tradeState, actionTxns]);
+
+  const actionMethods = React.useMemo(
+    () =>
+      checkTradeActionAvailable({
+        amount,
+        connected,
+        collateralBank: selectedBank,
+        secondaryBank: selectedSecondaryBank,
+        actionQuote: actionTxns.actionQuote,
+        tradeState,
+      }),
+
+    [amount, connected, activePoolExtended, actionTxns, tradeState, selectedSecondaryBank, selectedBank]
+  );
 
   // Effects
   React.useEffect(() => {
@@ -205,6 +219,7 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
     actionTxns: actionTxns,
     simulationResult: null,
     accountSummary: accountSummary ?? undefined,
+    isEnabled: !actionMethods.concat(additionalActionMessages).filter((value) => value.isEnabled === false).length,
     setActionTxns: setActionTxns,
     setErrorMessage: setErrorMessage,
     setIsLoading: setIsSimulating,
@@ -212,20 +227,13 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
     setMaxLeverage,
   });
 
+  React.useEffect(() => {
+    console.log("actionMethods", actionMethods);
+    console.log("additionalActionMessages", additionalActionMessages);
+    console.log(!actionMethods.concat(additionalActionMessages).filter((value) => value.isEnabled === false).length);
+  }, [actionMethods]);
+
   const isActiveWithCollat = true; // TODO: figure out what this does?
-
-  const actionMethods = React.useMemo(
-    () =>
-      checkTradeActionAvailable({
-        amount,
-        connected,
-        collateralBank: selectedBank,
-        secondaryBank: selectedSecondaryBank,
-        actionQuote: actionTxns.actionQuote,
-      }),
-
-    [amount, connected, activePoolExtended, actionTxns, tradeState]
-  );
 
   const handleAmountChange = React.useCallback(
     (amountRaw: string) => {
@@ -279,18 +287,22 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
           callbacks.onComplete &&
             callbacks.onComplete({
               txn: txnSigs[txnSigs.length - 1] ?? "",
-              txnType: "LEND",
-              lendingOptions: {
-                amount: params.depositAmount,
-                type: ActionType.Loop,
-                bank: params.depositBank as ActiveBankInfo,
+              txnType: "TRADING",
+              tradingOptions: {
+                depositBank: params.depositBank as ActiveBankInfo,
+                borrowBank: params.borrowBank as ActiveBankInfo,
+                initDepositAmount: params.depositAmount.toString(),
+                depositAmount: params.actualDepositAmount,
+                borrowAmount: params.borrowAmount.toNumber(),
+                leverage: leverage,
+                type: tradeState,
+                quote: _actionTxns.actionQuote!,
+                entryPrice: activePoolExtended.tokenBank.info.oraclePrice.priceRealtime.price.toNumber(),
               },
             });
         },
         setError: (error: IndividualFlowError) => {
-          // TODO: update the messaging within the toast. Might need tailored functions in the sdk for trading
-          console.log("error", error);
-          const toast = error.multiStepToast as MultiStepToastHandle; // TODO: check if this works, not sure it does
+          const toast = error.multiStepToast as MultiStepToastHandle;
           if (!toast) {
             return;
           }
