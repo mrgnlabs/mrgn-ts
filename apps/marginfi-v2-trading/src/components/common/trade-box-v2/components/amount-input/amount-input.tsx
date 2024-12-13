@@ -1,5 +1,5 @@
 import React from "react";
-
+import Image from "next/image";
 import { Input } from "~/components/ui/input";
 import { MaxAction } from "./components";
 import { ArenaBank } from "~/store/tradeStoreV2";
@@ -22,9 +22,18 @@ export const AmountInput = ({
   const amountInputRef = React.useRef<HTMLInputElement>(null);
 
   return (
-    <div className="bg-background  p-2.5 border border-accent rounded-lg">
+    <div className="bg-accent p-2.5 border border-accent/150 rounded-lg">
       <div className="flex justify-center gap-1 items-center font-medium ">
-        <span className="w-full flex-auto max-w-[162px] text-muted-foreground text-lg">
+        <span className="w-full flex items-center gap-1 max-w-[162px] text-muted-foreground text-base">
+          {collateralBank?.meta.tokenLogoUri && (
+            <Image
+              src={collateralBank?.meta.tokenLogoUri}
+              alt={collateralBank?.meta.tokenSymbol}
+              width={24}
+              height={24}
+              className="bg-background border rounded-full"
+            />
+          )}
           {collateralBank?.meta.tokenSymbol.toUpperCase()}
         </span>
         <div>
