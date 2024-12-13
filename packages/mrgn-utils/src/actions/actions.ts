@@ -5,7 +5,14 @@ import { FEE_MARGIN, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { TransactionOptions, WSOL_MINT } from "@mrgnlabs/mrgn-common";
 
 import { MultiStepToastHandle, showErrorToast } from "../toasts";
-import { MarginfiActionParams, LstActionParams, ActionTxns, RepayWithCollatProps, LoopingProps } from "./types";
+import {
+  MarginfiActionParams,
+  LstActionParams,
+  ActionTxns,
+  RepayWithCollatProps,
+  LoopingProps,
+  LoopActionTxns,
+} from "./types";
 import { WalletContextStateOverride } from "../wallet";
 import {
   deposit,
@@ -128,7 +135,7 @@ export async function executeLoopingAction(params: ExecuteLoopingActionProps) {
 
 export interface ExecuteTradeActionProps extends LoopingProps {
   marginfiClient: MarginfiClient;
-  actionTxns: ActionTxns;
+  actionTxns: LoopActionTxns;
   processOpts: ProcessTransactionsClientOpts;
   txOpts: TransactionOptions;
   tradeSide: "long" | "short";
@@ -136,11 +143,6 @@ export interface ExecuteTradeActionProps extends LoopingProps {
 
 export async function executeTradeAction(params: ExecuteTradeActionProps) {
   let txnSig: string[] | undefined;
-
-  if (!params.marginfiAccount) {
-    showErrorToast("Marginfi account not ready.");
-    return;
-  }
 
   txnSig = await trade(params);
 

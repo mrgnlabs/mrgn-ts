@@ -20,7 +20,7 @@ import React from "react";
 import { calculateLooping } from "~/components/action-box-v2/actions/loop-box/utils/loop-action.utils";
 import { SimulationStatus } from "~/components/action-box-v2/utils";
 import { ArenaBank, ArenaPoolV2Extended } from "~/store/tradeStoreV2";
-import { calculateSummary, getSimulationResult } from "../utils";
+import { calculateSummary, generateTradeTx, getSimulationResult } from "../utils";
 import BigNumber from "bignumber.js";
 
 export type TradeSimulationProps = {
@@ -131,7 +131,10 @@ export function useTradeSimulation({
     props: CalculateLoopingProps
   ): Promise<{ actionTxns: LoopActionTxns | null; actionMessage: ActionMessageType | null }> => {
     try {
-      const loopingResult = await calculateLooping(props);
+      const loopingResult = await generateTradeTx({
+        ...props,
+        authority: props.marginfiAccount?.authority ?? props.marginfiClient.provider.publicKey,
+      });
 
       if (loopingResult && "actionQuote" in loopingResult) {
         return { actionTxns: loopingResult, actionMessage: null };
@@ -149,14 +152,7 @@ export function useTradeSimulation({
   const handleSimulation = React.useCallback(
     async (amount: number, leverage: number) => {
       try {
-        if (
-          amount === 0 ||
-          leverage === 0 ||
-          !selectedBank ||
-          !selectedSecondaryBank ||
-          !marginfiClient ||
-          !wrappedAccount
-        ) {
+        if (amount === 0 || leverage === 0 || !selectedBank || !selectedSecondaryBank || !marginfiClient) {
           setActionTxns({
             actionTxn: null,
             additionalTxns: [],
@@ -190,6 +186,16 @@ export function useTradeSimulation({
             setActionTxns,
             setIsLoading,
           });
+          return;
+        }
+
+        if (!loopActionTxns.actionTxns.accountCreationTx) {
+          setActionTxns(loopActionTxns.actionTxns);
+          return;
+        }
+
+        if (!wrappedAccount) {
+          // throw error
           return;
         }
 
@@ -236,8 +242,9 @@ export function useTradeSimulation({
       selectedBank,
       selectedSecondaryBank,
       marginfiClient,
-      wrappedAccount,
       setIsLoading,
+      fetchTradeTxnsAction,
+      wrappedAccount,
       slippageBps,
       platformFeeBps,
       setActionTxns,

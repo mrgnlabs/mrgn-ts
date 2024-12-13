@@ -244,7 +244,7 @@ export async function calculateLoopingParams({
   let firstQuote;
 
   for (const maxAccounts of maxAccountsArr) {
-    const quoteParams = {
+    const quoteParams: QuoteGetRequest = {
       amount: borrowAmountNative,
       inputMint: loopingProps.borrowBank.info.state.mint.toBase58(), // borrow
       outputMint: loopingProps.depositBank.info.state.mint.toBase58(), // deposit
@@ -252,7 +252,7 @@ export async function calculateLoopingParams({
       platformFeeBps: platformFeeBps, // platform fee
       maxAccounts: maxAccounts,
       swapMode: "ExactIn",
-    } as QuoteGetRequest;
+    };
     try {
       const swapQuote = await getSwapQuoteWithRetry(quoteParams);
 
