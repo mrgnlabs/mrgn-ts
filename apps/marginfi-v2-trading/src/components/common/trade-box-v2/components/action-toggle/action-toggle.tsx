@@ -10,7 +10,7 @@ export const ActionToggle = ({ tradeState, setTradeState }: ActionToggleProps) =
   return (
     <ToggleGroup
       type="single"
-      className="w-full gap-4"
+      className="w-full gap-4 p-0"
       value={tradeState}
       onValueChange={(value) => {
         value && setTradeState(value as TradeSide);
