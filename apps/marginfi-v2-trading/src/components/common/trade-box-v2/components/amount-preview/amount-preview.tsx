@@ -1,6 +1,6 @@
 import React from "react";
 
-import { numeralFormatter } from "@mrgnlabs/mrgn-common";
+import { dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
 import { cn } from "@mrgnlabs/mrgn-utils";
 
 import { IconLoader } from "~/components/ui/icons";
@@ -9,7 +9,7 @@ import { ArenaBank } from "~/store/tradeStoreV2";
 interface AmountPreviewProps {
   tradeSide: "long" | "short";
   selectedBank: ArenaBank | null;
-  amount?: number;
+  amount: number;
   isLoading?: boolean;
 }
 
@@ -18,18 +18,7 @@ export const AmountPreview = ({ tradeSide, amount, isLoading, selectedBank }: Am
     <div className="flex flex-col gap-6">
       <dl className="grid grid-cols-2 gap-y-2 text-base">
         <Stat label={`Size of ${tradeSide}`}>
-          {isLoading ? (
-            <IconLoader size={16} />
-          ) : amount ? (
-            amount < 0.01 && amount > 0 ? (
-              "< 0.01"
-            ) : (
-              numeralFormatter(amount)
-            )
-          ) : (
-            "-"
-          )}{" "}
-          {/* TODO: get rid of the amount check above and use dynamicnumeralformatter */}
+          {isLoading ? <IconLoader size={16} /> : dynamicNumeralFormatter(amount)}{" "}
           {selectedBank?.meta.tokenSymbol.toUpperCase()}
         </Stat>
       </dl>
