@@ -2,7 +2,7 @@ import { MarginRequirementType, SimulationResult } from "@mrgnlabs/marginfi-clie
 import { AccountSummary } from "@mrgnlabs/marginfi-v2-ui-state";
 import { percentFormatter, tokenPriceFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 import { LoopActionTxns } from "@mrgnlabs/mrgn-utils";
-import { IconArrowRight } from "@tabler/icons-react";
+import Link from "next/link";
 import { PreviewStat } from "~/components/action-box-v2/utils";
 import { IconPyth } from "~/components/ui/icons";
 import { IconSwitchboard } from "~/components/ui/icons";
@@ -63,24 +63,44 @@ export function generateTradeStats(props: generateTradeStatsProps) {
   }
 
   // oracle stat
-  let oracle = "";
+  let oracle = {
+    name: "",
+    link: "",
+  };
+
   switch (props.extendedPool.tokenBank.info.rawBank.config.oracleSetup) {
     case "PythLegacy":
-      oracle = "Pyth";
+      oracle = {
+        name: "Pyth",
+        link: "https://pyth.network/",
+      };
       break;
     case "PythPushOracle":
-      oracle = "Pyth";
+      oracle = {
+        name: "Pyth",
+        link: "https://pyth.network/",
+      };
       break;
     case "SwitchboardV2":
-      oracle = "Switchboard";
+      oracle = {
+        name: "Switchboard",
+        link: `https://ondemand.switchboard.xyz/solana/mainnet/feed/${props.extendedPool.tokenBank.info.rawBank.config.oracleKeys[0].toBase58()}`,
+      };
+      break;
+    case "SwitchboardPull":
+      oracle = {
+        name: "Switchboard",
+        link: `https://ondemand.switchboard.xyz/solana/mainnet/feed/${props.extendedPool.tokenBank.info.rawBank.config.oracleKeys[0].toBase58()}`,
+      };
       break;
   }
   stats.push({
     label: "Oracle",
     value: () => (
       <>
-        {oracle}
-        {oracle === "Pyth" ? <IconPyth size={14} /> : <IconSwitchboard size={14} />}
+        <Link href={oracle.link} target="_blank">
+          {oracle.name === "Pyth" ? <IconPyth size={14} /> : <IconSwitchboard size={14} />}
+        </Link>
       </>
     ),
   });
