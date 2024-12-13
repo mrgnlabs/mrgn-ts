@@ -32,6 +32,7 @@ export type TradeSimulationProps = {
   simulationResult: SimulationResult | null;
   wrappedAccount: MarginfiAccountWrapper | null;
   accountSummary?: AccountSummary;
+  isEnabled: boolean;
 
   slippageBps: number;
   platformFeeBps: number;
@@ -55,7 +56,7 @@ export function useTradeSimulation({
   slippageBps,
   platformFeeBps,
   accountSummary,
-
+  isEnabled,
   setActionTxns,
   setErrorMessage,
   setIsLoading,
@@ -188,13 +189,14 @@ export function useTradeSimulation({
   }, [selectedBank, selectedSecondaryBank, setErrorMessage, setMaxLeverage]);
 
   React.useEffect(() => {
+    // console.log("isEnabled", isEnabled);
     if (prevDebouncedAmount !== debouncedAmount || prevDebouncedLeverage !== debouncedLeverage) {
       // Only set to PREPARING if we're actually going to simulate
       if (debouncedAmount > 0 && debouncedLeverage > 0) {
         fetchTradeTxns(debouncedAmount, debouncedLeverage);
       }
     }
-  }, [debouncedAmount, debouncedLeverage, fetchTradeTxns, prevDebouncedAmount, prevDebouncedLeverage]);
+  }, [debouncedAmount, debouncedLeverage, fetchTradeTxns, prevDebouncedAmount, prevDebouncedLeverage, isEnabled]);
 
   React.useEffect(() => {
     // Only run simulation if we have transactions to simulate
