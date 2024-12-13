@@ -26,6 +26,7 @@ import { useExtendedPool } from "~/hooks/useExtendedPools";
 import { useMarginfiClient } from "~/hooks/useMarginfiClient";
 import { useWrappedAccount } from "~/hooks/useWrappedAccount";
 import { useAmountDebounce } from "~/hooks/useAmountDebounce";
+import { PreviousTxn } from "~/types";
 
 import {
   ActionButton,
@@ -37,12 +38,11 @@ import {
   Stats,
   TradingBoxSettingsDialog,
   InfoMessages,
+  ActionSimulationStatus,
 } from "./components";
 import { useTradeBoxStore } from "./store";
 import { checkTradeActionAvailable } from "./utils";
 import { useTradeSimulation, useActionAmounts } from "./hooks";
-import { ActionSimulationStatus } from "./components";
-import { PreviousTxn } from "~/types";
 
 interface TradeBoxV2Props {
   activePool: ArenaPoolV2;
@@ -188,6 +188,10 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
   React.useEffect(() => {
     refreshState();
   }, []);
+
+  React.useEffect(() => {
+    setTradeState(side);
+  }, [side]);
 
   const { refreshSimulation } = useTradeSimulation({
     debouncedAmount: debouncedAmount ?? 0,
