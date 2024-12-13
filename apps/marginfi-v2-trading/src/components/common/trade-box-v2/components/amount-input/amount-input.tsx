@@ -4,6 +4,7 @@ import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { Input } from "~/components/ui/input";
 import { MaxAction } from "./components";
 import { ArenaBank } from "~/store/tradeStoreV2";
+import { tokenPriceFormatter } from "@mrgnlabs/mrgn-common";
 
 interface AmountInputProps {
   maxAmount: number;
@@ -34,17 +35,10 @@ export const AmountInput = ({
             ref={amountInputRef}
             inputMode="decimal"
             value={amount}
-            // disabled={isInputDisabled} // TODO: add this
             onChange={(e) => handleAmountChange(e.target.value)}
             placeholder="0"
             className="bg-transparent shadow-none min-w-[130px] h-auto py-0 pr-0 text-right outline-none focus-visible:outline-none focus-visible:ring-0 border-none text-base font-medium"
           />
-          {/* {amount !== null && amount > 0 && selectedBank && (
-            <span className="text-xs text-muted-foreground font-light">
-              {tokenPriceFormatter(amount * selectedBank.info.oraclePrice.priceRealtime.price.toNumber())}
-            </span>
-          )} */}{" "}
-          {/* // TODO: add this usd price  */}
         </div>
       </div>
       <MaxAction maxAmount={maxAmount} collateralBank={collateralBank} setAmount={handleAmountChange} />

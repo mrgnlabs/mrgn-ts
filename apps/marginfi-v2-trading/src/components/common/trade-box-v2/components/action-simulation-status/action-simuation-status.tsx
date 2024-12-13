@@ -2,8 +2,8 @@ import React from "react";
 
 import { IconCheck, IconX } from "@tabler/icons-react";
 
-import { SimulationStatus } from "~/components/action-box-v2/utils"; // TODO
-import { IconInfiniteLoader, IconLoader } from "~/components/ui/icons";
+import { IconLoader } from "~/components/ui/icons";
+import { SimulationStatus } from "~/components/common/trade-box-v2/utils";
 
 type ActionSimulationStatusProps = {
   simulationStatus: SimulationStatus;
