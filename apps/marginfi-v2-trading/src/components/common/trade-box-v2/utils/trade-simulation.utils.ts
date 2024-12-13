@@ -1,6 +1,6 @@
 import { SimulationResult } from "@mrgnlabs/marginfi-client-v2";
 
-import { ActionMessageType, handleSimulationError, LoopActionTxns } from "@mrgnlabs/mrgn-utils";
+import { ActionMessageType, handleSimulationError, TradeActionTxns } from "@mrgnlabs/mrgn-utils";
 
 import { ArenaBank } from "~/store/tradeStoreV2";
 import {
@@ -52,7 +52,7 @@ export function calculateSummary({
   simulationResult?: SimulationResult;
   bank: ArenaBank;
   accountSummary: AccountSummary;
-  actionTxns: LoopActionTxns;
+  actionTxns: TradeActionTxns;
 }): ActionSummary {
   let simulationPreview: SimulatedActionPreview | null = null;
 
@@ -92,7 +92,7 @@ export function calculateSimulatedActionPreview(
 function calculateActionPreview(
   bank: ArenaBank,
   accountSummary: AccountSummary,
-  actionTxns: LoopActionTxns
+  actionTxns: TradeActionTxns
 ): ActionPreview {
   const positionAmount = bank?.isActive ? bank.position.amount : 0;
   const health = accountSummary.balance && accountSummary.healthFactor ? accountSummary.healthFactor : 1;
