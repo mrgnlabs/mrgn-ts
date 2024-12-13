@@ -186,8 +186,6 @@ export const InfoMessages = ({
   );
 
   const renderContent = () => {
-    console.log("actionMethods", actionMethods);
-    console.log("additionalChecks", additionalChecks);
     if (!connected) return null;
 
     switch (true) {
@@ -198,7 +196,6 @@ export const InfoMessages = ({
         return renderShortWarning();
 
       case isActiveWithCollat:
-        console.log("isActiveWithCollat", isActiveWithCollat);
         return renderActionMethodMessages();
 
       default:
