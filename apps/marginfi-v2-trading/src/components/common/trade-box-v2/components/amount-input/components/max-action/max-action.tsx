@@ -1,5 +1,4 @@
-import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { clampedNumeralFormatter } from "@mrgnlabs/mrgn-common";
+import { dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
 import React from "react";
 import { ArenaBank } from "~/store/tradeStoreV2";
 
@@ -11,8 +10,6 @@ interface TradeActionProps {
 }
 
 export const MaxAction = ({ maxAmount, collateralBank, setAmount }: TradeActionProps) => {
-  const numberFormater = React.useMemo(() => new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 }), []); // TODO: remove this
-
   const maxLabel = React.useMemo((): {
     amount: string;
     showWalletIcon?: boolean;
@@ -26,7 +23,7 @@ export const MaxAction = ({ maxAmount, collateralBank, setAmount }: TradeActionP
     }
 
     const formatAmount = (maxAmount?: number, symbol?: string) =>
-      maxAmount !== undefined ? `${clampedNumeralFormatter(maxAmount)} ${symbol?.toUpperCase()}` : "-"; // TODO: use dynamicNumeralFormatter
+      maxAmount !== undefined ? `${dynamicNumeralFormatter(maxAmount)} ${symbol?.toUpperCase()}` : "-";
 
     return {
       amount: formatAmount(maxAmount, collateralBank.meta.tokenSymbol),
@@ -45,7 +42,9 @@ export const MaxAction = ({ maxAmount, collateralBank, setAmount }: TradeActionP
               <button
                 className="cursor-pointer border-b border-transparent transition text-mfi-action-box-highlight hover:border-mfi-action-box-highlight"
                 disabled={maxAmount === 0}
-                onClick={() => setAmount(numberFormater.format(maxAmount))}
+                onClick={() => {
+                  setAmount(maxAmount.toString());
+                }}
               >
                 MAX
               </button>
