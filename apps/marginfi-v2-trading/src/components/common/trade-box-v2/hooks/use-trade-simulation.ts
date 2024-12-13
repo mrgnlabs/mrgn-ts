@@ -11,7 +11,7 @@ import {
   CalculateLoopingProps,
   DYNAMIC_SIMULATION_ERRORS,
   extractErrorString,
-  LoopActionTxns,
+  TradeActionTxns,
   STATIC_SIMULATION_ERRORS,
   usePrevious,
 } from "@mrgnlabs/mrgn-utils";
@@ -29,7 +29,7 @@ export type TradeSimulationProps = {
   selectedBank: ArenaBank | null;
   selectedSecondaryBank: ArenaBank | null;
   marginfiClient: MarginfiClient | null;
-  actionTxns: LoopActionTxns;
+  actionTxns: TradeActionTxns;
   simulationResult: SimulationResult | null;
   wrappedAccount: MarginfiAccountWrapper | null;
   accountSummary?: AccountSummary;
@@ -38,7 +38,7 @@ export type TradeSimulationProps = {
   slippageBps: number;
   platformFeeBps: number;
 
-  setActionTxns: (actionTxns: LoopActionTxns) => void;
+  setActionTxns: (actionTxns: TradeActionTxns) => void;
   setErrorMessage: (error: ActionMessageType | null) => void;
   setIsLoading: ({ isLoading, status }: { isLoading: boolean; status: SimulationStatus }) => void;
   setSimulationResult: (result: SimulationResult | null) => void;
@@ -73,7 +73,7 @@ export function useTradeSimulation({
     callbacks: {
       setErrorMessage: (error: ActionMessageType | null) => void;
       setSimulationResult: (result: SimulationResult | null) => void;
-      setActionTxns: (actionTxns: LoopActionTxns) => void;
+      setActionTxns: (actionTxns: TradeActionTxns) => void;
       setIsLoading: ({ isLoading, status }: { isLoading: boolean; status: SimulationStatus }) => void;
     }
   ) => {
@@ -129,7 +129,7 @@ export function useTradeSimulation({
 
   const fetchTradeTxnsAction = async (
     props: CalculateLoopingProps
-  ): Promise<{ actionTxns: LoopActionTxns | null; actionMessage: ActionMessageType | null }> => {
+  ): Promise<{ actionTxns: TradeActionTxns | null; actionMessage: ActionMessageType | null }> => {
     try {
       const loopingResult = await generateTradeTx({
         ...props,
@@ -166,7 +166,7 @@ export function useTradeSimulation({
         }
         setIsLoading({ isLoading: true, status: SimulationStatus.SIMULATING });
 
-        const loopActionTxns = await fetchTradeTxnsAction({
+        const tradeActionTxns = await fetchTradeTxnsAction({
           marginfiClient: marginfiClient,
           marginfiAccount: wrappedAccount,
           depositBank: selectedBank,
@@ -178,8 +178,10 @@ export function useTradeSimulation({
           platformFeeBps: platformFeeBps,
         });
 
-        if (loopActionTxns.actionMessage || loopActionTxns.actionTxns === null) {
-          handleError(loopActionTxns.actionMessage ?? STATIC_SIMULATION_ERRORS.REPAY_COLLAT_FAILED, {
+        console.log("tradeActionTxns", tradeActionTxns);
+
+        if (tradeActionTxns.actionMessage || tradeActionTxns.actionTxns === null) {
+          handleError(tradeActionTxns.actionMessage ?? STATIC_SIMULATION_ERRORS.REPAY_COLLAT_FAILED, {
             // TODO: update error message
             setErrorMessage,
             setSimulationResult,
@@ -189,12 +191,15 @@ export function useTradeSimulation({
           return;
         }
 
-        if (!loopActionTxns.actionTxns.accountCreationTx) {
-          setActionTxns(loopActionTxns.actionTxns);
+        // TODO: this has to change
+
+        if (!tradeActionTxns.actionTxns.accountCreationTx) {
+          setActionTxns(tradeActionTxns.actionTxns);
           return;
         }
 
         if (!wrappedAccount) {
+          console.log("wrappedAccount is null");
           // throw error
           return;
         }
@@ -203,8 +208,8 @@ export function useTradeSimulation({
           account: wrappedAccount,
           bank: selectedBank,
           txns: [
-            ...(loopActionTxns?.actionTxns?.additionalTxns ?? []),
-            ...(loopActionTxns?.actionTxns?.actionTxn ? [loopActionTxns?.actionTxns?.actionTxn] : []),
+            ...(tradeActionTxns?.actionTxns?.additionalTxns ?? []),
+            ...(tradeActionTxns?.actionTxns?.actionTxn ? [tradeActionTxns?.actionTxns?.actionTxn] : []),
           ],
         });
 
@@ -219,7 +224,7 @@ export function useTradeSimulation({
           return;
         } else if (simulationResult.simulationResult) {
           setSimulationResult(simulationResult.simulationResult);
-          setActionTxns(loopActionTxns.actionTxns);
+          setActionTxns(tradeActionTxns.actionTxns);
         } else {
           throw new Error("Unknown error");
         }
@@ -243,7 +248,6 @@ export function useTradeSimulation({
       selectedSecondaryBank,
       marginfiClient,
       setIsLoading,
-      fetchTradeTxnsAction,
       wrappedAccount,
       slippageBps,
       platformFeeBps,

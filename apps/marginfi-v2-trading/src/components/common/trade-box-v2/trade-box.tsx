@@ -9,7 +9,7 @@ import {
   ExecuteTradeActionProps,
   formatAmount,
   IndividualFlowError,
-  LoopActionTxns,
+  TradeActionTxns,
   MultiStepToastHandle,
   showErrorToast,
   useConnection,
@@ -259,7 +259,7 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
       onComplete?: (txn: PreviousTxn) => void;
       setIsLoading: (isLoading: boolean) => void;
       setAmountRaw: (amountRaw: string) => void;
-      retryCallback: (txs: ActionTxns, toast: MultiStepToastHandle) => void;
+      retryCallback: (txs: TradeActionTxns, toast: MultiStepToastHandle) => void;
     }
   ) => {
     const action = async (params: ExecuteTradeActionProps) => {
@@ -269,7 +269,7 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
           callbacks.captureEvent && callbacks.captureEvent(event, properties);
         },
         setIsComplete: (txnSigs) => {
-          const _actionTxns = params.actionTxns as LoopActionTxns;
+          const _actionTxns = params.actionTxns as TradeActionTxns;
           callbacks.setIsActionComplete(true);
           callbacks.setPreviousTxn({
             txnType: "TRADING",
@@ -309,7 +309,7 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
           if (!toast) {
             return;
           }
-          const txs = error.actionTxns as ActionTxns;
+          const txs = error.actionTxns as TradeActionTxns;
           let retry = undefined;
           if (error.retry && toast && txs) {
             retry = () => callbacks.retryCallback(txs, toast);
@@ -345,7 +345,7 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
         },
         setIsLoading: setIsTransactionExecuting,
         setAmountRaw,
-        retryCallback: (txns: ActionTxns, multiStepToast: MultiStepToastHandle) => {
+        retryCallback: (txns: TradeActionTxns, multiStepToast: MultiStepToastHandle) => {
           retryTradeAction({ ...params, actionTxns: txns, multiStepToast }, leverage);
         },
       });
@@ -406,7 +406,7 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
       },
       setIsLoading: setIsTransactionExecuting,
       setAmountRaw,
-      retryCallback: (txns: ActionTxns, multiStepToast: MultiStepToastHandle) => {
+      retryCallback: (txns: TradeActionTxns, multiStepToast: MultiStepToastHandle) => {
         retryTradeAction({ ...params, actionTxns: txns, multiStepToast }, leverage);
       },
     });
