@@ -76,7 +76,6 @@ export async function generateTradeTx(props: GenerateTradeTxProps): Promise<Trad
 
   if (!hasMarginfiAccount) {
     // if no marginfi account, we need to create one
-    console.log("Creating marginfi account");
     const marginfiAccountKeypair = Keypair.generate();
 
     const dummyWrappedI80F48 = bigNumberToWrappedI80F48(new BigNumber(0));
