@@ -1,5 +1,6 @@
 import { QuoteResponse } from "@jup-ag/api";
 import { OperationalState } from "@mrgnlabs/marginfi-client-v2";
+import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { ActionMessageType, DYNAMIC_SIMULATION_ERRORS, isBankOracleStale } from "@mrgnlabs/mrgn-utils";
 import { ArenaBank } from "~/store/tradeStoreV2";
 
@@ -9,6 +10,7 @@ interface CheckTradeActionAvailableProps {
   collateralBank: ArenaBank | null;
   secondaryBank: ArenaBank | null;
   actionQuote: QuoteResponse | null;
+  tradeState: "long" | "short";
 }
 
 export function checkTradeActionAvailable({
@@ -17,6 +19,7 @@ export function checkTradeActionAvailable({
   collateralBank,
   secondaryBank,
   actionQuote,
+  tradeState,
 }: CheckTradeActionAvailableProps): ActionMessageType[] {
   let checks: ActionMessageType[] = [];
 
@@ -25,6 +28,9 @@ export function checkTradeActionAvailable({
 
   const generalChecks = getGeneralChecks(amount ?? 0);
   if (generalChecks) checks.push(...generalChecks);
+
+  const tradeSpecificChecks = getTradeSpecificChecks(tradeState, secondaryBank);
+  if (tradeSpecificChecks) checks.push(...tradeSpecificChecks);
 
   // allert checks
   if (collateralBank) {
@@ -98,6 +104,20 @@ function canBeTraded(
 
   if ((repayBankInfo && isBankOracleStale(repayBankInfo)) || (targetBankInfo && isBankOracleStale(targetBankInfo))) {
     checks.push(DYNAMIC_SIMULATION_ERRORS.STALE_CHECK("Trading"));
+  }
+  return checks;
+}
+
+function getTradeSpecificChecks(tradeState: "long" | "short", secondaryBank: ArenaBank | null): ActionMessageType[] {
+  let checks: ActionMessageType[] = [];
+
+  if (secondaryBank?.isActive && (secondaryBank as ActiveBankInfo)?.position.isLending) {
+    checks.push({
+      isEnabled: false,
+      description: `You cannot ${tradeState} while you have an active ${
+        tradeState === "long" ? "short" : "long"
+      } position for this token.`,
+    });
   }
 
   return checks;
