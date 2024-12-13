@@ -434,9 +434,13 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
   return (
     <Card className="shadow-none border-border w-full">
       <CardHeader className="p-0">
-        <Header activePool={activePoolExtended} />
+        <Header
+          activePool={activePoolExtended}
+          entryPrice={activePoolExtended.tokenBank.info.state.price}
+          volume={activePoolExtended.tokenBank.tokenData?.volume24hr}
+        />
       </CardHeader>
-      <CardContent>
+      <CardContent className="px-4 py-2">
         <div className="space-y-4">
           <ActionToggle tradeState={tradeState} setTradeState={setTradeState} />
           <AmountInput
@@ -503,14 +507,13 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
               </button>
             </TradingBoxSettingsDialog>
           </div>
+          <Stats
+            activePool={activePoolExtended}
+            accountSummary={accountSummary}
+            simulationResult={simulationResult}
+            actionTxns={actionTxns}
+          />
         </div>
-
-        <Stats
-          activePool={activePoolExtended}
-          accountSummary={accountSummary}
-          simulationResult={simulationResult}
-          actionTxns={actionTxns}
-        />
       </CardContent>
     </Card>
   );

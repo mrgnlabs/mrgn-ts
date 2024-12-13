@@ -31,10 +31,11 @@ const numeralFormatter = (value: number) => {
 interface dynamicNumeralFormatterOptions {
   minDisplay?: number;
   tokenPrice?: number;
+  maxDisplay?: number;
 }
 
 export const dynamicNumeralFormatter = (value: number, options: dynamicNumeralFormatterOptions = {}) => {
-  const { minDisplay = 0.00001, tokenPrice } = options;
+  const { minDisplay = 0.00001, maxDisplay = 10000, tokenPrice } = options;
 
   if (value === 0) return "0";
 
@@ -42,7 +43,7 @@ export const dynamicNumeralFormatter = (value: number, options: dynamicNumeralFo
     return `<${minDisplay}`;
   }
 
-  if (Math.abs(value) > 10000) {
+  if (Math.abs(value) > maxDisplay) {
     return numeral(value).format("0,0.[00]a");
   }
 
