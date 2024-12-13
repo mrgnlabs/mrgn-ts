@@ -2,7 +2,6 @@ import { SimulationResult } from "@mrgnlabs/marginfi-client-v2";
 
 import { ActionMessageType, handleSimulationError, LoopActionTxns } from "@mrgnlabs/mrgn-utils";
 
-import { SimulateActionProps } from "~/components/action-box-v2/actions/loop-box/utils"; // TODO: fix this import
 import { ArenaBank } from "~/store/tradeStoreV2";
 import {
   ActionPreview,
@@ -14,6 +13,7 @@ import {
 import { SimulatedActionPreview } from "~/components/action-box-v2/actions/lend-box/utils";
 import { nativeToUi } from "@mrgnlabs/mrgn-common";
 import { AccountSummary } from "@mrgnlabs/marginfi-v2-ui-state";
+import { SimulateActionProps } from "./trade-box.consts";
 
 export const getSimulationResult = async (props: SimulateActionProps) => {
   let actionMethod: ActionMessageType | undefined = undefined;
