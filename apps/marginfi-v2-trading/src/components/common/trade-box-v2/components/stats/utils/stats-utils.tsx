@@ -1,7 +1,7 @@
 import { MarginRequirementType, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
 import { AccountSummary } from "@mrgnlabs/marginfi-v2-ui-state";
 import { percentFormatter, tokenPriceFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
-import { LoopActionTxns } from "@mrgnlabs/mrgn-utils";
+import { TradeActionTxns } from "@mrgnlabs/mrgn-utils";
 import Link from "next/link";
 import { PreviewStat } from "~/components/action-box-v2/utils";
 import { IconPyth } from "~/components/ui/icons";
@@ -13,7 +13,7 @@ interface generateTradeStatsProps {
   accountSummary: AccountSummary | null;
   extendedPool: ArenaPoolV2Extended;
   simulationResult: SimulationResult | null;
-  actionTxns: LoopActionTxns | null;
+  actionTxns: TradeActionTxns | null;
 }
 
 export function generateTradeStats(props: generateTradeStatsProps) {
