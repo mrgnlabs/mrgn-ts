@@ -87,13 +87,7 @@ function canBeTraded(
     );
   }
 
-  if (!swapQuote) {
-    checks.push({
-      isEnabled: false,
-    });
-  }
-
-  if (swapQuote?.priceImpactPct && Number(swapQuote.priceImpactPct) > 0.01) {
+  if (swapQuote && swapQuote?.priceImpactPct && Number(swapQuote.priceImpactPct) > 0.01) {
     //invert
     if (swapQuote?.priceImpactPct && Number(swapQuote.priceImpactPct) > 0.05) {
       checks.push(DYNAMIC_SIMULATION_ERRORS.PRICE_IMPACT_ERROR_CHECK(Number(swapQuote.priceImpactPct)));
@@ -102,7 +96,14 @@ function canBeTraded(
     }
   }
 
-  if ((repayBankInfo && isBankOracleStale(repayBankInfo)) || (targetBankInfo && isBankOracleStale(targetBankInfo))) {
+  if (
+    (repayBankInfo &&
+      repayBankInfo?.info.rawBank.config.oracleSetup !== "SwitchboardV2" &&
+      isBankOracleStale(repayBankInfo)) ||
+    (targetBankInfo &&
+      targetBankInfo.info.rawBank.config.oracleSetup !== "SwitchboardV2" &&
+      isBankOracleStale(targetBankInfo))
+  ) {
     checks.push(DYNAMIC_SIMULATION_ERRORS.STALE_CHECK("Trading"));
   }
   return checks;

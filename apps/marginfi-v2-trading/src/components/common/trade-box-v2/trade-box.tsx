@@ -17,7 +17,7 @@ import {
 import { IconSettings } from "@tabler/icons-react";
 import { ActionType, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { ArenaPoolV2 } from "~/store/tradeStoreV2";
+import { ArenaPoolV2, ArenaPoolV2Extended } from "~/store/tradeStoreV2";
 import { handleExecuteTradeAction, SimulationStatus, TradeSide } from "~/components/common/trade-box-v2/utils";
 import { Card, CardContent, CardHeader } from "~/components/ui/card";
 import { useTradeStoreV2, useUiStore } from "~/store";
@@ -174,8 +174,14 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
         tradeState,
       }),
 
-    [amount, connected, activePoolExtended, actionTxns, tradeState, selectedSecondaryBank, selectedBank]
+    [amount, connected, actionTxns, tradeState, selectedSecondaryBank, selectedBank]
   );
+
+  const isDisabled = React.useMemo(() => {
+    if (!actionTxns?.actionQuote) return true;
+    if (actionMethods.concat(additionalActionMessages).filter((value) => value.isEnabled === false).length) return true;
+    return false;
+  }, [actionMethods, additionalActionMessages, actionTxns]);
 
   // Effects
   React.useEffect(() => {
@@ -188,11 +194,13 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
         setSelectedSecondaryBank(activePoolExtended.quoteBank);
       }
     }
-  }, [activePoolExtended, tradeState]);
+  }, [activePoolExtended, setSelectedBank, setSelectedSecondaryBank, tradeState]);
 
   React.useEffect(() => {
     if (errorMessage && errorMessage.description) {
-      showErrorToast(errorMessage?.description);
+      if (errorMessage.actionMethod === "ERROR") {
+        showErrorToast(errorMessage?.description);
+      }
       setAdditionalActionMessages([errorMessage]);
     } else {
       setAdditionalActionMessages([]);
@@ -201,11 +209,11 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
 
   React.useEffect(() => {
     refreshState();
-  }, []);
+  }, [refreshState]);
 
   React.useEffect(() => {
     setTradeState(side);
-  }, [side]);
+  }, [setTradeState, side]);
 
   const { refreshSimulation } = useTradeSimulation({
     debouncedAmount: debouncedAmount ?? 0,
@@ -227,12 +235,6 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
     setMaxLeverage,
   });
 
-  React.useEffect(() => {
-    console.log("actionMethods", actionMethods);
-    console.log("additionalActionMessages", additionalActionMessages);
-    console.log(!actionMethods.concat(additionalActionMessages).filter((value) => value.isEnabled === false).length);
-  }, [actionMethods]);
-
   const isActiveWithCollat = true; // TODO: figure out what this does?
 
   const handleAmountChange = React.useCallback(
@@ -240,7 +242,7 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
       const amount = formatAmount(amountRaw, maxAmount, selectedBank ?? null, numberFormater);
       setAmountRaw(amount);
     },
-    [maxAmount, selectedBank, numberFormater]
+    [maxAmount, selectedBank, numberFormater, setAmountRaw]
   );
 
   /////////////////////
@@ -249,6 +251,7 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
   const executeAction = async (
     params: ExecuteTradeActionProps,
     leverage: number,
+    activePoolExtended: ArenaPoolV2Extended,
     callbacks: {
       captureEvent?: (event: string, properties?: Record<string, any>) => void;
       setIsActionComplete: (isComplete: boolean) => void;
@@ -278,7 +281,7 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
               depositAmount: params.actualDepositAmount,
               borrowAmount: params.borrowAmount.toNumber(),
               leverage: leverage,
-              type: tradeState,
+              type: params.tradeSide,
               quote: _actionTxns.actionQuote!,
               entryPrice: activePoolExtended.tokenBank.info.oraclePrice.priceRealtime.price.toNumber(),
             },
@@ -295,7 +298,7 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
                 depositAmount: params.actualDepositAmount,
                 borrowAmount: params.borrowAmount.toNumber(),
                 leverage: leverage,
-                type: tradeState,
+                type: params.tradeSide,
                 quote: _actionTxns.actionQuote!,
                 entryPrice: activePoolExtended.tokenBank.info.oraclePrice.priceRealtime.price.toNumber(),
               },
@@ -323,7 +326,7 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
 
   const retryTradeAction = React.useCallback(
     (params: ExecuteTradeActionProps, leverage: number) => {
-      executeAction(params, leverage, {
+      executeAction(params, leverage, activePoolExtended, {
         captureEvent: () => {
           capture("trade_action_retry", {
             group: activePoolExtended.groupPk.toBase58(),
@@ -347,7 +350,16 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
         },
       });
     },
-    [setAmountRaw, setIsTransactionExecuting, setIsActionComplete, setPreviousTxn]
+    [
+      activePoolExtended,
+      setIsActionComplete,
+      setPreviousTxn,
+      setAmountRaw,
+      selectedBank?.meta.tokenSymbol,
+      refreshGroup,
+      connection,
+      wallet,
+    ]
   );
 
   const handleTradeAction = React.useCallback(async () => {
@@ -375,7 +387,7 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
       tradeSide: tradeState,
     };
 
-    executeAction(params, leverage, {
+    executeAction(params, leverage, activePoolExtended, {
       captureEvent: () => {
         capture("trade_action_execute", {
           group: activePoolExtended.groupPk.toBase58(),
@@ -407,10 +419,16 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
     broadcastType,
     wrappedAccount,
     amount,
+    tradeState,
     leverage,
     setIsActionComplete,
-    setIsTransactionExecuting,
+    setPreviousTxn,
     setAmountRaw,
+    refreshGroup,
+    connection,
+    wallet,
+    retryTradeAction,
+    activePoolExtended,
   ]);
 
   return (
@@ -462,9 +480,7 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
 
           <ActionButton
             isLoading={isLoading}
-            isEnabled={
-              !actionMethods.concat(additionalActionMessages).filter((value) => value.isEnabled === false).length
-            }
+            isEnabled={!isDisabled}
             connected={connected}
             handleAction={() => {
               handleTradeAction();

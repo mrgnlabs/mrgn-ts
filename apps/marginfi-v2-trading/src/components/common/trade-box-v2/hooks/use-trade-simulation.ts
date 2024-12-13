@@ -8,6 +8,7 @@ import { AccountSummary } from "@mrgnlabs/marginfi-v2-ui-state";
 import { SolanaTransaction } from "@mrgnlabs/mrgn-common";
 import {
   ActionMessageType,
+  CalculateLoopingProps,
   DYNAMIC_SIMULATION_ERRORS,
   extractErrorString,
   LoopActionTxns,
@@ -67,69 +68,109 @@ export function useTradeSimulation({
   const prevDebouncedLeverage = usePrevious(debouncedLeverage);
   const prevSelectedSecondaryBank = usePrevious(selectedSecondaryBank);
 
+  const handleError = (
+    actionMessage: ActionMessageType | string,
+    callbacks: {
+      setErrorMessage: (error: ActionMessageType | null) => void;
+      setSimulationResult: (result: SimulationResult | null) => void;
+      setActionTxns: (actionTxns: LoopActionTxns) => void;
+      setIsLoading: ({ isLoading, status }: { isLoading: boolean; status: SimulationStatus }) => void;
+    }
+  ) => {
+    if (typeof actionMessage === "string") {
+      const errorMessage = extractErrorString(actionMessage);
+      const _actionMessage: ActionMessageType = {
+        isEnabled: true,
+        description: errorMessage,
+      };
+      callbacks.setErrorMessage(_actionMessage);
+    } else {
+      callbacks.setErrorMessage(actionMessage);
+    }
+    callbacks.setSimulationResult(null);
+    callbacks.setActionTxns({
+      actionTxn: null,
+      additionalTxns: [],
+      actionQuote: null,
+      lastValidBlockHeight: undefined,
+      actualDepositAmount: 0,
+      borrowAmount: new BigNumber(0),
+    });
+    console.error(
+      "Error simulating transaction",
+      typeof actionMessage === "string" ? extractErrorString(actionMessage) : actionMessage.description
+    );
+    callbacks.setIsLoading({ isLoading: false, status: SimulationStatus.COMPLETE });
+  };
+
+  const simulationAction = async (props: {
+    account: MarginfiAccountWrapper;
+    bank: ArenaBank;
+    txns: (VersionedTransaction | Transaction)[];
+  }): Promise<{
+    simulationResult: SimulationResult | null;
+    actionMessage: ActionMessageType | null;
+  }> => {
+    if (props.txns.length > 0) {
+      const simulationResult = await getSimulationResult(props);
+
+      if (simulationResult.actionMethod) {
+        return { simulationResult: null, actionMessage: simulationResult.actionMethod };
+      } else if (simulationResult.simulationResult) {
+        return { simulationResult: simulationResult.simulationResult, actionMessage: null };
+      } else {
+        const errorMessage = DYNAMIC_SIMULATION_ERRORS.REPAY_COLLAT_FAILED_CHECK(props.bank.meta.tokenSymbol); // TODO: update
+        return { simulationResult: null, actionMessage: errorMessage };
+      }
+    } else {
+      throw new Error("account, bank or transactions are null");
+    }
+  };
+
+  const fetchTradeTxnsAction = async (
+    props: CalculateLoopingProps
+  ): Promise<{ actionTxns: LoopActionTxns | null; actionMessage: ActionMessageType | null }> => {
+    try {
+      const loopingResult = await calculateLooping(props);
+
+      if (loopingResult && "actionQuote" in loopingResult) {
+        return { actionTxns: loopingResult, actionMessage: null };
+      } else {
+        const errorMessage =
+          loopingResult ?? DYNAMIC_SIMULATION_ERRORS.REPAY_COLLAT_FAILED_CHECK(props.borrowBank.meta.tokenSymbol);
+        // TODO: update
+        return { actionTxns: null, actionMessage: errorMessage };
+      }
+    } catch (error) {
+      return { actionTxns: null, actionMessage: STATIC_SIMULATION_ERRORS.REPAY_COLLAT_FAILED }; // TODO: update
+    }
+  };
+
   const handleSimulation = React.useCallback(
-    async (txns: (VersionedTransaction | Transaction)[]) => {
-      try {
-        setIsLoading({ isLoading: true, status: SimulationStatus.SIMULATING });
-        if (wrappedAccount && selectedBank && txns.length > 0) {
-          const simulationResult = await getSimulationResult({
-            account: wrappedAccount,
-            bank: selectedBank,
-            txns,
-          });
-          if (simulationResult.actionMethod) {
-            setErrorMessage(simulationResult.actionMethod);
-            throw new Error(simulationResult.actionMethod.description);
-          } else {
-            setErrorMessage(null);
-            setSimulationResult(simulationResult.simulationResult);
-          }
-        } else {
-          throw new Error("account, bank or transactions are null");
-        }
-      } catch (error) {
-        console.error("Error simulating transaction", error);
-        setSimulationResult(null);
-      } finally {
-        setIsLoading({ isLoading: false, status: SimulationStatus.COMPLETE });
-      }
-    },
-    [selectedBank, wrappedAccount, setErrorMessage, setIsLoading, setSimulationResult]
-  );
-
-  const handleActionSummary = React.useCallback(
-    (summary?: AccountSummary, result?: SimulationResult) => {
-      if (wrappedAccount && summary && selectedBank && actionTxns) {
-        return calculateSummary({
-          simulationResult: result ?? undefined,
-          bank: selectedBank,
-          accountSummary: summary,
-          actionTxns: actionTxns,
-        });
-      }
-    },
-    [selectedBank, wrappedAccount, actionTxns]
-  );
-
-  const fetchTradeTxns = React.useCallback(
     async (amount: number, leverage: number) => {
-      if (amount === 0 || leverage === 0 || !selectedBank || !selectedSecondaryBank || !marginfiClient) {
-        setActionTxns({
-          actionTxn: null,
-          additionalTxns: [],
-          actionQuote: null,
-          lastValidBlockHeight: undefined,
-          actualDepositAmount: 0,
-          borrowAmount: new BigNumber(0),
-        });
-        setSimulationResult(null);
-        return;
-      }
-
-      setIsLoading({ isLoading: true, status: SimulationStatus.PREPARING });
-
       try {
-        const loopingResult = await calculateLooping({
+        if (
+          amount === 0 ||
+          leverage === 0 ||
+          !selectedBank ||
+          !selectedSecondaryBank ||
+          !marginfiClient ||
+          !wrappedAccount
+        ) {
+          setActionTxns({
+            actionTxn: null,
+            additionalTxns: [],
+            actionQuote: null,
+            lastValidBlockHeight: undefined,
+            actualDepositAmount: 0,
+            borrowAmount: new BigNumber(0),
+          });
+          setSimulationResult(null);
+          return;
+        }
+        setIsLoading({ isLoading: true, status: SimulationStatus.SIMULATING });
+
+        const loopActionTxns = await fetchTradeTxnsAction({
           marginfiClient: marginfiClient,
           marginfiAccount: wrappedAccount,
           depositBank: selectedBank,
@@ -141,22 +182,54 @@ export function useTradeSimulation({
           platformFeeBps: platformFeeBps,
         });
 
-        if (loopingResult && "actionQuote" in loopingResult) {
-          setActionTxns(loopingResult);
-        } else {
-          const errorMessage =
-            loopingResult ??
-            DYNAMIC_SIMULATION_ERRORS.REPAY_COLLAT_FAILED_CHECK(selectedSecondaryBank.meta.tokenSymbol);
-          // TODO: update
+        if (loopActionTxns.actionMessage || loopActionTxns.actionTxns === null) {
+          handleError(loopActionTxns.actionMessage ?? STATIC_SIMULATION_ERRORS.REPAY_COLLAT_FAILED, {
+            // TODO: update error message
+            setErrorMessage,
+            setSimulationResult,
+            setActionTxns,
+            setIsLoading,
+          });
+          return;
+        }
 
-          setErrorMessage(errorMessage);
-          console.error("Error building looping transaction: ", errorMessage.description);
-          setIsLoading({ isLoading: false, status: SimulationStatus.IDLE });
+        const simulationResult = await simulationAction({
+          account: wrappedAccount,
+          bank: selectedBank,
+          txns: [
+            ...(loopActionTxns?.actionTxns?.additionalTxns ?? []),
+            ...(loopActionTxns?.actionTxns?.actionTxn ? [loopActionTxns?.actionTxns?.actionTxn] : []),
+          ],
+        });
+
+        if (simulationResult.actionMessage || simulationResult.simulationResult === null) {
+          handleError(simulationResult.actionMessage ?? STATIC_SIMULATION_ERRORS.REPAY_COLLAT_FAILED, {
+            // TODO: update
+            setErrorMessage,
+            setSimulationResult,
+            setActionTxns,
+            setIsLoading,
+          });
+          return;
+        } else if (simulationResult.simulationResult) {
+          setSimulationResult(simulationResult.simulationResult);
+          setActionTxns(loopActionTxns.actionTxns);
+        } else {
+          throw new Error("Unknown error");
         }
       } catch (error) {
-        console.error("Error building looping transaction:", error);
-        setErrorMessage(STATIC_SIMULATION_ERRORS.REPAY_COLLAT_FAILED); // TODO: update
-        setIsLoading({ isLoading: false, status: SimulationStatus.IDLE });
+        console.error("Error simulating transaction", error);
+        setSimulationResult(null);
+        setActionTxns({
+          actionTxn: null,
+          additionalTxns: [],
+          actionQuote: null,
+          lastValidBlockHeight: undefined,
+          actualDepositAmount: 0,
+          borrowAmount: new BigNumber(0),
+        });
+      } finally {
+        setIsLoading({ isLoading: false, status: SimulationStatus.COMPLETE });
       }
     },
     [
@@ -164,12 +237,12 @@ export function useTradeSimulation({
       selectedSecondaryBank,
       marginfiClient,
       wrappedAccount,
+      setIsLoading,
       slippageBps,
       platformFeeBps,
-      setErrorMessage,
-      setIsLoading,
       setActionTxns,
       setSimulationResult,
+      setErrorMessage,
     ]
   );
 
@@ -189,47 +262,24 @@ export function useTradeSimulation({
   }, [selectedBank, selectedSecondaryBank, setErrorMessage, setMaxLeverage]);
 
   React.useEffect(() => {
-    // console.log("isEnabled", isEnabled);
-    if (prevDebouncedAmount !== debouncedAmount || prevDebouncedLeverage !== debouncedLeverage) {
+    if ((prevDebouncedAmount !== debouncedAmount || prevDebouncedLeverage !== debouncedLeverage) && isEnabled) {
       // Only set to PREPARING if we're actually going to simulate
       if (debouncedAmount > 0 && debouncedLeverage > 0) {
-        fetchTradeTxns(debouncedAmount, debouncedLeverage);
+        handleSimulation(debouncedAmount, debouncedLeverage);
       }
     }
-  }, [debouncedAmount, debouncedLeverage, fetchTradeTxns, prevDebouncedAmount, prevDebouncedLeverage, isEnabled]);
-
-  React.useEffect(() => {
-    // Only run simulation if we have transactions to simulate
-    if (actionTxns?.actionTxn || (actionTxns?.additionalTxns?.length ?? 0) > 0) {
-      handleSimulation([
-        ...(actionTxns?.additionalTxns ?? []),
-        ...(actionTxns?.actionTxn ? [actionTxns?.actionTxn] : []),
-      ]);
-    } else {
-      // If no transactions, move back to idle state
-      setIsLoading({ isLoading: false, status: SimulationStatus.IDLE });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [actionTxns]);
+  }, [debouncedAmount, debouncedLeverage, handleSimulation, isEnabled, prevDebouncedAmount, prevDebouncedLeverage]);
 
   // Fetch max leverage based when the secondary bank changes
   React.useEffect(() => {
-    if (!selectedSecondaryBank) {
-      return;
-    }
-    const hasBankChanged = !prevSelectedSecondaryBank?.address.equals(selectedSecondaryBank.address);
-    if (hasBankChanged) {
+    if (selectedSecondaryBank && prevSelectedSecondaryBank?.address !== selectedSecondaryBank.address) {
       fetchMaxLeverage();
     }
   }, [selectedSecondaryBank, prevSelectedSecondaryBank, fetchMaxLeverage]);
 
-  const actionSummary = React.useMemo(() => {
-    return handleActionSummary(accountSummary, simulationResult ?? undefined);
-  }, [accountSummary, simulationResult, handleActionSummary]);
-
   const refreshSimulation = React.useCallback(async () => {
-    await fetchTradeTxns(debouncedAmount ?? 0, debouncedLeverage ?? 0);
-  }, [fetchTradeTxns, debouncedAmount, debouncedLeverage]);
+    await handleSimulation(debouncedAmount ?? 0, debouncedLeverage ?? 0);
+  }, [handleSimulation, debouncedAmount, debouncedLeverage]);
 
-  return { actionSummary, refreshSimulation };
+  return { refreshSimulation };
 }
