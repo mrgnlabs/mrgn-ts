@@ -42,6 +42,7 @@ import {
   ActionTxns,
   RepayWithCollatProps,
   IndividualFlowError,
+  LoopActionTxns,
 } from "./types";
 import { captureSentryException } from "../sentry.utils";
 import { loopingBuilder, repayWithCollatBuilder } from "./flashloans";
@@ -589,7 +590,7 @@ export async function looping({
 
 interface TradeFnProps extends LoopingProps {
   marginfiClient: MarginfiClient;
-  actionTxns: ActionTxns;
+  actionTxns: LoopActionTxns;
   processOpts: ProcessTransactionsClientOpts;
   txOpts: TransactionOptions;
   tradeSide: "long" | "short";
@@ -606,6 +607,11 @@ export async function trade({
   if (marginfiClient === null) {
     showErrorToast({ message: "Marginfi client not ready" });
     return;
+  }
+
+  if (actionTxns?.accountCreationTx) {
+    const accountCreationTx = actionTxns.accountCreationTx;
+    //process seperatetly then execute next
   }
 
   if (!multiStepToast) {
