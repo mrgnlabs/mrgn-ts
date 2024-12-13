@@ -21,12 +21,12 @@ export const Header = ({ activePool }: HeaderProps) => {
           router.push(`/trade/${pool.groupPk.toBase58()}`);
         }}
       >
-        <div className="flex items-center justify-center font-medium text-lg hover:bg-accent translate-x-1.5 transition-colors cursor-pointer rounded-md px-2 py-1 gap-2">
+        <div className="flex items-center justify-center font-medium text-base hover:bg-accent translate-x-1.5 transition-colors cursor-pointer rounded-md px-2 py-1 gap-2">
           <Image
             src={activePool.tokenBank.meta.tokenLogoUri}
             alt={activePool.tokenBank.meta.tokenSymbol}
-            width={32}
-            height={32}
+            width={24}
+            height={24}
             className="bg-background border rounded-full lg:mb-0"
           />
           <h1 className="flex items-center gap-1 ">
@@ -34,14 +34,14 @@ export const Header = ({ activePool }: HeaderProps) => {
           </h1>
         </div>
       </TokenCombobox>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-4">
         <div className="flex flex-col items-end ">
           <span className="text-xs text-muted-foreground">Entry price</span>
-          <span className="text-base">$122.00</span>
+          <span className="text-sm">$122.00</span>
         </div>
         <div className="flex flex-col items-end ">
           <span className="text-xs text-muted-foreground">24h volume</span>
-          <span className="text-base">$1.65m</span>
+          <span className="text-sm">$1.65m</span>
         </div>
       </div>
     </div>
