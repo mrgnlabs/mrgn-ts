@@ -6,7 +6,7 @@ import {
   ActionMessageType,
   ActionTxns,
   capture,
-  ExecuteLoopingActionProps,
+  ExecuteTradeActionProps,
   formatAmount,
   IndividualFlowError,
   LoopActionTxns,
@@ -235,7 +235,7 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
   // Trading Actions //
   /////////////////////
   const executeAction = async (
-    params: ExecuteLoopingActionProps,
+    params: ExecuteTradeActionProps,
     leverage: number,
     callbacks: {
       captureEvent?: (event: string, properties?: Record<string, any>) => void;
@@ -247,7 +247,7 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
       retryCallback: (txs: ActionTxns, toast: MultiStepToastHandle) => void;
     }
   ) => {
-    const action = async (params: ExecuteLoopingActionProps) => {
+    const action = async (params: ExecuteTradeActionProps) => {
       await handleExecuteTradeAction({
         props: params,
         captureEvent: (event, properties) => {
@@ -306,7 +306,7 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
   };
 
   const retryTradeAction = React.useCallback(
-    (params: ExecuteLoopingActionProps, leverage: number) => {
+    (params: ExecuteTradeActionProps, leverage: number) => {
       executeAction(params, leverage, {
         captureEvent: () => {
           capture("trade_action_retry", {
@@ -339,7 +339,7 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
       return;
     }
 
-    const params: ExecuteLoopingActionProps = {
+    const params: ExecuteTradeActionProps = {
       marginfiClient: client,
       actionTxns,
       processOpts: {
@@ -356,6 +356,7 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
       borrowBank: selectedSecondaryBank,
       quote: actionTxns.actionQuote!,
       connection: client.provider.connection,
+      tradeSide: tradeState,
     };
 
     executeAction(params, leverage, {

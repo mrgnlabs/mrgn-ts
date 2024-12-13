@@ -37,6 +37,8 @@ interface dynamicNumeralFormatterOptions {
 export const dynamicNumeralFormatter = (value: number, options: dynamicNumeralFormatterOptions = {}) => {
   const { minDisplay = 0.00001, tokenPrice, forceDecimals } = options;
 
+  console.log("value", value);
+
   if (value === 0) return "0";
 
   if (Math.abs(value) < minDisplay) {
@@ -51,7 +53,8 @@ export const dynamicNumeralFormatter = (value: number, options: dynamicNumeralFo
     return numeral(value).format(forceDecimals && Math.abs(value) > 0.99 ? "0,0.00a" : "0,0.[0000]a");
   }
   if (Math.abs(value) >= minDisplay) {
-    return numeral(value).format("0,0.[0000]a");
+    const decimalPlaces = Math.max(0, Math.ceil(-Math.log10(minDisplay)));
+    return numeral(value).format(`0,0.[${"0".repeat(decimalPlaces)}]`);
   }
 
   if (tokenPrice) {

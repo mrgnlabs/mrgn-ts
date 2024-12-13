@@ -13,6 +13,7 @@ import {
   borrow,
   withdraw,
   looping,
+  trade,
   repayWithCollat,
   createAccountAndDeposit,
   createAccount,
@@ -121,6 +122,27 @@ export async function executeLoopingAction(params: ExecuteLoopingActionProps) {
   }
 
   txnSig = await looping(params);
+
+  return txnSig;
+}
+
+export interface ExecuteTradeActionProps extends LoopingProps {
+  marginfiClient: MarginfiClient;
+  actionTxns: ActionTxns;
+  processOpts: ProcessTransactionsClientOpts;
+  txOpts: TransactionOptions;
+  tradeSide: "long" | "short";
+}
+
+export async function executeTradeAction(params: ExecuteTradeActionProps) {
+  let txnSig: string[] | undefined;
+
+  if (!params.marginfiAccount) {
+    showErrorToast("Marginfi account not ready.");
+    return;
+  }
+
+  txnSig = await trade(params);
 
   return txnSig;
 }
