@@ -32,10 +32,11 @@ interface dynamicNumeralFormatterOptions {
   minDisplay?: number;
   tokenPrice?: number;
   forceDecimals?: boolean;
+  maxDisplay?: number;
 }
 
 export const dynamicNumeralFormatter = (value: number, options: dynamicNumeralFormatterOptions = {}) => {
-  const { minDisplay = 0.00001, tokenPrice, forceDecimals } = options;
+  const { minDisplay = 0.00001, maxDisplay = 10000, tokenPrice, forceDecimals } = options;
 
   if (value === 0) return "0";
 

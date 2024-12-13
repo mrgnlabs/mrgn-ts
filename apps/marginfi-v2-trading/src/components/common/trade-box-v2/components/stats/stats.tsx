@@ -26,7 +26,7 @@ export const Stats = ({ activePool, accountSummary, simulationResult, actionTxns
   return (
     <>
       {stats && (
-        <dl className={cn("grid grid-cols-2 gap-y-2 pt-6 text-xs")}>
+        <dl className={cn("grid grid-cols-2 gap-y-2 text-xs")}>
           {stats.map((stat, idx) => (
             <ActionStatItem
               key={idx}
