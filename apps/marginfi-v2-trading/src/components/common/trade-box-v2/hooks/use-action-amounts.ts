@@ -38,7 +38,7 @@ export function useActionAmounts({
     }
 
     return collateralBank.userInfo.maxDeposit;
-  }, [collateralBank, activePool]);
+  }, [collateralBank]);
 
   return {
     amount,
