@@ -1,8 +1,7 @@
-import { ActionMessageType, calculateLstYield, LSTS_SOLANA_COMPASS_MAP } from "@mrgnlabs/mrgn-utils";
+import { ActionMessageType, TradeActionTxns } from "@mrgnlabs/mrgn-utils";
 import BigNumber from "bignumber.js";
 
 import { SimulationResult } from "@mrgnlabs/marginfi-client-v2";
-import { LoopActionTxns } from "@mrgnlabs/mrgn-utils";
 import { create, StateCreator } from "zustand";
 import { TradeSide } from "..";
 import { ArenaBank } from "~/store/tradeStoreV2";
@@ -18,7 +17,7 @@ interface TradeBoxState {
   selectedSecondaryBank: ArenaBank | null;
 
   simulationResult: SimulationResult | null;
-  actionTxns: LoopActionTxns;
+  actionTxns: TradeActionTxns;
 
   errorMessage: ActionMessageType | null;
 
@@ -29,7 +28,7 @@ interface TradeBoxState {
   setTradeState: (tradeState: TradeSide) => void;
   setLeverage: (leverage: number) => void;
   setSimulationResult: (result: SimulationResult | null) => void;
-  setActionTxns: (actionTxns: LoopActionTxns) => void;
+  setActionTxns: (actionTxns: TradeActionTxns) => void;
   setErrorMessage: (errorMessage: ActionMessageType | null) => void;
   setSelectedBank: (bank: ArenaBank | null) => void;
   setSelectedSecondaryBank: (bank: ArenaBank | null) => void;
@@ -113,7 +112,7 @@ const stateCreator: StateCreator<TradeBoxState, [], []> = (set, get) => ({
     set({ simulationResult: result });
   },
 
-  setActionTxns(actionTxns: LoopActionTxns) {
+  setActionTxns(actionTxns: TradeActionTxns) {
     set({ actionTxns: actionTxns });
   },
 

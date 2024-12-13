@@ -74,6 +74,9 @@ export interface LoopActionTxns extends ActionTxns {
   lastValidBlockHeight?: number;
   actualDepositAmount: number;
   borrowAmount: BigNumber;
+}
+
+export interface TradeActionTxns extends LoopActionTxns {
   accountCreationTx?: SolanaTransaction;
   marginfiAccount?: MarginfiAccountWrapper;
 }

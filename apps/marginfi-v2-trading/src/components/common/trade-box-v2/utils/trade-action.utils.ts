@@ -4,13 +4,13 @@ import {
   executeTradeAction,
   ExecuteTradeActionProps,
   CalculateLoopingProps,
-  LoopActionTxns,
   ActionMessageType,
   calculateLoopingParams,
+  TradeActionTxns,
 } from "@mrgnlabs/mrgn-utils";
 
 import { ExecuteActionsCallbackProps } from "~/components/action-box-v2/types";
-import { Keypair, PublicKey, TransactionInstruction } from "@solana/web3.js";
+import { Keypair, PublicKey } from "@solana/web3.js";
 import {
   BalanceRaw,
   MarginfiAccount,
@@ -68,7 +68,7 @@ interface GenerateTradeTxProps extends CalculateLoopingProps {
   authority: PublicKey;
 }
 
-export async function generateTradeTx(props: GenerateTradeTxProps): Promise<LoopActionTxns | ActionMessageType> {
+export async function generateTradeTx(props: GenerateTradeTxProps): Promise<TradeActionTxns | ActionMessageType> {
   const hasMarginfiAccount = !!props.marginfiAccount;
   let accountCreationTx: SolanaTransaction | undefined;
 
