@@ -178,8 +178,6 @@ export function useTradeSimulation({
           platformFeeBps: platformFeeBps,
         });
 
-        console.log("tradeActionTxns", tradeActionTxns);
-
         if (tradeActionTxns.actionMessage || tradeActionTxns.actionTxns === null) {
           handleError(tradeActionTxns.actionMessage ?? STATIC_SIMULATION_ERRORS.REPAY_COLLAT_FAILED, {
             // TODO: update error message
@@ -191,17 +189,13 @@ export function useTradeSimulation({
           return;
         }
 
-        // TODO: this has to change
-
-        if (!tradeActionTxns.actionTxns.accountCreationTx) {
+        if (tradeActionTxns.actionTxns.accountCreationTx) {
           setActionTxns(tradeActionTxns.actionTxns);
           return;
         }
 
         if (!wrappedAccount) {
-          console.log("wrappedAccount is null");
-          // throw error
-          return;
+          throw new Error("Marginfi account is null");
         }
 
         const simulationResult = await simulationAction({
