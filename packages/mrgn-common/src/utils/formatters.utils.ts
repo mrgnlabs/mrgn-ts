@@ -36,8 +36,6 @@ interface dynamicNumeralFormatterOptions {
 export const dynamicNumeralFormatter = (value: number, options: dynamicNumeralFormatterOptions = {}) => {
   const { minDisplay = 0.00001, tokenPrice } = options;
 
-  console.log("value", value);
-
   if (value === 0) return "0";
 
   if (Math.abs(value) < minDisplay) {
