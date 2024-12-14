@@ -77,7 +77,6 @@ export interface LoopActionTxns extends ActionTxns {
 }
 
 export interface TradeActionTxns extends LoopActionTxns {
-  accountCreationTx?: SolanaTransaction;
   marginfiAccount?: MarginfiAccountWrapper;
 }
 
