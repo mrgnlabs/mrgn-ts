@@ -182,17 +182,14 @@ export function useTradeSimulation({
           return;
         }
 
-        if (tradeActionTxns.actionTxns.accountCreationTx) {
-          setActionTxns(tradeActionTxns.actionTxns);
-          return;
-        }
+        const finalAccount = tradeActionTxns?.actionTxns.marginfiAccount || wrappedAccount;
 
-        if (!wrappedAccount) {
+        if (!finalAccount) {
           throw new Error("Marginfi account is null");
         }
 
         const simulationResult = await simulationAction({
-          account: wrappedAccount,
+          account: finalAccount,
           bank: selectedBank,
           txns: [
             ...(tradeActionTxns?.actionTxns?.additionalTxns ?? []),
