@@ -71,18 +71,18 @@ function getGeneralChecks(amount: number = 0, showCloseBalance?: boolean): Actio
 }
 
 function canBeTraded(
-  targetBankInfo: ArenaBank,
-  repayBankInfo: ArenaBank | null,
+  collateralBank: ArenaBank,
+  secondaryBank: ArenaBank | null,
   swapQuote: QuoteResponse | null
 ): ActionMessageType[] {
   let checks: ActionMessageType[] = [];
-  const isTargetBankPaused = targetBankInfo.info.rawBank.config.operationalState === OperationalState.Paused;
-  const isRepayBankPaused = repayBankInfo?.info.rawBank.config.operationalState === OperationalState.Paused;
+  const isTargetBankPaused = collateralBank.info.rawBank.config.operationalState === OperationalState.Paused;
+  const isRepayBankPaused = secondaryBank?.info.rawBank.config.operationalState === OperationalState.Paused;
 
   if (isTargetBankPaused || isRepayBankPaused) {
     checks.push(
       DYNAMIC_SIMULATION_ERRORS.BANK_PAUSED_CHECK(
-        isTargetBankPaused ? targetBankInfo.info.rawBank.tokenSymbol : repayBankInfo?.info.rawBank.tokenSymbol
+        isTargetBankPaused ? collateralBank.info.rawBank.tokenSymbol : secondaryBank?.info.rawBank.tokenSymbol
       )
     );
   }
@@ -97,15 +97,31 @@ function canBeTraded(
   }
 
   if (
-    (repayBankInfo &&
-      repayBankInfo?.info.rawBank.config.oracleSetup !== "SwitchboardV2" &&
-      isBankOracleStale(repayBankInfo)) ||
-    (targetBankInfo &&
-      targetBankInfo.info.rawBank.config.oracleSetup !== "SwitchboardV2" &&
-      isBankOracleStale(targetBankInfo))
+    secondaryBank &&
+    secondaryBank?.info.rawBank.config.oracleSetup !== "SwitchboardV2" &&
+    isBankOracleStale(secondaryBank)
   ) {
+    console.log(
+      `Bank ${secondaryBank.info.rawBank.tokenSymbol} oracle data is stale ⚠️ - timestamp: ${new Date(
+        secondaryBank.info.oraclePrice.timestamp.toNumber() * 1000
+      ).toLocaleString()}`
+    );
     checks.push(DYNAMIC_SIMULATION_ERRORS.STALE_CHECK("Trading"));
   }
+
+  if (
+    collateralBank &&
+    collateralBank.info.rawBank.config.oracleSetup !== "SwitchboardV2" &&
+    isBankOracleStale(collateralBank)
+  ) {
+    console.log(
+      `Bank ${collateralBank.info.rawBank.tokenSymbol} oracle data is stale ⚠️ - timestamp: ${new Date(
+        collateralBank.info.oraclePrice.timestamp.toNumber() * 1000
+      ).toLocaleString()}`
+    );
+    checks.push(DYNAMIC_SIMULATION_ERRORS.STALE_CHECK("Trading"));
+  }
+
   return checks;
 }
 
