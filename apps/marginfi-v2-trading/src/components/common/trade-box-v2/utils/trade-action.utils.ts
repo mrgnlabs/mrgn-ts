@@ -64,11 +64,7 @@ export const handleExecuteTradeAction = async ({
   }
 };
 
-interface GenerateTradeTxProps extends CalculateLoopingProps {
-  authority: PublicKey;
-}
-
-export async function generateTradeTx(props: GenerateTradeTxProps): Promise<TradeActionTxns | ActionMessageType> {
+export async function generateTradeTx(props: CalculateLoopingProps): Promise<TradeActionTxns | ActionMessageType> {
   const hasMarginfiAccount = !!props.marginfiAccount;
   let accountCreationTx: SolanaTransaction | undefined;
 
@@ -76,6 +72,9 @@ export async function generateTradeTx(props: GenerateTradeTxProps): Promise<Trad
 
   if (!hasMarginfiAccount) {
     // if no marginfi account, we need to create one
+    console.log("Creating new marginfi account transaction...");
+    const authority = props.marginfiAccount?.authority ?? props.marginfiClient.provider.publicKey;
+
     const marginfiAccountKeypair = Keypair.generate();
 
     const dummyWrappedI80F48 = bigNumberToWrappedI80F48(new BigNumber(0));
@@ -91,7 +90,7 @@ export async function generateTradeTx(props: GenerateTradeTxProps): Promise<Trad
 
     const rawAccount: MarginfiAccountRaw = {
       group: props.marginfiClient.group.address,
-      authority: props.authority,
+      authority: authority,
       lendingAccount: { balances: dummyBalances },
       accountFlags: new BN([0, 0, 0]),
     };
@@ -109,6 +108,7 @@ export async function generateTradeTx(props: GenerateTradeTxProps): Promise<Trad
   if (result && "actionQuote" in result) {
     return {
       ...result,
+
       additionalTxns: [...(result.additionalTxns ?? [])],
       accountCreationTx: accountCreationTx ?? undefined,
     };

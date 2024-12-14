@@ -136,7 +136,7 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
   const debouncedLeverage = useAmountDebounce<number>(leverage, 500);
 
   // States
-  const [additionalActionMessages, setAdditionalActionMessages] = React.useState<ActionMessageType[]>([]);
+  const [dynamicActionMessages, setDynamicActionMessages] = React.useState<ActionMessageType[]>([]);
 
   // Loading states
   const [isTransactionExecuting, setIsTransactionExecuting] = React.useState(false);
@@ -163,7 +163,7 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
     }
   }, [tradeState, actionTxns]);
 
-  const actionMethods = React.useMemo(
+  const staticActionMethods = React.useMemo(
     () =>
       checkTradeActionAvailable({
         amount,
@@ -177,11 +177,15 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
     [amount, connected, actionTxns, tradeState, selectedSecondaryBank, selectedBank]
   );
 
+  const actionMethods = React.useMemo(() => {
+    return staticActionMethods.concat(dynamicActionMessages);
+  }, [staticActionMethods, dynamicActionMessages]);
+
   const isDisabled = React.useMemo(() => {
-    if (!actionTxns?.actionQuote) return true;
-    if (actionMethods.concat(additionalActionMessages).filter((value) => value.isEnabled === false).length) return true;
+    if (!actionTxns?.actionQuote || !actionTxns?.actionTxn) return true;
+    if (actionMethods.filter((value) => value.isEnabled === false).length) return true;
     return false;
-  }, [actionMethods, additionalActionMessages, actionTxns]);
+  }, [actionMethods, actionTxns]);
 
   // Effects
   React.useEffect(() => {
@@ -201,9 +205,9 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
       if (errorMessage.actionMethod === "ERROR") {
         showErrorToast(errorMessage?.description);
       }
-      setAdditionalActionMessages([errorMessage]);
+      setDynamicActionMessages([errorMessage]);
     } else {
-      setAdditionalActionMessages([]);
+      setDynamicActionMessages([]);
     }
   }, [errorMessage]);
 
@@ -224,10 +228,7 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
     wrappedAccount: wrappedAccount,
     slippageBps: slippageBps,
     platformFeeBps: platformFeeBps,
-    actionTxns: actionTxns,
-    simulationResult: null,
-    accountSummary: accountSummary ?? undefined,
-    isEnabled: !actionMethods.concat(additionalActionMessages).filter((value) => value.isEnabled === false).length,
+    isEnabled: !actionMethods.filter((value) => value.isEnabled === false).length,
     setActionTxns: setActionTxns,
     setErrorMessage: setErrorMessage,
     setIsLoading: setIsSimulating,
@@ -465,14 +466,13 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
               selectedBank={activePoolExtended.tokenBank}
             />
           )}
-          {actionMethods && actionMethods.concat(additionalActionMessages).some((method) => method.description) && (
+          {actionMethods && actionMethods.some((method) => method.description) && (
             <InfoMessages
               connected={connected}
               tradeState={tradeState}
               activePool={activePoolExtended}
               isActiveWithCollat={isActiveWithCollat}
               actionMethods={actionMethods}
-              additionalChecks={additionalActionMessages}
               setIsWalletOpen={setIsWalletOpen}
               fetchTradeState={fetchTradeState}
               connection={connection}
@@ -495,7 +495,7 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
           <div className="flex items-center w-full justify-between">
             <ActionSimulationStatus
               simulationStatus={isSimulating.status}
-              hasErrorMessages={additionalActionMessages.length > 0}
+              hasErrorMessages={dynamicActionMessages.length > 0}
               isActive={selectedBank && amount > 0 ? true : false}
             />
             <TradingBoxSettingsDialog
