@@ -16,6 +16,7 @@ import React from "react";
 import { useConnection } from "~/hooks/use-connection";
 import { useTradeStoreV2 } from "~/store";
 import { ArenaBank } from "~/store/tradeStoreV2";
+import { BankMetadata } from "@mrgnlabs/mrgn-common";
 
 type UseMarginfiClientProps = {
   groupPk: PublicKey;
@@ -34,25 +35,16 @@ export function useMarginfiClient({
     programId: defaultConfig.programId,
   },
 }: UseMarginfiClientProps) {
-  const [
-    arenaPools,
-    banksByBankPk,
-    groupsByGroupPk,
-    tokenAccountMap,
-    lutByGroupPk,
-    mintDataByMint,
-    bankMetadataCache,
-    wallet,
-  ] = useTradeStoreV2((state) => [
-    state.arenaPools,
-    state.banksByBankPk,
-    state.groupsByGroupPk,
-    state.tokenAccountMap,
-    state.lutByGroupPk,
-    state.mintDataByMint,
-    state.bankMetadataCache,
-    state.wallet,
-  ]);
+  const [arenaPools, banksByBankPk, groupsByGroupPk, tokenAccountMap, lutByGroupPk, mintDataByMint, wallet] =
+    useTradeStoreV2((state) => [
+      state.arenaPools,
+      state.banksByBankPk,
+      state.groupsByGroupPk,
+      state.tokenAccountMap,
+      state.lutByGroupPk,
+      state.mintDataByMint,
+      state.wallet,
+    ]);
   const { connection } = useConnection();
 
   const client = React.useMemo(() => {
@@ -99,6 +91,17 @@ export function useMarginfiClient({
 
     const program = new Program(idl, provider) as any as MarginfiProgram;
 
+    let bankMetadataByBankPk: Record<string, BankMetadata> = {};
+
+    [tokenBank, quoteBank].forEach((bank) => {
+      const bankPk = bank.info.rawBank.address.toBase58();
+      bankMetadataByBankPk[bankPk] = {
+        tokenAddress: bank.info.state.mint.toBase58(),
+        tokenName: bank.meta.tokenName,
+        tokenSymbol: bank.meta.tokenSymbol,
+      };
+    });
+
     const client = new MarginfiClient(
       { groupPk, ...clientConfig },
       program,
@@ -111,7 +114,7 @@ export function useMarginfiClient({
       feedIdMap,
       lut,
       bankAddresses,
-      bankMetadataCache,
+      bankMetadataByBankPk,
       clientOptions?.bundleSimRpcEndpoint,
       clientOptions?.processTransactionStrategy
     );
@@ -132,7 +135,6 @@ export function useMarginfiClient({
     clientOptions?.processTransactionStrategy,
     wallet,
     clientConfig,
-    bankMetadataCache,
   ]);
 
   return client;
