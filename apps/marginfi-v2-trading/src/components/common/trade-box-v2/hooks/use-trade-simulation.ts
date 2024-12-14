@@ -29,10 +29,7 @@ export type TradeSimulationProps = {
   selectedBank: ArenaBank | null;
   selectedSecondaryBank: ArenaBank | null;
   marginfiClient: MarginfiClient | null;
-  actionTxns: TradeActionTxns;
-  simulationResult: SimulationResult | null;
   wrappedAccount: MarginfiAccountWrapper | null;
-  accountSummary?: AccountSummary;
   isEnabled: boolean;
 
   slippageBps: number;
@@ -52,11 +49,8 @@ export function useTradeSimulation({
   selectedSecondaryBank,
   marginfiClient,
   wrappedAccount,
-  actionTxns,
-  simulationResult,
   slippageBps,
   platformFeeBps,
-  accountSummary,
   isEnabled,
   setActionTxns,
   setErrorMessage,
@@ -133,7 +127,6 @@ export function useTradeSimulation({
     try {
       const loopingResult = await generateTradeTx({
         ...props,
-        authority: props.marginfiAccount?.authority ?? props.marginfiClient.provider.publicKey,
       });
 
       if (loopingResult && "actionQuote" in loopingResult) {
