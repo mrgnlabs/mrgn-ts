@@ -66,7 +66,7 @@ export const handleExecuteTradeAction = async ({
 
 export async function generateTradeTx(props: CalculateLoopingProps): Promise<TradeActionTxns | ActionMessageType> {
   const hasMarginfiAccount = !!props.marginfiAccount;
-  let accountCreationTx: SolanaTransaction | undefined;
+  let accountCreationTx: SolanaTransaction[] = [];
 
   let finalAccount: MarginfiAccountWrapper | null = props.marginfiAccount;
 
@@ -101,16 +101,17 @@ export async function generateTradeTx(props: CalculateLoopingProps): Promise<Tra
 
     finalAccount = wrappedAccount;
 
-    accountCreationTx = await props.marginfiClient.createMarginfiAccountTx({ accountKeypair: marginfiAccountKeypair });
+    accountCreationTx.push(
+      await props.marginfiClient.createMarginfiAccountTx({ accountKeypair: marginfiAccountKeypair })
+    );
   }
   const result = await calculateLoopingParams({ ...props, marginfiAccount: finalAccount });
 
   if (result && "actionQuote" in result) {
     return {
       ...result,
-
-      additionalTxns: [...(result.additionalTxns ?? [])],
-      accountCreationTx: accountCreationTx ?? undefined,
+      additionalTxns: [...accountCreationTx, ...(result.additionalTxns ?? [])],
+      marginfiAccount: finalAccount ?? undefined,
     };
   }
 
