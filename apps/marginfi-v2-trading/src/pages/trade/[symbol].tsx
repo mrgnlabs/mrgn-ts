@@ -77,8 +77,8 @@ export default function TradeSymbolPage({ initialData }: StaticArenaProps) {
   return (
     <>
       <div className="w-full max-w-8xl mx-auto px-4 pt-8 pb-24 mt:pt-8 md:px-8 min-h-[calc(100vh-100px)]">
-        {(!initialized || !poolsFetched || !activePool) && <Loader label="Loading the arena..." className="mt-8" />}
-        {initialized && poolsFetched && activePool && (
+        {!activePool && <Loader label="Loading the arena..." className="mt-8" />}
+        {activePool && (
           <div className="w-full space-y-4">
             <PoolTradeHeader activePool={activePool} />
             <div className="rounded-xl space-y-4">
