@@ -14,7 +14,6 @@ interface InfoMessagesProps {
   activePool: ArenaPoolV2Extended;
   isActiveWithCollat: boolean;
   actionMethods: ActionMessageType[];
-  additionalChecks?: ActionMessageType[];
   setIsWalletOpen: (value: boolean) => void;
   fetchTradeState: ({
     connection,
@@ -37,7 +36,6 @@ export const InfoMessages = ({
   activePool,
   isActiveWithCollat,
   actionMethods = [],
-  additionalChecks,
   setIsWalletOpen,
   fetchTradeState,
   connection,
@@ -79,7 +77,7 @@ export const InfoMessages = ({
 
   const renderActionMethodMessages = () => (
     <div className="flex flex-col gap-4">
-      {actionMethods.concat(additionalChecks ?? []).map(
+      {actionMethods.map(
         (actionMethod, idx) =>
           actionMethod.description && (
             <div
