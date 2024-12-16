@@ -12,11 +12,11 @@ export type ArenaBank = ExtendedBankInfo & {
   };
 };
 
-export interface BankData {
+export type BankData = {
   totalDeposits: number;
   totalBorrows: number;
   availableLiquidity: number;
-}
+};
 
 export type BankSummary = {
   bankPk: PublicKey;

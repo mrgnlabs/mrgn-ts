@@ -39,6 +39,7 @@ import {
   fetchBankDataMap,
   fetchInitialArenaState,
   InitialArenaState,
+  recompileArenaBank,
   updateArenaBankWithUserData,
 } from "~/utils/trade-store.utils";
 import { PositionData } from "@mrgnlabs/mrgn-utils";
@@ -143,6 +144,7 @@ type TradeStoreV2State = {
     wallet?: Wallet;
     refresh?: boolean;
   }) => Promise<void>;
+  fetchUserData: ({ connection, wallet }: { connection?: Connection; wallet?: Wallet }) => Promise<void>;
   refreshGroup: ({
     groupPk,
     banks,
@@ -467,6 +469,66 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
     });
   },
 
+  fetchUserData: async (args) => {
+    const connection = args.connection || get().connection;
+    const wallet = args.wallet || get().wallet;
+
+    const { banksByBankPk, mintDataByMint, oraclePrices } = get();
+
+    if (!connection) throw new Error("Connection not found in fetching positions");
+
+    const provider = new AnchorProvider(connection, wallet, {
+      ...AnchorProvider.defaultOptions(),
+      commitment: connection.commitment ?? AnchorProvider.defaultOptions().commitment,
+    });
+    const idl = { ...(MARGINFI_IDL as unknown as MarginfiIdlType), address: programId.toBase58() };
+    const program = new Program(idl, provider) as any as MarginfiProgram;
+
+    const rawBanksByBankPk = new Map(
+      Object.entries(banksByBankPk).map(([key, arenaBank]) => [key, arenaBank.info.rawBank])
+    );
+
+    if (!wallet.publicKey || wallet.publicKey.equals(PublicKey.default)) {
+      console.error("No wallet connected or invalid wallet state");
+      return;
+    }
+
+    const arenaBanks = Object.values(banksByBankPk);
+
+    const priceInfos = new Map(
+      arenaBanks.map((bank) => {
+        const priceData = oraclePrices[bank.address.toBase58()];
+        if (!priceData) throw new Error(`Failed to fetch price oracle account for bank ${bank.address.toBase58()}`);
+        return [bank.address.toBase58(), priceData as OraclePrice];
+      })
+    );
+
+    const { updatedArenaBanks, nativeSolBalance, tokenAccountMap, updateMarginfiAccounts } =
+      await updateArenaBankWithUserData(
+        connection,
+        wallet.publicKey,
+        program,
+        arenaBanks,
+        mintDataByMint,
+        priceInfos,
+        rawBanksByBankPk
+      );
+
+    const extendedBanksByBankPk = updatedArenaBanks.reduce((acc, bank) => {
+      acc[bank.info.rawBank.address.toBase58()] = bank;
+      return acc;
+    }, {} as Record<string, ArenaBank>);
+
+    set({
+      banksByBankPk: extendedBanksByBankPk,
+      nativeSolBalance,
+      tokenAccountMap,
+      marginfiAccountByGroupPk: updateMarginfiAccounts,
+      wallet,
+      connection,
+    });
+  },
+
   fetchTradeState: async (args) => {},
 
   refreshGroup: async (args) => {
@@ -596,7 +658,29 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
     set({ sortBy, arenaPoolsSummary: sortedPoolsSummary, arenaPools: sortedPools });
   },
 
-  resetUserData: () => {},
+  resetUserData: () => {
+    // reset arenaBanks
+    const { banksByBankPk } = get();
+
+    const updatedArenaBanks = Object.values(banksByBankPk).map((bank) => {
+      return recompileArenaBank(bank, undefined);
+    });
+
+    // Convert array back to Record<string, ArenaBank>
+    const updatedBanksByBankPk = updatedArenaBanks.reduce((acc, bank) => {
+      acc[bank.address.toBase58()] = bank;
+      return acc;
+    }, {} as Record<string, ArenaBank>);
+
+    set({
+      banksByBankPk: updatedBanksByBankPk,
+      nativeSolBalance: 0,
+      tokenAccountMap: new Map(),
+      marginfiAccountByGroupPk: {},
+      wallet: undefined,
+      userDataFetched: false,
+    });
+  },
 });
 
 const sortPools = (

@@ -1,5 +1,5 @@
 import { Bank, BankRaw, MarginfiAccount, MarginfiProgram, MintData, OraclePrice } from "@mrgnlabs/marginfi-client-v2";
-import { fetchTokenAccounts, makeExtendedBankInfo, TokenAccount } from "@mrgnlabs/marginfi-v2-ui-state";
+import { fetchTokenAccounts, makeExtendedBankInfo, TokenAccount, UserDataProps } from "@mrgnlabs/marginfi-v2-ui-state";
 import { BankMetadata, TokenMetadata } from "@mrgnlabs/mrgn-common";
 import { AccountInfo, Connection, PublicKey } from "@solana/web3.js";
 import { GetStaticProps } from "next";
@@ -317,33 +317,23 @@ export const updateArenaBankWithUserData = async (
   const updatedArenaBanks = arenaBanks.map((bankInfo) => {
     const marginfiAccount = updateMarginfiAccounts[bankInfo.info.rawBank.group.toBase58()] ?? null;
     const tokenAccount = tokenAccountMap?.get(bankInfo.info.rawBank.mint.toBase58());
-    return recompileArenaBank(bankInfo, nativeSolBalance, marginfiAccount, banksByBankPk, priceInfos, tokenAccount);
+
+    const userData: UserDataProps | undefined = tokenAccount
+      ? { nativeSolBalance, marginfiAccount, banks: banksByBankPk, oraclePrices: priceInfos, tokenAccount }
+      : undefined;
+
+    return recompileArenaBank(bankInfo, userData);
   });
   return { updatedArenaBanks, nativeSolBalance, tokenAccountMap, updateMarginfiAccounts };
 };
 
-const recompileArenaBank = (
-  bank: ArenaBank,
-  nativeSolBalance: number,
-  account: MarginfiAccount | null,
-  banks: Map<string, Bank>,
-  oraclePrices: Map<string, OraclePrice>,
-  tokenAccount?: TokenAccount
-) => {
-  if (!tokenAccount) return bank;
-
+export const recompileArenaBank = (bank: ArenaBank, userData?: any) => {
   const updatedBankInfo = makeExtendedBankInfo(
     { icon: bank.meta.tokenLogoUri, name: bank.meta.tokenName, symbol: bank.meta.tokenSymbol },
     bank.info.rawBank,
     bank.info.oraclePrice,
     undefined,
-    {
-      nativeSolBalance,
-      marginfiAccount: account,
-      tokenAccount,
-      banks,
-      oraclePrices,
-    }
+    userData
   );
 
   return {
