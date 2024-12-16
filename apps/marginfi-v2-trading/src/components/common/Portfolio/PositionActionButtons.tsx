@@ -147,7 +147,7 @@ export const PositionActionButtons = ({
         setIsActionComplete(true);
         setPreviousTxn({
           txnType: "CLOSE_POSITION",
-          txn: Array.isArray(txnSig) ? txnSig.pop() ?? "" : txnSig!,
+          txn: Array.isArray(txnSig) ? txnSig[txnSig.length - 1] : txnSig!,
           positionClosedOptions: {
             tokenBank: arenaPool.tokenBank,
             collateralBank: arenaPool.quoteBank,

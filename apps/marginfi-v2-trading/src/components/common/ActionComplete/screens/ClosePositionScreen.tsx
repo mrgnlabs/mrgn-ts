@@ -16,19 +16,19 @@ interface Props {
 export const ClosePositionScreen = ({ tokenBank, collateralBank, txn }: Props) => {
   return (
     <>
-      <div className="flex flex-col items-center gap-2 border-b border-border pb-10">
-        <div className="flex items-center justify-center gap-2">
-          {tokenBank && (
-            <Image
-              className="rounded-full w-9 h-9"
-              src={tokenBank.meta.tokenLogoUri}
-              alt={(tokenBank.meta.tokenSymbol || "Token") + "  logo"}
-              width={36}
-              height={36}
-            />
-          )}
-          <h3 className="text-4xl font-medium">{`${tokenBank?.meta.tokenSymbol}/${collateralBank?.meta.tokenSymbol}`}</h3>
-        </div>
+      <div className="flex flex-col items-center gap-4 border-b border-border pb-10">
+        {tokenBank && (
+          <Image
+            className="rounded-full w-9 h-9"
+            src={tokenBank.meta.tokenLogoUri}
+            alt={(tokenBank.meta.tokenSymbol || "Token") + "  logo"}
+            width={36}
+            height={36}
+          />
+        )}
+        <h3 className="text-2xl font-medium text-center">
+          {`You closed your ${tokenBank?.meta.tokenSymbol}  position`}
+        </h3>
       </div>
       <dl className="grid grid-cols-2 w-full text-muted-foreground gap-x-8 gap-y-2">
         {tokenBank?.isActive && tokenBank?.position && (
@@ -51,6 +51,7 @@ export const ClosePositionScreen = ({ tokenBank, collateralBank, txn }: Props) =
             </dd>
           </>
         )}
+
         <dt>Transaction</dt>
         <dd className="text-right">
           <Link
