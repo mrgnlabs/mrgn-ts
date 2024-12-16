@@ -20,12 +20,7 @@ import { Button } from "~/components/ui/button";
 import { Loader } from "~/components/common/Loader";
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
-import {
-  fetchInitialArenaState,
-  getArenaStaticProps,
-  InitialArenaState,
-  StaticArenaProps,
-} from "~/utils/trade-store.utils";
+import { getArenaStaticProps, StaticArenaProps } from "~/utils/trade-store.utils";
 
 const sortOptions: {
   value: TradePoolFilterStates;
