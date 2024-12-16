@@ -262,7 +262,7 @@ function makeExtendedBankMetadata(bank: Bank, tokenMetadata: TokenMetadata): Ext
   };
 }
 
-type UserDataProps = UserDataWrappedProps | UserDataRawProps;
+export type UserDataProps = UserDataWrappedProps | UserDataRawProps;
 
 type UserDataWrappedProps = {
   nativeSolBalance: number;

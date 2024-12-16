@@ -18,14 +18,27 @@ export const TradePovider: React.FC<{
   const { wallet, connected } = useWallet();
   const { connection } = useConnection();
 
-  const [fetchExtendedArenaGroups, fetchArenaGroups, setHydrationComplete, initialized, hydrationComplete] =
-    useTradeStoreV2((state) => [
-      state.fetchExtendedArenaGroups,
-      state.fetchArenaGroups,
-      state.setHydrationComplete,
-      state.initialized,
-      state.hydrationComplete,
-    ]);
+  const [
+    fetchUserData,
+    fetchExtendedArenaGroups,
+    fetchArenaGroups,
+    setHydrationComplete,
+    resetUserData,
+    initialized,
+    poolsFetched,
+    userDataFetched,
+    hydrationComplete,
+  ] = useTradeStoreV2((state) => [
+    state.fetchUserData,
+    state.fetchExtendedArenaGroups,
+    state.fetchArenaGroups,
+    state.setHydrationComplete,
+    state.resetUserData,
+    state.initialized,
+    state.poolsFetched,
+    state.userDataFetched,
+    state.hydrationComplete,
+  ]);
 
   const [fetchPriorityFee] = useUiStore((state) => [state.fetchPriorityFee]);
   const [isLoggedIn, setIsLoggedIn] = React.useState(false);
@@ -42,11 +55,18 @@ export const TradePovider: React.FC<{
   }, [fetchArenaGroups, hydrationComplete, setHydrationComplete]);
 
   React.useEffect(() => {
-    if (initialized && connected) {
+    if (initialized) {
       fetchExtendedArenaGroups({ connection, wallet });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialized, connected]);
+  }, [initialized]);
+
+  React.useEffect(() => {
+    if (poolsFetched && wallet && connected) {
+      fetchUserData({ connection, wallet });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [poolsFetched, connected, fetchUserData]);
 
   React.useEffect(() => {
     const trackReferral = async (referralCode: string, walletAddress: string) => {
@@ -112,11 +132,11 @@ export const TradePovider: React.FC<{
     };
   }, [wallet]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // React.useEffect(() => {
-  //   if (!connected && resetUserData) {
-  //     resetUserData();
-  //   }
-  // }, [connected, resetUserData]);
+  React.useEffect(() => {
+    if (!connected && resetUserData) {
+      resetUserData();
+    }
+  }, [connected, resetUserData]);
 
   return <TradeContext.Provider value={{}}>{children}</TradeContext.Provider>;
 };
