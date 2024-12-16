@@ -26,7 +26,7 @@ export const CreatePoolSuccess = ({ poolData, setIsOpen }: CreatePoolSuccessProp
         </div>
         {poolData && (
           <div className="flex flex-col items-center justify-center gap-3 mt-8">
-            <Image
+            {/* <Image
               src={poolData.icon}
               alt={`${poolData.symbol} icon`}
               width={64}
@@ -46,7 +46,7 @@ export const CreatePoolSuccess = ({ poolData, setIsOpen }: CreatePoolSuccessProp
                 {shortenAddress(poolData.group || poolData.mint)}
               </span>
               <IconExternalLink size={16} />
-            </Link>
+            </Link> */}
           </div>
         )}
       </div>

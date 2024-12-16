@@ -19,7 +19,7 @@ import {
 } from "~/components/ui/dialog";
 import { Drawer, DrawerContent, DrawerTrigger } from "~/components/ui/drawer";
 
-import { ArenaPoolV2Extended } from "~/store/tradeStoreV2";
+import { ArenaPoolV2Extended } from "~/types/trade-store.types";
 import { useExtendedPools } from "~/hooks/useExtendedPools";
 import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
 

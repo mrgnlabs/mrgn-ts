@@ -10,8 +10,8 @@ import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "~/components/ui/card";
 import { TooltipProvider, Tooltip, TooltipContent, TooltipTrigger } from "~/components/ui/tooltip";
 
-import { ArenaPoolSummary } from "~/store/tradeStoreV2";
 import { useTradeStoreV2 } from "~/store";
+import { ArenaPoolSummary } from "~/types/trade-store.types";
 
 type PoolCardProps = {
   poolData: ArenaPoolSummary;

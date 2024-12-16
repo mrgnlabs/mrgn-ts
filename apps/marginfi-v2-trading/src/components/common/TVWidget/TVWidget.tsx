@@ -4,7 +4,7 @@ import { usePrevious } from "@mrgnlabs/mrgn-utils";
 
 import { ChartingLibraryFeatureset } from "../../../../public/tradingview";
 import { useTradeStoreV2 } from "~/store";
-import { ArenaPoolV2 } from "~/store/tradeStoreV2";
+import { ArenaPoolV2 } from "~/types/trade-store.types";
 
 interface props {
   activePool: ArenaPoolV2;

@@ -1,8 +1,9 @@
 import { SimulationResult } from "@mrgnlabs/marginfi-client-v2";
-
 import { ActionMessageType, handleSimulationError, TradeActionTxns } from "@mrgnlabs/mrgn-utils";
+import { nativeToUi } from "@mrgnlabs/mrgn-common";
+import { AccountSummary } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { ArenaBank } from "~/store/tradeStoreV2";
+import { ArenaBank } from "~/types/trade-store.types";
 import {
   ActionPreview,
   ActionSummary,
@@ -11,8 +12,7 @@ import {
   simulatedPositionSize,
 } from "~/components/action-box-v2/utils";
 import { SimulatedActionPreview } from "~/components/action-box-v2/actions/lend-box/utils";
-import { nativeToUi } from "@mrgnlabs/mrgn-common";
-import { AccountSummary } from "@mrgnlabs/marginfi-v2-ui-state";
+
 import { SimulateActionProps } from "./trade-box.consts";
 
 export const getSimulationResult = async (props: SimulateActionProps) => {

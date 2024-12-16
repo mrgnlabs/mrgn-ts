@@ -8,7 +8,7 @@ import { useIsMobile } from "~/hooks/use-is-mobile";
 
 import { TradingBox } from "./TradingBox";
 import { Dialog, DialogTrigger, DialogContent } from "~/components/ui/dialog";
-import { ArenaPoolV2 } from "~/store/tradeStoreV2";
+import { ArenaPoolV2 } from "~/types/trade-store.types";
 
 type TradingBoxDialogProps = {
   activePool: ArenaPoolV2;

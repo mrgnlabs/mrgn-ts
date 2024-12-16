@@ -4,7 +4,7 @@ import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { WSOL_MINT } from "@mrgnlabs/mrgn-common";
 
 import { useAmountDebounce } from "~/hooks/useAmountDebounce";
-import { ArenaBank, ArenaPoolV2Extended } from "~/store/tradeStoreV2";
+import { ArenaBank, ArenaPoolV2Extended } from "~/types/trade-store.types";
 
 export function useActionAmounts({
   amountRaw,

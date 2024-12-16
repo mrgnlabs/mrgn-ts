@@ -16,7 +16,7 @@ import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
 import { ActionBox, ActionBoxProvider } from "~/components/action-box-v2";
 import { Button } from "~/components/ui/button";
-import { ArenaPoolV2Extended, GroupStatus } from "~/store/tradeStoreV2";
+import { ArenaPoolV2Extended, GroupStatus } from "~/types/trade-store.types";
 import { useActionBoxProps } from "~/hooks/useActionBoxProps";
 
 interface YieldCardProps {

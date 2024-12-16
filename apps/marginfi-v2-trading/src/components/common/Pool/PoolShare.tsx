@@ -1,7 +1,5 @@
 import React from "react";
-
 import Link from "next/link";
-
 import {
   IconCopy,
   IconCheck,
@@ -15,8 +13,8 @@ import { CopyToClipboard } from "react-copy-to-clipboard";
 
 import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
 import { Button } from "~/components/ui/button";
-import { ArenaPoolV2 } from "~/store/tradeStoreV2";
 import { useExtendedPool } from "~/hooks/useExtendedPools";
+import { ArenaPoolV2 } from "~/types/trade-store.types";
 
 const shareLinks = [
   {

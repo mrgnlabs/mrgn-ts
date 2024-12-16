@@ -3,7 +3,7 @@ import React from "react";
 import { Table, TableBody, TableHead, TableCell, TableHeader, TableRow } from "~/components/ui/table";
 
 import { PositionListItem } from "./PositionListItem";
-import { ArenaPoolV2, ArenaPoolV2Extended, GroupStatus } from "~/store/tradeStoreV2";
+import { ArenaPoolV2, ArenaPoolV2Extended, GroupStatus } from "~/types/trade-store.types";
 import { useExtendedPools } from "~/hooks/useExtendedPools";
 
 export const PositionList = ({ activePool }: { activePool: ArenaPoolV2 }) => {
