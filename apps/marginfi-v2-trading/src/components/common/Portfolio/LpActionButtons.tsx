@@ -10,7 +10,7 @@ import { useTradeStoreV2 } from "~/store";
 
 import { ActionBox, ActionBoxProvider } from "~/components/action-box-v2";
 import { Button } from "~/components/ui/button";
-import { ArenaPoolV2Extended } from "~/store/tradeStoreV2";
+import { ArenaPoolV2Extended } from "~/types/trade-store.types";
 import { useWrappedAccount } from "~/hooks/useWrappedAccount";
 import { useMarginfiClient } from "~/hooks/useMarginfiClient";
 

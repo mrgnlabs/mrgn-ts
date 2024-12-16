@@ -36,10 +36,10 @@ import { Slider } from "~/components/ui/slider";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
-import { ArenaPoolV2 } from "~/store/tradeStoreV2";
 import { useExtendedPool } from "~/hooks/useExtendedPools";
 import { useMarginfiClient } from "~/hooks/useMarginfiClient";
 import { useWrappedAccount } from "~/hooks/useWrappedAccount";
+import { ArenaPoolV2 } from "~/types/trade-store.types";
 
 type TradingBoxProps = {
   activePool: ArenaPoolV2;

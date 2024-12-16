@@ -2,14 +2,14 @@ import React from "react";
 
 import Image from "next/image";
 import Link from "next/link";
+import { IconExternalLink } from "@tabler/icons-react";
 
 import { numeralFormatter, tokenPriceFormatter, percentFormatter, shortenAddress } from "@mrgnlabs/mrgn-common";
 import { cn } from "@mrgnlabs/mrgn-utils";
 
 import { Button } from "~/components/ui/button";
-import { IconExternalLink } from "@tabler/icons-react";
-import { ArenaPoolV2 } from "~/store/tradeStoreV2";
 import { useExtendedPool } from "~/hooks/useExtendedPools";
+import { ArenaPoolV2 } from "~/types/trade-store.types";
 
 type AdminPoolCardProps = {
   pool: ArenaPoolV2;

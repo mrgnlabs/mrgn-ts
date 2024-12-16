@@ -1,15 +1,15 @@
 import React from "react";
-
+import { IconExternalLink } from "@tabler/icons-react";
 import Image from "next/image";
 import Link from "next/link";
 
 import { percentFormatter, numeralFormatter, tokenPriceFormatter, shortenAddress } from "@mrgnlabs/mrgn-common";
 import { cn } from "@mrgnlabs/mrgn-utils";
-import { IconExternalLink } from "@tabler/icons-react";
 
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
-import { ArenaPoolV2 } from "~/store/tradeStoreV2";
+
 import { useExtendedPool } from "~/hooks/useExtendedPools";
+import { ArenaPoolV2 } from "~/types/trade-store.types";
 
 type AdminPoolDetailHeaderProps = {
   activePool: ArenaPoolV2;

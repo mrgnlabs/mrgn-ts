@@ -6,7 +6,7 @@ import { useTradeStoreV2 } from "~/store";
 
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { AdminPoolDetailHeader, AdminPoolDetailCard } from "~/components/common/admin";
-import { ArenaPoolV2 } from "~/store/tradeStoreV2";
+import { ArenaPoolV2 } from "~/types/trade-store.types";
 
 export default function AdminGroupDetailsPage() {
   const [initialized, arenaPools, groupsByGroupPk] = useTradeStoreV2((state) => [

@@ -11,7 +11,7 @@ import { Connection, PublicKey } from "@solana/web3.js";
 import { NextApiRequest, NextApiResponse } from "next";
 import config from "~/config/marginfi";
 import { TRADE_GROUPS_MAP } from "~/config/trade";
-import { PoolApiResponse } from "~/types/api.types";
+import { PoolListApiResponse } from "~/types/api.types";
 
 const S_MAXAGE_TIME = 100;
 const STALE_WHILE_REVALIDATE_TIME = 150;
@@ -28,7 +28,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ error: "Invalid input: expected a valid host." });
     }
 
-    const poolList: PoolApiResponse[] = await fetch(`${host}/api/pool/list`).then((response) => response.json());
+    const poolList: PoolListApiResponse[] = await fetch(`${host}/api/pool/list`).then((response) => response.json());
 
     const groupSummaries = poolList.reduce(
       (acc, pool) => {

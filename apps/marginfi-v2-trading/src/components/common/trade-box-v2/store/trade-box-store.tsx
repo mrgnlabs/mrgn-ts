@@ -1,10 +1,12 @@
-import { ActionMessageType, TradeActionTxns } from "@mrgnlabs/mrgn-utils";
+import { create, StateCreator } from "zustand";
 import BigNumber from "bignumber.js";
 
+import { ActionMessageType, TradeActionTxns } from "@mrgnlabs/mrgn-utils";
 import { SimulationResult } from "@mrgnlabs/marginfi-client-v2";
-import { create, StateCreator } from "zustand";
+
+import { ArenaBank } from "~/types/trade-store.types";
+
 import { TradeSide } from "..";
-import { ArenaBank } from "~/store/tradeStoreV2";
 
 interface TradeBoxState {
   // State

@@ -6,7 +6,7 @@ import { IconAlertTriangle, IconExternalLink, IconLoader } from "@tabler/icons-r
 import Link from "next/link";
 import { ActionBox } from "~/components";
 import { Button } from "~/components/ui/button";
-import { ArenaPoolV2Extended } from "~/store/tradeStoreV2";
+import { ArenaPoolV2Extended } from "~/types/trade-store.types";
 
 interface InfoMessagesProps {
   connected: boolean;

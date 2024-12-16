@@ -1,6 +1,6 @@
 import React from "react";
 import { useTradeStoreV2 } from "~/store";
-import { ArenaBank, ArenaPoolV2, ArenaPoolV2Extended, GroupStatus } from "~/store/tradeStoreV2";
+import { ArenaPoolV2, ArenaPoolV2Extended, ArenaBank, GroupStatus } from "~/types/trade-store.types";
 
 export function useExtendedPool(pool: ArenaPoolV2) {
   const [banksByBankPk] = useTradeStoreV2((state) => [state.banksByBankPk]);

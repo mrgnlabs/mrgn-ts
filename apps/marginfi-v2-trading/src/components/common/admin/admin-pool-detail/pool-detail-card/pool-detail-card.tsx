@@ -29,7 +29,7 @@ import { useTradeStoreV2 } from "~/store";
 import { Button } from "~/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { ActionBox, ActionBoxProvider, useWallet } from "@mrgnlabs/mrgn-ui";
-import { ArenaBank, ArenaPoolV2, ArenaPoolV2Extended, GroupStatus } from "~/store/tradeStoreV2";
+import { ArenaBank, ArenaPoolV2, ArenaPoolV2Extended, GroupStatus } from "~/types/trade-store.types";
 import { useExtendedPool } from "~/hooks/useExtendedPools";
 import { useMarginfiClient } from "~/hooks/useMarginfiClient";
 import { useWrappedAccount } from "~/hooks/useWrappedAccount";

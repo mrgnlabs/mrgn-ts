@@ -1,5 +1,4 @@
 import { IconArrowRight } from "@tabler/icons-react";
-import { VersionedTransaction } from "@solana/web3.js";
 
 import {
   Bank,
@@ -30,7 +29,7 @@ import {
 } from "@mrgnlabs/mrgn-utils";
 
 import { IconPyth, IconSwitchboard } from "~/components/ui/icons";
-import { ArenaPoolV2Extended } from "~/store/tradeStoreV2";
+import { ArenaPoolV2Extended } from "~/types/trade-store.types";
 
 export type TradeSide = "long" | "short";
 

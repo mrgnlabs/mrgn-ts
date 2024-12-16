@@ -12,7 +12,7 @@ import { Connection, PublicKey } from "@solana/web3.js";
 import { NextApiRequest, NextApiResponse } from "next";
 import config from "~/config/marginfi";
 import { BANK_METADATA_MAP } from "~/config/trade";
-import { PoolApiResponse } from "~/types/api.types";
+import { PoolListApiResponse } from "~/types/api.types";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
@@ -22,7 +22,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ error: "Invalid input: expected a valid host." });
     }
 
-    const poolList: PoolApiResponse[] = await fetch(`${host}/api/pool/list`).then((response) => response.json());
+    const poolList: PoolListApiResponse[] = await fetch(`${host}/api/pool/list`).then((response) => response.json());
 
     const requestedTokenBanks = poolList.map((pool) => pool.base_bank.address);
     const requestedQuoteBanks = poolList.map((pool) => pool.quote_banks[0].address);

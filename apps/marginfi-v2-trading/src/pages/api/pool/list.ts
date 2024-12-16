@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { PoolApiResponse } from "~/types/api.types";
+import { PoolListApiResponse } from "~/types/api.types";
 
 // Cache times in seconds
 const S_MAXAGE_TIME = 60 * 4; // 4 minutes
@@ -21,7 +21,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       throw new Error(`API responded with status: ${response.status}`);
     }
 
-    const data: PoolApiResponse[] = await response.json();
+    const data: PoolListApiResponse[] = await response.json();
 
     // Set cache headers
     res.setHeader("Cache-Control", `s-maxage=${S_MAXAGE_TIME}, stale-while-revalidate=${STALE_WHILE_REVALIDATE_TIME}`);
