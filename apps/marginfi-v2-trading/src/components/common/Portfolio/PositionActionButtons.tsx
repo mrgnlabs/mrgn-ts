@@ -54,8 +54,7 @@ export const PositionActionButtons = ({
   const [multiStepToast, setMultiStepToast] = React.useState<MultiStepToastHandle | null>(null);
   const [isClosing, setIsClosing] = React.useState(false);
 
-  const [fetchTradeState, refreshGroup, setIsRefreshingStore, nativeSolBalance] = useTradeStoreV2((state) => [
-    state.fetchTradeState,
+  const [refreshGroup, setIsRefreshingStore, nativeSolBalance] = useTradeStoreV2((state) => [
     state.refreshGroup,
     state.setIsRefreshingStore,
     state.nativeSolBalance,
@@ -283,9 +282,11 @@ export const PositionActionButtons = ({
                 });
               },
               onComplete: () => {
-                fetchTradeState({
+                refreshGroup({
                   connection,
                   wallet,
+                  groupPk: arenaPool.groupPk,
+                  banks: [arenaPool.tokenBank.address, arenaPool.quoteBank.address],
                 });
               },
             }}
@@ -326,9 +327,11 @@ export const PositionActionButtons = ({
                 });
               },
               onComplete: () => {
-                fetchTradeState({
+                refreshGroup({
                   connection,
                   wallet,
+                  groupPk: arenaPool.groupPk,
+                  banks: [arenaPool.tokenBank.address, arenaPool.quoteBank.address],
                 });
               },
             }}

@@ -2,33 +2,18 @@ import { create, StateCreator } from "zustand";
 import { AddressLookupTableAccount, Connection, PublicKey, RpcResponseAndContext } from "@solana/web3.js";
 import { AnchorProvider, Program } from "@coral-xyz/anchor";
 import Fuse, { FuseResult } from "fuse.js";
-import {
-  ExtendedBankInfo,
-  makeExtendedBankInfo,
-  fetchTokenAccounts,
-  TokenAccountMap,
-  TokenAccount,
-} from "@mrgnlabs/marginfi-v2-ui-state";
+import { TokenAccountMap } from "@mrgnlabs/marginfi-v2-ui-state";
 import {
   getConfig,
-  Bank,
   OraclePrice,
   MARGINFI_IDL,
   MarginfiIdlType,
   MarginfiProgram,
-  BankRaw,
   MarginfiGroup,
   MarginfiAccount,
   MintDataMap,
-  MintData,
 } from "@mrgnlabs/marginfi-client-v2";
-import {
-  Wallet,
-  TokenMetadata,
-  getValueInsensitive,
-  BankMetadata,
-  chunkedGetRawMultipleAccountInfoOrdered,
-} from "@mrgnlabs/mrgn-common";
+import { Wallet, chunkedGetRawMultipleAccountInfoOrdered } from "@mrgnlabs/mrgn-common";
 
 import { POOLS_PER_PAGE } from "~/config/trade";
 import { TokenData } from "~/types";
@@ -45,10 +30,6 @@ import {
 import { PositionData } from "@mrgnlabs/mrgn-utils";
 import { ArenaBank, ArenaPoolSummary, ArenaPoolV2, BankData } from "~/types/trade-store.types";
 
-type TradeGroupsCache = {
-  [group: string]: [string, string];
-};
-
 export enum TradePoolFilterStates {
   TIMESTAMP = "timestamp",
   PRICE_MOVEMENT_ASC = "price-movement-asc",
@@ -60,18 +41,6 @@ export enum TradePoolFilterStates {
   APY_ASC = "apy-asc",
   APY_DESC = "apy-desc",
 }
-
-// export type TokenData = {
-//   price: number;
-//   priceChange24hr: number;
-//   volume24hr: number;
-//   volumeChange24hr: number;
-//   marketCap: number;
-// };
-
-// new types
-
-// api calls
 
 type TradeStoreV2State = {
   // keep track of store state
@@ -135,15 +104,6 @@ type TradeStoreV2State = {
   }) => Promise<void>;
 
   // fetch groups / banks
-  fetchTradeState: ({
-    connection,
-    wallet,
-    refresh,
-  }: {
-    connection?: Connection;
-    wallet?: Wallet;
-    refresh?: boolean;
-  }) => Promise<void>;
   fetchUserData: ({ connection, wallet }: { connection?: Connection; wallet?: Wallet }) => Promise<void>;
   refreshGroup: ({
     groupPk,
@@ -537,8 +497,6 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
       userDataFetched: true,
     });
   },
-
-  fetchTradeState: async (args) => {},
 
   refreshGroup: async (args) => {
     const connection = args.connection || get().connection;
