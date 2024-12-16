@@ -82,43 +82,34 @@ export const TradePovider: React.FC<{
     }
   }, [router.asPath, wallet, connected, isLoggedIn]);
 
-  // React.useEffect(() => {
-  //   const fetchData = () => {
-  //     setIsRefreshingStore(true);
-  //     fetchPriorityFee(connection);
-  //     fetchTradeState({
-  //       connection,
-  //       wallet,
-  //     });
-  //   };
+  React.useEffect(() => {
+    const fetchData = () => {
+      fetchPriorityFee(connection);
+    };
 
-  //   if (debounceId.current) {
-  //     clearTimeout(debounceId.current);
-  //   }
+    if (debounceId.current) {
+      clearTimeout(debounceId.current);
+    }
 
-  //   debounceId.current = setTimeout(() => {
-  //     fetchData();
+    debounceId.current = setTimeout(() => {
+      fetchData();
 
-  //     const id = setInterval(() => {
-  //       setIsRefreshingStore(true);
-  //       fetchTradeState({});
-  //       fetchPriorityFee(connection);
-  //     }, 50_000);
+      const id = setInterval(() => {
+        fetchPriorityFee(connection);
+      }, 50_000);
 
-  //     return () => {
-  //       clearInterval(id);
-  //       clearTimeout(debounceId.current!);
-  //     };
-  //   }, 1000);
+      return () => {
+        clearInterval(id);
+        clearTimeout(debounceId.current!);
+      };
+    }, 1000);
 
-  //   return () => {
-  //     if (debounceId.current) {
-  //       clearTimeout(debounceId.current);
-  //     }
-  //   };
-  // }, [wallet, isOverride]); // eslint-disable-line react-hooks/exhaustive-deps
-  // ^ crucial to omit both `connection` and `fetchMrgnlendState` from the dependency array
-  // TODO: fix...
+    return () => {
+      if (debounceId.current) {
+        clearTimeout(debounceId.current);
+      }
+    };
+  }, [wallet]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // React.useEffect(() => {
   //   if (!connected && resetUserData) {
