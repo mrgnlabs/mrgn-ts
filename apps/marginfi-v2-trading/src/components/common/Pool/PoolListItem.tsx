@@ -81,8 +81,10 @@ export const PoolListItem = ({ poolData, last }: PoolListItemProps) => {
           </div>
           <div>${numeralFormatter(tokenData.marketcap)}</div>
           <div>
-            {poolData.tokenSummary.bankData.totalDeposits &&
-              `$${numeralFormatter(poolData.tokenSummary.bankData.availableLiquidity)}`}
+            $
+            {numeralFormatter(
+              poolData.quoteSummary.bankData.totalDepositsUsd + poolData.tokenSummary.bankData.totalDepositsUsd
+            )}
           </div>
         </>
       )}

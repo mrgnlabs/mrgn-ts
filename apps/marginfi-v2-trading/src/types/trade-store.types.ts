@@ -15,6 +15,8 @@ export type ArenaBank = ExtendedBankInfo & {
 export type BankData = {
   totalDeposits: number;
   totalBorrows: number;
+  totalDepositsUsd: number;
+  totalBorrowsUsd: number;
   availableLiquidity: number;
 };
 
