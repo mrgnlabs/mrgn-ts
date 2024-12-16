@@ -105,6 +105,12 @@ export class MultiStepToastHandle {
     this._stepsWithStatus[this._stepIndex].status = "error";
     this._stepsWithStatus[this._stepIndex].message = message;
 
+    for (let i = 0; i < this._stepsWithStatus.length; i++) {
+      if (this._stepsWithStatus[i].status === "pending") {
+        this._stepsWithStatus[i].status = "error";
+      }
+    }
+
     for (let i = this._stepIndex + 1; i < this._stepsWithStatus.length; i++) {
       this._stepsWithStatus[i].status = "canceled";
     }

@@ -43,6 +43,7 @@ export const AmountInput = ({
             inputMode="decimal"
             value={amount}
             onChange={(e) => handleAmountChange(e.target.value)}
+            disabled={maxAmount === 0}
             placeholder="0"
             className="bg-transparent shadow-none min-w-[130px] h-auto py-0 pr-0 text-right outline-none focus-visible:outline-none focus-visible:ring-0 border-none text-base font-medium"
           />

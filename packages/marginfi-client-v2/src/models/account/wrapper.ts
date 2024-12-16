@@ -15,6 +15,7 @@ import {
   ExtendedV0Transaction,
   getTxSize,
   getAccountKeys,
+  MRGN_TX_TYPES,
 } from "@mrgnlabs/mrgn-common";
 import * as sb from "@switchboard-xyz/on-demand";
 import { Address, BorshCoder, Idl, translateAddress } from "@coral-xyz/anchor";
@@ -728,7 +729,11 @@ class MarginfiAccountWrapper {
         instructions: setupIxs,
       }).compileToLegacyMessage();
 
-      additionalTxs.push(new VersionedTransaction(message));
+      additionalTxs.push(
+        addTransactionMetadata(new VersionedTransaction(message), {
+          type: "ATAS" as MRGN_TX_TYPES,
+        })
+      );
     }
 
     // if crank is needed, add it
@@ -742,6 +747,7 @@ class MarginfiAccountWrapper {
       additionalTxs.push(
         addTransactionMetadata(new VersionedTransaction(message), {
           addressLookupTables: feedLuts,
+          type: "CRANK" as MRGN_TX_TYPES,
         })
       );
     }
