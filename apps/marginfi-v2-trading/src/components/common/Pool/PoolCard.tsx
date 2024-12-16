@@ -38,6 +38,19 @@ export const PoolCard = ({ poolData }: PoolCardProps) => {
     return tokenPriceFormatter(tokenData.price);
   }, [isLstQuote, tokenData.price, quoteTokenData.price, poolData.quoteSummary.tokenSymbol]);
 
+  const fundingRate = React.useMemo(() => {
+    const fundingRateShort =
+      (poolData.tokenSummary.bankData.borrowRate - poolData.quoteSummary.bankData.depositRate) / 100;
+    const fundingRateLong =
+      (poolData.quoteSummary.bankData.borrowRate - poolData.tokenSummary.bankData.depositRate) / 100;
+    return `${percentFormatter.format(fundingRateLong)} / ${percentFormatter.format(fundingRateShort)}`;
+  }, [
+    poolData.tokenSummary.bankData.borrowRate,
+    poolData.tokenSummary.bankData.depositRate,
+    poolData.quoteSummary.bankData.depositRate,
+    poolData.quoteSummary.bankData.borrowRate,
+  ]);
+
   return (
     <Card>
       <CardHeader className="md:pb-0">
@@ -138,8 +151,8 @@ export const PoolCard = ({ poolData }: PoolCardProps) => {
                 </span>
               )}
             </dd>
-            <dt>Market cap</dt>
-            <dd className="text-right text-primary tracking-wide">${numeralFormatter(tokenData.marketcap)}</dd>
+            <dt>Funding rate (long/short)</dt>
+            <dd className="text-right text-primary tracking-wide">{fundingRate}</dd>
             {poolData.tokenSummary.bankData && (
               <>
                 <dt>Pool liquidity</dt>
