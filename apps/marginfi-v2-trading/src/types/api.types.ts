@@ -5,9 +5,10 @@
  */
 
 /**
- * Types for the pool API endpoints
+ * Type definitions for the /api/pool/list endpoint
+ * Returns an array of PoolListApiResponse objects containing information about marginfi pools
  */
-interface MintApiResponse {
+interface PoolListMint {
   address: string;
   decimals: string;
   name: string;
@@ -15,7 +16,7 @@ interface MintApiResponse {
   token_program: string;
 }
 
-interface BankDetailsApiResponse {
+interface PoolListBankDetails {
   deposit_rate: number;
   borrow_rate: number;
   total_deposits: number;
@@ -24,16 +25,41 @@ interface BankDetailsApiResponse {
   total_borrows_usd: number;
 }
 
-interface BankApiResponse {
+interface PoolListBank {
   address: string;
   group: string;
-  mint: MintApiResponse;
-  details: BankDetailsApiResponse;
+  mint: PoolListMint;
+  details: PoolListBankDetails;
 }
 
-export interface PoolApiResponse {
+export interface PoolListApiResponse {
   group: string;
-  quote_banks: BankApiResponse[];
-  base_bank: BankApiResponse;
+  quote_banks: PoolListBank[];
+  base_bank: PoolListBank;
   lookup_tables: string[];
+}
+
+/**
+ * Type definitions for the /api/pool/positions endpoint
+ * Returns an array of PoolListApiResponse objects containing information about marginfi pools
+ */
+
+interface PoolPositionsBank {
+  address: string;
+  start_amount: number;
+  start_usd_amount: number;
+  current_amount: number;
+  current_usd_amount: number;
+  pnl: number;
+  interest: number;
+}
+
+export interface PoolPositionsApiResponse {
+  group: string;
+  address: string;
+  base_bank: PoolPositionsBank;
+  quote_banks: PoolPositionsBank[];
+  entry_price: number;
+  current_position_value: number;
+  pnl: number;
 }

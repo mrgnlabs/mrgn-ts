@@ -23,7 +23,7 @@ import BigNumber from "bignumber.js";
 import { NextApiRequest, NextApiResponse } from "next";
 import config from "~/config/marginfi";
 import { BANK_METADATA_MAP } from "~/config/trade";
-import { PoolApiResponse } from "~/types/api.types";
+import { PoolListApiResponse } from "~/types/api.types";
 
 const SWITCHBOARD_CROSSSBAR_API = process.env.SWITCHBOARD_CROSSSBAR_API || "https://crossbar.switchboard.xyz";
 const IS_SWB_STAGE = SWITCHBOARD_CROSSSBAR_API === "https://staging.crossbar.switchboard.xyz";
@@ -61,7 +61,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json({ error: "Invalid input: expected a valid host." });
   }
 
-  const poolList: PoolApiResponse[] = await fetch(`${host}/api/pool/list`).then((response) => response.json());
+  const poolList: PoolListApiResponse[] = await fetch(`${host}/api/pool/list`).then((response) => response.json());
 
   const requestedTokenBanks = poolList.map((pool) => pool.base_bank.address);
   const requestedQuoteBanks = poolList.map((pool) => pool.quote_banks[0].address);

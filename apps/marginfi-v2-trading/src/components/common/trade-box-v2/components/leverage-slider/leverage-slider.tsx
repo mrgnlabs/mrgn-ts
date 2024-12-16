@@ -2,7 +2,7 @@ import React from "react";
 
 import { cn } from "@mrgnlabs/mrgn-utils";
 import { Slider } from "~/components/ui/slider";
-import { ArenaBank } from "~/store/tradeStoreV2";
+import { ArenaBank } from "~/types/trade-store.types";
 
 type LeverageSliderProps = {
   selectedBank: ArenaBank | null;

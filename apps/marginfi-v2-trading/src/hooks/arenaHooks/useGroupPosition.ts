@@ -1,7 +1,7 @@
 import React from "react";
 
 import { numeralFormatter } from "@mrgnlabs/mrgn-common";
-import { ArenaPoolV2Extended, GroupStatus } from "~/store/tradeStoreV2";
+import { ArenaPoolV2Extended, GroupStatus } from "~/types/trade-store.types";
 
 export function useLeveragedPositionDetails({ pool }: { pool: ArenaPoolV2Extended }) {
   const positions = React.useMemo(() => {

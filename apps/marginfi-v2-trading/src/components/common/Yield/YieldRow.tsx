@@ -17,7 +17,8 @@ import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { ActionBox, ActionBoxProvider } from "~/components/action-box-v2";
 import { Button } from "~/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
-import { ArenaPoolV2Extended, GroupStatus } from "~/store/tradeStoreV2";
+import { ArenaPoolV2Extended } from "~/types/trade-store.types";
+import { GroupStatus } from "~/types/trade-store.types";
 import { useActionBoxProps } from "~/hooks/useActionBoxProps";
 
 interface props {
@@ -159,7 +160,7 @@ const YieldItem = ({
       </div>
       {connected && (
         <div className="pl-2 text-lg flex flex-col xl:gap-1 xl:flex-row xl:items-baseline">
-          {isProvidingLiquidity && bank.isActive && (
+          {isProvidingLiquidity && pool.tokenBank.isActive && (
             <>
               {numeralFormatter(pool.tokenBank.position.amount)}
               <span className="text-muted-foreground text-sm">{pool.tokenBank.meta.tokenSymbol}</span>

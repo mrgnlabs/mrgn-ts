@@ -1,15 +1,14 @@
 import React from "react";
-
 import Image from "next/image";
 import type { FuseResult } from "fuse.js";
+import { IconX, IconSearch } from "@tabler/icons-react";
 
 import { cn } from "@mrgnlabs/mrgn-utils";
 import { tokenPriceFormatter, numeralFormatter, percentFormatter } from "@mrgnlabs/mrgn-common";
-import { IconX, IconSearch } from "@tabler/icons-react";
 
 import { CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "~/components/ui/command";
-import { ArenaPoolV2 } from "~/store/tradeStoreV2";
 import { useTradeStoreV2 } from "~/store";
+import { ArenaPoolV2 } from "~/types/trade-store.types";
 
 type PoolSearchDialogProps = {
   searchQuery: string;

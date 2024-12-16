@@ -19,7 +19,6 @@ import { Input } from "~/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
 import { YieldRow } from "~/components/common/Yield";
 import { YieldCard } from "~/components/common/Yield/YieldCard";
-import { ArenaPoolV2Extended } from "~/store/tradeStoreV2";
 import { useExtendedPools } from "~/hooks/useExtendedPools";
 import { GetStaticProps } from "next";
 import { StaticArenaProps, getArenaStaticProps } from "~/utils";

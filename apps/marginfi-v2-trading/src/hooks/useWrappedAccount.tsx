@@ -1,8 +1,10 @@
 import React from "react";
+import { PublicKey } from "@solana/web3.js";
+
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { ExtendedBankInfo, computeAccountSummary } from "@mrgnlabs/marginfi-v2-ui-state";
+
 import { useTradeStoreV2 } from "~/store";
-import { PublicKey } from "@solana/web3.js";
 
 type UseWrappedAccountProps = {
   client: MarginfiClient | null;

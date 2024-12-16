@@ -4,7 +4,7 @@ import { dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
 import { cn } from "@mrgnlabs/mrgn-utils";
 
 import { IconLoader } from "~/components/ui/icons";
-import { ArenaBank } from "~/store/tradeStoreV2";
+import { ArenaBank } from "~/types/trade-store.types";
 
 interface AmountPreviewProps {
   tradeSide: "long" | "short";

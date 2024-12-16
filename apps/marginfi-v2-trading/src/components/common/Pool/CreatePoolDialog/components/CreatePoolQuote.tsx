@@ -9,7 +9,7 @@ import { cn, getTokenImageURL } from "@mrgnlabs/mrgn-utils";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { useTradeStoreV2 } from "~/store";
-import { ArenaPoolSummary } from "~/store/tradeStoreV2";
+import { ArenaPoolSummary } from "~/types/trade-store.types";
 
 type CreatePoolMintProps = {
   tokenMintAddress: string;

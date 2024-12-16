@@ -3,16 +3,14 @@ import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 
-import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { tokenPriceFormatter, percentFormatter, usdFormatter, numeralFormatter } from "@mrgnlabs/mrgn-common";
+import { tokenPriceFormatter, percentFormatter, numeralFormatter } from "@mrgnlabs/mrgn-common";
 import { cn } from "@mrgnlabs/mrgn-utils";
 
 import { useTradeStoreV2 } from "~/store";
+import { ArenaPoolSummary } from "~/types/trade-store.types";
 
 import { Button } from "~/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
-
-import { ArenaPoolSummary } from "~/store/tradeStoreV2";
 
 type PoolListItemProps = {
   poolData: ArenaPoolSummary;

@@ -9,7 +9,7 @@ import { Desktop, Mobile } from "@mrgnlabs/mrgn-utils";
 import { LpActionButtons } from "~/components/common/Portfolio";
 import { Table, TableBody, TableHead, TableCell, TableHeader, TableRow } from "~/components/ui/table";
 import { useExtendedPools } from "~/hooks/useExtendedPools";
-import { GroupStatus } from "~/store/tradeStoreV2";
+import { GroupStatus } from "~/types/trade-store.types";
 
 export const LpPositionList = () => {
   const extendedPools = useExtendedPools();
