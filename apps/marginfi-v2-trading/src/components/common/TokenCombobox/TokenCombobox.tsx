@@ -21,6 +21,7 @@ import { Drawer, DrawerContent, DrawerTrigger } from "~/components/ui/drawer";
 
 import { ArenaPoolV2Extended } from "~/store/tradeStoreV2";
 import { useExtendedPools } from "~/hooks/useExtendedPools";
+import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
 
 type TokenComboboxProps = {
   selected: ArenaPoolV2Extended | null;
@@ -56,24 +57,11 @@ export const TokenCombobox = ({ selected, setSelected, children }: TokenCombobox
   return (
     <>
       <Desktop>
-        <Dialog open={open} onOpenChange={(open) => setOpen(open)}>
-          <DialogTrigger asChild>
-            <div>
-              {children ? (
-                children
-              ) : (
-                <TokenTrigger
-                  tokenSymbol={selected?.tokenBank.meta.tokenSymbol}
-                  logoUri={selected?.tokenBank.meta.tokenLogoUri}
-                />
-              )}
-            </div>
-          </DialogTrigger>
-          <DialogContent className="p-4 bg-background m-0" hideClose={true} hidePadding={true} size="sm" position="top">
-            <DialogHeader className="sr-only">
-              <DialogTitle>Select a token</DialogTitle>
-              <DialogDescription>Select a token to trade</DialogDescription>
-            </DialogHeader>
+        <Popover open={open} onOpenChange={(open) => setOpen(open)}>
+          <PopoverTrigger asChild>
+            <div>{children ? children : <TokenTrigger selected={selected} open={open} />}</div>
+          </PopoverTrigger>
+          <PopoverContent className="p-4 bg-background m-0 w-[400px]">
             <div className="h-[500px] relative overflow-auto">
               <Command>
                 <CommandInput placeholder="Select pool..." autoFocus={true} />
@@ -83,7 +71,7 @@ export const TokenCombobox = ({ selected, setSelected, children }: TokenCombobox
                     {arenaPoolsSorted.map((pool, index) => (
                       <CommandItem
                         key={index}
-                        className="gap-3 py-2 cursor-pointer rounded-md aria-selected:text-primary"
+                        className="gap-3 py-2 cursor-pointer rounded-md text-primary aria-selected:bg-accent transition-colors"
                         value={pool.groupPk.toBase58().toLowerCase()}
                         onSelect={(value) => {
                           const selectedPool = arenaPoolsSorted.find(
@@ -123,31 +111,18 @@ export const TokenCombobox = ({ selected, setSelected, children }: TokenCombobox
                 </CommandList>
               </Command>
             </div>
-          </DialogContent>
-        </Dialog>
+          </PopoverContent>
+        </Popover>
       </Desktop>
       <Mobile>
         <Drawer open={open} onOpenChange={(open) => setOpen(open)}>
           <DrawerTrigger asChild>
-            <div>
-              {children ? (
-                children
-              ) : (
-                <TokenTrigger
-                  tokenSymbol={selected?.tokenBank.meta.tokenSymbol}
-                  logoUri={selected?.tokenBank.meta.tokenLogoUri}
-                />
-              )}
-            </div>
+            <div>{children ? children : <TokenTrigger selected={selected} open={open} />}</div>
           </DrawerTrigger>
-          <DrawerContent className="h-full z-[55] mt-0 p-2" hideTopTrigger={true}>
-            <DialogHeader className="sr-only">
-              <DialogTitle>Select a token</DialogTitle>
-              <DialogDescription>Select a token to trade</DialogDescription>
-            </DialogHeader>
+          <DrawerContent className="h-full z-[55] mt-0 p-2">
             <Command>
-              <CommandInput placeholder="Select pool..." autoFocus={true} />
-              <CommandList className="max-h-[390px]">
+              <CommandInput placeholder="Select pool..." className="text-base" autoFocus={false} />
+              <CommandList className="">
                 <CommandEmpty>No results found.</CommandEmpty>
                 <CommandGroup>
                   {arenaPoolsSorted.map((pool, index) => (
@@ -199,24 +174,27 @@ export const TokenCombobox = ({ selected, setSelected, children }: TokenCombobox
 };
 
 type TokenTriggerProps = {
-  logoUri?: string;
-  tokenSymbol?: string;
+  selected: ArenaPoolV2Extended | null;
+  open: boolean;
 };
 
-const TokenTrigger = ({ logoUri, tokenSymbol }: TokenTriggerProps) => {
+const TokenTrigger = ({ selected, open }: TokenTriggerProps) => {
   return (
-    <Button variant="secondary" size="lg" className="relative w-full justify-start pr-8 pl-3 py-3">
-      {logoUri && tokenSymbol ? (
-        <>
-          <Image src={logoUri} width={24} height={24} alt={`Pool ${tokenSymbol}`} className="rounded-full" />{" "}
-          {tokenSymbol}
-        </>
-      ) : (
-        <>Select pool</>
-      )}
-      <div>
-        <IconChevronDown size={18} className="ml-auto" />
-      </div>
-    </Button>
+    <div className="flex items-center px-2 py-1 justify-center font-medium text-base hover:bg-accent transition-colors cursor-pointer rounded-md  gap-2">
+      <Image
+        src={selected?.tokenBank.meta.tokenLogoUri ?? ""}
+        alt={selected?.tokenBank.meta.tokenSymbol ?? ""}
+        width={28}
+        height={28}
+        className="bg-background border rounded-full lg:mb-0"
+      />
+      <h1 className="flex items-center gap-1 ">
+        {selected?.tokenBank.meta.tokenName}{" "}
+        <IconChevronDown
+          size={18}
+          className={cn(open ? "rotate-180 transition-all duration-200" : "rotate-0 transition-all duration-200")}
+        />
+      </h1>
+    </div>
   );
 };
