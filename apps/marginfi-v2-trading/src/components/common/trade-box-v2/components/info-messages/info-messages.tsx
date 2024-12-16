@@ -15,15 +15,7 @@ interface InfoMessagesProps {
   isActiveWithCollat: boolean;
   actionMethods: ActionMessageType[];
   setIsWalletOpen: (value: boolean) => void;
-  fetchTradeState: ({
-    connection,
-    wallet,
-    refresh,
-  }: {
-    connection?: Connection;
-    wallet?: Wallet;
-    refresh?: boolean;
-  }) => Promise<void>;
+  refreshStore: () => Promise<void>;
   refreshSimulation: () => void;
   connection: any;
   wallet: any;
@@ -37,7 +29,7 @@ export const InfoMessages = ({
   isActiveWithCollat,
   actionMethods = [],
   setIsWalletOpen,
-  fetchTradeState,
+  refreshStore,
   connection,
   wallet,
   refreshSimulation,
@@ -143,7 +135,7 @@ export const InfoMessages = ({
                       requestedBank: actionMethod.action.bank,
                       showAvailableCollateral: false,
                       captureEvent: () => console.log("Position added"),
-                      onComplete: () => fetchTradeState({ connection, wallet }),
+                      onComplete: () => refreshStore(),
                     }}
                     dialogProps={{
                       trigger: (
@@ -174,7 +166,7 @@ export const InfoMessages = ({
         requestedBank: activePool.quoteBank,
         showAvailableCollateral: false,
         captureEvent: () => console.log("Deposit Collateral"),
-        onComplete: () => fetchTradeState({ connection, wallet }),
+        onComplete: () => refreshStore(),
       }}
       dialogProps={{
         trigger: <Button className="w-full">Deposit Collateral</Button>,
