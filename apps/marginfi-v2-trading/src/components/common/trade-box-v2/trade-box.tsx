@@ -110,8 +110,7 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
     state.setPreviousTxn,
   ]);
   const [setIsWalletOpen] = useWalletStore((state) => [state.setIsWalletOpen]);
-  const [fetchTradeState, nativeSolBalance, setIsRefreshingStore, refreshGroup] = useTradeStoreV2((state) => [
-    state.fetchTradeState,
+  const [nativeSolBalance, setIsRefreshingStore, refreshGroup] = useTradeStoreV2((state) => [
     state.nativeSolBalance,
     state.setIsRefreshingStore,
     state.refreshGroup,
@@ -474,7 +473,14 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
               isActiveWithCollat={isActiveWithCollat}
               actionMethods={actionMethods}
               setIsWalletOpen={setIsWalletOpen}
-              fetchTradeState={fetchTradeState}
+              refreshStore={() =>
+                refreshGroup({
+                  connection,
+                  wallet,
+                  groupPk: activePoolExtended.groupPk,
+                  banks: [activePoolExtended.tokenBank.address, activePoolExtended.quoteBank.address],
+                })
+              }
               connection={connection}
               wallet={wallet}
               refreshSimulation={refreshSimulation}
