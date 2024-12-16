@@ -17,7 +17,7 @@ import {
 import { IconSettings } from "@tabler/icons-react";
 import { ActionType, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { ArenaPoolV2, ArenaPoolV2Extended } from "~/store/tradeStoreV2";
+import { ArenaPoolV2, ArenaPoolV2Extended } from "~/types/trade-store.types";
 import { handleExecuteTradeAction, SimulationStatus, TradeSide } from "~/components/common/trade-box-v2/utils";
 import { Card, CardContent, CardHeader } from "~/components/ui/card";
 import { useTradeStoreV2, useUiStore } from "~/store";

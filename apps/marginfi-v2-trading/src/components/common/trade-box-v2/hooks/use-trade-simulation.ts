@@ -1,11 +1,13 @@
+import React from "react";
+import { Transaction, VersionedTransaction } from "@solana/web3.js";
+import BigNumber from "bignumber.js";
+
 import {
   computeMaxLeverage,
   MarginfiAccountWrapper,
   MarginfiClient,
   SimulationResult,
 } from "@mrgnlabs/marginfi-client-v2";
-import { AccountSummary } from "@mrgnlabs/marginfi-v2-ui-state";
-import { SolanaTransaction } from "@mrgnlabs/mrgn-common";
 import {
   ActionMessageType,
   CalculateLoopingProps,
@@ -15,13 +17,10 @@ import {
   STATIC_SIMULATION_ERRORS,
   usePrevious,
 } from "@mrgnlabs/mrgn-utils";
-import { Transaction, VersionedTransaction } from "@solana/web3.js";
-import React from "react";
-import { calculateLooping } from "~/components/action-box-v2/actions/loop-box/utils/loop-action.utils";
+
 import { SimulationStatus } from "~/components/action-box-v2/utils";
-import { ArenaBank, ArenaPoolV2Extended } from "~/store/tradeStoreV2";
-import { calculateSummary, generateTradeTx, getSimulationResult } from "../utils";
-import BigNumber from "bignumber.js";
+import { ArenaBank } from "~/types/trade-store.types";
+import { generateTradeTx, getSimulationResult } from "../utils";
 
 export type TradeSimulationProps = {
   debouncedAmount: number;

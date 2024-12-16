@@ -1,6 +1,6 @@
 import { dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
 import React from "react";
-import { ArenaBank } from "~/store/tradeStoreV2";
+import { ArenaBank } from "~/types/trade-store.types";
 
 interface TradeActionProps {
   maxAmount: number;

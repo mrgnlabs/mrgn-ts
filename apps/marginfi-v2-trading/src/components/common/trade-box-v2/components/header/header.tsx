@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import * as React from "react";
 import { TokenCombobox } from "~/components/common/TokenCombobox";
-import { ArenaPoolV2Extended } from "~/store/tradeStoreV2";
+import { ArenaPoolV2Extended } from "~/types/trade-store.types";
 
 interface HeaderProps {
   activePool: ArenaPoolV2Extended;

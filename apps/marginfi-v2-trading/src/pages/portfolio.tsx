@@ -15,7 +15,7 @@ import { PositionCard, LpPositionList } from "~/components/common/Portfolio";
 import { Loader } from "~/components/common/Loader";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { useExtendedPools } from "~/hooks/useExtendedPools";
-import { GroupStatus } from "~/store/tradeStoreV2";
+import { GroupStatus } from "~/types/trade-store.types";
 import { GetStaticProps } from "next";
 import { StaticArenaProps, getArenaStaticProps } from "~/utils";
 

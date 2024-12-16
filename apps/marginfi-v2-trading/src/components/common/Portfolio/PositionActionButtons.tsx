@@ -26,7 +26,7 @@ import {
 import { QuoteResponse } from "@jup-ag/api";
 import { percentFormatter } from "@mrgnlabs/mrgn-common";
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
-import { ArenaPoolV2Extended } from "~/store/tradeStoreV2";
+import { ArenaPoolV2Extended } from "~/types/trade-store.types";
 
 type PositionActionButtonsProps = {
   isBorrowing: boolean;

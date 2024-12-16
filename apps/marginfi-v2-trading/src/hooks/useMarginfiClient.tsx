@@ -1,3 +1,7 @@
+import React from "react";
+import { AnchorProvider, Program } from "@coral-xyz/anchor";
+import { PublicKey } from "@solana/web3.js";
+
 import {
   feedIdToString,
   getConfig,
@@ -10,13 +14,11 @@ import {
   PythPushFeedIdMap,
 } from "@mrgnlabs/marginfi-client-v2";
 import { MarginfiClientOptions } from "@mrgnlabs/marginfi-client-v2";
-import { Address, AnchorProvider, BorshAccountsCoder, Program, translateAddress } from "@coral-xyz/anchor";
-import { PublicKey } from "@solana/web3.js";
-import React from "react";
+import { BankMetadata } from "@mrgnlabs/mrgn-common";
+
 import { useConnection } from "~/hooks/use-connection";
 import { useTradeStoreV2 } from "~/store";
-import { ArenaBank } from "~/store/tradeStoreV2";
-import { BankMetadata } from "@mrgnlabs/mrgn-common";
+import { ArenaBank } from "~/types/trade-store.types";
 
 type UseMarginfiClientProps = {
   groupPk: PublicKey;

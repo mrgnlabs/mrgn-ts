@@ -1,5 +1,5 @@
 import React from "react";
-import { ArenaPoolV2Extended } from "~/store/tradeStoreV2";
+import { ArenaPoolV2Extended } from "~/types/trade-store.types";
 import { generateTradeStats } from "./utils/stats-utils";
 import { cn, TradeActionTxns } from "@mrgnlabs/mrgn-utils";
 import { SimulationResult } from "@mrgnlabs/marginfi-client-v2";

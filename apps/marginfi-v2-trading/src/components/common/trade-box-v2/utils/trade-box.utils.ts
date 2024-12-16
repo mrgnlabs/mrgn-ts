@@ -1,8 +1,9 @@
 import { QuoteResponse } from "@jup-ag/api";
+
 import { OperationalState } from "@mrgnlabs/marginfi-client-v2";
 import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { ActionMessageType, DYNAMIC_SIMULATION_ERRORS, isBankOracleStale } from "@mrgnlabs/mrgn-utils";
-import { ArenaBank } from "~/store/tradeStoreV2";
+import { ArenaBank } from "~/types/trade-store.types";
 
 interface CheckTradeActionAvailableProps {
   amount: number | null;

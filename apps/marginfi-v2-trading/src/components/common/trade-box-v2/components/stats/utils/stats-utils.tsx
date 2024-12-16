@@ -8,7 +8,7 @@ import { PnlDisplayTooltip } from "~/components/common/pnl-display";
 import { IconPyth } from "~/components/ui/icons";
 import { IconSwitchboard } from "~/components/ui/icons";
 
-import { ArenaPoolV2Extended } from "~/store/tradeStoreV2";
+import { ArenaPoolV2Extended } from "~/types/trade-store.types";
 
 interface generateTradeStatsProps {
   accountSummary: AccountSummary | null;

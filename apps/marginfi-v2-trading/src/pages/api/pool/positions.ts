@@ -1,9 +1,8 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { PoolApiResponse } from "~/types/api.types";
 
 // Cache times in seconds
-const S_MAXAGE_TIME = 60 * 4; // 4 minutes
-const STALE_WHILE_REVALIDATE_TIME = 60 * 10; // 10 minutes
+const S_MAXAGE_TIME = 60 * 0.1; // 4 minutes
+const STALE_WHILE_REVALIDATE_TIME = 60 * 0.1; // 10 minutes
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (!process.env.MARGINFI_API_URL) {

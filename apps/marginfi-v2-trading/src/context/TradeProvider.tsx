@@ -1,11 +1,12 @@
 import React from "react";
 import { useRouter } from "next/router";
 
-import { identify } from "@mrgnlabs/mrgn-utils";
+import { fetchPriorityFee, identify } from "@mrgnlabs/mrgn-utils";
 
 import { useTradeStoreV2, useUiStore } from "~/store";
 import { useConnection } from "~/hooks/use-connection";
 import { useWallet } from "~/components/wallet-v2";
+import { cp } from "fs";
 
 // @ts-ignore - Safe because context hook checks for null
 const TradeContext = React.createContext<>();
@@ -43,8 +44,8 @@ export const TradePovider: React.FC<{
 
   React.useEffect(() => {
     if (initialized && connected) {
-      console.log("fetching extended arena groups");
       fetchExtendedArenaGroups({ connection, wallet });
+      test(wallet.publicKey.toBase58());
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialized, connected]);

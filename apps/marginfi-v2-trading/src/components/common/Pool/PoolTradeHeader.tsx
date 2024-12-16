@@ -33,7 +33,7 @@ import {
 } from "~/components/ui/dropdown-menu";
 import { Button } from "~/components/ui/button";
 import { useExtendedPool } from "~/hooks/useExtendedPools";
-import { ArenaPoolV2, GroupStatus } from "~/store/tradeStoreV2";
+import { ArenaPoolV2, GroupStatus } from "~/types/trade-store.types";
 import { useWrappedAccount } from "~/hooks/useWrappedAccount";
 import { useMarginfiClient } from "~/hooks/useMarginfiClient";
 

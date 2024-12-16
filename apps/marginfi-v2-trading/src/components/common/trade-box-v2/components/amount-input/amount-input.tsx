@@ -2,7 +2,7 @@ import React from "react";
 import Image from "next/image";
 import { Input } from "~/components/ui/input";
 import { MaxAction } from "./components";
-import { ArenaBank } from "~/store/tradeStoreV2";
+import { ArenaBank } from "~/types/trade-store.types";
 
 interface AmountInputProps {
   maxAmount: number;
