@@ -113,7 +113,7 @@ export function useTradeSimulation({
       } else if (simulationResult.simulationResult) {
         return { simulationResult: simulationResult.simulationResult, actionMessage: null };
       } else {
-        const errorMessage = DYNAMIC_SIMULATION_ERRORS.REPAY_COLLAT_FAILED_CHECK(props.bank.meta.tokenSymbol); // TODO: update
+        const errorMessage = DYNAMIC_SIMULATION_ERRORS.TRADE_FAILED_CHECK();
         return { simulationResult: null, actionMessage: errorMessage };
       }
     } else {
@@ -125,20 +125,18 @@ export function useTradeSimulation({
     props: CalculateLoopingProps
   ): Promise<{ actionTxns: TradeActionTxns | null; actionMessage: ActionMessageType | null }> => {
     try {
-      const loopingResult = await generateTradeTx({
+      const tradingResult = await generateTradeTx({
         ...props,
       });
 
-      if (loopingResult && "actionQuote" in loopingResult) {
-        return { actionTxns: loopingResult, actionMessage: null };
+      if (tradingResult && "actionQuote" in tradingResult) {
+        return { actionTxns: tradingResult, actionMessage: null };
       } else {
-        const errorMessage =
-          loopingResult ?? DYNAMIC_SIMULATION_ERRORS.REPAY_COLLAT_FAILED_CHECK(props.borrowBank.meta.tokenSymbol);
-        // TODO: update
+        const errorMessage = tradingResult ?? DYNAMIC_SIMULATION_ERRORS.TRADE_FAILED_CHECK();
         return { actionTxns: null, actionMessage: errorMessage };
       }
     } catch (error) {
-      return { actionTxns: null, actionMessage: STATIC_SIMULATION_ERRORS.REPAY_COLLAT_FAILED }; // TODO: update
+      return { actionTxns: null, actionMessage: STATIC_SIMULATION_ERRORS.TRADE_FAILED };
     }
   };
 
@@ -172,7 +170,7 @@ export function useTradeSimulation({
         });
 
         if (tradeActionTxns.actionMessage || tradeActionTxns.actionTxns === null) {
-          handleError(tradeActionTxns.actionMessage ?? STATIC_SIMULATION_ERRORS.REPAY_COLLAT_FAILED, {
+          handleError(tradeActionTxns.actionMessage ?? STATIC_SIMULATION_ERRORS.TRADE_FAILED, {
             // TODO: update error message
             setErrorMessage,
             setSimulationResult,
@@ -198,7 +196,7 @@ export function useTradeSimulation({
         });
 
         if (simulationResult.actionMessage || simulationResult.simulationResult === null) {
-          handleError(simulationResult.actionMessage ?? STATIC_SIMULATION_ERRORS.REPAY_COLLAT_FAILED, {
+          handleError(simulationResult.actionMessage ?? STATIC_SIMULATION_ERRORS.TRADE_FAILED, {
             // TODO: update
             setErrorMessage,
             setSimulationResult,
@@ -246,9 +244,7 @@ export function useTradeSimulation({
       const { maxLeverage, ltv } = computeMaxLeverage(selectedBank.info.rawBank, selectedSecondaryBank.info.rawBank);
 
       if (!maxLeverage) {
-        const errorMessage = DYNAMIC_SIMULATION_ERRORS.REPAY_COLLAT_FAILED_CHECK(
-          selectedSecondaryBank.meta.tokenSymbol
-        );
+        const errorMessage = DYNAMIC_SIMULATION_ERRORS.TRADE_FAILED_CHECK();
         setErrorMessage(errorMessage);
       } else {
         setMaxLeverage(maxLeverage);

@@ -168,12 +168,23 @@ export const STATIC_SIMULATION_ERRORS: { [key: string]: ActionMessageType } = {
     actionMethod: "ERROR",
     code: 125,
   },
+  TRADE_FAILED: {
+    description: `Unable to execute trade, please try again.`,
+    isEnabled: false,
+    code: 142,
+  },
 };
 
 const createRepayCollatFailedCheck = (tokenSymbol?: string): ActionMessageType => ({
   description: `Unable to repay using ${tokenSymbol}, please select another collateral.`,
   isEnabled: false,
   code: 141,
+});
+
+const createTradeFailedCheck = (): ActionMessageType => ({
+  description: `Unable to execute trade, please try again.`,
+  isEnabled: false,
+  code: 142,
 });
 
 const createInsufficientBalanceCheck = (tokenSymbol?: string): ActionMessageType => ({
@@ -332,6 +343,7 @@ export const DYNAMIC_SIMULATION_ERRORS = {
   EXISTING_ISO_BORROW_CHECK: createExistingIsolatedBorrowCheck,
   INSUFFICIENT_BALANCE_CHECK: createInsufficientBalanceCheck,
   REPAY_COLLAT_FAILED_CHECK: createRepayCollatFailedCheck,
+  TRADE_FAILED_CHECK: createTradeFailedCheck,
 };
 
 const createCustomError = (description: string): ActionMessageType => ({

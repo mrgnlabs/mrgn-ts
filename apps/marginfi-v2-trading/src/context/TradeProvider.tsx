@@ -26,6 +26,8 @@ export const TradePovider: React.FC<{
       state.initialized,
       state.hydrationComplete,
     ]);
+
+  const [fetchPriorityFee] = useUiStore((state) => [state.fetchPriorityFee]);
   const [isLoggedIn, setIsLoggedIn] = React.useState(false);
 
   React.useEffect(() => {
