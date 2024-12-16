@@ -1,2 +1,2 @@
 export * from "./settings";
-export * from "./settings-dialog";
+export * from "./settings-display";
