@@ -97,31 +97,31 @@ function canBeTraded(
     }
   }
 
-  if (
-    secondaryBank &&
-    secondaryBank?.info.rawBank.config.oracleSetup !== "SwitchboardV2" &&
-    isBankOracleStale(secondaryBank)
-  ) {
-    console.log(
-      `Bank ${secondaryBank.info.rawBank.tokenSymbol} oracle data is stale ⚠️ - timestamp: ${new Date(
-        secondaryBank.info.oraclePrice.timestamp.toNumber() * 1000
-      ).toLocaleString()}`
-    );
-    checks.push(DYNAMIC_SIMULATION_ERRORS.STALE_CHECK("Trading"));
-  }
+  // if (
+  //   secondaryBank &&
+  //   secondaryBank?.info.rawBank.config.oracleSetup !== "SwitchboardV2" &&
+  //   isBankOracleStale(secondaryBank)
+  // ) {
+  //   console.log(
+  //     `Bank ${secondaryBank.info.rawBank.tokenSymbol} oracle data is stale ⚠️ - timestamp: ${new Date(
+  //       secondaryBank.info.oraclePrice.timestamp.toNumber() * 1000
+  //     ).toLocaleString()}`
+  //   );
+  //   checks.push(DYNAMIC_SIMULATION_ERRORS.STALE_CHECK("Trading"));
+  // }
 
-  if (
-    collateralBank &&
-    collateralBank.info.rawBank.config.oracleSetup !== "SwitchboardV2" &&
-    isBankOracleStale(collateralBank)
-  ) {
-    console.log(
-      `Bank ${collateralBank.info.rawBank.tokenSymbol} oracle data is stale ⚠️ - timestamp: ${new Date(
-        collateralBank.info.oraclePrice.timestamp.toNumber() * 1000
-      ).toLocaleString()}`
-    );
-    checks.push(DYNAMIC_SIMULATION_ERRORS.STALE_CHECK("Trading"));
-  }
+  // if (
+  //   collateralBank &&
+  //   collateralBank.info.rawBank.config.oracleSetup !== "SwitchboardV2" &&
+  //   isBankOracleStale(collateralBank)
+  // ) {
+  //   console.log(
+  //     `Bank ${collateralBank.info.rawBank.tokenSymbol} oracle data is stale ⚠️ - timestamp: ${new Date(
+  //       collateralBank.info.oraclePrice.timestamp.toNumber() * 1000
+  //     ).toLocaleString()}`
+  //   );
+  //   checks.push(DYNAMIC_SIMULATION_ERRORS.STALE_CHECK("Trading"));
+  // }
 
   return checks;
 }
