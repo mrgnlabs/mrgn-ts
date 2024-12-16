@@ -640,28 +640,9 @@ export async function trade({
 
   try {
     let sigs: string[] = [];
-
     if (actionTxns?.actionTxn) {
-      const txns: SolanaTransaction[] = [...actionTxns.additionalTxns, actionTxns.actionTxn];
-      if (actionTxns.accountCreationTx) {
-        if (processOpts.broadcastType !== "RPC") {
-          await marginfiClient.processTransaction(actionTxns.accountCreationTx, {
-            ...processOpts,
-            callback: (index, success, sig, stepsToAdvance) =>
-              success &&
-              multiStepToast.setSuccessAndNext(
-                stepsToAdvance,
-                sig,
-                composeExplorerUrl(sig, processOpts?.broadcastType)
-              ),
-          }); // TODO: add sig saving & displaying
-        } else {
-          txns.push(actionTxns.accountCreationTx);
-        }
-      }
-
       sigs = await marginfiClient.processTransactions(
-        txns,
+        [...actionTxns.additionalTxns, actionTxns.actionTxn],
         {
           ...processOpts,
           callback: (index, success, sig, stepsToAdvance) =>
