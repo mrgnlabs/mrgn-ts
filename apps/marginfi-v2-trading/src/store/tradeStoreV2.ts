@@ -260,6 +260,8 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
               bankData: {
                 totalDeposits: tokenBankDetails.total_deposits,
                 totalBorrows: tokenBankDetails.total_borrows,
+                totalDepositsUsd: tokenBankDetails.total_deposits_usd,
+                totalBorrowsUsd: tokenBankDetails.total_borrows_usd,
                 availableLiquidity: 0,
               } as BankData,
               tokenData: tokenDetailsToken,
@@ -274,6 +276,8 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
               bankData: {
                 totalDeposits: quoteBankData.total_deposits,
                 totalBorrows: quoteBankData.total_borrows,
+                totalDepositsUsd: quoteBankData.total_deposits_usd,
+                totalBorrowsUsd: quoteBankData.total_borrows_usd,
                 availableLiquidity: 0,
               } as BankData,
               tokenData: tokenDetailsQuote,

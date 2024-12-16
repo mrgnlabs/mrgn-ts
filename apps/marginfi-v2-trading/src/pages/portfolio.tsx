@@ -24,8 +24,8 @@ export const getStaticProps: GetStaticProps<StaticArenaProps> = async (context) 
 };
 
 export default function PortfolioPage({ initialData }: StaticArenaProps) {
-  const [initialized, fetchArenaGroups, setHydrationComplete] = useTradeStoreV2((state) => [
-    state.initialized,
+  const [poolsFetched, fetchArenaGroups, setHydrationComplete] = useTradeStoreV2((state) => [
+    state.poolsFetched,
     state.fetchArenaGroups,
     state.setHydrationComplete,
   ]);
@@ -79,8 +79,8 @@ export default function PortfolioPage({ initialData }: StaticArenaProps) {
   return (
     <>
       <div className="w-full max-w-8xl mx-auto px-4 md:px-8 pb-28 pt-12 min-h-[calc(100vh-100px)]">
-        {!initialized && <Loader label="Loading portfolio..." className="mt-8" />}
-        {initialized && (
+        {!poolsFetched && <Loader label="Loading portfolio..." className="mt-8" />}
+        {poolsFetched && (
           <div className="space-y-4">
             <div className="w-full max-w-4xl mx-auto px-4 md:px-0">
               <PageHeading heading="Portfolio" body={<p>Manage your positions in the arena.</p>} links={[]} />
@@ -164,7 +164,7 @@ export default function PortfolioPage({ initialData }: StaticArenaProps) {
           </div>
         )}
       </div>
-      {initialized && previousTxn && (
+      {poolsFetched && previousTxn && (
         <ActionComplete
           isActionComplete={isActionComplete}
           setIsActionComplete={setIsActionComplete}

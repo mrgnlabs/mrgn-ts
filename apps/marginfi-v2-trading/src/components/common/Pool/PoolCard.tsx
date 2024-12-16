@@ -142,9 +142,12 @@ export const PoolCard = ({ poolData }: PoolCardProps) => {
             <dd className="text-right text-primary tracking-wide">${numeralFormatter(tokenData.marketcap)}</dd>
             {poolData.tokenSummary.bankData && (
               <>
-                <dt>Lending pool liquidity</dt>
+                <dt>Pool liquidity</dt>
                 <dd className="text-right text-primary tracking-wide">
-                  ${numeralFormatter(poolData.tokenSummary.bankData.availableLiquidity)}
+                  $
+                  {numeralFormatter(
+                    poolData.quoteSummary.bankData.totalDepositsUsd + poolData.tokenSummary.bankData.totalDepositsUsd
+                  )}
                 </dd>
               </>
             )}
