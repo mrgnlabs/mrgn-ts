@@ -17,6 +17,8 @@ export type BankData = {
   totalBorrows: number;
   totalDepositsUsd: number;
   totalBorrowsUsd: number;
+  depositRate: number;
+  borrowRate: number;
   availableLiquidity: number;
 };
 
