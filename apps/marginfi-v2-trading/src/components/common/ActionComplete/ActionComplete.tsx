@@ -66,9 +66,8 @@ export const ActionComplete = () => {
       <Dialog open={isActionComplete} onOpenChange={(open) => setIsActionComplete(open)}>
         <DialogContent className="z-[70] w-full">
           {/* <div className="space-y-12 w-full"> */}
-          <DialogHeader>
+          <DialogHeader className="sr-only">
             <DialogTitle className="space-y-4 text-center flex flex-col items-center justify-center">
-              <IconConfetti size={48} />
               <h2 className="font-medium text-xl">{headerText}</h2>
             </DialogTitle>
             <DialogDescription className="sr-only">{headerText}</DialogDescription>

@@ -6,7 +6,7 @@ import Image from "next/image";
 import { IconExternalLink } from "@tabler/icons-react";
 import { QuoteResponse } from "@jup-ag/api";
 import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { shortenAddress } from "@mrgnlabs/mrgn-common";
+import { dynamicNumeralFormatter, shortenAddress } from "@mrgnlabs/mrgn-common";
 import { cn } from "@mrgnlabs/mrgn-utils";
 
 import { PublicKey } from "@solana/web3.js";
@@ -44,18 +44,37 @@ export const TradingScreen = ({
 
   return (
     <>
-      <div className="flex flex-col items-center gap-2 border-b border-border pb-10">
-        <div className="flex items-center justify-center gap-2">
-          <h3 className="text-4xl font-medium">
-            {`${(type === "long" ? depositAmount : borrowAmount).toFixed(2)}`} {tokenBank.meta.tokenSymbol}
-          </h3>
+      <div className="flex flex-col items-center gap-4 border-b border-border pb-10">
+        <div className="flex items-center">
           <Image
-            className="rounded-full w-9 h-9"
-            src={tokenBank.meta.tokenLogoUri}
-            alt={(tokenBank.meta.tokenSymbol || "Token") + "  logo"}
-            width={36}
-            height={36}
+            className="rounded-full"
+            src={depositBank.meta.tokenLogoUri}
+            alt={(depositBank?.meta.tokenSymbol || "Token") + "  logo"}
+            width={48}
+            height={48}
           />
+          <Image
+            className="rounded-full -ml-5 relative z-10"
+            src={borrowBank.meta.tokenLogoUri}
+            alt={(borrowBank?.meta.tokenSymbol || "Token") + "  logo"}
+            width={48}
+            height={48}
+          />
+        </div>
+
+        <div className="flex flex-col gap-2 justify-center items-center text-center">
+          <h3 className="text-2xl font-medium text-center">
+            You {type === "long" ? "longed" : "shorted"} {depositBank.meta.tokenSymbol.toUpperCase()}/
+            {borrowBank.meta.tokenSymbol.toUpperCase()} for{" "}
+            {type === "long"
+              ? `${dynamicNumeralFormatter(depositAmount, {
+                  minDisplay: 0.0001,
+                })} ${depositBank.meta.tokenSymbol.toUpperCase()}`
+              : `${dynamicNumeralFormatter(depositAmount, {
+                  minDisplay: 0.0001,
+                })} ${depositBank.meta.tokenSymbol.toUpperCase()}`}
+          </h3>
+          <h4 className="text-xl text-muted-foreground">Leverage: {leverage}x</h4>
         </div>
       </div>
       <dl className="grid grid-cols-2 w-full text-muted-foreground gap-x-8 gap-y-2">
