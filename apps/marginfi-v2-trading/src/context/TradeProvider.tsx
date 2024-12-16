@@ -130,7 +130,7 @@ export const TradePovider: React.FC<{
         clearTimeout(debounceId.current);
       }
     };
-  }, [wallet]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   React.useEffect(() => {
     if (!connected && resetUserData) {

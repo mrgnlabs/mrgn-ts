@@ -526,6 +526,7 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
       marginfiAccountByGroupPk: updateMarginfiAccounts,
       wallet,
       connection,
+      userDataFetched: true,
     });
   },
 
