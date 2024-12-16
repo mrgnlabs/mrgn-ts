@@ -22,7 +22,7 @@ export const Swap = ({ onLoad, initialInputMint }: SwapProps) => {
   const { walletContextState, wallet } = useWallet();
   const { connection } = useConnection();
   const [loadTimestamp, setLoadTimestamp] = React.useState(0);
-  const [fetchTradeState] = useTradeStoreV2((state) => [state.fetchTradeState]);
+  const [fetchUserData] = useTradeStoreV2((state) => [state.fetchUserData]);
   const router = useRouter();
 
   const initialMint = React.useMemo(() => {
@@ -46,7 +46,7 @@ export const Swap = ({ onLoad, initialInputMint }: SwapProps) => {
       endpoint: config.rpcEndpoint,
       passThroughWallet: walletContextState.wallet,
       onSuccess: ({ txid }: { txid: string }) => {
-        fetchTradeState({
+        fetchUserData({
           connection,
           wallet,
         });
@@ -69,7 +69,16 @@ export const Swap = ({ onLoad, initialInputMint }: SwapProps) => {
     setTimeout(() => {
       onLoad && onLoad();
     }, delay);
-  }, [initialInputMint, loadTimestamp, onLoad, walletContextState.wallet, initialMint]);
+  }, [
+    walletContextState.wallet,
+    initialInputMint,
+    initialMint,
+    loadTimestamp,
+    fetchUserData,
+    connection,
+    wallet,
+    onLoad,
+  ]);
 
   React.useEffect(() => {
     if (!initialInputMint) {

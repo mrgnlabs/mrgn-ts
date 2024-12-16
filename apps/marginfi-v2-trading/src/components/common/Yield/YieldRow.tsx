@@ -28,10 +28,7 @@ interface props {
 export const YieldRow = ({ pool }: props) => {
   const { connection } = useConnection();
   const { connected, wallet } = useWallet();
-  const [nativeSolBalance, fetchTradeState] = useTradeStoreV2((state) => [
-    state.nativeSolBalance,
-    state.fetchTradeState,
-  ]);
+  const [nativeSolBalance, refreshStore] = useTradeStoreV2((state) => [state.nativeSolBalance, state.refreshGroup]);
 
   return (
     <div key={pool.groupPk.toBase58()} className="relative bg-background border rounded-xl mb-12 pt-5 pb-2 px-4">
@@ -72,7 +69,14 @@ export const YieldRow = ({ pool }: props) => {
         connection={connection}
         wallet={wallet}
         nativeSolBalance={nativeSolBalance}
-        fetchTradeState={fetchTradeState}
+        refreshStore={() =>
+          refreshStore({
+            connection,
+            wallet,
+            groupPk: pool.groupPk,
+            banks: [pool.tokenBank.address, pool.quoteBank.address],
+          })
+        }
       />
 
       <YieldItem
@@ -83,7 +87,14 @@ export const YieldRow = ({ pool }: props) => {
         connection={connection}
         wallet={wallet}
         nativeSolBalance={nativeSolBalance}
-        fetchTradeState={fetchTradeState}
+        refreshStore={() =>
+          refreshStore({
+            connection,
+            wallet,
+            groupPk: pool.groupPk,
+            banks: [pool.tokenBank.address, pool.quoteBank.address],
+          })
+        }
       />
     </div>
   );
@@ -97,7 +108,7 @@ const YieldItem = ({
   connection,
   wallet,
   nativeSolBalance,
-  fetchTradeState,
+  refreshStore,
 }: {
   pool: ArenaPoolV2Extended;
   bankType: "COLLATERAL" | "TOKEN";
@@ -106,7 +117,7 @@ const YieldItem = ({
   connection: Connection;
   wallet: Wallet;
   nativeSolBalance: number;
-  fetchTradeState: (args: { connection: Connection; wallet: Wallet }) => void;
+  refreshStore: () => void;
 }) => {
   const { marginfiClient, wrappedAccount, accountSummary } = useActionBoxProps(pool.groupPk, [
     pool.tokenBank,
@@ -195,10 +206,7 @@ const YieldItem = ({
                       });
                     },
                     onComplete: () => {
-                      fetchTradeState({
-                        connection,
-                        wallet,
-                      });
+                      refreshStore();
                     },
                   }}
                   dialogProps={{
@@ -256,10 +264,7 @@ const YieldItem = ({
                     });
                   },
                   onComplete: () => {
-                    fetchTradeState({
-                      connection,
-                      wallet,
-                    });
+                    refreshStore();
                   },
                 }}
                 dialogProps={{

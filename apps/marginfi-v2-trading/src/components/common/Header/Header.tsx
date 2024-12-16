@@ -34,15 +34,16 @@ const navItems = [
 
 export const Header = () => {
   const { connection } = useConnection();
-  const [initialized, userDataFetched, nativeSolBalance, fetchTradeState, referralCode, banksByBankPk] =
-    useTradeStoreV2((state) => [
+  const [initialized, userDataFetched, nativeSolBalance, fetchUserData, referralCode, banksByBankPk] = useTradeStoreV2(
+    (state) => [
       state.initialized,
       state.userDataFetched,
       state.nativeSolBalance,
-      state.fetchTradeState,
+      state.fetchUserData,
       state.referralCode,
       state.banksByBankPk,
-    ]);
+    ]
+  );
   const { priorityType, broadcastType, priorityFees, maxCap, maxCapType, setTransactionSettings } = useUiStore(
     (state) => ({
       priorityType: state.priorityType,
@@ -169,7 +170,7 @@ export const Header = () => {
               extendedBankInfos={extendedBankInfos}
               nativeSolBalance={nativeSolBalance}
               refreshState={() =>
-                fetchTradeState({
+                fetchUserData({
                   connection,
                   wallet,
                 })
