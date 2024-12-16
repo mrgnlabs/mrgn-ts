@@ -893,4 +893,5 @@ export type {
   InactiveBankInfo,
   ExtendedBankInfo,
   BankState,
+  BankInfo,
 };

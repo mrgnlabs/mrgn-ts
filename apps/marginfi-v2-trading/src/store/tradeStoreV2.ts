@@ -39,7 +39,7 @@ import {
   fetchBankDataMap,
   fetchInitialArenaState,
   InitialArenaState,
-  recompileArenaBank,
+  resetArenaBank,
   updateArenaBankWithUserData,
 } from "~/utils/trade-store.utils";
 import { PositionData } from "@mrgnlabs/mrgn-utils";
@@ -663,7 +663,7 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
     const { banksByBankPk } = get();
 
     const updatedArenaBanks = Object.values(banksByBankPk).map((bank) => {
-      return recompileArenaBank(bank, undefined);
+      return resetArenaBank(bank);
     });
 
     // Convert array back to Record<string, ArenaBank>

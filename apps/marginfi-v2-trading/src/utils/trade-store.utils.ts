@@ -327,7 +327,12 @@ export const updateArenaBankWithUserData = async (
   return { updatedArenaBanks, nativeSolBalance, tokenAccountMap, updateMarginfiAccounts };
 };
 
-export const recompileArenaBank = (bank: ArenaBank, userData?: any) => {
+export const resetArenaBank = (bank: ArenaBank): ArenaBank => {
+  const updatedBankInfo = recompileArenaBank(bank);
+  return { ...updatedBankInfo };
+};
+
+const recompileArenaBank = (bank: ArenaBank, userData?: any) => {
   const updatedBankInfo = makeExtendedBankInfo(
     { icon: bank.meta.tokenLogoUri, name: bank.meta.tokenName, symbol: bank.meta.tokenSymbol },
     bank.info.rawBank,
