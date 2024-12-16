@@ -1,5 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 
+import { PoolPositionsApiResponse } from "~/types/api.types";
+
 // Cache times in seconds
 const S_MAXAGE_TIME = 60 * 0.1; // 4 minutes
 const STALE_WHILE_REVALIDATE_TIME = 60 * 0.1; // 10 minutes
@@ -10,8 +12,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   const { address } = req.query;
-
-  console.log({ address });
 
   try {
     const response = await fetch(`${process.env.MARGINFI_API_URL}/arena/positions/${address}`, {
@@ -24,7 +24,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       throw new Error(`API responded with status: ${response.status}`);
     }
 
-    const data = await response.json();
+    const data: PoolPositionsApiResponse[] = await response.json();
 
     // Set cache headers
     res.setHeader("Cache-Control", `s-maxage=${S_MAXAGE_TIME}, stale-while-revalidate=${STALE_WHILE_REVALIDATE_TIME}`);
