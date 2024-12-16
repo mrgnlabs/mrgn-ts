@@ -1,7 +1,7 @@
 import { cn } from "@mrgnlabs/mrgn-utils";
 
 interface ActionStatItemProps {
-  label: string;
+  label: string | React.JSX.Element;
   classNames?: string;
   children: React.ReactNode;
   style?: React.CSSProperties;

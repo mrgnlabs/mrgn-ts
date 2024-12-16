@@ -1,9 +1,10 @@
 import { MarginRequirementType, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
 import { AccountSummary } from "@mrgnlabs/marginfi-v2-ui-state";
-import { percentFormatter, tokenPriceFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
+import { dynamicNumeralFormatter, percentFormatter, tokenPriceFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 import { TradeActionTxns } from "@mrgnlabs/mrgn-utils";
 import Link from "next/link";
 import { PreviewStat } from "~/components/action-box-v2/utils";
+import { PnlDisplayTooltip } from "~/components/common/pnl-display";
 import { IconPyth } from "~/components/ui/icons";
 import { IconSwitchboard } from "~/components/ui/icons";
 
@@ -103,6 +104,21 @@ export function generateTradeStats(props: generateTradeStatsProps) {
         </Link>
       </>
     ),
+  });
+
+  // Pnl stat TODO: mocked for now
+  const pnl = -12234.23;
+  stats.push({
+    label: <PnlDisplayTooltip depositsAmountUsd={0.2022839} borrowsAmountUsd={-0.02627} pnl={pnl} />,
+    color: pnl > 0 ? "SUCCESS" : "DESTRUCTIVE",
+    value: () => {
+      return (
+        <>{`${pnl > 0 ? "+" : "-"}$${dynamicNumeralFormatter(Math.abs(pnl), {
+          minDisplay: 0.0001,
+          maxDisplay: 100000,
+        })}`}</>
+      );
+    },
   });
 
   return stats;

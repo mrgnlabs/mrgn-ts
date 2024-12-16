@@ -33,11 +33,7 @@ export const Stats = ({ activePool, accountSummary, simulationResult, actionTxns
               label={stat.label}
               classNames={cn(
                 stat.color &&
-                  (stat.color === "SUCCESS"
-                    ? "text-success"
-                    : stat.color === "ALERT"
-                    ? "text-alert-foreground"
-                    : "text-destructive-foreground")
+                  (stat.color === "SUCCESS" ? "text-success" : stat.color === "ALERT" ? "text-alert" : "text-error")
               )}
             >
               <stat.value />
