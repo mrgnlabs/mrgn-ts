@@ -3,8 +3,14 @@ import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 
-import { IconInfoCircle } from "@tabler/icons-react";
-import { numeralFormatter, tokenPriceFormatter, percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
+import { IconInfoCircle, IconSwitchHorizontal } from "@tabler/icons-react";
+import {
+  numeralFormatter,
+  tokenPriceFormatter,
+  percentFormatter,
+  usdFormatter,
+  dynamicNumeralFormatter,
+} from "@mrgnlabs/mrgn-common";
 
 import { cn, useIsMobile } from "@mrgnlabs/mrgn-utils";
 import { useLeveragedPositionDetails } from "~/hooks/arenaHooks";
@@ -22,7 +28,7 @@ type PositionCardProps = {
 };
 
 export const PositionCard = ({ size = "lg", arenaPool }: PositionCardProps) => {
-  const isMobile = useIsMobile();
+  const [showQuotePrice, setShowQuotePrice] = React.useState(true);
 
   const client = useMarginfiClient({ groupPk: arenaPool.groupPk });
   const { accountSummary, wrappedAccount } = useWrappedAccount({
@@ -51,13 +57,16 @@ export const PositionCard = ({ size = "lg", arenaPool }: PositionCardProps) => {
     }
   }, [accountSummary?.healthFactor]);
 
-  const tokenPrice = React.useMemo(() => {
-    const lstPrice = arenaPool.quoteBank.info.oraclePrice.priceRealtime.price.toNumber();
-    return `${tokenPriceFormatter(
-      arenaPool.tokenBank.info.oraclePrice.priceRealtime.price.toNumber() / lstPrice,
-      "decimal"
-    )} ${arenaPool.quoteBank.meta.tokenSymbol}`;
-  }, [arenaPool]);
+  const displayedPrice = React.useMemo(() => {
+    const tokenPrice = arenaPool.tokenBank.info.oraclePrice.priceRealtime.price.toNumber();
+    const quotePrice = arenaPool.quoteBank.info.oraclePrice.priceRealtime.price.toNumber();
+
+    if (showQuotePrice) {
+      return `${dynamicNumeralFormatter(tokenPrice / quotePrice)} ${arenaPool.quoteBank.meta.tokenSymbol}`;
+    }
+
+    return `${dynamicNumeralFormatter(tokenPrice)} USD`;
+  }, [showQuotePrice, arenaPool]);
 
   if (!arenaPool.tokenBank.isActive) return null;
 
@@ -78,7 +87,7 @@ export const PositionCard = ({ size = "lg", arenaPool }: PositionCardProps) => {
             />
             <div className="leading-none space-y-0.5">
               <h2 className="text-lg text-primary">{arenaPool.tokenBank.meta.tokenName}</h2>
-              <h3>{`${arenaPool.tokenBank.meta.tokenSymbol}/${arenaPool.quoteBank.meta.tokenSymbol}`}</h3>
+              <h3>{`${arenaPool.tokenBank.meta.tokenSymbol.toUpperCase()}/${arenaPool.quoteBank.meta.tokenSymbol.toUpperCase()}`}</h3>
             </div>
           </Link>
         </div>
@@ -87,31 +96,23 @@ export const PositionCard = ({ size = "lg", arenaPool }: PositionCardProps) => {
         <dl className="w-full grid grid-cols-2 text-sm text-muted-foreground gap-1">
           <dt>Token</dt>
           <dd className="text-right text-primary">
-            {numeralFormatter(arenaPool.tokenBank.position.amount)} {arenaPool.tokenBank.meta.tokenSymbol}
+            {dynamicNumeralFormatter(arenaPool.tokenBank.position.amount)} {arenaPool.tokenBank.meta.tokenSymbol}
           </dd>
           <dt>Value</dt>
-          <dd className="text-right text-primary">{usdFormatter.format(totalUsdValue)} USD</dd>
+          <dd className="text-right text-primary">{dynamicNumeralFormatter(totalUsdValue)} USD</dd>
           <dt>Leverage</dt>
           <dd className="text-right text-primary">{`${leverage}x`}</dd>
           <dt>Size</dt>
-          <dd className="text-right text-primary">
-            {positionSizeUsd < 0.01 ? "< 0.01" : usdFormatter.format(positionSizeUsd)} USD
-          </dd>
+          <dd className="text-right text-primary">{dynamicNumeralFormatter(positionSizeUsd)} USD</dd>
 
-          <dt>Price</dt>
-          <dd className="text-right text-primary">
-            {tokenPrice}
-            <>
-              {isMobile ? (
-                <span className="text-xs ml-1 text-muted-foreground block">
-                  {tokenPriceFormatter(arenaPool.tokenBank.info.oraclePrice.priceRealtime.price.toNumber())} USD
-                </span>
-              ) : (
-                <span className="text-xs ml-1 text-muted-foreground">
-                  ({tokenPriceFormatter(arenaPool.tokenBank.info.oraclePrice.priceRealtime.price.toNumber())})
-                </span>
-              )}
-            </>
+          <dt>Price </dt>
+          <dd
+            className="text-right text-primary flex items-center gap-1 cursor-pointer w-full justify-end"
+            onClick={() => setShowQuotePrice(!showQuotePrice)}
+          >
+            {displayedPrice}
+
+            <IconSwitchHorizontal size={14} />
           </dd>
           {arenaPool.tokenBank.position.liquidationPrice && (
             <>
