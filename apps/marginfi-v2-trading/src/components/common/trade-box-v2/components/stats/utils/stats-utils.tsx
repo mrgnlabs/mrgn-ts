@@ -107,19 +107,19 @@ export function generateTradeStats(props: generateTradeStatsProps) {
   });
 
   // Pnl stat TODO: mocked for now
-  const pnl = -12234.23;
-  stats.push({
-    label: <PnlDisplayTooltip depositsAmountUsd={0.2022839} borrowsAmountUsd={-0.02627} pnl={pnl} />,
-    color: pnl > 0 ? "SUCCESS" : "DESTRUCTIVE",
-    value: () => {
-      return (
-        <>{`${pnl > 0 ? "+" : "-"}$${dynamicNumeralFormatter(Math.abs(pnl), {
-          minDisplay: 0.0001,
-          maxDisplay: 100000,
-        })}`}</>
-      );
-    },
-  });
+  // const pnl = -12234.23;
+  // stats.push({
+  //   label: <PnlDisplayTooltip depositsAmountUsd={0.2022839} borrowsAmountUsd={-0.02627} pnl={pnl} />,
+  //   color: pnl > 0 ? "SUCCESS" : "DESTRUCTIVE",
+  //   value: () => {
+  //     return (
+  //       <>{`${pnl > 0 ? "+" : "-"}$${dynamicNumeralFormatter(Math.abs(pnl), {
+  //         minDisplay: 0.0001,
+  //         maxDisplay: 100000,
+  //       })}`}</>
+  //     );
+  //   },
+  // });
 
   return stats;
 }
