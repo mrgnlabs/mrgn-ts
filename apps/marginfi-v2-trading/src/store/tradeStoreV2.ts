@@ -564,8 +564,10 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
       tokenAccountMap: storeTokenAccountMap,
     } = get();
 
+    const newStoreBanksByBankPk = { ...storeBanksByBankPk };
+
     extendedBankInfos.map((bank) => {
-      storeBanksByBankPk[bank.address.toBase58()] = bank;
+      newStoreBanksByBankPk[bank.address.toBase58()] = bank;
     });
     if (marginfiAccount) {
       storeMarginfiAccountByGroupPk[args.groupPk.toBase58()] = marginfiAccount;
@@ -577,7 +579,7 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
     set({
       nativeSolBalance,
       marginfiAccountByGroupPk: storeMarginfiAccountByGroupPk,
-      banksByBankPk: storeBanksByBankPk,
+      banksByBankPk: newStoreBanksByBankPk,
       tokenAccountMap: storeTokenAccountMap,
     });
   },
