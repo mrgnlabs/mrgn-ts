@@ -99,11 +99,11 @@ export const PositionCard = ({ size = "lg", arenaPool }: PositionCardProps) => {
             {dynamicNumeralFormatter(arenaPool.tokenBank.position.amount)} {arenaPool.tokenBank.meta.tokenSymbol}
           </dd>
           <dt>Value</dt>
-          <dd className="text-right text-primary">{dynamicNumeralFormatter(totalUsdValue)} USD</dd>
+          <dd className="text-right text-primary">${dynamicNumeralFormatter(totalUsdValue)}</dd>
           <dt>Leverage</dt>
           <dd className="text-right text-primary">{`${leverage}x`}</dd>
           <dt>Size</dt>
-          <dd className="text-right text-primary">{dynamicNumeralFormatter(positionSizeUsd)} USD</dd>
+          <dd className="text-right text-primary">${dynamicNumeralFormatter(positionSizeUsd)}</dd>
 
           <dt>Price </dt>
           <dd
@@ -112,7 +112,7 @@ export const PositionCard = ({ size = "lg", arenaPool }: PositionCardProps) => {
           >
             {displayedPrice}
 
-            <IconSwitchHorizontal size={14} />
+            {arenaPool.quoteBank.meta.tokenSymbol !== "USDC" && <IconSwitchHorizontal size={14} />}
           </dd>
           {arenaPool.tokenBank.position.liquidationPrice && (
             <>

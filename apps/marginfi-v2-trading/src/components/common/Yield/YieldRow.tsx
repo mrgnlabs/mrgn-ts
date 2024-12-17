@@ -5,7 +5,13 @@ import Image from "next/image";
 
 import { IconArrowRight } from "@tabler/icons-react";
 import { Connection } from "@solana/web3.js";
-import { aprToApy, numeralFormatter, percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
+import {
+  aprToApy,
+  dynamicNumeralFormatter,
+  numeralFormatter,
+  percentFormatter,
+  usdFormatter,
+} from "@mrgnlabs/mrgn-common";
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { cn, capture } from "@mrgnlabs/mrgn-utils";
 import { Wallet } from "@mrgnlabs/mrgn-common";
@@ -144,9 +150,20 @@ const YieldItem = ({
         {bank.meta.tokenSymbol}
       </div>
       <div className="flex flex-col xl:gap-2 xl:flex-row xl:items-baseline">
-        <span className="text-xl">{numeralFormatter(bank.info.state.totalDeposits)}</span>
+        <span className="text-xl">
+          {dynamicNumeralFormatter(bank.info.state.totalDeposits, {
+            maxDisplay: 1000,
+          })}
+        </span>
+
         <span className="text-sm text-muted-foreground">
-          {usdFormatter.format(bank.info.state.totalDeposits * bank.info.oraclePrice.priceRealtime.price.toNumber())}
+          $
+          {dynamicNumeralFormatter(
+            bank.info.state.totalDeposits * bank.info.oraclePrice.priceRealtime.price.toNumber(),
+            {
+              maxDisplay: 1000,
+            }
+          )}
         </span>
       </div>
 
