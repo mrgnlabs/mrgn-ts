@@ -108,6 +108,17 @@ const stateCreator: StateCreator<TradeBoxState, [], []> = (set, get) => ({
   },
 
   setLeverage(leverage: number) {
+    const prevLeverage = get().leverage;
+    const isLeverageChanged = leverage !== prevLeverage;
+
+    if (isLeverageChanged) {
+      set({
+        simulationResult: null,
+        actionTxns: initialState.actionTxns,
+        errorMessage: null,
+      });
+    }
+
     set({ leverage });
   },
 

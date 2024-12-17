@@ -12,6 +12,7 @@ interface CheckTradeActionAvailableProps {
   secondaryBank: ArenaBank | null;
   actionQuote: QuoteResponse | null;
   tradeState: "long" | "short";
+  leverage: number;
 }
 
 export function checkTradeActionAvailable({
@@ -21,13 +22,14 @@ export function checkTradeActionAvailable({
   secondaryBank,
   actionQuote,
   tradeState,
+  leverage,
 }: CheckTradeActionAvailableProps): ActionMessageType[] {
   let checks: ActionMessageType[] = [];
 
   const requiredCheck = getRequiredCheck(connected, collateralBank);
   if (requiredCheck) return [requiredCheck];
 
-  const generalChecks = getGeneralChecks(amount ?? 0);
+  const generalChecks = getGeneralChecks(amount ?? 0, leverage);
   if (generalChecks) checks.push(...generalChecks);
 
   const tradeSpecificChecks = getTradeSpecificChecks(tradeState, secondaryBank);
@@ -58,13 +60,17 @@ function getRequiredCheck(connected: boolean, selectedBank: ArenaBank | null): A
   return null;
 }
 
-function getGeneralChecks(amount: number = 0, showCloseBalance?: boolean): ActionMessageType[] {
+function getGeneralChecks(amount: number = 0, leverage: number, showCloseBalance?: boolean): ActionMessageType[] {
   let checks: ActionMessageType[] = [];
   if (showCloseBalance) {
     checks.push({ actionMethod: "INFO", description: "Close lending balance.", isEnabled: true });
   }
 
   if (amount === 0) {
+    checks.push({ isEnabled: false });
+  }
+
+  if (leverage === 0) {
     checks.push({ isEnabled: false });
   }
 
