@@ -276,23 +276,6 @@ export async function calculateLoopingParams({
           additionalTxs: [],
         };
 
-        console.log("===========================================");
-        console.log("========== Flashloan Loop Params =========");
-        console.log("===========================================");
-        console.log("Max Accounts:", maxAccounts);
-        console.log("Borrow Amount:", borrowAmount.toString());
-        console.log("Deposit Amount:", depositAmount.toString());
-        console.log("Borrow Amount Native:", borrowAmountNative);
-        console.log("Min Swap Amount Out (UI):", minSwapAmountOutUi);
-        console.log("Actual Deposit Amount (UI):", actualDepositAmountUi);
-        console.log("-------------------------------------------");
-        console.log("Quote Details:");
-        console.log("Input Mint:", loopingProps.borrowBank.info.state.mint.toBase58());
-        console.log("Output Mint:", loopingProps.depositBank.info.state.mint.toBase58());
-        console.log("Slippage (bps):", slippageBps);
-        console.log("Platform Fee (bps):", platformFeeBps);
-        console.log("===========================================");
-
         if (loopingProps.marginfiAccount) {
           txn = await verifyTxSizeLooping({
             ...loopingProps,
