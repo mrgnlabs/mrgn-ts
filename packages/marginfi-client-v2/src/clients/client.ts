@@ -657,7 +657,11 @@ class MarginfiClient {
     signers.push(accountKeypair);
 
     const tx = new Transaction().add(...ixs.instructions);
-    const solanaTx = addTransactionMetadata(tx, { signers, addressLookupTables: this.addressLookupTables });
+    const solanaTx = addTransactionMetadata(tx, {
+      signers,
+      addressLookupTables: this.addressLookupTables,
+      type: "MRGN_ACCOUNT_CREATION",
+    });
 
     return solanaTx;
   }
