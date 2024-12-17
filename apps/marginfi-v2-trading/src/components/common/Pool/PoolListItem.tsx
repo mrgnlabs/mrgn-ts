@@ -3,7 +3,12 @@ import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 
-import { tokenPriceFormatter, percentFormatter, numeralFormatter } from "@mrgnlabs/mrgn-common";
+import {
+  tokenPriceFormatter,
+  percentFormatter,
+  numeralFormatter,
+  dynamicNumeralFormatter,
+} from "@mrgnlabs/mrgn-common";
 import { cn } from "@mrgnlabs/mrgn-utils";
 
 import { useTradeStoreV2 } from "~/store";
@@ -32,11 +37,24 @@ export const PoolListItem = ({ poolData, last }: PoolListItemProps) => {
   const tokenPrice = React.useMemo(() => {
     if (isLstQuote) {
       const lstPrice = quoteTokenData.price;
-      return `${tokenPriceFormatter(tokenData.price / lstPrice, "decimal")} ${poolData.quoteSummary.tokenSymbol}`;
+      return `${dynamicNumeralFormatter(tokenData.price / lstPrice)} ${poolData.quoteSummary.tokenSymbol}`;
     }
 
-    return tokenPriceFormatter(tokenData.price);
+    return dynamicNumeralFormatter(tokenData.price);
   }, [isLstQuote, tokenData.price, quoteTokenData.price, poolData.quoteSummary.tokenSymbol]);
+
+  const fundingRate = React.useMemo(() => {
+    const fundingRateShort =
+      (poolData.tokenSummary.bankData.borrowRate - poolData.quoteSummary.bankData.depositRate) / 100;
+    const fundingRateLong =
+      (poolData.quoteSummary.bankData.borrowRate - poolData.tokenSummary.bankData.depositRate) / 100;
+    return `${percentFormatter.format(fundingRateLong)} / ${percentFormatter.format(fundingRateShort)}`;
+  }, [
+    poolData.tokenSummary.bankData.borrowRate,
+    poolData.tokenSummary.bankData.depositRate,
+    poolData.quoteSummary.bankData.depositRate,
+    poolData.quoteSummary.bankData.borrowRate,
+  ]);
 
   return (
     <div className={cn("grid grid-cols-7 py-2 w-full items-center", !last && "border-b pb-3 mb-2")}>
@@ -54,9 +72,9 @@ export const PoolListItem = ({ poolData, last }: PoolListItemProps) => {
         <>
           <div className="flex items-center gap-2">
             <div className="flex flex-col">
-              {tokenPrice}
+              ${tokenPrice}
               {isLstQuote && (
-                <span className="text-xs text-muted-foreground block">{tokenPriceFormatter(tokenData.price)} USD</span>
+                <span className="text-xs text-muted-foreground block">${dynamicNumeralFormatter(tokenData.price)}</span>
               )}
             </div>
             <span className={cn("text-xs", tokenData.priceChange24h > 0 ? "text-mrgn-success" : "text-mrgn-error")}>
@@ -69,7 +87,10 @@ export const PoolListItem = ({ poolData, last }: PoolListItemProps) => {
             </span>
           </div>
           <div>
-            ${numeralFormatter(tokenData.volume24h)}
+            $
+            {dynamicNumeralFormatter(tokenData.volume24h, {
+              maxDisplay: 1000,
+            })}
             {tokenData.volumeChange24h && (
               <span
                 className={cn("text-xs ml-2", tokenData.volumeChange24h > 0 ? "text-mrgn-success" : "text-mrgn-error")}
@@ -79,11 +100,14 @@ export const PoolListItem = ({ poolData, last }: PoolListItemProps) => {
               </span>
             )}
           </div>
-          <div>${numeralFormatter(tokenData.marketcap)}</div>
+          <div>{fundingRate}</div>
           <div>
             $
-            {numeralFormatter(
-              poolData.quoteSummary.bankData.totalDepositsUsd + poolData.tokenSummary.bankData.totalDepositsUsd
+            {dynamicNumeralFormatter(
+              poolData.quoteSummary.bankData.totalDepositsUsd + poolData.tokenSummary.bankData.totalDepositsUsd,
+              {
+                maxDisplay: 1000,
+              }
             )}
           </div>
         </>
