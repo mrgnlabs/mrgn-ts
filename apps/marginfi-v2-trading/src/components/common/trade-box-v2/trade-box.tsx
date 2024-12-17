@@ -461,7 +461,7 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
             <AmountPreview
               tradeSide={tradeState}
               amount={leveragedAmount}
-              isLoading={isLoading}
+              isLoading={isLoading && isSimulating.isLoading}
               selectedBank={activePoolExtended.tokenBank}
             />
           )}
