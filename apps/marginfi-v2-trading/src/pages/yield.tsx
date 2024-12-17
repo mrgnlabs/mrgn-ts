@@ -39,8 +39,8 @@ export const getStaticProps: GetStaticProps<StaticArenaProps> = async (context) 
 };
 
 export default function YieldPage({ initialData }: StaticArenaProps) {
-  const [initialized, sortBy, setSortBy, fetchArenaGroups, setHydrationComplete] = useTradeStoreV2((state) => [
-    state.initialized,
+  const [poolsFetched, sortBy, setSortBy, fetchArenaGroups, setHydrationComplete] = useTradeStoreV2((state) => [
+    state.poolsFetched,
     state.sortBy,
     state.setSortBy,
     state.fetchArenaGroups,
@@ -145,8 +145,8 @@ export default function YieldPage({ initialData }: StaticArenaProps) {
   return (
     <>
       <div className="w-full max-w-8xl mx-auto px-4 md:px-8 pb-28 pt-12 min-h-[calc(100vh-100px)]">
-        {!initialized && <Loader label="Loading yield farming..." className="mt-8" />}
-        {initialized && (
+        {!poolsFetched && <Loader label="Loading yield farming..." className="mt-8" />}
+        {poolsFetched && (
           <>
             <div className="w-full max-w-4xl mx-auto">
               <PageHeading
@@ -269,7 +269,7 @@ export default function YieldPage({ initialData }: StaticArenaProps) {
         )}
       </div>
 
-      {initialized && previousTxn && (
+      {poolsFetched && previousTxn && (
         <ActionComplete
           isActionComplete={isActionComplete}
           setIsActionComplete={setIsActionComplete}
