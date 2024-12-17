@@ -209,7 +209,7 @@ export const PoolTradeHeader = ({ activePool }: { activePool: ArenaPoolV2 }) => 
               </div>
             )}
             <div className="w-full grid gap-4 max-w-md mx-auto lg:gap-16 lg:max-w-none lg:grid-cols-3">
-              <div className="border-y border-border py-6 lg:border-b-0 lg:py-0 lg:border-t-0">
+              <div className="border-y border-border py-6 lg:border-b-0 flex flex-col gap-4 w-full lg:py-0 lg:border-t-0">
                 <div className="flex flex-row justify-between space-y-2 lg:block">
                   <div className="flex items-start gap-2 translate-y-0.5">
                     <Image
@@ -341,7 +341,7 @@ export const PoolTradeHeader = ({ activePool }: { activePool: ArenaPoolV2 }) => 
                             }}
                             dialogProps={{
                               trigger: (
-                                <Button variant="outline" size="sm">
+                                <Button variant="outline" className="gap-1 min-w-16">
                                   Supply
                                 </Button>
                               ),
@@ -355,66 +355,64 @@ export const PoolTradeHeader = ({ activePool }: { activePool: ArenaPoolV2 }) => 
                 </div>
                 <Mobile>
                   {extendedPool.status === GroupStatus.LP && extendedPool.tokenBank.isActive ? (
-                    <div className="mt-4">
-                      <div className="flex gap-4">
-                        <ActionBox.Lend
-                          isDialog={true}
-                          useProvider={true}
-                          lendProps={{
-                            connected: connected,
-                            requestedLendType: ActionType.Deposit,
-                            requestedBank: extendedPool.tokenBank,
-                            showAvailableCollateral: false,
-                            captureEvent: () => {
-                              capture("trade_supply_btn_click", {
-                                group: extendedPool.groupPk.toBase58(),
-                                bank: extendedPool.tokenBank.meta.tokenSymbol,
-                              });
-                            },
-                            onComplete: () => {
-                              refreshGroup({
-                                groupPk: extendedPool.groupPk,
-                                banks: [extendedPool.tokenBank.address, extendedPool.quoteBank.address],
-                              });
-                            },
-                          }}
-                          dialogProps={{
-                            trigger: (
-                              <Button variant="outline" className="gap-1 min-w-16">
-                                Supply more
-                              </Button>
-                            ),
-                            title: `Supply ${extendedPool.tokenBank.meta.tokenSymbol}`,
-                          }}
-                        />
-                        <ActionBox.Lend
-                          isDialog={true}
-                          useProvider={true}
-                          lendProps={{
-                            connected: connected,
-                            requestedLendType: ActionType.Withdraw,
-                            requestedBank: extendedPool.tokenBank,
-                            showAvailableCollateral: false,
-                            captureEvent: () => {
-                              capture("trade_withdraw_btn_click", {
-                                group: extendedPool.groupPk.toBase58(),
-                                bank: extendedPool.tokenBank.meta.tokenSymbol,
-                              });
-                            },
-                            onComplete: () => {
-                              refreshGroup({
-                                groupPk: extendedPool.groupPk,
-                                banks: [extendedPool.tokenBank.address, extendedPool.quoteBank.address],
-                              });
-                            },
-                          }}
-                          dialogProps={{
-                            trigger: "Withdraw",
-                            title: `Withdraw ${extendedPool.tokenBank.meta.tokenSymbol}`,
-                          }}
-                        />
-                      </div>
-                    </div>
+                    <>
+                      <ActionBox.Lend
+                        isDialog={true}
+                        useProvider={true}
+                        lendProps={{
+                          connected: connected,
+                          requestedLendType: ActionType.Deposit,
+                          requestedBank: extendedPool.tokenBank,
+                          showAvailableCollateral: false,
+                          captureEvent: () => {
+                            capture("trade_supply_btn_click", {
+                              group: extendedPool.groupPk.toBase58(),
+                              bank: extendedPool.tokenBank.meta.tokenSymbol,
+                            });
+                          },
+                          onComplete: () => {
+                            refreshGroup({
+                              groupPk: extendedPool.groupPk,
+                              banks: [extendedPool.tokenBank.address, extendedPool.quoteBank.address],
+                            });
+                          },
+                        }}
+                        dialogProps={{
+                          trigger: (
+                            <Button variant="outline" className="gap-1 min-w-16">
+                              Supply more
+                            </Button>
+                          ),
+                          title: `Supply ${extendedPool.tokenBank.meta.tokenSymbol}`,
+                        }}
+                      />
+                      <ActionBox.Lend
+                        isDialog={true}
+                        useProvider={true}
+                        lendProps={{
+                          connected: connected,
+                          requestedLendType: ActionType.Withdraw,
+                          requestedBank: extendedPool.tokenBank,
+                          showAvailableCollateral: false,
+                          captureEvent: () => {
+                            capture("trade_withdraw_btn_click", {
+                              group: extendedPool.groupPk.toBase58(),
+                              bank: extendedPool.tokenBank.meta.tokenSymbol,
+                            });
+                          },
+                          onComplete: () => {
+                            refreshGroup({
+                              groupPk: extendedPool.groupPk,
+                              banks: [extendedPool.tokenBank.address, extendedPool.quoteBank.address],
+                            });
+                          },
+                        }}
+                        dialogProps={{
+                          trigger: "Withdraw",
+                          title: `Withdraw ${extendedPool.tokenBank.meta.tokenSymbol}`,
+                        }}
+                      />
+                    </>
                   ) : (
                     extendedPool.status !== GroupStatus.LONG &&
                     extendedPool.status !== GroupStatus.SHORT && (
@@ -442,7 +440,7 @@ export const PoolTradeHeader = ({ activePool }: { activePool: ArenaPoolV2 }) => 
                         dialogProps={{
                           trigger: (
                             <Button variant="outline" size="sm">
-                              Supply
+                              Supply 1
                             </Button>
                           ),
                           title: `Supply ${extendedPool.tokenBank.meta.tokenSymbol}`,
@@ -690,8 +688,8 @@ export const PoolTradeHeader = ({ activePool }: { activePool: ArenaPoolV2 }) => 
                       }}
                       dialogProps={{
                         trigger: (
-                          <Button variant="outline" className="gap-1 min-w-16">
-                            Supply
+                          <Button variant="outline" size="sm">
+                            Supply 2
                           </Button>
                         ),
                         title: `Supply ${extendedPool.quoteBank.meta.tokenSymbol}`,
