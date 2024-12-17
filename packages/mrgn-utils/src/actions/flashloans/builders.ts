@@ -335,7 +335,8 @@ export async function calculateLoopingTransaction(props: LoopingProps): Promise<
  */
 export async function loopingBuilder({
   marginfiAccount,
-  depositAmount,
+  // depositAmount,
+  actualDepositAmount,
   borrowAmount,
   depositBank,
   borrowBank,
@@ -378,7 +379,7 @@ export async function loopingBuilder({
   const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash("confirmed");
 
   const { flashloanTx, additionalTxs, txOverflown } = await marginfiAccount.makeLoopTxV2({
-    depositAmount,
+    depositAmount: actualDepositAmount,
     borrowAmount,
     depositBankAddress: depositBank.address,
     borrowBankAddress: borrowBank.address,

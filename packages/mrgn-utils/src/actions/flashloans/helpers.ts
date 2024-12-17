@@ -283,7 +283,7 @@ export function getLoopingParamsForAccount(
   amount: number,
   slippageBps: number
 ) {
-  const principalBufferAmountUi = amount * targetLeverage * (slippageBps / 10000);
+  const principalBufferAmountUi = amount * targetLeverage * ((slippageBps + 30) / 10000);
   const adjustedPrincipalAmountUi = amount - principalBufferAmountUi;
 
   const { borrowAmount, totalDepositAmount: depositAmount } = marginfiAccount.computeLoopingParams(

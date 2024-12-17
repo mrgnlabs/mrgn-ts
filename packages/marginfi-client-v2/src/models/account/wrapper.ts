@@ -713,6 +713,7 @@ class MarginfiAccountWrapper {
         wrapAndUnwrapSol: false,
       }
     );
+
     const { instructions: updateFeedIxs, luts: feedLuts } = await this.makeUpdateFeedIx([
       depositBankAddress,
       borrowBankAddress,
