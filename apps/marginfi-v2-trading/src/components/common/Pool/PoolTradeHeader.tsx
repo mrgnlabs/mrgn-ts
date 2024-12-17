@@ -11,6 +11,7 @@ import {
   usdFormatter,
   shortenAddress,
   aprToApy,
+  dynamicNumeralFormatter,
 } from "@mrgnlabs/mrgn-common";
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { Desktop, Mobile, cn, capture } from "@mrgnlabs/mrgn-utils";
@@ -59,9 +60,8 @@ export const PoolTradeHeader = ({ activePool }: { activePool: ArenaPoolV2 }) => 
   const tokenPrice = React.useMemo(() => {
     // if (isLstQuote) {
     const lstPrice = extendedPool.quoteBank.info.oraclePrice.priceRealtime.price.toNumber();
-    return `${tokenPriceFormatter(
-      extendedPool.tokenBank.info.oraclePrice.priceRealtime.price.toNumber() / lstPrice,
-      "decimal"
+    return `${dynamicNumeralFormatter(
+      extendedPool.tokenBank.info.oraclePrice.priceRealtime.price.toNumber() / lstPrice
     )} ${extendedPool.quoteBank.meta.tokenSymbol}`;
     // }
 
@@ -70,6 +70,19 @@ export const PoolTradeHeader = ({ activePool }: { activePool: ArenaPoolV2 }) => 
     extendedPool.quoteBank.info.oraclePrice.priceRealtime.price,
     extendedPool.quoteBank.meta.tokenSymbol,
     extendedPool.tokenBank.info.oraclePrice.priceRealtime.price,
+  ]);
+
+  const fundingRate = React.useMemo(() => {
+    const fundingRateShort =
+      extendedPool.tokenBank.info.state.borrowingRate - extendedPool.quoteBank.info.state.lendingRate;
+    const fundingRateLong =
+      extendedPool.quoteBank.info.state.borrowingRate - extendedPool.tokenBank.info.state.lendingRate;
+    return `${percentFormatter.format(fundingRateLong)} / ${percentFormatter.format(fundingRateShort)}`;
+  }, [
+    extendedPool.tokenBank.info.state.borrowingRate,
+    extendedPool.tokenBank.info.state.lendingRate,
+    extendedPool.quoteBank.info.state.borrowingRate,
+    extendedPool.quoteBank.info.state.lendingRate,
   ]);
 
   return (
@@ -86,13 +99,22 @@ export const PoolTradeHeader = ({ activePool }: { activePool: ArenaPoolV2 }) => 
       <div className="px-4 pb-10 lg:px-8 lg:py-10 lg:bg-background lg:border lg:rounded-xl">
         <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
           <div className="flex flex-col items-center px-8 w-full lg:w-1/4 xl:w-1/2">
-            <Image
-              src={extendedPool.tokenBank.meta.tokenLogoUri}
-              alt={extendedPool.tokenBank.meta.tokenSymbol}
-              width={72}
-              height={72}
-              className="bg-background border rounded-full mb-2 lg:mb-0"
-            />
+            <div className="relative flex items-center justify-center">
+              <Image
+                src={extendedPool.tokenBank.meta.tokenLogoUri}
+                alt={extendedPool.tokenBank.meta.tokenSymbol}
+                width={72}
+                height={72}
+                className="bg-background border rounded-full"
+              />
+              <Image
+                src={extendedPool.quoteBank.meta.tokenLogoUri}
+                alt={extendedPool.quoteBank.meta.tokenSymbol}
+                width={32}
+                height={32}
+                className="absolute -bottom-2 -right-2 bg-background border rounded-full"
+              />
+            </div>
 
             <TokenCombobox
               selected={extendedPool}
@@ -100,7 +122,7 @@ export const PoolTradeHeader = ({ activePool }: { activePool: ArenaPoolV2 }) => 
                 router.push(`/trade/${pool.groupPk.toBase58()}`);
               }}
             >
-              <h1 className="text-lg font-medium mt-2 flex items-center gap-1 px-2 py-1 pl-3 rounded-md cursor-pointer transition-colors hover:bg-accent translate-x-1.5">
+              <h1 className="text-lg font-medium mt-2 flex items-center justify-center text-center gap-1 px-2 py-1 pl-3 rounded-md cursor-pointer transition-colors hover:bg-accent translate-x-1.5">
                 {extendedPool.tokenBank.meta.tokenName} <IconChevronDown size={18} />
               </h1>
             </TokenCombobox>
@@ -136,7 +158,7 @@ export const PoolTradeHeader = ({ activePool }: { activePool: ArenaPoolV2 }) => 
                     {tokenPrice}
                     {/* {isLstQuote ? ( */}
                     <span className="text-sm text-muted-foreground block">
-                      {tokenPriceFormatter(extendedPool.tokenBank.info.oraclePrice.priceRealtime.price.toNumber())} USD
+                      ${dynamicNumeralFormatter(extendedPool.tokenBank.info.oraclePrice.priceRealtime.price.toNumber())}{" "}
                     </span>
                     {/* ) : (
                       <span
@@ -154,7 +176,7 @@ export const PoolTradeHeader = ({ activePool }: { activePool: ArenaPoolV2 }) => 
                 <div className="grid grid-cols-2 lg:block">
                   <p className="text-sm text-muted-foreground">24hr Volume</p>
                   <p className="text-sm text-right lg:text-left lg:text-2xl">
-                    ${numeralFormatter(extendedPool.tokenBank.tokenData.volume24hr)}
+                    ${dynamicNumeralFormatter(extendedPool.tokenBank.tokenData.volume24hr)}
                     <span
                       className={cn(
                         "text-sm ml-1",
@@ -167,11 +189,15 @@ export const PoolTradeHeader = ({ activePool }: { activePool: ArenaPoolV2 }) => 
                   </p>
                 </div>
                 <div className="grid grid-cols-2 lg:block">
+                  <p className="text-sm text-muted-foreground">Funding rate (long/short)</p>
+                  <p className="text-sm text-right lg:text-left lg:text-2xl">{fundingRate}</p>
+                </div>
+                {/* <div className="grid grid-cols-2 lg:block">
                   <p className="text-sm text-muted-foreground">Market cap</p>
                   <p className="text-sm text-right lg:text-left lg:text-2xl">
                     ${numeralFormatter(extendedPool.tokenBank.tokenData.marketCap)}
                   </p>
-                </div>
+                </div> */}
                 {/* {extendedPool.poolData && (
                   <div className="grid grid-cols-2 lg:hidden">
                     <p className="text-sm text-muted-foreground">Lending pool liquidity</p>

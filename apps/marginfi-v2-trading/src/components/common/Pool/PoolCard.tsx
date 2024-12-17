@@ -3,7 +3,13 @@ import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 
-import { tokenPriceFormatter, percentFormatter, numeralFormatter, shortenAddress } from "@mrgnlabs/mrgn-common";
+import {
+  tokenPriceFormatter,
+  percentFormatter,
+  numeralFormatter,
+  shortenAddress,
+  dynamicNumeralFormatter,
+} from "@mrgnlabs/mrgn-common";
 import { cn, useIsMobile } from "@mrgnlabs/mrgn-utils";
 
 import { Button } from "~/components/ui/button";
@@ -116,7 +122,7 @@ export const PoolCard = ({ poolData }: PoolCardProps) => {
                 <>
                   {isMobile ? (
                     <span className="text-xs ml-1 text-muted-foreground block">
-                      {tokenPriceFormatter(tokenData.price)} USD
+                      ${dynamicNumeralFormatter(tokenData.price)}
                     </span>
                   ) : (
                     <span className="text-xs ml-1 text-muted-foreground">({tokenPriceFormatter(tokenData.price)})</span>
@@ -138,7 +144,10 @@ export const PoolCard = ({ poolData }: PoolCardProps) => {
             </dd>
             <dt className="">24hr vol</dt>
             <dd className="text-right text-primary tracking-wide">
-              ${numeralFormatter(tokenData.volume24h)}
+              $
+              {dynamicNumeralFormatter(tokenData.volume24h, {
+                maxDisplay: 1000,
+              })}
               {tokenData.volumeChange24h && (
                 <span
                   className={cn(
@@ -158,8 +167,11 @@ export const PoolCard = ({ poolData }: PoolCardProps) => {
                 <dt>Pool liquidity</dt>
                 <dd className="text-right text-primary tracking-wide">
                   $
-                  {numeralFormatter(
-                    poolData.quoteSummary.bankData.totalDepositsUsd + poolData.tokenSummary.bankData.totalDepositsUsd
+                  {dynamicNumeralFormatter(
+                    poolData.quoteSummary.bankData.totalDepositsUsd + poolData.tokenSummary.bankData.totalDepositsUsd,
+                    {
+                      maxDisplay: 1000,
+                    }
                   )}
                 </dd>
               </>

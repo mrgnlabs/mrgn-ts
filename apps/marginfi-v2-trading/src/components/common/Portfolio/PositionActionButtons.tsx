@@ -24,7 +24,7 @@ import {
   DialogTitle,
 } from "~/components/ui/dialog";
 import { QuoteResponse } from "@jup-ag/api";
-import { percentFormatter } from "@mrgnlabs/mrgn-common";
+import { dynamicNumeralFormatter, percentFormatter } from "@mrgnlabs/mrgn-common";
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { ArenaPoolV2Extended } from "~/types/trade-store.types";
 
@@ -369,7 +369,7 @@ export const PositionActionButtons = ({
         </Button>
 
         <Dialog open={!!actionTransaction} onOpenChange={() => onClose()}>
-          <DialogContent className="space-y-12 w-full">
+          <DialogContent className=" w-full">
             <DialogHeader>
               <DialogTitle className="flex flex-col items-center gap-2 border-b border-border pb-10">
                 <span className="flex items-center justify-center gap-2">
@@ -396,7 +396,7 @@ export const PositionActionButtons = ({
                 <React.Fragment key={bank.meta.tokenSymbol}>
                   <dt>Supplied</dt>
                   <dd className="text-right">
-                    {bank.position.amount} {bank.meta.tokenSymbol}
+                    {dynamicNumeralFormatter(bank.position.amount)} {bank.meta.tokenSymbol}
                   </dd>
                 </React.Fragment>
               ))}
@@ -405,7 +405,7 @@ export const PositionActionButtons = ({
                 <>
                   <dt>Borrowed</dt>
                   <dd className="text-right">
-                    {borrowBank.position.amount} {borrowBank.meta.tokenSymbol}
+                    {dynamicNumeralFormatter(borrowBank.position.amount)} {borrowBank.meta.tokenSymbol}
                   </dd>
                 </>
               )}

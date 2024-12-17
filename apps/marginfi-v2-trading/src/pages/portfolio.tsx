@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { useActionBoxStore } from "~/components/action-box-v2/store";
-import { groupedNumberFormatterDyn, usdFormatter } from "@mrgnlabs/mrgn-common";
+import { dynamicNumeralFormatter, groupedNumberFormatterDyn, usdFormatter } from "@mrgnlabs/mrgn-common";
 import { cn } from "@mrgnlabs/mrgn-utils";
 
 import { useTradeStoreV2 } from "~/store";
@@ -102,8 +102,8 @@ export default function PortfolioPage({ initialData }: StaticArenaProps) {
                     portfolioCombined ? "md:grid-cols-3" : "md:grid-col-2"
                   )}
                 >
-                  <StatBlock label="Total long (USD)" value={usdFormatter.format(totalLong)} />
-                  <StatBlock label="Total short (USD)" value={usdFormatter.format(totalShort)} />
+                  <StatBlock label="Total long (USD)" value={`$${dynamicNumeralFormatter(totalLong)}`} />
+                  <StatBlock label="Total short (USD)" value={`$${dynamicNumeralFormatter(totalShort)}`} />
                   {portfolioCombined && portfolioCombined.length > 0 && (
                     <div className="col-span-2 md:col-span-1">
                       <StatBlock

@@ -3,7 +3,7 @@ import React from "react";
 import Image from "next/image";
 import { useRouter } from "next/router";
 
-import { numeralFormatter, tokenPriceFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
+import { dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
 
 import { PositionActionButtons } from "~/components/common/Portfolio";
 import { TableCell, TableRow } from "~/components/ui/table";
@@ -24,7 +24,7 @@ export const PositionListItem = ({ arenaPool }: props) => {
     groupPk: arenaPool.groupPk,
     banks: [arenaPool.tokenBank, arenaPool.quoteBank],
   });
-  const { positionSizeUsd, positionSizeToken, totalUsdValue, leverage } = useLeveragedPositionDetails({
+  const { positionSizeUsd, totalUsdValue, leverage } = useLeveragedPositionDetails({
     pool: arenaPool,
   });
 
@@ -61,14 +61,16 @@ export const PositionListItem = ({ arenaPool }: props) => {
           {arenaPool.tokenBank.meta.tokenSymbol}
         </span>
       </TableCell>
-      <TableCell>{usdFormatter.format(totalUsdValue)}</TableCell>
+      <TableCell>${dynamicNumeralFormatter(totalUsdValue)}</TableCell>
       <TableCell>{`${leverage}x`}</TableCell>
-      <TableCell>{positionSizeUsd < 0.01 ? "< 0.01" : usdFormatter.format(positionSizeUsd)}</TableCell>
-      <TableCell>{tokenPriceFormatter(arenaPool.tokenBank.info.oraclePrice.priceRealtime.price.toNumber())}</TableCell>
+      <TableCell>${dynamicNumeralFormatter(positionSizeUsd)}</TableCell>
+      <TableCell>
+        ${dynamicNumeralFormatter(arenaPool.tokenBank.info.oraclePrice.priceRealtime.price.toNumber())}
+      </TableCell>
 
       <TableCell>
         {arenaPool.tokenBank.isActive && arenaPool.tokenBank.position.liquidationPrice ? (
-          <>{tokenPriceFormatter(arenaPool.tokenBank.position.liquidationPrice)}</>
+          <>${dynamicNumeralFormatter(arenaPool.tokenBank.position.liquidationPrice)}</>
         ) : (
           "n/a"
         )}
