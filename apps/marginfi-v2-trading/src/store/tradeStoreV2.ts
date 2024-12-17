@@ -23,12 +23,13 @@ import {
   compileExtendedArenaBank,
   fetchBankDataMap,
   fetchInitialArenaState,
+  fetchUserPositions,
   InitialArenaState,
   resetArenaBank,
   updateArenaBankWithUserData,
 } from "~/utils/trade-store.utils";
 import { PositionData } from "@mrgnlabs/mrgn-utils";
-import { ArenaBank, ArenaPoolSummary, ArenaPoolV2, BankData } from "~/types/trade-store.types";
+import { ArenaBank, ArenaPoolPositions, ArenaPoolSummary, ArenaPoolV2, BankData } from "~/types/trade-store.types";
 
 export enum TradePoolFilterStates {
   TIMESTAMP = "timestamp",
@@ -54,7 +55,7 @@ type TradeStoreV2State = {
   arenaPools: Record<string, ArenaPoolV2>;
   groupsByGroupPk: Record<string, MarginfiGroup>;
   banksByBankPk: Record<string, ArenaBank>;
-  positionsByGroupPk: Record<string, PositionData>;
+  positionsByGroupPk: Record<string, ArenaPoolPositions>;
   tokenDataByMint: Record<string, TokenData>;
   marginfiAccountByGroupPk: Record<string, MarginfiAccount>;
   lutByGroupPk: Record<string, AddressLookupTableAccount[]>;
@@ -355,8 +356,15 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
     let tokenAccountMap: TokenAccountMap | null = null;
     let marginfiAccountByGroupPk: Record<string, MarginfiAccount> = {};
     let isWalletFetched = false;
+    let positionsByGroupPk: Record<string, ArenaPoolPositions> = {};
 
     if (wallet.publicKey && !wallet.publicKey.equals(PublicKey.default)) {
+      const userPositions = await fetchUserPositions(wallet.publicKey);
+      positionsByGroupPk = userPositions.reduce((acc, position) => {
+        acc[position.groupPk.toBase58()] = position;
+        return acc;
+      }, {} as Record<string, ArenaPoolPositions>);
+
       const updatedData = await updateArenaBankWithUserData(
         connection,
         wallet.publicKey,
@@ -431,6 +439,7 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
       pythFeedIdMap: feedIdMap,
       oraclePrices,
       userDataFetched: isWalletFetched,
+      positionsByGroupPk,
     });
   },
 
