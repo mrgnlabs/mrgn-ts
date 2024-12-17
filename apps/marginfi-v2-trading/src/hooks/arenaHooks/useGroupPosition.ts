@@ -22,7 +22,10 @@ export function useLeveragedPositionDetails({ pool }: { pool: ArenaPoolV2Extende
       depositSize = pool.tokenBank.isActive ? pool.tokenBank.position.amount : 0;
     }
 
-    const leverage = numeralFormatter(Math.round((borrowValue / depositValue + Number.EPSILON) * 100) / 100 + 1);
+    const leverage = numeralFormatter(
+      Math.round((depositValue / (depositValue - borrowValue) + Number.EPSILON) * 100) / 100
+    );
+
     return { value: depositValue - borrowValue, size: depositValue, tokenSize: depositSize, leverage };
   }, [pool.quoteBank, pool.tokenBank, pool.status]);
 
