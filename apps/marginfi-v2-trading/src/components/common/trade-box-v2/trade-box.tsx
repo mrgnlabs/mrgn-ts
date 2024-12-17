@@ -187,9 +187,10 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
         secondaryBank: selectedSecondaryBank,
         actionQuote: actionTxns.actionQuote,
         tradeState,
+        leverage,
       }),
 
-    [amount, connected, actionTxns, tradeState, selectedSecondaryBank, selectedBank]
+    [amount, connected, actionTxns, tradeState, selectedSecondaryBank, selectedBank, leverage]
   );
 
   const actionMethods = React.useMemo(() => {
