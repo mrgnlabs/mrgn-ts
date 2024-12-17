@@ -58,8 +58,8 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
     simulationResult,
     actionTxns,
     errorMessage,
-    selectedBank,
-    selectedSecondaryBank,
+    selectedBankPk,
+    selectedSecondaryBankPk,
     maxLeverage,
     refreshState,
     setAmountRaw,
@@ -68,8 +68,8 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
     setSimulationResult,
     setActionTxns,
     setErrorMessage,
-    setSelectedBank,
-    setSelectedSecondaryBank,
+    setSelectedBankPk,
+    setSelectedSecondaryBankPk,
     setMaxLeverage,
   ] = useTradeBoxStore((state) => [
     state.amountRaw,
@@ -78,8 +78,8 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
     state.simulationResult,
     state.actionTxns,
     state.errorMessage,
-    state.selectedBank,
-    state.selectedSecondaryBank,
+    state.selectedBankPk,
+    state.selectedSecondaryBankPk,
     state.maxLeverage,
     state.refreshState,
     state.setAmountRaw,
@@ -88,8 +88,8 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
     state.setSimulationResult,
     state.setActionTxns,
     state.setErrorMessage,
-    state.setSelectedBank,
-    state.setSelectedSecondaryBank,
+    state.setSelectedBankPk,
+    state.setSelectedSecondaryBankPk,
     state.setMaxLeverage,
   ]);
   const [
@@ -129,10 +129,26 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
   const { amount, debouncedAmount, maxAmount } = useActionAmounts({
     amountRaw,
     activePool: activePoolExtended,
-    collateralBank: selectedBank,
+    selectedBankPk,
     nativeSolBalance,
   });
   const debouncedLeverage = useAmountDebounce<number>(leverage, 500);
+  const selectedBank = React.useMemo(() => {
+    if (!selectedBankPk) return null;
+    return (
+      [activePoolExtended.tokenBank, activePoolExtended.quoteBank].find((bank) =>
+        bank?.address.equals(selectedBankPk)
+      ) ?? null
+    );
+  }, [selectedBankPk, activePoolExtended]);
+  const selectedSecondaryBank = React.useMemo(() => {
+    if (!selectedSecondaryBankPk) return null;
+    return (
+      [activePoolExtended.tokenBank, activePoolExtended.quoteBank].find((bank) =>
+        bank?.address.equals(selectedSecondaryBankPk)
+      ) ?? null
+    );
+  }, [selectedSecondaryBankPk, activePoolExtended]);
 
   // States
   const [dynamicActionMessages, setDynamicActionMessages] = React.useState<ActionMessageType[]>([]);
@@ -190,14 +206,14 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
   React.useEffect(() => {
     if (activePoolExtended) {
       if (tradeState === "short") {
-        setSelectedBank(activePoolExtended.quoteBank);
-        setSelectedSecondaryBank(activePoolExtended.tokenBank);
+        setSelectedBankPk(activePoolExtended.quoteBank.address);
+        setSelectedSecondaryBankPk(activePoolExtended.tokenBank.address);
       } else {
-        setSelectedBank(activePoolExtended.tokenBank);
-        setSelectedSecondaryBank(activePoolExtended.quoteBank);
+        setSelectedBankPk(activePoolExtended.tokenBank.address);
+        setSelectedSecondaryBankPk(activePoolExtended.quoteBank.address);
       }
     }
-  }, [activePoolExtended, setSelectedBank, setSelectedSecondaryBank, tradeState]);
+  }, [activePoolExtended, setSelectedBankPk, setSelectedSecondaryBankPk, tradeState]);
 
   React.useEffect(() => {
     if (errorMessage && errorMessage.description) {
