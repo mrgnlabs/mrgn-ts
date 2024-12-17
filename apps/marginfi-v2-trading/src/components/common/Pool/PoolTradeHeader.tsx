@@ -440,7 +440,7 @@ export const PoolTradeHeader = ({ activePool }: { activePool: ArenaPoolV2 }) => 
                         dialogProps={{
                           trigger: (
                             <Button variant="outline" size="sm">
-                              Supply 1
+                              Supply
                             </Button>
                           ),
                           title: `Supply ${extendedPool.tokenBank.meta.tokenSymbol}`,
@@ -689,7 +689,7 @@ export const PoolTradeHeader = ({ activePool }: { activePool: ArenaPoolV2 }) => 
                       dialogProps={{
                         trigger: (
                           <Button variant="outline" size="sm">
-                            Supply 2
+                            Supply
                           </Button>
                         ),
                         title: `Supply ${extendedPool.quoteBank.meta.tokenSymbol}`,
