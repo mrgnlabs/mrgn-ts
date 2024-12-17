@@ -139,10 +139,6 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
   poolsFetched: false,
   userDataFetched: false,
   isRefreshingStore: false,
-  lutGroupsCache: {},
-  groupsCache: {},
-  tokenMetadataCache: {},
-  bankMetadataCache: {},
   searchResults: [],
   currentPage: 1,
   totalPages: 0,
@@ -212,6 +208,7 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
 
           acc[pool.group] = {
             groupPk: new PublicKey(pool.group),
+            luts: pool.lookup_tables.map((lut) => new PublicKey(lut)),
             tokenSummary: {
               bankPk: new PublicKey(tokenBankPk),
               mint: new PublicKey(tokenMint.address),
@@ -399,7 +396,7 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
       return acc;
     }, {} as Record<string, MarginfiGroup>);
 
-    if (!lutByGroupPk) {
+    if (!lutByGroupPk || Object.keys(lutByGroupPk).length === 0) {
       const lutResults: Record<string, Promise<RpcResponseAndContext<AddressLookupTableAccount | null>> | null> = {};
 
       // Create lookup promises for each group
