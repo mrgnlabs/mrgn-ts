@@ -55,7 +55,7 @@ export function useMarginfiClient({
     const group = groupsByGroupPk[groupPk.toBase58()];
     const pool = arenaPools[groupPk.toBase58()];
 
-    if (!lut || !group || !pool) {
+    if (!group || !pool) {
       return null;
     }
     const tokenBank = banksByBankPk[pool.tokenBankPk.toBase58()];
