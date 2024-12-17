@@ -209,7 +209,7 @@ export default function HomePage({ initialData }: StaticArenaProps) {
                     <div className="pl-5">Asset</div>
                     <div className="pl-2.5">Price</div>
                     <div className="pl-2">24hr Volume</div>
-                    <div>Market cap</div>
+                    <div>Funding rate</div>
                     <div>Lending pool liquidity</div>
                     <div className="pl-2">Created by</div>
                     <div />
