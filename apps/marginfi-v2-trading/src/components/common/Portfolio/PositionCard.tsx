@@ -21,6 +21,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/comp
 import { ArenaPoolV2Extended, GroupStatus } from "~/types/trade-store.types";
 import { useMarginfiClient } from "~/hooks/useMarginfiClient";
 import { useWrappedAccount } from "~/hooks/useWrappedAccount";
+import { usePositionsData } from "~/hooks/usePositionsData";
 
 type PositionCardProps = {
   arenaPool: ArenaPoolV2Extended;
@@ -30,6 +31,7 @@ type PositionCardProps = {
 export const PositionCard = ({ size = "lg", arenaPool }: PositionCardProps) => {
   const [showQuotePrice, setShowQuotePrice] = React.useState(true);
 
+  const positionData = usePositionsData({ groupPk: arenaPool.groupPk });
   const client = useMarginfiClient({ groupPk: arenaPool.groupPk });
   const { accountSummary, wrappedAccount } = useWrappedAccount({
     client,
@@ -104,7 +106,8 @@ export const PositionCard = ({ size = "lg", arenaPool }: PositionCardProps) => {
           <dd className="text-right text-primary">{`${leverage}x`}</dd>
           <dt>Size</dt>
           <dd className="text-right text-primary">${dynamicNumeralFormatter(positionSizeUsd)}</dd>
-
+          <dt>PnL</dt>
+          <dd className="text-right text-primary">${dynamicNumeralFormatter(positionData?.pnl)}</dd>
           <dt>Price </dt>
           <dd
             className="text-right text-primary flex items-center gap-1 cursor-pointer w-full justify-end"

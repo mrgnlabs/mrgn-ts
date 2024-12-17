@@ -12,12 +12,16 @@ import { ArenaPoolV2Extended, GroupStatus } from "~/types/trade-store.types";
 import { useLeveragedPositionDetails } from "~/hooks/arenaHooks";
 import { useMarginfiClient } from "~/hooks/useMarginfiClient";
 import { useWrappedAccount } from "~/hooks/useWrappedAccount";
+import { usePositionsData } from "~/hooks/usePositionsData";
+import { PnlDisplayTooltip } from "../../pnl-display/pnl-display-tooltip";
+import { InfoCircledIcon } from "@radix-ui/react-icons";
 interface props {
   arenaPool: ArenaPoolV2Extended;
 }
 
 export const PositionListItem = ({ arenaPool }: props) => {
   const router = useRouter();
+  const positionData = usePositionsData({ groupPk: arenaPool.groupPk });
   const client = useMarginfiClient({ groupPk: arenaPool.groupPk });
   const { accountSummary, wrappedAccount } = useWrappedAccount({
     client,
@@ -65,16 +69,19 @@ export const PositionListItem = ({ arenaPool }: props) => {
       <TableCell>{`${leverage}x`}</TableCell>
       <TableCell>${dynamicNumeralFormatter(positionSizeUsd)}</TableCell>
       <TableCell>
-        ${dynamicNumeralFormatter(arenaPool.tokenBank.info.oraclePrice.priceRealtime.price.toNumber())}
+        <PnlDisplayTooltip
+          entryPriceUsd={positionData?.entryPrice ?? 0}
+          liquidationPriceUsd={arenaPool.tokenBank.isActive ? arenaPool.tokenBank.position.liquidationPrice ?? 0 : 0}
+          priceUsd={arenaPool.tokenBank.info.oraclePrice.priceRealtime.price.toNumber()}
+          pnl={positionData?.pnl ?? 0}
+        >
+          <div className="flex flex-row items-center gap-1">
+            {arenaPool.tokenBank.isActive ? <>${dynamicNumeralFormatter(positionData?.pnl ?? 0)}</> : "n/a"}{" "}
+            <InfoCircledIcon />
+          </div>
+        </PnlDisplayTooltip>
       </TableCell>
 
-      <TableCell>
-        {arenaPool.tokenBank.isActive && arenaPool.tokenBank.position.liquidationPrice ? (
-          <>${dynamicNumeralFormatter(arenaPool.tokenBank.position.liquidationPrice)}</>
-        ) : (
-          "n/a"
-        )}
-      </TableCell>
       <TableCell className="text-right">
         {client && accountSummary && (
           <PositionActionButtons

@@ -12,6 +12,26 @@ export type ArenaBank = ExtendedBankInfo & {
   };
 };
 
+type ArenaPoolPositionBank = {
+  bankPk: PublicKey;
+  startAmount: number;
+  startUsdAmount: number;
+  currentAmount: number;
+  currentUsdAmount: number;
+  pnl: number;
+  interest: number;
+};
+
+export type ArenaPoolPositions = {
+  groupPk: PublicKey;
+  accountPk: PublicKey;
+  quoteSummary: ArenaPoolPositionBank;
+  tokenSummary: ArenaPoolPositionBank;
+  entryPrice: number;
+  currentPositionValue: number;
+  pnl: number;
+};
+
 export type BankData = {
   totalDeposits: number;
   totalBorrows: number;
