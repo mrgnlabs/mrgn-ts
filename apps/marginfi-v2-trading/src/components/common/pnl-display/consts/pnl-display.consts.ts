@@ -1,5 +1,6 @@
 export interface PnlDisplayProps {
-  depositsAmountUsd: number;
-  borrowsAmountUsd: number;
+  entryPriceUsd: number;
+  liquidationPriceUsd: number;
+  priceUsd: number;
   pnl: number;
 }
