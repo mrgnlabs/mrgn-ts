@@ -7,7 +7,13 @@ interface PnlDisplayTooltipProps extends PnlDisplayProps {
   children?: React.ReactNode | string;
 }
 
-export const PnlDisplayTooltip = ({ pnl, depositsAmountUsd, borrowsAmountUsd, children }: PnlDisplayTooltipProps) => {
+export const PnlDisplayTooltip = ({
+  pnl,
+  entryPriceUsd,
+  liquidationPriceUsd,
+  priceUsd,
+  children,
+}: PnlDisplayTooltipProps) => {
   return (
     <TooltipProvider>
       <Tooltip>
@@ -19,7 +25,12 @@ export const PnlDisplayTooltip = ({ pnl, depositsAmountUsd, borrowsAmountUsd, ch
           )}
         </TooltipTrigger>
         <TooltipContent className="p-0 m-0 rounded-xl min-w-80 max-w-96" side="top">
-          <PnlDisplay pnl={pnl} depositsAmountUsd={depositsAmountUsd} borrowsAmountUsd={borrowsAmountUsd} />
+          <PnlDisplay
+            pnl={pnl}
+            entryPriceUsd={entryPriceUsd}
+            liquidationPriceUsd={liquidationPriceUsd}
+            priceUsd={priceUsd}
+          />
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
