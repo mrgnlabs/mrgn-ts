@@ -283,7 +283,7 @@ export function getLoopingParamsForAccount(
   amount: number,
   slippageBps: number
 ) {
-  const principalBufferAmountUi = amount * targetLeverage * (slippageBps / 10000);
+  const principalBufferAmountUi = amount * targetLeverage * ((slippageBps + 30) / 10000);
   const adjustedPrincipalAmountUi = amount - principalBufferAmountUi;
 
   const { borrowAmount, totalDepositAmount: depositAmount } = marginfiAccount.computeLoopingParams(
@@ -294,6 +294,18 @@ export function getLoopingParamsForAccount(
   );
 
   const borrowAmountNative = uiToNative(borrowAmount, borrowBank.info.state.mintDecimals).toNumber();
+
+  console.log("===========================================");
+  console.log("========== Looping Params Result =========");
+  console.log("===========================================");
+  console.log("Target Leverage:", targetLeverage);
+  console.log("Amount:", amount);
+  console.log("Slippage (bps):", slippageBps);
+  console.log("-------------------------------------------");
+  console.log("Final borrowAmount:", borrowAmount.toString());
+  console.log("Final depositAmount:", depositAmount.toString());
+  console.log("Final borrowAmountNative:", borrowAmountNative);
+  console.log("===========================================");
 
   return { borrowAmount, depositAmount, borrowAmountNative };
 }

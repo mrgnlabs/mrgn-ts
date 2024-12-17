@@ -276,6 +276,23 @@ export async function calculateLoopingParams({
           additionalTxs: [],
         };
 
+        console.log("===========================================");
+        console.log("========== Flashloan Loop Params =========");
+        console.log("===========================================");
+        console.log("Max Accounts:", maxAccounts);
+        console.log("Borrow Amount:", borrowAmount.toString());
+        console.log("Deposit Amount:", depositAmount.toString());
+        console.log("Borrow Amount Native:", borrowAmountNative);
+        console.log("Min Swap Amount Out (UI):", minSwapAmountOutUi);
+        console.log("Actual Deposit Amount (UI):", actualDepositAmountUi);
+        console.log("-------------------------------------------");
+        console.log("Quote Details:");
+        console.log("Input Mint:", loopingProps.borrowBank.info.state.mint.toBase58());
+        console.log("Output Mint:", loopingProps.depositBank.info.state.mint.toBase58());
+        console.log("Slippage (bps):", slippageBps);
+        console.log("Platform Fee (bps):", platformFeeBps);
+        console.log("===========================================");
+
         if (loopingProps.marginfiAccount) {
           txn = await verifyTxSizeLooping({
             ...loopingProps,
@@ -335,7 +352,8 @@ export async function calculateLoopingTransaction(props: LoopingProps): Promise<
  */
 export async function loopingBuilder({
   marginfiAccount,
-  depositAmount,
+  // depositAmount,
+  actualDepositAmount,
   borrowAmount,
   depositBank,
   borrowBank,
@@ -378,7 +396,7 @@ export async function loopingBuilder({
   const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash("confirmed");
 
   const { flashloanTx, additionalTxs, txOverflown } = await marginfiAccount.makeLoopTxV2({
-    depositAmount,
+    depositAmount: actualDepositAmount,
     borrowAmount,
     depositBankAddress: depositBank.address,
     borrowBankAddress: borrowBank.address,

@@ -698,6 +698,7 @@ class MarginfiAccountWrapper {
         : [ComputeBudgetProgram.setComputeUnitLimit({ units: 500_000 })];
     // tiny priority fee just in case bundle fails
     const [priorityFeeIx] = makePriorityFeeIx(0.00001);
+    console.log("borrowAmount", borrowAmount.toString());
     const borrowIxs = await this.makeBorrowIx(
       borrowAmount,
       borrowBankAddress,
@@ -706,6 +707,7 @@ class MarginfiAccountWrapper {
         wrapAndUnwrapSol: false,
       }
     );
+    console.log("depositAmount", depositAmount.toString());
     const depositIxs = await this.makeDepositIx(
       depositAmount,
       depositBankAddress,
@@ -713,6 +715,7 @@ class MarginfiAccountWrapper {
         wrapAndUnwrapSol: false,
       }
     );
+
     const { instructions: updateFeedIxs, luts: feedLuts } = await this.makeUpdateFeedIx([
       depositBankAddress,
       borrowBankAddress,
