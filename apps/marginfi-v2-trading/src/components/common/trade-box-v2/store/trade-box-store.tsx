@@ -7,6 +7,7 @@ import { SimulationResult } from "@mrgnlabs/marginfi-client-v2";
 import { ArenaBank } from "~/types/trade-store.types";
 
 import { TradeSide } from "..";
+import { PublicKey } from "@solana/web3.js";
 
 interface TradeBoxState {
   // State
@@ -15,8 +16,8 @@ interface TradeBoxState {
   leverage: number;
   maxLeverage: number;
 
-  selectedBank: ArenaBank | null;
-  selectedSecondaryBank: ArenaBank | null;
+  selectedBankPk: PublicKey | null;
+  selectedSecondaryBankPk: PublicKey | null;
 
   simulationResult: SimulationResult | null;
   actionTxns: TradeActionTxns;
@@ -32,8 +33,8 @@ interface TradeBoxState {
   setSimulationResult: (result: SimulationResult | null) => void;
   setActionTxns: (actionTxns: TradeActionTxns) => void;
   setErrorMessage: (errorMessage: ActionMessageType | null) => void;
-  setSelectedBank: (bank: ArenaBank | null) => void;
-  setSelectedSecondaryBank: (bank: ArenaBank | null) => void;
+  setSelectedBankPk: (bankAddress: PublicKey | null) => void;
+  setSelectedSecondaryBankPk: (bankAddress: PublicKey | null) => void;
   setMaxLeverage: (maxLeverage: number) => void;
 }
 
@@ -43,8 +44,8 @@ const initialState = {
   leverage: 0,
   simulationResult: null,
   errorMessage: null,
-  selectedBank: null,
-  selectedSecondaryBank: null,
+  selectedBankPk: null,
+  selectedSecondaryBankPk: null,
   maxLeverage: 0,
 
   actionTxns: {
@@ -122,13 +123,13 @@ const stateCreator: StateCreator<TradeBoxState, [], []> = (set, get) => ({
     set({ errorMessage: errorMessage });
   },
 
-  setSelectedBank(tokenBank) {
-    const selectedBank = get().selectedBank;
-    const hasBankChanged = !tokenBank || !selectedBank || !tokenBank.address.equals(selectedBank.address);
+  setSelectedBankPk(bankAddress) {
+    const selectedBankPk = get().selectedBankPk;
+    const hasBankChanged = !bankAddress || !selectedBankPk || !bankAddress.equals(selectedBankPk);
 
     if (hasBankChanged) {
       set({
-        selectedBank: tokenBank,
+        selectedBankPk: bankAddress,
         amountRaw: initialState.amountRaw,
         leverage: initialState.leverage,
         actionTxns: initialState.actionTxns,
@@ -137,21 +138,20 @@ const stateCreator: StateCreator<TradeBoxState, [], []> = (set, get) => ({
     }
   },
 
-  setSelectedSecondaryBank(secondaryBank) {
-    const selectedSecondaryBank = get().selectedSecondaryBank;
-    const hasBankChanged =
-      !secondaryBank || !selectedSecondaryBank || !secondaryBank.address.equals(selectedSecondaryBank.address);
+  setSelectedSecondaryBankPk(bankAddress) {
+    const selectedSecondaryBankPk = get().selectedSecondaryBankPk;
+    const hasBankChanged = !bankAddress || !selectedSecondaryBankPk || !bankAddress.equals(selectedSecondaryBankPk);
 
     if (hasBankChanged) {
       set({
-        selectedSecondaryBank: secondaryBank,
+        selectedSecondaryBankPk: bankAddress,
         amountRaw: initialState.amountRaw,
         leverage: initialState.leverage,
         actionTxns: initialState.actionTxns,
         errorMessage: null,
       });
     } else {
-      set({ selectedSecondaryBank: secondaryBank });
+      set({ selectedSecondaryBankPk: bankAddress });
     }
   },
 

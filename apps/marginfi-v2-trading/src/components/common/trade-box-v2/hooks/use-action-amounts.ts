@@ -1,20 +1,20 @@
 import React from "react";
 
-import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { WSOL_MINT } from "@mrgnlabs/mrgn-common";
 
 import { useAmountDebounce } from "~/hooks/useAmountDebounce";
-import { ArenaBank, ArenaPoolV2Extended } from "~/types/trade-store.types";
+import { ArenaPoolV2Extended } from "~/types/trade-store.types";
+import { PublicKey } from "@solana/web3.js";
 
 export function useActionAmounts({
   amountRaw,
   activePool,
-  collateralBank,
+  selectedBankPk,
   nativeSolBalance,
 }: {
   amountRaw: string;
   activePool: ArenaPoolV2Extended | null;
-  collateralBank: ArenaBank | null;
+  selectedBankPk: PublicKey | null;
   nativeSolBalance: number;
 }) {
   const amount = React.useMemo(() => {
@@ -22,23 +22,28 @@ export function useActionAmounts({
     return isNaN(Number.parseFloat(strippedAmount)) ? 0 : Number.parseFloat(strippedAmount);
   }, [amountRaw]);
 
+  const bank = React.useMemo(() => {
+    if (!selectedBankPk) return null;
+    return [activePool?.tokenBank, activePool?.quoteBank].find((bank) => bank?.address.equals(selectedBankPk));
+  }, [selectedBankPk, activePool]);
+
   const debouncedAmount = useAmountDebounce<number | null>(amount, 500);
 
   const walletAmount = React.useMemo(
     () =>
-      collateralBank?.info.state.mint?.equals && collateralBank?.info.state.mint?.equals(WSOL_MINT)
-        ? collateralBank?.userInfo.tokenAccount.balance + nativeSolBalance
-        : collateralBank?.userInfo.tokenAccount.balance,
-    [nativeSolBalance, collateralBank]
+      bank?.info.state.mint?.equals && bank?.info.state.mint?.equals(WSOL_MINT)
+        ? bank?.userInfo.tokenAccount.balance + nativeSolBalance
+        : bank?.userInfo.tokenAccount.balance,
+    [nativeSolBalance, bank]
   );
 
   const maxAmount = React.useMemo(() => {
-    if (!collateralBank) {
+    if (!bank) {
       return 0;
     }
 
-    return collateralBank.userInfo.maxDeposit;
-  }, [collateralBank]);
+    return bank.userInfo.maxDeposit;
+  }, [bank]);
 
   return {
     amount,
