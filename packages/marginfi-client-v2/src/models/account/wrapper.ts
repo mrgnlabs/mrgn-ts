@@ -678,6 +678,7 @@ class MarginfiAccountWrapper {
     blockhash: blockhashArg,
     depositOpts,
     borrowOpts,
+    setupBankAddresses,
   }: LoopTxProps): Promise<FlashloanActionResult> {
     const depositBank = this.client.banks.get(depositBankAddress.toBase58());
     if (!depositBank) throw Error("Deposit bank not found");
@@ -688,7 +689,7 @@ class MarginfiAccountWrapper {
       blockhashArg ?? (await this._program.provider.connection.getLatestBlockhash("confirmed")).blockhash;
 
     // creates atas if needed
-    const setupIxs = await this.makeSetupIx([borrowBankAddress, depositBankAddress]);
+    const setupIxs = await this.makeSetupIx(setupBankAddresses ?? [borrowBankAddress, depositBankAddress]);
     const cuRequestIxs =
       this.makeComputeBudgetIx().length > 0
         ? this.makeComputeBudgetIx()

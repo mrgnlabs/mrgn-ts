@@ -200,12 +200,14 @@ export async function calculateLoopingParams({
   targetLeverage,
   slippageBps,
   platformFeeBps,
+  setupBankAddresses,
   ...loopingProps
 }: CalculateLoopingProps): Promise<LoopActionTxns | ActionMessageType> {
   if (!loopingProps.marginfiAccount && !marginfiClient) {
     return STATIC_SIMULATION_ERRORS.NOT_INITIALIZED;
   }
 
+  console.log("loopingProps", loopingProps);
   let borrowAmount: BigNumber, depositAmount: BigNumber, borrowAmountNative: number;
   if (loopingProps.marginfiAccount) {
     const params = getLoopingParamsForAccount(
@@ -282,6 +284,7 @@ export async function calculateLoopingParams({
             quote: swapQuote,
             borrowAmount: borrowAmount,
             actualDepositAmount: actualDepositAmountUi,
+            setupBankAddresses,
           });
         }
         if (txn.flashloanTx || !loopingProps.marginfiAccount) {
@@ -342,6 +345,7 @@ export async function loopingBuilder({
   borrowBank,
   quote,
   connection,
+  setupBankAddresses,
 }: LoopingProps): Promise<FlashloanBuilderResponse> {
   if (!marginfiAccount) throw new Error("not initialized");
 
@@ -388,6 +392,7 @@ export async function loopingBuilder({
       lookupTables: swapLUTs,
     },
     blockhash,
+    setupBankAddresses,
   });
 
   return { flashloanTx, additionalTxs, txOverflown, lastValidBlockHeight };
