@@ -2,8 +2,8 @@ import React from "react";
 
 import { InfoCircledIcon } from "@radix-ui/react-icons";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
-import { PnlDisplay } from "./pnl-display";
-import { PnlDisplayProps } from "./consts";
+import { PnlDisplay } from "~/components/common/pnl-display";
+import { PnlDisplayProps } from "~/components/common/pnl-display/consts";
 
 interface PnlDisplayTooltipProps extends PnlDisplayProps {
   children?: React.ReactNode | string;
