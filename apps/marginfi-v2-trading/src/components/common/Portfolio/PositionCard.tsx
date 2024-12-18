@@ -4,15 +4,9 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { IconInfoCircle, IconSwitchHorizontal } from "@tabler/icons-react";
-import {
-  numeralFormatter,
-  tokenPriceFormatter,
-  percentFormatter,
-  usdFormatter,
-  dynamicNumeralFormatter,
-} from "@mrgnlabs/mrgn-common";
+import { tokenPriceFormatter, percentFormatter, usdFormatter, dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
 
-import { cn, useIsMobile } from "@mrgnlabs/mrgn-utils";
+import { cn } from "@mrgnlabs/mrgn-utils";
 import { useLeveragedPositionDetails } from "~/hooks/arenaHooks";
 
 import { PositionActionButtons } from "~/components/common/Portfolio";
@@ -22,6 +16,7 @@ import { ArenaPoolV2Extended, GroupStatus } from "~/types/trade-store.types";
 import { useMarginfiClient } from "~/hooks/useMarginfiClient";
 import { useWrappedAccount } from "~/hooks/useWrappedAccount";
 import { usePositionsData } from "~/hooks/usePositionsData";
+import { SharePosition } from "~/components/common/share-position";
 
 type PositionCardProps = {
   arenaPool: ArenaPoolV2Extended;
@@ -92,6 +87,13 @@ export const PositionCard = ({ size = "lg", arenaPool }: PositionCardProps) => {
               <h3>{`${arenaPool.tokenBank.meta.tokenSymbol.toUpperCase()}/${arenaPool.quoteBank.meta.tokenSymbol.toUpperCase()}`}</h3>
             </div>
           </Link>
+          <p className={cn("text-2xl", positionData?.pnl < 0 ? "text-mrgn-error" : "text-mrgn-success")}>
+            {positionData?.pnl < 0 ? "-" : "+"}$
+            {dynamicNumeralFormatter(Math.abs(positionData?.pnl || 0), {
+              minDisplay: 0.0001,
+              maxDisplay: 100000,
+            })}
+          </p>
         </div>
       )}
       <div className="bg-accent/50 rounded-xl p-4">
@@ -101,13 +103,23 @@ export const PositionCard = ({ size = "lg", arenaPool }: PositionCardProps) => {
             {dynamicNumeralFormatter(arenaPool.tokenBank.position.amount)} {arenaPool.tokenBank.meta.tokenSymbol}
           </dd>
           <dt>Value</dt>
-          <dd className="text-right text-primary">${dynamicNumeralFormatter(totalUsdValue)}</dd>
+          <dd className="text-right text-primary">{usdFormatter.format(totalUsdValue)}</dd>
           <dt>Leverage</dt>
           <dd className="text-right text-primary">{`${leverage}x`}</dd>
           <dt>Size</dt>
-          <dd className="text-right text-primary">${dynamicNumeralFormatter(positionSizeUsd)}</dd>
+          <dd className="text-right text-primary">{usdFormatter.format(positionSizeUsd)}</dd>
           <dt>PnL</dt>
-          <dd className="text-right text-primary">${dynamicNumeralFormatter(positionData?.pnl)}</dd>
+          <dd
+            className={cn("text-right text-primary", positionData?.pnl < 0 ? "text-mrgn-error" : "text-mrgn-success")}
+          >
+            {positionData?.pnl < 0 ? "-" : "+"}$
+            {dynamicNumeralFormatter(Math.abs(positionData?.pnl || 0), {
+              minDisplay: 0.0001,
+              maxDisplay: 100000,
+            })}
+          </dd>
+          <dt>Entry Price</dt>
+          <dd className="text-right text-primary">${dynamicNumeralFormatter(positionData?.entryPrice ?? 0)}</dd>
           <dt>Price </dt>
           <dd
             className="text-right text-primary flex items-center gap-1 cursor-pointer w-full justify-end"
@@ -152,11 +164,13 @@ export const PositionCard = ({ size = "lg", arenaPool }: PositionCardProps) => {
         </dl>
       </div>
       <div className="flex items-center justify-between gap-4">
+        <div className="w-full mr-auto">
+          <SharePosition pool={arenaPool} />
+        </div>
         {client && accountSummary && (
           <PositionActionButtons
             arenaPool={arenaPool}
             isBorrowing={arenaPool.status === GroupStatus.SHORT || arenaPool.status === GroupStatus.LONG}
-            rightAlignFinalButton={true}
             accountSummary={accountSummary}
             client={client}
             selectedAccount={wrappedAccount}
