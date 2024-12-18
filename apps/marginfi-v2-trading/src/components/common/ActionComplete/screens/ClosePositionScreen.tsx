@@ -6,48 +6,50 @@ import Image from "next/image";
 import { IconExternalLink } from "@tabler/icons-react";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { shortenAddress } from "@mrgnlabs/mrgn-common";
+import { ArenaPoolV2Extended } from "~/types/trade-store.types";
+
+import { SharePosition } from "~/components/common/share-position/share-position";
 
 interface Props {
-  tokenBank: ExtendedBankInfo;
-  collateralBank: ExtendedBankInfo;
+  pool: ArenaPoolV2Extended;
   txn: string;
 }
 
-export const ClosePositionScreen = ({ tokenBank, collateralBank, txn }: Props) => {
+export const ClosePositionScreen = ({ pool, txn }: Props) => {
   return (
     <>
       <div className="flex flex-col items-center gap-4 border-b border-border pb-10">
-        {tokenBank && (
+        {pool.tokenBank && (
           <Image
             className="rounded-full w-9 h-9"
-            src={tokenBank.meta.tokenLogoUri}
-            alt={(tokenBank.meta.tokenSymbol || "Token") + "  logo"}
+            src={pool.tokenBank.meta.tokenLogoUri}
+            alt={(pool.tokenBank.meta.tokenSymbol || "Token") + "  logo"}
             width={36}
             height={36}
           />
         )}
         <h3 className="text-2xl font-medium text-center">
-          {`You closed your ${tokenBank?.meta.tokenSymbol}  position`}
+          {`You closed your ${pool.tokenBank?.meta.tokenSymbol}  position`}
         </h3>
       </div>
       <dl className="grid grid-cols-2 w-full text-muted-foreground gap-x-8 gap-y-2">
-        {tokenBank?.isActive && tokenBank?.position && (
+        {pool.tokenBank?.isActive && pool.tokenBank?.position && (
           <>
             <dt>
-              Total {tokenBank.meta.tokenSymbol} {tokenBank.position.isLending ? "Deposits" : "Borrows"}
+              Total {pool.tokenBank.meta.tokenSymbol} {pool.tokenBank.position.isLending ? "Deposits" : "Borrows"}
             </dt>
             <dd className="text-right">
-              {tokenBank.position.amount} {tokenBank.meta.tokenSymbol}
+              {pool.tokenBank.position.amount} {pool.tokenBank.meta.tokenSymbol}
             </dd>
           </>
         )}
-        {collateralBank?.isActive && collateralBank?.position && (
+        {pool.quoteBank?.isActive && pool.quoteBank?.position && (
           <>
             <dt>
-              Total {collateralBank.meta.tokenSymbol} {collateralBank.position.isLending ? "Deposits" : "Borrows"}
+              Total {pool.quoteBank.meta.tokenSymbol} {pool.quoteBank.position.isLending ? "Deposits" : "Borrows"}
             </dt>
             <dd className="text-right">
-              {collateralBank.position.amount} {collateralBank.meta.tokenSymbol}
+              {pool.quoteBank.position.amount} {pool.quoteBank.meta.tokenSymbol}
             </dd>
           </>
         )}
@@ -64,6 +66,8 @@ export const ClosePositionScreen = ({ tokenBank, collateralBank, txn }: Props) =
           </Link>
         </dd>
       </dl>
+
+      <SharePosition pool={pool} />
     </>
   );
 };
