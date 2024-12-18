@@ -4,7 +4,7 @@ import Image from "next/image";
 
 import { IconCheck, IconCopy, IconDownload, IconShare } from "@tabler/icons-react";
 import { dynamicNumeralFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
-import { useIsMobile } from "@mrgnlabs/mrgn-utils";
+import { cn, useIsMobile } from "@mrgnlabs/mrgn-utils";
 
 import { ArenaPoolV2Extended } from "~/types/trade-store.types";
 import { usePositionsData } from "~/hooks/usePositionsData";
@@ -14,6 +14,8 @@ import { generateImage, copyImage, downloadImage } from "~/components/common/sha
 import { PnlLabel, PnlBadge } from "~/components/common/pnl-display";
 import { Dialog, DialogContent, DialogFooter, DialogTrigger } from "~/components/ui/dialog";
 import { Button } from "~/components/ui/button";
+import { Switch } from "~/components/ui/switch";
+import { Label } from "~/components/ui/label";
 
 interface SharePositionProps {
   pool: ArenaPoolV2Extended;
@@ -24,6 +26,7 @@ const SharePosition = ({ pool, onOpenChange }: SharePositionProps) => {
   const [isCopied, setIsCopied] = React.useState(false);
   const [isDownloaded, setIsDownloaded] = React.useState(false);
   const [isOpen, setIsOpen] = React.useState(false);
+  const [shareType, setShareType] = React.useState<"$" | "%">("%");
   const cardRef = React.useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
   const positionData = usePositionsData({ groupPk: pool.groupPk });
@@ -80,7 +83,7 @@ const SharePosition = ({ pool, onOpenChange }: SharePositionProps) => {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/sharing/share-position-bg.png" alt="arena bg" width={480} height={250} />
               <div className="absolute top-0 left-0 w-full h-full">
-                <div className="pt-14 px-6 flex justify-between w-full gap-2">
+                <div className={cn("pt-14 px-6 flex justify-between w-full gap-2", shareType === "%" && "pt-20")}>
                   <div className="flex items-center gap-2 text-xl">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
@@ -92,19 +95,25 @@ const SharePosition = ({ pool, onOpenChange }: SharePositionProps) => {
                     />
                     {pool.tokenBank.meta.tokenSymbol}
                   </div>
-                  <div className="flex flex-col items-end gap-1 -translate-y-2">
-                    <div className="flex items-center gap-2">
-                      <span className="text-muted-foreground text-sm">PnL</span>
-                      <PnlBadge pnl={positionData?.pnl} positionSize={positionSizeUsd} />
-                    </div>
-                    <PnlLabel pnl={positionData?.pnl} className="text-4xl" />
+                  <div className={cn("flex flex-col items-end gap-1", shareType === "$" && "-translate-y-2")}>
+                    {shareType === "$" && <PnlBadge pnl={positionData?.pnl} positionSize={positionSizeUsd} />}
+                    <PnlLabel
+                      type={shareType}
+                      pnl={positionData?.pnl}
+                      positionSize={positionSizeUsd}
+                      className="text-4xl"
+                    />
                   </div>
                 </div>
                 <dl className="absolute bottom-0 left-0 pb-2 px-6 w-full grid grid-cols-2 gap-1">
                   <dt className="text-sm text-muted-foreground">Leverage</dt>
                   <dd className="text-base font-medium text-right">{`${leverage}x`}</dd>
-                  <dt className="text-sm text-muted-foreground">Size</dt>
-                  <dd className="text-base font-medium text-right">{usdFormatter.format(positionSizeUsd)}</dd>
+                  {shareType === "$" && (
+                    <>
+                      <dt className="text-sm text-muted-foreground">Size</dt>
+                      <dd className="text-base font-medium text-right">{usdFormatter.format(positionSizeUsd)}</dd>
+                    </>
+                  )}
                   <dt className="text-sm text-muted-foreground">Entry price</dt>
                   <dd className="text-base font-medium text-right">
                     ${dynamicNumeralFormatter(positionData?.entryPrice)}
@@ -116,9 +125,16 @@ const SharePosition = ({ pool, onOpenChange }: SharePositionProps) => {
                 </dl>
               </div>
             </div>
-
-            <DialogFooter className="flex flex-col sm:flex-col items-center gap-4">
-              <div className="flex items-center gap-3 w-full">
+            <DialogFooter className="flex flex-col sm:flex-col gap-4">
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="shareType"
+                  checked={shareType === "$"}
+                  onCheckedChange={() => setShareType(shareType === "$" ? "%" : "$")}
+                />
+                <Label htmlFor="shareType">Show USD</Label>
+              </div>
+              <div className="flex items-center gap-4 w-full">
                 <Button variant="outline" onClick={handleCopyImage} className="w-full">
                   {isCopied ? (
                     <>
