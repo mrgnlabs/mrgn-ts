@@ -14,6 +14,7 @@ import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { calculateClosePositions } from "~/utils";
 
 import { ActionBox, ActionBoxProvider } from "~/components/action-box-v2";
+import { SharePosition } from "~/components/common/share-position/share-position";
 import { Button } from "~/components/ui/button";
 import {
   Dialog,
@@ -146,8 +147,7 @@ export const PositionActionButtons = ({
           txnType: "CLOSE_POSITION",
           txn: Array.isArray(txnSig) ? txnSig[txnSig.length - 1] : txnSig!,
           positionClosedOptions: {
-            tokenBank: arenaPool.tokenBank,
-            collateralBank: arenaPool.quoteBank,
+            pool: arenaPool,
           },
         });
         capture("close_position", {
@@ -193,9 +193,7 @@ export const PositionActionButtons = ({
     priorityFees,
     setIsActionComplete,
     setPreviousTxn,
-    arenaPool.tokenBank,
-    arenaPool.quoteBank,
-    arenaPool.groupPk,
+    arenaPool,
     setIsRefreshingStore,
     refreshGroup,
     connection,
@@ -449,7 +447,7 @@ export const PositionActionButtons = ({
                 </>
               )}
             </dl>
-            <DialogFooter>
+            <DialogFooter className="flex flex-col sm:flex-col items-center gap-4">
               <Button
                 variant="destructive"
                 disabled={isLoading}
@@ -458,6 +456,8 @@ export const PositionActionButtons = ({
               >
                 {isLoading ? <IconLoader2 className="animate-spin" /> : "Confirm close position"}
               </Button>
+
+              <SharePosition pool={arenaPool} />
             </DialogFooter>
           </DialogContent>
         </Dialog>
