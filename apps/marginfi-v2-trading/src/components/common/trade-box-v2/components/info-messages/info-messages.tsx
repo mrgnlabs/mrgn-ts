@@ -38,7 +38,7 @@ export const InfoMessages = ({
   const renderWarning = (message: string, action: () => void) => (
     <div
       className={cn(
-        "relative flex space-x-2 py-2.5 px-3.5 rounded-lg gap-1 text-sm",
+        "relative flex space-x-2 py-2.5 px-3.5 rounded-md gap-1 text-sm",
         "bg-alert border border-alert-foreground/20 text-alert-foreground"
       )}
     >
@@ -74,7 +74,7 @@ export const InfoMessages = ({
           actionMethod.description && (
             <div
               className={cn(
-                "relative flex space-x-2 py-2.5 px-3.5 rounded-lg gap-1 text-sm ",
+                "relative flex space-x-2 py-2.5 px-3.5 rounded-md gap-1 text-sm ",
                 actionMethod.actionMethod === "INFO" && "bg-info text-info-foreground",
                 (!actionMethod.actionMethod || actionMethod.actionMethod === "WARNING") &&
                   "bg-alert border border-alert-foreground/20 text-alert-foreground",
