@@ -137,14 +137,14 @@ export const Header = () => {
           <div className="flex items-center gap-4">
             {!isMobile && (
               <div className="flex items-center">
-                <CreatePoolSoon />
-                {/* <CreatePoolDialog
+                {/* <CreatePoolSoon /> */}
+                <CreatePoolDialog
                   trigger={
                     <Button disabled={false}>
                       <IconPlus size={16} /> Create Pool
                     </Button>
                   }
-                /> */}
+                />
               </div>
             )}
             <Popover>
