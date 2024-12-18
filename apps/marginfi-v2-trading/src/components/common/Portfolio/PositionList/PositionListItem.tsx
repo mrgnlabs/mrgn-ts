@@ -13,7 +13,7 @@ import { useLeveragedPositionDetails } from "~/hooks/arenaHooks";
 import { useMarginfiClient } from "~/hooks/useMarginfiClient";
 import { useWrappedAccount } from "~/hooks/useWrappedAccount";
 import { usePositionsData } from "~/hooks/usePositionsData";
-import { PnlDisplayTooltip } from "../../pnl-display/pnl-display-tooltip";
+import { PnlDisplayTooltip } from "~/components/common/pnl-display/";
 import { InfoCircledIcon } from "@radix-ui/react-icons";
 interface props {
   arenaPool: ArenaPoolV2Extended;

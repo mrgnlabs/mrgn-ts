@@ -16,6 +16,7 @@ import { ArenaPoolV2Extended, GroupStatus } from "~/types/trade-store.types";
 import { useMarginfiClient } from "~/hooks/useMarginfiClient";
 import { useWrappedAccount } from "~/hooks/useWrappedAccount";
 import { usePositionsData } from "~/hooks/usePositionsData";
+import { PnlLabel } from "~/components/common/pnl-display";
 import { SharePosition } from "~/components/common/share-position";
 
 type PositionCardProps = {
@@ -87,13 +88,7 @@ export const PositionCard = ({ size = "lg", arenaPool }: PositionCardProps) => {
               <h3>{`${arenaPool.tokenBank.meta.tokenSymbol.toUpperCase()}/${arenaPool.quoteBank.meta.tokenSymbol.toUpperCase()}`}</h3>
             </div>
           </Link>
-          <p className={cn("text-2xl", positionData?.pnl < 0 ? "text-mrgn-error" : "text-mrgn-success")}>
-            {positionData?.pnl < 0 ? "-" : "+"}$
-            {dynamicNumeralFormatter(Math.abs(positionData?.pnl || 0), {
-              minDisplay: 0.0001,
-              maxDisplay: 100000,
-            })}
-          </p>
+          <PnlLabel pnl={positionData?.pnl} className="text-2xl" />
         </div>
       )}
       <div className="bg-accent/50 rounded-xl p-4">
@@ -109,14 +104,8 @@ export const PositionCard = ({ size = "lg", arenaPool }: PositionCardProps) => {
           <dt>Size</dt>
           <dd className="text-right text-primary">{usdFormatter.format(positionSizeUsd)}</dd>
           <dt>PnL</dt>
-          <dd
-            className={cn("text-right text-primary", positionData?.pnl < 0 ? "text-mrgn-error" : "text-mrgn-success")}
-          >
-            {positionData?.pnl < 0 ? "-" : "+"}$
-            {dynamicNumeralFormatter(Math.abs(positionData?.pnl || 0), {
-              minDisplay: 0.0001,
-              maxDisplay: 100000,
-            })}
+          <dd className="text-right">
+            <PnlLabel pnl={positionData?.pnl} className="text-primary" />
           </dd>
           <dt>Entry Price</dt>
           <dd className="text-right text-primary">${dynamicNumeralFormatter(positionData?.entryPrice ?? 0)}</dd>
