@@ -24,14 +24,14 @@ export const Header = ({ activePool, entryPrice, volume }: HeaderProps) => {
           router.push(`/trade/${pool.groupPk.toBase58()}`);
         }}
       />
-      <div className="flex items-center gap-4 pr-2 py-1">
+      <div className="flex items-center gap-3 pr-2 py-1">
         <div className="flex flex-col items-end ">
           <span className="text-xs text-muted-foreground">Entry price</span>
           <span className="text-sm">${dynamicNumeralFormatter(entryPrice, { maxDisplay: 100 })}</span>
         </div>
         {volume && (
-          <div className="flex flex-col items-end ">
-            <span className="text-xs text-muted-foreground">24h volume</span>
+          <div className="flex flex-col items-end border-l pl-3">
+            <span className="text-xs text-muted-foreground">24h vol</span>
             <span className="text-sm">${dynamicNumeralFormatter(volume, { maxDisplay: 10000 })}</span>
           </div>
         )}
