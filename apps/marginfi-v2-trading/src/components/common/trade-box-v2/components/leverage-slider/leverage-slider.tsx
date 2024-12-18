@@ -59,7 +59,7 @@ export const LeverageSlider = ({
                 {maxLeverage.toFixed(2)}x
                 <button
                   disabled={!!!maxLeverage}
-                  className="ml-1 text-xs cursor-pointer text-chartreuse border-b border-transparent transition hover:border-chartreuse"
+                  className="ml-1 text-xs cursor-pointer text-primary border-b border-transparent hover:border-primary"
                   onClick={() => setLeverageAmount(Number(maxLeverage))}
                 >
                   MAX

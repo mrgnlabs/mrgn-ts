@@ -189,7 +189,7 @@ const TokenTrigger = ({ selected, open }: TokenTriggerProps) => {
         className="bg-background border rounded-full lg:mb-0"
       />
       <h1 className="flex items-center gap-1 ">
-        {selected?.tokenBank.meta.tokenName}{" "}
+        {selected?.tokenBank.meta.tokenSymbol}{" "}
         <IconChevronDown
           size={18}
           className={cn(open ? "rotate-180 transition-all duration-200" : "rotate-0 transition-all duration-200")}

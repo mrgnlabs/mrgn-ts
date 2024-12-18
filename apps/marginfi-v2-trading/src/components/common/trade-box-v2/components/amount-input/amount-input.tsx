@@ -22,7 +22,7 @@ export const AmountInput = ({
   const amountInputRef = React.useRef<HTMLInputElement>(null);
 
   return (
-    <div className="bg-accent p-2.5 border border-accent/150 rounded-lg">
+    <div className="bg-accent p-2.5 border border-accent/150 rounded-md">
       <div className="flex justify-center gap-1 items-center font-medium ">
         <span className="w-full flex items-center gap-1 max-w-[162px] text-muted-foreground text-base">
           {collateralBank?.meta.tokenLogoUri && (
