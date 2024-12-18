@@ -2,7 +2,6 @@ import React from "react";
 
 import Image from "next/image";
 
-import { toPng } from "html-to-image";
 import { IconCheck, IconCopy, IconDownload, IconShare } from "@tabler/icons-react";
 import { dynamicNumeralFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 import { useIsMobile } from "@mrgnlabs/mrgn-utils";
@@ -10,8 +9,9 @@ import { useIsMobile } from "@mrgnlabs/mrgn-utils";
 import { ArenaPoolV2Extended } from "~/types/trade-store.types";
 import { usePositionsData } from "~/hooks/usePositionsData";
 import { useLeveragedPositionDetails } from "~/hooks/arenaHooks";
-import { PnlLabel, PnlBadge } from "~/components/common/pnl-display";
+import { generateImage, copyImage, downloadImage } from "~/components/common/share-position";
 
+import { PnlLabel, PnlBadge } from "~/components/common/pnl-display";
 import { Dialog, DialogContent, DialogFooter, DialogTrigger } from "~/components/ui/dialog";
 import { Button } from "~/components/ui/button";
 
@@ -22,39 +22,37 @@ interface SharePositionProps {
 
 const SharePosition = ({ pool, onOpenChange }: SharePositionProps) => {
   const [isCopied, setIsCopied] = React.useState(false);
+  const [isDownloaded, setIsDownloaded] = React.useState(false);
   const [isOpen, setIsOpen] = React.useState(false);
   const cardRef = React.useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
   const positionData = usePositionsData({ groupPk: pool.groupPk });
   const { positionSizeUsd, leverage } = useLeveragedPositionDetails({ pool });
 
-  const captureImage = () => {
-    if (!cardRef.current) return;
-    toPng(cardRef.current)
-      .then((dataUrl) => {
-        // Copy to clipboard on desktop
-        if (navigator.clipboard) {
-          fetch(dataUrl)
-            .then((res) => res.blob())
-            .then((blob) => navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]))
-            .then(() => {
-              setIsCopied(true);
-              setTimeout(() => {
-                setIsCopied(false);
-              }, 3000);
-            });
-        }
+  const handleCopyImage = async () => {
+    const dataUrl = await generateImage(cardRef.current);
+    if (!dataUrl) return;
 
-        // Trigger native share on mobile
-        if (isMobile && navigator.share) {
-          navigator.share({
-            title: "Check out my trade!",
-            text: "My trade position and PnL",
-            files: [new File([dataUrl], "trade.png", { type: "image/png" })],
-          });
-        }
-      })
-      .catch((err) => console.error("Error capturing image:", err));
+    await copyImage(dataUrl, isMobile, () => {
+      setIsCopied(true);
+      setTimeout(() => {
+        setIsCopied(false);
+      }, 3000);
+    });
+  };
+
+  const handleDownloadImage = async () => {
+    const dataUrl = await generateImage(cardRef.current);
+    if (!dataUrl) return;
+
+    downloadImage(dataUrl, pool.tokenBank.meta.tokenSymbol, () => {
+      setTimeout(() => {
+        setIsDownloaded(true);
+      }, 1000);
+      setTimeout(() => {
+        setIsDownloaded(false);
+      }, 5000);
+    });
   };
 
   return (
@@ -121,7 +119,7 @@ const SharePosition = ({ pool, onOpenChange }: SharePositionProps) => {
 
             <DialogFooter className="flex flex-col sm:flex-col items-center gap-4">
               <div className="flex items-center gap-3 w-full">
-                <Button variant="outline" onClick={captureImage} className="w-full">
+                <Button variant="outline" onClick={handleCopyImage} className="w-full">
                   {isCopied ? (
                     <>
                       <IconCheck size={16} />
@@ -134,14 +132,23 @@ const SharePosition = ({ pool, onOpenChange }: SharePositionProps) => {
                     </>
                   )}
                 </Button>
-                <Button variant="outline" className="w-full">
-                  <IconDownload size={16} />
-                  Download
+                <Button variant="outline" onClick={handleDownloadImage} className="w-full">
+                  {isDownloaded ? (
+                    <>
+                      <IconCheck size={16} />
+                      Downloaded!
+                    </>
+                  ) : (
+                    <>
+                      <IconDownload size={16} />
+                      Download
+                    </>
+                  )}
                 </Button>
               </div>
-              {isCopied && (
+              {(isCopied || isDownloaded) && (
                 <p className="flex items-center gap-1.5 text-sm text-mrgn-success">
-                  <IconCopy size={14} /> Image copied to clipboard, now share it!
+                  <IconCopy size={14} /> Image {isCopied ? "copied" : "downloaded"}, now share on social.
                 </p>
               )}
             </DialogFooter>
