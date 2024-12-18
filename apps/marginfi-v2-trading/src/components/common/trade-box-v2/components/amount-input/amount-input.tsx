@@ -25,7 +25,7 @@ export const AmountInput = ({
     <div className="bg-accent p-2.5 border border-accent/150 rounded-md">
       <div className="flex justify-center gap-1 items-center font-medium ">
         <span className="w-full flex items-center gap-1 max-w-[162px] text-muted-foreground text-base">
-          {collateralBank?.meta.tokenLogoUri && (
+          {/* {collateralBank?.meta.tokenLogoUri && (
             <Image
               src={collateralBank?.meta.tokenLogoUri}
               alt={collateralBank?.meta.tokenSymbol}
@@ -33,8 +33,16 @@ export const AmountInput = ({
               height={24}
               className="bg-background border rounded-full"
             />
-          )}
-          {collateralBank?.meta.tokenSymbol.toUpperCase()}
+          )} */}
+          {/* {collateralBank?.meta.tokenSymbol.toUpperCase()} */}
+          <Image
+            src="https://cryptologos.cc/logos/usd-coin-usdc-logo.png?v=024" // TODO: update or decide which one to use here
+            alt="USDC"
+            width={24}
+            height={24}
+            className="bg-background border rounded-full"
+          />
+          USDC
         </span>
         <div>
           <Input
@@ -49,7 +57,7 @@ export const AmountInput = ({
           />
         </div>
       </div>
-      <MaxAction maxAmount={maxAmount} collateralBank={collateralBank} setAmount={handleAmountChange} />
+      <MaxAction maxAmount={maxAmount} setAmount={handleAmountChange} />
     </div>
   );
 };

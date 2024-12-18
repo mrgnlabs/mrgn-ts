@@ -100,6 +100,7 @@ export interface CalculateLoopingProps
   marginfiClient: MarginfiClient;
   slippageBps: number;
   platformFeeBps: number;
+  setupBankAddresses?: PublicKey[];
 }
 
 export interface CalculateRepayCollateralProps
@@ -156,7 +157,7 @@ export type LoopingProps = {
   borrowBank: ExtendedBankInfo;
   quote: QuoteResponse;
   connection: Connection;
-
+  setupBankAddresses?: PublicKey[];
   multiStepToast?: MultiStepToastHandle;
 };
 

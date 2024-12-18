@@ -1,54 +1,31 @@
 import React from "react";
 
-import { WSOL_MINT } from "@mrgnlabs/mrgn-common";
-
 import { useAmountDebounce } from "~/hooks/useAmountDebounce";
-import { ArenaPoolV2Extended } from "~/types/trade-store.types";
-import { PublicKey } from "@solana/web3.js";
+import { TokenAccountMap } from "@mrgnlabs/marginfi-v2-ui-state";
+
+const USDC_MINT = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
 
 export function useActionAmounts({
   amountRaw,
-  activePool,
-  selectedBankPk,
-  nativeSolBalance,
+  tokenAccountMap,
 }: {
   amountRaw: string;
-  activePool: ArenaPoolV2Extended | null;
-  selectedBankPk: PublicKey | null;
-  nativeSolBalance: number;
+  tokenAccountMap: TokenAccountMap;
 }) {
   const amount = React.useMemo(() => {
     const strippedAmount = amountRaw.replace(/,/g, "");
     return isNaN(Number.parseFloat(strippedAmount)) ? 0 : Number.parseFloat(strippedAmount);
   }, [amountRaw]);
 
-  const bank = React.useMemo(() => {
-    if (!selectedBankPk) return null;
-    return [activePool?.tokenBank, activePool?.quoteBank].find((bank) => bank?.address.equals(selectedBankPk));
-  }, [selectedBankPk, activePool]);
-
   const debouncedAmount = useAmountDebounce<number | null>(amount, 500);
 
-  const walletAmount = React.useMemo(
-    () =>
-      bank?.info.state.mint?.equals && bank?.info.state.mint?.equals(WSOL_MINT)
-        ? bank?.userInfo.tokenAccount.balance + nativeSolBalance
-        : bank?.userInfo.tokenAccount.balance,
-    [nativeSolBalance, bank]
-  );
-
   const maxAmount = React.useMemo(() => {
-    if (!bank) {
-      return 0;
-    }
-
-    return bank.userInfo.maxDeposit;
-  }, [bank]);
+    return tokenAccountMap.get(USDC_MINT)?.balance ?? 0;
+  }, [tokenAccountMap]); // TODO: update maxAmount depending on how much the user can deposit in the bank in the token. Then calculate USD value
 
   return {
     amount,
     debouncedAmount,
-    walletAmount,
     maxAmount,
   };
 }
