@@ -66,7 +66,7 @@ export const TradePovider: React.FC<{
       fetchUserData({ connection, wallet });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [poolsFetched, connected, fetchUserData]);
+  }, [poolsFetched, connected, fetchUserData, wallet]);
 
   React.useEffect(() => {
     const trackReferral = async (referralCode: string, walletAddress: string) => {

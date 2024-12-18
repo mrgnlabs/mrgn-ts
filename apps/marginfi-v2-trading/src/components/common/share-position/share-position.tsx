@@ -101,6 +101,7 @@ const SharePosition = ({ pool, onOpenChange }: SharePositionProps) => {
                       type={shareType}
                       pnl={positionData?.pnl}
                       positionSize={positionSizeUsd}
+                      disableClickToChangeType={true}
                       className="text-4xl"
                     />
                   </div>
