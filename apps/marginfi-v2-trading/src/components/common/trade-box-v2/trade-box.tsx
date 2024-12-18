@@ -110,11 +110,7 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
     state.setPreviousTxn,
   ]);
   const [setIsWalletOpen] = useWalletStore((state) => [state.setIsWalletOpen]);
-  const [nativeSolBalance, setIsRefreshingStore, refreshGroup] = useTradeStoreV2((state) => [
-    state.nativeSolBalance,
-    state.setIsRefreshingStore,
-    state.refreshGroup,
-  ]);
+  const [refreshGroup, tokenAccountMap] = useTradeStoreV2((state) => [state.refreshGroup, state.tokenAccountMap]);
 
   // Hooks
   const activePoolExtended = useExtendedPool(activePool);
@@ -128,9 +124,7 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
   const { connection } = useConnection();
   const { amount, debouncedAmount, maxAmount } = useActionAmounts({
     amountRaw,
-    activePool: activePoolExtended,
-    selectedBankPk,
-    nativeSolBalance,
+    tokenAccountMap,
   });
   const debouncedLeverage = useAmountDebounce<number>(leverage, 500);
   const selectedBank = React.useMemo(() => {
@@ -251,8 +245,6 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
     setSimulationResult,
     setMaxLeverage,
   });
-
-  const isActiveWithCollat = true; // TODO: figure out what this does?
 
   const handleAmountChange = React.useCallback(
     (amountRaw: string) => {
@@ -487,7 +479,6 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
               connected={connected}
               tradeState={tradeState}
               activePool={activePoolExtended}
-              isActiveWithCollat={isActiveWithCollat}
               actionMethods={actionMethods}
               setIsWalletOpen={setIsWalletOpen}
               refreshStore={() =>
@@ -502,6 +493,7 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
               wallet={wallet}
               refreshSimulation={refreshSimulation}
               isRetrying={isSimulating.isLoading}
+              usdcBalance={maxAmount}
             />
           )}
 
