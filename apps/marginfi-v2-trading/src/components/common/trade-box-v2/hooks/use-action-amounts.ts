@@ -2,8 +2,7 @@ import React from "react";
 
 import { useAmountDebounce } from "~/hooks/useAmountDebounce";
 import { TokenAccountMap } from "@mrgnlabs/marginfi-v2-ui-state";
-
-const USDC_MINT = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
+import { USDC_MINT } from "@mrgnlabs/mrgn-common";
 
 export function useActionAmounts({
   amountRaw,
@@ -20,7 +19,7 @@ export function useActionAmounts({
   const debouncedAmount = useAmountDebounce<number | null>(amount, 500);
 
   const maxAmount = React.useMemo(() => {
-    return tokenAccountMap.get(USDC_MINT)?.balance ?? 0;
+    return tokenAccountMap.get(USDC_MINT.toBase58())?.balance ?? 0;
   }, [tokenAccountMap]); // TODO: update maxAmount depending on how much the user can deposit in the bank in the token. Then calculate USD value
 
   return {

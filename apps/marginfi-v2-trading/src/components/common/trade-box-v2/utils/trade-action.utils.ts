@@ -31,6 +31,7 @@ import {
   nativeToUi,
   SolanaTransaction,
   uiToNative,
+  USDC_MINT,
   WrappedI80F48,
 } from "@mrgnlabs/mrgn-common";
 import BigNumber from "bignumber.js";
@@ -81,7 +82,7 @@ export const handleExecuteTradeAction = async ({
 export async function generateTradeTx(props: CalculateLoopingProps): Promise<TradeActionTxns | ActionMessageType> {
   // USDC Swap tx
   const swapNeeded = props.depositBank.meta.tokenSymbol !== "USDC";
-  let swapTx: { quote: QuoteResponse; tx: VersionedTransaction } | undefined;
+  let swapTx: { quote?: QuoteResponse; tx?: VersionedTransaction; error?: ActionMessageType } | undefined;
   if (swapNeeded) {
     console.log("Creating swap transaction...");
     try {
@@ -94,12 +95,14 @@ export async function generateTradeTx(props: CalculateLoopingProps): Promise<Tra
         props.marginfiClient.provider.publicKey,
         props.marginfiClient.provider.connection
       );
+
+      if (swapTx.error) {
+        console.error("Swap transaction error:", swapTx.error);
+        return swapTx.error;
+      }
     } catch (error) {
       console.error("Error creating swap transaction:", error);
-    }
-
-    if (!swapTx) {
-      // TODO: handle error
+      return STATIC_SIMULATION_ERRORS.FL_FAILED;
     }
   }
 
@@ -147,15 +150,16 @@ export async function generateTradeTx(props: CalculateLoopingProps): Promise<Tra
     ...props,
     setupBankAddresses: [props.borrowBank.info.state.mint],
     marginfiAccount: finalAccount,
-    depositAmount: swapTx?.quote?.outAmount
-      ? Number(nativeToUi(swapTx?.quote?.outAmount, props.depositBank.info.state.mintDecimals))
-      : props.depositAmount,
+    depositAmount:
+      swapNeeded && swapTx?.quote?.outAmount
+        ? Number(nativeToUi(swapTx?.quote?.outAmount, props.depositBank.info.state.mintDecimals))
+        : props.depositAmount,
   });
 
   if (result && "actionQuote" in result) {
     return {
       ...result,
-      additionalTxns: [...(swapTx ? [swapTx.tx] : []), ...accountCreationTx, ...(result.additionalTxns ?? [])],
+      additionalTxns: [...(swapTx?.tx ? [swapTx.tx] : []), ...accountCreationTx, ...(result.additionalTxns ?? [])],
       marginfiAccount: finalAccount ?? undefined,
     };
   }
@@ -170,56 +174,60 @@ export async function createSwapTx(
   jupOpts: { platformFeeBps: number; slippageBps: number },
   feepayer: PublicKey,
   connection: Connection
-) {
-  const jupiterQuoteApi = createJupiterApiClient();
+): Promise<{ quote?: QuoteResponse; tx?: VersionedTransaction; error?: ActionMessageType }> {
+  try {
+    const jupiterQuoteApi = createJupiterApiClient();
 
-  const swapQuote = await getSwapQuoteWithRetry({
-    swapMode: "ExactIn",
-    amount: uiToNative(props.depositAmount, 6).toNumber(),
-    inputMint: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", // USDC
-    outputMint: props.depositBank.info.state.mint.toBase58(), // Token
-    platformFeeBps: jupOpts.platformFeeBps,
-    slippageBps: jupOpts.slippageBps,
-  });
+    const swapQuote = await getSwapQuoteWithRetry({
+      swapMode: "ExactIn",
+      amount: uiToNative(props.depositAmount, 6).toNumber(),
+      inputMint: USDC_MINT.toBase58(),
+      outputMint: props.depositBank.info.state.mint.toBase58(),
+      platformFeeBps: jupOpts.platformFeeBps,
+      slippageBps: jupOpts.slippageBps,
+    });
 
-  if (!swapQuote) {
-    return;
-    // TODO: handle error
-  }
-
-  const {
-    computeBudgetInstructions,
-    swapInstruction,
-    setupInstructions,
-    cleanupInstruction,
-    addressLookupTableAddresses,
-  } = await jupiterQuoteApi.swapInstructionsPost({
-    swapRequest: {
-      quoteResponse: swapQuote,
-      userPublicKey: feepayer.toBase58(),
-      feeAccount: undefined,
-      programAuthorityId: LUT_PROGRAM_AUTHORITY_INDEX,
-    },
-  });
-
-  const swapIx = deserializeInstruction(swapInstruction);
-  const setupInstructionsIxs = setupInstructions.map((value) => deserializeInstruction(value));
-  const cuInstructionsIxs = computeBudgetInstructions.map((value) => deserializeInstruction(value));
-  const addressLookupAccounts = await getAdressLookupTableAccounts(connection, addressLookupTableAddresses);
-  const finalBlockhash = (await connection.getLatestBlockhash()).blockhash;
-
-  const swapMessage = new TransactionMessage({
-    payerKey: feepayer,
-    recentBlockhash: finalBlockhash,
-    instructions: [...cuInstructionsIxs, ...setupInstructionsIxs, swapIx],
-  });
-  const swapTx = addTransactionMetadata(
-    new VersionedTransaction(swapMessage.compileToV0Message(addressLookupAccounts)),
-    {
-      addressLookupTables: addressLookupAccounts,
-      type: "SWAP",
+    if (!swapQuote) {
+      return { error: STATIC_SIMULATION_ERRORS.FL_FAILED };
     }
-  );
 
-  return { quote: swapQuote, tx: swapTx };
+    const {
+      computeBudgetInstructions,
+      swapInstruction,
+      setupInstructions,
+      cleanupInstruction,
+      addressLookupTableAddresses,
+    } = await jupiterQuoteApi.swapInstructionsPost({
+      swapRequest: {
+        quoteResponse: swapQuote,
+        userPublicKey: feepayer.toBase58(),
+        feeAccount: undefined,
+        programAuthorityId: LUT_PROGRAM_AUTHORITY_INDEX,
+      },
+    });
+
+    const swapIx = deserializeInstruction(swapInstruction);
+    const setupInstructionsIxs = setupInstructions.map((value) => deserializeInstruction(value));
+    const cuInstructionsIxs = computeBudgetInstructions.map((value) => deserializeInstruction(value));
+    const addressLookupAccounts = await getAdressLookupTableAccounts(connection, addressLookupTableAddresses);
+    const finalBlockhash = (await connection.getLatestBlockhash()).blockhash;
+
+    const swapMessage = new TransactionMessage({
+      payerKey: feepayer,
+      recentBlockhash: finalBlockhash,
+      instructions: [...cuInstructionsIxs, ...setupInstructionsIxs, swapIx],
+    });
+    const swapTx = addTransactionMetadata(
+      new VersionedTransaction(swapMessage.compileToV0Message(addressLookupAccounts)),
+      {
+        addressLookupTables: addressLookupAccounts,
+        type: "SWAP",
+      }
+    );
+
+    return { quote: swapQuote, tx: swapTx };
+  } catch (error) {
+    console.error("Error creating swap transaction:", error);
+    return { error: STATIC_SIMULATION_ERRORS.FL_FAILED };
+  }
 }
