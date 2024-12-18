@@ -5,8 +5,10 @@ import { PnlDisplayProps } from "./consts";
 import { usePositionsData } from "~/hooks/usePositionsData";
 import { useLeveragedPositionDetails } from "~/hooks/arenaHooks";
 
+import { PnlLabel, PnlBadge } from "~/components/common/pnl-display";
 import { SharePosition } from "~/components/common/share-position";
 import { Card, CardContent, CardFooter, CardHeader } from "~/components/ui/card";
+import { IconArena } from "~/components/ui/icons";
 
 export const PnlDisplay = ({ pool, onDialogOpenChange }: PnlDisplayProps) => {
   const positionData = usePositionsData({ groupPk: pool.groupPk });
@@ -15,18 +17,11 @@ export const PnlDisplay = ({ pool, onDialogOpenChange }: PnlDisplayProps) => {
   return (
     <Card className="py-2">
       <CardHeader className="flex flex-row items-center justify-between px-4 py-2">
-        <h1 className={`text-2xl font-medium ${positionData?.pnl > 0 ? "text-success" : "text-error"}`}>
-          {`${positionData?.pnl > 0 ? "+" : "-"}$${dynamicNumeralFormatter(Math.abs(positionData?.pnl), {
-            minDisplay: 0.0001,
-            maxDisplay: 100000,
-          })}`}
-        </h1>
-
-        {positionData?.pnl > 0 ? (
-          <IconTrendingUp size={28} className="text-success self-center" />
-        ) : (
-          <IconTrendingDown size={28} className="text-error self-center" />
-        )}
+        <IconArena size={28} />
+        <div className="flex flex-row items-center gap-2">
+          <PnlLabel pnl={positionData?.pnl} className="text-3xl font-medium" />
+          <PnlBadge pnl={positionData?.pnl} positionSize={positionSizeUsd} />
+        </div>
       </CardHeader>
       <CardContent className="px-4 py-2">
         <div className="flex flex-col gap-2 bg-muted rounded-md px-4 py-2 text-sm w-full min-w-[300px]">
