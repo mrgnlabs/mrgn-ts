@@ -9,6 +9,7 @@ import { dynamicNumeralFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 import { ArenaPoolV2Extended } from "~/types/trade-store.types";
 import { usePositionsData } from "~/hooks/usePositionsData";
 import { useLeveragedPositionDetails } from "~/hooks/arenaHooks";
+import { PnlLabel, PnlBadge } from "~/components/common/pnl-display";
 
 import { Dialog, DialogContent, DialogTrigger } from "~/components/ui/dialog";
 import { Button } from "~/components/ui/button";
@@ -73,16 +74,9 @@ const SharePosition = ({ pool, onOpenChange }: SharePositionProps) => {
               <div className="flex flex-col items-end gap-1">
                 <div className="flex items-center gap-2">
                   <span className="text-muted-foreground text-sm">PnL</span>
-                  <div className="flex items-center gap-2 bg-success/20 rounded-full py-0.5 px-1 text-xs text-success">
-                    +12%
-                  </div>
+                  <PnlBadge pnl={positionData?.pnl} positionSize={positionSizeUsd} />
                 </div>
-                <span className="text-mrgn-success text-4xl">{`${
-                  positionData?.pnl > 0 ? "+" : "-"
-                }$${dynamicNumeralFormatter(Math.abs(positionData?.pnl), {
-                  minDisplay: 0.0001,
-                  maxDisplay: 100000,
-                })}`}</span>
+                <PnlLabel pnl={positionData?.pnl} className="text-4xl" />
               </div>
             </div>
             <dl className="absolute bottom-0 left-0 pb-2 px-6 w-full grid grid-cols-2 gap-1">
