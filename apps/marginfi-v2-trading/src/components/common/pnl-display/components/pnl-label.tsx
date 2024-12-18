@@ -19,6 +19,10 @@ const PnlLabel = ({ type = "$", pnl, positionSize, className, disableClickToChan
   const pnlSign = positionState === "positive" ? "+" : positionState === "negative" ? "-" : "";
   const pnlPercentage = (pnl / positionSize) * 100;
 
+  React.useEffect(() => {
+    setCurrentType(type);
+  }, [type]);
+
   return (
     <TooltipProvider>
       <Tooltip>
