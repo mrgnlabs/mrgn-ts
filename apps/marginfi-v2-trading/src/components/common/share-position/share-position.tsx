@@ -70,7 +70,7 @@ const SharePosition = ({ pool, onOpenChange }: SharePositionProps) => {
       }}
     >
       <DialogTrigger asChild>
-        <Button size="sm" variant="ghost">
+        <Button size="sm" variant="ghost" className="max-w-fit">
           <IconShare size={16} />
           Share your position
         </Button>
