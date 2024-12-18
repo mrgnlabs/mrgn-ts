@@ -3,10 +3,8 @@ import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 
-import { toPng } from "html-to-image";
-import { dynamicNumeralFormatter, groupedNumberFormatterDyn, usdFormatter } from "@mrgnlabs/mrgn-common";
+import { dynamicNumeralFormatter, groupedNumberFormatterDyn } from "@mrgnlabs/mrgn-common";
 import { cn } from "@mrgnlabs/mrgn-utils";
-import { IconCopy, IconDownload } from "@tabler/icons-react";
 
 import { useTradeStoreV2 } from "~/store";
 import { useActionBoxStore } from "~/components/action-box-v2/store";
@@ -20,16 +18,12 @@ import { useExtendedPools } from "~/hooks/useExtendedPools";
 import { GroupStatus } from "~/types/trade-store.types";
 import { GetStaticProps } from "next";
 import { StaticArenaProps, getArenaStaticProps } from "~/utils";
-import { Dialog, DialogContent, DialogTrigger } from "~/components/ui/dialog";
-import { IconArena } from "~/components/ui/icons";
-import { Button } from "~/components/ui/button";
 
 export const getStaticProps: GetStaticProps<StaticArenaProps> = async (context) => {
   return getArenaStaticProps(context);
 };
 
 export default function PortfolioPage({ initialData }: StaticArenaProps) {
-  const cardRef = React.useRef<HTMLDivElement>(null);
   const [poolsFetched, fetchArenaGroups, setHydrationComplete] = useTradeStoreV2((state) => [
     state.poolsFetched,
     state.fetchArenaGroups,
@@ -81,30 +75,6 @@ export default function PortfolioPage({ initialData }: StaticArenaProps) {
       a.tokenBank.isActive && b.tokenBank.isActive ? a.tokenBank.position.usdValue - b.tokenBank.position.usdValue : 0
     );
   }, [longPositions, shortPositions, lpPositions]);
-
-  const captureImage = () => {
-    if (!cardRef.current) return;
-    toPng(cardRef.current)
-      .then((dataUrl) => {
-        // Copy to clipboard on desktop
-        if (navigator.clipboard) {
-          fetch(dataUrl)
-            .then((res) => res.blob())
-            .then((blob) => navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]))
-            .then(() => alert("Image copied to clipboard!"));
-        }
-
-        // Trigger native share on mobile
-        if (navigator.share) {
-          navigator.share({
-            title: "Check out my trade!",
-            text: "My trade position and PnL",
-            files: [new File([dataUrl], "trade.png", { type: "image/png" })],
-          });
-        }
-      })
-      .catch((err) => console.error("Error capturing image:", err));
-  };
 
   return (
     <>
@@ -193,51 +163,6 @@ export default function PortfolioPage({ initialData }: StaticArenaProps) {
             )}
           </div>
         )}
-
-        <Dialog>
-          <DialogTrigger asChild>
-            <button className="mt-16">Share My Position</button>
-          </DialogTrigger>
-          <DialogContent>
-            <div ref={cardRef} className="w-[480px] h-[250px] relative">
-              <Image src="/sharing/share-position-bg.png" alt="arena bg" width={480} height={250} />
-              <div className="absolute top-0 left-0 w-full h-full">
-                {/* <div className="p-2 flex items-center gap-2 font-orbitron text-xl font-medium">
-                  <IconArena size={32} />
-                  The Arena
-                </div> */}
-                <div className="p-2 pt-14 pr-6 flex flex-col items-end justify-end w-full gap-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-muted-foreground text-sm">PnL</span>
-                    <div className="flex items-center gap-2 bg-success/20 rounded-full py-0.5 px-1 text-xs text-success">
-                      +12%
-                    </div>
-                  </div>
-                  <span className="text-mrgn-success text-4xl">+$123.45</span>
-                </div>
-                <dl className="absolute bottom-0 left-0 pb-2 px-6 w-full grid grid-cols-2 gap-1">
-                  <dt className="text-sm text-muted-foreground">Leverage</dt>
-                  <dd className="text-base font-medium text-right">2.75x</dd>
-                  <dt className="text-sm text-muted-foreground">Size</dt>
-                  <dd className="text-base font-medium text-right">$100</dd>
-                  <dt className="text-sm text-muted-foreground">Entry price</dt>
-                  <dd className="text-base font-medium text-right">$0.0034</dd>
-                </dl>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2 w-full">
-              <Button variant="outline" onClick={captureImage} className="w-full">
-                <IconCopy size={16} />
-                Copy
-              </Button>
-              <Button variant="outline" onClick={captureImage} className="w-full">
-                <IconDownload size={16} />
-                Download
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
       </div>
       {poolsFetched && previousTxn && (
         <ActionComplete
