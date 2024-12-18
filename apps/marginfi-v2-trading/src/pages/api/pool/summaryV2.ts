@@ -30,6 +30,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const poolList: PoolListApiResponse[] = await fetch(`${host}/api/pool/list`).then((response) => response.json());
 
+    console.log("here", poolList);
+
     const groupSummaries = poolList.reduce(
       (acc, pool) => {
         const quoteBankAddress = pool.quote_banks[0].address;
