@@ -359,7 +359,9 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
     let positionsByGroupPk: Record<string, ArenaPoolPositions> = {};
 
     if (wallet.publicKey && !wallet.publicKey.equals(PublicKey.default)) {
+      console.log("fetching user positions");
       const userPositions = await fetchUserPositions(wallet.publicKey);
+      console.log("userPositions", userPositions);
       positionsByGroupPk = userPositions.reduce((acc, position) => {
         acc[position.groupPk.toBase58()] = position;
         return acc;
