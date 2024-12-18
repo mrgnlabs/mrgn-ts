@@ -1,3 +1,5 @@
+import React from "react";
+
 import { InfoCircledIcon } from "@radix-ui/react-icons";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { PnlDisplay } from "./pnl-display";
@@ -7,16 +9,20 @@ interface PnlDisplayTooltipProps extends PnlDisplayProps {
   children?: React.ReactNode | string;
 }
 
-export const PnlDisplayTooltip = ({
-  pnl,
-  entryPriceUsd,
-  liquidationPriceUsd,
-  priceUsd,
-  children,
-}: PnlDisplayTooltipProps) => {
+export const PnlDisplayTooltip = ({ pool, children }: PnlDisplayTooltipProps) => {
+  const [tooltipOpen, setTooltipOpen] = React.useState(false);
+  const [dialogOpen, setDialogOpen] = React.useState(false);
+
+  // Keep tooltip open when dialog is open
+  React.useEffect(() => {
+    if (dialogOpen) {
+      setTooltipOpen(true);
+    }
+  }, [tooltipOpen, dialogOpen]);
+
   return (
     <TooltipProvider>
-      <Tooltip>
+      <Tooltip open={tooltipOpen} onOpenChange={setTooltipOpen}>
         <TooltipTrigger>
           {children || (
             <div className="flex flex-inline items-center gap-1">
@@ -24,13 +30,8 @@ export const PnlDisplayTooltip = ({
             </div>
           )}
         </TooltipTrigger>
-        <TooltipContent className="p-0 m-0 rounded-xl min-w-80 max-w-96" side="top">
-          <PnlDisplay
-            pnl={pnl}
-            entryPriceUsd={entryPriceUsd}
-            liquidationPriceUsd={liquidationPriceUsd}
-            priceUsd={priceUsd}
-          />
+        <TooltipContent className="p-0 m-0 rounded-xl max-w-none" side="top">
+          <PnlDisplay pool={pool} onDialogOpenChange={setDialogOpen} />
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>

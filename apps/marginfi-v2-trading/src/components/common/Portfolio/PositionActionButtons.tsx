@@ -30,7 +30,6 @@ import { ArenaPoolV2Extended } from "~/types/trade-store.types";
 
 type PositionActionButtonsProps = {
   isBorrowing: boolean;
-  rightAlignFinalButton?: boolean;
   arenaPool: ArenaPoolV2Extended;
   accountSummary: AccountSummary;
   client: MarginfiClient | null;
@@ -39,7 +38,6 @@ type PositionActionButtonsProps = {
 
 export const PositionActionButtons = ({
   isBorrowing,
-  rightAlignFinalButton = false,
   arenaPool,
   accountSummary,
   client,
@@ -362,7 +360,7 @@ export const PositionActionButtons = ({
           disabled={isClosing}
           variant="destructive"
           size="sm"
-          className={cn("gap-1 min-w-16", rightAlignFinalButton && "ml-auto")}
+          className="gap-1 min-w-16"
         >
           <IconX size={14} />
           Close

@@ -69,12 +69,7 @@ export const PositionListItem = ({ arenaPool }: props) => {
       <TableCell>{`${leverage}x`}</TableCell>
       <TableCell>${dynamicNumeralFormatter(positionSizeUsd)}</TableCell>
       <TableCell>
-        <PnlDisplayTooltip
-          entryPriceUsd={positionData?.entryPrice ?? 0}
-          liquidationPriceUsd={arenaPool.tokenBank.isActive ? arenaPool.tokenBank.position.liquidationPrice ?? 0 : 0}
-          priceUsd={arenaPool.tokenBank.info.oraclePrice.priceRealtime.price.toNumber()}
-          pnl={positionData?.pnl ?? 0}
-        >
+        <PnlDisplayTooltip pool={arenaPool}>
           <div className="flex flex-row items-center gap-1">
             {arenaPool.tokenBank.isActive ? <>${dynamicNumeralFormatter(positionData?.pnl ?? 0)}</> : "n/a"}{" "}
             <InfoCircledIcon />
@@ -87,7 +82,6 @@ export const PositionListItem = ({ arenaPool }: props) => {
           <PositionActionButtons
             arenaPool={arenaPool}
             isBorrowing={arenaPool.status === GroupStatus.SHORT || arenaPool.status === GroupStatus.LONG}
-            rightAlignFinalButton={true}
             accountSummary={accountSummary}
             client={client}
             selectedAccount={wrappedAccount}
