@@ -1,5 +1,6 @@
 import { ActionType, ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { QuoteResponse } from "@jup-ag/api";
+import { ArenaPoolV2Extended } from "./types/trade-store.types";
 
 export enum LendingModes {
   LEND = "lend",
@@ -27,8 +28,7 @@ interface PreviousTxnPositionClosed {
   txn: string;
   txnType: "CLOSE_POSITION";
   positionClosedOptions: {
-    tokenBank: ExtendedBankInfo;
-    collateralBank: ExtendedBankInfo;
+    pool: ArenaPoolV2Extended;
   };
 }
 
