@@ -18,7 +18,12 @@ import { IconSettings } from "@tabler/icons-react";
 import { ActionType, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { ArenaPoolV2, ArenaPoolV2Extended } from "~/types/trade-store.types";
-import { handleExecuteTradeAction, SimulationStatus, TradeSide } from "~/components/common/trade-box-v2/utils";
+import {
+  handleExecuteTradeAction,
+  RANDOM_USDC_BANK,
+  SimulationStatus,
+  TradeSide,
+} from "~/components/common/trade-box-v2/utils";
 import { Card, CardContent, CardHeader } from "~/components/ui/card";
 import { useTradeStoreV2, useUiStore } from "~/store";
 import { useWallet, useWalletStore } from "~/components/wallet-v2";
@@ -43,6 +48,7 @@ import {
 import { useTradeBoxStore } from "./store";
 import { checkTradeActionAvailable } from "./utils";
 import { useTradeSimulation, useActionAmounts } from "./hooks";
+import { PublicKey } from "@solana/web3.js";
 
 interface TradeBoxV2Props {
   activePool: ArenaPoolV2;
@@ -110,7 +116,11 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
     state.setPreviousTxn,
   ]);
   const [setIsWalletOpen] = useWalletStore((state) => [state.setIsWalletOpen]);
-  const [refreshGroup, tokenAccountMap] = useTradeStoreV2((state) => [state.refreshGroup, state.tokenAccountMap]);
+  const [refreshGroup, tokenAccountMap, banksByBankPk] = useTradeStoreV2((state) => [
+    state.refreshGroup,
+    state.tokenAccountMap,
+    state.banksByBankPk,
+  ]);
 
   // Hooks
   const activePoolExtended = useExtendedPool(activePool);
@@ -349,7 +359,7 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
             connection,
             wallet,
             groupPk: activePoolExtended.groupPk,
-            banks: [activePoolExtended.tokenBank.address, activePoolExtended.quoteBank.address],
+            banks: [activePoolExtended.tokenBank.address, activePoolExtended.quoteBank.address, RANDOM_USDC_BANK],
           });
         },
         setIsLoading: setIsTransactionExecuting,
@@ -410,7 +420,7 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
           connection,
           wallet,
           groupPk: activePoolExtended.groupPk,
-          banks: [activePoolExtended.tokenBank.address, activePoolExtended.quoteBank.address],
+          banks: [activePoolExtended.tokenBank.address, activePoolExtended.quoteBank.address, RANDOM_USDC_BANK],
         });
       },
       setIsLoading: setIsTransactionExecuting,
@@ -486,7 +496,7 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
                   connection,
                   wallet,
                   groupPk: activePoolExtended.groupPk,
-                  banks: [activePoolExtended.tokenBank.address, activePoolExtended.quoteBank.address],
+                  banks: [activePoolExtended.tokenBank.address, activePoolExtended.quoteBank.address, RANDOM_USDC_BANK],
                 })
               }
               connection={connection}
