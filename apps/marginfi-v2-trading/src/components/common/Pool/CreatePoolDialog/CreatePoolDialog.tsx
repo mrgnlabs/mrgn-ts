@@ -9,19 +9,12 @@ import { cn } from "@mrgnlabs/mrgn-utils";
 
 import { useIsMobile } from "~/hooks/use-is-mobile";
 
-import {
-  CreatePoolForm,
-  CreatePoolSuccess,
-  CreatePoolState,
-  CreatePoolToken,
-} from "~/components/common/Pool/CreatePoolDialog/";
 import { Dialog, DialogContent, DialogTrigger } from "~/components/ui/dialog";
 import { Button } from "~/components/ui/button";
 import type { TokenData } from "~/types";
 
-import type { PoolData, PoolMintData } from "./types";
-import { CreatePoolLoading } from "./components/CreatePoolLoading";
-import { CreatePoolQuote } from "./components/CreatePoolQuote";
+import { PoolData, PoolMintData, CreatePoolState } from "./types";
+import { CreatePoolForm, CreatePoolSuccess, CreatePoolToken, CreatePoolLoading, CreatePoolQuote } from "./components";
 
 type CreatePoolDialogProps = {
   trigger?: React.ReactNode;
@@ -30,14 +23,11 @@ type CreatePoolDialogProps = {
 export type SUPPORTED_QUOTE_BANKS = "USDC" | "LST";
 
 export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
-  // const [resetSearchResults, searchBanks] = useTradeStore((state) => [state.resetSearchResults, state.searchBanks]);
   const [isOpen, setIsOpen] = React.useState(false);
   const [createPoolState, setCreatePoolState] = React.useState<CreatePoolState>(CreatePoolState.TOKEN);
   const [isSearchingToken, setIsSearchingToken] = React.useState(false);
   const [isTokenFetchingError, setIsTokenFetchingError] = React.useState(false);
-  const [searchQuery, setSearchQuery] = React.useState("");
   const [poolData, setPoolData] = React.useState<PoolData | null>(null);
-  const [quoteBank, setQuoteBank] = React.useState<SUPPORTED_QUOTE_BANKS>("USDC");
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   const { width, height } = useWindowSize();
@@ -111,9 +101,8 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
 
   React.useEffect(() => {
     reset();
-    setSearchQuery("");
     setCreatePoolState(CreatePoolState.TOKEN);
-  }, [isOpen, reset, setSearchQuery, setCreatePoolState]);
+  }, [isOpen, reset, setCreatePoolState]);
 
   return (
     <>
@@ -162,8 +151,6 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
           )}
           {createPoolState === CreatePoolState.FORM && (
             <CreatePoolForm
-              quoteBank={quoteBank}
-              setQuoteBank={setQuoteBank}
               isTokenFetchingError={isTokenFetchingError}
               poolData={poolData}
               setCreatePoolState={setCreatePoolState}
@@ -172,12 +159,7 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
           )}
 
           {createPoolState === CreatePoolState.LOADING && (
-            <CreatePoolLoading
-              quoteBank={quoteBank}
-              poolData={poolData}
-              setPoolData={setPoolData}
-              setCreatePoolState={setCreatePoolState}
-            />
+            <CreatePoolLoading poolData={poolData} setPoolData={setPoolData} setCreatePoolState={setCreatePoolState} />
           )}
 
           {createPoolState === CreatePoolState.SUCCESS && (

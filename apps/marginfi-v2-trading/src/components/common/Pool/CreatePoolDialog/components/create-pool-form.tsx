@@ -15,19 +15,10 @@ type CreatePoolFormProps = {
   isTokenFetchingError: boolean;
   poolData: PoolData | null;
   setCreatePoolState: React.Dispatch<React.SetStateAction<CreatePoolState>>;
-  quoteBank: SUPPORTED_QUOTE_BANKS;
-  setQuoteBank: React.Dispatch<React.SetStateAction<SUPPORTED_QUOTE_BANKS>>;
   reset: () => void;
 };
 
-export const CreatePoolForm = ({
-  isTokenFetchingError,
-  poolData,
-  setCreatePoolState,
-  quoteBank,
-  setQuoteBank,
-  reset,
-}: CreatePoolFormProps) => {
+export const CreatePoolForm = ({ isTokenFetchingError, poolData, setCreatePoolState, reset }: CreatePoolFormProps) => {
   if (!poolData) return null;
 
   if (!poolData.quoteToken) return null;
@@ -46,9 +37,19 @@ export const CreatePoolForm = ({
         <IconChevronLeft size={18} /> Back
       </Button>
       <div className="text-center space-y-2 max-w-lg mx-auto">
-        <h2 className="text-3xl font-medium">
-          Confirm token details for {`${poolData.token.symbol}/${poolData.quoteToken.symbol}`}
+        <h2 className="text-3xl font-medium flex flex-col items-center">
+          Confirm token details for{" "}
+          <div className="flex flex-row items-center gap-2">
+            <img src={poolData.token.icon} alt={poolData.token.symbol} className="w-10 h-10 rounded-full " />
+            <img
+              src={poolData.quoteToken.icon}
+              alt={poolData.quoteToken.symbol}
+              className="w-10 h-10 rounded-full ml-[-20px]"
+            />
+            {`${poolData.token.symbol}/${poolData.quoteToken.symbol}`}
+          </div>
         </h2>
+
         <p className="text-muted-foreground">
           {isTokenFetchingError
             ? "Please provide details about the token."
@@ -108,7 +109,7 @@ export const CreatePoolForm = ({
             setCreatePoolState(CreatePoolState.LOADING);
           }}
         >
-          Create Pool
+          Configure Pool
         </Button>
       </div>
     </>
