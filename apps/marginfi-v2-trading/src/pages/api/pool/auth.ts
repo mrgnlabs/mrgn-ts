@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-const AUTH_URL = "http://202.8.10.73:3000/auth/jwt";
+const AUTH_URL = "http://202.8.10.73:3000/auth/login/jwt";
 const USERNAME = process.env.API_AUTH_USERNAME;
 const PASSWORD = process.env.API_AUTH_PASSWORD;
 
@@ -14,7 +14,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         "Content-Type": "application/json",
         Authorization: `Basic ${encodedCredentials}`, // Basic Auth Header
       },
-      body: JSON.stringify({}),
+      body: JSON.stringify({
+        key_code: USERNAME,
+        key_hash: PASSWORD,
+      }),
     });
 
     if (!response.ok) {

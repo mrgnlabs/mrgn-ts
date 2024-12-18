@@ -37,7 +37,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       address: data.address,
       name: data.name,
       symbol: data.symbol,
-      imageUrl: cdnImageUrl(data.logoURI),
+      imageUrl: data.logoURI,
       decimals: data.decimals,
       price: data.price,
       priceChange24h: data.priceChange24hPercent,
