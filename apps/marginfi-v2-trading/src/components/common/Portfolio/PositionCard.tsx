@@ -16,7 +16,7 @@ import { ArenaPoolV2Extended, GroupStatus } from "~/types/trade-store.types";
 import { useMarginfiClient } from "~/hooks/useMarginfiClient";
 import { useWrappedAccount } from "~/hooks/useWrappedAccount";
 import { usePositionsData } from "~/hooks/usePositionsData";
-import { PnlLabel } from "~/components/common/pnl-display";
+import { PnlBadge, PnlLabel } from "~/components/common/pnl-display";
 import { SharePosition } from "~/components/common/share-position";
 
 type PositionCardProps = {
@@ -88,7 +88,10 @@ export const PositionCard = ({ size = "lg", arenaPool }: PositionCardProps) => {
               <h3>{`${arenaPool.tokenBank.meta.tokenSymbol.toUpperCase()}/${arenaPool.quoteBank.meta.tokenSymbol.toUpperCase()}`}</h3>
             </div>
           </Link>
-          <PnlLabel pnl={positionData?.pnl} className="text-2xl" />
+          <div className="flex items-center gap-2">
+            <PnlLabel pnl={positionData?.pnl} positionSize={positionSizeUsd} className="text-2xl" />
+            <PnlBadge pnl={positionData?.pnl} positionSize={positionSizeUsd} />
+          </div>
         </div>
       )}
       <div className="bg-accent/50 rounded-xl p-4">
@@ -105,7 +108,7 @@ export const PositionCard = ({ size = "lg", arenaPool }: PositionCardProps) => {
           <dd className="text-right text-primary">{usdFormatter.format(positionSizeUsd)}</dd>
           <dt>PnL</dt>
           <dd className="text-right">
-            <PnlLabel pnl={positionData?.pnl} className="text-primary" />
+            <PnlLabel pnl={positionData?.pnl} positionSize={positionSizeUsd} className="text-primary" />
           </dd>
           <dt>Entry Price</dt>
           <dd className="text-right text-primary">${dynamicNumeralFormatter(positionData?.entryPrice ?? 0)}</dd>

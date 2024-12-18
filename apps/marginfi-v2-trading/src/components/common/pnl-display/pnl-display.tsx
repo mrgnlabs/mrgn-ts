@@ -19,7 +19,7 @@ export const PnlDisplay = ({ pool, onDialogOpenChange }: PnlDisplayProps) => {
       <CardHeader className="flex flex-row items-center justify-between px-4 py-2">
         <IconArena size={28} />
         <div className="flex flex-row items-center gap-2">
-          <PnlLabel pnl={positionData?.pnl} className="text-3xl font-medium" />
+          <PnlLabel pnl={positionData?.pnl} positionSize={positionSizeUsd} className="text-3xl font-medium" />
           <PnlBadge pnl={positionData?.pnl} positionSize={positionSizeUsd} />
         </div>
       </CardHeader>
