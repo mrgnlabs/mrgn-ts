@@ -1,5 +1,14 @@
 import * as sb from "@switchboard-xyz/on-demand";
 
+/**
+ * ┌────────────────────────────--─────────────────┐
+ * │ Oracle Configurations for Permission Pools    │
+ * └───────────────────────────────--──────────────┘
+ */
+
+/**
+ * Default Pull Feed Configuration
+ */
 export const DEFAULT_PULL_FEED_CONF = {
   //   name: `TOKEN/USD`, // the feed name (max 32 bytes)
   //   queue: new PublicKey(queue), // the queue of oracles to bind to
@@ -11,12 +20,18 @@ export const DEFAULT_PULL_FEED_CONF = {
   //   feedHash: feedHashBuffer,
 };
 
+/**
+ * Value Task Configuration
+ */
 export const VALUE_TASK: sb.OracleJob.ITask = {
   valueTask: {
     big: "1",
   },
 };
 
+/**
+ * Divide Task Configuration
+ */
 export function createDivideOracleTask(outTokenAddress: string): sb.OracleJob.ITask {
   return {
     divideTask: {
@@ -35,6 +50,9 @@ export function createDivideOracleTask(outTokenAddress: string): sb.OracleJob.IT
   };
 }
 
+/**
+ * Multiply Task Configuration
+ */
 export const MULTIPLY_ORACLE_TASK: sb.OracleJob.ITask = {
   multiplyTask: {
     job: {
