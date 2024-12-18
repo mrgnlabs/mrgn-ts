@@ -25,7 +25,7 @@ type PositionCardProps = {
 };
 
 export const PositionCard = ({ size = "lg", arenaPool }: PositionCardProps) => {
-  const [showQuotePrice, setShowQuotePrice] = React.useState(true);
+  const [showQuotePrice, setShowQuotePrice] = React.useState(false);
 
   const positionData = usePositionsData({ groupPk: arenaPool.groupPk });
   const client = useMarginfiClient({ groupPk: arenaPool.groupPk });
@@ -63,7 +63,7 @@ export const PositionCard = ({ size = "lg", arenaPool }: PositionCardProps) => {
       return `${dynamicNumeralFormatter(tokenPrice / quotePrice)} ${arenaPool.quoteBank.meta.tokenSymbol}`;
     }
 
-    return `${dynamicNumeralFormatter(tokenPrice)} USD`;
+    return `$${dynamicNumeralFormatter(tokenPrice)}`;
   }, [showQuotePrice, arenaPool]);
 
   if (!arenaPool.tokenBank.isActive) return null;
@@ -89,30 +89,32 @@ export const PositionCard = ({ size = "lg", arenaPool }: PositionCardProps) => {
             </div>
           </Link>
           <div className="flex items-center gap-2">
-            <PnlLabel pnl={positionData?.pnl} positionSize={positionSizeUsd} className="text-2xl" />
+            <PnlLabel
+              pnl={positionData?.pnl}
+              positionSize={positionSizeUsd}
+              disableClickToChangeType={true}
+              className="text-2xl"
+            />
             <PnlBadge pnl={positionData?.pnl} positionSize={positionSizeUsd} />
           </div>
         </div>
       )}
       <div className="bg-accent/50 rounded-xl p-4">
         <dl className="w-full grid grid-cols-2 text-sm text-muted-foreground gap-1">
-          <dt>Token</dt>
+          {/* <dt>Token</dt>
           <dd className="text-right text-primary">
             {dynamicNumeralFormatter(arenaPool.tokenBank.position.amount)} {arenaPool.tokenBank.meta.tokenSymbol}
-          </dd>
+          </dd> */}
           <dt>Value</dt>
           <dd className="text-right text-primary">{usdFormatter.format(totalUsdValue)}</dd>
           <dt>Leverage</dt>
           <dd className="text-right text-primary">{`${leverage}x`}</dd>
           <dt>Size</dt>
           <dd className="text-right text-primary">{usdFormatter.format(positionSizeUsd)}</dd>
-          <dt>PnL</dt>
-          <dd className="text-right">
-            <PnlLabel pnl={positionData?.pnl} positionSize={positionSizeUsd} className="text-primary" />
-          </dd>
+
           <dt>Entry Price</dt>
           <dd className="text-right text-primary">${dynamicNumeralFormatter(positionData?.entryPrice ?? 0)}</dd>
-          <dt>Price </dt>
+          <dt>Current Price </dt>
           <dd
             className="text-right text-primary flex items-center gap-1 cursor-pointer w-full justify-end"
             onClick={() => setShowQuotePrice(!showQuotePrice)}
@@ -152,6 +154,10 @@ export const PositionCard = ({ size = "lg", arenaPool }: PositionCardProps) => {
             }}
           >
             {accountSummary && percentFormatter.format(accountSummary.healthFactor)}
+          </dd>
+          <dt>PnL</dt>
+          <dd className="text-right">
+            <PnlLabel pnl={positionData?.pnl} positionSize={positionSizeUsd} className="text-primary" />
           </dd>
         </dl>
       </div>
