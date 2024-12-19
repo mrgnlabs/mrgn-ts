@@ -11,8 +11,6 @@ import { useActionBoxStore } from "~/components/action-box-v2/store";
 import { cn } from "@mrgnlabs/mrgn-utils";
 import { useIsMobile } from "~/hooks/use-is-mobile";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
-
-import { ActionComplete } from "~/components/action-complete";
 import { PageHeading } from "~/components/common/PageHeading";
 import { Loader } from "~/components/common/Loader";
 import { Input } from "~/components/ui/input";
@@ -22,6 +20,7 @@ import { YieldCard } from "~/components/common/Yield/YieldCard";
 import { useExtendedPools } from "~/hooks/useExtendedPools";
 import { GetStaticProps } from "next";
 import { StaticArenaProps, getArenaStaticProps } from "~/utils";
+import { ArenaActionComplete } from "~/components/common/ActionComplete";
 
 const sortOptions: {
   value: TradePoolFilterStates;
@@ -269,13 +268,7 @@ export default function YieldPage({ initialData }: StaticArenaProps) {
         )}
       </div>
 
-      {poolsFetched && previousTxn && (
-        <ActionComplete
-          isActionComplete={isActionComplete}
-          setIsActionComplete={setIsActionComplete}
-          previousTxn={previousTxn}
-        />
-      )}
+      {poolsFetched && previousTxn && <ArenaActionComplete />}
     </>
   );
 }
