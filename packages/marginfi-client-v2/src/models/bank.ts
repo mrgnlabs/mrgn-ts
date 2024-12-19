@@ -237,7 +237,12 @@ class Bank {
     return Bank.fromAccountParsed(address, accountParsed, feedIdMap);
   }
 
-  static fromAccountParsed(address: PublicKey, accountParsed: BankRaw, feedIdMap: PythPushFeedIdMap, bankMetadata?: BankMetadata): Bank {
+  static fromAccountParsed(
+    address: PublicKey,
+    accountParsed: BankRaw,
+    feedIdMap: PythPushFeedIdMap,
+    bankMetadata?: BankMetadata
+  ): Bank {
     const flags = accountParsed.flags.toNumber();
 
     const mint = accountParsed.mint;
@@ -639,6 +644,7 @@ class BankConfig {
       plateauInterestRate: wrappedI80F48toBigNumber(bankConfigRaw.interestRateConfig.plateauInterestRate),
       protocolFixedFeeApr: wrappedI80F48toBigNumber(bankConfigRaw.interestRateConfig.protocolFixedFeeApr),
       protocolIrFee: wrappedI80F48toBigNumber(bankConfigRaw.interestRateConfig.protocolIrFee),
+      protocolOriginationFee: wrappedI80F48toBigNumber(bankConfigRaw.interestRateConfig.protocolOriginationFee),
     };
 
     return {
@@ -681,6 +687,7 @@ interface InterestRateConfig {
   insuranceIrFee: BigNumber;
   protocolFixedFeeApr: BigNumber;
   protocolIrFee: BigNumber;
+  protocolOriginationFee: BigNumber;
 }
 
 enum OracleSetup {
@@ -885,7 +892,7 @@ function serializeOperationalState(
 }
 
 function parseOracleSetup(oracleSetupRaw: OracleSetupRaw): OracleSetup {
-  const oracleKey = Object.keys(oracleSetupRaw)[0].toLowerCase()
+  const oracleKey = Object.keys(oracleSetupRaw)[0].toLowerCase();
   switch (oracleKey) {
     case "none":
       return OracleSetup.None;
@@ -902,7 +909,9 @@ function parseOracleSetup(oracleSetupRaw: OracleSetupRaw): OracleSetup {
   }
 }
 
-function serializeOracleSetup(oracleSetup: OracleSetup): { none: {} } | { pythLegacy: {} } | { switchboardV2: {} } | { pythPushOracle: {} } | { switchboardPull: {} } {
+function serializeOracleSetup(
+  oracleSetup: OracleSetup
+): { none: {} } | { pythLegacy: {} } | { switchboardV2: {} } | { pythPushOracle: {} } | { switchboardPull: {} } {
   switch (oracleSetup) {
     case OracleSetup.None:
       return { none: {} };
