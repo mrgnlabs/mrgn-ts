@@ -18,7 +18,12 @@ import { IconSettings } from "@tabler/icons-react";
 import { ActionType, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { ArenaPoolV2, ArenaPoolV2Extended } from "~/types/trade-store.types";
-import { handleExecuteTradeAction, SimulationStatus, TradeSide } from "~/components/common/trade-box-v2/utils";
+import {
+  handleExecuteTradeAction,
+  RANDOM_USDC_BANK,
+  SimulationStatus,
+  TradeSide,
+} from "~/components/common/trade-box-v2/utils";
 import { Card, CardContent, CardHeader } from "~/components/ui/card";
 import { useTradeStoreV2, useUiStore } from "~/store";
 import { useWallet, useWalletStore } from "~/components/wallet-v2";
@@ -43,6 +48,7 @@ import {
 import { useTradeBoxStore } from "./store";
 import { checkTradeActionAvailable } from "./utils";
 import { useTradeSimulation, useActionAmounts } from "./hooks";
+import { PublicKey } from "@solana/web3.js";
 
 interface TradeBoxV2Props {
   activePool: ArenaPoolV2;
@@ -110,10 +116,10 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
     state.setPreviousTxn,
   ]);
   const [setIsWalletOpen] = useWalletStore((state) => [state.setIsWalletOpen]);
-  const [nativeSolBalance, setIsRefreshingStore, refreshGroup] = useTradeStoreV2((state) => [
-    state.nativeSolBalance,
-    state.setIsRefreshingStore,
+  const [refreshGroup, tokenAccountMap, banksByBankPk] = useTradeStoreV2((state) => [
     state.refreshGroup,
+    state.tokenAccountMap,
+    state.banksByBankPk,
   ]);
 
   // Hooks
@@ -128,9 +134,7 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
   const { connection } = useConnection();
   const { amount, debouncedAmount, maxAmount } = useActionAmounts({
     amountRaw,
-    activePool: activePoolExtended,
-    selectedBankPk,
-    nativeSolBalance,
+    tokenAccountMap,
   });
   const debouncedLeverage = useAmountDebounce<number>(leverage, 500);
   const selectedBank = React.useMemo(() => {
@@ -252,8 +256,6 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
     setMaxLeverage,
   });
 
-  const isActiveWithCollat = true; // TODO: figure out what this does?
-
   const handleAmountChange = React.useCallback(
     (amountRaw: string) => {
       const amount = formatAmount(amountRaw, maxAmount, selectedBank ?? null, numberFormater);
@@ -357,7 +359,7 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
             connection,
             wallet,
             groupPk: activePoolExtended.groupPk,
-            banks: [activePoolExtended.tokenBank.address, activePoolExtended.quoteBank.address],
+            banks: [activePoolExtended.tokenBank.address, activePoolExtended.quoteBank.address, RANDOM_USDC_BANK],
           });
         },
         setIsLoading: setIsTransactionExecuting,
@@ -418,7 +420,7 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
           connection,
           wallet,
           groupPk: activePoolExtended.groupPk,
-          banks: [activePoolExtended.tokenBank.address, activePoolExtended.quoteBank.address],
+          banks: [activePoolExtended.tokenBank.address, activePoolExtended.quoteBank.address, RANDOM_USDC_BANK],
         });
       },
       setIsLoading: setIsTransactionExecuting,
@@ -460,12 +462,7 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
       <CardContent className="px-4 py-2">
         <div className="space-y-4">
           <ActionToggle tradeState={tradeState} setTradeState={setTradeState} />
-          <AmountInput
-            maxAmount={maxAmount}
-            amount={amountRaw}
-            handleAmountChange={handleAmountChange}
-            collateralBank={selectedBank}
-          />
+          <AmountInput maxAmount={maxAmount} amount={amountRaw} handleAmountChange={handleAmountChange} />
           <LeverageSlider
             selectedBank={selectedBank}
             selectedSecondaryBank={selectedSecondaryBank}
@@ -485,9 +482,6 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
           {actionMethods && actionMethods.some((method) => method.description) && (
             <InfoMessages
               connected={connected}
-              tradeState={tradeState}
-              activePool={activePoolExtended}
-              isActiveWithCollat={isActiveWithCollat}
               actionMethods={actionMethods}
               setIsWalletOpen={setIsWalletOpen}
               refreshStore={() =>
@@ -495,13 +489,12 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
                   connection,
                   wallet,
                   groupPk: activePoolExtended.groupPk,
-                  banks: [activePoolExtended.tokenBank.address, activePoolExtended.quoteBank.address],
+                  banks: [activePoolExtended.tokenBank.address, activePoolExtended.quoteBank.address, RANDOM_USDC_BANK],
                 })
               }
-              connection={connection}
-              wallet={wallet}
               refreshSimulation={refreshSimulation}
               isRetrying={isSimulating.isLoading}
+              usdcBalance={maxAmount}
             />
           )}
 

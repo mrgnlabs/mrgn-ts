@@ -7,20 +7,37 @@ import {
   ActionMessageType,
   calculateLoopingParams,
   TradeActionTxns,
+  getSwapQuoteWithRetry,
+  STATIC_SIMULATION_ERRORS,
+  deserializeInstruction,
+  getAdressLookupTableAccounts,
+  getFeeAccount,
 } from "@mrgnlabs/mrgn-utils";
 
 import { ExecuteActionsCallbackProps } from "~/components/action-box-v2/types";
-import { Keypair, PublicKey } from "@solana/web3.js";
+import { AccountInfo, Connection, Keypair, PublicKey, TransactionMessage, VersionedTransaction } from "@solana/web3.js";
 import {
   BalanceRaw,
+  makeUnwrapSolIx,
   MarginfiAccount,
   MarginfiAccountRaw,
   MarginfiAccountWrapper,
   MarginfiClient,
+  TOKEN_2022_MINTS,
 } from "@mrgnlabs/marginfi-client-v2";
 import BN from "bn.js";
-import { bigNumberToWrappedI80F48, SolanaTransaction, WrappedI80F48 } from "@mrgnlabs/mrgn-common";
+import {
+  addTransactionMetadata,
+  bigNumberToWrappedI80F48,
+  LUT_PROGRAM_AUTHORITY_INDEX,
+  nativeToUi,
+  SolanaTransaction,
+  uiToNative,
+  USDC_MINT,
+  WrappedI80F48,
+} from "@mrgnlabs/mrgn-common";
 import BigNumber from "bignumber.js";
+import { createJupiterApiClient, QuoteResponse } from "@jup-ag/api";
 
 interface ExecuteTradeActionsProps extends ExecuteActionsCallbackProps {
   props: ExecuteTradeActionProps;
@@ -65,11 +82,35 @@ export const handleExecuteTradeAction = async ({
 };
 
 export async function generateTradeTx(props: CalculateLoopingProps): Promise<TradeActionTxns | ActionMessageType> {
+  // USDC Swap tx
+  const swapNeeded = props.depositBank.meta.tokenSymbol !== "USDC";
+  let swapTx: { quote?: QuoteResponse; tx?: VersionedTransaction; error?: ActionMessageType } | undefined;
+  if (swapNeeded) {
+    console.log("Creating swap transaction...");
+    try {
+      swapTx = await createSwapTx(
+        props,
+        {
+          slippageBps: props.slippageBps ?? 0,
+        },
+        props.marginfiClient.wallet.publicKey,
+        props.marginfiClient.provider.connection
+      );
+
+      if (swapTx.error) {
+        console.error("Swap transaction error:", swapTx.error);
+        return swapTx.error;
+      }
+    } catch (error) {
+      console.error("Error creating swap transaction:", error);
+      return STATIC_SIMULATION_ERRORS.FL_FAILED;
+    }
+  }
+
+  // Marginfi Account
   const hasMarginfiAccount = !!props.marginfiAccount;
   let accountCreationTx: SolanaTransaction[] = [];
-
   let finalAccount: MarginfiAccountWrapper | null = props.marginfiAccount;
-
   if (!hasMarginfiAccount) {
     // if no marginfi account, we need to create one
     console.log("Creating new marginfi account transaction...");
@@ -105,15 +146,88 @@ export async function generateTradeTx(props: CalculateLoopingProps): Promise<Tra
       await props.marginfiClient.createMarginfiAccountTx({ accountKeypair: marginfiAccountKeypair })
     );
   }
-  const result = await calculateLoopingParams({ ...props, marginfiAccount: finalAccount });
+
+  const result = await calculateLoopingParams({
+    ...props,
+    setupBankAddresses: [props.borrowBank.info.state.mint],
+    marginfiAccount: finalAccount,
+    depositAmount:
+      swapNeeded && swapTx?.quote?.outAmount
+        ? Number(nativeToUi(swapTx?.quote?.outAmount, props.depositBank.info.state.mintDecimals))
+        : props.depositAmount,
+  });
 
   if (result && "actionQuote" in result) {
     return {
       ...result,
-      additionalTxns: [...accountCreationTx, ...(result.additionalTxns ?? [])],
+      additionalTxns: [...(swapTx?.tx ? [swapTx.tx] : []), ...accountCreationTx, ...(result.additionalTxns ?? [])],
       marginfiAccount: finalAccount ?? undefined,
     };
   }
 
+  console.log("result", result);
+
   return result;
+}
+
+export async function createSwapTx(
+  props: CalculateLoopingProps,
+  jupOpts: { slippageBps: number },
+  feepayer: PublicKey,
+  connection: Connection
+): Promise<{ quote?: QuoteResponse; tx?: VersionedTransaction; error?: ActionMessageType }> {
+  try {
+    const jupiterQuoteApi = createJupiterApiClient();
+
+    const swapQuote = await getSwapQuoteWithRetry({
+      swapMode: "ExactIn",
+      amount: uiToNative(props.depositAmount, 6).toNumber(),
+      inputMint: USDC_MINT.toBase58(),
+      outputMint: props.depositBank.info.state.mint.toBase58(),
+      slippageBps: jupOpts.slippageBps,
+    });
+
+    if (!swapQuote) {
+      return { error: STATIC_SIMULATION_ERRORS.FL_FAILED };
+    }
+
+    const {
+      computeBudgetInstructions,
+      swapInstruction,
+      setupInstructions,
+      cleanupInstruction,
+      addressLookupTableAddresses,
+    } = await jupiterQuoteApi.swapInstructionsPost({
+      swapRequest: {
+        quoteResponse: swapQuote,
+        userPublicKey: feepayer.toBase58(),
+        programAuthorityId: LUT_PROGRAM_AUTHORITY_INDEX,
+      },
+    });
+
+    const swapIx = deserializeInstruction(swapInstruction);
+    const setupInstructionsIxs = setupInstructions.map((value) => deserializeInstruction(value));
+    const cuInstructionsIxs = computeBudgetInstructions.map((value) => deserializeInstruction(value));
+    // const cleanupInstructionIx = deserializeInstruction(cleanupInstruction);
+    const addressLookupAccounts = await getAdressLookupTableAccounts(connection, addressLookupTableAddresses);
+    const finalBlockhash = (await connection.getLatestBlockhash()).blockhash;
+
+    const swapMessage = new TransactionMessage({
+      payerKey: feepayer,
+      recentBlockhash: finalBlockhash,
+      instructions: [...cuInstructionsIxs, ...setupInstructionsIxs, swapIx],
+    });
+    const swapTx = addTransactionMetadata(
+      new VersionedTransaction(swapMessage.compileToV0Message(addressLookupAccounts)),
+      {
+        addressLookupTables: addressLookupAccounts,
+        type: "SWAP",
+      }
+    );
+
+    return { quote: swapQuote, tx: swapTx };
+  } catch (error) {
+    console.error("Error creating swap transaction:", error);
+    return { error: STATIC_SIMULATION_ERRORS.FL_FAILED };
+  }
 }

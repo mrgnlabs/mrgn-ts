@@ -571,6 +571,7 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
     } = get();
 
     const newStoreBanksByBankPk = { ...storeBanksByBankPk };
+    const newTokenAccountMap = new Map(storeTokenAccountMap);
 
     extendedBankInfos.map((bank) => {
       newStoreBanksByBankPk[bank.address.toBase58()] = bank;
@@ -579,14 +580,14 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
       storeMarginfiAccountByGroupPk[args.groupPk.toBase58()] = marginfiAccount;
     }
     tokenAccountMap?.forEach((value, key) => {
-      storeTokenAccountMap.set(key, value);
+      newTokenAccountMap.set(key, value);
     });
 
     set({
       nativeSolBalance,
       marginfiAccountByGroupPk: storeMarginfiAccountByGroupPk,
       banksByBankPk: newStoreBanksByBankPk,
-      tokenAccountMap: storeTokenAccountMap,
+      tokenAccountMap: newTokenAccountMap,
     });
   },
 

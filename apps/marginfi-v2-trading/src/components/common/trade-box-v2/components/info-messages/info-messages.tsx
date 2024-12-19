@@ -10,30 +10,24 @@ import { ArenaPoolV2Extended } from "~/types/trade-store.types";
 
 interface InfoMessagesProps {
   connected: boolean;
-  tradeState: string;
-  activePool: ArenaPoolV2Extended;
-  isActiveWithCollat: boolean;
   actionMethods: ActionMessageType[];
   setIsWalletOpen: (value: boolean) => void;
   refreshStore: () => Promise<void>;
   refreshSimulation: () => void;
-  connection: any;
-  wallet: any;
   isRetrying?: boolean;
+  usdcBalance: number;
 }
 
 export const InfoMessages = ({
   connected,
-  tradeState,
-  activePool,
-  isActiveWithCollat,
+
   actionMethods = [],
   setIsWalletOpen,
   refreshStore,
-  connection,
-  wallet,
+
   refreshSimulation,
   isRetrying,
+  usdcBalance,
 }: InfoMessagesProps) => {
   const renderWarning = (message: string, action: () => void) => (
     <div
@@ -57,15 +51,8 @@ export const InfoMessages = ({
     </div>
   );
 
-  const renderLongWarning = () =>
-    renderWarning(`You need to hold ${activePool?.tokenBank.meta.tokenSymbol} to open a long position.`, () =>
-      setIsWalletOpen(true)
-    );
-
-  const renderShortWarning = () =>
-    renderWarning(`You need to hold ${activePool?.quoteBank.meta.tokenSymbol} to open a short position.`, () =>
-      setIsWalletOpen(true)
-    );
+  const renderUSDCWarning = () =>
+    renderWarning(`You need to hold USDC to open a position.`, () => setIsWalletOpen(true));
 
   const renderActionMethodMessages = () => (
     <div className="flex flex-col gap-4">
@@ -154,43 +141,14 @@ export const InfoMessages = ({
     </div>
   );
 
-  // TODO: currently, often two warning messages are shown. We should decide if we want to do that, or if we want to show only one. if we want to show only one, we should add a 'priority' or something to decide which one to show.
-
-  const renderDepositCollateralDialog = () => (
-    <ActionBox.Lend
-      isDialog
-      useProvider
-      lendProps={{
-        connected,
-        requestedLendType: ActionType.Deposit,
-        requestedBank: activePool.quoteBank,
-        showAvailableCollateral: false,
-        captureEvent: () => console.log("Deposit Collateral"),
-        onComplete: () => refreshStore(),
-      }}
-      dialogProps={{
-        trigger: <Button className="w-full">Deposit Collateral</Button>,
-        title: `Supply ${activePool.quoteBank.meta.tokenSymbol}`,
-      }}
-    />
-  );
-
   const renderContent = () => {
     if (!connected) return null;
 
-    switch (true) {
-      case tradeState === "long" && activePool?.tokenBank.userInfo.tokenAccount.balance === 0:
-        return renderLongWarning();
-
-      case tradeState === "short" && activePool?.quoteBank.userInfo.tokenAccount.balance === 0:
-        return renderShortWarning();
-
-      case isActiveWithCollat:
-        return renderActionMethodMessages();
-
-      default:
-        return renderDepositCollateralDialog();
+    if (usdcBalance === 0) {
+      return renderUSDCWarning();
     }
+
+    return renderActionMethodMessages();
   };
 
   return <div>{renderContent()}</div>;

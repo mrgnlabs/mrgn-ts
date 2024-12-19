@@ -26,6 +26,7 @@ import {
   Wallet,
   dynamicNumeralFormatter,
   uiToNative,
+  MRGN_TX_TYPES,
 } from "@mrgnlabs/mrgn-common";
 
 import { WalletContextStateOverride } from "../wallet";
@@ -65,9 +66,11 @@ export function getSteps(actionTxns?: ActionTxns, broadcastType?: TransactionBro
     }
   }
 
-  actionTxns?.additionalTxns.forEach((tx) => {
-    steps.push({ label: MRGN_TX_TYPE_TOAST_MAP[tx.type ?? "CRANK"] });
-  });
+  actionTxns?.additionalTxns
+    .filter((tx) => tx.type !== "SWAP") // Filtering out swap txns to not show in toast
+    .forEach((tx) => {
+      steps.push({ label: MRGN_TX_TYPE_TOAST_MAP[tx.type ?? "CRANK"] });
+    });
 
   return steps;
 }
@@ -626,11 +629,11 @@ export async function trade({
     multiStepToast = new MultiStepToastHandle("Trading", [
       ...steps,
       {
-        label: `${tradingProps.tradeSide === "long" ? "Longing" : "Shorting"} ${dynamicNumeralFormatter(
-          tradingProps.depositAmount
-        )} ${tradingProps.depositBank.meta.tokenSymbol} with ${dynamicNumeralFormatter(
-          tradingProps.borrowAmount.toNumber()
-        )} ${tradingProps.borrowBank.meta.tokenSymbol}`,
+        label: `${tradingProps.tradeSide === "long" ? "Longing" : "Shorting"} ${
+          tradingProps.tradeSide === "long"
+            ? tradingProps.depositBank.meta.tokenSymbol
+            : tradingProps.borrowBank.meta.tokenSymbol
+        } with ${dynamicNumeralFormatter(tradingProps.depositAmount)} USDC`,
       },
     ]);
     multiStepToast.start();
