@@ -53,7 +53,7 @@ export const LpActionButtons = ({ size = "sm", activePool }: LpActionButtonsProp
       showActionComplete={false}
       hidePoolStats={["type"]}
     >
-      <div className={cn("flex gap-3 w-full", size === "sm" && "justify-end")}>
+      <div className={cn("flex gap-3 w-full justify-between", size === "sm" && "justify-end")}>
         <ActionBox.Lend
           isDialog={true}
           useProvider={true}
