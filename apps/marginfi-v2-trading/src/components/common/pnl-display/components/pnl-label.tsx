@@ -23,6 +23,7 @@ const PnlLabel = ({
   disableClickToChangeType = false,
   loader,
 }: PnlLabelProps) => {
+  const [tooltipOpen, setTooltipOpen] = React.useState(false);
   const [currentType, setCurrentType] = React.useState(type);
   const positionState = pnl > 0 ? "positive" : pnl < 0 ? "negative" : "neutral";
   const pnlSign = positionState === "positive" ? "+" : positionState === "negative" ? "-" : "";
@@ -38,12 +39,12 @@ const PnlLabel = ({
 
   return (
     <TooltipProvider>
-      <Tooltip>
+      <Tooltip open={disableClickToChangeType ? false : tooltipOpen} onOpenChange={setTooltipOpen}>
         <TooltipTrigger>
           <span
             className={cn(
               className,
-              !disableClickToChangeType && "cursor-pointer",
+              disableClickToChangeType ? "cursor-default" : "cursor-pointer",
               positionState === "positive" && "text-success",
               positionState === "negative" && "text-error"
             )}
