@@ -7,14 +7,12 @@ import { ArenaBank } from "~/types/trade-store.types";
 interface AmountInputProps {
   maxAmount: number;
   amount: string;
-  collateralBank: ArenaBank | null;
 
   handleAmountChange: (value: string) => void;
 }
 
 export const AmountInput = ({
   amount,
-  collateralBank,
   maxAmount,
 
   handleAmountChange,
@@ -25,18 +23,8 @@ export const AmountInput = ({
     <div className="bg-accent p-2.5 border border-accent/150 rounded-md">
       <div className="flex justify-center gap-1 items-center font-medium ">
         <span className="w-full flex items-center gap-1 max-w-[162px] text-muted-foreground text-base">
-          {/* {collateralBank?.meta.tokenLogoUri && (
-            <Image
-              src={collateralBank?.meta.tokenLogoUri}
-              alt={collateralBank?.meta.tokenSymbol}
-              width={24}
-              height={24}
-              className="bg-background border rounded-full"
-            />
-          )} */}
-          {/* {collateralBank?.meta.tokenSymbol.toUpperCase()} */}
           <Image
-            src="https://cryptologos.cc/logos/usd-coin-usdc-logo.png?v=024" // TODO: update or decide which one to use here
+            src="https://cryptologos.cc/logos/usd-coin-usdc-logo.png?v=024"
             alt="USDC"
             width={24}
             height={24}
