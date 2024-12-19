@@ -24,10 +24,11 @@ export const getStaticProps: GetStaticProps<StaticArenaProps> = async (context) 
 };
 
 export default function PortfolioPage({ initialData }: StaticArenaProps) {
-  const [poolsFetched, fetchArenaGroups, setHydrationComplete] = useTradeStoreV2((state) => [
+  const [poolsFetched, fetchArenaGroups, setHydrationComplete, positionsByGroupPk] = useTradeStoreV2((state) => [
     state.poolsFetched,
     state.fetchArenaGroups,
     state.setHydrationComplete,
+    state.positionsByGroupPk,
   ]);
   const extendedPools = useExtendedPools();
   const [isActionComplete, previousTxn, setIsActionComplete] = useActionBoxStore((state) => [
@@ -56,19 +57,21 @@ export default function PortfolioPage({ initialData }: StaticArenaProps) {
     [extendedPools]
   );
 
-  const totalLong = React.useMemo(() => {
-    return longPositions.reduce(
+  const portfolioSize = React.useMemo(() => {
+    const longSize = longPositions.reduce(
       (acc, pool) => (pool.tokenBank.isActive ? acc + pool.tokenBank.position.usdValue : 0),
       0
     );
-  }, [longPositions]);
+    const shortSize = shortPositions.reduce(
+      (acc, pool) => (pool.tokenBank.isActive ? acc + pool.tokenBank.position.usdValue : 0),
+      0
+    );
+    return longSize + shortSize;
+  }, [longPositions, shortPositions]);
 
-  const totalShort = React.useMemo(() => {
-    return shortPositions.reduce(
-      (acc, pool) => (pool.tokenBank.isActive ? acc + pool.tokenBank.position.usdValue : 0),
-      0
-    );
-  }, [shortPositions]);
+  const portfolioPnl = React.useMemo(() => {
+    return Object.values(positionsByGroupPk).reduce((acc, position) => acc + position.pnl, 0);
+  }, [positionsByGroupPk]);
 
   const portfolioCombined = React.useMemo(() => {
     return [...longPositions, ...shortPositions, ...lpPositions].sort((a, b) =>
@@ -102,14 +105,18 @@ export default function PortfolioPage({ initialData }: StaticArenaProps) {
                     portfolioCombined ? "md:grid-cols-3" : "md:grid-col-2"
                   )}
                 >
-                  <StatBlock label="Total long (USD)" value={`$${dynamicNumeralFormatter(totalLong)}`} />
-                  <StatBlock label="Total short (USD)" value={`$${dynamicNumeralFormatter(totalShort)}`} />
+                  <StatBlock label="Portfolio Size" value={`$${dynamicNumeralFormatter(portfolioSize)}`} />
+                  <StatBlock
+                    label="Portfolio PnL"
+                    value={`${portfolioPnl > 0 ? "+" : ""}$${dynamicNumeralFormatter(portfolioPnl)}`}
+                    valueNum={portfolioPnl}
+                  />
                   {portfolioCombined && portfolioCombined.length > 0 && (
                     <div className="col-span-2 md:col-span-1">
                       <StatBlock
                         label="Active pools"
                         value={
-                          <div className="flex items-center gap-4">
+                          <div className="flex items-center gap-2">
                             {groupedNumberFormatterDyn.format(portfolioCombined.length)}
                             <ul className="flex items-center -space-x-2">
                               {portfolioCombined.slice(0, 5).map((pool, index) => (
@@ -179,16 +186,26 @@ type StatProps = {
   label: JSX.Element | string;
   value: JSX.Element | string;
   subValue?: JSX.Element | string;
+  valueNum?: number;
 };
 
-const StatBlock = ({ label, value, subValue }: StatProps) => (
+const StatBlock = ({ label, value, subValue, valueNum }: StatProps) => (
   <Card>
     <CardHeader className="pb-2">
       <CardTitle className="text-base text-muted-foreground font-normal">{label}</CardTitle>
     </CardHeader>
     <CardContent>
       <div className="text-3xl">
-        {value} {subValue && <span className="text-lg text-muted-foreground">{subValue}</span>}
+        <span
+          className={cn(
+            "text-muted-foreground",
+            valueNum && valueNum > 0 && "text-mrgn-success",
+            valueNum && valueNum < 0 && "text-mrgn-error"
+          )}
+        >
+          {value}
+        </span>{" "}
+        {subValue && <span className="text-lg text-muted-foreground">{subValue}</span>}
       </div>
     </CardContent>
   </Card>
