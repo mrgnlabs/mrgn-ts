@@ -165,9 +165,9 @@ export const PositionActionButtons = ({
             collateralBank: arenaPool.quoteBank,
             size: positionSizeUsd,
             leverage: Number(leverage),
-            entryPrice: positionData.entryPrice,
+            entryPrice: positionData && positionData.entryPrice ? positionData.entryPrice : 0,
             exitPrice: arenaPool.tokenBank.info.oraclePrice.priceRealtime.price.toNumber(),
-            pnl: positionData.pnl,
+            pnl: positionData && positionData.pnl ? positionData.pnl : 0,
           },
         });
         capture("close_position", {
@@ -214,6 +214,9 @@ export const PositionActionButtons = ({
     setIsActionComplete,
     setPreviousTxn,
     arenaPool,
+    positionSizeUsd,
+    leverage,
+    positionData,
     setIsRefreshingStore,
     refreshGroup,
     connection,
