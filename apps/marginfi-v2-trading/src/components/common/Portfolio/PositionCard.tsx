@@ -18,6 +18,7 @@ import { useWrappedAccount } from "~/hooks/useWrappedAccount";
 import { usePositionsData } from "~/hooks/usePositionsData";
 import { PnlBadge, PnlLabel } from "~/components/common/pnl-display";
 import { SharePosition } from "~/components/common/share-position";
+import { Skeleton } from "~/components/ui/skeleton";
 
 type PositionCardProps = {
   arenaPool: ArenaPoolV2Extended;
@@ -94,8 +95,9 @@ export const PositionCard = ({ size = "lg", arenaPool }: PositionCardProps) => {
               positionSize={positionSizeUsd}
               disableClickToChangeType={true}
               className="text-2xl"
+              loader={<Skeleton className="w-[120px] ml-auto h-6 animate-pulsate" />}
             />
-            <PnlBadge pnl={positionData?.pnl} positionSize={positionSizeUsd} />
+            {positionData?.pnl !== undefined && <PnlBadge pnl={positionData?.pnl} positionSize={positionSizeUsd} />}
           </div>
         </div>
       )}
@@ -157,7 +159,12 @@ export const PositionCard = ({ size = "lg", arenaPool }: PositionCardProps) => {
           </dd>
           <dt>PnL</dt>
           <dd className="text-right">
-            <PnlLabel pnl={positionData?.pnl} positionSize={positionSizeUsd} className="text-primary" />
+            <PnlLabel
+              pnl={positionData?.pnl}
+              positionSize={positionSizeUsd}
+              className="text-primary"
+              loader={<Skeleton className="w-[64px] ml-auto h-4 animate-pulsate" />}
+            />
           </dd>
         </dl>
       </div>
