@@ -23,11 +23,12 @@ export const TVWidget = ({ activePool }: props) => {
 
   const container = React.useRef<HTMLDivElement>(null);
   const prevToken = usePrevious(token);
+  const prevPositionData = usePrevious(positionData);
 
   React.useEffect(() => {
     if (!container.current) return;
 
-    if (prevToken?.address.equals(token.address)) return;
+    if (prevToken?.address.equals(token.address) && prevPositionData?.entryPrice === positionData?.entryPrice) return;
 
     const isMobile = window.innerWidth < 1024;
     const script = document.createElement("script");
