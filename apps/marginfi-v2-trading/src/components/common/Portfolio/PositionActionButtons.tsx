@@ -53,10 +53,11 @@ export const PositionActionButtons = ({
   const [multiStepToast, setMultiStepToast] = React.useState<MultiStepToastHandle | null>(null);
   const [isClosing, setIsClosing] = React.useState(false);
 
-  const [refreshGroup, setIsRefreshingStore, nativeSolBalance] = useTradeStoreV2((state) => [
+  const [refreshGroup, setIsRefreshingStore, nativeSolBalance, positionsByGroupPk] = useTradeStoreV2((state) => [
     state.refreshGroup,
     state.setIsRefreshingStore,
     state.nativeSolBalance,
+    state.positionsByGroupPk,
   ]);
   const [slippageBps, priorityFees, broadcastType, setIsActionComplete, setPreviousTxn] = useUiStore((state) => [
     state.slippageBps,
@@ -110,6 +111,10 @@ export const PositionActionButtons = ({
         connection: connection,
         platformFeeBps,
       });
+
+      if ("actionTxn" in txns) {
+        txns.groupKey = selectedAccount.group.address;
+      }
 
       if ("description" in txns) {
         throw new Error(txns?.description ?? "Something went wrong.");
@@ -388,6 +393,21 @@ export const PositionActionButtons = ({
               </DialogDescription>
             </DialogHeader>
             <dl className="grid grid-cols-2 w-full text-muted-foreground gap-x-8 gap-y-2">
+              {actionTransaction?.groupKey && (
+                <>
+                  <dt>PnL</dt>
+                  <dd
+                    className={cn(
+                      "text-right",
+                      positionsByGroupPk[actionTransaction.groupKey.toBase58()]?.pnl > 0 && "text-mrgn-success",
+                      positionsByGroupPk[actionTransaction.groupKey.toBase58()]?.pnl < 0 && "text-mrgn-error"
+                    )}
+                  >
+                    {positionsByGroupPk[actionTransaction.groupKey.toBase58()]?.pnl > 0 && "+"}$
+                    {dynamicNumeralFormatter(positionsByGroupPk[actionTransaction.groupKey.toBase58()]?.pnl ?? 0)}
+                  </dd>
+                </>
+              )}
               {depositBanks.map((bank) => (
                 <React.Fragment key={bank.meta.tokenSymbol}>
                   <dt>Supplied</dt>
@@ -409,16 +429,7 @@ export const PositionActionButtons = ({
               {actionTransaction?.actionQuote?.priceImpactPct && (
                 <>
                   <dt>Price impact</dt>
-                  <dd
-                    className={cn(
-                      Number(actionTransaction.actionQuote.priceImpactPct) > 0.05
-                        ? "text-mrgn-error"
-                        : Number(actionTransaction.actionQuote.priceImpactPct) > 0.01
-                        ? "text-alert-foreground"
-                        : "text-mrgn-success",
-                      "text-right"
-                    )}
-                  >
+                  <dd className="text-right">
                     {percentFormatter.format(Number(actionTransaction.actionQuote.priceImpactPct))}
                   </dd>
                 </>
