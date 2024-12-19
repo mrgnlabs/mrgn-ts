@@ -34,6 +34,7 @@ export const DEFAULT_LST_BANK_CONFIG: BankConfigOpt = {
     insuranceIrFee: new BigNumber(0),
     protocolFixedFeeApr: new BigNumber(0.01),
     protocolIrFee: new BigNumber(0.3),
+    protocolOriginationFee: new BigNumber(0),
   },
   operationalState: OperationalState.Operational,
 
@@ -71,6 +72,7 @@ export const DEFAULT_STABLECOIN_BANK_CONFIG: BankConfigOpt = {
     insuranceIrFee: new BigNumber(0),
     protocolFixedFeeApr: new BigNumber(0.01),
     protocolIrFee: new BigNumber(0.3),
+    protocolOriginationFee: new BigNumber(0),
   },
   operationalState: OperationalState.Operational,
 
@@ -109,6 +111,7 @@ export const DEFAULT_TOKEN_BANK_CONFIG: BankConfigOpt = {
     insuranceIrFee: new BigNumber(0),
     protocolFixedFeeApr: new BigNumber(0.01),
     protocolIrFee: new BigNumber(0.3),
+    protocolOriginationFee: new BigNumber(0),
   },
   operationalState: OperationalState.Operational,
 
@@ -150,6 +153,19 @@ export const PYTH_LST_ORACLE_CONFIG: BankConfigOpt["oracle"] = {
 
 export const DEFAULT_DEPOSIT_LIMIT = 100_000;
 export const DEFAULT_BORROW_LIMIT = 25_000;
+
+/**
+ * ┌────────────────────────────--─────────────────┐
+ * │ DEFAULT FEE RANGES                            │
+ * └───────────────────────────────--──────────────┘
+ * USD values used to calculate deposit and borrow limits
+ */
+
+export const MIN_ORGINIATION_FEE = 0;
+export const MAX_ORGINIATION_FEE = 0.05;
+
+export const MIN_GROUP_FEE = 0;
+export const MAX_GROUP_FEE = 0.05;
 
 /**
  * ┌────────────────────────────--─────────────────┐
