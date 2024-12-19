@@ -46,6 +46,7 @@ const DEFAULT_USDC_BANK_CONFIG: BankConfigOpt = {
     insuranceIrFee: new BigNumber(0),
     protocolFixedFeeApr: new BigNumber(0.01),
     protocolIrFee: new BigNumber(0),
+    protocolOriginationFee: new BigNumber(0),
   },
   operationalState: OperationalState.Operational,
 
@@ -80,6 +81,7 @@ const DEFAULT_TOKEN_BANK_CONFIG: BankConfigOpt = {
     insuranceIrFee: new BigNumber(0),
     protocolFixedFeeApr: new BigNumber(0.01),
     protocolIrFee: new BigNumber(0.05),
+    protocolOriginationFee: new BigNumber(0),
   },
   operationalState: OperationalState.Operational,
 
