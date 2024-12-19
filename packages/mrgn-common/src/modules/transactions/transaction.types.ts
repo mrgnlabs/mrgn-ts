@@ -1,6 +1,6 @@
 import { VersionedTransaction, Transaction, Signer, AddressLookupTableAccount } from "@solana/web3.js";
 
-export type MRGN_TX_TYPES = "CRANK" | "SETUP" | "BUNDLE_TIP" | "MRGN_ACCOUNT_CREATION" | "ATAS" | "SWAP";
+export type MRGN_TX_TYPES = "CRANK" | "SETUP" | "BUNDLE_TIP" | "MRGN_ACCOUNT_CREATION" | "ATAS" | "SWAP" | "SIGN";
 
 export const MRGN_TX_TYPE_TOAST_MAP: Record<MRGN_TX_TYPES, string> = {
   CRANK: "Updating latest prices",
@@ -9,6 +9,7 @@ export const MRGN_TX_TYPE_TOAST_MAP: Record<MRGN_TX_TYPES, string> = {
   MRGN_ACCOUNT_CREATION: "Creating marginfi account",
   ATAS: "Creating associated token account",
   SWAP: "Swapping tokens",
+  SIGN: "Signing transaction",
 };
 
 export type ExtendedTransaction = Transaction & {

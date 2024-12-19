@@ -105,7 +105,10 @@ export function useTradeSimulation({
     actionMessage: ActionMessageType | null;
   }> => {
     if (props.txns.length > 0) {
+      console.log("getting simulation result,");
       const simulationResult = await getSimulationResult(props);
+
+      console.log("simulationResult", simulationResult);
 
       if (simulationResult.actionMethod) {
         return { simulationResult: null, actionMessage: simulationResult.actionMethod };
@@ -124,9 +127,12 @@ export function useTradeSimulation({
     props: CalculateLoopingProps
   ): Promise<{ actionTxns: TradeActionTxns | null; actionMessage: ActionMessageType | null }> => {
     try {
+      console.log("fetching trade txns, props", props);
       const tradingResult = await generateTradeTx({
         ...props,
       });
+
+      console.log("tradingResult", tradingResult);
 
       if (tradingResult && "actionQuote" in tradingResult) {
         return { actionTxns: tradingResult, actionMessage: null };

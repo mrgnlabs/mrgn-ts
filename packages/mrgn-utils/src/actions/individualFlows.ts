@@ -53,26 +53,39 @@ import { handleError } from "../errors";
 // Local utils functions //
 //-----------------------//
 
-export function getSteps(actionTxns?: ActionTxns, broadcastType?: TransactionBroadcastType) {
+export function getSteps(
+  actionTxns?: ActionTxns,
+  broadcastType?: TransactionBroadcastType,
+  excludedTypes: MRGN_TX_TYPES[] = []
+) {
   const steps = [];
 
-  steps.push({ label: "Signing transaction" });
+  steps.push({ label: MRGN_TX_TYPE_TOAST_MAP["SIGN"] });
 
   if (actionTxns && typeof actionTxns === "object" && "accountCreationTx" in actionTxns) {
-    steps.push({ label: "Creating marginfi account" });
+    if (!excludedTypes.includes("MRGN_ACCOUNT_CREATION")) {
+      steps.push({ label: MRGN_TX_TYPE_TOAST_MAP["MRGN_ACCOUNT_CREATION"] });
+    }
 
-    if (broadcastType !== "RPC") {
-      steps.push({ label: "Signing transaction" });
+    if (broadcastType !== "RPC" && !excludedTypes.includes("CRANK")) {
+      steps.push({ label: MRGN_TX_TYPE_TOAST_MAP["SIGN"] });
     }
   }
 
   actionTxns?.additionalTxns
-    .filter((tx) => tx.type !== "SWAP") // Filtering out swap txns to not show in toast
+    .filter((tx) => tx.type && !excludedTypes.includes(tx.type))
     .forEach((tx) => {
       steps.push({ label: MRGN_TX_TYPE_TOAST_MAP[tx.type ?? "CRANK"] });
     });
 
+  console.log("steps", steps);
+
   return steps;
+}
+
+export function isStepIncluded(label: string, excludedTypes: MRGN_TX_TYPES[]): boolean {
+  // Check if the step label corresponds to any excluded transaction type
+  return !excludedTypes.some((type) => MRGN_TX_TYPE_TOAST_MAP[type] === label);
 }
 
 export function composeExplorerUrl(signature?: string, broadcastType: TransactionBroadcastType = "RPC") {
@@ -622,9 +635,10 @@ export async function trade({
     showErrorToast({ message: "Marginfi client not ready" });
     return;
   }
+  const excludedTypes: MRGN_TX_TYPES[] = ["SWAP"];
 
   if (!multiStepToast) {
-    const steps = getSteps(actionTxns);
+    const steps = getSteps(actionTxns, processOpts?.broadcastType, excludedTypes);
 
     multiStepToast = new MultiStepToastHandle("Trading", [
       ...steps,
@@ -648,9 +662,16 @@ export async function trade({
         [...actionTxns.additionalTxns, actionTxns.actionTxn],
         {
           ...processOpts,
-          callback: (index, success, sig, stepsToAdvance) =>
-            success &&
-            multiStepToast.setSuccessAndNext(stepsToAdvance, sig, composeExplorerUrl(sig, processOpts?.broadcastType)),
+          callback: (index, success, sig, stepsToAdvance) => {
+            const currentLabel = multiStepToast?.getCurrentLabel();
+            if (success && !isStepIncluded(currentLabel, excludedTypes)) {
+              multiStepToast.setSuccessAndNext(
+                stepsToAdvance,
+                sig,
+                composeExplorerUrl(sig, processOpts?.broadcastType)
+              );
+            }
+          },
         },
         txOpts
       );
