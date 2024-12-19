@@ -5,10 +5,10 @@ import Link from "next/link";
 
 import { IconInfoCircle, IconSwitchHorizontal } from "@tabler/icons-react";
 import { tokenPriceFormatter, percentFormatter, usdFormatter, dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
+import { useIsMobile } from "@mrgnlabs/mrgn-utils";
 
 import { cn } from "@mrgnlabs/mrgn-utils";
 import { useLeveragedPositionDetails } from "~/hooks/arenaHooks";
-
 import { PositionActionButtons } from "~/components/common/Portfolio";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 
@@ -37,6 +37,8 @@ export const PositionCard = ({ size = "lg", arenaPool }: PositionCardProps) => {
   });
 
   const { positionSizeUsd, totalUsdValue, leverage } = useLeveragedPositionDetails({ pool: arenaPool });
+
+  const isMobile = useIsMobile();
 
   const healthColor = React.useMemo(() => {
     if (accountSummary?.healthFactor) {
@@ -75,16 +77,16 @@ export const PositionCard = ({ size = "lg", arenaPool }: PositionCardProps) => {
         <div className="flex items-center gap-4 justify-between">
           <Link
             href={`/trade/${arenaPool.groupPk.toBase58()}`}
-            className="flex items-center gap-4 font-medium text-muted-foreground"
+            className="flex items-center gap-3 font-medium text-muted-foreground md:gap-4"
           >
             <Image
               src={arenaPool.tokenBank.meta.tokenLogoUri}
               alt={arenaPool.tokenBank.meta.tokenSymbol}
-              width={56}
-              height={56}
-              className="rounded-full"
+              width={isMobile ? 48 : 56}
+              height={isMobile ? 48 : 56}
+              className="rounded-full translate-y-[2px]"
             />
-            <div className="leading-none space-y-0.5">
+            <div className="leading-none md:space-y-0.5">
               <h2 className="text-lg text-primary">{arenaPool.tokenBank.meta.tokenName}</h2>
               <h3>{`${arenaPool.tokenBank.meta.tokenSymbol.toUpperCase()}/${arenaPool.quoteBank.meta.tokenSymbol.toUpperCase()}`}</h3>
             </div>
@@ -93,11 +95,13 @@ export const PositionCard = ({ size = "lg", arenaPool }: PositionCardProps) => {
             <PnlLabel
               pnl={positionData?.pnl}
               positionSize={positionSizeUsd}
-              disableClickToChangeType={true}
-              className="text-2xl"
+              disableClickToChangeType={!isMobile}
+              className="text-xl md:text-2xl"
               loader={<Skeleton className="w-[120px] ml-auto h-6 animate-pulsate" />}
             />
-            {positionData?.pnl !== undefined && <PnlBadge pnl={positionData?.pnl} positionSize={positionSizeUsd} />}
+            {positionData?.pnl !== undefined && (
+              <PnlBadge pnl={positionData?.pnl} positionSize={positionSizeUsd} className="hidden md:block" />
+            )}
           </div>
         </div>
       )}
