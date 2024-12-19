@@ -68,7 +68,10 @@ export const PoolSearch = ({
           additionalContentQueryMin={additionalContentQueryMin}
           showNoResults={showNoResults}
           onBankSelect={(value) => {
-            const foundGroup = arenaPools[value];
+            const foundGroup = Object.entries(arenaPools).find(
+              ([key]) => key.toLowerCase() === value.toLowerCase()
+            )?.[1];
+
             if (!foundGroup) return;
 
             router.push(`/trade/${foundGroup.groupPk.toBase58()}`);
@@ -87,7 +90,10 @@ export const PoolSearch = ({
           additionalContentQueryMin={additionalContentQueryMin}
           showNoResults={showNoResults}
           onBankSelect={(value) => {
-            const foundGroup = arenaPools[value];
+            const foundGroup = Object.entries(arenaPools).find(
+              ([key]) => key.toLowerCase() === value.toLowerCase()
+            )?.[1];
+
             if (!foundGroup) return;
 
             router.push(`/trade/${foundGroup.groupPk.toBase58()}`);
