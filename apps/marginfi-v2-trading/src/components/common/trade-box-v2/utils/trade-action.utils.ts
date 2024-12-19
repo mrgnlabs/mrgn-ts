@@ -11,10 +11,11 @@ import {
   STATIC_SIMULATION_ERRORS,
   deserializeInstruction,
   getAdressLookupTableAccounts,
+  getFeeAccount,
 } from "@mrgnlabs/mrgn-utils";
 
 import { ExecuteActionsCallbackProps } from "~/components/action-box-v2/types";
-import { Connection, Keypair, PublicKey, TransactionMessage, VersionedTransaction } from "@solana/web3.js";
+import { AccountInfo, Connection, Keypair, PublicKey, TransactionMessage, VersionedTransaction } from "@solana/web3.js";
 import {
   BalanceRaw,
   makeUnwrapSolIx,
@@ -22,6 +23,7 @@ import {
   MarginfiAccountRaw,
   MarginfiAccountWrapper,
   MarginfiClient,
+  TOKEN_2022_MINTS,
 } from "@mrgnlabs/marginfi-client-v2";
 import BN from "bn.js";
 import {
@@ -92,7 +94,7 @@ export async function generateTradeTx(props: CalculateLoopingProps): Promise<Tra
           platformFeeBps: props.platformFeeBps ?? 0,
           slippageBps: props.slippageBps ?? 0,
         },
-        props.marginfiClient.provider.publicKey,
+        props.marginfiClient.wallet.publicKey,
         props.marginfiClient.provider.connection
       );
 
@@ -201,7 +203,6 @@ export async function createSwapTx(
       swapRequest: {
         quoteResponse: swapQuote,
         userPublicKey: feepayer.toBase58(),
-        feeAccount: undefined,
         programAuthorityId: LUT_PROGRAM_AUTHORITY_INDEX,
       },
     });
@@ -209,6 +210,7 @@ export async function createSwapTx(
     const swapIx = deserializeInstruction(swapInstruction);
     const setupInstructionsIxs = setupInstructions.map((value) => deserializeInstruction(value));
     const cuInstructionsIxs = computeBudgetInstructions.map((value) => deserializeInstruction(value));
+    // const cleanupInstructionIx = deserializeInstruction(cleanupInstruction);
     const addressLookupAccounts = await getAdressLookupTableAccounts(connection, addressLookupTableAddresses);
     const finalBlockhash = (await connection.getLatestBlockhash()).blockhash;
 
