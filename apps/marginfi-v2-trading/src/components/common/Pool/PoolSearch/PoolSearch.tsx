@@ -28,9 +28,9 @@ export const PoolSearch = ({
   showNoResults = true,
 }: PoolSearchProps) => {
   const router = useRouter();
-  const [searchPools, searchPoolResults, resetSearchResults, arenaPools] = useTradeStoreV2((state) => [
-    state.searchPools,
-    state.searchPoolResults,
+  const [searchSummaryPools, searchPoolSummaryResults, resetSearchResults, arenaPools] = useTradeStoreV2((state) => [
+    state.searchSummaryPools,
+    state.searchPoolSummaryResults,
     state.resetSearchResults,
     state.arenaPools,
   ]);
@@ -47,8 +47,8 @@ export const PoolSearch = ({
       resetSearchResults();
       return;
     }
-    searchPools(debouncedSearchQuery);
-  }, [debouncedSearchQuery, searchPools, resetSearchResults]);
+    searchSummaryPools(debouncedSearchQuery);
+  }, [debouncedSearchQuery, searchSummaryPools, resetSearchResults]);
 
   const resetSearch = React.useCallback(() => {
     resetSearchResults();
@@ -62,7 +62,7 @@ export const PoolSearch = ({
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
           resetSearch={resetSearch}
-          searchResults={searchPoolResults}
+          searchResults={searchPoolSummaryResults}
           size={size}
           additionalContent={additionalContent}
           additionalContentQueryMin={additionalContentQueryMin}
@@ -82,7 +82,7 @@ export const PoolSearch = ({
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
           resetSearch={resetSearch}
-          searchResults={searchPoolResults}
+          searchResults={searchPoolSummaryResults}
           additionalContent={additionalContent}
           additionalContentQueryMin={additionalContentQueryMin}
           showNoResults={showNoResults}
