@@ -462,12 +462,7 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
       <CardContent className="px-4 py-2">
         <div className="space-y-4">
           <ActionToggle tradeState={tradeState} setTradeState={setTradeState} />
-          <AmountInput
-            maxAmount={maxAmount}
-            amount={amountRaw}
-            handleAmountChange={handleAmountChange}
-            collateralBank={selectedBank}
-          />
+          <AmountInput maxAmount={maxAmount} amount={amountRaw} handleAmountChange={handleAmountChange} />
           <LeverageSlider
             selectedBank={selectedBank}
             selectedSecondaryBank={selectedSecondaryBank}
