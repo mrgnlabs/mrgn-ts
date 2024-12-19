@@ -101,8 +101,8 @@ export default function PortfolioPage({ initialData }: StaticArenaProps) {
               <div className="max-w-6xl mx-auto space-y-12">
                 <div
                   className={cn(
-                    "grid grid-cols-2 gap-8 w-full",
-                    portfolioCombined ? "md:grid-cols-3" : "md:grid-col-2"
+                    "grid grid-cols-2 gap-4 md:gap-8 w-full",
+                    portfolioCombined ? "md:grid-cols-3" : "md:grid-cols-2"
                   )}
                 >
                   <StatBlock label="Portfolio Size" value={`$${dynamicNumeralFormatter(portfolioSize)}`} />
@@ -191,11 +191,11 @@ type StatProps = {
 
 const StatBlock = ({ label, value, subValue, valueNum }: StatProps) => (
   <Card>
-    <CardHeader className="pb-2">
+    <CardHeader className="p-4 md:p-6 pb-0 md:pb-0">
       <CardTitle className="text-base text-muted-foreground font-normal">{label}</CardTitle>
     </CardHeader>
-    <CardContent>
-      <div className="text-3xl">
+    <CardContent className="p-4 pt-2 md:p-6 md:pt-2">
+      <div className="text-2xl md:text-3xl">
         <span
           className={cn(
             "text-muted-foreground",
