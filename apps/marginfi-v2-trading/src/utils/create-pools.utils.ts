@@ -56,11 +56,10 @@ export const addLimitsToBankConfig = (bankConfig: BankConfigOpt, price: number, 
 
 export const createOracleIx = async (mint: PublicKey, symbol: string, connection: Connection, wallet: Wallet) => {
   // Initialize the on-demand program and generate a pull feed
-  const newConnection = new Connection("___RPC___", "confirmed");
+  const newConnection = new Connection("___ENDPOINT___", "confirmed");
 
   // Get the default queue
   let queue = await sb.getDefaultQueue(newConnection.rpcEndpoint);
-  console.log("queueAccount", queue.pubkey.toBase58());
 
   // Get the default crossbar server client
   const crossbarClient = CrossbarClient.default();
@@ -90,20 +89,6 @@ export const createOracleIx = async (mint: PublicKey, symbol: string, connection
 
   // Initialize the pull feed
   const pullFeedIx = await pullFeed.initIx(conf);
-
-  const tx = await sb.asV0Tx({
-    connection: connection,
-    ixs: [pullFeedIx],
-    payer: wallet.publicKey,
-    signers: [feedSeed],
-    computeUnitPrice: 75_000,
-    computeUnitLimitMultiple: 1.3,
-  });
-
-  const txSig = await wallet.signTransaction(tx);
-
-  const simulationResult = await connection.simulateTransaction(txSig);
-  console.log("simulationResult", simulationResult);
 
   console.log(`[INFO] Feed Public Key for ${symbol}/USD: ${feedSeed.publicKey.toBase58()}`);
   return { feedPubkey: feedSeed.publicKey, pullFeedIx, feedSeed };

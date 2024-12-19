@@ -14,10 +14,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         "Content-Type": "application/json",
         Authorization: `Basic ${encodedCredentials}`, // Basic Auth Header
       },
-      body: JSON.stringify({
-        key_code: USERNAME,
-        key_hash: PASSWORD,
-      }),
     });
 
     if (!response.ok) {
