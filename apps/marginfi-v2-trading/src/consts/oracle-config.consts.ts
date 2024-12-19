@@ -14,7 +14,7 @@ export const DEFAULT_PULL_FEED_CONF = {
   //   queue: new PublicKey(queue), // the queue of oracles to bind to
   maxVariance: 10.0, // allow 1% variance between submissions and jobs
   minResponses: 1, // minimum number of responses of jobs to allow
-  numSignatures: 1, // number of signatures to fetch per update
+  //numSignatures: 1, // number of signatures to fetch per update, not in the config it looks like
   minSampleSize: 1, // minimum number of responses to sample for a result
   maxStaleness: 250, // maximum stale slots of responses to sample
   //   feedHash: feedHashBuffer,
