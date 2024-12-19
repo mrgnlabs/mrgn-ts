@@ -8,7 +8,6 @@ import { motion, useAnimate } from "framer-motion";
 import { IconPlus, IconCopy, IconCheck, IconSettings } from "@tabler/icons-react";
 import { CopyToClipboard } from "react-copy-to-clipboard";
 import { cn } from "@mrgnlabs/mrgn-utils";
-import { USDC_MINT } from "@mrgnlabs/mrgn-common";
 import { Settings } from "@mrgnlabs/mrgn-ui";
 
 import { useTradeStoreV2, useUiStore } from "~/store";
@@ -62,7 +61,11 @@ export const Header = () => {
   const [isReferralCopied, setIsReferralCopied] = React.useState(false);
 
   const extendedBankInfos = React.useMemo(() => {
-    return Object.values(banksByBankPk);
+    const banks = Object.values(banksByBankPk);
+    const uniqueBanksMap = new Map(banks.map((bank) => [bank.info.state.mint.toBase58(), bank]));
+    const uniqueBanks = Array.from(uniqueBanksMap.values());
+    console.log(uniqueBanksMap, uniqueBanks);
+    return uniqueBanks;
   }, [banksByBankPk]);
 
   // const ownPools = React.useMemo(() => {
