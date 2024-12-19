@@ -9,14 +9,14 @@ import { IconCommand, IconX } from "@tabler/icons-react";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "~/components/ui/command";
 import { Button } from "~/components/ui/button";
 
-import { ArenaPoolV2 } from "~/types/trade-store.types";
+import { ArenaPoolSummary, ArenaPoolV2 } from "~/types/trade-store.types";
 import { useTradeStoreV2 } from "~/store";
 
 type PoolSearchDefaultProps = {
   searchQuery: string;
   setSearchQuery: (query: string) => void;
   resetSearch: () => void;
-  searchResults: FuseResult<ArenaPoolV2>[];
+  searchResults: FuseResult<ArenaPoolSummary>[];
   size: "sm" | "lg";
   additionalContent: React.ReactNode;
   additionalContentQueryMin: number;
@@ -114,7 +114,7 @@ export const PoolSearchDefault = ({
               {searchResults.slice(0, maxResults).map((result) => {
                 const pool = result.item;
                 const address = pool.groupPk.toBase58();
-                const tokenBank = banksByBankPk[pool.tokenBankPk.toBase58()];
+                const tokenBank = banksByBankPk[pool.tokenSummary.bankPk.toBase58()];
 
                 return (
                   <CommandItem
