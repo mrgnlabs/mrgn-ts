@@ -9,7 +9,6 @@ import { cn } from "@mrgnlabs/mrgn-utils";
 import { useTradeStoreV2 } from "~/store";
 import { useActionBoxStore } from "~/components/action-box-v2/store";
 
-import { ActionComplete } from "~/components/action-complete";
 import { PageHeading } from "~/components/common/PageHeading";
 import { PositionCard, LpPositionList } from "~/components/common/Portfolio";
 import { Loader } from "~/components/common/Loader";
@@ -18,6 +17,7 @@ import { useExtendedPools } from "~/hooks/useExtendedPools";
 import { GroupStatus } from "~/types/trade-store.types";
 import { GetStaticProps } from "next";
 import { StaticArenaProps, getArenaStaticProps } from "~/utils";
+import { ArenaActionComplete } from "~/components/common/ActionComplete";
 
 export const getStaticProps: GetStaticProps<StaticArenaProps> = async (context) => {
   return getArenaStaticProps(context);
@@ -171,13 +171,7 @@ export default function PortfolioPage({ initialData }: StaticArenaProps) {
           </div>
         )}
       </div>
-      {poolsFetched && previousTxn && (
-        <ActionComplete
-          isActionComplete={isActionComplete}
-          setIsActionComplete={setIsActionComplete}
-          previousTxn={previousTxn}
-        />
-      )}
+      {poolsFetched && previousTxn && <ArenaActionComplete />}
     </>
   );
 }

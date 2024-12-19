@@ -11,7 +11,6 @@ import { useTradeStoreV2 } from "~/store";
 import { TradePoolFilterStates } from "~/store/tradeStoreV2";
 import { useActionBoxStore } from "~/components/action-box-v2/store";
 import { useIsMobile } from "~/hooks/use-is-mobile";
-import { ActionComplete } from "~/components/action-complete";
 
 import { PageHeading } from "~/components/common/PageHeading";
 import { PoolCard, PoolListItem } from "~/components/common/Pool";
@@ -21,6 +20,7 @@ import { Loader } from "~/components/common/Loader";
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
 import { getArenaStaticProps, StaticArenaProps } from "~/utils/trade-store.utils";
+import { ArenaActionComplete } from "~/components/common/ActionComplete";
 
 const sortOptions: {
   value: TradePoolFilterStates;
@@ -240,13 +240,7 @@ export default function HomePage({ initialData }: StaticArenaProps) {
           </>
         )}
       </div>
-      {initialized && previousTxn && (
-        <ActionComplete
-          isActionComplete={isActionComplete}
-          setIsActionComplete={setIsActionComplete}
-          previousTxn={previousTxn}
-        />
-      )}
+      {initialized && previousTxn && <ArenaActionComplete />}
     </>
   );
 }
