@@ -96,7 +96,7 @@ export async function generateTradeTx(props: CalculateLoopingProps): Promise<Tra
         props.marginfiClient.wallet.publicKey,
         props.marginfiClient.provider.connection
       );
-
+      console.log("swapTx", swapTx);
       if (swapTx.error) {
         console.error("Swap transaction error:", swapTx.error);
         return swapTx.error;
@@ -145,6 +145,8 @@ export async function generateTradeTx(props: CalculateLoopingProps): Promise<Tra
     accountCreationTx.push(
       await props.marginfiClient.createMarginfiAccountTx({ accountKeypair: marginfiAccountKeypair })
     );
+
+    console.log("accountCreationTx", accountCreationTx);
   }
 
   const result = await calculateLoopingParams({
@@ -157,6 +159,8 @@ export async function generateTradeTx(props: CalculateLoopingProps): Promise<Tra
         : props.depositAmount,
   });
 
+  console.log("result", result);
+
   if (result && "actionQuote" in result) {
     return {
       ...result,
@@ -164,8 +168,6 @@ export async function generateTradeTx(props: CalculateLoopingProps): Promise<Tra
       marginfiAccount: finalAccount ?? undefined,
     };
   }
-
-  console.log("result", result);
 
   return result;
 }
