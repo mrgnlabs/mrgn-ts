@@ -59,7 +59,7 @@ export const TradePovider: React.FC<{
       fetchExtendedArenaGroups({ connection, wallet });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialized]);
+  }, [initialized, wallet]);
 
   React.useEffect(() => {
     if (poolsFetched && wallet && connected) {
