@@ -482,8 +482,6 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
           {actionMethods && actionMethods.some((method) => method.description) && (
             <InfoMessages
               connected={connected}
-              tradeState={tradeState}
-              activePool={activePoolExtended}
               actionMethods={actionMethods}
               setIsWalletOpen={setIsWalletOpen}
               refreshStore={() =>
@@ -494,8 +492,6 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
                   banks: [activePoolExtended.tokenBank.address, activePoolExtended.quoteBank.address, RANDOM_USDC_BANK],
                 })
               }
-              connection={connection}
-              wallet={wallet}
               refreshSimulation={refreshSimulation}
               isRetrying={isSimulating.isLoading}
               usdcBalance={maxAmount}
