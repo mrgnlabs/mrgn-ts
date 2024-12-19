@@ -4,6 +4,7 @@ import { dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
 import { cn } from "@mrgnlabs/mrgn-utils";
 
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
+import { Skeleton } from "~/components/ui/skeleton";
 
 type PnlLabelProps = {
   type?: "$" | "%";
@@ -11,9 +12,17 @@ type PnlLabelProps = {
   positionSize: number;
   className?: string;
   disableClickToChangeType?: boolean;
+  loader?: React.ReactNode;
 };
 
-const PnlLabel = ({ type = "$", pnl, positionSize, className, disableClickToChangeType = false }: PnlLabelProps) => {
+const PnlLabel = ({
+  type = "$",
+  pnl,
+  positionSize,
+  className,
+  disableClickToChangeType = false,
+  loader,
+}: PnlLabelProps) => {
   const [currentType, setCurrentType] = React.useState(type);
   const positionState = pnl > 0 ? "positive" : pnl < 0 ? "negative" : "neutral";
   const pnlSign = positionState === "positive" ? "+" : positionState === "negative" ? "-" : "";
@@ -22,6 +31,10 @@ const PnlLabel = ({ type = "$", pnl, positionSize, className, disableClickToChan
   React.useEffect(() => {
     setCurrentType(type);
   }, [type]);
+
+  if (pnl === undefined) {
+    return loader ?? <Skeleton className="w-[64px] h-4 animate-pulsate" />;
+  }
 
   return (
     <TooltipProvider>
