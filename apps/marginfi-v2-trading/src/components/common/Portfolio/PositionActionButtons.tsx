@@ -168,6 +168,7 @@ export const PositionActionButtons = ({
             entryPrice: positionData && positionData.entryPrice ? positionData.entryPrice : 0,
             exitPrice: arenaPool.tokenBank.info.oraclePrice.priceRealtime.price.toNumber(),
             pnl: positionData && positionData.pnl ? positionData.pnl : 0,
+            pool: arenaPool,
           },
         });
         capture("close_position", {

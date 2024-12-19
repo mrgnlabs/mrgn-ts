@@ -35,6 +35,7 @@ interface PreviousTxnPositionClosed {
     entryPrice: number;
     exitPrice: number;
     pnl: number;
+    pool: ArenaPoolV2Extended;
   };
 }
 

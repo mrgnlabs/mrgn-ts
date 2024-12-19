@@ -257,6 +257,7 @@ export async function calculateLoopingParams({
     };
     try {
       const swapQuote = await getSwapQuoteWithRetry(quoteParams);
+      console.log("swapQuote", swapQuote);
 
       if (!maxAccounts) {
         firstQuote = swapQuote;
@@ -286,6 +287,7 @@ export async function calculateLoopingParams({
             actualDepositAmount: actualDepositAmountUi,
             setupBankAddresses,
           });
+          console.log("txn", txn);
         }
         if (txn.flashloanTx || !loopingProps.marginfiAccount) {
           return {
