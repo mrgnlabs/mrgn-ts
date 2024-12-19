@@ -21,6 +21,9 @@ export const copyImage = async (dataUrl: string, isMobile: boolean, onCopySucces
       const blob = await fetch(dataUrl).then((res) => res.blob());
       await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
       onCopySuccess?.();
+
+      console.log(navigator);
+      console.log(blob);
     }
 
     // Trigger native share on mobile

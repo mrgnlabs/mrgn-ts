@@ -195,7 +195,7 @@ const StatBlock = ({ label, value, subValue, valueNum }: StatProps) => (
       <CardTitle className="text-base text-muted-foreground font-normal">{label}</CardTitle>
     </CardHeader>
     <CardContent className="p-4 pt-2 md:p-6 md:pt-2">
-      <div className="text-2xl md:text-3xl">
+      <div className="text-xl md:text-3xl">
         <span
           className={cn(
             "text-muted-foreground",
