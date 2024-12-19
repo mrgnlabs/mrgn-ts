@@ -108,8 +108,8 @@ export const PoolSearchDefault = ({
             <IconCommand size={14} />K
           </Button>
         </div>
-        <div className={cn(size === "lg" && "absolute top-10 w-full z-20 md:top-14")}>
-          {searchResults.length > 0 && (
+        <div className={cn(size === "lg" && "absolute top-10 w-full z-[99999] md:top-14")}>
+          {searchResults.length > 0 && searchQuery.length > 0 && (
             <CommandGroup className={cn("bg-background", size === "lg" && "shadow-lg md:w-4/5 md:mx-auto")}>
               {searchResults.slice(0, maxResults).map((result) => {
                 const pool = result.item;
@@ -120,7 +120,10 @@ export const PoolSearchDefault = ({
                   <CommandItem
                     key={address}
                     value={address}
-                    className={cn(size === "sm" ? "text-sm" : "py-4")}
+                    className={cn(
+                      "cursor-pointer transition-colors data-[selected]:bg-muted",
+                      size === "sm" ? "text-sm" : "py-4"
+                    )}
                     onSelect={onBankSelect}
                   >
                     <div className="flex items-center gap-3">
