@@ -3,6 +3,8 @@ import Image from "next/image";
 import { Input } from "~/components/ui/input";
 import { MaxAction } from "./components";
 import { ArenaBank } from "~/types/trade-store.types";
+import { getTokenImageURL } from "@mrgnlabs/mrgn-utils";
+import { USDC_MINT } from "@mrgnlabs/mrgn-common";
 
 interface AmountInputProps {
   maxAmount: number;
@@ -24,7 +26,7 @@ export const AmountInput = ({
       <div className="flex justify-center gap-1 items-center font-medium ">
         <span className="w-full flex items-center gap-1 max-w-[162px] text-muted-foreground text-base">
           <Image
-            src="https://cryptologos.cc/logos/usd-coin-usdc-logo.png?v=024"
+            src={getTokenImageURL(USDC_MINT)}
             alt="USDC"
             width={24}
             height={24}
