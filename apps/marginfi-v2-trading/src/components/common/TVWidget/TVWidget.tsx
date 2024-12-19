@@ -5,6 +5,7 @@ import { usePrevious } from "@mrgnlabs/mrgn-utils";
 import { ChartingLibraryFeatureset } from "../../../../public/tradingview";
 import { useTradeStoreV2 } from "~/store";
 import { ArenaPoolV2 } from "~/types/trade-store.types";
+import { usePositionsData } from "~/hooks/usePositionsData";
 
 interface props {
   activePool: ArenaPoolV2;
@@ -12,6 +13,7 @@ interface props {
 
 export const TVWidget = ({ activePool }: props) => {
   const [banksByBankPk] = useTradeStoreV2((state) => [state.banksByBankPk]);
+  const positionData = usePositionsData({ groupPk: activePool.groupPk });
 
   const { token, quote } = React.useMemo(() => {
     const token = banksByBankPk[activePool.tokenBankPk.toBase58()];
@@ -185,10 +187,29 @@ export const TVWidget = ({ activePool }: props) => {
             );
           }
         }
+
+        if (positionData?.entryPrice) {
+          const chart = tvWidget.chart();
+          chart.createShape(
+            { price: positionData?.entryPrice, time: chart.getVisibleRange().to },
+            {
+              shape: "horizontal_line",
+              text: "Entry price",
+              overrides: {
+                linecolor: "#6FE092",
+                linestyle: 2,
+                linewidth: 2,
+                showLabel: true,
+                textcolor: "#6FE092",
+                fontsize: 12,
+              },
+            }
+          );
+        }
       });
     };
     container.current.appendChild(script);
-  }, [container, token, prevToken]);
+  }, [container, token, prevToken, positionData]);
 
   return <div id="tv_chart_container" ref={container} className="relative"></div>;
 };
