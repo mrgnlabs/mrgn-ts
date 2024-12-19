@@ -12,6 +12,8 @@ import { useConnection } from "~/hooks/use-connection";
 import { useTradeStoreV2, useUiStore } from "~/store";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { calculateClosePositions } from "~/utils";
+import { usePositionsData } from "~/hooks/usePositionsData";
+import { useLeveragedPositionDetails } from "~/hooks/arenaHooks";
 
 import { ActionBox, ActionBoxProvider } from "~/components/action-box-v2";
 import { SharePosition } from "~/components/common/share-position/share-position";
@@ -66,6 +68,11 @@ export const PositionActionButtons = ({
     state.setIsActionComplete,
     state.setPreviousTxn,
   ]);
+
+  const positionData = usePositionsData({ groupPk: arenaPool.groupPk });
+  const { positionSizeUsd, leverage } = useLeveragedPositionDetails({
+    pool: arenaPool,
+  });
 
   const depositBanks = React.useMemo(() => {
     const tokenBank = arenaPool.tokenBank.isActive ? arenaPool.tokenBank : null;
@@ -152,7 +159,13 @@ export const PositionActionButtons = ({
           txnType: "CLOSE_POSITION",
           txn: Array.isArray(txnSig) ? txnSig[txnSig.length - 1] : txnSig!,
           positionClosedOptions: {
-            pool: arenaPool,
+            tokenBank: arenaPool.tokenBank,
+            collateralBank: arenaPool.quoteBank,
+            size: positionSizeUsd,
+            leverage: Number(leverage),
+            entryPrice: positionData.entryPrice,
+            exitPrice: arenaPool.tokenBank.info.oraclePrice.priceRealtime.price.toNumber(),
+            pnl: positionData.pnl,
           },
         });
         capture("close_position", {
