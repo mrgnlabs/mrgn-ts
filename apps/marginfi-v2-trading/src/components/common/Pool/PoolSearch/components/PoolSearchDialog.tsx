@@ -8,13 +8,13 @@ import { tokenPriceFormatter, numeralFormatter, percentFormatter } from "@mrgnla
 
 import { CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "~/components/ui/command";
 import { useTradeStoreV2 } from "~/store";
-import { ArenaPoolV2 } from "~/types/trade-store.types";
+import { ArenaPoolSummary } from "~/types/trade-store.types";
 
 type PoolSearchDialogProps = {
   searchQuery: string;
   setSearchQuery: (query: string) => void;
   resetSearch: () => void;
-  searchResults: FuseResult<ArenaPoolV2>[];
+  searchResults: FuseResult<ArenaPoolSummary>[];
   additionalContent: React.ReactNode;
   additionalContentQueryMin: number;
   showNoResults: boolean;
@@ -69,7 +69,7 @@ export const PoolSearchDialog = ({
               {searchResults.slice(0, maxResults).map((result) => {
                 const pool = result.item;
                 const address = pool.groupPk.toBase58();
-                const tokenBank = banksByBankPk[pool.tokenBankPk.toBase58()];
+                const tokenBank = banksByBankPk[pool.tokenSummary.bankPk.toBase58()];
 
                 return (
                   <CommandItem key={address} value={address} className="py-4" onSelect={onBankSelect}>
