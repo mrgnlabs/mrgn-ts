@@ -170,7 +170,6 @@ export function useTradeSimulation({
 
         if (tradeActionTxns.actionMessage || tradeActionTxns.actionTxns === null) {
           handleError(tradeActionTxns.actionMessage ?? STATIC_SIMULATION_ERRORS.TRADE_FAILED, {
-            // TODO: update error message
             setErrorMessage,
             setSimulationResult,
             setActionTxns,
@@ -196,7 +195,6 @@ export function useTradeSimulation({
 
         if (simulationResult.actionMessage || simulationResult.simulationResult === null) {
           handleError(simulationResult.actionMessage ?? STATIC_SIMULATION_ERRORS.TRADE_FAILED, {
-            // TODO: update
             setErrorMessage,
             setSimulationResult,
             setActionTxns,

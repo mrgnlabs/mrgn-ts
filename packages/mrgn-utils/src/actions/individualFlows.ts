@@ -26,6 +26,7 @@ import {
   Wallet,
   dynamicNumeralFormatter,
   uiToNative,
+  MRGN_TX_TYPES,
 } from "@mrgnlabs/mrgn-common";
 
 import { WalletContextStateOverride } from "../wallet";
@@ -65,9 +66,11 @@ export function getSteps(actionTxns?: ActionTxns, broadcastType?: TransactionBro
     }
   }
 
-  actionTxns?.additionalTxns.forEach((tx) => {
-    steps.push({ label: MRGN_TX_TYPE_TOAST_MAP[tx.type ?? "CRANK"] });
-  });
+  actionTxns?.additionalTxns
+    .filter((tx) => tx.type !== "SWAP") // Filtering out swap txns to not show in toast
+    .forEach((tx) => {
+      steps.push({ label: MRGN_TX_TYPE_TOAST_MAP[tx.type ?? "CRANK"] });
+    });
 
   return steps;
 }
