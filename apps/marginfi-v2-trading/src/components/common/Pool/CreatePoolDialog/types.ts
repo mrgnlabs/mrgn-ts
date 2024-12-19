@@ -5,6 +5,8 @@ export enum CreatePoolState {
   TOKEN = "token",
   QUOTE = "quote",
   FORM = "form",
+  CONFIGURE = "configure",
+  REVIEW = "review",
   LOADING = "loading",
   SUCCESS = "success",
   ERROR = "error",
@@ -16,6 +18,7 @@ export type PoolMintData = {
   symbol: string;
   icon: string;
   decimals: number;
+  price: number;
 };
 
 export type PoolData = {

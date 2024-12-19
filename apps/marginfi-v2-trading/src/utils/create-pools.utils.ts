@@ -55,16 +55,15 @@ export const addLimitsToBankConfig = (bankConfig: BankConfigOpt, price: number, 
 };
 
 export const createOracleIx = async (mint: PublicKey, symbol: string, connection: Connection, wallet: Wallet) => {
-  const crossbarClient = new CrossbarClient("https://crossbar.switchboard.xyz", /* verbose= */ true);
-
   // Initialize the on-demand program and generate a pull feed
-  const programId = await sb.getProgramId(connection);
-  const provider = new anchor.AnchorProvider(connection, wallet, {});
-  const idl = await anchor.Program.fetchIdl(programId, provider);
-  if (!idl) return;
-  const onDemandProgram = new anchor.Program(idl, provider);
-  const [pullFeed, feedSeed] = sb.PullFeed.generate(onDemandProgram);
-  const feedPubkey = feedSeed.publicKey;
+  const newConnection = new Connection("___RPC___", "confirmed");
+
+  // Get the default queue
+  let queue = await sb.getDefaultQueue(newConnection.rpcEndpoint);
+  console.log("queueAccount", queue.pubkey.toBase58());
+
+  // Get the default crossbar server client
+  const crossbarClient = CrossbarClient.default();
 
   // Initialize tasks for the oracle job
   const valueTask = sb.OracleJob.Task.create(VALUE_TASK);
@@ -74,25 +73,38 @@ export const createOracleIx = async (mint: PublicKey, symbol: string, connection
     tasks: [valueTask, divideTask, multiplyTask],
   });
 
-  // Get the default queue
-  const queueAccount = await sb.getDefaultQueue(connection.rpcEndpoint);
-  const queue = queueAccount.pubkey;
-
   // Store the oracle job and get the feed hash
-  const feedHash = (await crossbarClient.store(queue.toString(), [oracleJob])).feedHash;
+  const feedHash = (await crossbarClient.store(queue.pubkey.toBase58(), [oracleJob])).feedHash;
   const feedHashBuffer = decodeString(feedHash);
   if (!feedHashBuffer) return;
+
+  const [pullFeed, feedSeed] = sb.PullFeed.generate(queue.program);
 
   const conf = {
     ...DEFAULT_PULL_FEED_CONF,
     name: `${symbol}/USD`, // the feed name (max 32 bytes)
-    queue: new PublicKey(queue), // the queue of oracles to bind to
-    feedHash: feedHashBuffer,
+    queue: queue.pubkey, // the queue of oracles to bind to
+    feedHash: Buffer.from(feedHash.slice(2), "hex"),
+    payer: wallet.publicKey,
   };
 
   // Initialize the pull feed
   const pullFeedIx = await pullFeed.initIx(conf);
 
-  console.log(`[INFO] Feed Public Key for ${symbol}/USD: ${feedPubkey.toBase58()}`);
-  return { feedPubkey, pullFeedIx, feedSeed };
+  const tx = await sb.asV0Tx({
+    connection: connection,
+    ixs: [pullFeedIx],
+    payer: wallet.publicKey,
+    signers: [feedSeed],
+    computeUnitPrice: 75_000,
+    computeUnitLimitMultiple: 1.3,
+  });
+
+  const txSig = await wallet.signTransaction(tx);
+
+  const simulationResult = await connection.simulateTransaction(txSig);
+  console.log("simulationResult", simulationResult);
+
+  console.log(`[INFO] Feed Public Key for ${symbol}/USD: ${feedSeed.publicKey.toBase58()}`);
+  return { feedPubkey: feedSeed.publicKey, pullFeedIx, feedSeed };
 };

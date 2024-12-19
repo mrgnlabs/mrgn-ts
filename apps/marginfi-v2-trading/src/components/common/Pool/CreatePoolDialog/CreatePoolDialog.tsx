@@ -14,7 +14,15 @@ import { Button } from "~/components/ui/button";
 import type { TokenData } from "~/types";
 
 import { PoolData, PoolMintData, CreatePoolState } from "./types";
-import { CreatePoolForm, CreatePoolSuccess, CreatePoolToken, CreatePoolLoading, CreatePoolQuote } from "./components";
+import {
+  CreatePoolForm,
+  CreatePoolSuccess,
+  CreatePoolToken,
+  CreatePoolLoading,
+  CreatePoolQuote,
+  CreatePoolConfigure,
+  CreatePoolReview,
+} from "./components";
 
 type CreatePoolDialogProps = {
   trigger?: React.ReactNode;
@@ -56,6 +64,7 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
           symbol: tokenInfo.symbol,
           icon: tokenInfo.imageUrl,
           decimals: tokenInfo.decimals,
+          price: tokenInfo.price,
         };
 
         setIsSearchingToken(false);
@@ -156,6 +165,18 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
               setCreatePoolState={setCreatePoolState}
               reset={reset}
             />
+          )}
+
+          {createPoolState === CreatePoolState.CONFIGURE && (
+            <CreatePoolConfigure
+              poolData={poolData}
+              setPoolData={setPoolData}
+              setCreatePoolState={setCreatePoolState}
+            />
+          )}
+
+          {createPoolState === CreatePoolState.REVIEW && (
+            <CreatePoolReview poolData={poolData} setCreatePoolState={setCreatePoolState} />
           )}
 
           {createPoolState === CreatePoolState.LOADING && (

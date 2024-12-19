@@ -9,7 +9,13 @@ import {
   Signer,
 } from "@solana/web3.js";
 
-import { BankConfigOpt, MarginfiClient, OracleSetup, getConfig } from "@mrgnlabs/marginfi-client-v2";
+import {
+  BankConfigOpt,
+  MarginfiClient,
+  OracleSetup,
+  getConfig,
+  simulateTransactions,
+} from "@mrgnlabs/marginfi-client-v2";
 import { cn, getBearerToken, getFeeAccount, createReferalTokenAccount } from "@mrgnlabs/mrgn-utils";
 import { addTransactionMetadata, SolanaTransaction } from "@mrgnlabs/mrgn-common";
 
@@ -81,6 +87,7 @@ export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }:
     async (tokenMint: PublicKey, symbol: string) => {
       try {
         const oracleCreation = await createOracleIx(tokenMint, symbol, connection, wallet);
+
         return oracleCreation;
       } catch (error) {
         setStatus("error");
@@ -134,23 +141,26 @@ export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }:
         pullFeedIx: TransactionInstruction;
         feedSeed: Keypair;
       }[] = [];
+      const updatedTokenBankConfig = { ...tokenBankConfig };
+      const updatedQuoteBankConfig = { ...quoteBankConfig };
 
-      if (tokenBankConfig.oracle?.keys.length === 0) {
+      console.log("tokenBankConfig", tokenBankConfig);
+      if (updatedTokenBankConfig.oracle?.keys.length === 0) {
         const oracleCreationToken = await initializeOracle(tokenMint, tokenSymbol);
         if (!oracleCreationToken) throw new Error("Oracle creation failed");
 
-        tokenBankConfig.oracle = {
+        updatedTokenBankConfig.oracle = {
           setup: OracleSetup.SwitchboardV2,
           keys: [oracleCreationToken.feedPubkey],
         };
         pullFeedIx.push(oracleCreationToken);
       }
 
-      if (quoteBankConfig.oracle?.keys.length === 0) {
+      if (updatedQuoteBankConfig.oracle?.keys.length === 0) {
         const oracleCreationQuote = await initializeOracle(quoteMint, quoteSymbol);
         if (!oracleCreationQuote) throw new Error("Oracle creation failed");
 
-        quoteBankConfig.oracle = {
+        updatedQuoteBankConfig.oracle = {
           setup: OracleSetup.SwitchboardV2,
           keys: [oracleCreationQuote.feedPubkey],
         };
@@ -166,7 +176,7 @@ export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }:
         client.program,
         seeds.stableBankSeed.publicKey,
         quoteMint,
-        quoteBankConfig,
+        updatedQuoteBankConfig,
         {
           admin: wallet.publicKey,
           groupAddress: seeds.marginfiGroupSeed.publicKey,
@@ -178,7 +188,7 @@ export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }:
         client.program,
         seeds.tokenBankSeed.publicKey,
         tokenMint,
-        tokenBankConfig,
+        updatedTokenBankConfig,
         {
           admin: wallet.publicKey,
           groupAddress: seeds.marginfiGroupSeed.publicKey,
@@ -186,7 +196,10 @@ export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }:
       );
 
       // create lut ix
-      const oracleKeys = [...(tokenBankConfig.oracle?.keys ?? []), ...(quoteBankConfig.oracle?.keys ?? [])];
+      const oracleKeys = [
+        ...(updatedTokenBankConfig.oracle?.keys ?? []),
+        ...(updatedQuoteBankConfig.oracle?.keys ?? []),
+      ];
       const bankKeys = [seeds.stableBankSeed.publicKey, seeds.tokenBankSeed.publicKey];
       const { lutAddress, createLutIx, extendLutIx } = await createPoolLookupTable({
         client,
@@ -210,43 +223,62 @@ export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }:
         value: { blockhash },
       } = await connection.getLatestBlockhashAndContext();
 
+      console.log("pullFeedIx", pullFeedIx);
+
       // bundle tip & create oracle transaction
       pullFeedIx.forEach((ix) => {
         transactions.push(createTransaction([ix.pullFeedIx], wallet.publicKey, [ix.feedSeed], blockhash));
       });
 
       // create lut & create group transaction
-      transactions.push(
-        createTransaction(
-          [createLutIx, extendLutIx, ...groupIxWrapped.instructions],
-          wallet.publicKey,
-          [seeds.marginfiGroupSeed],
-          blockhash
-        )
-      );
+      // transactions.push(
+      //   createTransaction(
+      //     [createLutIx, extendLutIx, ...groupIxWrapped.instructions],
+      //     wallet.publicKey,
+      //     [seeds.marginfiGroupSeed],
+      //     blockhash
+      //   )
+      // );
 
-      // create quote bank & referal token account transaction
-      transactions.push(
-        createTransaction(
-          [...stableBankIxWrapper.instructions, ...referralTokenAccountIxs],
-          wallet.publicKey,
-          [seeds.stableBankSeed, ...stableBankIxWrapper.keys],
-          blockhash
-        )
-      );
+      // create quote bank & referal token account transaction ...referralTokenAccountIxs
+      // transactions.push(
+      //   createTransaction(
+      //     [...stableBankIxWrapper.instructions],
+      //     wallet.publicKey,
+      //     [seeds.stableBankSeed, ...stableBankIxWrapper.keys],
+      //     blockhash
+      //   )
+      // );
 
       // create token bank transaction
-      transactions.push(
-        createTransaction(
-          [...tokenBankIxWrapper.instructions],
-          wallet.publicKey,
-          [seeds.tokenBankSeed, ...tokenBankIxWrapper.keys],
-          blockhash
-        )
-      );
+      // transactions.push(
+      //   createTransaction(
+      //     [...tokenBankIxWrapper.instructions],
+      //     wallet.publicKey,
+      //     [seeds.tokenBankSeed, ...tokenBankIxWrapper.keys],
+      //     blockhash
+      //   )
+      // );
+
+      for (const [idx, tx] of transactions.entries()) {
+        console.log("checking tx", idx);
+        const serializedTx = tx.serialize();
+        console.log("serializedTx", serializedTx);
+      }
 
       setActiveStep(2);
 
+      const simulationResult = await simulateTransactions(
+        {},
+        connection,
+        transactions,
+        {},
+        {
+          feePayer: wallet.publicKey,
+          blockhash,
+        }
+      );
+      console.log("simulationResult", simulationResult);
       // transaction execution
       const sigs = await client.processTransactions(transactions, { broadcastType: "BUNDLE" });
 
