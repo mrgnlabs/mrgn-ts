@@ -28,7 +28,13 @@ interface PreviousTxnPositionClosed {
   txn: string;
   txnType: "CLOSE_POSITION";
   positionClosedOptions: {
-    pool: ArenaPoolV2Extended;
+    tokenBank: ExtendedBankInfo;
+    collateralBank: ExtendedBankInfo;
+    size: number;
+    leverage: number;
+    entryPrice: number;
+    exitPrice: number;
+    pnl: number;
   };
 }
 
