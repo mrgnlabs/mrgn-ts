@@ -37,6 +37,7 @@ type PositionActionButtonsProps = {
   accountSummary: AccountSummary;
   client: MarginfiClient | null;
   selectedAccount: MarginfiAccountWrapper | null;
+  className?: string;
 };
 
 export const PositionActionButtons = ({
@@ -45,6 +46,7 @@ export const PositionActionButtons = ({
   accountSummary,
   client,
   selectedAccount,
+  className,
 }: PositionActionButtonsProps) => {
   const { connection } = useConnection();
   const { wallet, connected } = useWallet();
@@ -238,7 +240,7 @@ export const PositionActionButtons = ({
       showActionComplete={false}
       hidePoolStats={["type"]}
     >
-      <div className="flex gap-3 w-full">
+      <div className={cn("flex gap-3 w-full", className)}>
         <ActionBox.Lend
           isDialog={true}
           useProvider={true}

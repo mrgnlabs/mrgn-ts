@@ -168,8 +168,8 @@ export const PositionCard = ({ size = "lg", arenaPool }: PositionCardProps) => {
           </dd>
         </dl>
       </div>
-      <div className="flex items-center justify-between gap-4">
-        <div className="w-full mr-auto">
+      <div className="flex flex-col-reverse md:flex-row items-center justify-center md:justify-between gap-4">
+        <div className="w-full flex items-center justify-center md:inline-block md:mr-auto">
           <SharePosition pool={arenaPool} />
         </div>
         {client && accountSummary && (
@@ -179,6 +179,7 @@ export const PositionCard = ({ size = "lg", arenaPool }: PositionCardProps) => {
             accountSummary={accountSummary}
             client={client}
             selectedAccount={wrappedAccount}
+            className="justify-center md:justify-start"
           />
         )}
       </div>
