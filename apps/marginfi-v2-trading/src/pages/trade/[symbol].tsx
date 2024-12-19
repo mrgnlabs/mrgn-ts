@@ -6,7 +6,6 @@ import { useTradeStoreV2, useUiStore } from "~/store";
 import { useActionBoxStore } from "~/components/action-box-v2/store";
 import { useIsMobile } from "~/hooks/use-is-mobile";
 
-import { ActionComplete } from "~/components/action-complete";
 import { TVWidget } from "~/components/common/TVWidget";
 import { PositionList } from "~/components/common/Portfolio";
 import { PoolTradeHeader } from "~/components/common/Pool/PoolTradeHeader";
@@ -16,6 +15,7 @@ import { GetStaticPaths, GetStaticProps } from "next";
 import { StaticArenaProps, getArenaStaticProps } from "~/utils";
 import { TradeBoxV2 } from "~/components/common/trade-box-v2";
 import { ArenaPoolV2 } from "~/types/trade-store.types";
+import { ArenaActionComplete } from "~/components/common/ActionComplete";
 
 export const getStaticPaths: GetStaticPaths = async () => {
   return {
@@ -104,13 +104,7 @@ export default function TradeSymbolPage({ initialData }: StaticArenaProps) {
         )}
       </div>
 
-      {initialized && previousTxn && (
-        <ActionComplete
-          isActionComplete={isActionComplete}
-          setIsActionComplete={setIsActionComplete}
-          previousTxn={previousTxn}
-        />
-      )}
+      {initialized && previousTxn && <ArenaActionComplete />}
     </>
   );
 }

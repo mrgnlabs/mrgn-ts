@@ -139,6 +139,11 @@ export class MultiStepToastHandle {
       autoClose: false,
     });
   }
+
+  getCurrentLabel(): string {
+    const currentStep = this._stepsWithStatus[this._stepIndex];
+    return Array.isArray(currentStep?.label) ? currentStep?.label[0] : currentStep?.label;
+  }
 }
 
 export function showErrorToast(msgOrOptions: string | { message: string; description?: string; code?: number }) {
