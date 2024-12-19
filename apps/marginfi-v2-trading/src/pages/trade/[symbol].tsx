@@ -7,7 +7,6 @@ import { useActionBoxStore } from "~/components/action-box-v2/store";
 import { useIsMobile } from "~/hooks/use-is-mobile";
 
 import { ActionComplete } from "~/components/action-complete";
-import { ActionComplete as ActionCompleteUi } from "~/components/common/ActionComplete";
 import { TVWidget } from "~/components/common/TVWidget";
 import { PositionList } from "~/components/common/Portfolio";
 import { PoolTradeHeader } from "~/components/common/Pool/PoolTradeHeader";
@@ -112,7 +111,6 @@ export default function TradeSymbolPage({ initialData }: StaticArenaProps) {
           previousTxn={previousTxn}
         />
       )}
-      {initialized && previousTxnUi && <ActionCompleteUi />}
     </>
   );
 }
