@@ -91,7 +91,6 @@ export async function generateTradeTx(props: CalculateLoopingProps): Promise<Tra
       swapTx = await createSwapTx(
         props,
         {
-          platformFeeBps: props.platformFeeBps ?? 0,
           slippageBps: props.slippageBps ?? 0,
         },
         props.marginfiClient.wallet.publicKey,
@@ -173,7 +172,7 @@ export async function generateTradeTx(props: CalculateLoopingProps): Promise<Tra
 
 export async function createSwapTx(
   props: CalculateLoopingProps,
-  jupOpts: { platformFeeBps: number; slippageBps: number },
+  jupOpts: { slippageBps: number },
   feepayer: PublicKey,
   connection: Connection
 ): Promise<{ quote?: QuoteResponse; tx?: VersionedTransaction; error?: ActionMessageType }> {
@@ -185,7 +184,6 @@ export async function createSwapTx(
       amount: uiToNative(props.depositAmount, 6).toNumber(),
       inputMint: USDC_MINT.toBase58(),
       outputMint: props.depositBank.info.state.mint.toBase58(),
-      platformFeeBps: jupOpts.platformFeeBps,
       slippageBps: jupOpts.slippageBps,
     });
 

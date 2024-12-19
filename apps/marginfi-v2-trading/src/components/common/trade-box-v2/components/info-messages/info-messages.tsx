@@ -10,27 +10,21 @@ import { ArenaPoolV2Extended } from "~/types/trade-store.types";
 
 interface InfoMessagesProps {
   connected: boolean;
-  tradeState: string;
-  activePool: ArenaPoolV2Extended;
   actionMethods: ActionMessageType[];
   setIsWalletOpen: (value: boolean) => void;
   refreshStore: () => Promise<void>;
   refreshSimulation: () => void;
-  connection: any;
-  wallet: any;
   isRetrying?: boolean;
   usdcBalance: number;
 }
 
 export const InfoMessages = ({
   connected,
-  tradeState,
-  activePool,
+
   actionMethods = [],
   setIsWalletOpen,
   refreshStore,
-  connection,
-  wallet,
+
   refreshSimulation,
   isRetrying,
   usdcBalance,
@@ -56,16 +50,6 @@ export const InfoMessages = ({
       </div>
     </div>
   );
-
-  // const renderLongWarning = () =>
-  //   renderWarning(`You need to hold ${activePool?.tokenBank.meta.tokenSymbol} to open a long position.`, () =>
-  //     setIsWalletOpen(true)
-  //   );
-
-  // const renderShortWarning = () =>
-  //   renderWarning(`You need to hold ${activePool?.quoteBank.meta.tokenSymbol} to open a short position.`, () =>
-  //     setIsWalletOpen(true)
-  //   );
 
   const renderUSDCWarning = () =>
     renderWarning(`You need to hold USDC to open a position.`, () => setIsWalletOpen(true));
@@ -156,25 +140,6 @@ export const InfoMessages = ({
       )}
     </div>
   );
-
-  // const renderDepositCollateralDialog = () => (
-  //   <ActionBox.Lend
-  //     isDialog
-  //     useProvider
-  //     lendProps={{
-  //       connected,
-  //       requestedLendType: ActionType.Deposit,
-  //       requestedBank: activePool.quoteBank,
-  //       showAvailableCollateral: false,
-  //       captureEvent: () => console.log("Deposit Collateral"),
-  //       onComplete: () => refreshStore(),
-  //     }}
-  //     dialogProps={{
-  //       trigger: <Button className="w-full">Deposit Collateral</Button>,
-  //       title: `Supply ${activePool.quoteBank.meta.tokenSymbol}`,
-  //     }}
-  //   />
-  // );
 
   const renderContent = () => {
     if (!connected) return null;
