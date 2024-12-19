@@ -9,7 +9,6 @@ import { Loader } from "~/components/ui/loader";
 import { Label } from "~/components/ui/label";
 
 import type { PoolData } from "../types";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
 
 type CreatePoolFormProps = {
   isTokenFetchingError: boolean;
@@ -106,7 +105,7 @@ export const CreatePoolForm = ({ isTokenFetchingError, poolData, setCreatePoolSt
           className="flex justify-center items-center px-20 mx-auto"
           type="button"
           onClick={() => {
-            setCreatePoolState(CreatePoolState.LOADING);
+            setCreatePoolState(CreatePoolState.CONFIGURE);
           }}
         >
           Configure Pool
