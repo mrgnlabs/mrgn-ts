@@ -18,6 +18,7 @@ import { GetStaticProps } from "next";
 import { StaticArenaProps, getArenaStaticProps } from "~/utils";
 import { ArenaActionComplete } from "~/components/common/ActionComplete";
 import { Skeleton } from "~/components/ui/skeleton";
+import { PnlBadge, PnlLabel } from "~/components/common/pnl-display";
 
 export const getStaticProps: GetStaticProps<StaticArenaProps> = async (context) => {
   return getArenaStaticProps(context);
@@ -102,12 +103,25 @@ export default function PortfolioPage({ initialData }: StaticArenaProps) {
                   )}
                 >
                   <StatBlock label="Portfolio Size" value={`$${dynamicNumeralFormatter(portfolioSize)}`} />
-                  <StatBlock
-                    label="Portfolio PnL"
-                    value={`${portfolioPnl > 0 ? "+" : ""}$${dynamicNumeralFormatter(portfolioPnl)}`}
-                    valueNum={portfolioPnl}
-                    isLoading={!portfolioPnl}
-                  />
+                  <Card>
+                    <CardHeader className="p-4 md:p-6 pb-0 md:pb-0">
+                      <CardTitle className="text-base text-muted-foreground font-normal">Portfolio PnL</CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-4 pt-2 md:p-6 md:pt-2">
+                      {!portfolioPnl ? (
+                        <Skeleton className="h-8 w-3/4" />
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <PnlLabel pnl={portfolioPnl} positionSize={portfolioSize} className="text-xl md:text-3xl" />
+                          <PnlBadge
+                            pnl={portfolioPnl}
+                            positionSize={portfolioSize}
+                            className="text-[10px] md:text-sm"
+                          />
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
                   {portfolioCombined && portfolioCombined.length > 0 && (
                     <div className="col-span-2 md:col-span-1">
                       <StatBlock
@@ -177,32 +191,18 @@ type StatProps = {
   label: JSX.Element | string;
   value: JSX.Element | string;
   subValue?: JSX.Element | string;
-  valueNum?: number;
-  isLoading?: boolean;
 };
 
-const StatBlock = ({ label, value, subValue, valueNum, isLoading }: StatProps) => (
+const StatBlock = ({ label, value, subValue }: StatProps) => (
   <Card>
     <CardHeader className="p-4 md:p-6 pb-0 md:pb-0">
       <CardTitle className="text-base text-muted-foreground font-normal">{label}</CardTitle>
     </CardHeader>
     <CardContent className="p-4 pt-2 md:p-6 md:pt-2">
-      {isLoading ? (
-        <Skeleton className="h-8 w-3/4" />
-      ) : (
-        <div className="text-xl md:text-3xl">
-          <span
-            className={cn(
-              "text-muted-foreground",
-              valueNum && valueNum > 0 && "text-mrgn-success",
-              valueNum && valueNum < 0 && "text-mrgn-error"
-            )}
-          >
-            {value}
-          </span>{" "}
-          {subValue && <span className="text-lg text-muted-foreground">{subValue}</span>}
-        </div>
-      )}
+      <div className="text-xl md:text-3xl">
+        <span className="text-muted-foreground">{value}</span>{" "}
+        {subValue && <span className="text-lg text-muted-foreground">{subValue}</span>}
+      </div>
     </CardContent>
   </Card>
 );
