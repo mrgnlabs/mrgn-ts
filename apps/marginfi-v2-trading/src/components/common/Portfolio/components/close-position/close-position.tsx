@@ -1,18 +1,26 @@
 import React from "react";
 
 import { IconX } from "@tabler/icons-react";
-import { Button } from "~/components/ui/button";
-import { ClosePositionDialog } from "./components/close-position-dialog";
-import { ClosePositionActionTxns, extractErrorString, MultiStepToastHandle } from "@mrgnlabs/mrgn-utils";
-import { ArenaBank, ArenaPoolPositions, ArenaPoolV2Extended } from "~/types/trade-store.types";
-import { ActionMessageType, cn } from "@mrgnlabs/mrgn-utils";
+import {
+  capture,
+  ClosePositionActionTxns,
+  composeExplorerUrl,
+  extractErrorString,
+  MultiStepToastHandle,
+} from "@mrgnlabs/mrgn-utils";
 import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+
+import { Button } from "~/components/ui/button";
+import { ArenaBank, ArenaPoolPositions, ArenaPoolV2Extended } from "~/types/trade-store.types";
 import { useWrappedAccount } from "~/hooks/useWrappedAccount";
 import { useMarginfiClient } from "~/hooks/useMarginfiClient";
-import { closePositionAction, fetchTransactionsAction } from "./utils/close-position-utils";
 import { useConnection } from "~/hooks/use-connection";
-import { useUiStore } from "~/store";
-
+import { useTradeStoreV2, useUiStore } from "~/store";
+import { useWallet } from "~/components/wallet-v2/hooks";
+import { useLeveragedPositionDetails } from "~/hooks/arenaHooks";
+import { usePositionsData } from "~/hooks/usePositionsData";
+import { ClosePositionDialog } from "./components/close-position-dialog";
+import { closePositionAction, fetchTransactionsAction } from "./utils/close-position-utils";
 interface ClosePositionProps {
   arenaPool: ArenaPoolV2Extended;
   positionsByGroupPk: Record<string, ArenaPoolPositions>;
@@ -33,13 +41,22 @@ export const ClosePosition = ({ arenaPool, positionsByGroupPk, depositBanks, bor
     banks: [arenaPool.tokenBank, arenaPool.quoteBank],
   });
   const { connection } = useConnection();
-
-  const [slippageBps, platformFeeBps, broadcastType, priorityFees] = useUiStore((state) => [
-    state.slippageBps,
-    state.platformFeeBps,
-    state.broadcastType,
-    state.priorityFees,
-  ]);
+  const { wallet } = useWallet();
+  const [slippageBps, platformFeeBps, broadcastType, priorityFees, setIsActionComplete, setPreviousTxn] = useUiStore(
+    (state) => [
+      state.slippageBps,
+      state.platformFeeBps,
+      state.broadcastType,
+      state.priorityFees,
+      state.setIsActionComplete,
+      state.setPreviousTxn,
+    ]
+  );
+  const [refreshGroup] = useTradeStoreV2((state) => [state.refreshGroup]);
+  const { positionSizeUsd, leverage } = useLeveragedPositionDetails({
+    pool: arenaPool,
+  });
+  const positionData = usePositionsData({ groupPk: arenaPool.groupPk });
 
   const handleSimulation = React.useCallback(async () => {
     if (!wrappedAccount || !connection) {
@@ -65,7 +82,6 @@ export const ClosePosition = ({ arenaPool, positionsByGroupPk, depositBanks, bor
         connection: connection,
         platformFeeBps: platformFeeBps,
         setIsLoading,
-        setMultiStepToast,
       });
 
       if (actionMessage || actionTxns === null) {
@@ -88,10 +104,47 @@ export const ClosePosition = ({ arenaPool, positionsByGroupPk, depositBanks, bor
     }
   }, [wrappedAccount, connection, depositBanks, borrowBank, slippageBps, platformFeeBps]);
 
+  const handleCompleteAction = React.useCallback(
+    (txnSig: string, pnl: number, entryPrice: number) => {
+      setIsOpen(false);
+      refreshGroup({
+        groupPk: arenaPool.groupPk,
+        banks: [arenaPool.tokenBank.address, arenaPool.quoteBank.address],
+        connection,
+        wallet,
+      });
+      setIsActionComplete(true);
+      setIsActionComplete(true);
+      setPreviousTxn({
+        txnType: "CLOSE_POSITION",
+        txn: Array.isArray(txnSig) ? txnSig[txnSig.length - 1] : txnSig!,
+        positionClosedOptions: {
+          tokenBank: arenaPool.tokenBank,
+          size: positionSizeUsd,
+          leverage: Number(leverage),
+          entryPrice: entryPrice,
+          exitPrice: arenaPool.tokenBank.info.oraclePrice.priceRealtime.price.toNumber(),
+          pnl: pnl,
+          pool: arenaPool,
+        },
+      });
+      capture("close_position", {
+        group: arenaPool.groupPk?.toBase58(),
+        txnSig: txnSig,
+        token: arenaPool.tokenBank.meta.tokenSymbol,
+        tokenSize: arenaPool.tokenBank.isActive ? arenaPool.tokenBank.position.amount : 0,
+        usdcSize: arenaPool.quoteBank.isActive ? arenaPool.quoteBank.position.amount : 0,
+      });
+    },
+    [refreshGroup, arenaPool, connection, wallet, setIsActionComplete, setPreviousTxn, positionSizeUsd, leverage] // TODO: eslint
+  );
   const handleClosePosition = React.useCallback(async () => {
     if (!actionTxns || !client || !multiStepToast || !wrappedAccount) {
       return;
     }
+    const pnl = positionData && positionData.pnl ? positionData.pnl : 0;
+    const entryPrice = positionData && positionData.entryPrice ? positionData.entryPrice : 0;
+
     multiStepToast.resume();
 
     try {
@@ -100,6 +153,7 @@ export const ClosePosition = ({ arenaPool, positionsByGroupPk, depositBanks, bor
         actionTransaction: actionTxns,
         broadcastType: broadcastType,
         priorityFees: priorityFees,
+        multiStepToast: multiStepToast,
       });
 
       if (actionMessage || !txnSig) {
@@ -107,13 +161,23 @@ export const ClosePosition = ({ arenaPool, positionsByGroupPk, depositBanks, bor
         return;
       }
 
-      multiStepToast.setSuccessAndNext();
+      multiStepToast.setSuccess(txnSig, composeExplorerUrl(txnSig, broadcastType));
+      handleCompleteAction(txnSig, pnl, entryPrice);
     } catch (error) {
       console.error("Error closing position", error);
       const msg = extractErrorString(error);
       multiStepToast.setFailed(msg ?? "Error closing position");
     }
-  }, [actionTxns, client, multiStepToast, wrappedAccount, broadcastType, priorityFees]);
+  }, [
+    actionTxns,
+    client,
+    multiStepToast,
+    wrappedAccount,
+    positionData,
+    broadcastType,
+    priorityFees,
+    handleCompleteAction,
+  ]); // TODO: eslint
 
   const handleChangeDialogState = (open: boolean) => {
     setIsOpen(open);
@@ -136,6 +200,7 @@ export const ClosePosition = ({ arenaPool, positionsByGroupPk, depositBanks, bor
         onOpenChange={handleChangeDialogState}
         handleClosePosition={handleClosePosition}
         isLoading={isLoading}
+        pnl={positionData?.pnl ?? 0}
       />
     </>
   );
