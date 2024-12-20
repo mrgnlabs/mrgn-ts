@@ -1,6 +1,7 @@
 import { createJupiterApiClient, QuoteResponse } from "@jup-ag/api";
-import { MarginfiAccountWrapper, MarginfiClient, PriorityFees } from "@mrgnlabs/marginfi-client-v2";
+import { Connection, PublicKey, TransactionMessage, VersionedTransaction } from "@solana/web3.js";
 
+import { MarginfiAccountWrapper, MarginfiClient, PriorityFees } from "@mrgnlabs/marginfi-client-v2";
 import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import {
   addTransactionMetadata,
@@ -10,11 +11,11 @@ import {
   uiToNative,
   USDC_MINT,
 } from "@mrgnlabs/mrgn-common";
-
 import {
   ActionMessageType,
   calculateMaxRepayableCollateral,
   ClosePositionActionTxns,
+  composeExplorerUrl,
   deserializeInstruction,
   DYNAMIC_SIMULATION_ERRORS,
   getAdressLookupTableAccounts,
@@ -22,7 +23,6 @@ import {
   MultiStepToastHandle,
   STATIC_SIMULATION_ERRORS,
 } from "@mrgnlabs/mrgn-utils";
-import { Connection, PublicKey, TransactionMessage, VersionedTransaction } from "@solana/web3.js";
 import { calculateClosePositions } from "~/utils";
 
 export const fetchTransactionsAction = async ({
@@ -33,7 +33,6 @@ export const fetchTransactionsAction = async ({
   connection,
   platformFeeBps,
   setIsLoading,
-  setMultiStepToast,
 }: {
   marginfiAccount: MarginfiAccountWrapper;
   depositBanks: ActiveBankInfo[];
@@ -42,11 +41,10 @@ export const fetchTransactionsAction = async ({
   connection: Connection;
   platformFeeBps: number;
   setIsLoading: (loading: boolean) => void;
-  setMultiStepToast: (toast: MultiStepToastHandle) => void;
 }): Promise<{ actionTxns: ClosePositionActionTxns | null; actionMessage: ActionMessageType | null }> => {
   try {
     if (!marginfiAccount || !depositBanks[0] || !borrowBank) {
-      throw new Error("Invalid input"); // TODO: handle
+      return { actionTxns: null, actionMessage: STATIC_SIMULATION_ERRORS.TRADE_FAILED };
     }
 
     setIsLoading(true);
@@ -110,15 +108,13 @@ const fetchClosePositionTxns = async (props: {
           props.depositBanks[0],
           amount,
           {
-            slippageBps: props.slippageBps, // TODO: do we want to take platform fee here?
+            slippageBps: props.slippageBps,
           },
-          props.marginfiAccount.authority, // Is this correct
+          props.marginfiAccount.authority,
           props.connection
         );
 
-        console.log("swapTx", swapTx);
         if (swapTx.error) {
-          console.error("USDC swap transaction error:", swapTx.error);
           return { actionTxns: null, actionMessage: swapTx.error };
         } else {
           if (!swapTx.tx || !swapTx.quote) {
@@ -133,13 +129,6 @@ const fetchClosePositionTxns = async (props: {
 
     if ("actionTxn" in txns) {
       if (swapTx?.tx && swapTx?.quote) {
-        console.log({
-          actionTxns: {
-            ...txns,
-            closeTransactions: swapTx.tx ? [swapTx.tx] : [],
-          },
-          actionMessage: null,
-        });
         return {
           actionTxns: {
             ...txns,
@@ -179,8 +168,6 @@ async function createSwapTx(
       inputMint: depositBank.info.state.mint.toBase58(),
       slippageBps: jupOpts.slippageBps,
     });
-
-    console.log("swapQuote", swapQuote);
 
     if (!swapQuote) {
       return { error: STATIC_SIMULATION_ERRORS.FL_FAILED };
@@ -232,21 +219,17 @@ export const closePositionAction = async ({
   actionTransaction,
   broadcastType,
   priorityFees,
+  multiStepToast,
 }: {
   marginfiClient: MarginfiClient;
   actionTransaction: ClosePositionActionTxns;
   broadcastType: TransactionBroadcastType;
   priorityFees: PriorityFees;
+  multiStepToast: MultiStepToastHandle;
 }): Promise<{ txnSig: string | null; actionMessage: ActionMessageType | null }> => {
   if (!actionTransaction.actionTxn) {
     return { txnSig: null, actionMessage: STATIC_SIMULATION_ERRORS.TRADE_FAILED };
   }
-
-  console.log("actionTransaction", [
-    ...actionTransaction.additionalTxns,
-    actionTransaction.actionTxn,
-    ...(actionTransaction.closeTransactions ? actionTransaction.closeTransactions : []),
-  ]);
 
   try {
     const txnSig = await marginfiClient.processTransactions(
@@ -258,8 +241,14 @@ export const closePositionAction = async ({
       {
         broadcastType: broadcastType,
         ...priorityFees,
+        callback(index, success, sig, stepsToAdvance) {
+          const currentLabel = multiStepToast?.getCurrentLabel();
+          if (success && currentLabel === "Signing transaction") {
+            multiStepToast.setSuccessAndNext(1, sig, composeExplorerUrl(sig, broadcastType));
+          }
+        },
       }
-    ); // TODO: pass toast success call
+    );
 
     if (txnSig) {
       return { txnSig: Array.isArray(txnSig) ? txnSig[txnSig.length - 1] : txnSig, actionMessage: null };
