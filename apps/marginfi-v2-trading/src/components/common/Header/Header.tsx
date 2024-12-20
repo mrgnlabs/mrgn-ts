@@ -168,7 +168,7 @@ export const Header = () => {
               maxCapType={maxCapType}
               slippageProps={{
                 slippageBps: slippageBps / 100,
-                setSlippageBps,
+                setSlippageBps: (value) => setSlippageBps(value * 100),
                 slippageOptions: [
                   {
                     label: "Low",
