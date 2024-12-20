@@ -16,14 +16,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
 
+    const jwtToken = response.headers.get("Authorization");
+
     if (!response.ok) {
       return res.status(response.status).json({ error: "Failed to authenticate" });
     }
 
-    const data = await response.json();
-    const token = data.jwt;
-
-    res.status(200).json({ token });
+    const data = await response.text();
+    res.status(200).json({ token: data });
   } catch (error) {
     res.status(500).json({ error: "Internal Server Error" });
   }
