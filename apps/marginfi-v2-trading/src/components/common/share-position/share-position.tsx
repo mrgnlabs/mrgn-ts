@@ -1,8 +1,7 @@
 import React from "react";
 
-import Image from "next/image";
-
 import { IconCheck, IconCopy, IconDownload, IconShare } from "@tabler/icons-react";
+import { PublicKey } from "@solana/web3.js";
 import { dynamicNumeralFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 import { cn, useIsMobile } from "@mrgnlabs/mrgn-utils";
 
@@ -42,7 +41,7 @@ const SharePosition = ({ pool, triggerVariant = "ghost", triggerClassName, onOpe
   const [shareType, setShareType] = React.useState<"$" | "%">("%");
   const cardRef = React.useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
-  const positionData = usePositionsData({ groupPk: pool.groupPk });
+  const positionData = usePositionsData({ groupPk: pool?.groupPk || PublicKey.default });
   const { positionSizeUsd, leverage } = useLeveragedPositionDetails({ pool });
 
   const handleCopyImage = async () => {

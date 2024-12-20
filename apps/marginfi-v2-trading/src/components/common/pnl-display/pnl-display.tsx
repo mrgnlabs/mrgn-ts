@@ -50,7 +50,7 @@ export const PnlDisplay = ({ pool, onDialogOpenChange }: PnlDisplayProps) => {
         </div>
       </CardContent>
       <CardFooter className="flex flex-row items-center justify-center gap-8 px-4 py-2 ">
-        <SharePosition pool={pool} onOpenChange={onDialogOpenChange} />
+        {pool && <SharePosition pool={pool} onOpenChange={onDialogOpenChange} />}
       </CardFooter>
     </Card>
   );

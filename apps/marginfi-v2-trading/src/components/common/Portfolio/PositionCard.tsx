@@ -174,7 +174,7 @@ export const PositionCard = ({ size = "lg", arenaPool }: PositionCardProps) => {
       </div>
       <div className="flex flex-col-reverse md:flex-row items-center justify-center md:justify-between gap-4">
         <div className="w-full flex items-center justify-center md:inline-block md:mr-auto">
-          <SharePosition pool={arenaPool} />
+          {arenaPool && <SharePosition pool={arenaPool} />}
         </div>
         {client && accountSummary && (
           <PositionActionButtons
