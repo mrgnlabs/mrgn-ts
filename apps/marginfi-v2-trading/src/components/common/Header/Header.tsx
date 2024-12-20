@@ -42,8 +42,8 @@ export const Header = () => {
       state.fetchUserData,
       state.referralCode,
       state.banksByBankPk,
-    ]
-  );
+      state.groupsByGroupPk,
+    ]);
   const {
     priorityType,
     broadcastType,
