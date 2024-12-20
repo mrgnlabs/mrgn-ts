@@ -9,7 +9,6 @@ import { capture } from "@mrgnlabs/mrgn-utils";
 
 import { useTradeStoreV2 } from "~/store";
 import { TradePoolFilterStates } from "~/store/tradeStoreV2";
-import { useActionBoxStore } from "~/components/action-box-v2/store";
 import { useIsMobile } from "~/hooks/use-is-mobile";
 
 import { PageHeading } from "~/components/common/PageHeading";
@@ -55,12 +54,6 @@ export default function HomePage({ initialData }: StaticArenaProps) {
       state.setHydrationComplete,
     ]
   );
-
-  const [isActionComplete, previousTxn, setIsActionComplete] = useActionBoxStore((state) => [
-    state.isActionComplete,
-    state.previousTxn,
-    state.setIsActionComplete,
-  ]);
 
   React.useEffect(() => {
     if (initialData) {
@@ -238,7 +231,6 @@ export default function HomePage({ initialData }: StaticArenaProps) {
           </>
         )}
       </div>
-      {initialized && previousTxn && <ArenaActionComplete />}
     </>
   );
 }
