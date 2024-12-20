@@ -1,5 +1,4 @@
 import React from "react";
-import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { usePrevious } from "@mrgnlabs/mrgn-utils";
 
 import { ChartingLibraryFeatureset } from "../../../../public/tradingview";
@@ -210,7 +209,15 @@ export const TVWidget = ({ activePool }: props) => {
       });
     };
     container.current.appendChild(script);
-  }, [container, token, prevToken, positionData]);
+  }, [
+    container,
+    token,
+    prevToken,
+    positionData,
+    prevPositionData?.entryPrice,
+    quote.meta.tokenSymbol,
+    quote.info.state.mint,
+  ]);
 
   return <div id="tv_chart_container" ref={container} className="relative"></div>;
 };
