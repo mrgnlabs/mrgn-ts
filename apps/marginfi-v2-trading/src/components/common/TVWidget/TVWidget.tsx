@@ -197,11 +197,11 @@ export const TVWidget = ({ activePool }: props) => {
               shape: "horizontal_line",
               text: "Entry price",
               overrides: {
-                linecolor: "#6FE092",
+                linecolor: "#a4a4ac",
                 linestyle: 2,
                 linewidth: 2,
                 showLabel: true,
-                textcolor: "#6FE092",
+                textcolor: "#a4a4ac",
                 fontsize: 12,
               },
             }
