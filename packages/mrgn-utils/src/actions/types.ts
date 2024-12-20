@@ -83,6 +83,7 @@ export interface TradeActionTxns extends LoopActionTxns {
 export interface ClosePositionActionTxns extends ActionTxns {
   actionQuote: QuoteResponse | null;
   groupKey?: PublicKey;
+  closeTransactions?: SolanaTransaction[];
 }
 
 export interface RepayCollatActionTxns extends ActionTxns {

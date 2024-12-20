@@ -136,7 +136,7 @@ export async function calculateBorrowLendPositionParams({
   ...closePostionProps
 }: CalculateClosePositionProps): Promise<ClosePositionActionTxns | ActionMessageType> {
   let firstQuote;
-  const maxAccountsArr = [undefined, 50, 40, 30];
+  const maxAccountsArr = [40, 30];
 
   if (!closePostionProps.borrowBank.isActive) throw new Error("not active");
 
@@ -146,10 +146,11 @@ export async function calculateBorrowLendPositionParams({
     slippageBps
   );
 
+  console.log("DEBUG: maxAmount", maxAmount);
+
   if (!maxAmount) return STATIC_SIMULATION_ERRORS.CLOSE_POSITIONS_FL_FAILED;
 
   for (const maxAccounts of maxAccountsArr) {
-    const isTxnSplit = maxAccounts === 30;
     const quoteParams = {
       amount: uiToNative(maxAmount, closePostionProps.depositBank.info.state.mintDecimals).toNumber(),
       inputMint: closePostionProps.depositBank.info.state.mint.toBase58(),
@@ -475,6 +476,7 @@ export async function closePositionBuilder({
 
   const feeMint = quote.swapMode === "ExactIn" ? quote.outputMint : quote.inputMint;
   const feeAccount = getFeeAccount(new PublicKey(feeMint));
+
   if (!TOKEN_2022_MINTS.includes(feeMint)) {
     feeAccountInfo = await connection.getAccountInfo(new PublicKey(feeAccount));
   }
