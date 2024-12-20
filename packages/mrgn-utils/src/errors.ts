@@ -125,13 +125,13 @@ export const STATIC_SIMULATION_ERRORS: { [key: string]: ActionMessageType } = {
   },
   INSUFICIENT_LAMPORTS: {
     isEnabled: false,
-    actionMethod: "ERROR",
+    actionMethod: "WARNING",
     description: "You do not have enough SOL to execute the transaction",
     code: 119,
   },
   INSUFICIENT_FUNDS: {
     isEnabled: false,
-    actionMethod: "ERROR",
+    actionMethod: "WARNING",
     description: "You do not have available funds to execute this transaction.",
     code: 120,
   },
@@ -406,7 +406,8 @@ export const handleError = (
 
       if (
         error.message?.toLowerCase().includes("insufficient lamport") ||
-        error?.logs?.some((entry: string[]) => entry.includes("insufficient lamport"))
+        error?.logs?.some((entry: string[]) => entry.includes("insufficient lamport")) ||
+        checkErrorCodeMatch(error.message, 1)
       ) {
         return STATIC_SIMULATION_ERRORS.INSUFICIENT_LAMPORTS;
       }
