@@ -23,7 +23,7 @@ export const getSimulationResult = async (props: SimulateActionProps) => {
     simulationResult = await simulateFlashLoan(props);
   } catch (error: any) {
     const actionString = "Looping";
-    actionMethod = handleSimulationError(error, props.bank, false, actionString);
+    actionMethod = handleSimulationError(error, props.bank, true, actionString);
   }
 
   return { simulationResult, actionMethod };
