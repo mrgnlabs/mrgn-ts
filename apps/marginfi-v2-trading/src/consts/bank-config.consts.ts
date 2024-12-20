@@ -11,6 +11,8 @@ import BigNumber from "bignumber.js";
 /**
  * Bank Configurations for SOL and LST banks
  */
+
+// deprecated
 export const DEFAULT_LST_BANK_CONFIG: BankConfigOpt = {
   assetWeightInit: new BigNumber(0.65),
   assetWeightMaint: new BigNumber(0.8),
@@ -18,8 +20,8 @@ export const DEFAULT_LST_BANK_CONFIG: BankConfigOpt = {
   liabilityWeightInit: new BigNumber(1.3),
   liabilityWeightMaint: new BigNumber(1.2),
 
-  depositLimit: new BigNumber(0).multipliedBy(1e6), // ? / oracle price
-  borrowLimit: new BigNumber(0).multipliedBy(1e6), // ? / oracle price
+  depositLimit: new BigNumber(0).multipliedBy(1e6), // ? / oracle price infinite usd
+  borrowLimit: new BigNumber(0).multipliedBy(1e6), // ? / oracle price infinite usd
   riskTier: RiskTier.Collateral,
 
   totalAssetValueInitLimit: new BigNumber(0),
@@ -33,8 +35,8 @@ export const DEFAULT_LST_BANK_CONFIG: BankConfigOpt = {
     insuranceFeeFixedApr: new BigNumber(0),
     insuranceIrFee: new BigNumber(0),
     protocolFixedFeeApr: new BigNumber(0.01),
-    protocolIrFee: new BigNumber(0.3),
-    protocolOriginationFee: new BigNumber(0),
+    protocolIrFee: new BigNumber(0.3), // group fee 0 <-> 92.5% (25-50 damn) (50+ heyhey)
+    protocolOriginationFee: new BigNumber(0), // 0.5% - 10%
   },
   operationalState: OperationalState.Operational,
 
@@ -49,6 +51,7 @@ export const DEFAULT_LST_BANK_CONFIG: BankConfigOpt = {
 /**
  * Bank Configurations for stablecoin banks
  */
+// USDC, LST, USDT, SOL
 export const DEFAULT_STABLECOIN_BANK_CONFIG: BankConfigOpt = {
   assetWeightInit: new BigNumber(0.9),
   assetWeightMaint: new BigNumber(0.95),
@@ -80,8 +83,8 @@ export const DEFAULT_STABLECOIN_BANK_CONFIG: BankConfigOpt = {
     setup: OracleSetup.None,
     keys: [],
   },
-  oracleMaxAge: 600,
-  permissionlessBadDebtSettlement: null,
+  oracleMaxAge: 300, // 5 mins
+  permissionlessBadDebtSettlement: true,
 };
 
 /**
@@ -119,8 +122,8 @@ export const DEFAULT_TOKEN_BANK_CONFIG: BankConfigOpt = {
     setup: OracleSetup.None,
     keys: [],
   },
-  oracleMaxAge: 300,
-  permissionlessBadDebtSettlement: null,
+  oracleMaxAge: 60, // 1 mins
+  permissionlessBadDebtSettlement: true,
 };
 
 /**
@@ -151,8 +154,8 @@ export const PYTH_LST_ORACLE_CONFIG: BankConfigOpt["oracle"] = {
  * USD values used to calculate deposit and borrow limits
  */
 
-export const DEFAULT_DEPOSIT_LIMIT = 100_000;
-export const DEFAULT_BORROW_LIMIT = 25_000;
+export const DEFAULT_DEPOSIT_LIMIT = 100_000; //infinite
+export const DEFAULT_BORROW_LIMIT = 25_000; //infinite
 
 /**
  * ┌────────────────────────────--─────────────────┐
