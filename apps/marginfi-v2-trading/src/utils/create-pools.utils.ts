@@ -1,6 +1,7 @@
 import * as sb from "@switchboard-xyz/on-demand";
-import { CrossbarClient, decodeString } from "@switchboard-xyz/common";
 import * as anchor from "@coral-xyz/anchor";
+import { CrossbarClient, decodeString } from "@switchboard-xyz/common";
+
 import { Connection, PublicKey } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 
@@ -22,6 +23,7 @@ import {
   MULTIPLY_ORACLE_TASK,
   VALUE_TASK,
 } from "~/consts/oracle-config.consts";
+import { PoolOracleApiResponse } from "~/types/api.types";
 
 export const getBankConfig = (mint: PublicKey, price: number, decimals: number) => {
   let bankConfig: BankConfigOpt;
@@ -56,10 +58,16 @@ export const addLimitsToBankConfig = (bankConfig: BankConfigOpt, price: number, 
 
 export const createOracleIx = async (mint: PublicKey, symbol: string, connection: Connection, wallet: Wallet) => {
   // Initialize the on-demand program and generate a pull feed
-  const newConnection = new Connection("___ENDPOINT___", "confirmed");
 
   // Get the default queue
-  let queue = await sb.getDefaultQueue(newConnection.rpcEndpoint);
+  const response = await fetch("/api/pool/oracle");
+  const data: PoolOracleApiResponse = await response.json();
+  const { programIdl: programIdlString, programId, queueKey } = data;
+  const programIdl = JSON.parse(programIdlString);
+  const program = new anchor.Program(
+    programIdl,
+    new anchor.AnchorProvider(connection, wallet, anchor.AnchorProvider.defaultOptions())
+  );
 
   // Get the default crossbar server client
   const crossbarClient = CrossbarClient.default();
@@ -73,16 +81,16 @@ export const createOracleIx = async (mint: PublicKey, symbol: string, connection
   });
 
   // Store the oracle job and get the feed hash
-  const feedHash = (await crossbarClient.store(queue.pubkey.toBase58(), [oracleJob])).feedHash;
+  const feedHash = (await crossbarClient.store(queueKey, [oracleJob])).feedHash;
   const feedHashBuffer = decodeString(feedHash);
   if (!feedHashBuffer) return;
 
-  const [pullFeed, feedSeed] = sb.PullFeed.generate(queue.program);
+  const [pullFeed, feedSeed] = sb.PullFeed.generate(program);
 
   const conf = {
     ...DEFAULT_PULL_FEED_CONF,
     name: `${symbol}/USD`, // the feed name (max 32 bytes)
-    queue: queue.pubkey, // the queue of oracles to bind to
+    queue: new PublicKey(queueKey), // the queue of oracles to bind to
     feedHash: Buffer.from(feedHash.slice(2), "hex"),
     payer: wallet.publicKey,
   };
