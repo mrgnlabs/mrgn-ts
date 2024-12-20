@@ -2,7 +2,7 @@ import React from "react";
 import { IconArrowRight, IconLoader2 } from "@tabler/icons-react";
 import { PublicKey } from "@solana/web3.js";
 
-import { cn, getBearerToken } from "@mrgnlabs/mrgn-utils";
+import { cn } from "@mrgnlabs/mrgn-utils";
 
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
