@@ -103,10 +103,12 @@ const fetchClosePositionTxns = async (props: {
       if (!maxAmount) {
         return { actionTxns: null, actionMessage: STATIC_SIMULATION_ERRORS.FL_FAILED };
       }
+      const amount = props.depositBanks[0].position.amount - maxAmount;
+
       try {
         swapTx = await createSwapTx(
           props.depositBanks[0],
-          maxAmount,
+          amount,
           {
             slippageBps: props.slippageBps, // TODO: do we want to take platform fee here?
           },
@@ -257,7 +259,7 @@ export const closePositionAction = async ({
         broadcastType: broadcastType,
         ...priorityFees,
       }
-    );
+    ); // TODO: pass toast success call
 
     if (txnSig) {
       return { txnSig: Array.isArray(txnSig) ? txnSig[txnSig.length - 1] : txnSig, actionMessage: null };
