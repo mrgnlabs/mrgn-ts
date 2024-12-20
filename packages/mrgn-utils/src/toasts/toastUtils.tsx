@@ -43,6 +43,32 @@ export class MultiStepToastHandle {
     });
   }
 
+  pause() {
+    if (!this._toastId || !this._stepsWithStatus[this._stepIndex]) return;
+
+    // Set the current step to "todo"
+    this._stepsWithStatus[this._stepIndex].status = "paused";
+
+    // Update the toast
+    toast.update(this._toastId, {
+      render: () => <MultiStepToast title={this._title} steps={this._stepsWithStatus} />,
+      autoClose: false,
+    });
+  }
+
+  resume() {
+    if (!this._toastId || !this._stepsWithStatus[this._stepIndex]) return;
+
+    // Set the current step to "pending"
+    this._stepsWithStatus[this._stepIndex].status = "pending";
+
+    // Update the toast
+    toast.update(this._toastId, {
+      render: () => <MultiStepToast title={this._title} steps={this._stepsWithStatus} />,
+      autoClose: false,
+    });
+  }
+
   setSuccessAndNext(stepsToAdvance: number = 1, signature?: string, explorerUrl?: string) {
     if (!this._toastId) return;
 

@@ -30,6 +30,7 @@ import { QuoteResponse } from "@jup-ag/api";
 import { dynamicNumeralFormatter, percentFormatter } from "@mrgnlabs/mrgn-common";
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { ArenaPoolV2Extended } from "~/types/trade-store.types";
+import { ClosePosition } from "./components";
 import { PnlLabel, PnlBadge } from "~/components/common/pnl-display";
 
 type PositionActionButtonsProps = {
@@ -379,16 +380,12 @@ export const PositionActionButtons = ({
           />
         )}
 
-        <Button
-          onClick={() => closeTransaction()}
-          disabled={isClosing}
-          variant="destructive"
-          size="sm"
-          className={cn("gap-1 min-w-16", rightAlignLastButton && "ml-auto")}
-        >
-          <IconX size={14} />
-          Close
-        </Button>
+        <ClosePosition
+          arenaPool={arenaPool}
+          positionsByGroupPk={positionsByGroupPk}
+          depositBanks={depositBanks}
+          borrowBank={borrowBank}
+        />
 
         <Dialog open={!!actionTransaction} onOpenChange={() => onClose()}>
           <DialogContent className=" w-full">
