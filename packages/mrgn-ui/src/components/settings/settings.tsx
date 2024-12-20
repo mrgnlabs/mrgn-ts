@@ -122,9 +122,11 @@ export const Settings = ({ onChange, recommendedBroadcastType = "BUNDLE", ...pro
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           {/* Add this again if sequential transaction are more stabel */}
-          <div className="space-y-2">
-            <h3 className="font-normal ">Transaction Method</h3>
-            <p className="text-xs text-muted-foreground">Choose how transactions are broadcasted to the network.</p>
+          <div className="space-y-4">
+            <div className="space-y-0.5">
+              <h3 className="font-normal ">Transaction Method</h3>
+              <p className="text-xs text-muted-foreground">Choose how transactions are broadcasted to the network.</p>
+            </div>
             <FormField
               control={form.control}
               name="broadcastType"
@@ -168,8 +170,13 @@ export const Settings = ({ onChange, recommendedBroadcastType = "BUNDLE", ...pro
               )}
             />
           </div>
-          <div className="space-y-2">
-            <h3 className="font-normal ">Transaction Priority</h3>
+          <div className="space-y-4">
+            <div className="space-y-0.5">
+              <h3 className="font-normal ">Transaction Priority</h3>
+              <p className="text-xs text-muted-foreground">
+                Set a priority for your transaction, priority fees will be adjusted accordingly.
+              </p>
+            </div>
             <FormField
               control={form.control}
               name="priorityType"
@@ -205,11 +212,13 @@ export const Settings = ({ onChange, recommendedBroadcastType = "BUNDLE", ...pro
               )}
             />
           </div>
-          <div className="space-y-2">
-            <h4 className="font-normal text-sm">Set Priority Fee Cap</h4>
-            <p className="text-xs text-muted-foreground">
-              Set the maximum fee you are willing to pay for a transaction.
-            </p>
+          <div className="space-y-4">
+            <div className="space-y-0.5">
+              <h4 className="font-normal text-sm">Priority Fee Cap</h4>
+              <p className="text-xs text-muted-foreground">
+                Set the maximum fee you are willing to pay for a transaction.
+              </p>
+            </div>
 
             {/* For maxCapType */}
             <FormField
@@ -251,11 +260,13 @@ export const Settings = ({ onChange, recommendedBroadcastType = "BUNDLE", ...pro
       </Form>
       {props.slippageProps && (
         <Form {...slippageForm}>
-          <form onSubmit={slippageForm.handleSubmit(onSlippageSubmit)} className="space-y-2">
-            <h3 className="font-normal ">Set Slippage</h3>
-            <p className="text-xs text-muted-foreground">
-              Set the maximum slippage you are willing to accept for a transaction.
-            </p>
+          <form onSubmit={slippageForm.handleSubmit(onSlippageSubmit)} className="space-y-4">
+            <div className="space-y-0.5">
+              <h3 className="font-normal ">Maximum Slippage</h3>
+              <p className="text-xs text-muted-foreground">
+                Set the maximum slippage you are willing to accept for a transaction.
+              </p>
+            </div>
 
             <FormField
               control={slippageForm.control}
@@ -284,10 +295,10 @@ export const Settings = ({ onChange, recommendedBroadcastType = "BUNDLE", ...pro
                             className="hidden"
                           />
                           <Label
-                            className={"flex p-3 flex-col gap-2 h-auto w-full text-center cursor-pointer"}
+                            className={"flex p-2 flex-col h-auto w-full text-xs gap-0.5 text-center cursor-pointer"}
                             htmlFor={option.label.toString()}
                           >
-                            {option.label} <strong className="font-medium">{option.value} %</strong>
+                            {option.label} <strong className="font-medium text-sm">{option.value} %</strong>
                           </Label>
                         </div>
                       ))}
