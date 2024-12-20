@@ -3,7 +3,6 @@ import React from "react";
 import { useRouter } from "next/router";
 
 import { useTradeStoreV2, useUiStore } from "~/store";
-import { useActionBoxStore } from "~/components/action-box-v2/store";
 import { useIsMobile } from "~/hooks/use-is-mobile";
 
 import { TVWidget } from "~/components/common/TVWidget";
@@ -38,11 +37,6 @@ export default function TradeSymbolPage({ initialData }: StaticArenaProps) {
     state.poolsFetched,
     state.fetchArenaGroups,
     state.setHydrationComplete,
-  ]);
-  const [isActionComplete, previousTxn, setIsActionComplete] = useActionBoxStore((state) => [
-    state.isActionComplete,
-    state.previousTxn,
-    state.setIsActionComplete,
   ]);
   const [previousTxnUi] = useUiStore((state) => [state.previousTxn]);
   const [activePool, setActivePool] = React.useState<ArenaPoolV2 | null>(null);
@@ -104,7 +98,7 @@ export default function TradeSymbolPage({ initialData }: StaticArenaProps) {
         )}
       </div>
 
-      {initialized && previousTxn && <ArenaActionComplete />}
+      {initialized && previousTxnUi && <ArenaActionComplete />}
     </>
   );
 }

@@ -6,8 +6,7 @@ import Link from "next/link";
 import { dynamicNumeralFormatter, groupedNumberFormatterDyn } from "@mrgnlabs/mrgn-common";
 import { cn } from "@mrgnlabs/mrgn-utils";
 
-import { useTradeStoreV2 } from "~/store";
-import { useActionBoxStore } from "~/components/action-box-v2/store";
+import { useTradeStoreV2, useUiStore } from "~/store";
 
 import { PageHeading } from "~/components/common/PageHeading";
 import { PositionCard, LpPositionList } from "~/components/common/Portfolio";
@@ -30,12 +29,8 @@ export default function PortfolioPage({ initialData }: StaticArenaProps) {
     state.setHydrationComplete,
     state.positionsByGroupPk,
   ]);
+  const [previousTxn] = useUiStore((state) => [state.previousTxn]);
   const extendedPools = useExtendedPools();
-  const [isActionComplete, previousTxn, setIsActionComplete] = useActionBoxStore((state) => [
-    state.isActionComplete,
-    state.previousTxn,
-    state.setIsActionComplete,
-  ]);
 
   React.useEffect(() => {
     if (initialData) {
