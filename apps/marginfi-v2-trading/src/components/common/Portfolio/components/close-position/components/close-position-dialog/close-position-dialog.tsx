@@ -12,7 +12,6 @@ import {
 import { ArenaBank, ArenaPoolPositions, ArenaPoolV2Extended } from "~/types/trade-store.types";
 import { ClosePositionActionTxns, cn } from "@mrgnlabs/mrgn-utils";
 import { dynamicNumeralFormatter, percentFormatter } from "@mrgnlabs/mrgn-common";
-import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { Button } from "~/components/ui/button";
 import { SharePosition } from "~/components/common/share-position";
 import { IconLoader2 } from "@tabler/icons-react";
@@ -27,6 +26,7 @@ interface ClosePositionDialogProps {
   onOpenChange: (open: boolean) => void;
   handleClosePosition: () => void;
   isLoading: boolean;
+  pnl: number;
 }
 
 export const ClosePositionDialog = ({
@@ -39,6 +39,7 @@ export const ClosePositionDialog = ({
   onOpenChange,
   handleClosePosition,
   isLoading,
+  pnl,
 }: ClosePositionDialogProps) => {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -65,38 +66,31 @@ export const ClosePositionDialog = ({
           </DialogDescription>
         </DialogHeader>
         <dl className="grid grid-cols-2 w-full text-muted-foreground gap-x-8 gap-y-2">
-          {actionTransaction?.groupKey && (
+          {pnl && (
             <>
               <dt>PnL</dt>
-              <dd
-                className={cn(
-                  "text-right",
-                  positionsByGroupPk[actionTransaction.groupKey.toBase58()]?.pnl > 0 && "text-mrgn-success",
-                  positionsByGroupPk[actionTransaction.groupKey.toBase58()]?.pnl < 0 && "text-mrgn-error"
-                )}
-              >
-                {positionsByGroupPk[actionTransaction.groupKey.toBase58()]?.pnl > 0 && "+"}$
-                {dynamicNumeralFormatter(positionsByGroupPk[actionTransaction.groupKey.toBase58()]?.pnl ?? 0)}
+              <dd className={cn("text-right", pnl > 0 && "text-mrgn-success", pnl < 0 && "text-mrgn-error")}>
+                {pnl > 0 && "+"}${dynamicNumeralFormatter(pnl ?? 0)}
               </dd>
             </>
           )}
-          {/* {depositBanks.map((bank) => (
+          {depositBanks.map((bank) => (
             <React.Fragment key={bank.meta.tokenSymbol}>
               <dt>Supplied</dt>
               <dd className="text-right">
-                {dynamicNumeralFormatter(bank?.position.amount)} {bank.meta.tokenSymbol}
+                {bank.isActive ? dynamicNumeralFormatter(bank?.position.amount) : "0"} {bank.meta.tokenSymbol}
               </dd>
             </React.Fragment>
           ))}
 
-          {borrowBank && (
+          {borrowBank?.isActive && (
             <>
               <dt>Borrowed</dt>
               <dd className="text-right">
                 {dynamicNumeralFormatter(borrowBank.position.amount)} {borrowBank.meta.tokenSymbol}
               </dd>
             </>
-          )} */}
+          )}
 
           {actionTransaction?.actionQuote?.priceImpactPct && (
             <>

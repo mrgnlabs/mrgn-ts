@@ -1,37 +1,19 @@
 import React from "react";
 
-import Image from "next/image";
-
-import { IconMinus, IconX, IconPlus, IconLoader2 } from "@tabler/icons-react";
-import { Transaction, VersionedTransaction } from "@solana/web3.js";
-
-import { MultiStepToastHandle, cn, extractErrorString, capture, ClosePositionActionTxns } from "@mrgnlabs/mrgn-utils";
+import { IconMinus, IconPlus } from "@tabler/icons-react";
+import { cn, capture } from "@mrgnlabs/mrgn-utils";
 import { ActiveBankInfo, ActionType, AccountSummary } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { useConnection } from "~/hooks/use-connection";
-import { useTradeStoreV2, useUiStore } from "~/store";
+import { useTradeStoreV2 } from "~/store";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
-import { calculateClosePositions } from "~/utils";
-import { usePositionsData } from "~/hooks/usePositionsData";
-import { useLeveragedPositionDetails } from "~/hooks/arenaHooks";
 
 import { ActionBox, ActionBoxProvider } from "~/components/action-box-v2";
-import { SharePosition } from "~/components/common/share-position/share-position";
 import { Button } from "~/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "~/components/ui/dialog";
-import { QuoteResponse } from "@jup-ag/api";
-import { dynamicNumeralFormatter, percentFormatter } from "@mrgnlabs/mrgn-common";
+
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { ArenaPoolV2Extended } from "~/types/trade-store.types";
 import { ClosePosition } from "./components";
-import { PnlLabel, PnlBadge } from "~/components/common/pnl-display";
 
 type PositionActionButtonsProps = {
   isBorrowing: boolean;
@@ -54,31 +36,12 @@ export const PositionActionButtons = ({
 }: PositionActionButtonsProps) => {
   const { connection } = useConnection();
   const { wallet, connected } = useWallet();
-  const [platformFeeBps] = useUiStore((state) => [state.platformFeeBps]);
-  const [actionTransaction, setActionTransaction] = React.useState<ClosePositionActionTxns | null>(null);
 
-  const [isLoading, setIsLoading] = React.useState(false);
-  const [multiStepToast, setMultiStepToast] = React.useState<MultiStepToastHandle | null>(null);
-  const [isClosing, setIsClosing] = React.useState(false);
-
-  const [refreshGroup, setIsRefreshingStore, nativeSolBalance, positionsByGroupPk] = useTradeStoreV2((state) => [
+  const [refreshGroup, nativeSolBalance, positionsByGroupPk] = useTradeStoreV2((state) => [
     state.refreshGroup,
-    state.setIsRefreshingStore,
     state.nativeSolBalance,
     state.positionsByGroupPk,
   ]);
-  const [slippageBps, priorityFees, broadcastType, setIsActionComplete, setPreviousTxn] = useUiStore((state) => [
-    state.slippageBps,
-    state.priorityFees,
-    state.broadcastType,
-    state.setIsActionComplete,
-    state.setPreviousTxn,
-  ]);
-
-  const positionData = usePositionsData({ groupPk: arenaPool.groupPk });
-  const { positionSizeUsd, leverage } = useLeveragedPositionDetails({
-    pool: arenaPool,
-  });
 
   const depositBanks = React.useMemo(() => {
     const tokenBank = arenaPool.tokenBank.isActive ? arenaPool.tokenBank : null;
@@ -100,141 +63,6 @@ export const PositionActionButtons = ({
 
     return borrowBank;
   }, [arenaPool]);
-
-  const closeTransaction = React.useCallback(async () => {
-    if (!selectedAccount || (!borrowBank && !depositBanks[0])) return;
-    setIsClosing(true);
-
-    const multiStepToast = new MultiStepToastHandle("Closing position", [
-      {
-        label: `Closing ${depositBanks[0].meta.tokenSymbol}${
-          borrowBank ? "/" + borrowBank?.meta.tokenSymbol : ""
-        } position.`,
-      },
-    ]);
-
-    multiStepToast.start();
-
-    try {
-      const txns = await calculateClosePositions({
-        marginfiAccount: selectedAccount,
-        depositBanks: depositBanks,
-        borrowBank: borrowBank,
-        slippageBps,
-        connection: connection,
-        platformFeeBps,
-      });
-
-      if ("actionTxn" in txns) {
-        txns.groupKey = selectedAccount.group.address;
-      }
-
-      if ("description" in txns) {
-        throw new Error(txns?.description ?? "Something went wrong.");
-      } else if ("actionTxn" in txns) {
-        setActionTransaction(txns);
-      }
-    } catch (error: any) {
-      const msg = extractErrorString(error);
-
-      multiStepToast.setFailed(msg);
-      console.log(`Error while closing: ${msg}`);
-      console.log(error);
-    } finally {
-      setMultiStepToast(multiStepToast);
-    }
-    setIsClosing(false);
-  }, [selectedAccount, borrowBank, depositBanks, slippageBps, connection, platformFeeBps]);
-
-  const processTransaction = React.useCallback(async () => {
-    try {
-      setIsLoading(true);
-      let txnSig: string | string[] = "";
-
-      if (!client || !actionTransaction?.actionTxn || !multiStepToast) throw new Error("Action not ready");
-      txnSig = await client.processTransactions([...actionTransaction.additionalTxns, actionTransaction.actionTxn], {
-        broadcastType: broadcastType,
-        ...priorityFees,
-      });
-      multiStepToast.setSuccessAndNext();
-
-      if (txnSig) {
-        setActionTransaction(null);
-        setIsActionComplete(true);
-        setPreviousTxn({
-          txnType: "CLOSE_POSITION",
-          txn: Array.isArray(txnSig) ? txnSig[txnSig.length - 1] : txnSig!,
-          positionClosedOptions: {
-            tokenBank: arenaPool.tokenBank,
-            size: positionSizeUsd,
-            leverage: Number(leverage),
-            entryPrice: positionData && positionData.entryPrice ? positionData.entryPrice : 0,
-            exitPrice: arenaPool.tokenBank.info.oraclePrice.priceRealtime.price.toNumber(),
-            pnl: positionData && positionData.pnl ? positionData.pnl : 0,
-            pool: arenaPool,
-          },
-        });
-        capture("close_position", {
-          group: arenaPool.groupPk?.toBase58(),
-          txnSig: txnSig,
-          token: arenaPool.tokenBank.meta.tokenSymbol,
-          tokenSize: arenaPool.tokenBank.isActive ? arenaPool.tokenBank.position.amount : 0,
-          usdcSize: arenaPool.quoteBank.isActive ? arenaPool.quoteBank.position.amount : 0,
-        });
-      }
-      // -------- Refresh state
-      try {
-        setIsRefreshingStore(true);
-        await refreshGroup({
-          connection,
-          wallet,
-          groupPk: arenaPool.groupPk,
-          banks: [arenaPool.tokenBank.address, arenaPool.quoteBank.address],
-        });
-      } catch (error: any) {
-        console.log("Error while reloading state");
-        console.log(error);
-      }
-      return txnSig;
-    } catch (error: any) {
-      const msg = extractErrorString(error);
-
-      if (multiStepToast) {
-        multiStepToast.setFailed(msg);
-      }
-      console.log(`Error while closing: ${msg}`);
-      console.log(error);
-    } finally {
-      setIsLoading(false);
-      setActionTransaction(null);
-      setMultiStepToast(null);
-    }
-  }, [
-    client,
-    actionTransaction,
-    multiStepToast,
-    broadcastType,
-    priorityFees,
-    setIsActionComplete,
-    setPreviousTxn,
-    arenaPool,
-    positionSizeUsd,
-    leverage,
-    positionData,
-    setIsRefreshingStore,
-    refreshGroup,
-    connection,
-    wallet,
-  ]);
-
-  const onClose = React.useCallback(() => {
-    if (multiStepToast) {
-      multiStepToast.setFailed("User canceled transaction.");
-    }
-
-    setActionTransaction(null);
-    setMultiStepToast(null);
-  }, [multiStepToast, setActionTransaction, setMultiStepToast]);
 
   return (
     <ActionBoxProvider
@@ -386,116 +214,6 @@ export const PositionActionButtons = ({
           depositBanks={depositBanks}
           borrowBank={borrowBank}
         />
-
-        <Dialog open={!!actionTransaction} onOpenChange={() => onClose()}>
-          <DialogContent className=" w-full">
-            <DialogHeader>
-              <DialogTitle className="flex flex-col items-center gap-2 border-b border-border pb-10">
-                <span className="flex items-center justify-center gap-2">
-                  {arenaPool.tokenBank && (
-                    <Image
-                      className="rounded-full w-9 h-9"
-                      src={arenaPool.tokenBank.meta.tokenLogoUri}
-                      alt={(arenaPool.tokenBank?.meta.tokenSymbol || "Token") + "  logo"}
-                      width={36}
-                      height={36}
-                    />
-                  )}
-                  <span className="text-4xl font-medium">
-                    {`${arenaPool.tokenBank.meta.tokenSymbol}/${arenaPool.quoteBank.meta.tokenSymbol}`}
-                  </span>
-                </span>
-              </DialogTitle>
-              <DialogDescription className="sr-only">
-                {`${arenaPool.tokenBank.meta.tokenSymbol}/${arenaPool.quoteBank.meta.tokenSymbol}`}
-              </DialogDescription>
-            </DialogHeader>
-            <dl className="grid grid-cols-2 w-full text-muted-foreground gap-x-8 gap-y-2">
-              {actionTransaction?.groupKey && (
-                <>
-                  <dt>PnL</dt>
-                  <dd
-                    className={cn(
-                      "text-right justify-end flex items-center gap-2",
-                      positionsByGroupPk[actionTransaction.groupKey.toBase58()]?.pnl > 0 && "text-mrgn-success",
-                      positionsByGroupPk[actionTransaction.groupKey.toBase58()]?.pnl < 0 && "text-mrgn-error"
-                    )}
-                  >
-                    <PnlLabel
-                      pnl={positionsByGroupPk[actionTransaction.groupKey.toBase58()]?.pnl ?? 0}
-                      positionSize={positionSizeUsd ?? 0}
-                    />
-                    <PnlBadge
-                      pnl={positionsByGroupPk[actionTransaction.groupKey.toBase58()]?.pnl ?? 0}
-                      positionSize={positionSizeUsd ?? 0}
-                    />
-                  </dd>
-                </>
-              )}
-              {depositBanks.map((bank) => (
-                <React.Fragment key={bank.meta.tokenSymbol}>
-                  <dt>Supplied</dt>
-                  <dd className="text-right">
-                    {dynamicNumeralFormatter(bank.position.amount)} {bank.meta.tokenSymbol}
-                  </dd>
-                </React.Fragment>
-              ))}
-
-              {borrowBank && (
-                <>
-                  <dt>Borrowed</dt>
-                  <dd className="text-right">
-                    {dynamicNumeralFormatter(borrowBank.position.amount)} {borrowBank.meta.tokenSymbol}
-                  </dd>
-                </>
-              )}
-
-              {actionTransaction?.actionQuote?.priceImpactPct && (
-                <>
-                  <dt>Price impact</dt>
-                  <dd className="text-right">
-                    {percentFormatter.format(Number(actionTransaction.actionQuote.priceImpactPct))}
-                  </dd>
-                </>
-              )}
-
-              {actionTransaction?.actionQuote?.slippageBps && (
-                <>
-                  <dt>Slippage</dt>
-                  <dd
-                    className={cn(
-                      actionTransaction.actionQuote.slippageBps > 500 && "text-alert-foreground",
-                      "text-right"
-                    )}
-                  >
-                    {percentFormatter.format(Number(actionTransaction.actionQuote.slippageBps) / 10000)}
-                  </dd>
-                </>
-              )}
-
-              <dt>Platform fee</dt>
-              {actionTransaction?.actionQuote?.platformFee?.feeBps && (
-                <>
-                  <dd className="text-right">
-                    {percentFormatter.format(actionTransaction.actionQuote.platformFee.feeBps / 10000)}
-                  </dd>
-                </>
-              )}
-            </dl>
-            <DialogFooter className="flex flex-col sm:flex-col items-center gap-4">
-              <Button
-                variant="destructive"
-                disabled={isLoading}
-                className="w-full mx-auto"
-                onClick={() => processTransaction()}
-              >
-                {isLoading ? <IconLoader2 className="animate-spin" /> : "Confirm close position"}
-              </Button>
-
-              {arenaPool && <SharePosition pool={arenaPool} />}
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
       </div>
     </ActionBoxProvider>
   );
