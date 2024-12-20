@@ -207,7 +207,6 @@ export async function calculateLoopingParams({
     return STATIC_SIMULATION_ERRORS.NOT_INITIALIZED;
   }
 
-  console.log("loopingProps", loopingProps);
   let borrowAmount: BigNumber, depositAmount: BigNumber, borrowAmountNative: number;
   if (loopingProps.marginfiAccount) {
     const params = getLoopingParamsForAccount(
@@ -222,6 +221,7 @@ export async function calculateLoopingParams({
     depositAmount = params.depositAmount;
     borrowAmountNative = params.borrowAmountNative;
   } else {
+    console.log("DEBUG: this code should not be accesed in the arena");
     const params = getLoopingParamsForClient(
       marginfiClient,
       loopingProps.depositBank,
@@ -235,17 +235,14 @@ export async function calculateLoopingParams({
     depositAmount = params.depositAmount;
     borrowAmountNative = params.borrowAmountNative;
   }
-  // const principalBufferAmountUi = amount * targetLeverage * (slippageBps / 10000);
-  // const adjustedPrincipalAmountUi = amount - principalBufferAmountUi;
 
-  // const maxLoopAmount = depositBank.isActive ? depositBank?.position.amount : 0;
-
-  // decreased maxAccounts from [undefined, 50, 40, 30] to [40, 30]
   const maxAccountsArr = [40, 30];
 
   let firstQuote;
 
   for (const maxAccounts of maxAccountsArr) {
+    console.log(`%cDEBUG: calculating flashloan swap quote`, "color: blue; font-weight: bold; font-size: 14px;");
+    console.log(`slippageBps: ${slippageBps}, platformFeeBps: ${platformFeeBps}, maxAccounts: ${maxAccounts}`);
     const quoteParams: QuoteGetRequest = {
       amount: borrowAmountNative,
       inputMint: loopingProps.borrowBank.info.state.mint.toBase58(), // borrow
@@ -257,7 +254,6 @@ export async function calculateLoopingParams({
     };
     try {
       const swapQuote = await getSwapQuoteWithRetry(quoteParams);
-      console.log("swapQuote", swapQuote);
 
       if (!maxAccounts) {
         firstQuote = swapQuote;
@@ -287,7 +283,6 @@ export async function calculateLoopingParams({
             actualDepositAmount: actualDepositAmountUi,
             setupBankAddresses,
           });
-          console.log("txn", txn);
         }
         if (txn.flashloanTx || !loopingProps.marginfiAccount) {
           return {
@@ -360,6 +355,10 @@ export async function loopingBuilder({
   // TODO: check if fees support for token2022 is needed
   if (!TOKEN_2022_MINTS.includes(feeMint)) {
     feeAccountInfo = await connection.getAccountInfo(new PublicKey(feeAccount));
+  }
+
+  if (!feeAccountInfo) {
+    console.log("DEBUG: feeAccountInfo is undefined");
   }
 
   const { swapInstruction, addressLookupTableAddresses } = await jupiterQuoteApi.swapInstructionsPost({

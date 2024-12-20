@@ -83,26 +83,30 @@ export const handleExecuteTradeAction = async ({
 
 export async function generateTradeTx(props: CalculateLoopingProps): Promise<TradeActionTxns | ActionMessageType> {
   // USDC Swap tx
+  let swapTx: { quote?: QuoteResponse; tx?: SolanaTransaction; error?: ActionMessageType } | undefined;
+
   const swapNeeded = props.depositBank.meta.tokenSymbol !== "USDC";
-  let swapTx: { quote?: QuoteResponse; tx?: VersionedTransaction; error?: ActionMessageType } | undefined;
   if (swapNeeded) {
     console.log("Creating swap transaction...");
     try {
       swapTx = await createSwapTx(
         props,
         {
-          slippageBps: props.slippageBps ?? 0,
+          slippageBps: props.slippageBps,
         },
         props.marginfiClient.wallet.publicKey,
         props.marginfiClient.provider.connection
       );
-      console.log("swapTx", swapTx);
       if (swapTx.error) {
-        console.error("Swap transaction error:", swapTx.error);
+        console.error("USDC swap transaction error:", swapTx.error);
         return swapTx.error;
+      } else {
+        if (!swapTx.tx || !swapTx.quote) {
+          return STATIC_SIMULATION_ERRORS.FL_FAILED;
+        }
       }
     } catch (error) {
-      console.error("Error creating swap transaction:", error);
+      console.error("Error creating USDC swap transaction:", error);
       return STATIC_SIMULATION_ERRORS.FL_FAILED;
     }
   }
@@ -112,56 +116,33 @@ export async function generateTradeTx(props: CalculateLoopingProps): Promise<Tra
   let accountCreationTx: SolanaTransaction[] = [];
   let finalAccount: MarginfiAccountWrapper | null = props.marginfiAccount;
   if (!hasMarginfiAccount) {
-    // if no marginfi account, we need to create one
-    console.log("Creating new marginfi account transaction...");
-    const authority = props.marginfiAccount?.authority ?? props.marginfiClient.provider.publicKey;
+    const { account, tx } = await createMarginfiAccountTx(props);
+    finalAccount = account;
+    accountCreationTx.push(tx);
+  }
 
-    const marginfiAccountKeypair = Keypair.generate();
+  let finalDepositAmount = props.depositAmount;
 
-    const dummyWrappedI80F48 = bigNumberToWrappedI80F48(new BigNumber(0));
-
-    const dummyBalances: BalanceRaw[] = Array(15).fill({
-      active: false,
-      bankPk: new PublicKey("11111111111111111111111111111111"),
-      assetShares: dummyWrappedI80F48,
-      liabilityShares: dummyWrappedI80F48,
-      emissionsOutstanding: dummyWrappedI80F48,
-      lastUpdate: new BN(0),
-    });
-
-    const rawAccount: MarginfiAccountRaw = {
-      group: props.marginfiClient.group.address,
-      authority: authority,
-      lendingAccount: { balances: dummyBalances },
-      accountFlags: new BN([0, 0, 0]),
-    };
-
-    const account = new MarginfiAccount(marginfiAccountKeypair.publicKey, rawAccount);
-
-    const wrappedAccount = new MarginfiAccountWrapper(marginfiAccountKeypair.publicKey, props.marginfiClient, account);
-
-    finalAccount = wrappedAccount;
-
-    accountCreationTx.push(
-      await props.marginfiClient.createMarginfiAccountTx({ accountKeypair: marginfiAccountKeypair })
-    );
-
-    console.log("accountCreationTx", accountCreationTx);
+  if (swapNeeded && !swapTx?.quote) {
+    return STATIC_SIMULATION_ERRORS.FL_FAILED;
+  } else if (swapNeeded && swapTx?.quote) {
+    finalDepositAmount = Number(nativeToUi(swapTx?.quote?.outAmount, props.depositBank.info.state.mintDecimals));
   }
 
   const result = await calculateLoopingParams({
     ...props,
-    setupBankAddresses: [props.borrowBank.info.state.mint],
+    setupBankAddresses: [props.borrowBank.address],
     marginfiAccount: finalAccount,
-    depositAmount:
-      swapNeeded && swapTx?.quote?.outAmount
-        ? Number(nativeToUi(swapTx?.quote?.outAmount, props.depositBank.info.state.mintDecimals))
-        : props.depositAmount,
+    depositAmount: finalDepositAmount,
   });
 
-  console.log("result", result);
-
   if (result && "actionQuote" in result) {
+    console.log("DEBUG: result", {
+      hasSwapTx: !!swapTx?.tx,
+      hasAccountCreationTx: accountCreationTx.length > 0,
+      hasAdditionalTxns: result.additionalTxns?.length > 0,
+      result,
+    });
     return {
       ...result,
       additionalTxns: [...(swapTx?.tx ? [swapTx.tx] : []), ...accountCreationTx, ...(result.additionalTxns ?? [])],
@@ -172,12 +153,49 @@ export async function generateTradeTx(props: CalculateLoopingProps): Promise<Tra
   return result;
 }
 
+async function createMarginfiAccountTx(
+  props: CalculateLoopingProps
+): Promise<{ account: MarginfiAccountWrapper; tx: SolanaTransaction }> {
+  // if no marginfi account, we need to create one
+  console.log("Creating new marginfi account transaction...");
+  const authority = props.marginfiAccount?.authority ?? props.marginfiClient.provider.publicKey;
+
+  const marginfiAccountKeypair = Keypair.generate();
+
+  const dummyWrappedI80F48 = bigNumberToWrappedI80F48(new BigNumber(0));
+
+  const dummyBalances: BalanceRaw[] = Array(15).fill({
+    active: false,
+    bankPk: new PublicKey("11111111111111111111111111111111"),
+    assetShares: dummyWrappedI80F48,
+    liabilityShares: dummyWrappedI80F48,
+    emissionsOutstanding: dummyWrappedI80F48,
+    lastUpdate: new BN(0),
+  });
+
+  const rawAccount: MarginfiAccountRaw = {
+    group: props.marginfiClient.group.address,
+    authority: authority,
+    lendingAccount: { balances: dummyBalances },
+    accountFlags: new BN([0, 0, 0]),
+  };
+
+  const account = new MarginfiAccount(marginfiAccountKeypair.publicKey, rawAccount);
+
+  const wrappedAccount = new MarginfiAccountWrapper(marginfiAccountKeypair.publicKey, props.marginfiClient, account);
+
+  return {
+    account: wrappedAccount,
+    tx: await props.marginfiClient.createMarginfiAccountTx({ accountKeypair: marginfiAccountKeypair }),
+  };
+}
+
 export async function createSwapTx(
   props: CalculateLoopingProps,
   jupOpts: { slippageBps: number },
-  feepayer: PublicKey,
+  authority: PublicKey,
   connection: Connection
-): Promise<{ quote?: QuoteResponse; tx?: VersionedTransaction; error?: ActionMessageType }> {
+): Promise<{ quote?: QuoteResponse; tx?: SolanaTransaction; error?: ActionMessageType }> {
   try {
     const jupiterQuoteApi = createJupiterApiClient();
 
@@ -202,7 +220,7 @@ export async function createSwapTx(
     } = await jupiterQuoteApi.swapInstructionsPost({
       swapRequest: {
         quoteResponse: swapQuote,
-        userPublicKey: feepayer.toBase58(),
+        userPublicKey: authority.toBase58(),
         programAuthorityId: LUT_PROGRAM_AUTHORITY_INDEX,
       },
     });
@@ -215,7 +233,7 @@ export async function createSwapTx(
     const finalBlockhash = (await connection.getLatestBlockhash()).blockhash;
 
     const swapMessage = new TransactionMessage({
-      payerKey: feepayer,
+      payerKey: authority,
       recentBlockhash: finalBlockhash,
       instructions: [...cuInstructionsIxs, ...setupInstructionsIxs, swapIx],
     });

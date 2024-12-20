@@ -105,7 +105,6 @@ export function useTradeSimulation({
     actionMessage: ActionMessageType | null;
   }> => {
     if (props.txns.length > 0) {
-      console.log("getting simulation result,");
       const simulationResult = await getSimulationResult(props);
 
       console.log("simulationResult", simulationResult);
