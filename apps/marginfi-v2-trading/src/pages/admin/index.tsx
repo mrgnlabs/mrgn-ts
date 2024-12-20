@@ -1,10 +1,10 @@
 import React from "react";
 
 import { useTradeStoreV2 } from "~/store";
-import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
+
 import { Loader } from "~/components/common/Loader";
 import { AdminPoolCard } from "~/components/common/admin";
-import { useExtendedPools } from "~/hooks/useExtendedPools";
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
 export default function AdminPage() {
   const [initialized, arenaPools, groupsByGroupPk] = useTradeStoreV2((state) => [
@@ -34,8 +34,8 @@ export default function AdminPage() {
                 <div className="pl-5">Asset</div>
                 <div className="pl-2.5">Price</div>
                 <div className="pl-2">24hr Volume</div>
-                <div>Market cap</div>
-                <div>Lending pool liquidity</div>
+                {/* <div>Token liquidity</div>
+                <div>pool liquidity</div> */}
                 <div className="pl-2">Created by</div>
                 <div />
               </div>

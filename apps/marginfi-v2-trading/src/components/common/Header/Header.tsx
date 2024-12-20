@@ -33,16 +33,16 @@ const navItems = [
 
 export const Header = () => {
   const { connection } = useConnection();
-  const [initialized, userDataFetched, nativeSolBalance, fetchUserData, referralCode, banksByBankPk] = useTradeStoreV2(
-    (state) => [
+  const [initialized, userDataFetched, nativeSolBalance, fetchUserData, referralCode, banksByBankPk, groupsByGroupPk] =
+    useTradeStoreV2((state) => [
       state.initialized,
       state.userDataFetched,
       state.nativeSolBalance,
       state.fetchUserData,
       state.referralCode,
       state.banksByBankPk,
-    ]
-  );
+      state.groupsByGroupPk,
+    ]);
   const { priorityType, broadcastType, priorityFees, maxCap, maxCapType, setTransactionSettings } = useUiStore(
     (state) => ({
       priorityType: state.priorityType,
@@ -67,10 +67,11 @@ export const Header = () => {
     return uniqueBanks;
   }, [banksByBankPk]);
 
-  // const ownPools = React.useMemo(() => {
-  //   const goups = [...groupMap.values()];
-  //   return goups.filter((group) => group?.client.group.admin?.toBase58() === wallet?.publicKey?.toBase58());
-  // }, [groupMap, wallet]);
+  const ownedPools = React.useMemo(() => {
+    const goups = Object.values(groupsByGroupPk);
+    const groupsOwned = goups.filter((group) => group?.admin.toBase58() === wallet?.publicKey?.toBase58());
+    return groupsOwned;
+  }, [groupsByGroupPk, wallet]);
 
   React.useEffect(() => {
     if (!initialized) return;
@@ -115,13 +116,13 @@ export const Header = () => {
           </ul>
         </nav>
         <div className={cn("flex items-center gap-2")}>
-          {/* {ownPools.length > 0 && (
+          {ownedPools.length > 0 && (
             <Link href="/admin">
               <Button variant="outline" size={isMobile ? "sm" : "default"}>
                 <IconPlus size={isMobile ? 14 : 18} /> Manage pools
               </Button>
             </Link>
-          )} */}
+          )}
           {
             // eslint-disable-next-line turbo/no-undeclared-env-vars
             process.env.NEXT_PUBLIC_ENABLE_BANK_SCRIPT && (
