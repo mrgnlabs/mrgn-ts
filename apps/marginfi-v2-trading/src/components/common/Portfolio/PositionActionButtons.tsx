@@ -39,6 +39,7 @@ type PositionActionButtonsProps = {
   client: MarginfiClient | null;
   selectedAccount: MarginfiAccountWrapper | null;
   className?: string;
+  rightAlignLastButton?: boolean;
 };
 
 export const PositionActionButtons = ({
@@ -48,6 +49,7 @@ export const PositionActionButtons = ({
   client,
   selectedAccount,
   className,
+  rightAlignLastButton = false,
 }: PositionActionButtonsProps) => {
   const { connection } = useConnection();
   const { wallet, connected } = useWallet();
@@ -382,7 +384,7 @@ export const PositionActionButtons = ({
           disabled={isClosing}
           variant="destructive"
           size="sm"
-          className="gap-1 min-w-16"
+          className={cn("gap-1 min-w-16", rightAlignLastButton && "ml-auto")}
         >
           <IconX size={14} />
           Close
