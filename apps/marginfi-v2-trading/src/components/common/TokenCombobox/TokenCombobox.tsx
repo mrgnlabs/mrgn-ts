@@ -7,16 +7,6 @@ import { percentFormatter, tokenPriceFormatter } from "@mrgnlabs/mrgn-common";
 import { Desktop, Mobile, cn } from "@mrgnlabs/mrgn-utils";
 
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "~/components/ui/command";
-import { Button } from "~/components/ui/button";
-
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "~/components/ui/dialog";
 import { Drawer, DrawerContent, DrawerTrigger } from "~/components/ui/drawer";
 
 import { ArenaPoolV2Extended } from "~/types/trade-store.types";
@@ -34,21 +24,13 @@ export const TokenCombobox = ({ selected, setSelected, children }: TokenCombobox
 
   const arenaPools = useExtendedPools();
 
-  // const groups = Array.from(arenaPools.values()).sort((a, b) => {
-  //   return a.pool.poolData && b.pool.poolData ? b.pool.poolData.totalLiquidity - a.pool.poolData.totalLiquidity : 0;
-  // });
-
   const arenaPoolsSorted = React.useMemo(() => {
     return Object.values(arenaPools).sort((a, b) => {
       const aTokenPrice = a.tokenBank.info.oraclePrice.priceRealtime.price.toNumber();
-      const aQuotePrice = a.quoteBank.info.oraclePrice.priceRealtime.price.toNumber();
       const aTokenDeposit = a.tokenBank.info.state.totalDeposits;
-      const aQuoteDeposit = a.quoteBank.info.state.totalDeposits;
 
       const bTokenPrice = b.tokenBank.info.oraclePrice.priceRealtime.price.toNumber();
-      const bQuotePrice = b.quoteBank.info.oraclePrice.priceRealtime.price.toNumber();
       const bTokenDeposit = b.tokenBank.info.state.totalDeposits;
-      const bQuoteDeposit = b.quoteBank.info.state.totalDeposits;
 
       return aTokenPrice * aTokenDeposit - bTokenPrice * bTokenDeposit;
     });
