@@ -212,11 +212,13 @@ export const Settings = ({ onChange, recommendedBroadcastType = "BUNDLE", ...pro
               )}
             />
           </div>
-          <div className="space-y-2">
-            <h4 className="font-normal text-sm">Priority Fee Cap</h4>
-            <p className="text-xs text-muted-foreground">
-              Set the maximum fee you are willing to pay for a transaction.
-            </p>
+          <div className="space-y-4">
+            <div className="space-y-0.5">
+              <h3 className="font-normal ">Priority Fee Cap</h3>
+              <p className="text-xs text-muted-foreground">
+                Set the maximum fee you are willing to pay for a transaction.
+              </p>
+            </div>
 
             {/* For maxCapType */}
             <FormField
