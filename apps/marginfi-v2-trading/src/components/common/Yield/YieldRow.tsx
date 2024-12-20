@@ -157,13 +157,7 @@ const YieldItem = ({
         </span>
 
         <span className="text-sm text-muted-foreground">
-          $
-          {dynamicNumeralFormatter(
-            bank.info.state.totalDeposits * bank.info.oraclePrice.priceRealtime.price.toNumber(),
-            {
-              maxDisplay: 1000,
-            }
-          )}
+          {usdFormatter.format(bank.info.state.totalDeposits * bank.info.oraclePrice.priceRealtime.price.toNumber())}
         </span>
       </div>
 
