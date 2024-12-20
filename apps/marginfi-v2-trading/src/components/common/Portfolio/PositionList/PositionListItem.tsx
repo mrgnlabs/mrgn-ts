@@ -78,7 +78,7 @@ export const PositionListItem = ({ arenaPool }: props) => {
       </TableCell>
 
       <TableCell className="text-right">
-        {client && accountSummary && (
+        {client && accountSummary && arenaPool && (
           <PositionActionButtons
             arenaPool={arenaPool}
             isBorrowing={arenaPool.status === GroupStatus.SHORT || arenaPool.status === GroupStatus.LONG}
