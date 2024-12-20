@@ -7,6 +7,7 @@ import { cn, getTokenImageURL } from "@mrgnlabs/mrgn-utils";
 
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
+import { Badge } from "~/components/ui/badge";
 import { useTradeStoreV2 } from "~/store";
 import { ArenaPoolSummary } from "~/types/trade-store.types";
 
@@ -15,6 +16,12 @@ type CreatePoolMintProps = {
   isSearchingToken: boolean;
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
   fetchTokenInfo: (mintAddress: string) => void;
+};
+
+const suggestedTokens = {
+  USDC: new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"),
+  USDT: new PublicKey("Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"),
+  LST: new PublicKey("LSTxxxnJzKDFSLr4dUkPcmCf5VyryEqzPLz5j4bpxFp"),
 };
 
 export const CreatePoolQuote = ({
@@ -100,6 +107,24 @@ export const CreatePoolQuote = ({
             setError(null);
           }}
         />
+
+        <div className="flex flex-col gap-2 justify-center items-center">
+          <p className="text-sm text-muted-foreground">Choose from popular quote tokens, or create something new.</p>
+          <div className="flex items-center gap-2">
+            {Object.entries(suggestedTokens).map(([key, value]) => (
+              <Button
+                key={key}
+                variant="outline"
+                size="sm"
+                className="gap-1 py-1 px-2"
+                onClick={() => setMintAddress(value.toBase58())}
+              >
+                <Image src={getTokenImageURL(value)} alt={`${key} icon`} width={16} height={16} />
+                {key}
+              </Button>
+            ))}
+          </div>
+        </div>
 
         {error && <p className="text-red-500 text-sm">{error}</p>}
 
