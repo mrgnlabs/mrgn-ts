@@ -24,10 +24,6 @@ export const CreatePoolToken = ({ isSearchingToken, setIsOpen, fetchTokenInfo }:
       return false;
     }
 
-    if (!allowPDA && !PublicKey.isOnCurve(new PublicKey(key).toBytes())) {
-      return false;
-    }
-
     return true;
   };
 
