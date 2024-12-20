@@ -13,6 +13,7 @@ import {
 
 import {
   ActionMessageType,
+  calculateMaxRepayableCollateral,
   ClosePositionActionTxns,
   deserializeInstruction,
   DYNAMIC_SIMULATION_ERRORS,
@@ -75,13 +76,12 @@ export const fetchTransactionsAction = async ({
 const fetchClosePositionTxns = async (props: {
   marginfiAccount: MarginfiAccountWrapper;
   depositBanks: ActiveBankInfo[];
-  borrowBank: ActiveBankInfo | null;
+  borrowBank: ActiveBankInfo;
   slippageBps: number;
   connection: Connection;
   platformFeeBps: number;
 }): Promise<{ actionTxns: ClosePositionActionTxns | null; actionMessage: ActionMessageType | null }> => {
   try {
-    console.log("fetchClosePositionTxns", props);
     let txns: ClosePositionActionTxns | ActionMessageType;
     txns = await calculateClosePositions({
       marginfiAccount: props.marginfiAccount,
@@ -93,18 +93,28 @@ const fetchClosePositionTxns = async (props: {
     });
 
     let swapTx: { quote?: QuoteResponse; tx?: SolanaTransaction; error?: ActionMessageType } | undefined;
-    const swapNeeded = props.depositBanks[0].meta.tokenSymbol !== "USDC";
-    if (swapNeeded) {
+    if (props.depositBanks[0].meta.tokenSymbol !== "USDC") {
       console.log("Creating swap transaction...");
+      const maxAmount = await calculateMaxRepayableCollateral(
+        props.borrowBank,
+        props.depositBanks[0],
+        props.slippageBps
+      );
+      if (!maxAmount) {
+        return { actionTxns: null, actionMessage: STATIC_SIMULATION_ERRORS.FL_FAILED };
+      }
       try {
         swapTx = await createSwapTx(
           props.depositBanks[0],
+          maxAmount,
           {
             slippageBps: props.slippageBps, // TODO: do we want to take platform fee here?
           },
           props.marginfiAccount.authority, // Is this correct
           props.connection
         );
+
+        console.log("swapTx", swapTx);
         if (swapTx.error) {
           console.error("USDC swap transaction error:", swapTx.error);
           return { actionTxns: null, actionMessage: swapTx.error };
@@ -121,6 +131,13 @@ const fetchClosePositionTxns = async (props: {
 
     if ("actionTxn" in txns) {
       if (swapTx?.tx && swapTx?.quote) {
+        console.log({
+          actionTxns: {
+            ...txns,
+            closeTransactions: swapTx.tx ? [swapTx.tx] : [],
+          },
+          actionMessage: null,
+        });
         return {
           actionTxns: {
             ...txns,
@@ -143,48 +160,9 @@ const fetchClosePositionTxns = async (props: {
   }
 };
 
-export const closePositionAction = async ({
-  marginfiClient,
-  actionTransaction,
-  broadcastType,
-  priorityFees,
-}: {
-  marginfiClient: MarginfiClient;
-  actionTransaction: ClosePositionActionTxns;
-  broadcastType: TransactionBroadcastType;
-  priorityFees: PriorityFees;
-}): Promise<{ txnSig: string | null; actionMessage: ActionMessageType | null }> => {
-  if (!actionTransaction.actionTxn) {
-    return { txnSig: null, actionMessage: STATIC_SIMULATION_ERRORS.TRADE_FAILED };
-  }
-
-  console.log("actionTransaction", actionTransaction);
-
-  try {
-    const txnSig = await marginfiClient.processTransactions(
-      [
-        ...actionTransaction.additionalTxns,
-        actionTransaction.actionTxn,
-        ...(actionTransaction.closeTransactions ? actionTransaction.closeTransactions : []),
-      ],
-      {
-        broadcastType: broadcastType,
-        ...priorityFees,
-      }
-    );
-
-    if (txnSig) {
-      return { txnSig: Array.isArray(txnSig) ? txnSig[txnSig.length - 1] : txnSig, actionMessage: null };
-    } else {
-      return { txnSig: null, actionMessage: STATIC_SIMULATION_ERRORS.TRADE_FAILED };
-    }
-  } catch (error) {
-    return { txnSig: null, actionMessage: STATIC_SIMULATION_ERRORS.TRADE_FAILED };
-  }
-};
-
-export async function createSwapTx(
+async function createSwapTx(
   depositBank: ActiveBankInfo,
+  depositAmount: number,
   jupOpts: { slippageBps: number },
   authority: PublicKey,
   connection: Connection
@@ -194,7 +172,7 @@ export async function createSwapTx(
 
     const swapQuote = await getSwapQuoteWithRetry({
       swapMode: "ExactIn",
-      amount: uiToNative(depositBank.position.amount, depositBank.info?.rawBank.mintDecimals).toNumber(),
+      amount: uiToNative(depositAmount, depositBank.info?.rawBank.mintDecimals).toNumber(),
       outputMint: USDC_MINT.toBase58(),
       inputMint: depositBank.info.state.mint.toBase58(),
       slippageBps: jupOpts.slippageBps,
@@ -246,3 +224,47 @@ export async function createSwapTx(
     return { error: STATIC_SIMULATION_ERRORS.FL_FAILED };
   }
 }
+
+export const closePositionAction = async ({
+  marginfiClient,
+  actionTransaction,
+  broadcastType,
+  priorityFees,
+}: {
+  marginfiClient: MarginfiClient;
+  actionTransaction: ClosePositionActionTxns;
+  broadcastType: TransactionBroadcastType;
+  priorityFees: PriorityFees;
+}): Promise<{ txnSig: string | null; actionMessage: ActionMessageType | null }> => {
+  if (!actionTransaction.actionTxn) {
+    return { txnSig: null, actionMessage: STATIC_SIMULATION_ERRORS.TRADE_FAILED };
+  }
+
+  console.log("actionTransaction", [
+    ...actionTransaction.additionalTxns,
+    actionTransaction.actionTxn,
+    ...(actionTransaction.closeTransactions ? actionTransaction.closeTransactions : []),
+  ]);
+
+  try {
+    const txnSig = await marginfiClient.processTransactions(
+      [
+        ...actionTransaction.additionalTxns,
+        actionTransaction.actionTxn,
+        ...(actionTransaction.closeTransactions ? actionTransaction.closeTransactions : []),
+      ],
+      {
+        broadcastType: broadcastType,
+        ...priorityFees,
+      }
+    );
+
+    if (txnSig) {
+      return { txnSig: Array.isArray(txnSig) ? txnSig[txnSig.length - 1] : txnSig, actionMessage: null };
+    } else {
+      return { txnSig: null, actionMessage: STATIC_SIMULATION_ERRORS.TRADE_FAILED };
+    }
+  } catch (error) {
+    return { txnSig: null, actionMessage: STATIC_SIMULATION_ERRORS.TRADE_FAILED };
+  }
+};
