@@ -21,7 +21,7 @@ export function generateTradeStats(props: generateTradeStatsProps) {
 
   // entry price stat
   stats.push({
-    label: "Entry price",
+    label: "Price",
     value: () => <>{tokenPriceFormatter(props.extendedPool.tokenBank.info.state.price)}</>,
   });
 
