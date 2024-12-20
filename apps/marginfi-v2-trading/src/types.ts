@@ -29,7 +29,6 @@ interface PreviousTxnPositionClosed {
   txnType: "CLOSE_POSITION";
   positionClosedOptions: {
     tokenBank: ExtendedBankInfo;
-    collateralBank: ExtendedBankInfo;
     size: number;
     leverage: number;
     entryPrice: number;
