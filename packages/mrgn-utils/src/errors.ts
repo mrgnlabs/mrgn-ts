@@ -325,6 +325,12 @@ const checkErrorCodeMatch = (errorMessage: string, errorCode: number): boolean =
   return errorMessage.includes(hex) || errorMessage.includes(errorCode.toString());
 };
 
+const checkErrorCodeExactMatch = (errorMessage: string, errorCode: number): boolean => {
+  const hex = "0x" + errorCode.toString(16).padStart(4, "0");
+  const regex = new RegExp(`\\b${hex}\\b`);
+  return regex.test(errorMessage);
+};
+
 export const DYNAMIC_SIMULATION_ERRORS = {
   WITHDRAW_CHECK: createWithdrawCheck,
   REPAY_CHECK: createRepayCheck,
@@ -413,7 +419,7 @@ export const handleError = (
       if (
         error.message?.toLowerCase().includes("insufficient lamport") ||
         error?.logs?.some((entry: string[]) => entry.includes("insufficient lamport")) ||
-        checkErrorCodeMatch(error.message, 1)
+        checkErrorCodeExactMatch(error.message, 1)
       ) {
         return STATIC_SIMULATION_ERRORS.INSUFICIENT_LAMPORTS;
       }
