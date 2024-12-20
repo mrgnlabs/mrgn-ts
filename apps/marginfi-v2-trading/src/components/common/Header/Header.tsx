@@ -53,7 +53,7 @@ export const Header = () => {
       setTransactionSettings: state.setTransactionSettings,
     })
   );
-  const { wallet } = useWallet();
+  const { wallet, connected } = useWallet();
   const { asPath } = useRouter();
   const isMobile = useIsMobile();
   const [scope, animate] = useAnimate();
@@ -138,7 +138,7 @@ export const Header = () => {
             )
           }
           <div className="flex items-center gap-4">
-            {!isMobile && (
+            {!isMobile && connected && (
               <div className="flex items-center">
                 {/* <CreatePoolSoon /> */}
                 <CreatePoolDialog
