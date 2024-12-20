@@ -30,6 +30,7 @@ import { QuoteResponse } from "@jup-ag/api";
 import { dynamicNumeralFormatter, percentFormatter } from "@mrgnlabs/mrgn-common";
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { ArenaPoolV2Extended } from "~/types/trade-store.types";
+import { PnlLabel, PnlBadge } from "~/components/common/pnl-display";
 
 type PositionActionButtonsProps = {
   isBorrowing: boolean;
@@ -162,7 +163,6 @@ export const PositionActionButtons = ({
           txn: Array.isArray(txnSig) ? txnSig[txnSig.length - 1] : txnSig!,
           positionClosedOptions: {
             tokenBank: arenaPool.tokenBank,
-            collateralBank: arenaPool.quoteBank,
             size: positionSizeUsd,
             leverage: Number(leverage),
             entryPrice: positionData && positionData.entryPrice ? positionData.entryPrice : 0,
@@ -417,13 +417,19 @@ export const PositionActionButtons = ({
                   <dt>PnL</dt>
                   <dd
                     className={cn(
-                      "text-right",
+                      "text-right justify-end flex items-center gap-2",
                       positionsByGroupPk[actionTransaction.groupKey.toBase58()]?.pnl > 0 && "text-mrgn-success",
                       positionsByGroupPk[actionTransaction.groupKey.toBase58()]?.pnl < 0 && "text-mrgn-error"
                     )}
                   >
-                    {positionsByGroupPk[actionTransaction.groupKey.toBase58()]?.pnl > 0 && "+"}$
-                    {dynamicNumeralFormatter(positionsByGroupPk[actionTransaction.groupKey.toBase58()]?.pnl ?? 0)}
+                    <PnlLabel
+                      pnl={positionsByGroupPk[actionTransaction.groupKey.toBase58()]?.pnl ?? 0}
+                      positionSize={positionSizeUsd ?? 0}
+                    />
+                    <PnlBadge
+                      pnl={positionsByGroupPk[actionTransaction.groupKey.toBase58()]?.pnl ?? 0}
+                      positionSize={positionSizeUsd ?? 0}
+                    />
                   </dd>
                 </>
               )}
