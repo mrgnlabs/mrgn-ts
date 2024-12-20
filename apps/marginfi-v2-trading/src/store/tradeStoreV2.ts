@@ -675,7 +675,13 @@ const sortPools = (
     const bTokenData = tokenDataByMint[b.tokenBankPk.toBase58()];
 
     const aBankData = banksByBankPk[a.tokenBankPk.toBase58()];
+    const aQuoteBankData = banksByBankPk[a.quoteBankPk.toBase58()];
     const bBankData = banksByBankPk[b.tokenBankPk.toBase58()];
+    const bQuoteBankData = banksByBankPk[b.quoteBankPk.toBase58()];
+
+    const depositsUsdValue = (bank: ArenaBank) => {
+      return bank.info.state.totalDeposits * bank.info.oraclePrice.priceRealtime.price.toNumber();
+    };
 
     if (sortBy === TradePoolFilterStates.TIMESTAMP) {
       const aIndex = timestampOrder.indexOf(a.groupPk.toBase58());
@@ -690,8 +696,8 @@ const sortPools = (
       const bMarketCap = bTokenData?.marketcap ?? 0;
       return sortBy === TradePoolFilterStates.MARKET_CAP_ASC ? aMarketCap - bMarketCap : bMarketCap - aMarketCap;
     } else if (sortBy.startsWith("liquidity")) {
-      const aLiquidity = aBankData?.info.state.totalDeposits ?? 0;
-      const bLiquidity = bBankData?.info.state.totalDeposits ?? 0;
+      const aLiquidity = depositsUsdValue(aBankData) + depositsUsdValue(aQuoteBankData);
+      const bLiquidity = depositsUsdValue(bBankData) + depositsUsdValue(bQuoteBankData);
       return sortBy === TradePoolFilterStates.LIQUIDITY_ASC ? aLiquidity - bLiquidity : bLiquidity - aLiquidity;
     } else if (sortBy.startsWith("apy")) {
       // todo add apy filter
@@ -745,8 +751,10 @@ const sortSummaryPools = (
       const bMarketCap = bTokenData?.marketcap ?? 0;
       return sortBy === TradePoolFilterStates.MARKET_CAP_ASC ? aMarketCap - bMarketCap : bMarketCap - aMarketCap;
     } else if (sortBy.startsWith("liquidity")) {
-      const aLiquidity = a.tokenSummary?.bankData?.totalDeposits ?? 0;
-      const bLiquidity = b.tokenSummary?.bankData?.totalDeposits ?? 0;
+      const aLiquidity =
+        (a.tokenSummary?.bankData?.totalDepositsUsd ?? 0) + (a.quoteSummary?.bankData?.totalDepositsUsd ?? 0);
+      const bLiquidity =
+        (b.tokenSummary?.bankData?.totalDepositsUsd ?? 0) + (b.quoteSummary?.bankData?.totalDepositsUsd ?? 0);
       return sortBy === TradePoolFilterStates.LIQUIDITY_ASC ? aLiquidity - bLiquidity : bLiquidity - aLiquidity;
     } else if (sortBy.startsWith("apy")) {
       const aIndex = timestampOrder.indexOf(a.groupPk.toBase58());
