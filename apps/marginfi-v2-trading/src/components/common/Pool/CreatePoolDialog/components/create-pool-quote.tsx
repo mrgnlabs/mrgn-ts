@@ -81,9 +81,9 @@ export const CreatePoolQuote = ({
   return (
     <>
       <div className="text-center space-y-2 w-full mx-auto">
-        <h2 className="text-3xl font-medium">Quote Mint</h2>
+        <h2 className="text-3xl font-medium">Create a Token Pair</h2>
         <p className="text-lg text-muted-foreground">
-          Enter the mint address of the quote token you&apos;d like to create a pool for.
+          Enter the mint address of the token you&apos;d like to to pair with the base token.
         </p>
       </div>
       <form
