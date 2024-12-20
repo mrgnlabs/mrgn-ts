@@ -13,7 +13,7 @@ import { useLeveragedPositionDetails } from "~/hooks/arenaHooks";
 import { useMarginfiClient } from "~/hooks/useMarginfiClient";
 import { useWrappedAccount } from "~/hooks/useWrappedAccount";
 import { usePositionsData } from "~/hooks/usePositionsData";
-import { PnlDisplayTooltip } from "~/components/common/pnl-display/";
+import { PnlDisplayTooltip, PnlLabel } from "~/components/common/pnl-display/";
 import { InfoCircledIcon } from "@radix-ui/react-icons";
 interface props {
   arenaPool: ArenaPoolV2Extended;
@@ -71,7 +71,7 @@ export const PositionListItem = ({ arenaPool }: props) => {
       <TableCell>
         <PnlDisplayTooltip pool={arenaPool}>
           <div className="flex flex-row items-center gap-1">
-            {arenaPool.tokenBank.isActive ? <>${dynamicNumeralFormatter(positionData?.pnl ?? 0)}</> : "n/a"}{" "}
+            <PnlLabel pnl={positionData?.pnl} positionSize={positionSizeUsd} />
             <InfoCircledIcon />
           </div>
         </PnlDisplayTooltip>
