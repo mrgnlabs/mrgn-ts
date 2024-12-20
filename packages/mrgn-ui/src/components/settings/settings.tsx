@@ -212,13 +212,11 @@ export const Settings = ({ onChange, recommendedBroadcastType = "BUNDLE", ...pro
               )}
             />
           </div>
-          <div className="space-y-4">
-            <div className="space-y-0.5">
-              <h4 className="font-normal text-sm">Priority Fee Cap</h4>
-              <p className="text-xs text-muted-foreground">
-                Set the maximum fee you are willing to pay for a transaction.
-              </p>
-            </div>
+          <div className="space-y-2">
+            <h4 className="font-normal text-sm">Priority Fee Cap</h4>
+            <p className="text-xs text-muted-foreground">
+              Set the maximum fee you are willing to pay for a transaction.
+            </p>
 
             {/* For maxCapType */}
             <FormField
@@ -252,6 +250,34 @@ export const Settings = ({ onChange, recommendedBroadcastType = "BUNDLE", ...pro
                       ))}
                     </RadioGroup>
                   </FormControl>
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="maxCap"
+              rules={{ max: { value: 0.2, message: "Maximum priority fee is 0.2 SOL." } }}
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <div className={cn("relative", formValues.maxCapType === "DYNAMIC" && "hidden")}>
+                      <Input
+                        type="decimal"
+                        min={0}
+                        max={0.2}
+                        value={field.value}
+                        placeholder={field.value.toString()}
+                        onChange={(e) => field.onChange(e)}
+                        className={cn(
+                          "h-auto bg-mfi-action-box-background-dark py-3 px-4 border border-transparent transition-colors focus-visible:ring-0",
+                          "focussed:border-mfi-action-box-highlight"
+                        )}
+                      />
+                      <span className="absolute inset-y-0 right-3 text-sm flex items-center">SOL</span>
+                    </div>
+                  </FormControl>
+                  <FormMessage className="text-xs text-warning" />
                 </FormItem>
               )}
             />
