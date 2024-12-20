@@ -436,6 +436,10 @@ export const handleError = (
       ) {
         return STATIC_SIMULATION_ERRORS.UTILIZATION_RATIO_INVALID;
       }
+
+      if (isArena && checkErrorCodeMatch(error.message, 6001)) {
+        return STATIC_SIMULATION_ERRORS.SLIPPAGE;
+      }
     }
 
     // CATCH REMAINING MARGINFI PROGRAM ERROS
