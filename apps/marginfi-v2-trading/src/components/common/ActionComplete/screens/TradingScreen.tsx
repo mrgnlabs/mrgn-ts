@@ -6,7 +6,7 @@ import Image from "next/image";
 import { IconExternalLink } from "@tabler/icons-react";
 import { QuoteResponse } from "@jup-ag/api";
 import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { dynamicNumeralFormatter, shortenAddress } from "@mrgnlabs/mrgn-common";
+import { dynamicNumeralFormatter, shortenAddress, usdFormatter } from "@mrgnlabs/mrgn-common";
 import { cn } from "@mrgnlabs/mrgn-utils";
 
 import { PublicKey } from "@solana/web3.js";
@@ -64,15 +64,11 @@ export const TradingScreen = ({
 
         <div className="flex flex-col gap-2 justify-center items-center text-center">
           <h3 className="text-2xl font-medium text-center">
-            You {type === "long" ? "longed" : "shorted"} {depositBank.meta.tokenSymbol.toUpperCase()}/
-            {borrowBank.meta.tokenSymbol.toUpperCase()} for{" "}
-            {type === "long"
-              ? `${dynamicNumeralFormatter(depositAmount, {
-                  minDisplay: 0.0001,
-                })} ${depositBank.meta.tokenSymbol.toUpperCase()}`
-              : `${dynamicNumeralFormatter(depositAmount, {
-                  minDisplay: 0.0001,
-                })} ${depositBank.meta.tokenSymbol.toUpperCase()}`}
+            {type === "long" ? (
+              <>Long {depositBank.meta.tokenSymbol} position opened</>
+            ) : (
+              <>Short {borrowBank.meta.tokenSymbol} position opened</>
+            )}
           </h3>
           <h4 className="text-xl text-muted-foreground">Leverage: {leverage}x</h4>
         </div>
@@ -81,15 +77,19 @@ export const TradingScreen = ({
         <dt>Position Type</dt>
         <dd className="text-right capitalize">{type}</dd>
         <dt>Token</dt>
-        <dd className={cn("text-right", type === "long" ? "text-success" : "text-warning")}>
+        <dd className="text-right">
           {type === "long"
             ? `${depositBank.meta.tokenName} (${depositBank.meta.tokenSymbol})`
             : `${borrowBank.meta.tokenName} (${borrowBank.meta.tokenSymbol})`}
         </dd>
+        <dt>Size</dt>
+        <dd className="text-right">
+          {type === "long"
+            ? usdFormatter.format(depositAmount * depositBank.info.oraclePrice.priceRealtime.price.toNumber())
+            : usdFormatter.format(borrowAmount * borrowBank.info.oraclePrice.priceRealtime.price.toNumber())}
+        </dd>
         <dt>Leverage</dt>
         <dd className="text-right">{`${leverage}x`}</dd>
-        {/* <dt>Token</dt>
-        <dd className={cn("text-right", actionTextColor)}>{rateAP}</dd> */}
         <dt>Transaction</dt>
         <dd className="text-right">
           <Link

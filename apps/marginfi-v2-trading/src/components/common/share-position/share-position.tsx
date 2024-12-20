@@ -19,10 +19,23 @@ import { Label } from "~/components/ui/label";
 
 interface SharePositionProps {
   pool: ArenaPoolV2Extended;
+  triggerVariant?:
+    | "ghost"
+    | "link"
+    | "default"
+    | "destructive"
+    | "outline"
+    | "outline-dark"
+    | "secondary"
+    | "long"
+    | "short"
+    | null
+    | undefined;
+  triggerClassName?: string;
   onOpenChange?: (open: boolean) => void;
 }
 
-const SharePosition = ({ pool, onOpenChange }: SharePositionProps) => {
+const SharePosition = ({ pool, triggerVariant = "ghost", triggerClassName, onOpenChange }: SharePositionProps) => {
   const [isCopied, setIsCopied] = React.useState(false);
   const [isDownloaded, setIsDownloaded] = React.useState(false);
   const [isOpen, setIsOpen] = React.useState(false);
@@ -70,7 +83,7 @@ const SharePosition = ({ pool, onOpenChange }: SharePositionProps) => {
       }}
     >
       <DialogTrigger asChild>
-        <Button size="sm" variant="ghost" className="max-w-fit">
+        <Button size="sm" variant={triggerVariant} className={cn("max-w-fit", triggerClassName)}>
           <IconShare size={16} />
           Share your position
         </Button>
