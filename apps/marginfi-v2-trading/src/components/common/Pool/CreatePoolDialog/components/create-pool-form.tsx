@@ -1,5 +1,5 @@
 import React from "react";
-import { IconChevronLeft } from "@tabler/icons-react";
+import { IconChevronLeft, IconSettings } from "@tabler/icons-react";
 
 import { CreatePoolState, SUPPORTED_QUOTE_BANKS } from "~/components/common/Pool/CreatePoolDialog";
 
@@ -35,17 +35,20 @@ export const CreatePoolForm = ({ isTokenFetchingError, poolData, setCreatePoolSt
       >
         <IconChevronLeft size={18} /> Back
       </Button>
-      <div className="text-center space-y-2 max-w-lg mx-auto">
-        <h2 className="text-3xl font-medium flex flex-col items-center">
-          Confirm token details for{" "}
+      <div className="text-center space-y-4 max-w-lg mx-auto pb-2">
+        <h2 className="text-3xl font-medium flex flex-col gap-1.5 items-center">
+          Confirm Token Pair{" "}
           <div className="flex flex-row items-center gap-2">
+            {/* using remote birdeye images for tokens */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={poolData.token.icon} alt={poolData.token.symbol} className="w-10 h-10 rounded-full " />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={poolData.quoteToken.icon}
               alt={poolData.quoteToken.symbol}
               className="w-10 h-10 rounded-full ml-[-20px]"
             />
-            {`${poolData.token.symbol}/${poolData.quoteToken.symbol}`}
+            {`${poolData.token.symbol.trim()}/${poolData.quoteToken.symbol.trim()}`}
           </div>
         </h2>
 
@@ -56,17 +59,17 @@ export const CreatePoolForm = ({ isTokenFetchingError, poolData, setCreatePoolSt
         </p>
       </div>
 
-      <div className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div className="space-y-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
           <div className="space-y-4 text-xs">
-            <h4 className="text-sm font-medium">Token details</h4>
-            <div className="space-y-1">
-              <Label className="font-medium text-xs">Mint address</Label>
-              <Input value={poolData.token.mint.toBase58()} disabled={true} />
-            </div>
+            <h4 className="text-sm font-medium">Base Token details</h4>
             <div className="space-y-1">
               <Label className="font-medium text-xs">Token name</Label>
               <Input value={poolData.token.name} disabled={true} />
+            </div>
+            <div className="space-y-1">
+              <Label className="font-medium text-xs">Mint address</Label>
+              <Input value={poolData.token.mint.toBase58()} disabled={true} />
             </div>
             <div className="flex w-full gap-2">
               <div className="space-y-1 flex-1">
@@ -82,12 +85,12 @@ export const CreatePoolForm = ({ isTokenFetchingError, poolData, setCreatePoolSt
           <div className="space-y-4 text-xs">
             <h4 className="text-sm font-medium">Quote token details</h4>
             <div className="space-y-1">
-              <Label className="font-medium text-xs">Mint address</Label>
-              <Input value={poolData.quoteToken.mint.toBase58()} disabled={true} />
-            </div>
-            <div className="space-y-1">
               <Label className="font-medium text-xs">Token name</Label>
               <Input value={poolData.quoteToken.name} disabled={true} />
+            </div>
+            <div className="space-y-1">
+              <Label className="font-medium text-xs">Mint address</Label>
+              <Input value={poolData.quoteToken.mint.toBase58()} disabled={true} />
             </div>
             <div className="flex w-full gap-2">
               <div className="space-y-1 flex-1">
@@ -102,13 +105,14 @@ export const CreatePoolForm = ({ isTokenFetchingError, poolData, setCreatePoolSt
           </div>
         </div>
         <Button
-          className="flex justify-center items-center px-20 mx-auto"
+          className="flex justify-center items-center px-8 mx-auto"
           type="button"
           onClick={() => {
             setCreatePoolState(CreatePoolState.CONFIGURE);
           }}
         >
-          Configure Pool
+          <IconSettings size={18} />
+          Configure Pool Settings
         </Button>
       </div>
     </>
