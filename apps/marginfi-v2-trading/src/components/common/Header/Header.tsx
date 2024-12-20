@@ -24,6 +24,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/comp
 import { CreatePoolScriptDialog } from "../Pool/CreatePoolScript";
 import { CreatePoolSoon } from "../Pool/CreatePoolSoon";
 import { CreatePoolDialog } from "../Pool/CreatePoolDialog";
+import { ResponsiveSettingsWrapper } from "~/components";
 
 const navItems = [
   { label: "Discover", href: "/" },
@@ -43,23 +44,32 @@ export const Header = () => {
       state.banksByBankPk,
       state.groupsByGroupPk,
     ]);
-  const { priorityType, broadcastType, priorityFees, maxCap, maxCapType, setTransactionSettings } = useUiStore(
-    (state) => ({
-      priorityType: state.priorityType,
-      broadcastType: state.broadcastType,
-      priorityFees: state.priorityFees,
-      maxCap: state.maxCap,
-      maxCapType: state.maxCapType,
-      setTransactionSettings: state.setTransactionSettings,
-    })
-  );
+  const {
+    priorityType,
+    broadcastType,
+    priorityFees,
+    maxCap,
+    maxCapType,
+    setTransactionSettings,
+    slippageBps,
+    setSlippageBps,
+  } = useUiStore((state) => ({
+    priorityType: state.priorityType,
+    broadcastType: state.broadcastType,
+    priorityFees: state.priorityFees,
+    maxCap: state.maxCap,
+    maxCapType: state.maxCapType,
+    setTransactionSettings: state.setTransactionSettings,
+    slippageBps: state.slippageBps,
+    setSlippageBps: state.setSlippageBps,
+  }));
   const { wallet, connected } = useWallet();
   const { asPath } = useRouter();
   const isMobile = useIsMobile();
   const [scope, animate] = useAnimate();
 
   const [isReferralCopied, setIsReferralCopied] = React.useState(false);
-
+  const [settingsDialogOpen, setSettingsDialogOpen] = React.useState(false);
   const extendedBankInfos = React.useMemo(() => {
     const banks = Object.values(banksByBankPk);
     const uniqueBanksMap = new Map(banks.map((bank) => [bank.info.state.mint.toBase58(), bank]));
@@ -150,22 +160,38 @@ export const Header = () => {
                 />
               </div>
             )}
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0">
-                  <IconSettings size={20} />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-80">
-                <Settings
-                  onChange={(settings) => setTransactionSettings(settings, connection)}
-                  broadcastType={broadcastType}
-                  priorityType={priorityType}
-                  maxCap={maxCap}
-                  maxCapType={maxCapType}
-                />
-              </PopoverContent>
-            </Popover>
+            <ResponsiveSettingsWrapper
+              onChange={(settings) => setTransactionSettings(settings, connection)}
+              broadcastType={broadcastType}
+              priorityType={priorityType}
+              maxCap={maxCap}
+              maxCapType={maxCapType}
+              slippageProps={{
+                slippageBps: slippageBps / 100,
+                setSlippageBps: (value) => setSlippageBps(value * 100),
+                slippageOptions: [
+                  {
+                    label: "Low",
+                    value: 0.3,
+                  },
+                  {
+                    label: "Normal",
+                    value: 0.5,
+                  },
+                  {
+                    label: "High",
+                    value: 1,
+                  },
+                ], // TODO: move to consts
+              }}
+              settingsDialogOpen={settingsDialogOpen}
+              setSettingsDialogOpen={setSettingsDialogOpen}
+            >
+              <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0">
+                <IconSettings size={20} />
+              </Button>
+            </ResponsiveSettingsWrapper>
+
             <Wallet
               connection={connection}
               initialized={initialized}

@@ -37,9 +37,17 @@ const priorityTypes: { type: TransactionPriorityType; label: string }[] = [
 
 interface SettingsForm extends SettingsOptions {}
 
-interface SettingsProps extends SettingsOptions {
+export interface SettingsProps extends SettingsOptions {
   recommendedBroadcastType?: TransactionBroadcastType;
   onChange: (options: SettingsOptions) => void;
+  slippageProps?: {
+    slippageBps: number;
+    setSlippageBps: (slippageBps: number) => void;
+    slippageOptions: {
+      label: string;
+      value: number;
+    }[];
+  };
 }
 
 export const Settings = ({ onChange, recommendedBroadcastType = "BUNDLE", ...props }: SettingsProps) => {
@@ -70,19 +78,60 @@ export const Settings = ({ onChange, recommendedBroadcastType = "BUNDLE", ...pro
     }
   }, [form.formState.isDirty, prevIsDirty, handleOnSubmit]);
 
+  // Slippage
+  const slippageForm = useForm<{
+    slippageBps: number;
+  }>({
+    defaultValues: {
+      slippageBps: props.slippageProps?.slippageBps,
+    },
+  });
+  const prevSlippageFormIsDirty = usePrevious(slippageForm.formState.isDirty);
+
+  const slippageFormWatch = slippageForm.watch();
+
+  const isCustomSlippage = React.useMemo(
+    () =>
+      props.slippageProps?.slippageOptions.find((value) => value.value === slippageFormWatch.slippageBps)
+        ? false
+        : true,
+    [slippageFormWatch.slippageBps]
+  );
+
+  const onSlippageSubmit = React.useCallback(
+    (data: { slippageBps: number }) => {
+      console.log("onSlippageSubmit", data);
+      props.slippageProps?.setSlippageBps(data.slippageBps);
+      slippageForm.reset(data);
+    },
+    [slippageForm, props.slippageProps]
+  );
+
+  const handleOnSlippageSubmit = React.useCallback(() => {
+    slippageForm.handleSubmit(onSlippageSubmit)();
+  }, [slippageForm, onSlippageSubmit]);
+
+  React.useEffect(() => {
+    if (slippageForm.formState.isDirty && !prevSlippageFormIsDirty) {
+      handleOnSlippageSubmit();
+    }
+  }, [slippageForm.formState.isDirty, prevSlippageFormIsDirty, handleOnSlippageSubmit]);
+
   return (
-    <div>
+    <div className="space-y-6 ">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           {/* Add this again if sequential transaction are more stabel */}
-          <div className="space-y-2">
-            <h3 className="font-normal ">Transaction Method</h3>
-            <p className="text-xs text-muted-foreground">Choose how transactions are broadcasted to the network.</p>
+          <div className="space-y-4">
+            <div className="space-y-0.5">
+              <h3 className="font-normal ">Transaction Method</h3>
+              <p className="text-xs text-muted-foreground">Choose how transactions are broadcasted to the network.</p>
+            </div>
             <FormField
               control={form.control}
               name="broadcastType"
               render={({ field }) => (
-                <FormItem className="space-y-3 pb-2">
+                <FormItem className="space-y-3 ">
                   <FormControl>
                     <RadioGroup defaultValue={field.value.toString()} className="flex justify-between">
                       {broadcastTypes.map((option) => (
@@ -121,9 +170,13 @@ export const Settings = ({ onChange, recommendedBroadcastType = "BUNDLE", ...pro
               )}
             />
           </div>
-          <div className="w-full border-b border-accent" />
-          <div className="space-y-2">
-            <h3 className="font-normal ">Transaction Priority</h3>
+          <div className="space-y-4">
+            <div className="space-y-0.5">
+              <h3 className="font-normal ">Transaction Priority</h3>
+              <p className="text-xs text-muted-foreground">
+                Set a priority for your transaction, priority fees will be adjusted accordingly.
+              </p>
+            </div>
             <FormField
               control={form.control}
               name="priorityType"
@@ -159,11 +212,13 @@ export const Settings = ({ onChange, recommendedBroadcastType = "BUNDLE", ...pro
               )}
             />
           </div>
-          <div className="space-y-2">
-            <h4 className="font-normal text-sm">Set Priority Fee Cap</h4>
-            <p className="text-xs text-muted-foreground">
-              Set the maximum fee you are willing to pay for a transaction.
-            </p>
+          <div className="space-y-4">
+            <div className="space-y-0.5">
+              <h3 className="font-normal ">Priority Fee Cap</h3>
+              <p className="text-xs text-muted-foreground">
+                Set the maximum fee you are willing to pay for a transaction.
+              </p>
+            </div>
 
             {/* For maxCapType */}
             <FormField
@@ -231,6 +286,84 @@ export const Settings = ({ onChange, recommendedBroadcastType = "BUNDLE", ...pro
           </div>
         </form>
       </Form>
+      {props.slippageProps && (
+        <Form {...slippageForm}>
+          <form onSubmit={slippageForm.handleSubmit(onSlippageSubmit)} className="space-y-4">
+            <div className="space-y-0.5">
+              <h3 className="font-normal ">Maximum Slippage</h3>
+              <p className="text-xs text-muted-foreground">
+                Set the maximum slippage you are willing to accept for a transaction.
+              </p>
+            </div>
+
+            <FormField
+              control={slippageForm.control}
+              name="slippageBps"
+              render={({ field }) => (
+                <FormItem className="space-y-2">
+                  <FormControl>
+                    <RadioGroup
+                      onValueChange={(value) => {
+                        field.onChange(Number(value));
+                      }}
+                      defaultValue={field.value.toString()}
+                      className="flex gap-4 justify-between"
+                    >
+                      {props.slippageProps?.slippageOptions.map((option) => (
+                        <div
+                          key={option.label}
+                          className={cn(
+                            "relative w-full font-light border border-transparent rounded bg-mfi-action-box-background-dark transition-colors hover:bg-mfi-action-box-background-dark/80",
+                            field.value === option.value && "border-mfi-action-box-highlight"
+                          )}
+                        >
+                          <RadioGroupItem
+                            value={option.value.toString()}
+                            id={option.label.toString()}
+                            className="hidden"
+                          />
+                          <Label
+                            className={"flex p-2 flex-col h-auto w-full text-xs gap-0.5 text-center cursor-pointer"}
+                            htmlFor={option.label.toString()}
+                          >
+                            {option.label} <strong className="font-medium text-sm">{option.value} %</strong>
+                          </Label>
+                        </div>
+                      ))}
+                    </RadioGroup>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <h4 className="font-normal text-sm">Or set manually</h4>
+            <FormField
+              control={slippageForm.control}
+              name="slippageBps"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <div className="relative">
+                      <Input
+                        type="decimal"
+                        min={0}
+                        value={isCustomSlippage ? field.value : undefined}
+                        placeholder={isCustomSlippage ? field.value.toString() : "0"}
+                        onChange={(e) => field.onChange(e)}
+                        className={cn("h-auto py-3 px-4 border", isCustomSlippage && "bg-accent")}
+                        autoFocus={false}
+                      />
+                      <span className="absolute inset-y-0 right-3 text-sm flex items-center">%</span>
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </form>
+        </Form>
+      )}
     </div>
   );
 };
