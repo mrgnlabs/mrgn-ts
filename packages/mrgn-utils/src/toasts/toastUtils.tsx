@@ -43,6 +43,12 @@ export class MultiStepToastHandle {
     });
   }
 
+  close() {
+    if (this._toastId) {
+      toast.dismiss(this._toastId);
+    }
+  }
+
   pause() {
     if (!this._toastId || !this._stepsWithStatus[this._stepIndex]) return;
 

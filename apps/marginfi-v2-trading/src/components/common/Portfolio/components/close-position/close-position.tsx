@@ -184,6 +184,21 @@ export const ClosePosition = ({ arenaPool, positionsByGroupPk, depositBanks, bor
     setActionTxns(null);
   };
 
+  const hasBeenOpened = React.useRef(false);
+
+  React.useEffect(() => {
+    if (isOpen) {
+      hasBeenOpened.current = true;
+    } else if (hasBeenOpened.current && multiStepToast) {
+      const timeout = setTimeout(() => {
+        multiStepToast.close();
+        hasBeenOpened.current = false;
+      }, 2000);
+
+      return () => clearTimeout(timeout);
+    }
+  }, [isOpen, multiStepToast]);
+
   return (
     <>
       <Button onClick={handleSimulation} disabled={false} variant="destructive" size="sm" className="gap-1 min-w-16">
