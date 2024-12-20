@@ -141,7 +141,11 @@ const YieldItem = ({
               {
                 maxDisplay: 1000,
               }
-            )}
+            )}{" "}
+            {bank.meta.tokenSymbol}
+          </span>
+          <span className="text-xs text-muted-foreground">
+            {usdFormatter.format(bank.info.state.totalDeposits * bank.info.oraclePrice.priceRealtime.price.toNumber())}
           </span>
         </div>
         <div className="flex flex-col gap-1">
