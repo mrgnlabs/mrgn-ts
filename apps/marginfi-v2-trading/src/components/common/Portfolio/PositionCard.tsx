@@ -176,7 +176,7 @@ export const PositionCard = ({ size = "lg", arenaPool }: PositionCardProps) => {
         <div className="w-full flex items-center justify-center md:inline-block md:mr-auto">
           {arenaPool && <SharePosition pool={arenaPool} />}
         </div>
-        {client && accountSummary && (
+        {client && accountSummary && arenaPool && (
           <PositionActionButtons
             arenaPool={arenaPool}
             isBorrowing={arenaPool.status === GroupStatus.SHORT || arenaPool.status === GroupStatus.LONG}
