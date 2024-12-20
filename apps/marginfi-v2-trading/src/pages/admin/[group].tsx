@@ -4,9 +4,9 @@ import { useRouter } from "next/router";
 
 import { useTradeStoreV2 } from "~/store";
 
-import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { AdminPoolDetailHeader, AdminPoolDetailCard } from "~/components/common/admin";
 import { ArenaPoolV2 } from "~/types/trade-store.types";
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
 export default function AdminGroupDetailsPage() {
   const [initialized, arenaPools, groupsByGroupPk] = useTradeStoreV2((state) => [
@@ -48,7 +48,7 @@ export default function AdminGroupDetailsPage() {
     <>
       <div className="w-full space-y-12 max-w-8xl mx-auto px-4 pb-16 pt-8 md:pt-14 min-h-[calc(100vh-100px)]">
         {activePool && <AdminPoolDetailHeader activePool={activePool} />}
-        {activePool && <AdminPoolDetailCard key={activePool.groupPk.toBase58()} activePool={activePool} />}
+        {activePool && <AdminPoolDetailCard activePool={activePool} />}
       </div>
     </>
   );

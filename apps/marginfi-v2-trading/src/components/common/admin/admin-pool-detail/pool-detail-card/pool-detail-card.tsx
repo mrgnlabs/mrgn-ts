@@ -28,11 +28,13 @@ import { useTradeStoreV2 } from "~/store";
 
 import { Button } from "~/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
-import { ActionBox, ActionBoxProvider, useWallet } from "@mrgnlabs/mrgn-ui";
+import { ActionBox, ActionBoxProvider } from "@mrgnlabs/mrgn-ui";
+
 import { ArenaBank, ArenaPoolV2, ArenaPoolV2Extended, GroupStatus } from "~/types/trade-store.types";
 import { useExtendedPool } from "~/hooks/useExtendedPools";
 import { useMarginfiClient } from "~/hooks/useMarginfiClient";
 import { useWrappedAccount } from "~/hooks/useWrappedAccount";
+import { useWallet } from "~/components/wallet-v2/hooks";
 
 type AdminPoolDetailCardProps = {
   activePool: ArenaPoolV2;
@@ -71,7 +73,7 @@ export const AdminPoolDetailCard = ({ activePool }: AdminPoolDetailCardProps) =>
           <IconArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
         </div>
       </Link>
-      <div className="flex w-full mt-2 flex-row gap-4">
+      <div className="flex flex-wrap w-full mt-2 flex-row gap-4">
         <YieldItem
           pool={extendedPool}
           bank={extendedPool.tokenBank}
@@ -111,6 +113,8 @@ const YieldItem = ({
     lendingRate,
     borrowingRate,
     utilization,
+    originationFee,
+    protocolFixedFeeApr,
   } = React.useMemo(() => {
     const assetPriceData = getAssetPriceData(bank);
     const assetWeightLending = getAssetWeightData(bank, true);
@@ -122,6 +126,8 @@ const YieldItem = ({
     const lendingRate = getRateData(bank, true);
     const borrowingRate = getRateData(bank, false);
     const utilization = getUtilizationData(bank).utilization;
+    const originationFee = bank.info.rawBank.config.interestRateConfig.protocolOriginationFee;
+    const protocolFixedFeeApr = bank.info.rawBank.config.interestRateConfig.protocolFixedFeeApr;
 
     return {
       assetPriceData,
@@ -134,6 +140,8 @@ const YieldItem = ({
       lendingRate,
       borrowingRate,
       utilization,
+      originationFee,
+      protocolFixedFeeApr,
     };
   }, [bank]);
 
@@ -148,8 +156,8 @@ const YieldItem = ({
   const { connection } = useConnection();
 
   return (
-    <div className={cn("items-center space-y-2 px-2 py-4", className)}>
-      <div className="flex items-center gap-2 h-[24px]">
+    <div className={cn("items-center min-w-[300px] space-y-2 px-2 py-4", className)}>
+      <div className="flex items-center  gap-2 h-[24px]">
         <Image
           src={bank.meta.tokenLogoUri}
           alt={bank.meta.tokenSymbol}
@@ -320,6 +328,52 @@ const YieldItem = ({
           </dt>
           <dd className="text-right text-primary flex items-center gap-1 justify-end">
             {percentFormatter.format(utilization / 100)}
+          </dd>
+
+          <dt className="flex items-center gap-0.5">
+            Origination Fee
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <IconInfoCircle size={14} />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <div className="flex flex-col items-start gap-1 text-left">
+                    <h4 className="text-base">Origination Fee</h4>
+                    <span>
+                      What percentage of supplied tokens have been borrowed. This helps determine interest rates. This
+                      is not based on the global pool limits, which can limit utilization.
+                    </span>
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </dt>
+          <dd className="text-right text-primary flex items-center gap-1 justify-end">
+            {percentFormatter.format(originationFee.toNumber() / 100)}
+          </dd>
+
+          <dt className="flex items-center gap-0.5">
+            Protocol Fixed Fee
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <IconInfoCircle size={14} />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <div className="flex flex-col items-start gap-1 text-left">
+                    <h4 className="text-base">Origination Fee</h4>
+                    <span>
+                      What percentage of supplied tokens have been borrowed. This helps determine interest rates. This
+                      is not based on the global pool limits, which can limit utilization.
+                    </span>
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </dt>
+          <dd className="text-right text-primary flex items-center gap-1 justify-end">
+            {percentFormatter.format(protocolFixedFeeApr.toNumber() / 100)}
           </dd>
         </dl>
       </div>

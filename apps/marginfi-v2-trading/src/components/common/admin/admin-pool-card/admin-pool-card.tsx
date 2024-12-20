@@ -58,8 +58,8 @@ export const AdminPoolCard = ({ pool, last }: AdminPoolCardProps) => {
               </span>
             )}
           </div>
-          <div>${numeralFormatter(extendedPool.tokenBank.tokenData.marketCap)}</div>
-          {/* <div>{extendedPool.poolData && `$${numeralFormatter(extendedPool.poolData.totalLiquidity)}`}</div> */}
+          {/* <div>${numeralFormatter(extendedPool.tokenBank.tokenData.marketCap)}</div> */}
+          {/* <div>{extendedPool.poolData && `$${numeralFormatter(extendedPool.quoteBa)}`}</div> */}
         </>
       )}
       <div className="pl-5">
