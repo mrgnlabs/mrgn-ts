@@ -142,7 +142,7 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
             </Button>
           )}
         </DialogTrigger>
-        <DialogContent className="w-full space-y-4 sm:max-w-4xl md:max-w-4xl z-[70]" closeClassName="top-0">
+        <DialogContent className="w-full space-y-4 sm:max-w-4xl md:max-w-4xl z-[70] px-4" closeClassName="top-0">
           {createPoolState === CreatePoolState.TOKEN && (
             <CreatePoolToken
               isSearchingToken={isSearchingToken}
