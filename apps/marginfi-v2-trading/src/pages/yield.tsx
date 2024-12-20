@@ -55,12 +55,6 @@ export default function YieldPage({ initialData }: StaticArenaProps) {
 
   const extendedPools = useExtendedPools();
 
-  const [isActionComplete, previousTxn, setIsActionComplete] = useActionBoxStore((state) => [
-    state.isActionComplete,
-    state.previousTxn,
-    state.setIsActionComplete,
-  ]);
-
   const fuse = React.useMemo(() => {
     return new Fuse(extendedPools, {
       includeScore: true,
@@ -267,8 +261,6 @@ export default function YieldPage({ initialData }: StaticArenaProps) {
           </>
         )}
       </div>
-
-      {poolsFetched && previousTxn && <ArenaActionComplete />}
     </>
   );
 }

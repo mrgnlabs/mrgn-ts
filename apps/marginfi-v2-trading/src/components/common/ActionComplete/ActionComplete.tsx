@@ -85,7 +85,7 @@ export const ArenaActionComplete = () => {
             )}
           </div>
           <DialogFooter className="flex sm:flex-col gap-4 mt-6">
-            {previousTxn.txnType === "CLOSE_POSITION" ? (
+            {previousTxn.txnType === "CLOSE_POSITION" && previousTxn.positionClosedOptions.pool ? (
               <div className="flex items-center justify-center">
                 <SharePosition
                   pool={previousTxn.positionClosedOptions.pool}

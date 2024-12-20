@@ -493,7 +493,7 @@ export const PositionActionButtons = ({
                 {isLoading ? <IconLoader2 className="animate-spin" /> : "Confirm close position"}
               </Button>
 
-              <SharePosition pool={arenaPool} />
+              {arenaPool && <SharePosition pool={arenaPool} />}
             </DialogFooter>
           </DialogContent>
         </Dialog>
