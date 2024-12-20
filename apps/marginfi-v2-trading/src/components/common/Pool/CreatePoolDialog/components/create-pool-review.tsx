@@ -4,7 +4,7 @@ import { AnchorProvider, Program } from "@coral-xyz/anchor";
 import { cn } from "@mrgnlabs/mrgn-utils";
 import { BankConfigOpt, getConfig, MARGINFI_IDL, MarginfiIdlType, MarginfiProgram } from "@mrgnlabs/marginfi-client-v2";
 import { dynamicNumeralFormatter, percentFormatter, Wallet } from "@mrgnlabs/mrgn-common";
-
+import { IconCheck, IconChevronLeft, IconSparkles } from "@tabler/icons-react";
 import { Button } from "~/components/ui/button";
 import { useConnection } from "~/hooks/use-connection";
 
@@ -57,39 +57,58 @@ export const CreatePoolReview = ({ poolData, setCreatePoolState }: CreatePoolRev
 
   return (
     <>
+      <Button
+        variant="ghost"
+        size="sm"
+        className="gap-1 absolute top-2 left-1.5 text-muted-foreground"
+        onClick={() => {
+          setCreatePoolState(CreatePoolState.CONFIGURE);
+        }}
+      >
+        <IconChevronLeft size={18} /> Back
+      </Button>
       <div className="text-center space-y-2 w-full mx-auto">
         <h2 className="text-3xl font-medium">Pool Summary</h2>
-        <p className="text-lg text-muted-foreground">Review the pool configuration</p>
+        <p className="text-muted-foreground">Review the pool configuration</p>
       </div>
 
       <div className="flex flex-col gap-2">
-        <div className={cn("gap-2 w-full flex flex-row flex-wrap items-center")}>
+        <div className={cn("gap-4 w-full flex flex-row flex-wrap items-center")}>
           <div className="flex-1 border rounded-lg p-4">
-            <h3 className="text-lg flex flex-row gap-1 items-center font-medium">
-              Token: <img src={poolData.token.icon} className="w-4 h-4 rounded-full" /> {poolData.token.name} (
-              {poolData.token.symbol})
+            <h3 className="font-medium space-y-1">
+              <span className="text-muted-foreground">Base Token</span>
+              <div className="flex items-center gap-2 text-lg">
+                {/* using remote birdeye images for tokens */}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={poolData.token.icon} className="w-8 h-8 rounded-full" alt={poolData.token.symbol} />{" "}
+                {poolData.token.name} ({poolData.token.symbol})
+              </div>
             </h3>
             <TokenSummary mintData={poolData.token} bankConfig={poolData.tokenBankConfig} />
           </div>
           <div className="flex-1 border rounded-lg p-4">
-            <h3 className="text-lg flex flex-row gap-1 items-center font-medium">
-              Quote: <img src={poolData.quoteToken.icon} className="w-4 h-4 rounded-full" /> {poolData.quoteToken.name}{" "}
-              ({poolData.quoteToken.symbol})
+            <h3 className="font-medium space-y-1">
+              <span className="text-muted-foreground">Quote Token</span>
+              <div className="flex items-center gap-2 text-lg">
+                {/* using remote birdeye images for tokens */}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={poolData.quoteToken.icon} className="w-4 h-4 rounded-full" alt={poolData.quoteToken.symbol} />
+                {poolData.quoteToken.name} ({poolData.quoteToken.symbol})
+              </div>
             </h3>
-            <TokenSummary mintData={poolData.quoteToken} bankConfig={poolData.quoteBankConfig} />
+            <TokenSummary mintData={poolData.token} bankConfig={poolData.tokenBankConfig} />
           </div>
         </div>
 
-        <p className="text-md py-2 text-muted-foreground">
+        <p className="text-sm py-2 text-muted-foreground text-center">
           Flat fee to initialize the pool: {bankInitFlatSolFee * 2} SOL
         </p>
 
-        <div className="w-full flex flex-col items-center">
-          <div className="flex flex-col gap-4">
-            <Button type="button" onClick={() => setCreatePoolState(CreatePoolState.LOADING)}>
-              Create Pool
-            </Button>
-          </div>
+        <div className="w-full flex flex-col items-center pt-4">
+          <Button type="button" onClick={() => setCreatePoolState(CreatePoolState.LOADING)}>
+            <IconSparkles size={18} />
+            Create Pool
+          </Button>
         </div>
       </div>
     </>
@@ -100,44 +119,42 @@ const TokenSummary = ({ mintData, bankConfig }: { mintData: PoolMintData; bankCo
   const hasOracleKeys = React.useMemo(() => (bankConfig?.oracle?.keys?.length ?? 0) > 0, [bankConfig]);
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col mt-4 gap-1">
       <div className="flex flex-row justify-between">
         <p className="text-sm text-muted-foreground">Price</p>
-        <p className="text-sm text-muted-foreground">${dynamicNumeralFormatter(mintData.price)}</p>
+        <p className="text-sm">${dynamicNumeralFormatter(mintData.price)}</p>
       </div>
       <div className="flex flex-row justify-between">
         <p className="text-sm text-muted-foreground">Decimals</p>
-        <p className="text-sm text-muted-foreground">{mintData.decimals}</p>
+        <p className="text-sm">{mintData.decimals}</p>
       </div>
       <div className="flex flex-row justify-between">
         <p className="text-sm text-muted-foreground">Deposit Limit</p>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm">
           {bankConfig.depositLimit?.shiftedBy(-mintData.decimals).toFixed(2)} {mintData.symbol}
         </p>
       </div>
       <div className="flex flex-row justify-between">
         <p className="text-sm text-muted-foreground">Borrow Limit</p>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm">
           {bankConfig.borrowLimit?.shiftedBy(-mintData.decimals).toFixed(2)} {mintData.symbol}
         </p>
       </div>
       <div className="flex flex-row justify-between">
         <p className="text-sm text-muted-foreground">Origination Fee</p>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm">
           {percentFormatter.format(bankConfig.interestRateConfig?.protocolOriginationFee.toNumber() ?? 0)}
         </p>
       </div>
       <div className="flex flex-row justify-between">
         <p className="text-sm text-muted-foreground">Protocol Fee</p>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm">
           {percentFormatter.format(bankConfig.interestRateConfig?.protocolFixedFeeApr.toNumber() ?? 0)}
         </p>
       </div>
       <div className="flex flex-row justify-between">
         <p className="text-sm text-muted-foreground">Oracle</p>
-        <p className="text-sm text-muted-foreground">
-          {hasOracleKeys ? bankConfig?.oracle?.setup : "Oracle created at next step"}
-        </p>
+        <p className="text-sm">{hasOracleKeys ? bankConfig?.oracle?.setup : "Oracle created at next step"}</p>
       </div>
     </div>
   );
