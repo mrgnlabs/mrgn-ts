@@ -29,9 +29,7 @@ const sortOptions: {
 }[] = [
   { value: TradePoolFilterStates.TIMESTAMP, label: "Recently created" },
   { value: TradePoolFilterStates.PRICE_MOVEMENT_DESC, label: "24hr price movement" },
-  { value: TradePoolFilterStates.LIQUIDITY_DESC, label: "Lending pool liquidity" },
-  { value: TradePoolFilterStates.MARKET_CAP_DESC, label: "Market cap desc" },
-  { value: TradePoolFilterStates.MARKET_CAP_ASC, label: "Market cap asc", dir: "asc" },
+  { value: TradePoolFilterStates.LIQUIDITY_DESC, label: "Pool liquidity" },
 ];
 
 enum View {
@@ -210,7 +208,7 @@ export default function HomePage({ initialData }: StaticArenaProps) {
                     <div className="pl-2.5">Price</div>
                     <div className="pl-2">24hr Volume</div>
                     <div>Funding rate</div>
-                    <div>Lending pool liquidity</div>
+                    <div>Pool liquidity</div>
                     <div className="pl-2">Created by</div>
                     <div />
                   </div>
