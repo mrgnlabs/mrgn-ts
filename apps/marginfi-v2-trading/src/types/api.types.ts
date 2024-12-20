@@ -63,3 +63,12 @@ export type PoolPositionsApiResponse = {
   current_position_value: number;
   pnl: number;
 };
+
+/**
+ * Type definitions for the /api/pool/oracle endpoint
+ */
+export type PoolOracleApiResponse = {
+  programIdl: string;
+  programId: string;
+  queueKey: string;
+};
