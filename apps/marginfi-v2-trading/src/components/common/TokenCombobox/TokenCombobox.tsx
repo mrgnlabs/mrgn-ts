@@ -61,9 +61,14 @@ export const TokenCombobox = ({ selected, setSelected, children }: TokenCombobox
           <PopoverTrigger asChild>
             <div>{children ? children : <TokenTrigger selected={selected} open={open} />}</div>
           </PopoverTrigger>
-          <PopoverContent className="p-4 bg-background m-0 w-[400px]">
+          <PopoverContent className="p-4 bg-background m-0 w-[400px]" side="bottom" avoidCollisions={false}>
             <div className="h-[500px] relative overflow-auto">
-              <Command>
+              <Command
+                filter={(value, search) => {
+                  const selectedPool = arenaPoolsSorted.find((pool) => pool.groupPk.toBase58().toLowerCase() === value);
+                  return selectedPool?.tokenBank.meta.tokenSymbol.toLowerCase().includes(search.toLowerCase()) ? 1 : 0;
+                }}
+              >
                 <CommandInput placeholder="Select pool..." autoFocus={true} />
                 <CommandList>
                   <CommandEmpty>No results found.</CommandEmpty>
