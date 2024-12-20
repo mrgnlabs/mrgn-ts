@@ -40,14 +40,14 @@ interface SettingsForm extends SettingsOptions {}
 export interface SettingsProps extends SettingsOptions {
   recommendedBroadcastType?: TransactionBroadcastType;
   onChange: (options: SettingsOptions) => void;
-  slippageProps: {
+  slippageProps?: {
     slippageBps: number;
     setSlippageBps: (slippageBps: number) => void;
     slippageOptions: {
       label: string;
       value: number;
     }[];
-  } | null;
+  };
 }
 
 export const Settings = ({ onChange, recommendedBroadcastType = "BUNDLE", ...props }: SettingsProps) => {
