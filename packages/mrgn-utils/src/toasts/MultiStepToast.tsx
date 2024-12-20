@@ -13,7 +13,7 @@ export interface ToastStep {
   label: string | string[];
 }
 
-export type ToastStatus = "todo" | "pending" | "success" | "error" | "canceled";
+export type ToastStatus = "todo" | "pending" | "success" | "error" | "canceled" | "paused";
 
 export interface ToastStepWithStatus extends ToastStep {
   status: ToastStatus;
@@ -51,7 +51,7 @@ export const MultiStepToast = ({ title, steps, retry }: MultiStepToastProps) => 
                     className={cn(
                       step.status === "success" && "text-primary",
                       step.status === "error" && "text-error",
-                      step.status === "todo" && "ml-6 text-muted-foreground/50",
+                      (step.status === "todo" || step.status === "paused") && "ml-6 text-muted-foreground/50",
                       step.status === "canceled" && "ml-6 text-muted-foreground/50"
                     )}
                   >
