@@ -18,6 +18,7 @@ import {
   composeExplorerUrl,
   deserializeInstruction,
   DYNAMIC_SIMULATION_ERRORS,
+  extractErrorString,
   getAdressLookupTableAccounts,
   getSwapQuoteWithRetry,
   MultiStepToastHandle,
@@ -64,8 +65,19 @@ export const fetchTransactionsAction = async ({
 
     return { actionTxns, actionMessage };
   } catch (error) {
+    const msg = extractErrorString(error);
+    let actionMethod: ActionMessageType = STATIC_SIMULATION_ERRORS.TRADE_FAILED;
+    if (msg) {
+      actionMethod = {
+        isEnabled: false,
+        actionMethod: "WARNING",
+        description: msg,
+        code: 101,
+      };
+    }
     console.error("Error simulating transaction", error);
-    return { actionTxns: null, actionMessage: STATIC_SIMULATION_ERRORS.TRADE_FAILED };
+
+    return { actionTxns: null, actionMessage: actionMethod };
   } finally {
     setIsLoading(false);
   }
@@ -116,14 +128,23 @@ const fetchClosePositionTxns = async (props: {
 
         if (swapTx.error) {
           return { actionTxns: null, actionMessage: swapTx.error };
-        } else {
-          if (!swapTx.tx || !swapTx.quote) {
-            return { actionTxns: null, actionMessage: STATIC_SIMULATION_ERRORS.FL_FAILED };
-          }
+        } else if (!swapTx.tx || !swapTx.quote) {
+          return { actionTxns: null, actionMessage: STATIC_SIMULATION_ERRORS.FL_FAILED };
         }
       } catch (error) {
-        console.error("Error creating USDC swap transaction:", error);
-        return { actionTxns: null, actionMessage: STATIC_SIMULATION_ERRORS.FL_FAILED };
+        const msg = extractErrorString(error);
+        let actionMethod: ActionMessageType = STATIC_SIMULATION_ERRORS.TRADE_FAILED;
+        if (msg) {
+          actionMethod = {
+            isEnabled: false,
+            actionMethod: "WARNING",
+            description: msg,
+            code: 101,
+          };
+        }
+        console.error("Error simulating transaction", error);
+
+        return { actionTxns: null, actionMessage: actionMethod };
       }
     }
 
@@ -147,7 +168,19 @@ const fetchClosePositionTxns = async (props: {
       return { actionTxns: null, actionMessage: errorMessage };
     }
   } catch (error) {
-    return { actionTxns: null, actionMessage: STATIC_SIMULATION_ERRORS.TRADE_FAILED };
+    const msg = extractErrorString(error);
+    let actionMethod: ActionMessageType = STATIC_SIMULATION_ERRORS.TRADE_FAILED;
+    if (msg) {
+      actionMethod = {
+        isEnabled: false,
+        actionMethod: "WARNING",
+        description: msg,
+        code: 101,
+      };
+    }
+    console.error("Error simulating transaction", error);
+
+    return { actionTxns: null, actionMessage: actionMethod };
   }
 };
 
@@ -209,8 +242,18 @@ async function createSwapTx(
 
     return { quote: swapQuote, tx: swapTx };
   } catch (error) {
-    console.error("Error creating swap transaction:", error);
-    return { error: STATIC_SIMULATION_ERRORS.FL_FAILED };
+    const msg = extractErrorString(error);
+    let actionMethod: ActionMessageType = STATIC_SIMULATION_ERRORS.FL_FAILED;
+    if (msg) {
+      actionMethod = {
+        isEnabled: false,
+        actionMethod: "WARNING",
+        description: msg,
+        code: 101,
+      };
+    }
+    console.error("Error creating USDC swap transaction:", error);
+    return { error: actionMethod };
   }
 }
 
@@ -256,6 +299,18 @@ export const closePositionAction = async ({
       return { txnSig: null, actionMessage: STATIC_SIMULATION_ERRORS.TRADE_FAILED };
     }
   } catch (error) {
-    return { txnSig: null, actionMessage: STATIC_SIMULATION_ERRORS.TRADE_FAILED };
+    const msg = extractErrorString(error);
+    let actionMethod: ActionMessageType = STATIC_SIMULATION_ERRORS.TRADE_FAILED;
+    if (msg) {
+      actionMethod = {
+        isEnabled: false,
+        actionMethod: "WARNING",
+        description: msg,
+        code: 101,
+      };
+    }
+    console.error("Error simulating transaction", error);
+
+    return { txnSig: null, actionMessage: actionMethod };
   }
 };
