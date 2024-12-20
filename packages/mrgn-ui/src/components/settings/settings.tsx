@@ -261,7 +261,7 @@ export const Settings = ({ onChange, recommendedBroadcastType = "BUNDLE", ...pro
               control={slippageForm.control}
               name="slippageBps"
               render={({ field }) => (
-                <FormItem className="space-y-3">
+                <FormItem className="space-y-2">
                   <FormControl>
                     <RadioGroup
                       onValueChange={(value) => {
