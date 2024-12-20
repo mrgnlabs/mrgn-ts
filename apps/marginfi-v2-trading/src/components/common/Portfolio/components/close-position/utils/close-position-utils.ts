@@ -81,8 +81,18 @@ const fetchClosePositionTxns = async (props: {
   platformFeeBps: number;
 }): Promise<{ actionTxns: ClosePositionActionTxns | null; actionMessage: ActionMessageType | null }> => {
   try {
-    let swapTx: { quote?: QuoteResponse; tx?: SolanaTransaction; error?: ActionMessageType } | undefined;
+    console.log("fetchClosePositionTxns", props);
+    let txns: ClosePositionActionTxns | ActionMessageType;
+    txns = await calculateClosePositions({
+      marginfiAccount: props.marginfiAccount,
+      depositBanks: props.depositBanks,
+      borrowBank: props.borrowBank,
+      slippageBps: props.slippageBps,
+      connection: props.connection,
+      platformFeeBps: props.platformFeeBps,
+    });
 
+    let swapTx: { quote?: QuoteResponse; tx?: SolanaTransaction; error?: ActionMessageType } | undefined;
     const swapNeeded = props.depositBanks[0].meta.tokenSymbol !== "USDC";
     if (swapNeeded) {
       console.log("Creating swap transaction...");
@@ -109,30 +119,14 @@ const fetchClosePositionTxns = async (props: {
       }
     }
 
-    console.log("swapTx", swapTx);
-
-    console.log("fetchClosePositionTxns", props);
-    let txns: ClosePositionActionTxns | ActionMessageType;
-    txns = await calculateClosePositions({
-      marginfiAccount: props.marginfiAccount,
-      depositBanks: props.depositBanks,
-      borrowBank: props.borrowBank,
-      slippageBps: props.slippageBps,
-      connection: props.connection,
-      platformFeeBps: props.platformFeeBps,
-    });
-
     if ("actionTxn" in txns) {
       if (swapTx?.tx && swapTx?.quote) {
         return {
-          actionMessage: null,
           actionTxns: {
             ...txns,
-            swapTx: {
-              tx: swapTx.tx,
-              quote: swapTx.quote,
-            },
+            closeTransactions: swapTx.tx ? [swapTx.tx] : [],
           },
+          actionMessage: null,
         };
       } else {
         return {
@@ -171,7 +165,7 @@ export const closePositionAction = async ({
       [
         ...actionTransaction.additionalTxns,
         actionTransaction.actionTxn,
-        ...(actionTransaction.swapTx?.tx ? [actionTransaction.swapTx.tx] : []),
+        ...(actionTransaction.closeTransactions ? actionTransaction.closeTransactions : []),
       ],
       {
         broadcastType: broadcastType,
@@ -205,6 +199,8 @@ export async function createSwapTx(
       inputMint: depositBank.info.state.mint.toBase58(),
       slippageBps: jupOpts.slippageBps,
     });
+
+    console.log("swapQuote", swapQuote);
 
     if (!swapQuote) {
       return { error: STATIC_SIMULATION_ERRORS.FL_FAILED };
