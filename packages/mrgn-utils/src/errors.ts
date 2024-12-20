@@ -443,6 +443,10 @@ export const handleError = (
         return STATIC_SIMULATION_ERRORS.UTILIZATION_RATIO_INVALID;
       }
 
+      if (isArena && checkErrorCodeMatch(error.message, 6001)) {
+        return STATIC_SIMULATION_ERRORS.SLIPPAGE;
+      }
+
       if (checkErrorCodeMatch(error.message, 6043)) {
         return STATIC_SIMULATION_ERRORS.ILLEGAL_ACCOUNT_AUTHORITY_TRANSFER;
       }
