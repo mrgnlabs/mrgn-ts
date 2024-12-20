@@ -8,7 +8,7 @@ import { cn } from "@mrgnlabs/mrgn-utils";
 import { useUiStore } from "~/store";
 import { useOs } from "~/hooks/use-os";
 
-import { CreatePoolDialog, CreatePoolSoon } from "~/components/common/Pool";
+import { CreatePoolDialog } from "~/components/common/Pool";
 
 export interface NavLinkInfo {
   href: string;
@@ -19,8 +19,7 @@ export interface NavLinkInfo {
 }
 
 const CreatePoolTrigger = (children: ReactNode) => {
-  return <CreatePoolSoon trigger={children} />;
-  // <CreatePoolDialog trigger={children} />;
+  return <CreatePoolDialog trigger={children} />;
 };
 
 export const mobileLinks: NavLinkInfo[] = [
