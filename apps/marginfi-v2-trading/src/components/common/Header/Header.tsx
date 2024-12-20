@@ -64,7 +64,6 @@ export const Header = () => {
     const banks = Object.values(banksByBankPk);
     const uniqueBanksMap = new Map(banks.map((bank) => [bank.info.state.mint.toBase58(), bank]));
     const uniqueBanks = Array.from(uniqueBanksMap.values());
-    console.log(uniqueBanksMap, uniqueBanks);
     return uniqueBanks;
   }, [banksByBankPk]);
 

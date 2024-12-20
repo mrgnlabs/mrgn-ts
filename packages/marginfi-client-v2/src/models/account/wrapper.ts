@@ -687,6 +687,27 @@ class MarginfiAccountWrapper {
     const blockhash =
       blockhashArg ?? (await this._program.provider.connection.getLatestBlockhash("confirmed")).blockhash;
 
+    console.log("DEBUG: TRANSACTION DEBUG");
+
+    console.log("Setup Bank Addresses:", setupBankAddresses ?? [borrowBankAddress, depositBankAddress]);
+
+    console.log("Borrow Arguments:", {
+      borrowAmount: borrowAmount.toString(),
+      borrowBankAddress: borrowBankAddress,
+      borrowOpts: {
+        createAtas: borrowOpts?.createAtas ?? false,
+        wrapAndUnwrapSol: borrowOpts?.wrapAndUnwrapSol ?? false,
+      },
+    });
+
+    console.log("Deposit Arguments:", {
+      depositAmount: depositAmount,
+      depositBankAddress: depositBankAddress,
+      depositOpts: {
+        wrapAndUnwrapSol: depositOpts?.wrapAndUnwrapSol ?? false,
+      },
+    });
+
     // creates atas if needed
     const setupIxs = await this.makeSetupIx(setupBankAddresses ?? [borrowBankAddress, depositBankAddress]);
     const cuRequestIxs =
@@ -757,6 +778,14 @@ class MarginfiAccountWrapper {
     // if cuRequestIxs are not present, priority fee ix is needed
     // wallets add a priority fee ix by default breaking the flashloan tx so we need to add a placeholder priority fee ix
     // docs: https://docs.phantom.app/developer-powertools/solana-priority-fees
+    console.log("DEBUG: building flashloan tx");
+    console.log("instructions:", [
+      ...cuRequestIxs,
+      priorityFeeIx,
+      ...borrowIxs.instructions,
+      ...swapIxs,
+      ...depositIxs.instructions,
+    ]);
     flashloanTx = await this.buildFlashLoanTx({
       ixs: [...cuRequestIxs, priorityFeeIx, ...borrowIxs.instructions, ...swapIxs, ...depositIxs.instructions],
       addressLookupTableAccounts,
