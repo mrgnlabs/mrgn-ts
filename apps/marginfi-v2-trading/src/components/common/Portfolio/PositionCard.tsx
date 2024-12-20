@@ -184,6 +184,7 @@ export const PositionCard = ({ size = "lg", arenaPool }: PositionCardProps) => {
             client={client}
             selectedAccount={wrappedAccount}
             className="justify-center md:justify-start"
+            rightAlignLastButton
           />
         )}
       </div>
