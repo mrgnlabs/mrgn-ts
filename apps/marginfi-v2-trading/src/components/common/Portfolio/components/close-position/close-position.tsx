@@ -146,6 +146,7 @@ export const ClosePosition = ({ arenaPool, positionsByGroupPk, depositBanks, bor
     const entryPrice = positionData && positionData.entryPrice ? positionData.entryPrice : 0;
 
     multiStepToast.resume();
+    setIsLoading(true);
 
     try {
       const { txnSig, actionMessage } = await closePositionAction({
@@ -167,6 +168,8 @@ export const ClosePosition = ({ arenaPool, positionsByGroupPk, depositBanks, bor
       console.error("Error closing position", error);
       const msg = extractErrorString(error);
       multiStepToast.setFailed(msg ?? "Error closing position");
+    } finally {
+      setIsLoading(false);
     }
   }, [
     actionTxns,
