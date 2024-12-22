@@ -1,15 +1,11 @@
 import React from "react";
 
 import Link from "next/link";
-import Image from "next/image";
 
 import { IconExternalLink } from "@tabler/icons-react";
 import { QuoteResponse } from "@jup-ag/api";
 import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { dynamicNumeralFormatter, shortenAddress, usdFormatter } from "@mrgnlabs/mrgn-common";
-import { cn } from "@mrgnlabs/mrgn-utils";
-
-import { PublicKey } from "@solana/web3.js";
+import { shortenAddress, usdFormatter } from "@mrgnlabs/mrgn-common";
 
 interface Props {
   depositBank: ActiveBankInfo;
@@ -46,14 +42,14 @@ export const TradingScreen = ({
     <>
       <div className="flex flex-col items-center gap-4 border-b border-border pb-10">
         <div className="flex items-center">
-          <Image
+          <img
             className="rounded-full"
             src={depositBank.meta.tokenLogoUri}
             alt={(depositBank?.meta.tokenSymbol || "Token") + "  logo"}
             width={48}
             height={48}
           />
-          <Image
+          <img
             className="rounded-full -ml-5 relative z-10"
             src={borrowBank.meta.tokenLogoUri}
             alt={(borrowBank?.meta.tokenSymbol || "Token") + "  logo"}
