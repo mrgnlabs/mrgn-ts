@@ -125,7 +125,7 @@ export const Header = () => {
             })}
           </ul>
         </nav>
-        <div className={cn("flex items-center gap-2")}>
+        <div className={cn("flex items-center gap-4")}>
           {ownedPools.length > 0 && (
             <Link href="/admin">
               <Button variant="outline" size={isMobile ? "sm" : "default"}>

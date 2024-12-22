@@ -1,19 +1,18 @@
 import React from "react";
 
+import { GetStaticPaths, GetStaticProps } from "next";
 import { useRouter } from "next/router";
 
 import { useTradeStoreV2, useUiStore } from "~/store";
+import { ArenaPoolV2 } from "~/types/trade-store.types";
+import { StaticArenaProps, getArenaStaticProps } from "~/utils";
 import { useIsMobile } from "~/hooks/use-is-mobile";
 
 import { TVWidget } from "~/components/common/TVWidget";
 import { PositionList } from "~/components/common/Portfolio";
 import { PoolTradeHeader } from "~/components/common/Pool/PoolTradeHeader";
 import { Loader } from "~/components/common/Loader";
-
-import { GetStaticPaths, GetStaticProps } from "next";
-import { StaticArenaProps, getArenaStaticProps } from "~/utils";
 import { TradeBoxV2 } from "~/components/common/trade-box-v2";
-import { ArenaPoolV2 } from "~/types/trade-store.types";
 import { ArenaActionComplete } from "~/components/common/ActionComplete";
 
 export const getStaticPaths: GetStaticPaths = async () => {
@@ -80,19 +79,14 @@ export default function TradeSymbolPage({ initialData }: StaticArenaProps) {
                   <div className="flex-4 border rounded-xl bg-background overflow-hidden w-full">
                     <TVWidget activePool={activePool} />{" "}
                   </div>
-                  {/* <div className="flex lg:max-w-sm w-full lg:ml-auto">
-                    <TradingBox activePool={activePool} side={side} />
-                  </div> */}
                   <div className="flex lg:max-w-sm w-full lg:ml-auto">
                     <TradeBoxV2 activePool={activePool} side={side} />
                   </div>
                 </div>
               </div>
-              {!isMobile && (
-                <div className="pt-4">
-                  <PositionList activePool={activePool} />
-                </div>
-              )}
+              <div className="pt-4">
+                <PositionList activePool={activePool} />
+              </div>
             </div>
           </div>
         )}
