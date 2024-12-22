@@ -1,6 +1,4 @@
 import React from "react";
-
-import Image from "next/image";
 import Link from "next/link";
 import { IconExternalLink } from "@tabler/icons-react";
 
@@ -21,7 +19,7 @@ export const AdminPoolCard = ({ pool, last }: AdminPoolCardProps) => {
   return (
     <div className={cn("grid grid-cols-7 py-2 w-full items-center", !last && "border-b pb-3 mb-2")}>
       <div className="flex items-center gap-2">
-        <Image
+        <img
           src={extendedPool.tokenBank.meta.tokenLogoUri}
           alt={extendedPool.tokenBank.meta.tokenSymbol}
           width={32}

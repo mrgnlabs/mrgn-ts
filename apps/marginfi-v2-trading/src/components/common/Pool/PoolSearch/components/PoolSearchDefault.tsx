@@ -1,5 +1,4 @@
 import React from "react";
-import Image from "next/image";
 import type { FuseResult } from "fuse.js";
 
 import { tokenPriceFormatter, numeralFormatter, percentFormatter } from "@mrgnlabs/mrgn-common";
@@ -127,7 +126,7 @@ export const PoolSearchDefault = ({
                     onSelect={onBankSelect}
                   >
                     <div className="flex items-center gap-3">
-                      <Image
+                      <img
                         src={tokenBank.meta.tokenLogoUri}
                         width={size === "sm" ? 28 : 32}
                         height={size === "sm" ? 28 : 32}

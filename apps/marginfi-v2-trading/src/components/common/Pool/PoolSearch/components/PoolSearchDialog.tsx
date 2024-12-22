@@ -1,5 +1,4 @@
 import React from "react";
-import Image from "next/image";
 import type { FuseResult } from "fuse.js";
 import { IconX, IconSearch } from "@tabler/icons-react";
 
@@ -74,7 +73,7 @@ export const PoolSearchDialog = ({
                 return (
                   <CommandItem key={address} value={address} className="py-4" onSelect={onBankSelect}>
                     <div className="flex items-center gap-3">
-                      <Image
+                      <img
                         src={tokenBank.meta.tokenLogoUri}
                         width={32}
                         height={32}

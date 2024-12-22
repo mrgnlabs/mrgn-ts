@@ -226,7 +226,7 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
                 availableLiquidity: 0,
               } as BankData,
               tokenData: tokenDetailsToken,
-              tokenLogoUri: `https://storage.googleapis.com/mrgn-public/mrgn-token-icons/${tokenMint.address}.png`,
+              tokenLogoUri: tokenDetailsToken.imageUrl, // `https://storage.googleapis.com/mrgn-public/mrgn-token-icons/${tokenMint.address}.png`,
               tokenProgram: new PublicKey(tokenMint.token_program),
             },
             quoteSummary: {

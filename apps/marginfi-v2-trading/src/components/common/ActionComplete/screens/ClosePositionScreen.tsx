@@ -1,7 +1,6 @@
 import React from "react";
 
 import Link from "next/link";
-import Image from "next/image";
 
 import { IconExternalLink } from "@tabler/icons-react";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
@@ -28,7 +27,7 @@ export const ClosePositionScreen = ({ tokenBank, size, leverage, entryPrice, exi
       <div className="flex flex-col items-center gap-4 border-b border-border pb-10">
         <div className="flex flex-col items-center justify-center gap-2">
           <div className="flex items-center">
-            <Image
+            <img
               className="rounded-full z-20"
               src={tokenBank.meta.tokenLogoUri}
               alt={(tokenBank.meta.tokenSymbol || "Token") + "  logo"}
