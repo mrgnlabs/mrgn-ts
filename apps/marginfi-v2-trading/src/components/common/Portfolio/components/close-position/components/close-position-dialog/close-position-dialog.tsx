@@ -41,6 +41,7 @@ export const ClosePositionDialog = ({
   isLoading,
   pnl,
 }: ClosePositionDialogProps) => {
+  console.log(pnl);
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className=" w-full">
@@ -66,13 +67,15 @@ export const ClosePositionDialog = ({
           </DialogDescription>
         </DialogHeader>
         <dl className="grid grid-cols-2 w-full text-muted-foreground gap-x-8 gap-y-2">
-          {pnl && (
+          {pnl ? (
             <>
               <dt>PnL</dt>
               <dd className={cn("text-right", pnl > 0 && "text-mrgn-success", pnl < 0 && "text-mrgn-error")}>
                 {pnl > 0 && "+"}${dynamicNumeralFormatter(pnl ?? 0)}
               </dd>
             </>
+          ) : (
+            <></>
           )}
           {depositBanks.map((bank) => (
             <React.Fragment key={bank.meta.tokenSymbol}>
