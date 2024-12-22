@@ -87,10 +87,10 @@ const SharePosition = ({ pool, triggerVariant = "ghost", triggerClassName, onOpe
           Share your position
         </Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="p-4 md:p-12">
         {isOpen && (
           <>
-            <div ref={cardRef} className="w-[480px] h-[250px] relative">
+            <div ref={cardRef} className="w-[480px] h-[250px] max-w-full relative">
               {/* Next Image causes issues with html to image capture */}
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/sharing/share-position-bg.png" alt="arena bg" width={480} height={250} />
@@ -129,11 +129,17 @@ const SharePosition = ({ pool, triggerVariant = "ghost", triggerClassName, onOpe
                   )}
                   <dt className="text-sm text-muted-foreground">Entry price</dt>
                   <dd className="text-base font-medium text-right">
-                    ${dynamicNumeralFormatter(positionData?.entryPrice)}
+                    $
+                    {dynamicNumeralFormatter(positionData?.entryPrice, {
+                      tokenPrice: positionData?.entryPrice,
+                    })}
                   </dd>
                   <dt className="text-sm text-muted-foreground">Market price</dt>
                   <dd className="text-base font-medium text-right">
-                    ${dynamicNumeralFormatter(pool.tokenBank.info.oraclePrice.priceRealtime.price.toNumber())}
+                    $
+                    {dynamicNumeralFormatter(pool.tokenBank.info.oraclePrice.priceRealtime.price.toNumber(), {
+                      tokenPrice: pool.tokenBank.info.oraclePrice.priceRealtime.price.toNumber(),
+                    })}
                   </dd>
                 </dl>
               </div>
