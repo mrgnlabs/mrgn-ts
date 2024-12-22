@@ -1,6 +1,6 @@
 import React from "react";
 
-import { dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
+import { usdFormatter } from "@mrgnlabs/mrgn-common";
 import { cn } from "@mrgnlabs/mrgn-utils";
 
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
@@ -54,15 +54,7 @@ const PnlLabel = ({
             }}
           >
             {pnlSign}
-            {currentType === "$" && (
-              <span>
-                $
-                {dynamicNumeralFormatter(Math.abs(pnl), {
-                  minDisplay: 0.0001,
-                  maxDisplay: 100000,
-                })}
-              </span>
-            )}
+            {currentType === "$" && <span>{usdFormatter.format(pnl)}</span>}
             {currentType === "%" && <span>{pnlPercentage.toFixed(2)}%</span>}
           </span>
         </TooltipTrigger>
