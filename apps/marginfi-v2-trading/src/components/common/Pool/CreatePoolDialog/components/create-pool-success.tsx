@@ -1,8 +1,4 @@
-import Image from "next/image";
-import Link from "next/link";
-
-import { shortenAddress } from "@mrgnlabs/mrgn-common";
-import { IconConfetti, IconExternalLink } from "@tabler/icons-react";
+import { IconConfetti } from "@tabler/icons-react";
 
 import { Button } from "~/components/ui/button";
 

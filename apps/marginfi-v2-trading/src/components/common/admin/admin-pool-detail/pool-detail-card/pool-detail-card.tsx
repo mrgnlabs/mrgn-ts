@@ -1,7 +1,6 @@
 import React from "react";
 
 import Link from "next/link";
-import Image from "next/image";
 
 import { IconAlertTriangle, IconArrowRight, IconInfoCircle } from "@tabler/icons-react";
 import {
@@ -50,14 +49,14 @@ export const AdminPoolDetailCard = ({ activePool }: AdminPoolDetailCardProps) =>
         className="group bg-background border rounded-xl absolute -top-5 left-3.5 px-2 py-1.5 flex items-center gap-2 transition-colors hover:bg-accent"
       >
         <div className="flex items-center -space-x-2.5">
-          <Image
+          <img
             src={extendedPool.tokenBank.meta.tokenLogoUri}
             alt={extendedPool.tokenBank.meta.tokenSymbol}
             width={24}
             height={24}
             className="rounded-full bg-background z-10"
           />
-          <Image
+          <img
             src={extendedPool.quoteBank.meta.tokenLogoUri}
             alt={extendedPool.quoteBank.meta.tokenSymbol}
             width={24}
@@ -158,13 +157,7 @@ const YieldItem = ({
   return (
     <div className={cn("items-center min-w-[300px] space-y-2 px-2 py-4", className)}>
       <div className="flex items-center  gap-2 h-[24px]">
-        <Image
-          src={bank.meta.tokenLogoUri}
-          alt={bank.meta.tokenSymbol}
-          width={24}
-          height={24}
-          className="rounded-full"
-        />
+        <img src={bank.meta.tokenLogoUri} alt={bank.meta.tokenSymbol} width={24} height={24} className="rounded-full" />
         {bank.meta.tokenSymbol}
       </div>
       <div className="bg-accent/50 rounded-xl p-4">
