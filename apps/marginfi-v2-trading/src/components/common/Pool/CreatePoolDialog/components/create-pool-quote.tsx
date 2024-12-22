@@ -1,5 +1,4 @@
 import React from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { IconArrowRight, IconLoader2 } from "@tabler/icons-react";
 import { PublicKey } from "@solana/web3.js";
@@ -110,7 +109,7 @@ export const CreatePoolQuote = ({
 
         {poolExists ? (
           <div className="flex flex-col justify-center items-center w-full max-w-sm">
-            <Image
+            <img
               src={getTokenImageURL(new PublicKey(poolExists.tokenSummary.mint))}
               className="rounded-full"
               width={48}

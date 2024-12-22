@@ -1,13 +1,11 @@
 import React from "react";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
 
 import {
   percentFormatter,
   numeralFormatter,
-  tokenPriceFormatter,
   usdFormatter,
   shortenAddress,
   aprToApy,
@@ -17,14 +15,12 @@ import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { Desktop, Mobile, cn, capture } from "@mrgnlabs/mrgn-utils";
 import { IconChevronDown, IconExternalLink } from "@tabler/icons-react";
 
-import { useConnection } from "~/hooks/use-connection";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { useTradeStoreV2 } from "~/store";
 
 import { ActionBox, ActionBoxProvider } from "~/components/action-box-v2";
 import { TokenCombobox } from "~/components/common/TokenCombobox";
 import { PoolShare } from "~/components/common/Pool/PoolShare";
-import { PositionCard } from "~/components/common/Portfolio";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import {
   DropdownMenu,
@@ -40,7 +36,6 @@ import { useMarginfiClient } from "~/hooks/useMarginfiClient";
 
 export const PoolTradeHeader = ({ activePool }: { activePool: ArenaPoolV2 }) => {
   const router = useRouter();
-  const { connection } = useConnection();
   const { connected, wallet } = useWallet();
 
   const extendedPool = useExtendedPool(activePool);
@@ -92,14 +87,14 @@ export const PoolTradeHeader = ({ activePool }: { activePool: ArenaPoolV2 }) => 
         <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
           <div className="flex flex-col items-center px-8 w-full lg:w-1/4 xl:w-1/2">
             <div className="relative flex items-center justify-center">
-              <Image
+              <img
                 src={extendedPool.tokenBank.meta.tokenLogoUri}
                 alt={extendedPool.tokenBank.meta.tokenSymbol}
                 width={72}
                 height={72}
                 className="bg-background border rounded-full"
               />
-              <Image
+              <img
                 src={extendedPool.quoteBank.meta.tokenLogoUri}
                 alt={extendedPool.quoteBank.meta.tokenSymbol}
                 width={32}
@@ -178,7 +173,7 @@ export const PoolTradeHeader = ({ activePool }: { activePool: ArenaPoolV2 }) => 
               <div className="border-y border-border py-6 lg:border-b-0 flex flex-col gap-4 w-full lg:py-0 lg:border-t-0">
                 <div className="flex flex-row justify-between space-y-2 lg:block">
                   <div className="flex items-start gap-2 translate-y-0.5">
-                    <Image
+                    <img
                       src={extendedPool.tokenBank.meta.tokenLogoUri}
                       alt={extendedPool.tokenBank.meta.tokenSymbol}
                       width={32}
@@ -418,7 +413,7 @@ export const PoolTradeHeader = ({ activePool }: { activePool: ArenaPoolV2 }) => 
               </div>
               <div className="flex flex-row justify-between space-y-2 lg:block">
                 <div className="flex items-start gap-2">
-                  <Image
+                  <img
                     src={extendedPool.quoteBank.meta.tokenLogoUri}
                     alt={extendedPool.quoteBank.meta.tokenSymbol}
                     width={32}
