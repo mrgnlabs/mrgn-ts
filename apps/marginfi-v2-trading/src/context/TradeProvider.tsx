@@ -104,7 +104,7 @@ export const TradePovider: React.FC<{
   }, [router.asPath, wallet, connected, isLoggedIn]);
 
   React.useEffect(() => {
-    const fetchData = () => {
+    const initializeAndFetch = () => {
       fetchPriorityFee(connection);
     };
 
@@ -112,23 +112,15 @@ export const TradePovider: React.FC<{
       clearTimeout(debounceId.current);
     }
 
-    debounceId.current = setTimeout(() => {
-      fetchData();
+    debounceId.current = setTimeout(initializeAndFetch, 1000);
 
-      const id = setInterval(() => {
-        fetchPriorityFee(connection);
-      }, 50_000);
-
-      return () => {
-        clearInterval(id);
-        clearTimeout(debounceId.current!);
-      };
-    }, 1000);
+    const intervalId = setInterval(initializeAndFetch, 60_000);
 
     return () => {
       if (debounceId.current) {
         clearTimeout(debounceId.current);
       }
+      clearInterval(intervalId);
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
