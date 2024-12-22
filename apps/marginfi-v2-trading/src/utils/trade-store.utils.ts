@@ -5,7 +5,7 @@ import { AccountInfo, Connection, PublicKey } from "@solana/web3.js";
 import { GetStaticProps } from "next";
 import { TokenData } from "~/types";
 import { PoolListApiResponse, PoolPositionsApiResponse } from "~/types/api.types";
-import { ArenaBank, ArenaPoolPositions, ArenaPoolSummary } from "~/types/trade-store.types";
+import { ArenaBank, ArenaPoolPositions, ArenaPoolSummary, ArenaPoolV2, GroupStatus } from "~/types/trade-store.types";
 
 /**
  * Server-Side Rendering Logic
@@ -513,3 +513,47 @@ const parseUserPositions = (data: PoolPositionsApiResponse[]): ArenaPoolPosition
     pnl: pool.pnl,
   }));
 };
+
+export function getPoolPositionStatus(pool: ArenaPoolV2, tokenBank: ArenaBank, quoteBank: ArenaBank): GroupStatus {
+  let isLpPosition = true;
+  let hasAnyPosition = false;
+  let isLendingInAny = false;
+  let isLong = false;
+  let isShort = false;
+
+  if (tokenBank.isActive && tokenBank.position) {
+    hasAnyPosition = true;
+    if (tokenBank.position.isLending) {
+      isLendingInAny = true;
+    } else if (tokenBank.position.usdValue > 0) {
+      isShort = true;
+      isLpPosition = false;
+    }
+  }
+
+  if (quoteBank.isActive && quoteBank.position) {
+    hasAnyPosition = true;
+    if (quoteBank.position.isLending) {
+      isLendingInAny = true;
+    } else if (quoteBank.position.usdValue > 0) {
+      if (tokenBank.isActive && tokenBank.position && tokenBank.position.isLending) {
+        isLong = true;
+      }
+      isLpPosition = false;
+    }
+  }
+
+  let status = GroupStatus.EMPTY;
+
+  if (hasAnyPosition) {
+    if (isLpPosition && isLendingInAny) {
+      status = GroupStatus.LP;
+    } else if (isLong) {
+      status = GroupStatus.LONG;
+    } else if (isShort) {
+      status = GroupStatus.SHORT;
+    }
+  }
+
+  return status;
+}

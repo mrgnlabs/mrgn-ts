@@ -24,12 +24,21 @@ import {
   fetchBankDataMap,
   fetchInitialArenaState,
   fetchUserPositions,
+  getPoolPositionStatus,
   InitialArenaState,
   resetArenaBank,
   updateArenaBankWithUserData,
 } from "~/utils/trade-store.utils";
 import { PositionData } from "@mrgnlabs/mrgn-utils";
-import { ArenaBank, ArenaPoolPositions, ArenaPoolSummary, ArenaPoolV2, BankData } from "~/types/trade-store.types";
+import {
+  ArenaBank,
+  ArenaPoolPositions,
+  ArenaPoolSummary,
+  ArenaPoolV2,
+  ArenaPoolV2Extended,
+  BankData,
+  GroupStatus,
+} from "~/types/trade-store.types";
 
 export enum TradePoolFilterStates {
   TIMESTAMP = "timestamp",
@@ -405,6 +414,13 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
       return acc;
     }, {} as Record<string, MarginfiGroup>);
 
+    positionsByGroupPk = fillMissingPositions(
+      arenaPools,
+      extendedBanksByBankPk,
+      marginfiAccountByGroupPk,
+      positionsByGroupPk
+    );
+
     if (!lutByGroupPk || Object.keys(lutByGroupPk).length === 0) {
       const lutResults: Record<string, Promise<RpcResponseAndContext<AddressLookupTableAccount | null>> | null> = {};
 
@@ -545,8 +561,14 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
     let nativeSolBalance = 0;
     let tokenAccountMap: TokenAccountMap | null = null;
     let marginfiAccount: MarginfiAccount | null = null;
+    let positionsByGroupPk: Record<string, ArenaPoolPositions> = {};
 
     if (wallet.publicKey && !wallet.publicKey.equals(PublicKey.default)) {
+      const userPositions = await fetchUserPositions(wallet.publicKey);
+      positionsByGroupPk = userPositions.reduce((acc, position) => {
+        acc[position.groupPk.toBase58()] = position;
+        return acc;
+      }, {} as Record<string, ArenaPoolPositions>);
       const updatedData = await updateArenaBankWithUserData(
         connection,
         wallet.publicKey,
@@ -574,6 +596,13 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
     const newStoreBanksByBankPk = { ...storeBanksByBankPk };
     const newTokenAccountMap = new Map(storeTokenAccountMap);
 
+    positionsByGroupPk = fillMissingPositions(
+      get().arenaPools,
+      newStoreBanksByBankPk,
+      storeMarginfiAccountByGroupPk,
+      positionsByGroupPk
+    );
+
     extendedBankInfos.map((bank) => {
       newStoreBanksByBankPk[bank.address.toBase58()] = bank;
     });
@@ -589,6 +618,7 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
       marginfiAccountByGroupPk: storeMarginfiAccountByGroupPk,
       banksByBankPk: newStoreBanksByBankPk,
       tokenAccountMap: newTokenAccountMap,
+      positionsByGroupPk,
     });
   },
 
@@ -839,4 +869,63 @@ async function fetchOraclePrices() {
   );
 
   return oraclePrices;
+}
+
+function fillMissingPositions(
+  arenaPools: Record<string, ArenaPoolV2>,
+  banksByBankPk: Record<string, ArenaBank>,
+  accountByGroupPk: Record<string, MarginfiAccount>,
+  positions: Record<string, ArenaPoolPositions>
+) {
+  const newPositions: Record<string, ArenaPoolPositions> = positions;
+
+  Object.values(arenaPools).map((pool) => {
+    const tokenBank = banksByBankPk[pool.tokenBankPk.toBase58()];
+    const quoteBank = banksByBankPk[pool.quoteBankPk.toBase58()];
+
+    const status = getPoolPositionStatus(pool, tokenBank, quoteBank);
+
+    if (status === GroupStatus.EMPTY) {
+      delete newPositions[pool.groupPk.toBase58()];
+    }
+
+    if (status === GroupStatus.LONG || status === GroupStatus.SHORT) {
+      const hasPosition = positions[pool.groupPk.toBase58()];
+
+      const account = accountByGroupPk[pool.groupPk.toBase58()];
+
+      const positionQuoteData = quoteBank.isActive && quoteBank.position;
+      const positionTokenData = tokenBank.isActive && tokenBank.position;
+
+      if (!hasPosition && account) {
+        newPositions[pool.groupPk.toBase58()] = {
+          groupPk: pool.groupPk,
+          accountPk: account.address,
+          quoteSummary: {
+            bankPk: pool.quoteBankPk,
+            startAmount: positionQuoteData ? positionQuoteData.amount : 0,
+            startUsdAmount: positionQuoteData ? positionQuoteData.usdValue : 0,
+            currentAmount: positionQuoteData ? positionQuoteData.amount : 0,
+            currentUsdAmount: positionQuoteData ? positionQuoteData.usdValue : 0,
+            pnl: 0,
+            interest: 0,
+          },
+          tokenSummary: {
+            bankPk: pool.tokenBankPk,
+            startAmount: positionTokenData ? positionTokenData.amount : 0,
+            startUsdAmount: positionTokenData ? positionTokenData.usdValue : 0,
+            currentAmount: positionTokenData ? positionTokenData.amount : 0,
+            currentUsdAmount: positionTokenData ? positionTokenData.usdValue : 0,
+            pnl: 0,
+            interest: 0,
+          },
+          entryPrice: tokenBank.info.oraclePrice.priceRealtime.price.toNumber(),
+          currentPositionValue: 0,
+          pnl: 0,
+        };
+      }
+    }
+  });
+
+  return newPositions;
 }
