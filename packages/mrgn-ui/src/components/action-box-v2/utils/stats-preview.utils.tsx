@@ -57,7 +57,7 @@ export function getAmountUsdStat(
     label: "USD Value",
     value: () => (
       <>
-        {tokenPriceFormatter(currentAmount)}
+        {tokenPriceFormatter(currentAmount * price)}
         {simulatedAmount !== undefined ? <IconArrowRight width={12} height={12} /> : <></>}
         {simulatedAmount !== undefined ? tokenPriceFormatter(simulatedAmount * price) : <></>}
       </>
