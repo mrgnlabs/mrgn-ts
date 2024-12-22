@@ -77,8 +77,28 @@ export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }:
     [connection, wallet]
   );
 
+  // {
+  //   "base_bank": "string",
+  //   "created_by": "string",
+  //   "featured": true,
+  //   "group": "string",
+  //   "lookup_tables": [
+  //     "string"
+  //   ],
+  //   "quote_banks": [
+  //     "string"
+  //   ]
+
   const savePermissionlessPool = async (poolObject: { group: string; asset: string; quote: string; lut: string }) => {
     try {
+      console.log("poolObject", {
+        base_bank: poolObject.asset,
+        created_by: "mfi1dtjy2mJ9J21UoaQ5dsRnbcg4MBU1CTacVyBp1HF",
+        featured: true,
+        group: poolObject.group,
+        lookup_tables: [poolObject.lut],
+        quote_banks: [poolObject.quote],
+      });
       const token = await getBearerToken();
 
       const response = await fetch("/api/pool/create", {
@@ -251,13 +271,6 @@ export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }:
       setActiveStep(3);
 
       try {
-        console.log("saving pool");
-        console.log({
-          group: seeds.marginfiGroupSeed.publicKey.toBase58(),
-          asset: seeds.tokenBankSeed.publicKey.toBase58(),
-          quote: seeds.stableBankSeed.publicKey.toBase58(),
-          lut: lutAddress.toBase58(),
-        });
         const response = await savePermissionlessPool({
           group: seeds.marginfiGroupSeed.publicKey.toBase58(),
           asset: seeds.tokenBankSeed.publicKey.toBase58(),

@@ -8,13 +8,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(401).json({ error: "Unauthorized" });
     }
 
+    const createPool: { group: string; asset: string; quote: string; lut: string } = req.body;
+
     const response = await fetch(ARENA_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `${req.headers.authorization}`,
       },
-      body: JSON.stringify(req.body),
+      body: JSON.stringify({
+        base_bank: createPool.asset,
+        created_by: "mfi1dtjy2mJ9J21UoaQ5dsRnbcg4MBU1CTacVyBp1HF",
+        featured: true,
+        group: createPool.group,
+        lookup_tables: [createPool.lut],
+        quote_banks: [createPool.quote],
+      }),
     });
     console.log("response", response);
 
