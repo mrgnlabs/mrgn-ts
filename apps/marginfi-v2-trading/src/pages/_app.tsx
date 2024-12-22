@@ -11,7 +11,7 @@ import { TipLinkWalletAutoConnect } from "@tiplink/wallet-adapter-react-ui";
 import { ToastContainer } from "react-toastify";
 import { Analytics } from "@vercel/analytics/react";
 import { BankMetadataRaw } from "@mrgnlabs/mrgn-common";
-import { DEFAULT_MAX_CAP, Desktop, Mobile, init as initAnalytics } from "@mrgnlabs/mrgn-utils";
+import { Desktop, Mobile, init as initAnalytics } from "@mrgnlabs/mrgn-utils";
 import { ActionProvider } from "~/components/action-box-v2";
 import { generateEndpoint } from "~/rpc.utils";
 

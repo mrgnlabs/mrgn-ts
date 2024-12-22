@@ -29,6 +29,13 @@ export const getArenaStaticProps: GetStaticProps<StaticArenaProps> = async () =>
     tokenDetails: [],
   };
 
+  if (process.env.NEXT_PUBLIC_DISABLE_SSR === "true") {
+    return {
+      props: { initialData: emptyState },
+      revalidate: 300, // Revalidate every 5 minutes
+    };
+  }
+
   try {
     // eslint-disable-next-line turbo/no-undeclared-env-vars
     const initialData = await fetchInitialArenaState(process.env.NEXT_PUBLIC_VERCEL_URL);

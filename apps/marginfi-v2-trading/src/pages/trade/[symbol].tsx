@@ -6,7 +6,6 @@ import { useRouter } from "next/router";
 import { useTradeStoreV2, useUiStore } from "~/store";
 import { ArenaPoolV2 } from "~/types/trade-store.types";
 import { StaticArenaProps, getArenaStaticProps } from "~/utils";
-import { useIsMobile } from "~/hooks/use-is-mobile";
 
 import { TVWidget } from "~/components/common/TVWidget";
 import { PositionList } from "~/components/common/Portfolio";
@@ -27,7 +26,6 @@ export const getStaticProps: GetStaticProps<StaticArenaProps> = async (context) 
 };
 
 export default function TradeSymbolPage({ initialData }: StaticArenaProps) {
-  const isMobile = useIsMobile();
   const router = useRouter();
   const side = router.query.side as "long" | "short";
   const [initialized, arenaPools, poolsFetched, fetchArenaGroups, setHydrationComplete] = useTradeStoreV2((state) => [
@@ -48,7 +46,7 @@ export default function TradeSymbolPage({ initialData }: StaticArenaProps) {
   }, [initialData, fetchArenaGroups, setHydrationComplete]);
 
   React.useEffect(() => {
-    if (!router.isReady || !initialized || !poolsFetched) return;
+    if (!router.isReady || !initialized || !poolsFetched || Object.keys(arenaPools).length === 0) return;
 
     const symbol = router.query.symbol as string;
 
