@@ -664,7 +664,7 @@ export async function trade({
           ...processOpts,
           callback: (index, success, sig, stepsToAdvance) => {
             const currentLabel = multiStepToast?.getCurrentLabel();
-            if (success && !isStepIncluded(currentLabel, excludedTypes)) {
+            if (success && isStepIncluded(currentLabel, excludedTypes)) {
               multiStepToast.setSuccessAndNext(
                 stepsToAdvance,
                 sig,
