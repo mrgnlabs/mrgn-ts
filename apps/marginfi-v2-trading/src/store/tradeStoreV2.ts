@@ -190,7 +190,8 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
     if (!initialized) {
       try {
         // Fetch all data in parallel using Promise.all
-        const arenaState = initialArenaState || (await fetchInitialArenaState());
+        const stateContainsPools = initialArenaState && initialArenaState?.poolData.length > 0;
+        const arenaState = stateContainsPools ? initialArenaState : await fetchInitialArenaState();
 
         if (!arenaState) {
           throw new Error("Failed to fetch arena state");
