@@ -1,13 +1,21 @@
 import React from "react";
 
-import { Table, TableBody, TableHead, TableCell, TableHeader, TableRow } from "~/components/ui/table";
+import { useIsMobile, cn } from "@mrgnlabs/mrgn-utils";
 
-import { PositionListItem } from "./PositionListItem";
 import { ArenaPoolV2, ArenaPoolV2Extended, GroupStatus } from "~/types/trade-store.types";
 import { useExtendedPools } from "~/hooks/useExtendedPools";
+import { usePositionsData } from "~/hooks/usePositionsData";
+
+import { PositionListItem } from "./PositionListItem";
+import { PositionCard } from "~/components/common/Portfolio";
+import { Table, TableBody, TableHead, TableCell, TableHeader, TableRow } from "~/components/ui/table";
 
 export const PositionList = ({ activePool }: { activePool: ArenaPoolV2 }) => {
+  const isMobile = useIsMobile();
   const extendedPools = useExtendedPools();
+  const positionsData = usePositionsData({ groupPk: activePool.groupPk });
+
+  const activePoolExtended = extendedPools.find((pool) => pool.groupPk.equals(activePool.groupPk));
 
   const portfolioCombined = React.useMemo(() => {
     if (!extendedPools) return [];
@@ -23,6 +31,29 @@ export const PositionList = ({ activePool }: { activePool: ArenaPoolV2 }) => {
 
     return [...(activeGroupPosition ? [activeGroupPosition] : []), ...sortedLongs, ...sortedShorts];
   }, [extendedPools, activePool]);
+
+  if (isMobile && positionsData && activePoolExtended) {
+    return (
+      <div className="space-y-2 px-2">
+        <p className="flex items-center text-sm">
+          <span
+            className={cn(
+              "flex w-2.5 h-2.5 rounded-full mr-2",
+              activePoolExtended.tokenBank.isActive && activePoolExtended.tokenBank.position.isLending
+                ? "bg-mrgn-green"
+                : "bg-mrgn-error"
+            )}
+          ></span>
+          Open{" "}
+          {activePoolExtended.tokenBank.isActive && activePoolExtended.tokenBank.position.isLending
+            ? "long "
+            : "short "}
+          position
+        </p>
+        <PositionCard arenaPool={activePoolExtended} size="sm" />
+      </div>
+    );
+  }
 
   if (!portfolioCombined) return null;
 

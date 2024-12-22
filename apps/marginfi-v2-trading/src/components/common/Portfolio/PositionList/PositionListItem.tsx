@@ -3,18 +3,20 @@ import React from "react";
 import Image from "next/image";
 import { useRouter } from "next/router";
 
+import { InfoCircledIcon } from "@radix-ui/react-icons";
 import { dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
 
-import { PositionActionButtons } from "~/components/common/Portfolio";
-import { TableCell, TableRow } from "~/components/ui/table";
-import { Badge } from "~/components/ui/badge";
 import { ArenaPoolV2Extended, GroupStatus } from "~/types/trade-store.types";
 import { useLeveragedPositionDetails } from "~/hooks/arenaHooks";
 import { useMarginfiClient } from "~/hooks/useMarginfiClient";
 import { useWrappedAccount } from "~/hooks/useWrappedAccount";
 import { usePositionsData } from "~/hooks/usePositionsData";
+
+import { PositionActionButtons } from "~/components/common/Portfolio";
 import { PnlDisplayTooltip, PnlLabel } from "~/components/common/pnl-display/";
-import { InfoCircledIcon } from "@radix-ui/react-icons";
+import { TableCell, TableRow } from "~/components/ui/table";
+import { Badge } from "~/components/ui/badge";
+
 interface props {
   arenaPool: ArenaPoolV2Extended;
 }

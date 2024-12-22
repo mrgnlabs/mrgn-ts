@@ -53,19 +53,11 @@ export const PoolTradeHeader = ({ activePool }: { activePool: ArenaPoolV2 }) => 
 
   const [refreshGroup, nativeSolBalance] = useTradeStoreV2((state) => [state.refreshGroup, state.nativeSolBalance]);
 
-  // const isLstQuote = React.useMemo(() => {
-  //   return activeGroup.pool.quoteTokens[0].meta.tokenSymbol === "LST";
-  // }, [activeGroup]);
-
   const tokenPrice = React.useMemo(() => {
-    // if (isLstQuote) {
     const lstPrice = extendedPool.quoteBank.info.oraclePrice.priceRealtime.price.toNumber();
     return `${dynamicNumeralFormatter(
       extendedPool.tokenBank.info.oraclePrice.priceRealtime.price.toNumber() / lstPrice
     )} ${extendedPool.quoteBank.meta.tokenSymbol}`;
-    // }
-
-    // return tokenPriceFormatter(activeGroup.pool.token.info.oraclePrice.priceRealtime.price.toNumber());
   }, [
     extendedPool.quoteBank.info.oraclePrice.priceRealtime.price,
     extendedPool.quoteBank.meta.tokenSymbol,
@@ -156,21 +148,9 @@ export const PoolTradeHeader = ({ activePool }: { activePool: ArenaPoolV2 }) => 
                   <p className="text-sm text-muted-foreground">Price</p>
                   <p className="text-sm text-right lg:text-left lg:text-2xl">
                     {tokenPrice}
-                    {/* {isLstQuote ? ( */}
                     <span className="text-sm text-muted-foreground block">
                       ${dynamicNumeralFormatter(extendedPool.tokenBank.info.oraclePrice.priceRealtime.price.toNumber())}{" "}
                     </span>
-                    {/* ) : (
-                      <span
-                        className={cn(
-                          "text-sm ml-1",
-                          activeGroup.pool.token.tokenData.priceChange24hr > 0 ? "text-mrgn-success" : "text-mrgn-error"
-                        )}
-                      >
-                        {activeGroup.pool.token.tokenData.priceChange24hr > 0 && "+"}
-                        {percentFormatter.format(activeGroup.pool.token.tokenData.priceChange24hr / 100)}
-                      </span>
-                    )} */}
                   </p>
                 </div>
                 <div className="grid grid-cols-2 lg:block">
@@ -192,20 +172,6 @@ export const PoolTradeHeader = ({ activePool }: { activePool: ArenaPoolV2 }) => 
                   <p className="text-sm text-muted-foreground">Funding rate (long/short)</p>
                   <p className="text-sm text-right lg:text-left lg:text-2xl">{fundingRate}</p>
                 </div>
-                {/* <div className="grid grid-cols-2 lg:block">
-                  <p className="text-sm text-muted-foreground">Market cap</p>
-                  <p className="text-sm text-right lg:text-left lg:text-2xl">
-                    ${numeralFormatter(extendedPool.tokenBank.tokenData.marketCap)}
-                  </p>
-                </div> */}
-                {/* {extendedPool.poolData && (
-                  <div className="grid grid-cols-2 lg:hidden">
-                    <p className="text-sm text-muted-foreground">Lending pool liquidity</p>
-                    <p className="text-sm text-right lg:text-left lg:text-2xl">
-                      ${numeralFormatter(extendedPool.poolData.totalLiquidity)}
-                    </p>
-                  </div>
-                )} */}
               </div>
             )}
             <div className="w-full grid gap-4 max-w-md mx-auto lg:gap-16 lg:max-w-none lg:grid-cols-3">
@@ -701,25 +667,6 @@ export const PoolTradeHeader = ({ activePool }: { activePool: ArenaPoolV2 }) => 
             </div>
           </div>
         </div>
-        {(extendedPool.status === GroupStatus.LONG || extendedPool.status === GroupStatus.SHORT) && (
-          <Mobile>
-            <div className="mt-8 space-y-2">
-              <p className="flex items-center text-sm">
-                <span
-                  className={cn(
-                    "flex w-2.5 h-2.5 rounded-full mr-2",
-                    extendedPool.tokenBank.isActive && extendedPool.tokenBank.position.isLending
-                      ? "bg-mrgn-green"
-                      : "bg-mrgn-error"
-                  )}
-                ></span>
-                Open {extendedPool.tokenBank.isActive && extendedPool.tokenBank.position.isLending ? "long " : "short "}
-                position
-              </p>
-              <PositionCard arenaPool={extendedPool} size="sm" />
-            </div>
-          </Mobile>
-        )}
       </div>
     </ActionBoxProvider>
   );
