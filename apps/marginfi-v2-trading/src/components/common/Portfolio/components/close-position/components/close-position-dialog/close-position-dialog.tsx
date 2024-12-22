@@ -41,7 +41,6 @@ export const ClosePositionDialog = ({
   isLoading,
   pnl,
 }: ClosePositionDialogProps) => {
-  console.log(pnl);
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className=" w-full">
