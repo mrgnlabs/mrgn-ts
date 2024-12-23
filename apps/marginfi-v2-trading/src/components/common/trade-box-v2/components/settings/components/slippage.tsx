@@ -2,7 +2,7 @@ import React from "react";
 
 import { IconInfoCircle } from "@tabler/icons-react";
 import { useForm } from "react-hook-form";
-import { cn } from "@mrgnlabs/mrgn-utils";
+import { cn, MAX_SLIPPAGE_PERCENTAGE, slippageOptions, STATIC_SIMULATION_ERRORS } from "@mrgnlabs/mrgn-utils";
 
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -18,21 +18,6 @@ type SlippageProps = {
 };
 
 const DEFAULT_SLIPPAGE_BPS = 100;
-
-const slippageOptions = [
-  {
-    label: "Low",
-    value: 0.3,
-  },
-  {
-    label: "Normal",
-    value: 0.5,
-  },
-  {
-    label: "High",
-    value: 1,
-  },
-];
 
 interface SlippageForm {
   slippageBps: number;
@@ -136,7 +121,11 @@ export const Slippage = ({ slippageBps, setSlippageBps, toggleSettings }: Slippa
                     <span className="absolute inset-y-0 right-3 text-sm flex items-center">%</span>
                   </div>
                 </FormControl>
-                <FormMessage />
+                {field.value > MAX_SLIPPAGE_PERCENTAGE && (
+                  <FormMessage className="text-xs px-1">
+                    {STATIC_SIMULATION_ERRORS.SLIPPAGE_TOO_HIGH.description}
+                  </FormMessage>
+                )}
               </FormItem>
             )}
           />

@@ -4,6 +4,7 @@ import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { percentFormatter } from "@mrgnlabs/mrgn-common";
 import { ActionMessageType } from "./actions";
+import { MAX_SLIPPAGE_PERCENTAGE } from "./slippage.consts";
 
 // Static errors that are not expected to change
 export const STATIC_SIMULATION_ERRORS: { [key: string]: ActionMessageType } = {
@@ -172,6 +173,12 @@ export const STATIC_SIMULATION_ERRORS: { [key: string]: ActionMessageType } = {
     description: `Unable to execute trade, please try again.`,
     isEnabled: false,
     code: 142,
+  },
+  SLIPPAGE_TOO_HIGH: {
+    description: `Slippage tolerance exceeded ${MAX_SLIPPAGE_PERCENTAGE}%.`,
+    isEnabled: false,
+    actionMethod: "WARNING",
+    code: 130,
   },
 };
 

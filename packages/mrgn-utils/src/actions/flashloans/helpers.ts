@@ -61,10 +61,6 @@ export async function verifyTxSizeCloseBorrowLendPosition(
   props: ClosePositionProps
 ): Promise<VerifyTxSizeFlashloanResponse> {
   try {
-    if (props.quote.slippageBps > 150) {
-      throw Error("Slippage too high");
-    }
-
     if (Number(props.quote.priceImpactPct) > 0.05) {
       throw Error("Price impact too high");
     }

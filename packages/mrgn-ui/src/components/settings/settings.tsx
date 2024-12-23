@@ -2,7 +2,13 @@ import React from "react";
 import { useForm } from "react-hook-form";
 import { useDebounce } from "@uidotdev/usehooks";
 
-import { cn, usePrevious } from "@mrgnlabs/mrgn-utils";
+import {
+  cn,
+  usePrevious,
+  slippageOptions,
+  MAX_SLIPPAGE_PERCENTAGE,
+  STATIC_SIMULATION_ERRORS,
+} from "@mrgnlabs/mrgn-utils";
 import { MaxCapType, TransactionBroadcastType, TransactionPriorityType } from "@mrgnlabs/mrgn-common";
 
 import { Form, FormControl, FormField, FormItem, FormMessage } from "~/components/ui/form";
@@ -43,10 +49,6 @@ export interface SettingsProps extends SettingsOptions {
   slippageProps?: {
     slippageBps: number;
     setSlippageBps: (slippageBps: number) => void;
-    slippageOptions: {
-      label: string;
-      value: number;
-    }[];
   };
 }
 
@@ -91,10 +93,7 @@ export const Settings = ({ onChange, recommendedBroadcastType = "BUNDLE", ...pro
   const slippageFormWatch = slippageForm.watch();
 
   const isCustomSlippage = React.useMemo(
-    () =>
-      props.slippageProps?.slippageOptions.find((value) => value.value === slippageFormWatch.slippageBps)
-        ? false
-        : true,
+    () => (slippageOptions.find((value) => value.value === slippageFormWatch.slippageBps) ? false : true),
     [slippageFormWatch.slippageBps]
   );
 
@@ -309,7 +308,7 @@ export const Settings = ({ onChange, recommendedBroadcastType = "BUNDLE", ...pro
                       defaultValue={field.value.toString()}
                       className="flex gap-4 justify-between"
                     >
-                      {props.slippageProps?.slippageOptions.map((option) => (
+                      {slippageOptions.map((option) => (
                         <div
                           key={option.label}
                           className={cn(
@@ -357,7 +356,11 @@ export const Settings = ({ onChange, recommendedBroadcastType = "BUNDLE", ...pro
                       <span className="absolute inset-y-0 right-3 text-sm flex items-center">%</span>
                     </div>
                   </FormControl>
-                  <FormMessage />
+                  {field.value > MAX_SLIPPAGE_PERCENTAGE && (
+                    <FormMessage className="text-xs px-1">
+                      {STATIC_SIMULATION_ERRORS.SLIPPAGE_TOO_HIGH.description}
+                    </FormMessage>
+                  )}
                 </FormItem>
               )}
             />
