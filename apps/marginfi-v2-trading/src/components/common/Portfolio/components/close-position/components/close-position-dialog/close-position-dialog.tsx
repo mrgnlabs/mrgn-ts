@@ -97,7 +97,16 @@ export const ClosePositionDialog = ({
           {actionTransaction?.actionQuote?.priceImpactPct && (
             <>
               <dt>Price impact</dt>
-              <dd className="text-right">
+              <dd
+                className={cn(
+                  Number(actionTransaction.actionQuote.priceImpactPct) > 0.05
+                    ? "text-error"
+                    : Number(actionTransaction.actionQuote.priceImpactPct) > 0.01
+                    ? "text-alert"
+                    : "text-success",
+                  "text-right"
+                )}
+              >
                 {percentFormatter.format(Number(actionTransaction.actionQuote.priceImpactPct))}
               </dd>
             </>
@@ -107,7 +116,10 @@ export const ClosePositionDialog = ({
             <>
               <dt>Slippage</dt>
               <dd
-                className={cn(actionTransaction.actionQuote.slippageBps > 500 && "text-alert-foreground", "text-right")}
+                className={cn(
+                  actionTransaction.actionQuote.slippageBps > 500 ? "text-error" : "text-success",
+                  "text-right"
+                )}
               >
                 {percentFormatter.format(Number(actionTransaction.actionQuote.slippageBps) / 10000)}
               </dd>
