@@ -256,6 +256,9 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
               tokenLogoUri: `https://storage.googleapis.com/mrgn-public/mrgn-token-icons/${quoteMint.address}.png`,
               tokenProgram: new PublicKey(quoteMint.token_program),
             },
+            createdAt: pool.created_at,
+            createdBy: pool.created_by,
+            featured: pool.featured,
           };
           return acc;
         }, {} as Record<string, ArenaPoolSummary>);
@@ -775,9 +778,9 @@ const sortSummaryPools = (
     const bTokenData = tokenDataByMint[b.tokenSummary.mint.toBase58()];
 
     if (sortBy === TradePoolFilterStates.TIMESTAMP) {
-      const aIndex = timestampOrder.indexOf(a.groupPk.toBase58());
-      const bIndex = timestampOrder.indexOf(b.groupPk.toBase58());
-      return aIndex - bIndex;
+      const aCreatedAt = new Date(a.createdAt).getTime();
+      const bCreatedAt = new Date(b.createdAt).getTime();
+      return bCreatedAt - aCreatedAt;
     } else if (sortBy.startsWith("price-movement")) {
       const aPrice = Math.abs(aTokenData?.priceChange24h ?? 0);
       const bPrice = Math.abs(bTokenData?.priceChange24h ?? 0);
