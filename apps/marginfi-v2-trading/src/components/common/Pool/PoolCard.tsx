@@ -1,6 +1,7 @@
 import React from "react";
 
 import Link from "next/link";
+import Image from "next/image";
 
 import { tokenPriceFormatter, percentFormatter, shortenAddress, dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
 import { cn, useIsMobile } from "@mrgnlabs/mrgn-utils";
@@ -11,7 +12,6 @@ import { TooltipProvider, Tooltip, TooltipContent, TooltipTrigger } from "~/comp
 
 import { useTradeStoreV2 } from "~/store";
 import { ArenaPoolSummary } from "~/types/trade-store.types";
-import Image from "next/image";
 
 type PoolCardProps = {
   poolData: ArenaPoolSummary;
@@ -60,6 +60,7 @@ export const PoolCard = ({ poolData }: PoolCardProps) => {
               href={`/trade/${poolData.groupPk.toBase58()}`}
               className="flex items-center gap-2 justify-between cursor-pointer"
             >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={poolData.tokenSummary.tokenLogoUri}
                 width={48}
