@@ -29,8 +29,12 @@ export default function AdminPage() {
           <Loader label="Loading the arena..." className="mt-8" />
         ) : ownPools.length > 0 ? (
           <>
+            <div className="text-center space-y-2 mb-12 text-lg">
+              <h1 className="text-4xl font-medium">Manage your Arena pools</h1>
+              <p className="text-muted-foreground">View your pool details and provide liquidity.</p>
+            </div>
             <div className="w-full space-y-2">
-              <div className="grid grid-cols-7 w-full text-muted-foreground">
+              <div className="grid grid-cols-5 w-full text-muted-foreground">
                 <div className="pl-5">Asset</div>
                 <div className="pl-2.5">Price</div>
                 <div className="pl-2">24hr Volume</div>
