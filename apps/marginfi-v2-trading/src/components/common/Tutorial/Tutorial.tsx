@@ -133,7 +133,7 @@ export const Tutorial = () => {
                     <h2 className="text-primary font-medium text-4xl font-orbitron md:text-5xl">Are you ready?</h2>
                     <Label
                       htmlFor="arena-tutorial-checkbox"
-                      className="bg-accent/50 p-4 rounded-lg flex items-center gap-4"
+                      className="bg-accent/50 p-4 rounded-lg flex text-left md:items-center gap-4 leading-tight"
                     >
                       <Checkbox
                         id="arena-tutorial-checkbox"
