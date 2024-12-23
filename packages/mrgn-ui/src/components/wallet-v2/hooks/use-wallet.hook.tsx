@@ -115,9 +115,9 @@ const web3authAdapterConfig =
         appName: "The Arena",
         appUrl: "https://www.thearena.trade",
         logoLight: "https://www.thearena.trade/icon.svg",
-        mode: "light" as const,
+        mode: "dark" as const,
         theme: {
-          gray: "#F8F8F8",
+          gray: "#0E1010",
         },
         useLogoLoader: true,
       };
