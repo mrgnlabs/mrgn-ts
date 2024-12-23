@@ -3,13 +3,13 @@ import React from "react";
 import { IconCheck, IconCopy, IconDownload, IconShare } from "@tabler/icons-react";
 import { PublicKey } from "@solana/web3.js";
 import { dynamicNumeralFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
-import { cn, useIsMobile } from "@mrgnlabs/mrgn-utils";
+import { cn, useIsMobile, useBrowser } from "@mrgnlabs/mrgn-utils";
 
 import { ArenaPoolV2Extended } from "~/types/trade-store.types";
 import { usePositionsData } from "~/hooks/usePositionsData";
 import { useLeveragedPositionDetails } from "~/hooks/arenaHooks";
-import { generateImage, copyImage, downloadImage } from "~/components/common/share-position";
 
+import { generateImage, copyImage, downloadImage } from "~/components/common/share-position";
 import { PnlLabel, PnlBadge } from "~/components/common/pnl-display";
 import { Dialog, DialogContent, DialogFooter, DialogTrigger } from "~/components/ui/dialog";
 import { Button } from "~/components/ui/button";
@@ -41,6 +41,7 @@ const SharePosition = ({ pool, triggerVariant = "ghost", triggerClassName, onOpe
   const [shareType, setShareType] = React.useState<"$" | "%">("%");
   const cardRef = React.useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
+  const browser = useBrowser();
   const positionData = usePositionsData({ groupPk: pool?.groupPk || PublicKey.default });
   const { positionSizeUsd, leverage } = useLeveragedPositionDetails({ pool });
 
@@ -69,6 +70,10 @@ const SharePosition = ({ pool, triggerVariant = "ghost", triggerClassName, onOpe
       }, 5000);
     });
   };
+
+  if (browser === "Phantom" || browser === "Solflare" || browser === "Backpack") {
+    return null;
+  }
 
   return (
     <Dialog
