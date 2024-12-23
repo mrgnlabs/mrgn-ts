@@ -3,8 +3,8 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { PoolPositionsApiResponse } from "~/types/api.types";
 
 // Cache times in seconds
-const S_MAXAGE_TIME = 60 * 0.1; // 4 minutes
-const STALE_WHILE_REVALIDATE_TIME = 60 * 0.1; // 10 minutes
+const S_MAXAGE_TIME = 60 * 0.5; // 30 seconds
+const STALE_WHILE_REVALIDATE_TIME = 60 * 1; // 1 minute
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (!process.env.MARGINFI_API_URL) {
@@ -27,7 +27,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const data: PoolPositionsApiResponse[] = await response.json();
 
     // Set cache headers
-    // res.setHeader("Cache-Control", `s-maxage=${S_MAXAGE_TIME}, stale-while-revalidate=${STALE_WHILE_REVALIDATE_TIME}`);
+    res.setHeader("Cache-Control", `s-maxage=${S_MAXAGE_TIME}, stale-while-revalidate=${STALE_WHILE_REVALIDATE_TIME}`);
 
     return res.status(200).json(data);
   } catch (error) {
