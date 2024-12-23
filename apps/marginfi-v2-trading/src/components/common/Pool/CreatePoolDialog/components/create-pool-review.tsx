@@ -1,17 +1,17 @@
 import React from "react";
 import { AnchorProvider, Program } from "@coral-xyz/anchor";
+import { LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
 
-import { cn } from "@mrgnlabs/mrgn-utils";
 import { BankConfigOpt, getConfig, MARGINFI_IDL, MarginfiIdlType, MarginfiProgram } from "@mrgnlabs/marginfi-client-v2";
-import { dynamicNumeralFormatter, percentFormatter, Wallet } from "@mrgnlabs/mrgn-common";
-import { IconCheck, IconChevronLeft, IconSparkles } from "@tabler/icons-react";
+import { dynamicNumeralFormatter, percentFormatter, shortenAddress, Wallet } from "@mrgnlabs/mrgn-common";
+import { IconChevronLeft, IconSparkles } from "@tabler/icons-react";
 import { Button } from "~/components/ui/button";
 import { useConnection } from "~/hooks/use-connection";
 
 import { CreatePoolState, PoolData, PoolMintData } from "../types";
-import wallet from "~/pages/api/user/wallet";
-import { LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
-import { lamportsToSol } from "@solana/spl-stake-pool/dist/utils";
+import { MAX_WARNING_THRESHOLD } from "~/consts/bank-config.consts";
+import { WARNING_THRESHOLD } from "~/consts/bank-config.consts";
+import { cn } from "@mrgnlabs/mrgn-utils";
 
 type CreatePoolReviewProps = {
   poolData: PoolData | null;
@@ -22,7 +22,7 @@ export const CreatePoolReview = ({ poolData, setCreatePoolState }: CreatePoolRev
   const { connection } = useConnection();
   const [bankInitFlatSolFee, setBankInitFlatSolFee] = React.useState<number>(0.15);
 
-  const fetchFeeState = async () => {
+  const fetchFeeState = React.useCallback(async () => {
     if (!connection?.rpcEndpoint) return;
     const { programId } = getConfig();
     const provider = new AnchorProvider(
@@ -40,18 +40,16 @@ export const CreatePoolReview = ({ poolData, setCreatePoolState }: CreatePoolRev
     );
     const idl = { ...(MARGINFI_IDL as unknown as MarginfiIdlType), address: programId.toBase58() };
     const program = new Program(idl, provider) as any as MarginfiProgram;
-    console.log("program", programId);
     const [feeStateKey] = PublicKey.findProgramAddressSync([Buffer.from("feestate", "utf-8")], programId);
     const feeState = await program.account.feeState.fetch(feeStateKey);
     setBankInitFlatSolFee((feeState.bankInitFlatSolFee ?? 0) / LAMPORTS_PER_SOL);
-  };
+  }, [connection]);
 
   React.useEffect(() => {
     if (poolData) {
-      console.log("poolData", poolData);
       fetchFeeState();
     }
-  }, [poolData]);
+  }, [fetchFeeState, poolData]);
 
   if (!poolData || !poolData.tokenBankConfig || !poolData.quoteBankConfig || !poolData.quoteToken) return null;
 
@@ -96,7 +94,7 @@ export const CreatePoolReview = ({ poolData, setCreatePoolState }: CreatePoolRev
                 {poolData.quoteToken.name} ({poolData.quoteToken.symbol})
               </div>
             </h3>
-            <TokenSummary mintData={poolData.token} bankConfig={poolData.tokenBankConfig} />
+            <TokenSummary mintData={poolData.quoteToken} bankConfig={poolData.quoteBankConfig} />
           </div>
         </div>
 
@@ -117,6 +115,13 @@ export const CreatePoolReview = ({ poolData, setCreatePoolState }: CreatePoolRev
 
 const TokenSummary = ({ mintData, bankConfig }: { mintData: PoolMintData; bankConfig: BankConfigOpt }) => {
   const hasOracleKeys = React.useMemo(() => (bankConfig?.oracle?.keys?.length ?? 0) > 0, [bankConfig]);
+  const protocolIrFee = React.useMemo(() => bankConfig.interestRateConfig?.protocolIrFee.toNumber() ?? 0, [bankConfig]);
+
+  const protocolFeeStatus = React.useMemo(() => {
+    if (protocolIrFee > MAX_WARNING_THRESHOLD) return "ALERT";
+    if (protocolIrFee > WARNING_THRESHOLD) return "WARNING";
+    return "SAFE";
+  }, [protocolIrFee]);
 
   return (
     <div className="flex flex-col mt-4 gap-1">
@@ -148,14 +153,33 @@ const TokenSummary = ({ mintData, bankConfig }: { mintData: PoolMintData; bankCo
       </div>
       <div className="flex flex-row justify-between">
         <p className="text-sm text-muted-foreground">Protocol Fee</p>
-        <p className="text-sm">
-          {percentFormatter.format(bankConfig.interestRateConfig?.protocolFixedFeeApr.toNumber() ?? 0)}
+        <p
+          className={cn(
+            "text-sm",
+            protocolFeeStatus === "ALERT" ? "text-destructive" : protocolFeeStatus === "WARNING" ? "text-warning" : ""
+          )}
+        >
+          {percentFormatter.format(bankConfig.interestRateConfig?.protocolIrFee.toNumber() ?? 0)}
         </p>
       </div>
       <div className="flex flex-row justify-between">
         <p className="text-sm text-muted-foreground">Oracle</p>
         <p className="text-sm">{hasOracleKeys ? bankConfig?.oracle?.setup : "Oracle created at next step"}</p>
       </div>
+      {bankConfig?.oracle?.keys?.length ? (
+        <div className="flex flex-row justify-between">
+          <p className="text-sm text-muted-foreground">Oracle Keys</p>
+          <p className="text-sm">
+            {bankConfig.oracle?.keys
+              ?.filter((key) => !key.equals(PublicKey.default))
+              .map((key) => (
+                <a href={`https://solscan.io/address/${key.toBase58()}`} target="_blank" rel="noopener noreferrer">
+                  {shortenAddress(key.toBase58())}
+                </a>
+              ))}
+          </p>
+        </div>
+      ) : null}
     </div>
   );
 };

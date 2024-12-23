@@ -5,16 +5,10 @@ import { CrossbarClient, decodeString } from "@switchboard-xyz/common";
 import { Connection, PublicKey } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 
-import { BankConfigOpt } from "@mrgnlabs/marginfi-client-v2";
-import { Wallet } from "@mrgnlabs/mrgn-common";
+import { BankConfigOpt, getConfig, MarginfiClient, RiskTier } from "@mrgnlabs/marginfi-client-v2";
+import { uiToNative, Wallet } from "@mrgnlabs/mrgn-common";
 
-import {
-  DEFAULT_STABLECOIN_BANK_CONFIG,
-  DEFAULT_LST_BANK_CONFIG,
-  DEFAULT_TOKEN_BANK_CONFIG,
-  LST_MINT_KEYS,
-  STABLE_MINT_KEYS,
-} from "~/consts/bank-config.consts";
+import { DEFAULT_STABLE_BANK_CONFIG, DEFAULT_TOKEN_BANK_CONFIG, STABLE_MINT_KEYS } from "~/consts/bank-config.consts";
 import { DEFAULT_BORROW_LIMIT } from "~/consts/bank-config.consts";
 import { DEFAULT_DEPOSIT_LIMIT } from "~/consts/bank-config.consts";
 import {
@@ -23,31 +17,53 @@ import {
   MULTIPLY_ORACLE_TASK,
   VALUE_TASK,
 } from "~/consts/oracle-config.consts";
-import { PoolOracleApiResponse } from "~/types/api.types";
+import { BirdeyeMarketDataResponse, PoolOracleApiResponse } from "~/types/api.types";
 
-export const getBankConfig = (mint: PublicKey, price: number, decimals: number) => {
+export const getBankConfig = async (
+  marginfiClient: MarginfiClient,
+  mint: PublicKey,
+  decimals: number,
+  useExistingOracle: boolean
+) => {
   let bankConfig: BankConfigOpt;
 
-  switch (true) {
-    case STABLE_MINT_KEYS.includes(mint.toBase58()):
-      bankConfig = DEFAULT_STABLECOIN_BANK_CONFIG;
-      break;
-    case LST_MINT_KEYS.includes(mint.toBase58()):
-      bankConfig = DEFAULT_LST_BANK_CONFIG;
-      break;
-    default:
-      bankConfig = DEFAULT_TOKEN_BANK_CONFIG;
-      break;
+  // search if bank exists in mrgnlend and if it is a main pool bank
+  const bank = Array.from(marginfiClient.banks.entries()).find(
+    ([_, bank]) => bank.mint.toBase58() === mint.toBase58() && bank.config.riskTier === RiskTier.Collateral
+  )?.[1];
+
+  if (STABLE_MINT_KEYS.includes(mint.toBase58())) {
+    bankConfig = DEFAULT_STABLE_BANK_CONFIG;
+  } else {
+    bankConfig = DEFAULT_TOKEN_BANK_CONFIG;
   }
 
-  bankConfig = addLimitsToBankConfig(bankConfig, price, decimals);
+  bankConfig = await addLimitsToBankConfig(mint, bankConfig, decimals);
+
+  if (bank && useExistingOracle) {
+    bankConfig.oracle = {
+      setup: bank.config.oracleSetup,
+      keys: bank.config.oracleKeys,
+    };
+
+    bankConfig.oracleMaxAge = bank.config.oracleMaxAge;
+  }
 
   return bankConfig;
 };
 
-export const addLimitsToBankConfig = (bankConfig: BankConfigOpt, price: number, decimals: number) => {
-  const depositLimit = new BigNumber(Math.floor(DEFAULT_DEPOSIT_LIMIT / price)).multipliedBy(Math.pow(10, decimals));
-  const borrowLimit = new BigNumber(Math.floor(DEFAULT_BORROW_LIMIT / price)).multipliedBy(Math.pow(10, decimals));
+export const addLimitsToBankConfig = async (mint: PublicKey, bankConfig: BankConfigOpt, decimals: number) => {
+  let depositLimit = new BigNumber(DEFAULT_DEPOSIT_LIMIT);
+  let borrowLimit = new BigNumber(DEFAULT_BORROW_LIMIT);
+
+  try {
+    const response = await fetch(`/api/birdeye/market-data?address=${mint.toBase58()}`);
+    const marketData: BirdeyeMarketDataResponse = await response.json();
+    depositLimit = new BigNumber(uiToNative(marketData.circulating_supply, decimals).toString());
+    borrowLimit = new BigNumber(uiToNative(marketData.circulating_supply, decimals).toString());
+  } catch (error) {
+    console.error(`[ERROR] Failed to fetch market data for ${mint.toBase58()}: ${error}`);
+  }
 
   return {
     ...bankConfig,

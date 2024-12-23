@@ -37,6 +37,9 @@ export type PoolListApiResponse = {
   quote_banks: PoolListBank[];
   base_bank: PoolListBank;
   lookup_tables: string[];
+  featured: boolean;
+  created_at: string;
+  created_by: string;
 };
 
 /**
@@ -71,4 +74,17 @@ export type PoolOracleApiResponse = {
   programIdl: string;
   programId: string;
   queueKey: string;
+};
+
+/**
+ * Type definitions for the /api/birdeye/market-data endpoint
+ */
+export type BirdeyeMarketDataResponse = {
+  address: string;
+  liquidity: number;
+  price: number;
+  supply: number;
+  marketcap: number;
+  circulating_supply: number;
+  circulating_marketcap: number;
 };

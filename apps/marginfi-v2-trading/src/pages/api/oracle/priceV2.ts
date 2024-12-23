@@ -17,12 +17,11 @@ import {
   decodeSwitchboardPullFeedData,
   FeedResponse,
 } from "@mrgnlabs/marginfi-client-v2/dist/vendor";
-import { chunkedGetRawMultipleAccountInfoOrdered, loadBankMetadatas, median, Wallet } from "@mrgnlabs/mrgn-common";
+import { chunkedGetRawMultipleAccountInfoOrdered, median, Wallet } from "@mrgnlabs/mrgn-common";
 import { Connection, PublicKey } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 import { NextApiRequest, NextApiResponse } from "next";
 import config from "~/config/marginfi";
-import { BANK_METADATA_MAP } from "~/config/trade";
 import { PoolListApiResponse } from "~/types/api.types";
 
 const SWITCHBOARD_CROSSSBAR_API = process.env.SWITCHBOARD_CROSSSBAR_API || "https://crossbar.switchboard.xyz";
