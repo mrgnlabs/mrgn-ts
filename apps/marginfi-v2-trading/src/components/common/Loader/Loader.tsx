@@ -6,6 +6,7 @@ type LoaderProps = {
   label?: string;
   className?: string;
   iconSize?: number;
+  duration?: number;
 };
 
 const paths = [
@@ -25,16 +26,19 @@ const paths = [
   "M536 534C536 496.445 566.445 466 604 466C641.555 466 672 496.445 672 534V630H536V534Z",
 ];
 
-export function Loader({ label = "Loading...", className, iconSize = 24 }: LoaderProps) {
+export function Loader({ label = "Loading...", className, iconSize = 32, duration = 1500 }: LoaderProps) {
   const [isVisible, setIsVisible] = React.useState(true);
 
   React.useEffect(() => {
-    const interval = setInterval(() => {
-      setIsVisible((prev) => !prev);
-    }, 1500);
+    const interval = setInterval(
+      () => {
+        setIsVisible((prev) => !prev);
+      },
+      isVisible ? duration : 1500
+    );
 
     return () => clearInterval(interval);
-  }, []);
+  }, [isVisible, duration]);
 
   const containerVariants: Variants = {
     hidden: {},
@@ -70,7 +74,13 @@ export function Loader({ label = "Loading...", className, iconSize = 24 }: Loade
 
   return (
     <div className={cn("flex flex-col items-center justify-center gap-2 text-muted-foreground", className)}>
-      <motion.svg width="32" height="32" viewBox="0 0 704 704" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <motion.svg
+        width={iconSize}
+        height={iconSize}
+        viewBox="0 0 704 704"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
         <rect width="704" height="704" fill="transparent" />
         <AnimatePresence mode="wait">
           {isVisible && (
@@ -83,7 +93,7 @@ export function Loader({ label = "Loading...", className, iconSize = 24 }: Loade
         </AnimatePresence>
       </motion.svg>
 
-      <p>{label}</p>
+      {label && <p>{label}</p>}
     </div>
   );
 }
