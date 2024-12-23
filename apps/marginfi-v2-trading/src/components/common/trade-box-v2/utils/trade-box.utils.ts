@@ -2,7 +2,13 @@ import { QuoteResponse } from "@jup-ag/api";
 
 import { OperationalState } from "@mrgnlabs/marginfi-client-v2";
 import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { ActionMessageType, DYNAMIC_SIMULATION_ERRORS, isBankOracleStale } from "@mrgnlabs/mrgn-utils";
+import {
+  ActionMessageType,
+  DYNAMIC_SIMULATION_ERRORS,
+  isBankOracleStale,
+  MAX_SLIPPAGE_PERCENTAGE,
+  STATIC_SIMULATION_ERRORS,
+} from "@mrgnlabs/mrgn-utils";
 import { ArenaBank } from "~/types/trade-store.types";
 
 interface CheckTradeActionAvailableProps {
@@ -103,31 +109,9 @@ function canBeTraded(
     }
   }
 
-  // if (
-  //   secondaryBank &&
-  //   secondaryBank?.info.rawBank.config.oracleSetup !== "SwitchboardV2" &&
-  //   isBankOracleStale(secondaryBank)
-  // ) {
-  //   console.log(
-  //     `Bank ${secondaryBank.info.rawBank.tokenSymbol} oracle data is stale ⚠️ - timestamp: ${new Date(
-  //       secondaryBank.info.oraclePrice.timestamp.toNumber() * 1000
-  //     ).toLocaleString()}`
-  //   );
-  //   checks.push(DYNAMIC_SIMULATION_ERRORS.STALE_CHECK("Trading"));
-  // }
-
-  // if (
-  //   collateralBank &&
-  //   collateralBank.info.rawBank.config.oracleSetup !== "SwitchboardV2" &&
-  //   isBankOracleStale(collateralBank)
-  // ) {
-  //   console.log(
-  //     `Bank ${collateralBank.info.rawBank.tokenSymbol} oracle data is stale ⚠️ - timestamp: ${new Date(
-  //       collateralBank.info.oraclePrice.timestamp.toNumber() * 1000
-  //     ).toLocaleString()}`
-  //   );
-  //   checks.push(DYNAMIC_SIMULATION_ERRORS.STALE_CHECK("Trading"));
-  // }
+  if (swapQuote?.slippageBps && swapQuote.slippageBps > MAX_SLIPPAGE_PERCENTAGE / 100) {
+    checks.push(STATIC_SIMULATION_ERRORS.SLIPPAGE_TOO_HIGH);
+  }
 
   return checks;
 }
