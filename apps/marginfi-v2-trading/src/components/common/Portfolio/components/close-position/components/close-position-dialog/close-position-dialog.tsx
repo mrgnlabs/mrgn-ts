@@ -1,5 +1,4 @@
 import React from "react";
-import Image from "next/image";
 
 import {
   Dialog,
@@ -48,7 +47,8 @@ export const ClosePositionDialog = ({
           <DialogTitle className="flex flex-col items-center gap-2 border-b border-border pb-10">
             <span className="flex items-center justify-center gap-2">
               {arenaPool.tokenBank && (
-                <Image
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
                   className="rounded-full w-9 h-9"
                   src={arenaPool.tokenBank.meta.tokenLogoUri}
                   alt={(arenaPool.tokenBank?.meta.tokenSymbol || "Token") + "  logo"}

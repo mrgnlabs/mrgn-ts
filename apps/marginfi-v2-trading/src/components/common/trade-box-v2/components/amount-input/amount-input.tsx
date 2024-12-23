@@ -1,10 +1,12 @@
 import React from "react";
 import Image from "next/image";
-import { Input } from "~/components/ui/input";
-import { MaxAction } from "./components";
-import { ArenaBank } from "~/types/trade-store.types";
+
 import { getTokenImageURL } from "@mrgnlabs/mrgn-utils";
 import { USDC_MINT } from "@mrgnlabs/mrgn-common";
+
+import { Input } from "~/components/ui/input";
+
+import { MaxAction } from "./components";
 
 interface AmountInputProps {
   maxAmount: number;

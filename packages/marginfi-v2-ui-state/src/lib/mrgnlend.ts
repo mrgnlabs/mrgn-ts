@@ -253,12 +253,18 @@ export async function makeEmissionsPriceMap(
   return tokenMap;
 }
 
-function makeExtendedBankMetadata(bank: Bank, tokenMetadata: TokenMetadata): ExtendedBankMetadata {
+function makeExtendedBankMetadata(
+  bank: Bank,
+  tokenMetadata: TokenMetadata,
+  overrideIcon?: boolean
+): ExtendedBankMetadata {
   return {
     address: bank.address,
     tokenSymbol: tokenMetadata.symbol,
     tokenName: tokenMetadata.name,
-    tokenLogoUri: `https://storage.googleapis.com/mrgn-public/mrgn-token-icons/${bank.mint.toBase58()}.png`,
+    tokenLogoUri: overrideIcon
+      ? tokenMetadata.icon ?? "https://storage.googleapis.com/mrgn-public/mrgn-token-icons/${bank.mint.toBase58()}.png"
+      : `https://storage.googleapis.com/mrgn-public/mrgn-token-icons/${bank.mint.toBase58()}.png`,
   };
 }
 
@@ -283,7 +289,8 @@ function makeExtendedBankInfo(
   bank: Bank,
   oraclePrice: OraclePrice,
   emissionTokenPrice?: TokenPrice,
-  userData?: UserDataProps
+  userData?: UserDataProps,
+  overrideIcon?: boolean
 ): ExtendedBankInfo {
   function isUserDataRawProps(userData: UserDataWrappedProps | UserDataRawProps): userData is UserDataRawProps {
     return (
@@ -292,7 +299,7 @@ function makeExtendedBankInfo(
   }
 
   // Aggregate user-agnostic bank info
-  const meta = makeExtendedBankMetadata(bank, tokenMetadata);
+  const meta = makeExtendedBankMetadata(bank, tokenMetadata, overrideIcon);
   const bankInfo = makeBankInfo(bank, oraclePrice, emissionTokenPrice);
   let state: BankInfo = {
     rawBank: bank,

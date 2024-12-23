@@ -230,7 +230,7 @@ export const compileExtendedArenaBank = (
   tokenDataByMint: Record<string, TokenData>
 ): ArenaBank[] => {
   return banksWithPriceAndToken.map(({ bank, oraclePrice, tokenMetadata }) => {
-    const extendedBankInfo = makeExtendedBankInfo(tokenMetadata, bank, oraclePrice);
+    const extendedBankInfo = makeExtendedBankInfo(tokenMetadata, bank, oraclePrice, undefined, undefined, true);
     const mintAddress = bank.mint.toBase58();
     const tokenData = tokenDataByMint[mintAddress];
     if (!tokenData) {
@@ -345,7 +345,8 @@ const recompileArenaBank = (bank: ArenaBank, userData?: any) => {
     bank.info.rawBank,
     bank.info.oraclePrice,
     undefined,
-    userData
+    userData,
+    true
   );
 
   return {

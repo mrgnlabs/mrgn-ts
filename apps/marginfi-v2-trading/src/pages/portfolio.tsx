@@ -1,6 +1,5 @@
 import React from "react";
 
-import Image from "next/image";
 import Link from "next/link";
 
 import { dynamicNumeralFormatter, groupedNumberFormatterDyn } from "@mrgnlabs/mrgn-common";
@@ -132,7 +131,8 @@ export default function PortfolioPage({ initialData }: StaticArenaProps) {
                             <ul className="flex items-center -space-x-2">
                               {portfolioCombined.slice(0, 5).map((pool, index) => (
                                 <li key={index} className="rounded-full bg-white">
-                                  <Image
+                                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                                  <img
                                     src={pool.tokenBank.meta.tokenLogoUri}
                                     alt={pool.tokenBank.meta.tokenSymbol}
                                     width={24}
