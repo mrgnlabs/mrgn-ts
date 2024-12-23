@@ -17,21 +17,18 @@ export const generateImage = async (element: HTMLElement | null) => {
 
 export const copyImage = async (dataUrl: string, isMobile: boolean, onCopySuccess?: () => void) => {
   try {
-    if (navigator.clipboard) {
-      const blob = await fetch(dataUrl).then((res) => res.blob());
+    const blob = await fetch(dataUrl).then((res) => res.blob());
+
+    if (!isMobile && navigator.clipboard) {
       await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
       onCopySuccess?.();
-
-      console.log(navigator);
-      console.log(blob);
     }
 
-    // Trigger native share on mobile
     if (isMobile && navigator.share) {
       await navigator.share({
         title: "Check out my trade!",
         text: "My trade position and PnL",
-        files: [new File([dataUrl], "trade.png", { type: "image/png" })],
+        files: [new File([blob], "trade.png", { type: "image/png" })],
       });
     }
   } catch (err) {

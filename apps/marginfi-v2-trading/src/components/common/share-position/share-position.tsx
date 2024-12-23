@@ -93,7 +93,13 @@ const SharePosition = ({ pool, triggerVariant = "ghost", triggerClassName, onOpe
             <div ref={cardRef} className="w-[480px] h-[250px] max-w-full relative">
               {/* Next Image causes issues with html to image capture */}
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/sharing/share-position-bg.png" alt="arena bg" width={480} height={250} />
+              <img
+                src="/sharing/share-position-bg.png"
+                alt="arena bg"
+                width={480}
+                height={250}
+                className="w-full h-full object-cover"
+              />
               <div className="absolute top-0 left-0 w-full h-full">
                 <div className={cn("pt-14 px-6 flex justify-between w-full gap-2", shareType === "%" && "pt-20")}>
                   <div className="flex items-center gap-2 text-xl">
