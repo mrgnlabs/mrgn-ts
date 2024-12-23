@@ -15,15 +15,13 @@ import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { useIsMobile } from "~/hooks/use-is-mobile";
 import { useConnection } from "~/hooks/use-connection";
 
+import { CreatePoolScriptDialog } from "../Pool/CreatePoolScript";
+import { CreatePoolDialog } from "../Pool/CreatePoolDialog";
 import { Wallet } from "~/components/wallet-v2";
 import { Button } from "~/components/ui/button";
 import { IconArena } from "~/components/ui/icons";
-import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
-
-import { CreatePoolScriptDialog } from "../Pool/CreatePoolScript";
-import { CreatePoolSoon } from "../Pool/CreatePoolSoon";
-import { CreatePoolDialog } from "../Pool/CreatePoolDialog";
+import { Loader } from "~/components/common/Loader";
 import { ResponsiveSettingsWrapper } from "~/components";
 
 const navItems = [
@@ -96,7 +94,8 @@ export const Header = () => {
         initial={{ opacity: 0, y: -64 }}
       >
         <Link href="/">
-          <IconArena size={isMobile ? 40 : 48} className="opacity-90" />
+          {/* <IconArena size={isMobile ? 40 : 48} className="opacity-90" /> */}
+          <Loader label={""} iconSize={isMobile ? 40 : 48} duration={6000} />
         </Link>
         <nav className="mr-auto hidden lg:block">
           <ul className="flex items-center gap-6">
