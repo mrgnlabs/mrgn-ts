@@ -1,8 +1,10 @@
-import { IconConfetti } from "@tabler/icons-react";
+import { IconConfetti, IconExternalLink } from "@tabler/icons-react";
 
 import { Button } from "~/components/ui/button";
 
 import type { PoolData } from "../types";
+import { shortenAddress } from "@mrgnlabs/mrgn-common";
+import Link from "next/link";
 
 type CreatePoolSuccessProps = {
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -22,27 +24,27 @@ export const CreatePoolSuccess = ({ poolData, setIsOpen }: CreatePoolSuccessProp
         </div>
         {poolData && (
           <div className="flex flex-col items-center justify-center gap-3 mt-8">
-            {/* <Image
-              src={poolData.icon}
-              alt={`${poolData.symbol} icon`}
+            <img
+              src={poolData.token.icon}
+              alt={`${poolData.token.symbol} icon`}
               width={64}
               height={64}
               className="rounded-full"
             />
             <h1 className="font-medium text-xl">
-              {poolData.name} <span className="font-normal">({poolData.symbol})</span>
+              {poolData.token.name} <span className="font-normal">({poolData.token.symbol})</span>
             </h1>
             <Link
-              href={`https://solscan.io/account/${poolData.mint}`}
+              href={`https://solscan.io/account/${poolData.token.mint}`}
               target="_blank"
               rel="noreferrer"
               className="text-muted-foreground group flex items-center gap-1"
             >
               <span className="border-b border-border transition-colors group-hover:border-transparent">
-                {shortenAddress(poolData.group || poolData.mint)}
+                {shortenAddress(poolData.group || poolData.token.mint)}
               </span>
               <IconExternalLink size={16} />
-            </Link> */}
+            </Link>
           </div>
         )}
       </div>
