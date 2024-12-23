@@ -17,7 +17,7 @@ type AdminPoolCardProps = {
 export const AdminPoolCard = ({ pool, last }: AdminPoolCardProps) => {
   const extendedPool = useExtendedPool(pool);
   return (
-    <div className={cn("grid grid-cols-7 py-2 w-full items-center", !last && "border-b pb-3 mb-2")}>
+    <div className={cn("grid grid-cols-5 py-2 w-full items-center", !last && "border-b pb-3 mb-2")}>
       <div className="flex items-center gap-2">
         <img
           src={extendedPool.tokenBank.meta.tokenLogoUri}
@@ -60,7 +60,7 @@ export const AdminPoolCard = ({ pool, last }: AdminPoolCardProps) => {
           {/* <div>{extendedPool.poolData && `$${numeralFormatter(extendedPool.quoteBa)}`}</div> */}
         </>
       )}
-      <div className="pl-5">
+      <div>
         <Link
           href={`https://solscan.io/account/${pool.groupPk.toBase58()}`}
           className="flex items-center gap-1.5"
@@ -70,9 +70,9 @@ export const AdminPoolCard = ({ pool, last }: AdminPoolCardProps) => {
           {shortenAddress(pool.groupPk.toBase58() || "")} <IconExternalLink size={15} className="-translate-y-[1px]" />
         </Link>
       </div>
-      <div className="flex items-center gap-2 justify-end">
+      <div className="flex items-center gap-2 justify-end ml-auto">
         <Link href={`/admin/${pool.groupPk.toBase58()}`} className="w-full">
-          <Button variant="default" className="w-full">
+          <Button variant="default" className="w-full px-8">
             Details
           </Button>
         </Link>
