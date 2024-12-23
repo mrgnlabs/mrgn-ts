@@ -1,16 +1,4 @@
-import { Program, AnchorProvider } from "@coral-xyz/anchor";
-import { Bank, BankRaw, MARGINFI_IDL, MarginfiIdlType, MarginfiProgram } from "@mrgnlabs/marginfi-client-v2";
-
-import {
-  chunkedGetRawMultipleAccountInfoOrdered,
-  nativeToUi,
-  Wallet,
-  wrappedI80F48toBigNumber,
-} from "@mrgnlabs/mrgn-common";
-import { Connection, PublicKey } from "@solana/web3.js";
 import { NextApiRequest, NextApiResponse } from "next";
-import config from "~/config/marginfi";
-import { TRADE_GROUPS_MAP } from "~/config/trade";
 import { PoolListApiResponse } from "~/types/api.types";
 
 const S_MAXAGE_TIME = 100;
@@ -29,8 +17,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     const poolList: PoolListApiResponse[] = await fetch(`${host}/api/pool/list`).then((response) => response.json());
-
-    console.log("here", poolList);
 
     const groupSummaries = poolList.reduce(
       (acc, pool) => {

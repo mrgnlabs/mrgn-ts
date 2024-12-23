@@ -59,6 +59,9 @@ export type ArenaPoolSummary = {
   luts?: PublicKey[];
   quoteSummary: BankSummary;
   tokenSummary: BankSummary;
+  createdAt: string;
+  createdBy: string;
+  featured: boolean;
 };
 
 export enum GroupStatus {
