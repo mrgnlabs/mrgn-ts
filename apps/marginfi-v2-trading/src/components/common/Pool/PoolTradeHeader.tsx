@@ -87,6 +87,7 @@ export const PoolTradeHeader = ({ activePool }: { activePool: ArenaPoolV2 }) => 
         <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
           <div className="flex flex-col items-center px-8 w-full lg:w-1/4 xl:w-1/2">
             <div className="relative flex items-center justify-center">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={extendedPool.tokenBank.meta.tokenLogoUri}
                 alt={extendedPool.tokenBank.meta.tokenSymbol}
@@ -94,6 +95,7 @@ export const PoolTradeHeader = ({ activePool }: { activePool: ArenaPoolV2 }) => 
                 height={72}
                 className="bg-background border rounded-full"
               />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={extendedPool.quoteBank.meta.tokenLogoUri}
                 alt={extendedPool.quoteBank.meta.tokenSymbol}
@@ -413,6 +415,7 @@ export const PoolTradeHeader = ({ activePool }: { activePool: ArenaPoolV2 }) => 
               </div>
               <div className="flex flex-row justify-between space-y-2 lg:block">
                 <div className="flex items-start gap-2">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={extendedPool.quoteBank.meta.tokenLogoUri}
                     alt={extendedPool.quoteBank.meta.tokenSymbol}

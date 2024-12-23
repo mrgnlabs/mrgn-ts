@@ -1,7 +1,6 @@
 import React from "react";
 
 import Link from "next/link";
-import Image from "next/image";
 
 import { IconArrowRight } from "@tabler/icons-react";
 import { Connection } from "@solana/web3.js";
@@ -43,14 +42,16 @@ export const YieldRow = ({ pool }: props) => {
         className="group bg-background border rounded-xl absolute -top-5 left-3.5 px-2 py-1.5 flex items-center gap-2 transition-colors hover:bg-accent"
       >
         <div className="flex items-center -space-x-2.5">
-          <Image
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
             src={pool.tokenBank.meta.tokenLogoUri}
             alt={pool.tokenBank.meta.tokenSymbol}
             width={24}
             height={24}
             className="rounded-full bg-background z-10"
           />
-          <Image
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
             src={pool.quoteBank.meta.tokenLogoUri}
             alt={pool.quoteBank.meta.tokenSymbol}
             width={24}
@@ -140,13 +141,8 @@ const YieldItem = ({
   return (
     <div className={cn("grid gap-4items-center", className, connected ? "grid-cols-7" : "grid-cols-6")}>
       <div className="flex items-center gap-2">
-        <Image
-          src={bank.meta.tokenLogoUri}
-          alt={bank.meta.tokenSymbol}
-          width={24}
-          height={24}
-          className="rounded-full"
-        />
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={bank.meta.tokenLogoUri} alt={bank.meta.tokenSymbol} width={24} height={24} className="rounded-full" />
         {bank.meta.tokenSymbol}
       </div>
       <div className="flex flex-col xl:gap-2 xl:flex-row xl:items-baseline">
@@ -169,7 +165,8 @@ const YieldItem = ({
       </div>
       <div className="flex justify-center">
         <Link href="https://x.com/marginfi" target="_blank">
-          <Image
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
             src="https://pbs.twimg.com/profile_images/1791110026456633344/VGViq-CJ_400x400.jpg"
             width={20}
             height={20}
