@@ -170,7 +170,7 @@ export const STATIC_SIMULATION_ERRORS: { [key: string]: ActionMessageType } = {
   },
   SLIPPAGE_TOO_HIGH: {
     description: `Slippage tolerance exceeded ${MAX_SLIPPAGE_PERCENTAGE}%.`,
-    isEnabled: false,
+    isEnabled: true,
     actionMethod: "WARNING",
     code: 130,
   },

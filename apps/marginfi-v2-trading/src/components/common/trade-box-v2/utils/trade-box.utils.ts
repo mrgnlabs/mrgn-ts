@@ -109,7 +109,7 @@ function canBeTraded(
     }
   }
 
-  if (swapQuote?.slippageBps && swapQuote.slippageBps > MAX_SLIPPAGE_PERCENTAGE / 100) {
+  if (swapQuote && swapQuote?.slippageBps && swapQuote.slippageBps / 100 > MAX_SLIPPAGE_PERCENTAGE) {
     checks.push(STATIC_SIMULATION_ERRORS.SLIPPAGE_TOO_HIGH);
   }
 
