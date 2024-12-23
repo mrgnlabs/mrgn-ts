@@ -1,5 +1,5 @@
 import React from "react";
-
+import Image from "next/image";
 import Link from "next/link";
 
 import { percentFormatter, dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
@@ -10,7 +10,6 @@ import { ArenaPoolSummary } from "~/types/trade-store.types";
 
 import { Button } from "~/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
-import Image from "next/image";
 
 type PoolListItemProps = {
   poolData: ArenaPoolSummary;
@@ -54,6 +53,7 @@ export const PoolListItem = ({ poolData, last }: PoolListItemProps) => {
   return (
     <div className={cn("grid grid-cols-7 py-2 w-full items-center", !last && "border-b pb-3 mb-2")}>
       <div className="flex items-center gap-2">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={poolData.tokenSummary.tokenLogoUri}
           alt={poolData.tokenSummary.tokenSymbol}

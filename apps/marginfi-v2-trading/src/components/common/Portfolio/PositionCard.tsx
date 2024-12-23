@@ -1,6 +1,4 @@
 import React from "react";
-
-import Image from "next/image";
 import Link from "next/link";
 
 import { IconInfoCircle, IconSwitchHorizontal } from "@tabler/icons-react";
@@ -79,7 +77,8 @@ export const PositionCard = ({ size = "lg", arenaPool }: PositionCardProps) => {
             href={`/trade/${arenaPool.groupPk.toBase58()}`}
             className="flex items-center gap-3 font-medium text-muted-foreground md:gap-4"
           >
-            <Image
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
               src={arenaPool.tokenBank.meta.tokenLogoUri}
               alt={arenaPool.tokenBank.meta.tokenSymbol}
               width={isMobile ? 48 : 56}

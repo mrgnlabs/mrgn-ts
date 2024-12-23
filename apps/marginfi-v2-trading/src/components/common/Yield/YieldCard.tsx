@@ -1,7 +1,6 @@
 import React from "react";
 
 import Link from "next/link";
-import Image from "next/image";
 
 import { IconArrowRight } from "@tabler/icons-react";
 import { Connection, PublicKey } from "@solana/web3.js";
@@ -42,14 +41,16 @@ export const YieldCard = ({ pool }: YieldCardProps) => {
         className="group bg-background border rounded-xl absolute -top-5 left-3.5 px-2 py-1.5 flex items-center gap-2 transition-colors hover:bg-accent"
       >
         <div className="flex items-center -space-x-2.5">
-          <Image
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
             src={pool.tokenBank.meta.tokenLogoUri}
             alt={pool.tokenBank.meta.tokenSymbol}
             width={24}
             height={24}
             className="rounded-full bg-background z-10"
           />
-          <Image
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
             src={pool.quoteBank.meta.tokenLogoUri}
             alt={pool.quoteBank.meta.tokenSymbol}
             width={24}
@@ -123,13 +124,8 @@ const YieldItem = ({
   return (
     <div className={cn("items-center", className)}>
       <div className="flex items-center gap-2">
-        <Image
-          src={bank.meta.tokenLogoUri}
-          alt={bank.meta.tokenSymbol}
-          width={24}
-          height={24}
-          className="rounded-full"
-        />
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={bank.meta.tokenLogoUri} alt={bank.meta.tokenSymbol} width={24} height={24} className="rounded-full" />
         {bank.meta.tokenSymbol}
       </div>
       <div className="grid grid-cols-2 gap-2 my-6">

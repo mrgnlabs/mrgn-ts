@@ -1,6 +1,4 @@
 import React from "react";
-
-import Image from "next/image";
 import { IconChevronDown } from "@tabler/icons-react";
 
 import { percentFormatter, tokenPriceFormatter } from "@mrgnlabs/mrgn-common";
@@ -69,7 +67,8 @@ export const TokenCombobox = ({ selected, setSelected, children }: TokenCombobox
                           setOpen(false);
                         }}
                       >
-                        <Image
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
                           src={pool.tokenBank.meta.tokenLogoUri}
                           width={32}
                           height={32}
@@ -126,7 +125,8 @@ export const TokenCombobox = ({ selected, setSelected, children }: TokenCombobox
                         setOpen(false);
                       }}
                     >
-                      <Image
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
                         src={pool.tokenBank.meta.tokenLogoUri}
                         width={32}
                         height={32}
@@ -168,7 +168,8 @@ type TokenTriggerProps = {
 const TokenTrigger = ({ selected, open }: TokenTriggerProps) => {
   return (
     <div className="flex items-center px-2 py-1 justify-center font-medium text-base hover:bg-accent transition-colors cursor-pointer rounded-md  gap-2">
-      <Image
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
         src={selected?.tokenBank.meta.tokenLogoUri ?? ""}
         alt={selected?.tokenBank.meta.tokenSymbol ?? ""}
         width={28}

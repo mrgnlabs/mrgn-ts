@@ -1,6 +1,5 @@
 import React from "react";
 
-import Image from "next/image";
 import { useRouter } from "next/router";
 
 import { InfoCircledIcon } from "@radix-ui/react-icons";
@@ -58,7 +57,8 @@ export const PositionListItem = ({ arenaPool }: props) => {
       </TableCell>
       <TableCell>
         <span className="flex items-center gap-3">
-          <Image
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
             src={arenaPool.tokenBank.meta.tokenLogoUri}
             width={24}
             height={24}

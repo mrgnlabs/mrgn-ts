@@ -1,9 +1,8 @@
-import { dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
-import { IconChevronDown } from "@tabler/icons-react";
-import Image from "next/image";
-import Link from "next/link";
 import { useRouter } from "next/router";
 import * as React from "react";
+
+import { dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
+
 import { TokenCombobox } from "~/components/common/TokenCombobox";
 import { ArenaPoolV2Extended } from "~/types/trade-store.types";
 

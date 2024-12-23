@@ -1,6 +1,4 @@
 import React from "react";
-
-import Image from "next/image";
 import Link from "next/link";
 
 import { numeralFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
@@ -47,14 +45,16 @@ export const LpPositionList = () => {
                         className="flex items-center gap-3 transition-colors shrink-0"
                       >
                         <div className="flex shrink-0">
-                          <Image
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
                             src={pool.tokenBank.meta.tokenLogoUri}
                             width={24}
                             height={24}
                             alt={pool.tokenBank.meta.tokenSymbol}
                             className="rounded-full shrink-0 z-20 bg-background"
                           />
-                          <Image
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
                             src={pool.quoteBank.meta.tokenLogoUri}
                             width={24}
                             height={24}
@@ -109,14 +109,16 @@ export const LpPositionList = () => {
                   className="flex items-center gap-3 transition-colors shrink-0"
                 >
                   <div className="flex shrink-0">
-                    <Image
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
                       src={pool.tokenBank.meta.tokenLogoUri}
                       width={24}
                       height={24}
                       alt={pool.tokenBank.meta.tokenSymbol}
                       className="rounded-full shrink-0 z-20 bg-background"
                     />
-                    <Image
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
                       src={pool.quoteBank.meta.tokenLogoUri}
                       width={24}
                       height={24}
