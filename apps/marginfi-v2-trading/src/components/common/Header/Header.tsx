@@ -168,20 +168,6 @@ export const Header = () => {
               slippageProps={{
                 slippageBps: slippageBps / 100,
                 setSlippageBps: (value) => setSlippageBps(value * 100),
-                slippageOptions: [
-                  {
-                    label: "Low",
-                    value: 0.3,
-                  },
-                  {
-                    label: "Normal",
-                    value: 0.5,
-                  },
-                  {
-                    label: "High",
-                    value: 1,
-                  },
-                ], // TODO: move to consts
               }}
               settingsDialogOpen={settingsDialogOpen}
               setSettingsDialogOpen={setSettingsDialogOpen}
