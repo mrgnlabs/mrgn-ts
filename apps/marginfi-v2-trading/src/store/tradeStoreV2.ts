@@ -367,8 +367,9 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
     let marginfiAccountByGroupPk: Record<string, MarginfiAccount> = {};
     let isWalletFetched = false;
     let positionsByGroupPk: Record<string, ArenaPoolPositions> = {};
+    const isWalletConnected = wallet.publicKey && !wallet.publicKey.equals(PublicKey.default);
 
-    if (wallet.publicKey && !wallet.publicKey.equals(PublicKey.default)) {
+    if (isWalletConnected) {
       const userPositions = await fetchUserPositions(wallet.publicKey);
       positionsByGroupPk = userPositions.reduce((acc, position) => {
         acc[position.groupPk.toBase58()] = position;
@@ -414,12 +415,14 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
       return acc;
     }, {} as Record<string, MarginfiGroup>);
 
-    positionsByGroupPk = fillMissingPositions(
-      arenaPools,
-      extendedBanksByBankPk,
-      marginfiAccountByGroupPk,
-      positionsByGroupPk
-    );
+    if (isWalletConnected) {
+      positionsByGroupPk = fillMissingPositions(
+        arenaPools,
+        extendedBanksByBankPk,
+        marginfiAccountByGroupPk,
+        positionsByGroupPk
+      );
+    }
 
     if (!lutByGroupPk || Object.keys(lutByGroupPk).length === 0) {
       const lutResults: Record<string, Promise<RpcResponseAndContext<AddressLookupTableAccount | null>> | null> = {};
@@ -562,8 +565,9 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
     let tokenAccountMap: TokenAccountMap | null = null;
     let marginfiAccount: MarginfiAccount | null = null;
     let positionsByGroupPk: Record<string, ArenaPoolPositions> = {};
+    const isWalletConnected = wallet.publicKey && !wallet.publicKey.equals(PublicKey.default);
 
-    if (wallet.publicKey && !wallet.publicKey.equals(PublicKey.default)) {
+    if (isWalletConnected) {
       const userPositions = await fetchUserPositions(wallet.publicKey);
       positionsByGroupPk = userPositions.reduce((acc, position) => {
         acc[position.groupPk.toBase58()] = position;
@@ -596,16 +600,19 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
     const newStoreBanksByBankPk = { ...storeBanksByBankPk };
     const newTokenAccountMap = new Map(storeTokenAccountMap);
 
-    positionsByGroupPk = fillMissingPositions(
-      get().arenaPools,
-      newStoreBanksByBankPk,
-      storeMarginfiAccountByGroupPk,
-      positionsByGroupPk
-    );
-
     extendedBankInfos.map((bank) => {
       newStoreBanksByBankPk[bank.address.toBase58()] = bank;
     });
+
+    if (isWalletConnected) {
+      positionsByGroupPk = fillMissingPositions(
+        get().arenaPools,
+        newStoreBanksByBankPk,
+        storeMarginfiAccountByGroupPk,
+        positionsByGroupPk
+      );
+    }
+
     if (marginfiAccount) {
       storeMarginfiAccountByGroupPk[args.groupPk.toBase58()] = marginfiAccount;
     }
@@ -889,7 +896,7 @@ function fillMissingPositions(
       delete newPositions[pool.groupPk.toBase58()];
     }
 
-    if (status === GroupStatus.LONG || status === GroupStatus.SHORT) {
+    if ((status === GroupStatus.LONG || status === GroupStatus.SHORT) && Object.keys(newPositions).length > 0) {
       const hasPosition = positions[pool.groupPk.toBase58()];
 
       const account = accountByGroupPk[pool.groupPk.toBase58()];
