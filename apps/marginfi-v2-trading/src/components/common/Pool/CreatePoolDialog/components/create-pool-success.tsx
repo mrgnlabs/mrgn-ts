@@ -24,6 +24,7 @@ export const CreatePoolSuccess = ({ poolData, setIsOpen }: CreatePoolSuccessProp
         </div>
         {poolData && (
           <div className="flex flex-col items-center justify-center gap-3 mt-8">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={poolData.token.icon}
               alt={`${poolData.token.symbol} icon`}

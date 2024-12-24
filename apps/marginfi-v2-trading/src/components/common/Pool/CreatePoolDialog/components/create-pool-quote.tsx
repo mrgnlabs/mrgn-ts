@@ -36,10 +36,6 @@ export const CreatePoolQuote = ({
       return false;
     }
 
-    if (!allowPDA && !PublicKey.isOnCurve(new PublicKey(key).toBytes())) {
-      return false;
-    }
-
     return true;
   };
 

@@ -169,11 +169,16 @@ const TokenSummary = ({ mintData, bankConfig }: { mintData: PoolMintData; bankCo
       {bankConfig?.oracle?.keys?.length ? (
         <div className="flex flex-row justify-between">
           <p className="text-sm text-muted-foreground">Oracle Keys</p>
-          <p className="text-sm">
+          <p className="text-sm flex flex-col ">
             {bankConfig.oracle?.keys
               ?.filter((key) => !key.equals(PublicKey.default))
               .map((key) => (
-                <a href={`https://solscan.io/address/${key.toBase58()}`} target="_blank" rel="noopener noreferrer">
+                <a
+                  key={key.toBase58()}
+                  href={`https://solscan.io/address/${key.toBase58()}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
                   {shortenAddress(key.toBase58())}
                 </a>
               ))}
