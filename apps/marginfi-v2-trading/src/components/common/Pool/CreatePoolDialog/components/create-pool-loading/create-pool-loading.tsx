@@ -91,14 +91,14 @@ export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }:
 
   const savePermissionlessPool = async (poolObject: { group: string; asset: string; quote: string; lut: string }) => {
     try {
-      console.log("poolObject", {
+      const formattedPoolObject = {
         base_bank: poolObject.asset,
         created_by: "mfi1dtjy2mJ9J21UoaQ5dsRnbcg4MBU1CTacVyBp1HF",
         featured: true,
         group: poolObject.group,
         lookup_tables: [poolObject.lut],
         quote_banks: [poolObject.quote],
-      });
+      };
       const token = await getBearerToken();
 
       const response = await fetch("/api/pool/create", {
@@ -107,7 +107,7 @@ export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }:
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(poolObject),
+        body: JSON.stringify(formattedPoolObject),
       });
 
       if (response.ok) {
