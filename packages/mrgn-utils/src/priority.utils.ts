@@ -132,7 +132,10 @@ export const getBundleTip = async (priorityType: TransactionPriorityType, userMa
   if (!response || !response.ok) {
     console.error("Failed to fetch bundle tip");
   } else {
-    bundleTipData = await response.json();
+    const data = await response.json();
+    if (data) {
+      bundleTipData = data;
+    }
   }
 
   const maxCap = calculateBundleTipCap(bundleTipData, userMaxCap);
