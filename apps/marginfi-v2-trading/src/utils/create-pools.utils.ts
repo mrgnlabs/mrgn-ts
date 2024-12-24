@@ -5,7 +5,7 @@ import { CrossbarClient, decodeString } from "@switchboard-xyz/common";
 import { Connection, PublicKey } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 
-import { BankConfigOpt, getConfig, MarginfiClient, RiskTier } from "@mrgnlabs/marginfi-client-v2";
+import { BankConfigOpt, getConfig, MarginfiClient, OracleSetup, RiskTier } from "@mrgnlabs/marginfi-client-v2";
 import { uiToNative, Wallet } from "@mrgnlabs/mrgn-common";
 
 import { DEFAULT_STABLE_BANK_CONFIG, DEFAULT_TOKEN_BANK_CONFIG, STABLE_MINT_KEYS } from "~/consts/bank-config.consts";
@@ -41,11 +41,14 @@ export const getBankConfig = async (
   bankConfig = await addLimitsToBankConfig(mint, bankConfig, decimals);
 
   if (bank && useExistingOracle) {
+    const feedKeys = bank.config.oracleKeys.filter(
+      (key) => !key.equals(new PublicKey("11111111111111111111111111111111"))
+    );
+
     bankConfig.oracle = {
       setup: bank.config.oracleSetup,
-      keys: bank.config.oracleKeys,
+      keys: [...feedKeys, bank.oracleKey],
     };
-
     bankConfig.oracleMaxAge = bank.config.oracleMaxAge;
   }
 
