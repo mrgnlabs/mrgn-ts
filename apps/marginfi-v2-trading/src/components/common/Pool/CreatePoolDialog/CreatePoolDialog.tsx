@@ -47,7 +47,7 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
 
       try {
         const mint = new PublicKey(mintAddress);
-        const fetchTokenReq = await fetch(`/api/birdeye/token?address=${mint.toBase58()}`);
+        const fetchTokenReq = await fetch(`/api/token/overview?address=${mint.toBase58()}`);
 
         if (!fetchTokenReq.ok) {
           throw new Error("Failed to fetch token info");
