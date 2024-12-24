@@ -77,7 +77,7 @@ export type PoolOracleApiResponse = {
 };
 
 /**
- * Type definitions for the /api/birdeye/market-data endpoint
+ * Type definitions for the /api/token/market-data endpoint
  */
 export type BirdeyeMarketDataResponse = {
   address: string;

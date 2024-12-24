@@ -60,7 +60,7 @@ export const addLimitsToBankConfig = async (mint: PublicKey, bankConfig: BankCon
   let borrowLimit = new BigNumber(DEFAULT_BORROW_LIMIT);
 
   try {
-    const response = await fetch(`/api/birdeye/market-data?address=${mint.toBase58()}`);
+    const response = await fetch(`/api/token/market-data?address=${mint.toBase58()}`);
     const marketData: BirdeyeMarketDataResponse = await response.json();
     depositLimit = new BigNumber(uiToNative(marketData.circulating_supply, decimals).toString());
     borrowLimit = new BigNumber(uiToNative(marketData.circulating_supply, decimals).toString());
