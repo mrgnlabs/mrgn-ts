@@ -5,7 +5,7 @@ import React from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { motion, useAnimate } from "framer-motion";
-import { IconPlus, IconCopy, IconCheck, IconSettings } from "@tabler/icons-react";
+import { IconPlus, IconCopy, IconCheck, IconSettings, IconLayoutDashboard } from "@tabler/icons-react";
 import { CopyToClipboard } from "react-copy-to-clipboard";
 import { cn } from "@mrgnlabs/mrgn-utils";
 import { Settings } from "@mrgnlabs/mrgn-ui";
@@ -127,9 +127,15 @@ export const Header = () => {
         <div className={cn("flex items-center gap-4")}>
           {ownedPools.length > 0 && (
             <Link href="/admin">
-              <Button variant="outline" size={isMobile ? "sm" : "default"}>
-                <IconPlus size={isMobile ? 14 : 18} /> Manage pools
-              </Button>
+              {isMobile ? (
+                <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0">
+                  <IconLayoutDashboard size={18} />
+                </Button>
+              ) : (
+                <Button variant="outline">
+                  <IconLayoutDashboard size={18} /> Manage pools
+                </Button>
+              )}
             </Link>
           )}
           {
