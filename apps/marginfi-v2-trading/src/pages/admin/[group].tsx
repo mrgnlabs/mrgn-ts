@@ -46,7 +46,7 @@ export default function AdminGroupDetailsPage() {
 
   return (
     <>
-      <div className="w-full space-y-12 max-w-8xl mx-auto px-4 pb-16 pt-8 md:pt-14 min-h-[calc(100vh-100px)]">
+      <div className="w-full space-y-12 max-w-8xl mx-auto px-4 pb-16 pt-8 md:pt-14 min-h-[calc(100vh-100px)] mb-4 sm:mb-0">
         {activePool && <AdminPoolDetailHeader activePool={activePool} />}
         {activePool && <AdminPoolDetailCard activePool={activePool} />}
       </div>
