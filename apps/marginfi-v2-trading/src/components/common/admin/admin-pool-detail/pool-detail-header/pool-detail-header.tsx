@@ -1,6 +1,7 @@
 import React from "react";
 import { IconExternalLink } from "@tabler/icons-react";
 import Link from "next/link";
+import Image from "next/image";
 
 import { percentFormatter, numeralFormatter, tokenPriceFormatter, shortenAddress } from "@mrgnlabs/mrgn-common";
 import { cn } from "@mrgnlabs/mrgn-utils";
@@ -17,11 +18,24 @@ type AdminPoolDetailHeaderProps = {
 export const AdminPoolDetailHeader = ({ activePool }: AdminPoolDetailHeaderProps) => {
   const extendedPool = useExtendedPool(activePool);
 
+  const fundingRate = React.useMemo(() => {
+    const fundingRateShort =
+      extendedPool.tokenBank.info.state.borrowingRate - extendedPool.quoteBank.info.state.lendingRate;
+    const fundingRateLong =
+      extendedPool.quoteBank.info.state.borrowingRate - extendedPool.tokenBank.info.state.lendingRate;
+    return `${percentFormatter.format(fundingRateLong)} / ${percentFormatter.format(fundingRateShort)}`;
+  }, [
+    extendedPool.tokenBank.info.state.borrowingRate,
+    extendedPool.tokenBank.info.state.lendingRate,
+    extendedPool.quoteBank.info.state.borrowingRate,
+    extendedPool.quoteBank.info.state.lendingRate,
+  ]);
+
   return (
     <div className="px-4 pb-10 lg:px-8 lg:py-10 lg:bg-background lg:border lg:rounded-xl">
       <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
         <div className="flex flex-row items-center justify-center gap-4 px-8 w-full lg:w-1/4 xl:w-1/2">
-          <img
+          <Image
             src={extendedPool.tokenBank.meta.tokenLogoUri}
             alt={extendedPool.tokenBank.meta.tokenSymbol}
             width={72}
@@ -86,11 +100,15 @@ export const AdminPoolDetailHeader = ({ activePool }: AdminPoolDetailHeaderProps
                   </span>
                 </p>
               </div>
-              <div className="grid grid-cols-2 lg:block">
+              {/* <div className="grid grid-cols-2 lg:block">
                 <p className="text-sm text-muted-foreground">Market cap</p>
                 <p className="text-sm text-right lg:text-left lg:text-2xl">
                   ${numeralFormatter(extendedPool.tokenBank.tokenData.marketCap)}
                 </p>
+              </div> */}
+              <div className="grid grid-cols-2 lg:block">
+                <p className="text-sm text-muted-foreground">Funding rate (long/short)</p>
+                <p className="text-sm text-right lg:text-left lg:text-2xl">{fundingRate}</p>
               </div>
             </div>
           )}
