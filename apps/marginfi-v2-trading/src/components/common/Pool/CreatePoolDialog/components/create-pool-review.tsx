@@ -71,8 +71,8 @@ export const CreatePoolReview = ({ poolData, setCreatePoolState }: CreatePoolRev
       </div>
 
       <div className="flex flex-col gap-2">
-        <div className="gap-4 w-full flex flex-col md:flex-row items-center">
-          <div className="flex-1 border rounded-lg p-4 w-full">
+        <div className="gap-4 w-full flex flex-col md:flex-row">
+          <div className="border rounded-lg p-4 w-full">
             <h3 className="font-medium space-y-1">
               <span className="text-muted-foreground">Base Token</span>
               <div className="flex items-center gap-2 text-lg">
@@ -84,7 +84,7 @@ export const CreatePoolReview = ({ poolData, setCreatePoolState }: CreatePoolRev
             </h3>
             <TokenSummary mintData={poolData.token} bankConfig={poolData.tokenBankConfig} />
           </div>
-          <div className="flex-1 border rounded-lg p-4 w-full">
+          <div className="border rounded-lg p-4 w-full">
             <h3 className="font-medium space-y-1">
               <span className="text-muted-foreground">Quote Token</span>
               <div className="flex items-center gap-2 text-lg">
@@ -124,7 +124,7 @@ const TokenSummary = ({ mintData, bankConfig }: { mintData: PoolMintData; bankCo
   }, [protocolIrFee]);
 
   return (
-    <div className="flex flex-col mt-4 gap-1">
+    <div className="flex flex-col mt-4 gap-1 text-sm">
       <div className="flex flex-row justify-between">
         <p className="text-sm text-muted-foreground">Price</p>
         <p className="text-sm">${dynamicNumeralFormatter(mintData.price)}</p>
