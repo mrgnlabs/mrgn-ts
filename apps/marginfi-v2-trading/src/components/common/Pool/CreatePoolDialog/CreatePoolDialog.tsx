@@ -150,9 +150,9 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
               setIsOpen={setIsOpen}
             />
           )}
-          {createPoolState === CreatePoolState.QUOTE && (
+          {createPoolState === CreatePoolState.QUOTE && poolData?.token && (
             <CreatePoolQuote
-              tokenMintAddress={poolData?.token?.mint.toBase58() ?? ""}
+              tokenData={poolData.token}
               isSearchingToken={isSearchingToken}
               fetchTokenInfo={fetchTokenInfo}
               setIsOpen={setIsOpen}
