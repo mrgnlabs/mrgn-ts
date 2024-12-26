@@ -221,9 +221,6 @@ const YieldItem = ({
                   {percentFormatter.format(bankDepositData.capacity)} capacity.
                 </span>
                 {!bankDepositData.isBankFilled && <span>Available: {numeralFormatter(bankDepositData.available)}</span>}
-                <a href="https://docs.marginfi.com">
-                  <u>Learn more.</u>
-                </a>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
@@ -250,9 +247,6 @@ const YieldItem = ({
                   {percentFormatter.format(bankBorrowData.capacity)} capacity.
                 </span>
                 {!bankBorrowData.isBankFilled && <span>Available: {numeralFormatter(bankBorrowData.available)}</span>}
-                <a href="https://docs.marginfi.com">
-                  <u>Learn more.</u>
-                </a>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
