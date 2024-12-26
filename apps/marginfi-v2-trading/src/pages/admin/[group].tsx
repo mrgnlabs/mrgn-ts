@@ -9,8 +9,9 @@ import { ArenaPoolV2 } from "~/types/trade-store.types";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
 export default function AdminGroupDetailsPage() {
-  const [initialized, arenaPools, groupsByGroupPk] = useTradeStoreV2((state) => [
+  const [initialized, poolsFetched, arenaPools, groupsByGroupPk] = useTradeStoreV2((state) => [
     state.initialized,
+    state.poolsFetched,
     state.arenaPools,
     state.groupsByGroupPk,
   ]);
@@ -26,7 +27,7 @@ export default function AdminGroupDetailsPage() {
   }, [arenaPools, groupsByGroupPk, wallet]);
 
   React.useEffect(() => {
-    if (!router.isReady || !initialized) return;
+    if (!router.isReady || !initialized || !poolsFetched) return;
 
     const group = router.query.group as string;
 
@@ -42,7 +43,7 @@ export default function AdminGroupDetailsPage() {
     }
 
     setActivePool(data);
-  }, [router, ownPools, setActivePool, initialized]);
+  }, [router, ownPools, setActivePool, initialized, poolsFetched]);
 
   return (
     <>
