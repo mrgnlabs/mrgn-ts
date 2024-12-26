@@ -30,14 +30,14 @@ export function Loader({ label = "Loading...", className, iconSize = 32, duratio
   const [isVisible, setIsVisible] = React.useState(true);
 
   React.useEffect(() => {
-    const interval = setInterval(
+    const timeout = setTimeout(
       () => {
         setIsVisible((prev) => !prev);
       },
       isVisible ? duration : 1500
     );
 
-    return () => clearInterval(interval);
+    return () => clearTimeout(timeout);
   }, [isVisible, duration]);
 
   const containerVariants: Variants = {
