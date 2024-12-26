@@ -17,20 +17,33 @@ type AdminPoolCardProps = {
 export const AdminPoolCard = ({ pool, last }: AdminPoolCardProps) => {
   const extendedPool = useExtendedPool(pool);
   return (
-    <div className={cn("grid grid-cols-5 py-2 w-full items-center", !last && "border-b pb-3 mb-2")}>
-      <div className="flex items-center gap-2">
-        <img
-          src={extendedPool.tokenBank.meta.tokenLogoUri}
-          alt={extendedPool.tokenBank.meta.tokenSymbol}
-          width={32}
-          height={32}
-          className="rounded-full bg-background"
-        />
-        <h2>{extendedPool.tokenBank.meta.tokenSymbol}</h2>
+    <div
+      className={cn("grid grid-cols-2 md:grid-cols-6 py-2 gap-4 w-full items-center", !last && "border-b pb-3 mb-2")}
+    >
+      <div className="flex items-center md:col-span-2">
+        <div className="flex items-end">
+          <img
+            src={extendedPool.tokenBank.meta.tokenLogoUri}
+            alt={extendedPool.tokenBank.meta.tokenSymbol}
+            width={38}
+            height={38}
+            className="rounded-full bg-background"
+          />
+          <img
+            src={extendedPool.quoteBank.meta.tokenLogoUri}
+            alt={extendedPool.quoteBank.meta.tokenSymbol}
+            width={24}
+            height={24}
+            className="rounded-full bg-background -translate-x-4"
+          />
+        </div>
+        <h2>
+          {extendedPool.tokenBank.meta.tokenSymbol} / {extendedPool.quoteBank.meta.tokenSymbol}
+        </h2>
       </div>
       {extendedPool.tokenBank.tokenData && (
         <>
-          <div>
+          <div className="hidden md:block">
             {tokenPriceFormatter(extendedPool.tokenBank.info.oraclePrice.priceRealtime.price.toNumber())}{" "}
             <span
               className={cn(
@@ -42,7 +55,7 @@ export const AdminPoolCard = ({ pool, last }: AdminPoolCardProps) => {
               {percentFormatter.format(extendedPool.tokenBank.tokenData.priceChange24hr / 100)}
             </span>
           </div>
-          <div>
+          <div className="hidden md:block">
             ${numeralFormatter(extendedPool.tokenBank.tokenData.volume24hr)}
             {extendedPool.tokenBank.tokenData.volumeChange24hr && (
               <span
@@ -60,7 +73,7 @@ export const AdminPoolCard = ({ pool, last }: AdminPoolCardProps) => {
           {/* <div>{extendedPool.poolData && `$${numeralFormatter(extendedPool.quoteBa)}`}</div> */}
         </>
       )}
-      <div>
+      <div className="hidden md:block">
         <Link
           href={`https://solscan.io/account/${pool.groupPk.toBase58()}`}
           className="flex items-center gap-1.5"

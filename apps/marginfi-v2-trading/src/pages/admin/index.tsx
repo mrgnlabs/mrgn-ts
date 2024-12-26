@@ -24,7 +24,7 @@ export default function AdminPage() {
 
   return (
     <>
-      <div className="w-full max-w-8xl mx-auto px-4 pb-16 pt-8 md:pt-14 min-h-[calc(100vh-100px)]">
+      <div className="w-full max-w-6xl mx-auto px-4 py-12">
         {!initialized ? (
           <Loader label="Loading the arena..." className="mt-8" />
         ) : ownPools.length > 0 ? (
@@ -33,14 +33,14 @@ export default function AdminPage() {
               <h1 className="text-4xl font-medium">Manage your Arena pools</h1>
               <p className="text-muted-foreground">View your pool details and provide liquidity.</p>
             </div>
-            <div className="w-full space-y-2">
-              <div className="grid grid-cols-5 w-full text-muted-foreground">
-                <div className="pl-5">Asset</div>
+            <div className="w-full space-y-2 mt-16">
+              <div className="grid-cols-2 md:grid-cols-6 gap-4 w-full text-muted-foreground hidden md:grid">
+                <div className="pl-5 col-span-2">Pool</div>
                 <div className="pl-2.5">Price</div>
                 <div className="pl-2">24hr Volume</div>
                 {/* <div>Token liquidity</div>
                 <div>pool liquidity</div> */}
-                <div className="pl-2">Created by</div>
+                <div>Created by</div>
                 <div />
               </div>
               <div className="bg-background border rounded-xl px-4 py-1">
