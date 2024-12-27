@@ -183,9 +183,7 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
             <CreatePoolLoading poolData={poolData} setPoolData={setPoolData} setCreatePoolState={setCreatePoolState} />
           )}
 
-          {createPoolState === CreatePoolState.SUCCESS && (
-            <CreatePoolSuccess poolData={poolData} setIsOpen={setIsOpen} />
-          )}
+          {createPoolState === CreatePoolState.SUCCESS && <CreatePoolSuccess poolData={poolData} />}
         </DialogContent>
       </Dialog>
     </>
