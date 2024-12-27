@@ -63,7 +63,7 @@ export const PositionListItem = ({ arenaPool }: props) => {
             width={24}
             height={24}
             alt={arenaPool.tokenBank.meta.tokenSymbol}
-            className="rounded-full shrink-0"
+            className="rounded-full shrink-0 w-[24px] h-[24px] object-cover"
           />{" "}
           {arenaPool.tokenBank.meta.tokenSymbol}
         </span>
