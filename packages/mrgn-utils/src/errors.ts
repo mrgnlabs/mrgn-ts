@@ -162,6 +162,12 @@ export const STATIC_SIMULATION_ERRORS: { [key: string]: ActionMessageType } = {
     actionMethod: "WARNING",
     code: 124,
   },
+  ILLEGAL_ACCOUNT_AUTHORITY_TRANSFER: {
+    description: "Account is not authorized for migration",
+    isEnabled: false,
+    actionMethod: "ERROR",
+    code: 125,
+  },
 };
 
 const createRepayCollatFailedCheck = (tokenSymbol?: string): ActionMessageType => ({
@@ -422,6 +428,10 @@ export const handleError = (
         (checkErrorCodeMatch(error.message, 6028) || error.message?.toLowerCase().includes("utilization ratio"))
       ) {
         return STATIC_SIMULATION_ERRORS.UTILIZATION_RATIO_INVALID;
+      }
+
+      if (checkErrorCodeMatch(error.message, 6043)) {
+        return STATIC_SIMULATION_ERRORS.ILLEGAL_ACCOUNT_AUTHORITY_TRANSFER;
       }
     }
 
