@@ -10,7 +10,7 @@ import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 import { extractErrorString, MultiStepToastHandle } from "@mrgnlabs/mrgn-utils";
 import { IconAlertTriangle, IconTransfer, IconX, IconExternalLink } from "@tabler/icons-react";
 
-import { useMrgnlendStore } from "~/store";
+import { useMrgnlendStore, useUiStore } from "~/store";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
 import { WalletButton } from "~/components/wallet-v2";
@@ -35,20 +35,24 @@ export default function MigrateAccountPage() {
       state.marginfiAccounts,
       state.selectedAccount,
     ]);
+  const [broadcastType, priorityFees] = useUiStore((state) => [state.broadcastType, state.priorityFees]);
   const [chosenAccount, setChosenAccount] = React.useState<MarginfiAccountWrapper | null>(null);
   const [isComplete, setIsComplete] = React.useState(false);
   const [txnSignature, setTxnSignature] = React.useState<string | null>(null);
   const walletAddressInputRef = React.useRef<HTMLInputElement>(null);
 
   const migrateAccount = React.useCallback(async () => {
-    if (!selectedAccount || !walletAddressInputRef?.current?.value) return;
+    if (!selectedAccount || !walletAddressInputRef?.current?.value || !broadcastType || !priorityFees) return;
     const multiStepToast = new MultiStepToastHandle("Migrate Account", [{ label: "Migrating account" }]);
     multiStepToast.start();
 
     console.log("Migrating account...", selectedAccount.address.toBase58(), walletAddressInputRef.current.value);
 
     try {
-      const data = await selectedAccount.transferAccountAuthority(new PublicKey(walletAddressInputRef.current.value));
+      const data = await selectedAccount.transferAccountAuthority(new PublicKey(walletAddressInputRef.current.value), {
+        ...priorityFees,
+        broadcastType,
+      });
       multiStepToast.setSuccessAndNext();
       localStorage.removeItem(`marginfi_accounts-${wallet.publicKey.toBase58()}`);
       localStorage.removeItem(`marginfi_accounts-${walletAddressInputRef.current.value}`);
@@ -59,7 +63,7 @@ export default function MigrateAccountPage() {
       console.error(errMsg);
       multiStepToast.setFailed(errMsg);
     }
-  }, [selectedAccount, walletAddressInputRef, wallet.publicKey]);
+  }, [selectedAccount, walletAddressInputRef, wallet.publicKey, broadcastType, priorityFees]);
 
   React.useEffect(() => {
     if (marginfiAccounts.length === 1 && !chosenAccount) {
