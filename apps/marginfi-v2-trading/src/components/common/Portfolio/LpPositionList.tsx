@@ -51,7 +51,7 @@ export const LpPositionList = () => {
                             width={24}
                             height={24}
                             alt={pool.tokenBank.meta.tokenSymbol}
-                            className="rounded-full shrink-0 z-20 bg-background"
+                            className="rounded-full shrink-0 z-20 bg-background w-[24px] h-[24px] object-cover"
                           />
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
@@ -59,7 +59,7 @@ export const LpPositionList = () => {
                             width={24}
                             height={24}
                             alt={pool.quoteBank.meta.tokenSymbol}
-                            className="rounded-full shrink-0 ml-[-12px] z-10 bg-background"
+                            className="rounded-full shrink-0 ml-[-12px] z-10 bg-background w-[24px] h-[24px] object-cover"
                           />
                         </div>{" "}
                         {`${pool.tokenBank.meta.tokenSymbol}/${pool.quoteBank.meta.tokenSymbol} `}

@@ -83,7 +83,10 @@ export const PositionCard = ({ size = "lg", arenaPool }: PositionCardProps) => {
               alt={arenaPool.tokenBank.meta.tokenSymbol}
               width={isMobile ? 48 : 56}
               height={isMobile ? 48 : 56}
-              className="rounded-full translate-y-[2px]"
+              className={cn(
+                "rounded-full translate-y-[2px] object-cover",
+                isMobile ? "w-[48px] h-[48px]" : "w-[56px] h-[56px]"
+              )}
             />
             <div className="leading-none md:space-y-0.5">
               <h2 className="text-lg text-primary">{arenaPool.tokenBank.meta.tokenName}</h2>
