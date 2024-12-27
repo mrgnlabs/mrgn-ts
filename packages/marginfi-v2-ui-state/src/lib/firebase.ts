@@ -217,13 +217,14 @@ async function signMigrateMemo(wallet: Wallet, migrateData: MigratePayload): Pro
   }
 
   const encodedMessage = new TextEncoder().encode(JSON.stringify(migrateData));
-  const signature = await wallet.signMessage(encodedMessage);
+  // phantom window provider returns { signature: Uint8Array }
+  // wallet adapter returns Uint8Array
+  const signature = (await wallet.signMessage(encodedMessage)) as Uint8Array | { signature: Uint8Array };
   const signedData = JSON.stringify({
     data: migrateData,
-    signature: base58.encode(signature as Uint8Array),
+    signature: base58.encode("signature" in signature ? signature.signature : signature),
     signer: wallet.publicKey.toBase58(),
   });
-
   return signedData;
 }
 
