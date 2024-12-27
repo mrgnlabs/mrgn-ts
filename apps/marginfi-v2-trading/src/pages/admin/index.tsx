@@ -7,8 +7,8 @@ import { AdminPoolCard } from "~/components/common/admin";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
 export default function AdminPage() {
-  const [initialized, arenaPools, groupsByGroupPk] = useTradeStoreV2((state) => [
-    state.initialized,
+  const [poolsfetched, arenaPools, groupsByGroupPk] = useTradeStoreV2((state) => [
+    state.poolsFetched,
     state.arenaPools,
     state.groupsByGroupPk,
   ]);
@@ -24,9 +24,9 @@ export default function AdminPage() {
 
   return (
     <>
-      <div className="w-full max-w-6xl mx-auto px-4 py-12">
-        {!initialized ? (
-          <Loader label="Loading the arena..." className="mt-8" />
+      <div className="w-full max-w-6xl mx-auto px-4 py-12 min-h-[calc(100vh-100px)]">
+        {!poolsfetched ? (
+          <Loader label="Loading your pools..." className="mt-8" />
         ) : ownPools.length > 0 ? (
           <>
             <div className="text-center space-y-2 mb-12 text-lg">
