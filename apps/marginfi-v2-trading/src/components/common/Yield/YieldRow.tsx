@@ -48,7 +48,7 @@ export const YieldRow = ({ pool }: props) => {
             alt={pool.tokenBank.meta.tokenSymbol}
             width={24}
             height={24}
-            className="rounded-full bg-background z-10"
+            className="rounded-full bg-background z-10 w-[24px] h-[24px] object-cover"
           />
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
@@ -56,7 +56,7 @@ export const YieldRow = ({ pool }: props) => {
             alt={pool.quoteBank.meta.tokenSymbol}
             width={24}
             height={24}
-            className="rounded-full"
+            className="rounded-full w-[24px] h-[24px] object-cover"
           />
         </div>
         <span>
@@ -142,7 +142,13 @@ const YieldItem = ({
     <div className={cn("grid gap-4items-center", className, connected ? "grid-cols-7" : "grid-cols-6")}>
       <div className="flex items-center gap-2">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={bank.meta.tokenLogoUri} alt={bank.meta.tokenSymbol} width={24} height={24} className="rounded-full" />
+        <img
+          src={bank.meta.tokenLogoUri}
+          alt={bank.meta.tokenSymbol}
+          width={24}
+          height={24}
+          className="rounded-full w-[24px] h-[24px] object-cover"
+        />
         {bank.meta.tokenSymbol}
       </div>
       <div className="flex flex-col xl:gap-2 xl:flex-row xl:items-baseline">
