@@ -25,7 +25,6 @@ import { ConnectionProvider } from "~/hooks/use-connection";
 import { Meta } from "~/components/common/Meta";
 import { MobileNavbar } from "~/components/mobile/MobileNavbar";
 import { Tutorial } from "~/components/common/Tutorial";
-import { CongestionBanner } from "~/components/common/CongestionBanner";
 
 import "swiper/css";
 import "swiper/css/pagination";
@@ -110,7 +109,6 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
                         connected={false}
                         accountSummaryArg={accountSummary}
                       >
-                        <CongestionBanner />
                         <Navbar />
 
                         <Desktop>
