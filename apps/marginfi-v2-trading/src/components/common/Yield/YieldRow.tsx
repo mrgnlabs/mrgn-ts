@@ -1,7 +1,7 @@
 import React from "react";
 
 import Link from "next/link";
-
+import Image from "next/image";
 import { IconArrowRight } from "@tabler/icons-react";
 import { Connection } from "@solana/web3.js";
 import {
@@ -14,10 +14,12 @@ import {
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { cn, capture } from "@mrgnlabs/mrgn-utils";
 import { Wallet } from "@mrgnlabs/mrgn-common";
+import { minidenticon } from "minidenticons";
 
 import { useTradeStoreV2 } from "~/store";
 import { useConnection } from "~/hooks/use-connection";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
+import { mfiAddresses } from "~/utils/arenaUtils";
 
 import { ActionBox, ActionBoxProvider } from "~/components/action-box-v2";
 import { Button } from "~/components/ui/button";
@@ -130,6 +132,7 @@ const YieldItem = ({
     pool.tokenBank,
     pool.quoteBank,
   ]);
+  const [groupsByGroupPk] = useTradeStoreV2((state) => [state.groupsByGroupPk]);
 
   const bank = React.useMemo(() => (bankType === "COLLATERAL" ? pool.quoteBank : pool.tokenBank), [bankType, pool]);
 
@@ -137,6 +140,10 @@ const YieldItem = ({
     () => bank.isActive && bank.position.isLending && pool.status === GroupStatus.LP,
     [bank, pool]
   );
+
+  const groupData = React.useMemo(() => groupsByGroupPk[pool.groupPk.toBase58()], [groupsByGroupPk, pool.groupPk]);
+
+  console.log(groupData.admin.toBase58());
 
   return (
     <div className={cn("grid gap-4items-center", className, connected ? "grid-cols-7" : "grid-cols-6")}>
@@ -170,16 +177,36 @@ const YieldItem = ({
         {percentFormatter.format(aprToApy(bank.info.state.borrowingRate))}
       </div>
       <div className="flex justify-center">
-        <Link href="https://x.com/marginfi" target="_blank">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="https://pbs.twimg.com/profile_images/1791110026456633344/VGViq-CJ_400x400.jpg"
-            width={20}
-            height={20}
-            alt="marginfi"
-            className="rounded-full"
-          />
-        </Link>
+        {mfiAddresses.includes(groupData.admin.toBase58()) ? (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Link href="https://x.com/marginfi" target="_blank">
+                  <Image
+                    src="https://pbs.twimg.com/profile_images/1791110026456633344/VGViq-CJ_400x400.jpg"
+                    width={20}
+                    height={20}
+                    alt="marginfi"
+                    className="rounded-full"
+                  />
+                </Link>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Pool created by marginfi</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        ) : (
+          <div className="w-[20px] h-[20px] rounded-full object-cover bg-muted">
+            <Image
+              src={"data:image/svg+xml;utf8," + encodeURIComponent(minidenticon(groupData.admin.toBase58()))}
+              alt="minidenticon"
+              width={20}
+              height={20}
+              className="rounded-full"
+            />
+          </div>
+        )}
       </div>
       {connected && (
         <div className="pl-2 text-lg flex flex-col xl:gap-1 xl:flex-row xl:items-baseline">
