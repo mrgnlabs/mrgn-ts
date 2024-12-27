@@ -200,7 +200,7 @@ export const CreatePoolConfigure = ({ poolData, setPoolData, setCreatePoolState 
               <div className="space-y-1">
                 <h4 className="text-md font-medium">Group Fee</h4>
                 <p className="text-sm font-normal text-muted-foreground">
-                  The group fee is the fee charged to the group. (TODO: add description)
+                  The group fee is applied to borrow interest and paid when borrow interest accumulates
                 </p>
               </div>
               <Slider
