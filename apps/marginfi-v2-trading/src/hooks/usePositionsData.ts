@@ -12,7 +12,7 @@ export function usePositionsData({ groupPk }: UsePositionsDataProps) {
   const [positionsByGroupPk] = useTradeStoreV2((state) => [state.positionsByGroupPk]);
 
   const positions = React.useMemo(() => {
-    if (!groupPk) return {} as ArenaPoolPositions;
+    if (!groupPk || typeof groupPk.toBase58 !== "function") return {} as ArenaPoolPositions;
     return positionsByGroupPk[groupPk.toBase58()] ?? ({} as ArenaPoolPositions);
   }, [positionsByGroupPk, groupPk]);
 
