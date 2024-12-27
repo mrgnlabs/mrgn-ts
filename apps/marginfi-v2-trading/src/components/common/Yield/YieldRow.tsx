@@ -9,6 +9,7 @@ import {
   dynamicNumeralFormatter,
   numeralFormatter,
   percentFormatter,
+  shortenAddress,
   usdFormatter,
 } from "@mrgnlabs/mrgn-common";
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
@@ -143,7 +144,10 @@ const YieldItem = ({
 
   const groupData = React.useMemo(() => groupsByGroupPk[pool.groupPk.toBase58()], [groupsByGroupPk, pool.groupPk]);
 
-  console.log(groupData.admin.toBase58());
+  const mfiCreated = React.useMemo(() => {
+    if (!groupData) return false;
+    return mfiAddresses.includes(groupData.admin.toBase58());
+  }, [groupData]);
 
   return (
     <div className={cn("grid gap-4items-center", className, connected ? "grid-cols-7" : "grid-cols-6")}>
@@ -177,10 +181,10 @@ const YieldItem = ({
         {percentFormatter.format(aprToApy(bank.info.state.borrowingRate))}
       </div>
       <div className="flex justify-center">
-        {mfiAddresses.includes(groupData.admin.toBase58()) ? (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              {mfiCreated ? (
                 <Link href="https://x.com/marginfi" target="_blank">
                   <Image
                     src="https://pbs.twimg.com/profile_images/1791110026456633344/VGViq-CJ_400x400.jpg"
@@ -190,23 +194,37 @@ const YieldItem = ({
                     className="rounded-full"
                   />
                 </Link>
-              </TooltipTrigger>
-              <TooltipContent>
+              ) : (
+                <div className="w-[20px] h-[20px] rounded-full object-cover bg-muted">
+                  <Image
+                    src={"data:image/svg+xml;utf8," + encodeURIComponent(minidenticon(groupData.admin.toBase58()))}
+                    alt="minidenticon"
+                    width={20}
+                    height={20}
+                    className="rounded-full"
+                  />
+                </div>
+              )}
+            </TooltipTrigger>
+            <TooltipContent>
+              {mfiCreated ? (
                 <p>Pool created by marginfi</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        ) : (
-          <div className="w-[20px] h-[20px] rounded-full object-cover bg-muted">
-            <Image
-              src={"data:image/svg+xml;utf8," + encodeURIComponent(minidenticon(groupData.admin.toBase58()))}
-              alt="minidenticon"
-              width={20}
-              height={20}
-              className="rounded-full"
-            />
-          </div>
-        )}
+              ) : (
+                <p>
+                  Pool created by{" "}
+                  <Link
+                    href={`https://solscan.io/address/${groupData.admin.toBase58()}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline hover:no-underline"
+                  >
+                    {shortenAddress(groupData.admin)}
+                  </Link>
+                </p>
+              )}
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </div>
       {connected && (
         <div className="pl-2 text-lg flex flex-col xl:gap-1 xl:flex-row xl:items-baseline">
