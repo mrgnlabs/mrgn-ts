@@ -58,6 +58,11 @@ export const PoolCard = ({ poolData }: PoolCardProps) => {
     [groupsByGroupPk, poolData.groupPk]
   );
 
+  const mfiCreated = React.useMemo(() => {
+    if (!groupData) return false;
+    return mfiAddresses.includes(groupData.admin.toBase58());
+  }, [groupData]);
+
   return (
     <Card>
       <CardHeader className="md:pb-0">
@@ -92,35 +97,53 @@ export const PoolCard = ({ poolData }: PoolCardProps) => {
               </div>
             </Link>
             <div className="font-medium text-xs flex flex-col gap-1 items-center ml-auto self-start">
-              {mfiAddresses.includes(groupData.admin.toBase58()) ? (
+              {groupData && (
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Link href="https://x.com/marginfi" target="_blank">
-                        <Image
-                          src="https://pbs.twimg.com/profile_images/1791110026456633344/VGViq-CJ_400x400.jpg"
-                          width={20}
-                          height={20}
-                          alt="marginfi"
-                          className="rounded-full"
-                        />
-                      </Link>
+                      {mfiCreated ? (
+                        <Link href="https://x.com/marginfi" target="_blank">
+                          <Image
+                            src="https://pbs.twimg.com/profile_images/1791110026456633344/VGViq-CJ_400x400.jpg"
+                            width={20}
+                            height={20}
+                            alt="marginfi"
+                            className="rounded-full"
+                          />
+                        </Link>
+                      ) : (
+                        <div className="w-[20px] h-[20px] rounded-full object-cover bg-muted">
+                          <Image
+                            src={
+                              "data:image/svg+xml;utf8," + encodeURIComponent(minidenticon(groupData.admin.toBase58()))
+                            }
+                            alt="minidenticon"
+                            width={20}
+                            height={20}
+                            className="rounded-full"
+                          />
+                        </div>
+                      )}
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>Pool created by marginfi</p>
+                      {mfiCreated ? (
+                        <p>Pool created by marginfi</p>
+                      ) : (
+                        <p>
+                          Pool created by{" "}
+                          <Link
+                            href={`https://solscan.io/address/${groupData.admin.toBase58()}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="underline hover:no-underline"
+                          >
+                            {shortenAddress(groupData.admin)}
+                          </Link>
+                        </p>
+                      )}
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
-              ) : (
-                <div className="w-[20px] h-[20px] rounded-full object-cover bg-muted">
-                  <Image
-                    src={"data:image/svg+xml;utf8," + encodeURIComponent(minidenticon(groupData.admin.toBase58()))}
-                    alt="minidenticon"
-                    width={20}
-                    height={20}
-                    className="rounded-full"
-                  />
-                </div>
               )}
             </div>
           </div>
