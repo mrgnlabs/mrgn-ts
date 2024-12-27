@@ -15,6 +15,7 @@ import {
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { cn, capture } from "@mrgnlabs/mrgn-utils";
 import { Wallet } from "@mrgnlabs/mrgn-common";
+import { minidenticon } from "minidenticons";
 
 import { useTradeStoreV2 } from "~/store";
 import { useConnection } from "~/hooks/use-connection";
@@ -32,7 +33,13 @@ interface YieldCardProps {
 export const YieldCard = ({ pool }: YieldCardProps) => {
   const { connection } = useConnection();
   const { wallet, connected } = useWallet();
-  const [refreshGroup, nativeSolBalance] = useTradeStoreV2((state) => [state.refreshGroup, state.nativeSolBalance]);
+  const [refreshGroup, nativeSolBalance, groupsByGroupPk] = useTradeStoreV2((state) => [
+    state.refreshGroup,
+    state.nativeSolBalance,
+    state.groupsByGroupPk,
+  ]);
+
+  const groupData = groupsByGroupPk[pool.groupPk.toBase58()];
 
   return (
     <div key={pool.groupPk.toBase58()} className="relative bg-background border rounded-xl mb-12 pt-5 pb-2 px-4">
@@ -69,6 +76,7 @@ export const YieldCard = ({ pool }: YieldCardProps) => {
       <YieldItem
         className="pt-2 pb-4 border-b items-center"
         pool={pool}
+        admin={groupData.admin}
         bankType="TOKEN"
         connected={connected}
         connection={connection}
@@ -79,6 +87,7 @@ export const YieldCard = ({ pool }: YieldCardProps) => {
       <YieldItem
         className="pt-4 pb-2 items-center"
         pool={pool}
+        admin={groupData.admin}
         bankType="COLLATERAL"
         connected={connected}
         connection={connection}
@@ -93,6 +102,7 @@ export const YieldCard = ({ pool }: YieldCardProps) => {
 const YieldItem = ({
   pool,
   bankType,
+  admin,
   connected,
   className,
   connection,
@@ -102,6 +112,7 @@ const YieldItem = ({
 }: {
   pool: ArenaPoolV2Extended;
   bankType: "COLLATERAL" | "TOKEN";
+  admin: PublicKey;
   connected: boolean;
   className?: string;
   connection: Connection;

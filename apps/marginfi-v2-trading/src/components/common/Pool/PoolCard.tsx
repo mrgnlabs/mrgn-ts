@@ -5,6 +5,7 @@ import Image from "next/image";
 
 import { tokenPriceFormatter, percentFormatter, shortenAddress, dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
 import { cn, useIsMobile } from "@mrgnlabs/mrgn-utils";
+import { minidenticon } from "minidenticons";
 
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "~/components/ui/card";
@@ -12,13 +13,14 @@ import { TooltipProvider, Tooltip, TooltipContent, TooltipTrigger } from "~/comp
 
 import { useTradeStoreV2 } from "~/store";
 import { ArenaPoolSummary } from "~/types/trade-store.types";
+import { mfiAddresses } from "~/utils/arenaUtils";
 
 type PoolCardProps = {
   poolData: ArenaPoolSummary;
 };
 
 export const PoolCard = ({ poolData }: PoolCardProps) => {
-  const [tokenDataByMint] = useTradeStoreV2((state) => [state.tokenDataByMint]);
+  const [tokenDataByMint, groupsByGroupPk] = useTradeStoreV2((state) => [state.tokenDataByMint, state.groupsByGroupPk]);
   const isMobile = useIsMobile();
   const isLstQuote = React.useMemo(() => {
     return poolData.quoteSummary.tokenSymbol === "LST";
@@ -50,6 +52,11 @@ export const PoolCard = ({ poolData }: PoolCardProps) => {
     poolData.quoteSummary.bankData.depositRate,
     poolData.quoteSummary.bankData.borrowRate,
   ]);
+
+  const groupData = React.useMemo(
+    () => groupsByGroupPk[poolData.groupPk.toBase58()],
+    [groupsByGroupPk, poolData.groupPk]
+  );
 
   return (
     <Card>
@@ -85,24 +92,36 @@ export const PoolCard = ({ poolData }: PoolCardProps) => {
               </div>
             </Link>
             <div className="font-medium text-xs flex flex-col gap-1 items-center ml-auto self-start">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Link href="https://x.com/marginfi" target="_blank">
-                      <Image
-                        src="https://pbs.twimg.com/profile_images/1791110026456633344/VGViq-CJ_400x400.jpg"
-                        width={20}
-                        height={20}
-                        alt="marginfi"
-                        className="rounded-full"
-                      />
-                    </Link>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Pool created by marginfi</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              {mfiAddresses.includes(groupData.admin.toBase58()) ? (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Link href="https://x.com/marginfi" target="_blank">
+                        <Image
+                          src="https://pbs.twimg.com/profile_images/1791110026456633344/VGViq-CJ_400x400.jpg"
+                          width={20}
+                          height={20}
+                          alt="marginfi"
+                          className="rounded-full"
+                        />
+                      </Link>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Pool created by marginfi</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              ) : (
+                <div className="w-[20px] h-[20px] rounded-full object-cover bg-muted">
+                  <Image
+                    src={"data:image/svg+xml;utf8," + encodeURIComponent(minidenticon(groupData.admin.toBase58()))}
+                    alt="minidenticon"
+                    width={20}
+                    height={20}
+                    className="rounded-full"
+                  />
+                </div>
+              )}
             </div>
           </div>
         </CardTitle>
