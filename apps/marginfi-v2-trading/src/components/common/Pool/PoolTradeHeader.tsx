@@ -93,7 +93,7 @@ export const PoolTradeHeader = ({ activePool }: { activePool: ArenaPoolV2 }) => 
                 alt={extendedPool.tokenBank.meta.tokenSymbol}
                 width={72}
                 height={72}
-                className="bg-background border rounded-full"
+                className="bg-background border rounded-full h-[72px] w-[72px] object-cover"
               />
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
@@ -101,7 +101,7 @@ export const PoolTradeHeader = ({ activePool }: { activePool: ArenaPoolV2 }) => 
                 alt={extendedPool.quoteBank.meta.tokenSymbol}
                 width={32}
                 height={32}
-                className="absolute -bottom-2 -right-2 bg-background border rounded-full"
+                className="absolute -bottom-2 -right-2 bg-background border rounded-full h-[32px] w-[32px] object-cover"
               />
             </div>
 
@@ -175,12 +175,13 @@ export const PoolTradeHeader = ({ activePool }: { activePool: ArenaPoolV2 }) => 
               <div className="border-y border-border py-6 lg:border-b-0 flex flex-col gap-4 w-full lg:py-0 lg:border-t-0">
                 <div className="flex flex-row justify-between space-y-2 lg:block">
                   <div className="flex items-start gap-2 translate-y-0.5">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={extendedPool.tokenBank.meta.tokenLogoUri}
                       alt={extendedPool.tokenBank.meta.tokenSymbol}
                       width={32}
                       height={32}
-                      className="bg-background border rounded-full"
+                      className="bg-background border rounded-full w-[32px] h-[32px] object-cover"
                     />
                     <div className="leading-tight text-sm">
                       <p>
@@ -421,7 +422,7 @@ export const PoolTradeHeader = ({ activePool }: { activePool: ArenaPoolV2 }) => 
                     alt={extendedPool.quoteBank.meta.tokenSymbol}
                     width={32}
                     height={32}
-                    className="bg-background border rounded-full translate-y-0.5"
+                    className="bg-background border rounded-full w-[32px] h-[32px] object-cover translate-y-0.5"
                   />
                   <div className="leading-tight text-sm">
                     <p>

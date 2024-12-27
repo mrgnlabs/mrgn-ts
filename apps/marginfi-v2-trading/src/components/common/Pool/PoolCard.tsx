@@ -66,7 +66,7 @@ export const PoolCard = ({ poolData }: PoolCardProps) => {
                 width={48}
                 height={48}
                 alt={poolData.tokenSummary.tokenName}
-                className="rounded-full border"
+                className="rounded-full border h-[48px] w-[48px] object-cover"
               />{" "}
               <div className="flex flex-col space-y-0.5">
                 <h2>{`${poolData.tokenSummary.tokenSymbol}/${poolData.quoteSummary.tokenSymbol}`}</h2>

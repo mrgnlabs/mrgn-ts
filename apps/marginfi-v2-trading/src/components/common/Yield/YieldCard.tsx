@@ -47,7 +47,7 @@ export const YieldCard = ({ pool }: YieldCardProps) => {
             alt={pool.tokenBank.meta.tokenSymbol}
             width={24}
             height={24}
-            className="rounded-full bg-background z-10"
+            className="rounded-full bg-background z-10 w-[24px] h-[24px] object-cover"
           />
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
@@ -55,7 +55,7 @@ export const YieldCard = ({ pool }: YieldCardProps) => {
             alt={pool.quoteBank.meta.tokenSymbol}
             width={24}
             height={24}
-            className="rounded-full"
+            className="rounded-full w-[24px] h-[24px] object-cover"
           />
         </div>
         <span>
@@ -125,7 +125,13 @@ const YieldItem = ({
     <div className={cn("items-center", className)}>
       <div className="flex items-center gap-2">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={bank.meta.tokenLogoUri} alt={bank.meta.tokenSymbol} width={24} height={24} className="rounded-full" />
+        <img
+          src={bank.meta.tokenLogoUri}
+          alt={bank.meta.tokenSymbol}
+          width={24}
+          height={24}
+          className="rounded-full w-[24px] h-[24px] object-cover"
+        />
         {bank.meta.tokenSymbol}
       </div>
       <div className="grid grid-cols-2 gap-2 my-6">

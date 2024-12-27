@@ -73,7 +73,7 @@ export const TokenCombobox = ({ selected, setSelected, children }: TokenCombobox
                           width={32}
                           height={32}
                           alt={pool.tokenBank.meta.tokenName}
-                          className="rounded-full"
+                          className="rounded-full w-[32px] h-[32px] object-cover"
                         />
                         <span>{pool.tokenBank.meta.tokenSymbol}</span>
                         {pool.tokenBank.tokenData && (
@@ -131,7 +131,7 @@ export const TokenCombobox = ({ selected, setSelected, children }: TokenCombobox
                         width={32}
                         height={32}
                         alt={pool.tokenBank.meta.tokenName}
-                        className="rounded-full"
+                        className="rounded-full w-[32px] h-[32px] object-cover"
                       />
                       <span>{pool.tokenBank.meta.tokenSymbol}</span>
                       {pool.tokenBank.tokenData && (
@@ -174,7 +174,7 @@ const TokenTrigger = ({ selected, open }: TokenTriggerProps) => {
         alt={selected?.tokenBank.meta.tokenSymbol ?? ""}
         width={28}
         height={28}
-        className="bg-background border rounded-full lg:mb-0"
+        className="bg-background border rounded-full lg:mb-0 w-[28px] h-[28px] object-cover"
       />
       <h1 className="flex items-center gap-1 ">
         {selected?.tokenBank.meta.tokenSymbol}{" "}
