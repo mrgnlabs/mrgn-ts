@@ -8,6 +8,10 @@ const allowedOrigins = [
 ];
 
 export async function middleware(req: NextRequest) {
+  if (req.nextUrl.pathname === "/wolf") {
+    return NextResponse.redirect(new URL("/?utm_source=wolf&utm_medium=direct&utm_campaign=testing", req.url));
+  }
+
   const fullRpcProxy = await generateEndpoint(
     process.env.NEXT_PUBLIC_MARGINFI_RPC_ENDPOINT_OVERRIDE ?? "",
     process.env.NEXT_PUBLIC_RPC_PROXY_KEY ?? ""
