@@ -327,7 +327,7 @@ const checkErrorCodeMatch = (errorMessage: string, errorCode: number): boolean =
 };
 
 const checkErrorCodeExactMatch = (errorMessage: string, errorCode: number): boolean => {
-  const hex = "0x" + errorCode.toString(16).padStart(4, "0");
+  const hex = "0x" + errorCode.toString(16);
   const regex = new RegExp(`\\b${hex}\\b`);
   return regex.test(errorMessage);
 };
