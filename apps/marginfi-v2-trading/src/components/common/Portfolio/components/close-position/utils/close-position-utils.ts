@@ -287,11 +287,7 @@ export const closePositionAction = async ({
         callback(index, success, sig, stepsToAdvance) {
           const currentLabel = multiStepToast?.getCurrentLabel();
           if (success && currentLabel === "Signing transaction") {
-            multiStepToast.setSuccessAndNext(
-              1,
-              sig,
-              composeExplorerUrl(sig, broadcastType, marginfiClient.processTransactionStrategy)
-            );
+            multiStepToast.setSuccessAndNext(1, sig, composeExplorerUrl(sig));
           }
         },
       }
