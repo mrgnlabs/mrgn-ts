@@ -1,6 +1,8 @@
 import Head from "next/head";
+import { PublicKey } from "@solana/web3.js";
 
 import { BankMetadataRaw } from "@mrgnlabs/mrgn-common";
+import { getTokenImageURL } from "@mrgnlabs/mrgn-utils";
 
 type MrgnProps = {
   path: string;
@@ -23,7 +25,9 @@ export const Meta = ({ path, bank }: MrgnProps) => {
 
   if (bank) {
     title = `Long / short ${bank.tokenSymbol} with leverage in The Arena.`;
-    image = GCP_URL + `/${bank.tokenAddress}.jpg`;
+    // image = GCP_URL + `/${bank.tokenAddress}.jpg`;
+    const tokenImageUrl = getTokenImageURL(new PublicKey(bank.tokenAddress));
+    image = `http://localhost:3006/api/share-image/generate?tokenSymbol=${bank.tokenSymbol}&tokenImageUrl=${tokenImageUrl}`;
   }
 
   return (
