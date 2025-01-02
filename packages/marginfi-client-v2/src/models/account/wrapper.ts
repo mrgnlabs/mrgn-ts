@@ -56,6 +56,7 @@ import { Bank, computeLoopingParams } from "../bank";
 import { Balance } from "../balance";
 import { getSwitchboardProgram } from "../../vendor";
 import { TransactionSignature } from "@solana/web3.js";
+import instructions from "../../instructions";
 
 // Temporary imports
 export const MAX_TX_SIZE = 1232;
@@ -819,6 +820,53 @@ class MarginfiAccountWrapper {
     }
 
     return { flashloanTx, additionalTxs, txOverflown };
+  }
+
+  /**
+   * Creates instructions for closing a marginfi account.
+   * The account must have no active positions or balances to be closed.
+   * Closing an account will return any remaining SOL to the fee payer.
+   *
+   * @returns An InstructionsWrapper containing the close account instruction
+   */
+  async makeCloseAccountIx(): Promise<InstructionsWrapper> {
+    const ix = await instructions.makeCloseAccountIx(this._program, {
+      marginfiAccountPk: this.address,
+      feePayerPk: this.client.wallet.publicKey,
+      authorityPk: this.authority,
+    });
+    return { instructions: [ix], keys: [] };
+  }
+
+  /**
+   * Closes a marginfi account. The account must have no active positions or balances to be closed.
+   * Closing an account will return any remaining SOL to the fee payer.
+   *
+   * @param processOpts - Optional transaction processing configuration
+   * @param txOpts - Optional transaction options
+   * @returns The transaction signature of the close account operation
+   */
+  async closeAccount(
+    processOpts?: ProcessTransactionsClientOpts,
+    txOpts?: TransactionOptions
+  ): Promise<TransactionSignature> {
+    const tx = await this.makeCloseAccountTx();
+    return this.client.processTransaction(tx, processOpts, txOpts);
+  }
+
+  /**
+   * Creates a transaction for closing a marginfi account.
+   * The account must have no active positions or balances to be closed.
+   *
+   * @returns A transaction configured to close the marginfi account
+   */
+  async makeCloseAccountTx(): Promise<ExtendedTransaction> {
+    const ix = await this.makeCloseAccountIx();
+    const tx = new Transaction().add(...ix.instructions);
+    return addTransactionMetadata(tx, {
+      signers: ix.keys,
+      addressLookupTables: this.client.addressLookupTables,
+    });
   }
 
   /**
