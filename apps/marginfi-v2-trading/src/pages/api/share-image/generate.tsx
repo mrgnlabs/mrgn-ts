@@ -9,22 +9,27 @@ export const runtime = "edge";
 // Generate link preview image
 // Note that a lot of usual CSS is unsupported, including tailwind.
 export default async function GET(request: NextRequest) {
+  const baseUrl = `${request.headers.get("x-forwarded-proto") ?? "https"}://${request.headers.get("host")}`;
+
   const { searchParams } = new URL(request.url);
   const tokenSymbol = searchParams.get("tokenSymbol");
   const tokenImageUrl = searchParams.get("tokenImageUrl");
+  const quoteTokenSymbol = searchParams.get("quoteTokenSymbol");
+  const quoteTokenImageUrl = searchParams.get("quoteTokenImageUrl");
+
   return new ImageResponse(
     (
-      // <DynamicShareImage
-      //   tokenImageUrl="https://storage.googleapis.com/mrgn-public/mrgn-token-icons/CzLSujWBLFsSjncfkh59rUFqvafWcY5tzedWJSuypump.png"
-      //   quoteImageUrl="https://storage.googleapis.com/mrgn-public/mrgn-token-icons/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v.png"
-      //   tokenSymbol="GOAT"
-      //   quoteSymbol="LST"
-      // />
-      <DynamicShareImage tokenSymbol={tokenSymbol} tokenImageUrl={tokenImageUrl} />
+      <DynamicShareImage
+        tokenImageUrl={tokenImageUrl ?? ""}
+        quoteTokenImageUrl={quoteTokenImageUrl ?? ""}
+        tokenSymbol={tokenSymbol ?? ""}
+        quoteTokenSymbol={quoteTokenSymbol ?? ""}
+        baseUrl={baseUrl ?? ""}
+      />
     ),
     {
-      width: 960, // TODO: figure out sizing
-      height: 500,
+      width: 720,
+      height: 360,
     }
   );
 }

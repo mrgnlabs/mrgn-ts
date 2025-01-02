@@ -1,33 +1,34 @@
 import Head from "next/head";
-import { PublicKey } from "@solana/web3.js";
 
-import { BankMetadataRaw } from "@mrgnlabs/mrgn-common";
-import { getTokenImageURL } from "@mrgnlabs/mrgn-utils";
+import { PoolListApiResponse } from "~/types/api.types";
+import { TokenData } from "~/types";
 
 type MrgnProps = {
-  path: string;
-  bank: BankMetadataRaw | null;
+  groupPk?: string | null;
+  poolData?: PoolListApiResponse[] | null;
+  tokenDetails?: TokenData[] | null;
+  baseUrl?: string;
 };
 
-const GCP_URL = "https://storage.googleapis.com/mrgn-public/mrgn-trade-token-share-images";
-
-export const Meta = ({ path, bank }: MrgnProps) => {
+export const Meta = ({ groupPk, poolData, tokenDetails, baseUrl }: MrgnProps) => {
   let title = "The Arena";
   let description = "Memecoin trading, with leverage.";
-  let image = GCP_URL + "/default.jpg";
-  const pageTitlePart = path.split("/").pop();
-  const pageTitle = pageTitlePart ? pageTitlePart.charAt(0).toUpperCase() + pageTitlePart.slice(1) : "";
+  let image = `${baseUrl}/metadata/metadata-image-default.png`;
 
-  if (path !== "/" && path !== "/blocked") {
-    title = pageTitle + " - The Arena";
-    description = "";
-  }
-
-  if (bank) {
-    title = `Long / short ${bank.tokenSymbol} with leverage in The Arena.`;
-    // image = GCP_URL + `/${bank.tokenAddress}.jpg`;
-    const tokenImageUrl = getTokenImageURL(new PublicKey(bank.tokenAddress));
-    image = `http://localhost:3006/api/share-image/generate?tokenSymbol=${bank.tokenSymbol}&tokenImageUrl=${tokenImageUrl}`;
+  if (groupPk) {
+    const _poolData = poolData?.find((pool) => pool.group === groupPk);
+    if (!_poolData) return;
+    const _tokenDetails = tokenDetails?.find(
+      (token) => token.address === _poolData?.base_bank?.mint.address.toString()
+    );
+    if (!_tokenDetails) return;
+    const _quoteTokenDetails = tokenDetails?.find(
+      (token) => token.address === _poolData?.quote_banks[0]?.mint.address.toString()
+    );
+    if (!_quoteTokenDetails) return;
+    title = `Trade ${_tokenDetails?.symbol}/${_quoteTokenDetails?.symbol} with leverage in The Arena.`;
+    description = `Trade ${_tokenDetails?.symbol} / ${_quoteTokenDetails?.symbol} with leverage in The Arena.`;
+    image = `${baseUrl}/api/share-image/generate?tokenSymbol=${_tokenDetails?.symbol}&tokenImageUrl=${_tokenDetails?.imageUrl}&quoteTokenSymbol=${_quoteTokenDetails?.symbol}&quoteTokenImageUrl=${_quoteTokenDetails?.imageUrl}`;
   }
 
   return (
