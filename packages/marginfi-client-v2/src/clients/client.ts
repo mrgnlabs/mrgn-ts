@@ -106,9 +106,9 @@ class MarginfiClient {
   public mintDatas: MintDataMap;
   public addressLookupTables: AddressLookupTableAccount[];
   public feedIdMap: PythPushFeedIdMap;
+  public processTransactionStrategy?: ProcessTransactionStrategy;
   private preloadedBankAddresses?: PublicKey[];
   private bundleSimRpcEndpoint: string;
-  private processTransactionStrategy?: ProcessTransactionStrategy;
 
   // --------------------------------------------------------------------------
   // Factories
@@ -829,6 +829,9 @@ class MarginfiClient {
       bundleSimRpcEndpoint: this.bundleSimRpcEndpoint,
       dynamicStrategy: processOpts?.dynamicStrategy ?? this.processTransactionStrategy,
     };
+
+    console.log("processOpts", processOpts);
+    console.log("processTransactions", options);
 
     return await processTransactions({
       transactions,
