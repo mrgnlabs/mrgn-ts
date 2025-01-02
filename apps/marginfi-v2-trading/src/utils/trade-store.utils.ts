@@ -2,7 +2,7 @@ import { Bank, BankRaw, MarginfiAccount, MarginfiProgram, MintData, OraclePrice 
 import { fetchTokenAccounts, makeExtendedBankInfo, TokenAccount, UserDataProps } from "@mrgnlabs/marginfi-v2-ui-state";
 import { BankMetadata, TokenMetadata } from "@mrgnlabs/mrgn-common";
 import { AccountInfo, Connection, PublicKey } from "@solana/web3.js";
-import { GetStaticProps } from "next";
+import { GetStaticProps, GetStaticPropsContext } from "next";
 import { TokenData } from "~/types";
 import { PoolListApiResponse, PoolPositionsApiResponse } from "~/types/api.types";
 import { ArenaBank, ArenaPoolPositions, ArenaPoolSummary, ArenaPoolV2, GroupStatus } from "~/types/trade-store.types";
@@ -21,31 +21,40 @@ export type InitialArenaState = {
 
 export interface StaticArenaProps {
   initialData: InitialArenaState;
+  groupPk: string | null;
+  baseUrl: string;
 }
 
-export const getArenaStaticProps: GetStaticProps<StaticArenaProps> = async () => {
+export const getArenaStaticProps: GetStaticProps<StaticArenaProps> = async (context: GetStaticPropsContext) => {
+  const baseUrl = process.env.NEXT_PUBLIC_VERCEL_URL ?? "http://localhost:3006";
+
   const emptyState: InitialArenaState = {
     poolData: [],
     tokenDetails: [],
   };
 
+  let groupPk: string | null = null;
+  if (context.params?.symbol) {
+    groupPk = context.params.symbol as string;
+  }
+
   if (process.env.NEXT_PUBLIC_DISABLE_SSR === "true") {
     return {
-      props: { initialData: emptyState },
+      props: { initialData: emptyState, groupPk, baseUrl },
       revalidate: 300, // Revalidate every 5 minutes
     };
   }
 
   try {
     // eslint-disable-next-line turbo/no-undeclared-env-vars
-    const initialData = await fetchInitialArenaState(process.env.NEXT_PUBLIC_VERCEL_URL);
+    const initialData = await fetchInitialArenaState(baseUrl);
 
     if (!initialData) {
       throw new Error("Failed to fetch initial arena state");
     }
 
     return {
-      props: { initialData },
+      props: { initialData, groupPk, baseUrl },
       revalidate: 300, // Revalidate every 5 minutes
     };
   } catch (error) {
@@ -53,7 +62,7 @@ export const getArenaStaticProps: GetStaticProps<StaticArenaProps> = async () =>
     console.error("Error in getStaticProps:", error instanceof Error ? error.message : "Unknown error");
 
     return {
-      props: { initialData: emptyState },
+      props: { initialData: emptyState, groupPk, baseUrl },
       revalidate: 300, // Keep revalidating even in error case
     };
   }
@@ -64,10 +73,8 @@ export const getArenaStaticProps: GetStaticProps<StaticArenaProps> = async () =>
  * @param host Optional host URL, defaults to localhost:3006 if not provided
  * @returns Promise resolving to InitialArenaState containing pool and token data, or undefined if fetch fails
  */
-export const fetchInitialArenaState = async (host?: string): Promise<InitialArenaState | undefined> => {
+export const fetchInitialArenaState = async (baseUrl?: string): Promise<InitialArenaState | undefined> => {
   let arenaState: InitialArenaState;
-
-  const baseUrl = host ? `https://${host}` : "http://localhost:3006";
 
   try {
     // Fetch all data in parallel using Promise.all
