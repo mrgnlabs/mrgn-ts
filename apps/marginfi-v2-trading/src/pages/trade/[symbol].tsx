@@ -13,6 +13,7 @@ import { PoolTradeHeader } from "~/components/common/Pool/PoolTradeHeader";
 import { Loader } from "~/components/common/Loader";
 import { TradeBoxV2 } from "~/components/common/trade-box-v2";
 import { ArenaActionComplete } from "~/components/common/ActionComplete";
+import { Meta } from "~/components/common/Meta";
 
 export const getStaticPaths: GetStaticPaths = async () => {
   return {
@@ -25,7 +26,7 @@ export const getStaticProps: GetStaticProps<StaticArenaProps> = async (context) 
   return getArenaStaticProps(context);
 };
 
-export default function TradeSymbolPage({ initialData }: StaticArenaProps) {
+export default function TradeSymbolPage({ initialData, baseUrl, groupPk }: StaticArenaProps) {
   const router = useRouter();
   const side = router.query.side as "long" | "short";
   const [initialized, arenaPools, poolsFetched, fetchArenaGroups, setHydrationComplete] = useTradeStoreV2((state) => [
@@ -66,6 +67,12 @@ export default function TradeSymbolPage({ initialData }: StaticArenaProps) {
 
   return (
     <>
+      <Meta
+        groupPk={groupPk}
+        poolData={initialData?.poolData}
+        tokenDetails={initialData?.tokenDetails}
+        baseUrl={baseUrl}
+      />
       <div className="w-full max-w-8xl mx-auto px-4 pt-8 pb-24 mt:pt-8 md:px-8 min-h-[calc(100vh-100px)]">
         {!activePool && <Loader label="Loading the arena..." className="mt-8" />}
         {activePool && (
