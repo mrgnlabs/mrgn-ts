@@ -169,11 +169,19 @@ const executeLstAction = async ({
       ...processOpts,
       callback: (index, success, sig, stepsToAdvance) =>
         success &&
-        multiStepToast.setSuccessAndNext(stepsToAdvance, sig, composeExplorerUrl(sig, processOpts?.broadcastType)),
+        multiStepToast.setSuccessAndNext(
+          stepsToAdvance,
+          sig,
+          composeExplorerUrl(sig, processOpts?.broadcastType, marginfiClient.processTransactionStrategy)
+        ),
     });
     multiStepToast.setSuccess(
       txnSig[txnSig.length - 1],
-      composeExplorerUrl(txnSig[txnSig.length - 1], processOpts?.broadcastType)
+      composeExplorerUrl(
+        txnSig[txnSig.length - 1],
+        processOpts?.broadcastType,
+        marginfiClient.processTransactionStrategy
+      )
     );
 
     return txnSig;

@@ -17,6 +17,7 @@ import {
   MarginfiClient,
   ProcessTransactionError,
   ProcessTransactionsClientOpts,
+  ProcessTransactionStrategy,
 } from "@mrgnlabs/marginfi-client-v2";
 import {
   MRGN_TX_TYPE_TOAST_MAP,
@@ -88,9 +89,34 @@ export function isStepIncluded(label: string, excludedTypes: MRGN_TX_TYPES[]): b
   return !excludedTypes.some((type) => MRGN_TX_TYPE_TOAST_MAP[type] === label);
 }
 
-export function composeExplorerUrl(signature?: string, broadcastType: TransactionBroadcastType = "RPC") {
+export function composeExplorerUrl(
+  signature?: string,
+  broadcastType: TransactionBroadcastType = "RPC",
+  dynamicStrategy?: ProcessTransactionStrategy
+): string | undefined {
   if (!signature) return undefined;
-  return broadcastType === "BUNDLE"
+
+  let finalBroadcastType: TransactionBroadcastType;
+
+  if (broadcastType === "DYNAMIC" && dynamicStrategy) {
+    if (dynamicStrategy.splitExecutionsStrategy) {
+      finalBroadcastType = dynamicStrategy.splitExecutionsStrategy.multiTx ?? "RPC";
+    } else {
+      finalBroadcastType = dynamicStrategy.fallbackSequence?.[0]?.broadcastType ?? "RPC";
+    }
+  } else {
+    finalBroadcastType = broadcastType;
+  }
+
+  if (finalBroadcastType === "RPC") {
+    const rpcFallback = dynamicStrategy?.fallbackSequence?.find((method) => method.broadcastType === "RPC");
+    finalBroadcastType = rpcFallback?.broadcastType ?? "RPC";
+  } else {
+    const bundleFallback = dynamicStrategy?.fallbackSequence?.find((method) => method.broadcastType === "BUNDLE");
+    finalBroadcastType = bundleFallback?.broadcastType ?? "BUNDLE";
+  }
+
+  return finalBroadcastType === "BUNDLE"
     ? `https://explorer.jito.wtf/bundle/${signature}`
     : `https://solscan.io/tx/${signature}`;
 }
@@ -233,7 +259,11 @@ export async function createAccountAndDeposit({
 
   try {
     const txnSig = await marginfiAccount.deposit(amount, bank.address, {}, processOpts, txOpts);
-    multiStepToast.setSuccessAndNext(undefined, txnSig, composeExplorerUrl(txnSig, processOpts?.broadcastType));
+    multiStepToast.setSuccessAndNext(
+      undefined,
+      txnSig,
+      composeExplorerUrl(txnSig, processOpts?.broadcastType, processOpts?.dynamicStrategy)
+    );
     return txnSig;
   } catch (error: any) {
     console.log(`Error while depositing:`);
@@ -286,7 +316,11 @@ export async function deposit({
           ...processOpts,
           callback: (index, success, sig, stepsToAdvance) =>
             success &&
-            multiStepToast.setSuccessAndNext(stepsToAdvance, sig, composeExplorerUrl(sig, processOpts?.broadcastType)),
+            multiStepToast.setSuccessAndNext(
+              stepsToAdvance,
+              sig,
+              composeExplorerUrl(sig, processOpts?.broadcastType, processOpts?.dynamicStrategy)
+            ),
         },
         txOpts
       );
@@ -295,7 +329,10 @@ export async function deposit({
     } else {
       throw new Error("Marginfi account not ready.");
     }
-    multiStepToast.setSuccess(txnSig, composeExplorerUrl(txnSig, processOpts?.broadcastType));
+    multiStepToast.setSuccess(
+      txnSig,
+      composeExplorerUrl(txnSig, processOpts?.broadcastType, processOpts?.dynamicStrategy)
+    );
     return txnSig;
   } catch (error: any) {
     console.log(`Error while Depositing`);
@@ -348,7 +385,11 @@ export async function borrow({
           ...processOpts,
           callback: (index, success, sig, stepsToAdvance) =>
             success &&
-            multiStepToast.setSuccessAndNext(stepsToAdvance, sig, composeExplorerUrl(sig, processOpts?.broadcastType)),
+            multiStepToast.setSuccessAndNext(
+              stepsToAdvance,
+              sig,
+              composeExplorerUrl(sig, processOpts?.broadcastType, processOpts?.dynamicStrategy)
+            ),
         },
         txOpts
       );
@@ -359,7 +400,7 @@ export async function borrow({
     }
     multiStepToast.setSuccess(
       sigs[sigs.length - 1],
-      composeExplorerUrl(sigs[sigs.length - 1], processOpts?.broadcastType)
+      composeExplorerUrl(sigs[sigs.length - 1], processOpts?.broadcastType, processOpts?.dynamicStrategy)
     );
     return sigs;
   } catch (error: any) {
@@ -414,7 +455,11 @@ export async function withdraw({
           ...processOpts,
           callback: (index, success, sig, stepsToAdvance) =>
             success &&
-            multiStepToast.setSuccessAndNext(stepsToAdvance, sig, composeExplorerUrl(sig, processOpts?.broadcastType)),
+            multiStepToast.setSuccessAndNext(
+              stepsToAdvance,
+              sig,
+              composeExplorerUrl(sig, processOpts?.broadcastType, processOpts?.dynamicStrategy)
+            ),
         },
         txOpts
       );
@@ -432,7 +477,7 @@ export async function withdraw({
     }
     multiStepToast.setSuccess(
       sigs[sigs.length - 1],
-      composeExplorerUrl(sigs[sigs.length - 1], processOpts?.broadcastType)
+      composeExplorerUrl(sigs[sigs.length - 1], processOpts?.broadcastType, processOpts?.dynamicStrategy)
     );
     return sigs;
   } catch (error: any) {
@@ -509,7 +554,10 @@ export async function repay({
     } else {
       throw new Error("Marginfi account not ready.");
     }
-    multiStepToast.setSuccess(txnSig, composeExplorerUrl(txnSig, processOpts?.broadcastType));
+    multiStepToast.setSuccess(
+      txnSig,
+      composeExplorerUrl(txnSig, processOpts?.broadcastType, processOpts?.dynamicStrategy)
+    );
     return txnSig;
   } catch (error: any) {
     console.log(`Error while repaying`);
@@ -578,7 +626,11 @@ export async function looping({
           ...processOpts,
           callback: (index, success, sig, stepsToAdvance) =>
             success &&
-            multiStepToast.setSuccessAndNext(stepsToAdvance, sig, composeExplorerUrl(sig, processOpts?.broadcastType)),
+            multiStepToast.setSuccessAndNext(
+              stepsToAdvance,
+              sig,
+              composeExplorerUrl(sig, processOpts?.broadcastType, processOpts?.dynamicStrategy)
+            ),
         },
         txOpts
       );
@@ -592,7 +644,7 @@ export async function looping({
 
     multiStepToast.setSuccess(
       sigs[sigs.length - 1],
-      composeExplorerUrl(sigs[sigs.length - 1], processOpts?.broadcastType)
+      composeExplorerUrl(sigs[sigs.length - 1], processOpts?.broadcastType, processOpts?.dynamicStrategy)
     );
     return sigs;
   } catch (error: any) {
@@ -668,7 +720,7 @@ export async function trade({
               multiStepToast.setSuccessAndNext(
                 stepsToAdvance,
                 sig,
-                composeExplorerUrl(sig, processOpts?.broadcastType)
+                composeExplorerUrl(sig, processOpts?.broadcastType, processOpts?.dynamicStrategy)
               );
             }
           },
@@ -685,7 +737,7 @@ export async function trade({
 
     multiStepToast.setSuccess(
       sigs[sigs.length - 1],
-      composeExplorerUrl(sigs[sigs.length - 1], processOpts?.broadcastType)
+      composeExplorerUrl(sigs[sigs.length - 1], processOpts?.broadcastType, processOpts?.dynamicStrategy)
     );
     return sigs;
   } catch (error: any) {
@@ -757,7 +809,11 @@ export async function repayWithCollat({
           ...processOpts,
           callback: (index, success, sig, stepsToAdvance) =>
             success &&
-            multiStepToast.setSuccessAndNext(stepsToAdvance, sig, composeExplorerUrl(sig, processOpts?.broadcastType)),
+            multiStepToast.setSuccessAndNext(
+              stepsToAdvance,
+              sig,
+              composeExplorerUrl(sig, processOpts?.broadcastType, processOpts?.dynamicStrategy)
+            ),
         },
         txOpts
       );
@@ -772,7 +828,7 @@ export async function repayWithCollat({
     }
     multiStepToast.setSuccess(
       sigs[sigs.length - 1],
-      composeExplorerUrl(sigs[sigs.length - 1], processOpts?.broadcastType)
+      composeExplorerUrl(sigs[sigs.length - 1], processOpts?.broadcastType, processOpts?.dynamicStrategy)
     );
     return sigs;
   } catch (error: any) {
@@ -865,7 +921,11 @@ export const closeBalance = async ({
     } else {
       txnSig = await marginfiAccount.repay(0, bank.address, true, {}, processOpts, txOpts);
     }
-    multiStepToast.setSuccessAndNext(undefined, txnSig, composeExplorerUrl(txnSig, processOpts?.broadcastType));
+    multiStepToast.setSuccessAndNext(
+      undefined,
+      txnSig,
+      composeExplorerUrl(txnSig, processOpts?.broadcastType, processOpts?.dynamicStrategy)
+    );
     return txnSig;
   } catch (error: any) {
     console.log(`Error while closing balance`);
