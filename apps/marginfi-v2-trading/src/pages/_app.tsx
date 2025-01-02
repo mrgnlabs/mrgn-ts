@@ -31,6 +31,7 @@ import { Footer } from "~/components/desktop/Footer";
 
 import "react-toastify/dist/ReactToastify.min.css";
 import { AuthDialog } from "~/components/wallet-v2";
+import { GeoBlockingWrapper } from "~/components/common/geo-blocking-wrapper";
 
 require("~/styles/globals.css");
 require("~/styles/fonts.css");
@@ -70,29 +71,31 @@ export default function MrgnApp({ Component, pageProps, path, bank }: AppProps &
               <MrgnWalletProvider>
                 <TradePovider>
                   <ActionProvider broadcastType={broadcastType} priorityFees={priorityFees}>
-                    <div className="mrgn-bg-gradient">
-                      <Header />
+                    <GeoBlockingWrapper>
+                      <div className="mrgn-bg-gradient">
+                        <Header />
 
-                      <Desktop>
-                        <WalletModalProvider>
+                        <Desktop>
+                          <WalletModalProvider>
+                            <div className="w-full flex flex-col justify-center items-center">
+                              <Component {...pageProps} />
+                            </div>
+                            <Footer />
+                          </WalletModalProvider>
+                        </Desktop>
+
+                        <Mobile>
+                          <MobileNavbar />
                           <div className="w-full flex flex-col justify-center items-center">
                             <Component {...pageProps} />
                           </div>
-                          <Footer />
-                        </WalletModalProvider>
-                      </Desktop>
+                        </Mobile>
+                        <Analytics />
 
-                      <Mobile>
-                        <MobileNavbar />
-                        <div className="w-full flex flex-col justify-center items-center">
-                          <Component {...pageProps} />
-                        </div>
-                      </Mobile>
-                      <Analytics />
-
-                      <AuthDialog onboardingEnabled={false} />
-                      <ToastContainer position="bottom-left" theme="light" />
-                    </div>
+                        <AuthDialog onboardingEnabled={false} />
+                        <ToastContainer position="bottom-left" theme="light" />
+                      </div>
+                    </GeoBlockingWrapper>
                   </ActionProvider>
                 </TradePovider>
               </MrgnWalletProvider>
