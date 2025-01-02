@@ -89,34 +89,25 @@ export function isStepIncluded(label: string, excludedTypes: MRGN_TX_TYPES[]): b
   return !excludedTypes.some((type) => MRGN_TX_TYPE_TOAST_MAP[type] === label);
 }
 
-export function composeExplorerUrl(
-  signature?: string,
-  broadcastType: TransactionBroadcastType = "RPC",
-  dynamicStrategy?: ProcessTransactionStrategy
-): string | undefined {
+function detectBroadcastType(signature: string): "RPC" | "BUNDLE" | "UNKNOWN" {
+  const base58Regex = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
+  const hexRegex = /^[0-9a-fA-F]{64}$/;
+
+  if (base58Regex.test(signature)) {
+    return "RPC";
+  } else if (hexRegex.test(signature)) {
+    return "BUNDLE";
+  }
+
+  return "UNKNOWN";
+}
+
+export function composeExplorerUrl(signature?: string): string | undefined {
   if (!signature) return undefined;
 
-  let finalBroadcastType: TransactionBroadcastType;
+  const detectedBroadcastType = detectBroadcastType(signature);
 
-  if (broadcastType === "DYNAMIC" && dynamicStrategy) {
-    if (dynamicStrategy.splitExecutionsStrategy) {
-      finalBroadcastType = dynamicStrategy.splitExecutionsStrategy.multiTx ?? "RPC";
-    } else {
-      finalBroadcastType = dynamicStrategy.fallbackSequence?.[0]?.broadcastType ?? "RPC";
-    }
-  } else {
-    finalBroadcastType = broadcastType;
-  }
-
-  if (finalBroadcastType === "RPC") {
-    const rpcFallback = dynamicStrategy?.fallbackSequence?.find((method) => method.broadcastType === "RPC");
-    finalBroadcastType = rpcFallback?.broadcastType ?? "RPC";
-  } else {
-    const bundleFallback = dynamicStrategy?.fallbackSequence?.find((method) => method.broadcastType === "BUNDLE");
-    finalBroadcastType = bundleFallback?.broadcastType ?? "BUNDLE";
-  }
-
-  return finalBroadcastType === "BUNDLE"
+  return detectedBroadcastType === "BUNDLE"
     ? `https://explorer.jito.wtf/bundle/${signature}`
     : `https://solscan.io/tx/${signature}`;
 }
@@ -259,11 +250,7 @@ export async function createAccountAndDeposit({
 
   try {
     const txnSig = await marginfiAccount.deposit(amount, bank.address, {}, processOpts, txOpts);
-    multiStepToast.setSuccessAndNext(
-      undefined,
-      txnSig,
-      composeExplorerUrl(txnSig, processOpts?.broadcastType, processOpts?.dynamicStrategy)
-    );
+    multiStepToast.setSuccessAndNext(undefined, txnSig, composeExplorerUrl(txnSig));
     return txnSig;
   } catch (error: any) {
     console.log(`Error while depositing:`);
@@ -315,12 +302,7 @@ export async function deposit({
         {
           ...processOpts,
           callback: (index, success, sig, stepsToAdvance) =>
-            success &&
-            multiStepToast.setSuccessAndNext(
-              stepsToAdvance,
-              sig,
-              composeExplorerUrl(sig, processOpts?.broadcastType, processOpts?.dynamicStrategy)
-            ),
+            success && multiStepToast.setSuccessAndNext(stepsToAdvance, sig, composeExplorerUrl(sig)),
         },
         txOpts
       );
@@ -329,10 +311,7 @@ export async function deposit({
     } else {
       throw new Error("Marginfi account not ready.");
     }
-    multiStepToast.setSuccess(
-      txnSig,
-      composeExplorerUrl(txnSig, processOpts?.broadcastType, processOpts?.dynamicStrategy)
-    );
+    multiStepToast.setSuccess(txnSig, composeExplorerUrl(txnSig));
     return txnSig;
   } catch (error: any) {
     console.log(`Error while Depositing`);
@@ -384,12 +363,7 @@ export async function borrow({
         {
           ...processOpts,
           callback: (index, success, sig, stepsToAdvance) =>
-            success &&
-            multiStepToast.setSuccessAndNext(
-              stepsToAdvance,
-              sig,
-              composeExplorerUrl(sig, processOpts?.broadcastType, processOpts?.dynamicStrategy)
-            ),
+            success && multiStepToast.setSuccessAndNext(stepsToAdvance, sig, composeExplorerUrl(sig)),
         },
         txOpts
       );
@@ -398,10 +372,7 @@ export async function borrow({
     } else {
       throw new Error("Marginfi account not ready.");
     }
-    multiStepToast.setSuccess(
-      sigs[sigs.length - 1],
-      composeExplorerUrl(sigs[sigs.length - 1], processOpts?.broadcastType, processOpts?.dynamicStrategy)
-    );
+    multiStepToast.setSuccess(sigs[sigs.length - 1], composeExplorerUrl(sigs[sigs.length - 1]));
     return sigs;
   } catch (error: any) {
     console.log(`Error while borrowing`);
@@ -454,12 +425,7 @@ export async function withdraw({
         {
           ...processOpts,
           callback: (index, success, sig, stepsToAdvance) =>
-            success &&
-            multiStepToast.setSuccessAndNext(
-              stepsToAdvance,
-              sig,
-              composeExplorerUrl(sig, processOpts?.broadcastType, processOpts?.dynamicStrategy)
-            ),
+            success && multiStepToast.setSuccessAndNext(stepsToAdvance, sig, composeExplorerUrl(sig)),
         },
         txOpts
       );
@@ -475,10 +441,7 @@ export async function withdraw({
     } else {
       throw new Error("Marginfi account not ready.");
     }
-    multiStepToast.setSuccess(
-      sigs[sigs.length - 1],
-      composeExplorerUrl(sigs[sigs.length - 1], processOpts?.broadcastType, processOpts?.dynamicStrategy)
-    );
+    multiStepToast.setSuccess(sigs[sigs.length - 1], composeExplorerUrl(sigs[sigs.length - 1]));
     return sigs;
   } catch (error: any) {
     console.log(`Error while withdrawing`);
@@ -532,12 +495,7 @@ export async function repay({
             {
               ...processOpts,
               callback: (index, success, sig, stepsToAdvance) =>
-                success &&
-                multiStepToast.setSuccessAndNext(
-                  stepsToAdvance,
-                  sig,
-                  composeExplorerUrl(sig, processOpts?.broadcastType)
-                ),
+                success && multiStepToast.setSuccessAndNext(stepsToAdvance, sig, composeExplorerUrl(sig)),
             },
             txOpts
           )
@@ -554,10 +512,7 @@ export async function repay({
     } else {
       throw new Error("Marginfi account not ready.");
     }
-    multiStepToast.setSuccess(
-      txnSig,
-      composeExplorerUrl(txnSig, processOpts?.broadcastType, processOpts?.dynamicStrategy)
-    );
+    multiStepToast.setSuccess(txnSig, composeExplorerUrl(txnSig));
     return txnSig;
   } catch (error: any) {
     console.log(`Error while repaying`);
@@ -625,12 +580,7 @@ export async function looping({
         {
           ...processOpts,
           callback: (index, success, sig, stepsToAdvance) =>
-            success &&
-            multiStepToast.setSuccessAndNext(
-              stepsToAdvance,
-              sig,
-              composeExplorerUrl(sig, processOpts?.broadcastType, processOpts?.dynamicStrategy)
-            ),
+            success && multiStepToast.setSuccessAndNext(stepsToAdvance, sig, composeExplorerUrl(sig)),
         },
         txOpts
       );
@@ -642,10 +592,7 @@ export async function looping({
       sigs = await marginfiClient.processTransactions([...additionalTxs, flashloanTx], processOpts, txOpts);
     }
 
-    multiStepToast.setSuccess(
-      sigs[sigs.length - 1],
-      composeExplorerUrl(sigs[sigs.length - 1], processOpts?.broadcastType, processOpts?.dynamicStrategy)
-    );
+    multiStepToast.setSuccess(sigs[sigs.length - 1], composeExplorerUrl(sigs[sigs.length - 1]));
     return sigs;
   } catch (error: any) {
     console.log(`Error while looping`);
@@ -717,11 +664,7 @@ export async function trade({
           callback: (index, success, sig, stepsToAdvance) => {
             const currentLabel = multiStepToast?.getCurrentLabel();
             if (success && isStepIncluded(currentLabel, excludedTypes)) {
-              multiStepToast.setSuccessAndNext(
-                stepsToAdvance,
-                sig,
-                composeExplorerUrl(sig, processOpts?.broadcastType, processOpts?.dynamicStrategy)
-              );
+              multiStepToast.setSuccessAndNext(stepsToAdvance, sig, composeExplorerUrl(sig));
             }
           },
         },
@@ -735,10 +678,7 @@ export async function trade({
       sigs = await marginfiClient.processTransactions([...additionalTxs, flashloanTx], processOpts, txOpts);
     }
 
-    multiStepToast.setSuccess(
-      sigs[sigs.length - 1],
-      composeExplorerUrl(sigs[sigs.length - 1], processOpts?.broadcastType, processOpts?.dynamicStrategy)
-    );
+    multiStepToast.setSuccess(sigs[sigs.length - 1], composeExplorerUrl(sigs[sigs.length - 1]));
     return sigs;
   } catch (error: any) {
     console.log(`Error while looping`);
@@ -808,12 +748,7 @@ export async function repayWithCollat({
         {
           ...processOpts,
           callback: (index, success, sig, stepsToAdvance) =>
-            success &&
-            multiStepToast.setSuccessAndNext(
-              stepsToAdvance,
-              sig,
-              composeExplorerUrl(sig, processOpts?.broadcastType, processOpts?.dynamicStrategy)
-            ),
+            success && multiStepToast.setSuccessAndNext(stepsToAdvance, sig, composeExplorerUrl(sig)),
         },
         txOpts
       );
@@ -826,10 +761,7 @@ export async function repayWithCollat({
 
       sigs = await marginfiClient.processTransactions([...additionalTxs, flashloanTx], processOpts, txOpts);
     }
-    multiStepToast.setSuccess(
-      sigs[sigs.length - 1],
-      composeExplorerUrl(sigs[sigs.length - 1], processOpts?.broadcastType, processOpts?.dynamicStrategy)
-    );
+    multiStepToast.setSuccess(sigs[sigs.length - 1], composeExplorerUrl(sigs[sigs.length - 1]));
     return sigs;
   } catch (error: any) {
     console.log(`Error while repaying`);
@@ -921,11 +853,7 @@ export const closeBalance = async ({
     } else {
       txnSig = await marginfiAccount.repay(0, bank.address, true, {}, processOpts, txOpts);
     }
-    multiStepToast.setSuccessAndNext(
-      undefined,
-      txnSig,
-      composeExplorerUrl(txnSig, processOpts?.broadcastType, processOpts?.dynamicStrategy)
-    );
+    multiStepToast.setSuccessAndNext(undefined, txnSig, composeExplorerUrl(txnSig));
     return txnSig;
   } catch (error: any) {
     console.log(`Error while closing balance`);

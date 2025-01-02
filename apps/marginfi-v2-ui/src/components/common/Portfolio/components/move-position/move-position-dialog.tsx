@@ -145,8 +145,7 @@ export const MovePositionDialog = ({
       const sigs = await marginfiClient.processTransactions(actionTxns, {
         ...processOpts,
         callback: (index, success, sig, stepsToAdvance) =>
-          success &&
-          multiStepToast.setSuccessAndNext(stepsToAdvance, sig, composeExplorerUrl(sig, processOpts?.broadcastType)),
+          success && multiStepToast.setSuccessAndNext(stepsToAdvance, sig, composeExplorerUrl(sig)),
       });
       await fetchMrgnlendState();
       multiStepToast.setSuccess();

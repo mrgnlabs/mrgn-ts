@@ -162,7 +162,7 @@ export const ClosePosition = ({ arenaPool, positionsByGroupPk, depositBanks, bor
         return;
       }
 
-      multiStepToast.setSuccess(txnSig, composeExplorerUrl(txnSig, broadcastType, client.processTransactionStrategy));
+      multiStepToast.setSuccess(txnSig, composeExplorerUrl(txnSig));
       handleCompleteAction(txnSig, pnl, entryPrice);
     } catch (error) {
       console.error("Error closing position", error);
