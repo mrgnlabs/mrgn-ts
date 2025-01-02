@@ -68,6 +68,7 @@
     "@uidotdev/usehooks": "^2.4.1",
     "@vercel/analytics": "^1.0.0",
     "@vercel/speed-insights": "^1.0.12",
+    "@vercel/og": "^0.6.2",
     "@walletconnect/modal": "^2.6.2",
     "@web3auth/no-modal": "^7.0.4",
     "@web3auth/openlogin-adapter": "^7.0.4",
