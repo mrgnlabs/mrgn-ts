@@ -395,6 +395,24 @@ async function makePoolAddBankIx(
     .instruction();
 }
 
+async function makeCloseAccountIx(
+  mfProgram: MarginfiProgram,
+  accounts: {
+    marginfiAccountPk: PublicKey;
+    feePayerPk: PublicKey;
+    authorityPk: PublicKey;
+  }
+) {
+  return mfProgram.methods
+    .marginfiAccountClose()
+    .accounts({
+      marginfiAccount: accounts.marginfiAccountPk,
+      feePayer: accounts.feePayerPk,
+      authority: accounts.authorityPk,
+    })
+    .instruction();
+}
+
 const instructions = {
   makeDepositIx,
   makeRepayIx,
@@ -411,6 +429,7 @@ const instructions = {
   makeEndFlashLoanIx,
   makeAccountAuthorityTransferIx,
   makeGroupInitIx,
+  makeCloseAccountIx,
 };
 
 export default instructions;
