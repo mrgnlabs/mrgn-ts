@@ -11,6 +11,7 @@ type MrgnProps = {
 };
 
 export const Meta = ({ groupPk, poolData, tokenDetails, baseUrl }: MrgnProps) => {
+  // eslint-disable-next-line turbo/no-undeclared-env-vars
   const _baseUrl = baseUrl ?? process.env.NEXT_PUBLIC_VERCEL_URL ?? "http://localhost:3006";
   let title = "The Arena";
   let description = "Memecoin trading, with leverage.";
