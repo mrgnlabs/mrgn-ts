@@ -31,7 +31,7 @@ export default function AdminPage() {
           <>
             <div className="text-center space-y-2 mb-12 text-lg">
               <h1 className="text-4xl font-medium">Manage your Arena pools</h1>
-              <p className="text-muted-foreground">View your pool details and provide liquidity.</p>
+              <p className="text-muted-foreground">Manage your pools and provide liquidity.</p>
             </div>
             <div className="w-full space-y-2 mt-16">
               <div className="grid-cols-2 md:grid-cols-6 gap-4 w-full text-muted-foreground hidden md:grid">
