@@ -18,6 +18,7 @@ import { StaticArenaProps, getArenaStaticProps } from "~/utils";
 import { ArenaActionComplete } from "~/components/common/ActionComplete";
 import { Skeleton } from "~/components/ui/skeleton";
 import { PnlBadge, PnlLabel } from "~/components/common/pnl-display";
+import { GeoBlockingWrapper } from "~/components/common/geo-blocking-wrapper";
 
 export const getStaticProps: GetStaticProps<StaticArenaProps> = async (context) => {
   return getArenaStaticProps(context);
@@ -76,7 +77,7 @@ export default function PortfolioPage({ initialData }: StaticArenaProps) {
   }, [longPositions, shortPositions, lpPositions]);
 
   return (
-    <>
+    <GeoBlockingWrapper>
       <div className="w-full max-w-8xl mx-auto px-4 md:px-8 pb-28 pt-12 min-h-[calc(100vh-100px)]">
         {!poolsFetched && <Loader label="Loading portfolio..." className="mt-8" />}
         {poolsFetched && (
@@ -183,7 +184,7 @@ export default function PortfolioPage({ initialData }: StaticArenaProps) {
         )}
       </div>
       {poolsFetched && previousTxn && <ArenaActionComplete />}
-    </>
+    </GeoBlockingWrapper>
   );
 }
 

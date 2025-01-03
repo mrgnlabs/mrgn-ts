@@ -21,6 +21,7 @@ import { useExtendedPools } from "~/hooks/useExtendedPools";
 import { GetStaticProps } from "next";
 import { StaticArenaProps, getArenaStaticProps } from "~/utils";
 import { ArenaActionComplete } from "~/components/common/ActionComplete";
+import { GeoBlockingWrapper } from "~/components/common/geo-blocking-wrapper";
 
 const sortOptions: {
   value: TradePoolFilterStates;
@@ -136,7 +137,7 @@ export default function YieldPage({ initialData }: StaticArenaProps) {
   }, [isMobile]);
 
   return (
-    <>
+    <GeoBlockingWrapper>
       <div className="w-full max-w-8xl mx-auto px-4 md:px-8 pb-28 pt-12 min-h-[calc(100vh-100px)]">
         {!poolsFetched && <Loader label="Loading yield farming..." className="mt-8" />}
         {poolsFetched && (
@@ -261,6 +262,6 @@ export default function YieldPage({ initialData }: StaticArenaProps) {
           </>
         )}
       </div>
-    </>
+    </GeoBlockingWrapper>
   );
 }
