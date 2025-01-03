@@ -1,12 +1,11 @@
-import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
-import { Wallet } from "@mrgnlabs/mrgn-common";
-import { ActionMessageType, cn } from "@mrgnlabs/mrgn-utils";
-import { Connection } from "@solana/web3.js";
 import { IconAlertTriangle, IconExternalLink, IconLoader } from "@tabler/icons-react";
 import Link from "next/link";
+
+import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActionMessageType, cn } from "@mrgnlabs/mrgn-utils";
+
 import { ActionBox } from "~/components";
 import { Button } from "~/components/ui/button";
-import { ArenaPoolV2Extended } from "~/types/trade-store.types";
 
 interface InfoMessagesProps {
   connected: boolean;

@@ -1,4 +1,4 @@
-import { QuoteResponse } from "@jup-ag/react-hook";
+import { QuoteResponse } from "@jup-ag/api";
 import { ActionType, ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 export enum LendingModes {
