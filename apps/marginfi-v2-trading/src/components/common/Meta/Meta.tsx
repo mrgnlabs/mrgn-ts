@@ -11,9 +11,10 @@ type MrgnProps = {
 };
 
 export const Meta = ({ groupPk, poolData, tokenDetails, baseUrl }: MrgnProps) => {
+  const _baseUrl = baseUrl ?? process.env.NEXT_PUBLIC_VERCEL_URL ?? "http://localhost:3006";
   let title = "The Arena";
   let description = "Memecoin trading, with leverage.";
-  let image = `${baseUrl}/metadata/metadata-image-default.png`;
+  let image = `${_baseUrl}/metadata/metadata-image-default.png`;
 
   if (groupPk) {
     const _poolData = poolData?.find((pool) => pool.group === groupPk);
@@ -28,7 +29,7 @@ export const Meta = ({ groupPk, poolData, tokenDetails, baseUrl }: MrgnProps) =>
     if (!_quoteTokenDetails) return;
     title = `Trade ${_tokenDetails?.symbol}/${_quoteTokenDetails?.symbol} with leverage in The Arena.`;
     description = `Trade ${_tokenDetails?.symbol} / ${_quoteTokenDetails?.symbol} with leverage in The Arena.`;
-    image = `${baseUrl}/api/share-image/generate?tokenSymbol=${_tokenDetails?.symbol}&tokenImageUrl=${_tokenDetails?.imageUrl}&quoteTokenSymbol=${_quoteTokenDetails?.symbol}&quoteTokenImageUrl=${_quoteTokenDetails?.imageUrl}`;
+    image = `${_baseUrl}/api/share-image/generate?tokenSymbol=${_tokenDetails?.symbol}&tokenImageUrl=${_tokenDetails?.imageUrl}&quoteTokenSymbol=${_quoteTokenDetails?.symbol}&quoteTokenImageUrl=${_quoteTokenDetails?.imageUrl}`;
   }
 
   return (
