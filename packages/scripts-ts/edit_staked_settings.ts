@@ -1,18 +1,23 @@
-// Runs once per group, before any staked banks can be init (or in this case, edit).
-import { AccountMeta, Connection, PublicKey, Transaction, sendAndConfirmTransaction } from "@solana/web3.js";
-import { Program, AnchorProvider, Wallet, BN } from "@coral-xyz/anchor";
+// Change settings for an existing group's staked settings. To update banks and force them to accept
+// these settings, propagate them to the banks (presumably there's an API for this by the time
+// you're reading this)
+import { Connection, PublicKey, Transaction, sendAndConfirmTransaction } from "@solana/web3.js";
+import { Program, AnchorProvider, BN } from "@coral-xyz/anchor";
 import { Marginfi } from "../marginfi-client-v2/src/idl/marginfi-types";
 import marginfiIdl from "../marginfi-client-v2/src/idl/marginfi.json";
 import { loadKeypairFromFile } from "./utils";
 import {
   bigNumberToWrappedI80F48,
-  TOKEN_PROGRAM_ID,
   WrappedI80F48,
   wrappedI80F48toBigNumber,
 } from "@mrgnlabs/mrgn-common";
-import { RiskTierRaw } from "@mrgnlabs/marginfi-client-v2";
-import { assertBNEqual, assertI80F48Approx, assertKeysEqual } from "./softTests";
+import { assertBNEqual, assertI80F48Approx } from "./softTests";
+import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
 
+/**
+ * If true, send the tx. If false, output the unsigned b58 tx to console.
+ */
+const sendTx = false;
 const verbose = true;
 
 type Config = {
@@ -20,6 +25,7 @@ type Config = {
   GROUP_KEY: PublicKey;
   SOL_ORACLE: PublicKey;
   // Keep undefined for any field you wish to leave as-is on-chain
+  MULTISIG_PAYER?: PublicKey; // May be omitted if not using squads
   ASSET_WEIGHT_INIT?: number;
   ASSET_WEIGHT_MAIN?: number;
   DEPOSIT_LIMIT?: BN;
@@ -31,6 +37,7 @@ type Config = {
 const config: Config = {
   PROGRAM_ID: "stag8sTKds2h4KzjUw3zKTsxbqvT4XKHdaR9X9E6Rct",
   GROUP_KEY: new PublicKey("FCPfpHA69EbS8f9KKSreTRkXbzFpunsKuYf5qNmnJjpo"),
+  MULTISIG_PAYER: new PublicKey("AZtUUe9GvTFq9kfseu9jxTioSgdSfjgmZfGQBmhVpTj1"),
 
   // Leave these undefined if you do NOT want them to be changed
   SOL_ORACLE: undefined,
@@ -103,55 +110,67 @@ async function main() {
       .instruction()
   );
 
-  try {
-    const signature = await sendAndConfirmTransaction(connection, transaction, [wallet], {
-      commitment: "confirmed",
+  if (sendTx) {
+    try {
+      const signature = await sendAndConfirmTransaction(connection, transaction, [wallet], {
+        commitment: "confirmed",
+      });
+      console.log("Transaction signature:", signature);
+      // await connection.confirmTransaction(signature, "finalized");
+    } catch (error) {
+      console.error("Transaction failed:", error);
+    }
+
+    if (verbose) {
+      let stakedSettingsAcc = await program.account.stakedSettings.fetch(stakedSettingsKey);
+
+      console.log("oracle: " + stakedSettingsAcc.oracle);
+
+      if (config.ASSET_WEIGHT_INIT !== undefined) {
+        assertI80F48Approx(stakedSettingsAcc.assetWeightInit, bigNumberToWrappedI80F48(config.ASSET_WEIGHT_INIT));
+        console.log("assetWeightInit: " + wrappedI80F48toBigNumber(stakedSettingsAcc.assetWeightInit).toString());
+        console.log("was: " + wrappedI80F48toBigNumber(stakedSettingsAccBefore.assetWeightInit).toString());
+      }
+
+      if (config.ASSET_WEIGHT_MAIN !== undefined) {
+        assertI80F48Approx(stakedSettingsAcc.assetWeightMaint, bigNumberToWrappedI80F48(config.ASSET_WEIGHT_MAIN));
+        console.log("assetWeightMaint: " + wrappedI80F48toBigNumber(stakedSettingsAcc.assetWeightMaint).toString());
+        console.log("was: " + wrappedI80F48toBigNumber(stakedSettingsAccBefore.assetWeightMaint).toString());
+      }
+
+      if (config.DEPOSIT_LIMIT !== undefined) {
+        assertBNEqual(stakedSettingsAcc.depositLimit, config.DEPOSIT_LIMIT);
+        console.log("depositLimit: " + stakedSettingsAcc.depositLimit.toString());
+        console.log("was: " + stakedSettingsAccBefore.depositLimit.toString());
+      }
+
+      if (config.TOTAL_ASSET_VALUE_INIT_LIMIT !== undefined) {
+        assertBNEqual(stakedSettingsAcc.totalAssetValueInitLimit, config.TOTAL_ASSET_VALUE_INIT_LIMIT);
+        console.log("totalAssetValueInitLimit: " + stakedSettingsAcc.totalAssetValueInitLimit.toString());
+        console.log("was: " + stakedSettingsAccBefore.totalAssetValueInitLimit.toString());
+      }
+
+      if (config.ORACLE_MAX_AGE !== undefined) {
+        assertBNEqual(new BN(stakedSettingsAcc.oracleMaxAge), new BN(config.ORACLE_MAX_AGE));
+        console.log("oracleMaxAge: " + stakedSettingsAcc.oracleMaxAge);
+        console.log("was: " + stakedSettingsAccBefore.oracleMaxAge);
+      }
+
+      if (config.RISK_TIER !== undefined) {
+        console.log("oracle risk tier: " + stakedSettingsAcc.riskTier);
+        console.log("was: " + stakedSettingsAccBefore.riskTier);
+      }
+    }
+  } else {
+    transaction.feePayer = config.MULTISIG_PAYER; // Set the fee payer to Squads wallet
+    const { blockhash } = await connection.getLatestBlockhash();
+    transaction.recentBlockhash = blockhash;
+    const serializedTransaction = transaction.serialize({
+      requireAllSignatures: false,
+      verifySignatures: false,
     });
-    console.log("Transaction signature:", signature);
-    // await connection.confirmTransaction(signature, "finalized");
-  } catch (error) {
-    console.error("Transaction failed:", error);
-  }
-
-  if (verbose) {
-    let stakedSettingsAcc = await program.account.stakedSettings.fetch(stakedSettingsKey);
-
-    console.log("oracle: " + stakedSettingsAcc.oracle);
-
-    if (config.ASSET_WEIGHT_INIT !== undefined) {
-      assertI80F48Approx(stakedSettingsAcc.assetWeightInit, bigNumberToWrappedI80F48(config.ASSET_WEIGHT_INIT));
-      console.log("assetWeightInit: " + wrappedI80F48toBigNumber(stakedSettingsAcc.assetWeightInit).toString());
-      console.log("was: " + wrappedI80F48toBigNumber(stakedSettingsAccBefore.assetWeightInit).toString());
-    }
-
-    if (config.ASSET_WEIGHT_MAIN !== undefined) {
-      assertI80F48Approx(stakedSettingsAcc.assetWeightMaint, bigNumberToWrappedI80F48(config.ASSET_WEIGHT_MAIN));
-      console.log("assetWeightMaint: " + wrappedI80F48toBigNumber(stakedSettingsAcc.assetWeightMaint).toString());
-      console.log("was: " + wrappedI80F48toBigNumber(stakedSettingsAccBefore.assetWeightMaint).toString());
-    }
-
-    if (config.DEPOSIT_LIMIT !== undefined) {
-      assertBNEqual(stakedSettingsAcc.depositLimit, config.DEPOSIT_LIMIT);
-      console.log("depositLimit: " + stakedSettingsAcc.depositLimit.toString());
-      console.log("was: " + stakedSettingsAccBefore.depositLimit.toString());
-    }
-
-    if (config.TOTAL_ASSET_VALUE_INIT_LIMIT !== undefined) {
-      assertBNEqual(stakedSettingsAcc.totalAssetValueInitLimit, config.TOTAL_ASSET_VALUE_INIT_LIMIT);
-      console.log("totalAssetValueInitLimit: " + stakedSettingsAcc.totalAssetValueInitLimit.toString());
-      console.log("was: " + stakedSettingsAccBefore.totalAssetValueInitLimit.toString());
-    }
-
-    if (config.ORACLE_MAX_AGE !== undefined) {
-      assertBNEqual(new BN(stakedSettingsAcc.oracleMaxAge), new BN(config.ORACLE_MAX_AGE));
-      console.log("oracleMaxAge: " + stakedSettingsAcc.oracleMaxAge);
-      console.log("was: " + stakedSettingsAccBefore.oracleMaxAge);
-    }
-
-    if (config.RISK_TIER !== undefined) {
-      console.log("oracle risk tier: " + stakedSettingsAcc.riskTier);
-      console.log("was: " + stakedSettingsAccBefore.riskTier);
-    }
+    const base58Transaction = bs58.encode(serializedTransaction);
+    console.log("Base58-encoded transaction:", base58Transaction);
   }
 }
 

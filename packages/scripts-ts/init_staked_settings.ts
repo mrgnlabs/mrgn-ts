@@ -12,7 +12,12 @@ import {
 } from "@mrgnlabs/mrgn-common";
 import { RiskTierRaw } from "@mrgnlabs/marginfi-client-v2";
 import { assertBNEqual, assertI80F48Approx, assertKeysEqual } from "./softTests";
+import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
 
+/**
+ * If true, send the tx. If false, output the unsigned b58 tx to console.
+ */
+const sendTx = false;
 const verbose = true;
 
 type Config = {
@@ -20,6 +25,7 @@ type Config = {
   GROUP_KEY: PublicKey;
   SOL_ORACLE: PublicKey;
   // Keep default values to use the defaults...
+  MULTISIG_PAYER?: PublicKey; // May be omitted if not using squads
   ASSET_WEIGHT_INIT?: number;
   ASSET_WEIGHT_MAIN?: number;
   DEPOSIT_LIMIT?: BN;
@@ -31,6 +37,7 @@ const config: Config = {
   PROGRAM_ID: "stag8sTKds2h4KzjUw3zKTsxbqvT4XKHdaR9X9E6Rct",
   GROUP_KEY: new PublicKey("FCPfpHA69EbS8f9KKSreTRkXbzFpunsKuYf5qNmnJjpo"),
   SOL_ORACLE: new PublicKey("H6ARHf6YXhGYeQfUzQNGk6rDNnLBQKrenN712K4AQJEG"),
+  MULTISIG_PAYER: new PublicKey("AZtUUe9GvTFq9kfseu9jxTioSgdSfjgmZfGQBmhVpTj1"),
 
   // Leave out anything you want to remain as default...
   ASSET_WEIGHT_INIT: undefined,
@@ -86,31 +93,43 @@ async function main() {
       .instruction()
   );
 
-  try {
-    const signature = await sendAndConfirmTransaction(connection, transaction, [wallet]);
-    console.log("Transaction signature:", signature);
-  } catch (error) {
-    console.error("Transaction failed:", error);
-  }
+  if (sendTx) {
+    try {
+      const signature = await sendAndConfirmTransaction(connection, transaction, [wallet]);
+      console.log("Transaction signature:", signature);
+    } catch (error) {
+      console.error("Transaction failed:", error);
+    }
 
-  let [stakedSettingsKey] = deriveStakedSettings(program.programId, config.GROUP_KEY);
-  if (verbose) {
-    console.log("staked settings: " + stakedSettingsKey);
-  }
-  let stakedSettingsAcc = await program.account.stakedSettings.fetch(stakedSettingsKey);
-  assertI80F48Approx(stakedSettingsAcc.assetWeightInit, settings.assetWeightInit);
-  assertI80F48Approx(stakedSettingsAcc.assetWeightMaint, settings.assetWeightMaint);
-  assertBNEqual(stakedSettingsAcc.depositLimit, settings.depositLimit);
-  assertBNEqual(stakedSettingsAcc.totalAssetValueInitLimit, settings.totalAssetValueInitLimit);
-  assertBNEqual(new BN(stakedSettingsAcc.oracleMaxAge), settings.oracleMaxAge);
-  assertKeysEqual(stakedSettingsAcc.oracle, config.SOL_ORACLE);
-  if (verbose) {
-    console.log("oracle: " + stakedSettingsAcc.oracle);
-    console.log("asset weight init: " + wrappedI80F48toBigNumber(stakedSettingsAcc.assetWeightInit).toString());
-    console.log("asset weight maint: " + wrappedI80F48toBigNumber(stakedSettingsAcc.assetWeightMaint).toString());
-    console.log("deposit limit: " + stakedSettingsAcc.depositLimit.toString());
-    console.log("total asset value init: " + stakedSettingsAcc.totalAssetValueInitLimit.toString());
-    console.log("oralce max age: " + stakedSettingsAcc.oracleMaxAge);
+    let [stakedSettingsKey] = deriveStakedSettings(program.programId, config.GROUP_KEY);
+    if (verbose) {
+      console.log("staked settings: " + stakedSettingsKey);
+    }
+    let stakedSettingsAcc = await program.account.stakedSettings.fetch(stakedSettingsKey);
+    assertI80F48Approx(stakedSettingsAcc.assetWeightInit, settings.assetWeightInit);
+    assertI80F48Approx(stakedSettingsAcc.assetWeightMaint, settings.assetWeightMaint);
+    assertBNEqual(stakedSettingsAcc.depositLimit, settings.depositLimit);
+    assertBNEqual(stakedSettingsAcc.totalAssetValueInitLimit, settings.totalAssetValueInitLimit);
+    assertBNEqual(new BN(stakedSettingsAcc.oracleMaxAge), settings.oracleMaxAge);
+    assertKeysEqual(stakedSettingsAcc.oracle, config.SOL_ORACLE);
+    if (verbose) {
+      console.log("oracle: " + stakedSettingsAcc.oracle);
+      console.log("asset weight init: " + wrappedI80F48toBigNumber(stakedSettingsAcc.assetWeightInit).toString());
+      console.log("asset weight maint: " + wrappedI80F48toBigNumber(stakedSettingsAcc.assetWeightMaint).toString());
+      console.log("deposit limit: " + stakedSettingsAcc.depositLimit.toString());
+      console.log("total asset value init: " + stakedSettingsAcc.totalAssetValueInitLimit.toString());
+      console.log("oralce max age: " + stakedSettingsAcc.oracleMaxAge);
+    }
+  } else {
+    transaction.feePayer = config.MULTISIG_PAYER; // Set the fee payer to Squads wallet
+    const { blockhash } = await connection.getLatestBlockhash();
+    transaction.recentBlockhash = blockhash;
+    const serializedTransaction = transaction.serialize({
+      requireAllSignatures: false,
+      verifySignatures: false,
+    });
+    const base58Transaction = bs58.encode(serializedTransaction);
+    console.log("Base58-encoded transaction:", base58Transaction);
   }
 }
 
