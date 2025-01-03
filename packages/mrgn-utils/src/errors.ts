@@ -180,6 +180,24 @@ export const STATIC_SIMULATION_ERRORS: { [key: string]: ActionMessageType } = {
     actionMethod: "WARNING",
     code: 130,
   },
+  ACCOUNT_NOT_INITIALIZED: {
+    isEnabled: false,
+    actionMethod: "WARNING",
+    description: "There was an issue with the marginfi account. Please refresh and try again.",
+    code: 131,
+  },
+  BANK_NOT_INITIALIZED: {
+    isEnabled: false,
+    actionMethod: "WARNING",
+    description: "There was an issue with the marginfi bank. Please refresh and try again.",
+    code: 132,
+  },
+  MAX_AMOUNT_CALCULATION_FAILED: {
+    isEnabled: false,
+    actionMethod: "WARNING",
+    description: "There was an issue with the max amount calculation. Please refresh and try again.",
+    code: 133,
+  },
 };
 
 const createRepayCollatFailedCheck = (tokenSymbol?: string): ActionMessageType => ({

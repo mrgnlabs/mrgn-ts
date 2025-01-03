@@ -19,8 +19,10 @@ import { useTradeStoreV2, useUiStore } from "~/store";
 import { useWallet } from "~/components/wallet-v2/hooks";
 import { useLeveragedPositionDetails } from "~/hooks/arenaHooks";
 import { usePositionsData } from "~/hooks/usePositionsData";
+
 import { ClosePositionDialog } from "./components/close-position-dialog";
-import { closePositionAction, fetchTransactionsAction } from "./utils/close-position-utils";
+import { closePosition, simulateClosePosition } from "./utils/close-position-utils";
+
 interface ClosePositionProps {
   arenaPool: ArenaPoolV2Extended;
   positionsByGroupPk: Record<string, ArenaPoolPositions>;
@@ -72,9 +74,8 @@ export const ClosePosition = ({ arenaPool, positionsByGroupPk, depositBanks, bor
       },
     ]);
     multiStepToast.start();
-    setMultiStepToast(multiStepToast);
     try {
-      const { actionTxns, actionMessage } = await fetchTransactionsAction({
+      const { actionTxns, actionMessage } = await simulateClosePosition({
         marginfiAccount: wrappedAccount,
         depositBanks: depositBanks as ActiveBankInfo[],
         borrowBank: borrowBank as ActiveBankInfo | null,
@@ -100,21 +101,19 @@ export const ClosePosition = ({ arenaPool, positionsByGroupPk, depositBanks, bor
       multiStepToast.setFailed(msg ?? "Error simulating transaction");
       setActionTxns(null);
     } finally {
+      setMultiStepToast(multiStepToast);
       setIsLoading(false);
     }
   }, [wrappedAccount, connection, depositBanks, borrowBank, slippageBps, platformFeeBps]);
 
   const handleCompleteAction = React.useCallback(
     (txnSig: string, pnl: number, entryPrice: number) => {
-      setIsOpen(false);
       refreshGroup({
         groupPk: arenaPool.groupPk,
         banks: [arenaPool.tokenBank.address, arenaPool.quoteBank.address],
         connection,
         wallet,
       });
-      setIsActionComplete(true);
-      setIsActionComplete(true);
       setPreviousTxn({
         txnType: "CLOSE_POSITION",
         txn: Array.isArray(txnSig) ? txnSig[txnSig.length - 1] : txnSig!,
@@ -135,6 +134,9 @@ export const ClosePosition = ({ arenaPool, positionsByGroupPk, depositBanks, bor
         tokenSize: arenaPool.tokenBank.isActive ? arenaPool.tokenBank.position.amount : 0,
         usdcSize: arenaPool.quoteBank.isActive ? arenaPool.quoteBank.position.amount : 0,
       });
+
+      setIsOpen(false);
+      setIsActionComplete(true);
     },
     [refreshGroup, arenaPool, connection, wallet, setIsActionComplete, setPreviousTxn, positionSizeUsd, leverage] // TODO: eslint
   );
@@ -149,7 +151,7 @@ export const ClosePosition = ({ arenaPool, positionsByGroupPk, depositBanks, bor
     setIsLoading(true);
 
     try {
-      const { txnSig, actionMessage } = await closePositionAction({
+      const { txnSig, actionMessage } = await closePosition({
         marginfiClient: client,
         actionTransaction: actionTxns,
         broadcastType: broadcastType,
@@ -180,7 +182,7 @@ export const ClosePosition = ({ arenaPool, positionsByGroupPk, depositBanks, bor
     broadcastType,
     priorityFees,
     handleCompleteAction,
-  ]); // TODO: eslint
+  ]);
 
   const handleChangeDialogState = (open: boolean) => {
     setIsOpen(open);
