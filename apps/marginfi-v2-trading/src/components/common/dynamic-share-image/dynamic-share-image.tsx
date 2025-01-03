@@ -22,9 +22,7 @@ export function DynamicShareImage({
         justifyContent: "center",
         width: "720px",
         height: "360px",
-        backgroundColor: "#F7F7F7",
         backgroundImage: `url('${baseUrl}/metadata/metadata-image-bg.png')`,
-        backgroundRepeat: "no-repeat",
         backgroundSize: "cover",
         position: "relative",
         fontFamily: "Orbitron",
@@ -32,8 +30,8 @@ export function DynamicShareImage({
     >
       <div
         style={{
-          width: "84px",
-          height: "84px",
+          width: "105px",
+          height: "105px",
           overflow: "hidden",
           marginBottom: "12px",
           padding: "2px",
@@ -43,25 +41,25 @@ export function DynamicShareImage({
         <img
           src={tokenImageUrl}
           alt="Profile"
-          height="80px"
-          width="80px"
+          height="100px"
+          width="100px"
           style={{
             borderRadius: "50%",
             objectFit: "cover",
             position: "absolute",
-            height: "80px",
-            width: "80px",
+            height: "100px",
+            width: "100px",
             border: "1px solid black",
           }}
         />
         <img
           src={quoteTokenImageUrl}
           alt="Profile"
-          height="30px"
-          width="30px"
+          height="40px"
+          width="40px"
           style={{
-            height: "30px",
-            width: "30px",
+            height: "40px",
+            width: "40px",
             borderRadius: "50%",
             objectFit: "cover",
             position: "absolute",
@@ -74,7 +72,7 @@ export function DynamicShareImage({
 
       <h1
         style={{
-          fontSize: "32px",
+          fontSize: "38px",
           fontWeight: "bold",
           margin: 0,
         }}

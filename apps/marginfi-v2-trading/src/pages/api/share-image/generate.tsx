@@ -20,8 +20,6 @@ async function loadFont(font: string, text: string) {
 
   throw new Error(`Failed to load font data for ${font}`);
 }
-// Generate link preview image
-// Note that a lot of usual CSS is unsupported, including tailwind.
 export default async function GET(request: NextRequest) {
   const baseUrl = `${request.headers.get("x-forwarded-proto") ?? "https"}://${request.headers.get("host")}`;
 
