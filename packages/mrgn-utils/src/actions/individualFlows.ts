@@ -48,7 +48,7 @@ import {
 } from "./types";
 import { captureSentryException } from "../sentry.utils";
 import { loopingBuilder, repayWithCollatBuilder } from "./flashloans";
-import { handleError } from "../errors";
+import { handleError, STATIC_SIMULATION_ERRORS } from "../errors";
 
 //-----------------------//
 // Local utils functions //
@@ -165,8 +165,8 @@ export async function createAccount({
   processOpts?: ProcessTransactionsClientOpts;
   txOpts?: TransactionOptions;
 }) {
-  if (mfiClient === null) {
-    showErrorToast({ message: "Marginfi client not ready" });
+  if (!mfiClient) {
+    showErrorToast(STATIC_SIMULATION_ERRORS.NOT_INITIALIZED);
     return;
   }
 
@@ -206,8 +206,8 @@ export async function createAccountAndDeposit({
   txOpts,
   multiStepToast,
 }: MarginfiActionParams) {
-  if (marginfiClient === null) {
-    showErrorToast({ message: "Marginfi client not ready" });
+  if (!marginfiClient) {
+    showErrorToast(STATIC_SIMULATION_ERRORS.NOT_INITIALIZED);
     return;
   }
   if (!multiStepToast) {
@@ -548,8 +548,8 @@ export async function looping({
   multiStepToast,
   ...loopingProps
 }: LoopingFnProps) {
-  if (marginfiClient === null) {
-    showErrorToast({ message: "Marginfi client not ready" });
+  if (!marginfiClient) {
+    showErrorToast(STATIC_SIMULATION_ERRORS.NOT_INITIALIZED);
     return;
   }
 
@@ -630,8 +630,8 @@ export async function trade({
   multiStepToast,
   ...tradingProps
 }: TradeFnProps) {
-  if (marginfiClient === null) {
-    showErrorToast({ message: "Marginfi client not ready" });
+  if (!marginfiClient) {
+    showErrorToast(STATIC_SIMULATION_ERRORS.NOT_INITIALIZED);
     return;
   }
   const excludedTypes: MRGN_TX_TYPES[] = ["SWAP"];
@@ -715,13 +715,13 @@ export async function repayWithCollat({
   multiStepToast,
   ...repayProps
 }: RepayWithCollatFnProps) {
-  if (marginfiClient === null) {
-    showErrorToast({ message: "Marginfi client not ready" });
+  if (!marginfiClient) {
+    showErrorToast(STATIC_SIMULATION_ERRORS.NOT_INITIALIZED);
     return;
   }
 
   if (!repayProps.marginfiAccount) {
-    showErrorToast({ message: "Marginfi account not ready" });
+    showErrorToast(STATIC_SIMULATION_ERRORS.ACCOUNT_NOT_INITIALIZED);
     return;
   }
 
@@ -826,11 +826,11 @@ export const closeBalance = async ({
   multiStepToast?: MultiStepToastHandle;
 }) => {
   if (!marginfiAccount) {
-    showErrorToast({ message: "marginfi account not ready." });
+    showErrorToast(STATIC_SIMULATION_ERRORS.ACCOUNT_NOT_INITIALIZED);
     return;
   }
   if (!bank.isActive) {
-    showErrorToast({ message: "no position to close." });
+    showErrorToast("No position to close.");
     return;
   }
 

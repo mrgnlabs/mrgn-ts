@@ -11,7 +11,7 @@ import {
   STATIC_SIMULATION_ERRORS,
   deserializeInstruction,
   getAdressLookupTableAccounts,
-  getFeeAccount,
+  MultiStepToastHandle,
 } from "@mrgnlabs/mrgn-utils";
 
 import { ExecuteActionsCallbackProps } from "~/components/action-box-v2/types";
@@ -34,16 +34,93 @@ import {
   SolanaTransaction,
   uiToNative,
   USDC_MINT,
-  WrappedI80F48,
 } from "@mrgnlabs/mrgn-common";
 import BigNumber from "bignumber.js";
 import { createJupiterApiClient, QuoteResponse } from "@jup-ag/api";
+import { ArenaPoolV2Extended } from "~/types/trade-store.types";
+import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { PreviousTxn } from "~/types";
 
 interface ExecuteTradeActionsProps extends ExecuteActionsCallbackProps {
   props: ExecuteTradeActionProps;
 }
 
-export const handleExecuteTradeAction = async ({
+export const initiateTradeAction = async (
+  params: ExecuteTradeActionProps,
+  leverage: number,
+  activePoolExtended: ArenaPoolV2Extended,
+  callbacks: {
+    captureEvent?: (event: string, properties?: Record<string, any>) => void;
+    setIsActionComplete: (isComplete: boolean) => void;
+    setPreviousTxn: (previousTxn: PreviousTxn) => void;
+    onComplete?: (txn: PreviousTxn) => void;
+    setIsLoading: (isLoading: boolean) => void;
+    setAmountRaw: (amountRaw: string) => void;
+    retryCallback: (txs: TradeActionTxns, toast: MultiStepToastHandle) => void;
+  }
+) => {
+  const action = async (params: ExecuteTradeActionProps) => {
+    await handleExecuteTradeAction({
+      props: params,
+      captureEvent: (event, properties) => {
+        callbacks.captureEvent && callbacks.captureEvent(event, properties);
+      },
+      setIsComplete: (txnSigs) => {
+        callbacks.setIsActionComplete(true);
+        callbacks.setPreviousTxn({
+          txnType: "TRADING",
+          txn: txnSigs[txnSigs.length - 1] ?? "",
+          tradingOptions: {
+            depositBank: params.depositBank as ActiveBankInfo,
+            borrowBank: params.borrowBank as ActiveBankInfo,
+            initDepositAmount: params.depositAmount.toString(),
+            depositAmount: params.actualDepositAmount,
+            borrowAmount: params.borrowAmount.toNumber(),
+            leverage: leverage,
+            type: params.tradeSide,
+            quote: params.actionTxns.actionQuote!,
+            entryPrice: activePoolExtended.tokenBank.info.oraclePrice.priceRealtime.price.toNumber(),
+          },
+        });
+
+        callbacks.onComplete &&
+          callbacks.onComplete({
+            txn: txnSigs[txnSigs.length - 1] ?? "",
+            txnType: "TRADING",
+            tradingOptions: {
+              depositBank: params.depositBank as ActiveBankInfo,
+              borrowBank: params.borrowBank as ActiveBankInfo,
+              initDepositAmount: params.depositAmount.toString(),
+              depositAmount: params.actualDepositAmount,
+              borrowAmount: params.borrowAmount.toNumber(),
+              leverage: leverage,
+              type: params.tradeSide,
+              quote: params.actionTxns.actionQuote!,
+              entryPrice: activePoolExtended.tokenBank.info.oraclePrice.priceRealtime.price.toNumber(),
+            },
+          });
+      },
+      setError: (error: IndividualFlowError) => {
+        const toast = error.multiStepToast as MultiStepToastHandle;
+        if (!toast) {
+          return;
+        }
+        const txs = error.actionTxns as TradeActionTxns;
+        let retry = undefined;
+        if (error.retry && toast && txs) {
+          retry = () => callbacks.retryCallback(txs, toast);
+        }
+        toast.setFailed(error.message, retry);
+        callbacks.setIsLoading(false);
+      },
+      setIsLoading: (isLoading) => callbacks.setIsLoading(isLoading),
+    });
+  };
+  await action(params);
+  callbacks.setAmountRaw("");
+};
+
+const handleExecuteTradeAction = async ({
   props,
   captureEvent,
   setIsLoading,

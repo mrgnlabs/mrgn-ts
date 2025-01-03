@@ -2,6 +2,7 @@ import { Id, toast } from "react-toastify";
 import { MultiStepToast, ToastStep, ToastStepWithStatus } from "./MultiStepToast";
 import { ErrorToast } from "./ErrorToast";
 import { WarningToast } from "./WarningToast";
+import { ActionMessageType } from "../actions";
 
 export class MultiStepToastHandle {
   private _title: string;
@@ -178,7 +179,7 @@ export class MultiStepToastHandle {
   }
 }
 
-export function showErrorToast(msgOrOptions: string | { message: string; description?: string; code?: number }) {
+export function showErrorToast(msgOrOptions: string | ActionMessageType) {
   let msg: string;
   let description: string | undefined;
   let code: number | undefined;
@@ -187,8 +188,8 @@ export function showErrorToast(msgOrOptions: string | { message: string; descrip
     description = undefined;
     code = undefined;
   } else {
-    msg = msgOrOptions.message;
-    description = msgOrOptions.description;
+    msg = msgOrOptions.description || "";
+    // description = msgOrOptions.description;
     code = msgOrOptions.code;
   }
 
