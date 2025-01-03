@@ -19,6 +19,7 @@ import { ArenaActionComplete } from "~/components/common/ActionComplete";
 import { Skeleton } from "~/components/ui/skeleton";
 import { PnlBadge, PnlLabel } from "~/components/common/pnl-display";
 import { GeoBlockingWrapper } from "~/components/common/geo-blocking-wrapper";
+import { Meta } from "~/components/common/Meta";
 
 export const getStaticProps: GetStaticProps<StaticArenaProps> = async (context) => {
   return getArenaStaticProps(context);
@@ -77,114 +78,117 @@ export default function PortfolioPage({ initialData }: StaticArenaProps) {
   }, [longPositions, shortPositions, lpPositions]);
 
   return (
-    <GeoBlockingWrapper>
-      <div className="w-full max-w-8xl mx-auto px-4 md:px-8 pb-28 pt-12 min-h-[calc(100vh-100px)]">
-        {!poolsFetched && <Loader label="Loading portfolio..." className="mt-8" />}
-        {poolsFetched && (
-          <div className="space-y-4">
-            <div className="w-full max-w-4xl mx-auto px-4 md:px-0">
-              <PageHeading heading="Portfolio" body={<p>Manage your positions in the arena.</p>} links={[]} />
-            </div>
-            {portfolioCombined.length === 0 ? (
-              <p className="text-center mt-4">
-                You do not have any open positions.
-                <br className="md:hidden" />{" "}
-                <Link href="/" className="border-b border-primary transition-colors hover:border-transparent">
-                  Explore the pools
-                </Link>{" "}
-                and start trading!
-              </p>
-            ) : (
-              <div className="max-w-6xl mx-auto space-y-12">
-                <div
-                  className={cn(
-                    "grid grid-cols-2 gap-4 md:gap-8 w-full",
-                    portfolioCombined ? "md:grid-cols-3" : "md:grid-cols-2"
-                  )}
-                >
-                  <StatBlock label="Portfolio Size" value={`$${dynamicNumeralFormatter(portfolioSize)}`} />
-                  <Card>
-                    <CardHeader className="p-4 md:p-6 pb-0 md:pb-0">
-                      <CardTitle className="text-base text-muted-foreground font-normal">Portfolio PnL</CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-4 pt-2 md:p-6 md:pt-2">
-                      {!portfolioPnl ? (
-                        <Skeleton className="h-8 w-3/4" />
-                      ) : (
-                        <div className="flex items-center gap-2">
-                          <PnlLabel pnl={portfolioPnl} positionSize={portfolioSize} className="text-xl md:text-3xl" />
-                          <PnlBadge
-                            pnl={portfolioPnl}
-                            positionSize={portfolioSize}
-                            className="text-[10px] md:text-sm"
-                          />
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                  {portfolioCombined && portfolioCombined.length > 0 && (
-                    <div className="col-span-2 md:col-span-1">
-                      <StatBlock
-                        label="Active pools"
-                        value={
-                          <div className="flex items-center gap-2">
-                            {groupedNumberFormatterDyn.format(portfolioCombined.length)}
-                            <ul className="flex items-center -space-x-2">
-                              {portfolioCombined.slice(0, 5).map((pool, index) => (
-                                <li key={index} className="rounded-full bg-white">
-                                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                                  <img
-                                    src={pool.tokenBank.meta.tokenLogoUri}
-                                    alt={pool.tokenBank.meta.tokenSymbol}
-                                    width={24}
-                                    height={24}
-                                    key={index}
-                                    className="rounded-full ring-1 ring-primary"
-                                  />
-                                </li>
-                              ))}
-                            </ul>
-                            {portfolioCombined?.length - 5 > 0 && (
-                              <p className="text-sm text-muted-foreground">+{portfolioCombined?.length - 5} more</p>
-                            )}
-                          </div>
-                        }
-                      />
-                    </div>
-                  )}
-                </div>
-                <div className="grid grid-cols-1 gap-12 w-full md:grid-cols-2">
-                  {longPositions.length > 0 && (
-                    <div className="space-y-6">
-                      <h2 className="text-2xl font-medium">Long positions</h2>
-                      <div className="space-y-8">
-                        {longPositions.map((pool, index) => (
-                          <PositionCard key={index} arenaPool={pool} />
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  {shortPositions.length > 0 && (
-                    <div className="space-y-6">
-                      <h2 className="text-2xl font-medium">Short positions</h2>
-                      <div className="space-y-8">
-                        {shortPositions.map((pool, index) => (
-                          <PositionCard key={index} arenaPool={pool} />
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-                <div>
-                  <LpPositionList />
-                </div>
+    <>
+      <Meta />
+      <GeoBlockingWrapper>
+        <div className="w-full max-w-8xl mx-auto px-4 md:px-8 pb-28 pt-12 min-h-[calc(100vh-100px)]">
+          {!poolsFetched && <Loader label="Loading portfolio..." className="mt-8" />}
+          {poolsFetched && (
+            <div className="space-y-4">
+              <div className="w-full max-w-4xl mx-auto px-4 md:px-0">
+                <PageHeading heading="Portfolio" body={<p>Manage your positions in the arena.</p>} links={[]} />
               </div>
-            )}
-          </div>
-        )}
-      </div>
-      {poolsFetched && previousTxn && <ArenaActionComplete />}
-    </GeoBlockingWrapper>
+              {portfolioCombined.length === 0 ? (
+                <p className="text-center mt-4">
+                  You do not have any open positions.
+                  <br className="md:hidden" />{" "}
+                  <Link href="/" className="border-b border-primary transition-colors hover:border-transparent">
+                    Explore the pools
+                  </Link>{" "}
+                  and start trading!
+                </p>
+              ) : (
+                <div className="max-w-6xl mx-auto space-y-12">
+                  <div
+                    className={cn(
+                      "grid grid-cols-2 gap-4 md:gap-8 w-full",
+                      portfolioCombined ? "md:grid-cols-3" : "md:grid-cols-2"
+                    )}
+                  >
+                    <StatBlock label="Portfolio Size" value={`$${dynamicNumeralFormatter(portfolioSize)}`} />
+                    <Card>
+                      <CardHeader className="p-4 md:p-6 pb-0 md:pb-0">
+                        <CardTitle className="text-base text-muted-foreground font-normal">Portfolio PnL</CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-4 pt-2 md:p-6 md:pt-2">
+                        {!portfolioPnl ? (
+                          <Skeleton className="h-8 w-3/4" />
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <PnlLabel pnl={portfolioPnl} positionSize={portfolioSize} className="text-xl md:text-3xl" />
+                            <PnlBadge
+                              pnl={portfolioPnl}
+                              positionSize={portfolioSize}
+                              className="text-[10px] md:text-sm"
+                            />
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                    {portfolioCombined && portfolioCombined.length > 0 && (
+                      <div className="col-span-2 md:col-span-1">
+                        <StatBlock
+                          label="Active pools"
+                          value={
+                            <div className="flex items-center gap-2">
+                              {groupedNumberFormatterDyn.format(portfolioCombined.length)}
+                              <ul className="flex items-center -space-x-2">
+                                {portfolioCombined.slice(0, 5).map((pool, index) => (
+                                  <li key={index} className="rounded-full bg-white">
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                    <img
+                                      src={pool.tokenBank.meta.tokenLogoUri}
+                                      alt={pool.tokenBank.meta.tokenSymbol}
+                                      width={24}
+                                      height={24}
+                                      key={index}
+                                      className="rounded-full ring-1 ring-primary"
+                                    />
+                                  </li>
+                                ))}
+                              </ul>
+                              {portfolioCombined?.length - 5 > 0 && (
+                                <p className="text-sm text-muted-foreground">+{portfolioCombined?.length - 5} more</p>
+                              )}
+                            </div>
+                          }
+                        />
+                      </div>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-1 gap-12 w-full md:grid-cols-2">
+                    {longPositions.length > 0 && (
+                      <div className="space-y-6">
+                        <h2 className="text-2xl font-medium">Long positions</h2>
+                        <div className="space-y-8">
+                          {longPositions.map((pool, index) => (
+                            <PositionCard key={index} arenaPool={pool} />
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {shortPositions.length > 0 && (
+                      <div className="space-y-6">
+                        <h2 className="text-2xl font-medium">Short positions</h2>
+                        <div className="space-y-8">
+                          {shortPositions.map((pool, index) => (
+                            <PositionCard key={index} arenaPool={pool} />
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  <div>
+                    <LpPositionList />
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+        {poolsFetched && previousTxn && <ArenaActionComplete />}
+      </GeoBlockingWrapper>
+    </>
   );
 }
 

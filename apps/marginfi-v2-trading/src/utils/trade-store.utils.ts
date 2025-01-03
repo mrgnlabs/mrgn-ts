@@ -27,7 +27,7 @@ export interface StaticArenaProps {
 
 export const getArenaStaticProps: GetStaticProps<StaticArenaProps> = async (context: GetStaticPropsContext) => {
   // eslint-disable-next-line turbo/no-undeclared-env-vars
-  const baseUrl = process.env.NEXT_PUBLIC_VERCEL_URL ?? "http://localhost:3006";
+  const baseUrl = process.env.NODE_ENV === "development" ? "http://localhost:3006" : "https://staging.thearena.trade";
 
   const emptyState: InitialArenaState = {
     poolData: [],
