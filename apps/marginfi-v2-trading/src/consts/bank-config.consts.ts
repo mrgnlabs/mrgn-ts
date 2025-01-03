@@ -44,6 +44,7 @@ export const DEFAULT_STABLE_BANK_CONFIG: BankConfigOpt = {
   },
   oracleMaxAge: 300, // 5 mins
   permissionlessBadDebtSettlement: true,
+  freezeSettings: true,
 };
 
 /**
@@ -82,6 +83,7 @@ export const DEFAULT_TOKEN_BANK_CONFIG: BankConfigOpt = {
   },
   oracleMaxAge: 60, // 1 mins
   permissionlessBadDebtSettlement: true,
+  freezeSettings: true,
 };
 
 /**

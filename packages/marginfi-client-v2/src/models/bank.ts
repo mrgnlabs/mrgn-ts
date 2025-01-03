@@ -79,6 +79,8 @@ interface BankConfigRaw {
 
   oracleSetup: OracleSetupRaw;
   oracleKeys: PublicKey[];
+
+  freezeSettings: boolean | null;
 }
 
 interface BankConfigCompactRaw extends Omit<BankConfigRaw, "oracleKeys"> {
@@ -593,6 +595,8 @@ class BankConfig {
   public oracleKeys: PublicKey[];
   public oracleMaxAge: number;
 
+  public freezeSettings: boolean | null;
+
   constructor(
     assetWeightInit: BigNumber,
     assetWeightMaint: BigNumber,
@@ -606,7 +610,8 @@ class BankConfig {
     oracleKeys: PublicKey[],
     oracleMaxAge: number,
     interestRateConfig: InterestRateConfig,
-    operationalState: OperationalState
+    operationalState: OperationalState,
+    freezeSettings: boolean
   ) {
     this.assetWeightInit = assetWeightInit;
     this.assetWeightMaint = assetWeightMaint;
@@ -621,6 +626,7 @@ class BankConfig {
     this.interestRateConfig = interestRateConfig;
     this.operationalState = operationalState;
     this.oracleMaxAge = oracleMaxAge;
+    this.freezeSettings = freezeSettings;
   }
 
   static fromAccountParsed(bankConfigRaw: BankConfigRaw): BankConfig {
@@ -646,6 +652,7 @@ class BankConfig {
       protocolIrFee: wrappedI80F48toBigNumber(bankConfigRaw.interestRateConfig.protocolIrFee),
       protocolOriginationFee: wrappedI80F48toBigNumber(bankConfigRaw.interestRateConfig.protocolOriginationFee),
     };
+    const freezeSettings = bankConfigRaw.freezeSettings ?? false;
 
     return {
       assetWeightInit,
@@ -661,6 +668,7 @@ class BankConfig {
       oracleKeys,
       oracleMaxAge,
       interestRateConfig,
+      freezeSettings,
     };
   }
 }
@@ -721,6 +729,7 @@ interface BankConfigOpt {
 
   oracleMaxAge: number | null;
   permissionlessBadDebtSettlement: boolean | null;
+  freezeSettings: boolean | null;
 }
 
 interface BankConfigOptRaw {
@@ -745,6 +754,7 @@ interface BankConfigOptRaw {
 
   oracleMaxAge: number | null;
   permissionlessBadDebtSettlement: boolean | null;
+  freezeSettings: boolean | null;
 }
 
 function serializeBankConfigOpt(bankConfigOpt: BankConfigOpt): BankConfigOptRaw {
@@ -778,68 +788,9 @@ function serializeBankConfigOpt(bankConfigOpt: BankConfigOpt): BankConfigOptRaw 
     },
     oracleMaxAge: bankConfigOpt.oracleMaxAge,
     permissionlessBadDebtSettlement: bankConfigOpt.permissionlessBadDebtSettlement,
+    freezeSettings: bankConfigOpt.freezeSettings,
   };
 }
-
-// function serializeBankConfigOpt(bankConfigOpt: BankConfigOpt): BankConfigOptRaw {
-//   const assetWeightInit = bankConfigOpt.assetWeightInit && {
-//     value: [...new BN(bankConfigOpt.assetWeightInit.toString()).toBuffer()],
-//   };
-//   const assetWeightMaint = bankConfigOpt.assetWeightMaint && {
-//     value: [...new BN(bankConfigOpt.assetWeightMaint.toString()).toBuffer()],
-//   };
-//   const liabilityWeightInit = bankConfigOpt.liabilityWeightInit && {
-//     value: [...new BN(bankConfigOpt.liabilityWeightInit.toString()).toBuffer()],
-//   };
-//   const liabilityWeightMaint = bankConfigOpt.liabilityWeightMaint && {
-//     value: [...new BN(bankConfigOpt.liabilityWeightMaint.toString()).toBuffer()],
-//   };
-//   const depositLimit = bankConfigOpt.depositLimit && new BN(bankConfigOpt.depositLimit.toString());
-//   const borrowLimit = bankConfigOpt.borrowLimit && new BN(bankConfigOpt.borrowLimit.toString());
-//   const riskTier = bankConfigOpt.riskTier && serializeRiskTier(bankConfigOpt.riskTier); // parseRiskTier(bankConfigRaw.riskTier);
-//   const operationalState = bankConfigOpt.operationalState && serializeOperationalState(bankConfigOpt.operationalState);
-//   const totalAssetValueInitLimit =
-//     bankConfigOpt.totalAssetValueInitLimit && new BN(bankConfigOpt.totalAssetValueInitLimit.toString());
-//   const oracle = bankConfigOpt.oracle && {
-//     setup: serializeOracleSetup(bankConfigOpt.oracle.setup),
-//     keys: bankConfigOpt.oracle.keys,
-//   };
-//   const interestRateConfig = bankConfigOpt.interestRateConfig && {
-//     insuranceFeeFixedApr: {
-//       value: [...new BN(bankConfigOpt.interestRateConfig.insuranceFeeFixedApr.toString()).toBuffer()],
-//     },
-//     maxInterestRate: { value: [...new BN(bankConfigOpt.interestRateConfig.maxInterestRate.toString()).toBuffer()] },
-//     insuranceIrFee: { value: [...new BN(bankConfigOpt.interestRateConfig.insuranceIrFee.toString()).toBuffer()] },
-//     optimalUtilizationRate: {
-//       value: [...new BN(bankConfigOpt.interestRateConfig.optimalUtilizationRate.toString()).toBuffer()],
-//     },
-//     plateauInterestRate: {
-//       value: [...new BN(bankConfigOpt.interestRateConfig.plateauInterestRate.toString()).toBuffer()],
-//     },
-//     protocolFixedFeeApr: {
-//       value: [...new BN(bankConfigOpt.interestRateConfig.protocolFixedFeeApr.toString()).toBuffer()],
-//     },
-//     protocolIrFee: { value: [...new BN(bankConfigOpt.interestRateConfig.protocolIrFee.toString()).toBuffer()] },
-//   };
-//   const oracleMaxAge = bankConfigOpt.oracleMaxAge;
-//   const permissionlessBadDebtSettlement = bankConfigOpt.permissionlessBadDebtSettlement;
-
-//   return {
-//     assetWeightInit,
-//     assetWeightMaint,
-//     liabilityWeightInit,
-//     liabilityWeightMaint,
-//     depositLimit,
-//     borrowLimit,
-//     riskTier,
-//     operationalState,
-//     totalAssetValueInitLimit,
-//     oracle,
-//     interestRateConfig,
-//     oracleMaxAge,
-//     permissionlessBadDebtSettlement,
-//   };
-// }
 
 function parseRiskTier(riskTierRaw: RiskTierRaw): RiskTier {
   switch (Object.keys(riskTierRaw)[0].toLowerCase()) {
