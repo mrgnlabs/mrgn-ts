@@ -6,6 +6,7 @@ import { IconExternalLink } from "@tabler/icons-react";
 import { QuoteResponse } from "@jup-ag/api";
 import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { shortenAddress, usdFormatter } from "@mrgnlabs/mrgn-common";
+import { composeExplorerUrl } from "@mrgnlabs/mrgn-utils";
 
 interface Props {
   depositBank: ActiveBankInfo;
@@ -89,7 +90,7 @@ export const TradingScreen = ({
         <dt>Transaction</dt>
         <dd className="text-right">
           <Link
-            href={`https://solscan.io/tx/${txn}`}
+            href={composeExplorerUrl(txn) ?? ""}
             className="flex items-center justify-end gap-1.5 text-foreground text-sm underline hover:no-underline"
             target="_blank"
             rel="noopener noreferrer"
