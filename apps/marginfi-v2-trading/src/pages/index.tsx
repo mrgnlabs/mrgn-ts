@@ -20,6 +20,7 @@ import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
 import { getArenaStaticProps, StaticArenaProps } from "~/utils/trade-store.utils";
 import { ArenaActionComplete } from "~/components/common/ActionComplete";
+import { GeoBlockingWrapper } from "~/components/common/geo-blocking-wrapper";
 
 const sortOptions: {
   value: TradePoolFilterStates;
@@ -89,7 +90,7 @@ export default function HomePage({ initialData }: StaticArenaProps) {
   }, [setSortBy]);
 
   return (
-    <>
+    <GeoBlockingWrapper>
       <div className="w-full max-w-8xl mx-auto px-4 pb-16 pt-8 md:pt-14 min-h-[calc(100vh-100px)]">
         {!initialized && <Loader label="Loading the arena..." className="mt-8" />}
         {initialized && (
@@ -231,6 +232,6 @@ export default function HomePage({ initialData }: StaticArenaProps) {
           </>
         )}
       </div>
-    </>
+    </GeoBlockingWrapper>
   );
 }

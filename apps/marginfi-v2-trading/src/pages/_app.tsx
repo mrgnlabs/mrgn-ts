@@ -76,27 +76,25 @@ export default function MrgnApp({ Component, pageProps }: AppProps & StaticArena
                   <ActionProvider broadcastType={broadcastType} priorityFees={priorityFees}>
                     <div className="mrgn-bg-gradient">
                       <Header />
-                      <GeoBlockingWrapper>
-                        <Desktop>
-                          <WalletModalProvider>
-                            <div className="w-full flex flex-col justify-center items-center">
-                              <Component {...pageProps} />
-                            </div>
-                            <Footer />
-                          </WalletModalProvider>
-                        </Desktop>
-
-                        <Mobile>
-                          <MobileNavbar />
+                      <Desktop>
+                        <WalletModalProvider>
                           <div className="w-full flex flex-col justify-center items-center">
                             <Component {...pageProps} />
                           </div>
-                        </Mobile>
-                        <Analytics />
+                          <Footer />
+                        </WalletModalProvider>
+                      </Desktop>
 
-                        <AuthDialog onboardingEnabled={false} />
-                        <ToastContainer position="bottom-left" theme="light" />
-                      </GeoBlockingWrapper>
+                      <Mobile>
+                        <MobileNavbar />
+                        <div className="w-full flex flex-col justify-center items-center">
+                          <Component {...pageProps} />
+                        </div>
+                      </Mobile>
+                      <Analytics />
+
+                      <AuthDialog onboardingEnabled={false} />
+                      <ToastContainer position="bottom-left" theme="light" />
                     </div>
                   </ActionProvider>
                 </TradePovider>

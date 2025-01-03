@@ -14,6 +14,7 @@ import { Loader } from "~/components/common/Loader";
 import { TradeBoxV2 } from "~/components/common/trade-box-v2";
 import { ArenaActionComplete } from "~/components/common/ActionComplete";
 import { Meta } from "~/components/common/Meta";
+import { GeoBlockingWrapper } from "~/components/common/geo-blocking-wrapper";
 
 export const getStaticPaths: GetStaticPaths = async () => {
   return {
@@ -66,7 +67,7 @@ export default function TradeSymbolPage({ initialData, baseUrl, groupPk }: Stati
   }, [router, arenaPools, setActivePool, initialized, poolsFetched]);
 
   return (
-    <>
+    <GeoBlockingWrapper>
       <Meta
         groupPk={groupPk}
         poolData={initialData?.poolData}
@@ -98,6 +99,6 @@ export default function TradeSymbolPage({ initialData, baseUrl, groupPk }: Stati
       </div>
 
       {initialized && previousTxnUi && <ArenaActionComplete />}
-    </>
+    </GeoBlockingWrapper>
   );
 }
