@@ -22,3 +22,8 @@ TODO list of common banks and groups...
 ## MINTS
 * UXD - 7kbnvuGBxxj8AG9qp8Scn56muWGaRaFqxg1FsRp3PaFT
 * USDT - Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB
+
+
+## VALIDATORS
+* Cavey Cool - CooLbbZy5Xmdt7DiHPQ3ss2uRXawnTXXVgpMS8E8jDzr
+* Cavey Cool Single Pool - AvS4oXtxWdrJGCJwDbcZ7DqpSqNQtKjyXnbkDbrSk6Fq

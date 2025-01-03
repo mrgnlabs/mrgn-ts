@@ -9,7 +9,7 @@ import {
   VoteProgram,
 } from "@solana/web3.js";
 import { AnchorProvider } from "@coral-xyz/anchor";
-import { loadKeypairFromFile, SINGLE_POOL_PROGRAM_ID } from "./utils";
+import { loadKeypairFromFile } from "./utils";
 
 type Config = {
   /**
