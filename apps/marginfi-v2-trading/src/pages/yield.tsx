@@ -22,6 +22,7 @@ import { GetStaticProps } from "next";
 import { StaticArenaProps, getArenaStaticProps } from "~/utils";
 import { ArenaActionComplete } from "~/components/common/ActionComplete";
 import { GeoBlockingWrapper } from "~/components/common/geo-blocking-wrapper";
+import { Meta } from "~/components/common/Meta";
 
 const sortOptions: {
   value: TradePoolFilterStates;
@@ -137,131 +138,134 @@ export default function YieldPage({ initialData }: StaticArenaProps) {
   }, [isMobile]);
 
   return (
-    <GeoBlockingWrapper>
-      <div className="w-full max-w-8xl mx-auto px-4 md:px-8 pb-28 pt-12 min-h-[calc(100vh-100px)]">
-        {!poolsFetched && <Loader label="Loading yield farming..." className="mt-8" />}
-        {poolsFetched && (
-          <>
-            <div className="w-full max-w-4xl mx-auto">
-              <PageHeading
-                heading="Yield farming"
-                body={<p>Supply over-collateralized liquidity and earn yield.</p>}
-                links={[]}
-              />
-            </div>
-
-            <div className="flex justify-center items-center w-full max-w-4xl mx-auto mb-8 mt-4 lg:mb-16 lg:mt-8">
-              <div className="w-full relative" ref={searchRef}>
-                <Input
-                  placeholder={isMobile ? "Search tokens..." : "Search tokens by name, symbol, or mint address..."}
-                  className="pl-10 py-2 rounded-full h-auto bg-transparent lg:py-2.5 lg:text-lg"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                />
-                <IconSearch
-                  size={isMobile ? 16 : 18}
-                  className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground"
+    <>
+      <Meta />
+      <GeoBlockingWrapper>
+        <div className="w-full max-w-8xl mx-auto px-4 md:px-8 pb-28 pt-12 min-h-[calc(100vh-100px)]">
+          {!poolsFetched && <Loader label="Loading yield farming..." className="mt-8" />}
+          {poolsFetched && (
+            <>
+              <div className="w-full max-w-4xl mx-auto">
+                <PageHeading
+                  heading="Yield farming"
+                  body={<p>Supply over-collateralized liquidity and earn yield.</p>}
+                  links={[]}
                 />
               </div>
-            </div>
 
-            <Desktop>
-              {filteredPools && filteredPools.length > 0 && (
-                <div
-                  className={cn(
-                    "text-sm grid xl:text-base gap-4 text-muted-foreground mb-8 items-center",
-                    connected ? "grid-cols-7" : "grid-cols-6"
-                  )}
-                >
-                  <div className="pl-4">Pool</div>
+              <div className="flex justify-center items-center w-full max-w-4xl mx-auto mb-8 mt-4 lg:mb-16 lg:mt-8">
+                <div className="w-full relative" ref={searchRef}>
+                  <Input
+                    placeholder={isMobile ? "Search tokens..." : "Search tokens by name, symbol, or mint address..."}
+                    className="pl-10 py-2 rounded-full h-auto bg-transparent lg:py-2.5 lg:text-lg"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                  />
+                  <IconSearch
+                    size={isMobile ? 16 : 18}
+                    className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground"
+                  />
+                </div>
+              </div>
+
+              <Desktop>
+                {filteredPools && filteredPools.length > 0 && (
                   <div
                     className={cn(
-                      "pl-3 flex items-center gap-1 cursor-pointer transition-colors hover:text-foreground",
-                      (sortBy === TradePoolFilterStates.LIQUIDITY_ASC ||
-                        sortBy === TradePoolFilterStates.LIQUIDITY_DESC) &&
-                        "text-foreground"
+                      "text-sm grid xl:text-base gap-4 text-muted-foreground mb-8 items-center",
+                      connected ? "grid-cols-7" : "grid-cols-6"
                     )}
-                    onClick={() => {
-                      setSortBy(
-                        sortBy === TradePoolFilterStates.LIQUIDITY_DESC
-                          ? TradePoolFilterStates.LIQUIDITY_ASC
-                          : TradePoolFilterStates.LIQUIDITY_DESC
-                      );
-                    }}
                   >
-                    {sortBy === TradePoolFilterStates.LIQUIDITY_ASC && <IconSortAscending size={16} />}
-                    {sortBy === TradePoolFilterStates.LIQUIDITY_DESC && <IconSortDescending size={16} />}
-                    Total Deposits
+                    <div className="pl-4">Pool</div>
+                    <div
+                      className={cn(
+                        "pl-3 flex items-center gap-1 cursor-pointer transition-colors hover:text-foreground",
+                        (sortBy === TradePoolFilterStates.LIQUIDITY_ASC ||
+                          sortBy === TradePoolFilterStates.LIQUIDITY_DESC) &&
+                          "text-foreground"
+                      )}
+                      onClick={() => {
+                        setSortBy(
+                          sortBy === TradePoolFilterStates.LIQUIDITY_DESC
+                            ? TradePoolFilterStates.LIQUIDITY_ASC
+                            : TradePoolFilterStates.LIQUIDITY_DESC
+                        );
+                      }}
+                    >
+                      {sortBy === TradePoolFilterStates.LIQUIDITY_ASC && <IconSortAscending size={16} />}
+                      {sortBy === TradePoolFilterStates.LIQUIDITY_DESC && <IconSortDescending size={16} />}
+                      Total Deposits
+                    </div>
+                    <button
+                      className={cn(
+                        "flex items-center gap-1 justify-end cursor-pointer transition-colors xl:justify-center xl:pr-4 hover:text-foreground",
+                        (sortBy === TradePoolFilterStates.APY_ASC || sortBy === TradePoolFilterStates.APY_DESC) &&
+                          "text-foreground"
+                      )}
+                      onClick={() => {
+                        setSortBy(
+                          sortBy === TradePoolFilterStates.APY_DESC
+                            ? TradePoolFilterStates.APY_ASC
+                            : TradePoolFilterStates.APY_DESC
+                        );
+                      }}
+                    >
+                      {sortBy === TradePoolFilterStates.APY_ASC && <IconSortAscending size={16} />}
+                      {sortBy === TradePoolFilterStates.APY_DESC && <IconSortDescending size={16} />}
+                      Lending APY
+                    </button>
+                    <div className="text-right xl:text-center">Borrow APY</div>
+                    <div className="text-center">Created by</div>
+                    {connected && <div>Supplied</div>}
+                    <div />
                   </div>
-                  <button
-                    className={cn(
-                      "flex items-center gap-1 justify-end cursor-pointer transition-colors xl:justify-center xl:pr-4 hover:text-foreground",
-                      (sortBy === TradePoolFilterStates.APY_ASC || sortBy === TradePoolFilterStates.APY_DESC) &&
-                        "text-foreground"
-                    )}
-                    onClick={() => {
-                      setSortBy(
-                        sortBy === TradePoolFilterStates.APY_DESC
-                          ? TradePoolFilterStates.APY_ASC
-                          : TradePoolFilterStates.APY_DESC
-                      );
-                    }}
-                  >
-                    {sortBy === TradePoolFilterStates.APY_ASC && <IconSortAscending size={16} />}
-                    {sortBy === TradePoolFilterStates.APY_DESC && <IconSortDescending size={16} />}
-                    Lending APY
-                  </button>
-                  <div className="text-right xl:text-center">Borrow APY</div>
-                  <div className="text-center">Created by</div>
-                  {connected && <div>Supplied</div>}
-                  <div />
+                )}
+                <div>
+                  {filteredPools &&
+                    filteredPools.length > 0 &&
+                    filteredPools.map((pool) => <YieldRow key={pool.groupPk.toBase58()} pool={pool} />)}
+                </div>
+              </Desktop>
+              <Mobile>
+                <div className="space-y-12">
+                  <div className="flex flex-col items-center">
+                    <Select
+                      value={sortBy}
+                      onValueChange={(value) => {
+                        setSortBy(value as TradePoolFilterStates);
+                      }}
+                    >
+                      <SelectTrigger className="w-[190px] justify-start gap-2">
+                        {dir === "desc" && <IconSortDescending size={16} />}
+                        {dir === "asc" && <IconSortAscending size={16} />}
+                        <SelectValue placeholder="Sort pools" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {sortOptions.map((option, i) => (
+                          <SelectItem key={i} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {filteredPools &&
+                    filteredPools.length > 0 &&
+                    filteredPools.map((pool) => {
+                      return <YieldCard key={pool.groupPk.toBase58()} pool={pool} />;
+                    })}
+                </div>
+              </Mobile>
+
+              {filteredPools.length === 0 && search.length > 0 && (
+                <div className="w-full flex items-center justify-center">
+                  <p>No pools found</p>
                 </div>
               )}
-              <div>
-                {filteredPools &&
-                  filteredPools.length > 0 &&
-                  filteredPools.map((pool) => <YieldRow key={pool.groupPk.toBase58()} pool={pool} />)}
-              </div>
-            </Desktop>
-            <Mobile>
-              <div className="space-y-12">
-                <div className="flex flex-col items-center">
-                  <Select
-                    value={sortBy}
-                    onValueChange={(value) => {
-                      setSortBy(value as TradePoolFilterStates);
-                    }}
-                  >
-                    <SelectTrigger className="w-[190px] justify-start gap-2">
-                      {dir === "desc" && <IconSortDescending size={16} />}
-                      {dir === "asc" && <IconSortAscending size={16} />}
-                      <SelectValue placeholder="Sort pools" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {sortOptions.map((option, i) => (
-                        <SelectItem key={i} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                {filteredPools &&
-                  filteredPools.length > 0 &&
-                  filteredPools.map((pool) => {
-                    return <YieldCard key={pool.groupPk.toBase58()} pool={pool} />;
-                  })}
-              </div>
-            </Mobile>
-
-            {filteredPools.length === 0 && search.length > 0 && (
-              <div className="w-full flex items-center justify-center">
-                <p>No pools found</p>
-              </div>
-            )}
-          </>
-        )}
-      </div>
-    </GeoBlockingWrapper>
+            </>
+          )}
+        </div>
+      </GeoBlockingWrapper>
+    </>
   );
 }
