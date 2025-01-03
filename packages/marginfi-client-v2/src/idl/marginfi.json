@@ -2364,18 +2364,6 @@
             "type": "u16"
           },
           {
-            "name": "permissionless_bad_debt_settlement",
-            "type": {
-              "option": "bool"
-            }
-          },
-          {
-            "name": "freeze_settings",
-            "type": {
-              "option": "bool"
-            }
-          },
-          {
             "name": "_padding",
             "type": {
               "array": ["u8", 38]

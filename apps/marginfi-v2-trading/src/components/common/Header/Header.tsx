@@ -8,15 +8,18 @@ import { motion, useAnimate } from "framer-motion";
 import { IconPlus, IconCopy, IconCheck, IconSettings, IconLayoutDashboard } from "@tabler/icons-react";
 import { CopyToClipboard } from "react-copy-to-clipboard";
 import { cn } from "@mrgnlabs/mrgn-utils";
+import { Settings } from "@mrgnlabs/mrgn-ui";
 
 import { useTradeStoreV2, useUiStore } from "~/store";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { useIsMobile } from "~/hooks/use-is-mobile";
 import { useConnection } from "~/hooks/use-connection";
 
+import { CreatePoolScriptDialog } from "../Pool/CreatePoolScript";
 import { CreatePoolDialog } from "../Pool/CreatePoolDialog";
 import { Wallet } from "~/components/wallet-v2";
 import { Button } from "~/components/ui/button";
+import { IconArena } from "~/components/ui/icons";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { Loader } from "~/components/common/Loader";
 import { ResponsiveSettingsWrapper } from "~/components";
@@ -135,6 +138,20 @@ export const Header = () => {
               )}
             </Link>
           )}
+          {
+            // eslint-disable-next-line turbo/no-undeclared-env-vars
+            process.env.NEXT_PUBLIC_ENABLE_BANK_SCRIPT && (
+              <div className="flex items-center">
+                <CreatePoolScriptDialog
+                  trigger={
+                    <Button variant="outline" size={isMobile ? "sm" : "default"}>
+                      <IconPlus size={isMobile ? 14 : 18} /> Pool Script
+                    </Button>
+                  }
+                />
+              </div>
+            )
+          }
           <div className="flex items-center gap-4">
             {!isMobile && connected && (
               <div className="flex items-center">
