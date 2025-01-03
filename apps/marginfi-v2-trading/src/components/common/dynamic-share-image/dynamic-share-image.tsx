@@ -27,7 +27,7 @@ export function DynamicShareImage({
         backgroundRepeat: "no-repeat",
         backgroundSize: "cover",
         position: "relative",
-        fontFamily: "var(--font-aeonik)",
+        fontFamily: "Orbitron",
       }}
     >
       <div
@@ -35,7 +35,7 @@ export function DynamicShareImage({
           width: "84px",
           height: "84px",
           overflow: "hidden",
-          marginBottom: "20px",
+          marginBottom: "12px",
           padding: "2px",
           display: "flex",
         }}
@@ -51,6 +51,7 @@ export function DynamicShareImage({
             position: "absolute",
             height: "80px",
             width: "80px",
+            border: "1px solid black",
           }}
         />
         <img
@@ -66,6 +67,7 @@ export function DynamicShareImage({
             position: "absolute",
             bottom: "0",
             right: "0",
+            border: "1px solid black",
           }}
         />
       </div>
@@ -75,10 +77,9 @@ export function DynamicShareImage({
           fontSize: "32px",
           fontWeight: "bold",
           margin: 0,
-          fontFamily: "var(--font-aeonik)",
         }}
       >
-        {tokenSymbol}/{quoteTokenSymbol}
+        {tokenSymbol} / {quoteTokenSymbol}
       </h1>
     </div>
   );
