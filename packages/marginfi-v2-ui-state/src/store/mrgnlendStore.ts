@@ -213,12 +213,21 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
         bankMetadataMap = results[0];
         tokenMetadataMap = results[1];
       } else if (marginfiConfig.environment === "staging") {
-        const bankMetadataJson = (await import("./staging-metadata.json")) as {
-          bankMetadata: BankMetadataMap;
-          tokenMetadata: TokenMetadataMap;
-        };
-        bankMetadataMap = bankMetadataJson.bankMetadata;
-        tokenMetadataMap = bankMetadataJson.tokenMetadata;
+        if (process.env.NEXT_PUBLIC_BANKS_MAP && process.env.NEXT_PUBLIC_TOKENS_MAP) {
+          let results = await Promise.all([
+            loadBankMetadatas(process.env.NEXT_PUBLIC_BANKS_MAP),
+            loadTokenMetadatas(process.env.NEXT_PUBLIC_TOKENS_MAP),
+          ]);
+          bankMetadataMap = results[0];
+          tokenMetadataMap = results[1];
+        } else {
+          const bankMetadataJson = (await import("./staging-metadata.json")) as {
+            bankMetadata: BankMetadataMap;
+            tokenMetadata: TokenMetadataMap;
+          };
+          bankMetadataMap = bankMetadataJson.bankMetadata;
+          tokenMetadataMap = bankMetadataJson.tokenMetadata;
+        }
       } else if (marginfiConfig.environment === "mainnet-test-1") {
         const bankMetadataJson = (await import("./mainnet-test-1-metadata.json")) as {
           bankMetadata: BankMetadataMap;
