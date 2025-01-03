@@ -9,6 +9,7 @@ import { dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
 
 import { ArenaPoolV2Extended } from "~/types/trade-store.types";
 import { PnlLabel, PnlBadge } from "~/components/common/pnl-display";
+import { composeExplorerUrl } from "@mrgnlabs/mrgn-utils";
 
 interface Props {
   tokenBank: ExtendedBankInfo;
@@ -64,7 +65,7 @@ export const ClosePositionScreen = ({ tokenBank, size, leverage, entryPrice, exi
         <dt>Transaction</dt>
         <dd className="text-right">
           <Link
-            href={txnLink || `https://solscan.io/tx/${txn}`}
+            href={txnLink ?? composeExplorerUrl(txn) ?? ""}
             className="flex items-center justify-end gap-1.5 text-foreground text-sm underline hover:no-underline"
             target="_blank"
             rel="noopener noreferrer"
