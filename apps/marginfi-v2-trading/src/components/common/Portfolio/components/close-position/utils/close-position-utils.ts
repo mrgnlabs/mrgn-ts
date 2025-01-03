@@ -26,7 +26,10 @@ import {
 } from "@mrgnlabs/mrgn-utils";
 import { calculateClosePositions } from "~/utils";
 
-export const fetchTransactionsAction = async ({
+/**
+ * Simulates closing a position by fetching and validating the required transactions
+ */
+export const simulateClosePosition = async ({
   marginfiAccount,
   depositBanks,
   borrowBank,
@@ -44,15 +47,18 @@ export const fetchTransactionsAction = async ({
   setIsLoading: (loading: boolean) => void;
 }): Promise<{ actionTxns: ClosePositionActionTxns | null; actionMessage: ActionMessageType | null }> => {
   try {
-    if (!marginfiAccount || !depositBanks[0] || !borrowBank) {
-      return { actionTxns: null, actionMessage: STATIC_SIMULATION_ERRORS.TRADE_FAILED };
+    if (!marginfiAccount) {
+      return { actionTxns: null, actionMessage: STATIC_SIMULATION_ERRORS.ACCOUNT_NOT_INITIALIZED };
+    }
+    if (depositBanks.length === 0 || !borrowBank) {
+      return { actionTxns: null, actionMessage: STATIC_SIMULATION_ERRORS.BANK_NOT_INITIALIZED };
     }
 
     setIsLoading(true);
 
     const { actionTxns, actionMessage } = await fetchClosePositionTxns({
       marginfiAccount,
-      depositBanks: depositBanks,
+      depositBank: depositBanks[0],
       borrowBank: borrowBank,
       slippageBps,
       connection: connection,
@@ -85,7 +91,7 @@ export const fetchTransactionsAction = async ({
 
 const fetchClosePositionTxns = async (props: {
   marginfiAccount: MarginfiAccountWrapper;
-  depositBanks: ActiveBankInfo[];
+  depositBank: ActiveBankInfo;
   borrowBank: ActiveBankInfo;
   slippageBps: number;
   connection: Connection;
@@ -93,80 +99,51 @@ const fetchClosePositionTxns = async (props: {
 }): Promise<{ actionTxns: ClosePositionActionTxns | null; actionMessage: ActionMessageType | null }> => {
   try {
     let txns: ClosePositionActionTxns | ActionMessageType;
+
     txns = await calculateClosePositions({
       marginfiAccount: props.marginfiAccount,
-      depositBanks: props.depositBanks,
+      depositBanks: [props.depositBank],
       borrowBank: props.borrowBank,
       slippageBps: props.slippageBps,
       connection: props.connection,
       platformFeeBps: props.platformFeeBps,
     });
 
-    let swapTx: { quote?: QuoteResponse; tx?: SolanaTransaction; error?: ActionMessageType } | undefined;
-    if (props.depositBanks[0].meta.tokenSymbol !== "USDC") {
-      console.log("Creating swap transaction...");
-      const maxAmount = await calculateMaxRepayableCollateral(
-        props.borrowBank,
-        props.depositBanks[0],
-        props.slippageBps
-      );
-      if (!maxAmount) {
-        return { actionTxns: null, actionMessage: STATIC_SIMULATION_ERRORS.FL_FAILED };
-      }
-      const amount = props.depositBanks[0].position.amount - maxAmount;
-
-      try {
-        swapTx = await createSwapTx(
-          props.depositBanks[0],
-          amount,
-          {
-            slippageBps: props.slippageBps,
-          },
-          props.marginfiAccount.authority,
-          props.connection
-        );
-
-        if (swapTx.error) {
-          return { actionTxns: null, actionMessage: swapTx.error };
-        } else if (!swapTx.tx || !swapTx.quote) {
-          return { actionTxns: null, actionMessage: STATIC_SIMULATION_ERRORS.FL_FAILED };
-        }
-      } catch (error) {
-        const msg = extractErrorString(error);
-        let actionMethod: ActionMessageType = STATIC_SIMULATION_ERRORS.TRADE_FAILED;
-        if (msg) {
-          actionMethod = {
-            isEnabled: false,
-            actionMethod: "WARNING",
-            description: msg,
-            code: 101,
-          };
-        }
-        console.error("Error simulating transaction", error);
-
-        return { actionTxns: null, actionMessage: actionMethod };
-      }
+    // if the actionTxn is not present, we need to return an error
+    if (!("actionTxn" in txns)) {
+      return { actionTxns: null, actionMessage: txns };
     }
 
-    if ("actionTxn" in txns) {
-      if (swapTx?.tx && swapTx?.quote) {
-        return {
-          actionTxns: {
-            ...txns,
-            closeTransactions: swapTx.tx ? [swapTx.tx] : [],
-          },
-          actionMessage: null,
+    // if the deposit bank is not USDC, we need to swap to USDC
+    if (props.depositBank.meta.tokenSymbol !== "USDC") {
+      const swapTx = await getSwapTx({
+        ...props,
+        authority: props.marginfiAccount.authority,
+        jupOpts: {
+          slippageBps: props.slippageBps,
+          platformFeeBps: props.platformFeeBps,
+        },
+      });
+
+      if ("tx" in swapTx) {
+        txns = {
+          ...txns,
+          closeTransactions: swapTx.tx ? [swapTx.tx] : [],
         };
       } else {
-        return {
-          actionTxns: txns,
-          actionMessage: null,
-        };
+        return { actionTxns: null, actionMessage: swapTx };
       }
-    } else {
-      const errorMessage = txns ?? DYNAMIC_SIMULATION_ERRORS.TRADE_FAILED_CHECK();
-      return { actionTxns: null, actionMessage: errorMessage };
     }
+
+    // close marginfi account
+    const closeAccountTx = await getCloseAccountTx(props.marginfiAccount);
+
+    txns = {
+      ...txns,
+      closeTransactions: [...(txns.closeTransactions ?? []), closeAccountTx],
+    };
+
+    return { actionTxns: txns, actionMessage: null };
   } catch (error) {
     const msg = extractErrorString(error);
     let actionMethod: ActionMessageType = STATIC_SIMULATION_ERRORS.TRADE_FAILED;
@@ -184,80 +161,7 @@ const fetchClosePositionTxns = async (props: {
   }
 };
 
-async function createSwapTx(
-  depositBank: ActiveBankInfo,
-  depositAmount: number,
-  jupOpts: { slippageBps: number },
-  authority: PublicKey,
-  connection: Connection
-): Promise<{ quote?: QuoteResponse; tx?: SolanaTransaction; error?: ActionMessageType }> {
-  try {
-    const jupiterQuoteApi = createJupiterApiClient();
-
-    const swapQuote = await getSwapQuoteWithRetry({
-      swapMode: "ExactIn",
-      amount: uiToNative(depositAmount, depositBank.info?.rawBank.mintDecimals).toNumber(),
-      outputMint: USDC_MINT.toBase58(),
-      inputMint: depositBank.info.state.mint.toBase58(),
-      slippageBps: jupOpts.slippageBps,
-    });
-
-    if (!swapQuote) {
-      return { error: STATIC_SIMULATION_ERRORS.FL_FAILED };
-    }
-
-    const {
-      computeBudgetInstructions,
-      swapInstruction,
-      setupInstructions,
-      cleanupInstruction,
-      addressLookupTableAddresses,
-    } = await jupiterQuoteApi.swapInstructionsPost({
-      swapRequest: {
-        quoteResponse: swapQuote,
-        userPublicKey: authority.toBase58(),
-        programAuthorityId: LUT_PROGRAM_AUTHORITY_INDEX,
-      },
-    });
-
-    const swapIx = deserializeInstruction(swapInstruction);
-    const setupInstructionsIxs = setupInstructions.map((value) => deserializeInstruction(value));
-    const cuInstructionsIxs = computeBudgetInstructions.map((value) => deserializeInstruction(value));
-    // const cleanupInstructionIx = deserializeInstruction(cleanupInstruction);
-    const addressLookupAccounts = await getAdressLookupTableAccounts(connection, addressLookupTableAddresses);
-    const finalBlockhash = (await connection.getLatestBlockhash()).blockhash;
-
-    const swapMessage = new TransactionMessage({
-      payerKey: authority,
-      recentBlockhash: finalBlockhash,
-      instructions: [...cuInstructionsIxs, ...setupInstructionsIxs, swapIx],
-    });
-    const swapTx = addTransactionMetadata(
-      new VersionedTransaction(swapMessage.compileToV0Message(addressLookupAccounts)),
-      {
-        addressLookupTables: addressLookupAccounts,
-        type: "SWAP",
-      }
-    );
-
-    return { quote: swapQuote, tx: swapTx };
-  } catch (error) {
-    const msg = extractErrorString(error);
-    let actionMethod: ActionMessageType = STATIC_SIMULATION_ERRORS.FL_FAILED;
-    if (msg) {
-      actionMethod = {
-        isEnabled: false,
-        actionMethod: "WARNING",
-        description: msg,
-        code: 101,
-      };
-    }
-    console.error("Error creating USDC swap transaction:", error);
-    return { error: actionMethod };
-  }
-}
-
-export const closePositionAction = async ({
+export const closePosition = async ({
   marginfiClient,
   actionTransaction,
   broadcastType,
@@ -314,3 +218,111 @@ export const closePositionAction = async ({
     return { txnSig: null, actionMessage: actionMethod };
   }
 };
+
+/**
+ * Creates a transaction to close a marginfi account
+ */
+async function getCloseAccountTx(marginfiAccount: MarginfiAccountWrapper): Promise<SolanaTransaction> {
+  return marginfiAccount.makeCloseAccountTx();
+}
+
+/**
+ * USDC Swap Transaction Logic
+ *
+ * Contains functions for creating and executing swaps to USDC:
+ * - getSwapTx: Gets transaction for swapping max repayable collateral
+ * - createSwapTx: Creates Jupiter swap transaction with given parameters
+ */
+
+/**
+ * Common types/interfaces for swap transactions
+ */
+type SwapTxProps = {
+  depositBank: ActiveBankInfo;
+  authority: PublicKey;
+  connection: Connection;
+  jupOpts: { slippageBps: number; platformFeeBps?: number };
+};
+interface CreateSwapTxProps extends SwapTxProps {
+  swapAmount: number;
+}
+
+interface GetSwapTxProps extends SwapTxProps {
+  borrowBank: ActiveBankInfo;
+}
+
+type CreateSwapTxResponse = { tx: SolanaTransaction; quote: QuoteResponse };
+
+/**
+ * Gets a Jupiter swap transaction for swapping the maximum repayable collateral amount to USDC
+ */
+async function getSwapTx({ borrowBank, ...props }: GetSwapTxProps): Promise<CreateSwapTxResponse | ActionMessageType> {
+  const maxAmount = await calculateMaxRepayableCollateral(borrowBank, props.depositBank, props.jupOpts.slippageBps);
+  if (!maxAmount) {
+    return STATIC_SIMULATION_ERRORS.MAX_AMOUNT_CALCULATION_FAILED;
+  }
+  const amount = props.depositBank.position.amount - maxAmount;
+
+  const swapTx = await createSwapTx({ ...props, swapAmount: amount });
+
+  return swapTx;
+}
+
+async function createSwapTx({
+  depositBank,
+  swapAmount,
+  authority,
+  connection,
+  jupOpts,
+}: CreateSwapTxProps): Promise<CreateSwapTxResponse> {
+  const jupiterQuoteApi = createJupiterApiClient();
+
+  const swapQuote = await getSwapQuoteWithRetry({
+    swapMode: "ExactIn",
+    amount: uiToNative(swapAmount, depositBank.info?.rawBank.mintDecimals).toNumber(),
+    outputMint: USDC_MINT.toBase58(),
+    inputMint: depositBank.info.state.mint.toBase58(),
+    slippageBps: jupOpts.slippageBps,
+    platformFeeBps: jupOpts.platformFeeBps,
+  });
+
+  if (!swapQuote) {
+    throw new Error("Swap quote fetching for USDC swap failed.");
+  }
+
+  const {
+    computeBudgetInstructions,
+    swapInstruction,
+    setupInstructions,
+    cleanupInstruction,
+    addressLookupTableAddresses,
+  } = await jupiterQuoteApi.swapInstructionsPost({
+    swapRequest: {
+      quoteResponse: swapQuote,
+      userPublicKey: authority.toBase58(),
+      programAuthorityId: LUT_PROGRAM_AUTHORITY_INDEX,
+    },
+  });
+
+  const swapIx = deserializeInstruction(swapInstruction);
+  const setupInstructionsIxs = setupInstructions.map((value) => deserializeInstruction(value));
+  const cuInstructionsIxs = computeBudgetInstructions.map((value) => deserializeInstruction(value));
+  // const cleanupInstructionIx = deserializeInstruction(cleanupInstruction);
+  const addressLookupAccounts = await getAdressLookupTableAccounts(connection, addressLookupTableAddresses);
+  const finalBlockhash = (await connection.getLatestBlockhash()).blockhash;
+
+  const swapMessage = new TransactionMessage({
+    payerKey: authority,
+    recentBlockhash: finalBlockhash,
+    instructions: [...cuInstructionsIxs, ...setupInstructionsIxs, swapIx],
+  });
+  const swapTx = addTransactionMetadata(
+    new VersionedTransaction(swapMessage.compileToV0Message(addressLookupAccounts)),
+    {
+      addressLookupTables: addressLookupAccounts,
+      type: "SWAP",
+    }
+  );
+
+  return { quote: swapQuote, tx: swapTx };
+}
