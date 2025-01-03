@@ -71,10 +71,9 @@ export default function MrgnApp({ Component, pageProps, path, bank }: AppProps &
               <MrgnWalletProvider>
                 <TradePovider>
                   <ActionProvider broadcastType={broadcastType} priorityFees={priorityFees}>
-                    <GeoBlockingWrapper>
-                      <div className="mrgn-bg-gradient">
-                        <Header />
-
+                    <div className="mrgn-bg-gradient">
+                      <Header />
+                      <GeoBlockingWrapper>
                         <Desktop>
                           <WalletModalProvider>
                             <div className="w-full flex flex-col justify-center items-center">
@@ -94,8 +93,8 @@ export default function MrgnApp({ Component, pageProps, path, bank }: AppProps &
 
                         <AuthDialog onboardingEnabled={false} />
                         <ToastContainer position="bottom-left" theme="light" />
-                      </div>
-                    </GeoBlockingWrapper>
+                      </GeoBlockingWrapper>
+                    </div>
                   </ActionProvider>
                 </TradePovider>
               </MrgnWalletProvider>
