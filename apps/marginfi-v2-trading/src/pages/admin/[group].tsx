@@ -8,6 +8,7 @@ import { AdminPoolDetailHeader, AdminPoolDetailCard } from "~/components/common/
 import { ArenaPoolV2 } from "~/types/trade-store.types";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { GeoBlockingWrapper } from "~/components/common/geo-blocking-wrapper";
+import { Meta } from "~/components/common/Meta/Meta";
 
 export default function AdminGroupDetailsPage() {
   const [initialized, poolsFetched, arenaPools, groupsByGroupPk] = useTradeStoreV2((state) => [
@@ -47,11 +48,14 @@ export default function AdminGroupDetailsPage() {
   }, [router, ownPools, setActivePool, initialized, poolsFetched]);
 
   return (
-    <GeoBlockingWrapper>
-      <div className="w-full space-y-12 max-w-6xl mx-auto px-4 pb-16 pt-8 md:pt-14 min-h-[calc(100vh-100px)] mb-4 sm:mb-0">
-        {activePool && <AdminPoolDetailHeader activePool={activePool} />}
-        {activePool && <AdminPoolDetailCard activePool={activePool} />}
-      </div>
-    </GeoBlockingWrapper>
+    <>
+      <Meta />
+      <GeoBlockingWrapper>
+        <div className="w-full space-y-12 max-w-6xl mx-auto px-4 pb-16 pt-8 md:pt-14 min-h-[calc(100vh-100px)] mb-4 sm:mb-0">
+          {activePool && <AdminPoolDetailHeader activePool={activePool} />}
+          {activePool && <AdminPoolDetailCard activePool={activePool} />}
+        </div>
+      </GeoBlockingWrapper>
+    </>
   );
 }
