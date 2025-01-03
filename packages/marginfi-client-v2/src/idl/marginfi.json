@@ -2595,12 +2595,6 @@
             }
           },
           {
-            "name": "asset_tag",
-            "type": {
-              "option": "u8"
-            }
-          },
-          {
             "name": "total_asset_value_init_limit",
             "type": {
               "option": "u64"
