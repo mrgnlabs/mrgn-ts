@@ -4,8 +4,8 @@ import Image from "next/image";
 
 import { IconExternalLink } from "@tabler/icons-react";
 import { ActionType, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { shortenAddress, dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
-import { cn, computeBankRate, LendingModes } from "@mrgnlabs/mrgn-utils";
+import { shortenAddress, dynamicNumeralFormatter, percentFormatter } from "@mrgnlabs/mrgn-common";
+import { cn, getRateData } from "@mrgnlabs/mrgn-utils";
 
 interface Props {
   amount: number;
@@ -30,7 +30,7 @@ export const LendingScreen = ({ amount, bank, type, txn, txnLink, collatRepay }:
   }, [type]);
 
   const rate = React.useMemo(() => {
-    return computeBankRate(bank, type === ActionType.Deposit ? LendingModes.LEND : LendingModes.BORROW);
+    return getRateData(bank, type === ActionType.Deposit || type === ActionType.Withdraw);
   }, [bank, type]);
 
   const updatedBankAmount = React.useMemo(() => {
@@ -137,7 +137,7 @@ export const LendingScreen = ({ amount, bank, type, txn, txnLink, collatRepay }:
           </>
         )}
         <dt>APY</dt>
-        <dd className={cn("text-right", actionTextColor)}>{rate}</dd>
+        <dd className={cn("text-right", actionTextColor)}>{percentFormatter.format(rate.rateAPY)}</dd>
         <dt>Transaction</dt>
         <dd className="text-right">
           <Link
