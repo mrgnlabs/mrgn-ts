@@ -26,6 +26,7 @@ export interface StaticArenaProps {
 }
 
 export const getArenaStaticProps: GetStaticProps<StaticArenaProps> = async (context: GetStaticPropsContext) => {
+  // eslint-disable-next-line turbo/no-undeclared-env-vars
   const baseUrl = process.env.NEXT_PUBLIC_VERCEL_URL ?? "http://localhost:3006";
 
   const emptyState: InitialArenaState = {
@@ -46,7 +47,6 @@ export const getArenaStaticProps: GetStaticProps<StaticArenaProps> = async (cont
   }
 
   try {
-    // eslint-disable-next-line turbo/no-undeclared-env-vars
     const initialData = await fetchInitialArenaState(baseUrl);
 
     if (!initialData) {
