@@ -1,6 +1,6 @@
 import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
 import { bigNumberToWrappedI80F48 } from "@mrgnlabs/mrgn-common";
-import { Keypair } from "@solana/web3.js";
+import { Keypair, PublicKey } from "@solana/web3.js";
 import * as fs from "fs";
 
 export const I80F48_ZERO = bigNumberToWrappedI80F48(0);
@@ -28,3 +28,7 @@ export function loadKeypairFromTxtFile(filePath: string): Keypair {
   const secretKeyArray = bs58.decode(base58Key);
   return Keypair.fromSecretKey(secretKeyArray);
 }
+
+export const SINGLE_POOL_PROGRAM_ID = new PublicKey(
+  "SVSPxpvHdN29nkVg9rPapPNDddN5DipNLRUFhyjFThE"
+);
