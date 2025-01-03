@@ -198,6 +198,13 @@ export const STATIC_SIMULATION_ERRORS: { [key: string]: ActionMessageType } = {
     description: "There was an issue with the max amount calculation. Please refresh and try again.",
     code: 133,
   },
+  SIMULATION_NOT_READY: {
+    isEnabled: false,
+    actionMethod: "WARNING",
+    description:
+      "Transaction is not ready to execute yet. Please ensure it has been fully simulated before proceeding.",
+    code: 134,
+  },
 };
 
 const createRepayCollatFailedCheck = (tokenSymbol?: string): ActionMessageType => ({

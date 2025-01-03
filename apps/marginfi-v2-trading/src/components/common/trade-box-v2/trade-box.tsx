@@ -1,25 +1,21 @@
-"use client";
-
 import React from "react";
 
 import {
   ActionMessageType,
-  ActionTxns,
   capture,
   ExecuteTradeActionProps,
   formatAmount,
-  IndividualFlowError,
   TradeActionTxns,
   MultiStepToastHandle,
   showErrorToast,
   useConnection,
+  STATIC_SIMULATION_ERRORS,
 } from "@mrgnlabs/mrgn-utils";
 import { IconSettings } from "@tabler/icons-react";
-import { ActionType, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { ArenaPoolV2, ArenaPoolV2Extended } from "~/types/trade-store.types";
+import { ArenaPoolV2 } from "~/types/trade-store.types";
 import {
-  handleExecuteTradeAction,
+  initiateTradeAction,
   RANDOM_USDC_BANK,
   SimulationStatus,
   TradeSide,
@@ -31,7 +27,6 @@ import { useExtendedPool } from "~/hooks/useExtendedPools";
 import { useMarginfiClient } from "~/hooks/useMarginfiClient";
 import { useWrappedAccount } from "~/hooks/useWrappedAccount";
 import { useAmountDebounce } from "~/hooks/useAmountDebounce";
-import { PreviousTxn } from "~/types";
 
 import {
   ActionButton,
@@ -48,12 +43,11 @@ import {
 import { useTradeBoxStore } from "./store";
 import { checkTradeActionAvailable } from "./utils";
 import { useTradeSimulation, useActionAmounts } from "./hooks";
-import { PublicKey } from "@solana/web3.js";
 
-interface TradeBoxV2Props {
+type TradeBoxV2Props = {
   activePool: ArenaPoolV2;
   side?: TradeSide;
-}
+};
 
 export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
   // Stores
@@ -116,11 +110,7 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
     state.setPreviousTxn,
   ]);
   const [setIsWalletOpen] = useWalletStore((state) => [state.setIsWalletOpen]);
-  const [refreshGroup, tokenAccountMap, banksByBankPk] = useTradeStoreV2((state) => [
-    state.refreshGroup,
-    state.tokenAccountMap,
-    state.banksByBankPk,
-  ]);
+  const [refreshGroup, tokenAccountMap] = useTradeStoreV2((state) => [state.refreshGroup, state.tokenAccountMap]);
 
   // Hooks
   const activePoolExtended = useExtendedPool(activePool);
@@ -137,6 +127,8 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
     tokenAccountMap,
   });
   const debouncedLeverage = useAmountDebounce<number>(leverage, 500);
+
+  // Memos
   const selectedBank = React.useMemo(() => {
     if (!selectedBankPk) return null;
     return (
@@ -223,7 +215,7 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
   React.useEffect(() => {
     if (errorMessage && errorMessage.description) {
       if (errorMessage.actionMethod === "ERROR") {
-        showErrorToast(errorMessage?.description);
+        showErrorToast(errorMessage);
       }
       setDynamicActionMessages([errorMessage]);
     } else {
@@ -267,85 +259,10 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
   /////////////////////
   // Trading Actions //
   /////////////////////
-  const executeAction = async (
-    params: ExecuteTradeActionProps,
-    leverage: number,
-    activePoolExtended: ArenaPoolV2Extended,
-    callbacks: {
-      captureEvent?: (event: string, properties?: Record<string, any>) => void;
-      setIsActionComplete: (isComplete: boolean) => void;
-      setPreviousTxn: (previousTxn: PreviousTxn) => void;
-      onComplete?: (txn: PreviousTxn) => void;
-      setIsLoading: (isLoading: boolean) => void;
-      setAmountRaw: (amountRaw: string) => void;
-      retryCallback: (txs: TradeActionTxns, toast: MultiStepToastHandle) => void;
-    }
-  ) => {
-    const action = async (params: ExecuteTradeActionProps) => {
-      await handleExecuteTradeAction({
-        props: params,
-        captureEvent: (event, properties) => {
-          callbacks.captureEvent && callbacks.captureEvent(event, properties);
-        },
-        setIsComplete: (txnSigs) => {
-          const _actionTxns = params.actionTxns as TradeActionTxns;
-          callbacks.setIsActionComplete(true);
-          callbacks.setPreviousTxn({
-            txnType: "TRADING",
-            txn: txnSigs[txnSigs.length - 1] ?? "",
-            tradingOptions: {
-              depositBank: params.depositBank as ActiveBankInfo,
-              borrowBank: params.borrowBank as ActiveBankInfo,
-              initDepositAmount: params.depositAmount.toString(),
-              depositAmount: params.actualDepositAmount,
-              borrowAmount: params.borrowAmount.toNumber(),
-              leverage: leverage,
-              type: params.tradeSide,
-              quote: _actionTxns.actionQuote!,
-              entryPrice: activePoolExtended.tokenBank.info.oraclePrice.priceRealtime.price.toNumber(),
-            },
-          });
-
-          callbacks.onComplete &&
-            callbacks.onComplete({
-              txn: txnSigs[txnSigs.length - 1] ?? "",
-              txnType: "TRADING",
-              tradingOptions: {
-                depositBank: params.depositBank as ActiveBankInfo,
-                borrowBank: params.borrowBank as ActiveBankInfo,
-                initDepositAmount: params.depositAmount.toString(),
-                depositAmount: params.actualDepositAmount,
-                borrowAmount: params.borrowAmount.toNumber(),
-                leverage: leverage,
-                type: params.tradeSide,
-                quote: _actionTxns.actionQuote!,
-                entryPrice: activePoolExtended.tokenBank.info.oraclePrice.priceRealtime.price.toNumber(),
-              },
-            });
-        },
-        setError: (error: IndividualFlowError) => {
-          const toast = error.multiStepToast as MultiStepToastHandle;
-          if (!toast) {
-            return;
-          }
-          const txs = error.actionTxns as TradeActionTxns;
-          let retry = undefined;
-          if (error.retry && toast && txs) {
-            retry = () => callbacks.retryCallback(txs, toast);
-          }
-          toast.setFailed(error.message, retry);
-          callbacks.setIsLoading(false);
-        },
-        setIsLoading: (isLoading) => callbacks.setIsLoading(isLoading),
-      });
-    };
-    await action(params);
-    callbacks.setAmountRaw("");
-  };
 
   const retryTradeAction = React.useCallback(
     (params: ExecuteTradeActionProps, leverage: number) => {
-      executeAction(params, leverage, activePoolExtended, {
+      initiateTradeAction(params, leverage, activePoolExtended, {
         captureEvent: () => {
           capture("trade_action_retry", {
             group: activePoolExtended.groupPk.toBase58(),
@@ -353,7 +270,7 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
           });
         },
         setIsActionComplete: setIsActionComplete,
-        setPreviousTxn,
+        setPreviousTxn: setPreviousTxn,
         onComplete: () => {
           refreshGroup({
             connection,
@@ -382,7 +299,17 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
   );
 
   const handleTradeAction = React.useCallback(async () => {
-    if (!client || !selectedBank || !selectedSecondaryBank || !actionTxns) {
+    // Validate required dependencies for trade action
+    if (!client) {
+      showErrorToast(STATIC_SIMULATION_ERRORS.NOT_INITIALIZED);
+      return;
+    }
+    if (!selectedBank || !selectedSecondaryBank) {
+      showErrorToast(STATIC_SIMULATION_ERRORS.BANK_NOT_INITIALIZED);
+      return;
+    }
+    if (!actionTxns) {
+      showErrorToast(STATIC_SIMULATION_ERRORS.SIMULATION_NOT_READY);
       return;
     }
 
@@ -406,7 +333,7 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
       tradeSide: tradeState,
     };
 
-    executeAction(params, leverage, activePoolExtended, {
+    initiateTradeAction(params, leverage, activePoolExtended, {
       captureEvent: () => {
         capture("trade_action_execute", {
           group: activePoolExtended.groupPk.toBase58(),

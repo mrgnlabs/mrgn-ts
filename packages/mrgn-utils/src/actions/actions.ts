@@ -29,6 +29,7 @@ import {
   mintLstToken,
   mintLstStakeToStake,
 } from "./individualFlows";
+import { STATIC_SIMULATION_ERRORS } from "../errors";
 
 // ------------------------------------------------------------------//
 // Actions //
@@ -49,7 +50,7 @@ export async function createAccountAction({
   walletContextState?: WalletContextState | WalletContextStateOverride;
 }) {
   if (nativeSolBalance < FEE_MARGIN) {
-    showErrorToast("Not enough sol for fee.");
+    showErrorToast(STATIC_SIMULATION_ERRORS.INSUFICIENT_LAMPORTS);
     return;
   }
 
@@ -61,7 +62,7 @@ export async function executeLendingAction(params: MarginfiActionParams) {
   let txnSig: string | string[] | undefined;
 
   if (params.nativeSolBalance < FEE_MARGIN) {
-    showErrorToast("Not enough sol for fee.");
+    showErrorToast(STATIC_SIMULATION_ERRORS.INSUFICIENT_LAMPORTS);
     return;
   }
 
@@ -75,7 +76,7 @@ export async function executeLendingAction(params: MarginfiActionParams) {
   }
 
   if (!params.marginfiAccount) {
-    showErrorToast({ message: "Marginfi account not ready." });
+    showErrorToast(STATIC_SIMULATION_ERRORS.ACCOUNT_NOT_INITIALIZED);
     return;
   }
 
@@ -84,7 +85,7 @@ export async function executeLendingAction(params: MarginfiActionParams) {
   }
 
   if (!params.marginfiClient) {
-    showErrorToast({ message: "Client not ready." });
+    showErrorToast(STATIC_SIMULATION_ERRORS.NOT_INITIALIZED);
     return;
   }
 
@@ -125,7 +126,7 @@ export async function executeLoopingAction(params: ExecuteLoopingActionProps) {
   let txnSig: string[] | undefined;
 
   if (!params.marginfiAccount) {
-    showErrorToast("Marginfi account not ready.");
+    showErrorToast(STATIC_SIMULATION_ERRORS.ACCOUNT_NOT_INITIALIZED);
     return;
   }
 
@@ -167,7 +168,7 @@ export async function executeLstAction({
   let txnSig: string | undefined;
 
   if (nativeSolBalance < FEE_MARGIN) {
-    showErrorToast("Not enough sol for fee.");
+    showErrorToast(STATIC_SIMULATION_ERRORS.INSUFICIENT_LAMPORTS);
     return;
   }
 
