@@ -186,13 +186,12 @@ export async function executeLeverageAction({
   slippageBps: number;
   broadcastType: TransactionBroadcastType;
 }) {
-  if (marginfiClient === null) {
-    showErrorToast("Marginfi client not ready");
+  if (!marginfiClient) {
+    showErrorToast(STATIC_SIMULATION_ERRORS.NOT_INITIALIZED);
     return;
   }
-
-  if (loopActionTxns === null) {
-    showErrorToast("Leverage routing not ready");
+  if (!loopActionTxns) {
+    showErrorToast(STATIC_SIMULATION_ERRORS.SIMULATION_NOT_READY);
     return;
   }
 
