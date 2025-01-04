@@ -88,6 +88,7 @@ export const useRewardSimulation = ({
       try {
         previewAtas = await marginfiClient.simulateTransactions([txns], atas);
       } catch (error) {
+        console.log("error", error);
         setSimulationResult(NO_REWARDS_USER);
         return;
       }
