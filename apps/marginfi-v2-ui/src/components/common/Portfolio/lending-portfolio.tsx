@@ -275,6 +275,9 @@ export const LendingPortfolio = () => {
                       Collect rewards
                     </button>
                   )}
+                  {rewardsState.state === "EARNING_REWARDS" && (
+                    <span className="cursor-default text-muted-foreground">Earning rewards</span>
+                  )}
                   {rewardsState.state === "ERROR" && (
                     <span className="cursor-default text-muted-foreground">No outstanding rewards</span>
                   )}
