@@ -27,6 +27,7 @@ TODO list of common banks and groups...
 ## STAGING BANKS
 
 - PYUSD - Fe5QkKPVAh629UPP5aJ8sDZu8HTfe6M26jDQkKyXVhoA
+- Cavey Cool Staked Sol - 3jt43usVm7qL1N5qPvbzYHWQRxamPCRhri4CxwDrf6aL
 
 ## ORACLES
 
@@ -34,6 +35,7 @@ TODO list of common banks and groups...
 - USDT (Pyth push) - HT2PLQBcG5EiCcNSaMHAjSgd9F98ecpATbk4Sk5oYuM
 - SOL (Pyth Push) - H6ARHf6YXhGYeQfUzQNGk6rDNnLBQKrenN712K4AQJEG
 - Staked Settings Staging Pyth Oracle - H6ARHf6YXhGYeQfUzQNGk6rDNnLBQKrenN712K4AQJEG 
+- Staked Settings Staging Pyth Oracle Feed (Jup's Sol feed)- 7UVimffxr9ow1uXYxsr4LHAcV58mLzhmwaeKvJ1pjLiE
 
 ## MINTS
 

@@ -27,7 +27,7 @@ type Config = {
   // Keep default values to use the defaults...
   MULTISIG_PAYER?: PublicKey; // May be omitted if not using squads
   ASSET_WEIGHT_INIT?: number;
-  ASSET_WEIGHT_MAIN?: number;
+  ASSET_WEIGHT_MAINT?: number;
   DEPOSIT_LIMIT?: BN;
   TOTAL_ASSET_VALUE_INIT_LIMIT?: BN;
   ORACLE_MAX_AGE?: number;
@@ -41,7 +41,7 @@ const config: Config = {
 
   // Leave out anything you want to remain as default...
   ASSET_WEIGHT_INIT: undefined,
-  ASSET_WEIGHT_MAIN: undefined,
+  ASSET_WEIGHT_MAINT: undefined,
   DEPOSIT_LIMIT: undefined,
   TOTAL_ASSET_VALUE_INIT_LIMIT: undefined,
   ORACLE_MAX_AGE: undefined,
@@ -64,8 +64,8 @@ async function main() {
   if (config.ASSET_WEIGHT_INIT !== undefined) {
     settings.assetWeightInit = bigNumberToWrappedI80F48(config.ASSET_WEIGHT_INIT);
   }
-  if (config.ASSET_WEIGHT_MAIN !== undefined) {
-    settings.assetWeightMaint = bigNumberToWrappedI80F48(config.ASSET_WEIGHT_MAIN);
+  if (config.ASSET_WEIGHT_MAINT !== undefined) {
+    settings.assetWeightMaint = bigNumberToWrappedI80F48(config.ASSET_WEIGHT_MAINT);
   }
   if (config.DEPOSIT_LIMIT !== undefined) {
     settings.depositLimit = config.DEPOSIT_LIMIT;

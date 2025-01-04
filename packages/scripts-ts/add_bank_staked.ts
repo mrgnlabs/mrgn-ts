@@ -24,6 +24,8 @@ type Config = {
   PROGRAM_ID: string;
   GROUP_KEY: PublicKey;
   STAKE_POOL: PublicKey;
+  /** A pyth price feed that matches the configured Oracle */
+  SOL_ORACLE_FEED: PublicKey;
   SEED: number;
   MULTISIG_PAYER?: PublicKey; // May be omitted if not using squads
 };
@@ -32,6 +34,7 @@ const config: Config = {
   PROGRAM_ID: "stag8sTKds2h4KzjUw3zKTsxbqvT4XKHdaR9X9E6Rct",
   GROUP_KEY: new PublicKey("FCPfpHA69EbS8f9KKSreTRkXbzFpunsKuYf5qNmnJjpo"),
   STAKE_POOL: new PublicKey("AvS4oXtxWdrJGCJwDbcZ7DqpSqNQtKjyXnbkDbrSk6Fq"),
+  SOL_ORACLE_FEED: new PublicKey("7UVimffxr9ow1uXYxsr4LHAcV58mLzhmwaeKvJ1pjLiE"),
   SEED: 0,
   MULTISIG_PAYER: new PublicKey("AZtUUe9GvTFq9kfseu9jxTioSgdSfjgmZfGQBmhVpTj1"),
 };
@@ -49,9 +52,6 @@ async function main() {
   const program = new Program<Marginfi>(marginfiIdl as Marginfi, provider);
 
   let [stakedSettingsKey] = deriveStakedSettings(program.programId, config.GROUP_KEY);
-  let stakedSettingsAcc = await program.account.stakedSettings.fetch(stakedSettingsKey);
-  const solOracle = stakedSettingsAcc.oracle;
-  console.log("oracle: " + solOracle);
 
   const [lstMint] = PublicKey.findProgramAddressSync(
     [Buffer.from("mint"), config.STAKE_POOL.toBuffer()],
@@ -64,7 +64,7 @@ async function main() {
 
   // Note: oracle and lst mint/pool are also passed in meta for validation
   const oracleMeta: AccountMeta = {
-    pubkey: solOracle,
+    pubkey: config.SOL_ORACLE_FEED,
     isSigner: false,
     isWritable: false,
   };
