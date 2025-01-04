@@ -22,7 +22,7 @@ const config: Config = {
   ACCOUNT: new PublicKey("E3uJyxW232EQAVZ9P9V6CFkxzjqqVdbh8XvUmxtZdGUt"),
   BANK: new PublicKey("3jt43usVm7qL1N5qPvbzYHWQRxamPCRhri4CxwDrf6aL"),
   STAKE_POOL: new PublicKey("AvS4oXtxWdrJGCJwDbcZ7DqpSqNQtKjyXnbkDbrSk6Fq"),
-  AMOUNT: new BN(0.001 * 10 ** 9), // sol has 9 decimals
+  AMOUNT: new BN(0.01 * 10 ** 9), // sol has 9 decimals
 };
 
 async function main() {

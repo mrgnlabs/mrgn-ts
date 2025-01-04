@@ -8,9 +8,10 @@ import { Program, AnchorProvider } from "@coral-xyz/anchor";
 
 import { loadKeypairFromFile } from "./utils";
 import { assertI80F48Approx, assertKeysEqual } from "./softTests";
-import { Marginfi } from "./idl/marginfi-types";
-import marginfiIdl from "./idl/marginfi.json";
+
 import { wrappedI80F48toBigNumber } from "@mrgnlabs/mrgn-common";
+import { Marginfi } from "../marginfi-client-v2/src/idl/marginfi-types";
+import marginfiIdl from "../marginfi-client-v2/src/idl/marginfi.json";
 
 const verbose = true;
 
@@ -21,7 +22,7 @@ type Config = {
 
 const config: Config = {
   PROGRAM_ID: "stag8sTKds2h4KzjUw3zKTsxbqvT4XKHdaR9X9E6Rct",
-  ACCOUNT: new PublicKey("BXY7J98nbWmmb54cc6QnoX2rh59QdPEz19oSrhpFgnbA"),
+  ACCOUNT: new PublicKey("E3uJyxW232EQAVZ9P9V6CFkxzjqqVdbh8XvUmxtZdGUt"),
 };
 
 async function main() {

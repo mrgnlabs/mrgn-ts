@@ -5,7 +5,7 @@ import { Connection, PublicKey, Transaction, sendAndConfirmTransaction } from "@
 import { Program, AnchorProvider, BN } from "@coral-xyz/anchor";
 import { Marginfi } from "../marginfi-client-v2/src/idl/marginfi-types";
 import marginfiIdl from "../marginfi-client-v2/src/idl/marginfi.json";
-import { loadKeypairFromFile } from "./utils";
+import { DEFAULT_API_URL, loadEnvFile, loadKeypairFromFile } from "./utils";
 import { bigNumberToWrappedI80F48, WrappedI80F48, wrappedI80F48toBigNumber } from "@mrgnlabs/mrgn-common";
 import { assertBNEqual, assertI80F48Approx, assertKeysEqual } from "./softTests";
 import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
@@ -37,8 +37,8 @@ const config: Config = {
 
   // Leave these undefined if you do NOT want them to be changed
   SOL_ORACLE: new PublicKey("H6ARHf6YXhGYeQfUzQNGk6rDNnLBQKrenN712K4AQJEG"),
-  ASSET_WEIGHT_INIT: undefined,
-  ASSET_WEIGHT_MAINT: undefined,
+  ASSET_WEIGHT_INIT: 0.0001,
+  ASSET_WEIGHT_MAINT: 0.0002,
   DEPOSIT_LIMIT: undefined,
   TOTAL_ASSET_VALUE_INIT_LIMIT: undefined,
   ORACLE_MAX_AGE: undefined,
@@ -66,7 +66,10 @@ const deriveStakedSettings = (programId: PublicKey, group: PublicKey) => {
 
 async function main() {
   marginfiIdl.address = config.PROGRAM_ID;
-  const connection = new Connection("https://api.mainnet-beta.solana.com", "confirmed");
+  loadEnvFile(".env.api");
+  const apiUrl = process.env.API_URL || DEFAULT_API_URL;
+  console.log("api: " + apiUrl);
+  const connection = new Connection(apiUrl, "confirmed");
   const wallet = loadKeypairFromFile(process.env.HOME + "/keys/staging-deploy.json");
 
   // @ts-ignore

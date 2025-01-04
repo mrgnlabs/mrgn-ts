@@ -37,20 +37,20 @@ type Config = {
    * * bank0, oracle0, lstMint0, solPool0, bank1, oracle1
    * 
    * You can derive these with:
-   * ```
-   *   const [lstMint] = PublicKey.findProgramAddressSync(
-       [Buffer.from("mint"), config.STAKE_POOL.toBuffer()],
-       SINGLE_POOL_PROGRAM_ID
-     );
-     ```
-     and
-     ```
-       const [pool] = PublicKey.findProgramAddressSync(
-         [Buffer.from("stake"), config.STAKE_POOL.toBuffer()],
-         SINGLE_POOL_PROGRAM_ID
-       );
     ```
-   * 
+    const [lstMint] = PublicKey.findProgramAddressSync(
+        [Buffer.from("mint"), config.STAKE_POOL.toBuffer()],
+        SINGLE_POOL_PROGRAM_ID
+    );
+    ```
+     and
+    ```
+    const [pool] = PublicKey.findProgramAddressSync(
+        [Buffer.from("stake"), config.STAKE_POOL.toBuffer()],
+        SINGLE_POOL_PROGRAM_ID
+    );
+    ```
+   * or read them from the bank directly (oracles[1] and oracles[2])
    * */
   REMAINING: PublicKey[];
 };
@@ -65,11 +65,11 @@ const config: Config = {
   AMOUNT: new BN(0.0002 * 10 ** 9), // sol has 9 decimals
   REMAINING: [
     new PublicKey("3jt43usVm7qL1N5qPvbzYHWQRxamPCRhri4CxwDrf6aL"),
-    new PublicKey("H6ARHf6YXhGYeQfUzQNGk6rDNnLBQKrenN712K4AQJEG"),
+    new PublicKey("7UVimffxr9ow1uXYxsr4LHAcV58mLzhmwaeKvJ1pjLiE"),
     new PublicKey("BADo3D6nMtGnsAaTv3iEes8mMcq92TuFoBWebFe8kzeA"), // lst mint
     new PublicKey("3e8RuaQMCPASZSMJAskHX6ZfuTtQ3JvoNPFoEvaVRn78"), // lst pool
     new PublicKey("3evdJSa25nsUiZzEUzd92UNa13TPRJrje1dRyiQP5Lhp"),
-    new PublicKey("H6ARHf6YXhGYeQfUzQNGk6rDNnLBQKrenN712K4AQJEG"),
+    new PublicKey("7UVimffxr9ow1uXYxsr4LHAcV58mLzhmwaeKvJ1pjLiE"),
   ],
 };
 

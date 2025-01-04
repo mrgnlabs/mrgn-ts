@@ -57,3 +57,11 @@ TODO list of common banks and groups...
 ## DESTROYED ACCOUNTS
 
 - Activating Cavey Cool Stake Account for Phantom Wallet that was deposited to the single pool: CBkEBnagcbmZrmbg9yV1d1gWxi6tmuR26616XXwVwus
+
+
+Program: stag8sTKds2h4KzjUw3zKTsxbqvT4XKHdaR9X9E6Rct
+Group: FCPfpHA69EbS8f9KKSreTRkXbzFpunsKuYf5qNmnJjpo
+Wallet: H4QMTHMVbJ3KrB5bz573cBBZKoYSZ2B4mSST1JKzPUrH
+Mrgn Account: E3uJyxW232EQAVZ9P9V6CFkxzjqqVdbh8XvUmxtZdGUt
+Bank(s) Lending: 3jt43usVm7qL1N5qPvbzYHWQRxamPCRhri4CxwDrf6aL (Cavey Cool Staked Sol)
+Banks(s) Borrowed: 3evdJSa25nsUiZzEUzd92UNa13TPRJrje1dRyiQP5Lhp (SOL with asset tag)
