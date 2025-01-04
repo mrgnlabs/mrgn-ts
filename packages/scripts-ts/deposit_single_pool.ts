@@ -8,15 +8,19 @@ import {
   sendAndConfirmTransaction,
 } from "@solana/web3.js";
 import { Program, AnchorProvider, BN } from "@coral-xyz/anchor";
-import { Marginfi } from "../marginfi-client-v2/src/idl/marginfi-types";
-import marginfiIdl from "../marginfi-client-v2/src/idl/marginfi.json";
 import { loadKeypairFromFile, SINGLE_POOL_PROGRAM_ID } from "./utils";
 import { createAssociatedTokenAccountInstruction, getAssociatedTokenAddressSync } from "@solana/spl-token";
 import { SinglePoolInstruction } from "@solana/spl-single-pool-classic";
+/** Set to true the first time you run this script for a given wallet/pool */
+const createAta = false;
 
 type Config = {
   PROGRAM_ID: string;
-  /** There's probably a way to derive this... */
+  /** There's probably a way to derive this... 
+   *
+   * Note that this must be INACTIVE if the stake pool is currently activating (like it was created
+   * recently), otherwise it must ACTIVE (the vast majority of the time, this is the case)
+  */
   NATIVE_STAKE_ACCOUNT: PublicKey;
   STAKE_POOL: PublicKey;
   /** In native decimals */
@@ -25,13 +29,12 @@ type Config = {
 
 const config: Config = {
   PROGRAM_ID: "stag8sTKds2h4KzjUw3zKTsxbqvT4XKHdaR9X9E6Rct",
-  NATIVE_STAKE_ACCOUNT: new PublicKey("DEiot5s9VCUDxmsQbtsY33fZ7DkcTUzQvodgudnzLz7A"),
+  NATIVE_STAKE_ACCOUNT: new PublicKey("CBkEBnagcbmZrmbg9yV1d1gWxi6tmuR26616XXwVwus"),
   STAKE_POOL: new PublicKey("AvS4oXtxWdrJGCJwDbcZ7DqpSqNQtKjyXnbkDbrSk6Fq"),
-  AMOUNT: new BN(0.05 * 10 ** 9), // sol has 9 decimals
+  AMOUNT: new BN(0.002 * 10 ** 9), // sol has 9 decimals
 };
 
 async function main() {
-  marginfiIdl.address = config.PROGRAM_ID;
   const connection = new Connection("https://api.mainnet-beta.solana.com", "confirmed");
   const wallet = loadKeypairFromFile(process.env.HOME + "/keys/phantom-wallet.json");
   console.log("wallet: " + wallet.publicKey);
@@ -40,12 +43,6 @@ async function main() {
   const provider = new AnchorProvider(connection, wallet, {
     preflightCommitment: "confirmed",
   });
-
-  const program = new Program<Marginfi>(
-    // @ts-ignore
-    marginfiIdl as Marginfi,
-    provider
-  );
 
   // Equivalent to findPoolMintAddress
   const [lstMint] = PublicKey.findProgramAddressSync(
@@ -60,12 +57,7 @@ async function main() {
   const lstAta = getAssociatedTokenAddressSync(lstMint, wallet.publicKey);
 
   const ixes: TransactionInstruction[] = [];
-  try {
-    await connection.getAccountInfo(lstAta);
-    console.log("Existing LST ata at: " + lstAta);
-  } catch (err) {
-    console.log("Failed to find ata, creating: " + lstAta);
-
+  if (createAta) {
     ixes.push(createAssociatedTokenAccountInstruction(wallet.publicKey, lstAta, wallet.publicKey, lstMint));
   }
 
