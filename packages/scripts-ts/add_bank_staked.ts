@@ -79,7 +79,7 @@ async function main() {
     isWritable: false,
   };
 
-  const [bankKey] = deriveBankWithSeed(program.programId, config.GROUP_KEY, lstMint, new BN(0));
+  const [bankKey] = deriveBankWithSeed(program.programId, config.GROUP_KEY, lstMint, new BN(config.SEED));
 
   const transaction = new Transaction();
 

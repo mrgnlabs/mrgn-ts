@@ -2,7 +2,7 @@ import { Connection, PublicKey, Transaction, sendAndConfirmTransaction } from "@
 import { Program, AnchorProvider } from "@coral-xyz/anchor";
 import { Marginfi } from "../marginfi-client-v2/src/idl/marginfi-types";
 import marginfiIdl from "../marginfi-client-v2/src/idl/marginfi.json";
-import { loadKeypairFromFile } from "./utils";
+import { DEFAULT_API_URL, loadEnvFile, loadKeypairFromFile } from "./utils";
 import { assertI80F48Approx, assertKeysEqual } from "./softTests";
 
 const verbose = true;
@@ -21,15 +21,15 @@ const config: Config = {
 };
 
 const deriveGlobalFeeState = (programId: PublicKey) => {
-  return PublicKey.findProgramAddressSync(
-    [Buffer.from("feestate", "utf-8")],
-    programId
-  );
+  return PublicKey.findProgramAddressSync([Buffer.from("feestate", "utf-8")], programId);
 };
 
 async function main() {
   marginfiIdl.address = config.PROGRAM_ID;
-  const connection = new Connection("https://api.mainnet-beta.solana.com", "confirmed");
+  loadEnvFile(".env.api");
+  const apiUrl = process.env.API_URL || DEFAULT_API_URL;
+  console.log("api: " + apiUrl);
+  const connection = new Connection(apiUrl, "confirmed");
   const wallet = loadKeypairFromFile(process.env.HOME + "/.config/solana/id.json");
 
   // @ts-ignore

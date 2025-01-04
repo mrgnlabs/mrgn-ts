@@ -22,12 +22,13 @@ TODO list of common banks and groups...
 ## MAIN GROUP BANKS
 
 - BONK - DeyH7QxWvnbbaVB4zFrf4hoq7Q8z1ZT14co42BGwGtfM
-- SOL - CCKtUs6Cgwo4aaQUmBPmyoApH2gUDErxNZCAntD6LYGh
+- SOL (legacy, no asset tag) - CCKtUs6Cgwo4aaQUmBPmyoApH2gUDErxNZCAntD6LYGh
 
 ## STAGING BANKS
 
 - PYUSD - Fe5QkKPVAh629UPP5aJ8sDZu8HTfe6M26jDQkKyXVhoA
 - Cavey Cool Staked Sol - 3jt43usVm7qL1N5qPvbzYHWQRxamPCRhri4CxwDrf6aL
+- SOL (w/ SOL asset tag) - 3evdJSa25nsUiZzEUzd92UNa13TPRJrje1dRyiQP5Lhp
 
 ## ORACLES
 
@@ -41,6 +42,7 @@ TODO list of common banks and groups...
 
 - UXD - 7kbnvuGBxxj8AG9qp8Scn56muWGaRaFqxg1FsRp3PaFT
 - USDT - Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB
+- SOL - So11111111111111111111111111111111111111112
 
 ## VALIDATORS
 
@@ -50,3 +52,8 @@ TODO list of common banks and groups...
 ## USERS AND ACCOUNTS
 
 - Phantom wallet (H4QMTHMVbJ3KrB5bz573cBBZKoYSZ2B4mSST1JKzPUrH) account - E3uJyxW232EQAVZ9P9V6CFkxzjqqVdbh8XvUmxtZdGUt
+- Staging deploy wallet (mfC1LoEk4mpM5yx1LjwR9QLZQ49AitxxWkK5Aciw7ZC) - F12SjiKaksVMJs7EQ2GBaWHLr5shFRei1seDDwFA2pek
+
+## DESTROYED ACCOUNTS
+
+- Activating Cavey Cool Stake Account for Phantom Wallet that was deposited to the single pool: CBkEBnagcbmZrmbg9yV1d1gWxi6tmuR26616XXwVwus

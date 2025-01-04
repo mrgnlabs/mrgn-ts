@@ -14,6 +14,8 @@ type Config = {
   PROGRAM_ID: string;
   GROUP_KEY: PublicKey;
   ORACLE: PublicKey;
+  /** A pyth price feed that matches the configured Oracle */
+  SOL_ORACLE_FEED: PublicKey;
   ADMIN: PublicKey;
   FEE_PAYER: PublicKey;
   BANK_MINT: PublicKey;
@@ -23,11 +25,14 @@ type Config = {
 const config: Config = {
   PROGRAM_ID: "stag8sTKds2h4KzjUw3zKTsxbqvT4XKHdaR9X9E6Rct",
   GROUP_KEY: new PublicKey("FCPfpHA69EbS8f9KKSreTRkXbzFpunsKuYf5qNmnJjpo"),
-  ORACLE: new PublicKey("HT2PLQBcG5EiCcNSaMHAjSgd9F98ecpATbk4Sk5oYuM"),
+  ORACLE: new PublicKey("H6ARHf6YXhGYeQfUzQNGk6rDNnLBQKrenN712K4AQJEG"),
+  SOL_ORACLE_FEED: new PublicKey("7UVimffxr9ow1uXYxsr4LHAcV58mLzhmwaeKvJ1pjLiE"),
   ADMIN: new PublicKey("mfC1LoEk4mpM5yx1LjwR9QLZQ49AitxxWkK5Aciw7ZC"),
   FEE_PAYER: new PublicKey("mfC1LoEk4mpM5yx1LjwR9QLZQ49AitxxWkK5Aciw7ZC"),
-  BANK_MINT: new PublicKey("Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"),
-  SEED: 0,
+  BANK_MINT: new PublicKey("So11111111111111111111111111111111111111112"),
+  SEED: 1,
+
+  // TODO configurable settings up here (currently, scroll down)
 };
 
 const deriveGlobalFeeState = (programId: PublicKey) => {
@@ -84,7 +89,7 @@ async function main() {
     oracleSetup: {
       pythPushOracle: undefined,
     },
-    oracleKey: new PublicKey(Buffer.from("K4m53I/fnzRwmlsQa0cvDzm7bKnOBLD9fy6XFoji5Ts=", "base64")),
+    oracleKey: config.ORACLE,
     borrowLimit: new BN(1_000_000_000),
     riskTier: {
       collateral: undefined,
@@ -94,7 +99,7 @@ async function main() {
   };
 
   const oracleMeta: AccountMeta = {
-    pubkey: config.ORACLE,
+    pubkey: config.SOL_ORACLE_FEED,
     isSigner: false,
     isWritable: false,
   };
@@ -116,7 +121,8 @@ async function main() {
         oracleKey: bankConfig.oracleKey,
         borrowLimit: new BN(bankConfig.borrowLimit.toString()),
         riskTier: bankConfig.riskTier,
-        pad0: [0, 0, 0, 0, 0, 0, 0],
+        assetTag: 1, // ASSET TAG SOL
+        pad0: [0, 0, 0, 0, 0, 0],
         totalAssetValueInitLimit: new BN(bankConfig.totalAssetValueInitLimit.toString()),
         oracleMaxAge: bankConfig.oracleMaxAge,
       },
@@ -148,6 +154,8 @@ async function main() {
   try {
     const signature = await sendAndConfirmTransaction(connection, transaction, [wallet]);
     console.log("Transaction signature:", signature);
+    const [bankKey] = deriveBankWithSeed(program.programId, config.GROUP_KEY, config.BANK_MINT, new BN(config.SEED));
+    console.log("bank key: " + bankKey);
   } catch (error) {
     console.error("Transaction failed:", error);
   }
@@ -157,6 +165,14 @@ async function main() {
     console.log("fee wallet lamports after: " + feeWalletAfter.lamports);
   }
 }
+
+// TODO remove when package updates
+const deriveBankWithSeed = (programId: PublicKey, group: PublicKey, bankMint: PublicKey, seed: BN) => {
+  return PublicKey.findProgramAddressSync(
+    [group.toBuffer(), bankMint.toBuffer(), seed.toArrayLike(Buffer, "le", 8)],
+    programId
+  );
+};
 
 main().catch((err) => {
   console.error(err);

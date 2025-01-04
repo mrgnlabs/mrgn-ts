@@ -2,7 +2,7 @@ import { Connection, Keypair, PublicKey, Transaction, sendAndConfirmTransaction 
 import { Program, AnchorProvider } from "@coral-xyz/anchor";
 import { Marginfi } from "../marginfi-client-v2/src/idl/marginfi-types";
 import marginfiIdl from "../marginfi-client-v2/src/idl/marginfi.json";
-import { loadKeypairFromFile } from "./utils";
+import { DEFAULT_API_URL, loadEnvFile, loadKeypairFromFile } from "./utils";
 import { assertI80F48Approx, assertKeysEqual } from "./softTests";
 
 type Config = {
@@ -17,8 +17,10 @@ const config: Config = {
 
 async function main() {
   marginfiIdl.address = config.PROGRAM_ID;
-  const connection = new Connection("https://api.mainnet-beta.solana.com", "confirmed");
-  const wallet = loadKeypairFromFile(process.env.HOME + "/keys/phantom-wallet.json");
+  loadEnvFile(".env.api");
+  const apiUrl = process.env.API_URL || DEFAULT_API_URL;
+  const connection = new Connection(apiUrl, "confirmed");
+  const wallet = loadKeypairFromFile(process.env.HOME + "/keys/staging-deploy.json");
   console.log("wallet: " + wallet.publicKey);
 
   // @ts-ignore

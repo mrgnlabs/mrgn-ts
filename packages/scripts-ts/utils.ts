@@ -17,6 +17,28 @@ export function loadKeypairFromFile(filePath: string): Keypair {
   return Keypair.fromSecretKey(new Uint8Array(keyData));
 }
 
+export const DEFAULT_API_URL = "https://api.mainnet-beta.solana.com";
+export function loadEnvFile(filePath: string) {
+  try {
+    const envData = fs.readFileSync(filePath, { encoding: "utf-8" });
+    const lines = envData.split("\n");
+
+    for (const line of lines) {
+      // Skip empty lines or lines that don't contain `=`
+      if (!line.includes("=") || line.trim().startsWith("#")) continue;
+
+      // Split on the first `=` only
+      const [key, ...rest] = line.split("=");
+      const value = rest.join("="); // Rejoin the rest as the value
+      if (key && value) {
+        process.env[key.trim()] = value.trim(); // Add to process.env
+      }
+    }
+  } catch (err) {
+    console.error(`Failed to load .env file: ${filePath}`, err);
+  }
+}
+
 /**
  * Load local wallet keypair at a given path if you have a secret key as plain text (typically how
  * wallets like Phantom will allow you to view the secret key)
@@ -29,6 +51,4 @@ export function loadKeypairFromTxtFile(filePath: string): Keypair {
   return Keypair.fromSecretKey(secretKeyArray);
 }
 
-export const SINGLE_POOL_PROGRAM_ID = new PublicKey(
-  "SVSPxpvHdN29nkVg9rPapPNDddN5DipNLRUFhyjFThE"
-);
+export const SINGLE_POOL_PROGRAM_ID = new PublicKey("SVSPxpvHdN29nkVg9rPapPNDddN5DipNLRUFhyjFThE");
