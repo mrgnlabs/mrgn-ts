@@ -34,7 +34,7 @@ TODO list of common banks and groups...
 - PY USD (Pyth push) - A52UBHzxnKrH17zjhajRTgHcWwtxN7KYDAzBgraqFxQJ
 - USDT (Pyth push) - HT2PLQBcG5EiCcNSaMHAjSgd9F98ecpATbk4Sk5oYuM
 - SOL (Pyth Push) - H6ARHf6YXhGYeQfUzQNGk6rDNnLBQKrenN712K4AQJEG
-- Staked Settings Staging Pyth Oracle - H6ARHf6YXhGYeQfUzQNGk6rDNnLBQKrenN712K4AQJEG 
+- Staked Settings Staging Pyth Oracle - H6ARHf6YXhGYeQfUzQNGk6rDNnLBQKrenN712K4AQJEG
 - Staked Settings Staging Pyth Oracle Feed (Jup's Sol feed)- 7UVimffxr9ow1uXYxsr4LHAcV58mLzhmwaeKvJ1pjLiE
 
 ## MINTS
@@ -46,3 +46,7 @@ TODO list of common banks and groups...
 
 - Cavey Cool - CooLbbZy5Xmdt7DiHPQ3ss2uRXawnTXXVgpMS8E8jDzr
 - Cavey Cool Single Pool - AvS4oXtxWdrJGCJwDbcZ7DqpSqNQtKjyXnbkDbrSk6Fq
+
+## USERS AND ACCOUNTS
+
+- Phantom wallet (H4QMTHMVbJ3KrB5bz573cBBZKoYSZ2B4mSST1JKzPUrH) account - E3uJyxW232EQAVZ9P9V6CFkxzjqqVdbh8XvUmxtZdGUt
