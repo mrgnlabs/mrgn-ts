@@ -48,13 +48,7 @@ export const useRewardSimulation = ({
         throw new Error("No marginfi client or selected account");
       }
 
-      let banksWithEmissions = extendedBankInfos.filter((bank) => bank.info.state.emissionsRate > 0);
-
-      // TODO: REMOVE ONCE ERROR IS FIXED
-      banksWithEmissions = banksWithEmissions.filter(
-        (bank) => bank.address.toBase58() != "FWZbU8TSPyjyrWQASzujo7FjgF9f3GEkjaFAtbKWqjMH"
-      );
-      //
+      const banksWithEmissions = extendedBankInfos.filter((bank) => bank.info.state.emissionsRate > 0);
 
       if (!banksWithEmissions.length) {
         setSimulationResult({
@@ -75,14 +69,16 @@ export const useRewardSimulation = ({
         totalRewardAmount: 0,
       };
 
-      const txns = await generateWithdrawEmissionsTxn(banksWithEmissions, selectedAccount);
+      const activeBanksWithemissions = banksWithEmissions.filter((bank) => bank.isActive);
+
+      const txns = await generateWithdrawEmissionsTxn(activeBanksWithemissions, selectedAccount);
 
       if (!txns) {
         setSimulationResult(NO_REWARDS_USER);
         return;
       }
 
-      const { atas, beforeAmounts } = await fetchBeforeStateEmissions(marginfiClient, banksWithEmissions);
+      const { atas, beforeAmounts } = await fetchBeforeStateEmissions(marginfiClient, activeBanksWithemissions);
 
       let previewAtas: (Buffer | null)[] = [];
       try {
@@ -98,7 +94,7 @@ export const useRewardSimulation = ({
         return;
       }
 
-      const afterAmounts = fetchAfterStateEmissions(previewAtas, banksWithEmissions, beforeAmounts);
+      const afterAmounts = fetchAfterStateEmissions(previewAtas, activeBanksWithemissions, beforeAmounts);
 
       let rewards: RewardsType = {
         state: "REWARDS_FETCHED",
@@ -127,6 +123,7 @@ export const useRewardSimulation = ({
       });
 
       if (rewards.rewards.length === 0) {
+        rewards.state = "EARNING_REWARDS";
         rewards.tooltipContent = "You are currently earning rewards, come back later to collect.";
       }
 
