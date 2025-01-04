@@ -48,7 +48,14 @@ export const useRewardSimulation = ({
         throw new Error("No marginfi client or selected account");
       }
 
-      const banksWithEmissions = extendedBankInfos.filter((bank) => bank.info.state.emissionsRate > 0);
+      let banksWithEmissions = extendedBankInfos.filter((bank) => bank.info.state.emissionsRate > 0);
+
+      // TODO: REMOVE ONCE ERROR IS FIXED
+      banksWithEmissions = banksWithEmissions.filter(
+        (bank) => bank.address.toBase58() != "FWZbU8TSPyjyrWQASzujo7FjgF9f3GEkjaFAtbKWqjMH"
+      );
+      //
+
       if (!banksWithEmissions.length) {
         setSimulationResult({
           state: "NO_REWARDS",
