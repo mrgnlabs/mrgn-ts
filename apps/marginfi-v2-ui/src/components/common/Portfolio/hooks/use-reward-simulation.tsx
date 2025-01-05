@@ -2,7 +2,7 @@ import React from "react";
 
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { ActionMessageType, captureSentryException } from "@mrgnlabs/mrgn-utils";
-import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { nativeToUi, numeralFormatter, SolanaTransaction } from "@mrgnlabs/mrgn-common";
 
 import { RewardsType } from "../types";
@@ -53,7 +53,9 @@ export const useRewardSimulation = ({
         totalRewardAmount: 0,
       };
 
-      const activeBanksWithemissions = banksWithEmissions.filter((bank) => bank.isActive);
+      const activeBanksWithemissions = banksWithEmissions.filter(
+        (bank) => bank.isActive && bank.position.isLending
+      ) as ActiveBankInfo[];
 
       const txns = await generateWithdrawEmissionsTxn(activeBanksWithemissions, selectedAccount);
 
@@ -91,9 +93,9 @@ export const useRewardSimulation = ({
         const afterData = afterAmounts.get(bankAddress);
 
         if (afterData) {
-          const beforeAmount = nativeToUi(beforeData.amount, beforeData.mintDecimals);
-          const afterAmount = nativeToUi(afterData.amount, afterData.mintDecimals);
-          const rewardAmount = afterAmount - beforeAmount;
+          const beforeAmountUi = beforeData.amount;
+          const afterAmountUi = nativeToUi(afterData.amount, afterData.mintDecimals);
+          const rewardAmount = afterAmountUi - beforeAmountUi;
 
           if (rewardAmount > 0) {
             rewards.rewards.push({
