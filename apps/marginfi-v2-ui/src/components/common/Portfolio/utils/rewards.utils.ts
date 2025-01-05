@@ -5,7 +5,6 @@ import {
   MarginfiClient,
   ProcessTransactionError,
   ProcessTransactionOpts,
-  TOKEN_2022_MINTS,
 } from "@mrgnlabs/marginfi-client-v2";
 import { extractErrorString, MultiStepToastHandle, captureSentryException } from "@mrgnlabs/mrgn-utils";
 import {
@@ -13,10 +12,9 @@ import {
   ExtendedV0Transaction,
   getAssociatedTokenAddressSync,
   SolanaTransaction,
-  TOKEN_2022_PROGRAM_ID,
   TOKEN_PROGRAM_ID,
 } from "@mrgnlabs/mrgn-common";
-import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 export const executeCollectTxn = async (
   marginfiClient: MarginfiClient,
@@ -81,13 +79,13 @@ export const generateWithdrawEmissionsTxn = async (
 
 export const fetchBeforeStateEmissions = async (
   marginfiClient: MarginfiClient,
-  banksWithEmissions: ExtendedBankInfo[]
+  banksWithEmissions: ActiveBankInfo[]
 ): Promise<{
   atas: PublicKey[];
-  beforeAmounts: Map<PublicKey, { amount: string; tokenSymbol: string; mintDecimals: number }>;
+  beforeAmounts: Map<PublicKey, { amount: number; tokenSymbol: string; mintDecimals: number }>;
 }> => {
   const atas: PublicKey[] = [];
-  const beforeAmounts = new Map<PublicKey, { amount: string; tokenSymbol: string; mintDecimals: number }>();
+  const beforeAmounts = new Map<PublicKey, { amount: number; tokenSymbol: string; mintDecimals: number }>();
 
   for (let bank of banksWithEmissions) {
     if (!bank) {
@@ -98,15 +96,20 @@ export const fetchBeforeStateEmissions = async (
     const tokenSymbol = bank.info.rawBank.tokenSymbol ?? "";
     const mintDecimals = bank.info.rawBank.mintDecimals;
 
-    const programId = TOKEN_2022_MINTS.includes(tokenMint.toString()) ? TOKEN_2022_PROGRAM_ID : TOKEN_PROGRAM_ID;
+    const emissionTokenProgram = marginfiClient.mintDatas.get(bank.address.toString())?.emissionTokenProgram || null;
+    const balance = bank.userInfo.tokenAccount.balance;
+
+    const programId = emissionTokenProgram ?? TOKEN_PROGRAM_ID;
+
+    if (!emissionTokenProgram) {
+      console.error("Emission token program not found for bank", bank.meta.address.toBase58());
+    }
+
     const ata = getAssociatedTokenAddressSync(tokenMint, marginfiClient.wallet.publicKey, true, programId);
     atas.push(ata);
 
     const originData = await marginfiClient.provider.connection.getAccountInfo(ata);
-    let beforeAmount = "0";
-    if (originData) {
-      beforeAmount = AccountLayout.decode(originData.data).amount.toString();
-    }
+    let beforeAmount = balance;
 
     beforeAmounts.set(bank.meta.address, { amount: beforeAmount, tokenSymbol, mintDecimals });
   }
@@ -116,16 +119,16 @@ export const fetchBeforeStateEmissions = async (
 
 export const fetchAfterStateEmissions = (
   previewAtas: (Buffer | null)[],
-  banksWithEmissions: ExtendedBankInfo[],
-  beforeAmounts: Map<PublicKey, { amount: string; tokenSymbol: string; mintDecimals: number }>
-): Map<PublicKey, { amount: string; tokenSymbol: string; mintDecimals: number }> => {
-  const afterAmounts = new Map<PublicKey, { amount: string; tokenSymbol: string; mintDecimals: number }>();
+  banksWithEmissions: ActiveBankInfo[],
+  beforeAmounts: Map<PublicKey, { amount: number; tokenSymbol: string; mintDecimals: number }>
+): Map<PublicKey, { amount: number; tokenSymbol: string; mintDecimals: number }> => {
+  const afterAmounts = new Map<PublicKey, { amount: number; tokenSymbol: string; mintDecimals: number }>();
   previewAtas.forEach((ata, index) => {
     if (!ata) {
       return;
     }
 
-    const afterAmount = AccountLayout.decode(ata).amount.toString();
+    const afterAmount = Number(AccountLayout.decode(ata).amount);
     const bankAddress = banksWithEmissions[index].meta.address;
     const beforeData = beforeAmounts.get(bankAddress);
 

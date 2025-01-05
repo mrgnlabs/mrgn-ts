@@ -61,10 +61,6 @@ export const MAX_TX_SIZE = 1232;
 export const MAX_ACCOUNT_KEYS = 64;
 export const BUNDLE_TX_SIZE = 81;
 export const PRIORITY_TX_SIZE = 44;
-export const TOKEN_2022_MINTS = [
-  "2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo",
-  "susdabGDNbhrnCa6ncrYo81u4s9GM8ecK2UwMyZiq4X",
-];
 
 export interface SimulationResult {
   banks: Map<string, Bank>;

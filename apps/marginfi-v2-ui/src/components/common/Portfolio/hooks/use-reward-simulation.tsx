@@ -1,25 +1,9 @@
 import React from "react";
 
-import { PublicKey, VersionedTransaction } from "@solana/web3.js";
-
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
-import {
-  ActionMessageType,
-  captureSentryException,
-  EMISSION_MINT_INFO_MAP,
-  TOKEN_2022_MINTS,
-} from "@mrgnlabs/mrgn-utils";
+import { ActionMessageType, captureSentryException } from "@mrgnlabs/mrgn-utils";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import {
-  AccountLayout,
-  ExtendedV0Transaction,
-  getAssociatedTokenAddressSync,
-  nativeToUi,
-  numeralFormatter,
-  SolanaTransaction,
-  TOKEN_2022_PROGRAM_ID,
-  TOKEN_PROGRAM_ID,
-} from "@mrgnlabs/mrgn-common";
+import { nativeToUi, numeralFormatter, SolanaTransaction } from "@mrgnlabs/mrgn-common";
 
 import { RewardsType } from "../types";
 import { fetchAfterStateEmissions, fetchBeforeStateEmissions, generateWithdrawEmissionsTxn } from "../utils";
