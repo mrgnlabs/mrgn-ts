@@ -107,8 +107,6 @@ export const fetchBeforeStateEmissions = async (
 
     const ata = getAssociatedTokenAddressSync(tokenMint, marginfiClient.wallet.publicKey, true, programId);
     atas.push(ata);
-
-    const originData = await marginfiClient.provider.connection.getAccountInfo(ata);
     let beforeAmount = balance;
 
     beforeAmounts.set(bank.meta.address, { amount: beforeAmount, tokenSymbol, mintDecimals });

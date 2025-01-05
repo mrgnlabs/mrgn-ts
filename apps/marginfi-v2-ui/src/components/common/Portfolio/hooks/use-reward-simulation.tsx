@@ -97,8 +97,8 @@ export const useRewardSimulation = ({
 
           if (rewardAmount > 0) {
             rewards.rewards.push({
-              bank: beforeData.tokenSymbol,
-              amount: rewardAmount < 0.01 ? "<0.01" : numeralFormatter(rewardAmount),
+              bank: extendedBankInfos.find((bank) => bank.meta.address.toString() === bankAddress.toString())!,
+              amount: rewardAmount,
             });
             rewards.tooltipContent = "You have earned rewards, press 'collect rewards' to claim.";
             rewards.totalRewardAmount += rewardAmount;
