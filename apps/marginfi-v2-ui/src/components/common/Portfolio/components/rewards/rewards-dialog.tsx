@@ -25,10 +25,8 @@ export const RewardsDialog: React.FC<RewardsDialogProps> = ({
     <Dialog {...props}>
       <DialogContent className="md:flex md:gap-6 text-muted-foreground">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-normal">Reward overview</DialogTitle>
-          <DialogDescription>
-            Here you find an overview of which assets have earned rewards. Click the button below to collect them.
-          </DialogDescription>
+          <DialogTitle className="text-2xl font-normal">Collect Rewards</DialogTitle>
+          <DialogDescription>You have rewards available for collection, review and collect below.</DialogDescription>
         </DialogHeader>
         <ul className="list-disc list-inside text-h4">
           {availableRewards?.rewards.map((reward, idx) => (
@@ -39,7 +37,7 @@ export const RewardsDialog: React.FC<RewardsDialogProps> = ({
           ))}
         </ul>
         <Button disabled={isLoading} onClick={onCollect}>
-          {isLoading ? <IconLoader size={24} /> : "Collect rewards"}
+          {isLoading ? <IconLoader size={24} /> : "Collect"}
         </Button>
       </DialogContent>
     </Dialog>
