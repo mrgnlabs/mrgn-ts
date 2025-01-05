@@ -2,11 +2,14 @@ import React from "react";
 
 import { DialogProps } from "@radix-ui/react-dialog";
 
+import { dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
+
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "~/components/ui/dialog";
 import { Button } from "~/components/ui/button";
 import { IconLoader } from "~/components/ui/icons";
 
 import { RewardsType } from "../../types";
+
 interface RewardsDialogProps extends DialogProps {
   availableRewards: RewardsType;
   onClose: () => void;
@@ -32,7 +35,9 @@ export const RewardsDialog: React.FC<RewardsDialogProps> = ({
           {availableRewards?.rewards.map((reward, idx) => (
             <li key={idx} className="flex items-center space-x-2">
               <span className="w-2 h-2 bg-gray-400 rounded-full inline-block" />
-              <span className="text-lg font-medium">{`${reward.amount} ${reward.bank}`}</span>
+              <span className="text-lg font-medium">{`${dynamicNumeralFormatter(reward.amount, {
+                tokenPrice: reward.bank.info.oraclePrice.priceRealtime.price.toNumber(),
+              })} ${reward.bank.meta.tokenSymbol}`}</span>
             </li>
           ))}
         </ul>
