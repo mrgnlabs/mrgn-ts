@@ -33,6 +33,7 @@ import { StaticArenaProps } from "~/utils";
 import { getArenaStaticProps } from "~/utils";
 import { GetStaticProps } from "next";
 import { GeoBlockingWrapper } from "~/components/common/geo-blocking-wrapper";
+import Head from "next/head";
 
 require("~/styles/globals.css");
 require("~/styles/fonts.css");
@@ -42,6 +43,17 @@ export const getStaticProps: GetStaticProps<StaticArenaProps> = async (context) 
 };
 
 export default function MrgnApp({ Component, pageProps }: AppProps & StaticArenaProps) {
+  const { metadata } = pageProps || {};
+  const defaultMetadata = {
+    title: "The Arena - Memecoin trading with leverage",
+    description: "Memecoin trading, with leverage.",
+    image: "/metadata/metadata-image-default.png",
+  };
+  const finalMetadata = {
+    ...defaultMetadata,
+    ...metadata,
+  };
+
   const { query, isReady } = useRouter();
   const [ready, setReady] = React.useState(false);
   const [rpcEndpoint, setRpcEndpoint] = React.useState("");
@@ -66,7 +78,18 @@ export default function MrgnApp({ Component, pageProps }: AppProps & StaticArena
 
   return (
     <>
-      <Meta />
+      <Head>
+        <title>{finalMetadata.title}</title>
+        <meta name="description" content={finalMetadata.description} />
+        <meta property="og:title" content={finalMetadata.title} />
+        <meta property="og:description" content={finalMetadata.description} />
+        <meta property="og:image" content={finalMetadata.image} />
+        <meta name="twitter:title" content={finalMetadata.title} />
+        <meta name="twitter:description" content={finalMetadata.description} />
+        <meta name="twitter:image" content={finalMetadata.image} />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="icon" href="/favicon.ico" />
+      </Head>
       {ready && rpcEndpoint && (
         <ConnectionProvider endpoint={rpcEndpoint}>
           <TipLinkWalletAutoConnect isReady={isReady} query={query}>

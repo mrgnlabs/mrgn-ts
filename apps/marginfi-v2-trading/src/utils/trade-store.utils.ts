@@ -25,7 +25,7 @@ export interface StaticArenaProps {
   baseUrl: string;
 }
 
-export const getArenaStaticProps: GetStaticProps<StaticArenaProps> = async (context: GetStaticPropsContext) => {
+export const getArenaStaticProps: GetStaticProps<StaticArenaProps> = async (context) => {
   // eslint-disable-next-line turbo/no-undeclared-env-vars
   const baseUrl = process.env.NODE_ENV === "development" ? "http://localhost:3006" : "https://staging.thearena.trade";
 
@@ -39,9 +39,17 @@ export const getArenaStaticProps: GetStaticProps<StaticArenaProps> = async (cont
     groupPk = context.params.symbol as string;
   }
 
+  // Default metadata
+  const metadata = {
+    title: "The Arena - Memecoin trading with leverage",
+    description: "Memecoin trading, with leverage.",
+    image: `${baseUrl}/metadata/metadata-image-default.png`,
+  };
+
+  // eslint-disable-next-line turbo/no-undeclared-env-vars
   if (process.env.NEXT_PUBLIC_DISABLE_SSR === "true") {
     return {
-      props: { initialData: emptyState, groupPk, baseUrl },
+      props: { initialData: emptyState, groupPk, baseUrl, metadata },
       revalidate: 300, // Revalidate every 5 minutes
     };
   }
@@ -53,16 +61,31 @@ export const getArenaStaticProps: GetStaticProps<StaticArenaProps> = async (cont
       throw new Error("Failed to fetch initial arena state");
     }
 
+    if (groupPk) {
+      const poolData = initialData.poolData.find((pool) => pool.group === groupPk);
+      const tokenDetails = initialData.tokenDetails.find(
+        (token) => token.address === poolData?.base_bank?.mint.address.toString()
+      );
+      const quoteTokenDetails = initialData.tokenDetails.find(
+        (token) => token.address === poolData?.quote_banks[0]?.mint.address.toString()
+      );
+
+      if (poolData && tokenDetails && quoteTokenDetails) {
+        metadata.title = `Trade ${tokenDetails.symbol}/${quoteTokenDetails.symbol} with leverage in The Arena.`;
+        metadata.description = `Trade ${tokenDetails.symbol} / ${quoteTokenDetails.symbol} with leverage in The Arena.`;
+        metadata.image = `${baseUrl}/api/share-image/generate?tokenSymbol=${tokenDetails.symbol}&tokenImageUrl=${tokenDetails.imageUrl}&quoteTokenSymbol=${quoteTokenDetails.symbol}&quoteTokenImageUrl=${quoteTokenDetails.imageUrl}`;
+      }
+    }
+
     return {
-      props: { initialData, groupPk, baseUrl },
+      props: { initialData, groupPk, baseUrl, metadata },
       revalidate: 300, // Revalidate every 5 minutes
     };
   } catch (error) {
-    // Log the specific error for debugging
-    console.error("Error in getStaticProps:", error instanceof Error ? error.message : "Unknown error");
+    console.error("Error in getArenaStaticProps:", error);
 
     return {
-      props: { initialData: emptyState, groupPk, baseUrl },
+      props: { initialData: emptyState, groupPk, baseUrl, metadata },
       revalidate: 300, // Keep revalidating even in error case
     };
   }
