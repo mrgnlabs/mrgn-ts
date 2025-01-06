@@ -448,17 +448,19 @@ class MarginfiAccountWrapper {
       );
     }
 
+    const lookupTables = await getClientAddressLookupTableAccounts(this.client);
+
     const withdrawTx = addTransactionMetadata(
       new VersionedTransaction(
         new TransactionMessage({
           instructions: [...cuRequestIxs, ...withdrawIxs.instructions],
           payerKey: this.authority,
           recentBlockhash: blockhash,
-        }).compileToV0Message(this.client.addressLookupTables)
+        }).compileToV0Message(lookupTables)
       ),
       {
         signers: withdrawIxs.keys,
-        addressLookupTables: this.client.addressLookupTables,
+        addressLookupTables: lookupTables,
       }
     );
 
@@ -466,7 +468,7 @@ class MarginfiAccountWrapper {
     const tx = new Transaction().add(...depositIx.instructions);
     const depositTx = addTransactionMetadata(tx, {
       signers: depositIx.keys,
-      addressLookupTables: this.client.addressLookupTables,
+      addressLookupTables: lookupTables,
     });
 
     return { feedCrankTxs, withdrawTx, depositTx };
@@ -606,7 +608,9 @@ class MarginfiAccountWrapper {
       );
     }
 
-    const addressLookupTableAccounts = [...this.client.addressLookupTables, ...swapLookupTables];
+    const clientLookupTables = await getClientAddressLookupTableAccounts(this.client);
+
+    const addressLookupTableAccounts = [...clientLookupTables, ...swapLookupTables];
 
     // if cuRequestIxs are not present, priority fee ix is needed
     // wallets add a priority fee ix by default breaking the flashloan tx so we need to add a placeholder priority fee ix
@@ -774,7 +778,8 @@ class MarginfiAccountWrapper {
       );
     }
 
-    const addressLookupTableAccounts = [...this.client.addressLookupTables, ...swapLookupTables];
+    const clientLookupTables = await getClientAddressLookupTableAccounts(this.client);
+    const addressLookupTableAccounts = [...clientLookupTables, ...swapLookupTables];
 
     // if cuRequestIxs are not present, priority fee ix is needed
     // wallets add a priority fee ix by default breaking the flashloan tx so we need to add a placeholder priority fee ix
@@ -862,9 +867,10 @@ class MarginfiAccountWrapper {
   async makeCloseAccountTx(): Promise<ExtendedTransaction> {
     const ix = await this.makeCloseAccountIx();
     const tx = new Transaction().add(...ix.instructions);
+    const clientLookupTables = await getClientAddressLookupTableAccounts(this.client);
     return addTransactionMetadata(tx, {
       signers: ix.keys,
-      addressLookupTables: this.client.addressLookupTables,
+      addressLookupTables: clientLookupTables,
     });
   }
 
@@ -933,9 +939,10 @@ class MarginfiAccountWrapper {
   ): Promise<ExtendedTransaction> {
     const ixs = await this.makeDepositIx(amount, bankAddress, depositOpts);
     const tx = new Transaction().add(...ixs.instructions);
+    const clientLookupTables = await getClientAddressLookupTableAccounts(this.client);
     const solanaTx = addTransactionMetadata(tx, {
       signers: ixs.keys,
-      addressLookupTables: this.client.addressLookupTables,
+      addressLookupTables: clientLookupTables,
     });
 
     return solanaTx;
@@ -1071,9 +1078,10 @@ class MarginfiAccountWrapper {
   ): Promise<ExtendedTransaction> {
     const ixs = await this.makeRepayIx(amount, bankAddress, repayAll, repayOpts);
     const tx = new Transaction().add(...ixs.instructions);
+    const clientLookupTables = await getClientAddressLookupTableAccounts(this.client);
     const solanaTx = addTransactionMetadata(tx, {
       signers: ixs.keys,
-      addressLookupTables: this.client.addressLookupTables,
+      addressLookupTables: clientLookupTables,
     });
     return solanaTx;
   }
@@ -1141,10 +1149,11 @@ class MarginfiAccountWrapper {
       .filter((key, index, self) => index === self.findIndex((k) => k.publicKey.equals(key.publicKey)));
 
     const tx = new Transaction().add(...cuRequestIxs, ...withdrawIxs);
+    const clientLookupTables = await getClientAddressLookupTableAccounts(this.client);
 
     const solanaTx = addTransactionMetadata(tx, {
       signers: filteredSigners,
-      addressLookupTables: this.client.addressLookupTables,
+      addressLookupTables: clientLookupTables,
     });
     return solanaTx;
   }
@@ -1225,17 +1234,19 @@ class MarginfiAccountWrapper {
       );
     }
 
+    const clientLookupTables = await getClientAddressLookupTableAccounts(this.client);
+
     const withdrawTx = addTransactionMetadata(
       new VersionedTransaction(
         new TransactionMessage({
           instructions: [...cuRequestIxs, ...withdrawIxs.instructions],
           payerKey: this.authority,
           recentBlockhash: blockhash,
-        }).compileToV0Message(this.client.addressLookupTables)
+        }).compileToV0Message(clientLookupTables)
       ),
       {
         signers: withdrawIxs.keys,
-        addressLookupTables: this.client.addressLookupTables,
+        addressLookupTables: clientLookupTables,
       }
     );
 
@@ -1340,17 +1351,19 @@ class MarginfiAccountWrapper {
       );
     }
 
+    const clientLookupTables = await getClientAddressLookupTableAccounts(this.client);
+
     const borrowTx = addTransactionMetadata(
       new VersionedTransaction(
         new TransactionMessage({
           instructions: [...cuRequestIxs, ...borrowIxs.instructions],
           payerKey: this.authority,
           recentBlockhash: blockhash,
-        }).compileToV0Message(this.client.addressLookupTables)
+        }).compileToV0Message(clientLookupTables)
       ),
       {
         signers: borrowIxs.keys,
-        addressLookupTables: this.client.addressLookupTables,
+        addressLookupTables: clientLookupTables,
       }
     );
 
@@ -1392,17 +1405,19 @@ class MarginfiAccountWrapper {
       })
     );
 
+    const clientLookupTables = await getClientAddressLookupTableAccounts(this.client);
+
     const emissionsTx = addTransactionMetadata(
       new VersionedTransaction(
         new TransactionMessage({
           instructions: withdrawEmissionsIxs.map((ix) => ix.instructions).flat(),
           payerKey: this.authority,
           recentBlockhash: blockhash,
-        }).compileToV0Message(this.client.addressLookupTables)
+        }).compileToV0Message(clientLookupTables)
       ),
       {
         signers: withdrawEmissionsIxs.map((ix) => ix.keys).flat(),
-        addressLookupTables: this.client.addressLookupTables,
+        addressLookupTables: clientLookupTables,
       }
     );
 
@@ -1488,9 +1503,10 @@ class MarginfiAccountWrapper {
       liabBankAddress
     );
     const tx = new Transaction().add(...liquidationIxs.instructions);
+    const clientLookupTables = await getClientAddressLookupTableAccounts(this.client);
     const solanaTx = addTransactionMetadata(tx, {
       signers: liquidationIxs.keys,
-      addressLookupTables: this.client.addressLookupTables,
+      addressLookupTables: clientLookupTables,
     });
     const sig = await this.client.processTransaction(solanaTx, processOpts, txOpts);
     debug("Liquidation successful %s", sig);
@@ -1524,8 +1540,8 @@ class MarginfiAccountWrapper {
   ): Promise<TransactionSignature> {
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:flashLoan`);
     debug("Executing flashloan from marginfi account");
-    const lookupTables = this.client.addressLookupTables;
-    const tx = await this.buildFlashLoanTx(args, lookupTables);
+    const clientLookupTables = await getClientAddressLookupTableAccounts(this.client);
+    const tx = await this.buildFlashLoanTx(args, clientLookupTables);
     const sig = await this.client.processTransaction(tx, processOpts, txOpts);
     debug("Flashloan successful %s", sig);
     return sig;
@@ -1881,7 +1897,7 @@ class MarginfiAccountWrapper {
     const depositIxs = await this.makeDepositIx(depositAmount, depositBankAddress, {
       wrapAndUnwrapSol: true,
     });
-    const clientLookupTables = this.client.addressLookupTables;
+    const clientLookupTables = await getClientAddressLookupTableAccounts(this.client);
 
     const { instructions: updateFeedIxs, luts: feedLuts } = await this.makeUpdateFeedIx([
       depositBankAddress,
@@ -2038,7 +2054,7 @@ class MarginfiAccountWrapper {
       createAtas: false,
       wrapAndUnwrapSol: false,
     });
-    const lookupTables = this.client.addressLookupTables;
+    const lookupTables = await getClientAddressLookupTableAccounts(this.client);
 
     const { instructions: updateFeedIxs, luts: feedLuts } = await this.makeUpdateFeedIx([
       depositBankAddress,
@@ -2135,6 +2151,20 @@ export function makeBundleTipIx(feePayer: PublicKey, bundleTip: number = 100_000
     toPubkey: new PublicKey(randomTipAccount),
     lamports: bundleTip, // 100_000 lamports = 0.0001 SOL
   });
+}
+
+async function getClientAddressLookupTableAccounts(client: MarginfiClient) {
+  const addresses = client.lookupTablesAddresses;
+  const luts: AddressLookupTableAccount[] = client.addressLookupTables;
+
+  for (const address of addresses) {
+    const lut = await client.provider.connection.getAddressLookupTable(address);
+    if (lut.value) {
+      luts.push(lut.value);
+    }
+  }
+
+  return luts;
 }
 
 export { MarginfiAccountWrapper };

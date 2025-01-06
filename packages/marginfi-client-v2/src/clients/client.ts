@@ -105,6 +105,7 @@ class MarginfiClient {
   public oraclePrices: OraclePriceMap;
   public mintDatas: MintDataMap;
   public addressLookupTables: AddressLookupTableAccount[];
+  public lookupTablesAddresses: PublicKey[];
   public feedIdMap: PythPushFeedIdMap;
   public processTransactionStrategy?: ProcessTransactionStrategy;
   private preloadedBankAddresses?: PublicKey[];
@@ -128,7 +129,8 @@ class MarginfiClient {
     preloadedBankAddresses?: PublicKey[],
     readonly bankMetadataMap?: BankMetadataMap,
     bundleSimRpcEndpoint?: string,
-    processTransactionStrategy?: ProcessTransactionStrategy
+    processTransactionStrategy?: ProcessTransactionStrategy,
+    lookupTablesAddresses?: PublicKey[]
   ) {
     this.group = group;
     this.banks = banks;
@@ -139,6 +141,7 @@ class MarginfiClient {
     this.feedIdMap = feedIdMap;
     this.bundleSimRpcEndpoint = bundleSimRpcEndpoint ?? program.provider.connection.rpcEndpoint;
     this.processTransactionStrategy = processTransactionStrategy;
+    this.lookupTablesAddresses = lookupTablesAddresses ?? [];
   }
 
   /**

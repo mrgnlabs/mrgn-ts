@@ -323,7 +323,7 @@ async function fetchCrossbarPrices(
   const controller = new AbortController();
   const timeoutId = setTimeout(() => {
     controller.abort();
-  }, 8000);
+  }, 3000);
 
   const isAuth = username && bearer;
 
