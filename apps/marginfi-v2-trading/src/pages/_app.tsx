@@ -66,6 +66,7 @@ export default function MrgnApp({ Component, pageProps }: AppProps & StaticArena
 
   return (
     <>
+      <Meta />
       {ready && rpcEndpoint && (
         <ConnectionProvider endpoint={rpcEndpoint}>
           <TipLinkWalletAutoConnect isReady={isReady} query={query}>
