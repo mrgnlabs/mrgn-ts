@@ -14,7 +14,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { address } = req.query;
 
   try {
-    const response = await fetch(`${process.env.MARGINFI_API_URL}/arena/position/${address}`, {
+    const response = await fetch(`${process.env.MARGINFI_API_URL}/arena/positions/${address}`, {
       headers: {
         Accept: "application/json",
       },
