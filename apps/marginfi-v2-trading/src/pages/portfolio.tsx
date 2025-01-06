@@ -79,7 +79,7 @@ export default function PortfolioPage({ initialData }: StaticArenaProps) {
 
   return (
     <>
-      <Meta />
+      {/* <Meta /> */}
       <GeoBlockingWrapper>
         <div className="w-full max-w-8xl mx-auto px-4 md:px-8 pb-28 pt-12 min-h-[calc(100vh-100px)]">
           {!poolsFetched && <Loader label="Loading portfolio..." className="mt-8" />}

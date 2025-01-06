@@ -68,12 +68,12 @@ export default function TradeSymbolPage({ initialData, baseUrl, groupPk }: Stati
 
   return (
     <>
-      <Meta
+      {/* <Meta
         groupPk={groupPk}
         poolData={initialData?.poolData}
         tokenDetails={initialData?.tokenDetails}
         baseUrl={baseUrl}
-      />
+      /> */}
 
       <GeoBlockingWrapper>
         <div className="w-full max-w-8xl mx-auto px-4 pt-8 pb-24 mt:pt-8 md:px-8 min-h-[calc(100vh-100px)]">
