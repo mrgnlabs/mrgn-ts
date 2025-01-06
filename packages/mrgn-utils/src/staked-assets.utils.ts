@@ -1,6 +1,8 @@
 import { StakeProgram } from "@solana/web3.js";
 import { Connection, PublicKey, ParsedAccountData } from "@solana/web3.js";
 
+const MAX_U64 = (2n ** 64n - 1n).toString();
+
 // represents a group of stake accounts associated with a validator
 export type ValidatorStakeGroup = {
   validator: PublicKey;
@@ -8,7 +10,7 @@ export type ValidatorStakeGroup = {
 };
 
 /**
- * Retrieves all stake accounts associated with a given public key, grouped by validator
+ * Retrieves all active stake accounts associated with a given public key grouped by validator
  *
  * @warning this is an expensive rpc call and should be heavily cached
  *
@@ -32,7 +34,13 @@ const getStakeAccounts = async (connection: Connection, publicKey: PublicKey): P
 
   accounts.forEach((acc) => {
     const parsedAccount = acc.account.data as ParsedAccountData;
-    const validatorAddress = parsedAccount.parsed.info.stake.delegation.voter;
+    const stakeInfo = parsedAccount.parsed.info;
+
+    if (!stakeInfo.stake?.delegation || stakeInfo.stake.delegation.deactivationEpoch !== MAX_U64) {
+      return;
+    }
+
+    const validatorAddress = stakeInfo.stake.delegation.voter;
     const accountPubkey = acc.pubkey;
 
     if (validatorMap.has(validatorAddress)) {
