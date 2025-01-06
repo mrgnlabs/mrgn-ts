@@ -28,26 +28,30 @@ const paths = [
 
 export function Loader({ label = "Loading...", className, iconSize = 32, duration = 1500 }: LoaderProps) {
   const [isVisible, setIsVisible] = React.useState(true);
-  const timeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+  const animationRef = React.useRef<number>();
 
   React.useEffect(() => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
+    let startTime = performance.now();
 
-    timeoutRef.current = setTimeout(
-      () => {
+    const animate = (currentTime: number) => {
+      const elapsed = currentTime - startTime;
+
+      if (elapsed >= (isVisible ? duration : 1500)) {
         setIsVisible((prev) => !prev);
-      },
-      isVisible ? duration : 1500
-    );
+        startTime = currentTime;
+      }
+
+      animationRef.current = requestAnimationFrame(animate);
+    };
+
+    animationRef.current = requestAnimationFrame(animate);
 
     return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
       }
     };
-  }, [isVisible, duration]);
+  }, [duration, isVisible]);
 
   const containerVariants: Variants = {
     hidden: {},
