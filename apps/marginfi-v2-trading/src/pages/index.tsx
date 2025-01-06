@@ -92,7 +92,7 @@ export default function HomePage({ initialData }: StaticArenaProps) {
 
   return (
     <>
-      <Meta />
+      {/* <Meta /> */}
       <GeoBlockingWrapper>
         <div className="w-full max-w-8xl mx-auto px-4 pb-16 pt-8 md:pt-14 min-h-[calc(100vh-100px)]">
           {!initialized && <Loader label="Loading the arena..." className="mt-8" />}
