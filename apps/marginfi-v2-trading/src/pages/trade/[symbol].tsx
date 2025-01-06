@@ -23,11 +23,12 @@ export const getStaticPaths: GetStaticPaths = async () => {
   };
 };
 
-export const getStaticProps: GetStaticProps<StaticArenaProps> = async (context) => {
-  return getArenaStaticProps(context);
+export const getStaticProps: GetStaticProps = async (context) => {
+  const props = await getArenaStaticProps(context);
+  return props;
 };
 
-export default function TradeSymbolPage({ initialData, baseUrl, groupPk }: StaticArenaProps) {
+export default function TradeSymbolPage({ initialData }: StaticArenaProps) {
   const router = useRouter();
   const side = router.query.side as "long" | "short";
   const [initialized, arenaPools, poolsFetched, fetchArenaGroups, setHydrationComplete] = useTradeStoreV2((state) => [
