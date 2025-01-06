@@ -59,12 +59,11 @@ type PoolPositionsBank = {
 
 export type PoolPositionsApiResponse = {
   group: string;
+  authority: string;
   address: string;
-  base_bank: PoolPositionsBank;
-  quote_banks: PoolPositionsBank[];
+  direction: string;
   entry_price: number;
-  current_position_value: number;
-  pnl: number;
+  position_value: number;
 };
 
 /**
