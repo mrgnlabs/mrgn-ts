@@ -1,4 +1,3 @@
-import React from "react";
 import { PublicKey } from "@solana/web3.js";
 
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
@@ -15,20 +14,16 @@ type UseWrappedAccountProps = {
 export function useWrappedAccount({ client, groupPk, banks }: UseWrappedAccountProps) {
   const [marginfiAccountByGroupPk] = useTradeStoreV2((state) => [state.marginfiAccountByGroupPk]);
 
-  const marginfiAccount = React.useMemo(
-    () => marginfiAccountByGroupPk[groupPk.toBase58()],
-    [marginfiAccountByGroupPk, groupPk]
-  );
+  if (!marginfiAccountByGroupPk) {
+    return { wrappedAccount: null, accountSummary: null, marginfiAccount: null };
+  }
 
-  const wrappedAccount = React.useMemo(() => {
-    if (!client || !marginfiAccount) return null;
-    return new MarginfiAccountWrapper(marginfiAccount.address, client, marginfiAccount);
-  }, [client, marginfiAccount]);
+  const marginfiAccount = marginfiAccountByGroupPk[groupPk.toBase58()];
 
-  const accountSummary = React.useMemo(() => {
-    if (!wrappedAccount) return null;
-    return computeAccountSummary(wrappedAccount, banks);
-  }, [wrappedAccount, banks]);
+  const wrappedAccount =
+    client && marginfiAccount ? new MarginfiAccountWrapper(marginfiAccount.address, client, marginfiAccount) : null;
+
+  const accountSummary = wrappedAccount ? computeAccountSummary(wrappedAccount, banks) : null;
 
   return { wrappedAccount, accountSummary };
 }

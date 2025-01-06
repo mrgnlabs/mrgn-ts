@@ -570,6 +570,14 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
     let positionsByGroupPk: Record<string, ArenaPoolPositions> = {};
     const isWalletConnected = wallet.publicKey && !wallet.publicKey.equals(PublicKey.default);
 
+    const {
+      banksByBankPk: storeBanksByBankPk,
+      marginfiAccountByGroupPk: storeMarginfiAccountByGroupPk,
+      tokenAccountMap: storeTokenAccountMap,
+    } = get();
+
+    const newStoreBanksByBankPk = { ...storeBanksByBankPk };
+
     if (isWalletConnected) {
       const userPositions = await fetchUserPositions(wallet.publicKey);
       positionsByGroupPk = userPositions.reduce((acc, position) => {
@@ -591,23 +599,13 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
       nativeSolBalance = updatedData.nativeSolBalance;
       tokenAccountMap = updatedData.tokenAccountMap;
       marginfiAccount = updatedData.updateMarginfiAccounts[args.groupPk.toBase58()] ?? null;
-    }
 
-    // update store
-    const {
-      banksByBankPk: storeBanksByBankPk,
-      marginfiAccountByGroupPk: storeMarginfiAccountByGroupPk,
-      tokenAccountMap: storeTokenAccountMap,
-    } = get();
+      if (marginfiAccount) {
+        storeMarginfiAccountByGroupPk[args.groupPk.toBase58()] = marginfiAccount;
+      } else {
+        delete storeMarginfiAccountByGroupPk[args.groupPk.toBase58()];
+      }
 
-    const newStoreBanksByBankPk = { ...storeBanksByBankPk };
-    const newTokenAccountMap = new Map(storeTokenAccountMap);
-
-    extendedBankInfos.map((bank) => {
-      newStoreBanksByBankPk[bank.address.toBase58()] = bank;
-    });
-
-    if (isWalletConnected) {
       positionsByGroupPk = fillMissingPositions(
         get().arenaPools,
         newStoreBanksByBankPk,
@@ -616,9 +614,13 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
       );
     }
 
-    if (marginfiAccount) {
-      storeMarginfiAccountByGroupPk[args.groupPk.toBase58()] = marginfiAccount;
-    }
+    // update store
+    const newTokenAccountMap = new Map(storeTokenAccountMap);
+
+    extendedBankInfos.map((bank) => {
+      newStoreBanksByBankPk[bank.address.toBase58()] = bank;
+    });
+
     tokenAccountMap?.forEach((value, key) => {
       newTokenAccountMap.set(key, value);
     });

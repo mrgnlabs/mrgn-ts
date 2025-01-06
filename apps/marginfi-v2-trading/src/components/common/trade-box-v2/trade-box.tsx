@@ -120,6 +120,7 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
     groupPk: activePoolExtended.groupPk,
     banks: [activePoolExtended.tokenBank, activePoolExtended.quoteBank],
   });
+
   const { wallet, connected } = useWallet();
   const { connection } = useConnection();
   const { amount, debouncedAmount, maxAmount } = useActionAmounts({
