@@ -73,6 +73,7 @@ interface BankConfigRaw {
   riskTier: RiskTierRaw;
   totalAssetValueInitLimit: BN;
   oracleMaxAge: number;
+  assetTag: number;
 
   interestRateConfig: InterestRateConfigRaw;
   operationalState: OperationalStateRaw;
@@ -80,7 +81,8 @@ interface BankConfigRaw {
   oracleSetup: OracleSetupRaw;
   oracleKeys: PublicKey[];
 
-  freezeSettings: boolean | null;
+  permissionlessBadDebtSettlement: boolean;
+  freezeSettings: boolean;
 }
 
 interface BankConfigCompactRaw extends Omit<BankConfigRaw, "oracleKeys"> {
@@ -587,6 +589,7 @@ class BankConfig {
 
   public riskTier: RiskTier;
   public totalAssetValueInitLimit: BigNumber;
+  public assetTag: AssetTag;
 
   public interestRateConfig: InterestRateConfig;
   public operationalState: OperationalState;
@@ -595,7 +598,8 @@ class BankConfig {
   public oracleKeys: PublicKey[];
   public oracleMaxAge: number;
 
-  public freezeSettings: boolean | null;
+  public permissionlessBadDebtSettlement: boolean;
+  public freezeSettings: boolean;
 
   constructor(
     assetWeightInit: BigNumber,
@@ -606,11 +610,13 @@ class BankConfig {
     borrowLimit: BigNumber,
     riskTier: RiskTier,
     totalAssetValueInitLimit: BigNumber,
+    assetTag: AssetTag,
     oracleSetup: OracleSetup,
     oracleKeys: PublicKey[],
     oracleMaxAge: number,
     interestRateConfig: InterestRateConfig,
     operationalState: OperationalState,
+    permissionlessBadDebtSettlement: boolean,
     freezeSettings: boolean
   ) {
     this.assetWeightInit = assetWeightInit;
@@ -621,11 +627,13 @@ class BankConfig {
     this.borrowLimit = borrowLimit;
     this.riskTier = riskTier;
     this.totalAssetValueInitLimit = totalAssetValueInitLimit;
+    this.assetTag = assetTag;
     this.oracleSetup = oracleSetup;
     this.oracleKeys = oracleKeys;
     this.interestRateConfig = interestRateConfig;
     this.operationalState = operationalState;
     this.oracleMaxAge = oracleMaxAge;
+    this.permissionlessBadDebtSettlement = permissionlessBadDebtSettlement;
     this.freezeSettings = freezeSettings;
   }
 
@@ -639,6 +647,7 @@ class BankConfig {
     const riskTier = parseRiskTier(bankConfigRaw.riskTier);
     const operationalState = parseOperationalState(bankConfigRaw.operationalState);
     const totalAssetValueInitLimit = BigNumber(bankConfigRaw.totalAssetValueInitLimit.toString());
+    const assetTag = bankConfigRaw.assetTag as AssetTag;
     const oracleSetup = parseOracleSetup(bankConfigRaw.oracleSetup);
     const oracleKeys = bankConfigRaw.oracleKeys;
     const oracleMaxAge = bankConfigRaw.oracleMaxAge === 0 ? DEFAULT_ORACLE_MAX_AGE : bankConfigRaw.oracleMaxAge;
@@ -652,7 +661,8 @@ class BankConfig {
       protocolIrFee: wrappedI80F48toBigNumber(bankConfigRaw.interestRateConfig.protocolIrFee),
       protocolOriginationFee: wrappedI80F48toBigNumber(bankConfigRaw.interestRateConfig.protocolOriginationFee),
     };
-    const freezeSettings = bankConfigRaw.freezeSettings ?? false;
+    const permissionlessBadDebtSettlement = bankConfigRaw.permissionlessBadDebtSettlement;
+    const freezeSettings = bankConfigRaw.freezeSettings;
 
     return {
       assetWeightInit,
@@ -664,10 +674,12 @@ class BankConfig {
       riskTier,
       operationalState,
       totalAssetValueInitLimit,
+      assetTag,
       oracleSetup,
       oracleKeys,
       oracleMaxAge,
       interestRateConfig,
+      permissionlessBadDebtSettlement,
       freezeSettings,
     };
   }
@@ -706,6 +718,12 @@ enum OracleSetup {
   SwitchboardPull = "SwitchboardPull",
 }
 
+enum AssetTag {
+  DEFAULT = 0,
+  SOL = 1,
+  STAKED = 2,
+}
+
 // BankConfigOpt Args
 interface BankConfigOpt {
   assetWeightInit: BigNumber | null;
@@ -718,6 +736,7 @@ interface BankConfigOpt {
   borrowLimit: BigNumber | null;
   riskTier: RiskTier | null;
   totalAssetValueInitLimit: BigNumber | null;
+  assetTag: AssetTag | null;
 
   interestRateConfig: InterestRateConfig | null;
   operationalState: OperationalState | null;
@@ -742,6 +761,7 @@ interface BankConfigOptRaw {
   depositLimit: BN | null;
   borrowLimit: BN | null;
   riskTier: { collateral: {} } | { isolated: {} } | null;
+  assetTag: number | null;
   totalAssetValueInitLimit: BN | null;
 
   interestRateConfig: InterestRateConfigRaw | null;
@@ -770,6 +790,7 @@ function serializeBankConfigOpt(bankConfigOpt: BankConfigOpt): BankConfigOptRaw 
     borrowLimit: toBN(bankConfigOpt.borrowLimit),
     riskTier: bankConfigOpt.riskTier && serializeRiskTier(bankConfigOpt.riskTier),
     totalAssetValueInitLimit: toBN(bankConfigOpt.totalAssetValueInitLimit),
+    assetTag: bankConfigOpt.assetTag !== null ? Number(bankConfigOpt.assetTag) : 0,
     interestRateConfig:
       bankConfigOpt.interestRateConfig &&
       ({
@@ -932,6 +953,7 @@ export {
   serializeBankConfigOpt,
   computeMaxLeverage,
   computeLoopingParams,
+  AssetTag,
 };
 
 // ----------------------------------------------------------------------------
