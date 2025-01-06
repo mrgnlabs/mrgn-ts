@@ -13,7 +13,6 @@ import { PoolTradeHeader } from "~/components/common/Pool/PoolTradeHeader";
 import { Loader } from "~/components/common/Loader";
 import { TradeBoxV2 } from "~/components/common/trade-box-v2";
 import { ArenaActionComplete } from "~/components/common/ActionComplete";
-import { Meta } from "~/components/common/Meta";
 import { GeoBlockingWrapper } from "~/components/common/geo-blocking-wrapper";
 
 export const getStaticPaths: GetStaticPaths = async () => {
@@ -69,13 +68,6 @@ export default function TradeSymbolPage({ initialData }: StaticArenaProps) {
 
   return (
     <>
-      {/* <Meta
-        groupPk={groupPk}
-        poolData={initialData?.poolData}
-        tokenDetails={initialData?.tokenDetails}
-        baseUrl={baseUrl}
-      /> */}
-
       <GeoBlockingWrapper>
         <div className="w-full max-w-8xl mx-auto px-4 pt-8 pb-24 mt:pt-8 md:px-8 min-h-[calc(100vh-100px)]">
           {!activePool && <Loader label="Loading the arena..." className="mt-8" />}

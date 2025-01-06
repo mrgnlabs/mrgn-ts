@@ -21,7 +21,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~
 import { getArenaStaticProps, StaticArenaProps } from "~/utils/trade-store.utils";
 import { ArenaActionComplete } from "~/components/common/ActionComplete";
 import { GeoBlockingWrapper } from "~/components/common/geo-blocking-wrapper";
-import { Meta } from "~/components/common/Meta";
 
 const sortOptions: {
   value: TradePoolFilterStates;

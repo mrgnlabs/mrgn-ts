@@ -22,7 +22,6 @@ import { GetStaticProps } from "next";
 import { StaticArenaProps, getArenaStaticProps } from "~/utils";
 import { ArenaActionComplete } from "~/components/common/ActionComplete";
 import { GeoBlockingWrapper } from "~/components/common/geo-blocking-wrapper";
-import { Meta } from "~/components/common/Meta";
 
 const sortOptions: {
   value: TradePoolFilterStates;

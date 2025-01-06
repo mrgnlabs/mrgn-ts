@@ -32,8 +32,6 @@ import { AuthDialog } from "~/components/wallet-v2";
 import { StaticArenaProps } from "~/utils";
 import { getArenaStaticProps } from "~/utils";
 import { GetStaticProps } from "next";
-import { GeoBlockingWrapper } from "~/components/common/geo-blocking-wrapper";
-import Head from "next/head";
 
 require("~/styles/globals.css");
 require("~/styles/fonts.css");
@@ -78,18 +76,8 @@ export default function MrgnApp({ Component, pageProps }: AppProps & StaticArena
 
   return (
     <>
-      <Head>
-        <title>{finalMetadata.title}</title>
-        <meta name="description" content={finalMetadata.description} />
-        <meta property="og:title" content={finalMetadata.title} />
-        <meta property="og:description" content={finalMetadata.description} />
-        <meta property="og:image" content={finalMetadata.image} />
-        <meta name="twitter:title" content={finalMetadata.title} />
-        <meta name="twitter:description" content={finalMetadata.description} />
-        <meta name="twitter:image" content={finalMetadata.image} />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
+      <Meta finalMetadata={finalMetadata} />
+
       {ready && rpcEndpoint && (
         <ConnectionProvider endpoint={rpcEndpoint}>
           <TipLinkWalletAutoConnect isReady={isReady} query={query}>

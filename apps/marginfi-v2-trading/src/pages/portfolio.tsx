@@ -19,7 +19,6 @@ import { ArenaActionComplete } from "~/components/common/ActionComplete";
 import { Skeleton } from "~/components/ui/skeleton";
 import { PnlBadge, PnlLabel } from "~/components/common/pnl-display";
 import { GeoBlockingWrapper } from "~/components/common/geo-blocking-wrapper";
-import { Meta } from "~/components/common/Meta";
 
 export const getStaticProps: GetStaticProps<StaticArenaProps> = async (context) => {
   return getArenaStaticProps(context);
