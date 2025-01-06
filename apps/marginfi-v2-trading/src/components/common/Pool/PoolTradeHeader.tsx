@@ -142,7 +142,16 @@ export const PoolTradeHeader = ({ activePool }: { activePool: ArenaPoolV2 }) => 
             {extendedPool.tokenBank.tokenData && (
               <div className="grid w-full max-w-md mx-auto gap-1 lg:gap-16 lg:max-w-none lg:grid-cols-3">
                 <div className="grid grid-cols-2 lg:block">
-                  <p className="text-sm text-muted-foreground">Price</p>
+                  <p className="text-sm text-muted-foreground">Birdeye price</p>
+                  <p className="text-sm text-right lg:text-left lg:text-2xl">
+                    {tokenPrice}
+                    <span className="text-sm text-muted-foreground block">
+                      ${dynamicNumeralFormatter(extendedPool.tokenBank.tokenData.price)}{" "}
+                    </span>
+                  </p>
+                </div>
+                <div className="grid grid-cols-2 lg:block">
+                  <p className="text-sm text-muted-foreground">Oracle price</p>
                   <p className="text-sm text-right lg:text-left lg:text-2xl">
                     {tokenPrice}
                     <span className="text-sm text-muted-foreground block">
@@ -165,10 +174,12 @@ export const PoolTradeHeader = ({ activePool }: { activePool: ArenaPoolV2 }) => 
                     </span>
                   </p>
                 </div>
-                <div className="grid grid-cols-2 lg:block">
-                  <p className="text-sm text-muted-foreground">Funding rate (long/short)</p>
-                  <p className="text-sm text-right lg:text-left lg:text-2xl">{fundingRate}</p>
-                </div>
+                <Mobile>
+                  <div className="grid grid-cols-2 lg:block">
+                    <p className="text-sm text-muted-foreground">Funding rate (long/short)</p>
+                    <p className="text-sm text-right lg:text-left lg:text-2xl">{fundingRate}</p>
+                  </div>
+                </Mobile>
               </div>
             )}
             <div className="w-full grid gap-4 max-w-md mx-auto lg:gap-16 lg:max-w-none lg:grid-cols-3">
@@ -558,6 +569,12 @@ export const PoolTradeHeader = ({ activePool }: { activePool: ArenaPoolV2 }) => 
                   </Desktop>
                 </div>
               </div>
+              <Desktop>
+                <div className="grid grid-cols-2 lg:block">
+                  <p className="text-sm text-muted-foreground">Funding rate (long/short)</p>
+                  <p className="text-sm text-right lg:text-left lg:text-2xl">{fundingRate}</p>
+                </div>
+              </Desktop>
               <Mobile>
                 {extendedPool.status === GroupStatus.LP ? (
                   <div>
