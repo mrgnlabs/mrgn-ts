@@ -15,16 +15,8 @@ import {
 } from "@mrgnlabs/mrgn-utils";
 
 import { ExecuteActionsCallbackProps } from "~/components/action-box-v2/types";
-import { AccountInfo, Connection, Keypair, PublicKey, TransactionMessage, VersionedTransaction } from "@solana/web3.js";
-import {
-  BalanceRaw,
-  makeUnwrapSolIx,
-  MarginfiAccount,
-  MarginfiAccountRaw,
-  MarginfiAccountWrapper,
-  MarginfiClient,
-  TOKEN_2022_MINTS,
-} from "@mrgnlabs/marginfi-client-v2";
+import { Connection, Keypair, PublicKey, TransactionMessage, VersionedTransaction } from "@solana/web3.js";
+import { BalanceRaw, MarginfiAccount, MarginfiAccountRaw, MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 import BN from "bn.js";
 import {
   addTransactionMetadata,
