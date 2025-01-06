@@ -67,15 +67,28 @@ export const TokenCombobox = ({ selected, setSelected, children }: TokenCombobox
                           setOpen(false);
                         }}
                       >
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={pool.tokenBank.meta.tokenLogoUri}
-                          width={32}
-                          height={32}
-                          alt={pool.tokenBank.meta.tokenName}
-                          className="rounded-full w-[32px] h-[32px] object-cover"
-                        />
-                        <span>{pool.tokenBank.meta.tokenSymbol}</span>
+                        <div className="flex items-center gap-2 relative">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={pool.tokenBank.meta.tokenLogoUri}
+                            width={32}
+                            height={32}
+                            alt={pool.tokenBank.meta.tokenName}
+                            className="rounded-full w-[32px] h-[32px] object-cover"
+                          />
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={pool.quoteBank.meta.tokenLogoUri}
+                            width={16}
+                            height={16}
+                            alt={pool.quoteBank.meta.tokenName}
+                            className="rounded-full w-[16px] h-[16px] object-cover absolute -right-1 -bottom-1"
+                          />
+                        </div>
+
+                        <span>
+                          {pool.tokenBank.meta.tokenSymbol}/{pool.quoteBank.meta.tokenSymbol}
+                        </span>
                         {pool.tokenBank.tokenData && (
                           <div className="flex items-center justify-between gap-1 w-[40%] text-xs ml-auto text-muted-foreground">
                             <span>
@@ -125,14 +138,24 @@ export const TokenCombobox = ({ selected, setSelected, children }: TokenCombobox
                         setOpen(false);
                       }}
                     >
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={pool.tokenBank.meta.tokenLogoUri}
-                        width={32}
-                        height={32}
-                        alt={pool.tokenBank.meta.tokenName}
-                        className="rounded-full w-[32px] h-[32px] object-cover"
-                      />
+                      <div className="flex items-center gap-2 relative">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={pool.tokenBank.meta.tokenLogoUri}
+                          width={32}
+                          height={32}
+                          alt={pool.tokenBank.meta.tokenName}
+                          className="rounded-full w-[32px] h-[32px] object-cover"
+                        />
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={pool.quoteBank.meta.tokenLogoUri}
+                          width={16}
+                          height={16}
+                          alt={pool.quoteBank.meta.tokenName}
+                          className="rounded-full w-[16px] h-[16px] object-cover absolute -right-1 -bottom-1"
+                        />
+                      </div>
                       <span>{pool.tokenBank.meta.tokenSymbol}</span>
                       {pool.tokenBank.tokenData && (
                         <div className="flex items-center justify-between gap-1 text-sm ml-auto w-full text-muted-foreground max-w-[160px]">
