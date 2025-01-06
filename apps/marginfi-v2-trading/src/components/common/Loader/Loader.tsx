@@ -28,16 +28,25 @@ const paths = [
 
 export function Loader({ label = "Loading...", className, iconSize = 32, duration = 1500 }: LoaderProps) {
   const [isVisible, setIsVisible] = React.useState(true);
+  const timeoutRef = React.useRef<NodeJS.Timeout | null>(null);
 
   React.useEffect(() => {
-    const timeout = setTimeout(
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+
+    timeoutRef.current = setTimeout(
       () => {
         setIsVisible((prev) => !prev);
       },
       isVisible ? duration : 1500
     );
 
-    return () => clearTimeout(timeout);
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
   }, [isVisible, duration]);
 
   const containerVariants: Variants = {
@@ -50,7 +59,7 @@ export function Loader({ label = "Loading...", className, iconSize = 32, duratio
     exit: {
       transition: {
         staggerChildren: 0.1,
-        staggerDirection: -0.5,
+        staggerDirection: -1,
         when: "afterChildren",
       },
     },
