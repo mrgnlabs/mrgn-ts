@@ -3,7 +3,7 @@ import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 
-import { tokenPriceFormatter, percentFormatter, shortenAddress, dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
+import { percentFormatter, shortenAddress, dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
 import { cn, useIsMobile } from "@mrgnlabs/mrgn-utils";
 import { minidenticon } from "minidenticons";
 
@@ -35,9 +35,9 @@ export const PoolCard = ({ poolData }: PoolCardProps) => {
   const tokenPrice = React.useMemo(() => {
     if (isLstQuote) {
       const lstPrice = quoteTokenData.price;
-      return `${tokenPriceFormatter(tokenData.price / lstPrice, "decimal")} ${poolData.quoteSummary.tokenSymbol}`;
+      return `${dynamicNumeralFormatter(tokenData.price / lstPrice)} ${poolData.quoteSummary.tokenSymbol}`;
     }
-    return tokenPriceFormatter(tokenData.price);
+    return `${dynamicNumeralFormatter(tokenData.price)} ${poolData.quoteSummary.tokenSymbol}`;
   }, [isLstQuote, tokenData.price, quoteTokenData.price, poolData.quoteSummary.tokenSymbol]);
 
   const fundingRate = React.useMemo(() => {
@@ -162,7 +162,9 @@ export const PoolCard = ({ poolData }: PoolCardProps) => {
                       ${dynamicNumeralFormatter(tokenData.price)}
                     </span>
                   ) : (
-                    <span className="text-xs ml-1 text-muted-foreground">({tokenPriceFormatter(tokenData.price)})</span>
+                    <span className="text-xs ml-1 text-muted-foreground">
+                      ({dynamicNumeralFormatter(tokenData.price)})
+                    </span>
                   )}
                 </>
               ) : (
