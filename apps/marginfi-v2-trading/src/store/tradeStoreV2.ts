@@ -67,6 +67,7 @@ type TradeStoreV2State = {
   positionsByGroupPk: Record<string, ArenaPoolPositions>;
   tokenDataByMint: Record<string, TokenData>;
   marginfiAccountByGroupPk: Record<string, MarginfiAccount>;
+  lutAddressesByGroupPk: Record<string, PublicKey[]>;
   lutByGroupPk: Record<string, AddressLookupTableAccount[]>;
   mintDataByMint: MintDataMap;
   pythFeedIdMap: Map<string, PublicKey>;
@@ -174,6 +175,7 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
   marginfiAccountByGroupPk: {},
   tokenDataByMint: {},
   lutByGroupPk: {},
+  lutAddressesByGroupPk: {},
   mintDataByMint: new Map(),
   arenaPoolsSummaryFuse: null,
   arenaPoolsFuse: null,
@@ -427,26 +429,36 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
       );
     }
 
-    if (!lutByGroupPk || Object.keys(lutByGroupPk).length === 0) {
-      const lutResults: Record<string, Promise<RpcResponseAndContext<AddressLookupTableAccount | null>> | null> = {};
+    const lutAddressesByGroupPk: Record<string, PublicKey[]> = {};
 
-      // Create lookup promises for each group
-      Object.entries(arenaPoolsSummary).forEach(([groupPk, summary]) => {
-        lutResults[groupPk] = summary.luts ? connection.getAddressLookupTable(new PublicKey(summary.luts[0])) : null;
-      });
+    Object.entries(arenaPoolsSummary).forEach(([groupPk, summary]) => {
+      if (summary.luts) {
+        lutAddressesByGroupPk[groupPk] = summary.luts.map((lut) => new PublicKey(lut));
+      }
+    });
 
-      const results = await Promise.all(Object.values(lutResults));
+    set({ lutAddressesByGroupPk });
 
-      const updatedLutByGroupPk = Object.keys(lutResults).reduce((acc, groupPk, index) => {
-        const lutAccount = results[index]?.value;
-        if (lutAccount) {
-          acc[groupPk] = [lutAccount];
-        }
-        return acc;
-      }, {} as Record<string, AddressLookupTableAccount[]>);
+    // if (!lutByGroupPk || Object.keys(lutByGroupPk).length === 0) {
+    //   const lutResults: Record<string, Promise<RpcResponseAndContext<AddressLookupTableAccount | null>> | null> = {};
 
-      set({ lutByGroupPk: updatedLutByGroupPk });
-    }
+    //   // Create lookup promises for each group
+    //   Object.entries(arenaPoolsSummary).forEach(([groupPk, summary]) => {
+    //     lutResults[groupPk] = summary.luts ? connection.getAddressLookupTable(new PublicKey(summary.luts[0])) : null;
+    //   });
+
+    //   const results = await Promise.all(Object.values(lutResults));
+
+    //   const updatedLutByGroupPk = Object.keys(lutResults).reduce((acc, groupPk, index) => {
+    //     const lutAccount = results[index]?.value;
+    //     if (lutAccount) {
+    //       acc[groupPk] = [lutAccount];
+    //     }
+    //     return acc;
+    //   }, {} as Record<string, AddressLookupTableAccount[]>);
+
+    //   set({ lutByGroupPk: updatedLutByGroupPk });
+    // }
 
     set({
       arenaPools,
