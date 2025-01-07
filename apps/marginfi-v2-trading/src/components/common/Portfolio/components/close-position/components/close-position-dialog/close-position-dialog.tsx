@@ -80,7 +80,12 @@ export const ClosePositionDialog = ({
             <React.Fragment key={bank.meta.tokenSymbol}>
               <dt>Supplied</dt>
               <dd className="text-right">
-                {bank.isActive ? dynamicNumeralFormatter(bank?.position.amount) : "0"} {bank.meta.tokenSymbol}
+                {bank.isActive
+                  ? dynamicNumeralFormatter(bank?.position.amount, {
+                      ignoreMinDisplay: true,
+                    })
+                  : "0"}{" "}
+                {bank.meta.tokenSymbol}
               </dd>
             </React.Fragment>
           ))}
@@ -89,7 +94,10 @@ export const ClosePositionDialog = ({
             <>
               <dt>Borrowed</dt>
               <dd className="text-right">
-                {dynamicNumeralFormatter(borrowBank.position.amount)} {borrowBank.meta.tokenSymbol}
+                {dynamicNumeralFormatter(borrowBank.position.amount, {
+                  ignoreMinDisplay: true,
+                })}{" "}
+                {borrowBank.meta.tokenSymbol}
               </dd>
             </>
           )}
