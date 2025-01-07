@@ -84,6 +84,7 @@ export const ClosePosition = ({ arenaPool, positionsByGroupPk, depositBanks, bor
         slippageBps: slippageBps,
         connection: connection,
         platformFeeBps: platformFeeBps,
+        tradeState: arenaPool.status,
         setIsLoading,
       });
 

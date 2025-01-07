@@ -34,6 +34,8 @@ export type TradeSimulationProps = {
   slippageBps: number;
   platformFeeBps: number;
 
+  tradeState: "long" | "short";
+
   setActionTxns: (actionTxns: TradeActionTxns) => void;
   setErrorMessage: (error: ActionMessageType | null) => void;
   setIsLoading: ({ isLoading, status }: { isLoading: boolean; status: SimulationStatus }) => void;
@@ -56,6 +58,7 @@ export function useTradeSimulation({
   setIsLoading,
   setSimulationResult,
   setMaxLeverage,
+  tradeState,
 }: TradeSimulationProps) {
   const prevDebouncedAmount = usePrevious(debouncedAmount);
   const prevDebouncedLeverage = usePrevious(debouncedLeverage);
@@ -171,6 +174,7 @@ export function useTradeSimulation({
           slippageBps: slippageBps,
           connection: marginfiClient?.provider.connection,
           platformFeeBps: platformFeeBps,
+          tradeState,
         });
 
         if (tradeActionTxns.actionMessage || tradeActionTxns.actionTxns === null) {
