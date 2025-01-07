@@ -11,8 +11,8 @@ import {
   ActionTxns,
   RepayWithCollatProps,
   LoopingProps,
-  LoopActionTxns,
   TradeActionTxns,
+  ClosePositionActionTxns,
 } from "./types";
 import { WalletContextStateOverride } from "../wallet";
 import {
@@ -28,6 +28,7 @@ import {
   mintLstNative,
   mintLstToken,
   mintLstStakeToStake,
+  closePosition,
 } from "./individualFlows";
 import { STATIC_SIMULATION_ERRORS } from "../errors";
 
@@ -147,6 +148,22 @@ export async function executeTradeAction(params: ExecuteTradeActionProps) {
   let txnSig: string[] | undefined;
 
   txnSig = await trade(params);
+
+  return txnSig;
+}
+
+export interface ExecuteClosePositionActionProps {
+  marginfiClient: MarginfiClient;
+  actionTxns: ClosePositionActionTxns;
+  processOpts: ProcessTransactionsClientOpts;
+  txOpts: TransactionOptions;
+  multiStepToast: MultiStepToastHandle;
+}
+
+export async function executeClosePositionAction(params: ExecuteClosePositionActionProps) {
+  let txnSig: string[] | undefined;
+
+  txnSig = await closePosition(params);
 
   return txnSig;
 }
