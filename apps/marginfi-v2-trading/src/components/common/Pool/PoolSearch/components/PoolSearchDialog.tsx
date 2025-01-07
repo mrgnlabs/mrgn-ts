@@ -3,11 +3,17 @@ import type { FuseResult } from "fuse.js";
 import { IconX, IconSearch } from "@tabler/icons-react";
 
 import { cn } from "@mrgnlabs/mrgn-utils";
-import { tokenPriceFormatter, numeralFormatter, percentFormatter } from "@mrgnlabs/mrgn-common";
+import {
+  tokenPriceFormatter,
+  numeralFormatter,
+  percentFormatter,
+  dynamicNumeralFormatter,
+} from "@mrgnlabs/mrgn-common";
 
-import { CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "~/components/ui/command";
+import { Command, CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "~/components/ui/command";
 import { useTradeStoreV2 } from "~/store";
 import { ArenaPoolSummary } from "~/types/trade-store.types";
+import { Drawer, DrawerContent, DrawerTrigger } from "~/components/ui/drawer";
 
 type PoolSearchDialogProps = {
   searchQuery: string;
@@ -36,102 +42,118 @@ export const PoolSearchDialog = ({
   const [banksByBankPk] = useTradeStoreV2((state) => [state.banksByBankPk]);
 
   return (
-    <div className="relative w-full">
-      <button onClick={() => setOpen(true)} className="relative w-full text-muted-foreground">
+    <Drawer open={open} onOpenChange={(open) => setOpen(open)}>
+      <DrawerTrigger className="relative w-full text-muted-foreground">
         <div className="border border-border text-sm py-2 pl-8 h-auto rounded-full text-left bg-transparent outline-none pointer-events-none focus-visible:ring-0 md:text-lg md:py-3 disabled:opacity-100">
           Search tokens...
         </div>
         <IconSearch size={14} className="absolute left-3 top-1/2 -translate-y-1/2" />
-      </button>
-      <CommandDialog open={open} onOpenChange={setOpen} commandProps={{ shouldFilter: false }}>
-        <div className="p-4">
-          <div className="relative border border-muted-foreground/25 rounded-full px-2 transition-colors">
-            <CommandInput
-              placeholder={"Search tokens..."}
-              className="py-2 h-auto bg-transparent outline-none focus-visible:ring-0"
-              autoFocus
-              value={searchQuery}
-              onValueChange={(value) => setSearchQuery(value)}
-            />
-            {searchQuery.length > 0 && (
-              <IconX
-                size={16}
-                className="absolute text-muted-foreground right-4 top-1/2 -translate-y-1/2 cursor-pointer transition-colors hover:text-primary"
-                onClick={() => {
-                  setOpen(false);
-                }}
+      </DrawerTrigger>
+      <DrawerContent className="h-full z-[55] mt-0 p-2">
+        <Command>
+          <div className="p-4">
+            <div className="relative border border-muted-foreground/25 rounded-full px-2 transition-colors">
+              <CommandInput
+                placeholder={"Search tokens..."}
+                className="py-2 h-auto bg-transparent outline-none focus-visible:ring-0"
+                autoFocus
+                value={searchQuery}
+                onValueChange={(value) => setSearchQuery(value)}
               />
+              {searchQuery.length > 0 && (
+                <IconX
+                  size={16}
+                  className="absolute text-muted-foreground right-4 top-1/2 -translate-y-1/2 cursor-pointer transition-colors hover:text-primary"
+                  onClick={() => {
+                    setOpen(false);
+                  }}
+                />
+              )}
+            </div>
+            {searchResults.length > 0 && (
+              <CommandGroup>
+                {searchResults.slice(0, maxResults).map((result) => {
+                  const pool = result.item;
+                  const address = pool.groupPk.toBase58();
+                  const tokenBank = banksByBankPk[pool.tokenSummary.bankPk.toBase58()];
+                  const quoteBank = banksByBankPk[pool.quoteSummary.bankPk.toBase58()];
+
+                  return (
+                    <CommandItem key={address} value={address} className="py-4" onSelect={onBankSelect}>
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2 relative">
+                          <img
+                            src={tokenBank.meta.tokenLogoUri}
+                            width={32}
+                            height={32}
+                            alt={tokenBank.meta.tokenSymbol}
+                            className="rounded-full w-[32px] h-[32px] object-cover"
+                          />
+                          <img
+                            src={quoteBank.meta.tokenLogoUri}
+                            width={16}
+                            height={16}
+                            alt={quoteBank.meta.tokenSymbol}
+                            className="rounded-full w-[16px] h-[16px] object-cover absolute -right-1 -bottom-1"
+                          />{" "}
+                        </div>
+
+                        <div className="flex flex-col gap-1">
+                          <h3>{tokenBank.meta.tokenName}</h3>
+                          <span className="text-xs text-muted-foreground">
+                            {tokenBank.meta.tokenSymbol}/{quoteBank.meta.tokenSymbol}
+                          </span>
+                        </div>
+                      </div>
+                      {tokenBank.tokenData && (
+                        <dl className="flex items-center text-xs ml-auto md:text-sm md:gap-8">
+                          <div>
+                            <dt className="text-muted-foreground sr-only md:not-sr-only">Price:</dt>
+                            <dd className="space-x-2">
+                              <span>${dynamicNumeralFormatter(tokenBank.tokenData.price)}</span>
+
+                              <span
+                                className={cn(
+                                  "text-xs",
+                                  tokenBank.tokenData.volumeChange24hr > 0 ? "text-mrgn-success" : "text-mrgn-error"
+                                )}
+                              >
+                                {tokenBank.tokenData.priceChange24hr > 0 && "+"}
+                                {percentFormatter.format(tokenBank.tokenData.priceChange24hr / 100)}
+                              </span>
+                            </dd>
+                          </div>
+                          <div className="hidden w-[130px] md:block">
+                            <dt className="text-muted-foreground">Vol 24hr:</dt>
+                            <dd className="space-x-2">
+                              <span>${dynamicNumeralFormatter(tokenBank.tokenData.volume24hr)}</span>
+                              <span
+                                className={cn(
+                                  "text-xs",
+                                  tokenBank.tokenData.volumeChange24hr > 0 ? "text-mrgn-success" : "text-mrgn-error"
+                                )}
+                              >
+                                {tokenBank.tokenData.volumeChange24hr > 0 && "+"}
+                                {percentFormatter.format(tokenBank.tokenData.volumeChange24hr / 100)}
+                              </span>
+                            </dd>
+                          </div>
+                        </dl>
+                      )}
+                    </CommandItem>
+                  );
+                })}
+              </CommandGroup>
+            )}
+            {searchQuery.length > 0 && searchResults.length === 0 && showNoResults && (
+              <CommandEmpty className="text-center mt-8 text-muted-foreground">No results found</CommandEmpty>
+            )}
+            {additionalContent && searchQuery.length >= additionalContentQueryMin && (
+              <div className="flex justify-center w-full mt-8">{additionalContent}</div>
             )}
           </div>
-          {searchResults.length > 0 && (
-            <CommandGroup>
-              {searchResults.slice(0, maxResults).map((result) => {
-                const pool = result.item;
-                const address = pool.groupPk.toBase58();
-                const tokenBank = banksByBankPk[pool.tokenSummary.bankPk.toBase58()];
-
-                return (
-                  <CommandItem key={address} value={address} className="py-4" onSelect={onBankSelect}>
-                    <div className="flex items-center gap-3">
-                      <img
-                        src={tokenBank.meta.tokenLogoUri}
-                        width={32}
-                        height={32}
-                        alt={tokenBank.meta.tokenSymbol}
-                        className="rounded-full"
-                      />
-                      <h3>{tokenBank.meta.tokenSymbol}</h3>
-                    </div>
-                    {tokenBank.tokenData && (
-                      <dl className="flex items-center text-xs ml-auto md:text-sm md:gap-8">
-                        <div>
-                          <dt className="text-muted-foreground sr-only md:not-sr-only">Price:</dt>
-                          <dd className="space-x-2">
-                            <span>
-                              {tokenPriceFormatter(tokenBank.info.oraclePrice.priceRealtime.price.toNumber())}
-                            </span>
-
-                            <span
-                              className={cn(
-                                "text-xs",
-                                tokenBank.tokenData.volumeChange24hr > 0 ? "text-mrgn-success" : "text-mrgn-error"
-                              )}
-                            >
-                              {tokenBank.tokenData.priceChange24hr > 0 && "+"}
-                              {percentFormatter.format(tokenBank.tokenData.priceChange24hr / 100)}
-                            </span>
-                          </dd>
-                        </div>
-                        <div className="hidden w-[130px] md:block">
-                          <dt className="text-muted-foreground">Vol 24hr:</dt>
-                          <dd className="space-x-2">
-                            <span>${numeralFormatter(tokenBank.tokenData.volume24hr)}</span>
-                            <span
-                              className={cn(
-                                "text-xs",
-                                tokenBank.tokenData.volumeChange24hr > 0 ? "text-mrgn-success" : "text-mrgn-error"
-                              )}
-                            >
-                              {tokenBank.tokenData.volumeChange24hr > 0 && "+"}
-                              {percentFormatter.format(tokenBank.tokenData.volumeChange24hr / 100)}
-                            </span>
-                          </dd>
-                        </div>
-                      </dl>
-                    )}
-                  </CommandItem>
-                );
-              })}
-            </CommandGroup>
-          )}
-          {searchQuery.length > 0 && searchResults.length === 0 && showNoResults && (
-            <CommandEmpty className="text-center mt-8 text-muted-foreground">No results found</CommandEmpty>
-          )}
-          {additionalContent && searchQuery.length >= additionalContentQueryMin && (
-            <div className="flex justify-center w-full mt-8">{additionalContent}</div>
-          )}
-        </div>
-      </CommandDialog>
-    </div>
+        </Command>
+      </DrawerContent>
+    </Drawer>
   );
 };
