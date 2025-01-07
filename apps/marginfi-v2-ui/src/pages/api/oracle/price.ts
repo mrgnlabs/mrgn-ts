@@ -432,7 +432,7 @@ async function fetchMultiPrice(tokens: string[]): Promise<BirdeyePriceResponse> 
         ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
         : process.env.VERCEL_BRANCH_URL
         ? `https://${process.env.VERCEL_BRANCH_URL}`
-        : "localhost:3004";
+        : "http://localhost:3004";
 
     const response = await fetch(`${baseUrl}/api/tokens/multi?mintList=${tokens.join(",")}`, {
       signal: controller.signal,
@@ -440,8 +440,13 @@ async function fetchMultiPrice(tokens: string[]): Promise<BirdeyePriceResponse> 
     clearTimeout(timeoutId);
 
     const data = (await response.json()) as BirdeyePriceResponse;
+
+    if (!data || !data.success) {
+      throw new Error("Error fetching birdeye prices");
+    }
+
     return data;
   } catch (error) {
-    throw new Error("Error fetching birdey prices");
+    throw new Error("Error fetching birdeye prices");
   }
 }
