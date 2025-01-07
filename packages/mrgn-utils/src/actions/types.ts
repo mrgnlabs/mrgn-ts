@@ -103,7 +103,7 @@ export interface CalculateLoopingProps
   slippageBps: number;
   platformFeeBps: number;
   setupBankAddresses?: PublicKey[];
-  tradeState: "long" | "short";
+  tradeState?: "long" | "short";
 }
 
 export interface CalculateRepayCollateralProps
