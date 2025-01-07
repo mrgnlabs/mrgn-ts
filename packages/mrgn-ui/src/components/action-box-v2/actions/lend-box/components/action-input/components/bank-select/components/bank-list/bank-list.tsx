@@ -119,9 +119,16 @@ export const BankList = ({
     return banks.filter(searchFilter);
   }, [banks, searchFilter]);
 
-  const globalBanks = React.useMemo(() => filteredBanks.filter((bank) => !bank.info.state.isIsolated), [filteredBanks]);
+  const globalBanks = React.useMemo(
+    () => filteredBanks.filter((bank) => bank.info.rawBank.config.assetTag !== 2 && !bank.info.state.isIsolated),
+    [filteredBanks]
+  );
   const isolatedBanks = React.useMemo(
-    () => filteredBanks.filter((bank) => bank.info.state.isIsolated),
+    () => filteredBanks.filter((bank) => bank.info.rawBank.config.assetTag !== 2 && bank.info.state.isIsolated),
+    [filteredBanks]
+  );
+  const stakedAssetBanks = React.useMemo(
+    () => filteredBanks.filter((bank) => bank.info.rawBank.config.assetTag === 2),
     [filteredBanks]
   );
 
@@ -298,6 +305,37 @@ export const BankList = ({
             })}
           </CommandGroup>
         )}
+        {/* STAKED ASSETS */}
+        {stakedAssetBanks.length > 0 &&
+          lendingMode === LendingModes.LEND &&
+          onSetSelectedBank &&
+          showTokenSelectionGroups && (
+            <CommandGroup heading="Staked asset pools">
+              {stakedAssetBanks.map((bank, index) => {
+                return (
+                  <CommandItem
+                    key={index}
+                    value={bank.address?.toString().toLowerCase()}
+                    onSelect={(currentValue) => {
+                      onSetSelectedBank(
+                        banks.find((bankInfo) => bankInfo.address.toString().toLowerCase() === currentValue) ?? null
+                      );
+                      onClose();
+                    }}
+                    className="py-2 cursor-pointer font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-mfi-action-box-accent data-[selected=true]:text-mfi-action-box-accent-foreground hover:bg-mfi-action-box-accent hover:text-mfi-action-box-accent-foreground"
+                  >
+                    <BankItem
+                      rate={calculateRate(bank)}
+                      lendingMode={lendingMode}
+                      bank={bank}
+                      showBalanceOverride={false}
+                      nativeSolBalance={nativeSolBalance}
+                    />
+                  </CommandItem>
+                );
+              })}
+            </CommandGroup>
+          )}
       </BankListCommand>
     </>
   );
