@@ -143,6 +143,7 @@ const SharePosition = ({ pool, triggerVariant = "ghost", triggerClassName, onOpe
                     $
                     {dynamicNumeralFormatter(positionData?.entryPrice, {
                       tokenPrice: positionData?.entryPrice,
+                      ignoreMinDisplay: true,
                     })}
                   </dd>
                   <dt className="text-sm text-muted-foreground">Market price</dt>
@@ -150,6 +151,7 @@ const SharePosition = ({ pool, triggerVariant = "ghost", triggerClassName, onOpe
                     $
                     {dynamicNumeralFormatter(pool.tokenBank.info.oraclePrice.priceRealtime.price.toNumber(), {
                       tokenPrice: pool.tokenBank.info.oraclePrice.priceRealtime.price.toNumber(),
+                      ignoreMinDisplay: true,
                     })}
                   </dd>
                 </dl>

@@ -18,24 +18,12 @@ type PoolListItemProps = {
 
 export const PoolListItem = ({ poolData, last }: PoolListItemProps) => {
   const [tokenDataByMint] = useTradeStoreV2((state) => [state.tokenDataByMint]);
-  const isLstQuote = React.useMemo(() => {
-    return poolData.quoteSummary.tokenSymbol === "LST";
-  }, [poolData]);
 
   const { tokenData, quoteTokenData } = React.useMemo(() => {
     const tokenData = tokenDataByMint[poolData.tokenSummary.mint.toBase58()];
     const quoteTokenData = tokenDataByMint[poolData.quoteSummary.mint.toBase58()];
     return { tokenData, quoteTokenData };
   }, [poolData, tokenDataByMint]);
-
-  const tokenPrice = React.useMemo(() => {
-    if (isLstQuote) {
-      const lstPrice = quoteTokenData.price;
-      return `${dynamicNumeralFormatter(tokenData.price / lstPrice)} ${poolData.quoteSummary.tokenSymbol}`;
-    }
-
-    return dynamicNumeralFormatter(tokenData.price);
-  }, [isLstQuote, tokenData.price, quoteTokenData.price, poolData.quoteSummary.tokenSymbol]);
 
   const fundingRate = React.useMemo(() => {
     const fundingRateShort =
@@ -67,18 +55,14 @@ export const PoolListItem = ({ poolData, last }: PoolListItemProps) => {
         <>
           <div className="flex items-center gap-2">
             <div className="flex flex-col">
-              ${tokenPrice}
-              {isLstQuote && (
-                <span className="text-xs text-muted-foreground block">${dynamicNumeralFormatter(tokenData.price)}</span>
-              )}
+              $
+              {dynamicNumeralFormatter(tokenData.price / quoteTokenData.price, {
+                ignoreMinDisplay: true,
+              })}
             </div>
             <span className={cn("text-xs", tokenData.priceChange24h > 0 ? "text-mrgn-success" : "text-mrgn-error")}>
-              {!isLstQuote && (
-                <>
-                  {tokenData.priceChange24h > 0 && "+"}
-                  {percentFormatter.format(tokenData.priceChange24h / 100)}
-                </>
-              )}
+              {tokenData.priceChange24h > 0 && "+"}
+              {percentFormatter.format(tokenData.priceChange24h / 100)}
             </span>
           </div>
           <div>

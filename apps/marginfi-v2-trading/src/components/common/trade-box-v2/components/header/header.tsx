@@ -26,7 +26,9 @@ export const Header = ({ activePool, entryPrice, volume }: HeaderProps) => {
       <div className="flex items-center gap-3 pr-2 py-1">
         <div className="flex flex-col">
           <span className="text-xs text-muted-foreground">Price</span>
-          <span className="text-sm">${dynamicNumeralFormatter(entryPrice, { maxDisplay: 100 })}</span>
+          <span className="text-sm">
+            ${dynamicNumeralFormatter(entryPrice, { maxDisplay: 100, ignoreMinDisplay: true })}
+          </span>
         </div>
         {volume && (
           <div className="flex flex-col border-l pl-3">

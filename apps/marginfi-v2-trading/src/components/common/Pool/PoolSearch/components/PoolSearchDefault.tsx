@@ -166,7 +166,12 @@ export const PoolSearchDefault = ({
                         <div className="w-[110px] md:w-[150px]">
                           <dt className="text-muted-foreground">Market price:</dt>
                           <dd className="space-x-2">
-                            <span>{dynamicNumeralFormatter(tokenBank.tokenData?.price)}</span>
+                            <span>
+                              $
+                              {dynamicNumeralFormatter(tokenBank.tokenData?.price, {
+                                ignoreMinDisplay: true,
+                              })}
+                            </span>
 
                             <span
                               className={cn(

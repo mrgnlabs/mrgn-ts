@@ -32,16 +32,31 @@ export const PnlDisplay = ({ pool, onDialogOpenChange }: PnlDisplayProps) => {
           </div>
           <div className="flex flex-row items-center justify-between gap-8">
             <span className="text-muted-foreground">Price </span>
-            <span>${dynamicNumeralFormatter(pool.tokenBank.info.oraclePrice.priceRealtime.price.toNumber())}</span>
+            <span>
+              $
+              {dynamicNumeralFormatter(pool.tokenBank.info.oraclePrice.priceRealtime.price.toNumber(), {
+                ignoreMinDisplay: true,
+              })}
+            </span>
           </div>
           <div className="flex flex-row items-center justify-between gap-8">
             <span className="text-muted-foreground">Entry price</span>
-            <span>${dynamicNumeralFormatter(positionData?.entryPrice)}</span>
+            <span>
+              $
+              {dynamicNumeralFormatter(positionData?.entryPrice, {
+                ignoreMinDisplay: true,
+              })}
+            </span>
           </div>
           {pool.tokenBank.isActive && pool.tokenBank.position.liquidationPrice && (
             <div className="flex flex-row items-center justify-between gap-8">
               <span className="text-muted-foreground">Liquidation price</span>
-              <span>${dynamicNumeralFormatter(pool.tokenBank.position.liquidationPrice)}</span>
+              <span>
+                $
+                {dynamicNumeralFormatter(pool.tokenBank.position.liquidationPrice, {
+                  ignoreMinDisplay: true,
+                })}
+              </span>
             </div>
           )}
         </div>
