@@ -96,7 +96,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
     const data = await response.json();
 
-    // cache for 20 minutes
+    if (!data || !data.data) {
+      console.log("data not found");
+      return res.status(404).json({
+        error: "Birdeye API error: data not found",
+      });
+    }
+
+    // cache for 20 minutes (1200 seconds)
     res.setHeader("Cache-Control", "s-maxage=1200, stale-while-revalidate=300");
     res.status(200).json(data);
   } catch (error) {

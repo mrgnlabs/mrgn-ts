@@ -2,7 +2,13 @@ import React from "react";
 
 import Image from "next/image";
 import Link from "next/link";
-import { aprToApy, numeralFormatter, percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
+import {
+  aprToApy,
+  dynamicNumeralFormatter,
+  numeralFormatter,
+  percentFormatter,
+  usdFormatter,
+} from "@mrgnlabs/mrgn-common";
 import { IconAlertTriangle, IconExternalLink } from "@tabler/icons-react";
 
 import {
@@ -40,7 +46,16 @@ export const getAssetPriceCell = ({
 }: AssetPriceData) => (
   <div className="relative flex items-center justify-end gap-1.5">
     <div className="relative">
-      {assetPrice >= 0.01 ? usdFormatter.format(assetPrice) : `$${assetPrice.toExponential(2)}`}
+      {/* {assetPrice >= 0.01 ? usdFormatter.format(assetPrice) : `$${assetPrice.toExponential(2)}`} */}
+      {assetPrice >= 1
+        ? usdFormatter.format(assetPrice)
+        : assetPrice >= 0.0000001
+        ? `$${dynamicNumeralFormatter(assetPrice, {
+            minDisplay: 0.0000001,
+            tokenPrice: assetPrice,
+            forceDecimals: true,
+          })}`
+        : `$${assetPrice.toExponential(2)}`}
       {assetPriceOffset > assetPrice * 0.1 && (
         <div className="absolute top-[-8px] right-2">
           <TooltipProvider>
