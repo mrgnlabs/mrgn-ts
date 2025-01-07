@@ -18,7 +18,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       queueKey: queueKey.toBase58(),
     } as PoolOracleApiResponse);
   } catch (error) {
-    console.error("Error fetching pool data:", error);
+    console.log("Error fetching oracle data for oracle creation:", error);
     return res.status(500).json({
       error: "Internal server error",
       message: process.env.NODE_ENV === "development" ? error : undefined,

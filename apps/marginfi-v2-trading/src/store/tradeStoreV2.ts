@@ -39,6 +39,7 @@ import {
   BankData,
   GroupStatus,
 } from "~/types/trade-store.types";
+import { OraclePriceV2ApiResponse } from "~/types/api.types";
 
 export enum TradePoolFilterStates {
   TIMESTAMP = "timestamp",
@@ -852,7 +853,7 @@ async function fetchOraclePrices() {
     throw new Error("Failed to fetch oracle prices");
   }
 
-  const responseBody: Record<string, any> = await response.json();
+  const responseBody: OraclePriceV2ApiResponse = await response.json();
 
   if (!responseBody) {
     throw new Error("Failed to fetch oracle prices");

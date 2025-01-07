@@ -7,6 +7,7 @@ import { QuoteResponse } from "@jup-ag/api";
 import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { shortenAddress, usdFormatter } from "@mrgnlabs/mrgn-common";
 import { composeExplorerUrl } from "@mrgnlabs/mrgn-utils";
+import BigNumber from "bignumber.js";
 
 interface Props {
   depositBank: ActiveBankInfo;
@@ -35,6 +36,24 @@ export const TradingScreen = ({
 }: Props) => {
   const tokenBank = React.useMemo(() => (type === "long" ? depositBank : borrowBank), [type, depositBank, borrowBank]);
 
+  const borrowBankOraclePrice = React.useMemo(() => {
+    const oraclePrice = borrowBank.info.oraclePrice.priceRealtime.price;
+    if (BigNumber.isBigNumber(oraclePrice)) {
+      return oraclePrice.toNumber();
+    } else {
+      return Number(oraclePrice);
+    }
+  }, [borrowBank]);
+
+  const depositBankOraclePrice = React.useMemo(() => {
+    const oraclePrice = depositBank.info.oraclePrice.priceRealtime.price;
+    if (BigNumber.isBigNumber(oraclePrice)) {
+      return oraclePrice.toNumber();
+    } else {
+      return Number(oraclePrice);
+    }
+  }, [depositBank]);
+
   if (!tokenBank) {
     return <></>;
   }
@@ -43,6 +62,7 @@ export const TradingScreen = ({
     <>
       <div className="flex flex-col items-center gap-4 border-b border-border pb-10">
         <div className="flex items-center">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             className="rounded-full"
             src={depositBank.meta.tokenLogoUri}
@@ -50,6 +70,7 @@ export const TradingScreen = ({
             width={48}
             height={48}
           />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             className="rounded-full -ml-5 relative z-10"
             src={borrowBank.meta.tokenLogoUri}
@@ -82,8 +103,8 @@ export const TradingScreen = ({
         <dt>Size</dt>
         <dd className="text-right">
           {type === "long"
-            ? usdFormatter.format(depositAmount * depositBank.info.oraclePrice.priceRealtime.price.toNumber())
-            : usdFormatter.format(borrowAmount * borrowBank.info.oraclePrice.priceRealtime.price.toNumber())}
+            ? usdFormatter.format(depositAmount * depositBankOraclePrice)
+            : usdFormatter.format(borrowAmount * borrowBankOraclePrice)}
         </dd>
         <dt>Leverage</dt>
         <dd className="text-right">{`${leverage}x`}</dd>
