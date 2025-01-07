@@ -48,7 +48,7 @@ export const dynamicNumeralFormatter = (value: number, options: dynamicNumeralFo
   }
 
   if (Math.abs(value) >= 0.01) {
-    return numeral(value).format(forceDecimals ? "0,0.00a" : "0,0.[0000]a");
+    return numeral(value).format(forceDecimals && Math.abs(value) > 0.99 ? "0,0.00a" : "0,0.[0000]a");
   }
 
   if (tokenPrice) {
