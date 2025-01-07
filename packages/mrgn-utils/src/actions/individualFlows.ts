@@ -45,10 +45,11 @@ import {
   RepayWithCollatProps,
   IndividualFlowError,
   TradeActionTxns,
+  ClosePositionActionTxns,
 } from "./types";
 import { captureSentryException } from "../sentry.utils";
 import { loopingBuilder, repayWithCollatBuilder } from "./flashloans";
-import { handleError, STATIC_SIMULATION_ERRORS } from "../errors";
+import { STATIC_SIMULATION_ERRORS } from "../errors";
 
 //-----------------------//
 // Local utils functions //
@@ -689,6 +690,67 @@ export async function trade({
         wallet: tradingProps.marginfiAccount?.authority?.toBase58(),
         bank: tradingProps.borrowBank.meta.tokenSymbol,
         amount: tradingProps.borrowAmount.toString(),
+      });
+    }
+
+    handleIndividualFlowError({
+      error,
+      actionTxns,
+      multiStepToast,
+    });
+  }
+}
+
+interface ClosePositionFnProps {
+  marginfiClient: MarginfiClient;
+  actionTxns: ClosePositionActionTxns;
+  processOpts: ProcessTransactionsClientOpts;
+  txOpts: TransactionOptions;
+  multiStepToast: MultiStepToastHandle;
+}
+
+export async function closePosition({
+  marginfiClient,
+  actionTxns,
+  processOpts,
+  txOpts,
+  multiStepToast,
+}: ClosePositionFnProps) {
+  if (!marginfiClient || !actionTxns.actionTxn) {
+    throw new Error("Marginfi account not ready.");
+  }
+
+  multiStepToast.resume();
+
+  try {
+    let sigs: string[] = [];
+    sigs = await marginfiClient.processTransactions(
+      [
+        ...actionTxns.additionalTxns,
+        actionTxns.actionTxn,
+        ...(actionTxns.closeTransactions ? actionTxns.closeTransactions : []),
+      ],
+      {
+        ...processOpts,
+        callback(index, success, sig, stepsToAdvance) {
+          const currentLabel = multiStepToast?.getCurrentLabel();
+          if (success && currentLabel === "Signing transaction") {
+            multiStepToast.setSuccessAndNext(1, sig, composeExplorerUrl(sig));
+          }
+        },
+      }
+    );
+
+    multiStepToast.setSuccess(sigs[sigs.length - 1], composeExplorerUrl(sigs[sigs.length - 1]));
+    return sigs;
+  } catch (error: any) {
+    console.log(`Error while closing position`);
+    console.log(error);
+
+    if (!(error instanceof ProcessTransactionError || error instanceof SolanaJSONRPCError)) {
+      captureSentryException(error, JSON.stringify(error), {
+        action: "close_position",
+        wallet: marginfiClient.wallet.publicKey?.toBase58(),
       });
     }
 

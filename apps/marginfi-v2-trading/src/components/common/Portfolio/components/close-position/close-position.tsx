@@ -4,8 +4,9 @@ import { IconX } from "@tabler/icons-react";
 import {
   capture,
   ClosePositionActionTxns,
-  composeExplorerUrl,
+  ExecuteClosePositionActionProps,
   extractErrorString,
+  IndividualFlowError,
   MultiStepToastHandle,
 } from "@mrgnlabs/mrgn-utils";
 import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
@@ -21,7 +22,8 @@ import { useLeveragedPositionDetails } from "~/hooks/arenaHooks";
 import { usePositionsData } from "~/hooks/usePositionsData";
 
 import { ClosePositionDialog } from "./components/close-position-dialog";
-import { closePosition, simulateClosePosition } from "./utils/close-position-utils";
+import { handleExecuteClosePositionAction, simulateClosePosition } from "./utils/close-position-utils";
+import { PreviousTxn } from "~/types";
 
 interface ClosePositionProps {
   arenaPool: ArenaPoolV2Extended;
@@ -106,84 +108,6 @@ export const ClosePosition = ({ arenaPool, positionsByGroupPk, depositBanks, bor
     }
   }, [wrappedAccount, connection, depositBanks, borrowBank, slippageBps, platformFeeBps]);
 
-  const handleCompleteAction = React.useCallback(
-    (txnSig: string, pnl: number, entryPrice: number) => {
-      refreshGroup({
-        groupPk: arenaPool.groupPk,
-        banks: [arenaPool.tokenBank.address, arenaPool.quoteBank.address],
-        connection,
-        wallet,
-      });
-      setPreviousTxn({
-        txnType: "CLOSE_POSITION",
-        txn: Array.isArray(txnSig) ? txnSig[txnSig.length - 1] : txnSig!,
-        positionClosedOptions: {
-          tokenBank: arenaPool.tokenBank,
-          size: positionSizeUsd,
-          leverage: Number(leverage),
-          entryPrice: entryPrice,
-          exitPrice: arenaPool.tokenBank.info.oraclePrice.priceRealtime.price.toNumber(),
-          pnl: pnl,
-          pool: arenaPool,
-        },
-      });
-      capture("close_position", {
-        group: arenaPool.groupPk?.toBase58(),
-        txnSig: txnSig,
-        token: arenaPool.tokenBank.meta.tokenSymbol,
-        tokenSize: arenaPool.tokenBank.isActive ? arenaPool.tokenBank.position.amount : 0,
-        usdcSize: arenaPool.quoteBank.isActive ? arenaPool.quoteBank.position.amount : 0,
-      });
-
-      setIsOpen(false);
-      setIsActionComplete(true);
-    },
-    [refreshGroup, arenaPool, connection, wallet, setIsActionComplete, setPreviousTxn, positionSizeUsd, leverage] // TODO: eslint
-  );
-  const handleClosePosition = React.useCallback(async () => {
-    if (!actionTxns || !client || !multiStepToast || !wrappedAccount) {
-      return;
-    }
-    const pnl = positionData && positionData.pnl ? positionData.pnl : 0;
-    const entryPrice = positionData && positionData.entryPrice ? positionData.entryPrice : 0;
-
-    multiStepToast.resume();
-    setIsLoading(true);
-
-    try {
-      const { txnSig, actionMessage } = await closePosition({
-        marginfiClient: client,
-        actionTransaction: actionTxns,
-        broadcastType: broadcastType,
-        priorityFees: priorityFees,
-        multiStepToast: multiStepToast,
-      });
-
-      if (actionMessage || !txnSig) {
-        multiStepToast.setFailed(actionMessage?.description ?? "Error closing position");
-        return;
-      }
-
-      multiStepToast.setSuccess(txnSig, composeExplorerUrl(txnSig));
-      handleCompleteAction(txnSig, pnl, entryPrice);
-    } catch (error) {
-      console.error("Error closing position", error);
-      const msg = extractErrorString(error);
-      multiStepToast.setFailed(msg ?? "Error closing position");
-    } finally {
-      setIsLoading(false);
-    }
-  }, [
-    actionTxns,
-    client,
-    multiStepToast,
-    wrappedAccount,
-    positionData,
-    broadcastType,
-    priorityFees,
-    handleCompleteAction,
-  ]);
-
   const handleChangeDialogState = (open: boolean) => {
     setIsOpen(open);
     setActionTxns(null);
@@ -204,6 +128,148 @@ export const ClosePosition = ({ arenaPool, positionsByGroupPk, depositBanks, bor
     }
   }, [isOpen, multiStepToast]);
 
+  ////////////////////////////
+  // Close Position Actions //
+  ////////////////////////////
+  const executeAction = async (
+    params: ExecuteClosePositionActionProps,
+    pnl: number,
+    entryPrice: number,
+    arenaPool: ArenaPoolV2Extended,
+    callbacks: {
+      captureEvent: (event: string, properties?: Record<string, any>) => void;
+      setIsActionComplete: (isComplete: boolean) => void;
+      setPreviousTxn: (previousTxn: PreviousTxn) => void;
+      onComplete: () => void;
+      setIsLoading: (loading: boolean) => void;
+      setIsModalOpen: (open: boolean) => void;
+      retryCallback: (txns: ClosePositionActionTxns, multiStepToast: MultiStepToastHandle) => void;
+    }
+  ) => {
+    const action = async (params: any) => {
+      handleExecuteClosePositionAction({
+        params,
+        arenaPool,
+        captureEvent: (event, properties) => {
+          callbacks.captureEvent && callbacks.captureEvent(event, properties);
+        },
+        setIsLoading: callbacks.setIsLoading,
+        setIsComplete: (txnSigs: string[]) => {
+          callbacks.setIsActionComplete(true);
+          callbacks.setPreviousTxn({
+            txnType: "CLOSE_POSITION",
+            txn: txnSigs[txnSigs.length - 1],
+            positionClosedOptions: {
+              tokenBank: arenaPool.tokenBank,
+              size: positionSizeUsd,
+              leverage: Number(leverage),
+              entryPrice: entryPrice,
+              exitPrice: arenaPool.tokenBank.info.oraclePrice.priceRealtime.price.toNumber(),
+              pnl: pnl,
+              pool: arenaPool,
+            },
+          });
+          callbacks.onComplete && callbacks.onComplete();
+          callbacks.setIsModalOpen && callbacks.setIsModalOpen(false);
+        },
+        setError: (error: IndividualFlowError) => {
+          const toast = error.multiStepToast as MultiStepToastHandle;
+          const txs = error.actionTxns as ClosePositionActionTxns;
+          const errorMessage = error.message;
+          let retry = undefined;
+          if (error.retry && toast && txs) {
+            retry = () => callbacks.retryCallback(txs, toast);
+          }
+          toast.setFailed(errorMessage, retry);
+          callbacks.setIsLoading(false);
+        },
+      });
+    };
+
+    await action(params);
+  };
+
+  const retryClosePositionAction = React.useCallback(
+    async (
+      params: ExecuteClosePositionActionProps,
+      pnl: number,
+      entryPrice: number,
+      arenaPool: ArenaPoolV2Extended
+    ) => {
+      executeAction(params, pnl, entryPrice, arenaPool, {
+        captureEvent: capture,
+        setIsActionComplete: setIsActionComplete,
+        setPreviousTxn: setPreviousTxn,
+        onComplete: () => {
+          refreshGroup({
+            groupPk: arenaPool.groupPk,
+            banks: [arenaPool.tokenBank.address, arenaPool.quoteBank.address],
+            connection,
+            wallet,
+          });
+        },
+        setIsLoading: setIsLoading,
+        setIsModalOpen: setIsOpen,
+        retryCallback: (txns: ClosePositionActionTxns, multiStepToast: MultiStepToastHandle) => {
+          retryClosePositionAction({ ...params, actionTxns: txns, multiStepToast }, pnl, entryPrice, arenaPool);
+        },
+      });
+    },
+    [setIsActionComplete, setPreviousTxn, setIsLoading, arenaPool, connection, wallet]
+  );
+
+  const handleClosePositionAction = React.useCallback(async () => {
+    if (!actionTxns || !client || !multiStepToast || !arenaPool) {
+      return;
+    }
+    const pnl = positionData && positionData.pnl ? positionData.pnl : 0;
+    const entryPrice = positionData && positionData.entryPrice ? positionData.entryPrice : 0;
+
+    const params = {
+      marginfiClient: client,
+      actionTxns: actionTxns,
+      processOpts: {
+        broadcastType: broadcastType,
+        ...priorityFees,
+      },
+      txOpts: {},
+      multiStepToast: multiStepToast,
+      marginfiAccount: wrappedAccount,
+    } as ExecuteClosePositionActionProps;
+
+    return await executeAction(params, pnl, entryPrice, arenaPool, {
+      captureEvent: capture,
+      setIsActionComplete: setIsActionComplete,
+      setPreviousTxn: setPreviousTxn,
+      onComplete: () => {
+        refreshGroup({
+          groupPk: arenaPool.groupPk,
+          banks: [arenaPool.tokenBank.address, arenaPool.quoteBank.address],
+          connection,
+          wallet,
+        });
+      },
+      setIsLoading: setIsLoading,
+      setIsModalOpen: setIsOpen,
+      retryCallback: (txns: ClosePositionActionTxns, multiStepToast: MultiStepToastHandle) => {
+        retryClosePositionAction({ ...params, actionTxns: txns, multiStepToast }, pnl, entryPrice, arenaPool);
+      },
+    });
+  }, [
+    actionTxns,
+    client,
+    multiStepToast,
+    positionData,
+    priorityFees,
+    broadcastType,
+    arenaPool,
+    connection,
+    wallet,
+    setIsActionComplete,
+    setPreviousTxn,
+    retryClosePositionAction,
+  ]);
+
   return (
     <>
       <Button onClick={handleSimulation} disabled={false} variant="destructive" size="sm" className="gap-1 min-w-16">
@@ -218,7 +284,7 @@ export const ClosePosition = ({ arenaPool, positionsByGroupPk, depositBanks, bor
         borrowBank={borrowBank}
         isOpen={isOpen}
         onOpenChange={handleChangeDialogState}
-        handleClosePosition={handleClosePosition}
+        handleClosePosition={handleClosePositionAction}
         isLoading={isLoading}
         pnl={positionData?.pnl ?? 0}
       />
