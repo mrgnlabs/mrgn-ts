@@ -131,7 +131,7 @@ export const PoolTradeHeader = ({ activePool }: { activePool: ArenaPoolV2 }) => 
             {extendedPool.tokenBank.tokenData && extendedPool.quoteBank.tokenData && (
               <div className="grid w-full max-w-md mx-auto gap-1 lg:gap-16 lg:max-w-none lg:grid-cols-3">
                 <div className="grid grid-cols-2 lg:block">
-                  <p className="text-sm text-muted-foreground">Birdeye price</p>
+                  <p className="text-sm text-muted-foreground">Market price</p>
                   <p className="text-sm text-right lg:text-left lg:text-2xl">
                     {dynamicNumeralFormatter(
                       extendedPool.tokenBank.tokenData.price / extendedPool.quoteBank.tokenData?.price,
