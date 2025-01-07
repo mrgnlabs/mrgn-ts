@@ -323,7 +323,7 @@ async function fetchCrossbarPrices(
   const controller = new AbortController();
   const timeoutId = setTimeout(() => {
     controller.abort();
-  }, 3000);
+  }, 6000);
 
   const isAuth = username && bearer;
 
@@ -347,9 +347,16 @@ async function fetchCrossbarPrices(
 
     const payload = (await response.json()) as CrossbarSimulatePayload;
 
-    const brokenFeeds = payload.filter((feed) => feed.results[0] === null).map((feed) => feed.feedHash);
+    const brokenFeeds = payload
+      .filter((feed) => {
+        const result = feed.results[0];
+        return result === null || result === undefined || isNaN(Number(result));
+      })
+      .map((feed) => feed.feedHash);
 
-    return { payload: payload, brokenFeeds: brokenFeeds };
+    const finalPayload = payload.filter((feed) => !brokenFeeds.includes(feed.feedHash));
+
+    return { payload: finalPayload, brokenFeeds: brokenFeeds };
   } catch (error) {
     console.error("Error:", error);
     return { payload: [], brokenFeeds: feedHashes };
