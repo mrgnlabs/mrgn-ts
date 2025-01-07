@@ -79,6 +79,7 @@ function parseOraclePriceData(oracleSetup: OracleSetup, rawData: Buffer): Oracle
         };
       }
     case OracleSetup.PythPushOracle:
+    case OracleSetup.StakedWithPythPush:
       {
         let bytesWithoutDiscriminator = rawData.slice(8);
         let data = PythPushOracle.parsePriceInfo(bytesWithoutDiscriminator);
