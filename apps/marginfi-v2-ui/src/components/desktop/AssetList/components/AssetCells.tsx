@@ -35,6 +35,19 @@ export const getAssetCell = (asset: AssetData) => (
   </div>
 );
 
+const formatPrice = (price: number) => {
+  if (price >= 1) return usdFormatter.format(price);
+  if (price >= 0.0000001) {
+    return `$${dynamicNumeralFormatter(price, {
+      minDisplay: 0.0000001,
+      tokenPrice: price,
+      forceDecimals: true,
+    })}`;
+  }
+  if (price > 0) return `$${price.toExponential(2)}`;
+  return 0;
+};
+
 export const getAssetPriceCell = ({
   oracle,
   assetPrice,
@@ -46,16 +59,7 @@ export const getAssetPriceCell = ({
 }: AssetPriceData) => (
   <div className="relative flex items-center justify-end gap-1.5">
     <div className="relative">
-      {/* {assetPrice >= 0.01 ? usdFormatter.format(assetPrice) : `$${assetPrice.toExponential(2)}`} */}
-      {assetPrice >= 1
-        ? usdFormatter.format(assetPrice)
-        : assetPrice >= 0.0000001
-        ? `$${dynamicNumeralFormatter(assetPrice, {
-            minDisplay: 0.0000001,
-            tokenPrice: assetPrice,
-            forceDecimals: true,
-          })}`
-        : `$${assetPrice.toExponential(2)}`}
+      {formatPrice(assetPrice)}
       {assetPriceOffset > assetPrice * 0.1 && (
         <div className="absolute top-[-8px] right-2">
           <TooltipProvider>
