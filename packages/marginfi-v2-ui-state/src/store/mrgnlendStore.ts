@@ -50,6 +50,7 @@ interface MrgnlendState {
   tokenMetadataMap: TokenMetadataMap;
   extendedBankMetadatas: ExtendedBankMetadata[];
   extendedBankInfos: ExtendedBankInfo[];
+  stakeAccounts: ValidatorStakeGroup[];
   protocolStats: ProtocolStats;
   selectedAccount: MarginfiAccountWrapper | null;
   nativeSolBalance: number;
@@ -162,6 +163,7 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
   tokenMetadataMap: {},
   extendedBankMetadatas: [],
   extendedBankInfos: [],
+  stakeAccounts: [],
   protocolStats: {
     deposits: 0,
     borrows: 0,
@@ -450,6 +452,7 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
         tokenMetadataMap,
         extendedBankInfos: sortedExtendedBankInfos,
         extendedBankMetadatas: sortedExtendedBankMetadatas,
+        stakeAccounts,
         protocolStats: {
           deposits,
           borrows,
