@@ -213,9 +213,6 @@ async function handleFetchCrossbarPrices(
     payload.push(...mainPayload);
     brokenFeeds = mainBrokenFeeds;
 
-    console.log("payload", payload.length);
-    console.log("mainBrokenFeeds", mainBrokenFeeds.length);
-
     if (!mainBrokenFeeds.length) {
       return crossbarPayloadToOraclePricePerFeedHash(payload);
     }
@@ -335,9 +332,6 @@ async function fetchCrossbarPrices(
       .map((feed) => feed.feedHash);
 
     const finalPayload = payload.filter((feed) => !brokenFeeds.includes(feed.feedHash));
-
-    console.log("finalPayload", finalPayload.length);
-    console.log("brokenFeeds", brokenFeeds.length);
 
     return { payload: finalPayload, brokenFeeds: brokenFeeds };
   } catch (error) {
