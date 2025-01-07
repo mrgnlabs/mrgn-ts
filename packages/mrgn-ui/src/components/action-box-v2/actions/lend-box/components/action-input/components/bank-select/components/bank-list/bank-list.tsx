@@ -1,11 +1,15 @@
 import React from "react";
 
+import Link from "next/link";
+
 import { WSOL_MINT } from "@mrgnlabs/mrgn-common";
 import { ExtendedBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { LendingModes, cn, computeBankRate } from "@mrgnlabs/mrgn-utils";
+import { IconExternalLink } from "@tabler/icons-react";
 
 import { CommandEmpty, CommandGroup, CommandItem } from "~/components/ui/command";
 import { BankItem, BankListCommand } from "~/components/action-box-v2/components";
+import { Button } from "~/components/ui/button";
 
 type BankListProps = {
   selectedBank: ExtendedBankInfo | null;
@@ -311,36 +315,57 @@ export const BankList = ({
           </CommandGroup>
         )}
         {/* STAKED ASSETS */}
-        {stakedAssetBanks.length > 0 &&
-          lendingMode === LendingModes.LEND &&
-          onSetSelectedBank &&
-          showTokenSelectionGroups && (
-            <CommandGroup heading="Staked asset pools">
-              {stakedAssetBanks.map((bank, index) => {
-                return (
-                  <CommandItem
-                    key={index}
-                    value={bank.address?.toString().toLowerCase()}
-                    onSelect={(currentValue) => {
-                      onSetSelectedBank(
-                        banks.find((bankInfo) => bankInfo.address.toString().toLowerCase() === currentValue) ?? null
-                      );
-                      onClose();
-                    }}
-                    className="py-2 cursor-pointer font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-mfi-action-box-accent data-[selected=true]:text-mfi-action-box-accent-foreground hover:bg-mfi-action-box-accent hover:text-mfi-action-box-accent-foreground"
+        {lendingMode === LendingModes.LEND && onSetSelectedBank && showTokenSelectionGroups && (
+          <>
+            {stakedAssetBanks.length > 0 && (
+              <CommandGroup heading="Staked asset pools">
+                {stakedAssetBanks.map((bank, index) => {
+                  return (
+                    <CommandItem
+                      key={index}
+                      value={bank.address?.toString().toLowerCase()}
+                      onSelect={(currentValue) => {
+                        onSetSelectedBank(
+                          banks.find((bankInfo) => bankInfo.address.toString().toLowerCase() === currentValue) ?? null
+                        );
+                        onClose();
+                      }}
+                      className="py-2 cursor-pointer font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-mfi-action-box-accent data-[selected=true]:text-mfi-action-box-accent-foreground hover:bg-mfi-action-box-accent hover:text-mfi-action-box-accent-foreground"
+                    >
+                      <BankItem
+                        rate={calculateRate(bank)}
+                        lendingMode={lendingMode}
+                        bank={bank}
+                        showBalanceOverride={false}
+                        nativeSolBalance={nativeSolBalance}
+                      />
+                    </CommandItem>
+                  );
+                })}
+              </CommandGroup>
+            )}
+            <CommandItem>
+              <div className="space-y-2 text-center w-full pt-3">
+                <p className="text-xs text-muted-foreground">Don&apos;t see your native stake available to deposit?</p>
+                <div className="flex flex-col gap-1 items-center justify-center">
+                  <Button variant="outline" className="mx-auto font-normal text-[11px]" size="sm">
+                    <Link href="/staked-assets/create">
+                      <span>Create staked asset pool</span>
+                    </Link>
+                  </Button>
+                  <Button
+                    variant="link"
+                    className="mx-auto font-light text-[11px] gap-1 h-5 text-muted-foreground no-underline rounded-none px-0 hover:no-underline hover:text-foreground"
+                    size="sm"
                   >
-                    <BankItem
-                      rate={calculateRate(bank)}
-                      lendingMode={lendingMode}
-                      bank={bank}
-                      showBalanceOverride={false}
-                      nativeSolBalance={nativeSolBalance}
-                    />
-                  </CommandItem>
-                );
-              })}
-            </CommandGroup>
-          )}
+                    <IconExternalLink size={12} />
+                    Learn more
+                  </Button>
+                </div>
+              </div>
+            </CommandItem>
+          </>
+        )}
       </BankListCommand>
     </>
   );

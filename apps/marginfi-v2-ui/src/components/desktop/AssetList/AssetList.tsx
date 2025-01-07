@@ -1,8 +1,10 @@
 import React from "react";
 import Image from "next/image";
+import Link from "next/link";
+
 import { getCoreRowModel, flexRender, useReactTable, SortingState, getSortedRowModel } from "@tanstack/react-table";
 import { useHotkeys } from "react-hotkeys-hook";
-import { IconAlertTriangle } from "@tabler/icons-react";
+import { IconAlertTriangle, IconExternalLink } from "@tabler/icons-react";
 
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { LendingModes } from "@mrgnlabs/mrgn-utils";
@@ -21,6 +23,7 @@ import {
 } from "~/components/common/AssetList";
 import { Table, TableBody, TableHead, TableHeader, TableRow } from "~/components/ui/table";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
+import { Button } from "~/components/ui/button";
 
 import { AssetListModel, generateColumns, makeData } from "./utils";
 import { AssetRow } from "./components";
@@ -391,6 +394,24 @@ export const AssetsList = () => {
             </Table>
           </>
         )}
+        <div className="space-y-3 text-center w-full pt-3">
+          <p className="text-xs text-muted-foreground">Don&apos;t see your native stake available to deposit?</p>
+          <div className="flex flex-col gap-2 items-center justify-center">
+            <Button variant="secondary" className="mx-auto font-normal text-[11px]" size="sm">
+              <Link href="/staked-assets/create">
+                <span>Create staked asset pool</span>
+              </Link>
+            </Button>
+            <Button
+              variant="link"
+              className="mx-auto font-light text-[11px] gap-1 h-5 text-muted-foreground/75 no-underline rounded-none px-0 hover:no-underline hover:text-foreground"
+              size="sm"
+            >
+              <IconExternalLink size={12} />
+              Learn more
+            </Button>
+          </div>
+        </div>
       </div>
       <LSTDialog
         variant={lstDialogVariant}
