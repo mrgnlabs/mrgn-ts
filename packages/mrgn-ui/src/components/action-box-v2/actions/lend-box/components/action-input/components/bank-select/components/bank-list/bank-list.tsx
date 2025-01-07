@@ -119,14 +119,19 @@ export const BankList = ({
     return banks.filter(searchFilter);
   }, [banks, searchFilter]);
 
+  // global, non staked asset banks
   const globalBanks = React.useMemo(
     () => filteredBanks.filter((bank) => bank.info.rawBank.config.assetTag !== 2 && !bank.info.state.isIsolated),
     [filteredBanks]
   );
+
+  // isolated, non staked asset banks
   const isolatedBanks = React.useMemo(
     () => filteredBanks.filter((bank) => bank.info.rawBank.config.assetTag !== 2 && bank.info.state.isIsolated),
     [filteredBanks]
   );
+
+  // staked asset banks
   const stakedAssetBanks = React.useMemo(
     () => filteredBanks.filter((bank) => bank.info.rawBank.config.assetTag === 2),
     [filteredBanks]

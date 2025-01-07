@@ -82,6 +82,7 @@ export const AssetsList = () => {
     }
   }, [isStoreInitialized, poolFilter, extendedBankInfos, sortOption, sortBanks]);
 
+  // non isolated, non staked asset banks
   const globalBanks = React.useMemo(() => {
     return (
       sortedBanks &&
@@ -91,6 +92,7 @@ export const AssetsList = () => {
     );
   }, [isFilteredUserPositions, sortedBanks]);
 
+  // isolated, non staked asset banks
   const isolatedBanks = React.useMemo(() => {
     return (
       sortedBanks &&
@@ -100,6 +102,7 @@ export const AssetsList = () => {
     );
   }, [sortedBanks, isFilteredUserPositions]);
 
+  // staked asset banks
   const stakedAssetBanks = React.useMemo(() => {
     return (
       sortedBanks &&

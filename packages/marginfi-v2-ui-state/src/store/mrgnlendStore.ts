@@ -247,19 +247,21 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
         throw new Error("Unknown environment");
       }
 
+      // fetch staked asset metadata
       const stakedAssetBankMetadataMap = await loadBankMetadatas(
         "https://storage.googleapis.com/mrgn-public/mrgn-staked-bank-metadata-cache.json"
       );
-
       const stakedAssetTokenMetadataMap = await loadTokenMetadatas(
         "https://storage.googleapis.com/mrgn-public/mrgn-staked-token-metadata-cache.json"
       );
 
       let stakeAccounts: ValidatorStakeGroup[] = [];
 
+      // only show staked asset banks for validators user has native staked with
       if (wallet?.publicKey) {
         stakeAccounts = await getStakeAccounts(connection, wallet.publicKey);
 
+        // filter staked asset banks for validators user has native staked with
         const filteredStakedAssetBankMetadataMap = Object.entries(stakedAssetBankMetadataMap).reduce(
           (acc, [bankAddress, bank]) => {
             if (
@@ -272,11 +274,11 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
           {} as BankMetadataMap
         );
 
+        // merge filtered staked asset banks with global banks
         bankMetadataMap = {
           ...bankMetadataMap,
           ...filteredStakedAssetBankMetadataMap,
         };
-
         tokenMetadataMap = {
           ...tokenMetadataMap,
           ...stakedAssetTokenMetadataMap,
@@ -320,6 +322,7 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
           getCachedMarginfiAccountsForAuthority(wallet.publicKey, marginfiClient),
         ]);
 
+        // update staked asset token account balances to use native staked asset balance
         tokenData.tokenAccountMap.forEach((tokenAccount) => {
           const matchedStakedAssetBank = stakeAccounts.find((stakeAccount) =>
             stakeAccount.poolMintKey.equals(tokenAccount.mint)
