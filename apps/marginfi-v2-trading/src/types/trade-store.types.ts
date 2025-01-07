@@ -24,12 +24,12 @@ type ArenaPoolPositionBank = {
 
 export type ArenaPoolPositions = {
   groupPk: PublicKey;
+  authorityPk: PublicKey;
   accountPk: PublicKey;
-  quoteSummary: ArenaPoolPositionBank;
-  tokenSummary: ArenaPoolPositionBank;
+  direction: "long" | "short";
   entryPrice: number;
   currentPositionValue: number;
-  pnl: number;
+  pnl?: number;
 };
 
 export type BankData = {
