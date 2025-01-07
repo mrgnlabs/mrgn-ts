@@ -33,38 +33,70 @@ interface dynamicNumeralFormatterOptions {
   tokenPrice?: number;
   forceDecimals?: boolean;
   maxDisplay?: number;
+  logging?: boolean;
+  ignoreMinDisplay?: boolean;
 }
 
 export const dynamicNumeralFormatter = (value: number, options: dynamicNumeralFormatterOptions = {}) => {
-  const { minDisplay = 0.00001, maxDisplay = 10000, tokenPrice, forceDecimals } = options;
+  const {
+    minDisplay = 0.00001, // Default minDisplay for backward compatibility
+    maxDisplay = 10000, // Default maxDisplay for backward compatibility
+    tokenPrice,
+    logging = false,
+    ignoreMinDisplay = false, // New flag to control ignoring minDisplay
+    forceDecimals
+  } = options;
 
-  if (value === 0) return "0";
+  if (value === 0 || isNaN(value)) return "0";
 
-  if (Math.abs(value) < minDisplay) {
+  const absValue = Math.abs(value);
+
+  if (logging) {
+    console.log({
+      value,
+      minDisplay,
+      maxDisplay,
+      tokenPrice,
+      ignoreMinDisplay,
+      absValue,
+    });
+  }
+
+  // Backward compatibility: Below the minimum display threshold
+  if (!ignoreMinDisplay && absValue < minDisplay) {
     return `<${minDisplay}`;
   }
 
-  if (Math.abs(value) > 10000) {
+  // Backward compatibility: Above the maximum display threshold
+  if (absValue > maxDisplay) {
     return numeral(value).format(forceDecimals ? "0,0.00a" : "0,0.[00]a");
   }
 
-  if (Math.abs(value) >= 0.01) {
+  if (!ignoreMinDisplay && Math.abs(value) >= 0.01) {
     return numeral(value).format(forceDecimals && Math.abs(value) > 0.99 ? "0,0.00a" : "0,0.[0000]a");
   }
+  
+// New behavior: Ensure 3 significant digits when ignoreMinDisplay is true
+  if (ignoreMinDisplay) {
+    const exponent = Math.floor(Math.log10(absValue)); // using floor for more precision
+    const significantDecimals = Math.max(0, 2 - exponent);
+    return value.toFixed(significantDecimals).replace(/\.?0+$/, "");
+  }
+  
   if (Math.abs(value) >= minDisplay) {
     const decimalPlaces = Math.max(0, Math.ceil(-Math.log10(minDisplay)));
     return numeral(value).format(`0,0.[${"0".repeat(decimalPlaces)}]`);
   }
 
+  
+
+  // Case: Token price takes priority when defined
   if (tokenPrice) {
-    const minUsdDisplay = 0.00000001;
-    const smallestUnit = minUsdDisplay / tokenPrice;
+    const smallestUnit = minDisplay / tokenPrice;
 
-    const requiredDecimals = Math.max(2, Math.ceil(-Math.log10(smallestUnit)) + 1);
+    const significantDecimals = Math.max(3, Math.ceil(-Math.log10(smallestUnit)));
 
-    const decimalPlaces = Math.min(requiredDecimals, 8);
-
-    return value.toFixed(decimalPlaces).replace(/\.?0+$/, "");
+    return value.toFixed(significantDecimals).replace(/\.?0+$/, "");
   }
 
   return "0";

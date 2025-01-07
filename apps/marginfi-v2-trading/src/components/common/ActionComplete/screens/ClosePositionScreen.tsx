@@ -49,19 +49,34 @@ export const ClosePositionScreen = ({ tokenBank, size, leverage, entryPrice, exi
       </div>
       <dl className="grid grid-cols-2 w-full text-muted-foreground gap-x-8 gap-y-2">
         <dt>Size</dt>
-        <dd className="text-right">${dynamicNumeralFormatter(size)}</dd>
+        <dd className="text-right">
+          $
+          {dynamicNumeralFormatter(size, {
+            ignoreMinDisplay: true,
+          })}
+        </dd>
         <dt>Leverage</dt>
         <dd className="text-right">{leverage}x</dd>
         {entryPrice ? (
           <>
             <dt>Entry Price</dt>
-            <dd className="text-right">${dynamicNumeralFormatter(entryPrice)}</dd>
+            <dd className="text-right">
+              $
+              {dynamicNumeralFormatter(entryPrice, {
+                ignoreMinDisplay: true,
+              })}
+            </dd>
           </>
         ) : (
           <></>
         )}
         <dt>Exit Price</dt>
-        <dd className="text-right">${dynamicNumeralFormatter(exitPrice)}</dd>
+        <dd className="text-right">
+          $
+          {dynamicNumeralFormatter(exitPrice, {
+            ignoreMinDisplay: true,
+          })}
+        </dd>
         <dt>Transaction</dt>
         <dd className="text-right">
           <Link

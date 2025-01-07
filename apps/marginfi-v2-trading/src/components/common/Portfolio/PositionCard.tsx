@@ -61,10 +61,14 @@ export const PositionCard = ({ size = "lg", arenaPool }: PositionCardProps) => {
     const quotePrice = arenaPool.quoteBank.info.oraclePrice.priceRealtime.price.toNumber();
 
     if (showQuotePrice) {
-      return `${dynamicNumeralFormatter(tokenPrice / quotePrice)} ${arenaPool.quoteBank.meta.tokenSymbol}`;
+      return `${dynamicNumeralFormatter(tokenPrice / quotePrice, {
+        ignoreMinDisplay: true,
+      })} ${arenaPool.quoteBank.meta.tokenSymbol}`;
     }
 
-    return `$${dynamicNumeralFormatter(tokenPrice)}`;
+    return `$${dynamicNumeralFormatter(tokenPrice, {
+      ignoreMinDisplay: true,
+    })}`;
   }, [showQuotePrice, arenaPool]);
 
   if (!arenaPool.tokenBank.isActive) return null;
@@ -121,7 +125,12 @@ export const PositionCard = ({ size = "lg", arenaPool }: PositionCardProps) => {
           <dd className="text-right text-primary">{usdFormatter.format(positionSizeUsd)}</dd>
 
           <dt>Entry Price</dt>
-          <dd className="text-right text-primary">${dynamicNumeralFormatter(positionData?.entryPrice ?? 0)}</dd>
+          <dd className="text-right text-primary">
+            $
+            {dynamicNumeralFormatter(positionData?.entryPrice ?? 0, {
+              ignoreMinDisplay: true,
+            })}
+          </dd>
           <dt>Current Price </dt>
           <dd
             className="text-right text-primary flex items-center gap-1 cursor-pointer w-full justify-end"

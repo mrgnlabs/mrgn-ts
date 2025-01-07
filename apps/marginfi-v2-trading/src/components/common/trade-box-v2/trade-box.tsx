@@ -383,7 +383,9 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
       <CardHeader className="p-0">
         <Header
           activePool={activePoolExtended}
-          entryPrice={activePoolExtended.tokenBank.info.state.price}
+          entryPrice={
+            activePoolExtended.tokenBank.tokenData?.price ?? activePoolExtended.tokenBank.info.state.price ?? 0
+          }
           volume={activePoolExtended.tokenBank.tokenData?.volume24hr}
         />
       </CardHeader>

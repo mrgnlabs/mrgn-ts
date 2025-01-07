@@ -22,23 +22,12 @@ type PoolCardProps = {
 export const PoolCard = ({ poolData }: PoolCardProps) => {
   const [tokenDataByMint, groupsByGroupPk] = useTradeStoreV2((state) => [state.tokenDataByMint, state.groupsByGroupPk]);
   const isMobile = useIsMobile();
-  const isLstQuote = React.useMemo(() => {
-    return poolData.quoteSummary.tokenSymbol === "LST";
-  }, [poolData]);
 
   const { tokenData, quoteTokenData } = React.useMemo(() => {
     const tokenData = tokenDataByMint[poolData.tokenSummary.mint.toBase58()];
     const quoteTokenData = tokenDataByMint[poolData.quoteSummary.mint.toBase58()];
     return { tokenData, quoteTokenData };
   }, [poolData, tokenDataByMint]);
-
-  const tokenPrice = React.useMemo(() => {
-    if (isLstQuote) {
-      const lstPrice = quoteTokenData.price;
-      return `${dynamicNumeralFormatter(tokenData.price / lstPrice)} ${poolData.quoteSummary.tokenSymbol}`;
-    }
-    return `${dynamicNumeralFormatter(tokenData.price)} ${poolData.quoteSummary.tokenSymbol}`;
-  }, [isLstQuote, tokenData.price, quoteTokenData.price, poolData.quoteSummary.tokenSymbol]);
 
   const fundingRate = React.useMemo(() => {
     const fundingRateShort =
@@ -154,31 +143,16 @@ export const PoolCard = ({ poolData }: PoolCardProps) => {
           <dl className="grid grid-cols-2 gap-1.5 text-sm text-muted-foreground w-full mt-2">
             <dt>Price</dt>
             <dd className="text-right text-primary tracking-wide">
-              {tokenPrice}
-              {isLstQuote ? (
-                <>
-                  {isMobile ? (
-                    <span className="text-xs ml-1 text-muted-foreground block">
-                      ${dynamicNumeralFormatter(tokenData.price)}
-                    </span>
-                  ) : (
-                    <span className="text-xs ml-1 text-muted-foreground">
-                      ({dynamicNumeralFormatter(tokenData.price)})
-                    </span>
-                  )}
-                </>
-              ) : (
-                tokenData.priceChange24h && (
-                  <span
-                    className={cn(
-                      "text-xs ml-2",
-                      tokenData.priceChange24h > 0 ? "text-mrgn-success" : "text-mrgn-error"
-                    )}
-                  >
-                    {tokenData.priceChange24h > 0 && "+"}
-                    {percentFormatter.format(tokenData.priceChange24h / 100)}
-                  </span>
-                )
+              {dynamicNumeralFormatter(tokenData.price / quoteTokenData.price, {
+                ignoreMinDisplay: true,
+              })}
+              {tokenData.priceChange24h && (
+                <span
+                  className={cn("text-xs ml-1", tokenData.priceChange24h > 0 ? "text-mrgn-success" : "text-mrgn-error")}
+                >
+                  {tokenData.priceChange24h > 0 && "+"}
+                  {percentFormatter.format(tokenData.priceChange24h / 100)}
+                </span>
               )}
             </dd>
             <dt className="">24hr vol</dt>

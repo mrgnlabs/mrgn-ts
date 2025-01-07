@@ -127,7 +127,12 @@ const TokenSummary = ({ mintData, bankConfig }: { mintData: PoolMintData; bankCo
     <div className="flex flex-col mt-4 gap-1 text-sm">
       <div className="flex flex-row justify-between">
         <p className="text-sm text-muted-foreground">Price</p>
-        <p className="text-sm">${dynamicNumeralFormatter(mintData.price)}</p>
+        <p className="text-sm">
+          $
+          {dynamicNumeralFormatter(mintData.price, {
+            ignoreMinDisplay: true,
+          })}
+        </p>
       </div>
       <div className="flex flex-row justify-between">
         <p className="text-sm text-muted-foreground">Decimals</p>
