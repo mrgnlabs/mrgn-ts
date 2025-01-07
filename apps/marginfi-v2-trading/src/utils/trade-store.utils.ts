@@ -410,28 +410,11 @@ export const fetchUserPositions = async (owner: PublicKey): Promise<ArenaPoolPos
 const parseUserPositions = (data: PoolPositionsApiResponse[]): ArenaPoolPositions[] => {
   return data.map((pool) => ({
     groupPk: new PublicKey(pool.group),
+    authorityPk: new PublicKey(pool.authority),
     accountPk: new PublicKey(pool.address),
-    quoteSummary: {
-      bankPk: new PublicKey(pool.quote_banks[0].address),
-      startAmount: pool.quote_banks[0].start_amount,
-      startUsdAmount: pool.quote_banks[0].start_usd_amount,
-      currentAmount: pool.quote_banks[0].current_amount,
-      currentUsdAmount: pool.quote_banks[0].current_usd_amount,
-      pnl: pool.quote_banks[0].pnl,
-      interest: pool.quote_banks[0].interest,
-    },
-    tokenSummary: {
-      bankPk: new PublicKey(pool.base_bank.address),
-      startAmount: pool.base_bank.start_amount,
-      startUsdAmount: pool.base_bank.start_usd_amount,
-      currentAmount: pool.base_bank.current_amount,
-      currentUsdAmount: pool.base_bank.current_usd_amount,
-      pnl: pool.base_bank.pnl,
-      interest: pool.base_bank.interest,
-    },
+    direction: pool.direction === "long" ? "long" : "short",
     entryPrice: pool.entry_price,
-    currentPositionValue: pool.current_position_value,
-    pnl: pool.pnl,
+    currentPositionValue: pool.position_value,
   }));
 };
 

@@ -1,5 +1,5 @@
 import { create, StateCreator } from "zustand";
-import { AddressLookupTableAccount, Connection, PublicKey, RpcResponseAndContext } from "@solana/web3.js";
+import { Connection, PublicKey } from "@solana/web3.js";
 import { AnchorProvider, Program } from "@coral-xyz/anchor";
 import Fuse, { FuseResult } from "fuse.js";
 import { TokenAccountMap } from "@mrgnlabs/marginfi-v2-ui-state";
@@ -894,50 +894,64 @@ function fillMissingPositions(
   Object.values(arenaPools).map((pool) => {
     const tokenBank = banksByBankPk[pool.tokenBankPk.toBase58()];
     const quoteBank = banksByBankPk[pool.quoteBankPk.toBase58()];
+    const account = accountByGroupPk[pool.groupPk.toBase58()];
 
     const status = getPoolPositionStatus(pool, tokenBank, quoteBank);
 
-    if (status === GroupStatus.EMPTY) {
+    if (status === GroupStatus.EMPTY || !account || !tokenBank || !quoteBank) {
       delete newPositions[pool.groupPk.toBase58()];
     }
 
     if ((status === GroupStatus.LONG || status === GroupStatus.SHORT) && Object.keys(newPositions).length > 0) {
-      const hasPosition = positions[pool.groupPk.toBase58()];
-
-      const account = accountByGroupPk[pool.groupPk.toBase58()];
+      const positionApiData = positions[pool.groupPk.toBase58()];
 
       const positionQuoteData = quoteBank.isActive && quoteBank.position;
       const positionTokenData = tokenBank.isActive && tokenBank.position;
 
-      if (!hasPosition && account) {
+      let depositValue = 0,
+        borrowValue = 0,
+        depositSize = 0,
+        borrowSize = 0;
+
+      if (status === GroupStatus.SHORT) {
+        depositValue = positionQuoteData ? positionQuoteData.usdValue : 0;
+        borrowValue = positionTokenData ? positionTokenData.usdValue : 0;
+        depositSize = positionQuoteData ? positionQuoteData.amount : 0;
+      } else if (status === GroupStatus.LONG) {
+        depositValue = positionTokenData ? positionTokenData.usdValue : 0;
+        borrowValue = positionQuoteData ? positionQuoteData.usdValue : 0;
+        depositSize = positionTokenData ? positionTokenData.amount : 0;
+      }
+
+      const sizeUsd = depositValue - borrowValue;
+
+      if (positionApiData) {
+        const pnl =
+          sizeUsd *
+          ((tokenBank.info.oraclePrice.priceRealtime.price.toNumber() - positionApiData.entryPrice) /
+            positionApiData.entryPrice);
+        newPositions[pool.groupPk.toBase58()] = {
+          ...positionApiData,
+          pnl,
+        };
+      } else {
         newPositions[pool.groupPk.toBase58()] = {
           groupPk: pool.groupPk,
           accountPk: account.address,
-          quoteSummary: {
-            bankPk: pool.quoteBankPk,
-            startAmount: positionQuoteData ? positionQuoteData.amount : 0,
-            startUsdAmount: positionQuoteData ? positionQuoteData.usdValue : 0,
-            currentAmount: positionQuoteData ? positionQuoteData.amount : 0,
-            currentUsdAmount: positionQuoteData ? positionQuoteData.usdValue : 0,
-            pnl: 0,
-            interest: 0,
-          },
-          tokenSummary: {
-            bankPk: pool.tokenBankPk,
-            startAmount: positionTokenData ? positionTokenData.amount : 0,
-            startUsdAmount: positionTokenData ? positionTokenData.usdValue : 0,
-            currentAmount: positionTokenData ? positionTokenData.amount : 0,
-            currentUsdAmount: positionTokenData ? positionTokenData.usdValue : 0,
-            pnl: 0,
-            interest: 0,
-          },
+          authorityPk: account.authority,
+          direction: status === GroupStatus.LONG ? "long" : "short",
           entryPrice: tokenBank.info.oraclePrice.priceRealtime.price.toNumber(),
-          currentPositionValue: 0,
-          pnl: 0,
+          currentPositionValue: sizeUsd,
         };
       }
     }
   });
 
   return newPositions;
+}
+
+function addPnlToPositions(positions: Record<string, ArenaPoolPositions>, oraclePrices: Record<string, OraclePrice>) {
+  Object.values(positions).map((position) => {
+    const oraclePrice = oraclePrices[position.groupPk.toBase58()];
+  });
 }
