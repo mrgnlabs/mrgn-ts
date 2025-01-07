@@ -30,14 +30,7 @@ export const PoolCard = ({ poolData }: PoolCardProps) => {
   }, [poolData, tokenDataByMint]);
 
   const isStableQuote = React.useMemo(() => {
-    return (
-      quoteTokenData?.symbol === "USDC" ||
-      quoteTokenData?.symbol === "USDT" ||
-      quoteTokenData?.symbol === "sUSD" ||
-      quoteTokenData?.symbol === "USDS" ||
-      quoteTokenData?.symbol === "pyUSD" ||
-      (0.99 < quoteTokenData?.price && quoteTokenData?.price < 1.01)
-    );
+    return 0.99 < quoteTokenData?.price && quoteTokenData?.price < 1.01;
   }, [quoteTokenData]);
   const [showUSDPrice, setShowUSDPrice] = React.useState(false);
 
@@ -168,18 +161,17 @@ export const PoolCard = ({ poolData }: PoolCardProps) => {
         {tokenData && (
           <dl className="grid grid-cols-2 gap-1.5 text-sm text-muted-foreground w-full mt-2">
             <dt>Price</dt>
-            <dd className="text-right text-primary tracking-wide flex items-center justify-end gap-1">
+            <dd
+              className={`text-right text-primary tracking-wide flex items-center justify-end gap-1 ${
+                !isStableQuote && "cursor-pointer"
+              }`}
+              onClick={() => !isStableQuote && setShowUSDPrice(!showUSDPrice)}
+            >
               {dynamicNumeralFormatter(tokenPrice, {
                 ignoreMinDisplay: true,
               })}{" "}
               {showUSDPrice ? "USD" : quoteTokenData?.symbol}
-              {!isStableQuote && (
-                <IconSwitchHorizontal
-                  size={14}
-                  onClick={() => setShowUSDPrice(!showUSDPrice)}
-                  className="cursor-pointer"
-                />
-              )}
+              {!isStableQuote && <IconSwitchHorizontal size={14} className="cursor-pointer" />}
               {tokenPriceChange && (
                 <span className={cn("text-xs ml-1", tokenPriceChange > 0 ? "text-mrgn-success" : "text-mrgn-error")}>
                   {tokenPriceChange > 0 && "+"}
