@@ -176,12 +176,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         feedHash,
       } of swbPullOraclesStale) {
         let crossbarPrice = crossbarPrices.get(feedHash);
-        if (!crossbarPrice) {
-          throw new Error(`Crossbar didn't return data for ${feedHash}`);
-        }
-        if (crossbarPrice.priceRealtime.price.isNaN()) {
+        if (!crossbarPrice || crossbarPrice.priceRealtime.price.isNaN()) {
           crossbarPrice = {
-            ...crossbarPrice,
+            timestamp: crossbarPrice?.timestamp ?? timestamp,
             priceRealtime: {
               price: new BigNumber(0),
               confidence: new BigNumber(0),
@@ -232,11 +229,13 @@ async function handleFetchCrossbarPrices(
   try {
     // main crossbar
     const payload: CrossbarSimulatePayload = [];
+    let brokenFeeds: string[] = [];
 
     const { payload: mainPayload, brokenFeeds: mainBrokenFeeds } = await fetchCrossbarPrices(
       feedHashes,
       SWITCHBOARD_CROSSSBAR_API
     );
+    brokenFeeds = mainBrokenFeeds;
 
     payload.push(...mainPayload);
 
@@ -247,9 +246,10 @@ async function handleFetchCrossbarPrices(
     if (process.env.SWITCHBOARD_CROSSSBAR_API_FALLBACK) {
       // fallback crossbar
       const { payload: fallbackPayload, brokenFeeds: fallbackBrokenFeeds } = await fetchCrossbarPrices(
-        mainBrokenFeeds,
+        brokenFeeds,
         process.env.SWITCHBOARD_CROSSSBAR_API_FALLBACK
       );
+      brokenFeeds = fallbackBrokenFeeds;
       payload.push(...fallbackPayload);
 
       if (!fallbackBrokenFeeds.length) {
@@ -258,7 +258,7 @@ async function handleFetchCrossbarPrices(
     }
 
     // birdeye as last resort
-    const { payload: birdeyePayload, brokenFeeds: birdeyeBrokenFeeds } = await fetchBirdeyePrices(feedHashes, mintMap);
+    const { payload: birdeyePayload, brokenFeeds: birdeyeBrokenFeeds } = await fetchBirdeyePrices(brokenFeeds, mintMap);
 
     payload.push(...birdeyePayload);
 
@@ -309,7 +309,7 @@ async function fetchBirdeyePrices(
 
     return { payload: finalPayload, brokenFeeds };
   } catch (error) {
-    console.error("Error:", error);
+    console.log("Error:", "fetch from birdeye failed");
     return { payload: [], brokenFeeds: feedHashes };
   }
 }
@@ -326,6 +326,8 @@ async function fetchCrossbarPrices(
   }, 6000);
 
   const isAuth = username && bearer;
+
+  const isCrossbarMain = endpoint.includes("switchboard.xyz");
 
   const basicAuth = isAuth ? Buffer.from(`${username}:${bearer}`).toString("base64") : undefined;
 
@@ -358,7 +360,8 @@ async function fetchCrossbarPrices(
 
     return { payload: finalPayload, brokenFeeds: brokenFeeds };
   } catch (error) {
-    console.error("Error:", error);
+    const errorMessage = isCrossbarMain ? "Couldn't fetch from crossbar" : "Couldn't fetch from fallback crossbar";
+    console.log("Error:", errorMessage);
     return { payload: [], brokenFeeds: feedHashes };
   }
 }
@@ -464,7 +467,6 @@ async function fetchMultiPrice(tokens: string[]): Promise<BirdeyePriceResponse> 
     const data = (await response.json()) as BirdeyePriceResponse;
     return data;
   } catch (error) {
-    console.error("Error:", error);
     throw new Error("Error fetching birdey prices");
   }
 }
