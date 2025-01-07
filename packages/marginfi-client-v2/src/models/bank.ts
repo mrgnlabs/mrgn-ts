@@ -117,7 +117,8 @@ type OracleSetupRaw =
   | { none: {} }
   | { pythLegacy: {} }
   | { switchboardV2: {} }
-  | { pythPushOracle: {}; stakedWithPythPush: {} };
+  | { pythPushOracle: {}; }
+  | { stakedWithPythPush: {} };
 
 export type { BankRaw, BankConfigRaw, BankConfigCompactRaw, RiskTierRaw, InterestRateConfigRaw, OracleSetupRaw };
 

@@ -5,7 +5,14 @@ import { useHotkeys } from "react-hotkeys-hook";
 import { IconAlertTriangle } from "@tabler/icons-react";
 
 import { ExtendedBankInfo, ActiveBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
-import { LendingModes } from "@mrgnlabs/mrgn-utils";
+import {
+  LendingModes,
+  getStakeAccounts,
+  getAvailableStakedAssetBanks,
+  getStakedBankMetadata,
+} from "@mrgnlabs/mrgn-utils";
+import { useConnection } from "~/hooks/use-connection";
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
 import { useMrgnlendStore, useUserProfileStore, useUiStore } from "~/store";
 
@@ -23,16 +30,16 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/comp
 
 import { AssetListModel, generateColumns, makeData } from "./utils";
 import { AssetRow } from "./components";
-import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
 export const AssetsList = () => {
-  const [isStoreInitialized, extendedBankInfos, nativeSolBalance, selectedAccount, fetchMrgnlendState] =
+  const [isStoreInitialized, extendedBankInfos, nativeSolBalance, selectedAccount, fetchMrgnlendState, marginfiClient] =
     useMrgnlendStore((state) => [
       state.initialized,
       state.extendedBankInfos,
       state.nativeSolBalance,
       state.selectedAccount,
       state.fetchMrgnlendState,
+      state.marginfiClient,
     ]);
   const [denominationUSD, setShowBadges] = useUserProfileStore((state) => [state.denominationUSD, state.setShowBadges]);
   const [poolFilter, isFilteredUserPositions, sortOption, lendingMode] = useUiStore((state) => [
@@ -41,13 +48,15 @@ export const AssetsList = () => {
     state.sortOption,
     state.lendingMode,
   ]);
-  const { connected, walletContextState } = useWallet();
+  const { connected, walletContextState, wallet } = useWallet();
+  const { connection } = useConnection();
 
   const inputRefs = React.useRef<Record<string, HTMLInputElement | null>>({});
   const [isHotkeyMode, setIsHotkeyMode] = React.useState(false);
   const [isLSTDialogOpen, setIsLSTDialogOpen] = React.useState(false);
   const [lstDialogVariant, setLSTDialogVariant] = React.useState<LSTDialogVariants | null>(null);
   const [lstDialogCallback, setLSTDialogCallback] = React.useState<(() => void) | null>(null);
+  const [stakedAssetBanks, setStakedAssetBanks] = React.useState<ExtendedBankInfo[]>([]);
 
   const isInLendingMode = React.useMemo(() => lendingMode === LendingModes.LEND, [lendingMode]);
 
@@ -100,6 +109,22 @@ export const AssetsList = () => {
     () => extendedBankInfos.filter((balance) => balance.isActive),
     [extendedBankInfos]
   ) as ActiveBankInfo[];
+
+  React.useEffect(() => {
+    if (!connection || !wallet.publicKey || !marginfiClient) return;
+
+    const init = async () => {
+      const stakeAccounts = await getStakeAccounts(connection, wallet.publicKey);
+      console.log("init stakeAccounts", stakeAccounts);
+      const stakedBanks = await getAvailableStakedAssetBanks(connection, stakeAccounts, marginfiClient.config);
+      stakedBanks.forEach((b) => {
+        console.log("stakedAssetBank", b.address.toBase58());
+      });
+      setStakedAssetBanks(stakedBanks as ExtendedBankInfo[]);
+    };
+
+    init();
+  }, [connection, wallet, marginfiClient]);
 
   // Enter hotkey mode
   useHotkeys(
@@ -200,6 +225,28 @@ export const AssetsList = () => {
     fetchMrgnlendState,
   ]);
 
+  const stakedPoolTableData = React.useMemo(() => {
+    return makeData(
+      stakedAssetBanks,
+      isInLendingMode,
+      denominationUSD,
+      nativeSolBalance,
+      selectedAccount,
+      connected,
+      walletContextState,
+      fetchMrgnlendState
+    );
+  }, [
+    connected,
+    walletContextState,
+    stakedAssetBanks,
+    isInLendingMode,
+    denominationUSD,
+    nativeSolBalance,
+    selectedAccount,
+    fetchMrgnlendState,
+  ]);
+
   const tableColumns = React.useMemo(() => {
     return generateColumns(isInLendingMode);
   }, [isInLendingMode]);
@@ -228,11 +275,23 @@ export const AssetsList = () => {
     onSortingChange: setSorting,
   });
 
+  const stakedTable = useReactTable<AssetListModel>({
+    data: stakedPoolTableData,
+    columns: tableColumns,
+    getRowCanExpand: () => true,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    state: {
+      sorting,
+    },
+    onSortingChange: setSorting,
+  });
+
   return (
     <>
       <AssetListFilters />
       <div className="col-span-full">
-        {globalPoolTableData.length ? (
+        {globalPoolTableData.length > 0 && (
           <>
             <div>
               <div className="font-normal text-2xl text-white mt-4 pt-4 pb-2 gap-1 ">Global pool</div>
@@ -261,10 +320,8 @@ export const AssetsList = () => {
               </TableBody>
             </Table>
           </>
-        ) : (
-          <></>
         )}
-        {isolatedPoolTableData.length ? (
+        {isolatedPoolTableData.length > 0 && (
           <>
             <div className="font-aeonik font-normal h-full w-full flex items-center text-2xl text-white pt-4 pb-2 gap-2">
               <span className="gap-1 flex">
@@ -317,8 +374,36 @@ export const AssetsList = () => {
               </TableBody>
             </Table>
           </>
-        ) : (
-          <></>
+        )}
+        {stakedPoolTableData.length > 0 && (
+          <>
+            <div>
+              <div className="font-normal text-2xl text-white mt-4 pt-4 pb-2 gap-1 ">Staked pools</div>
+            </div>
+            <Table>
+              <TableHeader>
+                {stakedTable.getHeaderGroups().map((headerGroup) => (
+                  <TableRow key={headerGroup.id}>
+                    {headerGroup.headers.map((header) => (
+                      <TableHead
+                        key={header.id}
+                        style={{
+                          width: header.column.getSize(),
+                        }}
+                      >
+                        {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                      </TableHead>
+                    ))}
+                  </TableRow>
+                ))}
+              </TableHeader>
+              <TableBody>
+                {stakedTable.getRowModel().rows.map((row) => {
+                  return <AssetRow key={row.id} {...row} />;
+                })}
+              </TableBody>
+            </Table>
+          </>
         )}
       </div>
       <LSTDialog
