@@ -67,7 +67,7 @@ export default function PortfolioPage({ initialData }: StaticArenaProps) {
   }, [longPositions, shortPositions]);
 
   const portfolioPnl = React.useMemo(() => {
-    return Object.values(positionsByGroupPk).reduce((acc, position) => acc + position.pnl, 0);
+    return Object.values(positionsByGroupPk).reduce((acc, position) => acc + (position.pnl ?? 0), 0);
   }, [positionsByGroupPk]);
 
   const portfolioCombined = React.useMemo(() => {

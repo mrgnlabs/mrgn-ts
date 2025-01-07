@@ -1,3 +1,5 @@
+import React from "react";
+
 import { cn } from "@mrgnlabs/mrgn-utils";
 
 import { Badge } from "~/components/ui/badge";
@@ -9,9 +11,27 @@ type PnlBadgeProps = {
 };
 
 const PnlBadge = ({ pnl, positionSize, className }: PnlBadgeProps) => {
-  const positionState = pnl > 0 ? "positive" : pnl < 0 ? "negative" : "neutral";
-  const pnlSign = positionState === "positive" ? "+" : "";
-  const pnlPercentage = ((pnl || 0) / positionSize) * 100;
+  const positionState = React.useMemo(() => {
+    if (pnl) {
+      return pnl > 0 ? "positive" : pnl < 0 ? "negative" : "neutral";
+    }
+    return "neutral";
+  }, [pnl]);
+
+  const pnlSign = React.useMemo(() => {
+    if (positionState) {
+      return positionState === "positive" ? "+" : "";
+    }
+    return "";
+  }, [positionState]);
+
+  const pnlPercentage = React.useMemo(() => {
+    if (pnl && positionSize) {
+      return (pnl / positionSize) * 100;
+    }
+    return 0;
+  }, [pnl, positionSize]);
+
   return (
     <Badge
       className={cn(

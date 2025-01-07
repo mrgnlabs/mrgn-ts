@@ -8,7 +8,7 @@ import { Skeleton } from "~/components/ui/skeleton";
 
 type PnlLabelProps = {
   type?: "$" | "%";
-  pnl: number;
+  pnl?: number;
   positionSize: number;
   className?: string;
   disableClickToChangeType?: boolean;
@@ -25,16 +25,34 @@ const PnlLabel = ({
 }: PnlLabelProps) => {
   const [tooltipOpen, setTooltipOpen] = React.useState(false);
   const [currentType, setCurrentType] = React.useState(type);
-  const positionState = pnl > 0 ? "positive" : pnl < 0 ? "negative" : "neutral";
-  const pnlSign = positionState === "positive" ? "+" : positionState === "negative" ? "-" : "";
-  const pnlPercentage = (pnl / positionSize) * 100;
+
+  const positionState = React.useMemo(() => {
+    if (pnl) {
+      return pnl > 0 ? "positive" : pnl < 0 ? "negative" : "neutral";
+    }
+    return "neutral";
+  }, [pnl]);
+
+  const pnlSign = React.useMemo(() => {
+    if (positionState) {
+      return positionState === "positive" ? "+" : "";
+    }
+    return "";
+  }, [positionState]);
+
+  const pnlPercentage = React.useMemo(() => {
+    if (pnl && positionSize) {
+      return (pnl / positionSize) * 100;
+    }
+    return 0;
+  }, [pnl, positionSize]);
 
   React.useEffect(() => {
     setCurrentType(type);
   }, [type]);
 
   if (pnl === undefined) {
-    return loader ?? <Skeleton className="w-[64px] h-4 animate-pulsate" />;
+    return <span className={cn("text-warning")}>Pnl not available for legacy positions</span>;
   }
 
   return (

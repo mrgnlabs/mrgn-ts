@@ -119,10 +119,10 @@ const SharePosition = ({ pool, triggerVariant = "ghost", triggerClassName, onOpe
                     {pool.tokenBank.meta.tokenSymbol}
                   </div>
                   <div className={cn("flex flex-col items-end gap-1", shareType === "$" && "-translate-y-2")}>
-                    {shareType === "$" && <PnlBadge pnl={positionData?.pnl} positionSize={positionSizeUsd} />}
+                    {shareType === "$" && <PnlBadge pnl={positionData?.pnl ?? 0} positionSize={positionSizeUsd} />}
                     <PnlLabel
                       type={shareType}
-                      pnl={positionData?.pnl}
+                      pnl={positionData?.pnl ?? 0}
                       positionSize={positionSizeUsd}
                       disableClickToChangeType={true}
                       className="text-4xl"
