@@ -15,7 +15,7 @@ export const MaxAction = ({ maxAmount, setAmount }: TradeActionProps) => {
     label?: string;
   } => {
     const formatAmount = (maxAmount?: number, symbol?: string) =>
-      maxAmount !== undefined ? `${dynamicNumeralFormatter(maxAmount)} USDC` : "-";
+      maxAmount !== undefined ? `${dynamicNumeralFormatter(maxAmount, { ignoreMinDisplay: true })}` : "-";
 
     return {
       amount: formatAmount(maxAmount),

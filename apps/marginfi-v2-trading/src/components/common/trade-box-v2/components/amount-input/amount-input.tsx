@@ -1,25 +1,18 @@
 import React from "react";
 
-import { getTokenImageURL } from "@mrgnlabs/mrgn-utils";
-import { USDC_MINT } from "@mrgnlabs/mrgn-common";
-
 import { Input } from "~/components/ui/input";
 
 import { MaxAction } from "./components";
+import { ArenaBank } from "~/types/trade-store.types";
 
 interface AmountInputProps {
   maxAmount: number;
   amount: string;
-
+  quoteBank: ArenaBank;
   handleAmountChange: (value: string) => void;
 }
 
-export const AmountInput = ({
-  amount,
-  maxAmount,
-
-  handleAmountChange,
-}: AmountInputProps) => {
+export const AmountInput = ({ amount, maxAmount, quoteBank, handleAmountChange }: AmountInputProps) => {
   const amountInputRef = React.useRef<HTMLInputElement>(null);
 
   return (
@@ -27,13 +20,13 @@ export const AmountInput = ({
       <div className="flex justify-center gap-1 items-center font-medium ">
         <span className="w-full flex items-center gap-1 max-w-[162px] text-muted-foreground text-base">
           <img
-            src={getTokenImageURL(USDC_MINT)}
-            alt="USDC"
+            src={quoteBank.meta.tokenLogoUri}
+            alt={quoteBank.meta.tokenSymbol}
             width={24}
             height={24}
             className="bg-background border rounded-full"
           />
-          USDC
+          {quoteBank.meta.tokenSymbol}
         </span>
         <div>
           <Input

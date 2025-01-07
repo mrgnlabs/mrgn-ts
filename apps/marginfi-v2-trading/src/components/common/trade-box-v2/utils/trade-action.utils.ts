@@ -25,7 +25,6 @@ import {
   nativeToUi,
   SolanaTransaction,
   uiToNative,
-  USDC_MINT,
 } from "@mrgnlabs/mrgn-common";
 import BigNumber from "bignumber.js";
 import { createJupiterApiClient, QuoteResponse } from "@jup-ag/api";
@@ -151,12 +150,11 @@ const handleExecuteTradeAction = async ({
 };
 
 export async function generateTradeTx(props: CalculateLoopingProps): Promise<TradeActionTxns | ActionMessageType> {
-  // USDC Swap tx
   let swapTx: { quote?: QuoteResponse; tx?: SolanaTransaction; error?: ActionMessageType } | undefined;
 
-  const swapNeeded = props.depositBank.meta.tokenSymbol !== "USDC";
+  const swapNeeded = props.tradeState === "long";
   if (swapNeeded) {
-    console.log("Creating swap transaction...");
+    console.log("Creating Quote swap transaction...");
     try {
       swapTx = await createSwapTx(
         props,
@@ -167,7 +165,7 @@ export async function generateTradeTx(props: CalculateLoopingProps): Promise<Tra
         props.marginfiClient.provider.connection
       );
       if (swapTx.error) {
-        console.error("USDC swap transaction error:", swapTx.error);
+        console.error("Quote swap transaction error:", swapTx.error);
         return swapTx.error;
       } else {
         if (!swapTx.tx || !swapTx.quote) {
@@ -175,7 +173,7 @@ export async function generateTradeTx(props: CalculateLoopingProps): Promise<Tra
         }
       }
     } catch (error) {
-      console.error("Error creating USDC swap transaction:", error);
+      console.error("Error creating Quote swap transaction:", error);
       return STATIC_SIMULATION_ERRORS.FL_FAILED;
     }
   }
@@ -271,7 +269,7 @@ export async function createSwapTx(
     const swapQuote = await getSwapQuoteWithRetry({
       swapMode: "ExactIn",
       amount: uiToNative(props.depositAmount, 6).toNumber(),
-      inputMint: USDC_MINT.toBase58(),
+      inputMint: props.borrowBank.info.state.mint.toBase58(),
       outputMint: props.depositBank.info.state.mint.toBase58(),
       slippageBps: jupOpts.slippageBps,
     });
