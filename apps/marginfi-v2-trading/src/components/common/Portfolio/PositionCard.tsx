@@ -26,14 +26,9 @@ type PositionCardProps = {
 export const PositionCard = ({ size = "lg", arenaPool }: PositionCardProps) => {
   const isStableQuote = React.useMemo(() => {
     return (
-      arenaPool.quoteBank.meta.tokenSymbol === "USDC" ||
-      arenaPool.quoteBank.meta.tokenSymbol === "USDT" ||
-      arenaPool.quoteBank.meta.tokenSymbol === "sUSD" ||
-      arenaPool.quoteBank.meta.tokenSymbol === "USDS" ||
-      arenaPool.quoteBank.meta.tokenSymbol === "pyUSD" ||
-      (arenaPool.quoteBank.tokenData &&
-        0.99 < arenaPool.quoteBank.tokenData.price &&
-        arenaPool.quoteBank.tokenData.price < 1.01)
+      arenaPool.quoteBank.tokenData &&
+      0.99 < arenaPool.quoteBank.tokenData.price &&
+      arenaPool.quoteBank.tokenData.price < 1.01
     );
   }, [arenaPool.quoteBank.tokenData]);
   const [showQuotePrice, setShowQuotePrice] = React.useState(false);
