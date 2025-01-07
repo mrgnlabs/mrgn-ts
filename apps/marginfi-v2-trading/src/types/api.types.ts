@@ -88,3 +88,23 @@ export type BirdeyeMarketDataResponse = {
   circulating_supply: number;
   circulating_marketcap: number;
 };
+
+/**
+ * Type definitions for the /api/oracle/priceV2 endpoint
+ */
+interface PriceWithConfidenceString {
+  price: string;
+  confidence: string;
+  lowestPrice: string;
+  highestPrice: string;
+}
+
+export interface OraclePriceString {
+  priceRealtime: PriceWithConfidenceString;
+  priceWeighted: PriceWithConfidenceString;
+  timestamp?: string;
+}
+
+export type OraclePriceV2ApiResponse = {
+  [key: string]: OraclePriceString;
+};

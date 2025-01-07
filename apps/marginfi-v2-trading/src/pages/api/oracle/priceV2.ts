@@ -22,7 +22,7 @@ import { Connection, PublicKey } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 import { NextApiRequest, NextApiResponse } from "next";
 import config from "~/config/marginfi";
-import { PoolListApiResponse } from "~/types/api.types";
+import { OraclePriceString, PoolListApiResponse } from "~/types/api.types";
 
 const SWITCHBOARD_CROSSSBAR_API = process.env.SWITCHBOARD_CROSSSBAR_API || "https://crossbar.switchboard.xyz";
 const IS_SWB_STAGE = SWITCHBOARD_CROSSSBAR_API === "https://staging.crossbar.switchboard.xyz";
@@ -38,19 +38,6 @@ interface OracleData {
 
 interface OracleDataWithTimestamp extends OracleData {
   timestamp: BigNumber;
-}
-
-interface PriceWithConfidenceString {
-  price: string;
-  confidence: string;
-  lowestPrice: string;
-  highestPrice: string;
-}
-
-interface OraclePriceString {
-  priceRealtime: PriceWithConfidenceString;
-  priceWeighted: PriceWithConfidenceString;
-  timestamp?: string;
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -200,6 +187,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
     }
     const bankPkMap = new Map<string, OraclePrice>();
+
+    try {
+      updatedOraclePrices.forEach((value, key) => {
+        console.log("key", key);
+        console.log("value", value.priceRealtime.price.toNumber());
+      });
+    } catch {
+      console.log("error");
+    }
 
     requestedOraclesData.forEach((oracleData) => {
       const oraclePrice = updatedOraclePrices.get(oracleData.oracleKey)!;
