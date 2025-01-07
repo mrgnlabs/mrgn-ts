@@ -48,17 +48,6 @@ export const PoolTradeHeader = ({ activePool }: { activePool: ArenaPoolV2 }) => 
 
   const [refreshGroup, nativeSolBalance] = useTradeStoreV2((state) => [state.refreshGroup, state.nativeSolBalance]);
 
-  const tokenPrice = React.useMemo(() => {
-    const lstPrice = extendedPool.quoteBank.info.oraclePrice.priceRealtime.price.toNumber();
-    return `${dynamicNumeralFormatter(
-      extendedPool.tokenBank.info.oraclePrice.priceRealtime.price.toNumber() / lstPrice
-    )} ${extendedPool.quoteBank.meta.tokenSymbol}`;
-  }, [
-    extendedPool.quoteBank.info.oraclePrice.priceRealtime.price,
-    extendedPool.quoteBank.meta.tokenSymbol,
-    extendedPool.tokenBank.info.oraclePrice.priceRealtime.price,
-  ]);
-
   const fundingRate = React.useMemo(() => {
     const fundingRateShort =
       extendedPool.tokenBank.info.state.borrowingRate - extendedPool.quoteBank.info.state.lendingRate;
@@ -139,23 +128,42 @@ export const PoolTradeHeader = ({ activePool }: { activePool: ArenaPoolV2 }) => 
             <PoolShare activePool={activePool} />
           </div>
           <div className="w-full space-y-10">
-            {extendedPool.tokenBank.tokenData && (
+            {extendedPool.tokenBank.tokenData && extendedPool.quoteBank.tokenData && (
               <div className="grid w-full max-w-md mx-auto gap-1 lg:gap-16 lg:max-w-none lg:grid-cols-3">
                 <div className="grid grid-cols-2 lg:block">
                   <p className="text-sm text-muted-foreground">Birdeye price</p>
                   <p className="text-sm text-right lg:text-left lg:text-2xl">
-                    {tokenPrice}
+                    {dynamicNumeralFormatter(
+                      extendedPool.tokenBank.tokenData.price / extendedPool.quoteBank.tokenData?.price,
+                      {
+                        ignoreMinDisplay: true,
+                      }
+                    )}{" "}
+                    {extendedPool.quoteBank.meta.tokenSymbol}
                     <span className="text-sm text-muted-foreground block">
-                      ${dynamicNumeralFormatter(extendedPool.tokenBank.tokenData.price)}{" "}
+                      $
+                      {dynamicNumeralFormatter(extendedPool.tokenBank.tokenData.price, {
+                        ignoreMinDisplay: true,
+                      })}
                     </span>
                   </p>
                 </div>
                 <div className="grid grid-cols-2 lg:block">
                   <p className="text-sm text-muted-foreground">Oracle price</p>
                   <p className="text-sm text-right lg:text-left lg:text-2xl">
-                    {tokenPrice}
+                    {dynamicNumeralFormatter(
+                      extendedPool.tokenBank.info.oraclePrice.priceRealtime.price.toNumber() /
+                        extendedPool.quoteBank.info.oraclePrice.priceRealtime.price.toNumber(),
+                      {
+                        ignoreMinDisplay: true,
+                      }
+                    )}{" "}
+                    {extendedPool.quoteBank.meta.tokenSymbol}
                     <span className="text-sm text-muted-foreground block">
-                      ${dynamicNumeralFormatter(extendedPool.tokenBank.info.oraclePrice.priceRealtime.price.toNumber())}{" "}
+                      $
+                      {dynamicNumeralFormatter(extendedPool.tokenBank.info.oraclePrice.priceRealtime.price.toNumber(), {
+                        ignoreMinDisplay: true,
+                      })}
                     </span>
                   </p>
                 </div>

@@ -110,7 +110,12 @@ export const PoolSearchDialog = ({
                           <div>
                             <dt className="text-muted-foreground sr-only md:not-sr-only">Price:</dt>
                             <dd className="space-x-2">
-                              <span>${dynamicNumeralFormatter(tokenBank.tokenData.price)}</span>
+                              <span>
+                                $
+                                {dynamicNumeralFormatter(tokenBank.tokenData.price, {
+                                  ignoreMinDisplay: true,
+                                })}
+                              </span>
 
                               <span
                                 className={cn(
