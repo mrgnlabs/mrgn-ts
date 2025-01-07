@@ -38,14 +38,11 @@ export const ClosePositionScreen = ({ tokenBank, size, leverage, entryPrice, exi
           </div>
           <h3 className="text-2xl font-medium text-center">{tokenBank?.meta.tokenSymbol} position closed</h3>
         </div>
-        {pnl ? (
-          <div className="flex items-center justify-center gap-2">
-            <PnlLabel pnl={pnl} positionSize={size} className="text-3xl" />
-            <PnlBadge pnl={pnl} positionSize={size} className="text-sm" />
-          </div>
-        ) : (
-          <></>
-        )}
+
+        <div className="flex items-center justify-center gap-2">
+          <PnlLabel pnl={pnl} positionSize={size} className="text-3xl" />
+          <PnlBadge pnl={pnl} positionSize={size} className="text-sm" />
+        </div>
       </div>
       <dl className="grid grid-cols-2 w-full text-muted-foreground gap-x-8 gap-y-2">
         <dt>Size</dt>

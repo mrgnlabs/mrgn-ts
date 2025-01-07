@@ -119,7 +119,7 @@ export const PositionCard = ({ size = "lg", arenaPool }: PositionCardProps) => {
               className="text-xl md:text-2xl"
               loader={<Skeleton className="w-[120px] ml-auto h-6 animate-pulsate" />}
             />
-            {pnl !== undefined && <PnlBadge pnl={pnl} positionSize={positionSizeUsd} className="hidden md:block" />}
+            <PnlBadge pnl={pnl} positionSize={positionSizeUsd} className="hidden md:block" />
           </div>
         </div>
       )}
