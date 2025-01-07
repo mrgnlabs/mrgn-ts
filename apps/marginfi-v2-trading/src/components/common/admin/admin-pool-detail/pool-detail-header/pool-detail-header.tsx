@@ -1,7 +1,6 @@
 import React from "react";
 import { IconExternalLink } from "@tabler/icons-react";
 import Link from "next/link";
-import Image from "next/image";
 
 import { percentFormatter, numeralFormatter, tokenPriceFormatter, shortenAddress } from "@mrgnlabs/mrgn-common";
 import { cn } from "@mrgnlabs/mrgn-utils";
@@ -37,7 +36,7 @@ export const AdminPoolDetailHeader = ({ activePool }: AdminPoolDetailHeaderProps
       <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-8">
         <div className="flex flex-col items-center justify-center gap-1 px-8">
           <div className="flex items-center justify-center gap-4">
-            <Image
+            <img
               src={extendedPool.tokenBank.meta.tokenLogoUri}
               alt={extendedPool.tokenBank.meta.tokenSymbol}
               width={72}

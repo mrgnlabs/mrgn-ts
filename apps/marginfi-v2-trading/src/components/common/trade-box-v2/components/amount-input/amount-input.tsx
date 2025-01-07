@@ -1,5 +1,4 @@
 import React from "react";
-import Image from "next/image";
 
 import { getTokenImageURL } from "@mrgnlabs/mrgn-utils";
 import { USDC_MINT } from "@mrgnlabs/mrgn-common";
@@ -27,7 +26,7 @@ export const AmountInput = ({
     <div className="bg-accent p-2.5 border border-accent/150 rounded-md">
       <div className="flex justify-center gap-1 items-center font-medium ">
         <span className="w-full flex items-center gap-1 max-w-[162px] text-muted-foreground text-base">
-          <Image
+          <img
             src={getTokenImageURL(USDC_MINT)}
             alt="USDC"
             width={24}
