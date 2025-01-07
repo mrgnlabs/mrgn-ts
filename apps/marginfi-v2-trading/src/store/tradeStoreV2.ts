@@ -898,7 +898,7 @@ function fillMissingPositions(
 
     const status = getPoolPositionStatus(pool, tokenBank, quoteBank);
 
-    if (status === GroupStatus.EMPTY || !account || !tokenBank || !quoteBank) {
+    if (status === GroupStatus.EMPTY || !tokenBank || !quoteBank) {
       delete newPositions[pool.groupPk.toBase58()];
     }
 
@@ -939,8 +939,8 @@ function fillMissingPositions(
       } else {
         newPositions[pool.groupPk.toBase58()] = {
           groupPk: pool.groupPk,
-          accountPk: account.address,
-          authorityPk: account.authority,
+          accountPk: account?.address ?? PublicKey.default,
+          authorityPk: account?.authority ?? PublicKey.default,
           direction: status === GroupStatus.LONG ? "long" : "short",
           entryPrice: tokenBank.info.oraclePrice.priceRealtime.price.toNumber(),
           currentPositionValue: sizeUsd,

@@ -51,10 +51,6 @@ const PnlLabel = ({
     setCurrentType(type);
   }, [type]);
 
-  if (pnl === undefined) {
-    return <span className={cn("text-warning")}>Pnl not available for legacy positions</span>;
-  }
-
   return (
     <TooltipProvider>
       <Tooltip open={disableClickToChangeType ? false : tooltipOpen} onOpenChange={setTooltipOpen}>
@@ -72,7 +68,7 @@ const PnlLabel = ({
             }}
           >
             {pnlSign}
-            {currentType === "$" && <span>{usdFormatter.format(pnl)}</span>}
+            {currentType === "$" && <span>{usdFormatter.format(pnl ?? 0)}</span>}
             {currentType === "%" && <span>{pnlPercentage.toFixed(2)}%</span>}
           </span>
         </TooltipTrigger>
