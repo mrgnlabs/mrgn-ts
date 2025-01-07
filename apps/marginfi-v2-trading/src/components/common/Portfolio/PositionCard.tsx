@@ -24,6 +24,18 @@ type PositionCardProps = {
 };
 
 export const PositionCard = ({ size = "lg", arenaPool }: PositionCardProps) => {
+  const isStableQuote = React.useMemo(() => {
+    return (
+      arenaPool.quoteBank.meta.tokenSymbol === "USDC" ||
+      arenaPool.quoteBank.meta.tokenSymbol === "USDT" ||
+      arenaPool.quoteBank.meta.tokenSymbol === "sUSD" ||
+      arenaPool.quoteBank.meta.tokenSymbol === "USDS" ||
+      arenaPool.quoteBank.meta.tokenSymbol === "pyUSD" ||
+      (arenaPool.quoteBank.tokenData &&
+        0.99 < arenaPool.quoteBank.tokenData.price &&
+        arenaPool.quoteBank.tokenData.price < 1.01)
+    );
+  }, [arenaPool.quoteBank.tokenData]);
   const [showQuotePrice, setShowQuotePrice] = React.useState(false);
 
   const positionData = usePositionsData({ groupPk: arenaPool.groupPk });
@@ -73,9 +85,9 @@ export const PositionCard = ({ size = "lg", arenaPool }: PositionCardProps) => {
       })} ${arenaPool.quoteBank.meta.tokenSymbol}`;
     }
 
-    return `$${dynamicNumeralFormatter(tokenPrice, {
+    return `${dynamicNumeralFormatter(tokenPrice, {
       ignoreMinDisplay: true,
-    })}`;
+    })} USD`;
   }, [showQuotePrice, arenaPool]);
 
   if (!arenaPool.tokenBank.isActive) return null;
@@ -143,7 +155,7 @@ export const PositionCard = ({ size = "lg", arenaPool }: PositionCardProps) => {
           >
             {displayedPrice}
 
-            {arenaPool.quoteBank.meta.tokenSymbol !== "USDC" && <IconSwitchHorizontal size={14} />}
+            {!isStableQuote && <IconSwitchHorizontal size={14} />}
           </dd>
           {arenaPool.tokenBank.position.liquidationPrice && (
             <>

@@ -14,6 +14,7 @@ import { TooltipProvider, Tooltip, TooltipContent, TooltipTrigger } from "~/comp
 import { useTradeStoreV2 } from "~/store";
 import { ArenaPoolSummary } from "~/types/trade-store.types";
 import { mfiAddresses } from "~/utils/arenaUtils";
+import { IconSwitchHorizontal } from "@tabler/icons-react";
 
 type PoolCardProps = {
   poolData: ArenaPoolSummary;
@@ -21,13 +22,38 @@ type PoolCardProps = {
 
 export const PoolCard = ({ poolData }: PoolCardProps) => {
   const [tokenDataByMint, groupsByGroupPk] = useTradeStoreV2((state) => [state.tokenDataByMint, state.groupsByGroupPk]);
-  const isMobile = useIsMobile();
 
   const { tokenData, quoteTokenData } = React.useMemo(() => {
     const tokenData = tokenDataByMint[poolData.tokenSummary.mint.toBase58()];
     const quoteTokenData = tokenDataByMint[poolData.quoteSummary.mint.toBase58()];
     return { tokenData, quoteTokenData };
   }, [poolData, tokenDataByMint]);
+
+  const isStableQuote = React.useMemo(() => {
+    return (
+      quoteTokenData?.symbol === "USDC" ||
+      quoteTokenData?.symbol === "USDT" ||
+      quoteTokenData?.symbol === "sUSD" ||
+      quoteTokenData?.symbol === "USDS" ||
+      quoteTokenData?.symbol === "pyUSD" ||
+      (0.99 < quoteTokenData?.price && quoteTokenData?.price < 1.01)
+    );
+  }, [quoteTokenData]);
+  const [showUSDPrice, setShowUSDPrice] = React.useState(false);
+
+  const tokenPrice = React.useMemo(() => {
+    if (showUSDPrice) {
+      return tokenData?.price;
+    }
+    return tokenData?.price / quoteTokenData?.price;
+  }, [showUSDPrice, tokenData, quoteTokenData]);
+
+  const tokenPriceChange = React.useMemo(() => {
+    if (showUSDPrice) {
+      return tokenData?.priceChange24h;
+    }
+    return tokenData?.priceChange24h - quoteTokenData?.priceChange24h;
+  }, [showUSDPrice, tokenData, quoteTokenData]);
 
   const fundingRate = React.useMemo(() => {
     const fundingRateShort =
@@ -142,22 +168,22 @@ export const PoolCard = ({ poolData }: PoolCardProps) => {
         {tokenData && (
           <dl className="grid grid-cols-2 gap-1.5 text-sm text-muted-foreground w-full mt-2">
             <dt>Price</dt>
-            <dd className="text-right text-primary tracking-wide">
-              {dynamicNumeralFormatter(tokenData.price / quoteTokenData.price, {
+            <dd className="text-right text-primary tracking-wide flex items-center justify-end gap-1">
+              {dynamicNumeralFormatter(tokenPrice, {
                 ignoreMinDisplay: true,
               })}{" "}
-              {quoteTokenData.symbol}
-              {tokenData.priceChange24h && quoteTokenData.priceChange24h && (
-                <span
-                  className={cn(
-                    "text-xs ml-1",
-                    tokenData.priceChange24h - quoteTokenData.priceChange24h > 0
-                      ? "text-mrgn-success"
-                      : "text-mrgn-error"
-                  )}
-                >
-                  {tokenData.priceChange24h - quoteTokenData.priceChange24h > 0 && "+"}
-                  {percentFormatter.format((tokenData.priceChange24h - quoteTokenData.priceChange24h) / 100)}
+              {showUSDPrice ? "USD" : quoteTokenData?.symbol}
+              {!isStableQuote && (
+                <IconSwitchHorizontal
+                  size={14}
+                  onClick={() => setShowUSDPrice(!showUSDPrice)}
+                  className="cursor-pointer"
+                />
+              )}
+              {tokenPriceChange && (
+                <span className={cn("text-xs ml-1", tokenPriceChange > 0 ? "text-mrgn-success" : "text-mrgn-error")}>
+                  {tokenPriceChange > 0 && "+"}
+                  {percentFormatter.format(tokenPriceChange / 100)}
                 </span>
               )}
             </dd>
