@@ -37,27 +37,28 @@ export function useMarginfiClient({
     programId: defaultConfig.programId,
   },
 }: UseMarginfiClientProps) {
-  const [arenaPools, banksByBankPk, groupsByGroupPk, tokenAccountMap, lutAddressesByGroupPk, mintDataByMint, wallet] =
-    useTradeStoreV2((state) => [
+  const [arenaPools, banksByBankPk, groupsByGroupPk, tokenAccountMap, mintDataByMint, wallet] = useTradeStoreV2(
+    (state) => [
       state.arenaPools,
       state.banksByBankPk,
       state.groupsByGroupPk,
       state.tokenAccountMap,
-      state.lutAddressesByGroupPk,
       state.mintDataByMint,
       state.wallet,
-    ]);
+    ]
+  );
   const { connection } = useConnection();
 
   const client = React.useMemo(() => {
     // console.log("client fetch triggered for group", groupPk.toBase58());
-    const lut = lutAddressesByGroupPk[groupPk.toBase58()] ?? [];
     const group = groupsByGroupPk[groupPk.toBase58()];
     const pool = arenaPools[groupPk.toBase58()];
 
     if (!group || !pool) {
       return null;
     }
+
+    const lookupTables = pool.lookupTables;
     const tokenBank = banksByBankPk[pool.tokenBankPk.toBase58()];
     const quoteBank = banksByBankPk[pool.quoteBankPk.toBase58()];
     const tokenMint = mintDataByMint.get(pool.tokenBankPk.toBase58());
@@ -119,14 +120,13 @@ export function useMarginfiClient({
       bankMetadataByBankPk,
       clientOptions?.bundleSimRpcEndpoint,
       clientOptions?.processTransactionStrategy,
-      lut
+      lookupTables
     );
 
     return client;
     //excluded connection from the deps to prevent unnecessary re-renders
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
-    lutAddressesByGroupPk,
     groupPk,
     groupsByGroupPk,
     arenaPools,
