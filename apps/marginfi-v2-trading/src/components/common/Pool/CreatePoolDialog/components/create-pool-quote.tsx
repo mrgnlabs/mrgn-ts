@@ -1,6 +1,5 @@
 import React from "react";
 import Link from "next/link";
-import Image from "next/image";
 
 import { IconArrowRight, IconLoader2, IconQuestionMark } from "@tabler/icons-react";
 import { PublicKey } from "@solana/web3.js";
@@ -133,7 +132,7 @@ export const CreatePoolQuote = ({ tokenData, isSearchingToken, setIsOpen, fetchT
                   setMintAddress(value.toBase58());
                 }}
               >
-                <Image
+                <img
                   src={getTokenImageURL(value)}
                   alt={`${key} icon`}
                   width={16}
