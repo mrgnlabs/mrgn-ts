@@ -75,11 +75,20 @@ export const dynamicNumeralFormatter = (value: number, options: dynamicNumeralFo
     return numeral(value).format("0,0.[0000]a"); // Format with up to 4 decimal places
   }
 
-  // New behavior: Ensure 3 significant digits when ignoreMinDisplay is true
+  // New behavior: Ensure 3 significant decimal digits when ignoreMinDisplay is true
   if (ignoreMinDisplay) {
-    const exponent = Math.floor(Math.log10(absValue)); // using floor for more precision
-    const significantDecimals = Math.max(0, 2 - exponent);
-    return value.toFixed(significantDecimals).replace(/\.?0+$/, "");
+    const decimalPart = absValue - Math.floor(absValue);
+    const decimalPlaces = decimalPart > 0 ? 3 : 0;
+
+    if (absValue >= 1) {
+      // For values >= 1, format the number with 3 decimal digits
+      return value.toFixed(decimalPlaces).replace(/\.?0+$/, "");
+    } else {
+      // For values < 1, calculate the significant decimal digits precisely
+      const exponent = Math.floor(Math.log10(absValue));
+      const significantDecimals = Math.max(3, 2 - exponent); // Ensure 3 significant decimal digits
+      return value.toFixed(significantDecimals).replace(/\.?0+$/, "");
+    }
   }
 
   // Case: Token price takes priority when defined
