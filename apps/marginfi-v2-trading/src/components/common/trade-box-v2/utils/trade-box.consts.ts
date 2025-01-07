@@ -17,5 +17,3 @@ export interface SimulateActionProps {
   account: MarginfiAccountWrapper;
   bank: ExtendedBankInfo;
 }
-
-export const RANDOM_USDC_BANK = new PublicKey("9zSRNNU4oDE3CmaQcjZwnfrhUzxUuBP3o1grryu1oMan"); // Random USDC bank to refetch balances -> should replace this (because if the bank would be removed, we would not be refetching USDC balances), but not sure with what

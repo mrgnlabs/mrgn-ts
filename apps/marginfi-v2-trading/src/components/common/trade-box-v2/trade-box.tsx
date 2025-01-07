@@ -14,12 +14,7 @@ import {
 import { IconSettings } from "@tabler/icons-react";
 
 import { ArenaPoolV2 } from "~/types/trade-store.types";
-import {
-  initiateTradeAction,
-  RANDOM_USDC_BANK,
-  SimulationStatus,
-  TradeSide,
-} from "~/components/common/trade-box-v2/utils";
+import { initiateTradeAction, SimulationStatus, TradeSide } from "~/components/common/trade-box-v2/utils";
 import { Card, CardContent, CardHeader } from "~/components/ui/card";
 import { useTradeStoreV2, useUiStore } from "~/store";
 import { useWallet, useWalletStore } from "~/components/wallet-v2";
@@ -126,6 +121,7 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
   const { amount, debouncedAmount, maxAmount } = useActionAmounts({
     amountRaw,
     tokenAccountMap,
+    activePoolExtended,
   });
   const debouncedLeverage = useAmountDebounce<number>(leverage, 500);
 
@@ -247,6 +243,7 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
     setIsLoading: setIsSimulating,
     setSimulationResult,
     setMaxLeverage,
+    tradeState,
   });
 
   const handleAmountChange = React.useCallback(
@@ -277,7 +274,7 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
             connection,
             wallet,
             groupPk: activePoolExtended.groupPk,
-            banks: [activePoolExtended.tokenBank.address, activePoolExtended.quoteBank.address, RANDOM_USDC_BANK],
+            banks: [activePoolExtended.tokenBank.address, activePoolExtended.quoteBank.address],
           });
         },
         setIsLoading: setIsTransactionExecuting,
@@ -348,7 +345,7 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
           connection,
           wallet,
           groupPk: activePoolExtended.groupPk,
-          banks: [activePoolExtended.tokenBank.address, activePoolExtended.quoteBank.address, RANDOM_USDC_BANK],
+          banks: [activePoolExtended.tokenBank.address, activePoolExtended.quoteBank.address],
         });
       },
       setIsLoading: setIsTransactionExecuting,
@@ -392,7 +389,12 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
       <CardContent className="px-4 py-2">
         <div className="space-y-4">
           <ActionToggle tradeState={tradeState} setTradeState={setTradeState} />
-          <AmountInput maxAmount={maxAmount} amount={amountRaw} handleAmountChange={handleAmountChange} />
+          <AmountInput
+            maxAmount={maxAmount}
+            amount={amountRaw}
+            handleAmountChange={handleAmountChange}
+            quoteBank={activePoolExtended.quoteBank}
+          />
           <LeverageSlider
             selectedBank={selectedBank}
             selectedSecondaryBank={selectedSecondaryBank}
@@ -419,12 +421,13 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
                   connection,
                   wallet,
                   groupPk: activePoolExtended.groupPk,
-                  banks: [activePoolExtended.tokenBank.address, activePoolExtended.quoteBank.address, RANDOM_USDC_BANK],
+                  banks: [activePoolExtended.tokenBank.address, activePoolExtended.quoteBank.address],
                 })
               }
               refreshSimulation={refreshSimulation}
               isRetrying={isSimulating.isLoading}
-              usdcBalance={maxAmount}
+              quoteBalance={maxAmount}
+              quoteBank={activePoolExtended.quoteBank}
             />
           )}
 
