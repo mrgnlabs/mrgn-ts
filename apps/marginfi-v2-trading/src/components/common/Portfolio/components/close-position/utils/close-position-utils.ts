@@ -9,7 +9,6 @@ import {
   LUT_PROGRAM_AUTHORITY_INDEX,
   SolanaTransaction,
   uiToNative,
-  USDC_MINT,
 } from "@mrgnlabs/mrgn-common";
 import {
   ActionMessageType,
@@ -26,7 +25,7 @@ import {
 } from "@mrgnlabs/mrgn-utils";
 import { calculateClosePositions } from "~/utils";
 import { ExecuteActionsCallbackProps } from "~/components/action-box-v2/types";
-import { ArenaPoolV2Extended } from "~/types/trade-store.types";
+import { ArenaPoolV2Extended, GroupStatus } from "~/types/trade-store.types";
 
 /**
  * Simulates closing a position by fetching and validating the required transactions
@@ -39,6 +38,7 @@ export const simulateClosePosition = async ({
   connection,
   platformFeeBps,
   setIsLoading,
+  tradeState,
 }: {
   marginfiAccount: MarginfiAccountWrapper;
   depositBanks: ActiveBankInfo[];
@@ -47,6 +47,7 @@ export const simulateClosePosition = async ({
   connection: Connection;
   platformFeeBps: number;
   setIsLoading: (loading: boolean) => void;
+  tradeState: GroupStatus;
 }): Promise<{ actionTxns: ClosePositionActionTxns | null; actionMessage: ActionMessageType | null }> => {
   try {
     if (!marginfiAccount) {
@@ -65,6 +66,7 @@ export const simulateClosePosition = async ({
       slippageBps,
       connection: connection,
       platformFeeBps,
+      tradeState,
     });
 
     if (actionMessage || actionTxns === null) {
@@ -98,6 +100,7 @@ const fetchClosePositionTxns = async (props: {
   slippageBps: number;
   connection: Connection;
   platformFeeBps: number;
+  tradeState: GroupStatus;
 }): Promise<{ actionTxns: ClosePositionActionTxns | null; actionMessage: ActionMessageType | null }> => {
   try {
     let txns: ClosePositionActionTxns | ActionMessageType;
@@ -116,8 +119,8 @@ const fetchClosePositionTxns = async (props: {
       return { actionTxns: null, actionMessage: txns };
     }
 
-    // if the deposit bank is not USDC, we need to swap to USDC
-    if (props.depositBank.meta.tokenSymbol !== "USDC") {
+    // if the trade state is long, we need to swap to the Quote token again
+    if (props.tradeState === GroupStatus.LONG) {
       const swapTx = await getSwapTx({
         ...props,
         authority: props.marginfiAccount.authority,
@@ -183,7 +186,7 @@ export const handleExecuteClosePositionAction = async ({
       uuid: attemptUuid,
       token: arenaPool.tokenBank.meta.tokenSymbol,
       tokenSize: arenaPool.tokenBank.isActive ? arenaPool.tokenBank.position.amount : 0,
-      usdcSize: arenaPool.quoteBank.isActive ? arenaPool.quoteBank.position.amount : 0,
+      quoteSize: arenaPool.quoteBank.isActive ? arenaPool.quoteBank.position.amount : 0,
     });
 
     const txnSig = await executeClosePositionAction(params);
@@ -197,7 +200,7 @@ export const handleExecuteClosePositionAction = async ({
         txn: txnSig!,
         token: arenaPool.tokenBank.meta.tokenSymbol,
         tokenSize: arenaPool.tokenBank.isActive ? arenaPool.tokenBank.position.amount : 0,
-        usdcSize: arenaPool.quoteBank.isActive ? arenaPool.quoteBank.position.amount : 0,
+        quoteSize: arenaPool.quoteBank.isActive ? arenaPool.quoteBank.position.amount : 0,
       });
     }
   } catch (error) {
@@ -213,9 +216,9 @@ async function getCloseAccountTx(marginfiAccount: MarginfiAccountWrapper): Promi
 }
 
 /**
- * USDC Swap Transaction Logic
+ * Quote token Swap Transaction Logic
  *
- * Contains functions for creating and executing swaps to USDC:
+ * Contains functions for creating and executing swaps to the Quote token:
  * - getSwapTx: Gets transaction for swapping max repayable collateral
  * - createSwapTx: Creates Jupiter swap transaction with given parameters
  */
@@ -225,6 +228,7 @@ async function getCloseAccountTx(marginfiAccount: MarginfiAccountWrapper): Promi
  */
 type SwapTxProps = {
   depositBank: ActiveBankInfo;
+  borrowBank: ActiveBankInfo;
   authority: PublicKey;
   connection: Connection;
   jupOpts: { slippageBps: number; platformFeeBps?: number };
@@ -234,16 +238,20 @@ interface CreateSwapTxProps extends SwapTxProps {
 }
 
 interface GetSwapTxProps extends SwapTxProps {
-  borrowBank: ActiveBankInfo;
+  depositBank: ActiveBankInfo;
 }
 
 type CreateSwapTxResponse = { tx: SolanaTransaction; quote: QuoteResponse };
 
 /**
- * Gets a Jupiter swap transaction for swapping the maximum repayable collateral amount to USDC
+ * Gets a Jupiter swap transaction for swapping the maximum repayable collateral amount to the Quote token
  */
-async function getSwapTx({ borrowBank, ...props }: GetSwapTxProps): Promise<CreateSwapTxResponse | ActionMessageType> {
-  const maxAmount = await calculateMaxRepayableCollateral(borrowBank, props.depositBank, props.jupOpts.slippageBps);
+async function getSwapTx({ ...props }: SwapTxProps): Promise<CreateSwapTxResponse | ActionMessageType> {
+  const maxAmount = await calculateMaxRepayableCollateral(
+    props.borrowBank,
+    props.depositBank,
+    props.jupOpts.slippageBps
+  );
   if (!maxAmount) {
     return STATIC_SIMULATION_ERRORS.MAX_AMOUNT_CALCULATION_FAILED;
   }
@@ -256,6 +264,7 @@ async function getSwapTx({ borrowBank, ...props }: GetSwapTxProps): Promise<Crea
 
 async function createSwapTx({
   depositBank,
+  borrowBank,
   swapAmount,
   authority,
   connection,
@@ -266,14 +275,14 @@ async function createSwapTx({
   const swapQuote = await getSwapQuoteWithRetry({
     swapMode: "ExactIn",
     amount: uiToNative(swapAmount, depositBank.info?.rawBank.mintDecimals).toNumber(),
-    outputMint: USDC_MINT.toBase58(),
+    outputMint: borrowBank.info.state.mint.toBase58(),
     inputMint: depositBank.info.state.mint.toBase58(),
     slippageBps: jupOpts.slippageBps,
     platformFeeBps: jupOpts.platformFeeBps,
   });
 
   if (!swapQuote) {
-    throw new Error("Swap quote fetching for USDC swap failed.");
+    throw new Error("Swap quote fetching for Quote token swap failed.");
   }
 
   const {

@@ -6,6 +6,7 @@ import { ActionMessageType, cn } from "@mrgnlabs/mrgn-utils";
 
 import { ActionBox } from "~/components";
 import { Button } from "~/components/ui/button";
+import { ArenaBank } from "~/types/trade-store.types";
 
 interface InfoMessagesProps {
   connected: boolean;
@@ -14,7 +15,8 @@ interface InfoMessagesProps {
   refreshStore: () => Promise<void>;
   refreshSimulation: () => void;
   isRetrying?: boolean;
-  usdcBalance: number;
+  quoteBalance: number;
+  quoteBank: ArenaBank;
 }
 
 export const InfoMessages = ({
@@ -26,33 +28,9 @@ export const InfoMessages = ({
 
   refreshSimulation,
   isRetrying,
-  usdcBalance,
+  quoteBalance,
+  quoteBank,
 }: InfoMessagesProps) => {
-  const renderWarning = (message: string, action: () => void) => (
-    <div
-      className={cn(
-        "relative flex space-x-2 py-2.5 px-3.5 rounded-md gap-1 text-sm",
-        "bg-alert border border-alert-foreground/20 text-alert-foreground"
-      )}
-    >
-      <IconAlertTriangle className="shrink-0 translate-y-0.5" size={16} />
-      <div className="space-y-2.5 w-full">
-        <p>{message}</p>
-        <Button
-          variant="outline"
-          size="sm"
-          className="border-b border-alert-foreground hover:border-transparent mt-2"
-          onClick={action}
-        >
-          Swap tokens
-        </Button>
-      </div>
-    </div>
-  );
-
-  const renderUSDCWarning = () =>
-    renderWarning(`You need to hold USDC to open a position.`, () => setIsWalletOpen(true));
-
   const renderActionMethodMessages = () => (
     <div className="flex flex-col gap-4">
       {actionMethods.map(
@@ -142,10 +120,6 @@ export const InfoMessages = ({
 
   const renderContent = () => {
     if (!connected) return null;
-
-    if (usdcBalance === 0) {
-      return renderUSDCWarning();
-    }
 
     return renderActionMethodMessages();
   };
