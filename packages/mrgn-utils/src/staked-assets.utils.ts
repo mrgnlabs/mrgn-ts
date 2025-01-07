@@ -1,25 +1,9 @@
 import { Connection, PublicKey, ParsedAccountData, LAMPORTS_PER_SOL, StakeProgram } from "@solana/web3.js";
-import { minidenticon } from "minidenticons";
+import { MarginfiClient, MarginfiConfig, getConfig } from "@mrgnlabs/marginfi-client-v2";
+import { makeExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { BankMetadata, TokenMetadataRaw, shortenAddress } from "@mrgnlabs/mrgn-common";
 
-import {
-  MarginfiAccountWrapper,
-  MarginfiClient,
-  MarginfiConfig,
-  OracleSetup,
-  getConfig,
-  parsePriceInfo,
-} from "@mrgnlabs/marginfi-client-v2";
-import { makeExtendedBankInfo, fetchTokenAccounts } from "@mrgnlabs/marginfi-v2-ui-state";
-import {
-  BankMetadata,
-  chunkedGetRawMultipleAccountInfoOrdered,
-  shortenAddress,
-  TOKEN_PROGRAM_ID,
-  TokenMetadata,
-  TokenMetadataRaw,
-  WSOL_MINT,
-} from "@mrgnlabs/mrgn-common";
-
+const SINGLE_POOL_PROGRAM_ID = new PublicKey("SVSPxpvHdN29nkVg9rPapPNDddN5DipNLRUFhyjFThE");
 const MAX_U64 = (2n ** 64n - 1n).toString();
 const STAKED_BANK_METADATA_CACHE = "https://storage.googleapis.com/mrgn-public/mrgn-staked-bank-metadata-cache.json";
 const STAKED_TOKEN_METADATA_CACHE = "https://storage.googleapis.com/mrgn-public/mrgn-staked-token-metadata-cache.json";
@@ -27,6 +11,8 @@ const STAKED_TOKEN_METADATA_CACHE = "https://storage.googleapis.com/mrgn-public/
 // represents a group of stake accounts associated with a validator
 export type ValidatorStakeGroup = {
   validator: PublicKey;
+  poolKey: PublicKey;
+  poolMintKey: PublicKey;
   accounts: {
     pubkey: PublicKey;
     amount: number;
@@ -71,33 +57,44 @@ const getStakeAccounts = async (
 
     const validatorMap = new Map<string, { pubkey: PublicKey; amount: number }[]>();
 
-    accounts.forEach((acc) => {
-      const parsedAccount = acc.account.data as ParsedAccountData;
-      const stakeInfo = parsedAccount.parsed.info;
+    // Map accounts to promises and run them in parallel
+    await Promise.all(
+      accounts.map(async (acc) => {
+        const parsedAccount = acc.account.data as ParsedAccountData;
+        const stakeInfo = parsedAccount.parsed.info;
 
-      // filter out inactive stake accounts
-      // (unless opts.filterInactive is true)
-      if (
-        !stakeInfo.stake?.delegation ||
-        (opts.filterInactive &&
-          (Number(stakeInfo.stake.delegation.activationEpoch) >= epochInfo.epoch || // activating
-            stakeInfo.stake.delegation.deactivationEpoch !== MAX_U64)) // deactivating
-      ) {
-        return;
-      }
+        // filter out inactive stake accounts
+        if (
+          !stakeInfo.stake?.delegation ||
+          (opts.filterInactive &&
+            (Number(stakeInfo.stake.delegation.activationEpoch) >= epochInfo.epoch ||
+              stakeInfo.stake.delegation.deactivationEpoch !== MAX_U64))
+        ) {
+          return;
+        }
 
-      const validatorAddress = stakeInfo.stake.delegation.voter;
-      const accountPubkey = acc.pubkey;
-      const amount = Number(stakeInfo.stake.delegation.stake) / LAMPORTS_PER_SOL;
+        const validatorAddress = stakeInfo.stake.delegation.voter;
+        const accountPubkey = acc.pubkey;
+        const amount = Number(stakeInfo.stake.delegation.stake) / LAMPORTS_PER_SOL;
 
-      const existingAccounts = validatorMap.get(validatorAddress) || [];
-      validatorMap.set(validatorAddress, [...existingAccounts, { pubkey: accountPubkey, amount }]);
-    });
+        const existingAccounts = validatorMap.get(validatorAddress) || [];
+        validatorMap.set(validatorAddress, [...existingAccounts, { pubkey: accountPubkey, amount }]);
+      })
+    );
 
-    return Array.from(validatorMap.entries()).map(([validatorAddress, accounts]) => ({
-      validator: new PublicKey(validatorAddress),
-      accounts: accounts,
-    }));
+    // Calculate pool keys once per validator when creating return value
+    return Promise.all(
+      Array.from(validatorMap.entries()).map(async ([validatorAddress, accounts]) => {
+        const poolKey = await findPoolAddress(new PublicKey(validatorAddress));
+        const poolMintKey = await findPoolMintAddress(poolKey);
+        return {
+          validator: new PublicKey(validatorAddress),
+          poolKey,
+          poolMintKey,
+          accounts,
+        };
+      })
+    );
   } catch (e) {
     console.error("Error getting stake accounts", e);
     return [];
@@ -130,17 +127,14 @@ const getAvailableStakedAssetBanks = async (
 
   const banks = stakedAssetBanks
     .map((bank) => {
-      // TODO: replace this by derriving the validator single spl pool key
-      // and filter on bank.splPool
-      // const validator = validators.find((v) => v.validator.equals(bank.address));
-      // if (!validator) {
-      //   console.log(validators);
-      //   console.error("validator not found for bank", bank.address.toBase58());
-      //   return null;
-      // }
+      const validator = validators.find((v) => v.poolMintKey.equals(bank.mint));
+      if (!validator) {
+        console.log(validators);
+        console.error("validator not found for bank", bank.address.toBase58());
+        return null;
+      }
 
-      // const totalStaked = validator.accounts.reduce((acc, curr) => acc + curr.amount, 0);
-
+      const totalStaked = validator.accounts.reduce((acc, curr) => acc + curr.amount, 0);
       const tMeta = tokenMetadata.find((t) => t.address === bank.mint.toBase58());
 
       return makeExtendedBankInfo(
@@ -157,7 +151,7 @@ const getAvailableStakedAssetBanks = async (
           tokenAccount: {
             mint: bank.mint,
             created: true,
-            balance: 1.567,
+            balance: totalStaked,
           },
         }
       );
@@ -165,6 +159,19 @@ const getAvailableStakedAssetBanks = async (
     .filter((b) => b !== null);
 
   return banks;
+};
+
+const findPoolAddress = (voteAccountAddress: PublicKey): PublicKey => {
+  const [pda] = PublicKey.findProgramAddressSync(
+    [Buffer.from("pool"), voteAccountAddress.toBuffer()],
+    SINGLE_POOL_PROGRAM_ID
+  );
+  return pda;
+};
+
+const findPoolMintAddress = (poolAddress: PublicKey): PublicKey => {
+  const [pda] = PublicKey.findProgramAddressSync([Buffer.from("mint"), poolAddress.toBuffer()], SINGLE_POOL_PROGRAM_ID);
+  return pda;
 };
 
 const getStakedBankMetadata = async (): Promise<BankMetadata[]> => {
