@@ -105,27 +105,30 @@ export const PoolSearchDialog = ({
                           </span>
                         </div>
                       </div>
-                      {tokenBank.tokenData && (
+                      {tokenBank.tokenData && quoteBank.tokenData && (
                         <dl className="flex items-center text-xs ml-auto md:text-sm md:gap-8">
                           <div>
                             <dt className="text-muted-foreground sr-only md:not-sr-only">Price:</dt>
                             <dd className="space-x-2">
-                              <span>
-                                $
-                                {dynamicNumeralFormatter(tokenBank.tokenData.price, {
-                                  ignoreMinDisplay: true,
-                                })}
-                              </span>
-
-                              <span
-                                className={cn(
-                                  "text-xs",
-                                  tokenBank.tokenData.volumeChange24hr > 0 ? "text-mrgn-success" : "text-mrgn-error"
-                                )}
-                              >
-                                {tokenBank.tokenData.priceChange24hr > 0 && "+"}
-                                {percentFormatter.format(tokenBank.tokenData.priceChange24hr / 100)}
-                              </span>
+                              {dynamicNumeralFormatter(tokenBank.tokenData.price / quoteBank.tokenData.price, {
+                                ignoreMinDisplay: true,
+                              })}{" "}
+                              {quoteBank.meta.tokenSymbol}
+                              {tokenBank.tokenData.priceChange24hr && quoteBank.tokenData.priceChange24hr && (
+                                <span
+                                  className={cn(
+                                    "text-xs ml-1",
+                                    tokenBank.tokenData.priceChange24hr - quoteBank.tokenData.priceChange24hr > 0
+                                      ? "text-mrgn-success"
+                                      : "text-mrgn-error"
+                                  )}
+                                >
+                                  {tokenBank.tokenData.priceChange24hr - quoteBank.tokenData.priceChange24hr > 0 && "+"}
+                                  {percentFormatter.format(
+                                    (tokenBank.tokenData.priceChange24hr - quoteBank.tokenData.priceChange24hr) / 100
+                                  )}
+                                </span>
+                              )}
                             </dd>
                           </div>
                           <div className="hidden w-[130px] md:block">
