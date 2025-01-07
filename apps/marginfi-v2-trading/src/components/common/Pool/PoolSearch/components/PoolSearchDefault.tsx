@@ -1,7 +1,12 @@
 import React from "react";
 import type { FuseResult } from "fuse.js";
 
-import { tokenPriceFormatter, numeralFormatter, percentFormatter } from "@mrgnlabs/mrgn-common";
+import {
+  tokenPriceFormatter,
+  numeralFormatter,
+  percentFormatter,
+  dynamicNumeralFormatter,
+} from "@mrgnlabs/mrgn-common";
 import { cn } from "@mrgnlabs/mrgn-utils";
 import { IconCommand, IconX } from "@tabler/icons-react";
 
@@ -114,6 +119,7 @@ export const PoolSearchDefault = ({
                 const pool = result.item;
                 const address = pool.groupPk.toBase58();
                 const tokenBank = banksByBankPk[pool.tokenSummary.bankPk.toBase58()];
+                const quoteBank = banksByBankPk[pool.quoteSummary.bankPk.toBase58()];
 
                 return (
                   <CommandItem
@@ -126,16 +132,29 @@ export const PoolSearchDefault = ({
                     onSelect={onBankSelect}
                   >
                     <div className="flex items-center gap-3">
-                      <img
-                        src={tokenBank.meta.tokenLogoUri}
-                        width={size === "sm" ? 28 : 32}
-                        height={size === "sm" ? 28 : 32}
-                        alt={tokenBank.meta.tokenSymbol}
-                        className="rounded-full"
-                      />
-                      <h3>
-                        {tokenBank.meta.tokenName} ({tokenBank.meta.tokenSymbol})
-                      </h3>
+                      <div className="flex items-center gap-2 relative">
+                        <img
+                          src={tokenBank.meta.tokenLogoUri}
+                          width={size === "sm" ? 28 : 32}
+                          height={size === "sm" ? 28 : 32}
+                          alt={tokenBank.meta.tokenSymbol}
+                          className="rounded-full sm:w-[32px] sm:h-[32px] w-[28px] h-[28px] object-cover"
+                        />
+                        <img
+                          src={quoteBank.meta.tokenLogoUri}
+                          width={size === "sm" ? 12 : 16}
+                          height={size === "sm" ? 12 : 16}
+                          alt={quoteBank.meta.tokenSymbol}
+                          className="rounded-full sm:w-[16px] sm:h-[16px] w-[12px] h-[12px] object-cover absolute -right-1 -bottom-1"
+                        />{" "}
+                      </div>
+
+                      <div className="flex flex-col gap-1">
+                        <h3>{tokenBank.meta.tokenName}</h3>
+                        <span className="text-xs text-muted-foreground">
+                          {tokenBank.meta.tokenSymbol}/{quoteBank.meta.tokenSymbol}
+                        </span>
+                      </div>
                     </div>
                     {tokenBank.tokenData && (
                       <dl
@@ -145,11 +164,9 @@ export const PoolSearchDefault = ({
                         )}
                       >
                         <div className="w-[110px] md:w-[150px]">
-                          <dt className="text-muted-foreground">Price:</dt>
+                          <dt className="text-muted-foreground">Market price:</dt>
                           <dd className="space-x-2">
-                            <span>
-                              {tokenPriceFormatter(tokenBank.info.oraclePrice.priceRealtime.price.toNumber())}
-                            </span>
+                            <span>{dynamicNumeralFormatter(tokenBank.tokenData?.price)}</span>
 
                             <span
                               className={cn(
@@ -165,7 +182,7 @@ export const PoolSearchDefault = ({
                         <div className="hidden w-[150px] md:block">
                           <dt className="text-muted-foreground">Vol 24hr:</dt>
                           <dd className="space-x-2">
-                            <span>${numeralFormatter(tokenBank.tokenData.volume24hr)}</span>
+                            <span>${dynamicNumeralFormatter(tokenBank.tokenData.volume24hr)}</span>
                             <span
                               className={cn(
                                 "text-xs",
