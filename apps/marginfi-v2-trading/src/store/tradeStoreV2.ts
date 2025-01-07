@@ -67,8 +67,6 @@ type TradeStoreV2State = {
   positionsByGroupPk: Record<string, ArenaPoolPositions>;
   tokenDataByMint: Record<string, TokenData>;
   marginfiAccountByGroupPk: Record<string, MarginfiAccount>;
-  lutAddressesByGroupPk: Record<string, PublicKey[]>;
-  lutByGroupPk: Record<string, AddressLookupTableAccount[]>;
   mintDataByMint: MintDataMap;
   pythFeedIdMap: Map<string, PublicKey>;
   oraclePrices: Record<string, OraclePrice>;
@@ -174,8 +172,6 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
   banksByBankPk: {},
   marginfiAccountByGroupPk: {},
   tokenDataByMint: {},
-  lutByGroupPk: {},
-  lutAddressesByGroupPk: {},
   mintDataByMint: new Map(),
   arenaPoolsSummaryFuse: null,
   arenaPoolsFuse: null,
@@ -308,7 +304,7 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
     // if arguments are not provided use the current store state
     const connection = args.connection || get().connection;
     const wallet = args.wallet || get().wallet;
-    const { arenaPoolsSummary, tokenDataByMint, lutByGroupPk } = get();
+    const { arenaPoolsSummary, tokenDataByMint } = get();
 
     // errors thrown if these conditions are not met should be investigated
     if (!connection) throw new Error("Connection not found in fetching extended arena groups");
@@ -405,6 +401,7 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
         groupPk: group.groupPk,
         tokenBankPk: group.tokenSummary.bankPk,
         quoteBankPk: group.quoteSummary.bankPk,
+        lookupTables: group.luts ?? [],
       };
 
       arenaPools[groupPk] = arenaPool;
@@ -428,16 +425,6 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
         positionsByGroupPk
       );
     }
-
-    const lutAddressesByGroupPk: Record<string, PublicKey[]> = {};
-
-    Object.entries(arenaPoolsSummary).forEach(([groupPk, summary]) => {
-      if (summary.luts) {
-        lutAddressesByGroupPk[groupPk] = summary.luts.map((lut) => new PublicKey(lut));
-      }
-    });
-
-    set({ lutAddressesByGroupPk });
 
     // if (!lutByGroupPk || Object.keys(lutByGroupPk).length === 0) {
     //   const lutResults: Record<string, Promise<RpcResponseAndContext<AddressLookupTableAccount | null>> | null> = {};

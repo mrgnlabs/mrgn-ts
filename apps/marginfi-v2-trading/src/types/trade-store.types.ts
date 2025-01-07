@@ -75,6 +75,7 @@ export type ArenaPoolV2 = {
   groupPk: PublicKey;
   tokenBankPk: PublicKey;
   quoteBankPk: PublicKey;
+  lookupTables: PublicKey[];
 };
 
 export type ArenaPoolV2Extended = {
