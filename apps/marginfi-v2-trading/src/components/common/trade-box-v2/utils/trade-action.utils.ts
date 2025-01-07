@@ -179,7 +179,14 @@ export async function generateTradeTx(props: CalculateLoopingProps): Promise<Tra
   }
 
   // Marginfi Account
-  const hasMarginfiAccount = !!props.marginfiAccount;
+  let hasMarginfiAccount = !!props.marginfiAccount;
+  const hasBalances = props.marginfiAccount?.activeBalances?.length ?? 0 > 0;
+
+  if (hasMarginfiAccount && !hasBalances && props.marginfiAccount) {
+    const accountInfo = await props.marginfiClient.provider.connection.getAccountInfo(props.marginfiAccount.address);
+    hasMarginfiAccount = accountInfo !== null;
+  }
+
   let accountCreationTx: SolanaTransaction[] = [];
   let finalAccount: MarginfiAccountWrapper | null = props.marginfiAccount;
   if (!hasMarginfiAccount) {
