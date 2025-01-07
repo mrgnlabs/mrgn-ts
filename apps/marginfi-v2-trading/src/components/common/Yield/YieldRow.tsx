@@ -196,7 +196,7 @@ const YieldItem = ({
                 </Link>
               ) : (
                 <div className="w-[20px] h-[20px] rounded-full object-cover bg-muted">
-                  <Image
+                  <img
                     src={"data:image/svg+xml;utf8," + encodeURIComponent(minidenticon(groupData.admin.toBase58()))}
                     alt="minidenticon"
                     width={20}
