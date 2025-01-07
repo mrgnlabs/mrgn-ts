@@ -20,7 +20,15 @@ import { create, StateCreator } from "zustand";
 import { persist } from "zustand/middleware";
 
 import { Bank, getPriceWithConfidence, OraclePrice } from "@mrgnlabs/marginfi-client-v2";
-import type { Wallet, BankMetadataMap, TokenMetadataMap, TokenMetadata, BankMetadata } from "@mrgnlabs/mrgn-common";
+import { getStakeAccounts, ValidatorStakeGroup } from "@mrgnlabs/mrgn-utils";
+import type {
+  Wallet,
+  BankMetadataMap,
+  TokenMetadataMap,
+  TokenMetadata,
+  BankMetadata,
+  TokenMetadataRaw,
+} from "@mrgnlabs/mrgn-common";
 import type { MarginfiAccountWrapper, ProcessTransactionStrategy } from "@mrgnlabs/marginfi-client-v2";
 import type { MarginfiClient, MarginfiConfig } from "@mrgnlabs/marginfi-client-v2";
 
@@ -239,13 +247,49 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
         throw new Error("Unknown environment");
       }
 
+      const stakedAssetBankMetadataMap = await loadBankMetadatas(
+        "https://storage.googleapis.com/mrgn-public/mrgn-staked-bank-metadata-cache.json"
+      );
+
+      const stakedAssetTokenMetadataMap = await loadTokenMetadatas(
+        "https://storage.googleapis.com/mrgn-public/mrgn-staked-token-metadata-cache.json"
+      );
+
+      let stakeAccounts: ValidatorStakeGroup[] = [];
+
+      if (wallet?.publicKey) {
+        stakeAccounts = await getStakeAccounts(connection, wallet.publicKey);
+
+        const filteredStakedAssetBankMetadataMap = Object.entries(stakedAssetBankMetadataMap).reduce(
+          (acc, [bankAddress, bank]) => {
+            if (
+              stakeAccounts.find((stakeAccount) => stakeAccount.poolMintKey.equals(new PublicKey(bank.tokenAddress)))
+            ) {
+              acc[bankAddress] = bank;
+            }
+            return acc;
+          },
+          {} as BankMetadataMap
+        );
+
+        bankMetadataMap = {
+          ...bankMetadataMap,
+          ...filteredStakedAssetBankMetadataMap,
+        };
+
+        tokenMetadataMap = {
+          ...tokenMetadataMap,
+          ...stakedAssetTokenMetadataMap,
+        };
+      }
+
       const bankAddresses = Object.keys(bankMetadataMap).map((address) => new PublicKey(address));
 
       const marginfiClient = await MarginfiClient.fetch(marginfiConfig, wallet ?? ({} as any), connection, {
         preloadedBankAddresses: bankAddresses,
         readOnly: isReadOnly,
         bundleSimRpcEndpoint,
-        bankMetadataMap: bankMetadataMap,
+        bankMetadataMap,
         processTransactionStrategy: args?.processTransactionStrategy,
         fetchGroupDataOverride: fetchGroupData,
       });
@@ -275,6 +319,15 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
           ),
           getCachedMarginfiAccountsForAuthority(wallet.publicKey, marginfiClient),
         ]);
+
+        tokenData.tokenAccountMap.forEach((tokenAccount) => {
+          const matchedStakedAssetBank = stakeAccounts.find((stakeAccount) =>
+            stakeAccount.poolMintKey.equals(tokenAccount.mint)
+          );
+          if (matchedStakedAssetBank) {
+            tokenAccount.balance = matchedStakedAssetBank.totalStake;
+          }
+        });
 
         nativeSolBalance = tokenData.nativeSolBalance;
         tokenAccountMap = tokenData.tokenAccountMap;

@@ -4,14 +4,8 @@ import { getCoreRowModel, flexRender, useReactTable, SortingState, getSortedRowM
 import { useHotkeys } from "react-hotkeys-hook";
 import { IconAlertTriangle } from "@tabler/icons-react";
 
-import { ExtendedBankInfo, ActiveBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
-import {
-  LendingModes,
-  getStakeAccounts,
-  getAvailableStakedAssetBanks,
-  getStakedBankMetadata,
-} from "@mrgnlabs/mrgn-utils";
-import { useConnection } from "~/hooks/use-connection";
+import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { LendingModes } from "@mrgnlabs/mrgn-utils";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
 import { useMrgnlendStore, useUserProfileStore, useUiStore } from "~/store";
@@ -32,14 +26,13 @@ import { AssetListModel, generateColumns, makeData } from "./utils";
 import { AssetRow } from "./components";
 
 export const AssetsList = () => {
-  const [isStoreInitialized, extendedBankInfos, nativeSolBalance, selectedAccount, fetchMrgnlendState, marginfiClient] =
+  const [isStoreInitialized, extendedBankInfos, nativeSolBalance, selectedAccount, fetchMrgnlendState] =
     useMrgnlendStore((state) => [
       state.initialized,
       state.extendedBankInfos,
       state.nativeSolBalance,
       state.selectedAccount,
       state.fetchMrgnlendState,
-      state.marginfiClient,
     ]);
   const [denominationUSD, setShowBadges] = useUserProfileStore((state) => [state.denominationUSD, state.setShowBadges]);
   const [poolFilter, isFilteredUserPositions, sortOption, lendingMode] = useUiStore((state) => [
@@ -48,15 +41,13 @@ export const AssetsList = () => {
     state.sortOption,
     state.lendingMode,
   ]);
-  const { connected, walletContextState, wallet } = useWallet();
-  const { connection } = useConnection();
+  const { connected, walletContextState } = useWallet();
 
   const inputRefs = React.useRef<Record<string, HTMLInputElement | null>>({});
   const [isHotkeyMode, setIsHotkeyMode] = React.useState(false);
   const [isLSTDialogOpen, setIsLSTDialogOpen] = React.useState(false);
   const [lstDialogVariant, setLSTDialogVariant] = React.useState<LSTDialogVariants | null>(null);
   const [lstDialogCallback, setLSTDialogCallback] = React.useState<(() => void) | null>(null);
-  const [stakedAssetBanks, setStakedAssetBanks] = React.useState<ExtendedBankInfo[]>([]);
 
   const isInLendingMode = React.useMemo(() => lendingMode === LendingModes.LEND, [lendingMode]);
 
@@ -94,37 +85,29 @@ export const AssetsList = () => {
   const globalBanks = React.useMemo(() => {
     return (
       sortedBanks &&
-      sortedBanks.filter((b) => !b.info.state.isIsolated).filter((b) => (isFilteredUserPositions ? b.isActive : true))
+      sortedBanks
+        .filter((b) => b.info.rawBank.config.assetTag !== 2 && !b.info.state.isIsolated)
+        .filter((b) => (isFilteredUserPositions ? b.isActive : true))
     );
   }, [isFilteredUserPositions, sortedBanks]);
 
   const isolatedBanks = React.useMemo(() => {
     return (
       sortedBanks &&
-      sortedBanks.filter((b) => b.info.state.isIsolated).filter((b) => (isFilteredUserPositions ? b.isActive : true))
+      sortedBanks
+        .filter((b) => b.info.rawBank.config.assetTag !== 2 && b.info.state.isIsolated)
+        .filter((b) => (isFilteredUserPositions ? b.isActive : true))
     );
   }, [sortedBanks, isFilteredUserPositions]);
 
-  const activeBankInfos = React.useMemo(
-    () => extendedBankInfos.filter((balance) => balance.isActive),
-    [extendedBankInfos]
-  ) as ActiveBankInfo[];
-
-  React.useEffect(() => {
-    if (!connection || !wallet.publicKey || !marginfiClient) return;
-
-    const init = async () => {
-      const stakeAccounts = await getStakeAccounts(connection, wallet.publicKey);
-      console.log("init stakeAccounts", stakeAccounts);
-      const stakedBanks = await getAvailableStakedAssetBanks(connection, stakeAccounts, marginfiClient.config);
-      stakedBanks.forEach((b) => {
-        console.log("stakedAssetBank", b.address.toBase58());
-      });
-      setStakedAssetBanks(stakedBanks as ExtendedBankInfo[]);
-    };
-
-    init();
-  }, [connection, wallet, marginfiClient]);
+  const stakedAssetBanks = React.useMemo(() => {
+    return (
+      sortedBanks &&
+      sortedBanks
+        .filter((b) => b.info.rawBank.config.assetTag === 2)
+        .filter((b) => (isFilteredUserPositions ? b.isActive : true))
+    );
+  }, [sortedBanks, isFilteredUserPositions]);
 
   // Enter hotkey mode
   useHotkeys(

@@ -13,6 +13,7 @@ export type ValidatorStakeGroup = {
   validator: PublicKey;
   poolKey: PublicKey;
   poolMintKey: PublicKey;
+  totalStake: number;
   accounts: {
     pubkey: PublicKey;
     amount: number;
@@ -87,11 +88,13 @@ const getStakeAccounts = async (
       Array.from(validatorMap.entries()).map(async ([validatorAddress, accounts]) => {
         const poolKey = await findPoolAddress(new PublicKey(validatorAddress));
         const poolMintKey = await findPoolMintAddress(poolKey);
+        const totalStake = accounts.reduce((acc, curr) => acc + curr.amount, 0);
         return {
           validator: new PublicKey(validatorAddress),
           poolKey,
           poolMintKey,
           accounts,
+          totalStake,
         };
       })
     );
@@ -99,66 +102,6 @@ const getStakeAccounts = async (
     console.error("Error getting stake accounts", e);
     return [];
   }
-};
-
-/**
- * Retrieves all staked asset banks available for a given set of validators
- * TODO: derive spl pool / lst mint and use this to filter stakedAssetBanks
- *
- * @param connection - The Solana RPC connection to use for querying
- * @param validators - The validators to look up staked asset banks for
- * @returns {Promise<Bank[]>} An array of staked asset banks
- */
-const getAvailableStakedAssetBanks = async (
-  connection: Connection,
-  validators: ValidatorStakeGroup[],
-  configOverride?: Partial<MarginfiConfig>
-) => {
-  const client = await MarginfiClient.fetch({ ...getConfig(), ...configOverride }, {} as any, connection);
-  const allBanks = Array.from(client.banks.values());
-  const stakedAssetBanks = allBanks.filter((bank) => bank.config.assetTag === 2);
-  const tokenMetadata = await getStakedTokenMetadata();
-  const oraclePrice = client.getOraclePriceByBank(stakedAssetBanks[0].address);
-
-  if (!oraclePrice) {
-    console.error("Staked asset oracle price data not found");
-    return [];
-  }
-
-  const banks = stakedAssetBanks
-    .map((bank) => {
-      const validator = validators.find((v) => v.poolMintKey.equals(bank.mint));
-      if (!validator) {
-        console.log(validators);
-        console.error("validator not found for bank", bank.address.toBase58());
-        return null;
-      }
-
-      const totalStaked = validator.accounts.reduce((acc, curr) => acc + curr.amount, 0);
-      const tMeta = tokenMetadata.find((t) => t.address === bank.mint.toBase58());
-
-      return makeExtendedBankInfo(
-        {
-          name: tMeta?.name || `Staked ${shortenAddress(bank.mint)}`,
-          symbol: tMeta?.symbol || bank.mint.toBase58().slice(0, 4),
-        },
-        bank,
-        oraclePrice,
-        undefined,
-        {
-          nativeSolBalance: 0,
-          marginfiAccount: null,
-          tokenAccount: {
-            mint: bank.mint,
-            created: true,
-            balance: totalStaked,
-          },
-        }
-      );
-    })
-    .filter((b) => b !== null);
-
-  return banks;
 };
 
 const findPoolAddress = (voteAccountAddress: PublicKey): PublicKey => {
@@ -174,14 +117,4 @@ const findPoolMintAddress = (poolAddress: PublicKey): PublicKey => {
   return pda;
 };
 
-const getStakedBankMetadata = async (): Promise<BankMetadata[]> => {
-  const bankMetadata = await fetch(STAKED_BANK_METADATA_CACHE).then((res) => res.json());
-  return bankMetadata;
-};
-
-const getStakedTokenMetadata = async (): Promise<TokenMetadataRaw[]> => {
-  const tokenMetadata = await fetch(STAKED_TOKEN_METADATA_CACHE).then((res) => res.json());
-  return tokenMetadata;
-};
-
-export { getStakeAccounts, getAvailableStakedAssetBanks, getStakedBankMetadata, getStakedTokenMetadata };
+export { getStakeAccounts, findPoolAddress, findPoolMintAddress };
