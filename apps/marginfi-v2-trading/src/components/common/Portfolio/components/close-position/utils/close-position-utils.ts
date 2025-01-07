@@ -1,13 +1,13 @@
 import { createJupiterApiClient, QuoteResponse } from "@jup-ag/api";
 import { Connection, PublicKey, TransactionMessage, VersionedTransaction } from "@solana/web3.js";
+import { v4 as uuidv4 } from "uuid";
 
-import { MarginfiAccountWrapper, MarginfiClient, PriorityFees } from "@mrgnlabs/marginfi-client-v2";
+import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import {
   addTransactionMetadata,
   LUT_PROGRAM_AUTHORITY_INDEX,
   SolanaTransaction,
-  TransactionBroadcastType,
   uiToNative,
   USDC_MINT,
 } from "@mrgnlabs/mrgn-common";
@@ -15,16 +15,18 @@ import {
   ActionMessageType,
   calculateMaxRepayableCollateral,
   ClosePositionActionTxns,
-  composeExplorerUrl,
   deserializeInstruction,
-  DYNAMIC_SIMULATION_ERRORS,
+  executeClosePositionAction,
+  ExecuteClosePositionActionProps,
   extractErrorString,
   getAdressLookupTableAccounts,
   getSwapQuoteWithRetry,
-  MultiStepToastHandle,
+  IndividualFlowError,
   STATIC_SIMULATION_ERRORS,
 } from "@mrgnlabs/mrgn-utils";
 import { calculateClosePositions } from "~/utils";
+import { ExecuteActionsCallbackProps } from "~/components/action-box-v2/types";
+import { ArenaPoolV2Extended } from "~/types/trade-store.types";
 
 /**
  * Simulates closing a position by fetching and validating the required transactions
@@ -161,61 +163,45 @@ const fetchClosePositionTxns = async (props: {
   }
 };
 
-export const closePosition = async ({
-  marginfiClient,
-  actionTransaction,
-  broadcastType,
-  priorityFees,
-  multiStepToast,
-}: {
-  marginfiClient: MarginfiClient;
-  actionTransaction: ClosePositionActionTxns;
-  broadcastType: TransactionBroadcastType;
-  priorityFees: PriorityFees;
-  multiStepToast: MultiStepToastHandle;
-}): Promise<{ txnSig: string | null; actionMessage: ActionMessageType | null }> => {
-  if (!actionTransaction.actionTxn) {
-    return { txnSig: null, actionMessage: STATIC_SIMULATION_ERRORS.TRADE_FAILED };
-  }
+interface ExecuteClosePositionActionsProps extends ExecuteActionsCallbackProps {
+  params: ExecuteClosePositionActionProps;
+  arenaPool: ArenaPoolV2Extended;
+}
 
+export const handleExecuteClosePositionAction = async ({
+  params,
+  arenaPool,
+  captureEvent,
+  setIsLoading,
+  setIsComplete,
+  setError,
+}: ExecuteClosePositionActionsProps) => {
   try {
-    const txnSig = await marginfiClient.processTransactions(
-      [
-        ...actionTransaction.additionalTxns,
-        actionTransaction.actionTxn,
-        ...(actionTransaction.closeTransactions ? actionTransaction.closeTransactions : []),
-      ],
-      {
-        broadcastType: broadcastType,
-        ...priorityFees,
-        callback(index, success, sig, stepsToAdvance) {
-          const currentLabel = multiStepToast?.getCurrentLabel();
-          if (success && currentLabel === "Signing transaction") {
-            multiStepToast.setSuccessAndNext(1, sig, composeExplorerUrl(sig));
-          }
-        },
-      }
-    );
+    setIsLoading(true);
+    const attemptUuid = uuidv4();
+    captureEvent(`user_close_position_initiate`, {
+      uuid: attemptUuid,
+      token: arenaPool.tokenBank.meta.tokenSymbol,
+      tokenSize: arenaPool.tokenBank.isActive ? arenaPool.tokenBank.position.amount : 0,
+      usdcSize: arenaPool.quoteBank.isActive ? arenaPool.quoteBank.position.amount : 0,
+    });
+
+    const txnSig = await executeClosePositionAction(params);
+
+    setIsLoading(false);
 
     if (txnSig) {
-      return { txnSig: Array.isArray(txnSig) ? txnSig[txnSig.length - 1] : txnSig, actionMessage: null };
-    } else {
-      return { txnSig: null, actionMessage: STATIC_SIMULATION_ERRORS.TRADE_FAILED };
+      setIsComplete(txnSig ?? "");
+      captureEvent(`user_close_position`, {
+        uuid: attemptUuid,
+        txn: txnSig!,
+        token: arenaPool.tokenBank.meta.tokenSymbol,
+        tokenSize: arenaPool.tokenBank.isActive ? arenaPool.tokenBank.position.amount : 0,
+        usdcSize: arenaPool.quoteBank.isActive ? arenaPool.quoteBank.position.amount : 0,
+      });
     }
   } catch (error) {
-    const msg = extractErrorString(error);
-    let actionMethod: ActionMessageType = STATIC_SIMULATION_ERRORS.TRADE_FAILED;
-    if (msg) {
-      actionMethod = {
-        isEnabled: false,
-        actionMethod: "WARNING",
-        description: msg,
-        code: 101,
-      };
-    }
-    console.error("Error simulating transaction", error);
-
-    return { txnSig: null, actionMessage: actionMethod };
+    setError(error as IndividualFlowError);
   }
 };
 
