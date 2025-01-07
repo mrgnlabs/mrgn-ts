@@ -926,10 +926,12 @@ function fillMissingPositions(
       const sizeUsd = depositValue - borrowValue;
 
       if (positionApiData) {
-        const pnl =
-          sizeUsd *
-          ((tokenBank.info.oraclePrice.priceRealtime.price.toNumber() - positionApiData.entryPrice) /
-            positionApiData.entryPrice);
+        const priceChange =
+          status === GroupStatus.LONG
+            ? tokenBank.info.oraclePrice.priceRealtime.price.toNumber() - positionApiData.entryPrice
+            : positionApiData.entryPrice - tokenBank.info.oraclePrice.priceRealtime.price.toNumber();
+
+        const pnl = sizeUsd * (priceChange / positionApiData.entryPrice);
         newPositions[pool.groupPk.toBase58()] = {
           ...positionApiData,
           pnl,
@@ -942,6 +944,7 @@ function fillMissingPositions(
           direction: status === GroupStatus.LONG ? "long" : "short",
           entryPrice: tokenBank.info.oraclePrice.priceRealtime.price.toNumber(),
           currentPositionValue: sizeUsd,
+          pnl: 0,
         };
       }
     }
