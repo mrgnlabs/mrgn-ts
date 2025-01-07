@@ -147,12 +147,17 @@ export const PoolCard = ({ poolData }: PoolCardProps) => {
                 ignoreMinDisplay: true,
               })}{" "}
               {quoteTokenData.symbol}
-              {tokenData.priceChange24h && (
+              {tokenData.priceChange24h && quoteTokenData.priceChange24h && (
                 <span
-                  className={cn("text-xs ml-1", tokenData.priceChange24h > 0 ? "text-mrgn-success" : "text-mrgn-error")}
+                  className={cn(
+                    "text-xs ml-1",
+                    tokenData.priceChange24h - quoteTokenData.priceChange24h > 0
+                      ? "text-mrgn-success"
+                      : "text-mrgn-error"
+                  )}
                 >
-                  {tokenData.priceChange24h > 0 && "+"}
-                  {percentFormatter.format(tokenData.priceChange24h / 100)}
+                  {tokenData.priceChange24h - quoteTokenData.priceChange24h > 0 && "+"}
+                  {percentFormatter.format((tokenData.priceChange24h - quoteTokenData.priceChange24h) / 100)}
                 </span>
               )}
             </dd>
