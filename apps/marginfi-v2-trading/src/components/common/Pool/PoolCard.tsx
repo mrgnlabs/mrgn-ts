@@ -145,7 +145,8 @@ export const PoolCard = ({ poolData }: PoolCardProps) => {
             <dd className="text-right text-primary tracking-wide">
               {dynamicNumeralFormatter(tokenData.price / quoteTokenData.price, {
                 ignoreMinDisplay: true,
-              })}
+              })}{" "}
+              {quoteTokenData.symbol}
               {tokenData.priceChange24h && (
                 <span
                   className={cn("text-xs ml-1", tokenData.priceChange24h > 0 ? "text-mrgn-success" : "text-mrgn-error")}
