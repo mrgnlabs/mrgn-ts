@@ -248,7 +248,7 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
 
   const handleAmountChange = React.useCallback(
     (amountRaw: string) => {
-      const amount = formatAmount(amountRaw, maxAmount, selectedBank ?? null, numberFormater);
+      const amount = formatAmount(amountRaw, maxAmount, activePoolExtended.quoteBank, numberFormater);
       setAmountRaw(amount);
     },
     [maxAmount, selectedBank, numberFormater, setAmountRaw]
