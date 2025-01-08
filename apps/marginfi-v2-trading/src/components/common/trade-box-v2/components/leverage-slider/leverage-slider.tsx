@@ -5,8 +5,8 @@ import { Slider } from "~/components/ui/slider";
 import { ArenaBank } from "~/types/trade-store.types";
 
 type LeverageSliderProps = {
-  selectedBank: ArenaBank | null;
-  selectedSecondaryBank: ArenaBank | null;
+  depositBank: ArenaBank | null;
+  borrowBank: ArenaBank | null;
   amountRaw: string;
   leverageAmount: number;
   maxLeverage: number;
@@ -14,17 +14,14 @@ type LeverageSliderProps = {
 };
 
 export const LeverageSlider = ({
-  selectedBank,
-  selectedSecondaryBank,
+  depositBank,
+  borrowBank,
   amountRaw,
   leverageAmount,
   maxLeverage,
   setLeverageAmount,
 }: LeverageSliderProps) => {
-  const bothBanksSelected = React.useMemo(
-    () => Boolean(selectedBank && selectedSecondaryBank),
-    [selectedBank, selectedSecondaryBank]
-  );
+  const bothBanksSelected = React.useMemo(() => Boolean(depositBank && borrowBank), [depositBank, borrowBank]);
 
   return (
     <>

@@ -1,7 +1,7 @@
 import { QuoteResponse } from "@jup-ag/api";
 
 import { OperationalState } from "@mrgnlabs/marginfi-client-v2";
-import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActionType, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import {
   ActionMessageType,
   DYNAMIC_SIMULATION_ERRORS,
@@ -9,41 +9,43 @@ import {
   MAX_SLIPPAGE_PERCENTAGE,
   STATIC_SIMULATION_ERRORS,
 } from "@mrgnlabs/mrgn-utils";
-import { ArenaBank } from "~/types/trade-store.types";
+import { ArenaBank, GroupStatus } from "~/types/trade-store.types";
 
 interface CheckTradeActionAvailableProps {
   amount: number | null;
   connected: boolean;
-  collateralBank: ArenaBank | null;
-  secondaryBank: ArenaBank | null;
+  depositBank: ArenaBank | null;
+  borrowBank: ArenaBank | null;
   actionQuote: QuoteResponse | null;
   tradeState: "long" | "short";
   leverage: number;
+  groupStatus: GroupStatus;
 }
 
 export function checkTradeActionAvailable({
   amount,
   connected,
-  collateralBank,
-  secondaryBank,
+  depositBank,
+  borrowBank,
   actionQuote,
   tradeState,
+  groupStatus,
   leverage,
 }: CheckTradeActionAvailableProps): ActionMessageType[] {
   let checks: ActionMessageType[] = [];
 
-  const requiredCheck = getRequiredCheck(connected, collateralBank);
+  const requiredCheck = getRequiredCheck(connected, depositBank);
   if (requiredCheck) return [requiredCheck];
 
   const generalChecks = getGeneralChecks(amount ?? 0, leverage);
   if (generalChecks) checks.push(...generalChecks);
 
-  const tradeSpecificChecks = getTradeSpecificChecks(tradeState, secondaryBank);
+  const tradeSpecificChecks = getTradeSpecificChecks(groupStatus, tradeState, borrowBank, depositBank);
   if (tradeSpecificChecks) checks.push(...tradeSpecificChecks);
 
   // allert checks
-  if (collateralBank) {
-    const tradeChecks = canBeTraded(collateralBank, secondaryBank, actionQuote);
+  if (depositBank) {
+    const tradeChecks = canBeTraded(depositBank, borrowBank, actionQuote);
     if (tradeChecks.length) checks.push(...tradeChecks);
   }
 
@@ -116,16 +118,44 @@ function canBeTraded(
   return checks;
 }
 
-function getTradeSpecificChecks(tradeState: "long" | "short", secondaryBank: ArenaBank | null): ActionMessageType[] {
+function getTradeSpecificChecks(
+  groupStatus: GroupStatus,
+  tradeState: "long" | "short",
+  borrowBank: ArenaBank | null,
+  depositBank: ArenaBank | null
+): ActionMessageType[] {
   let checks: ActionMessageType[] = [];
 
-  if (secondaryBank?.isActive && (secondaryBank as ActiveBankInfo)?.position.isLending) {
-    checks.push({
-      isEnabled: false,
-      description: `You cannot ${tradeState} while you have an active ${
-        tradeState === "long" ? "short" : "long"
-      } position for this token.`,
-    });
+  if (groupStatus === GroupStatus.LP) {
+    const providingLpBorrowBank = borrowBank?.isActive && borrowBank?.position.isLending;
+
+    if (providingLpBorrowBank) {
+      checks.push({
+        isEnabled: false,
+        description: `You cannot ${tradeState} while you're providing liquidity for ${borrowBank?.info.rawBank.tokenSymbol}. To proceed, remove your liquidity position for this asset.`,
+        // action: {
+        //   bank: borrowBank,
+        //   type: ActionType.Withdraw,
+        // }, // TODO: add this once info messages are implemented
+      });
+    } else {
+      checks.push({
+        isEnabled: true,
+        actionMethod: "INFO",
+        description: `You're providing liquidity for ${depositBank?.info.rawBank.tokenSymbol}. Keep this in mind when managing your positions.`,
+      });
+    }
+  }
+
+  if (groupStatus === GroupStatus.LONG || groupStatus === GroupStatus.SHORT) {
+    if (borrowBank?.isActive && borrowBank?.position.isLending) {
+      checks.push({
+        isEnabled: false,
+        description: `You cannot ${tradeState} while you have an active ${
+          tradeState === "long" ? "short" : "long"
+        } position for this token.`,
+      });
+    }
   }
 
   return checks;
