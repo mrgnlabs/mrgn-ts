@@ -952,9 +952,3 @@ function fillMissingPositions(
 
   return newPositions;
 }
-
-function addPnlToPositions(positions: Record<string, ArenaPoolPositions>, oraclePrices: Record<string, OraclePrice>) {
-  Object.values(positions).map((position) => {
-    const oraclePrice = oraclePrices[position.groupPk.toBase58()];
-  });
-}
