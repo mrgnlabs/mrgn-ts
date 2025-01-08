@@ -2,14 +2,16 @@ import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 
-import { percentFormatter, dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
+import { percentFormatter, dynamicNumeralFormatter, shortenAddress } from "@mrgnlabs/mrgn-common";
 import { cn } from "@mrgnlabs/mrgn-utils";
 
 import { useTradeStoreV2 } from "~/store";
 import { ArenaPoolSummary } from "~/types/trade-store.types";
+import { mfiAddresses } from "~/utils/arenaUtils";
 
 import { Button } from "~/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
+import { minidenticon } from "minidenticons";
 
 type PoolListItemProps = {
   poolData: ArenaPoolSummary;
@@ -17,7 +19,7 @@ type PoolListItemProps = {
 };
 
 export const PoolListItem = ({ poolData, last }: PoolListItemProps) => {
-  const [tokenDataByMint] = useTradeStoreV2((state) => [state.tokenDataByMint]);
+  const [tokenDataByMint, groupsByGroupPk] = useTradeStoreV2((state) => [state.tokenDataByMint, state.groupsByGroupPk]);
 
   const { tokenData, quoteTokenData } = React.useMemo(() => {
     const tokenData = tokenDataByMint[poolData.tokenSummary.mint.toBase58()];
@@ -38,6 +40,16 @@ export const PoolListItem = ({ poolData, last }: PoolListItemProps) => {
     poolData.quoteSummary.bankData.borrowRate,
   ]);
 
+  const groupData = React.useMemo(
+    () => groupsByGroupPk[poolData.groupPk.toBase58()],
+    [groupsByGroupPk, poolData.groupPk]
+  );
+
+  const mfiCreated = React.useMemo(() => {
+    if (!groupData) return false;
+    return mfiAddresses.includes(groupData.admin.toBase58());
+  }, [groupData]);
+
   return (
     <div className={cn("grid grid-cols-7 py-2 w-full items-center", !last && "border-b pb-3 mb-2")}>
       <div className="flex items-center gap-2">
@@ -49,7 +61,9 @@ export const PoolListItem = ({ poolData, last }: PoolListItemProps) => {
           height={32}
           className="rounded-full bg-background"
         />
-        <h2>{poolData.tokenSummary.tokenSymbol}</h2>
+        <h2>
+          {poolData.tokenSummary.tokenSymbol}/{poolData.quoteSummary.tokenSymbol}
+        </h2>
       </div>
       {tokenData && (
         <>
@@ -95,18 +109,56 @@ export const PoolListItem = ({ poolData, last }: PoolListItemProps) => {
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Link href="https://x.com/marginfi" target="_blank">
-                <Image
-                  src="https://pbs.twimg.com/profile_images/1791110026456633344/VGViq-CJ_400x400.jpg"
-                  width={20}
-                  height={20}
-                  alt="marginfi"
-                  className="rounded-full"
-                />
-              </Link>
+              <div className="w-[20px] h-[20px] rounded-full object-cover bg-muted cursor-pointer">
+                {mfiCreated ? (
+                  <Link href="https://x.com/marginfi" target="_blank">
+                    <Image
+                      src="https://pbs.twimg.com/profile_images/1791110026456633344/VGViq-CJ_400x400.jpg"
+                      width={20}
+                      height={20}
+                      alt="marginfi"
+                      className="rounded-full"
+                    />
+                  </Link>
+                ) : (
+                  <Link href={`https://solscan.io/address/${groupData.admin.toBase58()}`} target="_blank">
+                    <Image
+                      src={"data:image/svg+xml;utf8," + encodeURIComponent(minidenticon(groupData.admin.toBase58()))}
+                      alt="minidenticon"
+                      width={20}
+                      height={20}
+                      className="rounded-full"
+                    />
+                  </Link>
+                )}
+              </div>
             </TooltipTrigger>
             <TooltipContent>
-              <p>Pool created by marginfi</p>
+              {mfiCreated ? (
+                <p>
+                  Pool created by{" "}
+                  <Link
+                    href="https://x.com/marginfi"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline hover:no-underline"
+                  >
+                    marginfi
+                  </Link>
+                </p>
+              ) : (
+                <p>
+                  Pool created by{" "}
+                  <Link
+                    href={`https://solscan.io/address/${groupData.admin.toBase58()}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline hover:no-underline"
+                  >
+                    {shortenAddress(groupData.admin)}
+                  </Link>
+                </p>
+              )}
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
