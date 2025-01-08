@@ -75,7 +75,7 @@ export function getSteps(
   }
 
   actionTxns?.additionalTxns
-    .filter((tx) => tx.type && !excludedTypes.includes(tx.type))
+    .filter((tx) => !tx.type || !excludedTypes.includes(tx.type))
     .forEach((tx) => {
       steps.push({ label: MRGN_TX_TYPE_TOAST_MAP[tx.type ?? "CRANK"] });
     });
