@@ -26,6 +26,9 @@ function createActionBoxStore() {
         if (state?.slippageBps && (state.slippageBps < 0 || state.slippageBps > 500)) {
           state.slippageBps = 100;
         }
+        if (state?.isActionComplete) {
+          state.isActionComplete = false;
+        }
       },
     })
   );
