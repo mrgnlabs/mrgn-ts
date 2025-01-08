@@ -63,7 +63,7 @@ export const PositionList = ({ activePool }: { activePool: ArenaPoolV2 }) => {
         <TableHeader>
           <TableRow className="hover:bg-transparent">
             <TableHead className="w-[14%]">Position</TableHead>
-            <TableHead className="w-[14%]">Token</TableHead>
+            <TableHead className="w-[14%]">Pool</TableHead>
             <TableHead className="w-[14%]">Value</TableHead>
             <TableHead className="w-[14%]">Leverage</TableHead>
             <TableHead className="w-[14%]">Size</TableHead>
