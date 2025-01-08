@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-const ARENA_URL = "http://202.8.10.73:3000/arena/create";
+const ARENA_URL = `${process.env.MARGINFI_API_URL}/arena/create`;
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {

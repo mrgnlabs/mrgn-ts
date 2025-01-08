@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-const AUTH_URL = "http://202.8.10.73:3000/auth/login/jwt";
+const AUTH_URL = `${process.env.MARGINFI_API_URL}/auth/login/jwt`;
 const USERNAME = process.env.API_AUTH_USERNAME;
 const PASSWORD = process.env.API_AUTH_PASSWORD;
 
@@ -14,6 +14,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         "Content-Type": "application/json",
         Authorization: `Basic ${encodedCredentials}`, // Basic Auth Header
       },
+      body: JSON.stringify({
+        client_id: USERNAME,
+        client_secret: PASSWORD,
+      }),
     });
 
     if (!response.ok) {
