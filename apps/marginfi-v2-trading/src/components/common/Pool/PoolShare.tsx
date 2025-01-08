@@ -59,7 +59,8 @@ export const PoolShare = ({ activePool }: PoolShareProps) => {
     <Popover>
       <PopoverTrigger asChild>
         <Button size="sm" variant="outline" className="mt-4">
-          <IconShare size={16} /> Share {extendedPool.tokenBank.meta.tokenSymbol} pool
+          <IconShare size={16} /> Share {extendedPool.tokenBank.meta.tokenSymbol}/
+          {extendedPool.quoteBank.meta.tokenSymbol} pool
         </Button>
       </PopoverTrigger>
       <PopoverContent className="pb-2">
