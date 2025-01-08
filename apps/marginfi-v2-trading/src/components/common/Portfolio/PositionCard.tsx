@@ -42,14 +42,6 @@ export const PositionCard = ({ size = "lg", arenaPool }: PositionCardProps) => {
   });
   const { positionSizeUsd, totalUsdValue, leverage } = useLeveragedPositionDetails({ pool: arenaPool });
 
-  const pnl = React.useMemo(() => {
-    const entryPrice = positionData.entryPrice;
-    const oraclePrice = arenaPool.tokenBank.info.oraclePrice.priceRealtime.price.toNumber();
-    const pnl = positionSizeUsd * (oraclePrice - entryPrice);
-
-    return pnl;
-  }, [positionData.entryPrice, arenaPool.tokenBank.info.oraclePrice.priceRealtime.price, positionSizeUsd]);
-
   const isMobile = useIsMobile();
 
   const healthColor = React.useMemo(() => {
@@ -113,13 +105,13 @@ export const PositionCard = ({ size = "lg", arenaPool }: PositionCardProps) => {
           </Link>
           <div className="flex items-center gap-2">
             <PnlLabel
-              pnl={pnl}
+              pnl={positionData?.pnl ?? 0}
               positionSize={positionSizeUsd}
               disableClickToChangeType={!isMobile}
               className="text-xl md:text-2xl"
               loader={<Skeleton className="w-[120px] ml-auto h-6 animate-pulsate" />}
             />
-            <PnlBadge pnl={pnl} positionSize={positionSizeUsd} className="hidden md:block" />
+            <PnlBadge pnl={positionData?.pnl ?? 0} positionSize={positionSizeUsd} className="hidden md:block" />
           </div>
         </div>
       )}
@@ -187,7 +179,7 @@ export const PositionCard = ({ size = "lg", arenaPool }: PositionCardProps) => {
           <dt>PnL</dt>
           <dd className="text-right">
             <PnlLabel
-              pnl={pnl}
+              pnl={positionData?.pnl ?? 0}
               positionSize={positionSizeUsd}
               className="text-primary"
               loader={<Skeleton className="w-[64px] ml-auto h-4 animate-pulsate" />}
