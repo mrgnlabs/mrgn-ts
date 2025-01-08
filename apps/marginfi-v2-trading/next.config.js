@@ -196,6 +196,12 @@ let config = withBundleAnalyzer({
         port: "",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "storage.googleapis.com",
+        port: "",
+        pathname: "/mrgn-public/mrgn-icon-small.jpg",
+      },
     ],
   },
 });

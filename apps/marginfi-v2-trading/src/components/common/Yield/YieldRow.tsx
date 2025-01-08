@@ -187,7 +187,7 @@ const YieldItem = ({
               {mfiCreated ? (
                 <Link href="https://x.com/marginfi" target="_blank">
                   <Image
-                    src="https://pbs.twimg.com/profile_images/1791110026456633344/VGViq-CJ_400x400.jpg"
+                    src="https://storage.googleapis.com/mrgn-public/mrgn-icon-small.jpg"
                     width={20}
                     height={20}
                     alt="marginfi"
