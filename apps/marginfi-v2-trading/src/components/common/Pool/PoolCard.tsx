@@ -109,33 +109,46 @@ export const PoolCard = ({ poolData }: PoolCardProps) => {
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      {mfiCreated ? (
-                        <Link href="https://x.com/marginfi" target="_blank">
-                          <Image
-                            src="https://pbs.twimg.com/profile_images/1791110026456633344/VGViq-CJ_400x400.jpg"
-                            width={20}
-                            height={20}
-                            alt="marginfi"
-                            className="rounded-full"
-                          />
-                        </Link>
-                      ) : (
-                        <div className="w-[20px] h-[20px] rounded-full object-cover bg-muted">
-                          <Image
-                            src={
-                              "data:image/svg+xml;utf8," + encodeURIComponent(minidenticon(groupData.admin.toBase58()))
-                            }
-                            alt="minidenticon"
-                            width={20}
-                            height={20}
-                            className="rounded-full"
-                          />
-                        </div>
-                      )}
+                      <div className="w-[20px] h-[20px] rounded-full object-cover bg-muted cursor-pointer">
+                        {mfiCreated ? (
+                          <Link href="https://x.com/marginfi" target="_blank">
+                            <Image
+                              src="https://pbs.twimg.com/profile_images/1791110026456633344/VGViq-CJ_400x400.jpg"
+                              width={20}
+                              height={20}
+                              alt="marginfi"
+                              className="rounded-full"
+                            />
+                          </Link>
+                        ) : (
+                          <Link href={`https://solscan.io/address/${groupData.admin.toBase58()}`} target="_blank">
+                            <Image
+                              src={
+                                "data:image/svg+xml;utf8," +
+                                encodeURIComponent(minidenticon(groupData.admin.toBase58()))
+                              }
+                              alt="minidenticon"
+                              width={20}
+                              height={20}
+                              className="rounded-full"
+                            />
+                          </Link>
+                        )}
+                      </div>
                     </TooltipTrigger>
                     <TooltipContent>
                       {mfiCreated ? (
-                        <p>Pool created by marginfi</p>
+                        <p>
+                          Pool created by{" "}
+                          <Link
+                            href="https://x.com/marginfi"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="underline hover:no-underline"
+                          >
+                            marginfi
+                          </Link>
+                        </p>
                       ) : (
                         <p>
                           Pool created by{" "}
