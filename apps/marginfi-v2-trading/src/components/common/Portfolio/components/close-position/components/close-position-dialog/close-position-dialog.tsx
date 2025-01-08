@@ -42,7 +42,7 @@ export const ClosePositionDialog = ({
 }: ClosePositionDialogProps) => {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className=" w-full">
+      <DialogContent className=" w-full h-full flex flex-col sm:justify-center sm:items-center justify-start items-center pt-16 sm:pt-0">
         <DialogHeader>
           <DialogTitle className="flex flex-col items-center gap-2 border-b border-border pb-10">
             <span className="flex items-center justify-center gap-2">
@@ -143,7 +143,7 @@ export const ClosePositionDialog = ({
             </>
           )}
         </dl>
-        <DialogFooter className="flex flex-col sm:flex-col items-center gap-4">
+        <DialogFooter className="flex  w-full flex-col sm:flex-col items-center gap-4">
           <Button variant="destructive" className="w-full mx-auto" onClick={handleClosePosition} disabled={isLoading}>
             {isLoading ? <IconLoader2 className="animate-spin" /> : "Confirm close position"}{" "}
           </Button>

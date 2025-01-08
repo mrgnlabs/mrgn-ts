@@ -65,7 +65,7 @@ export const ArenaActionComplete = () => {
         className={cn(isMobile ? "z-[80]" : "z-[60]")}
       />
       <Dialog open={isActionComplete} onOpenChange={(open) => setIsActionComplete(open)}>
-        <DialogContent className=" w-full">
+        <DialogContent className=" w-full h-full flex flex-col sm:justify-center sm:items-center justify-start items-center pt-16 sm:pt-0">
           {/* <div className="space-y-12 w-full"> */}
           <DialogHeader className="sr-only">
             <DialogTitle className="space-y-4 text-center flex flex-col items-center justify-center">
@@ -84,7 +84,7 @@ export const ArenaActionComplete = () => {
               <screens.ClosePositionScreen {...previousTxn.positionClosedOptions} txn={previousTxn.txn} />
             )}
           </div>
-          <DialogFooter className="flex sm:flex-col gap-4 mt-6">
+          <DialogFooter className="flex sm:flex-col gap-4 mt-6 w-full">
             {previousTxn.txnType === "CLOSE_POSITION" && previousTxn.positionClosedOptions.pool ? (
               <div className="flex items-center justify-center">
                 <SharePosition
