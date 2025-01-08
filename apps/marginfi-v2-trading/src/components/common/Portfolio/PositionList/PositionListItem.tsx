@@ -56,21 +56,42 @@ export const PositionListItem = ({ arenaPool }: props) => {
         )}
       </TableCell>
       <TableCell>
-        <span className="flex items-center gap-3">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={arenaPool.tokenBank.meta.tokenLogoUri}
-            width={24}
-            height={24}
-            alt={arenaPool.tokenBank.meta.tokenSymbol}
-            className="rounded-full shrink-0 w-[24px] h-[24px] object-cover"
-          />{" "}
-          {arenaPool.tokenBank.meta.tokenSymbol}
-        </span>
+        <div className="flex items-center gap-2 justify-start">
+          <div className="relative w-max flex items-center justify-center">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={arenaPool.tokenBank.meta.tokenLogoUri}
+              alt={arenaPool.tokenBank.meta.tokenSymbol}
+              width={24}
+              height={24}
+              className="bg-background border rounded-full h-[24px] w-[24px] object-cover"
+            />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={arenaPool.quoteBank.meta.tokenLogoUri}
+              alt={arenaPool.quoteBank.meta.tokenSymbol}
+              width={12}
+              height={12}
+              className="absolute -bottom-0.5 -right-0.5 bg-background border rounded-full h-[12px] w-[12px] object-cover"
+            />
+          </div>
+          {arenaPool.tokenBank.meta.tokenSymbol}/{arenaPool.quoteBank.meta.tokenSymbol}
+        </div>
       </TableCell>
-      <TableCell>${dynamicNumeralFormatter(totalUsdValue)}</TableCell>
+
+      <TableCell>
+        $
+        {dynamicNumeralFormatter(totalUsdValue, {
+          ignoreMinDisplay: true,
+        })}
+      </TableCell>
       <TableCell>{`${leverage}x`}</TableCell>
-      <TableCell>${dynamicNumeralFormatter(positionSizeUsd)}</TableCell>
+      <TableCell>
+        $
+        {dynamicNumeralFormatter(positionSizeUsd, {
+          ignoreMinDisplay: true,
+        })}
+      </TableCell>
       <TableCell>
         <PnlDisplayTooltip pool={arenaPool}>
           <div className="flex flex-row items-center gap-1">

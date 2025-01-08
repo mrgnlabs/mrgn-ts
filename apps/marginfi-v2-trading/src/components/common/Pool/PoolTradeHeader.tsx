@@ -104,7 +104,9 @@ export const PoolTradeHeader = ({ activePool }: { activePool: ArenaPoolV2 }) => 
                 {extendedPool.tokenBank.meta.tokenName} <IconChevronDown size={18} />
               </h1>
             </TokenCombobox>
-            <p className="text-sm text-muted-foreground mt-2 lg:mt-0">{extendedPool.tokenBank.meta.tokenSymbol}</p>
+            <p className="text-sm text-muted-foreground mt-2 lg:mt-0">
+              {extendedPool.tokenBank.meta.tokenSymbol}/{extendedPool.quoteBank.meta.tokenSymbol}
+            </p>
             <p className="text-sm text-muted-foreground">
               <TooltipProvider>
                 <Tooltip>
