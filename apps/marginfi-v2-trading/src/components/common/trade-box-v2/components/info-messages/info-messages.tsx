@@ -3,8 +3,8 @@ import Link from "next/link";
 
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { ActionMessageType, cn } from "@mrgnlabs/mrgn-utils";
+import { ActionBox } from "@mrgnlabs/mrgn-ui";
 
-import { ActionBox } from "~/components";
 import { Button } from "~/components/ui/button";
 import { ArenaBank } from "~/types/trade-store.types";
 
@@ -54,9 +54,7 @@ export const InfoMessages = ({
                     {(actionMethod.actionMethod || "WARNING").toLowerCase()}
                   </h3>
                 )}
-                <div
-                  className={cn("space-y-2.5 text-sm w-4/5", actionMethod.actionMethod !== "INFO" && "text-primary/50")}
-                >
+                <div className={cn("space-y-2.5 text-sm", actionMethod.actionMethod !== "INFO" && "text-primary/50")}>
                   <p>{actionMethod.description}</p>
                   {actionMethod.link && (
                     <p>
@@ -95,7 +93,7 @@ export const InfoMessages = ({
                     useProvider
                     lendProps={{
                       connected,
-                      requestedLendType: ActionType.Deposit,
+                      requestedLendType: actionMethod.action.type,
                       requestedBank: actionMethod.action.bank,
                       showAvailableCollateral: false,
                       captureEvent: () => console.log("Position added"),

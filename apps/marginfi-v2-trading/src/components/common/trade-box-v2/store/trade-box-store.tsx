@@ -16,8 +16,8 @@ interface TradeBoxState {
   leverage: number;
   maxLeverage: number;
 
-  selectedBankPk: PublicKey | null;
-  selectedSecondaryBankPk: PublicKey | null;
+  depositBankPk: PublicKey | null;
+  borrowBankPk: PublicKey | null;
 
   simulationResult: SimulationResult | null;
   actionTxns: TradeActionTxns;
@@ -33,8 +33,8 @@ interface TradeBoxState {
   setSimulationResult: (result: SimulationResult | null) => void;
   setActionTxns: (actionTxns: TradeActionTxns) => void;
   setErrorMessage: (errorMessage: ActionMessageType | null) => void;
-  setSelectedBankPk: (bankAddress: PublicKey | null) => void;
-  setSelectedSecondaryBankPk: (bankAddress: PublicKey | null) => void;
+  setDepositBankPk: (bankAddress: PublicKey | null) => void;
+  setBorrowBankPk: (bankAddress: PublicKey | null) => void;
   setMaxLeverage: (maxLeverage: number) => void;
 }
 
@@ -44,8 +44,8 @@ const initialState = {
   leverage: 0,
   simulationResult: null,
   errorMessage: null,
-  selectedBankPk: null,
-  selectedSecondaryBankPk: null,
+  depositBankPk: null,
+  borrowBankPk: null,
   maxLeverage: 0,
 
   actionTxns: {
@@ -134,13 +134,13 @@ const stateCreator: StateCreator<TradeBoxState, [], []> = (set, get) => ({
     set({ errorMessage: errorMessage });
   },
 
-  setSelectedBankPk(bankAddress) {
-    const selectedBankPk = get().selectedBankPk;
-    const hasBankChanged = !bankAddress || !selectedBankPk || !bankAddress.equals(selectedBankPk);
+  setDepositBankPk(bankAddress) {
+    const depositBankPk = get().depositBankPk;
+    const hasBankChanged = !bankAddress || !depositBankPk || !bankAddress.equals(depositBankPk);
 
     if (hasBankChanged) {
       set({
-        selectedBankPk: bankAddress,
+        depositBankPk: bankAddress,
         amountRaw: initialState.amountRaw,
         leverage: initialState.leverage,
         actionTxns: initialState.actionTxns,
@@ -149,20 +149,20 @@ const stateCreator: StateCreator<TradeBoxState, [], []> = (set, get) => ({
     }
   },
 
-  setSelectedSecondaryBankPk(bankAddress) {
-    const selectedSecondaryBankPk = get().selectedSecondaryBankPk;
-    const hasBankChanged = !bankAddress || !selectedSecondaryBankPk || !bankAddress.equals(selectedSecondaryBankPk);
+  setBorrowBankPk(bankAddress) {
+    const borrowBankPk = get().borrowBankPk;
+    const hasBankChanged = !bankAddress || !borrowBankPk || !bankAddress.equals(borrowBankPk);
 
     if (hasBankChanged) {
       set({
-        selectedSecondaryBankPk: bankAddress,
+        borrowBankPk: bankAddress,
         amountRaw: initialState.amountRaw,
         leverage: initialState.leverage,
         actionTxns: initialState.actionTxns,
         errorMessage: null,
       });
     } else {
-      set({ selectedSecondaryBankPk: bankAddress });
+      set({ borrowBankPk: bankAddress });
     }
   },
 
