@@ -25,8 +25,8 @@ import { generateTradeTx, getSimulationResult } from "../utils";
 export type TradeSimulationProps = {
   debouncedAmount: number;
   debouncedLeverage: number;
-  selectedBank: ArenaBank | null;
-  selectedSecondaryBank: ArenaBank | null;
+  depositBank: ArenaBank | null;
+  borrowBank: ArenaBank | null;
   marginfiClient: MarginfiClient | null;
   wrappedAccount: MarginfiAccountWrapper | null;
   isEnabled: boolean;
@@ -46,8 +46,8 @@ export type TradeSimulationProps = {
 export function useTradeSimulation({
   debouncedAmount,
   debouncedLeverage,
-  selectedBank,
-  selectedSecondaryBank,
+  depositBank,
+  borrowBank,
   marginfiClient,
   wrappedAccount,
   slippageBps,
@@ -62,7 +62,7 @@ export function useTradeSimulation({
 }: TradeSimulationProps) {
   const prevDebouncedAmount = usePrevious(debouncedAmount);
   const prevDebouncedLeverage = usePrevious(debouncedLeverage);
-  const prevSelectedSecondaryBank = usePrevious(selectedSecondaryBank);
+  const prevBorrowBank = usePrevious(borrowBank);
 
   const handleError = (
     actionMessage: ActionMessageType | string,
@@ -150,7 +150,7 @@ export function useTradeSimulation({
   const handleSimulation = React.useCallback(
     async (amount: number, leverage: number) => {
       try {
-        if (amount === 0 || leverage === 0 || !selectedBank || !selectedSecondaryBank || !marginfiClient) {
+        if (amount === 0 || leverage === 0 || !depositBank || !borrowBank || !marginfiClient) {
           setActionTxns({
             actionTxn: null,
             additionalTxns: [],
@@ -167,8 +167,8 @@ export function useTradeSimulation({
         const tradeActionTxns = await fetchTradeTxnsAction({
           marginfiClient: marginfiClient,
           marginfiAccount: wrappedAccount,
-          depositBank: selectedBank,
-          borrowBank: selectedSecondaryBank,
+          depositBank: depositBank,
+          borrowBank: borrowBank,
           targetLeverage: leverage,
           depositAmount: amount,
           slippageBps: slippageBps,
@@ -195,7 +195,7 @@ export function useTradeSimulation({
 
         const simulationResult = await simulationAction({
           account: finalAccount,
-          bank: selectedBank,
+          bank: depositBank,
           txns: [
             ...(tradeActionTxns?.actionTxns?.additionalTxns ?? []),
             ...(tradeActionTxns?.actionTxns?.actionTxn ? [tradeActionTxns?.actionTxns?.actionTxn] : []),
@@ -232,8 +232,8 @@ export function useTradeSimulation({
       }
     },
     [
-      selectedBank,
-      selectedSecondaryBank,
+      depositBank,
+      borrowBank,
       marginfiClient,
       setIsLoading,
       wrappedAccount,
@@ -246,8 +246,8 @@ export function useTradeSimulation({
   );
 
   const fetchMaxLeverage = React.useCallback(async () => {
-    if (selectedBank && selectedSecondaryBank) {
-      const { maxLeverage, ltv } = computeMaxLeverage(selectedBank.info.rawBank, selectedSecondaryBank.info.rawBank);
+    if (depositBank && borrowBank) {
+      const { maxLeverage, ltv } = computeMaxLeverage(depositBank.info.rawBank, borrowBank.info.rawBank);
 
       if (!maxLeverage) {
         const errorMessage = DYNAMIC_SIMULATION_ERRORS.TRADE_FAILED_CHECK();
@@ -256,7 +256,7 @@ export function useTradeSimulation({
         setMaxLeverage(maxLeverage);
       }
     }
-  }, [selectedBank, selectedSecondaryBank, setErrorMessage, setMaxLeverage]);
+  }, [depositBank, borrowBank, setErrorMessage, setMaxLeverage]);
 
   React.useEffect(() => {
     if ((prevDebouncedAmount !== debouncedAmount || prevDebouncedLeverage !== debouncedLeverage) && isEnabled) {
@@ -269,10 +269,10 @@ export function useTradeSimulation({
 
   // Fetch max leverage based when the secondary bank changes
   React.useEffect(() => {
-    if (selectedSecondaryBank && prevSelectedSecondaryBank?.address !== selectedSecondaryBank.address) {
+    if (borrowBank && prevBorrowBank?.address !== borrowBank.address) {
       fetchMaxLeverage();
     }
-  }, [selectedSecondaryBank, prevSelectedSecondaryBank, fetchMaxLeverage]);
+  }, [borrowBank, prevBorrowBank, fetchMaxLeverage]);
 
   const refreshSimulation = React.useCallback(async () => {
     await handleSimulation(debouncedAmount ?? 0, debouncedLeverage ?? 0);

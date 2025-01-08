@@ -8,18 +8,18 @@ import { ArenaBank } from "~/types/trade-store.types";
 
 interface AmountPreviewProps {
   tradeSide: "long" | "short";
-  selectedBank: ArenaBank | null;
+  depositBank: ArenaBank | null;
   amount: number;
   isLoading?: boolean;
 }
 
-export const AmountPreview = ({ tradeSide, amount, isLoading, selectedBank }: AmountPreviewProps) => {
+export const AmountPreview = ({ tradeSide, amount, isLoading, depositBank }: AmountPreviewProps) => {
   return (
     <div className="flex flex-col gap-6">
       <dl className="grid grid-cols-2 gap-y-2 text-sm">
         <Stat label={`Size of ${tradeSide}`}>
           {isLoading ? <IconLoader size={16} /> : dynamicNumeralFormatter(amount)}{" "}
-          {selectedBank?.meta.tokenSymbol.toUpperCase()}
+          {depositBank?.meta.tokenSymbol.toUpperCase()}
         </Stat>
       </dl>
     </div>
