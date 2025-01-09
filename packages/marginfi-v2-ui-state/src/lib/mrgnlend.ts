@@ -33,7 +33,7 @@ import {
   BankMetadataMap,
   chunkedGetRawMultipleAccountInfoOrdered,
 } from "@mrgnlabs/mrgn-common";
-import { getStakeAccounts } from "@mrgnlabs/mrgn-utils";
+import { getStakeAccountsCached } from "@mrgnlabs/mrgn-utils";
 import BigNumber from "bignumber.js";
 import { Commitment, Connection, PublicKey, SystemProgram } from "@solana/web3.js";
 import BN from "bn.js";
@@ -459,7 +459,7 @@ async function fetchTokenAccounts(
   }
 
   // get users native stake accounts
-  const stakeAccounts = await getStakeAccounts(connection, walletAddress);
+  const stakeAccounts = await getStakeAccountsCached(walletAddress);
 
   const ataAddresses = mintList.map((mint) => {
     const mintData = mintDatas.get(mint.bankAddress.toBase58());

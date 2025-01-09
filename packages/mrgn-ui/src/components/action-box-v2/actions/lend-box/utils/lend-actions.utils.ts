@@ -11,7 +11,7 @@ import {
   findPoolAddress,
   findPoolMintAddress,
   findPoolStakeAuthorityAddress,
-  getStakeAccounts,
+  getStakeAccountsCached,
   IndividualFlowError,
   isWholePosition,
   MarginfiActionParams,
@@ -136,7 +136,7 @@ export async function calculateLendingTransaction(
     case ActionType.Deposit:
       if (marginfiAccount && connection && bank.info.rawBank.config.assetTag === 2) {
         console.log("Depositing into staked asset bank");
-        const stakeAccounts = await getStakeAccounts(connection, marginfiAccount.authority);
+        const stakeAccounts = await getStakeAccountsCached(marginfiAccount.authority);
         const stakeAccount = stakeAccounts.find((stakeAccount) =>
           stakeAccount.poolMintKey.equals(bank.info.state.mint)
         );
