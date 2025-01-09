@@ -7,7 +7,7 @@ import { useHotkeys } from "react-hotkeys-hook";
 import { IconAlertTriangle, IconExternalLink } from "@tabler/icons-react";
 
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { LendingModes } from "@mrgnlabs/mrgn-utils";
+import { LendingModes, cn } from "@mrgnlabs/mrgn-utils";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
 import { useMrgnlendStore, useUserProfileStore, useUiStore } from "~/store";
@@ -394,7 +394,7 @@ export const AssetsList = () => {
             </Table>
           </>
         )}
-        <div className="space-y-3 text-center w-full pt-3">
+        <div className={cn("space-y-3 text-center w-full pb-4", stakedPoolTableData.length > 0 ? "pt-3" : "pt-12")}>
           <p className="text-xs text-muted-foreground">Don&apos;t see your native stake available to deposit?</p>
           <div className="flex flex-col gap-2 items-center justify-center">
             <Button variant="secondary" className="mx-auto font-normal text-[11px]" size="sm">
