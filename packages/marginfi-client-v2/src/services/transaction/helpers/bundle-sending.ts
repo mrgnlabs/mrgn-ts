@@ -1,4 +1,6 @@
 import { sleep } from "@mrgnlabs/mrgn-common";
+import { confirmBundle } from "../transaction.service";
+import { Connection } from "@solana/web3.js";
 
 export class SendBundleError extends Error {
   public readonly bundleId?: string;
@@ -15,6 +17,7 @@ export class SendBundleError extends Error {
 const GRPC_ERROR_TAG = "GRPC bundle failed:";
 
 export async function sendTransactionAsGrpcBundle(
+  connection: Connection,
   base58Txs: string[],
   throwError = false
 ): Promise<string | undefined> {
@@ -28,8 +31,16 @@ export async function sendTransactionAsGrpcBundle(
     });
 
     const sendBundleResult = await sendBundleResponse.json();
-    if (sendBundleResult.error) throw new SendBundleError(sendBundleResult.error.message, sendBundleResult?.bundleId);
+    console.log("sendBundleResult", sendBundleResult);
+    if (sendBundleResult.error) throw new SendBundleError(sendBundleResult.error, sendBundleResult?.bundleId);
     const bundleId = sendBundleResult.bundleId;
+
+    // confirm bundle
+    try {
+      await confirmBundle(connection, bundleId);
+    } catch (error) {
+      return bundleId;
+    }
 
     return bundleId;
   } catch (error) {
@@ -43,6 +54,7 @@ export async function sendTransactionAsGrpcBundle(
 const API_ERROR_TAG = "API bundle failed:";
 
 export async function sendTransactionAsBundle(
+  connection: Connection,
   base58Txs: string[],
   throwError = false,
   tempBundleId?: string
@@ -101,6 +113,7 @@ export async function sendTransactionAsBundle(
       if (status === "Failed") {
         throw new SendBundleError(`${API_ERROR_TAG} unknown error`);
       } else if (status === "Landed") {
+        await confirmBundle(connection, bundleId);
         return bundleId;
       }
 
