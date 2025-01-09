@@ -33,6 +33,7 @@ import {
   BankMetadataMap,
   chunkedGetRawMultipleAccountInfoOrdered,
 } from "@mrgnlabs/mrgn-common";
+import { getStakeAccounts } from "@mrgnlabs/mrgn-utils";
 import BigNumber from "bignumber.js";
 import { Commitment, Connection, PublicKey, SystemProgram } from "@solana/web3.js";
 import BN from "bn.js";
@@ -457,6 +458,9 @@ async function fetchTokenAccounts(
     };
   }
 
+  // get users native stake accounts
+  const stakeAccounts = await getStakeAccounts(connection, walletAddress);
+
   const ataAddresses = mintList.map((mint) => {
     const mintData = mintDatas.get(mint.bankAddress.toBase58());
     if (!mintData) {
@@ -475,6 +479,17 @@ async function fetchTokenAccounts(
   const ataList: TokenAccount[] = ataAiList.map((ai, index) => {
     const mint = mintList[index];
 
+    // check if user has native stake account for this validator lst
+    // if so, return the sum of the native stake
+    const stakeAccount = stakeAccounts.find((stakeAccount) => stakeAccount.poolMintKey.equals(mint.address));
+    if (stakeAccount) {
+      return {
+        created: true,
+        mint: mint.address,
+        balance: stakeAccount.totalStake,
+      };
+    }
+
     if (!ai || (!ai?.owner?.equals(TOKEN_PROGRAM_ID) && !ai?.owner?.equals(TOKEN_2022_PROGRAM_ID))) {
       return {
         created: false,
@@ -489,6 +504,7 @@ async function fetchTokenAccounts(
     }
 
     const decoded = unpackAccount(ataAddresses[index], ai, mintData.tokenProgram);
+
     return {
       created: true,
       mint: decoded.mint,

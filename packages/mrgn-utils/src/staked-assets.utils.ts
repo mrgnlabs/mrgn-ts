@@ -1,15 +1,11 @@
 import { Connection, PublicKey, ParsedAccountData, LAMPORTS_PER_SOL, StakeProgram } from "@solana/web3.js";
-import { MarginfiClient, MarginfiConfig, getConfig } from "@mrgnlabs/marginfi-client-v2";
-import { makeExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { BankMetadata, TokenMetadataRaw, shortenAddress } from "@mrgnlabs/mrgn-common";
+import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 const SINGLE_POOL_PROGRAM_ID = new PublicKey("SVSPxpvHdN29nkVg9rPapPNDddN5DipNLRUFhyjFThE");
 const MAX_U64 = (2n ** 64n - 1n).toString();
-const STAKED_BANK_METADATA_CACHE = "https://storage.googleapis.com/mrgn-public/mrgn-staked-bank-metadata-cache.json";
-const STAKED_TOKEN_METADATA_CACHE = "https://storage.googleapis.com/mrgn-public/mrgn-staked-token-metadata-cache.json";
 
 // represents a group of stake accounts associated with a validator
-export type ValidatorStakeGroup = {
+type ValidatorStakeGroup = {
   validator: PublicKey;
   poolKey: PublicKey;
   poolMintKey: PublicKey;
@@ -25,8 +21,8 @@ export type ValidatorStakeGroup = {
  *
  * @warning this is an expensive rpc call and should be heavily cached
  *
- * @param connection - The Solana RPC connection to use for querying
- * @param publicKey - The public key to look up stake accounts for
+ * @param connection - Solana RPC connection
+ * @param publicKey - Users's public key
  * @param opts - Options for filtering inactive stake accounts
  * @returns {Promise<ValidatorStakeGroup[]>} An array of validator stake groups
  */
@@ -104,6 +100,39 @@ const getStakeAccounts = async (
   }
 };
 
+/**
+ * Filters and processes staked asset banks based on user's stake accounts
+ *
+ * @param connection - Solana RPC connection
+ * @param publicKey - User's public key
+ * @param extendedBankInfos - Array of all bank infos
+ * @returns Promise<[ExtendedBankInfo[], ExtendedBankInfo[]]> - [filtered bank infos, staked asset bank infos]
+ */
+const filterStakedAssetBanks = async (
+  connection: Connection,
+  publicKey: PublicKey | null,
+  extendedBankInfos: ExtendedBankInfo[]
+): Promise<[ExtendedBankInfo[], ExtendedBankInfo[]]> => {
+  const stakedAssetBankInfos = extendedBankInfos.filter((bank) => bank.info.rawBank.config.assetTag === 2);
+
+  // remove staked asset banks from main array
+  let filteredBankInfos = extendedBankInfos.filter((bank) => bank.info.rawBank.config.assetTag !== 2);
+
+  // if connected check for matching stake accounts
+  if (publicKey) {
+    const stakeAccounts = await getStakeAccounts(connection, publicKey);
+
+    // add back staked asset banks for validators uaer has native stake
+    filteredBankInfos = filteredBankInfos.concat(
+      stakedAssetBankInfos.filter((bank) =>
+        stakeAccounts.find((stakeAccount) => stakeAccount.poolMintKey.equals(bank.info.rawBank.mint))
+      )
+    );
+  }
+
+  return [filteredBankInfos, stakedAssetBankInfos];
+};
+
 const findPoolAddress = (voteAccountAddress: PublicKey): PublicKey => {
   const [pda] = PublicKey.findProgramAddressSync(
     [Buffer.from("pool"), voteAccountAddress.toBuffer()],
@@ -117,4 +146,5 @@ const findPoolMintAddress = (poolAddress: PublicKey): PublicKey => {
   return pda;
 };
 
-export { getStakeAccounts, findPoolAddress, findPoolMintAddress };
+export type { ValidatorStakeGroup };
+export { getStakeAccounts, findPoolAddress, findPoolMintAddress, filterStakedAssetBanks };

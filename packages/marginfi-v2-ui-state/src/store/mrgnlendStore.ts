@@ -20,7 +20,7 @@ import { create, StateCreator } from "zustand";
 import { persist } from "zustand/middleware";
 
 import { Bank, getPriceWithConfidence, OraclePrice } from "@mrgnlabs/marginfi-client-v2";
-import { getStakeAccounts, ValidatorStakeGroup } from "@mrgnlabs/mrgn-utils";
+import { filterStakedAssetBanks } from "@mrgnlabs/mrgn-utils";
 import type {
   Wallet,
   BankMetadataMap,
@@ -50,7 +50,7 @@ interface MrgnlendState {
   tokenMetadataMap: TokenMetadataMap;
   extendedBankMetadatas: ExtendedBankMetadata[];
   extendedBankInfos: ExtendedBankInfo[];
-  stakeAccounts: ValidatorStakeGroup[];
+  stakedAssetBankInfos: ExtendedBankInfo[];
   protocolStats: ProtocolStats;
   selectedAccount: MarginfiAccountWrapper | null;
   nativeSolBalance: number;
@@ -164,6 +164,7 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
   extendedBankMetadatas: [],
   extendedBankInfos: [],
   stakeAccounts: [],
+  stakedAssetBankInfos: [],
   protocolStats: {
     deposits: 0,
     borrows: 0,
@@ -257,35 +258,15 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
         "https://storage.googleapis.com/mrgn-public/mrgn-staked-token-metadata-cache.json"
       );
 
-      let stakeAccounts: ValidatorStakeGroup[] = [];
-
-      // only show staked asset banks for validators user has native staked with
-      if (wallet?.publicKey) {
-        stakeAccounts = await getStakeAccounts(connection, wallet.publicKey);
-
-        // filter staked asset banks for validators user has native staked with
-        const filteredStakedAssetBankMetadataMap = Object.entries(stakedAssetBankMetadataMap).reduce(
-          (acc, [bankAddress, bank]) => {
-            if (
-              stakeAccounts.find((stakeAccount) => stakeAccount.poolMintKey.equals(new PublicKey(bank.tokenAddress)))
-            ) {
-              acc[bankAddress] = bank;
-            }
-            return acc;
-          },
-          {} as BankMetadataMap
-        );
-
-        // merge filtered staked asset banks with global banks
-        bankMetadataMap = {
-          ...bankMetadataMap,
-          ...filteredStakedAssetBankMetadataMap,
-        };
-        tokenMetadataMap = {
-          ...tokenMetadataMap,
-          ...stakedAssetTokenMetadataMap,
-        };
-      }
+      // merge staked asset metadata with main group metadata
+      bankMetadataMap = {
+        ...bankMetadataMap,
+        ...stakedAssetBankMetadataMap,
+      };
+      tokenMetadataMap = {
+        ...tokenMetadataMap,
+        ...stakedAssetTokenMetadataMap,
+      };
 
       const bankAddresses = Object.keys(bankMetadataMap).map((address) => new PublicKey(address));
 
@@ -299,7 +280,7 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
       });
       const clientBanks = [...marginfiClient.banks.values()];
 
-      const banks = stageTokens
+      let banks = stageTokens
         ? clientBanks.filter(
             (bank) => bank.tokenSymbol && !stageTokens.find((a) => a.toLowerCase() == bank?.tokenSymbol?.toLowerCase())
           )
@@ -313,6 +294,7 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
       let tokenAccountMap: TokenAccountMap;
       let marginfiAccounts: MarginfiAccountWrapper[] = [];
       let selectedAccount: MarginfiAccountWrapper | null = null;
+
       if (wallet?.publicKey) {
         const [tokenData, marginfiAccountWrappers] = await Promise.all([
           fetchTokenAccounts(
@@ -323,16 +305,6 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
           ),
           getCachedMarginfiAccountsForAuthority(wallet.publicKey, marginfiClient),
         ]);
-
-        // update staked asset token account balances to use native staked asset balance
-        tokenData.tokenAccountMap.forEach((tokenAccount) => {
-          const matchedStakedAssetBank = stakeAccounts.find((stakeAccount) =>
-            stakeAccount.poolMintKey.equals(tokenAccount.mint)
-          );
-          if (matchedStakedAssetBank) {
-            tokenAccount.balance = matchedStakedAssetBank.totalStake;
-          }
-        });
 
         nativeSolBalance = tokenData.nativeSolBalance;
         tokenAccountMap = tokenData.tokenAccountMap;
@@ -390,7 +362,7 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
         }
       });
 
-      const [extendedBankInfos, extendedBankMetadatas] = banksWithPriceAndToken.reduce(
+      let [extendedBankInfos, extendedBankMetadatas] = banksWithPriceAndToken.reduce(
         (acc, { bank, oraclePrice, tokenMetadata }) => {
           const emissionTokenPriceData = priceMap[bank.emissionsMint.toBase58()];
 
@@ -415,6 +387,14 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
         [[], []] as [ExtendedBankInfo[], ExtendedBankMetadata[]]
       );
 
+      const [filteredBankInfos, stakedAssetBankInfos] = await filterStakedAssetBanks(
+        connection,
+        wallet?.publicKey || null,
+        extendedBankInfos
+      );
+
+      extendedBankInfos = filteredBankInfos;
+
       const sortedExtendedBankInfos = extendedBankInfos.sort(
         (a, b) => b.info.state.totalDeposits * b.info.state.price - a.info.state.totalDeposits * a.info.state.price
       );
@@ -422,6 +402,9 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
       const sortedExtendedBankMetadatas = extendedBankMetadatas.sort((am, bm) => {
         const a = sortedExtendedBankInfos.find((a) => a.address.equals(am.address))!;
         const b = sortedExtendedBankInfos.find((b) => b.address.equals(bm.address))!;
+        if (!a || !b) {
+          return 0;
+        }
         return b.info.state.totalDeposits * b.info.state.price - a.info.state.totalDeposits * a.info.state.price;
       });
 
@@ -452,7 +435,7 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
         tokenMetadataMap,
         extendedBankInfos: sortedExtendedBankInfos,
         extendedBankMetadatas: sortedExtendedBankMetadatas,
-        stakeAccounts,
+        stakedAssetBankInfos,
         protocolStats: {
           deposits,
           borrows,
