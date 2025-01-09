@@ -1,6 +1,6 @@
 import React from "react";
 
-import { Transaction, VersionedTransaction } from "@solana/web3.js";
+import { Connection, Transaction, VersionedTransaction } from "@solana/web3.js";
 
 import { AccountSummary, ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { MarginfiAccountWrapper, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
@@ -24,6 +24,7 @@ type LendSimulationProps = {
   lendMode: ActionType;
   actionTxns: ActionTxns;
   simulationResult: SimulationResult | null;
+  connection?: Connection;
   setSimulationResult: (result: SimulationResult | null) => void;
   setActionTxns: (actionTxns: ActionTxns) => void;
   setErrorMessage: (error: ActionMessageType | null) => void;
@@ -37,6 +38,7 @@ export function useLendSimulation({
   selectedBank,
   lendMode,
   actionTxns,
+  connection,
   simulationResult,
   setSimulationResult,
   setActionTxns,
@@ -44,6 +46,7 @@ export function useLendSimulation({
   setIsLoading,
 }: LendSimulationProps) {
   const prevDebouncedAmount = usePrevious(debouncedAmount);
+  console.log("useLendSimulation", connection);
 
   const handleSimulation = React.useCallback(
     async (txns: (VersionedTransaction | Transaction)[]) => {
@@ -108,7 +111,13 @@ export function useLendSimulation({
       setIsLoading({ isLoading: true, status: SimulationStatus.PREPARING });
 
       try {
-        const lendingObject = await calculateLendingTransaction(selectedAccount, selectedBank, lendMode, amount);
+        const lendingObject = await calculateLendingTransaction(
+          selectedAccount,
+          selectedBank,
+          lendMode,
+          amount,
+          connection
+        );
 
         if (lendingObject && "actionTxn" in lendingObject) {
           setActionTxns({ actionTxn: lendingObject.actionTxn, additionalTxns: lendingObject.additionalTxns });
@@ -124,7 +133,7 @@ export function useLendSimulation({
         setIsLoading({ isLoading: false, status: SimulationStatus.COMPLETE });
       }
     },
-    [selectedAccount, selectedBank, lendMode, setIsLoading, setActionTxns, setErrorMessage]
+    [selectedAccount, selectedBank, lendMode, setIsLoading, setActionTxns, setErrorMessage, connection]
   );
 
   const refreshSimulation = React.useCallback(async () => {

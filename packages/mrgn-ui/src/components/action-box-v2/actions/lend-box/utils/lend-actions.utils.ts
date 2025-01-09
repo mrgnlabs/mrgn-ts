@@ -1,13 +1,17 @@
-import { Transaction, VersionedTransaction } from "@solana/web3.js";
+import { Connection, Transaction, TransactionInstruction, VersionedTransaction } from "@solana/web3.js";
 import { v4 as uuidv4 } from "uuid";
 
 import { MarginfiAccountWrapper, ProcessTransactionsClientOpts } from "@mrgnlabs/marginfi-client-v2";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { SolanaTransaction, TransactionBroadcastType } from "@mrgnlabs/mrgn-common";
+import { getAssociatedTokenAddressSync, SolanaTransaction, TransactionBroadcastType } from "@mrgnlabs/mrgn-common";
 import {
   ActionMessageType,
   closeBalance,
   executeLendingAction,
+  findPoolAddress,
+  findPoolMintAddress,
+  findPoolStakeAuthorityAddress,
+  getStakeAccounts,
   IndividualFlowError,
   isWholePosition,
   MarginfiActionParams,
@@ -119,7 +123,8 @@ export async function calculateLendingTransaction(
   marginfiAccount: MarginfiAccountWrapper,
   bank: ExtendedBankInfo,
   actionMode: ActionType,
-  amount: number
+  amount: number,
+  connection?: Connection
 ): Promise<
   | {
       actionTxn: SolanaTransaction;
@@ -129,6 +134,31 @@ export async function calculateLendingTransaction(
 > {
   switch (actionMode) {
     case ActionType.Deposit:
+      if (marginfiAccount && connection && bank.info.rawBank.config.assetTag === 2) {
+        console.log("Depositing into staked asset bank");
+        const stakeAccounts = await getStakeAccounts(connection, marginfiAccount.authority);
+        const stakeAccount = stakeAccounts.find((stakeAccount) =>
+          stakeAccount.poolMintKey.equals(bank.info.state.mint)
+        );
+
+        if (!stakeAccount) {
+          console.log("No stake account found for this staked asset bank");
+        } else {
+          const pool = findPoolAddress(stakeAccount.validator);
+          const lstMint = findPoolMintAddress(pool);
+          const auth = findPoolStakeAuthorityAddress(pool);
+          const lstAta = getAssociatedTokenAddressSync(lstMint, marginfiAccount.authority);
+
+          const ixes: TransactionInstruction[] = [];
+
+          console.log("Staked asset bank params");
+          console.log(pool.toBase58());
+          console.log(lstMint.toBase58());
+          console.log(auth.toBase58());
+          console.log(lstAta.toBase58());
+        }
+      }
+
       const depositTx = await marginfiAccount.makeDepositTx(amount, bank.address);
       return {
         actionTxn: depositTx,

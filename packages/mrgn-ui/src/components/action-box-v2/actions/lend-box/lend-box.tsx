@@ -158,6 +158,7 @@ export const LendBox = ({
     lendMode,
     actionTxns,
     simulationResult,
+    connection: marginfiClient?.provider.connection,
     setSimulationResult,
     setActionTxns,
     setErrorMessage,

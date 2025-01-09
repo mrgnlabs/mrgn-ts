@@ -21,8 +21,6 @@ export default function StakedAssetsPage() {
     state.stakedAssetBankInfos,
   ]);
 
-  console.log("stakedAssetBankInfos", stakedAssetBankInfos);
-
   return (
     <div className="flex flex-col justify-center items-center px-4">
       <PageHeading heading="Staked Asset Banks" body={<p>Deposit your native stake and use it as collateral.</p>} />
