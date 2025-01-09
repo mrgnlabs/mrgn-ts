@@ -528,6 +528,15 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
   },
 
   refreshGroup: async (args) => {
+    console.log("-----------START OF LOGS in tradeStoreV2.ts-----------");
+    console.log("refreshing wallet pk: ", args.wallet?.publicKey.toBase58());
+    console.log("refreshing group pk: ", args.groupPk.toBase58());
+    console.log("bank addresses: ", {
+      tokenBank: args.banks[0].toBase58(),
+      quoteBank: args.banks[1].toBase58(),
+    });
+    const prevUserPositions = get().positionsByGroupPk[args.groupPk.toBase58()];
+    console.log("prevUserPositions: ", prevUserPositions);
     const connection = args.connection || get().connection;
     const wallet = args.wallet || get().wallet;
     const bankAddresses = args.banks;
@@ -544,6 +553,7 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
 
     const banksByBankPk = await fetchBankDataMap(program, bankAddresses, pythFeedIdMap, arenaPoolsSummary);
     const banks = Array.from(banksByBankPk.values());
+
     const emissionMintKeys = banks
       .map((b) => b.emissionsMint)
       .filter((pk) => !pk.equals(PublicKey.default)) as PublicKey[];
@@ -564,6 +574,8 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
 
     let extendedBankInfos = compileExtendedArenaBank(banksWithPriceAndToken, tokenDataByMint);
 
+    console.log("extendedBankInfos: ", extendedBankInfos);
+
     let nativeSolBalance = 0;
     let tokenAccountMap: TokenAccountMap | null = null;
     let marginfiAccount: MarginfiAccount | null = null;
@@ -580,6 +592,16 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
 
     if (isWalletConnected) {
       const userPositions = await fetchUserPositions(wallet.publicKey);
+      console.log(
+        "userPositions: ",
+        userPositions.map((p) => ({
+          group: p.groupPk.toBase58(),
+          accountpk: p.accountPk.toBase58(),
+          authPk: p.authorityPk.toBase58(),
+          positionValue: p.currentPositionValue,
+          type: p.direction,
+        }))
+      );
       positionsByGroupPk = userPositions.reduce((acc, position) => {
         acc[position.groupPk.toBase58()] = position;
         return acc;
@@ -595,10 +617,19 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
         args.groupPk
       );
 
+      console.log("updated arena bank with user data: ", updatedData);
+
       extendedBankInfos = updatedData.updatedArenaBanks;
       nativeSolBalance = updatedData.nativeSolBalance;
       tokenAccountMap = updatedData.tokenAccountMap;
       marginfiAccount = updatedData.updateMarginfiAccounts[args.groupPk.toBase58()] ?? null;
+
+      console.log("misc logs: ", {
+        extendedBankInfos,
+        nativeSolBalance,
+        tokenAccountMap,
+        marginfiAccount,
+      });
 
       if (marginfiAccount) {
         storeMarginfiAccountByGroupPk[args.groupPk.toBase58()] = marginfiAccount;
@@ -612,6 +643,8 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
         storeMarginfiAccountByGroupPk,
         positionsByGroupPk
       );
+
+      console.log("positionsByGroupPk: ", positionsByGroupPk);
     }
 
     // update store
@@ -624,6 +657,8 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
     tokenAccountMap?.forEach((value, key) => {
       newTokenAccountMap.set(key, value);
     });
+
+    console.log("-----------END OF LOGS in tradeStoreV2.ts-------------");
 
     set({
       nativeSolBalance,
