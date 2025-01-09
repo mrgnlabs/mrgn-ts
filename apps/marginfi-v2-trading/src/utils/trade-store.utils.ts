@@ -99,6 +99,9 @@ export const getArenaStaticProps: GetStaticProps<StaticArenaProps> = async (cont
 export const fetchInitialArenaState = async (baseUrl?: string): Promise<InitialArenaState | undefined> => {
   let arenaState: InitialArenaState;
 
+  baseUrl =
+    baseUrl || process.env.NODE_ENV === "development" ? "http://localhost:3006" : "https://staging.thearena.trade";
+
   try {
     // Fetch all data in parallel using Promise.all
     const [poolData, tokenDetailsData] = await Promise.all([
