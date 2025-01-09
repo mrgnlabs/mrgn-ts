@@ -1,8 +1,8 @@
 import { Connection, PublicKey, ParsedAccountData, LAMPORTS_PER_SOL, StakeProgram } from "@solana/web3.js";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
-const SINGLE_POOL_PROGRAM_ID = new PublicKey("SVSPxpvHdN29nkVg9rPapPNDddN5DipNLRUFhyjFThE");
-const MAX_U64 = (2n ** 64n - 1n).toString();
+import { MAX_U64 } from "./staked-asset.consts";
+import { findPoolAddress, findPoolMintAddress } from "./spl-single-pool.utils";
 
 // represents a group of stake accounts associated with a validator
 type ValidatorStakeGroup = {
@@ -133,18 +133,5 @@ const filterStakedAssetBanks = async (
   return [filteredBankInfos, stakedAssetBankInfos];
 };
 
-const findPoolAddress = (voteAccountAddress: PublicKey): PublicKey => {
-  const [pda] = PublicKey.findProgramAddressSync(
-    [Buffer.from("pool"), voteAccountAddress.toBuffer()],
-    SINGLE_POOL_PROGRAM_ID
-  );
-  return pda;
-};
-
-const findPoolMintAddress = (poolAddress: PublicKey): PublicKey => {
-  const [pda] = PublicKey.findProgramAddressSync([Buffer.from("mint"), poolAddress.toBuffer()], SINGLE_POOL_PROGRAM_ID);
-  return pda;
-};
-
 export type { ValidatorStakeGroup };
-export { getStakeAccounts, findPoolAddress, findPoolMintAddress, filterStakedAssetBanks };
+export { getStakeAccounts, filterStakedAssetBanks };
