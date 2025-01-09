@@ -22,8 +22,6 @@ export function useActionAmounts({
 
   // This should be updated to use the max amount of the quote token in the bank
   const maxAmount = React.useMemo(() => {
-    console.log(tokenAccountMap.get(activePoolExtended.quoteBank.info.rawBank.mint.toBase58()));
-    console.log(tokenAccountMap.get(activePoolExtended.quoteBank.info.rawBank.mint.toBase58())?.balance);
     return tokenAccountMap.get(activePoolExtended.quoteBank.info.rawBank.mint.toBase58())?.balance ?? 0;
   }, [tokenAccountMap, activePoolExtended]);
 

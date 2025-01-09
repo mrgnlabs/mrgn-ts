@@ -38,13 +38,9 @@ interface ExecuteTradeActionsProps extends ExecuteActionsCallbackProps {
 
 export const initiateTradeAction = async (
   params: ExecuteTradeActionProps,
-  leverage: number,
-  activePoolExtended: ArenaPoolV2Extended,
   callbacks: {
     captureEvent?: (event: string, properties?: Record<string, any>) => void;
-    setIsActionComplete: (isComplete: boolean) => void;
-    setPreviousTxn: (previousTxn: PreviousTxn) => void;
-    onComplete?: (txn: PreviousTxn) => void;
+    handleOnComplete: (txnSigs: string[]) => void;
     setIsLoading: (isLoading: boolean) => void;
     setAmountRaw: (amountRaw: string) => void;
     retryCallback: (txs: TradeActionTxns, toast: MultiStepToastHandle) => void;
@@ -56,41 +52,7 @@ export const initiateTradeAction = async (
       captureEvent: (event, properties) => {
         callbacks.captureEvent && callbacks.captureEvent(event, properties);
       },
-      setIsComplete: (txnSigs) => {
-        callbacks.setIsActionComplete(true);
-        callbacks.setPreviousTxn({
-          txnType: "TRADING",
-          txn: txnSigs[txnSigs.length - 1] ?? "",
-          tradingOptions: {
-            depositBank: params.depositBank as ActiveBankInfo,
-            borrowBank: params.borrowBank as ActiveBankInfo,
-            initDepositAmount: params.depositAmount.toString(),
-            depositAmount: params.actualDepositAmount,
-            borrowAmount: params.borrowAmount.toNumber(),
-            leverage: leverage,
-            type: params.tradeSide,
-            quote: params.actionTxns.actionQuote!,
-            entryPrice: activePoolExtended.tokenBank.info.oraclePrice.priceRealtime.price.toNumber(),
-          },
-        });
-
-        callbacks.onComplete &&
-          callbacks.onComplete({
-            txn: txnSigs[txnSigs.length - 1] ?? "",
-            txnType: "TRADING",
-            tradingOptions: {
-              depositBank: params.depositBank as ActiveBankInfo,
-              borrowBank: params.borrowBank as ActiveBankInfo,
-              initDepositAmount: params.depositAmount.toString(),
-              depositAmount: params.actualDepositAmount,
-              borrowAmount: params.borrowAmount.toNumber(),
-              leverage: leverage,
-              type: params.tradeSide,
-              quote: params.actionTxns.actionQuote!,
-              entryPrice: activePoolExtended.tokenBank.info.oraclePrice.priceRealtime.price.toNumber(),
-            },
-          });
-      },
+      setIsComplete: callbacks.handleOnComplete,
       setError: (error: IndividualFlowError) => {
         const toast = error.multiStepToast as MultiStepToastHandle;
         if (!toast) {

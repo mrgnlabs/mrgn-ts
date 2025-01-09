@@ -38,6 +38,7 @@ import {
 import { useTradeBoxStore } from "./store";
 import { checkTradeActionAvailable } from "./utils";
 import { useTradeSimulation, useActionAmounts } from "./hooks";
+import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 type TradeBoxV2Props = {
   activePool: ArenaPoolV2;
@@ -260,16 +261,30 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
 
   const retryTradeAction = React.useCallback(
     (params: ExecuteTradeActionProps, leverage: number) => {
-      initiateTradeAction(params, leverage, activePoolExtended, {
+      initiateTradeAction(params, {
         captureEvent: () => {
           capture("trade_action_retry", {
             group: activePoolExtended.groupPk.toBase58(),
             bank: depositBank?.meta.tokenSymbol,
           });
         },
-        setIsActionComplete: setIsActionComplete,
-        setPreviousTxn: setPreviousTxn,
-        onComplete: () => {
+        handleOnComplete: (txnSigs: string[]) => {
+          setIsActionComplete(true);
+          setPreviousTxn({
+            txnType: "TRADING",
+            txn: txnSigs[txnSigs.length - 1] ?? "",
+            tradingOptions: {
+              depositBank: params.depositBank as ActiveBankInfo,
+              borrowBank: params.borrowBank as ActiveBankInfo,
+              initDepositAmount: params.depositAmount.toString(),
+              depositAmount: params.actualDepositAmount,
+              borrowAmount: params.borrowAmount.toNumber(),
+              leverage: leverage,
+              type: params.tradeSide,
+              quote: params.actionTxns.actionQuote!,
+              entryPrice: activePoolExtended.tokenBank.info.oraclePrice.priceRealtime.price.toNumber(),
+            },
+          });
           refreshGroup({
             connection,
             wallet,
@@ -277,6 +292,7 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
             banks: [activePoolExtended.tokenBank.address, activePoolExtended.quoteBank.address],
           });
         },
+
         setIsLoading: setIsTransactionExecuting,
         setAmountRaw,
         retryCallback: (txns: TradeActionTxns, multiStepToast: MultiStepToastHandle) => {
@@ -331,16 +347,31 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
       tradeSide: tradeState,
     };
 
-    initiateTradeAction(params, leverage, activePoolExtended, {
+    initiateTradeAction(params, {
       captureEvent: () => {
         capture("trade_action_execute", {
           group: activePoolExtended.groupPk.toBase58(),
           bank: depositBank?.meta.tokenSymbol,
         });
       },
-      setIsActionComplete: setIsActionComplete,
-      setPreviousTxn,
-      onComplete: () => {
+      handleOnComplete: (txnSigs: string[]) => {
+        console.log("handleOnComplete in trade-box.tsx");
+        setIsActionComplete(true);
+        setPreviousTxn({
+          txnType: "TRADING",
+          txn: txnSigs[txnSigs.length - 1] ?? "",
+          tradingOptions: {
+            depositBank: params.depositBank as ActiveBankInfo,
+            borrowBank: params.borrowBank as ActiveBankInfo,
+            initDepositAmount: params.depositAmount.toString(),
+            depositAmount: params.actualDepositAmount,
+            borrowAmount: params.borrowAmount.toNumber(),
+            leverage: leverage,
+            type: params.tradeSide,
+            quote: params.actionTxns.actionQuote!,
+            entryPrice: activePoolExtended.tokenBank.info.oraclePrice.priceRealtime.price.toNumber(),
+          },
+        });
         refreshGroup({
           connection,
           wallet,

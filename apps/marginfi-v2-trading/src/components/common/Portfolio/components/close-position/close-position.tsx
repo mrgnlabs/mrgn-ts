@@ -134,17 +134,12 @@ export const ClosePosition = ({ arenaPool, positionsByGroupPk, depositBanks, bor
   ////////////////////////////
   const executeAction = async (
     params: ExecuteClosePositionActionProps,
-    pnl: number,
-    entryPrice: number,
     arenaPool: ArenaPoolV2Extended,
     callbacks: {
       captureEvent: (event: string, properties?: Record<string, any>) => void;
-      setIsActionComplete: (isComplete: boolean) => void;
-      setPreviousTxn: (previousTxn: PreviousTxn) => void;
-      onComplete: () => void;
       setIsLoading: (loading: boolean) => void;
-      setIsModalOpen: (open: boolean) => void;
       retryCallback: (txns: ClosePositionActionTxns, multiStepToast: MultiStepToastHandle) => void;
+      handleOnComplete: (txnSigs: string[]) => void;
     }
   ) => {
     const action = async (params: any) => {
@@ -155,24 +150,8 @@ export const ClosePosition = ({ arenaPool, positionsByGroupPk, depositBanks, bor
           callbacks.captureEvent && callbacks.captureEvent(event, properties);
         },
         setIsLoading: callbacks.setIsLoading,
-        setIsComplete: (txnSigs: string[]) => {
-          callbacks.setIsActionComplete(true);
-          callbacks.setPreviousTxn({
-            txnType: "CLOSE_POSITION",
-            txn: txnSigs[txnSigs.length - 1],
-            positionClosedOptions: {
-              tokenBank: arenaPool.tokenBank,
-              size: positionSizeUsd,
-              leverage: Number(leverage),
-              entryPrice: entryPrice,
-              exitPrice: arenaPool.tokenBank.info.oraclePrice.priceRealtime.price.toNumber(),
-              pnl: pnl,
-              pool: arenaPool,
-            },
-          });
-          callbacks.onComplete && callbacks.onComplete();
-          callbacks.setIsModalOpen && callbacks.setIsModalOpen(false);
-        },
+        setIsComplete: callbacks.handleOnComplete,
+
         setError: (error: IndividualFlowError) => {
           const toast = error.multiStepToast as MultiStepToastHandle;
           const txs = error.actionTxns as ClosePositionActionTxns;
@@ -197,26 +176,39 @@ export const ClosePosition = ({ arenaPool, positionsByGroupPk, depositBanks, bor
       entryPrice: number,
       arenaPool: ArenaPoolV2Extended
     ) => {
-      executeAction(params, pnl, entryPrice, arenaPool, {
+      executeAction(params, arenaPool, {
         captureEvent: capture,
-        setIsActionComplete: setIsActionComplete,
-        setPreviousTxn: setPreviousTxn,
-        onComplete: () => {
+        setIsLoading: setIsLoading,
+        retryCallback: (txns: ClosePositionActionTxns, multiStepToast: MultiStepToastHandle) => {
+          retryClosePositionAction({ ...params, actionTxns: txns, multiStepToast }, pnl, entryPrice, arenaPool);
+        },
+        handleOnComplete: (txnSigs: string[]) => {
+          setIsActionComplete(true);
+          setPreviousTxn({
+            txnType: "CLOSE_POSITION",
+            txn: txnSigs[txnSigs.length - 1],
+            positionClosedOptions: {
+              tokenBank: arenaPool.tokenBank,
+              size: positionSizeUsd,
+              leverage: Number(leverage),
+              entryPrice: entryPrice,
+              exitPrice: arenaPool.tokenBank.info.oraclePrice.priceRealtime.price.toNumber(),
+              pnl: pnl,
+              pool: arenaPool,
+            },
+          });
           refreshGroup({
             groupPk: arenaPool.groupPk,
             banks: [arenaPool.tokenBank.address, arenaPool.quoteBank.address],
             connection,
             wallet,
           });
-        },
-        setIsLoading: setIsLoading,
-        setIsModalOpen: setIsOpen,
-        retryCallback: (txns: ClosePositionActionTxns, multiStepToast: MultiStepToastHandle) => {
-          retryClosePositionAction({ ...params, actionTxns: txns, multiStepToast }, pnl, entryPrice, arenaPool);
+          setIsOpen(false);
+          console.log("handleOnComplete in close-position.tsx");
         },
       });
     },
-    [setIsActionComplete, setPreviousTxn, setIsLoading, arenaPool, connection, wallet]
+    [setIsActionComplete, setPreviousTxn, positionSizeUsd, leverage, refreshGroup, connection, wallet]
   );
 
   const handleClosePositionAction = React.useCallback(async () => {
@@ -238,20 +230,32 @@ export const ClosePosition = ({ arenaPool, positionsByGroupPk, depositBanks, bor
       marginfiAccount: wrappedAccount,
     } as ExecuteClosePositionActionProps;
 
-    return await executeAction(params, pnl, entryPrice, arenaPool, {
+    return await executeAction(params, arenaPool, {
       captureEvent: capture,
-      setIsActionComplete: setIsActionComplete,
-      setPreviousTxn: setPreviousTxn,
-      onComplete: () => {
+      setIsLoading: setIsLoading,
+      handleOnComplete: (txnSigs: string[]) => {
+        setIsActionComplete(true);
+        setPreviousTxn({
+          txnType: "CLOSE_POSITION",
+          txn: txnSigs[txnSigs.length - 1],
+          positionClosedOptions: {
+            tokenBank: arenaPool.tokenBank,
+            size: positionSizeUsd,
+            leverage: Number(leverage),
+            entryPrice: entryPrice,
+            exitPrice: arenaPool.tokenBank.info.oraclePrice.priceRealtime.price.toNumber(),
+            pnl: pnl,
+            pool: arenaPool,
+          },
+        });
         refreshGroup({
           groupPk: arenaPool.groupPk,
           banks: [arenaPool.tokenBank.address, arenaPool.quoteBank.address],
           connection,
           wallet,
         });
+        setIsOpen(false);
       },
-      setIsLoading: setIsLoading,
-      setIsModalOpen: setIsOpen,
       retryCallback: (txns: ClosePositionActionTxns, multiStepToast: MultiStepToastHandle) => {
         retryClosePositionAction({ ...params, actionTxns: txns, multiStepToast }, pnl, entryPrice, arenaPool);
       },
@@ -260,14 +264,18 @@ export const ClosePosition = ({ arenaPool, positionsByGroupPk, depositBanks, bor
     actionTxns,
     client,
     multiStepToast,
-    positionData,
-    priorityFees,
-    broadcastType,
     arenaPool,
-    connection,
-    wallet,
+    positionData,
+    broadcastType,
+    priorityFees,
+    wrappedAccount,
     setIsActionComplete,
     setPreviousTxn,
+    positionSizeUsd,
+    leverage,
+    refreshGroup,
+    connection,
+    wallet,
     retryClosePositionAction,
   ]);
 
