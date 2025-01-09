@@ -89,6 +89,21 @@ export type BirdeyeMarketDataResponse = {
 };
 
 /**
+ * Type definitions for the /api/token/trending endpoint
+ */
+export type BirdeyeTrendingToken = {
+  address: string;
+  decimals: number;
+  liquidity: number;
+  logoURI: string;
+  name: string;
+  symbol: string;
+  volume24hUSD: number;
+  rank: number;
+  price: number;
+};
+
+/**
  * Type definitions for the /api/oracle/priceV2 endpoint
  */
 interface PriceWithConfidenceString {
