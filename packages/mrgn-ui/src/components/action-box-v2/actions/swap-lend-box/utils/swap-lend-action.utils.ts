@@ -33,46 +33,6 @@ import {
 } from "~/components/action-box-v2/utils";
 import { ExecuteActionsCallbackProps } from "~/components/action-box-v2/types/actions.types";
 
-interface ExecuteSwapLendActionProps extends ExecuteActionsCallbackProps {
-  params: MarginfiActionParams;
-  swapBank: ExtendedBankInfo | null;
-}
-
-export const handleExecuteSwapLendAction = async ({
-  params,
-  swapBank,
-  captureEvent,
-  setIsLoading,
-  setIsComplete,
-  setError,
-}: ExecuteSwapLendActionProps) => {
-  try {
-    setIsLoading(true);
-    const attemptUuid = uuidv4();
-    captureEvent(`user_swap_lend_initiate`, {
-      uuid: attemptUuid,
-      depositToken: params.bank.meta.tokenSymbol,
-      swapToken: swapBank ? swapBank.meta.tokenSymbol : "NO_SWAP",
-      amount: params.amount,
-    });
-    const txnSig = await executeSwapLendAction({ ...params, swapBank });
-
-    setIsLoading(false);
-    if (txnSig) {
-      setIsComplete(txnSig ?? "");
-      captureEvent(`user_swap_lend`, {
-        uuid: attemptUuid,
-        txn: txnSig,
-        depositToken: params.bank.meta.tokenSymbol,
-        swapToken: swapBank ? swapBank.meta.tokenSymbol : "NO_SWAP",
-        amount: params.amount,
-      });
-    }
-  } catch (error) {
-    setError(error as IndividualFlowError);
-  }
-};
-
 export interface GenerateSwapLendTxnsProps {
   marginfiAccount: MarginfiAccountWrapper;
   depositBank: ExtendedBankInfo;
@@ -85,9 +45,11 @@ export interface GenerateSwapLendTxnsProps {
 export async function generateSwapLendTxns(
   props: GenerateSwapLendTxnsProps
 ): Promise<SwapLendActionTxns | ActionMessageType> {
+  console.log(props);
+
   let swapTx: { quote?: QuoteResponse; tx?: SolanaTransaction; error?: ActionMessageType } | undefined;
 
-  if (props.swapBank) {
+  if (props.swapBank && props.swapBank.meta.tokenSymbol !== props.depositBank.meta.tokenSymbol) {
     console.log("Creating Quote swap transaction...");
     try {
       swapTx = await createSwapTx(props);
@@ -126,6 +88,7 @@ export async function generateSwapLendTxns(
 
 export async function createSwapTx(props: GenerateSwapLendTxnsProps) {
   if (!props.swapBank) {
+    console.error("Swap bank is required");
     throw new Error("Swap bank is required");
   }
 

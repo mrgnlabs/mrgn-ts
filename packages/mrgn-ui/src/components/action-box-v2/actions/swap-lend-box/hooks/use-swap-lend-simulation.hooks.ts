@@ -29,10 +29,10 @@ type SwapLendSimulationProps = {
   accountSummary?: AccountSummary;
   depositBank: ExtendedBankInfo | null;
   swapBank: ExtendedBankInfo | null;
-  actionTxns: ActionTxns;
+  actionTxns: SwapLendActionTxns;
   simulationResult: SimulationResult | null;
   setSimulationResult: (result: SimulationResult | null) => void;
-  setActionTxns: (actionTxns: ActionTxns) => void;
+  setActionTxns: (actionTxns: SwapLendActionTxns) => void;
   setErrorMessage: (error: ActionMessageType | null) => void;
   setIsLoading: ({ isLoading, status }: { isLoading: boolean; status: SimulationStatus }) => void;
 };
@@ -60,7 +60,7 @@ export function useSwapLendSimulation({
     callbacks: {
       setErrorMessage: (error: ActionMessageType | null) => void;
       setSimulationResult: (result: SimulationResult | null) => void;
-      setActionTxns: (actionTxns: ActionTxns) => void;
+      setActionTxns: (actionTxns: SwapLendActionTxns) => void;
       setIsLoading: ({ isLoading, status }: { isLoading: boolean; status: SimulationStatus }) => void;
     }
   ) => {
@@ -75,7 +75,7 @@ export function useSwapLendSimulation({
       callbacks.setErrorMessage(actionMessage);
     }
     callbacks.setSimulationResult(null);
-    callbacks.setActionTxns({ actionTxn: null, additionalTxns: [] });
+    callbacks.setActionTxns({ actionTxn: null, additionalTxns: [], actionQuote: null });
     console.error(
       "Error simulating transaction",
       typeof actionMessage === "string" ? extractErrorString(actionMessage) : actionMessage.description
@@ -109,7 +109,7 @@ export function useSwapLendSimulation({
       const swapLendActionTxns = await generateSwapLendTxns(props);
       if (swapLendActionTxns && "actionTxn" in swapLendActionTxns) {
         return {
-          actionTxns: swapLendActionTxns,
+          actionTxns: { ...swapLendActionTxns, actionQuote: swapLendActionTxns.actionQuote },
           actionMessage: null,
         };
       } else {
@@ -120,6 +120,7 @@ export function useSwapLendSimulation({
         };
       }
     } catch (error) {
+      console.error("Error fetching swap lend action txns", error);
       return {
         actionTxns: null,
         actionMessage: STATIC_SIMULATION_ERRORS.DEPOSIT_FAILED,
@@ -132,7 +133,7 @@ export function useSwapLendSimulation({
       try {
         if (amount === 0 || !depositBank || !selectedAccount || !marginfiClient) {
           // TODO: will there be cases where the account isnt defined? In arena esp?
-          setActionTxns({ actionTxn: null, additionalTxns: [] });
+          setActionTxns({ actionTxn: null, additionalTxns: [], actionQuote: null });
           return;
         }
 

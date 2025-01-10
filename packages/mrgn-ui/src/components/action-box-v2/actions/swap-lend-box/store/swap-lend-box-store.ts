@@ -1,7 +1,7 @@
 import { create, StateCreator } from "zustand";
 
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { ActionMessageType, ActionTxns } from "@mrgnlabs/mrgn-utils";
+import { ActionMessageType, ActionTxns, SwapLendActionTxns } from "@mrgnlabs/mrgn-utils";
 import { SimulationResult } from "@mrgnlabs/marginfi-client-v2";
 
 interface SwapLendBoxState {
@@ -13,7 +13,7 @@ interface SwapLendBoxState {
   selectedSwapBank: ExtendedBankInfo | null;
 
   simulationResult: SimulationResult | null;
-  actionTxns: ActionTxns;
+  actionTxns: SwapLendActionTxns;
 
   errorMessage: ActionMessageType | null;
 
@@ -28,7 +28,7 @@ interface SwapLendBoxState {
   setLendMode: (lendMode: ActionType) => void;
   setAmountRaw: (amountRaw: string, maxAmount?: number) => void;
   setSimulationResult: (simulationResult: SimulationResult | null) => void;
-  setActionTxns: (actionTxns: ActionTxns) => void;
+  setActionTxns: (actionTxns: SwapLendActionTxns) => void;
   setSelectedDepositBank: (bank: ExtendedBankInfo | null) => void;
   setSelectedSwapBank: (bank: ExtendedBankInfo | null) => void;
   setErrorMessage: (errorMessage: ActionMessageType | null) => void;
@@ -44,7 +44,7 @@ const initialState = {
   lendMode: ActionType.Deposit,
   selectedDepositBank: null,
   selectedSwapBank: null,
-  actionTxns: { actionTxn: null, additionalTxns: [] },
+  actionTxns: { actionTxn: null, additionalTxns: [], actionQuote: null },
   errorMessage: null,
 };
 

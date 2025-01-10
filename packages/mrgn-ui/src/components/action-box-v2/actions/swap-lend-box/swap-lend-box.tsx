@@ -18,10 +18,12 @@ import {
   ActionTxns,
   checkSwapLendActionAvailable,
   ClosePositionActionTxns,
+  ExecuteSwapLendActionProps,
   IndividualFlowError,
   MarginfiActionParams,
   MultiStepToastHandle,
   PreviousTxn,
+  SwapLendActionTxns,
 } from "@mrgnlabs/mrgn-utils";
 
 import { ActionButton } from "~/components/action-box-v2/components";
@@ -29,16 +31,16 @@ import { useActionAmounts } from "~/components/action-box-v2/hooks";
 import { LSTDialog, LSTDialogVariants } from "~/components/LSTDialog";
 import { ActionMessage } from "~/components";
 
-import { useSwapLendBoxStore } from "./store";
-// import { HandleCloseBalanceParamsProps, handleExecuteCloseBalance, handleExecuteLendingAction } from "./utils";
 import { ActionSimulationStatus } from "../../components";
-import { Collateral, ActionInput, Preview } from "./components";
 import { SimulationStatus } from "../../utils";
 import { useSwapLendSimulation } from "./hooks";
 import { useActionBoxStore } from "../../store";
-import { HidePoolStats } from "../../contexts/actionbox/actionbox.context";
-import { useActionContext } from "../../contexts";
+import { useActionContext, HidePoolStats } from "../../contexts";
+
 import { handleExecuteSwapLendAction } from "./utils";
+import { useSwapLendBoxStore } from "./store";
+import { Collateral, ActionInput, Preview } from "./components";
+import { nativeToUi } from "@mrgnlabs/mrgn-common";
 
 // error handling
 export type SwapLendBoxProps = {
@@ -187,7 +189,7 @@ export const SwapLendBox = ({
   //clean state
   React.useEffect(() => {
     if (debouncedAmount === 0 && simulationResult) {
-      setActionTxns({ actionTxn: null, additionalTxns: [] });
+      setActionTxns({ actionTxn: null, additionalTxns: [], actionQuote: null });
       setSimulationResult(null);
     }
   }, [simulationResult, debouncedAmount, setActionTxns, setSimulationResult]);
@@ -248,19 +250,17 @@ export const SwapLendBox = ({
   // Swap-Lend Actions //
   ///////////////////////
   const executeAction = async (
-    params: MarginfiActionParams,
-    swapBank: ExtendedBankInfo | null,
+    params: ExecuteSwapLendActionProps,
     callbacks: {
       captureEvent?: (event: string, properties?: Record<string, any>) => void;
       setIsLoading: (loading: boolean) => void;
       handleOnComplete: (txnSigs: string[]) => void;
-      retryCallback: (txns: ActionTxns, multiStepToast: MultiStepToastHandle) => void;
+      retryCallback: (txns: SwapLendActionTxns, multiStepToast: MultiStepToastHandle) => void;
     }
   ) => {
-    const action = async (params: MarginfiActionParams) => {
+    const action = async (params: ExecuteSwapLendActionProps) => {
       handleExecuteSwapLendAction({
         params,
-        swapBank,
         captureEvent: (event, properties) => {
           callbacks.captureEvent && callbacks.captureEvent(event, properties);
         },
@@ -268,7 +268,7 @@ export const SwapLendBox = ({
         setIsComplete: callbacks.handleOnComplete,
         setError: (error: IndividualFlowError) => {
           const toast = error.multiStepToast as MultiStepToastHandle;
-          const txs = error.actionTxns as ActionTxns;
+          const txs = error.actionTxns as SwapLendActionTxns;
           const errorMessage = error.message;
           let retry = undefined;
           if (error.retry && toast && txs) {
@@ -283,8 +283,8 @@ export const SwapLendBox = ({
   };
 
   const retrySwapLendAction = React.useCallback(
-    async (params: MarginfiActionParams, swapBank: ExtendedBankInfo | null) => {
-      executeAction(params, swapBank, {
+    async (params: ExecuteSwapLendActionProps, swapBank: ExtendedBankInfo | null) => {
+      executeAction(params, {
         captureEvent: captureEvent,
         setIsLoading: setIsTransactionExecuting,
         handleOnComplete: (txnSigs: string[]) => {
@@ -311,7 +311,7 @@ export const SwapLendBox = ({
               },
             });
         },
-        retryCallback: (txns: ActionTxns, multiStepToast: MultiStepToastHandle) => {
+        retryCallback: (txns: SwapLendActionTxns, multiStepToast: MultiStepToastHandle) => {
           retrySwapLendAction({ ...params, actionTxns: txns, multiStepToast }, swapBank);
         },
       });
@@ -320,7 +320,7 @@ export const SwapLendBox = ({
   );
 
   const handleSwapLendAction = React.useCallback(
-    async (_actionTxns?: ActionTxns, multiStepToast?: MultiStepToastHandle) => {
+    async (_actionTxns?: SwapLendActionTxns, multiStepToast?: MultiStepToastHandle) => {
       console.log(selectedAccount);
       if (!actionTxns || !marginfiClient || !debouncedAmount || debouncedAmount === 0) {
         console.log({ actionTxns, marginfiClient, selectedSwapBank });
@@ -340,9 +340,11 @@ export const SwapLendBox = ({
         },
         txOpts: {},
         multiStepToast,
-      } as MarginfiActionParams;
+        actionType: lendMode,
+        swapBank: selectedSwapBank,
+      } as ExecuteSwapLendActionProps;
 
-      await executeAction(params, selectedSwapBank, {
+      await executeAction(params, {
         captureEvent: captureEvent,
         setIsLoading: setIsTransactionExecuting,
         handleOnComplete: (txnSigs: string[]) => {
@@ -369,7 +371,7 @@ export const SwapLendBox = ({
               },
             });
         },
-        retryCallback: (txns: ActionTxns, multiStepToast: MultiStepToastHandle) => {
+        retryCallback: (txns: SwapLendActionTxns, multiStepToast: MultiStepToastHandle) => {
           retrySwapLendAction({ ...params, actionTxns: txns, multiStepToast }, selectedSwapBank);
         },
       });
@@ -401,6 +403,7 @@ export const SwapLendBox = ({
   return (
     <>
       <div className="mb-4">
+        <span className="text-sm text-muted-foreground">Deposit</span>
         <ActionInput
           banks={banks}
           nativeSolBalance={nativeSolBalance}
@@ -418,6 +421,35 @@ export const SwapLendBox = ({
           setSelectedBank={setSelectedSwapBank}
         />
       </div>
+
+      {!requestedDepositBank && (
+        <div className="mb-4">
+          <span className="text-sm text-muted-foreground">Deposit</span>
+          <ActionInput
+            banks={banks}
+            nativeSolBalance={nativeSolBalance}
+            walletAmount={walletAmount}
+            amountRaw={nativeToUi(
+              Number(actionTxns?.actionQuote?.outAmount),
+              selectedDepositBank?.info.rawBank.mintDecimals ?? 9
+            ).toString()} // HERE
+            amount={nativeToUi(
+              Number(actionTxns?.actionQuote?.outAmount),
+              selectedDepositBank?.info.rawBank.mintDecimals ?? 9
+            )} // HERE
+            maxAmount={maxAmount}
+            connected={connected}
+            selectedBank={selectedDepositBank ?? null}
+            lendMode={lendMode}
+            isDialog={isDialog}
+            showTokenSelection={showTokenSelection}
+            showTokenSelectionGroups={showTokenSelectionGroups}
+            setAmountRaw={setAmountRaw}
+            setSelectedBank={setSelectedDepositBank}
+            isInputDisabled={true}
+          />
+        </div>
+      )}
 
       {additionalActionMessages.concat(actionMessages).map(
         (actionMessage, idx) =>

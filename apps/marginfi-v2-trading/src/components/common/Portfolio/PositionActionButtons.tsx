@@ -128,7 +128,7 @@ export const PositionActionButtons = ({
                 }}
               >
                 <IconPlus size={14} />
-                Add using swaplend box
+                Add
               </Button>
             ),
             title: `Supply ${arenaPool.tokenBank.meta.tokenSymbol}`,

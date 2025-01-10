@@ -13,6 +13,7 @@ import {
   LoopingProps,
   TradeActionTxns,
   ClosePositionActionTxns,
+  SwapLendActionTxns,
 } from "./types";
 import { WalletContextStateOverride } from "../wallet";
 import {
@@ -155,6 +156,7 @@ export async function executeTradeAction(params: ExecuteTradeActionProps) {
 
 export interface ExecuteSwapLendActionProps extends MarginfiActionParams {
   swapBank: ExtendedBankInfo | null;
+  actionTxns: SwapLendActionTxns;
 }
 
 export async function executeSwapLendAction(params: ExecuteSwapLendActionProps) {

@@ -25,6 +25,8 @@ type ActionInputProps = {
   showTokenSelectionGroups?: boolean;
   isMini?: boolean;
 
+  isInputDisabled?: boolean;
+
   setAmountRaw: (amount: string) => void;
   setSelectedBank: (bank: ExtendedBankInfo | null) => void;
 };
@@ -43,6 +45,7 @@ export const ActionInput = ({
   amount,
   selectedBank,
   lendMode,
+  isInputDisabled: _isInputDisabled,
   setAmountRaw,
   setSelectedBank,
 }: ActionInputProps) => {
@@ -50,7 +53,10 @@ export const ActionInput = ({
 
   const numberFormater = React.useMemo(() => new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 }), []);
 
-  const isInputDisabled = React.useMemo(() => maxAmount === 0 && !showCloseBalance, [maxAmount, showCloseBalance]);
+  const isInputDisabled = React.useMemo(
+    () => (maxAmount === 0 && !showCloseBalance) || _isInputDisabled,
+    [maxAmount, showCloseBalance, _isInputDisabled]
+  );
 
   const formatAmountCb = React.useCallback(
     (newAmount: string, bank: ExtendedBankInfo | null) => {
@@ -106,13 +112,15 @@ export const ActionInput = ({
           )}
         </div>
       </div>
-      <LendingAction
-        walletAmount={walletAmount}
-        maxAmount={maxAmount}
-        onSetAmountRaw={(amount) => handleInputChange(amount)}
-        selectedBank={selectedBank}
-        lendMode={lendMode}
-      />
+      {!isInputDisabled && (
+        <LendingAction
+          walletAmount={walletAmount}
+          maxAmount={maxAmount}
+          onSetAmountRaw={(amount) => handleInputChange(amount)}
+          selectedBank={selectedBank}
+          lendMode={lendMode}
+        />
+      )}
     </div>
   );
 };
