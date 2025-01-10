@@ -96,6 +96,10 @@ export interface StakeActionTxns extends ActionTxns {
   lastValidBlockHeight?: number;
 } // TOOD: implement this as actionSummary type
 
+export interface SwapLendActionTxns extends ActionTxns {
+  actionQuote: QuoteResponse | null;
+}
+
 export interface CalculateLoopingProps
   extends Pick<LoopingProps, "marginfiAccount" | "borrowBank" | "depositBank" | "depositAmount" | "connection"> {
   targetLeverage: number;

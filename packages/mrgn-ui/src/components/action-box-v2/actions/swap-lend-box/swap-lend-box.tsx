@@ -12,11 +12,12 @@ import {
   DEFAULT_ACCOUNT_SUMMARY,
 } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
+import { MarginfiAccount, MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import {
   ActionMessageType,
   ActionTxns,
-  checkLendActionAvailable,
+  checkSwapLendActionAvailable,
+  ClosePositionActionTxns,
   IndividualFlowError,
   MarginfiActionParams,
   MultiStepToastHandle,
@@ -26,7 +27,6 @@ import {
 import { ActionButton } from "~/components/action-box-v2/components";
 import { useActionAmounts } from "~/components/action-box-v2/hooks";
 import { LSTDialog, LSTDialogVariants } from "~/components/LSTDialog";
-import { WalletContextStateOverride } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { ActionMessage } from "~/components";
 
 import { useSwapLendBoxStore } from "./store";
@@ -38,19 +38,19 @@ import { useSwapLendSimulation } from "./hooks";
 import { useActionBoxStore } from "../../store";
 import { HidePoolStats } from "../../contexts/actionbox/actionbox.context";
 import { useActionContext } from "../../contexts";
+import { handleExecuteSwapLendAction } from "./utils";
 
 // error handling
 export type SwapLendBoxProps = {
   nativeSolBalance: number;
   // tokenAccountMap: TokenAccountMap;
-  walletContextState?: WalletContextStateOverride | WalletContextState;
   connected: boolean;
 
   marginfiClient: MarginfiClient | null;
   selectedAccount: MarginfiAccountWrapper | null;
   banks: ExtendedBankInfo[];
-  requestedLendType: ActionType;
-  requestedBank?: ExtendedBankInfo;
+  requestedDepositBank?: ExtendedBankInfo;
+  requestedSwapBank?: ExtendedBankInfo;
   accountSummaryArg?: AccountSummary;
   isDialog?: boolean;
   showAvailableCollateral?: boolean;
@@ -65,7 +65,6 @@ export type SwapLendBoxProps = {
 export const SwapLendBox = ({
   nativeSolBalance,
   // tokenAccountMap,
-  walletContextState,
   connected,
   marginfiClient,
   banks,
@@ -75,8 +74,8 @@ export const SwapLendBox = ({
   showTokenSelection,
   showAvailableCollateral = true,
   showTokenSelectionGroups,
-  requestedLendType,
-  requestedBank,
+  requestedDepositBank,
+  requestedSwapBank,
   onComplete,
   captureEvent,
   hidePoolStats,
@@ -85,7 +84,8 @@ export const SwapLendBox = ({
     amountRaw,
     lendMode,
     actionTxns,
-    selectedBank,
+    selectedDepositBank,
+    selectedSwapBank,
     simulationResult,
     errorMessage,
 
@@ -93,8 +93,9 @@ export const SwapLendBox = ({
     fetchActionBoxState,
     setLendMode,
     setAmountRaw,
-    setSelectedBank,
-    refreshSelectedBanks,
+    setSelectedDepositBank,
+    setSelectedSwapBank,
+    refreshBanks,
     setSimulationResult,
     setActionTxns,
     setErrorMessage,
@@ -102,7 +103,8 @@ export const SwapLendBox = ({
     state.amountRaw,
     state.lendMode,
     state.actionTxns,
-    state.selectedBank,
+    state.selectedDepositBank,
+    state.selectedSwapBank,
     state.simulationResult,
     state.errorMessage,
 
@@ -110,8 +112,9 @@ export const SwapLendBox = ({
     state.fetchActionBoxState,
     state.setLendMode,
     state.setAmountRaw,
-    state.setSelectedBank,
-    state.refreshSelectedBanks,
+    state.setSelectedDepositBank,
+    state.setSelectedSwapBank,
+    state.refreshBanks,
     state.setSimulationResult,
     state.setActionTxns,
     state.setErrorMessage,
@@ -146,7 +149,7 @@ export const SwapLendBox = ({
 
   const { amount, debouncedAmount, walletAmount, maxAmount } = useActionAmounts({
     amountRaw,
-    selectedBank,
+    selectedBank: selectedSwapBank ?? selectedDepositBank,
     nativeSolBalance,
     actionMode: lendMode,
   });
@@ -154,14 +157,15 @@ export const SwapLendBox = ({
     debouncedAmount: debouncedAmount ?? 0,
     selectedAccount,
     accountSummary,
-    selectedBank,
-    lendMode,
+    depositBank: selectedDepositBank ?? null,
+    swapBank: selectedSwapBank ?? null,
     actionTxns,
     simulationResult,
     setSimulationResult,
     setActionTxns,
     setErrorMessage,
     setIsLoading: setIsSimulating,
+    marginfiClient,
   });
 
   const [lstDialogCallback, setLSTDialogCallback] = React.useState<(() => void) | null>(null);
@@ -189,8 +193,12 @@ export const SwapLendBox = ({
   }, [simulationResult, debouncedAmount, setActionTxns, setSimulationResult]);
 
   React.useEffect(() => {
-    fetchActionBoxState({ requestedLendType, requestedBank });
-  }, [requestedLendType, requestedBank, fetchActionBoxState]);
+    fetchActionBoxState({
+      requestedLendType: ActionType.Deposit,
+      depositBank: requestedDepositBank,
+      swapBank: requestedSwapBank,
+    });
+  }, [requestedDepositBank, requestedSwapBank, fetchActionBoxState]);
 
   React.useEffect(() => {
     if (errorMessage && errorMessage.description) {
@@ -200,7 +208,10 @@ export const SwapLendBox = ({
     }
   }, [errorMessage]);
 
-  const isDust = React.useMemo(() => selectedBank?.isActive && selectedBank?.position.isDust, [selectedBank]);
+  const isDust = React.useMemo(
+    () => selectedDepositBank?.isActive && selectedDepositBank?.position.isDust,
+    [selectedDepositBank]
+  );
   const showCloseBalance = React.useMemo(
     () => (lendMode === ActionType.Withdraw && isDust) || false,
     [lendMode, isDust]
@@ -208,39 +219,184 @@ export const SwapLendBox = ({
 
   const actionMessages = React.useMemo(() => {
     setAdditionalActionMessages([]);
-    return checkLendActionAvailable({
+    return checkSwapLendActionAvailable({
       amount,
       connected,
       showCloseBalance,
-      selectedBank,
+      depositBank: selectedDepositBank,
+      swapBank: selectedSwapBank,
       banks,
       marginfiAccount: selectedAccount,
       nativeSolBalance,
       lendMode,
     });
-  }, [amount, connected, showCloseBalance, selectedBank, banks, selectedAccount, nativeSolBalance, lendMode]);
+  }, [
+    amount,
+    connected,
+    showCloseBalance,
+    selectedDepositBank,
+    selectedSwapBank,
+    banks,
+    selectedAccount,
+    nativeSolBalance,
+    lendMode,
+  ]);
 
   const buttonLabel = React.useMemo(() => (showCloseBalance ? "Close" : lendMode), [showCloseBalance, lendMode]);
 
-  ////////////////////
+  ///////////////////////
   // Swap-Lend Actions //
-  ////////////////////
-  const executeAction = async () => {
-    const action = async (params: MarginfiActionParams) => {};
+  ///////////////////////
+  const executeAction = async (
+    params: MarginfiActionParams,
+    swapBank: ExtendedBankInfo | null,
+    callbacks: {
+      captureEvent?: (event: string, properties?: Record<string, any>) => void;
+      setIsLoading: (loading: boolean) => void;
+      handleOnComplete: (txnSigs: string[]) => void;
+      retryCallback: (txns: ActionTxns, multiStepToast: MultiStepToastHandle) => void;
+    }
+  ) => {
+    const action = async (params: MarginfiActionParams) => {
+      handleExecuteSwapLendAction({
+        params,
+        swapBank,
+        captureEvent: (event, properties) => {
+          callbacks.captureEvent && callbacks.captureEvent(event, properties);
+        },
+        setIsLoading: callbacks.setIsLoading,
+        setIsComplete: callbacks.handleOnComplete,
+        setError: (error: IndividualFlowError) => {
+          const toast = error.multiStepToast as MultiStepToastHandle;
+          const txs = error.actionTxns as ActionTxns;
+          const errorMessage = error.message;
+          let retry = undefined;
+          if (error.retry && toast && txs) {
+            retry = () => callbacks.retryCallback(txs, toast);
+          }
+          toast?.setFailed(errorMessage, retry);
+          callbacks.setIsLoading(false);
+        },
+      });
+    };
+    await action(params);
   };
 
-  const retrySwapLendAction = React.useCallback(async () => {}, []);
+  const retrySwapLendAction = React.useCallback(
+    async (params: MarginfiActionParams, swapBank: ExtendedBankInfo | null) => {
+      executeAction(params, swapBank, {
+        captureEvent: captureEvent,
+        setIsLoading: setIsTransactionExecuting,
+        handleOnComplete: (txnSigs: string[]) => {
+          setIsActionComplete(true);
+          setPreviousTxn({
+            txn: txnSigs[txnSigs.length - 1] ?? "",
+            txnType: "SWAP_LEND",
+            swapLendOptions: {
+              depositBank: selectedDepositBank as ActiveBankInfo,
+              swapBank: selectedSwapBank as ActiveBankInfo,
+              depositAmount: 0, // TODO
+              swapAmount: 0, // TODO
+            },
+          });
+          onComplete &&
+            onComplete({
+              txn: txnSigs[txnSigs.length - 1] ?? "",
+              txnType: "SWAP_LEND",
+              swapLendOptions: {
+                depositBank: selectedDepositBank as ActiveBankInfo,
+                swapBank: selectedSwapBank as ActiveBankInfo,
+                depositAmount: 0, // TODO
+                swapAmount: 0, // TODO
+              },
+            });
+        },
+        retryCallback: (txns: ActionTxns, multiStepToast: MultiStepToastHandle) => {
+          retrySwapLendAction({ ...params, actionTxns: txns, multiStepToast }, swapBank);
+        },
+      });
+    },
+    [captureEvent, onComplete, selectedDepositBank, selectedSwapBank, setIsActionComplete, setPreviousTxn]
+  );
 
   const handleSwapLendAction = React.useCallback(
-    async (_actionTxns?: ActionTxns, multiStepToast?: MultiStepToastHandle) => {},
-    [,]
+    async (_actionTxns?: ActionTxns, multiStepToast?: MultiStepToastHandle) => {
+      console.log(selectedAccount);
+      if (!actionTxns || !marginfiClient || !debouncedAmount) {
+        console.log({ actionTxns, marginfiClient, selectedSwapBank });
+        return;
+      }
+
+      const params = {
+        marginfiClient: marginfiClient,
+        actionTxns: _actionTxns ?? actionTxns,
+        bank: selectedDepositBank,
+        amount: debouncedAmount,
+        nativeSolBalance,
+        marginfiAccount: selectedAccount,
+        processOpts: {
+          ...priorityFees,
+          broadcastType,
+        },
+        txOpts: {},
+        multiStepToast,
+      } as MarginfiActionParams;
+
+      await executeAction(params, selectedSwapBank, {
+        captureEvent: captureEvent,
+        setIsLoading: setIsTransactionExecuting,
+        handleOnComplete: (txnSigs: string[]) => {
+          setIsActionComplete(true);
+          setPreviousTxn({
+            txn: txnSigs[txnSigs.length - 1] ?? "",
+            txnType: "SWAP_LEND",
+            swapLendOptions: {
+              depositBank: selectedDepositBank as ActiveBankInfo,
+              swapBank: selectedSwapBank as ActiveBankInfo,
+              depositAmount: debouncedAmount,
+              swapAmount: 0, // TODO
+            },
+          });
+          onComplete &&
+            onComplete({
+              txn: txnSigs[txnSigs.length - 1] ?? "",
+              txnType: "SWAP_LEND",
+              swapLendOptions: {
+                depositBank: selectedDepositBank as ActiveBankInfo,
+                swapBank: selectedSwapBank as ActiveBankInfo,
+                depositAmount: debouncedAmount,
+                swapAmount: 0, // TODO
+              },
+            });
+        },
+        retryCallback: (txns: ActionTxns, multiStepToast: MultiStepToastHandle) => {
+          retrySwapLendAction({ ...params, actionTxns: txns, multiStepToast }, selectedSwapBank);
+        },
+      });
+    },
+    [
+      actionTxns,
+      marginfiClient,
+      selectedSwapBank,
+      selectedDepositBank,
+      debouncedAmount,
+      nativeSolBalance,
+      selectedAccount,
+      priorityFees,
+      broadcastType,
+      captureEvent,
+      setIsActionComplete,
+      setPreviousTxn,
+      onComplete,
+      retrySwapLendAction,
+    ]
   );
 
   React.useEffect(() => {
     if (marginfiClient) {
-      refreshSelectedBanks(banks);
+      refreshBanks(banks);
     }
-  }, [marginfiClient, banks, refreshSelectedBanks]);
+  }, [marginfiClient, banks, refreshBanks]);
 
   return (
     <>
@@ -253,13 +409,13 @@ export const SwapLendBox = ({
           amount={debouncedAmount}
           maxAmount={maxAmount}
           connected={connected}
-          selectedBank={selectedBank}
+          selectedBank={selectedSwapBank ?? selectedDepositBank ?? null}
           lendMode={lendMode}
           isDialog={isDialog}
           showTokenSelection={showTokenSelection}
           showTokenSelectionGroups={showTokenSelectionGroups}
           setAmountRaw={setAmountRaw}
-          setSelectedBank={setSelectedBank}
+          setSelectedBank={setSelectedSwapBank}
         />
       </div>
 
@@ -300,19 +456,19 @@ export const SwapLendBox = ({
       <ActionSimulationStatus
         simulationStatus={isSimulating.status}
         hasErrorMessages={additionalActionMessages.length > 0}
-        isActive={selectedBank && amount > 0 ? true : false}
+        isActive={selectedDepositBank && amount > 0 ? true : false}
       />
 
       <Preview
         actionSummary={actionSummary}
-        selectedBank={selectedBank}
+        selectedBank={selectedDepositBank}
         isLoading={isLoading}
         lendMode={lendMode}
         hidePoolStats={hidePoolStats}
       />
 
       <LSTDialog
-        variant={selectedBank?.meta.tokenSymbol as LSTDialogVariants}
+        variant={selectedDepositBank?.meta.tokenSymbol as LSTDialogVariants}
         open={!!lstDialogCallback}
         onClose={() => {
           if (lstDialogCallback) {

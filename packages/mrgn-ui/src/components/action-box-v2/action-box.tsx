@@ -10,6 +10,7 @@ import {
   RepayCollatBox,
   StakeBox,
   StakeBoxProps,
+  SwapLendBox,
   SwapLendBoxProps,
 } from "./actions";
 import { ActionDialogWrapper, ActionBoxWrapper, ActionBoxNavigator } from "./components";
@@ -79,26 +80,22 @@ const SwapLend = (
   const contextProps = useActionBoxContext();
   const { swapLendProps, useProvider, ...actionBoxProps } = props;
 
-  let combinedProps: LendBoxProps;
+  let combinedProps: SwapLendBoxProps;
 
   if (useProvider && contextProps) {
     combinedProps = {
       ...contextProps,
-      ...(swapLendProps as RequiredLendBoxProps),
+      ...(swapLendProps as RequiredSwapLendBoxProps),
     };
   } else {
-    combinedProps = swapLendProps as LendBoxProps;
+    combinedProps = swapLendProps as SwapLendBoxProps;
   }
 
   return (
     <ActionBox {...actionBoxProps}>
-      <ActionBoxWrapper
-        showSettings={false}
-        isDialog={props.isDialog}
-        actionMode={props.swapLendProps.requestedLendType}
-      >
-        <ActionBoxNavigator selectedAction={props.swapLendProps.requestedLendType}>
-          <LendBox {...combinedProps} isDialog={props.isDialog} />
+      <ActionBoxWrapper showSettings={false} isDialog={props.isDialog} actionMode={ActionType.Deposit}>
+        <ActionBoxNavigator selectedAction={ActionType.Deposit}>
+          <SwapLendBox {...combinedProps} isDialog={props.isDialog} />
         </ActionBoxNavigator>
       </ActionBoxWrapper>
     </ActionBox>

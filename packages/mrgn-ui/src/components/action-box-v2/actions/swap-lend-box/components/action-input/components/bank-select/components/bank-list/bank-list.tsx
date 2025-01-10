@@ -84,7 +84,6 @@ export const BankList = ({
   );
 
   /////// BANKS
-
   // wallet banks
   const filteredBanksUserOwns = React.useMemo(() => {
     return (
@@ -105,14 +104,6 @@ export const BankList = ({
         })
     );
   }, [banks, balanceFilter, searchFilter, nativeSolBalance]);
-
-  // active position banks
-  const filteredBanksActive = React.useMemo(() => {
-    return banks
-      .filter(searchFilter)
-      .filter((bankInfo) => positionFilter(bankInfo, false))
-      .sort((a, b) => (b.isActive ? b?.position?.amount : 0) - (a.isActive ? a?.position?.amount : 0));
-  }, [banks, searchFilter, positionFilter]);
 
   // other banks without positions
   const filteredBanks = React.useMemo(() => {
@@ -171,69 +162,6 @@ export const BankList = ({
               })}
           </CommandGroup>
         )}
-        {lendingMode === LendingModes.LEND &&
-          filteredBanksActive.length > 0 &&
-          onSetSelectedBank &&
-          showTokenSelectionGroups && (
-            <CommandGroup heading="Currently supplying">
-              {filteredBanksActive.map((bank, index) => (
-                <CommandItem
-                  key={index}
-                  value={bank.address?.toString().toLowerCase()}
-                  // disabled={!ownedBanksPk.includes(bank.address)}
-                  onSelect={(currentValue) => {
-                    onSetSelectedBank(
-                      banks.find((bankInfo) => bankInfo.address.toString().toLowerCase() === currentValue) ?? null
-                    );
-                    onClose();
-                  }}
-                  className={cn(
-                    "cursor-pointer font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-mfi-action-box-accent data-[selected=true]:text-mfi-action-box-accent-foreground py-2"
-                  )}
-                >
-                  <BankItem
-                    rate={calculateRate(bank)}
-                    lendingMode={lendingMode}
-                    bank={bank}
-                    showBalanceOverride={false}
-                    nativeSolBalance={nativeSolBalance}
-                  />
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          )}
-
-        {/* BORROWING */}
-        {lendingMode === LendingModes.BORROW &&
-          filteredBanksActive.length > 0 &&
-          onSetSelectedBank &&
-          showTokenSelectionGroups && (
-            <CommandGroup heading="Currently borrowing">
-              {filteredBanksActive.map((bank, index) => (
-                <CommandItem
-                  key={index}
-                  value={bank.address?.toString().toLowerCase()}
-                  onSelect={(currentValue) => {
-                    onSetSelectedBank(
-                      banks.find((bankInfo) => bankInfo.address.toString().toLowerCase() === currentValue) ?? null
-                    );
-                    onClose();
-                  }}
-                  className={cn(
-                    "cursor-pointer font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-mfi-action-box-accent data-[selected=true]:text-mfi-action-box-accent-foreground"
-                  )}
-                >
-                  <BankItem
-                    rate={calculateRate(bank)}
-                    lendingMode={lendingMode}
-                    bank={bank}
-                    showBalanceOverride={false}
-                    nativeSolBalance={nativeSolBalance}
-                  />
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          )}
 
         {/* GLOBAL & ISOLATED */}
         {globalBanks.length > 0 && onSetSelectedBank && showTokenSelectionGroups && (

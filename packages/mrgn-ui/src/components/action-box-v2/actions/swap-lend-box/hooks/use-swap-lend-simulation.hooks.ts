@@ -2,26 +2,199 @@ import React from "react";
 
 import { Transaction, VersionedTransaction } from "@solana/web3.js";
 
-import { AccountSummary } from "@mrgnlabs/marginfi-v2-ui-state";
-import { SimulationResult } from "@mrgnlabs/marginfi-client-v2";
-import { usePrevious } from "@mrgnlabs/mrgn-utils";
+import { AccountSummary, ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { MarginfiAccountWrapper, MarginfiClient, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
+import {
+  ActionMessageType,
+  ActionTxns,
+  DYNAMIC_SIMULATION_ERRORS,
+  STATIC_SIMULATION_ERRORS,
+  SwapLendActionTxns,
+  usePrevious,
+} from "@mrgnlabs/mrgn-utils";
+import { SimulationStatus } from "~/components/action-box-v2/utils";
+import {
+  calculateSummary,
+  generateSwapLendTxns,
+  GenerateSwapLendTxnsProps,
+  getSimulationResult,
+  SimulateActionProps,
+} from "../utils";
 
-type SwapLendSimulationProps = {};
+type SwapLendSimulationProps = {
+  debouncedAmount: number;
+  selectedAccount: MarginfiAccountWrapper | null;
+  marginfiClient: MarginfiClient | null;
+  accountSummary?: AccountSummary;
+  depositBank: ExtendedBankInfo | null;
+  swapBank: ExtendedBankInfo | null;
+  actionTxns: ActionTxns;
+  simulationResult: SimulationResult | null;
+  setSimulationResult: (result: SimulationResult | null) => void;
+  setActionTxns: (actionTxns: ActionTxns) => void;
+  setErrorMessage: (error: ActionMessageType | null) => void;
+  setIsLoading: ({ isLoading, status }: { isLoading: boolean; status: SimulationStatus }) => void;
+};
 
-export function useSwapLendSimulation({}: SwapLendSimulationProps) {
-  const prevDebouncedAmount = usePrevious(1);
+export function useSwapLendSimulation({
+  debouncedAmount,
+  selectedAccount,
+  accountSummary,
+  marginfiClient,
+  depositBank,
+  swapBank,
+  actionTxns,
+  simulationResult,
+  setSimulationResult,
+  setActionTxns,
+  setErrorMessage,
+  setIsLoading,
+}: SwapLendSimulationProps) {
+  const prevDebouncedAmount = usePrevious(debouncedAmount);
+  const prevDepositBank = usePrevious(depositBank);
+  const prevSwapBank = usePrevious(swapBank);
 
-  const handleSimulation = React.useCallback(async (txns: (VersionedTransaction | Transaction)[]) => {}, []);
+  const handleError = (error: ActionMessageType | null) => {};
 
-  const handleActionSummary = React.useCallback((summary?: AccountSummary, result?: SimulationResult) => {}, []);
+  const simulationAction = async (props: SimulateActionProps) => {
+    if (props.txns.length > 0) {
+      const simulationResult = await getSimulationResult(props);
 
-  const fetchActionTxn = React.useCallback(async (amount: number) => {}, []);
+      console.log("simulationResult", simulationResult);
 
-  const refreshSimulation = React.useCallback(async () => {}, []);
+      if (simulationResult.actionMethod) {
+        return { simulationResult: null, actionMessage: simulationResult.actionMethod };
+      } else if (simulationResult.simulationResult) {
+        return { simulationResult: simulationResult.simulationResult, actionMessage: null };
+      } else {
+        const errorMessage = DYNAMIC_SIMULATION_ERRORS.TRADE_FAILED_CHECK();
+        return { simulationResult: null, actionMessage: errorMessage };
+      }
+    } else {
+      throw new Error("account, bank or transactions are null");
+    }
+  };
+
+  const fetchSwapLendActionTxns = async (
+    props: GenerateSwapLendTxnsProps
+  ): Promise<{ actionTxns: SwapLendActionTxns | null; actionMessage: ActionMessageType | null }> => {
+    try {
+      const swapLendActionTxns = await generateSwapLendTxns(props);
+      if (swapLendActionTxns && "actionTxn" in swapLendActionTxns) {
+        return {
+          actionTxns: swapLendActionTxns,
+          actionMessage: null,
+        };
+      } else {
+        const errorMessage = swapLendActionTxns ?? DYNAMIC_SIMULATION_ERRORS.TRADE_FAILED_CHECK(); // TODO: update
+        return {
+          actionTxns: null,
+          actionMessage: errorMessage,
+        };
+      }
+    } catch (error) {
+      return {
+        actionTxns: null,
+        actionMessage: STATIC_SIMULATION_ERRORS.FL_FAILED, // TODO: update
+      };
+    }
+  };
+
+  const handleSimulation = React.useCallback(
+    async (amount: number) => {
+      try {
+        if (amount === 0 || !depositBank || !selectedAccount || !marginfiClient) {
+          // TODO: will there be cases where the account isnt defined? In arena esp?
+          setActionTxns({ actionTxn: null, additionalTxns: [] });
+          return;
+        }
+
+        setIsLoading({ isLoading: true, status: SimulationStatus.SIMULATING });
+
+        const props: GenerateSwapLendTxnsProps = {
+          marginfiAccount: selectedAccount ?? undefined,
+          depositBank: depositBank,
+          swapBank: swapBank,
+          amount: amount,
+          marginfiClient: marginfiClient,
+          slippageBps: 50,
+        };
+
+        const swapLendActionTxns = await fetchSwapLendActionTxns(props);
+
+        if (swapLendActionTxns.actionMessage || swapLendActionTxns.actionTxns === null) {
+          // handleError(swapLendActionTxns.actionMessage ?? STATIC_SIMULATION_ERRORS.FL_FAILED, {
+          //   setErrorMessage,
+          //   setSimulationResult,
+          //   setActionTxns,
+          //   setIsLoading,
+          // });
+          return;
+        }
+
+        const simulationResult = await simulationAction({
+          txns: [
+            ...(swapLendActionTxns?.actionTxns?.additionalTxns ?? []),
+            ...(swapLendActionTxns?.actionTxns?.actionTxn ? [swapLendActionTxns?.actionTxns?.actionTxn] : []),
+          ],
+          account: selectedAccount,
+          bank: depositBank,
+        });
+
+        if (simulationResult.actionMessage || simulationResult.simulationResult === null) {
+          // handleError(simulationResult.actionMessage ?? STATIC_SIMULATION_ERRORS.TRADE_FAILED, {
+          //   setErrorMessage,
+          //   setSimulationResult,
+          //   setActionTxns,
+          //   setIsLoading,
+          // });
+          return;
+        } else if (simulationResult.simulationResult) {
+          setSimulationResult(simulationResult.simulationResult);
+          setActionTxns(swapLendActionTxns.actionTxns);
+        } else {
+          throw new Error("Unknown error");
+        }
+      } catch (error) {
+        console.error("Error simulating transaction", error);
+        setSimulationResult(null);
+      } finally {
+        setIsLoading({ isLoading: false, status: SimulationStatus.COMPLETE });
+      }
+    },
+    [depositBank, marginfiClient, selectedAccount, setActionTxns, setIsLoading, setSimulationResult, swapBank]
+  );
+
+  React.useEffect(() => {
+    if (prevDebouncedAmount !== debouncedAmount || prevDepositBank !== depositBank || prevSwapBank !== swapBank) {
+      // Only set to PREPARING if we're actually going to simulate
+      if (debouncedAmount > 0) {
+        handleSimulation(debouncedAmount);
+      }
+    }
+  }, [debouncedAmount, depositBank, handleSimulation, prevDebouncedAmount, prevDepositBank, prevSwapBank, swapBank]);
+
+  const refreshSimulation = React.useCallback(async () => {
+    await handleSimulation(debouncedAmount ?? 0);
+  }, [handleSimulation, debouncedAmount]);
+
+  const handleActionSummary = React.useCallback(
+    (summary?: AccountSummary, result?: SimulationResult) => {
+      if (summary && depositBank) {
+        return calculateSummary({
+          simulationResult: result ?? undefined,
+          bank: depositBank,
+          actionMode: ActionType.Deposit,
+          accountSummary: summary,
+        });
+      }
+    },
+    [depositBank]
+  );
 
   const actionSummary = React.useMemo(() => {
-    return undefined;
-  }, []);
+    return handleActionSummary(accountSummary, simulationResult ?? undefined);
+  }, [accountSummary, simulationResult, handleActionSummary]);
 
   return {
     actionSummary,

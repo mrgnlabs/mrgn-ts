@@ -9,7 +9,8 @@ interface SwapLendBoxState {
   amountRaw: string;
 
   lendMode: ActionType;
-  selectedBank: ExtendedBankInfo | null;
+  selectedDepositBank: ExtendedBankInfo | null;
+  selectedSwapBank: ExtendedBankInfo | null;
 
   simulationResult: SimulationResult | null;
   actionTxns: ActionTxns;
@@ -18,13 +19,18 @@ interface SwapLendBoxState {
 
   // Actions
   refreshState: (actionMode?: ActionType) => void;
-  refreshSelectedBanks: (banks: ExtendedBankInfo[]) => void;
-  fetchActionBoxState: (args: { requestedLendType?: ActionType; requestedBank?: ExtendedBankInfo }) => void;
+  refreshBanks: (banks: ExtendedBankInfo[]) => void;
+  fetchActionBoxState: (args: {
+    requestedLendType?: ActionType;
+    depositBank?: ExtendedBankInfo;
+    swapBank?: ExtendedBankInfo;
+  }) => void;
   setLendMode: (lendMode: ActionType) => void;
   setAmountRaw: (amountRaw: string, maxAmount?: number) => void;
   setSimulationResult: (simulationResult: SimulationResult | null) => void;
   setActionTxns: (actionTxns: ActionTxns) => void;
-  setSelectedBank: (bank: ExtendedBankInfo | null) => void;
+  setSelectedDepositBank: (bank: ExtendedBankInfo | null) => void;
+  setSelectedSwapBank: (bank: ExtendedBankInfo | null) => void;
   setErrorMessage: (errorMessage: ActionMessageType | null) => void;
 }
 
@@ -36,7 +42,8 @@ const initialState = {
   amountRaw: "",
   simulationResult: null,
   lendMode: ActionType.Deposit,
-  selectedBank: null,
+  selectedDepositBank: null,
+  selectedSwapBank: null,
   actionTxns: { actionTxn: null, additionalTxns: [] },
   errorMessage: null,
 };
@@ -55,7 +62,8 @@ const stateCreator: StateCreator<SwapLendBoxState, [], []> = (set, get) => ({
 
   fetchActionBoxState(args) {
     let requestedAction: ActionType;
-    let requestedBank: ExtendedBankInfo | null = null;
+    let requestedDepositBank: ExtendedBankInfo | null = null;
+    let requestedSwapBank: ExtendedBankInfo | null = null;
     const lendMode = get().lendMode;
 
     if (args.requestedLendType) {
@@ -64,21 +72,36 @@ const stateCreator: StateCreator<SwapLendBoxState, [], []> = (set, get) => ({
       requestedAction = initialState.lendMode;
     }
 
-    if (args.requestedBank) {
-      requestedBank = args.requestedBank;
+    if (args.depositBank) {
+      requestedDepositBank = args.depositBank;
     } else {
-      requestedBank = null;
+      requestedDepositBank = null;
     }
 
-    const selectedBank = get().selectedBank;
+    if (args.swapBank) {
+      requestedSwapBank = args.swapBank;
+    } else {
+      requestedSwapBank = null;
+    }
+
+    const depositBank = get().selectedDepositBank;
+    const swapBank = get().selectedSwapBank;
 
     const needRefresh =
-      !selectedBank ||
+      !depositBank ||
+      !swapBank ||
       !requestedAction ||
       lendMode !== requestedAction ||
-      (requestedBank && !requestedBank.address.equals(selectedBank.address));
+      (requestedDepositBank && !requestedDepositBank.address.equals(depositBank.address)) ||
+      (requestedSwapBank && !requestedSwapBank.address.equals(swapBank.address));
 
-    if (needRefresh) set({ ...initialState, lendMode: requestedAction, selectedBank: requestedBank });
+    if (needRefresh)
+      set({
+        ...initialState,
+        lendMode: requestedAction,
+        selectedDepositBank: requestedDepositBank,
+        selectedSwapBank: requestedSwapBank,
+      });
   },
 
   async setAmountRaw(amountRaw, maxAmount) {
@@ -97,24 +120,45 @@ const stateCreator: StateCreator<SwapLendBoxState, [], []> = (set, get) => ({
     }
   },
 
-  refreshSelectedBanks(banks: ExtendedBankInfo[]) {
-    const selectedBank = get().selectedBank;
+  refreshBanks(banks: ExtendedBankInfo[]) {
+    const depositBank = get().selectedDepositBank;
+    const swapBank = get().selectedSwapBank;
 
-    if (selectedBank) {
-      const updatedBank = banks.find((v) => v.address.equals(selectedBank.address));
+    if (depositBank) {
+      const updatedBank = banks.find((v) => v.address.equals(depositBank.address));
       if (updatedBank) {
-        set({ selectedBank: updatedBank });
+        set({ selectedDepositBank: updatedBank });
+      }
+    }
+
+    if (swapBank) {
+      const updatedBank = banks.find((v) => v.address.equals(swapBank.address));
+      if (updatedBank) {
+        set({ selectedSwapBank: updatedBank });
       }
     }
   },
 
-  setSelectedBank(tokenBank) {
-    const selectedBank = get().selectedBank;
-    const hasBankChanged = !tokenBank || !selectedBank || !tokenBank.address.equals(selectedBank.address);
+  setSelectedDepositBank(depositBank) {
+    const selectedBank = get().selectedDepositBank;
+    const hasBankChanged = !depositBank || !selectedBank || !depositBank.address.equals(selectedBank.address);
 
     if (hasBankChanged) {
       set({
-        selectedBank: tokenBank,
+        selectedDepositBank: depositBank,
+        amountRaw: "",
+        errorMessage: null,
+      });
+    }
+  },
+
+  setSelectedSwapBank(swapBank) {
+    const selectedBank = get().selectedSwapBank;
+    const hasBankChanged = !swapBank || !selectedBank || !swapBank.address.equals(selectedBank.address);
+
+    if (hasBankChanged) {
+      set({
+        selectedSwapBank: swapBank,
         amountRaw: "",
         errorMessage: null,
       });

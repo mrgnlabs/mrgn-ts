@@ -245,6 +245,7 @@ export function useTradeSimulation({
     ]
   );
 
+  /////////////////////
   const fetchMaxLeverage = React.useCallback(async () => {
     if (depositBank && borrowBank) {
       const { maxLeverage, ltv } = computeMaxLeverage(depositBank.info.rawBank, borrowBank.info.rawBank);
@@ -257,6 +258,7 @@ export function useTradeSimulation({
       }
     }
   }, [depositBank, borrowBank, setErrorMessage, setMaxLeverage]);
+  /////////////////////
 
   React.useEffect(() => {
     if ((prevDebouncedAmount !== debouncedAmount || prevDebouncedLeverage !== debouncedLeverage) && isEnabled) {
@@ -267,12 +269,14 @@ export function useTradeSimulation({
     }
   }, [debouncedAmount, debouncedLeverage, handleSimulation, isEnabled, prevDebouncedAmount, prevDebouncedLeverage]);
 
+  /////////////////////
   // Fetch max leverage based when the secondary bank changes
   React.useEffect(() => {
     if (borrowBank && prevBorrowBank?.address !== borrowBank.address) {
       fetchMaxLeverage();
     }
   }, [borrowBank, prevBorrowBank, fetchMaxLeverage]);
+  /////////////////////
 
   const refreshSimulation = React.useCallback(async () => {
     await handleSimulation(debouncedAmount ?? 0, debouncedLeverage ?? 0);

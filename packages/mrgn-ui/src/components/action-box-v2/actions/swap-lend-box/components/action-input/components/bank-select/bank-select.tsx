@@ -36,44 +36,26 @@ export const BankSelect = ({
       lendMode === ActionType.Deposit || lendMode === ActionType.Withdraw ? LendingModes.LEND : LendingModes.BORROW,
     [lendMode]
   );
-
-  const calculateRate = React.useCallback(
-    (bank: ExtendedBankInfo) => {
-      return computeBankRate(bank, lendingMode);
-    },
-    [lendingMode]
-  );
-
   return (
     <>
-      {!isSelectable && (
-        <div className="flex gap-3 w-full items-center">
-          {selectedBank && (
-            <SelectedBankItem bank={selectedBank} lendingMode={lendingMode} rate={calculateRate(selectedBank)} />
-          )}
-        </div>
-      )}
-
-      {isSelectable && (
-        <BankListWrapper
-          isOpen={isOpen}
-          setIsOpen={setIsOpen}
-          Trigger={<BankTrigger selectedBank={selectedBank} lendingMode={lendingMode} isOpen={isOpen} />}
-          Content={
-            <BankList
-              isOpen={isOpen}
-              onClose={() => setIsOpen(false)}
-              selectedBank={selectedBank}
-              onSetSelectedBank={setSelectedBank}
-              lendMode={lendMode}
-              banks={banks}
-              nativeSolBalance={nativeSolBalance}
-              connected={connected}
-              showTokenSelectionGroups={showTokenSelectionGroups}
-            />
-          }
-        />
-      )}
+      <BankListWrapper
+        isOpen={isOpen}
+        setIsOpen={setIsOpen}
+        Trigger={<BankTrigger selectedBank={selectedBank} lendingMode={lendingMode} isOpen={isOpen} />}
+        Content={
+          <BankList
+            isOpen={isOpen}
+            onClose={() => setIsOpen(false)}
+            selectedBank={selectedBank}
+            onSetSelectedBank={setSelectedBank}
+            lendMode={lendMode}
+            banks={banks}
+            nativeSolBalance={nativeSolBalance}
+            connected={connected}
+            showTokenSelectionGroups={showTokenSelectionGroups}
+          />
+        }
+      />
     </>
   );
 };
