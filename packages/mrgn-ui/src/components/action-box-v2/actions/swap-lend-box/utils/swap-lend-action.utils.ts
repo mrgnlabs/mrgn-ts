@@ -96,12 +96,12 @@ export async function generateSwapLendTxns(
         return swapTx.error;
       } else {
         if (!swapTx.tx || !swapTx.quote) {
-          return STATIC_SIMULATION_ERRORS.FL_FAILED; // TODO: update
+          return STATIC_SIMULATION_ERRORS.CREATE_SWAP_FAILED;
         }
       }
     } catch (error) {
       console.error("Error creating swap transaction:", error);
-      return STATIC_SIMULATION_ERRORS.FL_FAILED; // TODO: update
+      return STATIC_SIMULATION_ERRORS.CREATE_SWAP_FAILED;
     }
   }
 
@@ -110,7 +110,7 @@ export async function generateSwapLendTxns(
   let finalDepositAmount = props.amount;
 
   if (props.swapBank && !swapTx?.quote) {
-    return STATIC_SIMULATION_ERRORS.FL_FAILED; // TODO: update
+    return STATIC_SIMULATION_ERRORS.CREATE_SWAP_FAILED;
   } else if (props.swapBank && swapTx?.quote) {
     finalDepositAmount = Number(nativeToUi(swapTx?.quote?.outAmount, props.depositBank.info.state.mintDecimals));
   }
@@ -141,7 +141,7 @@ export async function createSwapTx(props: GenerateSwapLendTxnsProps) {
     });
 
     if (!swapQuote) {
-      return { error: STATIC_SIMULATION_ERRORS.FL_FAILED }; // TODO: update
+      return { error: STATIC_SIMULATION_ERRORS.CREATE_SWAP_FAILED };
     }
 
     const {
@@ -184,7 +184,7 @@ export async function createSwapTx(props: GenerateSwapLendTxnsProps) {
     return { quote: swapQuote, tx: swapTx };
   } catch (error) {
     console.error("Error creating swap transaction:", error);
-    return { error: STATIC_SIMULATION_ERRORS.FL_FAILED }; // TODO: update
+    return { error: STATIC_SIMULATION_ERRORS.CREATE_SWAP_FAILED };
   }
 }
 

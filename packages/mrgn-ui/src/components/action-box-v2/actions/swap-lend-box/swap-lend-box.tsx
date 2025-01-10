@@ -295,7 +295,7 @@ export const SwapLendBox = ({
             swapLendOptions: {
               depositBank: selectedDepositBank as ActiveBankInfo,
               swapBank: selectedSwapBank as ActiveBankInfo,
-              depositAmount: 0, // TODO
+              depositAmount: params.amount,
               swapAmount: 0, // TODO
             },
           });
@@ -306,7 +306,7 @@ export const SwapLendBox = ({
               swapLendOptions: {
                 depositBank: selectedDepositBank as ActiveBankInfo,
                 swapBank: selectedSwapBank as ActiveBankInfo,
-                depositAmount: 0, // TODO
+                depositAmount: params.amount,
                 swapAmount: 0, // TODO
               },
             });
@@ -322,7 +322,7 @@ export const SwapLendBox = ({
   const handleSwapLendAction = React.useCallback(
     async (_actionTxns?: ActionTxns, multiStepToast?: MultiStepToastHandle) => {
       console.log(selectedAccount);
-      if (!actionTxns || !marginfiClient || !debouncedAmount) {
+      if (!actionTxns || !marginfiClient || !debouncedAmount || debouncedAmount === 0) {
         console.log({ actionTxns, marginfiClient, selectedSwapBank });
         return;
       }

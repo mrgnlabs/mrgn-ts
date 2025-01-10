@@ -8,6 +8,7 @@ import {
   ActionMessageType,
   ActionTxns,
   DYNAMIC_SIMULATION_ERRORS,
+  extractErrorString,
   STATIC_SIMULATION_ERRORS,
   SwapLendActionTxns,
   usePrevious,
@@ -54,7 +55,33 @@ export function useSwapLendSimulation({
   const prevDepositBank = usePrevious(depositBank);
   const prevSwapBank = usePrevious(swapBank);
 
-  const handleError = (error: ActionMessageType | null) => {};
+  const handleError = (
+    actionMessage: ActionMessageType | string,
+    callbacks: {
+      setErrorMessage: (error: ActionMessageType | null) => void;
+      setSimulationResult: (result: SimulationResult | null) => void;
+      setActionTxns: (actionTxns: ActionTxns) => void;
+      setIsLoading: ({ isLoading, status }: { isLoading: boolean; status: SimulationStatus }) => void;
+    }
+  ) => {
+    if (typeof actionMessage === "string") {
+      const errorMessage = extractErrorString(actionMessage);
+      const _actionMessage: ActionMessageType = {
+        isEnabled: true,
+        description: errorMessage,
+      };
+      callbacks.setErrorMessage(_actionMessage);
+    } else {
+      callbacks.setErrorMessage(actionMessage);
+    }
+    callbacks.setSimulationResult(null);
+    callbacks.setActionTxns({ actionTxn: null, additionalTxns: [] });
+    console.error(
+      "Error simulating transaction",
+      typeof actionMessage === "string" ? extractErrorString(actionMessage) : actionMessage.description
+    );
+    callbacks.setIsLoading({ isLoading: false, status: SimulationStatus.COMPLETE });
+  };
 
   const simulationAction = async (props: SimulateActionProps) => {
     if (props.txns.length > 0) {
@@ -86,7 +113,7 @@ export function useSwapLendSimulation({
           actionMessage: null,
         };
       } else {
-        const errorMessage = swapLendActionTxns ?? DYNAMIC_SIMULATION_ERRORS.TRADE_FAILED_CHECK(); // TODO: update
+        const errorMessage = swapLendActionTxns ?? STATIC_SIMULATION_ERRORS.DEPOSIT_FAILED;
         return {
           actionTxns: null,
           actionMessage: errorMessage,
@@ -95,7 +122,7 @@ export function useSwapLendSimulation({
     } catch (error) {
       return {
         actionTxns: null,
-        actionMessage: STATIC_SIMULATION_ERRORS.FL_FAILED, // TODO: update
+        actionMessage: STATIC_SIMULATION_ERRORS.DEPOSIT_FAILED,
       };
     }
   };
@@ -123,12 +150,12 @@ export function useSwapLendSimulation({
         const swapLendActionTxns = await fetchSwapLendActionTxns(props);
 
         if (swapLendActionTxns.actionMessage || swapLendActionTxns.actionTxns === null) {
-          // handleError(swapLendActionTxns.actionMessage ?? STATIC_SIMULATION_ERRORS.FL_FAILED, {
-          //   setErrorMessage,
-          //   setSimulationResult,
-          //   setActionTxns,
-          //   setIsLoading,
-          // });
+          handleError(swapLendActionTxns.actionMessage ?? STATIC_SIMULATION_ERRORS.DEPOSIT_FAILED, {
+            setErrorMessage,
+            setSimulationResult,
+            setActionTxns,
+            setIsLoading,
+          });
           return;
         }
 
@@ -142,12 +169,12 @@ export function useSwapLendSimulation({
         });
 
         if (simulationResult.actionMessage || simulationResult.simulationResult === null) {
-          // handleError(simulationResult.actionMessage ?? STATIC_SIMULATION_ERRORS.TRADE_FAILED, {
-          //   setErrorMessage,
-          //   setSimulationResult,
-          //   setActionTxns,
-          //   setIsLoading,
-          // });
+          handleError(simulationResult.actionMessage ?? STATIC_SIMULATION_ERRORS.DEPOSIT_FAILED, {
+            setErrorMessage,
+            setSimulationResult,
+            setActionTxns,
+            setIsLoading,
+          });
           return;
         } else if (simulationResult.simulationResult) {
           setSimulationResult(simulationResult.simulationResult);
