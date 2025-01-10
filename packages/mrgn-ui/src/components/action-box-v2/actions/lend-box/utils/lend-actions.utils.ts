@@ -1,9 +1,22 @@
-import { Connection, Transaction, TransactionInstruction, VersionedTransaction } from "@solana/web3.js";
+import {
+  Connection,
+  StakeProgram,
+  StakeAuthorizationLayout,
+  Transaction,
+  TransactionInstruction,
+  VersionedTransaction,
+} from "@solana/web3.js";
 import { v4 as uuidv4 } from "uuid";
 
 import { MarginfiAccountWrapper, ProcessTransactionsClientOpts } from "@mrgnlabs/marginfi-client-v2";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { getAssociatedTokenAddressSync, SolanaTransaction, TransactionBroadcastType } from "@mrgnlabs/mrgn-common";
+import {
+  createAssociatedTokenAccountInstruction,
+  getAssociatedTokenAddressSync,
+  SolanaTransaction,
+  TransactionBroadcastType,
+  addTransactionMetadata,
+} from "@mrgnlabs/mrgn-common";
 import {
   ActionMessageType,
   closeBalance,
@@ -16,6 +29,7 @@ import {
   isWholePosition,
   MarginfiActionParams,
   MultiStepToastHandle,
+  SinglePoolInstruction,
 } from "@mrgnlabs/mrgn-utils";
 
 import { ExecuteActionsCallbackProps } from "~/components/action-box-v2/types";
@@ -134,35 +148,78 @@ export async function calculateLendingTransaction(
 > {
   switch (actionMode) {
     case ActionType.Deposit:
+      let depositTx: SolanaTransaction;
+      let stakedLstSolanaTxn: SolanaTransaction | undefined;
+
       if (marginfiAccount && connection && bank.info.rawBank.config.assetTag === 2) {
         console.log("Depositing into staked asset bank");
+
         const stakeAccounts = await getStakeAccountsCached(marginfiAccount.authority);
         const stakeAccount = stakeAccounts.find((stakeAccount) =>
           stakeAccount.poolMintKey.equals(bank.info.state.mint)
         );
 
         if (!stakeAccount) {
-          console.log("No stake account found for this staked asset bank");
-        } else {
-          const pool = findPoolAddress(stakeAccount.validator);
-          const lstMint = findPoolMintAddress(pool);
-          const auth = findPoolStakeAuthorityAddress(pool);
-          const lstAta = getAssociatedTokenAddressSync(lstMint, marginfiAccount.authority);
-
-          const ixes: TransactionInstruction[] = [];
-
-          console.log("Staked asset bank params");
-          console.log(pool.toBase58());
-          console.log(lstMint.toBase58());
-          console.log(auth.toBase58());
-          console.log(lstAta.toBase58());
+          throw new Error("No stake account found for this staked asset bank");
         }
+
+        const pool = findPoolAddress(stakeAccount.validator);
+        const lstMint = findPoolMintAddress(pool);
+        const auth = findPoolStakeAuthorityAddress(pool);
+        const lstAta = getAssociatedTokenAddressSync(lstMint, marginfiAccount.authority);
+
+        const ix: TransactionInstruction[] = [];
+
+        // ix.push(createAssociatedTokenAccountInstruction(marginfiAccount.authority, lstAta, marginfiAccount.authority, lstMint));
+
+        const authorizeStakerIxes = StakeProgram.authorize({
+          stakePubkey: stakeAccount.accounts[0].pubkey,
+          authorizedPubkey: marginfiAccount.authority,
+          newAuthorizedPubkey: auth,
+          stakeAuthorizationType: StakeAuthorizationLayout.Staker,
+        }).instructions;
+
+        ix.push(...authorizeStakerIxes);
+
+        const authorizeWithdrawIxes = StakeProgram.authorize({
+          stakePubkey: stakeAccount.accounts[0].pubkey,
+          authorizedPubkey: marginfiAccount.authority,
+          newAuthorizedPubkey: auth,
+          stakeAuthorizationType: StakeAuthorizationLayout.Withdrawer,
+        }).instructions;
+
+        ix.push(...authorizeWithdrawIxes);
+
+        const depositIx = await SinglePoolInstruction.depositStake(
+          pool,
+          stakeAccount.accounts[0].pubkey,
+          lstAta,
+          marginfiAccount.authority
+        );
+
+        ix.push(depositIx);
+
+        console.log("Staked asset bank params");
+        console.log(pool.toBase58());
+        console.log(lstMint.toBase58());
+        console.log(auth.toBase58());
+        console.log(lstAta.toBase58());
+        console.log(ix);
+
+        const stakedLstTxn = new Transaction();
+        stakedLstTxn.add(...ix);
+        stakedLstSolanaTxn = addTransactionMetadata(stakedLstTxn, {});
+
+        depositTx = await marginfiAccount.makeDepositTx(amount, bank.address, {
+          stakedLstAta: lstAta,
+        });
+      } else {
+        depositTx = await marginfiAccount.makeDepositTx(amount, bank.address);
       }
 
-      const depositTx = await marginfiAccount.makeDepositTx(amount, bank.address);
       return {
-        actionTxn: depositTx,
-        additionalTxns: [], // bundle tip ix is in depositTx
+        actionTxn: stakedLstSolanaTxn ? stakedLstSolanaTxn : depositTx,
+        additionalTxns: stakedLstSolanaTxn ? [depositTx] : [],
       };
     case ActionType.Borrow:
       const borrowTxObject = await marginfiAccount.makeBorrowTx(amount, bank.address, {

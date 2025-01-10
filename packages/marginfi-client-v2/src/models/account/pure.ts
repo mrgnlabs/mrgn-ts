@@ -653,7 +653,7 @@ class MarginfiAccount {
         marginfiGroupPk: this.group,
         marginfiAccountPk: this.address,
         authorityPk: this.authority,
-        signerTokenAccountPk: userTokenAtaPk,
+        signerTokenAccountPk: opt.stakedLstAta ?? userTokenAtaPk,
         bankPk: bank.address,
         tokenProgramPk: mintData.tokenProgram,
       },
@@ -1132,6 +1132,7 @@ enum MarginRequirementType {
 
 export interface MakeDepositIxOpts {
   wrapAndUnwrapSol?: boolean;
+  stakedLstAta?: PublicKey;
 }
 
 export interface MakeRepayIxOpts {

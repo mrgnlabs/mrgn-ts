@@ -46,7 +46,6 @@ export function useLendSimulation({
   setIsLoading,
 }: LendSimulationProps) {
   const prevDebouncedAmount = usePrevious(debouncedAmount);
-  console.log("useLendSimulation", connection);
 
   const handleSimulation = React.useCallback(
     async (txns: (VersionedTransaction | Transaction)[]) => {
