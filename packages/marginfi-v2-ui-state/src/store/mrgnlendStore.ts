@@ -14,13 +14,13 @@ import {
   makeExtendedBankEmission,
   TokenPriceMap,
   fetchGroupData,
+  filterStakedAssetBanks,
 } from "../lib";
 import { getPointsSummary } from "../lib/points";
 import { create, StateCreator } from "zustand";
 import { persist } from "zustand/middleware";
 
 import { Bank, getPriceWithConfidence, OraclePrice } from "@mrgnlabs/marginfi-client-v2";
-import { filterStakedAssetBanks } from "@mrgnlabs/mrgn-utils";
 import type {
   Wallet,
   BankMetadataMap,

@@ -9,4 +9,5 @@ export const SYSVAR_CLOCK_ID = new PublicKey("SysvarC1ock11111111111111111111111
 export const SYSVAR_STAKE_HISTORY_ID = new PublicKey("SysvarStakeHistory1111111111111111111111111");
 export const STAKE_CONFIG_ID = new PublicKey("StakeConfig11111111111111111111111111111111");
 
-export const MAX_U64 = (2n ** 64n - 1n).toString();
+// export const MAX_U64 = (2n ** 64n - 1n).toString();
+export const MAX_U64 = BigInt("18446744073709551615").toString();
