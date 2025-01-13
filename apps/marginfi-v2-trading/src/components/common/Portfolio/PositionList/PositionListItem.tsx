@@ -42,9 +42,12 @@ export const PositionListItem = ({ arenaPool }: props) => {
           e.target instanceof HTMLAnchorElement ||
           e.target instanceof SVGElement ||
           (e.target instanceof Element &&
-            (e.target.hasAttribute("data-state") || e.target.closest("[data-command-item]")))
+            (e.target.hasAttribute("data-state") ||
+              e.target.closest("[data-command-item]") ||
+              e.target.closest("[data-router-ignore]")))
         )
           return;
+
         router.push(`/trade/${arenaPool.groupPk.toBase58()}`);
       }}
     >
