@@ -166,7 +166,7 @@ class MarginfiGroup {
     };
   }
 
-  public async makeAddPermissionlessBankIx(
+  public async makeAddPermissionlessStakedBankIx(
     program: MarginfiProgram,
     stakePool: PublicKey,
     mint: PublicKey,
@@ -189,7 +189,7 @@ class MarginfiGroup {
     //   program.programId
     // );
 
-    const ix = await instructions.makePoolAddPermissionlessBankIx(
+    const ix = await instructions.makePoolAddPermissionlessStakedBankIx(
       program,
       {
         stakedSettings: settingsKey,

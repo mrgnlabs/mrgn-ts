@@ -338,7 +338,7 @@ async function makeGroupInitIx(
     .instruction();
 }
 
-async function makePoolAddPermissionlessBankIx(
+async function makePoolAddPermissionlessStakedBankIx(
   mfProgram: MarginfiProgram,
   accounts: {
     stakedSettings: PublicKey;
@@ -448,7 +448,7 @@ const instructions = {
   makeEndFlashLoanIx,
   makeAccountAuthorityTransferIx,
   makeGroupInitIx,
-  makePoolAddPermissionlessBankIx,
+  makePoolAddPermissionlessStakedBankIx,
 };
 
 export default instructions;
