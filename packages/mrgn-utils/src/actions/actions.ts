@@ -1,7 +1,7 @@
 import { WalletContextState } from "@solana/wallet-adapter-react";
 
 import { MarginfiClient, ProcessTransactionsClientOpts } from "@mrgnlabs/marginfi-client-v2";
-import { FEE_MARGIN, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
+import { FEE_MARGIN, ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { TransactionOptions, WSOL_MINT } from "@mrgnlabs/mrgn-common";
 
 import { MultiStepToastHandle, showErrorToast } from "../toasts";
@@ -13,6 +13,7 @@ import {
   LoopingProps,
   TradeActionTxns,
   ClosePositionActionTxns,
+  SwapLendActionTxns,
 } from "./types";
 import { WalletContextStateOverride } from "../wallet";
 import {
@@ -29,6 +30,7 @@ import {
   mintLstToken,
   mintLstStakeToStake,
   closePosition,
+  swapLend,
 } from "./individualFlows";
 import { STATIC_SIMULATION_ERRORS } from "../errors";
 
@@ -148,6 +150,19 @@ export async function executeTradeAction(params: ExecuteTradeActionProps) {
   let txnSig: string[] | undefined;
 
   txnSig = await trade(params);
+
+  return txnSig;
+}
+
+export interface ExecuteSwapLendActionProps extends MarginfiActionParams {
+  swapBank: ExtendedBankInfo | null;
+  actionTxns: SwapLendActionTxns;
+}
+
+export async function executeSwapLendAction(params: ExecuteSwapLendActionProps) {
+  let txnSig: string[] | undefined;
+
+  txnSig = await swapLend(params);
 
   return txnSig;
 }

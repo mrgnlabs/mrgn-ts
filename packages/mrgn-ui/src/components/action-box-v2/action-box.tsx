@@ -2,7 +2,17 @@ import React from "react";
 
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { LendBox, LendBoxProps, LoopBox, LoopBoxProps, RepayCollatBox, StakeBox, StakeBoxProps } from "./actions";
+import {
+  LendBox,
+  LendBoxProps,
+  LoopBox,
+  LoopBoxProps,
+  RepayCollatBox,
+  StakeBox,
+  StakeBoxProps,
+  SwapLendBox,
+  SwapLendBoxProps,
+} from "./actions";
 import { ActionDialogWrapper, ActionBoxWrapper, ActionBoxNavigator } from "./components";
 import { useActionBoxContext, useStakeBoxContext } from "./contexts";
 import {
@@ -14,6 +24,7 @@ import {
   RequiredStakeBoxProps,
   RequiredRepayBoxProps,
   RequiredLoopBoxProps,
+  RequiredSwapLendBoxProps,
 } from "./types";
 
 const ActionBox: ActionBoxComponent = (props) => {
@@ -62,6 +73,35 @@ const Lend = (props: ActionBoxProps & { lendProps: RequiredLendBoxProps | LendBo
   );
 };
 ActionBox.Lend = Lend;
+
+const SwapLend = (
+  props: ActionBoxProps & { swapLendProps: RequiredSwapLendBoxProps | SwapLendBoxProps; useProvider?: boolean }
+) => {
+  const contextProps = useActionBoxContext();
+  const { swapLendProps, useProvider, ...actionBoxProps } = props;
+
+  let combinedProps: SwapLendBoxProps;
+
+  if (useProvider && contextProps) {
+    combinedProps = {
+      ...contextProps,
+      ...(swapLendProps as RequiredSwapLendBoxProps),
+    };
+  } else {
+    combinedProps = swapLendProps as SwapLendBoxProps;
+  }
+
+  return (
+    <ActionBox {...actionBoxProps}>
+      <ActionBoxWrapper showSettings={false} isDialog={props.isDialog} actionMode={ActionType.Deposit}>
+        <ActionBoxNavigator selectedAction={ActionType.Deposit}>
+          <SwapLendBox {...combinedProps} isDialog={props.isDialog} />
+        </ActionBoxNavigator>
+      </ActionBoxWrapper>
+    </ActionBox>
+  );
+};
+ActionBox.SwapLend = SwapLend;
 
 const BorrowLend = (
   props: ActionBoxProps & { lendProps: RequiredLendBoxProps | LendBoxProps; useProvider?: boolean }

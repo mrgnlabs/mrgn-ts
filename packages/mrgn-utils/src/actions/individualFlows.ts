@@ -50,6 +50,7 @@ import {
 import { captureSentryException } from "../sentry.utils";
 import { loopingBuilder, repayWithCollatBuilder } from "./flashloans";
 import { STATIC_SIMULATION_ERRORS } from "../errors";
+import { ExecuteSwapLendActionProps } from "./actions";
 
 //-----------------------//
 // Local utils functions //
@@ -314,6 +315,67 @@ export async function deposit({
     }
     multiStepToast.setSuccess(txnSig, composeExplorerUrl(txnSig));
     return txnSig;
+  } catch (error: any) {
+    console.log(`Error while Depositing`);
+    console.log(error);
+    if (!(error instanceof ProcessTransactionError || error instanceof SolanaJSONRPCError)) {
+      captureSentryException(error, JSON.stringify(error), {
+        action: "deposit",
+        wallet: marginfiAccount?.authority?.toBase58(),
+        bank: bank.meta.tokenSymbol,
+      });
+    }
+
+    handleIndividualFlowError({
+      error,
+      actionTxns,
+      multiStepToast,
+    });
+  }
+}
+
+export async function swapLend({
+  marginfiAccount,
+  marginfiClient,
+  bank,
+  amount,
+  actionTxns,
+  processOpts,
+  txOpts,
+  multiStepToast,
+  swapBank,
+}: ExecuteSwapLendActionProps) {
+  console.log(marginfiAccount);
+  if (!multiStepToast) {
+    const steps = getSteps(actionTxns);
+
+    multiStepToast = new MultiStepToastHandle("Deposit", [
+      ...steps,
+      { label: `Depositing ${amount} ${swapBank ? swapBank.meta.tokenSymbol : bank.meta.tokenSymbol}` },
+    ]);
+    multiStepToast.start();
+  } else {
+    multiStepToast.resetAndStart();
+  }
+
+  try {
+    let sigs: string[] = [];
+    if (actionTxns?.actionTxn && marginfiClient) {
+      sigs = await marginfiClient.processTransactions(
+        [...actionTxns.additionalTxns, actionTxns.actionTxn],
+        {
+          ...processOpts,
+          callback: (index, success, sig, stepsToAdvance) =>
+            success && multiStepToast.setSuccessAndNext(stepsToAdvance, sig, composeExplorerUrl(sig)),
+        },
+        txOpts
+      );
+    } else {
+      throw new Error("Marginfi account not ready.");
+    }
+
+    multiStepToast.setSuccess(sigs[sigs.length - 1], composeExplorerUrl(sigs[sigs.length - 1]));
+    return sigs;
   } catch (error: any) {
     console.log(`Error while Depositing`);
     console.log(error);
