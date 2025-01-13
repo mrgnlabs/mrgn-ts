@@ -5,3 +5,4 @@ export * from "./action-complete";
 export * from "./action-message";
 export * from "./settings";
 export * from "./stake-calculator";
+export * from "./collateral-progress-bar";

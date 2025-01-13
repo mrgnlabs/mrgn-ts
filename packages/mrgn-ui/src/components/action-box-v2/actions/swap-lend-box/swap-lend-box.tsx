@@ -1,26 +1,20 @@
 import React from "react";
 
-import { WalletContextState } from "@solana/wallet-adapter-react";
-
 import {
   ActiveBankInfo,
   ExtendedBankInfo,
   ActionType,
-  TokenAccountMap,
   AccountSummary,
   computeAccountSummary,
   DEFAULT_ACCOUNT_SUMMARY,
 } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { MarginfiAccount, MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
+import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import {
   ActionMessageType,
-  ActionTxns,
   checkSwapLendActionAvailable,
-  ClosePositionActionTxns,
   ExecuteSwapLendActionProps,
   IndividualFlowError,
-  MarginfiActionParams,
   MultiStepToastHandle,
   PreviousTxn,
   SwapLendActionTxns,
@@ -29,7 +23,7 @@ import {
 import { ActionButton } from "~/components/action-box-v2/components";
 import { useActionAmounts } from "~/components/action-box-v2/hooks";
 import { LSTDialog, LSTDialogVariants } from "~/components/LSTDialog";
-import { ActionMessage } from "~/components";
+import { ActionMessage, CollateralProgressBar } from "~/components";
 
 import { ActionSimulationStatus } from "../../components";
 import { SimulationStatus } from "../../utils";
@@ -39,13 +33,14 @@ import { useActionContext, HidePoolStats } from "../../contexts";
 
 import { handleExecuteSwapLendAction } from "./utils";
 import { useSwapLendBoxStore } from "./store";
-import { Collateral, ActionInput, Preview } from "./components";
+import { ActionInput, Preview } from "./components";
 import { nativeToUi } from "@mrgnlabs/mrgn-common";
+import { Tooltip, TooltipContent, TooltipTrigger } from "~/components/ui/tooltip";
+import { TooltipProvider } from "~/components/ui/tooltip";
+import { IconInfoCircle } from "~/components/ui/icons";
 
-// error handling
 export type SwapLendBoxProps = {
   nativeSolBalance: number;
-  // tokenAccountMap: TokenAccountMap;
   connected: boolean;
 
   marginfiClient: MarginfiClient | null;
@@ -66,7 +61,6 @@ export type SwapLendBoxProps = {
 
 export const SwapLendBox = ({
   nativeSolBalance,
-  // tokenAccountMap,
   connected,
   marginfiClient,
   banks,
@@ -93,7 +87,6 @@ export const SwapLendBox = ({
 
     refreshState,
     fetchActionBoxState,
-    setLendMode,
     setAmountRaw,
     setSelectedDepositBank,
     setSelectedSwapBank,
@@ -112,7 +105,6 @@ export const SwapLendBox = ({
 
     state.refreshState,
     state.fetchActionBoxState,
-    state.setLendMode,
     state.setAmountRaw,
     state.setSelectedDepositBank,
     state.setSelectedSwapBank,
@@ -130,7 +122,6 @@ export const SwapLendBox = ({
     isLoading: false,
     status: SimulationStatus.IDLE,
   });
-
   const isLoading = React.useMemo(
     () => isTransactionExecuting || isSimulating.isLoading,
     [isTransactionExecuting, isSimulating.isLoading]
@@ -295,8 +286,12 @@ export const SwapLendBox = ({
             swapLendOptions: {
               depositBank: selectedDepositBank as ActiveBankInfo,
               swapBank: selectedSwapBank as ActiveBankInfo,
-              depositAmount: params.amount,
-              swapAmount: 0, // TODO
+              depositAmount: actionTxns?.actionQuote
+                ? Number(
+                    nativeToUi(actionTxns.actionQuote?.outAmount, selectedDepositBank?.info.rawBank.mintDecimals ?? 9)
+                  )
+                : debouncedAmount ?? 0,
+              swapAmount: actionTxns?.actionQuote ? debouncedAmount ?? 0 : 0,
             },
           });
           onComplete &&
@@ -306,8 +301,12 @@ export const SwapLendBox = ({
               swapLendOptions: {
                 depositBank: selectedDepositBank as ActiveBankInfo,
                 swapBank: selectedSwapBank as ActiveBankInfo,
-                depositAmount: params.amount,
-                swapAmount: 0, // TODO
+                depositAmount: actionTxns?.actionQuote
+                  ? Number(
+                      nativeToUi(actionTxns.actionQuote?.outAmount, selectedDepositBank?.info.rawBank.mintDecimals ?? 9)
+                    )
+                  : debouncedAmount ?? 0,
+                swapAmount: actionTxns?.actionQuote ? debouncedAmount ?? 0 : 0,
               },
             });
         },
@@ -321,7 +320,6 @@ export const SwapLendBox = ({
 
   const handleSwapLendAction = React.useCallback(
     async (_actionTxns?: SwapLendActionTxns, multiStepToast?: MultiStepToastHandle) => {
-      console.log(selectedAccount);
       if (!actionTxns || !marginfiClient || !debouncedAmount || debouncedAmount === 0) {
         console.log({ actionTxns, marginfiClient, selectedSwapBank });
         return;
@@ -355,8 +353,12 @@ export const SwapLendBox = ({
             swapLendOptions: {
               depositBank: selectedDepositBank as ActiveBankInfo,
               swapBank: selectedSwapBank as ActiveBankInfo,
-              depositAmount: debouncedAmount,
-              swapAmount: 0, // TODO
+              depositAmount: actionTxns?.actionQuote
+                ? Number(
+                    nativeToUi(actionTxns.actionQuote?.outAmount, selectedDepositBank?.info.rawBank.mintDecimals ?? 9)
+                  )
+                : debouncedAmount,
+              swapAmount: actionTxns?.actionQuote ? debouncedAmount : 0,
             },
           });
           onComplete &&
@@ -366,8 +368,12 @@ export const SwapLendBox = ({
               swapLendOptions: {
                 depositBank: selectedDepositBank as ActiveBankInfo,
                 swapBank: selectedSwapBank as ActiveBankInfo,
-                depositAmount: debouncedAmount,
-                swapAmount: 0, // TODO
+                depositAmount: actionTxns?.actionQuote
+                  ? Number(
+                      nativeToUi(actionTxns.actionQuote?.outAmount, selectedDepositBank?.info.rawBank.mintDecimals ?? 9)
+                    )
+                  : debouncedAmount,
+                swapAmount: actionTxns?.actionQuote ? debouncedAmount : 0,
               },
             });
         },
@@ -424,19 +430,40 @@ export const SwapLendBox = ({
 
       {!requestedDepositBank && (
         <div className="mb-4">
-          <span className="text-sm text-muted-foreground">Deposit</span>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger>
+                <span className="text-sm text-muted-foreground inline-flex items-center gap-1">
+                  ✨ Collateral Swap <IconInfoCircle className="w-4 h-4" />
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Swap your prefered token and deposit it into any pool.</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
           <ActionInput
-            banks={banks}
+            banks={banks.filter(
+              (bank) => bank.info.rawBank.mint.toBase58() !== selectedSwapBank?.info.rawBank.mint.toBase58()
+            )}
             nativeSolBalance={nativeSolBalance}
             walletAmount={walletAmount}
-            amountRaw={nativeToUi(
-              Number(actionTxns?.actionQuote?.outAmount),
-              selectedDepositBank?.info.rawBank.mintDecimals ?? 9
-            ).toString()} // HERE
-            amount={nativeToUi(
-              Number(actionTxns?.actionQuote?.outAmount),
-              selectedDepositBank?.info.rawBank.mintDecimals ?? 9
-            )} // HERE
+            amountRaw={
+              isNaN(Number(actionTxns?.actionQuote?.outAmount))
+                ? ""
+                : nativeToUi(
+                    Number(actionTxns?.actionQuote?.outAmount),
+                    selectedDepositBank?.info.rawBank.mintDecimals ?? 9
+                  ).toString()
+            } // clean
+            amount={
+              isNaN(Number(actionTxns?.actionQuote?.outAmount))
+                ? 0
+                : nativeToUi(
+                    Number(actionTxns?.actionQuote?.outAmount),
+                    selectedDepositBank?.info.rawBank.mintDecimals ?? 9
+                  )
+            } // clean
             maxAmount={maxAmount}
             connected={connected}
             selectedBank={selectedDepositBank ?? null}
@@ -466,7 +493,7 @@ export const SwapLendBox = ({
 
       {showAvailableCollateral && (
         <div className="mb-6">
-          <Collateral selectedAccount={selectedAccount} actionSummary={actionSummary} />
+          <CollateralProgressBar selectedAccount={selectedAccount} actionSummary={actionSummary} />
         </div>
       )}
 
@@ -504,7 +531,6 @@ export const SwapLendBox = ({
         open={!!lstDialogCallback}
         onClose={() => {
           if (lstDialogCallback) {
-            console.log("lstDialogCallback");
             lstDialogCallback();
             setLSTDialogCallback(null);
           }

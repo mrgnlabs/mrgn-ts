@@ -48,11 +48,6 @@ export const PositionActionButtons = ({
     const tokenBank = arenaPool.tokenBank.isActive ? arenaPool.tokenBank : null;
     const quoteBank = arenaPool.quoteBank.isActive ? arenaPool.quoteBank : null;
 
-    console.log(
-      "depositBank",
-      [tokenBank, quoteBank].filter((bank): bank is ActiveBankInfo => bank !== null && bank.position.isLending)
-    );
-
     return [tokenBank, quoteBank].filter((bank): bank is ActiveBankInfo => bank !== null && bank.position.isLending);
   }, [arenaPool]);
 
@@ -66,8 +61,6 @@ export const PositionActionButtons = ({
     } else if (quoteBank && !quoteBank.position.isLending) {
       borrowBank = quoteBank;
     }
-
-    console.log("borrowBank", borrowBank);
 
     return borrowBank;
   }, [arenaPool]);

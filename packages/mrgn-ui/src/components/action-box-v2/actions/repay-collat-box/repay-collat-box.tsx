@@ -26,13 +26,13 @@ import { CircularProgress } from "~/components/ui/circular-progress";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { ActionButton, ActionSettingsButton } from "~/components/action-box-v2/components";
 import { useActionAmounts, usePollBlockHeight } from "~/components/action-box-v2/hooks";
-import { ActionMessage } from "~/components";
+import { ActionMessage, CollateralProgressBar } from "~/components";
 import { IconLoader } from "~/components/ui/icons";
 import { ActionSimulationStatus } from "../../components";
 
 import { SimulationStatus } from "../../utils/simulation.utils";
 import { handleExecuteRepayCollatAction } from "./utils";
-import { Collateral, ActionInput, Preview } from "./components";
+import { ActionInput, Preview } from "./components";
 import { useRepayCollatBoxStore } from "./store";
 import { useRepayCollatSimulation } from "./hooks";
 
@@ -438,7 +438,7 @@ export const RepayCollatBox = ({
 
       {showAvailableCollateral && (
         <div className="mb-6">
-          <Collateral selectedAccount={selectedAccount} actionSummary={actionSummary} />
+          <CollateralProgressBar selectedAccount={selectedAccount} actionSummary={actionSummary} />
         </div>
       )}
 

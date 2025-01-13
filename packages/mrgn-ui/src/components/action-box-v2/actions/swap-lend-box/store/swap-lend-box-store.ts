@@ -25,7 +25,6 @@ interface SwapLendBoxState {
     depositBank?: ExtendedBankInfo;
     swapBank?: ExtendedBankInfo;
   }) => void;
-  setLendMode: (lendMode: ActionType) => void;
   setAmountRaw: (amountRaw: string, maxAmount?: number) => void;
   setSimulationResult: (simulationResult: SimulationResult | null) => void;
   setActionTxns: (actionTxns: SwapLendActionTxns) => void;
@@ -146,7 +145,7 @@ const stateCreator: StateCreator<SwapLendBoxState, [], []> = (set, get) => ({
     if (hasBankChanged) {
       set({
         selectedDepositBank: depositBank,
-        amountRaw: "",
+        // amountRaw: "", // TODO: will this mess up something?
         errorMessage: null,
       });
     }
@@ -163,15 +162,6 @@ const stateCreator: StateCreator<SwapLendBoxState, [], []> = (set, get) => ({
         errorMessage: null,
       });
     }
-  },
-
-  setLendMode(lendMode) {
-    const selectedActionMode = get().lendMode;
-    const hasActionModeChanged = !selectedActionMode || lendMode !== selectedActionMode;
-
-    if (hasActionModeChanged) set({ amountRaw: "", errorMessage: null });
-
-    set({ lendMode });
   },
 
   setActionTxns(actionTxns) {

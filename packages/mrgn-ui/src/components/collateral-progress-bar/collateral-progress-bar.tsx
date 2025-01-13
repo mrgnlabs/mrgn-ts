@@ -5,12 +5,12 @@ import { MarginfiAccountWrapper, MarginRequirementType } from "@mrgnlabs/marginf
 import { ActionSummary } from "~/components/action-box-v2/utils";
 import { ActionProgressBar } from "~/components/action-box-v2/components";
 
-interface CollateralProps {
+type CollateralProgressBarProps = {
   selectedAccount: MarginfiAccountWrapper | null;
   actionSummary?: ActionSummary;
-}
+};
 
-export const Collateral = ({ selectedAccount, actionSummary }: CollateralProps) => {
+export const CollateralProgressBar = ({ selectedAccount, actionSummary }: CollateralProgressBarProps) => {
   const availableCollateral = React.useMemo(() => {
     if (!selectedAccount) return null;
 

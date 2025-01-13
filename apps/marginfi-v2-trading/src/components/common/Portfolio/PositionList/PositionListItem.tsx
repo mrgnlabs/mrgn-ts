@@ -45,6 +45,8 @@ export const PositionListItem = ({ arenaPool }: props) => {
             (e.target.hasAttribute("data-state") || e.target.closest("[data-command-item]")))
         )
           return;
+        console.log(e.target);
+        console.log("pushing to trade page");
         router.push(`/trade/${arenaPool.groupPk.toBase58()}`);
       }}
     >

@@ -27,12 +27,12 @@ import { ActionButton } from "~/components/action-box-v2/components";
 import { useActionAmounts } from "~/components/action-box-v2/hooks";
 import { LSTDialog, LSTDialogVariants } from "~/components/LSTDialog";
 import { WalletContextStateOverride } from "~/components/wallet-v2/hooks/use-wallet.hook";
-import { ActionMessage } from "~/components";
+import { ActionMessage, CollateralProgressBar } from "~/components";
 
 import { useLendBoxStore } from "./store";
 import { HandleCloseBalanceParamsProps, handleExecuteCloseBalance, handleExecuteLendingAction } from "./utils";
 import { ActionSimulationStatus } from "../../components";
-import { Collateral, ActionInput, Preview } from "./components";
+import { ActionInput, Preview } from "./components";
 import { SimulationStatus } from "../../utils";
 import { useLendSimulation } from "./hooks";
 import { useActionBoxStore } from "../../store";
@@ -517,7 +517,7 @@ export const LendBox = ({
 
       {showAvailableCollateral && (
         <div className="mb-6">
-          <Collateral selectedAccount={selectedAccount} actionSummary={actionSummary} />
+          <CollateralProgressBar selectedAccount={selectedAccount} actionSummary={actionSummary} />
         </div>
       )}
 

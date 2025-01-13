@@ -195,7 +195,6 @@ export function useSwapLendSimulation({
 
   React.useEffect(() => {
     if (prevDebouncedAmount !== debouncedAmount || prevDepositBank !== depositBank || prevSwapBank !== swapBank) {
-      // Only set to PREPARING if we're actually going to simulate
       if (debouncedAmount > 0) {
         handleSimulation(debouncedAmount);
       }

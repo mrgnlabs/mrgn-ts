@@ -259,28 +259,6 @@ export function checkSwapLendActionAvailable({
   const generalChecks = getGeneralChecks(amount ?? 0, showCloseBalance);
   if (generalChecks) checks.push(...generalChecks);
 
-  // TODO: add alert checks for swap lend
-  // if (selectedBank) {
-  //   switch (lendMode) {
-  //     case ActionType.Deposit:
-  //       const lentChecks = canBeLent(selectedBank, nativeSolBalance);
-  //       if (lentChecks.length) checks.push(...lentChecks);
-  //       break;
-  //     case ActionType.Withdraw:
-  //       const withdrawChecks = canBeWithdrawn(selectedBank, marginfiAccount);
-  //       if (withdrawChecks.length) checks.push(...withdrawChecks);
-  //       break;
-  //     case ActionType.Borrow:
-  //       const borrowChecks = canBeBorrowed(selectedBank, banks, marginfiAccount);
-  //       if (borrowChecks.length) checks.push(...borrowChecks);
-  //       break;
-  //     case ActionType.Repay:
-  //       const repayChecks = canBeRepaid(selectedBank);
-  //       if (repayChecks) checks.push(...repayChecks);
-  //       break;
-  //   }
-  // }
-
   if (checks.length === 0)
     checks.push({
       isEnabled: true,

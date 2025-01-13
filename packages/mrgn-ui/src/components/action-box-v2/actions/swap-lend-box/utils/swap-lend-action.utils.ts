@@ -1,10 +1,18 @@
-import { v4 as uuidv4 } from "uuid";
-
+import { BN } from "@coral-xyz/anchor";
+import BigNumber from "bignumber.js";
 import { createJupiterApiClient, QuoteResponse } from "@jup-ag/api";
-import { MarginfiAccountWrapper, MarginfiClient, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
+import {
+  BalanceRaw,
+  MarginfiAccount,
+  MarginfiAccountRaw,
+  MarginfiAccountWrapper,
+  MarginfiClient,
+  SimulationResult,
+} from "@mrgnlabs/marginfi-client-v2";
 import { AccountSummary, ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import {
   addTransactionMetadata,
+  bigNumberToWrappedI80F48,
   LUT_PROGRAM_AUTHORITY_INDEX,
   nativeToUi,
   SolanaTransaction,
@@ -23,7 +31,7 @@ import {
   STATIC_SIMULATION_ERRORS,
   SwapLendActionTxns,
 } from "@mrgnlabs/mrgn-utils";
-import { Transaction, TransactionMessage, VersionedTransaction } from "@solana/web3.js";
+import { Keypair, PublicKey, Transaction, TransactionMessage, VersionedTransaction } from "@solana/web3.js";
 import { ActionSummary, CalculatePreviewProps, SimulatedActionPreview } from "../../lend-box/utils";
 import {
   ActionPreview,
@@ -31,7 +39,6 @@ import {
   simulatedHealthFactor,
   simulatedPositionSize,
 } from "~/components/action-box-v2/utils";
-import { ExecuteActionsCallbackProps } from "~/components/action-box-v2/types/actions.types";
 
 export interface GenerateSwapLendTxnsProps {
   marginfiAccount: MarginfiAccountWrapper;
@@ -45,8 +52,6 @@ export interface GenerateSwapLendTxnsProps {
 export async function generateSwapLendTxns(
   props: GenerateSwapLendTxnsProps
 ): Promise<SwapLendActionTxns | ActionMessageType> {
-  console.log(props);
-
   let swapTx: { quote?: QuoteResponse; tx?: SolanaTransaction; error?: ActionMessageType } | undefined;
 
   if (props.swapBank && props.swapBank.meta.tokenSymbol !== props.depositBank.meta.tokenSymbol) {
@@ -67,7 +72,22 @@ export async function generateSwapLendTxns(
     }
   }
 
-  // TODO: Do we need to handle marginfi account creation here?
+  // Marginfi Account
+  let hasMarginfiAccount = !!props.marginfiAccount;
+  const hasBalances = props.marginfiAccount?.activeBalances?.length ?? 0 > 0;
+
+  if (hasMarginfiAccount && !hasBalances && props.marginfiAccount) {
+    const accountInfo = await props.marginfiClient.provider.connection.getAccountInfo(props.marginfiAccount.address);
+    hasMarginfiAccount = accountInfo !== null;
+  }
+
+  let accountCreationTx: SolanaTransaction[] = [];
+  let finalAccount: MarginfiAccountWrapper | null = props.marginfiAccount;
+  if (!hasMarginfiAccount) {
+    const { account, tx } = await createMarginfiAccountTx(props);
+    finalAccount = account;
+    accountCreationTx.push(tx);
+  }
 
   let finalDepositAmount = props.amount;
 
@@ -97,7 +117,7 @@ export async function createSwapTx(props: GenerateSwapLendTxnsProps) {
 
     const swapQuote = await getSwapQuoteWithRetry({
       swapMode: "ExactIn",
-      amount: uiToNative(props.amount, 6).toNumber(),
+      amount: uiToNative(props.amount, props.swapBank.info.state.mintDecimals).toNumber(),
       inputMint: props.swapBank.info.state.mint.toBase58(),
       outputMint: props.depositBank.info.state.mint.toBase58(),
       slippageBps: props.slippageBps,
@@ -151,6 +171,43 @@ export async function createSwapTx(props: GenerateSwapLendTxnsProps) {
   }
 }
 
+async function createMarginfiAccountTx(
+  props: GenerateSwapLendTxnsProps
+): Promise<{ account: MarginfiAccountWrapper; tx: SolanaTransaction }> {
+  // if no marginfi account, we need to create one
+  console.log("Creating new marginfi account transaction...");
+  const authority = props.marginfiAccount?.authority ?? props.marginfiClient.provider.publicKey;
+
+  const marginfiAccountKeypair = Keypair.generate();
+
+  const dummyWrappedI80F48 = bigNumberToWrappedI80F48(new BigNumber(0));
+
+  const dummyBalances: BalanceRaw[] = Array(15).fill({
+    active: false,
+    bankPk: new PublicKey("11111111111111111111111111111111"),
+    assetShares: dummyWrappedI80F48,
+    liabilityShares: dummyWrappedI80F48,
+    emissionsOutstanding: dummyWrappedI80F48,
+    lastUpdate: new BN(0),
+  });
+
+  const rawAccount: MarginfiAccountRaw = {
+    group: props.marginfiClient.group.address,
+    authority: authority,
+    lendingAccount: { balances: dummyBalances },
+    accountFlags: new BN([0, 0, 0]),
+  };
+
+  const account = new MarginfiAccount(marginfiAccountKeypair.publicKey, rawAccount);
+
+  const wrappedAccount = new MarginfiAccountWrapper(marginfiAccountKeypair.publicKey, props.marginfiClient, account);
+
+  return {
+    account: wrappedAccount,
+    tx: await props.marginfiClient.createMarginfiAccountTx({ accountKeypair: marginfiAccountKeypair }),
+  };
+}
+
 export interface SimulateActionProps {
   txns: (VersionedTransaction | Transaction)[];
   bank: ExtendedBankInfo;
@@ -175,7 +232,6 @@ async function simulateFlashLoan({ account, bank, txns }: SimulateActionProps) {
   let simulationResult: SimulationResult;
 
   if (txns.length > 0) {
-    // todo: should we not inspect multiple banks?
     simulationResult = await account.simulateBorrowLendTransaction(txns, [bank.address]);
     return simulationResult;
   } else {
