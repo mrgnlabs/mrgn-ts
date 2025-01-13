@@ -48,7 +48,6 @@ const getStakeAccountsCached = async (
  * @returns Promise<[ExtendedBankInfo[], ExtendedBankInfo[]]> - [filtered bank infos, staked asset bank infos]
  */
 const filterStakedAssetBanks = async (
-  connection: Connection,
   publicKey: PublicKey | null,
   extendedBankInfos: ExtendedBankInfo[]
 ): Promise<[ExtendedBankInfo[], ExtendedBankInfo[]]> => {
@@ -59,7 +58,7 @@ const filterStakedAssetBanks = async (
 
   // if connected check for matching stake accounts
   if (publicKey) {
-    const stakeAccounts = await getStakeAccounts(connection, publicKey);
+    const stakeAccounts = await getStakeAccountsCached(publicKey);
 
     // add back staked asset banks for validators uaer has native stake
     filteredBankInfos = filteredBankInfos.concat(

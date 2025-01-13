@@ -388,7 +388,6 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
       );
 
       const [filteredBankInfos, stakedAssetBankInfos] = await filterStakedAssetBanks(
-        connection,
         wallet?.publicKey || null,
         extendedBankInfos
       );
