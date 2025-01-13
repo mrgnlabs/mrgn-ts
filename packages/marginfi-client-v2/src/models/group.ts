@@ -3,7 +3,7 @@ import { PublicKey, Keypair, Connection, SystemProgram, SYSVAR_RENT_PUBKEY } fro
 import BN from "bn.js";
 import { MARGINFI_IDL, MarginfiIdlType } from "../idl";
 import { AccountType, BankVaultType, MarginfiProgram } from "../types";
-import { InstructionsWrapper, TOKEN_PROGRAM_ID, getMint } from "@mrgnlabs/mrgn-common";
+import { InstructionsWrapper, SINGLE_POOL_PROGRAM_ID, TOKEN_PROGRAM_ID, getMint } from "@mrgnlabs/mrgn-common";
 import instructions from "../instructions";
 import { FLASHLOAN_ENABLED_FLAG, TRANSFER_ACCOUNT_AUTHORITY_FLAG } from "../constants";
 import { BankConfigCompactRaw, BankConfigOpt, BankConfigOptRaw, serializeBankConfigOpt } from "./bank";
@@ -158,6 +158,52 @@ class MarginfiGroup {
         bank: bank,
       },
       { bankConfigOpt: args }
+    );
+
+    return {
+      instructions: [ix],
+      keys: [],
+    };
+  }
+
+  public async makeAddPermissionlessBankIx(
+    program: MarginfiProgram,
+    stakePool: PublicKey,
+    mint: PublicKey,
+    pythOracle: PublicKey // wSOL oracle
+  ): Promise<InstructionsWrapper> {
+    const [settingsKey] = PublicKey.findProgramAddressSync(
+      [Buffer.from("staked_settings", "utf-8"), this.address.toBuffer()],
+      program.programId
+    );
+    // const [lstMint] = PublicKey.findProgramAddressSync(
+    //   [Buffer.from("mint"), stakePool.toBuffer()],
+    //   SINGLE_POOL_PROGRAM_ID
+    // );
+    const [solPool] = PublicKey.findProgramAddressSync(
+      [Buffer.from("stake"), stakePool.toBuffer()],
+      SINGLE_POOL_PROGRAM_ID
+    );
+    // const [bankKey] = PublicKey.findProgramAddressSync(
+    //   [this.address.toBuffer(), mint.toBuffer(), new BN(0).toArrayLike(Buffer, "le", 8)],
+    //   program.programId
+    // );
+
+    const ix = await instructions.makePoolAddPermissionlessBankIx(
+      program,
+      {
+        stakedSettings: settingsKey,
+        feePayer: this.admin,
+        bankMint: mint,
+        solPool,
+        stakePool,
+      },
+      {
+        pythOracle: pythOracle,
+      },
+      {
+        seed: new BN(0),
+      }
     );
 
     return {

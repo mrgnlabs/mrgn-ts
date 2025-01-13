@@ -1,6 +1,7 @@
 import { PublicKey, STAKE_CONFIG_ID, TransactionInstruction } from "@solana/web3.js";
 
 import {
+  TOKEN_PROGRAM_ID,
   MPL_METADATA_PROGRAM_ID,
   SINGLE_POOL_PROGRAM_ID,
   STAKE_PROGRAM_ID,
@@ -8,8 +9,7 @@ import {
   SYSVAR_RENT_ID,
   SYSVAR_STAKE_HISTORY_ID,
   SYSTEM_PROGRAM_ID,
-} from "./staked-asset.consts";
-import { TOKEN_PROGRAM_ID } from "@mrgnlabs/mrgn-common";
+} from "@mrgnlabs/mrgn-common";
 
 interface AccountMeta {
   pubkey: PublicKey;
