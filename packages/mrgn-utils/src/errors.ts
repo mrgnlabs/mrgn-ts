@@ -205,6 +205,20 @@ export const STATIC_SIMULATION_ERRORS: { [key: string]: ActionMessageType } = {
       "Transaction is not ready to execute yet. Please ensure it has been fully simulated before proceeding.",
     code: 134,
   },
+  DEPOSIT_FAILED: {
+    isEnabled: false,
+    actionMethod: "WARNING",
+    description: "Failed to deposit funds. Please try again.",
+    retry: true,
+    code: 135,
+  },
+  CREATE_SWAP_FAILED: {
+    isEnabled: false,
+    actionMethod: "WARNING",
+    description: "Failed to fetch Jupiter quote. Please try again.",
+    retry: true,
+    code: 136,
+  },
 };
 
 const createRepayCollatFailedCheck = (tokenSymbol?: string): ActionMessageType => ({

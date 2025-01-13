@@ -1,4 +1,10 @@
-import { LendBoxProps, LoopBoxProps, RepayCollatBoxProps, StakeBoxProps } from "~/components/action-box-v2/actions";
+import {
+  LendBoxProps,
+  LoopBoxProps,
+  RepayCollatBoxProps,
+  StakeBoxProps,
+  SwapLendBoxProps,
+} from "~/components/action-box-v2/actions";
 import { ActionDialogProps } from "~/components/action-box-v2/components";
 
 type ActionBoxDialogProps = {
@@ -57,12 +63,21 @@ interface RequiredLoopBoxProps
 interface RequiredStakeBoxProps
   extends Pick<StakeBoxProps, "captureEvent" | "onConnect" | "connected" | "requestedActionType" | "onComplete"> {}
 
+interface RequiredSwapLendBoxProps
+  extends Pick<
+    SwapLendBoxProps,
+    "onComplete" | "captureEvent" | "connected" | "showTokenSelection" | "requestedDepositBank"
+  > {}
+
 interface ActionBoxComponent extends React.FC<ActionBoxProps & ActionBoxComponentProps> {
   Lend: React.FC<ActionBoxProps & { lendProps: LendBoxProps | RequiredLendBoxProps; useProvider?: boolean }>;
   BorrowLend: React.FC<ActionBoxProps & { lendProps: LendBoxProps | RequiredLendBoxProps; useProvider?: boolean }>;
   Repay: React.FC<ActionBoxProps & { repayProps: RepayBoxProps | RequiredRepayBoxProps; useProvider?: boolean }>;
   Loop: React.FC<ActionBoxProps & { loopProps: LoopBoxProps | RequiredLoopBoxProps; useProvider?: boolean }>;
   Stake: React.FC<ActionBoxProps & { stakeProps: StakeBoxProps | RequiredStakeBoxProps; useProvider?: boolean }>;
+  SwapLend: React.FC<
+    ActionBoxProps & { swapLendProps: SwapLendBoxProps | RequiredSwapLendBoxProps; useProvider?: boolean }
+  >;
 }
 
 export type {
@@ -73,5 +88,6 @@ export type {
   RequiredRepayBoxProps,
   RequiredLoopBoxProps,
   RequiredStakeBoxProps,
+  RequiredSwapLendBoxProps,
 };
 export { isDialogWrapperProps };

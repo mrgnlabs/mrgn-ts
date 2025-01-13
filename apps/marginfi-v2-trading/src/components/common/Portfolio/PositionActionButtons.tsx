@@ -12,7 +12,7 @@ import { ActionBox, ActionBoxProvider } from "~/components/action-box-v2";
 import { Button } from "~/components/ui/button";
 
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
-import { ArenaPoolV2Extended } from "~/types/trade-store.types";
+import { ArenaPoolV2Extended, GroupStatus } from "~/types/trade-store.types";
 import { ClosePosition } from "./components";
 
 type PositionActionButtonsProps = {
@@ -37,10 +37,11 @@ export const PositionActionButtons = ({
   const { connection } = useConnection();
   const { wallet, connected } = useWallet();
 
-  const [refreshGroup, nativeSolBalance, positionsByGroupPk] = useTradeStoreV2((state) => [
+  const [refreshGroup, nativeSolBalance, positionsByGroupPk, banksByBankPk] = useTradeStoreV2((state) => [
     state.refreshGroup,
     state.nativeSolBalance,
     state.positionsByGroupPk,
+    state.banksByBankPk,
   ]);
 
   const depositBanks = React.useMemo(() => {
@@ -64,9 +65,16 @@ export const PositionActionButtons = ({
     return borrowBank;
   }, [arenaPool]);
 
+  const extendedBankInfos = React.useMemo(() => {
+    const banks = Object.values(banksByBankPk);
+    const uniqueBanksMap = new Map(banks.map((bank) => [bank.info.state.mint.toBase58(), bank]));
+    const uniqueBanks = Array.from(uniqueBanksMap.values());
+    return uniqueBanks;
+  }, [banksByBankPk]);
+
   return (
     <ActionBoxProvider
-      banks={[arenaPool.tokenBank, arenaPool.quoteBank]}
+      banks={extendedBankInfos}
       nativeSolBalance={nativeSolBalance}
       marginfiClient={client}
       selectedAccount={selectedAccount}
@@ -76,13 +84,13 @@ export const PositionActionButtons = ({
       hidePoolStats={["type"]}
     >
       <div className={cn("flex gap-3 w-full", className)}>
-        <ActionBox.Lend
+        <ActionBox.SwapLend
           isDialog={true}
           useProvider={true}
-          lendProps={{
+          swapLendProps={{
             connected: connected,
-            requestedLendType: ActionType.Deposit,
-            requestedBank: depositBanks[0] ?? undefined,
+            requestedDepositBank: depositBanks[0],
+            requestedSwapBank: arenaPool.status === GroupStatus.LONG ? borrowBank ?? undefined : undefined,
             showAvailableCollateral: false,
             captureEvent: () => {
               capture("position_add_btn_click", {
