@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 
-import { getStakeAccounts } from "@mrgnlabs/mrgn-utils";
+import { getStakeAccounts } from "@mrgnlabs/marginfi-v2-ui-state";
 import { Connection, PublicKey } from "@solana/web3.js";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {

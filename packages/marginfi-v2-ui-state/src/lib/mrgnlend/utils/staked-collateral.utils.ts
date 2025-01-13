@@ -156,4 +156,4 @@ const getStakeAccounts = async (
   }
 };
 
-export { getStakeAccountsCached, filterStakedAssetBanks };
+export { getStakeAccountsCached, filterStakedAssetBanks, getStakeAccounts };

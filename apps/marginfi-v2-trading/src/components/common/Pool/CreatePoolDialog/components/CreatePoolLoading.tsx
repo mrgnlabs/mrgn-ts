@@ -71,7 +71,7 @@ const DEFAULT_LST_BANK_CONFIG: BankConfigOpt = {
   },
   oracleMaxAge: 300,
   permissionlessBadDebtSettlement: null,
-};
+} as BankConfigOpt;
 
 const DEFAULT_USDC_BANK_CONFIG: BankConfigOpt = {
   assetWeightInit: new BigNumber(0.9),
@@ -108,7 +108,7 @@ const DEFAULT_USDC_BANK_CONFIG: BankConfigOpt = {
   },
   oracleMaxAge: 300,
   permissionlessBadDebtSettlement: null,
-};
+} as BankConfigOpt;
 
 const DEFAULT_TOKEN_BANK_CONFIG: BankConfigOpt = {
   assetWeightInit: new BigNumber(0.65),
@@ -143,7 +143,7 @@ const DEFAULT_TOKEN_BANK_CONFIG: BankConfigOpt = {
   },
   oracleMaxAge: 300,
   permissionlessBadDebtSettlement: null,
-};
+} as BankConfigOpt;
 
 type StepperStatus = "default" | "success" | "error" | "loading";
 

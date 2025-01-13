@@ -55,7 +55,7 @@ const DEFAULT_USDC_BANK_CONFIG: BankConfigOpt = {
   },
   oracleMaxAge: 300,
   permissionlessBadDebtSettlement: null,
-};
+} as BankConfigOpt;
 
 const DEFAULT_TOKEN_BANK_CONFIG: BankConfigOpt = {
   assetWeightInit: new BigNumber(0.4),
@@ -89,7 +89,7 @@ const DEFAULT_TOKEN_BANK_CONFIG: BankConfigOpt = {
   },
   oracleMaxAge: 300,
   permissionlessBadDebtSettlement: null,
-};
+} as any;
 
 type StepperStatus = "default" | "success" | "error" | "loading";
 
