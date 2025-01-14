@@ -54,8 +54,8 @@ const filterStakedAssetBanks = async (
 ): Promise<[ExtendedBankInfo[], ExtendedBankInfo[]]> => {
   const stakedAssetBankInfos = extendedBankInfos.filter((bank) => bank.info.rawBank.config.assetTag === 2);
 
-  // remove staked asset banks from main array
-  let filteredBankInfos = extendedBankInfos.filter((bank) => bank.info.rawBank.config.assetTag !== 2);
+  // remove staked asset banks from main array where user does not have an open position
+  let filteredBankInfos = extendedBankInfos.filter((bank) => bank.info.rawBank.config.assetTag !== 2 || bank.isActive);
 
   // if connected check for matching stake accounts
   if (publicKey) {
