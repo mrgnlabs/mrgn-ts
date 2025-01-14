@@ -26,6 +26,7 @@ export const BankList = ({
   onSetSelectedSecondaryBank,
   onClose,
 }: BankListProps) => {
+  console.log(selectedSecondaryBank);
   const [searchQuery, setSearchQuery] = React.useState("");
 
   const hasTokens = React.useMemo(() => {
@@ -47,7 +48,7 @@ export const BankList = ({
 
   // filter on positions
   const positionFilter = React.useCallback((bankInfo: ExtendedBankInfo) => {
-    return bankInfo.isActive && bankInfo.position.isLending;
+    return bankInfo.isActive;
   }, []);
 
   /////// BANKS
