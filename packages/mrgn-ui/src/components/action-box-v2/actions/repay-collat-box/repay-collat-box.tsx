@@ -48,7 +48,8 @@ export type RepayCollatBoxProps = {
   marginfiClient: MarginfiClient | null;
   selectedAccount: MarginfiAccountWrapper | null;
   banks: ExtendedBankInfo[];
-  requestedBank?: ExtendedBankInfo;
+  requestedDepositBank?: ExtendedBankInfo;
+  requestedBorrowBank?: ExtendedBankInfo;
   accountSummaryArg?: AccountSummary;
   isDialog?: boolean;
   showAvailableCollateral?: boolean;
@@ -65,7 +66,8 @@ export const RepayCollatBox = ({
   marginfiClient,
   selectedAccount,
   accountSummaryArg,
-  requestedBank,
+  requestedDepositBank,
+  requestedBorrowBank,
   isDialog,
   showAvailableCollateral,
   onComplete,
@@ -95,8 +97,8 @@ export const RepayCollatBox = ({
     state.maxAmountCollateral,
     state.repayAmount,
     state.amountRaw,
-    state.selectedBank,
-    state.selectedSecondaryBank,
+    state.selectedDepositBank,
+    state.selectedBorrowBank,
     state.errorMessage,
     state.simulationResult,
     state.actionTxns,
@@ -106,8 +108,8 @@ export const RepayCollatBox = ({
     state.setErrorMessage,
     state.fetchActionBoxState,
     state.setAmountRaw,
-    state.setSelectedBank,
-    state.setSelectedSecondaryBank,
+    state.setSelectedDepositBank,
+    state.setSelectedBorrowBank,
     state.setRepayAmount,
     state.setMaxAmountCollateral,
     state.refreshSelectedBanks,
@@ -200,8 +202,8 @@ export const RepayCollatBox = ({
   }, [refreshState, connected]);
 
   React.useEffect(() => {
-    fetchActionBoxState({ requestedBank });
-  }, [requestedBank, fetchActionBoxState]);
+    fetchActionBoxState({ requestedDepositBank: requestedDepositBank, requestedBorrowBank: requestedBorrowBank });
+  }, [requestedDepositBank, requestedBorrowBank, fetchActionBoxState]);
 
   React.useEffect(() => {
     if (errorMessage && errorMessage.description) {
@@ -405,7 +407,8 @@ export const RepayCollatBox = ({
           </TooltipProvider>
         </div>
       )}
-      <div className="mb-6">
+      <div className="mb-4">
+        <span className="text-sm text-muted-foreground">Repay</span>
         <ActionInput
           banks={banks}
           nativeSolBalance={nativeSolBalance}
@@ -469,12 +472,3 @@ export const RepayCollatBox = ({
     </>
   );
 };
-function checkRepayColatActionAvailable(arg0: {
-  amount: number;
-  connected: boolean;
-  selectedBank: ExtendedBankInfo | null;
-  selectedSecondaryBank: ExtendedBankInfo | null;
-  actionQuote: import("@jup-ag/api").QuoteResponse | null;
-}): any {
-  throw new Error("Function not implemented.");
-}
