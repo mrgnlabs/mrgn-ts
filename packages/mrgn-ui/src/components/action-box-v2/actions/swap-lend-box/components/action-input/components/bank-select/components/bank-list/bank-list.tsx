@@ -151,7 +151,6 @@ export const BankList = ({
                     className="cursor-pointer h-[55px] px-3 font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-mfi-action-box-accent data-[selected=true]:text-mfi-action-box-accent-foreground"
                   >
                     <BankItem
-                      data-router-ignore
                       rate={calculateRate(bank)}
                       lendingMode={lendingMode}
                       bank={bank}

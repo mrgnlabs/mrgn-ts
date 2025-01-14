@@ -34,23 +34,7 @@ export const PositionListItem = ({ arenaPool }: props) => {
   });
 
   return (
-    <TableRow
-      className="cursor-pointer transition-colors hover:bg-accent/75"
-      onClick={(e) => {
-        if (
-          e.target instanceof HTMLButtonElement ||
-          e.target instanceof HTMLAnchorElement ||
-          e.target instanceof SVGElement ||
-          (e.target instanceof Element &&
-            (e.target.hasAttribute("data-state") ||
-              e.target.closest("[data-command-item]") ||
-              e.target.closest("[data-router-ignore]")))
-        )
-          return;
-
-        router.push(`/trade/${arenaPool.groupPk.toBase58()}`);
-      }}
-    >
+    <TableRow className="transition-colors hover:bg-accent/75">
       <TableCell>
         {arenaPool.status === GroupStatus.LONG ? (
           <Badge className="w-14 bg-success uppercase font-medium justify-center">long</Badge>
@@ -58,8 +42,12 @@ export const PositionListItem = ({ arenaPool }: props) => {
           <Badge className="w-14 bg-error uppercase font-medium justify-center">short</Badge>
         )}
       </TableCell>
-      <TableCell>
-        <div className="flex items-center gap-2 justify-start">
+      <TableCell
+        onClick={(e) => {
+          router.push(`/trade/${arenaPool.groupPk.toBase58()}`);
+        }}
+      >
+        <div className="flex items-center gap-2 justify-start cursor-pointer">
           <div className="relative w-max flex items-center justify-center">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img

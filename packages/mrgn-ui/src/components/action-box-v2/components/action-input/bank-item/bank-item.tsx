@@ -54,23 +54,15 @@ export const BankItem = ({
 
   return (
     <>
-      <div className="flex items-center gap-3" data-router-ignore>
-        <img
-          data-router-ignore
-          src={bank.meta.tokenLogoUri}
-          alt={bank.meta.tokenName}
-          width={28}
-          height={28}
-          className="rounded-full"
-        />
+      <div className="flex items-center gap-3">
+        <img src={bank.meta.tokenLogoUri} alt={bank.meta.tokenName} width={28} height={28} className="rounded-full" />
         <div>
-          <p data-router-ignore className="flex items-center">
+          <p className="flex items-center">
             {bank.meta.tokenSymbol}
             {!available && <span className="text-[11px] ml-1 font-light">(currently unavailable)</span>}
           </p>
           {lendingMode && (
             <p
-              data-router-ignore
               className={cn(
                 "text-xs font-normal",
                 (lendingMode === LendingModes.LEND || isRepay) && "text-success",
@@ -85,25 +77,21 @@ export const BankItem = ({
 
       {((!isRepay && lendingMode && lendingMode === LendingModes.BORROW && balance > 0) || showBalanceOverride) && (
         <div className="space-y-0.5 text-right font-normal text-sm">
-          <p data-router-ignore>
+          <p>
             {dynamicNumeralFormatter(balance, { tokenPrice: bank.info.oraclePrice.priceRealtime.price.toNumber() })}
           </p>
-          <p data-router-ignore className="text-xs text-muted-foreground">
-            {balancePrice}
-          </p>
+          <p className="text-xs text-muted-foreground">{balancePrice}</p>
         </div>
       )}
 
       {isRepay && openPosition > 0 && (
         <div className="space-y-0.5 text-right font-normal text-sm">
-          <p data-router-ignore>
+          <p>
             {dynamicNumeralFormatter(openPosition, {
               tokenPrice: bank.info.oraclePrice.priceRealtime.price.toNumber(),
             })}
           </p>
-          <p data-router-ignore className="text-xs text-muted-foreground">
-            {openPositionPrice}
-          </p>
+          <p className="text-xs text-muted-foreground">{openPositionPrice}</p>
         </div>
       )}
     </>
