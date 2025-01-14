@@ -1,4 +1,4 @@
-import { PublicKey, STAKE_CONFIG_ID, TransactionInstruction } from "@solana/web3.js";
+import { Connection, PublicKey, STAKE_CONFIG_ID, SystemProgram, TransactionInstruction } from "@solana/web3.js";
 
 import {
   TOKEN_PROGRAM_ID,
@@ -246,8 +246,42 @@ const findMplMetadataAddress = async (poolMintAddress: PublicKey): Promise<Publi
   return pda;
 };
 
+const SINGLE_POOL_ACCOUNT_SIZE = BigInt(33);
+const STAKE_ACCOUNT_SIZE = BigInt(200);
+const MINT_SIZE = BigInt(82);
+
+async function initializeStakedPool(connection: Connection, payer: PublicKey, voteAccountAddress: PublicKey) {
+  const poolAddress = findPoolAddress(voteAccountAddress);
+
+  const stakeAddress = findPoolStakeAddress(poolAddress);
+  const mintAddress = findPoolMintAddress(poolAddress);
+
+  // get min rent
+  const [poolRent, stakeRent, mintRent, minimumDelegationObj] = await Promise.all([
+    connection.getMinimumBalanceForRentExemption(Number(SINGLE_POOL_ACCOUNT_SIZE), "confirmed"),
+    connection.getMinimumBalanceForRentExemption(Number(STAKE_ACCOUNT_SIZE), "confirmed"),
+    connection.getMinimumBalanceForRentExemption(Number(MINT_SIZE), "confirmed"),
+    connection.getStakeMinimumDelegation(),
+  ]);
+
+  const minimumDelegation = minimumDelegationObj.value;
+
+  const instructions: TransactionInstruction[] = [];
+
+  // instructions
+  instructions.push(SystemProgram.transfer({ fromPubkey: payer, toPubkey: poolAddress, lamports: poolRent }));
+  instructions.push(
+    SystemProgram.transfer({ fromPubkey: payer, toPubkey: stakeAddress, lamports: stakeRent + minimumDelegation })
+  );
+  instructions.push(SystemProgram.transfer({ fromPubkey: payer, toPubkey: mintAddress, lamports: mintRent }));
+
+  instructions.push(SinglePoolInstruction.initializePool(voteAccountAddress));
+  instructions.push(await SinglePoolInstruction.createTokenMetadata(poolAddress, payer));
+}
+
 export {
   SinglePoolInstruction,
+  initializeStakedPool,
   findPoolAddress,
   findPoolMintAddress,
   findPoolStakeAddress,
