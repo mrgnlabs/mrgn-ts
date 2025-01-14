@@ -58,6 +58,7 @@ export async function generateSwapLendTxns(
     console.log("Creating Quote swap transaction...");
     try {
       swapTx = await createSwapTx(props);
+      console.log("swapTx", swapTx);
       if (swapTx.error) {
         console.error("Error creating swap transaction:", swapTx.error);
         return swapTx.error;
@@ -90,11 +91,18 @@ export async function generateSwapLendTxns(
   }
 
   let finalDepositAmount = props.amount;
+  console.log("finalDepositAmount", finalDepositAmount);
 
   if (props.swapBank && !swapTx?.quote) {
     return STATIC_SIMULATION_ERRORS.CREATE_SWAP_FAILED;
   } else if (props.swapBank && swapTx?.quote) {
-    finalDepositAmount = Number(nativeToUi(swapTx?.quote?.outAmount, props.depositBank.info.state.mintDecimals));
+    finalDepositAmount = Number(
+      nativeToUi(
+        swapTx?.quote?.otherAmountThreshold ?? swapTx?.quote?.outAmount,
+        props.depositBank.info.state.mintDecimals
+      )
+    );
+    console.log("finalDepositAmount 2", finalDepositAmount);
   }
 
   const depositTx = await props.marginfiAccount.makeDepositTx(finalDepositAmount, props.depositBank.address);
