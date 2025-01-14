@@ -37,6 +37,14 @@ const getStakeAccountsCached = async (
     validator: new PublicKey(stakeAccount.validator),
     poolKey: new PublicKey(stakeAccount.poolKey),
     poolMintKey: new PublicKey(stakeAccount.poolMintKey),
+    largestAccount: {
+      pubkey: new PublicKey(stakeAccount.largestAccount.pubkey),
+      amount: stakeAccount.largestAccount.amount,
+    },
+    accounts: stakeAccount.accounts.map((account) => ({
+      pubkey: new PublicKey(account.pubkey),
+      amount: account.amount,
+    })),
   }));
 };
 
@@ -141,12 +149,14 @@ const getStakeAccounts = async (
         const poolKey = await vendor.findPoolAddress(new PublicKey(validatorAddress));
         const poolMintKey = await vendor.findPoolMintAddress(poolKey);
         const totalStake = accounts.reduce((acc, curr) => acc + curr.amount, 0);
+        const largestAccount = accounts.reduce((acc, curr) => (acc.amount > curr.amount ? acc : curr));
         return {
           validator: new PublicKey(validatorAddress),
           poolKey,
           poolMintKey,
           accounts,
           totalStake,
+          largestAccount,
         };
       })
     );

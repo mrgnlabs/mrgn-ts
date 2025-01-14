@@ -114,7 +114,7 @@ async function fetchTokenAccounts(
       return {
         created: true,
         mint: mint.address,
-        balance: stakeAccount.totalStake,
+        balance: stakeAccount.largestAccount.amount,
       };
     }
 

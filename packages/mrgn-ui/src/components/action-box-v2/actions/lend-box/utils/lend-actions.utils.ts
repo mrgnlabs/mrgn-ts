@@ -131,8 +131,6 @@ export async function calculateLendingTransaction(
   switch (actionMode) {
     case ActionType.Deposit:
       let depositTx: SolanaTransaction;
-      let lstAta: PublicKey | undefined;
-      const ix: TransactionInstruction[] = [];
 
       if (marginfiAccount && connection && bank.info.rawBank.config.assetTag === 2) {
         console.log("Depositing into staked asset bank");
@@ -149,7 +147,7 @@ export async function calculateLendingTransaction(
         depositTx = await marginfiAccount.makeDepositStakedTx(
           amount,
           bank.address,
-          new PublicKey(stakeAccount.accounts[0].pubkey),
+          stakeAccount.largestAccount.pubkey,
           stakeAccount.validator
         );
       } else {
