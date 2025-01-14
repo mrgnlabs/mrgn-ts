@@ -166,9 +166,8 @@ const Repay = (
         <ActionBoxNavigator
           selectedAction={selectedAction}
           onSelectAction={setSelectedAction}
-          actionTypes={[ActionType.Repay, ActionType.RepayCollat]}
+          actionTypes={[ActionType.RepayCollat]}
         >
-          <LendBox {...combinedProps} requestedLendType={ActionType.Repay} isDialog={actionBoxProps.isDialog} />
           <RepayCollatBox {...combinedProps} />
         </ActionBoxNavigator>
       </ActionBoxWrapper>

@@ -39,23 +39,25 @@ interface RequiredLendBoxProps
 // all props except for requestedLendType
 interface RepayBoxProps
   extends Pick<
-    LendBoxProps,
+    RepayCollatBoxProps,
     | "nativeSolBalance"
-    | "walletContextState"
     | "connected"
     | "marginfiClient"
     | "selectedAccount"
     | "banks"
-    | "requestedBank"
+    | "requestedDepositBank"
+    | "requestedBorrowBank"
     | "accountSummaryArg"
     | "onComplete"
     | "captureEvent"
     | "showAvailableCollateral"
-    | "hidePoolStats"
   > {}
 
 interface RequiredRepayBoxProps
-  extends Pick<RepayBoxProps, "onComplete" | "captureEvent" | "requestedBank" | "walletContextState" | "connected"> {}
+  extends Pick<
+    RepayBoxProps,
+    "onComplete" | "captureEvent" | "requestedDepositBank" | "requestedBorrowBank" | "connected"
+  > {}
 
 interface RequiredLoopBoxProps
   extends Pick<LoopBoxProps, "onComplete" | "captureEvent" | "requestedBank" | "walletContextState" | "connected"> {}

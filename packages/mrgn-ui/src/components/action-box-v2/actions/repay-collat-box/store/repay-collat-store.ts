@@ -10,8 +10,8 @@ interface RepayCollatBoxState {
   maxAmountCollateral: number;
   repayAmount: number;
 
-  selectedBank: ExtendedBankInfo | null;
-  selectedSecondaryBank: ExtendedBankInfo | null;
+  selectedDepositBank: ExtendedBankInfo | null;
+  selectedBorrowBank: ExtendedBankInfo | null;
 
   simulationResult: SimulationResult | null;
 
@@ -22,7 +22,10 @@ interface RepayCollatBoxState {
   // Actions
   refreshState: (actionMode?: ActionType) => void;
   refreshSelectedBanks: (banks: ExtendedBankInfo[]) => void;
-  fetchActionBoxState: (args: { requestedBank?: ExtendedBankInfo }) => void;
+  fetchActionBoxState: (args: {
+    requestedDepositBank?: ExtendedBankInfo;
+    requestedBorrowBank?: ExtendedBankInfo;
+  }) => void;
   setAmountRaw: (amountRaw: string, maxAmount?: number) => void;
   setMaxAmountCollateral: (maxAmountCollateral: number) => void;
   setRepayAmount: (repayAmount: number) => void;
@@ -30,8 +33,8 @@ interface RepayCollatBoxState {
 
   setActionTxns: (actionTxns: RepayCollatActionTxns) => void;
   setErrorMessage: (errorMessage: ActionMessageType | null) => void;
-  setSelectedBank: (bank: ExtendedBankInfo | null) => void;
-  setSelectedSecondaryBank: (bank: ExtendedBankInfo | null) => void;
+  setSelectedDepositBank: (bank: ExtendedBankInfo | null) => void;
+  setSelectedBorrowBank: (bank: ExtendedBankInfo | null) => void;
 }
 
 function createRepayCollatBoxStore() {
@@ -42,8 +45,8 @@ const initialState = {
   amountRaw: "",
   repayAmount: 0,
   maxAmountCollateral: 0,
-  selectedBank: null,
-  selectedSecondaryBank: null,
+  selectedDepositBank: null,
+  selectedBorrowBank: null,
   simulationResult: null,
 
   actionTxns: { actionTxn: null, additionalTxns: [], actionQuote: null, lastValidBlockHeight: undefined },
@@ -63,19 +66,32 @@ const stateCreator: StateCreator<RepayCollatBoxState, [], []> = (set, get) => ({
   },
 
   fetchActionBoxState(args) {
-    let requestedBank: ExtendedBankInfo | null = null;
+    let requestedDepositBank: ExtendedBankInfo | null = null;
+    let requestedBorrowBank: ExtendedBankInfo | null = null;
 
-    if (args.requestedBank) {
-      requestedBank = args.requestedBank;
+    if (args.requestedDepositBank) {
+      requestedDepositBank = args.requestedDepositBank;
     } else {
-      requestedBank = null;
+      requestedDepositBank = null;
     }
 
-    const selectedBank = get().selectedBank;
+    if (args.requestedBorrowBank) {
+      requestedBorrowBank = args.requestedBorrowBank;
+    } else {
+      requestedBorrowBank = null;
+    }
 
-    const needRefresh = !selectedBank || (requestedBank && !requestedBank.address.equals(selectedBank.address));
+    const selectedDepositBank = get().selectedDepositBank;
+    const selectedBorrowBank = get().selectedBorrowBank;
 
-    if (needRefresh) set({ ...initialState, selectedBank: requestedBank });
+    const needRefresh =
+      !selectedDepositBank ||
+      !selectedBorrowBank ||
+      (requestedDepositBank && !requestedDepositBank.address.equals(selectedDepositBank.address)) ||
+      (requestedBorrowBank && !requestedBorrowBank.address.equals(selectedBorrowBank.address));
+
+    if (needRefresh)
+      set({ ...initialState, selectedDepositBank: requestedDepositBank, selectedBorrowBank: requestedBorrowBank });
   },
 
   setAmountRaw(amountRaw, maxAmount) {
@@ -127,55 +143,55 @@ const stateCreator: StateCreator<RepayCollatBoxState, [], []> = (set, get) => ({
   },
 
   refreshSelectedBanks(banks: ExtendedBankInfo[]) {
-    const selectedBank = get().selectedBank;
-    const selectedRepayBank = get().selectedSecondaryBank;
+    const selectedDepositBank = get().selectedDepositBank;
+    const selectedBorrowBank = get().selectedBorrowBank;
 
-    if (selectedBank) {
-      const updatedBank = banks.find((v) => v.address.equals(selectedBank.address));
+    if (selectedDepositBank) {
+      const updatedBank = banks.find((v) => v.address.equals(selectedDepositBank.address));
       if (updatedBank) {
-        set({ selectedBank: updatedBank });
+        set({ selectedDepositBank: updatedBank });
       }
     }
 
-    if (selectedRepayBank) {
-      const updatedRepayBank = banks.find((v) => v.address.equals(selectedRepayBank.address));
-      if (updatedRepayBank) {
-        set({ selectedSecondaryBank: updatedRepayBank });
+    if (selectedBorrowBank) {
+      const updatedBorrowBank = banks.find((v) => v.address.equals(selectedBorrowBank.address));
+      if (updatedBorrowBank) {
+        set({ selectedBorrowBank: updatedBorrowBank });
       }
     }
   },
 
-  async setSelectedBank(tokenBank) {
-    const selectedBank = get().selectedBank;
+  async setSelectedDepositBank(tokenBank) {
+    const selectedBank = get().selectedDepositBank;
     const hasBankChanged = !tokenBank || !selectedBank || !tokenBank.address.equals(selectedBank.address);
 
     if (hasBankChanged) {
       set({
-        selectedBank: tokenBank,
+        selectedDepositBank: tokenBank,
         amountRaw: "",
         repayAmount: 0,
-        selectedSecondaryBank: null,
+        selectedBorrowBank: null,
         actionTxns: initialState.actionTxns,
         errorMessage: null,
       });
     }
   },
 
-  async setSelectedSecondaryBank(secondaryBank) {
-    const selectedSecondaryBank = get().selectedSecondaryBank;
+  async setSelectedBorrowBank(secondaryBank) {
+    const selectedBorrowBank = get().selectedBorrowBank;
     const hasBankChanged =
-      !secondaryBank || !selectedSecondaryBank || !secondaryBank.address.equals(selectedSecondaryBank.address);
+      !secondaryBank || !selectedBorrowBank || !secondaryBank.address.equals(selectedBorrowBank.address);
 
     if (hasBankChanged) {
       set({
-        selectedSecondaryBank: secondaryBank,
+        selectedBorrowBank: secondaryBank,
         amountRaw: "",
         repayAmount: undefined,
         actionTxns: initialState.actionTxns,
         errorMessage: null,
       });
     } else {
-      set({ selectedSecondaryBank: secondaryBank });
+      set({ selectedBorrowBank: secondaryBank });
     }
   },
 });

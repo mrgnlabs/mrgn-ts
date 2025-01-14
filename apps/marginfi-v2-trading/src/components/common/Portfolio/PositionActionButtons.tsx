@@ -78,8 +78,8 @@ export const PositionActionButtons = ({
 
   return (
     <ActionBoxProvider
-      banks={extendedBankInfos}
       nativeSolBalance={nativeSolBalance}
+      banks={borrowBank ? [borrowBank, depositBanks[0]] : [depositBanks[0]]}
       marginfiClient={client}
       selectedAccount={selectedAccount}
       connected={connected}
@@ -95,6 +95,7 @@ export const PositionActionButtons = ({
           depositSwapProps={{
             connected: connected,
             requestedDepositBank: depositBanks[0],
+            banks: extendedBankInfos,
             requestedSwapBank: arenaPool.status === GroupStatus.LONG ? borrowBank ?? undefined : undefined,
             showAvailableCollateral: false,
             captureEvent: () => {
@@ -136,7 +137,9 @@ export const PositionActionButtons = ({
           <ActionBox.Repay
             useProvider={true}
             repayProps={{
-              requestedBank: borrowBank,
+              requestedBorrowBank: borrowBank,
+              requestedDepositBank: depositBanks[0],
+              banks: borrowBank ? [borrowBank, depositBanks[0]] : [depositBanks[0]],
               connected: connected,
               showAvailableCollateral: false,
               captureEvent: (event, properties) => {
@@ -184,6 +187,8 @@ export const PositionActionButtons = ({
               connected: connected,
               requestedLendType: ActionType.Withdraw,
               requestedBank: arenaPool.tokenBank ?? undefined,
+              banks: borrowBank ? [borrowBank, depositBanks[0]] : [depositBanks[0]],
+
               captureEvent: () => {
                 capture("position_withdraw_btn_click", {
                   group: arenaPool.groupPk?.toBase58(),
