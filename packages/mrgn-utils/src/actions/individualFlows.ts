@@ -251,7 +251,10 @@ export async function deposit({
   try {
     let txnSig: string;
 
+    console.log("actionTxns", actionTxns);
+
     if (actionTxns?.actionTxn && marginfiClient) {
+      console.log("actionTxns.actionTxn", actionTxns.actionTxn);
       txnSig = await marginfiClient.processTransaction(
         actionTxns.actionTxn,
         {
@@ -262,7 +265,9 @@ export async function deposit({
         },
         txOpts
       );
+      console.log("txnSig", txnSig);
     } else if (marginfiAccount) {
+      console.log("marginfiAccount", marginfiAccount);
       txnSig = await marginfiAccount.deposit(amount, bank.address, {}, processOpts, txOpts);
     } else {
       throw new Error("Marginfi account not ready.");
@@ -270,7 +275,7 @@ export async function deposit({
     multiStepToast.setSuccess(txnSig, composeExplorerUrl(txnSig, processOpts?.broadcastType));
     return txnSig;
   } catch (error: any) {
-    console.log(`Error while Depositing`);
+    console.log(`Error while Depositing1`);
     console.log(error);
     if (!(error instanceof ProcessTransactionError || error instanceof SolanaJSONRPCError)) {
       captureSentryException(error, JSON.stringify(error), {

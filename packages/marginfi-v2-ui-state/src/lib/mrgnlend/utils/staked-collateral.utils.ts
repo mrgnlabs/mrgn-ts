@@ -1,6 +1,7 @@
 import { Connection, LAMPORTS_PER_SOL, ParsedAccountData, PublicKey, StakeProgram } from "@solana/web3.js";
 
-import { findPoolAddress, findPoolMintAddress, MAX_U64 } from "../vendor";
+import { MAX_U64 } from "@mrgnlabs/mrgn-common";
+import { vendor } from "@mrgnlabs/marginfi-client-v2";
 import { ExtendedBankInfo, ValidatorStakeGroup } from "../types";
 
 /**
@@ -137,8 +138,8 @@ const getStakeAccounts = async (
     // Calculate pool keys once per validator when creating return value
     return Promise.all(
       Array.from(validatorMap.entries()).map(async ([validatorAddress, accounts]) => {
-        const poolKey = await findPoolAddress(new PublicKey(validatorAddress));
-        const poolMintKey = await findPoolMintAddress(poolKey);
+        const poolKey = await vendor.findPoolAddress(new PublicKey(validatorAddress));
+        const poolMintKey = await vendor.findPoolMintAddress(poolKey);
         const totalStake = accounts.reduce((acc, curr) => acc + curr.amount, 0);
         return {
           validator: new PublicKey(validatorAddress),

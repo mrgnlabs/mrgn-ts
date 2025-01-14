@@ -653,7 +653,7 @@ class MarginfiAccount {
         marginfiGroupPk: this.group,
         marginfiAccountPk: this.address,
         authorityPk: this.authority,
-        signerTokenAccountPk: opt.stakedLstAta ?? userTokenAtaPk,
+        signerTokenAccountPk: userTokenAtaPk,
         bankPk: bank.address,
         tokenProgramPk: mintData.tokenProgram,
       },

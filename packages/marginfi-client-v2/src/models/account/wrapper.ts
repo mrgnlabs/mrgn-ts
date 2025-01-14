@@ -15,6 +15,8 @@ import {
   ExtendedV0Transaction,
   getTxSize,
   getAccountKeys,
+  createAssociatedTokenAccountInstruction,
+  SYSVAR_CLOCK_ID,
 } from "@mrgnlabs/mrgn-common";
 import * as sb from "@switchboard-xyz/on-demand";
 import { Address, BorshCoder, Idl, translateAddress } from "@coral-xyz/anchor";
@@ -31,6 +33,9 @@ import {
   TransactionMessage,
   VersionedTransaction,
   SystemProgram,
+  StakeProgram,
+  StakeAuthorizationLayout,
+  TransactionSignature,
 } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 import {
@@ -53,8 +58,13 @@ import { AccountType, MarginfiConfig, MarginfiProgram } from "../../types";
 import { MarginfiAccount, MarginRequirementType, MarginfiAccountRaw } from "./pure";
 import { Bank, computeLoopingParams } from "../bank";
 import { Balance } from "../balance";
-import { getSwitchboardProgram } from "../../vendor";
-import { TransactionSignature } from "@solana/web3.js";
+import {
+  findPoolAddress,
+  findPoolMintAddress,
+  findPoolStakeAuthorityAddress,
+  getSwitchboardProgram,
+  SinglePoolInstruction,
+} from "../../vendor";
 
 // Temporary imports
 export const MAX_TX_SIZE = 1232;
@@ -856,6 +866,88 @@ class MarginfiAccountWrapper {
     const tx = new Transaction().add(...ixs.instructions);
     const solanaTx = addTransactionMetadata(tx, {
       signers: ixs.keys,
+      addressLookupTables: this.client.addressLookupTables,
+    });
+
+    return solanaTx;
+  }
+
+  async makeDepositStakedTx(
+    amount: Amount,
+    bankAddress: PublicKey,
+    stakeAccountPk: PublicKey,
+    validator: PublicKey,
+    depositOpts: MakeDepositIxOpts = {}
+  ) {
+    const ixs: TransactionInstruction[] = [];
+
+    const pool = findPoolAddress(validator);
+    const lstMint = findPoolMintAddress(pool);
+    const auth = findPoolStakeAuthorityAddress(pool);
+    const lstAta = getAssociatedTokenAddressSync(lstMint, this.authority);
+
+    const accountInfo = await this.client.provider.connection.getAccountInfo(lstAta);
+    if (!accountInfo) {
+      ixs.push(createAssociatedTokenAccountInstruction(this.authority, lstAta, this.authority, lstMint));
+    }
+
+    const authorizeStakerIxes = StakeProgram.authorize({
+      stakePubkey: stakeAccountPk,
+      authorizedPubkey: this.authority,
+      newAuthorizedPubkey: auth,
+      stakeAuthorizationType: StakeAuthorizationLayout.Staker,
+    }).instructions;
+
+    const authorizeWithdrawIxes = StakeProgram.authorize({
+      stakePubkey: stakeAccountPk,
+      authorizedPubkey: this.authority,
+      newAuthorizedPubkey: auth,
+      stakeAuthorizationType: StakeAuthorizationLayout.Withdrawer,
+    }).instructions;
+
+    const depositIx: TransactionInstruction = await SinglePoolInstruction.depositStake(
+      pool,
+      stakeAccountPk,
+      lstAta,
+      this.authority
+    );
+
+    authorizeStakerIxes[0].keys = authorizeStakerIxes[0].keys.map((key) => {
+      console.log(key.pubkey.toBase58(), key.isWritable ? "writable" : "not writable");
+      if (key.pubkey.equals(SYSVAR_CLOCK_ID) && key.isWritable) {
+        console.log("overwriting SYSVAR_CLOCK_ID");
+        key.isWritable = false;
+        console.log(key.pubkey.toBase58(), key.isWritable ? "writable" : "not writable");
+      }
+      return key;
+    });
+    console.log("Authorize withdraw keys");
+    authorizeWithdrawIxes[0].keys = authorizeWithdrawIxes[0].keys.map((key) => {
+      console.log(key.pubkey.toBase58(), key.isWritable ? "writable" : "not writable");
+      if (key.pubkey.equals(SYSVAR_CLOCK_ID) && key.isWritable) {
+        console.log("overwriting SYSVAR_CLOCK_ID");
+        key.isWritable = false;
+        console.log(key.pubkey.toBase58(), key.isWritable ? "writable" : "not writable");
+      }
+      return key;
+    });
+
+    ixs.push(...authorizeStakerIxes, ...authorizeWithdrawIxes, depositIx);
+
+    console.log("Staked asset bank params");
+    console.log(stakeAccountPk.toBase58());
+    console.log(pool.toBase58());
+    console.log(lstMint.toBase58());
+    console.log(auth.toBase58());
+    console.log(lstAta.toBase58());
+    console.log(ixs);
+
+    const depositIxs = await this.makeDepositIx(amount, bankAddress, depositOpts);
+    ixs.push(...depositIxs.instructions);
+
+    const tx = new Transaction().add(...ixs);
+    const solanaTx = addTransactionMetadata(tx, {
+      signers: depositIxs.keys,
       addressLookupTables: this.client.addressLookupTables,
     });
 

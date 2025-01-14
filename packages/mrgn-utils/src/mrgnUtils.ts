@@ -113,6 +113,7 @@ export function getLiquidationPriceColor(currentPrice: number, liquidationPrice:
 }
 
 export function extractErrorString(error: any, fallback?: string): string {
+  console.log(error);
   const errorCode = handleError(error, null, false);
 
   if (errorCode?.description) {

@@ -5,6 +5,7 @@ import {
   Transaction,
   TransactionInstruction,
   VersionedTransaction,
+  PublicKey,
 } from "@solana/web3.js";
 import { v4 as uuidv4 } from "uuid";
 
@@ -24,6 +25,7 @@ import {
   SolanaTransaction,
   TransactionBroadcastType,
   addTransactionMetadata,
+  SYSVAR_CLOCK_ID,
 } from "@mrgnlabs/mrgn-common";
 import {
   ActionMessageType,
@@ -152,7 +154,8 @@ export async function calculateLendingTransaction(
   switch (actionMode) {
     case ActionType.Deposit:
       let depositTx: SolanaTransaction;
-      let stakedLstSolanaTxn: SolanaTransaction | undefined;
+      let lstAta: PublicKey | undefined;
+      const ix: TransactionInstruction[] = [];
 
       if (marginfiAccount && connection && bank.info.rawBank.config.assetTag === 2) {
         console.log("Depositing into staked asset bank");
@@ -166,63 +169,102 @@ export async function calculateLendingTransaction(
           throw new Error("No stake account found for this staked asset bank");
         }
 
-        const pool = findPoolAddress(stakeAccount.validator);
-        const lstMint = findPoolMintAddress(pool);
-        const auth = findPoolStakeAuthorityAddress(pool);
-        const lstAta = getAssociatedTokenAddressSync(lstMint, marginfiAccount.authority);
-
-        const ix: TransactionInstruction[] = [];
-
-        // ix.push(createAssociatedTokenAccountInstruction(marginfiAccount.authority, lstAta, marginfiAccount.authority, lstMint));
-
-        const authorizeStakerIxes = StakeProgram.authorize({
-          stakePubkey: stakeAccount.accounts[0].pubkey,
-          authorizedPubkey: marginfiAccount.authority,
-          newAuthorizedPubkey: auth,
-          stakeAuthorizationType: StakeAuthorizationLayout.Staker,
-        }).instructions;
-
-        ix.push(...authorizeStakerIxes);
-
-        const authorizeWithdrawIxes = StakeProgram.authorize({
-          stakePubkey: stakeAccount.accounts[0].pubkey,
-          authorizedPubkey: marginfiAccount.authority,
-          newAuthorizedPubkey: auth,
-          stakeAuthorizationType: StakeAuthorizationLayout.Withdrawer,
-        }).instructions;
-
-        ix.push(...authorizeWithdrawIxes);
-
-        const depositIx = await SinglePoolInstruction.depositStake(
-          pool,
-          stakeAccount.accounts[0].pubkey,
-          lstAta,
-          marginfiAccount.authority
+        depositTx = await marginfiAccount.makeDepositStakedTx(
+          amount,
+          bank.address,
+          new PublicKey(stakeAccount.accounts[0].pubkey),
+          stakeAccount.validator
         );
 
-        ix.push(depositIx);
+        // const stakeAccountPk = new PublicKey(stakeAccount.accounts[0].pubkey);
+        // const pool = findPoolAddress(stakeAccount.validator);
+        // const lstMint = findPoolMintAddress(pool);
+        // const auth = findPoolStakeAuthorityAddress(pool);
+        // const lstAta = getAssociatedTokenAddressSync(lstMint, marginfiAccount.authority);
 
-        console.log("Staked asset bank params");
-        console.log(pool.toBase58());
-        console.log(lstMint.toBase58());
-        console.log(auth.toBase58());
-        console.log(lstAta.toBase58());
-        console.log(ix);
+        // const accountInfo = await connection.getAccountInfo(lstAta);
+        // if (!accountInfo) {
+        //   ix.push(
+        //     createAssociatedTokenAccountInstruction(
+        //       marginfiAccount.authority,
+        //       lstAta,
+        //       marginfiAccount.authority,
+        //       lstMint
+        //     )
+        //   );
+        // }
 
-        const stakedLstTxn = new Transaction();
-        stakedLstTxn.add(...ix);
-        stakedLstSolanaTxn = addTransactionMetadata(stakedLstTxn, {});
+        // const authorizeStakerIxes = StakeProgram.authorize({
+        //   stakePubkey: stakeAccountPk,
+        //   authorizedPubkey: marginfiAccount.authority,
+        //   newAuthorizedPubkey: auth,
+        //   stakeAuthorizationType: StakeAuthorizationLayout.Staker,
+        // }).instructions;
 
-        depositTx = await marginfiAccount.makeDepositTx(amount, bank.address, {
-          stakedLstAta: lstAta,
-        });
+        // const authorizeWithdrawIxes = StakeProgram.authorize({
+        //   stakePubkey: stakeAccountPk,
+        //   authorizedPubkey: marginfiAccount.authority,
+        //   newAuthorizedPubkey: auth,
+        //   stakeAuthorizationType: StakeAuthorizationLayout.Withdrawer,
+        // }).instructions;
+
+        // const depositIx: TransactionInstruction = await SinglePoolInstruction.depositStake(
+        //   pool,
+        //   stakeAccountPk,
+        //   lstAta,
+        //   marginfiAccount.authority
+        // );
+
+        // // loop through authorizeStakerIxes and authorizeWithdrawIxes keys and print them out
+        // console.log("Authorize staker keys");
+        // authorizeStakerIxes[0].keys = authorizeStakerIxes[0].keys.map((key) => {
+        //   console.log(key.pubkey.toBase58(), key.isWritable ? "writable" : "not writable");
+        //   if (key.pubkey.equals(SYSVAR_CLOCK_ID) && key.isWritable) {
+        //     console.log("overwriting SYSVAR_CLOCK_ID");
+        //     key.isWritable = false;
+        //     console.log(key.pubkey.toBase58(), key.isWritable ? "writable" : "not writable");
+        //   }
+        //   return key;
+        // });
+        // console.log("Authorize withdraw keys");
+        // authorizeWithdrawIxes[0].keys = authorizeWithdrawIxes[0].keys.map((key) => {
+        //   console.log(key.pubkey.toBase58(), key.isWritable ? "writable" : "not writable");
+        //   if (key.pubkey.equals(SYSVAR_CLOCK_ID) && key.isWritable) {
+        //     console.log("overwriting SYSVAR_CLOCK_ID");
+        //     key.isWritable = false;
+        //     console.log(key.pubkey.toBase58(), key.isWritable ? "writable" : "not writable");
+        //   }
+        //   return key;
+        // });
+
+        // ix.push(...authorizeStakerIxes, ...authorizeWithdrawIxes, depositIx);
+
+        // console.log("Staked asset bank params");
+        // console.log(stakeAccount);
+        // console.log(pool.toBase58());
+        // console.log(lstMint.toBase58());
+        // console.log(auth.toBase58());
+        // console.log(lstAta.toBase58());
+        // console.log(ix);
       } else {
         depositTx = await marginfiAccount.makeDepositTx(amount, bank.address);
       }
 
+      // depositTx = await marginfiAccount.makeDepositTx(amount, bank.address, {
+      //   stakedLstAta: lstAta,
+      //   ixs: ix,
+      // });
+
+      // depositTx = await marginfiAccount.makeDepositStakedTx(
+      //   amount,
+      //   bank.address,
+      //   stakeAccountPk,
+      //   stakeAccount.validator
+      // );
+
       return {
-        actionTxn: stakedLstSolanaTxn ? stakedLstSolanaTxn : depositTx,
-        additionalTxns: stakedLstSolanaTxn ? [depositTx] : [],
+        actionTxn: depositTx,
+        additionalTxns: [],
       };
     case ActionType.Borrow:
       const borrowTxObject = await marginfiAccount.makeBorrowTx(amount, bank.address, {
