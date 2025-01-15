@@ -72,7 +72,7 @@ const filterStakedAssetBanks = async (
     // add back staked asset banks for validators uaer has native stake
     filteredBankInfos = filteredBankInfos.concat(
       stakedAssetBankInfos.filter((bank) =>
-        stakeAccounts.find((stakeAccount) => stakeAccount.poolMintKey.equals(bank.info.rawBank.mint))
+        stakeAccounts.find((stakeAccount) => stakeAccount.poolMintKey.equals(bank.info.rawBank.mint) && !bank.isActive)
       )
     );
   }
