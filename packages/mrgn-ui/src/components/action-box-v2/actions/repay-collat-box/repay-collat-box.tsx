@@ -17,13 +17,11 @@ import {
   ExecuteRepayWithCollatActionProps,
   ActionTxns,
   MultiStepToastHandle,
-  cn,
   IndividualFlowError,
   usePrevious,
 } from "@mrgnlabs/mrgn-utils";
 import { IconCheck, IconSettings } from "@tabler/icons-react";
 
-import { CircularProgress } from "~/components/ui/circular-progress";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import {
   ActionBoxContentWrapper,
@@ -44,6 +42,8 @@ import { useRepayCollatSimulation } from "./hooks";
 
 import { useActionBoxStore } from "../../store";
 import { useActionContext } from "../../contexts";
+import { CircularProgress } from "~/components/ui/circular-progress";
+import { WalletContextState } from "@solana/wallet-adapter-react";
 
 // error handling
 export type RepayCollatBoxProps = {
@@ -153,10 +153,11 @@ export const RepayCollatBox = ({
     actionTxns.lastValidBlockHeight
   );
 
-  const [setIsSettingsDialogOpen, setPreviousTxn, setIsActionComplete] = useActionBoxStore((state) => [
-    state.setIsSettingsDialogOpen,
+  const [setPreviousTxn, setIsActionComplete, platformFeeBps, slippageBps] = useActionBoxStore((state) => [
     state.setPreviousTxn,
     state.setIsActionComplete,
+    state.platformFeeBps,
+    state.slippageBps,
   ]);
 
   React.useEffect(() => {
@@ -199,7 +200,6 @@ export const RepayCollatBox = ({
   });
 
   const [additionalActionMessages, setAdditionalActionMessages] = React.useState<ActionMessageType[]>([]);
-  const [showSimSuccess, setShowSimSuccess] = React.useState(false);
 
   React.useEffect(() => {
     if (debouncedAmount === 0 && simulationResult) {
@@ -392,6 +392,7 @@ export const RepayCollatBox = ({
     amount,
     transactionSettings,
     captureEvent,
+    executeAction,
     marginfiClient,
     onComplete,
     priorityFees,
@@ -404,15 +405,6 @@ export const RepayCollatBox = ({
     setIsActionComplete,
     setPreviousTxn,
   ]);
-
-  React.useEffect(() => {
-    if (isSimulating.status === SimulationStatus.COMPLETE && additionalActionMessages.length === 0) {
-      setShowSimSuccess(true);
-      setTimeout(() => {
-        setShowSimSuccess(false);
-      }, 3000);
-    }
-  }, [isSimulating.status, additionalActionMessages]);
 
   React.useEffect(() => {
     if (marginfiClient) {
@@ -446,7 +438,18 @@ export const RepayCollatBox = ({
         </div>
       )}
       <div className="mb-4">
-        <span className="text-sm text-muted-foreground">Repay</span>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger>
+              <span className="text-sm text-muted-foreground inline-flex items-center gap-1">
+                Repay <IconInfoCircle className="w-4 h-4" />
+              </span>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Repay using your prefered token.</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
         <ActionInput
           banks={banks}
           nativeSolBalance={nativeSolBalance}
@@ -493,7 +496,7 @@ export const RepayCollatBox = ({
           handleAction={() => {
             handleRepayCollatAction();
           }}
-          buttonLabel={"Repay"}
+          buttonLabel={"Repay"} // TODO: change to "title or smt"
         />
       </div>
 

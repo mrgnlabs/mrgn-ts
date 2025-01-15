@@ -146,7 +146,6 @@ const Repay = (
   props: ActionBoxProps & { repayProps: RequiredRepayBoxProps | RepayBoxProps; useProvider?: boolean }
 ) => {
   const contextProps = useActionBoxContext();
-  const [selectedAction, setSelectedAction] = React.useState(ActionType.Repay);
   const { repayProps, useProvider, ...actionBoxProps } = props;
 
   let combinedProps: RepayBoxProps;
@@ -163,11 +162,7 @@ const Repay = (
   return (
     <ActionBox {...actionBoxProps}>
       <ActionBoxWrapper showSettings={true} isDialog={actionBoxProps.isDialog} actionMode={ActionType.Repay}>
-        <ActionBoxNavigator
-          selectedAction={selectedAction}
-          onSelectAction={setSelectedAction}
-          actionTypes={[ActionType.RepayCollat]}
-        >
+        <ActionBoxNavigator selectedAction={ActionType.RepayCollat}>
           <RepayCollatBox {...combinedProps} />
         </ActionBoxNavigator>
       </ActionBoxWrapper>
