@@ -17,6 +17,8 @@ import {
   getAccountKeys,
   createAssociatedTokenAccountInstruction,
   SYSVAR_CLOCK_ID,
+  uiToNative,
+  getAccount,
 } from "@mrgnlabs/mrgn-common";
 import * as sb from "@switchboard-xyz/on-demand";
 import { Address, BorshCoder, Idl, translateAddress } from "@coral-xyz/anchor";
@@ -36,6 +38,7 @@ import {
   StakeProgram,
   StakeAuthorizationLayout,
   TransactionSignature,
+  Keypair,
 } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 import {
@@ -61,6 +64,9 @@ import { Balance } from "../balance";
 import {
   findPoolAddress,
   findPoolMintAddress,
+  findPoolMintAuthorityAddress,
+  findPoolMplAuthorityAddress,
+  findPoolStakeAddress,
   findPoolStakeAuthorityAddress,
   getSwitchboardProgram,
   SinglePoolInstruction,
@@ -887,10 +893,8 @@ class MarginfiAccountWrapper {
     const lstAta = getAssociatedTokenAddressSync(lstMint, this.authority);
 
     const accountInfo = await this.client.provider.connection.getAccountInfo(lstAta);
-    if (!accountInfo) {
-      ixs.push(createAssociatedTokenAccountInstruction(this.authority, lstAta, this.authority, lstMint));
-    }
 
+    // authorize user stake account to single-spl-pool
     const authorizeStakerIxes = StakeProgram.authorize({
       stakePubkey: stakeAccountPk,
       authorizedPubkey: this.authority,
@@ -905,45 +909,44 @@ class MarginfiAccountWrapper {
       stakeAuthorizationType: StakeAuthorizationLayout.Withdrawer,
     }).instructions;
 
-    const depositIx: TransactionInstruction = await SinglePoolInstruction.depositStake(
+    // deposit to stake pool
+    const depositStakeIx: TransactionInstruction = await SinglePoolInstruction.depositStake(
       pool,
       stakeAccountPk,
       lstAta,
       this.authority
     );
 
+    // overwrite SYSVAR_CLOCK_ID to non writable
+    // TODO: need to investigate why this is needed
     authorizeStakerIxes[0].keys = authorizeStakerIxes[0].keys.map((key) => {
-      console.log(key.pubkey.toBase58(), key.isWritable ? "writable" : "not writable");
       if (key.pubkey.equals(SYSVAR_CLOCK_ID) && key.isWritable) {
-        console.log("overwriting SYSVAR_CLOCK_ID");
         key.isWritable = false;
-        console.log(key.pubkey.toBase58(), key.isWritable ? "writable" : "not writable");
       }
       return key;
     });
-    console.log("Authorize withdraw keys");
     authorizeWithdrawIxes[0].keys = authorizeWithdrawIxes[0].keys.map((key) => {
-      console.log(key.pubkey.toBase58(), key.isWritable ? "writable" : "not writable");
       if (key.pubkey.equals(SYSVAR_CLOCK_ID) && key.isWritable) {
-        console.log("overwriting SYSVAR_CLOCK_ID");
         key.isWritable = false;
-        console.log(key.pubkey.toBase58(), key.isWritable ? "writable" : "not writable");
       }
       return key;
     });
 
-    ixs.push(...authorizeStakerIxes, ...authorizeWithdrawIxes, depositIx);
-
-    console.log("Staked asset bank params");
-    console.log(stakeAccountPk.toBase58());
-    console.log(pool.toBase58());
-    console.log(lstMint.toBase58());
-    console.log(auth.toBase58());
-    console.log(lstAta.toBase58());
-    console.log(ixs);
-
+    // deposit to marginfi staked asset bank
     const depositIxs = await this.makeDepositIx(amount, bankAddress, depositOpts);
-    ixs.push(...depositIxs.instructions);
+
+    // build txn
+
+    // create associated token account if it doesn't exist
+    if (!accountInfo) {
+      ixs.push(createAssociatedTokenAccountInstruction(this.authority, lstAta, this.authority, lstMint));
+    }
+
+    // add instructions
+    // - authorize staker and withdrawer
+    // - deposit to stake pool
+    // - deposit to marginfi staked asset bank
+    ixs.push(...authorizeStakerIxes, ...authorizeWithdrawIxes, depositStakeIx, ...depositIxs.instructions);
 
     const tx = new Transaction().add(...ixs);
     const solanaTx = addTransactionMetadata(tx, {
@@ -1253,6 +1256,75 @@ class MarginfiAccountWrapper {
     );
 
     return { feedCrankTxs, withdrawTx };
+  }
+
+  async makeWithdrawStakedTx(amount: Amount, bankAddress: PublicKey, withdrawOpts: MakeWithdrawIxOpts = {}) {
+    // Get bank and metadata
+    const bank = this.client.getBankByPk(bankAddress);
+    const bankMetadata = this.client.bankMetadataMap![bankAddress.toBase58()];
+
+    if (!bank) {
+      throw new Error("Bank not found");
+    }
+
+    if (!bankMetadata.validatorVoteAccount) {
+      throw new Error("Validator vote account not found");
+    }
+
+    const pool = findPoolAddress(new PublicKey(bankMetadata.validatorVoteAccount));
+    const lstMint = findPoolMintAddress(pool);
+    const auth = findPoolStakeAuthorityAddress(pool);
+    const lstAta = getAssociatedTokenAddressSync(lstMint, this.authority);
+
+    // withdraw from marginfi bank
+    const withdrawIxs = await this.makeWithdrawIx(amount, bankAddress, true, withdrawOpts);
+
+    // create stake account
+    const stakeAccount = Keypair.generate();
+    const rentExemption = await this._program.provider.connection.getMinimumBalanceForRentExemption(StakeProgram.space);
+
+    const createStakeAccountIx = SystemProgram.createAccount({
+      fromPubkey: this.authority,
+      newAccountPubkey: stakeAccount.publicKey,
+      lamports: rentExemption,
+      space: StakeProgram.space,
+      programId: StakeProgram.programId,
+    });
+
+    // authorize single-spl-pool staker and withdrawer
+    const initializeStakeAccountIx = StakeProgram.initialize({
+      stakePubkey: stakeAccount.publicKey,
+      authorized: {
+        staker: auth,
+        withdrawer: this.authority,
+      },
+    });
+
+    // withdraw from single-spl-pool
+    const withdrawStakeIx: TransactionInstruction = await SinglePoolInstruction.withdrawStake(
+      pool,
+      stakeAccount.publicKey,
+      this.authority,
+      lstAta,
+      new BigNumber(amount)
+    );
+
+    // build txn
+    // - withdraw from marginfi bank
+    // - create stake account
+    // - authorize single-spl-pool staker and withdrawer
+    // - withdraw from single-spl-pool
+    const txn = new Transaction().add(
+      ...withdrawIxs.instructions,
+      createStakeAccountIx,
+      initializeStakeAccountIx,
+      withdrawStakeIx
+    );
+
+    return addTransactionMetadata(txn, {
+      signers: [...withdrawIxs.keys, stakeAccount],
+      addressLookupTables: this.client.addressLookupTables,
+    });
   }
 
   /**

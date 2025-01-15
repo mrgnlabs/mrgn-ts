@@ -168,15 +168,25 @@ export async function calculateLendingTransaction(
         additionalTxns: borrowTxObject.feedCrankTxs,
       };
     case ActionType.Withdraw:
-      const withdrawTxObject = await marginfiAccount.makeWithdrawTx(
-        amount,
-        bank.address,
-        bank.isActive && isWholePosition(bank, amount)
-      );
-      return {
-        actionTxn: withdrawTxObject.withdrawTx,
-        additionalTxns: withdrawTxObject.feedCrankTxs,
-      };
+      if (bank.info.rawBank.config.assetTag === 2) {
+        console.log("Withdrawing from staked asset bank");
+        const withdrawTx = await marginfiAccount.makeWithdrawStakedTx(amount, bank.address);
+        return {
+          actionTxn: withdrawTx,
+          additionalTxns: [],
+        };
+      } else {
+        const withdrawTxObject = await marginfiAccount.makeWithdrawTx(
+          amount,
+          bank.address,
+          bank.isActive && isWholePosition(bank, amount)
+        );
+
+        return {
+          actionTxn: withdrawTxObject.withdrawTx,
+          additionalTxns: withdrawTxObject.feedCrankTxs,
+        };
+      }
     case ActionType.Repay:
       const repayTx = await marginfiAccount.makeRepayTx(
         amount,

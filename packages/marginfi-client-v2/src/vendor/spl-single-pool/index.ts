@@ -7,6 +7,8 @@ import {
   Transaction,
   TransactionInstruction,
 } from "@solana/web3.js";
+import BigNumber from "bignumber.js";
+import { BN } from "bn.js";
 
 import {
   TOKEN_PROGRAM_ID,
@@ -121,24 +123,31 @@ const SinglePoolInstruction = {
     userStakeAccount: PublicKey,
     userStakeAuthority: PublicKey,
     userTokenAccount: PublicKey,
-    tokenAmount: bigint
+    tokenAmount: BigNumber
   ): Promise<TransactionInstruction> => {
-    const stake = findPoolStakeAddress(pool);
+    const poolStake = findPoolStakeAddress(pool);
     const mint = findPoolMintAddress(pool);
     const stakeAuthority = findPoolStakeAuthorityAddress(pool);
     const mintAuthority = findPoolMintAuthorityAddress(pool);
 
+    // Convert BigNumber to proper u64 format
+    // Ensure we're using the full integer value without decimal places
+    const rawAmount = tokenAmount.multipliedBy(new BigNumber(10).pow(9)).toFixed(0);
+    const bn = new BN(rawAmount);
+    const amountBuffer = bn.toArrayLike(Buffer, "le", 8);
+
+    // Create instruction data buffer
     const data = Buffer.concat([
       Buffer.from([SinglePoolInstructionType.WithdrawStake]),
       userStakeAuthority.toBuffer(),
-      Buffer.from(tokenAmount.toString(16).padStart(16, "0"), "hex"),
+      amountBuffer,
     ]);
 
     return createTransactionInstruction(
       SINGLE_POOL_PROGRAM_ID,
       [
         { pubkey: pool, isSigner: false, isWritable: false },
-        { pubkey: stake, isSigner: false, isWritable: true },
+        { pubkey: poolStake, isSigner: false, isWritable: true },
         { pubkey: mint, isSigner: false, isWritable: true },
         { pubkey: stakeAuthority, isSigner: false, isWritable: false },
         { pubkey: mintAuthority, isSigner: false, isWritable: false },
