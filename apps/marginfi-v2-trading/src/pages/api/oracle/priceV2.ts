@@ -41,30 +41,34 @@ interface OracleDataWithTimestamp extends OracleData {
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  let host = extractHost(req.headers.origin) || extractHost(req.headers.referer);
-
-  if (!host) {
-    return res.status(400).json({ error: "Invalid input: expected a valid host." });
-  }
-
-  const poolList: PoolListApiResponse[] = await fetch(`${host}/api/pool/list`).then((response) => response.json());
-
-  const requestedTokenBanks = poolList.map((pool) => pool.base_bank.address);
-  const requestedQuoteBanks = poolList.map((pool) => pool.quote_banks[0].address);
-
-  const requestedBanks = [...requestedTokenBanks, ...requestedQuoteBanks];
-
-  const connection = new Connection(process.env.PRIVATE_RPC_ENDPOINT_OVERRIDE || "");
-  const idl = { ...MARGINFI_IDL, address: config.mfiConfig.programId.toBase58() } as unknown as MarginfiIdlType;
-  const provider = new AnchorProvider(connection, {} as Wallet, {
-    ...AnchorProvider.defaultOptions(),
-    commitment: connection.commitment ?? AnchorProvider.defaultOptions().commitment,
-  });
-  const program = new Program(idl, provider) as any as MarginfiProgram;
-
-  let updatedOraclePrices = new Map<string, OraclePrice>();
-
   try {
+    let baseUrl = extractHost(req.headers.origin) || extractHost(req.headers.referer);
+
+    if (!baseUrl) {
+      return res.status(400).json({ error: "Invalid input: expected a valid host." });
+    }
+
+    const poolList: PoolListApiResponse[] = await fetch(`${baseUrl}/api/pool/list`)
+      .then((response) => response.json())
+      .catch((error) => {
+        throw new Error("Error fetching pool list", error);
+      });
+
+    const requestedTokenBanks = poolList.map((pool) => pool.base_bank.address);
+    const requestedQuoteBanks = poolList.map((pool) => pool.quote_banks[0].address);
+
+    const requestedBanks = [...requestedTokenBanks, ...requestedQuoteBanks];
+
+    const connection = new Connection(process.env.PRIVATE_RPC_ENDPOINT_OVERRIDE || "");
+    const idl = { ...MARGINFI_IDL, address: config.mfiConfig.programId.toBase58() } as unknown as MarginfiIdlType;
+    const provider = new AnchorProvider(connection, {} as Wallet, {
+      ...AnchorProvider.defaultOptions(),
+      commitment: connection.commitment ?? AnchorProvider.defaultOptions().commitment,
+    });
+    const program = new Program(idl, provider) as any as MarginfiProgram;
+
+    let updatedOraclePrices = new Map<string, OraclePrice>();
+
     // Fetch on-chain data for all banks
     const banksAis = await chunkedGetRawMultipleAccountInfoOrdered(connection, requestedBanks);
     let banksMap: { address: PublicKey; data: BankRaw }[] = banksAis.map((account, index) => ({
@@ -187,15 +191,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
     }
     const bankPkMap = new Map<string, OraclePrice>();
-
-    try {
-      updatedOraclePrices.forEach((value, key) => {
-        console.log("key", key);
-        console.log("value", value.priceRealtime.price.toNumber());
-      });
-    } catch {
-      console.log("error");
-    }
 
     requestedOraclesData.forEach((oracleData) => {
       const oraclePrice = updatedOraclePrices.get(oracleData.oracleKey)!;

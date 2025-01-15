@@ -867,9 +867,16 @@ export { createTradeStoreV2 };
 export type { TradeStoreV2State };
 
 async function fetchPythFeedMap() {
-  const feedIdMapRaw: Record<string, string> = await fetch(`/api/oracle/pythFeedMapV2`).then((response) =>
-    response.json()
-  );
+  const feedIdMapRaw: Record<string, string> = await fetch(`/api/oracle/pythFeedMapV2`)
+    .then((response) => response.json())
+    .catch((error) => {
+      throw new Error("Error fetching pyth feed map", error);
+    });
+
+  if (feedIdMapRaw.error) {
+    throw new Error("Error fetching pyth feed map");
+  }
+
   const feedIdMap: Map<string, PublicKey> = new Map(
     Object.entries(feedIdMapRaw).map(([key, value]) => [key, new PublicKey(value)])
   );
@@ -882,6 +889,8 @@ async function fetchOraclePrices() {
     headers: {
       "Content-Type": "application/json",
     },
+  }).catch((error) => {
+    throw new Error("Error fetching oracle prices", error);
   });
 
   if (!response.ok) {

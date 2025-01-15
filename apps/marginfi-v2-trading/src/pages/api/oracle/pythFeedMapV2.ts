@@ -22,7 +22,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ error: "Invalid input: expected a valid host." });
     }
 
-    const poolList: PoolListApiResponse[] = await fetch(`${host}/api/pool/list`).then((response) => response.json());
+    const poolList: PoolListApiResponse[] = await fetch(`${host}/api/pool/list`)
+      .then((response) => response.json())
+      .catch((error) => {
+        throw new Error("Error fetching pool list ", error);
+      });
 
     const requestedTokenBanks = poolList.map((pool) => pool.base_bank.address);
     const requestedQuoteBanks = poolList.map((pool) => pool.quote_banks[0].address);
