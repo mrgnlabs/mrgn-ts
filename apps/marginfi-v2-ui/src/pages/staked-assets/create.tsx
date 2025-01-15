@@ -9,6 +9,13 @@ import { PageHeading } from "~/components/common/PageHeading";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
+import { initializeStakedPoolTx } from "@mrgnlabs/marginfi-client-v2/dist/vendor/spl-single-pool";
+import { useConnection } from "~/hooks/use-connection";
+import { useWallet } from "~/components/wallet-v2/hooks";
+import { PublicKey, Transaction } from "@solana/web3.js";
+import { SINGLE_POOL_PROGRAM_ID } from "@mrgnlabs/mrgn-common";
+import { useMrgnlendStore, useUiStore } from "~/store";
+import { MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 
 type CreateStakedAssetForm = {
   voteAccountKey: string;
@@ -17,6 +24,11 @@ type CreateStakedAssetForm = {
 };
 
 export default function CreateStakedAssetPage() {
+  const { connection } = useConnection();
+  const { wallet } = useWallet();
+  const [client] = useMrgnlendStore((state) => [state.marginfiClient]);
+  const [broadcastType, priorityFees] = useUiStore((state) => [state.broadcastType, state.priorityFees]);
+
   const [form, setForm] = React.useState<CreateStakedAssetForm>({
     voteAccountKey: "",
     assetName: "",
@@ -42,14 +54,43 @@ export default function CreateStakedAssetPage() {
     maxFiles: 1,
   });
 
-  const createStakedAssetBank = React.useCallback(async () => {
+  const createdStakedAssetSplPool = React.useCallback(
+    async (voteAccount: PublicKey, client: MarginfiClient) => {
+      const solOracle = new PublicKey("7UVimffxr9ow1uXYxsr4LHAcV58mLzhmwaeKvJ1pjLiE");
+
+      const initSplPoolTx = await initializeStakedPoolTx(connection, wallet.publicKey, new PublicKey(voteAccount));
+      const addBankIxs = await client.group.makeAddPermissionlessStakedBankIx(client.program, voteAccount, solOracle);
+      const addBankTx = new Transaction().add(...addBankIxs.instructions);
+
+      console.log({ initSplPoolTx });
+
+      const txSignature = await client.processTransactions([initSplPoolTx, addBankTx], {
+        //addBankTx
+        broadcastType: broadcastType,
+        ...priorityFees,
+      });
+    },
+    [broadcastType, connection, priorityFees, wallet.publicKey]
+  );
+
+  const handleSubmitForm = React.useCallback(async () => {
+    if (!client) return;
+
+    try {
+      const txSignature = await createdStakedAssetSplPool(new PublicKey(form.voteAccountKey), client);
+    } catch (e) {
+      console.error(e);
+    }
+
     setIsLoading(true);
     console.log(form);
 
     setTimeout(() => {
       setIsLoading(false);
     }, 2000);
-  }, [form]);
+  }, [client, createdStakedAssetSplPool, form]);
+
+  const createStakedAssetBank = React.useCallback(async () => {}, [form]);
 
   return (
     <div>
@@ -61,7 +102,7 @@ export default function CreateStakedAssetPage() {
         className="flex flex-col gap-8 px-4 md:px-0"
         onSubmit={(e) => {
           e.preventDefault();
-          createStakedAssetBank();
+          handleSubmitForm();
         }}
       >
         <div className="flex flex-col gap-2">

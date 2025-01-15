@@ -1,4 +1,12 @@
-import { Connection, PublicKey, STAKE_CONFIG_ID, SystemProgram, TransactionInstruction } from "@solana/web3.js";
+import {
+  Connection,
+  LAMPORTS_PER_SOL,
+  PublicKey,
+  STAKE_CONFIG_ID,
+  SystemProgram,
+  Transaction,
+  TransactionInstruction,
+} from "@solana/web3.js";
 
 import {
   TOKEN_PROGRAM_ID,
@@ -250,7 +258,13 @@ const SINGLE_POOL_ACCOUNT_SIZE = BigInt(33);
 const STAKE_ACCOUNT_SIZE = BigInt(200);
 const MINT_SIZE = BigInt(82);
 
-async function initializeStakedPool(connection: Connection, payer: PublicKey, voteAccountAddress: PublicKey) {
+async function initializeStakedPoolTx(connection: Connection, payer: PublicKey, voteAccountAddress: PublicKey) {
+  const instructions = await initializeStakedPoolIxs(connection, payer, voteAccountAddress);
+  const tx = new Transaction().add(...instructions);
+  return tx;
+}
+
+async function initializeStakedPoolIxs(connection: Connection, payer: PublicKey, voteAccountAddress: PublicKey) {
   const poolAddress = findPoolAddress(voteAccountAddress);
 
   const stakeAddress = findPoolStakeAddress(poolAddress);
@@ -270,18 +284,26 @@ async function initializeStakedPool(connection: Connection, payer: PublicKey, vo
 
   // instructions
   instructions.push(SystemProgram.transfer({ fromPubkey: payer, toPubkey: poolAddress, lamports: poolRent }));
+
   instructions.push(
-    SystemProgram.transfer({ fromPubkey: payer, toPubkey: stakeAddress, lamports: stakeRent + minimumDelegation })
+    SystemProgram.transfer({
+      fromPubkey: payer,
+      toPubkey: stakeAddress,
+      lamports: stakeRent + minimumDelegation + LAMPORTS_PER_SOL * 1,
+    })
   );
   instructions.push(SystemProgram.transfer({ fromPubkey: payer, toPubkey: mintAddress, lamports: mintRent }));
 
   instructions.push(SinglePoolInstruction.initializePool(voteAccountAddress));
   instructions.push(await SinglePoolInstruction.createTokenMetadata(poolAddress, payer));
+
+  return instructions;
 }
 
 export {
   SinglePoolInstruction,
-  initializeStakedPool,
+  initializeStakedPoolIxs,
+  initializeStakedPoolTx,
   findPoolAddress,
   findPoolMintAddress,
   findPoolStakeAddress,
