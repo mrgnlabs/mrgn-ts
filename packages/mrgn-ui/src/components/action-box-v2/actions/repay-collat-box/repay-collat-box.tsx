@@ -17,14 +17,12 @@ import {
   ExecuteRepayWithCollatActionProps,
   ActionTxns,
   MultiStepToastHandle,
-  cn,
   IndividualFlowError,
 } from "@mrgnlabs/mrgn-utils";
-import { IconCheck } from "@tabler/icons-react";
+import { IconInfoCircle } from "@tabler/icons-react";
 
-import { CircularProgress } from "~/components/ui/circular-progress";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
-import { ActionButton, ActionCollateralProgressBar, ActionSettingsButton } from "~/components/action-box-v2/components";
+import { ActionButton, ActionCollateralProgressBar } from "~/components/action-box-v2/components";
 import { useActionAmounts, usePollBlockHeight } from "~/components/action-box-v2/hooks";
 import { ActionMessage } from "~/components";
 import { IconLoader } from "~/components/ui/icons";
@@ -38,6 +36,8 @@ import { useRepayCollatSimulation } from "./hooks";
 
 import { useActionBoxStore } from "../../store";
 import { useActionContext } from "../../contexts";
+import { CircularProgress } from "~/components/ui/circular-progress";
+import { WalletContextState } from "@solana/wallet-adapter-react";
 
 // error handling
 export type RepayCollatBoxProps = {
@@ -136,10 +136,11 @@ export const RepayCollatBox = ({
     actionTxns.lastValidBlockHeight
   );
 
-  const [setIsSettingsDialogOpen, setPreviousTxn, setIsActionComplete] = useActionBoxStore((state) => [
-    state.setIsSettingsDialogOpen,
+  const [setPreviousTxn, setIsActionComplete, platformFeeBps, slippageBps] = useActionBoxStore((state) => [
     state.setPreviousTxn,
     state.setIsActionComplete,
+    state.platformFeeBps,
+    state.slippageBps,
   ]);
 
   React.useEffect(() => {
@@ -172,6 +173,10 @@ export const RepayCollatBox = ({
     actionTxns,
     simulationResult,
     isRefreshTxn,
+
+    platformFeeBps,
+    slippageBps,
+
     setSimulationResult,
     setActionTxns,
     setErrorMessage,
@@ -181,7 +186,6 @@ export const RepayCollatBox = ({
   });
 
   const [additionalActionMessages, setAdditionalActionMessages] = React.useState<ActionMessageType[]>([]);
-  const [showSimSuccess, setShowSimSuccess] = React.useState(false);
 
   React.useEffect(() => {
     if (debouncedAmount === 0 && simulationResult) {
@@ -354,6 +358,7 @@ export const RepayCollatBox = ({
     amount,
     broadcastType,
     captureEvent,
+    executeAction,
     marginfiClient,
     onComplete,
     priorityFees,
@@ -366,15 +371,6 @@ export const RepayCollatBox = ({
     setIsActionComplete,
     setPreviousTxn,
   ]);
-
-  React.useEffect(() => {
-    if (isSimulating.status === SimulationStatus.COMPLETE && additionalActionMessages.length === 0) {
-      setShowSimSuccess(true);
-      setTimeout(() => {
-        setShowSimSuccess(false);
-      }, 3000);
-    }
-  }, [isSimulating.status, additionalActionMessages]);
 
   React.useEffect(() => {
     if (marginfiClient) {
@@ -408,7 +404,18 @@ export const RepayCollatBox = ({
         </div>
       )}
       <div className="mb-4">
-        <span className="text-sm text-muted-foreground">Repay</span>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger>
+              <span className="text-sm text-muted-foreground inline-flex items-center gap-1">
+                Repay <IconInfoCircle className="w-4 h-4" />
+              </span>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Repay using your prefered token.</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
         <ActionInput
           banks={banks}
           nativeSolBalance={nativeSolBalance}
@@ -455,18 +462,15 @@ export const RepayCollatBox = ({
           handleAction={() => {
             handleRepayCollatAction();
           }}
-          buttonLabel={"Repay"}
+          buttonLabel={"Repay"} // TODO: change to "title or smt"
         />
       </div>
 
-      <div className="flex items-center justify-between">
-        <ActionSimulationStatus
-          simulationStatus={isSimulating.status}
-          hasErrorMessages={additionalActionMessages.length > 0}
-          isActive={selectedBank && amount > 0 ? true : false}
-        />
-        <ActionSettingsButton setIsSettingsActive={setIsSettingsDialogOpen} />
-      </div>
+      <ActionSimulationStatus
+        simulationStatus={isSimulating.status}
+        hasErrorMessages={additionalActionMessages.length > 0}
+        isActive={selectedBank && amount > 0 ? true : false}
+      />
 
       <Preview actionSummary={actionSummary} selectedBank={selectedBank} isLoading={isLoading} />
     </>
