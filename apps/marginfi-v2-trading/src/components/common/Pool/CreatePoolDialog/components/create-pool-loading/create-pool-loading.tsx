@@ -93,19 +93,17 @@ export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }:
     try {
       const formattedPoolObject = {
         base_bank: poolObject.asset,
-        created_by: "mfi1dtjy2mJ9J21UoaQ5dsRnbcg4MBU1CTacVyBp1HF",
+        created_by: "mfi1dtjy2mJ9J21UoaQ5dsRnbcg4MBU1CTacVyBp1HF", // TODO: update this
         featured: true,
         group: poolObject.group,
         lookup_tables: [poolObject.lut],
         quote_banks: [poolObject.quote],
       };
-      const token = await getBearerToken();
 
       const response = await fetch("/api/pool/create", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(formattedPoolObject),
       });

@@ -1,11 +1,22 @@
 import type { NextApiRequest, NextApiResponse } from "next";
+import cookie from "cookie";
+import { fetchAuthToken } from "~/utils";
 
 const ARENA_URL = `${process.env.MARGINFI_API_URL}/arena/create`;
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
-    if (!req.headers.authorization) {
-      return res.status(401).json({ error: "Unauthorized" });
+    const cookies = cookie.parse(req.headers.cookie || "");
+    let token = cookies.jwt;
+
+    // If the token is missing, fetch a new one
+    if (!token) {
+      try {
+        token = await fetchAuthToken(req);
+      } catch (error) {
+        console.error("Error fetching new JWT:", error);
+        return res.status(401).json({ error: "Unauthorized: Unable to fetch token" });
+      }
     }
 
     const { base_bank, created_by, featured, group, lookup_tables, quote_banks } = req.body;
@@ -14,7 +25,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `${req.headers.authorization}`,
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({
         base_bank,

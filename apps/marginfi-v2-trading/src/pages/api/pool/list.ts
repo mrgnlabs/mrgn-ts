@@ -1,5 +1,7 @@
+import cookie from "cookie";
 import { NextApiRequest, NextApiResponse } from "next";
 import { PoolListApiResponse } from "~/types/api.types";
+import { fetchAuthToken } from "~/utils";
 
 // Cache times in seconds
 const S_MAXAGE_TIME = 60 * 4; // 4 minutes
@@ -10,10 +12,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(500).json({ error: "API URL is not set" });
   }
 
+  const cookies = cookie.parse(req.headers.cookie || "");
+  let token = cookies.jwt;
+
+  // If the token is missing, fetch a new one
+  if (!token) {
+    try {
+      token = await fetchAuthToken(req);
+    } catch (error) {
+      console.error("Error fetching new JWT:", error);
+      return res.status(401).json({ error: "Unauthorized: Unable to fetch token" });
+    }
+  }
+
   try {
     const response = await fetch(`${process.env.MARGINFI_API_URL}/arena/pools`, {
       headers: {
         Accept: "application/json",
+        Authorization: `Bearer ${token}`,
       },
     });
 
