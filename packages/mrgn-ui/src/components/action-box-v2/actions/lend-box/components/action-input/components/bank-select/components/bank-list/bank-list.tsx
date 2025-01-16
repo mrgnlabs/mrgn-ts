@@ -1,4 +1,5 @@
 import React from "react";
+import Link from "next/link";
 
 import { WSOL_MINT } from "@mrgnlabs/mrgn-common";
 import { ExtendedBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
@@ -6,6 +7,8 @@ import { LendingModes, cn, computeBankRate } from "@mrgnlabs/mrgn-utils";
 
 import { CommandEmpty, CommandGroup, CommandItem } from "~/components/ui/command";
 import { BankItem, BankListCommand } from "~/components/action-box-v2/components";
+import { Button } from "~/components/ui/button";
+import { IconExternalLink } from "@tabler/icons-react";
 
 type BankListProps = {
   selectedBank: ExtendedBankInfo | null;
@@ -169,6 +172,14 @@ export const BankList = ({
                   </CommandItem>
                 );
               })}
+            <div className="flex flex-col w-full gap-2 items-center justify-between py-2">
+              <p className="text-xs text-muted-foreground">Don&apos;t hold supported tokens?</p>
+              <Button variant="secondary" className="mx-auto font-normal text-[11px]" size="sm">
+                <Link href="/swap-lend">
+                  <span>try deposit swap</span>
+                </Link>
+              </Button>
+            </div>
           </CommandGroup>
         )}
         {lendingMode === LendingModes.LEND &&

@@ -18,7 +18,7 @@ export default function SwapLendPage() {
 
       {initialized && (
         <div className="w-full max-w-7xl mx-auto mb-20 px-5">
-          <PageHeading heading="Swap & Lend" body={<p>Swap and lend your assets to maximize yield.</p>} />
+          <PageHeading heading="✨ Deposit swap" body={<p>Deposit any token and swap to your chosen collateral.</p>} />
           <ActionBoxV2.SwapLend
             useProvider={true}
             swapLendProps={{
