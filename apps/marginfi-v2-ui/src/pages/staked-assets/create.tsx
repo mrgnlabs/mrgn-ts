@@ -95,11 +95,21 @@ export default function CreateStakedAssetPage() {
     return upload.ok;
   }, []);
 
+  const addMetadata = async () => {
+    // const response = await fetch(`/api/stakedPools/addMetadata?filename=${filename}`, {
+    //   method: "POST",
+    // });
+
+    await new Promise((resolve) => setTimeout(resolve, 4000));
+  };
+
   const handleSubmitForm = React.useCallback(async () => {
     if (!client) return;
 
     try {
       const txSignature = await createdStakedAssetSplPool(new PublicKey(form.voteAccountKey), client);
+
+      const addingMetadata = await addMetadata();
       if (form.assetLogo) {
         const mintAddress = findPoolMintAddressByVoteAccount(new PublicKey(form.voteAccountKey));
         await uploadImage(form.assetLogo, mintAddress.toBase58());
