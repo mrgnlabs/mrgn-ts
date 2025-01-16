@@ -190,16 +190,25 @@ export function useSwapLendSimulation({
         setIsLoading({ isLoading: false, status: SimulationStatus.COMPLETE });
       }
     },
-    [depositBank, marginfiClient, selectedAccount, setActionTxns, setIsLoading, setSimulationResult, swapBank]
+    [
+      depositBank,
+      marginfiClient,
+      selectedAccount,
+      setActionTxns,
+      setErrorMessage,
+      setIsLoading,
+      setSimulationResult,
+      swapBank,
+    ]
   );
 
   React.useEffect(() => {
-    if (prevDebouncedAmount !== debouncedAmount || prevDepositBank !== depositBank || prevSwapBank !== swapBank) {
+    if (prevDebouncedAmount !== debouncedAmount) {
       if (debouncedAmount > 0) {
         handleSimulation(debouncedAmount);
       }
     }
-  }, [debouncedAmount, depositBank, handleSimulation, prevDebouncedAmount, prevDepositBank, prevSwapBank, swapBank]);
+  }, [debouncedAmount, handleSimulation, prevDebouncedAmount]);
 
   const refreshSimulation = React.useCallback(async () => {
     await handleSimulation(debouncedAmount ?? 0);
