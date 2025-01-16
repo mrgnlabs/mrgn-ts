@@ -19,6 +19,7 @@ import {
   SYSVAR_CLOCK_ID,
   uiToNative,
   getAccount,
+  SINGLE_POOL_PROGRAM_ID,
 } from "@mrgnlabs/mrgn-common";
 import * as sb from "@switchboard-xyz/on-demand";
 import { Address, BorshCoder, Idl, translateAddress } from "@coral-xyz/anchor";
@@ -39,7 +40,10 @@ import {
   StakeAuthorizationLayout,
   TransactionSignature,
   Keypair,
+  Authorized,
+  Lockup,
 } from "@solana/web3.js";
+import { Token } from "@solana/spl-token";
 import BigNumber from "bignumber.js";
 import {
   LoopTxProps,
@@ -1273,37 +1277,58 @@ class MarginfiAccountWrapper {
 
     const pool = findPoolAddress(new PublicKey(bankMetadata.validatorVoteAccount));
     const lstMint = findPoolMintAddress(pool);
+    const mintAuthority = findPoolMintAuthorityAddress(pool);
     const auth = findPoolStakeAuthorityAddress(pool);
     const lstAta = getAssociatedTokenAddressSync(lstMint, this.authority);
+
+    const tokenAccountInfo = await this._program.provider.connection.getAccountInfo(lstAta);
+    if (!tokenAccountInfo) {
+      throw new Error("Token account not found");
+    }
 
     // withdraw from marginfi bank
     const withdrawIxs = await this.makeWithdrawIx(amount, bankAddress, true, withdrawOpts);
 
     // create stake account
-    const stakeAccount = Keypair.generate();
     const rentExemption = await this._program.provider.connection.getMinimumBalanceForRentExemption(StakeProgram.space);
+    const minimumDelegation = 1_000_000_000;
 
-    const createStakeAccountIx = SystemProgram.createAccount({
+    // match seed to rust program?
+    // seed length error
+    const seed = `svsp{${pool.toBase58().slice(0, 28)}}`;
+    console.log("Seed length:", seed.length);
+    console.log("Seed bytes:", Buffer.from(seed).length);
+    const [stakeAccount] = PublicKey.findProgramAddressSync(
+      [Buffer.from(seed), pool.toBuffer()],
+      SINGLE_POOL_PROGRAM_ID
+    );
+
+    const stakeAmount = new BigNumber(amount).multipliedBy(1e9).toNumber();
+
+    const createStakeAccountIx = StakeProgram.createAccountWithSeed({
       fromPubkey: this.authority,
-      newAccountPubkey: stakeAccount.publicKey,
-      lamports: rentExemption,
-      space: StakeProgram.space,
-      programId: StakeProgram.programId,
+      stakePubkey: stakeAccount,
+      basePubkey: this.authority,
+      seed: seed,
+      authorized: new Authorized(auth, auth),
+      lockup: Lockup.default,
+      lamports: rentExemption + minimumDelegation + stakeAmount,
     });
 
-    // authorize single-spl-pool staker and withdrawer
-    const initializeStakeAccountIx = StakeProgram.initialize({
-      stakePubkey: stakeAccount.publicKey,
-      authorized: {
-        staker: auth,
-        withdrawer: this.authority,
-      },
-    });
+    // approve single-spl-pool mint authority to burn tokens
+    const approveIx = Token.createApproveInstruction(
+      TOKEN_PROGRAM_ID,
+      lstAta,
+      mintAuthority,
+      this.authority,
+      [],
+      stakeAmount
+    );
 
     // withdraw from single-spl-pool
     const withdrawStakeIx: TransactionInstruction = await SinglePoolInstruction.withdrawStake(
       pool,
-      stakeAccount.publicKey,
+      stakeAccount,
       this.authority,
       lstAta,
       new BigNumber(amount)
@@ -1312,17 +1337,12 @@ class MarginfiAccountWrapper {
     // build txn
     // - withdraw from marginfi bank
     // - create stake account
-    // - authorize single-spl-pool staker and withdrawer
+    // - approve mint authority to burn tokens
     // - withdraw from single-spl-pool
-    const txn = new Transaction().add(
-      ...withdrawIxs.instructions,
-      createStakeAccountIx,
-      initializeStakeAccountIx,
-      withdrawStakeIx
-    );
+    const txn = new Transaction().add(...withdrawIxs.instructions, createStakeAccountIx, approveIx, withdrawStakeIx);
 
     return addTransactionMetadata(txn, {
-      signers: [...withdrawIxs.keys, stakeAccount],
+      signers: [...withdrawIxs.keys],
       addressLookupTables: this.client.addressLookupTables,
     });
   }
