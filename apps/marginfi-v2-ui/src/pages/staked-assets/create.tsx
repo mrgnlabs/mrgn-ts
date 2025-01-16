@@ -9,7 +9,10 @@ import { PageHeading } from "~/components/common/PageHeading";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
-import { initializeStakedPoolTx } from "@mrgnlabs/marginfi-client-v2/dist/vendor/spl-single-pool";
+import {
+  findPoolMintAddressByVoteAccount,
+  initializeStakedPoolTx,
+} from "@mrgnlabs/marginfi-client-v2/dist/vendor/spl-single-pool";
 import { useConnection } from "~/hooks/use-connection";
 import { useWallet } from "~/components/wallet-v2/hooks";
 import { PublicKey, Transaction } from "@solana/web3.js";
@@ -62,8 +65,6 @@ export default function CreateStakedAssetPage() {
       const addBankIxs = await client.group.makeAddPermissionlessStakedBankIx(client.program, voteAccount, solOracle);
       const addBankTx = new Transaction().add(...addBankIxs.instructions);
 
-      console.log({ initSplPoolTx });
-
       const txSignature = await client.processTransactions([initSplPoolTx, addBankTx], {
         //addBankTx
         broadcastType: broadcastType,
@@ -73,11 +74,36 @@ export default function CreateStakedAssetPage() {
     [broadcastType, connection, priorityFees, wallet.publicKey]
   );
 
+  const uploadImage = React.useCallback(async (file: File, mint: string) => {
+    const fileParts = file.name.split(".");
+    const extension = fileParts.length > 1 ? fileParts.pop() : "";
+    const filename = `${mint}.${extension}`;
+
+    const response = await fetch(`/api/stakedPools/addImage?filename=${filename}`, {
+      method: "POST",
+    });
+    const { url, fields } = await response.json();
+    const formData = new FormData();
+    Object.entries({ ...fields, file }).forEach(([key, value]) => {
+      formData.append(key, value as string | Blob);
+    });
+    const upload = await fetch(url, {
+      method: "POST",
+      body: formData,
+    });
+
+    return upload.ok;
+  }, []);
+
   const handleSubmitForm = React.useCallback(async () => {
     if (!client) return;
 
     try {
       const txSignature = await createdStakedAssetSplPool(new PublicKey(form.voteAccountKey), client);
+      if (form.assetLogo) {
+        const mintAddress = findPoolMintAddressByVoteAccount(new PublicKey(form.voteAccountKey));
+        await uploadImage(form.assetLogo, mintAddress.toBase58());
+      }
     } catch (e) {
       console.error(e);
     }
@@ -88,9 +114,7 @@ export default function CreateStakedAssetPage() {
     setTimeout(() => {
       setIsLoading(false);
     }, 2000);
-  }, [client, createdStakedAssetSplPool, form]);
-
-  const createStakedAssetBank = React.useCallback(async () => {}, [form]);
+  }, [client, createdStakedAssetSplPool, form, uploadImage]);
 
   return (
     <div>

@@ -22,9 +22,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return;
   }
 
-  const { bankAddress, validatorVoteAccount, tokenAddress, tokenName, tokenSymbol, tokenDecimals } = JSON.parse(
-    req.body
-  );
+  const { bankAddress, validatorVoteAccount, tokenAddress, tokenName, tokenSymbol, tokenDecimals } = req.body;
 
   if (!bankAddress || !validatorVoteAccount || !tokenAddress || !tokenName || !tokenSymbol || !tokenDecimals) {
     res.status(400).json({
@@ -59,12 +57,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       decimals: tokenDecimals,
     });
 
-    res.status(200).json({ message: "LUT cache updated successfully" });
+    res.status(200).json({ message: "Bank and token metadata updated successfully" });
   } catch (error) {
     if (error instanceof MetadataExistsError) {
       res.status(400).json({ message: error.message });
     } else {
-      console.error("Error updating LUT cache:", error);
+      console.error("Error updating bank and token metadata:", error);
       res.status(500).json({ message: "Internal server error" });
     }
   }

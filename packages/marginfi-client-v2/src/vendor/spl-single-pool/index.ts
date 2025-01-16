@@ -239,6 +239,8 @@ const findPda = (baseAddress: PublicKey, prefix: string, programId: PublicKey = 
   return pda;
 };
 
+const findPoolMintAddressByVoteAccount = (voteAccountAddress: PublicKey): PublicKey =>
+  findPda(findPoolAddress(voteAccountAddress), "mint");
 const findPoolAddress = (voteAccountAddress: PublicKey): PublicKey => findPda(voteAccountAddress, "pool");
 const findPoolMintAddress = (poolAddress: PublicKey): PublicKey => findPda(poolAddress, "mint");
 const findPoolStakeAddress = (poolAddress: PublicKey): PublicKey => findPda(poolAddress, "stake");
@@ -311,4 +313,5 @@ export {
   findPoolMintAuthorityAddress,
   findPoolMplAuthorityAddress,
   findMplMetadataAddress,
+  findPoolMintAddressByVoteAccount,
 };

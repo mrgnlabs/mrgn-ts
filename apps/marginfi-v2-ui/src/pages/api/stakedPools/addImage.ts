@@ -1,6 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { Storage } from "@google-cloud/storage";
-import formidable from "formidable";
 import fs from "fs/promises";
 
 const BUCKET_NAME = process.env.GCP_BUCKET_NAME || "mrgn-public";
@@ -12,52 +11,35 @@ const storage = new Storage({
   },
 });
 
-export const config = {
-  api: {
-    bodyParser: false, // Disables the default body parser to handle FormData
-  },
-};
-
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const { query, method } = req;
+
   if (req.method !== "POST") {
     res.status(405).json({ message: "Only POST requests are allowed" });
     return;
   }
 
-  const form = new formidable.IncomingForm({ keepExtensions: true });
+  if (!query.filename) {
+    res.status(400).json({ message: "No filename provided" });
+    return;
+  }
 
-  form.parse(req, async (err, fields, files) => {
-    if (err) {
-      res.status(500).json({ message: "Error parsing form data" });
-      return;
-    }
+  const bucket = storage.bucket(BUCKET_NAME);
 
-    const images = files.image;
-    if (!images) {
-      res.status(400).json({ message: "No file uploaded" });
-      return;
-    }
+  try {
+    const file = bucket.file(`mrgn-token-icons/${query.filename}`);
 
-    const file = images[0];
-
-    const bucket = storage.bucket(BUCKET_NAME);
-    const destination = `mrgn-token-icons/${file.originalFilename}`;
-
-    try {
-      await bucket.upload(file.filepath, {
-        destination,
-        metadata: {
-          contentType: file.mimetype,
-        },
-      });
-
-      // Clean up the temporary file
-      await fs.unlink(file.filepath);
-
-      res.status(200).json({ message: "Image uploaded successfully", path: destination });
-    } catch (error) {
-      console.error("Error uploading image:", error);
-      res.status(500).json({ message: "Internal server error" });
-    }
-  });
+    const options = {
+      version: "v4",
+      action: "write",
+      expires: Date.now() + 5 * 60 * 1000, //  5 minutes,
+      fields: { "x-goog-meta-source": "nextjs-project" },
+      contentType: "image/*", //'application/octet-stream'
+    };
+    const [response] = await file.generateSignedPostPolicyV4(options);
+    res.status(200).json(response);
+  } catch (error) {
+    console.error("Error uploading image:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
 }
