@@ -1295,21 +1295,20 @@ class MarginfiAccountWrapper {
 
     // match seed to rust program?
     // seed length error
-    const seed = `svsp{${pool.toBase58().slice(0, 28)}}`;
-    console.log("Seed length:", seed.length);
-    console.log("Seed bytes:", Buffer.from(seed).length);
-    const [stakeAccount] = PublicKey.findProgramAddressSync(
-      [Buffer.from(seed), pool.toBuffer()],
-      SINGLE_POOL_PROGRAM_ID
-    );
+    // const seed = `svsp{${pool.toBase58().slice(0, 28)}}`;
+    // console.log("Seed length:", seed.length);
+    // console.log("Seed bytes:", Buffer.from(seed).length);
+    // const [stakeAccount] = PublicKey.findProgramAddressSync(
+    //   [Buffer.from(seed), pool.toBuffer()],
+    //   SINGLE_POOL_PROGRAM_ID
+    // );
 
     const stakeAmount = new BigNumber(amount).multipliedBy(1e9).toNumber();
 
-    const createStakeAccountIx = StakeProgram.createAccountWithSeed({
+    const stakeAccount = Keypair.generate();
+    const createStakeAccountIx = StakeProgram.createAccount({
       fromPubkey: this.authority,
-      stakePubkey: stakeAccount,
-      basePubkey: this.authority,
-      seed: seed,
+      stakePubkey: stakeAccount.publicKey,
       authorized: new Authorized(auth, auth),
       lockup: Lockup.default,
       lamports: rentExemption + minimumDelegation + stakeAmount,
@@ -1328,7 +1327,7 @@ class MarginfiAccountWrapper {
     // withdraw from single-spl-pool
     const withdrawStakeIx: TransactionInstruction = await SinglePoolInstruction.withdrawStake(
       pool,
-      stakeAccount,
+      stakeAccount.publicKey,
       this.authority,
       lstAta,
       new BigNumber(amount)
