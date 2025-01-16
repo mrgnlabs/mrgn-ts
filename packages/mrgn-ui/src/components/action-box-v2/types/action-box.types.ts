@@ -4,6 +4,7 @@ import {
   RepayCollatBoxProps,
   StakeBoxProps,
   DepositSwapBoxProps,
+  RepayBoxProps as _RepayBoxProps,
 } from "~/components/action-box-v2/actions";
 import { ActionDialogProps } from "~/components/action-box-v2/components";
 
@@ -39,14 +40,14 @@ interface RequiredLendBoxProps
 // all props except for requestedLendType
 interface RepayBoxProps
   extends Pick<
-    RepayCollatBoxProps,
+    _RepayBoxProps,
     | "nativeSolBalance"
     | "connected"
     | "marginfiClient"
     | "selectedAccount"
     | "banks"
-    | "requestedDepositBank"
-    | "requestedBorrowBank"
+    | "requestedBank"
+    | "requestedSecondaryBank"
     | "accountSummaryArg"
     | "onComplete"
     | "captureEvent"
@@ -55,8 +56,8 @@ interface RepayBoxProps
 
 interface RequiredRepayBoxProps
   extends Pick<
-    RepayBoxProps,
-    "onComplete" | "captureEvent" | "requestedDepositBank" | "requestedBorrowBank" | "connected"
+    _RepayBoxProps,
+    "onComplete" | "captureEvent" | "requestedBank" | "requestedSecondaryBank" | "connected"
   > {}
 
 interface RequiredLoopBoxProps

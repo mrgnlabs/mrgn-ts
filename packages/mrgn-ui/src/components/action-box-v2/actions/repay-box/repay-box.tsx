@@ -24,7 +24,7 @@ import { IconInfoCircle } from "@tabler/icons-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { ActionButton, ActionCollateralProgressBar } from "~/components/action-box-v2/components";
 import { useActionAmounts, usePollBlockHeight } from "~/components/action-box-v2/hooks";
-import { ActionMessage, useActionContext } from "~/components";
+import { ActionMessage } from "~/components";
 import { IconLoader } from "~/components/ui/icons";
 import { ActionSimulationStatus } from "../../components";
 import { useRepayBoxStore } from "./store";
@@ -33,6 +33,7 @@ import { useActionBoxStore } from "../../store";
 import { useRepaySimulation } from "./hooks";
 import { CircularProgress } from "~/components/ui/circular-progress";
 import { ActionInput, Preview } from "./components";
+import { useActionContext } from "../../contexts";
 
 export type RepayBoxProps = {
   nativeSolBalance: number;
@@ -40,8 +41,8 @@ export type RepayBoxProps = {
   marginfiClient: MarginfiClient | null;
   selectedAccount: MarginfiAccountWrapper | null;
   banks: ExtendedBankInfo[];
-  requestedDepositBank?: ExtendedBankInfo;
-  requestedBorrowBank?: ExtendedBankInfo;
+  requestedBank?: ExtendedBankInfo;
+  requestedSecondaryBank?: ExtendedBankInfo;
   accountSummaryArg?: AccountSummary;
   isDialog?: boolean;
 
@@ -57,8 +58,8 @@ export const RepayBox = ({
   marginfiClient,
   selectedAccount,
   banks,
-  requestedDepositBank,
-  requestedBorrowBank,
+  requestedBank,
+  requestedSecondaryBank,
   accountSummaryArg,
   isDialog,
   showAvailableCollateral,
@@ -68,8 +69,8 @@ export const RepayBox = ({
   const [
     amountRaw,
     repayAmount,
-    selectedDepositBank,
-    selectedBorrowBank,
+    selectedBank,
+    selectedSecondaryBank,
     simulationResult,
     actionTxns,
     errorMessage,
@@ -84,15 +85,15 @@ export const RepayBox = ({
     setSimulationResult,
     setActionTxns,
     setErrorMessage,
-    setSelectedDepositBank,
-    setSelectedBorrowBank,
+    setSelectedBank,
+    setSelectedSecondaryBank,
 
     setMaxAmountCollateral,
   ] = useRepayBoxStore((state) => [
     state.amountRaw,
     state.repayAmount,
-    state.selectedDepositBank,
-    state.selectedBorrowBank,
+    state.selectedBank,
+    state.selectedSecondaryBank,
     state.simulationResult,
     state.actionTxns,
     state.errorMessage,
@@ -107,11 +108,18 @@ export const RepayBox = ({
     state.setSimulationResult,
     state.setActionTxns,
     state.setErrorMessage,
-    state.setSelectedDepositBank,
-    state.setSelectedBorrowBank,
+    state.setSelectedBank,
+    state.setSelectedSecondaryBank,
 
     state.setMaxAmountCollateral,
   ]);
+
+  React.useEffect(() => {
+    console.log("selectedBank", selectedBank);
+    console.log("selectedSecondaryBank", selectedSecondaryBank);
+    console.log("requestedBank", requestedBank);
+    console.log("requestedSecondaryBank", requestedSecondaryBank);
+  }, [selectedBank, selectedSecondaryBank, requestedBank, requestedSecondaryBank]);
 
   const [isTransactionExecuting, setIsTransactionExecuting] = React.useState(false);
   const [isSimulating, setIsSimulating] = React.useState<{
@@ -155,7 +163,7 @@ export const RepayBox = ({
 
   const { amount, debouncedAmount, walletAmount, maxAmount } = useActionAmounts({
     amountRaw,
-    selectedBank: selectedDepositBank,
+    selectedBank: selectedBank, // TT
     nativeSolBalance,
     actionMode: ActionType.Repay,
     maxAmountCollateral,
@@ -166,8 +174,8 @@ export const RepayBox = ({
     selectedAccount,
     marginfiClient,
     accountSummary,
-    selectedDepositBank,
-    selectedBorrowBank,
+    selectedBank,
+    selectedSecondaryBank,
     actionTxns,
     simulationResult,
     isRefreshTxn,
@@ -205,8 +213,8 @@ export const RepayBox = ({
   }, [refreshState, connected]);
 
   React.useEffect(() => {
-    fetchActionBoxState({ requestedDepositBank: requestedDepositBank, requestedBorrowBank: requestedBorrowBank });
-  }, [requestedDepositBank, requestedBorrowBank, fetchActionBoxState]);
+    fetchActionBoxState({ requestedBank: requestedBank, requestedSecondaryBank: requestedSecondaryBank });
+  }, [requestedBank, requestedSecondaryBank, fetchActionBoxState]);
 
   React.useEffect(() => {
     if (errorMessage && errorMessage.description) {
@@ -227,11 +235,11 @@ export const RepayBox = ({
     return checkRepayCollatActionAvailable({
       amount,
       connected,
-      selectedBank: selectedDepositBank,
-      selectedSecondaryBank: selectedBorrowBank,
-      actionQuote: actionTxns.actionQuote,
+      selectedBank, // TT
+      selectedSecondaryBank, // TT
+      actionQuote: actionTxns?.actionQuote ?? null,
     });
-  }, [amount, connected, selectedDepositBank, selectedBorrowBank, actionTxns.actionQuote]);
+  }, [amount, connected, selectedBank, selectedSecondaryBank, actionTxns.actionQuote]);
 
   return (
     <>
@@ -259,7 +267,7 @@ export const RepayBox = ({
         </div>
       )}
       <div className="mb-4">
-        <TooltipProvider>
+        {/* <TooltipProvider>
           <Tooltip>
             <TooltipTrigger>
               <span className="text-sm text-muted-foreground inline-flex items-center gap-1">
@@ -270,7 +278,7 @@ export const RepayBox = ({
               <p>Repay using your prefered token.</p>
             </TooltipContent>
           </Tooltip>
-        </TooltipProvider>
+        </TooltipProvider> */}
         <ActionInput
           banks={banks}
           nativeSolBalance={nativeSolBalance}
@@ -278,11 +286,11 @@ export const RepayBox = ({
           amountRaw={amountRaw}
           maxAmount={maxAmount}
           repayAmount={repayAmount}
-          selectedBank={selectedDepositBank}
-          selectedSecondaryBank={selectedBorrowBank}
+          selectedBank={selectedBank}
+          selectedSecondaryBank={selectedSecondaryBank}
           setAmountRaw={setAmountRaw}
-          setSelectedBank={setSelectedDepositBank}
-          setSelectedSecondaryBank={setSelectedBorrowBank}
+          setSelectedBank={setSelectedBank}
+          setSelectedSecondaryBank={setSelectedSecondaryBank}
         />
       </div>
 
@@ -322,10 +330,10 @@ export const RepayBox = ({
       <ActionSimulationStatus
         simulationStatus={isSimulating.status}
         hasErrorMessages={additionalActionMessages.length > 0}
-        isActive={selectedDepositBank && amount > 0 ? true : false}
+        isActive={selectedBank && amount > 0 ? true : false}
       />
 
-      <Preview actionSummary={actionSummary} selectedBank={selectedDepositBank} isLoading={isLoading} />
+      <Preview actionSummary={actionSummary} selectedBank={selectedBank} isLoading={isLoading} />
     </>
   );
 };
