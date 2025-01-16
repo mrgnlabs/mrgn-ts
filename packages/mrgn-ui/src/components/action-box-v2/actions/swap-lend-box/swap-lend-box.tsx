@@ -409,7 +409,14 @@ export const SwapLendBox = ({
   return (
     <>
       <div className="mb-4">
-        <span className="text-sm text-muted-foreground">Deposit</span>
+        <span className="text-sm text-muted-foreground">
+          {!requestedDepositBank ||
+          (selectedDepositBank &&
+            selectedSwapBank &&
+            selectedDepositBank.meta.tokenSymbol === selectedSwapBank.meta.tokenSymbol)
+            ? "Deposit"
+            : "Swap & Deposit"}
+        </span>
         <ActionInput
           banks={banks}
           nativeSolBalance={nativeSolBalance}
@@ -434,11 +441,11 @@ export const SwapLendBox = ({
             <Tooltip>
               <TooltipTrigger>
                 <span className="text-sm text-muted-foreground inline-flex items-center gap-1">
-                  ✨ Collateral Swap <IconInfoCircle className="w-4 h-4" />
+                  ✨ Collateral <IconInfoCircle className="w-4 h-4" />
                 </span>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Swap your prefered token and deposit it into any pool.</p>
+                <p>This is the collateral you will be depositing into.</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
