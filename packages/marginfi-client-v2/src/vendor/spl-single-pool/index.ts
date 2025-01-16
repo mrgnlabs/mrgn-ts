@@ -125,29 +125,25 @@ const SinglePoolInstruction = {
     userTokenAccount: PublicKey,
     tokenAmount: BigNumber
   ): Promise<TransactionInstruction> => {
-    const poolStake = findPoolStakeAddress(pool);
+    const stake = findPoolStakeAddress(pool);
     const mint = findPoolMintAddress(pool);
     const stakeAuthority = findPoolStakeAuthorityAddress(pool);
     const mintAuthority = findPoolMintAuthorityAddress(pool);
 
-    // Convert BigNumber to proper u64 format
-    // Ensure we're using the full integer value without decimal places
-    const rawAmount = tokenAmount.multipliedBy(new BigNumber(10).pow(9)).toFixed(0);
-    const bn = new BN(rawAmount);
-    const amountBuffer = bn.toArrayLike(Buffer, "le", 8);
+    // Try using BigInt for more precise conversion
+    const rawAmount = BigInt(tokenAmount.multipliedBy(1e9).toString());
 
-    // Create instruction data buffer
     const data = Buffer.concat([
       Buffer.from([SinglePoolInstructionType.WithdrawStake]),
       userStakeAuthority.toBuffer(),
-      amountBuffer,
+      Buffer.from(new BN(rawAmount.toString()).toArray("le", 8)),
     ]);
 
     return createTransactionInstruction(
       SINGLE_POOL_PROGRAM_ID,
       [
         { pubkey: pool, isSigner: false, isWritable: false },
-        { pubkey: poolStake, isSigner: false, isWritable: true },
+        { pubkey: stake, isSigner: false, isWritable: true },
         { pubkey: mint, isSigner: false, isWritable: true },
         { pubkey: stakeAuthority, isSigner: false, isWritable: false },
         { pubkey: mintAuthority, isSigner: false, isWritable: false },
