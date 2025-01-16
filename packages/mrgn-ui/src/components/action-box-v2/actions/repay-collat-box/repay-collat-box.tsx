@@ -172,11 +172,15 @@ export const RepayCollatBox = ({
     );
   }, [accountSummaryArg, selectedAccount, banks]);
 
+  const [actionType, setActionType] = React.useState<ActionType.RepayCollat | ActionType.RepayCollat>(
+    ActionType.RepayCollat
+  );
+
   const { amount, debouncedAmount, walletAmount, maxAmount } = useActionAmounts({
     amountRaw,
     selectedBank,
     nativeSolBalance,
-    actionMode: ActionType.RepayCollat,
+    actionMode: actionType,
     maxAmountCollateral,
   });
 
@@ -290,13 +294,13 @@ export const RepayCollatBox = ({
             txn: txnSigs[txnSigs.length - 1] ?? "",
             txnType: "LEND",
             lendingOptions: {
-              amount: repayAmount,
-              type: ActionType.RepayCollat,
-              bank: selectedBank as ActiveBankInfo,
+              amount: props.repayAmount,
+              type: ActionType.RepayCollat, // TODO: update
+              bank: props.borrowBank as ActiveBankInfo,
               collatRepay: {
-                borrowBank: selectedBank as ActiveBankInfo,
-                withdrawBank: selectedSecondaryBank as ActiveBankInfo,
-                withdrawAmount: amount,
+                borrowBank: props.borrowBank as ActiveBankInfo,
+                withdrawBank: props.depositBank as ActiveBankInfo,
+                withdrawAmount: props.withdrawAmount,
               },
             },
           });
@@ -307,7 +311,7 @@ export const RepayCollatBox = ({
               txnType: "LEND",
               lendingOptions: {
                 amount: props.withdrawAmount,
-                type: ActionType.RepayCollat,
+                type: ActionType.RepayCollat, // TODO: update
                 bank: props.borrowBank as ActiveBankInfo,
               },
             });
@@ -392,7 +396,6 @@ export const RepayCollatBox = ({
     amount,
     transactionSettings,
     captureEvent,
-    executeAction,
     marginfiClient,
     onComplete,
     priorityFees,
