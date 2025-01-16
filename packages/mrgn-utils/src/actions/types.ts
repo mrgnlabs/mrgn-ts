@@ -86,7 +86,7 @@ export interface ClosePositionActionTxns extends ActionTxns {
   closeTransactions?: SolanaTransaction[];
 }
 
-export interface RepayCollatActionTxns extends ActionTxns {
+export interface RepayActionTxns extends ActionTxns {
   actionQuote: QuoteResponse | null;
   lastValidBlockHeight?: number;
 }

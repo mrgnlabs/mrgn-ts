@@ -17,7 +17,13 @@ import { AccountSummary, ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi
 
 import { useActionBoxStore } from "../../../store";
 import { SimulationStatus } from "../../../utils/simulation.utils";
-import { calculateRepayCollateral, calculateSummary, getSimulationResult, SimulateActionProps } from "../utils";
+import {
+  calculateRepayCollateral,
+  calculateRepayTransaction,
+  calculateSummary,
+  getSimulationResult,
+  SimulateActionProps,
+} from "../utils";
 
 type RepayCollatSimulationProps = {
   debouncedAmount: number;
@@ -113,7 +119,7 @@ export function useRepayCollatSimulation({
 
   const fetchRepayActionTxns = async (props: CalculateRepayCollateralProps) => {
     try {
-      const repayCollatActionTxns = await calculateRepayCollateral(props);
+      const repayCollatActionTxns = await calculateRepayTransaction(props);
       if (repayCollatActionTxns && "repayCollatObject" in repayCollatActionTxns) {
         return {
           actionTxns: { ...repayCollatActionTxns, actionQuote: repayCollatActionTxns?.repayCollatObject?.actionQuote },

@@ -144,10 +144,10 @@ export function checkRepayCollatActionAvailable({
   if (generalChecks) checks.push(...generalChecks);
 
   // allert checks
-  if (selectedBank) {
-    const repayChecks = canBeRepaidCollat(selectedBank, selectedSecondaryBank, [], actionQuote);
-    if (repayChecks) checks.push(...repayChecks);
-  }
+  // if (selectedBank) {
+  //   const repayChecks = canBeRepaidCollat(selectedBank, selectedSecondaryBank, [], actionQuote);
+  //   if (repayChecks) checks.push(...repayChecks);
+  // } // TODO: update & fix
 
   if (checks.length === 0)
     checks.push({
