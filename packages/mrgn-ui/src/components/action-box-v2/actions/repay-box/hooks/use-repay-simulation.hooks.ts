@@ -1,5 +1,5 @@
 import React from "react";
-import { Transaction, VersionedTransaction } from "@solana/web3.js";
+import { Connection, Transaction, VersionedTransaction } from "@solana/web3.js";
 
 import { MarginfiAccountWrapper, MarginfiClient, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
 import {
@@ -17,7 +17,12 @@ import { AccountSummary, ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi
 
 import { useActionBoxStore } from "../../../store";
 import { SimulationStatus } from "../../../utils/simulation.utils";
-import { calculateSummary, SimulateActionProps } from "../utils";
+import {
+  calculateRepayTransactions,
+  CalculateRepayTransactionsProps,
+  calculateSummary,
+  SimulateActionProps,
+} from "../utils";
 import { QuoteResponse } from "@jup-ag/api";
 
 type RepaySimulationProps = {
@@ -25,8 +30,8 @@ type RepaySimulationProps = {
   selectedAccount: MarginfiAccountWrapper | null;
   marginfiClient: MarginfiClient | null;
   accountSummary?: AccountSummary;
-  selectedDepositBank: ExtendedBankInfo | null;
-  selectedBorrowBank: ExtendedBankInfo | null;
+  selectedBank: ExtendedBankInfo | null;
+  selectedSecondaryBank: ExtendedBankInfo | null;
   actionTxns: RepayActionTxns;
   simulationResult: SimulationResult | null;
   isRefreshTxn: boolean;
@@ -47,8 +52,8 @@ export function useRepaySimulation({
   selectedAccount,
   marginfiClient,
   accountSummary,
-  selectedDepositBank,
-  selectedBorrowBank,
+  selectedBank,
+  selectedSecondaryBank,
   actionTxns,
 
   simulationResult,
@@ -65,8 +70,8 @@ export function useRepaySimulation({
   setMaxAmountCollateral,
 }: RepaySimulationProps) {
   const prevDebouncedAmount = usePrevious(debouncedAmount);
-  const prevSelectedDepositBank = usePrevious(selectedDepositBank);
-  const prevSelectedBorrowBank = usePrevious(selectedBorrowBank);
+  const prevselectedBank = usePrevious(selectedBank);
+  const prevselectedSecondaryBank = usePrevious(selectedSecondaryBank);
 
   const handleError = (
     actionMessage: ActionMessageType | string,
@@ -98,15 +103,45 @@ export function useRepaySimulation({
 
   const simulationAction = async (props: SimulateActionProps) => {};
 
-  const fetchRepayActionTxns = async (props: any) => {};
+  const fetchRepayActionTxns = async (props: CalculateRepayTransactionsProps) => {
+    const repayActionTxns = await calculateRepayTransactions(props);
+  };
 
-  const handleSimulation = React.useCallback(async (amount: number) => {}, []);
+  const handleSimulation = React.useCallback(async (amount: number) => {
+    if (amount === 0 || !selectedAccount || !marginfiClient || !selectedBank || !selectedSecondaryBank) {
+      setActionTxns({ actionTxn: null, additionalTxns: [], actionQuote: null });
+      return;
+    }
+
+    setIsLoading({ isLoading: true, status: SimulationStatus.SIMULATING });
+
+    let actionType;
+
+    if (selectedBank.address.toBase58() === selectedSecondaryBank.address.toBase58()) {
+      actionType = ActionType.Repay;
+    } else {
+      actionType = ActionType.RepayCollat;
+    }
+
+    const props = {
+      marginfiAccount: selectedAccount,
+      selectedBank: selectedBank,
+      selectedSecondaryBank: selectedSecondaryBank,
+      connection: marginfiClient.provider.connection,
+      platformFeeBps,
+      slippageBps,
+      repayAmount: amount,
+      actionType,
+    };
+
+    const actionTxns = await fetchRepayActionTxns(props);
+  }, []);
 
   React.useEffect(() => {
     if (
       prevDebouncedAmount !== debouncedAmount ||
-      prevSelectedDepositBank !== selectedDepositBank ||
-      prevSelectedBorrowBank !== selectedBorrowBank
+      prevselectedBank !== selectedBank ||
+      prevselectedSecondaryBank !== selectedSecondaryBank
     ) {
       if (debouncedAmount > 0) {
         handleSimulation(debouncedAmount);
@@ -114,12 +149,12 @@ export function useRepaySimulation({
     }
   }, [
     debouncedAmount,
-    selectedDepositBank,
-    selectedBorrowBank,
+    selectedBank,
+    selectedSecondaryBank,
     handleSimulation,
     prevDebouncedAmount,
-    prevSelectedDepositBank,
-    prevSelectedBorrowBank,
+    prevselectedBank,
+    prevselectedSecondaryBank,
   ]);
 
   const refreshSimulation = React.useCallback(async () => {
@@ -128,17 +163,17 @@ export function useRepaySimulation({
 
   const handleActionSummary = React.useCallback(
     (summary?: AccountSummary, result?: SimulationResult) => {
-      if (selectedAccount && summary && selectedDepositBank) {
+      if (selectedAccount && summary && selectedBank) {
         return calculateSummary({
           simulationResult: result ?? undefined,
-          bank: selectedDepositBank,
+          bank: selectedBank,
           accountSummary: summary,
           actionTxns: actionTxns,
           actionQuote: actionTxns?.actionQuote,
         });
       }
     },
-    [selectedAccount, selectedDepositBank, actionTxns]
+    [selectedAccount, selectedBank, actionTxns]
   );
 
   const actionSummary = React.useMemo(() => {
@@ -156,11 +191,17 @@ export function useRepaySimulation({
   // Fetch max repayable collat //
   ////////////////////////////////
   const fetchMaxRepayableCollateral = React.useCallback(async () => {
-    if (selectedDepositBank && selectedBorrowBank) {
-      const maxAmount = await calculateMaxRepayableCollateral(selectedDepositBank, selectedBorrowBank, slippageBps);
+    if (
+      selectedBank &&
+      selectedSecondaryBank &&
+      selectedBank.meta.tokenSymbol !== selectedSecondaryBank.meta.tokenSymbol
+    ) {
+      const maxAmount = await calculateMaxRepayableCollateral(selectedBank, selectedSecondaryBank, slippageBps);
 
       if (!maxAmount) {
-        const errorMessage = DYNAMIC_SIMULATION_ERRORS.REPAY_COLLAT_FAILED_CHECK(selectedBorrowBank.meta.tokenSymbol);
+        const errorMessage = DYNAMIC_SIMULATION_ERRORS.REPAY_COLLAT_FAILED_CHECK(
+          selectedSecondaryBank.meta.tokenSymbol
+        );
         setErrorMessage(errorMessage);
       } else {
         setMaxAmountCollateral(maxAmount);
@@ -168,17 +209,17 @@ export function useRepaySimulation({
     } else {
       setMaxAmountCollateral(undefined);
     }
-  }, [selectedDepositBank, selectedBorrowBank, slippageBps, setErrorMessage, setMaxAmountCollateral]);
+  }, [selectedBank, selectedSecondaryBank, slippageBps, setErrorMessage, setMaxAmountCollateral]);
 
   React.useEffect(() => {
-    if (!selectedBorrowBank) {
+    if (!selectedSecondaryBank) {
       return;
     }
-    const hasBankChanged = !selectedBorrowBank?.address.equals(selectedBorrowBank.address);
+    const hasBankChanged = !selectedSecondaryBank?.address.equals(selectedSecondaryBank.address);
     if (hasBankChanged) {
       fetchMaxRepayableCollateral();
     }
-  }, [selectedBorrowBank, prevSelectedBorrowBank, fetchMaxRepayableCollateral]);
+  }, [selectedSecondaryBank, prevselectedSecondaryBank, fetchMaxRepayableCollateral]);
 
   return {
     actionSummary,

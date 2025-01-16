@@ -18,7 +18,7 @@ export interface CalculatePreviewProps {
   bank: ExtendedBankInfo;
   accountSummary: AccountSummary;
   actionTxns: ActionTxns;
-  actionQuote: QuoteResponse | null;
+  actionQuote?: QuoteResponse | null;
 }
 
 export interface SimulateActionProps {
@@ -66,7 +66,7 @@ function calculateActionPreview(
   bank: ExtendedBankInfo,
   accountSummary: AccountSummary,
   actionTxns: ActionTxns,
-  actionQuote: QuoteResponse | null
+  actionQuote?: QuoteResponse | null
 ): ActionPreview {
   const positionAmount = bank?.isActive ? bank.position.amount : 0;
   const health = accountSummary.balance && accountSummary.healthFactor ? accountSummary.healthFactor : 1;

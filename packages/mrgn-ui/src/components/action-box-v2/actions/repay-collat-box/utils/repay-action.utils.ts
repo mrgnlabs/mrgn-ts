@@ -2,17 +2,14 @@ import { v4 as uuidv4 } from "uuid";
 import {
   ActionMessageType,
   calculateRepayCollateralParams,
-  RepayCollatActionTxns,
+  RepayActionTxns,
   CalculateRepayCollateralProps,
   executeRepayWithCollatAction,
   ExecuteRepayWithCollatActionProps,
   IndividualFlowError,
-  isWholePosition,
 } from "@mrgnlabs/mrgn-utils";
 
 import { ExecuteActionsCallbackProps } from "~/components/action-box-v2/types";
-import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 
 interface HandleExecuteRepayCollatActionProps extends ExecuteActionsCallbackProps {
   props: ExecuteRepayWithCollatActionProps;
@@ -56,45 +53,23 @@ export const handleExecuteRepayCollatAction = async ({
   }
 };
 
-export async function calculateRepayTransaction({
-  props,
-  actionType,
-}: {
-  props:
-    | {
-        marginfiAccount: MarginfiAccountWrapper;
-        bank: ExtendedBankInfo;
-        actionMode: ActionType;
-        amount: number;
-      }
-    | CalculateRepayCollateralProps;
-  actionType: ActionType;
-}): Promise<
+export async function calculateRepayCollateral(props: CalculateRepayCollateralProps): Promise<
   | {
-      repayCollatObject: RepayCollatActionTxns;
+      repayCollatObject: RepayActionTxns;
       amount: number;
     }
   | ActionMessageType
 > {
-  let result:
-    | {
-        repayCollatObject: RepayCollatActionTxns;
-        amount: number;
-      }
-    | ActionMessageType;
-  if (actionType === ActionType.RepayCollat) {
-    result = await calculateRepayCollateralParams(props);
-  } else if (actionType === ActionType.Repay) {
-    const repayTx = await props.marginfiAccount.makeRepayTx(
-      props.amount,
-      props.bank.address,
-      props.bank.isActive && isWholePosition(props.bank, props.amount)
-    );
-    result = {
-      actionTxn: repayTx,
-      additionalTxns: [], // bundle tip ix is in repayTx
-    };
-  }
+  // TODO setup logging again
+  // capture("repay_with_collat", {
+  //   amountIn: uiToNative(amount, repayBank.info.state.mintDecimals).toNumber(),
+  //   firstQuote,
+  //   bestQuote: swapQuote,
+  //   inputMint: repayBank.info.state.mint.toBase58(),
+  //   outputMint: bank.info.state.mint.toBase58(),
+  // });
+
+  const result = await calculateRepayCollateralParams(props);
 
   return result;
 }

@@ -288,8 +288,8 @@ const PortfolioAction = ({
       <ActionBox.Repay
         useProvider={true}
         repayProps={{
-          requestedBorrowBank: requestedBank ?? undefined, // TODO: add secondary bank
-          requestedDepositBank: requestedBank ?? undefined, // TODO: add secondary bank
+          requestedBank: requestedBank ?? undefined,
+          requestedSecondaryBank: undefined,
           connected: connected,
           captureEvent: (event, properties) => {
             capture(event, properties);

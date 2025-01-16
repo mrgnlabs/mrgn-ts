@@ -7,6 +7,7 @@ import {
   LendBoxProps,
   LoopBox,
   LoopBoxProps,
+  RepayBox,
   RepayCollatBox,
   StakeBox,
   StakeBoxProps,
@@ -162,8 +163,8 @@ const Repay = (
   return (
     <ActionBox {...actionBoxProps}>
       <ActionBoxWrapper showSettings={true} isDialog={actionBoxProps.isDialog} actionMode={ActionType.Repay}>
-        <ActionBoxNavigator selectedAction={ActionType.RepayCollat}>
-          <RepayCollatBox {...combinedProps} />
+        <ActionBoxNavigator selectedAction={ActionType.Repay}>
+          <RepayBox {...combinedProps} />
         </ActionBoxNavigator>
       </ActionBoxWrapper>
     </ActionBox>

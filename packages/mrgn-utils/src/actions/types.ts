@@ -87,7 +87,7 @@ export interface ClosePositionActionTxns extends ActionTxns {
 }
 
 export interface RepayActionTxns extends ActionTxns {
-  actionQuote: QuoteResponse | null;
+  actionQuote?: QuoteResponse | null;
   lastValidBlockHeight?: number;
 }
 
