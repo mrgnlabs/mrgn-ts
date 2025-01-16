@@ -99,6 +99,23 @@ const percentFormatterDyn = new Intl.NumberFormat("en-US", {
   maximumFractionDigits: 2,
 });
 
+const percentFormatterMod = (
+  value: number,
+  opts: { minFractionDigits: number; maxFractionDigits: number } = { minFractionDigits: 2, maxFractionDigits: 2 }
+) => {
+  const percentFormatter = new Intl.NumberFormat("en-US", {
+    style: "percent",
+    minimumFractionDigits: opts.minFractionDigits,
+    maximumFractionDigits: opts.maxFractionDigits,
+  });
+
+  if (value === 0) {
+    return "0";
+  } else {
+    return percentFormatter.format(value);
+  }
+};
+
 const clampedNumeralFormatter = (value: number) => {
   if (value === 0) {
     return "0";
@@ -149,6 +166,7 @@ export {
   clampedNumeralFormatter,
   percentFormatter,
   percentFormatterDyn,
+  percentFormatterMod,
   usdFormatter,
   usdFormatterDyn,
   tokenPriceFormatter,

@@ -7,6 +7,7 @@ import {
   dynamicNumeralFormatter,
   numeralFormatter,
   percentFormatter,
+  percentFormatterMod,
   usdFormatter,
 } from "@mrgnlabs/mrgn-common";
 import { IconAlertTriangle, IconExternalLink } from "@tabler/icons-react";
@@ -255,7 +256,12 @@ export const getDepositsCell = (depositsData: DepositsData) => {
             <>
               <span>
                 {depositsData.symbol} {depositsData.isInLendingMode ? "deposits" : "borrows"} are at{" "}
-                {percentFormatter.format(depositsData.capacity)} capacity.
+                {percentFormatterMod(depositsData.capacity, {
+                  minFractionDigits: 0,
+                  maxFractionDigits:
+                    depositsData.isBankHigh && !depositsData.isBankFilled && depositsData.capacity >= 0.99 ? 4 : 2,
+                })}{" "}
+                capacity.
               </span>
               {!depositsData.isBankFilled && (
                 <>
