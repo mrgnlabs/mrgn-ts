@@ -110,7 +110,7 @@ export function useRepayCollatSimulation({
 
   const fetchRepayActionTxns = async (props: CalculateRepayCollateralProps) => {
     try {
-      const repayCollatActionTxns = await calculateRepayCollateral(props);
+      const repayCollatActionTxns = await calculateRepayTransaction(props);
       if (repayCollatActionTxns && "repayCollatObject" in repayCollatActionTxns) {
         return {
           actionTxns: { ...repayCollatActionTxns, actionQuote: repayCollatActionTxns?.repayCollatObject?.actionQuote },
