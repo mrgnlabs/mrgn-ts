@@ -84,10 +84,10 @@ export const PositionActionButtons = ({
       hidePoolStats={["type"]}
     >
       <div className={cn("flex gap-3 w-full", className)}>
-        <ActionBox.SwapLend
+        <ActionBox.DepositSwap
           isDialog={true}
           useProvider={true}
-          swapLendProps={{
+          depositSwapProps={{
             connected: connected,
             requestedDepositBank: depositBanks[0],
             requestedSwapBank: arenaPool.status === GroupStatus.LONG ? borrowBank ?? undefined : undefined,

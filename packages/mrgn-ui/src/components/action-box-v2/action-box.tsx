@@ -10,8 +10,8 @@ import {
   RepayCollatBox,
   StakeBox,
   StakeBoxProps,
-  SwapLendBox,
-  SwapLendBoxProps,
+  DepositSwapBoxProps,
+  DepositSwapBox,
 } from "./actions";
 import { ActionDialogWrapper, ActionBoxWrapper, ActionBoxNavigator } from "./components";
 import { useActionBoxContext, useStakeBoxContext } from "./contexts";
@@ -24,7 +24,7 @@ import {
   RequiredStakeBoxProps,
   RequiredRepayBoxProps,
   RequiredLoopBoxProps,
-  RequiredSwapLendBoxProps,
+  RequiredDepositSwapBoxProps,
 } from "./types";
 
 const ActionBox: ActionBoxComponent = (props) => {
@@ -74,34 +74,34 @@ const Lend = (props: ActionBoxProps & { lendProps: RequiredLendBoxProps | LendBo
 };
 ActionBox.Lend = Lend;
 
-const SwapLend = (
-  props: ActionBoxProps & { swapLendProps: RequiredSwapLendBoxProps | SwapLendBoxProps; useProvider?: boolean }
+const DepositSwap = (
+  props: ActionBoxProps & { depositSwapProps: RequiredDepositSwapBoxProps | DepositSwapBoxProps; useProvider?: boolean }
 ) => {
   const contextProps = useActionBoxContext();
-  const { swapLendProps, useProvider, ...actionBoxProps } = props;
+  const { depositSwapProps, useProvider, ...actionBoxProps } = props;
 
-  let combinedProps: SwapLendBoxProps;
+  let combinedProps: DepositSwapBoxProps;
 
   if (useProvider && contextProps) {
     combinedProps = {
       ...contextProps,
-      ...(swapLendProps as RequiredSwapLendBoxProps),
+      ...(depositSwapProps as RequiredDepositSwapBoxProps),
     };
   } else {
-    combinedProps = swapLendProps as SwapLendBoxProps;
+    combinedProps = depositSwapProps as DepositSwapBoxProps;
   }
 
   return (
     <ActionBox {...actionBoxProps}>
       <ActionBoxWrapper showSettings={false} isDialog={props.isDialog} actionMode={ActionType.Deposit}>
         <ActionBoxNavigator selectedAction={ActionType.Deposit}>
-          <SwapLendBox {...combinedProps} isDialog={props.isDialog} />
+          <DepositSwapBox {...combinedProps} isDialog={props.isDialog} />
         </ActionBoxNavigator>
       </ActionBoxWrapper>
     </ActionBox>
   );
 };
-ActionBox.SwapLend = SwapLend;
+ActionBox.DepositSwap = DepositSwap;
 
 const BorrowLend = (
   props: ActionBoxProps & { lendProps: RequiredLendBoxProps | LendBoxProps; useProvider?: boolean }

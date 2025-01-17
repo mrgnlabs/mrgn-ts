@@ -1,10 +1,10 @@
 import { create, StateCreator } from "zustand";
 
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { ActionMessageType, ActionTxns, SwapLendActionTxns } from "@mrgnlabs/mrgn-utils";
+import { ActionMessageType, DepositSwapActionTxns } from "@mrgnlabs/mrgn-utils";
 import { SimulationResult } from "@mrgnlabs/marginfi-client-v2";
 
-interface SwapLendBoxState {
+interface DepositSwapBoxState {
   // State
   amountRaw: string;
 
@@ -13,7 +13,7 @@ interface SwapLendBoxState {
   selectedSwapBank: ExtendedBankInfo | null;
 
   simulationResult: SimulationResult | null;
-  actionTxns: SwapLendActionTxns;
+  actionTxns: DepositSwapActionTxns;
 
   errorMessage: ActionMessageType | null;
 
@@ -27,14 +27,14 @@ interface SwapLendBoxState {
   }) => void;
   setAmountRaw: (amountRaw: string, maxAmount?: number) => void;
   setSimulationResult: (simulationResult: SimulationResult | null) => void;
-  setActionTxns: (actionTxns: SwapLendActionTxns) => void;
+  setActionTxns: (actionTxns: DepositSwapActionTxns) => void;
   setSelectedDepositBank: (bank: ExtendedBankInfo | null) => void;
   setSelectedSwapBank: (bank: ExtendedBankInfo | null) => void;
   setErrorMessage: (errorMessage: ActionMessageType | null) => void;
 }
 
-function createSwapLendBoxStore() {
-  return create<SwapLendBoxState>(stateCreator);
+function createDepositSwapBoxStore() {
+  return create<DepositSwapBoxState>(stateCreator);
 }
 
 const initialState = {
@@ -47,7 +47,7 @@ const initialState = {
   errorMessage: null,
 };
 
-const stateCreator: StateCreator<SwapLendBoxState, [], []> = (set, get) => ({
+const stateCreator: StateCreator<DepositSwapBoxState, [], []> = (set, get) => ({
   // State
   ...initialState,
 
@@ -177,5 +177,5 @@ const stateCreator: StateCreator<SwapLendBoxState, [], []> = (set, get) => ({
   },
 });
 
-export { createSwapLendBoxStore };
-export type { SwapLendBoxState };
+export { createDepositSwapBoxStore };
+export type { DepositSwapBoxState };

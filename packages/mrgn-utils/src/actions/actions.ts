@@ -13,7 +13,7 @@ import {
   LoopingProps,
   TradeActionTxns,
   ClosePositionActionTxns,
-  SwapLendActionTxns,
+  DepositSwapActionTxns,
 } from "./types";
 import { WalletContextStateOverride } from "../wallet";
 import {
@@ -30,7 +30,7 @@ import {
   mintLstToken,
   mintLstStakeToStake,
   closePosition,
-  swapLend,
+  depositSwap,
 } from "./individualFlows";
 import { STATIC_SIMULATION_ERRORS } from "../errors";
 
@@ -154,15 +154,15 @@ export async function executeTradeAction(params: ExecuteTradeActionProps) {
   return txnSig;
 }
 
-export interface ExecuteSwapLendActionProps extends MarginfiActionParams {
+export interface ExecuteDepositSwapActionProps extends MarginfiActionParams {
   swapBank: ExtendedBankInfo | null;
-  actionTxns: SwapLendActionTxns;
+  actionTxns: DepositSwapActionTxns;
 }
 
-export async function executeSwapLendAction(params: ExecuteSwapLendActionProps) {
+export async function executeDepositSwapAction(params: ExecuteDepositSwapActionProps) {
   let txnSig: string[] | undefined;
 
-  txnSig = await swapLend(params);
+  txnSig = await depositSwap(params);
 
   return txnSig;
 }

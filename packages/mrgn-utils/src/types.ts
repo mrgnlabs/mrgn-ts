@@ -67,10 +67,10 @@ interface PreviousTxnPositionClosed {
   };
 }
 
-interface PreviousTxnSwapLend {
+interface PreviousTxnDepositSwap {
   txn: string;
-  txnType: "SWAP_LEND";
-  swapLendOptions: {
+  txnType: "DEPOSIT_SWAP";
+  depositSwapOptions: {
     depositBank: ActiveBankInfo;
     swapBank: ActiveBankInfo;
     depositAmount: number;
@@ -102,4 +102,4 @@ export type PreviousTxn =
   | PreviousTxnTrading
   | PreviousTxnPositionClosed
   | PreviousTxnStake
-  | PreviousTxnSwapLend;
+  | PreviousTxnDepositSwap;

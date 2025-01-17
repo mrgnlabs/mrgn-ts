@@ -8,7 +8,7 @@ import { PageHeading } from "~/components/common/PageHeading";
 import { Loader } from "~/components/ui/loader";
 import { useWallet } from "~/components/wallet-v2";
 
-export default function SwapLendPage() {
+export default function DepositSwapPage() {
   const [initialized] = useMrgnlendStore((state) => [state.initialized, state.extendedBankInfos]);
   const { connected } = useWallet();
 
@@ -19,9 +19,9 @@ export default function SwapLendPage() {
       {initialized && (
         <div className="w-full max-w-7xl mx-auto mb-20 px-5">
           <PageHeading heading="✨ Deposit Swap" body={<p>Swap any token and deposit in your chosen collateral.</p>} />
-          <ActionBoxV2.SwapLend
+          <ActionBoxV2.DepositSwap
             useProvider={true}
-            swapLendProps={{
+            depositSwapProps={{
               connected: connected,
               requestedDepositBank: undefined,
               requestedSwapBank: undefined,
