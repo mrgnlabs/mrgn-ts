@@ -239,7 +239,7 @@ export const DepositSwapBox = ({
   const buttonLabel = React.useMemo(() => (showCloseBalance ? "Close" : lendMode), [showCloseBalance, lendMode]);
 
   ///////////////////////
-  // Swap-Lend Actions //
+  // Deposit-Swap Actions //
   ///////////////////////
   const executeAction = async (
     params: ExecuteDepositSwapActionProps,

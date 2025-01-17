@@ -1,1 +1,1 @@
-export * from "./swap-lend-action";
+export * from "./deposit-lend-action";
