@@ -50,7 +50,7 @@ import {
 import { captureSentryException } from "../sentry.utils";
 import { loopingBuilder, repayWithCollatBuilder } from "./flashloans";
 import { STATIC_SIMULATION_ERRORS } from "../errors";
-import { ExecuteSwapLendActionProps } from "./actions";
+import { ExecuteDepositSwapActionProps } from "./actions";
 
 //-----------------------//
 // Local utils functions //
@@ -334,7 +334,7 @@ export async function deposit({
   }
 }
 
-export async function swapLend({
+export async function depositSwap({
   marginfiAccount,
   marginfiClient,
   bank,
@@ -344,8 +344,7 @@ export async function swapLend({
   txOpts,
   multiStepToast,
   swapBank,
-}: ExecuteSwapLendActionProps) {
-  console.log(marginfiAccount);
+}: ExecuteDepositSwapActionProps) {
   if (!multiStepToast) {
     const steps = getSteps(actionTxns);
 

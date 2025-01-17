@@ -3,7 +3,7 @@ import React from "react";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
 
-type SwapLendActionProps = {
+type DepositSwapActionProps = {
   walletAmount: number | undefined;
   maxAmount: number;
   showLendingHeader?: boolean;
@@ -13,13 +13,13 @@ type SwapLendActionProps = {
   onSetAmountRaw: (amount: string) => void;
 };
 
-export const SwapLendAction = ({
+export const DepositSwapAction = ({
   maxAmount,
   walletAmount,
   onSetAmountRaw,
   selectedBank,
   lendMode,
-}: SwapLendActionProps) => {
+}: DepositSwapActionProps) => {
   const numberFormater = React.useMemo(() => new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 }), []);
 
   const maxLabel = React.useMemo((): {

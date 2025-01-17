@@ -22,15 +22,15 @@ import {
   ActionMessageType,
   ActionTxns,
   deserializeInstruction,
-  executeSwapLendAction,
   getAdressLookupTableAccounts,
   getSwapQuoteWithRetry,
   handleSimulationError,
   IndividualFlowError,
   MarginfiActionParams,
   STATIC_SIMULATION_ERRORS,
-  SwapLendActionTxns,
+  DepositSwapActionTxns,
 } from "@mrgnlabs/mrgn-utils";
+
 import { Keypair, PublicKey, Transaction, TransactionMessage, VersionedTransaction } from "@solana/web3.js";
 import { ActionSummary, CalculatePreviewProps, SimulatedActionPreview } from "../../lend-box/utils";
 import {
@@ -40,7 +40,7 @@ import {
   simulatedPositionSize,
 } from "~/components/action-box-v2/utils";
 
-export interface GenerateSwapLendTxnsProps {
+export interface GenerateDepositSwapTxnsProps {
   marginfiAccount: MarginfiAccountWrapper;
   depositBank: ExtendedBankInfo;
   swapBank?: ExtendedBankInfo | null;
@@ -49,9 +49,9 @@ export interface GenerateSwapLendTxnsProps {
   slippageBps: number;
 }
 
-export async function generateSwapLendTxns(
-  props: GenerateSwapLendTxnsProps
-): Promise<SwapLendActionTxns | ActionMessageType> {
+export async function generateDepositSwapTxns(
+  props: GenerateDepositSwapTxnsProps
+): Promise<DepositSwapActionTxns | ActionMessageType> {
   let swapTx: { quote?: QuoteResponse; tx?: SolanaTransaction; error?: ActionMessageType } | undefined;
 
   if (props.swapBank && props.swapBank.meta.tokenSymbol !== props.depositBank.meta.tokenSymbol) {
@@ -114,7 +114,7 @@ export async function generateSwapLendTxns(
   };
 }
 
-export async function createSwapTx(props: GenerateSwapLendTxnsProps) {
+export async function createSwapTx(props: GenerateDepositSwapTxnsProps) {
   if (!props.swapBank) {
     console.error("Swap bank is required");
     throw new Error("Swap bank is required");
@@ -180,7 +180,7 @@ export async function createSwapTx(props: GenerateSwapLendTxnsProps) {
 }
 
 async function createMarginfiAccountTx(
-  props: GenerateSwapLendTxnsProps
+  props: GenerateDepositSwapTxnsProps
 ): Promise<{ account: MarginfiAccountWrapper; tx: SolanaTransaction }> {
   // if no marginfi account, we need to create one
   console.log("Creating new marginfi account transaction...");

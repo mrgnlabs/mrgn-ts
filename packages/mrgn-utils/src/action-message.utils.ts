@@ -228,7 +228,7 @@ export function checkStakeActionAvailable({
   return checks;
 }
 
-interface CheckSwapLendActionAvailableProps {
+interface CheckDepositSwapActionAvailableProps {
   amount: number | null;
   connected: boolean;
   nativeSolBalance: number;
@@ -240,7 +240,7 @@ interface CheckSwapLendActionAvailableProps {
   lendMode: ActionType;
 }
 
-export function checkSwapLendActionAvailable({
+export function checkDepositSwapActionAvailable({
   amount,
   nativeSolBalance,
   connected,
@@ -250,7 +250,7 @@ export function checkSwapLendActionAvailable({
   banks,
   marginfiAccount,
   lendMode,
-}: CheckSwapLendActionAvailableProps): ActionMessageType[] {
+}: CheckDepositSwapActionAvailableProps): ActionMessageType[] {
   let checks: ActionMessageType[] = [];
 
   const requiredCheck = getRequiredCheck(connected, depositBank);

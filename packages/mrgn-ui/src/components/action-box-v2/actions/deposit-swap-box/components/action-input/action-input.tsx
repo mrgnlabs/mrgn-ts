@@ -6,7 +6,7 @@ import { usdFormatter, tokenPriceFormatter } from "@mrgnlabs/mrgn-common";
 
 import { Input } from "~/components/ui/input";
 
-import { SwapLendAction, BankSelect } from "./components";
+import { BankSelect, DepositSwapAction } from "./components";
 
 type ActionInputProps = {
   amountRaw: string;
@@ -113,7 +113,7 @@ export const ActionInput = ({
         </div>
       </div>
       {!isInputDisabled && (
-        <SwapLendAction
+        <DepositSwapAction
           walletAmount={walletAmount}
           maxAmount={maxAmount}
           onSetAmountRaw={(amount) => handleInputChange(amount)}

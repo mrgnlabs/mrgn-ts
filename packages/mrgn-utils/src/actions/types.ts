@@ -96,7 +96,7 @@ export interface StakeActionTxns extends ActionTxns {
   lastValidBlockHeight?: number;
 } // TOOD: implement this as actionSummary type
 
-export interface SwapLendActionTxns extends ActionTxns {
+export interface DepositSwapActionTxns extends ActionTxns {
   actionQuote: QuoteResponse | null;
 }
 

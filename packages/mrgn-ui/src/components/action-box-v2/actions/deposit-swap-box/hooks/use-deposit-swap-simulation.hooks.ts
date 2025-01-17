@@ -10,34 +10,34 @@ import {
   DYNAMIC_SIMULATION_ERRORS,
   extractErrorString,
   STATIC_SIMULATION_ERRORS,
-  SwapLendActionTxns,
+  DepositSwapActionTxns,
   usePrevious,
 } from "@mrgnlabs/mrgn-utils";
 import { SimulationStatus } from "~/components/action-box-v2/utils";
 import {
   calculateSummary,
-  generateSwapLendTxns,
-  GenerateSwapLendTxnsProps,
+  generateDepositSwapTxns,
+  GenerateDepositSwapTxnsProps,
   getSimulationResult,
   SimulateActionProps,
 } from "../utils";
 
-type SwapLendSimulationProps = {
+type DepositSwapSimulationProps = {
   debouncedAmount: number;
   selectedAccount: MarginfiAccountWrapper | null;
   marginfiClient: MarginfiClient | null;
   accountSummary?: AccountSummary;
   depositBank: ExtendedBankInfo | null;
   swapBank: ExtendedBankInfo | null;
-  actionTxns: SwapLendActionTxns;
+  actionTxns: DepositSwapActionTxns;
   simulationResult: SimulationResult | null;
   setSimulationResult: (result: SimulationResult | null) => void;
-  setActionTxns: (actionTxns: SwapLendActionTxns) => void;
+  setActionTxns: (actionTxns: DepositSwapActionTxns) => void;
   setErrorMessage: (error: ActionMessageType | null) => void;
   setIsLoading: ({ isLoading, status }: { isLoading: boolean; status: SimulationStatus }) => void;
 };
 
-export function useSwapLendSimulation({
+export function useDepositSwapSimulation({
   debouncedAmount,
   selectedAccount,
   accountSummary,
@@ -50,7 +50,7 @@ export function useSwapLendSimulation({
   setActionTxns,
   setErrorMessage,
   setIsLoading,
-}: SwapLendSimulationProps) {
+}: DepositSwapSimulationProps) {
   const prevDebouncedAmount = usePrevious(debouncedAmount);
   const prevDepositBank = usePrevious(depositBank);
   const prevSwapBank = usePrevious(swapBank);
@@ -60,7 +60,7 @@ export function useSwapLendSimulation({
     callbacks: {
       setErrorMessage: (error: ActionMessageType | null) => void;
       setSimulationResult: (result: SimulationResult | null) => void;
-      setActionTxns: (actionTxns: SwapLendActionTxns) => void;
+      setActionTxns: (actionTxns: DepositSwapActionTxns) => void;
       setIsLoading: ({ isLoading, status }: { isLoading: boolean; status: SimulationStatus }) => void;
     }
   ) => {
@@ -102,25 +102,25 @@ export function useSwapLendSimulation({
     }
   };
 
-  const fetchSwapLendActionTxns = async (
-    props: GenerateSwapLendTxnsProps
-  ): Promise<{ actionTxns: SwapLendActionTxns | null; actionMessage: ActionMessageType | null }> => {
+  const fetchDepositSwapActionTxns = async (
+    props: GenerateDepositSwapTxnsProps
+  ): Promise<{ actionTxns: DepositSwapActionTxns | null; actionMessage: ActionMessageType | null }> => {
     try {
-      const swapLendActionTxns = await generateSwapLendTxns(props);
-      if (swapLendActionTxns && "actionTxn" in swapLendActionTxns) {
+      const depositSwapActionTxns = await generateDepositSwapTxns(props);
+      if (depositSwapActionTxns && "actionTxn" in depositSwapActionTxns) {
         return {
-          actionTxns: { ...swapLendActionTxns, actionQuote: swapLendActionTxns.actionQuote },
+          actionTxns: { ...depositSwapActionTxns, actionQuote: depositSwapActionTxns.actionQuote },
           actionMessage: null,
         };
       } else {
-        const errorMessage = swapLendActionTxns ?? STATIC_SIMULATION_ERRORS.DEPOSIT_FAILED;
+        const errorMessage = depositSwapActionTxns ?? STATIC_SIMULATION_ERRORS.DEPOSIT_FAILED;
         return {
           actionTxns: null,
           actionMessage: errorMessage,
         };
       }
     } catch (error) {
-      console.error("Error fetching swap lend action txns", error);
+      console.error("Error fetching deposit swap action txns", error);
       return {
         actionTxns: null,
         actionMessage: STATIC_SIMULATION_ERRORS.DEPOSIT_FAILED,
@@ -139,7 +139,7 @@ export function useSwapLendSimulation({
 
         setIsLoading({ isLoading: true, status: SimulationStatus.SIMULATING });
 
-        const props: GenerateSwapLendTxnsProps = {
+        const props: GenerateDepositSwapTxnsProps = {
           marginfiAccount: selectedAccount ?? undefined,
           depositBank: depositBank,
           swapBank: swapBank,
@@ -148,10 +148,10 @@ export function useSwapLendSimulation({
           slippageBps: 50,
         };
 
-        const swapLendActionTxns = await fetchSwapLendActionTxns(props);
+        const depositSwapActionTxns = await fetchDepositSwapActionTxns(props);
 
-        if (swapLendActionTxns.actionMessage || swapLendActionTxns.actionTxns === null) {
-          handleError(swapLendActionTxns.actionMessage ?? STATIC_SIMULATION_ERRORS.DEPOSIT_FAILED, {
+        if (depositSwapActionTxns.actionMessage || depositSwapActionTxns.actionTxns === null) {
+          handleError(depositSwapActionTxns.actionMessage ?? STATIC_SIMULATION_ERRORS.DEPOSIT_FAILED, {
             setErrorMessage,
             setSimulationResult,
             setActionTxns,
@@ -162,8 +162,8 @@ export function useSwapLendSimulation({
 
         const simulationResult = await simulationAction({
           txns: [
-            ...(swapLendActionTxns?.actionTxns?.additionalTxns ?? []),
-            ...(swapLendActionTxns?.actionTxns?.actionTxn ? [swapLendActionTxns?.actionTxns?.actionTxn] : []),
+            ...(depositSwapActionTxns?.actionTxns?.additionalTxns ?? []),
+            ...(depositSwapActionTxns?.actionTxns?.actionTxn ? [depositSwapActionTxns?.actionTxns?.actionTxn] : []),
           ],
           account: selectedAccount,
           bank: depositBank,
@@ -179,7 +179,7 @@ export function useSwapLendSimulation({
           return;
         } else if (simulationResult.simulationResult) {
           setSimulationResult(simulationResult.simulationResult);
-          setActionTxns(swapLendActionTxns.actionTxns);
+          setActionTxns(depositSwapActionTxns.actionTxns);
         } else {
           throw new Error("Unknown error");
         }
