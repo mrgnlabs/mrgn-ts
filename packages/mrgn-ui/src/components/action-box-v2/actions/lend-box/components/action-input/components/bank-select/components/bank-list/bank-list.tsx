@@ -175,7 +175,7 @@ export const BankList = ({
             <div className="flex flex-col w-full gap-2 items-center justify-between py-2">
               <p className="text-xs text-muted-foreground">Don&apos;t hold supported tokens?</p>
               <Button variant="secondary" className="mx-auto font-normal text-[11px]" size="sm">
-                <Link href="/swap-lend">
+                <Link href="/deposit-swap">
                   <span>try deposit swap</span>
                 </Link>
               </Button>
