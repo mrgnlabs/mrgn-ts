@@ -21,6 +21,7 @@ import {
   calculateRepayTransactions,
   CalculateRepayTransactionsProps,
   calculateSummary,
+  getSimulationResult,
   SimulateActionProps,
 } from "../utils";
 import { QuoteResponse } from "@jup-ag/api";
@@ -101,41 +102,140 @@ export function useRepaySimulation({
     callbacks.setIsLoading({ isLoading: false, status: SimulationStatus.COMPLETE });
   };
 
-  const simulationAction = async (props: SimulateActionProps) => {};
+  const simulationAction = async (props: SimulateActionProps) => {
+    if (props.txns.length > 0) {
+      const simulationResult = await getSimulationResult(props);
+      console.log("simulationResult", simulationResult);
 
-  const fetchRepayActionTxns = async (props: CalculateRepayTransactionsProps) => {
-    const repayActionTxns = await calculateRepayTransactions(props);
+      if (simulationResult.actionMethod) {
+        return { simulationResult: null, actionMessage: simulationResult.actionMethod };
+      } else if (simulationResult.simulationResult) {
+        return { simulationResult: simulationResult.simulationResult, actionMessage: null };
+      } else {
+        const errorMessage = DYNAMIC_SIMULATION_ERRORS.TRADE_FAILED_CHECK();
+        return { simulationResult: null, actionMessage: errorMessage };
+      }
+    } else {
+      throw new Error("account, bank or transactions are null");
+    }
   };
 
-  const handleSimulation = React.useCallback(async (amount: number) => {
-    if (amount === 0 || !selectedAccount || !marginfiClient || !selectedBank || !selectedSecondaryBank) {
-      setActionTxns({ actionTxn: null, additionalTxns: [], actionQuote: null });
-      return;
+  const fetchRepayActionTxns = async (props: CalculateRepayTransactionsProps) => {
+    try {
+      const repayActionTxns = await calculateRepayTransactions(props);
+      if (repayActionTxns && "repayCollatObject" in repayActionTxns) {
+        return {
+          actionTxns: { ...repayActionTxns, actionQuote: repayActionTxns?.repayCollatObject?.actionQuote },
+          actionMessage: null,
+        };
+      } else {
+        const errorMessage =
+          repayActionTxns ?? DYNAMIC_SIMULATION_ERRORS.REPAY_COLLAT_FAILED_CHECK(props.selectedBank?.meta.tokenSymbol); // TODO: deposit or borrow bank here?
+        return {
+          actionTxns: null,
+          actionMessage: errorMessage,
+        };
+      }
+    } catch (error) {
+      console.error("Error fetching repay action txns", error);
+      return {
+        actionTxns: null,
+        actionMessage: STATIC_SIMULATION_ERRORS.REPAY_COLLAT_FAILED,
+      };
     }
+  };
 
-    setIsLoading({ isLoading: true, status: SimulationStatus.SIMULATING });
+  const handleSimulation = React.useCallback(
+    async (amount: number) => {
+      try {
+        if (amount === 0 || !selectedAccount || !marginfiClient || !selectedBank || !selectedSecondaryBank) {
+          setActionTxns({ actionTxn: null, additionalTxns: [], actionQuote: null });
+          return;
+        }
 
-    let actionType;
+        setIsLoading({ isLoading: true, status: SimulationStatus.SIMULATING });
 
-    if (selectedBank.address.toBase58() === selectedSecondaryBank.address.toBase58()) {
-      actionType = ActionType.Repay;
-    } else {
-      actionType = ActionType.RepayCollat;
-    }
+        let actionType;
 
-    const props = {
-      marginfiAccount: selectedAccount,
-      selectedBank: selectedBank,
-      selectedSecondaryBank: selectedSecondaryBank,
-      connection: marginfiClient.provider.connection,
+        if (selectedBank.address.toBase58() === selectedSecondaryBank.address.toBase58()) {
+          actionType = ActionType.Repay;
+        } else {
+          actionType = ActionType.RepayCollat;
+        }
+
+        const props = {
+          marginfiAccount: selectedAccount,
+          selectedBank: selectedBank,
+          selectedSecondaryBank: selectedSecondaryBank,
+          connection: marginfiClient.provider.connection,
+          platformFeeBps,
+          slippageBps,
+          repayAmount: amount,
+          actionType,
+        };
+
+        const repayActionTxns = await fetchRepayActionTxns(props);
+
+        if (repayActionTxns.actionMessage || repayActionTxns.actionTxns === null) {
+          handleError(repayActionTxns.actionMessage ?? STATIC_SIMULATION_ERRORS.REPAY_COLLAT_FAILED, {
+            setErrorMessage,
+            setSimulationResult,
+            setActionTxns,
+            setIsLoading,
+          });
+          return;
+        }
+
+        if (repayActionTxns.actionTxns.amount) {
+          setRepayAmount(repayActionTxns.actionTxns.amount);
+        }
+
+        const simulationResult = await simulationAction({
+          txns: [
+            ...(repayActionTxns?.actionTxns?.repayCollatObject?.additionalTxns ?? []),
+            ...(repayActionTxns?.actionTxns?.repayCollatObject?.actionTxn
+              ? [repayActionTxns?.actionTxns?.repayCollatObject?.actionTxn]
+              : []),
+          ],
+          account: selectedAccount,
+          bank: selectedBank,
+        });
+
+        if (simulationResult.actionMessage || simulationResult.simulationResult === null) {
+          handleError(simulationResult.actionMessage ?? STATIC_SIMULATION_ERRORS.REPAY_COLLAT_FAILED, {
+            setErrorMessage,
+            setSimulationResult,
+            setActionTxns,
+            setIsLoading,
+          });
+          return;
+        } else if (simulationResult.simulationResult) {
+          setSimulationResult(simulationResult.simulationResult);
+          setActionTxns(repayActionTxns.actionTxns.repayCollatObject);
+        } else {
+          throw new Error("Unknown error");
+        }
+      } catch (error) {
+        console.error("Error fetching repay action txns", error);
+        setSimulationResult(null);
+      } finally {
+        setIsLoading({ isLoading: false, status: SimulationStatus.COMPLETE });
+      }
+    },
+    [
+      marginfiClient,
       platformFeeBps,
+      selectedAccount,
+      selectedBank,
+      selectedSecondaryBank,
+      setActionTxns,
+      setErrorMessage,
+      setIsLoading,
+      setRepayAmount,
+      setSimulationResult,
       slippageBps,
-      repayAmount: amount,
-      actionType,
-    };
-
-    const actionTxns = await fetchRepayActionTxns(props);
-  }, []);
+    ]
+  );
 
   React.useEffect(() => {
     if (

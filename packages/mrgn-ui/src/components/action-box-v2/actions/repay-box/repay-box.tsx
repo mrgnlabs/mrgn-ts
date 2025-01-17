@@ -13,7 +13,6 @@ import {
   PreviousTxn,
   ActionMessageType,
   showErrorToast,
-  checkRepayCollatActionAvailable,
   ExecuteRepayWithCollatActionProps,
   ActionTxns,
   MultiStepToastHandle,
