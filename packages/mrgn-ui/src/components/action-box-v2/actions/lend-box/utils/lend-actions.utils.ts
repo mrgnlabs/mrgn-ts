@@ -170,7 +170,11 @@ export async function calculateLendingTransaction(
     case ActionType.Withdraw:
       if (bank.info.rawBank.config.assetTag === 2) {
         console.log("Withdrawing from staked asset bank");
-        const withdrawTx = await marginfiAccount.makeWithdrawStakedTx(amount, bank.address);
+        const withdrawTx = await marginfiAccount.makeWithdrawStakedTx(
+          amount,
+          bank.address,
+          bank.isActive && isWholePosition(bank, amount)
+        );
         return {
           actionTxn: withdrawTx,
           additionalTxns: [],

@@ -75,6 +75,7 @@ import {
   getSwitchboardProgram,
   SinglePoolInstruction,
 } from "../../vendor";
+import { SystemInstruction } from "@solana/web3.js";
 
 // Temporary imports
 export const MAX_TX_SIZE = 1232;
@@ -1262,7 +1263,7 @@ class MarginfiAccountWrapper {
     return { feedCrankTxs, withdrawTx };
   }
 
-  async makeWithdrawStakedTx(amount: Amount, bankAddress: PublicKey, withdrawOpts: MakeWithdrawIxOpts = {}) {
+  async makeWithdrawStakedTx(amount: Amount, bankAddress: PublicKey, isWholePosition: boolean) {
     // Get bank and metadata
     const bank = this.client.getBankByPk(bankAddress);
     const bankMetadata = this.client.bankMetadataMap![bankAddress.toBase58()];
@@ -1281,64 +1282,57 @@ class MarginfiAccountWrapper {
     const auth = findPoolStakeAuthorityAddress(pool);
     const lstAta = getAssociatedTokenAddressSync(lstMint, this.authority);
 
-    const tokenAccountInfo = await this._program.provider.connection.getAccountInfo(lstAta);
-    if (!tokenAccountInfo) {
-      throw new Error("Token account not found");
-    }
+    // const tokenAccountInfo = await this._program.provider.connection.getAccountInfo(lstAta);
+    // if (!tokenAccountInfo) {
+    //   throw new Error("Token account not found");
+    // }
 
-    // withdraw from marginfi bank
-    const withdrawIxs = await this.makeWithdrawIx(amount, bankAddress, true, withdrawOpts);
+    console.log("bank", bank);
+    // 1: withdraw from marginfi bank
+    const withdrawIxs = await this.makeWithdrawIx(amount, bankAddress, isWholePosition, {
+      createAtas: true,
+      wrapAndUnwrapSol: true,
+    });
 
-    // create stake account
-    const rentExemption = await this._program.provider.connection.getMinimumBalanceForRentExemption(StakeProgram.space);
-    const minimumDelegation = 1_000_000_000;
+    // 2: create stake account
+    const rentExemption = await this._program.provider.connection.getMinimumBalanceForRentExemption(200);
+    console.log("rentExemption", rentExemption);
 
-    // match seed to rust program?
-    // seed length error
-    // const seed = `svsp{${pool.toBase58().slice(0, 28)}}`;
-    // console.log("Seed length:", seed.length);
-    // console.log("Seed bytes:", Buffer.from(seed).length);
-    // const [stakeAccount] = PublicKey.findProgramAddressSync(
-    //   [Buffer.from(seed), pool.toBuffer()],
-    //   SINGLE_POOL_PROGRAM_ID
-    // );
-
-    const stakeAmount = new BigNumber(amount).multipliedBy(1e9).toNumber();
+    const stakeAmount = new BigNumber(new BigNumber(amount).toString());
 
     const stakeAccount = Keypair.generate();
     const createStakeAccountIx = StakeProgram.createAccount({
       fromPubkey: this.authority,
       stakePubkey: stakeAccount.publicKey,
-      authorized: new Authorized(auth, auth),
-      lockup: Lockup.default,
-      lamports: rentExemption + minimumDelegation + stakeAmount,
+      authorized: new Authorized(this.authority, this.authority),
+      lamports: rentExemption,
     });
 
-    // approve single-spl-pool mint authority to burn tokens
-    const approveIx = Token.createApproveInstruction(
+    // 3: approve mint authority to burn tokens
+    const approveAccountAuthorityIx = Token.createApproveInstruction(
       TOKEN_PROGRAM_ID,
       lstAta,
       mintAuthority,
       this.authority,
       [],
-      stakeAmount
+      stakeAmount.multipliedBy(1e9).toNumber()
     );
 
-    // withdraw from single-spl-pool
+    // 4: delegate stake account
     const withdrawStakeIx: TransactionInstruction = await SinglePoolInstruction.withdrawStake(
       pool,
       stakeAccount.publicKey,
       this.authority,
       lstAta,
-      new BigNumber(amount)
+      stakeAmount
     );
 
-    // build txn
-    // - withdraw from marginfi bank
-    // - create stake account
-    // - approve mint authority to burn tokens
-    // - withdraw from single-spl-pool
-    const txn = new Transaction().add(...withdrawIxs.instructions, createStakeAccountIx, approveIx, withdrawStakeIx);
+    const txn = new Transaction().add(
+      ...withdrawIxs.instructions,
+      createStakeAccountIx,
+      approveAccountAuthorityIx,
+      withdrawStakeIx
+    );
 
     return addTransactionMetadata(txn, {
       signers: [...withdrawIxs.keys],
