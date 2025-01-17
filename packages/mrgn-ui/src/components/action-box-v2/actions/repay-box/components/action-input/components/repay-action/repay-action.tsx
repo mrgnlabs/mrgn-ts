@@ -28,9 +28,6 @@ export const RepayAction = ({
     showWalletIcon?: boolean;
     label?: string;
   } => {
-    console.log("selectedBank", selectedBank);
-    console.log("selectedSecondaryBank", selectedSecondaryBank);
-    console.log(selectedBank?.isActive ? selectedBank.position.amount - repayAmount : 0);
     const amountLeft = dynamicNumeralFormatter(selectedBank?.isActive ? selectedBank.position.amount - repayAmount : 0);
     return {
       amount: `${amountLeft} ${selectedBank?.meta.tokenSymbol}`,

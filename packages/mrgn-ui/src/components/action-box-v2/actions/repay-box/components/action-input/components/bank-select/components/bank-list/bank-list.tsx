@@ -8,6 +8,7 @@ import { CommandEmpty, CommandGroup, CommandItem } from "~/components/ui/command
 import { BankItem, BankListCommand } from "~/components/action-box-v2/components";
 
 type BankListProps = {
+  selectedBank: ExtendedBankInfo | null;
   selectedSecondaryBank: ExtendedBankInfo | null;
   banks: ExtendedBankInfo[];
   nativeSolBalance: number;
@@ -18,6 +19,7 @@ type BankListProps = {
 };
 
 export const BankList = ({
+  selectedBank,
   selectedSecondaryBank,
   banks,
   nativeSolBalance,
@@ -46,19 +48,14 @@ export const BankList = ({
     [searchQuery]
   );
 
-  // filter on positions
-  const positionFilter = React.useCallback((bankInfo: ExtendedBankInfo) => {
-    return bankInfo.isActive;
-  }, []);
-
-  /////// BANKS
+  /////// Supplied BANKS
   // active position banks
   const filteredBanksActive = React.useMemo(() => {
     return banks
       .filter(searchFilter)
-      .filter((bankInfo) => positionFilter(bankInfo))
+      .filter((bankInfo) => bankInfo.isActive && bankInfo.position.isLending)
       .sort((a, b) => (b.isActive ? b?.position?.amount : 0) - (a.isActive ? a?.position?.amount : 0));
-  }, [banks, searchFilter, positionFilter]);
+  }, [banks, searchFilter]);
 
   React.useEffect(() => {
     if (!isOpen) {
@@ -75,6 +72,33 @@ export const BankList = ({
           </div>
         )}
         <CommandEmpty>No tokens found.</CommandEmpty>
+
+        {selectedBank && selectedBank.userInfo.tokenAccount.balance > 0 && (
+          <CommandGroup heading="Current position">
+            <CommandItem
+              key={selectedBank.address?.toString().toLowerCase()}
+              value={selectedBank.address?.toString().toLowerCase()}
+              onSelect={(currentValue) => {
+                onSetSelectedSecondaryBank(
+                  banks.find((bankInfo) => bankInfo.address.toString().toLowerCase() === currentValue) ?? null
+                );
+                onClose();
+              }}
+              className={cn(
+                "cursor-pointer font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-mfi-action-box-accent data-[selected=true]:text-mfi-action-box-accent-foreground py-2",
+                "opacity-100"
+              )}
+            >
+              <BankItem
+                bank={selectedBank}
+                showBalanceOverride={true}
+                nativeSolBalance={nativeSolBalance}
+                isRepay={false}
+                available={true}
+              />
+            </CommandItem>
+          </CommandGroup>
+        )}
 
         {/* REPAYING */}
         {filteredBanksActive.length > 0 && (

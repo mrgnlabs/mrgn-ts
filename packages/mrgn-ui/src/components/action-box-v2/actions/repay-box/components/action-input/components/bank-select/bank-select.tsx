@@ -60,6 +60,7 @@ export const BankSelect = ({
               onClose={() => setIsOpen(false)}
               onSetSelectedSecondaryBank={(bank) => setSecondaryTokenBank(bank)}
               selectedSecondaryBank={selectedSecondaryBank}
+              selectedBank={selectedBank}
             />
           }
         />
