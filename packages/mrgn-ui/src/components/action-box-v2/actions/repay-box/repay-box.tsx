@@ -18,6 +18,7 @@ import {
   ActionTxns,
   MultiStepToastHandle,
   IndividualFlowError,
+  checkRepayActionAvailable,
 } from "@mrgnlabs/mrgn-utils";
 import { IconInfoCircle } from "@tabler/icons-react";
 
@@ -113,13 +114,6 @@ export const RepayBox = ({
 
     state.setMaxAmountCollateral,
   ]);
-
-  React.useEffect(() => {
-    console.log("selectedBank", selectedBank);
-    console.log("selectedSecondaryBank", selectedSecondaryBank);
-    console.log("requestedBank", requestedBank);
-    console.log("requestedSecondaryBank", requestedSecondaryBank);
-  }, [selectedBank, selectedSecondaryBank, requestedBank, requestedSecondaryBank]);
 
   const [isTransactionExecuting, setIsTransactionExecuting] = React.useState(false);
   const [isSimulating, setIsSimulating] = React.useState<{
@@ -232,11 +226,11 @@ export const RepayBox = ({
   }, [marginfiClient, banks, refreshSelectedBanks]);
 
   const actionMessages = React.useMemo(() => {
-    return checkRepayCollatActionAvailable({
+    return checkRepayActionAvailable({
       amount,
       connected,
-      selectedBank, // TT
-      selectedSecondaryBank, // TT
+      selectedBank,
+      selectedSecondaryBank,
       actionQuote: actionTxns?.actionQuote ?? null,
     });
   }, [amount, connected, selectedBank, selectedSecondaryBank, actionTxns.actionQuote]);

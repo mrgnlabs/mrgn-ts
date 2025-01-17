@@ -28,7 +28,6 @@ export const BankList = ({
   onSetSelectedSecondaryBank,
   onClose,
 }: BankListProps) => {
-  console.log(selectedSecondaryBank);
   const [searchQuery, setSearchQuery] = React.useState("");
 
   const hasTokens = React.useMemo(() => {

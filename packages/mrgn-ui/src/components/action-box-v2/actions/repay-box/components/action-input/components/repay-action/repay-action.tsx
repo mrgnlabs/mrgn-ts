@@ -28,6 +28,8 @@ export const RepayAction = ({
     showWalletIcon?: boolean;
     label?: string;
   } => {
+    console.log("selectedBank", selectedBank?.meta.tokenSymbol);
+    console.log("repayAmount", repayAmount);
     const amountLeft = dynamicNumeralFormatter(selectedBank?.isActive ? selectedBank.position.amount - repayAmount : 0);
     return {
       amount: `${amountLeft} ${selectedBank?.meta.tokenSymbol}`,
@@ -71,22 +73,26 @@ export const RepayAction = ({
               )}
             </div>
           </li>
-          <li className="flex justify-between items-center gap-1.5">
-            <strong>Deposited:</strong>
+          {selectedBank &&
+            selectedSecondaryBank &&
+            selectedBank.address.toBase58() !== selectedSecondaryBank.address.toBase58() && (
+              <li className="flex justify-between items-center gap-1.5">
+                <strong>Deposited:</strong>
 
-            <div className="flex space-x-1.5 items-center">
-              {selectedSecondaryBank?.isActive
-                ? dynamicNumeralFormatter(selectedSecondaryBank.position.amount, {
-                    tokenPrice: selectedSecondaryBank.info.oraclePrice.priceRealtime.price.toNumber(),
-                  })
-                : 0}
-              {selectedSecondaryBank?.isActive && !isUnchanged && <IconArrowRight width={12} height={12} />}
-              {selectedSecondaryBank?.isActive &&
-                !isUnchanged &&
-                dynamicNumeralFormatter(selectedSecondaryBank.position.amount - Number(amountRaw))}{" "}
-              {selectedSecondaryBank?.meta.tokenSymbol}
-            </div>
-          </li>
+                <div className="flex space-x-1.5 items-center">
+                  {selectedSecondaryBank?.isActive
+                    ? dynamicNumeralFormatter(selectedSecondaryBank.position.amount, {
+                        tokenPrice: selectedSecondaryBank.info.oraclePrice.priceRealtime.price.toNumber(),
+                      })
+                    : 0}
+                  {selectedSecondaryBank?.isActive && !isUnchanged && <IconArrowRight width={12} height={12} />}
+                  {selectedSecondaryBank?.isActive &&
+                    !isUnchanged &&
+                    dynamicNumeralFormatter(selectedSecondaryBank.position.amount - Number(amountRaw))}{" "}
+                  {selectedSecondaryBank?.meta.tokenSymbol}
+                </div>
+              </li>
+            )}
         </ul>
       )}
     </>
