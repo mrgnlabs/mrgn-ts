@@ -157,6 +157,41 @@ export function checkRepayCollatActionAvailable({
   return checks;
 }
 
+export function checkRepayActionAvailable({
+  amount,
+  connected,
+  selectedBank,
+  selectedSecondaryBank,
+  actionQuote,
+}: CheckActionAvailableProps): ActionMessageType[] {
+  let checks: ActionMessageType[] = [];
+
+  const requiredCheck = getRequiredCheck(connected, selectedBank);
+  if (requiredCheck) return [requiredCheck];
+
+  const generalChecks = getGeneralChecks(amount ?? 0);
+  if (generalChecks) checks.push(...generalChecks);
+
+  let repayChecks: ActionMessageType[] = [];
+  if (
+    selectedBank &&
+    selectedSecondaryBank &&
+    selectedBank.address.toString().toLowerCase() === selectedSecondaryBank.address.toString().toLowerCase()
+  ) {
+    repayChecks = canBeRepaid(selectedBank, true);
+  } else if (selectedBank && selectedSecondaryBank) {
+    repayChecks = canBeRepaidCollat(selectedBank, selectedSecondaryBank, [], actionQuote);
+  }
+  if (repayChecks) checks.push(...repayChecks);
+
+  if (checks.length === 0)
+    checks.push({
+      isEnabled: true,
+    });
+
+  return checks;
+}
+
 function getRequiredCheck(connected: boolean, selectedBank: ExtendedBankInfo | null): ActionMessageType | null {
   if (!connected) {
     return { isEnabled: false };

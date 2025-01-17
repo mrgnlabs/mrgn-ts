@@ -288,8 +288,10 @@ const createWalletRapayCheck = (tokenSymbol?: string): ActionMessageType => ({
   code: 135,
 });
 
-const createSufficientLiqCheck = (tokenSymbol?: string): ActionMessageType => ({
-  description: `Insufficient ${tokenSymbol} in wallet for loan repayment.`,
+const createSufficientLiqCheck = (tokenSymbol?: string, repayCollatAction: boolean = false): ActionMessageType => ({
+  description: `Insufficient ${tokenSymbol} in wallet for loan repayment. ${
+    repayCollatAction ? "Change the token to repay with collateral." : ""
+  }`,
   isEnabled: false,
   code: 134,
 });
