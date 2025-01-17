@@ -307,6 +307,28 @@ async function initializeStakedPoolIxs(connection: Connection, payer: PublicKey,
   return instructions;
 }
 
+const createAccountIx = (
+  from: PublicKey,
+  newAccount: PublicKey,
+  lamports: number,
+  space: number,
+  programAddress: PublicKey
+) => {
+  const data = Buffer.concat([
+    Buffer.from([0]), // Assuming the first byte is an instruction type or similar
+    Buffer.from(new BN(lamports).toArray("le", 8)),
+    Buffer.from(new BN(space).toArray("le", 8)),
+    programAddress.toBuffer(),
+  ]);
+
+  const accounts = [
+    { pubkey: from, isSigner: true, isWritable: true },
+    { pubkey: newAccount, isSigner: true, isWritable: true },
+  ];
+
+  return createTransactionInstruction(SYSTEM_PROGRAM_ID, accounts, data);
+};
+
 export {
   SinglePoolInstruction,
   initializeStakedPoolIxs,
@@ -319,4 +341,5 @@ export {
   findPoolMplAuthorityAddress,
   findMplMetadataAddress,
   findPoolMintAddressByVoteAccount,
+  createAccountIx,
 };

@@ -20,6 +20,8 @@ import {
   uiToNative,
   getAccount,
   SINGLE_POOL_PROGRAM_ID,
+  SYSTEM_PROGRAM_ID,
+  STAKE_PROGRAM_ID,
 } from "@mrgnlabs/mrgn-common";
 import * as sb from "@switchboard-xyz/on-demand";
 import { Address, BorshCoder, Idl, translateAddress } from "@coral-xyz/anchor";
@@ -66,6 +68,7 @@ import { MarginfiAccount, MarginRequirementType, MarginfiAccountRaw } from "./pu
 import { Bank, computeLoopingParams } from "../bank";
 import { Balance } from "../balance";
 import {
+  createAccountIx,
   findPoolAddress,
   findPoolMintAddress,
   findPoolMintAuthorityAddress,
@@ -1301,11 +1304,20 @@ class MarginfiAccountWrapper {
     const stakeAmount = new BigNumber(new BigNumber(amount).toString());
 
     const stakeAccount = Keypair.generate();
-    const createStakeAccountIx = StakeProgram.createAccount({
+
+    // const createStakeAccountIx = StakeProgram.createAccount({
+    //   fromPubkey: this.authority,
+    //   stakePubkey: stakeAccount.publicKey,
+    //   authorized: new Authorized(this.authority, this.authority),
+    //   lamports: rentExemption,
+    // });
+
+    const createStakeAccountIx = SystemProgram.createAccount({
       fromPubkey: this.authority,
-      stakePubkey: stakeAccount.publicKey,
-      authorized: new Authorized(this.authority, this.authority),
+      newAccountPubkey: stakeAccount.publicKey,
       lamports: rentExemption,
+      space: 200,
+      programId: STAKE_PROGRAM_ID,
     });
 
     // 3: approve mint authority to burn tokens
@@ -1335,7 +1347,7 @@ class MarginfiAccountWrapper {
     );
 
     return addTransactionMetadata(txn, {
-      signers: [...withdrawIxs.keys],
+      signers: [...withdrawIxs.keys, stakeAccount],
       addressLookupTables: this.client.addressLookupTables,
     });
   }
