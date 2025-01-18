@@ -32,7 +32,9 @@ export const useRewardSimulation = ({
         throw new Error("No marginfi client or selected account");
       }
 
-      const banksWithEmissions = extendedBankInfos.filter((bank) => bank.info.state.emissionsRate > 0);
+      const banksWithEmissions = extendedBankInfos.filter(
+        (bank) => bank.info.state.emissionsRate > 0 && bank.info.rawBank.emissionsRemaining.toNumber() > 0
+      );
 
       if (!banksWithEmissions.length) {
         setSimulationResult({
@@ -46,7 +48,7 @@ export const useRewardSimulation = ({
 
       const NO_REWARDS_USER: RewardsType = {
         state: "NO_REWARDS",
-        tooltipContent: `You do not have any outstanding rewards. Deposit into a bank with emissions to earn additional rewards on top of yield. Banks with emissions: ${[
+        tooltipContent: `You do not have any outstanding rewards. Deposit into a bank with rewards to earn additional rewards on top of yield. Banks with rewards: ${[
           ...banksWithEmissions.map((bank) => bank.meta.tokenSymbol),
         ].join(", ")}`,
         rewards: [],
