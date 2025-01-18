@@ -125,55 +125,65 @@ export const getAssetPriceCell = ({
   </div>
 );
 
-export const getRateCell = ({ rateAPY, symbol, emissionRate, lendingRate, isInLendingMode }: RateData) => {
+export const getRateCell = ({
+  rateAPY,
+  symbol,
+  emissionRate,
+  emissionsRemaining,
+  lendingRate,
+  isInLendingMode,
+}: RateData) => {
   return (
     <div className={cn("flex justify-end items-center gap-2", isInLendingMode ? "text-success" : "text-warning")}>
-      {emissionRate > 0 && EMISSION_MINT_INFO_MAP.get(symbol) !== undefined && isInLendingMode && (
-        <div>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Image
-                  src={EMISSION_MINT_INFO_MAP.get(symbol)!.tokenLogoUri}
-                  alt="info"
-                  height={18}
-                  width={18}
-                  className="rounded-full"
-                />
-              </TooltipTrigger>
-              <TooltipContent>
-                <div className="flex flex-col items-start gap-1.5">
-                  <h4 className="text-base flex items-center gap-1.5">
-                    <Image
-                      src={EMISSION_MINT_INFO_MAP.get(symbol)!.tokenLogoUri}
-                      alt="info"
-                      height={18}
-                      width={18}
-                      className="rounded-full"
-                    />{" "}
-                    Liquidity rewards
-                  </h4>
-                  <p className="text-xs">
-                    {`${percentFormatter.format(aprToApy(lendingRate))} Supply APY + ${percentFormatter.format(
-                      aprToApy(emissionRate)
-                    )} ${EMISSION_MINT_INFO_MAP.get(symbol)!.tokenSymbol} rewards. `}
-                  </p>
-                  <p className="text-xs">
-                    <Link
-                      target="_blank"
-                      rel="noreferrer"
-                      href="https://docs.marginfi.com"
-                      className="inline-block border-b transition-colors hover:border-transparent text-xs"
-                    >
-                      Learn more.
-                    </Link>
-                  </p>
-                </div>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </div>
-      )}
+      {emissionRate > 0 &&
+        emissionsRemaining > 0 &&
+        EMISSION_MINT_INFO_MAP.get(symbol) !== undefined &&
+        isInLendingMode && (
+          <div>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Image
+                    src={EMISSION_MINT_INFO_MAP.get(symbol)!.tokenLogoUri}
+                    alt="info"
+                    height={18}
+                    width={18}
+                    className="rounded-full"
+                  />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <div className="flex flex-col items-start gap-1.5">
+                    <h4 className="text-base flex items-center gap-1.5">
+                      <Image
+                        src={EMISSION_MINT_INFO_MAP.get(symbol)!.tokenLogoUri}
+                        alt="info"
+                        height={18}
+                        width={18}
+                        className="rounded-full"
+                      />{" "}
+                      Liquidity rewards
+                    </h4>
+                    <p className="text-xs">
+                      {`${percentFormatter.format(aprToApy(lendingRate))} Supply APY + ${percentFormatter.format(
+                        aprToApy(emissionRate)
+                      )} ${EMISSION_MINT_INFO_MAP.get(symbol)!.tokenSymbol} rewards. `}
+                    </p>
+                    <p className="text-xs">
+                      <Link
+                        target="_blank"
+                        rel="noreferrer"
+                        href="https://docs.marginfi.com"
+                        className="inline-block border-b transition-colors hover:border-transparent text-xs"
+                      >
+                        Learn more.
+                      </Link>
+                    </p>
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+        )}
       {symbol === "mSOL" && (
         <div>
           <TooltipProvider>
