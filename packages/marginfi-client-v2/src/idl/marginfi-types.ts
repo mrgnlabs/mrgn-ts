@@ -104,6 +104,35 @@ export type Marginfi = {
       ];
     },
     {
+      name: "editStakedSettings";
+      discriminator: [11, 108, 215, 87, 240, 9, 66, 241];
+      accounts: [
+        {
+          name: "marginfiGroup";
+          relations: ["stakedSettings"];
+        },
+        {
+          name: "admin";
+          signer: true;
+          relations: ["marginfiGroup"];
+        },
+        {
+          name: "stakedSettings";
+          writable: true;
+        }
+      ];
+      args: [
+        {
+          name: "settings";
+          type: {
+            defined: {
+              name: "stakedSettingsEditConfig";
+            };
+          };
+        }
+      ];
+    },
+    {
       name: "initGlobalFeeState";
       docs: [
         "(Runs once per program) Configures the fee state account, where the global admin sets fees",
@@ -164,6 +193,66 @@ export type Marginfi = {
           type: {
             defined: {
               name: "wrappedI80f48";
+            };
+          };
+        }
+      ];
+    },
+    {
+      name: "initStakedSettings";
+      docs: [
+        "(group admin only) Init the Staked Settings account, which is used to create staked",
+        "collateral banks, and must run before any staked collateral bank can be created with",
+        "`add_pool_permissionless`. Running this ix effectively opts the group into the staked",
+        "collateral feature."
+      ];
+      discriminator: [52, 35, 149, 44, 69, 86, 69, 80];
+      accounts: [
+        {
+          name: "marginfiGroup";
+        },
+        {
+          name: "admin";
+          signer: true;
+          relations: ["marginfiGroup"];
+        },
+        {
+          name: "feePayer";
+          docs: ["Pays the init fee"];
+          writable: true;
+          signer: true;
+        },
+        {
+          name: "stakedSettings";
+          writable: true;
+          pda: {
+            seeds: [
+              {
+                kind: "const";
+                value: [115, 116, 97, 107, 101, 100, 95, 115, 101, 116, 116, 105, 110, 103, 115];
+              },
+              {
+                kind: "account";
+                path: "marginfiGroup";
+              }
+            ];
+          };
+        },
+        {
+          name: "rent";
+          address: "SysvarRent111111111111111111111111111111111";
+        },
+        {
+          name: "systemProgram";
+          address: "11111111111111111111111111111111";
+        }
+      ];
+      args: [
+        {
+          name: "settings";
+          type: {
+            defined: {
+              name: "stakedSettingsConfig";
             };
           };
         }
@@ -849,6 +938,175 @@ export type Marginfi = {
       ];
     },
     {
+      name: "lendingPoolAddBankPermissionless";
+      discriminator: [127, 187, 121, 34, 187, 167, 238, 102];
+      accounts: [
+        {
+          name: "marginfiGroup";
+          relations: ["stakedSettings"];
+        },
+        {
+          name: "stakedSettings";
+        },
+        {
+          name: "feePayer";
+          writable: true;
+          signer: true;
+        },
+        {
+          name: "bankMint";
+          docs: [
+            "Mint of the spl-single-pool LST (a PDA derived from `stake_pool`)",
+            "",
+            "because the sol_pool and stake_pool will not derive to a valid PDA which is also owned by",
+            "the staking program and spl-single-pool program."
+          ];
+        },
+        {
+          name: "solPool";
+        },
+        {
+          name: "stakePool";
+          docs: [
+            "this key.",
+            "",
+            "If derives the same `bank_mint`, then this must be the correct stake pool for that mint, and",
+            "we can subsequently use it to validate the `sol_pool`"
+          ];
+        },
+        {
+          name: "bank";
+          writable: true;
+          pda: {
+            seeds: [
+              {
+                kind: "account";
+                path: "marginfiGroup";
+              },
+              {
+                kind: "account";
+                path: "bankMint";
+              },
+              {
+                kind: "arg";
+                path: "bankSeed";
+              }
+            ];
+          };
+        },
+        {
+          name: "liquidityVaultAuthority";
+          pda: {
+            seeds: [
+              {
+                kind: "const";
+                value: [108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117, 108, 116, 95, 97, 117, 116, 104];
+              },
+              {
+                kind: "account";
+                path: "bank";
+              }
+            ];
+          };
+        },
+        {
+          name: "liquidityVault";
+          writable: true;
+          pda: {
+            seeds: [
+              {
+                kind: "const";
+                value: [108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117, 108, 116];
+              },
+              {
+                kind: "account";
+                path: "bank";
+              }
+            ];
+          };
+        },
+        {
+          name: "insuranceVaultAuthority";
+          pda: {
+            seeds: [
+              {
+                kind: "const";
+                value: [105, 110, 115, 117, 114, 97, 110, 99, 101, 95, 118, 97, 117, 108, 116, 95, 97, 117, 116, 104];
+              },
+              {
+                kind: "account";
+                path: "bank";
+              }
+            ];
+          };
+        },
+        {
+          name: "insuranceVault";
+          writable: true;
+          pda: {
+            seeds: [
+              {
+                kind: "const";
+                value: [105, 110, 115, 117, 114, 97, 110, 99, 101, 95, 118, 97, 117, 108, 116];
+              },
+              {
+                kind: "account";
+                path: "bank";
+              }
+            ];
+          };
+        },
+        {
+          name: "feeVaultAuthority";
+          pda: {
+            seeds: [
+              {
+                kind: "const";
+                value: [102, 101, 101, 95, 118, 97, 117, 108, 116, 95, 97, 117, 116, 104];
+              },
+              {
+                kind: "account";
+                path: "bank";
+              }
+            ];
+          };
+        },
+        {
+          name: "feeVault";
+          writable: true;
+          pda: {
+            seeds: [
+              {
+                kind: "const";
+                value: [102, 101, 101, 95, 118, 97, 117, 108, 116];
+              },
+              {
+                kind: "account";
+                path: "bank";
+              }
+            ];
+          };
+        },
+        {
+          name: "rent";
+          address: "SysvarRent111111111111111111111111111111111";
+        },
+        {
+          name: "tokenProgram";
+        },
+        {
+          name: "systemProgram";
+          address: "11111111111111111111111111111111";
+        }
+      ];
+      args: [
+        {
+          name: "bankSeed";
+          type: "u64";
+        }
+      ];
+    },
+    {
       name: "lendingPoolAddBankWithSeed";
       docs: [
         "A copy of lending_pool_add_bank with an additional bank seed.",
@@ -1318,6 +1576,7 @@ export type Marginfi = {
         },
         {
           name: "emissionsFundingAccount";
+          docs: ["NOTE: This is a TokenAccount, spl transfer will validate it.", ""];
           writable: true;
         },
         {
@@ -1690,6 +1949,24 @@ export type Marginfi = {
       args: [];
     },
     {
+      name: "propagateStakedSettings";
+      discriminator: [210, 30, 152, 69, 130, 99, 222, 170];
+      accounts: [
+        {
+          name: "marginfiGroup";
+          relations: ["stakedSettings"];
+        },
+        {
+          name: "stakedSettings";
+        },
+        {
+          name: "bank";
+          writable: true;
+        }
+      ];
+      args: [];
+    },
+    {
       name: "setAccountFlag";
       discriminator: [56, 238, 18, 207, 193, 82, 138, 174];
       accounts: [
@@ -1780,6 +2057,10 @@ export type Marginfi = {
     {
       name: "marginfiGroup";
       discriminator: [182, 23, 173, 240, 151, 206, 182, 67];
+    },
+    {
+      name: "stakedSettings";
+      discriminator: [157, 140, 6, 77, 89, 173, 173, 125];
     }
   ];
   types: [
@@ -1827,9 +2108,17 @@ export type Marginfi = {
             type: "pubkey";
           },
           {
+            name: "bankAssetTag";
+            docs: [
+              "Inherited from the bank when the position is first created and CANNOT BE CHANGED after that.",
+              "Note that all balances created before the addition of this feature use `ASSET_TAG_DEFAULT`"
+            ];
+            type: "u8";
+          },
+          {
             name: "pad0";
             type: {
-              array: ["u8", 7];
+              array: ["u8", 6];
             };
           },
           {
@@ -2169,9 +2458,23 @@ export type Marginfi = {
             };
           },
           {
+            name: "assetTag";
+            docs: [
+              "Determines what kinds of assets users of this bank can interact with.",
+              "Options:",
+              "* ASSET_TAG_DEFAULT (0) - A regular asset that can be comingled with any other regular asset",
+              "or with `ASSET_TAG_SOL`",
+              "* ASSET_TAG_SOL (1) - Accounts with a SOL position can comingle with **either**",
+              "`ASSET_TAG_DEFAULT` or `ASSET_TAG_STAKED` positions, but not both",
+              "* ASSET_TAG_STAKED (2) - Staked SOL assets. Accounts with a STAKED position can only deposit",
+              "other STAKED assets or SOL (`ASSET_TAG_SOL`) and can only borrow SOL"
+            ];
+            type: "u8";
+          },
+          {
             name: "pad1";
             type: {
-              array: ["u8", 7];
+              array: ["u8", 6];
             };
           },
           {
@@ -2288,9 +2591,23 @@ export type Marginfi = {
             };
           },
           {
+            name: "assetTag";
+            docs: [
+              "Determines what kinds of assets users of this bank can interact with.",
+              "Options:",
+              "* ASSET_TAG_DEFAULT (0) - A regular asset that can be comingled with any other regular asset",
+              "or with `ASSET_TAG_SOL`",
+              "* ASSET_TAG_SOL (1) - Accounts with a SOL position can comingle with **either**",
+              "`ASSET_TAG_DEFAULT` or `ASSET_TAG_STAKED` positions, but not both",
+              "* ASSET_TAG_STAKED (2) - Staked SOL assets. Accounts with a STAKED position can only deposit",
+              "other STAKED assets or SOL (`ASSET_TAG_SOL`) and can only borrow SOL"
+            ];
+            type: "u8";
+          },
+          {
             name: "pad0";
             type: {
-              array: ["u8", 7];
+              array: ["u8", 6];
             };
           },
           {
@@ -2413,6 +2730,12 @@ export type Marginfi = {
             };
           },
           {
+            name: "assetTag";
+            type: {
+              option: "u8";
+            };
+          },
+          {
             name: "totalAssetValueInitLimit";
             type: {
               option: "u64";
@@ -2426,6 +2749,12 @@ export type Marginfi = {
           },
           {
             name: "permissionlessBadDebtSettlement";
+            type: {
+              option: "bool";
+            };
+          },
+          {
+            name: "freezeSettings";
             type: {
               option: "bool";
             };
@@ -3302,7 +3631,10 @@ export type Marginfi = {
               "",
               "Flags:",
               "- DISABLED_FLAG = 1 << 0 = 1 - This flag indicates that the account is disabled,",
-              "and no further actions can be taken on it."
+              "and no further actions can be taken on it.",
+              "- IN_FLASHLOAN_FLAG (1 << 1)",
+              "- FLASHLOAN_ENABLED_FLAG (1 << 2)",
+              "- TRANSFER_AUTHORITY_ALLOWED_FLAG (1 << 3)"
             ];
             type: "u64";
           },
@@ -3499,6 +3831,9 @@ export type Marginfi = {
           },
           {
             name: "switchboardPull";
+          },
+          {
+            name: "stakedWithPythPush";
           }
         ];
       };
@@ -3516,6 +3851,224 @@ export type Marginfi = {
           },
           {
             name: "isolated";
+          }
+        ];
+      };
+    },
+    {
+      name: "stakedSettings";
+      docs: [
+        "Unique per-group. Staked Collateral banks created under a group automatically use these",
+        "settings. Groups that have not created this struct cannot create staked collateral banks. When",
+        "this struct updates, changes must be permissionlessly propogated to staked collateral banks.",
+        "Administrators can also edit the bank manually, i.e. with configure_bank, to temporarily make",
+        "changes such as raising the deposit limit for a single bank."
+      ];
+      serialization: "bytemuck";
+      repr: {
+        kind: "c";
+      };
+      type: {
+        kind: "struct";
+        fields: [
+          {
+            name: "key";
+            docs: ["This account's own key. A PDA derived from `marginfi_group` and `STAKED_SETTINGS_SEED`"];
+            type: "pubkey";
+          },
+          {
+            name: "marginfiGroup";
+            docs: ["Group for which these settings apply"];
+            type: "pubkey";
+          },
+          {
+            name: "oracle";
+            docs: ["Generally, the Pyth push oracle for SOL"];
+            type: "pubkey";
+          },
+          {
+            name: "assetWeightInit";
+            type: {
+              defined: {
+                name: "wrappedI80f48";
+              };
+            };
+          },
+          {
+            name: "assetWeightMaint";
+            type: {
+              defined: {
+                name: "wrappedI80f48";
+              };
+            };
+          },
+          {
+            name: "depositLimit";
+            type: "u64";
+          },
+          {
+            name: "totalAssetValueInitLimit";
+            type: "u64";
+          },
+          {
+            name: "oracleMaxAge";
+            type: "u16";
+          },
+          {
+            name: "riskTier";
+            type: {
+              defined: {
+                name: "riskTier";
+              };
+            };
+          },
+          {
+            name: "pad0";
+            type: {
+              array: ["u8", 5];
+            };
+          },
+          {
+            name: "reserved0";
+            docs: [
+              "The following values are irrelevant because staked collateral positions do not support",
+              "borrowing."
+            ];
+            type: {
+              array: ["u8", 8];
+            };
+          },
+          {
+            name: "reserved1";
+            type: {
+              array: ["u8", 32];
+            };
+          },
+          {
+            name: "reserved2";
+            type: {
+              array: ["u8", 64];
+            };
+          }
+        ];
+      };
+    },
+    {
+      name: "stakedSettingsConfig";
+      type: {
+        kind: "struct";
+        fields: [
+          {
+            name: "oracle";
+            type: "pubkey";
+          },
+          {
+            name: "assetWeightInit";
+            type: {
+              defined: {
+                name: "wrappedI80f48";
+              };
+            };
+          },
+          {
+            name: "assetWeightMaint";
+            type: {
+              defined: {
+                name: "wrappedI80f48";
+              };
+            };
+          },
+          {
+            name: "depositLimit";
+            type: "u64";
+          },
+          {
+            name: "totalAssetValueInitLimit";
+            type: "u64";
+          },
+          {
+            name: "oracleMaxAge";
+            type: "u16";
+          },
+          {
+            name: "riskTier";
+            docs: [
+              'WARN: You almost certainly want "Collateral", using Isolated risk tier makes the asset',
+              "worthless as collateral, and is generally useful only when creating a staked collateral pool",
+              "for rewards purposes only."
+            ];
+            type: {
+              defined: {
+                name: "riskTier";
+              };
+            };
+          }
+        ];
+      };
+    },
+    {
+      name: "stakedSettingsEditConfig";
+      type: {
+        kind: "struct";
+        fields: [
+          {
+            name: "oracle";
+            type: {
+              option: "pubkey";
+            };
+          },
+          {
+            name: "assetWeightInit";
+            type: {
+              option: {
+                defined: {
+                  name: "wrappedI80f48";
+                };
+              };
+            };
+          },
+          {
+            name: "assetWeightMaint";
+            type: {
+              option: {
+                defined: {
+                  name: "wrappedI80f48";
+                };
+              };
+            };
+          },
+          {
+            name: "depositLimit";
+            type: {
+              option: "u64";
+            };
+          },
+          {
+            name: "totalAssetValueInitLimit";
+            type: {
+              option: "u64";
+            };
+          },
+          {
+            name: "oracleMaxAge";
+            type: {
+              option: "u16";
+            };
+          },
+          {
+            name: "riskTier";
+            docs: [
+              'WARN: You almost certainly want "Collateral", using Isolated risk tier makes the asset',
+              "worthless as collateral, making all outstanding accounts eligible to be liquidated, and is",
+              "generally useful only when creating a staked collateral pool for rewards purposes only."
+            ];
+            type: {
+              option: {
+                defined: {
+                  name: "riskTier";
+                };
+              };
+            };
           }
         ];
       };

@@ -2,6 +2,7 @@ import { Id, toast } from "react-toastify";
 import { MultiStepToast, ToastStep, ToastStepWithStatus } from "./MultiStepToast";
 import { ErrorToast } from "./ErrorToast";
 import { WarningToast } from "./WarningToast";
+import { ActionMessageType } from "../actions";
 
 export class MultiStepToastHandle {
   private _title: string;
@@ -40,6 +41,38 @@ export class MultiStepToastHandle {
       if (toastInfo.id === this._toastId && toastInfo.status === "removed") {
         if (this._onClose) this._onClose();
       }
+    });
+  }
+
+  close() {
+    if (this._toastId) {
+      toast.dismiss(this._toastId);
+    }
+  }
+
+  pause() {
+    if (!this._toastId || !this._stepsWithStatus[this._stepIndex]) return;
+
+    // Set the current step to "todo"
+    this._stepsWithStatus[this._stepIndex].status = "paused";
+
+    // Update the toast
+    toast.update(this._toastId, {
+      render: () => <MultiStepToast title={this._title} steps={this._stepsWithStatus} />,
+      autoClose: false,
+    });
+  }
+
+  resume() {
+    if (!this._toastId || !this._stepsWithStatus[this._stepIndex]) return;
+
+    // Set the current step to "pending"
+    this._stepsWithStatus[this._stepIndex].status = "pending";
+
+    // Update the toast
+    toast.update(this._toastId, {
+      render: () => <MultiStepToast title={this._title} steps={this._stepsWithStatus} />,
+      autoClose: false,
     });
   }
 
@@ -105,6 +138,12 @@ export class MultiStepToastHandle {
     this._stepsWithStatus[this._stepIndex].status = "error";
     this._stepsWithStatus[this._stepIndex].message = message;
 
+    for (let i = 0; i < this._stepsWithStatus.length; i++) {
+      if (this._stepsWithStatus[i].status === "pending") {
+        this._stepsWithStatus[i].status = "error";
+      }
+    }
+
     for (let i = this._stepIndex + 1; i < this._stepsWithStatus.length; i++) {
       this._stepsWithStatus[i].status = "canceled";
     }
@@ -133,9 +172,14 @@ export class MultiStepToastHandle {
       autoClose: false,
     });
   }
+
+  getCurrentLabel(): string {
+    const currentStep = this._stepsWithStatus[this._stepIndex];
+    return Array.isArray(currentStep?.label) ? currentStep?.label[0] : currentStep?.label;
+  }
 }
 
-export function showErrorToast(msgOrOptions: string | { message: string; description?: string; code?: number }) {
+export function showErrorToast(msgOrOptions: string | ActionMessageType) {
   let msg: string;
   let description: string | undefined;
   let code: number | undefined;
@@ -144,8 +188,8 @@ export function showErrorToast(msgOrOptions: string | { message: string; descrip
     description = undefined;
     code = undefined;
   } else {
-    msg = msgOrOptions.message;
-    description = msgOrOptions.description;
+    msg = msgOrOptions.description || "";
+    // description = msgOrOptions.description;
     code = msgOrOptions.code;
   }
 

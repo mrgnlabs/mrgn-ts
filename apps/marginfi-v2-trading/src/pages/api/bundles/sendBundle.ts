@@ -40,7 +40,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     bundleId = await grpcClient.sendBundle(bundle);
 
     const bundleResult = await Promise.race([
-      sendBundleWithRetry(bundle),
+      sendBundleWithRetry(bundle, bundleId),
       setTimeoutPromise(TIMEOUT_DURATION, `${ERROR_TAG} timout after ${TIMEOUT_DURATION / 1000} seconds.`),
     ]);
 
@@ -56,11 +56,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 }
 
-async function sendBundleWithRetry(bundle: Bundle): Promise<string> {
+async function sendBundleWithRetry(bundle: Bundle, initialBundleId?: string): Promise<string> {
   let attempts = 0;
   const maxAttempts = 10; // Limit retries to prevent infinite loops
   const grpcClient = searcherClient(JITO_ENDPOINT);
-  let bundleId = "";
+  let bundleId = initialBundleId || "";
 
   while (attempts < maxAttempts) {
     attempts += 1;

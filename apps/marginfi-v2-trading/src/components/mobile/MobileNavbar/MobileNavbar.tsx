@@ -8,7 +8,7 @@ import { cn } from "@mrgnlabs/mrgn-utils";
 import { useUiStore } from "~/store";
 import { useOs } from "~/hooks/use-os";
 
-import { CreatePoolDialog, CreatePoolSoon } from "~/components/common/Pool";
+import { CreatePoolDialog } from "~/components/common/Pool";
 
 export interface NavLinkInfo {
   href: string;
@@ -19,8 +19,7 @@ export interface NavLinkInfo {
 }
 
 const CreatePoolTrigger = (children: ReactNode) => {
-  return <CreatePoolSoon trigger={children} />;
-  // <CreatePoolDialog trigger={children} />;
+  return <CreatePoolDialog trigger={children} />;
 };
 
 export const mobileLinks: NavLinkInfo[] = [
@@ -58,14 +57,9 @@ const MobileNavbar = () => {
   const { isIOS, isPWA } = useOs();
 
   const activeLink = React.useMemo(() => {
-    const fullLink = mobileLinks.findIndex((link) => link.href === router.pathname);
-    if (fullLink > -1) return `link${fullLink}`;
-
-    const firstSegment = router.pathname.split("/")[1];
-    const firstSegmentLink = mobileLinks.findIndex((link) => link.href.includes(firstSegment));
-    if (firstSegmentLink) return `link${firstSegmentLink}`;
-
-    return "linknone";
+    const pathname = router.pathname;
+    const index = mobileLinks.findIndex((link) => link.href === pathname);
+    return index >= 0 ? `link${index}` : "linknone";
   }, [router.pathname]);
 
   if (isActionBoxInputFocussed) return null;

@@ -24,7 +24,14 @@ export const PwaSignIn = ({ isLoading, isActiveLoading, setIsActiveLoading, setI
 
   return (
     <>
-      <OnboardHeader title={"Sign in to marginfi"} description={"Earn yield, permissionlessly."} />
+      <OnboardHeader
+        title={process.env.NEXT_PUBLIC_APP_ID === "marginfi-v2-ui" ? "Sign in to marginfi" : "Enrter The Arena"}
+        description={
+          process.env.NEXT_PUBLIC_APP_ID === "marginfi-v2-ui"
+            ? "Earn yield, permissionlessly."
+            : "Memecoin trading, with leverage."
+        }
+      />
 
       <div className="flex flex-col gap-4 mt-10 w-full">
         <div className="relative bg-muted hover:bg-muted-highlight text-muted-foreground transition-all duration-300 w-full px-6 py-4 rounded-lg overflow-hidden">

@@ -1,36 +1,61 @@
 import React from "react";
 
-import Image from "next/image";
-import Link from "next/link";
+import { useIsMobile, cn } from "@mrgnlabs/mrgn-utils";
 
-import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { numeralFormatter, tokenPriceFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
+import { ArenaPoolV2, ArenaPoolV2Extended, GroupStatus } from "~/types/trade-store.types";
+import { useExtendedPools } from "~/hooks/useExtendedPools";
+import { usePositionsData } from "~/hooks/usePositionsData";
 
-import { useTradeStore } from "~/store";
-
-import { PositionActionButtons } from "~/components/common/Portfolio";
-import { Table, TableBody, TableHead, TableCell, TableHeader, TableRow } from "~/components/ui/table";
-import { Badge } from "~/components/ui/badge";
-import { GroupData } from "~/store/tradeStore";
-import { PublicKey } from "@solana/web3.js";
 import { PositionListItem } from "./PositionListItem";
+import { PositionCard } from "~/components/common/Portfolio";
+import { Table, TableBody, TableHead, TableCell, TableHeader, TableRow } from "~/components/ui/table";
 
-export const PositionList = ({ activeGroupPk }: { activeGroupPk: PublicKey }) => {
-  const [portfolio] = useTradeStore((state) => [state.portfolio]);
+export const PositionList = ({ activePool }: { activePool: ArenaPoolV2 }) => {
+  const isMobile = useIsMobile();
+  const extendedPools = useExtendedPools();
+  const positionsData = usePositionsData({ groupPk: activePool.groupPk });
+
+  const activePoolExtended = extendedPools.find((pool) => pool.groupPk.equals(activePool.groupPk));
 
   const portfolioCombined = React.useMemo(() => {
-    if (!portfolio) return [];
-    const isActiveGroupPosition = (item: GroupData) => item.groupPk.equals(activeGroupPk);
+    if (!extendedPools) return [];
+    const isActiveGroupPosition = (item: ArenaPoolV2Extended) => item.groupPk.equals(activePool.groupPk);
 
-    const activeGroupPosition = [...portfolio.long, ...portfolio.short].find(isActiveGroupPosition);
+    const longPositions = extendedPools.filter((pool) => pool.status === GroupStatus.LONG);
+    const shortPositions = extendedPools.filter((pool) => pool.status === GroupStatus.SHORT);
 
-    const sortedLongs = portfolio.long.filter((item) => !isActiveGroupPosition(item));
-    const sortedShorts = portfolio.short.filter((item) => !isActiveGroupPosition(item));
+    const activeGroupPosition = [...longPositions, ...shortPositions].find(isActiveGroupPosition);
+
+    const sortedLongs = longPositions.filter((item) => !isActiveGroupPosition(item));
+    const sortedShorts = shortPositions.filter((item) => !isActiveGroupPosition(item));
 
     return [...(activeGroupPosition ? [activeGroupPosition] : []), ...sortedLongs, ...sortedShorts];
-  }, [activeGroupPk, portfolio]);
+  }, [extendedPools, activePool]);
 
-  if (!portfolio) return null;
+  if (isMobile && positionsData && activePoolExtended) {
+    return (
+      <div className="space-y-2 px-2">
+        <p className="flex items-center text-sm">
+          <span
+            className={cn(
+              "flex w-2.5 h-2.5 rounded-full mr-2",
+              activePoolExtended.tokenBank.isActive && activePoolExtended.tokenBank.position.isLending
+                ? "bg-mrgn-green"
+                : "bg-mrgn-error"
+            )}
+          ></span>
+          Open{" "}
+          {activePoolExtended.tokenBank.isActive && activePoolExtended.tokenBank.position.isLending
+            ? "long "
+            : "short "}
+          position
+        </p>
+        <PositionCard arenaPool={activePoolExtended} size="sm" />
+      </div>
+    );
+  }
+
+  if (!portfolioCombined) return null;
 
   return (
     <div className="rounded-xl">
@@ -38,17 +63,16 @@ export const PositionList = ({ activeGroupPk }: { activeGroupPk: PublicKey }) =>
         <TableHeader>
           <TableRow className="hover:bg-transparent">
             <TableHead className="w-[14%]">Position</TableHead>
-            <TableHead className="w-[14%]">Token</TableHead>
+            <TableHead className="w-[14%]">Pool</TableHead>
             <TableHead className="w-[14%]">Value</TableHead>
             <TableHead className="w-[14%]">Leverage</TableHead>
             <TableHead className="w-[14%]">Size</TableHead>
-            <TableHead className="w-[14%]">Price (USD)</TableHead>
-            <TableHead className="w-[14%]">Liquidation price</TableHead>
+            <TableHead className="w-[14%]">PNL</TableHead>
             <TableHead className="w-[14%]"></TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {portfolio.long.length === 0 && portfolio.short.length === 0 ? (
+          {portfolioCombined.length === 0 ? (
             <TableRow>
               <TableCell colSpan={7}>
                 <p className="text-sm text-muted-foreground pt-2">No positions found</p>
@@ -58,8 +82,8 @@ export const PositionList = ({ activeGroupPk }: { activeGroupPk: PublicKey }) =>
             <></>
           )}
 
-          {portfolioCombined.map((group, index) => {
-            return <PositionListItem key={index} group={group} />;
+          {portfolioCombined.map((pool, index) => {
+            return <PositionListItem key={index} arenaPool={pool} />;
           })}
         </TableBody>
       </Table>

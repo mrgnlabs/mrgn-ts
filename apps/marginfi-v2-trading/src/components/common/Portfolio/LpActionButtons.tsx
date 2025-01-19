@@ -1,52 +1,59 @@
 import React from "react";
 
-import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { IconMinus, IconPlus } from "@tabler/icons-react";
 import { cn, capture } from "@mrgnlabs/mrgn-utils";
 
 import { useConnection } from "~/hooks/use-connection";
 import { useWallet } from "~/components/wallet-v2";
-import { useTradeStore } from "~/store";
-import { GroupData } from "~/store/tradeStore";
+import { useTradeStoreV2 } from "~/store";
 
 import { ActionBox, ActionBoxProvider } from "~/components/action-box-v2";
 import { Button } from "~/components/ui/button";
+import { ArenaPoolV2Extended } from "~/types/trade-store.types";
+import { useWrappedAccount } from "~/hooks/useWrappedAccount";
+import { useMarginfiClient } from "~/hooks/useMarginfiClient";
 
 type LpActionButtonsProps = {
-  marginfiAccount?: MarginfiAccountWrapper;
-  activeGroup: GroupData;
+  activePool: ArenaPoolV2Extended;
   size?: "sm" | "lg";
 };
 
-export const LpActionButtons = ({ size = "sm", marginfiAccount, activeGroup }: LpActionButtonsProps) => {
+export const LpActionButtons = ({ size = "sm", activePool }: LpActionButtonsProps) => {
   const { connection } = useConnection();
   const { connected, wallet } = useWallet();
-  const [fetchTradeState, nativeSolBalance] = useTradeStore((state) => [state.fetchTradeState, state.nativeSolBalance]);
+
+  const [refreshGroup, nativeSolBalance] = useTradeStoreV2((state) => [state.refreshGroup, state.nativeSolBalance]);
+  const client = useMarginfiClient({ groupPk: activePool.groupPk });
+  const { accountSummary, wrappedAccount } = useWrappedAccount({
+    client,
+    groupPk: activePool.groupPk,
+    banks: [activePool.tokenBank, activePool.quoteBank],
+  });
 
   const lendingBank = React.useMemo(() => {
-    if (activeGroup?.pool?.token.isActive && activeGroup?.pool?.token.position.isLending)
-      return [activeGroup?.pool?.token];
-    const lendingBanks = activeGroup?.pool?.quoteTokens.filter((group) => group.isActive && group.position.isLending);
-    if (lendingBanks.length > 0) {
-      return lendingBanks;
+    if (activePool?.tokenBank.isActive && activePool.tokenBank.position.isLending) {
+      return activePool.tokenBank;
+    }
+    if (activePool.quoteBank.isActive && activePool.quoteBank.position.isLending) {
+      return activePool.quoteBank;
     }
 
     return null;
-  }, [activeGroup?.pool?.quoteTokens, activeGroup?.pool?.token]);
+  }, [activePool?.tokenBank, activePool?.quoteBank]);
 
   return (
     <ActionBoxProvider
-      banks={[activeGroup.pool.token, activeGroup.pool.quoteTokens[0]]}
+      banks={[activePool.tokenBank, activePool.quoteBank]}
       nativeSolBalance={nativeSolBalance}
-      marginfiClient={activeGroup.client}
-      selectedAccount={activeGroup.selectedAccount}
+      marginfiClient={client}
+      selectedAccount={wrappedAccount}
       connected={connected}
-      accountSummaryArg={activeGroup.accountSummary}
+      accountSummaryArg={accountSummary ?? undefined}
       showActionComplete={false}
       hidePoolStats={["type"]}
     >
-      <div className={cn("flex gap-3 w-full", size === "sm" && "justify-end")}>
+      <div className={cn("flex gap-3 w-full justify-between", size === "sm" && "justify-end")}>
         <ActionBox.Lend
           isDialog={true}
           useProvider={true}
@@ -54,17 +61,19 @@ export const LpActionButtons = ({ size = "sm", marginfiAccount, activeGroup }: L
             connected: connected,
             requestedLendType: ActionType.Deposit,
             showTokenSelection: true,
-            requestedBank: activeGroup.pool.token,
+            requestedBank: activePool.tokenBank,
             showAvailableCollateral: false,
             showTokenSelectionGroups: false,
             captureEvent: () => {
               capture("position_add_btn_click", {
-                group: activeGroup?.groupPk?.toBase58(),
-                token: activeGroup.pool.token.meta.tokenSymbol,
+                group: activePool.groupPk.toBase58(),
+                token: activePool.tokenBank.meta.tokenSymbol,
               });
             },
             onComplete: () => {
-              fetchTradeState({
+              refreshGroup({
+                groupPk: activePool.groupPk,
+                banks: [activePool.tokenBank.address, activePool.quoteBank.address],
                 connection,
                 wallet,
               });
@@ -78,8 +87,8 @@ export const LpActionButtons = ({ size = "sm", marginfiAccount, activeGroup }: L
                 className="gap-1 min-w-16"
                 onClick={() => {
                   capture("position_add_btn_click", {
-                    group: activeGroup?.groupPk?.toBase58(),
-                    token: activeGroup.pool.token.meta.tokenSymbol,
+                    group: activePool.groupPk.toBase58(),
+                    token: activePool.tokenBank.meta.tokenSymbol,
                   });
                 }}
               >
@@ -87,7 +96,7 @@ export const LpActionButtons = ({ size = "sm", marginfiAccount, activeGroup }: L
                 Add
               </Button>
             ),
-            title: `Supply ${activeGroup.pool.token.meta.tokenSymbol}`,
+            title: `Supply ${activePool.tokenBank.meta.tokenSymbol}`,
           }}
         />
 
@@ -99,16 +108,18 @@ export const LpActionButtons = ({ size = "sm", marginfiAccount, activeGroup }: L
               connected: connected,
               requestedLendType: ActionType.Withdraw,
               showTokenSelection: true,
-              requestedBank: lendingBank[0],
+              requestedBank: lendingBank,
               showTokenSelectionGroups: false,
               captureEvent: () => {
                 capture("position_withdraw_btn_click", {
-                  group: activeGroup?.groupPk?.toBase58(),
-                  token: lendingBank[0].meta.tokenSymbol,
+                  group: activePool.groupPk.toBase58(),
+                  token: lendingBank.meta.tokenSymbol,
                 });
               },
               onComplete: () => {
-                fetchTradeState({
+                refreshGroup({
+                  groupPk: activePool.groupPk,
+                  banks: [activePool.tokenBank.address, activePool.quoteBank.address],
                   connection,
                   wallet,
                 });
@@ -122,8 +133,8 @@ export const LpActionButtons = ({ size = "sm", marginfiAccount, activeGroup }: L
                   className="gap-1 min-w-16"
                   onClick={() => {
                     capture("position_withdraw_btn_click", {
-                      group: activeGroup?.groupPk?.toBase58(),
-                      token: lendingBank[0].meta.tokenSymbol,
+                      group: activePool.groupPk.toBase58(),
+                      token: lendingBank.meta.tokenSymbol,
                     });
                   }}
                 >
@@ -131,7 +142,7 @@ export const LpActionButtons = ({ size = "sm", marginfiAccount, activeGroup }: L
                   Withdraw
                 </Button>
               ),
-              title: `Withdraw ${lendingBank[0].meta.tokenSymbol}`,
+              title: `Withdraw ${lendingBank.meta.tokenSymbol}`,
             }}
           />
         )}

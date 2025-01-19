@@ -5,25 +5,21 @@ import React from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { motion, useAnimate } from "framer-motion";
-import { IconPlus, IconCopy, IconCheck, IconSettings } from "@tabler/icons-react";
+import { IconPlus, IconCopy, IconCheck, IconSettings, IconLayoutDashboard } from "@tabler/icons-react";
 import { CopyToClipboard } from "react-copy-to-clipboard";
 import { cn } from "@mrgnlabs/mrgn-utils";
-import { USDC_MINT } from "@mrgnlabs/mrgn-common";
-import { Settings } from "@mrgnlabs/mrgn-ui";
 
-import { useTradeStore, useUiStore } from "~/store";
+import { useTradeStoreV2, useUiStore } from "~/store";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { useIsMobile } from "~/hooks/use-is-mobile";
 import { useConnection } from "~/hooks/use-connection";
 
+import { CreatePoolDialog } from "../Pool/CreatePoolDialog";
 import { Wallet } from "~/components/wallet-v2";
 import { Button } from "~/components/ui/button";
-import { IconArena } from "~/components/ui/icons";
-import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
-
-import { CreatePoolScriptDialog } from "../Pool/CreatePoolScript";
-import { CreatePoolSoon } from "../Pool/CreatePoolSoon";
+import { Loader } from "~/components/common/Loader";
+import { ResponsiveSettingsWrapper } from "~/components";
 
 const navItems = [
   { label: "Discover", href: "/" },
@@ -33,47 +29,54 @@ const navItems = [
 
 export const Header = () => {
   const { connection } = useConnection();
-  const [initialized, userDataFetched, groupMap, nativeSolBalance, fetchTradeState, referralCode] = useTradeStore(
-    (state) => [
+  const [initialized, userDataFetched, nativeSolBalance, fetchUserData, referralCode, banksByBankPk, groupsByGroupPk] =
+    useTradeStoreV2((state) => [
       state.initialized,
       state.userDataFetched,
-      state.groupMap,
       state.nativeSolBalance,
-      state.fetchTradeState,
+      state.fetchUserData,
       state.referralCode,
-    ]
-  );
-  const { priorityType, broadcastType, priorityFees, maxCap, maxCapType, setTransactionSettings } = useUiStore(
-    (state) => ({
-      priorityType: state.priorityType,
-      broadcastType: state.broadcastType,
-      priorityFees: state.priorityFees,
-      maxCap: state.maxCap,
-      maxCapType: state.maxCapType,
-      setTransactionSettings: state.setTransactionSettings,
-    })
-  );
-  const { wallet } = useWallet();
+      state.banksByBankPk,
+      state.groupsByGroupPk,
+    ]);
+  const {
+    priorityType,
+    broadcastType,
+    priorityFees,
+    maxCap,
+    maxCapType,
+    setTransactionSettings,
+    slippageBps,
+    setSlippageBps,
+  } = useUiStore((state) => ({
+    priorityType: state.priorityType,
+    broadcastType: state.broadcastType,
+    priorityFees: state.priorityFees,
+    maxCap: state.maxCap,
+    maxCapType: state.maxCapType,
+    setTransactionSettings: state.setTransactionSettings,
+    slippageBps: state.slippageBps,
+    setSlippageBps: state.setSlippageBps,
+  }));
+  const { wallet, connected } = useWallet();
   const { asPath } = useRouter();
   const isMobile = useIsMobile();
   const [scope, animate] = useAnimate();
 
   const [isReferralCopied, setIsReferralCopied] = React.useState(false);
-
+  const [settingsDialogOpen, setSettingsDialogOpen] = React.useState(false);
   const extendedBankInfos = React.useMemo(() => {
-    const groups = [...groupMap.values()];
-    const tokens = groups.map((group) => group.pool.token);
-    const usdc = groups.find((group) => group.pool.quoteTokens[0].info.rawBank.mint.equals(USDC_MINT));
+    const banks = Object.values(banksByBankPk);
+    const uniqueBanksMap = new Map(banks.map((bank) => [bank.info.state.mint.toBase58(), bank]));
+    const uniqueBanks = Array.from(uniqueBanksMap.values());
+    return uniqueBanks;
+  }, [banksByBankPk]);
 
-    if (!usdc) return tokens;
-
-    return [usdc.pool.quoteTokens[0], ...tokens];
-  }, [groupMap]);
-
-  const ownPools = React.useMemo(() => {
-    const goups = [...groupMap.values()];
-    return goups.filter((group) => group?.client.group.admin?.toBase58() === wallet?.publicKey?.toBase58());
-  }, [groupMap, wallet]);
+  const ownedPools = React.useMemo(() => {
+    const goups = Object.values(groupsByGroupPk);
+    const groupsOwned = goups.filter((group) => group?.admin.toBase58() === wallet?.publicKey?.toBase58());
+    return groupsOwned;
+  }, [groupsByGroupPk, wallet]);
 
   React.useEffect(() => {
     if (!initialized) return;
@@ -88,7 +91,8 @@ export const Header = () => {
         initial={{ opacity: 0, y: -64 }}
       >
         <Link href="/">
-          <IconArena size={isMobile ? 40 : 48} className="opacity-90" />
+          {/* <IconArena size={isMobile ? 40 : 48} className="opacity-90" /> */}
+          <Loader label={""} iconSize={isMobile ? 40 : 48} duration={6000} />
         </Link>
         <nav className="mr-auto hidden lg:block">
           <ul className="flex items-center gap-6">
@@ -117,57 +121,51 @@ export const Header = () => {
             })}
           </ul>
         </nav>
-        <div className={cn("flex items-center gap-2")}>
-          {ownPools.length > 0 && (
+        <div className={cn("flex items-center gap-4")}>
+          {ownedPools.length > 0 && (
             <Link href="/admin">
-              <Button variant="outline" size={isMobile ? "sm" : "default"}>
-                <IconPlus size={isMobile ? 14 : 18} /> Manage pools
-              </Button>
+              {isMobile ? (
+                <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0">
+                  <IconLayoutDashboard size={18} />
+                </Button>
+              ) : (
+                <Button variant="outline">
+                  <IconLayoutDashboard size={18} /> Manage pools
+                </Button>
+              )}
             </Link>
           )}
-          {
-            // eslint-disable-next-line turbo/no-undeclared-env-vars
-            process.env.NEXT_PUBLIC_ENABLE_BANK_SCRIPT && (
-              <div className="flex items-center">
-                <CreatePoolScriptDialog
-                  trigger={
-                    <Button variant="outline" size={isMobile ? "sm" : "default"}>
-                      <IconPlus size={isMobile ? 14 : 18} /> Pool Script
-                    </Button>
-                  }
-                />
-              </div>
-            )
-          }
           <div className="flex items-center gap-4">
-            {!isMobile && (
+            {!isMobile && connected && (
               <div className="flex items-center">
-                <CreatePoolSoon />
-                {/* <CreatePoolDialog
+                {/* <CreatePoolSoon /> */}
+                <CreatePoolDialog
                   trigger={
                     <Button disabled={false}>
                       <IconPlus size={16} /> Create Pool
                     </Button>
                   }
-                /> */}
+                />
               </div>
             )}
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0">
-                  <IconSettings size={20} />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-80">
-                <Settings
-                  onChange={(settings) => setTransactionSettings(settings, connection)}
-                  broadcastType={broadcastType}
-                  priorityType={priorityType}
-                  maxCap={maxCap}
-                  maxCapType={maxCapType}
-                />
-              </PopoverContent>
-            </Popover>
+            <ResponsiveSettingsWrapper
+              onChange={(settings) => setTransactionSettings(settings, connection)}
+              broadcastType={broadcastType}
+              priorityType={priorityType}
+              maxCap={maxCap}
+              maxCapType={maxCapType}
+              slippageProps={{
+                slippageBps: slippageBps / 100,
+                setSlippageBps: (value) => setSlippageBps(value * 100),
+              }}
+              settingsDialogOpen={settingsDialogOpen}
+              setSettingsDialogOpen={setSettingsDialogOpen}
+            >
+              <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0">
+                <IconSettings size={20} />
+              </Button>
+            </ResponsiveSettingsWrapper>
+
             <Wallet
               connection={connection}
               initialized={initialized}
@@ -175,7 +173,7 @@ export const Header = () => {
               extendedBankInfos={extendedBankInfos}
               nativeSolBalance={nativeSolBalance}
               refreshState={() =>
-                fetchTradeState({
+                fetchUserData({
                   connection,
                   wallet,
                 })

@@ -19,9 +19,9 @@ export const WALLET_ADAPTERS = [
   new SolanaMobileWalletAdapter({
     addressSelector: createDefaultAddressSelector(),
     appIdentity: {
-      icon: "/mrgn_logo_512.png",
-      name: "marginfi",
-      uri: "https://mfi.gg",
+      icon: "/icon512_maskable.png",
+      name: "The Arena",
+      uri: "https://www.thearena.trade",
     },
     authorizationResultCache: createDefaultAuthorizationResultCache(),
     cluster: "mainnet-beta",
@@ -32,17 +32,17 @@ export const WALLET_ADAPTERS = [
   new TrustWalletAdapter(),
   new CoinbaseWalletAdapter(),
   new MoongateWalletAdapter(),
-  new TipLinkWalletAdapter({ title: "marginfi", clientId: "ccd793db-0b13-4e18-89e1-0edf9b9dd95e", theme: "dark" }),
+  new TipLinkWalletAdapter({ title: "arena", clientId: "ccd793db-0b13-4e18-89e1-0edf9b9dd95e", theme: "light" }),
   new WalletConnectWalletAdapter({
     network: WalletAdapterNetwork.Mainnet,
     options: {
       relayUrl: "wss://relay.walletconnect.com",
       projectId: "b60e76594a7010d8ab8744a3d6b53a9a",
       metadata: {
-        name: "marginfi",
-        description: "marginfi",
-        url: "https://app.marginfi.com",
-        icons: ["https://app.marginfi.com/mrgn_logo_512.png"],
+        name: "The Arena",
+        description: "Memecoin trading, with leverage.",
+        url: "https://www.thearena.trade",
+        icons: ["https://www.thearena.trade/icon512_maskable.png"],
       },
     },
   }),

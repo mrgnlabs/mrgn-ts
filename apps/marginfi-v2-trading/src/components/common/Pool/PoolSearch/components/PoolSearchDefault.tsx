@@ -1,22 +1,26 @@
 import React from "react";
+import type { FuseResult } from "fuse.js";
 
-import Image from "next/image";
-
-import { tokenPriceFormatter, numeralFormatter, percentFormatter } from "@mrgnlabs/mrgn-common";
+import {
+  tokenPriceFormatter,
+  numeralFormatter,
+  percentFormatter,
+  dynamicNumeralFormatter,
+} from "@mrgnlabs/mrgn-common";
 import { cn } from "@mrgnlabs/mrgn-utils";
 import { IconCommand, IconX } from "@tabler/icons-react";
 
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "~/components/ui/command";
 import { Button } from "~/components/ui/button";
 
-import type { FuseResult } from "fuse.js";
-import type { GroupData } from "~/store/tradeStore";
+import { ArenaPoolSummary, ArenaPoolV2 } from "~/types/trade-store.types";
+import { useTradeStoreV2 } from "~/store";
 
 type PoolSearchDefaultProps = {
   searchQuery: string;
   setSearchQuery: (query: string) => void;
   resetSearch: () => void;
-  searchResults: FuseResult<GroupData>[];
+  searchResults: FuseResult<ArenaPoolSummary>[];
   size: "sm" | "lg";
   additionalContent: React.ReactNode;
   additionalContentQueryMin: number;
@@ -39,6 +43,7 @@ export const PoolSearchDefault = ({
 }: PoolSearchDefaultProps) => {
   const searchInputRef = React.useRef<HTMLInputElement>(null);
   const [isFocused, setIsFocused] = React.useState(false);
+  const [banksByBankPk] = useTradeStoreV2((state) => [state.banksByBankPk]);
 
   React.useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -107,62 +112,85 @@ export const PoolSearchDefault = ({
             <IconCommand size={14} />K
           </Button>
         </div>
-        <div className={cn(size === "lg" && "absolute top-10 w-full z-20 md:top-14")}>
-          {searchResults.length > 0 && (
+        <div className={cn(size === "lg" && "absolute top-10 w-full z-[99999] md:top-14")}>
+          {searchResults.length > 0 && searchQuery.length > 0 && (
             <CommandGroup className={cn("bg-background", size === "lg" && "shadow-lg md:w-4/5 md:mx-auto")}>
               {searchResults.slice(0, maxResults).map((result) => {
-                const group = result.item;
-                const address = group.groupPk.toBase58();
-                const tokenBank = group.pool.token;
+                const pool = result.item;
+                const address = pool.groupPk.toBase58();
+                const tokenBank = banksByBankPk[pool.tokenSummary.bankPk.toBase58()];
+                const quoteBank = banksByBankPk[pool.quoteSummary.bankPk.toBase58()];
 
                 return (
                   <CommandItem
                     key={address}
                     value={address}
-                    className={cn(size === "sm" ? "text-sm" : "py-4")}
+                    className={cn(
+                      "cursor-pointer transition-colors data-[selected]:bg-muted",
+                      size === "sm" ? "text-sm" : "py-4"
+                    )}
                     onSelect={onBankSelect}
                   >
                     <div className="flex items-center gap-3">
-                      <Image
-                        src={tokenBank.meta.tokenLogoUri}
-                        width={size === "sm" ? 28 : 32}
-                        height={size === "sm" ? 28 : 32}
-                        alt={tokenBank.meta.tokenSymbol}
-                        className="rounded-full"
-                      />
-                      <h3>
-                        {tokenBank.meta.tokenName} ({tokenBank.meta.tokenSymbol})
-                      </h3>
+                      <div className="flex items-center gap-2 relative">
+                        <img
+                          src={tokenBank.meta.tokenLogoUri}
+                          width={size === "sm" ? 28 : 32}
+                          height={size === "sm" ? 28 : 32}
+                          alt={tokenBank.meta.tokenSymbol}
+                          className="rounded-full sm:w-[32px] sm:h-[32px] w-[28px] h-[28px] object-cover"
+                        />
+                        <img
+                          src={quoteBank.meta.tokenLogoUri}
+                          width={size === "sm" ? 12 : 16}
+                          height={size === "sm" ? 12 : 16}
+                          alt={quoteBank.meta.tokenSymbol}
+                          className="rounded-full sm:w-[16px] sm:h-[16px] w-[12px] h-[12px] object-cover absolute -right-1 -bottom-1"
+                        />{" "}
+                      </div>
+
+                      <div className="flex flex-col gap-1">
+                        <h3>{tokenBank.meta.tokenName}</h3>
+                        <span className="text-xs text-muted-foreground">
+                          {tokenBank.meta.tokenSymbol}/{quoteBank.meta.tokenSymbol}
+                        </span>
+                      </div>
                     </div>
-                    {tokenBank.tokenData && (
+                    {tokenBank.tokenData && quoteBank.tokenData && (
                       <dl
                         className={cn(
-                          "flex items-center gap-2 text-xs ml-auto md:text-sm",
+                          "flex items-center gap-4 text-xs ml-auto md:text-sm",
                           size === "sm" && "md:text-xs"
                         )}
                       >
-                        <div className="w-[110px] md:w-[150px]">
-                          <dt className="text-muted-foreground">Price:</dt>
+                        <div className="min-w-[110px] md:min-w-[150px]">
+                          <dt className="text-muted-foreground">Market price:</dt>
                           <dd className="space-x-2">
-                            <span>
-                              {tokenPriceFormatter(tokenBank.info.oraclePrice.priceRealtime.price.toNumber())}
-                            </span>
-
-                            <span
-                              className={cn(
-                                "text-xs",
-                                tokenBank.tokenData.volumeChange24hr > 0 ? "text-mrgn-success" : "text-mrgn-error"
-                              )}
-                            >
-                              {tokenBank.tokenData.priceChange24hr > 0 && "+"}
-                              {percentFormatter.format(tokenBank.tokenData.priceChange24hr / 100)}
-                            </span>
+                            {dynamicNumeralFormatter(tokenBank.tokenData.price / quoteBank.tokenData.price, {
+                              ignoreMinDisplay: true,
+                            })}{" "}
+                            {quoteBank.meta.tokenSymbol}
+                            {tokenBank.tokenData.priceChange24hr && quoteBank.tokenData.priceChange24hr && (
+                              <span
+                                className={cn(
+                                  "text-xs ml-1",
+                                  tokenBank.tokenData.priceChange24hr - quoteBank.tokenData.priceChange24hr > 0
+                                    ? "text-mrgn-success"
+                                    : "text-mrgn-error"
+                                )}
+                              >
+                                {tokenBank.tokenData.priceChange24hr - quoteBank.tokenData.priceChange24hr > 0 && "+"}
+                                {percentFormatter.format(
+                                  (tokenBank.tokenData.priceChange24hr - quoteBank.tokenData.priceChange24hr) / 100
+                                )}
+                              </span>
+                            )}
                           </dd>
                         </div>
                         <div className="hidden w-[150px] md:block">
                           <dt className="text-muted-foreground">Vol 24hr:</dt>
                           <dd className="space-x-2">
-                            <span>${numeralFormatter(tokenBank.tokenData.volume24hr)}</span>
+                            <span>${dynamicNumeralFormatter(tokenBank.tokenData.volume24hr)}</span>
                             <span
                               className={cn(
                                 "text-xs",

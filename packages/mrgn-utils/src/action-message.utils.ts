@@ -227,3 +227,42 @@ export function checkStakeActionAvailable({
 
   return checks;
 }
+
+interface CheckDepositSwapActionAvailableProps {
+  amount: number | null;
+  connected: boolean;
+  nativeSolBalance: number;
+  showCloseBalance?: boolean;
+  depositBank: ExtendedBankInfo | null;
+  swapBank: ExtendedBankInfo | null;
+  banks: ExtendedBankInfo[];
+  marginfiAccount: MarginfiAccountWrapper | null;
+  lendMode: ActionType;
+}
+
+export function checkDepositSwapActionAvailable({
+  amount,
+  nativeSolBalance,
+  connected,
+  showCloseBalance,
+  depositBank,
+  swapBank,
+  banks,
+  marginfiAccount,
+  lendMode,
+}: CheckDepositSwapActionAvailableProps): ActionMessageType[] {
+  let checks: ActionMessageType[] = [];
+
+  const requiredCheck = getRequiredCheck(connected, depositBank);
+  if (requiredCheck) return [requiredCheck];
+
+  const generalChecks = getGeneralChecks(amount ?? 0, showCloseBalance);
+  if (generalChecks) checks.push(...generalChecks);
+
+  if (checks.length === 0)
+    checks.push({
+      isEnabled: true,
+    });
+
+  return checks;
+}

@@ -1,71 +1,107 @@
 import React from "react";
 
-import Image from "next/image";
 import { useRouter } from "next/router";
 
-import { numeralFormatter, tokenPriceFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
+import { InfoCircledIcon } from "@radix-ui/react-icons";
+import { dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
+
+import { ArenaPoolV2Extended, GroupStatus } from "~/types/trade-store.types";
+import { useLeveragedPositionDetails } from "~/hooks/arenaHooks";
+import { useMarginfiClient } from "~/hooks/useMarginfiClient";
+import { useWrappedAccount } from "~/hooks/useWrappedAccount";
+import { usePositionsData } from "~/hooks/usePositionsData";
 
 import { PositionActionButtons } from "~/components/common/Portfolio";
+import { PnlDisplayTooltip, PnlLabel } from "~/components/common/pnl-display/";
 import { TableCell, TableRow } from "~/components/ui/table";
 import { Badge } from "~/components/ui/badge";
-import { GroupData } from "~/store/tradeStore";
-import { useGroupBanks, useGroupPosition } from "~/hooks/arenaHooks";
+
 interface props {
-  group: GroupData;
+  arenaPool: ArenaPoolV2Extended;
 }
 
-export const PositionListItem = ({ group }: props) => {
+export const PositionListItem = ({ arenaPool }: props) => {
   const router = useRouter();
-  const { borrowBank, depositBank } = useGroupBanks({ group });
-  const { positionSizeUsd, positionSizeToken, totalUsdValue, leverage } = useGroupPosition({ group });
+  const positionData = usePositionsData({ groupPk: arenaPool.groupPk });
+  const client = useMarginfiClient({ groupPk: arenaPool.groupPk });
+  const { accountSummary, wrappedAccount } = useWrappedAccount({
+    client,
+    groupPk: arenaPool.groupPk,
+    banks: [arenaPool.tokenBank, arenaPool.quoteBank],
+  });
+  const { positionSizeUsd, totalUsdValue, leverage } = useLeveragedPositionDetails({
+    pool: arenaPool,
+  });
 
   return (
-    <TableRow
-      className="cursor-pointer transition-colors hover:bg-accent/75"
-      onClick={(e) => {
-        if (
-          e.target instanceof HTMLButtonElement ||
-          e.target instanceof HTMLAnchorElement ||
-          e.target instanceof SVGElement ||
-          (e.target instanceof Element && e.target.hasAttribute("data-state"))
-        )
-          return;
-        router.push(`/trade/${group.client.group.address.toBase58()}`);
-      }}
-    >
+    <TableRow className="transition-colors hover:bg-accent/75">
       <TableCell>
-        {group.pool.token.isActive && group.pool.token.position.isLending ? (
+        {arenaPool.status === GroupStatus.LONG ? (
           <Badge className="w-14 bg-success uppercase font-medium justify-center">long</Badge>
         ) : (
           <Badge className="w-14 bg-error uppercase font-medium justify-center">short</Badge>
         )}
       </TableCell>
-      <TableCell>
-        <span className="flex items-center gap-3">
-          <Image
-            src={group.pool.token.meta.tokenLogoUri}
-            width={24}
-            height={24}
-            alt={group.pool.token.meta.tokenSymbol}
-            className="rounded-full shrink-0"
-          />{" "}
-          {group.pool.token.meta.tokenSymbol}
-        </span>
+      <TableCell
+        onClick={(e) => {
+          router.push(`/trade/${arenaPool.groupPk.toBase58()}`);
+        }}
+      >
+        <div className="flex items-center gap-2 justify-start cursor-pointer">
+          <div className="relative w-max flex items-center justify-center">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={arenaPool.tokenBank.meta.tokenLogoUri}
+              alt={arenaPool.tokenBank.meta.tokenSymbol}
+              width={24}
+              height={24}
+              className="bg-background border rounded-full h-[24px] w-[24px] object-cover"
+            />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={arenaPool.quoteBank.meta.tokenLogoUri}
+              alt={arenaPool.quoteBank.meta.tokenSymbol}
+              width={12}
+              height={12}
+              className="absolute -bottom-0.5 -right-0.5 bg-background border rounded-full h-[12px] w-[12px] object-cover"
+            />
+          </div>
+          {arenaPool.tokenBank.meta.tokenSymbol}/{arenaPool.quoteBank.meta.tokenSymbol}
+        </div>
       </TableCell>
-      <TableCell>{usdFormatter.format(totalUsdValue)}</TableCell>
-      <TableCell>{`${leverage}x`}</TableCell>
-      <TableCell>{positionSizeUsd < 0.01 ? "< 0.01" : usdFormatter.format(positionSizeUsd)}</TableCell>
-      <TableCell>{tokenPriceFormatter(group.pool.token.info.oraclePrice.priceRealtime.price.toNumber())}</TableCell>
 
       <TableCell>
-        {group.pool.token.isActive && group.pool.token.position.liquidationPrice ? (
-          <>{tokenPriceFormatter(group.pool.token.position.liquidationPrice)}</>
-        ) : (
-          "n/a"
-        )}
+        $
+        {dynamicNumeralFormatter(totalUsdValue, {
+          ignoreMinDisplay: true,
+        })}
       </TableCell>
+      <TableCell>{`${leverage}x`}</TableCell>
+      <TableCell>
+        $
+        {dynamicNumeralFormatter(positionSizeUsd, {
+          ignoreMinDisplay: true,
+        })}
+      </TableCell>
+      <TableCell>
+        <PnlDisplayTooltip pool={arenaPool}>
+          <div className="flex flex-row items-center gap-1">
+            <PnlLabel pnl={positionData?.pnl} positionSize={positionSizeUsd} />
+            <InfoCircledIcon />
+          </div>
+        </PnlDisplayTooltip>
+      </TableCell>
+
       <TableCell className="text-right">
-        {group.client && <PositionActionButtons isBorrowing={!!borrowBank} activeGroup={group} />}
+        {client && accountSummary && arenaPool && (
+          <PositionActionButtons
+            arenaPool={arenaPool}
+            isBorrowing={arenaPool.status === GroupStatus.SHORT || arenaPool.status === GroupStatus.LONG}
+            accountSummary={accountSummary}
+            client={client}
+            selectedAccount={wrappedAccount}
+          />
+        )}
       </TableCell>
     </TableRow>
   );

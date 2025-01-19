@@ -136,7 +136,7 @@ export async function calculateBorrowLendPositionParams({
   ...closePostionProps
 }: CalculateClosePositionProps): Promise<ClosePositionActionTxns | ActionMessageType> {
   let firstQuote;
-  const maxAccountsArr = [undefined, 50, 40, 30];
+  const maxAccountsArr = [40, 30];
 
   if (!closePostionProps.borrowBank.isActive) throw new Error("not active");
 
@@ -146,10 +146,11 @@ export async function calculateBorrowLendPositionParams({
     slippageBps
   );
 
+  console.log("DEBUG: maxAmount", maxAmount);
+
   if (!maxAmount) return STATIC_SIMULATION_ERRORS.CLOSE_POSITIONS_FL_FAILED;
 
   for (const maxAccounts of maxAccountsArr) {
-    const isTxnSplit = maxAccounts === 30;
     const quoteParams = {
       amount: uiToNative(maxAmount, closePostionProps.depositBank.info.state.mintDecimals).toNumber(),
       inputMint: closePostionProps.depositBank.info.state.mint.toBase58(),
@@ -200,6 +201,7 @@ export async function calculateLoopingParams({
   targetLeverage,
   slippageBps,
   platformFeeBps,
+  setupBankAddresses,
   ...loopingProps
 }: CalculateLoopingProps): Promise<LoopActionTxns | ActionMessageType> {
   if (!loopingProps.marginfiAccount && !marginfiClient) {
@@ -220,6 +222,7 @@ export async function calculateLoopingParams({
     depositAmount = params.depositAmount;
     borrowAmountNative = params.borrowAmountNative;
   } else {
+    console.log("DEBUG: this code should not be accesed in the arena");
     const params = getLoopingParamsForClient(
       marginfiClient,
       loopingProps.depositBank,
@@ -233,18 +236,15 @@ export async function calculateLoopingParams({
     depositAmount = params.depositAmount;
     borrowAmountNative = params.borrowAmountNative;
   }
-  // const principalBufferAmountUi = amount * targetLeverage * (slippageBps / 10000);
-  // const adjustedPrincipalAmountUi = amount - principalBufferAmountUi;
 
-  // const maxLoopAmount = depositBank.isActive ? depositBank?.position.amount : 0;
-
-  // decreased maxAccounts from [undefined, 50, 40, 30] to [40, 30]
   const maxAccountsArr = [40, 30];
 
   let firstQuote;
 
   for (const maxAccounts of maxAccountsArr) {
-    const quoteParams = {
+    console.log(`%cDEBUG: calculating flashloan swap quote`, "color: blue; font-weight: bold; font-size: 14px;");
+    console.log(`slippageBps: ${slippageBps}, platformFeeBps: ${platformFeeBps}, maxAccounts: ${maxAccounts}`);
+    const quoteParams: QuoteGetRequest = {
       amount: borrowAmountNative,
       inputMint: loopingProps.borrowBank.info.state.mint.toBase58(), // borrow
       outputMint: loopingProps.depositBank.info.state.mint.toBase58(), // deposit
@@ -252,7 +252,7 @@ export async function calculateLoopingParams({
       platformFeeBps: platformFeeBps, // platform fee
       maxAccounts: maxAccounts,
       swapMode: "ExactIn",
-    } as QuoteGetRequest;
+    };
     try {
       const swapQuote = await getSwapQuoteWithRetry(quoteParams);
 
@@ -282,6 +282,7 @@ export async function calculateLoopingParams({
             quote: swapQuote,
             borrowAmount: borrowAmount,
             actualDepositAmount: actualDepositAmountUi,
+            setupBankAddresses,
           });
         }
         if (txn.flashloanTx || !loopingProps.marginfiAccount) {
@@ -342,6 +343,7 @@ export async function loopingBuilder({
   borrowBank,
   quote,
   connection,
+  setupBankAddresses,
 }: LoopingProps): Promise<FlashloanBuilderResponse> {
   if (!marginfiAccount) throw new Error("not initialized");
 
@@ -354,6 +356,10 @@ export async function loopingBuilder({
   // TODO: check if fees support for token2022 is needed
   if (!TOKEN_2022_MINTS.includes(feeMint)) {
     feeAccountInfo = await connection.getAccountInfo(new PublicKey(feeAccount));
+  }
+
+  if (!feeAccountInfo) {
+    console.log("DEBUG: feeAccountInfo is undefined");
   }
 
   const { swapInstruction, addressLookupTableAddresses } = await jupiterQuoteApi.swapInstructionsPost({
@@ -388,6 +394,7 @@ export async function loopingBuilder({
       lookupTables: swapLUTs,
     },
     blockhash,
+    setupBankAddresses,
   });
 
   return { flashloanTx, additionalTxs, txOverflown, lastValidBlockHeight };
@@ -469,6 +476,7 @@ export async function closePositionBuilder({
 
   const feeMint = quote.swapMode === "ExactIn" ? quote.outputMint : quote.inputMint;
   const feeAccount = getFeeAccount(new PublicKey(feeMint));
+
   if (!TOKEN_2022_MINTS.includes(feeMint)) {
     feeAccountInfo = await connection.getAccountInfo(new PublicKey(feeAccount));
   }

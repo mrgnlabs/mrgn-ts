@@ -86,7 +86,7 @@ export const ApyStat = ({
                         <React.Fragment key={bank.meta.tokenSymbol}>
                           <li key={bank.meta.tokenSymbol} className="flex items-center gap-8 justify-between text-xs">
                             <div className="flex items-center gap-2">
-                              <Image
+                              <img
                                 src={bank.meta.tokenLogoUri}
                                 width={16}
                                 height={16}
@@ -105,7 +105,7 @@ export const ApyStat = ({
                           {isDepositBank && depositLstApy && (
                             <li className="flex items-center justify-between">
                               <div className="flex items-center gap-2">
-                                <Image
+                                <img
                                   src={bank.meta.tokenLogoUri}
                                   width={16}
                                   height={16}

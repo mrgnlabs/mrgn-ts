@@ -105,10 +105,11 @@ class MarginfiClient {
   public oraclePrices: OraclePriceMap;
   public mintDatas: MintDataMap;
   public addressLookupTables: AddressLookupTableAccount[];
+  public lookupTablesAddresses: PublicKey[];
   public feedIdMap: PythPushFeedIdMap;
+  public processTransactionStrategy?: ProcessTransactionStrategy;
   private preloadedBankAddresses?: PublicKey[];
   private bundleSimRpcEndpoint: string;
-  private processTransactionStrategy?: ProcessTransactionStrategy;
 
   // --------------------------------------------------------------------------
   // Factories
@@ -128,7 +129,8 @@ class MarginfiClient {
     preloadedBankAddresses?: PublicKey[],
     readonly bankMetadataMap?: BankMetadataMap,
     bundleSimRpcEndpoint?: string,
-    processTransactionStrategy?: ProcessTransactionStrategy
+    processTransactionStrategy?: ProcessTransactionStrategy,
+    lookupTablesAddresses?: PublicKey[]
   ) {
     this.group = group;
     this.banks = banks;
@@ -139,6 +141,7 @@ class MarginfiClient {
     this.feedIdMap = feedIdMap;
     this.bundleSimRpcEndpoint = bundleSimRpcEndpoint ?? program.provider.connection.rpcEndpoint;
     this.processTransactionStrategy = processTransactionStrategy;
+    this.lookupTablesAddresses = lookupTablesAddresses ?? [];
   }
 
   /**
@@ -631,13 +634,7 @@ class MarginfiClient {
     const accountKeypair = Keypair.generate();
     const newAccountKey = createOpts?.newAccountKey ?? accountKeypair.publicKey;
 
-    const ixs = await this.makeCreateMarginfiAccountIx(newAccountKey);
-    const signers = [...ixs.keys];
-    // If there was no newAccountKey provided, we need to sign with the ephemeraKeypair we generated.
-    if (!createOpts?.newAccountKey) signers.push(accountKeypair);
-
-    const tx = new Transaction().add(...ixs.instructions);
-    const solanaTx = addTransactionMetadata(tx, { signers, addressLookupTables: this.addressLookupTables });
+    const solanaTx = await this.createMarginfiAccountTx({ accountKeypair });
     const sig = await this.processTransaction(solanaTx, processOpts, txOpts);
 
     dbg("Created Marginfi account %s", sig);
@@ -645,6 +642,31 @@ class MarginfiClient {
     return txOpts?.dryRun || createOpts?.newAccountKey
       ? Promise.resolve(undefined as unknown as MarginfiAccountWrapper)
       : MarginfiAccountWrapper.fetch(newAccountKey, this, txOpts?.commitment);
+  }
+
+  /**
+   * Create a transaction to initialize a new marginfi account under the authority of the user.
+   *
+   * @param createOpts - Options for creating the account
+   * @param createOpts.newAccountKey - Optional public key to use for the new account. If not provided, a new keypair will be generated.
+   * @returns Transaction that can be used to create a new marginfi account
+   */
+  async createMarginfiAccountTx(createOpts?: { accountKeypair?: Keypair }): Promise<SolanaTransaction> {
+    const accountKeypair = createOpts?.accountKeypair ?? Keypair.generate();
+
+    const ixs = await this.makeCreateMarginfiAccountIx(accountKeypair.publicKey);
+    const signers = [...ixs.keys];
+    // If there was no newAccountKey provided, we need to sign with the ephemeraKeypair we generated.
+    signers.push(accountKeypair);
+
+    const tx = new Transaction().add(...ixs.instructions);
+    const solanaTx = addTransactionMetadata(tx, {
+      signers,
+      addressLookupTables: this.addressLookupTables,
+      type: "MRGN_ACCOUNT_CREATION",
+    });
+
+    return solanaTx;
   }
 
   /**
@@ -810,6 +832,9 @@ class MarginfiClient {
       bundleSimRpcEndpoint: this.bundleSimRpcEndpoint,
       dynamicStrategy: processOpts?.dynamicStrategy ?? this.processTransactionStrategy,
     };
+
+    console.log("processOpts", processOpts);
+    console.log("processTransactions", options);
 
     return await processTransactions({
       transactions,

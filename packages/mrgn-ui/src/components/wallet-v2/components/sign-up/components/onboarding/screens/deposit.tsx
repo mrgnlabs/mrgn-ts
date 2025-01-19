@@ -26,7 +26,7 @@ export const DepositToken = ({ mrgnState, successProps, onNext, onClose }: Depos
   }, [successProps?.jupiterSuccess, extendedBankInfos]);
 
   return (
-    <ScreenWrapper noBackground={true}>
+    <ScreenWrapper>
       {mrgnState ? (
         <ActionBox.Lend
           lendProps={{

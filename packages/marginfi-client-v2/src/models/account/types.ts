@@ -30,6 +30,8 @@ export type LoopTxProps = {
   depositOpts?: MakeDepositIxOpts;
   /** Optional borrow configuration */
   borrowOpts?: MakeBorrowIxOpts;
+  /** Optional setup banks addresses */
+  setupBankAddresses?: PublicKey[];
 };
 
 export interface RepayWithCollateralProps extends RepayWithCollateralTxProps {

@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 
 import { identify } from "@mrgnlabs/mrgn-utils";
 
-import { useTradeStore, useUiStore } from "~/store";
+import { useTradeStoreV2, useUiStore } from "~/store";
 import { useConnection } from "~/hooks/use-connection";
 import { useWallet } from "~/components/wallet-v2";
 
@@ -15,15 +15,58 @@ export const TradePovider: React.FC<{
 }> = ({ children }) => {
   const router = useRouter();
   const debounceId = React.useRef<NodeJS.Timeout | null>(null);
-  const { wallet, isOverride, connected } = useWallet();
+  const { wallet, connected } = useWallet();
   const { connection } = useConnection();
-  const [fetchTradeState, setIsRefreshingStore, resetUserData] = useTradeStore((state) => [
-    state.fetchTradeState,
-    state.setIsRefreshingStore,
+
+  const [
+    fetchUserData,
+    fetchExtendedArenaGroups,
+    fetchArenaGroups,
+    setHydrationComplete,
+    resetUserData,
+    initialized,
+    poolsFetched,
+    userDataFetched,
+    hydrationComplete,
+  ] = useTradeStoreV2((state) => [
+    state.fetchUserData,
+    state.fetchExtendedArenaGroups,
+    state.fetchArenaGroups,
+    state.setHydrationComplete,
     state.resetUserData,
+    state.initialized,
+    state.poolsFetched,
+    state.userDataFetched,
+    state.hydrationComplete,
   ]);
+
   const [fetchPriorityFee] = useUiStore((state) => [state.fetchPriorityFee]);
   const [isLoggedIn, setIsLoggedIn] = React.useState(false);
+
+  React.useEffect(() => {
+    const hydrate = async () => {
+      if (!hydrationComplete) {
+        await fetchArenaGroups();
+        setHydrationComplete();
+      }
+    };
+
+    hydrate();
+  }, [fetchArenaGroups, hydrationComplete, setHydrationComplete]);
+
+  React.useEffect(() => {
+    if (initialized) {
+      fetchExtendedArenaGroups({ connection, wallet });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialized, wallet]);
+
+  React.useEffect(() => {
+    if (poolsFetched && wallet && connected) {
+      fetchUserData({ connection, wallet });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [poolsFetched, connected, fetchUserData, wallet]);
 
   React.useEffect(() => {
     const trackReferral = async (referralCode: string, walletAddress: string) => {
@@ -61,42 +104,25 @@ export const TradePovider: React.FC<{
   }, [router.asPath, wallet, connected, isLoggedIn]);
 
   React.useEffect(() => {
-    const fetchData = () => {
-      setIsRefreshingStore(true);
+    const initializeAndFetch = () => {
       fetchPriorityFee(connection);
-      fetchTradeState({
-        connection,
-        wallet,
-      });
     };
 
     if (debounceId.current) {
       clearTimeout(debounceId.current);
     }
 
-    debounceId.current = setTimeout(() => {
-      fetchData();
+    debounceId.current = setTimeout(initializeAndFetch, 1000);
 
-      const id = setInterval(() => {
-        setIsRefreshingStore(true);
-        fetchTradeState({});
-        fetchPriorityFee(connection);
-      }, 50_000);
-
-      return () => {
-        clearInterval(id);
-        clearTimeout(debounceId.current!);
-      };
-    }, 1000);
+    const intervalId = setInterval(initializeAndFetch, 60_000);
 
     return () => {
       if (debounceId.current) {
         clearTimeout(debounceId.current);
       }
+      clearInterval(intervalId);
     };
-  }, [wallet, isOverride]); // eslint-disable-line react-hooks/exhaustive-deps
-  // ^ crucial to omit both `connection` and `fetchMrgnlendState` from the dependency array
-  // TODO: fix...
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   React.useEffect(() => {
     if (!connected && resetUserData) {

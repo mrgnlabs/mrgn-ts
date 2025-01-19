@@ -1,30 +1,26 @@
 import React from "react";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
 
 import {
   percentFormatter,
   numeralFormatter,
-  tokenPriceFormatter,
   usdFormatter,
   shortenAddress,
   aprToApy,
+  dynamicNumeralFormatter,
 } from "@mrgnlabs/mrgn-common";
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { Desktop, Mobile, cn, capture } from "@mrgnlabs/mrgn-utils";
 import { IconChevronDown, IconExternalLink } from "@tabler/icons-react";
 
-import { useConnection } from "~/hooks/use-connection";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
-import { useTradeStore } from "~/store";
-import { GroupData } from "~/store/tradeStore";
+import { useTradeStoreV2 } from "~/store";
 
 import { ActionBox, ActionBoxProvider } from "~/components/action-box-v2";
 import { TokenCombobox } from "~/components/common/TokenCombobox";
 import { PoolShare } from "~/components/common/Pool/PoolShare";
-import { PositionCard } from "~/components/common/Portfolio";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import {
   DropdownMenu,
@@ -33,225 +29,213 @@ import {
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
 import { Button } from "~/components/ui/button";
+import { useExtendedPool } from "~/hooks/useExtendedPools";
+import { ArenaPoolV2, GroupStatus } from "~/types/trade-store.types";
+import { useWrappedAccount } from "~/hooks/useWrappedAccount";
+import { useMarginfiClient } from "~/hooks/useMarginfiClient";
 
-export const PoolTradeHeader = ({ activeGroup }: { activeGroup: GroupData }) => {
+export const PoolTradeHeader = ({ activePool }: { activePool: ArenaPoolV2 }) => {
   const router = useRouter();
-  const { connection } = useConnection();
   const { connected, wallet } = useWallet();
 
-  const [fetchTradeState, nativeSolBalance, portfolio] = useTradeStore((state) => [
-    state.fetchTradeState,
-    state.nativeSolBalance,
-    state.portfolio,
+  const extendedPool = useExtendedPool(activePool);
+  const client = useMarginfiClient({ groupPk: activePool.groupPk });
+  const { accountSummary, wrappedAccount } = useWrappedAccount({
+    client,
+    groupPk: activePool.groupPk,
+    banks: [extendedPool.tokenBank, extendedPool.quoteBank],
+  });
+
+  const [refreshGroup, nativeSolBalance] = useTradeStoreV2((state) => [state.refreshGroup, state.nativeSolBalance]);
+
+  const fundingRate = React.useMemo(() => {
+    const fundingRateShort =
+      extendedPool.tokenBank.info.state.borrowingRate - extendedPool.quoteBank.info.state.lendingRate;
+    const fundingRateLong =
+      extendedPool.quoteBank.info.state.borrowingRate - extendedPool.tokenBank.info.state.lendingRate;
+    return `${percentFormatter.format(fundingRateLong)} / ${percentFormatter.format(fundingRateShort)}`;
+  }, [
+    extendedPool.tokenBank.info.state.borrowingRate,
+    extendedPool.tokenBank.info.state.lendingRate,
+    extendedPool.quoteBank.info.state.borrowingRate,
+    extendedPool.quoteBank.info.state.lendingRate,
   ]);
-
-  const lpPosition = React.useMemo(() => {
-    if (!portfolio) return null;
-    const tokenLpPosition = portfolio.lpPositions.find((lp) =>
-      activeGroup?.pool.token.info.rawBank.address
-        ? lp.pool.token.info.rawBank.address.equals(activeGroup?.pool.token.info.rawBank.address)
-        : null
-    );
-    const quoteTokenLpPosition = portfolio.lpPositions.find((lp) =>
-      activeGroup?.pool.quoteTokens[0].info.rawBank.address
-        ? lp.pool.quoteTokens[0].info.rawBank.address.equals(activeGroup?.pool.quoteTokens[0].info.rawBank.address)
-        : null
-    );
-    return {
-      token: tokenLpPosition,
-      quoteToken: quoteTokenLpPosition,
-    };
-  }, [portfolio, activeGroup]);
-
-  const hasTradePosition = React.useMemo(() => {
-    const long = portfolio?.long.find(
-      (lp) => lp.pool.token.info.state.mint.toBase58() === activeGroup?.pool.token.info.state.mint.toBase58()
-    );
-    const short = portfolio?.short.find(
-      (lp) => lp.pool.token.info.state.mint.toBase58() === activeGroup?.pool.token.info.state.mint.toBase58()
-    );
-    return long || short;
-  }, [portfolio, activeGroup]);
-
-  const isLstQuote = React.useMemo(() => {
-    return activeGroup.pool.quoteTokens[0].meta.tokenSymbol === "LST";
-  }, [activeGroup]);
-
-  const tokenPrice = React.useMemo(() => {
-    if (isLstQuote) {
-      const lstPrice = activeGroup.pool.quoteTokens[0].info.oraclePrice.priceRealtime.price.toNumber();
-      return `${tokenPriceFormatter(
-        activeGroup.pool.token.info.oraclePrice.priceRealtime.price.toNumber() / lstPrice,
-        "decimal"
-      )} ${activeGroup.pool.quoteTokens[0].meta.tokenSymbol}`;
-    }
-
-    return tokenPriceFormatter(activeGroup.pool.token.info.oraclePrice.priceRealtime.price.toNumber());
-  }, [isLstQuote, activeGroup]);
 
   return (
     <ActionBoxProvider
-      banks={[activeGroup.pool.token, activeGroup.pool.quoteTokens[0]]}
+      banks={[extendedPool.tokenBank, extendedPool.quoteBank]}
       nativeSolBalance={nativeSolBalance}
-      marginfiClient={activeGroup.client}
-      selectedAccount={activeGroup.selectedAccount}
+      marginfiClient={client}
+      selectedAccount={wrappedAccount}
       connected={connected}
-      accountSummaryArg={activeGroup.accountSummary}
+      accountSummaryArg={accountSummary ?? undefined}
       showActionComplete={false}
       hidePoolStats={["type"]}
     >
       <div className="px-4 pb-10 lg:px-8 lg:py-10 lg:bg-background lg:border lg:rounded-xl">
         <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
           <div className="flex flex-col items-center px-8 w-full lg:w-1/4 xl:w-1/2">
-            <Image
-              src={activeGroup.pool.token.meta.tokenLogoUri}
-              alt={activeGroup.pool.token.meta.tokenSymbol}
-              width={72}
-              height={72}
-              className="bg-background border rounded-full mb-2 lg:mb-0"
-            />
+            <div className="relative flex items-center justify-center">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={extendedPool.tokenBank.meta.tokenLogoUri}
+                alt={extendedPool.tokenBank.meta.tokenSymbol}
+                width={72}
+                height={72}
+                className="bg-background border rounded-full h-[72px] w-[72px] object-cover"
+              />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={extendedPool.quoteBank.meta.tokenLogoUri}
+                alt={extendedPool.quoteBank.meta.tokenSymbol}
+                width={32}
+                height={32}
+                className="absolute -bottom-2 -right-2 bg-background border rounded-full h-[32px] w-[32px] object-cover"
+              />
+            </div>
 
             <TokenCombobox
-              selected={activeGroup}
-              setSelected={(group) => {
-                router.push(`/trade/${group.client.group.address.toBase58()}`);
+              selected={extendedPool}
+              setSelected={(pool) => {
+                router.push(`/trade/${pool.groupPk.toBase58()}`);
               }}
             >
-              <h1 className="text-lg font-medium mt-2 flex items-center gap-1 px-2 py-1 pl-3 rounded-md cursor-pointer transition-colors hover:bg-accent translate-x-1.5">
-                {activeGroup.pool.token.meta.tokenName} <IconChevronDown size={18} />
+              <h1 className="text-lg font-medium mt-2 flex items-center justify-center text-center gap-1 px-2 py-1 pl-3 rounded-md cursor-pointer transition-colors hover:bg-accent translate-x-1.5">
+                {extendedPool.tokenBank.meta.tokenName} <IconChevronDown size={18} />
               </h1>
             </TokenCombobox>
-            <p className="text-sm text-muted-foreground mt-2 lg:mt-0">{activeGroup.pool.token.meta.tokenSymbol}</p>
+            <p className="text-sm text-muted-foreground mt-2 lg:mt-0">
+              {extendedPool.tokenBank.meta.tokenSymbol}/{extendedPool.quoteBank.meta.tokenSymbol}
+            </p>
             <p className="text-sm text-muted-foreground">
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger>
                     <Link
-                      href={`https://solscan.io/token/${activeGroup.pool.token.info.state.mint.toBase58()}`}
+                      href={`https://solscan.io/token/${extendedPool.tokenBank.info.state.mint.toBase58()}`}
                       target="_blank"
                       rel="noreferrer"
                       className="text-primary text-xs flex items-center gap-1"
                     >
-                      {shortenAddress(activeGroup.pool.token.info.state.mint.toBase58())}
+                      {shortenAddress(extendedPool.tokenBank.info.state.mint.toBase58())}
                       <IconExternalLink size={12} />
                     </Link>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>{activeGroup.pool.token.info.state.mint.toBase58()}</p>
+                    <p>{extendedPool.tokenBank.info.state.mint.toBase58()}</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
             </p>
-            <PoolShare activeGroup={activeGroup} />
+            <PoolShare activePool={activePool} />
           </div>
           <div className="w-full space-y-10">
-            {activeGroup.pool.token.tokenData && (
+            {extendedPool.tokenBank.tokenData && extendedPool.quoteBank.tokenData && (
               <div className="grid w-full max-w-md mx-auto gap-1 lg:gap-16 lg:max-w-none lg:grid-cols-3">
                 <div className="grid grid-cols-2 lg:block">
-                  <p className="text-sm text-muted-foreground">Price</p>
+                  <p className="text-sm text-muted-foreground">Market price</p>
                   <p className="text-sm text-right lg:text-left lg:text-2xl">
-                    {tokenPrice}
-                    {isLstQuote ? (
-                      <span className="text-sm text-muted-foreground block">
-                        {tokenPriceFormatter(activeGroup.pool.token.info.oraclePrice.priceRealtime.price.toNumber())}{" "}
-                        USD
-                      </span>
-                    ) : (
-                      <span
-                        className={cn(
-                          "text-sm ml-1",
-                          activeGroup.pool.token.tokenData.priceChange24hr > 0 ? "text-mrgn-success" : "text-mrgn-error"
-                        )}
-                      >
-                        {activeGroup.pool.token.tokenData.priceChange24hr > 0 && "+"}
-                        {percentFormatter.format(activeGroup.pool.token.tokenData.priceChange24hr / 100)}
-                      </span>
-                    )}
+                    {dynamicNumeralFormatter(
+                      extendedPool.tokenBank.tokenData.price / extendedPool.quoteBank.tokenData?.price,
+                      {
+                        ignoreMinDisplay: true,
+                      }
+                    )}{" "}
+                    {extendedPool.quoteBank.meta.tokenSymbol}
+                    <span className="text-sm text-muted-foreground block">
+                      $
+                      {dynamicNumeralFormatter(extendedPool.tokenBank.tokenData.price, {
+                        ignoreMinDisplay: true,
+                      })}
+                    </span>
+                  </p>
+                </div>
+                <div className="grid grid-cols-2 lg:block">
+                  <p className="text-sm text-muted-foreground">Oracle price</p>
+                  <p className="text-sm text-right lg:text-left lg:text-2xl">
+                    {dynamicNumeralFormatter(
+                      extendedPool.tokenBank.info.oraclePrice.priceRealtime.price.toNumber() /
+                        extendedPool.quoteBank.info.oraclePrice.priceRealtime.price.toNumber(),
+                      {
+                        ignoreMinDisplay: true,
+                      }
+                    )}{" "}
+                    {extendedPool.quoteBank.meta.tokenSymbol}
+                    <span className="text-sm text-muted-foreground block">
+                      $
+                      {dynamicNumeralFormatter(extendedPool.tokenBank.info.oraclePrice.priceRealtime.price.toNumber(), {
+                        ignoreMinDisplay: true,
+                      })}
+                    </span>
                   </p>
                 </div>
                 <div className="grid grid-cols-2 lg:block">
                   <p className="text-sm text-muted-foreground">24hr Volume</p>
                   <p className="text-sm text-right lg:text-left lg:text-2xl">
-                    ${numeralFormatter(activeGroup.pool.token.tokenData.volume24hr)}
+                    ${dynamicNumeralFormatter(extendedPool.tokenBank.tokenData.volume24hr)}
                     <span
                       className={cn(
                         "text-sm ml-1",
-                        activeGroup.pool.token.tokenData.volumeChange24hr > 0 ? "text-mrgn-success" : "text-mrgn-error"
+                        extendedPool.tokenBank.tokenData.volumeChange24hr > 0 ? "text-mrgn-success" : "text-mrgn-error"
                       )}
                     >
-                      {activeGroup.pool.token.tokenData.volumeChange24hr > 0 && "+"}
-                      {percentFormatter.format(activeGroup.pool.token.tokenData.volumeChange24hr / 100)}
+                      {extendedPool.tokenBank.tokenData.volumeChange24hr > 0 && "+"}
+                      {percentFormatter.format(extendedPool.tokenBank.tokenData.volumeChange24hr / 100)}
                     </span>
                   </p>
                 </div>
-                <div className="grid grid-cols-2 lg:block">
-                  <p className="text-sm text-muted-foreground">Market cap</p>
-                  <p className="text-sm text-right lg:text-left lg:text-2xl">
-                    ${numeralFormatter(activeGroup.pool.token.tokenData.marketCap)}
-                  </p>
-                </div>
-                {activeGroup.pool.poolData && (
-                  <div className="grid grid-cols-2 lg:hidden">
-                    <p className="text-sm text-muted-foreground">Lending pool liquidity</p>
-                    <p className="text-sm text-right lg:text-left lg:text-2xl">
-                      ${numeralFormatter(activeGroup.pool.poolData.totalLiquidity)}
-                    </p>
+                <Mobile>
+                  <div className="grid grid-cols-2 lg:block">
+                    <p className="text-sm text-muted-foreground">Funding rate (long/short)</p>
+                    <p className="text-sm text-right lg:text-left lg:text-2xl">{fundingRate}</p>
                   </div>
-                )}
+                </Mobile>
               </div>
             )}
             <div className="w-full grid gap-4 max-w-md mx-auto lg:gap-16 lg:max-w-none lg:grid-cols-3">
-              <div className="border-y border-border py-6 lg:border-b-0 lg:py-0 lg:border-t-0">
+              <div className="border-y border-border py-6 lg:border-b-0 flex flex-col gap-4 w-full lg:py-0 lg:border-t-0">
                 <div className="flex flex-row justify-between space-y-2 lg:block">
                   <div className="flex items-start gap-2 translate-y-0.5">
-                    <Image
-                      src={activeGroup.pool.token.meta.tokenLogoUri}
-                      alt={activeGroup.pool.token.meta.tokenSymbol}
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={extendedPool.tokenBank.meta.tokenLogoUri}
+                      alt={extendedPool.tokenBank.meta.tokenSymbol}
                       width={32}
                       height={32}
-                      className="bg-background border rounded-full"
+                      className="bg-background border rounded-full w-[32px] h-[32px] object-cover"
                     />
                     <div className="leading-tight text-sm">
                       <p>
                         Total Deposits
-                        <br />({activeGroup.pool.token.meta.tokenSymbol})
+                        <br />({extendedPool.tokenBank.meta.tokenSymbol})
                       </p>
                       <p className="text-mrgn-success">
-                        {percentFormatter.format(aprToApy(activeGroup.pool.token.info.state.lendingRate))} APY
+                        {percentFormatter.format(aprToApy(extendedPool.tokenBank.info.state.lendingRate))} APY
                       </p>
-                      {!hasTradePosition &&
-                        lpPosition?.token &&
-                        lpPosition.token.pool.token.isActive &&
-                        activeGroup.selectedAccount && <p className="mt-2 lg:hidden">Supplied</p>}
+                      {extendedPool.status === GroupStatus.LP && <p className="mt-2 lg:hidden">Supplied</p>}
                     </div>
                   </div>
                   <div className="flex flex-col gap-2 lg:items-start lg:justify-start">
                     <p className="text-right lg:text-left lg:text-2xl">
                       {usdFormatter.format(
-                        activeGroup.pool.token.info.state.totalDeposits *
-                          activeGroup.pool.token.info.oraclePrice.priceRealtime.price.toNumber()
+                        extendedPool.tokenBank.info.state.totalDeposits *
+                          extendedPool.tokenBank.info.oraclePrice.priceRealtime.price.toNumber()
                       )}
                     </p>
-                    {!hasTradePosition &&
-                      lpPosition?.token &&
-                      lpPosition.token.pool.token.isActive &&
-                      activeGroup.selectedAccount && (
-                        <p className="mt-5 text-right lg:text-left lg:hidden">
-                          {usdFormatter.format(lpPosition.token.pool.token.position.amount)}
-                        </p>
-                      )}
+                    {extendedPool.status === GroupStatus.LP && extendedPool.tokenBank.isActive && (
+                      <p className="mt-5 text-right lg:text-left lg:hidden">
+                        {usdFormatter.format(extendedPool.tokenBank.position.amount)}
+                      </p>
+                    )}
                     <Desktop>
-                      {!hasTradePosition &&
-                      lpPosition?.token &&
-                      lpPosition.token.pool.token.isActive &&
-                      activeGroup.selectedAccount ? (
+                      {extendedPool.status === GroupStatus.LP && extendedPool.tokenBank.isActive ? (
                         <DropdownMenu>
                           <DropdownMenuTrigger
                             className="focus:outline-none focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
                             asChild
                           >
                             <Button size="sm" variant="outline" className="px-2 py-1.5 h-auto lg:px-4 lg:py-2">
-                              Supplied {numeralFormatter(lpPosition.token.pool.token.position.amount)}
+                              Supplied {numeralFormatter(extendedPool.tokenBank.position.amount)}
                               <div className="border-l pl-2 ml-1">
                                 <IconChevronDown size={14} />
                               </div>
@@ -265,24 +249,24 @@ export const PoolTradeHeader = ({ activeGroup }: { activeGroup: GroupData }) => 
                                 lendProps={{
                                   connected: connected,
                                   requestedLendType: ActionType.Deposit,
-                                  requestedBank: activeGroup.pool.token,
+                                  requestedBank: extendedPool.tokenBank,
                                   showAvailableCollateral: false,
                                   captureEvent: () => {
                                     capture("trade_supply_btn_click", {
-                                      group: activeGroup.client.group.address.toBase58(),
-                                      bank: activeGroup.pool.token.meta.tokenSymbol,
+                                      group: extendedPool.groupPk.toBase58(),
+                                      bank: extendedPool.tokenBank.meta.tokenSymbol,
                                     });
                                   },
                                   onComplete: () => {
-                                    fetchTradeState({
-                                      connection,
-                                      wallet,
+                                    refreshGroup({
+                                      groupPk: extendedPool.groupPk,
+                                      banks: [extendedPool.tokenBank.address, extendedPool.quoteBank.address],
                                     });
                                   },
                                 }}
                                 dialogProps={{
                                   trigger: <p>Supply more</p>,
-                                  title: `Supply ${activeGroup.pool.token.meta.tokenSymbol}`,
+                                  title: `Supply ${extendedPool.tokenBank.meta.tokenSymbol}`,
                                 }}
                               />
                             </DropdownMenuItem>
@@ -293,59 +277,60 @@ export const PoolTradeHeader = ({ activeGroup }: { activeGroup: GroupData }) => 
                                 lendProps={{
                                   connected: connected,
                                   requestedLendType: ActionType.Withdraw,
-                                  requestedBank: activeGroup.pool.token,
+                                  requestedBank: extendedPool.tokenBank,
                                   showAvailableCollateral: false,
                                   captureEvent: () => {
                                     capture("trade_withdraw_btn_click", {
-                                      group: activeGroup.client.group.address.toBase58(),
-                                      bank: activeGroup.pool.token.meta.tokenSymbol,
+                                      group: extendedPool.groupPk.toBase58(),
+                                      bank: extendedPool.tokenBank.meta.tokenSymbol,
                                     });
                                   },
                                   onComplete: () => {
-                                    fetchTradeState({
-                                      connection,
-                                      wallet,
+                                    refreshGroup({
+                                      groupPk: extendedPool.groupPk,
+                                      banks: [extendedPool.tokenBank.address, extendedPool.quoteBank.address],
                                     });
                                   },
                                 }}
                                 dialogProps={{
                                   trigger: <p>Withdraw</p>,
-                                  title: `Withdraw ${activeGroup.pool.token.meta.tokenSymbol}`,
+                                  title: `Withdraw ${extendedPool.tokenBank.meta.tokenSymbol}`,
                                 }}
                               />
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       ) : (
-                        !hasTradePosition && (
+                        extendedPool.status !== GroupStatus.LONG &&
+                        extendedPool.status !== GroupStatus.SHORT && (
                           <ActionBox.Lend
                             isDialog={true}
                             useProvider={true}
                             lendProps={{
                               connected: connected,
                               requestedLendType: ActionType.Deposit,
-                              requestedBank: activeGroup.pool.token,
+                              requestedBank: extendedPool.tokenBank,
                               showAvailableCollateral: false,
                               captureEvent: () => {
                                 capture("trade_supply_btn_click", {
-                                  group: activeGroup.client.group.address.toBase58(),
-                                  bank: activeGroup.pool.token.meta.tokenSymbol,
+                                  group: extendedPool.groupPk.toBase58(),
+                                  bank: extendedPool.tokenBank.meta.tokenSymbol,
                                 });
                               },
                               onComplete: () => {
-                                fetchTradeState({
-                                  connection,
-                                  wallet,
+                                refreshGroup({
+                                  groupPk: extendedPool.groupPk,
+                                  banks: [extendedPool.tokenBank.address, extendedPool.quoteBank.address],
                                 });
                               },
                             }}
                             dialogProps={{
                               trigger: (
-                                <Button variant="outline" size="sm">
+                                <Button variant="outline" className="gap-1 min-w-16">
                                   Supply
                                 </Button>
                               ),
-                              title: `Supply ${activeGroup.pool.token.meta.tokenSymbol}`,
+                              title: `Supply ${extendedPool.tokenBank.meta.tokenSymbol}`,
                             }}
                           />
                         )
@@ -354,90 +339,86 @@ export const PoolTradeHeader = ({ activeGroup }: { activeGroup: GroupData }) => 
                   </div>
                 </div>
                 <Mobile>
-                  {!hasTradePosition &&
-                  lpPosition?.token &&
-                  lpPosition.token.pool.token.isActive &&
-                  activeGroup.selectedAccount ? (
-                    <div className="mt-4">
-                      <div className="flex gap-4">
-                        <ActionBox.Lend
-                          isDialog={true}
-                          useProvider={true}
-                          lendProps={{
-                            connected: connected,
-                            requestedLendType: ActionType.Deposit,
-                            requestedBank: activeGroup.pool.token,
-                            showAvailableCollateral: false,
-                            captureEvent: () => {
-                              capture("trade_supply_btn_click", {
-                                group: activeGroup.client.group.address.toBase58(),
-                                bank: activeGroup.pool.token.meta.tokenSymbol,
-                              });
-                            },
-                            onComplete: () => {
-                              fetchTradeState({
-                                connection,
-                                wallet,
-                              });
-                            },
-                          }}
-                          dialogProps={{
-                            trigger: (
-                              <Button variant="outline" className="gap-1 min-w-16">
-                                Supply more
-                              </Button>
-                            ),
-                            title: `Supply ${activeGroup.pool.token.meta.tokenSymbol}`,
-                          }}
-                        />
-                        <ActionBox.Lend
-                          isDialog={true}
-                          useProvider={true}
-                          lendProps={{
-                            connected: connected,
-                            requestedLendType: ActionType.Withdraw,
-                            requestedBank: activeGroup.pool.token,
-                            showAvailableCollateral: false,
-                            captureEvent: () => {
-                              capture("trade_withdraw_btn_click", {
-                                group: activeGroup.client.group.address.toBase58(),
-                                bank: activeGroup.pool.token.meta.tokenSymbol,
-                              });
-                            },
-                            onComplete: () => {
-                              fetchTradeState({
-                                connection,
-                                wallet,
-                              });
-                            },
-                          }}
-                          dialogProps={{
-                            trigger: "Withdraw",
-                            title: `Withdraw ${activeGroup.pool.token.meta.tokenSymbol}`,
-                          }}
-                        />
-                      </div>
-                    </div>
-                  ) : (
-                    !hasTradePosition && (
+                  {extendedPool.status === GroupStatus.LP && extendedPool.tokenBank.isActive ? (
+                    <>
                       <ActionBox.Lend
                         isDialog={true}
                         useProvider={true}
                         lendProps={{
                           connected: connected,
                           requestedLendType: ActionType.Deposit,
-                          requestedBank: activeGroup.pool.token,
+                          requestedBank: extendedPool.tokenBank,
                           showAvailableCollateral: false,
                           captureEvent: () => {
                             capture("trade_supply_btn_click", {
-                              group: activeGroup.client.group.address.toBase58(),
-                              bank: activeGroup.pool.token.meta.tokenSymbol,
+                              group: extendedPool.groupPk.toBase58(),
+                              bank: extendedPool.tokenBank.meta.tokenSymbol,
                             });
                           },
                           onComplete: () => {
-                            fetchTradeState({
-                              connection,
-                              wallet,
+                            refreshGroup({
+                              groupPk: extendedPool.groupPk,
+                              banks: [extendedPool.tokenBank.address, extendedPool.quoteBank.address],
+                            });
+                          },
+                        }}
+                        dialogProps={{
+                          trigger: (
+                            <Button variant="outline" className="gap-1 min-w-16">
+                              Supply more
+                            </Button>
+                          ),
+                          title: `Supply ${extendedPool.tokenBank.meta.tokenSymbol}`,
+                        }}
+                      />
+                      <ActionBox.Lend
+                        isDialog={true}
+                        useProvider={true}
+                        lendProps={{
+                          connected: connected,
+                          requestedLendType: ActionType.Withdraw,
+                          requestedBank: extendedPool.tokenBank,
+                          showAvailableCollateral: false,
+                          captureEvent: () => {
+                            capture("trade_withdraw_btn_click", {
+                              group: extendedPool.groupPk.toBase58(),
+                              bank: extendedPool.tokenBank.meta.tokenSymbol,
+                            });
+                          },
+                          onComplete: () => {
+                            refreshGroup({
+                              groupPk: extendedPool.groupPk,
+                              banks: [extendedPool.tokenBank.address, extendedPool.quoteBank.address],
+                            });
+                          },
+                        }}
+                        dialogProps={{
+                          trigger: "Withdraw",
+                          title: `Withdraw ${extendedPool.tokenBank.meta.tokenSymbol}`,
+                        }}
+                      />
+                    </>
+                  ) : (
+                    extendedPool.status !== GroupStatus.LONG &&
+                    extendedPool.status !== GroupStatus.SHORT && (
+                      <ActionBox.Lend
+                        isDialog={true}
+                        useProvider={true}
+                        lendProps={{
+                          connected: connected,
+                          requestedLendType: ActionType.Deposit,
+                          requestedBank: extendedPool.tokenBank,
+                          showAvailableCollateral: false,
+                          captureEvent: () => {
+                            capture("trade_supply_btn_click", {
+                              group: extendedPool.groupPk.toBase58(),
+                              bank: extendedPool.tokenBank.meta.tokenSymbol,
+                            });
+                          },
+                          onComplete: () => {
+                            refreshGroup({
+                              groupPk: extendedPool.groupPk,
+                              banks: [extendedPool.tokenBank.address, extendedPool.quoteBank.address],
                             });
                           },
                         }}
@@ -447,7 +428,7 @@ export const PoolTradeHeader = ({ activeGroup }: { activeGroup: GroupData }) => 
                               Supply
                             </Button>
                           ),
-                          title: `Supply ${activeGroup.pool.token.meta.tokenSymbol}`,
+                          title: `Supply ${extendedPool.tokenBank.meta.tokenSymbol}`,
                         }}
                       />
                     )
@@ -456,51 +437,45 @@ export const PoolTradeHeader = ({ activeGroup }: { activeGroup: GroupData }) => 
               </div>
               <div className="flex flex-row justify-between space-y-2 lg:block">
                 <div className="flex items-start gap-2">
-                  <Image
-                    src={activeGroup.pool.quoteTokens[0].meta.tokenLogoUri}
-                    alt={activeGroup.pool.quoteTokens[0].meta.tokenSymbol}
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={extendedPool.quoteBank.meta.tokenLogoUri}
+                    alt={extendedPool.quoteBank.meta.tokenSymbol}
                     width={32}
                     height={32}
-                    className="bg-background border rounded-full translate-y-0.5"
+                    className="bg-background border rounded-full w-[32px] h-[32px] object-cover translate-y-0.5"
                   />
                   <div className="leading-tight text-sm">
                     <p>
                       Total Deposits
-                      <br />({activeGroup.pool.quoteTokens[0].meta.tokenSymbol})
+                      <br />({extendedPool.quoteBank.meta.tokenSymbol})
                     </p>
                     <p className="text-mrgn-success">
-                      {percentFormatter.format(aprToApy(activeGroup.pool.quoteTokens[0].info.state.lendingRate))}
+                      {percentFormatter.format(aprToApy(extendedPool.quoteBank.info.state.lendingRate))}
                     </p>
-                    {!hasTradePosition &&
-                      lpPosition?.quoteToken &&
-                      lpPosition.quoteToken.pool.quoteTokens[0].isActive &&
-                      activeGroup.selectedAccount && <p className="mt-2 lg:hidden">Supplied</p>}
+                    {extendedPool.status === GroupStatus.LP && extendedPool.tokenBank.isActive && (
+                      <p className="mt-2 lg:hidden">Supplied</p>
+                    )}
                   </div>
                 </div>
                 <div className="flex flex-col gap-2 lg:items-start lg:justify-start">
                   <p className="text-right lg:text-left lg:text-2xl">
                     {usdFormatter.format(
-                      activeGroup.pool.quoteTokens[0].info.state.totalDeposits *
-                        activeGroup.pool.quoteTokens[0].info.oraclePrice.priceRealtime.price.toNumber()
+                      extendedPool.quoteBank.info.state.totalDeposits *
+                        extendedPool.quoteBank.info.oraclePrice.priceRealtime.price.toNumber()
                     )}
                   </p>
-                  {!hasTradePosition &&
-                    lpPosition?.quoteToken &&
-                    lpPosition.quoteToken.pool.quoteTokens[0].isActive &&
-                    activeGroup.selectedAccount && (
-                      <p className="mt-5 text-right lg:text-left lg:hidden">
-                        {usdFormatter.format(lpPosition.quoteToken.pool.quoteTokens[0].position.amount)}
-                      </p>
-                    )}
+                  {extendedPool.status === GroupStatus.LP && extendedPool.tokenBank.isActive && (
+                    <p className="mt-5 text-right lg:text-left lg:hidden">
+                      {usdFormatter.format(extendedPool.tokenBank.position.amount)}
+                    </p>
+                  )}
                   <Desktop>
-                    {!hasTradePosition &&
-                    lpPosition?.quoteToken &&
-                    lpPosition.quoteToken.pool.quoteTokens[0].isActive &&
-                    activeGroup.selectedAccount ? (
+                    {extendedPool.status === GroupStatus.LP && extendedPool.tokenBank.isActive ? (
                       <DropdownMenu>
                         <DropdownMenuTrigger className="focus:outline-none focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0">
                           <Button size="sm" variant="outline" className="px-2 py-1.5 h-auto lg:px-4 lg:py-2">
-                            Supplied {numeralFormatter(lpPosition.quoteToken.pool.quoteTokens[0].position.amount)}
+                            Supplied {numeralFormatter(extendedPool.tokenBank.position.amount)}
                             <div className="border-l pl-2 ml-1">
                               <IconChevronDown size={14} />
                             </div>
@@ -514,24 +489,24 @@ export const PoolTradeHeader = ({ activeGroup }: { activeGroup: GroupData }) => 
                               lendProps={{
                                 connected: connected,
                                 requestedLendType: ActionType.Deposit,
-                                requestedBank: activeGroup.pool.quoteTokens[0],
+                                requestedBank: extendedPool.quoteBank,
                                 showAvailableCollateral: false,
                                 captureEvent: () => {
                                   capture("trade_supply_btn_click", {
-                                    group: activeGroup.client.group.address.toBase58(),
-                                    bank: activeGroup.pool.quoteTokens[0].meta.tokenSymbol,
+                                    group: extendedPool.groupPk.toBase58(),
+                                    bank: extendedPool.quoteBank.meta.tokenSymbol,
                                   });
                                 },
                                 onComplete: () => {
-                                  fetchTradeState({
-                                    connection,
-                                    wallet,
+                                  refreshGroup({
+                                    groupPk: extendedPool.groupPk,
+                                    banks: [extendedPool.tokenBank.address, extendedPool.quoteBank.address],
                                   });
                                 },
                               }}
                               dialogProps={{
                                 trigger: <p>Supply more</p>,
-                                title: `Supply ${activeGroup.pool.quoteTokens[0].meta.tokenSymbol}`,
+                                title: `Supply ${extendedPool.quoteBank.meta.tokenSymbol}`,
                               }}
                             />
                           </DropdownMenuItem>
@@ -542,48 +517,50 @@ export const PoolTradeHeader = ({ activeGroup }: { activeGroup: GroupData }) => 
                               lendProps={{
                                 connected: connected,
                                 requestedLendType: ActionType.Withdraw,
-                                requestedBank: activeGroup.pool.quoteTokens[0],
+                                requestedBank: extendedPool.quoteBank,
                                 showAvailableCollateral: false,
                                 captureEvent: () => {
                                   capture("trade_withdraw_btn_click", {
-                                    group: activeGroup.client.group.address.toBase58(),
-                                    bank: activeGroup.pool.quoteTokens[0].meta.tokenSymbol,
+                                    group: extendedPool.groupPk.toBase58(),
+                                    bank: extendedPool.quoteBank.meta.tokenSymbol,
                                   });
                                 },
                                 onComplete: () => {
-                                  fetchTradeState({
-                                    connection,
-                                    wallet,
+                                  refreshGroup({
+                                    groupPk: extendedPool.groupPk,
+                                    banks: [extendedPool.tokenBank.address, extendedPool.quoteBank.address],
                                   });
                                 },
                               }}
                               dialogProps={{
                                 trigger: <p>Withdraw</p>,
-                                title: `Withdraw ${activeGroup.pool.quoteTokens[0].meta.tokenSymbol}`,
+                                title: `Withdraw ${extendedPool.quoteBank.meta.tokenSymbol}`,
                               }}
                             />
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     ) : (
-                      !hasTradePosition && (
+                      extendedPool.status !== GroupStatus.LONG &&
+                      extendedPool.status !== GroupStatus.SHORT && (
                         <ActionBox.Lend
                           isDialog={true}
                           useProvider={true}
                           lendProps={{
                             connected: connected,
                             requestedLendType: ActionType.Deposit,
-                            requestedBank: activeGroup.pool.quoteTokens[0],
+                            requestedBank: extendedPool.quoteBank,
                             showAvailableCollateral: false,
                             captureEvent: () => {
                               capture("trade_supply_btn_click", {
-                                group: activeGroup.client.group.address.toBase58(),
-                                bank: activeGroup.pool.quoteTokens[0].meta.tokenSymbol,
+                                group: extendedPool.groupPk.toBase58(),
+                                bank: extendedPool.quoteBank.meta.tokenSymbol,
                               });
                             },
                             onComplete: () => {
-                              fetchTradeState({
-                                connection,
+                              refreshGroup({
+                                groupPk: extendedPool.groupPk,
+                                banks: [extendedPool.tokenBank.address, extendedPool.quoteBank.address],
                                 wallet,
                               });
                             },
@@ -594,7 +571,7 @@ export const PoolTradeHeader = ({ activeGroup }: { activeGroup: GroupData }) => 
                                 Supply
                               </Button>
                             ),
-                            title: `Supply ${activeGroup.pool.quoteTokens[0].meta.tokenSymbol}`,
+                            title: `Supply ${extendedPool.quoteBank.meta.tokenSymbol}`,
                           }}
                         />
                       )
@@ -602,11 +579,14 @@ export const PoolTradeHeader = ({ activeGroup }: { activeGroup: GroupData }) => 
                   </Desktop>
                 </div>
               </div>
+              <Desktop>
+                <div className="grid grid-cols-2 lg:block">
+                  <p className="text-sm text-muted-foreground">Funding rate (long/short)</p>
+                  <p className="text-sm text-right lg:text-left lg:text-2xl">{fundingRate}</p>
+                </div>
+              </Desktop>
               <Mobile>
-                {!hasTradePosition &&
-                lpPosition?.quoteToken &&
-                lpPosition.quoteToken.pool.quoteTokens[0].isActive &&
-                activeGroup.selectedAccount ? (
+                {extendedPool.status === GroupStatus.LP ? (
                   <div>
                     <div className="flex gap-4">
                       <ActionBox.Lend
@@ -615,17 +595,18 @@ export const PoolTradeHeader = ({ activeGroup }: { activeGroup: GroupData }) => 
                         lendProps={{
                           connected: connected,
                           requestedLendType: ActionType.Deposit,
-                          requestedBank: activeGroup.pool.quoteTokens[0],
+                          requestedBank: extendedPool.quoteBank,
                           showAvailableCollateral: false,
                           captureEvent: () => {
                             capture("trade_supply_btn_click", {
-                              group: activeGroup.client.group.address.toBase58(),
-                              bank: activeGroup.pool.quoteTokens[0].meta.tokenSymbol,
+                              group: extendedPool.groupPk.toBase58(),
+                              bank: extendedPool.quoteBank.meta.tokenSymbol,
                             });
                           },
                           onComplete: () => {
-                            fetchTradeState({
-                              connection,
+                            refreshGroup({
+                              groupPk: extendedPool.groupPk,
+                              banks: [extendedPool.tokenBank.address, extendedPool.quoteBank.address],
                               wallet,
                             });
                           },
@@ -636,7 +617,7 @@ export const PoolTradeHeader = ({ activeGroup }: { activeGroup: GroupData }) => 
                               Supply more
                             </Button>
                           ),
-                          title: `Supply ${activeGroup.pool.quoteTokens[0].meta.tokenSymbol}`,
+                          title: `Supply ${extendedPool.quoteBank.meta.tokenSymbol}`,
                         }}
                       />
                       <ActionBox.Lend
@@ -645,17 +626,18 @@ export const PoolTradeHeader = ({ activeGroup }: { activeGroup: GroupData }) => 
                         lendProps={{
                           connected: connected,
                           requestedLendType: ActionType.Withdraw,
-                          requestedBank: activeGroup.pool.quoteTokens[0],
+                          requestedBank: extendedPool.quoteBank,
                           showAvailableCollateral: false,
                           captureEvent: () => {
                             capture("trade_withdraw_btn_click", {
-                              group: activeGroup.client.group.address.toBase58(),
-                              bank: activeGroup.pool.quoteTokens[0].meta.tokenSymbol,
+                              group: extendedPool.groupPk.toBase58(),
+                              bank: extendedPool.quoteBank.meta.tokenSymbol,
                             });
                           },
                           onComplete: () => {
-                            fetchTradeState({
-                              connection,
+                            refreshGroup({
+                              groupPk: extendedPool.groupPk,
+                              banks: [extendedPool.tokenBank.address, extendedPool.quoteBank.address],
                               wallet,
                             });
                           },
@@ -666,41 +648,43 @@ export const PoolTradeHeader = ({ activeGroup }: { activeGroup: GroupData }) => 
                               Withdraw
                             </Button>
                           ),
-                          title: `Withdraw ${activeGroup.pool.quoteTokens[0].meta.tokenSymbol}`,
+                          title: `Withdraw ${extendedPool.quoteBank.meta.tokenSymbol}`,
                         }}
                       />
                     </div>
                   </div>
                 ) : (
-                  !hasTradePosition && (
+                  extendedPool.status !== GroupStatus.LONG &&
+                  extendedPool.status !== GroupStatus.SHORT && (
                     <ActionBox.Lend
                       isDialog={true}
                       useProvider={true}
                       lendProps={{
                         connected: connected,
                         requestedLendType: ActionType.Deposit,
-                        requestedBank: activeGroup.pool.quoteTokens[0],
+                        requestedBank: extendedPool.quoteBank,
                         showAvailableCollateral: false,
                         captureEvent: () => {
                           capture("trade_supply_btn_click", {
-                            group: activeGroup.client.group.address.toBase58(),
-                            bank: activeGroup.pool.quoteTokens[0].meta.tokenSymbol,
+                            group: extendedPool.groupPk.toBase58(),
+                            bank: extendedPool.quoteBank.meta.tokenSymbol,
                           });
                         },
                         onComplete: () => {
-                          fetchTradeState({
-                            connection,
+                          refreshGroup({
+                            groupPk: extendedPool.groupPk,
+                            banks: [extendedPool.tokenBank.address, extendedPool.quoteBank.address],
                             wallet,
                           });
                         },
                       }}
                       dialogProps={{
                         trigger: (
-                          <Button variant="outline" className="gap-1 min-w-16">
+                          <Button variant="outline" size="sm">
                             Supply
                           </Button>
                         ),
-                        title: `Supply ${activeGroup.pool.quoteTokens[0].meta.tokenSymbol}`,
+                        title: `Supply ${extendedPool.quoteBank.meta.tokenSymbol}`,
                       }}
                     />
                   )
@@ -709,25 +693,6 @@ export const PoolTradeHeader = ({ activeGroup }: { activeGroup: GroupData }) => 
             </div>
           </div>
         </div>
-        {hasTradePosition && (
-          <Mobile>
-            <div className="mt-8 space-y-2">
-              <p className="flex items-center text-sm">
-                <span
-                  className={cn(
-                    "flex w-2.5 h-2.5 rounded-full mr-2",
-                    activeGroup.pool.token.isActive && activeGroup.pool.token.position.isLending
-                      ? "bg-mrgn-green"
-                      : "bg-mrgn-error"
-                  )}
-                ></span>
-                Open {activeGroup.pool.token.isActive && activeGroup.pool.token.position.isLending ? "long " : "short "}
-                position
-              </p>
-              <PositionCard groupData={activeGroup} size="sm" />
-            </div>
-          </Mobile>
-        )}
       </div>
     </ActionBoxProvider>
   );

@@ -31,6 +31,7 @@ const bank: BankConfigOpt = {
     insuranceIrFee: new BigNumber(0),
     protocolFixedFeeApr: new BigNumber(0.01),
     protocolIrFee: new BigNumber(0.05),
+    protocolOriginationFee: new BigNumber(0),
   },
   operationalState: OperationalState.Operational,
 

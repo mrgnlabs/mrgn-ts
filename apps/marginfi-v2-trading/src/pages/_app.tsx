@@ -1,6 +1,6 @@
 import React from "react";
 
-import App, { AppContext, AppInitialProps, AppProps } from "next/app";
+import { AppProps } from "next/app";
 import { useRouter } from "next/router";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
@@ -10,8 +10,7 @@ import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
 import { TipLinkWalletAutoConnect } from "@tiplink/wallet-adapter-react-ui";
 import { ToastContainer } from "react-toastify";
 import { Analytics } from "@vercel/analytics/react";
-import { BankMetadataRaw } from "@mrgnlabs/mrgn-common";
-import { DEFAULT_MAX_CAP, Desktop, Mobile, init as initAnalytics } from "@mrgnlabs/mrgn-utils";
+import { Desktop, Mobile, init as initAnalytics } from "@mrgnlabs/mrgn-utils";
 import { ActionProvider } from "~/components/action-box-v2";
 import { generateEndpoint } from "~/rpc.utils";
 
@@ -19,7 +18,6 @@ import config from "~/config";
 import { useUiStore } from "~/store";
 import { TradePovider } from "~/context";
 import { WALLET_ADAPTERS } from "~/config/wallets";
-import { BANK_METADATA_MAP } from "~/config/trade";
 import { WalletProvider as MrgnWalletProvider } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { ConnectionProvider } from "~/hooks/use-connection";
 
@@ -31,13 +29,29 @@ import { Footer } from "~/components/desktop/Footer";
 
 import "react-toastify/dist/ReactToastify.min.css";
 import { AuthDialog } from "~/components/wallet-v2";
+import { StaticArenaProps } from "~/utils";
+import { getArenaStaticProps } from "~/utils";
+import { GetStaticProps } from "next";
 
 require("~/styles/globals.css");
 require("~/styles/fonts.css");
 
-type MrgnAppProps = { path: string; bank: BankMetadataRaw | null };
+export const getStaticProps: GetStaticProps<StaticArenaProps> = async (context) => {
+  return getArenaStaticProps(context);
+};
 
-export default function MrgnApp({ Component, pageProps, path, bank }: AppProps & MrgnAppProps) {
+export default function MrgnApp({ Component, pageProps }: AppProps & StaticArenaProps) {
+  const { metadata } = pageProps || {};
+  const defaultMetadata = {
+    title: "The Arena - Memecoin trading with leverage",
+    description: "Memecoin trading, with leverage.",
+    image: "/metadata/metadata-image-default.png",
+  };
+  const finalMetadata = {
+    ...defaultMetadata,
+    ...metadata,
+  };
+
   const { query, isReady } = useRouter();
   const [ready, setReady] = React.useState(false);
   const [rpcEndpoint, setRpcEndpoint] = React.useState("");
@@ -45,19 +59,25 @@ export default function MrgnApp({ Component, pageProps, path, bank }: AppProps &
   const [broadcastType, priorityFees] = useUiStore((state) => [state.broadcastType, state.priorityFees]);
 
   React.useEffect(() => {
-    const init = async () => {
-      const rpcEndpoint = await generateEndpoint(config.rpcEndpoint, process.env.NEXT_PUBLIC_RPC_PROXY_KEY ?? "");
-      setRpcEndpoint(rpcEndpoint);
-      setReady(true);
-      initAnalytics();
+    const initializeApp = () => {
+      try {
+        const endpoint = generateEndpoint(config.rpcEndpoint, process.env.NEXT_PUBLIC_RPC_PROXY_KEY ?? "");
+
+        setRpcEndpoint(endpoint);
+        setReady(true);
+        initAnalytics();
+      } catch (error) {
+        console.error("Failed to initialize:", error);
+      }
     };
 
-    init();
+    initializeApp();
   }, []);
 
   return (
     <>
-      <Meta path={path} bank={bank} />
+      <Meta finalMetadata={finalMetadata} />
+
       {ready && rpcEndpoint && (
         <ConnectionProvider endpoint={rpcEndpoint}>
           <TipLinkWalletAutoConnect isReady={isReady} query={query}>
@@ -67,7 +87,6 @@ export default function MrgnApp({ Component, pageProps, path, bank }: AppProps &
                   <ActionProvider broadcastType={broadcastType} priorityFees={priorityFees}>
                     <div className="mrgn-bg-gradient">
                       <Header />
-
                       <Desktop>
                         <WalletModalProvider>
                           <div className="w-full flex flex-col justify-center items-center">
@@ -106,19 +125,3 @@ export default function MrgnApp({ Component, pageProps, path, bank }: AppProps &
     </>
   );
 }
-
-MrgnApp.getInitialProps = async (appContext: AppContext): Promise<AppInitialProps & MrgnAppProps> => {
-  const appProps = await App.getInitialProps(appContext);
-  const path = appContext.ctx.asPath;
-  let bank = null;
-
-  if (path && path.includes("/trade")) {
-    const cleanPath = path.split("?")[0];
-    const groupAddress = cleanPath.split("/trade/")[1];
-    const res = await fetch(BANK_METADATA_MAP);
-    const data = await res.json();
-    bank = data.find((bank: BankMetadataRaw) => bank.groupAddress === groupAddress);
-  }
-
-  return { ...appProps, path: path || "/", bank };
-};

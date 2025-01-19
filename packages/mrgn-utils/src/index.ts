@@ -19,3 +19,4 @@ export * from "./sentry.utils";
 export * from "./emissions.consts";
 export * from "./rpc.utils";
 export * from "./transaction.utils";
+export * from "./slippage.consts";

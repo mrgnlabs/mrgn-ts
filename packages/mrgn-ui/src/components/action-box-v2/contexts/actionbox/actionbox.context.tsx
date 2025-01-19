@@ -37,6 +37,12 @@ export const ActionBoxProvider: React.FC<ActionBoxContextType & { children: Reac
     state.setPreviousTxn,
   ]);
 
+  React.useEffect(() => {
+    if (previousTxn && isActionComplete && !showActionComplete) {
+      setIsActionComplete(false);
+    }
+  }, [isActionComplete, previousTxn, showActionComplete]);
+
   return (
     <ActionBoxContext.Provider value={props}>
       {children}

@@ -14,7 +14,7 @@ type SelectedBankItemProps = {
 export const SelectedBankItem = ({ rate, bank, lendingMode }: SelectedBankItemProps) => {
   return (
     <>
-      <Image src={bank.meta.tokenLogoUri} alt={bank.meta.tokenName} width={30} height={30} className="rounded-full" />
+      <img src={bank.meta.tokenLogoUri} alt={bank.meta.tokenName} width={30} height={30} className="rounded-full" />
       <div className="flex flex-col gap-1 mr-auto xs:mr-0 min-w-14">
         <p className="leading-none text-sm">{bank.meta.tokenSymbol}</p>
         {lendingMode && rate && (

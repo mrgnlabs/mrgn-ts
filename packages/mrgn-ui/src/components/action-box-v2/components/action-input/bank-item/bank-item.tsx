@@ -55,7 +55,7 @@ export const BankItem = ({
   return (
     <>
       <div className="flex items-center gap-3">
-        <Image src={bank.meta.tokenLogoUri} alt={bank.meta.tokenName} width={28} height={28} className="rounded-full" />
+        <img src={bank.meta.tokenLogoUri} alt={bank.meta.tokenName} width={28} height={28} className="rounded-full" />
         <div>
           <p className="flex items-center">
             {bank.meta.tokenSymbol}

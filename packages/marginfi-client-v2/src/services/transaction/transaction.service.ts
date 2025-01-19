@@ -268,9 +268,10 @@ export async function processTransactions({
 
       const simulateTxs = async () =>
         await simulateTransactions(processOpts, connection, versionedTransactions, mergedOpts);
-      const sendTxBundleGrpc = async (throwError: boolean) => await sendTransactionAsGrpcBundle(base58Txs, throwError);
+      const sendTxBundleGrpc = async (throwError: boolean) =>
+        await sendTransactionAsGrpcBundle(connection, base58Txs, throwError);
       const sendTxBundleApi = async (throwError: boolean, bundleId?: string) =>
-        await sendTransactionAsBundle(base58Txs, throwError, bundleId);
+        await sendTransactionAsBundle(connection, base58Txs, throwError, bundleId);
       const sendTxBundleRpc = async () =>
         await sendTransactionAsBundleRpc({
           versionedTransactions,
@@ -296,7 +297,7 @@ export async function processTransactions({
           case "GRPC_BUNDLE":
             // always throw error, this is temporary as bundle already processed isn't catched well
             sig = await sendTxBundleGrpc(true).catch((error) => {
-              if (error instanceof SendBundleError) {
+              if (error?.bundleId) {
                 temporaryBundleSignature = error.bundleId;
               }
 
@@ -474,6 +475,52 @@ const dryRunTransaction = async (
 };
 
 // expo
+
+export async function confirmBundle(connection: Connection, bundleId: string, commitment: Commitment = "confirmed") {
+  const getStatus = async () => {
+    let attempts = 0;
+    const maxAttempts = 5;
+
+    while (attempts < maxAttempts) {
+      await sleep(2000);
+      attempts += 1;
+
+      const getBundleStatus = await fetch("https://mainnet.block-engine.jito.wtf/api/v1/bundles", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          jsonrpc: "2.0",
+          id: 1,
+          method: "getBundleStatuses",
+          params: [[bundleId]],
+        }),
+      });
+
+      const bundleStatus = await getBundleStatus.json();
+      if (bundleStatus.result.value) {
+        if (bundleStatus.result.value[0].bundle_id) {
+          const commitmentStatus = bundleStatus.result.value[0].confirmation_status;
+
+          if (commitmentStatus === "confirmed") {
+            return bundleId;
+          }
+        }
+      }
+
+      console.log("🔄 Waiting for confirmation...");
+    }
+    console.log("❌ Transaction failed to confirm in time.");
+    throw new Error("Transaction failed to confirm in time.");
+  };
+
+  const result = await Promise.race([getStatus(), setTimeoutPromise(20000, `Transaction failed to confirm in time.`)]);
+
+  if (result instanceof Error) {
+    throw result;
+  }
+
+  return result;
+}
 
 export async function confirmTransaction(
   connection: Connection,

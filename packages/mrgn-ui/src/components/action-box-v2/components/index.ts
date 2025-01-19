@@ -5,3 +5,4 @@ export * from "./action-button";
 export * from "./action-wrappers";
 export * from "./action-settings-button";
 export * from "./action-simulation-status";
+export * from "./action-collateral-progress-bar";

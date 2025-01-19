@@ -9,6 +9,8 @@ import { Button } from "~/components/ui/button";
 
 interface props extends AuthScreenProps {}
 
+const appId = process.env.NEXT_PUBLIC_APP_ID === "marginfi-v2-ui" ? "marginfi" : "arena";
+
 export const InAppSignIn = ({ isLoading, select, update, onClose }: props) => {
   const { connected } = useWallet();
   const browser = useBrowser();
@@ -48,9 +50,18 @@ export const InAppSignIn = ({ isLoading, select, update, onClose }: props) => {
 
   return (
     <div className="pt-6 font-normal">
-      <OnboardHeader title={"Sign in to marginfi"} description={"Earn yield, permissionlessly."} />
+      <OnboardHeader
+        title={appId === "marginfi" ? "Sign in to marginfi" : "Enter The Arena"}
+        description={appId === "marginfi" ? "Earn yield, permissionlessly." : "Memecoin trading, with leverage."}
+      />
       <ScreenWrapper>
-        <Button size="lg" className="mt-2 text-lg font-medium h-12" disabled={isLoading} onClick={inAppWallet.connect}>
+        <Button
+          variant={appId === "arena" ? "outline" : "default"}
+          size="lg"
+          className="mt-2 text-lg font-medium h-12"
+          disabled={isLoading}
+          onClick={inAppWallet.connect}
+        >
           {isLoading ? <IconLoader /> : inAppWallet.icon} {inAppWallet.description}
         </Button>
         <WalletSeperator description={"more sign in options"} onClick={() => update("RETURNING_USER")} />

@@ -1,12 +1,11 @@
 import React from "react";
 
 import Link from "next/link";
-import Image from "next/image";
 
 import { IconExternalLink } from "@tabler/icons-react";
 import { ActionType, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { shortenAddress } from "@mrgnlabs/mrgn-common";
-import { cn } from "@mrgnlabs/mrgn-utils";
+import { cn, composeExplorerUrl } from "@mrgnlabs/mrgn-utils";
 
 import { useAssetItemData } from "~/hooks/useAssetItemData";
 
@@ -39,7 +38,7 @@ export const LendingScreen = ({ amount, bank, type, txn }: Props) => {
             {amount} {bank?.meta.tokenSymbol}
           </h3>
           {bank && (
-            <Image
+            <img
               className="rounded-full w-9 h-9"
               src={bank.meta.tokenLogoUri}
               alt={(bank?.meta.tokenSymbol || "Token") + "  logo"}
@@ -63,7 +62,7 @@ export const LendingScreen = ({ amount, bank, type, txn }: Props) => {
         <dt>Transaction</dt>
         <dd className="text-right">
           <Link
-            href={`https://solscan.io/tx/${txn}`}
+            href={composeExplorerUrl(txn) ?? ""}
             className="flex items-center justify-end gap-1.5 text-foreground text-sm underline hover:no-underline"
             target="_blank"
             rel="noopener noreferrer"
