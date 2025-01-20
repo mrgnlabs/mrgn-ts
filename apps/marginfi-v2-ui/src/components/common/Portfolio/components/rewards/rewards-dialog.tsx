@@ -1,4 +1,5 @@
 import React from "react";
+import Image from "next/image";
 
 import { DialogProps } from "@radix-ui/react-dialog";
 
@@ -6,9 +7,10 @@ import { dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "~/components/ui/dialog";
 import { Button } from "~/components/ui/button";
-import { IconLoader } from "~/components/ui/icons";
+import { IconInfoCircle, IconLoader } from "~/components/ui/icons";
 
 import { RewardsType } from "../../types";
+import Link from "next/link";
 
 interface RewardsDialogProps extends DialogProps {
   availableRewards: RewardsType;
@@ -26,23 +28,44 @@ export const RewardsDialog: React.FC<RewardsDialogProps> = ({
 }) => {
   return (
     <Dialog {...props}>
-      <DialogContent className="md:flex md:gap-6 text-muted-foreground">
+      <DialogContent className="md:flex md:gap-6">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-normal">Collect Rewards</DialogTitle>
-          <DialogDescription>You have rewards available for collection, review and collect below.</DialogDescription>
+          <DialogTitle className="text-3xl font-medium">Collect Rewards</DialogTitle>
+          <DialogDescription className="text-muted-foreground text-sm" asChild>
+            <div className="flex flex-col gap-6 items-center">
+              <p>
+                You have rewards available for collection. Rewards are automatically collected every 24 hours and can be
+                manually claimed at any time.
+              </p>
+              <Link href="/emissions" className="text-primary flex items-center gap-1m">
+                <Button variant="secondary" size="sm">
+                  <IconInfoCircle size={16} /> Learn more about emissions schedules
+                </Button>
+              </Link>
+            </div>
+          </DialogDescription>
         </DialogHeader>
-        <ul className="list-disc list-inside text-h4">
-          {availableRewards?.rewards.map((reward, idx) => (
-            <li key={idx} className="flex items-center space-x-2">
-              <span className="w-2 h-2 bg-gray-400 rounded-full inline-block" />
-              <span className="text-lg font-medium">{`${dynamicNumeralFormatter(reward.amount, {
-                tokenPrice: reward.bank.info.oraclePrice.priceRealtime.price.toNumber(),
-              })} ${reward.bank.meta.tokenSymbol}`}</span>
-            </li>
-          ))}
-        </ul>
-        <Button disabled={isLoading} onClick={onCollect}>
-          {isLoading ? <IconLoader size={24} /> : "Collect"}
+        <div className="flex flex-col gap-2 items-center">
+          <h3 className="text-lg text-muted-foreground">Your rewards</h3>
+          <ul className="list-inside">
+            {availableRewards?.rewards.map((reward, idx) => (
+              <li key={idx} className="flex items-center space-x-2">
+                <Image
+                  src={reward.bank.meta.tokenLogoUri}
+                  alt={reward.bank.meta.tokenSymbol}
+                  width={24}
+                  height={24}
+                  className="rounded-full"
+                />
+                <span className="text-lg font-medium">{`${dynamicNumeralFormatter(reward.amount, {
+                  tokenPrice: reward.bank.info.oraclePrice.priceRealtime.price.toNumber(),
+                })} ${reward.bank.meta.tokenSymbol}`}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <Button disabled={isLoading} onClick={onCollect} className="max-w-fit mx-auto px-8">
+          {isLoading ? <IconLoader size={24} /> : "Claim Rewards"}
         </Button>
       </DialogContent>
     </Dialog>
