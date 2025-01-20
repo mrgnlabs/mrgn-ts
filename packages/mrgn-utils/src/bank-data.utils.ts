@@ -14,6 +14,7 @@ export interface AssetData {
 
 export interface RateData {
   emissionRate: number;
+  emissionsRemaining: number;
   lendingRate: number;
   rateAPY: number;
   symbol: string;
@@ -76,7 +77,8 @@ export const getAssetData = (asset: ExtendedBankMetadata): AssetData => ({
 });
 
 export const getRateData = (bank: ExtendedBankInfo, isInLendingMode: boolean): RateData => {
-  const { lendingRate, borrowingRate, emissions, emissionsRate } = bank.info.state;
+  const { lendingRate, borrowingRate, emissionsRate, emissions } = bank.info.state;
+  const { emissionsRemaining } = bank.info.rawBank;
 
   const interestRate = isInLendingMode ? lendingRate : borrowingRate;
   const emissionRate = isInLendingMode
@@ -93,6 +95,7 @@ export const getRateData = (bank: ExtendedBankInfo, isInLendingMode: boolean): R
 
   return {
     emissionRate,
+    emissionsRemaining: emissionsRemaining.toNumber(),
     lendingRate,
     rateAPY,
     symbol: bank.meta.tokenSymbol,
