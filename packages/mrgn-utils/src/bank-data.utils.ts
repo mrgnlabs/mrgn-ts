@@ -78,7 +78,11 @@ export const getAssetData = (asset: ExtendedBankMetadata): AssetData => ({
 
 export const getRateData = (bank: ExtendedBankInfo, isInLendingMode: boolean): RateData => {
   const { lendingRate, borrowingRate, emissionsRate, emissions } = bank.info.state;
-  const { emissionsRemaining } = bank.info.rawBank;
+  let emissionsRemaining = nativeToUi(bank.info.rawBank.emissionsRemaining, bank.info.rawBank.mintDecimals);
+
+  if (emissionsRemaining > Number.MAX_SAFE_INTEGER) {
+    emissionsRemaining = Number.MAX_SAFE_INTEGER;
+  } // --WARNING-- : this is to prevent the number from being too large to be cast to a number. If we want to use this number in the future, we need to find a better solution.
 
   const interestRate = isInLendingMode ? lendingRate : borrowingRate;
   const emissionRate = isInLendingMode
@@ -95,7 +99,7 @@ export const getRateData = (bank: ExtendedBankInfo, isInLendingMode: boolean): R
 
   return {
     emissionRate,
-    emissionsRemaining: emissionsRemaining.toNumber(),
+    emissionsRemaining: emissionsRemaining,
     lendingRate,
     rateAPY,
     symbol: bank.meta.tokenSymbol,
