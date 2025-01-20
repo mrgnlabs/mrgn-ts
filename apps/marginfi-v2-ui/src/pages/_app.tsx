@@ -46,10 +46,9 @@ const Footer = dynamic(async () => (await import("~/components/desktop/Footer"))
 type MrgnAppProps = { path: string };
 
 export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnAppProps) {
-  const [broadcastType, priorityFees, isOraclesStale, setIsFetchingData] = useUiStore((state) => [
+  const [broadcastType, priorityFees, setIsFetchingData] = useUiStore((state) => [
     state.broadcastType,
     state.priorityFees,
-    state.isOraclesStale,
     state.setIsFetchingData,
   ]);
   const [
@@ -113,12 +112,7 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
 
                         <Desktop>
                           <WalletModalProvider>
-                            <div
-                              className={cn(
-                                "w-full flex flex-col justify-center items-center",
-                                isOraclesStale && "pt-10"
-                              )}
-                            >
+                            <div className={cn("w-full flex flex-col justify-center items-center")}>
                               <Component {...pageProps} />
                             </div>
                             <Footer />
@@ -126,12 +120,7 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
                         </Desktop>
 
                         <Mobile>
-                          <div
-                            className={cn(
-                              "w-full flex flex-col justify-center items-center",
-                              isOraclesStale && "pt-16"
-                            )}
-                          >
+                          <div className={cn("w-full flex flex-col justify-center items-center")}>
                             <Component {...pageProps} />
                           </div>
                           <MobileNavbar />
