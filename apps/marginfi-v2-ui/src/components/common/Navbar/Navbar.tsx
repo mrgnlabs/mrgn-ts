@@ -5,8 +5,8 @@ import Image from "next/image";
 import { useRouter } from "next/router";
 import { IconBell, IconBrandTelegram, IconSettings } from "@tabler/icons-react";
 
-import { capture } from "@mrgnlabs/mrgn-utils";
-import { Settings, Wallet } from "@mrgnlabs/mrgn-ui";
+import { cn, capture } from "@mrgnlabs/mrgn-utils";
+import { ResponsiveSettingsWrapper, Settings, Wallet } from "@mrgnlabs/mrgn-ui";
 
 import { useMrgnlendStore, useUiStore, useUserProfileStore } from "~/store";
 import { useFirebaseAccount } from "~/hooks/useFirebaseAccount";
@@ -20,6 +20,7 @@ import { IconMrgn } from "~/components/ui/icons";
 // @todo implement second pretty navbar row
 export const Navbar: FC = () => {
   useFirebaseAccount();
+  const [settingsDialogOpen, setSettingsDialogOpen] = React.useState(false);
 
   const { connection } = useConnection();
   const router = useRouter();
@@ -192,6 +193,19 @@ export const Navbar: FC = () => {
                   />
                 </PopoverContent>
               </Popover>
+              <ResponsiveSettingsWrapper
+                onChange={(settings) => setTransactionSettings(settings, connection)}
+                broadcastType={broadcastType}
+                priorityType={priorityType}
+                maxCap={maxCap}
+                maxCapType={maxCapType}
+                settingsDialogOpen={settingsDialogOpen}
+                setSettingsDialogOpen={setSettingsDialogOpen}
+              >
+                <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0">
+                  <IconSettings size={20} />
+                </Button>
+              </ResponsiveSettingsWrapper>
 
               <Wallet
                 connection={connection}
