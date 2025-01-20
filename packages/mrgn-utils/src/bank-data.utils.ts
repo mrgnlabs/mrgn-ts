@@ -3,6 +3,7 @@ import { ExtendedBankInfo, ExtendedBankMetadata, Emissions } from "@mrgnlabs/mar
 import { aprToApy, nativeToUi, WSOL_MINT } from "@mrgnlabs/mrgn-common";
 
 import { isBankOracleStale } from "./mrgnUtils";
+import BigNumber from "bignumber.js";
 
 export const REDUCE_ONLY_BANKS = ["stSOL", "RLB"];
 
@@ -14,6 +15,7 @@ export interface AssetData {
 
 export interface RateData {
   emissionRate: number;
+  emissionsRemaining: number;
   lendingRate: number;
   rateAPY: number;
   symbol: string;
@@ -76,7 +78,10 @@ export const getAssetData = (asset: ExtendedBankMetadata): AssetData => ({
 });
 
 export const getRateData = (bank: ExtendedBankInfo, isInLendingMode: boolean): RateData => {
-  const { lendingRate, borrowingRate, emissions, emissionsRate } = bank.info.state;
+  const { lendingRate, borrowingRate, emissionsRate, emissions } = bank.info.state;
+  let emissionsRemaining = bank.info.rawBank.emissionsRemaining
+    ? nativeToUi(bank.info.rawBank.emissionsRemaining, bank.info.rawBank.mintDecimals)
+    : 0;
 
   const interestRate = isInLendingMode ? lendingRate : borrowingRate;
   const emissionRate = isInLendingMode
@@ -93,6 +98,7 @@ export const getRateData = (bank: ExtendedBankInfo, isInLendingMode: boolean): R
 
   return {
     emissionRate,
+    emissionsRemaining: emissionsRemaining,
     lendingRate,
     rateAPY,
     symbol: bank.meta.tokenSymbol,
