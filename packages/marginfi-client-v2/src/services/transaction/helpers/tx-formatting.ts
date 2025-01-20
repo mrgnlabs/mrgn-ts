@@ -90,8 +90,8 @@ export function formatTransactions(
 
     let updatedFees = priorityFeeMicro;
     // don't want to pay more than 0.008 SOL in fees
-    if (priorityFeeUi > 0.008) {
-      updatedFees = uiToMicroLamports(0.008, cu);
+    if (priorityFeeUi > 0.025) {
+      updatedFees = uiToMicroLamports(0.025, cu);
     }
 
     priorityIxs.push(broadcastType === "BUNDLE" ? dummyPriorityFeeIx : makePriorityFeeMicroIx(updatedFees, cu));
